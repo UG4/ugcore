@@ -1,0 +1,4 @@
+rev 3 - sreiter
+	* changed typedef of uint to unsigned int in common/types.h
+		- compatibility reasons with Qt,
+		- uint should be short form of unsigned int.
