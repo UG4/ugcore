@@ -84,4 +84,3 @@ add_library(grid 	${srcGrid} ${srcAdvanced} ${srcAlgorithms}
 					${srcFileIO} ${srcLibGrid}
 					${srcTetgen} ${srcLgm} ${srcNg})
 
-add_dependencies(grid common)

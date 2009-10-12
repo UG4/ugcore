@@ -226,6 +226,8 @@ class AttachmentPipe
 		typedef Hash<AttachmentEntryIterator, uint>	AttachmentEntryIteratorHash;
 
 	public:
+		AttachmentPipe();
+
 		void clear();
 		void clear_elements();
 		void clear_attachments();

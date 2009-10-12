@@ -43,7 +43,7 @@ namespace ugtypes
 };
 
 
-typedef ugtypes::uintmax_t uint;
+typedef unsigned int uint;
 typedef ugtypes::uint8_t byte;
 typedef float number;
 

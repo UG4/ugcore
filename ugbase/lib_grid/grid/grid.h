@@ -407,6 +407,16 @@ class Grid
 		int get_associated_volumes(std::vector<Volume*>& vVolumesOut, FaceDescriptor* fd);
 */
 
+/*
+		EdgeBase* get_edge(VertexBase* v1, VertexBase* v2);
+		Face* get_face(const FaceDescriptor& fd);
+		Volume* get_volume(const VolumeDescriptor& vd);
+*/
+/*
+		int get_edges(std::vector<EdgeBase*>& edgesOut);
+		int get_faces(std::vector<Face*>& facesOut);
+		int get_volumes(std::vector<Volume*>& volumesOut);
+*/
 
 	//	subject to change!
 		EdgeBaseIterator associated_edges_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.

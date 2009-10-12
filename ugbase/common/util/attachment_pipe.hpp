@@ -12,6 +12,12 @@
 
 namespace ug
 {
+template <class TElem, class TElemHandlerTag>
+AttachmentPipe<TElem, TElemHandlerTag>::
+AttachmentPipe()
+{
+	m_numElements = 0;
+}
 
 template <class TElem, class TElemHandlerTag>
 void
