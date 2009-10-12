@@ -1,0 +1,296 @@
+//	created by Sebastian Reiter
+//	s.b.reiter@googlemail.com
+//	y09 m09 d10
+
+#ifndef __H__LIB_GRID__MULTI_GRID__
+#define __H__LIB_GRID__MULTI_GRID__
+
+#include <vector>
+#include <cassert>
+#include "lg_base.h"
+#include "common/util/array_util.h"
+
+//TODO:	Improve implementation of child-handling.
+//		Think about only allowing one child-vertex per element.
+//		Do we really need to be able to add children of any type
+//		to a vertex (think about the overhead of a section-container).
+
+namespace ug
+{
+//	The following constants define the maximum number of children
+//	for each element-type.
+//	This makes sense, since it allows us to align all the element
+//	information in memory.
+const int MG_EDGE_MAX_EDGE_CHILDREN = 2;///< maximal number of edges that can be children of an edge.
+const int MG_FACE_MAX_EDGE_CHILDREN = 4;///< maximal number of edges that can be children of a face.
+const int MG_FACE_MAX_FACE_CHILDREN = 4;///< maximal number of faces that can be children of a face.
+const int MG_VOLUME_MAX_EDGE_CHILDREN = 6;///< maximal number of edges that can be children of a volume.
+const int MG_VOLUME_MAX_FACE_CHILDREN = 12;///< maximal number of faces that can be children of a volume.
+const int MG_VOLUME_MAX_VOLUME_CHILDREN = 8;///< maximal number of volumes that can be children of a volume.
+
+///	Holds information about vertex relations. Used internally.
+struct MGVertexInfo
+{
+	MGVertexInfo()		{clear();}
+	inline void clear()	{m_pParent = m_pVrtChild = NULL;}
+	inline bool has_children()	{return m_pVrtChild != NULL;}
+	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
+	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
+	void erase_all_children(Grid& grid);
+	GeometricObject* 	m_pParent;
+	VertexBase*			m_pVrtChild;
+};
+
+///	Holds information about edge relations. Used internally.
+struct MGEdgeInfo
+{
+	MGEdgeInfo()		{clear();}
+	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = 0;}
+	inline bool has_children()	{return m_pVrtChild || m_numEdgeChildren;}
+	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
+	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_EDGE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
+	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
+	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
+	void erase_all_children(Grid& grid);
+	GeometricObject* 	m_pParent;
+	VertexBase*			m_pVrtChild;
+	EdgeBase* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
+	byte				m_numEdgeChildren;///< primarily required during refinement
+};
+
+///	Holds information about face relations. Used internally.
+struct MGFaceInfo
+{
+	MGFaceInfo()		{clear();}
+	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = 0;}
+	inline bool has_children()	{return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren;}
+	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
+	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_FACE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
+	inline void add_child(Face* elem)		{assert(m_numFaceChildren < MG_FACE_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
+	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
+	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
+	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
+	void erase_all_children(Grid& grid);
+	GeometricObject* 	m_pParent;
+	VertexBase*			m_pVrtChild;
+	EdgeBase* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
+	byte				m_numEdgeChildren;///< primarily required during refinement
+	Face*				m_pFaceChild[MG_FACE_MAX_FACE_CHILDREN];
+	byte				m_numFaceChildren;///< primarily required during refinement
+};
+
+///	Holds information about volume relations. Used internally.
+struct MGVolumeInfo
+{
+	MGVolumeInfo()		{clear();}
+	inline void clear()	{m_pParent = m_pVrtChild = NULL; m_numEdgeChildren = m_numFaceChildren = m_numVolChildren = 0;}
+	inline bool has_children()	{return m_pVrtChild || m_numEdgeChildren || m_numFaceChildren || m_numVolChildren;}
+	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
+	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_VOLUME_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
+	inline void add_child(Face* elem)		{assert(m_numFaceChildren < MG_VOLUME_MAX_FACE_CHILDREN); m_pFaceChild[m_numFaceChildren++] = elem;}
+	inline void add_child(Volume* elem)		{assert(m_numVolChildren < MG_VOLUME_MAX_VOLUME_CHILDREN); m_pVolChild[m_numVolChildren++] = elem;}
+	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
+	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
+	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
+	inline void remove_child(Volume* elem)		{m_numVolChildren = ArrayEraseEntry(m_pVolChild, elem, m_numVolChildren);}
+	void erase_all_children(Grid& grid);
+	GeometricObject* 	m_pParent;
+	VertexBase*			m_pVrtChild;
+	EdgeBase* 			m_pEdgeChild[MG_VOLUME_MAX_EDGE_CHILDREN];
+	byte				m_numEdgeChildren;///< primarily required during refinement
+	Face*				m_pFaceChild[MG_VOLUME_MAX_FACE_CHILDREN];
+	byte				m_numFaceChildren;///< primarily required during refinement
+	Volume*				m_pVolChild[MG_VOLUME_MAX_VOLUME_CHILDREN];
+	byte				m_numVolChildren;///< primarily required during refinement
+};
+
+///	access to connected types. used internally
+/**
+ * has to contain:
+ * 	- typedef info_type
+ */
+template <class TElem> class mginfo_traits{};
+
+///	vertex info traits. used internally.
+template <> class mginfo_traits<VertexBase>
+{
+	public:
+		typedef MGVertexInfo	info_type;
+};
+
+///	edge info traits. used internally.
+template <> class mginfo_traits<EdgeBase>
+{
+	public:
+		typedef MGEdgeInfo	info_type;
+};
+
+///	face info traits. used internally.
+template <> class mginfo_traits<Face>
+{
+	public:
+		typedef MGFaceInfo	info_type;
+};
+
+///	volume info traits. used internally.
+template <> class mginfo_traits<Volume>
+{
+	public:
+		typedef MGVolumeInfo	info_type;
+};
+////////////////////////////////////////////////////////////////////////
+/**
+ * Inherits from \sa Grid.
+ *
+ * A MultiGrid represents a grid hierarchy. Elements in a level have a
+ * parent / child relationship to elements in lower / higher levels.
+ * Such a hierarchy is normally created by repeated refinement of a
+ * coarse grid.
+ * Enhances the Grid interface by methods that work on specific levels.
+ * The MultiGrid stores all elements in one grid.
+ * The hierarchy is managed by a SubsetHandler.
+ * If elements are created and hierarchical insertion is activated, then
+ * new elements are added one layer higher than their parents.
+ * (NULL indicates base-level).
+ */
+class MultiGrid : public Grid, public GridObserver
+{
+	protected:
+		typedef MGVertexInfo VertexInfo;
+		typedef MGEdgeInfo EdgeInfo;
+		typedef MGFaceInfo FaceInfo;
+		typedef MGVolumeInfo VolumeInfo;
+
+	public:
+		MultiGrid();
+		virtual ~MultiGrid();
+
+		void enable_hierarchical_insertion(bool bEnable);
+		inline bool hierarchical_insertion_enabled()	{return m_bHierarchicalInsertion;}
+
+		inline uint num_levels()	{return m_hierarchy.num_subsets();}
+
+		template <class TElem> inline
+		uint num(int level)			{return m_hierarchy.num<TElem>(level);}
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		begin(int level)
+		{return m_hierarchy.template begin<TElem>(level);}
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		end(int level)
+		{return m_hierarchy.template end<TElem>(level);}
+
+		template <class TElem> inline
+		int get_level(TElem* elem)
+		{return m_hierarchy.get_subset_index(elem);}
+
+		GeometricObject* get_parent(GeometricObject* parent);
+
+		template <class TElem> inline
+		GeometricObject* get_parent(TElem* elem)
+		{return get_info(elem).m_pParent;}
+
+	//	number of children
+		template <class TElem> inline
+		bool has_children(TElem* elem)
+		{return get_info(elem).has_children();}
+/*
+		template <class TChild, class TElem>
+		int num_children(TElem* elem);
+
+	//	child access
+		template <class TChild, class TElem>
+		int get_children(std::vector<TChild*>& vChildrenOut, TElem* elem);
+*/
+	//	direct access to child-vertices
+	///	this method allows fast child-vertex-access in case of regular refinement.
+		template <class TElem>
+		inline VertexBase* get_child_vertex(TElem* elem)	{return get_info(elem).m_pVrtChild;}
+
+	////////////////////////////////////////////////////////////////////////
+	//	Don't invoke the following methods directly!
+	//	They are intended for internal feedback only.
+
+	//	grid callbacks
+		virtual void elements_to_be_cleared(Grid* grid);
+
+	//	vertex callbacks
+		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL);
+		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt);
+		virtual void vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew);
+
+	//	edge callbacks
+		virtual void edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent = NULL);
+		virtual void edge_to_be_erased(Grid* grid, EdgeBase* edge);
+		virtual void edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld, EdgeBase* edgeNew);
+
+	//	face callbacks
+		virtual void face_created(Grid* grid, Face* face, GeometricObject* pParent = NULL);
+		virtual void face_to_be_erased(Grid* grid, Face* face);
+		virtual void face_to_be_replaced(Grid* grid, Face* faceOld, Face* faceNew);
+
+	//	volume callbacks
+		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL);
+		virtual void volume_to_be_erased(Grid* grid, Volume* vol);
+		virtual void volume_to_be_replaced(Grid* grid, Volume* volOld, Volume* volNew);
+
+	protected:
+
+		typedef Attachment<VertexInfo>	AVertexInfo;
+		typedef Attachment<EdgeInfo>		AEdgeInfo;
+		typedef Attachment<FaceInfo>		AFaceInfo;
+		typedef Attachment<VolumeInfo>	AVolumeInfo;
+
+	protected:
+	//	info-access
+		inline VertexInfo& get_info(VertexBase* v)	{return m_aaVrtInf[v];}
+		inline EdgeInfo& get_info(EdgeBase* e)		{return m_aaEdgeInf[e];}
+		inline FaceInfo& get_info(Face* f)			{return m_aaFaceInf[f];}
+		inline VolumeInfo& get_info(Volume* v)		{return m_aaVolInf[v];}
+
+	//	elem creation
+		template <class TElem>
+		inline void element_created(TElem* elem)	{element_created<TElem, TElem>(elem, NULL);}
+
+		template <class TElem, class TParent>
+		void element_created(TElem* elem, TParent* pParent);
+
+	///	this method is called for elements that havn't got any parent.
+		template <class TElem>
+		void element_to_be_erased(TElem* elem);
+
+	///	this method is called for elements with a parent.
+		template <class TElem, class TParent>
+		void element_to_be_erased(TElem* elem, TParent* pParent);
+
+		//template <class TElem>
+		//void element_to_be_replaced(TElem* elemOld, TElem* elemNew);
+
+	protected:
+	//	hierarchy
+		SubsetHandler	m_hierarchy;
+		bool m_bHierarchicalInsertion;
+
+	//	info attachments
+		AVertexInfo	m_aVertexInfo;
+		AEdgeInfo	m_aEdgeInfo;
+		AFaceInfo	m_aFaceInfo;
+		AVolumeInfo	m_aVolumeInfo;
+
+	//	element info access
+		Grid::VertexAttachmentAccessor<AVertexInfo>	m_aaVrtInf;
+		Grid::EdgeAttachmentAccessor<AEdgeInfo>		m_aaEdgeInf;
+		Grid::FaceAttachmentAccessor<AFaceInfo>		m_aaFaceInf;
+		Grid::VolumeAttachmentAccessor<AVolumeInfo>	m_aaVolInf;
+};
+
+}//	end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "multi_grid_impl.hpp"
+
+#endif
