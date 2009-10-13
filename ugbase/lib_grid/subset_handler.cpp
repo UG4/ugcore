@@ -15,6 +15,7 @@ SubsetInfo::SubsetInfo()
 {
 	name = "";
 	materialIndex = -1;
+	subsetState = SS_NONE;
 }
 
 ////////////////////////////////////////////////////////////////////////

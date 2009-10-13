@@ -16,13 +16,40 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+//	SubsetState
+///	The SubsetState is not yet really used inside of libGrid.
+/**
+ * The main reason why a SubsetState is introduced, is that
+ * applications that use libGrid need a mechanism to store
+ * information in a subset.
+ * It would be a good idea to think about an attachment-like system
+ * for subsets.
+ */
+enum SubsetState
+{
+	SS_NONE = 0,
+	SS_USER_STATE = 1 << 16
+};
+
+////////////////////////////////////////////////////////////////////////
 //	SubsetInfo
 ///	a struct that holds information associated with subsets.
+/**
+ * In the moment a SubsetInfo is a collection of various types.
+ * None of them are really required for libGrid (indeed only name and
+ * materialIndex are used in the moment).
+ * The other variables are introduced mainly for applications that use
+ * libGrid. This is not the best way to do this!
+ * It would be a good idea to think about an attachment-like system
+ * for subsets.
+ */
 struct SubsetInfo
 {
 	SubsetInfo();
 	std::string	name;
 	int			materialIndex;
+	vector4		color;
+	uint		subsetState;///< an or-combination of SubsetState flags.
 };
 
 ////////////////////////////////////////////////////////////////////////
