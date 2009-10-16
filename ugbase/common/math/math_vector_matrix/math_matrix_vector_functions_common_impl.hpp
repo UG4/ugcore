@@ -25,10 +25,10 @@ MatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v)
 	typedef typename matrix_t::size_type size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
-		vOut(i) = 0.0;
+		vOut[i] = 0.0;
 		for(size_type j = 0; j < v.size(); ++j)
 		{
-			vOut(i) += m(i,j) * v(j);
+			vOut[i] += m(i,j) * v[j];
 		}
 	}
 }
@@ -43,10 +43,10 @@ TransposedMatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v)
 	typedef typename matrix_t::size_type size_type;
 	for(size_type i = 0; i < vOut.size(); ++i)
 	{
-		vOut(i) = 0.0;
+		vOut[i] = 0.0;
 		for(size_type j = 0; j < v.size(); ++j)
 		{
-			vOut(i) += m(j,i) * v(j);
+			vOut[i] += m(j,i) * v[j];
 		}
 	}
 }
