@@ -17,34 +17,36 @@ namespace ug
 
 /// Matrix - Vector Muliplication
 // vOut = m * v
-template <int N, int M>
+template <typename matrix_t, typename vector_t>
 inline
 void
-MatVecMult(MathVector<N>& vOut, const MathMatrix<N,M>& m, const MathVector<M>& v)
+MatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v)
 {
-	for(uint i = 0; i < MathVector<N>::Size; ++i)
+	typedef typename matrix_t::size_type size_type;
+	for(size_type i = 0; i < vOut.size(); ++i)
 	{
-		vOut.coord(i) = 0.0;
-		for(uint j = 0; j < MathVector<M>::Size; ++j)
+		vOut(i) = 0.0;
+		for(size_type j = 0; j < v.size(); ++j)
 		{
-			vOut.coord(i) += m.entry(i,j) * v.coord(j);
+			vOut(i) += m(i,j) * v(j);
 		}
 	}
 }
 
 /// Transposed Matrix - Vector Muliplication
 // vOut = Transpose(m) * v
-template <int N, int M>
+template <typename matrix_t, typename vector_t>
 inline
 void
-TransposedMatVecMult(MathVector<N>& vOut, const MathMatrix<M,N>& m, const MathVector<M>& v)
+TransposedMatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v)
 {
-	for(uint i = 0; i < MathVector<N>::Size; ++i)
+	typedef typename matrix_t::size_type size_type;
+	for(size_type i = 0; i < vOut.size(); ++i)
 	{
-		vOut.coord(i) = 0.0;
-		for(uint j = 0; j < MathVector<M>::Size; ++j)
+		vOut(i) = 0.0;
+		for(size_type j = 0; j < v.size(); ++j)
 		{
-			vOut.coord(i) += m.entry(j,i) * v.coord(j);
+			vOut(i) += m(j,i) * v(j);
 		}
 	}
 }

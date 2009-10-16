@@ -16,161 +16,171 @@ namespace ug{
 
 ///	adds two matrices and stores the result in a third one
 // mOut = m1 + m2
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatAdd(MathMatrix<N,M>& mOut, const MathMatrix<N,M>& m1, const MathMatrix<N,M>& m2);
+MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
 
 ////////////////////////////////////////////////////////////////
 // Subtraction of Matrices
 
 ///	subtracts m2 from m1 and stores the result in a mOut
 // mOut = m1 - m2
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatSubtract(MathMatrix<N,M>& mOut, const MathMatrix<N,M>& m1, const MathMatrix<N,M>& m2);
+MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
 
 ////////////////////////////////////////////////////////////////
 // Scaling of Matrices
 
-///	scales a MathMatrix<N,M>
+///	scales a matrix_t
 // mOut = s * m
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatScale(MathMatrix<N,M>& mOut, typename MathMatrix<N,M>::value_type s, const MathMatrix<N,M>& m);
+MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m);
 
 ////////////////////////////////////////////////////////////////
 // Determinant of Matrix
 
-/// Determinant of a MathMatrix<N,M>
+/// Determinant of a matrix_t
+template <typename T>
 inline
-MathMatrix<2,2>::value_type
-Determinant(const MathMatrix<2,2>& m);
+typename MathMatrix<2,2,T>::value_type
+Determinant(const MathMatrix<2,2,T>& m);
+template <typename T>
 inline
-MathMatrix<3,3>::value_type
-Determinant(const MathMatrix<3,3>& m);
+typename MathMatrix<3,3,T>::value_type
+Determinant(const MathMatrix<3,3,T>& m);
 
 ////////////////////////////////////////////////////////////////
 // Transposed of Matrix
 
-/// transpose a MathMatrix<N,M>
-template <int N, int M>
+/// transpose a matrix_t
+template <typename matrix_t>
 inline
 void
-Transpose(MathMatrix<N,M>& mOut, const MathMatrix<N,M>& m);
+Transpose(matrix_t& mOut, const matrix_t& m);
 
-/// transpose a MathMatrix<N,M>, override original MathMatrix<N,M>
-template <int N, int M>
+/// transpose a matrix_t, override original matrix_t
+template <typename matrix_t>
 inline
 void
-Transpose(MathMatrix<N,M>& m);
+Transpose(matrix_t& m);
 
 ////////////////////////////////////////////////////////////////
 // Inverse of Matrix
 
-/// Inverse of a MathMatrix<N,M>
+/// Inverse of a matrix_t
+template <typename T>
 inline
 void
-Inverse(MathMatrix<2,2>& mOut, const MathMatrix<2,2>& m);
+Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m);
+template <typename T>
 inline
 void
-Inverse(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m);
+Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 
-/// Inverse of a MathMatrix<N,M>
+/// Inverse of a matrix_t
+template <typename T>
 inline
 void
-Inverse(MathMatrix<2,2>& mOut, const MathMatrix<2,2>& m, MathMatrix<2,2>::value_type& det);
+Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det);
+template <typename T>
 inline
 void
-Inverse(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m, MathMatrix<3,3>::value_type& det);
+Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix<3,3,T>::value_type& det);
 
 ////////////////////////////////////////////////////////////////
 // Inverse Transposed of Matrix
 
-/// Transposed-Inverse of a MathMatrix<N,M> (= Inverse-Transposed of a MathMatrix<N,M>)
+/// Transposed-Inverse of a matrix_t (= Inverse-Transposed of a matrix_t)
+template <typename T>
 inline
 void
-InverseTransposed(MathMatrix<2,2>& mOut, const MathMatrix<2,2>& m);
+InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m);
+template <typename T>
 inline
 void
-InverseTransposed(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m);
+InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 
-/// Transposed-Inverse of a MathMatrix<N,M> (= Inverse-Transposed of a MathMatrix<N,M>)
+/// Transposed-Inverse of a matrix_t (= Inverse-Transposed of a matrix_t)
+template <typename T>
 inline
 void
-InverseTransposed(MathMatrix<2,2>& mOut, const MathMatrix<2,2>& m, MathMatrix<2,2>::value_type& det);
+InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det);
+template <typename T>
 inline
 void
-InverseTransposed(MathMatrix<3,3>& mOut, const MathMatrix<3,3>& m, MathMatrix<3,3>::value_type& det);
+InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix<3,3,T>::value_type& det);
 
 ////////////////////////////////////////////////////////////////
 // Scalar operations for Matrices
 
 /// Set each matrix entry to a scalar (componentwise)
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatSet(MathMatrix<N,M>& mInOut, typename MathMatrix<N,M>::value_type s);
+MatSet(matrix_t& mInOut, typename matrix_t::value_type s);
 
 /// Set each diagonal of a matrix to a scalar (componentwise)
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatDiagSet(MathMatrix<N,M>& mInOut, typename MathMatrix<N,M>::value_type s);
+MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s);
 
 /// Add a scalar to a vector (componentwise)
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatAdd(MathMatrix<N,M>& mOut, const MathMatrix<N,M>& m, typename MathMatrix<N,M>::value_type s);
+MatAdd(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
 /// Subtract a scalar from a vector (componentwise)
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatSubtract(MathMatrix<N,M>& mOut, const MathMatrix<N,M>& m, typename MathMatrix<N,M>::value_type s);
+MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
 /// Devide a vector by a scalar (componentwise)
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatDevide(MathMatrix<N,M>& mOut, const MathMatrix<N,M>& m, typename MathMatrix<N,M>::value_type s);
+MatDevide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
 /// Multiply a vector by a scalar (componentwise)
-template <int N, int M>
+template <typename matrix_t>
 inline
 void
-MatMultiply(MathMatrix<N,M>& mOut, const MathMatrix<N,M>& m, typename MathMatrix<N,M>::value_type s);
+MatMultiply(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
 ////////////////////////////////////////////////////////////////
 // Norms for Matrices
 
-template <int N, int M>
+template <typename matrix_t>
 inline
-typename MathMatrix<N,M>::value_type
-MatFrobeniusNormSq(MathMatrix<N,M>& m);
+typename matrix_t::value_type
+MatFrobeniusNormSq(matrix_t& m);
 
-template <int N, int M>
+template <typename matrix_t>
 inline
-typename MathMatrix<N,M>::value_type
-MatFrobeniusNorm(MathMatrix<N,M>& m);
+typename matrix_t::value_type
+MatFrobeniusNorm(matrix_t& m);
 
-template <int N, int M>
+template <typename matrix_t>
 inline
-typename MathMatrix<N,M>::value_type
-MatOneNorm(MathMatrix<N,M>& m);
+typename matrix_t::value_type
+MatOneNorm(matrix_t& m);
 
-template <int N, int M>
+template <typename matrix_t>
 inline
-typename MathMatrix<N,M>::value_type
-MatInftyNorm(MathMatrix<N,M>& m);
+typename matrix_t::value_type
+MatInftyNorm(matrix_t& m);
 
-template <int N, int M>
+template <typename matrix_t>
 inline
-typename MathMatrix<N,M>::value_type
-MatMaxNorm(MathMatrix<N,M>& m);
+typename matrix_t::value_type
+MatMaxNorm(matrix_t& m);
 
 
 
@@ -180,4 +190,4 @@ MatMaxNorm(MathMatrix<N,M>& m);
 //	include a general, but not very fast implementation of the declared methods above.
 #include "math_matrix_functions_common_impl.hpp"
 
-#endif /* __H__LGMATH__LGMATH_MathMatrix<N,M>_FUNCTIONS__ */
+#endif /* __H__LGMATH__LGMATH_MATRIX_FUNCTIONS__ */
