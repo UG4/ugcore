@@ -15,14 +15,14 @@ namespace ug{
 
 /// Matrix - Vector Muliplication
 // vOut = m * v
-template <typename vector_t, typename matrix_t>
+template <typename matrix_t, typename vector_t>
 inline
 void
 MatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v);
 
 /// Transposed Matrix - Vector Muliplication
 // vOut = Transpose(m) * v
-template <typename vector_t, typename matrix_t>
+template <typename matrix_t, typename vector_t>
 inline
 void
 TransposedMatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v);
