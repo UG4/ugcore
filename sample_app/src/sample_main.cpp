@@ -2,21 +2,39 @@
 //	s.b.reiter@googlemail.com
 //	y09 m10 d06
 
+////////////////////////////////////////////////////////////////////////
+//	This sample project is primarily intended to demonstrate how a
+//	project that uses ug can be set up.
+//	It also shows how the profiler that comes with ug (Shiny Profiler)
+//	can be used.
+//	Used profiler instructions are:
+//		PROFILE_FUNC();
+//		PROFILE_BEGIN(sectionName);
+//		PROFILE_END();
+//		PROFILE_CODE(SaveGridToFile(grid, "sample_triangle.obj"));
+//		PROFILER_UPDATE();
+//		PROFILER_OUTPUT();
+//
+//	Code that is executed during PROFILE_CODE will be executed even
+//	if the profiler is disabled via SHINY_PROFILER = FALSE.
+//	For more information about the profiler take a look at
+//	ugbase/common/profiler/
+////////////////////////////////////////////////////////////////////////
+
 #include <iostream>
 #include "lib_grid/lib_grid.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 using namespace ug;
 
 ////////////////////////////////////////////////////////////////////////
-//	main
-int main(int argc, char* argv[])
+//	build_geometry
+void build_geometry(Grid& grid)
 {
-//	creates a triangle and stores it in a .obj file.
+//	enables profiling for the whole method.
+	PROFILE_FUNC();
 
-//	create a grid.
-	Grid grid;
-	
 //	create vertices
 	cout << "creating vertices...\n";
 	Vertex* v1 = *grid.create<Vertex>();
@@ -38,12 +56,37 @@ int main(int argc, char* argv[])
 	cout << "creating triangle...\n";
 	grid.create<Triangle>(TriangleDescriptor(v1, v2, v3));
 
+}
+
+////////////////////////////////////////////////////////////////////////
+//	main
+int main(int argc, char* argv[])
+{
+//	creates a triangle and stores it in a .obj file.
+
+//	begin profiling for the main section.
+//	main_section is an arbitrary name.
+	PROFILE_BEGIN(main_section);
+
+//	create a grid.
+	Grid grid;
+	
+//	build geometry
+	build_geometry(grid);
+
 //	save the grid
+//	we want to measure the time that SaveGridToFile takes.
 	cout << "saving to sample_triangle.obj...\n";
-	SaveGridToFile(grid, "sample_triangle.obj");
+	PROFILE_CODE(SaveGridToFile(grid, "sample_triangle.obj"));
 
 //	done
-	cout << "done\n";
+	cout << "done\n\n";
+
+	PROFILE_END();
+	
+//	call this for output.
+	PROFILER_UPDATE();
+	PROFILER_OUTPUT();
 
 	return 0;
 }
