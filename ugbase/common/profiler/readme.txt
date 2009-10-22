@@ -4,6 +4,7 @@ Some files have been slightly altered to ensure compatibility with ug and to rem
 altered files are:
 	ShinyMacros.h
 	ShinyPrereqs.h
+	ShinyNodePool.cpp
 
 The profiler can be disabled by adding
 #define SHINY_PROFILER = FALSE

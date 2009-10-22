@@ -21,11 +21,19 @@ restrictions:
     3. This notice may not be removed or altered from any source distribution.
 */
 
+/*
+This file has been altered by Sebastian Reiter (s.b.reiter@googlemail.com).
+I replaced some includes and defines, to make it easier to integrate shiny
+into ug.
+New code is marked with //sreiter
+*/
+
 #include "ShinyNodePool.h"
 #include "ShinyTools.h"
 
+#include <cstdlib>		//sreiter
 #include <memory.h>
-#include <malloc.h>
+//#include <malloc.h>	//sreiter
 
 #if SHINY_PROFILER == TRUE
 namespace Shiny {
