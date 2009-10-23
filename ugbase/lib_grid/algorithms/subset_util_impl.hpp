@@ -55,6 +55,23 @@ void MakeSubsetsConsecutive(SubsetHandler& sh)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedVerticesToSubset
+template <class TIterator>
+void AssignAssociatedVerticesToSubset(SubsetHandler& sh, TIterator elemsBegin,
+										TIterator elemsEnd, int subsetIndex)
+{
+//	iterate through the elements
+	for(;elemsBegin != elemsEnd; elemsBegin++)
+	{
+		typename TIterator::value_type elem = *elemsBegin;
+		uint numVrts = elem->num_vertices();
+	//	iterate through the vertices of elem and assign them
+		for(uint i = 0; i < numVrts; ++i)
+			sh.assign_subset(elem->vertex(i), subsetIndex);
+	}
+}
+
 }//	end of namespace
 
 #endif

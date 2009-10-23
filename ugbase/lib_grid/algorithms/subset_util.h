@@ -59,6 +59,17 @@ void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh);
 void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedVerticesToSubset
+///	assigns vertices of the given elements to the subset at subsetIndex
+/**
+ * TIterator should be an stl-compatible iterator. Its value_type should be
+ * a pointer to either EdgeBase, Face, Volume or an derived type of the three.
+ */
+template <class TIterator>
+void AssignAssociatedVerticesToSubset(SubsetHandler& sh, TIterator elemsBegin,
+										TIterator elemsEnd, int subsetIndex);
+										
+////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg
 ///	reorders subsets in a way that allows for easy export to lgm-ng.
 /**
