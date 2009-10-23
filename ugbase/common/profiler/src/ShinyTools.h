@@ -21,6 +21,15 @@ restrictions:
     3. This notice may not be removed or altered from any source distribution.
 */
 
+/*
+This file has been altered by Sebastian Reiter (s.b.reiter@googlemail.com).
+I replaced some includes and defines, to make it easier to integrate shiny
+into ug.
+The hash-function problem is not yet solved!
+The hash-function won't work correctly for 64-bit.
+New code is marked with //sreiter
+*/
+
 #ifndef SHINY_TOOLS_H
 #define SHINY_TOOLS_H
 
@@ -57,7 +66,9 @@ namespace Shiny {
 #endif
 
 	inline uint32_t ptr32(const void *a_Ptr) {
-		return reinterpret_cast<uint32_t>(a_Ptr);
+		unsigned long int tmp = (unsigned long int)a_Ptr;//sreiter
+		uint32_t u = (uint32_t)tmp;//sreiter
+		return tmp;//sreiter
 	}
 
 #if SHINY_COMPILER == SHINY_COMPILER_MSVC
