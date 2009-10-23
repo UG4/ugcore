@@ -6,18 +6,11 @@
 #define __UTIL__ATTACHMENT_PIPE__IMPL__
 
 #include "attachment_pipe.h"
-#include "../common.h"
 
 #define ATRAITS attachment_traits<TElem, TElemHandlerTag>
 
 namespace ug
 {
-template <class TElem, class TElemHandlerTag>
-AttachmentPipe<TElem, TElemHandlerTag>::
-AttachmentPipe()
-{
-	m_numElements = 0;
-}
 
 template <class TElem, class TElemHandlerTag>
 void
@@ -131,7 +124,7 @@ attach(TAttachment& attachment, const typename TAttachment::ValueType& defaultVa
 	}
 	else
 	{
-		LOG("WARNING: attachment " << attachment.get_name() << " already attached." << std::endl);
+//TODO: do something!
 	}
 }
 
@@ -154,7 +147,7 @@ attach(IAttachment& attachment, uint options)
 	}
 	else
 	{
-		LOG("WARNING: attachment " << attachment.get_name() << " already attached." << std::endl);
+//TODO: do something!
 	}
 }
 
@@ -166,8 +159,10 @@ detach(IAttachment& attachment)
 	if(has_attachment(attachment))
 	{
 		AttachmentEntryIterator iter = m_attachmentEntryIteratorHash.first(attachment.id());
-		SAFE_DELETE((*iter).m_pAttachment);
-		SAFE_DELETE((*iter).m_pContainer);
+		delete ((*iter).m_pAttachment);
+		((*iter).m_pAttachment) = NULL;
+		delete((*iter).m_pContainer);
+		((*iter).m_pContainer) = NULL;
 		m_attachmentEntryContainer.erase(iter);
 		m_attachmentEntryIteratorHash.erase(attachment.id());
 	}
@@ -181,6 +176,22 @@ has_attachment(IAttachment& attachment) const
 	return m_attachmentEntryIteratorHash.has_entries(attachment.id());
 }
 
+
+template <class TElem, class TElemHandlerTag>
+template <class TAttachment>
+typename TAttachment::ValueType*
+AttachmentPipe<TElem, TElemHandlerTag>::
+get_data_array(TAttachment& attachment)
+{
+	if(has_attachment(attachment))
+		return get_data_container(attachment)->get_ptr();
+/*
+		return ((typename TAttachment::ContainerType*)
+				m_attachmentEntryIteratorHash.first(attachment.id())->m_pContainer)->get_ptr();
+*/
+	return NULL;
+}
+
 template <class TElem, class TElemHandlerTag>
 IAttachmentDataContainer*
 AttachmentPipe<TElem, TElemHandlerTag>::
@@ -190,6 +201,19 @@ get_data_container(IAttachment& attachment) const
 		return (*m_attachmentEntryIteratorHash.first(attachment.id())).m_pContainer;
 	return NULL;
 }
+
+template <class TElem, class TElemHandlerTag>
+template <class TAttachment>
+typename TAttachment::ContainerType*
+AttachmentPipe<TElem, TElemHandlerTag>::
+get_data_container(TAttachment& attachment)
+{
+	if(has_attachment(attachment))
+		return ((typename TAttachment::ContainerType*)
+				m_attachmentEntryIteratorHash.first(attachment.id())->m_pContainer);
+	return NULL;
+}
+
 
 template <class TElem, class TElemHandlerTag>
 void

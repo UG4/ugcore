@@ -191,6 +191,17 @@ util::IAttachmentDataContainer* Grid::get_data_container(util::IAttachment& atta
 }
 */
 
+template <class TGeomObj, class TAttachment>
+typename TAttachment::ContainerType*
+Grid::get_attachment_data_container(TAttachment& attachment)
+{
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+			invalid_GeomObj);
+
+	return m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].
+			m_attachmentPipe.get_data_container(attachment); 
+}
+
 template <class TGeomObj>
 const AttachmentPipe<GeometricObject*, Grid>&
 Grid::get_attachment_pipe() const

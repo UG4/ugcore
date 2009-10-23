@@ -30,9 +30,14 @@ typedef Attachment<vector3>		AVector3;
 typedef Attachment<vector4>		AVector4;
 typedef Attachment<VertexBase*>	AVertexBase;
 
-typedef AVector3	APosition;
-typedef AVector3	ANormal;
+typedef AVector2	APosition2;
+typedef AVector3	ANormal2;
+typedef AVector3	APosition3;
+typedef AVector3	ANormal3;
 typedef AVector2	ATexCoord;
+
+typedef APosition3	APosition;
+typedef ANormal3	ANormal;
 
 ////////////////////////////////////////////////////////////////////////
 //	concrete attachments

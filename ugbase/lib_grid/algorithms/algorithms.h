@@ -9,5 +9,6 @@
 #include "geom_obj_util/geom_obj_util.h"
 #include "grid_generation/grid_generation.h"
 #include "subset_util.h"
+#include "attachment_util.h"
 
 #endif

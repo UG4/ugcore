@@ -11,17 +11,11 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
-//	standard methods for loading
-//bool LoadGridFromFile(Grid& grid, const char* filename);
-
+///	loads a grid from txt
 bool LoadGridFromTXT(Grid&grid, const char* filename, AVector3& aPos = aPosition);
 
-
-
 ////////////////////////////////////////////////////////////////////////
-//	standard methods for saving
-//bool SaveGridToFile(Grid& grid, const char* filename, AVector3& aPos);
-
+///	saves a grid to txt
 bool SaveGridToTXT(Grid& grid, const char* filename, AVector3& aPos = aPosition);
 
 

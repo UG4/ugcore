@@ -8,8 +8,8 @@
 #include <list>
 #include <vector>
 #include <stack>
-#include "uid.h"
 #include "../types.h"
+#include "uid.h"
 #include "hash.h"
 
 namespace ug
@@ -123,8 +123,8 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 		inline const T& operator[] (uint index) const	{return m_vData[index];}
 		inline T& operator[] (uint index)				{return m_vData[index];}
 
-		inline const T* get_ptr() const			{return &m_vData.first();}
-		inline T* get_ptr()						{return &m_vData.first();}
+		inline const T* get_ptr() const			{return &m_vData.front();}
+		inline T* get_ptr()						{return &m_vData.front();}
 
 	protected:
 		std::vector<T>	m_vData;
@@ -226,8 +226,6 @@ class AttachmentPipe
 		typedef Hash<AttachmentEntryIterator, uint>	AttachmentEntryIteratorHash;
 
 	public:
-		AttachmentPipe();
-
 		void clear();
 		void clear_elements();
 		void clear_attachments();
@@ -240,10 +238,19 @@ class AttachmentPipe
 		template <class TAttachment>
 		void attach(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, uint options);
 
-		void attach(IAttachment& attachment, uint options);
+		void attach(IAttachment& attachment, uint options = 0);
 		void detach(IAttachment& attachment);
 		bool has_attachment(IAttachment& attachment) const;
+
+		template <class TAttachment>
+		typename TAttachment::ValueType*
+		get_data_array(TAttachment& attachment);
+		
 		IAttachmentDataContainer* get_data_container(IAttachment& attachment) const;
+		
+		template <class TAttachment>
+		typename TAttachment::ContainerType*
+		get_data_container(TAttachment& attachment);
 
 		inline ConstAttachmentEntryIterator attachments_begin() const	{return m_attachmentEntryContainer.begin();}
 		inline ConstAttachmentEntryIterator attachments_end() const		{return m_attachmentEntryContainer.end();}

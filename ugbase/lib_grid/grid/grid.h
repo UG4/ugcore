@@ -362,9 +362,15 @@ class Grid
 		inline bool has_face_attachment(IAttachment& attachment)	{return has_attachment<Face>(attachment);}
 		inline bool has_volume_attachment(IAttachment& attachment)	{return has_attachment<Volume>(attachment);}
 
+	////////////////////////////////////////////////////////////////////////
+	//	direct attachment access
 		template <class TGeomObj>
 		uint get_attachment_data_index(TGeomObj* pObj);
 
+		template <class TGeomObj, class TAttachment>
+		typename TAttachment::ContainerType*
+		get_attachment_data_container(TAttachment& attachment);
+		
 	//	observers
 		/**
 		 * observerType may be any or-combination of constants enumerated in ObserverType.
