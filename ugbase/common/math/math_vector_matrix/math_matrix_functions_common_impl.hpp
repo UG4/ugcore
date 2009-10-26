@@ -9,7 +9,7 @@
 #define __H__LGMATH__LGMATH_MATRIX_FUNCTIONS_COMMON_IMPL__
 
 #include <cmath>
-#include <iostream>matrix_t
+#include <iostream>
 #include <iomanip>
 #include <cassert>
 #include "math_matrix.h"
