@@ -58,7 +58,7 @@ namespace Shiny {
 		const TimeUnit *totalUnit = GetTimeUnit(totalTicksAvg);
 
 		snprintf(dest, OUTPUT_WIDTH_DATA + TRAILING,
-			" %*.1f %*.0f %-2s %*.0f%% %*.0f %-2s %*.0f%%",
+			" %*.1f %*.2f %-2s %*.0f%% %*.2f %-2s %*.0f%%",
 			OUTPUT_WIDTH_HIT, a_data.entryCount.avg,
 			OUTPUT_WIDTH_TIME, a_data.selfTicks.avg * selfUnit->invTickFreq, selfUnit->suffix,
 			OUTPUT_WIDTH_PERC, a_data.selfTicks.avg * a_topercent,

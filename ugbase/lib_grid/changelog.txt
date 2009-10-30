@@ -1,0 +1,19 @@
+@rev 24: sreiter - y09 m10 d30
+-	replaced FindEdge, FindFace and FindVolume in grid_util.h by
+	Grid::get_edge, Grid::get_face and Grid::get_volume in grid.h.
+	
+-	replaced EdgeMatches, FaceMatches, VolumeMatches by
+	CompareVertices (in grid_util.h)
+	
+-	Moved IsBoundary... from grid_util.h to the appropriate util-files
+	in algorithms/geom_obj_util/
+	
+-	Created the common base class EdgeVertices for EdgeDescriptor
+	and EdgeBase. Same for Face and Volume. Those common base-classes
+	store vertices in arrays and allow vertex-access.
+	
+-	Added hash-functions for EdgeBase*, EdgeVertices* and EdgeDescriptor*.
+	Same for Face and Volume.
+
+-	Added a uint32 member m_hashValue to VertexBase. On creation a unique
+	hash value is assigned to each vertex in the grid.

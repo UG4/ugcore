@@ -20,7 +20,7 @@ int GetEdgeIndex(Face* f, EdgeBase* e)
 	for(uint i = 0; i < numEdges; ++i)
 	{
 		f->edge(i, ed);
-		if(EdgeMatches(e, ed))
+		if(CompareVertices(e, &ed))
 			return (int)i;
 	}
 	return -1;
@@ -34,10 +34,36 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e)
 	for(uint i = 0; i < numEdges; ++i)
 	{
 		vol->edge(i, ed);
-		if(EdgeMatches(e, ed))
+		if(CompareVertices(e, &ed))
 			return (int)i;
 	}
 	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////
+bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
+{
+//	get the number of connected faces. if only one face is connected then
+//	the edge is considered to be a boundary edge.
+	int counter = 0;
+	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	{
+		for(FaceIterator iter = grid.associated_faces_begin(e);
+			iter != grid.associated_faces_end(e); ++iter)
+			++counter;
+
+		if(counter == 1)
+			return true;
+	}
+	else
+	{
+	//	fill a vector using a helper function
+		vector<Face*> vFaces;
+		CollectFaces(vFaces, grid, e, false);
+		if(vFaces.size() == 1)
+			return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -156,7 +182,7 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e)
 					fd.set_vertex(2, v1);
 					for(uint k = 0; k < vFaces.size(); ++k)
 					{
-						if(FaceMatches(vFaces[k], fd))
+						if(CompareVertices(vFaces[k], &fd))
 						{
 							bGotOne = true;
 							break;

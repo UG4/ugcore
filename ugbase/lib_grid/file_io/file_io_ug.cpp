@@ -466,7 +466,7 @@ static bool GetRightLeftUnitIndex(int& rightIndex, int& leftIndex, Grid& grid, F
 		for(i = 0; i < v->num_faces(); ++i)
 		{
 			v->face(i, fd);
-			if(FaceMatches(face, fd))
+			if(CompareVertices(face, &fd))
 			{
 			//	we found a matching face.
 			//	check whether the orientation is the same as in the face or not

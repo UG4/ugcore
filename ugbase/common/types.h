@@ -45,6 +45,7 @@ namespace ugtypes
 
 typedef unsigned int uint;
 typedef ugtypes::uint8_t byte;
+typedef ugtypes::uint32_t uint32;
 typedef float number;
 
 

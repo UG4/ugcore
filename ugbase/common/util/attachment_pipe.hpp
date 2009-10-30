@@ -279,7 +279,6 @@ void
 AttachmentPipe<TElem, TElemHandlerTag>::
 grow_attachment_containers(uint newMinSize)
 {
-
 	//if(!m_attachmentEntryContainer.empty())
 	{
 	//	if the container-size is smaller than newMinSize, we will increase it

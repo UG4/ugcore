@@ -419,7 +419,7 @@ void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh,
 				v->face(i, fd);
 
 			//	get the corresponding face
-				Face* f = FindFace(grid, fd);
+				Face* f = grid.get_face(fd);
 
 				bool bSeparator = false;
 			//	if it belongs to a subset other that -1, it is a separator.

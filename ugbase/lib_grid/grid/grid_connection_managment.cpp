@@ -54,6 +54,9 @@ void Grid::register_vertex(VertexBase* v, GeometricObject* pParent)
 	v->m_entryIter = m_elementStorage[VERTEX].m_sectionContainer.insert(static_cast<GeometricObject*>(v), v->shared_pipe_section());
 	m_elementStorage[VERTEX].m_attachmentPipe.register_element(v);
 
+//	assign the hash-value
+	assign_hash_value(v);
+
 //	inform observers about the creation
 	NOTIFY_OBSERVERS(m_vertexObservers, vertex_created(this, v, pParent));
 }
@@ -62,6 +65,9 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 {
 	v->m_entryIter = m_elementStorage[VERTEX].m_sectionContainer.insert(static_cast<GeometricObject*>(v), v->shared_pipe_section());
 	m_elementStorage[VERTEX].m_attachmentPipe.register_element(v);
+
+//	assign the hash-value
+	assign_hash_value(v);
 
 //	pass on values
 	pass_on_values(pReplaceMe, v);
@@ -427,15 +433,15 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent)
 			FaceIterator iterStart = associated_faces_begin(e->vertex(0));
 			FaceIterator iterEnd = associated_faces_end(e->vertex(0));
 
+			EdgeDescriptor ed;
 			for(FaceIterator iter = iterStart; iter != iterEnd; iter++)
 			{
 				Face* f = *iter;
 				uint numEdges = f->num_edges();
 				for(uint i = 0; i < numEdges; ++i)
 				{
-					EdgeDescriptor ed;
 					f->edge(i, ed);
-					if(EdgeMatches(e, ed))
+					if(CompareVertices(e, &ed))
 					{
 					//	f contains e
 						switch(switchVar)
@@ -476,7 +482,7 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent)
 				{
 					EdgeDescriptor ed;
 					v->edge(i, ed);
-					if(EdgeMatches(e, ed))
+					if(CompareVertices(e, &ed))
 					{
 					//	f contains e
 						switch(switchVar)
@@ -734,7 +740,7 @@ void Grid::edge_store_associated_faces(bool bStoreIt)
 				for(int i = 0; i < numEdges; ++i)
 				{
 				//	get the i-th edge
-					EdgeBase* e = FindEdge(*this, f, i);
+					EdgeBase* e = get_edge(f, i);
 					if(e != NULL)
 						m_aaFaceContainerEDGE[e].push_back(f);
 				}
@@ -786,7 +792,7 @@ void Grid::edge_store_associated_volumes(bool bStoreIt)
 					EdgeDescriptor ed;
 					v->edge(i, ed);
 				//	get the edge that is described by the EdgeDescriptor - if it exists at all.
-					EdgeBase* e = FindEdge(*this, ed.vertex(0), ed.vertex(1));
+					EdgeBase* e = get_edge(ed);
 					if(e != NULL)
 						m_aaVolumeContainerEDGE[e].push_back(v);
 				}
@@ -834,10 +840,11 @@ void Grid::register_face(Face* f, GeometricObject* pParent)
 	{
 	//	loop through the edges of the face and check if they already exist in the grid.
 		int numEdges = f->num_edges();
-
+		EdgeDescriptor ed;
 		for(int i = 0; i < numEdges; ++i)
 		{
-			EdgeBase* e = FindEdge(*this, f, i);
+			f->edge(i, ed);
+			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 			if(e == NULL)
 			{
@@ -1028,7 +1035,7 @@ void Grid::unregister_face(Face* f)
 		uint numEdges = f->num_edges();
 		for(uint i = 0; i < numEdges; ++i)
 		{
-			EdgeBase* e = FindEdge(*this, f, i);
+			EdgeBase* e = get_edge(f, i);
 			if(e != NULL)
 			{
 				FaceContainer::iterator iter = find(m_aaFaceContainerEDGE[e].begin(),
@@ -1139,7 +1146,7 @@ void Grid::face_store_associated_edges(bool bStoreIt)
 					for(uint i = 0; i < numEdges; ++i)
 					{
 					//	get the i-th edge that is described by the EdgeDescriptor - if it exists at all.
-						EdgeBase* e = FindEdge(*this, f, i);
+						EdgeBase* e = get_edge(f, i);
 						if(e != NULL)
 							m_aaEdgeContainerFACE[f].push_back(e);
 					}
@@ -1188,7 +1195,7 @@ void Grid::face_store_associated_volumes(bool bStoreIt)
 					int numFaces = v->num_faces();
 					for(int i = 0; i < numFaces; ++i)
 					{
-						Face* f = FindFace(*this, v, i);
+						Face* f = get_face(v, i);
 
 						if(f)
 							m_aaVolumeContainerFACE[f].push_back(v);
@@ -1226,7 +1233,7 @@ void Grid::face_autogenerate_edges(bool bAutogen)
 
 				for(int i = 0; i < numEdges; ++i)
 				{
-					EdgeBase* e = FindEdge(*this, f, i);
+					EdgeBase* e = get_edge(f, i);
 
 					if(e == NULL)
 					{
@@ -1278,9 +1285,11 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 	//	loop through all edges of the volume. check if we have to create it.
 	//	register the volume with the edges and with versa after that.
 		uint numEdges = v->num_edges();
+		EdgeDescriptor ed;
 		for(uint i = 0; i < numEdges; ++i)
 		{
-			EdgeBase* e = FindEdge(*this, v, i);
+			v->edge(i, ed);
+			EdgeBase* e = find_edge_in_associated_edges(ed.vertex(0), ed);
 
 			if(e == NULL)
 			{
@@ -1309,9 +1318,11 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 	//	iterate through the faces of the volume. create them if demanded.
 	//	register faces at the volume and vice versa.
 		uint numFaces = v->num_faces();
+		FaceDescriptor fd;
 		for(uint i = 0; i < numFaces; ++i)
 		{
-			Face* f = FindFace(*this, v, i, true);
+			v->face(i, fd);
+			Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
 			if(f == NULL)
 			{
@@ -1453,7 +1464,7 @@ void Grid::unregister_volume(Volume* v)
 		for(uint i = 0; i < numEdges; ++i)
 		{
 		//	find the correct entry
-			EdgeBase* e = FindEdge(*this, v, i);
+			EdgeBase* e = get_edge(v, i);
 			if(e != NULL)
 			{
 				VolumeContainer::iterator iter = find(m_aaVolumeContainerEDGE[e].begin(),
@@ -1578,7 +1589,7 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 					for(int i = 0; i < numEdges; ++i)
 					{
 					//	get the edge-descriptor
-						EdgeBase* e = FindEdge(*this, v, i);
+						EdgeBase* e = get_edge(v, i);
 						if(e != NULL)
 							m_aaEdgeContainerVOLUME[v].push_back(e);
 					}
@@ -1632,6 +1643,8 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 			else
 			{
 			//	we have to find the edges by hand using GetEdge(...)
+				FaceDescriptor fd;
+
 				for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); iter++)
 				{
 					Volume* v = *iter;
@@ -1639,7 +1652,8 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 					int numFaces = v->num_faces();
 					for(int i = 0; i < numFaces; ++i)
 					{
-						Face* f = FindFace(*this, v, i, true);
+						v->face(i, fd);
+						Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
 						if(f)
 							m_aaVolumeContainerFACE[f].push_back(v);
@@ -1677,7 +1691,7 @@ void Grid::volume_autogenerate_edges(bool bAutogen)
 
 				for(uint i = 0; i < numEdges; ++i)
 				{
-					EdgeBase* e = FindEdge(*this, v, i);
+					EdgeBase* e = get_edge(v, i);
 
 					if(e == NULL)
 					{
@@ -1714,7 +1728,7 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 
 				for(uint i = 0; i < numFaces; ++i)
 				{
-					Face* f = FindFace(*this, v, i);
+					Face* f = get_face(v, i);
 
 					if(f == NULL)
 					{
@@ -1794,7 +1808,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 					ed.set_vertices(e->vertex(0), vrtNew);
 
 			//	check if this edge already exists.
-				EdgeBase* eNew = FindEdge(*this, ed);
+				EdgeBase* eNew = get_edge(ed);
 				if(eNew)
 				{
 				//	The edge will be removed. Notify observers.
@@ -1901,7 +1915,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 				}
 
 			//	check if this face already exists.
-				Face* fNew = FindFace(*this, fd);
+				Face* fNew = get_face(fd);
 				if(fNew)
 				{
 					LOG("double face" << endl);
@@ -1991,7 +2005,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 						f->edge(i, ed);
 						if(ed.vertex(0) == vrtNew || ed.vertex(1) == vrtNew)
 						{
-							EdgeBase* tEdge = FindEdge(*this, ed);
+							EdgeBase* tEdge = get_edge(ed);
 							if(tEdge)
 							{
 								FaceContainer& fc = m_aaFaceContainerEDGE[tEdge];
@@ -2040,7 +2054,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 				}
 
 			//	check if this volume already exists.
-				Volume* vNew = FindVolume(*this, vd);
+				Volume* vNew = get_volume(vd);
 				if(vNew)
 				{
 				//	The volume will be removed. Notify observers.
@@ -2130,7 +2144,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 						v->edge(i, ed);
 						if(ed.vertex(0) == vrtNew || ed.vertex(1) == vrtNew)
 						{
-							EdgeBase* tEdge = FindEdge(*this, ed);
+							EdgeBase* tEdge = get_edge(ed);
 							if(tEdge)
 							{
 								VolumeContainer& vc = m_aaVolumeContainerEDGE[tEdge];
@@ -2163,7 +2177,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 
 						if(bContainsVrtNew)
 						{
-							Face* tFace = FindFace(*this, fd);
+							Face* tFace = get_face(fd);
 							if(tFace)
 							{
 								VolumeContainer& vc = m_aaVolumeContainerFACE[tFace];

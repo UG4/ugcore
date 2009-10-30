@@ -120,10 +120,25 @@ class Grid
 		};
 
 	public:
+	////////////////////////////////////////////////
+	//	constructors and destructor
+	///	initialises the grid and sets the option GRIDOPT_DEFAULT.
+	/**	Pass a custom option to the alternative constructor in order
+	 *  to initialise the grid with your options.
+	 *	\sa Grid(uint options)*/
 		Grid();
-		Grid(const Grid& grid);///< copy-constructor not yet implemented.
+	///	initialises the grid with the given option.
+	/**	pass an or-combination of constants enumerated in
+	 *  VertexOptions, EdgeOptions, FaceOptions, VolumeOptions and GridOptions.*/
+		Grid(uint options);
+	///	DON'T USE THE COPY-CONSTRUCTOR!
+	/**	The copy constructor is not yet implemented.
+	 *  If it is called, an assertion is triggerd.
+	 *  In Release-mode the method will do nothing but to output a short log-message.*/
+		Grid(const Grid& grid);
 		virtual ~Grid();
 
+	////////////////////////////////////////////////
 	//	grid options
 		/**
 		 * you can pass any option enumerated in GridOptions or specify a custom option
@@ -141,6 +156,7 @@ class Grid
 		void clear_geometry();
 		void clear_attachments();
 */
+	////////////////////////////////////////////////
 	//	element creation
 	///	create a custom element.
 	/**
@@ -192,6 +208,7 @@ class Grid
 	///	this method creates a new volume, which has the same type as pCloneMe.
 		VolumeIterator create_by_cloning(Volume* pCloneMe, const VolumeDescriptor& vd, GeometricObject* pParent = NULL);
 
+	////////////////////////////////////////////////
 	//	element deletion
 		void erase(GeometricObject* geomObj);
 		void erase(VertexBase* vrt);
@@ -202,37 +219,8 @@ class Grid
 		template <class GeomObjIter>
 		void erase(const GeomObjIter& iterBegin, const GeomObjIter& iterEnd);
 
-	//	Iterators
-		template <class TGeomObj>
-		typename geometry_traits<TGeomObj>::iterator
-		begin();
-
-		template <class TGeomObj>
-		typename geometry_traits<TGeomObj>::iterator
-		end();
-
-		inline VertexBaseIterator	vertices_begin()	{return begin<VertexBase>();}
-		inline VertexBaseIterator	vertices_end()		{return end<VertexBase>();}
-		inline EdgeBaseIterator		edges_begin()		{return begin<EdgeBase>();}
-		inline EdgeBaseIterator		edges_end()			{return end<EdgeBase>();}
-		inline FaceIterator			faces_begin()		{return begin<Face>();}
-		inline FaceIterator			faces_end()			{return end<Face>();}
-		inline VolumeIterator		volumes_begin()		{return begin<Volume>();}
-		inline VolumeIterator		volumes_end()		{return end<Volume>();}
-
-	//	the geometric-object-collection:
-		GeometricObjectCollection get_geometric_object_collection();
-
-	///	flips the orientation of an element.
-		void flip_orientation(Face* f);
-		
-	//	element manipulation
-	/*
-		void set_vertices(EdgeBase* e, EdgeDesctiptor& ed);
-		void set_vertices(Face* f, FaceDescriptor& fd);
-		void set_vertices(Volume* v, VolumeDescriptor& vd);
-	*/
-
+	////////////////////////////////////////////////
+	//	replace
 	///	Replace vrtOld with vrtNew.
 	/**
 	 * WARNING: USE THIS METHOD WITH CARE!
@@ -268,6 +256,42 @@ class Grid
 		void replace_vertices(VrtPairIter& iterBegin, VrtPairIter& iterEnd);
 	*/
 
+	////////////////////////////////////////////////
+	//	geometric-object-collection
+	///	returns the the GeometricObjectCollection of the grid:
+		GeometricObjectCollection get_geometric_object_collection();
+
+	////////////////////////////////////////////////
+	///	flips the orientation of an element.
+		void flip_orientation(Face* f);
+
+	////////////////////////////////////////////////
+	//	Iterators
+		template <class TGeomObj>
+		typename geometry_traits<TGeomObj>::iterator
+		begin();
+
+		template <class TGeomObj>
+		typename geometry_traits<TGeomObj>::iterator
+		end();
+
+		inline VertexBaseIterator	vertices_begin()	{return begin<VertexBase>();}
+		inline VertexBaseIterator	vertices_end()		{return end<VertexBase>();}
+		inline EdgeBaseIterator		edges_begin()		{return begin<EdgeBase>();}
+		inline EdgeBaseIterator		edges_end()			{return end<EdgeBase>();}
+		inline FaceIterator			faces_begin()		{return begin<Face>();}
+		inline FaceIterator			faces_end()			{return end<Face>();}
+		inline VolumeIterator		volumes_begin()		{return begin<Volume>();}
+		inline VolumeIterator		volumes_end()		{return end<Volume>();}
+		
+	//	element manipulation
+	/*
+		void set_vertices(EdgeBase* e, EdgeDesctiptor& ed);
+		void set_vertices(Face* f, FaceDescriptor& fd);
+		void set_vertices(Volume* v, VolumeDescriptor& vd);
+	*/
+
+	////////////////////////////////////////////////
 	//	element numbers
 		template <class TGeomObj>
 		uint num();
@@ -281,6 +305,17 @@ class Grid
 		uint face_fragmentation();		///< returns the number of unused face-data-entries.
 		uint volume_fragmentation();	///< returns the number of unused volume-data-entries.
 
+	////////////////////////////////////////////////
+	//	connectivity-information
+		EdgeBase* get_edge(VertexBase* v1, VertexBase* v2);
+		EdgeBase* get_edge(EdgeVertices& ev);
+		EdgeBase* get_edge(Face* f, int ind);
+		EdgeBase* get_edge(Volume* v, int ind);
+		Face* get_face(FaceVertices& fv);
+		Face* get_face(Volume* v, int ind);
+		Volume* get_volume(VolumeVertices& vv);
+
+	////////////////////////////////////////////////
 	//	attachments
 	////////////////////////////////////////////////////////////////////////
 	//	attach with custom pass-on-behaviour and unspecified default value.
@@ -371,6 +406,7 @@ class Grid
 		typename TAttachment::ContainerType*
 		get_attachment_data_container(TAttachment& attachment);
 		
+	////////////////////////////////////////////////
 	//	observers
 		/**
 		 * observerType may be any or-combination of constants enumerated in ObserverType.
@@ -388,41 +424,12 @@ class Grid
 		util::IAttachmentDataContainer* get_volume_data_container(util::IAttachment& attachment)	{return get_data_container<Volume>(attachment);}
 */
 
+	////////////////////////////////////////////////
+	//	pass_on_values
 		void pass_on_values(VertexBase* objSrc, VertexBase* objDest);
 		void pass_on_values(EdgeBase* objSrc, EdgeBase* objDest);
 		void pass_on_values(Face* objSrc, Face* objDest);
 		void pass_on_values(Volume* objSrc, Volume* objDest);
-
-	//	connectivity-information
-/*
-		EdgeBase* get_edge(VertexBase* v1, VertexBase* v2);
-		inline EdgeBase* get_edge(EdgeDescriptor& ed)		{return get_edge(ed.vertex(0), ed.vertex(1));}
-		Face* get_face(const FaceDescriptor& fd);
-		Volume* get_volume(const VolumeDescriptor& vd);
-
-		int get_associated_edges(std::vector<EdgeBase*>& vEdgesOut, VertexBase* v);
-		int get_associated_edges(std::vector<EdgeBase*>& vEdgesOut, FaceDescriptor* fd);
-		int get_associated_edges(std::vector<EdgeBase*>& vEdgesOut, VolumeDescriptor* vd);
-
-		int get_associated_faces(std::vector<Face*>& vFacesOut, VertexBase* v);
-		int get_associated_faces(std::vector<Face*>& vFacesOut, EdgeDescriptor* ed);
-		int get_associated_faces(std::vector<Face*>& vFacesOut, VolumeDescriptor* vd);
-
-		int get_associated_volumes(std::vector<Volume*>& vVolumesOut, VertexDescriptor* vd);
-		int get_associated_volumes(std::vector<Volume*>& vVolumesOut, EdgeDescriptor* ed);
-		int get_associated_volumes(std::vector<Volume*>& vVolumesOut, FaceDescriptor* fd);
-*/
-
-/*
-		EdgeBase* get_edge(VertexBase* v1, VertexBase* v2);
-		Face* get_face(const FaceDescriptor& fd);
-		Volume* get_volume(const VolumeDescriptor& vd);
-*/
-/*
-		int get_edges(std::vector<EdgeBase*>& edgesOut);
-		int get_faces(std::vector<Face*>& facesOut);
-		int get_volumes(std::vector<Volume*>& volumesOut);
-*/
 
 	//	subject to change!
 		EdgeBaseIterator associated_edges_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
@@ -446,6 +453,7 @@ class Grid
 		VolumeIterator associated_volumes_begin(Face* face);///< DO NOT INVOKE! Subject to change.
 		VolumeIterator associated_volumes_end(Face* face);///< DO NOT INVOKE! Subject to change.
 
+	////////////////////////////////////////////////
 	//	advanced element manipulation
 		inline void register_element(VertexBase* v, GeometricObject* pParent = NULL)	{register_vertex(v, pParent);}
 		inline void unregister_element(VertexBase* v)									{unregister_vertex(v);}
@@ -462,6 +470,11 @@ class Grid
 		void register_and_replace_element(Volume* v, Volume* pReplaceMe);
 
 	protected:
+	///	assigns a unique hash value to a Vertex.
+	/**	overflow is not handled properly.
+	 *	If sombody creates 2^32 elements, the uniquness can no longer be guaranteed.*/
+		inline void assign_hash_value(VertexBase* vrt)	{vrt->m_hashValue = m_hashCounter++;}
+
 		void register_vertex(VertexBase* v, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
 		void unregister_vertex(VertexBase* v);
 		void register_edge(EdgeBase* e, GeometricObject* pParent = NULL);///< pDF specifies the element from which v derives its values
@@ -511,6 +524,19 @@ class Grid
 	//	some methods that simplify auto-enabling of grid options
 		inline void autoenable_option(uint option, const char* caller, const char* optionName);
 
+	//	neighbourhood access
+		template <class TGeomObj>
+		EdgeBase* find_edge_in_associated_edges(TGeomObj* obj,
+												EdgeVertices& ev);
+												
+		template <class TGeomObj>
+		Face* find_face_in_associated_faces(TGeomObj* obj,
+											FaceVertices& fv);
+												
+		template <class TGeomObj>
+		Volume* find_volume_in_associated_volumes(TGeomObj* obj,
+												VolumeVertices& vv);
+												
 	protected:
 		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> > SectionContainer;
 
@@ -537,6 +563,7 @@ class Grid
 	protected:
 		ElementStorage	m_elementStorage[NUM_GEOMETRIC_BASE_OBJECTS];
 		uint			m_options;
+		uint32			m_hashCounter;
 
 	//	observer handling
 		ObserverContainer	m_gridObservers;

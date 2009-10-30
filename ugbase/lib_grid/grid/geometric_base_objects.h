@@ -8,6 +8,7 @@
 #include <list>
 #include "common/types.h"
 #include "common/util/attachment_pipe.h"
+#include "common/util/hash.h"
 
 namespace ug
 {
@@ -30,12 +31,37 @@ enum GeometricBaseObject
 
 ////////////////////////////////////////////////////////////////////////
 //	Predeclaration of geometric objects.
-class GeometricObject;
-class VertexBase;
-class EdgeBase;
-class Face;
-class Volume;
+class GeometricObject;	//	geometric base object
+class VertexBase;		//	base for all 0-dimensional grid objects.
+class EdgeBase;			//	base for all 1-dimensional grid objects.
+class Face;				//	base for all 2-dimensional grid objects.
+class Volume;			//	base for all 3-dimensional grid objects.
 
+class EdgeDescriptor;	//	describes an edge. 
+class FaceDescriptor;	//	describes a face.
+class VolumeDescriptor;	//	describes a volume.
+
+class EdgeVertices;		//	manages the vertices of an edge. Base for EdgeBase and EdgeDescriptor.
+class FaceVertices;		//	manages the vertices of a face. Base for Face and FaceDescriptor.
+class VolumeVertices;	//	manages the vertices of a volume. Base for Volume and VolumeDescriptor.
+
+//	pointer-types. Primarily required for template-specializations.
+typedef VertexBase*	PVertexBase;
+typedef EdgeBase*		PEdgeBase;
+typedef Face*			PFace;
+typedef Volume*		PVolume;
+
+typedef EdgeDescriptor*	PEdgeDescriptor;
+typedef FaceDescriptor*	PFaceDescriptor;
+typedef VolumeDescriptor*	PVolumeDescriptor;
+
+typedef EdgeVertices*		PEdgeVertices;
+typedef FaceVertices*		PFaceVertices;
+typedef VolumeVertices*	PVolumeVertices;
+
+
+
+////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	GeometricObjectContainer
 ///	Declaration of the container that will hold all geometric objects.
@@ -191,6 +217,15 @@ class VertexBase : public GeometricObject
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return VERTEX;}
 		virtual int reference_object_id() const	{return -1;}
+
+	///	returns a value that can be used for hashing.
+	/**	this value is unique per grid.
+	 *	It is only set correctly if the vertex has been created
+	 *	by the grid or has been properly registered at it.*/
+		inline uint32 get_hash_value() const	{return m_hashValue;}
+
+	protected:
+		uint32	m_hashValue;//	a unique value for each vertex in a grid.
 };
 
 template <>
@@ -208,6 +243,26 @@ class geometry_traits<VertexBase>
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+//	EdgeVertices
+///	holds the vertices of an EdgeBase or an EdgeDescriptor.
+class EdgeVertices
+{
+	friend class Grid;
+	public:
+		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		inline uint num_vertices() const			{return 2;}	// this method is supplied to allow the use of EdgeBase in template-methods that require a num_vertices() method.
+		
+	//	compatibility with std::vector for some template routines
+	///	returns the number of vertices.
+		inline size_t size() const	{return 2;}
+	///	returns the i-th vertex.
+		VertexBase* operator[](uint index) const {return m_vertices[index];}
+
+	protected:
+		VertexBase*	m_vertices[2];
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeBase
 ///	Base-class for edges
 /**
@@ -216,16 +271,13 @@ class geometry_traits<VertexBase>
  *
  * \ingroup GeometricObjects
  */
-class EdgeBase : public GeometricObject
+class EdgeBase : public GeometricObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
 
 		virtual ~EdgeBase()	{}
-
-		inline VertexBase* vertex(uint index)	{return m_vertices[index];}
-		inline uint num_vertices()				{return 2;}	// this method is supplied to allow the use of EdgeBase in template-methods that require a num_vertices() method.
 
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return EDGE;}
@@ -246,7 +298,6 @@ class EdgeBase : public GeometricObject
 
 	protected:
 		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
-		VertexBase*	m_vertices[2];
 };
 
 template <>
@@ -267,31 +318,51 @@ class geometry_traits<EdgeBase>
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeDescriptor
 ///	Can be used to store information about an edge and to construct an edge.
-class EdgeDescriptor
+class EdgeDescriptor : public EdgeVertices
 {
 	public:
 		EdgeDescriptor()	{}
 		EdgeDescriptor(const EdgeDescriptor& ed)
 			{
-				m_vertex[0] = ed.vertex(0);
-				m_vertex[1] = ed.vertex(1);
+				m_vertices[0] = ed.vertex(0);
+				m_vertices[1] = ed.vertex(1);
 			}
 		EdgeDescriptor(VertexBase* vrt1, VertexBase* vrt2)
 			{
-				m_vertex[0] = vrt1;
-				m_vertex[1] = vrt2;
+				m_vertices[0] = vrt1;
+				m_vertices[1] = vrt2;
 			}
 
-		inline VertexBase* vertex(uint index) const	{return m_vertex[index];}
-		inline void set_vertex(uint index, VertexBase* vrt)	{m_vertex[index] = vrt;}
+		inline void set_vertex(uint index, VertexBase* vrt)	{m_vertices[index] = vrt;}
 		inline void set_vertices(VertexBase* vrt1, VertexBase* vrt2)
 			{
-				m_vertex[0] = vrt1;
-				m_vertex[1] = vrt2;
+				m_vertices[0] = vrt1;
+				m_vertices[1] = vrt2;
 			}
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//	FaceVertices
+///	holds the vertices of a Face or an FaceDescriptor
+class FaceVertices
+{
+	friend class Grid;
+	public:
+		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		inline uint num_vertices() const			{return m_vertices.size();}
+
+	//	compatibility with std::vector for some template routines
+	///	returns the number of vertices.
+		inline size_t size() const	{return m_vertices.size();}
+	///	returns the i-th vertex.
+		VertexBase* operator[](uint index) const {return m_vertices[index];}
+		
+	protected:
+		typedef std::vector<VertexBase*> 	VertexVec;
 
 	protected:
-		VertexBase* m_vertex[2];
+		VertexVec		m_vertices;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -306,16 +377,13 @@ class EdgeDescriptor
  *
  * \ingroup GeometricObjects
  */
-class Face : public GeometricObject
+class Face : public GeometricObject, public FaceVertices
 {
 	friend class Grid;
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
 
 		virtual ~Face()	{}
-
-		inline VertexBase* vertex(uint index)	{return m_vertices[index];}
-		inline uint num_vertices()			{return m_vertices.size();}
 
 		inline EdgeDescriptor edge(int index) const
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % m_vertices.size()]);}
@@ -435,12 +503,6 @@ class Face : public GeometricObject
 
 	protected:
 		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
-
-	protected:
-		typedef std::vector<VertexBase*> 	VertexVec;
-
-	protected:
-		VertexVec		m_vertices;
 };
 
 template <>
@@ -461,7 +523,7 @@ class geometry_traits<Face>
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	FaceDescriptor
 ///	Can be queried for the edges and vertices of a face.
-class FaceDescriptor
+class FaceDescriptor : public FaceVertices
 {
 	public:
 		FaceDescriptor()	{}
@@ -473,13 +535,11 @@ class FaceDescriptor
 
 		virtual ~FaceDescriptor()	{}
 
-		inline VertexBase* vertex(uint index) const		{return m_vertices[index];}
-		inline uint num_vertices() const				{return m_vertices.size();}
 		inline void set_num_vertices(uint numVertices)	{m_vertices.resize(numVertices);}
 		inline void set_vertex(uint index, VertexBase* vrt)
 			{m_vertices[index] = vrt;}
 
-
+/*
 		inline EdgeDescriptor edge(int index) const
 			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % m_vertices.size()]);}
 
@@ -487,12 +547,31 @@ class FaceDescriptor
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % m_vertices.size()]);}
 
 		inline uint num_edges() const	{return m_vertices.size();}
+*/
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//	VolumeVertices
+///	holds the vertices of a Volume or a VolumeDescriptor
+class VolumeVertices
+{
+	friend class Grid;
+	public:
+		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		inline uint num_vertices() const			{return m_vertices.size();}
+
+	//	compatibility with std::vector for some template routines
+	///	returns the number of vertices.
+		inline size_t size() const	{return m_vertices.size();}
+	///	returns the i-th vertex.
+		VertexBase* operator[](uint index) const {return m_vertices[index];}
 
 	protected:
 		typedef std::vector<VertexBase*> 	VertexVec;
 
 	protected:
-		VertexVec			m_vertices;
+		VertexVec		m_vertices;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -504,16 +583,13 @@ class FaceDescriptor
  *
  * \ingroup GeometricObjects
  */
-class Volume : public GeometricObject
+class Volume : public GeometricObject, public VolumeVertices
 {
 	friend class Grid;
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}
 
 		virtual ~Volume()	{}
-
-		inline VertexBase* vertex(uint index)	{return m_vertices[index];}
-		inline uint num_vertices()				{return m_vertices.size();}
 
 		virtual EdgeDescriptor edge(int index) const = 0;
 		virtual void edge(int index, EdgeDescriptor& edOut) const = 0;
@@ -610,12 +686,6 @@ class Volume : public GeometricObject
 		//						std::vector<Volume*>& vNewFacesOut) = 0;
 
 		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
-
-	protected:
-		typedef std::vector<VertexBase*> 	VertexVec;
-
-	protected:
-		VertexVec		m_vertices;
 };
 
 template <>
@@ -635,7 +705,7 @@ class geometry_traits<Volume>
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeDescriptor
 ///	Can be queried for the edges, faces and vertices of a volume.
-class VolumeDescriptor
+class VolumeDescriptor : public VolumeVertices
 {
 	public:
 		VolumeDescriptor()	{}
@@ -643,19 +713,17 @@ class VolumeDescriptor
 		VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces)
 			{
 				set_num_vertices(numVertices);
-				set_num_edges(numEdges);
-				set_num_faces(numFaces);
+				//set_num_edges(numEdges);
+				//set_num_faces(numFaces);
 			}
 
 		virtual ~VolumeDescriptor()	{}
 
-		inline VertexBase* vertex(uint index) const		{return m_vertices[index];}
-		inline uint num_vertices() const				{return m_vertices.size();}
 		inline void set_num_vertices(uint numVertices)	{m_vertices.resize(numVertices);}
 		inline void set_vertex(uint index, VertexBase* vrt)
 			{m_vertices[index] = vrt;}
 
-
+/*
 		inline EdgeDescriptor edge(uint index) const				{return m_edges[index];}
 		inline void edge(uint index, EdgeDescriptor& edOut) const	{edOut = m_edges[index];}
 		inline uint num_edges() const								{return m_edges.size();}
@@ -671,14 +739,13 @@ class VolumeDescriptor
 			{m_faces[index] = fd;}
 
 	protected:
-		typedef std::vector<VertexBase*> 	VertexVec;
 		typedef std::vector<EdgeDescriptor>	EdgeDescriptorVec;
 		typedef std::vector<FaceDescriptor>	FaceDescriptorVec;
 
 	protected:
-		VertexVec			m_vertices;
 		EdgeDescriptorVec	m_edges;
 		FaceDescriptorVec	m_faces;
+*/
 };
 
 
@@ -699,6 +766,80 @@ class attachment_traits<GeometricObject*, Grid>
 		static inline uint get_data_index(const GeometricObject* elem)					{return elem->m_gridDataIndex;}
 		static inline void set_data_index(GeometricObject* elem, uint index)			{elem->m_gridDataIndex = index;};
 };
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	hash-funtions for vertices
+///	returns the hash-value of the vertex.
+template <>
+unsigned long hash_key<PVertexBase>(const PVertexBase& key);
+
+////////////////////////////////////////////////////////////////////////
+//	hash-funtions for edges
+///	the hash-key is a function of vertex-hash-values.
+/**
+ * The hash value depends on the associated vertices.
+ * If an EdgeBase (or EdgeDescriptor) has the same vertices
+ * as another EdgeBase (or EdgeDescriptor), the hash-keys
+ * are the same.
+ */ 
+template <>
+unsigned long hash_key<PEdgeVertices>(const PEdgeVertices& key);
+
+///	the hash-key is a function of vertex-hash-values.
+/** \sa hash_key<PEdgeVertices>*/ 
+template <>
+unsigned long hash_key<PEdgeBase>(const PEdgeBase& key);
+
+///	the hash-key is a function of vertex-hash-values.
+/** \sa hash_key<PEdgeVertices>*/ 
+template <>
+unsigned long hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key);
+
+////////////////////////////////////////////////////////////////////////
+//	hash-funtions for faces
+///	the hash-key is a function of vertex-hash-values.
+/**
+ * The hash value depends on the associated vertices.
+ * If an Face (or FaceDescriptor) has the same vertices
+ * as another Face (or FaceDescriptor), the hash-keys
+ * are the same.
+ */
+template <>
+unsigned long hash_key<PFaceVertices>(const PFaceVertices& key);
+
+///	the hash-key is a function of vertex-hash-values.
+/**\sa hash_key<PFaceVertices>*/
+template <>
+unsigned long hash_key<PFace>(const PFace& key);
+
+///	the hash-key is a function of vertex-hash-values.
+/**\sa hash_key<PFaceVertices>*/
+template <>
+unsigned long hash_key<PFaceDescriptor>(const PFaceDescriptor& key);
+
+////////////////////////////////////////////////////////////////////////
+//	hash-funtions for volumes
+///	the hash-key is a function of vertex-hash-values.
+/**
+ * The hash value depends on the associated vertices.
+ * If an Volume (or VolumeDescriptor) has the same vertices
+ * as another Volume (or VolumeDescriptor), the hash-keys
+ * are the same.
+ */
+template <>
+unsigned long hash_key<PVolumeVertices>(const PVolumeVertices& key);
+
+///	the hash-key is a function of vertex-hash-values.
+/**\sa hash_key<PVolumeVertices>*/
+template <>
+unsigned long hash_key<PVolume>(const PVolume& key);
+
+///	the hash-key is a function of vertex-hash-values.
+/**\sa hash_key<PVolumeVertices>*/
+template <>
+unsigned long hash_key<PVolumeDescriptor>(const PVolumeDescriptor& key);
 
 }//	end of namespace
 

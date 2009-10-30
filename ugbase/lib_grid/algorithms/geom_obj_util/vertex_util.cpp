@@ -3,6 +3,7 @@
 //	y09 m02 d02
 
 #include "vertex_util.h"
+#include "edge_util.h"
 #include "../trees/kd_tree_static.h"
 #include "misc_util.h"
 
@@ -223,7 +224,7 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 			else
 				ed.set_vertices(e->vertex(0), v1);
 
-			if(!FindEdge(grid, ed))
+			if(!grid.get_edge(ed))
 				grid.create_by_cloning(e, ed, e);
 		}
 	}
@@ -247,7 +248,7 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 					fd.set_vertex(i, f->vertex(i));
 			}
 
-			if(!FindFace(grid, fd))
+			if(!grid.get_face(fd))
 				grid.create_by_cloning(f, fd, f);
 		}
 	}
@@ -379,6 +380,34 @@ void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin, const Vertex
 
 	grid.detach_from_vertices(aVertexList);
 	grid.detach_from_vertices(aInt);
+}
+
+////////////////////////////////////////////////////////////////////////
+bool IsBoundaryVertex2D(Grid& grid, VertexBase* v)
+{
+//	check whether one of the associated edges is a boundary edge.
+//	if so return true.
+	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+	{
+	//	we have to enable this option, since we need edges in order to detect boundary vertices.
+		LOG("WARNING in IsBoundaryVertex2D(...): auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
+		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+	}
+	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	we have to enable this option, since nothing works without it in reasonable time.
+		LOG("WARNING in IsBoundaryVertex2D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
+	}
+
+	for(EdgeBaseIterator iter = grid.associated_edges_begin(v);
+		iter != grid.associated_edges_end(v); ++iter)
+	{
+		if(IsBoundaryEdge2D(grid, *iter))
+			return true;
+	}
+
+	return false;
 }
 
 }//	end of namespace

@@ -7,15 +7,21 @@
 #include <vector>
 #include <list>
 #include <cassert>
+#include <iostream>
 
 namespace ug
 {
 
 ///	this template function creates a hash key for a number value. Specify to support other types
-template <typename TKey> unsigned long hash_key(const TKey& key)
-{
-	return (unsigned long)key;
-}
+/**
+ * the returned value does not have to be unique.
+ * The more diverse, the better the hashing result will be.
+ */
+template <typename TKey> unsigned long hash_key(const TKey& key);
+
+template <> inline unsigned long
+hash_key<unsigned int>(const unsigned int& key)
+{return (unsigned long)key;}
 
 ///	a generic Hash class
 template <class TVal, class TKey> class Hash
@@ -95,13 +101,47 @@ template <class TVal, class TKey> class Hash
 			return (*iter).value;
 		}
 
+		void get_entries(std::vector<TVal>& entriesOut, const TKey& key,
+						bool clearContainer = true)
+		{
+			if(clearContainer)
+				entriesOut.clear();
+			
+			unsigned long hKey = hash_key(key);
+			unsigned long hIndex = hKey % m_listSize;
+
+			HashEntryIterator iter = m_v[hIndex].begin();
+			HashEntryIterator iEnd = m_v[hIndex].end();
+			while(iter != iEnd)
+			{
+				if((*iter).hashKey == hKey)
+					entriesOut.push_back(iter->value);
+				iter++;
+			}
+		}
+
+		void get_iterators(Iterator& beginOut, Iterator& endOut, const TKey& key)
+		{
+			unsigned long hKey = hash_key(key);
+			unsigned long hIndex = hKey % m_listSize;
+			beginOut.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			beginOut.m_hashKey = hKey;
+			beginOut.m_hIndex = hIndex;
+			beginOut.m_pHash = this;
+			
+			endOut.m_entryIter = m_v[hIndex].end();
+			endOut.m_hashKey = hKey;
+			endOut.m_hIndex = hIndex;
+			endOut.m_pHash = this;
+		}
+		
 		Iterator begin(const TKey& key)
 		{
 			Iterator iter;
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
-			iter.m_entryIter = find_next_valid(m_v[hIndex].begin(), key, hIndex);
-			iter.m_key = key;
+			iter.m_entryIter = find_next_valid(m_v[hIndex].begin(), hKey, hIndex);
+			iter.m_hashKey = hKey;
 			iter.m_hIndex = hIndex;
 			iter.m_pHash = this;
 			return iter;
@@ -113,7 +153,7 @@ template <class TVal, class TKey> class Hash
 			unsigned long hKey = hash_key(key);
 			unsigned long hIndex = hKey % m_listSize;
 			iter.m_entryIter = m_v[hIndex].end();
-			iter.m_key = key;
+			iter.m_hashKey = hKey;
 			iter.m_hIndex = hIndex;
 			iter.m_pHash = this;
 			return iter;
@@ -122,9 +162,9 @@ template <class TVal, class TKey> class Hash
 		void advance_iterator(Iterator& iter)
 		{
 			iter.m_entryIter++;
-			iter.m_entryIter = find_next_valid(iter.m_entryIter, iter.m_key, iter.m_hIndex);
+			iter.m_entryIter = find_next_valid(iter.m_entryIter, iter.m_hashKey, iter.m_hIndex);
 		}
-
+/*
 	//	const-version
 		ConstIterator begin(const TKey& key) const
 		{
@@ -140,6 +180,23 @@ template <class TVal, class TKey> class Hash
 			unsigned long hIndex = hKey % m_listSize;
 			return ConstIterator(this, m_v[hIndex].end(), key, hIndex);
 		}
+*/
+	/**	the number at an index in vDist corresponds to the number of
+	 *	lists in the hash that contain #index elements.
+	 *	vDist.size() equals to the max-size of all lists.
+	 */
+		void get_distribution(std::vector<int>& vDist)
+		{
+			vDist.resize(0);
+		//	iterate through lists and check how long it is
+			for(size_t i = 0; i < m_v.size(); ++i)
+			{
+				size_t size = m_v[i].size();
+				if(size >= vDist.size())
+					vDist.resize(size + 1, 0);
+				vDist[size]++;
+			}
+		}
 
 	private:
 		void init(unsigned long listSize)
@@ -149,12 +206,12 @@ template <class TVal, class TKey> class Hash
 		}
 
 		///	returns iter if iter is valid
-		HashEntryIterator find_next_valid(HashEntryIterator iter, const TKey& key, unsigned long hIndex)
+		HashEntryIterator find_next_valid(HashEntryIterator iter, unsigned long hashKey, unsigned long hIndex)
 		{
 			HashEntryIterator iEnd = m_v[hIndex].end();
 			while(iter != iEnd)
 			{
-				if((*iter).key == key)
+				if((*iter).hashKey == hashKey)
 					return iter;
 				iter++;
 			}
@@ -162,12 +219,12 @@ template <class TVal, class TKey> class Hash
 		}
 
 	//	const-version
-		ConstHashEntryIterator find_next_valid(ConstHashEntryIterator iter, const TKey& key, unsigned long hIndex) const
+		ConstHashEntryIterator find_next_valid(ConstHashEntryIterator iter, unsigned long hashKey, unsigned long hIndex) const
 		{
 			ConstHashEntryIterator iEnd = m_v[hIndex].end();
 			while(iter != iEnd)
 			{
-				if((*iter).key == key)
+				if((*iter).hashKey == hashKey)
 					return iter;
 				iter++;
 			}
@@ -195,7 +252,7 @@ template <class TVal, class TKey> class Hash
 	public:
 		class Iterator
 		{
-			//friend class Hash;
+			friend class Hash;
 			public:
 				Iterator operator ++()	{m_pHash->advance_iterator(*this); return *this;}
 				Iterator operator ++(int unused)	{Iterator i = *this; m_pHash->advance_iterator(*this); return i;}
@@ -204,7 +261,7 @@ template <class TVal, class TKey> class Hash
 				{
 					if(m_entryIter == iter.m_entryIter
 						&& m_pHash == iter.m_pHash
-						&& m_key == iter.m_key)
+						&& m_hashKey == iter.m_hashKey)
 						return true;
 					return false;
 				}
@@ -213,7 +270,7 @@ template <class TVal, class TKey> class Hash
 				{
 					if(m_entryIter != iter.m_entryIter
 						|| m_pHash != iter.m_pHash
-						|| m_key != iter.m_key)
+						|| m_hashKey != iter.m_hashKey)
 						return true;
 					return false;
 				}
@@ -224,7 +281,7 @@ template <class TVal, class TKey> class Hash
 			protected:
 				HashEntryIterator		m_entryIter;
 				Hash*					m_pHash;
-				unsigned long			m_key;
+				unsigned long			m_hashKey;
 				unsigned long			m_hIndex;
 		};
 

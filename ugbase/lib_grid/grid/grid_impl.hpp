@@ -8,6 +8,7 @@
 //#include <cassert>
 #include "common/common.h"
 #include "common/static_assert.h"
+#include "grid_util.h"
 
 namespace ug
 {
@@ -228,6 +229,65 @@ Grid::autoenable_option(uint option, const char* caller, const char* optionName)
 		enable_options(option);
 	}
 }
+
+////////////////////////////////////////////////////////////////////////
+//	neighbourhood access
+template <class TGeomObj>
+EdgeBase* Grid::find_edge_in_associated_edges(TGeomObj* obj,
+												EdgeVertices& ev)
+{
+	EdgeBaseIterator iterEnd = associated_edges_end(obj);
+	for(EdgeBaseIterator iter = associated_edges_begin(obj);
+		iter != iterEnd; ++iter)
+	{
+		EdgeBase* e = *iter;
+		if(CompareVertices(e, &ev))
+			return e;
+	}
+	return NULL;
+}
+
+										
+template <class TGeomObj>
+Face* Grid::find_face_in_associated_faces(TGeomObj* obj,
+											FaceVertices& fv)
+{
+	unsigned long key = hash_key(&fv);
+	FaceIterator iterEnd = associated_faces_end(obj);
+	for(FaceIterator iter = associated_faces_begin(obj);
+		iter != iterEnd; ++iter)
+	{
+		Face* f = *iter;
+		if(key == hash_key(f))
+		{
+			if(CompareVertices(f, &fv))
+				return f;
+		}
+	}
+	
+	return NULL;
+}
+										
+template <class TGeomObj>
+Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
+												VolumeVertices& vv)
+{
+	unsigned long key = hash_key(&vv);
+	VolumeIterator iterEnd = associated_volumes_end(obj);
+	for(VolumeIterator iter = associated_volumes_begin(obj);
+		iter != iterEnd; ++iter)
+	{
+		Volume* v = *iter;
+		if(key == hash_key(v))
+		{
+			if(CompareVertices(v, &vv))
+				return v;
+		}
+	}
+	
+	return NULL;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

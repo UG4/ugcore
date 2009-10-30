@@ -30,6 +30,14 @@ int GetEdgeIndex(Face* f, EdgeBase* e);
 int GetEdgeIndex(Volume* vol, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns whether an edge lies on the boundary of a 2D grid.
+/**	An edge is regarded as a boundary edge if it is adjacent
+ *	to exactly one face.
+ *	if EDGEOPT_STORE_ASSOCIATED_FACES is enabled, the algorithm will be faster.
+ */
+bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
+
+////////////////////////////////////////////////////////////////////////
 //	CollapseEdge
 ///	Collapses the specified edge performs local grid restructuring.
 /**

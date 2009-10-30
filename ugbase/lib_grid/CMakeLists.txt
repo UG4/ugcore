@@ -11,7 +11,8 @@ project(P_LIB_GRID)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-set(srcGrid		grid/grid_connection_managment.cpp
+set(srcGrid		grid/geometric_base_objects.cpp
+				grid/grid_connection_managment.cpp
 				grid/geometric_object_collection.cpp
 				grid/grid_util.cpp
 				grid/grid.cpp)

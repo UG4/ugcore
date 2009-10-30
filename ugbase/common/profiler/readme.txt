@@ -11,7 +11,7 @@ ShinyTools.h defines a hash-function. The original implementation which simply c
 If you are using a 64 bit platform and experience strange profiler-behaviour you should definitively think about improving hashing in shiny.
 
 The profiler can be disabled by adding
-#define SHINY_PROFILER = FALSE
+#define SHINY_PROFILER FALSE
 before you include profiler.h
 
 Sebastian	(s.b.reiter@googlemail.com)

@@ -6,57 +6,72 @@
 #define __H__LIB_GRID__GRID_UTIL__
 
 #include <vector>
-#include "grid.h"
+#include "geometric_base_objects.h"
 
 namespace ug
 {
 
-////////////////////////////////////////////////////////////////////////
-//	IsVolumeBoundaryFace
-///	returns true if the given face is a boundary face.
-bool IsVolumeBoundaryFace(Grid& grid, Face* f);
+class Grid;
+
 
 ////////////////////////////////////////////////////////////////////////
-///	returns whether an edge lies on the boundary of a 2D grid.
+//	CompareVertices
+///	Checks whether ev1 and ev2 contain the same vertices.
 /**
- * if EDGEOPT_STORE_ASSOCIATED_FACES is enabled, the algorithm will be faster.
+ * Can be used to compare EdgeBase with EdgeBase,
+ * EdgeDescriptor with EdgeDescriptor or
+ * EdgeBase with EdgeDescriptor.
  */
-bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
+bool CompareVertices(const EdgeVertices* ev1,
+					const EdgeVertices* ev2);
+
+///	Checks whether fv1 and fv2 contain the same vertices.
+/**
+ * Can be used to compare Face with Face,
+ * FaceDescriptor with FaceDescriptor or
+ * Face with FaceDescriptor.
+ *
+ * Before calling this method one should consider to compare the
+ * hashes of fv1 and fv2 (if(hash_key(fv1) == hash_key(fv2))...)
+ */
+bool CompareVertices(const FaceVertices* fv1,
+					const FaceVertices* fv2);
+
+///	Checks whether vv1 and vv2 contain the same vertices.
+/**
+ * Can be used to compare Volume with Volume,
+ * VolumeDescriptor with VolumeDescriptor or
+ * Volume with VolumeDescriptor.
+ *
+ * Before calling this method one should consider to compare the
+ * hashes of vv1 and vv2 (if(hash_key(vv1) == hash_key(vv2))...)
+ */
+bool CompareVertices(const VolumeVertices* vv1,
+					const VolumeVertices* vv2);
+
 
 ////////////////////////////////////////////////////////////////////////
-///	returns whether a vertex lies on the boundary of a 2D grid.
+//	CompareVertexContainer
+///	compares vertices in a container
 /**
- * if EDGEOPT_STORE_ASSOCIATED_FACES and VRTOPT_STORE_ASSOCIATED_EDGES
- * are enabled, the algorithm will be faster.
+ *	If you want to compare EdgeBase, Face, Volume, EdgeDescriptor,
+ *	FaceDescriptor or VolumeDescriptor with other EdgeBase, ... then please
+ *	use CompareVertices instead.
+ *
+ *	TVrtContainer has to feature the following methods (or compatible ones):
+ *	int size(): has to return the numbe of vertices in the container.
+ *	VertexBase* operator[](int index): has to return the i-th vertex.
+ *
+ *	Good types would be:
+ *	EdgeVertices, FaceVertices, VolumeVertices,
+ *	EdgeBase, Face, Volume, ...,
+ *	std::vector<VertexBase*>, ...
+ *
+ *	returns true if con1 and con2 contain the same vertices.
  */
-bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
-
-////////////////////////////////////////////////////////////////////////
-//	GetEdge
-///	returns the edge of the given grid, that connects the given points.
-/**
- * This method requires the grid-option VRTOPT_STORE_ASSOCIATED_EDGES.
- * returns NULL if grid does not contain a matching edge.
- */
-EdgeBase* FindEdge(Grid& grid, VertexBase* vrt1, VertexBase* vrt2);
-
-inline EdgeBase* FindEdge(Grid& grid, EdgeDescriptor& ed)
-	{
-		return FindEdge(grid, ed.vertex(0), ed.vertex(1));
-	}
-///	returns the i-th edge of the given face
-/**
- * This method requires the grid-option VRTOPT_STORE_ASSOCIATED_EDGES.
- * returns NULL if grid does not contain a matching edge.
- */
-EdgeBase* FindEdge(Grid& grid, Face* f, uint ind);
-
-///	returns the i-th edge of the given face
-/**
- * This method requires the grid-option VRTOPT_STORE_ASSOCIATED_EDGES.
- * returns NULL if grid does not contain a matching edge.
- */
-EdgeBase* FindEdge(Grid& grid, Volume* v, uint ind);
+template <class TVrtContainer1, class TVrtContainer2>
+bool CompareVertexContainer(const TVrtContainer1& con1,
+					const TVrtContainer2& con2);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectEdges
@@ -88,28 +103,6 @@ void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool
 bool EdgeContains(EdgeBase* e, VertexBase* vrt1, VertexBase* vrt2);
 
 ////////////////////////////////////////////////////////////////////////
-//	EdgeMatches
-///	returns true if the given edge matches the given EdgeDescriptor
-bool EdgeMatches(EdgeBase* e, EdgeDescriptor& ed);
-
-////////////////////////////////////////////////////////////////////////
-//	FindFace
-///	returns the face that matches the face descriptor.
-/**
- * This method requires the grid-option VRTOPT_STORE_ASSOCIATED_FACES
- * returns NULL if grid does not contain a matching face.
- * calculates hash values for faces and thus reduces calls to MatchFace.
- */
-Face* FindFace(Grid& grid, FaceDescriptor& fd);
-
-///	returns the i-th face from the given volume
-/**
- * This method requires the grid-option VRTOPT_STORE_ASSOCIATED_FACES
- * returns NULL if grid does not contain a matching face.
- */
-Face* FindFace(Grid& grid, Volume* v, uint ind, bool ignoreAssociatedFaces = false);
-
-////////////////////////////////////////////////////////////////////////
 //	CollectFaces
 ///	Collects all faces that exist in the given grid which contain the given edge.
 /**
@@ -135,7 +128,7 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cle
 ////////////////////////////////////////////////////////////////////////
 //	FaceMatches
 ///	returns true if the given face contains exactly the same points as the given descriptor.
-bool FaceMatches(Face* f, FaceDescriptor& fd);
+//bool FaceMatches(Face* f, FaceDescriptor& fd);
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
@@ -145,7 +138,7 @@ bool FaceContains(Face* f, VertexBase* v);
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
 ///	returns true if the given face contains the given edge
-bool FaceContains(Face* f, EdgeBase* e);
+bool FaceContains(Face* f, EdgeVertices* ev);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectVolumes
@@ -158,16 +151,6 @@ bool FaceContains(Face* f, EdgeBase* e);
  * end-points and returns each volume that contains the edge.
  */
 void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, bool clearContainer = true);
-
-////////////////////////////////////////////////////////////////////////
-//	FindVolume
-///	returns the volume that matches the volume descriptor.
-/**
- * This method requires the grid-option VRTOPT_STORE_ASSOCIATED_VOLUMES
- * returns NULL if grid does not contain a matching volume.
- * calculates hash values for volumes and thus reduces calls to MatchVolume.
- */
-Volume* FindVolume(Grid& grid, VolumeDescriptor& vd);
 
 ///	Collects all volumes that exist in the given grid which contain the given face.
 /**
@@ -187,12 +170,14 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 bool VolumeContains(Volume* v, VertexBase* vrt);
 
 ///	returns true if the given volume contains the given edge
-bool VolumeContains(Volume* v, EdgeBase* e);
+bool VolumeContains(Volume* v, EdgeVertices* ev);
 
 ///	returns true if the given volume contains the given face
-bool VolumeContains(Volume* v, Face* f);
-bool VolumeContains(Volume* v, FaceDescriptor& fd);
+bool VolumeContains(Volume* v, FaceVertices* f);
 
 }//	end of namespace libGrid
+
+//	include template implementation
+#include "grid_util_impl.hpp"
 
 #endif

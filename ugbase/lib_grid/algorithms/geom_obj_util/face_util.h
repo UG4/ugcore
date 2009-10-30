@@ -45,6 +45,13 @@ void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
 						AVector3& aPos, AVector3& aNorm);
 
 ////////////////////////////////////////////////////////////////////////
+//	IsVolumeBoundaryFace
+///	returns true if the given face is a boundary face.
+/**	A face is regarded as a boundary face if it is adjacent
+ *	to exactly one volume.*/
+bool IsVolumeBoundaryFace(Grid& grid, Face* f);
+
+////////////////////////////////////////////////////////////////////////
 //	FaceQuality
 ///	a simple measure for the quality of a face
 /**

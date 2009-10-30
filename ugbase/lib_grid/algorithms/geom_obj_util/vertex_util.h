@@ -98,6 +98,15 @@ void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin,
 					const VertexBaseIterator& iterEnd, AVector3& aPos,
 					number threshold);
 
+////////////////////////////////////////////////////////////////////////
+///	returns whether a vertex lies on the boundary of a 2D grid.
+/** A vertex is regarded as a 2d boundary vertex if it lies on a
+ * 2d boundary edge.
+ * if EDGEOPT_STORE_ASSOCIATED_FACES and VRTOPT_STORE_ASSOCIATED_EDGES
+ * are enabled, the algorithm will be faster.
+ */
+bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
+
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

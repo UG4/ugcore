@@ -68,6 +68,43 @@ void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
+bool IsVolumeBoundaryFace(Grid& grid, Face* f)
+{
+//	check if FACEOPT_STORE_ASSOCIATED_VOLUMES is enabled.
+//	if so, use it to count the number of adjacent volumes.
+	int counter = 0;
+	if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
+	{
+		for(VolumeIterator iter = grid.associated_volumes_begin(f);
+			iter != grid.associated_volumes_end(f); iter++)
+		{
+			counter++;
+		}
+	}
+	else
+	{
+	//	iterate over all volumes which are connected to the first vertex
+	//	and check if they contain the face...
+		VolumeIterator iterEnd = grid.associated_volumes_end(f->vertex(0));
+		for(VolumeIterator iter = grid.associated_volumes_begin(f->vertex(0));
+			iter != iterEnd; iter++)
+		{
+			uint numFaces = (*iter)->num_faces();
+			for(uint i = 0; i < numFaces; ++i)
+			{
+				if(VolumeContains(*iter, f))
+					counter++;
+			}
+		}
+	}
+
+//	if there is only one adjacent volume, the triangle is a boundary triangle
+	if(counter == 1)
+		return true;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
 //	FaceQuality
 number FaceQuality(Face* f,
 				Grid::VertexAttachmentAccessor<APosition> aaPos)
@@ -197,7 +234,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 		vFacesOut.clear();
 		
 //	check if we can find an edge for the specified side
-	EdgeBase* e = FindEdge(grid, f, side);
+	EdgeBase* e = grid.get_edge(f, side);
 	assert(e && "edge not found though it should be there!");
 
 //	get the connected faces

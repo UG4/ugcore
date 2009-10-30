@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include "grid.h"
+#include "grid_util.h"
 #include "common/common.h"
 
 using namespace std;
@@ -15,17 +16,28 @@ namespace ug
 //	implementation of Grid
 
 ////////////////////////////////////////////////////////////////////////
-//	constructor
+//	constructors
 Grid::Grid() : m_aVertexContainer(false), m_aEdgeContainer(false),
 				m_aFaceContainer(false), m_aVolumeContainer(false)
 {
 	m_options = GRIDOPT_NONE;
-	//change_options(GRIDOPT_DEFAULT);
+	m_hashCounter = 0;
+	change_options(GRIDOPT_DEFAULT);
+}
+
+Grid::Grid(uint options) : m_aVertexContainer(false), m_aEdgeContainer(false),
+							m_aFaceContainer(false), m_aVolumeContainer(false)
+{
+	m_options = GRIDOPT_NONE;
+	m_hashCounter = 0;
+	change_options(options);
 }
 
 Grid::Grid(const Grid& grid) : m_aVertexContainer(false), m_aEdgeContainer(false),
 							m_aFaceContainer(false), m_aVolumeContainer(false)
 {
+	m_options = GRIDOPT_NONE;
+	m_hashCounter = 0;
 	assert(!"WARNING in Grid::Grid(const Grid& grid): Copy-Constructor not yet implemented!");
 	LOG("WARNING in Grid::Grid(const Grid& grid): Copy-Constructor not yet implemented! Expect unexpected behavior." << endl);
 }
@@ -583,6 +595,89 @@ VolumeIterator Grid::associated_volumes_end(Face* face)
 		face_store_associated_volumes(true);
 	}
 	return m_aaVolumeContainerFACE[face].end();
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	neighbourhood access
+EdgeBase* Grid::get_edge(VertexBase* v1, VertexBase* v2)
+{
+	EdgeDescriptor ed(v1, v2);
+	return find_edge_in_associated_edges(v1, ed);
+}
+
+EdgeBase* Grid::get_edge(EdgeVertices& ev)
+{
+	return find_edge_in_associated_edges(ev.vertex(0), ev);
+}
+
+EdgeBase* Grid::get_edge(Face* f, int ind)
+{
+//	get the descriptor of the i-th edge
+	EdgeDescriptor ed;
+	f->edge(ind, ed);
+	
+//	check whether the face stores associated edges
+	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	it does. get the edge that matches.
+		return find_edge_in_associated_edges(f, ed);
+	}
+	else
+	{
+	//	it doesn't. find the edge by checking vertices.
+		return find_edge_in_associated_edges(ed.vertex(0), ed);
+	}
+	
+	return NULL;
+}
+
+EdgeBase* Grid::get_edge(Volume* v, int ind)
+{
+//	get the descriptor of the i-th edge
+	EdgeDescriptor ed;
+	v->edge(ind, ed);
+	
+//	check whether the face stores associated edges
+	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	it does. get the edge that matches.
+		return find_edge_in_associated_edges(v, ed);
+	}
+	else
+	{
+	//	it doesn't. find the edge by checking vertices.
+		return find_edge_in_associated_edges(ed.vertex(0), ed);
+	}
+	
+	return NULL;
+}
+
+Face* Grid::get_face(FaceVertices& fv)
+{
+	return find_face_in_associated_faces(fv.vertex(0), fv);
+}
+
+Face* Grid::get_face(Volume* v, int ind)
+{
+	FaceDescriptor fd;
+	v->face(ind, fd);
+	
+//	check whether the volume stores associated faces
+	if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
+	{
+		return find_face_in_associated_faces(v, fd);
+	}
+	else {
+	//	it does not. check associated faces of the first vertex of fd.
+		return find_face_in_associated_faces(fd.vertex(0), fd);
+	}
+	return NULL;
+}
+
+Volume* Grid::get_volume(VolumeVertices& vv)
+{
+	return find_volume_in_associated_volumes(vv.vertex(0), vv);
 }
 
 }//	end of namespace

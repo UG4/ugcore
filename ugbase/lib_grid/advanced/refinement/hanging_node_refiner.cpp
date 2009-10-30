@@ -942,7 +942,7 @@ void HangingNodeRefiner::refine_constraining_edge(ConstrainingEdge* constraining
 			//	create a constraining edge
 			//	check if an old edge already exits that connects those vertices
 			//	if so, replace it.
-				EdgeBase* tEdge = FindEdge(grid, vrt1, vrt2);
+				EdgeBase* tEdge = grid.get_edge(vrt1, vrt2);
 				ConstrainingEdge* nCE = NULL;
 				if(tEdge)
 				{
@@ -1334,7 +1334,7 @@ void HangingNodeRefiner::refine_face_with_hanging_vertex(Face* f)
 		{
 			if(vNewVrt)
 			{
-				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(FindEdge(grid, vNewEdgeVertices[i], vNewVrt));
+				ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNewVrt));
 				if(e)
 				{
 				//	link e with the constraining face
@@ -1345,7 +1345,7 @@ void HangingNodeRefiner::refine_face_with_hanging_vertex(Face* f)
 
 		//	check if a constrained edge exists between the vertex and its next neighbor
 			VertexBase* vNext = vNewEdgeVertices[(i + 1) % numNewEdgeVertices];
-			ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(FindEdge(grid, vNewEdgeVertices[i], vNext));
+			ConstrainedEdge* e = dynamic_cast<ConstrainedEdge*>(grid.get_edge(vNewEdgeVertices[i], vNext));
 			if(e)
 			{
 			//	link e with the constraining face
