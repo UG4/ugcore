@@ -1,3 +1,9 @@
+@rev 26: sreiter - y09 m11 d3
+-	Added pcl (Parallel Communicaltion Layer) to ugbase.
+-	Added libGrid-Documentation.
+-	Added ParallelToolchain files which are required to compile pcl.
+-	Removed grid_unit_test, which was unintentionally merged into the trunk.
+
 @rev 24: sreiter - y09 m10 d30
 -	Removed standard implementation of hash_key in common/util/hash.h.
 	Added specialization hash_key<uint>.

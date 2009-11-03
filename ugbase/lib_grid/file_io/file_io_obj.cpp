@@ -74,9 +74,14 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 				pSubsetHandler->set_subset_info(objCounter, si);
 			}
 
-		//	create triangles. creation differs if a subset handler is supplied.
+		//	create edges and faces.
+		//	creation differs if a subset handler is supplied.
 			if(pSubsetHandler == NULL)
 			{
+			//	create edges
+				for(int i = 0; i < (int)obj.m_vEdgeList.size() - 1; i+=2)
+					grid.create<Edge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
+													vVertices[obj.m_vEdgeList[i+1]]));
 			//	create triangles
 				for(int i = 0; i < (int)obj.m_vTriangleList.size()-1; i+=3)
 					grid.create<Triangle>(TriangleDescriptor(vVertices[obj.m_vTriangleList[i]],
@@ -90,6 +95,14 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			}
 			else
 			{
+			//	create edges
+				for(int i = 0; i < (int)obj.m_vEdgeList.size() - 1; i+=2)
+				{
+					Edge* e = *grid.create<Edge>(EdgeDescriptor(vVertices[obj.m_vEdgeList[i]],
+													vVertices[obj.m_vEdgeList[i+1]]));
+					pSubsetHandler->assign_subset(e, objCounter);
+				}
+													
 			//	create triangles
 				for(int i = 0; i < (int)obj.m_vTriangleList.size()-1; i+=3)
 				{
