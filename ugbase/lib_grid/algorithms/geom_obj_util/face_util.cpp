@@ -6,7 +6,7 @@
 #include <stack>
 #include <cassert>
 #include "face_util.h"
-#include "misc_util.h"
+#include "../attachment_util.h"
 
 using namespace std;
 

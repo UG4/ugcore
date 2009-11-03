@@ -11,6 +11,20 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+//	SetAttachmentValues
+template <class TAttachmentAccessor, class TIter, class TVal>
+void SetAttachmentValues(TAttachmentAccessor& aaVal,
+						TIter elemsBegin, TIter elemsEnd,
+						const TVal& val)
+{
+	while(elemsBegin != elemsEnd)
+	{
+		aaVal[*elemsBegin] = val;
+		++elemsBegin;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	ConvertMathVectorAttachmentValues
 template<class TElem, class TSrcAttachment, class TDestAttachment>
 bool ConvertMathVectorAttachmentValues(Grid& grid,

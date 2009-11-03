@@ -8,6 +8,10 @@
 #include "trees/kd_tree_static.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "grid_generation/grid_generation.h"
+#include "refinement/hanging_node_refiner.h"
+#include "refinement/multi_grid_refiner.h"
+#include "extrusion/extrusion.h"
+#include "extruder_util.h"
 #include "subset_util.h"
 #include "attachment_util.h"
 

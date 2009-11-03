@@ -17,6 +17,14 @@ namespace ug
  */
 
 ////////////////////////////////////////////////////////////////////////
+//	SetAttachmentValues
+///	sets attachment-values for elements between elemsBegin and elemsEnd.
+template <class TAttachmentAccessor, class TIter, class TVal>
+void SetAttachmentValues(TAttachmentAccessor& aaVal,
+						TIter elemsBegin, TIter elemsEnd,
+						const TVal& val);
+
+////////////////////////////////////////////////////////////////////////
 //	ConvertMathVectorAttachmentValues
 ///	Fills the dest-attachment with values from the source-attachment.
 /**
@@ -37,7 +45,6 @@ template<class TElem, class TSrcAttachment, class TDestAttachment>
 bool ConvertMathVectorAttachmentValues(Grid& grid,
 							TSrcAttachment& srcAttachment,
 							TDestAttachment& destAttachment);
-
 
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace

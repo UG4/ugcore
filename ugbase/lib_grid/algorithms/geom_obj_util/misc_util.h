@@ -10,21 +10,6 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
-//	SetAttachmentValues
-///	sets attachment-values for elements between elemsBegin and elemsEnd.
-template <class TAttachmentAccessor, class TIter, class TVal>
-void SetAttachmentValues(TAttachmentAccessor& aaVal,
-						TIter elemsBegin, TIter elemsEnd,
-						const TVal& val)
-{
-	while(elemsBegin != elemsEnd)
-	{
-		aaVal[*elemsBegin] = val;
-		++elemsBegin;
-	}
-}
-
-////////////////////////////////////////////////////////////////////////
 //	EraseConnectingElements
 ///	erases all elements that connect v1 and v2
 void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2);
