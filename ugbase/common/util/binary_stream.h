@@ -39,7 +39,7 @@ class BinaryStreamBuffer : public std::streambuf
 		inline void reset() ///< set read- and write-positions to the start of the buffer.
 			{m_readPos = 0; m_writePos = 0;}
 
-		inline char* buffer() ///< returns a pointer to the front of the buffer.
+		inline void* buffer() ///< returns a pointer to the front of the buffer.
 			{return &m_dataBuf.front();}
 
 		inline int size() ///< returns the size of the buffer in bytes.
@@ -67,7 +67,7 @@ class BinaryStreamBuffer : public std::streambuf
 
 		inline virtual int_type uflow()
 		{
-			char tmp = underflow();
+			int_type tmp = underflow();
 			m_readPos++;
 			return tmp;
 		}
@@ -80,7 +80,7 @@ class BinaryStreamBuffer : public std::streambuf
 		}
 
 	protected:
-		std::vector<char>	m_dataBuf;
+		std::vector<int_type>	m_dataBuf;
 		int m_readPos;
 		int m_writePos;
 };
@@ -102,7 +102,7 @@ class BinaryStream : public std::iostream
 		inline void reset() ///< set read- and write-positions to the start of the buffer.
 			{m_streamBuf.reset();}
 
-		inline char* buffer() ///< returns a pointer to the front of the buffer.
+		inline void* buffer() ///< returns a pointer to the front of the buffer.
 			{return m_streamBuf.buffer();}
 
 		inline int size() ///< returns the size of the buffer in bytes.

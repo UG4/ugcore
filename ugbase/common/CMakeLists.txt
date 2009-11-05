@@ -11,6 +11,7 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 set(srcCommon	common.cpp
 				util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
+				util/stream_pack.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp)
 				

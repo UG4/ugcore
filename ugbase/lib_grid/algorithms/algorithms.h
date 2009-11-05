@@ -14,5 +14,6 @@
 #include "extruder_util.h"
 #include "subset_util.h"
 #include "attachment_util.h"
+#include "serialization.h"
 
 #endif

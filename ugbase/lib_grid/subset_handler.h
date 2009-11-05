@@ -101,8 +101,11 @@ class SubsetHandler : public GridObserver
 	///	Moves the subset from index From to index To. Moves all subsets between indexFrom+1 and indexTo in the opposite direction.
 		void move_subset(int indexFrom, int indexTo);///< changes subset indices of other subsets.
 
+	/** if the subset at subsetIndex does not yet exist, it will be created.*/
 		void set_subset_info(int subsetIndex, const SubsetInfo& subsetInfo);
+	/** if the subset at subsetIndex does not yet exist, it will be created.*/
 		SubsetInfo& subset_info(int subsetIndex);
+	/** if the subset at subsetIndex does not yet exist, it will be created.*/
 		const SubsetInfo& subset_info(int subsetIndex) const;
 
 		void assign_subset(VertexBase* elem, int subsetIndex);
