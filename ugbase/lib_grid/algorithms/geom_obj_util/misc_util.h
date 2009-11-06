@@ -5,7 +5,7 @@
 #ifndef __H__LIB_GRID__MISC_UTIL__
 #define __H__LIB_GRID__MISC_UTIL__
 
-#include "lib_grid/grid/grid.h"
+#include "lib_grid/lg_base.h"
 
 namespace ug
 {

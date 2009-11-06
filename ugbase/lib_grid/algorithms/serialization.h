@@ -59,6 +59,14 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 ///	Creates grid elements from a binary stream
 bool DeserializeGridElements(Grid& grid, std::istream& in);
 
+/*
+////////////////////////////////////////////////////////////////////////
+//	SerializeMultiGridElements
+///	writes a part of a MultiGrid to a binary stream
+bool SerializeMultiGridElements(MultiGrid& mg,
+								GeometricObjectCollection goc,
+								AInt& aIntVRT, std::ostream& out);
+*/
 
 ////////////////////////////////////////////////////////////////////////
 //	copies attached values to a binary stream.

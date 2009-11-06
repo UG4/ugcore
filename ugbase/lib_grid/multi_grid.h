@@ -176,13 +176,17 @@ class MultiGrid : public Grid, public GridObserver
 		template <class TElem> inline
 		typename geometry_traits<TElem>::iterator
 		begin(int level)
-		{return m_hierarchy.template begin<TElem>(level);}
+		{return m_hierarchy.begin<TElem>(level);}
 
 		template <class TElem> inline
 		typename geometry_traits<TElem>::iterator
 		end(int level)
-		{return m_hierarchy.template end<TElem>(level);}
+		{return m_hierarchy.end<TElem>(level);}
 
+		inline GeometricObjectCollection
+		get_geometric_object_collection(int level)
+		{return m_hierarchy.get_geometric_object_collection(level);}
+		
 		template <class TElem> inline
 		int get_level(TElem* elem)
 		{return m_hierarchy.get_subset_index(elem);}
