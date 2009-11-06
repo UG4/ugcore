@@ -14,10 +14,10 @@ namespace ug
 template <class TElem>
 template <class TIterator>
 void
-GenericSelector<TElem>::
+GenericElementSelector<TElem>::
 select(TIterator iterBegin, TIterator iterEnd)
 {
-	assert(m_pGrid && "ERROR in GenericSelector::select(...): selector not registered at any grid!");
+	assert(m_pGrid && "ERROR in GenericElementSelector::select(...): selector not registered at any grid!");
 	while(iterBegin != iterEnd)
 	{
 		select(*iterBegin);
@@ -28,10 +28,10 @@ select(TIterator iterBegin, TIterator iterEnd)
 template <class TElem>
 template <class TIterator>
 void
-GenericSelector<TElem>::
+GenericElementSelector<TElem>::
 deselect(TIterator iterBegin, TIterator iterEnd)
 {
-	assert(m_pGrid && "ERROR in GenericSelector::deselect(...): selector not registered at any grid!");
+	assert(m_pGrid && "ERROR in GenericElementSelector::deselect(...): selector not registered at any grid!");
 	while(iterBegin != iterEnd)
 	{
 		deselect(*iterBegin);
@@ -42,10 +42,10 @@ deselect(TIterator iterBegin, TIterator iterEnd)
 template <class TElem>
 template <class TSelElem>
 void
-GenericSelector<TElem>::
+GenericElementSelector<TElem>::
 select_all()
 {
-	assert(m_pGrid && "ERROR in GenericSelector::select(...): selector not registered at any grid!");
+	assert(m_pGrid && "ERROR in GenericElementSelector::select(...): selector not registered at any grid!");
 
 	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
 	{
@@ -58,10 +58,10 @@ select_all()
 template <class TElem>
 template <class TSelElem>
 void
-GenericSelector<TElem>::
+GenericElementSelector<TElem>::
 clear_selection()
 {
-	assert(m_pGrid && "ERROR in GenericSelector::clear_selection(...): selector not registered at any grid!");
+	assert(m_pGrid && "ERROR in GenericElementSelector::clear_selection(...): selector not registered at any grid!");
 
 	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
 	{
@@ -80,7 +80,7 @@ clear_selection()
 template <class TElem>
 template <class TSelElem>
 uint
-GenericSelector<TElem>::
+GenericElementSelector<TElem>::
 num_selected()
 {
 	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
@@ -97,10 +97,10 @@ num_selected()
 template <class TElem>
 template <class TSelElem>
 typename geometry_traits<TSelElem>::iterator
-GenericSelector<TElem>::
+GenericElementSelector<TElem>::
 begin()
 {
-	assert(m_pGrid && "ERROR in GenericSelector::begin(...): selector not registered at any grid!");
+	assert(m_pGrid && "ERROR in GenericElementSelector::begin(...): selector not registered at any grid!");
 
 	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
 		return iterator_cast<typename geometry_traits<TSelElem>::iterator >(
@@ -113,10 +113,10 @@ begin()
 template <class TElem>
 template <class TSelElem>
 typename geometry_traits<TSelElem>::iterator
-GenericSelector<TElem>::
+GenericElementSelector<TElem>::
 end()
 {
-	assert(m_pGrid && "ERROR in GenericSelector::end(...): selector not registered at any grid!");
+	assert(m_pGrid && "ERROR in GenericElementSelector::end(...): selector not registered at any grid!");
 	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
 		return iterator_cast<typename geometry_traits<TSelElem>::iterator >(
 				m_selectedElements.section_end(geometry_traits<TSelElem>::SHARED_PIPE_SECTION));

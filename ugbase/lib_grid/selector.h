@@ -4,7 +4,7 @@
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-//	In this header the template class GenericSelector and its specializations
+//	In this header the template class GenericElementSelector and its specializations
 //	VertexSelector, EdgeSelector, FaceSelector and VolumeSelector are defined.
 //	Additionally the class Selector is defined, which combines the four
 //	specializations.
@@ -25,7 +25,7 @@ namespace ug
 class Selector;
 
 ////////////////////////////////////////////////////////////////////////
-//	GenericSelector
+//	GenericElementSelector
 ///	template class for element-selectors.
 /**
  * a selector is useful if you want to mark an element as selected
@@ -38,23 +38,23 @@ class Selector;
  * possible to iterate over a subset of selected elements corresponding to the type.
  * Given a VolumeSelector you could for example iterate only over selected
  * Tetrahedrons by calling yourVolumeSelectorInstance.begin<Tetrahedron>().
- * GenericSelector should only be specialized for the geometric base objects
+ * GenericElementSelector should only be specialized for the geometric base objects
  * VertexBase, EdgeBase, Face and Volume. Behavior is undefined for other
  * specializations! Some of its methods are thus implemented in selector.cpp
  * and instantiated using explicit instantiation.
  */
 template <class TElem>
-class GenericSelector : public GridObserver
+class GenericElementSelector : public GridObserver
 {
 	friend class Selector;
 	typedef typename geometry_traits<TElem>::iterator	TElemIterator;
 
 	public:
-		GenericSelector();
-		GenericSelector(Grid& grid);///	calls assign_grid with the given grid.
-		GenericSelector(const GenericSelector<TElem>& gSel);
+		GenericElementSelector();
+		GenericElementSelector(Grid& grid);///	calls assign_grid with the given grid.
+		GenericElementSelector(const GenericElementSelector<TElem>& gSel);
 
-		virtual ~GenericSelector();
+		virtual ~GenericElementSelector();
 
 		void assign_grid(Grid& grid);///	registers the observer at the grid.
 		Grid* get_assigned_grid();
@@ -165,10 +165,11 @@ class GenericSelector : public GridObserver
 
 ////////////////////////////////////////////////////////////////////////
 //	some common selectors
-typedef GenericSelector<VertexBase>	VertexSelector;
-typedef GenericSelector<EdgeBase>	EdgeSelector;
-typedef GenericSelector<Face>		FaceSelector;
-typedef GenericSelector<Volume>		VolumeSelector;
+typedef GenericElementSelector<VertexBase>	VertexSelector;
+typedef GenericElementSelector<EdgeBase>	EdgeSelector;
+typedef GenericElementSelector<Face>		FaceSelector;
+typedef GenericElementSelector<Volume>		VolumeSelector;
+
 
 ////////////////////////////////////////////////////////////////////////
 //	Selector
@@ -406,7 +407,6 @@ class Selector : public GridObserver
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
 		end(Volume* pType)		{return m_volumeSelector.end<TSelElem>();}
-
 
 	protected:
 		Grid*			m_pGrid;

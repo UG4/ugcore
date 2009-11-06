@@ -296,6 +296,149 @@ bool DeserializeGridElements(Grid& grid, std::istream& in)
 
 	return true;
 }
+/*
+bool SerializeMultiGridElements(MultiGrid& mg,
+								GeometricObjectCollection goc,
+								AInt& aIntVRT, AInt& aIntEDGE,
+								AInt& aIntFACE, aInt& aIntVOL,
+								std::ostream& out)
+{
+//TODO: add volume support
+	assert(grid.has_vertex_attachment(aIntVRT) && "aIntVRT is not attached to the grid");
+	if(!grid.has_vertex_attachment(aIntVRT))
+		return false;
+	assert(grid.has_vertex_attachment(aIntEDGE) && "aIntEDGE is not attached to the grid");
+	if(!grid.has_vertex_attachment(aIntEDGE))
+		return false;
+	assert(grid.has_vertex_attachment(aIntFACE) && "aIntFACE is not attached to the grid");
+	if(!grid.has_vertex_attachment(aIntFACE))
+		return false;
+	assert(grid.has_vertex_attachment(aIntVOL) && "aIntVOL is not attached to the grid");
+	if(!grid.has_vertex_attachment(aIntVOL))
+		return false;
+		
+	Grid::VertexAttachmentAccessor<AInt> aaIntVRT(grid, aIntVRT);
+	Grid::VertexAttachmentAccessor<AInt> aaIntEDGE(grid, aIntEDGE);
+	Grid::VertexAttachmentAccessor<AInt> aaIntFACE(grid, aIntFACE);
+	Grid::VertexAttachmentAccessor<AInt> aaIntVOL(grid, aIntVOL);
+
+	int tInt;
+	number tNumber;
+
+//	write the vertices. Assign numbers
+	{
+		int vrtInd = 0;
+			
+	//	init vertex-indices (only for Vertey type. Rest is done later on).
+		for(VertexIterator iter = goc.begin<Vertex>();
+			iter != goc.end<Vertex>(); ++iter)
+		{
+			aaIntVRT[*iter] = vrtInd++;
+		}
+		
+	//	write vertices to the stream
+		if(goc.num<Vertex>() > 0)
+		{
+			tInt = GOID_VERTEX;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Vertex>();
+			out.write((char*)&tInt, sizeof(int));
+		}
+		
+	//	write hanging vertices
+		if(goc.num<HangingVertex>() > 0)
+		{
+			tInt = GOID_HANGING_VERTEX;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = goc.num<HangingVertex>();
+			out.write((char*)&tInt, sizeof(int));
+			
+		//	write local-coords and assign indices
+		//	we need a number stream for that
+			for(HangingVertexIterator iter = goc.begin<HangingVertex>();
+				iter != goc.end<HangingVertex>(); ++iter)
+			{
+				tNumber = (*iter)->get_local_coordinate_1();
+				out.write((char*)&tNumber, sizeof(number));
+				tNumber = (*iter)->get_local_coordinate_2();
+				out.write((char*)&tNumber, sizeof(number));
+				aaIntVRT[*iter] = vrtInd++;
+			}
+		}
+	}
+
+//	iterate through the edges and set up the edgeStream.
+//int EDGE_GOID, int vrtInd1, int vrtInd2, [int numConstrainedVertices, {int constrainedVertexIndex}, int numConstrainedEdges, {int constrainedEdgeIndex}]
+	{
+		int edgeInd = 0;
+		
+	//	fill the stream
+	//	normal edges first.
+		if(goc.num<Edge>() > 0)
+		{
+			tInt = GOID_EDGE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Edge>();
+			out.write((char*)&tInt, sizeof(int));
+
+			for(EdgeIterator iter = goc.begin<Edge>();
+				iter != goc.end<Edge>(); ++iter)
+			{
+				Edge* e = *iter;
+				edgeInd++;
+				out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
+			}
+		}
+	//TODO: add support for hanging edges.
+	}
+
+//	faces
+	{
+	//TODO: add support for constrained faces etc...
+		if(goc.num<Triangle>() > 0)
+		{
+			tInt = GOID_TRIANGLE;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Triangle>();
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(TriangleIterator iter = goc.begin<Triangle>();
+				iter != goc.end<Triangle>(); ++iter)
+			{
+				Triangle* t = *iter;
+				out.write((char*)&aaIntVRT[t->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(2)], sizeof(int));
+			}
+		}
+		
+		if(goc.num<Quadrilateral>() > 0)
+		{
+			tInt = GOID_QUADRILATERAL;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Quadrilateral>();
+			out.write((char*)&tInt, sizeof(int));
+
+			for(QuadrilateralIterator iter = goc.begin<Quadrilateral>();
+				iter != goc.end<Quadrilateral>(); ++iter)
+			{
+				Quadrilateral* q = *iter;
+				out.write((char*)&aaIntVRT[q->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[q->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[q->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[q->vertex(3)], sizeof(int));
+			}
+		}
+	}
+
+//	mark the end of the grid-section
+	tInt = GOID_END_OF_GRID;
+	out.write((char*)&tInt, sizeof(int));
+
+	return true;
+}
+*/
 
 ////////////////////////////////////////////////////////////////////////
 //	WriteSubsetIndicesToStream

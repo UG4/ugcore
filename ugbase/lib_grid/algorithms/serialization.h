@@ -11,7 +11,11 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
-///	Writes a part of the grids elements into a binary-stream.
+////////////////////////////////////////////////////////////////////////
+//	GRID
+
+////////////////////////////////////////////////////////////////////////
+///	Writes a part of the grids elements to a binary-stream.
 /**
  * The passed GeometricObjectCollection goc may only reference
  * elements of the given grid. It is important, that the goc
@@ -42,7 +46,7 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 bool SerializeGridElements(Grid& grid, std::ostream& out);
 
 ////////////////////////////////////////////////////////////////////////
-///	Writes a part of the grids elements into a binary-stream.
+///	Writes a part of the grids elements to a binary-stream.
 /**
  * The passed GeometricObjectCollection goc may only reference
  * elements of the given grid. It is important, that the goc
@@ -59,14 +63,80 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 ///	Creates grid elements from a binary stream
 bool DeserializeGridElements(Grid& grid, std::istream& in);
 
-/*
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	MULTI-GRID
+
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
-///	writes a part of a MultiGrid to a binary stream
+///	writes a part of the elements of a MultiGrid to a binary stream.
+/**
+ * The passed GeometricObjectCollection goc may only reference
+ * elements of the given grid. It is important, that the goc
+ * is complete - that means that all referenced vertices are
+ * contained in the goc.
+ * The goc has also to be complete in regard to the multi-grid hierarchy.
+ * This means that for each element of the goc, the parent has to be
+ * also part of the goc.
+ *
+ * If you pack several different parts of your grid, you should use
+ * this method, since it is faster than calling SerializeGridElements
+ * without the attachment.
+ *
+ * the integer attachment aInt is used during this method to store
+ * an index in each element of the goc. The initial content of
+ * the referenced attachment is ignored.
+ *
+ * The caller is responsible to attach the aIntVRT attachment to the 
+ * to the vertices of the grid before calling this method.
+ * The caller is also responsible to detach aIntVRT from the grids
+ * vertices when it is no longer required.
+ *
+ * After termination the attachments hold the indices that were
+ * assigned to the respective elements - starting from 0 for each
+ * element type.
+ */
+/*
 bool SerializeMultiGridElements(MultiGrid& mg,
 								GeometricObjectCollection goc,
-								AInt& aIntVRT, std::ostream& out);
+								AInt& aIntVRT, AInt& aIntEDGE,
+								AInt& aIntFACE, aInt& aIntVOL,
+								std::ostream& out);
 */
+
+////////////////////////////////////////////////////////////////////////
+//	SerializeMultiGridElements
+///	writes a part of the elements of a MultiGrid to a binary stream.
+/**
+ * The passed GeometricObjectCollection goc may only reference
+ * elements of the given grid. It is important, that the goc
+ * is complete - that means that all referenced vertices are
+ * contained in the goc.
+ * The goc has also to be complete in regard to the multi-grid hierarchy.
+ * This means that for each element of the goc, the parent has to be
+ * also part of the goc.
+ *
+ * If you're planning to serialize multiple parts of one grid, you
+ * should consider to use the full-featured serialization method.
+ */
+/*
+bool SerializeMultiGridElements(MultiGrid& mg,
+								GeometricObjectCollection goc,
+								std::ostream& out);
+*/
+
+////////////////////////////////////////////////////////////////////////
+//	SerializeMultiGridElements
+///	writes the elements of a MultiGrid to a binary stream.
+/*
+bool SerializeMultiGridElements(MultiGrid& mg,
+								std::ostream& out);
+*/
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	ATTACHMENTS
 
 ////////////////////////////////////////////////////////////////////////
 //	copies attached values to a binary stream.
@@ -120,6 +190,10 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 						 typename geometry_traits<TElem>::iterator iterEnd,
 						 std::istream& in);
 
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	SUBSET-HANDLER
 
 ////////////////////////////////////////////////////////////////////////
 ///	writes the subset-indices of all elements in the goc to a stream.
