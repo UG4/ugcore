@@ -24,6 +24,21 @@ void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBeg
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+//	AssignIndices
+template <class TElem>
+void AssignIndices(typename geometry_traits<TElem>::iterator iterBegin,
+					typename geometry_traits<TElem>::iterator iterEnd,
+					Grid::AttachmentAccessor<TElem, AInt>& aaInt)
+{
+	int index = 0;
+	while(iterBegin != iterEnd)
+	{
+		aaInt[*iterBegin] = index++;
+		iterBegin++;
+	}
+}
+
 }//	end of namespace
 
 #endif

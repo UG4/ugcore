@@ -21,6 +21,18 @@ template <class TElem>
 void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd);
 
+////////////////////////////////////////////////////////////////////////
+//	AssignIndices
+///	assigns indices starting from 0.
+/** Make sure that the accessor is valid and that it references an
+ * attachment of the correct type. The elements between iterBegin and
+ * iterEnd have to belong to the same grid for which the accessor was
+ * created.*/
+template <class TElem>
+void AssignIndices(typename geometry_traits<TElem>::iterator iterBegin,
+					typename geometry_traits<TElem>::iterator iterEnd,
+					Grid::AttachmentAccessor<TElem, AInt>& aaInt);
+				
 }//	end of namespace
 
 ////////////////////////////////////////////////////////////////////////

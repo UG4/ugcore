@@ -15,5 +15,6 @@
 #include "subset_util.h"
 #include "attachment_util.h"
 #include "serialization.h"
+#include "selection_util.h"
 
 #endif
