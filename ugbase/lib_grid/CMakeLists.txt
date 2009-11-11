@@ -41,6 +41,7 @@ set(srcLibGrid	common_attachments.cpp
 				geometric_objects.cpp
 				multi_grid.cpp
 				selector.cpp
+				selection_policies.cpp
 				subset_handler.cpp)
 
 				

@@ -13,10 +13,8 @@
 #ifndef __H__LIBGRID__SELECTOR__
 #define __H__LIBGRID__SELECTOR__
 
-#include <list>
 #include "grid/grid.h"
-#include "common_attachments.h"
-#include "common/util/section_container.h"
+#include "selection_policies.h"
 
 namespace ug
 {
@@ -33,7 +31,7 @@ class Selector;
  * automatically avoids multiple selection.
  *
  * Instead of using this class directly, you will most likely use the typedefs
- * VertexSelector, EdgeSelector, FaceSelector and VolumeSelector instead.
+ * VertexSelector, EdgeSelector, FaceSelector or VolumeSelector instead.
  * By specifying special geometric objects through template arguments it is
  * possible to iterate over a subset of selected elements corresponding to the type.
  * Given a VolumeSelector you could for example iterate only over selected
@@ -42,86 +40,86 @@ class Selector;
  * VertexBase, EdgeBase, Face and Volume. Behavior is undefined for other
  * specializations! Some of its methods are thus implemented in selector.cpp
  * and instantiated using explicit instantiation.
+ *
+ * Please note that some of the functionality of the selector is implemented
+ * in the SelectionPolicy, that is passed as a template parameter.
  */
-template <class TElem>
-class GenericElementSelector : public GridObserver
+template <class TElem, class SelectionPolicy>
+class GenericElementSelector : public GridObserver, public SelectionPolicy
 {
 	friend class Selector;
-	typedef typename geometry_traits<TElem>::iterator	TElemIterator;
+	public:
+		typedef typename geometry_traits<TElem>::iterator	TElemIterator;
+		typedef typename SelectionPolicy::GridRefType			TGridRef;
+		typedef typename SelectionPolicy::GridPtrType			TGridPtr;
+		typedef typename SelectionPolicy::GridRefType			GridRefType;
+		typedef typename SelectionPolicy::GridPtrType			GridPtrType;
+
+	
+	public:
+	//	We're using some methods of SelectionPolicy.
+	//	To avoid that a method from this class hides a method
+	//	from the SelectionPolicy, we'll explicitly connect them here.
+		using SelectionPolicy::select;
+		using SelectionPolicy::deselect;
+		using SelectionPolicy::clear_selection;
+		using SelectionPolicy::is_selected;
+		using SelectionPolicy::num_selected;
+
+	//	begin() and end() are not mentioned here, since they have differing
+	//	function arguments for different grid types.
 
 	public:
 		GenericElementSelector();
-		GenericElementSelector(Grid& grid);///	calls assign_grid with the given grid.
-		GenericElementSelector(const GenericElementSelector<TElem>& gSel);
+		GenericElementSelector(TGridRef grid);///<	calls assign_grid with the given grid.
+		GenericElementSelector(const GenericElementSelector<TElem, SelectionPolicy>& gSel);
 
 		virtual ~GenericElementSelector();
 
-		void assign_grid(Grid& grid);///	registers the observer at the grid.
-		Grid* get_assigned_grid();
+	///	registers the observer at the grid.
+		void assign_grid(TGridRef grid);
+		TGridPtr get_assigned_grid();
 
-	//	if enabled, all new elements will be automatically enabled. Disabled by default.
+	///	if enabled, all new elements will be automatically enabled. Disabled by default.
 		void enable_autoselection(bool bEnable);
 		inline bool autoselection_enabled()		{return m_bAutoselectionEnabled;}
 
-	//	if enabled, newly created elements derive their selection status from their parents. Enabled by default.
+	///	if enabled, newly created elements derive their selection status from their parents. Enabled by default.
 		void enable_selection_inheritance(bool bEnable);
 		inline bool selection_inheritance_enabled()	{return m_bSelectionInheritanceEnabled;}
-
-		void select(TElem* elem);
-
+		
+	///	calls select(TElem*) on all elements between iterBegin and iterEnd.
 		template <class TIterator>
 		void select(TIterator iterBegin, TIterator iterEnd);
 
+	///	calls select(TElem*) on all elements of type TSelElem of the grid
 		template <class TSelElem>
 		void select_all();
+		
+	//	calls select(TElem*) on all elements
 		inline void select_all()	{return select_all<TElem>();}
-
-		void deselect(TElem* elem);
-
+		
 		template <class TIterator>
 		void deselect(TIterator iterBegin, TIterator iterEnd);
+		
+		inline void clear_selection()	{SelectionPolicy::template clear_selection<TElem>();}
 
 		template <class TSelElem>
-		void clear_selection();
-		inline void clear_selection()	{clear_selection<TElem>();}
+		inline void clear()			{SelectionPolicy::template clear_selection<TSelElem>();}
+		inline void clear()			{SelectionPolicy::template clear_selection<TElem>();}
+		
+		inline uint num_selected()	{return SelectionPolicy::template num_selected<TElem>();}
 
 		template <class TSelElem>
-		inline void clear()			{clear_selection<TSelElem>();}
-		inline void clear()			{clear_selection<TElem>();}
-
-		bool is_selected(TElem* elem);
-		bool is_selected(GeometricObject* elem);
-
-	//	num_selected
-		template <class TSelElem>
-		uint num_selected();
-
-		inline uint num_selected()	{return num_selected<TElem>();}
-
-		template <class TSelElem>
-		inline uint num()	{return num_selected<TSelElem>();}
-		inline uint num()	{return num_selected<TElem>();}
-
+		inline uint num()	{return SelectionPolicy::template num_selected<TSelElem>();}
+		inline uint num()	{return SelectionPolicy::template num_selected<TElem>();}
+		
 	//	empty
 		template <class TSelElem>
-		inline bool empty()	{return num_selected<TSelElem>() == 0;}
+		inline bool empty()	{return SelectionPolicy::template num_selected<TSelElem>() == 0;}
 
 		inline bool empty()	{return empty<TElem>();}
-
-	//	begin
-		template <class TSelElem>
-		typename geometry_traits<TSelElem>::iterator begin();
-
-		inline typename geometry_traits<TElem>::iterator
-		begin()	{return begin<TElem>();}
-
-	//	end
-		template <class TSelElem>
-		typename geometry_traits<TSelElem>::iterator end();
-
-		inline typename geometry_traits<TElem>::iterator
-		end()	{return end<TElem>();}
-
+		
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);
@@ -146,49 +144,41 @@ class GenericElementSelector : public GridObserver
 	protected:
 		void elem_created(Grid* grid, TElem* elem, GeometricObject* pParent);
 		void elem_to_be_erased(Grid* grid, TElem* elem);
-
+		
 	protected:
-		typedef SectionContainer<TElem*, std::list<TElem*> >			ElemSectionContainer;
-		typedef Attachment<typename std::list<TElem*>::iterator>		AElemIterator;
-
-	protected:
-		const int		m_baseObjectType;
 		bool			m_bAutoselectionEnabled;
 		bool			m_bSelectionInheritanceEnabled;
-		Grid*			m_pGrid;
-		AElemIterator 	m_aElemIterator;	/// this attachment will be used to store an iterator into m_selectedElements
-		ElemSectionContainer 	m_selectedElements;	/// holds pointers to selected elements.
-		std::list<TElem*> 		m_invalidContainer;	/// used to retrieve an iterator which is used to invalidate other iterators.
-		Grid::AttachmentAccessor<TElem, AElemIterator>	m_aaElemIterator;
+		TGridPtr		m_pGrid;
 };
 
 
 ////////////////////////////////////////////////////////////////////////
-//	some common selectors
-typedef GenericElementSelector<VertexBase>	VertexSelector;
-typedef GenericElementSelector<EdgeBase>	EdgeSelector;
-typedef GenericElementSelector<Face>		FaceSelector;
-typedef GenericElementSelector<Volume>		VolumeSelector;
-
-
 ////////////////////////////////////////////////////////////////////////
-//	Selector
-///	allows you to select elements of different types with one selector
+//	GenericSelector
+///	base-implementation of a selector
 /**
- * a selector is useful if you want to mark an element as selected
- * or if you want to keep a list of selected elements. The Selector
- * automatically avoids multiple selection.
+ * ...
  */
-class Selector : public GridObserver
+template <class TElementSelectors>
+class GenericSelector : public GridObserver
 {
 	public:
-		Selector();
-		Selector(Grid& grid);///	calls assign_grid with the given grid.
-		Selector(const Selector& sel);///<	Copy Constructor not yet implemented!
-		virtual ~Selector();
+		typedef GenericSelector<TElementSelectors>		ClassType;
+		typedef typename TElementSelectors::TGridRef	TGridRef;
+		typedef typename TElementSelectors::TGridPtr	TGridPtr;
+		typedef typename TElementSelectors::TVertexSelector	TVertexSelector;
+		typedef typename TElementSelectors::TEdgeSelector	TEdgeSelector;
+		typedef typename TElementSelectors::TFaceSelector	TFaceSelector;
+		typedef typename TElementSelectors::TVolumeSelector	TVolumeSelector;
 
-		void assign_grid(Grid& grid);///	registers the observer at the grid.
-		Grid* get_assigned_grid();
+	public:
+		GenericSelector();
+		GenericSelector(TGridRef grid);///	calls assign_grid with the given grid.
+		GenericSelector(const ClassType& sel);///<	Copy Constructor not yet implemented!
+		virtual ~GenericSelector();
+
+		void assign_grid(TGridRef grid);///	registers the observer at the grid.
+		TGridPtr get_assigned_grid();
 
 	//	if enabled, all new elements will be automatically enabled. Disabled by default.
 		void enable_autoselection(bool bEnable);
@@ -258,26 +248,6 @@ class Selector : public GridObserver
 		inline bool empty()							{TSelElem* t; return empty<TSelElem>(t);}
 
 		inline bool empty()							{return empty<VertexBase>() && empty<EdgeBase>() && empty<Face>() && empty<Volume>();}
-
-		template <class TSelElem>
-		typename geometry_traits<TSelElem>::iterator
-		begin();
-
-		template <class TSelElem>
-		typename geometry_traits<TSelElem>::iterator
-		end();
-
-		inline VertexBaseIterator vertices_begin()	{return m_vertexSelector.begin();}
-		inline VertexBaseIterator vertices_end()	{return m_vertexSelector.end();}
-		inline EdgeBaseIterator edges_begin()		{return m_edgeSelector.begin();}
-		inline EdgeBaseIterator edges_end()			{return m_edgeSelector.end();}
-		inline FaceIterator faces_begin()			{return m_faceSelector.begin();}
-		inline FaceIterator faces_end()				{return m_faceSelector.end();}
-		inline VolumeIterator volumes_begin()		{return m_volumeSelector.begin();}
-		inline VolumeIterator volumes_end()			{return m_volumeSelector.end();}
-
-	//	geometric-object-collection
-		GeometricObjectCollection get_geometric_object_collection();
 
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);
@@ -374,53 +344,264 @@ class Selector : public GridObserver
 		template <class TSelElem>
 		inline bool empty(Volume* pType)					{return m_volumeSelector.empty<TSelElem>();}
 
+	protected:
+		TGridPtr		m_pGrid;
+		bool			m_bAutoselectionEnabled;
+		bool			m_bSelectionInheritanceEnabled;
+		TVertexSelector	m_vertexSelector;
+		TEdgeSelector	m_edgeSelector;
+		TFaceSelector	m_faceSelector;
+		TVolumeSelector	m_volumeSelector;
+};
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	some common element selectors for Grid and MultiGrid
+typedef GenericElementSelector<VertexBase, GridSelectionPolicy<VertexBase> >
+		VertexSelector;
+typedef GenericElementSelector<EdgeBase, GridSelectionPolicy<EdgeBase> >
+		EdgeSelector;
+typedef GenericElementSelector<Face, GridSelectionPolicy<Face> >
+		FaceSelector;
+typedef GenericElementSelector<Volume, GridSelectionPolicy<Volume> >
+		VolumeSelector;
+
+struct ElementSelectors
+{
+	typedef Grid&			TGridRef;
+	typedef Grid*			TGridPtr;
+	typedef VertexSelector	TVertexSelector;
+	typedef EdgeSelector	TEdgeSelector;
+	typedef FaceSelector	TFaceSelector;
+	typedef VolumeSelector	TVolumeSelector;
+};
+
+typedef GenericElementSelector<VertexBase, MultiGridSelectionPolicy<VertexBase> >
+		MGVertexSelector;
+typedef GenericElementSelector<EdgeBase, MultiGridSelectionPolicy<EdgeBase> >
+		MGEdgeSelector;
+typedef GenericElementSelector<Face, MultiGridSelectionPolicy<Face> >
+		MGFaceSelector;
+typedef GenericElementSelector<Volume, MultiGridSelectionPolicy<Volume> >
+		MGVolumeSelector;
+
+struct MGElementSelectors
+{
+	typedef MultiGrid&			TGridRef;
+	typedef MultiGrid*			TGridPtr;
+	typedef MGVertexSelector	TVertexSelector;
+	typedef MGEdgeSelector		TEdgeSelector;
+	typedef MGFaceSelector		TFaceSelector;
+	typedef MGVolumeSelector	TVolumeSelector;
+};
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	Selector and MGSelector
+
+////////////////////////////////////////////////////////////////////////
+//	Selector
+///	allows to select elements of different types with one selector
+/**
+ * a selector is useful if you want to mark an element as selected
+ * or if you want to keep a list of selected elements. The Selector
+ * automatically avoids multiple selection.
+ */
+class Selector : public GenericSelector<ElementSelectors>
+{
+	public:
+		typedef GenericSelector<ElementSelectors>	BaseClass;
+		typedef BaseClass::TGridRef					TGridRef;
+
+	public:
+		Selector() : BaseClass()	{}
+		Selector(TGridRef grid) : BaseClass(grid)		{}
+		Selector(const Selector& sel) : BaseClass(sel)	{}
+
+	//	begin
+		template <class TSelElem>
+		inline
+		typename geometry_traits<TSelElem>::iterator
+		begin()
+		{
+			TSelElem* pTmp;
+			return begin<TSelElem>(pTmp);
+		}
+
+	//	end
+		template <class TSelElem>
+		inline
+		typename geometry_traits<TSelElem>::iterator
+		end()
+		{
+			TSelElem* pTmp;
+			return end<TSelElem>(pTmp);
+		}
+
+	//	convenience begin and end
+		inline VertexBaseIterator vertices_begin()	{return m_vertexSelector.begin();}
+		inline VertexBaseIterator vertices_end()	{return m_vertexSelector.end();}
+		inline EdgeBaseIterator edges_begin()		{return m_edgeSelector.begin();}
+		inline EdgeBaseIterator edges_end()			{return m_edgeSelector.end();}
+		inline FaceIterator faces_begin()			{return m_faceSelector.begin();}
+		inline FaceIterator faces_end()				{return m_faceSelector.end();}
+		inline VolumeIterator volumes_begin()		{return m_volumeSelector.begin();}
+		inline VolumeIterator volumes_end()			{return m_volumeSelector.end();}
+
+	//	geometric-object-collection
+		GeometricObjectCollection get_geometric_object_collection();
+
+	protected:
 	//	begin
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		begin(VertexBase* pType)	{return m_vertexSelector.begin<TSelElem>();}
+		begin(const VertexBase* pType)	{return m_vertexSelector.begin<TSelElem>();}
 
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		begin(EdgeBase* pType)		{return m_edgeSelector.begin<TSelElem>();}
+		begin(const EdgeBase* pType)		{return m_edgeSelector.begin<TSelElem>();}
 
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		begin(Face* pType)			{return m_faceSelector.begin<TSelElem>();}
+		begin(const Face* pType)			{return m_faceSelector.begin<TSelElem>();}
 
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		begin(Volume* pType)		{return m_volumeSelector.begin<TSelElem>();}
+		begin(const Volume* pType)		{return m_volumeSelector.begin<TSelElem>();}
 
 	//	end
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		end(VertexBase* pType)	{return m_vertexSelector.end<TSelElem>();}
+		end(const VertexBase* pType)	{return m_vertexSelector.end<TSelElem>();}
 
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		end(EdgeBase* pType)	{return m_edgeSelector.end<TSelElem>();}
+		end(const EdgeBase* pType)	{return m_edgeSelector.end<TSelElem>();}
 
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		end(Face* pType)		{return m_faceSelector.end<TSelElem>();}
+		end(const Face* pType)		{return m_faceSelector.end<TSelElem>();}
 
 		template <class TSelElem>
 		inline typename geometry_traits<TSelElem>::iterator
-		end(Volume* pType)		{return m_volumeSelector.end<TSelElem>();}
+		end(const Volume* pType)		{return m_volumeSelector.end<TSelElem>();}
+};
+
+
+////////////////////////////////////////////////////////////////////////
+//	MGSelector
+///	allows to select elements of different types with one selector
+/**
+ * a selector is useful if you want to mark an element as selected
+ * or if you want to keep a list of selected elements. The Selector
+ * automatically avoids multiple selection.
+ */
+class MGSelector : public GenericSelector<MGElementSelectors>
+{
+	public:
+		typedef GenericSelector<MGElementSelectors>	BaseClass;
+		typedef BaseClass::TGridRef					TGridRef;
+
+	public:
+		using BaseClass::num_selected;
+		using BaseClass::num;
+
+	public:
+		MGSelector() : BaseClass()	{}
+		MGSelector(TGridRef grid) : BaseClass(grid)		{}
+		MGSelector(const MGSelector& sel) : BaseClass(sel)	{}
+
+	//	begin
+		template <class TSelElem>
+		inline
+		typename geometry_traits<TSelElem>::iterator
+		begin(int level)									{TSelElem* pTmp; return begin<TSelElem>(pTmp, level);}
+
+	//	end
+		template <class TSelElem>
+		inline
+		typename geometry_traits<TSelElem>::iterator
+		end(int level)										{TSelElem* pTmp; return end<TSelElem>(pTmp, level);}
+
+	//	convenience begin and end
+		inline VertexBaseIterator vertices_begin(int level)	{return m_vertexSelector.begin(level);}
+		inline VertexBaseIterator vertices_end(int level)	{return m_vertexSelector.end(level);}
+		inline EdgeBaseIterator edges_begin(int level)		{return m_edgeSelector.begin(level);}
+		inline EdgeBaseIterator edges_end(int level)		{return m_edgeSelector.end(level);}
+		inline FaceIterator faces_begin(int level)			{return m_faceSelector.begin(level);}
+		inline FaceIterator faces_end(int level)			{return m_faceSelector.end(level);}
+		inline VolumeIterator volumes_begin(int level)		{return m_volumeSelector.begin(level);}
+		inline VolumeIterator volumes_end(int level)		{return m_volumeSelector.end(level);}
+
+	//	level-support for num-queries
+		template <class TSelElem>
+		inline uint num_selected(int level)					{TSelElem* t; return num_selected<TSelElem>(level, t);}
+
+		template <class TSelElem>
+		inline uint num(int level)							{return num_selected<TSelElem>(level);}
+
+	//	num levels
+		inline uint num_levels()	{return std::max(std::max(m_vertexSelector.num_levels(), m_edgeSelector.num_levels()),
+													std::max(m_faceSelector.num_levels(), m_volumeSelector.num_levels()));}
+		
+	//	multi-level-geometric-object-collection
+		MultiLevelGeometricObjectCollection
+		get_multi_level_geometric_object_collection();
 
 	protected:
-		Grid*			m_pGrid;
-		bool			m_bAutoselectionEnabled;
-		bool			m_bSelectionInheritanceEnabled;
-		VertexSelector	m_vertexSelector;
-		EdgeSelector	m_edgeSelector;
-		FaceSelector	m_faceSelector;
-		VolumeSelector	m_volumeSelector;
+	//	begin
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		begin(int level, const VertexBase* pType)	{return m_vertexSelector.begin<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		begin(int level, const EdgeBase* pType)		{return m_edgeSelector.begin<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		begin(int level, const Face* pType)			{return m_faceSelector.begin<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		begin(int level, const Volume* pType)		{return m_volumeSelector.begin<TSelElem>(level);}
+
+	//	end
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		end(int level, const VertexBase* pType)	{return m_vertexSelector.end<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		end(int level, const EdgeBase* pType)	{return m_edgeSelector.end<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		end(int level, const Face* pType)		{return m_faceSelector.end<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline typename geometry_traits<TSelElem>::iterator
+		end(int level, const Volume* pType)		{return m_volumeSelector.end<TSelElem>(level);}
+
+	//	num selected
+		template <class TSelElem>
+		inline uint num_selected(int level, const VertexBase* pType)	{return m_vertexSelector.num_selected<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline uint num_selected(int level, const EdgeBase* pType)		{return m_edgeSelector.num_selected<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline uint num_selected(int level, const Face* pType)			{return m_faceSelector.num_selected<TSelElem>(level);}
+
+		template <class TSelElem>
+		inline uint num_selected(int level, const Volume* pType)		{return m_volumeSelector.num_selected<TSelElem>(level);}
 };
 
 }//	end of namespace
 
-//	include the implementation
+////////////////////////////////
+//	include implementation
 #include "selector_impl.hpp"
 
 #endif

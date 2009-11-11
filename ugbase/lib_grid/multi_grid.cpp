@@ -2,6 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y09 m09 d10
 
+#include <algorithm>
 #include "multi_grid.h"
 
 using namespace std;
@@ -237,6 +238,56 @@ void MultiGrid::volume_to_be_replaced(Grid* grid, Volume* volOld, Volume* volNew
 {
 //	child and parent connections are handled by create and erase.
 }
+
+void MultiGrid::check_edge_elem_infos(int level)
+{
+//	check the max fill rates of each child list.
+	byte maxChildEdges = 0;
+
+	for(EdgeBaseIterator iter = begin<EdgeBase>(level);
+		iter != end<EdgeBase>(level); ++iter)
+		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
+
+	cout << "MultiGrid: max edge child edges on level " << level << ": " << (int)maxChildEdges << endl;
+}
+
+void MultiGrid::check_face_elem_infos(int level)
+{
+//	check the max fill rates of each child list.
+	byte maxChildEdges = 0;
+	byte maxChildFaces = 0;
+
+	for(FaceIterator iter = begin<Face>(level);
+		iter != end<Face>(level); ++iter)
+	{
+		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
+		maxChildFaces = max(get_info(*iter).m_numFaceChildren, maxChildFaces);
+	}
+
+	cout << "MultiGrid: max face child edges on level " << level << ": " << (int)maxChildEdges << endl;
+	cout << "MultiGrid: max face child faces on level " << level << ": " << (int)maxChildFaces << endl;
+}
+
+void MultiGrid::check_volume_elem_infos(int level)
+{
+//	check the max fill rates of each child list.
+	byte maxChildEdges = 0;
+	byte maxChildFaces = 0;
+	byte maxChildVolumes = 0;
+
+	for(VolumeIterator iter = begin<Volume>(level);
+		iter != end<Volume>(level); ++iter)
+	{
+		maxChildEdges = max(get_info(*iter).m_numEdgeChildren, maxChildEdges);
+		maxChildFaces = max(get_info(*iter).m_numFaceChildren, maxChildFaces);
+		maxChildVolumes = max(get_info(*iter).m_numVolChildren, maxChildVolumes);
+	}
+
+	cout << "MultiGrid: max volume child edges on level " << level << ": " << (int)maxChildEdges << endl;
+	cout << "MultiGrid: max volume child faces on level " << level << ": " << (int)maxChildFaces << endl;
+	cout << "MultiGrid: max volume child volumes on level " << level << ": " << (int)maxChildVolumes << endl;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////

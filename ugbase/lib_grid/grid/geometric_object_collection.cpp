@@ -41,5 +41,55 @@ GeometricObjectCollection::operator =(const GeometricObjectCollection& goc)
 		m_pSectionContainers[i] = goc.m_pSectionContainers[i];
 	return *this;
 }
-									
+								
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	MultiLevelGeometricObjectCollection
+MultiLevelGeometricObjectCollection::MultiLevelGeometricObjectCollection()
+{
+}
+
+MultiLevelGeometricObjectCollection::
+MultiLevelGeometricObjectCollection(int levelEstimate)
+{
+	m_levels.reserve(levelEstimate);
+}
+		
+MultiLevelGeometricObjectCollection::
+MultiLevelGeometricObjectCollection(const MultiLevelGeometricObjectCollection& mgoc)
+{
+	assign(mgoc);
+}
+
+MultiLevelGeometricObjectCollection&
+MultiLevelGeometricObjectCollection::
+operator =(const MultiLevelGeometricObjectCollection& mgoc)
+{
+	assign(mgoc);
+	return *this;
+}
+
+void
+MultiLevelGeometricObjectCollection::
+assign(const MultiLevelGeometricObjectCollection& mgoc)
+{
+	m_levels.resize(mgoc.num_levels());
+	for(size_t i = 0; i < m_levels.size(); ++i)
+		m_levels[i] = mgoc.m_levels[i];
+}
+
+void
+MultiLevelGeometricObjectCollection::
+add_level(	GeometricObjectSectionContainer* pVrtSection,
+			GeometricObjectSectionContainer* pEdgeSection,
+			GeometricObjectSectionContainer* pFaceSection,
+			GeometricObjectSectionContainer* pVolSection)
+{
+	m_levels.push_back(GeometricObjectCollection(	pVrtSection,
+													pEdgeSection,
+													pFaceSection,
+													pVolSection));
+}
+				
 }

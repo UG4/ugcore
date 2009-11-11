@@ -5,6 +5,7 @@
 #include <cassert>
 #include "selector.h"
 #include "common/common.h"
+#include "multi_grid.h"
 
 using namespace std;
 
@@ -13,36 +14,33 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of GenericElementSelector
-template <class TElem>
-GenericElementSelector<TElem>::
-GenericElementSelector() : m_baseObjectType(geometry_traits<TElem>::BASE_OBJECT_TYPE_ID),
-					m_aElemIterator(false)
+template <class TElem, class SelectionPolicy>
+GenericElementSelector<TElem, SelectionPolicy>::
+GenericElementSelector()
 {
 	m_bAutoselectionEnabled = false;
 	m_pGrid = NULL;
-	m_invalidContainer.push_back(NULL);
 }
 
-template <class TElem>
-GenericElementSelector<TElem>::
-GenericElementSelector(Grid& grid) : m_baseObjectType(geometry_traits<TElem>::BASE_OBJECT_TYPE_ID)
+template <class TElem, class SelectionPolicy>
+GenericElementSelector<TElem, SelectionPolicy>::
+GenericElementSelector(TGridRef grid)
 {
 	m_bAutoselectionEnabled = false;
 	m_pGrid = NULL;
-	m_invalidContainer.push_back(NULL);
 	assign_grid(grid);
 }
 
-template <class TElem>
-GenericElementSelector<TElem>::
-GenericElementSelector(const GenericElementSelector<TElem>& gSel) : m_baseObjectType(geometry_traits<TElem>::BASE_OBJECT_TYPE_ID)
+template <class TElem, class SelectionPolicy>
+GenericElementSelector<TElem, SelectionPolicy>::
+GenericElementSelector(const GenericElementSelector<TElem, SelectionPolicy>& gSel)
 {
 	assert(!"WARNING in GenericElementSelector::GenericElementSelector(const GenericElementSelector& sel): Copy-Constructor not yet implemented!");
 	LOG("WARNING in GenericElementSelector::GenericElementSelector(const GenericElementSelector& sel): Copy-Constructor not yet implemented! Expect unexpected behaviour!");
 }
 
-template <class TElem>
-GenericElementSelector<TElem>::~GenericElementSelector()
+template <class TElem, class SelectionPolicy>
+GenericElementSelector<TElem, SelectionPolicy>::~GenericElementSelector()
 {
 	if(m_pGrid)
 	{
@@ -51,10 +49,10 @@ GenericElementSelector<TElem>::~GenericElementSelector()
 	}
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
-assign_grid(Grid& grid)
+GenericElementSelector<TElem, SelectionPolicy>::
+assign_grid(TGridRef grid)
 {
 //	get the observer type
 	uint observerType = OT_GRID_OBSERVER;
@@ -71,156 +69,90 @@ assign_grid(Grid& grid)
 	grid.register_observer(this, observerType);
 }
 
-template <class TElem>
-Grid*
-GenericElementSelector<TElem>::
+template <class TElem, class SelectionPolicy>
+typename GenericElementSelector<TElem, SelectionPolicy>::TGridPtr
+GenericElementSelector<TElem, SelectionPolicy>::
 get_assigned_grid()
 {
 	return m_pGrid;
 }
 
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 enable_autoselection(bool bEnable)
 {
 	m_bAutoselectionEnabled = bEnable;
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 enable_selection_inheritance(bool bEnable)
 {
 	m_bSelectionInheritanceEnabled = bEnable;
 }
-
-template <class TElem>
-void
-GenericElementSelector<TElem>::
-select(TElem* elem)
-{
-	assert(m_pGrid && "ERROR in GenericElementSelector::select(...): selector not registered at any grid!");
-
-	if(!is_selected(elem))
-	{
-		m_aaElemIterator[elem] = m_selectedElements.insert(elem, elem->shared_pipe_section());
-	}
-}
-
-template <class TElem>
-void
-GenericElementSelector<TElem>::
-deselect(TElem* elem)
-{
-	assert(m_pGrid && "ERROR in GenericElementSelector::deselect(...): selector not registered at any grid!");
-	if(is_selected(elem))
-	{
-		m_selectedElements.erase(m_aaElemIterator[elem], elem->shared_pipe_section());
-		m_aaElemIterator[elem] = m_invalidContainer.begin();
-	}
-}
-
-template <class TElem>
-bool
-GenericElementSelector<TElem>::
-is_selected(TElem* elem)
-{
-	assert(m_pGrid && "ERROR in GenericElementSelector::is_selected(...): selector not registered at any grid!");
-	if(m_aaElemIterator[elem] == (m_invalidContainer.begin()))
-		return false;
-	return true;
-}
-
-template <class TElem>
-bool
-GenericElementSelector<TElem>::
-is_selected(GeometricObject* elem)
-{
-	assert(m_pGrid && "ERROR in GenericElementSelector::is_selected(...): selector not registered at any grid!");
-	TElem* pElem = dynamic_cast<TElem*>(elem);
-	if(pElem != NULL)
-	{
-		if(m_aaElemIterator[elem] == (m_invalidContainer.begin()))
-			return false;
-		return true;
-	}
-	return false;
-}
 		
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 elem_created(Grid* grid, TElem* elem, GeometricObject* pParent)
 {
 	assert((m_pGrid == grid) && "ERROR in GenericElementSelector::elem_created(...): selectors grid and elements grid do not match!");
 //	init deselected.
-	m_aaElemIterator[elem] = m_invalidContainer.begin();
+	SelectionPolicy::init_element(elem);
 
 	if(autoselection_enabled() == true)
-		select(elem);
+		SelectionPolicy::select(elem);
 	else if(selection_inheritance_enabled() == true)
 	{
 		if(pParent != NULL)
 		{
-			if(is_selected(pParent))
-				select(elem);
+			if(SelectionPolicy::is_selected(pParent))
+				SelectionPolicy::select(elem);
 		}
 	}
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 elem_to_be_erased(Grid* grid, TElem* elem)
 {
 	assert((m_pGrid == grid) && "ERROR in GenericElementSelector::elem_to_be_erased(...): selectors grid and elements grid do not match!");
 
-	if(is_selected(elem))
-		m_selectedElements.erase(m_aaElemIterator[elem], elem->shared_pipe_section());
-
+//TODO: It is sufficient to erase the element from the list, if it was selected.
+//		A function that handles this only task could be added to the SelectionPolicy.
+//		This should lead to a slightly improved performance.
+	SelectionPolicy::deselect(elem);
 }
 
 //	grid callbacks
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 registered_at_grid(Grid* grid)
 {
 	if(m_pGrid != NULL)
 		m_pGrid->unregister_observer(this);
 
-	m_pGrid = grid;
+	m_pGrid = dynamic_cast<TGridPtr>(grid);
 
-	grid->attach_to<TElem>(m_aElemIterator, false);
-	m_aaElemIterator.access(*grid, m_aElemIterator);
-
-//	initialize all iterators attached to base objects with the invalid iterator
-	for(TElemIterator iter = grid->begin<TElem>();
-		iter != grid->end<TElem>(); iter++)
-	{
-		m_aaElemIterator[*iter] = m_invalidContainer.begin();
-	}
-
-//	clear the list
-	m_selectedElements.clear();
+	SelectionPolicy::new_grid(m_pGrid);
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 unregistered_from_grid(Grid* grid)
 {
-	assert((grid == m_pGrid) && "ERROR in GenericElementSelector::unregistered_from_grid(...): grids do not match!");
-	grid->detach_from<TElem>(m_aElemIterator);
-	m_selectedElements.clear();
-	m_pGrid = NULL;
+	SelectionPolicy::new_grid(NULL);
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 elements_to_be_cleared(Grid* grid)
 {
 	assert((grid == m_pGrid) && "ERROR in GenericElementSelector::elements_to_be_cleared(...): grids do not match!");
@@ -228,18 +160,18 @@ elements_to_be_cleared(Grid* grid)
 }
 
 //	vertex callbacks
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
 {
 //	this method is only called if TElem == VertexBase...
 	elem_created(grid, reinterpret_cast<TElem*>(vrt), pParent);
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 {
 //	this method is only called if TElem == VertexBase...
@@ -247,18 +179,18 @@ vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 }
 
 //	edge callbacks
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent)
 {
 //	this method is only called if TElem == EdgeBase...
 	elem_created(grid,reinterpret_cast<TElem*>(edge), pParent);
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 edge_to_be_erased(Grid* grid, EdgeBase* edge)
 {
 //	this method is only called if TElem == EdgeBase...
@@ -266,18 +198,18 @@ edge_to_be_erased(Grid* grid, EdgeBase* edge)
 }
 
 //	face callbacks
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 face_created(Grid* grid, Face* face, GeometricObject* pParent)
 {
 //	this method is only called if TElem == Face...
 	elem_created(grid,reinterpret_cast<TElem*>(face), pParent);
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 face_to_be_erased(Grid* grid, Face* face)
 {
 //	this method is only called if TElem == Face...
@@ -285,58 +217,69 @@ face_to_be_erased(Grid* grid, Face* face)
 }
 
 //	volume callbacks
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 volume_created(Grid* grid, Volume* vol, GeometricObject* pParent)
 {
 //	this method is only called if TElem == Volume...
 	elem_created(grid,reinterpret_cast<TElem*>(vol), pParent);
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 volume_to_be_erased(Grid* grid, Volume* vol)
 {
 //	this method is only called if TElem == Volume...
 	elem_to_be_erased(grid,reinterpret_cast<TElem*>(vol));
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //	explicit instantiation
-template class GenericElementSelector<VertexBase>;
-template class GenericElementSelector<EdgeBase>;
-template class GenericElementSelector<Face>;
-template class GenericElementSelector<Volume>;
+template class GenericElementSelector<VertexBase, GridSelectionPolicy<VertexBase> >;
+template class GenericElementSelector<EdgeBase, GridSelectionPolicy<EdgeBase> >;
+template class GenericElementSelector<Face, GridSelectionPolicy<Face> >;
+template class GenericElementSelector<Volume, GridSelectionPolicy<Volume> >;
+
+template class GenericElementSelector<VertexBase, MultiGridSelectionPolicy<VertexBase> >;
+template class GenericElementSelector<EdgeBase, MultiGridSelectionPolicy<EdgeBase> >;
+template class GenericElementSelector<Face, MultiGridSelectionPolicy<Face> >;
+template class GenericElementSelector<Volume, MultiGridSelectionPolicy<Volume> >;
 
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of selector
-Selector::
-Selector()
+template <class TElementSelectors>
+GenericSelector<TElementSelectors>::
+GenericSelector()
 {
 	m_bAutoselectionEnabled = false;
 	m_pGrid = NULL;
 }
 
-Selector::
-Selector(Grid& grid)
+template <class TElementSelectors>
+GenericSelector<TElementSelectors>::
+GenericSelector(TGridRef grid)
 {
 	m_bAutoselectionEnabled = false;
 	m_pGrid = NULL;
 	assign_grid(grid);
 }
 
-Selector::
-Selector(const Selector& sel)
+template <class TElementSelectors>
+GenericSelector<TElementSelectors>::
+GenericSelector(const ClassType& sel)
 {
-	assert(!"WARNING in Selector::Selector(const Selector& sel): Copy-Constructor not yet implemented!");
-	LOG("WARNING in Selector::Selector(const Selector& sel): Copy-Constructor not yet implemented! Expect unexpected behavior." << endl);
+	assert(!"WARNING in GenericSelector::GenericSelector(const GenericSelector& sel): Copy-Constructor not yet implemented!");
+	LOG("WARNING in GenericSelector::GenericSelector(const GenericSelector& sel): Copy-Constructor not yet implemented! Expect unexpected behavior." << endl);
 }
 
-Selector::
-~Selector()
+template <class TElementSelectors>
+GenericSelector<TElementSelectors>::
+~GenericSelector()
 {
 	if(m_pGrid)
 	{
@@ -345,22 +288,25 @@ Selector::
 	}
 }
 
+template <class TElementSelectors>
 void
-Selector::
-assign_grid(Grid& grid)
+GenericSelector<TElementSelectors>::
+assign_grid(TGridRef grid)
 {
 	grid.register_observer(this, OT_GRID_OBSERVER);
 }
 
-Grid*
-Selector::
+template <class TElementSelectors>
+typename GenericSelector<TElementSelectors>::TGridPtr
+GenericSelector<TElementSelectors>::
 get_assigned_grid()
 {
 	return m_pGrid;
 }
 
+template <class TElementSelectors>
 void
-Selector::
+GenericSelector<TElementSelectors>::
 enable_autoselection(bool bEnable)
 {
 	m_bAutoselectionEnabled = bEnable;
@@ -370,8 +316,9 @@ enable_autoselection(bool bEnable)
 	m_volumeSelector.enable_autoselection(bEnable);
 }
 
+template <class TElementSelectors>
 void
-Selector::
+GenericSelector<TElementSelectors>::
 enable_selection_inheritance(bool bEnable)
 {
 	m_bSelectionInheritanceEnabled = bEnable;
@@ -381,6 +328,52 @@ enable_selection_inheritance(bool bEnable)
 	m_volumeSelector.enable_selection_inheritance(bEnable);
 }
 
+template <class TElementSelectors>
+//	grid callbacks
+void
+GenericSelector<TElementSelectors>::
+registered_at_grid(Grid* grid)
+{
+	if(m_pGrid != NULL)
+		m_pGrid->unregister_observer(this);
+
+	m_pGrid = dynamic_cast<TGridPtr>(grid);
+	if(m_pGrid)
+	{
+		m_vertexSelector.assign_grid(*m_pGrid);
+		m_edgeSelector.assign_grid(*m_pGrid);
+		m_faceSelector.assign_grid(*m_pGrid);
+		m_volumeSelector.assign_grid(*m_pGrid);
+	}
+}
+
+template <class TElementSelectors>
+void
+GenericSelector<TElementSelectors>::
+unregistered_from_grid(Grid* grid)
+{
+	if(m_pGrid)
+	{
+		assert(dynamic_cast<TGridPtr>(grid) && "grid can not be casted to TGridPtr");
+		assert((dynamic_cast<TGridPtr>(grid) == m_pGrid) && "ERROR in Selector::unregistered from grid(...): grids do not match!");
+		m_pGrid->unregister_observer(&m_vertexSelector);
+		m_pGrid->unregister_observer(&m_edgeSelector);
+		m_pGrid->unregister_observer(&m_faceSelector);
+		m_pGrid->unregister_observer(&m_volumeSelector);
+		m_pGrid = NULL;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	explicit instantiation
+template class GenericSelector<ElementSelectors>;
+template class GenericSelector<MGElementSelectors>;
+
+
+
+////////////////////////////////////////////////////////////////////////
+//	implementation of Selector
 //	geometric-object-collection
 GeometricObjectCollection
 Selector::
@@ -395,31 +388,28 @@ get_geometric_object_collection()
 			(GeometricObjectSectionContainer*)&m_volumeSelector.m_selectedElements);
 }
 
-//	grid callbacks
-void
-Selector::
-registered_at_grid(Grid* grid)
+////////////////////////////////////////////////////////////////////////
+//	implementation of MGSelector
+//	geometric-object-collection
+MultiLevelGeometricObjectCollection
+MGSelector::
+get_multi_level_geometric_object_collection()
 {
-	if(m_pGrid != NULL)
-		m_pGrid->unregister_observer(this);
-
-	m_pGrid = grid;
-	m_vertexSelector.assign_grid(*m_pGrid);
-	m_edgeSelector.assign_grid(*m_pGrid);
-	m_faceSelector.assign_grid(*m_pGrid);
-	m_volumeSelector.assign_grid(*m_pGrid);
-}
-
-void
-Selector::
-unregistered_from_grid(Grid* grid)
-{
-	assert((grid == m_pGrid) && "ERROR in Selector::unregistered from grid(...): grids do not match!");
-	m_pGrid->unregister_observer(&m_vertexSelector);
-	m_pGrid->unregister_observer(&m_edgeSelector);
-	m_pGrid->unregister_observer(&m_faceSelector);
-	m_pGrid->unregister_observer(&m_volumeSelector);
-	m_pGrid = NULL;
+//TODO: ugly casts! GenericElementSelector should store its selected elements
+//		in a GeometricObjectSectionContainer!
+	uint numLevels = num_levels();
+	MultiLevelGeometricObjectCollection mgoc(numLevels);
+	
+	for(uint i = 0; i < numLevels; ++i)
+	{
+		mgoc.add_level(
+			(GeometricObjectSectionContainer*)&m_vertexSelector.get_section(i),
+			(GeometricObjectSectionContainer*)&m_edgeSelector.get_section(i),
+			(GeometricObjectSectionContainer*)&m_faceSelector.get_section(i),
+			(GeometricObjectSectionContainer*)&m_volumeSelector.get_section(i));
+	}
+	
+	return mgoc;
 }
 
 }//	end of namespace

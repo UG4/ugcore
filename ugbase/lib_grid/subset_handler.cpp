@@ -294,6 +294,22 @@ SubsetHandler::get_geometric_object_collection(int subsetIndex)
 									 &m_subsets[subsetIndex]->m_elements[VOLUME]);
 }
 
+MultiLevelGeometricObjectCollection
+SubsetHandler::get_multi_level_geometric_object_collection()
+{
+	uint numSubsets = num_subsets();
+	MultiLevelGeometricObjectCollection mgoc(numSubsets);
+	for(uint i = 0; i < numSubsets; ++i)
+	{
+		mgoc.add_level(	&m_subsets[i]->m_elements[VERTEX],
+						&m_subsets[i]->m_elements[EDGE],
+						&m_subsets[i]->m_elements[FACE],
+						&m_subsets[i]->m_elements[VOLUME]);
+	}
+	
+	return mgoc;
+}
+
 //	grid callbacks
 void SubsetHandler::registered_at_grid(Grid* grid)
 {
@@ -333,26 +349,30 @@ void SubsetHandler::registered_at_grid(Grid* grid)
 
 void SubsetHandler::unregistered_from_grid(Grid* grid)
 {
-	assert((m_pGrid != NULL) && "ERROR in SubsetHandler::unregistered_from_grid(...): No grid assigned to SubsetHandler.");
-	assert((m_pGrid == grid) && "ERROR in SubsetHandler::unregistered_from_grid(...): Grids do not match.");
+	assert(m_pGrid && "this method should only be called while the handler is registered at a grid.");
+	
+	if(m_pGrid)
+	{
+		assert((m_pGrid == grid) && "ERROR in SubsetHandler::unregistered_from_grid(...): Grids do not match.");
 
-//	clear the subsets
-	for(uint i = 0; i < num_subsets(); ++i)
-		delete m_subsets[i];
+	//	clear the subsets
+		for(uint i = 0; i < num_subsets(); ++i)
+			delete m_subsets[i];
 
-	m_subsets.clear();
+		m_subsets.clear();
 
-	grid->detach_from_vertices(m_aSubsetIndex);
-	grid->detach_from_edges(m_aSubsetIndex);
-	grid->detach_from_faces(m_aSubsetIndex);
-	grid->detach_from_volumes(m_aSubsetIndex);
+		grid->detach_from_vertices(m_aSubsetIndex);
+		grid->detach_from_edges(m_aSubsetIndex);
+		grid->detach_from_faces(m_aSubsetIndex);
+		grid->detach_from_volumes(m_aSubsetIndex);
 
-	grid->detach_from_vertices(m_aIterator);
-	grid->detach_from_edges(m_aIterator);
-	grid->detach_from_faces(m_aIterator);
-	grid->detach_from_volumes(m_aIterator);
+		grid->detach_from_vertices(m_aIterator);
+		grid->detach_from_edges(m_aIterator);
+		grid->detach_from_faces(m_aIterator);
+		grid->detach_from_volumes(m_aIterator);
 
-	m_pGrid = NULL;
+		m_pGrid = NULL;
+	}
 }
 
 void SubsetHandler::elements_to_be_cleared(Grid* grid)

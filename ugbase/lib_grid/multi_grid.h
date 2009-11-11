@@ -7,7 +7,9 @@
 
 #include <vector>
 #include <cassert>
-#include "lg_base.h"
+#include "grid/grid.h"
+#include "subset_handler.h"
+#include "common_attachments.h"
 #include "common/util/array_util.h"
 
 //TODO:	Improve implementation of child-handling.
@@ -162,6 +164,14 @@ class MultiGrid : public Grid, public GridObserver
 		typedef MGVolumeInfo VolumeInfo;
 
 	public:
+		//	methods from Grid, that would be hidden if not explicitly
+		//	declared as required.
+		using Grid::begin;
+		using Grid::end;
+		using Grid::num;
+		using Grid::get_geometric_object_collection;
+
+	public:
 		MultiGrid();
 		virtual ~MultiGrid();
 
@@ -176,16 +186,28 @@ class MultiGrid : public Grid, public GridObserver
 		template <class TElem> inline
 		typename geometry_traits<TElem>::iterator
 		begin(int level)
-		{return m_hierarchy.begin<TElem>(level);}
+		{
+			assert(level < (int)num_levels() && "ERROR in MultiGrid::begin(...): requested level too high!");
+			return m_hierarchy.begin<TElem>(level);
+		}
 
 		template <class TElem> inline
 		typename geometry_traits<TElem>::iterator
 		end(int level)
-		{return m_hierarchy.end<TElem>(level);}
+		{
+			assert(level < (int)num_levels() && "ERROR in MultiGrid::end(...): requested level too high!");
+			return m_hierarchy.end<TElem>(level);
+		}
 
+	//	geometric-object-collection
 		inline GeometricObjectCollection
 		get_geometric_object_collection(int level)
 		{return m_hierarchy.get_geometric_object_collection(level);}
+		
+	//	multi-level-geometric-object-collection
+		inline
+		MultiLevelGeometricObjectCollection
+		get_multi_level_geometric_object_collection()	{return m_hierarchy.get_multi_level_geometric_object_collection();}
 		
 		template <class TElem> inline
 		int get_level(TElem* elem)
@@ -213,6 +235,12 @@ class MultiGrid : public Grid, public GridObserver
 	///	this method allows fast child-vertex-access in case of regular refinement.
 		template <class TElem>
 		inline VertexBase* get_child_vertex(TElem* elem)	{return get_info(elem).m_pVrtChild;}
+
+
+	//	for debug purposes
+		void check_edge_elem_infos(int level);
+		void check_face_elem_infos(int level);
+		void check_volume_elem_infos(int level);
 
 	////////////////////////////////////////////////////////////////////////
 	//	Don't invoke the following methods directly!

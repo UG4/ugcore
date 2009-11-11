@@ -139,7 +139,12 @@ class SubsetHandler : public GridObserver
 		end(int subsetIndex);
 
 	//	geometric-object-collection
-		GeometricObjectCollection get_geometric_object_collection(int subsetIndex);
+		GeometricObjectCollection
+		get_geometric_object_collection(int subsetIndex);
+		
+	//	multi-level-geometric-object-collection
+		MultiLevelGeometricObjectCollection
+		get_multi_level_geometric_object_collection();
 
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);

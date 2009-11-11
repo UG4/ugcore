@@ -10,162 +10,93 @@
 
 namespace ug
 {
-
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 template <class TIterator>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 select(TIterator iterBegin, TIterator iterEnd)
 {
 	assert(m_pGrid && "ERROR in GenericElementSelector::select(...): selector not registered at any grid!");
 	while(iterBegin != iterEnd)
 	{
-		select(*iterBegin);
+		SelectionPolicy::select(*iterBegin);
 		iterBegin++;
 	}
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 template <class TIterator>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 deselect(TIterator iterBegin, TIterator iterEnd)
 {
 	assert(m_pGrid && "ERROR in GenericElementSelector::deselect(...): selector not registered at any grid!");
 	while(iterBegin != iterEnd)
 	{
-		deselect(*iterBegin);
+		SelectionPolicy::deselect(*iterBegin);
 		iterBegin++;
 	}
 }
 
-template <class TElem>
+template <class TElem, class SelectionPolicy>
 template <class TSelElem>
 void
-GenericElementSelector<TElem>::
+GenericElementSelector<TElem, SelectionPolicy>::
 select_all()
 {
 	assert(m_pGrid && "ERROR in GenericElementSelector::select(...): selector not registered at any grid!");
 
-	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
+	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == geometry_traits<TElem>::BASE_OBJECT_TYPE_ID)
 	{
-		for(typename geometry_traits<TSelElem>::iterator iter = m_pGrid->begin<TSelElem>();
-				iter != m_pGrid->end<TSelElem>(); iter++)
-			select(*iter);
+		for(typename geometry_traits<TSelElem>::iterator iter = m_pGrid->template begin<TSelElem>();
+				iter != m_pGrid->template end<TSelElem>(); iter++)
+			SelectionPolicy::select(*iter);
 	}
 }
-
-template <class TElem>
-template <class TSelElem>
-void
-GenericElementSelector<TElem>::
-clear_selection()
-{
-	assert(m_pGrid && "ERROR in GenericElementSelector::clear_selection(...): selector not registered at any grid!");
-
-	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
-	{
-		int pipeSection = geometry_traits<TSelElem>::SHARED_PIPE_SECTION;
-		for(TElemIterator iter = m_selectedElements.section_begin(pipeSection);
-				iter != static_cast<TElemIterator>(m_selectedElements.section_end(pipeSection)); iter++)
-			m_aaElemIterator[*iter] = m_invalidContainer.begin();
-
-		if(pipeSection == -1)
-			m_selectedElements.clear();
-		else
-			m_selectedElements.clear_section(pipeSection);
-	}
-}
-
-template <class TElem>
-template <class TSelElem>
-uint
-GenericElementSelector<TElem>::
-num_selected()
-{
-	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
-	{
-		int secInd = geometry_traits<TSelElem>::SHARED_PIPE_SECTION;
-		if(secInd == -1)
-			return m_selectedElements.num_elements();
-		else
-			return m_selectedElements.num_elements(secInd);
-	}
-	return 0;
-}
-
-template <class TElem>
-template <class TSelElem>
-typename geometry_traits<TSelElem>::iterator
-GenericElementSelector<TElem>::
-begin()
-{
-	assert(m_pGrid && "ERROR in GenericElementSelector::begin(...): selector not registered at any grid!");
-
-	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
-		return iterator_cast<typename geometry_traits<TSelElem>::iterator >(
-				m_selectedElements.section_begin(geometry_traits<TSelElem>::SHARED_PIPE_SECTION));
-
-	return iterator_cast<typename geometry_traits<TSelElem>::iterator>(
-			m_selectedElements.end());
-}
-
-template <class TElem>
-template <class TSelElem>
-typename geometry_traits<TSelElem>::iterator
-GenericElementSelector<TElem>::
-end()
-{
-	assert(m_pGrid && "ERROR in GenericElementSelector::end(...): selector not registered at any grid!");
-	if(geometry_traits<TSelElem>::BASE_OBJECT_TYPE_ID == m_baseObjectType)
-		return iterator_cast<typename geometry_traits<TSelElem>::iterator >(
-				m_selectedElements.section_end(geometry_traits<TSelElem>::SHARED_PIPE_SECTION));
-
-	return iterator_cast<typename geometry_traits<TSelElem>::iterator>(
-			m_selectedElements.end());
-}
-
-
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of selector
+template <class TElementSelectors>
 template <class TSelElem>
 void
-Selector::
+GenericSelector<TElementSelectors>::
 select_all()
 {
 	TSelElem* pTmp(NULL);
 	select_all<TSelElem>(pTmp);
 }
 
+template <class TElementSelectors>
 template <class TSelElem>
 void
-Selector::
+GenericSelector<TElementSelectors>::
 clear_selection()
 {
 	TSelElem* pTmp(NULL);
 	clear_selection<TSelElem>(pTmp);
 }
-
+/*
+template <class TElementSelectors>
 template <class TSelElem>
 typename geometry_traits<TSelElem>::iterator
-Selector::
+GenericSelector<TElementSelectors>::
 begin()
 {
 	TSelElem* pTmp(NULL);
 	return begin<TSelElem>(pTmp);
 }
 
+template <class TElementSelectors>
 template <class TSelElem>
 typename geometry_traits<TSelElem>::iterator
-Selector::
+GenericSelector<TElementSelectors>::
 end()
 {
 	TSelElem* pTmp(NULL);
 	return end<TSelElem>(pTmp);
 }
-
+*/
 }//	end of namespace
 
 #endif

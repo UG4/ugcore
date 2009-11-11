@@ -88,11 +88,14 @@ void MultiGridRefiner::refine()
 //	collect objects for refine
 	collect_objects_for_refine();
 
+//	cout << "num marked edges: " << m_selMarks.num<EdgeBase>() << endl;
+//	cout << "num marked faces: " << m_selMarks.num<Face>() << endl;
+
 //	we want to add new elements in a new layer.
 	bool bHierarchicalInsertionWasEnabled = mg.hierarchical_insertion_enabled();
 	if(!bHierarchicalInsertionWasEnabled)
 		mg.enable_hierarchical_insertion(true);
-LOG("creating new vertices\n");
+//LOG("creating new vertices\n");
 //	create new vertices from marked vertices
 	for(VertexBaseIterator iter = m_selMarks.begin<VertexBase>();
 		iter != m_selMarks.end<VertexBase>(); ++iter)
@@ -110,8 +113,9 @@ LOG("creating new vertices\n");
 			}
 		}
 	}
-LOG("creating new edges\n");
+//LOG("creating new edges\n");
 //	create new vertices and edges from marked edges
+	int numNewEdges = 0;
 	for(EdgeBaseIterator iter = m_selMarks.begin<EdgeBase>();
 		iter != m_selMarks.end<EdgeBase>(); ++iter)
 	{
@@ -119,6 +123,9 @@ LOG("creating new edges\n");
 	//	refined. No need to check that again.
 		EdgeBase* e = *iter;
 		Vertex* nVrt = *mg.create<Vertex>(e);
+		VertexBase* substituteVrts[2];
+		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
+		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
 
 		if(aaPos.valid())
 		{
@@ -129,13 +136,13 @@ LOG("creating new edges\n");
 
 	//	split the edge
 		vector<EdgeBase*> vEdges(2);
-		e->refine(vEdges, nVrt);
+		e->refine(vEdges, nVrt, substituteVrts);
 		assert((vEdges.size() == 2) && "Edge refine produced wrong number of edges.");
 		mg.register_element(vEdges[0], e);
 		mg.register_element(vEdges[1], e);
 	}
 
-LOG("creating new faces\n");
+//LOG("creating new faces\n");
 //	create new vertices and faces from marked faces
 	for(FaceIterator iter = m_selMarks.begin<Face>();
 		iter != m_selMarks.end<Face>(); ++iter)
@@ -160,7 +167,7 @@ LOG("creating new faces\n");
 			vNewVertexVertices[i] = mg.get_child_vertex(f->vertex(i));
 		}
 
-	//	each should have an associated vertex. sort them into vNewEdgeVertices.
+	//	each edge should have an associated vertex. sort them into vNewEdgeVertices.
 		for(uint i = 0; i < vEdges.size(); ++i)
 		{
 			EdgeBase* e = vEdges[i];
@@ -213,10 +220,10 @@ void MultiGridRefiner::collect_objects_for_refine()
 //	regard the multi-grid as a grid
 	Grid& grid =*(Grid*)m_pMG;
 
-	LOG("num selected vrts: " << m_selMarks.num<VertexBase>() << endl);
-	LOG("num selected edges: " << m_selMarks.num<EdgeBase>() << endl);
-	LOG("num selected faces: " << m_selMarks.num<Face>() << endl);
-	LOG("num selected vols: " << m_selMarks.num<Volume>() << endl);
+//	LOG("num selected vrts: " << m_selMarks.num<VertexBase>() << endl);
+//	LOG("num selected edges: " << m_selMarks.num<EdgeBase>() << endl);
+//	LOG("num selected faces: " << m_selMarks.num<Face>() << endl);
+//	LOG("num selected vols: " << m_selMarks.num<Volume>() << endl);
 
 //	select elements that are associated with volumes
 	for(VolumeIterator iter = m_selMarks.begin<Volume>();
@@ -233,9 +240,11 @@ void MultiGridRefiner::collect_objects_for_refine()
 		else
 		{
 			CollectFaces(vFaces, grid, v);
-			m_selMarks.select(vFaces.begin(), vFaces.end());
+			for(uint i = 0; i < vFaces.size(); ++i)
+				m_selMarks.select(vFaces[i]);
 			CollectEdges(vEdges, grid, v);
-			m_selMarks.select(vEdges.begin(), vEdges.end());
+			for(uint i = 0; i < vEdges.size(); ++i)
+				m_selMarks.select(vEdges[i]);
 			for(uint i = 0; i < v->num_vertices(); ++i)
 				m_selMarks.select(v->vertex(i));
 		}
@@ -256,7 +265,8 @@ void MultiGridRefiner::collect_objects_for_refine()
 		else
 		{
 			CollectEdges(vEdges, grid, f);
-			m_selMarks.select(vEdges.begin(), vEdges.end());
+			for(uint i = 0; i < vEdges.size(); ++i)
+				m_selMarks.select(vEdges[i]);
 			for(uint i = 0; i < f->num_vertices(); ++i)
 				m_selMarks.select(f->vertex(i));
 		}

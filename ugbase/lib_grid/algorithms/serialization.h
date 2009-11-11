@@ -72,8 +72,8 @@ bool DeserializeGridElements(Grid& grid, std::istream& in);
 //	SerializeMultiGridElements
 ///	writes a part of the elements of a MultiGrid to a binary stream.
 /**
- * The passed GeometricObjectCollection goc may only reference
- * elements of the given grid. It is important, that the goc
+ * The passed MultiLevelGeometricObjectCollection goc may only
+ * reference elements of the given grid. It is important, that the goc
  * is complete - that means that all referenced vertices are
  * contained in the goc.
  * The goc has also to be complete in regard to the multi-grid hierarchy.
@@ -97,13 +97,11 @@ bool DeserializeGridElements(Grid& grid, std::istream& in);
  * assigned to the respective elements - starting from 0 for each
  * element type.
  */
-/*
 bool SerializeMultiGridElements(MultiGrid& mg,
-								GeometricObjectCollection goc,
+								MultiLevelGeometricObjectCollection mgoc,
 								AInt& aIntVRT, AInt& aIntEDGE,
-								AInt& aIntFACE, aInt& aIntVOL,
+								AInt& aIntFACE, AInt& aIntVOL,
 								std::ostream& out);
-*/
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
@@ -120,19 +118,21 @@ bool SerializeMultiGridElements(MultiGrid& mg,
  * If you're planning to serialize multiple parts of one grid, you
  * should consider to use the full-featured serialization method.
  */
-/*
 bool SerializeMultiGridElements(MultiGrid& mg,
-								GeometricObjectCollection goc,
+								MultiLevelGeometricObjectCollection mgoc,
 								std::ostream& out);
-*/
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
 ///	writes the elements of a MultiGrid to a binary stream.
-/*
 bool SerializeMultiGridElements(MultiGrid& mg,
 								std::ostream& out);
-*/
+								
+////////////////////////////////////////////////////////////////////////
+///	Creates multi-grid elements from a binary stream
+bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in);
+
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

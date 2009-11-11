@@ -224,7 +224,8 @@ class Edge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-											VertexBase* newVertex);
+							VertexBase* newVertex,
+							VertexBase** pSubstituteVrts = NULL);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to Edge.
@@ -233,7 +234,8 @@ class Edge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		bool refine(std::vector<Edge*>& vNewEdgesOut,
-								VertexBase* newVertex);
+					VertexBase* newVertex,
+					VertexBase** pSubstituteVrts = NULL);
 };
 
 template <>
@@ -301,7 +303,8 @@ class ConstrainedEdge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-											VertexBase* newVertex);
+							VertexBase* newVertex,
+							VertexBase** pSubstituteVrts = NULL);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainedEdge.
@@ -312,7 +315,8 @@ class ConstrainedEdge : public EdgeBase
 	 * \sa EdgeBase::refine
 	 */
 		bool refine(std::vector<ConstrainedEdge*>& vNewEdgesOut,
-											VertexBase* newVertex);
+					VertexBase* newVertex,
+					VertexBase** pSubstituteVrts = NULL);
 
 		inline void set_constraining_object(GeometricObject* pObj)	{m_pConstrainingObject = pObj;}
 		inline GeometricObject* get_constraining_object()	{return m_pConstrainingObject;}
@@ -381,7 +385,8 @@ class ConstrainingEdge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-											VertexBase* newVertex);
+							VertexBase* newVertex,
+							VertexBase** pSubstituteVrts = NULL);
 
 //TODO:	Think about this method. It is not safe!
 	///	non virtual refine. Returns pointers to ConstrainingEdge.
@@ -391,7 +396,8 @@ class ConstrainingEdge : public EdgeBase
 	 * \sa EdgeBase::refine.
 	 */
 		bool refine(std::vector<ConstrainingEdge*>& vNewEdgesOut,
-						VertexBase* newVertex);
+						VertexBase* newVertex,
+						VertexBase** pSubstituteVrts = NULL);
 
 
 		inline void add_constrained_object(VertexBase* pObj)

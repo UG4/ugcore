@@ -292,9 +292,13 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 	 * refine associated elements.
 	 * Be sure to store the new edges in the right order. vNewEdgesOut should contain
 	 * the edge connecting vertex(0) and newVertex first.
+	 *
+	 * You may pass an array of 2 vertices to pSubstituteVrts. If you do so, Those
+	 * vertices will be used instead of the original ones.
 	 */
 		virtual bool refine(std::vector<EdgeBase*>& vNewEdgesOut,
-											VertexBase* newVertex)	{return false;}
+											VertexBase* newVertex,
+											VertexBase** pSubstituteVrts = NULL)	{return false;}
 
 	protected:
 		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
