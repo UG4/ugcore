@@ -25,6 +25,8 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	}
 	else if(strName.find(".obj") != string::npos)
 		bSuccess = LoadGridFromOBJ(grid, filename, aPos, NULL, pSH);
+	else if(strName.find(".lgb") != string::npos)
+		bSuccess = LoadGridFromLGB(grid, filename, pSH, aPos);
 	else if(strName.find(".lgm") != string::npos)
 		bSuccess = ImportGridFromLGM(grid, filename, aPos, pSH);
 	else if(strName.find(".ng") != string::npos)
@@ -51,6 +53,8 @@ static bool SaveGrid(Grid& grid, const char* filename,
 		return SaveGridToTXT(grid, filename, aPos);
 	else if(strName.find(".obj") != string::npos)
 		return SaveGridToOBJ(grid, filename, aPos, NULL, pSH);
+	else if(strName.find(".lgb") != string::npos)
+		return SaveGridToLGB(grid, filename, pSH, aPos);
 	return false;
 }
 

@@ -6,6 +6,7 @@
 #include "file_io_tetgen.h"
 #include "file_io_obj.h"
 #include "file_io_lgm.h"
+#include "file_io_lgb.h"
 #include "file_io_ng.h"
 #include "file_io_ug.h"
 #include "file_io_dump.h"
