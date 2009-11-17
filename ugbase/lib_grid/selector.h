@@ -188,12 +188,10 @@ class GenericSelector : public GridObserver
 		void enable_selection_inheritance(bool bEnable);
 		inline bool selection_inheritance_enabled()		{return m_bSelectionInheritanceEnabled;}
 
+		void select(GeometricObject* obj);
 		inline void select(VertexBase* vrt)		{m_vertexSelector.select(vrt);}
-
 		inline void select(EdgeBase* edge)		{m_edgeSelector.select(edge);}
-
 		inline void select(Face* face)			{m_faceSelector.select(face);}
-
 		inline void select(Volume* vol)			{m_volumeSelector.select(vol);}
 
 		template <class TIterator>
@@ -203,6 +201,7 @@ class GenericSelector : public GridObserver
 			select(v, iterBegin, iterEnd);
 		}
 
+		void deselect(GeometricObject* obj);
 		inline void deselect(VertexBase* vrt)	{m_vertexSelector.deselect(vrt);}
 		inline void deselect(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd)
 						{m_vertexSelector.deselect(vrtsBegin, vrtsEnd);}
@@ -233,6 +232,7 @@ class GenericSelector : public GridObserver
 		inline void clear()	{clear_selection<TSelElem>();}
 		inline void clear()	{clear_selection<GeometricObject>();}
 
+		bool is_selected(GeometricObject* obj);
 		inline bool is_selected(VertexBase* vrt)	{return m_vertexSelector.is_selected(vrt);}
 		inline bool is_selected(EdgeBase* edge)		{return m_edgeSelector.is_selected(edge);}
 		inline bool is_selected(Face* face)			{return m_faceSelector.is_selected(face);}

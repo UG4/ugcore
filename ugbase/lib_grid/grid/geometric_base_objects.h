@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__GEOMETRIC_BASE_OBJECTS__
 
 #include <list>
+#include <cassert>
 #include "common/types.h"
 #include "common/util/attachment_pipe.h"
 #include "common/util/hash.h"
@@ -349,6 +350,7 @@ class EdgeDescriptor : public EdgeVertices
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	FaceVertices
 ///	holds the vertices of a Face or an FaceDescriptor
+/*
 class FaceVertices
 {
 	friend class Grid;
@@ -363,10 +365,43 @@ class FaceVertices
 		VertexBase* operator[](uint index) const {return m_vertices[index];}
 		
 	protected:
+		inline void set_num_vertices(int numVrts)	{m_vertices.resize(numVrts);}
+
+	protected:
 		typedef std::vector<VertexBase*> 	VertexVec;
 
 	protected:
 		VertexVec		m_vertices;
+};
+*/
+
+//	the following code-section was part of a quick test
+//	regarding speed limitations of the originally used std::vector.
+//	in a first test the speed increase was quite small.
+const int MAX_FACE_VERTICES = 4;
+class FaceVertices
+{
+	friend class Grid;
+	public:
+		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
+		inline uint num_vertices() const			{return m_numVrts;}
+
+	//	compatibility with std::vector for some template routines
+	///	returns the number of vertices.
+		inline size_t size() const	{return m_numVrts;}
+	///	returns the i-th vertex.
+		VertexBase* operator[](uint index) const {return m_vertices[index];}
+	
+	protected:
+		inline void set_num_vertices(int numVrts)
+		{
+			assert((numVrts >= 0 && numVrts <= MAX_FACE_VERTICES) && "unsupported number of vertices.");
+			m_numVrts = numVrts;
+		}
+
+	protected:
+		VertexBase* m_vertices[MAX_FACE_VERTICES];
+		int m_numVrts;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -390,12 +425,12 @@ class Face : public GeometricObject, public FaceVertices
 		virtual ~Face()	{}
 
 		inline EdgeDescriptor edge(int index) const
-			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % m_vertices.size()]);}
+			{return EdgeDescriptor(m_vertices[index], m_vertices[(index+1) % size()]);}
 
 		inline void edge(int index, EdgeDescriptor& edOut)
-			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % m_vertices.size()]);}
+			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % size()]);}
 
-		inline uint num_edges()	{return m_vertices.size();}
+		inline uint num_edges()	{return num_vertices();}
 
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return FACE;}
@@ -539,7 +574,7 @@ class FaceDescriptor : public FaceVertices
 
 		virtual ~FaceDescriptor()	{}
 
-		inline void set_num_vertices(uint numVertices)	{m_vertices.resize(numVertices);}
+		inline void set_num_vertices(uint numVertices)	{FaceVertices::set_num_vertices(numVertices);}
 		inline void set_vertex(uint index, VertexBase* vrt)
 			{m_vertices[index] = vrt;}
 

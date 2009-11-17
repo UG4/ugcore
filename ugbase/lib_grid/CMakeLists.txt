@@ -18,6 +18,7 @@ set(srcGrid		grid/geometric_base_objects.cpp
 				grid/grid.cpp)
 				
 set(srcAlgorithms	algorithms/subset_util.cpp
+					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
 					algorithms/geom_obj_util/edge_util.cpp
 					algorithms/geom_obj_util/face_util.cpp

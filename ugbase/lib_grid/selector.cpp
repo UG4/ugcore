@@ -329,7 +329,55 @@ enable_selection_inheritance(bool bEnable)
 }
 
 template <class TElementSelectors>
+void
+GenericSelector<TElementSelectors>::
+select(GeometricObject* obj)
+{
+	int type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:	m_vertexSelector.select(static_cast<VertexBase*>(obj)); return;
+		case EDGE:		m_edgeSelector.select(static_cast<EdgeBase*>(obj)); return;
+		case FACE:		m_faceSelector.select(static_cast<Face*>(obj)); return;
+		case VOLUME:	m_volumeSelector.select(static_cast<Volume*>(obj)); return;
+	}
+}
+
+template <class TElementSelectors>
+void
+GenericSelector<TElementSelectors>::
+deselect(GeometricObject* obj)
+{
+	int type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:	m_vertexSelector.deselect(static_cast<VertexBase*>(obj)); return;
+		case EDGE:		m_edgeSelector.deselect(static_cast<EdgeBase*>(obj)); return;
+		case FACE:		m_faceSelector.deselect(static_cast<Face*>(obj)); return;
+		case VOLUME:	m_volumeSelector.deselect(static_cast<Volume*>(obj)); return;
+	}
+}
+
+template <class TElementSelectors>
+bool
+GenericSelector<TElementSelectors>::
+is_selected(GeometricObject* obj)
+{
+	int type = obj->base_object_type_id();
+	switch(type)
+	{
+		case VERTEX:	return m_vertexSelector.is_selected(static_cast<VertexBase*>(obj));
+		case EDGE:		return m_edgeSelector.is_selected(static_cast<EdgeBase*>(obj));
+		case FACE:		return m_faceSelector.is_selected(static_cast<Face*>(obj));
+		case VOLUME:	return m_volumeSelector.is_selected(static_cast<Volume*>(obj));
+	}
+	return false;
+}
+
+
+
 //	grid callbacks
+template <class TElementSelectors>
 void
 GenericSelector<TElementSelectors>::
 registered_at_grid(Grid* grid)

@@ -495,8 +495,7 @@ template <uint numVrts, uint sharedPipeSectionIndex>
 class CustomFace : public Face
 {
 	public:
-		CustomFace()	{m_vertices.resize(numVrts);}
-
+		CustomFace()	{Face::set_num_vertices(numVrts);}
 		virtual int shared_pipe_section() const	{return sharedPipeSectionIndex;}
 		virtual int base_object_type_id() const	{return FACE;}
 
@@ -537,7 +536,7 @@ template <class ConcreteTriangleType, class BaseClass>
 class CustomTriangle : public BaseClass
 {
 	public:
-		CustomTriangle()	{BaseClass::m_vertices.resize(3);}
+		CustomTriangle()	{BaseClass::set_num_vertices(3);}
 		CustomTriangle(const TriangleDescriptor& td);
 		CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3);
 

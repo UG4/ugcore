@@ -118,7 +118,7 @@ template <class ConcreteTriangleType, class BaseClass>
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 CustomTriangle(const TriangleDescriptor& td)
 {
-	BaseClass::m_vertices.resize(3);
+	BaseClass::set_num_vertices(3);
 	BaseClass::m_vertices[0] = td.vertex(0);
 	BaseClass::m_vertices[1] = td.vertex(1);
 	BaseClass::m_vertices[2] = td.vertex(2);
@@ -128,7 +128,7 @@ template <class ConcreteTriangleType, class BaseClass>
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 CustomTriangle(VertexBase* v1, VertexBase* v2, VertexBase* v3)
 {
-	BaseClass::m_vertices.resize(3);
+	BaseClass::set_num_vertices(3);
 	BaseClass::m_vertices[0] = v1;
 	BaseClass::m_vertices[1] = v2;
 	BaseClass::m_vertices[2] = v3;

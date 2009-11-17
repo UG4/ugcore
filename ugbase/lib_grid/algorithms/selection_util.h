@@ -5,6 +5,9 @@
 #ifndef __H__LIB_GRID__SELECTION_UTIL__
 #define __H__LIB_GRID__SELECTION_UTIL__
 
+#include <stack>
+#include "lib_grid/lg_base.h"
+
 namespace ug
 {
 
@@ -16,6 +19,8 @@ namespace ug
 //	SelectAssociatedVertices
 ///	selects all associated vertices of the elements between elemsBegin and elemsEnd
 /**
+ * TSelector has to feature a method select(TElemIterator::value_type&);
+ *
  * TElemIterator has to be a stl-compatible iterator.
  * The underlying element-type has to be a pointer to a class that
  * features the following methods:
@@ -28,8 +33,8 @@ namespace ug
  * Make sure that the elements only reference vertices that belong to the grid
  * at which the selector is registered.
  */
-template <class TElemIterator>
-void SelectAssociatedVertices(Selector& sel, TElemIterator elemsBegin,
+template <class TSelector, class TElemIterator>
+void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
 								TElemIterator elemsEnd)
 {
 	while(elemsBegin != elemsEnd)
@@ -45,6 +50,8 @@ void SelectAssociatedVertices(Selector& sel, TElemIterator elemsBegin,
 //	SelectAssociatedEdges
 ///	selects all associated edges of the elements between elemsBegin and elemsEnd
 /**
+ * TSelector has to feature a method select(TElemIterator::value_type&);
+ *
  * TElemIterator has to be a stl-compatible iterator.
  * The underlying element-type has to be a pointer to a class that
  * is supported by libGrid::CollectEdges(...)
@@ -54,8 +61,8 @@ void SelectAssociatedVertices(Selector& sel, TElemIterator elemsBegin,
  * Make sure that the elements only reference edges that belong to the grid
  * at which the selector is registered.
  */
-template <class TElemIterator>
-void SelectAssociatedEdges(Selector& sel,
+template <class TSelector, class TElemIterator>
+void SelectAssociatedEdges(TSelector& sel,
 								TElemIterator elemsBegin,
 								TElemIterator elemsEnd)
 {
@@ -78,6 +85,8 @@ void SelectAssociatedEdges(Selector& sel,
 //	SelectAssociatedFaces
 ///	selects all associated faces of the elements between elemsBegin and elemsEnd
 /**
+ * TSelector has to feature a method select(TElemIterator::value_type&);
+ *
  * TElemIterator has to be a stl-compatible iterator.
  * The underlying element-type has to be a pointer to a class that
  * is supported by libGrid::CollectFaces(...)
@@ -87,8 +96,8 @@ void SelectAssociatedEdges(Selector& sel,
  * Make sure that the elements only reference faces that belong to the grid
  * at which the selector is registered.
  */
-template <class TElemIterator>
-void SelectAssociatedFaces(Selector& sel,
+template <class TSelector, class TElemIterator>
+void SelectAssociatedFaces(TSelector& sel,
 								TElemIterator elemsBegin,
 								TElemIterator elemsEnd)
 {
@@ -106,6 +115,16 @@ void SelectAssociatedFaces(Selector& sel,
 		}
 	}
 }
+
+////////////////////////////////////////////////////////////////////////
+//	SelectAssociatedGenealogy
+///	Selects the complete genealogy of all selected elements.
+/**
+ * After the method returns the selection in msel is complete
+ * regarding the property that the parent of each selected
+ * element is selected, too.
+ */
+void SelectAssociatedGenealogy(MGSelector& msel);
 
 }// end of namespace
 
