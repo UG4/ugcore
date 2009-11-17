@@ -123,8 +123,16 @@ void SelectAssociatedFaces(TSelector& sel,
  * After the method returns the selection in msel is complete
  * regarding the property that the parent of each selected
  * element is selected, too.
+ *
+ * If selectAssociatedElements is set to true, the selection will be
+ * complete regarding the property that for each selected element all
+ * elements of lower dimension are selected, too.
+ *
+ * It is assumed that the given selector references a valid multi-grid.
+ * That means a grid whose elements only refence elements on the same
+ * level.
  */
-void SelectAssociatedGenealogy(MGSelector& msel);
+void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
 
 }// end of namespace
 

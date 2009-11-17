@@ -516,13 +516,13 @@ class MGSelector : public GenericSelector<MGElementSelectors>
 		template <class TSelElem>
 		inline
 		typename geometry_traits<TSelElem>::iterator
-		begin(int level)									{TSelElem* pTmp; return begin<TSelElem>(pTmp, level);}
+		begin(int level)									{TSelElem* pTmp; return begin<TSelElem>(level, pTmp);}
 
 	//	end
 		template <class TSelElem>
 		inline
 		typename geometry_traits<TSelElem>::iterator
-		end(int level)										{TSelElem* pTmp; return end<TSelElem>(pTmp, level);}
+		end(int level)										{TSelElem* pTmp; return end<TSelElem>(level, pTmp);}
 
 	//	convenience begin and end
 		inline VertexBaseIterator vertices_begin(int level)	{return m_vertexSelector.begin(level);}

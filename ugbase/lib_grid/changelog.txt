@@ -1,3 +1,6 @@
+@rev 31: sreiter - y09 m11 d06
+-	Added Serialization support for Grid, SubsetHandler and for Attachments.
+
 @rev 24: sreiter - y09 m10 d30
 -	replaced FindEdge, FindFace and FindVolume in grid_util.h by
 	Grid::get_edge, Grid::get_face and Grid::get_volume in grid.h.

@@ -27,7 +27,7 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGenealogy
-void SelectAssociatedGenealogy(MGSelector& msel)
+void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 {
 	MultiGrid* mg = msel.get_assigned_grid();
 	if(!mg)
@@ -37,10 +37,24 @@ void SelectAssociatedGenealogy(MGSelector& msel)
 //	in each level we'll select the parents of all selected elements.
 	for(int i = (int)msel.num_levels() - 1; i >= 0; --i)
 	{
-		SelectParents(*mg, msel, msel.vertices_begin(i), msel.vertices_end(i));
-		SelectParents(*mg, msel, msel.edges_begin(i), msel.edges_end(i));
-		SelectParents(*mg, msel, msel.faces_begin(i), msel.faces_end(i));
-		SelectParents(*mg, msel, msel.volumes_begin(i), msel.volumes_end(i));
+		if(selectAssociatedElements)
+		{
+			SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i), msel.end<EdgeBase>(i));
+			SelectAssociatedVertices(msel, msel.begin<Face>(i), msel.end<Face>(i));
+			SelectAssociatedVertices(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+			
+			SelectAssociatedEdges(msel, msel.begin<Face>(i), msel.end<Face>(i));
+			SelectAssociatedEdges(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+			
+			SelectAssociatedFaces(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		}
+		if(i > 0)
+		{
+			SelectParents(*mg, msel, msel.vertices_begin(i), msel.vertices_end(i));
+			SelectParents(*mg, msel, msel.edges_begin(i), msel.edges_end(i));
+			SelectParents(*mg, msel, msel.faces_begin(i), msel.faces_end(i));
+			SelectParents(*mg, msel, msel.volumes_begin(i), msel.volumes_end(i));
+		}
 	}
 
 //	thats it. done!

@@ -27,7 +27,8 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/grid_generation/tetrahedralization.cpp
 					algorithms/extrusion/extrusion.cpp
 					algorithms/refinement/hanging_node_refiner.cpp
-					algorithms/refinement/multi_grid_refiner.cpp)
+					algorithms/refinement/multi_grid_refiner.cpp
+					algorithms/parallelization/distribution_util.cpp)
 					
 set(srcFileIO	file_io/file_io_dump.cpp
 				file_io/file_io_lgb.cpp

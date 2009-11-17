@@ -189,6 +189,88 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 		}
 	}
 
+//	volumes
+	{
+		if(goc.num<Tetrahedron>() > 0)
+		{
+			tInt = GOID_TETRAHEDRON;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Tetrahedron>();
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(TetrahedronIterator iter = goc.begin<Tetrahedron>();
+				iter != goc.end<Tetrahedron>(); ++iter)
+			{
+				Tetrahedron* t = *iter;
+				out.write((char*)&aaIntVRT[t->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(3)], sizeof(int));
+			}
+		}
+		
+		if(goc.num<Hexahedron>() > 0)
+		{
+			tInt = GOID_HEXAHEDRON;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Hexahedron>();
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(HexahedronIterator iter = goc.begin<Hexahedron>();
+				iter != goc.end<Hexahedron>(); ++iter)
+			{
+				Hexahedron* h = *iter;
+				out.write((char*)&aaIntVRT[h->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(3)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(4)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(5)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(6)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(7)], sizeof(int));
+			}
+		}
+		
+		if(goc.num<Prism>() > 0)
+		{
+			tInt = GOID_PRISM;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Prism>();
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(PrismIterator iter = goc.begin<Prism>();
+				iter != goc.end<Prism>(); ++iter)
+			{
+				Prism* p = *iter;
+				out.write((char*)&aaIntVRT[p->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(3)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(4)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(5)], sizeof(int));
+			}
+		}
+		
+		if(goc.num<Pyramid>() > 0)
+		{
+			tInt = GOID_PYRAMID;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)goc.num<Pyramid>();
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(PyramidIterator iter = goc.begin<Pyramid>();
+				iter != goc.end<Pyramid>(); ++iter)
+			{
+				Pyramid* p = *iter;
+				out.write((char*)&aaIntVRT[p->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(3)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(4)], sizeof(int));
+			}
+		}
+	}
+	
 //	mark the end of the grid-section
 	tInt = GOID_END_OF_GRID;
 	out.write((char*)&tInt, sizeof(int));
@@ -291,7 +373,77 @@ bool DeserializeGridElements(Grid& grid, std::istream& in)
 							vFaces.push_back(q);
 						}
 					}break;
-				
+				case GOID_TETRAHEDRON:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+
+							grid.create<Tetrahedron>(TetrahedronDescriptor(
+													vVrts[i1], vVrts[i2],
+													vVrts[i3], vVrts[i4]));
+						}
+					}break;
+				case GOID_HEXAHEDRON:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4, i5, i6, i7, i8;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							in.read((char*)&i5, sizeof(int));
+							in.read((char*)&i6, sizeof(int));
+							in.read((char*)&i7, sizeof(int));
+							in.read((char*)&i8, sizeof(int));
+
+							grid.create<Hexahedron>(HexahedronDescriptor(
+													vVrts[i1], vVrts[i2],
+													vVrts[i3], vVrts[i4],
+													vVrts[i5], vVrts[i6],
+													vVrts[i7], vVrts[i8]));
+						}
+					}break;
+				case GOID_PRISM:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4, i5, i6;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							in.read((char*)&i5, sizeof(int));
+							in.read((char*)&i6, sizeof(int));
+
+							grid.create<Prism>(PrismDescriptor(
+													vVrts[i1], vVrts[i2],
+													vVrts[i3], vVrts[i4],
+													vVrts[i5], vVrts[i6]));
+						}
+					}break;
+				case GOID_PYRAMID:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4, i5;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							in.read((char*)&i5, sizeof(int));
+
+							grid.create<Pyramid>(PyramidDescriptor(
+													vVrts[i1], vVrts[i2],
+													vVrts[i3], vVrts[i4],
+													vVrts[i5]));
+						}
+					}break;
 				default:
 					LOG("Unknown geometric-object-id in grid-pack. Aborting reconstruction.\n");
 					return false;
