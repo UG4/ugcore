@@ -3,98 +3,126 @@
 //	y09 m11 d17
 
 #include "lib_grid/lib_grid.h"
+#include "pcl/parallel_node_layout.h"
 #include "distribution_util.h"
 #include "common/util/stream_pack.h"
 
-namespace pcl
-{
-
-enum InterfaceNodeTypes
-{
-	INT_UNKNOWN = 0,
-	INT_MASTER = 1,
-	INT_SLAVE = 3,
-	INT_LINK = 7
-};
-
-struct InterfaceEntry
-{
-	InterfaceEntry()	{}
-	InterfaceEntry(int nLocalID, int nType) : localID(nLocalID), type(nType)	{}
-	
-	int localID : 28;
-	int type  	: 4;
-};
-
-///	an interface consists of a list of local ids.
-typedef std::vector<InterfaceEntry>		Interface;
-///	an interface-map is a list of interfaces, each associated with a process id.
-typedef std::map<int, Interface>		InterfaceMap;
-///	a list of interface-maps. Required for multilevel / hierarchical approaches.
-typedef std::vector<InterfaceMap>		InterfaceMapVec;
-///	allows iteration over (procID, Interface)-pairs.
-typedef InterfaceMap::iterator			InterfaceIterator;
-
-//	move this class to pcl!
-template <class TNode>
-struct ParallelNodeLayout
-{
-//	some typedefs
-///	the type of the nodes
-	typedef TNode	NodeType;
-///	a vector that holds nodes.
-	typedef std::vector<TNode>				NodeVec;	
-	
-//	some methods
-/*
-///	set process id. Use with care to not invalidate other ProcessLayouts.
-	inline void set_proc_id(int procID)						{m_procID = procID;}
-	
-///	returns the process id.
-	inline int get_proc_id() const							{return m_procID;}
-*/	
-///	returns a reference to the vector that holds the nodes.
-	inline NodeVec& node_vec()								{return m_vNodes;}
-	
-///	returns the interface to the given process on the given level.
-	/**	if you don't specify a level, level = 0 will be used.*/
-	inline Interface& interface(int procID, int level = 0)	{return interface_map(level)[procID];}
-	
-///	returns the interface-map for the given level.
-	/**	if you don't specify a level, level = 0 will be used.*/
-	inline InterfaceMap& interface_map(int level = 0)		{if(level >= m_vInterfaceMaps.size()) m_vInterfaceMaps.resize(level + 1); return m_vInterfaceMaps[level];}
-	
-///	sets the number of levels.
-	/**	Setting the number of levels is optional. Increases performance for #levels > 1.*/
-	void set_num_levels(size_t num)							{m_vInterfaceMaps.resize(num);}
-	
-///	returns the number of levels.
-	inline size_t num_levels() const						{return m_vInterfaceMaps.size();}
-	
-protected:
-	//int				m_procID;
-	NodeVec			m_vNodes;
-	InterfaceMapVec	m_vInterfaceMaps;
-};
-
-}//	end of namespace pcl
 
 namespace ug
 {
-////////////////////////////////////////////////////////////////////////
-//	specialization for lib_grid.
-typedef pcl::ParallelNodeLayout<VertexBase*>	ParallelVertexLayout;
-typedef pcl::ParallelNodeLayout<EdgeBase*>		ParallelEdgeLayout;
-typedef pcl::ParallelNodeLayout<Face*>			ParallelFaceLayout;
-typedef pcl::ParallelNodeLayout<Volume*>		ParallelVolumeLayout;
 
+////////////////////////////////////////////////////////////////////////
+void DistributeGrid(MultiGrid& grid, SubsetHandler& sh,
+					int localProcID, MultiGrid* pLocalGridOut,
+					ParallelGridLayout* pLocalGridLayoutOut,
+					std::vector<int>* pProcessMap)
+{
+/*
+	vector<GridDistributionPack> distPacks;
+	vector<int> fallbackProcessMap;
+	vector<int>& processMap = fallbackProcessMap;
+	int localProcIndex = -1;//the index at which localProcID is in the process-map.
+	
+//	if a process-map was provided, we'll use it.
+//	if not, we'll create our own.
+	if(pProcessMap)
+		processMap = *pProcessMap;
+	else
+		for(int i = 0; i < sh.num_subsets(); ++i)
+			processMap.push_back(i);
+					
+	CreateGridDistributionPacks(distPacks, grid, sh, processMap);
+
+//	set up the receiver-process-map that is used to distribute the binaryStream to
+//	the processes. This one differs from the original process-map in that it does
+//	not contain the localProcID. If the original process-map did not contain the
+//	localProcID, then both maps are equal.
+	vector<int> receiverProcMap;
+	for(int i = 0; i < processMap.size(); ++i)
+	{
+		if(processMap[i] != localProcID)
+			receiverProcMap.push_back(processMap[i]);
+		else
+			localProcIndex = i;
+	}
+	
+	int numRecProcs = (int)receiverProcMap.size();
+	
+//	send to each receiver-process the size of the grid-distribution-pack
+//	it will receive.
+//	The binary-stream to which we will pack all the data.
+	BinaryStream binaryStream;
+	vector<int>	blockSize(numRecProcs);
+	int blockInd = 0;
+	for(int i = 0; i < (int)distPacks.size(); ++i)
+	{
+		if(i != localProcIndex)
+		{
+			int oldSize = binaryStream.size();
+			WriteGridDistributionPackToBinaryStream(distPacks[i], binaryStream);
+			blockSize[blockInd++] = (int)(binaryStream.size() - oldSize);
+		}
+	}
+	
+	int tag = 0;
+	
+	vector<int> bufferSizes(numRecProcs, sizeof(int));
+	if(numRecProcs > 0)
+	{		
+	//	distribute the block-sizes to the different processes
+		pcl::DistributeData(localProcID, &receiverProcMap.front(), numRecProcs,
+							&blockSize.front(), &bufferSizes.front(), 38);
+
+	//	distribute the grids-distribution-packs
+		pcl::DistributeData(localProcID, &receiverProcMap.front(), numRecProcs,
+							binaryStream.buffer(), &blockSize.front(), 39);
+	}
+	
+//	create the grid for process localProcID
+	if(pLocalGridOut && pLocalGridCommSetOut && (localProcIndex != -1))
+		UnpackGridDistributionPack(*pLocalGridOut, *pLocalGridCommSetOut,
+									distPacks[localProcIndex]);
+*/
+}
+
+////////////////////////////////////////////////////////////////////////
+void ReceiveGrid(MultiGrid& gridOut, ParallelGridLayout& gridLayoutOut,
+					int srcProcID)
+{
+/*
+//	receive the stream-size
+	int streamSize;
+	pcl::ReceiveData(&streamSize, srcProcID, sizeof(int), 38);
+
+//	receive the buffer
+	BinaryStream binaryStream(streamSize);
+	pcl::ReceiveData(binaryStream.buffer(), srcProcID, streamSize, 39);
+
+//	create the grid and the communication set.
+	GridDistributionPack distPack;
+	ReadGridDistributionPackFromBinaryStream(distPack, binaryStream);
+	UnpackGridDistributionPack(gridOut, gridCommSetOut, distPack);
+*/
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//	AddNodesToLayout
+///	adds nodes to a layout and to interfaces if required.
+/**
+ * Please note that this method not only alters the layout referenced
+ * by layoutIndex, but all layouts that share a node with this
+ * layout. For each node that is referenced by multiple layouts,
+ * corresponding interface entries are automatically generated.
+ */
 template <class TNodeLayout, class TIterator, class TAIntAccessor>
-void AddElementsToLayout(std::vector<TNodeLayout>& layouts,
-							int layoutIndex, 
-							TIterator nodesBegin, TIterator nodesEnd,
-							TAIntAccessor& aaFirstLayout,
-							TAIntAccessor& aaFirstProcLocalInd,
-							int level = 0)
+static
+void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
+						int layoutIndex, 
+						TIterator nodesBegin, TIterator nodesEnd,
+						TAIntAccessor& aaFirstLayout,
+						TAIntAccessor& aaFirstProcLocalInd,
+						int level = 0)
 {
 	TNodeLayout& layout = layouts[layoutIndex];	
 	
@@ -133,13 +161,13 @@ void AddElementsToLayout(std::vector<TNodeLayout>& layouts,
 	}
 }
 
-
+////////////////////////////////////////////////////////////////////////
 void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 						std::vector<ParallelEdgeLayout>& edgeLayoutsOut,
 						std::vector<ParallelFaceLayout>& faceLayoutsOut,
 						std::vector<ParallelVolumeLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
-						MGSelector* pSel = NULL)
+						MGSelector* pSel)
 {
 //	initialize a selector.
 	MGSelector tmpSel;
@@ -194,16 +222,16 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 	{
 	//	the level is ignored since it won't be used in this phase.
 	//	by passing -1 we can assert that no interface is accessed.
-		AddElementsToLayout(vertexLayoutsOut, i,
+		AddNodesToLayout(vertexLayoutsOut, i,
 							sh.begin<VertexBase>(i), sh.end<VertexBase>(i),
 							aaFirstProcVRT, aaFirstProcLocalIndVRT, -1);
-		AddElementsToLayout(edgeLayoutsOut, i,
+		AddNodesToLayout(edgeLayoutsOut, i,
 							sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i),
 							aaFirstProcEDGE, aaFirstProcLocalIndEDGE, -1);
-		AddElementsToLayout(faceLayoutsOut, i,
+		AddNodesToLayout(faceLayoutsOut, i,
 							sh.begin<Face>(i), sh.end<Face>(i),
 							aaFirstProcFACE, aaFirstProcLocalIndFACE, -1);
-		AddElementsToLayout(volumeLayoutsOut, i,
+		AddNodesToLayout(volumeLayoutsOut, i,
 							sh.begin<Volume>(i), sh.end<Volume>(i),
 							aaFirstProcVOL, aaFirstProcLocalIndVOL, -1);
 	}
@@ -232,16 +260,16 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 	//	care of the levels.
 		for(uint level = 0; level < msel.num_levels(); ++level)
 		{
-			AddElementsToLayout(vertexLayoutsOut, i,
+			AddNodesToLayout(vertexLayoutsOut, i,
 								msel.begin<VertexBase>(level), msel.end<VertexBase>(level),
 								aaFirstProcVRT, aaFirstProcLocalIndVRT, level);
-			AddElementsToLayout(edgeLayoutsOut, i,
+			AddNodesToLayout(edgeLayoutsOut, i,
 								msel.begin<EdgeBase>(level), msel.end<EdgeBase>(level),
 								aaFirstProcEDGE, aaFirstProcLocalIndEDGE, level);
-			AddElementsToLayout(faceLayoutsOut, i,
+			AddNodesToLayout(faceLayoutsOut, i,
 								msel.begin<Face>(level), msel.end<Face>(level),
 								aaFirstProcFACE, aaFirstProcLocalIndFACE, level);
-			AddElementsToLayout(volumeLayoutsOut, i,
+			AddNodesToLayout(volumeLayoutsOut, i,
 								msel.begin<Volume>(level), msel.end<Volume>(level),
 								aaFirstProcVOL, aaFirstProcLocalIndVOL, level);
 		}
@@ -273,23 +301,15 @@ void SelectNodesInLayout(TSelector& sel, TLayout& layout)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout, class TAIntAccessor>
-void SerializeLayout(std::ostream& out, TLayout& layout,
-					TAIntAccessor& aaInt, std::vector<int>& processMap)
-{
-//...
-}
-
-////////////////////////////////////////////////////////////////////////
 void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
-						std::vector<int>& processMap,
 						ParallelVertexLayout& vrtLayout,
 						ParallelEdgeLayout& edgeLayout,
 						ParallelFaceLayout& faceLayout,
 						ParallelVolumeLayout& volLayout,
 						AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
 						AInt& aLocalIndFACE, AInt& aLocalIndVOL,
-						MGSelector* pSel = NULL)
+						MGSelector* pSel,
+						std::vector<int>* pProcessMap)
 {
 //	initialize a selector.
 	MGSelector tmpSel;
@@ -300,6 +320,11 @@ void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 	}
 	MGSelector& msel = *pSel;
 	
+//	init the attachment accessors
+	Grid::VertexAttachmentAccessor<AInt> aaLocalIndVRT(mg, aLocalIndVRT);
+	Grid::EdgeAttachmentAccessor<AInt> aaLocalIndEDGE(mg, aLocalIndEDGE);
+	Grid::FaceAttachmentAccessor<AInt> aaLocalIndFACE(mg, aLocalIndFACE);
+	Grid::VolumeAttachmentAccessor<AInt> aaLocalIndVOL(mg, aLocalIndVOL);
 	
 //	select all elements in the layouts so that we can serialize
 //	that part of the grid.
@@ -309,12 +334,20 @@ void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 	SelectNodesInLayout(msel, volLayout);
 	
 //	write the grid.
+//	during serialization the local indices are automatically generated
+//	and written to the aLocalInd... attachments.
 	SerializeMultiGridElements(mg,
 						msel.get_multi_level_geometric_object_collection(),
 						aLocalIndVRT, aLocalIndEDGE,
 						aLocalIndFACE, aLocalIndVOL, out);
 
 //	write the layouts
+	SerializeLayoutInterfaces(out, vrtLayout, aaLocalIndVRT, pProcessMap);
+	SerializeLayoutInterfaces(out, edgeLayout, aaLocalIndEDGE, pProcessMap);
+	SerializeLayoutInterfaces(out, faceLayout, aaLocalIndFACE, pProcessMap);
+	SerializeLayoutInterfaces(out, volLayout, aaLocalIndVOL, pProcessMap);
+	
+//	done. Please note that no attachments have been serialized in this method.
 }
 						
 }//	end of namespace
