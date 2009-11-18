@@ -138,8 +138,18 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 						std::vector<ParallelEdgeLayout>& edgeLayoutsOut,
 						std::vector<ParallelFaceLayout>& faceLayoutsOut,
 						std::vector<ParallelVolumeLayout>& volumeLayoutsOut,
-						MultiGrid& mg, SubsetHandler& sh)
+						MultiGrid& mg, SubsetHandler& sh,
+						MGSelector* pSel = NULL)
 {
+//	initialize a selector.
+	MGSelector tmpSel;
+	if(!pSel)
+	{
+		tmpSel.assign_grid(mg);
+		pSel = &tmpSel;
+	}
+	MGSelector& msel = *pSel;
+	
 //	resize and clear the layouts
 	vertexLayoutsOut = std::vector<ParallelVertexLayout>(sh.num_subsets());
 	edgeLayoutsOut = std::vector<ParallelEdgeLayout>(sh.num_subsets());
@@ -200,8 +210,6 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 	
 //	step 2: add all the associated elements to the distribution groups, which
 //			have not already been assigned.
-//	we'll need a selector for this task
-	MGSelector msel(mg);
 	for(uint i = 0; i < sh.num_subsets(); ++i)
 	{
 		msel.clear_selection();		
@@ -253,4 +261,60 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 	mg.detach_from_volumes(aFirstProcLocalInd);
 }
 
+
+////////////////////////////////////////////////////////////////////////
+template <class TSelector, class TLayout>
+static
+void SelectNodesInLayout(TSelector& sel, TLayout& layout)
+{
+	typename TLayout::NodeVec& nodes = layout.node_vec();
+	for(size_t i = 0; i < nodes.size(); ++i)
+		sel.select(nodes[i]);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout, class TAIntAccessor>
+void SerializeLayout(std::ostream& out, TLayout& layout,
+					TAIntAccessor& aaInt, std::vector<int>& processMap)
+{
+//...
+}
+
+////////////////////////////////////////////////////////////////////////
+void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
+						std::vector<int>& processMap,
+						ParallelVertexLayout& vrtLayout,
+						ParallelEdgeLayout& edgeLayout,
+						ParallelFaceLayout& faceLayout,
+						ParallelVolumeLayout& volLayout,
+						AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
+						AInt& aLocalIndFACE, AInt& aLocalIndVOL,
+						MGSelector* pSel = NULL)
+{
+//	initialize a selector.
+	MGSelector tmpSel;
+	if(!pSel)
+	{
+		tmpSel.assign_grid(mg);
+		pSel = &tmpSel;
+	}
+	MGSelector& msel = *pSel;
+	
+	
+//	select all elements in the layouts so that we can serialize
+//	that part of the grid.
+	SelectNodesInLayout(msel, vrtLayout);
+	SelectNodesInLayout(msel, edgeLayout);
+	SelectNodesInLayout(msel, faceLayout);
+	SelectNodesInLayout(msel, volLayout);
+	
+//	write the grid.
+	SerializeMultiGridElements(mg,
+						msel.get_multi_level_geometric_object_collection(),
+						aLocalIndVRT, aLocalIndEDGE,
+						aLocalIndFACE, aLocalIndVOL, out);
+
+//	write the layouts
+}
+						
 }//	end of namespace
