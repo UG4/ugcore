@@ -202,6 +202,25 @@ void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	CalculateBarycenter - mstepnie
+/// calculates the barycenter of a set of vertices
+vector3 CalculateBarycenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
+							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
+{
+	vector3 v = vector3(0,0,0);
+	int counter = 0;
+	for(VertexBaseIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
+	{
+		VecAdd(v,v,aaPos[*iter]);
+		counter++;
+	}
+	
+	if(counter>0)
+		VecScale(v,v,1.f/counter);
+	return v;
+}
+
+////////////////////////////////////////////////////////////////////////
 //	MergeVertices
 ///	merges two vertices and restructures the adjacent elements.
 void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
