@@ -5,13 +5,16 @@
 #ifndef __H__LIB_GRID__DISTRIBUTION_UTIL_IMPL__
 #define __H__LIB_GRID__DISTRIBUTION_UTIL_IMPL__
 
+#include <iostream>
+#include <vector>
+
 namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-template <class TLayout, class TAIntAccessor>
+template <class TLayout>
 void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
-					TAIntAccessor& aaInt, std::vector<int>* pProcessMap)
+								std::vector<int>* pProcessMap)
 {
 //	write the number of levels
 //	then for each level the number of interfaces
@@ -52,6 +55,54 @@ void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
 		//	write the interface-entries
 			for(size_t i = 0; i < interface.size(); ++i)
 				out.write((char*)&interface[i], sizeof(pcl::InterfaceEntry));
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//	DeserializeLayoutInterfaces
+template <class TLayout>
+void DeserializeLayoutInterfaces(TLayout& layoutOut,
+								std::istream& in)
+{
+//	for conveniance
+	TLayout& layout = layoutOut;
+	
+//	read the number of levels
+//	then for each level the number of interfaces
+//	then for each interface the number of nodes and the local-ids of the nodes.
+	int numLevels;
+	in.read((char*)&numLevels, sizeof(int));
+	layout.set_num_levels((size_t)numLevels);
+	
+//	iterate through the levels of the layout
+	for(size_t level = 0; level < layout.num_levels(); ++level)
+	{
+		pcl::InterfaceMap& imap = layout.interface_map(level);
+	//	read the number of interfaces for this level
+		int numInterfaces;
+		in.read((char*)&numInterfaces, sizeof(int));
+		
+	//	iterate through the interfaces
+		for(int i = 0; i < numInterfaces; ++i)
+		{
+		//	read the connected process-id
+			int procID;
+			in.read((char*)&procID, sizeof(int));
+		
+		//	get the interface
+			pcl::Interface& interface = layout.interface(procID, level);
+			
+		//	read the number of entries that are contained in the interface
+			int numEntries;
+			in.read((char*)&numEntries, sizeof(int));
+			
+		//	resize the interface
+			interface.resize(numEntries);
+			
+		//	read the interface-entries
+			for(size_t j = 0; j < interface.size(); ++j)
+				in.read((char*)&interface[i], sizeof(pcl::InterfaceEntry));
 		}
 	}
 }

@@ -9,6 +9,6 @@ cmake_minimum_required(VERSION 2.6)
 
 project(P_PCL)
 
-include_directories(${P_UGBASE_SOURCE_DIR}/common)
+include_directories(${P_UGBASE_SOURCE_DIR})
 
 add_library(pcl pcl.cpp)

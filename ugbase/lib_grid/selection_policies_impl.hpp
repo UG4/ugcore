@@ -117,15 +117,15 @@ clear_selection(int level)
 	{
 		int pipeSection = geometry_traits<TSelElem>::SHARED_PIPE_SECTION;
 
-			ElemSectionContainer& selectedElements = get_section(level);
-			for(TElemIterator iter = selectedElements.section_begin(pipeSection);
-					iter != static_cast<TElemIterator>(selectedElements.section_end(pipeSection)); iter++)
-				m_aaElemIterator[*iter] = m_invalidContainer.begin();
+		ElemSectionContainer& selectedElements = get_section(level);
+		for(TElemIterator iter = selectedElements.section_begin(pipeSection);
+				iter != static_cast<TElemIterator>(selectedElements.section_end(pipeSection)); iter++)
+			m_aaElemIterator[*iter] = m_invalidContainer.begin();
 
-			if(pipeSection == -1)
-				selectedElements.clear();
-			else
-				selectedElements.clear_section(pipeSection);
+		if(pipeSection == -1)
+			selectedElements.clear();
+		else
+			selectedElements.clear_section(pipeSection);
 	}
 }
 

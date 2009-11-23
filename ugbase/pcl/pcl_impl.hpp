@@ -9,7 +9,6 @@
 #include <string.h>
 #include "mpi.h"
 #include "pcl.h"
-#include "common.h"
 
 namespace pcl
 {

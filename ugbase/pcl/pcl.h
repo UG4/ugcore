@@ -8,9 +8,9 @@
 #include <vector>
 #include <list>
 #include <iostream>
-#include "util/hash.h"
-#include "util/section_container.h"
-#include "util/binary_stream.h"
+#include "common/util/hash.h"
+#include "common/util/section_container.h"
+#include "common/util/binary_stream.h"
 
 //	Don't rely on mpi being included.
 //	It is only included to allow us to define some constants.

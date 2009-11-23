@@ -717,7 +717,7 @@ GetParent(std::istream& in, vector<VertexBase*>& vVrts,
 {
 	char type;
 	int index;
-	in.read(&type, sizeof(char));
+	in.read((char*)&type, sizeof(char));
 	in.read((char*)&index, sizeof(int));
 	
 	switch(type)

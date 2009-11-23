@@ -4,19 +4,155 @@
 
 #include "lib_grid/lib_grid.h"
 #include "pcl/parallel_node_layout.h"
+#include "pcl/pcl.h"
 #include "distribution_util.h"
 #include "common/util/stream_pack.h"
+#include "common/util/binary_stream.h"
 
+using namespace std;
 
 namespace ug
 {
-
+/*
+void PrintData(int* data, int size)
+{
+	for(int i = 0; i < size; ++i)
+		cout << data[i] << ", ";
+	
+	cout << endl;
+}
+*/
 ////////////////////////////////////////////////////////////////////////
-void DistributeGrid(MultiGrid& grid, SubsetHandler& sh,
+void DistributeGrid(MultiGrid& mg, SubsetHandler& sh,
 					int localProcID, MultiGrid* pLocalGridOut,
 					ParallelGridLayout* pLocalGridLayoutOut,
 					std::vector<int>* pProcessMap)
 {
+
+//	we have to store the layouts for all the processes.
+	vector<ParallelVertexLayout> vVertexLayouts;
+	vector<ParallelEdgeLayout> vEdgeLayouts;
+	vector<ParallelFaceLayout> vFaceLayouts;
+	vector<ParallelVolumeLayout> vVolumeLayouts;
+	
+//	we need some attachments that will speed up the called processes.
+	AInt aInt;
+	mg.attach_to_vertices(aInt);
+	mg.attach_to_edges(aInt);
+	mg.attach_to_faces(aInt);
+	mg.attach_to_volumes(aInt);
+	
+//	the selector will help to speed things up a little.
+	MGSelector msel(mg);
+	
+	CreateGridLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
+						vVolumeLayouts, mg, sh, &msel);
+
+//	we will now fill a binary stream with all the grids.
+//	this stream will receive the data that has to be copied to the local grid.
+	BinaryStream localStream;
+//	this stream will receive all the data that is to be sent to other processes.
+	BinaryStream globalStream;
+//	this vector is required so that we can use distribute-data later on.
+	vector<int>	vBlockSizes;
+//	here we'll store the ids of the receiving processes.
+	vector<int> vReceiverIDs;
+
+	int numProcs = (int)sh.num_subsets();
+	if(pProcessMap)
+		numProcs = std::min((int)pProcessMap->size(), numProcs);
+		
+	for(int i = 0; i < numProcs; ++i)
+	{
+/*
+cout << "proc " << i << ":\n";
+cout << "  layouts:\n";
+cout << "    vrts: " << vVertexLayouts[i].node_vec().size() << endl;
+cout << "    edges: " << vEdgeLayouts[i].node_vec().size() << endl;
+cout << "    faces: " << vFaceLayouts[i].node_vec().size() << endl;
+cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
+*/
+		int proc = i;
+		if(pProcessMap)
+			proc = (*pProcessMap)[i];
+		
+		if(proc == localProcID)
+		{
+			SerializeGridAndLayouts(localStream, mg, vVertexLayouts[i],
+									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
+									aInt, aInt, aInt, aInt, &msel, pProcessMap);
+									
+		//	serialize position attachment
+			for(uint iLevel = 0; iLevel < mg.num_levels(); ++iLevel)
+			{
+				SerializeAttachment<VertexBase>(mg, aPosition,
+												msel.begin<VertexBase>(iLevel),
+												msel.end<VertexBase>(iLevel),
+												localStream);
+			}
+
+//TODO:		the user should be able to add personal data to those buffers.
+		}
+		else
+		{
+			int oldSize = globalStream.size();
+			SerializeGridAndLayouts(globalStream, mg, vVertexLayouts[i],
+									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
+									aInt, aInt, aInt, aInt, &msel, pProcessMap);
+
+		//	serialize position attachment
+			for(uint iLevel = 0; iLevel < mg.num_levels(); ++iLevel)
+			{
+				SerializeAttachment<VertexBase>(mg, aPosition,
+												msel.begin<VertexBase>(iLevel),
+												msel.end<VertexBase>(iLevel),
+												globalStream);
+			}									
+//TODO:		the user should be able to add personal data to those buffers.
+
+			vBlockSizes.push_back((int)(globalStream.size() - oldSize));
+			vReceiverIDs.push_back(proc);
+		}
+	}
+	
+//	send the grids to their target processes
+	int numReceivers = (int)vReceiverIDs.size();
+	if(numReceivers > 0)
+	{
+	//	every process receives the size of the data-buffer first.
+		vector<int> bufferSizes(numReceivers, sizeof(int));
+		
+	//	distribute the block-sizes to the different processes
+		pcl::DistributeData(localProcID, &vReceiverIDs.front(), numReceivers,
+							&vBlockSizes.front(), &bufferSizes.front(), 38);
+
+	//	distribute the grids-distribution-packs
+		pcl::DistributeData(localProcID, &vReceiverIDs.front(), numReceivers,
+							globalStream.buffer(), &vBlockSizes.front(), 39);
+	}
+
+//	fill the local grid and subset-handler
+	if(pLocalGridOut && pLocalGridLayoutOut && (localStream.size() > 0))
+	{		
+		if(!pLocalGridOut->has_vertex_attachment(aPosition))
+			pLocalGridOut->attach_to_vertices(aPosition);
+
+		DeserializeGridAndLayouts(*pLocalGridOut, *pLocalGridLayoutOut,
+									localStream);
+
+		DeserializeAttachment<VertexBase>(*pLocalGridOut, aPosition,
+										pLocalGridOut->begin<VertexBase>(),
+										pLocalGridOut->end<VertexBase>(),
+										localStream);		
+
+	}
+	
+//	clean up
+	mg.detach_from_vertices(aInt);
+	mg.detach_from_edges(aInt);
+	mg.detach_from_faces(aInt);
+	mg.detach_from_volumes(aInt);
+	
 /*
 	vector<GridDistributionPack> distPacks;
 	vector<int> fallbackProcessMap;
@@ -86,10 +222,9 @@ void DistributeGrid(MultiGrid& grid, SubsetHandler& sh,
 }
 
 ////////////////////////////////////////////////////////////////////////
-void ReceiveGrid(MultiGrid& gridOut, ParallelGridLayout& gridLayoutOut,
+void ReceiveGrid(MultiGrid& mgOut, ParallelGridLayout& gridLayoutOut,
 					int srcProcID)
 {
-/*
 //	receive the stream-size
 	int streamSize;
 	pcl::ReceiveData(&streamSize, srcProcID, sizeof(int), 38);
@@ -98,11 +233,16 @@ void ReceiveGrid(MultiGrid& gridOut, ParallelGridLayout& gridLayoutOut,
 	BinaryStream binaryStream(streamSize);
 	pcl::ReceiveData(binaryStream.buffer(), srcProcID, streamSize, 39);
 
-//	create the grid and the communication set.
-	GridDistributionPack distPack;
-	ReadGridDistributionPackFromBinaryStream(distPack, binaryStream);
-	UnpackGridDistributionPack(gridOut, gridCommSetOut, distPack);
-*/
+//	fill the grid and the layout
+	DeserializeGridAndLayouts(mgOut, gridLayoutOut, binaryStream);
+	
+//	read the attached data
+	if(!mgOut.has_vertex_attachment(aPosition))
+		mgOut.attach_to_vertices(aPosition);
+
+	DeserializeAttachment<VertexBase>(mgOut, aPosition, binaryStream);
+
+//TODO:	allow the user to read his data.
 }
 
 
@@ -151,6 +291,7 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 			int localMasterID = aaFirstProcLocalInd[node];
 			int localID = (int)layout.node_vec().size();
 			TNodeLayout& masterLayout = layouts[masterLayoutIndex];
+			layout.node_vec().push_back(node);
 			
 		//	access the interfaces
 			pcl::Interface& masterInterface = masterLayout.interface(layoutIndex, level);
@@ -240,7 +381,11 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 //			have not already been assigned.
 	for(uint i = 0; i < sh.num_subsets(); ++i)
 	{
-		msel.clear_selection();		
+		msel.clear_selection();
+		msel.select(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
+		msel.select(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
+		msel.select(sh.begin<Face>(i), sh.end<Face>(i));
+		msel.select(sh.begin<Volume>(i), sh.end<Volume>(i));
 //TODO: overlap can be easily handled here! simply increase the selection.
 //		eventually we first would have to select all associated elements.
 
@@ -254,7 +399,7 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 		msel.deselect(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
 		msel.deselect(sh.begin<Face>(i), sh.end<Face>(i));
 		msel.deselect(sh.begin<Volume>(i), sh.end<Volume>(i));
-		
+
 	//	add the elements to the groups
 	//	since interfaces are generated during this step, we have to take
 	//	care of the levels.
@@ -319,12 +464,8 @@ void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 		pSel = &tmpSel;
 	}
 	MGSelector& msel = *pSel;
-	
-//	init the attachment accessors
-	Grid::VertexAttachmentAccessor<AInt> aaLocalIndVRT(mg, aLocalIndVRT);
-	Grid::EdgeAttachmentAccessor<AInt> aaLocalIndEDGE(mg, aLocalIndEDGE);
-	Grid::FaceAttachmentAccessor<AInt> aaLocalIndFACE(mg, aLocalIndFACE);
-	Grid::VolumeAttachmentAccessor<AInt> aaLocalIndVOL(mg, aLocalIndVOL);
+
+	msel.clear_selection();
 	
 //	select all elements in the layouts so that we can serialize
 //	that part of the grid.
@@ -342,12 +483,53 @@ void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 						aLocalIndFACE, aLocalIndVOL, out);
 
 //	write the layouts
-	SerializeLayoutInterfaces(out, vrtLayout, aaLocalIndVRT, pProcessMap);
-	SerializeLayoutInterfaces(out, edgeLayout, aaLocalIndEDGE, pProcessMap);
-	SerializeLayoutInterfaces(out, faceLayout, aaLocalIndFACE, pProcessMap);
-	SerializeLayoutInterfaces(out, volLayout, aaLocalIndVOL, pProcessMap);
+	SerializeLayoutInterfaces(out, vrtLayout, pProcessMap);
+	SerializeLayoutInterfaces(out, edgeLayout, pProcessMap);
+	SerializeLayoutInterfaces(out, faceLayout, pProcessMap);
+	SerializeLayoutInterfaces(out, volLayout, pProcessMap);
 	
 //	done. Please note that no attachments have been serialized in this method.
 }
-						
+
+template <class TGeomObj, class TLayout>
+static
+void
+FillLayoutWithNodes(TLayout& layout, Grid& grid)
+{
+	typedef typename TLayout::NodeType TNode;
+	typedef typename geometry_traits<TGeomObj>::iterator iterator;
+	typename TLayout::NodeVec& nodes = layout.node_vec();
+	
+	for(iterator iter = grid.begin<TGeomObj>();
+		iter != grid.end<TGeomObj>(); ++iter)
+		nodes.push_back(*iter);
+}
+
+////////////////////////////////////////////////////////////////////////
+//	DeserializeGridAndLayouts
+void DeserializeGridAndLayouts(MultiGrid& mgOut,
+							ParallelGridLayout& gridLayoutOut,
+							std::istream& in)
+{	
+//	read the grid.
+//	during deserialization the local indices are automatically generated
+//	and written to the aLocalInd... attachments.
+	DeserializeMultiGridElements(mgOut, in);
+
+//	read the layouts
+	DeserializeLayoutInterfaces(gridLayoutOut.vertexLayout, in);
+	DeserializeLayoutInterfaces(gridLayoutOut.edgeLayout, in);
+	DeserializeLayoutInterfaces(gridLayoutOut.faceLayout, in);
+	DeserializeLayoutInterfaces(gridLayoutOut.volumeLayout, in);
+	
+//TODO: this is not optimal. Probably it is not even required...
+//	add the nodes to the layouts
+	FillLayoutWithNodes<VertexBase>(gridLayoutOut.vertexLayout, mgOut);
+	FillLayoutWithNodes<EdgeBase>(gridLayoutOut.edgeLayout, mgOut);
+	FillLayoutWithNodes<Face>(gridLayoutOut.faceLayout, mgOut);
+	FillLayoutWithNodes<Volume>(gridLayoutOut.volumeLayout, mgOut);
+	
+//	done. Please note that no attachments have been serialized in this method.
+}
+
 }//	end of namespace

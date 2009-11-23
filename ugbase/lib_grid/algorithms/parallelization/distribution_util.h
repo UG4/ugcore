@@ -47,7 +47,7 @@ struct ParallelGridLayout
  *
  * Grids distributed through this method may be received by \sa ReveiveGrid.
  */
-void DistributeGrid(MultiGrid& grid, SubsetHandler& sh, int localProcID,
+void DistributeGrid(MultiGrid& mg, SubsetHandler& sh, int localProcID,
 					MultiGrid* pLocalGridOut = NULL,
 					ParallelGridLayout* pLocalGridLayoutOut = NULL,
 					std::vector<int>* pProcessMap = NULL);
@@ -59,7 +59,7 @@ void DistributeGrid(MultiGrid& grid, SubsetHandler& sh, int localProcID,
  * gridOut and gridLayoutOut should be empty when passed to this method.
  * srcProcID has to specify the process that distributes the grids.
  */
-void ReceiveGrid(MultiGrid& gridOut, ParallelGridLayout& gridLayoutOut,
+void ReceiveGrid(MultiGrid& mgOut, ParallelGridLayout& gridLayoutOut,
 					int srcProcID);
 
 ////////////////////////////////////////////////////////////////////////
@@ -86,6 +86,14 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
 						
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridAndLayouts
+/**
+ * Writes the elements of a grid, which are referenced by the given
+ * gridLayout to a binary stream.
+ * You may pass a selector via pSel, which increases performance of this
+ * method. After this method finished pSel will contain all elements
+ * that have been written to the stream (in the same order as they were
+ * written).
+ */
 void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 							ParallelVertexLayout& vrtLayout,
 							ParallelEdgeLayout& edgeLayout,
@@ -98,11 +106,21 @@ void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeLayoutInterfaces
-template <class TLayout, class TAIntAccessor>
+template <class TLayout>
 void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
-								TAIntAccessor& aaInt,
 								std::vector<int>* pProcessMap = NULL);
 
+////////////////////////////////////////////////////////////////////////
+//	DeserializeGridAndLayouts
+void DeserializeGridAndLayouts(MultiGrid& mgOut,
+							ParallelGridLayout& gridLayoutOut,
+							std::istream& in);
+
+////////////////////////////////////////////////////////////////////////
+//	DeserializeLayoutInterfaces
+template <class TLayout>
+void DeserializeLayoutInterfaces(TLayout& layoutOut,
+								std::istream& in);
 }//	end of namespace
 
 ////////////////////////////////

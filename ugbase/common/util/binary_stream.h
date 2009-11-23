@@ -80,7 +80,7 @@ class BinaryStreamBuffer : public std::streambuf
 		}
 
 	protected:
-		std::vector<int_type>	m_dataBuf;
+		std::vector<unsigned char>	m_dataBuf;
 		int m_readPos;
 		int m_writePos;
 };
