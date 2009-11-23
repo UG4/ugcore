@@ -27,8 +27,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/grid_generation/tetrahedralization.cpp
 					algorithms/extrusion/extrusion.cpp
 					algorithms/refinement/hanging_node_refiner.cpp
-					algorithms/refinement/multi_grid_refiner.cpp
-					algorithms/parallelization/distribution_util.cpp)
+					algorithms/refinement/multi_grid_refiner.cpp)
 					
 set(srcFileIO	file_io/file_io_dump.cpp
 				file_io/file_io_lgb.cpp
@@ -47,7 +46,19 @@ set(srcLibGrid	common_attachments.cpp
 				selection_policies.cpp
 				subset_handler.cpp)
 
-				
+
+if(COMPILE_WITH_PCL)
+	# add parallelization
+	set(srcParallelization	algorithms/parallelization/distribution_util.cpp)
+
+else(COMPILE_WITH_PCL)
+	# give a warning that pcl will not be compiled.
+	set(srcParallelization )
+	message("")
+	message("WARNING: parallel support disabled for lib_grid.")
+	message("     ... consider to specify a ParallelToolchain file.\n")
+endif(COMPILE_WITH_PCL)
+
 ################################################
 # EXTERNALS - TetGen
 add_definitions(-DTETLIBRARY)
@@ -86,6 +97,7 @@ set(srcNg
 )
 					
 add_library(grid 	${srcGrid} ${srcAlgorithms}
+					${srcParallelization}
 					${srcFileIO} ${srcLibGrid}
 					${srcTetgen} ${srcLgm} ${srcNg})
 
