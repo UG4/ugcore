@@ -12,6 +12,21 @@ namespace ug
 
 MultiGrid::MultiGrid()
 {
+	init();
+}
+
+MultiGrid::MultiGrid(uint options) : Grid(options)
+{
+	init();
+}
+
+MultiGrid::~MultiGrid()
+{
+	unregister_observer(this);
+}
+
+void MultiGrid::init()
+{
 //	the subset-handler that manages the hierarchy
 //	has to be registered before the multi-grid (order of create-methods).
 	m_hierarchy.assign_grid(*this);
@@ -32,11 +47,6 @@ MultiGrid::MultiGrid()
 	m_aaEdgeInf.access(*this, m_aEdgeInfo);
 	m_aaFaceInf.access(*this, m_aFaceInfo);
 	m_aaVolInf.access(*this, m_aVolumeInfo);
-}
-
-MultiGrid::~MultiGrid()
-{
-	unregister_observer(this);
 }
 
 void MultiGrid::enable_hierarchical_insertion(bool bEnable)

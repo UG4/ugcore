@@ -173,6 +173,11 @@ class MultiGrid : public Grid, public GridObserver
 
 	public:
 		MultiGrid();
+	///	initialises the grid with the given option.
+	/**	pass an or-combination of constants enumerated in
+	 *  VertexOptions, EdgeOptions, FaceOptions, VolumeOptions and GridOptions.*/
+		MultiGrid(uint options);
+		
 		virtual ~MultiGrid();
 
 		void enable_hierarchical_insertion(bool bEnable);
@@ -241,7 +246,11 @@ class MultiGrid : public Grid, public GridObserver
 		void check_edge_elem_infos(int level);
 		void check_face_elem_infos(int level);
 		void check_volume_elem_infos(int level);
-
+		
+	///	this method may be removed in future versions of the MultiGrid-class.
+	/**	You really shouldn't use this method!!!*/
+		SubsetHandler& get_hierarchy_handler()		{return m_hierarchy;}
+		
 	////////////////////////////////////////////////////////////////////////
 	//	Don't invoke the following methods directly!
 	//	They are intended for internal feedback only.
@@ -277,6 +286,9 @@ class MultiGrid : public Grid, public GridObserver
 		typedef Attachment<VolumeInfo>	AVolumeInfo;
 
 	protected:
+	//	initialization
+		void init();
+		
 	//	info-access
 		inline VertexInfo& get_info(VertexBase* v)	{return m_aaVrtInf[v];}
 		inline EdgeInfo& get_info(EdgeBase* e)		{return m_aaEdgeInf[e];}

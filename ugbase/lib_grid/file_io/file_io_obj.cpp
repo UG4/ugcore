@@ -269,7 +269,10 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 			for(uint i = 0; i < pSubsetHandler->num_subsets(); ++i)
 			{
 			//	write object
-				out << "o " << pSubsetHandler->subset_info(i).name << endl;
+				if(pSubsetHandler->subset_info(i).name.size() > 0)
+					out << "o " << pSubsetHandler->subset_info(i).name << endl;
+				else
+					out << "o " << "sub_" << i << endl;
 
 			//	write material reference
 				if((pvMaterials != NULL) && (pSubsetHandler->subset_info(i).materialIndex != -1))
