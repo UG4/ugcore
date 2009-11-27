@@ -42,10 +42,10 @@ endif(WITH_ALGEBRA)
 # pcl will be compiled only if a parallel toolchain has been specified.
 if(COMPILE_WITH_PCL)
 	# compile pcl
+	message("-- INFO: compiling 'pcl' library enabled")
 	add_subdirectory(pcl)
 
 else(COMPILE_WITH_PCL)
 	# give a warning that pcl will not be compiled.
-	message("-- WARNING: parallel applications and libraries are not compiled ...")
-	message("            ... consider to specify a ParallelToolchain file.")
+	message("-- INFO: not compiling 'pcl' library (check the README for more information)")
 endif(COMPILE_WITH_PCL)

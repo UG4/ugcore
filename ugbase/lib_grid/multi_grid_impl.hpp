@@ -74,7 +74,19 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent)
 	//	add the element to the parents children list
 		typename mginfo_traits<TParent>::info_type& parentInfo = get_info(pParent);
 		parentInfo.add_child(elem);
+		
+	//	set the new status
+		switch(parentInfo.m_state)
+		{
+			case MGES_FIXED:		set_state(elem, MGES_FIXED); break;
+			case MGES_CONSTRAINED:	set_state(elem, MGES_CONSTRAINED); break;
+			case MGES_CONSTRAINING:	set_state(elem, MGES_CONSTRAINED); break;
+		}
 	}
+	else {
+		set_state(elem, MGES_NORMAL);
+	}
+
 //	put the element into the hierarchy
 	m_hierarchy.assign_subset(elem, level);
 }

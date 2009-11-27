@@ -53,6 +53,13 @@ enum MGElementState
 };
 
 ///	Holds information about vertex relations. Used internally.
+/**
+ * a vertex can have one of the following states:
+ * MGES_NORMAL, MGES_CONSTRAINED, MGES_FIXED
+ * the following should always hold true:
+ * children of a constrained node are constrained, too.
+ * children of a fixed node are fixed, too.
+ */
 struct MGVertexInfo
 {
 	MGVertexInfo()		{clear();}
@@ -67,6 +74,13 @@ struct MGVertexInfo
 };
 
 ///	Holds information about edge relations. Used internally.
+/**
+ * an edge can have one of the following states:
+ * MGES_NORMAL, MGES_CONSTRAINING, MGES_CONSTRAINED
+ * the following should always hold true:
+ * children of a constraining edge are constrained.
+ * children of a constrained edge are constrained.
+ */
 struct MGEdgeInfo
 {
 	MGEdgeInfo()		{clear();}
@@ -273,17 +287,19 @@ class MultiGrid : public Grid, public GridObserver
 	//	access to the elements multi-grid status
 	///	returns one of the constants enumerated in MGElementStates.
 		template <class TElem>
-		inline byte get_status(TElem* elem)						{return get_info(elem).m_status;}
+		inline byte get_status(TElem* elem)						{return get_info(elem).m_state;}
 		
-	///	changes the status of the vertex and adjusts the states of its children.
-		void set_status(VertexBase* vrt);
-	///	changes the status of the edge and adjusts the states of its children.
-		void set_status(EdgeBase* edge);
-	///	changes the status of the face and adjusts the states of its children.
-		void set_status(Face* face);
-	///	changes the status of the volume and adjusts the states of its children.
-		void set_status(Volume* vol);
-		
+	///	changes the state of the vertex and adjusts the states of its children.
+		void set_state(VertexBase* vrt, int state);
+	///	changes the state of the edge and adjusts the states of its children.
+		void set_state(EdgeBase* edge, int state);
+	///	NOT YET IMPLEMENTED!
+	/** changes the state of the face and adjusts the states of its children.*/
+		void set_state(Face* face, int state);
+	///	NOT YET IMPLEMENTED!
+	/**	changes the state of the volume and adjusts the states of its children.*/
+		void set_state(Volume* vol, int state);
+
 	//	for debug purposes
 		void check_edge_elem_infos(int level);
 		void check_face_elem_infos(int level);

@@ -57,9 +57,6 @@ if(COMPILE_WITH_PCL)
 else(COMPILE_WITH_PCL)
 	# give a warning that pcl will not be compiled.
 	set(srcParallelization )
-	message("")
-	message("WARNING: parallel support disabled for lib_grid.")
-	message("     ... consider to specify a ParallelToolchain file.\n")
 endif(COMPILE_WITH_PCL)
 
 ################################################
