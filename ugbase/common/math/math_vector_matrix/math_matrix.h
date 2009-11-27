@@ -23,7 +23,7 @@ namespace ug
  * \brief A class for fixed size, dense matrices.
  *
  */
-template <std::size_t N, std::size_t M, typename T = float> class MathMatrix;
+template <std::size_t N, std::size_t M, typename T = number> class MathMatrix;
 
 template <std::size_t N, std::size_t M, typename T>
 class MathMatrix

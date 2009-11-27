@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <iostream>
+#include "../../types.h"
 
 namespace ug
 {
@@ -23,7 +24,7 @@ namespace ug
 //	MathMathVector
 ///	a mathematical Vector with N entries.
 
-template <std::size_t N, typename T = float> class MathVector;
+template <std::size_t N, typename T = number> class MathVector;
 
 template <std::size_t N, typename T>
 class MathVector

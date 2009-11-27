@@ -1,4 +1,7 @@
 How to compile ugbase:
+- default build setting includes: common, lib_grid.
+  For parallel support see: 'How to enable parallel support'.
+  For lib_algebra, lib_discretization see: 'How to compile algebra and discretization module'
 - a recent version of cmake is required (min v 2.6), see www.cmake.org
 - start in the root folder of UG4 (.../ug4/)
 - create a new folder and call it build (mkdir build)
@@ -29,3 +32,8 @@ How to enable parallel support:
   * ParallelToolchain_MPICH.txt: support for the MPICH MPI implementation.
   * ParallelToolchain_MPT.txt: This MPI implementation can be found on some
 							linux-clusters (HLRB2-Munich).
+
+How to compile algebra and discretization module:
+- per default only the modules common, lib_grid and pcl (if choosen) 
+  are build using cmake. In order to build lib_algebra and lib_discretization use:
+  cmake - DWITH_ALGEBRA=ON

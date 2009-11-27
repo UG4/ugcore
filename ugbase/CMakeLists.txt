@@ -24,6 +24,20 @@ add_subdirectory(common)
 add_subdirectory(lib_grid)
 
 ########################
+# lib_algebra and lib_discretization
+
+if(WITH_ALGEBRA)
+	message("-- INFO: compiling 'algebra' library enabled")
+	add_subdirectory(lib_algebra)	
+
+	message("-- INFO: compiling 'discretization' library enabled")
+	add_subdirectory(lib_discretization)
+else(WITH_ALGEBRA)
+	message("-- INFO: not compiling 'algebra' library (enable option using: 'cmake -DWITH_ALGEBRA')")
+	message("-- INFO: not compiling 'discretization' library (enable option using: 'cmake -DWITH_ALGEBRA')")
+endif(WITH_ALGEBRA)
+
+########################
 # pcl
 # pcl will be compiled only if a parallel toolchain has been specified.
 if(COMPILE_WITH_PCL)
@@ -32,7 +46,6 @@ if(COMPILE_WITH_PCL)
 
 else(COMPILE_WITH_PCL)
 	# give a warning that pcl will not be compiled.
-	message("")
-	message("WARNING: parallel applications and libraries are not compiled ...")
-	message("     ... consider to specify a ParallelToolchain file.\n")
+	message("-- WARNING: parallel applications and libraries are not compiled ...")
+	message("            ... consider to specify a ParallelToolchain file.")
 endif(COMPILE_WITH_PCL)
