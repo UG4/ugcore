@@ -37,3 +37,10 @@ How to compile algebra and discretization module:
 - per default only the modules common, lib_grid and pcl (if choosen) 
   are build using cmake. In order to build lib_algebra and lib_discretization use:
   cmake - DWITH_ALGEBRA=ON
+- note: lib_algebra uses two external libraries: boost and hyprelib. If you want to 
+        compile lib_algebra correctly please add the directories of those libraries 
+        to your standard search path, e.g.
+
+	export PATH=$PATH:/Users/andreasvogel/Software/Boost
+	export PATH=$PATH:/Users/andreasvogel/Software/hypre
+

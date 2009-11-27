@@ -33,8 +33,8 @@ if(WITH_ALGEBRA)
 	message("-- INFO: compiling 'discretization' library enabled")
 	add_subdirectory(lib_discretization)
 else(WITH_ALGEBRA)
-	message("-- INFO: not compiling 'algebra' library (enable option using: 'cmake -DWITH_ALGEBRA')")
-	message("-- INFO: not compiling 'discretization' library (enable option using: 'cmake -DWITH_ALGEBRA')")
+	message("-- INFO: not compiling 'algebra' library (enable option using: 'cmake -DWITH_ALGEBRA=ON')")
+	message("-- INFO: not compiling 'discretization' library (enable option using: 'cmake -DWITH_ALGEBRA=ON')")
 endif(WITH_ALGEBRA)
 
 ########################

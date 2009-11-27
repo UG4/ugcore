@@ -15,8 +15,6 @@ if(WITH_ALGEBRA)
 #######################
 # Arne's Algebra
 
-add_subdirectory(solver)
-
 find_package(Boost)
 
 if(Boost_FOUND)
@@ -56,17 +54,16 @@ if(HYPRELIB_LIB_DIR)
 		     		 hypre_algebra/vector.cpp
 	       			 hypre_algebra/linearsolver.cpp)
 
+	add_library(algebra ${srcHypre_Algebra} )
+	add_dependencies(algebra common)
+
 else(HYPRELIB_LIB_DIR)
 	message("-- ERROR: HYPRE - Libraray NOT found. Compiling WITHOUT Hypre.")
-	set(srcHypre_Algebra )
 endif(HYPRELIB_LIB_DIR)
 
 
 ##########################
 # setup library
-
-add_library(algebra ${srcHypre_Algebra} )
-add_dependencies(algebra common)
 
 endif(WITH_ALGEBRA)
 
