@@ -24,7 +24,7 @@ if(Boost_FOUND)
 	include_directories (../solver/ ${Boost_INCLUDE_DIRS})
 
 else(Boost_FOUND)
-	message("-- ERROR: Boost - Libraray NOT found. Compiling WITHOUT Boost.")
+	message("-- WARNING: Boost - Libraray NOT found. Compiling WITHOUT Boost.")
 endif(Boost_FOUND)
 
 
@@ -58,7 +58,7 @@ if(HYPRELIB_LIB_DIR)
 	add_dependencies(algebra common)
 
 else(HYPRELIB_LIB_DIR)
-	message("-- ERROR: HYPRE - Libraray NOT found. Compiling WITHOUT Hypre.")
+	message("-- WARNING: HYPRE - Libraray NOT found. Compiling WITHOUT Hypre.")
 endif(HYPRELIB_LIB_DIR)
 
 

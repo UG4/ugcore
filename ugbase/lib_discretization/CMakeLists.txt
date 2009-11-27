@@ -37,4 +37,6 @@ add_library(discretization 	${srcDiscretization})
 
 add_dependencies(discretization algebra grid common)
 
+else(HYPRELIB_LIB_DIR)
+	message("-- WARNING: HYPRE - Libraray NOT found. Compiling WITHOUT Hypre.")
 endif(HYPRELIB_LIB_DIR)
