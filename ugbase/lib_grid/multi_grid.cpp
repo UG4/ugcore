@@ -67,6 +67,22 @@ GeometricObject* MultiGrid::get_parent(GeometricObject* parent)
 	return NULL;
 }
 
+void MultiGrid::set_status(VertexBase* vrt)
+{
+}
+
+void MultiGrid::set_status(EdgeBase* edge)
+{
+}
+
+void MultiGrid::set_status(Face* face)
+{
+}
+
+void MultiGrid::set_status(Volume* vol)
+{
+}
+	
 ////////////////////////////////////////////////////////////////////////
 //	grid-observer callbacks
 

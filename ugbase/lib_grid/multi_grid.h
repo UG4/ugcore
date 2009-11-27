@@ -30,6 +30,28 @@ const int MG_VOLUME_MAX_EDGE_CHILDREN = 6;///< maximal number of edges that can 
 const int MG_VOLUME_MAX_FACE_CHILDREN = 12;///< maximal number of faces that can be children of a volume.
 const int MG_VOLUME_MAX_VOLUME_CHILDREN = 8;///< maximal number of volumes that can be children of a volume.
 
+////////////////////////////////////////////////////////////////////////
+///	constants that describe the state of an element
+/**
+ * If not all elements are marked for refinement, then there will be
+ * a boundary of the marked area.
+ * Vertices in the new level that have a parent vertex that lies on
+ * this boundary are regarded as fixed vertices and have the state MGES_FIXED.
+ * Vertices and edges in the new level that have a parent edge that lies
+ * on the mark-boundary are regarded as constraied objects and have
+ * the state MGES_CONSTRAINED.
+ * If the parent edge of such an element is not a constrained edge itself,
+ * it has the state MGES_CONSTRAINING.
+ * All other elements have the state MGES_NORMAL.
+ */
+enum MGElementState
+{
+	MGES_NORMAL = 0,
+	MGES_CONSTRAINING = 1,
+	MGES_CONSTRAINED = 2,
+	MGES_FIXED = 3
+};
+
 ///	Holds information about vertex relations. Used internally.
 struct MGVertexInfo
 {
@@ -39,6 +61,7 @@ struct MGVertexInfo
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	void erase_all_children(Grid& grid);
+	byte				m_state;
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 };
@@ -54,6 +77,7 @@ struct MGEdgeInfo
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	void erase_all_children(Grid& grid);
+	byte				m_state;
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_EDGE_MAX_EDGE_CHILDREN];
@@ -73,6 +97,7 @@ struct MGFaceInfo
 	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
 	void erase_all_children(Grid& grid);
+	byte				m_state;
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_FACE_MAX_EDGE_CHILDREN];
@@ -96,6 +121,7 @@ struct MGVolumeInfo
 	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
 	inline void remove_child(Volume* elem)		{m_numVolChildren = ArrayEraseEntry(m_pVolChild, elem, m_numVolChildren);}
 	void erase_all_children(Grid& grid);
+	byte				m_state;
 	GeometricObject* 	m_pParent;
 	VertexBase*			m_pVrtChild;
 	EdgeBase* 			m_pEdgeChild[MG_VOLUME_MAX_EDGE_CHILDREN];
@@ -154,6 +180,9 @@ template <> class mginfo_traits<Volume>
  * If elements are created and hierarchical insertion is activated, then
  * new elements are added one layer higher than their parents.
  * (NULL indicates base-level).
+ *
+ * In order to make state-assignment as effective as possible, one should
+ * assign the status of the parent before creating its children.
  */
 class MultiGrid : public Grid, public GridObserver
 {
@@ -241,7 +270,20 @@ class MultiGrid : public Grid, public GridObserver
 		template <class TElem>
 		inline VertexBase* get_child_vertex(TElem* elem)	{return get_info(elem).m_pVrtChild;}
 
-
+	//	access to the elements multi-grid status
+	///	returns one of the constants enumerated in MGElementStates.
+		template <class TElem>
+		inline byte get_status(TElem* elem)						{return get_info(elem).m_status;}
+		
+	///	changes the status of the vertex and adjusts the states of its children.
+		void set_status(VertexBase* vrt);
+	///	changes the status of the edge and adjusts the states of its children.
+		void set_status(EdgeBase* edge);
+	///	changes the status of the face and adjusts the states of its children.
+		void set_status(Face* face);
+	///	changes the status of the volume and adjusts the states of its children.
+		void set_status(Volume* vol);
+		
 	//	for debug purposes
 		void check_edge_elem_infos(int level);
 		void check_face_elem_infos(int level);
