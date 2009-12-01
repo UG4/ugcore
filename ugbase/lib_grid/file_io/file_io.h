@@ -2,6 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y08 m11 d13
 
+#include "file_io_art.h"
 #include "file_io_txt.h"
 #include "file_io_tetgen.h"
 #include "file_io_obj.h"

@@ -32,7 +32,8 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/subdivision/subdivision_loop.cpp)
 					
-set(srcFileIO	file_io/file_io_dump.cpp
+set(srcFileIO	file_io/file_io_art.cpp
+				file_io/file_io_dump.cpp
 				file_io/file_io_lgb.cpp
 				file_io/file_io_lgm.cpp
 				file_io/file_io_ng.cpp
