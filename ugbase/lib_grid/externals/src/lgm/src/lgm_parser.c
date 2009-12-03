@@ -1026,7 +1026,7 @@ int lgm_parser_strtod(const char* str, double* d)
 
     /* check that nothing remains in string */
     if(*endptr)
-        return 1;
+		return 1;
 
     /* copy value */
     *d = dd;

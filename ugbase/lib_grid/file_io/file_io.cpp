@@ -27,6 +27,12 @@ static bool LoadGrid(Grid& grid, const char* filename,
 		bSuccess = LoadGridFromOBJ(grid, filename, aPos, NULL, pSH);
 	else if(strName.find(".lgb") != string::npos)
 		bSuccess = LoadGridFromLGB(grid, filename, pSH, aPos);
+	else if(strName.find(".net") != string::npos)
+		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
+	else if(strName.find(".art") != string::npos)
+		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
+	else if(strName.find(".dat") != string::npos)
+		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
 	else if(strName.find(".lgm") != string::npos)
 		bSuccess = ImportGridFromLGM(grid, filename, aPos, pSH);
 	else if(strName.find(".ng") != string::npos)

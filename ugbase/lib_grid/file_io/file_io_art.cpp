@@ -101,15 +101,16 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 
 	//	create a new edge
 		Edge* e = *grid.create<Edge>(EdgeDescriptor(vVrts[i1], vVrts[i2]));
-
-		if(si == 0)
+//	edges won't be assigned to subsets in the moment, since things are a little chaotic in the files...
+/*
+		if(si < 1)
 			si = -1;
 		else if(si == 10000)
 			si = 0;
 		
 		if(si != -1)
 			sh.assign_subset(e, si);
-
+*/
 	//	store the edge in an array
 		vEdges.push_back(e);
 	}
@@ -157,7 +158,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 	//	create a new face
 		Triangle* t = *grid.create<Triangle>(TriangleDescriptor(vrt[0], vrt[1], vrt[2]));
 
-		if(si == 0)
+		if(si < 1)
 			si = -1;
 		else if(si == 10000)
 			si = 0;

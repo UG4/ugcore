@@ -22,7 +22,6 @@
 //	Warning: if LG_DEF__COMPILE_DEBUG is defined, execution speed may suffer significantly.
 #define LG_DEF__COMPILE_DEBUG
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	LOG
 ///	if LG_DEF__ENABLE_LOGGING is defined, messages passed to LOG are directly written to libGrid_LOG.txt.
