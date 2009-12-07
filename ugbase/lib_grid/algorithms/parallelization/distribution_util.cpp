@@ -3,7 +3,7 @@
 //	y09 m11 d17
 
 #include "lib_grid/lib_grid.h"
-#include "pcl/parallel_node_layout.h"
+#include "parallel_node_layout.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
 #include "common/util/stream_pack.h"

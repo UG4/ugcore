@@ -5,7 +5,7 @@
 #include "mpi.h"
 #include "pcl.h"
 
-static int OUTPUT_PROC_RANK = 0;
+static int OUTPUT_PROC_RANK = -1;
 
 namespace pcl
 {

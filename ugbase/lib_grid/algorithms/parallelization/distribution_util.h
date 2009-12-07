@@ -5,7 +5,7 @@
 #ifndef __H__LIB_GRID__DISTRIBUTION_UTIL__
 #define __H__LIB_GRID__DISTRIBUTION_UTIL_
 
-#include "pcl/parallel_node_layout.h"
+#include "parallel_node_layout.h"
 
 namespace ug
 {

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <map>
+#include "common/util/binary_stream.h"
 #include "pcl_base.h"
 
 namespace pcl
@@ -87,13 +88,13 @@ class Communicator
 		communicate has benn executed.*/
 		void await_data(int srcProc,
 						Interface& interface,
-						IExtracor<TElementGroup>& extractor);
+						IExtractor<TElementGroup>& extractor);
 
 	///	registers an extractor to receive data on communicate.
 	/**	make sure that your instance of the extractor exists until
 		communicate has benn executed.*/
 		void await_data(Layout& layout,
-						IExtracor<TElementGroup>& extractor);
+						IExtractor<TElementGroup>& extractor);
 
 	///	sends and receives data the collected data.
 	/**	The collected data will be send to the associated processes.
@@ -138,5 +139,9 @@ class Communicator
 };
 
 }//	end of namespace pcl
+
+////////////////////////////////////////
+//	include implementation
+#include "pcl_communication_impl.hpp"
 
 #endif

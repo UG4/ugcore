@@ -18,7 +18,7 @@ void Communicator<TElementGroup>::
 collect_data(int targetProc, Interface& interface,
 			  ICollector<TElementGroup>& collector)
 {
-	BinaryStream& stream = m_streamMapOut[targetProc];
+	ug::BinaryStream& stream = m_streamMapOut[targetProc];
 	collector.collect(stream, interface);
 }
 
@@ -27,12 +27,12 @@ template <class TElementGroup>
 void Communicator<TElementGroup>::
 collect_data(Layout& layout, ICollector<TElementGroup>& collector)
 {
-	Layout::iterator iter = layout.begin();
-	Layout::iterator end = layout.end();
+	typename Layout::iterator iter = layout.begin();
+	typename Layout::iterator end = layout.end();
 
 	for(; iter != end; ++iter)
 	{
-		BinaryStream& stream = m_streamMapOut[layout.proc_id(iter)];
+		ug::BinaryStream& stream = m_streamMapOut[layout.proc_id(iter)];
 		collector.collect(stream, layout.interface(iter));
 	}
 }
@@ -41,7 +41,7 @@ collect_data(Layout& layout, ICollector<TElementGroup>& collector)
 template <class TElementGroup>
 void Communicator<TElementGroup>::
 await_data(int srcProc, Interface& interface,
-			IExtracor<TElementGroup>& extractor)
+			IExtractor<TElementGroup>& extractor)
 {
 	m_extractorInfos.push_back(ExtractorInfo(&extractor, srcProc, &interface, NULL));
 }
@@ -49,7 +49,7 @@ await_data(int srcProc, Interface& interface,
 ////////////////////////////////////////////////////////////////////////
 template <class TElementGroup>
 void Communicator<TElementGroup>::
-await_data(Layout& layout, IExtracor<TElementGroup>& extractor)
+await_data(Layout& layout, IExtractor<TElementGroup>& extractor)
 {
 	m_extractorInfos.push_back(ExtractorInfo(&extractor, -1, NULL, &layout));
 }
@@ -68,7 +68,7 @@ communicate()
 
 //	iterate through all registered extractors and create entries for
 //	the source-processes in the map (by simply 'touching' the entry).
-	for(ExtractorInfoList::iterator iter = m_extractorInfos.begin();
+	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
 		iter != m_extractorInfos.end(); ++iter)
 	{
 		ExtractorInfo& info = *iter;
@@ -76,7 +76,7 @@ communicate()
 			m_streamMapIn[info.m_srcProc];
 		else
 		{
-			for(Layout::iterator li = info.m_layout->begin();
+			for(typename Layout::iterator li = info.m_layout->begin();
 				li != info.m_layout->end(); ++li)
 				m_streamMapIn[info.m_layout->proc_id(li)];
 		}
@@ -109,7 +109,7 @@ communicate()
 	}
 	
 //	now receive buffer sizes
-	vector<int> vBufferSizes(numInStreams);
+	std::vector<int> vBufferSizes(numInStreams);
 	counter = 0;
 	for(StreamMap::iterator iter = m_streamMapIn.begin();
 		iter != m_streamMapIn.end(); ++iter, ++counter)
@@ -119,7 +119,7 @@ communicate()
 	}
 	
 //	wait until data has been received
-	std::vector<MPI_Status> vReceiveStatii(num_interfaces());//TODO: fix spelling!
+	std::vector<MPI_Status> vReceiveStatii(numInStreams);//TODO: fix spelling!
 	
 //	TODO: this can be improved:
 //		instead of waiting for all, one could wait until one has finished and directly

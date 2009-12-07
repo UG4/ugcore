@@ -2,11 +2,6 @@
 //	s.b.reiter@googlemail.com
 //	y09 m12 d05
 
-/**/////////////////////////////////////////////////////////////////////
-//	Base of the 'parallel communication layer'.
-//	...
-*///////////////////////////////////////////////////////////////////////
-
 #ifndef __H__PCL__PCL_BASE__
 #define __H__PCL__PCL_BASE__
 
@@ -55,7 +50,7 @@ class Layout
 		typedef std::map<int, Interface>	InterfaceMap;
 
 	///	An iterator that allows to iterate over the interfaces stored in the layout.
-		typedef InterfaceMap::iterator		iterator;
+		typedef typename InterfaceMap::iterator		iterator;
 
 	public:
 	//	methods
@@ -66,14 +61,11 @@ class Layout
 		inline Interface& interface(iterator& iter)		{return iter->second;}
 
 	///	returns true if an interface to the given procID already exists.
-		inline bool interface_exists(int procID)		{return return m_interfaceMap.find(procID) != m_streamMap.end();}
+		inline bool interface_exists(int procID)		{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
 
 	///	returns the interface to the given iterator.
 		inline int& proc_id(iterator& iter)				{return iter->first;}
 
-	///	returns true if an interface to the given procID already exists.
-		inline bool interface_exists(int procID)		{return return m_interfaceMap.find(procID) != m_streamMap.end();}
-		
 	///	returns the iterator to the first interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
