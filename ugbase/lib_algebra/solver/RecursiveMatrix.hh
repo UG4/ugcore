@@ -221,7 +221,7 @@ struct frec_lsolve<0>
 
 
 template <typename M, typename X, typename Y>
-void mvsolve(const M &A, X &x, const Y &y)
+inline void mvsolve(const M &A, X &x, const Y &y)
 {
   // must specify a specialized routine for your data types!
   // BOOST_STATIC_ASSERT((false));
@@ -229,7 +229,7 @@ void mvsolve(const M &A, X &x, const Y &y)
   return;
 };
 
-void mvsolve(const double A, double &x, const double y)
+inline void mvsolve(const double A, double &x, const double y)
 {
   x = y/A; 
 };
@@ -237,13 +237,13 @@ void mvsolve(const double A, double &x, const double y)
 
 
 template<typename X, int N>
-void mvsolve(const block_matrix<X,N,N> &A, block_vector<X,N> &x, const block_vector<X,N> &y)
+inline void mvsolve(const block_matrix<X,N,N> &A, block_vector<X,N> &x, const block_vector<X,N> &y)
 {
   
 };
 
 template<typename T>
-void mvsolve(const block_matrix<T,2,2> &A, block_vector<T,2> &x, const block_vector<T,2> &y)
+inline void mvsolve(const block_matrix<T,2,2> &A, block_vector<T,2> &x, const block_vector<T,2> &y)
 {
   T detA (A(0,0)*A(1,1)- A(0,1)*A(1,0) ); 
   x(0) = ( A(1,1) * y(0) - A(0,1) * y(1)) / detA;
@@ -251,7 +251,7 @@ void mvsolve(const block_matrix<T,2,2> &A, block_vector<T,2> &x, const block_vec
 };
 
 template<typename T>
-void mvsolve(const block_matrix<T,3,3> &A, block_vector<T,3> &x, const block_vector<T,3> &y)
+inline void mvsolve(const block_matrix<T,3,3> &A, block_vector<T,3> &x, const block_vector<T,3> &y)
 {
   //BOOST_STATIC_ASSERT((false));
   T detA = 0;
@@ -270,14 +270,14 @@ void mv_prod(const M &A, const X &x, Y& y)
 
 
 template <typename M, typename X, typename Y>
-void mvsub(const M &A, const X &x, Y& y) 
+inline void mvsub(const M &A, const X &x, Y& y) 
 {
   BOOST_STATIC_ASSERT((recursive_depth<X>::value == recursive_depth<Y>::value ));
   frec_mvsub<recursive_depth<X>::value>::apply(A,x,y);
   return;
 }  
 
-void mvsub(const double A, const double x, double& y) 
+inline void mvsub(const double A, const double x, double& y) 
 {
   y-=A*x;
  }  
@@ -286,7 +286,7 @@ void mvsub(const double A, const double x, double& y)
 
 
 template <typename M, typename X, typename Y>
-void mv_dsolve(const M &A, X &x, const Y& y) 
+inline void mv_dsolve(const M &A, X &x, const Y& y) 
 {
   BOOST_STATIC_ASSERT(((recursive_depth<X>::value) == (recursive_depth<Y>::value) ));
   frec_dsolve<recursive_depth<X>::value>::dsolve(A,x,y);
@@ -294,7 +294,7 @@ void mv_dsolve(const M &A, X &x, const Y& y)
 }  
 
 template <int L, typename M, typename X, typename Y>
-void mv_dsolve_rec(const M &A, X &x, const Y& y) 
+inline void mv_dsolve_rec(const M &A, X &x, const Y& y) 
 {  
   BOOST_STATIC_ASSERT(((recursive_depth<X>::value) >= L ));
   frec_dsolve<L>::dsolve(A,x,y);
@@ -302,7 +302,7 @@ void mv_dsolve_rec(const M &A, X &x, const Y& y)
 }  
 
 template <typename M, typename X, typename Y>
-void mvlsolve(const M &A, X &x, const Y& y) 
+inline void mvlsolve(const M &A, X &x, const Y& y) 
 {
   BOOST_STATIC_ASSERT(((recursive_depth<X>::value) == (recursive_depth<Y>::value) ));
   frec_lsolve<recursive_depth<X>::value>::lsolve(A,x,y);
@@ -310,7 +310,7 @@ void mvlsolve(const M &A, X &x, const Y& y)
 }  
 
 template <int L, typename M, typename X, typename Y>
-void mvlsolveRec(const M &A, X &x, const Y& y) 
+inline void mvlsolveRec(const M &A, X &x, const Y& y) 
 {  
   BOOST_STATIC_ASSERT(((recursive_depth<X>::value) >= L ));
   frec_lsolve<L>::lsolve(A,x,y);

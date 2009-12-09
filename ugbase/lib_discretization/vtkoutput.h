@@ -18,14 +18,14 @@ namespace ug{
 class VTKOutput{
 
 	public:
-		bool print(NumericalSolution& u, const char* filename, double Time = 0.0);
-		bool print_subset(NumericalSolution& u, int subsetIndex, const char* filename, double Time = 0.0);
+		bool print(NumericalSolution& u, int level, const char* filename, double Time = 0.0);
+		bool print_subset(NumericalSolution& u, int level, int subsetIndex, const char* filename, double Time = 0.0);
 
 	private:
 		bool write_prolog(FILE* file, double Time);
 		bool write_piece_prolog(FILE* file);
-		bool write_subset(SubsetHandler& sh, int subsetIndex, NumericalSolution& u, FILE* File);
-		bool InitNumbers(SubsetHandler& sh, uint subIndex);
+		bool write_subset(SubsetHandler& sh, int subsetIndex, NumericalSolution& u, int level, FILE* File);
+		bool init_subset(SubsetHandler& sh, uint subIndex, int level);
 		bool write_points(FILE* File, SubsetHandler& sh, uint subsetIndex);
 		bool write_elements(FILE* File,SubsetHandler& sh, uint subsetIndex);
 		bool write_scalar(FILE* File, NumericalSolution& u, int comp, SubsetHandler& sh, uint subsetIndex);
@@ -33,11 +33,11 @@ class VTKOutput{
 		bool write_piece_epilog(FILE* file);
 
 		template <class TElem>
-		bool VTKOutput::write_elements_connectivity(FILE* File, SubsetHandler& sh, uint subsetIndex);
+		bool VTKOutput::write_elements_connectivity(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd, SubsetHandler& sh, uint subsetIndex);
 		template <class TElem>
-		bool VTKOutput::write_elements_offsets(FILE* File, SubsetHandler& sh, uint subsetIndex, int& n);
+		bool VTKOutput::write_elements_offsets(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd,SubsetHandler& sh, uint subsetIndex, int& n);
 		template <class TElem>
-		bool VTKOutput::write_elements_types(FILE* File, SubsetHandler& sh, uint subsetIndex);
+		bool VTKOutput::write_elements_types(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd, SubsetHandler& sh, uint subsetIndex);
 
 
 	private:
@@ -54,6 +54,12 @@ class VTKOutput{
 		ADOFIndex m_aDOFIndex;
 		Grid::VertexAttachmentAccessor<ADOFIndex> m_aaDOFIndexVRT;
 		uint m_numberOfDOF;
+
+	protected:
+		int _level;
+		geometry_traits<Vertex>::iterator _iterVRT, _iterBeginVRT, _iterEndVRT;
+		geometry_traits<Triangle>::iterator _iterTRIANGLE, _iterBeginTRIANGLE, _iterEndTRIANGLE;
+		geometry_traits<Quadrilateral>::iterator _iterQUADRILATERAL, _iterBeginQUADRILATERAL, _iterEndQUADRILATERAL;
 
 
 };

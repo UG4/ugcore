@@ -25,7 +25,7 @@ bool Equation::assemble_linear(TElem* elem, Matrix& mat, Vector& vec, NumericalS
 	{
 		DiscScheme->add_op_to_local_jacobian(m_DivergenzDifferentialOperatorVector[i], elem, u);
 	}
-	if(DiscScheme->send_local_jacobian_to_global_jacobian(elem, mat)==false) return false;
+	if(DiscScheme->send_local_jacobian_to_global_jacobian(elem, mat, -1.0)==false) return false;
 
 	/* loop over all RHS */
 	for(uint i=0; i < m_RHSVector.size(); i++)

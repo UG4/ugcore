@@ -29,23 +29,23 @@ class ReferenceElement {
 		virtual double size() const = 0;
 
 		/* coordinates of corner of reference element (i=0..numberOfCorners) */
-		virtual const vector2& coordsOfReferenceCorner(const int i) const = 0;
+		virtual const vector2& corner(const int i) const = 0;
 
 		/*** NUMBER OF GEOMETRIC OBJECTS OF REFERENCE ELEMENT ***/
 		/* number of GeomObjects of dimension 'dim' of reference element */
 		virtual unsigned int numberOfGeomObjectsOfRefElem(const int dim) const = 0;
 
 		/* number of corners of reference element */
-		virtual unsigned int numberOfCornersOfRefElem() const = 0;
+		virtual unsigned int num_corners() const = 0;
 
 		/* number of edges of reference element */
-		virtual unsigned int numberOfEdgesOfRefElem() const = 0;
+		virtual unsigned int num_edges() const = 0;
 
 		/* number of faces of reference element */
-		virtual unsigned int numberOfFacesOfRefElem() const = 0;
+		virtual unsigned int num_faces() const = 0;
 
 		/* number of volumes of reference element */
-		virtual unsigned int numberOfVolumesOfRefElem() const = 0;
+		virtual unsigned int num_volumes() const = 0;
 
 		/*** NUMBER OF GEOMETRIC OBJECTS OF SUB GEOMETRIC ELEMENTS ***/
 		/* number of Geometric Objects of dimension dim_i of GeomObject with dim_j, nr j (dim_i < dim_j) */
@@ -183,28 +183,28 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 		}
 
 		/* coordinates of reference corner Nr i (i=0..numberOfCorners) */
-		const vector2& coordsOfReferenceCorner(const int i) const
+		const vector2& corner(const int i) const
 		{
 			return m_coordsOfReferenceCorner[i];
 		}
 
 		/* number of corners of reference triangle */
-		unsigned int numberOfCornersOfRefElem() const
+		unsigned int num_corners() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[POINT];
 		}
 
-		unsigned int numberOfEdgesOfRefElem() const
+		unsigned int num_edges() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[EDGE];
 		}
 
-		unsigned int numberOfFacesOfRefElem() const
+		unsigned int num_faces() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[FACE];
 		}
 
-		unsigned int numberOfVolumesOfRefElem() const
+		unsigned int num_volumes() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[VOLUME];
 		}
@@ -497,28 +497,28 @@ class ReferenceElementFor<Quadrilateral> : public ReferenceElement{
 		}
 
 		/* coordinates of reference corner Nr i (i=0..numberOfCorners) */
-		const vector2& coordsOfReferenceCorner(const int i) const
+		const vector2& corner(const int i) const
 		{
 			return m_coordsOfReferenceCorner[i];
 		}
 
 		/* number of corners of reference triangle */
-		unsigned int numberOfCornersOfRefElem() const
+		unsigned int num_corners() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[POINT];
 		}
 
-		unsigned int numberOfEdgesOfRefElem() const
+		unsigned int num_edges() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[EDGE];
 		}
 
-		unsigned int numberOfFacesOfRefElem() const
+		unsigned int num_faces() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[FACE];
 		}
 
-		unsigned int numberOfVolumesOfRefElem() const
+		unsigned int num_volumes() const
 		{
 			return m_numberOfGeomObjectsOfRefElem[VOLUME];
 		}
