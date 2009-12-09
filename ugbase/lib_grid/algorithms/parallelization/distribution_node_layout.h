@@ -2,44 +2,47 @@
 //	s.b.reiter@googlemail.com
 //	y09 m11 d18
 
-#ifndef __H__PCL__PARALLEL_NODE_LAYOUT__
-#define __H__PCL__PARALLEL_NODE_LAYOUT__
+#ifndef __H__PCL__DISTRIBUTION_NODE_LAYOUT__
+#define __H__PCL__DISTRIBUTION_NODE_LAYOUT__
 
 #include <vector>
 #include <map>
+#include "parallel_grid_layout.h"
 
-namespace pcl
+namespace ug
 {
 
-enum InterfaceNodeTypes
+////////////////////////////////////////////////////////////////////////
+///	The interface entry holds a local id and the type of the entry.
+struct DistributionInterfaceEntry
 {
-	INT_UNKNOWN = 0,
-	INT_MASTER = 1,
-	INT_SLAVE = 3,
-	INT_LINK = 7
-};
-
-struct InterfaceEntry
-{
-	InterfaceEntry()	{}
-	InterfaceEntry(int nLocalID, int nType) : localID(nLocalID), type(nType)	{}
+	DistributionInterfaceEntry()	{}
+	DistributionInterfaceEntry(int nLocalID, int nType) : localID(nLocalID), type(nType)	{}
 	
 	int localID : 28;
 	int type  	: 4;
 };
 
-///	an interface consists of a list of local ids.
-typedef std::vector<InterfaceEntry>		Interface;
-///	an interface-map is a list of interfaces, each associated with a process id.
-typedef std::map<int, Interface>		InterfaceMap;
-///	a list of interface-maps. Required for multilevel / hierarchical approaches.
-typedef std::vector<InterfaceMap>		InterfaceMapVec;
-
-//	move this class to pcl!
+////////////////////////////////////////////////////////////////////////
+///	Holds nodes and interfaces. Used during distribution only.
+/**
+ * This class is used in the process of grid-distribution to assemble
+ * the nodes and interfaces that belong to the different processes.
+ * It is however not used during parallel communication.
+ */
 template <class TNode>
-struct ParallelNodeLayout
+struct DistributionNodeLayout
 {
-//	some typedefs
+// typedefs
+///	the interface entry type
+	typedef DistributionInterfaceEntry		InterfaceEntry;
+///	an interface consists of a list of local ids.
+	typedef std::vector<InterfaceEntry>		Interface;
+///	an interface-map is a list of interfaces, each associated with a process id.
+	typedef std::map<int, Interface>		InterfaceMap;
+///	a list of interface-maps. Required for multilevel / hierarchical approaches.
+	typedef std::vector<InterfaceMap>		InterfaceMapVec;
+
 ///	the type of the nodes
 	typedef TNode	NodeType;
 ///	a vector that holds nodes.

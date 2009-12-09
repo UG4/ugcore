@@ -130,7 +130,17 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								
 ////////////////////////////////////////////////////////////////////////
 ///	Creates multi-grid elements from a binary stream
-bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in);
+/**
+ * If you pass a pointer to a std::vector using pvVrts, pvEdges,
+ * pvFaces or pvVolumes, those vectors will contain the elements
+ * of the grid in the order they were read.
+ * Specifying those vectors does not lead to a performance loss.
+ */
+bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
+									std::vector<VertexBase*>* pvVrts = NULL,
+									std::vector<EdgeBase*>* pvEdges = NULL,
+									std::vector<Face*>* pvFaces = NULL,
+									std::vector<Volume*>* pvVols = NULL);
 
 
 

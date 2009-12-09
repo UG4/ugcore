@@ -741,14 +741,40 @@ GetParent(std::istream& in, vector<VertexBase*>& vVrts,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeMultiGridElements
-bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in)
+bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
+									std::vector<VertexBase*>* pvVrts,
+									std::vector<EdgeBase*>* pvEdges,
+									std::vector<Face*>* pvFaces,
+									std::vector<Volume*>* pvVols)
 {
 //TODO: add volume support
-	vector<VertexBase*>	vVrts;
-	vector<EdgeBase*>	vEdges;
-	vector<Face*>		vFaces;
-	vector<Volume*>		vVols;
+
+//	if the user specified element-vectors, we will use them.
+//	if not we'll use our own.
+	vector<VertexBase*>	vVrtsTMP;
+	vector<EdgeBase*>	vEdgesTMP;
+	vector<Face*>		vFacesTMP;
+	vector<Volume*>		vVolsTMP;
+	
+	if(!pvVrts)
+		pvVrts = &vVrtsTMP;
+	if(!pvEdges)
+		pvEdges = &vEdgesTMP;
+	if(!pvFaces)
+		pvFaces = &vFacesTMP;
+	if(!pvVols)
+		pvVols = &vVolsTMP;
 		
+	vector<VertexBase*>& vVrts = *pvVrts;
+	vector<EdgeBase*>& vEdges = *pvEdges;
+	vector<Face*>& vFaces = *pvFaces;
+	vector<Volume*>& vVols = *pvVols;
+	
+	vVrts.clear();
+	vEdges.clear();
+	vFaces.clear();
+	vVols.clear();
+	
 //	create the vertices and store them in vVrts for later indexing.
 	{
 	//	iterate through the stream and create vertices

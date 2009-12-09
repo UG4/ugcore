@@ -53,7 +53,8 @@ set(srcLibGrid	common_attachments.cpp
 
 if(COMPILE_WITH_PCL)
 	# add parallelization
-	set(srcParallelization	algorithms/parallelization/distribution_util.cpp)
+	set(srcParallelization	algorithms/parallelization/distribution_util.cpp
+						algorithms/parallelization/grid_distribution.cpp)
 
 else(COMPILE_WITH_PCL)
 	# give a warning that pcl will not be compiled.

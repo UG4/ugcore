@@ -3,64 +3,22 @@
 //	y09 m11 d17
 
 #ifndef __H__LIB_GRID__DISTRIBUTION_UTIL__
-#define __H__LIB_GRID__DISTRIBUTION_UTIL_
+#define __H__LIB_GRID__DISTRIBUTION_UTIL__
 
-#include "parallel_node_layout.h"
+#include "lib_grid/lg_base.h"
+#include "distribution_node_layout.h"
+#include "grid_distribution.h"
+#include "parallel_grid_layout.h"
 
 namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
 //	typedefs
-typedef pcl::ParallelNodeLayout<VertexBase*>	ParallelVertexLayout;
-typedef pcl::ParallelNodeLayout<EdgeBase*>		ParallelEdgeLayout;
-typedef pcl::ParallelNodeLayout<Face*>			ParallelFaceLayout;
-typedef pcl::ParallelNodeLayout<Volume*>		ParallelVolumeLayout;
-
-struct ParallelGridLayout
-{
-	ParallelVertexLayout	vertexLayout;
-	ParallelEdgeLayout		edgeLayout;
-	ParallelFaceLayout		faceLayout;
-	ParallelVolumeLayout	volumeLayout;
-};
-
-////////////////////////////////////////////////////////////////////////
-//	DistributeGrid
-///	distributes a grid to several processes.
-/**
- * Partitions the grid into parts specified by the \sa SubsetHandler sh.
- * For partitioning the grid the algorithm \sa CreateGridLayouts
- * is used internally. Have a look at its documentation to see how you
- * have to specify your parts in the \sa SubsetHandler.
- * The part for the local (the calling) process (specified by localProcID)
- * won't be send through the network, instead it will be directly written
- * to pLocalGridOut and pLocalGridCommSetOut - if those are specified.
- * Both should be empty before calling this method. Passing NULL only makes
- * sense if you specified a processMap that has no entry for the calling
- * process.
- * You may optionally specify a process-map. This map is represented by
- * a std::vector<int> which should have as many entries as there are
- * subsets in the SubsetHandler. Each entry specifies the target process
- * for the associated subset. You may pass NULL as parameter. The grids
- * are distributed to processes 0 to sh.num_subsets()-1 in this case.
- *
- * Grids distributed through this method may be received by \sa ReveiveGrid.
- */
-void DistributeGrid(MultiGrid& mg, SubsetHandler& sh, int localProcID,
-					MultiGrid* pLocalGridOut = NULL,
-					ParallelGridLayout* pLocalGridLayoutOut = NULL,
-					std::vector<int>* pProcessMap = NULL);
-
-////////////////////////////////////////////////////////////////////////
-//	ReceiveGrid
-///	receives a part of a grid that was distributed through \sa DistributeGrid.
-/**
- * gridOut and gridLayoutOut should be empty when passed to this method.
- * srcProcID has to specify the process that distributes the grids.
- */
-void ReceiveGrid(MultiGrid& mgOut, ParallelGridLayout& gridLayoutOut,
-					int srcProcID);
+typedef DistributionNodeLayout<VertexBase*>	DistributionVertexLayout;
+typedef DistributionNodeLayout<EdgeBase*>	DistributionEdgeLayout;
+typedef DistributionNodeLayout<Face*>		DistributionFaceLayout;
+typedef DistributionNodeLayout<Volume*>		DistributionVolumeLayout;
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateGridLayouts
@@ -77,13 +35,13 @@ void ReceiveGrid(MultiGrid& mgOut, ParallelGridLayout& gridLayoutOut,
  * You shouldn't assume anything about the content of pSel after the
  * method finished.
  */
-void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
-						std::vector<ParallelEdgeLayout>& edgeLayoutsOut,
-						std::vector<ParallelFaceLayout>& faceLayoutsOut,
-						std::vector<ParallelVolumeLayout>& volumeLayoutsOut,
+void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
+						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
+						std::vector<DistributionFaceLayout>& faceLayoutsOut,
+						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
 						MGSelector* pSel = NULL);
-						
+
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridAndLayouts
 /**
@@ -95,10 +53,10 @@ void CreateGridLayouts(	std::vector<ParallelVertexLayout>& vertexLayoutsOut,
  * written).
  */
 void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
-							ParallelVertexLayout& vrtLayout,
-							ParallelEdgeLayout& edgeLayout,
-							ParallelFaceLayout& faceLayout,
-							ParallelVolumeLayout& volLayout,
+							DistributionVertexLayout& vrtLayout,
+							DistributionEdgeLayout& edgeLayout,
+							DistributionFaceLayout& faceLayout,
+							DistributionVolumeLayout& volLayout,
 							AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
 							AInt& aLocalIndFACE, AInt& aLocalIndVOL,
 							MGSelector* pSel = NULL,
@@ -118,8 +76,14 @@ void DeserializeGridAndLayouts(MultiGrid& mgOut,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeLayoutInterfaces
-template <class TLayout>
-void DeserializeLayoutInterfaces(TLayout& layoutOut,
+/**
+ * TLayoutMap has to be compatible with an
+ * std::map<int, ParallelELEMENTLayout>, where ELEMENT can be either
+ * Vertex, Edge, Face or Volume.
+ */
+template <class TGeomObj, class TLayoutMap>
+void DeserializeLayoutInterfaces(TLayoutMap& layoutMapOut,
+								std::vector<TGeomObj*> vGeomObjs,
 								std::istream& in);
 }//	end of namespace
 

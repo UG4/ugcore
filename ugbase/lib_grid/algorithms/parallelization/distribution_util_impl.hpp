@@ -27,13 +27,13 @@ void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
 //	iterate through the levels of the layout
 	for(size_t level = 0; level < layout.num_levels(); ++level)
 	{
-		pcl::InterfaceMap& imap = layout.interface_map(level);
+		typename TLayout::InterfaceMap& imap = layout.interface_map(level);
 	//	write the number of interfaces for this level
 		tmp = (int)imap.size();
 		out.write((char*)&tmp, sizeof(int));
 		
 	//	iterate through the interfaces
-		for(pcl::InterfaceMap::iterator iter = imap.begin();
+		for(typename TLayout::InterfaceMap::iterator iter = imap.begin();
 			iter != imap.end(); ++iter)
 		{
 		//	write the connected process-id
@@ -48,37 +48,41 @@ void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
 			out.write((char*)&procID, sizeof(int));
 			
 		//	write the number of entries that are contained in the interface
-			pcl::Interface& interface = iter->second;
+			typename TLayout::Interface& interface = iter->second;
 			tmp = (int)interface.size();
 			out.write((char*)&tmp, sizeof(int));
 			
 		//	write the interface-entries
 			for(size_t i = 0; i < interface.size(); ++i)
-				out.write((char*)&interface[i], sizeof(pcl::InterfaceEntry));
+				out.write((char*)&interface[i], sizeof(typename TLayout::InterfaceEntry));
 		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeLayoutInterfaces
-template <class TLayout>
-void DeserializeLayoutInterfaces(TLayout& layoutOut,
+template <class TGeomObj, class TLayoutMap>
+void DeserializeLayoutInterfaces(TLayoutMap& layoutMapOut,
+								std::vector<TGeomObj*> vGeomObjs,
 								std::istream& in)
 {
 //	for conveniance
-	TLayout& layout = layoutOut;
+	typedef typename TLayoutMap::mapped_type::Layout	TLayout;
+	typedef typename TLayoutMap::mapped_type::Interface	TInterface;
+	TLayout* pLayout = NULL;
+	int lastLayoutKey = 0;
+	TInterface* pInterface = NULL;
+	DistributionInterfaceEntry entry;
 	
 //	read the number of levels
 //	then for each level the number of interfaces
 //	then for each interface the number of nodes and the local-ids of the nodes.
 	int numLevels;
 	in.read((char*)&numLevels, sizeof(int));
-	layout.set_num_levels((size_t)numLevels);
 	
 //	iterate through the levels of the layout
-	for(size_t level = 0; level < layout.num_levels(); ++level)
+	for(size_t level = 0; level < numLevels; ++level)
 	{
-		pcl::InterfaceMap& imap = layout.interface_map(level);
 	//	read the number of interfaces for this level
 		int numInterfaces;
 		in.read((char*)&numInterfaces, sizeof(int));
@@ -89,20 +93,31 @@ void DeserializeLayoutInterfaces(TLayout& layoutOut,
 		//	read the connected process-id
 			int procID;
 			in.read((char*)&procID, sizeof(int));
-		
-		//	get the interface
-			pcl::Interface& interface = layout.interface(procID, level);
-			
+					
 		//	read the number of entries that are contained in the interface
 			int numEntries;
 			in.read((char*)&numEntries, sizeof(int));
 			
-		//	resize the interface
-			interface.resize(numEntries);
+		//	we'll set pLayout to NULL at the before we read the interface.
+		//	This is important since this will cause the actualization of pInterface.
+			pLayout = NULL;
 			
 		//	read the interface-entries
-			for(size_t j = 0; j < interface.size(); ++j)
-				in.read((char*)&interface[i], sizeof(pcl::InterfaceEntry));
+			for(size_t j = 0; j < numEntries; ++j)
+			{
+				in.read((char*)&entry, sizeof(DistributionInterfaceEntry));
+			//	we're caching the last used layout to avoid too much lookups.
+				if((!pLayout) || (lastLayoutKey != entry.type))
+				{
+				//	get the matching layout
+					pLayout = &layoutMapOut[entry.type].layout(level);
+					lastLayoutKey = entry.type;
+				//	the interface has changed too
+					pInterface = &pLayout->interface(procID);
+				}
+			//	copy the element into the interface
+				pInterface->push_back(vGeomObjs[entry.localID]);
+			}
 		}
 	}
 }
