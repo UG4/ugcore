@@ -3,7 +3,7 @@
 //	y09 m06 d07
 
 #include "mpi.h"
-#include "pcl.h"
+#include "pcl_methods.h"
 
 static int OUTPUT_PROC_RANK = 0;
 

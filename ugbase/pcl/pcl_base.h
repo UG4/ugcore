@@ -12,22 +12,32 @@ namespace pcl
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	pcl_traits
+//	group_traits
 ///	collection of types for a ElementGroup
 /**
- * The pcl_traits are used throughout pcl in order to define
+ * The group_traits are used throughout pcl in order to define
  * the correct parameter- and return-value-types.
  *
  * The following types have to be defined by a specialization of
- * the pcl_traits:
- * - Element:		The elements of which the ElementGroup consists.
- * - ElementRef:	A reference-type to an Element.
+ * the group_traits:
+ * - Element:		THe type of the elements which the ElementGroup contains.
  * - LocalID:		The type of a local id.
  * - Interface:		The type of an Interface.
  * - Layout:		The type of a Layout
+ *
+ * if your element-group already defines thos types, you may use the
+ * default implementation of the group_traits. If not you can create
+ * a specialization for your group through template specialization.
  */
 template <class TElementGroup>
-class group_traits;
+class group_traits
+{
+	public:
+		typedef typename TElementGroup::Element		Element;
+		typedef typename TElementGroup::LocalID		LocalID;
+		typedef typename TElementGroup::Interface	Interface;
+		typedef typename TElementGroup::Layout		Layout;
+};
 
 
 
@@ -64,7 +74,7 @@ class Layout
 		inline bool interface_exists(int procID)		{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
 
 	///	returns the interface to the given iterator.
-		inline int& proc_id(iterator& iter)				{return iter->first;}
+		inline int proc_id(iterator& iter)				{return iter->first;}
 
 	///	returns the iterator to the first interface of the layout.
 	/**	You should access the values of this iterator using the methods
@@ -74,7 +84,7 @@ class Layout
 	///	returns the iterator to the last interface of the layout.	
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
-		inline iterator end()							{return m_interfaceMap.begin();}
+		inline iterator end()							{return m_interfaceMap.end();}
 
 	protected:
 	///	holds the interfaces in a map.

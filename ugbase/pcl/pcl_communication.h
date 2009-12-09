@@ -8,6 +8,7 @@
 #include <iostream>
 #include <map>
 #include "common/util/binary_stream.h"
+#include "common/util/stream_pack.h"
 #include "pcl_base.h"
 
 namespace pcl
@@ -106,10 +107,6 @@ class Communicator
 		bool communicate();
 
 	protected:
-	//	typedefs
-	///	a map for data-streams that will be used during communication.
-		typedef std::map<int, ug::BinaryStream> StreamMap;
-
 	///	holds information that will be passed to the extract routines.
 	/**	if srcProc == -1, the layout will be used for extraction.
 	 *	if srcProc >= 0, the srcProc and the interface will be used.*/
@@ -126,14 +123,14 @@ class Communicator
 			Layout*		m_layout;
 		};
 
-	///	A list that hold information about extractors.
+	///	A list that holds information about extractors.
 		typedef std::list<ExtractorInfo> ExtractorInfoList;
 
 	protected:
 	///	holds the streams that are used to send data
-		StreamMap			m_streamMapOut;
+		ug::StreamPack		m_streamPackOut;
 	///	holds the streams that are used to receive data
-		StreamMap			m_streamMapIn;
+		ug::StreamPack		m_streamPackIn;
 	///	holds information about the extractors that are awaiting data.
 		ExtractorInfoList	m_extractorInfos;
 };
