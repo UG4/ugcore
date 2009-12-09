@@ -109,9 +109,9 @@ class ReferenceElement {
 			std::cout << "Size: " << this->size() << std::endl;
 			std::cout << "Dimension where Reference Element lives: " << this->dimension() << std::endl;
 			std::cout << "Reference Corners: ";
-			for(unsigned int i = 0; i< this->numberOfCornersOfRefElem(); i++)
+			for(unsigned int i = 0; i< this->num_corners(); i++)
 			{
-				std::cout << "(" << this->coordsOfReferenceCorner(i)[0] << ","<< this->coordsOfReferenceCorner(i)[1] <<") ";
+				std::cout << "(" << this->corner(i)[0] << ","<< this->corner(i)[1] <<") ";
 			}
 			std::cout << std::endl;
 
