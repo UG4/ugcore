@@ -33,11 +33,11 @@ class VTKOutput{
 		bool write_piece_epilog(FILE* file);
 
 		template <class TElem>
-		bool VTKOutput::write_elements_connectivity(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd, SubsetHandler& sh, uint subsetIndex);
+		bool write_elements_connectivity(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd, SubsetHandler& sh, uint subsetIndex);
 		template <class TElem>
-		bool VTKOutput::write_elements_offsets(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd,SubsetHandler& sh, uint subsetIndex, int& n);
+		bool write_elements_offsets(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd,SubsetHandler& sh, uint subsetIndex, int& n);
 		template <class TElem>
-		bool VTKOutput::write_elements_types(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd, SubsetHandler& sh, uint subsetIndex);
+		bool write_elements_types(FILE* File, typename geometry_traits<TElem>::iterator iterBegin, typename geometry_traits<TElem>::iterator iterEnd, SubsetHandler& sh, uint subsetIndex);
 
 
 	private:

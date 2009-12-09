@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <cassert>
 
 namespace ug{
 
