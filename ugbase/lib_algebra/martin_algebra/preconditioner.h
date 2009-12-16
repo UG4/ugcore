@@ -12,6 +12,8 @@
 #define USE_PREPED
 #endif
 
+#include "matrix.h"
+
 //!
 //! preconditioner class
 //! has following functions

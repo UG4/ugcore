@@ -8,6 +8,8 @@
  */
 
 #include "misc.h"
+#include <iostream>
+#include <fstream>
 
 const char *boldredcolor = "\x1b[1;31m";
 const char *boldgreencolor = "\x1b[1;32m";
@@ -40,3 +42,21 @@ void spaceout(int n)
 }
 
 int *parentIndex[32];
+
+pos2d *positions;
+int iNrOfPositions;
+pos2d GetPosForIndex(int i)
+{
+	return positions[i];	
+}
+void writePosToStream(ostream &out)
+{
+	out << iNrOfPositions << endl;
+	for(int i=0; i<iNrOfPositions; i++)
+		out << GetPosForIndex(i).x << " " << GetPosForIndex(i).y << endl;
+}
+void writeToPosFile(const char *filename)
+{
+	fstream file(filename, ios::out);
+	writePosToStream(file);
+}

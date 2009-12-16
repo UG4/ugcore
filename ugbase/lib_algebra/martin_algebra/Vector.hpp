@@ -7,6 +7,8 @@
  *
  */
 
+#include <fstream>
+
 template<typename vec_type>
 inline vec_type &Vector<vec_type>::operator [] (int i)
 {

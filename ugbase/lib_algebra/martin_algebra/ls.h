@@ -7,6 +7,8 @@
  *
  */
 
+#include "matrix.h"
+
 //!
 //! Linear Solver
 //! Performs maxit steps of iteration x -> x + P (b-Ax), where P is a preconditioner
@@ -95,7 +97,7 @@ void CG(typename matrix<mat_type>::Vector_type &x, const matrix<mat_type> &A, co
 	
 	Vector_type d(x.getLength(), "CG:d");
 	
-	d = P.precond(r);
+	P.precond(d, r);
 	
 	Vector_type z(x.getLength(), "CG:z");
 	z = d;
@@ -117,7 +119,7 @@ void CG(typename matrix<mat_type>::Vector_type &x, const matrix<mat_type> &A, co
 		x += alpha * d;
 		r -= alpha * t;
 		
-		z = P.precond(r);
+		P.precond(z, r);
 		
 		rz_new = r*z;
 		

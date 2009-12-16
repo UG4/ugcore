@@ -1,6 +1,10 @@
 #pragma once
+#include <vector>
 #include <iostream>
 using namespace std;
+
+#include "matrix.h"
+
 #include "preconditioner.h"
 #include "maxheap.h"
 #include "graph.h"

@@ -33,7 +33,9 @@ extern const char *boldredcolor, *boldgreencolor, *boldbluecolor, *redcolor, *gr
 
 void spaceout(int n);
 
-#ifndef NDEBUG
+#ifdef DEBUG
+
+
 //!
 //! extended assert marco. one can insert a sequence passed to cout as second parameter
 //! example: ASSERT2(nrOfElements < maxSize, "Number of Elements (" << nrOfElements+1 << ") exceeds arrays size (" << maxSize << ").");
@@ -66,6 +68,7 @@ inline void print_trace ()
 
 #define ASSERT(b) ASSERT2(b, "(no information available)");
 #else
+
 #define ASSERT2(a, b)
 #define ASSERT(a)
 #endif
@@ -77,14 +80,19 @@ inline double cut(double a, double e)
 	else return 0.0;
 }
 
+
+
 struct pos2d
 {
 	double x, y;
 };
+extern pos2d *positions;
+extern int iNrOfPositions;
 
 pos2d GetPosForIndex(int i);
 
 void writePosToStream(ostream &out);
+void writeToPosFile(const char *filename);
 
 extern int *parentIndex[32];
 static int GetOriginalIndex(int level, int i)

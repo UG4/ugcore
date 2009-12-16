@@ -163,7 +163,7 @@ public:
 		return s;
 	}
 	
-	//inline void setAsInverseOf(const fixedMatrix<n> &mat );
+	inline void setAsInverseOf(const fixedMatrix<n> &mat );
 	
 	void p();
 	void print() { p(); }
@@ -381,7 +381,7 @@ inline void fixedVector<n>::operator /= (const fixedMatrix<n> &mat )
 	dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, values, &dim, &info);	
 }
 
-/*template<>
+template<>
 inline void fixedMatrix<2>::setAsInverseOf(const fixedMatrix<2> &mat )
 {
 	double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
@@ -390,7 +390,7 @@ inline void fixedMatrix<2>::setAsInverseOf(const fixedMatrix<2> &mat )
 	getAt(0,1) = -invD * mat(0,1);
 	getAt(1,0) = -invD * mat(1,0);
 	getAt(1,1) = invD * mat(0,0);
-}*/
+}
 
 /*
 a b   1 0
@@ -490,7 +490,7 @@ template <>
 struct matrix_trait<fixedMatrix<2> >
 {
 	typedef fixedVector<2> vec_type;
-	typedef fixedVector<2> inverse_type;
+	typedef smallInverse<2> inverse_type;
 	enum { nrOfUnknowns = 2 } ;
 };
 
