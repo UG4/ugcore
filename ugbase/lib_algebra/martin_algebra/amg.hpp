@@ -811,25 +811,23 @@ amg<mat_type>::~amg()
 //-------------------------
 // 
 template<typename mat_type>
-double amg<mat_type>::MGCycle(Vector_type *px, const Vector_type &b, int level)
+double amg<mat_type>::MGCycle(Vector_type &x, const Vector_type &b, int level)
 {
-	ASSERT2(px->getLength() == b.getLength() && b.getLength() == A[level]->getLength(), 
-			"x (" << *px << "), b (" << b << "), or A (" << *A[level] << ") have different length");
+	ASSERT2(x.getLength() == b.getLength() && b.getLength() == A[level]->getLength(), 
+			"x (" << x << "), b (" << b << "), or A (" << *A[level] << ") have different length");
 	
 	/*spaceout(level);
 	 cout << "AMG MGCycle, level " << level;
 	 cout.flush(); //*/
 	
-	Vector_type &x = *px;
 	if(level == used_levels-1)
 	{
 		coarseSolver.solve(b, x);
 		return 0.1e-14;
 	}
 	const matrix_type &Ah = *(A[level]);
-	
-	
-	smoother[level].iterate(&x, b);
+		
+	smoother[level].iterate(x, b);
 	Vector_type &r = *vec3[level];
 	
 	r = b - Ah*x;
@@ -840,12 +838,12 @@ double amg<mat_type>::MGCycle(Vector_type *px, const Vector_type &b, int level)
 	rH = R[level]*r; //restriction(r, level);
 	
 	eH = 0.0;
-	MGCycle(&eH, rH, level+1);
+	MGCycle(eH, rH, level+1);
 	
 	Vector_type y(x.getLength());
 	x += P[level]*eH; //interpolate(eH, level);
 	
-	double res = smoother[level].iterate(&x, b);
+	double res = smoother[level].iterate(x, b);
 	return res;
 }
 

@@ -50,19 +50,19 @@ inline bool matrix<mat_type>::isUnconnected(int i) const
 
 
 template<typename mat_type, typename R>
-Expression<matrix<mat_type>, Multiply_Exp<mat_type, typename R::vec_type>, R> operator*(const matrix<mat_type> &l,const XD<R> &r)
+Expression<matrix<mat_type>, Multiply_Operator<mat_type, typename R::vec_type>, R> operator*(const matrix<mat_type> &l,const XD<R> &r)
 { 
-	return Expression<matrix<mat_type>, Multiply_Exp<mat_type, typename R::vec_type>, R> (l, r.cast()); 
+	return Expression<matrix<mat_type>, Multiply_Operator<mat_type, typename R::vec_type>, R> (l, r.cast()); 
 }
 
 
 // todo: prevent x = A * x; mit feld forbiddenDestination
 template<typename mat_type, typename vec_type> 
-class Expression<matrix<mat_type>, Multiply_Exp<mat_type, vec_type >, Vector<vec_type> > 
-: public XD< Expression<matrix<mat_type>, Multiply_Exp<mat_type, vec_type >, Vector<vec_type> > >
+class Expression<matrix<mat_type>, Multiply_Operator<mat_type, vec_type >, Vector<vec_type> > 
+: public XD< Expression<matrix<mat_type>, Multiply_Operator<mat_type, vec_type >, Vector<vec_type> > >
 { 
 public:	
-	typedef typename Multiply_Exp<mat_type, vec_type>::ReturnType ReturnType;
+	typedef typename Multiply_Operator<mat_type, vec_type>::ReturnType ReturnType;
 	const matrix<mat_type>& l;
 	const Vector<vec_type> & r; 
 	inline Expression(const matrix<mat_type> &l_, const Vector<vec_type> &r_) : l(l_), r(r_) {} 
@@ -75,7 +75,7 @@ public:
 	inline int getLength() const	{	return l.getLength();	}
 	
 	// print routines
-	friend ostream &operator<<(ostream &output, const Expression<matrix<mat_type>, Multiply_Exp<mat_type, vec_type>, Vector<vec_type> >  &ex)
+	friend ostream &operator<<(ostream &output, const Expression<matrix<mat_type>, Multiply_Operator<mat_type, vec_type>, Vector<vec_type> >  &ex)
 	{
 		output << "(" << ex.l	<< "*" << ex.r << ")"; 
 		return output;
@@ -88,7 +88,7 @@ public:
 // x = r / A.Diag();
 /*
 template<> 
-struct Expression<Vector, Divide_Exp, matrix<mat_type>::diagcomponent> 
+struct Expression<Vector, Divide_Operator, matrix<mat_type>::diagcomponent> 
 { 
 	const Vector& l;
 	const matrix<mat_type>::diagcomponent& r; 
@@ -103,18 +103,18 @@ struct Expression<Vector, Divide_Exp, matrix<mat_type>::diagcomponent>
 	inline int getLength() const	{	return l.getLength();	}
 	
 	// print routines
-	friend ostream &operator<<(ostream &output, const Expression<Vector, Divide_Exp, matrix<mat_type>::diagcomponent>  &ex)
+	friend ostream &operator<<(ostream &output, const Expression<Vector, Divide_Operator, matrix<mat_type>::diagcomponent>  &ex)
 	{
-		output << "(" << ex.l << Divide_Exp::cTyp() << ex.r << ")"; 
+		output << "(" << ex.l << Divide_Operator::cTyp() << ex.r << ")"; 
 		return output;
 	}
 	inline void printtype() const	{	cout << *this; }
 }; 
 
-Expression<Vector, Divide_Exp, matrix<mat_type>::diagcomponent> operator/(const Vector &l, const matrix<mat_type>::diagcomponent &r);
+Expression<Vector, Divide_Operator, matrix<mat_type>::diagcomponent> operator/(const Vector &l, const matrix<mat_type>::diagcomponent &r);
 
 #ifdef SPECIALIZE_EXPRESSION_TEMPLATES
-inline void Vector::operator = (const Expression<matrix, Multiply_Exp, Vector> ex)
+inline void Vector::operator = (const Expression<matrix, Multiply_Operator, Vector> ex)
 {
 	IF_PRINTLEVEL(5) cout << *this << " = " << ex << endl;
 	const matrix &A = ex.l;
@@ -137,18 +137,20 @@ inline int matrixrow<mat_type>::getConNr(int index) const
 	return -1;
 }
 
+// the != 0.0 is bad but we need this for restriction, since A.cons[i][0].iIndex = i.
 template<typename mat_type>
 template<typename vec_type>
 inline vec_type matrixrow<mat_type>::operator *(const Vector<vec_type> &x) const
 {
 	vec_type d;
 	d = 0.0;
-	for(citerator it(*this); !it.isEnd(); ++it)
-	{
-		if((*it).dValue != 0.0)
-			d += (*it).dValue * x[(*it).iIndex];
-	}
 	
+	citerator it(*this);
+	if(!it.isEnd() && (*it).dValue == 0.0) 
+		++it;
+	
+	for(; !it.isEnd(); ++it)
+		d += (*it).dValue * x[(*it).iIndex];
 	return d;
 }
 
@@ -436,7 +438,7 @@ void matrix<mat_type>::printtype() const
 }
 
 template<typename mat_type>
-void matrix<mat_type>::addUnterMatrix(untermatrix<mat_type> &mat)
+void matrix<mat_type>::addSubmatrix	(submatrix<mat_type> &mat)
 {
 	int nr = mat.getNr();
 	connection *c = new connection[nr];

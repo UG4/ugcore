@@ -5,6 +5,18 @@
 
 template<int n> class fixedVector;
 
+///////////////////////////////////////////////////////////////////////////////////////
+//!
+//! fixedMatrix
+//! fixed n x n - Matrix. 
+//! supports 
+//! +, -, *, +=, -=, = with other fixedMatrix<n>
+//! * with fixedVector<n>, * with double
+//! =, == double (== id*d)
+//! getAt(int row, int column), operator() (row, column)
+//! ostream operator <<
+//! norm(), norm2(), print(), p(){print();}
+
 template<int n>
 class fixedMatrix
 {
@@ -22,6 +34,14 @@ public:
 	{
 		return values[c + r*n];
 	}
+	double operator ()(int r, int c) const
+	{
+		return getAt(r, c);
+	}
+	double &operator ()(int r, int c)
+	{
+		return getAt(r, c);
+	}
 	
 	friend ostream &operator << (ostream &out, const fixedMatrix<n> &s)
 	{
@@ -30,7 +50,7 @@ public:
 		for(int r=0; r < n; r++)
 		{
 			for(int c=0; c< n; c++)
-				out << s.getAt(r, c) << " ";			
+				out << s(r, c) << " ";			
 			if(r != n-1) out	<< "| ";
 		}
 		out << "] ";
@@ -64,8 +84,7 @@ public:
 	{
 		for(int i=0; i<n*n; i++)
 			values[i] += other.values[i];
-	}
-	
+	}	
 	
 	fixedMatrix<n> operator - (const fixedMatrix<n> &other ) const
 	{
@@ -90,7 +109,7 @@ public:
 				double s = 0;
 				for(int i=0; i<n; i++)
 					s += getAt(r, i) * getAt(i, c);
-				erg.getAt(r, c) = s;
+				erg(r, c) = s;
 			}
 		return erg;
 	}
@@ -100,13 +119,9 @@ public:
 		fixedMatrix<n> erg;
 		for(int r=0; r<n; r++)
 			for(int c=0; c<n; c++)
-			{
-				erg.getAt(r, c) = getAt(r, c)*d;
-			}
+				erg(r, c) = getAt(r, c)*d;
 		return erg;
 	}
-	
-	
 	
 	fixedVector<n> operator * (const fixedVector<n> &vec ) const
 	{
@@ -115,8 +130,8 @@ public:
 		{
 			double s = 0;
 			for(int c=0; c<n; c++)
-				s += getAt(r, c) * vec.getAt(c);
-			erg.getAt(r) = s;
+				s += getAt(r, c) * vec(c);
+			erg(r) = s;
 		}			
 		return erg;
 	}
@@ -148,14 +163,25 @@ public:
 		return s;
 	}
 	
-	inline void setAsInverseOf(const fixedMatrix<n> &mat );
+	//inline void setAsInverseOf(const fixedMatrix<n> &mat );
 	
 	void p();
 	void print() { p(); }
-		
+	
+private:
 	double values[n*n];
 };
 
+///////////////////////////////////////////////////////////////////////////////////////
+//!
+//! smallInverse<int n>
+//! A class to hold a inverse of a smallMatrix<n>
+//! implemented with LAPACKs LU-Decomposition dgetrf
+//! (uses double[n*n] for LU and interchange[n] for pivoting
+//! functions:
+//! setAsInverseOf(const fixedMatrix<n> &mat) : init as inverse of mat
+//! fixedVector<n> * smallInverse<n> = smallInverse<n> * fixedVector<n>
+//! = A^{-1} b
 template<int n>
 class smallInverse
 {
@@ -167,24 +193,32 @@ public:
 	{
 		for(int r=0; r<n; r++)
 			for(int c=0; c<n; c++)
-				densemat[c + r*n] = mat.getAt(r, c);
+				densemat[c + r*n] = mat(r, c);
 		__CLPK_integer info = 0;
 		__CLPK_integer dim = n;
 		dgetrf_(&dim, &dim, densemat, &dim, interchange, &info);
 		ASSERT2(info == 0, "info is " << info << ( info > 0 ? ": matrix singular in U(i,i)" : ": i-th argument had had illegal value"));
 	}
 	
-	fixedVector<n> operator * (const fixedVector<n> &vec)
+	fixedVector<n> operator * (const fixedVector<n> &vec) const
 	{
 		fixedVector<n> erg =vec;
 		char trans ='N';
 		__CLPK_integer nrhs = 1;
 		__CLPK_integer dim = n;
 		__CLPK_integer info = 0;
-		dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, erg.values, &dim, &info);	
+		dgetrs_(&trans, &dim, &nrhs, const_cast<double*> (densemat), &dim, 
+					const_cast<__CLPK_integer*> (interchange), erg.values, &dim, &info);	
 		return erg;
 	}
 };
+
+template<int n>
+fixedVector<n> operator * (const fixedVector<n> &vec, const smallInverse<n> &mat)
+{
+	return mat * vec;
+}
+
 
 template<int n>
 class fixedVector
@@ -198,12 +232,21 @@ public:
 	{
 		return values[i];
 	}
+	double &operator ()(int i)
+	{
+		return values[i];
+	}
+	double operator () (int i) const
+	{
+		return values[i];
+	}
+	
 
 	friend ostream &operator << (ostream &out, const fixedVector<n> &v)
 	{
 		out << "( ";
 		for(int i=0; i<n; i++)
-			out << v.getAt(i) << " ";			
+			out << v(i) << " ";			
 		out << ") ";
 		return out;
 	}
@@ -260,12 +303,25 @@ public:
 	{
 		fixedVector<n> erg;
 		for(int i=0; i<n; i++)
-			erg.getAt(i) = getAt(i) * alpha;
+			erg(i) = getAt(i) * alpha;
 		return erg;
 	}
-	
-	fixedVector<n> operator / (const fixedMatrix<n> &mat ) const;	
 
+	fixedVector<n> operator * (const fixedMatrix<n> &mat )
+	{
+		return (mat * (*this));
+	}
+	
+	
+	
+	inline void operator /= (const fixedMatrix<n> &mat);
+	
+	fixedVector<n> operator / (const fixedMatrix<n> &mat )
+	{
+		fixedVector<n> erg = *this;
+		erg /= mat;
+		return erg;
+	}
 	
 	double norm2() const
 	{
@@ -288,44 +344,30 @@ inline fixedVector<n> operator * (double alpha, const fixedVector<n> &v)
 
 
 template<>
-inline fixedVector<1> fixedVector<1>::operator / (const fixedMatrix<1> &mat ) const
+inline void fixedVector<1>::operator /= (const fixedMatrix<1> &mat )
 {
-	fixedVector<1> erg; erg.getAt(0) = getAt(0) / mat.getAt(0, 0);
-	return erg;
+	getAt(0) = getAt(0) / mat(0, 0);
 }
 template<>
-inline fixedVector<2> fixedVector<2>::operator / (const fixedMatrix<2> &mat ) const
+inline void fixedVector<2>::operator /= (const fixedMatrix<2> &mat )
 {
-	double invD = 1.0/(mat.getAt(0, 0)*mat.getAt(1, 1) - mat.getAt(0, 1)*mat.getAt(1, 0));
+	double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
 	ASSERT(invD != 0.0);
-	fixedVector<2> erg;
-	erg.getAt(0) = invD*(getAt(0) * mat.getAt(1,1) - getAt(1) * mat.getAt(0,1));
-	erg.getAt(1) = invD*(getAt(1) * mat.getAt(0,0) - getAt(0) * mat.getAt(1,0));
-	return erg;
-}
 
-template<>
-inline void fixedMatrix<2>::setAsInverseOf(const fixedMatrix<2> &mat )
-{
-	double invD = 1.0/(mat.getAt(0, 0)*mat.getAt(1, 1) - mat.getAt(0, 1)*mat.getAt(1, 0));
-	ASSERT(invD != 0.0);
-	getAt(0,0) = invD * mat.getAt(1,1);
-	getAt(0,1) = -invD * mat.getAt(0,1);
-	getAt(1,0) = -invD * mat.getAt(1,0);
-	getAt(1,1) = invD * mat.getAt(0,0);
+	double a = invD*(getAt(0) * mat(1,1) - getAt(1) * mat(0,1));
+	double b = invD*(getAt(1) * mat(0,0) - getAt(0) * mat(1,0));
+	getAt(0) = a;
+	getAt(1) = b;
 }
-
 
 template<int n>
-inline fixedVector<n> fixedVector<n>::operator / (const fixedMatrix<n> &mat ) const
+inline void fixedVector<n>::operator /= (const fixedMatrix<n> &mat )
 {
-	double densemat[n*n];
-	fixedVector<n> erg;
-
+	double densemat[n*n];	
 	
 	for(int r=0; r<n; r++)
 		for(int c=0; c<n; c++)
-			densemat[c + r*n] = mat.getAt(r, c);
+			densemat[c + r*n] = mat(r, c);
 	
 	__CLPK_integer interchange[n];
 	
@@ -333,15 +375,22 @@ inline fixedVector<n> fixedVector<n>::operator / (const fixedMatrix<n> &mat ) co
 	__CLPK_integer dim = n;
 	dgetrf_(&dim, &dim, densemat, &dim, interchange, &info);
 	ASSERT2(info == 0, "info is " << info << ( info > 0 ? ": matrix singular in U(i,i)" : ": i-th argument had had illegal value"));
-	
-	erg = *this;
-
+		
 	char trans ='N';
 	__CLPK_integer nrhs = 1;
-	dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, erg.values, &dim, &info);	
-	
-	return erg;
+	dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, values, &dim, &info);	
 }
+
+/*template<>
+inline void fixedMatrix<2>::setAsInverseOf(const fixedMatrix<2> &mat )
+{
+	double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
+	ASSERT(invD != 0.0);
+	getAt(0,0) = invD * mat(1,1);
+	getAt(0,1) = -invD * mat(0,1);
+	getAt(1,0) = -invD * mat(1,0);
+	getAt(1,1) = invD * mat(0,0);
+}*/
 
 /*
 a b   1 0
@@ -402,26 +451,26 @@ inline double mnorm2(const double &a)
 
 template<typename M> inline double getAt(const M &m, int i)
 {
-	return m.getAt(i);
+	return m(i);
 }
 template<> inline double getAt(const double &m, int i) { return m; }
 
 template<typename M> inline double getAt(const M &m, int i, int j)
 {
-	return m.getAt(i, j);
+	return m(i, j);
 }
 template<> inline double getAt(const double &m, int i, int j) { return m; }
 
 
 template<typename M> inline double setAt(M &m, int i, double a)
 {
-	return m.getAt(i) = a;
+	return m(i) = a;
 }
 template<> inline double setAt(double &m, int i, double a) { m = a; return a; }
 
 template<typename M> inline double setAt(M &m, int i, int j, double a)
 {
-	return m.getAt(i, j) = a;
+	return m(i, j) = a;
 }
 template<> inline double setAt(double &m, int i, int j, double a) { m = a; return a; }
 

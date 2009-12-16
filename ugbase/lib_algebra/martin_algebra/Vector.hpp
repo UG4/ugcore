@@ -95,7 +95,7 @@ inline void Vector<vec_type>::applyto(Vector &v) const
 }
 
 
-/*void operator = (const Expression<matrix, Multiply_Exp, Vector> ex)
+/*void operator = (const Expression<matrix, Multiply_Operator, Vector> ex)
  {
  ASSERT2(ex.getLength() == length, *this << " has not same length as " << ex);
  const matrix &m = ex.l;

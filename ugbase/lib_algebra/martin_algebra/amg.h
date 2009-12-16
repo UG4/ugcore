@@ -31,17 +31,16 @@ public:
 	~amg();
 	virtual bool init(const matrix_type& A);
 
-	virtual void precond2(Vector_type *px, const Vector_type &b)
+	virtual void precond2(Vector_type &x, const Vector_type &b)
 	{
-		*px = 0.0;
-		MGCycle(px, b, 0);
+		MGCycle(x, b, 0);
 	}
-	virtual double iterate(Vector_type *px, const Vector_type &b)
+	virtual double iterate(Vector_type &x, const Vector_type &b)
 	{
-		return MGCycle(px, b, 0);		
+		return MGCycle(x, b, 0);		
 	}
 	
-	double MGCycle(Vector_type *x, const Vector_type &b, int i=0);	
+	double MGCycle(Vector_type &x, const Vector_type &b, int i=0);	
 	void printCoarsening(int level, int n);
 	
 	void interpolate(Vector_type *pto, const Vector_type &from, int tolevel); // 2h -> h prolongate

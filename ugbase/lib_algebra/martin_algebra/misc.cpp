@@ -7,8 +7,6 @@
  *
  */
 
-
-
 #include "misc.h"
 
 const char *boldredcolor = "\x1b[1;31m";
@@ -42,25 +40,3 @@ void spaceout(int n)
 }
 
 int *parentIndex[32];
-#ifdef DEBUG
-void print_trace ()
-{
-	void *array[256];
-	size_t size;
-	char **strings;
-	size_t i;
-	
-	size = backtrace (array, 256);
-	strings = backtrace_symbols (array, size);
-	
-	for (i = 1; i < size; i++)
-		cout << strings[i] << endl;
-	
-	free (strings);
-}
-
-void my_break_func()
-{
-	print_trace();
-}
-#endif
