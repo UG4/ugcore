@@ -17,6 +17,9 @@ namespace ug
 class MultiGridSubsetHandler : public ISubsetHandler
 {
 	public:
+		using ISubsetHandler::assign_subset;
+		
+	public:
 		MultiGridSubsetHandler(uint supportedElements = SHE_ALL);
 		MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SHE_ALL);
 		~MultiGridSubsetHandler();
