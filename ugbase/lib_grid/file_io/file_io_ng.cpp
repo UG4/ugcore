@@ -30,7 +30,7 @@ namespace ug
 bool ImportGridFromNG(Grid& grid,
                       const char* filename,
                       AVector3& aPos,
-                      SubsetHandler* pSubdomainHandler)
+                      ISubsetHandler* pSubdomainHandler)
 {
 	// create ng object
 	ng* n = ng_new();

@@ -20,7 +20,7 @@ namespace ug
 ///	Loads a file from a wavefront '.obj' file. Fills optional subset-infos.
 bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		AVector2* paTexCoord,
-		SubsetHandler* pSubsetHandler,
+		ISubsetHandler* pSubsetHandler,
 		std::vector<OBJMaterial>* pvMaterials)
 {
 	LoaderObj loader;
@@ -35,13 +35,6 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);
 	Grid::VertexAttachmentAccessor<AVector3> aaPosVRT(grid, aPos);
-
-//	check if pSubsetHandler is registered correctly. If not then register him.
-	if(pSubsetHandler)
-	{
-		if(pSubsetHandler->get_assigned_grid() != &grid)
-			pSubsetHandler->assign_grid(grid);
-	}
 
 //	create vertices and assign position data.
 //	Store pointers in a vector so that they can be accessed by index.

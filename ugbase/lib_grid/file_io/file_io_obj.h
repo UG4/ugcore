@@ -43,7 +43,7 @@ struct OBJMaterial
  */
 bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos = aPosition,
 		AVector2* paTexCoord = NULL,
-		SubsetHandler* pSubsetHandler = NULL,
+		ISubsetHandler* pSubsetHandler = NULL,
 		std::vector<OBJMaterial>* pvMaterials = NULL);
 
 ////////////////////////////////////////////////////////////////////////

@@ -23,7 +23,7 @@ namespace ug
 bool ImportGridFromLGM(Grid& grid,
                        const char* filename,
                        AVector3& aPos,
-                       SubsetHandler* pSurfaceHandler)
+                       ISubsetHandler* pSurfaceHandler)
 {
 	// create lgm object
 	lgm* l = lgm_new();

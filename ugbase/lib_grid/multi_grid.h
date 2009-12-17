@@ -8,7 +8,7 @@
 #include <vector>
 #include <cassert>
 #include "grid/grid.h"
-#include "subset_handler.h"
+#include "subset_handler_grid.h"
 #include "common_attachments.h"
 #include "common/util/array_util.h"
 
@@ -226,7 +226,7 @@ class MultiGrid : public Grid, public GridObserver
 		void enable_hierarchical_insertion(bool bEnable);
 		inline bool hierarchical_insertion_enabled()	{return m_bHierarchicalInsertion;}
 
-		inline uint num_levels()	{return m_hierarchy.num_subsets();}
+		inline uint num_levels() const	{return m_hierarchy.num_subsets();}
 
 		template <class TElem> inline
 		uint num(int level)			{return m_hierarchy.num<TElem>(level);}

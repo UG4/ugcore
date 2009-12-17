@@ -44,11 +44,14 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io.cpp)
 								
 set(srcLibGrid	common_attachments.cpp
+				subset_handler_interface.cpp
+				subset_handler_grid.cpp
+				subset_handler_multi_grid.cpp
 				geometric_objects.cpp
 				multi_grid.cpp
 				selector.cpp
 				selection_policies.cpp
-				subset_handler.cpp)
+				)
 
 
 if(COMPILE_WITH_PCL)
@@ -97,9 +100,12 @@ set(srcNg
 	externals/src/ng/src/ng_writer.c
 	externals/src/ng/src/tokstream/tokstream.c
 )
-					
-add_library(grid 	${srcGrid} ${srcAlgorithms}
+
+#the real library					
+add_library(grid 	${srcGrid} ${srcLibGrid}
 					${srcParallelization}
-					${srcFileIO} ${srcLibGrid}
+					${srcFileIO} ${srcAlgorithms}
 					${srcTetgen} ${srcLgm} ${srcNg})
 
+#for debug only
+#add_library(grid ${srcGrid} ${srcLibGrid})

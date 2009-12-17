@@ -40,7 +40,7 @@ bool SaveGridToFile(Grid& grid, const char* filename, AVector3& aPos = aPosition
  * will automatically be added to subset 0.
  */
 bool LoadGridFromFile(Grid& grid, const char* filename,
-						SubsetHandler& sh,
+						ISubsetHandler& sh,
 						AVector3& aPos = aPosition);
 
 ////////////////////////////////////////////////////////////////////////

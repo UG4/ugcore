@@ -6,18 +6,15 @@
 #define __H__LIB_GRID__FILE_IO_ART__
 
 #include "../grid/grid.h"
+#include "../subset_handler_interface.h"
 #include "../common_attachments.h"
 
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
-//	predeclarations
-class SubsetHandler;
-
-////////////////////////////////////////////////////////////////////////
 ///	loads a grid from art
 bool LoadGridFromART(Grid&grid, const char* filename,
-					 SubsetHandler* pSH = NULL,
+					 ISubsetHandler* pSH = NULL,
 					 AVector3& aPos = aPosition);
 /*
 ////////////////////////////////////////////////////////////////////////

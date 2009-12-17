@@ -13,7 +13,7 @@ namespace ug
 //	this method performs the actual loading.
 static bool LoadGrid(Grid& grid, const char* filename,
 					AVector3& aPos,
-					SubsetHandler* pSH)
+					ISubsetHandler* pSH)
 {
 	string strName = filename;
 	bool bAutoassignFaces = false;
@@ -26,7 +26,13 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	else if(strName.find(".obj") != string::npos)
 		bSuccess = LoadGridFromOBJ(grid, filename, aPos, NULL, pSH);
 	else if(strName.find(".lgb") != string::npos)
-		bSuccess = LoadGridFromLGB(grid, filename, pSH, aPos);
+	{
+		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
+		if(shGrid)
+			bSuccess = LoadGridFromLGB(grid, filename, shGrid, aPos);
+		else
+			bSuccess = false;
+	}
 	else if(strName.find(".net") != string::npos)
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
 	else if(strName.find(".art") != string::npos)
@@ -60,7 +66,9 @@ static bool SaveGrid(Grid& grid, const char* filename,
 	else if(strName.find(".obj") != string::npos)
 		return SaveGridToOBJ(grid, filename, aPos, NULL, pSH);
 	else if(strName.find(".lgb") != string::npos)
+	{
 		return SaveGridToLGB(grid, filename, pSH, aPos);
+	}
 	return false;
 }
 
@@ -79,7 +87,7 @@ bool SaveGridToFile(Grid& grid, const char* filename, AVector3& aPos)
 
 ////////////////////////////////////////////////////////////////////////
 bool LoadGridFromFile(Grid& grid, const char* filename,
-						SubsetHandler& sh, AVector3& aPos)
+						ISubsetHandler& sh, AVector3& aPos)
 {
 	return LoadGrid(grid, filename, aPos, &sh);
 }

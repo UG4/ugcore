@@ -1,3 +1,8 @@
+@rev 97: sreiter - y09 m12 d17
+-	SubsetHandler and MGSubsetHandler are now both usable.
+	Both share a common interface ISubsetHandler.
+	Not yet carefully debugged!
+
 @rev 81: sreiter - y09 m12 d09
 -	A first working version of the pcl-specialization for lib_grid
 	has been integrated. It can be found in

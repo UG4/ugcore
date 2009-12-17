@@ -8,6 +8,7 @@
 #include <cstring>
 #include "file_io_art.h"
 #include "../lib_grid.h"
+#include "lib_grid/subset_handler.h"
 
 using namespace std;
 
@@ -15,7 +16,7 @@ namespace ug
 {
 
 bool LoadGridFromART(Grid& grid, const char* filename,
-					 SubsetHandler* pSH,
+					 ISubsetHandler* pSH,
 					 AVector3& aPos)
 {
 //	open the stream
@@ -31,7 +32,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 		shTmp.assign_grid(grid);
 		pSH = &shTmp;
 	}
-	SubsetHandler& sh = *pSH;
+	ISubsetHandler& sh = *pSH;
 
 //	make sure that the position attachment is attached properly
 	if(!grid.has_vertex_attachment(aPos))
