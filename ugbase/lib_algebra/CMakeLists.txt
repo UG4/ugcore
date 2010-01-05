@@ -28,8 +28,7 @@ endif(HYPRELIB_LIB_DIR)
 
 
 	set(src_Algebra	 ${src_Algebra}
-			 martin_algebra/misc.cpp
-		     	 martin_algebra/smallMatrix.cpp)
+			 martin_algebra/misc.cpp)
 
 ##########################
 # setup library
