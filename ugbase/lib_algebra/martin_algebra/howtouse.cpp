@@ -6,35 +6,9 @@
  *  Copyright 2009 G-CSC. All rights reserved.
  *
  */
-#include <iostream>
-using namespace std;
-#include <math.h>
+#if 1
 
-
-#include "misc.h"
-
-const double sigma = 0.3;
-const double theta = 0.3;
-
-#include "amg.h"
-#include "ls.h"
-
-
-
-#define UNKNOWN_NR 3
-
-//#define EASY_MATRIX // set hx2 = 1.0
-
-
-#if UNKNOWN_NR > 1
-typedef fixedMatrix<UNKNOWN_NR> MAT_TYPE;
-typedef fixedVector<UNKNOWN_NR> VEC_TYPE;
-#else
-typedef double VEC_TYPE;
-typedef double MAT_TYPE;
-#endif
-
-
+#include "algebra.h"
 
 #if 1
 double solution(double x, double y)
@@ -73,8 +47,8 @@ double f(double x, double y)
 ////////////////////////////////////////////////////////////////
 int main(int argc, char **argv) 
 {	
-	int NX = 257;
-	int NY = 513; // 9
+	int NX = 5;
+	int NY = 5; // 9
 	int n = NX*NY;
 	iNrOfPositions=n;
 	double hX = 1/((double)(NX-1));
@@ -117,14 +91,20 @@ int main(int argc, char **argv)
 			int i = x + y*NX;
 			if(x == 0 || x == NX-1 || y == 0 || y == NY-1)
 			{
-				myMatrix::connection con; con.iIndex = i; con.dValue = 1.0;
+				myMatrix::connection con; 
+				con.iIndex = i; 
+				setSize(con.dValue, UNKNOWN_NR, UNKNOWN_NR);  // use set size for variable blockvector length
+				con.dValue = 1.0;
 				A[i].setMatrixRow(&con, 1);
 			}
 			else
 			{
 				int indices[3] = {i-1, i, i+1};
-				submatrix<MAT_TYPE> UM(indices, 3);
-				UM(1, 0) = -1.0 / hx2;
+				int unknowns[3] = {UNKNOWN_NR, UNKNOWN_NR, UNKNOWN_NR}; 
+				
+				// get submatrix of indices, specify nr of unknowns of node (needed since if matrix empty informations is not known).
+				submatrix<MAT_TYPE> UM(indices, unknowns, 3);
+				UM(1, 0) = -1.0 / hx2;				
 				UM(1, 1) = 2.0 / hx2;
 				UM(1, 2) = -1.0 / hx2;
 				A.addSubmatrix(UM);
@@ -132,7 +112,7 @@ int main(int argc, char **argv)
 		}
 	}
 	if(n < 50)	A.print();
-	// then in do finite differences in y-direction
+	// then do finite differences in y-direction
 	for(int y=0; y<NY; y++)
 	{
 		for(int x=0; x<NX; x++)
@@ -142,7 +122,8 @@ int main(int argc, char **argv)
 			else
 			{
 				int indices[3] = {x+(y-1)*NX, x+y*NX, x+(y+1)*NX};
-				submatrix<MAT_TYPE> UM(indices, 3);
+				int unknowns[3] = {UNKNOWN_NR, UNKNOWN_NR, UNKNOWN_NR};
+				submatrix<MAT_TYPE> UM(indices, unknowns, 3);
 				UM(1, 0) = -1.0 / hy2;
 				UM(1, 1) = 2.0 / hy2;
 				UM(1, 2) = -1.0 / hy2;
@@ -151,6 +132,8 @@ int main(int argc, char **argv)
 		}
 	} 	
 	
+	A.print();
+	
 	// create rhs
 	//-------------
 	myVector b(n, "b");
@@ -158,6 +141,7 @@ int main(int argc, char **argv)
 	for(int i=0; i<n; i++)
 	{
 		pos2d pos = GetPosForIndex(i);
+		setSize(b[i], UNKNOWN_NR); // use set size for variable blockvector length
 		if(pos.x == 0 || pos.x == 1.0 || pos.y == 0 || pos.y == 1)
 			b[i] = phi(pos.x, pos.y);
 		else
@@ -174,6 +158,7 @@ int main(int argc, char **argv)
 	vx = 0.0;	
 	for(int i=0; i<n; i++)
 	{
+		setSize(vx[i], UNKNOWN_NR); // use set size for variable blockvector length
 		if(A.isUnconnected(i))
 			vx[i] = b[i]; // dirichlet values
 		else
@@ -222,3 +207,4 @@ int main(int argc, char **argv)
     return 0;
 }
 
+#endif

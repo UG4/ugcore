@@ -131,6 +131,7 @@ private:
 	CoarseSolver coarseSolver;
 	nodeinfo *grid;
 	int used_levels;
+	
 	Vector_type *vec1[AMG_MAX_LEVELS];
 	Vector_type *vec2[AMG_MAX_LEVELS];
 	Vector_type *vec3[AMG_MAX_LEVELS];

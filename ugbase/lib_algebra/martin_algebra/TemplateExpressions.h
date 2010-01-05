@@ -40,10 +40,27 @@ public:
 		
 	inline typename Operator::ReturnType operator [] (int i) const
 	{
+		// dont use
 		return Operator::apply( l[i], r[i] );
 	}
-	inline int getLength() const	{	return l.getLength();	}
+	
+	
+	inline void copyTo(typename Operator::ReturnType &d, int i) const
+	{
+		Operator::copyTo(d, l[i], r[i]);
+	}
 
+	inline void addTo(typename Operator::ReturnType &d, int i) const
+	{
+		Operator::addTo(d, l[i], r[i]);
+	}
+	
+	inline void substractFrom(typename Operator::ReturnType &d, int i) const
+	{
+		Operator::substractFrom(d, l[i], r[i]);
+	}	
+	
+	inline int getLength() const	{	return l.getLength();	}
 	
 	// print functions
 	friend ostream &operator<<(ostream &output, const Expression<L, Operator, R>  &ex)
@@ -70,6 +87,21 @@ public:
 		return Operator::apply( ld, r[i] );
 	} 
 	
+	inline void copyTo(typename Operator::ReturnType &d, int i) const
+	{
+		Operator::copyTo(d, ld, r[i]);
+	}
+	
+	inline void addTo(typename Operator::ReturnType &d, int i) const
+	{
+		Operator::addTo(d, ld, r[i]);
+	}
+	
+	inline void substractFrom(typename Operator::ReturnType &d, int i) const
+	{
+		Operator::substractFrom(d, ld, r[i]);
+	}	
+	
 	inline int getLength() const	{	return r.getLength();	}
 	
 	
@@ -89,7 +121,12 @@ template<typename vec_type>
 struct Add_Operator
 { 
 	typedef vec_type ReturnType;
-	static inline vec_type apply(vec_type a, vec_type b) {return a + b;} 
+	static inline vec_type apply(const vec_type &a, const vec_type &b) {return a + b;} 
+	
+	static inline void copyTo(vec_type &r, const vec_type &a, const vec_type &b) {r = a; r += b;} 
+	static inline void addTo(vec_type &r, const vec_type &a, const vec_type &b) {r += a; r += b;} 
+	static inline void substractFrom(vec_type &r, vec_type a, vec_type &b) {r = a; r += b; r *= -1.0;} 
+	
 	static inline const char *cTyp() { return " + "; }
 }; 
 
@@ -97,7 +134,12 @@ template<typename vec_type>
 struct Minus_Operator
 { 
 	typedef vec_type ReturnType;
-	static inline vec_type apply(vec_type a, vec_type b) {return a - b;} 
+	static inline vec_type apply(const vec_type &a, const vec_type &b) {return a - b;} 
+	
+	static inline void copyTo(vec_type &r, const vec_type &a, const vec_type &b) {r = a; r -= b;} 
+	static inline void addTo(vec_type &r, const vec_type &a, const vec_type &b) {r += a; r -= b;} 
+	static inline void substractFrom(vec_type &r, vec_type a, vec_type &b) {r = a; r -= b; r *= -1.0;} 
+	
 	static inline const char *cTyp() { return " - "; }
 }; 
 
@@ -106,7 +148,12 @@ struct Multiply_Operator
 { 
 	typedef mat_type MultType;
 	typedef typename Mult_Traits<mat_type, vec_type>::ReturnType ReturnType;
-	static inline ReturnType apply(mat_type a, vec_type b) {return a * b;} 
+	static inline ReturnType apply(const vec_type &a, const vec_type &b) {return a * b;} 
+	
+	static inline void copyTo(ReturnType &r, const vec_type &a, const vec_type &b) {r = a * b;} 
+	static inline void addTo(ReturnType &r, const vec_type &a, const vec_type &b) {r += a * b;} 
+	static inline void substractFrom(ReturnType &r, vec_type a, vec_type &b) {r -= a * b;} 
+	
 	static inline const char *cTyp() { return " * "; }
 };
 	

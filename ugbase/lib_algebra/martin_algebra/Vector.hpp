@@ -17,7 +17,7 @@ inline vec_type &Vector<vec_type>::operator [] (int i)
 }
 
 template<typename vec_type>
-inline vec_type Vector<vec_type>::operator [] (int i) const
+inline const vec_type &Vector<vec_type>::operator [] (int i) const
 {
 	ASSERT2(i >= 0 && i < length, *this << ": tried to access element " << i);
 	return values[i];
@@ -72,7 +72,8 @@ template<typename Type> inline void Vector<vec_type>::operator = (const Type &t)
 	for(int i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
-		values[i] = t[i];
+		//values[i] = t[i];
+		t.copyTo(values[i], i);
 	}
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = t[i]);
 }
@@ -93,7 +94,9 @@ template<typename vec_type>
 inline void Vector<vec_type>::applyto(Vector &v) const
 {
 	ASSERT2(v.length == length, *this << " has not same length as " << v);
-	memcpy(v.values, values, length*sizeof(vec_type));
+	//memcpy(v.values, values, length*sizeof(vec_type));
+	for(int i=0; i<length; i++)
+		v.values[i] = values[i];
 }
 
 
@@ -115,7 +118,8 @@ template<typename Type> inline void Vector<vec_type>::operator += (const Type &t
 	for(int i=0; i < length; i++) 
 	{
 		prefetchReadWrite(values+i+512);
-		values[i] += t[i]; 
+		//values[i] += t[i]; 
+		t.addTo(values[i], i);
 	}
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] += t[i]);
 } 
@@ -129,7 +133,8 @@ template<typename Type> inline void Vector<vec_type>::operator -= (const Type &t
 	for(int i=0; i < length; i++) 
 	{
 		prefetchReadWrite(values+i+512);
-		values[i] -= t[i]; 
+		//values[i] -= t[i]; 
+		t.substractFrom(values[i], i);
 	}			
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] -= t[i]);
 }

@@ -72,6 +72,21 @@ public:
 		return l[i] * r;
 	} 
 	
+	inline void copyTo(ReturnType &d, int i) const
+	{
+		l[i].copyToMult(d, r);
+	}
+	
+	inline void addTo(ReturnType &d, int i) const
+	{
+		l[i].addToMult(d, r);
+	}
+	
+	inline void substractFrom(ReturnType &d, int i) const
+	{
+		l[i].substractFromMult(d, r);
+	}	
+	
 	inline int getLength() const	{	return l.getLength();	}
 	
 	// print routines
@@ -140,19 +155,61 @@ inline int matrixrow<mat_type>::getConNr(int index) const
 // the != 0.0 is bad but we need this for restriction, since A.cons[i][0].iIndex = i.
 template<typename mat_type>
 template<typename vec_type>
-inline vec_type matrixrow<mat_type>::operator *(const Vector<vec_type> &x) const
+inline void matrixrow<mat_type>::copyToMult(vec_type &d, const Vector<vec_type> &x) const
 {
-	vec_type d;
 	d = 0.0;
-	
+	addToMult(d, x);
+}
+
+template<typename mat_type>
+template<typename vec_type>
+inline void matrixrow<mat_type>::substractFromMult(vec_type &d, const Vector<vec_type> &x) const
+{
+	citerator it(*this);
+	if(!it.isEnd() && (*it).dValue == 0.0) 
+		++it;
+	for(; !it.isEnd(); ++it)
+		d -= (*it).dValue * x[(*it).iIndex];
+}
+
+template<typename mat_type>
+template<typename vec_type>
+inline void matrixrow<mat_type>::addToMult(vec_type &d, const Vector<vec_type> &x) const
+{
 	citerator it(*this);
 	if(!it.isEnd() && (*it).dValue == 0.0) 
 		++it;
 	
 	for(; !it.isEnd(); ++it)
 		d += (*it).dValue * x[(*it).iIndex];
+}
+
+template<typename mat_type>
+template<typename vec_type>
+inline vec_type matrixrow<mat_type>::operator *(const Vector<vec_type> &x) const
+{
+	vec_type d;
+	citerator it(*this);
+	if(!it.isEnd() && (*it).dValue == 0.0) 
+		++it;
+	
+	for(; !it.isEnd(); ++it)
+	{
+		// otherwise we dont know how big d is.
+		if((*it).dValue != 0.0)
+		{
+			d = (*it).dValue * x[(*it).iIndex];
+			++it;
+			break;
+		}
+	}
+	
+	for(; !it.isEnd(); ++it)
+		d += (*it).dValue * x[(*it).iIndex];
 	return d;
 }
+
+
 
 template<typename mat_type>
 inline const typename matrixrow<mat_type>::connection &matrixrow<mat_type>::operator [] (int i) const
@@ -269,6 +326,7 @@ void matrix<mat_type>::saveSetConnections(int row, connection *mem) const
 template<typename mat_type>
 void matrix<mat_type>::defrag()
 {
+	ASSERT2(0, "this function is broken");
 	iTotalNrOfConnections=0;
 	for(int i=0; i<length; i++)
 		iTotalNrOfConnections+=iNrOfConnections[i];
@@ -277,7 +335,10 @@ void matrix<mat_type>::defrag()
 	connection *p= consmemNew;
 	for(int i=0; i<length; i++)
 	{
-		memcpy(p, cons[i], sizeof(connection)* iNrOfConnections[i]);
+		/// TODO FIXME FIXHITS: dont use memcpy, connection may contain variable array
+		/// better use sth like swap.
+		for(int k=0; k<iNrOfConnections[i]; k++)
+			p[k] = cons[i][k];
 		saveSetConnections(i, p);
 		p += iNrOfConnections[i];
 	}
@@ -516,13 +577,15 @@ void matrixrow<mat_type>::setMatrixRow(connection *c, int nr)
 	{
 		n = new connection[nr+1];		
 		n[0].iIndex = row; n[0].dValue = 0.0;
-		memcpy(n+1, c, nr*sizeof(connection));
+		for(int i=0; i<nr; i++)
+			n[i+1] = c[i];
 		nr++;
 	}
 	else
 	{
 		n = new connection[nr];
-		memcpy(n, c, nr*sizeof(connection));
+		for(int i=0; i<nr; i++)
+			n[i] = c[i];
 	}
 	for(int i=0; i<nr; i++)
 		A->bandwidth = max(A->bandwidth, abs(c[i].iIndex - row));
@@ -644,4 +707,26 @@ template<typename mat_type>
 void matrixrow<mat_type>::printtype() const 
 {
 	cout << *this;
+}
+
+
+
+
+
+template<typename mat_type, typename vec_type>
+inline void multiplyCopyTo(vec_type &d, const matrixrow<mat_type> &r, const Vector<vec_type> &x)
+{
+	r.copyToMult(d, x);
+}
+
+template<typename mat_type, typename vec_type>
+inline void multiplyAddTo(vec_type &d, const matrixrow<mat_type> &r, const Vector<vec_type> &x)
+{
+	r.addToMult(d, x);
+}
+
+template<typename mat_type, typename vec_type>
+inline void multiplySubstractFrom(vec_type &d, const matrixrow<mat_type> &r, const Vector<vec_type> &x)
+{
+	r.substractFromMult(d, x);
 }

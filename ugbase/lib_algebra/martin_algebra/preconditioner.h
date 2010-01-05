@@ -144,15 +144,14 @@ public:
 		const matrix_type &A = *preconditioner<mat_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 		
-		double res = 0;
 		vec_type d;
 		for(int j=0; j < A.getLength(); j++)
 		{
-			d = (b[j] - A[j] * x);
-			x[j] +=  getDiagInverse(j) * d;
-			res += d*d;
+			d = b[j];
+			d -= A[j] * x;
+			x[j] += getDiagInverse(j) * d;
 		}
-		return sqrt(res);
+		return 1.0;
 	}
 	
 	inverse_type &getDiagInverse(int i)
@@ -172,25 +171,6 @@ public:
 	typedef Vector< typename matrix_type::vec_type> Vector_type;
 	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
 	
-	double dampediter(double damp, Vector_type *pc, Vector_type &x, const Vector_type &b)
-	{
-		const matrix_type &A = *preconditioner<mat_type>::pA; Vector_type &c = *pc;
-		double res=0;
-		vec_type d;
-		int j;
-		
-		c = x;
-		for(j=0; j < A.getLength(); j++)
-		{			
-			d = (b[j] - A[j] * x);
-			x[j] += getDiagInverse(j) *  d;
-			res += d*d;
-		}		
-		x -= (1-damp)*(x-c);	
-		
-		return sqrt(res);
-	}
-	
 	
 	virtual void precond(Vector_type &x, const Vector_type &b)
 	{			
@@ -206,15 +186,20 @@ public:
 			x[i] = getDiagInverse(i) * x[i];
 		}
 	}
+	
 	double iterate(Vector_type &x, const Vector_type &b)
 	{
 		const matrix_type &A = *preconditioner<mat_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 		
+		vec_type d;
 		for(int j=0; j < A.getLength(); j++)
-			x[j] += getDiagInverse(j) * (b[j] - A[j] * x);			
-		
-		return 0.0;
+		{
+			d = b[j];
+			d -= A[j] * x;
+			x[j] += getDiagInverse(j) * d;
+		}
+		return 1.0;
 	}
 	 
 	inverse_type &getDiagInverse(int i)
@@ -222,6 +207,12 @@ public:
 		return diagonalInversePreconditioner<mat_type>::getDiagInverse(i);
 	}
 };
+
+template <typename T>
+inline void copyTo(T &dest, const T &src)
+{
+	dest = src;
+}
 
 //!
 //! class sgs
@@ -246,7 +237,7 @@ public:
 			//mat_type d= A.getDiag(i);
 			s = b[i];
 			for(typename matrixrow<mat_type>::cLowerLeftIterator it(A[i]); !it.isEnd(); ++it)
-				s -= ((*it).dValue * x[(*it).iIndex]);
+				s -= (*it).dValue * x[(*it).iIndex];
 			x[i] = getDiagInverse(i) * s;
 		}
 		// x = A.Diag() * x;
@@ -257,7 +248,7 @@ public:
 			//x[i] = x[i] / d;
 			s = 0.0;
 			for(typename matrixrow<mat_type>::cUpperRightIterator it(A[i]); !it.isEnd(); ++it)
-				s -= ((*it).dValue *x[(*it).iIndex]);
+				s -= (*it).dValue * x[(*it).iIndex];
 			x[i] += getDiagInverse(i) * s;
 		}		
 	}
@@ -269,15 +260,18 @@ public:
 		
 		vec_type d;
 		for(int j=0; j < A.getLength(); j++)
-			x[j] += getDiagInverse(j) * (b[j] - A[j] * x);
+		{
+			d = b[j];
+			d -= A[j] * x;
+			x[j] += getDiagInverse(j) * d;
+		}
 		
 		//double res = 0;
 		for(int j=A.getLength()-1; j >= 0; j--)
 		{
-			d = (b[j] - A[j] * x);
-			x[j] += getDiagInverse(j) *d;
-			//x[j] += d / A.getDiag(j);
-			//res += mnorm2(d);
+			d = b[j];
+			d -= A[j] * x;
+			x[j] += getDiagInverse(j) * d;
 		}
 		
 		return 1.0; //sqrt(res);

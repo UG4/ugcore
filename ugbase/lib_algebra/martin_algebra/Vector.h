@@ -26,7 +26,7 @@ public:
 	void create(int _length);
 	
 	inline vec_type &operator [] (int i);
-	inline vec_type operator [] (int i) const;
+	inline const vec_type &operator [] (int i) const;
 	
 	void print(const char * const text = NULL) const;
 	void p(); // gdb

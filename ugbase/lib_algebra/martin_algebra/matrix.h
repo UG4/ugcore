@@ -37,7 +37,29 @@ public:
 	{
 		nr = nr_;
 		values = new mat_type[nr*nr];
-		for(int i=0; i<nr*nr; i++) values[i] = 0.0;
+		
+		for(int a=0; a<nr; a++) 
+			for(int b=0; b<nr; b++)
+				values[a*nr + b] = 0.0;
+		
+		indices = new int[nr];
+		memcpy(indices, indices_, sizeof(int)*nr);
+	}
+	
+	submatrix(int *indices_, int *unknowns, int nr_)
+	{
+		nr = nr_;
+		values = new mat_type[nr*nr];
+		
+		for(int a=0; a<nr; a++) 
+		{
+			for(int b=0; b<nr; b++)
+			{
+				// could be flipped
+				setSize(values[a*nr + b], unknowns[a], unknowns[b]);
+				values[a*nr + b] = 0.0;
+			}			
+		}
 		
 		indices = new int[nr];
 		memcpy(indices, indices_, sizeof(int)*nr);
@@ -111,6 +133,12 @@ public:
 			cout << ")";
 			return output;
 		}
+		
+		void operator = (const connection &other)
+		{
+			iIndex = other.iIndex;
+			dValue = other.dValue;
+		}
 	};
 	
 	// constructor for empty matrix
@@ -179,7 +207,7 @@ public:
 	void defrag();
 	void finish()
 	{
-		defrag();
+		//defrag();
 	}
 	
 	//!
@@ -324,7 +352,14 @@ public:
 	//! like the prolongation/restriction in MG.
 	template<typename vec_type>
 	inline vec_type operator * (const Vector<vec_type> &x) const;
-
+	
+	template<typename vec_type>
+	inline void copyToMult(vec_type &d, const Vector<vec_type> &x) const;
+	template<typename vec_type>
+	inline void addToMult(vec_type &d, const Vector<vec_type> &x) const;
+	template<typename vec_type>
+	inline void substractFromMult(vec_type &d, const Vector<vec_type> &x) const;
+	
 	// accessor functions
 	inline bool indexWithinBounds(int i) const	{	return i < getNrOfConnections(); }
 	inline int getRow() const { return row; }	

@@ -475,7 +475,6 @@ void amg<mat_type>::createGalerkinMatrix(matrix_type &AH, const matrix<double> &
 	// has to be -1 for all nodes	
 	
 	vector<typename matrix_type::connection > con(255);
-	typename matrix_type::connection c;
 	double r, p;
 	mat_type ra;
 	
@@ -488,6 +487,7 @@ void amg<mat_type>::createGalerkinMatrix(matrix_type &AH, const matrix<double> &
 		// we want to have the diagonal first:
 		posInConnections[i] = 0;
 		con.clear();
+		typename matrix_type::connection c;
 		c.iIndex = i;
 		c.dValue = 0.0;
 		con.push_back(c);
@@ -635,6 +635,21 @@ void amg<mat_type>::createAMGLevel(matrix_type &AH, matrix<double> &R, const mat
 	
 	/////////////////////////////////////////
 	
+	vec1[level+1] = new Vector_type (iNrOfCoarse, "AMG:tempvec 1");
+	vec1[level+1]->level = level+1;
+	vec2[level+1] = new Vector_type (iNrOfCoarse, "AMG:tempvec 2");
+	vec2[level+1]->level = level+1;
+	cout << "created vec1 on level" << level +1 << endl;
+	
+	
+	for(int i=0, c=0; i<A.getLength(); i++)
+		if(grid[i].isCoarse())
+		{			
+			setSize((*vec1[level+1])[c], getRows(A[i][0].dValue));
+			setSize((*vec2[level+1])[c], getRows(A[i][0].dValue));
+			c++;
+		}
+	
 	
 	parentIndex[level+1] = new int[iNrOfCoarse];
 	for(int i=0; i<A.getLength(); i++)
@@ -658,8 +673,7 @@ void amg<mat_type>::createAMGLevel(matrix_type &AH, matrix<double> &R, const mat
 	/////////////////////////////////////////
 	
 	cout << "prolongation... "; cout.flush();
-	
-	
+		
 	P.fromlevel = level+1;
 	P.tolevel = level;
 	
@@ -767,10 +781,6 @@ bool amg<mat_type>::init(const matrix_type& A_)
 		A[i+1] = new matrix_type();
 		createAMGLevel(*A[i+1], R[i], *A[i], P[i], i);
 		
-		vec1[i+1] = new Vector_type (A[i+1]->getLength(), "AMG:tempvec 1");
-		vec1[i+1]->level = i+1;
-		vec2[i+1] = new Vector_type (A[i+1]->getLength(), "AMG:tempvec 2");
-		vec2[i+1]->level = i+1;		
 		vec3[i] = new Vector_type (A[i]->getLength(), "AMG:tempvec 3");
 		vec3[i]->level = i;		
 		i++;
@@ -796,13 +806,11 @@ template<typename mat_type>
 amg<mat_type>::~amg()
 {
 	for(int i=1; i<used_levels-1; i++)
-		delete A[i];
-	
-	for(int i=0; i<used_levels; i++)
 	{
-		delete vec1[i+1];
-		delete vec2[i+1];
-		delete vec3[i];
+		delete A[i];
+		delete vec1[i];
+		delete vec2[i];
+		delete vec3[i-1];
 	}
 }
 
