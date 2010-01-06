@@ -37,6 +37,9 @@ class IVectorBlock{
 		/// access component i of this block
 		virtual number& operator() (uint block_i) = 0;
 
+		/// virtual destructor
+		virtual ~IVectorBlock()
+		{}
 };
 
 
@@ -59,6 +62,10 @@ class ISubVector{
 
 		///
 		virtual uint get_global_index(uint local_i) = 0;
+
+		/// virtual destructor
+		virtual ~ISubVector()
+		{}
 
 };
 
@@ -92,13 +99,13 @@ class IVector {
 
 		/// finalize - internal memory rearrangement
 		virtual bool finalize()
-		{}
+		{return true;}
 
 		/// print to ascii - file
 		virtual bool printToFile(const char* filename) = 0;
 
 		/// virtual destructor
-		virtual ~ArneVector()
+		virtual ~IVector()
 		{}
 
 		virtual IVector& operator+= (const IVector& v) = 0;
@@ -130,6 +137,10 @@ class IMatrixBlock{
 		/// access component i of this block
 		virtual number& operator() (uint block_i, uint block_j) = 0;
 
+		///virtual destructor
+		virtual ~IMatrixBlock()
+		{}
+
 };
 
 
@@ -155,6 +166,10 @@ class ISubMatrix{
 
 		///
 		virtual uint get_global_index(uint local_i) = 0;
+
+		/// virtual destructor
+		virtual ~ISubMatrix()
+		{}
 
 };
 
@@ -201,7 +216,7 @@ class IMatrix {
 
 	/// finalize
 	bool finalize()
-	{};
+	{return true;};
 
 	// TODO: Add matrix norms here.
 
