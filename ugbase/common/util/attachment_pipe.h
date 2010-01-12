@@ -220,10 +220,10 @@ class attachment_traits
 
 	///	mark the element as invalid.
 	/**	You may do something like elem = NULL, if TElem is a pointer type.*/
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);}
-		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);}
-		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)	{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);};
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return true;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return INVALID_ATTACHMENT_INDEX;/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)	{/*STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);*/}
 };
 
 
