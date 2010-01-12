@@ -153,6 +153,34 @@ void GridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 	}
 }
 
+void GridSubsetHandler::
+register_subset_elements_at_pipe()
+{
+	for(int i = 0; i < num_subsets(); ++i)
+	{
+	//	register vertices
+		for(VertexBaseIterator iter = begin<VertexBase>(i);
+			iter != end<VertexBase>(i); ++iter)
+			register_at_pipe(*iter);
+
+	//	register edges
+		for(EdgeBaseIterator iter = begin<EdgeBase>(i);
+			iter != end<EdgeBase>(i); ++iter)
+			register_at_pipe(*iter);
+
+	//	register faces
+		for(FaceIterator iter = begin<Face>(i);
+			iter != end<Face>(i); ++iter)
+			register_at_pipe(*iter);
+
+	//	register volumes
+		for(VolumeIterator iter = begin<Volume>(i);
+			iter != end<Volume>(i); ++iter)
+			register_at_pipe(*iter);
+	}
+}
+
+
 GeometricObjectCollection
 GridSubsetHandler::
 get_geometric_object_collection(int subsetIndex)

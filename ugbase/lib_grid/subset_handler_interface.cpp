@@ -10,7 +10,6 @@ using namespace std;
 
 namespace ug
 {
-
 ////////////////////////////////////////////////////////////////////////
 //	SubsetInfo implementation
 SubsetInfo::SubsetInfo()
@@ -61,8 +60,10 @@ void ISubsetHandler::
 create_required_subset_infos(int index)
 {
 	m_subsetInfos.resize(index+1);
+
 	if(subset_attachments_are_enabled())
 		resize_attachment_pipes(index+1);
+
 	add_required_subset_lists(index);
 }
 
@@ -367,9 +368,10 @@ erase_subset(int subsetIndex)
 	{
 		change_subset_indices(subsetIndex, -1);
 	//	clear pipes
+
 		if(subset_attachments_are_enabled())
 			clear_attachment_pipes(subsetIndex);
-		
+
 		for(uint i = subsetIndex + 1; i < num_subset_infos(); ++i)
 		{
 		//	alter indices
@@ -382,6 +384,9 @@ erase_subset(int subsetIndex)
 			if(subset_attachments_are_enabled())
 			{
 				m_vertexAttachmentPipes[i-1] = m_vertexAttachmentPipes[i];
+				m_edgeAttachmentPipes[i-1] = m_edgeAttachmentPipes[i];
+				m_faceAttachmentPipes[i-1] = m_faceAttachmentPipes[i];
+				m_volumeAttachmentPipes[i-1] = m_volumeAttachmentPipes[i];
 			}
 		}
 
@@ -417,6 +422,15 @@ swap_subsets(int subsetIndex1, int subsetIndex2)
 			VertexAttachmentPipe apFromVrt = m_vertexAttachmentPipes[subsetIndex1];
 			m_vertexAttachmentPipes[subsetIndex1] = m_vertexAttachmentPipes[subsetIndex2];
 			m_vertexAttachmentPipes[subsetIndex2] = apFromVrt;
+			EdgeAttachmentPipe apFromEdge = m_edgeAttachmentPipes[subsetIndex1];
+			m_edgeAttachmentPipes[subsetIndex1] = m_edgeAttachmentPipes[subsetIndex2];
+			m_edgeAttachmentPipes[subsetIndex2] = apFromEdge;
+			FaceAttachmentPipe apFromFace = m_faceAttachmentPipes[subsetIndex1];
+			m_faceAttachmentPipes[subsetIndex1] = m_faceAttachmentPipes[subsetIndex2];
+			m_faceAttachmentPipes[subsetIndex2] = apFromFace;
+			VolumeAttachmentPipe apFromVol = m_volumeAttachmentPipes[subsetIndex1];
+			m_volumeAttachmentPipes[subsetIndex1] = m_volumeAttachmentPipes[subsetIndex2];
+			m_volumeAttachmentPipes[subsetIndex2] = apFromVol;
 		}
 
 	//	swap the lists
@@ -448,9 +462,15 @@ move_subset(int indexFrom, int indexTo)
 
 		//	store from-attachment-pipes
 			VertexAttachmentPipe apFromVrt;
+			EdgeAttachmentPipe apFromEdge;
+			FaceAttachmentPipe apFromFace;
+			VolumeAttachmentPipe apFromVol;
 			if(subset_attachments_are_enabled())
 			{
 				apFromVrt = m_vertexAttachmentPipes[indexFrom];
+				apFromEdge = m_edgeAttachmentPipes[indexFrom];
+				apFromFace = m_faceAttachmentPipes[indexFrom];
+				apFromVol = m_volumeAttachmentPipes[indexFrom];
 			}
 				
 		//	assign new indices to elements in from subset (no iterators are changed)
@@ -474,6 +494,9 @@ move_subset(int indexFrom, int indexTo)
 			if(subset_attachments_are_enabled())
 			{
 				m_vertexAttachmentPipes[indexTo] = apFromVrt;
+				m_edgeAttachmentPipes[indexTo] = apFromEdge;
+				m_faceAttachmentPipes[indexTo] = apFromFace;
+				m_volumeAttachmentPipes[indexTo] = apFromVol;
 			}
 
 		//	move the subsets lists
@@ -490,37 +513,32 @@ move_subset(int indexFrom, int indexTo)
 void ISubsetHandler::
 resize_attachment_pipes(size_t newSize)
 {
-	while(newSize <= m_vertexAttachmentPipes.size())
+	while(m_vertexAttachmentPipes.size() < newSize)
 		m_vertexAttachmentPipes.push_back(VertexAttachmentPipe(this));
-		
-/*code for grow only
-	if(newSize <= m_attachmentPipes[0].size())
-		return;
-		
-	for(int i = 0; i < NUM_GEOMETRIC_BASE_OBJECTS; ++i)
-	{
-		size_t tSize = m_attachmentPipes[i].size();
-		if(tSize == 0)
-			tSize = 1;
-
-		while(tSize < newSize)
-			tSize *= 2;
-		
-		m_attachmentPipes[i].resize(tSize);
-	}
-*/
+	while(m_edgeAttachmentPipes.size() < newSize)
+		m_edgeAttachmentPipes.push_back(EdgeAttachmentPipe(this));
+	while(m_faceAttachmentPipes.size() < newSize)
+		m_faceAttachmentPipes.push_back(FaceAttachmentPipe(this));
+	while(m_volumeAttachmentPipes.size() < newSize)
+		m_volumeAttachmentPipes.push_back(VolumeAttachmentPipe(this));
 }
 
 void ISubsetHandler::
 clear_attachment_pipes()
 {
 	m_vertexAttachmentPipes.clear();
+	m_edgeAttachmentPipes.clear();
+	m_faceAttachmentPipes.clear();
+	m_volumeAttachmentPipes.clear();
 }
 
 void ISubsetHandler::
 clear_attachment_pipes(int subsetIndex)
 {
 	m_vertexAttachmentPipes[subsetIndex].clear();
+	m_edgeAttachmentPipes[subsetIndex].clear();
+	m_faceAttachmentPipes[subsetIndex].clear();
+	m_volumeAttachmentPipes[subsetIndex].clear();
 }
 
 void ISubsetHandler::
@@ -528,12 +546,14 @@ enable_subset_attachments(bool bEnable)
 {
 	if(bEnable &! subset_attachments_are_enabled())
 	{
+		LOG("  enabling...\n");
 	//	enable subset-attachments.
 		m_bSubsetAttachmentsEnabled = true;
 	//	attach data-indices to the elements
 //TODO:	allow subset-attachments for vertices, edges, faces and volumes separately.
 		if(m_pGrid)
 		{
+			LOG("  attaching data...\n");
 			m_pGrid->attach_to_vertices(m_aDataIndex);
 			m_pGrid->attach_to_edges(m_aDataIndex);
 			m_pGrid->attach_to_faces(m_aDataIndex);
@@ -544,10 +564,12 @@ enable_subset_attachments(bool bEnable)
 			m_aaDataIndVOL.access(*m_pGrid, m_aDataIndex);
 			
 			resize_attachment_pipes(num_subset_infos());
+		//	tell the derived class that it should register all
+		//	of its elements at the pipe.
+			register_subset_elements_at_pipe();
 		}
 	}
 }
-
 
 ////////////////////////////////////////////////////////////////////////
 //	grid callbacks
@@ -569,12 +591,12 @@ registered_at_grid(Grid* grid)
 		enable_element_support(tmpOpts);
 
 	//	enable attachments - if required
-		if(m_bSubsetAttachmentsEnabled)
+		if(subset_attachments_are_enabled())
 		{
 			m_bSubsetAttachmentsEnabled = false;
 			enable_subset_attachments(true);
 		}
-		
+
 	//DEBUG: log m_supportedElements
 		//LOG("supported elements after registration: " << m_supportedElements << "\n");
 	}
@@ -606,7 +628,7 @@ unregistered_from_grid(Grid* grid)
 		//	clear pipes
 			clear_attachment_pipes();
 		}
-		
+	
 	//DEBUG: log m_supportedElements
 		//LOG("supported elements after deregistration: " << m_supportedElements << "\n");
 		m_pGrid = NULL;

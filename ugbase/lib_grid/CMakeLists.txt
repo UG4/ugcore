@@ -43,11 +43,11 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_ug.cpp
 				file_io/file_io.cpp)
 								
-set(srcLibGrid	common_attachments.cpp
-				subset_handler_interface.cpp
+set(srcLibGrid	subset_handler_interface.cpp
 				subset_handler_grid.cpp
 				subset_handler_multi_grid.cpp
 				geometric_objects.cpp
+				common_attachments.cpp
 				multi_grid.cpp
 				selector.cpp
 				selection_policies.cpp
@@ -102,7 +102,7 @@ set(srcNg
 )
 
 #the real library					
-add_library(grid 	${srcGrid} ${srcLibGrid}
+add_library(grid 	${srcLibGrid} ${srcGrid}
 					${srcParallelization}
 					${srcFileIO} ${srcAlgorithms}
 					${srcTetgen} ${srcLgm} ${srcNg})

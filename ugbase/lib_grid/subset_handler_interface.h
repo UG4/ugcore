@@ -13,6 +13,9 @@
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+//	predeclarations
+class ISubsetHandler;
 
 ////////////////////////////////////////////////////////////////////////
 //	SubsetHandlerElements
@@ -67,6 +70,77 @@ struct SubsetInfo
 	uint		subsetState;///< an or-combination of SubsetState flags.
 };
 
+
+////////////////////////////////////////////////////////////////////////
+//	specialization of attachment_traits for VertexBase
+template<>
+class attachment_traits<VertexBase*, ISubsetHandler>
+{
+	public:
+		typedef VertexBase*&			ElemRef;
+		typedef VertexBase*				ElemPtr;
+		typedef const VertexBase*		ConstElemPtr;
+		typedef ISubsetHandler*			ElemHandlerPtr;
+		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
+};
+
+//	specialization of attachment_traits for EdgeBase
+template<>
+class attachment_traits<EdgeBase*, ISubsetHandler>
+{
+	public:
+		typedef EdgeBase*&				ElemRef;
+		typedef EdgeBase*				ElemPtr;
+		typedef const EdgeBase*			ConstElemPtr;
+		typedef ISubsetHandler*			ElemHandlerPtr;
+		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
+};
+
+//	specialization of attachment_traits for Face
+template<>
+class attachment_traits<Face*, ISubsetHandler>
+{
+	public:
+		typedef Face*&					ElemRef;
+		typedef Face*					ElemPtr;
+		typedef const Face*				ConstElemPtr;
+		typedef ISubsetHandler*			ElemHandlerPtr;
+		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
+};
+
+//	specialization of attachment_traits for Volume
+template<>
+class attachment_traits<Volume*, ISubsetHandler>
+{
+	public:
+		typedef Volume*&				ElemRef;
+		typedef Volume*					ElemPtr;
+		typedef const Volume*			ConstElemPtr;
+		typedef ISubsetHandler*			ElemHandlerPtr;
+		typedef const ISubsetHandler*	ConstElemHandlerPtr;
+
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem);
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index);
+};
+
+
 ////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler
 /**
@@ -77,34 +151,37 @@ struct SubsetInfo
  * virtual void assign_subset(Face* elem, int subsetIndex)
  * virtual void assign_subset(Volume* elem, int subsetIndex)
  * </code>
+ *
  * In those methods 
- * 
  * Derived classes have to store the objects that are selected for
  * a subset in a ISubsetHandler::SectionContainer. Note that multiple
  * SectionContainers per subset may be used.
+ *
+ * A SubsetHandler also supports subset-attachments.
+ * That means that you can attach data to the elements of a subset.
+ * Use attach_to_vertices, attach_to_edges, ... to attach data to
+ * the elements of the subset.
+ * use ISubsetHandler::VertexAttachmentAccessor, ... to access the 
+ * attached data.
+ * Please note that you may only use a subset-attachment-accessor
+ * with elements that are contained in the subset for which the
+ * accessor has been created.
+ *
+ * Subset-attachments currently do not support pass-on behaviours.
  */
 class ISubsetHandler : public GridObserver
 {
 	friend class attachment_traits<VertexBase*, ISubsetHandler>;
-	
+	friend class attachment_traits<EdgeBase*, ISubsetHandler>;
+	friend class attachment_traits<Face*, ISubsetHandler>;
+	friend class attachment_traits<Volume*, ISubsetHandler>;
+
 	public:
 		typedef AttachmentPipe<VertexBase*, ISubsetHandler>	VertexAttachmentPipe;
-/*
-	///	the generic attachment-accessor for access to subset attachment pipes.
-		template <class TElem, class TAttachment>
-		class AttachmentAccessor : public ug::AttachmentAccessor<TElem*, TAttachment, ISubsetHandler>
-		{
-			protected:
-				typedef ug::AttachmentAccessor<TElem*, TAttachment, ISubsetHandler>	BaseClass;
-			public:
-				AttachmentAccessor();
-				AttachmentAccessor(const AttachmentAccessor& aa) : BaseClass(aa)	{}
-				AttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_attachment_pipe<TElem>(subsetIndex), a)	{}
+		typedef AttachmentPipe<EdgeBase*, ISubsetHandler>	EdgeAttachmentPipe;
+		typedef AttachmentPipe<Face*, ISubsetHandler>		FaceAttachmentPipe;
+		typedef AttachmentPipe<Volume*, ISubsetHandler>		VolumeAttachmentPipe;
 
-				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
-					{BaseClass::access(sh.get_attachment_pipe<TElem>(subsetIndex), a);}
-		};
-*/
 	public:
 	///	pass an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
@@ -217,16 +294,19 @@ class ISubsetHandler : public GridObserver
 	 *	The iterator can later be retrieved with get_list_iterator(...).
 	 *	The index can be retrieved with get_subset_index(...).*/
 		virtual void assign_subset(VertexBase* elem, int subsetIndex) = 0;
+
 	/**	The implementation in a derived class should store the element in a list
 	 *	and call subset_assigned with the iterators position and the subset-index.
 	 *	The iterator can later be retrieved with get_list_iterator(...).
 	 *	The index can be retrieved with get_subset_index(...).*/
 		virtual void assign_subset(EdgeBase* elem, int subsetIndex) = 0;
+
 	/**	The implementation in a derived class should store the element in a list
 	 *	and call subset_assigned with the iterators position and the subset-index.
 	 *	The iterator can later be retrieved with get_list_iterator(...).
 	 *	The index can be retrieved with get_subset_index(...).*/
 		virtual void assign_subset(Face* elem, int subsetIndex) = 0;
+
 	/**	The implementation in a derived class should store the element in a list
 	 *	and call subset_assigned with the iterators position and the subset-index.
 	 *	The iterator can later be retrieved with get_list_iterator(...).
@@ -246,6 +326,50 @@ class ISubsetHandler : public GridObserver
 	///	returns true if subset-attachments are enabled.
 		inline bool subset_attachments_are_enabled()	{return m_bSubsetAttachmentsEnabled;};
 
+		inline uint get_attachment_data_index(const VertexBase* v) const	{return m_aaDataIndVRT[v];}
+		inline uint get_attachment_data_index(const EdgeBase* e) const		{return m_aaDataIndEDGE[e];}
+		inline uint get_attachment_data_index(const Face* f) const			{return m_aaDataIndFACE[f];}
+		inline uint get_attachment_data_index(const Volume* v) const		{return m_aaDataIndVOL[v];}
+
+	///	attach with unspecified default value.
+	/**	Pass either VertexBase, EdgeBase, Face or Volume as TGeomObjClass.*/
+		template <class TGeomObjClass>
+		inline void attach_to(IAttachment& attachment, int subsetIndex);
+
+	///	attach with specified default value
+	/**	Pass either VertexBase, EdgeBase, Face or Volume as TGeomObjClass.*/
+		template <class TGeomObjClass, class TAttachment>
+		void attach_to_dv(TAttachment& attachment, int subsetIndex,
+						const typename TAttachment::ValueType& defaultValue);
+
+	//	detach
+	/**	Pass either VertexBase, EdgeBase, Face or Volume as TGeomObjClass.*/
+		template <class TGeomObjClass>
+		void detach_from(IAttachment& attachment, int subsetIndex);
+
+	////////////////////////////////
+	//	attachments helper
+	//	attach with attachments default pass-on behaviour
+		inline void attach_to_vertices(IAttachment& attachment, int subsetIndex)	{attach_to<VertexBase>(attachment, subsetIndex);}
+		inline void attach_to_edges(IAttachment& attachment, int subsetIndex)		{attach_to<EdgeBase>(attachment, subsetIndex);}
+		inline void attach_to_faces(IAttachment& attachment, int subsetIndex)		{attach_to<Face>(attachment, subsetIndex);}
+		inline void attach_to_volumes(IAttachment& attachment, int subsetIndex)		{attach_to<Volume>(attachment, subsetIndex);}
+
+	//	attach with default value and attachments default pass-on behaviour
+		template <class TAttachment>
+		inline void attach_to_vertices_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<VertexBase>(attachment, subsetIndex, defaultValue);}
+		template <class TAttachment>
+		inline void attach_to_edges_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<EdgeBase>(attachment, subsetIndex, defaultValue);}
+		template <class TAttachment>
+		inline void attach_to_faces_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<Face>(attachment, subsetIndex, defaultValue);}
+		template <class TAttachment>
+		inline void attach_to_volumes_dv(TAttachment& attachment, int subsetIndex, const typename TAttachment::ValueType& defaultValue)		{attach_to_dv<Volume>(attachment, subsetIndex, defaultValue);}
+
+	//	detach
+		inline void detach_from_vertices(IAttachment& attachment, int subsetIndex)	{detach_from<VertexBase>(attachment, subsetIndex);}
+		inline void detach_from_edges(IAttachment& attachment, int subsetIndex)		{detach_from<EdgeBase>(attachment, subsetIndex);}
+		inline void detach_from_faces(IAttachment& attachment, int subsetIndex)		{detach_from<Face>(attachment, subsetIndex);}
+		inline void detach_from_volumes(IAttachment& attachment, int subsetIndex)	{detach_from<Volume>(attachment, subsetIndex);}
 
 	protected:
 		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
@@ -298,12 +422,6 @@ class ISubsetHandler : public GridObserver
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
 		inline void alter_subset_index(Volume* v, int subsetIndex)		{m_aaSubsetIndexVOL[v] = subsetIndex;}
 		
-/*
-		template <class TGeomObj>
-		VertexAttachmentPipe&
-		get_attachment_pipe(int subsetIndex);
-*/
-		
 		virtual void erase_subset_lists() = 0;
 		
 		virtual void clear_subset_lists(int index) = 0;
@@ -326,31 +444,144 @@ class ISubsetHandler : public GridObserver
 	
 	////////////////////////////////
 	//	attachments
-/*
-		inline int get_data_index(const VertexBase* v)	{return m_aaDataIndVRT[v];}
-		inline void set_data_index(VertexBase* v, int index)	{m_aaDataIndVRT[v] = index;}
-		inline int get_data_index(const EdgeBase* e)		{return m_aaDataIndEDGE[e];}
-		inline void set_data_index(EdgeBase* e, int index)		{m_aaDataIndEDGE[e] = index;}
-		inline int get_data_index(const Face* f)			{return m_aaDataIndFACE[f];}
-		inline void set_data_index(Face* f, int index)			{m_aaDataIndFACE[f] = index;}
-		inline int get_data_index(const Volume* v)		{return m_aaDataIndVOL[v];}
-		inline void set_data_index(Volume* v, int index)		{m_aaDataIndVOL[v] = index;}
-*/
+		inline void set_attachment_data_index(VertexBase* v, uint index)	{m_aaDataIndVRT[v] = index;}
+		inline void set_attachment_data_index(EdgeBase* e, uint index)		{m_aaDataIndEDGE[e] = index;}
+		inline void set_attachment_data_index(Face* f, uint index)			{m_aaDataIndFACE[f] = index;}
+		inline void set_attachment_data_index(Volume* v, uint index)		{m_aaDataIndVOL[v] = index;}
+
 		void resize_attachment_pipes(size_t newSize);
 		void clear_attachment_pipes(int subsetIndex);
 		void clear_attachment_pipes();
+	
+		inline VertexAttachmentPipe& get_vertex_attachment_pipe(int subsetIndex);
+		inline EdgeAttachmentPipe& get_edge_attachment_pipe(int subsetIndex);
+		inline FaceAttachmentPipe& get_face_attachment_pipe(int subsetIndex);
+		inline VolumeAttachmentPipe& get_volume_attachment_pipe(int subsetIndex);
+
+	////////////////////////////////
+	//	virtual methods for attachments
+	///	this method is called by ISubsetHandler when attachment_support has been enabled.
+	/**	derived classes have to implement this method.
+	 *	during this method they have to call register_at_pipe for all elements
+	 *	that are contained in one of the subsets.
+	 *	WARNING: This method is cruical for the attachment system.
+	 *	You should never call it yourself.*/
+		virtual void register_subset_elements_at_pipe() = 0;
 		
+	///	this method should be called during \sa register_subset_elements_at_pipe.
+	/**	WARNING: This method is cruical for the attachment system.
+	 *	You should only call it during \sa register_subset_elements_at_pipe
+	 *	Only call this method for elements that are contained in a subset.*/
+		inline void register_at_pipe(VertexBase* elem)	{m_vertexAttachmentPipes[get_subset_index(elem)].register_element(elem);}
+
+	///	this method should be called during \sa register_subset_elements_at_pipe.
+	/**	WARNING: This method is cruical for the attachment system.
+	 *	You should only call it during \sa register_subset_elements_at_pipe
+	 *	Only call this method for elements that are contained in a subset.*/
+		inline void register_at_pipe(EdgeBase* elem)	{m_edgeAttachmentPipes[get_subset_index(elem)].register_element(elem);}
+
+	///	this method should be called during \sa register_subset_elements_at_pipe.
+	/**	WARNING: This method is cruical for the attachment system.
+	 *	You should only call it during \sa register_subset_elements_at_pipe
+	 *	Only call this method for elements that are contained in a subset.*/
+		inline void register_at_pipe(Face* elem)		{m_faceAttachmentPipes[get_subset_index(elem)].register_element(elem);}
+
+	///	this method should be called during \sa register_subset_elements_at_pipe.
+	/**	WARNING: This method is cruical for the attachment system.
+	 *	You should only call it during \sa register_subset_elements_at_pipe
+	 *	Only call this method for elements that are contained in a subset.*/
+		inline void register_at_pipe(Volume* elem)		{m_volumeAttachmentPipes[get_subset_index(elem)].register_element(elem);}
+
+	public:
+	///	vertex attachment-accessor for access to subset attachment pipes.
+	/**	Please note that the accessor may only be used on elements of the
+	 *	subset on which it operates. Use on elements of other subsets
+	 *	may cause severe problems and subtile errors.*/
+		template <class TAttachment>
+		class VertexAttachmentAccessor : public ug::AttachmentAccessor<VertexBase*, TAttachment, ISubsetHandler>
+		{
+			protected:
+				typedef ug::AttachmentAccessor<VertexBase*, TAttachment, ISubsetHandler>	BaseClass;
+			public:
+				VertexAttachmentAccessor()	{}
+				VertexAttachmentAccessor(const VertexAttachmentAccessor& aa) : BaseClass(aa)	{}
+				VertexAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_vertex_attachment_pipe(subsetIndex), a)	{}
+
+				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
+					{BaseClass::access(sh.get_vertex_attachment_pipe(subsetIndex), a);}
+		};
+
+	///	edge attachment-accessor for access to subset attachment pipes.
+	/**	Please note that the accessor may only be used on elements of the
+	 *	subset on which it operates. Use on elements of other subsets
+	 *	may cause severe problems and subtile errors.*/
+		template <class TAttachment>
+		class EdgeAttachmentAccessor : public ug::AttachmentAccessor<EdgeBase*, TAttachment, ISubsetHandler>
+		{
+			protected:
+				typedef ug::AttachmentAccessor<EdgeBase*, TAttachment, ISubsetHandler>	BaseClass;
+			public:
+				EdgeAttachmentAccessor()	{}
+				EdgeAttachmentAccessor(const EdgeAttachmentAccessor& aa) : BaseClass(aa)	{}
+				EdgeAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_edge_attachment_pipe(subsetIndex), a)	{}
+
+				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
+					{BaseClass::access(sh.get_edge_attachment_pipe(subsetIndex), a);}
+		};
+
+	///	face attachment-accessor for access to subset attachment pipes.
+	/**	Please note that the accessor may only be used on elements of the
+	 *	subset on which it operates. Use on elements of other subsets
+	 *	may cause severe problems and subtile errors.*/
+		template <class TAttachment>
+		class FaceAttachmentAccessor : public ug::AttachmentAccessor<Face*, TAttachment, ISubsetHandler>
+		{
+			protected:
+				typedef ug::AttachmentAccessor<Face*, TAttachment, ISubsetHandler>	BaseClass;
+			public:
+				FaceAttachmentAccessor()	{}
+				FaceAttachmentAccessor(const FaceAttachmentAccessor& aa) : BaseClass(aa)	{}
+				FaceAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_face_attachment_pipe(subsetIndex), a)	{}
+
+				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
+					{BaseClass::access(sh.get_face_attachment_pipe(subsetIndex), a);}
+		};
+
+	///	volume attachment-accessor for access to subset attachment pipes.
+	/**	Please note that the accessor may only be used on elements of the
+	 *	subset on which it operates. Use on elements of other subsets
+	 *	may cause severe problems and subtile errors.*/
+		template <class TAttachment>
+		class VolumeAttachmentAccessor : public ug::AttachmentAccessor<Volume*, TAttachment, ISubsetHandler>
+		{
+			protected:
+				typedef ug::AttachmentAccessor<Volume*, TAttachment, ISubsetHandler>	BaseClass;
+			public:
+				VolumeAttachmentAccessor()	{}
+				VolumeAttachmentAccessor(const VolumeAttachmentAccessor& aa) : BaseClass(aa)	{}
+				VolumeAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_volume_attachment_pipe(subsetIndex), a)	{}
+
+				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
+					{BaseClass::access(sh.get_volume_attachment_pipe(subsetIndex), a);}
+		};
+
 	protected:
 		typedef AInt					ASubsetIndex;
 		typedef Attachment<iterator>	AIterator;
-		typedef AInt					ADataIndex;
+		typedef Attachment<uint>		ADataIndex;
 		typedef std::vector<SubsetInfo>	SubsetInfoVec;
 		typedef std::vector<VertexAttachmentPipe>	VertexAttachmentPipeVec;
-		
+		typedef std::vector<EdgeAttachmentPipe>		EdgeAttachmentPipeVec;
+		typedef std::vector<FaceAttachmentPipe>		FaceAttachmentPipeVec;
+		typedef std::vector<VolumeAttachmentPipe>	VolumeAttachmentPipeVec;
+
 	protected:
 		Grid*				m_pGrid;
 		VertexAttachmentPipeVec	m_vertexAttachmentPipes;
-		
+		EdgeAttachmentPipeVec	m_edgeAttachmentPipes;
+		FaceAttachmentPipeVec	m_faceAttachmentPipes;
+		VolumeAttachmentPipeVec	m_volumeAttachmentPipes;
+
 		SubsetInfoVec	m_subsetInfos;
 		uint			m_supportedElements;
 
@@ -377,96 +608,11 @@ class ISubsetHandler : public GridObserver
 		Grid::FaceAttachmentAccessor<ADataIndex>		m_aaDataIndFACE;
 		Grid::VolumeAttachmentAccessor<ADataIndex>		m_aaDataIndVOL;
 };
-/*
-////////////////////////////////////////////////////////////////////////
-//	specialization of attachment_traits for libGrid::GeometricObject
-template<>
-class attachment_traits<VertexBase*, ISubsetHandler>
-{
-	public:
-		static inline uint get_data_index(ISubsetHandler* pHandler, const VertexBase* elem)	{return pHandler->get_data_index(elem);}
-		static inline void set_data_index(ISubsetHandler* pHandler, VertexBase* elem, uint index)	{pHandler->set_data_index(elem, index);}
-};
-*/
 
-inline void ISubsetHandler::
-subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
-{
-/*
-	if(subset_attachments_are_enabled())
-	{
-		if(get_subset_index(v) != -1)
-			m_attachmentPipes[VERTEX][subsetIndex].unregister_element(v);
-			
-		if(subsetIndex != -1)
-			m_attachmentPipes[VERTEX][subsetIndex].register_element(v);
-	}
-*/
-	m_aaIteratorVRT[v] = iter;
-	m_aaSubsetIndexVRT[v] = subsetIndex;
-}
-
-inline void ISubsetHandler::
-subset_assigned(EdgeBase* e, iterator iter, int subsetIndex)
-{
-	m_aaIteratorEDGE[e] = iter;
-	m_aaSubsetIndexEDGE[e] = subsetIndex;
-}
-
-inline void 
-ISubsetHandler::
-subset_assigned(Face* f, iterator iter, int subsetIndex)
-{
-	m_aaIteratorFACE[f] = iter;
-	m_aaSubsetIndexFACE[f] = subsetIndex;
-}
-
-inline void 
-ISubsetHandler::
-subset_assigned(Volume* v, iterator iter, int subsetIndex)
-{
-	m_aaIteratorVOL[v] = iter;
-	m_aaSubsetIndexVOL[v] = subsetIndex;
-}
-
-template <class TIterator>
-void ISubsetHandler::
-assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex)
-{
-	typename TIterator::value_type elem;
-	while(iterBegin != iterEnd)
-	{
-		elem = *iterBegin;
-		++iterBegin;
-		assign_subset(elem, subsetIndex);
-	}
-}
-
-inline void
-ISubsetHandler::
-subset_info_required(int index)
-{
-	if(index >= (int)m_subsetInfos.size())
-		create_required_subset_infos(index);
-}
-
-/*
-template <class TGeomObj>
-ISubsetHandler::VertexAttachmentPipe&
-ISubsetHandler::get_attachment_pipe(int subsetIndex)
-{
-	assert(m_bSubsetAttachmentsEnabled && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-	
-	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
-			invalid_GeomObj);
-
-	return m_attachmentPipes[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID][subsetIndex];
-}
-*/
 }//	end of namespace
 
 ////////////////////////////////////////////////
 //	include implementation
-//#include "subset_handler_base_impl.hpp"
+#include "subset_handler_interface_impl.hpp"
 
 #endif

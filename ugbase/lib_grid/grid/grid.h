@@ -318,7 +318,7 @@ class Grid
 	////////////////////////////////////////////////
 	//	attachments
 	////////////////////////////////////////////////////////////////////////
-	//	attach with custom pass-on-behaviour and unspecified default value.
+	///	attach with custom pass-on-behaviour and unspecified default value.
 		template <class TGeomObjClass>
 		void attach_to(IAttachment& attachment, bool passOnValues);
 
@@ -328,7 +328,7 @@ class Grid
 		inline void attach_to_volumes(IAttachment& attachment, bool passOnValues)		{attach_to<Volume>(attachment, passOnValues);}
 
 	////////////////////////////////////////////////////////////////////////
-	//	attach with default pass-on behaviour and unspecified default value.
+	///	attach with default pass-on behaviour and unspecified default value.
 		template <class TGeomObjClass>
 		inline void attach_to(IAttachment& attachment)	{attach_to<TGeomObjClass>(attachment, attachment.default_pass_on_behaviour());}
 
@@ -343,20 +343,13 @@ class Grid
 		void attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue);
 
 		template <class TAttachment>
-		inline void attach_to_vertices_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)
-		{attach_to_dv<VertexBase>(attachment, defaultValue);}
-
+		inline void attach_to_vertices_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<VertexBase>(attachment, defaultValue);}
 		template <class TAttachment>
-		inline void attach_to_edges_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)
-		{attach_to_dv<EdgeBase>(attachment, defaultValue);}
-
+		inline void attach_to_edges_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<EdgeBase>(attachment, defaultValue);}
 		template <class TAttachment>
-		inline void attach_to_faces_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)
-		{attach_to_dv<Face>(attachment, defaultValue);}
-
+		inline void attach_to_faces_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Face>(attachment, defaultValue);}
 		template <class TAttachment>
-		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)
-		{attach_to_dv<Volume>(attachment, defaultValue);}
+		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue)	{attach_to_dv<Volume>(attachment, defaultValue);}
 
 	////////////////////////////////////////////////////////////////////////
 	//	attach with specified default value and custom pass-on behaviour
@@ -364,20 +357,13 @@ class Grid
 		void attach_to_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues);
 
 		template <class TAttachment>
-		inline void attach_to_vertices_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)
-		{attach_to_dv<VertexBase>(attachment, defaultValue, passOnValues);}
-
+		inline void attach_to_vertices_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)	{attach_to_dv<VertexBase>(attachment, defaultValue, passOnValues);}
 		template <class TAttachment>
-		inline void attach_to_edges_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)
-		{attach_to_dv<EdgeBase>(attachment, defaultValue, passOnValues);}
-
+		inline void attach_to_edges_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)		{attach_to_dv<EdgeBase>(attachment, defaultValue, passOnValues);}
 		template <class TAttachment>
-		inline void attach_to_faces_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)
-		{attach_to_dv<Face>(attachment, defaultValue, passOnValues);}
-
+		inline void attach_to_faces_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)		{attach_to_dv<Face>(attachment, defaultValue, passOnValues);}
 		template <class TAttachment>
-		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)
-		{attach_to_dv<Volume>(attachment, defaultValue, passOnValues);}
+		inline void attach_to_volumes_dv(TAttachment& attachment, const typename TAttachment::ValueType& defaultValue, bool passOnValues)	{attach_to_dv<Volume>(attachment, defaultValue, passOnValues);}
 
 	////////////////////////////////////////////////////////////////////////
 	//	detach

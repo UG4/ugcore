@@ -1,3 +1,15 @@
+@rev 106: sreiter - y10 m01 d12
+-	attachment_traits have been generalized for better
+	const-correctness and to support a broader range of
+	types in the AttachmentPipe.
+
+-	ISubsetHandler has now been enhanced by attachments.
+	You may now attach data to the elements of a subset.
+	Pass-On behaviour is not yet supported (probably should
+	be removed from libGrid anyway).
+	
+-	Subset-attachments are not yet fully debugged and tested.
+
 @rev 97: sreiter - y09 m12 d17
 -	SubsetHandler and MGSubsetHandler are now both usable.
 	Both share a common interface ISubsetHandler.
@@ -11,7 +23,7 @@
 	in the moment.
 
 @rev ??: sreiter - ??
--    	 The selector has been reworked and has now been implemented
+-    The selector has been reworked and has now been implemented
 	 using policy based design.
 	 A specialization for normal Grids (Selector) and for MultiGrids
 	 (MGSelector) exists.

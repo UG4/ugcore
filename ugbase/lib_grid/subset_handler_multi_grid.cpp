@@ -181,6 +181,37 @@ void MultiGridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 	}
 }
 
+void MultiGridSubsetHandler::
+register_subset_elements_at_pipe()
+{
+	for(int l = 0; l < num_levels(); ++l)
+	{
+		for(int i = 0; i < num_subsets(); ++i)
+		{
+		//	register vertices
+			for(VertexBaseIterator iter = begin<VertexBase>(i, l);
+				iter != end<VertexBase>(i, l); ++iter)
+				register_at_pipe(*iter);
+
+		//	register edges
+			for(EdgeBaseIterator iter = begin<EdgeBase>(i, l);
+				iter != end<EdgeBase>(i, l); ++iter)
+				register_at_pipe(*iter);
+
+		//	register faces
+			for(FaceIterator iter = begin<Face>(i, l);
+				iter != end<Face>(i, l); ++iter)
+				register_at_pipe(*iter);
+
+		//	register volumes
+			for(VolumeIterator iter = begin<Volume>(i, l);
+				iter != end<Volume>(i, l); ++iter)
+				register_at_pipe(*iter);
+		}
+	}
+}
+
+
 GeometricObjectCollection
 MultiGridSubsetHandler::
 get_goc(int subsetIndex, int level)

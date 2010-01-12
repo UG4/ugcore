@@ -8,6 +8,7 @@
 #include <list>
 #include <vector>
 #include <stack>
+#include "../static_assert.h"
 #include "../types.h"
 #include "uid.h"
 #include "hash.h"
@@ -201,6 +202,31 @@ struct AttachmentEntry
 	uint						m_userData;
 };
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+///	attachment_traits define the interface that enables you to use your own data-types with the AttachmentPipe.
+/**
+ * Perform template-specialization for your own data-types and their respective handlers.
+ */
+template<class TElem, class TElemHandler>
+class attachment_traits
+{
+	public:
+		typedef TElem&		ElemRef;
+		typedef void*		ElemPtr;
+		typedef const void* ConstElemPtr;
+		typedef void*		ElemHandlerPtr;
+		typedef const void*	ConstElemHandlerPtr;
+
+	///	mark the element as invalid.
+	/**	You may do something like elem = NULL, if TElem is a pointer type.*/
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);}
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)	{STATIC_ASSERT(0, INVALID_ATTACHMENT_TRAITS);};
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	AttachmentPipe
 ///	Handles data which has been attached to the pipe using callbacks for the element.
@@ -223,13 +249,14 @@ class AttachmentPipe
 		typedef std::list<AttachmentEntry>			AttachmentEntryContainer;
 		typedef AttachmentEntryContainer::iterator	AttachmentEntryIterator;
 		typedef AttachmentEntryContainer::const_iterator	ConstAttachmentEntryIterator;
-		typedef Hash<AttachmentEntryIterator, uint>	AttachmentEntryIteratorHash;
+		typedef Hash<AttachmentEntryIterator, uint>		AttachmentEntryIteratorHash;
+		typedef attachment_traits<TElem, TElemHandler>	atraits;
 
 	public:
 		AttachmentPipe() : m_pHandler(NULL)	{}
-		AttachmentPipe(TElemHandler* pHandler) : m_pHandler(pHandler)	{}
+		AttachmentPipe(typename atraits::ElemHandlerPtr pHandler) : m_pHandler(pHandler)	{}
 		
-		inline TElemHandler* get_elem_handler()		{return m_pHandler;}
+		inline typename atraits::ElemHandlerPtr get_elem_handler()		{return m_pHandler;}
 		
 		void clear();
 		void clear_elements();
@@ -284,21 +311,9 @@ class AttachmentPipe
 
 		uint			m_numElements;
 		
-		TElemHandler*	m_pHandler;
+		typename atraits::ElemHandlerPtr	m_pHandler;
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-///	attachment_traits define the interface that enables you to use your own data-types with the AttachmentPipe.
-/**
- * Perform template-specialization for your own data-types and their respective handlers.
- */
-template<class TElem, class TElemHandler>
-class attachment_traits
-{
-	public:
-		static inline uint get_data_index(TElemHandler* pHandler, const TElem& elem)	{return INVALID_ATTACHMENT_INDEX;}
-		static inline void set_data_index(TElemHandler* pHandler, TElem elem, uint index)	{};
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	AttachmentAccessor
@@ -312,6 +327,7 @@ class AttachmentAccessor
 {
 	public:
 		typedef typename TAttachment::ValueType		ValueType;
+		typedef attachment_traits<TElem, TElemHandler>	atraits;
 
 	public:
 		AttachmentAccessor();
@@ -321,7 +337,7 @@ class AttachmentAccessor
 		void access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
 
 		inline ValueType&
-		operator[](const TElem& elem)
+		operator[](typename atraits::ConstElemPtr elem)
 			{
 				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&
 						"ERROR in AttachmentAccessor::operator[]: accessing element with invalid attachment index!");
@@ -330,7 +346,7 @@ class AttachmentAccessor
 			}
 			
 		inline const ValueType&
-		operator[](const TElem& elem) const
+		operator[](typename atraits::ConstElemPtr elem) const
 			{
 				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&
 						"ERROR in AttachmentAccessor::operator[]: accessing element with invalid attachment index!");

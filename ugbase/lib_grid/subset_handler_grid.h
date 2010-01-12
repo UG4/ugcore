@@ -91,7 +91,7 @@ class GridSubsetHandler : public ISubsetHandler
 		
 	protected:
 	////////////////////////////////////////////////
-	//	implementation of public virtual methdos of ISubsetHandler.
+	//	implementation of protected virtual methdos of ISubsetHandler.
 	///	erases the subsets. Doesn't alter any indices.
 		void erase_subset_lists();
 		
@@ -116,6 +116,9 @@ class GridSubsetHandler : public ISubsetHandler
 
 	///	moves the subset but does not touch the subset-indices.
 		void move_subset_lists(int indexFrom, int indexTo);
+
+	///	this method is called by ISubsetHandler when attachment_support has been enabled.
+		void register_subset_elements_at_pipe();
 
 	////////////////////////////////////////////////
 	//	protected helper methods

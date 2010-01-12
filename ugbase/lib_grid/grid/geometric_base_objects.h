@@ -802,8 +802,16 @@ template<>
 class attachment_traits<GeometricObject*, Grid>
 {
 	public:
-		static inline uint get_data_index(Grid* pHandler, const GeometricObject* elem)	{return elem->m_gridDataIndex;}
-		static inline void set_data_index(Grid* pHandler, GeometricObject* elem, uint index)	{elem->m_gridDataIndex = index;}
+		typedef GeometricObject*&		ElemRef;
+		typedef GeometricObject*		ElemPtr;
+		typedef const GeometricObject*	ConstElemPtr;
+		typedef Grid*					ElemHandlerPtr;
+		typedef const Grid*				ConstElemHandlerPtr;
+
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
+		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return elem->m_gridDataIndex;}
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)	{elem->m_gridDataIndex = index;}
 };
 
 

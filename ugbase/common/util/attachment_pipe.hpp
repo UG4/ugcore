@@ -96,7 +96,7 @@ unregister_element(const TElem& elem)
 //	get the attachment index
 	uint ind = ATRAITS::get_data_index(m_pHandler, elem);
 //	clear the entry
-	m_vEntries[ind] = NULL;
+	atraits::template invalidate_entry(m_pHandler, m_vEntries[ind]);
 //	store the index in the stack of free entries
 	m_stackFreeEntries.push(ind);
 //	decrease element count
@@ -237,20 +237,30 @@ defragment()
 	{
 	//	calculate the fragmentation array. It has to be of the same size as the fragmented data containers.
 		std::vector<uint> vNewIndices(num_data_entries(), INVALID_ATTACHMENT_INDEX);
+
 	//	iterate through the elements and calculate the new index of each
 		uint counter = 0;
 		{
 			typename ElemEntryVec::iterator iter;
+			typename ElemEntryVec::iterator copyHere = m_vEntries.begin();
 			for(iter = m_vEntries.begin(); iter != m_vEntries.end(); ++iter)
 			{
-				if((*iter) != NULL)
+				if(!atraits::template entry_is_invalid(*iter))
 				{
 					vNewIndices[ATRAITS::get_data_index(m_pHandler, (*iter))] = counter;
 					ATRAITS::set_data_index(m_pHandler, (*iter), counter);
 					++counter;
+
+				//	copy entries
+					*copyHere = *iter;
+					++copyHere;
 				}
 			}
+
+		//	resize m_vEntries
+			m_vEntries.resize(counter);
 		}
+
 	//	now iterate through the attached data-containers and defragment each one.
 		{
 			for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
