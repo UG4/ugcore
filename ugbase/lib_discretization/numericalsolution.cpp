@@ -15,9 +15,21 @@ namespace ug{
 
 DoFPattern::DoFPattern(std::string name, ISubsetHandler& sh)
 {
+	GridSubsetHandler* grid_sh = dynamic_cast<GridSubsetHandler*>(&sh);
+	MultiGridSubsetHandler* mg_sh = dynamic_cast<MultiGridSubsetHandler*>(&sh);
+
 	_name = name;
 	_sh = &sh;
-	_num_sh = _sh->num_subsets();
+	if(grid_sh != NULL)
+	{
+		_num_sh = grid_sh->num_subsets();
+	}
+	else if(mg_sh != NULL)
+	{
+		_num_sh = mg_sh->num_subsets();
+	}
+	else { assert(0); }
+
 	_lock = false;
 };
 
@@ -288,7 +300,7 @@ bool DoFPattern::finalize()
 
 	for(int i=0; i<_GroupSolutionInfoVec.size(); ++i)
 	{
-		for(int j = 0; j < _sh->num_subsets(); ++j)
+		for(int j = 0; j < _num_sh; ++j)
 		{
 			int ncomp = _GroupSolutionInfoVec[i]->num_Comp[j];
 			std::cout << "Assigning "<< ncomp << " Dof(s) per Vertex in Subset " << j << std::endl;

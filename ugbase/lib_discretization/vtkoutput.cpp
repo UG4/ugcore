@@ -109,8 +109,16 @@ bool VTKOutput<d>::print(NumericalSolution<d>& u, int level, const char* filenam
 		fclose(File);return false;
 	}
 
+	GridSubsetHandler* grid_sh = dynamic_cast<GridSubsetHandler*>(ish);
+	MultiGridSubsetHandler* mg_sh = dynamic_cast<MultiGridSubsetHandler*>(ish);
+
+	int num_subsets;
+	if(grid_sh != NULL){num_subsets = grid_sh->num_subsets();}
+	else if(mg_sh != NULL){num_subsets = mg_sh->num_subsets();}
+	else return false;
+
 	// loop subsets
-	for(int subsetIndex = 0; subsetIndex < ish->num_subsets(); ++subsetIndex)
+	for(int subsetIndex = 0; subsetIndex < num_subsets; ++subsetIndex)
 	{
 		if(write_subset(*ish, subsetIndex, u, level, File)!= true)
 		{
