@@ -15,17 +15,17 @@ namespace ug{
 
 /// Matrix - Vector Muliplication
 // vOut = m * v
-template <typename matrix_t, typename vector_t>
+template <typename vector_t_out, typename matrix_t, typename vector_t_in>
 inline
 void
-MatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v);
+MatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
 
 /// Transposed Matrix - Vector Muliplication
 // vOut = Transpose(m) * v
-template <typename matrix_t, typename vector_t>
+template <typename vector_t_out, typename matrix_t, typename vector_t_in>
 inline
 void
-TransposedMatVecMult(vector_t& vOut, const matrix_t& m, const vector_t& v);
+TransposedMatVecMult(vector_t_out& vOut, const matrix_t& m, const vector_t_in& v);
 
 
 } //end of namespace: lgmath

@@ -10,6 +10,77 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////
+// Append Vector
+
+///	adds a MathVector<N> to a second one
+// vOut += v1
+template <typename vector_t>
+inline
+void
+VecAppend(vector_t& vOut, const vector_t& v1);
+
+///	adds two MathVector<N>s and adds the result to a third one
+// vOut = v1 + v2
+template <typename vector_t>
+inline
+void
+VecAppend(vector_t& vOut, const vector_t& v1, const vector_t& v2);
+
+///	adds two MathVector<N>s and adds the result to a fourth one
+// vOut += v1 + v2 + v3
+template <typename vector_t>
+inline
+void
+VecAppend(vector_t& vOut, const vector_t& v1, const vector_t& v2,
+							const vector_t& v3);
+
+///	adds two MathVector<N>s and adds the result to a fifth one
+// vOut += v1 + v2 + v3 + v4
+template <typename vector_t>
+inline
+void
+VecAppend(vector_t& vOut, const vector_t& v1, const vector_t& v2,
+							const vector_t& v3, const vector_t& v4);
+
+////////////////////////////////////////////////////////////////
+// Scale and Append Vectors
+
+/// Scales a Vector and adds it to a second vector
+// vOut += s1*v1
+template <typename vector_t>
+inline
+void
+VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1);
+
+/// Scales two Vectors, adds them and adds the sum to a third vector
+// vOut += s1*v1 + s2*v2
+template <typename vector_t>
+inline
+void
+VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1,
+								 typename vector_t::value_type s2, const vector_t& v2);
+
+/// Scales three Vectors, adds them and adds the sum to a fourth vector
+// vOut += s1*v1 + s2*v2 + s3*v3
+template <typename vector_t>
+inline
+void
+VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1,
+								 typename vector_t::value_type s2, const vector_t& v2,
+								 typename vector_t::value_type s3, const vector_t& v3);
+
+/// Scales four Vectors, adds them and adds the sum to a fifth vector
+// vOut += s1*v1 + s2*v2 + s3*v3 + s4*v4
+template <typename vector_t>
+inline
+void
+VecScaleAppend(vector_t& vOut, typename vector_t::value_type s1, const vector_t& v1,
+								 typename vector_t::value_type s2, const vector_t& v2,
+								 typename vector_t::value_type s3, const vector_t& v3,
+								 typename vector_t::value_type s4, const vector_t& v4);
+
+
+////////////////////////////////////////////////////////////////
 // Addition of Vectors
 
 ///	adds two MathVector<N>s and stores the result in a third one
@@ -19,7 +90,7 @@ inline
 void
 VecAdd(vector_t& vOut, const vector_t& v1, const vector_t& v2);
 
-///	adds two MathVector<N>s and stores the result in a third one
+///	adds three MathVector<N>s and stores the result in a fourth one
 // vOut = v1 + v2 + v3
 template <typename vector_t>
 inline
@@ -27,7 +98,7 @@ void
 VecAdd(vector_t& vOut, const vector_t& v1, const vector_t& v2,
 							const vector_t& v3);
 
-///	adds two MathVector<N>s and stores the result in a third one
+///	adds four MathVector<N>s and stores the result in a firth one
 // vOut = v1 + v2 + v3 + v4
 template <typename vector_t>
 inline
