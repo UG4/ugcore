@@ -29,20 +29,20 @@ inline bool matrix<mat_type>::isUnconnected(int i) const
 }
 
 /*
- template<typename Operator> 
+ template<typename Operator>
  struct Expression<double, Operator, matrix>
- { 
- const double& ld; 
- const matrix& r; 
- inline Expression(const double& ld_, const matrix &r_) : ld(ld_),r(r_) {} 
- 
+ {
+ const double& ld;
+ const matrix& r;
+ inline Expression(const double& ld_, const matrix &r_) : ld(ld_),r(r_) {}
+
  inline double operator [] (int i) const
  {
  return Operator::apply( ld, r[i].getDiag() );
- } 
- 
+ }
+
  inline int getLength() const	{	return r.getLength();	}
- void printtype() const	
+ void printtype() const
  {
  cout << "(ID double[" << ld << "]";Operator::printtype();	r.printtype(); 	cout << ")";
  }
@@ -51,80 +51,80 @@ inline bool matrix<mat_type>::isUnconnected(int i) const
 
 template<typename mat_type, typename R>
 Expression<matrix<mat_type>, Multiply_Operator<mat_type, typename R::vec_type>, R> operator*(const matrix<mat_type> &l,const XD<R> &r)
-{ 
-	return Expression<matrix<mat_type>, Multiply_Operator<mat_type, typename R::vec_type>, R> (l, r.cast()); 
+{
+	return Expression<matrix<mat_type>, Multiply_Operator<mat_type, typename R::vec_type>, R> (l, r.cast());
 }
 
 
 // todo: prevent x = A * x; mit feld forbiddenDestination
-template<typename mat_type, typename vec_type> 
-class Expression<matrix<mat_type>, Multiply_Operator<mat_type, vec_type >, Vector<vec_type> > 
+template<typename mat_type, typename vec_type>
+class Expression<matrix<mat_type>, Multiply_Operator<mat_type, vec_type >, Vector<vec_type> >
 : public XD< Expression<matrix<mat_type>, Multiply_Operator<mat_type, vec_type >, Vector<vec_type> > >
-{ 
-public:	
+{
+public:
 	typedef typename Multiply_Operator<mat_type, vec_type>::ReturnType ReturnType;
 	const matrix<mat_type>& l;
-	const Vector<vec_type> & r; 
-	inline Expression(const matrix<mat_type> &l_, const Vector<vec_type> &r_) : l(l_), r(r_) {} 
-	
+	const Vector<vec_type> & r;
+	inline Expression(const matrix<mat_type> &l_, const Vector<vec_type> &r_) : l(l_), r(r_) {}
+
 	inline ReturnType operator [] (int i) const
 	{
 		return l[i] * r;
-	} 
-	
+	}
+
 	inline void copyTo(ReturnType &d, int i) const
 	{
 		l[i].copyToMult(d, r);
 	}
-	
+
 	inline void addTo(ReturnType &d, int i) const
 	{
 		l[i].addToMult(d, r);
 	}
-	
+
 	inline void substractFrom(ReturnType &d, int i) const
 	{
 		l[i].substractFromMult(d, r);
-	}	
-	
+	}
+
 	inline int getLength() const	{	return l.getLength();	}
-	
+
 	// print routines
 	friend ostream &operator<<(ostream &output, const Expression<matrix<mat_type>, Multiply_Operator<mat_type, vec_type>, Vector<vec_type> >  &ex)
 	{
-		output << "(" << ex.l	<< "*" << ex.r << ")"; 
+		output << "(" << ex.l	<< "*" << ex.r << ")";
 		return output;
 	}
 	inline void printtype() const	{	cout << *this; }
-}; 
+};
 
 /*
 // todo: prevent x = A * x; mit feld forbiddenDestination
 // x = r / A.Diag();
-/*
-template<> 
-struct Expression<Vector, Divide_Operator, matrix<mat_type>::diagcomponent> 
-{ 
+
+template<>
+struct Expression<Vector, Divide_Operator, matrix<mat_type>::diagcomponent>
+{
 	const Vector& l;
-	const matrix<mat_type>::diagcomponent& r; 
-	inline Expression(const Vector &l_, const matrix<mat_type>::diagcomponent &r_) : l(l_), r(r_) 
-	{ ASSERT2(l.getLength() == r.getLength(), l << " has different length as " <<  r); } 
-	
+	const matrix<mat_type>::diagcomponent& r;
+	inline Expression(const Vector &l_, const matrix<mat_type>::diagcomponent &r_) : l(l_), r(r_)
+	{ ASSERT2(l.getLength() == r.getLength(), l << " has different length as " <<  r); }
+
 	inline double operator [] (int i) const
 	{
 		return l[i] / r[i];
-	} 
-	
+	}
+
 	inline int getLength() const	{	return l.getLength();	}
-	
+
 	// print routines
 	friend ostream &operator<<(ostream &output, const Expression<Vector, Divide_Operator, matrix<mat_type>::diagcomponent>  &ex)
 	{
-		output << "(" << ex.l << Divide_Operator::cTyp() << ex.r << ")"; 
+		output << "(" << ex.l << Divide_Operator::cTyp() << ex.r << ")";
 		return output;
 	}
 	inline void printtype() const	{	cout << *this; }
-}; 
+};
 
 Expression<Vector, Divide_Operator, matrix<mat_type>::diagcomponent> operator/(const Vector &l, const matrix<mat_type>::diagcomponent &r);
 
@@ -166,7 +166,7 @@ template<typename vec_type>
 inline void matrixrow<mat_type>::substractFromMult(vec_type &d, const Vector<vec_type> &x) const
 {
 	citerator it(*this);
-	if(!it.isEnd() && (*it).dValue == 0.0) 
+	if(!it.isEnd() && (*it).dValue == 0.0)
 		++it;
 	for(; !it.isEnd(); ++it)
 		d -= (*it).dValue * x[(*it).iIndex];
@@ -177,9 +177,9 @@ template<typename vec_type>
 inline void matrixrow<mat_type>::addToMult(vec_type &d, const Vector<vec_type> &x) const
 {
 	citerator it(*this);
-	if(!it.isEnd() && (*it).dValue == 0.0) 
+	if(!it.isEnd() && (*it).dValue == 0.0)
 		++it;
-	
+
 	for(; !it.isEnd(); ++it)
 		d += (*it).dValue * x[(*it).iIndex];
 }
@@ -190,9 +190,9 @@ inline vec_type matrixrow<mat_type>::operator *(const Vector<vec_type> &x) const
 {
 	vec_type d;
 	citerator it(*this);
-	if(!it.isEnd() && (*it).dValue == 0.0) 
+	if(!it.isEnd() && (*it).dValue == 0.0)
 		++it;
-	
+
 	for(; !it.isEnd(); ++it)
 	{
 		// otherwise we dont know how big d is.
@@ -203,7 +203,7 @@ inline vec_type matrixrow<mat_type>::operator *(const Vector<vec_type> &x) const
 			break;
 		}
 	}
-	
+
 	for(; !it.isEnd(); ++it)
 		d += (*it).dValue * x[(*it).iIndex];
 	return d;
@@ -217,7 +217,7 @@ inline const typename matrixrow<mat_type>::connection &matrixrow<mat_type>::oper
 	ASSERT2(i < A->iNrOfConnections[row] && i >= 0, *this << " has no connection nr. " << i);
 	/*ASSERT(A->cons[row]+i < A->consmem+A->iMaxTotalNrOfConnections
 	 && A->cons[row]+i >= A->consmem);*/
-	//ASSERT(A->consmem.isMemInChunk(A->cons[row][i]));		
+	//ASSERT(A->consmem.isMemInChunk(A->cons[row][i]));
 	return A->cons[row][i];
 }
 
@@ -228,9 +228,9 @@ inline typename matrixrow<mat_type>::connection &matrixrow<mat_type>::operator [
 	/*ASSERT(A->cons[row]+i < A->consmem+A->iMaxTotalNrOfConnections
 	 && A->cons[row]+i >= A->consmem);*/
 	//ASSERT(A->consmem.isMemInChunk(A->cons[row][i]));
-	
+
 	return A->cons[row][i];
-}	
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,7 +249,7 @@ matrix<mat_type>::matrix(const char *_name)
 	fromlevel = tolevel = -1;
 	name = _name;
 	bandwidth = 0;
-}	
+}
 
 // constructor for matrix with length
 template<typename mat_type>
@@ -272,7 +272,7 @@ matrix<mat_type>::~matrix()
 {
 	for(int i=0; i<length; i++)
 		saveSetConnections(i, NULL);
-	
+
 	delete [] iNrOfConnections;
 	if(consmem)	delete [] consmem;
 	delete [] cons;
@@ -283,13 +283,13 @@ template<typename mat_type>
 void matrix<mat_type>::create(int _length)
 {
 	ASSERT2(length == 0, *this << " not empty, has length " << length);
-	
+
 	length = _length;
 	cons = new connection*[length+1];
 	memset(cons, 0, sizeof(connection*)*(length+1));
 	iNrOfConnections = new int[length];
 	memset(iNrOfConnections, 0, sizeof(int)*length);
-	
+
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
 }
@@ -299,15 +299,15 @@ void matrix<mat_type>::create(int _length)
  {
  // create new cons Memory
  connection *consmemNew = new connection[newMax];
- 
+
  // adjust pointers
  int diff = consmemNew - consmem;
  for(int i=0; i<length; i++)
  {
- if(cons[i] != NULL) 
+ if(cons[i] != NULL)
  cons[i] += diff;
  }
- 
+
  // copy, delete old and swap
  memcpy(consmemNew, consmem, sizeof(connection)*iTotalNrOfConnections);
  delete[] consmem;
@@ -317,7 +317,7 @@ void matrix<mat_type>::create(int _length)
 
 template<typename mat_type>
 void matrix<mat_type>::saveSetConnections(int row, connection *mem) const
-{	
+{
 	if(cons[row] != NULL && cons[row] < consmem || cons[row] > consmem + consmemsize)
 		delete[] cons[row];
 	cons[row] = mem;
@@ -330,7 +330,7 @@ void matrix<mat_type>::defrag()
 	iTotalNrOfConnections=0;
 	for(int i=0; i<length; i++)
 		iTotalNrOfConnections+=iNrOfConnections[i];
-	
+
 	connection *consmemNew = new connection[iTotalNrOfConnections+3];
 	connection *p= consmemNew;
 	for(int i=0; i<length; i++)
@@ -352,7 +352,7 @@ void matrix<mat_type>::defrag()
 // can be used as A[i].print() or A[i]*x
 template<typename mat_type>
 const matrixrow<mat_type> matrix<mat_type>::getrow(int i) const
-{	
+{
 	const matrixrow<mat_type> r(this, i);
 	return r;
 }
@@ -361,19 +361,19 @@ template<typename mat_type>
 matrixrow<mat_type> matrix<mat_type>::getrow(int i)
 {
 	matrixrow<mat_type> r(this, i);
-	
+
 	return r;
 }
 
 template<typename mat_type>
-matrixrow<mat_type> matrix<mat_type>::operator [] (int i) 
-{		
+matrixrow<mat_type> matrix<mat_type>::operator [] (int i)
+{
 	return getrow(i);
 }
 
 template<typename mat_type>
 const matrixrow<mat_type> matrix<mat_type>::operator [] (int i) const
-{		
+{
 	return getrow(i);
 }
 
@@ -405,35 +405,35 @@ template<typename mat_type>
 void matrix<mat_type>::createAsTransposeOf(const matrix &B, int length)
 {
 	create(length);
-	
+
 	// get length of each row
 	for(int j=0; j<B.length; j++)
 		for(typename matrixrow<mat_type>::citerator conn(B[j]); !conn.isEnd(); ++conn)
 			if((*conn).dValue == 0) continue;
 			else iNrOfConnections[(*conn).iIndex]++;
-	
+
 	int newTotal = 0;
 	for(int i=0; i < length; i++)
 		newTotal += iNrOfConnections[i];
-	
-	
-	
+
+
+
 	int *nr = new int[length];
 	// init matrix data structure
 	consmem = new connection[newTotal];
 	consmemsize = newTotal;
-	
+
 	connection *p = consmem;
 	for(int i=0; i < length; i++)
 	{
 		nr[i] = 0;
 		cons[i] = p;
-		p += iNrOfConnections[i];	
+		p += iNrOfConnections[i];
 	}
-	
+
 	iTotalNrOfConnections = newTotal;
 	iFragmentedMem = 0;
-	
+
 	bandwidth = 0;
 	// write values
 	for(int i=0; i<B.length; i++)
@@ -442,19 +442,19 @@ void matrix<mat_type>::createAsTransposeOf(const matrix &B, int length)
 			if((*conn).dValue == 0) continue;
 			int ndx = (*conn).iIndex;
 			ASSERT2(ndx >= 0 && ndx < length, "connection " << (*conn) << " of matrix " << B << " out of range 0.." << length);
-			
+
 			int k= nr[ndx];
-			
+
 			ASSERT2(k>=0 && k<iNrOfConnections[ndx], "k = " << k << ". precalculated nr of Connections " << iNrOfConnections[ndx] << " wrong?");
 			//ASSERT(cons[ndx] + k < consmem+iMaxTotalNrOfConnections);
 			//ASSERT(cons[ndx] + k >= consmem);
-			
+
 			cons[ndx][k].dValue = (*conn).dValue;
 			cons[ndx][k].iIndex = i;
 			if(bandwidth < i-ndx) bandwidth = i-ndx;
 			nr[ndx]++;
 		}
-	
+
 	delete[] nr;
 }
 
@@ -474,7 +474,7 @@ void matrix<mat_type>::writeToFile(const char *filename) const
 			if((*conn).dValue != 0.0)
 				file << GetOriginalIndex(tolevel, i) << " " << GetOriginalIndex(fromlevel, (*conn).iIndex) << " " << ((*conn).dValue) <<		endl;
 	}
-}	
+}
 
 // print to console whole matrix
 template<typename mat_type>
@@ -484,7 +484,7 @@ void matrix<mat_type>::print(const char * const text) const
 	if(text) cout << " == " << text;
 	cout << " == fromlevel: " << fromlevel << " tolevel: " << tolevel << " length: " << length << " =================" << endl;
 	for(int i=0; i<length; i++)
-		getrow(i).print();				
+		getrow(i).print();
 }
 template<typename mat_type>
 void matrix<mat_type>::p()
@@ -494,8 +494,8 @@ void matrix<mat_type>::p()
 
 template<typename mat_type>
 void matrix<mat_type>::printtype() const
-{ 
-	cout << *this; 
+{
+	cout << *this;
 }
 
 template<typename mat_type>
@@ -539,7 +539,7 @@ void sortConnections(typename matrix<mat_type>::connection *c, int nr, int row)
 			{
 				swap(c[i], c[0]);
 				break;
-			}			
+			}
 		}
 	if(nr-1 > 0)
 		mergesort(c+1, nr-1, sizeof(typename matrix<mat_type>::connection), connection_compare<mat_type>);
@@ -554,7 +554,7 @@ void sortConnections(typename matrix<mat_type>::connection *c, int nr, int row)
  void matrixrow<mat_type>::removezeros()
  {
  ASSERT2(A->cons[row+1] == NULL, *A << ": next row has to be uninitialized"); // nur von vorne nach hinten hinzufügen
- 
+
  connection* con = A->cons[row];
  int nr = A->iNrOfConnections[row]-1;
  while(nr > 0 && con[nr].dValue == 0) nr--; // diagonaleintrag behalten
@@ -564,8 +564,8 @@ void sortConnections(typename matrix<mat_type>::connection *c, int nr, int row)
  con[i] = con[nr--];
  while(nr > 0 && con[nr].dValue == 0) nr--;
  }
- 
- A->iNrOfConnections[row] = nr+1;				
+
+ A->iNrOfConnections[row] = nr+1;
  }*/
 
 template<typename mat_type>
@@ -575,7 +575,7 @@ void matrixrow<mat_type>::setMatrixRow(connection *c, int nr)
 	connection *n;
 	if(c[0].iIndex != row)
 	{
-		n = new connection[nr+1];		
+		n = new connection[nr+1];
 		n[0].iIndex = row; n[0].dValue = 0.0;
 		for(int i=0; i<nr; i++)
 			n[i+1] = c[i];
@@ -590,7 +590,7 @@ void matrixrow<mat_type>::setMatrixRow(connection *c, int nr)
 	for(int i=0; i<nr; i++)
 		A->bandwidth = max(A->bandwidth, abs(c[i].iIndex - row));
 	A->iFragmentedMem += nr;
-	
+
 	A->saveSetConnections(row, n);
 	A->iTotalNrOfConnections += nr - A->iNrOfConnections[row];
 	A->iNrOfConnections[row] = nr;
@@ -598,8 +598,8 @@ void matrixrow<mat_type>::setMatrixRow(connection *c, int nr)
 
 template<typename mat_type>
 void matrixrow<mat_type>::addMatrixRow(connection *c, int nr)
-{	
-	connection *old = A->cons[row];	
+{
+	connection *old = A->cons[row];
 	if(old == NULL)
 	{
 		setMatrixRow(c, nr);
@@ -608,13 +608,13 @@ void matrixrow<mat_type>::addMatrixRow(connection *c, int nr)
 
 	int iNrOfConnections = A->iNrOfConnections[row];
 	// sort the connections
-	sortConnections<mat_type>(c, nr, row);	
+	sortConnections<mat_type>(c, nr, row);
 
 	int ic, skipped=0, iold=1;
-	if(c[0].iIndex == row) 
+	if(c[0].iIndex == row)
 	{
 		old[0].dValue += c[0].dValue;
-		ic = 1; 		
+		ic = 1;
 	}
 	else
 		ic = 0;
@@ -648,8 +648,8 @@ void matrixrow<mat_type>::addMatrixRow(connection *c, int nr)
 	n[0] = old[0];
 	int i=1;
 	iold=1;
-	if(c[0].iIndex == row) 
-	ic = 1; 		
+	if(c[0].iIndex == row)
+	ic = 1;
 	else
 	ic = 0;
 
@@ -672,7 +672,7 @@ void matrixrow<mat_type>::addMatrixRow(connection *c, int nr)
 			iold++;
 		}
 	}
-	 
+
 	A->saveSetConnections(row, n);
 	A->iTotalNrOfConnections += iNewSize - A->iNrOfConnections[row];
 	A->iNrOfConnections[row] = iNewSize;
@@ -691,7 +691,7 @@ void matrixrow<mat_type>::print() const
 		connection &c = A->cons[row][i];
 		if(c.dValue == 0.0) continue;
 		cout << " ";
-		cout << "(" << c.iIndex << "[" << GetOriginalIndex(A->fromlevel, c.iIndex) << "]-> " << c.dValue << ")";			
+		cout << "(" << c.iIndex << "[" << GetOriginalIndex(A->fromlevel, c.iIndex) << "]-> " << c.dValue << ")";
 	}
 	//cout << " SUM: " << sum() << endl;
 	cout << endl;
@@ -704,7 +704,7 @@ void matrixrow<mat_type>::p()
 }
 
 template<typename mat_type>
-void matrixrow<mat_type>::printtype() const 
+void matrixrow<mat_type>::printtype() const
 {
 	cout << *this;
 }

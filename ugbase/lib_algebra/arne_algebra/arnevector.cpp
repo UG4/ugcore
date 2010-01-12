@@ -67,12 +67,12 @@ bool ArneVector::printToFile(const char* filename)
 	FILE* file;
 	file = fopen(filename, "w");
 	if(file == NULL) return false;
-	
+
 	for(int i = 0; i < _Vector->size(); ++i)
 	{
 		fprintf(file, "%i: %e\n", i, (*_Vector)(i));
 	}
-	
+
 	fclose(file);
 	return true;
 }
@@ -84,7 +84,7 @@ ArneVector::~ArneVector()
 }
 
 ArneVector& ArneVector::operator+= (const ArneVector& v) {
-		
+
 		(*_Vector) += *(v._Vector);
 
 		return *this;
@@ -93,7 +93,15 @@ ArneVector& ArneVector::operator+= (const ArneVector& v) {
 ArneVector& ArneVector::operator-= (const ArneVector& v) {
 
 		(*_Vector) -= *(v._Vector);
-		
+
+		return *this;
+}
+
+ArneVector& ArneVector::operator= (const ArneVector& v) {
+
+		for(unsigned int i = 0; i < v._Vector->size(); ++i)
+			(*_Vector)(i) = (*(v._Vector))(i);
+
 		return *this;
 }
 

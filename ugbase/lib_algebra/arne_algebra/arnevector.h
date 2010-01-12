@@ -40,6 +40,8 @@ class ArneVector{
 
 	ArneVector& operator-= (const ArneVector& v);
 
+	ArneVector& operator= (const ArneVector& v);
+
 	number norm2();
 
 	bool set(number w);

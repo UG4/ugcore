@@ -5,7 +5,7 @@ namespace ug{
 
 bool ArneMatrix::create_matrix(int nrow, int ncol)
 {
-	_Matrix = new ScalarMatrix(nrow, ncol);
+	_Matrix = new ScalarMatrix(nrow, ncol, 8);
 
 	if(_Matrix == NULL) return false;
 	else return true;
@@ -15,6 +15,7 @@ bool ArneMatrix::delete_matrix()
 {
 	if(_Matrix != NULL)
 		delete _Matrix;
+	_Matrix = NULL;
 	return true;
 }
 
@@ -113,6 +114,7 @@ bool ArneMatrix::printToFile(const char* filename)
 		}
 	}
 
+    fclose(file);
 	return true;
 }
 
@@ -124,7 +126,8 @@ ArneMatrix::ScalarMatrix* ArneMatrix::getStorage()
 ArneMatrix::~ArneMatrix()
 {
 	if(_Matrix != NULL)
-	delete _Matrix;
+		delete _Matrix;
+	_Matrix = NULL;
 }
 
 
