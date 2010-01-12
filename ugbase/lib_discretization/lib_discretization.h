@@ -4,9 +4,12 @@
 #include "rhs.h"
 #include "dirichletbndcond.h"
 
+#include "domain.h"
 #include "dofhandler.h"
 #include "numericalsolution.h"
 #include "referenceelement.h"
+
+#include "assemble.h"
 
 #include "spacialdiscretization.h"
 #include "subsetdiscretization.h"

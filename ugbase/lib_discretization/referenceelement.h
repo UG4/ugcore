@@ -17,7 +17,7 @@
 namespace ug{
 
 
-class ReferenceElement {
+class BaseReferenceElement {
 
 	public:
 
@@ -29,11 +29,11 @@ class ReferenceElement {
 		virtual double size() const = 0;
 
 		/* coordinates of corner of reference element (i=0..numberOfCorners) */
-		virtual const vector2& corner(const int i) const = 0;
+		virtual const vector2& corner(int i) const = 0;
 
 		/*** NUMBER OF GEOMETRIC OBJECTS OF REFERENCE ELEMENT ***/
 		/* number of GeomObjects of dimension 'dim' of reference element */
-		virtual unsigned int numberOfGeomObjectsOfRefElem(const int dim) const = 0;
+		virtual unsigned int num_obj(int dim) const = 0;
 
 		/* number of corners of reference element */
 		virtual unsigned int num_corners() const = 0;
@@ -49,38 +49,38 @@ class ReferenceElement {
 
 		/*** NUMBER OF GEOMETRIC OBJECTS OF SUB GEOMETRIC ELEMENTS ***/
 		/* number of Geometric Objects of dimension dim_i of GeomObject with dim_j, nr j (dim_i < dim_j) */
-		virtual unsigned int numberOfGeomObjectsOfGeomObject(const int dim_i, const int dim_j, const int j) const = 0;
+		virtual unsigned int num_obj_of_obj(int dim_i, int dim_j, int j) const = 0;
 
-		virtual unsigned int numberOfCornersOfEdge(const int j) const = 0;
-		virtual unsigned int numberOfCornersOfFace(const int j) const = 0;
-		virtual unsigned int numberOfCornersOfVolume(const int j) const = 0;
+		virtual unsigned int num_corners_of_edge(int j) const = 0;
+		virtual unsigned int num_corners_of_face(int j) const = 0;
+		virtual unsigned int num_corners_of_volume(int j) const = 0;
 
-		virtual unsigned int numberOfEdgesOfFace(const int j) const = 0;
-		virtual unsigned int numberOfEdgesOfVolume(const int j) const = 0;
+		virtual unsigned int num_edges_of_face(int j) const = 0;
+		virtual unsigned int num_edges_of_volume(int j) const = 0;
 
-		virtual unsigned int numberOfFacesOfVoume(const int j) const = 0;
+		virtual unsigned int num_faces_of_volume(int j) const = 0;
 
 		/*** ID's OF GEOMETRIC OBJECTS OF REFERENCE ELEMENT ***/
 		/* Id of GeometricObjects of dimension i, nr. i, of Geometric object of dimension j, nr j */
-		virtual int IdOfGeomObjectOfGeomObject(const int dim_i, const int i, const int dim_j, const int j) const = 0;
+		virtual int id(int dim_i, int i, int dim_j, int j) const = 0;
 
 		/* Id of Corner i of Edge j */
-		virtual int CornerIdOfEdge(const int i, const int j) const = 0;
+		virtual int id_corner_of_edge(int i, int j) const = 0;
 
 		/* Id of Corner i of Face j */
-		virtual int CornerIdOfFace(const int i, const int j) const = 0;
+		virtual int id_corner_of_face(int i, int j) const = 0;
 
 		/* Id of Corner i of Volume j */
-		virtual int CornerIdOfVolume(const int i, const int j) const = 0;
+		virtual int id_corner_of_volume(int i, int j) const = 0;
 
 		/* Id of Edge i of Face j */
-		virtual int EdgeIdOfFace(const int i, const int j) const = 0;
+		virtual int id_edge_of_face(int i, int j) const = 0;
 
 		/* Id of Edge i of Volume j */
-		virtual int EdgeIdOfVolume(const int i, const int j) const = 0;
+		virtual int id_edge_of_volume(int i, int j) const = 0;
 
 		/* Id of Face i of Volume j */
-		virtual int FaceIdOfVolume(const int i, const int j) const = 0;
+		virtual int id_face_of_volume(int i, int j) const = 0;
 
 		/*** MAPPINGS ***/
 		/* Mapping Local to Global
@@ -96,7 +96,7 @@ class ReferenceElement {
 		//virtual bool Trafo(const vector3 GlobalCorners[], const vector2 Local, MathMatrix<2,2>& InvTrafo, number& det) const = 0;
 
 		/* virtual destructor */
-		virtual ~ReferenceElement()
+		virtual ~BaseReferenceElement()
 		{}
 
 		bool printInfo()
@@ -117,20 +117,20 @@ class ReferenceElement {
 
 			for(int i = this->dimension(); i>=0 ;i--)
 			{
-				std::cout << "Number of " << GeomObjects[i] << "s: " << this->numberOfGeomObjectsOfRefElem(i) << std::endl;
+				std::cout << "Number of " << GeomObjects[i] << "s: " << this->num_obj(i) << std::endl;
 			}
 
 			for(int dim_i = this->dimension(); dim_i>=0 ;dim_i--)
 			{
-				for(unsigned int i=0; i < this->numberOfGeomObjectsOfRefElem(dim_i); i++)
+				for(unsigned int i=0; i < this->num_obj(dim_i); i++)
 				{
 					std::cout << GeomObjects[dim_i] << " with id '" << i << "' contains the following GeomObjects:" << std::endl;
 					for(int dim_j=dim_i; dim_j>= 0; dim_j--)
 					{
-						std::cout << this->numberOfGeomObjectsOfGeomObject(dim_i,i,dim_j) << " " << GeomObjects[dim_j] << "s with id: ";
-						for(unsigned int j=0; j< this->numberOfGeomObjectsOfGeomObject(dim_i,i,dim_j); j++)
+						std::cout << this->num_obj_of_obj(dim_i,i,dim_j) << " " << GeomObjects[dim_j] << "s with id: ";
+						for(unsigned int j=0; j< this->num_obj_of_obj(dim_i,i,dim_j); j++)
 						{
-							std::cout << this->IdOfGeomObjectOfGeomObject(dim_i,i,dim_j,j) << " ";
+							std::cout << this->id(dim_i,i,dim_j,j) << " ";
 						}
 						std::cout << std::endl;
 					}
@@ -146,15 +146,15 @@ class ReferenceElement {
 };
 
 template<class TElem>
-class ReferenceElementFor : public ReferenceElement{
+class ReferenceElement{
 
 private:
-	ReferenceElementFor()
+	ReferenceElement()
 	{};
 };
 
 template <>
-class ReferenceElementFor<Triangle> : public ReferenceElement{
+class ReferenceElement<Triangle>{
 	private:
 		enum{POINT = 0, EDGE = 1, FACE = 2, VOLUME = 3, MAXDIM};
 		enum{MYDIM = FACE};
@@ -165,7 +165,7 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 		static const size_t Dim = FACE;
 
 
-		ReferenceElementFor()
+		ReferenceElement()
 		{
 			initializeArrays();
 		}
@@ -173,118 +173,118 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 		/* Dimension where reference element lives */
 		int dimension() const
 		{
-			return m_dimension;
+			return _dimension;
 		}
 
 		/* size of reference triangle */
 		double size() const
 		{
-			return m_size;
+			return _size;
 		}
 
 		/* coordinates of reference corner Nr i (i=0..numberOfCorners) */
-		const vector2& corner(const int i) const
+		const vector2& corner(int i) const
 		{
-			return m_coordsOfReferenceCorner[i];
+			return _corner[i];
+		}
+
+		unsigned int num_obj(int dim) const
+		{
+			return _num_obj[dim];
 		}
 
 		/* number of corners of reference triangle */
 		unsigned int num_corners() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[POINT];
+			return _num_obj[POINT];
 		}
 
 		unsigned int num_edges() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[EDGE];
+			return _num_obj[EDGE];
 		}
 
 		unsigned int num_faces() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[FACE];
+			return _num_obj[FACE];
 		}
 
 		unsigned int num_volumes() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[VOLUME];
+			return _num_obj[VOLUME];
 		}
 
-		unsigned int numberOfGeomObjectsOfRefElem(const int dim) const
+		unsigned int num_obj_of_obj(int dim_i, int i, int dim_j) const
 		{
-			return m_numberOfGeomObjectsOfRefElem[dim];
+			return _num_obj_of_obj[dim_i][i][dim_j];
 		}
 
-		unsigned int numberOfGeomObjectsOfGeomObject(const int dim_i, const int i, const int dim_j) const
+		unsigned int num_corners_of_edge(int j) const
 		{
-			return m_numberOfGeomObjectsOfGeomObject[dim_i][i][dim_j];
+			return _num_obj_of_obj[EDGE][j][POINT];
 		}
-
-		unsigned int numberOfCornersOfEdge(const int j) const
+		unsigned int num_corners_of_face(int j) const
 		{
-			return m_numberOfGeomObjectsOfGeomObject[EDGE][j][POINT];
+			return _num_obj_of_obj[FACE][j][POINT];
 		}
-		unsigned int numberOfCornersOfFace(const int j) const
-		{
-			return m_numberOfGeomObjectsOfGeomObject[FACE][j][POINT];
-		}
-		unsigned int numberOfCornersOfVolume(const int j) const
+		unsigned int num_corners_of_volume(int j) const
 		{
 			return 0;
 		}
-		unsigned int numberOfEdgesOfFace(const int j) const
+		unsigned int num_edges_of_face(int j) const
 		{
-			return m_numberOfGeomObjectsOfGeomObject[FACE][j][EDGE];
+			return _num_obj_of_obj[FACE][j][EDGE];
 		}
-		unsigned int numberOfEdgesOfVolume(const int j) const
+		unsigned int num_edges_of_volume(int j) const
 		{
 			return 0;
 		}
-		unsigned int numberOfFacesOfVoume(const int j) const
+		unsigned int num_faces_of_volume(int j) const
 		{
 			return 0;
 		}
 
-		int IdOfGeomObjectOfGeomObject(const int dim_i, const int i, const int dim_j, const int j) const
+		int id(int dim_i, int i, int dim_j, int j) const
 		{
-			assert((dim_i <= MYDIM) && (dim_i>= dim_j) && "ERROR in ReferenceElement::IdOfGeomObjectOfGeomObject(const int dim_i, const int i, const int dim_j, const int j)"
-					": You must have: 'dim_i < Dimension Reference Element' and 'dim_j <= dim_i'");
-			return m_id[dim_i][i][dim_j][j];
+			return _id[dim_i][i][dim_j][j];
 		}
 
-		int CornerIdOfEdge(const int i, const int j) const
+		int id_corner_of_edge(int i, int j) const
 		{
-			return m_id[EDGE][i][POINT][j];
+			return _id[EDGE][i][POINT][j];
 		}
 
-		int CornerIdOfFace(const int i, const int j) const
+		int id_corner_of_face(int i, int j) const
 		{
-			return m_id[FACE][i][POINT][j];
+			return _id[FACE][i][POINT][j];
 		}
 
-		int CornerIdOfVolume(const int i, const int j) const
+		int id_corner_of_volume(int i, int j) const
 		{
 			return -1;
 		}
 
-		int EdgeIdOfFace(const int i, const int j) const
+		int id_edge_of_face(int i, int j) const
 		{
-			return m_id[FACE][i][EDGE][j];
+			return _id[FACE][i][EDGE][j];
 		}
 
-		int EdgeIdOfVolume(const int i, const int j) const
+		int id_edge_of_volume(int i, int j) const
 		{
 			return -1;
 		}
 
-		int FaceIdOfVolume(const int i, const int j) const
+		int id_face_of_volume(int i, int j) const
 		{
 			return -1;
 		}
 
-
-		bool mapLocalToGlobal(const MathVector<3> GlobalCorners[], const vector2 Local, MathVector<3>& Global) const
+		template <int d>
+		bool mapLocalToGlobal(const MathVector<d> GlobalCorners[], const MathVector<Dim>& Local, MathVector<d>& Global) const
 		{
-			MathVector<3> a10, a20;
+			assert(d>=Dim && "ERROR in mapLocalToGlobal: d should be greater than Dim");
+
+			MathVector<d> a10, a20;
 
 			VecSubtract(a10, GlobalCorners[1], GlobalCorners[0]);
 			VecSubtract(a20, GlobalCorners[2], GlobalCorners[0]);
@@ -299,8 +299,11 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 			return true;
 		}
 
-		bool mapLocalToGlobal(const MathVector<3> GlobalCorners[], const vector2 Local[], MathVector<3> Global[], const int n) const
+		template <int d>
+		bool mapLocalToGlobal(const MathVector<d> GlobalCorners[], const MathVector<Dim> Local[], MathVector<d> Global[], int n) const
 		{
+			assert(d>=Dim && "ERROR in mapLocalToGlobal: d should be greater than Dim");
+
 			MathVector<3> a10, a20, sa10, sa20;
 
 			VecSubtract(a10, GlobalCorners[1], GlobalCorners[0]);
@@ -318,9 +321,13 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 			return true;
 		}
 
-		bool Trafo(const MathVector<2> GlobalCorners[], const MathVector<2> Local, MathMatrix<2,2>& InvTrafo, number& det) const
+		bool Trafo(const MathVector<1> GlobalCorners[], const MathVector<Dim>& Local, MathMatrix<1,Dim>& InvTrafo, number& det) const
 		{
+			assert(0 && "ERROR in Trafo: Mapping form dim 'd' to dim '1' invalid");
+		}
 
+		bool Trafo(const MathVector<2> GlobalCorners[], const MathVector<Dim>& Local, MathMatrix<2,Dim>& InvTrafo, number& det) const
+		{
 			MathMatrix<2,2> Trafo;
 
 			Trafo[0][0] = GlobalCorners[1][0] - GlobalCorners[0][0];
@@ -341,11 +348,10 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 			return true;
 		}
 
-		// Achtung: Hier sollte GlobalCorners eigentlich ein MathVector<2> sein.
-		bool Trafo(const MathVector<3> GlobalCorners[], const MathVector<2> Local, MathMatrix<2,2>& InvTrafo, number& det) const
+		bool Trafo(const MathVector<3> GlobalCorners[], const MathVector<Dim>& Local, MathMatrix<3,Dim>& InvTrafo, number& det) const
 		{
 
-			MathMatrix<3,3> Trafo;
+			MathMatrix<Dim,3> Trafo;
 
 			Trafo[0][0] = GlobalCorners[1][0] - GlobalCorners[0][0];
 			Trafo[0][1] = GlobalCorners[1][1] - GlobalCorners[0][1];
@@ -365,102 +371,116 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 			return true;
 		}
 
-		~ReferenceElementFor()
+		~ReferenceElement()
 		{}
 
 	private:
 		/* Dimension, in which the reference triangle lives */
-		unsigned int m_dimension;
+		unsigned int _dimension;
 		/* size of reference triangle */
-		double m_size;
+		double _size;
 		/* number of Geometric Objects of Reference Element
-		 * (m_numberOfGeomObjectsOfRefElem[dim] = number of GeomObjects of dimension dim) */
-		unsigned int m_numberOfGeomObjectsOfRefElem[MAXDIM];
+		 * (_num_obj[dim] = number of GeomObjects of dimension dim) */
+		unsigned int _num_obj[MAXDIM];
 		/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
-		unsigned int m_numberOfGeomObjectsOfGeomObject[MYDIM+1][MAXOBJECTS][MYDIM+1];
+		unsigned int _num_obj_of_obj[MYDIM+1][MAXOBJECTS][MYDIM+1];
 		/* coordinates of Reference Corner */
-		vector2 m_coordsOfReferenceCorner[3];
+		vector2 _corner[3];
 		// indices of GeomObjects
-		int m_id[MYDIM+1][MAXOBJECTS][MYDIM+1][MAXOBJECTS];
+		int _id[MYDIM+1][MAXOBJECTS][MYDIM+1][MAXOBJECTS];
 
 		void initializeArrays()
 		{
 			// dimension, where reference triangle lives
-			m_dimension = MYDIM;
+		 	_dimension = MYDIM;
 
 			// size of reference element
-			m_size = 1./2.;
+		 	_size = 1./2.;
 
 			//number of Geometric Objects
-			m_numberOfGeomObjectsOfRefElem[POINT] = 3;
-			m_numberOfGeomObjectsOfRefElem[EDGE] = 3;
-			m_numberOfGeomObjectsOfRefElem[FACE] = 1;
-			m_numberOfGeomObjectsOfRefElem[VOLUME] = 0;
+		 	_num_obj[POINT] = 3;
+		 	_num_obj[EDGE] = 3;
+		 	_num_obj[FACE] = 1;
+		 	_num_obj[VOLUME] = 0;
 
 			// number of Geometric Objects
-			m_numberOfGeomObjectsOfGeomObject[FACE][0][POINT] = 3;
-			m_numberOfGeomObjectsOfGeomObject[FACE][0][EDGE] = 3;
-			m_numberOfGeomObjectsOfGeomObject[FACE][0][FACE] = 1;
+		 	_num_obj_of_obj[FACE][0][POINT] = 3;
+		 	_num_obj_of_obj[FACE][0][EDGE] = 3;
+		 	_num_obj_of_obj[FACE][0][FACE] = 1;
 
-			m_numberOfGeomObjectsOfGeomObject[EDGE][0][EDGE] = 1;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][1][EDGE] = 1;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][2][EDGE] = 1;
+		 	for(unsigned int i = 0; i < _num_obj[EDGE]; ++i)
+		 	{
+			 	_num_obj_of_obj[EDGE][i][POINT] = 2;
+			 	_num_obj_of_obj[EDGE][i][EDGE] = 1;
+			 	_num_obj_of_obj[EDGE][i][FACE] = 1;
+		 	}
 
-			m_numberOfGeomObjectsOfGeomObject[EDGE][0][POINT] = 2;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][1][POINT] = 2;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][2][POINT] = 2;
+		 	for(unsigned int i = 0; i < _num_obj[POINT]; ++i)
+		 	{
+			 	_num_obj_of_obj[POINT][i][POINT] = 1;
+			 	_num_obj_of_obj[POINT][i][EDGE] = 2;
+			 	_num_obj_of_obj[POINT][i][FACE] = 1;
+		 	}
 
-			m_numberOfGeomObjectsOfGeomObject[POINT][0][POINT] = 1;
-			m_numberOfGeomObjectsOfGeomObject[POINT][1][POINT] = 1;
-			m_numberOfGeomObjectsOfGeomObject[POINT][2][POINT] = 1;
-
-			//reset m_id to -1
+			//reset _id to -1
 			for(unsigned int i=0; i<=MYDIM; ++i)
 				for(unsigned int j=0; j<MAXOBJECTS; ++j)
 					for(unsigned int k=0; k<=MYDIM; ++k)
 						for(unsigned int l=0; l<MAXOBJECTS; l++)
 						{
-							m_id[i][j][k][l] = -1;
+						 	_id[i][j][k][l] = -1;
 						}
 
-			//self references:
+			//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
 			for(unsigned int i=0; i<=MYDIM; ++i)
-				for(unsigned int j=0; j<m_numberOfGeomObjectsOfRefElem[i]; ++j)
+				for(unsigned int j=0; j<_num_obj[i]; ++j)
 				{
-					m_id[i][j][i][0] = j;
+				 	_id[i][j][i][0] = j;
 				}
 
-			//Edges of Face
-			for(unsigned int i=0; i<m_numberOfGeomObjectsOfRefElem[EDGE]; ++i)
+			//Edges <-> Face
+			for(unsigned int i=0; i<_num_obj[EDGE]; ++i)
 			{
-				m_id[FACE][0][EDGE][i] = i;
+			 	_id[FACE][0][EDGE][i] = i;
+			 	_id[EDGE][i][FACE][0] = 0;
 			}
 
-			// Points of Face
-			for(unsigned int i=0; i<m_numberOfGeomObjectsOfRefElem[POINT]; ++i)
+			// Points <-> Face
+			for(unsigned int i=0; i<_num_obj[POINT]; ++i)
 			{
-				m_id[FACE][0][POINT][i] = i;
+			 	_id[FACE][0][POINT][i] = i;
+			 	_id[POINT][i][FACE][0] = 0;
 			}
-
 
 			// Points of Edges
 			// edge 0 = (0,1)
-			m_id[EDGE][0][POINT][0] = 0;
-			m_id[EDGE][0][POINT][1] = 1;
-			// edge 1 = (1,2)
-			m_id[EDGE][1][POINT][0] = 1;
-			m_id[EDGE][1][POINT][1] = 2;
+		 	_id[EDGE][0][POINT][0] = 0;
+		 	_id[EDGE][0][POINT][1] = 1;
+		 	// edge 1 = (1,2)
+		 	_id[EDGE][1][POINT][0] = 1;
+		 	_id[EDGE][1][POINT][1] = 2;
 			// edge 2 = (2,0)
-			m_id[EDGE][2][POINT][0] = 2;
-			m_id[EDGE][2][POINT][1] = 0;
+		 	_id[EDGE][2][POINT][0] = 2;
+		 	_id[EDGE][2][POINT][1] = 0;
+
+		 	// Edges of Point
+		 	_id[POINT][0][EDGE][0] = 2;
+		 	_id[POINT][0][EDGE][1] = 0;
+
+		 	_id[POINT][1][EDGE][0] = 0;
+		 	_id[POINT][1][EDGE][1] = 1;
+
+		 	_id[POINT][2][EDGE][0] = 1;
+		 	_id[POINT][2][EDGE][1] = 2;
+
 
 			// Reference Corners
-			m_coordsOfReferenceCorner[0].x = 0.0;
-			m_coordsOfReferenceCorner[0].y = 0.0;
-			m_coordsOfReferenceCorner[1].x = 1.0;
-			m_coordsOfReferenceCorner[1].y = 0.0;
-			m_coordsOfReferenceCorner[2].x = 0.0;
-			m_coordsOfReferenceCorner[2].y = 1.0;
+		 	_corner[0].x = 0.0;
+		 	_corner[0].y = 0.0;
+		 	_corner[1].x = 1.0;
+		 	_corner[1].y = 0.0;
+		 	_corner[2].x = 0.0;
+		 	_corner[2].y = 1.0;
 		}
 
 
@@ -468,7 +488,7 @@ class ReferenceElementFor<Triangle> : public ReferenceElement{
 
 
 template <>
-class ReferenceElementFor<Quadrilateral> : public ReferenceElement{
+class ReferenceElement<Quadrilateral>{
 	private:
 		enum{POINT = 0, EDGE = 1, FACE = 2, VOLUME = 3, MAXDIM};
 		enum{MYDIM = FACE};
@@ -479,7 +499,7 @@ class ReferenceElementFor<Quadrilateral> : public ReferenceElement{
 		static const size_t Dim = FACE;
 
 
-		ReferenceElementFor()
+		ReferenceElement()
 		{
 			initializeArrays();
 		}
@@ -487,117 +507,117 @@ class ReferenceElementFor<Quadrilateral> : public ReferenceElement{
 		/* Dimension where reference element lives */
 		int dimension() const
 		{
-			return m_dimension;
+			return _dimension;
 		}
 
 		/* size of reference triangle */
 		double size() const
 		{
-			return m_size;
+			return _size;
 		}
 
 		/* coordinates of reference corner Nr i (i=0..numberOfCorners) */
-		const vector2& corner(const int i) const
+		const vector2& corner(int i) const
 		{
-			return m_coordsOfReferenceCorner[i];
+			return _corner[i];
+		}
+
+		unsigned int num_obj(int dim) const
+		{
+			return _num_obj[dim];
 		}
 
 		/* number of corners of reference triangle */
 		unsigned int num_corners() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[POINT];
+			return _num_obj[POINT];
 		}
 
 		unsigned int num_edges() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[EDGE];
+			return _num_obj[EDGE];
 		}
 
 		unsigned int num_faces() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[FACE];
+			return _num_obj[FACE];
 		}
 
 		unsigned int num_volumes() const
 		{
-			return m_numberOfGeomObjectsOfRefElem[VOLUME];
+			return _num_obj[VOLUME];
 		}
 
-		unsigned int numberOfGeomObjectsOfRefElem(const int dim) const
+		unsigned int num_obj_of_obj(int dim_i, int i, const int dim_j) const
 		{
-			return m_numberOfGeomObjectsOfRefElem[dim];
+			return _num_obj_of_obj[dim_i][i][dim_j];
 		}
 
-		unsigned int numberOfGeomObjectsOfGeomObject(const int dim_i, const int i, const int dim_j) const
+		unsigned int num_corners_of_edge(int j) const
 		{
-			return m_numberOfGeomObjectsOfGeomObject[dim_i][i][dim_j];
+			return _num_obj_of_obj[EDGE][j][POINT];
 		}
-
-		unsigned int numberOfCornersOfEdge(const int j) const
+		unsigned int num_corners_of_face(int j) const
 		{
-			return m_numberOfGeomObjectsOfGeomObject[EDGE][j][POINT];
+			return _num_obj_of_obj[FACE][j][POINT];
 		}
-		unsigned int numberOfCornersOfFace(const int j) const
-		{
-			return m_numberOfGeomObjectsOfGeomObject[FACE][j][POINT];
-		}
-		unsigned int numberOfCornersOfVolume(const int j) const
+		unsigned int num_corners_of_volume(int j) const
 		{
 			return 0;
 		}
-		unsigned int numberOfEdgesOfFace(const int j) const
+		unsigned int num_edges_of_face(int j) const
 		{
-			return m_numberOfGeomObjectsOfGeomObject[FACE][j][EDGE];
+			return _num_obj_of_obj[FACE][j][EDGE];
 		}
-		unsigned int numberOfEdgesOfVolume(const int j) const
+		unsigned int num_edges_of_volume(int j) const
 		{
 			return 0;
 		}
-		unsigned int numberOfFacesOfVoume(const int j) const
+		unsigned int num_faces_of_volume(int j) const
 		{
 			return 0;
 		}
 
-		int IdOfGeomObjectOfGeomObject(const int dim_i, const int i, const int dim_j, const int j) const
+		int id(int dim_i, int i, int dim_j, int j) const
 		{
-			assert((dim_i <= MYDIM) && (dim_i>= dim_j) && "ERROR in ReferenceElement::IdOfGeomObjectOfGeomObject(const int dim_i, const int i, const int dim_j, const int j)"
-					": You must have: 'dim_i < Dimension Reference Element' and 'dim_j <= dim_i'");
-			return m_id[dim_i][i][dim_j][j];
+			return _id[dim_i][i][dim_j][j];
 		}
 
-		int CornerIdOfEdge(const int i, const int j) const
+		int id_corner_of_edge(int i, int j) const
 		{
-			return m_id[EDGE][i][POINT][j];
+			return _id[EDGE][i][POINT][j];
 		}
 
-		int CornerIdOfFace(const int i, const int j) const
+		int id_corner_of_face(int i, int j) const
 		{
-			return m_id[FACE][i][POINT][j];
+			return _id[FACE][i][POINT][j];
 		}
 
-		int CornerIdOfVolume(const int i, const int j) const
+		int id_corner_of_volume(int i, int j) const
 		{
 			return -1;
 		}
 
-		int EdgeIdOfFace(const int i, const int j) const
+		int id_edge_of_face(int i, int j) const
 		{
-			return m_id[FACE][i][EDGE][j];
+			return _id[FACE][i][EDGE][j];
 		}
 
-		int EdgeIdOfVolume(const int i, const int j) const
+		int id_edge_of_volume(int i, int j) const
 		{
 			return -1;
 		}
 
-		int FaceIdOfVolume(const int i, const int j) const
+		int id_face_of_volume(int i, int j) const
 		{
 			return -1;
 		}
 
-
-		bool mapLocalToGlobal(const MathVector<3> GlobalCorners[], const vector2 Local, MathVector<3>& Global) const
+		template <int d>
+		bool mapLocalToGlobal(const MathVector<d> GlobalCorners[], const MathVector<Dim>& Local, MathVector<d>& Global) const
 		{
+			assert(d >= Dim && "ERROR in mapLocalToGlobal.");
+
 			VecScaleAdd(Global, (1.-Local[0])*(1.-Local[1]), GlobalCorners[0],
 								Local[0]*(1.-Local[1])     , GlobalCorners[1],
 								Local[0]*Local[1]          , GlobalCorners[2],
@@ -606,8 +626,10 @@ class ReferenceElementFor<Quadrilateral> : public ReferenceElement{
 			return true;
 		}
 
-		bool mapLocalToGlobal(const MathVector<3> GlobalCorners[], const vector2 Local[], MathVector<3> Global[], const int n) const
+		template <int d>
+		bool mapLocalToGlobal(const MathVector<d> GlobalCorners[], const MathVector<Dim> Local[], MathVector<d> Global[], int n) const
 		{
+			assert(d >= Dim && "ERROR in mapLocalToGlobal.");
 			for(int i=0; i<n; ++i)
 			{
 				VecScaleAdd(Global[i], (1.-Local[i][0])*(1.-Local[i][1]), GlobalCorners[0],
@@ -618,18 +640,15 @@ class ReferenceElementFor<Quadrilateral> : public ReferenceElement{
 			return true;
 		}
 
-		bool Trafo(const MathVector<2> GlobalCorners[], const MathVector<2> Local, MathMatrix<2,2>& InvTrafo, number& det) const
+		bool Trafo(const MathVector<1> GlobalCorners[], const MathVector<Dim>& Local, MathMatrix<1,Dim>& InvTrafo, number& det) const
 		{
-
+			assert(0 && "ERROR in Trafo: Mapping form dim 'd' to dim '1' invalid");
 			return false;
 		}
-
-		// Achtung: Hier sollte GlobalCorners eigentlich ein MathVector<2> sein.
-		bool Trafo(const MathVector<3> GlobalCorners[], const MathVector<2> Local, MathMatrix<2,2>& InvTrafo, number& det) const
+		bool Trafo(const MathVector<2> GlobalCorners[], const MathVector<Dim>& Local, MathMatrix<2,Dim>& InvTrafo, number& det) const
 		{
 			number a;
-			MathMatrix<3,3> Trafo;
-
+			MathMatrix<2,2> Trafo;
 
 			a = 1. - Local[1];
 			Trafo[0][0] = a*(GlobalCorners[1][0] - GlobalCorners[0][0]) + Local[1]*(GlobalCorners[2][0] - GlobalCorners[3][0]);
@@ -649,115 +668,167 @@ class ReferenceElementFor<Quadrilateral> : public ReferenceElement{
 			InvTrafo[1][1] = Trafo[0][0] / det;
 
 			return true;
+			return false;
 		}
 
-		~ReferenceElementFor()
+		bool Trafo(const MathVector<3> GlobalCorners[], const MathVector<Dim> Local, MathMatrix<3,Dim>& InvTrafo, number& det) const
+		{
+			assert(0 && "Not implemented yet.");
+			return false;
+		}
+
+		~ReferenceElement()
 		{}
 
 	private:
 		/* Dimension, in which the reference triangle lives */
-		unsigned int m_dimension;
+		unsigned int _dimension;
 		/* size of reference triangle */
-		double m_size;
+		double _size;
 		/* number of Geometric Objects of Reference Element
-		 * (m_numberOfGeomObjectsOfRefElem[dim] = number of GeomObjects of dimension dim) */
-		unsigned int m_numberOfGeomObjectsOfRefElem[MAXDIM];
+		 * (_num_obj[dim] = number of GeomObjects of dimension dim) */
+		unsigned int _num_obj[MAXDIM];
 		/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
-		unsigned int m_numberOfGeomObjectsOfGeomObject[MYDIM+1][MAXOBJECTS][MYDIM+1];
+		unsigned int _num_obj_of_obj[MYDIM+1][MAXOBJECTS][MYDIM+1];
 		/* coordinates of Reference Corner */
-		vector2 m_coordsOfReferenceCorner[4];
+		MathVector<Dim> _corner[4];
 		// indices of GeomObjects
-		int m_id[MYDIM+1][MAXOBJECTS][MYDIM+1][MAXOBJECTS];
+		int _id[MYDIM+1][MAXOBJECTS][MYDIM+1][MAXOBJECTS];
 
 		void initializeArrays()
 		{
 			// dimension, where reference triangle lives
-			m_dimension = MYDIM;
+		 	_dimension = MYDIM;
 
 			// size of reference element
-			m_size = 1.;
+		 	_size = 1.;
 
 			//number of Geometric Objects
-			m_numberOfGeomObjectsOfRefElem[POINT] = 4;
-			m_numberOfGeomObjectsOfRefElem[EDGE] = 4;
-			m_numberOfGeomObjectsOfRefElem[FACE] = 1;
-			m_numberOfGeomObjectsOfRefElem[VOLUME] = 0;
+		 	_num_obj[POINT] = 4;
+		 	_num_obj[EDGE] = 4;
+		 	_num_obj[FACE] = 1;
+		 	_num_obj[VOLUME] = 0;
 
 			// number of Geometric Objects
-			m_numberOfGeomObjectsOfGeomObject[FACE][0][POINT] = 4;
-			m_numberOfGeomObjectsOfGeomObject[FACE][0][EDGE] = 4;
-			m_numberOfGeomObjectsOfGeomObject[FACE][0][FACE] = 1;
+		 	_num_obj_of_obj[FACE][0][POINT] = 4;
+		 	_num_obj_of_obj[FACE][0][EDGE] = 4;
+		 	_num_obj_of_obj[FACE][0][FACE] = 1;
 
-			m_numberOfGeomObjectsOfGeomObject[EDGE][0][EDGE] = 1;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][1][EDGE] = 1;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][2][EDGE] = 1;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][3][EDGE] = 1;
+		 	for(unsigned int i = 0; i < _num_obj[EDGE]; ++i)
+		 	{
+		 		_num_obj_of_obj[EDGE][i][EDGE] = 1;
+			 	_num_obj_of_obj[EDGE][i][POINT] = 2;
+			 	_num_obj_of_obj[EDGE][i][FACE] = 1;
+		 	}
 
-			m_numberOfGeomObjectsOfGeomObject[EDGE][0][POINT] = 2;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][1][POINT] = 2;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][2][POINT] = 2;
-			m_numberOfGeomObjectsOfGeomObject[EDGE][3][POINT] = 2;
+		 	for(unsigned int i = 0; i < _num_obj[EDGE]; ++i)
+		 	{
+		 		_num_obj_of_obj[POINT][i][POINT] = 1;
+		 		_num_obj_of_obj[POINT][i][EDGE] = 2;
+		 		_num_obj_of_obj[POINT][i][FACE] = 1;
+		 	}
 
-			m_numberOfGeomObjectsOfGeomObject[POINT][0][POINT] = 1;
-			m_numberOfGeomObjectsOfGeomObject[POINT][1][POINT] = 1;
-			m_numberOfGeomObjectsOfGeomObject[POINT][2][POINT] = 1;
-			m_numberOfGeomObjectsOfGeomObject[POINT][3][POINT] = 1;
-
-			//reset m_id to -1
+			//reset _id to -1
 			for(unsigned int i=0; i<=MYDIM; ++i)
 				for(unsigned int j=0; j<MAXOBJECTS; ++j)
 					for(unsigned int k=0; k<=MYDIM; ++k)
 						for(unsigned int l=0; l<MAXOBJECTS; l++)
 						{
-							m_id[i][j][k][l] = -1;
+						 	_id[i][j][k][l] = -1;
 						}
 
-			//self references:
-			for(unsigned int i=0; i<=MYDIM; ++i)
-				for(unsigned int j=0; j<m_numberOfGeomObjectsOfRefElem[i]; ++j)
+			//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
+			for(unsigned int d=0; d<=MYDIM; ++d)
+				for(unsigned int j=0; j<_num_obj[d]; ++j)
 				{
-					m_id[i][j][i][0] = j;
+				 	_id[d][j][d][0] = j;
 				}
 
-			//Edges of Face
-			for(unsigned int i=0; i<m_numberOfGeomObjectsOfRefElem[EDGE]; ++i)
+			//Edges <-> Face
+			for(unsigned int i=0; i<_num_obj[EDGE]; ++i)
 			{
-				m_id[FACE][0][EDGE][i] = i;
+			 	_id[FACE][0][EDGE][i] = i;
+			 	_id[EDGE][i][FACE][0] = 0;
 			}
 
-			// Points of Face
-			for(unsigned int i=0; i<m_numberOfGeomObjectsOfRefElem[POINT]; ++i)
+			// Points <-> Face
+			for(unsigned int i=0; i<_num_obj[POINT]; ++i)
 			{
-				m_id[FACE][0][POINT][i] = i;
+			 	_id[FACE][0][POINT][i] = i;
+			 	_id[POINT][i][FACE][0] = 0;
 			}
-
 
 			// Points of Edges
 			// edge 0 = (0,1)
-			m_id[EDGE][0][POINT][0] = 0;
-			m_id[EDGE][0][POINT][1] = 1;
+		 	_id[EDGE][0][POINT][0] = 0;
+		 	_id[EDGE][0][POINT][1] = 1;
 			// edge 1 = (1,2)
-			m_id[EDGE][1][POINT][0] = 1;
-			m_id[EDGE][1][POINT][1] = 2;
+		 	_id[EDGE][1][POINT][0] = 1;
+		 	_id[EDGE][1][POINT][1] = 2;
 			// edge 2 = (2,3)
-			m_id[EDGE][2][POINT][0] = 2;
-			m_id[EDGE][2][POINT][1] = 3;
+		 	_id[EDGE][2][POINT][0] = 2;
+		 	_id[EDGE][2][POINT][1] = 3;
 			// edge 3 = (3,0)
-			m_id[EDGE][3][POINT][0] = 3;
-			m_id[EDGE][3][POINT][1] = 0;
+		 	_id[EDGE][3][POINT][0] = 3;
+		 	_id[EDGE][3][POINT][1] = 0;
+
+		 	// Edges of Point
+		 	_id[POINT][0][EDGE][0] = 3;
+		 	_id[POINT][0][EDGE][1] = 0;
+
+		 	_id[POINT][1][EDGE][0] = 0;
+		 	_id[POINT][1][EDGE][1] = 1;
+
+		 	_id[POINT][2][EDGE][0] = 1;
+		 	_id[POINT][2][EDGE][1] = 2;
+
+		 	_id[POINT][3][EDGE][0] = 2;
+		 	_id[POINT][3][EDGE][1] = 3;
 
 			// Reference Corners
-			m_coordsOfReferenceCorner[0].x = 0.0;
-			m_coordsOfReferenceCorner[0].y = 0.0;
-			m_coordsOfReferenceCorner[1].x = 1.0;
-			m_coordsOfReferenceCorner[1].y = 0.0;
-			m_coordsOfReferenceCorner[2].x = 1.0;
-			m_coordsOfReferenceCorner[2].y = 1.0;
-			m_coordsOfReferenceCorner[3].x = 0.0;
-			m_coordsOfReferenceCorner[3].y = 1.0;
+		 	_corner[0].x = 0.0;
+		 	_corner[0].y = 0.0;
+		 	_corner[1].x = 1.0;
+		 	_corner[1].y = 0.0;
+		 	_corner[2].x = 1.0;
+		 	_corner[2].y = 1.0;
+		 	_corner[3].x = 0.0;
+		 	_corner[3].y = 1.0;
 		}
 
 };
+
+
+
+// Singleton, holding all Reference Elements available
+template <typename TElem>
+class ReferenceElements {
+
+	private:
+
+		static ReferenceElements& inst()
+		{
+			static ReferenceElements myInst;
+			return myInst;
+		};
+
+		// private constructor
+		ReferenceElements()
+		{};
+
+		inline static const ReferenceElement<TElem>& get_ReferenceElement()
+		{
+			static ug::ReferenceElement<TElem> refElem;
+			return refElem;
+		}
+
+	public:
+		static const ReferenceElement<TElem>& ReferenceElement()
+		{
+			return inst().get_ReferenceElement();
+		}
+};
+
 
 
 template <class TElem>
@@ -770,6 +841,11 @@ class reference_element_traits<Triangle>
 	public:
 		typedef MathVector<2> LocalMathVector;
 
+		const static int local_dim = 2;
+		const static int num_corners = 3;
+		const static int num_edges = 3;
+		const static int num_faces = 1;
+		const static int num_volumes = 0;
 		enum
 		{
 			RefDim = 2,
@@ -782,6 +858,12 @@ class reference_element_traits<Quadrilateral>
 {
 	public:
 		typedef MathVector<2> LocalMathVector;
+
+		const static int local_dim = 2;
+		const static int num_corners = 4;
+		const static int num_edges = 4;
+		const static int num_faces = 1;
+		const static int num_volumes = 0;
 
 		enum
 		{

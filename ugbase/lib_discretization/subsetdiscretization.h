@@ -16,6 +16,7 @@
 
 namespace ug {
 
+template <int d>
 class SubsetDiscretization {
 
 	public:
@@ -28,12 +29,12 @@ class SubsetDiscretization {
 		void add_Subset(SubsetHandler& sh, uint subsetIndex);
 		void clear_Subset();
 
-		void add_System(SystemDiscretization& sys);
+		void add_System(SystemDiscretization<d>& sys);
 		void delete_System(int nr);
 		void clear_Systems();
 		int numberOfSystems();
 
-		bool assemble_defect(Vector& vec, NumericalSolution& u, number time, number s_m, number s_a)
+		bool assemble_defect(Vector& vec, NumericalSolution<d>& u, number time, number s_m, number s_a)
 		{
 			if(m_sh == NULL) return false;
 			bool b = true;
@@ -43,7 +44,7 @@ class SubsetDiscretization {
 		}
 
 		template <typename TElem>
-		bool assemble_defect(Vector& vec, NumericalSolution& u, number time, number s_m, number s_a)
+		bool assemble_defect(Vector& vec, NumericalSolution<d>& u, number time, number s_m, number s_a)
 		{
 			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
 
@@ -53,7 +54,6 @@ class SubsetDiscretization {
 			bool b = true;
 
 			/* loop over all Geometric Objects of type "TElem" */
-			int count = 0;
 			for(iter = iterBegin; iter != iterEnd; iter++)
 			{
 				TElem *elem = *iter;
@@ -69,13 +69,13 @@ class SubsetDiscretization {
 			return b;
 		}
 
-		bool assemble_jacobian(Matrix& mat, NumericalSolution& u, number time, number s_m, number s_a)
+		bool assemble_jacobian(Matrix& mat, NumericalSolution<d>& u, number time, number s_m, number s_a)
 		{
 			bool b = true;
 			return b;
 		}
 		template <typename TElem>
-		bool assemble_jacobian(Matrix& mat, NumericalSolution& u, number time, number s_m, number s_a)
+		bool assemble_jacobian(Matrix& mat, NumericalSolution<d>& u, number time, number s_m, number s_a)
 		{
 			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
 
@@ -85,7 +85,6 @@ class SubsetDiscretization {
 			bool b = true;
 
 			/* loop over all Geometric Objects of type "TElem" */
-			int count = 0;
 			for(iter = iterBegin; iter != iterEnd; iter++)
 			{
 				TElem *elem = *iter;
@@ -101,7 +100,7 @@ class SubsetDiscretization {
 			return b;
 		}
 
-		bool assemble_linear(Matrix& mat, Vector& rhs, NumericalSolution& u)
+		bool assemble_linear(Matrix& mat, Vector& rhs, NumericalSolution<d>& u)
 		{
 			if(m_sh == NULL) return false;
 			bool b = true;
@@ -111,7 +110,7 @@ class SubsetDiscretization {
 		}
 
 		template <typename TElem>
-		bool assemble_linear(Matrix& mat, Vector& rhs, NumericalSolution& u)
+		bool assemble_linear(Matrix& mat, Vector& rhs, NumericalSolution<d>& u)
 		{
 			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
 
@@ -121,7 +120,6 @@ class SubsetDiscretization {
 			bool b = true;
 
 			/* loop over all Geometric Objects of type "TElem" */
-			int count = 0;
 			for(iter = iterBegin; iter != iterEnd; iter++)
 			{
 				TElem *elem = *iter;
@@ -137,7 +135,7 @@ class SubsetDiscretization {
 			return b;
 		}
 
-		bool assemble_defect(Vector& vec, NumericalSolution& u)
+		bool assemble_defect(Vector& vec, NumericalSolution<d>& u)
 		{
 			if(m_sh == NULL) return false;
 			bool b = true;
@@ -147,7 +145,7 @@ class SubsetDiscretization {
 		}
 
 		template <typename TElem>
-		bool assemble_defect(Vector& vec, NumericalSolution& u)
+		bool assemble_defect(Vector& vec, NumericalSolution<d>& u)
 		{
 			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
 
@@ -157,7 +155,6 @@ class SubsetDiscretization {
 			bool b = true;
 
 			/* loop over all Geometric Objects of type "TElem" */
-			int count = 0;
 			for(iter = iterBegin; iter != iterEnd; iter++)
 			{
 				TElem *elem = *iter;
@@ -173,7 +170,7 @@ class SubsetDiscretization {
 			return b;
 		}
 
-		bool assemble_jacobian(Matrix& mat, NumericalSolution& u)
+		bool assemble_jacobian(Matrix& mat, NumericalSolution<d>& u)
 		{
 			if(m_sh == NULL) return false;
 			bool b = true;
@@ -183,7 +180,7 @@ class SubsetDiscretization {
 		}
 
 		template <typename TElem>
-		bool assemble_jacobian(Matrix& mat, NumericalSolution& u)
+		bool assemble_jacobian(Matrix& mat, NumericalSolution<d>& u)
 		{
 			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
 
@@ -193,7 +190,6 @@ class SubsetDiscretization {
 			bool b = true;
 
 			/* loop over all Geometric Objects of type "TElem" */
-			int count = 0;
 			for(iter = iterBegin; iter != iterEnd; iter++)
 			{
 				TElem *elem = *iter;
@@ -209,7 +205,7 @@ class SubsetDiscretization {
 			return b;
 		}
 
-		bool get_dirichlet_values(NumericalSolution& u, DirichletValues& dirVal)
+		bool get_dirichlet_values(NumericalSolution<d>& u, DirichletValues<d>& dirVal)
 		{
 			bool b = true;
 
@@ -225,7 +221,7 @@ class SubsetDiscretization {
 		void print_info();
 
 	protected:
-		typedef std::vector<SystemDiscretization*> SystemDiscretizationContainer;
+		typedef std::vector<SystemDiscretization<d>*> SystemDiscretizationContainer;
 
 	protected:
 		std::string m_name;

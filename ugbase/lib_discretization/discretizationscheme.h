@@ -11,12 +11,14 @@
 #include "differentialoperator.h"
 #include "dirichletbndcond.h"
 #include "rhs.h"
-#include "../lib_grid/lib_grid.h"
-#include "../lib_grid/common_attachments.h"
-#include "../common/math/ugmath.h"
 #include "referenceelement.h"
 #include "dofhandler.h"
+#include "trialspace.h"
+
+#include "../lib_grid/lib_grid.h"
 #include "../lib_algebra/lib_algebra.h"
+#include "../common/common.h"
+
 #include <iostream>
 #include <vector>
 
@@ -30,11 +32,12 @@ enum DiscretizationSchemeID
 	NUM_DISC_SCHEME
 };
 
+template <int d>
 class DirichletValues{
 
 	public:
 
-		bool add_dirichlet_nodes(NumericalSolution& u, int nr_func, DirichletBNDCond* dirichbnd, SubsetHandler& sh, uint subsetIndex);
+		bool add_dirichlet_nodes(NumericalSolution<d>& u, int nr_func, DirichletBNDCond<d>* dirichbnd, SubsetHandler& sh, uint subsetIndex);
 
 		bool set_values(Vector& vec);
 
@@ -49,23 +52,23 @@ class DirichletValues{
 };
 
 
-template<typename TElem, typename TPosition>
+template<typename TElem, int d>
 class DiscretizationScheme{
 
 	public:
-		virtual void prepareElement(TElem* elem, NumericalSolution& u, int nr_func, SubsetHandler& sh, int SubsetIndex) = 0;
+		virtual void prepareElement(TElem* elem, NumericalSolution<d>& u, int nr_func, SubsetHandler& sh, int SubsetIndex) = 0;
 
 		virtual void reset_local_jacobian() = 0;
 		virtual void reset_local_defect() = 0;
 
-		virtual void add_op_to_local_jacobian(TimeOperator* op, TElem* elem, NumericalSolution& u) = 0;
-		virtual void add_op_to_local_jacobian(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u) = 0;
-		virtual void add_op_to_local_jacobian(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u) = 0;
+		virtual void add_op_to_local_jacobian(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u) = 0;
+		virtual void add_op_to_local_jacobian(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u) = 0;
+		virtual void add_op_to_local_jacobian(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u) = 0;
 
-		virtual void add_rhs_to_local_defect(RHS* rhs, TElem* elem) = 0;
-		virtual void add_op_to_local_defect(TimeOperator* op, TElem* elem, NumericalSolution& u) = 0;
-		virtual void add_op_to_local_defect(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u) = 0;
-		virtual void add_op_to_local_defect(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u) = 0;
+		virtual void add_rhs_to_local_defect(RHS<d>* rhs, TElem* elem) = 0;
+		virtual void add_op_to_local_defect(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u) = 0;
+		virtual void add_op_to_local_defect(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u) = 0;
+		virtual void add_op_to_local_defect(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u) = 0;
 
 		virtual bool send_local_jacobian_to_global_jacobian(TElem* elem, Matrix& mat) = 0;
 		virtual bool send_local_jacobian_to_global_jacobian(TElem* elem, Matrix& mat, number scale) = 0;
@@ -79,8 +82,8 @@ class DiscretizationScheme{
 };
 
 
-template <typename TElem, typename TPosition>
-class FVE1lumpDiscretization : public DiscretizationScheme<TElem, TPosition>{
+template <typename TElem, int d>
+class FVE1lumpDiscretization : public DiscretizationScheme<TElem, d>{
 
 	enum{DiscretizationSchemeID = DISC_SCHEME_FVE1lump};
 	static const int RefDim = reference_element_traits<TElem>::RefDim;
@@ -91,16 +94,16 @@ class FVE1lumpDiscretization : public DiscretizationScheme<TElem, TPosition>{
 	public:
 		FVE1lumpDiscretization();
 
-		void prepareElement(TElem* elem, NumericalSolution& u, int nr_func, SubsetHandler& sh, int SubsetIndex);
+		void prepareElement(TElem* elem, NumericalSolution<d>& u, int nr_func, SubsetHandler& sh, int SubsetIndex);
 
-		void add_op_to_local_jacobian(TimeOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_jacobian(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_jacobian(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u);
+		void add_op_to_local_jacobian(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_jacobian(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_jacobian(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
 
-		void add_rhs_to_local_defect(RHS* rhs, TElem* elem);
-		void add_op_to_local_defect(TimeOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_defect(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_defect(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u);
+		void add_rhs_to_local_defect(RHS<d>* rhs, TElem* elem);
+		void add_op_to_local_defect(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_defect(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_defect(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
 
 		void reset_local_jacobian();
 		void reset_local_defect();
@@ -113,25 +116,25 @@ class FVE1lumpDiscretization : public DiscretizationScheme<TElem, TPosition>{
 		virtual ~FVE1lumpDiscretization();
 
 	private:
-		typename TPosition::ValueType m_corners[m_nsh];
+		MathVector<d> m_corners[m_nsh];
 		int m_rows[m_nsh];
 
-		ReferenceElementFor<TElem> m_RefElem;
-		TrialSpace<TElem>* m_TrialSpace;
+		ReferenceElement<TElem> m_RefElem;
+		const TrialSpace<TElem>* m_TrialSpace;
 
 		const static int m_nip  = 1;
 
 		number m_Shape[m_nip][m_nsh];
 		MathVector<RefDim> m_LocShapeGrad[m_nip][m_nsh];
-		MathVector<RefDim> m_GlobShapeGrad[m_nip][m_nsh];
+		MathVector<d> m_GlobShapeGrad[m_nip][m_nsh];
 
 		MathVector<RefDim>* m_LocalIP;
 		MathVector<RefDim>* m_LocalNormal;
 		number* m_SCVF_Size;
 
-		MathMatrix<2,2> m_IPTrafo[m_nip];
+		MathMatrix<d,RefDim> m_IPTrafo[m_nip];
 		number m_det[m_nip];
-		typename TPosition::ValueType m_GlobalIP[m_nip];
+		MathVector<d> m_GlobalIP[m_nip];
 
 		number m_loc_u[m_nsh];
 
@@ -144,8 +147,8 @@ class FVE1lumpDiscretization : public DiscretizationScheme<TElem, TPosition>{
 
 };
 
-template <typename TElem, typename TPosition>
-class FE1Discretization : public DiscretizationScheme<TElem, TPosition>{
+template <typename TElem, int d>
+class FE1Discretization : public DiscretizationScheme<TElem, d>{
 
 	enum{DiscretizationSchemeID = DISC_SCHEME_FE1};
 	static const int RefDim = reference_element_traits<TElem>::RefDim;
@@ -156,16 +159,16 @@ class FE1Discretization : public DiscretizationScheme<TElem, TPosition>{
 	public:
 		FE1Discretization();
 
-		void prepareElement(TElem* elem, NumericalSolution& u, int nr_func, SubsetHandler& sh, int SubsetIndex);
+		void prepareElement(TElem* elem, NumericalSolution<d>& u, int nr_func, SubsetHandler& sh, int SubsetIndex);
 
-		void add_op_to_local_jacobian(TimeOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_jacobian(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_jacobian(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u);
+		void add_op_to_local_jacobian(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_jacobian(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_jacobian(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
 
-		void add_rhs_to_local_defect(RHS* rhs, TElem* elem);
-		void add_op_to_local_defect(TimeOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_defect(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u);
-		void add_op_to_local_defect(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u);
+		void add_rhs_to_local_defect(RHS<d>* rhs, TElem* elem);
+		void add_op_to_local_defect(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_defect(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
+		void add_op_to_local_defect(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u);
 
 		void reset_local_jacobian();
 		void reset_local_defect();
@@ -178,23 +181,23 @@ class FE1Discretization : public DiscretizationScheme<TElem, TPosition>{
 		virtual ~FE1Discretization();
 
 	private:
-		typename TPosition::ValueType m_corners[m_nsh];
+		MathVector<d> m_corners[m_nsh];
 		int m_rows[m_nsh];
 
-		ReferenceElementFor<TElem> m_RefElem;
-		TrialSpace<TElem>* m_TrialSpace;
+		ReferenceElement<TElem> m_RefElem;
+		const TrialSpace<TElem>* m_TrialSpace;
 
 		const static int m_nip  = 1;
 
 		number m_Shape[m_nip][m_nsh];
 		MathVector<RefDim> m_LocShapeGrad[m_nip][m_nsh];
-		MathVector<RefDim> m_GlobShapeGrad[m_nip][m_nsh];
+		MathVector<d> m_GlobShapeGrad[m_nip][m_nsh];
 
 		MathVector<RefDim>* m_LocalIP;
 
-		MathMatrix<2,2> m_IPTrafo[m_nip];
+		MathMatrix<d,RefDim> m_IPTrafo[m_nip];
 		number m_det[m_nip];
-		typename TPosition::ValueType m_GlobalIP[m_nip];
+		MathVector<d> m_GlobalIP[m_nip];
 
 		number m_loc_u[m_nsh];
 
@@ -208,7 +211,7 @@ class FE1Discretization : public DiscretizationScheme<TElem, TPosition>{
 };
 
 // Singleton, holding all Discretization Schemes available
-template <typename TElem, typename TPosition>
+template <typename TElem, int d>
 class DiscretizationSchemes {
 
 	private:
@@ -223,10 +226,10 @@ class DiscretizationSchemes {
 		DiscretizationSchemes()
 		{};
 
-		inline static DiscretizationScheme<TElem, TPosition>& get_DiscretizationScheme(DiscretizationSchemeID type)
+		inline static DiscretizationScheme<TElem, d>& get_DiscretizationScheme(DiscretizationSchemeID type)
 		{
-			static FVE1lumpDiscretization<TElem, TPosition> FVE1lumpDiscretization;
-			static FE1Discretization<TElem, TPosition> FE1Discretization;
+			static FVE1lumpDiscretization<TElem, d> FVE1lumpDiscretization;
+			static FE1Discretization<TElem, d> FE1Discretization;
 
 			if(type == DISC_SCHEME_FE1)
 				return FE1Discretization;
@@ -237,7 +240,7 @@ class DiscretizationSchemes {
 		}
 
 	public:
-		static DiscretizationScheme<TElem, TPosition>& DiscretizationScheme(DiscretizationSchemeID type)
+		static DiscretizationScheme<TElem, d>& DiscretizationScheme(DiscretizationSchemeID type)
 		{
 			return inst().get_DiscretizationScheme(type);
 		}

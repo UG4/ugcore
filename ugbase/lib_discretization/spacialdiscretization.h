@@ -13,11 +13,12 @@
 #include "lib_algebra/lib_algebra.h"
 #include <vector>
 #include <string>
-#include "newton.h"
+#include "assemble.h"
 
 namespace ug{
 
-class SpacialDiscretization : public NonLinearAssemble {
+template <int dim>
+class SpacialDiscretization : public IAssemble<dim> {
 
 	public:
 		SpacialDiscretization();
@@ -26,91 +27,91 @@ class SpacialDiscretization : public NonLinearAssemble {
 		void set_name(std::string name);
 		std::string name();
 
-		void add_SubsetDiscretization(SubsetDiscretization& psd);
+		void add_SubsetDiscretization(SubsetDiscretization<dim>& psd);
 		void delete_SubsetDiscretization(int nr);
 		void clear_SubsetDiscretizations();
 		int numberOfSubsetDiscretizations();
 
 		void print_info();
 
-		bool assemble_defect(Vector& vec, NumericalSolution& u, number time, number s_m, number s_a)
+		IAssembleReturn assemble_defect(Vector& d, NumericalSolution<dim>& u, number time, number s_m, number s_a, uint level = 0)
 		{
-			bool b = true;
-
 			for(uint i=0; i < m_SubsetDiscretization.size(); ++i)
 			{
-				b = b && (m_SubsetDiscretization[i]->assemble_defect(vec, u, time, s_m, s_a));
+				if(m_SubsetDiscretization[i]->assemble_defect(d, u, time, s_m, s_a) == false) return IAssemble_ERROR;
 			}
-			return b;
+			return IAssemble_OK;
 		}
 
-		bool assemble_jacobian(Matrix& mat, NumericalSolution& u, number time, number s_m, number s_a)
+		IAssembleReturn assemble_jacobian(Matrix& J, NumericalSolution<dim>& u, number time, number s_m, number s_a, uint level = 0)
 		{
-			bool b = true;
-
 			for(uint i=0; i < m_SubsetDiscretization.size(); ++i)
 			{
-				b = b && (m_SubsetDiscretization[i]->assemble_jacobian(mat, u, time, s_m, s_a));
+				if(m_SubsetDiscretization[i]->assemble_jacobian(J, u, time, s_m, s_a)==false) return IAssemble_ERROR;
 			}
-			return b;
+			return IAssemble_OK;
 		}
 
-		// only now, remove later.
-		bool assemble_linear(Matrix& mat, Vector& rhs, NumericalSolution& u)
+		IAssembleReturn assemble_jacobian_defect(Matrix& J, Vector& d, NumericalSolution<dim>& u, uint level = 0)
 		{
-			DirichletValues dirVal;
-			bool b = true;
-
-			for(uint i=0; i < m_SubsetDiscretization.size(); ++i)
-			{
-				b = b && (m_SubsetDiscretization[i]->assemble_linear(mat, rhs, u));
-			}
-
-			if(get_dirichlet_values(u, dirVal) == false) return false;
-			dirVal.set_values(rhs);
-			dirVal.set_rows(mat);
-
-			return b;
+			return IAssemble_ERROR;
 		}
 
-		bool assemble_defect(Vector& vec, NumericalSolution& u)
+		IAssembleReturn assemble_defect(Vector& vec, NumericalSolution<dim>& u, uint level = 0)
 		{
-			bool b = true;
 			for(uint i=0; i < m_SubsetDiscretization.size(); ++i)
 			{
-				b = b && (m_SubsetDiscretization[i]->assemble_defect(vec, u));
+				if(m_SubsetDiscretization[i]->assemble_defect(vec, u)==false) return IAssemble_ERROR;
 			}
 
-			DirichletValues dirVal;
-			if(get_dirichlet_values(u, dirVal) == false) return false;
+			DirichletValues<dim> dirVal;
+			if(get_dirichlet_values(u, dirVal) == false) return IAssemble_ERROR;
 			dirVal.set_zero_values(vec);
-			return b;
+			return IAssemble_OK;
 		}
 
-		bool assemble_jacobian(Matrix& mat, NumericalSolution& u)
+		IAssembleReturn assemble_jacobian(Matrix& J,  NumericalSolution<dim>& u, uint level = 0)
 		{
-			bool b = true;
 			for(uint i=0; i < m_SubsetDiscretization.size(); ++i)
 			{
-				b = b && (m_SubsetDiscretization[i]->assemble_jacobian(mat, u));
+				if(m_SubsetDiscretization[i]->assemble_jacobian(J, u)==false) return IAssemble_ERROR;
 			}
 
-			DirichletValues dirVal;
-			if(get_dirichlet_values(u, dirVal) == false) return false;
-			dirVal.set_rows(mat);
-			return b;
+			DirichletValues<dim> dirVal;
+			if(get_dirichlet_values(u, dirVal) == false) return IAssemble_ERROR;
+			dirVal.set_rows(J);
+			return IAssemble_OK;
 		}
 
-		bool assemble_solution(NumericalSolution& u)
+		IAssembleReturn assemble_linear(Matrix& A, Vector& b, uint level = 0)
 		{
-			DirichletValues dirVal;
+			return IAssemble_ERROR;
 
-			if(get_dirichlet_values(u, dirVal) == false) return false;
-			dirVal.set_values(*u.GridVector());
-			return true;
+			/*DirichletValues<dim> dirVal;
+			bool control = true;
+
+			for(uint i=0; i < m_SubsetDiscretization.size(); ++i)
+			{
+				//control = control && (m_SubsetDiscretization[i]->assemble_linear(A, b));
+			}
+
+			//if(get_dirichlet_values(u, dirVal) == false) return false;
+			dirVal.set_values(b);
+			dirVal.set_rows(A);
+
+			return control;*/
 		}
 
-		bool get_dirichlet_values(NumericalSolution& u, DirichletValues& dirVal)
+		IAssembleReturn assemble_solution(NumericalSolution<dim>& u, uint level = 0)
+		{
+			DirichletValues<dim> dirVal;
+
+			if(get_dirichlet_values(u, dirVal) == false) return IAssemble_ERROR;
+			dirVal.set_values(*u.GridVector());
+			return IAssemble_OK;
+		}
+
+		bool get_dirichlet_values(NumericalSolution<dim>& u, DirichletValues<dim>& dirVal)
 		{
 			bool b = true;
 
@@ -122,7 +123,7 @@ class SpacialDiscretization : public NonLinearAssemble {
 		}
 
 	protected:
-		typedef std::vector<SubsetDiscretization*> SubsetDiscretizationContainer;
+		typedef std::vector<SubsetDiscretization<dim>*> SubsetDiscretizationContainer;
 
 	protected:
 		std::string m_name;

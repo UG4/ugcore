@@ -9,9 +9,8 @@
 #define __H__LIBDISCRETIZATION__DIFFERENTIALOPERATOR__
 
 #include "lib_grid/lib_grid.h"
-#include "lib_grid/geometric_objects.h"
 #include "numericalsolution.h"
-#include "../common/math/ugmath.h"
+#include "../common/common.h"
 #include <string>
 
 namespace ug {
@@ -31,57 +30,61 @@ class DifferentialOperator {
 		std::string m_name;
 };
 
+template <int d>
 class DivergenzDifferentialOperator : public DifferentialOperator {
 
 	public:
 		DivergenzDifferentialOperator(std::string str):DifferentialOperator(str)
 		{};
 
-		virtual void compute_jacobian_at_ip(MathVector<3> GlobIP, number Shape[], MathVector<2> ShapeGrad[], MathVector<2> JacValue[], int nsh) = 0;
-		virtual void compute_defect_at_ip(MathVector<3> GlobIP, number Shape, MathVector<2> GlobShapeGrad, MathVector<2>& DefectValue) = 0;
+		virtual void compute_jacobian_at_ip(MathVector<d> GlobIP, number Shape[], MathVector<d> ShapeGrad[], MathVector<d> JacValue[], int nsh) = 0;
+		virtual void compute_defect_at_ip(MathVector<d> GlobIP, number Shape, MathVector<d> GlobShapeGrad, MathVector<d>& DefectValue) = 0;
 
 		virtual ~DivergenzDifferentialOperator()
 		{};
 
 };
 
+template <int d>
 class ScalarDifferentialOperator : public DifferentialOperator {
 
 	public:
 		ScalarDifferentialOperator(std::string str):DifferentialOperator(str)
 		{};
 
-		virtual void compute_jacobian_at_ip(MathVector<3> GlobIP, number Shape[], MathVector<2> ShapeGrad[], number JacValue[], int nsh) = 0;
-		virtual void compute_defect_at_ip(MathVector<3> GlobIP, number Shape, MathVector<2> GlobShapeGrad, number& DefectValue) = 0;
+		virtual void compute_jacobian_at_ip(MathVector<d> GlobIP, number Shape[], MathVector<d> ShapeGrad[], number JacValue[], int nsh) = 0;
+		virtual void compute_defect_at_ip(MathVector<d> GlobIP, number Shape, MathVector<d> GlobShapeGrad, number& DefectValue) = 0;
 
 		virtual ~ScalarDifferentialOperator()
 		{};
 
 };
 
+template <int d>
 class TimeOperator : public DifferentialOperator {
 
 	public:
 		TimeOperator(std::string str):DifferentialOperator(str)
 		{};
 
-		virtual void compute_jacobian_at_ip(MathVector<3> GlobIP, number Shape[], MathVector<2> ShapeGrad[], number JacValue[], int nsh) = 0;
-		virtual void compute_defect_at_ip(MathVector<3> GlobIP, number Shape, MathVector<2> GlobShapeGrad, number& DefectValue) = 0;
+		virtual void compute_jacobian_at_ip(MathVector<d> GlobIP, number Shape[], MathVector<d> ShapeGrad[], number JacValue[], int nsh) = 0;
+		virtual void compute_defect_at_ip(MathVector<d> GlobIP, number Shape, MathVector<d> GlobShapeGrad, number& DefectValue) = 0;
 
 		virtual ~TimeOperator()
 		{};
 
 };
 
-class TimeIdentity : public TimeOperator {
+template <int d>
+class TimeIdentity : public TimeOperator<d> {
 
 	public:
-		TimeIdentity(std::string str, NumericalSolution& NumSol):TimeOperator(str)
+		TimeIdentity(std::string str, NumericalSolution<d>& NumSol):TimeOperator<d>(str)
 		{
 			m_NumericalSolution = &NumSol;
 		};
 
-		void compute_jacobian_at_ip(MathVector<3> GlobIP, number Shape[], MathVector<2> ShapeGrad[], number JacValue[], int nsh)
+		void compute_jacobian_at_ip(MathVector<d> GlobIP, number Shape[], MathVector<d> ShapeGrad[], number JacValue[], int nsh)
 		{
 			for(int j=0; j < nsh; j++)
 			{
@@ -89,7 +92,7 @@ class TimeIdentity : public TimeOperator {
 			}
 		}
 
-		void compute_defect_at_ip(MathVector<3> GlobIP, number Shape, MathVector<2> GlobShapeGrad, number& DefectValue)
+		void compute_defect_at_ip(MathVector<d> GlobIP, number Shape, MathVector<d> GlobShapeGrad, number& DefectValue)
 		{
 			DefectValue = Shape;
 		}
@@ -99,24 +102,24 @@ class TimeIdentity : public TimeOperator {
 		{}
 
 	protected:
-		NumericalSolution* m_NumericalSolution;
+		NumericalSolution<d>* m_NumericalSolution;
 
 };
 
-
-class ReactionOp : public ScalarDifferentialOperator {
+template <int d>
+class ReactionOp : public ScalarDifferentialOperator<d> {
 
 	protected:
-		typedef bool (*ReactionFunction)(MathVector<3>,number&);
+		typedef bool (*ReactionFunction)(MathVector<d>,number&);
 
 	public:
-		ReactionOp(std::string str, ReactionFunction ReactionFct, NumericalSolution& NumSol):ScalarDifferentialOperator(str)
+		ReactionOp(std::string str, ReactionFunction ReactionFct, NumericalSolution<d>& NumSol) : ScalarDifferentialOperator<d>(str)
 		{
 			m_NumericalSolution = &NumSol;
 			m_ReactionFct = ReactionFct;
 		};
 
-		void compute_jacobian_at_ip(MathVector<3> GlobIP, number Shape[], MathVector<2> GlobShapeGrad[], number JacValue[], int nsh)
+		void compute_jacobian_at_ip(MathVector<d> GlobIP, number Shape[], MathVector<d> GlobShapeGrad[], number JacValue[], int nsh)
 		{
 			number f;
 
@@ -128,7 +131,7 @@ class ReactionOp : public ScalarDifferentialOperator {
 			}
 		}
 
-		void compute_defect_at_ip(MathVector<3> GlobIP, number Shape, MathVector<2> GlobShapeGrad, number& DefectValue)
+		void compute_defect_at_ip(MathVector<d> GlobIP, number Shape, MathVector<d> GlobShapeGrad, number& DefectValue)
 		{
 			number f;
 
@@ -141,27 +144,27 @@ class ReactionOp : public ScalarDifferentialOperator {
 		{}
 
 	protected:
-		NumericalSolution* m_NumericalSolution;
+		NumericalSolution<d>* m_NumericalSolution;
 		ReactionFunction m_ReactionFct;
 
 };
 
-
-class DivDGradOp : public DivergenzDifferentialOperator {
+template <int d>
+class DivDGradOp : public DivergenzDifferentialOperator<d> {
 
 	protected:
-		typedef bool (*DiffTensorFunction)(MathVector<3>,MathMatrix<2,2>&);
+		typedef bool (*DiffTensorFunction)(MathVector<d>,MathMatrix<d,d>&);
 
 	public:
-		DivDGradOp(std::string str, DiffTensorFunction DiffTensor, NumericalSolution& NumSol):DivergenzDifferentialOperator(str)
+		DivDGradOp(std::string str, DiffTensorFunction DiffTensor, NumericalSolution<d>& NumSol):DivergenzDifferentialOperator<d>(str)
 		{
 			m_NumericalSolution = &NumSol;
 			m_DiffTensor = DiffTensor;
 		};
 
-		void compute_jacobian_at_ip(MathVector<3> GlobIP, number Shape[], MathVector<2> GlobShapeGrad[], MathVector<2> JacValue[], int nsh)
+		void compute_jacobian_at_ip(MathVector<d> GlobIP, number Shape[], MathVector<d> GlobShapeGrad[], MathVector<d> JacValue[], int nsh)
 		{
-			MathMatrix<2,2> D;
+			MathMatrix<d,d> D;
 
 			m_DiffTensor(GlobIP, D);
 
@@ -172,9 +175,9 @@ class DivDGradOp : public DivergenzDifferentialOperator {
 			}
 		}
 
-		void compute_defect_at_ip(MathVector<3> GlobIP, number Shape, MathVector<2> GlobShapeGrad, MathVector<2>& DefectValue)
+		void compute_defect_at_ip(MathVector<d> GlobIP, number Shape, MathVector<d> GlobShapeGrad, MathVector<d>& DefectValue)
 		{
-			MathMatrix<2,2> D;
+			MathMatrix<d,d> D;
 
 			m_DiffTensor(GlobIP, D);
 
@@ -186,7 +189,7 @@ class DivDGradOp : public DivergenzDifferentialOperator {
 		{}
 
 	protected:
-		NumericalSolution* m_NumericalSolution;
+		NumericalSolution<d>* m_NumericalSolution;
 		DiffTensorFunction m_DiffTensor;
 
 };

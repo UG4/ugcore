@@ -9,49 +9,64 @@
 
 namespace ug {
 
-SpacialDiscretization::SpacialDiscretization()
+template <int d>
+SpacialDiscretization<d>::SpacialDiscretization()
 {
 	m_name = "No Name";
 }
-SpacialDiscretization::SpacialDiscretization(std::string name)
+template <int d>
+SpacialDiscretization<d>::SpacialDiscretization(std::string name)
 {
 	m_name = name;
 }
 
-void SpacialDiscretization::set_name(std::string name)
+template <int d>
+void SpacialDiscretization<d>::set_name(std::string name)
 {
 	m_name = name;
 }
 
-std::string SpacialDiscretization::name()
+template <int d>
+std::string SpacialDiscretization<d>::name()
 {
 	return m_name;
 }
 
-void SpacialDiscretization::add_SubsetDiscretization(SubsetDiscretization& psd)
+template <int d>
+void SpacialDiscretization<d>::add_SubsetDiscretization(SubsetDiscretization<d>& psd)
 {
 	m_SubsetDiscretization.push_back(&psd);
 }
 
-void SpacialDiscretization::delete_SubsetDiscretization(int nr)
+template <int d>
+void SpacialDiscretization<d>::delete_SubsetDiscretization(int nr)
 {
 	m_SubsetDiscretization.erase(m_SubsetDiscretization.begin() + nr);
 }
 
-void SpacialDiscretization::clear_SubsetDiscretizations()
+template <int d>
+void SpacialDiscretization<d>::clear_SubsetDiscretizations()
 {
 	m_SubsetDiscretization.clear();
 }
 
-int SpacialDiscretization::numberOfSubsetDiscretizations()
+template <int d>
+int SpacialDiscretization<d>::numberOfSubsetDiscretizations()
 {
 	return m_SubsetDiscretization.size();
 }
 
-void SpacialDiscretization::print_info()
+template <int d>
+void SpacialDiscretization<d>::print_info()
 {
 	std::cout << "SpacialDiscretization \"" << this->name() << "\" has the following member:" << std::endl;
 	std::cout << this->numberOfSubsetDiscretizations() <<" SubsetDiscretization(s)" << std::endl;
 }
+
+// force code creation for dim d=1,2,3
+template class SpacialDiscretization<1>;
+template class SpacialDiscretization<2>;
+template class SpacialDiscretization<3>;
+
 
 }

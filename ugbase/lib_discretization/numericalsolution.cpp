@@ -13,7 +13,7 @@ namespace ug{
 /// pattern
 /////////////////////////////////////
 
-NumericalSolutionPattern::NumericalSolutionPattern(std::string name, SubsetHandler& sh)
+DoFPattern::DoFPattern(std::string name, ISubsetHandler& sh)
 {
 	_name = name;
 	_sh = &sh;
@@ -21,7 +21,7 @@ NumericalSolutionPattern::NumericalSolutionPattern(std::string name, SubsetHandl
 	_lock = false;
 };
 
-bool NumericalSolutionPattern::add_solution(std::string name, TrialSpaceType Ansatzspace, int* SubsetIndex, int n)
+bool DoFPattern::add_solution(std::string name, TrialSpaceType Ansatzspace, int* SubsetIndex, int n)
 {
 	if(_lock == true)
 	{
@@ -65,7 +65,7 @@ bool NumericalSolutionPattern::add_solution(std::string name, TrialSpaceType Ans
 	return true;
 }
 
-bool NumericalSolutionPattern::group_solution(std::string name, int* GroupSolutions, int n)
+bool DoFPattern::group_solution(std::string name, int* GroupSolutions, int n)
 {
 	if(_lock == true)
 	{
@@ -190,7 +190,7 @@ bool NumericalSolutionPattern::group_solution(std::string name, int* GroupSoluti
 	return true;
 }
 
-bool NumericalSolutionPattern::clear_grouping()
+bool DoFPattern::clear_grouping()
 {
 	if(_lock == true)
 	{
@@ -234,7 +234,7 @@ bool NumericalSolutionPattern::clear_grouping()
 	return true;
 }
 
-bool NumericalSolutionPattern::print_info()
+bool DoFPattern::print_info()
 {
 	std::cout << "Pattern contains the following single Solutions:" << std::endl;
 	for(int i = 0; i < _SingleSolutionInfoVec.size(); ++i)
@@ -267,7 +267,7 @@ bool NumericalSolutionPattern::print_info()
 	return true;
 }
 
-bool NumericalSolutionPattern::finalize()
+bool DoFPattern::finalize()
 {
 	// Check if only one Grouping present
 	if(_GroupSolutionInfoVec.size() > 1)
@@ -348,29 +348,29 @@ bool NumericalSolutionPattern::finalize()
 	return true;
 }
 
-int NumericalSolutionPattern::num_levels()
+uint DoFPattern::num_levels()
 {
 	return _num_levels;
 }
 
-int NumericalSolutionPattern::num_doubles(int i)
+int DoFPattern::num_doubles(int i)
 {
 	assert(i >= 0 && "ERROR in num_doubles: negative level index");
 	return _num_doubles[i];
 }
 
-int NumericalSolutionPattern::num_doubles()
+int DoFPattern::num_doubles()
 {
 	return _num_doubles[0];
 }
 
-TrialSpaceType NumericalSolutionPattern::get_trial_space_type(int nr_solution)
+TrialSpaceType DoFPattern::get_TrialSpaceType(int nr_solution)
 {
 	return _SingleSolutionInfoVec[nr_solution]->Ansatzspace;
 }
 
 
-int NumericalSolutionPattern::get_index(VertexBase* vrt, int nr_solution)
+int DoFPattern::get_index(VertexBase* vrt, int nr_solution)
 {
 	assert(nr_solution < _SingleSolutionInfoVec.size());
 	int subsetIndex = _sh->get_subset_index(vrt);
@@ -390,7 +390,7 @@ int NumericalSolutionPattern::get_index(VertexBase* vrt, int nr_solution)
 	return _aaDoFVRT[vrt].nr + ncomp;
 }
 
-NumericalSolutionPattern::~NumericalSolutionPattern()
+DoFPattern::~DoFPattern()
 {
 	for(int i = 0; i < _SingleSolutionInfoVec.size(); ++i)
 	{
@@ -414,23 +414,23 @@ NumericalSolutionPattern::~NumericalSolutionPattern()
 
 }
 
-std::string NumericalSolutionPattern::get_name(int comp)
+std::string DoFPattern::get_name(int comp)
 {
 	assert(comp < _SingleSolutionInfoVec.size());
 	return _SingleSolutionInfoVec[comp]->name;
 }
 
-std::string NumericalSolutionPattern::get_name()
+std::string DoFPattern::get_name()
 {
 	return _name;
 }
 
-int NumericalSolutionPattern::num_comp()
+int DoFPattern::num_comp()
 {
 	return _SingleSolutionInfoVec.size();
 }
 
-bool NumericalSolutionPattern::comp_def_in_subset(int nrComp, int subsetIndex)
+bool DoFPattern::comp_def_in_subset(int nrComp, int subsetIndex)
 {
 	for(int i = 0; i < _SingleSolutionInfoVec[nrComp]->num_SubsetIndex; ++i)
 	{
@@ -440,145 +440,11 @@ bool NumericalSolutionPattern::comp_def_in_subset(int nrComp, int subsetIndex)
 	return false;
 }
 
-SubsetHandler* NumericalSolutionPattern::get_assigned_subset()
+ISubsetHandler* DoFPattern::get_assigned_subset()
 {
 	return _sh;
 }
 
-
-
-////////////////////////////
-// numerical solution
-////////////////////////////
-
-
-
-
-NumericalSolution::NumericalSolution(std::string shortname, std::string longname, std::string description, NumericalSolutionPattern& pattern, Grid& grid)
-{
-	m_shortname = shortname;
-	m_longname = longname;
-	m_description = description;
-	m_grid = &grid;
-
-	_pattern = &pattern;
-
-	_GridVector.resize(_pattern->num_levels());
-	for(int i = 0; i < _pattern->num_levels(); ++i)
-	{
-		_GridVector[i] = new Vector();
-		_GridVector[i]->create_vector(_pattern->num_doubles(i));
-	}
-
-	return;
-}
-
-bool NumericalSolution::set_values(ValueFunction fct, int nr_func, SubsetHandler& sh, uint subsetIndex)
-{
-	return set_values(fct, nr_func, sh, subsetIndex, 0);
-}
-
-bool NumericalSolution::set_values(ValueFunction fct, int nr_func, SubsetHandler& sh, uint subsetIndex, int level)
-{
-	VertexBaseIterator iterBegin, iterEnd, iter;
-
-	Grid* grid = sh.get_assigned_grid();
-	Grid::VertexAttachmentAccessor<APosition> aaPos(*grid, aPosition);
-
-	MultiGrid* mg = dynamic_cast<MultiGrid*>(grid);
-
-	if(mg == NULL)
-	{
-		if(level != 0)
-		{
-			std::cout << "Numerical Solution is only defined on a Grid, no MultiGrid assignment possible." << std::endl;
-			return false;
-		}
-		iterBegin = grid->begin<VertexBase>();
-		iterEnd = grid->end<VertexBase>();
-	}
-	else
-	{
-		iterBegin = mg->begin<VertexBase>(level);
-		iterEnd = mg->end<VertexBase>(level);
-	}
-
-	int index;
-	number val;
-	MathVector<3> corner;
-	std::vector<int> indices;
-	std::vector<number> values;
-
-	/* loop over all Vertices */
-	int nvertices = 0;
-	for(iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		if(sh.get_subset_index(vert) != subsetIndex) continue;
-
-		corner = aaPos[vert];
-		index = _pattern->get_index(vert, nr_func);
-		fct(corner, val);
-		values.push_back(val);
-		indices.push_back(index);
-
-		nvertices++;
-	}
-
-	double* valueArray = new double[indices.size()];
-	int* indexArray = new int[indices.size()];
-
-	for(int i=0; i< indices.size(); i++)
-	{
-		valueArray[i] = values[i];
-		indexArray[i] = indices[i];
-	}
-
-	if(_GridVector[level]->set_values((int) indices.size(), indexArray, valueArray) != true)
-		return false;
-	delete valueArray;
-	delete indexArray;
-
-	return true;
-}
-
-Vector* NumericalSolution::GridVector(int level)
-{
-	return _GridVector[level];
-}
-
-Vector* NumericalSolution::GridVector()
-{
-	return _GridVector[0];
-}
-
-NumericalSolutionPattern* NumericalSolution::get_pattern()
-{
-	return _pattern;
-}
-
-
-bool NumericalSolution::print()
-{
-	std::cout << "shortname: \"" << m_shortname << "\", ";
-	std::cout << "longname: \"" << m_longname <<"\", ";
-	std::cout << "description: \"" << m_description << "\"" << std::endl;
-	return true;
-}
-
-NumericalSolution::~NumericalSolution()
-{
-	for(int i = 0; i < _pattern->num_levels(); ++i)
-	{
-		delete _GridVector[i];
-	}
-
-}
-
-std::string NumericalSolution::get_name(int comp)
-{
-	return _pattern->get_name(comp);
-}
 
 
 

@@ -10,10 +10,11 @@
 
 namespace ug{
 
+template <int d>
 class DirichletBNDCond{
 
 public:
-	typedef bool (*BNDCond)(MathVector<3>, number& val);
+	typedef bool (*BNDCond)(MathVector<d>, number& val);
 
 public:
 	DirichletBNDCond(BNDCond func)
@@ -21,7 +22,7 @@ public:
 		m_BNDFunc = func;
 	}
 
-	bool BNDValueFunction(MathVector<3> coord, number& val)
+	bool BNDValueFunction(MathVector<d> coord, number& val)
 	{
 		return m_BNDFunc(coord, val);
 	}

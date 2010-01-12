@@ -10,7 +10,7 @@
 namespace ug{
 
 template<>
-bool P1conform<Triangle>::evaluateShape(int nrShapeFct, ug::MathVector< RefDim > locPos, number& value)
+bool P1conform<Triangle>::evaluateShape(int nrShapeFct, const MathVector< RefDim >& locPos, number& value) const
 {
 	switch(nrShapeFct)
 	{
@@ -23,7 +23,7 @@ bool P1conform<Triangle>::evaluateShape(int nrShapeFct, ug::MathVector< RefDim >
 };
 
 template<>
-bool P1conform<Triangle>::evaluateShape(int nrShapeFct, ug::MathVector< RefDim > locPos[], number values[], int n)
+bool P1conform<Triangle>::evaluateShape(int nrShapeFct, MathVector< RefDim > locPos[], number values[], int n) const
 {
 	for(int i = 0; i<n; i++)
 	{
@@ -40,7 +40,7 @@ bool P1conform<Triangle>::evaluateShape(int nrShapeFct, ug::MathVector< RefDim >
 }
 
 template<>
-bool P1conform<Triangle>::evaluateShapeGrad(int nrShapeFct, ug::MathVector< RefDim > locPos, ug::MathVector< RefDim >& value)
+bool P1conform<Triangle>::evaluateShapeGrad(int nrShapeFct, const MathVector< RefDim >& locPos, ug::MathVector< RefDim >& value) const
 {
 	switch(nrShapeFct)
 	{
@@ -56,7 +56,7 @@ bool P1conform<Triangle>::evaluateShapeGrad(int nrShapeFct, ug::MathVector< RefD
 }
 
 template<>
-bool P1conform<Triangle>::positionOfDoF(int nrShapeFct, ug::MathVector< RefDim >& value)
+bool P1conform<Triangle>::positionOfDoF(int nrShapeFct, MathVector< RefDim >& value) const
 {
 	switch(nrShapeFct)
 	{
@@ -73,7 +73,7 @@ bool P1conform<Triangle>::positionOfDoF(int nrShapeFct, ug::MathVector< RefDim >
 
 
 template<>
-bool P1conform<Quadrilateral>::evaluateShape(int nrShapeFct, ug::MathVector< RefDim > locPos, number& value)
+bool P1conform<Quadrilateral>::evaluateShape(int nrShapeFct, const MathVector< RefDim >& locPos, number& value) const
 {
 	switch(nrShapeFct)
 	{
@@ -87,7 +87,7 @@ bool P1conform<Quadrilateral>::evaluateShape(int nrShapeFct, ug::MathVector< Ref
 };
 
 template<>
-bool P1conform<Quadrilateral>::evaluateShape(int nrShapeFct, ug::MathVector< RefDim > locPos[], number values[], int n)
+bool P1conform<Quadrilateral>::evaluateShape(int nrShapeFct, MathVector< RefDim > locPos[], number values[], int n) const
 {
 	for(int i = 0; i<n; i++)
 	{
@@ -105,7 +105,7 @@ bool P1conform<Quadrilateral>::evaluateShape(int nrShapeFct, ug::MathVector< Ref
 }
 
 template<>
-bool P1conform<Quadrilateral>::evaluateShapeGrad(int nrShapeFct, ug::MathVector< RefDim > locPos, ug::MathVector< RefDim >& value)
+bool P1conform<Quadrilateral>::evaluateShapeGrad(int nrShapeFct, const MathVector< RefDim >& locPos, ug::MathVector< RefDim >& value) const
 {
 	switch(nrShapeFct)
 	{
@@ -123,7 +123,7 @@ bool P1conform<Quadrilateral>::evaluateShapeGrad(int nrShapeFct, ug::MathVector<
 }
 
 template<>
-bool P1conform<Quadrilateral>::positionOfDoF(int nrShapeFct, ug::MathVector< RefDim >& value)
+bool P1conform<Quadrilateral>::positionOfDoF(int nrShapeFct, MathVector< RefDim >& value) const
 {
 	switch(nrShapeFct)
 	{

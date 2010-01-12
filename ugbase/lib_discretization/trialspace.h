@@ -12,6 +12,7 @@
 #include "dofhandler.h"
 #include "common/math/ugmath.h"
 #include "lib_grid/lib_grid.h"
+#include <cassert>
 
 namespace ug {
 
@@ -28,12 +29,13 @@ public:
 	static const std::size_t RefDim = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 
 public:
-	virtual bool evaluateShape(int nrShapeFct, MathVector< RefDim > locPos, number& value) = 0;
-	virtual bool evaluateShape(int nrShapeFct, MathVector< RefDim >[], number values[], int n) = 0;
-	virtual bool evaluateShapeGrad(int nrShapeFct, MathVector< RefDim > locPos, MathVector< RefDim >& value) = 0;
-	virtual bool positionOfDoF(int nrShapeFct, MathVector< RefDim >& value) = 0;
-	virtual uint order() = 0;
-	virtual ~TrialSpace<TElem>()
+	virtual bool evaluateShape(int nrShapeFct, const MathVector< RefDim >& locPos, number& value) const = 0;
+	virtual bool evaluateShape(int nrShapeFct, MathVector< RefDim >[], number values[], int n) const = 0;
+	virtual bool evaluateShapeGrad(int nrShapeFct, const MathVector< RefDim >& locPos, MathVector< RefDim >& value) const = 0;
+	virtual bool positionOfDoF(int nrShapeFct, MathVector< RefDim >& value) const = 0;
+	virtual uint order() const = 0;
+	virtual uint num_dofs() const = 0;
+	virtual ~TrialSpace()
 	{};
 };
 
@@ -48,19 +50,17 @@ protected:
 		static const std::size_t nsh = reference_element_traits<TElem>::NumberCorners;
 
 public:
-		virtual bool evaluateShape(int nrShapeFct, MathVector< RefDim > locPos, number& value);
-		virtual bool evaluateShape(int nrShapeFct, MathVector< RefDim > locPos[], number values[], int n);
-		virtual bool evaluateShapeGrad(int nrShapeFct, MathVector< RefDim > locPos, MathVector< RefDim >& value);
-		virtual bool positionOfDoF(int nrShapeFct, MathVector< RefDim >& value);
-		virtual uint order()
-		{
-			return m_order;
-		}
+		virtual bool evaluateShape(int nrShapeFct, const MathVector< RefDim >& locPos, number& value) const;
+		virtual bool evaluateShape(int nrShapeFct, MathVector< RefDim > locPos[], number values[], int n) const;
+		virtual bool evaluateShapeGrad(int nrShapeFct, const MathVector< RefDim >& locPos, MathVector< RefDim >& value) const;
+		virtual bool positionOfDoF(int nrShapeFct, MathVector< RefDim >& value) const;
+		virtual uint order() const { return _order;	}
+		virtual uint num_dofs() const { return nsh;	}
 
-		virtual ~P1conform<TElem>()
+		virtual ~P1conform()
 		{};
 	private:
-		static const uint m_order = 1;
+		static const uint _order = 1;
 
 };
 
@@ -89,16 +89,18 @@ class TrialSpaces {
 		TrialSpaces()
 		{};
 
-		inline static TrialSpace<TElem>& get_TrialSpace(TrialSpaceType type)
+		inline static const TrialSpace<TElem>& get_TrialSpace(TrialSpaceType type)
 		{
 			static P1conform<TElem> P1Conform;
 
 			if(type == TST_P1CONFORM)
 				return P1Conform;
+			else
+				assert(0 && "TrialSpaceType not implememted. Aborting. \n");
 		}
 
 	public:
-		static TrialSpace<TElem>& TrialSpace(TrialSpaceType type)
+		static const TrialSpace<TElem>& TrialSpace(TrialSpaceType type)
 		{
 			return inst().get_TrialSpace(type);
 		}

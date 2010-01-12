@@ -16,6 +16,7 @@
 
 namespace ug {
 
+template <int d>
 class RHS {
 
 	public:
@@ -24,7 +25,7 @@ class RHS {
 		void set_name(std::string name);
 		std::string name();
 
-		virtual void compute_defect_at_ip(vector2 LocIP, vector3 GlobIP, double& DefectValue) = 0;
+		virtual void compute_defect_at_ip(MathVector<d> GlobIP, double& DefectValue) = 0;
 
 		virtual ~RHS()
 		{}
@@ -33,18 +34,19 @@ class RHS {
 		std::string m_name;
 };
 
-class Scalarf : public RHS {
+template <int d>
+class Scalarf : public RHS<d> {
 
 	protected:
-		typedef bool (*RHSFunction)(MathVector<3>, number&);
+		typedef bool (*RHSFunction)(MathVector<d>, number&);
 
 	public:
-		Scalarf(std::string str, RHSFunction rhs):RHS(str)
+		Scalarf(std::string str, RHSFunction rhs) : RHS<d>(str)
 		{
 			m_RHSFunction = rhs;
 		};
 
-		void compute_defect_at_ip(MathVector<2> LocIP, MathVector<3> GlobIP, double& DefectValue)
+		void compute_defect_at_ip(MathVector<d> GlobIP, double& DefectValue)
 		{
 			number f;
 
@@ -63,6 +65,6 @@ class Scalarf : public RHS {
 
 } /* end namespace libDiscretization */
 
-
+#include "rhs_impl.h"
 
 #endif /* __H__LIBDISCRETIZATION__RHS__ */

@@ -9,10 +9,12 @@
 #define __H__LIBDISCRETIZATION__EQUATION_IMPL__
 
 namespace ug{
-template <class TElem, class TPosition>
-bool Equation::assemble_linear(TElem* elem, Matrix& mat, Vector& vec, NumericalSolution& u)
+
+template <int d>
+template <typename TElem>
+bool Equation<d>::assemble_linear(TElem* elem, Matrix& mat, Vector& vec, NumericalSolution<d>& u)
 {
-	static DiscretizationScheme<TElem, TPosition>* DiscScheme = &DiscretizationSchemes<TElem, TPosition>::DiscretizationScheme(m_DiscretizationSchemeID);
+	static DiscretizationScheme<TElem, d>* DiscScheme = &DiscretizationSchemes<TElem, d>::DiscretizationScheme(m_DiscretizationSchemeID);
 	DiscScheme->reset_local_jacobian();
 	DiscScheme->reset_local_defect();
 
@@ -37,11 +39,11 @@ bool Equation::assemble_linear(TElem* elem, Matrix& mat, Vector& vec, NumericalS
 	return(true);
 }
 
-
-template <typename TElem, typename TPosition>
-bool Equation::assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution& u, number time, number s_m, number s_a)
+template <int d>
+template <typename TElem>
+bool Equation<d>::assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution<d>& u, number time, number s_m, number s_a)
 {
-	static DiscretizationScheme<TElem, TPosition>* DiscScheme = &DiscretizationSchemes<TElem, TPosition>::DiscretizationScheme(m_DiscretizationSchemeID);
+	static DiscretizationScheme<TElem, d>* DiscScheme = &DiscretizationSchemes<TElem, d>::DiscretizationScheme(m_DiscretizationSchemeID);
 	DiscScheme->reset_local_jacobian();
 
 	/**** MASS MATRIX ****/
@@ -74,10 +76,11 @@ bool Equation::assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution& u,
 }
 
 
-template <typename TElem, typename TPosition>
-bool Equation::assemble_defect(TElem* elem, Vector& vec, NumericalSolution& u, number time, number s_m, number s_a)
+template <int d>
+template <typename TElem>
+bool Equation<d>::assemble_defect(TElem* elem, Vector& vec, NumericalSolution<d>& u, number time, number s_m, number s_a)
 {
-	static DiscretizationScheme<TElem, TPosition>* DiscScheme = &DiscretizationSchemes<TElem, TPosition>::DiscretizationScheme(m_DiscretizationSchemeID);
+	static DiscretizationScheme<TElem, d>* DiscScheme = &DiscretizationSchemes<TElem, d>::DiscretizationScheme(m_DiscretizationSchemeID);
 
 	DiscScheme->reset_local_defect();
 
@@ -120,10 +123,11 @@ bool Equation::assemble_defect(TElem* elem, Vector& vec, NumericalSolution& u, n
 
 
 
-template <typename TElem, typename TPosition>
-bool Equation::assemble_defect(TElem* elem, Vector& vec, NumericalSolution& u)
+template <int d>
+template <typename TElem>
+bool Equation<d>::assemble_defect(TElem* elem, Vector& vec, NumericalSolution<d>& u)
 {
-	static DiscretizationScheme<TElem, TPosition>* DiscScheme = &DiscretizationSchemes<TElem, TPosition>::DiscretizationScheme(m_DiscretizationSchemeID);
+	static DiscretizationScheme<TElem, d>* DiscScheme = &DiscretizationSchemes<TElem, d>::DiscretizationScheme(m_DiscretizationSchemeID);
 
 	DiscScheme->reset_local_defect();
 
@@ -154,10 +158,11 @@ bool Equation::assemble_defect(TElem* elem, Vector& vec, NumericalSolution& u)
 }
 
 
-template <typename TElem, typename TPosition>
-bool Equation::assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution& u)
+template <int d>
+template <typename TElem>
+bool Equation<d>::assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution<d>& u)
 {
-	static DiscretizationScheme<TElem, TPosition>* DiscScheme = &DiscretizationSchemes<TElem, TPosition>::DiscretizationScheme(m_DiscretizationSchemeID);
+	static DiscretizationScheme<TElem, d>* DiscScheme = &DiscretizationSchemes<TElem, d>::DiscretizationScheme(m_DiscretizationSchemeID);
 
 	DiscScheme->reset_local_jacobian();
 

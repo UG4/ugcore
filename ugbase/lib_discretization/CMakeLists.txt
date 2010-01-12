@@ -12,7 +12,6 @@ project(P_LIB_DISCRETIZATION)
 include_directories(${P_UGBASE_SOURCE_DIR})
 
 set(srcDiscretization		differentialoperator.cpp
-				discretizationscheme.cpp
 				dofhandler.cpp
 				elementdata.cpp
 				equation.cpp
@@ -20,7 +19,6 @@ set(srcDiscretization		differentialoperator.cpp
 				spacialdiscretization.cpp
 		                subsetdiscretization.cpp
 				systemdiscretization.cpp
-				rhs.cpp
 				trialspace.cpp
 				vtkoutput.cpp
 			     	newton.cpp)

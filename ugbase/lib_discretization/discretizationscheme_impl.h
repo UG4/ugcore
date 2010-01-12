@@ -11,23 +11,126 @@
 namespace ug{
 
 //////////////////////
+////// Dirichlet
+//////////////////////
+
+template <int d>
+bool DirichletValues<d>::add_dirichlet_nodes(NumericalSolution<d>& u, int nr_func, DirichletBNDCond<d>* dirichbnd, SubsetHandler& sh, uint subsetIndex)
+{
+	VertexBaseIterator iterBegin, iterEnd, iter;
+	iterBegin = sh.begin<VertexBase>(subsetIndex);
+	iterEnd = sh.end<VertexBase>(subsetIndex);
+
+	Grid* grid = sh.get_assigned_grid();
+	Grid::VertexAttachmentAccessor<Attachment<MathVector<d> > > aaPos(*grid, *(u.get_domain()->get_position_attachment()));
+
+	int index;
+	number val;
+	MathVector<d> corner;
+
+	/* loop over all Vertices */
+	int nvertices = 0, ndirnodes = 0;
+	for(iter = iterBegin; iter != iterEnd; iter++)
+	{
+		VertexBase *vert = *iter;
+		corner = aaPos[vert];
+		nvertices++;
+
+		if(IsBoundaryVertex2D(*grid, vert))
+		{
+			index = (int) u.get_pattern()->get_index(vert, nr_func);
+			dirichbnd->BNDValueFunction(corner, val);
+			m_vector_values.push_back(val);
+			m_vector_indices.push_back(index);
+			m_matrixrow_indices.push_back(index);
+			ndirnodes++;
+		}
+	}
+	//std::cout << nvertices << " Vertices checked: Nr. Dirichlet nodes found:" << ndirnodes << "(now total: "<< m_vector_indices.size() <<")"<< std::endl;
+
+	return true;
+}
+
+template <int d>
+bool DirichletValues<d>::set_values(Vector& vec)
+{
+	double* valueArray = new double[m_vector_indices.size()];
+	int* indexArray = new int[m_vector_indices.size()];
+
+	for(uint i=0; i<m_vector_indices.size(); i++)
+	{
+		valueArray[i] = m_vector_values[i];
+		indexArray[i] = m_vector_indices[i];
+	}
+
+	if(vec.set_values(m_vector_indices.size(), indexArray, valueArray) != true)
+		return false;
+	delete valueArray;
+	delete indexArray;
+
+	std::cout << m_vector_indices.size() << " Boundary nodes set to Dirichlet value" << std::endl;
+	return true;
+}
+
+template <int d>
+bool DirichletValues<d>::set_zero_values(Vector& vec)
+{
+	double* valueArray = new double[m_vector_indices.size()];
+	int* indexArray = new int[m_vector_indices.size()];
+
+	for(uint i=0; i<m_vector_indices.size(); i++)
+	{
+		valueArray[i] = 0.0;
+		indexArray[i] = m_vector_indices[i];
+	}
+
+	if(vec.set_values(m_vector_indices.size(), indexArray, valueArray) != true)
+		return false;
+	delete valueArray;
+	delete indexArray;
+
+	std::cout << m_vector_indices.size() << " Boundary nodes set to zero value" << std::endl;
+	return true;
+}
+
+
+template <int d>
+bool DirichletValues<d>::set_rows(Matrix& mat)
+{
+	int* indexArray = new int[m_matrixrow_indices.size()];
+
+	for(uint i=0; i<m_matrixrow_indices.size(); i++)
+	{
+		indexArray[i] = m_matrixrow_indices[i];
+	}
+
+	if(mat.set_dirichletrows(m_matrixrow_indices.size(), indexArray) != true)
+		return false;
+	delete indexArray;
+
+	std::cout << m_matrixrow_indices.size() << " Matrix rows set to Identity row" << std::endl;
+	return true;
+}
+
+
+//////////////////////
 ////// FE1
 //////////////////////
 
-template <typename TElem, typename TPosition>
-FE1Discretization<TElem, TPosition>::FE1Discretization()
+template <typename TElem, int d>
+FE1Discretization<TElem, d>::FE1Discretization()
 {
 	InitializeIntegrationPoints();
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::prepareElement(TElem* elem, NumericalSolution& u, int nr_func, SubsetHandler& sh, int SubsetIndex)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::prepareElement(TElem* elem, typename ug::NumericalSolution<d>& u, int nr_func, SubsetHandler& sh, int SubsetIndex)
 {
-	NumericalSolutionPattern* pattern = u.get_pattern();
-	m_TrialSpace = &u.TrialSpace<TElem>(nr_func, SubsetIndex);
+	DoFPattern* pattern = u.get_pattern();
+	m_TrialSpace = &(u.template get_TrialSpace<TElem>(nr_func));
 
 	Grid* grid = sh.get_assigned_grid();
-	Grid::VertexAttachmentAccessor<TPosition> m_aaPos(*grid, aPosition);
+	Grid::VertexAttachmentAccessor<Attachment<MathVector<d> > > m_aaPos(*grid, *(u.get_domain()->get_position_attachment()));
 
 	u.get_local_DoFValues(elem, nr_func, m_loc_u);
 
@@ -42,7 +145,7 @@ void FE1Discretization<TElem, TPosition>::prepareElement(TElem* elem, NumericalS
 	// get global ip's ...
 	for(int ip=0; ip<m_nip; ip++)
 	{
-		m_RefElem.mapLocalToGlobal(m_corners, m_LocalIP[ip], m_GlobalIP[ip]);
+		m_RefElem.template mapLocalToGlobal<d>(m_corners, m_LocalIP[ip], m_GlobalIP[ip]);
 		m_RefElem.Trafo(m_corners, m_LocalIP[ip], m_IPTrafo[ip], m_det[ip]);
 
 		// and Shape and ShapeGrad of Solution u at those points
@@ -55,8 +158,8 @@ void FE1Discretization<TElem, TPosition>::prepareElement(TElem* elem, NumericalS
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::add_op_to_local_jacobian(TimeOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::add_op_to_local_jacobian(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
 	number JacobianArray[m_nsh];
 
@@ -75,8 +178,8 @@ void FE1Discretization<TElem, TPosition>::add_op_to_local_jacobian(TimeOperator*
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::add_op_to_local_jacobian(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::add_op_to_local_jacobian(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
 	number JacobianArray[m_nsh];
 
@@ -95,10 +198,10 @@ void FE1Discretization<TElem, TPosition>::add_op_to_local_jacobian(ScalarDiffere
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::add_op_to_local_jacobian(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::add_op_to_local_jacobian(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> JacobianArray[m_nsh];
+	MathVector<d> JacobianArray[m_nsh];
 
 
 	// compute shape fkt, grads and Trafos at ip
@@ -116,8 +219,8 @@ void FE1Discretization<TElem, TPosition>::add_op_to_local_jacobian(DivergenzDiff
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::add_rhs_to_local_defect(RHS* rhs, TElem* elem)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::add_rhs_to_local_defect(RHS<d>* rhs, TElem* elem)
 {
 	double defect;
 
@@ -125,7 +228,7 @@ void FE1Discretization<TElem, TPosition>::add_rhs_to_local_defect(RHS* rhs, TEle
 	for(int ip=0; ip<m_nip; ip++)
 	{
 		// evalutate operator
-		rhs->compute_defect_at_ip(m_LocalIP[ip], m_GlobalIP[ip], defect);
+		rhs->compute_defect_at_ip(m_GlobalIP[ip], defect);
 
 		// add entry to LocalJacobian
 		for(int i=0; i< m_nsh; i++)
@@ -135,14 +238,14 @@ void FE1Discretization<TElem, TPosition>::add_rhs_to_local_defect(RHS* rhs, TEle
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::add_op_to_local_defect(TimeOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::add_op_to_local_defect(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> uGrad;
+	MathVector<d> uGrad;
 	number uShape;
 
 	number DefectArray;
-	MathVector<2> help;
+	MathVector<d> help;
 
 	// compute shape fkt, grads and Trafos at ip
 	for(int ip=0; ip<m_nip; ip++)
@@ -167,14 +270,14 @@ void FE1Discretization<TElem, TPosition>::add_op_to_local_defect(TimeOperator* o
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::add_op_to_local_defect(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::add_op_to_local_defect(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> uGrad;
+	MathVector<d> uGrad;
 	number uShape;
 
 	number DefectArray;
-	MathVector<2> help;
+	MathVector<d> help;
 
 	// compute shape fkt, grads and Trafos at ip
 	for(int ip=0; ip<m_nip; ip++)
@@ -199,14 +302,14 @@ void FE1Discretization<TElem, TPosition>::add_op_to_local_defect(ScalarDifferent
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::add_op_to_local_defect(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::add_op_to_local_defect(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> uGrad;
+	MathVector<d> uGrad;
 	number uShape;
 
-	MathVector<2> DefectArray;
-	MathVector<2> help;
+	MathVector<d> DefectArray;
+	MathVector<d> help;
 
 	// compute shape fkt, grads and Trafos at ip
 	for(int ip=0; ip<m_nip; ip++)
@@ -231,20 +334,20 @@ void FE1Discretization<TElem, TPosition>::add_op_to_local_defect(DivergenzDiffer
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::reset_local_jacobian()
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::reset_local_jacobian()
 {
 	MatSet(m_LocalJacobian, 0.0);
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::reset_local_defect()
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::reset_local_defect()
 {
 	VecSet(m_LocalDefect, 0.0);
 }
 
-template <typename TElem, typename TPosition>
-bool FE1Discretization<TElem, TPosition>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat)
+template <typename TElem, int d>
+bool FE1Discretization<TElem, d>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat)
 {
 	int nrows = m_nsh;
 	int ncols[m_nsh];
@@ -268,8 +371,8 @@ bool FE1Discretization<TElem, TPosition>::send_local_jacobian_to_global_jacobian
 }
 
 
-template <typename TElem, typename TPosition>
-bool FE1Discretization<TElem, TPosition>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat, number scale)
+template <typename TElem, int d>
+bool FE1Discretization<TElem, d>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat, number scale)
 {
 	int nrows = m_nsh;
 	int ncols[m_nsh];
@@ -292,8 +395,8 @@ bool FE1Discretization<TElem, TPosition>::send_local_jacobian_to_global_jacobian
 	return false;
 }
 
-template <typename TElem, typename TPosition>
-bool FE1Discretization<TElem, TPosition>::send_local_defect_to_global_defect(TElem* tr, Vector& vec)
+template <typename TElem, int d>
+bool FE1Discretization<TElem, d>::send_local_defect_to_global_defect(TElem* tr, Vector& vec)
 {
 	int nentries = m_nsh;
 	double values[m_nsh];
@@ -308,8 +411,8 @@ bool FE1Discretization<TElem, TPosition>::send_local_defect_to_global_defect(TEl
 	return false;
 }
 
-template <typename TElem, typename TPosition>
-bool FE1Discretization<TElem, TPosition>::send_local_defect_to_global_defect(TElem* tr, Vector& vec, number scale)
+template <typename TElem, int d>
+bool FE1Discretization<TElem, d>::send_local_defect_to_global_defect(TElem* tr, Vector& vec, number scale)
 {
 	int nentries = m_nsh;
 	double values[m_nsh];
@@ -324,13 +427,13 @@ bool FE1Discretization<TElem, TPosition>::send_local_defect_to_global_defect(TEl
 	return false;
 }
 
-template <typename TElem, typename TPosition>
-FE1Discretization<TElem, TPosition>::~FE1Discretization()
+template <typename TElem, int d>
+FE1Discretization<TElem, d>::~FE1Discretization()
 {
 }
 
-template <typename TElem, typename TPosition>
-void FE1Discretization<TElem, TPosition>::InitializeIntegrationPoints()
+template <typename TElem, int d>
+void FE1Discretization<TElem, d>::InitializeIntegrationPoints()
 {
 	// define integration points
 	//m_nip = 1;
@@ -356,20 +459,20 @@ void FE1Discretization<TElem, TPosition>::InitializeIntegrationPoints()
 ////// FVE1lump
 //////////////////////
 
-template <typename TElem, typename TPosition>
-FVE1lumpDiscretization<TElem, TPosition>::FVE1lumpDiscretization()
+template <typename TElem, int d>
+FVE1lumpDiscretization<TElem, d>::FVE1lumpDiscretization()
 {
 	InitializeIntegrationPoints();
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::prepareElement(TElem* elem, NumericalSolution& u, int nr_func, SubsetHandler& sh, int SubsetIndex)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::prepareElement(TElem* elem, NumericalSolution<d>& u, int nr_func, SubsetHandler& sh, int SubsetIndex)
 {
-	NumericalSolutionPattern* pattern = u.get_pattern();
-	m_TrialSpace = &u.TrialSpace<TElem>(nr_func, SubsetIndex);
+	DoFPattern* pattern = u.get_pattern();
+	m_TrialSpace = &(u.template get_TrialSpace<TElem>(nr_func));
 
 	Grid* grid = sh.get_assigned_grid();
-	Grid::VertexAttachmentAccessor<TPosition> m_aaPos(*grid, aPosition);
+	Grid::VertexAttachmentAccessor<Attachment<MathVector<d> > > m_aaPos(*grid, *(u.get_domain()->get_position_attachment()));
 
 	// get corner coordinates and global DoF numbers
 	for(int i=0; i< m_nsh; i++)
@@ -382,7 +485,7 @@ void FVE1lumpDiscretization<TElem, TPosition>::prepareElement(TElem* elem, Numer
 	// get global ip's ...
 	for(int ip=0; ip<m_nip; ip++)
 	{
-		m_RefElem.mapLocalToGlobal(m_corners, m_LocalIP[ip], m_GlobalIP[ip]);
+		m_RefElem.template mapLocalToGlobal<d>(m_corners, m_LocalIP[ip], m_GlobalIP[ip]);
 		m_RefElem.Trafo(m_corners, m_LocalIP[ip], m_IPTrafo[ip], m_det[ip]);
 
 		// and Shape and ShapeGrad of Solution u at those points
@@ -395,8 +498,8 @@ void FVE1lumpDiscretization<TElem, TPosition>::prepareElement(TElem* elem, Numer
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_jacobian(TimeOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::add_op_to_local_jacobian(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
 	number JacobianArray[m_nsh];
 
@@ -415,8 +518,8 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_jacobian(TimeOper
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_jacobian(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::add_op_to_local_jacobian(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
 	number JacobianArray[m_nsh];
 
@@ -435,10 +538,10 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_jacobian(ScalarDi
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_jacobian(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::add_op_to_local_jacobian(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> JacobianArray[m_nsh];
+	MathVector<d> JacobianArray[m_nsh];
 
 
 	// compute shape fkt, grads and Trafos at ip
@@ -456,8 +559,8 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_jacobian(Divergen
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::add_rhs_to_local_defect(RHS* rhs, TElem* elem)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::add_rhs_to_local_defect(RHS<d>* rhs, TElem* elem)
 {
 	double defect;
 
@@ -465,7 +568,7 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_rhs_to_local_defect(RHS* rhs,
 	for(int ip=0; ip<m_nip; ip++)
 	{
 		// evalutate operator
-		rhs->compute_defect_at_ip(m_LocalIP[ip], m_GlobalIP[ip], defect);
+		rhs->compute_defect_at_ip(m_GlobalIP[ip], defect);
 
 		// add entry to LocalJacobian
 		for(int i=0; i< m_nsh; i++)
@@ -475,14 +578,14 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_rhs_to_local_defect(RHS* rhs,
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_defect(TimeOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::add_op_to_local_defect(TimeOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> uGrad;
+	MathVector<d> uGrad;
 	number uShape;
 
 	number DefectArray;
-	MathVector<2> help;
+	MathVector<d> help;
 
 	// compute shape fkt, grads and Trafos at ip
 	for(int ip=0; ip<m_nip; ip++)
@@ -507,14 +610,14 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_defect(TimeOperat
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_defect(ScalarDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::add_op_to_local_defect(ScalarDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> uGrad;
+	MathVector<d> uGrad;
 	number uShape;
 
 	number DefectArray;
-	MathVector<2> help;
+	MathVector<d> help;
 
 	// compute shape fkt, grads and Trafos at ip
 	for(int ip=0; ip<m_nip; ip++)
@@ -539,14 +642,14 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_defect(ScalarDiff
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_defect(DivergenzDifferentialOperator* op, TElem* elem, NumericalSolution& u)
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::add_op_to_local_defect(DivergenzDifferentialOperator<d>* op, TElem* elem, NumericalSolution<d>& u)
 {
-	MathVector<2> uGrad;
+	MathVector<d> uGrad;
 	number uShape;
 
-	MathVector<2> DefectArray;
-	MathVector<2> help;
+	MathVector<d> DefectArray;
+	MathVector<d> help;
 
 	// compute shape fkt, grads and Trafos at ip
 	for(int ip=0; ip<m_nip; ip++)
@@ -571,20 +674,20 @@ void FVE1lumpDiscretization<TElem, TPosition>::add_op_to_local_defect(DivergenzD
 	}
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::reset_local_jacobian()
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::reset_local_jacobian()
 {
 	MatSet(m_LocalJacobian, 0.0);
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::reset_local_defect()
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::reset_local_defect()
 {
 	VecSet(m_LocalDefect, 0.0);
 }
 
-template <typename TElem, typename TPosition>
-bool FVE1lumpDiscretization<TElem, TPosition>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat)
+template <typename TElem, int d>
+bool FVE1lumpDiscretization<TElem, d>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat)
 {
 	int nrows = m_nsh;
 	int ncols[m_nsh];
@@ -608,8 +711,8 @@ bool FVE1lumpDiscretization<TElem, TPosition>::send_local_jacobian_to_global_jac
 }
 
 
-template <typename TElem, typename TPosition>
-bool FVE1lumpDiscretization<TElem, TPosition>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat, number scale)
+template <typename TElem, int d>
+bool FVE1lumpDiscretization<TElem, d>::send_local_jacobian_to_global_jacobian(TElem* tr, Matrix& mat, number scale)
 {
 	int nrows = m_nsh;
 	int ncols[m_nsh];
@@ -632,8 +735,8 @@ bool FVE1lumpDiscretization<TElem, TPosition>::send_local_jacobian_to_global_jac
 	return false;
 }
 
-template <typename TElem, typename TPosition>
-bool FVE1lumpDiscretization<TElem, TPosition>::send_local_defect_to_global_defect(TElem* tr, Vector& vec)
+template <typename TElem, int d>
+bool FVE1lumpDiscretization<TElem, d>::send_local_defect_to_global_defect(TElem* tr, Vector& vec)
 {
 	int nentries = m_nsh;
 	double values[m_nsh];
@@ -648,8 +751,8 @@ bool FVE1lumpDiscretization<TElem, TPosition>::send_local_defect_to_global_defec
 	return false;
 }
 
-template <typename TElem, typename TPosition>
-bool FVE1lumpDiscretization<TElem, TPosition>::send_local_defect_to_global_defect(TElem* tr, Vector& vec, number scale)
+template <typename TElem, int d>
+bool FVE1lumpDiscretization<TElem, d>::send_local_defect_to_global_defect(TElem* tr, Vector& vec, number scale)
 {
 	int nentries = m_nsh;
 	double values[m_nsh];
@@ -664,13 +767,13 @@ bool FVE1lumpDiscretization<TElem, TPosition>::send_local_defect_to_global_defec
 	return false;
 }
 
-template <typename TElem, typename TPosition>
-FVE1lumpDiscretization<TElem, TPosition>::~FVE1lumpDiscretization()
+template <typename TElem, int d>
+FVE1lumpDiscretization<TElem, d>::~FVE1lumpDiscretization()
 {
 }
 
-template <typename TElem, typename TPosition>
-void FVE1lumpDiscretization<TElem, TPosition>::InitializeIntegrationPoints()
+template <typename TElem, int d>
+void FVE1lumpDiscretization<TElem, d>::InitializeIntegrationPoints()
 {
 	if(reference_element_traits<TElem>::NumberCorners == 3)
 	{

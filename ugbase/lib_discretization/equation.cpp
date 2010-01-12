@@ -15,28 +15,33 @@
 
 namespace ug {
 
-Equation::Equation()
+template <int d>
+Equation<d>::Equation()
 {
 	m_name = "No Name";
 }
 
-Equation::Equation(std::string name, int nr_func)
+template <int d>
+Equation<d>::Equation(std::string name, int nr_func)
 {
 	m_name = name;
 	_nr_func = nr_func;
 }
 
-void Equation::set_name(std::string name)
+template <int d>
+void Equation<d>::set_name(std::string name)
 {
 	m_name = name;
 }
 
-std::string Equation::name()
+template <int d>
+std::string Equation<d>::name()
 {
 	return m_name;
 }
 
-bool Equation::add_differentialoperator(TimeOperator& op)
+template <int d>
+bool Equation<d>::add_differentialoperator(TimeOperator<d>& op)
 {
 	m_DifferentialOperatorVector.push_back(&op);
 	m_TimeOperatorVector.push_back(&op);
@@ -45,7 +50,8 @@ bool Equation::add_differentialoperator(TimeOperator& op)
 };
 
 
-bool Equation::add_differentialoperator(DivergenzDifferentialOperator& op)
+template <int d>
+bool Equation<d>::add_differentialoperator(DivergenzDifferentialOperator<d>& op)
 {
 	m_DifferentialOperatorVector.push_back(&op);
 	m_DivergenzDifferentialOperatorVector.push_back(&op);
@@ -53,7 +59,8 @@ bool Equation::add_differentialoperator(DivergenzDifferentialOperator& op)
 	return true;
 };
 
-bool Equation::add_differentialoperator(ScalarDifferentialOperator& op)
+template <int d>
+bool Equation<d>::add_differentialoperator(ScalarDifferentialOperator<d>& op)
 {
 	m_DifferentialOperatorVector.push_back(&op);
 	m_ScalarDifferentialOperatorVector.push_back(&op);
@@ -61,7 +68,8 @@ bool Equation::add_differentialoperator(ScalarDifferentialOperator& op)
 	return true;
 };
 
-bool Equation::delete_differentialoperator(const int nr)
+template <int d>
+bool Equation<d>::delete_differentialoperator(const int nr)
 {
 	DifferentialOperator* toDelete = m_DifferentialOperatorVector[nr];
 
@@ -87,7 +95,8 @@ bool Equation::delete_differentialoperator(const int nr)
 }
 
 
-bool Equation::clear_differentialoperator()
+template <int d>
+bool Equation<d>::clear_differentialoperator()
 {
 	m_DifferentialOperatorVector.clear();
 	m_TimeOperatorVector.clear();
@@ -97,14 +106,16 @@ bool Equation::clear_differentialoperator()
 	return true;
 }
 
-bool Equation::add_rhs(RHS& rhs)
+template <int d>
+bool Equation<d>::add_rhs(RHS<d>& rhs)
 {
 	m_RHSVector.push_back(&rhs);
 
 	return true;
 };
 
-bool Equation::delete_rhs(const int nr)
+template <int d>
+bool Equation<d>::delete_rhs(const int nr)
 {
 	m_RHSVector.erase(m_RHSVector.begin() + nr);
 
@@ -112,14 +123,16 @@ bool Equation::delete_rhs(const int nr)
 }
 
 
-bool Equation::clear_rhs()
+template <int d>
+bool Equation<d>::clear_rhs()
 {
 	m_RHSVector.clear();
 
 	return true;
 }
 
-void Equation::print_info()
+template <int d>
+void Equation<d>::print_info()
 {
 	std::cout << "Equation \""<< this->name() << "\" contains the following Terms:" << std::endl;
 
@@ -137,7 +150,8 @@ void Equation::print_info()
 	std::cout << std::endl;
 }
 
-bool Equation::set_discretzationscheme(DiscretizationSchemeID type)
+template <int d>
+bool Equation<d>::set_discretzationscheme(DiscretizationSchemeID type)
 {
 	m_DiscretizationSchemeID = type;
 
@@ -145,7 +159,8 @@ bool Equation::set_discretzationscheme(DiscretizationSchemeID type)
 }
 
 
-bool Equation::get_dirichlet_values(SubsetHandler& sh, uint subsetIndex, NumericalSolution& u, DirichletValues& dirVal)
+template <int d>
+bool Equation<d>::get_dirichlet_values(SubsetHandler& sh, uint subsetIndex, NumericalSolution<d>& u, DirichletValues<d>& dirVal)
 {
 	switch(m_DiscretizationSchemeID)
 	{
@@ -160,4 +175,10 @@ bool Equation::get_dirichlet_values(SubsetHandler& sh, uint subsetIndex, Numeric
 	return true;
 }
 
-};
+
+// force code creating for dim d=1,2,3
+template class Equation<1>;
+template class Equation<2>;
+template class Equation<3>;
+
+}

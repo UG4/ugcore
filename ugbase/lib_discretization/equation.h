@@ -19,6 +19,7 @@
 
 namespace ug {
 
+template <int d>
 class Equation
 {
 	public:
@@ -28,22 +29,22 @@ class Equation
 		void set_name(std::string name);
 		std::string name();
 
-		bool add_differentialoperator(TimeOperator& op);
-		bool add_differentialoperator(ScalarDifferentialOperator& op);
-		bool add_differentialoperator(DivergenzDifferentialOperator& op);
+		bool add_differentialoperator(TimeOperator<d>& op);
+		bool add_differentialoperator(ScalarDifferentialOperator<d>& op);
+		bool add_differentialoperator(DivergenzDifferentialOperator<d>& op);
 		bool delete_differentialoperator(const int nr);
 		bool clear_differentialoperator();
 
-		bool add_rhs(RHS& rhs);
+		bool add_rhs(RHS<d>& rhs);
 		bool delete_rhs(const int nr);
 		bool clear_rhs();
 
-		bool add_dirichletBND(DirichletBNDCond& cond)
+		bool add_dirichletBND(DirichletBNDCond<d>& cond)
 		{
 			m_DirichletBND = &cond;
 			return true;
 		}
-		DirichletBNDCond* get_dirichletBND()
+		DirichletBNDCond<d>* get_dirichletBND()
 		{
 			return m_DirichletBND;
 		}
@@ -57,10 +58,10 @@ class Equation
 
 		bool set_discretzationscheme(DiscretizationSchemeID type);
 
-		template <typename TElem, typename TPosition>
-		bool prepare_element(TElem* elem, NumericalSolution& u, SubsetHandler& sh, int SubsetIndex)
+		template <typename TElem>
+		bool prepare_element(TElem* elem, NumericalSolution<d>& u, SubsetHandler& sh, int SubsetIndex)
 		{
-			static DiscretizationScheme<TElem, TPosition>* DiscScheme = &DiscretizationSchemes<TElem, TPosition>::DiscretizationScheme(m_DiscretizationSchemeID);
+			static DiscretizationScheme<TElem, d>* DiscScheme = &DiscretizationSchemes<TElem, d>::DiscretizationScheme(m_DiscretizationSchemeID);
 
 			DiscScheme->prepareElement(elem, u, _nr_func, sh, SubsetIndex);
 
@@ -68,30 +69,30 @@ class Equation
 		}
 
 		/**** instationary assemblings ****/
-		template <typename TElem, typename TDiscScheme>
-		bool assemble_defect(TElem* elem,Vector& vec, NumericalSolution& u, number time, number s_m, number s_a);
+		template <typename TElem>
+		bool assemble_defect(TElem* elem,Vector& vec, NumericalSolution<d>& u, number time, number s_m, number s_a);
 
-		template <typename TElem, typename TDiscScheme>
-		bool assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution& u, number time, number s_m, number s_a);
+		template <typename TElem>
+		bool assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution<d>& u, number time, number s_m, number s_a);
 
 		/**** stationary assemblings ****/
-		template <typename TElem, typename TDiscScheme>
-		bool assemble_defect(TElem* elem, Vector& vec, NumericalSolution& u);
+		template <typename TElem>
+		bool assemble_defect(TElem* elem, Vector& vec, NumericalSolution<d>& u);
 
-		template <typename TElem, typename TDiscScheme>
-		bool assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution& u);
+		template <typename TElem>
+		bool assemble_jacobian(TElem* elem, Matrix& mat, NumericalSolution<d>& u);
 
-		template <typename TElem, typename TDiscScheme>
-		bool assemble_linear(TElem* elem, Matrix& mat, Vector& vec, NumericalSolution& u);
+		template <typename TElem>
+		bool assemble_linear(TElem* elem, Matrix& mat, Vector& vec, NumericalSolution<d>& u);
 
-		bool get_dirichlet_values(SubsetHandler& sh, uint subsetIndex, NumericalSolution& u, DirichletValues& dirVal);
+		bool get_dirichlet_values(SubsetHandler& sh, uint subsetIndex, NumericalSolution<d>& u, DirichletValues<d>& dirVal);
 
 	protected:
 		typedef std::vector<DifferentialOperator*> DifferentialOperatorContainer;
-		typedef std::vector<TimeOperator*> TimeOperatorContainer;
-		typedef std::vector<DivergenzDifferentialOperator*> DivergenzDifferentialOperatorContainer;
-		typedef std::vector<ScalarDifferentialOperator*> ScalarDifferentialOperatorContainer;
-		typedef std::vector<RHS*> RHSContainer;
+		typedef std::vector<TimeOperator<d>*> TimeOperatorContainer;
+		typedef std::vector<DivergenzDifferentialOperator<d>*> DivergenzDifferentialOperatorContainer;
+		typedef std::vector<ScalarDifferentialOperator<d>*> ScalarDifferentialOperatorContainer;
+		typedef std::vector<RHS<d>*> RHSContainer;
 
 	protected:
 		std::string m_name;
@@ -100,7 +101,7 @@ class Equation
 		ScalarDifferentialOperatorContainer m_ScalarDifferentialOperatorVector;
 		DivergenzDifferentialOperatorContainer m_DivergenzDifferentialOperatorVector;
 		RHSContainer m_RHSVector;
-		DirichletBNDCond* m_DirichletBND;
+		DirichletBNDCond<d>* m_DirichletBND;
 		DiscretizationSchemeID m_DiscretizationSchemeID;
 
 		int _nr_func;
