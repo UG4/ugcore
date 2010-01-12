@@ -802,8 +802,8 @@ template<>
 class attachment_traits<GeometricObject*, Grid>
 {
 	public:
-		static inline uint get_data_index(const GeometricObject* elem)					{return elem->m_gridDataIndex;}
-		static inline void set_data_index(GeometricObject* elem, uint index)			{elem->m_gridDataIndex = index;};
+		static inline uint get_data_index(Grid* pHandler, const GeometricObject* elem)	{return elem->m_gridDataIndex;}
+		static inline void set_data_index(Grid* pHandler, GeometricObject* elem, uint index)	{elem->m_gridDataIndex = index;}
 };
 
 

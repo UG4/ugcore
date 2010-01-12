@@ -216,7 +216,7 @@ struct AttachmentEntry
  * - copy_values(TElem from, TElem to)
  * - swap_entry_indices()?!?
  */
-template<class TElem, class TElemHandlerTag>
+template<class TElem, class TElemHandler>
 class AttachmentPipe
 {
 	public:
@@ -226,6 +226,11 @@ class AttachmentPipe
 		typedef Hash<AttachmentEntryIterator, uint>	AttachmentEntryIteratorHash;
 
 	public:
+		AttachmentPipe() : m_pHandler(NULL)	{}
+		AttachmentPipe(TElemHandler* pHandler) : m_pHandler(pHandler)	{}
+		
+		inline TElemHandler* get_elem_handler()		{return m_pHandler;}
+		
 		void clear();
 		void clear_elements();
 		void clear_attachments();
@@ -278,6 +283,8 @@ class AttachmentPipe
 		UINTStack		m_stackFreeEntries;	///< holds indices to free entries.
 
 		uint			m_numElements;
+		
+		TElemHandler*	m_pHandler;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,12 +292,12 @@ class AttachmentPipe
 /**
  * Perform template-specialization for your own data-types and their respective handlers.
  */
-template<class TElem, class TElemHandlerTag>
+template<class TElem, class TElemHandler>
 class attachment_traits
 {
 	public:
-		static inline uint get_data_index(const TElem& elem)	{return INVALID_ATTACHMENT_INDEX;}
-		static inline void set_data_index(TElem elem, uint index)	{};
+		static inline uint get_data_index(TElemHandler* pHandler, const TElem& elem)	{return INVALID_ATTACHMENT_INDEX;}
+		static inline void set_data_index(TElemHandler* pHandler, TElem elem, uint index)	{};
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -300,7 +307,7 @@ class attachment_traits
  * Once initialized (use the constructor), an AttachmentAccessor can be used to access
  * the data stored in the given AttachmentPipe
  */
-template <class TElem, class TAttachment, class ElemHandlerTag>
+template <class TElem, class TAttachment, class TElemHandler>
 class AttachmentAccessor
 {
 	public:
@@ -309,26 +316,36 @@ class AttachmentAccessor
 	public:
 		AttachmentAccessor();
 		AttachmentAccessor(const AttachmentAccessor& aa);
-		AttachmentAccessor(const AttachmentPipe<TElem, ElemHandlerTag>& attachmentPipe, TAttachment& attachment);
+		AttachmentAccessor(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
 
-		void access(const AttachmentPipe<TElem, ElemHandlerTag>& attachmentPipe, TAttachment& attachment);
+		void access(AttachmentPipe<TElem, TElemHandler>& attachmentPipe, TAttachment& attachment);
 
 		inline ValueType&
 		operator[](const TElem& elem)
 			{
-				assert((attachment_traits<TElem, ElemHandlerTag>::get_data_index(elem) != INVALID_ATTACHMENT_INDEX) &&
+				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&
 						"ERROR in AttachmentAccessor::operator[]: accessing element with invalid attachment index!");
 				assert(m_pContainer && "ERROR in AttachmentAccessor::operator[]: no AttachmentPipe assigned.");
-				return m_pContainer->get_elem(attachment_traits<TElem, ElemHandlerTag>::get_data_index(elem));
+				return m_pContainer->get_elem(attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem));
 			}
-
+			
+		inline const ValueType&
+		operator[](const TElem& elem) const
+			{
+				assert((attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem) != INVALID_ATTACHMENT_INDEX) &&
+						"ERROR in AttachmentAccessor::operator[]: accessing element with invalid attachment index!");
+				assert(m_pContainer && "ERROR in AttachmentAccessor::operator[]: no AttachmentPipe assigned.");
+				return m_pContainer->get_elem(attachment_traits<TElem, TElemHandler>::get_data_index(m_pHandler, elem));
+			}
+			
+/*
 		inline ValueType&
 		operator[](int index)
 			{
 				assert(m_pContainer && "ERROR in AttachmentAccessor::operator[]: no AttachmentPipe assigned.");
 				return m_pContainer->get_elem(index);
 			}
-
+*/
 		inline bool valid()
 			{return m_pContainer != NULL;}
 
@@ -337,6 +354,7 @@ class AttachmentAccessor
 
 	protected:
 		typename TAttachment::ContainerType*	m_pContainer;
+		TElemHandler*	m_pHandler;
 };
 
 

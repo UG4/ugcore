@@ -29,6 +29,7 @@ ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false), m_aIterator(fals
 	m_supportedElements = supportedElements;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
+	m_bSubsetAttachmentsEnabled = false;
 }
 /*
 ISubsetHandler::
@@ -54,6 +55,15 @@ ISubsetHandler::
 {
 	if(m_pGrid != NULL)
 		m_pGrid->unregister_observer(this);
+}
+
+void ISubsetHandler::
+create_required_subset_infos(int index)
+{
+	m_subsetInfos.resize(index+1);
+	if(subset_attachments_are_enabled())
+		resize_attachment_pipes(index+1);
+	add_required_subset_lists(index);
 }
 
 void
@@ -356,21 +366,30 @@ erase_subset(int subsetIndex)
 	if((subsetIndex >= 0) && (subsetIndex < (int)num_subset_infos()))
 	{
 		change_subset_indices(subsetIndex, -1);
-
+	//	clear pipes
+		if(subset_attachments_are_enabled())
+			clear_attachment_pipes(subsetIndex);
+		
 		for(uint i = subsetIndex + 1; i < num_subset_infos(); ++i)
 		{
-			int iPrev = i-1;
 		//	alter indices
-			change_subset_indices(i, iPrev);
+			change_subset_indices(i, i-1);
 
 		//	move the subset
 			m_subsetInfos[i-1] = m_subsetInfos[i];
+			
+		//	move the pipes
+			if(subset_attachments_are_enabled())
+			{
+				m_vertexAttachmentPipes[i-1] = m_vertexAttachmentPipes[i];
+			}
 		}
 
 	//	resize the subset vector
 		uint numNewSubsets = num_subset_infos() - 1;
 		erase_subset_lists(subsetIndex);
 		m_subsetInfos.resize(numNewSubsets);
+		resize_attachment_pipes(numNewSubsets);
 	}
 	else
 		LOG("WARNING in SubsetHandler::erase_subset(...): bad subset index: " << subsetIndex << endl);
@@ -391,7 +410,15 @@ swap_subsets(int subsetIndex1, int subsetIndex2)
 		SubsetInfo tmpSI = m_subsetInfos[subsetIndex1];
 		m_subsetInfos[subsetIndex1] = m_subsetInfos[subsetIndex2];
 		m_subsetInfos[subsetIndex2] = tmpSI;
-		
+
+	//	store from-attachment-pipes
+		if(subset_attachments_are_enabled())
+		{
+			VertexAttachmentPipe apFromVrt = m_vertexAttachmentPipes[subsetIndex1];
+			m_vertexAttachmentPipes[subsetIndex1] = m_vertexAttachmentPipes[subsetIndex2];
+			m_vertexAttachmentPipes[subsetIndex2] = apFromVrt;
+		}
+
 	//	swap the lists
 		swap_subset_lists(subsetIndex1, subsetIndex2);
 	}
@@ -419,6 +446,13 @@ move_subset(int indexFrom, int indexTo)
 		//	store the from-subset-info
 			SubsetInfo siFrom = m_subsetInfos[indexFrom];
 
+		//	store from-attachment-pipes
+			VertexAttachmentPipe apFromVrt;
+			if(subset_attachments_are_enabled())
+			{
+				apFromVrt = m_vertexAttachmentPipes[indexFrom];
+			}
+				
 		//	assign new indices to elements in from subset (no iterators are changed)
 			change_subset_indices(indexFrom, indexTo);
 
@@ -435,6 +469,13 @@ move_subset(int indexFrom, int indexTo)
 
 		//	assign stored info
 			m_subsetInfos[indexTo] = siFrom;
+		
+		//	assign stored attachment pipes
+			if(subset_attachments_are_enabled())
+			{
+				m_vertexAttachmentPipes[indexTo] = apFromVrt;
+			}
+
 		//	move the subsets lists
 			move_subset_lists(indexFrom, indexTo);
 		}
@@ -443,9 +484,72 @@ move_subset(int indexFrom, int indexTo)
 		LOG("WARNING in SubsetHandler::move_subset(...): bad indices: " << indexFrom << ", " << indexTo << endl);
 }
 
+////////////////////////////////////////////////////////////////////////
+//	attachments
+
+void ISubsetHandler::
+resize_attachment_pipes(size_t newSize)
+{
+	while(newSize <= m_vertexAttachmentPipes.size())
+		m_vertexAttachmentPipes.push_back(VertexAttachmentPipe(this));
+		
+/*code for grow only
+	if(newSize <= m_attachmentPipes[0].size())
+		return;
+		
+	for(int i = 0; i < NUM_GEOMETRIC_BASE_OBJECTS; ++i)
+	{
+		size_t tSize = m_attachmentPipes[i].size();
+		if(tSize == 0)
+			tSize = 1;
+
+		while(tSize < newSize)
+			tSize *= 2;
+		
+		m_attachmentPipes[i].resize(tSize);
+	}
+*/
+}
+
+void ISubsetHandler::
+clear_attachment_pipes()
+{
+	m_vertexAttachmentPipes.clear();
+}
+
+void ISubsetHandler::
+clear_attachment_pipes(int subsetIndex)
+{
+	m_vertexAttachmentPipes[subsetIndex].clear();
+}
+
+void ISubsetHandler::
+enable_subset_attachments(bool bEnable)
+{
+	if(bEnable &! subset_attachments_are_enabled())
+	{
+	//	enable subset-attachments.
+		m_bSubsetAttachmentsEnabled = true;
+	//	attach data-indices to the elements
+//TODO:	allow subset-attachments for vertices, edges, faces and volumes separately.
+		if(m_pGrid)
+		{
+			m_pGrid->attach_to_vertices(m_aDataIndex);
+			m_pGrid->attach_to_edges(m_aDataIndex);
+			m_pGrid->attach_to_faces(m_aDataIndex);
+			m_pGrid->attach_to_volumes(m_aDataIndex);
+			m_aaDataIndVRT.access(*m_pGrid, m_aDataIndex);
+			m_aaDataIndEDGE.access(*m_pGrid, m_aDataIndex);
+			m_aaDataIndFACE.access(*m_pGrid, m_aDataIndex);
+			m_aaDataIndVOL.access(*m_pGrid, m_aDataIndex);
+			
+			resize_attachment_pipes(num_subset_infos());
+		}
+	}
+}
 
 
-
+////////////////////////////////////////////////////////////////////////
 //	grid callbacks
 void ISubsetHandler::
 registered_at_grid(Grid* grid)
@@ -464,6 +568,13 @@ registered_at_grid(Grid* grid)
 		m_supportedElements = SHE_NONE;
 		enable_element_support(tmpOpts);
 
+	//	enable attachments - if required
+		if(m_bSubsetAttachmentsEnabled)
+		{
+			m_bSubsetAttachmentsEnabled = false;
+			enable_subset_attachments(true);
+		}
+		
 	//DEBUG: log m_supportedElements
 		//LOG("supported elements after registration: " << m_supportedElements << "\n");
 	}
@@ -484,6 +595,18 @@ unregistered_from_grid(Grid* grid)
 	//	disable all currently supported elements (this will remove any attachments)
 		disable_element_support(m_supportedElements);
 
+	//	clear attachment data
+		if(subset_attachments_are_enabled())
+		{
+			m_pGrid->detach_from_vertices(m_aDataIndex);
+			m_pGrid->detach_from_edges(m_aDataIndex);
+			m_pGrid->detach_from_faces(m_aDataIndex);
+			m_pGrid->detach_from_volumes(m_aDataIndex);
+			
+		//	clear pipes
+			clear_attachment_pipes();
+		}
+		
 	//DEBUG: log m_supportedElements
 		//LOG("supported elements after deregistration: " << m_supportedElements << "\n");
 		m_pGrid = NULL;

@@ -76,9 +76,9 @@ class Grid
 			public:
 				AttachmentAccessor();
 				AttachmentAccessor(const AttachmentAccessor& aa);
-				AttachmentAccessor(const Grid& grid, TAttachment& a);
+				AttachmentAccessor(Grid& grid, TAttachment& a);
 
-				inline void access(const Grid& grid, TAttachment& a)
+				inline void access(Grid& grid, TAttachment& a)
 					{ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>::access(grid.get_attachment_pipe<TElem>(), a);}
 		};
 
@@ -89,7 +89,7 @@ class Grid
 			public:
 				VertexAttachmentAccessor();
 				VertexAttachmentAccessor(const VertexAttachmentAccessor& aa);
-				VertexAttachmentAccessor(const Grid& grid, TAttachment& a);
+				VertexAttachmentAccessor(Grid& grid, TAttachment& a);
 		};
 
 		template <class TAttachment>
@@ -98,7 +98,7 @@ class Grid
 			public:
 				EdgeAttachmentAccessor();
 				EdgeAttachmentAccessor(const EdgeAttachmentAccessor& aa);
-				EdgeAttachmentAccessor(const Grid& grid, TAttachment& a);
+				EdgeAttachmentAccessor(Grid& grid, TAttachment& a);
 		};
 
 		template <class TAttachment>
@@ -107,7 +107,7 @@ class Grid
 			public:
 				FaceAttachmentAccessor();
 				FaceAttachmentAccessor(const FaceAttachmentAccessor& aa);
-				FaceAttachmentAccessor(const Grid& grid, TAttachment& a);
+				FaceAttachmentAccessor(Grid& grid, TAttachment& a);
 		};
 
 		template <class TAttachment>
@@ -116,7 +116,7 @@ class Grid
 			public:
 				VolumeAttachmentAccessor();
 				VolumeAttachmentAccessor(const VolumeAttachmentAccessor& aa);
-				VolumeAttachmentAccessor(const Grid& grid, TAttachment& a);
+				VolumeAttachmentAccessor(Grid& grid, TAttachment& a);
 		};
 
 	public:
@@ -518,8 +518,8 @@ class Grid
 							GeometricObject* pSrc, GeometricObject* pDest);
 
 		template <class TGeomObj>
-		const ug::AttachmentPipe<GeometricObject*, Grid>&
-		get_attachment_pipe() const;
+		ug::AttachmentPipe<GeometricObject*, Grid>&
+		get_attachment_pipe();
 
 	//	some methods that simplify auto-enabling of grid options
 		inline void autoenable_option(uint option, const char* caller, const char* optionName);

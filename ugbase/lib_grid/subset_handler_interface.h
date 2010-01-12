@@ -85,6 +85,26 @@ struct SubsetInfo
  */
 class ISubsetHandler : public GridObserver
 {
+	friend class attachment_traits<VertexBase*, ISubsetHandler>;
+	
+	public:
+		typedef AttachmentPipe<VertexBase*, ISubsetHandler>	VertexAttachmentPipe;
+/*
+	///	the generic attachment-accessor for access to subset attachment pipes.
+		template <class TElem, class TAttachment>
+		class AttachmentAccessor : public ug::AttachmentAccessor<TElem*, TAttachment, ISubsetHandler>
+		{
+			protected:
+				typedef ug::AttachmentAccessor<TElem*, TAttachment, ISubsetHandler>	BaseClass;
+			public:
+				AttachmentAccessor();
+				AttachmentAccessor(const AttachmentAccessor& aa) : BaseClass(aa)	{}
+				AttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_attachment_pipe<TElem>(subsetIndex), a)	{}
+
+				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
+					{BaseClass::access(sh.get_attachment_pipe<TElem>(subsetIndex), a);}
+		};
+*/
 	public:
 	///	pass an or-combination of SubsetHandlerElements to supportedElements.
 	/**	supportedElements define the elements on which the SubsetHandler works.
@@ -118,7 +138,7 @@ class ISubsetHandler : public GridObserver
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		void disable_element_support(uint shElements);
-
+		
 	/**	new elements will be automatically assigned to this subset.
 	 * 	set this to a negative value to avoid automatic assignment (-1 by default).
 	 *	only used if subset_inheritance is disabled or if no parent is specified.*/
@@ -213,6 +233,20 @@ class ISubsetHandler : public GridObserver
 	 *	The index can be retrieved with get_subset_index(...).*/
 		virtual void assign_subset(Volume* elem, int subsetIndex) = 0;
 	
+	
+	////////////////////////////////
+	//	attachments
+	
+	///	enable subset-attachment support
+	/**	if subset-attachments are enabled you may attach data to the elements
+	 *	of a subset. This is useful if you want to store different data in the
+	 *	elements of different subsets.*/
+		void enable_subset_attachments(bool bEnable);
+		
+	///	returns true if subset-attachments are enabled.
+		inline bool subset_attachments_are_enabled()	{return m_bSubsetAttachmentsEnabled;};
+
+
 	protected:
 		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
 		typedef SectionContainer::iterator iterator;
@@ -229,6 +263,9 @@ class ISubsetHandler : public GridObserver
 	 *	removed from any lists.
 	 *	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		void reset_subset_indices(uint shElements = SHE_ALL);
+		
+	///	creates all required infos (and pipes) up to the given index.
+		void create_required_subset_infos(int index);
 		
 		inline void subset_assigned(VertexBase* v, iterator iter, int subsetIndex);
 		inline void subset_assigned(EdgeBase* e, iterator iter, int subsetIndex);
@@ -261,6 +298,12 @@ class ISubsetHandler : public GridObserver
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
 		inline void alter_subset_index(Volume* v, int subsetIndex)		{m_aaSubsetIndexVOL[v] = subsetIndex;}
 		
+/*
+		template <class TGeomObj>
+		VertexAttachmentPipe&
+		get_attachment_pipe(int subsetIndex);
+*/
+		
 		virtual void erase_subset_lists() = 0;
 		
 		virtual void clear_subset_lists(int index) = 0;
@@ -280,22 +323,44 @@ class ISubsetHandler : public GridObserver
 	///	move the subset-lists but do not touch the subset-indices.
 		virtual void move_subset_lists(int indexFrom, int indexTo) = 0;
 
+	
+	////////////////////////////////
+	//	attachments
+/*
+		inline int get_data_index(const VertexBase* v)	{return m_aaDataIndVRT[v];}
+		inline void set_data_index(VertexBase* v, int index)	{m_aaDataIndVRT[v] = index;}
+		inline int get_data_index(const EdgeBase* e)		{return m_aaDataIndEDGE[e];}
+		inline void set_data_index(EdgeBase* e, int index)		{m_aaDataIndEDGE[e] = index;}
+		inline int get_data_index(const Face* f)			{return m_aaDataIndFACE[f];}
+		inline void set_data_index(Face* f, int index)			{m_aaDataIndFACE[f] = index;}
+		inline int get_data_index(const Volume* v)		{return m_aaDataIndVOL[v];}
+		inline void set_data_index(Volume* v, int index)		{m_aaDataIndVOL[v] = index;}
+*/
+		void resize_attachment_pipes(size_t newSize);
+		void clear_attachment_pipes(int subsetIndex);
+		void clear_attachment_pipes();
 		
 	protected:
-		typedef AInt	ASubsetIndex;
+		typedef AInt					ASubsetIndex;
 		typedef Attachment<iterator>	AIterator;
+		typedef AInt					ADataIndex;
 		typedef std::vector<SubsetInfo>	SubsetInfoVec;
-
+		typedef std::vector<VertexAttachmentPipe>	VertexAttachmentPipeVec;
+		
 	protected:
-		Grid*			m_pGrid;
+		Grid*				m_pGrid;
+		VertexAttachmentPipeVec	m_vertexAttachmentPipes;
+		
 		SubsetInfoVec	m_subsetInfos;
 		uint			m_supportedElements;
 
 		ASubsetIndex	m_aSubsetIndex;
 		AIterator		m_aIterator;
+		ADataIndex		m_aDataIndex;
 		
 		int				m_defaultSubsetIndex;
 		bool			m_bSubsetInheritanceEnabled;
+		bool			m_bSubsetAttachmentsEnabled;
 				
 		Grid::VertexAttachmentAccessor<ASubsetIndex>	m_aaSubsetIndexVRT;
 		Grid::EdgeAttachmentAccessor<ASubsetIndex>		m_aaSubsetIndexEDGE;
@@ -306,12 +371,37 @@ class ISubsetHandler : public GridObserver
 		Grid::EdgeAttachmentAccessor<AIterator>			m_aaIteratorEDGE;
 		Grid::FaceAttachmentAccessor<AIterator>			m_aaIteratorFACE;
 		Grid::VolumeAttachmentAccessor<AIterator>		m_aaIteratorVOL;
-};
 
+		Grid::VertexAttachmentAccessor<ADataIndex>		m_aaDataIndVRT;
+		Grid::EdgeAttachmentAccessor<ADataIndex>		m_aaDataIndEDGE;
+		Grid::FaceAttachmentAccessor<ADataIndex>		m_aaDataIndFACE;
+		Grid::VolumeAttachmentAccessor<ADataIndex>		m_aaDataIndVOL;
+};
+/*
+////////////////////////////////////////////////////////////////////////
+//	specialization of attachment_traits for libGrid::GeometricObject
+template<>
+class attachment_traits<VertexBase*, ISubsetHandler>
+{
+	public:
+		static inline uint get_data_index(ISubsetHandler* pHandler, const VertexBase* elem)	{return pHandler->get_data_index(elem);}
+		static inline void set_data_index(ISubsetHandler* pHandler, VertexBase* elem, uint index)	{pHandler->set_data_index(elem, index);}
+};
+*/
 
 inline void ISubsetHandler::
 subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
 {
+/*
+	if(subset_attachments_are_enabled())
+	{
+		if(get_subset_index(v) != -1)
+			m_attachmentPipes[VERTEX][subsetIndex].unregister_element(v);
+			
+		if(subsetIndex != -1)
+			m_attachmentPipes[VERTEX][subsetIndex].register_element(v);
+	}
+*/
 	m_aaIteratorVRT[v] = iter;
 	m_aaSubsetIndexVRT[v] = subsetIndex;
 }
@@ -357,12 +447,22 @@ ISubsetHandler::
 subset_info_required(int index)
 {
 	if(index >= (int)m_subsetInfos.size())
-	{
-		m_subsetInfos.resize(index+1);
-		add_required_subset_lists(index);
-	}
+		create_required_subset_infos(index);
 }
 
+/*
+template <class TGeomObj>
+ISubsetHandler::VertexAttachmentPipe&
+ISubsetHandler::get_attachment_pipe(int subsetIndex)
+{
+	assert(m_bSubsetAttachmentsEnabled && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+			invalid_GeomObj);
+
+	return m_attachmentPipes[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID][subsetIndex];
+}
+*/
 }//	end of namespace
 
 ////////////////////////////////////////////////

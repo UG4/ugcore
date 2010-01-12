@@ -204,8 +204,8 @@ Grid::get_attachment_data_container(TAttachment& attachment)
 }
 
 template <class TGeomObj>
-const AttachmentPipe<GeometricObject*, Grid>&
-Grid::get_attachment_pipe() const
+AttachmentPipe<GeometricObject*, Grid>&
+Grid::get_attachment_pipe()
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 			invalid_GeomObj);
@@ -217,7 +217,7 @@ template <class TGeomObj>
 uint
 Grid::get_attachment_data_index(TGeomObj* pObj)
 {
-	return attachment_traits<GeometricObject*, Grid>::get_data_index(pObj);
+	return attachment_traits<GeometricObject*, Grid>::get_data_index(this, pObj);
 }
 
 inline void
@@ -311,7 +311,7 @@ ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>(aa)
 
 template <class TElem, class TAttachment>
 Grid::AttachmentAccessor<TElem, TAttachment>::
-AttachmentAccessor(const Grid& grid, TAttachment& a) :
+AttachmentAccessor(Grid& grid, TAttachment& a) :
 ug::AttachmentAccessor<GeometricObject*, TAttachment, Grid>(grid.get_attachment_pipe<TElem>(), a)
 {
 }
@@ -334,7 +334,7 @@ VertexAttachmentAccessor(const VertexAttachmentAccessor& aa) :
 
 template <class TAttachment>
 Grid::VertexAttachmentAccessor<TAttachment>::
-VertexAttachmentAccessor(const Grid& grid, TAttachment& a) :
+VertexAttachmentAccessor(Grid& grid, TAttachment& a) :
 	Grid::AttachmentAccessor<VertexBase, TAttachment>(grid, a)
 {
 }
@@ -358,7 +358,7 @@ EdgeAttachmentAccessor(const EdgeAttachmentAccessor& aa) :
 
 template <class TAttachment>
 Grid::EdgeAttachmentAccessor<TAttachment>::
-EdgeAttachmentAccessor(const Grid& grid, TAttachment& a) :
+EdgeAttachmentAccessor(Grid& grid, TAttachment& a) :
 	Grid::AttachmentAccessor<EdgeBase, TAttachment>(grid, a)
 {
 }
@@ -382,7 +382,7 @@ FaceAttachmentAccessor(const FaceAttachmentAccessor& aa) :
 
 template <class TAttachment>
 Grid::FaceAttachmentAccessor<TAttachment>::
-FaceAttachmentAccessor(const Grid& grid, TAttachment& a) :
+FaceAttachmentAccessor(Grid& grid, TAttachment& a) :
 	Grid::AttachmentAccessor<Face, TAttachment>(grid, a)
 {
 }
@@ -406,7 +406,7 @@ VolumeAttachmentAccessor(const VolumeAttachmentAccessor& aa) :
 
 template <class TAttachment>
 Grid::VolumeAttachmentAccessor<TAttachment>::
-VolumeAttachmentAccessor(const Grid& grid, TAttachment& a) :
+VolumeAttachmentAccessor(Grid& grid, TAttachment& a) :
 	Grid::AttachmentAccessor<Volume, TAttachment>(grid, a)
 {
 }
