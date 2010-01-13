@@ -69,7 +69,7 @@ LibGrid also features a mechanism to register observers at a grid. Those observe
 are then notified if changes to the grids topology are made.
 Combined with the possibility to dynamically add data to a grid at runtime, those
 observers are a powerful tool to create stable, robust and modular code. 
-\sa ug::Selector, \sa ug::SubsetHandler
+\sa ug::Selector, \sa ug::SubsetHandler, \sa ug::MGSubsetHandler
 
 <hr>
 \section secCompilation How to compile libGrid
