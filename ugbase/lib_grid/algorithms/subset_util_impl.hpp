@@ -58,7 +58,7 @@ void MakeSubsetsConsecutive(SubsetHandler& sh)
 ////////////////////////////////////////////////////////////////////////
 //	AssignAssociatedVerticesToSubset
 template <class TIterator>
-void AssignAssociatedVerticesToSubset(SubsetHandler& sh, TIterator elemsBegin,
+void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 										TIterator elemsEnd, int subsetIndex)
 {
 //	iterate through the elements

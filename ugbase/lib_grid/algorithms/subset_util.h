@@ -66,7 +66,7 @@ void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh);
  * a pointer to either EdgeBase, Face, Volume or an derived type of the three.
  */
 template <class TIterator>
-void AssignAssociatedVerticesToSubset(SubsetHandler& sh, TIterator elemsBegin,
+void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 										TIterator elemsEnd, int subsetIndex);
 										
 ////////////////////////////////////////////////////////////////////////
