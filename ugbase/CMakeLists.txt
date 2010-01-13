@@ -18,7 +18,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 #######################
 # gcc compiler flags
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNBEDUG -DBOOST_UBLAS_NDEBUG -O3")
+# Enable these flags for a fast ublas algebra
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNBEDUG -DBOOST_UBLAS_NDEBUG -O3")
 
 ########################
 # common
