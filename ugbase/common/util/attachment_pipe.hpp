@@ -96,7 +96,7 @@ unregister_element(const TElem& elem)
 //	get the attachment index
 	uint ind = ATRAITS::get_data_index(m_pHandler, elem);
 //	clear the entry
-	atraits::template invalidate_entry(m_pHandler, m_vEntries[ind]);
+	atraits::invalidate_entry(m_pHandler, m_vEntries[ind]);
 //	store the index in the stack of free entries
 	m_stackFreeEntries.push(ind);
 //	decrease element count
@@ -245,7 +245,7 @@ defragment()
 			typename ElemEntryVec::iterator copyHere = m_vEntries.begin();
 			for(iter = m_vEntries.begin(); iter != m_vEntries.end(); ++iter)
 			{
-				if(!atraits::template entry_is_invalid(*iter))
+				if(!atraits::entry_is_invalid(*iter))
 				{
 					vNewIndices[ATRAITS::get_data_index(m_pHandler, (*iter))] = counter;
 					ATRAITS::set_data_index(m_pHandler, (*iter), counter);
