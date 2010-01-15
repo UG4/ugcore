@@ -305,4 +305,45 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////
+//	CollectNeighbours
+///	collects all edges that are connected via one of the vertices.
+/**
+ * This method uses Grid::mark
+ */
+void CollectNeighbours(std::vector<EdgeBase*>& vNeighboursOut, EdgeBase* e, Grid& grid)
+{
+//	clear the container
+	vNeighboursOut.clear();
+	
+//	begin marking
+	grid.begin_marking();
+	
+//	mark the edge
+	grid.mark(e);
+	
+//	mark the vertices of the edge
+	grid.mark(e->vertex(0));
+	grid.mark(e->vertex(1));	
+	
+//	iterate over all edges that are connected to the vertices.
+//	if the edge is not yet marked, we have to push it to vNeighboursOut.
+	for(uint i = 0; i < 2; ++i)
+	{
+		EdgeBaseIterator iterEnd = grid.associated_edges_end(e->vertex(i));
+		for(EdgeBaseIterator iter = grid.associated_edges_begin(e->vertex(i));
+			iter != iterEnd; ++iter)
+		{
+			if(!grid.is_marked(*iter))
+			{
+				vNeighboursOut.push_back(*iter);
+				grid.mark(*iter);
+			}
+		}
+	}
+
+//	end marking
+	grid.end_marking();
+}
+
 }//	end of namespace
