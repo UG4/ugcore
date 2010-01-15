@@ -20,16 +20,18 @@ namespace ug
 Grid::Grid() : m_aVertexContainer(false), m_aEdgeContainer(false),
 				m_aFaceContainer(false), m_aVolumeContainer(false)
 {
-	m_options = GRIDOPT_NONE;
 	m_hashCounter = 0;
+	m_currentMark = 0;
+	m_options = GRIDOPT_NONE;
 	change_options(GRIDOPT_DEFAULT);
 }
 
 Grid::Grid(uint options) : m_aVertexContainer(false), m_aEdgeContainer(false),
 							m_aFaceContainer(false), m_aVolumeContainer(false)
 {
-	m_options = GRIDOPT_NONE;
 	m_hashCounter = 0;
+	m_currentMark = 0;
+	m_options = GRIDOPT_NONE;
 	change_options(options);
 }
 
@@ -49,6 +51,9 @@ Grid::~Grid()
 	{
 		unregister_observer(m_gridObservers.back());
 	}
+	
+//	rempove marks - would be done anyway...
+	remove_marks();
 }
 
 VertexBaseIterator Grid::create_by_cloning(VertexBase* pCloneMe, GeometricObject* pParent)
@@ -679,5 +684,97 @@ Volume* Grid::get_volume(VolumeVertices& vv)
 {
 	return find_volume_in_associated_volumes(vv.vertex(0), vv);
 }
+
+
+////////////////////////////////////////////////////////////////////////
+//	marks
+void Grid::init_marks()
+{
+//	attach marks to the elements
+	if(m_currentMark == 0)
+	{
+	//	marks have not yet been initialized - do that now
+	//	attach m_currentMark with default value 0
+	//	(0 is never the currentMark while marks are active).
+		m_currentMark = 1;
+		attach_to_vertices_dv(m_aMark, 0);
+		attach_to_edges_dv(m_aMark, 0);
+		attach_to_faces_dv(m_aMark, 0);
+		attach_to_volumes_dv(m_aMark, 0);
+		
+		m_aaMarkVRT.access(*this, m_aMark);
+		m_aaMarkEDGE.access(*this, m_aMark);
+		m_aaMarkFACE.access(*this, m_aMark);
+		m_aaMarkVOL.access(*this, m_aMark);
+
+		m_bMarking = false;
+	}
+}
+
+void Grid::reset_marks()
+{
+//	set all marks to 0 and m_currentMark to 1
+	m_currentMark = 1;
+	AMark::ContainerType* pContainer;
+
+//	reset vertex marks
+	pContainer = get_attachment_data_container<VertexBase>(m_aMark);
+	for(uint i = 0; i < pContainer->size(); ++i)
+		pContainer->get_elem(i) = 0;
+
+//	reset edge marks
+	pContainer = get_attachment_data_container<EdgeBase>(m_aMark);
+	for(uint i = 0; i < pContainer->size(); ++i)
+		pContainer->get_elem(i) = 0;
+
+//	reset face marks
+	pContainer = get_attachment_data_container<Face>(m_aMark);
+	for(uint i = 0; i < pContainer->size(); ++i)
+		pContainer->get_elem(i) = 0;
+
+//	reset volume marks
+	pContainer = get_attachment_data_container<Volume>(m_aMark);
+	for(uint i = 0; i < pContainer->size(); ++i)
+		pContainer->get_elem(i) = 0;	
+}
+
+void Grid::remove_marks()
+{
+	if(m_currentMark != 0)
+	{
+		m_currentMark = 0;
+		detach_from_vertices(m_aMark);
+		detach_from_edges(m_aMark);
+		detach_from_faces(m_aMark);
+		detach_from_volumes(m_aMark);
+	}
+}
+
+void Grid::begin_marking()
+{
+	if(m_currentMark == 0)
+	{
+	//	marks are disabled. we have to activate them
+		init_marks();
+	}
+	
+	assert(!m_bMarking && "ERROR - marking is already active. Don't forget to call end_marking when you're done with marking.");
+	
+//	increase currentMark
+	++m_currentMark;
+	
+//	check whether we have to reset-marks
+	if(m_currentMark == -1)
+		reset_marks();
+		
+//	set m_bMarking to true
+	m_bMarking = true;
+}
+
+void Grid::end_marking()
+{
+	m_bMarking = false;
+}
+
 
 }//	end of namespace

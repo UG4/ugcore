@@ -412,5 +412,83 @@ VolumeAttachmentAccessor(Grid& grid, TAttachment& a) :
 }
 
 
+////////////////////////////////////////////////////////////////////////
+//	marks
+inline void Grid::mark(VertexBase* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::mark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkVRT[obj] = m_currentMark;
+}
+
+inline void Grid::mark(EdgeBase* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::mark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkEDGE[obj] = m_currentMark;
+}
+
+inline void Grid::mark(Face* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::mark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkFACE[obj] = m_currentMark;
+}
+
+inline void Grid::mark(Volume* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::mark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkVOL[obj] = m_currentMark;
+}
+
+inline void Grid::unmark(VertexBase* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::unmark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkVRT[obj] = 0;
+}
+
+inline void Grid::unmark(EdgeBase* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::unmark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkEDGE[obj] = 0;
+}
+
+inline void Grid::unmark(Face* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::unmark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkFACE[obj] = 0;
+}
+
+inline void Grid::unmark(Volume* obj)
+{
+	assert(m_bMarking && "ERROR: Grid::unmark may only be called between calls to Grid::begin_marking and Grid::end_marking.");
+	m_aaMarkVOL[obj] = 0;
+}
+
+inline bool Grid::is_marked(VertexBase* obj)
+{
+	if(m_currentMark == 0)
+		return false;
+	return m_aaMarkVRT[obj] == m_currentMark;
+}
+
+inline bool Grid::is_marked(EdgeBase* obj)
+{
+	if(m_currentMark == 0)
+		return false;
+	return m_aaMarkEDGE[obj] == m_currentMark;
+}
+
+inline bool Grid::is_marked(Face* obj)
+{
+	if(m_currentMark == 0)
+		return false;
+	return m_aaMarkFACE[obj] == m_currentMark;
+}
+
+inline bool Grid::is_marked(Volume* obj)
+{
+	if(m_currentMark == 0)
+		return false;
+	return m_aaMarkVOL[obj] == m_currentMark;
+}
+
 }//	end of namespace libGrid
 #endif

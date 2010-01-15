@@ -455,6 +455,53 @@ class Grid
 		void register_and_replace_element(Face* f, Face* pReplaceMe);
 		void register_and_replace_element(Volume* v, Volume* pReplaceMe);
 
+	////////////////////////////////////////////////
+	//	marks
+	///	begin marking.
+	/**	Call this method whenever you want to start a marking sequence.
+	 *	On a call to this method all old marks are deleted.
+	 *	When called for the first time, some preparations have to be taken,
+	 *	which may consume some time. Successive calls however are very fast.*/
+		void begin_marking();
+	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void mark(VertexBase* obj);
+	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void mark(EdgeBase* obj);
+	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void mark(Face* obj);
+	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void mark(Volume* obj);
+	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void unmark(VertexBase* obj);
+	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void unmark(EdgeBase* obj);
+	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void unmark(Face* obj);
+	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
+	/**	Only pass objects that are contained by the grid.*/
+		inline void unmark(Volume* obj);
+	///	returns true if the object is marked, false if not.
+	/**	Only pass objects that are contained by the grid.*/
+		inline bool is_marked(VertexBase* obj);
+	///	returns true if the object is marked, false if not.
+	/**	Only pass objects that are contained by the grid.*/
+		inline bool is_marked(EdgeBase* obj);
+	///	returns true if the object is marked, false if not.
+	/**	Only pass objects that are contained by the grid.*/
+		inline bool is_marked(Face* obj);
+	///	returns true if the object is marked, false if not.
+	/**	Only pass objects that are contained by the grid.*/
+		inline bool is_marked(Volume* obj);
+	///	ends a marking sequence. Call this method when you're done with marking.
+		void end_marking();
+		
 	protected:
 	///	assigns a unique hash value to a Vertex.
 	/**	overflow is not handled properly.
@@ -523,6 +570,11 @@ class Grid
 		Volume* find_volume_in_associated_volumes(TGeomObj* obj,
 												VolumeVertices& vv);
 												
+	//	marks
+		void init_marks();
+		void reset_marks();
+		void remove_marks();
+												
 	protected:
 		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> > SectionContainer;
 
@@ -545,6 +597,8 @@ class Grid
 		typedef Attachment<EdgeContainer>	AEdgeContainer;
 		typedef Attachment<FaceContainer>	AFaceContainer;
 		typedef Attachment<VolumeContainer>	AVolumeContainer;
+		
+		typedef Attachment<int>	AMark;
 
 	protected:
 		ElementStorage	m_elementStorage[NUM_GEOMETRIC_BASE_OBJECTS];
@@ -579,6 +633,15 @@ class Grid
 		AttachmentAccessor<Volume, AEdgeContainer>		m_aaEdgeContainerVOLUME;
 		AttachmentAccessor<Volume, AFaceContainer>		m_aaFaceContainerVOLUME;
 		AttachmentAccessor<Volume, AVolumeContainer>	m_aaVolumeContainerVOLUME;
+		
+	//	marks
+		int m_currentMark;	// 0: marks inactive. -1: reset-marks (sets currentMark to 1)
+		bool m_bMarking;
+		AMark	m_aMark;
+		VertexAttachmentAccessor<AMark>	m_aaMarkVRT;
+		EdgeAttachmentAccessor<AMark>	m_aaMarkEDGE;
+		FaceAttachmentAccessor<AMark>	m_aaMarkFACE;
+		VolumeAttachmentAccessor<AMark>	m_aaMarkVOL;
 };
 
 

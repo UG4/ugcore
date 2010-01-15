@@ -327,6 +327,7 @@ class AttachmentAccessor
 {
 	public:
 		typedef typename TAttachment::ValueType		ValueType;
+		typedef typename TAttachment::ContainerType			ContainerType;
 		typedef attachment_traits<TElem, TElemHandler>	atraits;
 
 	public:
@@ -369,7 +370,7 @@ class AttachmentAccessor
 			{m_pContainer = NULL;}
 
 	protected:
-		typename TAttachment::ContainerType*	m_pContainer;
+		ContainerType*	m_pContainer;
 		TElemHandler*	m_pHandler;
 };
 
