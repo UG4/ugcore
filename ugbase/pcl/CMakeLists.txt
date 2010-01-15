@@ -10,5 +10,8 @@ cmake_minimum_required(VERSION 2.6)
 project(P_PCL)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
+include_directories("externals/metis")
 
-add_library(pcl pcl_methods.cpp)
+set(srcPcl	pcl_methods.cpp)
+
+add_library(pcl ${srcPcl})
