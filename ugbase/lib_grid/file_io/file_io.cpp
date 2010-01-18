@@ -48,6 +48,8 @@ static bool LoadGrid(Grid& grid, const char* filename,
 		bAutoassignFaces = true;
 		bSuccess = LoadGridFromDUMP(grid, filename, aPos);
 	}
+	else if(strName.find(".ele") != string::npos)
+		return LoadGridFromELE(grid, filename, pSH, aPos);
 
 	if(bAutoassignFaces && pSH)
 		pSH->assign_subset(grid.faces_begin(), grid.faces_end(), 0);
@@ -69,6 +71,9 @@ static bool SaveGrid(Grid& grid, const char* filename,
 	{
 		return SaveGridToLGB(grid, filename, pSH, aPos);
 	}
+	else if(strName.find(".ele") != string::npos)
+		return SaveGridToELE(grid, filename, pSH, aPos);
+		
 	return false;
 }
 

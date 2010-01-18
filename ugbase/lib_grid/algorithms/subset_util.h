@@ -131,6 +131,11 @@ void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh,
 									vector3* pMaterialPoints = NULL,
 									int numMaterialPoints = 0);
 
+////////////////////////////////////////////////////////////////////////
+//	AssignSubsetColors
+///	assigns a different color to each subset
+void AssignSubsetColors(ISubsetHandler& sh);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

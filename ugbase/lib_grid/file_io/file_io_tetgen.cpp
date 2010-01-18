@@ -12,6 +12,94 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
+					APosition& aPos)
+{
+//	build the correct filenames
+	string sElements = filename;
+	string sNodes, sFaces;
+	if(sElements.find(".ele", sElements.size() - 4) != string::npos)
+	{
+	//	the filename ends as we would expect
+		sNodes = sFaces = sElements.substr(0, sElements.size() - 4);
+		sNodes.append(".node");
+		sFaces.append(".face");
+	}
+	else
+	{
+		LOG("Problem in LoadGridFromELE with file " << filename << ". filename has to end with .ele\n");
+		return false;
+	}
+	
+//	if a subset-handler was supplied we have to copy its subset-indices
+//	to a simple int-attachment.
+	if(pSH)
+	{
+		AInt aInt;
+		grid.attach_to_volumes(aInt);
+		Grid::VolumeAttachmentAccessor<AInt> aaInt(grid, aInt);
+		
+		bool retVal = ImportGridFromTETGEN(grid, sNodes.c_str(), sFaces.c_str(),
+								sElements.c_str(), aPos, NULL, NULL, NULL, &aInt);
+								
+		for(VolumeIterator iter = grid.begin<Volume>(); iter != grid.end<Volume>(); ++iter)
+			if(aaInt[*iter] != -1)
+				pSH->assign_subset(*iter, aaInt[*iter]);	
+								
+		grid.detach_from_volumes(aInt);
+		
+		return retVal;
+	}
+	
+	return ImportGridFromTETGEN(grid, sNodes.c_str(), sFaces.c_str(), sElements.c_str(), aPos);
+}
+
+////////////////////////////////////////////////////////////////////////					
+bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
+					APosition& aPos)
+{
+//	build the correct filenames
+	string sElements = filename;
+	string sNodes, sFaces;
+	if(sElements.find(".ele", sElements.size() - 4) != string::npos)
+	{
+	//	the filename ends as we would expect
+		sNodes = sFaces = sElements.substr(0, sElements.size() - 4);
+		sNodes.append(".node");
+		sFaces.append(".face");
+	}
+	else
+	{
+		sNodes = sFaces = sElements;
+		sElements.append(".ele");
+		sNodes.append(".node");
+		sFaces.append(".face");
+	}
+	
+//	if a subset-handler was supplied we have to copy its subset-indices
+//	to a simple int-attachment.
+	if(pSH)
+	{
+		AInt aInt;
+		grid.attach_to_volumes(aInt);
+		Grid::VolumeAttachmentAccessor<AInt> aaInt(grid, aInt);
+		
+		for(VolumeIterator iter = grid.begin<Volume>(); iter != grid.end<Volume>(); ++iter)
+			aaInt[*iter] = pSH->get_subset_index(*iter);	
+		
+		bool retVal = ExportGridToTETGEN(grid, sNodes.c_str(), sFaces.c_str(),
+								sElements.c_str(), aPos, NULL, NULL, NULL, &aInt);
+								
+		grid.detach_from_volumes(aInt);
+		
+		return retVal;
+	}
+	
+	return ExportGridToTETGEN(grid, sNodes.c_str(), sFaces.c_str(), sElements.c_str(), aPos);
+	
+}
+					
+////////////////////////////////////////////////////////////////////////
 //	ImportGridFromTETGEN
 bool ImportGridFromTETGEN(Grid& grid,
 						const char* nodesFilename, const char* facesFilename,
@@ -503,4 +591,11 @@ bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 
 	return true;
 }
+
+bool SaveGridToELE(Grid& grid, const char filename, ISubsetHandler* pSH = NULL,
+					APosition& aPos = aPosition)
+{
+
+}
+
 }//	end of namespace

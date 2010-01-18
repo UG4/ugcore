@@ -7,11 +7,19 @@
 
 #include <vector>
 #include "../grid/grid.h"
+#include "../subset_handler_interface.h"
 #include "../common_attachments.h"
 
 namespace ug
 {
 
+bool LoadGridFromELE(Grid& grid, const char* filename, ISubsetHandler* pSH = NULL,
+					APosition& aPos = aPosition);
+					
+bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH = NULL,
+					APosition& aPos = aPosition);
+					
+					
 bool ImportGridFromTETGEN(Grid& grid,
 						const char* nodesFilename, const char* facesFilename,
 						const char* elemsFilename, AVector3& aPos,
@@ -19,7 +27,7 @@ bool ImportGridFromTETGEN(Grid& grid,
 						AInt* paNodeBoundaryMarker = NULL,
 						AInt* paFaceBoundaryMarker = NULL,
 						AInt* paElementAttribute = NULL);
-
+					
 ////////////////////////////////////////////////////////////////////////
 //	ExportGridToSMESH
 ///	writes an SMESH file.

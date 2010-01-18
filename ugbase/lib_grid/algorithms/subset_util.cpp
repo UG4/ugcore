@@ -445,5 +445,67 @@ void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh,
 	}
 }
 
+
+static vector3 GetColorFromStandardPalette(int index)
+{
+//	values taken from http://en.wikipedia.org/wiki/Web_colors
+	float stdColors[][3] = {{255, 0, 0},	//Red
+							{0, 255, 0},	//Lime
+							{0, 0, 255},	//Blue
+							{255, 0, 255},	//Magenta
+							{255, 255, 0},	//Yellow
+							{0, 255, 255},	//Aqua
+							{255, 192, 203},//Pink
+							{152, 251, 152},//PaleGreen
+							{176, 224, 230},//PowderBlue
+							{240, 230, 140},//Khaki
+							{255, 99, 71},	//Tomato
+							{0, 191, 255},	//DeepSkyBlue
+							{255, 160, 122}	//LightSalmon
+							};
+
+	int numCols = 13;
+	
+	if(index >= 0 && index < numCols)
+		return vector3(stdColors[index][0] / 255.f, stdColors[index][1] / 255.f, stdColors[index][2] / 255.f);
+		
+	index -= numCols;
+	
+	float val = 2.f* 3.14159265 * (float)index / 3.148 + (float)index / 15.f;
+	vector3 vCol(1.f + cos(val), 1.f + sin(0.6* val), 1.f - cos(0.373*val));
+//	vCol.x *= vCol.x;
+//	vCol.y *= vCol.y;
+//	vCol.z *= vCol.z;
+	VecNormalize(vCol, vCol);
+	return vCol;
+/*
+	vector2 vRed(1.f, 0);
+	vector2 vGreen(0.866, -0.5);
+	vector2 vBlue(-0.866, -0.5);
+	
+	vector3 col;
+	col.x = 0.5 * (1.f + VecDot(vCol, vRed));
+	col.y = 0.5 * (1.f + VecDot(vCol, vGreen));
+	col.z = 0.5 * (1.f + VecDot(vCol, vBlue));
+
+	return col;
+*/
+}
+
+////////////////////////////////////////////////////////////////////////
+//	AssignSubsetColors
+void AssignSubsetColors(ISubsetHandler& sh)
+{
+	for(int i = 0; i < sh.num_subset_infos(); ++i)
+	{
+		SubsetInfo& si = sh.subset_info(i);
+		vector3 col = GetColorFromStandardPalette(i);
+		si.color.x = col.x;
+		si.color.y = col.y;
+		si.color.z = col.z;
+		si.color.w = 1.f;
+	}
+}
+
 }//	end of namespace
 

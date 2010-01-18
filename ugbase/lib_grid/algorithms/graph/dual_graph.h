@@ -15,11 +15,21 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 /**
  * The created dual graph ist described in the following form.
- * the adjacency-map-structure holds the number of adjacent elements
- * for each node. The adjacency-map holds indices to the adjacent
+ * the adjacency-map-structure holds for each node an index to where
+ * associated nodes are written in the adjacency-map.
+ * The adjacency-map holds indices to the adjacent
  * elements for a node. The indices in the adjaceny-map are ordered so
  * that first all adjacent nodes of the first node appear, then the
  * adjacent nodes of the second node and so forth.
+ *
+ * Let n be the number of nodes in the graph, m be the number of edges.
+ * Then adjacencyMapStructureOut will contain n+1 entries (the last one
+ * is a conveniance entry), and adjacencyMapOut will contain 2m entries
+ * (edges are always bidirectional).
+ *
+ * please note that you'll find all entries belonging to node i in the entries
+ * adjacencyMapStructureOut[i] to (but not including)
+ * adjacencyMapStructureOut[i+1] of the adjacencyMapOut. 
  *
  * TIndexType has to be compatible with int.
  *
@@ -63,7 +73,7 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 	}
 	
 //	init the adjacencyMapStructure
-	adjacencyMapStructureOut.resize(grid.num<Elem>());
+	adjacencyMapStructureOut.resize(grid.num<Elem>() + 1);
 	adjacencyMapOut.clear();
 
 //	construct the graph
@@ -85,6 +95,9 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 				adjacencyMapOut.push_back(aaInd[vNeighbours[i]]);
 		}
 	}
+	
+//	add the final element
+	adjacencyMapStructureOut[adjacencyMapStructureOut.size() - 1] = adjacencyMapOut.size();
 	
 //	clean up
 	if(!paIndex)
