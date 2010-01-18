@@ -18,5 +18,5 @@
 #include "serialization.h"
 #include "selection_util.h"
 #include "grid_statistics.h"
-
+#include "graph/graph.h"
 #endif

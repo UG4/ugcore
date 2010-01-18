@@ -150,8 +150,8 @@ bool EdgeCollapseIsValid(Grid& grid, EdgeBase* e)
 	vector<VertexBase*> vVertices1;
 	vector<VertexBase*> vVertices2;
 
-	CollectNeighbors(vVertices1, grid, e->vertex(0)); // e->vertex(0) is not contained in vVertices1!
-	CollectNeighbors(vVertices2, grid, e->vertex(1)); // e->vertex(1) is not contained in vVertices2!
+	CollectNeighbours(vVertices1, grid, e->vertex(0)); // e->vertex(0) is not contained in vVertices1!
+	CollectNeighbours(vVertices2, grid, e->vertex(1)); // e->vertex(1) is not contained in vVertices2!
 
 //	we need access to the triangles connected with e.
 	vector<Face*> vFaces;

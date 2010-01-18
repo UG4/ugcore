@@ -72,7 +72,7 @@ int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v)
+void CollectNeighbours(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v)
 {
 	vNeighborsOut.clear();
 

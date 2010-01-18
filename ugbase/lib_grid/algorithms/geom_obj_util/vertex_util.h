@@ -54,9 +54,9 @@ int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectNeighbours
-///	fills an array with all neighbor-vertices of v.
+///	fills an array with all neighbour-vertices of v.
 /**
- * v will not be contained in vNeighborsOut.
+ * v will not be contained in vNeighboursOut.
  * requires grid-option GRIDOPT_STANDARD_INTERCONNECTION.
  * This method is fast if grid-options FACEOPT_AUTOGENERATE_EDGES
  * and VOLOPT_AUTOGENERATE_EDGES are enabled - if there are any
@@ -64,7 +64,7 @@ int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
  * It works without these options, too. The method however will
  * require more time in this case.
  */
-void CollectNeighbors(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v);
+void CollectNeighbours(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	FindVertexByCoordiante
