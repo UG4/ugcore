@@ -21,6 +21,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
 					algorithms/grid_statistics.cpp
+					algorithms/graph/neighbourhood.cpp
 					algorithms/geom_obj_util/edge_util.cpp
 					algorithms/geom_obj_util/face_util.cpp
 					algorithms/geom_obj_util/misc_util.cpp

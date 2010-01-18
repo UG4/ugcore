@@ -6,7 +6,8 @@
 #define __H__LIB_GRID__DUAL_GRAPH__
 
 #include <vector>
-#include "lgbase.h"
+#include "lib_grid/lg_base.h"
+#include "neighbourhood.h"
 
 namespace ug
 {
@@ -36,11 +37,12 @@ template <class TGeomBaseObj, class TIndexType>
 void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						Grid& grid, Attachment<TIndexType>* paIndex = NULL,
-						TGeomBaseObj* pGeomObjsOut = NULL)
+						TGeomBaseObj* pGeomObjsOut = NULL,
+						NeighbourhoodType nbhType = NHT_DEFAULT)
 {
 	using namespace std;
 	typedef TGeomBaseObj Elem;
-	typedef typename geometry_traits<TElem>::iterator ElemIterator;
+	typedef typename geometry_traits<Elem>::iterator ElemIterator;
 	
 //	set up index attachment and attachment accessor
 	typedef Attachment<TIndexType> AIndex;
@@ -63,18 +65,17 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 //	init the adjacencyMapStructure
 	adjacencyMapStructureOut.resize(grid.num<Elem>());
 	adjacencyMapOut.clear();
-	
+
 //	construct the graph
 	{
 		vector<Elem*> vNeighbours;
 		int ind = 0;
 
-	//	iterate through all faces
+	//	iterate through all elements
 		for(ElemIterator iter = grid.begin<Elem>(); iter != grid.end<Elem>(); ++iter, ++ind)
 		{
 		//	get all neighbours
-			vNeighbours.clear();
-//TODO:		CollectNeighbours(...)
+			CollectNeighbours(vNeighbours, *iter, grid, nbhType);
 			
 		//	store first entry at which the connections will be written to the map
 			adjacencyMapStructureOut[ind] = adjacencyMapOut.size();

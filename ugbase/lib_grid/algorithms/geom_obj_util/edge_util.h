@@ -113,13 +113,6 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
  */
 bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e, VertexBase* newVertex, AVertexBase* paAssociatedVertices = NULL);
 
-////////////////////////////////////////////////////////////////////////
-//	CollectNeighbours
-///	collects all edges that are connected via one of the vertices.
-/**
- * This method uses Grid::mark
- */
-void CollectNeighbours(std::vector<EdgeBase*>& vNeighboursOut, EdgeBase* e, Grid& grid);
 
 /**@}*/ // end of doxygen defgroup command
 

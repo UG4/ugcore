@@ -1617,7 +1617,7 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 	{
 		if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
 		{
-		//	store associated edges
+		//	store associated faces
 			attach_to_volumes(m_aFaceContainer);
 			m_aaFaceContainerVOLUME.access(*this, m_aFaceContainer);
 
@@ -1656,7 +1656,7 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 						Face* f = find_face_in_associated_faces(fd.vertex(0), fd);
 
 						if(f)
-							m_aaVolumeContainerFACE[f].push_back(v);
+							m_aaFaceContainerVOLUME[v].push_back(f);
 					}
 				}
 			}
@@ -1719,7 +1719,7 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 	{
 		if(!option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 		{
-		//	generate all missing edges now!
+		//	generate all missing faces now!
 			for(VolumeIterator iter = volumes_begin(); iter != volumes_end(); iter++)
 			{
 				Volume* v = *iter;
