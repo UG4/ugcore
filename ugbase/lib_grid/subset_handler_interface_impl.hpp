@@ -142,6 +142,8 @@ attach_to(IAttachment& attachment, int subsetIndex)
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 			invalid_GeomObjClass);
 
+	subset_info_required(subsetIndex);
+
 	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 	switch(objType)
 	{
@@ -165,8 +167,11 @@ void ISubsetHandler::
 attach_to_dv(TAttachment& attachment, int subsetIndex,
 			const typename TAttachment::ValueType& defaultValue)
 {
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 			invalid_GeomObjClass);
+
+	subset_info_required(subsetIndex);
 
 	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 	switch(objType)
@@ -192,6 +197,8 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 				invalid_GeomObjClass);
+
+	assert(subsetIndex >= 0 && subsetIndex < num_subset_infos() && "bad subset index.");
 
 	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 	switch(objType)

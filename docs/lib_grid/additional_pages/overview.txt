@@ -65,7 +65,6 @@ Vertex* v2 = *g.create<Vertex>();
 g.create<Edge>(EdgeDescriptor(v1, v2));
 \endcode
 
-Geometric Objects in a ug::MultiGrid are created in the same way.
 The create method takes an optional parameter:
 \code ug::Grid::create(GeometricObject* pParent = NULL);\endcode
 The parent is used in different ways:
@@ -88,14 +87,14 @@ A separate iterator-type exists for each object-type:
 	- ug::TetrahedronIterator, ug::HexahedronIterator, ug::PrismIterator, ug::PyramidIterator
 	
 You can query a grid for a begin and an end-iterator for each geometric-object type using
-ug::Grid::begin and ug::Grid::end. Both method are template methods. The template argument
+ug::Grid::begin and ug::Grid::end. Both methods are template methods. The template argument
 specifies the type of geometric-object over which you want to iterate.
 
 \code
 /* Let g be a grid that already contains some geometric objects */
 /* iterate over all vertices */
 for(VertexBaseIterator iter = g.begin<VertexBase>();
-	iter != g.end<VertexBase(); ++iter)
+	iter != g.end<VertexBase>(); ++iter)
 {
 	VertexBase* v = *iter;
 	...
@@ -103,7 +102,7 @@ for(VertexBaseIterator iter = g.begin<VertexBase>();
 
 /* iterate over all faces */
 for(FaceIterator iter = g.begin<Face>();
-	iter != g.end<Face(); ++iter)
+	iter != g.end<Face>(); ++iter)
 {
 	Face* f = *iter;
 	...
@@ -111,7 +110,7 @@ for(FaceIterator iter = g.begin<Face>();
 
 /* iterate over all triangles */
 for(TriangleIterator iter = g.begin<Triangle>();
-	iter != g.end<Triangle(); ++iter)
+	iter != g.end<Triangle>(); ++iter)
 {
 	Triangle* t = *iter;
 	...
