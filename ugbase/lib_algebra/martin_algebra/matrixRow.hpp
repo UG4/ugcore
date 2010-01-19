@@ -8,8 +8,8 @@
  *
  */
 
-template<typename mat_type>
-inline int matrixrow<mat_type>::getConNr(int index) const
+template<typename entry_type>
+inline int matrixrow<entry_type>::getConNr(int index) const
 {
 	for(int i=0; i< getNrOfConnections(); i++)
 	{
@@ -20,17 +20,17 @@ inline int matrixrow<mat_type>::getConNr(int index) const
 }
 
 // the != 0.0 is bad but we need this for restriction, since A.cons[i][0].iIndex = i.
-template<typename mat_type>
+template<typename entry_type>
 template<typename vec_type>
-inline void matrixrow<mat_type>::copyToMult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<entry_type>::copyToMult(vec_type &d, const Vector<vec_type> &x) const
 {
 	d = 0.0;
 	addToMult(d, x);
 }
 
-template<typename mat_type>
+template<typename entry_type>
 template<typename vec_type>
-inline void matrixrow<mat_type>::substractFromMult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<entry_type>::substractFromMult(vec_type &d, const Vector<vec_type> &x) const
 {
 	cRowIterator it = beginRow();
 	if(!it.isEnd() && (*it).dValue == 0.0) 
@@ -39,9 +39,9 @@ inline void matrixrow<mat_type>::substractFromMult(vec_type &d, const Vector<vec
 		d -= (*it).dValue * x[(*it).iIndex];
 }
 
-template<typename mat_type>
+template<typename entry_type>
 template<typename vec_type>
-inline void matrixrow<mat_type>::addToMult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<entry_type>::addToMult(vec_type &d, const Vector<vec_type> &x) const
 {
 	cRowIterator it = beginRow();
 	if(!it.isEnd() && (*it).dValue == 0.0) 
@@ -51,9 +51,9 @@ inline void matrixrow<mat_type>::addToMult(vec_type &d, const Vector<vec_type> &
 		d += (*it).dValue * x[(*it).iIndex];
 }
 
-template<typename mat_type>
+template<typename entry_type>
 template<typename vec_type>
-inline vec_type matrixrow<mat_type>::operator *(const Vector<vec_type> &x) const
+inline vec_type matrixrow<entry_type>::operator *(const Vector<vec_type> &x) const
 {
 	vec_type d;
 	cRowIterator it = beginRow();
@@ -77,8 +77,8 @@ inline vec_type matrixrow<mat_type>::operator *(const Vector<vec_type> &x) const
 }
 
 
-template<typename mat_type>
-inline const typename matrixrow<mat_type>::connection &matrixrow<mat_type>::operator [] (int i) const
+template<typename entry_type>
+inline const typename matrixrow<entry_type>::connection &matrixrow<entry_type>::operator [] (int i) const
 {
 	ASSERT2(i < A.iNrOfConnections[row] && i >= 0, *this << " has no connection nr. " << i);
 	/*ASSERT(A.cons[row]+i < A.consmem+A.iMaxTotalNrOfConnections

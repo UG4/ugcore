@@ -6,7 +6,7 @@
  *  Copyright 2009 G-CSC. All rights reserved.
  *
  */
-#if 0
+#if 1
 
 #include "algebra.h"
 
@@ -49,8 +49,8 @@ extern std::vector<postype> positions;
 ////////////////////////////////////////////////////////////////
 int main(int argc, char **argv) 
 {	
-	int NX = 513;
-	int NY = 513; // 9
+	int NX = 1025;
+	int NY = 1025; // 9
 	int n = NX*NY;
 	positions.resize(n);
 	double hX = 1/((double)(NX-1));
@@ -63,8 +63,8 @@ int main(int argc, char **argv)
 	double h2 = hX*hY;
 	double res;	
 	
-	typedef SparseMatrix<MAT_TYPE> myMatrix;
-	typedef Vector<VEC_TYPE> myVector;	
+	typedef SparseMatrix<myBlockMat> myMatrix;
+	typedef Vector<myBlockVec> myVector;	
 	
 	
 	cout << "grid " << NX << " x " << NY << ", " << UNKNOWN_NR << " unknowns." << endl << endl;
@@ -82,6 +82,9 @@ int main(int argc, char **argv)
 	// create matrix
 	//----------------
 	
+	stopwatch SW;
+	SW.start();
+
 	myMatrix A; 
 	A.name = "A";
 	A.fromlevel = 0;
@@ -107,7 +110,7 @@ int main(int argc, char **argv)
 				int unknowns[3] = {UNKNOWN_NR, UNKNOWN_NR, UNKNOWN_NR}; 
 				
 				// get submatrix of indices, specify nr of unknowns of node (needed since if matrix empty informations is not known).
-				submatrix<MAT_TYPE> UM(indices, unknowns, 3);
+				submatrix<myBlockMat> UM(indices, unknowns, 3);
 				UM(1, 0) = -1.0 / hx2;				
 				UM(1, 1) = 2.0 / hx2;
 				UM(1, 2) = -1.0 / hx2;
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
 			{
 				int indices[3] = {x+(y-1)*NX, x+y*NX, x+(y+1)*NX};
 				int unknowns[3] = {UNKNOWN_NR, UNKNOWN_NR, UNKNOWN_NR};
-				submatrix<MAT_TYPE> UM(indices, unknowns, 3);
+				submatrix<myBlockMat> UM(indices, unknowns, 3);
 				UM(1, 0) = -1.0 / hy2;
 				UM(1, 1) = 2.0 / hy2;
 				UM(1, 2) = -1.0 / hy2;
@@ -137,6 +140,7 @@ int main(int argc, char **argv)
 	} 	
 	
 	if(n < 50) A.print();
+	cout << "A created, took "; SW.printTimeDiff();
 	
 	// create rhs
 	//-------------
@@ -176,10 +180,9 @@ int main(int argc, char **argv)
 	// solve
 	//-----------
 	
-	stopwatch SW;
 	// ANG TESTS
 	
-	amg<MAT_TYPE> AMG;
+	amg<myBlockMat, myVector> AMG;
 	//AMG.max_levels = 20;
 #ifdef AGGRESSIVE_COARSENING
 	AMG.setAggressiveCoarsening_A_2();

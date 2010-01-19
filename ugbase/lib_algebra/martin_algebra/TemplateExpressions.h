@@ -143,11 +143,11 @@ struct Minus_Operator
 	static inline const char *cTyp() { return " - "; }
 }; 
 
-template<typename mat_type, typename vec_type>
+template<typename entry_type, typename vec_type>
 struct Multiply_Operator
 { 
-	typedef mat_type MultType;
-	typedef typename Mult_Traits<mat_type, vec_type>::ReturnType ReturnType;
+	typedef entry_type MultType;
+	typedef typename Mult_Traits<entry_type, vec_type>::ReturnType ReturnType;
 	static inline ReturnType apply(const vec_type &a, const vec_type &b) {return a * b;} 
 	
 	static inline void copyTo(ReturnType &r, const vec_type &a, const vec_type &b) {r = a * b;} 
@@ -159,7 +159,7 @@ struct Multiply_Operator
 	
 /*struct Divide_Operator
 { 
-	static inline VEC_TYPE apply(VEC_TYPE a, MAT_TYPE b) {return a / b;} 
+	static inline VEC_TYPE apply(VEC_TYPE a, entry_type b) {return a / b;} 
 	static inline const char *cTyp() { return " / "; }
 };*/
 
@@ -168,23 +168,23 @@ struct Multiply_Operator
 
 //
 // allow + for all XDs
-template<typename L, typename R> Expression< L, Add_Operator< typename L::vec_type >, R> operator+(const XD<L> &l,const XD<R> &r)
+template<typename L, typename R> Expression< L, Add_Operator< typename L::entry_type >, R> operator+(const XD<L> &l,const XD<R> &r)
 { 
-	return Expression<L, Add_Operator< typename L::vec_type >, R> (l.cast(), r.cast()); 
+	return Expression<L, Add_Operator< typename L::entry_type >, R> (l.cast(), r.cast()); 
 }
 
 //
 // allow - for all XDs
-template<typename L, typename R> Expression< L, Minus_Operator< typename L::vec_type >, R> operator-(const XD<L> &l,const XD<R> &r)
+template<typename L, typename R> Expression< L, Minus_Operator< typename L::entry_type >, R> operator-(const XD<L> &l,const XD<R> &r)
 { 
-	return Expression<L, Minus_Operator< typename L::vec_type >, R> (l.cast(), r.cast()); 
+	return Expression<L, Minus_Operator< typename L::entry_type >, R> (l.cast(), r.cast()); 
 }
 
 //
 // allow * for doubles and all XDs
-template<typename R> Expression<double, Multiply_Operator<double, typename R::vec_type >, R> operator*(double l,const XD<R> &r)
+template<typename R> Expression<double, Multiply_Operator<double, typename R::entry_type >, R> operator*(double l,const XD<R> &r)
 { 
-	return Expression<double, Multiply_Operator<double, typename R::vec_type>, R> (l, r.cast()); 
+	return Expression<double, Multiply_Operator<double, typename R::entry_type>, R> (l, r.cast()); 
 }
 // * and / only for special
 

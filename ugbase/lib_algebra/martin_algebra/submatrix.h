@@ -12,15 +12,15 @@
 //! provide indices and nr of unknowns, and get submatrix of a bigger matrix
 //! ATTENTION: indices and unknowns are NOT copied and have to be valid pointers
 //! for the whole lifecycle of submatrix (performance reasons).
-template <typename mat_type>
+template <typename entry_type>
 class submatrix
 {
-public:
-	submatrix(int *indices_Rows, int *indices_Cols, int rows, int cols, bool zero = true)
+private:
+	void create(int *indices_Rows, int *indices_Cols, int rows, int cols, bool zero = true)
 	{
 		nrRows = rows;
 		nrCols = cols;
-		values = new mat_type[nrRows*nrCols];
+		values = new entry_type[nrRows*nrCols];
 		
 		if(zero)
 		{
@@ -34,23 +34,31 @@ public:
 		unknownsRows = unknownsCols = NULL;
 	}
 	
+public:
+	submatrix(int *indices_Rows, int *indices_Cols, int rows, int cols, bool zero = true)
+	{
+		create(indices_Rows, indices_Cols, rows, cols, zero);
+	}
+	
 	submatrix(int *indices_Rows, int *indices_Cols, int *unknowns_Rows, int *unknowns_Cols, int rows, int cols, bool zero = true)
 	{
-		submatrix(indices_Rows, indices_Cols, rows, cols, zero);
+		create(indices_Rows, indices_Cols, rows, cols, zero);
 		unknownsRows = unknowns_Rows;
 		unknownsCols = unknowns_Cols;
 	}
 
 	submatrix(int *indices, int *unknowns_, int nrindices, bool zero = true)
 	{ 	
-		submatrix(indices, indices, nrindices, nrindices, zero)	;
+		create(indices, indices, nrindices, nrindices, zero);
 		unknownsRows = unknowns_;
 		unknownsCols = unknowns_;
 	}
 
 	
-	submatrix(int *indices, int nrindices, bool zero = true) : submatrix(indices, indices, nrindices, nrindices, zero)
-	{ 	}
+	submatrix(int *indices, int nrindices, bool zero = true)
+	{
+		create(indices, indices, nrindices, nrindices, zero);
+	}
 	
 	
 	~submatrix()
@@ -58,7 +66,7 @@ public:
 		delete[] values;
 	}
 	
-	mat_type &operator () (int from, int to)
+	entry_type &operator () (int from, int to)
 	{
 		ASSERT1(from < nrRows && to >= 0 && to < nrCols && from >= 0);
 		
@@ -66,7 +74,7 @@ public:
 		return values[from*nrCols + to];
 	}
 	
-	const mat_type &operator () (int from, int to) const 
+	const entry_type &operator () (int from, int to) const 
 	{
 		ASSERT1(from < nrRows && to >= 0 && to < nrCols && from >= 0);
 		return values[from*nrCols + to];
@@ -86,7 +94,7 @@ private:
 	int *unknownsRows;
 	int *unknownsCols;
 	int nrCols, nrRows;
-	mat_type *values;
+	entry_type *values;
 };
 
 

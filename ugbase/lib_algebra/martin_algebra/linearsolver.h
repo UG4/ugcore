@@ -13,12 +13,10 @@
 //! Linear Solver
 //! Performs maxit steps of iteration x -> x + P (b-Ax), where P is a preconditioner
 // this one uses preconditioner::iterate
-template<typename mat_type>
-void LinearSolver(typename SparseMatrix<mat_type>::Vector_type &x, const SparseMatrix<mat_type> &A, 
-				  const typename SparseMatrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
+template<typename entry_type, typename Vector_type>
+void LinearSolver(Vector_type &x, const SparseMatrix<entry_type> &A, 
+				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit)
 {
-	typedef typename SparseMatrix<mat_type>::Vector_type Vector_type;
-	
 	P.init(A);
 	stopwatch SW;
 	SW.start();
@@ -47,11 +45,10 @@ void LinearSolver(typename SparseMatrix<mat_type>::Vector_type &x, const SparseM
 //! Linear Solver
 //! Performs maxit steps of iteration x -> x + P (b-Ax), where P is a preconditioner
 // this one uses preconditioner::precond
-template<typename mat_type>
-void LinearSolver2(typename SparseMatrix<mat_type>::Vector_type &x, const SparseMatrix<mat_type> &A, 
-				   const typename SparseMatrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
-{
-	typedef typename SparseMatrix<mat_type>::Vector_type Vector_type;
+template<typename entry_type, typename Vector_type>
+void LinearSolver2(typename SparseMatrix<entry_type>::Vector_type &x, const SparseMatrix<entry_type> &A, 
+				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit)
+{	
 	
 	P.init(A);
 	stopwatch SW;
@@ -85,11 +82,9 @@ void LinearSolver2(typename SparseMatrix<mat_type>::Vector_type &x, const Sparse
 //!
 //! CG-Solver
 //! CG Solver on system Ax = b with Preconditioner P.
-template<typename mat_type>
-void CG(typename SparseMatrix<mat_type>::Vector_type &x, const SparseMatrix<mat_type> &A, const typename SparseMatrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
+template<typename entry_type, typename Vector_type>
+void CG(Vector_type &x, const SparseMatrix<entry_type> &A, const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit)
 {
-	typedef typename SparseMatrix<mat_type>::Vector_type Vector_type;
-	
 	P.init(A);
 	
 	

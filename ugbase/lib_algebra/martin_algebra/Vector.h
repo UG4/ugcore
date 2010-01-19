@@ -7,16 +7,17 @@
  *
  */
 
-
 ///////////////////////////////////////////////////////////////////
 //							Vector
 ///////////////////////////////////////////////////////////////////
-template <typename templ_vec_type>
-class Vector : public XD< Vector<templ_vec_type> >
+template <typename templ_entry_type>
+class Vector : public XD< Vector<templ_entry_type> >
 {
 	// functions
 public:
-	typedef templ_vec_type vec_type;
+	typedef templ_entry_type entry_type;
+	typedef subvector<entry_type> subvector_type;
+
 	Vector(const char *_name = "");		
 	Vector(int _length, const char *_name = "");		
 	~Vector();
@@ -25,11 +26,12 @@ public:
 	
 	void create(int _length);
 	
-	inline vec_type &operator [] (int i);
-	inline const vec_type &operator [] (int i) const;
+	inline entry_type &operator [] (int i);
+	inline const entry_type &operator [] (int i) const;
 	
 	void print(const char * const text = NULL) const;
 	void p(); // gdb
+	
 	friend ostream &operator<<(ostream &output, const Vector &v)
 	{
 		output << "Vector " <<  v.name << "[" << v.length << "]";
@@ -50,6 +52,13 @@ public:
 	
 	// assign double to whole Vector
 	double operator = (double d);
+	void set(double d) { operator = (d); }	
+	
+	
+	void add(const subvector<entry_type> &subvec);
+	void set(const subvector<entry_type> &subvec);
+	void get(subvector<entry_type> &subvec) const;
+	
 	
 	// für Function Expression, sh. TemplateExpression.h
 	template<class Function> inline void operator = (Function &ex);
@@ -84,7 +93,7 @@ public:
 	
 	
 private:
-	vec_type *values;
+	entry_type *values;
 
 	//mutable vector_mode dist_mode;
 public:

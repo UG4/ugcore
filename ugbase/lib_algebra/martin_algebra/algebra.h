@@ -35,14 +35,14 @@ const double theta = 0.3;
 #if UNKNOWN_NR > 1
 typedef fixedStorage myStorageType;
 //typedef variableStorage myStorageType;
-typedef blockDenseMatrix<myStorageType, UNKNOWN_NR, UNKNOWN_NR > MAT_TYPE;
-typedef blockVector<myStorageType, UNKNOWN_NR> VEC_TYPE;
+typedef blockDenseMatrix<myStorageType, UNKNOWN_NR, UNKNOWN_NR > myBlockMat;
+typedef blockVector<myStorageType, UNKNOWN_NR> myBlockVec;
 #else
-typedef double VEC_TYPE;
-typedef double MAT_TYPE;
+typedef double myBlockMat;
+typedef double myBlockVec;
 
 
-//typedef blockDenseMatrix<1> MAT_TYPE;
+//typedef blockDenseMatrix<1> entry_type;
 //typedef blockVector<1> VEC_TYPE;
 
 #endif

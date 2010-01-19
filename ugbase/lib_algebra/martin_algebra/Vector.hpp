@@ -9,15 +9,15 @@
 
 #include <fstream>
 
-template<typename vec_type>
-inline vec_type &Vector<vec_type>::operator [] (int i)
+template<typename entry_type>
+inline entry_type &Vector<entry_type>::operator [] (int i)
 {
 	ASSERT2(i >= 0 && i < length, *this << ": tried to access element " << i);	
 	return values[i];
 }
 
-template<typename vec_type>
-inline const vec_type &Vector<vec_type>::operator [] (int i) const
+template<typename entry_type>
+inline const entry_type &Vector<entry_type>::operator [] (int i) const
 {
 	ASSERT2(i >= 0 && i < length, *this << ": tried to access element " << i);
 	return values[i];
@@ -25,7 +25,7 @@ inline const vec_type &Vector<vec_type>::operator [] (int i) const
 
 
 // energynorm2 = x*(A*x)
-/*inline double Vector<vec_type>::energynorm2(const SparseMatrix &A) const
+/*inline double Vector<entry_type>::energynorm2(const SparseMatrix &A) const
 {
 	double sum=0;
 	for(int i=0; i<length; i++)	sum += (A[i] * (*this)) * values[i];
@@ -34,8 +34,8 @@ inline const vec_type &Vector<vec_type>::operator [] (int i) const
 }*/
 
 // dotprod
-template<typename vec_type>
-inline double Vector<vec_type>::dotprod(const Vector &w) const
+template<typename entry_type>
+inline double Vector<entry_type>::dotprod(const Vector &w) const
 {
 	ASSERT2(length == w.length,  *this << " has not same length as " << w);
 	
@@ -45,15 +45,15 @@ inline double Vector<vec_type>::dotprod(const Vector &w) const
 	return sum;
 }
 
-template<typename vec_type>
-inline double Vector<vec_type>::operator *(const Vector &w)
+template<typename entry_type>
+inline double Vector<entry_type>::operator *(const Vector &w)
 {
 	return dotprod(w);	
 }
 
 // assign double to whole Vector
-template<typename vec_type>
-inline double Vector<vec_type>::operator = (double d)
+template<typename entry_type>
+inline double Vector<entry_type>::operator = (double d)
 {
 	for(int i=0; i<length; i++)	
 	{
@@ -64,8 +64,8 @@ inline double Vector<vec_type>::operator = (double d)
 	return d;
 }
 
-template<typename vec_type> 
-template<typename Type> inline void Vector<vec_type>::operator = (const Type &t)
+template<typename entry_type> 
+template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
 { 
 	IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
 	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
@@ -79,22 +79,22 @@ template<typename Type> inline void Vector<vec_type>::operator = (const Type &t)
 }
 
 // für Function Expression, sh. TemplateExpression.h
-template<typename vec_type> 
-template<class Function> inline void Vector<vec_type>::operator = (Function &ex)
+template<typename entry_type> 
+template<class Function> inline void Vector<entry_type>::operator = (Function &ex)
 { 
 	ex.applyto(*this);
 }
 
-template<typename vec_type>
-inline void Vector<vec_type>::operator = (const Vector &v)
+template<typename entry_type>
+inline void Vector<entry_type>::operator = (const Vector &v)
 { 
 	v.applyto(*this);
 }	
-template<typename vec_type>
-inline void Vector<vec_type>::applyto(Vector &v) const
+template<typename entry_type>
+inline void Vector<entry_type>::applyto(Vector &v) const
 {
 	ASSERT2(v.length == length, *this << " has not same length as " << v);
-	//memcpy(v.values, values, length*sizeof(vec_type));
+	//memcpy(v.values, values, length*sizeof(entry_type));
 	for(int i=0; i<length; i++)
 		v.values[i] = values[i];
 }
@@ -110,8 +110,8 @@ inline void Vector<vec_type>::applyto(Vector &v) const
  }	*/
 
 // v += exp
-template<typename vec_type> 
-template<typename Type> inline void Vector<vec_type>::operator += (const Type &t)
+template<typename entry_type> 
+template<typename Type> inline void Vector<entry_type>::operator += (const Type &t)
 { 
 	IF_PRINTLEVEL(5) cout << *this << " += " << t << " (unspecialized) " << endl;
 	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
@@ -125,8 +125,8 @@ template<typename Type> inline void Vector<vec_type>::operator += (const Type &t
 } 
 
 // v -= exp
-template<typename vec_type> 
-template<typename Type> inline void Vector<vec_type>::operator -= (const Type &t)
+template<typename entry_type> 
+template<typename Type> inline void Vector<entry_type>::operator -= (const Type &t)
 {
 	IF_PRINTLEVEL(5) cout << *this << " -= " << t << " (unspecialized) " << endl;
 	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
@@ -155,8 +155,8 @@ inline void Vector::operator = (const Expression<SparseMatrix, Multiply_Operator
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-template<typename vec_type>
-Vector<vec_type>::Vector (const char *_name)
+template<typename entry_type>
+Vector<entry_type>::Vector (const char *_name)
 {
 	if(never_happens) p(); // force creation of this rountines for gdb.
 		
@@ -164,8 +164,8 @@ Vector<vec_type>::Vector (const char *_name)
 	length = 0; values = NULL; name = _name; level = 0;
 }	
 
-template<typename vec_type>
-Vector<vec_type>::Vector(int _length, const char *_name)
+template<typename entry_type>
+Vector<entry_type>::Vector(int _length, const char *_name)
 {
 	if(never_happens) print(); // force creation of this rountines for gdb.
 
@@ -175,26 +175,26 @@ Vector<vec_type>::Vector(int _length, const char *_name)
 	level = 0;
 }	
 
-template<typename vec_type>
-Vector<vec_type>::~Vector()
+template<typename entry_type>
+Vector<entry_type>::~Vector()
 {
 	delete [] values;
 }
 
-template<typename vec_type>
-void Vector<vec_type>::create(int _length)
+template<typename entry_type>
+void Vector<entry_type>::create(int _length)
 {
 	ASSERT2(length == 0, *this << " already created");
 	length = _length;
-	values = new vec_type[length];
+	values = new entry_type[length];
 }
 
 
 
 
 // printofile: posx posy value
-template<typename vec_type>
-void Vector<vec_type>::printtofile(const char *filename)
+template<typename entry_type>
+void Vector<entry_type>::printtofile(const char *filename)
 {
 	fstream fil(filename, ios::out);	
 	
@@ -207,8 +207,8 @@ void Vector<vec_type>::printtofile(const char *filename)
 }
 
 // print
-template<typename vec_type>
-void Vector<vec_type>::print(const char * const text) const
+template<typename entry_type>
+void Vector<entry_type>::print(const char * const text) const
 {
   
   //cout << endl << "================ " << name;
@@ -219,10 +219,30 @@ void Vector<vec_type>::print(const char * const text) const
 	cout << endl;
 }
 
-template<typename vec_type>
-void Vector<vec_type>::printtype() const
+template<typename entry_type>
+void Vector<entry_type>::printtype() const
 { 
 	cout << *this;
 }
 
+template<typename entry_type>
+void Vector<entry_type>::add(const subvector<entry_type> &subvec)
+{
+	for(int i=0; i < subvec.getNr(); i++)
+		values[subvec.getIndex(i)] += subvec(i);
+}
+
+template<typename entry_type>
+void Vector<entry_type>::set(const subvector<entry_type> &subvec)
+{
+	for(int i=0; i < subvec.getNr(); i++)
+		values[subvec.getIndex(i)] = subvec(i);	
+}
+
+template<typename entry_type>
+void Vector<entry_type>::get(subvector<entry_type> &subvec) const
+{
+	for(int i=0; i < subvec.getNr(); i++)
+		subvec(i) = values[subvec.getIndex(i)];
+}
 

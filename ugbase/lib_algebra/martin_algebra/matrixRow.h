@@ -14,16 +14,16 @@
 //! templated class, parameter is a blockmatrix type like double or blockDenseMatrix
 //! you get a matrixrow variable when A is a SparseMatrix and you do A[i] or A.getrow(i)
 //! you can do A[i].getDiag() or A[i].addMatrixRow(c, nr);
-//! iterators: matrixrow<mat_type>::citerator it(A[i]), ++it, (*it).iIndex, dValue.
+//! iterators: matrixrow<entry_type>::citerator it(A[i]), ++it, (*it).iIndex, dValue.
 //! also possible: double a = A[i]*x. (thats why i like this concept)
 //! its not 100% atm, because that const matrix_type *A would rather be a const matrix_type &A,
 //! but this gives all problems with const and non-const objects (like in iterator and citerator). Ideas?
-template<typename mat_type>
+template<typename entry_type>
 class matrixrow
 {
-	typedef SparseMatrix<mat_type> matrix_type;
-	//typedef typename SparseMatrix<mat_type>::vec_type vec_type;
-	typedef typename SparseMatrix<mat_type>::connection connection;
+	typedef SparseMatrix<entry_type> matrix_type;
+	//typedef typename SparseMatrix<entry_type>::vec_type vec_type;
+	typedef typename SparseMatrix<entry_type>::connection connection;
 	//typedef Vector<vec_type> Vector_type;
 	
 public:
@@ -39,7 +39,7 @@ public:
 	}
 	
 	// get the sum of the entries of the SparseMatrix row
-	//mat_type sum() const;
+	//entry_type sum() const;
 	
 	
 	//!

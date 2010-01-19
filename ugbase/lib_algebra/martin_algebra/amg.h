@@ -15,13 +15,11 @@
 #define AMG_MAX_LEVELS 32
 
 
-template<typename mat_type>
-class amg : public preconditioner<mat_type>
+template<typename entry_type, typename Vector_type>
+class amg : public preconditioner<entry_type, Vector_type>
 {
 public:
-	typedef SparseMatrix<mat_type> matrix_type;
-	typedef typename matrix_type::vec_type vec_type;
-	typedef Vector< typename matrix_type::vec_type> Vector_type;
+	typedef SparseMatrix<entry_type> matrix_type;
 	
 //  functions
 	void writeMatrices(const char *pathAndName);
@@ -138,7 +136,7 @@ private:
 	SparseMatrix<double> P[AMG_MAX_LEVELS];
 	matrix_type *A[AMG_MAX_LEVELS+1];
 	
-	sgs<mat_type> smoother[AMG_MAX_LEVELS];
+	sgs<entry_type, Vector_type> smoother[AMG_MAX_LEVELS];
 };
 
 

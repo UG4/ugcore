@@ -20,8 +20,8 @@ public:
 	}
 	
 	~CoarseSolver();	
-	template <typename mat_type>
-	void create(const SparseMatrix<mat_type> &A);
+	template <typename entry_type>
+	void create(const SparseMatrix<entry_type> &A);
 	
 	template<typename vec_type>
 	void solve(const Vector<vec_type> &b, Vector<vec_type> &x);

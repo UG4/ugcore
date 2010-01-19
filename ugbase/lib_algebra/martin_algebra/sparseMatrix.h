@@ -32,7 +32,7 @@ template<typename vec_type> class Vector;
 
 #include "Vector.h"
 
-template<typename mat_type> class matrixrow;
+template<typename entry_type> class matrixrow;
 template<typename vec_type> class Vector;
 ///////////////////////////////////////////////////////////////////
 //							SparseMatrix
@@ -41,23 +41,22 @@ template<typename vec_type> class Vector;
 //!
 //! class SparseMatrix
 //! templated class, parameter is a blockmatrix type like double or blockDenseMatrix
-//! trough matrix_trait<mat_type>::vec_type corresponding blockvector is determined
+//! trough matrix_trait<entry_type>::vec_type corresponding blockvector is determined
 //! 
-template<typename templ_mat_type> 
+template<typename templ_entry_type> 
 class SparseMatrix
 {
 	// functions
 public:
-	typedef templ_mat_type mat_type;
-	typedef typename matrix_trait<mat_type>::vec_type vec_type;
-	typedef matrixrow<mat_type> row_type;
-	typedef Vector<vec_type> Vector_type;
-	typedef matrixrow<mat_type> matrixrow_type;
+	typedef templ_entry_type entry_type;
+	typedef matrixrow<entry_type> row_type;
+	typedef matrixrow<entry_type> matrixrow_type;
+	typedef submatrix<entry_type> submatrix_type;
 
 	struct connection
 	{
 		int iIndex;		// index to
-		mat_type dValue; // smallmatrix value;
+		entry_type dValue; // smallmatrix value;
 		
 		void print(){cout << *this;}
 		friend ostream &operator<<(ostream &output, const connection &c)
@@ -101,14 +100,20 @@ public:
 	//! Dirichlet rows are rows i with only A[i,i] = 1.0 and A[i,j] = 0.0 for all i != j
 	//! these rows are added to other rows j with A[j,i] != 0.0, until A[j,i] = 0.0,
 	//! and corresponding entries in rhs vector b are changed.
-	void eliminateDirichletValues(Vector<vec_type> &b);
+	template<typename Vector_type>
+	void eliminateDirichletValues(Vector_type &b);
 	
 	void setDirichletRow(int row);
 	void setDirichletRows(int *pRows, int nrows);
 	
-	
+
+	template<typename Vector_type>
 	void apply(Vector_type &res, const Vector_type &x) const;
+	
+	template<typename Vector_type>
 	void applyTransposed(Vector_type &res, const Vector_type &x) const;
+	
+	template<typename Vector_type>
 	void matmul_minus(Vector_type &res, const Vector_type &x) const;
 
 	// accessor functions for artificial matrixrow-object (= just wrapper with A and row)	
@@ -116,8 +121,8 @@ public:
 	const matrixrow_type operator [] (int i) const;
 	
 	
-	inline const mat_type getDiag(int i) const;
-	inline mat_type &getDiag(int i);	
+	inline const entry_type getDiag(int i) const;
+	inline entry_type &getDiag(int i);	
 	
 	//!
 	//! isUnconnected: true if only A[i,i] != 0.0.
@@ -127,9 +132,9 @@ public:
 	//! add (submatrix)
 	//! adds the submatrix mat to A. 
 	//! @see submatrix
-	void add(const submatrix<mat_type> &mat);
-	void set(const submatrix<mat_type> &mat);
-	void get(submatrix<mat_type> &mat) const;
+	void add(const submatrix<entry_type> &mat);
+	void set(const submatrix<entry_type> &mat);
+	void get(submatrix<entry_type> &mat) const;
 
 	// for other manipulation/accessor functions see matrixrow functions,
 	// that is A[i].matrixrowfunction(params).
@@ -192,7 +197,7 @@ public:
 	{	
 	public:
 		diagcomponent(const SparseMatrix &A_) : A(A_) {}
-		mat_type operator [] (int i) const { return A.getDiag(i); }
+		entry_type operator [] (int i) const { return A.getDiag(i); }
 		int getLength() const { return A.getLength(); }
 		friend ostream &operator<<(ostream &output, const diagcomponent &m)
 		{ output << "diagonal of " << m.A; return output; }
@@ -221,11 +226,11 @@ public:
 	class cRowIterator 
 	{
 	public:
-		const SparseMatrix<templ_mat_type> &A;
+		const SparseMatrix<templ_entry_type> &A;
 		int m_position;
 		int row;
 	public:
-		inline cRowIterator(const SparseMatrix<templ_mat_type> &A_, int row_) : A(A_) { row = row_; rewind(); }
+		inline cRowIterator(const SparseMatrix<templ_entry_type> &A_, int row_) : A(A_) { row = row_; rewind(); }
 		inline cRowIterator(const cRowIterator &other) : A(other.A) { row = other.row; m_position = other.m_position; }
 		
 		inline const connection &operator *() const {return A.cons[row][m_position];}
@@ -248,11 +253,11 @@ public:
 	class rowIterator 
 	{
 	public:
-		SparseMatrix<templ_mat_type> &A;
+		SparseMatrix<templ_entry_type> &A;
 		int m_position;
 		int row;
 	public:
-		inline rowIterator(SparseMatrix<templ_mat_type> &A_, int row_) : A(A_) { row = row_; rewind(); }
+		inline rowIterator(SparseMatrix<templ_entry_type> &A_, int row_) : A(A_) { row = row_; rewind(); }
 		inline rowIterator(const cRowIterator &other) : A(other.A) { row = other.row; m_position = other.m_position; }
 		
 		inline connection &operator *() const {return A.cons[row][m_position];}
@@ -275,10 +280,10 @@ public:
 /*	class rowIterator 
 	{
 	protected:
-		matrixrow<mat_type> &row;
+		matrixrow<entry_type> &row;
 		int m_position;
 	public:
-		inline iterator(matrixrow<mat_type> &r) : row(r) { m_position = 0;}
+		inline iterator(matrixrow<entry_type> &r) : row(r) { m_position = 0;}
 		inline connection &operator *(){	return row[m_position];	}
 		inline void operator ++(){		m_position++;			}
 		inline void rewind(){m_position = 0;}
@@ -292,7 +297,7 @@ public:
 	class cLowerLeftIterator : public cRowIterator
 	{
 	public:
-		cLowerLeftIterator(const SparseMatrix<templ_mat_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
+		cLowerLeftIterator(const SparseMatrix<templ_entry_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
 		inline void operator ++()
 		{
 			cRowIterator::m_position ++;
@@ -315,7 +320,7 @@ public:
 	class cUpperRightIterator : public cRowIterator
 	{
 	public:
-		cUpperRightIterator(const SparseMatrix<templ_mat_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
+		cUpperRightIterator(const SparseMatrix<templ_entry_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
 		inline void operator ++()
 		{
 			cRowIterator::m_position ++;
@@ -341,6 +346,11 @@ private:
 	void safeSetConnections(int row, connection *mem) const;
 	void recreateWithMaxNrOfConnections(int newMax) const;
 	
+public:
+	void setEstimatedRowSize(int estimatedRowSize_)
+	{
+		estimatedRowSize = estimatedRowSize_;
+	}
 //     data
 //----------------
 	
@@ -350,21 +360,24 @@ public:
 	const char *name;					//!< name of the SparseMatrix for debuging / printing.
 	
 private:	
-	
+
 	int rows;							//!< nr of rows
 	int cols;							//!< nr of cols
 	int *iNrOfConnections;				//< array nr of Connections for each row
-	int *iMaxNrOfConnections;			//< max nr of connections for row [i]. TODO.
 	connection **cons;			//< pointers to array of connections of each row
 	
 	int iTotalNrOfConnections;	//!< number of non-zeros
 	int bandwidth;				//!< bandwidth (experimental)
 	
+	int estimatedRowSize;				//!< estimated length of each row
+	int *iMaxNrOfConnections;			//!< max nr of connections for row [i]. TODO.
+
+	
 	connection *consmem;		//!< consecutive memory for the connections
 	int consmemsize;					//!< size of the consecutive memory for connections
 	int iFragmentedMem;			//!< size of connections memory not in consmem 	
 	
-	friend class matrixrow<mat_type>;
+	friend class matrixrow<entry_type>;
 	
 };
 

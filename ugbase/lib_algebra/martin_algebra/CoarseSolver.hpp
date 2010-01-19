@@ -54,10 +54,10 @@ void CoarseSolver::solve(const Vector<vec_type> &b, Vector<vec_type> &x)
 }
 
 
-template<typename mat_type>
-void CoarseSolver::create(const SparseMatrix<mat_type> &A)
+template<typename entry_type>
+void CoarseSolver::create(const SparseMatrix<entry_type> &A)
 {
-	int nrOfUnknowns = matrix_trait<mat_type>::nrOfUnknowns;
+	int nrOfUnknowns = matrix_trait<entry_type>::nrOfUnknowns;
 	size = (__CLPK_integer) A.getLength() * nrOfUnknowns;
 	
 	densemat = new double[size*size];
@@ -66,7 +66,7 @@ void CoarseSolver::create(const SparseMatrix<mat_type> &A)
 	memset(densemat, 0, sizeof(double)*size*size);
 	
 	for(int r=0; r<A.getLength(); r++)
-		for(typename SparseMatrix<mat_type>::cRowIterator it(A, r); !it.isEnd(); ++it)
+		for(typename SparseMatrix<entry_type>::cRowIterator it(A, r); !it.isEnd(); ++it)
 		{
 			int rr = r*nrOfUnknowns;
 			int cc = (*it).iIndex*nrOfUnknowns;

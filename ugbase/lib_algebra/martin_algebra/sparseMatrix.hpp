@@ -11,8 +11,8 @@
 //---------------------------------------------------
 
 // constructor for empty SparseMatrix
-template<typename mat_type>
-SparseMatrix<mat_type>::SparseMatrix()
+template<typename entry_type>
+SparseMatrix<entry_type>::SparseMatrix()
 {
 	name = "?";
 	cols = rows = iTotalNrOfConnections = 0;
@@ -24,6 +24,9 @@ SparseMatrix<mat_type>::SparseMatrix()
 	fromlevel = tolevel = -1;
 	bandwidth = 0;
 	
+	estimatedRowSize = 0;
+	iMaxNrOfConnections = NULL;
+	
 	if(never_happens) 
 	{
 		print(); // force creation of this rountines for gdb.
@@ -33,8 +36,8 @@ SparseMatrix<mat_type>::SparseMatrix()
 }	
 
 // destructor
-template<typename mat_type>
-SparseMatrix<mat_type>::~SparseMatrix()
+template<typename entry_type>
+SparseMatrix<entry_type>::~SparseMatrix()
 {
 	for(int i=0; i < rows; i++)
 		safeSetConnections(i, NULL);
@@ -45,24 +48,29 @@ SparseMatrix<mat_type>::~SparseMatrix()
 }
 
 // create: used to create the SparseMatrix
-template<typename mat_type>
-void SparseMatrix<mat_type>::create(int _rows, int _cols)
+template<typename entry_type>
+void SparseMatrix<entry_type>::create(int _rows, int _cols)
 {
 	ASSERT2(rows == 0 && cols == 0, *this << " not empty.");
 	
 	rows = _rows;
 	cols = _cols;
+	
 	cons = new connection*[rows+1];
 	memset(cons, 0, sizeof(connection*)*(rows+1));
+
 	iNrOfConnections = new int[rows];
 	memset(iNrOfConnections, 0, sizeof(int)*rows);
+	
+	iMaxNrOfConnections = new int[rows];
+	memset(iMaxNrOfConnections, 0, sizeof(int)*rows);
 	
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
 }
 
 
-/*void SparseMatrix<mat_type>::recreateWithMaxNrOfConnections(int newMax) const
+/*void SparseMatrix<entry_type>::recreateWithMaxNrOfConnections(int newMax) const
  {
  // create new cons Memory
  connection *consmemNew = new connection[newMax];
@@ -84,23 +92,23 @@ void SparseMatrix<mat_type>::create(int _rows, int _cols)
 
 
 
-template<typename mat_type>
-inline const mat_type SparseMatrix<mat_type>::getDiag(int i) const
+template<typename entry_type>
+inline const entry_type SparseMatrix<entry_type>::getDiag(int i) const
 {
 	ASSERT2(cons[i][0].iIndex == i, *this << " first entry has to be diagonal");
 	// evtl anders, da nicht jede Matrix diageintrag
 	return cons[i][0].dValue;
 }
 
-template<typename mat_type>
-inline mat_type &SparseMatrix<mat_type>::getDiag(int i)
+template<typename entry_type>
+inline entry_type &SparseMatrix<entry_type>::getDiag(int i)
 {
 	ASSERT2(cons[i][0].iIndex == i, *this << " first entry has to be diagonal");
 	return cons[i][0].dValue;
 }
 
-template<typename mat_type>
-inline bool SparseMatrix<mat_type>::isUnconnected(int i) const
+template<typename entry_type>
+inline bool SparseMatrix<entry_type>::isUnconnected(int i) const
 {
 	ASSERT2(i < rows && i >= 0, *this << ": " << i << " out of bounds.");
 	return iNrOfConnections[i] == 1;
@@ -114,8 +122,8 @@ inline bool SparseMatrix<mat_type>::isUnconnected(int i) const
 
 
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::safeSetConnections(int row, connection *mem) const
+template<typename entry_type>
+void SparseMatrix<entry_type>::safeSetConnections(int row, connection *mem) const
 {	
 	if(cons[row] != NULL && cons[row] < consmem || cons[row] > consmem + consmemsize)
 		delete[] cons[row];
@@ -125,8 +133,8 @@ void SparseMatrix<mat_type>::safeSetConnections(int row, connection *mem) const
 //!
 //!
 //! defrag
-template<typename mat_type>
-void SparseMatrix<mat_type>::defrag()
+template<typename entry_type>
+void SparseMatrix<entry_type>::defrag()
 {
 	ASSERT2(0, "this function is broken");
 	iTotalNrOfConnections=0;
@@ -141,6 +149,7 @@ void SparseMatrix<mat_type>::defrag()
 			swap(p[k], cons[i][k]);
 		safeSetConnections(i, p);
 		p += iNrOfConnections[i];
+		iMaxNrOfConnections[i] = iNrOfConnections[i];
 	}
 	delete[] consmem;
 	consmem = consmemNew;
@@ -150,23 +159,24 @@ void SparseMatrix<mat_type>::defrag()
 
 //!
 //! getrow: returns a matrixrow object.
-template<typename mat_type>
-const matrixrow<mat_type> SparseMatrix<mat_type>::getrow(int i) const
+template<typename entry_type>
+const matrixrow<entry_type> SparseMatrix<entry_type>::getrow(int i) const
 {	
-	return matrixrow<mat_type> (*this, i);
+	return matrixrow<entry_type> (*this, i);
 }
 
-template<typename mat_type>
-const matrixrow<mat_type> SparseMatrix<mat_type>::operator [] (int i) const
+template<typename entry_type>
+const matrixrow<entry_type> SparseMatrix<entry_type>::operator [] (int i) const
 {		
-	return matrixrow<mat_type> (*this, i);
+	return matrixrow<entry_type> (*this, i);
 }
 
 // eliminateDirichletValues
 //----------------------------
 // eliminates Dirichlet Values by putting them on the rhs b.
-template<typename mat_type>
-void SparseMatrix<mat_type>::eliminateDirichletValues(Vector<  SparseMatrix<mat_type>::vec_type> &b)
+template<typename entry_type>
+template<typename Vector_type>
+void SparseMatrix<entry_type>::eliminateDirichletValues(Vector_type &b)
 {
 	for(int i=0; i<rows; i++)
 	{
@@ -186,8 +196,8 @@ void SparseMatrix<mat_type>::eliminateDirichletValues(Vector<  SparseMatrix<mat_
 // setDirichletRow
 //----------------------------
 // sets the row to i,i = 1.0.
-template<typename mat_type>
-void SparseMatrix<mat_type>::setDirichletRow(int row)
+template<typename entry_type>
+void SparseMatrix<entry_type>::setDirichletRow(int row)
 {
 	ASSERT2(row >= 0 && row < rows, *this << ": row " << row << " out of bounds.");
 	if(iNrOfConnections[row] > 0)
@@ -198,10 +208,11 @@ void SparseMatrix<mat_type>::setDirichletRow(int row)
 		safeSetConnections(row, c);
 	}		
 	iNrOfConnections[row] = 1;
+	iMaxNrOfConnections[row] = 1;
 }
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::setDirichletRows(int *pRows, int nrows)
+template<typename entry_type>
+void SparseMatrix<entry_type>::setDirichletRows(int *pRows, int nrows)
 {
 	for(int i=0; i<nrows; i++)
 		setDirichletRow(pRows[i]);
@@ -210,8 +221,8 @@ void SparseMatrix<mat_type>::setDirichletRows(int *pRows, int nrows)
 // createAsTransposeOf
 //-----------------------
 // write in a empty SparseMatrix the transpose SparseMatrix of B.
-template<typename mat_type>
-void SparseMatrix<mat_type>::createAsTransposeOf(const SparseMatrix &B)
+template<typename entry_type>
+void SparseMatrix<entry_type>::createAsTransposeOf(const SparseMatrix &B)
 {
 	ASSERT1(B.cols > 0 && B.rows > 0);
 	create(B.cols, B.rows);
@@ -240,7 +251,8 @@ void SparseMatrix<mat_type>::createAsTransposeOf(const SparseMatrix &B)
 	{
 		nr[i] = 0;
 		cons[i] = p;
-		p += iNrOfConnections[i];	
+		p += iNrOfConnections[i];
+		iMaxNrOfConnections[i] = iNrOfConnections[i];
 	}
 	
 	iTotalNrOfConnections = newTotal;
@@ -275,8 +287,8 @@ void SparseMatrix<mat_type>::createAsTransposeOf(const SparseMatrix &B)
 #define FLEXAMG_DIMENSIONS 3
 // writeToFile: in somewhat SparseMatrix-market format:
 // length \n then for each connection: from to value
-template<typename mat_type>
-void SparseMatrix<mat_type>::writeToFile(const char *filename) const
+template<typename entry_type>
+void SparseMatrix<entry_type>::writeToFile(const char *filename) const
 {
 	fstream file(filename, ios::out);
 	file << CONNECTION_VIEWER_VERSION << endl;
@@ -294,8 +306,8 @@ void SparseMatrix<mat_type>::writeToFile(const char *filename) const
 
 // writeToFile: in somewhat SparseMatrix-market format:
 // length \n then for each connection: from to value
-/*template<typename mat_type>
- void SparseMatrix<mat_type>::writeToFile2(const char *filename) const
+/*template<typename entry_type>
+ void SparseMatrix<entry_type>::writeToFile2(const char *filename) const
  {
  fstream file(filename, ios::out);
  
@@ -318,8 +330,8 @@ void SparseMatrix<mat_type>::writeToFile(const char *filename) const
  }	*/
 
 // print to console whole SparseMatrix
-template<typename mat_type>
-void SparseMatrix<mat_type>::print(const char * const text) const
+template<typename entry_type>
+void SparseMatrix<entry_type>::print(const char * const text) const
 {
 	// cout << endl << "================ " << name;
 	if(text) cout << " == " << text;
@@ -331,8 +343,8 @@ void SparseMatrix<mat_type>::print(const char * const text) const
 
 // print
 //----------
-template<typename mat_type>
-void SparseMatrix<mat_type>::printrow(int row) const
+template<typename entry_type>
+void SparseMatrix<entry_type>::printrow(int row) const
 {
 	cout << row << " [" << GetOriginalIndex(tolevel, row) << "]: ";
 	for(int i=0; i < iNrOfConnections[row]; i++)
@@ -347,26 +359,26 @@ void SparseMatrix<mat_type>::printrow(int row) const
 }
 
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::p() const
+template<typename entry_type>
+void SparseMatrix<entry_type>::p() const
 {
 	print(NULL);
 }
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::pr(int row) const
+template<typename entry_type>
+void SparseMatrix<entry_type>::pr(int row) const
 {
 	printrow(row);
 }
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::printtype() const
+template<typename entry_type>
+void SparseMatrix<entry_type>::printtype() const
 { 
 	cout << *this; 
 }
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::add(const submatrix<mat_type> &mat)
+template<typename entry_type>
+void SparseMatrix<entry_type>::add(const submatrix<entry_type> &mat)
 {
 	connection *c = new connection[mat.getCols()];
 	int nc;
@@ -388,8 +400,8 @@ void SparseMatrix<mat_type>::add(const submatrix<mat_type> &mat)
 	delete[] c;
 }
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::set(const submatrix<mat_type> &mat)
+template<typename entry_type>
+void SparseMatrix<entry_type>::set(const submatrix<entry_type> &mat)
 {
 	connection *c = new connection[mat.getCols()];
 	int nc;
@@ -412,8 +424,8 @@ void SparseMatrix<mat_type>::set(const submatrix<mat_type> &mat)
 }
 
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::get(submatrix<mat_type> &mat) const
+template<typename entry_type>
+void SparseMatrix<entry_type>::get(submatrix<entry_type> &mat) const
 {
 	int nr = mat.getNr();
 	for(int i=0; i < mat.getRows(); i++)
@@ -448,14 +460,14 @@ void SparseMatrix<mat_type>::get(submatrix<mat_type> &mat) const
 }
 
 
-template<typename mat_type>
+template<typename entry_type>
 int connection_compare(const void *a, const void *b)
 {
-	return ((typename SparseMatrix<mat_type>::connection*)a)->iIndex > ((typename SparseMatrix<mat_type>::connection*)b)->iIndex;
+	return ((typename SparseMatrix<entry_type>::connection*)a)->iIndex > ((typename SparseMatrix<entry_type>::connection*)b)->iIndex;
 }
 
-template<typename mat_type>
-void sortConnections(typename SparseMatrix<mat_type>::connection *c, int nr, int row)
+template<typename entry_type>
+void sortConnections(typename SparseMatrix<entry_type>::connection *c, int nr, int row)
 {
 	// search diag
 	if(c[0].iIndex != row)
@@ -468,14 +480,14 @@ void sortConnections(typename SparseMatrix<mat_type>::connection *c, int nr, int
 			}			
 		}
 	if(nr-1 > 0)
-		mergesort(c+1, nr-1, sizeof(typename SparseMatrix<mat_type>::connection), connection_compare<mat_type>);
+		mergesort(c+1, nr-1, sizeof(typename SparseMatrix<entry_type>::connection), connection_compare<entry_type>);
 }
 
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::setMatrixRow(int row, connection *c, int nr)
+template<typename entry_type>
+void SparseMatrix<entry_type>::setMatrixRow(int row, connection *c, int nr)
 {
-	sortConnections<mat_type>(c, nr, row);
+	sortConnections<entry_type>(c, nr, row);
 	connection *n;
 	if(c[0].iIndex != row)
 	{
@@ -501,14 +513,16 @@ void SparseMatrix<mat_type>::setMatrixRow(int row, connection *c, int nr)
 	safeSetConnections(row, n);
 	iTotalNrOfConnections += nr - iNrOfConnections[row];
 	iNrOfConnections[row] = nr;
+	iMaxNrOfConnections[row] = nr;
 }
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::addMatrixRow(int row, connection *c, int nr)
+template<typename entry_type>
+void SparseMatrix<entry_type>::addMatrixRow(int row, connection *c, int nr)
 {	
 	connection *old = cons[row];	
 	if(old == NULL)
 	{
+		
 		setMatrixRow(row, c, nr);
 		return;
 	}
@@ -517,7 +531,7 @@ void SparseMatrix<mat_type>::addMatrixRow(int row, connection *c, int nr)
 	
 	int oldNrOfConnections = iNrOfConnections[row];
 	// sort the connections
-	sortConnections<mat_type>(c, nr, row);	
+	sortConnections<entry_type>(c, nr, row);	
 	
 	int ic, skipped=0, iold=1;
 	if(c[0].iIndex == row) 
@@ -585,11 +599,11 @@ void SparseMatrix<mat_type>::addMatrixRow(int row, connection *c, int nr)
 	safeSetConnections(row, n);
 	iTotalNrOfConnections += iNewSize - oldNrOfConnections;
 	iNrOfConnections[row] = iNewSize;
-	
+	iMaxNrOfConnections[row] = iNewSize;
 }
 
-template<typename mat_type>
-void SparseMatrix<mat_type>::removezeros(int row)
+template<typename entry_type>
+void SparseMatrix<entry_type>::removezeros(int row)
 {
 	connection* con = cons[row];
 	int nr = iNrOfConnections[row];
@@ -603,13 +617,15 @@ void SparseMatrix<mat_type>::removezeros(int row)
 			while(nr > 0 && con[nr-1].dValue == 0) nr--;
 		}
 	
-	iNrOfConnections[row] = nr+1;				
+	iNrOfConnections[row] = nr+1;
+	iMaxNrOfConnections[row] = nr+1;
 }
 
 
 // res = A.T() * x
-template<typename mat_type>
-void SparseMatrix<mat_type>::applyTransposed(Vector<  SparseMatrix<mat_type>::vec_type > &res, const Vector<  SparseMatrix<mat_type>::vec_type > &x) const
+template<typename entry_type>
+template<typename Vector_type>
+void SparseMatrix<entry_type>::applyTransposed(Vector_type &res, const Vector_type &x) const
 {
 	res = 0.0;
 	for(int i=0; i<rows; i++)
@@ -631,8 +647,9 @@ void SparseMatrix<mat_type>::applyTransposed(Vector<  SparseMatrix<mat_type>::ve
 }
 
 // res = A*x
-template<typename mat_type>
-void SparseMatrix<mat_type>::apply(Vector<  SparseMatrix<mat_type>::vec_type > &res, const Vector<  SparseMatrix<mat_type>::vec_type > &x) const
+template<typename entry_type>
+template<typename Vector_type>
+void SparseMatrix<entry_type>::apply(Vector_type &res, const Vector_type &x) const
 {
 	for(int i=0; i<rows; i++)
 	{
@@ -654,8 +671,9 @@ void SparseMatrix<mat_type>::apply(Vector<  SparseMatrix<mat_type>::vec_type > &
 }
 
 // res = res - A*x
-template<typename mat_type>
-void SparseMatrix<mat_type>::matmul_minus(Vector<  SparseMatrix<mat_type>::vec_type > &res, const Vector<  SparseMatrix<mat_type>::vec_type > &x) const
+template<typename entry_type>
+template<typename Vector_type>
+void SparseMatrix<entry_type>::matmul_minus(Vector_type &res, const Vector_type &x) const
 {
 	for(int i=0; i<rows; i++)
 	{
@@ -695,23 +713,24 @@ void SparseMatrix<mat_type>::matmul_minus(Vector<  SparseMatrix<mat_type>::vec_t
  }; */
 
 
-template<typename mat_type, typename R>
-Expression<SparseMatrix<mat_type>, Multiply_Operator<mat_type, typename R::vec_type>, R> operator*(const SparseMatrix<mat_type> &l,const XD<R> &r)
+template<typename entry_type, typename Vector_type>
+Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type>, Vector_type> 
+	operator*(const SparseMatrix<entry_type> &l, const XD< Vector_type > &r)
 { 
-	return Expression<SparseMatrix<mat_type>, Multiply_Operator<mat_type, typename R::vec_type>, R> (l, r.cast()); 
+	return Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type>, Vector_type> (l, r.cast()); 
 }
 
 
 // todo: prevent x = A * x; mit feld forbiddenDestination
-template<typename mat_type, typename vec_type> 
-class Expression<SparseMatrix<mat_type>, Multiply_Operator<mat_type, vec_type >, Vector<vec_type> > 
-: public XD< Expression<SparseMatrix<mat_type>, Multiply_Operator<mat_type, vec_type >, Vector<vec_type> > >
+template<typename entry_type, typename Vector_type> 
+class Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type >, Vector_type > 
+: public XD< Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type >, Vector_type > >
 { 
 public:	
-	typedef typename Multiply_Operator<mat_type, vec_type>::ReturnType ReturnType;
-	const SparseMatrix<mat_type>& l;
-	const Vector<vec_type> & r; 
-	inline Expression(const SparseMatrix<mat_type> &l_, const Vector<vec_type> &r_) : l(l_), r(r_) {} 
+	typedef typename Multiply_Operator<entry_type, typename Vector_type::entry_type>::ReturnType ReturnType;
+	const SparseMatrix<entry_type>& l;
+	const Vector_type & r; 
+	inline Expression(const SparseMatrix<entry_type> &l_, const Vector_type &r_) : l(l_), r(r_) {} 
 	
 	inline ReturnType operator [] (int i) const
 	{
@@ -736,7 +755,8 @@ public:
 	inline int getLength() const	{	return l.getLength();	}
 	
 	// print routines
-	friend ostream &operator<<(ostream &output, const Expression<SparseMatrix<mat_type>, Multiply_Operator<mat_type, vec_type>, Vector<vec_type> >  &ex)
+	friend ostream &operator<<(ostream &output, 
+							   const Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type >, Vector_type >  &ex)
 	{
 		output << "(" << ex.l	<< "*" << ex.r << ")"; 
 		return output;
@@ -749,11 +769,11 @@ public:
 // x = r / A.Diag();
 /*
 template<> 
-struct Expression<Vector, Divide_Operator, SparseMatrix<mat_type>::diagcomponent> 
+struct Expression<Vector, Divide_Operator, SparseMatrix<entry_type>::diagcomponent> 
 { 
 	const Vector& l;
-	const SparseMatrix<mat_type>::diagcomponent& r; 
-	inline Expression(const Vector &l_, const SparseMatrix<mat_type>::diagcomponent &r_) : l(l_), r(r_) 
+	const SparseMatrix<entry_type>::diagcomponent& r; 
+	inline Expression(const Vector &l_, const SparseMatrix<entry_type>::diagcomponent &r_) : l(l_), r(r_) 
 	{ ASSERT2(l.getLength() == r.getLength(), l << " has different length as " <<  r); } 
 	
 	inline double operator [] (int i) const
@@ -764,7 +784,7 @@ struct Expression<Vector, Divide_Operator, SparseMatrix<mat_type>::diagcomponent
 	inline int getLength() const	{	return l.getLength();	}
 	
 	// print routines
-	friend ostream &operator<<(ostream &output, const Expression<Vector, Divide_Operator, SparseMatrix<mat_type>::diagcomponent>  &ex)
+	friend ostream &operator<<(ostream &output, const Expression<Vector, Divide_Operator, SparseMatrix<entry_type>::diagcomponent>  &ex)
 	{
 		output << "(" << ex.l << Divide_Operator::cTyp() << ex.r << ")"; 
 		return output;
@@ -772,7 +792,7 @@ struct Expression<Vector, Divide_Operator, SparseMatrix<mat_type>::diagcomponent
 	inline void printtype() const	{	cout << *this; }
 }; 
 
-Expression<Vector, Divide_Operator, SparseMatrix<mat_type>::diagcomponent> operator/(const Vector &l, const SparseMatrix<mat_type>::diagcomponent &r);
+Expression<Vector, Divide_Operator, SparseMatrix<entry_type>::diagcomponent> operator/(const Vector &l, const SparseMatrix<entry_type>::diagcomponent &r);
 */
 
 		
@@ -782,20 +802,20 @@ Expression<Vector, Divide_Operator, SparseMatrix<mat_type>::diagcomponent> opera
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-template<typename mat_type, typename vec_type>
-inline void multiplyCopyTo(vec_type &d, const matrixrow<mat_type> &r, const Vector<vec_type> &x)
+template<typename entry_type, typename vec_type>
+inline void multiplyCopyTo(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
 {
 	r.copyToMult(d, x);
 }
 
-template<typename mat_type, typename vec_type>
-inline void multiplyAddTo(vec_type &d, const matrixrow<mat_type> &r, const Vector<vec_type> &x)
+template<typename entry_type, typename vec_type>
+inline void multiplyAddTo(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
 {
 	r.addToMult(d, x);
 }
 
-template<typename mat_type, typename vec_type>
-inline void multiplySubstractFrom(vec_type &d, const matrixrow<mat_type> &r, const Vector<vec_type> &x)
+template<typename entry_type, typename vec_type>
+inline void multiplySubstractFrom(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
 {
 	r.substractFromMult(d, x);
 }

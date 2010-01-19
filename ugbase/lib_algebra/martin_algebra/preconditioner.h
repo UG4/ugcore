@@ -24,56 +24,51 @@
 //!
 //! pre-calculation of diag(A)^{-1} speeds up algorithm considerably (2x + for 6x6 matrices) 
 //!
-template<typename mat_type>
+template<typename entry_type, typename Vector_type>
 class preconditioner
+{
+	typedef SparseMatrix<entry_type> matrix_type;
+	
+public:
+	preconditioner() {}
+	virtual ~preconditioner()  { destroy(); }
+	virtual bool init(const matrix_type &A)
 	{
-		typedef SparseMatrix<mat_type> matrix_type;
-		typedef typename matrix_type::vec_type vec_type;
-		typedef Vector< typename matrix_type::vec_type> Vector_type;
-		
-	public:
-		preconditioner() {}
-		virtual ~preconditioner()  { destroy(); }
-		virtual bool init(const matrix_type &A)
-		{
-			pA = &A;
-			return true;
-		}
-		
-		
-		virtual double iterate(Vector_type &x, const Vector_type &b)
-		{
-			ASSERT2(0, "preconditioner::iterate: dont use this function");
-			return 0; // dont use
-		}
-		
-		// precond is like iterate with zero starting Vector
-		virtual void precond(Vector_type &x, const Vector_type &b)
-		{
-			x = b;		
-		}
-		
-		virtual bool destroy() { return true; }
-		
-	protected:
-		const matrix_type *pA;
-	};
+		pA = &A;
+		return true;
+	}
+	
+	virtual double iterate(Vector_type &x, const Vector_type &b)
+	{
+		ASSERT2(0, "preconditioner::iterate: dont use this function");
+		return 0; // dont use
+	}
+	
+	// precond is like iterate with zero starting Vector
+	virtual void precond(Vector_type &x, const Vector_type &b)
+	{
+		x = b;		
+	}
+	
+	virtual bool destroy() { return true; }
+	
+protected:
+	const matrix_type *pA;
+};
 
 //! class diagonalInversePreconditioner
 //! base class for preconditioners like gs and jacobi, which need the inverse of diagonal elements of A
-template<typename mat_type>
-class diagonalInversePreconditioner : public preconditioner<mat_type>
+template<typename entry_type, typename Vector_type>
+class diagonalInversePreconditioner : public preconditioner<entry_type, Vector_type>
 {
 public:
-	typedef SparseMatrix<mat_type> matrix_type;
-	typedef typename matrix_type::vec_type vec_type;
-	typedef Vector< typename matrix_type::vec_type> Vector_type;
-	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
+	typedef SparseMatrix<entry_type> matrix_type;
+	typedef typename matrix_trait<entry_type>::inverse_type inverse_type;
 	
 #ifdef USE_PREPED
 	virtual bool init(const matrix_type &A)
 	{
-		preconditioner<mat_type>::init(A);
+		preconditioner<entry_type>::init(A);
 		diagonal = new inverse_type[A.getLength()];
 		for(int i=0; i<A.getLength(); i++)
 			diagonal[i].setAsInverseOf(A.getDiag(i));
@@ -83,7 +78,7 @@ public:
 	virtual bool destroy() 
 	{ 
 		delete[] diagonal;
-		return preconditioner<mat_type>::destroy(); 
+		return preconditioner<entry_type>::destroy(); 
 	}
 	
 	inverse_type &getDiagInverse(int i)
@@ -96,7 +91,7 @@ public:
 #else
 	inverse_type &getDiagInverse(int i)
 	{
-		const matrix_type &A = *preconditioner<mat_type>::pA;
+		const matrix_type &A = *preconditioner<entry_type, Vector_type>::pA;
 		inv.setAsInverseOf(A.getDiag(i));
 		return inv;
 	}
@@ -106,32 +101,30 @@ public:
 	
 };
 
-template<>
-class diagonalInversePreconditioner<double> : public preconditioner<double>
+template<typename Vector_type>
+class diagonalInversePreconditioner<double, Vector_type> : public preconditioner<double, Vector_type>
 {
 public:
 	double inv;
 	double &getDiagInverse(int i)
 	{
-		inv = 1/ preconditioner<double>::pA->getDiag(i);
+		inv = 1/ preconditioner<double, Vector_type>::pA->getDiag(i);
 		return inv;
 	}
 };
 
 //!
 //! class jacobi
-template<typename mat_type>
-class jacobi : public diagonalInversePreconditioner<mat_type>
+template<typename entry_type, typename Vector_type>
+class jacobi : public diagonalInversePreconditioner<entry_type, Vector_type>
 {
 public:
-	typedef SparseMatrix<mat_type> matrix_type;
-	typedef typename matrix_type::vec_type vec_type;
-	typedef Vector< typename matrix_type::vec_type> Vector_type;
-	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
+	typedef SparseMatrix<entry_type> matrix_type;
+	typedef typename matrix_trait<entry_type>::inverse_type inverse_type;
 	
 	virtual void precond(Vector_type &x, const Vector_type &b)
 	{
-		const matrix_type &A = *preconditioner<mat_type>::pA;
+		const matrix_type &A = *preconditioner<entry_type, Vector_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 		//	x = b / A.Diag();
 		for(int i=0; i<x.getLength(); i++)
@@ -141,10 +134,10 @@ public:
 	// thats actually gauss-seidel o_O
 	double iterate(Vector_type &x, const Vector_type &b)
 	{
-		const matrix_type &A = *preconditioner<mat_type>::pA;
+		const matrix_type &A = *preconditioner<entry_type, Vector_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 		
-		vec_type d;
+		typename Vector_type::entry_type d;
 		for(int j=0; j < A.getLength(); j++)
 		{
 			d = b[j];
@@ -156,32 +149,29 @@ public:
 	
 	inverse_type &getDiagInverse(int i)
 	{
-		return diagonalInversePreconditioner<mat_type>::getDiagInverse(i);
+		return diagonalInversePreconditioner<entry_type, Vector_type>::getDiagInverse(i);
 	}
 };
 
 //!
 //! class gs
-template<typename mat_type>
-class gs : public diagonalInversePreconditioner<mat_type>
+template<typename entry_type, typename Vector_type>
+class gs : public diagonalInversePreconditioner<entry_type, Vector_type>
 {
 public:
-	typedef SparseMatrix<mat_type> matrix_type;
-	typedef typename matrix_type::vec_type vec_type;
-	typedef Vector< typename matrix_type::vec_type> Vector_type;
-	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
-	
+	typedef SparseMatrix<entry_type> matrix_type;
+	typedef typename matrix_trait<entry_type>::inverse_type inverse_type;
 	
 	virtual void precond(Vector_type &x, const Vector_type &b)
 	{			
-		const matrix_type &A = *preconditioner<mat_type>::pA;
+		const matrix_type &A = *preconditioner<entry_type, Vector_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 		
-		mat_type d;
+		entry_type d;
 		for(int i=0; i < x.getLength(); i++)
 		{
 			x[i] = b[i];
-			for(typename matrixrow<mat_type>::cLowerLeftIterator it(A[i]); !it.isEnd(); ++it)
+			for(typename matrixrow<entry_type>::cLowerLeftIterator it(A[i]); !it.isEnd(); ++it)
 				x[i] -= ((*it).dValue * x[(*it).iIndex]);
 			x[i] = getDiagInverse(i) * x[i];
 		}
@@ -189,10 +179,10 @@ public:
 	
 	double iterate(Vector_type &x, const Vector_type &b)
 	{
-		const matrix_type &A = *preconditioner<mat_type>::pA;
+		const matrix_type &A = *preconditioner<entry_type, Vector_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 		
-		vec_type d;
+		typename Vector_type::entry_type d;
 		for(int j=0; j < A.getLength(); j++)
 		{
 			d = b[j];
@@ -204,7 +194,7 @@ public:
 	 
 	inverse_type &getDiagInverse(int i)
 	{
-		return diagonalInversePreconditioner<mat_type>::getDiagInverse(i);
+		return diagonalInversePreconditioner<entry_type, Vector_type>::getDiagInverse(i);
 	}
 };
 
@@ -216,27 +206,27 @@ inline void copyTo(T &dest, const T &src)
 
 //!
 //! class sgs
-template<typename mat_type>
-class sgs : public diagonalInversePreconditioner<mat_type>
+template<typename entry_type, typename Vector_type>
+class sgs : public diagonalInversePreconditioner<entry_type, Vector_type>
 {
 public:
-	typedef SparseMatrix<mat_type> matrix_type;
-	typedef typename matrix_type::vec_type vec_type;
-	typedef Vector< typename matrix_type::vec_type> Vector_type;
-	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
+	typedef SparseMatrix<entry_type> matrix_type;
+	typedef typename matrix_trait<entry_type>::inverse_type inverse_type;
 	
 	// B = (D-R)^{-1} D (D-L)^{-1}
 	// x = x + B^{-1}(b-Ax)
+
 	virtual void precond(Vector_type &x, const Vector_type &b)
 	{			
-		const matrix_type &A = *preconditioner<mat_type>::pA;
+		const matrix_type &A = *preconditioner<entry_type, Vector_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
-		vec_type s;
+
+		typename Vector_type::entry_type s;
 		for(int i=0; i < x.getLength(); i++)
 		{
-			//mat_type d= A.getDiag(i);
+			//entry_type d= A.getDiag(i);
 			s = b[i];
-			for(typename SparseMatrix<mat_type>::cLowerLeftIterator it(A, i); !it.isEnd(); ++it)
+			for(typename SparseMatrix<entry_type>::cLowerLeftIterator it(A, i); !it.isEnd(); ++it)
 				s -= (*it).dValue * x[(*it).iIndex];
 			x[i] = getDiagInverse(i) * s;
 		}
@@ -244,21 +234,22 @@ public:
 		
 		for(int i = x.getLength()-1; i >= 0; i--)
 		{
-			//mat_type d= A.getDiag(i);
+			//entry_type d= A.getDiag(i);
 			//x[i] = x[i] / d;
 			s = 0.0;
-			for(typename SparseMatrix<mat_type>::cUpperRightIterator it(A, i); !it.isEnd(); ++it)
+			for(typename SparseMatrix<entry_type>::cUpperRightIterator it(A, i); !it.isEnd(); ++it)
 				s -= (*it).dValue * x[(*it).iIndex];
 			x[i] += getDiagInverse(i) * s;
 		}		
 	}
 	
+
 	double iterate(Vector_type &x, const Vector_type &b)
 	{
-		const matrix_type &A = *preconditioner<mat_type>::pA;
+		const matrix_type &A = *preconditioner<entry_type, Vector_type>::pA;
 		ASSERT2(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 		
-		vec_type d;
+		typename Vector_type::entry_type d;
 		for(int j=0; j < A.getLength(); j++)
 		{
 			d = b[j];
@@ -279,6 +270,6 @@ public:
 	
 	inline inverse_type &getDiagInverse(int i)
 	{
-		return diagonalInversePreconditioner<mat_type>::getDiagInverse(i);
+		return diagonalInversePreconditioner<entry_type, Vector_type>::getDiagInverse(i);
 	}
 };
