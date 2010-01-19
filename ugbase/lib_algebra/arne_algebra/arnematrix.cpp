@@ -5,6 +5,7 @@ namespace ug{
 
 bool ArneMatrix::create_matrix(int nrow, int ncol)
 {
+
 	_Matrix = new ScalarMatrix(nrow, ncol, 8);
 
 	if(_Matrix == NULL) return false;
