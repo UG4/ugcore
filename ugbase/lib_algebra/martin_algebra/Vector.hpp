@@ -25,7 +25,7 @@ inline const vec_type &Vector<vec_type>::operator [] (int i) const
 
 
 // energynorm2 = x*(A*x)
-/*inline double Vector<vec_type>::energynorm2(const matrix &A) const
+/*inline double Vector<vec_type>::energynorm2(const SparseMatrix &A) const
 {
 	double sum=0;
 	for(int i=0; i<length; i++)	sum += (A[i] * (*this)) * values[i];
@@ -100,7 +100,7 @@ inline void Vector<vec_type>::applyto(Vector &v) const
 }
 
 
-/*void operator = (const Expression<matrix, Multiply_Operator, Vector> ex)
+/*void operator = (const Expression<SparseMatrix, Multiply_Operator, Vector> ex)
  {
  ASSERT2(ex.getLength() == length, *this << " has not same length as " << ex);
  const matrix &m = ex.l;
@@ -139,18 +139,36 @@ template<typename Type> inline void Vector<vec_type>::operator -= (const Type &t
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] -= t[i]);
 }
 
+/*
+#ifdef SPECIALIZE_EXPRESSION_TEMPLATES
+inline void Vector::operator = (const Expression<SparseMatrix, Multiply_Operator, Vector> ex)
+{
+	IF_PRINTLEVEL(5) cout << *this << " = " << ex << endl;
+	const SparseMatrix &A = ex.l;
+	const Vector &v = ex.r;
+	for(int i=0; i<length; i++)
+		values[i] = A[i] * v;
+}
+#endif
+*/
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 template<typename vec_type>
 Vector<vec_type>::Vector (const char *_name)
 {
+	if(never_happens) p(); // force creation of this rountines for gdb.
+		
+
 	length = 0; values = NULL; name = _name; level = 0;
 }	
 
 template<typename vec_type>
 Vector<vec_type>::Vector(int _length, const char *_name)
 {
+	if(never_happens) print(); // force creation of this rountines for gdb.
+
 	length = 0;
 	create(_length);
 	name = _name;
@@ -182,7 +200,7 @@ void Vector<vec_type>::printtofile(const char *filename)
 	
 	for(int i=0; i < length; i++)
 	{
-		pos2d pos = GetPosForIndex(i);
+		postype pos = GetPosForIndex(i);
 		fil << pos.x << " " << pos.y << " " << values[i] << endl;
 	}
 	
@@ -192,7 +210,8 @@ void Vector<vec_type>::printtofile(const char *filename)
 template<typename vec_type>
 void Vector<vec_type>::print(const char * const text) const
 {
-	cout << endl << "================ " << name;
+  
+  //cout << endl << "================ " << name;
 	if(text) cout << " == " << text;
 	cout << " == level: " << level << " length: " << length << " =================" << endl;
 	for(int i=0; i<length; i++)

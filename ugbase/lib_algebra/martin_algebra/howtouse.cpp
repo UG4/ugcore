@@ -6,7 +6,7 @@
  *  Copyright 2009 G-CSC. All rights reserved.
  *
  */
-#if 1
+#if 0
 
 #include "algebra.h"
 
@@ -43,14 +43,16 @@ double f(double x, double y)
 // since this is 4-point
 #define AGGRESSIVE_COARSENING
 
+extern std::vector<postype> positions;
+
 ////////// main
 ////////////////////////////////////////////////////////////////
 int main(int argc, char **argv) 
 {	
-	int NX = 5;
-	int NY = 5; // 9
+	int NX = 513;
+	int NY = 513; // 9
 	int n = NX*NY;
-	iNrOfPositions=n;
+	positions.resize(n);
 	double hX = 1/((double)(NX-1));
 	double hY = 1/((double)(NY-1));
 #ifndef EASY_MATRIX
@@ -61,14 +63,13 @@ int main(int argc, char **argv)
 	double h2 = hX*hY;
 	double res;	
 	
-	typedef matrix<MAT_TYPE> myMatrix;
+	typedef SparseMatrix<MAT_TYPE> myMatrix;
 	typedef Vector<VEC_TYPE> myVector;	
 	
 	
 	cout << "grid " << NX << " x " << NY << ", " << UNKNOWN_NR << " unknowns." << endl << endl;
 	
 	// for debug output: save positions.
-	positions = new pos2d[n];
 	for(int y=0; y<NY; y++)
 		for(int x=0; x<NX; x++)
 		{
@@ -81,8 +82,11 @@ int main(int argc, char **argv)
 	// create matrix
 	//----------------
 	
-	myMatrix A("A");
-	A.create(n);	
+	myMatrix A; 
+	A.name = "A";
+	A.fromlevel = 0;
+	A.tolevel = 0;
+	A.create(n, n);	
 	// first do finite differences in x-direction
 	for(int y=0; y<NY; y++)
 	{
@@ -95,7 +99,7 @@ int main(int argc, char **argv)
 				con.iIndex = i; 
 				setSize(con.dValue, UNKNOWN_NR, UNKNOWN_NR);  // use set size for variable blockvector length
 				con.dValue = 1.0;
-				A[i].setMatrixRow(&con, 1);
+				A.setMatrixRow(i, &con, 1);
 			}
 			else
 			{
@@ -107,7 +111,7 @@ int main(int argc, char **argv)
 				UM(1, 0) = -1.0 / hx2;				
 				UM(1, 1) = 2.0 / hx2;
 				UM(1, 2) = -1.0 / hx2;
-				A.addSubmatrix(UM);
+				A.add(UM);
 			}
 		}
 	}
@@ -127,12 +131,12 @@ int main(int argc, char **argv)
 				UM(1, 0) = -1.0 / hy2;
 				UM(1, 1) = 2.0 / hy2;
 				UM(1, 2) = -1.0 / hy2;
-				A.addSubmatrix(UM);
+				A.add(UM);
 			}
 		}
 	} 	
 	
-	A.print();
+	if(n < 50) A.print();
 	
 	// create rhs
 	//-------------
@@ -140,7 +144,7 @@ int main(int argc, char **argv)
 	b = 0.0;
 	for(int i=0; i<n; i++)
 	{
-		pos2d pos = GetPosForIndex(i);
+		postype pos = GetPosForIndex(i);
 		setSize(b[i], UNKNOWN_NR); // use set size for variable blockvector length
 		if(pos.x == 0 || pos.x == 1.0 || pos.y == 0 || pos.y == 1)
 			b[i] = phi(pos.x, pos.y);

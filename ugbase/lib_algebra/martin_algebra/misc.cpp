@@ -10,16 +10,7 @@
 #include "misc.h"
 #include <iostream>
 #include <fstream>
-
-const char *boldredcolor = "\x1b[1;31m";
-const char *boldgreencolor = "\x1b[1;32m";
-const char *boldbluecolor = "\x1b[1;34m";
-
-const char *redcolor = "\x1b[0;31m";
-const char *greencolor = "\x1b[0;32m";
-const char *bluecolor = "\x1b[0;34m";
-
-const char *normalcolor = "\x1b[0;0m";
+#include <vector>
 
 string nrstring(double d)
 {
@@ -43,20 +34,21 @@ void spaceout(int n)
 
 int *parentIndex[32];
 
-pos2d *positions;
-int iNrOfPositions;
-pos2d GetPosForIndex(int i)
+std::vector<postype> positions;
+postype GetPosForIndex(int i)
 {
 	return positions[i];	
 }
-void writePosToStream(ostream &out)
-{
-	out << iNrOfPositions << endl;
-	for(int i=0; i<iNrOfPositions; i++)
-		out << GetPosForIndex(i).x << " " << GetPosForIndex(i).y << endl;
-}
+
 void writeToPosFile(const char *filename)
 {
 	fstream file(filename, ios::out);
 	writePosToStream(file);
+}
+
+void writePosToStream(ostream &out)
+{
+	out << positions.size() << endl;
+	for(int i=0; i< positions.size() ; i++)
+		out << positions[i] << endl;
 }

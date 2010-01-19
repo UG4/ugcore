@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 #include <iostream>
-using namespace std;
+//using namespace std;
 
-#include "matrix.h"
+#include "sparseMatrix.h"
 
 #include "preconditioner.h"
 #include "maxheap.h"
@@ -19,29 +19,26 @@ template<typename mat_type>
 class amg : public preconditioner<mat_type>
 {
 public:
-	typedef matrix<mat_type> matrix_type;
+	typedef SparseMatrix<mat_type> matrix_type;
 	typedef typename matrix_type::vec_type vec_type;
 	typedef Vector< typename matrix_type::vec_type> Vector_type;
 	
 //  functions
 	void writeMatrices(const char *pathAndName);
-	amg() 
-	{
-		used_levels = 0;
-		max_levels = 10;
-		aggressiveCoarsening = 0;
-		aggressiveCoarseningNrOfPaths = 2; // A2
-	}
+	amg() ;
 	~amg();
 	virtual bool init(const matrix_type& A);
 
 	virtual void precond2(Vector_type &x, const Vector_type &b)
 	{
-		MGCycle(x, b, 0);
+		for(int i=0; i<gamma; i++)
+			MGCycle(x, b, 0);
 	}
 	virtual double iterate(Vector_type &x, const Vector_type &b)
 	{
-		return MGCycle(x, b, 0);		
+		for(int i=0; i<gamma; i++)
+			return MGCycle(x, b, 0);
+		return 0.0;
 	}
 	
 	double MGCycle(Vector_type &x, const Vector_type &b, int i=0);	
@@ -57,7 +54,7 @@ public:
 	
 	int getNrOfCoarse(int level)
 	{
-		ASSERT(level+1 < used_levels);
+		ASSERT1(level+1 < used_levels);
 		return A[level+1]->length;
 	}
 	
@@ -113,18 +110,19 @@ private:
 		}
 	};
 	
+	int nu1, nu2, gamma;	
 private:
 //  functions
 	int getNodeWithBestRating(int n);
 		
-	void createAMGLevel(matrix_type &AH, matrix<double> &R, const matrix_type &A, matrix<double> &P, int level);
-	void createGalerkinMatrix(matrix_type &AH, const matrix<double> &R, const matrix_type &A, const matrix<double> &P, int *posInConnections);
+	void createAMGLevel(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A, SparseMatrix<double> &P, int level);
+	void createGalerkinMatrix(matrix_type &AH, const SparseMatrix<double> &R, const matrix_type &A, const SparseMatrix<double> &P, int *posInConnections);
 	
-	void CreateProlongation(matrix<double> &P, const matrix_type &A, int *newIndex);
-	void CreateIndirectProlongation(matrix<double> &P, const matrix_type &A, int *newIndex, int *posInConnections);
+	void CreateProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int iNrOfCoarse);
+	void CreateIndirectProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int *posInConnections);
 	void CreateGraph(const matrix_type &A, cgraph &graph, maxheap<nodeinfo> &PQ, int &unassigned);
 	void CreateGraph2(cgraph &graph, cgraph &graph2, maxheap<nodeinfo> &PQ, int &unassigned, int *posInConnections);
-	int Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, bool bIndirect);
+	int Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, bool bIndirect, const matrix_type &A);
 	
 
 //	data
@@ -136,12 +134,11 @@ private:
 	Vector_type *vec2[AMG_MAX_LEVELS];
 	Vector_type *vec3[AMG_MAX_LEVELS];
 	
-	matrix<double> R[AMG_MAX_LEVELS];
-	matrix<double> P[AMG_MAX_LEVELS];
+	SparseMatrix<double> R[AMG_MAX_LEVELS];
+	SparseMatrix<double> P[AMG_MAX_LEVELS];
 	matrix_type *A[AMG_MAX_LEVELS+1];
 	
 	sgs<mat_type> smoother[AMG_MAX_LEVELS];
-
 };
 
 

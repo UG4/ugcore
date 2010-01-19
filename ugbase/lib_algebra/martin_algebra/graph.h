@@ -23,6 +23,8 @@ class cgraph
 			iTotalNrOfConnections = 0;
 			
 			consmem = new int[nnz];
+			
+			if(never_happens) print();
 		}
 		
 		~cgraph()
@@ -54,6 +56,39 @@ class cgraph
 					cout << conn[i][j] << " ";
 				cout << endl;
 			}
+		}
+		
+		void transpose()
+		{
+			int *newNrOfConnections = new int[size+1];
+			memset(newNrOfConnections, 0, sizeof(int)*size);			
+			for(int i=0; i<size; i++)
+				for(int j=0; j<iNrOfConnections[i]; j++)
+					newNrOfConnections[conn[i][j]]++;
+			
+			int **newConn = new int*[size];
+			int *newconsmem = new int[iTotalNrOfConnections];
+			newConn[0] = newconsmem;
+			for(int i=1; i < size+1; i++)
+			{
+				newConn[i] = newConn[i-1] + newNrOfConnections[i-1];
+				newNrOfConnections[i-1] = 0;
+			}
+			
+			for(int i=0; i<size; i++)
+				for(int j=0; j<iNrOfConnections[i]; j++)
+				{
+					int to = conn[i][j];
+					newConn[ to ][ newNrOfConnections[to]++ ] = i;
+				}
+			
+			delete[] iNrOfConnections;
+			delete[] conn;
+			delete[] consmem;
+			
+			iNrOfConnections = newNrOfConnections;
+			conn = newConn;
+			consmem = newconsmem;			
 		}
 		
 		void setConnection(int from, int to)

@@ -42,8 +42,8 @@ public:
 	double dotprod(const Vector &w) const;	
 	inline double operator *(const Vector &w);
 	
-	//double energynorm2(const matrix &A) const;
-	/*double energynorm(const matrix &A) const
+	//double energynorm2(const SparseMatrix &A) const;
+	/*double energynorm(const SparseMatrix &A) const
 	{
 		return sqrt(energynorm2(A));
 	}*/

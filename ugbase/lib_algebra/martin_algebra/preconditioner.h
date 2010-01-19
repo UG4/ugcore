@@ -12,7 +12,7 @@
 #define USE_PREPED
 #endif
 
-#include "matrix.h"
+#include "sparseMatrix.h"
 
 //!
 //! preconditioner class
@@ -27,7 +27,7 @@
 template<typename mat_type>
 class preconditioner
 	{
-		typedef matrix<mat_type> matrix_type;
+		typedef SparseMatrix<mat_type> matrix_type;
 		typedef typename matrix_type::vec_type vec_type;
 		typedef Vector< typename matrix_type::vec_type> Vector_type;
 		
@@ -65,7 +65,7 @@ template<typename mat_type>
 class diagonalInversePreconditioner : public preconditioner<mat_type>
 {
 public:
-	typedef matrix<mat_type> matrix_type;
+	typedef SparseMatrix<mat_type> matrix_type;
 	typedef typename matrix_type::vec_type vec_type;
 	typedef Vector< typename matrix_type::vec_type> Vector_type;
 	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
@@ -124,7 +124,7 @@ template<typename mat_type>
 class jacobi : public diagonalInversePreconditioner<mat_type>
 {
 public:
-	typedef matrix<mat_type> matrix_type;
+	typedef SparseMatrix<mat_type> matrix_type;
 	typedef typename matrix_type::vec_type vec_type;
 	typedef Vector< typename matrix_type::vec_type> Vector_type;
 	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
@@ -166,7 +166,7 @@ template<typename mat_type>
 class gs : public diagonalInversePreconditioner<mat_type>
 {
 public:
-	typedef matrix<mat_type> matrix_type;
+	typedef SparseMatrix<mat_type> matrix_type;
 	typedef typename matrix_type::vec_type vec_type;
 	typedef Vector< typename matrix_type::vec_type> Vector_type;
 	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
@@ -220,7 +220,7 @@ template<typename mat_type>
 class sgs : public diagonalInversePreconditioner<mat_type>
 {
 public:
-	typedef matrix<mat_type> matrix_type;
+	typedef SparseMatrix<mat_type> matrix_type;
 	typedef typename matrix_type::vec_type vec_type;
 	typedef Vector< typename matrix_type::vec_type> Vector_type;
 	typedef typename matrix_trait<mat_type>::inverse_type inverse_type;
@@ -236,7 +236,7 @@ public:
 		{
 			//mat_type d= A.getDiag(i);
 			s = b[i];
-			for(typename matrixrow<mat_type>::cLowerLeftIterator it(A[i]); !it.isEnd(); ++it)
+			for(typename SparseMatrix<mat_type>::cLowerLeftIterator it(A, i); !it.isEnd(); ++it)
 				s -= (*it).dValue * x[(*it).iIndex];
 			x[i] = getDiagInverse(i) * s;
 		}
@@ -247,7 +247,7 @@ public:
 			//mat_type d= A.getDiag(i);
 			//x[i] = x[i] / d;
 			s = 0.0;
-			for(typename matrixrow<mat_type>::cUpperRightIterator it(A[i]); !it.isEnd(); ++it)
+			for(typename SparseMatrix<mat_type>::cUpperRightIterator it(A, i); !it.isEnd(); ++it)
 				s -= (*it).dValue * x[(*it).iIndex];
 			x[i] += getDiagInverse(i) * s;
 		}		

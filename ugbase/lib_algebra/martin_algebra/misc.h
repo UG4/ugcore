@@ -17,7 +17,18 @@ using namespace std;
 string nrstring(double d);
 string nrstring(int i);
 
-extern const char *boldredcolor, *boldgreencolor, *boldbluecolor, *redcolor, *greencolor, *bluecolor, *normalcolor ;
+
+#define boldredcolor "\x1b[1;31m"
+#define boldgreencolor "\x1b[1;32m"
+#define boldbluecolor "\x1b[1;34m"
+
+#define redcolor "\x1b[0;31m"
+#define greencolor "\x1b[0;32m"
+#define bluecolor "\x1b[0;34m"
+
+#define normalcolor "\x1b[0;0m"
+
+static int never_happens = 0;
 
 #define IF_PRINTLEVEL(i) if(i <= 0)
 
@@ -33,9 +44,10 @@ extern const char *boldredcolor, *boldgreencolor, *boldbluecolor, *redcolor, *gr
 
 void spaceout(int n);
 
+//#define DEBUG
 #ifdef DEBUG
 
-
+//#define IFDEBUG(a) a
 //!
 //! extended assert marco. one can insert a sequence passed to cout as second parameter
 //! example: ASSERT2(nrOfElements < maxSize, "Number of Elements (" << nrOfElements+1 << ") exceeds arrays size (" << maxSize << ").");
@@ -44,7 +56,7 @@ void spaceout(int n);
 #define ASSERT2(b, coutstuff) \
 if(!(b)) \
 { \
-cout << endl << redcolor << "==================================================== ERROR ====================================================" << normalcolor; \
+cout << endl << redcolor << "===================== ERROR =====================" << normalcolor; \
 cout << endl << endl << __func__ << ": " << coutstuff << endl;  \
 cout << endl << "BACKTRACE:" << endl; \
 print_trace(); \
@@ -66,11 +78,12 @@ inline void print_trace ()
 	free (strings);
 }
 
-#define ASSERT(b) ASSERT2(b, "(no information available)");
+#define ASSERT1(b) ASSERT2(b, "(no information available)");
 #else
 
+//#define IFDEBUG(a)
 #define ASSERT2(a, b)
-#define ASSERT(a)
+#define ASSERT1(a)
 #endif
 
 
@@ -80,16 +93,34 @@ inline double cut(double a, double e)
 	else return 0.0;
 }
 
+#include <iostream>
 
+#define FLEXAMG_DIMENSIONS 3
 
-struct pos2d
+#if ( FLEXAMG_DIMENSIONS == 2)
+struct postype
 {
 	double x, y;
+	friend std::ostream &operator << (std::ostream &out, const postype &p)
+	{
+		out << p.x << " " << p.y;
+		return out;
+	}
 };
-extern pos2d *positions;
-extern int iNrOfPositions;
+#else
+struct postype
+{
+	double x, y, z;
+	friend std::ostream &operator << (std::ostream &out, const postype &p)
+	{
+		out << p.x << " " << p.y << " " << p.z;
+		return out;
+	}
+};
+#endif
 
-pos2d GetPosForIndex(int i);
+
+postype GetPosForIndex(int i);
 
 void writePosToStream(ostream &out);
 void writeToPosFile(const char *filename);
@@ -102,7 +133,7 @@ static int GetOriginalIndex(int level, int i)
 	return i;
 }
 
-static pos2d GetPosForIndexAtLevel(int i, int level)
+static postype GetPosForIndexAtLevel(int i, int level)
 {
 	return GetPosForIndex(GetOriginalIndex(level, i));
 }

@@ -1,5 +1,5 @@
 /*
- *  ls.h
+ *  linearsolver.h
  *  flexamg
  *
  *  Created by Martin Rupp on 11.12.09.
@@ -7,17 +7,17 @@
  *
  */
 
-#include "matrix.h"
+#include "sparseMatrix.h"
 
 //!
 //! Linear Solver
 //! Performs maxit steps of iteration x -> x + P (b-Ax), where P is a preconditioner
 // this one uses preconditioner::iterate
 template<typename mat_type>
-void LinearSolver(typename matrix<mat_type>::Vector_type &x, const matrix<mat_type> &A, 
-				  const typename matrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
+void LinearSolver(typename SparseMatrix<mat_type>::Vector_type &x, const SparseMatrix<mat_type> &A, 
+				  const typename SparseMatrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
 {
-	typedef typename matrix<mat_type>::Vector_type Vector_type;
+	typedef typename SparseMatrix<mat_type>::Vector_type Vector_type;
 	
 	P.init(A);
 	stopwatch SW;
@@ -27,12 +27,12 @@ void LinearSolver(typename matrix<mat_type>::Vector_type &x, const matrix<mat_ty
 	double res=1, oldres = 0;
 	int i;
 	
-	//	Vector_type
-	for(i=0; i< maxit && (res > 0.00001); i++)
+	//	Vector_type // 0.00001
+	for(i=0; i< maxit && (res > 1e-10); i++)
 	{
 		P.iterate(x, b);
 		res = norm(b-A*x);		
-		cout << "res: " << res << " conv.: " << res/oldres << endl;
+		cout << "[" << i << "] res: " << res << " conv.: " << res/oldres << endl;
 		cout.flush();
 		oldres = res;
 	}
@@ -48,10 +48,10 @@ void LinearSolver(typename matrix<mat_type>::Vector_type &x, const matrix<mat_ty
 //! Performs maxit steps of iteration x -> x + P (b-Ax), where P is a preconditioner
 // this one uses preconditioner::precond
 template<typename mat_type>
-void LinearSolver2(typename matrix<mat_type>::Vector_type &x, const matrix<mat_type> &A, 
-				   const typename matrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
+void LinearSolver2(typename SparseMatrix<mat_type>::Vector_type &x, const SparseMatrix<mat_type> &A, 
+				   const typename SparseMatrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
 {
-	typedef typename matrix<mat_type>::Vector_type Vector_type;
+	typedef typename SparseMatrix<mat_type>::Vector_type Vector_type;
 	
 	P.init(A);
 	stopwatch SW;
@@ -64,13 +64,14 @@ void LinearSolver2(typename matrix<mat_type>::Vector_type &x, const matrix<mat_t
 	double res=1, oldres = norm(r);	
 	int i;
 	//	Vector_type
-	for(i=0; i< maxit && (res > 0.00001); i++)
+	
+	for(i=0; i< maxit && (res > 1e-10); i++)
 	{
 		P.precond(c, r);
 		x += c;
 		r = b-A*x;
 		res = norm(r);
-		cout << "res: " << res << " conv.: " << res/oldres << endl;
+		cout << "[" << i << "] res: " << res << " conv.: " << res/oldres << endl;
 		cout.flush();
 		oldres = res;
 		
@@ -85,9 +86,9 @@ void LinearSolver2(typename matrix<mat_type>::Vector_type &x, const matrix<mat_t
 //! CG-Solver
 //! CG Solver on system Ax = b with Preconditioner P.
 template<typename mat_type>
-void CG(typename matrix<mat_type>::Vector_type &x, const matrix<mat_type> &A, const typename matrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
+void CG(typename SparseMatrix<mat_type>::Vector_type &x, const SparseMatrix<mat_type> &A, const typename SparseMatrix<mat_type>::Vector_type &b, preconditioner<mat_type> &P, int maxit)
 {
-	typedef typename matrix<mat_type>::Vector_type Vector_type;
+	typedef typename SparseMatrix<mat_type>::Vector_type Vector_type;
 	
 	P.init(A);
 	

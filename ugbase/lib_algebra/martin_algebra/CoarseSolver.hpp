@@ -12,14 +12,14 @@
 #include <veclib/clapack.h>
 
 #include "misc.h"
-#include "matrix.h"
+#include "SparseMatrix.h"
 
 #include "CoarseSolver.h" */
 
 #include <veclib/cblas.h>
 #include <veclib/clapack.h>
 
-using namespace std;
+//using namespace std;
 
 CoarseSolver::~CoarseSolver()
 {
@@ -55,7 +55,7 @@ void CoarseSolver::solve(const Vector<vec_type> &b, Vector<vec_type> &x)
 
 
 template<typename mat_type>
-void CoarseSolver::create(const matrix<mat_type> &A)
+void CoarseSolver::create(const SparseMatrix<mat_type> &A)
 {
 	int nrOfUnknowns = matrix_trait<mat_type>::nrOfUnknowns;
 	size = (__CLPK_integer) A.getLength() * nrOfUnknowns;
@@ -66,7 +66,7 @@ void CoarseSolver::create(const matrix<mat_type> &A)
 	memset(densemat, 0, sizeof(double)*size*size);
 	
 	for(int r=0; r<A.getLength(); r++)
-		for(typename matrixrow<mat_type>::citerator it(A[r]); !it.isEnd(); ++it)
+		for(typename SparseMatrix<mat_type>::cRowIterator it(A, r); !it.isEnd(); ++it)
 		{
 			int rr = r*nrOfUnknowns;
 			int cc = (*it).iIndex*nrOfUnknowns;

@@ -17,7 +17,7 @@ const double sigma = 0.3;
 const double theta = 0.3;
 
 #include "amg.h"
-#include "ls.h"
+#include "linearsolver.h"
 
 
 
@@ -27,7 +27,7 @@ const double theta = 0.3;
 #ifndef NINE_POINT
 #define AGGRESSIVE_COARSENING
 #endif
-#define UNKNOWN_NR 2
+#define UNKNOWN_NR 1
 //#define ONE_LEVEL
 
 #include "arrayStorage.h"
@@ -35,14 +35,15 @@ const double theta = 0.3;
 #if UNKNOWN_NR > 1
 typedef fixedStorage myStorageType;
 //typedef variableStorage myStorageType;
-typedef fixedMatrix<myStorageType, UNKNOWN_NR, UNKNOWN_NR > MAT_TYPE;
-typedef fixedVector<myStorageType, UNKNOWN_NR> VEC_TYPE;
+typedef blockDenseMatrix<myStorageType, UNKNOWN_NR, UNKNOWN_NR > MAT_TYPE;
+typedef blockVector<myStorageType, UNKNOWN_NR> VEC_TYPE;
 #else
 typedef double VEC_TYPE;
 typedef double MAT_TYPE;
 
-//typedef fixedMatrix<1> MAT_TYPE;
-//typedef fixedVector<1> VEC_TYPE;
+
+//typedef blockDenseMatrix<1> MAT_TYPE;
+//typedef blockVector<1> VEC_TYPE;
 
 #endif
 

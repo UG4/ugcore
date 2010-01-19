@@ -8,7 +8,7 @@
  */
 
 #pragma once
-#include "smallMatrix.h"
+#include "blockMatrix.h"
 
 /////////////////////////////////////////////////////////////////
 
@@ -125,7 +125,7 @@ struct Add_Operator
 	
 	static inline void copyTo(vec_type &r, const vec_type &a, const vec_type &b) {r = a; r += b;} 
 	static inline void addTo(vec_type &r, const vec_type &a, const vec_type &b) {r += a; r += b;} 
-	static inline void substractFrom(vec_type &r, vec_type a, vec_type &b) {r = a; r += b; r *= -1.0;} 
+	static inline void substractFrom(vec_type &r, const vec_type a, const vec_type &b) {r = a; r += b; r *= -1.0;} 
 	
 	static inline const char *cTyp() { return " + "; }
 }; 
@@ -138,7 +138,7 @@ struct Minus_Operator
 	
 	static inline void copyTo(vec_type &r, const vec_type &a, const vec_type &b) {r = a; r -= b;} 
 	static inline void addTo(vec_type &r, const vec_type &a, const vec_type &b) {r += a; r -= b;} 
-	static inline void substractFrom(vec_type &r, vec_type a, vec_type &b) {r = a; r -= b; r *= -1.0;} 
+	static inline void substractFrom(vec_type &r, const vec_type a, const vec_type &b) {r = a; r -= b; r *= -1.0;} 
 	
 	static inline const char *cTyp() { return " - "; }
 }; 
@@ -152,7 +152,7 @@ struct Multiply_Operator
 	
 	static inline void copyTo(ReturnType &r, const vec_type &a, const vec_type &b) {r = a * b;} 
 	static inline void addTo(ReturnType &r, const vec_type &a, const vec_type &b) {r += a * b;} 
-	static inline void substractFrom(ReturnType &r, vec_type a, vec_type &b) {r -= a * b;} 
+	static inline void substractFrom(ReturnType &r, const vec_type &a, const vec_type &b) {r -= a * b;} 
 	
 	static inline const char *cTyp() { return " * "; }
 };
@@ -286,7 +286,7 @@ inline double norm(const XD<Type> &t)
  }
  
  bei komplizierteren genauso, zB. b - A*x
- -> Expression(Vector, Minus_Operator, Expression(matrix, Mult_Operator, Vector))
+ -> Expression(Vector, Minus_Operator, Expression(SparseMatrix, Mult_Operator, Vector))
  und exp[i] wird dann zu b[i] - A[i]*x 
- (sh. spezialisierung template<> struct Expression<matrix, Multiply_Operator, Vector> in matrix.h) 
+ (sh. spezialisierung template<> struct Expression<SparseMatrix, Multiply_Operator, Vector> in SparseMatrix.h) 
  */

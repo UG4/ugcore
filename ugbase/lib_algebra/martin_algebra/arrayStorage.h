@@ -14,7 +14,7 @@ class fixedArray
 {	
 public:
 	fixedArray(){}
-	fixedArray(int n_) { ASSERT(n_ == n); }
+	fixedArray(int n_) { ASSERT2(n_ == n, "fixed array set to " << n << ", tried " << n_ << "."); }
 	inline size_t size() const 
 	{ 
 		return n;
@@ -34,6 +34,10 @@ public:
 		ASSERT2(s <= n, "fixed Array is too small (max " << n << ", tried " << s << ".");		
 		if(bZero)
 			memset(values, 0, sizeof(T)*n);
+	}
+	void swap(fixedArray<T,n> &other)
+	{
+		std::swap(values, other.values);
 	}
 private:
 	T values[n];	
@@ -137,8 +141,8 @@ public:
 	inline T operator () (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
 	inline T &getAt (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
 	inline T getAt (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline T &operator [] (int i) { ASSERT(i<rows*cols && i >= 0); return values[i]; }
-	inline T operator [] (int i)  const { ASSERT(i<rows*cols && i >= 0); return values[i]; }	
+	inline T &operator [] (int i) { ASSERT1(i<rows*cols && i >= 0); return values[i]; }
+	inline T operator [] (int i)  const { ASSERT1(i<rows*cols && i >= 0); return values[i]; }	
 	int size() const { return rows*cols; }
 
 	inline void ensure(int rows_, int cols_) const
@@ -153,6 +157,12 @@ public:
 	
 	int getRows() const { return rows; }
 	int getCols() const { return cols; }
+	
+	void swap(fixedArray2<T, rows, cols> &other)
+	{
+		swap(values, other.values);
+	}
+	
 private:
 	T values[rows*cols];	
 };
@@ -212,6 +222,11 @@ public:
 			for(int i=0; i<rows_*cols_; i++) values[i] = 0;
 	//		memset(&values[0], 0, sizeof(T)*rows_*cols_);
 		}
+	}
+	void swap(variableArray2<T> &other)
+	{
+		values.swap(other.values);
+		std::swap(other.cols, cols);
 	}
 	
 	inline T &operator () (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
