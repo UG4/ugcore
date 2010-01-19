@@ -11,24 +11,25 @@
 namespace ug{
 
 template<typename TElem>
-bool DoFPattern::get_indices(TElem* elem, unsigned int nr_solution, int* ind)
+bool DoFPattern::get_indices(TElem* elem, uint nr_fct, index_type* ind)
 {
-	assert(nr_solution < _SingleSolutionInfoVec.size());
+	assert(nr_fct < _SingleSolutionInfoVec.size());
 	int subsetIndex = _sh->get_subset_index(elem);
-	int i;
-	for(i = 0; i < _SingleSolutionInfoVec[nr_solution]->num_SubsetIndex; ++i)
+	uint i;
+	for(i = 0; i < (_SingleSolutionInfoVec[nr_fct]->SubsetIndex).size(); ++i)
 	{
-		if(subsetIndex == _SingleSolutionInfoVec[nr_solution]->SubsetIndex[i]) break;
+		if(subsetIndex == _SingleSolutionInfoVec[nr_fct]->SubsetIndex[i]) break;
 	}
-	if(i ==  _SingleSolutionInfoVec[nr_solution]->num_SubsetIndex) assert(0 && "ERROR in get_index. Solution not defined for SubsetIndex.");
+	if(i ==  (_SingleSolutionInfoVec[nr_fct]->SubsetIndex).size())
+		assert(0 && "ERROR in get_index. Solution not defined for SubsetIndex.");
 
-	int ncomp = _SingleSolutionInfoVec[nr_solution]->group_Comp[subsetIndex];
+	comp_type ncomp = _SingleSolutionInfoVec[nr_fct]->group_comp[subsetIndex];
 
 	typename geometry_traits<TElem>::Descriptor TDesc;
-	for(unsigned int i=0; i< TDesc.num_vertices(); i++)
+	for(uint i=0; i< TDesc.num_vertices(); i++)
 	{
 		VertexBase* vert = elem->vertex(i);
-		ind[i] = _aaDoFVRT[vert].nr + ncomp;
+		ind[i] = _aaDoFVRT[vert].index + (comp_type) ncomp;
 	}
 	return true;
 }
@@ -41,22 +42,22 @@ bool DoFPattern::get_indices(TElem* elem, unsigned int nr_solution, int* ind)
 
 template <int d>
 template <typename TElem>
-const TrialSpace<TElem>& NumericalSolution<d>::get_TrialSpace(int nr_func)
+const TrialSpace<TElem>& NumericalSolution<d>::get_TrialSpace(uint nr_fct)
 {
-	return TrialSpaces<TElem>::TrialSpace(_pattern->get_TrialSpaceType(nr_func));
+	return TrialSpaces<TElem>::TrialSpace(_pattern->get_TrialSpaceType(nr_fct));
 }
 
 template <int d>
 template<typename TElem>
-bool NumericalSolution<d>::get_indices(TElem* elem, int nr_solution, int* ind)
+bool NumericalSolution<d>::get_indices(TElem* elem, uint nr_fct, int* ind)
 {
-	_pattern->get_indices(elem, nr_solution, ind);
+	_pattern->get_indices(elem, nr_fct, ind);
 	return true;
 }
 
 template <int d>
 template <typename TElem>
-bool NumericalSolution<d>::get_local_DoFValues(TElem* elem, int nr_func, number* DoFValues)
+bool NumericalSolution<d>::get_local_DoFValues(TElem* elem, uint nr_fct, number* DoFValues)
 {
 	typename geometry_traits<TElem>::Descriptor TDesc;
 
@@ -67,7 +68,7 @@ bool NumericalSolution<d>::get_local_DoFValues(TElem* elem, int nr_func, number*
 	for(int i=0; i< nvalues; i++)
 	{
 		VertexBase* vert = elem->vertex(i);
-		indices[i] = (int) (_pattern->get_index(vert, nr_func));
+		indices[i] = (int) (_pattern->get_index(vert, nr_fct));
 	}
 
 	int level = 0;
@@ -106,14 +107,14 @@ NumericalSolution<d>::NumericalSolution(std::string shortname, std::string longn
 	for(uint i = 0; i < _pattern->num_levels(); ++i)
 	{
 		_GridVector[i] = new Vector();
-		_GridVector[i]->create_vector(_pattern->num_doubles(i));
+		_GridVector[i]->create_vector(_pattern->num_dofs(i));
 	}
 
 	return;
 }
 
 template <int d>
-bool NumericalSolution<d>::assign(const NumericalSolution<d>& v)
+bool NumericalSolution<d>::assign(NumericalSolution<d>& v)
 {
 	assert(v.get_pattern()->num_levels() == _pattern->num_levels());
 
@@ -126,13 +127,7 @@ bool NumericalSolution<d>::assign(const NumericalSolution<d>& v)
 
 
 template <int d>
-bool NumericalSolution<d>::set_values(bool (*fct)(MathVector<d>, number&), int nr_func, ISubsetHandler& sh, uint subsetIndex)
-{
-	return set_values(fct, nr_func, sh, subsetIndex, 0);
-}
-
-template <int d>
-bool NumericalSolution<d>::set_values(bool (*fct)(MathVector<d>, number&), int nr_func, ISubsetHandler& sh, uint subsetIndex, int level)
+bool NumericalSolution<d>::set_values(bool (*fct)(MathVector<d>, number&), uint nr_fct, ISubsetHandler& sh, uint subsetIndex, uint level)
 {
 	VertexBaseIterator iterBegin, iterEnd, iter;
 
@@ -171,7 +166,7 @@ bool NumericalSolution<d>::set_values(bool (*fct)(MathVector<d>, number&), int n
 		if((uint)sh.get_subset_index(vert) != subsetIndex) continue;
 
 		corner = aaPos[vert];
-		index = _pattern->get_index(vert, nr_func);
+		index = (int) _pattern->get_index(vert, nr_fct);
 		fct(corner, val);
 		values.push_back(val);
 		indices.push_back(index);
@@ -197,15 +192,9 @@ bool NumericalSolution<d>::set_values(bool (*fct)(MathVector<d>, number&), int n
 }
 
 template <int d>
-Vector* NumericalSolution<d>::GridVector(int level)
+Vector* NumericalSolution<d>::GridVector(uint level)
 {
 	return _GridVector[level];
-}
-
-template <int d>
-Vector* NumericalSolution<d>::GridVector()
-{
-	return _GridVector[0];
 }
 
 template <int d>
@@ -215,9 +204,9 @@ DoFPattern* NumericalSolution<d>::get_pattern()
 }
 
 template <int d>
-TrialSpaceType NumericalSolution<d>::get_TrialSpaceType(int nr_func)
+TrialSpaceType NumericalSolution<d>::get_TrialSpaceType(uint nr_fct)
 {
-	return _pattern->get_TrialSpaceType(nr_func);
+	return _pattern->get_TrialSpaceType(nr_fct);
 }
 
 template <int d>
@@ -240,9 +229,16 @@ NumericalSolution<d>::~NumericalSolution()
 }
 
 template <int d>
-std::string NumericalSolution<d>::get_name(int comp)
+Domain<d>* NumericalSolution<d>::get_domain()
 {
-	return _pattern->get_name(comp);
+	return _domain;
+}
+
+
+template <int d>
+std::string NumericalSolution<d>::get_name(uint nr_fct)
+{
+	return _pattern->get_name(nr_fct);
 }
 
 

@@ -33,7 +33,7 @@ DoFPattern::DoFPattern(std::string name, ISubsetHandler& sh)
 	_lock = false;
 };
 
-bool DoFPattern::add_solution(std::string name, TrialSpaceType Ansatzspace, int* SubsetIndex, int n)
+bool DoFPattern::add_solution(std::string name, TrialSpaceType TrialSpace, std::vector<int>& SubsetIndices)
 {
 	if(_lock == true)
 	{
@@ -44,40 +44,37 @@ bool DoFPattern::add_solution(std::string name, TrialSpaceType Ansatzspace, int*
 	// Create SingleSolutionInfo
 	SingleSolutionInfo* info = new SingleSolutionInfo();
 	info->name = name;
-	info->Ansatzspace = Ansatzspace;
-	info->num_SubsetIndex = n;
-	info->SubsetIndex = new int[n];
-	info->group_Comp = new int[n];
-	for(int i = 0; i < n; ++i)
+	info->TrialSpace = TrialSpace;
+	(info->SubsetIndex).resize(SubsetIndices.size());
+	(info->group_comp).resize(SubsetIndices.size());
+	for(uint i = 0; i < SubsetIndices.size(); ++i)
 	{
-		info->SubsetIndex[i] = SubsetIndex[i];
-		info->group_Comp[i] = 0;
+		(info->SubsetIndex)[i] = SubsetIndices[i];
+		(info->group_comp)[i] = 0;
 	}
 	_SingleSolutionInfoVec.push_back(info);
 
 	// Create Grouping with only on component: the SingleSolution
 	GroupSolutionInfo* groupInfo = new GroupSolutionInfo();
 	groupInfo->name = name;
-	groupInfo->num_SingleSolutions = 1;
-	groupInfo->SingleSolutions = new int[1];
-	for(int i = 0; i < 1; ++i)
+	(groupInfo->SingleSolutions).resize(1);
+	for(uint i = 0; i < 1; ++i)
 	{
-		groupInfo->SingleSolutions[i] = _SingleSolutionInfoVec.size() - 1;
+		(groupInfo->SingleSolutions)[i] = _SingleSolutionInfoVec.size() - 1;
 	}
-	groupInfo->num_SubsetIndex = n;
-	groupInfo->SubsetIndex = new int[n];
-	groupInfo->num_Comp = new int[n];
-	for(int i = 0; i < n; ++i)
+	(groupInfo->SubsetIndex).resize(SubsetIndices.size());
+	(groupInfo->num_comp).resize(SubsetIndices.size());
+	for(uint i = 0; i < SubsetIndices.size(); ++i)
 	{
-		groupInfo->SubsetIndex[i] = SubsetIndex[i];
-		groupInfo->num_Comp[i] = 1;
+		(groupInfo->SubsetIndex)[i] = SubsetIndices[i];
+		(groupInfo->num_comp)[i] = 1;
 	}
 	_GroupSolutionInfoVec.push_back(groupInfo);
 
 	return true;
 }
 
-bool DoFPattern::group_solution(std::string name, int* GroupSolutions, int n)
+bool DoFPattern::group_solution(std::string name, std::vector<uint>& GroupSolutions)
 {
 	if(_lock == true)
 	{
@@ -86,42 +83,47 @@ bool DoFPattern::group_solution(std::string name, int* GroupSolutions, int n)
 	}
 
 	// Sort GroupSolutions to be grouped
-	std::sort(GroupSolutions, GroupSolutions + n);
+	sort(GroupSolutions.begin(), GroupSolutions.end());
 
 	// collect subsets and num_Comp of all solutions that are to be grouped
 	std::vector<int> SubsetIndex;
-	std::vector<int> num_Comp;
+	std::vector<int> num_comp;
 	std::vector<int> SingleSolutions;
-	for(int i = 0; i < n; ++i)
+
+	// loop all groups, that will be merged to a new group
+	for(uint i = 0; i < GroupSolutions.size(); ++i)
 	{
+		// check that group exist
 		if(GroupSolutions[i] >= _GroupSolutionInfoVec.size() || GroupSolutions[i] < 0)
 		{
 			std::cout << "ERROR in group_solution: Trying to read Group " << GroupSolutions[i] << ", but grouping does not exist. Aborting" << std::endl;
 			return false;
 		}
 
-		int nr = GroupSolutions[i];
+		// remember current old group
+		uint nr = GroupSolutions[i];
 
-		for(int j = 0; j < _GroupSolutionInfoVec[nr]->num_SubsetIndex; ++j)
+		// loop all subsets of current old group
+		for(uint j = 0; j < (_GroupSolutionInfoVec[nr]->SubsetIndex).size(); ++j)
 		{
-			int k;
+			uint k;
 			for(k = 0; k < SubsetIndex.size(); ++k)
 			{
 				if(SubsetIndex[k] == _GroupSolutionInfoVec[nr]->SubsetIndex[j])
 				{
-					num_Comp[k] += _GroupSolutionInfoVec[nr]->num_Comp[j];
+					num_comp[k] += _GroupSolutionInfoVec[nr]->num_comp[j];
 					break;
 				}
 			}
 			if(k == SubsetIndex.size())
 			{
 				SubsetIndex.push_back(_GroupSolutionInfoVec[nr]->SubsetIndex[j]);
-				num_Comp.push_back(_GroupSolutionInfoVec[nr]->num_Comp[j]);
+				num_comp.push_back(_GroupSolutionInfoVec[nr]->num_comp[j]);
 			}
 		}
-		for(int j = 0; j < _GroupSolutionInfoVec[nr]->num_SingleSolutions; ++j)
+		for(uint j = 0; j < (_GroupSolutionInfoVec[nr]->SingleSolutions).size(); ++j)
 		{
-			for(int k = 0; k < SingleSolutions.size(); ++k)
+			for(uint k = 0; k < SingleSolutions.size(); ++k)
 			{
 				if(SingleSolutions[k] == _GroupSolutionInfoVec[nr]->SingleSolutions[j])
 				{
@@ -134,68 +136,61 @@ bool DoFPattern::group_solution(std::string name, int* GroupSolutions, int n)
 		}
 	}
 
-	std::sort(SingleSolutions.begin(), SingleSolutions.end());
+	sort(SingleSolutions.begin(), SingleSolutions.end());
 
 	// create new grouping
 	GroupSolutionInfo* info = new GroupSolutionInfo();
 	info->name = name;
-	info->num_SubsetIndex = SubsetIndex.size();
-	info->SubsetIndex = new int[SubsetIndex.size()];
-	info->num_Comp = new int[SubsetIndex.size()];
-	for(int i = 0; i < SubsetIndex.size(); ++i)
+	(info->SubsetIndex).resize(SubsetIndex.size());
+	(info->num_comp).resize(SubsetIndex.size());
+	for(uint i = 0; i < SubsetIndex.size(); ++i)
 	{
 		info->SubsetIndex[i] = SubsetIndex[i];
-		info->num_Comp[i] = num_Comp[i];
+		info->num_comp[i] = num_comp[i];
 	}
 
-	info->num_SingleSolutions = SingleSolutions.size();
-	info->SingleSolutions = new int[SingleSolutions.size()];
-	for(int i = 0; i < SingleSolutions.size(); ++i)
+	(info->SingleSolutions).resize(SingleSolutions.size());
+	for(uint i = 0; i < SingleSolutions.size(); ++i)
 	{
-		int nr = SingleSolutions[i];
-		info->SingleSolutions[i] = nr;
+		info->SingleSolutions[i] = SingleSolutions[i];
 	}
 
-	for(int i = 0; i < SubsetIndex.size(); ++i)
+	for(uint i = 0; i < SubsetIndex.size(); ++i)
 	{
-		num_Comp[i] = 0;
-		for(int j = 0; j < SingleSolutions.size(); ++j)
+		num_comp[i] = 0;
+		for(uint j = 0; j < SingleSolutions.size(); ++j)
 		{
-			int nr = SingleSolutions[j];
-			int k;
-			for(int k = 0; k < _SingleSolutionInfoVec[nr]->num_SubsetIndex; ++k)
+			uint nr = SingleSolutions[j];
+			uint k;
+			for(uint k = 0; k < (_SingleSolutionInfoVec[nr]->SubsetIndex).size(); ++k)
 			{
-				//_SingleSolutionInfoVec[nr]->group_Comp[k] = -100;
 				if(_SingleSolutionInfoVec[nr]->SubsetIndex[k] == SubsetIndex[i])
 				{
-					_SingleSolutionInfoVec[nr]->group_Comp[k] = (num_Comp[i])++;
+					_SingleSolutionInfoVec[nr]->group_comp[k] = (num_comp[i])++;
 				}
 			}
 		}
 	}
-	for(int i = 0; i < SubsetIndex.size(); ++i)
+	for(uint i = 0; i < SubsetIndex.size(); ++i)
 	{
-		if(info->num_Comp[i] != num_Comp[i])
+		if(info->num_comp[i] != num_comp[i])
 		{
-			std::cout << "ERROR in group_solutions: Something wrong with num_Comp. Aborting" << std::endl;
+			std::cout << "ERROR in group_solutions: Something wrong with num_comp. Aborting" << std::endl;
 			return false;
 		}
 	}
 
 	_GroupSolutionInfoVec.push_back(info);
 
-	for(int i = 0; i < n; ++i)
+	for(uint i = 0; i < GroupSolutions.size(); ++i)
 	{
-		int nr = GroupSolutions[i];
-		delete _GroupSolutionInfoVec[nr]->SubsetIndex;
-		delete _GroupSolutionInfoVec[nr]->num_Comp;
-		delete _GroupSolutionInfoVec[nr]->SingleSolutions;
+		uint nr = GroupSolutions[i];
 		delete _GroupSolutionInfoVec[nr];
 	}
 
-	for(int i = n-1; i >= 0; --i)
+	for(uint i = GroupSolutions.size()-1; i >= 0; --i)
 	{
-		int nr = GroupSolutions[i];
+		uint nr = GroupSolutions[i];
 		_GroupSolutionInfoVec.erase(_GroupSolutionInfoVec.begin() + nr);
 	}
 
@@ -213,32 +208,27 @@ bool DoFPattern::clear_grouping()
 	// Clear old grouping
 	for(int i = 0; i< _GroupSolutionInfoVec.size();++i)
 	{
-		delete _GroupSolutionInfoVec[i]->SubsetIndex;
-		delete _GroupSolutionInfoVec[i]->num_Comp;
-		delete _GroupSolutionInfoVec[i]->SingleSolutions;
 		delete _GroupSolutionInfoVec[i];
 	}
 	_GroupSolutionInfoVec.clear();
 
 
 	// restore single solution grouping
-	for(int i = 0; i < _SingleSolutionInfoVec.size(); ++i)
+	for(uint i = 0; i < _SingleSolutionInfoVec.size(); ++i)
 	{
 		GroupSolutionInfo* groupInfo = new GroupSolutionInfo();
 		groupInfo->name = _SingleSolutionInfoVec[i]->name;
-		groupInfo->num_SingleSolutions = 1;
-		groupInfo->SingleSolutions = new int[1];
-		for(int j = 0; j < 1; ++j)
+		(groupInfo->SingleSolutions).resize(1);
+		for(uint j = 0; j < 1; ++j)
 		{
 			groupInfo->SingleSolutions[j] = j;
 		}
-		groupInfo->num_SubsetIndex = _SingleSolutionInfoVec[i]->num_SubsetIndex;
-		groupInfo->SubsetIndex = new int[groupInfo->num_SubsetIndex];
-		groupInfo->num_Comp = new int[groupInfo->num_SubsetIndex];
-		for(int j = 0; j < groupInfo->num_SubsetIndex; ++j)
+		(groupInfo->SubsetIndex).resize((_SingleSolutionInfoVec[i]->SubsetIndex).size());
+		(groupInfo->num_comp).resize((_SingleSolutionInfoVec[i]->SubsetIndex).size());
+		for(int j = 0; j < (_SingleSolutionInfoVec[i]->SubsetIndex).size(); ++j)
 		{
 			groupInfo->SubsetIndex[j] = _SingleSolutionInfoVec[i]->SubsetIndex[j];
-			groupInfo->num_Comp[j] = 1;
+			groupInfo->num_comp[j] = 1;
 		}
 		_GroupSolutionInfoVec.push_back(groupInfo);
 	}
@@ -252,7 +242,7 @@ bool DoFPattern::print_info()
 	for(int i = 0; i < _SingleSolutionInfoVec.size(); ++i)
 	{
 		std::cout << i << ": '"<< _SingleSolutionInfoVec[i]->name << "' on Subset(s) ";
-		for(int j = 0; j < _SingleSolutionInfoVec[i]->num_SubsetIndex; ++j)
+		for(uint j = 0; j < (_SingleSolutionInfoVec[i]->SubsetIndex).size(); ++j)
 		{
 			std::cout << _SingleSolutionInfoVec[i]->SubsetIndex[j] << " ";
 		}
@@ -262,16 +252,16 @@ bool DoFPattern::print_info()
 	for(int i = 0; i < _GroupSolutionInfoVec.size(); ++i)
 	{
 		std::cout << i << ": '"<< _GroupSolutionInfoVec[i]->name << "' grouping single Solution(s) ";
-		for(int j = 0; j < _GroupSolutionInfoVec[i]->num_SingleSolutions; ++j)
+		for(int j = 0; j < (_GroupSolutionInfoVec[i]->SingleSolutions).size(); ++j)
 		{
 			std::cout << _GroupSolutionInfoVec[i]->SingleSolutions[j] << " ";
 		}
 		//std::cout << std::endl;
 		std::cout << "with DoF (Subset id, Nr. of Comps): ";
-		for(int j = 0; j < _GroupSolutionInfoVec[i]->num_SubsetIndex; ++j)
+		for(int j = 0; j < (_GroupSolutionInfoVec[i]->SubsetIndex).size(); ++j)
 		{
 			std::cout << "(" << _GroupSolutionInfoVec[i]->SubsetIndex[j] << ",";
-			std::cout << _GroupSolutionInfoVec[i]->num_Comp[j] << ") ";
+			std::cout << _GroupSolutionInfoVec[i]->num_comp[j] << ") ";
 		}
 		std::cout << std::endl;
 	}
@@ -298,11 +288,11 @@ bool DoFPattern::finalize()
 	// assign DoFs
 	VertexIterator iterBegin, iterEnd, iter;
 
-	for(int i=0; i<_GroupSolutionInfoVec.size(); ++i)
+	for(uint i=0; i<_GroupSolutionInfoVec.size(); ++i)
 	{
-		for(int j = 0; j < _num_sh; ++j)
+		for(uint j = 0; j < _num_sh; ++j)
 		{
-			int ncomp = _GroupSolutionInfoVec[i]->num_Comp[j];
+			uint ncomp = _GroupSolutionInfoVec[i]->num_comp[j];
 			std::cout << "Assigning "<< ncomp << " Dof(s) per Vertex in Subset " << j << std::endl;
 		}
 
@@ -312,24 +302,24 @@ bool DoFPattern::finalize()
 			_num_levels = mg->num_levels();
 			std::cout << "Assigning DoFs to Multigrid with " <<_num_levels << " Level(s)." << std::endl;
 
-			_num_doubles = new int[_num_levels];
-			for(int l = 0; l < _num_levels; ++l)
+			_num_dofs.resize(_num_levels);
+			for(uint l = 0; l < _num_levels; ++l)
 			{
 				iterBegin = mg->begin<Vertex>(l);
 				iterEnd = mg->end<Vertex>(l);
 
-				int n = 0;
+				index_type n = 0;
 				for(iter = iterBegin; iter != iterEnd; iter++)
 				{
 					Vertex* vrt = *iter;
 					int SubsetIndex = _sh->get_subset_index(vrt);
-					int ncomp = _GroupSolutionInfoVec[i]->num_Comp[SubsetIndex];
-					_aaDoFVRT[vrt].nr = n;
+					comp_type ncomp = _GroupSolutionInfoVec[i]->num_comp[SubsetIndex];
+					_aaDoFVRT[vrt].index = n;
 					_aaDoFVRT[vrt].ncomp = ncomp;
 					n += ncomp;
 				}
-				std::cout << n << " DoFs assigned to level" << l << std::endl;
-				_num_doubles[l] = n;
+				std::cout << n << " DoFs assigned to level " << l << std::endl;
+				_num_dofs[l] = n;
 			}
 		}
 		else
@@ -337,23 +327,23 @@ bool DoFPattern::finalize()
 			std::cout << "Assigning DoFs to Grid." << std::endl;
 
 			_num_levels = 1;
-			_num_doubles = new int[1];
+			(_num_dofs).resize(1);
 
 			iterBegin = grid->begin<Vertex>();
 			iterEnd = grid->end<Vertex>();
 
-			int n = 0;
+			index_type n = 0;
 			for(iter = iterBegin; iter != iterEnd; iter++)
 			{
 				Vertex* vrt = *iter;
 				int SubsetIndex = _sh->get_subset_index(vrt);
-				int ncomp = _GroupSolutionInfoVec[i]->num_Comp[SubsetIndex];
-				_aaDoFVRT[vrt].nr = n;
+				comp_type ncomp = _GroupSolutionInfoVec[i]->num_comp[SubsetIndex];
+				_aaDoFVRT[vrt].index = n;
 				_aaDoFVRT[vrt].ncomp = ncomp;
 				n += ncomp;
 			}
-			std::cout << n << " DoFs assigned to level" << 0 << std::endl;
-			_num_doubles[0] = n;
+			std::cout << n << " DoFs assigned to level " << 0 << std::endl;
+			_num_dofs[0] = n;
 		}
 	}
 
@@ -365,57 +355,52 @@ uint DoFPattern::num_levels()
 	return _num_levels;
 }
 
-int DoFPattern::num_doubles(int i)
+uint DoFPattern::num_dofs(uint level)
 {
-	assert(i >= 0 && "ERROR in num_doubles: negative level index");
-	return _num_doubles[i];
+	return _num_dofs[level];
 }
 
-int DoFPattern::num_doubles()
+/*uint DoFPattern::num_dofs(int s, uint level)
 {
-	return _num_doubles[0];
+	// TODO: include subset index in evaluation
+	return _num_dofs[level];
+}*/
+
+TrialSpaceType DoFPattern::get_TrialSpaceType(uint nr_solution)
+{
+	return _SingleSolutionInfoVec[nr_solution]->TrialSpace;
 }
 
-TrialSpaceType DoFPattern::get_TrialSpaceType(int nr_solution)
-{
-	return _SingleSolutionInfoVec[nr_solution]->Ansatzspace;
-}
 
-
-int DoFPattern::get_index(VertexBase* vrt, int nr_solution)
+DoFPattern::index_type DoFPattern::get_index(VertexBase* vrt, uint nr_solution)
 {
 	assert(nr_solution < _SingleSolutionInfoVec.size());
 	int subsetIndex = _sh->get_subset_index(vrt);
-	int i;
-	for(i = 0; i < _SingleSolutionInfoVec[nr_solution]->num_SubsetIndex; ++i)
+	uint i;
+	for(i = 0; i < (_SingleSolutionInfoVec[nr_solution]->SubsetIndex).size(); ++i)
 	{
 		if(subsetIndex == _SingleSolutionInfoVec[nr_solution]->SubsetIndex[i]) break;
 	}
-	if(i ==  _SingleSolutionInfoVec[nr_solution]->num_SubsetIndex)
+	if(i ==  (_SingleSolutionInfoVec[nr_solution]->SubsetIndex).size())
 	{
 		std::cout << "Pattern does not recognize subsetIndex " << subsetIndex << ". Aborting. \n";
 		assert(0 && "ERROR in get_index. Solution not defined for SubsetIndex.");
 	}
 
-	int ncomp = _SingleSolutionInfoVec[nr_solution]->group_Comp[i];
+	comp_type ncomp = _SingleSolutionInfoVec[nr_solution]->group_comp[i];
 
-	return _aaDoFVRT[vrt].nr + ncomp;
+	return _aaDoFVRT[vrt].index + ncomp;
 }
 
 DoFPattern::~DoFPattern()
 {
-	for(int i = 0; i < _SingleSolutionInfoVec.size(); ++i)
+	for(uint i = 0; i < _SingleSolutionInfoVec.size(); ++i)
 	{
-		delete _SingleSolutionInfoVec[i]->SubsetIndex;
-		delete _SingleSolutionInfoVec[i]->group_Comp;
 		delete _SingleSolutionInfoVec[i];
 	}
 
-	for(int i = 0; i < _GroupSolutionInfoVec.size(); ++i)
+	for(uint i = 0; i < _GroupSolutionInfoVec.size(); ++i)
 	{
-		delete _GroupSolutionInfoVec[i]->SubsetIndex;
-		delete _GroupSolutionInfoVec[i]->num_Comp;
-		delete _GroupSolutionInfoVec[i]->SingleSolutions;
 		delete _GroupSolutionInfoVec[i];
 	}
 
@@ -426,10 +411,10 @@ DoFPattern::~DoFPattern()
 
 }
 
-std::string DoFPattern::get_name(int comp)
+std::string DoFPattern::get_name(uint nr_fct)
 {
-	assert(comp < _SingleSolutionInfoVec.size());
-	return _SingleSolutionInfoVec[comp]->name;
+	assert(nr_fct < _SingleSolutionInfoVec.size());
+	return _SingleSolutionInfoVec[nr_fct]->name;
 }
 
 std::string DoFPattern::get_name()
@@ -442,11 +427,11 @@ int DoFPattern::num_comp()
 	return _SingleSolutionInfoVec.size();
 }
 
-bool DoFPattern::comp_def_in_subset(int nrComp, int subsetIndex)
+bool DoFPattern::comp_def_in_subset(uint nr_fct, int subsetIndex)
 {
-	for(int i = 0; i < _SingleSolutionInfoVec[nrComp]->num_SubsetIndex; ++i)
+	for(uint i = 0; i < (_SingleSolutionInfoVec[nr_fct]->SubsetIndex).size(); ++i)
 	{
-		if(subsetIndex == _SingleSolutionInfoVec[nrComp]->SubsetIndex[i])
+		if(subsetIndex == _SingleSolutionInfoVec[nr_fct]->SubsetIndex[i])
 			return true;
 	}
 	return false;
