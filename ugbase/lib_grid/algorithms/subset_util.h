@@ -68,7 +68,7 @@ void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh);
 template <class TIterator>
 void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 										TIterator elemsEnd, int subsetIndex);
-										
+
 ////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg
 ///	reorders subsets in a way that allows for easy export to lgm-ng.
