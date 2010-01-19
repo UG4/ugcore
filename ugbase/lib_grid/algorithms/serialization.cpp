@@ -663,6 +663,98 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				}
 			}
 		}
+	
+	//	volumes
+		if(mgoc.num<Tetrahedron>(iLevel) > 0)
+		{
+			tInt = GOID_TETRAHEDRON;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Tetrahedron>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(TetrahedronIterator iter = mgoc.begin<Tetrahedron>(iLevel);
+				iter != mgoc.end<Tetrahedron>(iLevel); ++iter)
+			{
+				Tetrahedron* t = *iter;
+				out.write((char*)&aaIntVRT[t->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[t->vertex(3)], sizeof(int));
+				aaIntVOL[*iter] = volInd++;
+			//	write the parent
+				WriteParent(mg, t, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+			}
+		}
+		
+		if(mgoc.num<Hexahedron>(iLevel) > 0)
+		{
+			tInt = GOID_HEXAHEDRON;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Hexahedron>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(HexahedronIterator iter = mgoc.begin<Hexahedron>(iLevel);
+				iter != mgoc.end<Hexahedron>(iLevel); ++iter)
+			{
+				Hexahedron* h = *iter;
+				out.write((char*)&aaIntVRT[h->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(3)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(4)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(5)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(6)], sizeof(int));
+				out.write((char*)&aaIntVRT[h->vertex(7)], sizeof(int));
+				aaIntVOL[*iter] = volInd++;
+			//	write the parent
+				WriteParent(mg, h, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+			}
+		}
+		
+		if(mgoc.num<Prism>(iLevel) > 0)
+		{
+			tInt = GOID_PRISM;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Prism>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(PrismIterator iter = mgoc.begin<Prism>(iLevel);
+				iter != mgoc.end<Prism>(iLevel); ++iter)
+			{
+				Prism* p = *iter;
+				out.write((char*)&aaIntVRT[p->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(3)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(4)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(5)], sizeof(int));
+				aaIntVOL[*iter] = volInd++;
+			//	write the parent
+				WriteParent(mg, p, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+			}
+		}
+		
+		if(mgoc.num<Pyramid>(iLevel) > 0)
+		{
+			tInt = GOID_PYRAMID;
+			out.write((char*)&tInt, sizeof(int));
+			tInt = (int)mgoc.num<Pyramid>(iLevel);
+			out.write((char*)&tInt, sizeof(int));
+			
+			for(PyramidIterator iter = mgoc.begin<Pyramid>(iLevel);
+				iter != mgoc.end<Pyramid>(iLevel); ++iter)
+			{
+				Pyramid* p = *iter;
+				out.write((char*)&aaIntVRT[p->vertex(0)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(1)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(2)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(3)], sizeof(int));
+				out.write((char*)&aaIntVRT[p->vertex(4)], sizeof(int));
+				aaIntVOL[*iter] = volInd++;
+			//	write the parent
+				WriteParent(mg, p, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
+			}
+		}
 	}
 	
 //	mark the end of the grid-section
@@ -868,7 +960,81 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							vFaces.push_back(q);
 						}
 					}break;
-				
+				case GOID_TETRAHEDRON:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
+							Tetrahedron* t = *mg.create<Tetrahedron>(TetrahedronDescriptor(
+																	vVrts[i1], vVrts[i2],
+																	vVrts[i3], vVrts[i4]));
+							vVols.push_back(t);
+						}
+					}break;
+				case GOID_HEXAHEDRON:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4, i5, i6, i7, i8;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							in.read((char*)&i5, sizeof(int));
+							in.read((char*)&i6, sizeof(int));
+							in.read((char*)&i7, sizeof(int));
+							in.read((char*)&i8, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
+							Hexahedron* h = *mg.create<Hexahedron>(HexahedronDescriptor(
+																	vVrts[i1], vVrts[i2],
+																	vVrts[i3], vVrts[i4],
+																	vVrts[i5], vVrts[i6],
+																	vVrts[i7], vVrts[i8]));
+							vVols.push_back(h);
+						}
+					}break;
+				case GOID_PRISM:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4, i5, i6;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							in.read((char*)&i5, sizeof(int));
+							in.read((char*)&i6, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
+							Prism* p = *mg.create<Prism>(PrismDescriptor(
+															vVrts[i1], vVrts[i2],
+															vVrts[i3], vVrts[i4],
+															vVrts[i5], vVrts[i6]));
+							vVols.push_back(p);
+						}
+					}break;
+				case GOID_PYRAMID:
+					{
+						for(int i = 0; i < numElems; ++i)
+						{
+							int i1, i2, i3, i4, i5;
+							in.read((char*)&i1, sizeof(int));
+							in.read((char*)&i2, sizeof(int));
+							in.read((char*)&i3, sizeof(int));
+							in.read((char*)&i4, sizeof(int));
+							in.read((char*)&i5, sizeof(int));
+							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
+							Pyramid* p = *mg.create<Pyramid>(PyramidDescriptor(
+																vVrts[i1], vVrts[i2],
+																vVrts[i3], vVrts[i4],
+																vVrts[i5]));
+							vVols.push_back(p);
+						}
+					}break;
 				default:
 					LOG("Unknown geometric-object-id in grid-pack. Aborting reconstruction.\n");
 					return false;

@@ -47,7 +47,7 @@ template <class TGeomBaseObj, class TIndexType>
 void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 						std::vector<TIndexType>& adjacencyMapOut,
 						Grid& grid, Attachment<TIndexType>* paIndex = NULL,
-						TGeomBaseObj* pGeomObjsOut = NULL,
+						TGeomBaseObj** pGeomObjsOut = NULL,
 						NeighbourhoodType nbhType = NHT_DEFAULT)
 {
 	using namespace std;
@@ -98,6 +98,14 @@ void ConstructDualGraph(std::vector<TIndexType>& adjacencyMapStructureOut,
 	
 //	add the final element
 	adjacencyMapStructureOut[adjacencyMapStructureOut.size() - 1] = adjacencyMapOut.size();
+	
+//	fill pGeomObjsOut
+	if(pGeomObjsOut)
+	{
+		int ind = 0;
+		for(ElemIterator iter = grid.begin<Elem>(); iter != grid.end<Elem>(); ++iter, ++ind)
+			pGeomObjsOut[ind] = *iter;
+	}
 	
 //	clean up
 	if(!paIndex)

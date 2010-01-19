@@ -165,8 +165,9 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 	uint numVrts = v->num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
 		grid.mark(v->vertex(i));
-	
-/* Strangely this is slower than the default way... INVESTIGATE!!!
+
+/*
+//Strangely this is slower than the default way... INVESTIGATE!!!
 //	in order to get the maximum speed-up, we'll try to use
 //	associated elements in grid.
 	if((nbhType == NHT_FACE_NEIGHBOURS)
@@ -175,12 +176,14 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 								  | VOLOPT_AUTOGENERATE_FACES))
 	{
 	//	iterate through associated faces
+		FaceIterator fEnd = grid.associated_faces_end(v);
 		for(FaceIterator fIter = grid.associated_faces_begin(v);
-			fIter != grid.associated_faces_end(v); ++fIter)
+			fIter != fEnd; ++fIter)
 		{
 		//	iterate through associated volumes of the face
+			VolumeIterator vEnd = grid.associated_volumes_end(*fIter);
 			for(VolumeIterator iter = grid.associated_volumes_begin(*fIter);
-				iter != grid.associated_volumes_end(*fIter); ++iter)
+				iter != vEnd; ++iter)
 			{
 			//	if the volume is not yet marked, then add it to the neighbours
 				if(!grid.is_marked(*iter))
