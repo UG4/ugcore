@@ -114,6 +114,23 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e, VertexBase* newVertex, AVertexBase* paAssociatedVertices = NULL);
 
 
+template<class TVertexPositionAttachmentAccessor>
+typename TVertexPositionAttachmentAccessor::ValueType
+CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT)
+{
+	typename TVertexPositionAttachmentAccessor::ValueType v;
+//	init v with 0.
+	VecSet(v, 0);
+
+//	sum up
+	VecAdd(v, aaPosVRT[e->vertex(0)], aaPosVRT[e->vertex(1)]);
+
+//	average
+	VecScale(v, v, 0.5);
+
+	return v;
+}
+
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

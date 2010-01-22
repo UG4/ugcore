@@ -48,6 +48,11 @@ int GetVertexIndex(Volume* vol, VertexBase* v);
 VertexBase* GetConnectedVertex(EdgeBase* e, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
+//	GetConnectedVertex
+///	returns the index of the first vertex that is contained in f and is not contained in e.
+VertexBase* GetConnectedVertex(EdgeVertices* e, Face* f);
+
+////////////////////////////////////////////////////////////////////////
 //	GetConnectedVertexIndex
 ///	returns the index of the first vertex that is contained in the specified face and is not contained in the given edge.
 int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);

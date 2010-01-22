@@ -81,6 +81,37 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 	for(uint i = 0; i < numVrts; ++i)
 		grid.mark(f->vertex(i));
 	
+//	in order to get the maximum speed-up, we'll try to use
+//	associated elements in grid.
+	if((nbhType == NHT_EDGE_NEIGHBOURS)
+		&& grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES
+								  | EDGEOPT_STORE_ASSOCIATED_FACES
+								  | FACEOPT_AUTOGENERATE_EDGES))
+	{
+	//	iterate through associated edges
+		EdgeBaseIterator eEnd = grid.associated_edges_end(f);
+		for(EdgeBaseIterator eIter = grid.associated_edges_begin(f);
+			eIter != eEnd; ++eIter)
+		{
+		//	iterate through associated folumes of the eace
+			FaceIterator fEnd = grid.associated_faces_end(*eIter);
+			for(FaceIterator iter = grid.associated_faces_begin(*eIter);
+				iter != fEnd; ++iter)
+			{
+			//	if the face is not yet marked, then add it to the neighbours
+				if(!grid.is_marked(*iter))
+				{
+					grid.mark(*iter);
+					vNeighboursOut.push_back(*iter);
+				}
+			}
+		}
+	//	we're done in here. end-marking and return.
+		grid.end_marking();
+		return;
+	}
+
+
 //	iterate over all faces that are connected to the vertices.
 //	if the face shares the elements as required by nbhType and
 //	it is not yet marked, we have to push it to vNeighboursOut.

@@ -57,6 +57,19 @@ VertexBase* GetConnectedVertex(EdgeBase* e, VertexBase* v)
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	GetConnectedVertex
+VertexBase* GetConnectedVertex(EdgeVertices* e, Face* f)
+{
+	uint numVrts = f->num_vertices();
+	for(uint i = 0; i < numVrts; ++i){
+		if((f->vertex(i) != e->vertex(0)) &&
+			(f->vertex(i) != e->vertex(1)))
+			return f->vertex(i);
+	}
+	return NULL;
+}
+
+////////////////////////////////////////////////////////////////////////
 int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed)
 {
 	uint numVrts = f->num_vertices();

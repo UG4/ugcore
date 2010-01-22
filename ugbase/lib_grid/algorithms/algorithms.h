@@ -19,4 +19,6 @@
 #include "selection_util.h"
 #include "grid_statistics.h"
 #include "graph/graph.h"
+#include "remeshing/edge_length_adjustment.h"
+
 #endif
