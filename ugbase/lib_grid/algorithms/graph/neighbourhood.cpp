@@ -166,8 +166,6 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 	for(uint i = 0; i < numVrts; ++i)
 		grid.mark(v->vertex(i));
 
-/*
-//Strangely this is slower than the default way... INVESTIGATE!!!
 //	in order to get the maximum speed-up, we'll try to use
 //	associated elements in grid.
 	if((nbhType == NHT_FACE_NEIGHBOURS)
@@ -193,8 +191,10 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 				}
 			}
 		}
+	//	we're done in here. end-marking and return.
+		grid.end_marking();
+		return;
 	}
-*/
 
 //	iterate over all volumes that are connected to the vertices.
 //	if the volume shares the elements as required by nbhType and
