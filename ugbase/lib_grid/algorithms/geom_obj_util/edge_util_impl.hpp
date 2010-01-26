@@ -27,7 +27,12 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 						AVertexBase* paAssociatedVertices = NULL,
 						bool bConservative = false)
 {
-	TVertex* newVertex = *destGrid.create<TVertex>(e);
+	TVertex* newVertex;
+	if(&destGrid == &srcGrid)
+		newVertex = *destGrid.create<TVertex>(e);
+	else
+		newVertex = *destGrid.create<TVertex>();
+
 	if(CreateEdgeSplitGeometry(destGrid, srcGrid, e, newVertex, paAssociatedVertices))
 	{
 		if(!bConservative)

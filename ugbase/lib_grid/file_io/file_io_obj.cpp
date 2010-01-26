@@ -151,7 +151,7 @@ static void WriteEdges(ofstream& out, EdgeBaseIterator edgesBegin, EdgeBaseItera
 	while(edgesBegin != edgesEnd)
 	{
 		EdgeBase* e = *edgesBegin;
-		out << "e";
+		out << "f";
 		for(uint i = 0; i < 2; ++i)
 		{
 			out << " " << aaInt[e->vertex(i)];

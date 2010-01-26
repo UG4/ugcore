@@ -235,6 +235,24 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 //	we will store the substitute-vertices in this vector - if they are needed.
 	vector<VertexBase*> vSubstituteVertices;
 
+//	split the edge
+	{
+	//	simply create two new edges
+		EdgeBase* parent = e;
+	//	the grids do not match then we can't pass e as a parent
+		if(&srcGrid != &destGrid)
+			parent = NULL;
+			
+		if(paAssociatedVertices){
+			destGrid.create<Edge>(EdgeDescriptor(aaAssociatedVertices[e->vertex(0)], newVertex), parent);
+			destGrid.create<Edge>(EdgeDescriptor(newVertex, aaAssociatedVertices[e->vertex(1)]), parent);
+		}
+		else{
+			destGrid.create<Edge>(EdgeDescriptor(e->vertex(0), newVertex), parent);
+			destGrid.create<Edge>(EdgeDescriptor(newVertex, e->vertex(1)), parent);
+		}
+	}
+
 //	split faces
 	{
 	//	collect all faces which are associated with e

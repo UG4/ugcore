@@ -48,8 +48,6 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
  * During an edge-collapse all adjacent faces will be deleted or
  * replaced by new ones. Same for volumes. Several edges will be
  * deleted as well.
- * if eraseUnusedVertices is set to true, vertices of the collapsed edge
- * that are not used by other objects after the collapse will be removed.
  */
 bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt);
 
@@ -83,7 +81,7 @@ TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false);
  * The vertex that will be created will be of type TVertex.
  * The new vertex and triangles are copied to destGrid.
  * e has to be a member of srcGrid.
- * If bConservative == true then SplitEdge will replace e and its adjacent
+ * If bConservative == false then SplitEdge will replace e and its adjacent
  * geometry by the newly generated geometry.
  * paAssociatedVertices has to be specified if destGrid and srcGrid do not match.
  * If destGrid and srcGrid do match, paAssociatedVertices may be specified optionally.

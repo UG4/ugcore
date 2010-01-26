@@ -12,9 +12,9 @@ namespace ug
 
 enum RemeshingMarks
 {
-	RM_NORMAL = 0,
-	RM_CREASE = 1,
-	RM_FIXED = 2
+	RM_NONE = -1,
+	RM_CREASE = 0,
+	RM_FIXED = 1
 };
 
 /**
