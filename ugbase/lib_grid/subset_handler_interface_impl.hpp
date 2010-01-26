@@ -5,6 +5,8 @@
 #ifndef __H__LIBGRID__SUBSET_HANDLER_INTERFACE_IMPL__
 #define __H__LIBGRID__SUBSET_HANDLER_INTERFACE_IMPL__
 
+#include "subset_handler_interface.h"
+
 namespace ug
 {
 
@@ -218,6 +220,45 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 	};
 }
 
+template <class TAttachment>
+typename TAttachment::ContainerType*
+ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
+											  const VertexBase*)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+
+	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+}
+
+template <class TAttachment>
+typename TAttachment::ContainerType*
+ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
+											  const EdgeBase*)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+
+	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+}
+
+template <class TAttachment>
+typename TAttachment::ContainerType*
+ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
+											  const Face*)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+
+	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+}
+
+template <class TAttachment>
+typename TAttachment::ContainerType*
+ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
+											  const Volume*)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+
+	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	attachments_traits

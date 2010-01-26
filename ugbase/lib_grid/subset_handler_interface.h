@@ -371,6 +371,10 @@ class ISubsetHandler : public GridObserver
 		inline void detach_from_faces(IAttachment& attachment, int subsetIndex)		{detach_from<Face>(attachment, subsetIndex);}
 		inline void detach_from_volumes(IAttachment& attachment, int subsetIndex)	{detach_from<Volume>(attachment, subsetIndex);}
 
+		template <class TGeomObj, class TAttachment>
+		inline typename TAttachment::ContainerType*
+		get_attachment_data_container(TAttachment& attachment, int subsetIndex)		{TGeomObj* dummy; return get_attachment_data_container(attachment, subsetIndex, dummy);}
+
 	protected:
 		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
 		typedef SectionContainer::iterator iterator;
@@ -457,6 +461,15 @@ class ISubsetHandler : public GridObserver
 		inline EdgeAttachmentPipe& get_edge_attachment_pipe(int subsetIndex);
 		inline FaceAttachmentPipe& get_face_attachment_pipe(int subsetIndex);
 		inline VolumeAttachmentPipe& get_volume_attachment_pipe(int subsetIndex);
+
+		template <class TAttachment> typename TAttachment::ContainerType*
+		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const VertexBase*);
+		template <class TAttachment> typename TAttachment::ContainerType*
+		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const EdgeBase*);
+		template <class TAttachment> typename TAttachment::ContainerType*
+		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Face*);
+		template <class TAttachment> typename TAttachment::ContainerType*
+		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Volume*);
 
 	////////////////////////////////
 	//	virtual methods for attachments
@@ -563,6 +576,17 @@ class ISubsetHandler : public GridObserver
 
 				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
 					{BaseClass::access(sh.get_volume_attachment_pipe(subsetIndex), a);}
+		};
+
+	///	the multi-subset-attachment-accessor allows to access an attachment that has been attached to multiple subsets.
+	/**	Note that this accessor is slower than the normal attachment-accessors.
+	 *	If subsets are added to the subset-handler or attachments are added/removed,
+	 *	you should not rely on the accessor to still work properly.
+	 *	Call access() in that case to re-validate him.*/
+		template <class TAttachmet, class TGeomBaseObj>
+		class MultiSubsetAttachmentAccessor
+		{
+		//TODO: implement this!
 		};
 
 	protected:

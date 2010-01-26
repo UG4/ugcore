@@ -255,25 +255,25 @@ class GenericSelector : public GridObserver
 
 	protected:
 		template <class TIterator>
-		inline void select(VertexBase* dummy, TIterator iterBegin, TIterator iterEnd)
+		inline void select(const VertexBase*, TIterator iterBegin, TIterator iterEnd)
 		{
 			m_vertexSelector.select(iterBegin, iterEnd);
 		}
 
 		template <class TIterator>
-		inline void select(EdgeBase* dummy, TIterator iterBegin, TIterator iterEnd)
+		inline void select(const EdgeBase*, TIterator iterBegin, TIterator iterEnd)
 		{
 			m_edgeSelector.select(iterBegin, iterEnd);
 		}
 
 		template <class TIterator>
-		inline void select(Face* dummy, TIterator iterBegin, TIterator iterEnd)
+		inline void select(const Face*, TIterator iterBegin, TIterator iterEnd)
 		{
 			m_faceSelector.select(iterBegin, iterEnd);
 		}
 
 		template <class TIterator>
-		inline void select(Volume* dummy, TIterator iterBegin, TIterator iterEnd)
+		inline void select(const Volume*, TIterator iterBegin, TIterator iterEnd)
 		{
 			m_volumeSelector.select(iterBegin, iterEnd);
 		}
@@ -282,67 +282,67 @@ class GenericSelector : public GridObserver
 	//	pType will not be used in this method an can hold any value.
 	//	select all
 		template <class TSelElem>
-		inline void select_all(GeometricObject* pType)	{m_vertexSelector.select_all<VertexBase>();
+		inline void select_all(const GeometricObject*)	{m_vertexSelector.select_all<VertexBase>();
 														 m_edgeSelector.select_all<EdgeBase>();
 														 m_faceSelector.select_all<Face>();
 														 m_volumeSelector.select_all<Volume>();}
 
 		template <class TSelElem>
-		inline void select_all(VertexBase* pType)		{m_vertexSelector.select_all<TSelElem>();}
+		inline void select_all(const VertexBase*)	{m_vertexSelector.select_all<TSelElem>();}
 
 		template <class TSelElem>
-		inline void select_all(EdgeBase* pType)			{m_edgeSelector.select_all<TSelElem>();}
+		inline void select_all(const EdgeBase*)		{m_edgeSelector.select_all<TSelElem>();}
 
 		template <class TSelElem>
-		inline void select_all(Face* pType)				{m_faceSelector.select_all<TSelElem>();}
+		inline void select_all(const Face*)			{m_faceSelector.select_all<TSelElem>();}
 
 		template <class TSelElem>
-		inline void select_all(Volume* pType)			{m_volumeSelector.select_all<TSelElem>();}
+		inline void select_all(const Volume*)		{m_volumeSelector.select_all<TSelElem>();}
 
 	//	clear selection
 		template <class TSelElem>
-		inline void clear_selection(GeometricObject* pType)	{m_vertexSelector.clear_selection<VertexBase>();
+		inline void clear_selection(const GeometricObject*)	{m_vertexSelector.clear_selection<VertexBase>();
 															 m_edgeSelector.clear_selection<EdgeBase>();
 															 m_faceSelector.clear_selection<Face>();
 															 m_volumeSelector.clear_selection<Volume>();}
 
 		template <class TSelElem>
-		inline void clear_selection(VertexBase* pType)		{m_vertexSelector.clear_selection<TSelElem>();}
+		inline void clear_selection(const VertexBase*)	{m_vertexSelector.clear_selection<TSelElem>();}
 
 		template <class TSelElem>
-		inline void clear_selection(EdgeBase* pType)		{m_edgeSelector.clear_selection<TSelElem>();}
+		inline void clear_selection(const EdgeBase*)	{m_edgeSelector.clear_selection<TSelElem>();}
 
 		template <class TSelElem>
-		inline void clear_selection(Face* pType)			{m_faceSelector.clear_selection<TSelElem>();}
+		inline void clear_selection(const Face*)		{m_faceSelector.clear_selection<TSelElem>();}
 
 		template <class TSelElem>
-		inline void clear_selection(Volume* pType)			{m_volumeSelector.clear_selection<TSelElem>();}
+		inline void clear_selection(const Volume*)		{m_volumeSelector.clear_selection<TSelElem>();}
 
 	//	num selected
 		template <class TSelElem>
-		inline uint num_selected(VertexBase* pType)			{return m_vertexSelector.num_selected<TSelElem>();}
+		inline uint num_selected(const VertexBase*)		{return m_vertexSelector.num_selected<TSelElem>();}
 
 		template <class TSelElem>
-		inline uint num_selected(EdgeBase* pType)			{return m_edgeSelector.num_selected<TSelElem>();}
+		inline uint num_selected(const EdgeBase*)		{return m_edgeSelector.num_selected<TSelElem>();}
 
 		template <class TSelElem>
-		inline uint num_selected(Face* pType)				{return m_faceSelector.num_selected<TSelElem>();}
+		inline uint num_selected(const Face*)			{return m_faceSelector.num_selected<TSelElem>();}
 
 		template <class TSelElem>
-		inline uint num_selected(Volume* pType)				{return m_volumeSelector.num_selected<TSelElem>();}
+		inline uint num_selected(const Volume*)			{return m_volumeSelector.num_selected<TSelElem>();}
 
 	//	empty
 		template <class TSelElem>
-		inline bool empty(VertexBase* pType)				{return m_vertexSelector.empty<TSelElem>();}
+		inline bool empty(const VertexBase*)			{return m_vertexSelector.empty<TSelElem>();}
 
 		template <class TSelElem>
-		inline bool empty(EdgeBase* pType)					{return m_edgeSelector.empty<TSelElem>();}
+		inline bool empty(const EdgeBase*)				{return m_edgeSelector.empty<TSelElem>();}
 
 		template <class TSelElem>
-		inline bool empty(Face* pType)						{return m_faceSelector.empty<TSelElem>();}
+		inline bool empty(const Face*)					{return m_faceSelector.empty<TSelElem>();}
 
 		template <class TSelElem>
-		inline bool empty(Volume* pType)					{return m_volumeSelector.empty<TSelElem>();}
+		inline bool empty(const Volume*)				{return m_volumeSelector.empty<TSelElem>();}
 
 	protected:
 		TGridPtr		m_pGrid;
