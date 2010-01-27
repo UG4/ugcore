@@ -457,19 +457,18 @@ class ISubsetHandler : public GridObserver
 		void clear_attachment_pipes(int subsetIndex);
 		void clear_attachment_pipes();
 	
-		inline VertexAttachmentPipe& get_vertex_attachment_pipe(int subsetIndex);
-		inline EdgeAttachmentPipe& get_edge_attachment_pipe(int subsetIndex);
-		inline FaceAttachmentPipe& get_face_attachment_pipe(int subsetIndex);
-		inline VolumeAttachmentPipe& get_volume_attachment_pipe(int subsetIndex);
+		template <class TGeomObj>
+		inline AttachmentPipe<TGeomObj*, ISubsetHandler>&
+		get_attachment_pipe(int subsetIndex);
 
 		template <class TAttachment> typename TAttachment::ContainerType*
-		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const VertexBase*);
+		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const VertexBase*);
 		template <class TAttachment> typename TAttachment::ContainerType*
-		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const EdgeBase*);
+		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const EdgeBase*);
 		template <class TAttachment> typename TAttachment::ContainerType*
-		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Face*);
+		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Face*);
 		template <class TAttachment> typename TAttachment::ContainerType*
-		ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Volume*);
+		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Volume*);
 
 	////////////////////////////////
 	//	virtual methods for attachments
@@ -485,119 +484,66 @@ class ISubsetHandler : public GridObserver
 	/**	WARNING: This method is cruical for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
-		inline void register_at_pipe(VertexBase* elem)	{m_vertexAttachmentPipes[get_subset_index(elem)].register_element(elem);}
+		inline void register_at_pipe(VertexBase* elem)	{m_vertexAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
+
+	///	this method should be called x \sa register_subset_elements_at_pipe.
+	/**	WARNING: This method is cruical for the attachment system.
+	 *	You should only call it during \sa register_subset_elements_at_pipe
+	 *	Only call this method for elements that are contained in a subset.*/
+		inline void register_at_pipe(EdgeBase* elem)	{m_edgeAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
 
 	///	this method should be called during \sa register_subset_elements_at_pipe.
 	/**	WARNING: This method is cruical for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
-		inline void register_at_pipe(EdgeBase* elem)	{m_edgeAttachmentPipes[get_subset_index(elem)].register_element(elem);}
+		inline void register_at_pipe(Face* elem)		{m_faceAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
 
 	///	this method should be called during \sa register_subset_elements_at_pipe.
 	/**	WARNING: This method is cruical for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
-		inline void register_at_pipe(Face* elem)		{m_faceAttachmentPipes[get_subset_index(elem)].register_element(elem);}
-
-	///	this method should be called during \sa register_subset_elements_at_pipe.
-	/**	WARNING: This method is cruical for the attachment system.
-	 *	You should only call it during \sa register_subset_elements_at_pipe
-	 *	Only call this method for elements that are contained in a subset.*/
-		inline void register_at_pipe(Volume* elem)		{m_volumeAttachmentPipes[get_subset_index(elem)].register_element(elem);}
+		inline void register_at_pipe(Volume* elem)		{m_volumeAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
 
 	public:
-	///	vertex attachment-accessor for access to subset attachment pipes.
-	/**	Please note that the accessor may only be used on elements of the
-	 *	subset on which it operates. Use on elements of other subsets
-	 *	may cause severe problems and subtile errors.*/
-		template <class TAttachment>
-		class VertexAttachmentAccessor : public ug::AttachmentAccessor<VertexBase*, TAttachment, ISubsetHandler>
+	///	attachment accessor grants access to data associated with elements of a subset.
+	/**	Valid types for TGeomObj are VertexBase, EdgeBase, Face and Volume*/
+		template <class TGeomObj, class TAttachment>
+		class AttachmentAccessor : public ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>
 		{
 			protected:
-				typedef ug::AttachmentAccessor<VertexBase*, TAttachment, ISubsetHandler>	BaseClass;
+				typedef ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>	BaseClass;
+				
 			public:
-				VertexAttachmentAccessor()	{}
-				VertexAttachmentAccessor(const VertexAttachmentAccessor& aa) : BaseClass(aa)	{}
-				VertexAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_vertex_attachment_pipe(subsetIndex), a)	{}
+				AttachmentAccessor()	{}
+				AttachmentAccessor(const AttachmentAccessor& aa) : BaseClass(aa)	{}
+				AttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_attachment_pipe<TGeomObj>(subsetIndex), a)	{}
 
 				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
-					{BaseClass::access(sh.get_vertex_attachment_pipe(subsetIndex), a);}
+					{BaseClass::access(sh.get_attachment_pipe<TGeomObj>(subsetIndex), a);}
 		};
 
-	///	edge attachment-accessor for access to subset attachment pipes.
-	/**	Please note that the accessor may only be used on elements of the
-	 *	subset on which it operates. Use on elements of other subsets
-	 *	may cause severe problems and subtile errors.*/
-		template <class TAttachment>
-		class EdgeAttachmentAccessor : public ug::AttachmentAccessor<EdgeBase*, TAttachment, ISubsetHandler>
-		{
-			protected:
-				typedef ug::AttachmentAccessor<EdgeBase*, TAttachment, ISubsetHandler>	BaseClass;
-			public:
-				EdgeAttachmentAccessor()	{}
-				EdgeAttachmentAccessor(const EdgeAttachmentAccessor& aa) : BaseClass(aa)	{}
-				EdgeAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_edge_attachment_pipe(subsetIndex), a)	{}
-
-				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
-					{BaseClass::access(sh.get_edge_attachment_pipe(subsetIndex), a);}
-		};
-
-	///	face attachment-accessor for access to subset attachment pipes.
-	/**	Please note that the accessor may only be used on elements of the
-	 *	subset on which it operates. Use on elements of other subsets
-	 *	may cause severe problems and subtile errors.*/
-		template <class TAttachment>
-		class FaceAttachmentAccessor : public ug::AttachmentAccessor<Face*, TAttachment, ISubsetHandler>
-		{
-			protected:
-				typedef ug::AttachmentAccessor<Face*, TAttachment, ISubsetHandler>	BaseClass;
-			public:
-				FaceAttachmentAccessor()	{}
-				FaceAttachmentAccessor(const FaceAttachmentAccessor& aa) : BaseClass(aa)	{}
-				FaceAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_face_attachment_pipe(subsetIndex), a)	{}
-
-				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
-					{BaseClass::access(sh.get_face_attachment_pipe(subsetIndex), a);}
-		};
-
-	///	volume attachment-accessor for access to subset attachment pipes.
-	/**	Please note that the accessor may only be used on elements of the
-	 *	subset on which it operates. Use on elements of other subsets
-	 *	may cause severe problems and subtile errors.*/
-		template <class TAttachment>
-		class VolumeAttachmentAccessor : public ug::AttachmentAccessor<Volume*, TAttachment, ISubsetHandler>
-		{
-			protected:
-				typedef ug::AttachmentAccessor<Volume*, TAttachment, ISubsetHandler>	BaseClass;
-			public:
-				VolumeAttachmentAccessor()	{}
-				VolumeAttachmentAccessor(const VolumeAttachmentAccessor& aa) : BaseClass(aa)	{}
-				VolumeAttachmentAccessor(ISubsetHandler& sh, TAttachment& a, int subsetIndex) : BaseClass(sh.get_volume_attachment_pipe(subsetIndex), a)	{}
-
-				inline void access(ISubsetHandler& sh, TAttachment& a, int subsetIndex)
-					{BaseClass::access(sh.get_volume_attachment_pipe(subsetIndex), a);}
-		};
 
 	///	the multi-subset-attachment-accessor allows to access an attachment that has been attached to multiple subsets.
 	/**	Note that this accessor is slower than the normal attachment-accessors.
 	 *	If subsets are added to the subset-handler or attachments are added/removed,
 	 *	you should not rely on the accessor to still work properly.
 	 *	Call access() in that case to re-validate him.*/
+/*
 		template <class TAttachmet, class TGeomBaseObj>
 		class MultiSubsetAttachmentAccessor
 		{
 		//TODO: implement this!
 		};
-
+*/
 	protected:
 		typedef AInt					ASubsetIndex;
 		typedef Attachment<iterator>	AIterator;
 		typedef Attachment<uint>		ADataIndex;
 		typedef std::vector<SubsetInfo>	SubsetInfoVec;
-		typedef std::vector<VertexAttachmentPipe>	VertexAttachmentPipeVec;
-		typedef std::vector<EdgeAttachmentPipe>		EdgeAttachmentPipeVec;
-		typedef std::vector<FaceAttachmentPipe>		FaceAttachmentPipeVec;
-		typedef std::vector<VolumeAttachmentPipe>	VolumeAttachmentPipeVec;
+		typedef std::vector<VertexAttachmentPipe*>	VertexAttachmentPipeVec;
+		typedef std::vector<EdgeAttachmentPipe*>		EdgeAttachmentPipeVec;
+		typedef std::vector<FaceAttachmentPipe*>		FaceAttachmentPipeVec;
+		typedef std::vector<VolumeAttachmentPipe*>	VolumeAttachmentPipeVec;
 
 	protected:
 		Grid*				m_pGrid;

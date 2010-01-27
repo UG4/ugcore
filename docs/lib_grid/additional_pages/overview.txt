@@ -214,7 +214,7 @@ SubsetHandler sh(g);
 sh.attach_to_faces(aInt, 2);
 
 /* access the attachment */
-SubsetHandler::VertexAttachmentAccessor<AInt> aaIntSH2(sh, aInt, 2);
+SubsetHandler::AttachmentAccessor<Face, AInt> aaIntSH2(sh, aInt, 2);
 
 /* Assign values: */
 /* Please note that you may only pass faces to the accessor that are contained in subset 2. */

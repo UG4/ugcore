@@ -367,10 +367,16 @@ erase_subset(int subsetIndex)
 	if((subsetIndex >= 0) && (subsetIndex < (int)num_subset_infos()))
 	{
 		change_subset_indices(subsetIndex, -1);
-	//	clear pipes
 
+	//	clear and delete pipes of erased subset
 		if(subset_attachments_are_enabled())
+		{
 			clear_attachment_pipes(subsetIndex);
+			delete m_vertexAttachmentPipes[subsetIndex];
+			delete m_edgeAttachmentPipes[subsetIndex];
+			delete m_faceAttachmentPipes[subsetIndex];
+			delete m_volumeAttachmentPipes[subsetIndex];
+		}
 
 		for(uint i = subsetIndex + 1; i < num_subset_infos(); ++i)
 		{
@@ -419,16 +425,16 @@ swap_subsets(int subsetIndex1, int subsetIndex2)
 	//	store from-attachment-pipes
 		if(subset_attachments_are_enabled())
 		{
-			VertexAttachmentPipe apFromVrt = m_vertexAttachmentPipes[subsetIndex1];
+			VertexAttachmentPipe* apFromVrt = m_vertexAttachmentPipes[subsetIndex1];
 			m_vertexAttachmentPipes[subsetIndex1] = m_vertexAttachmentPipes[subsetIndex2];
 			m_vertexAttachmentPipes[subsetIndex2] = apFromVrt;
-			EdgeAttachmentPipe apFromEdge = m_edgeAttachmentPipes[subsetIndex1];
+			EdgeAttachmentPipe* apFromEdge = m_edgeAttachmentPipes[subsetIndex1];
 			m_edgeAttachmentPipes[subsetIndex1] = m_edgeAttachmentPipes[subsetIndex2];
 			m_edgeAttachmentPipes[subsetIndex2] = apFromEdge;
-			FaceAttachmentPipe apFromFace = m_faceAttachmentPipes[subsetIndex1];
+			FaceAttachmentPipe* apFromFace = m_faceAttachmentPipes[subsetIndex1];
 			m_faceAttachmentPipes[subsetIndex1] = m_faceAttachmentPipes[subsetIndex2];
 			m_faceAttachmentPipes[subsetIndex2] = apFromFace;
-			VolumeAttachmentPipe apFromVol = m_volumeAttachmentPipes[subsetIndex1];
+			VolumeAttachmentPipe* apFromVol = m_volumeAttachmentPipes[subsetIndex1];
 			m_volumeAttachmentPipes[subsetIndex1] = m_volumeAttachmentPipes[subsetIndex2];
 			m_volumeAttachmentPipes[subsetIndex2] = apFromVol;
 		}
@@ -461,10 +467,10 @@ move_subset(int indexFrom, int indexTo)
 			SubsetInfo siFrom = m_subsetInfos[indexFrom];
 
 		//	store from-attachment-pipes
-			VertexAttachmentPipe apFromVrt;
-			EdgeAttachmentPipe apFromEdge;
-			FaceAttachmentPipe apFromFace;
-			VolumeAttachmentPipe apFromVol;
+			VertexAttachmentPipe* apFromVrt;
+			EdgeAttachmentPipe* apFromEdge;
+			FaceAttachmentPipe* apFromFace;
+			VolumeAttachmentPipe* apFromVol;
 			if(subset_attachments_are_enabled())
 			{
 				apFromVrt = m_vertexAttachmentPipes[indexFrom];
@@ -514,18 +520,25 @@ void ISubsetHandler::
 resize_attachment_pipes(size_t newSize)
 {
 	while(m_vertexAttachmentPipes.size() < newSize)
-		m_vertexAttachmentPipes.push_back(VertexAttachmentPipe(this));
+		m_vertexAttachmentPipes.push_back(new VertexAttachmentPipe(this));
 	while(m_edgeAttachmentPipes.size() < newSize)
-		m_edgeAttachmentPipes.push_back(EdgeAttachmentPipe(this));
+		m_edgeAttachmentPipes.push_back(new EdgeAttachmentPipe(this));
 	while(m_faceAttachmentPipes.size() < newSize)
-		m_faceAttachmentPipes.push_back(FaceAttachmentPipe(this));
+		m_faceAttachmentPipes.push_back(new FaceAttachmentPipe(this));
 	while(m_volumeAttachmentPipes.size() < newSize)
-		m_volumeAttachmentPipes.push_back(VolumeAttachmentPipe(this));
+		m_volumeAttachmentPipes.push_back(new VolumeAttachmentPipe(this));
 }
 
 void ISubsetHandler::
 clear_attachment_pipes()
 {
+	for(size_t i = 0; i < m_vertexAttachmentPipes.size(); ++i){
+	//	all pipes have the same size
+		delete m_vertexAttachmentPipes[i];
+		delete m_edgeAttachmentPipes[i];
+		delete m_faceAttachmentPipes[i];
+		delete m_volumeAttachmentPipes[i];
+	}
 	m_vertexAttachmentPipes.clear();
 	m_edgeAttachmentPipes.clear();
 	m_faceAttachmentPipes.clear();
@@ -535,10 +548,10 @@ clear_attachment_pipes()
 void ISubsetHandler::
 clear_attachment_pipes(int subsetIndex)
 {
-	m_vertexAttachmentPipes[subsetIndex].clear();
-	m_edgeAttachmentPipes[subsetIndex].clear();
-	m_faceAttachmentPipes[subsetIndex].clear();
-	m_volumeAttachmentPipes[subsetIndex].clear();
+	m_vertexAttachmentPipes[subsetIndex]->clear();
+	m_edgeAttachmentPipes[subsetIndex]->clear();
+	m_faceAttachmentPipes[subsetIndex]->clear();
+	m_volumeAttachmentPipes[subsetIndex]->clear();
 }
 
 void ISubsetHandler::

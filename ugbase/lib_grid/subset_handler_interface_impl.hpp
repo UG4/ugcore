@@ -9,6 +9,38 @@
 
 namespace ug
 {
+template <>
+inline AttachmentPipe<VertexBase*, ISubsetHandler>&
+ISubsetHandler::get_attachment_pipe<VertexBase>(int subsetIndex)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	return *m_vertexAttachmentPipes[subsetIndex];
+}
+
+template <>
+inline AttachmentPipe<EdgeBase*, ISubsetHandler>&
+ISubsetHandler::get_attachment_pipe<EdgeBase>(int subsetIndex)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	return *m_edgeAttachmentPipes[subsetIndex];
+}
+
+template <>
+inline AttachmentPipe<Face*, ISubsetHandler>&
+ISubsetHandler::get_attachment_pipe<Face>(int subsetIndex)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	return *m_faceAttachmentPipes[subsetIndex];
+}
+
+template <>
+inline AttachmentPipe<Volume*, ISubsetHandler>&
+ISubsetHandler::get_attachment_pipe<Volume>(int subsetIndex)
+{
+	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
+	return *m_volumeAttachmentPipes[subsetIndex];
+}
+
 
 inline void ISubsetHandler::
 subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
@@ -16,10 +48,10 @@ subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(v) != -1)
-			m_vertexAttachmentPipes[subsetIndex].unregister_element(v);
+			get_attachment_pipe<VertexBase>(subsetIndex).unregister_element(v);
 			
 		if(subsetIndex != -1)
-			m_vertexAttachmentPipes[subsetIndex].register_element(v);
+			get_attachment_pipe<VertexBase>(subsetIndex).register_element(v);
 	}
 
 	m_aaIteratorVRT[v] = iter;
@@ -32,10 +64,10 @@ subset_assigned(EdgeBase* e, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(e) != -1)
-			m_edgeAttachmentPipes[subsetIndex].unregister_element(e);
+			get_attachment_pipe<EdgeBase>(subsetIndex).unregister_element(e);
 			
 		if(subsetIndex != -1)
-			m_edgeAttachmentPipes[subsetIndex].register_element(e);
+			get_attachment_pipe<EdgeBase>(subsetIndex).register_element(e);
 	}
 
 	m_aaIteratorEDGE[e] = iter;
@@ -49,10 +81,10 @@ subset_assigned(Face* f, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(f) != -1)
-			m_faceAttachmentPipes[subsetIndex].unregister_element(f);
+			get_attachment_pipe<Face>(subsetIndex).unregister_element(f);
 			
 		if(subsetIndex != -1)
-			m_faceAttachmentPipes[subsetIndex].register_element(f);
+			get_attachment_pipe<Face>(subsetIndex).register_element(f);
 	}
 
 	m_aaIteratorFACE[f] = iter;
@@ -66,10 +98,10 @@ subset_assigned(Volume* v, iterator iter, int subsetIndex)
 	if(subset_attachments_are_enabled())
 	{
 		if(get_subset_index(v) != -1)
-			m_volumeAttachmentPipes[subsetIndex].unregister_element(v);
+			get_attachment_pipe<Volume>(subsetIndex).unregister_element(v);
 			
 		if(subsetIndex != -1)
-			m_volumeAttachmentPipes[subsetIndex].register_element(v);
+			get_attachment_pipe<Volume>(subsetIndex).register_element(v);
 	}
 
 	m_aaIteratorVOL[v] = iter;
@@ -100,42 +132,6 @@ subset_info_required(int index)
 
 ////////////////////////////////////////////////////////////////////////
 //	attachment handling
-inline
-ISubsetHandler::VertexAttachmentPipe&
-ISubsetHandler::get_vertex_attachment_pipe(int subsetIndex)
-{
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return m_vertexAttachmentPipes[subsetIndex];
-}
-
-inline
-ISubsetHandler::EdgeAttachmentPipe&
-ISubsetHandler::get_edge_attachment_pipe(int subsetIndex)
-{
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return m_edgeAttachmentPipes[subsetIndex];
-}
-
-inline
-ISubsetHandler::FaceAttachmentPipe&
-ISubsetHandler::get_face_attachment_pipe(int subsetIndex)
-{
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return m_faceAttachmentPipes[subsetIndex];
-}
-
-inline
-ISubsetHandler::VolumeAttachmentPipe&
-ISubsetHandler::get_volume_attachment_pipe(int subsetIndex)
-{
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return m_volumeAttachmentPipes[subsetIndex];
-}
-
 template <class TGeomObjClass>
 void ISubsetHandler::
 attach_to(IAttachment& attachment, int subsetIndex)
@@ -150,16 +146,16 @@ attach_to(IAttachment& attachment, int subsetIndex)
 	switch(objType)
 	{
 		case VERTEX:
-			m_vertexAttachmentPipes[subsetIndex].attach(attachment, 0);
+			get_attachment_pipe<VertexBase>(subsetIndex).attach(attachment, 0);
 			break;
 		case EDGE:
-			m_edgeAttachmentPipes[subsetIndex].attach(attachment, 0);
+			get_attachment_pipe<EdgeBase>(subsetIndex).attach(attachment, 0);
 			break;
 		case FACE:
-			m_faceAttachmentPipes[subsetIndex].attach(attachment, 0);
+			get_attachment_pipe<Face>(subsetIndex).attach(attachment, 0);
 			break;
 		case VOLUME:
-			m_volumeAttachmentPipes[subsetIndex].attach(attachment, 0);
+			get_attachment_pipe<Volume>(subsetIndex).attach(attachment, 0);
 			break;
 	};
 }
@@ -179,16 +175,16 @@ attach_to_dv(TAttachment& attachment, int subsetIndex,
 	switch(objType)
 	{
 		case VERTEX:
-			m_vertexAttachmentPipes[subsetIndex].attach(attachment, defaultValue, 0);
+			get_attachment_pipe<VertexBase>(subsetIndex).attach(attachment, defaultValue, 0);
 			break;
 		case EDGE:
-			m_edgeAttachmentPipes[subsetIndex].attach(attachment, defaultValue, 0);
+			get_attachment_pipe<EdgeBase>(subsetIndex).attach(attachment, defaultValue, 0);
 			break;
 		case FACE:
-			m_faceAttachmentPipes[subsetIndex].attach(attachment, defaultValue, 0);
+			get_attachment_pipe<Face>(subsetIndex).attach(attachment, defaultValue, 0);
 			break;
 		case VOLUME:
-			m_volumeAttachmentPipes[subsetIndex].attach(attachment, defaultValue, 0);
+			get_attachment_pipe<Volume>(subsetIndex).attach(attachment, defaultValue, 0);
 			break;
 	};
 }
@@ -206,19 +202,20 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 	switch(objType)
 	{
 		case VERTEX:
-			m_vertexAttachmentPipes[subsetIndex].detach(attachment);
+			get_attachment_pipe<VertexBase>(subsetIndex).detach(attachment);
 			break;
 		case EDGE:
-			m_edgeAttachmentPipes[subsetIndex].detach(attachment);
+			get_attachment_pipe<EdgeBase>(subsetIndex).detach(attachment);
 			break;
 		case FACE:
-			m_faceAttachmentPipes[subsetIndex].detach(attachment);
+			get_attachment_pipe<Face>(subsetIndex).detach(attachment);
 			break;
 		case VOLUME:
-			m_volumeAttachmentPipes[subsetIndex].detach(attachment);
+			get_attachment_pipe<Volume>(subsetIndex).detach(attachment);
 			break;
 	};
 }
+
 
 template <class TAttachment>
 typename TAttachment::ContainerType*
@@ -227,7 +224,7 @@ ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subse
 {
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 
-	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+	return get_attachment_pipe<VertexBase>(subsetIndex).get_data_container(attachment);
 }
 
 template <class TAttachment>
@@ -237,7 +234,7 @@ ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subse
 {
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 
-	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+	return get_attachment_pipe<EdgeBase>(subsetIndex).get_data_container(attachment);
 }
 
 template <class TAttachment>
@@ -247,7 +244,7 @@ ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subse
 {
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 
-	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+	return get_attachment_pipe<Face>(subsetIndex).get_data_container(attachment);
 }
 
 template <class TAttachment>
@@ -257,7 +254,7 @@ ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subse
 {
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
 
-	return m_vertexAttachmentPipes[subsetIndex].get_data_container(attachment);
+	return get_attachment_pipe<Volume>(subsetIndex).get_data_container(attachment);
 }
 
 ////////////////////////////////////////////////////////////////////////
