@@ -216,46 +216,14 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 	};
 }
 
-
-template <class TAttachment>
-typename TAttachment::ContainerType*
-ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
-											  const VertexBase*)
+template <class TGeomObj, class TAttachment>
+inline typename TAttachment::ContainerType*
+ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex)
 {
 	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return get_attachment_pipe<VertexBase>(subsetIndex).get_data_container(attachment);
+	return get_attachment_pipe<TGeomObj>(subsetIndex).get_data_container(attachment);
 }
 
-template <class TAttachment>
-typename TAttachment::ContainerType*
-ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
-											  const EdgeBase*)
-{
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return get_attachment_pipe<EdgeBase>(subsetIndex).get_data_container(attachment);
-}
-
-template <class TAttachment>
-typename TAttachment::ContainerType*
-ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
-											  const Face*)
-{
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return get_attachment_pipe<Face>(subsetIndex).get_data_container(attachment);
-}
-
-template <class TAttachment>
-typename TAttachment::ContainerType*
-ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subsetIndex,
-											  const Volume*)
-{
-	assert(subset_attachments_are_enabled() && "ERROR - you have to enable subset-attachments for this subset-handler before executing this mehtod.");
-
-	return get_attachment_pipe<Volume>(subsetIndex).get_data_container(attachment);
-}
 
 ////////////////////////////////////////////////////////////////////////
 //	attachments_traits

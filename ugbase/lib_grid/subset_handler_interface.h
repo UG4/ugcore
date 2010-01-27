@@ -371,9 +371,15 @@ class ISubsetHandler : public GridObserver
 		inline void detach_from_faces(IAttachment& attachment, int subsetIndex)		{detach_from<Face>(attachment, subsetIndex);}
 		inline void detach_from_volumes(IAttachment& attachment, int subsetIndex)	{detach_from<Volume>(attachment, subsetIndex);}
 
+	///	returns the attachment data container for elements of type TGeomObj for the given subset.
+	/**	Use the data-container with care! You should never clear or resize it.
+	 *
+	 *	Valid types for TGeomObj are VertexBase, EdgeBase, Face and Volume.
+	 *	call it like this (let sh be an instance of ISubsetHandler):
+	 *	sh.get_attachment_data_container<VertexBase>(aSomeAttachment, someSubsetIndex);*/
 		template <class TGeomObj, class TAttachment>
 		inline typename TAttachment::ContainerType*
-		get_attachment_data_container(TAttachment& attachment, int subsetIndex)		{TGeomObj* dummy; return get_attachment_data_container(attachment, subsetIndex, dummy);}
+		get_attachment_data_container(TAttachment& attachment, int subsetIndex);
 
 	protected:
 		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
@@ -460,15 +466,6 @@ class ISubsetHandler : public GridObserver
 		template <class TGeomObj>
 		inline AttachmentPipe<TGeomObj*, ISubsetHandler>&
 		get_attachment_pipe(int subsetIndex);
-
-		template <class TAttachment> typename TAttachment::ContainerType*
-		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const VertexBase*);
-		template <class TAttachment> typename TAttachment::ContainerType*
-		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const EdgeBase*);
-		template <class TAttachment> typename TAttachment::ContainerType*
-		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Face*);
-		template <class TAttachment> typename TAttachment::ContainerType*
-		get_attachment_data_container(TAttachment& attachment, int subsetIndex, const Volume*);
 
 	////////////////////////////////
 	//	virtual methods for attachments
