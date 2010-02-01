@@ -66,6 +66,22 @@ number DropAPerpendicular(vector_t& vOut, const vector_t& v0,
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
+						const vector_t& p, const vector_t& n)
+{
+//	the vector from p to v
+	vector_t t;
+	VecSubtract(t, v, p);
+
+//	scale the normal with the dot-product with the direction
+	VecScale(t, n, VecDot(n, t));
+
+//	subtract the scaled normal from the original point
+	VecSubtract(vOut, v, t);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
 number TriangleArea(const vector_t& p1, const vector_t& p2, const vector_t& p3)
 {
 //	the projection of p3 onto the line defined by p1 and p2

@@ -43,6 +43,13 @@ number DropAPerpendicular(vector_t& vOut, const vector_t& v0,
 							const vector_t& v1, const vector_t& v);
 
 ////////////////////////////////////////////////////////////////////////
+///	projects v onto the plane defined by the point p and the planes normal n.
+/**	The result is written to vOut.*/
+template <class vector_t>
+void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
+						const vector_t& p, const vector_t& n);
+
+////////////////////////////////////////////////////////////////////////
 ///	calculates the are of the triangle defined by p1, p2 and p3
 template <class vector_t>
 number TriangleArea(const vector_t& p1, const vector_t& p2,
