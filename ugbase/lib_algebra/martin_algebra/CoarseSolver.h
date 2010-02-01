@@ -10,6 +10,8 @@
 
 typedef long int __CLPK_integer;
 
+// TODO: for smallmatrix tasks like this, better use sth. like FLENS
+
 class CoarseSolver
 {
 public:
@@ -19,7 +21,12 @@ public:
 		interchange = NULL;
 	}
 	
-	~CoarseSolver();	
+	~CoarseSolver()
+	{	
+		if(densemat) delete[] densemat;
+		if(interchange) delete[] interchange;
+		if(vec) delete[] vec;		
+	}
 	template <typename entry_type>
 	void create(const SparseMatrix<entry_type> &A);
 	

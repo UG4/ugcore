@@ -10,8 +10,7 @@
 #pragma once
 #include "blockMatrix.h"
 
-/////////////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////
 //!
 //! class XD: class for template Expressions.
 //! only classes which inherit from XD (via class myClass : public XD<myClass> )
@@ -19,10 +18,12 @@
 template<class A> class XD
 {
 public:
+	//! cast this class down to original class A.
 	const A& cast() const {return static_cast<const A&>(*this); }
 };
 
-/////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
 //!
 //! general template Expression: L Operator R.
 //! all Expressions support
@@ -72,6 +73,8 @@ public:
 }; 
 
 
+
+////////////////////////////////////////////////////////////////////////////////
 //!
 //! template Expression: double Operator R.
 template<typename Operator, typename R> 
@@ -114,9 +117,13 @@ public:
 	inline void printtype() const	{	cout << *this; }
 }; 
 
-// Operator Structs, for defining Operator behaviour
-/////////////////////////////////////////////////////////////////
 
+
+
+#pragma mark Operator Structs, for defining Operator behaviour
+////////////////////////////////////////////////////////////////////////////////
+
+//! Add_Operator: for a + b
 template<typename vec_type>
 struct Add_Operator
 { 
@@ -130,6 +137,7 @@ struct Add_Operator
 	static inline const char *cTyp() { return " + "; }
 }; 
 
+//! Minus_Operator: for a - b
 template<typename vec_type>
 struct Minus_Operator
 { 
@@ -143,6 +151,7 @@ struct Minus_Operator
 	static inline const char *cTyp() { return " - "; }
 }; 
 
+//! Multiply_Operator: for a * b
 template<typename entry_type, typename vec_type>
 struct Multiply_Operator
 { 
@@ -163,25 +172,25 @@ struct Multiply_Operator
 	static inline const char *cTyp() { return " / "; }
 };*/
 
-// operator x -> X_Operator
-/////////////////////////////////////////////////////////////////
 
-//
-// allow + for all XDs
+
+#pragma mark operator x -> X_Operator
+////////////////////////////////////////////////////////////////////////////////
+
+//! allow + for all types XD
 template<typename L, typename R> Expression< L, Add_Operator< typename L::entry_type >, R> operator+(const XD<L> &l,const XD<R> &r)
 { 
 	return Expression<L, Add_Operator< typename L::entry_type >, R> (l.cast(), r.cast()); 
 }
 
 //
-// allow - for all XDs
+//! allow - for all types XD
 template<typename L, typename R> Expression< L, Minus_Operator< typename L::entry_type >, R> operator-(const XD<L> &l,const XD<R> &r)
 { 
 	return Expression<L, Minus_Operator< typename L::entry_type >, R> (l.cast(), r.cast()); 
 }
 
-//
-// allow * for doubles and all XDs
+//! allow * for doubles and all types XD
 template<typename R> Expression<double, Multiply_Operator<double, typename R::entry_type >, R> operator*(double l,const XD<R> &r)
 { 
 	return Expression<double, Multiply_Operator<double, typename R::entry_type>, R> (l, r.cast()); 
@@ -190,9 +199,9 @@ template<typename R> Expression<double, Multiply_Operator<double, typename R::en
 
 
 
-/////////////////////////////////////////////////////////////////
+#pragma -
+////////////////////////////////////////////////////////////////////////////////
 
-//!
 //! template expression norm2
 template<typename Type> 
 inline double norm2(const XD<Type> &t_)
@@ -204,7 +213,6 @@ inline double norm2(const XD<Type> &t_)
 	return sum;
 }
 
-//!
 //! template expression norm
 template<typename Type> 
 inline double norm(const XD<Type> &t)

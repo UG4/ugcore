@@ -38,11 +38,11 @@ template<typename vec_type> class Vector;
 //							SparseMatrix
 ///////////////////////////////////////////////////////////////////
 
+
+// AMG
+//---------------------------------
+//! algebraic multigrid class.
 //!
-//! class SparseMatrix
-//! templated class, parameter is a blockmatrix type like double or blockDenseMatrix
-//! trough matrix_trait<entry_type>::vec_type corresponding blockvector is determined
-//! 
 template<typename templ_entry_type> 
 class SparseMatrix
 {
@@ -74,83 +74,74 @@ public:
 		}
 	};
 	
-public:
+public: // construction etc
+	
 	// constructor for empty SparseMatrix
 	SparseMatrix();
 	// destructor
 	~SparseMatrix ();	
 	
-private:
-	// disallowed operations (not defined):
-	SparseMatrix(SparseMatrix&); // disallow copy operator
-	void operator = (const SparseMatrix &v); // disallow assignment
-	
-public:	
-	//! create
-	//! creates an empty SparseMatrix with lenght length_.
+
 	void create(int _rows, int _cols);
 	
-	//!
-	//! createAsTransposeOf
 	//! create this as a transpose of SparseMatrix B
 	void createAsTransposeOf(const SparseMatrix &B);
 	
-	//!
-	//! eliminateDirichletValues
-	//! Dirichlet rows are rows i with only A[i,i] = 1.0 and A[i,j] = 0.0 for all i != j
-	//! these rows are added to other rows j with A[j,i] != 0.0, until A[j,i] = 0.0,
-	//! and corresponding entries in rhs vector b are changed.
+private: // disallowed operations (not defined):
+	SparseMatrix(SparseMatrix&); ///< disallow copy operator
+	void operator = (const SparseMatrix &v); ///< disallow assignment
+	
+public:	// general functions	
 	template<typename Vector_type>
 	void eliminateDirichletValues(Vector_type &b);
 	
 	void setDirichletRow(int row);
 	void setDirichletRows(int *pRows, int nrows);
 	
-
+	//! calculate res = A x
 	template<typename Vector_type>
 	void apply(Vector_type &res, const Vector_type &x) const;
 	
+	//! calculate res = A.T x
 	template<typename Vector_type>
 	void applyTransposed(Vector_type &res, const Vector_type &x) const;
 	
+	//! calculate res -= A x
 	template<typename Vector_type>
 	void matmul_minus(Vector_type &res, const Vector_type &x) const;
 
-	// accessor functions for artificial matrixrow-object (= just wrapper with A and row)	
+	//! accessor functions for artificial matrixrow-object (= just wrapper with A and row)	
 	inline const matrixrow_type getrow(int i) const;
 	const matrixrow_type operator [] (int i) const;
 	
 	
+	//! get Diagonal A_[i,i] of matrix
 	inline const entry_type getDiag(int i) const;
 	inline entry_type &getDiag(int i);	
 	
-	//!
 	//! isUnconnected: true if only A[i,i] != 0.0.
 	inline bool isUnconnected(int i) const;	
 
-	//!
-	//! add (submatrix)
 	//! adds the submatrix mat to A. 
-	//! @see submatrix
 	void add(const submatrix<entry_type> &mat);
+	//! sets the submatrix mat in A
 	void set(const submatrix<entry_type> &mat);
+	//! gets the submatrix mat of A
 	void get(submatrix<entry_type> &mat) const;
 
 	// for other manipulation/accessor functions see matrixrow functions,
 	// that is A[i].matrixrowfunction(params).
+		
+public: // accessor functions
 	
-	// accessor functions
-public:
 	int getLength() const { return rows; }
 	int getRows() const { return rows; }
 	int getCols() const { return cols; }
 	int getTotalNrOfConnections() const { return iTotalNrOfConnections; }
 	
 	
-	// row functions
-public:	
-	//!
-	//! removezeros
+	
+public:	// row functions
 	//! remove zero entries of SparseMatrix (experimental)
 	void removezeros(int row);
 	
@@ -158,9 +149,8 @@ public:
 	void addMatrixRow(int row, connection *c, int nr);	
 	int getNrOfConnections(int row) const { return iNrOfConnections[row]; }	
 
-public:
-	// print functions
-	//------------------
+public: // output functions
+
 	void print(const char * const name = NULL) const;
 	void printrow(int row) const;
 	void p() const; // for use in gdb
@@ -174,9 +164,6 @@ public:
 	}
 	void printtype() const; 
 	
-	
-	//!
-	//! writeToFile
 	//! writes Matrix into file filename in ConnectionViewer format.
 	void writeToFile(const char *filename) const;
 	
@@ -209,7 +196,6 @@ public:
 		return a;
 	}
 	
-	//!
 	//! prefetch (EXPERIMENTAL)
 	inline void prefetch(int i) const
 	{
@@ -343,6 +329,7 @@ public:
 	
 	
 private:	
+	//! "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
 	void safeSetConnections(int row, connection *mem) const;
 	void recreateWithMaxNrOfConnections(int newMax) const;
 	
@@ -384,4 +371,5 @@ private:
 #include "matrixRow.h"
 
 #include "Vector.hpp"
+
 #include "SparseMatrix.hpp"

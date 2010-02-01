@@ -21,8 +21,8 @@ const double theta = 0.3;
 
 
 
-#define EASY_MATRIX // set h = 1.0
-//#define NINE_POINT
+//#define EASY_MATRIX // set h = 1.0
+#define NINE_POINT
 
 #ifndef NINE_POINT
 #define AGGRESSIVE_COARSENING
@@ -47,3 +47,6 @@ typedef double myBlockVec;
 
 #endif
 
+
+typedef SparseMatrix<myBlockMat> myMatrix;
+typedef Vector<myBlockVec> myVector;

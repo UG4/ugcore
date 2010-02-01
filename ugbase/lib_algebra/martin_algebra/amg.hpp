@@ -21,13 +21,19 @@ extern int *parentIndex[AMG_MAX_LEVELS];
 #define AMG_PRINT_AH
 #define AMG_PRINT_GRAPH
 #endif
-//*/
+
+//
 // writeMatrices:
 //----------------
-// writes A to pathAndName + "A" + level + ".mat for all levels, also R
+//! writes A to pathAndName + "A" + level + ".mat for all levels, also R
+//! @param pathAndName	path with name of matrix. for example "/Users/username/matrices/mat"
 template<typename entry_type, typename Vector_type>
 void amg<entry_type, Vector_type>::writeMatrices(const char *pathAndName)
 {
+	// only for small matrices
+	if(A[0]->getRows() > 1000*1000)
+		return;
+	
 	cout << "writing matrices "; cout.flush();
 	string str(pathAndName);
 	for(int i=0; i<used_levels-1; i++)
@@ -41,34 +47,16 @@ void amg<entry_type, Vector_type>::writeMatrices(const char *pathAndName)
 	cout << " finished."; cout.flush();
 }
 
-template<typename entry_type, typename Vector_type>
-void amg<entry_type, Vector_type>::restriction(Vector_type *pto, const Vector_type &from, int fromlevel) // h -> 2h
-{	
-	Vector_type &to = *pto;
-	ASSERT2(to.getLength() == R[fromlevel].getLength() && from.getLength() == P[fromlevel].getLength(), "lenghts not matching");
-	
-	to = R[fromlevel] * from;
-}
-
-template<typename entry_type, typename Vector_type>
-void amg<entry_type, Vector_type>::interpolate(Vector_type *pto, const Vector_type &from, int tolevel) // 2h -> h prolongate
-{
-	Vector_type &to = *pto;
-	ASSERT2( to.getLength() == P[tolevel].getLength() && from.getLength() == R[tolevel].getLength(), "lengths not matching");
-	
-	to = P[tolevel]*from;
-}
-
 // printCoarsening:
 //----------------
-// Debug output. Writes position of Coarse nodes in coarse<level>.dat, and fine in fine<level>.dat for display in gnuplot
+//! Debug output. Writes position of Coarse nodes in coarse<level>.dat, and fine in fine<level>.dat for display in gnuplot
+//! @param level	level which is to be printed
 template<typename entry_type, typename Vector_type>
-void amg<entry_type, Vector_type>::printCoarsening(int level, int n)
-{
-  
+void amg<entry_type, Vector_type>::printCoarsening(int level)
+{  
 	fstream fcoarse((string("/Users/mrupp/matrices/coarse") + nrstring(level) + ".dat").c_str(), ios::out);	
 	fstream ffine  ((string("/Users/mrupp/matrices/fine") + nrstring(level) + ".dat").c_str(), ios::out);	
-	//fstream funass ((string("unass") + nrstring(level) + ".dat").c_str(), ios::out);	
+	int n = A[level].getRows();
 	
 	for(int i=0; i < n; i++)
 	{
@@ -98,8 +86,13 @@ void amg<entry_type, Vector_type>::printCoarsening(int level, int n)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CreateGraph:
 //-------------------------
-// Create graph of strong connections from A, calculate ratings in grid[i].rating,
-// build up priority queue PQ. unassigned: nr of nodes to be assigned by coarsening algorihm
+//! Create graph of strong connections from A, calculate ratings in grid[i].rating,
+//! build up priority queue PQ. unassigned: nr of nodes to be assigned by coarsening algorihm
+//!
+//! @param	A			matrix A for which to calculate strong connectivity graph
+//! @param graph		the calculated strong connectivity graph of A
+//! @param	PQ			maxheap priority queue for sorting of the nodes wrt the rating
+//! @param unassigned	nr of nodes which are now to be assigned coarse or fine
 template<typename entry_type, typename Vector_type> // template<typename conn_matrix> // const conn_matrix &C
 void amg<entry_type, Vector_type>::CreateGraph(const matrix_type &A, cgraph &graph, maxheap<nodeinfo> &PQ, int &unassigned)
 {
@@ -132,7 +125,6 @@ void amg<entry_type, Vector_type>::CreateGraph(const matrix_type &A, cgraph &gra
 	
 	// we need the transpose, since when we set a node coarse, we want
 	// all nodes to be fine which can be interpolated by this coarse node
-	// and NOT all nodes which interpolate the coarse node
 	graph.transpose();
 	for(int i=0; i < A.getLength(); i++)
 	{
@@ -151,15 +143,21 @@ void amg<entry_type, Vector_type>::CreateGraph(const matrix_type &A, cgraph &gra
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CreateGraph2:
 //-------------------------
-// Create the graph2, which consists of coarse nodes in graph
-// two coarse nodes a and b in graph2 are connected, if
-// - there exist at least 2 ways of length 2 from a to b (A2-Coarsening)
-// - there exist a ways of length 2 from a to b (A1-Coarsening)
-// because of the coarsening process, every coarse node has only fine neighbors in graph,
-// that means those ways are from a coarse node over a fine node to a coarse node.
+//! Create the graph2, which consists of coarse nodes in graph.
+//! two coarse nodes a and b in graph2 are connected, if
+//! - there exist at least 2 ways of length 2 from a to b (A2-Coarsening)
+//! - there exist a ways of length 2 from a to b (A1-Coarsening)
+//! because of the coarsening process, every coarse node has only fine neighbors in graph,
+//! that means those ways are from a coarse node over a fine node to a coarse node.
+//!
+//! @param	graph			old graph of normal strong connectivity (from CreateGraph)
+//! @param graph2			new graph of "distance-2-strong-connectivity"
+//! @param PQ				maxheap priority queue for sorting of the nodes wrt the rating
+//! @param unassigned		nr of nodes which are now to be assigned coarse or fine
+//! @param posInConnections		array of size graph.size for speedup of neighbor-neighbor-calculation inited with -1.
 template<typename entry_type, typename Vector_type>
 void amg<entry_type, Vector_type>::CreateGraph2(cgraph &graph, cgraph &graph2, maxheap<nodeinfo> &PQ, int &unassigned, int *posInConnections)
-{	
+{		
 	vector<int> connection(255);
 	vector<int> nrOfPaths(255);
 	
@@ -172,7 +170,8 @@ void amg<entry_type, Vector_type>::CreateGraph2(cgraph &graph, cgraph &graph2, m
 		if(grid[b].isFine())
 			continue;
 		
-		connection.clear(); nrOfPaths.clear();
+		connection.clear(); 
+		nrOfPaths.clear();
 		// first calculate all nodes reachable with paths of length 2
 		
 		// ! i is coarse -> has only fine neighbors
@@ -183,34 +182,37 @@ void amg<entry_type, Vector_type>::CreateGraph2(cgraph &graph, cgraph &graph2, m
 			{
 				int indexNN = graph.conn[indexN][j];
 				
-				if(grid[indexNN].isFine() || indexNN == b)
+				if(indexNN == b || grid[indexNN].isFine())
 					continue;
 				int pos = posInConnections[indexNN];
 				if(pos == -1)
-				{					
+				{
+					// never reached node indexNN from b, init.
 					pos = posInConnections[indexNN]= connection.size();					
 					connection.push_back(indexNN);
 					nrOfPaths.push_back(1);					
 				}
-				else
+				else					
 					nrOfPaths[pos]++;
 			}
 		}
 		
-		// then sort out those which were reached at #aggressiveCoarseningNrOfPaths (2 or 1)
+		// then sort out those which were reached #aggressiveCoarseningNrOfPaths (2 or 1) times
 		grid[b].rating = 0;
 		for(int i=0; i<connection.size(); i++)
 		{
 			if(nrOfPaths[i] >= aggressiveCoarseningNrOfPaths)
 			{
+				// add connection b -> node
 				graph2.setConnection(b, connection[i]);
+				// increase rating of b
 				grid[b].rating ++;
 			}
 			// reset posInConnections for further use
 			posInConnections[connection[i]] = -1;
 		}
 		
-		// add node with rating to priority queue
+		// add node with rating > 0 to priority queue
 		if(grid[b].rating > 0)
 		{
 			PQ.insertItem(b);
@@ -228,11 +230,12 @@ void amg<entry_type, Vector_type>::CreateGraph2(cgraph &graph, cgraph &graph2, m
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Coarsen:
 //-------------------------
-// Coarsens the graph with ratings of nodes in grid[i].rating, set up in a priority queue PQ
-// newIndex[i]: store here new index of this node in coarse grid (>0, if fine < 0)
-// int unassigned: nr of nodes to assign
-// bool bIndirect: if true, this is 2nd stage of Aggressive Coarsening, then fine nodes get marker "IndirectFine"
-//				   instead of just "fine". Used later in CreateProlongation and CreateIndirectProlongation
+//! Coarsens the graph with ratings of nodes in grid[i].rating, set up in a priority queue PQ
+//! @param newIndex		store in newIndex[i] new index of node i in coarse grid (>0, if fine < 0)
+//! @param unassigned	nr of nodes to assign
+//! @param bIndirect	if true, this is 2nd stage of Aggressive Coarsening, then fine nodes get marker "IndirectFine"
+//!						instead of just "fine". Used later in CreateProlongation and CreateIndirectProlongation
+//! @return				returns number of new coarse nodes.
 template<typename entry_type, typename Vector_type>
 int amg<entry_type, Vector_type>::Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, bool bIndirect, const matrix_type &A)
 {
@@ -318,7 +321,12 @@ int amg<entry_type, Vector_type>::Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CreateProlongation:
 //-------------------------
-// Calculates Prolongatin P with matrix_type A and coarse/fine markers in grid[i].isFine/isCoarse
+//! Calculates Prolongatin P with matrix_type A and coarse/fine markers in grid[i].isFine/isCoarse by direct interpolation
+//! uses nodeinfo *grid.
+//!	@param P				Matrix P: here goes the calculated prolongation
+//! @param	A				Matrix A: matrix for which to calculate prolongation on next level
+//! @param	newIndex		newIndex of coarse Node i on next coarser level
+//! @param	iNrOfCoarse		nr of coarse nodes on this level
 template<typename entry_type, typename Vector_type>
 void amg<entry_type, Vector_type>::CreateProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int iNrOfCoarse)
 {	
@@ -349,24 +357,33 @@ void amg<entry_type, Vector_type>::CreateProlongation(SparseMatrix<double> &P, c
 		{	
 			// a non-interpolated fine node. calculate interpolation weights
 			
+			const double eps_truncate = 0.2;	// Ruge/Stuebe A.7.2.4 truncation of interpolation
+			
 			// calc min off-diag-entry
-			double dmax = 0;
-			typename matrix_type::cRowIterator conn = A.beginRow(i); ++conn;
-			for(; !conn.isEnd(); ++conn)
-				if(dmax < mnorm((*conn).dValue)) dmax = mnorm((*conn).dValue);			
-			
-			// calculate interpolation coefficients
+			double dmax = 0, connValue, maxConnValue = 0;
 			double sumNeighbors =0, sumInterpolatory=0;
+			typename matrix_type::cRowIterator conn = A.beginRow(i); ++conn; // skip diag
 			
-			con.clear(); double connValue;
+			for(; !conn.isEnd(); ++conn)
+			{
+				connValue = mnorm((*conn).dValue);
+				sumNeighbors += -connValue;
+				
+				if(dmax < connValue) 
+					dmax = connValue;
+				if(!grid[(*conn).iIndex].isFine() && maxConnValue < connValue)
+					maxConnValue = connValue;
+				
+			}
 			
+			double barrier = min(theta*dmax, eps_truncate*maxConnValue);
+			con.clear();			
+				
 			conn.rewind(); ++conn; // skip diagonal
 			for(; !conn.isEnd(); ++conn)
 			{
-				connValue = -mnorm((*conn).dValue);
-				sumNeighbors += connValue;	
-				
-				if(-connValue < theta * dmax || grid[(*conn).iIndex].isFine())
+				connValue = -mnorm((*conn).dValue);								
+				if(-connValue < barrier || grid[(*conn).iIndex].isFine())
 					continue;
 				c.iIndex = newIndex[(*conn).iIndex];				
 				c.dValue = connValue;
@@ -394,13 +411,20 @@ void amg<entry_type, Vector_type>::CreateProlongation(SparseMatrix<double> &P, c
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CreateIndirectProlongation:
 //-------------------------
-// Assume Prolongation of all normal fine nodes is already computed, it calculates the Interpolation of
-// fineIndirect nodes with matrix_type A and Coarse/FineIndirect markers in grid[i].isCoarse/isFineIndirect
-//
-// Probably this is not the fastest way to do this:
-// One could create the graph 1 directly with indirect interpolation, then coarse, and then
-// calc interpolation. For fine nodes with no coarse neighbors, calc fine neighbors' interpolation,
-// then calc indirect interpolation. check if interpolation already calculated by looking at P.iNrOfConnections[i].
+//! Assume Prolongation of all normal fine nodes is already computed, it calculates the Interpolation of
+//! fineIndirect nodes with matrix_type A and Coarse/FineIndirect markers in grid[i].isCoarse/isFineIndirect
+//!
+//! Probably this is not the fastest way to do this:
+//! One could create the graph 1 directly with indirect interpolation, then coarse, and then
+//! calc interpolation. For fine nodes with no coarse neighbors, calc fine neighbors' interpolation,
+//! then calc indirect interpolation. check if interpolation already calculated by looking at P.iNrOfConnections[i].
+//!
+//! uses nodeinfo *grid.
+//!	@param P				Matrix P: here goes the calculated prolongation
+//! @param	A				Matrix A: matrix for which to calculate prolongation on next level
+//! @param	newIndex		newIndex of coarse Node i on next coarser level
+//! @param	iNrOfCoarse		nr of coarse nodes on this level
+//! @param posInConnections		array of size A.getLength() for speedup of neighbor-neighbor-calculation inited with -1.
 template<typename entry_type, typename Vector_type>
 void amg<entry_type, Vector_type>::CreateIndirectProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int *posInConnections)
 {
@@ -455,7 +479,7 @@ void amg<entry_type, Vector_type>::CreateIndirectProlongation(SparseMatrix<doubl
 			ASSERT2(grid[indexN].isFineIndirect() == FALSE, "indirect fine index " << i << " cannot have indirect fine neighbors " << indexN << "!");
 			
 			typename SparseMatrix<double>::rowIterator conn2 = P.beginRow(indexN); // !!! P
-			++conn2; // skip diag
+			++conn2; // skip diag TODO: true?
 			for(; !conn2.isEnd(); ++conn2)
 			{					
 				int indexNN = (*conn2).iIndex;							
@@ -507,7 +531,13 @@ void amg<entry_type, Vector_type>::CreateIndirectProlongation(SparseMatrix<doubl
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // createGalerkinMatrix:
 //-------------------------
-// Calculates AH = R A P. posInConnections only needed for speedup (has to be -1 forall i).
+//! Calculates AH = R A P. posInConnections only needed for speedup (has to be -1 forall i).
+//! other possibility: search in vector con for con[i].iIndex == indexTo about 3-4x slower (3d)
+//! @param	AH				= R A P on return.
+//! @param  R
+//! @param  A
+//! @param  P
+//! @param posInConnections		array of size A.getLength() for speedup of neighbor-neighbor-calculation inited with -1.
 template<typename entry_type, typename Vector_type>
 void amg<entry_type, Vector_type>::createGalerkinMatrix(matrix_type &AH, const SparseMatrix<double> &R, const matrix_type &A, const SparseMatrix<double> &P, int *posInConnections)
 {
@@ -515,8 +545,6 @@ void amg<entry_type, Vector_type>::createGalerkinMatrix(matrix_type &AH, const S
 	int n = R.getLength();
 	
 	// speedup with array posInConnections, needs n memory (also used in CreateGraph2 and CreateIndirectProlongation).
-	// 1000x1000 ninepoint: old version: 2444 ms, new 1200 ms, 1000 ms, 900 ms, 950 ms
-	
 	// posInConnections[i]: index in the connections for current row.
 	// has to be -1 for all nodes	
 	
@@ -577,19 +605,41 @@ void amg<entry_type, Vector_type>::createGalerkinMatrix(matrix_type &AH, const S
 				}
 			}
 		}
-		// set matrix_type Row in AH
-		AH.setMatrixRow(i, &con[0], con.size());
 		
 		// reset posInConnections to -1
 		for(int j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
+		
+/*		// truncation of galerkin operator?
+		double maxcon=0;
+		for(int j=0; j<con.size(); j++)
+		{
+			double d = mnorm(con[j].dValue);
+			if(d > maxcon) maxcon = d;
+		}
+		
+		for(int j=0; j<con.size(); j++)
+		{
+			double d = mnorm(con[j].dValue);
+			if(d < 0.001*maxcon)
+			{
+				con.erase(con.begin()+j);
+				j--;
+			}
+		}*/
+		
+		// set matrix_type Row in AH
+		AH.setMatrixRow(i, &con[0], con.size());
 	}
 }
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // createAMGLevel:
 //-------------------------
-// 
+//! create AMG matrix R, P, and AH = R A P
+//! @param AH
+//! @param R
+//! @param A
+//! @param P
+//! @param level
 template<typename entry_type, typename Vector_type>
 void amg<entry_type, Vector_type>::createAMGLevel(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A, SparseMatrix<double> &P, int level)
 {
@@ -788,7 +838,8 @@ void amg<entry_type, Vector_type>::createAMGLevel(matrix_type &AH, SparseMatrix<
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // amg<entry_type, Vector_type>::onlyOneLevel
 //----------------
-// for testing
+//! for testing. creates only one AMG level without direct solvers
+//! @param A	matrix A.
 template<typename entry_type, typename Vector_type>
 bool amg<entry_type, Vector_type>::onlyOneLevel(const matrix_type& A_)
 {
@@ -807,7 +858,8 @@ bool amg<entry_type, Vector_type>::onlyOneLevel(const matrix_type& A_)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // amg<entry_type, Vector_type>::init
 //----------------
-// creates MG Hierachy for with matrix_type A and temporary vectors for higher levels
+//! creates MG Hierachy for with matrix_type A and temporary vectors for higher levels
+//! @param A	matrix A.
 template<typename entry_type, typename Vector_type>
 bool amg<entry_type, Vector_type>::init(const matrix_type& A_)
 {
@@ -856,6 +908,8 @@ bool amg<entry_type, Vector_type>::init(const matrix_type& A_)
 	return true;
 }
 
+//!
+//! amg constructor
 template<typename entry_type, typename Vector_type>
 amg<entry_type, Vector_type>::amg()
 {
@@ -868,9 +922,11 @@ amg<entry_type, Vector_type>::amg()
 	nu2 = 2;
 	gamma = 1;
 	
-	if(never_happens) printCoarsening(0,0);
+//	if(never_happens) printCoarsening(0,0);
 }
 
+//!
+//! amg destructor
 template<typename entry_type, typename Vector_type>
 amg<entry_type, Vector_type>::~amg()
 {
@@ -886,11 +942,13 @@ amg<entry_type, Vector_type>::~amg()
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // MGCycle:
 //-------------------------
-// 
+//! calculates one AMG cycle
+//! @param		x		
+//! @param	b	
+//! @param	level	
 template<typename entry_type, typename Vector_type>
 double amg<entry_type, Vector_type>::MGCycle(Vector_type &x, const Vector_type &b, int level)
-{
-	
+{	
 	ASSERT2(x.getLength() == b.getLength() && b.getLength() == A[level]->getLength(), 
 			"x (" << x << "), b (" << b << "), or A (" << *A[level] << ") have different length");
 	

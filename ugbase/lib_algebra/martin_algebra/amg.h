@@ -14,7 +14,10 @@
 
 #define AMG_MAX_LEVELS 32
 
-
+// AMG
+//---------------------------------
+//! algebraic multigrid class.
+//!
 template<typename entry_type, typename Vector_type>
 class amg : public preconditioner<entry_type, Vector_type>
 {
@@ -40,7 +43,7 @@ public:
 	}
 	
 	double MGCycle(Vector_type &x, const Vector_type &b, int i=0);	
-	void printCoarsening(int level, int n);
+	void printCoarsening(int level);
 	
 	void interpolate(Vector_type *pto, const Vector_type &from, int tolevel); // 2h -> h prolongate
 	void restriction(Vector_type *pto, const Vector_type &from, int tolevel); // h -> 2h
@@ -102,13 +105,15 @@ private:
 		inline bool operator > (const nodeinfo &other)
 		{
 			if(rating == other.rating)
-				return this < &other;
+				return this < &other; // we somehow want a STABLE sort, for that coarsening is in the direction of the numbering of the elements
 			else
 				return rating > other.rating;
 		}
 	};
 	
-	int nu1, nu2, gamma;	
+	int	nu1;		///< nu_1 : nr. of pre-smoothing steps
+	int nu2;		///< nu_2: nr. of post-smoothing steps
+	int gamma;		///< gamma: cycle type (1 = V-Cycle, 2 = W-Cycle)
 private:
 //  functions
 	int getNodeWithBestRating(int n);
@@ -118,25 +123,27 @@ private:
 	
 	void CreateProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int iNrOfCoarse);
 	void CreateIndirectProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int *posInConnections);
+	
+	//! creates the graph
 	void CreateGraph(const matrix_type &A, cgraph &graph, maxheap<nodeinfo> &PQ, int &unassigned);
 	void CreateGraph2(cgraph &graph, cgraph &graph2, maxheap<nodeinfo> &PQ, int &unassigned, int *posInConnections);
 	int Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, bool bIndirect, const matrix_type &A);
 	
 
 //	data
-	CoarseSolver coarseSolver;
-	nodeinfo *grid;
-	int used_levels;
+	CoarseSolver coarseSolver;	///< the coarse(st) grid solver
+	nodeinfo *grid;				///< needed for construction
+	int used_levels;			///< nr of AMG levels used
 	
-	Vector_type *vec1[AMG_MAX_LEVELS];
-	Vector_type *vec2[AMG_MAX_LEVELS];
-	Vector_type *vec3[AMG_MAX_LEVELS];
+	Vector_type *vec1[AMG_MAX_LEVELS]; ///< temporary Vector for storing r = Ax -b
+	Vector_type *vec2[AMG_MAX_LEVELS]; ///< temporary Vector for storing rH
+	Vector_type *vec3[AMG_MAX_LEVELS]; ///< temporary Vector for storing eH
 	
-	SparseMatrix<double> R[AMG_MAX_LEVELS];
-	SparseMatrix<double> P[AMG_MAX_LEVELS];
-	matrix_type *A[AMG_MAX_LEVELS+1];
+	SparseMatrix<double> R[AMG_MAX_LEVELS]; ///< R Restriction Matrices
+	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Restriction Matrices
+	matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
 	
-	sgs<entry_type, Vector_type> smoother[AMG_MAX_LEVELS];
+	sgs<entry_type, Vector_type> smoother[AMG_MAX_LEVELS];  ///< smoother for each level
 };
 
 

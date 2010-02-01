@@ -160,14 +160,13 @@ Vector<entry_type>::Vector (const char *_name)
 {
 	if(never_happens) p(); // force creation of this rountines for gdb.
 		
-
 	length = 0; values = NULL; name = _name; level = 0;
 }	
 
 template<typename entry_type>
 Vector<entry_type>::Vector(int _length, const char *_name)
 {
-	if(never_happens) print(); // force creation of this rountines for gdb.
+	if(never_happens) p(); // force creation of this rountines for gdb.
 
 	length = 0;
 	create(_length);
@@ -211,7 +210,7 @@ template<typename entry_type>
 void Vector<entry_type>::print(const char * const text) const
 {
   
-  //cout << endl << "================ " << name;
+  if(name) cout << endl << "================ " << name;
 	if(text) cout << " == " << text;
 	cout << " == level: " << level << " length: " << length << " =================" << endl;
 	for(int i=0; i<length; i++)

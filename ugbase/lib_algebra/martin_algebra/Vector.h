@@ -30,7 +30,7 @@ public:
 	inline const entry_type &operator [] (int i) const;
 	
 	void print(const char * const text = NULL) const;
-	void p(); // gdb
+	void p() {print(); } // gdb
 	
 	friend ostream &operator<<(ostream &output, const Vector &v)
 	{

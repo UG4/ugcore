@@ -15,7 +15,7 @@
 // this one uses preconditioner::iterate
 template<typename entry_type, typename Vector_type>
 void LinearSolver(Vector_type &x, const SparseMatrix<entry_type> &A, 
-				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit)
+				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit, double reduction)
 {
 	P.init(A);
 	stopwatch SW;
@@ -26,11 +26,12 @@ void LinearSolver(Vector_type &x, const SparseMatrix<entry_type> &A,
 	int i;
 	
 	//	Vector_type // 0.00001
-	for(i=0; i< maxit && (res > 1e-10); i++)
+	double startres = oldres = norm(b-A*x);
+	for(i=0; i< maxit && (res/startres > reduction); i++)
 	{
 		P.iterate(x, b);
 		res = norm(b-A*x);		
-		cout << "[" << i << "] res: " << res << " conv.: " << res/oldres << endl;
+		cout << "[" << i << "] res: " << res << "\t reduction: " << res/startres << "\t conv.: " << res/oldres << endl;
 		cout.flush();
 		oldres = res;
 	}
@@ -47,7 +48,7 @@ void LinearSolver(Vector_type &x, const SparseMatrix<entry_type> &A,
 // this one uses preconditioner::precond
 template<typename entry_type, typename Vector_type>
 void LinearSolver2(typename SparseMatrix<entry_type>::Vector_type &x, const SparseMatrix<entry_type> &A, 
-				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit)
+				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit, double reduction)
 {	
 	
 	P.init(A);
@@ -58,17 +59,18 @@ void LinearSolver2(typename SparseMatrix<entry_type>::Vector_type &x, const Spar
 	r.create(A.getLength());
 	c.create(A.getLength());
 	r = b-A*x;
-	double res=1, oldres = norm(r);	
+	double res=1, oldres;
+	double startres = oldres = norm(b-A*x);
 	int i;
 	//	Vector_type
-	
-	for(i=0; i< maxit && (res > 1e-10); i++)
+	oldres = norm(b-A*x);
+	for(i=0; i< maxit && (res/startres > reduction); i++)
 	{
 		P.precond(c, r);
 		x += c;
 		r = b-A*x;
 		res = norm(r);
-		cout << "[" << i << "] res: " << res << " conv.: " << res/oldres << endl;
+		cout << "[" << i << "] res: " << res << "\t reduction: " << res/startres << "\t conv.: " << res/oldres << endl;
 		cout.flush();
 		oldres = res;
 		

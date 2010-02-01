@@ -16,8 +16,6 @@
 //! you can do A[i].getDiag() or A[i].addMatrixRow(c, nr);
 //! iterators: matrixrow<entry_type>::citerator it(A[i]), ++it, (*it).iIndex, dValue.
 //! also possible: double a = A[i]*x. (thats why i like this concept)
-//! its not 100% atm, because that const matrix_type *A would rather be a const matrix_type &A,
-//! but this gives all problems with const and non-const objects (like in iterator and citerator). Ideas?
 template<typename entry_type>
 class matrixrow
 {

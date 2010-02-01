@@ -1,3 +1,4 @@
+
 /*
  *  CoarseSolver.cpp
  *  flexamg
@@ -21,12 +22,6 @@
 
 //using namespace std;
 
-CoarseSolver::~CoarseSolver()
-{
-	if(densemat) delete[] densemat;
-	if(interchange) delete[] interchange;
-	if(vec) delete[] vec;
-}
 
 template<typename vec_type>
 void CoarseSolver::solve(const Vector<vec_type> &b, Vector<vec_type> &x)

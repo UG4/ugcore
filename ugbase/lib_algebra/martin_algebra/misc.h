@@ -30,6 +30,8 @@ string nrstring(int i);
 
 static int never_happens = 0;
 
+#define FLEXAMG_DIMENSIONS 2
+
 #define IF_PRINTLEVEL(i) if(i <= 0)
 
 // PREFETCHING
@@ -95,7 +97,6 @@ inline double cut(double a, double e)
 
 #include <iostream>
 
-#define FLEXAMG_DIMENSIONS 3
 
 #if ( FLEXAMG_DIMENSIONS == 2)
 struct postype
@@ -162,7 +163,7 @@ public:
 		bRunning = false;
 	}
 	
-	double gettimediffMS()
+	double getTimeDiffMS()
 	{
 		if(bRunning) end = clock();
 		return (clock()-beg)/((double)0.001*CLOCKS_PER_SEC);
@@ -170,7 +171,7 @@ public:
 	
 	void printTimeDiff()
 	{
-		cout << "took " << gettimediffMS() << " ms" << endl;
+		cout << "took " << getTimeDiffMS() << " ms" << endl;
 		cout.flush();
 	}
 private:
