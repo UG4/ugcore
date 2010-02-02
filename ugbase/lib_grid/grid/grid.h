@@ -127,15 +127,18 @@ class Grid
 	 *  to initialise the grid with your options.
 	 *	\sa Grid(uint options)*/
 		Grid();
+
 	///	initialises the grid with the given option.
 	/**	pass an or-combination of constants enumerated in
 	 *  VertexOptions, EdgeOptions, FaceOptions, VolumeOptions and GridOptions.*/
 		Grid(uint options);
+
 	///	DON'T USE THE COPY-CONSTRUCTOR!
 	/**	The copy constructor is not yet implemented.
 	 *  If it is called, an assertion is triggerd.
 	 *  In Release-mode the method will do nothing but to output a short log-message.*/
 		Grid(const Grid& grid);
+
 		virtual ~Grid();
 
 	////////////////////////////////////////////////
@@ -147,10 +150,10 @@ class Grid
 		 * See GridOptions for possible combinations.
 		 */
 		void set_options(uint options);
-		uint get_options();
+		uint get_options() const;
 		void enable_options(uint options);	///< see set_options for a description of valid parameters.
 		void disable_options(uint options);	///< see set_options for a description of valid parameters.
-		bool option_is_enabled(uint option);///< see set_options for a description of valid parameters.
+		bool option_is_enabled(uint option) const;///< see set_options for a description of valid parameters.
 /*
 		void clear();
 		void clear_geometry();
@@ -283,7 +286,19 @@ class Grid
 		inline FaceIterator			faces_end()			{return end<Face>();}
 		inline VolumeIterator		volumes_begin()		{return begin<Volume>();}
 		inline VolumeIterator		volumes_end()		{return end<Volume>();}
-		
+	
+//TODO:	this method should return a const_iterator
+	///	\todo: this method should return a const_iterator
+		template <class TGeomObj>
+		typename geometry_traits<TGeomObj>::iterator
+		begin() const;
+
+//TODO:	this method should return a const_iterator
+	///	\todo: this method should return a const_iterator
+		template <class TGeomObj>
+		typename geometry_traits<TGeomObj>::iterator
+		end() const;
+
 	//	element manipulation
 	/*
 		void set_vertices(EdgeBase* e, EdgeDesctiptor& ed);
@@ -294,16 +309,21 @@ class Grid
 	////////////////////////////////////////////////
 	//	element numbers
 		template <class TGeomObj>
-		uint num();
-		inline uint num_vertices()	{return num<VertexBase>();}
-		inline uint num_edges()		{return num<EdgeBase>();}
-		inline uint num_faces()		{return num<Face>();}
-		inline uint num_volumes()	{return num<Volume>();}
+		uint num() const;
+		inline uint num_vertices() const	{return num<VertexBase>();}
+		inline uint num_edges() const		{return num<EdgeBase>();}
+		inline uint num_faces()	const		{return num<Face>();}
+		inline uint num_volumes()const		{return num<Volume>();}
 
 		uint vertex_fragmentation();	///< returns the number of unused vertex-data-entries.
 		uint edge_fragmentation();		///< returns the number of unused edge-data-entries.
 		uint face_fragmentation();		///< returns the number of unused face-data-entries.
 		uint volume_fragmentation();	///< returns the number of unused volume-data-entries.
+
+	///	returns the size of the associated attachment containers.
+	/**	valid types for TGeomObj are VertexBase, EdgeBase, Face, Volume.*/
+		template <class TGeomObj>
+		uint attachment_container_size() const;
 
 	////////////////////////////////////////////////
 	//	connectivity-information
@@ -386,7 +406,7 @@ class Grid
 	////////////////////////////////////////////////////////////////////////
 	//	direct attachment access
 		template <class TGeomObj>
-		uint get_attachment_data_index(TGeomObj* pObj);
+		uint get_attachment_data_index(TGeomObj* pObj) const;
 
 		template <class TGeomObj, class TAttachment>
 		typename TAttachment::ContainerType*

@@ -69,9 +69,33 @@ section_begin(int sectionIndex)
 }
 
 template <class TValue, class TContainer>
+typename SectionContainer<TValue, TContainer>::const_iterator
+SectionContainer<TValue, TContainer>::
+section_begin(int sectionIndex) const
+{
+	if(sectionIndex < 0)
+		return m_container.begin();
+	else if(sectionIndex >= num_sections())
+		return m_container.end();
+
+	return m_vSections[sectionIndex].m_elemsBegin;
+}
+
+template <class TValue, class TContainer>
 typename SectionContainer<TValue, TContainer>::iterator
 SectionContainer<TValue, TContainer>::
 section_end(int sectionIndex)
+{
+	if(sectionIndex >= num_sections() || sectionIndex < 0)
+		return m_container.end();
+
+	return m_vSections[sectionIndex].m_elemsEnd;
+}
+
+template <class TValue, class TContainer>
+typename SectionContainer<TValue, TContainer>::const_iterator
+SectionContainer<TValue, TContainer>::
+section_end(int sectionIndex) const
 {
 	if(sectionIndex >= num_sections() || sectionIndex < 0)
 		return m_container.end();
@@ -91,7 +115,7 @@ add_sections(int num)
 template <class TValue, class TContainer>
 uint
 SectionContainer<TValue, TContainer>::
-num_elements(int sectionIndex)
+num_elements(int sectionIndex) const
 {
 	assert((sectionIndex >= 0) &&
 			"ERROR in SectionContainer::num_elements(): bad sectionIndex");

@@ -11,11 +11,11 @@ project(P_LIB_GRID)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-set(srcGrid		grid/geometric_base_objects.cpp
+set(srcGrid		grid/grid.cpp
+				grid/geometric_base_objects.cpp
 				grid/grid_connection_managment.cpp
 				grid/geometric_object_collection.cpp
-				grid/grid_util.cpp
-				grid/grid.cpp)
+				grid/grid_util.cpp)
 				
 set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/selection_util.cpp
@@ -104,7 +104,7 @@ set(srcNg
 )
 
 #the real library					
-add_library(grid 	${srcLibGrid} ${srcGrid}
+add_library(grid 	${srcGrid} ${srcLibGrid}
 					${srcParallelization}
 					${srcFileIO} ${srcAlgorithms}
 					${srcTetgen} ${srcLgm} ${srcNg})

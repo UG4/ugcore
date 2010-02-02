@@ -38,12 +38,133 @@ Grid::Grid(uint options) : m_aVertexContainer(false), m_aEdgeContainer(false),
 Grid::Grid(const Grid& grid) : m_aVertexContainer(false), m_aEdgeContainer(false),
 							m_aFaceContainer(false), m_aVolumeContainer(false)
 {
-	m_options = GRIDOPT_NONE;
+//TODO: notify a grid observer that copying has started
+
 	m_hashCounter = 0;
-	assert(!"WARNING in Grid::Grid(const Grid& grid): Copy-Constructor not yet implemented!");
-	LOG("WARNING in Grid::Grid(const Grid& grid): Copy-Constructor not yet implemented! Expect unexpected behavior." << endl);
+	m_currentMark = 0;
+	m_options = GRIDOPT_NONE;
+
+//	we need a vertex-map that allows us to find a vertex in the new grid
+//	given a vertex in the old one.
+	vector<VertexBase*>	vrtMap(grid.attachment_container_size<VertexBase>(), NULL);
+
+//	we need index-lists that allow us to copy attachments later on
+	vector<int> vSrcDataIndex[NUM_GEOMETRIC_BASE_OBJECTS];
+	vector<int>& vSrcDataIndexVRT = vSrcDataIndex[VERTEX];
+	vector<int>& vSrcDataIndexEDGE = vSrcDataIndex[EDGE];
+	vector<int>& vSrcDataIndexFACE = vSrcDataIndex[FACE];
+	vector<int>& vSrcDataIndexVOL = vSrcDataIndex[VOLUME];
+
+//	copy all vertices
+	vSrcDataIndexVRT.resize(grid.num<VertexBase>());
+	VertexBaseIterator vrtsEnd = grid.end<VertexBase>();
+	for(VertexBaseIterator iter = grid.begin<VertexBase>(); iter != vrtsEnd; ++iter)
+	{
+		VertexBase* vrt = *iter;
+		VertexBase* nVrt = *create_by_cloning(vrt);
+		vrtMap[grid.get_attachment_data_index(vrt)] = nVrt;
+		vSrcDataIndexVRT[get_attachment_data_index(nVrt)] = grid.get_attachment_data_index(vrt);
+	}
+
+//	copy all edges
+	vSrcDataIndexEDGE.resize(grid.num<EdgeBase>());
+	EdgeBaseIterator edgesEnd = grid.end<EdgeBase>();
+	for(EdgeBaseIterator iter = grid.begin<EdgeBase>(); iter != edgesEnd; ++iter)
+	{
+		EdgeBase* e = *iter;
+		EdgeBase* nE = *create_by_cloning(e, EdgeDescriptor(
+											vrtMap[grid.get_attachment_data_index(e->vertex(0))],
+											vrtMap[grid.get_attachment_data_index(e->vertex(1))]));
+		vSrcDataIndexEDGE[get_attachment_data_index(nE)] = grid.get_attachment_data_index(e);
+	}
+
+//	copy all faces
+	vSrcDataIndexFACE.resize(grid.num<Face>());
+	FaceDescriptor fd;
+	FaceIterator facesEnd = grid.end<Face>();
+	for(FaceIterator iter = grid.begin<Face>(); iter != facesEnd; ++iter)
+	{
+		Face* f = *iter;
+		uint numVrts = f->num_vertices();
+
+	//	fill the face descriptor
+		if(numVrts != fd.num_vertices())
+			fd.set_num_vertices(numVrts);
+		
+		for(uint i = 0; i < numVrts; ++i)
+			fd.set_vertex(i, vrtMap[grid.get_attachment_data_index(f->vertex(i))]);
+
+	//	create the new face
+		Face* nF = *create_by_cloning(f, fd);
+
+		vSrcDataIndexFACE[get_attachment_data_index(nF)] = grid.get_attachment_data_index(f);
+	}
+
+//	copy all volumes
+	vSrcDataIndexVOL.resize(grid.num<Volume>());
+	VolumeDescriptor vd;
+	VolumeIterator volsEnd = grid.end<Volume>();
+	for(VolumeIterator iter = grid.begin<Volume>(); iter != volsEnd; ++iter)
+	{
+		Volume* v = *iter;
+		uint numVrts = v->num_vertices();
+
+	//	fill the volume descriptor
+		if(numVrts != vd.num_vertices())
+			vd.set_num_vertices(numVrts);
+
+		for(uint i = 0; i < numVrts; ++i)
+			vd.set_vertex(i, vrtMap[grid.get_attachment_data_index(v->vertex(i))]);
+
+	//	create the volume
+		Volume* nV = *create_by_cloning(v, vd);
+
+		vSrcDataIndexVOL[get_attachment_data_index(nV)] = grid.get_attachment_data_index(v);
+	}
+
+//	enable options
+	enable_options(grid.get_options());
+
+//	copy attachments that may be passed on
+	for(int i = 0; i < NUM_GEOMETRIC_BASE_OBJECTS; ++i)
+	{
+		const AttachmentPipe& apSrc = grid.m_elementStorage[i].m_attachmentPipe;
+		AttachmentPipe& apDest = m_elementStorage[i].m_attachmentPipe;
+		for(AttachmentPipe::ConstAttachmentEntryIterator iter = apSrc.attachments_begin();
+			iter != apSrc.attachments_end(); ++iter)
+		{
+			const AttachmentEntry& ae = *iter;
+			if(ae.m_userData == 1){
+			//	attach the attachment to this grid
+				apDest.attach(*ae.m_pAttachment, ae.m_userData);
+				const IAttachmentDataContainer& conSrc = *ae.m_pContainer;
+				IAttachmentDataContainer& conDest = *apDest.get_data_container(*ae.m_pAttachment);
+
+			//	we use the containers copy-method
+				conSrc.copy_to_buffer(conDest.get_data_buffer(), &vSrcDataIndex[i].front(),
+										(int)vSrcDataIndex[i].size());
+			}
+		}
+	}
+
+//TODO: notify a grid observer that copying has ended
+}
+/*
+void Grid::clear()
+{
+	clear_geometry();
+	clear_attachments();
 }
 
+void Grid::clear_geometry()
+{
+
+}
+
+void Grid::clear_attachments()
+{
+}
+*/
 Grid::~Grid()
 {
 //	unregister all observers
@@ -52,7 +173,7 @@ Grid::~Grid()
 		unregister_observer(m_gridObservers.back());
 	}
 	
-//	rempove marks - would be done anyway...
+//	rempoe marks - would be done anyway...
 	remove_marks();
 }
 
@@ -245,7 +366,7 @@ void Grid::set_options(uint options)
 	change_options(options);
 }
 
-uint Grid::get_options()
+uint Grid::get_options() const
 {
 	return m_options;
 }
@@ -260,7 +381,7 @@ void Grid::disable_options(uint options)
 	change_options(m_options & (!m_options));
 }
 
-bool Grid::option_is_enabled(uint option)
+bool Grid::option_is_enabled(uint option) const
 {
 	return (m_options & option) == option;
 }

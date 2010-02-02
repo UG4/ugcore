@@ -49,6 +49,46 @@ template <class vector_t>
 void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 						const vector_t& p, const vector_t& n);
 
+
+////////////////////////////////////////////////////////////////////////
+//	RayTriangleIntersection
+///	calculates the intersection of a ray with a triangle
+/**
+ * You have to pass the triangles corners through p0, p1, p2
+ * together with a point on the ray (vFrom) and the rays
+ * direction (vDir).
+ *
+ * If the method succeeds (the ray intersects the triangle)
+ * the methods returns true and writes the position of
+ * the intersection to vOut.
+ * Furthermore the local (barycentric) coordinates of the
+ * intersection are written to bc1Out and bc2Out. tOut
+ * will contain the local coordinate of the intersection
+ * regarding the rays parameter form.
+ */
+template <class vector_t>
+bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, number& tOut,
+						   const vector_t &p0, const vector_t &p1, const vector_t &p2, 
+						   const vector_t &vFrom, const vector_t &vDir);
+
+////////////////////////////////////////////////////////////////////////
+//	RayTriangleIntersection
+///	calculates the intersection of a ray with a triangle
+/**
+ * You have to pass the triangles corners through p0, p1, p2
+ * together with a point on the ray (vFrom) and the rays
+ * direction (vDir).
+ *
+ * If the method succeeds (the ray intersects the triangle)
+ * the methods returns true and writes the position of
+ * the intersection to vOut.
+ */
+template <class vector_t> inline
+bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
+						   const vector_t &p1, const vector_t &p2, 
+						   const vector_t &vFrom, const vector_t &vDir);
+
+
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the are of the triangle defined by p1, p2 and p3
 template <class vector_t>

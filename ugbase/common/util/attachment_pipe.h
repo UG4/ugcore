@@ -47,13 +47,26 @@ class IAttachmentDataContainer
 		virtual uint size() = 0;///< returns the size of the data-array.
 		virtual void copy_data(uint indFrom, uint indTo) = 0;///< copy data from entry indFrom to entry indTo.
 		virtual void reset_entry(uint index) = 0;///< resets the entry to its default value.
-		/**
-		*	defragment should clear the containers data from unused entries.
-		*	pNewIndices should be an array of indices, wich holds a new index for each entry in IAttachedDataContainer.
-		*	pNewIndices has thus to hold as many indices as there are entries in IAttachedDataContainer.
-		*	If an entry shall not appear in the defragmented container, its new index has to be set to INVALID_ATTACHMENT_INDEX.
-		*	numValidElements has to specify the size of the defragmented container - it thus has to equal the number of valid indices in pNewIndices.
-		*/
+		
+	///	returns a pointer to the data-buffer. Only use this method if not avoidable.
+		virtual void* get_data_buffer() = 0;
+
+	/**	copies entrys from the this-container to the buffer
+	 *	specified by pDest.
+	 *	For the i-th entry in the buffer, pIndexMap has to contain
+	 *	the index of the source entry in this container.
+	 *	num specifies the number of entries to be copied.
+	 *	Nake sure, that pDest can hold 'num' elementes of the
+	 *	correct size.*/
+		virtual void copy_to_buffer(void* pDest, int* indexMap, int num) const = 0;
+		
+	/**
+	*	defragment should clear the containers data from unused entries.
+	*	pNewIndices should be an array of indices, wich holds a new index for each entry in IAttachedDataContainer.
+	*	pNewIndices has thus to hold as many indices as there are entries in IAttachedDataContainer.
+	*	If an entry shall not appear in the defragmented container, its new index has to be set to INVALID_ATTACHMENT_INDEX.
+	*	numValidElements has to specify the size of the defragmented container - it thus has to equal the number of valid indices in pNewIndices.
+	*/
 		virtual void defragment(uint* pNewIndices, uint numValidElements) = 0;
 };
 
@@ -118,6 +131,21 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 						m_vData[nInd] = vDataOld[i];
 				}
 			}
+	
+	/**	copies entrys from the this-container to the buffer
+	 *	specified by pDest.
+	 *	For the i-th entry in the buffer, pIndexMap has to contain
+	 *	the index of the source entry in this container.
+	 *	num specifies the number of entries to be copied.
+	 *	Nake sure, that pDest can hold 'num' elementes of the
+	 *	correct size.*/
+		virtual void copy_to_buffer(void* pDest, int* indexMap, int num) const
+			{
+				ValueType* dest = static_cast<ValueType*>(pDest);
+				for(int i = 0; i < num; ++i)
+					dest[i] = m_vData[indexMap[i]];
+			}
+
 
 		inline const T& get_elem(uint index) const      {return m_vData[index];}
 		inline T& get_elem(uint index)                  {return m_vData[index];}
@@ -126,6 +154,8 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 
 		inline const T* get_ptr() const			{return &m_vData.front();}
 		inline T* get_ptr()						{return &m_vData.front();}
+
+		virtual void* get_data_buffer()			{return get_ptr();}
 
 	protected:
 		std::vector<T>	m_vData;
@@ -175,7 +205,7 @@ template <class T> class Attachment : public IAttachment
 
 		Attachment() : IAttachment(), m_passOnBehaviour(false)    {}
 		Attachment(bool passOnBehaviour) : IAttachment(), m_passOnBehaviour(passOnBehaviour)    {}
-		Attachment(const char* name) : IAttachment(name)    		{}
+		Attachment(const char* name) : IAttachment(name), m_passOnBehaviour(false)   		{}
 		Attachment(const char* name, bool passOnBehaviour) : IAttachment(name), m_passOnBehaviour(passOnBehaviour)	{}
 
 		virtual ~Attachment()	{}

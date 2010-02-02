@@ -116,10 +116,33 @@ Grid::end()
 		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
+template <class TGeomObj>
+typename geometry_traits<TGeomObj>::iterator
+Grid::begin() const
+{
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+		invalid_GeomObj);
+
+	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
+		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+}
+
+template <class TGeomObj>
+typename geometry_traits<TGeomObj>::iterator
+Grid::end() const
+{
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+		invalid_GeomObj);
+
+	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
+		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+}
+
+
 ////////////////////////////////////////////////////////////////////////
 //	element numbers
 template <class TGeomObj>
-uint Grid::num()
+uint Grid::num() const
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);
@@ -131,6 +154,17 @@ uint Grid::num()
 		return m_elementStorage[objType].m_sectionContainer.num_elements();
 
 	return m_elementStorage[objType].m_sectionContainer.num_elements(secIndex);
+}
+
+template <class TGeomObj>
+uint Grid::attachment_container_size() const
+{
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+		invalid_GeomObj);
+
+	int objType = geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID;
+
+	return m_elementStorage[objType].m_attachmentPipe.num_data_entries();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -215,7 +249,7 @@ Grid::get_attachment_pipe()
 
 template <class TGeomObj>
 uint
-Grid::get_attachment_data_index(TGeomObj* pObj)
+Grid::get_attachment_data_index(TGeomObj* pObj) const
 {
 	return attachment_traits<GeometricObject*, Grid>::get_data_index(this, pObj);
 }

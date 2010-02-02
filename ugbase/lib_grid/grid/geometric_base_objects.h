@@ -124,19 +124,10 @@ class GenericGeometricObjectIterator : public TBaseIterator
 		GenericGeometricObjectIterator(const typename std::list<TValue>::iterator& iter) :
 			TBaseIterator(*((TBaseIterator*)&iter)){}
 
-		inline TValue& operator* ()	{return (TValue&)(GeometricObjectContainer::iterator::operator*());}
-
-	protected:
-		/**
-		 * This method should only be invoked by Grid.
-		 * If you get an error in your code pointing to this method, then you are
-		 * most presumably assigning an iterator of the wrong type.
-		 */
-		/*
-		GenericGeometricObjectIterator(const GeometricObjectContainer::iterator& iter) :
-			GeometricObjectIterator(iter){}
-		*/
+		inline TValue& operator* ()	{return (TValue&)(TBaseIterator::operator*());}
+		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
 };
+
 
 ////////////////////////////////////////////////////////////////////////
 //	iterator_cast
@@ -808,10 +799,10 @@ class attachment_traits<GeometricObject*, Grid>
 		typedef Grid*					ElemHandlerPtr;
 		typedef const Grid*				ConstElemHandlerPtr;
 
-		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)				{elem = NULL;}
-		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)				{return elem != NULL;}
-		static inline uint get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)			{return elem->m_gridDataIndex;}
-		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)	{elem->m_gridDataIndex = index;}
+		static inline void invalidate_entry(ElemHandlerPtr pHandler, ElemRef elem)			{elem = NULL;}
+		static inline bool entry_is_invalid(ElemHandlerPtr pHandler, ElemRef elem)			{return elem != NULL;}
+		static inline uint get_data_index(ConstElemHandlerPtr pHandler, ConstElemPtr elem)	{return elem->m_gridDataIndex;}
+		static inline void set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index){elem->m_gridDataIndex = index;}
 };
 
 

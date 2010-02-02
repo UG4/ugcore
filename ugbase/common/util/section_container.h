@@ -27,8 +27,9 @@ template <class TValue, class TContainer>
 class SectionContainer
 {
 	public:
-		typedef TContainer						Container;
-		typedef typename Container::iterator	iterator;
+		typedef TContainer							Container;
+		typedef typename Container::iterator		iterator;
+		typedef typename Container::const_iterator	const_iterator;
 
 	public:
 		SectionContainer() : m_numElements(0)	{}
@@ -39,20 +40,27 @@ class SectionContainer
 		iterator insert(const TValue& val, int sectionIndex);
 		void erase(const iterator& iter, int sectionIndex);
 
-		iterator begin()	{return m_container.begin();}
-		iterator end()		{return m_container.end();}
+		inline iterator begin()	{return m_container.begin();}
+		inline iterator end()	{return m_container.end();}
+
+		const_iterator begin() const	{return m_container.begin();}
+		const_iterator end() const		{return m_container.end();}
 
 	/**if the section is empty section_begin and section_end return the same iterators.
 	 * However, no assumptions on the positions of these iterators should be made.*/
 		iterator section_begin(int sectionIndex);
 
+		const_iterator section_begin(int sectionIndex) const;
+
 	/**if the section is empty section_begin and section_end return the same iterators.
 	   However, no assumptions on the positions of these iterators should be made.*/
 		iterator section_end(int sectionIndex);
 
-		uint num_elements(int sectionIndex);
-		inline uint num_elements()	{return m_numElements;}
-		inline int num_sections()	{return m_vSections.size();}
+		const_iterator section_end(int sectionIndex) const;
+
+		uint num_elements(int sectionIndex) const;
+		inline uint num_elements() const	{return m_numElements;}
+		inline int num_sections() const		{return m_vSections.size();}
 
 	protected:
 		void add_sections(int num);

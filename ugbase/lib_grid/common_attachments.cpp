@@ -7,7 +7,7 @@
 namespace ug
 {
 
-APosition		aPosition("position");	//	strings are passed for debug purposes
-ANormal			aNormal("normal");		//	strings are passed for debug purposes
+APosition		aPosition("position", true);	//	strings are passed for debug purposes
+ANormal			aNormal("normal", true);		//	strings are passed for debug purposes
 
 }//	end of namespace
