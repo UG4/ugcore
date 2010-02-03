@@ -188,16 +188,32 @@ class ISubsetHandler : public GridObserver
 	 *	Default is SHE_ALL (all element-types).*/
 		ISubsetHandler(uint supportedElements = SHE_ALL);
 
-	///	copy-constructor is not implemented correctly in the moment.
+	///	assigns subsets based on the subsets in the given subset-handler
+	/**	The constructed subset-handler will work on the same grid as the
+	 *	subset handler that was passed to the constructor.
+	 *	Elements will be assigned to the same subsets as in the given handler.
+	 *	All properties are copied too.
+	 *
+	 *	Please note, that attachments are not copied in the current version.*/
 		ISubsetHandler(const ISubsetHandler& sh);
 
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
 		virtual ~ISubsetHandler();
 
+	///	assigns subsets based on the subsets in the given subset-handler
+	/**	Elements of this handler will be assigned to subsets based on their
+	 *	order in the underlying grids.
+	 *	The underlying grid of this handler will not be changed. This is particularly
+	 *	useful if you just copied a grid and if you now want to copy the subsets
+	 *	in the associated subset-handlers.
+	 *	
+	 *	Please note, that attachments are not copied in the current version.*/
+		virtual ISubsetHandler& operator = (const ISubsetHandler& sh);
+		
 	///	returns a pointer to the grid on which the subset-handler works.
 	/**	returns NULL if no grid is assigned.*/
-		Grid* get_assigned_grid();
+		Grid* get_assigned_grid() const;
 		
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
@@ -262,11 +278,11 @@ class ISubsetHandler : public GridObserver
 		template <class TIterator>
 		void assign_subset(TIterator iterBegin, TIterator iterEnd, int subsetIndex);
 
-		int get_subset_index(GeometricObject* elem);
-		inline int get_subset_index(VertexBase* elem)	{return m_aaSubsetIndexVRT[elem];}
-		inline int get_subset_index(EdgeBase* elem)		{return m_aaSubsetIndexEDGE[elem];}
-		inline int get_subset_index(Face* elem)			{return m_aaSubsetIndexFACE[elem];}
-		inline int get_subset_index(Volume* elem)		{return m_aaSubsetIndexVOL[elem];}
+		int get_subset_index(GeometricObject* elem) const;
+		inline int get_subset_index(VertexBase* elem) const	{return m_aaSubsetIndexVRT[elem];}
+		inline int get_subset_index(EdgeBase* elem) const	{return m_aaSubsetIndexEDGE[elem];}
+		inline int get_subset_index(Face* elem) const		{return m_aaSubsetIndexFACE[elem];}
+		inline int get_subset_index(Volume* elem) const		{return m_aaSubsetIndexVOL[elem];}
 
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);
@@ -386,6 +402,9 @@ class ISubsetHandler : public GridObserver
 		typedef SectionContainer::iterator iterator;
 		
 	protected:
+	///	selects elements based on the selection in the srcHandler
+		void assign_subset_handler(const ISubsetHandler& sh);
+		
 	///	set the grid on which the subset-handler shall work.
 	/**	The subset-handler can only work on one grid at a time.
 	 *	It is cruicial that assign_grid methods of derived classes call

@@ -22,6 +22,7 @@ class GridSubsetHandler : public ISubsetHandler
 	public:
 		GridSubsetHandler(uint supportedElements = SHE_ALL);
 		GridSubsetHandler(Grid& grid, uint supportedElements = SHE_ALL);
+		GridSubsetHandler(const GridSubsetHandler& sh);
 		~GridSubsetHandler();
 		
 		inline void assign_grid(Grid& grid)		{ISubsetHandler::assign_grid(grid);}

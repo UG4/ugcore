@@ -38,11 +38,94 @@ Grid::Grid(uint options) : m_aVertexContainer(false), m_aEdgeContainer(false),
 Grid::Grid(const Grid& grid) : m_aVertexContainer(false), m_aEdgeContainer(false),
 							m_aFaceContainer(false), m_aVolumeContainer(false)
 {
-//TODO: notify a grid observer that copying has started
-
 	m_hashCounter = 0;
 	m_currentMark = 0;
 	m_options = GRIDOPT_NONE;
+	
+	assign_grid(grid);
+}
+
+Grid::~Grid()
+{
+//	unregister all observers
+	while(!m_gridObservers.empty())
+	{
+		unregister_observer(m_gridObservers.back());
+	}
+	
+//	remove marks - would be done anyway...
+	remove_marks();
+}
+
+void Grid::clear()
+{
+	clear_geometry();
+	clear_attachments();
+}
+
+void Grid::clear_geometry()
+{
+//	disable all options to speed it up
+	uint opts = get_options();
+	set_options(GRIDOPT_NONE);
+	
+	erase(begin<Volume>(), end<Volume>());
+	erase(begin<Face>(), end<Face>());
+	erase(begin<EdgeBase>(), end<EdgeBase>());
+	erase(begin<VertexBase>(), end<VertexBase>());
+	
+//	reset options
+	set_options(opts);
+}
+
+void Grid::clear_attachments()
+{
+	vector<AttachmentEntry>	vEntries;
+
+//	iterate through all attachment pipes
+	for(int i = 0; i < NUM_GEOMETRIC_BASE_OBJECTS; ++i)
+	{
+		AttachmentPipe& ap = m_elementStorage[i].m_attachmentPipe;
+		
+	//	collect all attachment entries
+		vEntries.clear();
+		for(AttachmentPipe::ConstAttachmentEntryIterator iter = ap.attachments_begin();
+			iter != ap.attachments_end(); ++iter)
+		{
+				vEntries.push_back(*iter);
+		}
+	
+	//	iterate through the entries in the vector and delete the ones
+	//	that have an enabled pass-on behaviour
+		for(size_t j = 0; j < vEntries.size(); ++j)
+		{
+			const AttachmentEntry& ae = vEntries[j];
+			
+			if(ae.m_userData == 1){
+				ap.detach(*ae.m_pAttachment);
+			}
+		}
+	}
+}
+
+
+Grid& Grid::operator = (const Grid& grid)
+{
+//	clears the grid and calls assign_grid afterwards.
+//	we're disabling any options, since new options will
+//	be set during assign_grid anyway. This might speed
+//	things up a little
+	set_options(GRIDOPT_NONE);
+	clear();
+	assign_grid(grid);
+	
+	return *this;
+}
+
+
+void Grid::assign_grid(const Grid& grid)
+{
+//TODO: notify a grid observer that copying has started
 
 //	we need a vertex-map that allows us to find a vertex in the new grid
 //	given a vertex in the old one.
@@ -149,33 +232,7 @@ Grid::Grid(const Grid& grid) : m_aVertexContainer(false), m_aEdgeContainer(false
 
 //TODO: notify a grid observer that copying has ended
 }
-/*
-void Grid::clear()
-{
-	clear_geometry();
-	clear_attachments();
-}
 
-void Grid::clear_geometry()
-{
-
-}
-
-void Grid::clear_attachments()
-{
-}
-*/
-Grid::~Grid()
-{
-//	unregister all observers
-	while(!m_gridObservers.empty())
-	{
-		unregister_observer(m_gridObservers.back());
-	}
-	
-//	rempoe marks - would be done anyway...
-	remove_marks();
-}
 
 VertexBaseIterator Grid::create_by_cloning(VertexBase* pCloneMe, GeometricObject* pParent)
 {

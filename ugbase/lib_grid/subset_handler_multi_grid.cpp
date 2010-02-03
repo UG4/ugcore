@@ -26,6 +26,11 @@ MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements) : ISubsetHandler(s
 	assign_grid(mg);
 }
 
+MultiGridSubsetHandler::
+MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) : ISubsetHandler(sh)
+{
+}
+
 MultiGridSubsetHandler::~MultiGridSubsetHandler()
 {
 	if(m_pGrid != NULL)

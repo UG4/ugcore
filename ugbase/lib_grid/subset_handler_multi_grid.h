@@ -22,6 +22,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	public:
 		MultiGridSubsetHandler(uint supportedElements = SHE_ALL);
 		MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SHE_ALL);
+		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
 		~MultiGridSubsetHandler();
 		
 		inline void assign_grid(MultiGrid& mg)	{m_pMG = &mg; ISubsetHandler::assign_grid(mg);}

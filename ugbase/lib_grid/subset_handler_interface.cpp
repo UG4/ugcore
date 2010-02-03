@@ -44,9 +44,23 @@ ISubsetHandler(GridType& grid, uint supportedElements) : m_aSubsetIndex(false), 
 ISubsetHandler::
 ISubsetHandler(const ISubsetHandler& sh) : m_aSubsetIndex(false), m_aIterator(false)
 {
+/*
 	m_pGrid = NULL;
 	assert(!"WARNING in SubsetHandler::SubsetHandler(const SubsetHandler& sel): Copy-Constructor not yet implemented!");
 	LOG("WARNING in SubsetHandler::SubsetHandler(const SubsetHandler& sel): Copy-Constructor not yet implemented! Expect unexpected behaviour!");
+*/
+	m_pGrid = NULL;
+	m_supportedElements = SHE_NONE;
+	m_defaultSubsetIndex = -1;
+	m_bSubsetInheritanceEnabled = true;
+	m_bSubsetAttachmentsEnabled = false;
+	
+	Grid* pGrid = sh.get_assigned_grid();
+
+	if(pGrid){
+		assign_grid(*pGrid);		
+		assign_subset_handler(sh);
+	}
 }
 
 ISubsetHandler::
@@ -54,6 +68,54 @@ ISubsetHandler::
 {
 	if(m_pGrid != NULL)
 		m_pGrid->unregister_observer(this);
+}
+
+ISubsetHandler& ISubsetHandler::operator = (const ISubsetHandler& sh)
+{
+	clear();
+	assign_subset_handler(sh);
+}
+
+template <class TIterator> static void
+CopySubsetIndices(ISubsetHandler& dest, const ISubsetHandler& src,
+					TIterator destIterBegin, TIterator destIterEnd,
+					TIterator srcIterBegin, TIterator srcIterEnd)
+{
+	while((srcIterBegin != srcIterEnd) && (destIterBegin != destIterEnd))
+	{
+		dest.assign_subset(*destIterBegin, src.get_subset_index(*srcIterBegin));
+		++destIterBegin;
+		++srcIterBegin;
+	}
+}
+
+void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
+{
+//	get the source grid
+	Grid* srcGrid = sh.get_assigned_grid();
+	Grid* destGrid = m_pGrid;
+	
+//	copy status and options
+	set_supported_elements(sh.m_supportedElements);
+	enable_subset_inheritance(sh.m_bSubsetInheritanceEnabled);
+	set_default_subset_index(sh.m_defaultSubsetIndex);
+
+//TODO: enable attachment support based on the source-hanlders attachment support!?!
+
+//	make sure that both accessors have a valid grid
+	if(srcGrid && destGrid){
+	//	assign the subsets for each element-type
+		CopySubsetIndices(*this, sh, destGrid->begin<VertexBase>(), destGrid->end<VertexBase>(),
+							srcGrid->begin<VertexBase>(), srcGrid->end<VertexBase>());
+		CopySubsetIndices(*this, sh, destGrid->begin<EdgeBase>(), destGrid->end<EdgeBase>(),
+							srcGrid->begin<EdgeBase>(), srcGrid->end<EdgeBase>());
+		CopySubsetIndices(*this, sh, destGrid->begin<Face>(), destGrid->end<Face>(),
+							srcGrid->begin<Face>(), srcGrid->end<Face>());
+		CopySubsetIndices(*this, sh, destGrid->begin<Volume>(), destGrid->end<Volume>(),
+							srcGrid->begin<Volume>(), srcGrid->end<Volume>());
+							
+//TODO:	copy attachments!?!
+	}
 }
 
 void ISubsetHandler::
@@ -85,7 +147,7 @@ set_default_subset_index(int subsetIndex)
 
 
 Grid* ISubsetHandler::
-get_assigned_grid()
+get_assigned_grid() const
 {
 	return m_pGrid;
 }
@@ -308,7 +370,7 @@ reset_subset_indices(uint shElements)
 }
 
 int ISubsetHandler::
-get_subset_index(GeometricObject* elem)
+get_subset_index(GeometricObject* elem) const
 {
 	uint type = elem->base_object_type_id();
 	switch(type)

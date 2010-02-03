@@ -22,6 +22,10 @@ GridSubsetHandler(Grid& grid, uint supportedElements) : ISubsetHandler(supported
 	assign_grid(grid);
 }
 
+GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) : ISubsetHandler(sh)
+{
+}
+
 GridSubsetHandler::~GridSubsetHandler()
 {
 	if(m_pGrid != NULL)

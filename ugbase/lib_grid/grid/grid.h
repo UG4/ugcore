@@ -133,32 +133,38 @@ class Grid
 	 *  VertexOptions, EdgeOptions, FaceOptions, VolumeOptions and GridOptions.*/
 		Grid(uint options);
 
-	///	DON'T USE THE COPY-CONSTRUCTOR!
-	/**	The copy constructor is not yet implemented.
-	 *  If it is called, an assertion is triggerd.
-	 *  In Release-mode the method will do nothing but to output a short log-message.*/
+	///	copies all elements and some attachments from the passed grid to this grid.
+	/**	While all elements and the options are copied completly from the source-grid,
+	 *	the attachments are only copied if their pass-on behaviour is set to true.*/
 		Grid(const Grid& grid);
 
 		virtual ~Grid();
 
+	///	copies all elements and some attachments from the passed grid to this grid.
+	/**	While all elements and the options are copied completly from the source-grid,
+	 *	the attachments are only copied if their pass-on behaviour is set to true.
+	 *	Attachments that were already attached to this grid are removed prior to
+	 *	copying if their pass-on behaviour was set to true. They will be kept otherwise.
+	 *	This is relevant to ensure that observers like GridSubsetHandler
+	 *	will work after the assignment.*/	
+		Grid& operator = (const Grid& grid);
+		
 	////////////////////////////////////////////////
 	//	grid options
-		/**
-		 * you can pass any option enumerated in GridOptions or specify a custom option
-		 * using an or-combination of the constants enumerated in
-		 * VertexOptions, EdgeOptions, FaceOptions and VolumeOptions.
-		 * See GridOptions for possible combinations.
-		 */
+	/**	you can pass any option enumerated in GridOptions or specify a custom option
+	 *	using an or-combination of the constants enumerated in
+	 *	VertexOptions, EdgeOptions, FaceOptions and VolumeOptions.
+	 *	See GridOptions for possible combinations.*/
 		void set_options(uint options);
 		uint get_options() const;
 		void enable_options(uint options);	///< see set_options for a description of valid parameters.
 		void disable_options(uint options);	///< see set_options for a description of valid parameters.
 		bool option_is_enabled(uint option) const;///< see set_options for a description of valid parameters.
-/*
+
 		void clear();
 		void clear_geometry();
 		void clear_attachments();
-*/
+
 	////////////////////////////////////////////////
 	//	element creation
 	///	create a custom element.
@@ -523,6 +529,11 @@ class Grid
 		void end_marking();
 		
 	protected:
+	///	copies the contents from the given grid to this grid.
+	/**	Make sure that the grid on which this method is called is
+	 *	empty before the method is called.*/
+		void assign_grid(const Grid& grid);
+		
 	///	assigns a unique hash value to a Vertex.
 	/**	overflow is not handled properly.
 	 *	If sombody creates 2^32 elements, the uniquness can no longer be guaranteed.*/
@@ -664,26 +675,7 @@ class Grid
 		VolumeAttachmentAccessor<AMark>	m_aaMarkVOL;
 };
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-//	attachment data access
-
-////////////////////////////////////////////////////////////////////////////////////////////////
-//	get_attached_data
-///	returns a pointer to the data-stream of the specified attachment.
-/*
-template <class GeomObjType, class Attachment>
-typename Attachment::ValueType*
-get_attached_data(Grid& grid, Attachment& attachment)
-{
-	typename Attachment::ContainerType* pContainer = (typename Attachment::ContainerType*) grid.get_data_container<GeomObjType>(attachment);
-	if(pContainer)
-		return pContainer->get_ptr();
-	return NULL;
-}
-*/
-}
+}//end of namespace
 
 #include "grid_impl.hpp"
 
