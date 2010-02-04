@@ -116,7 +116,7 @@ Grid& Grid::operator = (const Grid& grid)
 //	be set during assign_grid anyway. This might speed
 //	things up a little
 	set_options(GRIDOPT_NONE);
-	clear();
+	clear_geometry();
 	assign_grid(grid);
 	
 	return *this;

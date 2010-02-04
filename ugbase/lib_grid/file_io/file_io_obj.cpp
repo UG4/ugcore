@@ -273,7 +273,6 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 				else
 					out << "usemtl (null)" << endl;
 
-
 			//	write the edges of this subset
 				WriteEdges(out, pSubsetHandler->begin<EdgeBase>(i),
 							pSubsetHandler->end<EdgeBase>(i), indexDimension, aaInt);

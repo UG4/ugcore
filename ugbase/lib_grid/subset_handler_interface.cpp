@@ -107,10 +107,13 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	//	assign the subsets for each element-type
 		CopySubsetIndices(*this, sh, destGrid->begin<VertexBase>(), destGrid->end<VertexBase>(),
 							srcGrid->begin<VertexBase>(), srcGrid->end<VertexBase>());
+
 		CopySubsetIndices(*this, sh, destGrid->begin<EdgeBase>(), destGrid->end<EdgeBase>(),
 							srcGrid->begin<EdgeBase>(), srcGrid->end<EdgeBase>());
+
 		CopySubsetIndices(*this, sh, destGrid->begin<Face>(), destGrid->end<Face>(),
 							srcGrid->begin<Face>(), srcGrid->end<Face>());
+
 		CopySubsetIndices(*this, sh, destGrid->begin<Volume>(), destGrid->end<Volume>(),
 							srcGrid->begin<Volume>(), srcGrid->end<Volume>());
 							

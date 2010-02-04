@@ -23,9 +23,9 @@ enum RemeshingMarks
  *
  * marks: 0 = normal, 1 = crease, 2 = fixed
  */
-bool AdjustEdgeLength(Grid& grid, SubsetHandler& shMarks,
-					  number minEdgeLen, number maxEdgeLen,
-					  int numIterations);
+bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMarksOut,
+					  Grid& gridIn, SubsetHandler& shIn, SubsetHandler& shMarksIn,
+					  number minEdgeLen, number maxEdgeLen, int numIterations);
 
 
 }//	end of namespace
