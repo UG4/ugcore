@@ -32,6 +32,12 @@ GridSubsetHandler::~GridSubsetHandler()
 		m_pGrid->unregister_observer(this);
 }
 
+GridSubsetHandler& GridSubsetHandler::operator = (const GridSubsetHandler& sh)
+{
+	ISubsetHandler::operator =(sh);
+	return *this;
+}
+
 void GridSubsetHandler::erase_subset_lists()
 {
 	for(uint i = 0; i < m_subsets.size(); ++i)

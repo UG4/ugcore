@@ -74,6 +74,7 @@ ISubsetHandler& ISubsetHandler::operator = (const ISubsetHandler& sh)
 {
 	clear();
 	assign_subset_handler(sh);
+	return *this;
 }
 
 template <class TIterator> static void

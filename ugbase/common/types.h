@@ -10,6 +10,7 @@
 /**
  * \brief Include C99 int-types into the lg namespace.
  */
+
 namespace ugtypes
 {
 	using ::int8_t;
@@ -43,9 +44,14 @@ namespace ugtypes
 };
 
 
+typedef unsigned char byte;
 typedef unsigned int uint;
-typedef ugtypes::uint8_t byte;
+
 typedef ugtypes::uint32_t uint32;
+typedef ugtypes::uint64_t uint64;
+typedef ugtypes::int32_t int32;
+typedef ugtypes::int64_t int64;
+
 typedef double number;
 
 

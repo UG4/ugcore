@@ -43,7 +43,7 @@ bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos)
 	double y = 0;
 	double z = 0;
 	int valence = 0;
-	int numPrecalculated = 10;
+	const int numPrecalculated = 10;
 	double beta[numPrecalculated];
 	double b = 0;
 	double chi = 0;

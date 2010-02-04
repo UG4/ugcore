@@ -220,7 +220,7 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
 						   const vector_t &vFrom, const vector_t &vDir)
 {
 	number r, s, t;
-	return LineTriangleInterasection(vOut, r, s, t, p0, p1, p2, vFrom, vDir);
+	return RayTriangleIntersection(vOut, r, s, t, p0, p1, p2, vFrom, vDir);
 }
 
 ////////////////////////////////////////////////////////////////////////

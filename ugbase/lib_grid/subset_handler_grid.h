@@ -25,6 +25,8 @@ class GridSubsetHandler : public ISubsetHandler
 		GridSubsetHandler(const GridSubsetHandler& sh);
 		~GridSubsetHandler();
 		
+		GridSubsetHandler& operator = (const GridSubsetHandler& sh);
+
 		inline void assign_grid(Grid& grid)		{ISubsetHandler::assign_grid(grid);}
 		
 	///	Makes sure that the subset with the given index exists.

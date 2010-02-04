@@ -592,10 +592,4 @@ bool ExportGridToTETGEN(Grid& grid, const char* nodesFilename,
 	return true;
 }
 
-bool SaveGridToELE(Grid& grid, const char filename, ISubsetHandler* pSH = NULL,
-					APosition& aPos = aPosition)
-{
-
-}
-
 }//	end of namespace

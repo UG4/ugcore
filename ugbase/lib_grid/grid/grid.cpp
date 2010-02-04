@@ -3,6 +3,7 @@
 //	y08 m10 d10
 
 #include <cassert>
+#include <algorithm>
 #include "grid.h"
 #include "grid_util.h"
 #include "common/common.h"

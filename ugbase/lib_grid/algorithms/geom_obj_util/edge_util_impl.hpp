@@ -5,7 +5,7 @@
 #ifndef __H__LIB_GRID__EDGE_UTIL_IMPL__
 #define __H__LIB_GRID__EDGE_UTIL_IMPL__
 
-#include "edge_util.h"
+//#include "edge_util.h"
 #include "lib_grid/grid/grid_util.h"
 
 namespace ug
@@ -14,7 +14,7 @@ namespace ug
 //	SplitEdge
 //	see edge_operations.h for detailed description
 template<class TVertex>
-TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false)
+TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative)
 {
 	return SplitEdge<TVertex>(grid, grid, e, NULL, bConservative);
 }
@@ -24,8 +24,8 @@ TVertex* SplitEdge(Grid& grid, EdgeBase* e, bool bConservative = false)
 //	see edge_operations.h for detailed description
 template<class TVertex>
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
-						AVertexBase* paAssociatedVertices = NULL,
-						bool bConservative = false)
+						AVertexBase* paAssociatedVertices,
+						bool bConservative)
 {
 	TVertex* newVertex;
 	if(&destGrid == &srcGrid)

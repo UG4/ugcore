@@ -85,10 +85,10 @@ namespace Shiny {
 	typedef u_int64_t			uint64_t;
 #endif
 *///sreiter
-	typedef ugtypes::int32_t	int32_t;	//sreiter
-	typedef ugtypes::uint32_t	uint32_t;	//sreiter
-	typedef ugtypes::int64_t	int64_t;	//sreiter
-	typedef ugtypes::uint64_t	uint64_t;	//sreiter
+	typedef int32	int32_t;	//sreiter
+	typedef uint32	uint32_t;	//sreiter
+	typedef int64	int64_t;	//sreiter
+	typedef uint64	uint64_t;	//sreiter
 
 	typedef uint64_t			tick_t;
 

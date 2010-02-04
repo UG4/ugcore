@@ -209,7 +209,7 @@ class ISubsetHandler : public GridObserver
 	 *	in the associated subset-handlers.
 	 *	
 	 *	Please note, that attachments are not copied in the current version.*/
-		virtual ISubsetHandler& operator = (const ISubsetHandler& sh);
+		ISubsetHandler& operator = (const ISubsetHandler& sh);
 		
 	///	returns a pointer to the grid on which the subset-handler works.
 	/**	returns NULL if no grid is assigned.*/

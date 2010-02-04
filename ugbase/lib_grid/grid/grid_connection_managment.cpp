@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 
+#include <algorithm>
 #include "grid.h"
 #include "grid_util.h"
 #include "common/common.h"

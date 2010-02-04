@@ -457,13 +457,12 @@ static bool GetRightLeftUnitIndex(int& rightIndex, int& leftIndex, Grid& grid, F
 //	collect all volumes which are adjacent to face into vector<Volume*> vVolumes
 	CollectVolumes(vVolumes, grid, face);
 //	iterate through all volumes adjacent to the face and identify left and right unit index
-	for(uint i = 0; i < vVolumes.size(); ++i)
+	for(uint j = 0; j < vVolumes.size(); ++j)
 	{
-		Volume* v = vVolumes[i];
+		Volume* v = vVolumes[j];
 
 	//	find the face in the volume that matches the face
-		uint i;
-		for(i = 0; i < v->num_faces(); ++i)
+		for(uint i = 0; i < v->num_faces(); ++i)
 		{
 			v->face(i, fd);
 			if(CompareVertices(face, &fd))
