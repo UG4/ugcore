@@ -25,7 +25,8 @@ enum RemeshingMarks
  */
 bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMarksOut,
 					  Grid& gridIn, SubsetHandler& shIn, SubsetHandler& shMarksIn,
-					  number minEdgeLen, number maxEdgeLen, int numIterations);
+					  number minEdgeLen, number maxEdgeLen, int numIterations,
+					  bool projectPoints = true);
 
 
 }//	end of namespace

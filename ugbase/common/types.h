@@ -5,12 +5,13 @@
 #ifndef __H__LIB_GRID__TYPES__
 #define __H__LIB_GRID__TYPES__
 
+//	stdint.h is included with most compilers.
+//	If stdint.h is not available (e.g. in Microsoft Visual C++.)
+//	you may either download pstint.h or use boost/cstdint.h
+
 #include <stdint.h>
-
-/**
- * \brief Include C99 int-types into the lg namespace.
- */
-
+//#include "pstdint.h"
+///brief Include C99 int-types into the lg namespace.
 namespace ugtypes
 {
 	using ::int8_t;
@@ -26,7 +27,6 @@ namespace ugtypes
 	using ::int_least32_t;
 	using ::int_least64_t;
 	using ::intmax_t;
-	using ::intptr_t;
 	using ::uint8_t;
 	using ::uint16_t;
 	using ::uint32_t;
@@ -40,9 +40,40 @@ namespace ugtypes
 	using ::uint_least32_t;
 	using ::uint_least64_t;
 	using ::uintmax_t;
-	using ::uintptr_t;
 };
 
+/*
+#include "boost/cstdint.hpp"
+namespace ugtypes
+{
+	using boost::int8_t;
+	using boost::int16_t;
+	using boost::int32_t;
+	using boost::int64_t;
+	using boost::int_fast8_t;
+	using boost::int_fast16_t;
+	using boost::int_fast32_t;
+	using boost::int_fast64_t;
+	using boost::int_least8_t;
+	using boost::int_least16_t;
+	using boost::int_least32_t;
+	using boost::int_least64_t;
+	using boost::intmax_t;
+	using boost::uint8_t;
+	using boost::uint16_t;
+	using boost::uint32_t;
+	using boost::uint64_t;
+	using boost::uint_fast8_t;
+	using boost::uint_fast16_t;
+	using boost::uint_fast32_t;
+	using boost::uint_fast64_t;
+	using boost::uint_least8_t;
+	using boost::uint_least16_t;
+	using boost::uint_least32_t;
+	using boost::uint_least64_t;
+	using boost::uintmax_t;
+};
+*/
 
 typedef unsigned char byte;
 typedef unsigned int uint;

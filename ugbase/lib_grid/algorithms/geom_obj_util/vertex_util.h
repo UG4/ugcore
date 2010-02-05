@@ -81,6 +81,25 @@ VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin,
 									Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+///	calculates the normal of a vertex using associated faces
+/**
+ * TAAPosVRT has to be an attachment accessor for the vector3 type that
+ * works on the triangles in grid.
+ */
+template <class TAAPosVRT>
+void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt,
+						   TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+//	CalculateVertexNormals
+///	calculates the normals of all vertices in grid and stores them in aNorm.
+/**
+ * aPos has to be attached to grid.
+ * If some attachments were not attached correctly, the method returns false.
+ */
+bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm);
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateBoundingBox
 /// calculates the BoundingBox
 void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator vrtsBegin,
@@ -121,5 +140,9 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "vertex_util_impl.hpp"
 
 #endif

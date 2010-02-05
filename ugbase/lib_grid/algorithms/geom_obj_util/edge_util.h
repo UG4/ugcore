@@ -38,6 +38,18 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e);
 bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
+//	GetAssociatedFaces
+///	writes associated faces of the edge e to facesOut
+/**
+ * maxNumFaces defines how many faces are written to facesOut at most.
+ * make sure that facesOut points to an array that can hold
+ * maxNumFaces copies of Face*.
+ * The total number of associated faces is returned.
+ */
+int GetAssociatedFaces(Face** facesOut, Grid& grid,
+						EdgeBase* e, int maxNumFaces);
+
+////////////////////////////////////////////////////////////////////////
 //	CollapseEdge
 ///	Collapses the specified edge performs local grid restructuring.
 /**
@@ -94,6 +106,18 @@ template<class TVertex>
 TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 						AVertexBase* paAssociatedVertices = NULL,
 						bool bConservative = false);
+
+////////////////////////////////////////////////////////////////////////
+//	SwapEdge
+///	swaps e and thus reconnects its two adjacent triangles.
+/**
+ *	A swap is only allowed if e has exactly 2 adjacent triangles.
+ *	The method erases the old edge and triangles and constructs new ones.
+ *	Old elements are passed as parents to the grids creation method.
+ *
+ *	The swapped edge is returned.
+ */
+EdgeBase* SwapEdge(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
 //	CreateEdgeSplitGeometry

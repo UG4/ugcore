@@ -22,6 +22,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/serialization.cpp
 					algorithms/grid_statistics.cpp
 					algorithms/remeshing/edge_length_adjustment.cpp
+					algorithms/remeshing/simple_grid.cpp
 					algorithms/graph/neighbourhood.cpp
 					algorithms/geom_obj_util/edge_util.cpp
 					algorithms/geom_obj_util/face_util.cpp

@@ -215,6 +215,47 @@ void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	CalculateVertexNormals
+bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
+{
+	if(!grid.has_attachment<VertexBase>(aPos))
+		return false;
+	if(!grid.has_attachment<VertexBase>(aNorm))
+		grid.attach_to<VertexBase>(aNorm);
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor<ANormal> aaNorm(grid, aNorm);
+
+//	set all normals to zero
+	{
+		for(VertexBaseIterator iter = grid.begin<VertexBase>();
+			iter != grid.end<VertexBase>(); iter++)
+			aaNorm[*iter] = vector3(0, 0, 0);
+	}
+//	loop through all the faces, calculate their normal and add them to their connected points
+	{
+		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); iter++)
+		{
+			Face* f = *iter;
+			vector3 vN;
+
+			CalculateNormal(vN, f, aaPos);
+
+			for(int i = 0; i < f->num_vertices(); ++i)
+				VecAdd(aaNorm[f->vertex(i)], aaNorm[f->vertex(i)], vN);
+		}
+	}
+//	loop through all the points and normalize their normals
+	{
+		for(VertexBaseIterator iter = grid.begin<VertexBase>();
+			iter != grid.end<VertexBase>(); iter++)
+			VecNormalize(aaNorm[*iter], aaNorm[*iter]);
+	}
+//	done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateBarycenter - mstepnie
 /// calculates the barycenter of a set of vertices
 vector3 CalculateBarycenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,

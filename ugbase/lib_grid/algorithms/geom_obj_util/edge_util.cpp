@@ -67,6 +67,65 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	GetAssociatedFaces
+int GetAssociatedFaces(Face** facesOut, Grid& grid,
+						EdgeBase* e, int maxNumFaces)
+{
+	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	{
+		int counter = 0;
+		FaceIterator iterEnd = grid.associated_faces_end(e);
+		for(FaceIterator iter = grid.associated_faces_begin(e);
+			iter != grid.associated_faces_end(e); ++iter)
+		{
+			Face* tf = *iter;
+
+			if(counter < maxNumFaces)
+				facesOut[counter] = tf;
+
+			counter++;
+		}
+		return counter;
+	}
+	else
+	{
+	//	we're using grid::mark for maximal speed.
+		grid.begin_marking();
+	//	mark the end-points of the edge
+		grid.mark(e->vertex(0));
+		grid.mark(e->vertex(1));
+
+	//	we have to find the triangles 'by hand'
+	//	iterate over all associated faces of vertex 0
+		int counter = 0;
+		VertexBase* v = e->vertex(0);
+		FaceIterator iterEnd = grid.associated_faces_end(v);
+		for(FaceIterator iter = grid.associated_faces_begin(v);
+			iter != iterEnd; ++iter)
+		{
+			Face* tf = *iter;
+			uint numVrts = tf->num_vertices();
+			int numMarked = 0;
+			for(uint i = 0; i < numVrts; ++i)
+				if(grid.is_marked(tf->vertex(i)))
+					numMarked++;
+			if(numMarked > 1)
+			{
+			//	the face is connected with the edge
+				if(counter < maxNumFaces)
+					facesOut[counter] = tf;
+				counter++;
+			}
+		}
+
+	//	done with marking
+		grid.end_marking();
+
+		return counter;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt)
 {
 //	prepare the grid, so that we may perform Grid::replace_vertex.
@@ -321,6 +380,72 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 	}
 
 	return true;
+}
+
+EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
+{
+//	get the associated faces.
+//	Only 2 associated faces are allowed.
+	Face* f[2];
+	if(GetAssociatedFaces(f, grid, e, 2) != 2)
+		return NULL;
+
+//	make sure that both faces are triangles
+	if((f[0]->num_vertices() != 3) || (f[1]->num_vertices() != 3))
+		return NULL;
+
+//	begin marking
+	grid.begin_marking();
+
+//	mark the end-points of the edge
+	grid.mark(e->vertex(0));
+	grid.mark(e->vertex(1));	
+
+//	get the two vertices that will be connected by the new edge
+	VertexBase* v[2];
+	int vrtInd[2];
+	for(int j = 0; j < 2; ++j){
+		v[j] = NULL;
+		for(int i = 0; i < 3; ++i){
+			VertexBase* vrt = f[j]->vertex(i);
+			if(!grid.is_marked(vrt)){
+				vrtInd[j] = i;
+				v[j] = vrt;
+				break;
+			}
+		}
+	}
+
+//	we're done with marking
+	grid.end_marking();
+
+//	make sure that both vertices have been found.
+	if(!(v[0] && v[1]))
+		return NULL;
+
+//	make sure that no edge exists between v[0] and v[1]
+	if(grid.get_edge(v[0], v[1]))
+		return NULL;
+
+//	the indices of the marked points in the first triangle
+	int ind1 = (vrtInd[0] + 1) % 3;
+	int ind2 = (vrtInd[0] + 2) % 3;
+
+//	create the new edge
+	EdgeBase* nEdge = *grid.create_by_cloning(e, EdgeDescriptor(v[0], v[1]), e);
+
+//	create the new faces
+	grid.create<Triangle>(TriangleDescriptor(v[0], f[0]->vertex(ind1), v[1]), f[0]);
+	grid.create<Triangle>(TriangleDescriptor(f[0]->vertex(ind2), v[0], v[1]), f[1]);
+
+//	erase the old faces
+	grid.erase(f[0]);
+	grid.erase(f[1]);
+
+//	erase the old edge
+	grid.erase(e);
+	
+	return nEdge;
 }
 
 }//	end of namespace

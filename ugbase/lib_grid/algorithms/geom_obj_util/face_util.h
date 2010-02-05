@@ -152,47 +152,12 @@ void FixOrientation(Grid& grid, FaceIterator facesBegin, FaceIterator facesEnd);
  */
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateFaceCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT)
-{
-	uint numVrts = f->num_vertices();
-	typename TVertexPositionAttachmentAccessor::ValueType v;
-//	init v with 0.
-	VecSet(v, 0);
+CalculateFaceCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 
-//	sum up
-	for(uint i = 0; i < numVrts; ++i)
-	{
-		VecAdd(v, v, aaPosVRT[f->vertex(i)]);
-	}
-
-//	average
-	if(numVrts > 0)
-		VecScale(v, v, 1./(number)numVrts);
-
-	return v;
-}
-
+////////////////////////////////////////////////////////////////////////
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT)
-{
-	uint numVrts = f->num_vertices();
-	typename TVertexPositionAttachmentAccessor::ValueType v;
-//	init v with 0.
-	VecSet(v, 0);
-
-//	sum up
-	for(uint i = 0; i < numVrts; ++i)
-	{
-		VecAdd(v, v, aaPosVRT[f->vertex(i)]);
-	}
-
-//	average
-	if(numVrts > 0)
-		VecScale(v, v, 1./(number)numVrts);
-
-	return v;
-}
+CalculateCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -211,33 +176,21 @@ CalculateCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT)
 template<class TVertexPositionAttachmentAccessor>
 Face* FindFaceByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
 							FaceIterator iterBegin, FaceIterator iterEnd,
-							TVertexPositionAttachmentAccessor& aaPosVRT)
-{
-	if(iterBegin == iterEnd)
-		return NULL;
+							TVertexPositionAttachmentAccessor& aaPosVRT);
 
-	FaceIterator iter = iterBegin;
-	Face* bestFace = *iter;
-	number bestDistSq = VecDistanceSq(coord, CalculateFaceCenter(bestFace, aaPosVRT));
-	iter++;
-
-	while(iter != iterEnd)
-	{
-		number distSq = VecDistanceSq(coord, CalculateFaceCenter(*iter, aaPosVRT));
-		if(distSq < bestDistSq)
-		{
-			bestDistSq = distSq;
-			bestFace = *iter;
-		}
-
-		++iter;
-	}
-
-	return bestFace;
-}
+////////////////////////////////////////////////////////////////////////
+//	project points to surface 
+template <class TTriangleIterator, class TAAPosVRT>
+bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
+						   TTriangleIterator trisBegin, TTriangleIterator trisEnd,
+						   TAAPosVRT& aaPos, bool compareNormals = false);
 
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "face_util_impl.hpp"
 
 #endif

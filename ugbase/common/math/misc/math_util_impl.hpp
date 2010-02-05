@@ -201,7 +201,7 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 		}
 	}
 
-	if((r >=0 ) && (s >= 0 ) && ((r + s) <= 1))
+	if((r >=-SMALL ) && (s >= -SMALL ) && ((r + s) <= 1+SMALL))
 	{
 		vOut.x = vFrom.x + t*vDir.x;
 		vOut.y = vFrom.y + t*vDir.y;
