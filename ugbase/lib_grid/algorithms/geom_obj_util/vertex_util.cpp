@@ -483,4 +483,55 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v)
 	return false;
 }
 
+////////////////////////////////////////////////////////////////////////
+void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
+							int creaseSI, int fixedSI)
+{
+//	if there are no crease-edges then there is nothing to do.
+	if(sh.num_subsets() <= creaseSI)
+		return;
+	if(sh.num<EdgeBase>(creaseSI) == 0)
+		return;
+		
+//	begin marking
+	grid.begin_marking();
+//	iterate over all crease-edges
+	for(EdgeBaseIterator iter = sh.begin<EdgeBase>(creaseSI);
+		iter != sh.end<EdgeBase>(creaseSI); ++iter)
+	{
+	//	check for both vertices whether they are fixed-vertices
+		for(int i = 0; i < 2; ++i)
+		{
+			VertexBase* v = (*iter)->vertex(i);
+		//	if the vertex is not marked (has not been checked yet)
+			if(!grid.is_marked(v))
+			{
+			//	mark it
+				grid.mark(v);
+			//	count associated crease edges
+				int counter = 0;
+				EdgeBaseIterator aeIterEnd = grid.associated_edges_end(v);
+				for(EdgeBaseIterator aeIter = grid.associated_edges_begin(v);
+					aeIter != aeIterEnd; ++aeIter)
+				{
+					if(sh.get_subset_index(*aeIter) == creaseSI)
+					{
+					//	the edge is a crease-edge. Increase the counter.
+						++counter;
+					//	if the counter is higher than 2, the vertex is a fixed vertex.
+						if(counter > 2)
+						{
+							sh.assign_subset(v, fixedSI);
+							break;
+						}
+					}				
+				}
+			}
+		}
+	}
+	
+//	end marking
+	grid.end_marking();
+}
+
 }//	end of namespace

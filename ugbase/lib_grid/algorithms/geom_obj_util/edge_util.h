@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__EDGE_UTIL__
 
 #include "lib_grid/lg_base.h"
+#include "face_util.h"
 
 namespace ug
 {
@@ -39,12 +40,16 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
-///	writes associated faces of the edge e to facesOut
+///	writes associated faces of e to facesOut.
 /**
- * maxNumFaces defines how many faces are written to facesOut at most.
- * make sure that facesOut points to an array that can hold
- * maxNumFaces copies of Face*.
- * The total number of associated faces is returned.
+ * This method uses ug::Grid::mark.
+ *
+ * Associated faces of e are written to facesOut.
+ * facesOut has to be an array of size maxNumFaces.
+ * If there are more then maxNumFaces associated faces, they are not
+ * written to facesOut.
+ *
+ * The method returns the number of total number of associated faces.
  */
 int GetAssociatedFaces(Face** facesOut, Grid& grid,
 						EdgeBase* e, int maxNumFaces);
@@ -136,22 +141,24 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e);
 bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e, VertexBase* newVertex, AVertexBase* paAssociatedVertices = NULL);
 
 
+////////////////////////////////////////////////////////////////////////
+/**
+ * paFaceNormal is ignored in the current implementation.
+ * In the moment normals are calculated on the fly and not stored.
+ * That means that the normal of each single face is calculated up to
+ * four times. This can be improved!
+ */
+template <class TEdgeIterator>
+void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
+					TEdgeIterator edgesBegin, TEdgeIterator edgesEnd,
+					int subsetIndex, number angle,
+					APosition& aPos = aPosition,
+					ANormal* paFaceNormal = NULL);
+
+
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT)
-{
-	typename TVertexPositionAttachmentAccessor::ValueType v;
-//	init v with 0.
-	VecSet(v, 0);
-
-//	sum up
-	VecAdd(v, aaPosVRT[e->vertex(0)], aaPosVRT[e->vertex(1)]);
-
-//	average
-	VecScale(v, v, 0.5);
-
-	return v;
-}
+CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 /**@}*/ // end of doxygen defgroup command
 

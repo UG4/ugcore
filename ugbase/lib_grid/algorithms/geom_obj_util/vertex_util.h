@@ -137,6 +137,16 @@ void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin,
  */
 bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
 
+////////////////////////////////////////////////////////////////////////
+/**
+ * Uses Grid::mark()
+ *
+ * Vertices that are adjacent with more than two crease-edges are
+ * regarded as a fixed vertex.
+ */
+void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
+							int creaseSI, int fixedSI);
+
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

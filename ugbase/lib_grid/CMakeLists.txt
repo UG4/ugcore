@@ -107,7 +107,7 @@ set(srcNg
 #the real library					
 add_library(grid 	${srcGrid} ${srcLibGrid}
 					${srcParallelization}
-					${srcFileIO} ${srcAlgorithms}
+					${srcAlgorithms} ${srcFileIO}
 					${srcTetgen} ${srcLgm} ${srcNg})
 
 #for debug only
