@@ -544,7 +544,7 @@ move_subset(int indexFrom, int indexTo)
 				apFromFace = m_faceAttachmentPipes[indexFrom];
 				apFromVol = m_volumeAttachmentPipes[indexFrom];
 			}
-				
+
 		//	assign new indices to elements in from subset (no iterators are changed)
 			change_subset_indices(indexFrom, indexTo);
 
@@ -561,7 +561,7 @@ move_subset(int indexFrom, int indexTo)
 
 		//	assign stored info
 			m_subsetInfos[indexTo] = siFrom;
-		
+			
 		//	assign stored attachment pipes
 			if(subset_attachments_are_enabled())
 			{

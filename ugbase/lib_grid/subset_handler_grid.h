@@ -92,6 +92,10 @@ class GridSubsetHandler : public ISubsetHandler
 	//	derived from GridObserver
 		virtual void unregistered_from_grid(Grid* grid);
 		
+	///	only for debug purposes
+		template <class TElem>
+		bool perform_self_tests();
+		
 	protected:
 	////////////////////////////////////////////////
 	//	implementation of protected virtual methdos of ISubsetHandler.

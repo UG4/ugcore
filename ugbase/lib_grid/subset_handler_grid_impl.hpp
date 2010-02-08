@@ -124,8 +124,39 @@ change_elem_subset_indices(int indOld, int indNew)
 {
 	typedef typename geometry_traits<TElem>::iterator iterator;
 	for(iterator iter = begin<TElem>(indOld);
-		iter != end<TElem>(indOld); iter++)
+		iter != end<TElem>(indOld); iter++){
 		ISubsetHandler::alter_subset_index(*iter, indNew);
+	}
+}
+
+template <class TElem>
+bool GridSubsetHandler::perform_self_tests()
+{
+	typedef typename geometry_traits<TElem>::iterator iterator;
+	
+	bool bSuccess = true;
+	
+	LOG("performing self tests on GridSubsetHandler\n");
+	LOG("  num subets: " << num_subsets() << std::endl);
+	
+//	iterate through the subsets and check whether the assigned
+//	elements have the correct subset index
+	LOG("  checking subset indices\n");
+	for(int i = 0; i < num_subsets(); ++i){
+		LOG("  checking subset " << i);
+		for(iterator iter = begin<TElem>(i); iter != end<TElem>(i); ++iter)
+		{
+			if(get_subset_index(*iter) != i){
+				LOG(" bad element subset index: "
+					<< get_subset_index(*iter));
+				bSuccess = false;
+				break;
+			}
+		}
+		LOG("\n");
+	}
+	
+	return bSuccess;
 }
 
 }//	end of namespace
