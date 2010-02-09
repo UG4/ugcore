@@ -60,10 +60,23 @@ static bool WriteNG(Grid& grid,
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	ConvertTETGENToUG
 /// converts tetgen files (*.node, *.face and *.ele) to UG files (*.lgm, *.ng)
-bool ExportGridToUG(Grid& grid, const SubsetHandler& shFaces, const SubsetHandler& shVolumes,
+bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHandler& shVolume,
 					const char* fileNamePrefix, const char* lgmName,
 					const char* problemName, int convex)
 {
+//	the original grid may not be altered
+	Grid grid = g;
+	
+//	we need subset-handlers that operate on the local grid
+	SubsetHandler shFaces(grid, SHE_FACE);
+	SubsetHandler shVolumes(grid, SHE_VOLUME);
+	shFaces = shFace;
+	shVolumes = shVolume;
+
+//	fix orientation of faces
+	for(int i = 0; i < shFaces.num_subsets(); ++i)
+		FixOrientation(grid, shFaces.begin<Face>(i), shFaces.end<Face>(i));
+	
 //	initialization
 	EdgeSelector	LineSel(grid);
 	VertexSelector 	NgVrtSel(grid);

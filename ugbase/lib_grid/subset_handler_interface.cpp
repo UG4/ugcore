@@ -105,19 +105,33 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 
 //	make sure that both accessors have a valid grid
 	if(srcGrid && destGrid){
+		//LOG("sh-copying -");
 	//	assign the subsets for each element-type
-		CopySubsetIndices(*this, sh, destGrid->begin<VertexBase>(), destGrid->end<VertexBase>(),
-							srcGrid->begin<VertexBase>(), srcGrid->end<VertexBase>());
+		if(elements_are_supported(SHE_VERTEX)){
+			//LOG(" vrts -");
+			CopySubsetIndices(*this, sh, destGrid->begin<VertexBase>(), destGrid->end<VertexBase>(),
+								srcGrid->begin<VertexBase>(), srcGrid->end<VertexBase>());
+		}
 
-		CopySubsetIndices(*this, sh, destGrid->begin<EdgeBase>(), destGrid->end<EdgeBase>(),
+		if(elements_are_supported(SHE_EDGE)){
+			//LOG(" edges -");
+			CopySubsetIndices(*this, sh, destGrid->begin<EdgeBase>(), destGrid->end<EdgeBase>(),
 							srcGrid->begin<EdgeBase>(), srcGrid->end<EdgeBase>());
+		}
 
-		CopySubsetIndices(*this, sh, destGrid->begin<Face>(), destGrid->end<Face>(),
+		if(elements_are_supported(SHE_FACE)){
+			//LOG(" faces -");
+			CopySubsetIndices(*this, sh, destGrid->begin<Face>(), destGrid->end<Face>(),
 							srcGrid->begin<Face>(), srcGrid->end<Face>());
-
-		CopySubsetIndices(*this, sh, destGrid->begin<Volume>(), destGrid->end<Volume>(),
-							srcGrid->begin<Volume>(), srcGrid->end<Volume>());
+		}
 							
+		if(elements_are_supported(SHE_VOLUME)){
+			//LOG(" volumes -");
+			CopySubsetIndices(*this, sh, destGrid->begin<Volume>(), destGrid->end<Volume>(),
+							srcGrid->begin<Volume>(), srcGrid->end<Volume>());
+		}
+		
+		LOG(endl);
 //TODO:	copy attachments!?!
 	}
 }
@@ -168,13 +182,13 @@ set_supported_elements(uint shElements)
 //	do this in two steps:
 //	1: disable the element-support that is no longer required.
 //	2: enable the element-support that was not already enabled.
-	
 //	disable the elements that shall be disabled.
+
 //	(the ones which shall not be set, but are currently active.)
-	disable_element_support((!shElements) & m_supportedElements);
+	disable_element_support((~shElements) & m_supportedElements);
 
 //	enable the elements that are not already enabled
-	enable_element_support(shElements & (!m_supportedElements));
+	enable_element_support(shElements & (~m_supportedElements));
 }
 
 void ISubsetHandler::
@@ -281,7 +295,7 @@ disable_element_support(uint shElements)
 	}
 
 //	remove the disabled elements from the set of currently supported elements.
-	m_supportedElements &= (!shElements);
+	m_supportedElements &= (~shElements);
 }
 
 void ISubsetHandler::

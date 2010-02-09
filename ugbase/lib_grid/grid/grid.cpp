@@ -436,7 +436,7 @@ void Grid::enable_options(uint options)
 
 void Grid::disable_options(uint options)
 {
-	change_options(m_options & (!m_options));
+	change_options(m_options & (~options));
 }
 
 bool Grid::option_is_enabled(uint option) const

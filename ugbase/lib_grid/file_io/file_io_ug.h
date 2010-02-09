@@ -11,14 +11,13 @@ namespace ug
 {
 
 /**
- * sh serves as surface handler for both the faces and volumes of the grid.
- * Please make sure that the faces are assigned to the subsets from
- * 0 to numFaceSubsets and the volumes are assigned from 0 to numVolumeSubsets.
- *
+ * shFace has to contain the interface-faces that separate the different
+ * volume-subsets (specified in shVolume).
+ * 
  * lgmName, problemName and convex correlate to the parameters that appear
  * at the beginning of each lgm-file.
  */
-bool ExportGridToUG(Grid& grid, const SubsetHandler& shFaces, const SubsetHandler& shVolumes,
+bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHandler& shVolume,
 					const char* fileNamePrefix, const char* lgmName,
 					const char* problemName, int convex);
 
