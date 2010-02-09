@@ -8,7 +8,10 @@
 #ifndef VTKOUTPUT_H_
 #define VTKOUTPUT_H_
 
+// extern libraries
 #include <cstdio>
+
+// other ug modules
 #include "lib_algebra/lib_algebra.h"
 #include "lib_grid/lib_grid.h"
 #include "lib_discretization/lib_discretization.h"

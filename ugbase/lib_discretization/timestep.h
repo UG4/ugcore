@@ -8,11 +8,15 @@
 #ifndef __H__LIB_DISCRETIZATION__TIMESTEP__
 #define __H__LIB_DISCRETIZATION__TIMESTEP__
 
-#include "spacialdiscretization.h"
-#include "numericalsolution.h"
-#include "../common/types.h"
-#include "assemble.h"
+// extern libraries
 #include <deque>
+
+// other ug libraries
+#include "../common/types.h"
+
+// modul intern libraries
+#include "numericalsolution.h"
+#include "assemble.h"
 
 namespace ug{
 

@@ -8,7 +8,10 @@
 #ifndef __H__LIBDISCRETIZATION__NEWTON__
 #define __H__LIBDISCRETIZATION__NEWTON__
 
+// other ug libraries
 #include "../lib_algebra/lib_algebra.h"
+
+// modul intern headers
 #include "numericalsolution.h"
 #include "assemble.h"
 

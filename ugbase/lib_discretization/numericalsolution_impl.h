@@ -10,50 +10,20 @@
 
 namespace ug{
 
-template<typename TElem>
-bool DoFPattern::get_indices(TElem* elem, uint nr_fct, index_type* ind)
-{
-	assert(nr_fct < _SingleSolutionInfoVec.size());
-	int subsetIndex = _sh->get_subset_index(elem);
-	uint i;
-	for(i = 0; i < (_SingleSolutionInfoVec[nr_fct]->SubsetIndex).size(); ++i)
-	{
-		if(subsetIndex == _SingleSolutionInfoVec[nr_fct]->SubsetIndex[i]) break;
-	}
-	if(i ==  (_SingleSolutionInfoVec[nr_fct]->SubsetIndex).size())
-		assert(0 && "ERROR in get_index. Solution not defined for SubsetIndex.");
-
-	comp_type ncomp = _SingleSolutionInfoVec[nr_fct]->group_comp[subsetIndex];
-
-	typename geometry_traits<TElem>::Descriptor TDesc;
-	for(uint i=0; i< TDesc.num_vertices(); i++)
-	{
-		VertexBase* vert = elem->vertex(i);
-		ind[i] = _aaDoFVRT[vert].index + (comp_type) ncomp;
-	}
-	return true;
-}
-
-
-
-////////////////////////////
-// numerical solution
-////////////////////////////
-
-template <int d>
-template <typename TElem>
-const TrialSpace<TElem>& NumericalSolution<d>::get_TrialSpace(uint nr_fct)
-{
-	return TrialSpaces<TElem>::TrialSpace(_pattern->get_TrialSpaceType(nr_fct));
-}
-
 template <int d>
 template<typename TElem>
 bool NumericalSolution<d>::get_indices(TElem* elem, uint nr_fct, int* ind)
 {
-	_pattern->get_indices(elem, nr_fct, ind);
+	//_pattern->get_indices(elem, nr_fct, ind);
 	return true;
 }
+
+template <int d>
+uint NumericalSolution<d>::num_dofs(uint level)
+{
+	return _pattern->num_dofs(level);
+}
+
 
 template <int d>
 template <typename TElem>
@@ -68,7 +38,7 @@ bool NumericalSolution<d>::get_local_DoFValues(TElem* elem, uint nr_fct, number*
 	for(int i=0; i< nvalues; i++)
 	{
 		VertexBase* vert = elem->vertex(i);
-		indices[i] = (int) (_pattern->get_index(vert, nr_fct));
+		//indices[i] = (int) (_pattern->get_indices(vert, nr_fct));
 	}
 
 	int level = 0;
@@ -166,7 +136,7 @@ bool NumericalSolution<d>::set_values(bool (*fct)(MathVector<d>, number&), uint 
 		if((uint)sh.get_subset_index(vert) != subsetIndex) continue;
 
 		corner = aaPos[vert];
-		index = (int) _pattern->get_index(vert, nr_fct);
+		//index = (int) _pattern->get_index(vert, nr_fct);
 		fct(corner, val);
 		values.push_back(val);
 		indices.push_back(index);
