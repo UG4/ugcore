@@ -13,7 +13,7 @@ namespace ug
 template <class TElem>
 typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
-begin(int subsetIndex)
+begin(int subsetIndex) const
 {
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
@@ -34,7 +34,7 @@ begin(int subsetIndex)
 template <class TElem>
 typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
-end(int subsetIndex)
+end(int subsetIndex) const
 {
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
@@ -81,7 +81,7 @@ clear_subset_elements(int subsetIndex)
 template <class TElem>
 uint
 GridSubsetHandler::
-num_elements(int subsetIndex)
+num_elements(int subsetIndex) const
 {
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
@@ -101,7 +101,7 @@ num_elements(int subsetIndex)
 template <class TElem>
 uint
 GridSubsetHandler::
-num(int subsetIndex)
+num(int subsetIndex) const
 {
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;

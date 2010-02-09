@@ -16,21 +16,23 @@ using namespace std;
 namespace ug
 {
 
-static	bool CollectLines(Grid& grid, SubsetHandler& shFace, EdgeSelector& LineSel);
+static	bool CollectLines(Grid& grid, const SubsetHandler& shFace, EdgeSelector& LineSel);
 
 static	bool CollectInnerVertices(Grid& grid, VertexSelector& InnVrtSel, VertexSelector& SurfVrtSel);
 
-static	bool CollectSurfaceVertices(Grid& grid, SubsetHandler& shFace, VertexSelector& SurfVrtSel);
+static	bool CollectSurfaceVertices(Grid& grid, const SubsetHandler& shFace,
+									VertexSelector& SurfVrtSel);
 
 static	bool CollectAllVerticesForNG(Grid& grid, VertexSelector& NgVrtSel,
 							VertexSelector& SurfVrtSel, VertexSelector& InnVrtSel);
 
-static	bool WriteLGM(Grid& grid,
+static bool WriteLGM(Grid& grid,
 					  const char* lgmFilename,
 					  const char* problemName,
 					  const char* lgmName,
 					  int convex,
-					  SubsetHandler& sh,
+					  const SubsetHandler& shFaces,
+					  const SubsetHandler& shVolumes,
 					  EdgeSelector& LineSel,
 					  VertexSelector& SurfVrtSel,
 					  Grid::EdgeAttachmentAccessor<AInt>& aaLineIndex,
@@ -38,10 +40,11 @@ static	bool WriteLGM(Grid& grid,
 					  Grid::VertexAttachmentAccessor<AVector3>& aaPos);
 
 static	bool GetRightLeftUnitIndex(int& rightIndex, int& leftIndex, Grid& grid, Face* face,
-								   SubsetHandler& shVolume);
+								   const SubsetHandler& shVolume);
 
 static bool WriteNG(Grid& grid,
-					 SubsetHandler& sh,
+					 const SubsetHandler& shFaces,
+					 const SubsetHandler& shVolumes,
 					 const char* ngFilename,
 					 VertexSelector& SurfVrtSel,
 					 VertexSelector& InnVrtSel,
@@ -57,8 +60,9 @@ static bool WriteNG(Grid& grid,
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	ConvertTETGENToUG
 /// converts tetgen files (*.node, *.face and *.ele) to UG files (*.lgm, *.ng)
-bool ExportGridToUG(Grid& grid, SubsetHandler& sh, const char* fileNamePrefix,
-					const char* lgmName, const char* problemName, int convex)
+bool ExportGridToUG(Grid& grid, const SubsetHandler& shFaces, const SubsetHandler& shVolumes,
+					const char* fileNamePrefix, const char* lgmName,
+					const char* problemName, int convex)
 {
 //	initialization
 	EdgeSelector	LineSel(grid);
@@ -67,7 +71,6 @@ bool ExportGridToUG(Grid& grid, SubsetHandler& sh, const char* fileNamePrefix,
 	VertexSelector 	InnVrtSel(grid);
 
 //TODO: disable those options again, if they weren't enabled before.
-
 	grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	grid.enable_options(EDGEOPT_STORE_ASSOCIATED_FACES);
 //	for write ng
@@ -78,8 +81,8 @@ bool ExportGridToUG(Grid& grid, SubsetHandler& sh, const char* fileNamePrefix,
 	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPosition);
 
 //	selection of lines, surface-vertices, inner vertices
-	CollectLines(grid, sh, LineSel);
-	CollectSurfaceVertices(grid, sh, SurfVrtSel);
+	CollectLines(grid, shFaces, LineSel);
+	CollectSurfaceVertices(grid, shFaces, SurfVrtSel);
 	CollectInnerVertices(grid, InnVrtSel, SurfVrtSel);
 	CollectAllVerticesForNG(grid, NgVrtSel, SurfVrtSel, InnVrtSel);
 
@@ -100,15 +103,17 @@ bool ExportGridToUG(Grid& grid, SubsetHandler& sh, const char* fileNamePrefix,
 		AInt aFaceIndex;
 		grid.attach_to_faces(aFaceIndex);
 		Grid::FaceAttachmentAccessor<AInt> aaFaceIndex(grid, aFaceIndex);
-		for(uint i = 0; i < sh.num_subsets(); ++i)
+		for(uint i = 0; i < shFaces.num_subsets(); ++i)
 		{
 			counter = 0;
 		//	assign triangle indices
-			for(TriangleIterator iter = sh.begin<Triangle>(i); iter != sh.end<Triangle>(i); ++iter, ++counter)
+			for(TriangleIterator iter = shFaces.begin<Triangle>(i);
+				iter != shFaces.end<Triangle>(i); ++iter, ++counter)
 				aaFaceIndex[*iter] = counter;
 
 		//	assign quadrilaterals. Increase index by 2, since 2 triangles are written for each quad
-			for(QuadrilateralIterator iter = sh.begin<Quadrilateral>(i); iter != sh.end<Quadrilateral>(i); ++iter, counter += 2)
+			for(QuadrilateralIterator iter = shFaces.begin<Quadrilateral>(i);
+				iter != shFaces.end<Quadrilateral>(i); ++iter, counter += 2)
 				aaFaceIndex[*iter] = counter;
 		}
 
@@ -138,36 +143,17 @@ bool ExportGridToUG(Grid& grid, SubsetHandler& sh, const char* fileNamePrefix,
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-
-
-//	set up unit names
-	{
-		int unitCount = 1;
-		for(uint i = 0; i < sh.num_subsets(); ++i)
-		{
-			if(sh.subset_info(i).name.size() == 0 && sh.num_elements<Volume>(i) > 0)
-			{
-				stringstream ss;
-
-			//	be cautious with unit indices: id = 0 is reserved for outer space ONLY by UG
-				ss << "unit_" << unitCount;
-				sh.subset_info(i).name = ss.str();
-				++unitCount;
-			}
-		}
-	}
-
 	string lgmFilename(fileNamePrefix);
 	lgmFilename.append(".lgm");
 //	write *.lgm file
 	WriteLGM(grid, lgmFilename.c_str(), problemName, lgmName,
-			 convex, sh, LineSel, SurfVrtSel, aaLineIndex, aaSurfVrtIndex, aaPos);
+			 convex, shFaces, shVolumes, LineSel, SurfVrtSel, aaLineIndex, aaSurfVrtIndex, aaPos);
 
 	string ngFilename(fileNamePrefix);
 	ngFilename.append(".ng");
 
 //	write *.ng file
-	WriteNG(grid, sh, ngFilename.c_str(), SurfVrtSel, InnVrtSel, NgVrtSel, LineSel,
+	WriteNG(grid, shFaces, shVolumes, ngFilename.c_str(), SurfVrtSel, InnVrtSel, NgVrtSel, LineSel,
 			aaLineIndex, aaInnVrtIndex, aaNgVrtIndex, aaFaceIndex, aaPos);
 
 	return true;
@@ -176,7 +162,7 @@ bool ExportGridToUG(Grid& grid, SubsetHandler& sh, const char* fileNamePrefix,
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	CollectLines
 /// collects lines in a selector
-static bool CollectLines(Grid& grid, SubsetHandler& shFace, EdgeSelector& LineSel)
+static bool CollectLines(Grid& grid, const SubsetHandler& shFace, EdgeSelector& LineSel)
 {
 //	store associated faces in this vector
 	vector<Face*> vFaces;
@@ -247,7 +233,8 @@ static bool CollectInnerVertices(Grid& grid, VertexSelector& InnVrtSel, VertexSe
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	CollectSurfaceVertices
 /// collects surface-vertices in a selector
-static bool CollectSurfaceVertices(Grid& grid, SubsetHandler& shFace, VertexSelector& SurfVrtSel)
+static bool CollectSurfaceVertices(Grid& grid, const SubsetHandler& shFace,
+									VertexSelector& SurfVrtSel)
 {
 //	iterate through all faces that are assigned to a subset and select them
 	for(FaceIterator iter = grid.faces_begin(); iter != grid.faces_end(); ++iter)
@@ -300,7 +287,8 @@ static bool WriteLGM(Grid& grid,
 			  const char* problemName,
 			  const char* lgmName,
 			  int convex,
-			  SubsetHandler& sh,
+			  const SubsetHandler& shFaces,
+			  const SubsetHandler& shVolumes,
 			  EdgeSelector& LineSel,
 			  VertexSelector& SurfVrtSel,
 			  Grid::EdgeAttachmentAccessor<AInt>& aaLineIndex,
@@ -321,13 +309,16 @@ static bool WriteLGM(Grid& grid,
 
 //	write the units
 	out << "#Unit-Info" << endl;
-	for(uint i = 0; i < sh.num_subsets(); ++i)
+	for(uint i = 0; i < shVolumes.num_subsets(); ++i)
 	{
-		if(sh.num_elements<Volume>(i) > 0)
-		{
-		//	be cautious with the unit indices:	id = 0 is reserved for outer space ONLY by UG
-			out << "unit " << i + 1 << " " << sh.subset_info(i).name << endl;
+	//	if the name is empty then write a standard name
+	//	be cautious with the unit indices:	id = 0 is reserved for outer space ONLY by UG
+		if(shVolumes.subset_info(i).name.size() > 0)
+			out << "unit " << i + 1 << " " << shVolumes.subset_info(i).name << endl;
+		else {
+			out << "unit " << i + 1 << " " << "unit_" << i + 1 << endl;
 		}
+
 	}
 	out << endl;
 
@@ -346,13 +337,13 @@ static bool WriteLGM(Grid& grid,
 	{
 	//	used to find vertices that belong to the i-th subset.
 		VertexSelector tmpSurfVrtSel(grid);
-		for(uint i = 0; i < sh.num_subsets(); ++i)
+		for(uint i = 0; i < shFaces.num_subsets(); ++i)
 		{
 			tmpSurfVrtSel.clear_selection();
 
 			//	identify left and right unit index of each surface
 			int tmpLeft, tmpRight;
-			if(!GetRightLeftUnitIndex(tmpRight, tmpLeft, grid, *sh.begin<Face>(i), sh))
+			if(!GetRightLeftUnitIndex(tmpRight, tmpLeft, grid, *shFaces.begin<Face>(i), shVolumes))
 			{
 				LOG("GetRightLeftUnitIndex failed during lgm-write.\n");
 				LOG("This can happen due to elements with bad orinentation.\n");
@@ -360,7 +351,8 @@ static bool WriteLGM(Grid& grid,
 			}
 
 			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; points:";
-			for(FaceIterator FIter = sh.begin<Face>(i); FIter != sh.end<Face>(i); ++FIter)
+			for(FaceIterator FIter = shFaces.begin<Face>(i);
+				FIter != shFaces.end<Face>(i); ++FIter)
 			{
 				Face* f = *FIter;
 				for(uint j = 0; j < f->num_vertices(); ++j)
@@ -378,10 +370,12 @@ static bool WriteLGM(Grid& grid,
 			out << "; lines:";
 			{
 				vector<EdgeBase*> vEdges;
-				for(FaceIterator FIter = sh.begin<Face>(i); FIter != sh.end<Face>(i); ++FIter)
+				for(FaceIterator FIter = shFaces.begin<Face>(i);
+					FIter != shFaces.end<Face>(i); ++FIter)
 				{
 					CollectEdges(vEdges, grid, *FIter);
-					for(vector<EdgeBase*>::iterator EIter = vEdges.begin(); EIter != vEdges.end(); ++EIter)
+					for(vector<EdgeBase*>::iterator EIter = vEdges.begin();
+						EIter != vEdges.end(); ++EIter)
 					{
 						EdgeBase* e = *EIter;
 						if(LineSel.is_selected(e))
@@ -396,7 +390,8 @@ static bool WriteLGM(Grid& grid,
 			out << "; triangles:";
 			{
 				vector<VertexBase*> vVertices;
-				for(TriangleIterator TIter = sh.begin<Triangle>(i); TIter != sh.end<Triangle>(i); ++TIter)
+				for(TriangleIterator TIter = shFaces.begin<Triangle>(i);
+					TIter != shFaces.end<Triangle>(i); ++TIter)
 				{
 					Triangle* t = *TIter;
 					for(uint j = 0; j < t->num_vertices(); ++j)
@@ -409,7 +404,8 @@ static bool WriteLGM(Grid& grid,
 
 		//	write quadrilaterals as triangles
 			{
-				for(QuadrilateralIterator iter = sh.begin<Quadrilateral>(i); iter != sh.end<Quadrilateral>(i); ++iter)
+				for(QuadrilateralIterator iter = shFaces.begin<Quadrilateral>(i);
+					iter != shFaces.end<Quadrilateral>(i); ++iter)
 				{
 					Quadrilateral* q = *iter;
 					for(uint j = 0; j < 3; ++j)
@@ -445,7 +441,8 @@ static bool WriteLGM(Grid& grid,
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	GetRightLeftUnitIndices
 /// identifies the right and left unit index to a given surface
-static bool GetRightLeftUnitIndex(int& rightIndex, int& leftIndex, Grid& grid, Face* face, SubsetHandler& shVolume)
+static bool GetRightLeftUnitIndex(int& rightIndex, int& leftIndex, Grid& grid, Face* face,
+									const SubsetHandler& shVolume)
 {
 //	initialization
 	vector<Volume*> vVolumes;
@@ -503,7 +500,8 @@ static bool GetRightLeftUnitIndex(int& rightIndex, int& leftIndex, Grid& grid, F
 //	WriteNG
 /// writes an *ng file
 static bool WriteNG(Grid& grid,
-					 SubsetHandler& sh,
+					 const SubsetHandler& shFaces,
+					 const SubsetHandler& shVolumes,
 					 const char* ngFilename,
 					 VertexSelector& SurfVrtSel,
 					 VertexSelector& InnVrtSel,
@@ -518,7 +516,7 @@ static bool WriteNG(Grid& grid,
 //	initialization
 	vector<EdgeBase*> vEdges;
 	vector<Face*> vFaces;
-	vector<bool> faceFlags(sh.num_subsets());
+	vector<bool> faceFlags(shFaces.num_subsets());
 
 	ofstream out(ngFilename);
 	if(!out)
@@ -531,7 +529,7 @@ static bool WriteNG(Grid& grid,
 	{
 		VertexBase* v = *VIter;
 
-		for(uint i = 0; i < sh.num_subsets(); ++i)
+		for(uint i = 0; i < shFaces.num_subsets(); ++i)
 		{
 				faceFlags[i] = false;
 		}
@@ -555,15 +553,16 @@ static bool WriteNG(Grid& grid,
 
 	//	surface data
 	//	iterate through all associated boundary-faces of vertex v
-		for(FaceIterator FIter = grid.associated_faces_begin(v); FIter != grid.associated_faces_end(v); ++FIter)
+		for(FaceIterator FIter = grid.associated_faces_begin(v);
+			FIter != grid.associated_faces_end(v); ++FIter)
 		{
 			Face* f = *FIter;
 
 		//	write the surface section including its index and the triangle index of
 		//	ONE triangle-representative (per face-subset) associated to vertex v
-			if(sh.get_subset_index(f) != -1)
+			if(shFaces.get_subset_index(f) != -1)
 			{
-				if(faceFlags[sh.get_subset_index(f)] == false)
+				if(faceFlags[shFaces.get_subset_index(f)] == false)
 				{
 				//	write local coordinates of vertex v on the triangle-representative
 					int faceInd = aaFaceIndex[f];
@@ -577,10 +576,10 @@ static bool WriteNG(Grid& grid,
 						case 3:	vCoord = vector2(1.0, 0); faceInd++; break; //index into the second sub-triangle
 					}
 
-					out << " S " << sh.get_subset_index(f) << " " << faceInd;
+					out << " S " << shFaces.get_subset_index(f) << " " << faceInd;
 					out << " " << vCoord.x << " " << vCoord.y;
 
-					faceFlags[sh.get_subset_index(f)] = true;
+					faceFlags[shFaces.get_subset_index(f)] = true;
 				}
 			}
 		}
@@ -608,10 +607,11 @@ static bool WriteNG(Grid& grid,
 	out << endl;
 	out << "# elements" << endl;
 
-	for(uint i = 0; i < sh.num_subsets(); ++i)
+	for(uint i = 0; i < shVolumes.num_subsets(); ++i)
 	{
 	// 	iterate through all volumes
-		for(VolumeIterator VIter = sh.begin<Volume>(i); VIter != sh.end<Volume>(i); ++VIter)
+		for(VolumeIterator VIter = shVolumes.begin<Volume>(i);
+			VIter != shVolumes.end<Volume>(i); ++VIter)
 		{
 			Volume* v = *VIter;
 
@@ -631,7 +631,7 @@ static bool WriteNG(Grid& grid,
 			for(vector<Face*>::iterator iter = vFaces.begin(); iter != vFaces.end(); ++iter)
 			{
 				Face* f = *iter;
-				if(sh.get_subset_index(f) != -1)
+				if(shFaces.get_subset_index(f) != -1)
 				{
 					out << " F " << aaNgVrtIndex[f->vertex(0)];
 					for(uint j = 1; j < f->num_vertices(); ++j)

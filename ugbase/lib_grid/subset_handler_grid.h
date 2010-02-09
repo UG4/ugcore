@@ -61,21 +61,21 @@ class GridSubsetHandler : public ISubsetHandler
 	/**	e.g. begin<Triangle>(0)*/
 		template <class TElem>
 		typename geometry_traits<TElem>::iterator
-		begin(int subsetIndex);
+		begin(int subsetIndex) const;
 
 	///	returns the end-iterator for the elements of type TElem in the given subset.
 	/**	e.g. end<Triangle>(0)*/
 		template <class TElem>
 		typename geometry_traits<TElem>::iterator
-		end(int subsetIndex);
+		end(int subsetIndex) const;
 
 	///	returns the number of elements in the given subset
 		template <class TElem>
-		uint num_elements(int subsetIndex);
+		uint num_elements(int subsetIndex) const;
 
 	///	returns the number of elements in the given subset
 		template <class TElem>
-		uint num(int subsetIndex);
+		uint num(int subsetIndex) const;
 
 	///	removes all elements of type TElem from the specified subset.
 		template <class TElem>

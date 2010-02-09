@@ -726,23 +726,32 @@ void ISubsetHandler::
 vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_created(...): Grids do not match.");
-//LOG("new vertex...\n");
-	m_aaSubsetIndexVRT[vrt] = -1;
-//LOG("si_before assignement: " << get_subset_index(vrt) << endl);
-	if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-		assign_subset(vrt, get_subset_index(pParent));
-	else if(m_defaultSubsetIndex != -1)
-		assign_subset(vrt, m_defaultSubsetIndex);
-//LOG("vertex creation done\n");
+	
+//TODO: this if could be removed if the subset-handler was only registered for
+//		the elements that it supports. Note that a dynamic register/unregister
+//		would be required...
+	if(elements_are_supported(SHE_VERTEX)){
+	//LOG("new vertex...\n");
+		m_aaSubsetIndexVRT[vrt] = -1;
+	//LOG("si_before assignement: " << get_subset_index(vrt) << endl);
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
+			assign_subset(vrt, get_subset_index(pParent));
+		else if(m_defaultSubsetIndex != -1)
+			assign_subset(vrt, m_defaultSubsetIndex);
+	//LOG("vertex creation done\n");
+	}
 }
 
 void ISubsetHandler::
 vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_to_be_erased(...): Grids do not match.");
-	if(m_aaSubsetIndexVRT[vrt] != -1)
-		assign_subset(vrt, -1);
-
+	
+///TODO: see vertex_created
+	if(elements_are_supported(SHE_VERTEX)){
+		if(m_aaSubsetIndexVRT[vrt] != -1)
+			assign_subset(vrt, -1);
+	}
 }
 
 //	edge callbacks
@@ -750,20 +759,28 @@ void ISubsetHandler::
 edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::edge_created(...): Grids do not match.");
-	m_aaSubsetIndexEDGE[edge] = -1;
 
-	if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-		assign_subset(edge, get_subset_index(pParent));
-	else if(m_defaultSubsetIndex != -1)
-		assign_subset(edge, m_defaultSubsetIndex);
+///TODO: see vertex_created
+	if(elements_are_supported(SHE_EDGE)){
+		m_aaSubsetIndexEDGE[edge] = -1;
+
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
+			assign_subset(edge, get_subset_index(pParent));
+		else if(m_defaultSubsetIndex != -1)
+			assign_subset(edge, m_defaultSubsetIndex);
+	}
 }
 
 void ISubsetHandler::
 edge_to_be_erased(Grid* grid, EdgeBase* edge)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::edge_to_be_erased(...): Grids do not match.");
-	if(m_aaSubsetIndexEDGE[edge] != -1)
-		assign_subset(edge, -1);
+
+///TODO: see vertex_created
+	if(elements_are_supported(SHE_EDGE)){
+		if(m_aaSubsetIndexEDGE[edge] != -1)
+			assign_subset(edge, -1);
+	}
 
 }
 
@@ -772,20 +789,28 @@ void ISubsetHandler::
 face_created(Grid* grid, Face* face, GeometricObject* pParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_created(...): Grids do not match.");
-	m_aaSubsetIndexFACE[face] = -1;
 
-	if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-		assign_subset(face, get_subset_index(pParent));
-	else if(m_defaultSubsetIndex != -1)
-		assign_subset(face, m_defaultSubsetIndex);
+///TODO: see vertex_created
+	if(elements_are_supported(SHE_FACE)){
+		m_aaSubsetIndexFACE[face] = -1;
+
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
+			assign_subset(face, get_subset_index(pParent));
+		else if(m_defaultSubsetIndex != -1)
+			assign_subset(face, m_defaultSubsetIndex);
+	}
 }
 
 void ISubsetHandler::
 face_to_be_erased(Grid* grid, Face* face)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_to_be_erased(...): Grids do not match.");
-	if(m_aaSubsetIndexFACE[face] != -1)
-		assign_subset(face, -1);
+	
+///TODO: see vertex_created
+	if(elements_are_supported(SHE_FACE)){
+		if(m_aaSubsetIndexFACE[face] != -1)
+			assign_subset(face, -1);
+	}
 }
 
 //	volume callbacks
@@ -793,20 +818,28 @@ void ISubsetHandler::
 volume_created(Grid* grid, Volume* vol, GeometricObject* pParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::volume_created(...): Grids do not match.");
-	m_aaSubsetIndexVOL[vol] = -1;
 
-	if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-		assign_subset(vol, get_subset_index(pParent));
-	else if(m_defaultSubsetIndex != -1)
-		assign_subset(vol, m_defaultSubsetIndex);
+///TODO: see vertex_created
+	if(elements_are_supported(SHE_VOLUME)){
+		m_aaSubsetIndexVOL[vol] = -1;
+
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
+			assign_subset(vol, get_subset_index(pParent));
+		else if(m_defaultSubsetIndex != -1)
+			assign_subset(vol, m_defaultSubsetIndex);
+	}
 }
 
 void ISubsetHandler::
 volume_to_be_erased(Grid* grid, Volume* vol)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::volume_to_be_erased(...): Grids do not match.");
-	if(m_aaSubsetIndexVOL[vol] != -1)
-		assign_subset(vol, -1);
+
+///TODO: see vertex_created
+	if(elements_are_supported(SHE_VOLUME)){
+		if(m_aaSubsetIndexVOL[vol] != -1)
+			assign_subset(vol, -1);
+	}
 }
 
 }//	end of namespace
