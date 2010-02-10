@@ -145,6 +145,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 {
 //TODO: complete triangle refine
 
+	*newFaceVertexOut = NULL;
 	vNewFacesOut.clear();
 
 //	handle substitute vertices.
@@ -175,23 +176,75 @@ refine(std::vector<Face*>& vNewFacesOut,
 		{
 			case 1:
 			{
-				assert(!"PROBLEM in Triangle::refine(...): refine with 1 new edge vertex not yet implemented.");
-				return false;
+			LOG("r1");
+			//	get the index of the edge that will be refined
+				int iNew;
+				for(int i = 0; i < 3; ++i){
+					if(newEdgeVertices[i]){
+						iNew = i;
+						break;
+					}
+				}
+				
+			//	the corners. The first corner is the corner on the opposite side of iNew.
+			//	Other follow in ccw order
+				int iCorner[3];
+				iCorner[0] = (iNew + 2) % 3;
+				iCorner[1] = (iCorner[0] + 1) % 3;
+				iCorner[2] = (iCorner[1] + 1) % 3;
+					
+			//	create the new triangles.
+				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[iCorner[0]], vrts[iCorner[1]],
+																newEdgeVertices[iNew]));
+				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[iCorner[0]], newEdgeVertices[iNew],
+																vrts[iCorner[2]]));
+																
+			LOG("r");
+				return true;
 			}
 
 			case 2:
 			{
-				assert(!"PROBLEM in Triangle::refine(...): refine with 2 new edge vertices not yet implemented.");
-				return false;
+			LOG("r2");
+			//	get the index of the edge that won't be refined
+				int iFree;
+				for(int i = 0; i < 3; ++i){
+					if(!newEdgeVertices[i]){
+						iFree = i;
+						break;
+					}
+				}
+				
+			//	the refined edges
+				int iNew[2];
+				iNew[0] = (iFree + 1) % 3;
+				iNew[1] = (iFree + 2) % 3;
+				
+			//	the corners
+				int iCorner[3];
+				iCorner[0] = iFree;
+				iCorner[1] = (iFree + 1) % 3;
+				iCorner[2] = (iFree + 2) % 3;
+				
+			//	create the faces
+				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[0],
+																vrts[iCorner[2]],
+																newEdgeVertices[1]));
+				vNewFacesOut.push_back(new Quadrilateral(vrts[iCorner[0]], vrts[iCorner[1]],
+														newEdgeVertices[0], newEdgeVertices[1]));
+			LOG("r");
+				return true;
 			}
 
 			case 3:
 			{
+			LOG("r3");
 			//	perform regular refine.
 				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[0], newEdgeVertices[0], newEdgeVertices[2]));
 				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[1], newEdgeVertices[1], newEdgeVertices[0]));
 				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[2], newEdgeVertices[2], newEdgeVertices[1]));
 				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2]));
+			LOG("r");
 				return true;
 			}
 
@@ -586,9 +639,9 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 							VertexBase** pSubstituteVertices)
 {
 //TODO: complete quad refine
-
+	*newFaceVertexOut = NULL;
 	vNewFacesOut.clear();
-
+	
 //	handle substitute vertices.
 	VertexBase** vrts;
 	if(pSubstituteVertices)

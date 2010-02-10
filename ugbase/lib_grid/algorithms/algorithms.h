@@ -9,6 +9,7 @@
 #include "geom_obj_util/geom_obj_util.h"
 #include "grid_generation/grid_generation.h"
 #include "refinement/hanging_node_refiner.h"
+#include "refinement/regular_refinement.h"
 #include "refinement/multi_grid_refiner.h"
 #include "extrusion/extrusion.h"
 #include "subdivision/subdivision_loop.h"
