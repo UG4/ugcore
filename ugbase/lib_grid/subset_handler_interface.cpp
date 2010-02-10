@@ -100,9 +100,10 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	set_supported_elements(sh.m_supportedElements);
 	enable_subset_inheritance(sh.m_bSubsetInheritanceEnabled);
 	set_default_subset_index(sh.m_defaultSubsetIndex);
-
+	
 //TODO: enable attachment support based on the source-hanlders attachment support!?!
-
+	subset_info_required(sh.num_subset_infos() - 1);
+	
 //	make sure that both accessors have a valid grid
 	if(srcGrid && destGrid){
 		//LOG("sh-copying -");
@@ -134,6 +135,10 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 		LOG(endl);
 //TODO:	copy attachments!?!
 	}
+	
+//	copy subset infos
+	for(uint i = 0; i < num_subset_infos(); ++i)
+		set_subset_info(i, sh.subset_info(i));
 }
 
 void ISubsetHandler::

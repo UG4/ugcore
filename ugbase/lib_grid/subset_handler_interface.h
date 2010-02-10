@@ -252,15 +252,18 @@ class ISubsetHandler : public GridObserver
 	///	returns the number of subset-infos
 		inline uint num_subset_infos() const		{return (uint)m_subsetInfos.size();}
 		
+	////////////////////////////////
 	/** if the subset at subsetIndex does not yet exist, it will be created.*/
 		void set_subset_info(int subsetIndex, const SubsetInfo& subsetInfo);
 
 	/** if the subset at subsetIndex does not yet exist, it will be created.*/
 		SubsetInfo& subset_info(int subsetIndex);
 
-	/** if the subset at subsetIndex does not yet exist, it will be created.*/
+	/** Be careful: queried subset has to exist! Check with num_subset_infos()*/
 		const SubsetInfo& subset_info(int subsetIndex) const;
-		
+
+	////////////////////////////////
+	//	clear methods
 		void clear();
 		void clear_subset(int subsetIndex);
 		void clear_subsets();

@@ -1295,7 +1295,8 @@ void HangingNodeRefiner::refine_face_with_hanging_vertex(Face* f)
 													constrainingFace->vertex(2));
 
 			//	refine the constrainedTri and register new ones.
-				constrainedTri.refine(vFaces, vNewEdgeVertices, NULL, NULL);
+				VertexBase* tmpVrt;
+				constrainedTri.refine_regular(vFaces, &tmpVrt, vNewEdgeVertices, NULL, Vertex(), NULL);
 			}
 			break;
 //TODO: add support for quadrilaterals

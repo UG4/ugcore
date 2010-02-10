@@ -436,18 +436,20 @@ class Face : public GeometricObject, public FaceVertices
 	 * The user that calls this function is responsible to either register the new
 	 * faces with a grid (the grid from which the vertices are), or to take responsibility
 	 * for deletion of the acquired memory (delete each element in vNewFacesOut).
-	 * - Specify vertices that shall be inserted on edges with vNewEdgeVertices. Vertices
+	 * - Specify vertices that shall be inserted on edges with newEdgeVertices. Vertices
 	 * are inserted on the edge that corresponds to their index. Use NULL to indicate
-	 * that no vertex shall be inserted on the associated edge.
-	 * - If newFaceVertex is not NULL, vNewFaceIndex will be inserted in the center of the face.
+	 * that no vertex shall be inserted on the associated edge. newEdgeVertices has to point
+	 * to an array that holds as many vertices as there are edges in the face.
+	 * - If the method has to create a new inner vertex, it will be returned in newFaceVertexOut.
 	 * - If you specify pvSubstituteVertices, the created faces will reference the vertices in
 	 * pvSubstituteVertices. Note that pvSubstituteVertices has to contain exactly as many
 	 * vertices as the refined Face. Vertices with the same index correlate.
 	 */
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							VertexBase* newFaceVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
+							VertexBase** newFaceVertexOut,
+							VertexBase** newEdgeVertices,
+							VertexBase* newFaceVertex = NULL,
+							VertexBase** pSubstituteVertices = NULL)	{return false;}
 
 
 		/**

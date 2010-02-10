@@ -138,27 +138,21 @@ template <class ConcreteTriangleType, class BaseClass>
 bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 refine(std::vector<Face*>& vNewFacesOut,
-		std::vector<VertexBase*>& vNewEdgeVertices,
+		VertexBase** newFaceVertexOut,
+		VertexBase** newEdgeVertices,
 		VertexBase* newFaceVertex,
-		std::vector<VertexBase*>* pvSubstituteVertices)
+		VertexBase** pSubstituteVertices)
 {
 //TODO: complete triangle refine
 
 	vNewFacesOut.clear();
 
 //	handle substitute vertices.
-	vector<VertexBase*>	vTmpVrts;
-	if(!pvSubstituteVertices)
-	{
-		vTmpVrts.resize(3);
-		vTmpVrts[0] = BaseClass::vertex(0);
-		vTmpVrts[1] = BaseClass::vertex(1);
-		vTmpVrts[2] = BaseClass::vertex(2);
-		pvSubstituteVertices = &vTmpVrts;
-	}
-
-//	use this vertex-vector during this algorithm.
-	vector<VertexBase*>& vVrts = *pvSubstituteVertices;
+	VertexBase** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
+	else
+		vrts = BaseClass::m_vertices;
 
 //	if newFaceVertex is specified, then create three sub-triangles and
 //	refine each. If not then refine the triangle depending
@@ -171,9 +165,9 @@ refine(std::vector<Face*>& vNewFacesOut,
 	{
 	//	get the number of new vertices.
 		uint numNewVrts = 0;
-		for(uint i = 0; (i < 3) && (i < vNewEdgeVertices.size()); ++i)
+		for(uint i = 0; i < 3; ++i)
 		{
-			if(vNewEdgeVertices[i] != NULL)
+			if(newEdgeVertices[i] != NULL)
 				++numNewVrts;
 		}
 
@@ -194,10 +188,10 @@ refine(std::vector<Face*>& vNewFacesOut,
 			case 3:
 			{
 			//	perform regular refine.
-				vNewFacesOut.push_back(new ConcreteTriangleType(vVrts[0], vNewEdgeVertices[0], vNewEdgeVertices[2]));
-				vNewFacesOut.push_back(new ConcreteTriangleType(vVrts[1], vNewEdgeVertices[1], vNewEdgeVertices[0]));
-				vNewFacesOut.push_back(new ConcreteTriangleType(vVrts[2], vNewEdgeVertices[2], vNewEdgeVertices[1]));
-				vNewFacesOut.push_back(new ConcreteTriangleType(vNewEdgeVertices[0], vNewEdgeVertices[1], vNewEdgeVertices[2]));
+				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[0], newEdgeVertices[0], newEdgeVertices[2]));
+				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[1], newEdgeVertices[1], newEdgeVertices[0]));
+				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[2], newEdgeVertices[2], newEdgeVertices[1]));
+				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2]));
 				return true;
 			}
 
@@ -220,7 +214,12 @@ refine_regular(std::vector<Face*>& vNewFacesOut,
 	assert(vNewEdgeVertices.size() == 3 && "wrong number of newEdgeVertices.");
 	assert(newFaceVertex == NULL && "regular triangle refine doesn't use newFaceVertex.");
 	*newFaceVertexOut = NULL;
-	return refine(vNewFacesOut, vNewEdgeVertices, newFaceVertex, pvSubstituteVertices);
+	
+	if(!pvSubstituteVertices)
+		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, NULL);
+	else
+		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, &pvSubstituteVertices->front());
+		
 }
 
 template <class ConcreteTriangleType, class BaseClass>
@@ -581,36 +580,29 @@ void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
 ////////////////////////////////////////////////////////////////////////
 //	Quadrilateral::refine
 bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
-						std::vector<VertexBase*>& vNewEdgeVertices,
-						VertexBase* newFaceVertex,
-						std::vector<VertexBase*>* pvSubstituteVertices)
+							VertexBase** newFaceVertexOut,
+							VertexBase** newEdgeVertices,
+							VertexBase* newFaceVertex,
+							VertexBase** pSubstituteVertices)
 {
 //TODO: complete quad refine
 
 	vNewFacesOut.clear();
 
 //	handle substitute vertices.
-	vector<VertexBase*>	vTmpVrts;
-	if(!pvSubstituteVertices)
-	{
-		vTmpVrts.resize(4);
-		vTmpVrts[0] = vertex(0);
-		vTmpVrts[1] = vertex(1);
-		vTmpVrts[2] = vertex(2);
-		vTmpVrts[3] = vertex(3);
-		pvSubstituteVertices = &vTmpVrts;
-	}
-
-//	use this vertex-vector during this algorithm.
-	vector<VertexBase*>& vVrts = *pvSubstituteVertices;
+	VertexBase** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
+	else
+		vrts = m_vertices;
 
 //	check which edges have to be refined and perform the required operations.
 	{
 	//	get the number of new vertices.
 		uint numNewVrts = 0;
-		for(uint i = 0; (i < 4) && (i < vNewEdgeVertices.size()); ++i)
+		for(uint i = 0; i < 4; ++i)
 		{
-			if(vNewEdgeVertices[i] != NULL)
+			if(newEdgeVertices[i] != NULL)
 				++numNewVrts;
 		}
 
@@ -636,21 +628,17 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 
 			case 4:
 			{
-			//	if a center-vertex has been specified we'll create 4 new quads.
-			//	if not, one quad and 4 triangles will be created.
-				if(newFaceVertex)
-				{
-					vNewFacesOut.push_back(new Quadrilateral(vVrts[0], vNewEdgeVertices[0], newFaceVertex, vNewEdgeVertices[3]));
-					vNewFacesOut.push_back(new Quadrilateral(vVrts[1], vNewEdgeVertices[1], newFaceVertex, vNewEdgeVertices[0]));
-					vNewFacesOut.push_back(new Quadrilateral(vVrts[2], vNewEdgeVertices[2], newFaceVertex, vNewEdgeVertices[1]));
-					vNewFacesOut.push_back(new Quadrilateral(vVrts[3], vNewEdgeVertices[3], newFaceVertex, vNewEdgeVertices[2]));
-					return true;
-				}
-				else
-				{
-					assert(!"PROBLEM in Quadrilateral::refine(...): refine with 4 new edge vertices but no new face vertex not yet implemented.");
-					return false;
-				}
+			//	we'll create 4 new quads. create a new center if required.
+				if(!newFaceVertex)
+					newFaceVertex = new Vertex;
+
+				*newFaceVertexOut = newFaceVertex;
+			
+				vNewFacesOut.push_back(new Quadrilateral(vrts[0], newEdgeVertices[0], newFaceVertex, newEdgeVertices[3]));
+				vNewFacesOut.push_back(new Quadrilateral(vrts[1], newEdgeVertices[1], newFaceVertex, newEdgeVertices[0]));
+				vNewFacesOut.push_back(new Quadrilateral(vrts[2], newEdgeVertices[2], newFaceVertex, newEdgeVertices[1]));
+				vNewFacesOut.push_back(new Quadrilateral(vrts[3], newEdgeVertices[3], newFaceVertex, newEdgeVertices[2]));
+				return true;
 			}
 		}
 	}
@@ -676,7 +664,11 @@ bool Quadrilateral::refine_regular(std::vector<Face*>& vNewFacesOut,
 	else
 		*newFaceVertexOut = NULL;
 
-	return refine(vNewFacesOut, vNewEdgeVertices, newFaceVertex, pvSubstituteVertices);
+
+	if(!pvSubstituteVertices)
+		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, NULL);
+	else
+		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, &pvSubstituteVertices->front());
 }
 
 bool Quadrilateral::collapse_edge(std::vector<Face*>& vNewFacesOut,

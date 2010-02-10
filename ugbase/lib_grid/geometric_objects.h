@@ -545,9 +545,10 @@ class CustomTriangle : public BaseClass
 
 	///	Refines a Triangle by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							VertexBase* newFaceVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** newFaceVertexOut,
+							VertexBase** newEdgeVertices,
+							VertexBase* newFaceVertex = NULL,
+							VertexBase** pSubstituteVertices = NULL);
 
 	///	Performs a regular refine on the triangle. \sa Face::refine_regular.
 		virtual bool refine_regular(std::vector<Face*>& vNewFacesOut,
@@ -876,9 +877,10 @@ class Quadrilateral : public CustomFace<4, SPSFACE_QUADRILATERAL>
 
 	///	Refines a Quad by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							VertexBase* newFaceVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** newFaceVertexOut,
+							VertexBase** newEdgeVertices,
+							VertexBase* newFaceVertex = NULL,
+							VertexBase** pSubstituteVertices = NULL);
 
 	///	Performs regular refine on a Quad by inserting new vertices. \sa Face::refine_regular.
 		virtual bool refine_regular(std::vector<Face*>& vNewFacesOut,

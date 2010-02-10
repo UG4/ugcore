@@ -33,6 +33,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/extrusion/extrusion.cpp
 					algorithms/refinement/hanging_node_refiner.cpp
 					algorithms/refinement/multi_grid_refiner.cpp
+					algorithms/refinement/regular_refinement.cpp
 					algorithms/subdivision/subdivision_loop.cpp)
 					
 set(srcFileIO	file_io/file_io_art.cpp
