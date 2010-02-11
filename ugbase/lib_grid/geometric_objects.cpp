@@ -3,6 +3,7 @@
 //	y08 m11 d04
 
 #include <vector>
+#include <algorithm>
 #include "geometric_objects.h"
 #include "algorithms/geom_obj_util/geom_obj_util.h"
 
@@ -10,6 +11,26 @@ using namespace std;
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	TOOLS
+///	helpful if a local vertex-order is required
+/**
+ * cornersOut and cornersIn both have to be of size numCorners.
+ * After termination cornersOut will contain the vertices of
+ * cornersIn, starting from firstCorner, taking vertices modulo numCorners.
+ * If cornersOut == cornersIn, the method will fail! This is ok since
+ * the method is used locally and has been created for a special case.
+ */
+static inline
+bool ReorderCornersCCW(VertexBase** cornersOut, VertexBase** const cornersIn,
+					   int numCorners, int firstCorner)
+{
+	cornersOut[0] = cornersIn[firstCorner];
+	for(int i = 1; i < numCorners; ++i)
+		cornersOut[i] = cornersIn[(firstCorner + i) % numCorners];
+}
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	EDGES
@@ -176,7 +197,6 @@ refine(std::vector<Face*>& vNewFacesOut,
 		{
 			case 1:
 			{
-			LOG("r1");
 			//	get the index of the edge that will be refined
 				int iNew;
 				for(int i = 0; i < 3; ++i){
@@ -199,13 +219,11 @@ refine(std::vector<Face*>& vNewFacesOut,
 				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[iCorner[0]], newEdgeVertices[iNew],
 																vrts[iCorner[2]]));
 																
-			LOG("r");
 				return true;
 			}
 
 			case 2:
 			{
-			LOG("r2");
 			//	get the index of the edge that won't be refined
 				int iFree;
 				for(int i = 0; i < 3; ++i){
@@ -227,24 +245,21 @@ refine(std::vector<Face*>& vNewFacesOut,
 				iCorner[2] = (iFree + 2) % 3;
 				
 			//	create the faces
-				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[0],
+				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[iNew[0]],
 																vrts[iCorner[2]],
-																newEdgeVertices[1]));
+																newEdgeVertices[iNew[1]]));
 				vNewFacesOut.push_back(new Quadrilateral(vrts[iCorner[0]], vrts[iCorner[1]],
-														newEdgeVertices[0], newEdgeVertices[1]));
-			LOG("r");
+														newEdgeVertices[iNew[0]], newEdgeVertices[iNew[1]]));
 				return true;
 			}
 
 			case 3:
 			{
-			LOG("r3");
 			//	perform regular refine.
 				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[0], newEdgeVertices[0], newEdgeVertices[2]));
 				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[1], newEdgeVertices[1], newEdgeVertices[0]));
 				vNewFacesOut.push_back(new ConcreteTriangleType(vrts[2], newEdgeVertices[2], newEdgeVertices[1]));
 				vNewFacesOut.push_back(new ConcreteTriangleType(newEdgeVertices[0], newEdgeVertices[1], newEdgeVertices[2]));
-			LOG("r");
 				return true;
 			}
 
@@ -634,7 +649,7 @@ void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
 //	Quadrilateral::refine
 bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 							VertexBase** newFaceVertexOut,
-							VertexBase** newEdgeVertices,
+							VertexBase** edgeVrts,
 							VertexBase* newFaceVertex,
 							VertexBase** pSubstituteVertices)
 {
@@ -650,49 +665,127 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 		vrts = m_vertices;
 
 //	check which edges have to be refined and perform the required operations.
+//	get the number of new vertices.
+	uint numNewVrts = 0;
+	for(uint i = 0; i < 4; ++i)
 	{
-	//	get the number of new vertices.
-		uint numNewVrts = 0;
-		for(uint i = 0; i < 4; ++i)
+		if(edgeVrts[i] != NULL)
+			++numNewVrts;
+	}
+
+	switch(numNewVrts)
+	{
+		case 1:
 		{
-			if(newEdgeVertices[i] != NULL)
-				++numNewVrts;
+			int iNew;
+			for(int i = 0; i < 4; ++i){
+				if(edgeVrts[i]){
+					iNew = i;
+					break;
+				}
+			}
+			
+		//	the corners in a local ordering relative to iNew. Keeping ccw order.
+			VertexBase* corner[4];
+			ReorderCornersCCW(corner, vrts, 4, (iNew + 3) % 4);
+
+		//	create the new elements
+			vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew]));
+			vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew], corner[3]));
+			vNewFacesOut.push_back(new Triangle(corner[3], edgeVrts[iNew], corner[2]));
+
+			return true;
 		}
 
-		switch(numNewVrts)
+		case 2:
 		{
-			case 1:
-			{
-				assert(!"PROBLEM in Quadrilateral::refine(...): refine with 1 new edge vertex not yet implemented.");
-				return false;
+		//	there are two cases (refined edges are adjacent or opposite to each other)
+			int iNew[2];
+			int counter = 0;
+			for(int i = 0; i < 4; ++i){
+				if(edgeVrts[i]){
+					iNew[counter] = i;
+					++counter;
+				}
 			}
 
-			case 2:
-			{
-				assert(!"PROBLEM in Quadrilateral::refine(...): refine with 2 new edge vertices not yet implemented.");
-				return false;
+		//	corners will be filled later on
+			VertexBase* corner[4];
+
+		//	check which case applies
+			if(iNew[1] - iNew[0] == 2){
+			//	edges are opposite to each other
+			//	the corners in a local ordering relative to iNew[0]. Keeping ccw order.
+				ReorderCornersCCW(corner, vrts, 4, (iNew[0] + 3) % 4);
+				
+			//	create new faces
+				vNewFacesOut.push_back(new Quadrilateral(corner[0], corner[1],
+													edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
+
+				vNewFacesOut.push_back(new Quadrilateral(edgeVrts[iNew[1]], edgeVrts[iNew[0]],
+														corner[2], corner[3]));
 			}
-
-			case 3:
-			{
-				assert(!"PROBLEM in Quadrilateral::refine(...): refine with 3 new edge vertices not yet implemented.");
-				return false;
-			}
-
-			case 4:
-			{
-			//	we'll create 4 new quads. create a new center if required.
-				if(!newFaceVertex)
-					newFaceVertex = new Vertex;
-
-				*newFaceVertexOut = newFaceVertex;
+			else{
+			//	edges are adjacent
+			//	we want that (iNew[0] + 1) % 4 == iNew[1]
+				if((iNew[0] + 1) % 4 != iNew[1])
+					swap(iNew[0], iNew[1]);
 			
-				vNewFacesOut.push_back(new Quadrilateral(vrts[0], newEdgeVertices[0], newFaceVertex, newEdgeVertices[3]));
-				vNewFacesOut.push_back(new Quadrilateral(vrts[1], newEdgeVertices[1], newFaceVertex, newEdgeVertices[0]));
-				vNewFacesOut.push_back(new Quadrilateral(vrts[2], newEdgeVertices[2], newFaceVertex, newEdgeVertices[1]));
-				vNewFacesOut.push_back(new Quadrilateral(vrts[3], newEdgeVertices[3], newFaceVertex, newEdgeVertices[2]));
-				return true;
+			//	the corners in a local ordering relative to iNew[0]. Keeping ccw order.
+				ReorderCornersCCW(corner, vrts, 4, (iNew[0] + 3) % 4);
+
+			//	create new faces
+				vNewFacesOut.push_back(new Triangle(corner[0], corner[1], edgeVrts[iNew[0]]));
+				vNewFacesOut.push_back(new Triangle(edgeVrts[iNew[0]], corner[2], edgeVrts[iNew[1]]));
+				vNewFacesOut.push_back(new Triangle(corner[3], corner[0], edgeVrts[iNew[1]]));
+				vNewFacesOut.push_back(new Triangle(corner[0], edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
 			}
+
+			return true;
+		}
+
+		case 3:
+		{
+			int iFree;
+			for(int i = 0; i < 4; ++i){
+				if(!edgeVrts[i]){
+					iFree = i;
+					break;
+				}
+			}
+			
+		//	the vertices on the edges:
+			VertexBase* nvrts[3];
+			nvrts[0] = edgeVrts[(iFree + 1) % 4];
+			nvrts[1] = edgeVrts[(iFree + 2) % 4];
+			nvrts[2] = edgeVrts[(iFree + 3) % 4];
+
+		//	the corners in a local ordering relative to iNew. Keeping ccw order.
+			VertexBase* corner[4];
+			ReorderCornersCCW(corner, vrts, 4, (iFree + 1) % 4);
+
+		//	create the faces
+			vNewFacesOut.push_back(new Quadrilateral(corner[0], nvrts[0], nvrts[2], corner[3]));
+			vNewFacesOut.push_back(new Triangle(corner[1], nvrts[1], nvrts[0]));
+			vNewFacesOut.push_back(new Triangle(corner[2], nvrts[2], nvrts[1]));
+			vNewFacesOut.push_back(new Triangle(nvrts[0], nvrts[1], nvrts[2]));
+
+			return true;
+		}
+
+		case 4:
+		{
+		//	we'll create 4 new quads. create a new center if required.
+			if(!newFaceVertex)
+				newFaceVertex = new Vertex;
+
+			*newFaceVertexOut = newFaceVertex;
+		
+			vNewFacesOut.push_back(new Quadrilateral(vrts[0], edgeVrts[0], newFaceVertex, edgeVrts[3]));
+			vNewFacesOut.push_back(new Quadrilateral(vrts[1], edgeVrts[1], newFaceVertex, edgeVrts[0]));
+			vNewFacesOut.push_back(new Quadrilateral(vrts[2], edgeVrts[2], newFaceVertex, edgeVrts[1]));
+			vNewFacesOut.push_back(new Quadrilateral(vrts[3], edgeVrts[3], newFaceVertex, edgeVrts[2]));
+			return true;
 		}
 	}
 

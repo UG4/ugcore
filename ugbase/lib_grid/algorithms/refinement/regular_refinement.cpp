@@ -11,6 +11,14 @@ using namespace std;
 namespace ug
 {
 
+bool Refine(Grid& grid, Selector& sel){
+	AInt aInt;
+	grid.attach_to_edges(aInt);
+	bool bSuccess = Refine(grid, sel, aInt);
+	grid.detach_from_edges(aInt);
+	return bSuccess;
+}
+
 static void AdjustSelection(Grid& grid, Selector& sel)
 {
 //	select all edges of selected faces
@@ -45,19 +53,19 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 		LOG("  WARNING in Refine: aPosition is not attached to the vertices of the grid. Aborting.\n");
 		return false;
 	}
-	
+
+//	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
+	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION)){
+		LOG("  INFO in Refine: autoenabling GRIDOPT_VERTEXCENTRIC_INTERCONNECTION\n");
+		grid.enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
+	}
+
 //	make sure that FACEOPT_AUTOGENERATE_EDGES is enabled
 	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
 		LOG("  INFO in Refine: autoenabling FACEOPT_AUTOGENERATE_EDGES\n");
 		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 	
-	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION)){
-		LOG("  INFO in Refine: autoenabling GRIDOPT_VERTEXCENTRIC_INTERCONNECTION\n");
-		grid.enable_options(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
-	}
-	
-LOG("1");
 //	adjust selection
 	AdjustSelection(grid, sel);
 	
@@ -81,7 +89,6 @@ LOG("1");
 //	access the position-attachment
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 	
-LOG("2");
 //	fill the edges- and edgeVrts-array and assign indices to selected edges
 	{
 		EdgeBaseIterator edgesEnd = sel.end<EdgeBase>();
@@ -99,7 +106,6 @@ LOG("2");
 		}
 	}
 	
-LOG("3");
 //	set up face arrays
 	{
 	//	this estimate will be exact in most cases
@@ -131,7 +137,6 @@ LOG("3");
 		faceOffsets[i] = faceEdgeVrts.size();
 	}
 	
-LOG("4");
 //	refine the selected edges
 	vector<EdgeBase*> newEdges;
 	newEdges.reserve(2);
@@ -146,19 +151,19 @@ LOG("4");
 		}
 	}
 	
-LOG("5");
 //	refine the selected faces
 	vector<Face*> newFaces;
 	newFaces.reserve(4);
 	
-LOG(endl);
 	for(size_t i = 0; i < faces.size(); ++i){
 		Face* f = faces[i];
 		VertexBase* newVrt;
 		if(f->refine(newFaces, &newVrt, &faceEdgeVrts[faceOffsets[i]])){
 		//	if a new vertex was generated, we have to register it
-			if(newVrt)
+			if(newVrt){
 				grid.register_element(newVrt, f);
+				aaPos[newVrt] = CalculateCenter(f, aaPos);
+			}
 
 		//	register the new faces
 			for(size_t j = 0; j < newFaces.size(); ++j)
@@ -169,12 +174,10 @@ LOG(endl);
 		}
 	}
 	
-LOG("6");
 //	erase old faces
 	grid.erase(faces.begin(), faces.end());
 //	erase old edges
 	grid.erase(edges.begin(), edges.end());
-LOG("7");
 }
 
 }//	end of namespace
