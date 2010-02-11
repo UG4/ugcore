@@ -18,7 +18,7 @@ template <class TElem, class SelectionPolicy>
 GenericElementSelector<TElem, SelectionPolicy>::
 GenericElementSelector()
 {
-	m_bAutoselectionEnabled = false;
+	m_bAutoselectionEnabled = true;
 	m_pGrid = NULL;
 }
 
@@ -26,7 +26,7 @@ template <class TElem, class SelectionPolicy>
 GenericElementSelector<TElem, SelectionPolicy>::
 GenericElementSelector(TGridRef grid)
 {
-	m_bAutoselectionEnabled = false;
+	m_bAutoselectionEnabled = true;
 	m_pGrid = NULL;
 	assign_grid(grid);
 }

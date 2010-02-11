@@ -613,6 +613,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 
 	//	relocate points
 		LOG("  relocating points...");
+		//if(0)
 		{
 			vector<vector3> vNodes;
 			vector<VertexBase*> vNeighbours;
@@ -646,6 +647,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 
 	//	project points back on the surface
 		if(projectPoints)
+		//if(0)
 		{
 			LOG("  projecting points...");
 
@@ -675,5 +677,84 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 
 	return true;
 }
+
+
+
+
+/*
+////////////////////////////////////////////////////////////////////////
+//	This is an alternative version for PerformSplits.
+//	It uses the Refine method.
+//	It is not yet optimized for maximum speed.
+//	While it performs a little less splits, overall runtime of
+//	AdjustEdgeLength is not better than with the original
+//	PerformSplits method.
+template <class TAAPosVRT, class TAANormVRT>
+bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
+					  number maxEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm)
+{
+	AInt aInt;
+	grid.attach_to_edges(aInt);
+
+//	compare squares
+	maxEdgeLen *= maxEdgeLen;
+
+	Selector sel(grid);
+	sel.enable_autoselection(true);
+	sel.select(esel.begin<EdgeBase>(), esel.end<EdgeBase>());
+
+	LOG("  performing splits\n");
+	int numSplits = 0;
+
+	while(!sel.empty()){
+	//	deselect all vertices and faces
+		sel.clear_selection<VertexBase>();
+		sel.clear_selection<Face>();
+		sel.clear_selection<Volume>();
+
+	//	deselect all edges that shall not be splitted
+		EdgeBaseIterator iter = sel.begin<EdgeBase>();
+		while(iter != sel.end<EdgeBase>()){
+			EdgeBase* e = *iter;
+			++iter;
+
+		//	the higher the curvature the smaller the maxEdgeLen.
+		//	minimal lenFac is 0.1
+			number lenFac = CalculateLengthFac(grid, shMarks, e, aaPos);
+
+		//	fixed edges will not be refined
+			if(shMarks.get_subset_index(e) == RM_FIXED)
+				sel.deselect(e);
+			else if(VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]) < lenFac * maxEdgeLen)
+				sel.deselect(e);
+		}
+
+	//	refine the grid
+		Refine(grid, sel, aInt);
+
+	//	new vertices are selected
+		numSplits += sel.num<VertexBase>();
+
+	//	re-triangulate
+		Triangulate(grid, &aaPos);
+
+	//	calculate normal for new vertices
+//TODO:	be careful with crease edges
+		for(VertexBaseIterator iter = sel.begin<VertexBase>();
+			iter != sel.end<VertexBase>(); ++iter)
+		{
+			CalculateVertexNormal(aaNorm[*iter], grid, *iter, aaPos);
+		}
+
+		sel.clear_selection<VertexBase>();
+		sel.clear_selection<Face>();
+		sel.clear_selection<Volume>();
+	}
+
+	grid.detach_from_edges(aInt);
+	LOG("  splits performed: " << numSplits << endl);
+	return true;
+}
+*/
 
 }//	end of namespace

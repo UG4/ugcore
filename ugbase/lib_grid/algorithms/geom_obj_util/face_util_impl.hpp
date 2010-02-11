@@ -9,6 +9,13 @@
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+inline void Triangulate(Grid& grid,
+						Grid::VertexAttachmentAccessor<APosition>* paaPos)
+{
+	Triangulate(grid, grid.begin<Quadrilateral>(),
+				grid.end<Quadrilateral>(), paaPos);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateFaceCenter

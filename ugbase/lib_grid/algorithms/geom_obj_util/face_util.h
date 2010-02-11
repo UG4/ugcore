@@ -106,6 +106,8 @@ void Triangulate(Grid& grid,
 				QuadrilateralIterator iterEnd,
 				Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
 
+inline void Triangulate(Grid& grid,
+						Grid::VertexAttachmentAccessor<APosition>* paaPos = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 //	GetNeighbours
