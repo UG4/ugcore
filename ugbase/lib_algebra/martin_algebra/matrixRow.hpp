@@ -7,7 +7,7 @@
  *  Copyright 2010 . All rights reserved.
  *
  */
-
+#include "blockMatrix.h"
 
 // operator []
 //-------------
@@ -58,7 +58,8 @@ inline vec_type matrixrow<entry_type>::operator *(const Vector<vec_type> &x) con
 	d = (*it).dValue * x[(*it).iIndex];
 	++it;	
 	for(; !it.isEnd(); ++it)
-		d += (*it).dValue * x[(*it).iIndex];
+		//d += (*it).dValue * x[(*it).iIndex];
+		::add_mult(d, (*it).dValue, x[(*it).iIndex]);
 	return d;
 }
 
@@ -72,40 +73,42 @@ inline vec_type matrixrow<entry_type>::operator *(const Vector<vec_type> &x) con
 //! @return d = A[row] * x 
 template<typename entry_type>
 template<typename vec_type>
-inline void matrixrow<entry_type>::copyToMult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<entry_type>::assign_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	d = 0.0;
-	addToMult(d, x);
+	add_mult(d, x);
 }
 
-// substractFromMult
+// sub_mult
 //-------------
 //! @param	d	out: d -= A[row] * x
 //! @param	x	in
 template<typename entry_type>
 template<typename vec_type>
-inline void matrixrow<entry_type>::substractFromMult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<entry_type>::sub_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	cRowIterator it = beginRow();
 	if(row >= x.getLength()) ++it; // skip diag
 
 	for(; !it.isEnd(); ++it)
-		d -= (*it).dValue * x[(*it).iIndex];
+		//d -= (*it).dValue * x[(*it).iIndex];
+		::sub_mult(d, (*it).dValue, x[(*it).iIndex]);
 }
 
-// addToMult
+
+// add_mult
 //-------------
 //! @param	d	out: d += A[row] * x
 //! @param	x	in
 template<typename entry_type>
 template<typename vec_type>
-inline void matrixrow<entry_type>::addToMult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<entry_type>::add_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	cRowIterator it = beginRow();
 	if(row >= x.getLength()) ++it; // skip diag
 	
 	for(; !it.isEnd(); ++it)
-		d += (*it).dValue * x[(*it).iIndex];
+		::add_mult(d, (*it).dValue, x[(*it).iIndex]);
 }
 
 
@@ -115,18 +118,18 @@ inline void matrixrow<entry_type>::addToMult(vec_type &d, const Vector<vec_type>
 template<typename entry_type, typename vec_type>
 inline void multiplyCopyTo(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
 {
-	r.copyToMult(d, x);
+	r.assign_mult(d, x);
 }
 
 template<typename entry_type, typename vec_type>
 inline void multiplyAddTo(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
 {
-	r.addToMult(d, x);
+	r.add_mult(d, x);
 }
 
 template<typename entry_type, typename vec_type>
 inline void multiplySubstractFrom(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
 {
-	r.substractFromMult(d, x);
+	r.sub_mult(d, x);
 }
 

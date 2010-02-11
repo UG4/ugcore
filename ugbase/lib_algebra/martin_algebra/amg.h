@@ -18,17 +18,17 @@
 //---------------------------------
 //! algebraic multigrid class.
 //!
-template<typename entry_type, typename Vector_type>
-class amg : public preconditioner<entry_type, Vector_type>
+template<typename Matrix_type, typename Vector_type>
+class amg : public preconditioner<Matrix_type, Vector_type>
 {
 public:
-	typedef SparseMatrix<entry_type> matrix_type;
+	typedef typename Matrix_type::entry_type entry_type;
 	
 //  functions
 	void writeMatrices(const char *pathAndName);
 	amg() ;
 	~amg();
-	virtual bool init(const matrix_type& A);
+	virtual bool init(const Matrix_type& A);
 
 	virtual void precond2(Vector_type &x, const Vector_type &b)
 	{
@@ -49,7 +49,7 @@ public:
 	void restriction(Vector_type *pto, const Vector_type &from, int tolevel); // h -> 2h
 	
 	
-	bool onlyOneLevel(const matrix_type& A_);
+	bool onlyOneLevel(const Matrix_type& A_);
 	
 	//void restrictioninjection(Vector_type &to, const Vector_type &from, int tolevel);
 	
@@ -118,16 +118,16 @@ private:
 //  functions
 	int getNodeWithBestRating(int n);
 		
-	void createAMGLevel(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A, SparseMatrix<double> &P, int level);
-	void createGalerkinMatrix(matrix_type &AH, const SparseMatrix<double> &R, const matrix_type &A, const SparseMatrix<double> &P, int *posInConnections);
+	void createAMGLevel(Matrix_type &AH, SparseMatrix<double> &R, const Matrix_type &A, SparseMatrix<double> &P, int level);
+	void createGalerkinMatrix(Matrix_type &AH, const SparseMatrix<double> &R, const Matrix_type &A, const SparseMatrix<double> &P, int *posInConnections);
 	
-	void CreateProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int iNrOfCoarse);
-	void CreateIndirectProlongation(SparseMatrix<double> &P, const matrix_type &A, int *newIndex, int *posInConnections);
+	void CreateProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int iNrOfCoarse);
+	void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int *posInConnections);
 	
 	//! creates the graph
-	void CreateGraph(const matrix_type &A, cgraph &graph, maxheap<nodeinfo> &PQ, int &unassigned);
+	void CreateGraph(const Matrix_type &A, cgraph &graph, maxheap<nodeinfo> &PQ, int &unassigned);
 	void CreateGraph2(cgraph &graph, cgraph &graph2, maxheap<nodeinfo> &PQ, int &unassigned, int *posInConnections);
-	int Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, bool bIndirect, const matrix_type &A);
+	int Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, bool bIndirect, const Matrix_type &A);
 	
 
 //	data
@@ -141,9 +141,9 @@ private:
 	
 	SparseMatrix<double> R[AMG_MAX_LEVELS]; ///< R Restriction Matrices
 	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Restriction Matrices
-	matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
+	Matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
 	
-	sgs<entry_type, Vector_type> smoother[AMG_MAX_LEVELS];  ///< smoother for each level
+	sgs<Matrix_type, Vector_type> smoother[AMG_MAX_LEVELS];  ///< smoother for each level
 };
 
 

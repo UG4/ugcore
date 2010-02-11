@@ -64,19 +64,7 @@ inline double Vector<entry_type>::operator = (double d)
 	return d;
 }
 
-template<typename entry_type> 
-template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
-{ 
-	IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
-	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
-	for(int i=0; i < length; i++)
-	{
-		prefetchReadWrite(values+i+512);
-		//values[i] = t[i];
-		t.copyTo(values[i], i);
-	}
-	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = t[i]);
-}
+
 
 // für Function Expression, sh. TemplateExpression.h
 template<typename entry_type> 
@@ -109,12 +97,30 @@ inline void Vector<entry_type>::applyto(Vector &v) const
  FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = m[i]*r);
  }	*/
 
+template<typename entry_type> 
+template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
+{ 
+	//IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
+	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
+	t.preventForbiddenDestination(this);
+	for(int i=0; i < length; i++)
+	{
+		prefetchReadWrite(values+i+512);
+		//values[i] = t[i];
+		t.assign(values[i], i);
+		//t.copyTo(values[i], i);
+	}
+	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = t[i]);
+}
+
 // v += exp
 template<typename entry_type> 
 template<typename Type> inline void Vector<entry_type>::operator += (const Type &t)
 { 
-	IF_PRINTLEVEL(5) cout << *this << " += " << t << " (unspecialized) " << endl;
+	//IF_PRINTLEVEL(5) cout << *this << " += " << t << " (unspecialized) " << endl;
 	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
+	t.preventForbiddenDestination(this);
+	
 	for(int i=0; i < length; i++) 
 	{
 		prefetchReadWrite(values+i+512);
@@ -130,6 +136,8 @@ template<typename Type> inline void Vector<entry_type>::operator -= (const Type 
 {
 	IF_PRINTLEVEL(5) cout << *this << " -= " << t << " (unspecialized) " << endl;
 	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
+	t.preventForbiddenDestination(this);
+	
 	for(int i=0; i < length; i++) 
 	{
 		prefetchReadWrite(values+i+512);
@@ -139,18 +147,6 @@ template<typename Type> inline void Vector<entry_type>::operator -= (const Type 
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] -= t[i]);
 }
 
-/*
-#ifdef SPECIALIZE_EXPRESSION_TEMPLATES
-inline void Vector::operator = (const Expression<SparseMatrix, Multiply_Operator, Vector> ex)
-{
-	IF_PRINTLEVEL(5) cout << *this << " = " << ex << endl;
-	const SparseMatrix &A = ex.l;
-	const Vector &v = ex.r;
-	for(int i=0; i<length; i++)
-		values[i] = A[i] * v;
-}
-#endif
-*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

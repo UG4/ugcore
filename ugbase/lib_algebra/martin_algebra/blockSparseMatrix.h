@@ -21,6 +21,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 // connections are sorted < to < to
 
+// THIS FILE IS NOT USED
+
+#if 0
 template<typename row_storage_type, int rows_, typename nnz_storage_type, int nnzs_>
 class sparseMat
 {	
@@ -192,3 +195,4 @@ public:
 		return out;
 	}
 };
+#endif

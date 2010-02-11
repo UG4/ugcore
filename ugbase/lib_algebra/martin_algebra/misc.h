@@ -9,14 +9,12 @@
 #pragma once
 #include <iostream>
 #include <string>
-
+#include <assert.h>
 using namespace std;
 #define TRUE 1
 #define FALSE 0
 
-string nrstring(double d);
-string nrstring(int i);
-
+////////////////////////////////////////////////////////////////////////////////
 
 #define boldredcolor "\x1b[1;31m"
 #define boldgreencolor "\x1b[1;32m"
@@ -28,24 +26,34 @@ string nrstring(int i);
 
 #define normalcolor "\x1b[0;0m"
 
+////////////////////////////////////////////////////////////////////////////////
+
 static int never_happens = 0;
 
-#define FLEXAMG_DIMENSIONS 2
+extern int flexamg_dimensions;
+
+#define OUTPUT_DIR "/Users/mrupp/matrices/"
 
 #define IF_PRINTLEVEL(i) if(i <= 0)
 
+////////////////////////////////////////////////////////////////////////////////
 // PREFETCHING
 //--------------
 // 
-// gcc __builtin_prefetch(addr, readwrite =1 read = 0, locality)
-// locality=0..3, 0 dont leave in caches (default 3)
-// http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Other-Builtins.html#Other-Builtins
+//! gcc __builtin_prefetch(addr, readwrite =1 read = 0, locality)
+//! locality=0..3, 0 dont leave in caches (default 3)
+//! http://gcc.gnu.org/onlinedocs/gcc-4.1.2/gcc/Other-Builtins.html#Other-Builtins
 #define prefetchRead(p) __builtin_prefetch(p, 0)
 #define prefetchReadWrite(p) __builtin_prefetch(p, 1)
 // note: p doesnt need to be a valid adress (for example, p can be NULL), but evaluating the expression (p) has to be possible
 
-void spaceout(int n);
+////////////////////////////////////////////////////////////////////////////////
 
+void spaceout(int n);
+string nrstring(double d);
+string nrstring(int i);
+
+////////////////////////////////////////////////////////////////////////////////
 //#define DEBUG
 #ifdef DEBUG
 
@@ -88,37 +96,30 @@ inline void print_trace ()
 #define ASSERT1(a)
 #endif
 
-
+////////////////////////////////////////////////////////////////////////////////
 inline double cut(double a, double e)
 {
 	if(a*a > e*e) return a;
 	else return 0.0;
 }
+inline double dabs(double a) { return a > 0 ? a : -a; }
 
-#include <iostream>
 
 
-#if ( FLEXAMG_DIMENSIONS == 2)
-struct postype
-{
-	double x, y;
-	friend std::ostream &operator << (std::ostream &out, const postype &p)
-	{
-		out << p.x << " " << p.y;
-		return out;
-	}
-};
-#else
+////////////////////////////////////////////////////////////////////////////////
+// stuff for position output
 struct postype
 {
 	double x, y, z;
 	friend std::ostream &operator << (std::ostream &out, const postype &p)
 	{
-		out << p.x << " " << p.y << " " << p.z;
+		if(flexamg_dimensions == 2)
+			out << p.x << " " << p.y;
+		else
+			out << p.x << " " << p.y << " " << p.z;
 		return out;
 	}
 };
-#endif
 
 
 postype GetPosForIndex(int i);
@@ -139,6 +140,7 @@ static postype GetPosForIndexAtLevel(int i, int level)
 	return GetPosForIndex(GetOriginalIndex(level, i));
 }
 
+////////////////////////////////////////////////////////////////////////////////
 //!
 //! stopwatch class for quickly taking times
 //! seems to be ok for measuring times > 100 ms
@@ -162,6 +164,11 @@ public:
 		end = clock();
 		bRunning = false;
 	}
+	friend ostream &operator << (ostream &out, stopwatch &s)
+	{
+		out << s.getTimeDiffMS() << " ms";
+		return out;
+	}
 	
 	double getTimeDiffMS()
 	{
@@ -179,4 +186,4 @@ private:
 	bool bRunning;
 };
 
-inline double dabs(double a) { return a > 0 ? a : -a; }
+

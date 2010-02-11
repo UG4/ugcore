@@ -16,12 +16,14 @@ using namespace std;
 const double sigma = 0.3;
 const double theta = 0.3;
 
+//#include "SparseMatrix.h"
+
 #include "amg.h"
 #include "linearsolver.h"
 
 
 
-//#define EASY_MATRIX // set h = 1.0
+#define EASY_MATRIX // set h = 1.0
 #define NINE_POINT
 
 #ifndef NINE_POINT
@@ -33,17 +35,18 @@ const double theta = 0.3;
 #include "arrayStorage.h"
 
 #if UNKNOWN_NR > 1
-typedef fixedStorage myStorageType;
-//typedef variableStorage myStorageType;
+
+//typedef fixedStorage myStorageType;
+typedef variableStorage myStorageType;
+
 typedef blockDenseMatrix<myStorageType, UNKNOWN_NR, UNKNOWN_NR > myBlockMat;
+
 typedef blockVector<myStorageType, UNKNOWN_NR> myBlockVec;
+
 #else
+
 typedef double myBlockMat;
 typedef double myBlockVec;
-
-
-//typedef blockDenseMatrix<1> entry_type;
-//typedef blockVector<1> VEC_TYPE;
 
 #endif
 

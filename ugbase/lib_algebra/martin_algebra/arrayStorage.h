@@ -8,50 +8,89 @@
  */
 #pragma once
 
-
+////////////////////////////////////////////////////////////////////////////////
+//! array with fixed storage in the struct
+/*! This class can be used like variableArray, but has a fixed size.
+	Use together with storage_traits:
+	storage_traits<storage_type, double, 3, 3>::array_type is either
+	fixed Array or variableArray.
+ */
 template<typename T, int n>
 class fixedArray
 {	
 public:
+	//! constructor. does nothing
 	fixedArray(){}
+	//! construct with size
 	fixedArray(int n_) { ASSERT2(n_ == n, "fixed array set to " << n << ", tried " << n_ << "."); }
-	inline size_t size() const 
-	{ 
-		return n;
-	}
+	
+	//fixedArray(const fixedArray &other); // default copy constructor
+	
+public:
+	//! access refernce of an element
 	inline T &operator [] (int i) { return values[i]; }
+	//! access const element
 	inline T operator [] (int i) const { return values[i]; }
+	
+public:	
+	//! compare with other fixedArray
 	bool operator == (const fixedArray<T, n> &other) const
 	{
 		return memcmp(values, other.values, sizeof(T)*n)==0;
 	}
+	//! compare with other fixedArray
 	bool operator != (const fixedArray<T, n> &other) const
 	{
 		return ! operator == (other);
 	}
+	
+	//! swap with other array
+	void swap(fixedArray<T,n> &other)
+	{
+		std::swap(values, other.values);
+	}
+	
+public:
+	//! get size
+	inline size_t size() const 
+	{ 
+		return n;
+	}
+	
+	//! change size (for fixed array trivial)
 	inline void setSize(int s, bool bZero=true)
 	{
 		ASSERT2(s <= n, "fixed Array is too small (max " << n << ", tried " << s << ".");		
 		if(bZero)
 			memset(values, 0, sizeof(T)*n);
 	}
-	void swap(fixedArray<T,n> &other)
-	{
-		std::swap(values, other.values);
-	}
+	
 private:
-	T values[n];	
+	T values[n];	///< data
 };
 
+////////////////////////////////////////////////////////////////////////////////
+//! array with variableStorage on the heap
+/*!
+ \sa fixedArray
+ */
 template<typename T>
 class variableArray
 {
 public:
+	//! constructor
 	variableArray()
 	{
 		values = 0;
 		n = 0;
 	}
+	//! deconstrucotr
+	~variableArray()
+	{
+		if(values) delete[] values;
+	}
+	
+	//! construct with size
 	variableArray(int n_)
 	{
 		values = 0;
@@ -59,6 +98,7 @@ public:
 		setSize(n_);
 	}
 	
+	//! copy constructor
 	variableArray(const variableArray<T> &other)
 	{
 		n = other.n;
@@ -66,15 +106,25 @@ public:
 		memcpy(values, other.values, sizeof(T)*n);
 	}
 	
+public:
+	//! access refernce of an element
+	inline T &operator [] (int i) { return values[i]; }
+	//! access const element
+	inline T operator [] (int i) const { return values[i]; }
+	
+public:
+	//! compare with other variableArray
 	bool operator == (const variableArray<T> &other) const
 	{
 		return memcmp(values, other.values, sizeof(T)*n)==0;
 	}
+	//! compare with other variableArray
 	bool operator != (const variableArray<T> &other) const
 	{
 		return ! operator == (other);
 	}
 	
+	//! assign other variableArray
 	void operator = (const variableArray<T> &other)
 	{
 		if(n != other.n)
@@ -86,16 +136,18 @@ public:
 		memcpy(values, other.values, sizeof(T)*n);
 	}
 	
-	~variableArray()
+	void swap(variableArray &a)
 	{
-		if(values) delete[] values;
+		std::swap(a.values, values);
+		std::swap(a.n, n);
 	}
+	
+public:
 	inline size_t size() const 
 	{ 
 		return n;
 	}
-	inline T &operator [] (int i) { return values[i]; }
-	inline T operator [] (int i) const { return values[i]; }
+
 	inline void setSize(int s, bool bZero=true)
 	{
 		if(s > n)
@@ -113,21 +165,19 @@ public:
 			n = s;
 			values = m;
 		}		
-	}
-	
-	void swap(variableArray &a)
-	{
-		std::swap(a.values, values);
-		std::swap(a.n, n);
-	}
+	}	
+
 private:
 	T *values;
 	int n;
 };
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////
+//! two-dimensional array with fixed Storage
+/*!
+ use accessor (r, c) or getAt(r, c) function
+ \sa fixedArray
+ */
 template<typename T, int rows, int cols>
 class fixedArray2
 {
@@ -137,6 +187,7 @@ public:
 	{
 		ASSERT2(rows_ == rows && cols == cols, "fixed Array! (rows " << rows << ", cols " << cols << " tried " << rows_ << ", " << cols_ << ".)");		
 	}
+	
 	inline T &operator () (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
 	inline T operator () (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
 	inline T &getAt (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
@@ -145,10 +196,12 @@ public:
 	inline T operator [] (int i)  const { ASSERT1(i<rows*cols && i >= 0); return values[i]; }	
 	int size() const { return rows*cols; }
 
+	//! ensure size of rows*cols, but do not make smaller
 	inline void ensure(int rows_, int cols_) const
 	{
 		ASSERT2(rows_ <= rows && cols <= cols, "fixed Array is too small (max rows " << rows << ", cols " << cols << " tried " << rows_ << ", " << cols_ << ".)");		
 	}
+	//! set size (bZero: if true, zero new mem)
 	inline void setSize(int rows_, int cols_, bool bZero=true)
 	{
 		ASSERT2(rows_ == rows && cols == cols, "fixed Array! (rows " << rows << ", cols " << cols << " tried " << rows_ << ", " << cols_ << ".)");		
@@ -167,6 +220,12 @@ private:
 	T values[rows*cols];	
 };
 
+////////////////////////////////////////////////////////////////////////////////
+//! two-dimensional array with variable Stroage
+/*!
+ use accessor (r, c) or getAt(r, c) function
+ \sa variableArray
+ */
 template<typename T>
 class variableArray2
 {
@@ -243,20 +302,29 @@ private:
 	int cols;
 };
 
+
+////////////////////////////////////////////////////////////////////////////////
+
+//! helper class for selecting storage type
 class fixedStorage
 {
 public:
 	static const char *getType() { return "fix"; }
 };
 
+//! helper class for selecting storage type
 class variableStorage 
 {
 public:
 	static const char *getType() { return "var"; }
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
+//! storage traits: used to get corresponding one and two-dimensional arrays for a storage class
 template<typename storage_type, typename value_type, int rows, int cols> class storage_traits;
 
+//! fixed Storage traits
 template<typename value_type, int rows, int cols>
 class storage_traits<fixedStorage, value_type, rows, cols>
 {
@@ -265,6 +333,7 @@ public:
 	typedef fixedArray2<value_type, rows, cols> array2_type;	
 };
 
+//! variable storage traits
 template <typename value_type, int rows, int cols>
 class storage_traits<variableStorage, value_type, rows, cols>
 {	

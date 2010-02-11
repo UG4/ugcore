@@ -13,9 +13,9 @@
 //! Linear Solver
 //! Performs maxit steps of iteration x -> x + P (b-Ax), where P is a preconditioner
 // this one uses preconditioner::iterate
-template<typename entry_type, typename Vector_type>
-void LinearSolver(Vector_type &x, const SparseMatrix<entry_type> &A, 
-				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit, double reduction)
+template<typename Matrix_type, typename Vector_type>
+void LinearSolver(Vector_type &x, const Matrix_type &A, 
+				  const Vector_type &b, preconditioner<Matrix_type, Vector_type> &P, int maxit, double reduction)
 {
 	P.init(A);
 	stopwatch SW;
@@ -46,9 +46,9 @@ void LinearSolver(Vector_type &x, const SparseMatrix<entry_type> &A,
 //! Linear Solver
 //! Performs maxit steps of iteration x -> x + P (b-Ax), where P is a preconditioner
 // this one uses preconditioner::precond
-template<typename entry_type, typename Vector_type>
-void LinearSolver2(typename SparseMatrix<entry_type>::Vector_type &x, const SparseMatrix<entry_type> &A, 
-				  const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit, double reduction)
+template<typename Matrix_type, typename Vector_type>
+void LinearSolver2(Vector_type &x, const Matrix_type &A, 
+				  const Vector_type &b, preconditioner<Matrix_type, Vector_type> &P, int maxit, double reduction)
 {	
 	
 	P.init(A);
@@ -84,8 +84,8 @@ void LinearSolver2(typename SparseMatrix<entry_type>::Vector_type &x, const Spar
 //!
 //! CG-Solver
 //! CG Solver on system Ax = b with Preconditioner P.
-template<typename entry_type, typename Vector_type>
-void CG(Vector_type &x, const SparseMatrix<entry_type> &A, const Vector_type &b, preconditioner<entry_type, Vector_type> &P, int maxit)
+template<typename Matrix_type, typename Vector_type>
+void CG(Vector_type &x, const Matrix_type &A, const Vector_type &b, preconditioner<Matrix_type, Vector_type> &P, int maxit)
 {
 	P.init(A);
 	

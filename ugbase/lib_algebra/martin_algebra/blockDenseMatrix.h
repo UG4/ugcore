@@ -7,7 +7,7 @@
  *
  */
 
-
+#include <vector>
 #include <veclib/cblas.h>
 #include <veclib/clapack.h>
 
@@ -25,20 +25,23 @@ template<typename storage_type, int n> class blockVector;
 //! getAt(int row, int column), operator() (row, column)
 //! ostream operator <<
 //! norm(), norm2(), print(), p(){print();}
-
 template<typename storage_type, int rows_=0, int cols_=0>
 class blockDenseMatrix
 {
+private: 
 // storage specific
-//--------------------
 	typedef typename storage_traits<storage_type, double, rows_, cols_>::array2_type array_type;
 	typedef blockDenseMatrix<storage_type, rows_, cols_> matrix_type;
-	typedef blockVector<storage_type, rows_> vector_type;
+	typedef blockVector<storage_type, rows_> vector_type;	
 	enum { fixed_rows=rows_, fixed_cols = cols_ };
+	
+	array_type values;
+	
 public:
 	inline void setSize(int rows, int cols, bool bZero=true)
 	{
-		values.setSize(rows, cols, bZero);
+		if(rows != getRows() || cols != getCols())
+			values.setSize(rows, cols, bZero);
 	}
 
 	void swap(matrix_type &other)
@@ -56,20 +59,24 @@ public:
 	{
 		return values.getRows();
 	}
-private:
-	array_type values;
 
 
-public:
+public: 
+// create
 	blockDenseMatrix() : values() 
 	{		
 	}
 	blockDenseMatrix(int rows, int cols) : values(rows, cols)
 	{			
 	}
-	
 
-	
+	blockDenseMatrix(const blockDenseMatrix &other) : values(other.values)
+	{
+		//ASSERT2(0, "thou shall not use the copy constructor for it is slow");
+		// copy constructor inevitable in vector<connection> cons;
+	}
+
+// access functions
 	inline double &getAt(int r, int c)
 	{
 		return values(r, c);
@@ -87,20 +94,8 @@ public:
 		return getAt(r, c);
 	}
 	
-	friend ostream &operator << (ostream &out, const matrix_type &s)
-	{
-		out <<  storage_type::getType() << " mat " << s.getRows() << "x" << s.getCols() << " : ";
-		out << "[ ";
-		for(int r=0; r < s.getRows(); r++)
-		{
-			for(int c=0; c< s.getCols(); c++)
-				out << s(r, c) << " ";			
-			if(r != s.getRows() -1) out << "| ";
-		}
-		out << "] ";
-		return out;
-	}	
-	
+
+// algebra functions
 	double operator = (double d)
 	{
 		for(int i=0; i < values.size(); i++)
@@ -119,6 +114,7 @@ public:
 		//memcpy(values, other.values, sizeof(double)*n*n);	
 	}
 	
+// add / substract
 	matrix_type operator + (const matrix_type &other ) const
 	{
 		ASSERT(getRows() == other.getRows() && getCols() == other.getCols());
@@ -161,6 +157,7 @@ public:
 			values[i] -= other.values[i];
 	}	
 	
+// multiply
 	template<int other_rows, int other_cols>
 	blockDenseMatrix<storage_type, rows_, other_cols> operator * (const blockDenseMatrix<storage_type, other_rows, other_cols> &other ) const
 	{
@@ -179,7 +176,8 @@ public:
 			}
 		return erg;
 	}
-	
+
+
 	matrix_type operator * (double d) const
 	{
 		matrix_type erg(getRows(), getCols());
@@ -190,18 +188,12 @@ public:
 	
 	vector_type operator * (const vector_type &vec ) const
 	{
-		ASSERT1(getRows() == vec.getSize());
 		vector_type erg(getRows());
-		for(int r=0; r < getRows(); r++)
-		{
-			double s = 0;
-			for(int c=0; c < getCols(); c++)
-				s += getAt(r, c) * vec(c);
-			erg(r) = s;
-		}			
+		assign_mult(erg, vec);
 		return erg;
 	}
-	
+
+// compare
 	bool operator == (double d) const
 	{
 		for(int i=0; i<values.size(); i++)
@@ -213,6 +205,82 @@ public:
 	{
 		return ! operator == (d);
 	}
+
+// temporary prevention
+	//! dest -= this*vec . use this to prevent temporary variables	
+	void sub_mult(vector_type &dest, const vector_type &vec) const
+	{
+		ASSERT1(getRows() == vec.getSize());
+		for(int r=0; r < getRows(); r++)
+		{
+			double s = 0;
+			for(int c=0; c < getCols(); c++)
+				s += getAt(r, c) * vec(c);
+			dest(r) -= s;
+		}			
+	}
+
+	//! dest += this*vec . use this to prevent temporary variables	
+	void add_mult(vector_type &dest, const vector_type &vec) const
+	{
+		ASSERT1(getRows() == vec.getSize());
+		for(int r=0; r < getRows(); r++)
+		{
+			double s = 0;
+			for(int c=0; c < getCols(); c++)
+				s += getAt(r, c) * vec(c);
+			dest(r) += s;
+		}			
+	}
+
+	//! dest = this*vec . use this to prevent temporary variables	
+	void assign_mult(vector_type &dest, const vector_type &vec) const
+	{
+		ASSERT1(getRows() == vec.getSize());
+		for(int r=0; r < getRows(); r++)
+		{
+			double s = 0;
+			for(int c=0; c < getCols(); c++)
+				s += getAt(r, c) * vec(c);
+			dest(r) = s;
+		}			
+	}
+
+
+	//! this -= alpha*mat . use this to prevent temporary variables	
+	void sub_mult(double alpha, const matrix_type &mat) 
+	{
+		setSize(mat.getRows(), mat.getCols());
+		for(int r=0; r < getRows(); r++)
+		{
+			for(int c=0; c < getCols(); c++)
+				getAt(r, c) -= alpha*mat.getAt(r, c);
+		}
+	}
+
+	//! this += alpha*mat . use this to prevent temporary variables	
+	void add_mult(double alpha, const matrix_type &mat) 
+	{
+		setSize(mat.getRows(), mat.getCols());
+		for(int r=0; r < getRows(); r++)
+		{
+			for(int c=0; c < getCols(); c++)
+				getAt(r, c) += alpha*mat.getAt(r, c);
+		}
+	}
+
+	//! this = alpha*mat . use this to prevent temporary variables	
+	void assign_mult(double alpha, const matrix_type &mat) 
+	{
+		setSize(mat.getRows(), mat.getCols());
+		for(int r=0; r < getRows(); r++)
+		{
+			for(int c=0; c < getCols(); c++)
+				getAt(r, c) = alpha*mat.getAt(r, c);
+		}			
+	}
+	
+// other
 	double norm() const
 	{
 		double s = 0;
@@ -228,14 +296,32 @@ public:
 		return s;
 	}
 	
-	inline void setAsInverseOf(const matrix_type &mat );
+	//inline void setAsInverseOf(const matrix_type &mat ); // deprecated
 	
+// print
 	void p();
 	void print() { p(); }
-	
 
+	friend ostream &operator << (ostream &out, const matrix_type &s)
+	{
+		//out <<  storage_type::getType() << " mat " << s.getRows() << "x" << s.getCols() << " : ";
+		out << "[ ";
+		for(int r=0; r < s.getRows(); r++)
+		{
+			for(int c=0; c< s.getCols(); c++)
+				out << s(r, c) << " ";			
+			if(r != s.getRows() -1) out << "| ";
+		}
+		out << "] ";
+		return out;
+	}
 };
 
+template<typename storage_type, int rows, int cols>
+blockDenseMatrix<storage_type, rows, cols> operator * (double d, const blockDenseMatrix<storage_type, rows, cols> &mat)
+{
+	return mat * d;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //!
@@ -250,15 +336,16 @@ public:
 template<typename storage_type, int rows_, int cols_>
 class smallInverse
 {
-	//storage
+private: // storage
 	typedef typename storage_traits<storage_type, double, rows_, cols_>::array2_type array2_type;
 	typedef typename storage_traits<storage_type, __CLPK_integer, rows_, 0>::array_type interchange_array_type;
 	
 	typedef blockVector<storage_type, rows_> vector_type;
-public:
+	
 	array2_type densemat;
 	interchange_array_type interchange;
 	
+public:	
 	inline int getCols() const
 	{
 		return densemat.getCols();
@@ -271,7 +358,7 @@ public:
 	
 ///
 public:
-	
+	//! initializes this object as inverse of mat
 	void setAsInverseOf(const blockDenseMatrix<storage_type, rows_, cols_> &mat)
 	{
 		ASSERT1(mat.getRows() == mat.getCols());
@@ -291,16 +378,64 @@ public:
 		ASSERT2(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had had illegal value"));
 	}
 	
-	vector_type operator * (const vector_type &vec) 
+	//! calc dest = mat^{-1} * vec
+	void apply(double *dest, const vector_type &vec) const
 	{
-		ASSERT1(getRows() == getCols() && getCols() == vec.getSize());
-		vector_type erg =vec;
+		ASSERT1(getRows() == getCols() && getCols() == vec.getSize());		
+		for(int i=0; i<vec.getSize(); i++)
+			dest[i] = vec(i);
 		char trans ='N';
 		__CLPK_integer nrhs = 1;
 		__CLPK_integer dim = getRows();
 		__CLPK_integer info = 0;
-		dgetrs_(&trans, &dim, &nrhs,  const_cast<double*> (&densemat(0,0)), &dim, const_cast<__CLPK_integer*> (&interchange[0]), &erg.values[0], &dim, &info);	
+		
+		dgetrs_(&trans, 
+				&dim, 
+				&nrhs,  
+				&(*const_cast<array2_type*> (&densemat))(0,0), 
+				&dim, 
+				&(*const_cast<interchange_array_type*> (&interchange))[0], 
+				dest, 
+				&dim, 
+				&info);	
+	}
+	
+	vector_type operator * (const vector_type &vec) const
+	{
+		vector_type erg(vec.getSize());
+		apply(&erg(0), vec);
 		return erg;
+	}
+
+// temporary prevention
+	//! dest = this*vec . use this to prevent temporary variables
+	void assign_mult(vector_type &dest, const vector_type &vec) const
+	{
+		apply(&dest(0), vec);
+	}
+	//! dest += this*vec . use this to prevent temporary variables
+	void add_mult(vector_type &dest, const vector_type &vec) const
+	{
+		// we need one temporary variable
+		// keep static so it gets reallocated only once or twice
+		static vector<double> erg;
+		erg.resize(vec.getSize());
+		
+		apply(&erg[0], vec);
+		for(int i=0; i<vec.getSize(); i++)
+			dest(i) += erg[i];
+	}
+	//! dest -= this*vec . use this to prevent temporary variables
+	void sub_mult(vector_type &dest, const vector_type &vec) const
+	{
+		// we need one temporary variable
+		// keep static so it gets reallocated only once or twice
+		static vector<double> erg;
+		erg.resize(vec.getSize());
+		
+		apply(&erg[0], vec);
+		for(int i=0; i<vec.getSize(); i++)
+			dest(i) -= erg[i];
 	}
 };
 
@@ -310,7 +445,10 @@ blockVector<storage_type, rows> operator * (const blockVector<storage_type, rows
 	return mat * vec;
 }
 
-
+/////////////////////////////////////////////////////////////////////
+//
+//						MATRIX TRAITS
+//
 /////////////////////////////////////////////////////////////////////
 
 template <typename t> class matrix_trait;
@@ -333,20 +471,45 @@ struct vec_traits<blockVector<storage_type, n> >
 };
 
 /////////////////////////////////////////////////////////////////
+
+//! mat * vec
 template <typename storage_type, int rows_, int cols_>
 struct Mult_Traits<blockDenseMatrix<storage_type, rows_, cols_>, blockVector<storage_type, cols_> >
 {
 	typedef blockVector<storage_type, rows_> ReturnType;
 };
 
+//! mat * mat
 template <typename storage_type, int rows_, int cr_, int cols2_>
 struct Mult_Traits<blockDenseMatrix<storage_type, rows_, cr_>, blockDenseMatrix<storage_type, cr_, cols2_> >
 {
 	typedef blockDenseMatrix<storage_type, rows_, cols2_> ReturnType;
 };
 
+//! double * mat
+template <typename storage_type, int rows_, int cols_>
+struct Mult_Traits<double, blockDenseMatrix<storage_type, rows_, cols_> >
+{
+	typedef blockDenseMatrix<storage_type, rows_, cols_> ReturnType;
+};
+
+//! mat * double
+template <typename storage_type, int rows_, int cols_>
+struct Mult_Traits<blockDenseMatrix<storage_type, rows_, cols_>, double>
+{
+	typedef blockDenseMatrix<storage_type, rows_, cols_> ReturnType;
+};
+
+//! double * vec
 template <typename storage_type, int n_>
 struct Mult_Traits<double, blockVector<storage_type, n_> >
+{
+	typedef blockVector<storage_type, n_> ReturnType;
+};
+
+//! vec * double
+template <typename storage_type, int n_>
+struct Mult_Traits<blockVector<storage_type, n_>, double >
 {
 	typedef blockVector<storage_type, n_> ReturnType;
 };

@@ -57,11 +57,11 @@ public:
 	inline vec_type operator * (const Vector<vec_type> &x) const;
 	
 	template<typename vec_type>
-	inline void copyToMult(vec_type &d, const Vector<vec_type> &x) const;
+	inline void assign_mult(vec_type &d, const Vector<vec_type> &x) const;
 	template<typename vec_type>
-	inline void addToMult(vec_type &d, const Vector<vec_type> &x) const;
+	inline void add_mult(vec_type &d, const Vector<vec_type> &x) const;
 	template<typename vec_type>
-	inline void substractFromMult(vec_type &d, const Vector<vec_type> &x) const;
+	inline void sub_mult(vec_type &d, const Vector<vec_type> &x) const;
 	
 	
 	friend ostream &operator<<(ostream &output, const matrixrow &r)

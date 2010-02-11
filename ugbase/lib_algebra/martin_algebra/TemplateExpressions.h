@@ -1,21 +1,51 @@
 /*
- *  TemplateExpressions.h
+ *  NewTemplateExpressions.h
  *  flexamg
  *
- *  Created by Martin Rupp on 29.09.09.
- *  Copyright 2009 G-CSC. All rights reserved.
+ *  Created by Martin Rupp on 08.02.10.
+ *  Copyright 2010 . All rights reserved.
  *
  */
 
 #pragma once
 #include "blockMatrix.h"
 
+
+#pragma mark template expression Barton-Nackman base classes
+//! only classes which inherit from TE_AMV_X, TE_MAT or TE_VEC (via class myClass : public XD<myClass> )
+//! can use templateExpressions used in this file
+
 ////////////////////////////////////////////////////////////////////////////////
 //!
-//! class XD: class for template Expressions.
-//! only classes which inherit from XD (via class myClass : public XD<myClass> )
-//! can use templateExpressions used in this file
-template<class A> class XD
+//! class TE_AMV_X: class for template Expressions.
+//! this is the "Barton-Nackman base class" for all expressions with
+//! alpha Mat Vec + alpha Mat Vec used in this file.
+//! need functions assign, addTo, substractFrom, prevent, getLength and <<.
+template<class A> class TE_AMV_X
+{
+public:
+	//! cast this class down to original class A.
+	const A& cast() const {return static_cast<const A&>(*this); }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//! class TE_MAT: class for template Expressions.
+//! this is the "Barton-Nackman base class" for all Sparse Matrices used by
+//! Template Expressions in this file.
+//! need functions assign, addTo, substractFrom, prevent, getLength and <<.
+template<class A> class TE_MAT
+{
+public:
+	//! cast this class down to original class A.
+	const A& cast() const {return static_cast<const A&>(*this); }
+};
+
+////////////////////////////////////////////////////////////////////////////////
+//! class TE_MAT: class for template Expressions.
+//! this is the "Barton-Nackman base class" for all Vectors used by
+//! Template Expressions in this file.
+//! need functions assign, addTo, substractFrom, prevent, getLength and <<.
+template<class A> class TE_VEC : public TE_AMV_X<A>
 {
 public:
 	//! cast this class down to original class A.
@@ -24,277 +54,346 @@ public:
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//!
-//! general template Expression: L Operator R.
-//! all Expressions support
-//! - operator []
-//! ostream operator <<, printtype
-//! getLength
-template<typename L, typename Operator, typename R> 
-class Expression : public XD<Expression<L, Operator, R> >
+//! AlphaVec_Expression
+//! class for Template Expressions of the form
+//! double * Vector.
+//! \attention you cannot use x = d*y + e*x. instead use x = e*x + d*a.
+//! this is because of the mechanism to prevent local variables.
+template<typename R>
+class AlphaVec_Expression : public TE_AMV_X<AlphaVec_Expression<R> >
 { 
 public:
-	const L& l; 
+	typedef typename R::entry_type entry_type;
+
+	double alpha; 
 	const R& r; 
-	inline Expression(const L& l_, const R& r_) : l(l_),r(r_) 
-	{ ASSERT2(l.getLength() == r.getLength(), l << " has different length as " <<  r); } 
-		
-	inline typename Operator::ReturnType operator [] (int i) const
+	inline AlphaVec_Expression(double alpha_, const R & r_) : alpha(alpha_), r(r_) 
+	{ } 
+	
+	//! calcs d = expression[i]
+	inline void assign(entry_type &d, int i) const
 	{
-		// dont use
-		return Operator::apply( l[i], r[i] );
+		assign_mult(d, alpha, r[i]);
 	}
 	
-	
-	inline void copyTo(typename Operator::ReturnType &d, int i) const
+	//! calcs d += expression[i]
+	inline void addTo(entry_type &d, int i) const
 	{
-		Operator::copyTo(d, l[i], r[i]);
-	}
-
-	inline void addTo(typename Operator::ReturnType &d, int i) const
-	{
-		Operator::addTo(d, l[i], r[i]);
+		add_mult(d, alpha, r[i]);
 	}
 	
-	inline void substractFrom(typename Operator::ReturnType &d, int i) const
+	//! calcs d -= expression[i]
+	inline void substractFrom(entry_type &d, int i) const
 	{
-		Operator::substractFrom(d, l[i], r[i]);
-	}	
-	
-	inline int getLength() const	{	return l.getLength();	}
-	
-	// print functions
-	friend ostream &operator<<(ostream &output, const Expression<L, Operator, R>  &ex)
-	{
-		output << "(" << ex.l << Operator::cTyp() << ex.r << ")"; 
-		return output;
-	}
-	inline void printtype() const	{	cout << *this; }
-}; 
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-//!
-//! template Expression: double Operator R.
-template<typename Operator, typename R> 
-class Expression<double, Operator, R> : public XD<Expression<double, Operator, R> >
-{ 
-public:
-	const double ld; 
-	const R& r; 
-	inline Expression(const double& ld_, const R& r_) : ld(ld_),r(r_) {} 
-	
-	inline typename Operator::ReturnType operator [] (int i) const
-	{
-		return Operator::apply( ld, r[i] );
-	} 
-	
-	inline void copyTo(typename Operator::ReturnType &d, int i) const
-	{
-		Operator::copyTo(d, ld, r[i]);
+		sub_mult(d, alpha, r[i]);
 	}
 	
-	inline void addTo(typename Operator::ReturnType &d, int i) const
+	//! as only argument on right side, this is always ok.
+	void preventForbiddenDestination(void *p) const
 	{
-		Operator::addTo(d, ld, r[i]);
 	}
 	
-	inline void substractFrom(typename Operator::ReturnType &d, int i) const
+	//! x = a+x is forbidden, x = x + etc  ok.
+	void preventForbiddenDestination(void *p, bool &bFirst) const
 	{
-		Operator::substractFrom(d, ld, r[i]);
+		ASSERT2(bFirst == true || p != &r, r << " is on left and right side of template expression. only possible as first summand on right side.");
+		bFirst = false;
 	}	
 	
 	inline int getLength() const	{	return r.getLength();	}
 	
-	
-	// print functions
-	friend ostream &operator<<(ostream &output, const Expression<double, Operator, R>  &ex)
+// print functions
+	friend ostream &operator<<(ostream &out, const AlphaVec_Expression<R>  &ex)
 	{
-		output << "( double " << ex.ld << Operator::cTyp() << ex.r << ")"; 
-		return output;
+		out << "( double " << ex.alpha << " * " << ex.r << " )";
+		return out;
 	}
 	inline void printtype() const	{	cout << *this; }
-}; 
+};  
 
 
+// L = TE_MAT<L>, R = TE_VEC<R>
 
-
-#pragma mark Operator Structs, for defining Operator behaviour
 ////////////////////////////////////////////////////////////////////////////////
-
-//! Add_Operator: for a + b
-template<typename vec_type>
-struct Add_Operator
+//! MatVec_Expression
+//! class for Template Expressions of the form
+//! Matrix * Vector.
+//! \attention x = A*x, this would be GaussSeidel (use prevent to check).
+template<typename L, typename R>
+class MatVec_Expression : public  TE_AMV_X<MatVec_Expression<L, R> >
 { 
-	typedef vec_type ReturnType;
-	static inline vec_type apply(const vec_type &a, const vec_type &b) {return a + b;} 
+#define LEFT_RIGHT_CHECK(a) ASSERT2(a, r << " is on left and right side of template expression, not possible for matrix multiplication (otherwise GS).");
+public:
+	typedef typename R::entry_type entry_type;
+	const L& l; 
+	const R& r; 
+	inline MatVec_Expression(const L & l_, const R & r_) : l(l_),r(r_) 
+	{ ASSERT2(l.getCols() == r.getLength(), l << " has different length as " <<  r); } 
 	
-	static inline void copyTo(vec_type &r, const vec_type &a, const vec_type &b) {r = a; r += b;} 
-	static inline void addTo(vec_type &r, const vec_type &a, const vec_type &b) {r += a; r += b;} 
-	static inline void substractFrom(vec_type &r, const vec_type a, const vec_type &b) {r = a; r += b; r *= -1.0;} 
+	//! calcs d = expression[i]
+	inline void assign(entry_type &d, int i) const
+	{
+		//LEFT_RIGHT_CHECK(&d != &r[i]);
+		l[i].assign_mult(d, r);
+	}
 	
-	static inline const char *cTyp() { return " + "; }
+	//! calcs d += expression[i]
+	inline void addTo(entry_type &d, int i) const
+	{
+		//LEFT_RIGHT_CHECK(&d != &r[i]);
+		l[i].add_mult(d, r);
+	}
+	
+	//! calcs d -= expression[i]
+	inline void substractFrom(entry_type &d, int i) const
+	{
+		//LEFT_RIGHT_CHECK(&d != &r[i]);
+		l[i].sub_mult(d, r);
+	}	
+	
+	//! ASSERTs that r is not on left and right side (as r = A*r)
+	void preventForbiddenDestination(void *p) const
+	{
+		bool bFirst = true;
+		preventForbiddenDestination(p, bFirst);
+	}
+
+	//! ASSERTs that r is not on left and right side (as r = A*r)
+	void preventForbiddenDestination(void *p, bool &bFirst) const
+	{
+		LEFT_RIGHT_CHECK(p != &r);
+		bFirst = false;		
+	}	
+	
+	inline int getLength() const	{	return l.getLength();	}
+	
+// print functions
+	friend ostream &operator<<(ostream &out, const MatVec_Expression<L, R>  &ex)
+	{
+		out << "( " << ex.l << " * " << ex.r << " )";
+		return out;
+	}
+	inline void printtype() const	{	cout << *this; }	
 }; 
 
-//! Minus_Operator: for a - b
-template<typename vec_type>
-struct Minus_Operator
+/*
+template<typename L, typename R>
+class AlphaMatVec_Expression
 { 
-	typedef vec_type ReturnType;
-	static inline vec_type apply(const vec_type &a, const vec_type &b) {return a - b;} 
+public:
+	double ld;
+	const L& l; 
+	const R& r; 
+	inline Expression(double ld_, const L& l_, const R& r_) : ld(ld_), l(l_), r(r_) 
+	{ ASSERT2(l.getLength() == r.getLength(), l << " has different length as " <<  r); } 
 	
-	static inline void copyTo(vec_type &r, const vec_type &a, const vec_type &b) {r = a; r -= b;} 
-	static inline void addTo(vec_type &r, const vec_type &a, const vec_type &b) {r += a; r -= b;} 
-	static inline void substractFrom(vec_type &r, const vec_type a, const vec_type &b) {r = a; r -= b; r *= -1.0;} 
 	
-	static inline const char *cTyp() { return " - "; }
+	inline void assign(vector_type &d, int i) const
+	{			
+		l[i].assign_mult_scale(d, r);
+	}
+	
+	inline void addTo(vector_type &d, int i) const
+	{
+		l[i].add_mult_scale(d, r, ld);
+	}
+	
+	inline void substractFrom(vector_type &d, int i) const
+	{
+		l[i].sub_mult_scale(d, r, ld);
+	}	
+	
+	inline int getLength() const	{	return l.getLength();	}
+}; */
+
+////////////////////////////////////////////////////////////////////////////////
+//! AlphaMatVec_Add_Expression
+//! class for nested Template Expressions of 
+//! MatVec_Expression, AlphaVec_Expression and Vectors. ADD Version
+template<typename L, typename R> 
+class AlphaMatVec_Add_Expression : public TE_AMV_X<AlphaMatVec_Add_Expression<L, R> >
+{ 
+public:
+	typedef typename L::entry_type entry_type;
+	const L& l; 
+	const R& r; 
+	inline AlphaMatVec_Add_Expression(const L& l_, const R& r_) : l(l_),r(r_) 
+	{ ASSERT2(l.getLength() == r.getLength(), l << " has different length as " <<  r); } 
+	
+	//! calcs d = expression[i]
+	inline void assign(entry_type &d, int i) const
+	{
+		l.assign(d, i);
+		r.addTo(d, i);
+	}
+	
+	//! calcs d += expression[i]
+	inline void addTo(entry_type &d, int i) const
+	{
+		l.addTo(d, i);
+		r.addTo(d, i);
+	}
+	
+	//! calcs d -= expression[i]
+	inline void substractFrom(entry_type &d, int i) const
+	{
+		l.substractFrom(d, i);
+		r.substractFrom(d, i);
+	}
+	
+	//! throws an assert if one argument of expression is forbidden
+	void preventForbiddenDestination(void *p) const
+	{
+		// perhaps this could be done by static asserts (boost)
+		bool bFirst = true;
+		preventForbiddenDestination(p, bFirst);
+	}
+	
+	//! throws an assert if one argument of expression is forbidden
+	void preventForbiddenDestination(void *p, bool &bFirst) const
+	{
+		// delegate check to arguments
+		l.preventForbiddenDestination(p, bFirst);
+		r.preventForbiddenDestination(p, bFirst);
+	}
+	
+	inline int getLength() const	{	return l.getLength();	}
+	
+// print functions
+	friend ostream &operator<<(ostream &out, const AlphaMatVec_Add_Expression<L, R>   &ex)
+	{
+		out << "( " << ex.l << " + " << ex.r << " )";
+		return out;
+	}
+	inline void printtype() const	{	cout << *this; }	
 }; 
 
-//! Multiply_Operator: for a * b
-template<typename entry_type, typename vec_type>
-struct Multiply_Operator
+////////////////////////////////////////////////////////////////////////////////
+//! AlphaMatVec_Sub_Expression
+//! class for nested Template Expressions of 
+//! MatVec_Expression, AlphaVec_Expression and Vectors. SUBSTRACT Version
+template<typename L, typename R> 
+class AlphaMatVec_Sub_Expression : public TE_AMV_X<AlphaMatVec_Sub_Expression<L, R> >
 { 
-	typedef entry_type MultType;
-	typedef typename Mult_Traits<entry_type, vec_type>::ReturnType ReturnType;
-	static inline ReturnType apply(const vec_type &a, const vec_type &b) {return a * b;} 
+public:
+	typedef typename L::entry_type entry_type;
+	const L& l; 
+	const R& r; 
+	inline AlphaMatVec_Sub_Expression(const L& l_, const R& r_) : l(l_),r(r_) 
+	{ ASSERT2(l.getLength() == r.getLength(), l << " has different length as " <<  r); } 
 	
-	static inline void copyTo(ReturnType &r, const vec_type &a, const vec_type &b) {r = a * b;} 
-	static inline void addTo(ReturnType &r, const vec_type &a, const vec_type &b) {r += a * b;} 
-	static inline void substractFrom(ReturnType &r, const vec_type &a, const vec_type &b) {r -= a * b;} 
+	//! calcs d = expression[i]
+	inline void assign(entry_type &d, int i) const
+	{
+		l.assign(d, i);
+		r.substractFrom(d, i);
+	}
 	
-	static inline const char *cTyp() { return " * "; }
-};
+	//! calcs d += expression[i]
+	inline void addTo(entry_type &d, int i) const
+	{
+		l.substractFrom(d, i);
+		r.substractFrom(d, i);
+	}
 	
-/*struct Divide_Operator
-{ 
-	static inline VEC_TYPE apply(VEC_TYPE a, entry_type b) {return a / b;} 
-	static inline const char *cTyp() { return " / "; }
-};*/
+	//! calcs d -= expression[i]
+	inline void substractFrom(entry_type &d, int i) const
+	{
+		l.substractFrom(d, i);
+		r.addTo(d, i);
+	}	
+	
+	//! throws an assert if one argument of expression is forbidden
+	void preventForbiddenDestination(void *p) const
+	{
+		bool bFirst = true;
+		preventForbiddenDestination(p, bFirst);
+	}
+	
+	//! throws an assert if one argument of expression is forbidden
+	void preventForbiddenDestination(void *p, bool &bFirst) const
+	{
+		// delegate check to arguments
+		l.preventForbiddenDestination(p, bFirst);
+		r.preventForbiddenDestination(p, bFirst);
+	}
 
+	inline int getLength() const	{	return l.getLength();	}
+
+// print functions
+	friend ostream &operator<<(ostream &out, const AlphaMatVec_Sub_Expression<L, R>   &ex)
+	{
+		out << "( " << ex.l << " - " << ex.r << " )";
+		return out;
+	}
+	inline void printtype() const	{	cout << *this; }	
+}; 
 
 
 #pragma mark operator x -> X_Operator
 ////////////////////////////////////////////////////////////////////////////////
 
-//! allow + for all types XD
-template<typename L, typename R> Expression< L, Add_Operator< typename L::entry_type >, R> operator+(const XD<L> &l,const XD<R> &r)
+//! create AlphaMatVec_Add_Expression by conjunction of two TE_AMV_X
+template<typename L, typename R>
+AlphaMatVec_Add_Expression<L, R> operator + (const TE_AMV_X<L> &l, const TE_AMV_X<R> &r)
 { 
-	return Expression<L, Add_Operator< typename L::entry_type >, R> (l.cast(), r.cast()); 
+	return AlphaMatVec_Add_Expression<L, R> (l.cast(), r.cast()); 
 }
 
-//
-//! allow - for all types XD
-template<typename L, typename R> Expression< L, Minus_Operator< typename L::entry_type >, R> operator-(const XD<L> &l,const XD<R> &r)
+//! create AlphaMatVec_Sub_Expression by conjunction of two TE_AMV_X
+template<typename L, typename R>
+AlphaMatVec_Sub_Expression<L, R> operator - (const TE_AMV_X<L> &l, const TE_AMV_X<R> &r)
 { 
-	return Expression<L, Minus_Operator< typename L::entry_type >, R> (l.cast(), r.cast()); 
+	return AlphaMatVec_Sub_Expression<L, R> (l.cast(), r.cast()); 
 }
 
-//! allow * for doubles and all types XD
-template<typename R> Expression<double, Multiply_Operator<double, typename R::entry_type >, R> operator*(double l,const XD<R> &r)
+//! create a MatVec_Expression by TE_MAT * TE_VEC
+template<typename L, typename R>
+MatVec_Expression <L, R>  operator * (const TE_MAT<L> &l, const TE_VEC<R> &r)
 { 
-	return Expression<double, Multiply_Operator<double, typename R::entry_type>, R> (l, r.cast()); 
+	return MatVec_Expression<L, R> (l.cast(), r.cast()); 
 }
+
+//! create a AlphaVec_Expression by double * TE_VEC
+template<typename R>
+AlphaVec_Expression <R>  operator * (double d, const TE_VEC<R> &r)
+{ 
+	return AlphaVec_Expression<R> (d, r.cast()); 
+}
+
+/*
+//! create a AlphaMatVec_Expression by double * MatVec_Expression
+//! problem here is add_mult_scale and so on could be done by ONE temporal variable. 
+template<typename L, typename R>
+AlphaMatVec_Expression <L, R>  operator * (double d, const MatVec_Expression <L, R> &v)
+{ 
+	return AlphaMatVec_Expression<L, R> (d, l, r); 
+}*/
+
 // * and / only for special
 
 
-
-#pragma -
+#pragma mark Templated Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 //! template expression norm2
-template<typename Type> 
-inline double norm2(const XD<Type> &t_)
+template<typename X> 
+inline double norm2(const TE_AMV_X<X> &ex_)
 {
-	const Type &t = t_.cast();
+	const X &ex = ex_.cast();
 	double sum=0;
-	for(int i=0; i < t.getLength(); i++)	
-		sum += mnorm2(t[i]);
+	typename X::entry_type t;
+	for(int i=0; i < ex.getLength(); i++)	
+	{
+		ex.assign(t, i);
+		sum += mnorm2(t);
+	}
 	return sum;
 }
 
 //! template expression norm
-template<typename Type> 
-inline double norm(const XD<Type> &t)
+template<typename X> 
+inline double norm(const TE_AMV_X<X> &t)
 {
-	return sqrt(norm2<Type>(t));
+	return sqrt(norm2<X>(t));
 }
-
-
-
-
-/*
- class myClass : public XD<myClass>
- {
- // implementation
- }
- 
- template<typename tempType>
- void doit(XD<tempType> bla)
- {
- tempType c = bla.cast();
- }
- */
-
-// TemplateExpressions Assignment
-//---------------------------------------------
-// zB. v = x + y, v = x + y + z
-// v = A * x, v = x + y - A*x, v -= A*b
-// !NICHT! x = A*x
-
-/*
- möglich ist zB. auch 
- (x - A*x + b).printtype() (ausgabe der internen Expression)
- norm2(x - A*b)  (entspricht for(...) d += (x[i] - A[i]*b)^2 )
- norm(ex), maxabs(ex)
- (x - A*b)[5]
- x = A.Diag() * b; (sh. diagcomponent)
- x = 5.0*y; (mit spezialisierung Expression<double, Multiply_Operator, Vector>
- 
- */
-
-
-/* Function Expression
- ermöglicht Dinge wie zB. x = interpolate(xH);
- zB.
- class assignall_par 
- {
- public:
- assignall_par(int i) {n=i;} 
- void applyto(Vector &v) { for(int j=0; j<v.length; j++) v[j] = n;}
- int n; 
- }
- assignall_par assignall(int i) 
- {
- return assignall_par(i); 
- }
- 
- x = assignall(5);  
- */
-
-/*
- intern Funktioniert das so, zB.:
- x = y + z;
- x.operator = ( Expression(Vector, Add_Operator, Vector)(y, z);)
- das dröselt sich dann auf zu
- x.operator = (expression)
- {
- for(int i=0; i<x.length; i++)
- {
- x[i] = expression[i];
- }
- }
- 
- wobei expression = Expression(Vector, Add_Operator, Vector)(y, z), also
- double Expression::operator [] (i)
- {
- return Operator::apply(l[i], r[i]) 
- => Add_Operator::apply(x[i], y[i]) ( da Operator = Add_Operator, l = x und r = y)
- ={ return a + b; }	
- }
- 
- bei komplizierteren genauso, zB. b - A*x
- -> Expression(Vector, Minus_Operator, Expression(SparseMatrix, Mult_Operator, Vector))
- und exp[i] wird dann zu b[i] - A[i]*x 
- (sh. spezialisierung template<> struct Expression<SparseMatrix, Multiply_Operator, Vector> in SparseMatrix.h) 
- */

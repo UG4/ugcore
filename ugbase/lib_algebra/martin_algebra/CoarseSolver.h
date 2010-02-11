@@ -8,7 +8,7 @@
  */
 #pragma once
 
-typedef long int __CLPK_integer;
+//typedef long int __CLPK_integer;
 
 // TODO: for smallmatrix tasks like this, better use sth. like FLENS
 

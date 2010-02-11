@@ -8,13 +8,18 @@
  */
 
 
-template<typename storage_type, int n_>
+template<typename storage_type, int n_=0>
 class blockVector
 {
-	//storage
+private: 
+//	- storage -
 	typedef typename storage_traits<storage_type, double, n_, 0>::array_type array_type;
 	typedef blockVector<storage_type, n_> vector_type;
-	enum { fixed_n=n_};
+	enum { fixed_n=n_};	
+	array_type values;
+	
+	friend class smallInverse<storage_type, n_, n_>;
+
 public:
 	inline void setSize(int n, bool bZero=true)
 	{
@@ -25,13 +30,10 @@ public:
 	{
 		return values.size();
 	}	
-	//private:
-	array_type values;
-	
-	///
 	
 	
 public:
+// access functions
 	double &getAt(int i)
 	{
 		return values[i];
@@ -49,29 +51,28 @@ public:
 		return values[i];
 	}
 	
-	
+// creation
 	blockVector() : values()
 	{		
+	}
+	
+	blockVector(double d) : values(n_)
+	{
+		for(int i=0; i<n_; i++)
+			values[i] = d;
 	}
 	
 	blockVector(int n) : values(n)
 	{
 	}
 	
-	blockVector(const vector_type &other)
+	blockVector(const vector_type &other) : values(other.values)
 	{
-		values = other.values;
+		ASSERT2(0, "thou shall not use the copy constructor for it is slow");
 	}
 	
-	friend ostream &operator << (ostream &out, const vector_type &v)
-	{
-		out << "( ";
-		for(int i=0; i < v.getSize(); i++)
-			out << v(i) << " ";			
-		out << ") ";
-		return out;
-	}
-	
+
+// algebra functions
 	double operator = (double d)
 	{
 		for(int i=0; i<getSize(); i++)
@@ -81,30 +82,22 @@ public:
 	
 	void operator = (const vector_type &other)
 	{
-		values = other.values;
-		//	memcpy(values.values, other.values, sizeof(double)*getSize());	
+		values = other.values; // use assignment operator of array class
 	}
 	
+// add and substract
 	vector_type operator + (const vector_type &other ) const
 	{
 		if(other.getSize() == 0)
 			return *this;
 		else
 		{
-			ASSERT(getSize() == other.getSize());
+			ASSERT1(getSize() == other.getSize());
 			vector_type erg(getSize());
 			for(int i=0; i<getSize(); i++)
 				erg.values[i] = values[i] + other.values[i];
 			return erg;
 		}
-	}
-	
-	void operator += (const vector_type &other )
-	{
-		if(other.getSize() == 0) return;
-		ASSERT1(getSize() == other.getSize());
-		for(int i=0; i<getSize(); i++)
-			values[i] += other.values[i];		
 	}
 	
 	vector_type operator - (const vector_type &other ) const
@@ -121,6 +114,14 @@ public:
 		}
 	}
 	
+	void operator += (const vector_type &other )
+	{
+		if(other.getSize() == 0) return;
+		ASSERT1(getSize() == other.getSize());
+		for(int i=0; i<getSize(); i++)
+			values[i] += other.values[i];		
+	}	
+	
 	void operator -= (const vector_type &other )
 	{
 		if(other.getSize() == 0) return;
@@ -130,16 +131,18 @@ public:
 			values[i] -= other.values[i];		
 	}
 	
+	//! dot product	
 	double operator * (const vector_type &other ) const
 	{
 		if(other.getSize() == 0) return 0.0;			
-		ASSERT(getSize() == other.getSize());
+		ASSERT1(getSize() == other.getSize());
 		double s=0;
 		for(int i=0; i<getSize(); i++)
 			s += values[i] * other.values[i];
 		return s;
 	}
 	
+	//! scale vector by alpha
 	vector_type operator * (double alpha) const
 	{
 		vector_type erg(getSize());
@@ -147,17 +150,19 @@ public:
 			erg(i) = getAt(i) * alpha;
 		return erg;
 	}
+
+	//! multiply with matrix, dont use (obviously wrong)
+	//template<typename array_type>
+	//vector_type operator * (const blockDenseMatrix<array_type> &mat )
+	//{
+	//return (mat * (*this));
+	//}
 	
-	template<typename array_type>
-	vector_type operator * (const blockDenseMatrix<array_type> &mat )
-	{
-		return (mat * (*this));
-	}
-	
-	
+	//! calc this = this/mat = mat^{-1} * this
 	template<typename array_type>
 	inline void operator /= (const blockDenseMatrix<array_type> &mat);
 	
+	//! return mat^{-1} * this
 	template<typename array_type>
 	vector_type operator / (const blockDenseMatrix<array_type> &mat )
 	{
@@ -166,6 +171,7 @@ public:
 		return erg;
 	}
 	
+	//! return sum_i this[i]^2
 	double norm2() const
 	{
 		double s =0;
@@ -173,8 +179,41 @@ public:
 		return s;
 	}
 	
+	
+	//! this += alpha *vec . use this to prevent temporary variables	
+	void add_mult(double alpha, const vector_type &vec)
+	{
+		for(int i=0; i<getSize(); i++)
+			//add_mult(getAt(i), alpha, vec(i));
+			getAt(i) += vec(i) * alpha;
+	}
+	
+	//! this -= alpha *vec . use this to prevent temporary variables	
+	void sub_mult(double alpha, const vector_type &vec)
+	{
+		for(int i=0; i<getSize(); i++)
+			getAt(i) -= vec(i) * alpha;
+	}
+	
+	//! this = alpha *vec . use this to prevent temporary variables	
+	void assign_mult(double alpha, const vector_type &vec)
+	{
+		for(int i=0; i<getSize(); i++)
+			getAt(i) = vec(i) * alpha;
+	}	
+	
+	
+// print functions	
 	void p();
 	void print() { p(); }
+	friend ostream &operator << (ostream &out, const vector_type &v)
+	{
+		out << "( ";
+		for(int i=0; i < v.getSize(); i++)
+			out << v(i) << " ";			
+		out << ") ";
+		return out;
+	}
 };
 
 template<typename storage_type, int n>
