@@ -66,6 +66,40 @@ number DropAPerpendicular(vector_t& vOut, const vector_t& v0,
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+number ProjectPointToRay(vector_t& vOut, const vector_t& v,
+							const vector_t& from, const vector_t& dir)
+{
+	vector_t tmpDir;
+	VecSubtract(tmpDir, v, from);
+
+	number d1 = VecDot(tmpDir, dir);
+	number d2 = VecDot(dir, dir);
+	
+//	avoid division by zero
+	if(fabs(d2) > SMALL)
+	{
+	//	calculate the projection p'
+		number s = d1/d2;
+		VecScale(tmpDir, dir, s);
+		VecAdd(vOut, from, tmpDir);
+		return s;
+	}
+	else
+		vOut = from;
+	return 0;
+}
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+number DistancePointToRay(const vector_t& v, const vector_t& from,
+						  const vector_t& dir)
+{
+	vector_t tmp;
+	ProjectPointToRay(tmp, v, from, dir);
+	return VecDistance(v, tmp);
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
 void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 						const vector_t& p, const vector_t& n)
 {

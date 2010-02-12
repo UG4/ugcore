@@ -21,5 +21,6 @@
 #include "grid_statistics.h"
 #include "graph/graph.h"
 #include "remeshing/edge_length_adjustment.h"
+#include "remeshing/grid_adaption.h"
 
 #endif

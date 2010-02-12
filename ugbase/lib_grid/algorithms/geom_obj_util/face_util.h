@@ -65,6 +65,17 @@ number FaceQuality(Face* f,
 				Grid::VertexAttachmentAccessor<APosition> aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+//	AreaFaceQuality
+///	returns a value between 0 (bad) and 1 (good) that describes the quality of the area. 
+/**
+ * returns the worst FaceQuality of the faces between facesBegin and FacesEnd.
+ * TIterator has to be an iterator with a value-type compatible to Face*.
+ */
+template <class TIterator>
+number AreaFaceQuality(TIterator facesBegin, TIterator facesEnd,
+					   Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 //	TriangleQuality
 ///	a simple measure for the quality of a triangle
 /**

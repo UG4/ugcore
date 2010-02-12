@@ -9,6 +9,31 @@
 
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////
+template <class TIterator>
+number AreaFaceQuality(TIterator facesBegin, TIterator facesEnd,
+					   Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+//	if the area is empty return 0 (bad)
+	if(facesBegin == facesEnd)
+		return 0;
+
+//	get the first
+	number q = FaceQuality(*facesBegin, aaPos);
+	++facesBegin;
+
+//	iterate over the others and find a worse one
+	for(; facesBegin != facesEnd; ++facesBegin){
+		number tq = FaceQuality(*facesBegin, aaPos);
+		if(tq < q)
+			q = tq;
+	}
+
+//	return the quality
+	return q;
+}
+
 ////////////////////////////////////////////////////////////////////////
 inline void Triangulate(Grid& grid,
 						Grid::VertexAttachmentAccessor<APosition>* paaPos)

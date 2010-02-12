@@ -43,6 +43,31 @@ number DropAPerpendicular(vector_t& vOut, const vector_t& v0,
 							const vector_t& v1, const vector_t& v);
 
 ////////////////////////////////////////////////////////////////////////
+///	finds the projection of v onto the ray defined by from and dir
+/**
+ * projects v onto the ray defined by from and dir.
+ * The projected point is returned in vOut.
+ *
+ * returns s so that vOut = from + s*dir
+ */
+template <class vector_t>
+number ProjectPointToRay(vector_t& vOut, const vector_t& v,
+							const vector_t& from, const vector_t& dir);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the distance of a point to a ray
+/*
+ * the coordinates of the point are given through v.
+ * the ray is defined by from (an arbitrary point on the ray) and
+ * dir (the direction of the ray).
+ *
+ * The method returns the distance.
+ */
+template <class vector_t>
+number DistancePointToRay(const vector_t& v, const vector_t& from,
+						  const vector_t& dir);
+
+////////////////////////////////////////////////////////////////////////
 ///	projects v onto the plane defined by the point p and the planes normal n.
 /**	The result is written to vOut.*/
 template <class vector_t>
