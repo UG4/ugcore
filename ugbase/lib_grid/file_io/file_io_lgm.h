@@ -4,7 +4,7 @@
 
 #include "lib_grid/grid/grid.h"
 #include "lib_grid/common_attachments.h"
-#include "lib_grid/subset_handler_interface.h"
+#include "lib_grid/subset_handler.h"
 
 #ifndef __H__LIB_GRID__FILE_IO_LGM__
 #define __H__LIB_GRID__FILE_IO_LGM__

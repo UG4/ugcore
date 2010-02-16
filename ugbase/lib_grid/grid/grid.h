@@ -489,6 +489,10 @@ class Grid
 	 *	When called for the first time, some preparations have to be taken,
 	 *	which may consume some time. Successive calls however are very fast.*/
 		void begin_marking();
+	///	clears all marks
+	/**	Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.*/
+		void clear_marks();
+
 	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
 	/**	Only pass objects that are contained by the grid.*/
 		inline void mark(VertexBase* obj);
@@ -501,6 +505,7 @@ class Grid
 	///	marks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
 	/**	Only pass objects that are contained by the grid.*/
 		inline void mark(Volume* obj);
+
 	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
 	/**	Only pass objects that are contained by the grid.*/
 		inline void unmark(VertexBase* obj);
@@ -513,6 +518,7 @@ class Grid
 	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
 	/**	Only pass objects that are contained by the grid.*/
 		inline void unmark(Volume* obj);
+
 	///	returns true if the object is marked, false if not.
 	/**	Only pass objects that are contained by the grid.*/
 		inline bool is_marked(VertexBase* obj);
@@ -525,6 +531,7 @@ class Grid
 	///	returns true if the object is marked, false if not.
 	/**	Only pass objects that are contained by the grid.*/
 		inline bool is_marked(Volume* obj);
+
 	///	ends a marking sequence. Call this method when you're done with marking.
 		void end_marking();
 		

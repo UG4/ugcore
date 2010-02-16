@@ -6,7 +6,7 @@
 #define __H__LIBGRID__SUBSET_HANDLER_MULTI_GRID__
 
 #include <vector>
-#include "multi_grid.h"
+#include "lib_grid/multi_grid.h"
 #include "common/util/section_container.h"
 #include "subset_handler_interface.h"
 

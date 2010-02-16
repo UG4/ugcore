@@ -92,19 +92,21 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 	vVrts.push_back(vrtCenter);
 	grid.mark(vrtCenter);
 
+//	this vector contains the vertices that have been projected to the rim
+	vector<VertexBase*> vRimVrts;
+
 //	those indices define the area in vVrts on which we work
 	size_t iFirst = 0;
 	size_t iEnd = 1;
 
 	while(iFirst != iEnd)
 	{
+	//	clear the selector
+		sel.clear();
+
 	//	as long as there are vertices in the queue we have to iterate
-		//while(!qVrts.empty())
 		for(int vrtInd = iFirst; vrtInd < iEnd; ++ vrtInd)
 		{
-		//	clear the selector
-			sel.clear();
-
 		//	the vertex that we'll check
 			//VertexBase* vrt = qVrts.front();
 			//qVrts.pop();
@@ -115,6 +117,61 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			for(FaceIterator iter = grid.associated_faces_begin(vrt);
 				iter != grid.associated_faces_end(vrt); ++iter)
 				vFaces.push_back(*iter);
+
+		//	check if any of the edges connected to vrt is a mean-edge
+			for(size_t i = 0; i < vFaces.size(); ++i){
+				Face* f = vFaces[i];
+				if(!grid.is_marked(f)){
+					grid.mark(f);
+				//	collect associated edges
+					CollectEdges(vEdges, grid, f);
+					for(size_t j = 0; j < vEdges.size(); ++j){
+						EdgeBase* e = vEdges[j];
+						if(!grid.is_marked(e)){
+							vector3& v0 = aaPos[e->vertex(0)];
+							vector3& v1 = aaPos[e->vertex(1)];
+						//	check whether the edge should be splitted
+						//	the edge has to be longer than radius,
+						//	both endpoints have to lie near the rim,
+						//	the edge has to be closer to the center, than one of the endpoints is
+							if(VecDistance(v0, v1) > radius * 1.2)
+							{
+							//	check whether both end-points are far away from the center
+								if(VecDistance(center, v0) > radius * CLOSE_TO_RIM
+									&& VecDistance(center, v1) > radius * CLOSE_TO_RIM)
+								{
+								//	check whether the edge cuts the cylinder
+									if(DistancePointToLine(center, v0, v1) < radius * 0.9 * CLOSE_TO_RIM)
+									{
+										sel.select(e);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+		//	if edges have been selected (there are mean edges) we'll split them.
+		//	we have to update vFaces afterwards and to clear sel
+			if(sel.num<EdgeBase>() > 0){
+			//	copy the content of sel to vEdges
+				vEdges.clear();
+				vEdges.assign(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+				for(size_t i = 0; i < vEdges.size(); ++i){
+					vector3 vtmp = CalculateCenter(vEdges[i], aaPos);
+					Vertex* nv = SplitEdge<Vertex>(grid, vEdges[i]);
+					aaPos[nv] = vtmp;
+				}
+
+				sel.clear();
+
+			//	recollect faces
+				vFaces.clear();
+				for(FaceIterator iter = grid.associated_faces_begin(vrt);
+					iter != grid.associated_faces_end(vrt); ++iter)
+					vFaces.push_back(*iter);
+			}
 
 		//	calculate normals
 			vNormals.resize(vFaces.size());
@@ -127,11 +184,17 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 				iter != iterEnd; ++iter)
 			{
 				EdgeBase* e = *iter;
+			//	if the edge has already been examined, continue
+				if(grid.is_marked(e))
+					continue;
+				grid.mark(e);
 			//	get the connected vertex and mark it - if it was alreay marked, then ignore it
 				VertexBase* cv = GetConnectedVertex(e, vrt);
+
 				if(grid.is_marked(cv))
 					continue;
-				grid.mark(cv);
+				
+				//grid.mark(cv);
 
 			//	the position of the connected vertex
 				vector3 cpos = aaPos[cv];
@@ -176,93 +239,135 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 					//	if the vertex lies outside, we'll have to split the edge.
 					//	if not we'll check it in the next iteration.
 						if(dist > radius){
+							LOG("1 ");
 							sel.select(e);
-							LOG("1");
 						}
 						else{
+							LOG("2 ");
+							grid.mark(cv);
 							vVrts.push_back(cv);
-							LOG("2");
 						}
+					}
+					else{
+					//	the test succeeded. This vertex is done.
+					//	push it to vRimVrts
+						LOG("3 ");
+						vRimVrts.push_back(cv);
+						grid.mark(cv);
 					}
 				}
 				else{
+					LOG("4 ");
 				//	check the vertex in the next iteration
+					grid.mark(cv);
 					vVrts.push_back(cv);
-					LOG("3");
 				}
 			}
+		}
 
-		//	if there are very large edges that cut the cylinder,
-		//	we'll split them.
-		//	iterate over associated faces
-			for(size_t i = 0; i < vFaces.size(); ++i){
-				Face* f = vFaces[i];
-				if(!grid.is_marked(f)){
-					grid.mark(f);
-					vCylinderFaces.push_back(f);
-				//	collect associated edges
-					CollectEdges(vEdges, grid, f);
-					for(size_t j = 0; j < vEdges.size(); ++j){
-						EdgeBase* e = vEdges[j];
-						if(!grid.is_marked(e)){
-						//	if both endpoints are marked
-							if(grid.is_marked(e->vertex(0)) && grid.is_marked(e->vertex(1)))
-							{
-								grid.mark(e);
-							//	check whether the edge should be splitted
-								if(VecDistance(aaPos[e->vertex(0)], aaPos[e->vertex(1)]) > radius * 1.05)
-								{
-									sel.select(e);
-									LOG("4");
-								}
-							}
-						}
-					}
-				}
+	//	refine marked edges
+		if(sel.num<EdgeBase>() > 0){
+			if(!Refine(grid, sel, aInt)){
+			//	clean up
+				LOG("  Refine failed in AdaptSurfaceGridToCylinder\n");
+				grid.end_marking();
+				sel.enable_selection_inheritance(selInheritanceWasEnabled);
+				return false;
 			}
 
-		//	refine marked edges
-			if(sel.num<EdgeBase>() > 0){
-				if(!Refine(grid, sel, aInt)){
-				//	clean up
-					LOG("Refine failed in AdaptSurfaceGridToCylinder\n");
-					grid.end_marking();
-					sel.enable_selection_inheritance(selInheritanceWasEnabled);
-					return false;
+		//	if new vertices have been created, they are now selected
+			for(VertexBaseIterator iter = sel.begin<VertexBase>();
+				iter != sel.end<VertexBase>(); ++iter)
+			{
+			//	if the vertex is outside of the cylinder, we'll project it
+			//	back on the cylinder.
+			//	this operation is save (although it might produce triangles
+			//	of bad quality).
+//TODO: instead of simply projecting, the intersection of the edge with the cylinder should be used.
+				vector3 projPos;
+				ProjectPointToRay(projPos, aaPos[*iter], center, normal);
+				vector3 dir;
+				VecSubtract(dir, aaPos[*iter], projPos);
+				number dist = VecLength(dir);
+				if(dist > radius){
+					VecScale(dir, dir, radius / dist);
+					VecAdd(aaPos[*iter], projPos, dir);
+					vRimVrts.push_back(*iter);
 				}
-			//	if new vertices have been created, they are now selected
-				for(VertexBaseIterator iter = sel.begin<VertexBase>();
-					iter != sel.end<VertexBase>(); ++iter)
-				{
-				//	if the vertex is outside of the cylinder, we'll project it
-				//	back on the cylinder.
-				//	this operation is save (although it might produce triangles
-				//	of bad quality).
-					vector3 projPos;
-					ProjectPointToRay(projPos, aaPos[*iter], center, normal);
-					vector3 dir;
-					VecSubtract(dir, aaPos[*iter], projPos);
-					number dist = VecLength(dir);
-					if(dist > radius){
-						VecScale(dir, dir, radius / dist);
-						VecAdd(aaPos[*iter], projPos, dir);
-					}
-
-				//	add the new vertex to vVrts and mark it
+				else{
 					vVrts.push_back(*iter);
-					grid.mark(*iter);
 				}
+				grid.mark(*iter);
 			}
 
-		//	adjust iFirst and iEnd
-			iFirst = iEnd;
-			iEnd = vVrts.size();
+		//	mark all edges that resulted from the refine
+		//	and which are connected to two marked vertices
+			for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
+				iter != sel.end<EdgeBase>(); ++iter)
+			{
+				EdgeBase* e = *iter;
+				if(grid.is_marked(e->vertex(0)) && grid.is_marked(e->vertex(1)))
+					grid.mark(e);
+			}
+
+		}
+
+	//	adjust iFirst and iEnd
+		iFirst = iEnd;
+		iEnd = vVrts.size();
+	}
+
+//	add rimVrts to vVrts
+	for(size_t i = 0; i < vRimVrts.size(); ++i)
+		vVrts.push_back(vRimVrts[i]);
+
+//	find the median of all points along normal
+	if(vVrts.size() > 0){
+		vector3 med(0, 0, 0);
+		for(size_t i = 0; i < vVrts.size(); ++i){
+			vector3 tmp;
+			ProjectPointToRay(tmp, aaPos[vVrts[i]], center, normal);
+			VecAdd(med, med, tmp);
+		}
+		VecScale(med, med, 1. / (number)vVrts.size());
+
+	//	project all vertices in vVrts into the plane defined by med and normal
+		for(size_t i = 0; i < vVrts.size(); ++i)
+			ProjectPointToPlane(aaPos[vVrts[i]], aaPos[vVrts[i]],
+								med, normal);
+	}
+
+//	select all faces in the circle
+	sel.clear();
+//	mark all vertices in vVrts
+	grid.clear_marks();
+	for(size_t i = 0; i < vVrts.size(); ++i)
+		grid.mark(vVrts[i]);
+
+//	iterate over associated faces and select them if
+//	all their vertices are marked.
+	for(size_t i = 0; i < vVrts.size(); ++i){
+		for(FaceIterator iter = grid.associated_faces_begin(vVrts[i]);
+			iter != grid.associated_faces_end(vVrts[i]); ++iter)
+		{
+			Face* f = *iter;
+			if(!grid.is_marked(f)){
+				grid.mark(f);
+				uint numVrts = f->num_vertices();
+				bool allMarked = true;
+				for(size_t k = 0; k < numVrts; ++k){
+					if(!grid.is_marked(f->vertex(k))){
+						allMarked = false;
+						break;
+					}
+				}
+
+				if(allMarked)
+					sel.select(f);
+			}
 		}
 	}
 
-//	select all faces in vCylinderFaces
-	sel.clear();
-	sel.select(vCylinderFaces.begin(), vCylinderFaces.end());
 
 //	clean up
 	grid.end_marking();

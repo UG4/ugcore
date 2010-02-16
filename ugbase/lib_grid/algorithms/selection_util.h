@@ -82,6 +82,21 @@ void SelectAssociatedEdges(TSelector& sel,
 }
 
 ////////////////////////////////////////////////////////////////////////
+///	selects edges that are only adjacent to one of the given faces
+/**
+ * This algorithm uses Grid::mark.
+ * selects the edges of the faces between facesBegin and facesEnd
+ * that are only adjacent to one of those faces.
+ *
+ * Edges that already are selected will stay selected, even if they are
+ * inner edges.
+ *
+ * Please note that only existing edges are checked.
+ */
+void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
+								  FaceIterator facesEnd);
+
+////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedFaces
 ///	selects all associated faces of the elements between elemsBegin and elemsEnd
 /**

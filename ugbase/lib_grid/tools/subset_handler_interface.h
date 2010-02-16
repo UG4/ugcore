@@ -8,8 +8,8 @@
 #include <list>
 #include <string>
 #include <vector>
-#include "grid/grid.h"
-#include "common_attachments.h"
+#include "lib_grid/grid/grid.h"
+#include "lib_grid/common_attachments.h"
 
 namespace ug
 {

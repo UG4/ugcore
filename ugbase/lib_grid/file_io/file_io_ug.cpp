@@ -352,7 +352,7 @@ static bool WriteLGM(Grid& grid,
 		VertexSelector tmpSurfVrtSel(grid);
 		for(uint i = 0; i < shFaces.num_subsets(); ++i)
 		{
-			tmpSurfVrtSel.clear_selection();
+			tmpSurfVrtSel.clear();
 
 			//	identify left and right unit index of each surface
 			int tmpLeft, tmpRight;
@@ -604,7 +604,7 @@ static bool WriteNG(Grid& grid,
 	out << endl;
 	out << "# inner nodes" << endl;
 
-	if(InnVrtSel.num_selected() > 0)
+	if(InnVrtSel.num() > 0)
 	{
 	//	if there are inner vertices, iterate through all of them
 		for(VertexBaseIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter)

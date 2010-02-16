@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "../grid/grid.h"
-#include "../subset_handler_interface.h"
+#include "../subset_handler.h"
 #include "../common_attachments.h"
 
 namespace ug

@@ -147,8 +147,16 @@ bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f);
 /**
  * swaps orientation of faces so that all neighboured
  * faces share the same.
+ *
+ * Value type of TFaceIterator has to be compatible with Face*.
+ *
+ * Note that all faces between faceBegin and facesEnd have to be members
+ * of the specified grid.
  */
-void FixOrientation(Grid& grid, FaceIterator facesBegin, FaceIterator facesEnd);
+template <class TFaceIterator>
+void FixOrientation(Grid& grid, TFaceIterator facesBegin,
+					TFaceIterator facesEnd);
+
 	
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

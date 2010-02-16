@@ -48,14 +48,16 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_ug.cpp
 				file_io/file_io.cpp)
 								
-set(srcLibGrid	subset_handler_interface.cpp
-				subset_handler_grid.cpp
-				subset_handler_multi_grid.cpp
+set(srcLibGrid	tools/subset_handler_interface.cpp
+				tools/subset_handler_grid.cpp
+				tools/subset_handler_multi_grid.cpp
+				tools/selector_interface.cpp
+				tools/selector_grid.cpp
+				tools/selector_multi_grid.cpp
+				tools/selector_grid_elem.cpp
 				geometric_objects.cpp
 				common_attachments.cpp
 				multi_grid.cpp
-				selector.cpp
-				selection_policies.cpp
 				)
 
 

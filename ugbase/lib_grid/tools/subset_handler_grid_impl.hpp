@@ -15,8 +15,8 @@ typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 begin(int subsetIndex) const
 {
-	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
 			"ERROR in SubsetHandler::begin(): bad subset index.");
@@ -36,8 +36,8 @@ typename geometry_traits<TElem>::iterator
 GridSubsetHandler::
 end(int subsetIndex) const
 {
-	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
 			"ERROR in SubsetHandler::end(): bad subset index.");
@@ -57,8 +57,8 @@ void
 GridSubsetHandler::
 clear_subset_elements(int subsetIndex)
 {
-	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
 			"ERROR in SubsetHandler::clear_subsets_elements(): bad subset index.");
@@ -83,8 +83,8 @@ uint
 GridSubsetHandler::
 num_elements(int subsetIndex) const
 {
-	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets()))
 		return 0;
@@ -103,8 +103,8 @@ uint
 GridSubsetHandler::
 num(int subsetIndex) const
 {
-	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
 	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets()))
 		return 0;

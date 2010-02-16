@@ -55,6 +55,18 @@ number ProjectPointToRay(vector_t& vOut, const vector_t& v,
 							const vector_t& from, const vector_t& dir);
 
 ////////////////////////////////////////////////////////////////////////
+///	calculates the distance of a point to a line segment
+/*
+ * the coordinates of the point are given through v.
+ * the line-segment is defined by its endpoints v1 and v2.
+ *
+ * The method returns the distance.
+ */
+template <class vector_t>
+number DistancePointToLine(const vector_t& v, const vector_t& v1,
+						  const vector_t& v2);
+
+////////////////////////////////////////////////////////////////////////
 ///	calculates the distance of a point to a ray
 /*
  * the coordinates of the point are given through v.

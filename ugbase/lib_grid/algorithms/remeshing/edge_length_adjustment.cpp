@@ -457,7 +457,7 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	while(!esel.empty())
 	{
 	//	get an edge
-		EdgeBase* e = *esel.begin();
+		EdgeBase* e = *esel.begin<EdgeBase>();
 		esel.deselect(e);
 		
 	//	the higher the curvature the smaller the maxEdgeLen.

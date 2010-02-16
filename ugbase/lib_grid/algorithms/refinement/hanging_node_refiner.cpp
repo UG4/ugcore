@@ -184,7 +184,7 @@ void HangingNodeRefiner::clear_marks()
 			iter != m_selMarkedElements.end<Face>(); ++iter)
 			m_aaVertexFACE[*iter] = NULL;
 
-		m_selMarkedElements.clear_selection();
+		m_selMarkedElements.clear();
 	}
 }
 
@@ -619,7 +619,7 @@ void HangingNodeRefiner::collect_objects_for_refine()
 //		should be marked.
 
 //	make sure the queues are empty.
-	m_selScheduledElements.clear_selection();
+	m_selScheduledElements.clear();
 	Grid& grid = *m_pGrid;
 
 //	containers used for temporary results

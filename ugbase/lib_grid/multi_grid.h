@@ -8,7 +8,7 @@
 #include <vector>
 #include <cassert>
 #include "grid/grid.h"
-#include "subset_handler_grid.h"
+#include "tools/subset_handler_grid.h"
 #include "common_attachments.h"
 #include "common/util/array_util.h"
 

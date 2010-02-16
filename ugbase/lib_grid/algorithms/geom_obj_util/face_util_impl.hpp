@@ -43,6 +43,85 @@ inline void Triangulate(Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	FixOrientation
+template <class TFaceIterator>
+void FixOrientation(Grid& grid, TFaceIterator facesBegin,
+					TFaceIterator facesEnd)
+{
+	using namespace std;
+//	we use marks to differentiate between processed and unprocessed faces
+	grid.begin_marking();
+
+//	we have to mark all faces between facesBegin and facesEnd initially,
+//	to differentiate them from the other faces in the grid.
+	for(TFaceIterator iter = facesBegin; iter != facesEnd; ++iter)
+		grid.mark(*iter);
+
+//	this edge descriptor will be used multiple times
+	EdgeDescriptor ed;
+	
+//	containers to store neighbour elements.
+	vector<Face*> vNeighbours;
+	
+//	stack that stores candidates
+	stack<Face*> stkFaces;
+	
+//	we'll iterate through all faces
+	while(facesBegin != facesEnd)
+	{
+	//	candidates are empty at this point.
+	//	if the face is unprocessed it is a new candidate
+		if(grid.is_marked(*facesBegin))
+		{
+		//	mark it as candidate (by removing the mark)
+			grid.unmark(*facesBegin);
+			stkFaces.push(*facesBegin);
+			
+		//	while the stack is not empty
+			while(!stkFaces.empty())
+			{
+			//	get the candidate
+				Face* f = stkFaces.top();
+				stkFaces.pop();
+				
+			//	get the neighbours for each side
+				for(uint i = 0; i < f->num_edges(); ++i)
+				{
+					GetNeighbours(vNeighbours, grid, f, i);
+
+				//	fix orientation of unprocessed neighbours.
+					for(size_t j = 0; j < vNeighbours.size(); ++j)
+					{
+						Face* fn = vNeighbours[j];
+						if(grid.is_marked(fn))
+						{
+						//	check whether the orientation of f and fn differs.
+							f->edge(i, ed);
+							if(EdgeOrientationMatches(ed, fn))
+							{
+							//	the orientation of ed is the same as the orientation
+							//	of an edge in fn.
+							//	the faces thus have different orientation.
+								grid.flip_orientation(fn);
+							}
+							
+						//	mark the face as processed and add it to the stack
+							grid.unmark(fn);
+							stkFaces.push(fn);
+						}
+					}
+				}
+			}
+		}
+		
+	//	check the next face
+		++facesBegin;
+	}
+
+	grid.end_marking();
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateFaceCenter
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType

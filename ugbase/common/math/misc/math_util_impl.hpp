@@ -39,8 +39,8 @@ clip(TNumber val, TNumber lowerBound, TNumber upperBound)
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
-number DropAPerpendicular(vector_t& vOut, const vector_t& v0,
-							const vector_t& v1, const vector_t& v)
+number DropAPerpendicular(vector_t& vOut, const vector_t& v,
+							const vector_t& v0, const vector_t& v1)
 {
 //	project v onto v' on the edge (v0, v1) so that (v'-v)*(v0-v1) = 0
 	vector_t e[2];
@@ -88,6 +88,22 @@ number ProjectPointToRay(vector_t& vOut, const vector_t& v,
 		vOut = from;
 	return 0;
 }
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+number DistancePointToLine(const vector_t& v, const vector_t& v1,
+						  const vector_t& v2)
+{
+	vector_t tmp;
+	number s = DropAPerpendicular(tmp, v, v1, v2);
+	if(s > 1)
+		return VecDistance(v, v2);
+	else if(s < 0)
+		return VecDistance(v, v1);
+	else
+		return VecDistance(v, tmp);
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 number DistancePointToRay(const vector_t& v, const vector_t& from,

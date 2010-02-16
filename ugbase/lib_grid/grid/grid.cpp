@@ -955,5 +955,16 @@ void Grid::end_marking()
 	m_bMarking = false;
 }
 
+void Grid::clear_marks()
+{
+	if(m_bMarking){
+		end_marking();
+		begin_marking();
+	}
+	else{
+		begin_marking();
+		end_marking();
+	}
+}
 
 }//	end of namespace

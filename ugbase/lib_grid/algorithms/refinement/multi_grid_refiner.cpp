@@ -60,7 +60,7 @@ void MultiGridRefiner::unregistered_from_grid(Grid* grid)
 
 void MultiGridRefiner::clear_marks()
 {
-	m_selMarks.clear_selection();
+	m_selMarks.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -2,10 +2,51 @@
 // y09 m11 d16
 // s.b.reiter@googlemail.com
 
+#include <vector>
 #include "selection_util.h"
+
+using namespace std;
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
+							  FaceIterator facesEnd)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+
+//	iterate over associated edges of faces.
+//	mark edges if they have not yet been examined, unmark them if they
+//	have been (-> inner edge). Use Grid::mark to avoid reselection
+//	and to keep existing selections.
+	grid.begin_marking();
+
+	vector<EdgeBase*> vEdges;
+	while(facesBegin != facesEnd){
+		Face* f = *facesBegin;
+		++facesBegin;
+		CollectEdges(vEdges, grid, f);
+		for(size_t i = 0; i < vEdges.size(); ++i){
+			EdgeBase* e = vEdges[i];
+			if(!grid.is_marked(e)){
+			//	if the edge was initially selected, it should stay that way
+				if(!sel.is_selected(e)){
+					grid.mark(e);
+					sel.select(e);
+				}
+			}
+			else{
+			//	if the edge is not selected, then it already is an inner edge
+				sel.deselect(e);
+			}
+		}
+	}
+
+	grid.end_marking();
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectParents
@@ -29,7 +70,7 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 //	SelectAssociatedGenealogy
 void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 {
-	MultiGrid* mg = msel.get_assigned_grid();
+	MultiGrid* mg = msel.get_assigned_multi_grid();
 	if(!mg)
 		return;
 

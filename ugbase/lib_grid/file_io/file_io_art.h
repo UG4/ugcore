@@ -6,7 +6,7 @@
 #define __H__LIB_GRID__FILE_IO_ART__
 
 #include "../grid/grid.h"
-#include "../subset_handler_interface.h"
+#include "lib_grid/subset_handler.h"
 #include "../common_attachments.h"
 
 namespace ug
