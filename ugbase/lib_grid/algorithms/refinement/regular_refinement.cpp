@@ -178,6 +178,8 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 	grid.erase(faces.begin(), faces.end());
 //	erase old edges
 	grid.erase(edges.begin(), edges.end());
+	
+	return true;
 }
 
 }//	end of namespace

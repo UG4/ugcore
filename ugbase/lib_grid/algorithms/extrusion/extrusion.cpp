@@ -45,7 +45,7 @@ void Extrude(Grid& grid,
 
 	if(hashSize == 0)
 		return;
-
+LOG(", ");
 //	the hash:
 	typedef Hash<VertexBase*, uint> VertexHash;
 	VertexHash vrtHash(hashSize);
@@ -61,7 +61,7 @@ void Extrude(Grid& grid,
 //	Thats why we start in the second section in this case.
 	if(pvFacesInOut)
 		newFaceCount = pvFacesInOut->size();
-
+LOG(",, ");
 //	first we'll extrude all vertices. For each a new edge will be created.
 	if(pvVerticesInOut)
 	{
@@ -86,7 +86,7 @@ void Extrude(Grid& grid,
 			vVertices[i] = v;
 		}
 	}
-
+LOG(",,, ");
 //	now extrude edges.
 	if(pvEdgesInOut)
 	{
@@ -94,7 +94,7 @@ void Extrude(Grid& grid,
 		for(uint i = 0; i < vEdges.size(); ++i)
 		{
 			EdgeBase* e = vEdges[i];
-
+	LOG("_");
 		//	check for both boundary points whether the new vertices have already been created.
 		//	if not then create them here and store them.
 			VertexBase* v[2];
@@ -112,14 +112,14 @@ void Extrude(Grid& grid,
 					VecAdd(aaPos[v[j]], aaPos[v[j]], direction);
 				}
 			}
-
+	LOG("_");
 		//	both new vertices exist now.
 		//	create the new edge
 			Edge* eNew = *grid.create<Edge>(EdgeDescriptor(v[0], v[1]), e);
 
 		//	overwrite the edge in pvEdgesInOut
 			vEdges[i] = eNew;
-
+	LOG("_");
 		//	finally create the face.
 			if(extrusionOptions & EO_CREATE_FACES)
 			{
@@ -131,9 +131,10 @@ void Extrude(Grid& grid,
 					f = *grid.create<Quadrilateral>(QuadrilateralDescriptor(e->vertex(0), e->vertex(1), v[1], v[0]), e);
 				vNewFaces[newFaceCount++] = f;
 			}
+	LOG(" ");
 		}
 	}
-
+LOG(",,,, ");
 //	now extrude faces.
 	if(pvFacesInOut)
 	{
@@ -220,7 +221,7 @@ void Extrude(Grid& grid,
 			}
 		}
 	}
-
+LOG(",,,,, ");
 //	if faces were extruded from edges, we have to fix the orientation now
 	if(bRecordNewFaces){
 		FixOrientation(grid, vNewFaces.begin(), vNewFaces.end());

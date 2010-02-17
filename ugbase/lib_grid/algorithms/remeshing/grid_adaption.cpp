@@ -101,6 +101,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 	while(iFirst != iEnd)
 	{
+		LOG("0 ");
 	//	clear the selector
 		sel.clear();
 
@@ -117,7 +118,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			for(FaceIterator iter = grid.associated_faces_begin(vrt);
 				iter != grid.associated_faces_end(vrt); ++iter)
 				vFaces.push_back(*iter);
-
+/*
 		//	check if any of the edges connected to vrt is a mean-edge
 			for(size_t i = 0; i < vFaces.size(); ++i){
 				Face* f = vFaces[i];
@@ -155,6 +156,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 		//	if edges have been selected (there are mean edges) we'll split them.
 		//	we have to update vFaces afterwards and to clear sel
 			if(sel.num<EdgeBase>() > 0){
+				LOG("0 ");
 			//	copy the content of sel to vEdges
 				vEdges.clear();
 				vEdges.assign(sel.begin<EdgeBase>(), sel.end<EdgeBase>());
@@ -172,12 +174,14 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 					iter != grid.associated_faces_end(vrt); ++iter)
 					vFaces.push_back(*iter);
 			}
-
+*/
 		//	calculate normals
 			vNormals.resize(vFaces.size());
 			for(size_t i = 0; i < vFaces.size(); ++i)
 				CalculateNormal(vNormals[i], vFaces[i], aaPos);
 
+			LOG("1 ");
+			
 		//	iterate over all associated edges of vrt
 			EdgeBaseIterator iterEnd = grid.associated_edges_end(vrt);
 			for(EdgeBaseIterator iter = grid.associated_edges_begin(vrt);
@@ -196,6 +200,8 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 				
 				//grid.mark(cv);
 
+				LOG("2 ");
+				
 			//	the position of the connected vertex
 				vector3 cpos = aaPos[cv];
 			//	distance of the conencted vertex to the central axis of the cylinder.
@@ -218,18 +224,22 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 					bool passedTests = true;
 
-				//	compare qualities
-					if(AreaFaceQuality(vFaces.begin(), vFaces.end(), aaPos)
-						< QUALITY_FACTOR * initialQuality)
+					if(dist / radius > 1. / CLOSE_TO_RIM)
 						passedTests = false;
-
-				//	compare normals
-					for(size_t i = 0; i < vFaces.size(); ++i){
-						vector3 n;
-						CalculateNormal(n, vFaces[i], aaPos);
-						if(VecDot(n, vNormals[i]) < QUALITY_FACTOR){
+					else{
+					//	compare qualities
+						if(AreaFaceQuality(vFaces.begin(), vFaces.end(), aaPos)
+							< QUALITY_FACTOR * initialQuality)
 							passedTests = false;
-							break;
+
+					//	compare normals
+						for(size_t i = 0; i < vFaces.size(); ++i){
+							vector3 n;
+							CalculateNormal(n, vFaces[i], aaPos);
+							if(VecDot(n, vNormals[i]) < QUALITY_FACTOR){
+								passedTests = false;
+								break;
+							}
 						}
 					}
 					
@@ -239,11 +249,11 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 					//	if the vertex lies outside, we'll have to split the edge.
 					//	if not we'll check it in the next iteration.
 						if(dist > radius){
-							LOG("1 ");
+							LOG("3 ");
 							sel.select(e);
 						}
 						else{
-							LOG("2 ");
+							LOG("4 ");
 							grid.mark(cv);
 							vVrts.push_back(cv);
 						}
@@ -251,13 +261,13 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 					else{
 					//	the test succeeded. This vertex is done.
 					//	push it to vRimVrts
-						LOG("3 ");
+						LOG("5 ");
 						vRimVrts.push_back(cv);
 						grid.mark(cv);
 					}
 				}
 				else{
-					LOG("4 ");
+					LOG("6 ");
 				//	check the vertex in the next iteration
 					grid.mark(cv);
 					vVrts.push_back(cv);
@@ -274,7 +284,9 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 				sel.enable_selection_inheritance(selInheritanceWasEnabled);
 				return false;
 			}
-
+		
+			//Triangulate(grid, sel.begin<Quadrilateral>(), sel.end<Quadrilateral>());
+			
 		//	if new vertices have been created, they are now selected
 			for(VertexBaseIterator iter = sel.begin<VertexBase>();
 				iter != sel.end<VertexBase>(); ++iter)
@@ -315,12 +327,14 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 	//	adjust iFirst and iEnd
 		iFirst = iEnd;
 		iEnd = vVrts.size();
+		LOG("7 ");
 	}
 
 //	add rimVrts to vVrts
 	for(size_t i = 0; i < vRimVrts.size(); ++i)
 		vVrts.push_back(vRimVrts[i]);
-
+/*
+LOG("8 ");
 //	find the median of all points along normal
 	if(vVrts.size() > 0){
 		vector3 med(0, 0, 0);
@@ -336,7 +350,8 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			ProjectPointToPlane(aaPos[vVrts[i]], aaPos[vVrts[i]],
 								med, normal);
 	}
-
+*/
+LOG("9 ");
 //	select all faces in the circle
 	sel.clear();
 //	mark all vertices in vVrts
@@ -368,11 +383,11 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 		}
 	}
 
-
+LOG("10 ");
 //	clean up
 	grid.end_marking();
 	sel.enable_selection_inheritance(selInheritanceWasEnabled);
-
+LOG("11 ");
 //	done
 	return true;
 }

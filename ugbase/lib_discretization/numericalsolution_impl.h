@@ -44,7 +44,7 @@ bool NumericalSolution<d>::get_local_DoFValues(TElem* elem, uint nr_fct, number*
 	int level = 0;
 	if(_pattern->num_levels() >= 2)
 	{
-		MultiGrid* mg = dynamic_cast<MultiGrid*>(_pattern->get_assigned_subset()->get_assigned_grid());
+		MultiGrid* mg = dynamic_cast<MultiGrid*>(_pattern->get_assigned_subset().get_assigned_grid());
 		assert(mg != NULL && "ERROR in get_local_DoFValues: num_levels > 0 but not a MultiGrid. Aborting.");
 		level = mg->get_level(elem);
 	}
