@@ -90,10 +90,12 @@ static bool PerformTetrahedralization(Grid& grid,
 	}
 
 //	call tetrahedralization
-	tetrahedralize("pqaAY", &in, &out);
+	tetrahedralize("pqYYQ", &in, &out);
 
-	if(out.numberofpoints < (int)grid.num_vertices())
+	if(out.numberofpoints < (int)grid.num_vertices()){
+		LOG("  aborting tetrahedralization - bad number of points\n");
 		return false;
+	}
 
 //	add new vertices to the grid. store all vertices in a vector.
 	vector<VertexBase*> vVrts(out.numberofpoints);
@@ -105,7 +107,6 @@ static bool PerformTetrahedralization(Grid& grid,
 		{
 			vVrts[counter] = *iter;
 		}
-
 	//	create new ones and add them to the vector
 		for(; counter < out.numberofpoints; ++counter)
 		{
@@ -117,17 +118,24 @@ static bool PerformTetrahedralization(Grid& grid,
 		}
 	}
 
-	if(out.numberoftrifaces > (int)grid.num<Triangle>())
-		return false;
-
-//	clear the faces of the grid
-	//grid.erase(grid.faces_begin(), grid.faces_end());
 /*
+	if(out.numberoftrifaces > (int)grid.num<Triangle>()){
+		LOG("aborting tetrahedralization - bad nuber of triangle faces.\n");
+		return false;
+	}
+*/
+//	clear the faces of the grid
 	LOG(out.numberoftrifaces << endl);
 	LOG(out.numberoffacets << endl);
-*/
-//	add new faces
+	LOG(grid.num<Triangle>() << endl);
 /*
+	grid.erase(grid.faces_begin(), grid.faces_end());
+
+	LOG(out.numberoftrifaces << endl);
+	LOG(out.numberoffacets << endl);
+
+//	add new faces
+
 	for(int i = 0; i < out.numberoftrifaces; ++i)
 	{
 		Triangle* tri = *grid.create<Triangle>(TriangleDescriptor(vVrts[out.trifacelist[i*3]],
@@ -138,6 +146,7 @@ static bool PerformTetrahedralization(Grid& grid,
 			pSH->assign_subset(tri, 0);
 	}
 */
+
 //	add new volumes
 	for(int i = 0; i < out.numberoftetrahedra; ++i)
 	{

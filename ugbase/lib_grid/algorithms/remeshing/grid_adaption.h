@@ -36,7 +36,8 @@ namespace ug
  */
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 						   VertexBase* vrtCenter, const vector3& normal,
-						   number radius, AInt& aInt, APosition& aPos = aPosition);
+						   number radius, AInt& aInt, number badNormalDot = -1,
+						   APosition& aPos = aPosition);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Performs local remeshing so that the grid is adapted to the given cylinder.
@@ -51,7 +52,8 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
  */
 bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 						   VertexBase* vrtCenter, const vector3& normal,
-						   number radius, APosition& aPos = aPosition);
+						   number radius, number badNormalDot = -1,
+						   APosition& aPos = aPosition);
 
 
 }//	end of namespace

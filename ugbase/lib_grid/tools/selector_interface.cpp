@@ -33,6 +33,8 @@ ISelector::ISelector(Grid& grid, uint supportedElements) :
 
 ISelector::~ISelector()
 {
+//	unregister from grid
+	set_grid(NULL);
 }
 
 void ISelector::
