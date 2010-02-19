@@ -29,6 +29,7 @@ bool ReorderCornersCCW(VertexBase** cornersOut, VertexBase** const cornersIn,
 	cornersOut[0] = cornersIn[firstCorner];
 	for(int i = 1; i < numCorners; ++i)
 		cornersOut[i] = cornersIn[(firstCorner + i) % numCorners];
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -277,17 +278,13 @@ refine_regular(std::vector<Face*>& vNewFacesOut,
 				std::vector<VertexBase*>& vNewEdgeVertices,
 				VertexBase* newFaceVertex,
 				const VertexBase& prototypeVertex,
-				std::vector<VertexBase*>* pvSubstituteVertices)
+				VertexBase** pSubstituteVertices)
 {
 	assert(vNewEdgeVertices.size() == 3 && "wrong number of newEdgeVertices.");
 	assert(newFaceVertex == NULL && "regular triangle refine doesn't use newFaceVertex.");
 	*newFaceVertexOut = NULL;
 	
-	if(!pvSubstituteVertices)
-		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, NULL);
-	else
-		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, &pvSubstituteVertices->front());
-		
+	return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, pSubstituteVertices);		
 }
 
 template <class ConcreteTriangleType, class BaseClass>
@@ -295,7 +292,7 @@ bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 collapse_edge(std::vector<Face*>& vNewFacesOut,
 				int edgeIndex, VertexBase* newVertex,
-				std::vector<VertexBase*>* pvSubstituteVertices)
+				VertexBase** pSubstituteVertices)
 {
 //	if an edge of the triangle is collapsed, nothing remains
 	vNewFacesOut.clear();
@@ -307,7 +304,7 @@ bool
 CustomTriangle<ConcreteTriangleType, BaseClass>::
 collapse_edges(std::vector<Face*>& vNewFacesOut,
 				std::vector<VertexBase*>& vNewEdgeVertices,
-				std::vector<VertexBase*>* pvSubstituteVertices)
+				VertexBase** pSubstituteVertices)
 {
 	if(vNewEdgeVertices.size() > BaseClass::num_edges())
 	{
@@ -346,7 +343,7 @@ CustomTriangle<ConcreteTriangleType, BaseClass>::
 create_faces_by_edge_split(int splitEdgeIndex,
 								VertexBase* newVertex,
 								std::vector<Face*>& vNewFacesOut,
-								std::vector<VertexBase*>* pvSubstituteVertices)
+								VertexBase** pSubstituteVertices)
 {
 	assert(((splitEdgeIndex >= 0) && (splitEdgeIndex < 3)) && "ERROR in Triangle::create_faces_by_edge_split(...): bad edge index!");
 
@@ -354,18 +351,11 @@ create_faces_by_edge_split(int splitEdgeIndex,
 //	pvSubstituteVertices instead the ones of 'this'.
 //	If not, we will redirect the pointer to a local local vector,
 //	that holds the vertices of 'this'
-	vector<VertexBase*> localVertices;
-	if(!pvSubstituteVertices)
-	{
-		pvSubstituteVertices = &localVertices;
-		localVertices.push_back(BaseClass::vertex(0));
-		localVertices.push_back(BaseClass::vertex(1));
-		localVertices.push_back(BaseClass::vertex(2));
-	}
+	VertexBase** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
 	else
-		assert(pvSubstituteVertices->size() == 3 && "ERROR in Triangle::create_faces_by_edge_split(...): wrong size of pvSubstituteVertices.");
-
-	vector<VertexBase*>& vVrts = *pvSubstituteVertices;
+		vrts = BaseClass::m_vertices;
 
 //	we have to find the indices ind0, ind1, ind2, where
 //	ind0 is the index of the vertex on e before newVertex,
@@ -376,8 +366,8 @@ create_faces_by_edge_split(int splitEdgeIndex,
 	int ind1 = (ind0 + 1) % 3;
 	int ind2 = (ind1 + 1) % 3;
 
-	vNewFacesOut.push_back(new Triangle(vVrts[ind0], newVertex, vVrts[ind2]));
-	vNewFacesOut.push_back(new Triangle(newVertex, vVrts[ind1], vVrts[ind2]));
+	vNewFacesOut.push_back(new Triangle(vrts[ind0], newVertex, vrts[ind2]));
+	vNewFacesOut.push_back(new Triangle(newVertex, vrts[ind1], vrts[ind2]));
 }
 
 //	explicit instantiation
@@ -603,7 +593,7 @@ Quadrilateral::Quadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, Ver
 void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
 							VertexBase* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>* pvSubstituteVertices)
+							VertexBase** pSubstituteVertices)
 {
 	assert(((splitEdgeIndex >= 0) && (splitEdgeIndex < 4)) && "ERROR in Quadrilateral::create_faces_by_edge_split(...): bad edge index!");
 
@@ -611,20 +601,11 @@ void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
 //	pvSubstituteVertices instead the ones of 'this'.
 //	If not, we will redirect the pointer to a local local vector,
 //	that holds the vertices of 'this'
-	vector<VertexBase*> localVertices;
-	if(!pvSubstituteVertices)
-	{
-		localVertices.reserve(4);
-		pvSubstituteVertices = &localVertices;
-		localVertices.push_back(vertex(0));
-		localVertices.push_back(vertex(1));
-		localVertices.push_back(vertex(2));
-		localVertices.push_back(vertex(3));
-	}
+	VertexBase** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
 	else
-		assert(pvSubstituteVertices->size() == 4 && "ERROR in Quadrilateral::create_faces_by_edge_split(...): wrong size of pvSubstituteVertices.");
-
-	vector<VertexBase*>& vVrts = *pvSubstituteVertices;
+		vrts = m_vertices;
 
 //	we have to find the indices ind0, ind1, ind2, where
 //	ind0 is the index of the vertex on e before newVertex,
@@ -638,9 +619,9 @@ void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
 	TriangleDescriptor td;
 
 //	edge-split generates 3 triangles
-	vNewFacesOut.push_back(new Triangle(vVrts[ind0], newVertex, vVrts[ind3]));
-	vNewFacesOut.push_back(new Triangle(newVertex, vVrts[ind1], vVrts[ind2]));
-	vNewFacesOut.push_back(new Triangle(vVrts[ind3], newVertex, vVrts[ind2]));
+	vNewFacesOut.push_back(new Triangle(vrts[ind0], newVertex, vrts[ind3]));
+	vNewFacesOut.push_back(new Triangle(newVertex, vrts[ind1], vrts[ind2]));
+	vNewFacesOut.push_back(new Triangle(vrts[ind3], newVertex, vrts[ind2]));
 
 //	we're done.
 }
@@ -797,7 +778,7 @@ bool Quadrilateral::refine_regular(std::vector<Face*>& vNewFacesOut,
 									std::vector<VertexBase*>& vNewEdgeVertices,
 									VertexBase* newFaceVertex,
 									const VertexBase& prototypeVertex,
-									std::vector<VertexBase*>* pvSubstituteVertices)
+									VertexBase** pSubstituteVertices)
 {
 	assert(vNewEdgeVertices.size() == 4 && "wrong number of newEdgeVertices.");
 
@@ -811,33 +792,22 @@ bool Quadrilateral::refine_regular(std::vector<Face*>& vNewFacesOut,
 		*newFaceVertexOut = NULL;
 
 
-	if(!pvSubstituteVertices)
-		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, NULL);
-	else
-		return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, &pvSubstituteVertices->front());
+	return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, pSubstituteVertices);
 }
 
 bool Quadrilateral::collapse_edge(std::vector<Face*>& vNewFacesOut,
 					int edgeIndex, VertexBase* newVertex,
-					std::vector<VertexBase*>* pvSubstituteVertices)
+					VertexBase** pSubstituteVertices)
 {
 //	if an edge of the triangle is collapsed, nothing remains
 	vNewFacesOut.clear();
 
 //	handle substitute vertices.
-	vector<VertexBase*>	vTmpVrts;
-	if(!pvSubstituteVertices)
-	{
-		vTmpVrts.resize(4);
-		vTmpVrts[0] = vertex(0);
-		vTmpVrts[1] = vertex(1);
-		vTmpVrts[2] = vertex(2);
-		vTmpVrts[3] = vertex(3);
-		pvSubstituteVertices = &vTmpVrts;
-	}
-
-//	use this vertex-vector during this algorithm.
-	vector<VertexBase*>& vVrts = *pvSubstituteVertices;
+	VertexBase** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
+	else
+		vrts = m_vertices;
 
 //	the collapsed edge connects vertices at ind0 and ind1.
 	int ind0 = edgeIndex; //edge-index equals the index of its first vertex.
@@ -846,13 +816,13 @@ bool Quadrilateral::collapse_edge(std::vector<Face*>& vNewFacesOut,
 	int ind3 = (ind2 + 1) % 4;
 
 //	ind0 and ind1 will be replaced by newVertex.
-	vNewFacesOut.push_back(new Triangle(newVertex, vVrts[ind2], vVrts[ind3]));
+	vNewFacesOut.push_back(new Triangle(newVertex, vrts[ind2], vrts[ind3]));
 	return true;
 }
 
 bool Quadrilateral::collapse_edges(std::vector<Face*>& vNewFacesOut,
 				std::vector<VertexBase*>& vNewEdgeVertices,
-				std::vector<VertexBase*>* pvSubstituteVertices)
+				VertexBase** pSubstituteVertices)
 {
 	if(vNewEdgeVertices.size() > num_edges())
 	{
@@ -888,7 +858,7 @@ bool Quadrilateral::collapse_edges(std::vector<Face*>& vNewFacesOut,
 	else if(numCollapses == 1)
 	{
 	//	call collapse_edge with the edges index.
-		collapse_edge(vNewFacesOut, collapseIndex, vNewEdgeVertices[collapseIndex], pvSubstituteVertices);
+		collapse_edge(vNewFacesOut, collapseIndex, vNewEdgeVertices[collapseIndex], pSubstituteVertices);
 	}
 
 	return true;

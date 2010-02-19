@@ -68,7 +68,6 @@ TVertex* SplitEdge(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 					srcGrid.erase(*iter);
 				}
 			}
-
 		//	erase the edge
 			srcGrid.erase(e);
 		}

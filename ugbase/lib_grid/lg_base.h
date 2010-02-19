@@ -18,5 +18,6 @@
 #include "common_attachments.h"
 #include "selector.h"
 #include "subset_handler.h"
+#include "tools/marker_points.h"
 
 #endif

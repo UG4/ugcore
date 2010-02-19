@@ -64,7 +64,6 @@ Selector::add_to_list(Face* elem)
 Selector::iterator 
 Selector::add_to_list(Volume* elem)
 {
-	LOG("a ");
 	return get_section_container<Volume>().insert(elem,
 								elem->shared_pipe_section());
 }	

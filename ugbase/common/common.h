@@ -36,13 +36,13 @@
 	#ifdef LG_DEF__LOG_TO_FILE
 		#include <fstream>
 		std::ofstream& lib_grid_logger();
-		#define LOG(msg) lib_grid_logger() << msg; lib_grid_logger().flush();
+		#define LOG(msg) {lib_grid_logger() << msg; lib_grid_logger().flush();}
 	#else
 		#include <iostream>
-		#define LOG(msg) std::cout << msg; std::cout.flush();
+		#define LOG(msg) {std::cout << msg; std::cout.flush();}
 	#endif
 #else
-	#define LOG(msg)
+	#define LOG(msg)	{}
 #endif
 
 

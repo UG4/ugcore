@@ -45,7 +45,7 @@ class MarkerPointManager
 		inline void add_markers(size_t num = 1)			{m_markers.resize(m_markers.size() + num);}
 		void add_marker(const MarkerPoint& marker)		{m_markers.push_back(marker);}
 
-		inline size_t num_markers()						{return m_markers.size();}
+		inline size_t num_markers()	const				{return m_markers.size();}
 
 		inline MarkerPoint& get_marker(size_t index)				{return m_markers[index];}
 		inline const MarkerPoint& get_marker(size_t index) const	{return m_markers[index];}

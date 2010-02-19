@@ -117,19 +117,53 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								ANormal* paNorm = NULL);
 
 ////////////////////////////////////////////////////////////////////////
+///	assigns a region of volumes to a subset.
+/**
+ * Indirectly uses Grid::mark.
+ *
+ * All volumes that are connected directly or indirectly to proxyVol
+ * (that means on can reach the volume without traversing a face that
+ * is assigned to a subset) are considered to be in the same region
+ * as proxyVol. All those volumes will be assigned to to the subset
+ * in shVolsOut specified by newSubsetIndex.
+ *
+ * shFaces will be used to determine whether a side of the volume
+ * is contained in a subset (!= -1) and is thus considered to be a
+ * boundary of the region.
+ *
+ * shFaces and shVolsOut may refer to the same subset handler.
+ */
+void AssignRegionToSubset(Grid& grid, ISubsetHandler& shVolsOut,
+						  const ISubsetHandler& shFaces,
+						  Volume* proxyVol, int newSubsetIndex);
+
+////////////////////////////////////////////////////////////////////////
+///	finds regions by marker-points
+/**
+ * Indirectly uses Grid::mark.
+ * If a region contains the i-th marker-point, it is assigned to the
+ * subset (firstSubsetIndex + i).
+ *
+ * A region is a group of volumes that is surrounded by faces that lie
+ * in subsets != -1.
+ *
+ * NOTE that this method currently only works for tetrahedral grids
+ * (at least the markers are only associated with tetrahedrons).
+ */
+bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
+					 const ISubsetHandler& shFaces,
+					 const MarkerPointManager& mpm,
+					 int firstSubsetIndex);
+
+////////////////////////////////////////////////////////////////////////
 //	SeparateVolumesByFaceSubsets
 ///	groups volumes by separating face-subsets.
 /**
  * all volumes that are surrounded by the same face-subsets are
  * assigned to a common subset.
- * If material points are specified, the group of volumes is
- * assigned to the subset depending on the index of the
- * contained material-point.
- * \todo implement material-point support.
  */
-void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh,
-									vector3* pMaterialPoints = NULL,
-									int numMaterialPoints = 0);
+void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh);
+
 
 ////////////////////////////////////////////////////////////////////////
 //	AssignSubsetColors

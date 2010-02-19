@@ -1,5 +1,5 @@
-//	created by Martin Stepniewski
-//	mastep@gmx.de
+//	Sebastian Reiter (sreiter), Martin Stepniewski (mstepnie)
+//	s.b.reiter@googlemail.com, mastep@gmx.de
 //	y09 m11 d11
 
 #include "volume_util.h"
@@ -9,20 +9,72 @@ using namespace std;
 namespace ug
 {
 
-//**********************************************************************
-//**********************************************************************
-//**********************************************************************
-//**********************************************************************
-//								definitions
-//**********************************************************************
-//**********************************************************************
-//**********************************************************************
-//**********************************************************************
+////////////////////////////////////////////////////////////////////////
+//	GetNeighbours - sreiter
+void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
+					int side, bool clearContainer)
+{
+	if(clearContainer)
+		vVolsOut.clear();
 
+//	if VOLOPT_AUTOGENERATE_FACES and FACEOPT_STORE_ASSOCIATED_VOLUMES are
+//	activated, we may use them to find the connected volume quite fast.
+	if(grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES
+							| FACEOPT_STORE_ASSOCIATED_VOLUMES))
+	{
+		Face* f = grid.get_face(v, side);
+		VolumeIterator iterEnd = grid.associated_volumes_end(f);
+		for(VolumeIterator iter = grid.associated_volumes_begin(f);
+			iter != iterEnd; ++iter)
+		{
+			if(*iter != v)
+				vVolsOut.push_back(*iter);
+		}
+
+		return;
+	}
+
+//	we can't assume that associated faces exist.
+//	we have to find the neighbour by hand.
+//	mark all vertices of the side
+	grid.begin_marking();
+
+	FaceDescriptor fd;
+	v->face(side, fd);
+	uint numFaceVrts = fd.num_vertices();
+	for(uint i = 0; i < numFaceVrts; ++ i)
+		grid.mark(fd.vertex(i));
+
+//	iterate over associated volumes of the first vertex and count
+//	the number of marked vertices it contains.
+	VertexBase* vrt = fd.vertex(0);
+	VolumeIterator iterEnd = grid.associated_volumes_end(vrt);
+	for(VolumeIterator iter = grid.associated_volumes_begin(vrt);
+		iter != iterEnd; ++iter)
+	{
+		Volume* vol = *iter;
+		if(vol != v){
+			int count = 0;
+			uint numVrts = vol->num_vertices();
+			for(uint i = 0; i < numVrts; ++i){
+				if(grid.is_marked(vol->vertex(i)))
+					++count;
+			}
+
+		//	if the number of marked vertices in vol matches the
+		//	number of vertices of the specified side, we consider
+		//	the volume to be a neighbout of that side.
+			if(count == numFaceVrts)
+				vVolsOut.push_back(vol);
+		}
+	}
+
+	grid.end_marking();
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateMinTetrahedronHeight
+//	CalculateMinTetrahedronHeight - mstepnie
 number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b, 
 									 const vector3& c, const vector3& d)
 {
@@ -185,7 +237,7 @@ number CalculateMinTetrahedronHeight(const vector3& a, const vector3& b,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateMinTetrahedronEdge
+//	CalculateMinTetrahedronEdge - mstepnie
 number CalculateMaxTetrahedronEdgelength(Grid& grid, Volume& v)
 {
 	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPosition);
@@ -206,7 +258,7 @@ number CalculateMaxTetrahedronEdgelength(Grid& grid, Volume& v)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateTetrahedronAspectRatio
+//	CalculateTetrahedronAspectRatio - mstepnie
 number CalculateTetrahedronAspectRatio(Grid& grid, Volume& v)
 {
 	/*
@@ -229,7 +281,7 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Volume& v)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//	CalculateTetrahedronVolume
+//	CalculateTetrahedronVolume - mstepnie
 number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 								  const vector3& c, const vector3& d)
 {

@@ -39,8 +39,8 @@ clip(TNumber val, TNumber lowerBound, TNumber upperBound);
  * returns s so that vOut = (1.0-s)*v0 + s*v1
  */
 template <class vector_t>
-number DropAPerpendicular(vector_t& vOut, const vector_t& v0,
-							const vector_t& v1, const vector_t& v);
+number DropAPerpendicular(vector_t& vOut, const vector_t& v,
+							const vector_t& v0, const vector_t& v1);
 
 ////////////////////////////////////////////////////////////////////////
 ///	finds the projection of v onto the ray defined by from and dir
@@ -152,6 +152,19 @@ number GeometricApproximationDegree(vector_t& n1, vector_t& n2, vector_t& n3,
 template <class vector_t>
 number TriangleQuality_Area(const vector_t& p1, const vector_t& p2,
 							const vector_t& p3);
+
+
+////////////////////////////////////////////////////////////////////////
+//	PointIsInsideTetrahedron
+///	Returns true if the point lies inside or on the boundary of a tetrahedron
+/**
+ * This method does not care about the orientation of the tetrahedron.
+ * This however makes it a little slower than a method that only
+ * works for correctly orientated tetrahedrons.
+ */
+template <class vector_t>
+bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vector_t& v1,
+							  const vector_t& v2, const vector_t& v3);
 
 }//	end of namespace
 

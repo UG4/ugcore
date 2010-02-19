@@ -87,9 +87,16 @@ bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 		for(VolumeIterator iter = grid.begin<Volume>(); iter != grid.end<Volume>(); ++iter)
 			aaInt[*iter] = pSH->get_subset_index(*iter);	
 		
+	//	face subset-indices
+		grid.attach_to_faces(aInt);
+		Grid::FaceAttachmentAccessor<AInt> aaIntFace(grid, aInt);
+		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
+			aaIntFace[*iter] = pSH->get_subset_index(*iter);	
+
 		bool retVal = ExportGridToTETGEN(grid, sNodes.c_str(), sFaces.c_str(),
-								sElements.c_str(), aPos, NULL, NULL, NULL, &aInt);
+								sElements.c_str(), aPos, NULL, NULL, &aInt, &aInt);
 								
+		grid.detach_from_faces(aInt);
 		grid.detach_from_volumes(aInt);
 		
 		return retVal;

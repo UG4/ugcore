@@ -338,7 +338,8 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 		//	get the substitute-vertices if they are required
 			if(paAssociatedVertices != NULL)
 			{
-				vSubstituteVertices.resize(numVrts);
+				if(numVrts > vSubstituteVertices.size())
+					vSubstituteVertices.resize(numVrts);
 
 			//	check for each vertex in oldFace, if an associated vertex exists in destGrid.
 			//	if not create a new one by cloning the associated one in srcGrid.
@@ -353,7 +354,7 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 				}
 
 			//	create the new faces by splitting the old face. use substitutes.
-				oldFace->create_faces_by_edge_split(edgeIndex, newVertex, vNewFaces, &vSubstituteVertices);
+				oldFace->create_faces_by_edge_split(edgeIndex, newVertex, vNewFaces, &vSubstituteVertices.front());
 			}
 			else
 			{
@@ -378,7 +379,6 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 			}
 		}
 	}
-
 	return true;
 }
 

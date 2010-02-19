@@ -180,7 +180,7 @@ void MultiGridRefiner::refine()
 
 	//	we'll perform a regular refine
 		VertexBase* vNewVrt = NULL;
-		f->refine_regular(vFaces, &vNewVrt, vNewEdgeVertices, NULL, Vertex(), &vNewVertexVertices);
+		f->refine_regular(vFaces, &vNewVrt, vNewEdgeVertices, NULL, Vertex(), &vNewVertexVertices.front());
 
 	//	if a new vertex has been created during refine, then register it at the grid.
 		if(vNewVrt)

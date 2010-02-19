@@ -6,6 +6,7 @@
 #define __H__UGMATH__MATH_UTIL_IMPL__
 
 #include <algorithm>
+#include "common/common.h"
 
 namespace ug
 {
@@ -279,7 +280,7 @@ number TriangleArea(const vector_t& p1, const vector_t& p2, const vector_t& p3)
 {
 //	the projection of p3 onto the line defined by p1 and p2
 	vector_t v;
-	DropAPerpendicular(v, p1, p2, p3);
+	DropAPerpendicular(v, p3, p1, p2);
 //	calculate the area
 	return 0.5 * sqrt(VecDistanceSq(p1, p2) * VecDistanceSq(v, p3));
 }
@@ -307,6 +308,55 @@ number TriangleQuality_Area(const vector_t& p1, const vector_t& p2,
 
 //	a triangle whose sides have all zero length is considered to be a bad triangle.
 	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	PointIsInsideTetrahedron
+///	Returns true if the point lies inside or on the boundary of a tetrahedron
+template <class vector_t>
+bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vector_t& v1,
+							  const vector_t& v2, const vector_t& v3)
+{
+//	we'll check for each side of the tet, whether v and the point of
+//	the tet, that does not lie in the plane, lie on the same side.
+	vector_t n;			// the normal of the examined face
+	vector_t e1, e2;	// directions of two edges of a face
+	number pn;			// dot product of a point in the plane with the normal
+
+//	check side 0, 2, 1
+	VecSubtract(e1, v2, v0);
+	VecSubtract(e2, v1, v0);
+	VecCross(n, e1, e2);
+	pn = VecDot(v0, n);
+	if((VecDot(v3, n) - pn) * (VecDot(v, n) - pn) < -SMALL)
+		return false;
+
+//	check side 0, 1, 3
+	VecSubtract(e1, v1, v0);
+	VecSubtract(e2, v3, v0);
+	VecCross(n, e1, e2);
+	pn = VecDot(v0, n);
+	if((VecDot(v2, n) - pn) * (VecDot(v, n) - pn) < -SMALL)
+		return false;
+
+//	check side 1, 2, 3
+	VecSubtract(e1, v2, v1);
+	VecSubtract(e2, v3, v1);
+	VecCross(n, e1, e2);
+	pn = VecDot(v1, n);
+	if((VecDot(v0, n) - pn) * (VecDot(v, n) - pn) < -SMALL)
+		return false;
+
+//	check side 0, 3, 2
+	VecSubtract(e1, v3, v0);
+	VecSubtract(e2, v2, v0);
+	VecCross(n, e1, e2);
+	pn = VecDot(v0, n);
+	if((VecDot(v1, n) - pn) * (VecDot(v, n) - pn) < -SMALL)
+		return false;
+
+//	all tests succeeded. return true.
+	return true;
 }
 
 }//	end of namespace

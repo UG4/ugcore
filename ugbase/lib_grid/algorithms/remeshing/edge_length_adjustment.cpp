@@ -422,6 +422,7 @@ bool TrySplit(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 */	
 //	split the edge
 	Vertex* vrt = SplitEdge<Vertex>(grid, e, false);
+
 /*
 	if(pshMarks)
 		pshMarks->assign_subset(vrt, ni);
@@ -586,6 +587,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 
 //	we need an selector that holds all edges that are candidates for a collapse
 	EdgeSelector esel(grid);
+	esel.enable_selection_inheritance(false);
 
 	int numSwaps = 0;
 	int numSplits = 0;
@@ -594,8 +596,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 //	start the main iteration
 	for(int iteration = 0; iteration < numIterations; ++iteration)
 	{
-		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
-
 	//	perform splits
 		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
 		if(!PerformSplits(grid, shMarks, esel, maxEdgeLen, aaPos, aaNorm))

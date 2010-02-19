@@ -124,7 +124,7 @@ inline void Triangulate(Grid& grid,
 //	GetNeighbours
 ///	collects neighbours of the given side of a face.
 /**
- *	collects all triangles that are adjacent to the given side of f.
+ *	collects all faces that are adjacent to the given side of f.
  */
 void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 					int side, bool clearContainer = true);

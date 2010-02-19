@@ -556,21 +556,21 @@ class CustomTriangle : public BaseClass
 										std::vector<VertexBase*>& vNewEdgeVertices,
 										VertexBase* newFaceVertex,
 										const VertexBase& prototypeVertex,
-										std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+										VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
 								std::vector<VertexBase*>& vNewEdgeVertices,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								VertexBase** pSubstituteVertices = NULL);
 
 //	BEGIN Depreciated
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
 							VertexBase* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL);
 
 		virtual int base_object_type_id() const	{return FACE;}
 };
@@ -888,21 +888,21 @@ class Quadrilateral : public CustomFace<4, SPSFACE_QUADRILATERAL>
 									std::vector<VertexBase*>& vNewEdgeVertices,
 									VertexBase* newFaceVertex,
 									const VertexBase& prototypeVertex,
-									std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+									VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
 								std::vector<VertexBase*>& vNewEdgeVertices,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+								VertexBase** pSubstituteVertices = NULL);
 
 //	BEGIN Depreciated
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
 							VertexBase* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL);
 //	END Depreciated
 };
 

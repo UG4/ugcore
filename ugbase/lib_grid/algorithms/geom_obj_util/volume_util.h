@@ -1,5 +1,5 @@
-//	created by Sebastian Reiter
-//	s.b.reiter@googlemail.com
+//	Sebastian Reiter (sreiter), Martin Stepniewski (mstepnie)
+//	s.b.reiter@googlemail.com, mastep@gmx.de
 //	y09 m02 d02
 
 #ifndef __H__LIB_GRID__VOLUME_UTIL__
@@ -10,6 +10,21 @@
 
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////
+//	GetNeighbours - sreiter
+///	collects neighbours of the given side of a volume.
+/**
+ * This algorithm uses Grid::mark.
+ *
+ * if VOLOPT_AUTOGENERATE_FACES and FACEOPT_STORE_ASSOCIATED_VOLUMES are
+ * activated in grid, performance is considerably better.
+ *
+ * collects all volumes that are adjacent to the given side of v.
+ */
+void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
+					int side, bool clearContainer = true);
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateMinTetrahedronHeight - mstepnie
 /// calculates the minimal height of a tetrahedral element
@@ -35,7 +50,18 @@ number CalculateTetrahedronAspectRatio(Grid& grid, Volume& v);
 /// calculates the volume of a tetrahedral element
 number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 								  const vector3& c, const vector3& d);
-	
+
+////////////////////////////////////////////////////////////////////////
+//	PointIsInsideTetrahedron - sreiter
+///	returns true if the point lies inside the tetrahedron
+inline bool
+PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
+						 Grid::VertexAttachmentAccessor<APosition>& aaPos);
+
 }//	end of namespace
+
+////////////////////////////////////////
+//	include implementation
+#include "volume_util_impl.hpp"
 
 #endif

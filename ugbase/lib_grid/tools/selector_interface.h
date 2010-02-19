@@ -104,10 +104,10 @@ class ISelector : public GridObserver
 		inline void deselect(GeometricObject* elem);
 
 		inline bool is_selected(GeometricObject* elem);
-		inline bool is_selected(VertexBase* vrt)	{return *m_aaIterVRT[vrt] != NULL;}
-		inline bool is_selected(EdgeBase* edge)		{return *m_aaIterEDGE[edge] != NULL;}
-		inline bool is_selected(Face* face)			{return *m_aaIterFACE[face] != NULL;}
-		inline bool is_selected(Volume* vol)		{return *m_aaIterVOL[vol] != NULL;}
+		inline bool is_selected(VertexBase* vrt)	{if(!elements_are_supported(SE_VERTEX)) return false; return *m_aaIterVRT[vrt] != NULL;}
+		inline bool is_selected(EdgeBase* edge)		{if(!elements_are_supported(SE_EDGE)) return false; return *m_aaIterEDGE[edge] != NULL;}
+		inline bool is_selected(Face* face)			{if(!elements_are_supported(SE_FACE)) return false; return *m_aaIterFACE[face] != NULL;}
+		inline bool is_selected(Volume* vol)		{if(!elements_are_supported(SE_VOLUME)) return false; return *m_aaIterVOL[vol] != NULL;}
 
 	//	non-virtual methods.
 		inline Grid* get_assigned_grid() const		{return m_pGrid;}

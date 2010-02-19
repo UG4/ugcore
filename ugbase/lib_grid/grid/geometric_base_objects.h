@@ -477,7 +477,7 @@ class Face : public GeometricObject, public FaceVertices
 								std::vector<VertexBase*>& vNewEdgeVertices,
 								VertexBase* newFaceVertex,
 								const VertexBase& prototypeVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
+								VertexBase** pSubstituteVertices = NULL)	{return false;}
 
 
 	/**
@@ -494,7 +494,7 @@ class Face : public GeometricObject, public FaceVertices
 	 */
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, VertexBase* newVertex,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
+								VertexBase** pSubstituteVertices = NULL)	{return false;}
 
 	/**
 	 * The collapse_edgea method creates new geometric objects by collapsing the specified edges
@@ -511,7 +511,7 @@ class Face : public GeometricObject, public FaceVertices
 	 */
 		virtual bool collapse_edges(std::vector<Face*>& vNewFacesOut,
 								std::vector<VertexBase*>& vNewEdgeVertices,
-								std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
+								VertexBase** pSubstituteVertices = NULL)	{return false;}
 
 // BEGIN Depreciated
 	/**	creates the faces that result from the splitting of the edge with index 'splitEdgeIndex'.
@@ -525,7 +525,7 @@ class Face : public GeometricObject, public FaceVertices
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
 							VertexBase* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL) = 0;
+							VertexBase** pSubstituteVertices = NULL) = 0;
 // END Depreciated
 
 	/**	creates the faces that result from the collapsing of the edge with index 'splitEdgeIndex'.*/

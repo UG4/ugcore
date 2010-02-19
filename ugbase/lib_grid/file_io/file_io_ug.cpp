@@ -83,13 +83,11 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 	VertexSelector	SurfVrtSel(grid);
 	VertexSelector 	InnVrtSel(grid);
 
-//TODO: disable those options again, if they weren't enabled before.
 	grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	grid.enable_options(EDGEOPT_STORE_ASSOCIATED_FACES);
 //	for write ng
 	grid.enable_options(FACEOPT_STORE_ASSOCIATED_EDGES);
 	grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
-
 
 	Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPosition);
 

@@ -3,6 +3,7 @@
 //	y09 m07 d21
 
 #include <vector>
+#include <stack>
 #include "subset_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 
@@ -440,6 +441,94 @@ void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh,
 	}
 }
 
+void AssignRegionToSubset(Grid& grid, ISubsetHandler& shVolsOut,
+						  const ISubsetHandler& shFaces,
+						  Volume* proxyVol, int newSubsetIndex)
+{
+//	we'll utilize a stack to gather all volumes that have to
+//	be examined.
+	stack<Volume*> stkVols;
+	stkVols.push(proxyVol);
+
+//	this vector will be used to collect neighbours
+	vector<Volume*> vVols;
+
+//	while there are volumes on the stack we'll go on
+	while(!stkVols.empty()){
+		Volume* v = stkVols.top();
+		stkVols.pop();
+
+		shVolsOut.assign_subset(v, newSubsetIndex);
+
+	//	check all neighbours and decide whether they have to be
+	//	pushed to the stack.
+	//	First we'll have to check for each side of v whether we may traverse it
+		for(uint i = 0; i < v->num_faces(); ++i){
+			Face* f = grid.get_face(v, i);
+			if(f){
+			//	check whether f lies in a subset
+			//	if so we may not traverse it and we'll continue with the next face.
+				if(shFaces.get_subset_index(f) != -1)
+					continue;
+
+			//	we may traverse it. get the neighbour-volumes
+				CollectVolumes(vVols, grid, f);
+			}
+			else{
+			//	no associated face existed. We'll use GetNeighbours to find
+			//	neighbouring volumes. Since no face can separate them, they
+			//	belong to the region, too.
+				GetNeighbours(vVols, grid, v, i);
+			}
+
+		//	add the volumes in vVols to the stack - but only if they don't
+		//	already belong to the region.
+			for(size_t j = 0; j < vVols.size(); ++j){
+				if(vVols[j] != v){
+					if(shVolsOut.get_subset_index(vVols[j]) != newSubsetIndex)
+						stkVols.push(vVols[j]);
+				}
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
+					 const ISubsetHandler& shFaces,
+					 const MarkerPointManager& mpm,
+					 int firstSubsetIndex)
+{
+	if(!grid.has_vertex_attachment(aPosition))
+		return false;
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+
+	for(size_t i = 0; i < mpm.num_markers(); ++i)
+	{
+		const vector3& pos = mpm.get_marker(i).pos;
+
+//TODO: extend to volumes in general. Add a PointIsInsideVolume method.
+	//	find the tetrahedron that contains the marker point
+		for(TetrahedronIterator iter = grid.begin<Tetrahedron>();
+			iter != grid.end<Tetrahedron>(); ++iter)
+		{
+			if(PointIsInsideTetrahedron(pos, *iter, aaPos)){
+			//	assign region to subset
+				int si = firstSubsetIndex + i;
+				AssignRegionToSubset(grid, shVolsOut, shFaces,
+									*iter, si);
+			//	set subset name
+				shVolsOut.subset_info(si).name = mpm.get_marker(i).name;
+			//	we don't have to check other volumes.
+				break;
+			}
+		}
+	}
+
+//	done
+	return true;
+}
 
 static vector3 GetColorFromStandardPalette(int index)
 {
