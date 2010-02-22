@@ -158,7 +158,7 @@ void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
 //			have not already been assigned.
 	for(uint i = 0; i < sh.num_subsets(); ++i)
 	{
-		msel.clear_selection();
+		msel.clear();
 		msel.select(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
 		msel.select(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
 		msel.select(sh.begin<Face>(i), sh.end<Face>(i));
@@ -242,7 +242,7 @@ void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 	}
 	MGSelector& msel = *pSel;
 
-	msel.clear_selection();
+	msel.clear();
 	
 //	select all elements in the layouts so that we can serialize
 //	that part of the grid.

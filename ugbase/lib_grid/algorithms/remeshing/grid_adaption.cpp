@@ -52,6 +52,10 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 	if(!grid.has_vertex_attachment(aPos))
 		return false;
 
+//	the normalized normal
+	vector3 n;
+	VecNormalize(n, normal);
+	
 //	make sure all required options are enabled in grid
 	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
 		LOG("  INFO in AdaptSurfaceGridToCylinder: auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
@@ -181,7 +185,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			{
 				CalculateNormal(vNormals[i], vFaces[i], aaPos);
 			//	if the normal points away from the normal, the normal is a bad normal
-				if(VecDot(vNormals[i], normal) < badNormalDot)
+				if(VecDot(vNormals[i], n) < badNormalDot)
 					badNormal = true;
 			}
 
@@ -215,7 +219,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 				vector3 cpos = aaPos[cv];
 			//	distance of the conencted vertex to the central axis of the cylinder.
 				vector3 projPos;
-				ProjectPointToRay(projPos, cpos, center, normal);
+				ProjectPointToRay(projPos, cpos, center, n);
 				vector3 dir;
 				VecSubtract(dir, cpos, projPos);
 				number dist = VecLength(dir);
@@ -307,7 +311,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			//	of bad quality).
 //TODO: instead of simply projecting, the intersection of the edge with the cylinder should be used.
 				vector3 projPos;
-				ProjectPointToRay(projPos, aaPos[*iter], center, normal);
+				ProjectPointToRay(projPos, aaPos[*iter], center, n);
 				vector3 dir;
 				VecSubtract(dir, aaPos[*iter], projPos);
 				number dist = VecLength(dir);
@@ -349,7 +353,7 @@ LOG("8 ");
 		vector3 med(0, 0, 0);
 		for(size_t i = 0; i < vVrts.size(); ++i){
 			vector3 tmp;
-			ProjectPointToRay(tmp, aaPos[vVrts[i]], center, normal);
+			ProjectPointToRay(tmp, aaPos[vVrts[i]], center, n);
 			VecAdd(med, med, tmp);
 		}
 		VecScale(med, med, 1. / (number)vVrts.size());
@@ -357,7 +361,7 @@ LOG("8 ");
 	//	project all vertices in vVrts into the plane defined by med and normal
 		for(size_t i = 0; i < vVrts.size(); ++i)
 			ProjectPointToPlane(aaPos[vVrts[i]], aaPos[vVrts[i]],
-								med, normal);
+								med, n);
 	}
 */
 LOG("9 ");

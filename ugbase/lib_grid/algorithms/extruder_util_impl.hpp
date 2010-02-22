@@ -14,7 +14,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 template <class TIterator>
-bool repeated_vertex_extrusion(Grid& grid,
+bool RepeatedVertexExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const vector3& stepDir)
 {
@@ -29,7 +29,7 @@ bool repeated_vertex_extrusion(Grid& grid,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TIterator>
-bool repeated_edge_extrusion(Grid& grid,
+bool RepeatedEdgeExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const vector3& stepDir)
 {
@@ -44,7 +44,7 @@ bool repeated_edge_extrusion(Grid& grid,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TIterator>
-bool repeated_face_extrusion(Grid& grid,
+bool RepeatedFaceExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
 							int numSteps, const vector3& stepDir)
 {

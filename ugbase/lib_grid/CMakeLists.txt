@@ -21,6 +21,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
 					algorithms/grid_statistics.cpp
+					algorithms/extruder_util.cpp
 					algorithms/remeshing/edge_length_adjustment.cpp
 					algorithms/remeshing/simple_grid.cpp
 					algorithms/remeshing/grid_adaption.cpp
