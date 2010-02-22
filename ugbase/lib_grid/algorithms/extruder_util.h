@@ -56,7 +56,7 @@ bool RepeatedFaceExtrusion(Grid& grid,
  *					whith the given direction are not regarded as cylinder-
  *					bottom faces and are thus not extruded.
  */
-bool ExtrudeCylinder(Grid& grid, SubsetHandler sh, VertexBase* vrt,
+bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
 					const vector3& direction, number height, number radius,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					int bottomSubInd = -1, int cylSubInd = -1,

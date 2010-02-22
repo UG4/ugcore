@@ -124,10 +124,7 @@ static bool PerformTetrahedralization(Grid& grid,
 		return false;
 	}
 */
-//	clear the faces of the grid
-	LOG(out.numberoftrifaces << endl);
-	LOG(out.numberoffacets << endl);
-	LOG(grid.num<Triangle>() << endl);
+
 /*
 	grid.erase(grid.faces_begin(), grid.faces_end());
 
@@ -147,6 +144,9 @@ static bool PerformTetrahedralization(Grid& grid,
 	}
 */
 
+	if(out.numberoftetrahedra < 1)
+		return false;
+		
 //	add new volumes
 	for(int i = 0; i < out.numberoftetrahedra; ++i)
 	{

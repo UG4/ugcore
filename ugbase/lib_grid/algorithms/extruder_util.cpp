@@ -28,13 +28,11 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 	}
 	Selector& sel = *pSel;
 	
-	vector3 dir;
-	VecScale(dir, direction, height);
 	if(!AdaptSurfaceGridToCylinder(sel, grid, vrt, direction, radius, minDot)){
 		LOG("  WARNING: AdaptSurfaceGridToCylinder failed during ExtrudeCylinder.\n");
 		return false;
 	}
-		
+
 //	select boundary edges
 	sel.clear<EdgeBase>();
 	SelectAreaBoundaryEdges(sel, sel.begin<Face>(), sel.end<Face>());
@@ -64,7 +62,10 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 		sh->set_default_subset_index(cylSubInd);		
 	}
 
-	Extrude(grid, NULL, &vEdges, &vFaces, direction, EO_CREATE_FACES, aPosition, (height < 0));
+	vector3 scaledDir;
+	VecScale(scaledDir, direction, height);
+	
+	Extrude(grid, NULL, &vEdges, &vFaces, scaledDir, EO_CREATE_FACES, aPosition, (height < 0));
 
 	if(sh){
 	//	restore subset handler
@@ -75,7 +76,7 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 	return true;
 }
 
-bool ExtrudeCylinder(Grid& grid, SubsetHandler sh, VertexBase* vrt,
+bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
 					const vector3& direction, number height, number radius,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					int bottomSubInd, int cylSubInd,

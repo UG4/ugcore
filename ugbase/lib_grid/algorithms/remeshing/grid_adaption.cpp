@@ -103,7 +103,6 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 	while(iFirst != iEnd)
 	{
-		LOG("0 ");
 	//	clear the selector
 		sel.clear();
 
@@ -194,8 +193,6 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			//	the vertex will thus be considered as a rim-vertex.
 				continue;
 			}
-
-			LOG("1 ");
 			
 		//	iterate over all associated edges of vrt
 			EdgeBaseIterator iterEnd = grid.associated_edges_end(vrt);
@@ -212,8 +209,6 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 				if(grid.is_marked(cv))
 					continue;
-
-				LOG("2 ");
 				
 			//	the position of the connected vertex
 				vector3 cpos = aaPos[cv];
@@ -263,11 +258,9 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 					//	if the vertex lies outside, we'll have to split the edge.
 					//	if not we'll check it in the next iteration.
 						if(dist > radius){
-							LOG("3 ");
 							sel.select(e);
 						}
 						else{
-							LOG("4 ");
 							grid.mark(cv);
 							vVrts.push_back(cv);
 						}
@@ -275,13 +268,11 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 					else{
 					//	the test succeeded. This vertex is done.
 					//	push it to vRimVrts
-						LOG("5 ");
 						vRimVrts.push_back(cv);
 						grid.mark(cv);
 					}
 				}
 				else{
-					LOG("6 ");
 				//	check the vertex in the next iteration
 					grid.mark(cv);
 					vVrts.push_back(cv);
@@ -298,8 +289,6 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 				sel.enable_selection_inheritance(selInheritanceWasEnabled);
 				return false;
 			}
-		
-			//Triangulate(grid, sel.begin<Quadrilateral>(), sel.end<Quadrilateral>());
 			
 		//	if new vertices have been created, they are now selected
 			for(VertexBaseIterator iter = sel.begin<VertexBase>();
@@ -315,14 +304,10 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 				vector3 dir;
 				VecSubtract(dir, aaPos[*iter], projPos);
 				number dist = VecLength(dir);
-				//if(dist > radius * CLOSE_TO_RIM){
-					VecScale(dir, dir, radius / dist);
-					VecAdd(aaPos[*iter], projPos, dir);
-					vRimVrts.push_back(*iter);
-				//}
-				//else{
-				//	vVrts.push_back(*iter);
-				//}
+
+				VecScale(dir, dir, radius / dist);
+				VecAdd(aaPos[*iter], projPos, dir);
+				vRimVrts.push_back(*iter);
 				grid.mark(*iter);
 			}
 
@@ -340,7 +325,6 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 	//	adjust iFirst and iEnd
 		iFirst = iEnd;
 		iEnd = vVrts.size();
-		LOG("7 ");
 	}
 
 //	add rimVrts to vVrts
@@ -364,7 +348,6 @@ LOG("8 ");
 								med, n);
 	}
 */
-LOG("9 ");
 //	select all faces in the circle
 	sel.clear();
 //	mark all vertices in vVrts
@@ -373,7 +356,8 @@ LOG("9 ");
 		grid.mark(vVrts[i]);
 
 //	iterate over associated faces and select them if
-//	all their vertices are marked.
+//	all their vertices are marked. and their normal points
+//	into the right direction
 	for(size_t i = 0; i < vVrts.size(); ++i){
 		for(FaceIterator iter = grid.associated_faces_begin(vVrts[i]);
 			iter != grid.associated_faces_end(vVrts[i]); ++iter)
@@ -381,26 +365,32 @@ LOG("9 ");
 			Face* f = *iter;
 			if(!grid.is_marked(f)){
 				grid.mark(f);
-				uint numVrts = f->num_vertices();
-				bool allMarked = true;
-				for(size_t k = 0; k < numVrts; ++k){
-					if(!grid.is_marked(f->vertex(k))){
-						allMarked = false;
-						break;
+			//	check the normal
+				vector3 n;
+				CalculateNormal(n, f, aaPos);
+			//	the face is only a candidate if its normal is not too far off from
+			//	the main normal.
+				if(VecDot(n, normal) >= badNormalDot){					
+					uint numVrts = f->num_vertices();
+					bool allMarked = true;
+					for(size_t k = 0; k < numVrts; ++k){
+						if(!grid.is_marked(f->vertex(k))){
+							allMarked = false;
+							break;
+						}
 					}
-				}
 
-				if(allMarked)
-					sel.select(f);
+					if(allMarked)
+						sel.select(f);
+				}
 			}
 		}
 	}
 
-LOG("10 ");
 //	clean up
 	grid.end_marking();
 	sel.enable_selection_inheritance(selInheritanceWasEnabled);
-LOG("11 ");
+
 //	done
 	return true;
 }
