@@ -195,7 +195,6 @@ class ISubsetHandler : public GridObserver
 	 *	All properties are copied too.
 	 *
 	 *	Please note, that attachments are not copied in the current version.*/
-		ISubsetHandler(const ISubsetHandler& sh);
 
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
@@ -404,8 +403,10 @@ class ISubsetHandler : public GridObserver
 		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
 		typedef SectionContainer::iterator iterator;
 		
-	protected:
+	protected:		
 	///	selects elements based on the selection in the srcHandler
+	/**	WARNING: This method calls virtual functions. Be careful when using it
+	  *	in a constructor.*/
 		void assign_subset_handler(const ISubsetHandler& sh);
 		
 	///	set the grid on which the subset-handler shall work.
@@ -554,6 +555,9 @@ class ISubsetHandler : public GridObserver
 		//TODO: implement this!
 		};
 */
+	private:
+		ISubsetHandler(const ISubsetHandler& sh)	{};
+		
 	protected:
 		typedef AInt					ASubsetIndex;
 		typedef Attachment<iterator>	AIterator;

@@ -22,6 +22,8 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	public:
 		MultiGridSubsetHandler(uint supportedElements = SHE_ALL);
 		MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements = SHE_ALL);
+	/**	WARNING: Don't call the copy-constructor from derived classes,
+	  *	Since it calls virtual methods.*/
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
 		~MultiGridSubsetHandler();
 		

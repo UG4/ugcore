@@ -22,6 +22,8 @@ class GridSubsetHandler : public ISubsetHandler
 	public:
 		GridSubsetHandler(uint supportedElements = SHE_ALL);
 		GridSubsetHandler(Grid& grid, uint supportedElements = SHE_ALL);
+	/**	WARNING: Don't call the copy-constructor from derived classes,
+	  *	Since it calls virtual methods.*/
 		GridSubsetHandler(const GridSubsetHandler& sh);
 		~GridSubsetHandler();
 		

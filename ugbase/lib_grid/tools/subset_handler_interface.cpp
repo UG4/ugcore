@@ -41,14 +41,10 @@ ISubsetHandler(GridType& grid, uint supportedElements) : m_aSubsetIndex(false), 
 	assign_grid(grid);
 }
 */
+/*
 ISubsetHandler::
 ISubsetHandler(const ISubsetHandler& sh) : m_aSubsetIndex(false), m_aIterator(false)
 {
-/*
-	m_pGrid = NULL;
-	assert(!"WARNING in SubsetHandler::SubsetHandler(const SubsetHandler& sel): Copy-Constructor not yet implemented!");
-	LOG("WARNING in SubsetHandler::SubsetHandler(const SubsetHandler& sel): Copy-Constructor not yet implemented! Expect unexpected behaviour!");
-*/
 	m_pGrid = NULL;
 	m_supportedElements = SHE_NONE;
 	m_defaultSubsetIndex = -1;
@@ -62,7 +58,7 @@ ISubsetHandler(const ISubsetHandler& sh) : m_aSubsetIndex(false), m_aIterator(fa
 		assign_subset_handler(sh);
 	}
 }
-
+*/
 ISubsetHandler::
 ~ISubsetHandler()
 {
