@@ -14,6 +14,17 @@ namespace ug
 class MultiGridRefiner : public GridObserver
 {
 	public:
+	/**	Those marks are used to mark the status of an element.
+	 *	constants must be in the range 0 - 0xFD*/
+		enum StatusMark
+		{
+			SM_NONE = 0,
+			SM_REGULAR = 1,
+			SM_COPY = 2,
+			SM_IRREGULAR = 3,
+		};
+
+	public:
 		MultiGridRefiner();
 		MultiGridRefiner(MultiGrid& mg);
 
@@ -22,8 +33,14 @@ class MultiGridRefiner : public GridObserver
 
 		void assign_grid(MultiGrid& mg);
 
+	////////////////////////////////
+	//	marks
 		void clear_marks();
 
+//TODO:	Add an optional parameter anisotropic = false, that determines whether an
+//		element is part of an anisotropic refinement.
+//		If all marked lower-dimensional elements are marked anisotropic (at least two), then
+//		the resulting elements will be marked anisotropic, too.
 		template <class TElem>
 		inline void mark_for_refinement(TElem* elem)	{m_selMarks.select(elem);}
 
@@ -36,15 +53,83 @@ class MultiGridRefiner : public GridObserver
 		template <class TElem>
 		inline bool is_marked(TElem* elem)	{return m_selMarks.is_selected(elem);}
 
+	////////////////////////////////
+	//	refine
 	///	performs refinement on the marked elements.
 		void refine();
 
+	////////////////////////////////
+	//	settings
+	///	determines how many unrefined neighbours will be copied to the next level in subsequent refinement-steps.
+		inline void set_copy_range(int range)	{m_copyRange = range;}
+	///	returns how many unrefined neighbours are copied to the next level in subsequent refinement-steps.
+		inline int get_copy_range()				{return m_copyRange;}
+
+	////////////////////////////////
+	//	element-status
+	///	returns a constant enumerated in MultiGridRefiner::StatusMark.
+		inline int get_status(VertexBase* e)	{return m_aaIntVRT[e] & MR_STATUS;}
+	///	returns a constant enumerated in MultiGridRefiner::StatusMark.	
+		inline int get_status(EdgeBase* e)		{return m_aaIntEDGE[e] & MR_STATUS;}
+	///	returns a constant enumerated in MultiGridRefiner::StatusMark.
+		inline int get_status(Face* e)			{return m_aaIntFACE[e] & MR_STATUS;}
+	///	returns a constant enumerated in MultiGridRefiner::StatusMark.	
+		inline int get_status(Volume* e)		{return m_aaIntVOL[e] & MR_STATUS;}
+
+	protected:
+	/**	Those marks are used to mark the refinement rule that will be
+	 *	applied to an element.
+	 *	constants must be in the range 0x00FF - 0xFF00*/
+		enum RefinementMark
+		{
+			RM_NONE = 0x00FF,
+			RM_REGULAR = 1 << 8,
+			RM_ANISOTROPIC = 1 << 9,	//not yet used
+			RM_COPY = 1 << 10,
+			RM_IRREGULAR = 1 << 11,
+			RM_UNKNOWN = 1 << 12
+		};
+
+	/**	Those constants define the range in which associated marks lie.*/
+		enum MarkRanges
+		{
+			MR_STATUS = 0xFF,
+			MR_REFINEMENT = 0xFF00
+		};
+
 	protected:
 		virtual void collect_objects_for_refine();
+		
+		inline void set_status(VertexBase* e, StatusMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_STATUS) | mark;}
+		inline void set_status(EdgeBase* e, StatusMark mark)	{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_STATUS) | mark;}
+		inline void set_status(Face* e, StatusMark mark)		{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_STATUS) | mark;}
+		inline void set_status(Volume* e, StatusMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_STATUS) | mark;}
+
+		inline void set_rule(VertexBase* e, RefinementMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_REFINEMENT) | mark;}
+		inline void set_rule(EdgeBase* e, RefinementMark mark)		{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_REFINEMENT) | mark;}
+		inline void set_rule(Face* e, RefinementMark mark)			{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_REFINEMENT) | mark;}
+		inline void set_rule(Volume* e, RefinementMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_REFINEMENT) | mark;}
+
+		inline int get_rule(VertexBase* e)	{return m_aaIntVRT[e] & MR_REFINEMENT;}
+		inline int get_rule(EdgeBase* e)	{return m_aaIntEDGE[e] & MR_REFINEMENT;}
+		inline int get_rule(Face* e)		{return m_aaIntFACE[e] & MR_REFINEMENT;}
+		inline int get_rule(Volume* e)		{return m_aaIntVOL[e] & MR_REFINEMENT;}
 
 	protected:
 		MultiGrid*	m_pMG;
+
+	//	selection-marks
 		Selector	m_selMarks;
+
+	//	copy-range
+		int			m_copyRange;
+
+	//	status-marks
+		AInt		m_aInt;
+		Grid::VertexAttachmentAccessor<AInt>	m_aaIntVRT;
+		Grid::EdgeAttachmentAccessor<AInt>		m_aaIntEDGE;
+		Grid::FaceAttachmentAccessor<AInt>		m_aaIntFACE;
+		Grid::VolumeAttachmentAccessor<AInt>	m_aaIntVOL;
 };
 
 }//	end of namespace

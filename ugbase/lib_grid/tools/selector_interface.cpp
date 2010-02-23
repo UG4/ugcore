@@ -146,7 +146,7 @@ void ISelector::enable_autoselection(bool bEnable)
 
 void ISelector::enable_selection_inheritance(bool bEnable)
 {
-	m_bSelectionInheritanceEnabled = true;
+	m_bSelectionInheritanceEnabled = bEnable;
 }
 
 
