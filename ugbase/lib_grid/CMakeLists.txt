@@ -80,8 +80,8 @@ add_definitions(-DTETLIBRARY)
 set_source_files_properties(externals/src/tetgen/predicates.cxx
 	PROPERTIES COMPILE_FLAGS -O0)
 
-#set_source_files_properties(externals/src/tetgen/tetgen.cxx
-#	PROPERTIES COMPILE_FLAGS -Wno-write-strings)
+set_source_files_properties(externals/src/tetgen/tetgen.cxx
+	PROPERTIES COMPILE_FLAGS -Wno-write-strings)
 
 set(srcTetgen
 	externals/src/tetgen/tetgen.cxx
