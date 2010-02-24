@@ -577,10 +577,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	Grid::AttachmentAccessor<VertexBase, ANormal> aaNorm(grid, aNorm);
 	CalculateVertexNormals(grid, aPos, aNorm);
 
-//	check squares
-	number minEdgeLenSq = minEdgeLen * minEdgeLen;
-	number maxEdgeLenSq = maxEdgeLen * maxEdgeLen;
-
 //	assign vertex marks
 	AssignFixedVertices(grid, shMarks);
 	AssignCreaseVertices(grid, shMarks);
@@ -588,10 +584,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 //	we need an selector that holds all edges that are candidates for a collapse
 	EdgeSelector esel(grid);
 	esel.enable_selection_inheritance(false);
-
-	int numSwaps = 0;
-	int numSplits = 0;
-	int numCollapses = 0;
 
 //	start the main iteration
 	for(int iteration = 0; iteration < numIterations; ++iteration)

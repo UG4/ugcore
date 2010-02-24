@@ -168,6 +168,8 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 			}
 		}
 		break;
+	default:
+		break;
 	}
 
 //	end marking

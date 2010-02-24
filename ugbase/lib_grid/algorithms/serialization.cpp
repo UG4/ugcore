@@ -972,7 +972,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
 							Tetrahedron* t = *mg.create<Tetrahedron>(TetrahedronDescriptor(
 																	vVrts[i1], vVrts[i2],
-																	vVrts[i3], vVrts[i4]));
+																	vVrts[i3], vVrts[i4]), parent);
 							vVols.push_back(t);
 						}
 					}break;
@@ -994,7 +994,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 																	vVrts[i1], vVrts[i2],
 																	vVrts[i3], vVrts[i4],
 																	vVrts[i5], vVrts[i6],
-																	vVrts[i7], vVrts[i8]));
+																	vVrts[i7], vVrts[i8]), parent);
 							vVols.push_back(h);
 						}
 					}break;
@@ -1013,7 +1013,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							Prism* p = *mg.create<Prism>(PrismDescriptor(
 															vVrts[i1], vVrts[i2],
 															vVrts[i3], vVrts[i4],
-															vVrts[i5], vVrts[i6]));
+															vVrts[i5], vVrts[i6]), parent);
 							vVols.push_back(p);
 						}
 					}break;
@@ -1031,7 +1031,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							Pyramid* p = *mg.create<Pyramid>(PyramidDescriptor(
 																vVrts[i1], vVrts[i2],
 																vVrts[i3], vVrts[i4],
-																vVrts[i5]));
+																vVrts[i5]), parent);
 							vVols.push_back(p);
 						}
 					}break;
@@ -1171,7 +1171,7 @@ bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
 		int nameSize;
 		in.read((char*)&nameSize, sizeof(int));
 	//	check whether the buffer has to be resized
-		if(nameSize > vBuff.size())
+		if(nameSize > (int)vBuff.size())
 			vBuff.resize(nameSize);
 	//	read the name
 		in.read(&vBuff.front(), nameSize);

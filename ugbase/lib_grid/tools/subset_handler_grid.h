@@ -34,7 +34,7 @@ class GridSubsetHandler : public ISubsetHandler
 	///	Makes sure that the subset with the given index exists.
 	/**	If required the subsets between num_subsets() and index will be created.
 	 *	ISubsetHandler::subset_info_required is called automatically.*/
-		inline void subset_required(int index);
+		inline void subset_required(size_t index);
 		
 	///	returns the number of subsets
 		inline uint num_subsets() const	{return m_subsets.size();}
@@ -156,7 +156,7 @@ class GridSubsetHandler : public ISubsetHandler
 
 
 inline void GridSubsetHandler::
-subset_required(int index)
+subset_required(size_t index)
 {
 	if(index >= m_subsets.size())
 	{

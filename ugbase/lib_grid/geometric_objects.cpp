@@ -199,7 +199,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 			case 1:
 			{
 			//	get the index of the edge that will be refined
-				int iNew;
+				int iNew = -1;;
 				for(int i = 0; i < 3; ++i){
 					if(newEdgeVertices[i]){
 						iNew = i;
@@ -226,7 +226,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 			case 2:
 			{
 			//	get the index of the edge that won't be refined
-				int iFree;
+				int iFree = -1;
 				for(int i = 0; i < 3; ++i){
 					if(!newEdgeVertices[i]){
 						iFree = i;
@@ -658,7 +658,7 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 	{
 		case 1:
 		{
-			int iNew;
+			int iNew = -1;
 			for(int i = 0; i < 4; ++i){
 				if(edgeVrts[i]){
 					iNew = i;
@@ -727,7 +727,7 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 
 		case 3:
 		{
-			int iFree;
+			int iFree = -1;
 			for(int i = 0; i < 4; ++i){
 				if(!edgeVrts[i]){
 					iFree = i;

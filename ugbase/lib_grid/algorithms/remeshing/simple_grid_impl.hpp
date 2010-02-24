@@ -13,7 +13,7 @@ namespace ug
 //	ObtainSimpleGrid
 template <class TPosAcc, class TIntAcc, class TNormAcc>
 bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
-						VertexBase* vrt1, VertexBase* vrt2, int size,
+						VertexBase* vrt1, VertexBase* vrt2, size_t size,
 						TPosAcc& aaPos, TNormAcc& aaNorm,
 						TIntAcc& aaInt)
 {

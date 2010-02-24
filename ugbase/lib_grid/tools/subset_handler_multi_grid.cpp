@@ -196,9 +196,9 @@ void MultiGridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 void MultiGridSubsetHandler::
 register_subset_elements_at_pipe()
 {
-	for(int l = 0; l < num_levels(); ++l)
+	for(size_t l = 0; l < num_levels(); ++l)
 	{
-		for(int i = 0; i < num_subsets(); ++i)
+		for(size_t i = 0; i < num_subsets(); ++i)
 		{
 		//	register vertices
 			for(VertexBaseIterator iter = begin<VertexBase>(i, l);

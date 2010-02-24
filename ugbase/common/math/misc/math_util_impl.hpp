@@ -173,28 +173,26 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 
 	int i1, i2, i3, j;
 	number fac;
-	number r, s, t;
+	bc1Out = 0;
+	bc2Out = 0;
+	tOut = 0;
 
 	number dBestEntry = fabs(m[0][0]);
 	i1 = 0;
 	fac = fabs(m[1][0]);
-	if(fac > dBestEntry)
-	{
+	if(fac > dBestEntry){
 		dBestEntry = fac;
 		i1 = 1;
 	}
+	
 	if(fabs(m[2][0]) > dBestEntry)
 		i1 = 2;
 
 
-	if(m[i1][0])
-	{
-		for(i2 = 0; i2 < 3; ++i2)
-		{
-			if(i2!=i1)
-			{
-				if(m[i2][0])
-				{
+	if(m[i1][0]){
+		for(i2 = 0; i2 < 3; ++i2){
+			if(i2!=i1){
+				if(m[i2][0]){
 					fac = -m[i2][0]/m[i1][0];
 					for(j = 0; j < 3; ++j)
 						m[i2][j] = m[i2][j] + fac*m[i1][j];
@@ -205,62 +203,46 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 		
 		i2 = (i1 + 1) % 3;
 		i3 = (i1 + 2) % 3;
-		if(fabs(m[i2][1]) < fabs(m[i3][1]))
-		{
+		if(fabs(m[i2][1]) < fabs(m[i3][1])){
 			int ti = i2;
 			i2 = i3;
 			i3 = ti;
 		}
-		if((m[i2][1]!=0) && (m[i3][1]!=0))
-		{
+		
+		if((m[i2][1]!=0) && (m[i3][1]!=0)){
 			fac = -m[i3][1]/m[i2][1];
 			for(j = 1; j < 3; ++j)
 				m[i3][j] = m[i3][j] + fac*m[i2][j];
 			b[i3] = b[i3] + fac * b[i2];
 		}
-		//calculate t
+		
+		//calculate tOut (t)
 		if(m[i3][2])
-			t = b[i3] / m[i3][2];
-		else
-		{
-			if(b[i3] == 0)
-				t = 0;
-			else
-				return false;
-		}
-		//calculate s
-		b[i2] -= t*m[i2][2];
-		if(m[i2][1])
-			s = b[i2] / m[i2][1];
-		else
-		{
-			if(b[i2] == 0)
-				s = 0;
-			else
-				return false;
-		}
-		//calculate r
-		b[i1] -= (t*m[i1][2] + s*m[i1][1]);
-		if(m[i1][0])
-			r = b[i1] / m[i1][0];
-		else
-		{
-			if(b[i1] == 0)
-				r = 0;
-			else
-				return false;
-		}
-	}
+			tOut = b[i3] / m[i3][2];
+		else if(b[i3] != 0)
+			return false;
 
-	if((r >=-SMALL ) && (s >= -SMALL ) && ((r + s) <= 1+SMALL))
-	{
-		vOut.x = vFrom.x + t*vDir.x;
-		vOut.y = vFrom.y + t*vDir.y;
-		vOut.z = vFrom.z + t*vDir.z;
-		bc1Out = r;
-		bc2Out = s;
-		tOut = t;
-		return true;
+		//calculate bc2Out (s)
+		b[i2] -= tOut*m[i2][2];
+		if(m[i2][1])
+			bc2Out = b[i2] / m[i2][1];
+		else if(b[i2] != 0)
+			return false;
+
+		//calculate bc1Out (r)
+		b[i1] -= (tOut*m[i1][2] + bc2Out*m[i1][1]);
+		if(m[i1][0])
+			bc1Out = b[i1] / m[i1][0];
+		else if(b[i1] != 0)
+			return false;
+
+		if((bc1Out >=-SMALL ) && (bc2Out >= -SMALL ) && ((bc1Out + bc2Out) <= 1.+SMALL))
+		{
+			vOut.x = vFrom.x + tOut*vDir.x;
+			vOut.y = vFrom.y + tOut*vDir.y;
+			vOut.z = vFrom.z + tOut*vDir.z;
+			return true;
+		}
 	}
 	return false;
 }

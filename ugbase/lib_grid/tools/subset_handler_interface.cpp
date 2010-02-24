@@ -548,10 +548,10 @@ move_subset(int indexFrom, int indexTo)
 			SubsetInfo siFrom = m_subsetInfos[indexFrom];
 
 		//	store from-attachment-pipes
-			VertexAttachmentPipe* apFromVrt;
-			EdgeAttachmentPipe* apFromEdge;
-			FaceAttachmentPipe* apFromFace;
-			VolumeAttachmentPipe* apFromVol;
+			VertexAttachmentPipe* apFromVrt = NULL;
+			EdgeAttachmentPipe* apFromEdge = NULL;
+			FaceAttachmentPipe* apFromFace = NULL;
+			VolumeAttachmentPipe* apFromVol = NULL;
 			if(subset_attachments_are_enabled())
 			{
 				apFromVrt = m_vertexAttachmentPipes[indexFrom];

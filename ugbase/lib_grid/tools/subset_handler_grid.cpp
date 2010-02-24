@@ -173,7 +173,7 @@ void GridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 void GridSubsetHandler::
 register_subset_elements_at_pipe()
 {
-	for(int i = 0; i < num_subsets(); ++i)
+	for(size_t i = 0; i < num_subsets(); ++i)
 	{
 	//	register vertices
 		for(VertexBaseIterator iter = begin<VertexBase>(i);

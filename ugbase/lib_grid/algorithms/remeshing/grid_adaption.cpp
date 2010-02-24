@@ -107,7 +107,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 		sel.clear();
 
 	//	as long as there are vertices in the queue we have to iterate
-		for(int vrtInd = iFirst; vrtInd < iEnd; ++ vrtInd)
+		for(size_t vrtInd = iFirst; vrtInd < iEnd; ++ vrtInd)
 		{
 		//	the vertex that we'll check
 			//VertexBase* vrt = qVrts.front();

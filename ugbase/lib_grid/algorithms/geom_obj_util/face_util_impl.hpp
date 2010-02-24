@@ -208,7 +208,8 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 {
 	vector3 vInter;
 	bool gotOne = false;
-	number b1, b2, t, tBest;
+	number b1, b2, t;
+	number tBest = 0;	// value doesn't matter - will be overwritten later on.
 
 //	iterate through all triangles and find the closest intersection
 	for(TTriangleIterator iter = trisBegin; iter != trisEnd; ++iter)

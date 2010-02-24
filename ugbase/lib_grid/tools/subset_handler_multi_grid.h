@@ -149,7 +149,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		template<class TElem>
 		void change_elem_subset_indices(int indOld, int indNew);
 		
-		inline void level_required(int level)		{while(m_levels.size() <= level) add_level();}
+		inline void level_required(size_t level)		{while(m_levels.size() <= level) add_level();}
 
 		void add_level();
 		void add_subset_to_all_levels();///< increases m_numSubsets.
