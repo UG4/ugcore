@@ -237,6 +237,7 @@ class geometry_traits<VertexBase>
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	EdgeVertices
 ///	holds the vertices of an EdgeBase or an EdgeDescriptor.
+/**	Please note that this class does not have a virtual destructor.*/
 class EdgeVertices
 {
 	friend class Grid;
@@ -250,6 +251,13 @@ class EdgeVertices
 	///	returns the i-th vertex.
 		VertexBase* operator[](uint index) const {return m_vertices[index];}
 
+	protected:
+		inline void assign_edge_vertices(const EdgeVertices& ev)
+		{
+			m_vertices[0] = ev.m_vertices[0];
+			m_vertices[1] = ev.m_vertices[1];
+		}
+		
 	protected:
 		VertexBase*	m_vertices[2];
 };
@@ -317,18 +325,12 @@ class geometry_traits<EdgeBase>
 class EdgeDescriptor : public EdgeVertices
 {
 	public:
-		EdgeDescriptor()	{}
-		EdgeDescriptor(const EdgeDescriptor& ed)
-			{
-				m_vertices[0] = ed.vertex(0);
-				m_vertices[1] = ed.vertex(1);
-			}
-		EdgeDescriptor(VertexBase* vrt1, VertexBase* vrt2)
-			{
-				m_vertices[0] = vrt1;
-				m_vertices[1] = vrt2;
-			}
-
+		EdgeDescriptor();
+		EdgeDescriptor(const EdgeDescriptor& ed);
+		EdgeDescriptor(VertexBase* vrt1, VertexBase* vrt2);
+		
+		EdgeDescriptor& operator = (const EdgeDescriptor& ed);
+		
 		inline void set_vertex(uint index, VertexBase* vrt)	{m_vertices[index] = vrt;}
 		inline void set_vertices(VertexBase* vrt1, VertexBase* vrt2)
 			{
@@ -370,29 +372,37 @@ class FaceVertices
 //	regarding speed limitations of the originally used std::vector.
 //	in a first test the speed increase was quite small.
 const int MAX_FACE_VERTICES = 4;
+/**	Please note that this class does not have a virtual destructor.*/
 class FaceVertices
 {
 	friend class Grid;
 	public:
 		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
-		inline uint num_vertices() const			{return m_numVrts;}
+		inline size_t num_vertices() const			{return m_numVrts;}
 
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
 		inline size_t size() const	{return m_numVrts;}
 	///	returns the i-th vertex.
-		VertexBase* operator[](uint index) const {return m_vertices[index];}
+		VertexBase* operator[](size_t index) const {return m_vertices[index];}
 	
 	protected:
-		inline void set_num_vertices(int numVrts)
+		inline void set_num_vertices(size_t numVrts)
 		{
 			assert((numVrts >= 0 && numVrts <= MAX_FACE_VERTICES) && "unsupported number of vertices.");
 			m_numVrts = numVrts;
 		}
 
+		inline void assign_face_vertices(const FaceVertices& fv)
+		{
+			m_numVrts = fv.num_vertices();
+			for(size_t i = 0; i < m_numVrts; ++i)
+				m_vertices[i] = fv.m_vertices[i];
+		}
+		
 	protected:
 		VertexBase* m_vertices[MAX_FACE_VERTICES];
-		int m_numVrts;
+		uint m_numVrts;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -558,14 +568,11 @@ class geometry_traits<Face>
 class FaceDescriptor : public FaceVertices
 {
 	public:
-		FaceDescriptor()	{}
-
-		FaceDescriptor(uint numVertices)
-			{
-				set_num_vertices(numVertices);
-			}
-
-		virtual ~FaceDescriptor()	{}
+		FaceDescriptor();
+		FaceDescriptor(uint numVertices);
+		FaceDescriptor(const FaceDescriptor& fd);
+		
+		FaceDescriptor& operator = (const FaceDescriptor& fd);
 
 		inline void set_num_vertices(uint numVertices)	{FaceVertices::set_num_vertices(numVertices);}
 		inline void set_vertex(uint index, VertexBase* vrt)
@@ -586,6 +593,7 @@ class FaceDescriptor : public FaceVertices
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeVertices
 ///	holds the vertices of a Volume or a VolumeDescriptor
+/**	Please note that this class does not have a virtual destructor.*/
 class VolumeVertices
 {
 	friend class Grid;
@@ -598,6 +606,14 @@ class VolumeVertices
 		inline size_t size() const	{return m_vertices.size();}
 	///	returns the i-th vertex.
 		VertexBase* operator[](uint index) const {return m_vertices[index];}
+
+	protected:
+		inline void assign_volume_vertices(const VolumeVertices& vv)
+		{
+			m_vertices.resize(vv.num_vertices());
+			for(size_t i = 0; i < num_vertices(); ++i)
+				m_vertices[i] = vv.m_vertices[i];
+		}
 
 	protected:
 		typedef std::vector<VertexBase*> 	VertexVec;
@@ -740,17 +756,12 @@ class geometry_traits<Volume>
 class VolumeDescriptor : public VolumeVertices
 {
 	public:
-		VolumeDescriptor()	{}
+		VolumeDescriptor();
+		VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces);
+		VolumeDescriptor(const VolumeDescriptor& vd);
 
-		VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces)
-			{
-				set_num_vertices(numVertices);
-				//set_num_edges(numEdges);
-				//set_num_faces(numFaces);
-			}
-
-		virtual ~VolumeDescriptor()	{}
-
+		VolumeDescriptor& operator = (const VolumeDescriptor& vd);
+		
 		inline void set_num_vertices(uint numVertices)	{m_vertices.resize(numVertices);}
 		inline void set_vertex(uint index, VertexBase* vrt)
 			{m_vertices[index] = vrt;}

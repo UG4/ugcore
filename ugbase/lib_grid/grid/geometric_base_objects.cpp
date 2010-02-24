@@ -6,6 +6,73 @@
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+//	implementation of edge-descriptor
+EdgeDescriptor::EdgeDescriptor()
+{
+}
+
+EdgeDescriptor::EdgeDescriptor(const EdgeDescriptor& ed)
+{
+	EdgeVertices::assign_edge_vertices(ed);
+}
+
+EdgeDescriptor::EdgeDescriptor(VertexBase* vrt1, VertexBase* vrt2)
+{
+	m_vertices[0] = vrt1;
+	m_vertices[1] = vrt2;
+}
+
+EdgeDescriptor& EdgeDescriptor::operator = (const EdgeDescriptor& ed)
+{
+	EdgeVertices::assign_edge_vertices(ed);
+	return *this;
+}
+		
+////////////////////////////////////////////////////////////////////////
+//	implementation of face-descriptor
+FaceDescriptor::FaceDescriptor()
+{
+	FaceVertices::set_num_vertices(0);
+}
+
+FaceDescriptor::FaceDescriptor(uint numVertices)
+{
+	set_num_vertices(numVertices);
+}
+
+FaceDescriptor::FaceDescriptor(const FaceDescriptor& fd)
+{
+	FaceVertices::assign_face_vertices(fd);
+}
+
+FaceDescriptor& FaceDescriptor::operator = (const FaceDescriptor& fd)
+{
+	FaceVertices::assign_face_vertices(fd);
+	return *this;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	implementation of volume-descriptor
+VolumeDescriptor::VolumeDescriptor()
+{
+}
+
+VolumeDescriptor::VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces)
+{
+	set_num_vertices(numVertices);
+}
+
+VolumeDescriptor::VolumeDescriptor(const VolumeDescriptor& vd)
+{
+	VolumeVertices::assign_volume_vertices(vd);
+}
+
+VolumeDescriptor& VolumeDescriptor::operator = (const VolumeDescriptor& vd)
+{
+	VolumeVertices::assign_volume_vertices(vd);
+	return *this;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	inline implementation of hash-keys
