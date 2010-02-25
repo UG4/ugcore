@@ -30,7 +30,7 @@ public:
 	//! access refernce of an element
 	inline T &operator [] (int i) { return values[i]; }
 	//! access const element
-	inline T operator [] (int i) const { return values[i]; }
+	inline const T &operator [] (int i) const { return values[i]; }
 	
 public:	
 	//! compare with other fixedArray
@@ -110,7 +110,7 @@ public:
 	//! access refernce of an element
 	inline T &operator [] (int i) { return values[i]; }
 	//! access const element
-	inline T operator [] (int i) const { return values[i]; }
+	inline const T &operator [] (int i) const { return values[i]; }
 	
 public:
 	//! compare with other variableArray
@@ -189,11 +189,11 @@ public:
 	}
 	
 	inline T &operator () (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline T operator () (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
+	inline const T &operator () (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
 	inline T &getAt (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline T getAt (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
+	inline const T &getAt (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
 	inline T &operator [] (int i) { ASSERT1(i<rows*cols && i >= 0); return values[i]; }
-	inline T operator [] (int i)  const { ASSERT1(i<rows*cols && i >= 0); return values[i]; }	
+	inline const T &operator [] (int i)  const { ASSERT1(i<rows*cols && i >= 0); return values[i]; }	
 	int size() const { return rows*cols; }
 
 	//! ensure size of rows*cols, but do not make smaller
@@ -289,9 +289,9 @@ public:
 	}
 	
 	inline T &operator () (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline T operator () (int r, int c) const { return values[c + r*cols]; }
+	inline const T &operator () (int r, int c) const { return values[c + r*cols]; }
 	inline T &operator [] (int i) { return values[i]; }
-	inline T operator [] (int i) const { return values[i]; }	
+	inline const T &operator [] (int i) const { return values[i]; }	
 	int getRows() const {	return cols != 0 ? values.size()/cols : 0; }
 	int getCols() const { return cols; }
 	int size() const { return values.size(); }

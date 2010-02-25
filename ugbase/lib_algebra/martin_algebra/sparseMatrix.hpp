@@ -125,7 +125,7 @@ void SparseMatrix<T>::createAsTransposeOf(const SparseMatrix &B)
 		{
 			if((*conn).dValue == 0) continue;
 			int ndx = (*conn).iIndex;
-			ASSERT2(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of SparseMatrix " << B << " out of range 0.." << rows);
+			ASSERT2(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
 			
 			int k= nr[ndx];
 			
@@ -562,7 +562,8 @@ inline bool SparseMatrix<T>::isUnconnected(int i) const
 //--------------------
 //! function to add submatrices ( submatrix )
 template<typename T>
-void SparseMatrix<T>::add(const submatrix<T> &mat)
+template<typename M>
+void SparseMatrix<T>::add(const M &mat, int *rows, int *cols)
 {
 	connection *c = new connection[mat.getCols()];
 	int nc;
@@ -573,13 +574,13 @@ void SparseMatrix<T>::add(const submatrix<T> &mat)
 		{
 			if(mat(i,j) != 0.0)
 			{
-				c[nc].iIndex = mat.getColIndex(j);
+				c[nc].iIndex = cols[j];
 				c[nc].dValue = mat(i, j);
 				nc++;
 			}
 		}
 		if(nc > 0)
-			addMatrixRow(mat.getRowIndex(i), c, nc);
+			addMatrixRow(rows[i], c, nc);
 	}
 	delete[] c;
 }
@@ -588,7 +589,8 @@ void SparseMatrix<T>::add(const submatrix<T> &mat)
 //! 
 //! function to add submatrices ( \sa submatrix )
 template<typename T>
-void SparseMatrix<T>::set(const submatrix<T> &mat)
+template<typename M>
+void SparseMatrix<T>::set(const M &mat, int *rows, int *cols)
 {
 	connection *c = new connection[mat.getCols()];
 	int nc;
@@ -599,57 +601,133 @@ void SparseMatrix<T>::set(const submatrix<T> &mat)
 		{
 			if(mat(i,j) != 0.0)
 			{
-				c[nc].iIndex = mat.getColIndex(j);
+				c[nc].iIndex = cols[j];
 				c[nc].dValue = mat(i, j);
 				nc++;
 			}
 		}
 		if(nc > 0)
-			setMatrixRow(mat.getRowIndex(i), c, nc);
+			setMatrixRow(rows[i], c, nc);
 	}
 	delete[] c;
 }
 
 //!
-//! this function does not work.
-//! would be more easy if mat.indices could be assumed to be sorted
 template<typename T>
-void SparseMatrix<T>::get(submatrix<T> &mat) const
+template<typename M>
+void SparseMatrix<T>::get(M &mat, int *rows, int *cols) const
 {
-	int nr = mat.getNr();
+	vector<sortStruct<int> > sortedRows(mat.getRows()), sortedCols(mat.getCols());
+	for(int i=0; i<mat.getRows(); i++)
+	{		
+		sortedRows[i].index = i;
+		sortedRows[i].sortValue = rows[i];
+	}
+	sort(sortedRows.begin(), sortedRows.end());
+	for(int i=0; i<mat.getCols(); i++)
+	{
+		sortedCols[i].index = i;
+		sortedCols[i].sortValue = cols[i];
+	}	
+	sort(sortedCols.begin(), sortedCols.end());
+	
 	for(int i=0; i < mat.getRows(); i++)
 	{
-		int iindex = mat.getRowIndex(i), j = 0;
-		
-		rowIterator conn = beginRow(iindex);
-		
+		int iindex_global = sortedRows[i].sortValue;
+		int iindex_local = sortedRows[i].index;
+	
+		cRowIterator conn = beginRow(iindex_global);
 		// diagonal
-		mat(i,i) = (*conn).dValue;
+		mat(iindex_local, iindex_local) = (*conn).dValue;
 		++conn;
-		
+
+		int j = 0;
 		while(j < mat.getCols() && !conn.isEnd())
 		{
-			int jindex = mat.getColIndex(j);
-			int cindex = (*conn).iIndex;
+			int jindex_global = sortedCols[j].sortValue;
+			int jindex_local = sortedCols[j].index;
+
+			if(iindex_global == jindex_global) { j++; continue; }
+			int cindex_global = (*conn).iIndex;
 			
-			if(cindex < jindex) 
+			if(cindex_global < jindex_global) 
 				++conn;
-			else if(cindex > jindex) 
+			else if(cindex_global > jindex_global) 
 			{
-				mat(i, j) = 0.0;
+				mat(iindex_local, jindex_local) = 0.0;
 				++j;
 			}
 			else
 			{
-				mat(i,j) = (*conn).dValue;
+				mat(iindex_local, jindex_local) = (*conn).dValue;
 				++conn; ++j;
 			}
 		}
 	}
 }
 
+template<typename T>
+template<typename M>
+void SparseMatrix<T>::add(const M &mat, vector<int> &rows, vector<int> &cols)
+{
+	ASSERT1(mat.getCols() == cols.size() && mat.getRows() == rows.size());
+	add(mat, &rows[0], &cols[0]);
+}
+
+template<typename T>
+template<typename M>
+void SparseMatrix<T>::set(const M &mat, vector<int> &rows, vector<int> &cols)
+{
+	ASSERT1(mat.getCols() == cols.size() && mat.getRows() == rows.size());
+	set(mat, &rows[0], &cols[0]);
+}
+
+template<typename T>
+template<typename M>
+void SparseMatrix<T>::get(M &mat, vector<int> &rows, vector<int> &cols) const
+{
+	ASSERT1(mat.getCols() == cols.size() && mat.getRows() == rows.size());
+	get(mat, &rows[0], &cols[0]);
+}
 
 
+template<typename T>
+void SparseMatrix<T>::add(const entry_type &d, int row, int col)
+{
+	connection c;
+	c.dValue = d;
+	c.iIndex = col;
+	addMatrixRow(row, &c, 1);
+}
+
+template<typename T>
+void SparseMatrix<T>::set(const entry_type &d, int row, int col)
+{
+	connection c;
+	c.dValue = d;
+	c.iIndex = col;
+	setMatrixRow(row, &c, 1);
+}
+
+template<typename T>
+void SparseMatrix<T>::get(entry_type &d, int row, int col) const
+{
+	if(row == col)
+		d =(*getrow(row)).dValue;
+	else
+	{
+		cRowIterator conn = getrow(row); ++conn; // skip diag
+		for(; !conn.isEnd(); ++conn)
+		{
+			if((*conn).iIndex == col)
+			{
+				d = (*conn).dValue;
+				return;
+			}		
+		}	
+		d = 0.0;
+	}	
+}
 
 
 
@@ -1079,7 +1157,6 @@ void SparseMatrix<T>::getNeighborhood(int node, int depth, vector<int> &indices,
 	
 	while(iterators.size() != 0)
 	{
-		cout.flush();
 		if(iterators.back().isEnd())
 			iterators.pop_back();			
 		else
@@ -1120,7 +1197,21 @@ void SparseMatrix<T>::getNeighborhood(int node, int depth, vector<int> &indices,
 		for(int i=0; i<indices.size(); i++)
 			posInConnections[indices[i]] = -1;
 	}	
+
+	
+	sort(indices.begin(), indices.end());		
 }
 
 
 
+
+template<typename T>
+bool SparseMatrix<T>::isCloseToBoundary(int node, int distance) const
+{
+	if(distance == 0) return isUnconnected(node);
+	bool bFound = false;
+	for(cRowIterator itA = beginRow(node); !itA.isEnd() && !bFound; ++itA)
+		bFound = isCloseToBoundary((*itA).iIndex, distance-1);
+		
+	return bFound;	
+}

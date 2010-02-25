@@ -45,12 +45,6 @@ inline double Vector<entry_type>::dotprod(const Vector &w) const
 	return sum;
 }
 
-template<typename entry_type>
-inline double Vector<entry_type>::operator *(const Vector &w)
-{
-	return dotprod(w);	
-}
-
 // assign double to whole Vector
 template<typename entry_type>
 inline double Vector<entry_type>::operator = (double d)
@@ -103,6 +97,7 @@ template<typename Type> inline void Vector<entry_type>::operator = (const Type &
 	//IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
 	ASSERT2(t.getLength() == length, *this << " has not same length as " << t);
 	t.preventForbiddenDestination(this);
+
 	for(int i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
@@ -210,7 +205,8 @@ void Vector<entry_type>::print(const char * const text) const
 	if(text) cout << " == " << text;
 	cout << " == level: " << level << " length: " << length << " =================" << endl;
 	for(int i=0; i<length; i++)
-		cout << values[i] << " ";
+		//cout << values[i] << " ";
+		cout << i << ": " << values[i] << endl;
 	cout << endl;
 }
 
@@ -220,7 +216,7 @@ void Vector<entry_type>::printtype() const
 	cout << *this;
 }
 
-template<typename entry_type>
+/*template<typename entry_type>
 void Vector<entry_type>::add(const subvector<entry_type> &subvec)
 {
 	for(int i=0; i < subvec.getNr(); i++)
@@ -239,5 +235,28 @@ void Vector<entry_type>::get(subvector<entry_type> &subvec) const
 {
 	for(int i=0; i < subvec.getNr(); i++)
 		subvec(i) = values[subvec.getIndex(i)];
+}*/
+
+
+template<typename entry_type>
+void Vector<entry_type>::add(const entry_type &d, int i)
+{
+	values[i] += d;
+}
+template<typename entry_type>
+void Vector<entry_type>::set(const entry_type &d, int i)
+{
+	values[i] = d;
+}
+template<typename entry_type>
+void Vector<entry_type>::get(entry_type &d, int i) const
+{
+	d = values[i];
 }
 
+
+template<typename entry_type>
+double operator *(const TRANSPOSED<Vector<entry_type> > &x, const Vector<entry_type> &y)
+{
+	return x.T().dotprod(y);
+}

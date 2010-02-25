@@ -13,12 +13,10 @@ using namespace std;
 
 #include "misc.h"
 
-const double sigma = 0.3;
-const double theta = 0.3;
-
 //#include "SparseMatrix.h"
 
 #include "amg.h"
+#include "famg.h"
 #include "linearsolver.h"
 
 
@@ -39,9 +37,9 @@ const double theta = 0.3;
 //typedef fixedStorage myStorageType;
 typedef variableStorage myStorageType;
 
-typedef blockDenseMatrix<myStorageType, UNKNOWN_NR, UNKNOWN_NR > myBlockMat;
+typedef blockDenseMatrix<double, myStorageType, UNKNOWN_NR, UNKNOWN_NR > myBlockMat;
 
-typedef blockVector<myStorageType, UNKNOWN_NR> myBlockVec;
+typedef blockVector<double, myStorageType, UNKNOWN_NR> myBlockVec;
 
 #else
 

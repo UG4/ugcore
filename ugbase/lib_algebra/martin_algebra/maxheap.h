@@ -41,9 +41,22 @@ public:
 
 	//! reset
 	//! set height 0
+	void create(int n, T *arr_)
+	{
+		delete[] heap;
+		delete [] posinheap;
+		
+		arr = arr_;
+		height = 0;
+		heap = new int[n];
+		posinheap = new int[n];
+		for(int i=0; i<n; i++) posinheap[i] = -1;
+		size = n;
+		
+	}
+	
 	void reset()
 	{
-		for(int i=0; i<size; i++) posinheap[i] = -1;
 		height = 0;
 	}
 

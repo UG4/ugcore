@@ -103,7 +103,7 @@ void CG(Vector_type &x, const Matrix_type &A, const Vector_type &b, precondition
 	Vector_type t(x.getLength(), "CG:t");
 	int i=0;
 	double alpha, rz_new, rz_old;
-	rz_old = r*z;
+	rz_old = r.T() *z;
 	double res, oldres;
 	
 	res = norm(r);
@@ -113,15 +113,15 @@ void CG(Vector_type &x, const Matrix_type &A, const Vector_type &b, precondition
 	{
 		
 		t = A*d;
-		alpha = rz_old/(d*t);
+		alpha = rz_old/(d.T()*t);
 		x += alpha * d;
 		r -= alpha * t;
 		
 		P.precond(z, r);
 		
-		rz_new = r*z;
+		rz_new = r.T()*z;
 		
-		d = z + (rz_new/rz_old) *d;
+		d = (rz_new/rz_old) *d + z;
 		
 		rz_old = rz_new;
 		

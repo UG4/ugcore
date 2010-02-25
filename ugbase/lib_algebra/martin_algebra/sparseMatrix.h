@@ -28,7 +28,7 @@ template<typename vec_type> class Vector;
 ///////////////////////////////////////////////////////////////////
 //							connection
 ///////////////////////////////////////////////////////////////////
-#include "submatrix.h"
+//#include "submatrix.h"
 
 #include "Vector.h"
 
@@ -43,15 +43,15 @@ template<typename vec_type> class Vector;
 //---------------------------------
 //! algebraic multigrid class.
 //!
-template<typename templ_entry_type> 
-class SparseMatrix
+template<typename T> 
+class SparseMatrix : public TE_MAT<SparseMatrix<T> >
 {
 	// functions
 public:
-	typedef templ_entry_type entry_type;
+	typedef T entry_type;
 	typedef matrixrow<entry_type> row_type;
 	typedef matrixrow<entry_type> matrixrow_type;
-	typedef submatrix<entry_type> submatrix_type;
+	//typedef submatrix<entry_type> submatrix_type;
 
 	struct connection
 	{
@@ -87,6 +87,15 @@ public: // construction etc
 	//! create this as a transpose of SparseMatrix B
 	void createAsTransposeOf(const SparseMatrix &B);
 	
+	//! create as = A * B * C
+	template<typename A_type, typename B_type, typename C_type>
+	void createAsMultiplyOf(const A_type &A, const B_type &B, const C_type &C, int *posInConnections=NULL);
+	
+	//! create as = A * B
+	template<typename A_type, typename B_type>
+	void createAsMultiplyOf(const A_type &A, const B_type &B, int *posInConnections=NULL);
+
+	
 private: // disallowed operations (not defined):
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 	void operator = (const SparseMatrix &v); ///< disallow assignment
@@ -116,19 +125,39 @@ public:	// general functions
 	
 	
 	//! get Diagonal A_[i,i] of matrix
-	inline const entry_type getDiag(int i) const;
+	inline const entry_type &getDiag(int i) const;
 	inline entry_type &getDiag(int i);	
 	
 	//! isUnconnected: true if only A[i,i] != 0.0.
 	inline bool isUnconnected(int i) const;	
 
-	//! adds the submatrix mat to A. 
-	void add(const submatrix<entry_type> &mat);
-	//! sets the submatrix mat in A
-	void set(const submatrix<entry_type> &mat);
-	//! gets the submatrix mat of A
-	void get(submatrix<entry_type> &mat) const;
+	//! adds the submatrix mat to A. 	
+	
+	template<typename M>
+	void add(const M &mat, int *rows, int *cols);	
+	template<typename M>
+	void set(const M &mat, int *rows, int *cols);	
+	template<typename M>
+	void get(M &mat, int *rows, int *cols) const;
+	
+	template<typename M>
+	void add(const M &mat, vector<int> &rows, vector<int> &cols);	
+	template<typename M>
+	void set(const M &mat, vector<int> &rows, vector<int> &cols);
+	template<typename M>
+	void get(M &mat, vector<int> &rows, vector<int> &cols) const;
 
+	
+	
+	void add(const entry_type &d, int row, int col);
+	void set(const entry_type &d, int row, int col);
+	void get(entry_type &d, int row, int col) const;
+	
+	//! get neighborhood
+	void getNeighborhood(int node, int depth, vector<int> &indices, int *posInConnections=NULL) const;
+
+	bool isCloseToBoundary(int node, int distance) const;
+	
 	// for other manipulation/accessor functions see matrixrow functions,
 	// that is A[i].matrixrowfunction(params).
 		
@@ -212,21 +241,28 @@ public:
 	class cRowIterator 
 	{
 	public:
-		const SparseMatrix<templ_entry_type> &A;
+		//const SparseMatrix<entry_type> &A;
+		const SparseMatrix<entry_type> *A;
 		int m_position;
 		int row;
 	public:
-		inline cRowIterator(const SparseMatrix<templ_entry_type> &A_, int row_) : A(A_) { row = row_; rewind(); }
+		inline cRowIterator(const SparseMatrix<entry_type> &A_, int row_)
+		{
+			A = &A_;
+			row = row_; 
+			rewind(); 
+			
+		}
 		inline cRowIterator(const cRowIterator &other) : A(other.A) { row = other.row; m_position = other.m_position; }
 		
-		inline const connection &operator *() const {return A.cons[row][m_position];}
+		inline const connection &operator *() const {return A->cons[row][m_position];}
 		
 		inline void operator ++() {	m_position++; }
 		
 		inline void rewind() { m_position = 0;}
 		inline int getPos() const{	return m_position;}
 		
-		inline bool isEnd() const { return m_position >= A.getNrOfConnections(row); }
+		inline bool isEnd() const { return m_position >= A->getNrOfConnections(row); }
 	};
 	
 	cRowIterator beginRow(int row) const
@@ -239,11 +275,11 @@ public:
 	class rowIterator 
 	{
 	public:
-		SparseMatrix<templ_entry_type> &A;
+		SparseMatrix<entry_type> &A;
 		int m_position;
 		int row;
 	public:
-		inline rowIterator(SparseMatrix<templ_entry_type> &A_, int row_) : A(A_) { row = row_; rewind(); }
+		inline rowIterator(SparseMatrix<entry_type> &A_, int row_) : A(A_) { row = row_; rewind(); }
 		inline rowIterator(const cRowIterator &other) : A(other.A) { row = other.row; m_position = other.m_position; }
 		
 		inline connection &operator *() const {return A.cons[row][m_position];}
@@ -283,11 +319,11 @@ public:
 	class cLowerLeftIterator : public cRowIterator
 	{
 	public:
-		cLowerLeftIterator(const SparseMatrix<templ_entry_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
+		cLowerLeftIterator(const SparseMatrix<entry_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
 		inline void operator ++()
 		{
 			cRowIterator::m_position ++;
-			while(cRowIterator::m_position < cRowIterator::A.getNrOfConnections(cRowIterator::row) 
+			while(cRowIterator::m_position < cRowIterator::A->getNrOfConnections(cRowIterator::row) 
 				  && (  cRowIterator::operator *().iIndex >= cRowIterator::row)) // || cRowIterator::operator *().dValue == 0.0)) 
 				cRowIterator::m_position++;
 		}
@@ -306,11 +342,11 @@ public:
 	class cUpperRightIterator : public cRowIterator
 	{
 	public:
-		cUpperRightIterator(const SparseMatrix<templ_entry_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
+		cUpperRightIterator(const SparseMatrix<entry_type> &A_, int row_) : cRowIterator(A_, row_) { 	rewind();	}
 		inline void operator ++()
 		{
 			cRowIterator::m_position ++;
-			while(cRowIterator::m_position < cRowIterator::A.getNrOfConnections(cRowIterator::row) 
+			while(cRowIterator::m_position < cRowIterator::A->getNrOfConnections(cRowIterator::row) 
 				  && (  cRowIterator::operator *().iIndex <= cRowIterator::row))// || cRowIterator::operator *().dValue == 0.0)) 
 				cRowIterator::m_position++;
 		}
@@ -367,6 +403,7 @@ private:
 	friend class matrixrow<entry_type>;
 	
 };
+
 
 #include "matrixRow.h"
 

@@ -16,6 +16,18 @@
 //! can use templateExpressions used in this file
 
 ////////////////////////////////////////////////////////////////////////////////
+//! this helper class is a transposed of class A
+template<class A> class TRANSPOSED
+{
+public:
+	TRANSPOSED(const A &a_) : a(a_) {}
+	//! get untransposed original class A.
+	const A& T() const {return a; }
+private:
+	const A &a;
+};
+
+////////////////////////////////////////////////////////////////////////////////
 //!
 //! class TE_AMV_X: class for template Expressions.
 //! this is the "Barton-Nackman base class" for all expressions with
@@ -26,6 +38,7 @@ template<class A> class TE_AMV_X
 public:
 	//! cast this class down to original class A.
 	const A& cast() const {return static_cast<const A&>(*this); }
+	const TRANSPOSED<TE_AMV_X<A> > T() { return TRANSPOSED<TE_AMV_X<A> > (*this); }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,6 +64,10 @@ public:
 	//! cast this class down to original class A.
 	const A& cast() const {return static_cast<const A&>(*this); }
 };
+
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +171,7 @@ public:
 	//! ASSERTs that r is not on left and right side (as r = A*r)
 	void preventForbiddenDestination(void *p) const
 	{
+		
 		bool bFirst = true;
 		preventForbiddenDestination(p, bFirst);
 	}
@@ -397,3 +415,67 @@ inline double norm(const TE_AMV_X<X> &t)
 {
 	return sqrt(norm2<X>(t));
 }
+
+template<typename X> 
+inline double absmax2(const TE_AMV_X<X> &ex_)
+{
+	const X &ex = ex_.cast();
+	double absmax=-1;
+	typename X::entry_type t;
+	for(int i=0; i < ex.getLength(); i++)	
+	{
+		ex.assign(t, i);
+		double d= mnorm2(t);
+		if(d > absmax)
+			absmax = d;
+	}
+	return absmax;
+}
+
+template<typename X> 
+inline double absmax(const TE_AMV_X<X> &ex_)
+{
+	return sqrt( absmax2<X> (ex_) );
+}
+
+
+
+//! template expression dotProd between two TE_AMV_Xs.
+template<typename L, typename R> 
+inline double dotProd(const TE_AMV_X<L> &l_, const TE_AMV_X<R> &r_)
+{
+	const L &l = l_.cast();
+	const R &r = r_.cast();
+	ASSERT2(l.getLength() == r.getLength(), "expression L=" << l << " and R=" << r << " differ in length.");
+	
+	double sum=0;
+	typename L::entry_type block_l;
+	typename R::entry_type block_r;
+	
+	int N = l.getLength();
+	for(int i=0; i < N; i++)	
+	{
+		l.assign(block_l, i);
+		r.assign(block_r, i);
+		sum += block_l * block_r;
+	}
+	return sum;
+}
+
+
+template<typename L, typename R> 
+inline double operator *(const TRANSPOSED<TE_AMV_X<L> > &l, const TE_AMV_X<R> &r)
+{
+	return dotProd<L, R> (l.T() ,r);
+}
+
+
+
+
+
+
+
+
+
+
+

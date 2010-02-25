@@ -8,11 +8,14 @@
  */
 #pragma once
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <assert.h>
 using namespace std;
 #define TRUE 1
 #define FALSE 0
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -25,6 +28,16 @@ using namespace std;
 #define bluecolor "\x1b[0;34m"
 
 #define normalcolor "\x1b[0;0m"
+
+
+////////////////////////////////////////////////////////////////////////////////
+struct COMPILE_TIME_ERROR {};
+
+template<bool> struct CompileTimeError;
+template<> struct CompileTimeError<true> { };
+#define CT_CHECK(expression, the_text)  \
+	(CompileTimeError<(expression) != 0>() );
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -49,7 +62,6 @@ extern int flexamg_dimensions;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void spaceout(int n);
 string nrstring(double d);
 string nrstring(int i);
 
@@ -187,3 +199,15 @@ private:
 };
 
 
+////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+struct sortStruct
+{
+	int index;
+	T sortValue;
+	
+	bool operator < (const sortStruct<T> &other) const
+	{
+		return sortValue < other.sortValue;
+	}
+};

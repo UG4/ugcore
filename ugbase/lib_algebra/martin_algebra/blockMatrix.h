@@ -3,8 +3,6 @@
 template <typename t> class matrix_trait;
 template <typename t> class vec_traits;
 template<typename entry_type, typename vec_type> struct Mult_Traits;
-#include "blockDenseMatrix.h"
-#include "blockVector.h"
 
 
 //////////////////////////////////////////////////////
@@ -200,6 +198,8 @@ inline int getCols(const double &t)
 	return 1;
 }
 
+#include "blockDenseMatrix.h"
+#include "blockVector.h"
 
 ///////////////////////////////////////////////////////////////////
 // traits: information for doubles

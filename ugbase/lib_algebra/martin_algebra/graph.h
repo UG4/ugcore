@@ -7,6 +7,7 @@
  *
  */
 
+#pragma once
 
 //!
 //! cgraph graph class
@@ -41,7 +42,7 @@ public:
 		
 		consmem = new int[nnz];
 		
-		if(never_happens) print();
+		if(never_happens) { print(); pr(0);} 
 	}
 	
 	//!
@@ -67,6 +68,14 @@ public:
 		}
 	}
 	
+	void pr(int i)
+	{
+		cout << "graph row " << i << ":" << endl;
+		for(int j=0; j<iNrOfConnections[i]; j++)
+			cout << conn[i][j] << " "; cout << endl;
+		cout.flush();
+	}
+	
 	void print()
 	{
 		cout << "============= graph ================ " << endl;
@@ -78,6 +87,21 @@ public:
 			cout << endl;
 		}
 	}
+	
+	void writeToFile(const char *filename, int level) const
+	{
+		fstream file(filename, ios::out);
+		file << CONNECTION_VIEWER_VERSION << endl;
+		file << flexamg_dimensions << endl;
+		
+		writePosToStream(file);	
+		file << 1 << endl;
+		for(int i=0; i < size; i++)
+		{
+			for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
+				file << GetOriginalIndex(level, i) << " " << GetOriginalIndex(level, conn()) << " " << 1 << endl;
+		}
+	}	
 	
 	void transpose()
 	{

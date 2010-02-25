@@ -8,13 +8,13 @@
  */
 
 
-template<typename storage_type, int n_=0>
+template<typename value_type, typename storage_type, int n_=0>
 class blockVector
 {
 private: 
 //	- storage -
 	typedef typename storage_traits<storage_type, double, n_, 0>::array_type array_type;
-	typedef blockVector<storage_type, n_> vector_type;
+	typedef blockVector<value_type, storage_type, n_> vector_type;
 	enum { fixed_n=n_};	
 	array_type values;
 	
@@ -34,19 +34,19 @@ public:
 	
 public:
 // access functions
-	double &getAt(int i)
+	value_type &getAt(int i)
 	{
 		return values[i];
 	}
-	double getAt(int i) const
+	const value_type &getAt(int i) const
 	{
 		return values[i];
 	}
-	double &operator ()(int i)
+	value_type &operator ()(int i)
 	{
 		return values[i];
 	}
-	double operator () (int i) const
+	const value_type &operator () (int i) const
 	{
 		return values[i];
 	}
@@ -160,11 +160,11 @@ public:
 	
 	//! calc this = this/mat = mat^{-1} * this
 	template<typename array_type>
-	inline void operator /= (const blockDenseMatrix<array_type> &mat);
+	inline void operator /= (const blockDenseMatrix<value_type, array_type> &mat);
 	
 	//! return mat^{-1} * this
 	template<typename array_type>
-	vector_type operator / (const blockDenseMatrix<array_type> &mat )
+	vector_type operator / (const blockDenseMatrix<value_type, array_type> &mat )
 	{
 		vector_type erg = *this;
 		erg /= mat;
@@ -185,21 +185,21 @@ public:
 	{
 		for(int i=0; i<getSize(); i++)
 			//add_mult(getAt(i), alpha, vec(i));
-			getAt(i) += vec(i) * alpha;
+			::add_mult(getAt(i), vec(i), alpha);
 	}
 	
 	//! this -= alpha *vec . use this to prevent temporary variables	
-	void sub_mult(double alpha, const vector_type &vec)
+	void sub_mult(const double alpha, const vector_type &vec)
 	{
 		for(int i=0; i<getSize(); i++)
-			getAt(i) -= vec(i) * alpha;
+			::sub_mult(getAt(i), vec(i), alpha);
 	}
 	
 	//! this = alpha *vec . use this to prevent temporary variables	
 	void assign_mult(double alpha, const vector_type &vec)
 	{
 		for(int i=0; i<getSize(); i++)
-			getAt(i) = vec(i) * alpha;
+			::assign_mult(getAt(i), vec(i), alpha);
 	}	
 	
 	
@@ -216,8 +216,8 @@ public:
 	}
 };
 
-template<typename storage_type, int n>
-inline blockVector<storage_type, n> operator * (double alpha, const blockVector<storage_type, n> &v) 
+template<typename value_type, typename storage_type, int n>
+inline blockVector<value_type, storage_type, n> operator * (double alpha, const blockVector<value_type, storage_type, n> &v) 
 {
 	return v * alpha;
 }
@@ -295,8 +295,8 @@ inline blockVector<storage_type, n> operator * (double alpha, const blockVector<
 
 
 
-template<typename storage_type, int n>
-blockVector<storage_type, n> operator * (double alpha, blockVector<storage_type, n> &vec)
+template<typename value_type, typename storage_type, int n>
+blockVector<value_type, storage_type, n> operator * (double alpha, blockVector<value_type, storage_type, n> &vec)
 {
 	return vec*alpha;
 }

@@ -20,7 +20,8 @@ class Vector : public TE_VEC<Vector<templ_entry_type> >
 	// functions
 public:
 	typedef templ_entry_type entry_type;
-	typedef subvector<entry_type> subvector_type;
+	//typedef subvector<entry_type> subvector_type;
+	typedef Vector<templ_entry_type> vector_type;
 
 	//! constructor
 	Vector(const char *_name = "");		
@@ -47,7 +48,9 @@ public:
 	
 	//! returns v.T w, that is the dotprod of this vector and w
 	double dotprod(const Vector &w) const;	
-	inline double operator *(const Vector &w); ///< shortcut for .dotprod(w)
+		
+	// deprecated, use x.T() * y.
+	//inline double operator *(const Vector &w); ///< shortcut for .dotprod(w) 
 	
 	//double energynorm2(const SparseMatrix &A) const;
 	/*double energynorm(const SparseMatrix &A) const
@@ -62,11 +65,15 @@ public:
 	
 	
 	//! add subvector
-	void add(const subvector<entry_type> &subvec);
+/*	void add(const subvector<entry_type> &subvec);
 	//! set subvector
 	void set(const subvector<entry_type> &subvec);
 	//! get subvector
-	void get(subvector<entry_type> &subvec) const;
+	void get(subvector<entry_type> &subvec) const;*/
+	
+	void add(const entry_type &d, int i);
+	void set(const entry_type &d, int i);
+	void get(entry_type &d, int i) const;
 	
 	
 	// for Function Expression, sh. TemplateExpression.h // remove this

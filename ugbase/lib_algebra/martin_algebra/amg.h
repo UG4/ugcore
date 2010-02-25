@@ -45,13 +45,9 @@ public:
 	double MGCycle(Vector_type &x, const Vector_type &b, int i=0);	
 	void printCoarsening(int level);
 	
-	void interpolate(Vector_type *pto, const Vector_type &from, int tolevel); // 2h -> h prolongate
-	void restriction(Vector_type *pto, const Vector_type &from, int tolevel); // h -> 2h
-	
-	
 	bool onlyOneLevel(const Matrix_type& A_);
-	
-	//void restrictioninjection(Vector_type &to, const Vector_type &from, int tolevel);
+	void amgTest(const Matrix_type& A_, Vector_type &x, const Vector_type &b);
+	void amgTestLevel(Vector_type &x, const Vector_type &b, int level);
 	
 	int getNrOfCoarse(int level)
 	{
@@ -70,30 +66,37 @@ public:
 	
 private:
 	//  structs
-#define ASSIGNED_RATING			(-2000000000)
-#define COARSE_RATING			(-2000000001)
-#define FINE_RATING_INDIRECT	(-2000000002)
-#define FINE_RATING				(-2000000003)
+#define ASSIGNED_RATING					(-1000000000)
+#define COARSE_RATING					(-1000000001)
+#define FINE_RATING						(-2000000000)
+#define FINE_RATING_INDIRECT_UNASSIGNED	(-1000000002)
 	struct nodeinfo
 	{
 		int rating;
 		//int newIndex;		
 		inline void setAssigned(){rating = ASSIGNED_RATING;}		
 		inline void setCoarse()	{rating = COARSE_RATING;}
-		inline void setFine(){rating = FINE_RATING;	}
-		inline void setFineIndirect(){rating = FINE_RATING_INDIRECT;}
+		inline void setFineDirect(){rating = FINE_RATING;	}
+		
+		inline void setFineIndirect(){rating = FINE_RATING_INDIRECT_UNASSIGNED;}
+		
 		inline bool isCoarse(){	return rating == COARSE_RATING;}
-		inline bool isFine(){return (rating == FINE_RATING) || (rating == FINE_RATING_INDIRECT);}
-		inline bool isFineNotIndirect()	{return (rating == FINE_RATING);}
-		inline bool isFineIndirect(){ return rating == FINE_RATING_INDIRECT;}		
+		inline bool isFineDirect()	{return (rating == FINE_RATING);}
+		
+		inline bool isUnassignedFineIndirect(){return rating == FINE_RATING_INDIRECT_UNASSIGNED;}
+
+		
+		inline bool isFineIndirectLevel(int level){ return rating == FINE_RATING+1-level;}
+		inline void setFineIndirectLevel(int level){ rating = FINE_RATING+1-level;}
+		
 		inline bool isAssigned(){return (rating <= ASSIGNED_RATING);}
 	
 		friend ostream &operator << (ostream &out, nodeinfo &n)
 		{
 			out << "Rating: " << n.rating;
-			if(n.isFineNotIndirect()) out << " (fine not ind)";
-			else if(n.isFineIndirect()) out << " (fine ind)";
-			else if(n.isCoarse()) out << " (coarse)";
+			if(n.isCoarse()) out << " (coarse)";
+			else if(n.isUnassignedFineIndirect()) out << "(unknown indirect fine)";
+			else out << " (indirect level " << FINE_RATING - n.rating << ")";
 			out << " ";
 			return out;
 		}
@@ -114,20 +117,21 @@ private:
 	int	nu1;		///< nu_1 : nr. of pre-smoothing steps
 	int nu2;		///< nu_2: nr. of post-smoothing steps
 	int gamma;		///< gamma: cycle type (1 = V-Cycle, 2 = W-Cycle)
+	double eps_truncation_of_interpolation;
+	double theta; ///< measure for strong connectivity
+	double sigma; ///< dunno
 private:
 //  functions
-	int getNodeWithBestRating(int n);
-		
 	void createAMGLevel(Matrix_type &AH, SparseMatrix<double> &R, const Matrix_type &A, SparseMatrix<double> &P, int level);
 	void createGalerkinMatrix(Matrix_type &AH, const SparseMatrix<double> &R, const Matrix_type &A, const SparseMatrix<double> &P, int *posInConnections);
 	
-	void CreateProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int iNrOfCoarse);
-	void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int *posInConnections);
+	void CreateProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int iNrOfCoarse, int &unassigned);
+	void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int *posInConnections, int unassigned);
 	
 	//! creates the graph
 	void CreateGraph(const Matrix_type &A, cgraph &graph, maxheap<nodeinfo> &PQ, int &unassigned);
-	void CreateGraph2(cgraph &graph, cgraph &graph2, maxheap<nodeinfo> &PQ, int &unassigned, int *posInConnections);
-	int Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, bool bIndirect, const Matrix_type &A);
+	void CreateGraph2(cgraph &graph, cgraph &graph2, maxheap<nodeinfo> &PQ, int &unassigned, int &iNrOfCoarse, int *posInConnections, int *newIndex);
+	int Coarsen(cgraph &graph, maxheap<nodeinfo> &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, const Matrix_type &A);
 	
 
 //	data

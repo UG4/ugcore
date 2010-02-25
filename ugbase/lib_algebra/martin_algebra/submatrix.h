@@ -6,7 +6,7 @@
  *  Copyright 2010 . All rights reserved.
  *
  */
-
+#include <iomanip> 
 //!
 //! submatrix
 //! provide indices and nr of unknowns, and get submatrix of a bigger matrix
@@ -85,6 +85,8 @@ public:
 		delete[] values;
 	}
 	
+
+	
 	//! access element with LOCAL indices
 	entry_type &operator () (int from, int to)
 	{
@@ -107,6 +109,64 @@ public:
 	int getRowIndex(int localIndex) const { return indRows[localIndex]; }
 	int getColIndex(int localIndex) const { return indCols[localIndex]; }
 	
+	int getLocalRowIndex(int globalIndex) const 
+	{ 
+		for(int i=0; i<nrRows; i++)
+			if(indRows[i] == globalIndex) return i;
+		return -1;
+	}
+	int getLocalColIndex(int globalIndex) const 
+	{ 
+		for(int i=0; i<nrCols; i++)
+			if(indCols[i] == globalIndex) return i;
+		return -1;
+	}
+	
+	
+	//ostream &operator << (ostream out, const submatrix &SM)
+	void print()
+	{
+		int w = 12;
+		cout << setw(w) << "|";		
+		for(int i=0; i<nrCols; i++)
+			cout << setw(w-1) << indCols[i] << "|";
+		cout << endl;
+		for(int i=0; i<nrCols+1; i++)
+			cout << setw(w) << setfill('-') << "|";
+		cout << endl;
+		for(int i=0; i<nrRows; i++)
+		{
+			cout << setfill(i % 2 ? '.' : ' ') << setw(w-1) << indRows[i] << "|";
+			for(int j=0; j < nrCols; j++)
+				cout << right << setw(w-1) << values[i*nrCols + j] << "|";
+			cout << endl;
+		}
+//		return out;
+	}
+	
+	
+	void amg_inv()
+	{
+		static vector<__CLPK_integer> interchange(40);
+		interchange.resize(max(getCols(), getRows()));
+		__CLPK_integer info = 0;
+		__CLPK_integer rows = getRows();
+		__CLPK_integer cols = getCols();
+		
+		dgetrf_(&rows, &cols, values, &rows, &interchange[0], &info);
+		ASSERT2(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had had illegal value"));
+		
+		/*double worksize; __CLPK_integer iWorksize = -1;
+		dgetri_(&rows, &SM(0,0), &rows, &interchange[0], &worksize, &iWorksize, &info);
+		ASSERT1(info == 0);
+		iWorksize = worksize;
+		double *work = new double[iWorksize];*/
+		
+		__CLPK_integer iWorksize = 1024;
+		vector<double> work(1024);
+		dgetri_(&rows, values, &rows, &interchange[0], &work[0], &iWorksize, &info);
+		ASSERT1(info == 0);
+	}
 	
 private:	
 	int *indRows;		///< stores indices of the rows
@@ -116,6 +176,7 @@ private:
 	int *unknownsCols;
 	int nrCols, nrRows;	///< stores nr of unknowns of the rows
 	entry_type *values;
+	bool copiedIndices;
 };
 
 
