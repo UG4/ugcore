@@ -1,0 +1,33 @@
+
+
+########################################################################
+# Compiling and linking options
+########################################################################
+
+# include configuration and all makefile macro definitions
+include $(UGROOT)/ug.conf
+
+OBJECTS = ugInterface.o 
+#misc.o
+
+$(UG_LIB) : $(OBJECTS) Makefile.flexamg FORCE
+	$(ARCH_AR)  $(ARCH_ARFLAGS) $(UG_LIB) $(OBJECTS)
+
+# to assure that OBJECTS are archived
+FORCE:
+
+ar :
+	$(ARCH_AR)  $(ARCH_ARFLAGS) $(UG_LIB) $(OBJECTS)
+
+.SUFFIXES: .o .cpp
+
+.cpp.o:
+	$(ARCH_C++) $(UG_C++FLAGS) -I/Users/mrupp/software/boost-trunk $<
+
+clean:
+	rm -f *.o
+
+extract:
+	$(ARCH_AR) $(ARCH_EXFLAGS) $(UGROOT)/lib/libug$(UG_LIBSUFFIX).a $(OBJECTS)
+
+xmc: extract $(UG_LIB) clean
