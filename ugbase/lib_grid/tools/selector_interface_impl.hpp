@@ -34,8 +34,22 @@ inline void ISelector::select(GeometricObject* elem){
 		case VOLUME:
 			select(static_cast<Volume*>(elem));
 			break;
+		default:
+			LOG("  ERROR: Bad Element Type in ISelector::select. Aborting.\n");
+			std::abort();
+			break;
 	}
 }
+
+template <class TIterator>
+inline void ISelector::select(TIterator iterBegin, TIterator iterEnd)
+{
+	while(iterBegin != iterEnd){
+		select(*iterBegin);
+		iterBegin++;
+	}
+}
+
 
 template <class TElem>
 inline void ISelector::deselect(TElem* elem){
@@ -62,6 +76,17 @@ inline void ISelector::deselect(GeometricObject* elem){
 			break;
 	}
 }
+
+template <class TIterator>
+inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
+{
+	while(iterBegin != iterEnd){
+		typename TIterator::value_type& val = *iterBegin;
+		++iterBegin;
+		deselect(val);
+	}
+}
+
 
 bool ISelector::is_selected(GeometricObject* elem){
 	int elemID = elem->base_object_type_id();

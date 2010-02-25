@@ -95,13 +95,13 @@ void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
 		pSel = &tmpSel;
 	}
 	MGSelector& msel = *pSel;
-	
+
 //	resize and clear the layouts
 	vertexLayoutsOut = std::vector<DistributionVertexLayout>(sh.num_subsets());
 	edgeLayoutsOut = std::vector<DistributionEdgeLayout>(sh.num_subsets());
 	faceLayoutsOut = std::vector<DistributionFaceLayout>(sh.num_subsets());
 	volumeLayoutsOut = std::vector<DistributionVolumeLayout>(sh.num_subsets());
-	
+
 //	attach first-proc-indices and local-ids to the elements of the grid.
 	AInt aFirstProc;
 	AInt aFirstProcLocalInd;
@@ -129,7 +129,7 @@ void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
 	SetAttachmentValues(aaFirstProcEDGE, mg.edges_begin(), mg.edges_end(), -1);
 	SetAttachmentValues(aaFirstProcFACE, mg.faces_begin(), mg.faces_end(), -1);
 	SetAttachmentValues(aaFirstProcVOL, mg.volumes_begin(), mg.volumes_end(), -1);
-	
+
 //	iterate through the subsets and and create the packs.
 //	we have to do this in two steps to make sure that all
 //	elements are masters on the processes that they are assigned to
@@ -153,7 +153,7 @@ void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
 							sh.begin<Volume>(i), sh.end<Volume>(i),
 							aaFirstProcVOL, aaFirstProcLocalIndVOL, -1);
 	}
-	
+
 //	step 2: add all the associated elements to the distribution groups, which
 //			have not already been assigned.
 	for(uint i = 0; i < sh.num_subsets(); ++i)
@@ -165,12 +165,11 @@ void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
 		msel.select(sh.begin<Volume>(i), sh.end<Volume>(i));
 //TODO: overlap can be easily handled here! simply increase the selection.
 //		eventually we first would have to select all associated elements.
-
 	//	the hierarchy has to be complete. make sure the whole geneology
 	//	is selected. By passing true, all associated elements of lower
 	//	dimension will be selected, too.
 		SelectAssociatedGenealogy(msel, true);
-		
+
 	//	make sure that we won't add elements twice.
 		msel.deselect(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
 		msel.deselect(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
@@ -196,7 +195,7 @@ void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
 								aaFirstProcVOL, aaFirstProcLocalIndVOL, level);
 		}
 	}
-	
+
 //	The layouts are now complete.
 //	we're done in here.
 

@@ -95,14 +95,25 @@ class ISelector : public GridObserver
 	//	virtual methods
 		virtual void clear() = 0;
 
-		template <class TElem>
-		inline void select(TElem* elem);
+	//	selection
 		inline void select(GeometricObject* elem);
 
 		template <class TElem>
-		inline void deselect(TElem* elem);
-		inline void deselect(GeometricObject* elem);
+		inline void select(TElem* elem);
 
+		template <class TIterator>
+		inline void select(TIterator iterBegin, TIterator iterEnd);
+		
+	//	deselection
+		inline void deselect(GeometricObject* elem);
+		
+		template <class TElem>
+		inline void deselect(TElem* elem);
+		
+		template <class TIterator>
+		inline void deselect(TIterator iterBegin, TIterator iterEnd);
+
+	//	selection status
 		inline bool is_selected(GeometricObject* elem);
 		inline bool is_selected(VertexBase* vrt)	{if(!elements_are_supported(SE_VERTEX)) return false; return *m_aaIterVRT[vrt] != NULL;}
 		inline bool is_selected(EdgeBase* edge)		{if(!elements_are_supported(SE_EDGE)) return false; return *m_aaIterEDGE[edge] != NULL;}
@@ -124,20 +135,6 @@ class ISelector : public GridObserver
 		void enable_selection_inheritance(bool bEnable);
 		inline bool selection_inheritance_enabled()		{return m_bSelectionInheritanceEnabled;}
 
-
-		template <class TIterator>
-		inline void select(TIterator iterBegin, TIterator iterEnd)
-		{
-			while(iterBegin != iterEnd)
-				select(*iterBegin++);
-		}
-
-		template <class TIterator>
-		inline void deselect(TIterator iterBegin, TIterator iterEnd)
-		{
-			while(iterBegin != iterEnd)
-				deselect(*iterBegin++);
-		}
 
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);

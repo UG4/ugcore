@@ -13,11 +13,13 @@ namespace ug
 MGSelector::MGSelector(uint supportedElements) :
 	ISelector(supportedElements)
 {
+	m_pMultiGrid = NULL;
 }
 
 MGSelector::MGSelector(MultiGrid& grid, uint supportedElements) :
 	ISelector(grid, supportedElements)
 {
+	m_pMultiGrid = &grid;
 }
 
 void MGSelector::assign_grid(MultiGrid& grid)
