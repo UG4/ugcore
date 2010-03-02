@@ -45,8 +45,7 @@ static bool LoadGrid(Grid& grid, const char* filename,
 		bSuccess = ImportGridFromNG(grid, filename, aPos, pSH);
 	else if(strName.find(".dump") != string::npos)
 	{
-		bAutoassignFaces = true;
-		bSuccess = LoadGridFromDUMP(grid, filename, aPos);
+		bSuccess = LoadGridFromDUMP(grid, filename, pSH, aPos);
 	}
 	else if(strName.find(".ele") != string::npos)
 		return LoadGridFromELE(grid, filename, pSH, aPos);

@@ -31,6 +31,38 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt, TAAPosVRT
 	VecNormalize(nOut, nOut);
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TIterator, class AAPosVRT>
+void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
+					TIterator vrtsEnd, AAPosVRT& aaPos,
+					number alpha, int numIterations)
+{
+	for(int iteration = 0; iteration < numIterations; ++iteration){
+	//	iterate through all vertices
+		for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter){
+		//	smooth each one
+			VertexBase* vrt = *iter;
+			vector3 v(0, 0, 0);
+			int num = 0;
+			
+			EdgeBaseIterator edgesEnd = grid.associated_edges_end(vrt);
+			for(EdgeBaseIterator eIter = grid.associated_edges_begin(vrt);
+				eIter != edgesEnd; ++eIter)
+			{
+				VecAdd(v, v, aaPos[GetConnectedVertex(*eIter, vrt)]);
+				++num;
+			}
+			
+			if(num > 0){
+				VecScale(v, v, 1. / (number)num);
+				VecSubtract(v, v, aaPos[vrt]);
+				VecScale(v, v, alpha);
+				VecAdd(aaPos[vrt], aaPos[vrt], v);
+			}
+		}
+	}
+}
+
 }//	end of namespace
 
 #endif

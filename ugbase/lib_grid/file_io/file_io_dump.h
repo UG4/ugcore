@@ -27,7 +27,8 @@ namespace ug
  * #end of .dump file
  *
  */
-bool LoadGridFromDUMP(Grid& grid, const char* filename, AVector3& aPos = aPosition);
+bool LoadGridFromDUMP(Grid& grid, const char* filename,
+					ISubsetHandler* pSH = NULL, AVector3& aPos = aPosition);
 
 }
 

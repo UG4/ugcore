@@ -138,6 +138,15 @@ void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin,
 bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns true if a vertex lies on the boundary of a 3D grid.
+/** A vertex is regarded as a 3d boundary vertex if it lies on a
+ * 3d boundary face.
+ * if FACEOPT_STORE_ASSOCIATED_VOLUMES and VRTOPT_STORE_ASSOCIATED_FACES
+ * are enabled, the algorithm will be faster.
+*/
+bool IsBoundaryVertex3D(Grid& grid, VertexBase* v);
+
+////////////////////////////////////////////////////////////////////////
 /**
  * Uses Grid::mark()
  *
@@ -146,6 +155,12 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
  */
 void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 							int creaseSI, int fixedSI);
+
+////////////////////////////////////////////////////////////////////////
+template <class TIterator, class AAPosVRT>
+void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
+					TIterator vrtsEnd, AAPosVRT& aaPos,
+					number alpha, int numIterations);
 
 /**@}*/ // end of doxygen defgroup command
 

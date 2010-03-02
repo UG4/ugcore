@@ -483,6 +483,33 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v)
 	return false;
 }
 
+bool IsBoundaryVertex3D(Grid& grid, VertexBase* v)
+{
+//	check whether one of the associated edges is a boundary edge.
+//	if so return true.
+	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+	{
+	//	we have to enable this option, since we need edges in order to detect boundary vertices.
+		LOG("  WARNING in IsBoundaryVertex2D(...): auto-enabling VOLOPT_AUTOGENERATE_FACES.\n");
+		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+	}
+	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
+	{
+	//	we have to enable this option, since nothing works without it in reasonable time.
+		LOG("  WARNING in IsBoundaryVertex2D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_FACES.\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_FACES);
+	}
+
+	for(FaceIterator iter = grid.associated_faces_begin(v);
+		iter != grid.associated_faces_end(v); ++iter)
+	{
+		if(IsVolumeBoundaryFace(grid, *iter))
+			return true;
+	}
+
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 							int creaseSI, int fixedSI)
