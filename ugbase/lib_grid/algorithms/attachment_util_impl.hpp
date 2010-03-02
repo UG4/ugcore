@@ -82,6 +82,38 @@ bool ConvertMathVectorAttachmentValues(Grid& grid,
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TElem, class TAttachment>
+bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
+					Grid& destGrid, TAttachment& aDest)
+{
+//	make sure the attachments are properly attached.
+	if(!srcGrid.has_attachment<TElem>(aSrc))
+		return false;
+	
+	if(!destGrid.has_attachment<TElem>(aDest))
+		destGrid.attach_to<TElem>(aDest);
+		
+//	access the attachments
+	Grid::AttachmentAccessor<TElem, TAttachment> aaSrc(srcGrid, aSrc);
+	Grid::AttachmentAccessor<TElem, TAttachment> aaDest(destGrid, aDest);
+	
+//	iterate over the elements
+	typename geometry_traits<TElem>::iterator iterSrc = srcGrid.begin<TElem>();
+	typename geometry_traits<TElem>::iterator iterDest = destGrid.begin<TElem>();
+
+	while((iterSrc != srcGrid.end<TElem>())
+		&&(iterDest != destGrid.end<TElem>()))
+	{
+		aaDest[*iterDest] = aaSrc[*iterSrc];
+		++iterDest;
+		++iterSrc;
+	}
+	
+//	done
+	return true;
+}
+
 }//	end of namespace
 
 #endif

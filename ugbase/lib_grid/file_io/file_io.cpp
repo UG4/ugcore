@@ -72,7 +72,11 @@ static bool SaveGrid(Grid& grid, const char* filename,
 	}
 	else if(strName.find(".ele") != string::npos)
 		return SaveGridToELE(grid, filename, pSH, aPos);
-		
+	else if(strName.find(".net") != string::npos)
+		return SaveGridToART(grid, filename, pSH, aPos);
+	else if(strName.find(".art") != string::npos)
+		return SaveGridToART(grid, filename, pSH, aPos);
+				
 	return false;
 }
 

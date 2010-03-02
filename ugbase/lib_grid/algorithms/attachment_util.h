@@ -46,6 +46,22 @@ bool ConvertMathVectorAttachmentValues(Grid& grid,
 							TSrcAttachment& srcAttachment,
 							TDestAttachment& destAttachment);
 
+
+////////////////////////////////////////////////////////////////////////
+///	copies attachments from one grid to the other
+/**
+ * If aSrc is not attached to srcGrid, false is returned.
+ * If aDest is not attached to destGrid, it is attached automatically.
+ *
+ * The method iterates through the elements specified by TElem
+ * and copies the attachments.
+ *
+ * Call like this: CopyAttachments<VertexBase>(...);
+ */
+template <class TElem, class TAttachment>
+bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
+					Grid& destGrid, TAttachment& aDest);
+
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 
