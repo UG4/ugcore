@@ -1,0 +1,640 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		095C450810F761D80067117E /* UG */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 095C450C10F7620A0067117E /* Build configuration list for PBXAggregateTarget "UG" */;
+			buildPhases = (
+				095C450710F761D80067117E /* make flexamg */,
+				095C45C010F775DD0067117E /* make ugfe */,
+			);
+			dependencies = (
+			);
+			name = UG;
+			productName = fe2d;
+		};
+		096DFFC211171793005CAE4F /* LATEX */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 096DFFC8111717C0005CAE4F /* Build configuration list for PBXAggregateTarget "LATEX" */;
+			buildPhases = (
+				096DFFC111171793005CAE4F /* ShellScript */,
+			);
+			dependencies = (
+			);
+			name = LATEX;
+			productName = sss;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0912636010BDA05C00482CAF /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0912635F10BDA05C00482CAF /* Accelerate.framework */; };
+		09178B60114100C2004B0D47 /* AADisc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09178B5F114100C2004B0D47 /* AADisc.cpp */; };
+		0961D33C113EABE300DCF3C3 /* AlgebraAccessorTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0961D339113EABE300DCF3C3 /* AlgebraAccessorTest.cpp */; };
+		099522CE1055815B002FC31F /* misc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 099522CD1055815B002FC31F /* misc.cpp */; };
+		09A80F9C10D8F0F0005CB1B3 /* howtouse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09A80F9B10D8F0F0005CB1B3 /* howtouse.cpp */; };
+		09E5140C11074D4E005CE7F9 /* hypretest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09E51406110738DA005CE7F9 /* hypretest.cpp */; };
+		09E51747110F032D005CE7F9 /* disc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09E516A0110EF3F0005CE7F9 /* disc.cpp */; };
+		09FD19951106158F00DC9E88 /* ublasTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 09FD1990110613C400DC9E88 /* ublasTest.cpp */; };
+		8DD76F650486A84900D96B5E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
+		8DD76F6A0486A84900D96B5E /* flexamg.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C6859E8B029090EE04C91782 /* flexamg.1 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8DD76F690486A84900D96B5E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				8DD76F6A0486A84900D96B5E /* flexamg.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		08FB7796FE84155DC02AAC07 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		09107DE8108DB9FB00EF1AF7 /* mpiexec-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "mpiexec-Info.plist"; sourceTree = "<group>"; };
+		0912635F10BDA05C00482CAF /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = /System/Library/Frameworks/Accelerate.framework; sourceTree = "<absolute>"; };
+		09178B5F114100C2004B0D47 /* AADisc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AADisc.cpp; path = AlgebraAccessor/AADisc.cpp; sourceTree = "<group>"; };
+		09178DBA11413F02004B0D47 /* makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
+		091FB07410F4BF4F003F473A /* ugInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ugInterface.h; sourceTree = "<group>"; };
+		091FB07510F4BF4F003F473A /* ugInterface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ugInterface.cpp; sourceTree = "<group>"; };
+		094F9156112D7C6600046C5A /* experimental.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = experimental.h; sourceTree = "<group>"; };
+		0961D337113EABE300DCF3C3 /* AATemplateExpressions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AATemplateExpressions.h; path = AlgebraAccessor/AATemplateExpressions.h; sourceTree = "<group>"; };
+		0961D338113EABE300DCF3C3 /* AlgebraAccessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AlgebraAccessor.h; path = AlgebraAccessor/AlgebraAccessor.h; sourceTree = "<group>"; };
+		0961D339113EABE300DCF3C3 /* AlgebraAccessorTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AlgebraAccessorTest.cpp; path = AlgebraAccessor/AlgebraAccessorTest.cpp; sourceTree = "<group>"; };
+		0961D33A113EABE300DCF3C3 /* PointBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PointBlock.h; path = AlgebraAccessor/PointBlock.h; sourceTree = "<group>"; };
+		0961D33B113EABE300DCF3C3 /* UnknownWise.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = UnknownWise.h; path = AlgebraAccessor/UnknownWise.h; sourceTree = "<group>"; };
+		0961D343113EAEC000DCF3C3 /* arrayStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = arrayStorage.h; path = blocks/arrayStorage.h; sourceTree = "<group>"; };
+		0961D344113EAEC000DCF3C3 /* blockDenseMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blockDenseMatrix.h; path = blocks/blockDenseMatrix.h; sourceTree = "<group>"; };
+		0961D345113EAEC000DCF3C3 /* blockMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blockMatrix.h; path = blocks/blockMatrix.h; sourceTree = "<group>"; };
+		0961D346113EAEC000DCF3C3 /* blockSparseMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blockSparseMatrix.h; path = blocks/blockSparseMatrix.h; sourceTree = "<group>"; };
+		0961D347113EAEC000DCF3C3 /* blockVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = blockVector.h; path = blocks/blockVector.h; sourceTree = "<group>"; };
+		0961D36C113EAF2E00DCF3C3 /* amg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = amg.h; path = AMG/amg.h; sourceTree = "<group>"; };
+		0961D36D113EAF2E00DCF3C3 /* amg.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = amg.hpp; path = AMG/amg.hpp; sourceTree = "<group>"; };
+		0961D36E113EAF2E00DCF3C3 /* CoarseSolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CoarseSolver.h; path = AMG/CoarseSolver.h; sourceTree = "<group>"; };
+		0961D36F113EAF2E00DCF3C3 /* CoarseSolver.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = CoarseSolver.hpp; path = AMG/CoarseSolver.hpp; sourceTree = "<group>"; };
+		0961D372113EAF2E00DCF3C3 /* graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = graph.h; path = AMG/graph.h; sourceTree = "<group>"; };
+		0961D373113EAF2E00DCF3C3 /* maxheap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = maxheap.h; path = AMG/maxheap.h; sourceTree = "<group>"; };
+		0961D389113EB04400DCF3C3 /* linearsolver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = linearsolver.h; path = numprocs/linearsolver.h; sourceTree = "<group>"; };
+		0961D38A113EB04400DCF3C3 /* preconditioner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = preconditioner.h; path = numprocs/preconditioner.h; sourceTree = "<group>"; };
+		0961D38C113EB05400DCF3C3 /* interface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = interface.h; path = AlgebraAccessor/interface.h; sourceTree = "<group>"; };
+		0961D38D113EB07E00DCF3C3 /* algebra.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = algebra.h; sourceTree = "<group>"; };
+		0961D38E113EB09100DCF3C3 /* matrixRow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = matrixRow.h; path = Algebra/matrixRow.h; sourceTree = "<group>"; };
+		0961D38F113EB09100DCF3C3 /* matrixRow.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = matrixRow.hpp; path = Algebra/matrixRow.hpp; sourceTree = "<group>"; };
+		0961D390113EB09100DCF3C3 /* sparseMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sparseMatrix.h; path = Algebra/sparseMatrix.h; sourceTree = "<group>"; };
+		0961D391113EB09100DCF3C3 /* sparseMatrix.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = sparseMatrix.hpp; path = Algebra/sparseMatrix.hpp; sourceTree = "<group>"; };
+		0961D392113EB0A100DCF3C3 /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vector.h; path = Algebra/Vector.h; sourceTree = "<group>"; };
+		0961D393113EB0A100DCF3C3 /* Vector.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Vector.hpp; path = Algebra/Vector.hpp; sourceTree = "<group>"; };
+		0961D394113EB0A700DCF3C3 /* TemplateExpressions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TemplateExpressions.h; path = Algebra/TemplateExpressions.h; sourceTree = "<group>"; };
+		0961D3AB113EB15200DCF3C3 /* Makefile.flexamg */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.flexamg; sourceTree = "<group>"; };
+		0961D3B8113EB2F500DCF3C3 /* stopwatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stopwatch.h; sourceTree = "<group>"; };
+		0961D3B9113EB30C00DCF3C3 /* positions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = positions.h; sourceTree = "<group>"; };
+		099522CC1055815B002FC31F /* misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = misc.h; sourceTree = SOURCE_ROOT; };
+		099522CD1055815B002FC31F /* misc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = misc.cpp; sourceTree = SOURCE_ROOT; };
+		09A80F9B10D8F0F0005CB1B3 /* howtouse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = howtouse.cpp; sourceTree = "<group>"; };
+		09A8110E10DB78E6005CB1B3 /* index.html */ = {isa = PBXFileReference; explicitFileType = wrapper.htmld; fileEncoding = 4; name = index.html; path = html/index.html; sourceTree = "<group>"; };
+		09BD1B4F10FC77C500D04753 /* flexamg.scr */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = flexamg.scr; path = ../../../fe/appl/scripts/flexamg.scr; sourceTree = SOURCE_ROOT; };
+		09BD1E1E10FDEE5F00D04753 /* fe.init */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = fe.init; path = ../../../fe/appl/misc/fe.init; sourceTree = SOURCE_ROOT; };
+		09BD1E7810FE3C6400D04753 /* flexamg3d.scr */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = flexamg3d.scr; path = ../../../fe/appl/scripts/flexamg3d.scr; sourceTree = SOURCE_ROOT; };
+		09CA385C111044FD00A1FC1D /* Doxyfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
+		09E51406110738DA005CE7F9 /* hypretest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hypretest.cpp; sourceTree = "<group>"; };
+		09E516A0110EF3F0005CE7F9 /* disc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = disc.cpp; sourceTree = "<group>"; };
+		09FD1990110613C400DC9E88 /* ublasTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ublasTest.cpp; sourceTree = "<group>"; };
+		8DD76F6C0486A84900D96B5E /* flexamg */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = flexamg; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6859E8B029090EE04C91782 /* flexamg.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = flexamg.1; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8DD76F660486A84900D96B5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0912636010BDA05C00482CAF /* Accelerate.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* flexamg */ = {
+			isa = PBXGroup;
+			children = (
+				0961D3A9113EB14600DCF3C3 /* Makefiles */,
+				09BD1B4E10FC77A100D04753 /* scripts */,
+				0912635F10BDA05C00482CAF /* Accelerate.framework */,
+				08FB7795FE84155DC02AAC07 /* Source */,
+				C6859E8C029090F304C91782 /* Documentation */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+				09107DE8108DB9FB00EF1AF7 /* mpiexec-Info.plist */,
+			);
+			name = flexamg;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				0961D3B9113EB30C00DCF3C3 /* positions.h */,
+				0961D3B8113EB2F500DCF3C3 /* stopwatch.h */,
+				094F9156112D7C6600046C5A /* experimental.h */,
+				098F69D410F3538700BB5625 /* Tests */,
+				09A8110D10DB78A0005CB1B3 /* numprocs */,
+				09A8110C10DB788C005CB1B3 /* algebra */,
+				09A8110B10DB7873005CB1B3 /* amg */,
+				099522CC1055815B002FC31F /* misc.h */,
+				099522CD1055815B002FC31F /* misc.cpp */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		0961D3A9113EB14600DCF3C3 /* Makefiles */ = {
+			isa = PBXGroup;
+			children = (
+				09178DBA11413F02004B0D47 /* makefile */,
+				0961D3AB113EB15200DCF3C3 /* Makefile.flexamg */,
+			);
+			name = Makefiles;
+			sourceTree = "<group>";
+		};
+		0988655710A1C48A00B7395C /* vector */ = {
+			isa = PBXGroup;
+			children = (
+				0961D392113EB0A100DCF3C3 /* Vector.h */,
+				0961D393113EB0A100DCF3C3 /* Vector.hpp */,
+			);
+			name = vector;
+			sourceTree = "<group>";
+		};
+		0988655810A1C48F00B7395C /* matrix */ = {
+			isa = PBXGroup;
+			children = (
+				0961D38E113EB09100DCF3C3 /* matrixRow.h */,
+				0961D38F113EB09100DCF3C3 /* matrixRow.hpp */,
+				0961D390113EB09100DCF3C3 /* sparseMatrix.h */,
+				0961D391113EB09100DCF3C3 /* sparseMatrix.hpp */,
+			);
+			name = matrix;
+			sourceTree = "<group>";
+		};
+		098F69D410F3538700BB5625 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				09A80F9B10D8F0F0005CB1B3 /* howtouse.cpp */,
+				08FB7796FE84155DC02AAC07 /* main.cpp */,
+				09E516A0110EF3F0005CE7F9 /* disc.cpp */,
+				091FB07410F4BF4F003F473A /* ugInterface.h */,
+				091FB07510F4BF4F003F473A /* ugInterface.cpp */,
+				09FD1990110613C400DC9E88 /* ublasTest.cpp */,
+				09E51406110738DA005CE7F9 /* hypretest.cpp */,
+			);
+			name = Tests;
+			sourceTree = "<group>";
+		};
+		09A8110A10DB7863005CB1B3 /* blocks */ = {
+			isa = PBXGroup;
+			children = (
+				0961D343113EAEC000DCF3C3 /* arrayStorage.h */,
+				0961D344113EAEC000DCF3C3 /* blockDenseMatrix.h */,
+				0961D345113EAEC000DCF3C3 /* blockMatrix.h */,
+				0961D346113EAEC000DCF3C3 /* blockSparseMatrix.h */,
+				0961D347113EAEC000DCF3C3 /* blockVector.h */,
+			);
+			name = blocks;
+			sourceTree = "<group>";
+		};
+		09A8110B10DB7873005CB1B3 /* amg */ = {
+			isa = PBXGroup;
+			children = (
+				0961D36D113EAF2E00DCF3C3 /* amg.hpp */,
+				0961D36C113EAF2E00DCF3C3 /* amg.h */,
+				0961D36E113EAF2E00DCF3C3 /* CoarseSolver.h */,
+				0961D36F113EAF2E00DCF3C3 /* CoarseSolver.hpp */,
+				0961D372113EAF2E00DCF3C3 /* graph.h */,
+				0961D373113EAF2E00DCF3C3 /* maxheap.h */,
+			);
+			name = amg;
+			sourceTree = "<group>";
+		};
+		09A8110C10DB788C005CB1B3 /* algebra */ = {
+			isa = PBXGroup;
+			children = (
+				0961D38D113EB07E00DCF3C3 /* algebra.h */,
+				09E52908113E85BB000BAA12 /* AlgebraAccessor */,
+				09A8110A10DB7863005CB1B3 /* blocks */,
+				0988655810A1C48F00B7395C /* matrix */,
+				0988655710A1C48A00B7395C /* vector */,
+				0961D394113EB0A700DCF3C3 /* TemplateExpressions.h */,
+			);
+			name = algebra;
+			sourceTree = "<group>";
+		};
+		09A8110D10DB78A0005CB1B3 /* numprocs */ = {
+			isa = PBXGroup;
+			children = (
+				0961D389113EB04400DCF3C3 /* linearsolver.h */,
+				0961D38A113EB04400DCF3C3 /* preconditioner.h */,
+			);
+			name = numprocs;
+			sourceTree = "<group>";
+		};
+		09BD1B4E10FC77A100D04753 /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				09CA385C111044FD00A1FC1D /* Doxyfile */,
+				09BD1E1E10FDEE5F00D04753 /* fe.init */,
+				09BD1B4F10FC77C500D04753 /* flexamg.scr */,
+				09BD1E7810FE3C6400D04753 /* flexamg3d.scr */,
+			);
+			name = scripts;
+			sourceTree = "<group>";
+		};
+		09E52908113E85BB000BAA12 /* AlgebraAccessor */ = {
+			isa = PBXGroup;
+			children = (
+				0961D38C113EB05400DCF3C3 /* interface.h */,
+				0961D337113EABE300DCF3C3 /* AATemplateExpressions.h */,
+				0961D338113EABE300DCF3C3 /* AlgebraAccessor.h */,
+				0961D339113EABE300DCF3C3 /* AlgebraAccessorTest.cpp */,
+				0961D33A113EABE300DCF3C3 /* PointBlock.h */,
+				0961D33B113EABE300DCF3C3 /* UnknownWise.h */,
+				09178B5F114100C2004B0D47 /* AADisc.cpp */,
+			);
+			name = AlgebraAccessor;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8DD76F6C0486A84900D96B5E /* flexamg */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C6859E8C029090F304C91782 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				09A8110E10DB78E6005CB1B3 /* index.html */,
+				C6859E8B029090EE04C91782 /* flexamg.1 */,
+			);
+			name = Documentation;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8DD76F620486A84900D96B5E /* flexamg */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB923108733DC60010E9CD /* Build configuration list for PBXNativeTarget "flexamg" */;
+			buildPhases = (
+				8DD76F640486A84900D96B5E /* Sources */,
+				8DD76F660486A84900D96B5E /* Frameworks */,
+				8DD76F690486A84900D96B5E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = flexamg;
+			productInstallPath = "$(HOME)/bin";
+			productName = flexamg;
+			productReference = 8DD76F6C0486A84900D96B5E /* flexamg */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB923508733DC60010E9CD /* Build configuration list for PBXProject "flexamg" */;
+			compatibilityVersion = "Xcode 3.1";
+			hasScannedForEncodings = 1;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* flexamg */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8DD76F620486A84900D96B5E /* flexamg */,
+				095C450810F761D80067117E /* UG */,
+				096DFFC211171793005CAE4F /* LATEX */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		095C450710F761D80067117E /* make flexamg */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "make flexamg";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/tcsh;
+			shellScript = "cd ~/UGT/ug/np/flexamg\nrm *.o\nmake -f Makefile.flexamg";
+			showEnvVarsInLog = 0;
+		};
+		095C45C010F775DD0067117E /* make ugfe */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "make ugfe";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/tcsh;
+			shellScript = "cdfeappl\nmake";
+			showEnvVarsInLog = 0;
+		};
+		096DFFC111171793005CAE4F /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/sw/bin/doxygen\ncd html\nopen hierarchy.html\nexit 0";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8DD76F640486A84900D96B5E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8DD76F650486A84900D96B5E /* main.cpp in Sources */,
+				099522CE1055815B002FC31F /* misc.cpp in Sources */,
+				09A80F9C10D8F0F0005CB1B3 /* howtouse.cpp in Sources */,
+				09FD19951106158F00DC9E88 /* ublasTest.cpp in Sources */,
+				09E5140C11074D4E005CE7F9 /* hypretest.cpp in Sources */,
+				09E51747110F032D005CE7F9 /* disc.cpp in Sources */,
+				0961D33C113EABE300DCF3C3 /* AlgebraAccessorTest.cpp in Sources */,
+				09178B60114100C2004B0D47 /* AADisc.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0913333910BE918D00F85F61 /* Release with source */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH)";
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_FAST_MATH = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_UNROLL_LOOPS = YES;
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LD_OPENMP_FLAGS = "";
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = "-lstdc++";
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+			};
+			name = "Release with source";
+		};
+		0913333A10BE918D00F85F61 /* Release with source */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = flexamg;
+			};
+			name = "Release with source";
+		};
+		095C450910F761D80067117E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = fe2d;
+			};
+			name = Debug;
+		};
+		095C450A10F761D80067117E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = fe2d;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		095C450B10F761D80067117E /* Release with source */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = fe2d;
+			};
+			name = "Release with source";
+		};
+		096DFFC311171794005CAE4F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = sss;
+			};
+			name = Debug;
+		};
+		096DFFC411171794005CAE4F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				PRODUCT_NAME = LATEX;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		096DFFC511171794005CAE4F /* Release with source */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = sss;
+			};
+			name = "Release with source";
+		};
+		1DEB923208733DC60010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_GLIBCXX_DEBUG=1",
+					"_GLIBCXX_DEBUG_PEDANTIC=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					/Users/mrupp/software/FLENS,
+					"/Users/mrupp/software/hypre-2.0.0/src/hypre/include",
+					"/Users/mrupp/software/boost-trunk",
+				);
+				INSTALL_PATH = /usr/local/bin;
+				OTHER_LDFLAGS = (
+					"-L/Users/mrupp/software/FLENS/",
+					"-lflens",
+					"-L/Users/mrupp/software/hypre-2.0.0/src/hypre/lib",
+					"-lHYPRE",
+					"-lm",
+					"-lstdc++",
+				);
+				PRODUCT_NAME = flexamg;
+			};
+			name = Debug;
+		};
+		1DEB923308733DC60010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = flexamg;
+			};
+			name = Release;
+		};
+		1DEB923608733DC60010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = "DEBUG=${DEBUG}";
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = NO;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_PKGINFO_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"/Users/mrupp/software/hypre-2.0.0/src/hypre/include",
+					"/Users/mrupp/software/boost-trunk",
+				);
+				INFOPLIST_PREPROCESSOR_DEFINITIONS = "";
+				LD_OPENMP_FLAGS = "";
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-L/Users/mrupp/software/hypre-2.0.0/src/hypre/lib",
+					"-lHYPRE",
+					"-lm",
+					"-lstdc++",
+				);
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+			};
+			name = Debug;
+		};
+		1DEB923708733DC60010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH)";
+				GCC_AUTO_VECTORIZATION = YES;
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SUPPLEMENTAL_SSE3_INSTRUCTIONS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = "";
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_UNROLL_LOOPS = YES;
+				GCC_VERSION = 4.0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"/Users/mrupp/software/hypre-2.0.0/src/hypre/include",
+					"/Users/mrupp/software/boost-trunk",
+				);
+				LD_OPENMP_FLAGS = "";
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_LDFLAGS = (
+					"-lm",
+					"-lHYPRE",
+					"-L/Users/mrupp/software/hypre-2.0.0/src/hypre/lib",
+					"-lstdc++",
+				);
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+				USER_HEADER_SEARCH_PATHS = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		095C450C10F7620A0067117E /* Build configuration list for PBXAggregateTarget "UG" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				095C450910F761D80067117E /* Debug */,
+				095C450A10F761D80067117E /* Release */,
+				095C450B10F761D80067117E /* Release with source */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		096DFFC8111717C0005CAE4F /* Build configuration list for PBXAggregateTarget "LATEX" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				096DFFC311171794005CAE4F /* Debug */,
+				096DFFC411171794005CAE4F /* Release */,
+				096DFFC511171794005CAE4F /* Release with source */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB923108733DC60010E9CD /* Build configuration list for PBXNativeTarget "flexamg" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB923208733DC60010E9CD /* Debug */,
+				1DEB923308733DC60010E9CD /* Release */,
+				0913333A10BE918D00F85F61 /* Release with source */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB923508733DC60010E9CD /* Build configuration list for PBXProject "flexamg" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB923608733DC60010E9CD /* Debug */,
+				1DEB923708733DC60010E9CD /* Release */,
+				0913333910BE918D00F85F61 /* Release with source */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}
