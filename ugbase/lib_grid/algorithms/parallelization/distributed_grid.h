@@ -46,8 +46,8 @@ class DistributedGrid : public GridObserver
 	//	layout access
 	/**	if you change the layout externally, be sure to call
 	 *	DistributedGrid::layout_changed() afterwards.*/
-		inline ParallelGridLayout& grid_layout()				{return m_gridLayout;}
-		inline const ParallelGridLayout& grid_layout() const	{return m_gridLayout;}	
+		inline GridLayoutMap& grid_layout_map()				{return m_gridLayoutMap;}
+		inline const GridLayoutMap& grid_layout_map() const	{return m_gridLayoutMap;}	
 		
 	///	call this method if you altered the layout externally.
 	/**	This should be done as seldom as possible.
@@ -59,7 +59,7 @@ class DistributedGrid : public GridObserver
 	 *	(the default value). Complexity in this case is proportial to the
 	 *	number of elements in the underlying grid (or numer of elements in
 	 *	the layout - whichever is higher).*/
-	 	void grid_layout_changed(bool addedElemsOnly = false);
+	 	void grid_layouts_changed(bool addedElemsOnly = false);
 		
 	//	element creation
 	///	call this method before you start creating new elements in the associated grid.
@@ -187,7 +187,7 @@ class DistributedGrid : public GridObserver
 						
 	protected:
 		Grid*					m_pGrid;
-		ParallelGridLayout		m_gridLayout;
+		GridLayoutMap			m_gridLayoutMap;
 		
 		ScheduledElemMap		m_vrtMap; ///< holds all elements that were scheduled by vertices
 		ScheduledElemMap		m_edgeMap; ///< holds all elements that were scheduled by edges

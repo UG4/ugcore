@@ -27,7 +27,7 @@ void PrintData(int* data, int size)
 //	DistributeGrid
 void DistributeGrid(MultiGrid& mg, SubsetHandler& sh,
 					int localProcID, MultiGrid* pLocalGridOut,
-					ParallelGridLayout* pLocalGridLayoutOut,
+					GridLayoutMap* pLocalGridLayoutMapOut,
 					std::vector<int>* pProcessMap)
 {
 
@@ -134,12 +134,12 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 	}
 
 //	fill the local grid and subset-handler
-	if(pLocalGridOut && pLocalGridLayoutOut && (localStream.size() > 0))
+	if(pLocalGridOut && pLocalGridLayoutMapOut && (localStream.size() > 0))
 	{		
 		if(!pLocalGridOut->has_vertex_attachment(aPosition))
 			pLocalGridOut->attach_to_vertices(aPosition);
 
-		DeserializeGridAndLayouts(*pLocalGridOut, *pLocalGridLayoutOut,
+		DeserializeGridAndLayouts(*pLocalGridOut, *pLocalGridLayoutMapOut,
 									localStream);
 
 		DeserializeAttachment<VertexBase>(*pLocalGridOut, aPosition,
@@ -158,7 +158,7 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 
 ////////////////////////////////////////////////////////////////////////
 //	ReceiveGrid
-void ReceiveGrid(MultiGrid& mgOut, ParallelGridLayout& gridLayoutOut,
+void ReceiveGrid(MultiGrid& mgOut, GridLayoutMap& gridLayoutMapOut,
 					int srcProcID)
 {
 //	receive the stream-size
@@ -170,7 +170,7 @@ void ReceiveGrid(MultiGrid& mgOut, ParallelGridLayout& gridLayoutOut,
 	pcl::ReceiveData(binaryStream.buffer(), srcProcID, streamSize, 39);
 
 //	fill the grid and the layout
-	DeserializeGridAndLayouts(mgOut, gridLayoutOut, binaryStream);
+	DeserializeGridAndLayouts(mgOut, gridLayoutMapOut, binaryStream);
 	
 //	read the attached data
 	if(!mgOut.has_vertex_attachment(aPosition))

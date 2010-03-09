@@ -15,16 +15,21 @@ namespace ug
 //	CopyPolicy
 ///	copies values from a specified attachment to a stream and back.
 /**
- * pcl::group_traits::LocalID has to match either VertexBase*, EdgeBase*,
- * Face* or Volume*.
+ * Valid parameters for TNodeLayout are classes that extend the
+ * pcl::Layout type by a typedef for GeomObj.
+ * examples are: VertexLayout, EdgeLayout, FaceLayout or VolumeLayout
+ * (specializations of NodeLayout<TGeomObj>).
+ * 
+ * TNodeLayout::GeomObj has to be either VertexBase, EdgeBase, Face or Volume.
  */
-template <class TGeomObj, class TLayout, class TAttachment>
-class CopyPolicy : public pcl::ICommunicationPolicy<TLayout>
+template <class TNodeLayout, class TAttachment>
+class CopyPolicy : public pcl::ICommunicationPolicy<TNodeLayout>
 {
 	public:
-		typedef TGeomObj						GeomObj;
-		typedef typename TLayout::Element		Element;
-		typedef typename TLayout::Interface		Interface;
+		typedef TNodeLayout	Layout;
+		typedef typename TNodeLayout::GeomObj	GeomObj;
+		typedef typename Layout::Element		Element;
+		typedef typename Layout::Interface		Interface;
 		typedef typename TAttachment::ValueType Value;
 		
 	///	Initialises the collector with an invalid grid.
@@ -63,33 +68,31 @@ class CopyPolicy : public pcl::ICommunicationPolicy<TLayout>
 ////////////////////////////////////////////////////////////////////////
 //	implementation of the methods of CollectorCopy
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TLayout, class TAttachment>
-CopyPolicy<TGeomObj, TLayout, TAttachment>::
+template <class TNodeLayout, class TAttachment>
+CopyPolicy<TNodeLayout, TAttachment>::
 CopyPolicy()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TLayout, class TAttachment>
-CopyPolicy<TGeomObj, TLayout, TAttachment>::
+template <class TNodeLayout, class TAttachment>
+CopyPolicy<TNodeLayout, TAttachment>::
 CopyPolicy(Grid& grid, TAttachment& attachment)
 {
 	set_attachment(grid, attachment);
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TLayout, class TAttachment>
-void
-CopyPolicy<TGeomObj, TLayout, TAttachment>::
+template <class TNodeLayout, class TAttachment>
+void CopyPolicy<TNodeLayout, TAttachment>::
 set_attachment(Grid& grid, TAttachment& attachment)
 {
 	m_aaVal.access(grid, attachment);
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TLayout, class TAttachment>
-bool
-CopyPolicy<TGeomObj, TLayout, TAttachment>::
+template <class TNodeLayout, class TAttachment>
+bool CopyPolicy<TNodeLayout, TAttachment>::
 collect(std::ostream& buff, Interface& interface)
 {
 	for(typename Interface::iterator iter = interface.begin();
@@ -98,9 +101,8 @@ collect(std::ostream& buff, Interface& interface)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TGeomObj, class TLayout, class TAttachment>
-bool
-CopyPolicy<TGeomObj, TLayout, TAttachment>::
+template <class TNodeLayout, class TAttachment>
+bool CopyPolicy<TNodeLayout, TAttachment>::
 extract(std::istream& buff, Interface& interface)
 {
 	for(typename Interface::iterator iter = interface.begin();

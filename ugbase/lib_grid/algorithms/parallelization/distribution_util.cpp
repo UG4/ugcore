@@ -284,7 +284,7 @@ FillLayoutWithNodes(TLayout& layout, Grid& grid)
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridAndLayouts
 void DeserializeGridAndLayouts(MultiGrid& mgOut,
-							ParallelGridLayout& gridLayoutOut,
+							GridLayoutMap& gridLayoutOut,
 							std::istream& in)
 {	
 //	read the grid.
@@ -299,10 +299,14 @@ void DeserializeGridAndLayouts(MultiGrid& mgOut,
 	DeserializeMultiGridElements(mgOut, in, &vVrts, &vEdges, &vFaces, &vVols);
 
 //	read the layouts
-	DeserializeLayoutInterfaces<VertexBase>(gridLayoutOut.vertex_layout_map(), vVrts, in);
-	DeserializeLayoutInterfaces<EdgeBase>(gridLayoutOut.edge_layout_map(), vEdges, in);
-	DeserializeLayoutInterfaces<Face>(gridLayoutOut.face_layout_map(), vFaces, in);
-	DeserializeLayoutInterfaces<Volume>(gridLayoutOut.volume_layout_map(), vVols, in);
+	DeserializeLayoutInterfaces<VertexBase>(
+					gridLayoutOut.vertex_layout_hierarchy_map(), vVrts, in);
+	DeserializeLayoutInterfaces<EdgeBase>(
+					gridLayoutOut.edge_layout_hierarchy_map(), vEdges, in);
+	DeserializeLayoutInterfaces<Face>(
+					gridLayoutOut.face_layout_hierarchy_map(), vFaces, in);
+	DeserializeLayoutInterfaces<Volume>(
+					gridLayoutOut.volume_layout_hierarchy_map(), vVols, in);
 
 //DEBUG
 /*

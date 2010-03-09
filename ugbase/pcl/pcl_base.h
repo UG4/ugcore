@@ -46,7 +46,9 @@ class ordered_interface_tag : public basic_interface_tag	{};
 ////////////////////////////////////////////////////////////////////////
 //	BasicInterface
 ///	You may add elements to this interface and iterate over them
-template <class TElem, template<class> class TContainer = std::vector>
+template <class TElem,
+		  template<class T, class Alloc = std::allocator<T> >
+			class TContainer = std::vector>
 class BasicInterface
 {
 	protected:

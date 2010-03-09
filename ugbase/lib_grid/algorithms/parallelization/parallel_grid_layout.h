@@ -22,24 +22,56 @@ enum InterfaceNodeTypes
 	INT_SLAVE =		1<<1,
 	INT_LINK =		1<<2
 };
-	
+
+
 ////////////////////////////////////////////////////////////////////////
-//	ParallelNodeLayout
-///	The parallel node layout holds a pcl::Layout on each of its levels.
+//	NodeLayout
+///	specialization-scheme of pcl::Layout for geometric objects
+template <class TGeomObj>
+class NodeLayout : public pcl::Layout<pcl::BasicInterface<TGeomObj*> >
+{
+	public:
+		typedef TGeomObj	GeomObj;
+};
+
+////////////////////////////////////////////////////////////////////////
+///	The vertex layout stores pointers to vertices in the interfaces.
+typedef NodeLayout<VertexBase>	VertexLayout;
+
+////////////////////////////////////////////////////////////////////////
+///	The edge layout stores pointers to edges in the interfaces.
+typedef NodeLayout<EdgeBase>	EdgeLayout;
+
+////////////////////////////////////////////////////////////////////////
+///	The face layout stores pointers to faces in the interfaces.
+typedef NodeLayout<Face>		FaceLayout;
+
+////////////////////////////////////////////////////////////////////////
+///	The volume layout stores pointers to volumes in the interfaces.
+typedef NodeLayout<Volume>		VolumeLayout;
+
+
+////////////////////////////////////////////////////////////////////////
+//	NodeLayoutHierarchy
+///	Holds a pcl::Layout for each level.
 /**
- * The parallel node layout may be used to store Layouts for the same
- * local-id-type in multiple layers.
- * Please note that the ParallelNodeLayout will not be used as a
- * plc compliant layout - instead grants access to pcl comliant layouts.
- * \sa ParallelVertexLayout, ParallelEdgeLayout, ParallelFaceLayout, ParallelVolumeLayout
+ * May be used to store Layouts for the same element-type in multiple
+ * layers.
+ * 
+ * TNodeLayout has to be a specialization of NodeLayout for either
+ * VertexBase, EdgeBase, Face or Volume.
+ *
+ * \sa VertexLayout, EdgeLayout, FaceLayout, VolumeLayout.
+ * \sa VertexLayoutHierarchy, EdgeLayoutHierarchy,
+ * \sa FaceLayoutHierarchy, VolumeLayoutHierarchy.
  */
-template <class TLocalID>
-class ParallelNodeLayout
+template <class TNodeLayout>
+class NodeLayoutHierarchy
 {	
 	public:
-		typedef TLocalID						LocalID;
-		typedef pcl::BasicInterface<LocalID>	Interface;
-		typedef pcl::Layout<Interface>			Layout;
+		typedef TNodeLayout	Layout;
+		typedef typename Layout::GeomObj	GeomObj;
+		typedef typename Layout::Interface	Interface;
 		
 	public:
 	///	returns the number of levels.
@@ -62,20 +94,20 @@ class ParallelNodeLayout
 };
 
 ////////////////////////////////////////////////////////////////////////
-///	The vertex layout uses pointers to vertices as local id.
-typedef ParallelNodeLayout<VertexBase*>	ParallelVertexLayout;
+///	Stores VertexLayouts in different levels.
+typedef NodeLayoutHierarchy<VertexLayout>	VertexLayoutHierarchy;
 
 ////////////////////////////////////////////////////////////////////////
-///	The edge layout uses pointers to edges as local id.
-typedef ParallelNodeLayout<EdgeBase*>	ParallelEdgeLayout;
+///	Stores EdgeLayouts in different levels.
+typedef NodeLayoutHierarchy<EdgeLayout>	EdgeLayoutHierarchy;
 
 ////////////////////////////////////////////////////////////////////////
-///	The face layout uses pointers to faces as local id.
-typedef ParallelNodeLayout<Face*>	ParallelFaceLayout;
+///	Stores FaceLayouts in different levels
+typedef NodeLayoutHierarchy<FaceLayout>		FaceLayoutHierarchy;
 
 ////////////////////////////////////////////////////////////////////////
-///	The volume layout uses pointers to volumes as local id.
-typedef ParallelNodeLayout<Volume*>	ParallelVolumeLayout;
+///	Stores VolumeLayouts in different levels
+typedef NodeLayoutHierarchy<VolumeLayout>		VolumeLayoutHierarchy;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -99,62 +131,62 @@ typedef ParallelNodeGroup<Face>			ParallelFaceGroup;
 typedef ParallelNodeGroup<Volume>		ParallelVolumeGroup;
 */
 ////////////////////////////////////////////////////////////////////////
-//	ParallelGridLayout
-///	the ParallelGridLayout is an aggregation of element-layouts.
+//	GridLayoutMap
+///	the GridLayoutMap is an aggregation of element-layouts.
 /**
  * Element layouts can be accessed using an integer key.
  * This allows to store layouts for different node-types.
  * E.g. master-layouts or slave-layouts.
  */
-class ParallelGridLayout
+class GridLayoutMap
 {
 	public:
-		typedef std::map<int, ParallelVertexLayout>	VertexLayoutMap;
-		typedef std::map<int, ParallelEdgeLayout>	EdgeLayoutMap;
-		typedef std::map<int, ParallelFaceLayout>	FaceLayoutMap;
-		typedef std::map<int, ParallelVolumeLayout>	VolumeLayoutMap;
+		typedef std::map<int, VertexLayoutHierarchy>	VertexLayoutHierarchyMap;
+		typedef std::map<int, EdgeLayoutHierarchy>		EdgeLayoutHierarchyMap;
+		typedef std::map<int, FaceLayoutHierarchy>		FaceLayoutHierarchyMap;
+		typedef std::map<int, VolumeLayoutHierarchy>	VolumeLayoutHierarchyMap;
 		
 	public:
 	///	returns true if the layout for the given key exists.
-		inline bool has_vertex_layout(int key)		{return m_vertexLayoutMap.find(key) != m_vertexLayoutMap.end();}
+		inline bool has_vertex_layouts(int key)		{return m_vertexLayoutMap.find(key) != m_vertexLayoutMap.end();}
 	///	returns true if the layout for the given key exists.
-		inline bool has_edge_layout(int key)		{return m_edgeLayoutMap.find(key) != m_edgeLayoutMap.end();}
+		inline bool has_edge_layouts(int key)		{return m_edgeLayoutMap.find(key) != m_edgeLayoutMap.end();}
 	///	returns true if the layout for the given key exists.
-		inline bool has_face_layout(int key)		{return m_faceLayoutMap.find(key) != m_faceLayoutMap.end();}
+		inline bool has_face_layouts(int key)		{return m_faceLayoutMap.find(key) != m_faceLayoutMap.end();}
 	///	returns true if the layout for the given key exists.
-		inline bool has_volume_layout(int key)		{return m_volumeLayoutMap.find(key) != m_volumeLayoutMap.end();}
+		inline bool has_volume_layouts(int key)		{return m_volumeLayoutMap.find(key) != m_volumeLayoutMap.end();}
 
 	///	returns the ParallelVertexLayout that is associated with key.
 	/**	if the layout doesn't already exist then it will be created.*/
-		inline ParallelVertexLayout& vertex_layout(int key)		{return m_vertexLayoutMap[key];}
+		inline VertexLayoutHierarchy& vertex_layout_hierarchy(int key)	{return m_vertexLayoutMap[key];}
 	///	returns the ParallelEdgeLayout that is associated with key.
 	/**	if the layout doesn't already exist then it will be created.*/
-		inline ParallelEdgeLayout& edge_layout(int key)			{return m_edgeLayoutMap[key];}
+		inline EdgeLayoutHierarchy& edge_layout_hierarchy(int key)		{return m_edgeLayoutMap[key];}
 	///	returns the ParallelFaceLayout that is associated with key.
 	/**	if the layout doesn't already exist then it will be created.*/
-		inline ParallelFaceLayout& face_layout(int key)			{return m_faceLayoutMap[key];}
+		inline FaceLayoutHierarchy& face_layout_hierarchy(int key)		{return m_faceLayoutMap[key];}
 	///	returns the ParallelVolumeLayout that is associated with key.
 	/**	if the layout doesn't already exist then it will be created.*/
-		inline ParallelVolumeLayout& volume_layout(int key)		{return m_volumeLayoutMap[key];}
+		inline VolumeLayoutHierarchy& volume_layout_hierarchy(int key)	{return m_volumeLayoutMap[key];}
 		
 	///	the layout map should only be accessed if it can't be avoided.
 	/**	returns a std::map that holds pairs of int and VertexLayoutMaps.*/
-		inline VertexLayoutMap& vertex_layout_map()				{return m_vertexLayoutMap;}
+		inline VertexLayoutHierarchyMap& vertex_layout_hierarchy_map()	{return m_vertexLayoutMap;}
 	///	the layout map should only be accessed if it can't be avoided.
 	/**	returns a std::map that holds pairs of int and EdgeLayoutMaps.*/
-		inline EdgeLayoutMap& edge_layout_map()					{return m_edgeLayoutMap;}
+		inline EdgeLayoutHierarchyMap& edge_layout_hierarchy_map()		{return m_edgeLayoutMap;}
 	///	the layout map should only be accessed if it can't be avoided.
 	/**	returns a std::map that holds pairs of int and FaceLayoutMaps.*/
-		inline FaceLayoutMap& face_layout_map()					{return m_faceLayoutMap;}
+		inline FaceLayoutHierarchyMap& face_layout_hierarchy_map()		{return m_faceLayoutMap;}
 	///	the layout map should only be accessed if it can't be avoided.
 	/**	returns a std::map that holds pairs of int and VolumeLayoutMaps.*/
-		inline VolumeLayoutMap& volume_layout_map()				{return m_volumeLayoutMap;}
+		inline VolumeLayoutHierarchyMap& volume_layout_hierarchy_map()	{return m_volumeLayoutMap;}
 		
 	protected:
-		VertexLayoutMap		m_vertexLayoutMap;
-		EdgeLayoutMap		m_edgeLayoutMap;
-		FaceLayoutMap		m_faceLayoutMap;
-		VolumeLayoutMap		m_volumeLayoutMap;
+		VertexLayoutHierarchyMap	m_vertexLayoutMap;
+		EdgeLayoutHierarchyMap		m_edgeLayoutMap;
+		FaceLayoutHierarchyMap		m_faceLayoutMap;
+		VolumeLayoutHierarchyMap	m_volumeLayoutMap;
 };
 
 

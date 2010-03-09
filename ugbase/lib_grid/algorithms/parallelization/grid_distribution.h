@@ -37,7 +37,7 @@ namespace ug
  */
 void DistributeGrid(MultiGrid& mg, SubsetHandler& sh, int localProcID,
 					MultiGrid* pLocalGridOut = NULL,
-					ParallelGridLayout* pLocalGridLayoutOut = NULL,
+					GridLayoutMap* pLocalGridLayoutMapOut = NULL,
 					std::vector<int>* pProcessMap = NULL);
 
 ////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ void DistributeGrid(MultiGrid& mg, SubsetHandler& sh, int localProcID,
  * The keys in the gridLayoutMap correspond to the type of the nodes that
  * each layout contains.
  */
-void ReceiveGrid(MultiGrid& mgOut, ParallelGridLayout& gridLayoutOut,
+void ReceiveGrid(MultiGrid& mgOut, GridLayoutMap& gridLayoutMapOut,
 					int srcProcID);
 }//	end of namespace
 

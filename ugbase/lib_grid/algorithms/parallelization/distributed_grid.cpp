@@ -179,7 +179,7 @@ init_elem_status_from_comm_group(TCommGrp& commGrp,
 */
 
 ////////////////////////////////////////////////////////////////////////
-void DistributedGridObserver::grid_layout_changed(bool addedElemsOnly)
+void DistributedGridObserver::grid_layouts_changed(bool addedElemsOnly)
 {
 	if(!addedElemsOnly){
 	//	first we have to clear all status-entries
@@ -197,35 +197,35 @@ void DistributedGridObserver::grid_layout_changed(bool addedElemsOnly)
 //	init_elem_status_from_layout function.
 //	every layout has multiple levels
 //	VERTICES
-	if(parallelGridLayout.has_vertex_layout(INT_MASTER))
-		set_elem_statuses(parallelGridLayout.vertex_layout(INT_MASTER),
+	if(m_gridLayoutMap.has_vertex_layout(INT_MASTER))
+		set_elem_statuses(m_gridLayoutMap.vertex_layout(INT_MASTER),
 						m_aaStatusVRT, ES_IN_INTERFACE | ES_MASTER);
 	if(parallelGridLayout.has_vertex_layout(INT_SLAVE))
 		set_elem_statuses(parallelGridLayout.vertex_layout(INT_SLAVE),
 						m_aaStatusVRT, ES_IN_INTERFACE | ES_SLAVE);
 
 //	EDGES						
-	if(parallelGridLayout.has_edge_layout(INT_MASTER))
-		set_elem_statuses(parallelGridLayout.edge_layout(INT_MASTER),
+	if(m_gridLayoutMap.has_edge_layout(INT_MASTER))
+		set_elem_statuses(m_gridLayoutMap.edge_layout(INT_MASTER),
 						m_aaStatusEDGE, ES_IN_INTERFACE | ES_MASTER);
-	if(parallelGridLayout.has_edge_layout(INT_SLAVE))
-		set_elem_statuses(parallelGridLayout.edge_layout(INT_SLAVE),
+	if(m_gridLayoutMap.has_edge_layout(INT_SLAVE))
+		set_elem_statuses(m_gridLayoutMap.edge_layout(INT_SLAVE),
 						m_aaStatusEDGE, ES_IN_INTERFACE | ES_SLAVE);
 
 //	FACES
-	if(parallelGridLayout.has_face_layout(INT_MASTER))
-		set_elem_statuses(parallelGridLayout.face_layout(INT_MASTER),
+	if(m_gridLayoutMap.has_face_layout(INT_MASTER))
+		set_elem_statuses(m_gridLayoutMap.face_layout(INT_MASTER),
 						m_aaStatusFACE, ES_IN_INTERFACE | ES_MASTER);
-	if(parallelGridLayout.has_face_layout(INT_SLAVE))
-		set_elem_statuses(parallelGridLayout.face_layout(INT_SLAVE),
+	if(m_gridLayoutMap.has_face_layout(INT_SLAVE))
+		set_elem_statuses(m_gridLayoutMap.face_layout(INT_SLAVE),
 						m_aaStatusFACE, ES_IN_INTERFACE | ES_SLAVE);
 
 //	VOLUMES				
-	if(parallelGridLayout.has_volume_layout(INT_MASTER))
-		set_elem_statuses(parallelGridLayout.volume_layout(INT_MASTER),
+	if(m_gridLayoutMap.has_volume_layout(INT_MASTER))
+		set_elem_statuses(m_gridLayoutMap.volume_layout(INT_MASTER),
 						m_aaStatusVOL, ES_IN_INTERFACE | ES_MASTER);
-	if(parallelGridLayout.has_volume_layout(INT_SLAVE))
-		set_elem_statuses(parallelGridLayout.volume_layout(INT_SLAVE),
+	if(m_gridLayoutMap.has_volume_layout(INT_SLAVE))
+		set_elem_statuses(m_gridLayoutMap.volume_layout(INT_SLAVE),
 						m_aaStatusVOL, ES_IN_INTERFACE | ES_SLAVE);						
 }
 

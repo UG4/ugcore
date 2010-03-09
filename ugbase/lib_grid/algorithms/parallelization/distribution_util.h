@@ -71,7 +71,7 @@ void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridAndLayouts
 void DeserializeGridAndLayouts(MultiGrid& mgOut,
-							ParallelGridLayout& gridLayoutOut,
+							GridLayoutMap& gridLayoutOut,
 							std::istream& in);
 
 ////////////////////////////////////////////////////////////////////////
