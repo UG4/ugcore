@@ -15,33 +15,23 @@ namespace pcl
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	ICollector
-///	interface for collectors.
-template <class TElementGroup>
-class ICollector
+//	ICommunicationPolicy
+///	specializations are responsible to pack and unpack interface data during communication.
+template <class TLayout>
+class ICommunicationPolicy
 {
 	public:
-	//	typedefs
-		typedef typename group_traits<TElementGroup>::Interface Interface;
-
-	public:
-	///	writes the data which is contained in the interface to the buffer.
+		typedef TLayout						Layout;
+		typedef typename Layout::Interface 	Interface;
+		
+	////////////////////////////////
+	//	COLLECT
+	///	should write data which is associated with the interface elements to the buffer.
 		virtual bool
 		collect(std::ostream& buff, Interface& interface) = 0;
-};
-
-////////////////////////////////////////////////////////////////////////
-//	IExtractor
-///	interface for extractors.
-template <class TElementGroup>
-class IExtractor
-{
-	public:
-	//	typedefs
-		typedef typename group_traits<TElementGroup>::Layout Layout;
-		typedef typename group_traits<TElementGroup>::Interface Interface;
-
-	public:
+		
+	////////////////////////////////
+	//	EXTRACT
 	///	signals the beginning of a layout extraction.
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
@@ -52,11 +42,10 @@ class IExtractor
 		virtual bool
 		end_layout_extraction()						{return true;}
 
-	///	extracts the data from the buffer and assigns it to the interface-elements.
+	///	extract data from the buffer and assigns it to the interface-elements.
 	/**	If this method is called between calls to begin_layout_extraction and
 		end_layout_extraction, the interface that is passed to this method
-		belongs to the layout.
-	*/
+		belongs to the layout.*/
 		virtual bool
 		extract(std::istream& buff, Interface& interface) = 0;
 };
@@ -64,60 +53,90 @@ class IExtractor
 ////////////////////////////////////////////////////////////////////////
 //	Communicator
 ///	Performs communication between processes.
-template <class TElementGroup>
+template <class TLayout>
 class Communicator
 {
 	public:
 	//	typedefs
-		typedef typename group_traits<TElementGroup>::Layout Layout;
-		typedef typename group_traits<TElementGroup>::Interface Interface;
-		typedef IExtractor<TElementGroup> Extractor;
+		typedef TLayout 					Layout;
+		typedef typename Layout::Interface	Interface;
 
 	public:
-	///	calls the collector with the binary stream that is associated with targetProc.
-		void collect_data(int targetProc,
+	////////////////////////////////
+	//	COLLECT
+	///	collects data that will be send during communicate.
+	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
+	 *	interface and the binary stream that is associated with the
+	 *	specified target process.
+	 *	Note that data will not be send until communicate has been called.
+	 *	\sa receive_data, exchange_data*/
+		void send_data(int targetProc,
 						  Interface& interface,
-						  ICollector<TElementGroup>& collector);
+						  ICommunicationPolicy<TLayout>& commPol);
 
-	///	calls the collector with the binary stream that is associated with targetProc.
-	/**	The interfaces of the layout are passed to the collector on after the other.*/
-		void collect_data(Layout& layout,
-						  ICollector<TElementGroup>& collector);
+	///	collects data that will be send during communicate.
+	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
+	 *	layout and the binary stream that is associated with the
+	 *	layouts target processes.
+	 *	Note that data will not be send until communicate has been called.
+	 *	\sa receive_data, exchange_data*/
+		void send_data(Layout& layout,
+						  ICommunicationPolicy<TLayout>& commPol);
 
-	///	registers an extractor to receive data on communicate.
-	/**	make sure that your instance of the extractor exists until
-		communicate has benn executed.*/
-		void await_data(int srcProc,
+	////////////////////////////////
+	//	AWAIT
+	///	registers a communication-policy to receive data on communicate.
+	/**	make sure that your instance of the communication-policy
+		exists until communicate has benn executed.*/
+		void receive_data(int srcProc,
 						Interface& interface,
-						IExtractor<TElementGroup>& extractor);
+						ICommunicationPolicy<TLayout>& commPol);
 
-	///	registers an extractor to receive data on communicate.
-	/**	make sure that your instance of the extractor exists until
-		communicate has benn executed.*/
-		void await_data(Layout& layout,
-						IExtractor<TElementGroup>& extractor);
+	///	registers an communication-policy to receive data on communicate.
+	/**	make sure that your instance of the communication-policy
+		exists until communicate has benn executed.*/
+		void receive_data(Layout& layout,
+						ICommunicationPolicy<TLayout>& commPol);
 
-	///	sends and receives data the collected data.
+	////////////////////////////////
+	//	EXCHANGE
+	///	internally calls collect_data and await data with the specified interface.
+	/**	Note that data is not communicated until communicate has been called.*/
+	/*
+		void exchange_data(Interface& interface,
+							ICommunicationPolicy<TLayout>& commPol);
+	*/
+
+	///	internally calls collect_data and await data with the specified layout.
+	/**	Note that data is not communicated until communicate has been called.*/
+	/*
+		void exchange_data(Layout& layout,
+							ICommunicationPolicy<TLayout>& commPol);
+	*/
+	
+	///	sends and receives the collected data.
 	/**	The collected data will be send to the associated processes.
-	 *	The extract routines of the extractors which were registered
+	 *	The extract routines of the communication-policies which were registered
 	 *	through Communicator::await_data will be called with the received
-	 *	data. After all received data is processed, the extractors are
-	 *	freed. Make sure that you will keep your extractors in memory
-	 *	until this point.*/
+	 *	data. After all received data is processed, the communication-policies are
+	 *	released. Make sure that you will keep your communication-policies
+	 *	in memory until this point.*/
 		bool communicate();
 
 	protected:
+		typedef ICommunicationPolicy<Layout>	CommPol;
+		
 	///	holds information that will be passed to the extract routines.
 	/**	if srcProc == -1, the layout will be used for extraction.
 	 *	if srcProc >= 0, the srcProc and the interface will be used.*/
 		struct ExtractorInfo
 		{
 			ExtractorInfo()			{}
-			ExtractorInfo(Extractor* pExtractor, int srcProc,
+			ExtractorInfo(CommPol* pExtractor, int srcProc,
 						Interface* pInterface, Layout* pLayout) : m_extractor(pExtractor), m_srcProc(srcProc),
 																m_interface(pInterface), m_layout(pLayout)	{}
 
-			Extractor*	m_extractor;
+			CommPol*	m_extractor;
 			int			m_srcProc;
 			Interface*	m_interface;
 			Layout*		m_layout;

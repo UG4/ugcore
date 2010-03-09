@@ -14,19 +14,19 @@
 namespace pcl
 {
 ////////////////////////////////////////////////////////////////////////
-template <class TElementGroup>
-void Communicator<TElementGroup>::
-collect_data(int targetProc, Interface& interface,
-			  ICollector<TElementGroup>& collector)
+template <class TLayout>
+void Communicator<TLayout>::
+send_data(int targetProc, Interface& interface,
+			  ICommunicationPolicy<TLayout>& commPol)
 {
 	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
-	collector.collect(stream, interface);
+	commPol.collect(stream, interface);
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElementGroup>
-void Communicator<TElementGroup>::
-collect_data(Layout& layout, ICollector<TElementGroup>& collector)
+template <class TLayout>
+void Communicator<TLayout>::
+send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 	typename Layout::iterator iter = layout.begin();
 	typename Layout::iterator end = layout.end();
@@ -34,30 +34,30 @@ collect_data(Layout& layout, ICollector<TElementGroup>& collector)
 	for(; iter != end; ++iter)
 	{
 		ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
-		collector.collect(stream, layout.interface(iter));
+		commPol.collect(stream, layout.interface(iter));
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElementGroup>
-void Communicator<TElementGroup>::
-await_data(int srcProc, Interface& interface,
-			IExtractor<TElementGroup>& extractor)
+template <class TLayout>
+void Communicator<TLayout>::
+receive_data(int srcProc, Interface& interface,
+			ICommunicationPolicy<TLayout>& commPol)
 {
-	m_extractorInfos.push_back(ExtractorInfo(&extractor, srcProc, &interface, NULL));
+	m_extractorInfos.push_back(ExtractorInfo(&commPol, srcProc, &interface, NULL));
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElementGroup>
-void Communicator<TElementGroup>::
-await_data(Layout& layout, IExtractor<TElementGroup>& extractor)
+template <class TLayout>
+void Communicator<TLayout>::
+receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
-	m_extractorInfos.push_back(ExtractorInfo(&extractor, -1, NULL, &layout));
+	m_extractorInfos.push_back(ExtractorInfo(&commPol, -1, NULL, &layout));
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TElementGroup>
-bool Communicator<TElementGroup>::
+template <class TLayout>
+bool Communicator<TLayout>::
 communicate()
 {
 //	prepare receive streams

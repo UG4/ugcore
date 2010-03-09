@@ -9,7 +9,6 @@
 #include "load_balancer.h"
 #include "grid_distribution.h"
 
-#include "collector_copy.h"
-#include "extractor_copy.h"
+#include "copy_policy.h"
 
 #endif

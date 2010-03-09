@@ -37,9 +37,9 @@ template <class TLocalID>
 class ParallelNodeLayout
 {	
 	public:
-		typedef TLocalID				LocalID;
-		typedef std::vector<TLocalID>	Interface;
-		typedef pcl::Layout<Interface>	Layout;
+		typedef TLocalID						LocalID;
+		typedef pcl::BasicInterface<LocalID>	Interface;
+		typedef pcl::Layout<Interface>			Layout;
 		
 	public:
 	///	returns the number of levels.
@@ -82,6 +82,7 @@ typedef ParallelNodeLayout<Volume*>	ParallelVolumeLayout;
 //	The ElementGroups for vertices, edges, faces and volumes don't do
 //	much in the current implementation. Indeed they only define some
 //	types, that can be used by the default implementation of pcl::group_traits.
+/*
 template <class TElement>
 class ParallelNodeGroup
 {
@@ -96,7 +97,7 @@ typedef ParallelNodeGroup<VertexBase>	ParallelVertexGroup;
 typedef ParallelNodeGroup<EdgeBase>		ParallelEdgeGroup;
 typedef ParallelNodeGroup<Face>			ParallelFaceGroup;
 typedef ParallelNodeGroup<Volume>		ParallelVolumeGroup;
-
+*/
 ////////////////////////////////////////////////////////////////////////
 //	ParallelGridLayout
 ///	the ParallelGridLayout is an aggregation of element-layouts.
