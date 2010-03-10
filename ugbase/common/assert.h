@@ -45,6 +45,8 @@
 									UG_LOG("    Line:        " << __LINE__ << "\n\n"); \
 									assert(expr);\
 								}}
-#endif /* NDEBUG */
+#else /* NDEBUG */
+	UG_ASSERT(expr, msg) {}
+#endif
 
 #endif /* __H__COMMON__ASSERT__ */
