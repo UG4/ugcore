@@ -46,7 +46,7 @@
 									assert(expr);\
 								}}
 #else /* NDEBUG */
-	UG_ASSERT(expr, msg) {}
+#define UG_ASSERT(expr, msg) {}
 #endif
 
 #endif /* __H__COMMON__ASSERT__ */
