@@ -11,9 +11,16 @@
 /////////////////////////////////////////////////////////////////
 // defines (currently here, should be compiling options)
 
-//#define UG_LOG_TO_FILE
-#define UG_ENABLE_WARNINGS
-#define UG_ENABLE_DEBUG_LOGS
+// Warning and debug logs are disabled when compiling for release
+#ifndef NDEBUG
+	//#define UG_LOG_TO_FILE
+	#define UG_ENABLE_WARNINGS
+	#define UG_ENABLE_DEBUG_LOGS
+#else /* NDEBUG */
+	#undef UG_LOG_TO_FILE
+	#undef UG_ENABLE_WARNINGS
+	#undef UG_ENABLE_DEBUG_LOGS
+#endif /* NDEBUG*/
 
 /////////////////////////////////////////////////////////////////
 // includes

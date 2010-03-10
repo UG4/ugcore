@@ -34,6 +34,7 @@ class LogAssistant
 			LIB_GRID,
 			LIB_GRID_REFINER,
 			LIB_DISC,
+			LIB_DISC_ASSEMBLE,
 			LIB_ALG,
 			NUM_TAGS
 		};
