@@ -42,6 +42,16 @@ class ICommunicationPolicy
 		virtual bool
 		end_layout_extraction()						{return true;}
 
+	///	signals that a new layout-level will now be processed.
+	/**	This is primarily interesting for layout-extraction of multi-level-layouts.
+	 *	Before extract is called for the interfaces of one level of a layout,
+	 *	begin_level_extraction(level) is called.
+	 *	If single-level-layouts are processed, this method is called
+	 *	once with level = 0.
+	 *	This method is called after begin_layout_extraction and before
+	 *	the associated extract calls.*/
+	 	virtual void begin_level_extraction(int level)		{}
+		
 	///	extract data from the buffer and assigns it to the interface-elements.
 	/**	If this method is called between calls to begin_layout_extraction and
 		end_layout_extraction, the interface that is passed to this method
@@ -60,7 +70,11 @@ class Communicator
 	//	typedefs
 		typedef TLayout 					Layout;
 		typedef typename Layout::Interface	Interface;
+		typedef typename Layout::Type		Type;
 
+	protected:
+		typedef ICommunicationPolicy<Layout>	CommPol;
+		
 	public:
 	////////////////////////////////
 	//	COLLECT
@@ -100,20 +114,23 @@ class Communicator
 
 	////////////////////////////////
 	//	EXCHANGE
-	///	internally calls collect_data and await data with the specified interface.
-	/**	Note that data is not communicated until communicate has been called.*/
-	/*
-		void exchange_data(Interface& interface,
+	///	internally calls send_data and receive_data with the specified layouts.
+	/**	Note that data is not communicated until communicate has been called.
+	 *
+	 *	Make sure that the Layout- and the Interface-type of TLayoutMap
+	 *	are compatible with the layout of the communicator.
+	 *	Layouts are queried for TLayout::Type of the communicators TLayout-type.
+	 *
+	 *	This method is particularily useful if you categorize layouts on a
+	 *	process. If you separate your layouts into master and slave layouts,
+	 *	you could use this method e.g. to copy data from all master-layouts
+	 *	to all slave-layouts of a type with a single call.*/
+		template <class TLayoutMap>
+		void exchange_data(TLayoutMap& layoutMap,
+							typename TLayoutMap::Key keyFrom,
+							typename TLayoutMap::Key keyTo,
 							ICommunicationPolicy<TLayout>& commPol);
-	*/
-
-	///	internally calls collect_data and await data with the specified layout.
-	/**	Note that data is not communicated until communicate has been called.*/
-	/*
-		void exchange_data(Layout& layout,
-							ICommunicationPolicy<TLayout>& commPol);
-	*/
-	
+			
 	///	sends and receives the collected data.
 	/**	The collected data will be send to the associated processes.
 	 *	The extract routines of the communication-policies which were registered
@@ -122,10 +139,43 @@ class Communicator
 	 *	released. Make sure that you will keep your communication-policies
 	 *	in memory until this point.*/
 		bool communicate();
-
-	protected:
-		typedef ICommunicationPolicy<Layout>	CommPol;
 		
+	protected:
+	///	helper to collect data from single-level-layouts
+		void send_data(Layout& layout,
+				  ICommunicationPolicy<TLayout>& commPol,
+				  const layout_tags::single_level_layout_tag&);
+
+	///	helper to collect data from multi-level-layouts				  
+		void send_data(Layout& layout,
+				  ICommunicationPolicy<TLayout>& commPol,
+				  const layout_tags::multi_level_layout_tag&);
+	
+	///	prepare stream-pack-in
+		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+											TLayout& layout);
+	/// specialization of stream-pack preparation for single-level-layouts
+		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+										TLayout& layout,
+										const layout_tags::single_level_layout_tag&);
+	/// specialization of stream-pack preparation for multi-level-layouts
+		void prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+										TLayout& layout,
+										const layout_tags::multi_level_layout_tag&);
+
+	///	extract data from stream-pack
+		void extract_data(TLayout& layout, ug::StreamPack& streamPack,
+						CommPol& extractor);
+		
+		void extract_data(TLayout& layout, ug::StreamPack& streamPack,
+						CommPol& extractor,
+						const layout_tags::single_level_layout_tag&);
+		
+		void extract_data(TLayout& layout, ug::StreamPack& streamPack,
+						CommPol& extractor,
+						const layout_tags::multi_level_layout_tag&);
+		
+	protected:		
 	///	holds information that will be passed to the extract routines.
 	/**	if srcProc == -1, the layout will be used for extraction.
 	 *	if srcProc >= 0, the srcProc and the interface will be used.*/

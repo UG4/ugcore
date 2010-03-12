@@ -67,8 +67,11 @@ void DeserializeLayoutInterfaces(TLayoutMap& layoutMapOut,
 								std::istream& in)
 {
 //	for conveniance
-	typedef typename TLayoutMap::mapped_type::Layout	TLayout;
-	typedef typename TLayoutMap::mapped_type::Interface	TInterface;
+	//typedef typename TLayoutMap::mapped_type::Layout	TLayout;
+	//typedef typename TLayoutMap::mapped_type::Interface	TInterface;
+	typedef typename TLayoutMap::template
+			Types<TGeomObj>::Layout::LevelLayout 	TLayout;
+	typedef typename TLayout::Interface				TInterface;
 	TLayout* pLayout = NULL;
 	int lastLayoutKey = 0;
 	TInterface* pInterface = NULL;
@@ -110,7 +113,9 @@ void DeserializeLayoutInterfaces(TLayoutMap& layoutMapOut,
 				if((!pLayout) || (lastLayoutKey != entry.type))
 				{
 				//	get the matching layout
-					pLayout = &layoutMapOut[entry.type].layout(level);
+					//pLayout = &layoutMapOut[entry.type].layout(level);
+					pLayout = &layoutMapOut.template get_layout<TGeomObj>(entry.type).
+																layout_on_level(level);
 					lastLayoutKey = entry.type;
 				//	the interface has changed too
 					pInterface = &pLayout->interface(procID);

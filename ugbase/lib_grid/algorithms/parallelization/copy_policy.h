@@ -15,19 +15,14 @@ namespace ug
 //	CopyPolicy
 ///	copies values from a specified attachment to a stream and back.
 /**
- * Valid parameters for TNodeLayout are classes that extend the
- * pcl::Layout type by a typedef for GeomObj.
- * examples are: VertexLayout, EdgeLayout, FaceLayout or VolumeLayout
- * (specializations of NodeLayout<TGeomObj>).
- * 
- * TNodeLayout::GeomObj has to be either VertexBase, EdgeBase, Face or Volume.
+ * TLayout::Type has to be either VertexBase, EdgeBase, Face or Volume.
  */
-template <class TNodeLayout, class TAttachment>
-class CopyPolicy : public pcl::ICommunicationPolicy<TNodeLayout>
+template <class TLayout, class TAttachment>
+class CopyPolicy : public pcl::ICommunicationPolicy<TLayout>
 {
 	public:
-		typedef TNodeLayout	Layout;
-		typedef typename TNodeLayout::GeomObj	GeomObj;
+		typedef TLayout							Layout;
+		typedef typename Layout::Type			GeomObj;
 		typedef typename Layout::Element		Element;
 		typedef typename Layout::Interface		Interface;
 		typedef typename TAttachment::ValueType Value;

@@ -28,6 +28,17 @@ template <class TLayout>
 void Communicator<TLayout>::
 send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
+//	through the the category_tag we're able to find the correct send method.
+	send_data(layout, commPol, typename TLayout::category_tag());
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+send_data(Layout& layout,
+		  ICommunicationPolicy<TLayout>& commPol,
+		  const layout_tags::single_level_layout_tag&)
+{
 	typename Layout::iterator iter = layout.begin();
 	typename Layout::iterator end = layout.end();
 
@@ -38,6 +49,26 @@ send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+send_data(Layout& layout,
+		  ICommunicationPolicy<TLayout>& commPol,
+		  const layout_tags::multi_level_layout_tag&)
+{
+	for(size_t i = 0; i < layout.num_levels(); ++i)
+	{
+		typename Layout::iterator iter = layout.begin(i);
+		typename Layout::iterator end = layout.end(i);
+		
+		for(; iter != end; ++iter)
+		{
+			ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
+			commPol.collect(stream, layout.interface(iter));
+		}
+	}
+}
+		  
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void Communicator<TLayout>::
@@ -55,6 +86,109 @@ receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 	m_extractorInfos.push_back(ExtractorInfo(&commPol, -1, NULL, &layout));
 }
 
+template <class TLayout>
+template <class TLayoutMap>
+void Communicator<TLayout>::
+exchange_data(TLayoutMap& layoutMap,
+				typename TLayoutMap::Key keyFrom,
+				typename TLayoutMap::Key keyTo,
+				ICommunicationPolicy<TLayout>& commPol)
+{
+	if(layoutMap.template has_layout<Type>(keyFrom))
+		send_data(layoutMap.template get_layout<Type>(keyFrom), commPol);
+		
+	if(layoutMap.template has_layout<Type>(keyTo))
+		receive_data(layoutMap.template get_layout<Type>(keyTo), commPol);
+}
+							
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+							TLayout& layout)
+{
+	prepare_receiver_stream_pack(streamPack, layout,
+								typename TLayout::category_tag());
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+							TLayout& layout,
+							const layout_tags::single_level_layout_tag&)
+{
+//	simply 'touch' the stream to make sure it's in the pack.
+	for(typename TLayout::iterator li = layout.begin();
+		li != layout.end(); ++li)
+	{
+		streamPack.get_stream(layout.proc_id(li));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+prepare_receiver_stream_pack(ug::StreamPack& streamPack,
+							TLayout& layout,
+							const layout_tags::multi_level_layout_tag&)
+{
+//	simply 'touch' the stream to make sure it's in the pack.
+	for(size_t i = 0; i < layout.num_levels(); ++i)
+	{
+		for(typename TLayout::iterator li = layout.begin(i);
+			li != layout.end(i); ++li)
+		{
+			streamPack.get_stream(layout.proc_id(li));
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor)
+{
+	extract_data(layout, streamPack,
+				extractor,
+				typename TLayout::category_tag());
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
+				const layout_tags::single_level_layout_tag&)
+{
+	extractor.begin_level_extraction(0);
+//	extract data for the layouts interfaces
+	for(typename Layout::iterator li = layout.begin();
+		li != layout.end(); ++li)
+	{
+		extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
+						layout.interface(li));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void Communicator<TLayout>::
+extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
+				const layout_tags::multi_level_layout_tag&)
+{
+//	extract data for the layouts interfaces
+	for(size_t i = 0; i < layout.num_levels(); ++i)
+	{
+		extractor.begin_level_extraction(i);
+		for(typename Layout::iterator li = layout.begin(i);
+			li != layout.end(i); ++li)
+		{
+		extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
+						layout.interface(li));
+		}
+	}
+}
+				
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 bool Communicator<TLayout>::
@@ -77,11 +211,7 @@ communicate()
 			m_streamPackIn.get_stream(info.m_srcProc);
 		else
 		{
-			for(typename Layout::iterator li = info.m_layout->begin();
-				li != info.m_layout->end(); ++li)
-			{
-				m_streamPackIn.get_stream(info.m_layout->proc_id(li));
-			}
+			prepare_receiver_stream_pack(m_streamPackIn, *info.m_layout);
 		}
 	}
 
@@ -176,16 +306,13 @@ communicate()
 		else
 		{
 		//	extract the data for a layout
-			Layout& layout = *info.m_layout;
 		//	notify the extractor that extraction for a layout begins.
 			info.m_extractor->begin_layout_extraction(info.m_layout);
-		//	extract data for the layouts interfaces
-			for(typename Layout::iterator li = layout.begin();
-				li != layout.end(); ++li)
-			{
-				info.m_extractor->extract(*m_streamPackIn.get_stream(layout.proc_id(li)),
-										layout.interface(li));
-			}
+			
+		//	extract the data
+			extract_data(*info.m_layout,
+						m_streamPackIn,
+						*info.m_extractor);
 			
 		//	notify the extractor that extraction is complete.
 			info.m_extractor->end_layout_extraction();
