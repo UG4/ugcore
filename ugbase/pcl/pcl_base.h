@@ -35,7 +35,7 @@ struct type_traits
 ///	Interface tags allow to differentiate between interfaces with different features
 namespace interface_tags
 {
-/**	Every interface has to feature this tag (at least indirect - by tag-derivation).
+/**	Every interface has to feature this tag (at least indirectly - by tag-derivation).
  *	This tag simply says that one may iterate over the elements of the
  *	interface.
  *
@@ -75,6 +75,23 @@ class ordered_interface_tag : public basic_interface_tag	{};
 ////////////////////////////////////////////////////////////////////////
 //	BasicInterface
 ///	You may add elements to this interface and iterate over them
+/**
+ * This interface type features a minimal set of methods that is
+ * required to actually work with it.
+ * You may add new elements, erase old ones and iterate through them.
+ *
+ * In order to access the associated element of an iterator you should
+ * use get_element (not the * operator of the iterator). This increases
+ * the flexibility of your code.
+ *
+ * You may specify a stl-container compatible type that is used to store.
+ * the elements. Supported types are std::vector and std::list.
+ *
+ * TContainer defaults to std::vector. This is the best option if your
+ * interface is mainly used static or grows, but is considerably slower
+ * than std::list if you want to erase elements often.
+ * For dynamic interfaces std::list may be the better option.
+ */
 template <class TType,
 		  template<class T, class Alloc = std::allocator<T> >
 			class TContainer = std::vector>
@@ -101,6 +118,7 @@ class BasicInterface
 		
 		inline Element& get_element(iterator iter)	{return *iter;}
 		
+	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
 		
 	protected:
@@ -118,10 +136,14 @@ class BasicInterface
  *	This interface stores elements in a vector internally.
  *	This allows for easy compare but makes erase expensive.*/
 /*
-template <class TElem, template<class> class TContainer = std::vector>
+template <class TType,
+		  template<class T, class Alloc = std::allocator<T> >
+			class TContainer = std::vector>
 class OrderedInterface
 {
 	protected:
+		typedef typename type_traits<TType>::Elem	TElem;
+		
 	//	this struct holds an elem and a local id, as they are
 	//	required if we use non-random-access-iterators
 		template <typename TIterTag> struct TInterfaceEntryByTag
@@ -136,20 +158,23 @@ class OrderedInterface
 		{
 			TElem elem;
 		};
-		
+
 	//	this is required to pick the right InterfaceEntryType
 		typedef typename
-			iterator_traits<typename TContainer<TElem>::iterator>::iterator_category
+			std::iterator_traits<typename TContainer<TElem>::iterator>::iterator_category
 			iterator_category;
 			
 		typedef TInterfaceEntryByTag<iterator_category>	InterfaceEntry;
 		typedef TContainer<InterfaceEntry>				ElemContainer;
 		
 	public:
-		typedef ordered_interface_tag			category_tag;
+		typedef TType									Type;
+		typedef typename type_traits<TType>::Elem		Element;
 		
-		typedef ElemContainer::iterator			iterator;
-		typedef ElemContainer::const_iterator	const_iterator;
+		typedef interface_tags::ordered_interface_tag	category_tag;
+		
+		typedef typename ElemContainer::iterator			iterator;
+		typedef typename ElemContainer::const_iterator	const_iterator;
 		
 	public:
 		iterator add_element(const TElem& elem);
@@ -433,6 +458,16 @@ class MultiLevelLayout
  * SingleLevelLayout<BasicInterface<VertexBase> > > l = layoutMap.get_layout<VertexBase>(0);
  * assert(layoutMap.has_layout<VertexBase>(0));
  * \endcode
+ *
+ * It may be good to use some typedefs in order to make the code a little
+ * easier to read:
+ * \code
+ * typedef LayoutMap<SingleLevelLayout, BasicInterface, int> SomeLayoutMap;
+ * SomeLayoutMap::Types<VertexBase>::Layout l = layoutMap.get_layout<VertexBase>(0);
+ * \endcode
+ *
+ * The Types struct is very useful when it comes to using a LayoutMap in
+ * template code, too.
  */
 template <template <class TInterface> class TLayout,
 		template <class TType> class TInterface,
@@ -442,6 +477,7 @@ class LayoutMap
 	public:
 		typedef TKey	Key;
 		
+	///	defines the types that are used by a LayoutMap for a given TType.
 		template <class TType>
 		struct Types
 		{

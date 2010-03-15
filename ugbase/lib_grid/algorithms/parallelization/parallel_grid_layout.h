@@ -69,7 +69,6 @@ typedef pcl::LayoutMap<pcl::MultiLevelLayout,
 						pcl::BasicInterface,
 						int>						GridLayoutMap;
 
-#endif //__TMP_OLD_STYLE__
 
 }//	end of namespace
 
