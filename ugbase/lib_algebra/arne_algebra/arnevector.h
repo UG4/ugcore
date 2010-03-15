@@ -26,6 +26,8 @@ class ArneVector{
 
 		typedef FlexLocalVector local_vector_type;
 
+		typedef std::vector<index_type> local_index_type;
+
 	typedef ublas::vector<double> ScalarVector;
 
 	public:

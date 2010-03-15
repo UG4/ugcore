@@ -24,6 +24,8 @@ class ArneMatrix{
 
 		typedef FlexLocalMatrix local_matrix_type;
 
+		typedef std::vector<index_type> local_index_type;
+
 		typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
 
 	public:
