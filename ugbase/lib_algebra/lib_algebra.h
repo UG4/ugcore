@@ -16,10 +16,6 @@
 // library intern includes
 #include "lib_algebra/multi_index/multi_indices.h"
 
-#include "hypre_algebra/hyprematrix.h"
-#include "hypre_algebra/hyprevector.h"
-#include "hypre_algebra/hyprelinearsolver.h"
-
 #include "arne_algebra/arnematrix.h"
 #include "arne_algebra/arnevector.h"
 #include "arne_algebra/arnelinearsolver.h"
@@ -46,6 +42,15 @@ class ArneAlgebra{
 		typedef ArneJacobi linear_solver_type;
 };
 
+} // namespace ug
+
+#ifdef HYPRELIB_LIB_DIR
+
+#include "hypre_algebra/hyprematrix.h"
+#include "hypre_algebra/hyprevector.h"
+#include "hypre_algebra/hyprelinearsolver.h"
+
+namespace ug{
 class HypreAlgebra{
 	public:
 		// matrix type
@@ -60,7 +65,9 @@ class HypreAlgebra{
 		typedef HYPREboomerAMG linear_solver_type;
 
 };
-
 }
+
+#endif
+
 
 #endif /* __H__LIB_ALGEBRA__ */
