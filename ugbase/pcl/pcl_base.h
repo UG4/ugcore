@@ -469,8 +469,15 @@ class MultiLevelLayout
  * The Types struct is very useful when it comes to using a LayoutMap in
  * template code, too.
  */
+ /*
+ <class TType,
+		  template<class T, class Alloc = std::allocator<T> >
+			class TContainer = std::vector>
+*/
 template <template <class TInterface> class TLayout,
-		template <class TType> class TInterface,
+		 template <class TType,
+				template<class T, class Alloc = std::allocator<T> >
+				class TContainer = std::vector> class TInterface,
 		class TKey>
 class LayoutMap
 {
