@@ -68,7 +68,7 @@ bool ArneVector::printToFile(const char* filename)
 	file = fopen(filename, "w");
 	if(file == NULL) return false;
 
-	for(int i = 0; i < _Vector->size(); ++i)
+	for(uint i = 0; i < _Vector->size(); ++i)
 	{
 		fprintf(file, "%i: %e\n", i, (*_Vector)(i));
 	}
@@ -108,7 +108,7 @@ ArneVector& ArneVector::operator= (const ArneVector& v) {
 number ArneVector::norm2()
 	{
 		double norm = 0;
-		for(int i = 0; i < _Vector->size(); ++i)
+		for(uint i = 0; i < _Vector->size(); ++i)
 		{
 			norm += (*_Vector)(i) * (*_Vector)(i);
 		}
@@ -118,7 +118,7 @@ number ArneVector::norm2()
 
 bool ArneVector::set(number w)
 	{
-		for(int i = 0; i < _Vector->size(); ++i)
+		for(uint i = 0; i < _Vector->size(); ++i)
 		{
 			(*_Vector)(i) = w;
 		}

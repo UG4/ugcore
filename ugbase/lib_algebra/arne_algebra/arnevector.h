@@ -12,11 +12,20 @@
 
 #include "../../common/types.h"
 #include <cmath>
+#include <vector>
 #include "assert.h"
+#include "lib_algebra/multi_index/multi_indices.h"
+#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
 
 namespace ug{
 
 class ArneVector{
+	public:
+		// index_type
+		typedef MultiIndex<1> index_type;
+
+		typedef FlexLocalVector local_vector_type;
+
 	typedef ublas::vector<double> ScalarVector;
 
 	public:
@@ -25,9 +34,7 @@ class ArneVector{
 	bool delete_vector();
 
 	bool set_values(int nvalues, int* indices, double* values);
-
 	bool add_values(int nvalues, int* indices, double* values);
-
 	bool get_values(int nvalues, int* indices, double* values) const;
 
 	bool finalize();

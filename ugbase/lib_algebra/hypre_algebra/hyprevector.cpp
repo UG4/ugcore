@@ -24,6 +24,77 @@ bool HypreVector::delete_vector()
 	}
 }
 
+
+bool HypreVector::set(const local_vector_type& u, local_index_type& ind)
+{
+	bool b;
+
+	const int nvalues = ind.size();
+	int *indices = new int[nvalues];
+	double *values = new double[nvalues];
+
+	for(int i = 0; i < nvalues; ++i)
+	{
+		indices[i] = ind[i][0];
+		values[i] = (double) u[i];
+	}
+
+	b = set_values(nvalues, indices, values);
+
+	delete[] indices;
+	delete[] values;
+
+	return b;
+}
+bool HypreVector::add(const local_vector_type& u, local_index_type& ind)
+{
+	bool b;
+
+	const int nvalues = ind.size();
+	int *indices = new int[nvalues];
+	double *values = new double[nvalues];
+
+	for(int i = 0; i < nvalues; ++i)
+	{
+		indices[i] = ind[i][0];
+		values[i] = (double) u[i];
+	}
+
+	b = add_values(nvalues, indices, values);
+
+	delete[] indices;
+	delete[] values;
+
+	return b;
+}
+
+bool HypreVector::get(local_vector_type& u, local_index_type& ind) const
+{
+	bool b;
+
+	const int nvalues = ind.size();
+	int *indices = new int[nvalues];
+	double *values = new double[nvalues];
+
+	for(int i = 0; i < nvalues; ++i)
+	{
+		indices[i] = ind[i][0];
+	}
+
+	b = get_values(nvalues, indices, values);
+
+	for(int i = 0; i < nvalues; ++i)
+	{
+		u[i] = (number) values[i];
+	}
+
+	delete[] indices;
+	delete[] values;
+
+	return b;
+}
+
+
 bool HypreVector::set_values(int nvalues, int* indices, double* values)
 {
 	if(m_hyprex == NULL) return false;
@@ -163,7 +234,7 @@ HypreVector::~HypreVector()
 	}
 	int HypreVector::length()
 	{
-		int jlower, jupper, nvalues;
+		int jlower, jupper;
 
 		HYPRE_IJVectorGetLocalRange(m_hyprex, &jlower, &jupper);
 

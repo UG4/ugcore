@@ -12,13 +12,28 @@
 #include <_hypre_utilities.h>
 #include <HYPRE_krylov.h>
 #include <HYPRE_parcsr_ls.h>
-#include "../../common/types.h"
 #include <cmath>
 #include "assert.h"
+
+// other ug4 modules
+#include "../../common/types.h"
+
+// library intern header
+#include "lib_algebra/multi_index/multi_indices.h"
+#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
+
 
 namespace ug{
 
 class HypreVector{
+	public:
+		// index_type
+		typedef MultiIndex<1> index_type;
+
+		// local vector type
+		typedef  FlexLocalVector local_vector_type;
+
+		typedef std::vector<index_type> local_index_type;
 
 	public:
 	bool create_vector(int nentries);
@@ -26,10 +41,14 @@ class HypreVector{
 	bool delete_vector();
 
 	bool set_values(int nvalues, int* indices, double* values);
-
 	bool add_values(int nvalues, int* indices, double* values);
-
 	bool get_values(int nvalues, int* indices, double* values) const;
+
+	bool set(const local_vector_type& u, local_index_type& ind);
+	bool add(const local_vector_type& u, local_index_type& ind);
+	bool get(local_vector_type& u, local_index_type& ind) const;
+
+
 
 	bool finalize();
 

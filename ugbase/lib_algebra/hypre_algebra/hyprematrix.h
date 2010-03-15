@@ -14,22 +14,34 @@
 #include <HYPRE_krylov.h>
 #include <HYPRE_parcsr_ls.h>
 #include "../../common/types.h"
+#include "lib_algebra/multi_index/multi_indices.h"
+#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
 
 namespace ug{
 
 class HypreMatrix{
+	public:
+		// index_type
+		typedef MultiIndex<1> index_type;
+
+		typedef FlexLocalMatrix local_matrix_type;
+
+		typedef std::vector<index_type> local_index_type;
 
 	public:
-	
+
 	HypreMatrix(){};
-	
+
 	bool create_matrix(int nrow, int ncol);
 
 	bool delete_matrix();
 
 	bool set_values(int nrows, int* ncols, int* rows, int* cols, double* values);
-
 	bool add_values(int nrows, int* ncols, int* rows, int* cols, double* values);
+
+	bool set(const local_matrix_type& mat, local_index_type& I, local_index_type& J);
+	bool add(const local_matrix_type& mat, local_index_type& I, local_index_type& J);
+
 
 	bool set_dirichletrows(int nrows, int* rows);
 

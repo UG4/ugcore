@@ -9,14 +9,22 @@
 #define __H__LIB_ALGEBRA__ARNEMATRIX__
 
 #include <iostream>
-#include "../../common/types.h"
+#include "common/common.h"
 #include "arnevector.h"
 #include "../solver/BoostBlock.hh"
+#include "lib_algebra/multi_index/multi_indices.h"
+#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
 
 namespace ug{
 
 class ArneMatrix{
-	typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
+	public:
+		// index_type
+		typedef MultiIndex<1> index_type;
+
+		typedef FlexLocalMatrix local_matrix_type;
+
+		typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
 
 	public:
 

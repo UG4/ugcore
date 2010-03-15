@@ -63,7 +63,7 @@ bool ArneMatrix::set_dirichletrows(int nrows, int* rows)
 		row_type row(*_Matrix, rows[i]);
 		for(row_type::iterator iter_ij = row.begin(); iter_ij != row.end(); ++iter_ij)
 		{
-			if(iter_ij.index() == rows[i]) *iter_ij = 1.0;
+			if(iter_ij.index() == (uint) rows[i]) *iter_ij = 1.0;
 			else *iter_ij = 0.0;
 		}
 	}
@@ -111,7 +111,7 @@ bool ArneMatrix::printToFile(const char* filename)
     {
 		for(entry_iter_type iter_ij = rowi.begin(); iter_ij != rowi.end(); ++iter_ij)
 		{
-			fprintf(file, "%i, %i: %e\n", iter_ij.index1(), iter_ij.index2(), *iter_ij);
+			fprintf(file, "%i, %i: %e\n", (int) iter_ij.index1(), (int) iter_ij.index2(), *iter_ij);
 		}
 	}
 

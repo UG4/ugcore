@@ -23,6 +23,74 @@ bool HypreMatrix::delete_matrix()
 	}
 }
 
+bool HypreMatrix::set(const local_matrix_type& mat, local_index_type& I, local_index_type& J)
+{
+	bool b;
+
+	const int nrows = I.size();
+	const int num_cols = J.size();
+	const int nentries = nrows * num_cols;
+
+	int * rows = new int[nrows];
+	int * ncols = new int[nrows];
+	int * cols = new int[nentries];
+	double* values = new double[nentries];
+
+	for(std::size_t i = 0; i < (uint) nrows; ++i)
+	{
+		rows[i] = I[i][0];
+		ncols[i] = num_cols;
+		for(std::size_t j = 0; j < (uint)num_cols; ++j)
+		{
+			cols[num_cols * i + j] = J[j][0];
+			values[num_cols * i + j] = (double) mat(i,j);
+		}
+	}
+
+	b = set_values(nrows, ncols, rows, cols, values);
+
+	delete[] rows;
+	delete[] ncols;
+	delete[] cols;
+	delete[] values;
+
+	return b;
+}
+bool HypreMatrix::add(const local_matrix_type& mat, local_index_type& I, local_index_type& J)
+{
+	bool b;
+
+	const int nrows = I.size();
+	const int num_cols = J.size();
+	const int nentries = nrows * num_cols;
+
+	int * rows = new int[nrows];
+	int * ncols = new int[nrows];
+	int * cols = new int[nentries];
+	double* values = new double[nentries];
+
+	for(int i = 0; i < nrows; ++i)
+	{
+		rows[i] = I[i][0];
+		ncols[i] = num_cols;
+		for(int j = 0; j < num_cols; ++j)
+		{
+			cols[num_cols * i + j] = J[j][0];
+			values[num_cols * i + j] = (double) mat(i,j);
+		}
+	}
+
+	b = add_values(nrows, ncols, rows, cols, values);
+
+	delete[] rows;
+	delete[] ncols;
+	delete[] cols;
+	delete[] values;
+
+	return b;
+}
+
+
 bool HypreMatrix::set_values(int nrows, int* ncols, int* rows, int* cols, double* values)
 {
 	if(m_hypreA == NULL) return false;

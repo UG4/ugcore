@@ -40,6 +40,7 @@ bool HYPREboomerAMG::setParameters( double tol,
 bool HYPREboomerAMG::setType( HYPRE_TYPE type)
 {
 	m_hypre_type = type;
+	return true;
 }
 
 
