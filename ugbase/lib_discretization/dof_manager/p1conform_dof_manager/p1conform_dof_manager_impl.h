@@ -30,7 +30,7 @@ get_multi_indices(TElem* elem, uint fct, local_index_type& ind)
 	assert (fct < m_num_single_discrete_functions);
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element;
 
-	for(uint i = 0; i < reference_element_traits<reference_element>::num_corners; ++i)
+	for(int i = 0; i < reference_element_traits<reference_element>::num_corners; ++i)
 	{
 		VertexBase* vrt = elem->vertex(i);
 		ind[i][0] = m_aaIndex[vrt] + (single_index_type) fct;

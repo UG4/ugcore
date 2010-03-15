@@ -150,8 +150,6 @@ void
 ConvectionDiffusionEquation<TDomain, TElem>::
 assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
-	static const int dim = TDomain::dim;
-
 	int co;
 	for(uint i = 0; i < m_geo->num_scv(); ++i)
 	{
@@ -252,8 +250,6 @@ void
 ConvectionDiffusionEquation<TDomain, TElem>::
 assemble_element_M(local_vector_type& d, const local_vector_type& u, number time)
 {
-	static const int dim = TDomain::dim;
-
 	int co;
 	for(uint i = 0; i < m_geo->num_scv(); ++i)
 	{
@@ -272,8 +268,6 @@ void
 ConvectionDiffusionEquation<TDomain, TElem>::
 assemble_element_f(local_vector_type& d, number time)
 {
-	static const int dim = TDomain::dim;
-
 	number fvalue = 0.0;
 	for(uint i = 0; i < m_geo->num_scv(); ++i)
 	{

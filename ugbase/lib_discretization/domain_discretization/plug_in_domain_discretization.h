@@ -67,7 +67,7 @@ class PlugInDomainDiscretization : public IDomainDiscretization<TAlgebra, TDiscr
 		PlugInDomainDiscretization(domain_type& domain, dof_manager_type& dofmanager, uint num_func, bool (*bndfct)(number&, position_type, uint, number),
 									TElemDisc<domain_type, Triangle>& ElemDiscTriangle, TElemDisc<domain_type, Quadrilateral>& ElemDiscQuadrilateral
 		)
-		: m_domain(domain), m_pattern(dofmanager), _num_func(num_func), m_bndfct(bndfct),
+		: m_bndfct(bndfct), m_domain(domain), m_pattern(dofmanager), _num_func(num_func),
 		  m_ElemDiscTriangle(ElemDiscTriangle), m_ElemDiscQuadrilateral(ElemDiscQuadrilateral)
 		{};
 

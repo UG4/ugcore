@@ -144,7 +144,7 @@ class ApproximationSpace{
 		typedef DiscreteGridFunction<TDomain, TAlgebra, TDoFManager> grid_function_type;
 
 	public:
-		ApproximationSpace(std::string name, element_container_type& sh) : m_name(name), m_dof_manager(sh), m_lock(false) {};
+		ApproximationSpace(std::string name, element_container_type& sh) : m_lock(false), m_name(name), m_dof_manager(sh) {};
 
 
 		/// add a single solution of LocalShapeFunctionSetID to selected subsets
