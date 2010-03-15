@@ -12,110 +12,110 @@
 
 namespace ug{
 
+/**
+ *
+ * A Domain collects and exports relevant informations about the
+ * physical domain, that will be discretized. It will be used as
+ * a template Parameter in several classes to destinguish at compile-time
+ * between needed types and parameters.
+ *
+ * An Implementation of the Domain interface has to fulfill the following requirements:
+ *
+ * const static int dim = ...
+ * typedef ... position_type
+ * typedef ... position_attachment_type
+ * typedef ... position_accessor_type
+ *
+ * [ may be extended in future ]
+ *
+ */
 
-enum GridType {
-	GT_GRID = 1,
-	GT_MULTIGRID,
-	NUM_GRID_TYPES
-};
 
-template <int d>
+
+template <int d, typename TGrid, typename TSubsetHandler>
 class Domain {
 	public:
-		const static int dim = d;
+		// world dimension
+		static const int dim = d;
+
+		// type of position coordinates (e.g. MathVector<dim>)
 		typedef MathVector<dim> position_type;
+
+		// grid type
+		typedef TGrid grid_type;
+
+		// subset handler type
+		typedef TSubsetHandler subset_handler_type;
+
+		// type of position attachement (since spacial positions of vertices are attached to the topological grid)
 		typedef Attachment<position_type> position_attachment_type;
+
+		// type of accessor to the position data attachement
 		typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
 
 	public:
-		Domain(Grid& grid, SubsetHandler& sh, position_attachment_type& aaPos);
-		Domain(MultiGrid& grid, MGSubsetHandler& sh, position_attachment_type& aaPos);
+		Domain(TGrid& grid, TSubsetHandler& sh, position_attachment_type& aPos) :
+			m_grid(grid), m_sh(sh), m_aPos(aPos), m_aaPos(grid, aPos)
+			{};
 
-		inline Grid* get_grid();
-		inline MultiGrid* get_multigrid();
-		inline GridType get_grid_type();
-		inline SubsetHandler* get_subset_handler();
-		inline unsigned int get_dim();
-		inline position_attachment_type* get_position_attachment();
-		inline position_accessor_type get_position_accessor();
+		inline TGrid& get_grid();
+		inline TSubsetHandler& get_subset_handler();
+		inline uint get_dim();
+		inline position_attachment_type& get_position_attachment();
+		inline position_accessor_type& get_position_accessor();
 
 	protected:
-		GridType _grid_type;
-		Grid* _grid;
-		MultiGrid* _mg;
+		TGrid& m_grid;
 
-		SubsetHandler* _sh;
-		MGSubsetHandler* _mg_sh;
+		TSubsetHandler& m_sh;
 
-		position_attachment_type* _aPos;
-		position_accessor_type _aaPos;
+		position_attachment_type& m_aPos;
+		position_accessor_type m_aaPos;
 };
 
-template <int d>
-Domain<d>::Domain(Grid& grid, SubsetHandler& sh, position_attachment_type& aPos) : _aaPos(grid, aPos)
-{
-	_grid = &grid;
-	_grid_type = GT_GRID;
-	_sh = &sh;
-	_aPos = &aPos;
-}
-
-template <int d>
-Domain<d>::Domain(MultiGrid& mg, MGSubsetHandler& sh, position_attachment_type& aPos) : _aaPos(mg, aPos)
-{
-	_mg = &mg;
-	_grid_type = GT_MULTIGRID;
-	_mg_sh = &sh;
-	_aPos = &aPos;
-}
-
-template <int d>
+template <int d, typename TGrid, typename TSubsetHandler>
 inline
-GridType Domain<d>::get_grid_type()
+TGrid&
+Domain<d, TGrid, TSubsetHandler>::
+get_grid()
 {
-	return _grid_type;
+	return m_grid;
 }
 
-template <int d>
+template <int d, typename TGrid, typename TSubsetHandler>
 inline
-Grid* Domain<d>::get_grid()
+TSubsetHandler&
+Domain<d, TGrid, TSubsetHandler>::
+get_subset_handler()
 {
-	return _grid;
+	return m_sh;
 }
 
-template <int d>
+template <int d, typename TGrid, typename TSubsetHandler>
 inline
-MultiGrid* Domain<d>::get_multigrid()
-{
-	return _mg;
-}
-
-template <int d>
-inline
-SubsetHandler* Domain<d>::get_subset_handler()
-{
-	return _sh;
-}
-
-template <int d>
-inline
-unsigned int Domain<d>::get_dim()
+uint
+Domain<d, TGrid, TSubsetHandler>::
+get_dim()
 {
 	return d;
 }
 
-template <int d>
+template <int d, typename TGrid, typename TSubsetHandler>
 inline
-typename Domain<d>::position_attachment_type* Domain<d>::get_position_attachment()
+typename Domain<d, TGrid, TSubsetHandler>::position_attachment_type&
+Domain<d, TGrid, TSubsetHandler>::
+get_position_attachment()
 {
-	return _aPos;
+	return m_aPos;
 }
 
-template <int d>
+template <int d, typename TGrid, typename TSubsetHandler>
 inline
-typename Domain<d>::position_accessor_type Domain<d>::get_position_accessor()
+typename Domain<d, TGrid, TSubsetHandler>::position_accessor_type&
+Domain<d, TGrid, TSubsetHandler>::
+get_position_accessor()
 {
-	return _aaPos;
+	return m_aaPos;
 }
 
 

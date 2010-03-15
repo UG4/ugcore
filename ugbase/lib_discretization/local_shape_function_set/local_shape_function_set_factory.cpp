@@ -1,0 +1,28 @@
+/*
+ * trialspacefactory.cpp
+ *
+ *  Created on: 17.02.2010
+ *      Author: andreasvogel
+ */
+
+#include "local_shape_function_set_factory.h"
+
+namespace ug{
+
+LocalShapeFunctionSetFactory::
+LocalShapeFunctionSetFactory()
+{
+	if(init_standard_local_shape_function_sets<ReferenceTriangle>()) assert(0);
+	if(init_standard_local_shape_function_sets<ReferenceQuadrilateral>()) assert(0);
+};
+
+LocalShapeFunctionSetFactory&
+LocalShapeFunctionSetFactory::
+inst()
+{
+	static LocalShapeFunctionSetFactory myInst;
+	return myInst;
+};
+
+} // namespace ug
+
