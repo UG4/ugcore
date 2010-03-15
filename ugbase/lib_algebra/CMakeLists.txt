@@ -9,6 +9,7 @@ cmake_minimum_required (VERSION 2.6)
 
 project (P_LIB_ALGEBRA)
 
+include_directories(${P_UGBASE_SOURCE_DIR})
 
 if(WITH_ALGEBRA)
 
