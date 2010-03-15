@@ -5,6 +5,7 @@
 #ifndef __H__PCL__PCL_BASE__
 #define __H__PCL__PCL_BASE__
 
+#include <iterator>
 #include <vector>
 #include <list>
 #include <map>
@@ -93,12 +94,13 @@ class ordered_interface_tag : public basic_interface_tag	{};
  * For dynamic interfaces std::list may be the better option.
  */
 template <class TType,
-		  template<class T, class Alloc = std::allocator<T> >
-			class TContainer = std::vector>
+		  template <class T, class Alloc> class TContainer = std::vector,
+		  template <class T> class TAlloc = std::allocator>
 class BasicInterface
 {
 	protected:
-		typedef TContainer<typename type_traits<TType>::Elem>	ElemContainer;
+		typedef typename type_traits<TType>::Elem		TElem;
+		typedef TContainer<TElem, TAlloc<TElem> >		ElemContainer;
 		
 	public:
 		typedef interface_tags::basic_interface_tag		category_tag;
@@ -127,6 +129,31 @@ class BasicInterface
 };
 
 
+///	Internally used by pcl::OrderedInterface
+/**	this struct holds an elem and a local id, as they are
+ *	required if we use non-random-access-iterators*/
+template <typename TIterTag, class TElem>
+struct TOrderedInterfaceEntryByTag
+{
+	TOrderedInterfaceEntryByTag(const TElem& e, uint ID) :
+		elem(e), localID(ID)	{}
+		
+	TElem	elem;
+	uint	localID;
+};
+
+///	Internally used by pcl::OrderedInterface
+/**	specialization for random-access-iterators.
+ *	A local id is not required here.*/
+template <class TElem> struct
+TOrderedInterfaceEntryByTag<std::random_access_iterator_tag, TElem>
+{
+	TOrderedInterfaceEntryByTag(const TElem& e) : elem(e)	{}
+	
+	TElem elem;
+};
+
+
 ////////////////////////////////////////////////////////////////////////
 //	OrderedInterface
 ///	You may add elements to this interface and iterate over them
@@ -135,37 +162,25 @@ class BasicInterface
  *
  *	This interface stores elements in a vector internally.
  *	This allows for easy compare but makes erase expensive.*/
-/*
 template <class TType,
-		  template<class T, class Alloc = std::allocator<T> >
-			class TContainer = std::vector>
+		  template <class T, class Alloc> class TContainer = std::vector,
+		  template <class T> class TAlloc = std::allocator>
 class OrderedInterface
 {
 	protected:
 		typedef typename type_traits<TType>::Elem	TElem;
 		
-	//	this struct holds an elem and a local id, as they are
-	//	required if we use non-random-access-iterators
-		template <typename TIterTag> struct TInterfaceEntryByTag
-		{
-			TElem	elem;
-			uint	localID;
-		};
-		
-	//	specialization for random-access-iterators. A local id is not required here.
-		template <> struct
-		TInterfaceEntryByTag<std::random_access_iterator_tag>
-		{
-			TElem elem;
-		};
-
 	//	this is required to pick the right InterfaceEntryType
 		typedef typename
-			std::iterator_traits<typename TContainer<TElem>::iterator>::iterator_category
-			iterator_category;
+			std::iterator_traits<
+				typename TContainer<TElem, TAlloc<TElem> >::iterator>
+				::iterator_category						iterator_category;
 			
-		typedef TInterfaceEntryByTag<iterator_category>	InterfaceEntry;
-		typedef TContainer<InterfaceEntry>				ElemContainer;
+		typedef TOrderedInterfaceEntryByTag<iterator_category, TElem>
+														InterfaceEntry;
+														
+		typedef TContainer<InterfaceEntry, TAlloc<InterfaceEntry> >
+														ElemContainer;
 		
 	public:
 		typedef TType									Type;
@@ -173,24 +188,86 @@ class OrderedInterface
 		
 		typedef interface_tags::ordered_interface_tag	category_tag;
 		
-		typedef typename ElemContainer::iterator			iterator;
+		typedef typename ElemContainer::iterator		iterator;
 		typedef typename ElemContainer::const_iterator	const_iterator;
 		
 	public:
-		iterator add_element(const TElem& elem);
+		OrderedInterface() : m_size(0), m_idCounter(1)	{}
 		
-		iterator begin();
-		iterator end();
+		inline iterator push_back(const Element& elem)
+		{
+			return push_back(elem, iterator_category());
+		}
 		
-		TElem& get_element(iterator iter);
+		inline void erase(iterator iter)
+		{
+			--m_size;
+			m_elements.erase(iter);
+		}
+		
+		inline iterator begin()		{return m_elements.begin();}
+		inline iterator end()		{return m_elements.end();}
+		
+		inline Element& get_element(iterator iter)	{return (*iter).elem;}
+		
+	///	returns the number of elements that are stored in the interface.
+		inline size_t size()						{return m_size;}
 		
 	///	returns true if iter1 < iter2.
-		static bool cmp(iterator iter1, iterator iter2);
+		static inline bool cmp(iterator iter1, iterator iter2)
+		{
+			return cmp(iter1, iter2, iterator_category());
+		}
+		
+	protected:
+		inline iterator push_back(const Element& elem, 
+								const std::input_iterator_tag&)
+		{
+			++m_size;
+			return m_elements.insert(m_elements.end(),
+									(InterfaceEntry(elem, get_free_id())));
+		}
+		
+		inline iterator push_back(const Element& elem, 
+								const std::random_access_iterator_tag&)
+		{
+			++m_size;
+			return m_elements.insert(m_elements.end(), elem);
+		}
+		
+		static inline bool cmp(iterator iter1, iterator iter2,
+								const std::input_iterator_tag&)
+		{
+			return (*iter1).localID < (*iter2).localID;
+		}
+
+		static inline bool cmp(iterator iter1, iterator iter2,
+								const std::random_access_iterator_tag&)
+		{
+			return iter2 - iter1 > 0;
+		}
+				
+	///	returns a free id in each call.
+	/**	This method may only be called if
+	 *	iterator_category != std::random_access_iterator_tag.*/
+		uint get_free_id()
+		{
+			if(m_idCounter == 0)
+			{
+				m_idCounter = 1;
+			//	we have to reset all entries
+				for(iterator iter = begin(); iter != end(); ++iter)
+					(*iter).localID = m_idCounter++;
+			}
+			
+			return m_idCounter++;
+		}
 		
 	protected:
 		ElemContainer	m_elements;
+		uint m_size;
+		uint m_idCounter;
 };
-*/
 
 
 
@@ -475,10 +552,16 @@ class MultiLevelLayout
 			class TContainer = std::vector>
 */
 template <template <class TInterface> class TLayout,
-		 template <class TType,
-				template<class T, class Alloc = std::allocator<T> >
-				class TContainer = std::vector> class TInterface,
-		class TKey>
+			template <class TType,
+				template <class T, class Alloc> class TContainer = std::vector,
+				template <class T> class TAlloc = std::allocator>
+				class TInterface,
+			class TKey,
+			template<class T, class Alloc>
+				class TInterfaceElemContainer = std::vector,
+			template<class T> 
+				class TAlloc = std::allocator>
+			
 class LayoutMap
 {
 	public:
@@ -488,8 +571,10 @@ class LayoutMap
 		template <class TType>
 		struct Types
 		{
-			typedef TLayout<TInterface<TType> >		Layout;
-			typedef TInterface<TType>				Interface;
+			typedef TInterface<TType,
+								TInterfaceElemContainer,
+								TAlloc>	Interface;
+			typedef TLayout<Interface>				Layout;
 			typedef typename Interface::Element		Element;
 			typedef std::map<TKey, Layout>			Map;
 		};

@@ -5,9 +5,8 @@
 #ifndef __H__LIB_GRID__PARALLEL_GRID_LAYOUT__
 #define __H__LIB_GRID__PARALLEL_GRID_LAYOUT__
 
-//#define __TMP_OLD_STYLE__
-
 #include <vector>
+#include <list>
 #include <map>
 #include "pcl/pcl.h"
 #include "lib_grid/lg_base.h"
@@ -59,15 +58,20 @@ enum InterfaceNodeTypes
 };
 
 //	declare vertex-, edge-, face- and volume-layouts
-typedef pcl::MultiLevelLayout<pcl::BasicInterface<VertexBase> >	VertexLayout;
-typedef pcl::MultiLevelLayout<pcl::BasicInterface<EdgeBase> >	EdgeLayout;
-typedef pcl::MultiLevelLayout<pcl::BasicInterface<Face> >		FaceLayout;
-typedef pcl::MultiLevelLayout<pcl::BasicInterface<Volume> >		VolumeLayout;
+typedef pcl::MultiLevelLayout<
+		pcl::OrderedInterface<VertexBase, std::vector> >	VertexLayout;
+typedef pcl::MultiLevelLayout<
+		pcl::OrderedInterface<EdgeBase, std::vector> >		EdgeLayout;
+typedef pcl::MultiLevelLayout<
+		pcl::OrderedInterface<Face, std::vector> >			FaceLayout;
+typedef pcl::MultiLevelLayout<
+		pcl::OrderedInterface<Volume, std::vector> >		VolumeLayout;
 
 //	declare GridLayoutMap
 typedef pcl::LayoutMap<pcl::MultiLevelLayout,
-						pcl::BasicInterface,
-						int>						GridLayoutMap;
+						pcl::OrderedInterface,
+						int,
+						std::vector>						GridLayoutMap;
 
 
 }//	end of namespace
