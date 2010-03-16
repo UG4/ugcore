@@ -35,8 +35,8 @@ enum ElementStatus
 class DistributedGrid : public GridObserver
 {		
 	public:
-		DistributedGridObserver();
-		DistributedGridObserver(Grid& grid);
+		DistributedGrid();
+		DistributedGrid(Grid& grid);
 		
 		virtual ~DistributedGridObserver();
 		
@@ -56,7 +56,7 @@ class DistributedGrid : public GridObserver
 	 *	in the layout.
 	 *	If you removed elements or if you are unsure what operations have been
 	 *	performed on the layout, you have to set addedElemsOnly to false
-	 *	(the default value). Complexity in this case is proportial to the
+	 *	(the default value). Complexity in this case is proportional to the
 	 *	number of elements in the underlying grid (or numer of elements in
 	 *	the layout - whichever is higher).*/
 	 	void grid_layouts_changed(bool addedElemsOnly = false);
@@ -74,21 +74,21 @@ class DistributedGrid : public GridObserver
 		
 	//	element-status
 		inline bool check_status(VertexBase* vrt, byte status)
-			{return ((m_aaStatusVRT[vrt] & status) == status);}
+			{return ((get_status(vrt) & status) == status);}
 		
 		inline bool check_status(EdgeBase* edge, byte status)
-			{return ((m_aaStatusEDGE[edge] & status) == status);}
+			{return ((get_status(edge) & status) == status);}
 
 		inline bool check_status(Face* face, byte status)
-			{return ((m_aaStatusFACE[face] & status) == status);}
+			{return ((get_status(face) & status) == status);}
 
 		inline bool check_status(Volume* vol, byte status)
-			{return ((m_aaStatusVOL[vol] & status) == status);}
+			{return ((get_status(vol) & status) == status);}
 			
-		inline byte get_status(VertexBase* vrt)	{return m_aaStatusVRT[vrt];}
-		inline byte get_status(EdgeBase* edge)	{return m_aaStatusEDGE[edge];}
-		inline byte get_status(Face* face)		{return m_aaStatusFACE[face];}
-		inline byte get_status(Volume* vol)		{return m_aaStatusVOL[vol];}
+		inline byte get_status(VertexBase* vrt)	{return elem_info(vrt).status;}
+		inline byte get_status(EdgeBase* edge)	{return elem_info(edge).status;}
+		inline byte get_status(Face* face)		{return elem_info(face).status;}
+		inline byte get_status(Volume* vol)		{return elem_info(vol).status;}
 		
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);
@@ -130,39 +130,95 @@ class DistributedGrid : public GridObserver
 				int					connectedProcID;
 		};
 		
-		typedef std::multimap<int, ScheduledElement> ScheduledElemMap;
+		typedef VertexLayout::Interface::iterator	InterfaceElemIteratorVrt;
+		typedef EdgeLayout::Interface::iterator		InterfaceElemIteratorEdge;
+		typedef FaceLayout::Interface::iterator		InterfaceElemIteratorFace;
+		typedef VolumeLayout::Interface::iterator	InterfaceElemIteratorVol;
+		
+		typedef std::multimap<InterfaceElemIteratorVrt,
+							ScheduledElement,
+							VertexLayout::Interface::cmp> 	ScheduledElemMapVrt;
+							
+		typedef std::multimap<InterfaceElemIteratorEdge,
+							ScheduledElement,
+							EdgeLayout::Interface::cmp> 	ScheduledElemMapEdge;
+							
+		typedef std::multimap<InterfaceElemIteratorFace,
+							ScheduledElement,
+							FaceLayout::Interface::cmp> 	ScheduledElemMapFace;
+							
+		typedef std::multimap<InterfaceElemIteratorVol,
+							ScheduledElement,
+							VolumeLayout::Interface::cmp> 	ScheduledElemMapVol;
+
 /*
 		typedef VertexCommunicationGroup::HNODE HVertex;
 		typedef EdgeCommunicationGroup::HNODE HEdge;
 		typedef FaceCommunicationGroup::HNODE HFace;
 		typedef VolumeCommunicationGroup::HNODE HVolume;
 */		
-		typedef util::Attachment<byte>	AStatus;
+		template <class TGeomObj>
+		struct ElementInfo
+		{
+		//	types
+			typedef typename GridLayoutMap::template Types<TGeomObj>
+					::Interface::iterator InterfaceElemIter;
+					
+			struct ProcIterPair{
+				ProcIterPair(int pID, InterfaceElemIter i) :
+					procID(pID), iter(i)	{}
+					
+				int					procID;
+				InterfaceElemIter	iter;
+			};
 
+			typedef std::list<ProcIterPair>	ProcIterPairList;			
+
+		//	methods
+			ElementInfo()		{}
+			inline void reset()	{lstProcIterPairs.clear(); status = ES_NONE;}
+			
+		//	members
+		///	holds pairs of (procID, elem-iterator).
+			ProcIterPairList	lstProcIterPairs;
+		///	the status of the element
+			byte 	status;
+		};
+			
+		typedef ElementInfo<VertexBase>	ElemInfoVrt;
+		typedef ElementInfo<EdgeBase>	ElemInfoEdge;
+		typedef ElementInfo<Face>		ElemInfoFace;
+		typedef ElementInfo<Volume>		ElemInfoVol;
+		
+		typedef util::Attachment<ElemInfoVrt>	AElemInfoVrt;
+		typedef util::Attachment<ElemInfoEdge>	AElemInfoEdge;
+		typedef util::Attachment<ElemInfoFace>	AElemInfoFace;
+		typedef util::Attachment<ElemInfoVol>	AElemInfoVol;
+		
 	protected:	
 		void clear_scheduled_elements();
 		void resize_scheduled_element_map_vecs();
 		
+		inline ElemInfoVrt& elem_info(VertexBase* ele)	{return m_aaElemInfoVRT[ele];}
+		inline ElemInfoEdge& elem_info(EdgeBase* ele)	{return m_aaElemInfoEDGE[ele];}
+		inline ElemInfoFace& elem_info(Face* ele)		{return m_aaElemInfoFACE[ele];}
+		inline ElemInfoVol& elem_info(Volume* ele)		{return m_aaElemInfoVOL[ele];}
+		
 		byte get_geom_obj_status(GeometricObject* go);
 		
-		inline void set_status(VertexBase* vrt, byte status)
-			{m_aaStatusVRT[vrt] = status;}
-		
-		inline void set_status(EdgeBase* edge, byte status)
-			{m_aaStatusEDGE[edge] = status;}
-
-		inline void set_status(Face* face, byte status)
-			{m_aaStatusFACE[face] = status;}
-
-		inline void set_status(Volume* vol, byte status)
-			{m_aaStatusVOL[vol] = status;}
-			
+		inline void set_status(VertexBase* vrt, byte status){elem_info(vrt).status = status;}
+		inline void set_status(EdgeBase* edge, byte status)	{elem_info(edge).status = status;}
+		inline void set_status(Face* face, byte status)		{elem_info(face).status = status;}
+		inline void set_status(Volume* vol, byte status)	{elem_info(vol).status = status;}
+/*
 		const std::vector<int>& get_interface_indices(GeometricObject* go);
 		const std::vector<int>& get_interface_entry_indices(GeometricObject* go);
+*/
+		template <class TGeomObj>
+		void reset_elem_infos();
 		
-		template <class TParallelElemLayout, class TAttachmentAccessor>
-		void set_elem_statuses(TParallelElemLayout& pel,
-								TAttachmentAccessor& aaStatus, byte newStatus)
+		template <class TGeomObj, class TLayoutMap>
+		void update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus);
 
 	///	vertex_created, edge_created, ... callbacks call this method.
 		template <class TElem>
@@ -189,18 +245,22 @@ class DistributedGrid : public GridObserver
 		Grid*					m_pGrid;
 		GridLayoutMap			m_gridLayoutMap;
 		
-		ScheduledElemMap		m_vrtMap; ///< holds all elements that were scheduled by vertices
-		ScheduledElemMap		m_edgeMap; ///< holds all elements that were scheduled by edges
-		ScheduledElemMap		m_faceMap; ///< holds all elements that were scheduled by faces
-		ScheduledElemMap		m_volMap; ///< holds all elements that were scheduled by volumes
+		ScheduledElemMapVrt		m_vrtMap;	///< holds all elements that were scheduled by vertices
+		ScheduledElemMapEdge	m_edgeMap;	///< holds all elements that were scheduled by edges
+		ScheduledElemMapFace	m_faceMap;	///< holds all elements that were scheduled by faces
+		ScheduledElemMapVol		m_volMap;	///< holds all elements that were scheduled by volumes
 		
 		bool	m_bOrderedInsertionMode;
-		AStatus	m_aStatus;
-
-		Grid::VertexAttachmentAccessor<AStatus>	m_aaStatusVRT;
-		Grid::EdgeAttachmentAccessor<AStatus>	m_aaStatusEDGE;
-		Grid::FaceAttachmentAccessor<AStatus>	m_aaStatusFACE;
-		Grid::VolumeAttachmentAccessor<AStatus>	m_aaStatusVOL;
+		
+		AElemInfoVrt	m_aElemInfoVrt;
+		AElemInfoEdge	m_aElemInfoEdge;
+		AElemInfoFace	m_aElemInfoFace;
+		AElemInfoVol	m_aElemInfoVol;
+		
+		Grid::VertexAttachmentAccessor<AElemInfoVrt>	m_aaElemInfoVRT;
+		Grid::EdgeAttachmentAccessor<AElemInfoEdge>		m_aaElemInfoEDGE;
+		Grid::FaceAttachmentAccessor<AElemInfoFace>		m_aaElemInfoFACE;
+		Grid::VolumeAttachmentAccessor<AElemInfoVol>	m_aaElemInfoVOL;
 };
 
 }// end of namespace

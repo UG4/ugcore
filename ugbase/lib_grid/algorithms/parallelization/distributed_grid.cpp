@@ -21,13 +21,13 @@ uint GetElemInfo(TGeomObj* pObj, TCommGrp& commGrp)
 	{
 		uint retVal = 0;
 		if(commGrp.num_containing_interfaces(hNode) > 0)
-			retVal |= DistributedGridObserver::EI_INTERFACE_NODE;
+			retVal |= DistributedGrid::EI_INTERFACE_NODE;
 		int nt = commGrp.get_node_type(hNode);
 		switch(nt)
 		{
-			case pcl::NT_NORMAL: retVal |= DistributedGridObserver::EI_NORMAL; break;
-			case pcl::NT_MASTER: retVal |= DistributedGridObserver::EI_MASTER; break;
-			case pcl::NT_SLAVE: retVal |= DistributedGridObserver::EI_SLAVE; break;
+			case pcl::NT_NORMAL: retVal |= DistributedGrid::EI_NORMAL; break;
+			case pcl::NT_MASTER: retVal |= DistributedGrid::EI_MASTER; break;
+			case pcl::NT_SLAVE: retVal |= DistributedGrid::EI_SLAVE; break;
 		}
 		return retVal;
 	}
@@ -37,29 +37,29 @@ uint GetElemInfo(TGeomObj* pObj, TCommGrp& commGrp)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	constructor / destructor
-DistributedGridObserver::
-DistributedGridObserver()
+DistributedGrid::
+DistributedGrid()
 {
 	m_bOrderedInsertionMode = false;
 	m_pGrid = NULL;
 }
 
-DistributedGridObserver::
-DistributedGridObserver(Grid& grid)
+DistributedGrid::
+DistributedGrid(Grid& grid)
 {
 	m_bOrderedInsertionMode = false;
 	assign(grid);
 }
 
-DistributedGridObserver::		
-~DistributedGridObserver()
+DistributedGrid::		
+~DistributedGrid()
 {
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	assignment
 void
-DistributedGridObserver::
+DistributedGrid::
 assign(Grid& grid)
 {
 	grid.register_observer(this);
@@ -68,14 +68,14 @@ assign(Grid& grid)
 ////////////////////////////////////////////////////////////////////////
 //	begin_ / end_element_creation
 void
-DistributedGridObserver::
+DistributedGrid::
 begin_ordered_element_insertion()
 {
 	m_bOrderedInsertionMode = true;
 }
 
 template <class TElem, class TCommGrp>
-void DistributedGridObserver::
+void DistributedGrid::
 add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 						int procID, InterfaceNodeTypes nodeType)
 {
@@ -105,7 +105,7 @@ add_element_to_interface(TElem* pElem, TCommGrp& commGrp,
 }
 
 template <class TScheduledElemMap>
-void DistributedGridObserver::
+void DistributedGrid::
 perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 {		
 	for(typename TScheduledElemMap::iterator iter = elemMap.begin();
@@ -133,7 +133,7 @@ perform_ordered_element_insertion(TScheduledElemMap& elemMap)
 }
 										
 void
-DistributedGridObserver::
+DistributedGrid::
 end_ordered_element_insertion()
 {
 //TODO: support all elements
@@ -147,7 +147,7 @@ end_ordered_element_insertion()
 ////////////////////////////////////////////////////////////////////////
 //	protected methods
 void
-DistributedGridObserver::
+DistributedGrid::
 clear_scheduled_elements()
 {
 	m_vrtMap.clear();
@@ -158,7 +158,7 @@ clear_scheduled_elements()
 
 /*
 template <class TCommGrp, class TAttachmentAccessor>
-void DistributedGridObserver::
+void DistributedGrid::
 init_elem_status_from_comm_group(TCommGrp& commGrp,
 							TAttachmentAccessor& aaStatus)
 {
@@ -179,27 +179,24 @@ init_elem_status_from_comm_group(TCommGrp& commGrp,
 */
 
 ////////////////////////////////////////////////////////////////////////
-void DistributedGridObserver::grid_layouts_changed(bool addedElemsOnly)
+void DistributedGrid::grid_layouts_changed(bool addedElemsOnly)
 {
 	if(!addedElemsOnly){
-	//	first we have to clear all status-entries
-		SetAttachmentValues(m_aaStatusVRT, m_pGrid->vertices_begin(),
-							m_pGrid->vertices_end(), ES_NONE);
-		SetAttachmentValues(m_aaStatusEDGE, m_pGrid->edges_begin(),
-							m_pGrid->edges_end(), ES_NONE);
-		SetAttachmentValues(m_aaStatusFACE, m_pGrid->faces_begin(),
-							m_pGrid->faces_end(), ES_NONE);
-		SetAttachmentValues(m_aaStatusVOL, m_pGrid->volumes_begin(),
-							m_pGrid->volumes_end(), ES_NONE);
+	//	first we have to reset all elem infos
+		reset_elem_infos<VertexBase>();
+		reset_elem_infos<EdgeBase>();
+		reset_elem_infos<Face>();
+		reset_elem_infos<Volume>();
 	}
 	
 //	call for each layout in the grid-layout the corresponding
 //	init_elem_status_from_layout function.
 //	every layout has multiple levels
 //	VERTICES
-	if(m_gridLayoutMap.has_vertex_layout(INT_MASTER))
-		set_elem_statuses(m_gridLayoutMap.vertex_layout(INT_MASTER),
-						m_aaStatusVRT, ES_IN_INTERFACE | ES_MASTER);
+	if(m_gridLayoutMap.has_layout<VertexBase>(INT_MASTER))
+		set_elem_statuses(m_gridLayoutMap.get_layout<VertexBase>(INT_MASTER),
+						m_aaStatusVRT, m_aaIEIterVRT, ES_IN_INTERFACE | ES_MASTER);
+	
 	if(parallelGridLayout.has_vertex_layout(INT_SLAVE))
 		set_elem_statuses(parallelGridLayout.vertex_layout(INT_SLAVE),
 						m_aaStatusVRT, ES_IN_INTERFACE | ES_SLAVE);
@@ -230,10 +227,54 @@ void DistributedGridObserver::grid_layouts_changed(bool addedElemsOnly)
 }
 
 ////////////////////////////////////////////////////////////////////////
-template <class TParallelElemLayout, class TAttachmentAccessor>
-void DistributedGridObserver::
-set_elem_statuses(TParallelElemLayout& pel, TAttachmentAccessor& aaStatus,
-					byte newStatus)
+template <class TGeomObj>
+void DistributedGrid::reset_elem_infos()
+{
+	for(typename geometry_traits<TGeomObj>::iterator
+		iter = m_pGrid->begin<TGeomObj>();
+		iter != m_pGrid->end<TGeomObj>(); ++iter)
+	{
+		elem_info(*iter).reset();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TGeomObj, class TLayoutMap>
+void DistributedGrid::
+update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus)
+{
+	typedef typename TLayoutMap::template Types<TGeomObj>::Layout Layout;
+	if(layoutMap.template has_layout<TGeomObj>(nodeType)){
+	//	get the layout
+		 Layout& layout = layoutMap.template get_layout<TGeomObj>(nodeType);
+		 
+	//	iterate through the levels of the layout
+		for(size_t l = 0; l < layout.num_levels(); ++l){
+		//	iterate through the interfaces of the layout
+			for(Layout::iterator iiter = layout.begin(l);
+				iiter != layout.end(l); ++iiter)
+			{
+				Layout::Interface& interface = layout.interface(iiter);
+				int procID = layout.proc_id(iiter);
+				
+			///	iterate through the elements of the interface
+				for(Layout::Interface::iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	set the new status
+					set_status(*iter, newStatus);
+				//	add the iterator to the iterator list and set the proc-id
+					elem_info(*iter).lstProcIterPairs.push_back(
+								typename ElementInfo<TGeomObj>(procID, iter));
+				}
+			}
+		}
+	}
+}
+/*
+template <class TParallelElemLayout>
+void DistributedGrid::
+set_elem_statuses(TParallelElemLayout& pel,	byte newStatus)
 {
 	typedef typename TParallelElemLayout::Layout 	Layout
 	typedef typename Layout::iterator				LayoutIter;
@@ -251,26 +292,26 @@ set_elem_statuses(TParallelElemLayout& pel, TAttachmentAccessor& aaStatus,
 				iter != interface.end(); ++iter)
 			{
 			//	value type of InterfaceIter is a GeometricObject-pointer.
-				aaStatus[*iter] = newStatus;
+				set_status(*iter, newStatus);
 			}
 		}
 	}
 }
-
-byte DistributedGridObserver::
+*/
+byte DistributedGrid::
 get_geom_obj_status(GeometricObject* go)
 {
 	int baseType = go->base_object_type_id();
 	switch(baseType)
 	{
 		case VERTEX:
-			return m_aaStatusVRT[go];
+			return get_status(static_cast<VertexBase*>(go));;
 		case EDGE:
-			return m_aaStatusEDGE[go];
+			return get_status(static_cast<EdgeBase*>(go));
 		case FACE:
-			return m_aaStatusFACE[go];
+			return get_status(static_cast<Face*>(go));
 		case VOLUME:
-			return m_aaStatusVOL[go];
+			return get_status(static_cast<Volume*>(go));
 	}
 }
 
@@ -279,22 +320,25 @@ get_geom_obj_status(GeometricObject* go)
 //	implementation of observer-methods.
 //	grid callbacks
 void
-DistributedGridObserver::
+DistributedGrid::
 registered_at_grid(Grid* grid)
 {
 	if(m_pGrid != NULL)
 		m_pGrid->unregister_observer(this);
 
 	m_pGrid = grid;
-	m_pGrid->attach_to_vertices(m_aStatus);
-	m_pGrid->attach_to_edges(m_aStatus);
-	m_pGrid->attach_to_faces(m_aStatus);
-	m_pGrid->attach_to_volumes(m_aStatus);
-
-	m_aaStatusVRT.access(*grid, m_aStatus);
-	m_aaStatusEDGE.access(*grid, m_aStatus);
-	m_aaStatusFACE.access(*grid, m_aStatus);
-	m_aaStatusVOL.access(*grid, m_aStatus);
+	
+//	attach element infos
+	m_pGrid->attach_to_vertices(m_aElemInfoVrt);
+	m_pGrid->attach_to_edges(m_aElemInfoEdge);
+	m_pGrid->attach_to_faces(m_aElemInfoFace);
+	m_pGrid->attach_to_volumes(m_aElemInfoVol);
+	
+//	access them
+	m_aaElemInfoVRT.access(*grid, m_aElemInfoVrt);
+	m_aaElemInfoEDGE.access(*grid, m_aElemInfoEdge);
+	m_aaElemInfoFACE.access(*grid, m_aElemInfoFace);
+	m_aaElemInfoVOL.access(*grid, m_aElemInfoVol);
 	
 //	initialise the element statuses. This is automatically done
 //	on a call to grid_layout_changed.
@@ -302,7 +346,7 @@ registered_at_grid(Grid* grid)
 }
 
 void
-DistributedGridObserver::
+DistributedGrid::
 unregistered_from_grid(Grid* grid)
 {
 	if(m_bOrderedInsertionMode)
@@ -311,16 +355,16 @@ unregistered_from_grid(Grid* grid)
 		clear_scheduled_elements();
 	}
 	
-	m_pGrid->detach_from_vertices(m_aStatus);
-	m_pGrid->detach_from_edges(m_aStatus);
-	m_pGrid->detach_from_faces(m_aStatus);
-	m_pGrid->detach_from_volumes(m_aStatus);
+	m_pGrid->detach_from_vertices(m_aElemInfoVrt);
+	m_pGrid->detach_from_edges(m_aElemInfoEdge);
+	m_pGrid->detach_from_faces(m_aElemInfoFace);
+	m_pGrid->detach_from_volumes(m_aElemInfoVol);
 	
 	m_pGrid = NULL;
 }
 
 void
-DistributedGridObserver::
+DistributedGrid::
 elements_to_be_cleared(Grid* grid)
 {
 	if(m_bOrderedInsertionMode)
@@ -329,22 +373,18 @@ elements_to_be_cleared(Grid* grid)
 
 //	adds a ScheduledElement to scheduled-element-maps, depending on
 //	the interfaces in which pParent is contained.
-template <class TScheduledElemMap, class TParent, class TCommGrp>
+template <class TElem, class TScheduledElemMap, class TParent>
 void ScheduleElementForCommunicationGroup(TScheduledElemMap& elemMap,
-										GeometricObject* pObj,
-										TParent* pParent,
-										TCommGrp& parentCommGrp)
+										TElem* elem,
+										TParent* pParent)
 {
-	typename TCommGrp::HNODE hParent = parentCommGrp.get_handle(pParent);
-
-//	insert the element into the maps
-	const vector<int>& vInterfaceInds = parentCommGrp.get_interface_indices(hParent);
-	const vector<int>& vEntryInds = parentCommGrp.get_interface_entry_indices(hParent);
+	typedef typename ElementInfo<TElem>::ProcIterPairList TList;
+	TList& lst = elem_info(elem).lstProcIterPairs;
 	
-	for(int i = 0; i < vInterfaceInds.size(); ++i)
+	for(typename TList::iterator iter = lst.begin(); iter != lst.end(); ++iter)
 	{
 		elemMap.insert(make_pair(vEntryInds[i],
-			DistributedGridObserver::ScheduledElement(pObj,
+			DistributedGrid::ScheduledElement(pObj,
 				parentCommGrp.get_node_type(hParent),
 				parentCommGrp.get_connected_proc_of_interface(vInterfaceInds[i]))));
 	}
@@ -352,7 +392,7 @@ void ScheduleElementForCommunicationGroup(TScheduledElemMap& elemMap,
 
 //	new elements are handled here.
 template <class TElem>
-void DistributedGridObserver::
+void DistributedGrid::
 handle_created_element(TElem* pElem,
 						GeometricObject* pParent)
 {
@@ -380,8 +420,7 @@ handle_created_element(TElem* pElem,
 			case EDGE:
 				ScheduleElementForCommunicationGroup(m_edgeMap,
 													pElem,
-													(EdgeBase*)pParent,
-													m_pCommSet->edgeGroup);
+													(EdgeBase*)pParent);
 				break;
 		}
 		set_status(pElem, get_status(pElem) | ES_SCHEDULED_FOR_INTERFACE);
@@ -394,7 +433,7 @@ handle_created_element(TElem* pElem,
 }
 
 template <class TElem, class TCommGrp>
-void DistributedGridObserver::
+void DistributedGrid::
 handle_erased_element(TElem* e, TCommGrp& commGrp)
 {
 //	for each deleted element a check has to be performed whether it was
@@ -421,7 +460,7 @@ handle_erased_element(TElem* e, TCommGrp& commGrp)
 }
 
 template <class TElem, class TCommGrp>
-void DistributedGridObserver::
+void DistributedGrid::
 handle_replaced_element(TElem* eOld, TElem* eNew, TCommGrp& commGrp)
 {
 //	if the replaced element is a memeber of the elements communication group,
@@ -439,36 +478,36 @@ handle_replaced_element(TElem* eOld, TElem* eNew, TCommGrp& commGrp)
 	}
 }
 
-void DistributedGridObserver::
+void DistributedGrid::
 vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
 {
 	handle_created_element(vrt, pParent);
 }
 
-void DistributedGridObserver::
+void DistributedGrid::
 vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 {
 	handle_erased_element(vrt, m_pCommSet->vrtGroup);
 }
 
-void DistributedGridObserver::
+void DistributedGrid::
 vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew)
 {
 	handle_replaced_element(vrtOld, vrtNew, m_pCommSet->vrtGroup);
 }
 
-void DistributedGridObserver::edge_created(Grid* grid, EdgeBase* edge,
+void DistributedGrid::edge_created(Grid* grid, EdgeBase* edge,
 											GeometricObject* pParent)
 {
 	handle_created_element(edge, pParent);
 }
 
-void DistributedGridObserver::edge_to_be_erased(Grid* grid, EdgeBase* edge)
+void DistributedGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge)
 {
 	handle_erased_element(edge, m_pCommSet->edgeGroup);
 }
 
-void DistributedGridObserver::edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld,
+void DistributedGrid::edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld,
 													EdgeBase* edgeNew)
 {
 	handle_replaced_element(edgeOld, edgeNew, m_pCommSet->edgeGroup);

@@ -4,7 +4,6 @@
 
 #include "grid_distribution.h"
 #include "lib_grid/lib_grid.h"
-#include "distribution_node_layout.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
 #include "common/util/stream_pack.h"
@@ -47,8 +46,8 @@ void DistributeGrid(MultiGrid& mg, SubsetHandler& sh,
 //	the selector will help to speed things up a little.
 	MGSelector msel(mg);
 	
-	CreateGridLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
-						vVolumeLayouts, mg, sh, &msel);
+	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
+								vVolumeLayouts, mg, sh, &msel);
 
 //	we will now fill a binary stream with all the grids.
 //	this stream will receive the data that has to be copied to the local grid.
@@ -80,9 +79,10 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 		
 		if(proc == localProcID)
 		{
-			SerializeGridAndLayouts(localStream, mg, vVertexLayouts[i],
-									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
-									aInt, aInt, aInt, aInt, &msel, pProcessMap);
+			SerializeGridAndDistributionLayouts(
+								localStream, mg, vVertexLayouts[i],
+								vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
+								aInt, aInt, aInt, aInt, &msel, pProcessMap);
 									
 		//	serialize position attachment
 			for(uint iLevel = 0; iLevel < mg.num_levels(); ++iLevel)
@@ -98,7 +98,8 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 		else
 		{
 			int oldSize = globalStream.size();
-			SerializeGridAndLayouts(globalStream, mg, vVertexLayouts[i],
+			SerializeGridAndDistributionLayouts(
+									globalStream, mg, vVertexLayouts[i],
 									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
 									aInt, aInt, aInt, aInt, &msel, pProcessMap);
 
@@ -139,7 +140,8 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 		if(!pLocalGridOut->has_vertex_attachment(aPosition))
 			pLocalGridOut->attach_to_vertices(aPosition);
 
-		DeserializeGridAndLayouts(*pLocalGridOut, *pLocalGridLayoutMapOut,
+		DeserializeGridAndDistributionLayouts(
+									*pLocalGridOut, *pLocalGridLayoutMapOut,
 									localStream);
 
 		DeserializeAttachment<VertexBase>(*pLocalGridOut, aPosition,
@@ -170,7 +172,8 @@ void ReceiveGrid(MultiGrid& mgOut, GridLayoutMap& gridLayoutMapOut,
 	pcl::ReceiveData(binaryStream.buffer(), srcProcID, streamSize, 39);
 
 //	fill the grid and the layout
-	DeserializeGridAndLayouts(mgOut, gridLayoutMapOut, binaryStream);
+	DeserializeGridAndDistributionLayouts(mgOut, gridLayoutMapOut,
+											binaryStream);
 	
 //	read the attached data
 	if(!mgOut.has_vertex_attachment(aPosition))

@@ -58,20 +58,23 @@ enum InterfaceNodeTypes
 };
 
 //	declare vertex-, edge-, face- and volume-layouts
+//	we're using std::list as interface-element container, since we
+//	require interface-element-iterators that stay valid even if the
+//	interface is altered.
 typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<VertexBase, std::vector> >	VertexLayout;
+		pcl::OrderedInterface<VertexBase, std::list> >	VertexLayout;
 typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<EdgeBase, std::vector> >		EdgeLayout;
+		pcl::OrderedInterface<EdgeBase, std::list> >	EdgeLayout;
 typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<Face, std::vector> >			FaceLayout;
+		pcl::OrderedInterface<Face, std::list> >		FaceLayout;
 typedef pcl::MultiLevelLayout<
-		pcl::OrderedInterface<Volume, std::vector> >		VolumeLayout;
+		pcl::OrderedInterface<Volume, std::list> >		VolumeLayout;
 
 //	declare GridLayoutMap
 typedef pcl::LayoutMap<pcl::MultiLevelLayout,
 						pcl::OrderedInterface,
 						int,
-						std::vector>						GridLayoutMap;
+						std::list>						GridLayoutMap;
 
 
 }//	end of namespace

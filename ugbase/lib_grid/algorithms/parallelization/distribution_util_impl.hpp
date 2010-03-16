@@ -13,7 +13,8 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
+void SerializeDistributionLayoutInterfaces(
+								std::ostream& out, TLayout& layout,
 								std::vector<int>* pProcessMap)
 {
 //	write the number of levels
@@ -62,7 +63,8 @@ void SerializeLayoutInterfaces(std::ostream& out, TLayout& layout,
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeLayoutInterfaces
 template <class TGeomObj, class TLayoutMap>
-void DeserializeLayoutInterfaces(TLayoutMap& layoutMapOut,
+void DeserializeDistributionLayoutInterfaces(
+								TLayoutMap& layoutMapOut,
 								std::vector<TGeomObj*> vGeomObjs,
 								std::istream& in)
 {

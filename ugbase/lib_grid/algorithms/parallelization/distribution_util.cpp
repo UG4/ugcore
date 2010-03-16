@@ -3,7 +3,6 @@
 //	y09 m11 d17
 
 #include "lib_grid/lib_grid.h"
-#include "distribution_node_layout.h"
 #include "pcl/pcl.h"
 #include "distribution_util.h"
 #include "common/util/stream_pack.h"
@@ -80,7 +79,8 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 }
 
 ////////////////////////////////////////////////////////////////////////
-void CreateGridLayouts(	std::vector<DistributionVertexLayout>& vertexLayoutsOut,
+void CreateDistributionLayouts(
+						std::vector<DistributionVertexLayout>& vertexLayoutsOut,
 						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
 						std::vector<DistributionFaceLayout>& faceLayoutsOut,
 						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
@@ -222,15 +222,16 @@ void SelectNodesInLayout(TSelector& sel, TLayout& layout)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
-						DistributionVertexLayout& vrtLayout,
-						DistributionEdgeLayout& edgeLayout,
-						DistributionFaceLayout& faceLayout,
-						DistributionVolumeLayout& volLayout,
-						AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
-						AInt& aLocalIndFACE, AInt& aLocalIndVOL,
-						MGSelector* pSel,
-						std::vector<int>* pProcessMap)
+void SerializeGridAndDistributionLayouts(
+								std::ostream& out, MultiGrid& mg,
+								DistributionVertexLayout& vrtLayout,
+								DistributionEdgeLayout& edgeLayout,
+								DistributionFaceLayout& faceLayout,
+								DistributionVolumeLayout& volLayout,
+								AInt& aLocalIndVRT, AInt& aLocalIndEDGE,
+								AInt& aLocalIndFACE, AInt& aLocalIndVOL,
+								MGSelector* pSel,
+								std::vector<int>* pProcessMap)
 {
 //	initialize a selector.
 	MGSelector tmpSel;
@@ -259,10 +260,10 @@ void SerializeGridAndLayouts(std::ostream& out, MultiGrid& mg,
 						aLocalIndFACE, aLocalIndVOL, out);
 
 //	write the layouts
-	SerializeLayoutInterfaces(out, vrtLayout, pProcessMap);
-	SerializeLayoutInterfaces(out, edgeLayout, pProcessMap);
-	SerializeLayoutInterfaces(out, faceLayout, pProcessMap);
-	SerializeLayoutInterfaces(out, volLayout, pProcessMap);
+	SerializeDistributionLayoutInterfaces(out, vrtLayout, pProcessMap);
+	SerializeDistributionLayoutInterfaces(out, edgeLayout, pProcessMap);
+	SerializeDistributionLayoutInterfaces(out, faceLayout, pProcessMap);
+	SerializeDistributionLayoutInterfaces(out, volLayout, pProcessMap);
 	
 //	done. Please note that no attachments have been serialized in this method.
 }
@@ -283,9 +284,9 @@ FillLayoutWithNodes(TLayout& layout, Grid& grid)
 */
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridAndLayouts
-void DeserializeGridAndLayouts(MultiGrid& mgOut,
-							GridLayoutMap& gridLayoutOut,
-							std::istream& in)
+void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
+											GridLayoutMap& gridLayoutOut,
+											std::istream& in)
 {	
 //	read the grid.
 //	we'll need vectors which contain the elements of the grid later on.
@@ -309,10 +310,14 @@ void DeserializeGridAndLayouts(MultiGrid& mgOut,
 	DeserializeLayoutInterfaces<Volume>(
 					gridLayoutOut.volume_layout_hierarchy_map(), vVols, in);
 */
-	DeserializeLayoutInterfaces<VertexBase>(gridLayoutOut, vVrts, in);
-	DeserializeLayoutInterfaces<EdgeBase>(gridLayoutOut, vEdges, in);
-	DeserializeLayoutInterfaces<Face>(gridLayoutOut, vFaces, in);
-	DeserializeLayoutInterfaces<Volume>(gridLayoutOut, vVols, in);
+	DeserializeDistributionLayoutInterfaces<VertexBase>(gridLayoutOut,
+														vVrts, in);
+	DeserializeDistributionLayoutInterfaces<EdgeBase>(gridLayoutOut,
+														vEdges, in);
+	DeserializeDistributionLayoutInterfaces<Face>(gridLayoutOut,
+													vFaces, in);
+	DeserializeDistributionLayoutInterfaces<Volume>(gridLayoutOut,
+													vVols, in);
 
 //DEBUG
 /*
