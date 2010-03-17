@@ -18,12 +18,14 @@
 
 namespace ug{
 
-template <int d>
+template <typename TDiscreteFunction>
 class VTKOutput{
+	public:
+		typedef TDiscreteFunction discrete_function_type;
 
 	public:
-		bool print(NumericalSolution<d>& u, int level, const char* filename, double Time = 0.0);
-		bool print_subset(NumericalSolution<d>& u, int level, int subsetIndex, const char* filename, double Time = 0.0);
+		bool print(discrete_function_type& u, int level, const char* filename, double Time = 0.0);
+		bool print_subset(discrete_function_type& u, int level, int subsetIndex, const char* filename, double Time = 0.0);
 
 	private:
 		bool write_prolog(FILE* file, double Time);

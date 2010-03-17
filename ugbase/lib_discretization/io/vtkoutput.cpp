@@ -81,11 +81,11 @@ static void BStreamFlush(FILE* File)
 }
  /* END: Helper Functions */
 template <int d>
-bool VTKOutput<d>::print(NumericalSolution<d>& u, int level, const char* filename, double Time)
+bool
+VTKOutput<d>::
+print(discrete_function_type& u, uint level, const char* filename, double Time)
 {
-
-	ISubsetHandler* ish = u.get_pattern()->get_assigned_subset();
-	Grid* grid = ish->get_assigned_grid();
+	Grid* grid = dynamic_cast<Grid*>(&domain.get_grid());
 
 	// attach help indices
 	grid->attach_to_vertices(m_aDOFIndex);
@@ -95,42 +95,36 @@ bool VTKOutput<d>::print(NumericalSolution<d>& u, int level, const char* filenam
 	FILE* File = fopen(filename, "w");
 	if(File == NULL)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not open Output File" << std::endl;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not open Output File" << std::endl);
 		return false;
 	}
 
 	BStream.front = 0;
 
-
 	// Write to File
 	if(write_prolog(File, Time) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Prolog" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Prolog" << std::endl);
+		fclose(File);
+		return false;
 	}
 
-	GridSubsetHandler* grid_sh = dynamic_cast<GridSubsetHandler*>(ish);
-	MultiGridSubsetHandler* mg_sh = dynamic_cast<MultiGridSubsetHandler*>(ish);
-
-	int num_subsets;
-	if(grid_sh != NULL){num_subsets = grid_sh->num_subsets();}
-	else if(mg_sh != NULL){num_subsets = mg_sh->num_subsets();}
-	else return false;
-
 	// loop subsets
-	for(int subsetIndex = 0; subsetIndex < num_subsets; ++subsetIndex)
+	for(int subsetIndex = 0; subsetIndex < u.num_subsets(); ++subsetIndex)
 	{
-		if(write_subset(*ish, subsetIndex, u, level, File)!= true)
+		if(write_subset(u, level, subsetIndex, File)!= true)
 		{
-			std::cout << "ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl;
-			fclose(File);return false;
+			UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl);
+			fclose(File);
+			return false;
 		}
 	}
 
 	if(write_epilog(File) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Epilog" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Epilog" << std::endl);
+		fclose(File);
+		return false;
 	}
 
 	// close stream
@@ -144,11 +138,11 @@ bool VTKOutput<d>::print(NumericalSolution<d>& u, int level, const char* filenam
 }
 
 template <int d>
-bool VTKOutput<d>::print_subset(NumericalSolution<d>& u, int level, int subsetIndex, const char* filename, double Time)
+bool
+VTKOutput<d>::
+print_subset(discrete_function_type& u, uint level, int subsetIndex, const char* filename, double Time)
 {
-
-	ISubsetHandler* ish = u.get_pattern()->get_assigned_subset();
-	Grid* grid = ish->get_assigned_grid();
+	Grid* grid = dynamic_cast<Grid*>(&domain.get_grid());
 
 	// attach help indices
 	grid->attach_to_vertices(m_aDOFIndex);
@@ -158,31 +152,33 @@ bool VTKOutput<d>::print_subset(NumericalSolution<d>& u, int level, int subsetIn
 	FILE* File = fopen(filename, "w");
 	if(File == NULL)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not open Output File" << std::endl;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not open Output File" << std::endl);
 		return false;
 	}
 
 	BStream.front = 0;
 
-
 	// Write to File
 	if(write_prolog(File, Time) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Prolog" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Prolog" << std::endl);
+		fclose(File);
+		return false;
 	}
 
 	// Write Subset
-	if(write_subset(*ish, subsetIndex, u, level, File) != true)
+	if(write_subset(u, level, subsetIndex, File) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl);
+		fclose(File);
+		return false;
 	}
 
 	if(write_epilog(File) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Epilog" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Epilog" << std::endl);
+		fclose(File);
+		return false;
 	}
 
 	// close stream
@@ -197,124 +193,109 @@ bool VTKOutput<d>::print_subset(NumericalSolution<d>& u, int level, int subsetIn
 
 
 template <int d>
-bool VTKOutput<d>::write_subset(ISubsetHandler& ish, int subsetIndex, NumericalSolution<d>& u, int level, FILE* File)
+bool
+VTKOutput<d>::
+write_subset(discrete_function_type& u, uint level, int subsetIndex, FILE* File)
 {
 	// Read sizes
-	if(init_subset(ish, subsetIndex, level) != true)
+	if(init_subset(u, level, subsetIndex) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not init subset" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not init subset" << std::endl);
+		return false;
 	}
 
 	if(write_piece_prolog(File) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Prolog" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Prolog" << std::endl);
+		return false;
 	}
 
-	if(write_points(File, ish, subsetIndex, u.get_domain()->get_position_attachment()) != true)
+	if(write_points(File, u, level, subsetIndex) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Points" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Points" << std::endl);
+		return false;
 	}
-	if(write_elements(File, ish, subsetIndex) != true)
+	if(write_elements(File, u, level, subsetIndex) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Elements" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Elements" << std::endl);
+		return false;
 	}
 
 	fprintf(File, "      <PointData>\n");
-	for(int comp = 0; comp < u.get_pattern()->num_comp(); ++comp)
+	for(int fct = 0; fct < u.num_fct(); ++fct)
 	{
-		if(u.get_pattern()->comp_def_in_subset(comp, subsetIndex) == false) continue;
+		if(u.fct_def_in_subset(fct, subsetIndex) == false) continue;
 
-		if(write_scalar(File, u, comp, ish, subsetIndex) != true)
+		if(write_scalar(File, u, fct, level, subsetIndex) != true)
 		{
-			std::cout << "ERROR (in VTKOutput::print(...)): Can not write Scalar Values" << std::endl;
-			fclose(File);return false;
+			UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Scalar Values" << std::endl);
+			return false;
 		}
 	}
 	fprintf(File, "      </PointData>\n");
 
 	if(write_piece_epilog(File) != true)
 	{
-		std::cout << "ERROR (in VTKOutput::print(...)): Can not write Epilog" << std::endl;
-		fclose(File);return false;
+		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Epilog" << std::endl);
+		return false;
 	}
 
 	return true;
 }
 
 
-template <int d>
-bool VTKOutput<d>::init_subset(ISubsetHandler& ish, uint subsetIndex, int level)
+template <typename TElem>
+bool
+count_elem_conn(int& num_elem, int& num_connections,
+		typename geometry_traits<TElem> iterBegin,
+		typename geometry_traits<TElem> iterEnd)
 {
-	// TODO: Test Version for 2D only!
-	Grid* grid = ish.get_assigned_grid();
-	MultiGrid* mg = dynamic_cast<MultiGrid*>(grid);
-
-	if(mg == NULL)
+	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-		if(level != 0)
-		{
-			std::cout << "ERROR (in VTKOutput::init_subset(...)): level > 0 but not a MultiGrid.\n" << std::endl;
-			return false;
-		}
-		_iterBeginVRT = grid->begin<Vertex>();
-		_iterEndVRT = grid->end<Vertex>();
-
-		_iterBeginTRIANGLE = grid->begin<Triangle>();
-		_iterEndTRIANGLE = grid->end<Triangle>();
-
-		_iterBeginQUADRILATERAL = grid->begin<Quadrilateral>();
-		_iterEndQUADRILATERAL = grid->end<Quadrilateral>();
-		_level = 0;
+			Numbers.noElements++;
+			Numbers.noConnections += reference_element_traits<TElem>::num_corners;
 	}
-	else
-	{
-		_iterBeginVRT = mg->begin<Vertex>(level);
-		_iterEndVRT = mg->end<Vertex>(level);
+}
 
-		_iterBeginTRIANGLE = mg->begin<Triangle>(level);
-		_iterEndTRIANGLE = mg->end<Triangle>(level);
+template <int d>
+bool
+VTKOutput<d>::
+init_subset(discrete_function_type& u, uint level, int subsetIndex)
+{
+	typename geometry_traits<VertexBase> iterVRT, iterEndVRT;
+	iterEndVRT = u.begin<Vertex>(level, subsetIndex);
 
-		_iterBeginQUADRILATERAL = mg->begin<Quadrilateral>(level);
-		_iterEndQUADRILATERAL = mg->end<Quadrilateral>(level);
-		_level = level;
-	}
-
+	// count vertices on subset
 	Numbers.noVertices = 0;
-	for( _iterVRT = _iterBeginVRT; _iterVRT != _iterEndVRT; ++_iterVRT)
+	for( iterVRT = u.begin<Vertex>(level, subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
 	{
-		if(subsetIndex == ish.get_subset_index(*_iterVRT)) Numbers.noVertices++;
+		Numbers.noVertices++;
 	}
+
+	// count elements on subset
 	Numbers.noElements = 0;
 	Numbers.noConnections = 0;
-	for( _iterTRIANGLE = _iterBeginTRIANGLE; _iterTRIANGLE != _iterEndTRIANGLE; ++_iterTRIANGLE)
+	if(count_elem_conn<Triangle>(num_elem, num_connections, u.begin<Triangle>(level, subsetIndex), u.end<Triangle>(level, subsetIndex)) == true)
 	{
-		if(subsetIndex == ish.get_subset_index(*_iterTRIANGLE))
-		{
-			Numbers.noElements++;
-			Numbers.noConnections += 3;
-		}
+		Numbers.noElements += num_elem;
+		Numbers.noConnections += num_connections;
 	}
-	for( _iterQUADRILATERAL = _iterBeginQUADRILATERAL; _iterQUADRILATERAL != _iterEndQUADRILATERAL; ++_iterQUADRILATERAL)
+	else return false;
+	if(count_elem_conn<Quadrilaterals>(num_elem, num_connections, u.begin<Quadrilaterals>(level, subsetIndex), u.end<Quadrilaterals>(level, subsetIndex)) == true)
 	{
-		if(subsetIndex == ish.get_subset_index(*_iterQUADRILATERAL))
-		{
-			Numbers.noElements++;
-			Numbers.noConnections += 4;
-		}
+		Numbers.noElements += num_elem;
+		Numbers.noConnections += num_connections;
 	}
-
-
+	else return false;
 
 	return true;
 }
 
 
 template <int d>
-bool VTKOutput<d>::write_points(FILE* File, ISubsetHandler& ish, uint subsetIndex, typename Domain<d>::position_attachment_type* aPos)
+bool
+VTKOutput<d>::
+write_points(FILE* File, grid_function_type& u, uint level, int subsetIndex)
 {
 	float co;
 	int n;
@@ -327,21 +308,20 @@ bool VTKOutput<d>::write_points(FILE* File, ISubsetHandler& ish, uint subsetInde
 	BStreamFlush(File);
 	BStream.size = sizeof(float);
 
-	VertexIterator iter;
-
-	Grid* grid = ish.get_assigned_grid();
-	Grid::VertexAttachmentAccessor<typename Domain<d>::position_attachment_type > aaPos(*grid, *aPos);
+	typedef grid_function_type::domain_type domain_type;
+	typename domain_type::position_accessor_type& aaPos = u.get_domain().get_position_accessor();
 
 	assert(m_aaDOFIndexVRT.valid());
 
 	// write points and remember numbering
-	MathVector<d> Pos;
+	typename domain_type::position_type Pos;
 	n = 0;
-	for(iter = _iterBeginVRT; iter != _iterEndVRT; iter++)
-	{
-		if(subsetIndex != ish.get_subset_index(*iter)) continue;
+	typename geometry_traits<VertexBase> iterVRT, iterEndVRT;
+	iterEndVRT = u.begin<Vertex>(level, subsetIndex);
 
-		Vertex *v = *iter;
+	for(iterVRT = u.begin<Vertex>(level, subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
+	{
+		Vertex *v = *iterVRT;
 		m_aaDOFIndexVRT[v] = n++;
 		Pos = aaPos[v];
 
@@ -366,25 +346,20 @@ bool VTKOutput<d>::write_points(FILE* File, ISubsetHandler& ish, uint subsetInde
 
 template <int d>
 template <class TElem>
-bool VTKOutput<d>::write_elements_connectivity(FILE* File,
-											typename geometry_traits<TElem>::iterator iterBegin,
-											typename geometry_traits<TElem>::iterator iterEnd,
-											ISubsetHandler& ish, uint subsetIndex)
+bool
+VTKOutput<d>::
+write_elements_connectivity(FILE* File,
+							typename geometry_traits<TElem>::iterator iterBegin,
+							typename geometry_traits<TElem>::iterator iterEnd)
 {
 	int id;
 	typename geometry_traits<TElem>::Descriptor TDesc;
-	typename geometry_traits<TElem>::iterator /*iterBegin, iterEnd,*/ iter;
-
-	//iterBegin = sh.begin<TElem>(subsetIndex);
-	//iterEnd = sh.end<TElem>(subsetIndex);
 
 	assert(m_aaDOFIndexVRT.valid());
 
-	for(iter = iterBegin; iter != iterEnd; iter++)
+	for( ; iterBegin != iterEnd; iterBegin++)
 	{
-		if(subsetIndex != ish.get_subset_index(*iter)) continue;
-
-		TElem *t = *iter;
+		TElem *t = *iterBegin;
 		for(int i=0; i< TDesc.num_vertices(); i++)
 		{
 			VertexBase* vert = t->vertex(i);
@@ -392,26 +367,22 @@ bool VTKOutput<d>::write_elements_connectivity(FILE* File,
 			BStreamWrite(File, &id);
 		}
 	}
-
 	return true;
 }
 
 template <int d>
 template <class TElem>
-bool VTKOutput<d>::write_elements_offsets(	FILE* File,
+bool
+VTKOutput<d>::
+write_elements_offsets(	FILE* File,
 										typename geometry_traits<TElem>::iterator iterBegin,
 										typename geometry_traits<TElem>::iterator iterEnd,
-										ISubsetHandler& ish, uint subsetIndex, int& n)
+										int& n)
 {
-	typename geometry_traits<TElem>::iterator /*iterBegin, iterEnd,*/ iter;
 	typename geometry_traits<TElem>::Descriptor TDesc;
 
-	//iterBegin = sh.begin<TElem>(subsetIndex);
-	//iterEnd = sh.end<TElem>(subsetIndex);
-	for(iter = iterBegin; iter != iterEnd; iter++)
+	for( ; iterBegin != iterEnd; iterBegin++)
 	{
-		if(subsetIndex != ish.get_subset_index(*iter)) continue;
-
 		n += TDesc.num_vertices();
 		BStreamWrite(File, &n);
 	}
@@ -422,20 +393,19 @@ bool VTKOutput<d>::write_elements_offsets(	FILE* File,
 
 template <int d>
 template <class TElem>
-bool VTKOutput<d>::write_elements_types(FILE* File,
-									typename geometry_traits<TElem>::iterator iterBegin,
-									typename geometry_traits<TElem>::iterator iterEnd,
-									ISubsetHandler& ish, uint subsetIndex)
+bool
+VTKOutput<d>::
+write_elements_types(FILE* File,
+					typename geometry_traits<TElem>::iterator iterBegin,
+					typename geometry_traits<TElem>::iterator iterEnd)
 {
 	char type;
-	typename geometry_traits<TElem>::iterator iter;
 	typename geometry_traits<TElem>::Descriptor TDesc;
 
+	// TODO: This is 2D only
 	BStream.size = sizeof(char);
-	for(iter = iterBegin; iter != iterEnd; iter++)
+	for( ; iterBegin != iterEnd; iterBegin++)
 	{
-		if(subsetIndex != ish.get_subset_index(*iter)) continue;
-
 		if(TDesc.num_vertices() == 3)
 		{
 			type = 5;
@@ -452,7 +422,7 @@ bool VTKOutput<d>::write_elements_types(FILE* File,
 
 
 template <int d>
-bool VTKOutput<d>::write_elements(FILE* File, ISubsetHandler& ish, uint subsetIndex)
+bool VTKOutput<d>::write_elements(FILE* File, discrete_function_type& u, uint level, int subsetIndex)
 {
 	int n;
 
@@ -465,8 +435,8 @@ bool VTKOutput<d>::write_elements(FILE* File, ISubsetHandler& ish, uint subsetIn
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
 
-	if(write_elements_connectivity<Triangle>(File, _iterBeginTRIANGLE, _iterEndTRIANGLE,  ish, subsetIndex) != true) return false;
-	if(write_elements_connectivity<Quadrilateral>(File, _iterBeginQUADRILATERAL, _iterEndQUADRILATERAL, ish, subsetIndex) != true) return false;
+	if(write_elements_connectivity<Triangle>(File, u.begin<Triangle>(level, subsetIndex), u.end<Triangle>(level, subsetIndex)) != true) return false;
+	if(write_elements_connectivity<Quadrilateral>(File,  u.begin<Quadrilateral>(level, subsetIndex), u.end<Quadrilateral>(level, subsetIndex)) != true) return false;
 
 	BStreamFlush(File);
 	fprintf(File, "\n        </DataArray>\n");
@@ -477,8 +447,8 @@ bool VTKOutput<d>::write_elements(FILE* File, ISubsetHandler& ish, uint subsetIn
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
 	n = 0;
-	if(write_elements_offsets<Triangle>(File, _iterBeginTRIANGLE, _iterEndTRIANGLE,  ish, subsetIndex,  n) == false) return false;
-	if(write_elements_offsets<Quadrilateral>(File, _iterBeginQUADRILATERAL, _iterEndQUADRILATERAL,ish, subsetIndex, n) == false) return false;
+	if(write_elements_offsets<Triangle>(File, u.begin<Triangle>(level, subsetIndex), u.end<Triangle>(level, subsetIndex),  n) == false) return false;
+	if(write_elements_offsets<Quadrilateral>(File, u.begin<Quadrilateral>(level, subsetIndex), u.end<Quadrilateral>(level, subsetIndex), n) == false) return false;
 	fprintf(File, "\n        </DataArray>\n");
 
 	/*** types ***/
@@ -486,8 +456,8 @@ bool VTKOutput<d>::write_elements(FILE* File, ISubsetHandler& ish, uint subsetIn
 	BStreamWrite(File, &Numbers.noElements);
 	BStreamFlush(File);
 
-	if(write_elements_types<Triangle>(File, _iterBeginTRIANGLE, _iterEndTRIANGLE, ish, subsetIndex) == false) return false;
-	if(write_elements_types<Quadrilateral>(File,  _iterBeginQUADRILATERAL, _iterEndQUADRILATERAL, ish, subsetIndex) == false) return false;
+	if(write_elements_types<Triangle>(File, u.begin<Triangle>(level, subsetIndex), u.end<Triangle>(level, subsetIndex)) == false) return false;
+	if(write_elements_types<Quadrilateral>(File, u.begin<Quadrilateral>(level, subsetIndex), u.end<Quadrilateral>(level, subsetIndex)) == false) return false;
 
 	fprintf(File, "\n        </DataArray>\n");
 
@@ -497,9 +467,10 @@ bool VTKOutput<d>::write_elements(FILE* File, ISubsetHandler& ish, uint subsetIn
 }
 
 template <int d>
-bool VTKOutput<d>::write_scalar(FILE* File, NumericalSolution<d>& u, int comp, ISubsetHandler& ish, uint subsetIndex)
+bool
+VTKOutput<d>::
+write_scalar(FILE* File, discrete_function_type& u, uint fct, uint level, int subsetIndex)
 {
-	double val[3];
 	int id[3];
 	float valf;
 	int n;
@@ -514,16 +485,15 @@ bool VTKOutput<d>::write_scalar(FILE* File, NumericalSolution<d>& u, int comp, I
 
 	BStream.size = sizeof(float);
 
-	VertexIterator iter;
+	typename geometry_traits<VertexBase> iterVRT, iterEndVRT;
+	iterEndVRT = u.begin<Vertex>(level, subsetIndex);
 
-	for(iter = _iterBeginVRT; iter != _iterEndVRT; iter++)
+	for(iterVRT = u.begin<Vertex>(level, subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
 	{
-		if(subsetIndex != ish.get_subset_index(*iter)) continue;
-
-		Vertex *v = *iter;
-		id[0] = u.get_pattern()->get_index(v, comp);
-		if(u.GridVector(_level)->get_values(1, id, val)!=true) return false;
-		valf = (float)val[0];
+		typename discrete_function_type::local_vector_type val;
+		Vertex *v = *iterVRT;
+		id[0] = u.get_dof_values(v, fct, val);
+		valf = (float) val[0];
 		BStreamWrite(File, &valf);
 	}
 	BStreamFlush(File);
@@ -576,12 +546,6 @@ bool VTKOutput<d>::write_epilog(FILE* File)
 	return true;
 
 }
-
-// force code generation
-template class VTKOutput<1>;
-template class VTKOutput<2>;
-template class VTKOutput<3>;
-
 
 }
 
