@@ -6,7 +6,7 @@
 #define __H__PCL__
 
 #include "pcl_methods.h"
-#include "pcl_base.h"
-#include "pcl_communication.h"
+#include "cl_base.h"
+#include "pcl_communicator.h"
 
 #endif

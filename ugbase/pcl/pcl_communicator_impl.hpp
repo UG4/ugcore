@@ -2,20 +2,20 @@
 //	s.b.reiter@googlemail.com
 //	y09 m12 d05
 
-#ifndef __H__PCL__PCL_COMMUNICATION_IMPL__
-#define __H__PCL__PCL_COMMUNICATION_IMPL__
+#ifndef __H__PCL__PCL_COMMUNICATOR_IMPL__
+#define __H__PCL__PCL_COMMUNICATOR_IMPL__
 
 #include <iostream>
 #include "mpi.h"
 #include "pcl_methods.h"
-#include "pcl_base.h"
-#include "pcl_communication.h"
+#include "cl_base.h"
+#include "pcl_communicator.h"
 
 namespace pcl
 {
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 send_data(int targetProc, Interface& interface,
 			  ICommunicationPolicy<TLayout>& commPol)
 {
@@ -25,7 +25,7 @@ send_data(int targetProc, Interface& interface,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 //	through the the category_tag we're able to find the correct send method.
@@ -34,7 +34,7 @@ send_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::single_level_layout_tag&)
@@ -51,7 +51,7 @@ send_data(Layout& layout,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::multi_level_layout_tag&)
@@ -71,7 +71,7 @@ send_data(Layout& layout,
 		  
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 receive_data(int srcProc, Interface& interface,
 			ICommunicationPolicy<TLayout>& commPol)
 {
@@ -80,7 +80,7 @@ receive_data(int srcProc, Interface& interface,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
 	m_extractorInfos.push_back(ExtractorInfo(&commPol, -1, NULL, &layout));
@@ -88,7 +88,7 @@ receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 
 template <class TLayout>
 template <class TLayoutMap>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 exchange_data(TLayoutMap& layoutMap,
 				typename TLayoutMap::Key keyFrom,
 				typename TLayoutMap::Key keyTo,
@@ -103,7 +103,7 @@ exchange_data(TLayoutMap& layoutMap,
 							
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 							TLayout& layout)
 {
@@ -113,7 +113,7 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 							TLayout& layout,
 							const layout_tags::single_level_layout_tag&)
@@ -128,7 +128,7 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 							TLayout& layout,
 							const layout_tags::multi_level_layout_tag&)
@@ -146,7 +146,7 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor)
 {
 	extract_data(layout, streamPack,
@@ -156,7 +156,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor)
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 				const layout_tags::single_level_layout_tag&)
 {
@@ -172,7 +172,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-void Communicator<TLayout>::
+void ParallelCommunicator<TLayout>::
 extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 				const layout_tags::multi_level_layout_tag&)
 {
@@ -191,7 +191,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 				
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
-bool Communicator<TLayout>::
+bool ParallelCommunicator<TLayout>::
 communicate()
 {
 //	prepare receive streams

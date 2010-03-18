@@ -40,6 +40,12 @@ namespace interface_tags
  *	This tag simply says that one may iterate over the elements of the
  *	interface.
  *
+ *	Additionally you may receive the local_src_id. This id represents the
+ *	sender during local communication (communication on one process only).
+ *	Vaues < 0 mark the sender as invalid (during local communication).
+ *	The src-id is ignored during parallel communication. Instead pcl::GetProcRank
+ *	is used.
+ *
  *	typedefs that have to be featured in such interfaces:
  *		- category_tag
  *		- iterator
@@ -54,6 +60,7 @@ namespace interface_tags
  *		- const_iterator end() const;
  *		- Element& get_element(iterator iter);
  *		- const Element& get_element(iterator iter) const;
+ *		- int get_local_src_id();
  */
 class basic_interface_tag									{};
 
@@ -111,7 +118,8 @@ class BasicInterface
 		typedef typename ElemContainer::const_iterator	const_iterator;
 		
 	public:
-		BasicInterface()	: m_size(0)		{};
+		BasicInterface(int localSrcID = -1)	: m_size(0), m_localSrcID(localSrcID)	{};
+		
 		inline iterator push_back(const Element& elem)	{++m_size; return m_elements.insert(m_elements.end(), elem);}
 		inline void erase(iterator iter)				{--m_size; m_elements.erase(iter);}
 		
@@ -123,9 +131,15 @@ class BasicInterface
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
 		
+		inline int get_local_src_id() const			{return m_localSrcID;}
+		
+	///	sets the local-src-id
+		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
+		
 	protected:
 		ElemContainer	m_elements;
 		size_t			m_size;
+		int				m_localSrcID;
 };
 
 
@@ -192,7 +206,10 @@ class OrderedInterface
 		typedef typename ElemContainer::const_iterator	const_iterator;
 		
 	public:
-		OrderedInterface() : m_size(0), m_idCounter(1)	{}
+		OrderedInterface(int localSrcID = -1) :
+			m_size(0),
+			m_localSrcID(localSrcID),
+			m_idCounter(1)	{}
 		
 		inline iterator push_back(const Element& elem)
 		{
@@ -212,6 +229,11 @@ class OrderedInterface
 		
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
+		
+		inline int get_local_src_id() const			{return m_localSrcID;}
+		
+	///	sets the local-src-id
+		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
 		
 	///	returns true if iter1 < iter2.
 		static inline bool cmp(iterator iter1, iterator iter2)
@@ -266,6 +288,7 @@ class OrderedInterface
 	protected:
 		ElemContainer	m_elements;
 		uint m_size;
+		int	m_localSrcID;
 		uint m_idCounter;
 };
 
@@ -291,6 +314,7 @@ namespace layout_tags
  *		- iterator end()
  *		- Interface& interface(iterator& iter)
  *		- int proc_id(iterator& iter)
+ *		- int get_local_src_id()
  */
 class single_level_layout_tag	{};
 
@@ -308,6 +332,7 @@ class single_level_layout_tag	{};
  *		- iterator end(size_t level)
  *		- Interface& interface(iterator& iter)
  *		- int proc_id(iterator& iter)
+ *		- int get_local_src_id()
  */
 class multi_level_layout_tag	{};
 
@@ -324,13 +349,15 @@ class multi_level_layout_tag	{};
  * This layout type supports the requirements of the
  * pcl::layout_tags::single_level_layout_tag category.
  *
+ * The layout passes its local srcID on to created interfaces.
+ *
  * Additionally it features methods that allow to add new interfaces
  */
 template <class TInterface>
 class SingleLevelLayout
 {
 	public:
-		SingleLevelLayout()	{}
+		SingleLevelLayout(int localSrcID = -1)	: m_localSrcID(localSrcID)	{}
 		
 	////////////////////////////////////////////////
 	//	typedefs required by implementation
@@ -374,13 +401,25 @@ class SingleLevelLayout
 	///	returns the interface to the given iterator.
 		inline int proc_id(iterator& iter)				{return iter->first;}
 	
-	
+		inline int get_local_src_id() const				{return m_localSrcID;}
+		
 	////////////////////////////////////////////////
 	//	methods that enhance the layout-tag
-	
+	///	sets the local-src-id
+	/**	todo: change the local_src_id of associated interfaces, too.*/
+		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
+		
 	///	returns the interface to the given process.
-	/**	if the interface doesn't exist yet, it will be created.*/
-		inline Interface& interface(int procID)			{return m_interfaceMap[procID];}
+	/**	if the queried interface exist, it will be returned.
+	 *	If not it will be created.
+	 *	The new interfaces localSrcID will be set to the localSrcID of this layout.*/
+		inline Interface& interface(int procID)
+			{
+				typename InterfaceMap::iterator iter = m_interfaceMap.find(procID);
+				if(iter != m_interfaceMap.end())
+					return iter->second;
+				return m_interfaceMap.insert(make_pair(procID, Interface(m_localSrcID))).first->second;
+			}
 
 	///	returns true if an interface to the given procID already exists.
 		inline bool interface_exists(int procID)		{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
@@ -396,6 +435,8 @@ class SingleLevelLayout
 	protected:
 	///	holds the interfaces in a map.
 		InterfaceMap	m_interfaceMap;
+	///	stores the local src id
+		int				m_localSrcID;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -406,6 +447,12 @@ class SingleLevelLayout
  * grouped in different levels.
  *
  * Each interface is associated with a process-id.
+ * If the localSrcID of this layout == -1 then, when a new level is
+ * created, it's local srcID is automatically
+ * initialized with the level index. localSrcIDs of interfaces created on
+ * those levels are then initialised with the level index, too.
+ *
+ * If the localSrcID >= 0 it is simply passed on to the level-layouts.
  *
  * This layout type supports the requirements of the
  * pcl::layout_tags::multi_level_layout_tag category.
@@ -439,7 +486,7 @@ class MultiLevelLayout
 		typedef typename LevelLayout::iterator		iterator;
 
 	public:
-		MultiLevelLayout()								{}
+		MultiLevelLayout(int localSrcID = -1)	: m_localSrcID(localSrcID)		{}
 		MultiLevelLayout(const MultiLevelLayout& mll)	{assign_layout(mll);}
 		
 		~MultiLevelLayout()								{clear();}
@@ -474,6 +521,8 @@ class MultiLevelLayout
 	///	returns the number of levels.
 		inline int num_levels()							{return m_vLayouts.size();}
 
+		inline int get_local_src_id() const				{return m_localSrcID;}
+
 	////////////////////////////////////////////////
 	//	methods that enhance the layout-tag
 	///	deletes all levels.
@@ -483,6 +532,10 @@ class MultiLevelLayout
 				delete m_vLayouts[i];
 			m_vLayouts.clear();
 		}
+		
+	///	sets the local-src-id
+	/**	todo: change the local_src_id of associated level-layouts, too.*/
+		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
 		
 	///	returns the interface to the given process.
 	/**	if the interface doesn't exist yet, it will be created.*/
@@ -498,7 +551,7 @@ class MultiLevelLayout
 
 	protected:
 	///	adds num new levels.
-		inline void new_levels(int num)			{for(int i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout);}
+		inline void new_levels(int num)			{for(int i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout(num_levels()));}
 		
 	///	if the required level doesn't exist yet, it will created.
 		inline void require_level(int level)	{if(level >= num_levels()) new_levels(level - num_levels() + 1);}
@@ -507,12 +560,15 @@ class MultiLevelLayout
 		void assign_layout(const MultiLevelLayout& mll)
 		{
 			clear();
+			m_localSrcID = mll.get_local_src_id();
 			for(size_t i = 0; i < mll.m_vLayouts.size(); ++i)
 				m_vLayouts.push_back(new LevelLayout(*mll.m_vLayouts[i]));
 		}		
 		
 	protected:
 		std::vector<LevelLayout*>	m_vLayouts;
+	///	stores the local src id
+		int				m_localSrcID;
 };
 
 
@@ -604,6 +660,53 @@ class LayoutMap
 			static typename Types<TType>::Map layoutMap;
 			return layoutMap;
 		}
+};
+
+
+////////////////////////////////////////////////////////////////////////
+//	ICommunicationPolicy
+///	specializations are responsible to pack and unpack interface data during communication.
+template <class TLayout>
+class ICommunicationPolicy
+{
+	public:
+		typedef TLayout						Layout;
+		typedef typename Layout::Interface 	Interface;
+		
+	////////////////////////////////
+	//	COLLECT
+	///	should write data which is associated with the interface elements to the buffer.
+		virtual bool
+		collect(std::ostream& buff, Interface& interface) = 0;
+		
+	////////////////////////////////
+	//	EXTRACT
+	///	signals the beginning of a layout extraction.
+	/**	the default implementation returns true and does nothing else.*/
+		virtual bool
+		begin_layout_extraction(Layout* pLayout)	{return true;}
+
+	///	signals the end of a layout extraction
+	/**	the default implementation returns true and does nothing else.*/
+		virtual bool
+		end_layout_extraction()						{return true;}
+
+	///	signals that a new layout-level will now be processed.
+	/**	This is primarily interesting for layout-extraction of multi-level-layouts.
+	 *	Before extract is called for the interfaces of one level of a layout,
+	 *	begin_level_extraction(level) is called.
+	 *	If single-level-layouts are processed, this method is called
+	 *	once with level = 0.
+	 *	This method is called after begin_layout_extraction and before
+	 *	the associated extract calls.*/
+	 	virtual void begin_level_extraction(int level)		{}
+		
+	///	extract data from the buffer and assigns it to the interface-elements.
+	/**	If this method is called between calls to begin_layout_extraction and
+		end_layout_extraction, the interface that is passed to this method
+		belongs to the layout.*/
+		virtual bool
+		extract(std::istream& buff, Interface& interface) = 0;
 };
 
 }//	end of namespace pcl

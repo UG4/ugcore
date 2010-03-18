@@ -2,69 +2,23 @@
 //	s.b.reiter@googlemail.com
 //	y09 m12 d05
 
-#ifndef __H__PCL__PCL_COMMUNICATION__
-#define __H__PCL__PCL_COMMUNICATION__
+#ifndef __H__PCL__PCL_COMMUNICATOR__
+#define __H__PCL__PCL_COMMUNICATOR__
 
 #include <iostream>
 #include <map>
 #include "common/util/binary_stream.h"
 #include "common/util/stream_pack.h"
-#include "pcl_base.h"
+#include "cl_base.h"
 
 namespace pcl
 {
 
 ////////////////////////////////////////////////////////////////////////
-//	ICommunicationPolicy
-///	specializations are responsible to pack and unpack interface data during communication.
+//	ParallelCommunicator
+///	Performs communication between interfaces on different processes.
 template <class TLayout>
-class ICommunicationPolicy
-{
-	public:
-		typedef TLayout						Layout;
-		typedef typename Layout::Interface 	Interface;
-		
-	////////////////////////////////
-	//	COLLECT
-	///	should write data which is associated with the interface elements to the buffer.
-		virtual bool
-		collect(std::ostream& buff, Interface& interface) = 0;
-		
-	////////////////////////////////
-	//	EXTRACT
-	///	signals the beginning of a layout extraction.
-	/**	the default implementation returns true and does nothing else.*/
-		virtual bool
-		begin_layout_extraction(Layout* pLayout)	{return true;}
-
-	///	signals the end of a layout extraction
-	/**	the default implementation returns true and does nothing else.*/
-		virtual bool
-		end_layout_extraction()						{return true;}
-
-	///	signals that a new layout-level will now be processed.
-	/**	This is primarily interesting for layout-extraction of multi-level-layouts.
-	 *	Before extract is called for the interfaces of one level of a layout,
-	 *	begin_level_extraction(level) is called.
-	 *	If single-level-layouts are processed, this method is called
-	 *	once with level = 0.
-	 *	This method is called after begin_layout_extraction and before
-	 *	the associated extract calls.*/
-	 	virtual void begin_level_extraction(int level)		{}
-		
-	///	extract data from the buffer and assigns it to the interface-elements.
-	/**	If this method is called between calls to begin_layout_extraction and
-		end_layout_extraction, the interface that is passed to this method
-		belongs to the layout.*/
-		virtual bool
-		extract(std::istream& buff, Interface& interface) = 0;
-};
-
-////////////////////////////////////////////////////////////////////////
-//	Communicator
-///	Performs communication between processes.
-template <class TLayout>
-class Communicator
+class ParallelCommunicator
 {
 	public:
 	//	typedefs
@@ -208,6 +162,6 @@ class Communicator
 
 ////////////////////////////////////////
 //	include implementation
-#include "pcl_communication_impl.hpp"
+#include "pcl_communicator_impl.hpp"
 
 #endif
