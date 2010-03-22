@@ -36,7 +36,11 @@ class LogAssistant
 			LIB_GRID_REFINER,
 			LIB_DISC,
 			LIB_DISC_ASSEMBLE,
+			LIB_DISC_DISCRETE_FUNCTION,
+			LIB_DISC_OUTPUT,
 			LIB_ALG,
+			LIB_ALG_VECTOR,
+			LIB_ALG_MATRIX,
 			NUM_TAGS
 		};
 
@@ -105,11 +109,15 @@ inline LogAssistant& GetLogAssistant();
 	#define UG_RESET_DEBUG_LEVELS()				{ug::GetLogAssistant().set_debug_levels(-1);}
 	#define UG_SET_DEBUG_LEVELS(level)			{ug::GetLogAssistant().set_debug_levels(level);}
 	#define UG_DLOG(tag, level, msg)			{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level) {ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
+	#define UG_DEBUG_BEGIN(tag, level)			{ if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level) {
+	#define UG_DEBUG_END(tag, level)			}; }
 #else
 	#define UG_SET_DEBUG_LEVEL(tag, level)		{}
 	#define UG_RESET_DEBUG_LEVELS()				{}
 	#define UG_SET_DEBUG_LEVELS(level)			{}
 	#define UG_DLOG(tag, level, msg)			{}
+	#define UG_DEBUG_BEGIN(tag, level)			{ if(1==0) {
+	#define UG_DEBUG_END(tag, level)			}; }
 #endif
 
 /////////////////////////////////////////////////////////////////
