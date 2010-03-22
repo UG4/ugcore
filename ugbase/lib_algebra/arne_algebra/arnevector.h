@@ -21,6 +21,9 @@
 
 namespace ug{
 
+class ArneMatrix;
+class ArneJacobi;
+
 class ArneVector{
 	public:
 		// index_type
