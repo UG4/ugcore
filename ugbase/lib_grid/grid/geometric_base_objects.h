@@ -38,7 +38,7 @@ class EdgeBase;			//	base for all 1-dimensional grid objects.
 class Face;				//	base for all 2-dimensional grid objects.
 class Volume;			//	base for all 3-dimensional grid objects.
 
-class EdgeDescriptor;	//	describes an edge. 
+class EdgeDescriptor;	//	describes an edge.
 class FaceDescriptor;	//	describes a face.
 class VolumeDescriptor;	//	describes a volume.
 
@@ -245,7 +245,7 @@ class EdgeVertices
 	public:
 		inline VertexBase* vertex(uint index) const	{return m_vertices[index];}
 		inline uint num_vertices() const			{return 2;}	// this method is supplied to allow the use of EdgeBase in template-methods that require a num_vertices() method.
-		
+
 	//	compatibility with std::vector for some template routines
 	///	returns the number of vertices.
 		inline size_t size() const	{return 2;}
@@ -258,7 +258,7 @@ class EdgeVertices
 			m_vertices[0] = ev.m_vertices[0];
 			m_vertices[1] = ev.m_vertices[1];
 		}
-		
+
 	protected:
 		VertexBase*	m_vertices[2];
 };
@@ -329,9 +329,9 @@ class EdgeDescriptor : public EdgeVertices
 		EdgeDescriptor();
 		EdgeDescriptor(const EdgeDescriptor& ed);
 		EdgeDescriptor(VertexBase* vrt1, VertexBase* vrt2);
-		
+
 		EdgeDescriptor& operator = (const EdgeDescriptor& ed);
-		
+
 		inline void set_vertex(uint index, VertexBase* vrt)	{m_vertices[index] = vrt;}
 		inline void set_vertices(VertexBase* vrt1, VertexBase* vrt2)
 			{
@@ -357,7 +357,7 @@ class FaceVertices
 		inline size_t size() const	{return m_vertices.size();}
 	///	returns the i-th vertex.
 		VertexBase* operator[](uint index) const {return m_vertices[index];}
-		
+
 	protected:
 		inline void set_num_vertices(int numVrts)	{m_vertices.resize(numVrts);}
 
@@ -386,11 +386,11 @@ class FaceVertices
 		inline size_t size() const	{return m_numVrts;}
 	///	returns the i-th vertex.
 		VertexBase* operator[](size_t index) const {return m_vertices[index];}
-	
+
 	protected:
 		inline void set_num_vertices(size_t numVrts)
 		{
-			assert((numVrts >= 0 && numVrts <= MAX_FACE_VERTICES) && "unsupported number of vertices.");
+			assert((numVrts >= 0 && (int)numVrts <= MAX_FACE_VERTICES) && "unsupported number of vertices.");
 			m_numVrts = numVrts;
 		}
 
@@ -400,7 +400,7 @@ class FaceVertices
 			for(size_t i = 0; i < m_numVrts; ++i)
 				m_vertices[i] = fv.m_vertices[i];
 		}
-		
+
 	protected:
 		VertexBase* m_vertices[MAX_FACE_VERTICES];
 		uint m_numVrts;
@@ -576,7 +576,7 @@ class FaceDescriptor : public FaceVertices
 		FaceDescriptor();
 		FaceDescriptor(uint numVertices);
 		FaceDescriptor(const FaceDescriptor& fd);
-		
+
 		FaceDescriptor& operator = (const FaceDescriptor& fd);
 
 		inline void set_num_vertices(uint numVertices)	{FaceVertices::set_num_vertices(numVertices);}
@@ -772,7 +772,7 @@ class VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor(const VolumeDescriptor& vd);
 
 		VolumeDescriptor& operator = (const VolumeDescriptor& vd);
-		
+
 		inline void set_num_vertices(uint numVertices)	{m_vertices.resize(numVertices);}
 		inline void set_vertex(uint index, VertexBase* vrt)
 			{m_vertices[index] = vrt;}
@@ -845,17 +845,17 @@ unsigned long hash_key<PVertexBase>(const PVertexBase& key);
  * If an EdgeBase (or EdgeDescriptor) has the same vertices
  * as another EdgeBase (or EdgeDescriptor), the hash-keys
  * are the same.
- */ 
+ */
 template <>
 unsigned long hash_key<PEdgeVertices>(const PEdgeVertices& key);
 
 ///	the hash-key is a function of vertex-hash-values.
-/** \sa hash_key<PEdgeVertices>*/ 
+/** \sa hash_key<PEdgeVertices>*/
 template <>
 unsigned long hash_key<PEdgeBase>(const PEdgeBase& key);
 
 ///	the hash-key is a function of vertex-hash-values.
-/** \sa hash_key<PEdgeVertices>*/ 
+/** \sa hash_key<PEdgeVertices>*/
 template <>
 unsigned long hash_key<PEdgeDescriptor>(const PEdgeDescriptor& key);
 

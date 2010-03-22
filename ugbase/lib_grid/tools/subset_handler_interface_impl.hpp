@@ -49,7 +49,7 @@ subset_assigned(VertexBase* v, iterator iter, int subsetIndex)
 	{
 		if(get_subset_index(v) != -1)
 			get_attachment_pipe<VertexBase>(subsetIndex).unregister_element(v);
-			
+
 		if(subsetIndex != -1)
 			get_attachment_pipe<VertexBase>(subsetIndex).register_element(v);
 	}
@@ -65,7 +65,7 @@ subset_assigned(EdgeBase* e, iterator iter, int subsetIndex)
 	{
 		if(get_subset_index(e) != -1)
 			get_attachment_pipe<EdgeBase>(subsetIndex).unregister_element(e);
-			
+
 		if(subsetIndex != -1)
 			get_attachment_pipe<EdgeBase>(subsetIndex).register_element(e);
 	}
@@ -74,7 +74,7 @@ subset_assigned(EdgeBase* e, iterator iter, int subsetIndex)
 	m_aaSubsetIndexEDGE[e] = subsetIndex;
 }
 
-inline void 
+inline void
 ISubsetHandler::
 subset_assigned(Face* f, iterator iter, int subsetIndex)
 {
@@ -82,7 +82,7 @@ subset_assigned(Face* f, iterator iter, int subsetIndex)
 	{
 		if(get_subset_index(f) != -1)
 			get_attachment_pipe<Face>(subsetIndex).unregister_element(f);
-			
+
 		if(subsetIndex != -1)
 			get_attachment_pipe<Face>(subsetIndex).register_element(f);
 	}
@@ -91,7 +91,7 @@ subset_assigned(Face* f, iterator iter, int subsetIndex)
 	m_aaSubsetIndexFACE[f] = subsetIndex;
 }
 
-inline void 
+inline void
 ISubsetHandler::
 subset_assigned(Volume* v, iterator iter, int subsetIndex)
 {
@@ -99,7 +99,7 @@ subset_assigned(Volume* v, iterator iter, int subsetIndex)
 	{
 		if(get_subset_index(v) != -1)
 			get_attachment_pipe<Volume>(subsetIndex).unregister_element(v);
-			
+
 		if(subsetIndex != -1)
 			get_attachment_pipe<Volume>(subsetIndex).register_element(v);
 	}
@@ -196,7 +196,7 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 				invalid_GeomObjClass);
 
-	assert(subsetIndex >= 0 && subsetIndex < num_subset_infos() && "bad subset index.");
+	assert(subsetIndex >= 0 && subsetIndex < (int)num_subset_infos() && "bad subset index.");
 
 	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 	switch(objType)
@@ -227,56 +227,56 @@ ISubsetHandler::get_attachment_data_container(TAttachment& attachment, int subse
 
 ////////////////////////////////////////////////////////////////////////
 //	attachments_traits
-inline uint 
+inline uint
 attachment_traits<VertexBase*, ISubsetHandler>::
 get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)
 {
 	return pHandler->get_attachment_data_index(elem);
 }
 
-inline void 
+inline void
 attachment_traits<VertexBase*, ISubsetHandler>::
 set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)
 {
 	pHandler->set_attachment_data_index(elem, index);
 }
 
-inline uint 
+inline uint
 attachment_traits<EdgeBase*, ISubsetHandler>::
 get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)
 {
 	return pHandler->get_attachment_data_index(elem);
 }
 
-inline void 
+inline void
 attachment_traits<EdgeBase*, ISubsetHandler>::
 set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)
 {
 	pHandler->set_attachment_data_index(elem, index);
 }
 
-inline uint 
+inline uint
 attachment_traits<Face*, ISubsetHandler>::
 get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)
 {
 	return pHandler->get_attachment_data_index(elem);
 }
 
-inline void 
+inline void
 attachment_traits<Face*, ISubsetHandler>::
 set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)
 {
 	pHandler->set_attachment_data_index(elem, index);
 }
 
-inline uint 
+inline uint
 attachment_traits<Volume*, ISubsetHandler>::
 get_data_index(ElemHandlerPtr pHandler, ConstElemPtr elem)
 {
 	return pHandler->get_attachment_data_index(elem);
 }
 
-inline void 
+inline void
 attachment_traits<Volume*, ISubsetHandler>::
 set_data_index(ElemHandlerPtr pHandler, ElemPtr elem, uint index)
 {
