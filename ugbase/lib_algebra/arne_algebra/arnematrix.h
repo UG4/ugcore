@@ -26,56 +26,55 @@ class ArneMatrix{
 
 		typedef std::vector<index_type> local_index_type;
 
-		typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
-
 	public:
 
-	ArneMatrix() {};
+		ArneMatrix() {};
 
-	bool create_matrix(int nrow, int ncol);
+		bool create(uint nrow, uint ncol);
+		bool create(const ArneMatrix& v);
+		bool destroy();
 
-	bool delete_matrix();
+		// add, set, get
+		bool set(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J);
+		bool add(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J);
+		bool get(local_matrix_type& mat, const local_index_type& I, const local_index_type& J) const;
 
-	bool set_values(int nrows, int* ncols, int* rows, int* cols, double* values);
+		// normalize rows
+		bool set_dirichlet_rows(const local_index_type& I);
 
-	bool add_values(int nrows, int* ncols, int* rows, int* cols, double* values);
+		// set all entries (only currently allocated memory pattern)
+		bool operator= (number w);
+		bool set(number w);
 
-	bool set_dirichletrows(int nrows, int* rows);
+		// fix memory pattern
+		bool finalize();
 
-	bool set(number w);
+		// destructor
+		~ArneMatrix();
 
-	bool finalize();
+		// b := A*x (A = this Object)
+		bool apply(ArneVector&b, const ArneVector& x);
 
-	~ArneMatrix();
+		// b := A^T * x (A^T = transposed of this object)
+		bool applyTransposed(ArneVector&b, const ArneVector& x);
+
+		// b := b - A * x (A = this object)
+		bool matmul_minus(ArneVector&b, const ArneVector& x);
+
+		// sizes
+		uint row_size() const;
+		uint col_size() const;
 
 	// not generic part
+	private:
+		bool printToFile(const char* filename);
 
-	// b := A*x (A = this Object)
-	bool apply(ArneVector&b, ArneVector& x)
-	{
-		ublas::axpy_prod(*_Matrix, *x.getStorage(), *b.getStorage(), true);
-		return true;
-	}
+		friend class ArneJacobi;
+		friend bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp);
 
-	// b := A^T * x (A^T = transposed of this object)
-	bool applyTransposed(ArneVector&b, ArneVector& x)
-	{
-		ublas::axpy_prod(*x.getStorage(), *_Matrix, *b.getStorage(), true);
-		return true;
-	}
-
-	// b := b - A * x (A = this object)
-	bool matmul_minus(ArneVector&b, ArneVector& x)
-	{
-		*x.getStorage() *= -1.0;
-		ublas::axpy_prod(*_Matrix, *x.getStorage(), *b.getStorage(), false);
-		*x.getStorage() *= -1.0;
-		return true;
-	}
-
-	bool printToFile(const char* filename);
-
-	ScalarMatrix* getStorage();
+		typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
+		ScalarMatrix* getStorage();
+		const ScalarMatrix* getStorage() const;
 
 	private:
 		ScalarMatrix* _Matrix;

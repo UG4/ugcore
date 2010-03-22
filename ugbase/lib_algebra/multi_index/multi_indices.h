@@ -21,7 +21,7 @@ class MultiIndex
 		typedef uint single_index_type;
 
 	public:
-		inline size_type num_index()
+		inline size_type num_index() const
 		{ return N; }
 
 		inline single_index_type& operator[] (size_type i)
@@ -30,9 +30,25 @@ class MultiIndex
 			return m_indices[i];
 		}
 
+		inline const single_index_type& operator[] (size_type i) const
+		{
+			assert(i < N);
+			return m_indices[i];
+		}
+
 	private:
 		single_index_type m_indices[N];
 };
+
+template <int N>
+std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
+{
+	outStream << "[" ;
+	for(std::size_t i = 0; i < N; ++i)
+		outStream << v[i];
+	outStream << "]";
+	return outStream;
+}
 
 class IndexInfo
 {

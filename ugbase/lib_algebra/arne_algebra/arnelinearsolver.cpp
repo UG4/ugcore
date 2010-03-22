@@ -3,6 +3,30 @@
 
 namespace ug{
 
+
+/// jacobi step
+bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
+{
+	typedef ublas::vector<double> ScalarVector;
+	typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
+
+	const ScalarMatrix& Amat = const_cast<ScalarMatrix&>(*A.getStorage());
+	ScalarVector& cVec = *c.getStorage();
+	ScalarVector& dVec = *d.getStorage();
+
+	// invert approx(A):  c = diag(A)^{-1} * d
+	mv_dsolve(Amat, cVec, dVec);
+
+	// damp correction
+	c *= damp;
+
+	// update defect
+	mvsub(Amat, cVec, dVec);
+
+	return true;
+}
+
+
 ArneJacobi::ArneJacobi(int maxIter, number tol, bool verbose)
 {
 	_maxIter = maxIter;

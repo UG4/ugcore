@@ -30,32 +30,31 @@ class HypreMatrix{
 
 	public:
 
-	HypreMatrix(){};
+		HypreMatrix(){};
 
-	bool create_matrix(int nrow, int ncol);
+		bool create(int nrow, int ncol);
+		bool destroy();
 
-	bool delete_matrix();
+		bool set(const local_matrix_type& mat, local_index_type& I, local_index_type& J);
+		bool add(const local_matrix_type& mat, local_index_type& I, local_index_type& J);
 
-	bool set_values(int nrows, int* ncols, int* rows, int* cols, double* values);
-	bool add_values(int nrows, int* ncols, int* rows, int* cols, double* values);
+		bool set_dirichletrows(int nrows, int* rows);
 
-	bool set(const local_matrix_type& mat, local_index_type& I, local_index_type& J);
-	bool add(const local_matrix_type& mat, local_index_type& I, local_index_type& J);
+		bool set(number w);
 
+		bool finalize();
 
-	bool set_dirichletrows(int nrows, int* rows);
-
-	bool set(number w);
-
-	bool finalize();
-
-	~HypreMatrix();
+		~HypreMatrix();
 
 	// not generic part
+	private:
+		bool set_values(int nrows, int* ncols, int* rows, int* cols, double* values);
+		bool add_values(int nrows, int* ncols, int* rows, int* cols, double* values);
 
-	bool printToFile(const char* filename);
+		bool printToFile(const char* filename);
 
-	HYPRE_IJMatrix getStorage();
+		friend class HYPREboomerAMG;
+		HYPRE_IJMatrix getStorage();
 
 	private:
 		HYPRE_IJMatrix m_hypreA;

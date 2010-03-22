@@ -2,7 +2,7 @@
 
 namespace ug{
 
-bool HypreMatrix::create_matrix(int nrow, int ncol)
+bool HypreMatrix::create(int nrow, int ncol)
 {
 	int err = 0;
 	err += HYPRE_IJMatrixCreate(MPI_COMM_WORLD, 0, nrow-1,0, ncol-1, &m_hypreA);
@@ -12,7 +12,7 @@ bool HypreMatrix::create_matrix(int nrow, int ncol)
 	else return true;
 }
 
-bool HypreMatrix::delete_matrix()
+bool HypreMatrix::destroy()
 {
 	int err = HYPRE_IJMatrixDestroy(m_hypreA);
 	if(err) return false;

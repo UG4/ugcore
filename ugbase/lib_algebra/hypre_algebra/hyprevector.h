@@ -16,7 +16,7 @@
 #include "assert.h"
 
 // other ug4 modules
-#include "../../common/types.h"
+#include "common/common.h"
 
 // library intern header
 #include "lib_algebra/multi_index/multi_indices.h"
@@ -36,38 +36,36 @@ class HypreVector{
 		typedef std::vector<index_type> local_index_type;
 
 	public:
-	bool create_vector(int nentries);
+		bool create(uint nentries);
+		bool destroy();
 
-	bool delete_vector();
+		bool set(const local_vector_type& u, local_index_type& ind);
+		bool add(const local_vector_type& u, local_index_type& ind);
+		bool get(local_vector_type& u, local_index_type& ind) const;
 
-	bool set_values(int nvalues, int* indices, double* values);
-	bool add_values(int nvalues, int* indices, double* values);
-	bool get_values(int nvalues, int* indices, double* values) const;
+		HypreVector& operator+= (const HypreVector& v);
+		HypreVector& operator-= (const HypreVector& v);
 
-	bool set(const local_vector_type& u, local_index_type& ind);
-	bool add(const local_vector_type& u, local_index_type& ind);
-	bool get(local_vector_type& u, local_index_type& ind) const;
+		number norm2();
 
+		bool set(number w);
 
+		int length();
 
-	bool finalize();
+		bool finalize();
 
-	bool printToFile(const char* filename);
+		~HypreVector();
 
-	HYPRE_IJVector getStorage();
+	private:
+		bool set_values(int nvalues, int* indices, double* values);
+		bool add_values(int nvalues, int* indices, double* values);
+		bool get_values(int nvalues, int* indices, double* values) const;
 
-	~HypreVector();
+		bool printToFile(const char* filename);
 
-	HypreVector& operator+= (const HypreVector& v);
-
-	HypreVector& operator-= (const HypreVector& v);
-
-	number norm2();
-
-	bool set(number w);
-
-	int length();
-
+		friend class HypreMatrix;
+		friend class HYPREboomerAMG;
+		HYPRE_IJVector getStorage();
 
 	private:
 		HYPRE_IJVector m_hyprex;

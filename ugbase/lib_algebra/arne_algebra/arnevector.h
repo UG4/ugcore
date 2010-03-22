@@ -10,10 +10,12 @@
 
 #include "../solver/BoostBlock.hh"
 
-#include "../../common/types.h"
 #include <cmath>
 #include <vector>
 #include "assert.h"
+
+#include "common/common.h"
+
 #include "lib_algebra/multi_index/multi_indices.h"
 #include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
 
@@ -28,39 +30,69 @@ class ArneVector{
 
 		typedef std::vector<index_type> local_index_type;
 
-	typedef ublas::vector<double> ScalarVector;
-
 	public:
-	bool create_vector(int nentries);
+		// constructor
+		ArneVector() {};
 
-	bool delete_vector();
+		// create and destroy
+		bool create(uint nentries);
 
-	bool set_values(int nvalues, int* indices, double* values);
-	bool add_values(int nvalues, int* indices, double* values);
-	bool get_values(int nvalues, int* indices, double* values) const;
+		// create as copy of other vector
+		bool create(const ArneVector& v);
 
-	bool finalize();
+		// destroy
+		bool destroy();
 
-	bool printToFile(const char* filename);
+		// add, set, get a local function
+		bool set(const local_vector_type& u, const local_index_type& ind);
+		bool add(const local_vector_type& u, const local_index_type& ind);
+		bool get(local_vector_type& u, const local_index_type& ind) const;
 
-	~ArneVector();
+		// fix memory pattern
+		bool finalize();
 
-	ArneVector& operator+= (const ArneVector& v);
+		// operations with other vectors
+		ArneVector& operator+= (const ArneVector& v);
+		ArneVector& operator-= (const ArneVector& v);
+		ArneVector& operator= (const ArneVector& v);
 
-	ArneVector& operator-= (const ArneVector& v);
+		// scalar product
+		number operator *(const ArneVector& v);
 
-	ArneVector& operator= (const ArneVector& v);
+		// norms
+		number one_norm() const;
+		number two_norm() const;
 
-	number norm2();
+		// set vector to constant value
+		bool set(number w);
+		bool operator= (number w);
+		bool operator*= (number w);
 
-	bool set(number w);
+		// number of Blocks
+		uint size() const;
 
-	int length();
+		// write to file
+		bool printToFile(const char* filename) const;
 
-	ArneVector::ScalarVector* getStorage();
+		// destructor
+		~ArneVector();
 
 	private:
-	ScalarVector* _Vector;
+		// disallow copy constructor
+		ArneVector(const ArneVector& v);
+
+	private:
+		friend class ArneMatrix;
+		friend class ArneJacobi;
+		friend bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp);
+
+		typedef ublas::vector<double> ScalarVector;
+
+		ArneVector::ScalarVector* getStorage();
+		const ArneVector::ScalarVector* getStorage() const;
+
+	private:
+		ScalarVector* _Vector;
 
 };
 

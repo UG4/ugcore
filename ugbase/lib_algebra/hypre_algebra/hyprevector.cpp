@@ -3,18 +3,21 @@
 
 namespace ug{
 
-bool HypreVector::create_vector(int nentries)
+bool HypreVector::create(uint nentries)
 {
+	UG_DLOG(LIB_ALG_VECTOR, 1, "Creating Hypre Vector of length " << nentries << ". \n");
+	int n = (int) nentries;
 	int err = 0;
-	err += HYPRE_IJVectorCreate(MPI_COMM_WORLD, 0, nentries-1, &m_hyprex);
+	err += HYPRE_IJVectorCreate(MPI_COMM_WORLD, 0, n-1, &m_hyprex);
 	err += HYPRE_IJVectorSetObjectType(m_hyprex, HYPRE_PARCSR);
 	err += HYPRE_IJVectorInitialize(m_hyprex);
 	if(err) return false;
 	else return true;
 }
 
-bool HypreVector::delete_vector()
+bool HypreVector::destroy()
 {
+	UG_DLOG(LIB_ALG_VECTOR, 1, "Destroying Hypre Vector. \n");
 	int err = HYPRE_IJVectorDestroy(m_hyprex);
 	if(err) return false;
 	else
@@ -33,11 +36,14 @@ bool HypreVector::set(const local_vector_type& u, local_index_type& ind)
 	int *indices = new int[nvalues];
 	double *values = new double[nvalues];
 
+	UG_DLOG(LIB_ALG_VECTOR, 4, "\n ---- Setting values in Hypre Vector---- \n");
 	for(int i = 0; i < nvalues; ++i)
 	{
 		indices[i] = ind[i][0];
 		values[i] = (double) u[i];
+		UG_DLOG(LIB_ALG_VECTOR, 4, "Hypre-Index: " << indices[i] << ", Value: " << values[i] << "\n");
 	}
+	UG_DLOG(LIB_ALG_VECTOR, 4, " ---- End ----\n");
 
 	b = set_values(nvalues, indices, values);
 
@@ -54,11 +60,14 @@ bool HypreVector::add(const local_vector_type& u, local_index_type& ind)
 	int *indices = new int[nvalues];
 	double *values = new double[nvalues];
 
+	UG_DLOG(LIB_ALG_VECTOR, 4, "\n ---- Adding values in Hypre Vector---- \n");
 	for(int i = 0; i < nvalues; ++i)
 	{
 		indices[i] = ind[i][0];
 		values[i] = (double) u[i];
+		UG_DLOG(LIB_ALG_VECTOR, 4, "Hypre-Index: " << indices[i] << ", Value: " << values[i] << "\n");
 	}
+	UG_DLOG(LIB_ALG_VECTOR, 4, " ---- End ----\n");
 
 	b = add_values(nvalues, indices, values);
 
@@ -83,10 +92,13 @@ bool HypreVector::get(local_vector_type& u, local_index_type& ind) const
 
 	b = get_values(nvalues, indices, values);
 
+	UG_DLOG(LIB_ALG_VECTOR, 4, "\n ---- Getting values in Hypre Vector---- \n");
 	for(int i = 0; i < nvalues; ++i)
 	{
 		u[i] = (number) values[i];
+		UG_DLOG(LIB_ALG_VECTOR, 4, "Hypre-Index: " << indices[i] << ", Value: " << values[i] << " [Converted to value: " << u[i] << "]\n");
 	}
+	UG_DLOG(LIB_ALG_VECTOR, 4, " ---- End ----\n");
 
 	delete[] indices;
 	delete[] values;
@@ -240,8 +252,4 @@ HypreVector::~HypreVector()
 
 		return jupper - jlower + 1;
 	}
-
-
 }
-
-

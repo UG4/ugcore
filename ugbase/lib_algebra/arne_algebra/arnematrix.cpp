@@ -3,16 +3,34 @@
 
 namespace ug{
 
-bool ArneMatrix::create_matrix(int nrow, int ncol)
+bool
+ArneMatrix::
+create(uint nrow, uint ncol)
 {
-
 	_Matrix = new ScalarMatrix(nrow, ncol, 8);
 
 	if(_Matrix == NULL) return false;
 	else return true;
 }
 
-bool ArneMatrix::delete_matrix()
+bool
+ArneMatrix::
+create(const ArneMatrix& v)
+{
+	if(_Matrix == NULL) return false;
+
+	uint nrow = v.row_size();
+	uint ncol = v.col_size();
+	_Matrix = new ScalarMatrix(nrow, ncol, 8);
+
+	if(_Matrix == NULL) return false;
+	else return true;
+}
+
+
+bool
+ArneMatrix::
+destroy()
 {
 	if(_Matrix != NULL)
 		delete _Matrix;
@@ -20,57 +38,75 @@ bool ArneMatrix::delete_matrix()
 	return true;
 }
 
-bool ArneMatrix::set_values(int nrows, int* ncols, int* rows, int* cols, double* values)
+bool
+ArneMatrix::
+set(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
 {
 	if(_Matrix == NULL) return false;
 
-	int j = 0;
-	for(int i = 0; i < nrows; ++i)
+	for(uint i = 0; i < I.size(); ++i)
 	{
-		for(int k = 0; k < ncols[i]; ++k)
+		for(uint j = 0; j < J.size(); ++j)
 		{
-			(*_Matrix)(rows[i], cols[j]) = values[j];
-			++j;
+			(*_Matrix)(I[i][0], J[j][0]) = mat(i,j);
 		}
 	}
 	return true;
 }
 
-bool ArneMatrix::add_values(int nrows, int* ncols, int* rows, int* cols, double* values)
+bool
+ArneMatrix::
+add(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
 {
 	if(_Matrix == NULL) return false;
 
-	int j = 0;
-	for(int i = 0; i < nrows; ++i)
+	for(uint i = 0; i < I.size(); ++i)
 	{
-		for(int k = 0; k < ncols[i]; ++k)
+		for(uint j = 0; j < J.size(); ++j)
 		{
-			(*_Matrix)(rows[i], cols[j]) += values[j];
-			++j;
+			(*_Matrix)(I[i][0], J[j][0]) += mat(i,j);
 		}
 	}
 	return true;
 }
 
-bool ArneMatrix::set_dirichletrows(int nrows, int* rows)
+bool
+ArneMatrix::
+get(local_matrix_type& mat, const local_index_type& I, const local_index_type& J) const
+{
+	if(_Matrix == NULL) return false;
+
+	for(uint i = 0; i < I.size(); ++i)
+	{
+		for(uint j = 0; j < J.size(); ++j)
+		{
+			mat(i,j) = (*_Matrix)(I[i][0], J[j][0]);
+		}
+	}
+	return true;
+}
+
+bool ArneMatrix::set_dirichlet_rows(const local_index_type& I)
 {
 	if(_Matrix == NULL) return false;
 
 	typedef ublas::matrix_row< ScalarMatrix > row_type;
 
-	for(int i = 0; i < nrows; ++i)
+	for(uint i = 0; i < I.size(); ++i)
 	{
-		row_type row(*_Matrix, rows[i]);
+		row_type row(*_Matrix, I[i][0]);
 		for(row_type::iterator iter_ij = row.begin(); iter_ij != row.end(); ++iter_ij)
 		{
-			if(iter_ij.index() == (uint) rows[i]) *iter_ij = 1.0;
+			if(iter_ij.index() == I[i][0]) *iter_ij = 1.0;
 			else *iter_ij = 0.0;
 		}
 	}
 	return true;
 }
 
-bool ArneMatrix::set(number w)
+bool
+ArneMatrix::
+set(number w)
 {
 	if(_Matrix == NULL) return false;
 
@@ -90,12 +126,65 @@ bool ArneMatrix::set(number w)
 }
 
 
-bool ArneMatrix::finalize()
+bool
+ArneMatrix::
+operator=(number w)
+{
+	return this->set(w);
+}
+
+bool
+ArneMatrix::
+finalize()
 {
 	return true;
 }
 
-bool ArneMatrix::printToFile(const char* filename)
+bool
+ArneMatrix::
+apply(ArneVector&b, const ArneVector& x)
+{
+	ublas::axpy_prod(*_Matrix, *x.getStorage(), *b.getStorage(), true);
+	return true;
+}
+
+bool
+ArneMatrix::
+applyTransposed(ArneVector&b, const ArneVector& x)
+{
+	ublas::axpy_prod(*x.getStorage(), *_Matrix, *b.getStorage(), true);
+	return true;
+}
+
+bool
+ArneMatrix::
+matmul_minus(ArneVector&b, const ArneVector& x)
+{
+	ArneVector& x2 = const_cast<ArneVector&>(x);
+
+	*x2.getStorage() *= -1.0;
+	ublas::axpy_prod(*_Matrix, *x2.getStorage(), *b.getStorage(), false);
+	*x2.getStorage() *= -1.0;
+	return true;
+}
+
+uint
+ArneMatrix::
+row_size() const
+{
+	return _Matrix->size1();
+}
+
+uint
+ArneMatrix::
+col_size() const
+{
+	return _Matrix->size2();
+}
+
+bool
+ArneMatrix::
+printToFile(const char* filename)
 {
 	if(_Matrix == NULL) return false;
 	FILE* file;
@@ -119,16 +208,25 @@ bool ArneMatrix::printToFile(const char* filename)
 	return true;
 }
 
-ArneMatrix::ScalarMatrix* ArneMatrix::getStorage()
+ArneMatrix::ScalarMatrix*
+ArneMatrix::
+getStorage()
 {
 	return _Matrix;
 }
 
-ArneMatrix::~ArneMatrix()
+const ArneMatrix::ScalarMatrix*
+ArneMatrix::
+getStorage() const
 {
-	if(_Matrix != NULL)
-		delete _Matrix;
-	_Matrix = NULL;
+	return _Matrix;
+}
+
+
+ArneMatrix::
+~ArneMatrix()
+{
+	destroy();
 }
 
 

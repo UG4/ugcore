@@ -118,6 +118,11 @@ class FlexLocalVector{
 		typedef std::vector<number>::iterator   iterator;
 
 	public:
+	FlexLocalVector()
+	{
+		m_values.clear();
+	}
+
 	FlexLocalVector(std::size_t nrow)
 	{
 		m_values.resize(nrow);
@@ -135,6 +140,11 @@ class FlexLocalVector{
 		{
 				(*i) = val;
 		}
+	}
+
+	void push_back(number val)
+	{
+		m_values.push_back(val);
 	}
 
 	FlexLocalVector& operator*(number val)
