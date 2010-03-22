@@ -72,6 +72,112 @@ void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler)
+{
+	typedef typename geometry_traits<TElem>::iterator iterator;
+	for(size_t l  = 0; l < sh.num_levels(); ++l){
+		for(size_t si = 0; si < sh.num_subsets(); ++si){
+			for(iterator iter = sh.template begin<TElem>(si, l);
+				iter != sh.template end<TElem>(si, l); ++iter)
+			{
+				TElem* e = *iter;
+				for(size_t i = 0; i < e->num_vertices(); ++i)
+				{
+					VertexBase* vrt = e->vertex(i);
+					sh.assign_subset(vrt, srcIndHandler.get_subset_index(vrt));
+				}
+			}
+		}
+	}
+}
+									
+////////////////////////////////////////////////////////////////////////
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler)
+{
+	typedef typename geometry_traits<TElem>::iterator iterator;
+	std::vector<EdgeBase*> vEdges;
+	
+	for(size_t l  = 0; l < sh.num_levels(); ++l){
+		for(size_t si = 0; si < sh.num_subsets(); ++si){
+			for(iterator iter = sh.template begin<TElem>(si, l);
+				iter != sh.template end<TElem>(si, l); ++iter)
+			{
+				TElem* e = *iter;
+				CollectAssociatedEdges(vEdges, *sh.get_assigned_grid(), e);
+				
+				for(size_t i = 0; i < vEdges.size(); ++i)
+				{
+					EdgeBase* edge = vEdges[i];
+					sh.assign_subset(edge, srcIndHandler.get_subset_index(edge));
+				}
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler)
+{
+	typedef typename geometry_traits<TElem>::iterator iterator;
+	std::vector<Face*> vFaces;
+	
+	for(size_t l  = 0; l < sh.num_levels(); ++l){
+		for(size_t si = 0; si < sh.num_subsets(); ++si){
+			for(iterator iter = sh.template begin<TElem>(si, l);
+				iter != sh.template end<TElem>(si, l); ++iter)
+			{
+				TElem* e = *iter;
+				CollectAssociatedFaces(vFaces, *sh.get_assigned_grid(), e);
+				
+				for(size_t i = 0; i < vFaces.size(); ++i)
+				{
+					Face* f = vFaces[i];
+					sh.assign_subset(f, srcIndHandler.get_subset_index(f));
+				}
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler)
+{
+//	we have to find all associated elements of lower dimension.
+	const int baseType = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	
+	switch(baseType){
+	//	we have to assign associated elements to the surfaceView
+	//	depending on the base-type of TElem, we have to collect
+	//	different associated elements
+		case VOLUME:
+			if(srcIndHandler.template num<Face>() > 0)
+				AssignAssociatedFacesToSubsets<TElem>(sh, srcIndHandler);
+			//	we don't call break since we want to enter the next section
+			
+		case FACE:
+			if(srcIndHandler.template num<EdgeBase>() > 0)
+				AssignAssociatedEdgesToSubsets<TElem>(sh, srcIndHandler);
+			//	we don't call break since we want to enter the next section
+			
+		case EDGE:
+			if(srcIndHandler.template num<VertexBase>() > 0)
+				AssignAssociatedVerticesToSubsets<TElem>(sh, srcIndHandler);
+			//	we don't call break since we want to enter the next section
+			
+		default:
+			break;
+	}
+}
+
 }//	end of namespace
 
 #endif

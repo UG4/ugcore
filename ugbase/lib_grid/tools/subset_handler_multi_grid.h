@@ -71,13 +71,17 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		typename geometry_traits<TElem>::iterator
 		end(int subsetIndex, int level);
 
+	///	returns the total number of elements
+		template <class TElem>
+		uint num() const;
+		
 	///	returns the number of elements in the given subset
 		template <class TElem>
-		uint num(int subsetIndex);
+		uint num(int subsetIndex) const;
 
 	///	returns the number of elements in the given subset on the given level
 		template <class TElem>
-		uint num(int subsetIndex, int level);
+		uint num(int subsetIndex, int level) const;
 
 	///	removes all elements of type TElem from the specified subset.
 		template <class TElem>

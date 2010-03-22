@@ -128,7 +128,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 	for(typename Layout::iterator li = layout.begin();
 		li != layout.end(); ++li)
 	{
-		extractor.extract(*streamPackMap.get_stream(layout.get_local_src_id()),
+		extractor.extract(*streamPack.get_stream(layout.get_local_src_id()),
 						layout.interface(li));
 	}
 }
@@ -151,7 +151,7 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 		for(typename Layout::iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
-			extractor.extract(*streamPackMap.get_stream(localSrcID),
+			extractor.extract(*streamPack.get_stream(localSrcID),
 								layout.interface(li));
 		}
 	}
@@ -191,7 +191,7 @@ communicate()
 	}
 
 //	clean up
-	m_streamPackOut.clear();
+	m_streamPackMap.clear();
 	m_extractorInfos.clear();
 }
 

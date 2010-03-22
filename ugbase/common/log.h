@@ -31,6 +31,7 @@ class LogAssistant
 		enum Tags
 		{
 			MAIN = 0,
+			APP,
 			LIB_GRID,
 			LIB_GRID_REFINER,
 			LIB_DISC,

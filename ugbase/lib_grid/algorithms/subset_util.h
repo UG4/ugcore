@@ -69,6 +69,83 @@ template <class TIterator>
 void AssignAssociatedVerticesToSubset(ISubsetHandler& sh, TIterator elemsBegin,
 										TIterator elemsEnd, int subsetIndex);
 
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedVerticesToSubsets
+///	Assigns associated vertices of elements of type TElem in sh to sh.
+/**
+ * Make sure that TElem is not of type VertexBase or any derivate.
+ *
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated vertices to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ */
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler);
+									
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedEdgesToSubsets
+///	Assigns associated edges of elements of type TElem in sh to sh.
+/**
+ * Make sure that TElem is not of type EdgeBase or any derivate.
+ *
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated edges to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Associated elements that are assigned to sh and have a subset-index
+ * of -1 in srcIndHandler are assigned to the subset at alternativeSubsetIndex.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ */
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler);
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedFacesToSubsets
+///	Assigns associated faces of elements of type TElem in sh to sh.
+/**
+ * Make sure that TElem is not of type Face or any derivate.
+ *
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated faces to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Associated elements that are assigned to sh and have a subset-index
+ * of -1 in srcIndHandler are assigned to the subset at alternativeSubsetIndex.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ */
+template <class TElem, class TSubsetHandler>
+void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
+									const ISubsetHandler& srcIndHandler);
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedLowerDimElems
+///	Assigns associated elements of elements of type TElem in sh to sh.
+/**
+ * The method iterates over all elements of type TElem in sh and assigns
+ * associated elements of lower dimension to sh. The subset-index to
+ * which those elements are assigned are taken from srcIndHandler.
+ *
+ * Associated elements that are assigned to sh and have a subset-index
+ * of -1 in srcIndHandler are assigned to the subset at alternativeSubsetIndex.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ */
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler);
+
+
 ////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg
 ///	reorders subsets in a way that allows for easy export to lgm-ng.

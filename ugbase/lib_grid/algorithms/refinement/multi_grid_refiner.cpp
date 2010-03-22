@@ -24,6 +24,12 @@ MultiGridRefiner::MultiGridRefiner(MultiGrid& mg)
 	m_copyRange = 2;
 }
 
+MultiGridRefiner::~MultiGridRefiner()
+{
+	if(m_pMG)
+		m_pMG->unregister_observer(this);
+}
+
 void MultiGridRefiner::assign_grid(MultiGrid& mg)
 {
 	if(m_pMG)

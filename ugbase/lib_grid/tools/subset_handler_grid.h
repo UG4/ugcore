@@ -75,6 +75,10 @@ class GridSubsetHandler : public ISubsetHandler
 		template <class TElem>
 		uint num_elements(int subsetIndex) const;
 
+	///	returns the total number of elements
+		template <class TElem>
+		uint num() const;
+
 	///	returns the number of elements in the given subset
 		template <class TElem>
 		uint num(int subsetIndex) const;
@@ -97,6 +101,40 @@ class GridSubsetHandler : public ISubsetHandler
 	///	only for debug purposes
 		template <class TElem>
 		bool perform_self_tests();
+		
+	////////////////////////////////////////////////
+	//	for compatibility with MGSubsetHandler
+	///	returns number of levels (always 1)
+	/**	only for compatibility reasons with MGSubsetHandler.*/
+		uint num_levels() const						{return 1;}
+		
+	///	returns the begin-iterator for the elements of type TElem in the given subset.
+	/**	only for compatibility reasons with MGSubsetHandler.
+	 *	second argument is ignored.
+	 *	use i.e. as follows: begin<Triangle>(0, 0)*/
+		template <class TElem>
+		typename geometry_traits<TElem>::iterator
+		begin(int subsetIndex, size_t) const		{return begin<TElem>(subsetIndex);}
+
+	///	returns the end-iterator for the elements of type TElem in the given subset.
+	/**	only for compatibility reasons with MGSubsetHandler.
+	 *	second argument is ignored.
+	 *	use i.e. as follows: end<Triangle>(0, 0)*/
+		template <class TElem>
+		typename geometry_traits<TElem>::iterator
+		end(int subsetIndex, size_t) const			{return end<TElem>(subsetIndex);}
+
+	///	returns the number of elements in the given subset
+	/**	only for compatibility reasons with MGSubsetHandler.
+	 *	second argument is ignored.*/
+		template <class TElem>
+		uint num_elements(int subsetIndex, size_t) const	{return num_elements<TElem>();}
+
+	///	returns the number of elements in the given subset
+	/**	only for compatibility reasons with MGSubsetHandler.
+	 *	second argument is ignored.*/
+		template <class TElem>
+		uint num(int subsetIndex, size_t) const				{return num<TElem>();}
 		
 	protected:
 	////////////////////////////////////////////////

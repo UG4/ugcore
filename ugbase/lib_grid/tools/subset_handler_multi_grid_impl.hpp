@@ -94,7 +94,7 @@ clear_subset_elements(int subsetIndex, int level)
 template <class TElem>
 uint
 MultiGridSubsetHandler::
-num(int subsetIndex, int level)
+num(int subsetIndex, int level) const
 {
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
@@ -115,7 +115,7 @@ num(int subsetIndex, int level)
 template <class TElem>
 uint
 MultiGridSubsetHandler::
-num(int subsetIndex)
+num(int subsetIndex) const
 {
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
@@ -138,6 +138,18 @@ num(int subsetIndex)
 	}
 
 	return numElems;
+}
+
+template <class TElem>
+uint
+MultiGridSubsetHandler::
+num() const
+{
+	uint n = 0;
+	for(size_t i = 0; i < num_subsets(); ++i)
+		n += num<TElem>(i);
+		
+	return n;
 }
 
 template<class TElem>

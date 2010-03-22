@@ -118,6 +118,18 @@ num(int subsetIndex) const
 		return m_subsets[subsetIndex]->m_elements[baseObjID].num_elements(sectionInd);
 }
 
+template <class TElem>
+uint
+GridSubsetHandler::
+num() const
+{
+	uint n = 0;
+	for(size_t i = 0; i < num_subsets(); ++i)
+		n += num<TElem>(i);
+		
+	return n;
+}
+
 template<class TElem>
 void GridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)

@@ -142,7 +142,7 @@ class SerialCommunicator
 	///	A list that holds information about extractors.
 		typedef std::list<ExtractorInfo> ExtractorInfoList;
 	///	A map that hold stream-packs sorted by senders.
-		typedef std::map<ug::StreamPack>	StreamPackMap;
+		typedef std::map<int, ug::StreamPack>	StreamPackMap;
 		
 	protected:
 	///	holds the streams-packs that are used to exchange data
