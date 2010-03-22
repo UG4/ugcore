@@ -29,6 +29,14 @@
 #include "lib_discretization/assemble.h"
 
 ////////////////////////
+// function spaces
+////////////////////////
+
+#include "lib_discretization/function_spaces/function_spaces.h"
+
+#include "lib_discretization/linear_operator/linear_operator.h"
+
+////////////////////////
 // spacial discretizations
 ////////////////////////
 
@@ -38,6 +46,18 @@
 // domain discretization
 #include "lib_discretization/domain_discretization/plug_in_domain_discretization.h"
 
+
+////////////////////////
+// geometric linear solvers
+////////////////////////
+
+#include "multi_grid_solver/mg_solver.h"
+
+////////////////////////
+// output
+////////////////////////
+
+#include "io/vtkoutput.h"
 
 
 //#include "numericalsolution.h"

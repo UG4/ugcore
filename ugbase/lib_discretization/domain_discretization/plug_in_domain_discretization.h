@@ -141,10 +141,12 @@ clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin,
 	typename domain_type::position_accessor_type aaPos = m_domain.get_position_accessor();
 	grid_type& grid = m_domain.get_grid();
 
-	std::vector<int> indices;
+	local_index_type ind(1);
+	local_index_type glob_ind;
+	local_vector_type dirichlet_vals;
+
 	number val;
 	position_type corner;
-	local_index_type read_index(1);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
@@ -155,30 +157,21 @@ clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin,
 		{
 			for(uint fct = 0; fct < _num_func; fct++)
 			{
-				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, read_index) != 1) assert(0);
-				int index = (int) read_index[0][0];
+				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, ind) != 1) assert(0);
 				if(m_bndfct(val, corner, fct, 0.0))
-					indices.push_back(index);
+				{
+					glob_ind.push_back(ind[0]);
+					dirichlet_vals.push_back(0.0);
+				}
 			}
 		}
 	}
 
-	double* valueArray = new double[indices.size()];
-	int* indexArray = new int[indices.size()];
-
-	for(uint i=0; i<indices.size(); i++)
-	{
-		valueArray[i] = 0.0;
-		indexArray[i] = indices[i];
-	}
-
-	if(d.set_values(indices.size(), indexArray, valueArray) != true)
-		return false;
-	if(J.set_dirichletrows(indices.size(), indexArray) != true)
+	if(d.set(dirichlet_vals, glob_ind) != true)
 		return false;
 
-	delete valueArray;
-	delete indexArray;
+	if(J.set_dirichlet_rows(glob_ind) != true)
+		return false;
 
 	return true;
 }
@@ -194,10 +187,12 @@ clear_dirichlet_defect(	geometry_traits<Vertex>::iterator iterBegin,
 	typename domain_type::position_accessor_type aaPos = m_domain.get_position_accessor();
 	grid_type& grid = m_domain.get_grid();
 
-	std::vector<int> indices;
+	local_index_type ind(1);
+	local_index_type glob_ind;
+	local_vector_type dirichlet_vals;
+
 	number val;
 	position_type corner;
-	local_index_type read_index(1);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
@@ -208,28 +203,18 @@ clear_dirichlet_defect(	geometry_traits<Vertex>::iterator iterBegin,
 		{
 			for(uint fct = 0; fct < _num_func; fct++)
 			{
-				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, read_index) != 1) assert(0);
-				int index = (int) read_index[0][0];
+				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, ind) != 1) assert(0);
 				if(m_bndfct(val, corner, fct, 0.0))
-					indices.push_back(index);
+				{
+					glob_ind.push_back(ind[0]);
+					dirichlet_vals.push_back(0.0);
+				}
 			}
 		}
 	}
 
-	double* valueArray = new double[indices.size()];
-	int* indexArray = new int[indices.size()];
-
-	for(uint i=0; i<indices.size(); i++)
-	{
-		valueArray[i] = 0.0;
-		indexArray[i] = indices[i];
-	}
-
-	if(d.set_values(indices.size(), indexArray, valueArray) != true)
+	if(d.set(dirichlet_vals, glob_ind) != true)
 		return false;
-
-	delete valueArray;
-	delete indexArray;
 
 	return true;
 }
@@ -245,10 +230,11 @@ clear_dirichlet_jacobian(	geometry_traits<Vertex>::iterator iterBegin,
 	typename domain_type::position_accessor_type aaPos = m_domain.get_position_accessor();
 	grid_type& grid = m_domain.get_grid();
 
-	std::vector<int> indices;
+	local_index_type ind(1);
+	local_index_type glob_ind;
+
 	number val;
 	position_type corner;
-	local_index_type read_index(1);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
@@ -259,25 +245,17 @@ clear_dirichlet_jacobian(	geometry_traits<Vertex>::iterator iterBegin,
 		{
 			for(uint fct = 0; fct < _num_func; fct++)
 			{
-				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, read_index) != 1) assert(0);
-				int index = (int) read_index[0][0];
+				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, ind) != 1) assert(0);
 				if(m_bndfct(val, corner, fct, 0.0))
-					indices.push_back(index);
+				{
+					glob_ind.push_back(ind[0]);
+				}
 			}
 		}
 	}
 
-	int* indexArray = new int[indices.size()];
-
-	for(uint i=0; i<indices.size(); i++)
-	{
-		indexArray[i] = indices[i];
-	}
-
-	if(J.set_dirichletrows(indices.size(), indexArray) != true)
+	if(J.set_dirichlet_rows(glob_ind) != true)
 		return false;
-
-	delete indexArray;
 
 	return true;
 }
@@ -288,17 +266,17 @@ bool
 PlugInDomainDiscretization<TAlgebra, TDiscreteFunction, TElemDisc>::
 set_dirichlet_solution(	geometry_traits<Vertex>::iterator iterBegin,
 						geometry_traits<Vertex>::iterator iterEnd,
-						vector_type& x, number time)
+						vector_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = m_domain.get_position_accessor();
 	grid_type& grid = m_domain.get_grid();
 
-	std::vector<int> indices;
-	std::vector<number> values;
+	local_index_type ind(1);
+	local_index_type glob_ind;
+	local_vector_type dirichlet_vals;
 
 	number val;
 	position_type corner;
-	local_index_type read_index(1);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
@@ -309,31 +287,18 @@ set_dirichlet_solution(	geometry_traits<Vertex>::iterator iterBegin,
 		{
 			for(uint fct = 0; fct < _num_func; fct++)
 			{
-				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, read_index) != 1) assert(0);
-				int index = (int) read_index[0][0];
+				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, ind) != 1) assert(0);
 				if(m_bndfct(val, corner, fct, 0.0))
 				{
-					indices.push_back(index);
-					values.push_back(val);
+					glob_ind.push_back(ind[0]);
+					dirichlet_vals.push_back(val);
 				}
 			}
 		}
 	}
 
-	double* valueArray = new double[values.size()];
-	int* indexArray = new int[indices.size()];
-
-	for(uint i=0; i<indices.size(); i++)
-	{
-		valueArray[i] = values[i];
-		indexArray[i] = indices[i];
-	}
-
-	if(x.set_values(indices.size(), indexArray, valueArray) != true)
+	if(u.set(dirichlet_vals, glob_ind) != true)
 		return false;
-
-	delete valueArray;
-	delete indexArray;
 
 	return true;
 }
@@ -350,12 +315,12 @@ set_dirichlet_linear(	geometry_traits<Vertex>::iterator iterBegin,
 	typename domain_type::position_accessor_type aaPos = m_domain.get_position_accessor();
 	grid_type& grid = m_domain.get_grid();
 
-	std::vector<int> indices;
-	std::vector<number> values;
+	local_index_type ind(1);
+	local_index_type glob_ind;
+	local_vector_type dirichlet_vals;
 
 	number val;
 	position_type corner;
-	local_index_type read_index(1);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
@@ -366,33 +331,20 @@ set_dirichlet_linear(	geometry_traits<Vertex>::iterator iterBegin,
 		{
 			for(uint fct = 0; fct < _num_func; fct++)
 			{
-				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, read_index) != 1) assert(0);
-				int index = (int) read_index[0][0];
+				if(m_pattern.get_multi_indices_of_geom_obj(vert, fct, ind) != 1) assert(0);
 				if(m_bndfct(val, corner, fct, time))
 
-				values.push_back(val);
-				indices.push_back(index);
+				dirichlet_vals.push_back(val);
+				glob_ind.push_back(ind[0]);
 			}
 		}
 	}
 
-	double* valueArray = new double[values.size()];
-	int* indexArray = new int[indices.size()];
-
-	for(uint i=0; i<indices.size(); i++)
-	{
-		valueArray[i] = values[i];
-		indexArray[i] = indices[i];
-	}
-
-	if(rhs.set_values(indices.size(), indexArray, valueArray) != true)
+	if(rhs.set(dirichlet_vals, glob_ind) != true)
 		return false;
 
-	if(mat.set_dirichletrows(indices.size(), indexArray) != true)
+	if(mat.set_dirichlet_rows(glob_ind) != true)
 		return false;
-
-	delete valueArray;
-	delete indexArray;
 
 	return true;
 }
@@ -435,7 +387,8 @@ assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 			loc_J.set(0.0);
 
 			m_pattern.get_multi_indices(elem, fct, glob_ind);
-			u.get_dof_values(loc_u, glob_ind);
+			uint level = m_pattern.get_grid().get_level(elem);
+			u.get_dof_values(level, loc_u, glob_ind);
 
 			elemDisc.prepare_element(elem);
 
@@ -511,7 +464,8 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 			loc_J.set(0.0);
 
 			m_pattern.get_multi_indices(elem, fct, glob_ind);
-			u.get_dof_values(loc_u, glob_ind);
+			uint level = m_pattern.get_grid().get_level(elem);
+			u.get_dof_values(level, loc_u, glob_ind);
 
 			elemDisc.prepare_element(elem);
 
@@ -571,7 +525,8 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 			loc_d.set(0.0);
 
 			m_pattern.get_multi_indices(elem, fct, glob_ind);
-			u.get_dof_values(loc_u, glob_ind);
+			uint level = m_pattern.get_grid().get_level(elem);
+			u.get_dof_values(level, loc_u, glob_ind);
 
 			elemDisc.prepare_element(elem);
 

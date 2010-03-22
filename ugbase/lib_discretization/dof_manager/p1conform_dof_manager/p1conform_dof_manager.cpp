@@ -32,6 +32,9 @@ add_discrete_function(std::string name, LocalShapeFunctionSetID id, int dim)
 	}
 
 	m_SingleDiscreteFunctionNames.push_back(name);
+
+	// TODO: Check if dim has been chosen correctly
+	m_dim.push_back(dim);
 	return true;
 }
 
@@ -137,8 +140,8 @@ finalize()
 		}
 		m_num_dof_index[level] = i;
 
-		std::cout << i << " DoF indices distributed on grid " <<
-					" on level " << level << " [each carrying " << 1 << " component(s)]" << std::endl;
+		UG_LOG( std::setw(8) << i << " DoF indices distributed" <<
+					" on level " << std::setw(2) << level << " [each carrying " << 1 << " component(s)]" << std::endl);
 	}
 
 	///////////////////
@@ -155,20 +158,6 @@ finalize()
 	return true;
 }
 
-uint
-P1ConformDoFManager::
-num_dofs(uint level)
-{
-	return m_num_dof_index[level];
-}
-
-uint
-P1ConformDoFManager::
-num_levels()
-{
-	return m_num_levels;
-}
-
 LocalShapeFunctionSetID
 P1ConformDoFManager::
 get_local_shape_function_set_id(uint nr_fct)
@@ -178,23 +167,9 @@ get_local_shape_function_set_id(uint nr_fct)
 
 std::string
 P1ConformDoFManager::
-get_name(uint fct)
+get_name(uint fct) const
 {
 	return m_SingleDiscreteFunctionNames[fct];
-}
-
-uint
-P1ConformDoFManager::
-num_fct()
-{
-	return m_num_single_discrete_functions;
-}
-
-bool
-P1ConformDoFManager::
-fct_def_in_subset(uint nr_fct, int s)
-{
-	return false;
 }
 
 P1ConformDoFManager::element_container_type&

@@ -112,41 +112,94 @@ class P1ConformDoFManager : public GridObserver{
 		/// performs a finalizing step. The Pattern can not be altered after finishing
 		bool finalize();
 
+		/// returns the trial space of the discrete function fct
+		LocalShapeFunctionSetID get_local_shape_function_set_id(uint fct);
+
+		// returns the number of multi_indices on the Element for the discrete function 'fct'
+		template<typename TElem>
+		std::size_t num_multi_indices(TElem* elem, uint fct);
+
+		/// returns the indices of the dofs on the Element elem for the discrete function 'fct' and returns num_indices
+		template<typename TElem>
+		std::size_t get_multi_indices(TElem* elem, uint fct, local_index_type& ind);
+
+		/// returns the index of the dofs on the Geom Obj for the discrete function 'fct'
+		template<typename TElem>
+		std::size_t get_multi_indices_of_geom_obj(TElem* vrt, uint fct, local_index_type& ind);
+
 		/// returns the number of dofs on level 'level'
-		inline uint num_dofs(uint level = 0);
+		inline uint num_dofs(uint level)
+		{
+			return m_num_dof_index[level];
+		}
 
 		/// returns the number of levels
-		inline uint num_levels();
+		inline uint num_levels() const
+		{
+			return m_num_levels;
+		}
 
-		/// returns the trial space of the discrete function nr_fct
-		LocalShapeFunctionSetID get_local_shape_function_set_id(uint nr_fct);
-
-		// returns the number of multi_indices on the Element for the discrete function 'nr_fct'
-		template<typename TElem>
-		std::size_t num_multi_indices(TElem* elem, uint nr_fct);
-
-		/// returns the indices of the dofs on the Element elem for the discrete function 'nr_fct' and returns num_indices
-		template<typename TElem>
-		std::size_t get_multi_indices(TElem* elem, uint nr_fct, local_index_type& ind);
-
-		/// returns the index of the dofs on the Geom Obj for the discrete function 'nr_fct'
-		template<typename TElem>
-		std::size_t get_multi_indices_of_geom_obj(TElem* vrt, uint nr_fct, local_index_type& ind);
-
-		/// returns the name of the discrete function nr_fct
-		std::string get_name(uint nr_fct);
+		/// returns the number of levels
+		inline int num_subsets() const
+		{
+			return 1;
+		}
 
 		/// returns the number of discrete functions in this dof pattern
-		inline uint num_fct();
+		inline uint num_fct() const
+		{
+			return m_SingleDiscreteFunctionNames.size();
+		}
+
+		/// returns the name of the discrete function nr_fct
+		std::string get_name(uint nr_fct) const;
+
+		/// returns the dimension in which solution lives
+		inline int dim_fct(uint fct) const
+		{
+			UG_ASSERT(fct < num_fct(), "Accessing fundamental discrete function, that does not exist.");
+			return m_dim[fct];
+		}
 
 		/// returns true if the discrete function nr_fct is defined on subset s
-		bool fct_def_in_subset(uint nr_fct, int s);
+		bool fct_is_def_in_subset(uint fct, int subsetIndex) const
+		{
+			UG_ASSERT(subsetIndex == 0, "This DoFManager uses a MultiGrid and not a SubsetHandler. Therefore only subsetIndex 0 is valid.");
+			UG_ASSERT(fct < num_fct(), "Accessing fundamental discrete function, that does not exist.");
+
+			return true;
+		}
+
+		/// returns the begin iterator for all elements of type 'TElem' on level 'level' on subset 'subsetIndex'
+		template <typename TElem>
+		typename geometry_traits<TElem>::iterator begin(uint level, int subsetIndex) const
+		{
+			UG_ASSERT(subsetIndex == 0, "This DoFManager uses a MultiGrid and not a SubsetHandler. Therefore only subsetIndex 0 is valid.");
+			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
+			return m_grid.begin<TElem>(level);
+		}
+
+		/// returns the end iterator for all elements of type 'TElem' on level 'level' on subset 'subsetIndex'
+		template <typename TElem>
+		typename geometry_traits<TElem>::iterator end(uint level, int subsetIndex) const
+		{
+			UG_ASSERT(subsetIndex == 0, "This DoFManager uses a MultiGrid and not a SubsetHandler. Therefore only subsetIndex 0 is valid.");
+			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
+			return m_grid.end<TElem>(level);
+		}
 
 		/// returns the assigned SubsetHandler
 		element_container_type& get_assigned_element_container();
 
-		const IndexInfo& get_index_info(uint level)
+		/// return the assigned (Multi-)grid
+		grid_type& get_grid()
 		{
+			return m_grid;
+		}
+
+		const IndexInfo& get_index_info(uint level) const
+		{
+			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
 			return m_IndexInfo[level];
 		}
 
@@ -159,6 +212,10 @@ class P1ConformDoFManager : public GridObserver{
 
 		// names of functions
 		std::vector<std::string> m_SingleDiscreteFunctionNames;
+
+		// dimension, in which function lives
+		std::vector<int> m_dim;
+
 		single_index_type m_num_single_discrete_functions;
 
 		// attachment type

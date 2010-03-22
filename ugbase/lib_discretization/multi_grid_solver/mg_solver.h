@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef MG_SOLVER_H_
-#define MG_SOLVER_H_
+#ifndef __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER__
+#define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER__
 
 // extern includes
 #include <iostream>
@@ -19,11 +19,12 @@
 // library intern headers
 #include "lib_discretization/assemble.h"
 #include "lib_discretization/function_spaces/grid_function_space.h"
+#include "lib_discretization/linear_operator/transfer_operator.h"
 
 namespace ug{
 
 template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
-class MultiGridSolver : public ILinearSolver {
+class MultiGridCycle : public IIterativeStep<TAlgebra> {
 	public:
 		typedef TDomain domain_type;
 
@@ -36,42 +37,50 @@ class MultiGridSolver : public ILinearSolver {
 		typedef typename TAlgebra::vector_type vector_type;
 
 	public:
+		// constructore
+		MultiGridCycle(	IAssemble<algebra_type, discrete_function_type>& ass, domain_type& domain, discrete_function_type& u,
+						uint surfaceLevel, uint baseLevel, int cycle_type,
+						TransferOperator<TDomain, TAlgebra, typename TDiscreteFunction::dof_manager_type>& transferOperator,
+						IIterativeStep<TAlgebra>& smoother, int nu1, int nu2, ILinearSolver<TAlgebra>& baseSolver);
 
-		MultiGridSolver(IAssemble<TAlgebra, discrete_function_type>& ass, domain_type& domain, uint surfaceLevel, uint baseLevel, discrete_function_type& u,
-						int maxIter, number tol, int cycle, LinearSolver& Smoother, number damp, int nu1, int nu2, LinearSolver& BaseSolver);
+		// This functions allocates the Memory for the solver
+		// and assembles coarse grid matrices using 'ass'
+		bool prepare();
 
-		bool solve(matrix_type& A, vector_type& x, vector_type& b);
+		// This function performes one multi-grid cycle step
+		// A correction c is returned as well as the updated defect d := d - A*c
+		// The Matrix A remains unchanged
+		bool step(matrix_type& A, vector_type& c, vector_type &d);
 
-		bool print_matrices();
+		// This functions deallocates the Memory for the solver
+		bool finish();
+
+ 	protected:
+		bool lmgc(matrix_type* A[], discrete_function_type& c, discrete_function_type& d, uint l);
+
 
 	protected:
-		bool lmgc(uint l);
+		IAssemble<TAlgebra, discrete_function_type>& m_ass;
+		domain_type& m_domain;
+		discrete_function_type& m_u;
 
+		uint m_surfaceLevel;
+		uint m_baseLevel;
+		int m_cycle_type;
 
-	protected:
-		matrix_type** _A;
-		matrix_type** _I;
-		vector_type* _d;
-		vector_type* _t;
-		vector_type* _c;
+		IIterativeStep<TAlgebra>& m_smoother;
+		int m_nu1;
+		int m_nu2;
 
-		int _num_cycle;
+		ILinearSolver<TAlgebra>& m_baseSolver;
 
-		IAssemble<TAlgebra, discrete_function_type>* _ass;
-		domain_type* _domain;
-		discrete_function_type* _u;
+		matrix_type** m_A;
+		matrix_type** m_I;
+		discrete_function_type& m_c;
+		discrete_function_type& m_d;
+		discrete_function_type& m_t;
 
-		LinearSolver* _Smoother;
-		number _damp;
-		int _nu1;
-		int _nu2;
-
-		LinearSolver* _BaseSolver;
-		uint _baseLevel;
-		uint _surfaceLevel;
-
-		int _maxIter;
-		number _tol;
+		TransferOperator<TDomain, TAlgebra, typename  TDiscreteFunction::dof_manager_type>& m_trans;
 };
 
 }
@@ -79,4 +88,4 @@ class MultiGridSolver : public ILinearSolver {
 #include "mg_solver_impl.hpp"
 
 
-#endif /* MG_SOLVER_H_ */
+#endif /* __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER__ */

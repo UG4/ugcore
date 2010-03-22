@@ -5,312 +5,193 @@
  *      Author: andreasvogel
  */
 
-#ifndef MG_SOLVER_IMPL_H_
-#define MG_SOLVER_IMPL_H_
+#ifndef __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
+#define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 
 namespace ug{
 
-template <int dim>
-MultiGridSolver<dim>::
-MultiGridSolver(IAssemble<dim>& ass, Domain<dim>& domain, uint surfaceLevel, uint baseLevel, NumericalSolution<dim>& u,
-		int maxIter, number tol, int cycle, LinearSolver& Smoother, number damp, int nu1, int nu2, LinearSolver& BaseSolver)
-{
-	_ass = &ass;
-	_domain = &domain;
-	_u = &u;
-
-	_maxIter = maxIter;
-	_tol = tol;
-
-	_Smoother = &Smoother;
-	_damp = damp;
-	_nu1 = nu1;
-	_nu2 = nu2;
-	_num_cycle = cycle;
-
-	_BaseSolver = &BaseSolver;
-	_baseLevel = baseLevel;
-	_surfaceLevel = surfaceLevel;
-
-}
+template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
+MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
+MultiGridCycle(	IAssemble<algebra_type, discrete_function_type>& ass, domain_type& domain, discrete_function_type& u,
+				uint surfaceLevel, uint baseLevel, int cycle_type,
+				TransferOperator<TDomain, TAlgebra, typename TDiscreteFunction::dof_manager_type>& transferOperator,
+				IIterativeStep<TAlgebra>& smoother, int nu1, int nu2, ILinearSolver<TAlgebra>& baseSolver) :
+				m_ass(ass), m_domain(domain), m_u(u),
+				m_surfaceLevel(surfaceLevel), m_baseLevel(baseLevel), m_cycle_type(cycle_type),
+				m_smoother(smoother), m_nu1(nu1), m_nu2(nu2),
+				m_baseSolver(baseSolver),
+				m_c(u), m_d(u), m_t(u),
+				m_trans(transferOperator)
+				{};
 
 
-template <int dim>
+template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
 bool
-MultiGridSolver<dim>::
-lmgc(uint l)
+MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
+lmgc(matrix_type* A[], discrete_function_type& c, discrete_function_type& d, uint l)
 {
-	if(l > _baseLevel)
+	// reset correction
+	c.get_vector(l).set(0.0);
+
+	if(l > m_baseLevel)
 	{
 		// Presmooth
-		for(int i = 0; i < _nu1; ++i)
+		for(int i = 0; i < m_nu1; ++i)
 		{
-			_t[l].set(0.0);
-			_Smoother->step(*_A[l], _t[l], _d[l], _damp);
-			_c[l] += _t[l];
+			// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
+			m_smoother.step(*A[l], m_t.get_vector(l), d.get_vector(l));
+
+			// add correction of smoothing step to level correction
+			c.get_vector(l) += m_t.get_vector(l);
 		}
 
 		// Restrict Defect
-		_I[l-1]->applyTransposed(_d[l-1], _d[l]);
-
-		// reset correction
-		_c[l-1].set(0.0);
+		m_trans.init(l-1);
+		m_trans.applyTransposed(d, d);
 
 		// apply lmgc on coarser grid
-		for(int i = 0; i < _num_cycle; ++i)
+		for(int i = 0; i < m_cycle_type; ++i)
 		{
-			if(lmgc(l-1) == false)
+			if(lmgc(A, c, d, l-1) == false)
 			{
-				std::cout << "Error in lmgc on level " << l-1 << "." << std::endl;
+				UG_LOG("Error in lmgc on level " << l-1 << "." << std::endl);
 				return false;
 			}
 		}
 
 		//interpolate correction
-		_I[l-1]->apply(_t[l], _c[l-1]);
+		m_trans.init(l-1);
+		m_trans.apply( m_t, c);
 
-		// update correction
-		_c[l] += _t[l];
+		// add coarse grid correction to level correction
+		c.get_vector(l) += m_t.get_vector(l);
 
 		//update defect
-		_A[l]->matmul_minus(_d[l], _t[l]);
+		A[l]->matmul_minus(d.get_vector(l), m_t.get_vector(l));
 
 		// Postsmooth
-		for(int i = 0; i < _nu2; ++i)
+		for(int i = 0; i < m_nu2; ++i)
 		{
-			_t[l].set(0.0);
-			_Smoother->step(*_A[l], _t[l], _d[l], _damp);
-			_c[l] += _t[l];
+			// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
+			m_smoother.step(*A[l], m_t.get_vector(l), d.get_vector(l));
+
+			// add correction of smoothing step to level correction
+			c.get_vector(l) += m_t.get_vector(l);
 		}
 
 		return true;
 	}
-	else if(l == _baseLevel)
+	else if(l == m_baseLevel)
 	{
-		// exact solve
-		_t[l].set(0.0);
-		_BaseSolver->solve(*_A[l], _t[l], _d[l]);
-		_c[l] += _t[l];
+		 // solve on base level
+		 m_baseSolver.solve(*A[l], c.get_vector(l), d.get_vector(l));
+
+		 // update defect
+		 A[l]->matmul_minus(d.get_vector(l), c.get_vector(l));
+
 		return true;
 	}
 	else
 	{
-		std::cout << "Level index below 'baseLevel' in lmgc. ERROR." << std::endl;
+		UG_LOG("Level index below 'baseLevel' in lmgc. ERROR." << std::endl);
 		return false;
 	}
 }
 
 
-template <int dim>
+template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
 bool
-MultiGridSolver<dim>::
-solve(Matrix& A, Vector& x, Vector& b)
+MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
+step(matrix_type& A, vector_type& c, vector_type& d)
 {
-	if(_domain->get_grid_type() == GT_GRID)
+	// set matrix_type for surface Level
+	m_A[m_surfaceLevel] = &A;
+
+	// perform one multigrid cycle
+	if(lmgc(m_A, m_c, m_d, m_surfaceLevel) == false)
 	{
-		std::cout << "Can not solve on a grid. Please use MultiGrid structure.\n";
+		UG_LOG("MultiGridCycle: Error in step. Aborting.\n");
 		return false;
 	}
-
-	MultiGrid& mg = *_domain->get_multigrid();
-
-	if(_surfaceLevel >= mg.num_levels())
-	{
-		std::cout << "SurfaceLevel " << _surfaceLevel << " does not exist" << std::endl;
-		return false;
-	}
-	if(_baseLevel > _surfaceLevel)
-	{
-		std::cout << "Baselevel must be smaller than to equal to SurfaceLevel." << std::endl;
-		return false;
-	}
-
-	// allocate Matrices and Vectors (currently to much, should be baseLevel to surfaceLevel+1 only)
-	_A = new Matrix*[_surfaceLevel+1];
-	_I = new Matrix*[_surfaceLevel];
-
-	_c = new Vector[_surfaceLevel+1];
-	_d = new Vector[_surfaceLevel+1];
-	_t = new Vector[_surfaceLevel+1];
-
-	// create matrices and vectors for coarser grids
-	for(uint i = _baseLevel; i < _surfaceLevel; ++i)
-	{
-		_A[i] = new Matrix;
-		_A[i]->create_matrix(_u->num_dofs(i), _u->num_dofs(i));
-		_c[i].create_vector(_u->num_dofs(i));
-		_d[i].create_vector(_u->num_dofs(i));
-		_t[i].create_vector(_u->num_dofs(i));
-
-		_d[i].set(0.0); //TODO: Needed ???
-	}
-
-	// set Matrix for surface Level
-	_A[_surfaceLevel] = &A;
-
-	// create defect, correction and help vector on surface Level
-	_c[_surfaceLevel].create_vector(_u->num_dofs(_surfaceLevel));
-	_d[_surfaceLevel].create_vector(_u->num_dofs(_surfaceLevel));
-	_t[_surfaceLevel].create_vector(_u->num_dofs(_surfaceLevel));
-
-	// assemble matrices on coarser grids
-	for(uint i = _baseLevel; i < _surfaceLevel; ++i)
-	{
-		if(_ass->assemble_jacobian(*_A[i], *_u, i) != IAssemble_OK)
-		{
-			std::cout << " Error in assemble_stiffness matrix, aborting." << std::endl;
-			for(uint j = _baseLevel; j < _surfaceLevel; ++j) {delete _A[j];} delete[] _A;delete[] _d;delete[] _c;delete[] _t;
-			return false;
-		}
-	}
-
-	// create interpolation matrices
-	for(uint i = _baseLevel; i < _surfaceLevel; ++i)
-	{
-		_I[i] = new Matrix;
-		_I[i]->create_matrix(_u->num_dofs(i+1), _u->num_dofs(i));
-
-		if(assemble_interpolation(*_I[i], *_u->get_pattern(),
-					mg.begin<Vertex>(i+1), mg.end<Vertex>(i+1),
-					i, i+1) == false)
-		{
-			std::cout << "Error in assemble_interpolation, aborting." << std::endl;
-			for(uint j = _baseLevel; j < _surfaceLevel; ++j) {delete _A[j]; delete _I[j];} delete[] _A;delete[] _d;delete[] _c;delete[] _t; delete[] _I;
-			return false;
-		}
-	}
-
-	// copy rhs
-	_d[_surfaceLevel].set(0.0);
-	_d[_surfaceLevel] += b;
-
-	// build defect:  d := b - A*x
-	_A[_surfaceLevel]->matmul_minus(_d[_surfaceLevel], x);
-
-	// compute start norm ||d||_2
-	number norm, norm_old;
-	norm = norm_old = _d[_surfaceLevel].norm2();
-
-	// Print Start information
-	std::cout << "\n   ######### MGS #########\n";
-	std::cout << "  Iter     Defect         Rate \n";
-	std::cout << std::setw(4) << 0 << ":  " << std::scientific << norm_old <<  "      -------" << std::endl;
-
-	// Iteration loop
-	for(int i = 1; i <= _maxIter; ++i)
-	{
-		// check for convergence
-		if(norm < _tol)
-		{
-			std::cout << "\n ##### Tolerance " << _tol << " reached. MultiGrid Solver converged.\n" << std::endl;
-			for(uint j = _baseLevel; j < _surfaceLevel; ++j) {delete _A[j]; delete _I[j];} delete[] _A;delete[] _d;delete[] _c;delete[] _t; delete[] _I;
-			return true;
-		}
-
-		// reset correction
-		_c[_surfaceLevel].set(0.0);
-
-		// perform one multigrid cycle
-		if(lmgc(_surfaceLevel)==false)
-		{
-			std::cout << "Error in lmgc. Aborting." << std::endl;
-			for(uint j = _baseLevel; j < _surfaceLevel; ++j) {delete _A[j]; delete _I[j];} delete[] _A;delete[] _d;delete[] _c;delete[] _t; delete[] _I;
-			return false;
-		}
-
-		// add correction to solution
-		x += _c[_surfaceLevel];
-
-		// compute new defect norm
-		norm = _d[_surfaceLevel].norm2();
-
-		// print convergence rate
-		std::cout << std::setw(4) << i << ":  " << std::scientific << norm << "    " <<norm/norm_old << std::endl;
-
-		// remember current norm
-		norm_old = norm;
-	}
-
-	std::cout << "\n ##### Tolerance " << _tol << " NOT reached after " << _maxIter << " Iterations. MultiGrid Solver did NOT CONVERGE.\n" << std::endl;
-	for(uint j = _baseLevel; j < _surfaceLevel; ++j) {delete _A[j]; delete _I[j];} delete[] _A;delete[] _d;delete[] _c;delete[] _t; delete[] _I;
-	return false;
-}
-
-template <int dim>
-bool
-MultiGridSolver<dim>::
-print_matrices()
-{
-	if(_domain->get_grid_type() == GT_GRID)
-	{
-		std::cout << "Can not solve on a grid. Please use MultiGrid structure.\n";
-		return false;
-	}
-
-	MultiGrid& mg = *_domain->get_multigrid();
-
-	if(_surfaceLevel >= mg.num_levels())
-	{
-		std::cout << "SurfaceLevel " << _surfaceLevel << " does not exist" << std::endl;
-		return false;
-	}
-	if(_baseLevel > _surfaceLevel)
-	{
-		std::cout << "Baselevel must be smaller than to equal to SurfaceLevel." << std::endl;
-		return false;
-	}
-
-	_A = new Matrix*[_surfaceLevel];
-	_I = new Matrix*[_surfaceLevel];
-
-	// create matrices and vectors for coarser grids
-	for(uint i = _baseLevel; i < _surfaceLevel; ++i)
-	{
-		_A[i] = new Matrix;
-		_A[i]->create_matrix(_u->num_dofs(i), _u->num_dofs(i));
-	}
-
-	// assemble matrices on coarser grids
-	for(uint i = _baseLevel; i < _surfaceLevel; ++i)
-	{
-		if(_ass->assemble_jacobian(*_A[i], *_u, i) != IAssemble_OK)
-		{
-			std::cout << " Error in assemble_stiffness matrix, aborting." << std::endl;
-			for(uint j = _baseLevel; j < _surfaceLevel; ++j) delete _A[j]; delete[] _A;delete[] _I;
-			return false;
-		}
-
-		char name[30];
-        sprintf(name, "Matrix_Level_%i.txt", i);
-		_A[i]->printToFile(name);
-	}
-
-	// create interpolation matrices
-	for(uint i = _baseLevel; i < _surfaceLevel; ++i)
-	{
-		_I[i] = new Matrix;
-		_I[i]->create_matrix(_u->num_dofs(i+1), _u->num_dofs(i));
-
-		if(assemble_interpolation(*_I[i], *_u->get_pattern(),
-					mg.begin<Vertex>(i+1), mg.end<Vertex>(i+1),
-					i, i+1) == false)
-		{
-			std::cout << "Error in assemble_interpolation, aborting." << std::endl;
-			for(uint j = _baseLevel; j < _surfaceLevel; ++j) delete _A[j]; delete[] _A;delete[] _I;
-			return false;
-		}
-
-		char name[30];
-		sprintf(name, "Interpolation_Matrix_Level_%i.txt", i);
-		_I[i]->printToFile(name);
-	}
-
-	for(uint j = _baseLevel; j < _surfaceLevel; ++j) delete _A[j]; delete[] _A;delete[] _I;
 
 	return true;
-
-}
 }
 
+template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
+bool
+MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
+prepare()
+{
+	typename domain_type::grid_type& mg = m_domain.get_grid();
 
-#endif /* MG_SOLVER_IMPL_H_ */
+	// check if grid type is a Multigrid.
+	if(dynamic_cast<MultiGrid*>(&mg) == NULL)
+	{
+		UG_LOG("MultiGridSolver requires a Multigrid. Please use MultiGrid structure.\n");
+		return false;
+	}
+
+	// check if surface level has been choosen correctly
+	if(m_surfaceLevel >= mg.num_levels())
+	{
+		UG_LOG("SurfaceLevel " << m_surfaceLevel << " does not exist.\n");
+		return false;
+	}
+
+	// Check if base level has been choose correctly
+	if(m_baseLevel > m_surfaceLevel)
+	{
+		UG_LOG("Base level must be smaller than surface Level.\n");
+		return false;
+	}
+
+	// reset defect
+	for(uint i = m_baseLevel; i < m_surfaceLevel; ++i)
+	{
+		m_d.set(0.0); //TODO: Needed ???
+	}
+
+	// assemble matrices on coarser grids
+	for(uint i = m_baseLevel; i < m_surfaceLevel; ++i)
+	{
+		if(m_ass.assemble_jacobian(*m_A[i], m_u, i) != IAssemble_OK)
+		{
+			UG_LOG(" Error in assemble_stiffness matrix, aborting.\n");
+			return false;
+		}
+	}
+
+	// prepare transfer operator
+	if(m_trans.prepare() != true) return false;
+
+	// prepare smoother and base solver
+	if(m_smoother.prepare() != true) return false;
+	if(m_baseSolver.prepare() != true) return false;
+
+	return true;
+}
+
+template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
+bool
+MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
+finish()
+{
+	for(uint j = m_baseLevel; j < m_surfaceLevel; ++j)
+	{
+		delete m_A[j];
+		delete m_I[j];
+	}
+	delete[] m_A;
+	delete[] m_I;
+
+	if(m_smoother.finish() != true) return false;
+	if(m_baseSolver.finish() != true) return false;
+
+	return true;
+}
+
+
+} // namespace ug
+
+
+#endif /* __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__ */

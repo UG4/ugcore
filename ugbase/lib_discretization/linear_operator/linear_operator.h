@@ -10,7 +10,6 @@
 
 namespace ug{
 
-
 // describes a mapping X->Y
 template <typename X, typename Y>
 class Operator
@@ -31,14 +30,14 @@ class Operator
 		typedef typename Y::function_type codomain_function_type;
 
 	public:
-		// Init Operator
-		virtual bool init() = 0;
-
 		// prepare Operator
 		virtual bool prepare() = 0;
 
 		// apply Operator, i.e. v = L(u);
-		virtual bool apply(const domain_function_type& u, codomain_function_type v) = 0;
+		virtual bool apply(const domain_function_type& u, codomain_function_type& v) = 0;
+
+		// destructor
+		virtual ~Operator() {};
 };
 
 
@@ -61,14 +60,14 @@ class LinearOperator :public Operator<X,Y>
 		typedef typename Y::function_type codomain_function_type;
 
 	public:
-		// Init Operator
-		virtual bool init() = 0;
-
 		// prepare Operator
 		virtual bool prepare() = 0;
 
 		// apply Operator, i.e. v = L*u;
 		virtual bool apply(const domain_function_type& u, codomain_function_type& v) = 0;
+
+		// destructor
+		virtual ~LinearOperator() {};
 };
 
 
@@ -91,15 +90,14 @@ class DiscreteLinearOperator : public LinearOperator<X,Y>
 		typedef typename Y::function_type codomain_function_type;
 
 	public:
-		// Init Operator
-		virtual bool init() = 0;
-
 		// prepare Operator
 		virtual bool prepare() = 0;
 
 		// apply Operator, i.e. v = L*u;
 		virtual bool apply(const domain_function_type& u, codomain_function_type& v) = 0;
 
+		// destructor
+		virtual ~DiscreteLinearOperator() {};
 };
 
 
@@ -122,20 +120,20 @@ class MatrixBasedLinearOperator : public DiscreteLinearOperator<ApproximationSpa
 		typedef typename ApproximationSpaceY::function_type codomain_function_type;
 
 	public:
-		// initialze the operator (e.g. reserve memory for the Matrix L)
-		virtual bool init() = 0;
-
 		// prepare the operator for application (e.g. compute an intern Matrix L)
 		virtual bool prepare() = 0;
 
 		// compute v = L*u (here, L is a Matrix)
 		virtual bool apply(const domain_function_type& u, codomain_function_type& v)
 		{
-			const domain_function_type::vector_type& x = u.get_vector();
-			codomain_function::vector_type& y = v.get_vector();
+			const typename domain_function_type::vector_type& x = u.get_vector();
+			typename codomain_function_type::vector_type& y = v.get_vector();
 
 			return m_Matrix.apply(u,v);
 		}
+
+		// destructor
+		virtual ~MatrixBasedLinearOperator() {};
 
 	protected:
 		// matrix type used
@@ -149,5 +147,7 @@ class MatrixBasedLinearOperator : public DiscreteLinearOperator<ApproximationSpa
 
 }
 
+#include "interpolation_operator.h"
+#include "transfer_operator.h"
 
 #endif /* __H__LIBDISCRETIZATION__LINEAR_OPERATOR__LINEAR_OPERATOR__ */

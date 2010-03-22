@@ -110,7 +110,7 @@ class BaseReferenceElement {
 
 class ReferenceTriangle{
 	public:
-		static const size_t dim = 2;
+		static const int dim = 2;
 
 
 		ReferenceTriangle()

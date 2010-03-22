@@ -12,8 +12,8 @@ namespace ug{
 LocalShapeFunctionSetFactory::
 LocalShapeFunctionSetFactory()
 {
-	if(init_standard_local_shape_function_sets<ReferenceTriangle>()) assert(0);
-	if(init_standard_local_shape_function_sets<ReferenceQuadrilateral>()) assert(0);
+	if(init_standard_local_shape_function_sets<ReferenceTriangle>() != true) assert(0);
+	if(init_standard_local_shape_function_sets<ReferenceQuadrilateral>() != true) assert(0);
 };
 
 LocalShapeFunctionSetFactory&
