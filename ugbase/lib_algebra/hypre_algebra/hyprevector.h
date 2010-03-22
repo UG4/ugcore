@@ -25,6 +25,9 @@
 
 namespace ug{
 
+class HypreMatrix;
+class HYPREboomerAMG;
+
 class HypreVector{
 	public:
 		// index_type
