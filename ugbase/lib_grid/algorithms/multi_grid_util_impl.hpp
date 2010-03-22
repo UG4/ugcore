@@ -5,13 +5,15 @@
 #ifndef __H__UG__MULTI_GRID_UTIL_IMPL__
 #define __H__UG__MULTI_GRID_UTIL_IMPL__
 
+#include "subset_util.h"
+
 namespace ug
 {
 
 template <class TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 								MultiGrid& mg,
-								MGSubsetHandler& mgsh)
+								MultiGridSubsetHandler& mgsh)
 {
 //	some typedefs
 	typedef typename geometry_traits<TElem>::iterator ElemIter;
@@ -41,14 +43,14 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 template <class TElem, class TSurfaceView>
 void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 						MultiGrid& mg,
-						MGSubsetHandler& mgsh)
+						MultiGridSubsetHandler& mgsh)
 {
 //	This method clears the surfaceViewOut and assigns all objects of
 //	type TElem which lie on the surface of the mg to the surface view.
-	CollectSurfaceViewElements(surfaceViewOut, mg, mgsh);
+	CollectSurfaceViewElements<TElem>(surfaceViewOut, mg, mgsh);
 	
 //	assign associated elements of lower dimension to the surface view
-	AssignAssociatedLowerDimElemsToSubsets(surfaceViewOut, mgsh);	
+	AssignAssociatedLowerDimElemsToSubsets<TElem>(surfaceViewOut, mgsh);	
 }
 
 /*

@@ -108,7 +108,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 				iter != sh.template end<TElem>(si, l); ++iter)
 			{
 				TElem* e = *iter;
-				CollectAssociatedEdges(vEdges, *sh.get_assigned_grid(), e);
+				CollectEdges(vEdges, *sh.get_assigned_grid(), e);
 				
 				for(size_t i = 0; i < vEdges.size(); ++i)
 				{
@@ -134,7 +134,7 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 				iter != sh.template end<TElem>(si, l); ++iter)
 			{
 				TElem* e = *iter;
-				CollectAssociatedFaces(vFaces, *sh.get_assigned_grid(), e);
+				CollectFaces(vFaces, *sh.get_assigned_grid(), e);
 				
 				for(size_t i = 0; i < vFaces.size(); ++i)
 				{
@@ -146,36 +146,52 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 	}
 }
 
+///	helper with with dummy-param for compile-time function selection.
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler,
+									const Volume&)
+{
+//	we have to find all associated elements of lower dimension.
+	if(srcIndHandler.template num<Face>() > 0)
+		AssignAssociatedFacesToSubsets<TElem>(sh, srcIndHandler);
+	if(srcIndHandler.template num<EdgeBase>() > 0)
+		AssignAssociatedEdgesToSubsets<TElem>(sh, srcIndHandler);
+	if(srcIndHandler.template num<VertexBase>() > 0)
+		AssignAssociatedVerticesToSubsets<TElem>(sh, srcIndHandler);
+}
+
+///	helper with with dummy-param for compile-time function selection.
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler,
+									const Face&)
+{
+//	we have to find all associated elements of lower dimension.
+	if(srcIndHandler.template num<EdgeBase>() > 0)
+		AssignAssociatedEdgesToSubsets<TElem>(sh, srcIndHandler);
+	if(srcIndHandler.template num<VertexBase>() > 0)
+		AssignAssociatedVerticesToSubsets<TElem>(sh, srcIndHandler);
+}
+
+///	helper with with dummy-param for compile-time function selection.
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler,
+									const EdgeBase&)
+{
+//	we have to find all associated elements of lower dimension.
+	if(srcIndHandler.template num<VertexBase>() > 0)
+		AssignAssociatedVerticesToSubsets<TElem>(sh, srcIndHandler);
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler)
 {
-//	we have to find all associated elements of lower dimension.
-	const int baseType = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
-	
-	switch(baseType){
-	//	we have to assign associated elements to the surfaceView
-	//	depending on the base-type of TElem, we have to collect
-	//	different associated elements
-		case VOLUME:
-			if(srcIndHandler.template num<Face>() > 0)
-				AssignAssociatedFacesToSubsets<TElem>(sh, srcIndHandler);
-			//	we don't call break since we want to enter the next section
-			
-		case FACE:
-			if(srcIndHandler.template num<EdgeBase>() > 0)
-				AssignAssociatedEdgesToSubsets<TElem>(sh, srcIndHandler);
-			//	we don't call break since we want to enter the next section
-			
-		case EDGE:
-			if(srcIndHandler.template num<VertexBase>() > 0)
-				AssignAssociatedVerticesToSubsets<TElem>(sh, srcIndHandler);
-			//	we don't call break since we want to enter the next section
-			
-		default:
-			break;
-	}
+	AssignAssociatedLowerDimElemsToSubsets<TElem>(sh,
+											srcIndHandler, TElem());
 }
 
 }//	end of namespace

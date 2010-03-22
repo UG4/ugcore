@@ -172,6 +172,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 
 	///	returns the subset with index si on the given level
 		inline Subset* subset(int si, int level)	{return m_levels[level][si];}
+		inline const Subset* subset(int si, int level)	const {return m_levels[level][si];}
 
 	protected:
 		MultiGrid*		m_pMG;

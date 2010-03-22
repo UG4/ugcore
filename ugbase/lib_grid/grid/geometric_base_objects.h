@@ -143,7 +143,7 @@ iterator_cast(const TIterSrc& iter)
  * \defgroup GeometricObjects Geometric Objects
  * \brief Geometric objects are the building blocks of a grid.
  */
-////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //	GeometricObject
 ///	The base class for all geometric objects, such as vertices, edges, faces, volumes, ...
 /**
@@ -160,7 +160,8 @@ class GeometricObject
 		virtual ~GeometricObject()	{}
 
 	///	create an instance of the derived type
-		virtual GeometricObject* create_empty_instance() const = 0;
+	/**	Make sure to overload this method in derivates of this class!*/
+		virtual GeometricObject* create_empty_instance() const {return NULL;}
 
 		virtual int shared_pipe_section() const = 0;
 		virtual int base_object_type_id() const = 0;//	This method probably shouldn't be there!
@@ -437,8 +438,12 @@ class Face : public GeometricObject, public FaceVertices
 		virtual int base_object_type_id() const	{return FACE;}
 		virtual int reference_object_id() const	{return -1;}
 
-		virtual EdgeBase* create_edge(int index) = 0;	///< create the edge with index i and return it.
-
+	/**	A default implementation is featured to allow empty instances of
+	 *	this class. This is required to allow the use of this class
+	 *	for compile-time method selection by dummy-parameters.
+	 *	It is cruical that derived classes overload this method.*/
+		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
+		
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices
@@ -535,7 +540,7 @@ class Face : public GeometricObject, public FaceVertices
 		virtual void create_faces_by_edge_split(int splitEdgeIndex,
 							VertexBase* newVertex,
 							std::vector<Face*>& vNewFacesOut,
-							VertexBase** pSubstituteVertices = NULL) = 0;
+							VertexBase** pSubstituteVertices = NULL)	{};
 // END Depreciated
 
 	/**	creates the faces that result from the collapsing of the edge with index 'splitEdgeIndex'.*/
@@ -629,6 +634,12 @@ class VolumeVertices
  * Base class for all 3-dimensional objects.
  * Volumes connect four or more vertices.
  *
+ * default implementations of all methods are featured to allow
+ * empty instances of this class.
+ * This is required to allow the use of this class
+ * for compile-time method selection by dummy-parameters.
+ * It is cruical that derived classes overload thoes methods.
+ *
  * \ingroup GeometricObjects
  */
 class Volume : public GeometricObject, public VolumeVertices
@@ -639,13 +650,13 @@ class Volume : public GeometricObject, public VolumeVertices
 
 		virtual ~Volume()	{}
 
-		virtual EdgeDescriptor edge(int index) const = 0;
-		virtual void edge(int index, EdgeDescriptor& edOut) const = 0;
-		virtual uint num_edges() const = 0;
+		virtual EdgeDescriptor edge(int index) const				{return EdgeDescriptor(NULL, NULL);}
+		virtual void edge(int index, EdgeDescriptor& edOut) const	{edOut = EdgeDescriptor(NULL, NULL);}
+		virtual uint num_edges() const								{return 0;}
 
-		virtual FaceDescriptor face(int index) const  = 0;
-		virtual void face(int index, FaceDescriptor& fdOut) const = 0;
-		virtual uint num_faces() const = 0;
+		virtual FaceDescriptor face(int index) const				{return FaceDescriptor(0);}
+		virtual void face(int index, FaceDescriptor& fdOut) const	{fdOut = FaceDescriptor(0);}
+		virtual uint num_faces() const								{return 0;}
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices
@@ -720,8 +731,8 @@ class Volume : public GeometricObject, public VolumeVertices
 		virtual int reference_object_id() const	{return -1;}
 
 	protected:
-		virtual EdgeBase* create_edge(int index) = 0;	///< create the edge with index i and return it.
-		virtual Face* create_face(int index) = 0;		///< create the face with index i and return it.
+		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
+		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.
 
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,

@@ -21,10 +21,14 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
  *
  *	TSurfaceView has to be a SubsetHandler or MGSubsetHandler compatible type.*/
 template <class TElem, class TSurfaceView>
-void CreateSurfaceView(TSubsetHandler& surfaceViewOut,
+void CreateSurfaceView(TSurfaceView& surfaceViewOut,
 						MultiGrid& mg,
 						MGSubsetHandler& mgsh);
 						
 }//	end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "multi_grid_util_impl.hpp"
 
 #endif

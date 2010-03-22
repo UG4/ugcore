@@ -19,6 +19,7 @@
 #include "serialization.h"
 #include "selection_util.h"
 #include "grid_statistics.h"
+#include "multi_grid_util.h"
 #include "graph/graph.h"
 #include "remeshing/edge_length_adjustment.h"
 #include "remeshing/grid_adaption.h"
