@@ -14,14 +14,14 @@ namespace ug
 MultiGridRefiner::MultiGridRefiner()
 {
 	m_pMG = NULL;
-	m_copyRange = 2;
+	m_copyRange = 0;
 }
 
 MultiGridRefiner::MultiGridRefiner(MultiGrid& mg)
 {
 	m_pMG = NULL;
 	assign_grid(mg);
-	m_copyRange = 2;
+	m_copyRange = 0;
 }
 
 MultiGridRefiner::~MultiGridRefiner()
@@ -150,7 +150,7 @@ void MultiGridRefiner::refine()
 			{
 				aaPos[nVrt] = aaPos[v];
 			//	change z-coord to visualise the hierarchy
-				aaPos[nVrt].z += 0.01;
+				//aaPos[nVrt].z += 0.01;
 			}
 		}
 	}
@@ -190,7 +190,7 @@ void MultiGridRefiner::refine()
 					VecScaleAdd(aaPos[nVrt], 0.5, aaPos[e->vertex(0)],
 											0.5, aaPos[e->vertex(1)]);
 				//	change z-coord to visualise the hierarchy
-					aaPos[nVrt].z += 0.01;
+					//aaPos[nVrt].z += 0.01;
 				}
 
 			//	split the edge
@@ -259,7 +259,7 @@ void MultiGridRefiner::refine()
 						if(aaPos.valid()){
 							aaPos[newVrt] = CalculateCenter(f, aaPos);
 						//	change z-coord to visualise the hierarchy
-							aaPos[newVrt].z += 0.01;
+							//aaPos[newVrt].z += 0.01;
 						}
 					}
 
@@ -347,11 +347,27 @@ void MultiGridRefiner::collect_objects_for_refine()
 				 iterate over associated edges and mark unselected ones as COPY-edge
 */
 
-//	Some buffers and repeatedly used objects
-	vector<VertexBase*> vVrts;//	vertices stored in here are used during copy-element-selection.
+//	vertices stored in here are used during copy-element-selection.
+	vector<VertexBase*> vVrts;
+	
+////////////////////////////////
+//	initial selection
+	adjust_initial_selection();
+	
+////////////////////////////////
+//	closure selection
+	select_closure(vVrts);
+
+////////////////////////////////
+//	collect copy-elements
+	select_copy_elements(vVrts);
+}
+
+void MultiGridRefiner::
+adjust_initial_selection()
+{
 	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
 	vector<Face*> 		vFaces;//	vector used for temporary results
-	vector<Volume*>		vVolumes;//	vector used for temporary results
 
 //	regard the multi-grid as a grid
 	Grid& grid =*static_cast<Grid*>(m_pMG);
@@ -455,12 +471,21 @@ void MultiGridRefiner::collect_objects_for_refine()
 				m_selMarks.select(e->vertex(i));
 		}
 	}
+}
+
+void MultiGridRefiner::
+select_closure(std::vector<VertexBase*>& vVrts)
+{
+	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
+	vector<Face*> 		vFaces;//	vector used for temporary results
+	vector<Volume*>		vVolumes;//	vector used for temporary results
+
+//	regard the multi-grid as a grid
+	Grid& grid =*static_cast<Grid*>(m_pMG);
+	MultiGrid& mg = *m_pMG;
 	
-////////////////////////////////
-//	closure selection
 //	collect associated faces of refine-edges that will be used for the closure.
 //	associated volumes will be collected implicitly later on from refine-faces.
-
 	if(mg.num<Face>() > 0)
 	{
 	//	store end-iterator so that newly marked edges won't be considered.
@@ -591,9 +616,18 @@ void MultiGridRefiner::collect_objects_for_refine()
 			}
 		}
 	}
+}
 
-////////////////////////////////
-//	collect copy-elements
+void MultiGridRefiner::
+select_copy_elements(std::vector<VertexBase*>& vVrts)
+{
+	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
+	vector<Face*> 		vFaces;//	vector used for temporary results
+	
+//	regard the multi-grid as a grid
+	Grid& grid =*static_cast<Grid*>(m_pMG);
+	MultiGrid& mg = *m_pMG;
+	
 //	we'll collect unselected edges, faces and volumes that are in
 //	a neighbourhood to the selection
 	if(get_copy_range() > 0){		
@@ -721,5 +755,5 @@ void MultiGridRefiner::collect_objects_for_refine()
 		}
 	}
 }
-
+		
 }//	end of namespace

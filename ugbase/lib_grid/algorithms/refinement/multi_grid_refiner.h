@@ -5,6 +5,7 @@
 #ifndef __H__LIB_GRID__MULTI_GRID_REFINER__
 #define __H__LIB_GRID__MULTI_GRID_REFINER__
 
+#include <vector>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/multi_grid.h"
 
@@ -100,6 +101,9 @@ class MultiGridRefiner : public GridObserver
 
 	protected:
 		virtual void collect_objects_for_refine();
+		void adjust_initial_selection();
+		void select_closure(std::vector<VertexBase*>& vVrts);
+		void select_copy_elements(std::vector<VertexBase*>& vVrts);
 		
 		inline void set_status(VertexBase* e, StatusMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_STATUS) | mark;}
 		inline void set_status(EdgeBase* e, StatusMark mark)	{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_STATUS) | mark;}

@@ -11,4 +11,6 @@
 
 #include "copy_policy.h"
 
+#include "parallel_refinement/parallel_multi_grid_refiner.h"
+
 #endif
