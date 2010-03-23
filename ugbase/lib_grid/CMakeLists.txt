@@ -81,7 +81,7 @@ set_source_files_properties(externals/src/tetgen/predicates.cxx
 	PROPERTIES COMPILE_FLAGS -O0)
 
 set_source_files_properties(externals/src/tetgen/tetgen.cxx
-	PROPERTIES COMPILE_FLAGS -Wno-write-strings)
+	PROPERTIES COMPILE_FLAGS -w)
 
 set(srcTetgen
 	externals/src/tetgen/tetgen.cxx

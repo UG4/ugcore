@@ -20,8 +20,8 @@ template <class TElem>
 inline ISelector::SectionContainer&
 TElemSelector<BaseElem>::get_section_container()
 {
-	assert((geometry_traits<TElem>::BASE_OBJECT_TYPE_ID
-			== geometry_traits<BaseElem>::BASE_OBJECT_TYPE_ID)
+	assert(((int)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID
+			== (int)geometry_traits<BaseElem>::BASE_OBJECT_TYPE_ID)
 			&& "Element type does not match BaseElem type");
 
 	return m_elements;

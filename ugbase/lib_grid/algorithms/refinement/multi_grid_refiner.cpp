@@ -237,20 +237,20 @@ void MultiGridRefiner::refine()
 
 			//	collect the associated edges
 				vEdgeVrts.clear();
-				bool bIrregular = false;
+				//bool bIrregular = false;
 				for(uint j = 0; j < f->num_edges(); ++j){
 					VertexBase* vrt = mg.get_child_vertex(mg.get_edge(f, j));
 					vEdgeVrts.push_back(vrt);
-					if(!vrt)
-						bIrregular = true;
+					//if(!vrt)
+					//	bIrregular = true;
 				}
-
+/*
 				if(bIrregular){
 					assert((get_rule(f) != RM_REGULAR) && "Bad refinement-rule set during collect_objects_for_refine!");
 		//TODO:	care about anisotropy
 					set_rule(f, RM_IRREGULAR);
 				}
-
+*/
 				VertexBase* newVrt;
 				if(f->refine(vFaces, &newVrt, &vEdgeVrts.front(), NULL, &vVrts.front())){
 				//	if a new vertex was generated, we have to register it
@@ -299,21 +299,74 @@ void MultiGridRefiner::collect_objects_for_refine()
 //	all elements that are associated with marked elements and
 //	which are of lower dimension have to be marked too.
 
+//	algorithm layout:
+/*
+//initial selection
+	deselect volumes that must not be refined
+	select faces that are associated with volumes
+	deselect faces that must not be refined
+	select edges that are associated with faces
+	deselect edges that must not be refined
+	select vertices that are associated with edges
+
+//build closure
+	select faces that are associated with edges
+		iterate over associated edges
+			if all are marked RM_REGULAR -> mark face RM_REGULAR
+			else-> mark face RM_IRREGULAR, select and mark unselected edges as COPY-edge
+		iterate over associated vertices
+			push unselected to vVrts
+			select them
+
+	select volumes that are associated with faces
+		iterate over associated faces
+			if all are marked RM_REGULAR -> mark volume RM_REGULAR
+			else-> mark vol RM_IRREGULAR, select and mark unselected faces as COPY-face
+		iterate over associated edges
+			select and mark unselected edges as COPY-edge
+		iterate over associated vertices
+			push unselected to vVrts
+			select them
+
+//select copy-elements
+	 iterate over vVrts (make sure that newly added vrts are not handled in this iteration)
+	 	iterate over associated edges
+			if unselected
+				select and mark  as COPY-edge
+				select associated vertices and add them to vVrts
+		iterate over associated faces
+			if unselected
+				select and mark  as COPY-face
+				select associated vertices and add them to vVrts
+				iterate over associated edges and mark unselected ones as COPY-edge
+		iterate over associated volumes
+			if unselected
+				 select and mark as COPY-volume
+				 select associated vertices and add them to vVrts
+				 iterate over associated faces and mark unselected ones as COPY-face
+				 iterate over associated edges and mark unselected ones as COPY-edge
+*/
+
 //	Some buffers and repeatedly used objects
-	vector<EdgeBase*> 	vEdges;
-	vector<Face*> 		vFaces;
-	vector<Volume*>		vVolumes;
+	vector<VertexBase*> vVrts;//	vertices stored in here are used during copy-element-selection.
+	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
+	vector<Face*> 		vFaces;//	vector used for temporary results
+	vector<Volume*>		vVolumes;//	vector used for temporary results
 
 //	regard the multi-grid as a grid
 	Grid& grid =*static_cast<Grid*>(m_pMG);
-
+	MultiGrid& mg = *m_pMG;
+	
+////////////////////////////////
+//	initial selection
 //	select elements that are associated with volumes
+//	make sure to deselect all elements that must not be refined.
 	for(VolumeIterator iter = m_selMarks.begin<Volume>();
 		iter != m_selMarks.end<Volume>();)
 	{
 		Volume* v = *iter;
 		++iter;//iterator is incremented since it would be invalidated during deselect.
-		if(m_pMG->has_children(v))
+		if(mg.has_children(v))
 		{
 		//	the element has already been refined.
 		//	don't refine it again.
@@ -335,7 +388,8 @@ void MultiGridRefiner::collect_objects_for_refine()
 		//	collect associated faces
 			CollectFaces(vFaces, grid, v);
 			for(uint i = 0; i < vFaces.size(); ++i)
-				m_selMarks.select(vFaces[i]);
+				if(!mg.has_children(vFaces[i]))
+					m_selMarks.select(vFaces[i]);
 		}
 	}
 
@@ -345,7 +399,7 @@ void MultiGridRefiner::collect_objects_for_refine()
 	{
 		Face* f = *iter;
 		++iter;	//iterator is incremented since it would be invalidated during deselect.
-		if(m_pMG->has_children(f))
+		if(mg.has_children(f))
 		{
 		//	the element has already been refined.
 		//	don't refine it again.
@@ -367,7 +421,8 @@ void MultiGridRefiner::collect_objects_for_refine()
 		//	collect associated edges
 			CollectEdges(vEdges, grid, f);
 			for(uint i = 0; i < vEdges.size(); ++i)
-				m_selMarks.select(vEdges[i]);
+				if(!mg.has_children(vEdges[i]))
+					m_selMarks.select(vEdges[i]);
 		}
 	}
 
@@ -377,7 +432,7 @@ void MultiGridRefiner::collect_objects_for_refine()
 	{
 		EdgeBase* e = *iter;
 		++iter;	//iterator is incremented since it would be invalidated during deselect.
-		if(m_pMG->has_children(e)){
+		if(mg.has_children(e)){
 		//	the element has already been refined.
 		//	don't refine it again.
 			m_selMarks.deselect(e);
@@ -398,59 +453,150 @@ void MultiGridRefiner::collect_objects_for_refine()
 		//	select associated vertices
 			for(uint i = 0; i < e->num_vertices(); ++i)
 				m_selMarks.select(e->vertex(i));
-		
-		//	collect associated elements of higher dimension that
-		//	will be used for the closure.
-			CollectVolumes(vVolumes, grid, e);
-			for(size_t i = 0; i < vVolumes.size(); ++i){
-				if(!m_selMarks.is_selected(vVolumes[i])){
-					Volume* v = vVolumes[i];
-					m_selMarks.select(v);
-				
-				//	since all neighbours could possibly be marked, we have to
-				//	assign rule UNKNOWN. in most cases this volume will be refined
-				//	with irregular refinement later on.
-					set_rule(v, RM_UNKNOWN);
+		}
+	}
+	
+////////////////////////////////
+//	closure selection
+//	collect associated faces of refine-edges that will be used for the closure.
+//	associated volumes will be collected implicitly later on from refine-faces.
 
-				//	select associated vertices
-					for(size_t j = 0; j < v->num_vertices(); ++j)
-						m_selMarks.select(v->vertex(j));
-				}
-			}
-
-			CollectFaces(vFaces, grid, e);
+	if(mg.num<Face>() > 0)
+	{
+	//	store end-iterator so that newly marked edges won't be considered.
+		for(EdgeBaseIterator iter = m_selMarks.begin<EdgeBase>();
+			iter != m_selMarks.end<EdgeBase>(); ++iter)
+		{
+		//	as soon as we encounter an edge that is scheduled for COPY, we're done in here
+			if(get_rule(*iter) == RM_COPY)
+				break;
+			
+			CollectFaces(vFaces, grid, *iter);
 			for(size_t i = 0; i < vFaces.size(); ++i){
-				if(!m_selMarks.is_selected(vFaces[i])){
-					Face* f = vFaces[i];
+				Face* f = vFaces[i];
+				if(!m_selMarks.is_selected(f) &! mg.has_children(f))
+				{
 					m_selMarks.select(f);
-				
-				//	since all neighbours could possibly be marked, we have to
-				//	assign rule UNKNOWN. in most cases this face will be refined
-				//	with irregular refinement later on.
-					set_rule(f, RM_UNKNOWN);
-
-				//	select associated vertices
+					
+				//	we now have to check all associated edges.
+				//	unselected ones will be added as copy-elements
+					size_t numRegular = 0;
+					CollectEdges(vEdges, grid, f);
+					for(size_t j = 0; j < vEdges.size(); ++j){
+						EdgeBase* e = vEdges[j];
+						if(m_selMarks.is_selected(e)){
+							if(get_rule(e) == RM_REGULAR)
+								++numRegular;
+						}
+						else{
+							if(!mg.has_children(e)){
+								set_rule(e, RM_COPY);
+								m_selMarks.select(e);
+							}
+						}
+					}
+					
+				//	set rule
+				//	if all associated edges are refined regular,
+				//	we'll refine the face regular, too.
+					if(numRegular == vEdges.size())
+						set_rule(f, RM_REGULAR);
+					else
+						set_rule(f, RM_IRREGULAR);
+						
+				//	finally we have to make sure that all vertices are selected.
 					for(size_t j = 0; j < f->num_vertices(); ++j)
-						m_selMarks.select(f->vertex(j));
+					{
+						if(!m_selMarks.is_selected(f->vertex(j))){
+							if(get_copy_range() > 0)
+								vVrts.push_back(f->vertex(j));
+							m_selMarks.select(f->vertex(j));
+						}
+					}
 				}
 			}
 		}
 	}
 
+//	collect associated volumes of refine-faces that will be used for the closure.
+//	we don't have to check associated volumes of refine-edges, since
+//	those are associated volumes of refine-faces, too.
+	if(mg.num<Volume>() > 0)
+	{
+	//	store end-iterator so that newly marked faces won't be considered.
+		for(FaceIterator iter = m_selMarks.begin<Face>();
+			iter != m_selMarks.end<Face>(); ++iter)
+		{
+		//	as soon as we encounter a face that is scheduled for COPY, we're done in here
+			if(get_rule(*iter) == RM_COPY)
+				break;
+
+			CollectVolumes(vVolumes, grid, *iter);
+			for(size_t i = 0; i < vVolumes.size(); ++i){
+				Volume* v = vVolumes[i];
+				if(!m_selMarks.is_selected(v) &! mg.has_children(v))
+				{
+					m_selMarks.select(v);
+					
+				//	we now have to check all associated faces.
+				//	unselected ones will be added as copy-elements.
+					size_t numRegular = 0;
+					CollectFaces(vFaces, grid, v);
+					for(size_t j = 0; j < vFaces.size(); ++j){
+						Face* f = vFaces[j];
+						if(m_selMarks.is_selected(f)){
+							if(get_rule(f) == RM_REGULAR)
+								++numRegular;
+						}
+						else{
+							if(!mg.has_children(f)){
+								set_rule(f, RM_COPY);
+								m_selMarks.select(f);
+							}
+						}
+					}
+					
+				//	set rule
+				//	if all faces are refined regular, we'll refine the volume regular, too.
+					if(numRegular == vFaces.size())
+						set_rule(v, RM_REGULAR);
+					else
+						set_rule(v, RM_IRREGULAR);
+					
+				//	we now have to check all associated edges.
+				//	unselected ones will be added as copy-elements.
+					CollectEdges(vEdges, grid, v);
+					for(size_t j = 0; j < vEdges.size(); ++j){
+						EdgeBase* e = vEdges[j];
+						if(!m_selMarks.is_selected(e)
+							&! mg.has_children(e))
+						{
+							if(!mg.has_children(e)){
+								set_rule(e, RM_COPY);
+								m_selMarks.select(e);
+							}
+						}
+					}
+					
+				//	finally we have to make sure that all vertices are selected.
+					for(size_t j = 0; j < v->num_vertices(); ++j)
+					{
+						if(!m_selMarks.is_selected(v->vertex(j))){
+							if(get_copy_range() > 0)
+								vVrts.push_back(v->vertex(j));
+							m_selMarks.select(v->vertex(j));
+						}
+					}
+				}
+			}
+		}
+	}
+
+////////////////////////////////
 //	collect copy-elements
 //	we'll collect unselected edges, faces and volumes that are in
 //	a neighbourhood to the selection
-//TODO:	This could be optimized!
-	if(get_copy_range() > 0){
-		vector<VertexBase*> vVrts;
-		vVrts.reserve(size_t((float)m_selMarks.num<VertexBase>() * 1.5f));
-		
-		for(VertexBaseIterator iter = m_selMarks.begin<VertexBase>();
-			iter != m_selMarks.end<VertexBase>(); ++iter)
-		{
-			vVrts.push_back(*iter);
-		}
-
+	if(get_copy_range() > 0){		
 	//	we have to make sure that we'll only collect copy-elements in
 	//	the correct neighbourhood.
 	//	After we processed all elements between iFirst and iEnd, the
@@ -475,11 +621,12 @@ void MultiGridRefiner::collect_objects_for_refine()
 					for(EdgeBaseIterator iter = grid.associated_edges_begin(vrt);
 						iter != iterEnd; ++iter)
 					{
-						if(!m_selMarks.is_selected(*iter)){
-							EdgeBase* e = *iter;
+						EdgeBase* e = *iter;
+						if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
 						//	we found a copy-element
 							m_selMarks.select(e);
 							set_rule(e, RM_COPY);
+							
 						//	schedule associated unselected vertices for further checks
 							for(size_t j = 0; j < 2; ++j){
 								if(!m_selMarks.is_selected(e->vertex(j))){
@@ -497,16 +644,27 @@ void MultiGridRefiner::collect_objects_for_refine()
 					for(FaceIterator iter = grid.associated_faces_begin(vrt);
 						iter != iterEnd; ++iter)
 					{
-						if(!m_selMarks.is_selected(*iter)){
-							Face* f = *iter;
+						Face* f = *iter;
+						if(!m_selMarks.is_selected(f) &! mg.has_children(f)){
 						//	we found a copy-element
 							m_selMarks.select(f);
 							set_rule(f, RM_COPY);
+							
 						//	schedule associated unselected vertices for further checks
 							for(size_t j = 0; j < f->num_vertices(); ++j){
 								if(!m_selMarks.is_selected(f->vertex(j))){
 									m_selMarks.select(f->vertex(j));
 									vVrts.push_back(f->vertex(j));
+								}
+							}
+							
+						//	mark associated unselected edges as copy-edge
+							CollectEdges(vEdges, grid, f);
+							for(size_t j = 0; j < vEdges.size(); ++j){
+								EdgeBase* e = vEdges[j];
+								if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
+									m_selMarks.select(e);
+									set_rule(e, RM_COPY);
 								}
 							}
 						}
@@ -519,16 +677,37 @@ void MultiGridRefiner::collect_objects_for_refine()
 					for(VolumeIterator iter = grid.associated_volumes_begin(vrt);
 						iter != iterEnd; ++iter)
 					{
-						if(!m_selMarks.is_selected(*iter)){
-							Volume* v = *iter;
+						Volume* v = *iter;
+						if(!m_selMarks.is_selected(v) &! mg.has_children(v)){
 						//	we found a copy-element
 							m_selMarks.select(v);
 							set_rule(v, RM_COPY);
+							
 						//	schedule associated unselected vertices for further checks
 							for(size_t j = 0; j < v->num_vertices(); ++j){
 								if(!m_selMarks.is_selected(v->vertex(j))){
 									m_selMarks.select(v->vertex(j));
 									vVrts.push_back(v->vertex(j));
+								}
+							}
+							
+						//	mark associated unselected edges as copy-edge
+							CollectEdges(vEdges, grid, v);
+							for(size_t j = 0; j < vEdges.size(); ++j){
+								EdgeBase* e = vEdges[j];
+								if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
+									m_selMarks.select(e);
+									set_rule(e, RM_COPY);
+								}
+							}
+							
+						//	mark associated unselected faces as copy-edge
+							CollectFaces(vFaces, grid, v);
+							for(size_t j = 0; j < vFaces.size(); ++j){
+								Face* f = vFaces[j];
+								if(!m_selMarks.is_selected(f) &! mg.has_children(f)){
+									m_selMarks.select(f);
+									set_rule(f, RM_COPY);
 								}
 							}
 						}
