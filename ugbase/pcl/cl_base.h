@@ -384,7 +384,7 @@ class SingleLevelLayout
 	public:
 	////////////////////////////////////////////////
 	//	methods required by the layout-tag
-
+	
 	///	returns the iterator to the first interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/

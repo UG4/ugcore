@@ -28,6 +28,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		~MultiGridSubsetHandler();
 		
 		inline void assign_grid(MultiGrid& mg)	{m_pMG = &mg; ISubsetHandler::assign_grid(mg);}
+		inline MultiGrid* get_assigned_multi_grid()	{return m_pMG;}
 		
 	///	Makes sure that the subset with the given index exists.
 	/**	If required the subsets between num_subsets() and index will be created.*/
@@ -38,6 +39,10 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		
 	///	returns the number of levels
 		inline uint num_levels() const	{return (uint)m_levels.size();}
+		
+	///	returns the level in which an element is located
+		template <class TGeomObj>
+		inline uint get_level(TGeomObj* obj) const	{return m_pMG->get_level(obj);}
 		
 	////////////////////////////////////////////////
 	//	implementation of public virtual methdos of ISubsetHandler.

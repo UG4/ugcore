@@ -35,7 +35,6 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 				iter != interface.end(); ++iter)
 			{
 				if(m_pSelMarks->is_selected(interface.get_element(iter))){
-					PCLLOG("collected: " << counter << endl);
 					buff.write((char*)&counter, sizeof(int));
 					++counter;
 				}
@@ -58,7 +57,6 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 			buff.read((char*)&markIndex, sizeof(int));
 			while(markIndex != -1){
 				if(markIndex == counter){
-					LOG("extracted: " << counter << " on proc " << pcl::GetProcRank() << endl);
 					Element e = interface.get_element(iter);
 				//	the entry is marked on the other side of the interface
 					if(!m_pSelMarks->is_selected(e)){
