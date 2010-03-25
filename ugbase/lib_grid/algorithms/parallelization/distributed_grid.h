@@ -10,7 +10,7 @@
 #include "lib_grid/lg_base.h"
 #include "parallel_grid_layout.h"
 
-namespace libGrid
+namespace ug
 {
 enum ElementStatus
 {
@@ -20,6 +20,107 @@ enum ElementStatus
 	ES_MASTER = 1 << 3,
 	ES_SLAVE = 1 << 4
 };
+
+
+class DistributedGridManager : public GridObserver
+{
+	public:
+		DistributedGridManager();
+		DistributedGridManager(Grid& grid);
+		virtual ~DistributedGridManager();
+		
+	//	assignment
+		void assign(Grid& grid);
+			
+	//	layout access
+	/**	if you change the layout externally, be sure to call
+	 *	DistributedGrid::layout_changed() afterwards.*/
+		inline GridLayoutMap& grid_layout_map()				{return m_gridLayoutMap;}
+		inline const GridLayoutMap& grid_layout_map() const	{return m_gridLayoutMap;}	
+		
+	///	call this method if you altered the layout externally.
+	/**	This should be done as seldom as possible.
+	 *	If you only added elements you may set addedElemsOnly to true.
+	 *	The complexity in this case is proportional to the number of elements
+	 *	in the layout.
+	 *	If you removed elements or if you are unsure what operations have been
+	 *	performed on the layout, you have to set addedElemsOnly to false
+	 *	(the default value). Complexity in this case is proportional to the
+	 *	number of elements in the underlying grid (or numer of elements in
+	 *	the layout - whichever is higher).*/
+	 	void grid_layouts_changed(bool addedElemsOnly = false);
+		
+		
+	protected:
+		template <class TGeomObj>
+		void reset_elem_infos();
+		
+		template <class TGeomObj, class TLayoutMap>
+		void update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus);
+
+	protected:
+		template <class TGeomObj>
+		class ElemInfo
+		{
+			public:
+			//	types
+				typedef typename GridLayoutMap::template Types<TGeomObj>
+						::Interface		Interface;
+				typedef typename Interface::iterator InterfaceElemIter;
+				typedef std::pair<Interface*, InterfaceElemIter> Entry;
+
+				typedef std::list<Entry>				EntryList;
+				typedef typename EntryList::iterator	EntryIterator;
+				
+			//	methods
+				ElemInfo()	: m_status(ES_NONE)				{}
+				
+				void reset()								{m_status = ES_NONE; m_entries.clear();}
+				
+				void add_entry(Interface* interface,
+								InterfaceElemIter iter)		{m_entries.push_back(Entry(interface, iter));}
+				
+				void remove_entry(Interface* interface)		{m_entries.erase(find_entry(interface));}
+				
+				inline EntryIterator entries_begin()		{return m_entries.begin();}
+				inline EntryIterator entries_end()			{return m_entries.end();}
+				
+				EntryIterator find_entry(Interface* interface)	{return find(entries_begin(), entries_end(), interface);}
+				
+				void set_status(byte status)				{m_status = status;}
+				byte get_status()							{return m_status;}
+				
+			protected:
+				EntryList	m_entries;
+				byte		m_status;
+		};
+		
+		typedef ElemInfo<VertexBase>	ElemInfoVrt;
+		typedef ElemInfo<EdgeBase>	ElemInfoEdge;
+		typedef ElemInfo<Face>		ElemInfoFace;
+		typedef ElemInfo<Volume>		ElemInfoVol;
+		
+		typedef util::Attachment<ElemInfoVrt>	AElemInfoVrt;
+		typedef util::Attachment<ElemInfoEdge>	AElemInfoEdge;
+		typedef util::Attachment<ElemInfoFace>	AElemInfoFace;
+		typedef util::Attachment<ElemInfoVol>	AElemInfoVol;
+		
+	protected:
+		inline ElemInfoVrt& elem_info(VertexBase* ele)	{return m_aaElemInfoVRT[ele];}
+		inline ElemInfoEdge& elem_info(EdgeBase* ele)	{return m_aaElemInfoEDGE[ele];}
+		inline ElemInfoFace& elem_info(Face* ele)		{return m_aaElemInfoFACE[ele];}
+		inline ElemInfoVol& elem_info(Volume* ele)		{return m_aaElemInfoVOL[ele];}
+
+	protected:
+		Grid*	m_pGrid;
+
+		AElemInfoVrt	m_aElemInfoVrt;
+		AElemInfoEdge	m_aElemInfoEdge;
+		AElemInfoFace	m_aElemInfoFace;
+		AElemInfoVol	m_aElemInfoVol;
+};
+
+#ifdef __OLD_IMPLEMENTATION__
 ////////////////////////////////////////////////////////////////////////
 ///	Helps to create new interface-elements in the correct order.
 /**
@@ -263,6 +364,7 @@ class DistributedGrid : public GridObserver
 		Grid::VolumeAttachmentAccessor<AElemInfoVol>	m_aaElemInfoVOL;
 };
 
+#endif //__OLD_IMPLEMENTATION__
 }// end of namespace
 
 #endif

@@ -2,13 +2,141 @@
 // s.b.reiter@googlemail.com
 // y09 m08 d17
 
-#include "distributed_grid_observer.h"
+#include "distributed_grid.h"
 
 using namespace std;
 
-namespace libGrid
+namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	constructor / destructor
+DistributedGridManager::
+DistributedGridManager()
+{
+	m_bOrderedInsertionMode = false;
+	m_pGrid = NULL;
+}
 
+DistributedGridManager::
+DistributedGridManager(Grid& grid)
+{
+	m_bOrderedInsertionMode = false;
+	assign(grid);
+}
+
+DistributedGridManager::		
+~DistributedGrid()
+{
+}
+
+////////////////////////////////////////////////////////////////////////
+//	assignment
+void
+DistributedGridManager::
+assign(Grid& grid)
+{
+	m_pGrid = &grid;
+	grid.register_observer(this);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
+{
+	if(!addedElemsOnly){
+	//	first we have to reset all elem infos
+		reset_elem_infos<VertexBase>();
+		reset_elem_infos<EdgeBase>();
+		reset_elem_infos<Face>();
+		reset_elem_infos<Volume>();
+	}
+	
+//	call for each layout in the grid-layout the corresponding
+//	init_elem_status_from_layout function.
+//	every layout has multiple levels
+
+//	VERTICES
+	update_elem_info<VertexBase>(m_gridLayoutMap, INT_MASTER,
+								ES_IN_INTERFACE | ES_MASTER);
+
+	update_elem_info<VertexBase>(m_gridLayoutMap, INT_SLAVE,
+								ES_IN_INTERFACE | ES_SLAVE);
+
+//	EDGES						
+	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_MASTER,
+								ES_IN_INTERFACE | ES_MASTER);
+
+	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_SLAVE,
+								ES_IN_INTERFACE | ES_SLAVE);
+								
+//	FACES
+	update_elem_info<Face>(m_gridLayoutMap, INT_MASTER,
+								ES_IN_INTERFACE | ES_MASTER);
+
+	update_elem_info<Face>(m_gridLayoutMap, INT_SLAVE,
+								ES_IN_INTERFACE | ES_SLAVE);
+
+//	VOLUMES				
+	update_elem_info<Volume>(m_gridLayoutMap, INT_MASTER,
+								ES_IN_INTERFACE | ES_MASTER);
+
+	update_elem_info<Volume>(m_gridLayoutMap, INT_SLAVE,
+								ES_IN_INTERFACE | ES_SLAVE);}
+
+////////////////////////////////////////////////////////////////////////
+template <class TGeomObj>
+void DistributedGridManager::reset_elem_infos()
+{
+	for(typename geometry_traits<TGeomObj>::iterator
+		iter = m_pGrid->begin<TGeomObj>();
+		iter != m_pGrid->end<TGeomObj>(); ++iter)
+	{
+		elem_info(*iter).reset();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TGeomObj, class TLayoutMap>
+void DistributedGridManager::
+update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus)
+{
+	typedef typename TLayoutMap::template Types<TGeomObj>::Layout Layout;
+	if(layoutMap.template has_layout<TGeomObj>(nodeType)){
+	//	get the layout
+		 Layout& layout = layoutMap.template get_layout<TGeomObj>(nodeType);
+		 
+	//	iterate through the levels of the layout
+		for(size_t l = 0; l < layout.num_levels(); ++l){
+		//	iterate through the interfaces of the layout
+			for(Layout::iterator iiter = layout.begin(l);
+				iiter != layout.end(l); ++iiter)
+			{
+				Layout::Interface& interface = layout.interface(iiter);
+				int procID = layout.proc_id(iiter);
+				
+			///	iterate through the elements of the interface
+				for(Layout::Interface::iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	set the new status
+					//set_status(*iter, newStatus);
+					elem_info(*iter).set_status(newStatus);
+					
+				//	add the iterator to the iterator list and set the proc-id
+					elem_info(*iter).add_entry(&interface, iter);
+				/*
+					elem_info(*iter).lstProcIterPairs.push_back(
+								typename ElementInfo<TGeomObj>(procID, iter));
+				*/
+				}
+			}
+		}
+	}
+}
+
+
+#ifdef __OLD_IMPLEMENTATION__
 ////////////////////////////////////////////////////////////////////////
 //	GetElemInfo
 ///	returns element-info for the given element.
@@ -513,7 +641,7 @@ void DistributedGrid::edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld,
 	handle_replaced_element(edgeOld, edgeNew, m_pCommSet->edgeGroup);
 }
 
-
+#endif __OLD_IMPLEMENTATION__
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of protected methods.
