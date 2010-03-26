@@ -115,6 +115,9 @@ void MultiGridRefiner::refine()
 //	collect objects for refine
 	collect_objects_for_refine();
 
+//	notify derivates that refinement begins
+	refinement_step_begins();
+	
 //	cout << "num marked edges: " << m_selMarks.num<EdgeBase>() << endl;
 //	cout << "num marked faces: " << m_selMarks.num<Face>() << endl;
 
@@ -290,6 +293,9 @@ void MultiGridRefiner::refine()
 		mg.enable_hierarchical_insertion(false);
 
 	m_selMarks.clear();
+	
+//	notify derivates that refinement ends
+	refinement_step_ends();
 }
 
 void MultiGridRefiner::collect_objects_for_refine()
@@ -405,7 +411,7 @@ adjust_initial_selection()
 			CollectFaces(vFaces, grid, v);
 			for(uint i = 0; i < vFaces.size(); ++i)
 				if(!mg.has_children(vFaces[i]))
-					m_selMarks.select(vFaces[i]);
+					mark_for_refinement(vFaces[i]);
 		}
 	}
 
@@ -438,7 +444,7 @@ adjust_initial_selection()
 			CollectEdges(vEdges, grid, f);
 			for(uint i = 0; i < vEdges.size(); ++i)
 				if(!mg.has_children(vEdges[i]))
-					m_selMarks.select(vEdges[i]);
+					mark_for_refinement(vEdges[i]);
 		}
 	}
 
@@ -468,7 +474,7 @@ adjust_initial_selection()
 			set_rule(e, RM_REGULAR);
 		//	select associated vertices
 			for(uint i = 0; i < e->num_vertices(); ++i)
-				m_selMarks.select(e->vertex(i));
+				mark_for_refinement(e->vertex(i));
 		}
 	}
 }
@@ -501,7 +507,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 				Face* f = vFaces[i];
 				if(!m_selMarks.is_selected(f) &! mg.has_children(f))
 				{
-					m_selMarks.select(f);
+					mark_for_refinement(f);
 					
 				//	we now have to check all associated edges.
 				//	unselected ones will be added as copy-elements
@@ -516,7 +522,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 						else{
 							if(!mg.has_children(e)){
 								set_rule(e, RM_COPY);
-								m_selMarks.select(e);
+								mark_for_refinement(e);
 							}
 						}
 					}
@@ -535,7 +541,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 						if(!m_selMarks.is_selected(f->vertex(j))){
 							if(get_copy_range() > 0)
 								vVrts.push_back(f->vertex(j));
-							m_selMarks.select(f->vertex(j));
+							mark_for_refinement(f->vertex(j));
 						}
 					}
 				}
@@ -561,7 +567,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 				Volume* v = vVolumes[i];
 				if(!m_selMarks.is_selected(v) &! mg.has_children(v))
 				{
-					m_selMarks.select(v);
+					mark_for_refinement(v);
 					
 				//	we now have to check all associated faces.
 				//	unselected ones will be added as copy-elements.
@@ -576,7 +582,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 						else{
 							if(!mg.has_children(f)){
 								set_rule(f, RM_COPY);
-								m_selMarks.select(f);
+								mark_for_refinement(f);
 							}
 						}
 					}
@@ -598,7 +604,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 						{
 							if(!mg.has_children(e)){
 								set_rule(e, RM_COPY);
-								m_selMarks.select(e);
+								mark_for_refinement(e);
 							}
 						}
 					}
@@ -609,7 +615,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 						if(!m_selMarks.is_selected(v->vertex(j))){
 							if(get_copy_range() > 0)
 								vVrts.push_back(v->vertex(j));
-							m_selMarks.select(v->vertex(j));
+							mark_for_refinement(v->vertex(j));
 						}
 					}
 				}
@@ -658,13 +664,13 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 						EdgeBase* e = *iter;
 						if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
 						//	we found a copy-element
-							m_selMarks.select(e);
+							mark_for_refinement(e);
 							set_rule(e, RM_COPY);
 							
 						//	schedule associated unselected vertices for further checks
 							for(size_t j = 0; j < 2; ++j){
 								if(!m_selMarks.is_selected(e->vertex(j))){
-									m_selMarks.select(e->vertex(j));
+									mark_for_refinement(e->vertex(j));
 									vVrts.push_back(e->vertex(j));
 								}
 							}
@@ -681,13 +687,13 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 						Face* f = *iter;
 						if(!m_selMarks.is_selected(f) &! mg.has_children(f)){
 						//	we found a copy-element
-							m_selMarks.select(f);
+							mark_for_refinement(f);
 							set_rule(f, RM_COPY);
 							
 						//	schedule associated unselected vertices for further checks
 							for(size_t j = 0; j < f->num_vertices(); ++j){
 								if(!m_selMarks.is_selected(f->vertex(j))){
-									m_selMarks.select(f->vertex(j));
+									mark_for_refinement(f->vertex(j));
 									vVrts.push_back(f->vertex(j));
 								}
 							}
@@ -697,7 +703,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 							for(size_t j = 0; j < vEdges.size(); ++j){
 								EdgeBase* e = vEdges[j];
 								if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
-									m_selMarks.select(e);
+									mark_for_refinement(e);
 									set_rule(e, RM_COPY);
 								}
 							}
@@ -714,13 +720,13 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 						Volume* v = *iter;
 						if(!m_selMarks.is_selected(v) &! mg.has_children(v)){
 						//	we found a copy-element
-							m_selMarks.select(v);
+							mark_for_refinement(v);
 							set_rule(v, RM_COPY);
 							
 						//	schedule associated unselected vertices for further checks
 							for(size_t j = 0; j < v->num_vertices(); ++j){
 								if(!m_selMarks.is_selected(v->vertex(j))){
-									m_selMarks.select(v->vertex(j));
+									mark_for_refinement(v->vertex(j));
 									vVrts.push_back(v->vertex(j));
 								}
 							}
@@ -730,7 +736,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 							for(size_t j = 0; j < vEdges.size(); ++j){
 								EdgeBase* e = vEdges[j];
 								if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
-									m_selMarks.select(e);
+									mark_for_refinement(e);
 									set_rule(e, RM_COPY);
 								}
 							}
@@ -740,7 +746,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 							for(size_t j = 0; j < vFaces.size(); ++j){
 								Face* f = vFaces[j];
 								if(!m_selMarks.is_selected(f) &! mg.has_children(f)){
-									m_selMarks.select(f);
+									mark_for_refinement(f);
 									set_rule(f, RM_COPY);
 								}
 							}

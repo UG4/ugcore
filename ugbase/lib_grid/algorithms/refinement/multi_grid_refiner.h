@@ -44,7 +44,11 @@ class MultiGridRefiner : public GridObserver
 //		If all marked lower-dimensional elements are marked anisotropic (at least two), then
 //		the resulting elements will be marked anisotropic, too.
 		template <class TElem>
-		inline void mark_for_refinement(TElem* elem)	{m_selMarks.select(elem);}
+		inline void mark_for_refinement(TElem* elem)
+		{
+			m_selMarks.select(elem);
+			element_marked(elem);
+		}
 
 	///	the value-type of TIterator has to be a pointer to a type derived from either EdgeBase, Face or Volume.
 		template <class TIterator>
@@ -101,6 +105,25 @@ class MultiGridRefiner : public GridObserver
 
 	protected:
 		virtual void collect_objects_for_refine();
+	///	this method helps derived classes to perform operations directly before actual element refinment is performed.
+	/**	Called from the refine() method in each refinement-iteration after
+	 *	collect_objects_for_refine().
+	 *	Default implementation is empty.*/
+		virtual void refinement_step_begins()	{};
+
+	///	this method helps derived classes to perform operations directly after actual element refinment took place.
+	/**	Called from the refine() method in each refinement-iteration after
+	 *	all scheduled elements had been refined.
+	 *	The refine process will either terminate after this method or will
+	 *	start a new iteration, if new elements had been marked during refine.
+	 *	Default implementation is empty.*/
+		virtual void refinement_step_ends()		{};
+		
+		virtual void element_marked(VertexBase* elem)	{}
+		virtual void element_marked(EdgeBase* elem)		{}
+		virtual void element_marked(Face* elem)			{}
+		virtual void element_marked(Volume* elem)		{}
+		
 		void adjust_initial_selection();
 		void select_closure(std::vector<VertexBase*>& vVrts);
 		void select_copy_elements(std::vector<VertexBase*>& vVrts);

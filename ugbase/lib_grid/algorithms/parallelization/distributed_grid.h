@@ -26,12 +26,13 @@ class DistributedGridManager : public GridObserver
 {
 	public:
 		DistributedGridManager();
-		DistributedGridManager(Grid& grid);
+		DistributedGridManager(MultiGrid& grid);
 		virtual ~DistributedGridManager();
 		
 	//	assignment
-		void assign(Grid& grid);
+		void assign(MultiGrid& grid);
 			
+		inline MultiGrid* get_assigned_grid()	{return m_pGrid;}
 	//	layout access
 	/**	if you change the layout externally, be sure to call
 	 *	DistributedGrid::layout_changed() afterwards.*/
@@ -50,6 +51,33 @@ class DistributedGridManager : public GridObserver
 	 *	the layout - whichever is higher).*/
 	 	void grid_layouts_changed(bool addedElemsOnly = false);
 		
+		byte get_status(GeometricObject* go);
+		inline byte get_status(VertexBase* vrt)	{return elem_info(vrt).get_status();}
+		inline byte get_status(EdgeBase* edge)	{return elem_info(edge).get_status();}
+		inline byte get_status(Face* face)		{return elem_info(face).get_status();}
+		inline byte get_status(Volume* vol)		{return elem_info(vol).get_status();}
+
+
+	//	element creation
+	///	call this method before you start creating new elements in the associated grid.
+	/** You shouldn't add new interfaces to the associated communication-set
+	 *  between begin_ and end_element_creation.*/
+		void begin_ordered_element_insertion();
+		
+	///	call this method when you're done with element creation.
+	/**	Elements will not be added to the associated \sa GridCommunicationSet
+	 *  until this method is called.*/
+		void end_ordered_element_insertion();
+		
+		
+	//	grid callbacks
+		virtual void registered_at_grid(Grid* grid);
+		virtual void unregistered_from_grid(Grid* grid);
+		
+	//	vertex callbacks
+		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL);
+		//virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt);
+		//virtual void vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew);
 		
 	protected:
 		template <class TGeomObj>
@@ -58,9 +86,26 @@ class DistributedGridManager : public GridObserver
 		template <class TGeomObj, class TLayoutMap>
 		void update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus);
 
+	///	vertex_created, edge_created, ... callbacks call this method.
+		template <class TElem>
+		void handle_created_element(TElem* pElem, GeometricObject* pParent);
+		
+		template <class TElem, class TScheduledElemMap, class TParent>
+		void schedule_element_for_insertion(TScheduledElemMap& elemMap,
+												TElem* elem,
+												TParent* pParent);
+
+		void clear_scheduled_elements();
+		
+		template <class TScheduledElemMap>
+		void perform_ordered_element_insertion(TScheduledElemMap& elemMap);
+		
+		template <class TElem>
+		void add_element_to_interface(TElem* pElem, int procID);
+			
 	protected:
 		template <class TGeomObj>
-		class ElemInfo
+		class ElementInfo
 		{
 			public:
 			//	types
@@ -73,7 +118,7 @@ class DistributedGridManager : public GridObserver
 				typedef typename EntryList::iterator	EntryIterator;
 				
 			//	methods
-				ElemInfo()	: m_status(ES_NONE)				{}
+				ElementInfo()	: m_status(ES_NONE)			{}
 				
 				void reset()								{m_status = ES_NONE; m_entries.clear();}
 				
@@ -85,6 +130,9 @@ class DistributedGridManager : public GridObserver
 				inline EntryIterator entries_begin()		{return m_entries.begin();}
 				inline EntryIterator entries_end()			{return m_entries.end();}
 				
+				size_t get_local_id(EntryIterator iter)		{return iter->first->get_local_id(iter->second);}
+				int get_target_proc(EntryIterator iter)		{return iter->first->get_target_proc();}
+				
 				EntryIterator find_entry(Interface* interface)	{return find(entries_begin(), entries_end(), interface);}
 				
 				void set_status(byte status)				{m_status = status;}
@@ -95,16 +143,33 @@ class DistributedGridManager : public GridObserver
 				byte		m_status;
 		};
 		
-		typedef ElemInfo<VertexBase>	ElemInfoVrt;
-		typedef ElemInfo<EdgeBase>	ElemInfoEdge;
-		typedef ElemInfo<Face>		ElemInfoFace;
-		typedef ElemInfo<Volume>		ElemInfoVol;
+		typedef ElementInfo<VertexBase>	ElemInfoVrt;
+		typedef ElementInfo<EdgeBase>	ElemInfoEdge;
+		typedef ElementInfo<Face>		ElemInfoFace;
+		typedef ElementInfo<Volume>		ElemInfoVol;
 		
-		typedef util::Attachment<ElemInfoVrt>	AElemInfoVrt;
-		typedef util::Attachment<ElemInfoEdge>	AElemInfoEdge;
-		typedef util::Attachment<ElemInfoFace>	AElemInfoFace;
-		typedef util::Attachment<ElemInfoVol>	AElemInfoVol;
+		typedef Attachment<ElemInfoVrt>		AElemInfoVrt;
+		typedef Attachment<ElemInfoEdge>	AElemInfoEdge;
+		typedef Attachment<ElemInfoFace>	AElemInfoFace;
+		typedef Attachment<ElemInfoVol>		AElemInfoVol;
 		
+	///	Used to schedule an element for insertion during ordered-insertion-mode.
+	/**	For each interface in which the parent lies, an instance of
+	 *	this class is added to scheduledElementMap of the parents type.
+	 *	The local ID of the parent will be used as key.
+	 *	The type of layout into which the element shall be inserted can
+	 *	be retrieved from the status of the associated geomObj.*/
+		struct ScheduledElement
+		{
+			ScheduledElement(GeometricObject* obj, int procID) :
+				geomObj(obj), connectedProcID(procID)				{}
+
+			GeometricObject*	geomObj;
+			int					connectedProcID;
+		};
+		
+		typedef std::multimap<size_t, ScheduledElement>	ScheduledElemMap;
+							
 	protected:
 		inline ElemInfoVrt& elem_info(VertexBase* ele)	{return m_aaElemInfoVRT[ele];}
 		inline ElemInfoEdge& elem_info(EdgeBase* ele)	{return m_aaElemInfoEDGE[ele];}
@@ -112,12 +177,26 @@ class DistributedGridManager : public GridObserver
 		inline ElemInfoVol& elem_info(Volume* ele)		{return m_aaElemInfoVOL[ele];}
 
 	protected:
-		Grid*	m_pGrid;
-
+		MultiGrid*		m_pGrid;
+		GridLayoutMap	m_gridLayoutMap;
+		
+		bool m_bOrderedInsertionMode;
+		
 		AElemInfoVrt	m_aElemInfoVrt;
 		AElemInfoEdge	m_aElemInfoEdge;
 		AElemInfoFace	m_aElemInfoFace;
 		AElemInfoVol	m_aElemInfoVol;
+		
+		Grid::VertexAttachmentAccessor<AElemInfoVrt>	m_aaElemInfoVRT;
+		Grid::EdgeAttachmentAccessor<AElemInfoEdge>		m_aaElemInfoEDGE;
+		Grid::FaceAttachmentAccessor<AElemInfoFace>		m_aaElemInfoFACE;
+		Grid::VolumeAttachmentAccessor<AElemInfoVol>	m_aaElemInfoVOL;
+		
+		ScheduledElemMap	m_vrtMap;	///< holds all elements that were scheduled by vertices
+		ScheduledElemMap	m_edgeMap;	///< holds all elements that were scheduled by edges
+		ScheduledElemMap	m_faceMap;	///< holds all elements that were scheduled by faces
+		ScheduledElemMap	m_volMap;	///< holds all elements that were scheduled by volumes
+
 };
 
 #ifdef __OLD_IMPLEMENTATION__

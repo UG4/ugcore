@@ -86,16 +86,16 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 		Selector* m_pSelMarks;
 		vector<Element>	m_vNewMarks;
 };
-
+/*
 ParallelMultiGridRefiner::
 ParallelMultiGridRefiner() : m_pLayoutMap(NULL)
 {
 }
-
+*/
 ParallelMultiGridRefiner::
-ParallelMultiGridRefiner(MultiGrid& mg, GridLayoutMap& layoutMap) :
-	m_pLayoutMap(&layoutMap),
-	MultiGridRefiner(mg)
+ParallelMultiGridRefiner(DistributedGridManager& distGridMgr) :
+	m_distGridMgr(distGridMgr),
+	MultiGridRefiner(*distGridMgr.get_assigned_grid())
 {
 }
 
@@ -108,6 +108,8 @@ collect_objects_for_refine()
 {
 	RefinementMarkDistributor<EdgeLayout>	edgeMarkDistributor(m_selMarks);
 	pcl::ParallelCommunicator<EdgeLayout>	edgeCommunicator;
+	
+	GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
 	
 //	vertices stored in here are used during copy-element-selection.
 	vector<VertexBase*> vVrts;
@@ -123,11 +125,11 @@ collect_objects_for_refine()
 		edgeMarkDistributor.clear_new_marks();
 		
 	//	exchange data
-		edgeCommunicator.exchange_data(*m_pLayoutMap, INT_SLAVE, INT_MASTER,
+		edgeCommunicator.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
 										edgeMarkDistributor);
 		edgeCommunicator.communicate();
 		
-		edgeCommunicator.exchange_data(*m_pLayoutMap, INT_MASTER, INT_SLAVE,
+		edgeCommunicator.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
 										edgeMarkDistributor);
 		edgeCommunicator.communicate();
 		
@@ -137,12 +139,76 @@ collect_objects_for_refine()
 	
 ////////////////////////////////
 //	closure selection
-	select_closure(vVrts);
+	//while(!m_vNewlyMarkedEdges.empty())
+	{
+		m_vNewlyMarkedEdges.clear();
+		m_vNewlyMarkedVertices.clear();
+		
+		select_closure(vVrts);
+/*
+	//	clear the marks-dump in the distributor
+		edgeMarkDistributor.clear_new_marks();
+		
+	//	exchange data
+		edgeCommunicator.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
+										edgeMarkDistributor);
+		edgeCommunicator.communicate();
+		
+		edgeCommunicator.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
+										edgeMarkDistributor);
+		edgeCommunicator.communicate();
+
+		//adjust_initial_selection();
+		
+		for(size_t i = 0; i < m_vNewlyMarkedEdges.size(); ++i)
+			for(size_t j = 0; j < 2; ++j)
+				mark_for_refinement(m_vNewlyMarkedEdges[i]->vertex(j));
+
+		for(size_t i = 0; i < m_vNewlyMarkedVertices.size(); ++i)
+			vVrts.push_back(m_vNewlyMarkedVertices[i]);
+			
+		m_vNewlyMarkedVertices.clear();
+	*/
+	}
 
 ////////////////////////////////
 //	collect copy-elements
 	select_copy_elements(vVrts);
 
+}
+
+void ParallelMultiGridRefiner::
+refinement_step_begins()
+{
+	m_distGridMgr.begin_ordered_element_insertion();
+}
+
+void ParallelMultiGridRefiner::
+refinement_step_ends()
+{
+	m_distGridMgr.end_ordered_element_insertion();
+}
+
+void ParallelMultiGridRefiner::
+element_marked(VertexBase* elem)
+{
+	m_vNewlyMarkedVertices.push_back(elem);
+}
+
+void ParallelMultiGridRefiner::
+element_marked(EdgeBase* elem)
+{
+	m_vNewlyMarkedEdges.push_back(elem);
+}
+
+void ParallelMultiGridRefiner::
+element_marked(Face* elem)
+{
+}
+
+void ParallelMultiGridRefiner::
+element_marked(Volume* elem)
+{
 }
 
 }//	end of namespace

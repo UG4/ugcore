@@ -60,7 +60,7 @@ namespace interface_tags
  *		- const_iterator end() const;
  *		- Element& get_element(iterator iter);
  *		- const Element& get_element(iterator iter) const;
- *		- int get_local_src_id();
+ *		- int get_target_proc();
  */
 class basic_interface_tag									{};
 
@@ -118,7 +118,7 @@ class BasicInterface
 		typedef typename ElemContainer::const_iterator	const_iterator;
 		
 	public:
-		BasicInterface(int localSrcID = -1)	: m_size(0), m_localSrcID(localSrcID)	{};
+		BasicInterface(int targetProc = -1)	: m_size(0), m_targetProc(targetProc)	{};
 		
 		inline iterator push_back(const Element& elem)	{++m_size; return m_elements.insert(m_elements.end(), elem);}
 		inline void erase(iterator iter)				{--m_size; m_elements.erase(iter);}
@@ -131,51 +131,18 @@ class BasicInterface
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
 		
-		inline int get_local_src_id() const			{return m_localSrcID;}
-		
-	///	sets the local-src-id
-		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
+		int get_target_proc()						{return m_targetProc;}
 		
 	protected:
 		ElemContainer	m_elements;
 		size_t			m_size;
-		int				m_localSrcID;
+		int				m_targetProc;
 };
-
-
-///	Internally used by pcl::OrderedInterface
-/**	this struct holds an elem and a local id, as they are
- *	required if we use non-random-access-iterators*/
-template <typename TIterTag, class TElem>
-struct TOrderedInterfaceEntryByTag
-{
-	TOrderedInterfaceEntryByTag(const TElem& e, uint ID) :
-		elem(e), localID(ID)	{}
-		
-	TElem	elem;
-	uint	localID;
-};
-
-///	Internally used by pcl::OrderedInterface
-/**	specialization for random-access-iterators.
- *	A local id is not required here.*/
-template <class TElem> struct
-TOrderedInterfaceEntryByTag<std::random_access_iterator_tag, TElem>
-{
-	TOrderedInterfaceEntryByTag(const TElem& e) : elem(e)	{}
-	
-	TElem elem;
-};
-
 
 ////////////////////////////////////////////////////////////////////////
 //	OrderedInterface
 ///	You may add elements to this interface and iterate over them
-/**	You may compare iterators of elements in this interface using the
- *	cmp method.
- *
- *	This interface stores elements in a vector internally.
- *	This allows for easy compare but makes erase expensive.*/
+/**	You may retrieve a localID for each element in the interface*/
 template <class TType,
 		  template <class T, class Alloc> class TContainer = std::vector,
 		  template <class T> class TAlloc = std::allocator>
@@ -184,14 +151,13 @@ class OrderedInterface
 	protected:
 		typedef typename type_traits<TType>::Elem	TElem;
 		
-	//	this is required to pick the right InterfaceEntryType
-		typedef typename
-			std::iterator_traits<
-				typename TContainer<TElem, TAlloc<TElem> >::iterator>
-				::iterator_category						iterator_category;
+		struct InterfaceEntry
+		{
+			InterfaceEntry(TElem e, size_t locID) : elem(e), localID(locID)	{}
 			
-		typedef TOrderedInterfaceEntryByTag<iterator_category, TElem>
-														InterfaceEntry;
+			TElem	elem;
+			size_t	localID;
+		};
 														
 		typedef TContainer<InterfaceEntry, TAlloc<InterfaceEntry> >
 														ElemContainer;
@@ -206,14 +172,16 @@ class OrderedInterface
 		typedef typename ElemContainer::const_iterator	const_iterator;
 		
 	public:
-		OrderedInterface(int localSrcID = -1) :
+		OrderedInterface(int targetProc = -1) :
 			m_size(0),
-			m_localSrcID(localSrcID),
+			m_targetProc(targetProc),
 			m_idCounter(1)	{}
 		
 		inline iterator push_back(const Element& elem)
 		{
-			return push_back(elem, iterator_category());
+			++m_size;
+			return m_elements.insert(m_elements.end(),
+									(InterfaceEntry(elem, get_free_id())));
 		}
 		
 		inline void erase(iterator iter)
@@ -226,53 +194,24 @@ class OrderedInterface
 		inline iterator end()		{return m_elements.end();}
 		
 		inline Element& get_element(iterator iter)	{return (*iter).elem;}
+		inline size_t get_local_id(iterator iter)	{return (*iter).localID;}
 		
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
 		
-		inline int get_local_src_id() const			{return m_localSrcID;}
-		
-	///	sets the local-src-id
-		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
+		int get_target_proc()						{return m_targetProc;}
 		
 	///	returns true if iter1 < iter2.
-		static inline bool cmp(iterator iter1, iterator iter2)
-		{
-			return cmp(iter1, iter2, iterator_category());
-		}
-		
-	protected:
-		inline iterator push_back(const Element& elem, 
-								const std::input_iterator_tag&)
-		{
-			++m_size;
-			return m_elements.insert(m_elements.end(),
-									(InterfaceEntry(elem, get_free_id())));
-		}
-		
-		inline iterator push_back(const Element& elem, 
-								const std::random_access_iterator_tag&)
-		{
-			++m_size;
-			return m_elements.insert(m_elements.end(), elem);
-		}
-		
 		static inline bool cmp(iterator iter1, iterator iter2,
 								const std::input_iterator_tag&)
 		{
 			return (*iter1).localID < (*iter2).localID;
 		}
-
-		static inline bool cmp(iterator iter1, iterator iter2,
-								const std::random_access_iterator_tag&)
-		{
-			return iter2 - iter1 > 0;
-		}
-				
+		
+	protected:
 	///	returns a free id in each call.
-	/**	This method may only be called if
-	 *	iterator_category != std::random_access_iterator_tag.*/
-		uint get_free_id()
+	/**	Those ids are not necessarily aligned.*/
+		size_t get_free_id()
 		{
 			if(m_idCounter == 0)
 			{
@@ -288,8 +227,8 @@ class OrderedInterface
 	protected:
 		ElemContainer	m_elements;
 		uint m_size;
-		int	m_localSrcID;
-		uint m_idCounter;
+		int m_targetProc;
+		size_t m_idCounter;
 };
 
 
@@ -357,7 +296,7 @@ template <class TInterface>
 class SingleLevelLayout
 {
 	public:
-		SingleLevelLayout(int localSrcID = -1)	: m_localSrcID(localSrcID)	{}
+		SingleLevelLayout()		{}
 		
 	////////////////////////////////////////////////
 	//	typedefs required by implementation
@@ -400,15 +339,7 @@ class SingleLevelLayout
 		
 	///	returns the interface to the given iterator.
 		inline int proc_id(iterator& iter)				{return iter->first;}
-	
-		inline int get_local_src_id() const				{return m_localSrcID;}
-		
-	////////////////////////////////////////////////
-	//	methods that enhance the layout-tag
-	///	sets the local-src-id
-	/**	todo: change the local_src_id of associated interfaces, too.*/
-		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
-		
+
 	///	returns the interface to the given process.
 	/**	if the queried interface exist, it will be returned.
 	 *	If not it will be created.
@@ -418,7 +349,7 @@ class SingleLevelLayout
 				typename InterfaceMap::iterator iter = m_interfaceMap.find(procID);
 				if(iter != m_interfaceMap.end())
 					return iter->second;
-				return m_interfaceMap.insert(make_pair(procID, Interface(m_localSrcID))).first->second;
+				return m_interfaceMap.insert(make_pair(procID, Interface(procID))).first->second;
 			}
 
 	///	returns true if an interface to the given procID already exists.
@@ -435,8 +366,6 @@ class SingleLevelLayout
 	protected:
 	///	holds the interfaces in a map.
 		InterfaceMap	m_interfaceMap;
-	///	stores the local src id
-		int				m_localSrcID;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -486,7 +415,7 @@ class MultiLevelLayout
 		typedef typename LevelLayout::iterator		iterator;
 
 	public:
-		MultiLevelLayout(int localSrcID = -1)	: m_localSrcID(localSrcID)		{}
+		MultiLevelLayout()								{}
 		MultiLevelLayout(const MultiLevelLayout& mll)	{assign_layout(mll);}
 		
 		~MultiLevelLayout()								{clear();}
@@ -521,8 +450,6 @@ class MultiLevelLayout
 	///	returns the number of levels.
 		inline int num_levels()							{return m_vLayouts.size();}
 
-		inline int get_local_src_id() const				{return m_localSrcID;}
-
 	////////////////////////////////////////////////
 	//	methods that enhance the layout-tag
 	///	deletes all levels.
@@ -533,16 +460,12 @@ class MultiLevelLayout
 			m_vLayouts.clear();
 		}
 		
-	///	sets the local-src-id
-	/**	todo: change the local_src_id of associated level-layouts, too.*/
-		inline void set_local_src_id(int srcID)		{m_localSrcID = srcID;}
-		
 	///	returns the interface to the given process.
 	/**	if the interface doesn't exist yet, it will be created.*/
-		inline Interface& interface(int procID, size_t level)	{require_level(level); return m_vLayouts[level].interface(procID);}
+		inline Interface& interface(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface(procID);}
 
 	///	returns true if an interface to the given procID already exists.
-		inline bool interface_exists(int procID, size_t level)	{require_level(level); return m_vLayouts[level].interface_exists(procID);}
+		inline bool interface_exists(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface_exists(procID);}
 	
 	///	returns the layout at the given level.
 	/**	If level >= num_levels() then the layouts in between
@@ -551,7 +474,7 @@ class MultiLevelLayout
 
 	protected:
 	///	adds num new levels.
-		inline void new_levels(int num)			{for(int i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout(num_levels()));}
+		inline void new_levels(int num)			{for(int i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout());}
 		
 	///	if the required level doesn't exist yet, it will created.
 		inline void require_level(int level)	{if(level >= num_levels()) new_levels(level - num_levels() + 1);}
@@ -560,15 +483,12 @@ class MultiLevelLayout
 		void assign_layout(const MultiLevelLayout& mll)
 		{
 			clear();
-			m_localSrcID = mll.get_local_src_id();
 			for(size_t i = 0; i < mll.m_vLayouts.size(); ++i)
 				m_vLayouts.push_back(new LevelLayout(*mll.m_vLayouts[i]));
 		}		
 		
 	protected:
 		std::vector<LevelLayout*>	m_vLayouts;
-	///	stores the local src id
-		int				m_localSrcID;
 };
 
 
