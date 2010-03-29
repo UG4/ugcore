@@ -106,6 +106,35 @@ ParallelMultiGridRefiner::~ParallelMultiGridRefiner()
 void ParallelMultiGridRefiner::
 collect_objects_for_refine()
 {
+/*
+Algorithm Layout:
+initial mark distribution
+	- adjust_initial_selection
+	- distribute marks for edges (and faces).
+	- mark associated vertices.
+
+closure selection
+	- select_closure
+	- distribute closure-marks for edges (and faces)
+		* differentiate between refinement and copy-marks.
+	- mark associated vertices
+	
+copy element selection
+	- iterate from 0 to copy_range
+		- select_copy_elements
+		- distribute marks for copy-elements
+		- mark associated vertices
+		
+'behind the scenes'
+There are vectors for vertices, edges, faces and volumes, that store all elements
+whose rule changed during the collect_objects_for_refie method (m_vNewlyMarked...).
+This is realised via protected virtual set_rule methods in MultiGridRefiner.
+Since those methods are only called during collect_objects_for_refine,
+it is clear that those vectors always hold valid and existing elements.
+
+The refinement distributor classes
+*/
+	
 	RefinementMarkDistributor<EdgeLayout>	edgeMarkDistributor(m_selMarks);
 	pcl::ParallelCommunicator<EdgeLayout>	edgeCommunicator;
 	
@@ -190,25 +219,31 @@ refinement_step_ends()
 }
 
 void ParallelMultiGridRefiner::
-element_marked(VertexBase* elem)
+set_rule(VertexBase* e, RefinementMark mark)
 {
-	m_vNewlyMarkedVertices.push_back(elem);
+	MultiGridRefiner::set_rule(e, mark);
+	m_vNewlyMarkedVertices.push_back(e);
 }
 
 void ParallelMultiGridRefiner::
-element_marked(EdgeBase* elem)
+set_rule(EdgeBase* e, RefinementMark mark)
 {
-	m_vNewlyMarkedEdges.push_back(elem);
+	MultiGridRefiner::set_rule(e, mark);
+	m_vNewlyMarkedEdges.push_back(e);
 }
 
 void ParallelMultiGridRefiner::
-element_marked(Face* elem)
+set_rule(Face* e, RefinementMark mark)
 {
+	MultiGridRefiner::set_rule(e, mark);
+	m_vNewlyMarkedFaces.push_back(e);
 }
 
 void ParallelMultiGridRefiner::
-element_marked(Volume* elem)
+set_rule(Volume* e, RefinementMark mark)
 {
+	MultiGridRefiner::set_rule(e, mark);
+	m_vNewlyMarkedVolumes.push_back(e);
 }
 
 }//	end of namespace

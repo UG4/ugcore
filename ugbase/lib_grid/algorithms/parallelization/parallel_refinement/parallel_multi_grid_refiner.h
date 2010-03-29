@@ -27,16 +27,18 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		virtual void refinement_step_begins();
 		virtual void refinement_step_ends();
 		
-		virtual void element_marked(VertexBase* elem);
-		virtual void element_marked(EdgeBase* elem);
-		virtual void element_marked(Face* elem);
-		virtual void element_marked(Volume* elem);
-		
+		virtual void set_rule(VertexBase* e, RefinementMark mark);
+		virtual void set_rule(EdgeBase* e, RefinementMark mark);
+		virtual void set_rule(Face* e, RefinementMark mark);
+		virtual void set_rule(Volume* e, RefinementMark mark);
+
 	protected:
 		DistributedGridManager& m_distGridMgr;
 		
 		std::vector<VertexBase*>	m_vNewlyMarkedVertices;
 		std::vector<EdgeBase*>		m_vNewlyMarkedEdges;
+		std::vector<Face*>			m_vNewlyMarkedFaces;
+		std::vector<Volume*>		m_vNewlyMarkedVolumes;
 //TODO	we need vNewlyMarkedFaces and vNewlyMarkedVolumes, too.
 };
 

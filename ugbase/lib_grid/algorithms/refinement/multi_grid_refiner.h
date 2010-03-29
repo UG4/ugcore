@@ -47,7 +47,6 @@ class MultiGridRefiner : public GridObserver
 		inline void mark_for_refinement(TElem* elem)
 		{
 			m_selMarks.select(elem);
-			element_marked(elem);
 		}
 
 	///	the value-type of TIterator has to be a pointer to a type derived from either EdgeBase, Face or Volume.
@@ -119,11 +118,6 @@ class MultiGridRefiner : public GridObserver
 	 *	Default implementation is empty.*/
 		virtual void refinement_step_ends()		{};
 		
-		virtual void element_marked(VertexBase* elem)	{}
-		virtual void element_marked(EdgeBase* elem)		{}
-		virtual void element_marked(Face* elem)			{}
-		virtual void element_marked(Volume* elem)		{}
-		
 		void adjust_initial_selection();
 		void select_closure(std::vector<VertexBase*>& vVrts);
 		void select_copy_elements(std::vector<VertexBase*>& vVrts);
@@ -133,10 +127,10 @@ class MultiGridRefiner : public GridObserver
 		inline void set_status(Face* e, StatusMark mark)		{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_STATUS) | mark;}
 		inline void set_status(Volume* e, StatusMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_STATUS) | mark;}
 
-		inline void set_rule(VertexBase* e, RefinementMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_REFINEMENT) | mark;}
-		inline void set_rule(EdgeBase* e, RefinementMark mark)		{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_REFINEMENT) | mark;}
-		inline void set_rule(Face* e, RefinementMark mark)			{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_REFINEMENT) | mark;}
-		inline void set_rule(Volume* e, RefinementMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(VertexBase* e, RefinementMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(EdgeBase* e, RefinementMark mark)		{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(Face* e, RefinementMark mark)			{m_aaIntFACE[e] = (m_aaIntFACE[e] & ~MR_REFINEMENT) | mark;}
+		virtual void set_rule(Volume* e, RefinementMark mark)		{m_aaIntVOL[e] = (m_aaIntVOL[e] & ~MR_REFINEMENT) | mark;}
 
 		inline int get_rule(VertexBase* e)	{return m_aaIntVRT[e] & MR_REFINEMENT;}
 		inline int get_rule(EdgeBase* e)	{return m_aaIntEDGE[e] & MR_REFINEMENT;}
