@@ -72,9 +72,12 @@ class DistributedGridManager : public GridObserver
 	/**	returns a list of pairs (procID, index) that tells for each element
 	 *	where in which interfaces it lies.*/
 	 	template <class TElem>
-	 	void CollectInterfaceEntries(std::vector<std::pair<int, int> >& vEntriesOut,
-									TElem* elem);
-									
+	 	void collect_interface_entries(
+						std::vector<std::pair<int, size_t> >& vEntriesOut,
+						TElem* elem);
+
+
+	////////////////////////////////
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);
@@ -456,5 +459,9 @@ class DistributedGrid : public GridObserver
 
 #endif //__OLD_IMPLEMENTATION__
 }// end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "distributed_grid_impl.hpp"
 
 #endif

@@ -205,6 +205,15 @@ template <class TTriangleIterator, class TAAPosVRT>
 bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 						   TTriangleIterator trisBegin, TTriangleIterator trisEnd,
 						   TAAPosVRT& aaPos, bool compareNormals = false);
+						   
+/**
+ * returns 1 if a point lies in front of a face,
+ * 0 if it lies on the face and -1 if it lies behind the face.
+ * TAAPosVRT has to be an AttachmentAccessor compatible type that
+ * operates on vector3.
+ */
+template <class TAAPosVRT>
+int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos);
 
 /**@}*/ // end of doxygen defgroup command
 

@@ -244,6 +244,23 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 	return gotOne;
 }
 
+template <class TAAPosVRT>
+int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos)
+{
+	vector3 n;
+	vector3 dir;
+	
+	CalculateNormal(n, f, aaPos);
+	VecSubtract(dir, v, aaPos[f->vertex(0)]);
+	
+	number d = VecDot(dir, n);
+	if(d > 0)
+		return 1;
+	if(d < 0)
+		return -1;
+	return 0;
+}
+
 }//	end of namespace
 
 #endif

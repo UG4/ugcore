@@ -79,6 +79,196 @@ static void CollectUniqueObjects(vector<TType>& vecOut,
 		vecOut.swap(vTmp);
 }
 
+//	uses grid::mark
+static Tetrahedron*
+CreateTetrahedron(Grid& grid, vector<Triangle*>& vTris,
+				Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+	const char* errorMsg = "ERROR in file_io_art.cpp CreateTetrahedron. ";
+	
+	if(vTris.size() != 4){
+		UG_LOG(errorMsg << "Bad number of triangles: " << vTris.size() << endl);
+		return NULL;
+	}
+	
+	VertexBase* vrts[4];
+	int vrtCount = 0;
+	
+//	get the 4 points of the tetrahedron
+	
+	grid.begin_marking();
+
+	for(size_t i = 0; i < 4; ++i){
+		for(size_t j = 0; j < 3; ++j){
+			VertexBase* vrt = vTris[i]->vertex(j);
+			if(!grid.is_marked(vrt)){
+			//	make sure that we won't collect too many vertices.
+				if(vrtCount == 4){
+					UG_LOG(errorMsg << "Triangles do not build a tetrahedron.\n");
+					return NULL;
+				}
+				
+				grid.mark(vrt);
+				vrts[vrtCount++] = vrt;
+			}
+		}
+	}
+	
+	grid.end_marking();
+
+	if(vrtCount < 4){
+		UG_LOG(errorMsg << "Triangles have less than 4 distinct vertices.\n");
+		return NULL;
+	}
+	
+//	we have to check the orientation of the tetrahedron
+//	compare the normal of the first triangle to the top-vertex
+	if(PointFaceTest(aaPos[vrts[3]], vTris[0], aaPos) < 0){
+	//	we have to change the order of the first three vrts
+		swap(vrts[0], vrts[1]);
+	}
+	
+//	create the tetrahedron
+	return *grid.create<Tetrahedron>(
+				TetrahedronDescriptor(vrts[0], vrts[1],
+									  vrts[2], vrts[3]));
+	
+}
+
+//	uses grid::mark
+static Pyramid*
+CreatePyramid(Grid& grid, vector<Triangle*>& vTris,
+				vector<Quadrilateral*>& vQuads,
+				Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+	const char* errorMsg = "ERROR in file_io_art.cpp CreatePyramid. ";
+	
+	if(vTris.size() != 4){
+		UG_LOG(errorMsg << "Bad number of triangles: " << vTris.size() << endl);
+		return NULL;
+	}
+
+	if(vQuads.size() != 1){
+		UG_LOG(errorMsg << "Bad number of quadrilaterals: " << vQuads.size() << endl);
+		return NULL;
+	}
+		
+	VertexBase* vrts[5];
+	int vrtCount = 0;
+	
+	grid.begin_marking();
+	
+//	get the 5 points of the pyramid
+//	take the vertices of the base-quad first
+	for(size_t j = 0; j < 4; ++j){
+		VertexBase* vrt = vQuads[0]->vertex(j);
+		if(!grid.is_marked(vrt)){
+			grid.mark(vrt);
+			vrts[vrtCount++] = vrt;
+		}
+	}
+	
+//	now find the top vertex by checking the first triangle
+	for(size_t j = 0; j < 3; ++j){
+		VertexBase* vrt = vTris[0]->vertex(j);
+		if(!grid.is_marked(vrt)){
+			grid.mark(vrt);
+			vrts[vrtCount++] = vrt;
+			break;
+		}
+	}
+	
+	grid.end_marking();
+	
+//	make sure that all vertices have been found
+	if(vrtCount != 5){
+		UG_LOG(errorMsg << "Faces do not build a pyramid.\n");
+		return NULL;
+	}
+	
+//	we have to check the orientation of the prism
+//	compare the normal of the base-quad to the top
+	if(PointFaceTest(aaPos[vrts[4]], vQuads[0], aaPos) < 0){
+	//	we have to change the order of the first four vrts
+		swap(vrts[1], vrts[2]);
+		swap(vrts[0], vrts[3]);
+	}
+
+//	create the pyramid
+	return *grid.create<Pyramid>(
+				PyramidDescriptor(vrts[0], vrts[1],
+							vrts[2], vrts[3], vrts[4]));
+}
+
+
+//	this method assumes that the given faces already exist in the grid
+//	together with their associated edges
+static Prism*
+CreatePrism(Grid& grid, vector<Triangle*>& vTris,
+				vector<Quadrilateral*>& vQuads,
+				Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+	const char* errorMsg = "ERROR in file_io_art.cpp CreatePrism. ";
+	
+	if(vTris.size() != 2){
+		UG_LOG(errorMsg << "Bad number of triangles: " << vTris.size() << endl);
+		return NULL;
+	}
+
+	if(vQuads.size() != 3){
+		UG_LOG(errorMsg << "Bad number of quadrilaterals: " << vQuads.size() << endl);
+		return NULL;
+	}
+		
+	VertexBase* vrts[6];
+	int vrtCount = 0;
+	
+//	get the 6 points of the prism
+//	calculate the center on the fly
+	vector3 vCenter(0, 0, 0);
+	
+	for(size_t i = 0; i < 2; ++i){
+		for(size_t j = 0; j < 3; ++j){
+			vrts[vrtCount++] = vTris[i]->vertex(j);
+			VecAdd(vCenter, vCenter, aaPos[vTris[i]->vertex(j)]);
+		}
+	}
+	
+	VecScale(vCenter, vCenter, 1. / 6.);
+	
+//	we have to check the orientation of the prism
+//	compare the normal of the first triangle to the center
+	if(PointFaceTest(vCenter, vTris[0], aaPos) < 0){
+	//	we have to change the order of the first three vrts
+		swap(vrts[0], vrts[1]);
+	}
+
+//	compare the normal of the second triangle to the center
+	if(PointFaceTest(vCenter, vTris[1], aaPos) > 0){
+	//	we have to change the order of the last three vrts
+		swap(vrts[3], vrts[4]);
+	}
+	
+//	we have to find the vertex of the second triangle that
+//	is connected to the first vertex of the first triangle
+	int index = 0;
+	for(; index < 3; ++index){
+		if(grid.get_edge(vrts[0], vrts[3 + index]))
+			break;
+	}
+	
+	if(index == 3)
+		return NULL;
+
+//	create the tetrahedron
+	return *grid.create<Prism>(
+				PrismDescriptor(vrts[0], vrts[1], vrts[2],
+								vrts[3 + index],
+								vrts[3 + (index + 1) % 3],
+								vrts[3 + (index + 2) % 3]));	
+}
+
+
 bool LoadGridFromART(Grid& grid, const char* filename,
 					 ISubsetHandler* pSH,
 					 AVector3& aPos)
@@ -255,6 +445,9 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 	}
 
 //	read the volumes
+	vector<Triangle*> vTris;
+	vector<Quadrilateral*> vQuads;
+	
 	while((!in.eof()))
 	{
 		in.getline(buf, 512);
@@ -274,55 +467,79 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 	//	read the indices
 		ReadIndices(vInds, buf, delim, false);
 
-	//	there have to be at least three edges
+	//	there have to be at least three faces
 		if(vInds.size() < 3)
 			continue;
 			
-	//	copy all vertices of the edges to vVrtDump
-//TODO:	make sure that all indices are in the correct ranges
-		vVrtDump.clear();
+	//	collect faces in vTris and vQuads
+		vTris.clear();
+		vQuads.clear();
 		for(size_t i = 0; i < vInds.size(); ++i){
 			Face* f = vFaces[vInds[i]];
-			for(size_t j = 0; j < f->num_vertices(); ++j)
-				vVrtDump.push_back(f->vertex(j));
+			if(f->num_vertices() == 3){	
+				Triangle* t = dynamic_cast<Triangle*>(f);
+				if(t)
+					vTris.push_back(t);
+				else{
+					UG_LOG("  bad triangle in LoadGridFromART!");
+				}
+			}
+			else if(f->num_vertices() == 4){
+				Quadrilateral* q = dynamic_cast<Quadrilateral*>(f);
+				if(q)
+					vQuads.push_back(q);
+				else{
+					UG_LOG("  bad quadrilateral in LoadGridFromART!");
+				}
+			}
+			else {
+				UG_LOG("  Bad face in LoadGridFromART! Aborting...");
+				return false;
+			}
 		}
 
-	//	now collect the unique vertices in vVrtDump
-		CollectUniqueObjects(vLocalVrts, vVrtDump);
+	//	get the type of volume
+		int volType = ROID_INVALID;
+		if(vTris.size() == 4 && vQuads.size() == 0)
+			volType = ROID_TETRAHEDRON;
+		else if(vTris.size() == 4 && vQuads.size() == 1)
+			volType = ROID_PYRAMID;
+		else if(vTris.size() == 2 && vQuads.size() == 3)
+			volType = ROID_PRISM;
+		else if(vTris.size() == 0 && vQuads.size() == 6)
+			volType = ROID_HEXAHEDRON;
 
-//TODO: check orientation
+
 	//	create the volume
 		Volume* v = NULL;
-		size_t numVrts = vLocalVrts.size();
-		switch(numVrts)
+
+		switch(volType)
 		{
-			case 4:
-				v = *grid.create<Tetrahedron>(TetrahedronDescriptor(vLocalVrts[0], vLocalVrts[1],
-																vLocalVrts[2], vLocalVrts[3]));
+			case ROID_TETRAHEDRON:
+				v = CreateTetrahedron(grid, vTris, aaPos);
 				break;
-			case 5:
-				v = *grid.create<Pyramid>(PyramidDescriptor(vLocalVrts[0], vLocalVrts[1],
-															vLocalVrts[2], vLocalVrts[3],
-															vLocalVrts[4]));
+			case ROID_PYRAMID:
+				v = CreatePyramid(grid, vTris, vQuads, aaPos);
 				break;
-			case 6:
-				v = *grid.create<Prism>(PrismDescriptor(vLocalVrts[0], vLocalVrts[1],
-														vLocalVrts[2], vLocalVrts[3],
-														vLocalVrts[4], vLocalVrts[5]));
+			case ROID_PRISM:
+				v = CreatePrism(grid, vTris, vQuads, aaPos);
 				break;
-			case 8:
-				v = *grid.create<Hexahedron>(HexahedronDescriptor(vLocalVrts[0], vLocalVrts[1],
-																vLocalVrts[2], vLocalVrts[3],
-																vLocalVrts[4], vLocalVrts[5],
-																vLocalVrts[6], vLocalVrts[7]));
+			case ROID_HEXAHEDRON:
+//TODO: create hexahedron
 				break;
 			default:
-				LOG("  LoadGridFromART: bad number of vertices in volume: " << numVrts << " (4, 5, 6 or 8 supported).\n");
+				LOG("  LoadGridFromART: bad volume type. volume has "
+					<< vTris.size() << " triangles and "
+					<< vQuads.size() << " quadrilaterals.\n");
 				continue;
 		};
 
 		si -= 1;
-		sh.assign_subset(v, si);
+		if(v)
+			sh.assign_subset(v, si);
+		else {
+			LOG("  LoadGridFromART: could not create volume element.\n");
+		}
 	}
 
 //	delete the buffer
