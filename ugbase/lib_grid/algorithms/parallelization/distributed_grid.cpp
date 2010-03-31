@@ -439,8 +439,11 @@ vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
 }
 
 
-
-
+void DistributedGridManager::
+edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent)
+{
+	handle_created_element(e, pParent);
+}
 
 
 

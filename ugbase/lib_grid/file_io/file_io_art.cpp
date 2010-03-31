@@ -56,7 +56,7 @@ static void CollectUniqueObjects(vector<TType>& vecOut,
 //	we're operating on destInds
 	vector<TType>& vecDest = *pDest;
 	vecDest.clear();
-	
+
 //	iterate over all elements of vInds
 	for(size_t i = 0; i < vecIn.size(); ++i){
 		const TType& val = vecIn[i];
@@ -215,11 +215,11 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 //TODO:	make sure that all indices are in the correct ranges
 		vVrtDump.clear();
 		for(size_t i = 0; i < vInds.size(); ++i){
-			EdgeBase* e = vEdges[i];
+			EdgeBase* e = vEdges[vInds[i]];
 			vVrtDump.push_back(e->vertex(0));
 			vVrtDump.push_back(e->vertex(1));
 		}
-		
+
 	//	now collect the unique vertices in vVrtDump
 		CollectUniqueObjects(vLocalVrts, vVrtDump);
 		
@@ -238,7 +238,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 																	vLocalVrts[2], vLocalVrts[3]));
 				break;
 			default:
-				LOG("  LoadGridFromART: bad number of vertices in face! 3 or 4 supported.\n");
+				LOG("  LoadGridFromART: bad number of vertices in face: " << numVrts << " (3 or 4 supported).\n");
 				continue;
 		};
 
@@ -282,11 +282,11 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 //TODO:	make sure that all indices are in the correct ranges
 		vVrtDump.clear();
 		for(size_t i = 0; i < vInds.size(); ++i){
-			Face* f = vFaces[i];
+			Face* f = vFaces[vInds[i]];
 			for(size_t j = 0; j < f->num_vertices(); ++j)
 				vVrtDump.push_back(f->vertex(j));
 		}
-		
+
 	//	now collect the unique vertices in vVrtDump
 		CollectUniqueObjects(vLocalVrts, vVrtDump);
 
@@ -317,7 +317,7 @@ bool LoadGridFromART(Grid& grid, const char* filename,
 																vLocalVrts[6], vLocalVrts[7]));
 				break;
 			default:
-				LOG("  LoadGridFromART: bad number of vertices in volume! 4, 5, 6 or 8 supported.\n");
+				LOG("  LoadGridFromART: bad number of vertices in volume: " << numVrts << " (4, 5, 6 or 8 supported).\n");
 				continue;
 		};
 

@@ -23,7 +23,7 @@ enum ElementStatus
 
 
 class DistributedGridManager : public GridObserver
-{
+{	
 	public:
 		DistributedGridManager();
 		DistributedGridManager(MultiGrid& grid);
@@ -69,7 +69,12 @@ class DistributedGridManager : public GridObserver
 	 *  until this method is called.*/
 		void end_ordered_element_insertion();
 		
-		
+	/**	returns a list of pairs (procID, index) that tells for each element
+	 *	where in which interfaces it lies.*/
+	 	template <class TElem>
+	 	void CollectInterfaceEntries(std::vector<std::pair<int, int> >& vEntriesOut,
+									TElem* elem);
+									
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);
@@ -78,6 +83,8 @@ class DistributedGridManager : public GridObserver
 		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL);
 		//virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt);
 		//virtual void vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew);
+
+		virtual void edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent = NULL);
 		
 	protected:
 		template <class TGeomObj>
@@ -116,6 +123,7 @@ class DistributedGridManager : public GridObserver
 
 				typedef std::list<Entry>				EntryList;
 				typedef typename EntryList::iterator	EntryIterator;
+				typedef typename EntryList::const_iterator	ConstEntryIterator;
 				
 			//	methods
 				ElementInfo()	: m_status(ES_NONE)			{}
@@ -130,6 +138,9 @@ class DistributedGridManager : public GridObserver
 				inline EntryIterator entries_begin()		{return m_entries.begin();}
 				inline EntryIterator entries_end()			{return m_entries.end();}
 				
+				inline ConstEntryIterator entries_begin() const	{return m_entries.begin();}
+				inline ConstEntryIterator entries_end() const	{return m_entries.end();}
+
 				size_t get_local_id(EntryIterator iter)		{return iter->first->get_local_id(iter->second);}
 				int get_target_proc(EntryIterator iter)		{return iter->first->get_target_proc();}
 				
