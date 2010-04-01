@@ -477,6 +477,13 @@ adjust_initial_selection()
 				mark_for_refinement(e->vertex(i));
 		}
 	}
+	
+//	set rule for all marked vertices
+	for(VertexBaseIterator iter = m_selMarks.begin<VertexBase>();
+		iter != m_selMarks.end<VertexBase>(); ++iter)
+	{
+		set_rule(*iter, RM_COPY);
+	}
 }
 
 void MultiGridRefiner::
@@ -542,6 +549,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 							if(get_copy_range() > 0)
 								vVrts.push_back(f->vertex(j));
 							mark_for_refinement(f->vertex(j));
+							set_rule(f->vertex(j), RM_COPY);
 						}
 					}
 				}
@@ -616,6 +624,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 							if(get_copy_range() > 0)
 								vVrts.push_back(v->vertex(j));
 							mark_for_refinement(v->vertex(j));
+							set_rule(v->vertex(j), RM_COPY);
 						}
 					}
 				}
@@ -625,8 +634,11 @@ select_closure(std::vector<VertexBase*>& vVrts)
 }
 
 void MultiGridRefiner::
-select_copy_elements(std::vector<VertexBase*>& vVrts)
+select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 {
+	if(copyRange == -1)
+		copyRange = get_copy_range();
+		
 	vector<EdgeBase*> 	vEdges;//	vector used for temporary results
 	vector<Face*> 		vFaces;//	vector used for temporary results
 	
@@ -636,16 +648,15 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 	
 //	we'll collect unselected edges, faces and volumes that are in
 //	a neighbourhood to the selection
-	if(get_copy_range() > 0){		
+	if(copyRange > 0){		
 	//	we have to make sure that we'll only collect copy-elements in
 	//	the correct neighbourhood.
 	//	After we processed all elements between iFirst and iEnd, the
 	//	first neighbourhood is done. We may then set iFirst to iEnd and
 	//	iEnd to vVrts.size(), to process the next neighbourhood.
-		size_t iFirst = 0;
 		size_t iEnd = vVrts.size();
 	//	iterate for each neighbourhood
-		for(size_t iNbr = 0; iNbr < get_copy_range(); ++iNbr)
+		for(size_t iNbr = 0; iNbr < copyRange; ++iNbr)
 		{
 		//	iterate over candidates
 			for(size_t i = iFirst; i != iEnd; ++i){
@@ -672,6 +683,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 								if(!m_selMarks.is_selected(e->vertex(j))){
 									mark_for_refinement(e->vertex(j));
 									vVrts.push_back(e->vertex(j));
+									set_rule(e->vertex(j), RM_COPY);
 								}
 							}
 						}
@@ -695,6 +707,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 								if(!m_selMarks.is_selected(f->vertex(j))){
 									mark_for_refinement(f->vertex(j));
 									vVrts.push_back(f->vertex(j));
+									set_rule(f->vertex(j), RM_COPY);
 								}
 							}
 							
@@ -728,6 +741,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts)
 								if(!m_selMarks.is_selected(v->vertex(j))){
 									mark_for_refinement(v->vertex(j));
 									vVrts.push_back(v->vertex(j));
+									set_rule(v->vertex(j), RM_COPY);
 								}
 							}
 							

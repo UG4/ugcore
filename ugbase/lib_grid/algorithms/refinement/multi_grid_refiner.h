@@ -120,7 +120,8 @@ class MultiGridRefiner : public GridObserver
 		
 		void adjust_initial_selection();
 		void select_closure(std::vector<VertexBase*>& vVrts);
-		void select_copy_elements(std::vector<VertexBase*>& vVrts);
+		void select_copy_elements(std::vector<VertexBase*>& vVrts,
+								  int iFirst = 0, int copyRange = -1);
 		
 		inline void set_status(VertexBase* e, StatusMark mark)	{m_aaIntVRT[e] = (m_aaIntVRT[e] & ~MR_STATUS) | mark;}
 		inline void set_status(EdgeBase* e, StatusMark mark)	{m_aaIntEDGE[e] = (m_aaIntEDGE[e] & ~MR_STATUS) | mark;}

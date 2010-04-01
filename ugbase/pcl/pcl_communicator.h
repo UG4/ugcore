@@ -9,10 +9,23 @@
 #include <map>
 #include "common/util/binary_stream.h"
 #include "common/util/stream_pack.h"
-#include "cl_base.h"
+#include "pcl_base.h"
 
 namespace pcl
 {
+////////////////////////////////////////////////////////////////////////
+//	There should be two types of communicators:
+//	- InterfaceCommunicator: Data is exchanged between elements of
+//				interfaces / layouts. CommunicationPolicies are used to
+//				collect and to extract interface-data.
+//				Benefits are low communication overhead and ease of use.
+//
+//	- ProcessCommunicator: Arbitrary data is exchanged between all processes
+//				that are linked by layouts.
+//				Benefits are high flexibility and independency of
+//				interface element order.
+////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////
 //	ParallelCommunicator

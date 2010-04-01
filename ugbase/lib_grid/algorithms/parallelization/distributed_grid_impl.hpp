@@ -11,6 +11,13 @@ namespace ug
 {
 
 template <class TElem>
+bool DistributedGridManager::
+is_interface_element(TElem* elem)
+{
+	return elem_info(elem).get_status() & ES_IN_INTERFACE;
+}
+		
+template <class TElem>
 void DistributedGridManager::
 collect_interface_entries(
 				std::vector<std::pair<int, size_t> >& vEntriesOut,

@@ -595,6 +595,16 @@ class ICommunicationPolicy
 		
 	////////////////////////////////
 	//	COLLECT
+	///	signals the beginning of a layout collection.
+	/**	the default implementation returns true and does nothing else.*/
+		virtual bool
+		begin_layout_collection(Layout* pLayout)	{return true;}
+
+	///	signals the end of a layout collection
+	/**	the default implementation returns true and does nothing else.*/
+		virtual bool
+		end_layout_collection()						{return true;}
+		
 	///	should write data which is associated with the interface elements to the buffer.
 		virtual bool
 		collect(std::ostream& buff, Interface& interface) = 0;

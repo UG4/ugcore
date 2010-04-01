@@ -8,7 +8,7 @@
 #include <iostream>
 #include "mpi.h"
 #include "pcl_methods.h"
-#include "cl_base.h"
+#include "pcl_base.h"
 #include "pcl_communicator.h"
 
 namespace pcl
@@ -41,12 +41,16 @@ send_data(Layout& layout,
 {
 	typename Layout::iterator iter = layout.begin();
 	typename Layout::iterator end = layout.end();
-
+	
+	commPol.begin_layout_collection(&layout);
+	
 	for(; iter != end; ++iter)
 	{
 		ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
 		commPol.collect(stream, layout.interface(iter));
 	}
+	
+	commPol.end_layout_collection();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -56,6 +60,8 @@ send_data(Layout& layout,
 		  ICommunicationPolicy<TLayout>& commPol,
 		  const layout_tags::multi_level_layout_tag&)
 {
+	commPol.begin_layout_collection(&layout);
+	
 	for(size_t i = 0; i < layout.num_levels(); ++i)
 	{
 		typename Layout::iterator iter = layout.begin(i);
@@ -67,6 +73,8 @@ send_data(Layout& layout,
 			commPol.collect(stream, layout.interface(iter));
 		}
 	}
+	
+	commPol.end_layout_collection();
 }
 		  
 ////////////////////////////////////////////////////////////////////////

@@ -69,6 +69,10 @@ class DistributedGridManager : public GridObserver
 	 *  until this method is called.*/
 		void end_ordered_element_insertion();
 		
+	///	returns true if an element is in one or more interfaces
+		template <class TElem>
+		bool is_interface_element(TElem* elem);
+		
 	/**	returns a list of pairs (procID, index) that tells for each element
 	 *	where in which interfaces it lies.*/
 	 	template <class TElem>
