@@ -104,7 +104,9 @@ num(int subsetIndex, int level) const
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::num_elements(): bad element type.");
 
-	level_required(level);
+	// TODO: Maybe the passed level should be of uint-type
+	// if level does not exist, there are no elements in it
+	if((uint)level >= num_levels()) return 0;
 
 	if(sectionInd < 0)
 		return subset(subsetIndex, level)->m_elements[baseObjID].num_elements();
@@ -148,7 +150,7 @@ num() const
 	uint n = 0;
 	for(size_t i = 0; i < num_subsets(); ++i)
 		n += num<TElem>(i);
-		
+
 	return n;
 }
 
@@ -157,7 +159,7 @@ void MultiGridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)
 {
 	typedef typename geometry_traits<TElem>::iterator iterator;
-	
+
 	for(size_t i = 0; i < m_levels.size(); ++i)
 	{
 		for(iterator iter = begin<TElem>(indOld, i);
