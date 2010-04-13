@@ -47,7 +47,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 	 *	be written that received a mark during communication.
 	 *	Elements will be appended to the existing ones.*/
 		template <class TDistributor, class TCommunicator>
-		void ParallelMultiGridRefiner::
+		void
 		exchange_data(TDistributor& distributor,
 						TCommunicator& communicator,
 						std::vector<typename TDistributor::Element>* pvReceivedElemsOut = NULL);
