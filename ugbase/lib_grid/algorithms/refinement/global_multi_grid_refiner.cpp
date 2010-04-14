@@ -48,7 +48,7 @@ void GlobalMultiGridRefiner::registered_at_grid(Grid* grid)
 	assert(m_pMG && "MultiGridRefiner registered at incopatible grid.");
 }
 
-void MultiGridRefiner::unregistered_from_grid(Grid* grid)
+void GlobalMultiGridRefiner::unregistered_from_grid(Grid* grid)
 {
 	if(m_pMG)
 	{
@@ -57,7 +57,7 @@ void MultiGridRefiner::unregistered_from_grid(Grid* grid)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void MultiGridRefiner::refine()
+void GlobalMultiGridRefiner::refine()
 {
 	assert(m_pMG && "refiner not has to be assigned to a multi-grid!");
 	if(!m_pMG)

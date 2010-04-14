@@ -28,7 +28,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 	public:
 		//ParallelMultiGridRefiner();
 		ParallelMultiGridRefiner(DistributedGridManager& distGridMgr);
-		~ParallelMultiGridRefiner();
+		virtual ~ParallelMultiGridRefiner();
 
 	protected:
 		virtual void collect_objects_for_refine();

@@ -17,7 +17,7 @@ class GlobalMultiGridRefiner : public GridObserver
 	public:
 		GlobalMultiGridRefiner();
 		GlobalMultiGridRefiner(MultiGrid& mg);
-		~GlobalMultiGridRefiner();
+		virtual ~GlobalMultiGridRefiner();
 		
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);

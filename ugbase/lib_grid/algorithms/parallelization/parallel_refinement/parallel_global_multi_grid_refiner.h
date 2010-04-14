@@ -19,7 +19,7 @@ class ParallelGlobalMultiGridRefiner : public GlobalMultiGridRefiner
 	public:
 		//ParallelMultiGridRefiner();
 		ParallelGlobalMultiGridRefiner(DistributedGridManager& distGridMgr);
-		~ParallelGlobalMultiGridRefiner();
+		virtual ~ParallelGlobalMultiGridRefiner();
 
 	protected:
 		virtual void refinement_step_begins();
