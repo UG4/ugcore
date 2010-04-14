@@ -30,6 +30,14 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		ParallelMultiGridRefiner(DistributedGridManager& distGridMgr);
 		virtual ~ParallelMultiGridRefiner();
 
+	///	BE CAREFUL! only for debugging purposes. Enabled by default.
+	/**	Disable communication only if you now what you are doing.
+	 *	Disabled communication can lead to asynchronous pcl-interfaces
+	 *	and thus to severe errors during later communication.*/
+		inline void enable_communication(bool bEnable)		{m_bCommunicationEnabled = bEnable;}
+	///	only for debugging purposes
+		inline bool communication_is_enabled()				{return m_bCommunicationEnabled;}
+		
 	protected:
 		virtual void collect_objects_for_refine();
 
@@ -65,6 +73,8 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		
 	protected:
 		DistributedGridManager& m_distGridMgr;
+		
+		bool m_bCommunicationEnabled;	///< only for debugging purposes
 		
 		std::vector<VertexBase*>	m_vNewlyMarkedInterfaceVrts;
 		std::vector<EdgeBase*>		m_vNewlyMarkedInterfaceEdges;

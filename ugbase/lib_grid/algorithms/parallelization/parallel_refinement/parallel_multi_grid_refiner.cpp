@@ -152,6 +152,7 @@ ParallelMultiGridRefiner() : m_pLayoutMap(NULL)
 ParallelMultiGridRefiner::
 ParallelMultiGridRefiner(DistributedGridManager& distGridMgr) :
 	m_distGridMgr(distGridMgr),
+	m_bCommunicationEnabled(true),
 	MultiGridRefiner(*distGridMgr.get_assigned_grid())
 {
 }
@@ -165,38 +166,41 @@ void ParallelMultiGridRefiner::
 exchange_data(TDistributor& distributor,
 				TCommunicator& communicator,
 				std::vector<typename TDistributor::Element>* pvReceivedElemsOut)
-{	
-	GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
+{
+	if(communication_is_enabled())
+	{
+		GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
 
-//	send data SLAVE -> MASTER
-	communicator.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
-									distributor);
-	communicator.communicate();
-	
-//	mark received elements
-	mark_received_elements(distributor);
-	
-//	store received elements in the given vector
-	if(pvReceivedElemsOut)
-	{
-		const vector<typename TDistributor::Element>& vElems = distributor.get_new_marks();
-		for(size_t i = 0; i < vElems.size(); ++i)
-			pvReceivedElemsOut->push_back(vElems[i]);
-	}
-			
-//	send data MASTER -> SLAVE
-	communicator.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
-									distributor);
-	communicator.communicate();
-	
-	mark_received_elements(distributor);
-	
-//	store received elements in the given vector
-	if(pvReceivedElemsOut)
-	{
-		const vector<typename TDistributor::Element>& vElems = distributor.get_new_marks();
-		for(size_t i = 0; i < vElems.size(); ++i)
-			pvReceivedElemsOut->push_back(vElems[i]);
+	//	send data SLAVE -> MASTER
+		communicator.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
+										distributor);
+		communicator.communicate();
+		
+	//	mark received elements
+		mark_received_elements(distributor);
+		
+	//	store received elements in the given vector
+		if(pvReceivedElemsOut)
+		{
+			const vector<typename TDistributor::Element>& vElems = distributor.get_new_marks();
+			for(size_t i = 0; i < vElems.size(); ++i)
+				pvReceivedElemsOut->push_back(vElems[i]);
+		}
+				
+	//	send data MASTER -> SLAVE
+		communicator.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
+										distributor);
+		communicator.communicate();
+		
+		mark_received_elements(distributor);
+		
+	//	store received elements in the given vector
+		if(pvReceivedElemsOut)
+		{
+			const vector<typename TDistributor::Element>& vElems = distributor.get_new_marks();
+			for(size_t i = 0; i < vElems.size(); ++i)
+				pvReceivedElemsOut->push_back(vElems[i]);
+		}
 	}
 }
 
