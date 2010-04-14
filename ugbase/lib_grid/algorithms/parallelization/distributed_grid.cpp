@@ -952,7 +952,7 @@ void DistributedGrid::edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld,
 	handle_replaced_element(edgeOld, edgeNew, m_pCommSet->edgeGroup);
 }
 
-#endif __OLD_IMPLEMENTATION__
+#endif //__OLD_IMPLEMENTATION__
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of protected methods.

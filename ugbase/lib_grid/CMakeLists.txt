@@ -36,6 +36,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/refinement/hanging_node_refiner.cpp
 					algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
+					algorithms/refinement/global_multi_grid_refiner.cpp
 					algorithms/subdivision/subdivision_loop.cpp)
 					
 set(srcFileIO	file_io/file_io_art.cpp
@@ -68,7 +69,8 @@ if(COMPILE_WITH_PCL)
 	set(srcParallelization	algorithms/parallelization/distribution_util.cpp
 							algorithms/parallelization/grid_distribution.cpp
 							algorithms/parallelization/distributed_grid.cpp
-							algorithms/parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp)
+							algorithms/parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
+							algorithms/parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp)
 
 else(COMPILE_WITH_PCL)
 	# give a warning that pcl will not be compiled.
