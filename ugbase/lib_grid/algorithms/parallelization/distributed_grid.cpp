@@ -14,6 +14,7 @@ namespace ug
 DistributedGridManager::
 DistributedGridManager()
 {
+	m_bOrderedInsertionEnabled = true;
 	m_bOrderedInsertionMode = false;
 	m_pGrid = NULL;
 }
@@ -21,6 +22,7 @@ DistributedGridManager()
 DistributedGridManager::
 DistributedGridManager(MultiGrid& grid)
 {
+	m_bOrderedInsertionEnabled = true;
 	m_bOrderedInsertionMode = false;
 	m_pGrid = NULL;
 	assign(grid);
@@ -288,11 +290,14 @@ void
 DistributedGridManager::
 end_ordered_element_insertion()
 {
-//TODO: support all elements
-	perform_ordered_element_insertion(m_vrtMap);
-	perform_ordered_element_insertion(m_edgeMap);
+	if(m_bOrderedInsertionMode && m_bOrderedInsertionEnabled){
+	//TODO: support all elements
+		perform_ordered_element_insertion(m_vrtMap);
+		perform_ordered_element_insertion(m_edgeMap);
 
-	clear_scheduled_elements();
+		clear_scheduled_elements();
+	}
+
 	m_bOrderedInsertionMode = false;
 }
 
@@ -342,6 +347,10 @@ handle_created_element(TElem* pElem,
 						GeometricObject* pParent)
 {
 	elem_info(pElem).set_status(ES_NONE);
+	
+//	only for debug purposes
+	if(!m_bOrderedInsertionEnabled)
+		return;
 		
 //	if there is no parent, we can immediatly leave.
 	if(!pParent)

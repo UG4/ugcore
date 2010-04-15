@@ -81,6 +81,9 @@ class DistributedGridManager : public GridObserver
 						TElem* elem);
 
 
+	///ONLY FOR DEBUG PURPOSES
+		void enable_ordered_element_insertion(bool bEnable)	{m_bOrderedInsertionEnabled = bEnable;}
+		
 	////////////////////////////////
 	//	grid callbacks
 		virtual void registered_at_grid(Grid* grid);
@@ -197,6 +200,8 @@ class DistributedGridManager : public GridObserver
 	protected:
 		MultiGrid*		m_pGrid;
 		GridLayoutMap	m_gridLayoutMap;
+		
+		bool m_bOrderedInsertionEnabled;///<only for debug purposes
 		
 		bool m_bOrderedInsertionMode;
 		
