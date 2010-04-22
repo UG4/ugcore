@@ -66,7 +66,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 {
 //	the original grid may not be altered
 	Grid grid = g;
-	
+
 //	we need subset-handlers that operate on the local grid
 	SubsetHandler shFaces(grid, SHE_FACE);
 	SubsetHandler shVolumes(grid, SHE_VOLUME);
@@ -76,7 +76,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 //	fix orientation of faces
 	for(int i = 0; i < shFaces.num_subsets(); ++i)
 		FixOrientation(grid, shFaces.begin<Face>(i), shFaces.end<Face>(i));
-	
+
 //	initialization
 	EdgeSelector	LineSel(grid);
 	VertexSelector 	NgVrtSel(grid);
@@ -96,7 +96,6 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 	CollectSurfaceVertices(grid, shFaces, SurfVrtSel);
 	CollectInnerVertices(grid, InnVrtSel, SurfVrtSel);
 	CollectAllVerticesForNG(grid, NgVrtSel, SurfVrtSel, InnVrtSel);
-
 
 
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -153,7 +152,6 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 			aaSurfVrtIndex[*SVIter] = counter;
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 	string lgmFilename(fileNamePrefix);
 	lgmFilename.append(".lgm");
 //	write *.lgm file

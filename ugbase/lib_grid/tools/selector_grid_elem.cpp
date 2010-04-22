@@ -65,19 +65,27 @@ void TElemSelector<BaseElem>::assign_grid(Grid& grid)
 template <class BaseElem>
 void TElemSelector<BaseElem>::clear_lists()
 {
-	get_section_container<VertexBase>().clear();
-	get_section_container<EdgeBase>().clear();
-	get_section_container<Face>().clear();
-	get_section_container<Volume>().clear();
+	if(elements_are_supported(SE_VERTEX))
+		get_section_container<VertexBase>().clear();
+	if(elements_are_supported(SE_EDGE))
+		get_section_container<EdgeBase>().clear();
+	if(elements_are_supported(SE_FACE))
+		get_section_container<Face>().clear();
+	if(elements_are_supported(SE_VOLUME))
+		get_section_container<Volume>().clear();
 }
 
 template <class BaseElem>
 void TElemSelector<BaseElem>::clear()
 {
-	clear<VertexBase>();
-	clear<EdgeBase>();
-	clear<Face>();
-	clear<Volume>();
+	if(elements_are_supported(SE_VERTEX))
+		clear<VertexBase>();
+	if(elements_are_supported(SE_EDGE))
+		clear<EdgeBase>();
+	if(elements_are_supported(SE_FACE))
+		clear<Face>();
+	if(elements_are_supported(SE_VOLUME))
+		clear<Volume>();
 }
 
 template <class BaseElem>

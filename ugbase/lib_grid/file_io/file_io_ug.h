@@ -17,7 +17,8 @@ namespace ug
  * lgmName, problemName and convex correlate to the parameters that appear
  * at the beginning of each lgm-file.
  */
-bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHandler& shVolume,
+bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace,
+					const SubsetHandler& shVolume,
 					const char* fileNamePrefix, const char* lgmName,
 					const char* problemName, int convex);
 

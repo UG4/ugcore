@@ -83,6 +83,11 @@ assign_subset(TElemPtr elem, int subsetIndex, int elemType)
 		ISubsetHandler::iterator iter = m_subsets[subsetIndex]->m_elements[elemType].insert(elem, elem->shared_pipe_section());
 		subset_assigned(elem, iter, subsetIndex);
 	}
+	else {
+//TODO:	iterator is useless!
+		subset_assigned(elem, ISubsetHandler::iterator(), -1);
+	}
+
 }
 
 void GridSubsetHandler::assign_subset(VertexBase* elem, int subsetIndex)

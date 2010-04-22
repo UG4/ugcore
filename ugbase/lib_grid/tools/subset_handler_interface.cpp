@@ -128,7 +128,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 							srcGrid->begin<Volume>(), srcGrid->end<Volume>());
 		}
 		
-		LOG(endl);
+		//LOG(endl);
 //TODO:	copy attachments!?!
 	}
 	
