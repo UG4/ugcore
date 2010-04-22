@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "extruder_util.h"
-#include "extrusion/extrusion.h"
+#include "extrusion/extrude.h"
 
 namespace ug
 {

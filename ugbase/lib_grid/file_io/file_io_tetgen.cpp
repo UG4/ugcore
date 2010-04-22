@@ -76,6 +76,11 @@ bool SaveGridToELE(Grid& grid, const char* filename, ISubsetHandler* pSH,
 		sFaces.append(".face");
 	}
 	
+//	give a warning if the grid doesn't consist of tetrahedrons only.
+	if(grid.num<Tetrahedron>() < grid.num<Face>()){
+		UG_LOG("  INFO in SaveGridToELE: Non-tetrahedral elements will be skipped.\n");
+	}
+	
 //	if a subset-handler was supplied we have to copy its subset-indices
 //	to a simple int-attachment.
 	if(pSH)

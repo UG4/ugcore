@@ -69,12 +69,11 @@ GridSubsetHandler::
 assign_subset(TElemPtr elem, int subsetIndex, int elemType)
 {
 	assert((m_pGrid != NULL) && "ERROR in SubsetHandler::assign_subset(): No grid assigned to SubsetHandler.");
-
 	subset_required(subsetIndex);
 
 //	check if we have to remove elem from a subset.
 	int oldIndex = get_subset_index(elem);
-	
+
 	if(oldIndex != -1)
 		m_subsets[oldIndex]->m_elements[elemType].erase(get_list_iterator(elem), elem->shared_pipe_section());
 

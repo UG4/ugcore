@@ -143,6 +143,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 	//	first make sure that all volumes are assigned to subsets,
 	//	and that no empty volume-subset is between filled ones.
 		MakeSubsetsConsecutive<Volume>(sh);
+
 	//	the first index for new subsets.
 		int newVolSubsetIndex = GetMaxSubsetIndex<Volume>(sh) + 1;
 	//	iterate through all volumes and assign each, that is not assigned
@@ -153,8 +154,10 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 			if(sh.get_subset_index(*iter) == -1)
 				sh.assign_subset(*iter, newVolSubsetIndex);
 		}
+
 	//	assign all edges to subset -1
 		sh.assign_subset(grid.edges_begin(), grid.edges_end(), -1);
+
 	//	now we'll assign all faces which are no interface
 	//	elements, to subset -1.
 		for(FaceIterator iter = grid.faces_begin();
@@ -187,6 +190,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 				}
 			}
 		}
+
 	//TODO: as soon as the subset-handler supports reordering of subsets
 	//		for each element-type separately, we should bring the face
 	//		subsets in consecutive order.

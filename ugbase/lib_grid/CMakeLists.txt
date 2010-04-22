@@ -21,7 +21,6 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
 					algorithms/grid_statistics.cpp
-					algorithms/extruder_util.cpp
 					algorithms/remeshing/edge_length_adjustment.cpp
 					algorithms/remeshing/simple_grid.cpp
 					algorithms/remeshing/grid_adaption.cpp
@@ -32,7 +31,8 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/geom_obj_util/vertex_util.cpp
 					algorithms/geom_obj_util/volume_util.cpp
 					algorithms/grid_generation/tetrahedralization.cpp
-					algorithms/extrusion/extrusion.cpp
+					algorithms/extrusion/extrude.cpp
+					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/refinement/hanging_node_refiner.cpp
 					algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
