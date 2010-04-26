@@ -258,6 +258,152 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
+						const vector_t& boxMin, const vector_t& boxMax,
+						number* tNearOut, number* tFarOut)
+{
+	number tMin, tMax;
+	number t1, t2;
+	bool bMinMaxSet = false;
+	
+	if(fabs(rayDir.x) > SMALL)
+	{
+		//get xNear and xFar
+		t1 = (boxMin.x - rayFrom.x) / rayDir.x;
+		t2 = (boxMax.x - rayFrom.x) / rayDir.x;
+		if(t1 > t2)
+			std::swap(t1, t2);
+		tMin	= t1;
+		tMax	= t2;
+		bMinMaxSet = true;
+	}
+	else
+	{
+		if(rayFrom.x < boxMin.x)
+			return false;
+		if(rayFrom.x > boxMax.x)
+			return false;
+	}
+	
+	if(fabs(rayDir.y) > SMALL)
+	{
+		//get yNear and yFar
+		t1 = (boxMin.y - rayFrom.y) / rayDir.y;
+		t2 = (boxMax.y - rayFrom.y) / rayDir.y;
+		if(t1 > t2)
+			std::swap(t1, t2);
+		if(bMinMaxSet)
+		{
+			if((t1 <= tMax) && (t2 >= tMin))
+			{
+				tMin = std::max(t1, tMin);
+				tMax = std::max(t2, tMax);
+			}
+			else
+				return false;
+		}
+		else
+		{
+			tMin	= t1;
+			tMax	= t2;
+		}
+		bMinMaxSet = true;
+	}
+	else
+	{
+		if(rayFrom.y < boxMin.y)
+			return false;
+		if(rayFrom.y > boxMax.y)
+			return false;		
+	}
+	
+	if(fabs(rayDir.z) > SMALL)
+	{
+		//get zNear and zFar
+		t1 = (boxMin.z - rayFrom.z) / rayDir.z;
+		t2 = (boxMax.z - rayFrom.z) / rayDir.z;
+		if(t1 > t2)
+			std::swap(t1, t2);
+		if(bMinMaxSet)
+		{
+			if((t1 <= tMax) && (t2 >= tMin))
+			{
+				tMin = std::max(t1, tMin);
+				tMax = std::max(t2, tMax);
+			}
+			else
+				return false;
+		}
+		else
+		{
+			tMin	= t1;
+			tMax	= t2;
+		}
+		bMinMaxSet = true;
+	}
+	else
+	{
+		if(rayFrom.z < boxMin.z)
+			return false;
+		if(rayFrom.z > boxMax.z)
+			return false;		
+	}
+	
+	if(bMinMaxSet)
+	{
+	//	the ray intersects the box
+	//	lets calculate tNear and tFar and return true
+		if(fabs(tMin) > fabs(tMax))
+			std::swap(tMin, tMax);
+		if(tNearOut)
+			*tNearOut = tMin;
+		if(tFarOut)
+			*tFarOut = tMax;
+		return true;
+	}
+	else
+	{
+	//	the ray has no direction -> we'll check if the From-point lies inside the box
+		if(BoxBoundProbe(rayFrom, boxMin, boxMax))
+			return true;
+		else
+			return false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
+						const vector_t& boxMin, const vector_t& boxMax)
+{
+	number tNear, tFar;
+
+	vector_t vDir;
+	VecSubtract(vDir, v2, v1);
+	if(RayBoxIntersection(v1, vDir, boxMin, boxMax, &tNear, &tFar))
+	{
+		if((tNear <= 1.0 && tFar >= 0) || (tNear >= 0 && tFar <= 0))
+			return true;
+	}
+
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+bool BoxBoxIntersection(const vector_t& box1Min, const vector_t& box1Max,
+						const vector_t& box2Min, const vector_t& box2Max)
+{
+	for(size_t i = 0; i < box1Min.size(); ++i){
+		if(box1Min[i] > box2Max[i] || box1Max[i] < box2Min[i])
+			return false;
+	}
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
 number TriangleArea(const vector_t& p1, const vector_t& p2, const vector_t& p3)
 {
 //	the projection of p3 onto the line defined by p1 and p2
@@ -291,6 +437,20 @@ number TriangleQuality_Area(const vector_t& p1, const vector_t& p2,
 //	a triangle whose sides have all zero length is considered to be a bad triangle.
 	return 0;
 }
+
+////////////////////////////////////////////////////////////////////////
+//	BoxBoundProbe
+template <class vector_t>
+bool BoxBoundProbe(const vector_t& v, const vector_t& boxMin,
+					const vector_t& boxMax)
+{
+	for(size_t i = 0; i < v.size(); ++i){
+		if(v[i] < boxMin[i] || v[i] > boxMax[i])
+			return false;
+	}
+	return true;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron

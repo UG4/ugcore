@@ -27,6 +27,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 add_subdirectory(common)
 
 ########################
+# node_tree
+add_subdirectory(node_tree)
+
+########################
 # lib_grid
 add_subdirectory(lib_grid)
 

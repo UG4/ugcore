@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 2.6)
+
+################################################
+# node-tree
+################################################
+
+project(P_NODE_TREE)
+
+include_directories(${P_UGBASE_SOURCE_DIR})
+
+set(srcNodeTree	boxed_group_node.cpp
+				collision_edges_node.cpp
+				collision_triangles_node.cpp
+				collision_tree_root_node.cpp
+				group_node.cpp
+				traverser.cpp
+				octree.cpp)
+
+set(srcTraversers	traversers/traverser_distance_point_to_geom.cpp)
+
+add_library(node_tree ${srcNodeTree} ${srcTraversers})

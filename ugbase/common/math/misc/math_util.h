@@ -91,6 +91,8 @@ void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 //	RayTriangleIntersection
 ///	calculates the intersection of a ray with a triangle
 /**
+ * vector_t has to feature a x, y and z component.
+ *
  * You have to pass the triangles corners through p0, p1, p2
  * together with a point on the ray (vFrom) and the rays
  * direction (vDir).
@@ -112,6 +114,8 @@ bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, num
 //	RayTriangleIntersection
 ///	calculates the intersection of a ray with a triangle
 /**
+ * vector_t has to feature a x, y and z component.
+ *
  * You have to pass the triangles corners through p0, p1, p2
  * together with a point on the ray (vFrom) and the rays
  * direction (vDir).
@@ -125,6 +129,69 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
 						   const vector_t &p1, const vector_t &p2, 
 						   const vector_t &vFrom, const vector_t &vDir);
 
+////////////////////////////////////////////////////////////////////////
+//	RayBoxIntersection
+///	checks if a ray is intersecting a box
+/**
+ * vector_t has to feature a x, y and z component.
+ *
+ * \param tNearOut: can be NULL
+ * \param tFarOut: can be NULL
+ *
+ * to check whether the line segment between rayFrom and rayFrom+rayDir
+ * intersects the box check if ((tNear <= 1.0 && tFar >= 0) || (tNear >= 0 && tFar <= 0))
+ *
+ * \sa LineBoxIntersection
+ */
+template <class vector_t>
+bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
+						const vector_t& boxMin, const vector_t& boxMax,
+						number* tNearOut = NULL, number* tFarOut = NULL);
+
+////////////////////////////////////////////////////////////////////////
+///	checks whether the given line-segment (v1, v2) intersect the given box.
+/**
+ * vector_t has to feature a x, y and z component.
+ *
+ * \sa RayBoxIntersection
+ */
+template <class vector_t>
+bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
+						const vector_t& boxMin, const vector_t& boxMax);
+
+////////////////////////////////////////////////////////////////////////
+//	TriBoxIntersection
+//	opposed to most of the other methods here, TriBoxIntersection is not
+//	a template method. Instead it directly operates on the built in
+//	vector3 type. This is due to its implementation, which is taken
+//	from 'Game Programming Gems'. Please have a look at the copyright notice
+//	in 'tri_box.cpp'.
+////////////////////////////////////////////////////////////////////////
+///	checks whether a triangle and an axis-aligned box intersect.
+/**
+ * \param p0, p1, p2: the corners of the triangle.
+ * \param boxMin: has to contain the minimal-coordinates of the box.
+ * \param boxMax: has to contain the maximal-coordinates of the box.
+ */
+bool TriangleBoxIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
+							 const MathVector<3>& p2,
+							 const MathVector<3>& boxMin, const MathVector<3>& boxMax);
+						
+////////////////////////////////////////////////////////////////////////
+///	checks whether two boxes intersect.
+/**	Make sure that all parameters have the same size.*/
+template <class vector_t>
+bool BoxBoxIntersection(const vector_t& box1Min, const vector_t& box1Max,
+						const vector_t& box2Min, const vector_t& box2Max);
+
+////////////////////////////////////////////////////////////////////////
+//	BoxBoundProbe
+///	Returns true if the point lies inside or on the boundary of the box
+/**	v.size() has to be the same or less than boxMin.size() and boxMax.size().
+ *	If this condition is met, the method supports vectors of arbitrary dimension.*/
+template <class vector_t>
+bool BoxBoundProbe(const vector_t& v, const vector_t& boxMin,
+					const vector_t& boxMax);
 
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the are of the triangle defined by p1, p2 and p3
@@ -152,7 +219,6 @@ number GeometricApproximationDegree(vector_t& n1, vector_t& n2, vector_t& n3,
 template <class vector_t>
 number TriangleQuality_Area(const vector_t& p1, const vector_t& p2,
 							const vector_t& p3);
-
 
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron

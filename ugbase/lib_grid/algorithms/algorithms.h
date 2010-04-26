@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__ALGORITHMS__
 
 #include "trees/kd_tree_static.h"
+#include "trees/octree.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "grid_generation/grid_generation.h"
 #include "refinement/hanging_node_refiner.h"

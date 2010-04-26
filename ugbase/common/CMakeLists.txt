@@ -13,7 +13,8 @@ set(srcCommon	log.cpp
 				util/loader/loader_obj.cpp
 				util/stream_pack.cpp
 				math/math_vector_matrix/math_matrix.cpp
-				math/math_vector_matrix/math_vector.cpp)
+				math/math_vector_matrix/math_vector.cpp
+				math/misc/tri_box.cpp)
 				
 set(srcProfiler	profiler/src/ShinyManager.cpp
 				profiler/src/ShinyNode.cpp
