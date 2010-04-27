@@ -11,11 +11,21 @@
 namespace ug
 {
 
-
+////////////////////////////////////////////////////////////////////////
+//	SPOctree
+/**	This typedef is only intended to increase comfort for callers.
+ *	The Octree can be passed to all traversers to which the original
+ *	CollisionTreeRootNode could be passed too.
+ *	\sa node_tree::SPCollisionTreeRootNode
+ */
+typedef node_tree::SPCollisionTreeRootNode SPOctree;
 
 ////////////////////////////////////////////////////////////////////////
 ///	Creates an Octree from a list of edges or triangles.
 /**
+ * This method returns a SmartPointer to an Octree. You may access
+ * all public members using the -> operator.
+ *
  * The elements to which the iterators point have to be derivates of
  * ug::EdgeBase or ug::Face and have to represent edges or triangles.
  * Furthermore all elements between elemsBegin and elemsBegin have to 
@@ -29,7 +39,7 @@ namespace ug
  * This method internally uses the ug::node_tree::CreateOctree method.
  */
 template <class TIterator>
-node_tree::SPCollisionTreeRootNode
+SPOctree
 CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 			int maxDepth, int elemThreshold, bool bLoose,
 			APosition& aPos = aPosition);

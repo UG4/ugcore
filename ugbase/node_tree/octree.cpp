@@ -54,7 +54,7 @@ CalculateBoundingBox(vector3& boxMinOut, vector3& boxMaxOut,
 		return;
 	}
 	
-	boxMinOut = boxMaxOut = points[0];
+	boxMinOut = boxMaxOut = points[inds[0]];
 	
 	for(size_t i = 0; i < numInds; ++i){
 		for(size_t j = 0; j < 3; ++j)
@@ -69,11 +69,28 @@ CalculateBoundingBox(vector3& boxMinOut, vector3& boxMaxOut,
 }
 
 ////////////////////////////////////////////////////////////////////////
+/**	Increases the size of the bounding box by scaling around its center*/
+static void GrowBox(vector3& minInOut, vector3& maxInOut, number scaleFac)
+{
+	vector3 halfDiag;
+	VecSubtract(halfDiag, maxInOut, minInOut);
+	VecScale(halfDiag, halfDiag, 0.5);
+	VecScale(halfDiag, halfDiag, scaleFac);
+	
+	vector3 center;
+	VecAdd(center, minInOut, maxInOut);
+	VecScale(center, center, 0.5);
+	
+	VecAdd(maxInOut, center, halfDiag);
+	VecSubtract(minInOut, center, halfDiag);
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CreateOctree
 SPCollisionTreeRootNode 
 CreateOctree(vector3* points, size_t numPoints,
 			  int* elemInds, size_t numElemInds, int numIndsPerElem,
-			  OctreeElementID* elemIDs, int maxDepth,
+			  CollisionElementID* elemIDs, int maxDepth,
 			  int elemThreshold, bool bLoose)
 {
 //	if there are no elements, we'll return an empty node
@@ -87,6 +104,7 @@ CreateOctree(vector3* points, size_t numPoints,
 //	calculate the bounding-box of the tree
 	vector3 boxMin, boxMax;
 	CalculateBoundingBox(boxMin, boxMax, points, numPoints);
+	GrowBox(boxMin, boxMax, 1.001);
 	
 //	create the root-node
 	SPCollisionTreeRootNode spRootNode = CollisionTreeRootNode::create();
@@ -111,7 +129,7 @@ CreateOctree(vector3* points, size_t numPoints,
 void CreateSubOctrees(BoxedGroupNode* parentNode,
 					  vector3* points, size_t numPoints,
 			  		  int* elemInds, size_t numElemInds, int numIndsPerElem,
-			  		  OctreeElementID* elemIDs, int maxDepth,
+			  		  CollisionElementID* elemIDs, int maxDepth,
 					  int elemThreshold, bool bLoose)
 {
 //	the maximal number of indices per element.
@@ -138,8 +156,8 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 		boxSize.z = boxMax.z - boxMin.z;
 		
 	//	we'll store index-lists of subtrees in those vectors
-		vector<int> 			vNewElems;
-		vector<OctreeElementID>	vNewIDs;
+		vector<int> 				vNewElems;
+		vector<CollisionElementID>	vNewIDs;
 //TODO:	check whether vNewElems.reserve amd vNewIDs.reserve would result in a speedup.
 
 	//	if a loose tree shall be generated, we'll have to record
@@ -206,6 +224,8 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 			//	Since it is a loose tree, we'll have to readjust the box
 				CalculateBoundingBox(subBoxMin, subBoxMax, points,
 									&vNewElems.front(), vNewElems.size());
+									
+				GrowBox(subBoxMin, subBoxMax, 1.001);
 			}
 			else{
 //TODO:	check whether moving the element-iteration into the switch would
@@ -273,15 +293,14 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 	//	We have to distinguish between the different element-types
 		switch(numIndsPerElem){
 		case 2://	edges
-//TODO: add support for edges
-			{/*
+			{
 				SPCollisionEdgesNode spNode = CollisionEdgesNode::create();
 				if(elemIDs)
 					spNode->add_edges(elemInds, elemIDs, numElemInds / 2);
 				else
 					spNode->add_edges(elemInds, numElemInds / 2);
 					
-				parentNode->add_child(spNode);*/
+				parentNode->add_child(spNode);
 			}
 			break;
 			

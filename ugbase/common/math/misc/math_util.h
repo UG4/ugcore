@@ -63,9 +63,14 @@ number ProjectPointToRay(vector_t& vOut, const vector_t& v,
  * The method returns the distance.
  */
 template <class vector_t>
+inline
 number DistancePointToLine(const vector_t& v, const vector_t& v1,
 						  const vector_t& v2);
 
+template <class vector_t>
+number DistancePointToLine(number& tOut, const vector_t& v,
+						   const vector_t& v1, const vector_t& v2);
+						  
 ////////////////////////////////////////////////////////////////////////
 ///	calculates the distance of a point to a ray
 /*
@@ -76,8 +81,33 @@ number DistancePointToLine(const vector_t& v, const vector_t& v1,
  * The method returns the distance.
  */
 template <class vector_t>
+inline
 number DistancePointToRay(const vector_t& v, const vector_t& from,
 						  const vector_t& dir);
+
+template <class vector_t>
+inline
+number DistancePointToRay(number& tOut, const vector_t& v,
+						  const vector_t& from, const vector_t& dir);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the minimal distance of a point to a triangle.				
+/**	Distance is measured between the point p and the point on the
+ *	triangle which is closest to p.
+ *
+ *	The triangle is defined by the three corner-points v1, v2 and v3.
+ *
+ *	n specifies the normal of the triangle. It does not have do be normalized.
+ *
+ *	The closest point on the triangle is written to vOut. Its barycentric
+ *	coordinate is written to bc1Out and bc2Out.
+ *
+ *	The method returns the minimal distance of the point to the triangle.
+ */
+template <class vector_t>
+number DistancePointToTriangle(vector_t& vOut, number& bc1Out, number& bc2Out,
+							const vector_t& p, const vector_t& v1, const vector_t& v2,
+							const vector_t& v3, const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
 ///	projects v onto the plane defined by the point p and the planes normal n.

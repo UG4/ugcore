@@ -4,6 +4,7 @@
 
 #include <queue>
 #include "lib_grid/lib_grid.h"
+#include "common/profiler/profiler.h"
 #include "simple_grid.h"
 #include "edge_length_adjustment.h"
 
@@ -207,6 +208,7 @@ template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
 bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 				TAAPosVRT& aaPos, TAANormVRT& aaNorm, TAAIntVRT& aaInt)
 {	
+	PROFILE_FUNC();
 	LOG("  performing swaps\n");
 	int numSwaps = 0;
 	
@@ -366,6 +368,7 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  number minEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 					  TAAIntVRT& aaInt)
 {	
+	PROFILE_FUNC();
 	LOG("  performing collapses\n");
 	int numCollapses = 0;
 //	compare squares
@@ -449,6 +452,7 @@ template <class TAAPosVRT, class TAANormVRT>
 bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  number maxEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm)
 {
+	PROFILE_FUNC();
 //	compare squares
 	maxEdgeLen *= maxEdgeLen;
 
@@ -509,11 +513,15 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 					  number minEdgeLen, number maxEdgeLen, int numIterations,
 					  bool projectPoints)
 {
+	PROFILE_FUNC();
 //TODO: check crease-marks and fixed marks.
 //		make sure that edge-collapse leaves the grid regular.
 //		swaps should be the final operation
 //		separate collapses, swaps and splits
 
+//	replace this by a template parameter
+	APosition aPos = aPosition;
+	
 //	we need a reference grid and reference marks
 	Grid* pRefGrid = &gridIn;
 	SubsetHandler* pRefMarks = &shMarksIn;
@@ -548,7 +556,13 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 
 	Grid& grid = gridOut;
 	SubsetHandler& shMarks = shMarksOut;
-
+		
+//	make sure that grid and pRefGrid have position-attachments
+	if(!(grid.has_vertex_attachment(aPos) && pRefGrid->has_vertex_attachment(aPos))){
+		UG_LOG("  vertex-position-attachment missing in AdjustEdgeLength. Aborting.\n");
+		return false;
+	}
+	
 //	make sure that faces create associated edges
 	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 	{
@@ -557,9 +571,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	}
 
 	LOG("adjusting edge length\n");
-
-//	replace this by a template parameter
-	APosition aPos = aPosition;
 
 //	position attachment
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
@@ -585,6 +596,20 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	EdgeSelector esel(grid);
 	esel.enable_selection_inheritance(false);
 
+//	sort the triangles of pRefGrid into a octree to speed-up projection performance
+	PROFILE_BEGIN(octree_construction);
+	SPOctree octree = CreateOctree(*pRefGrid, pRefGrid->begin<Triangle>(),
+									pRefGrid->end<Triangle>(),
+									15, 30, false, aPos);
+	PROFILE_END();
+	
+	node_tree::Traverser_ProjectPoint pojectionTraverser;
+	
+	if(!octree.is_valid()){
+		UG_LOG("  Octree creation failed in AdjustEdgeLength. Aborting.\n");
+		return false;
+	}
+	
 //	start the main iteration
 	for(int iteration = 0; iteration < numIterations; ++iteration)
 	{
@@ -604,9 +629,10 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 			return false;
 
 	//	relocate points
-		LOG("  relocating points...");
+		LOG("  smoothing points...");
 		//if(0)
 		{
+			PROFILE_BEGIN(smoothing_points);
 			vector<vector3> vNodes;
 			vector<VertexBase*> vNeighbours;
 			for(int i = 0; i < 10; ++i){
@@ -634,6 +660,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 					RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, 0.1);
 				}
 			}
+			PROFILE_END();
 		}
 		LOG(" done\n");
 
@@ -642,12 +669,19 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		//if(0)
 		{
 			LOG("  projecting points...");
-
+			PROFILE_BEGIN(projecting_points);
 			for(VertexBaseIterator iter = grid.vertices_begin();
 				iter != grid.vertices_end(); ++iter)
 			{
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
 				vector3 vNew;
+				if(pojectionTraverser.project(aaPos[*iter], octree)){
+					aaPos[*iter] = pojectionTraverser.get_closest_point();
+				}
+				else{
+					LOG("f");
+				}
+/*
 				if(ProjectPointToSurface(vNew, aaPos[*iter], aaNorm[*iter],
 										pRefGrid->begin<Triangle>(),
 										pRefGrid->end<Triangle>(), aaPosRef, true))
@@ -657,7 +691,10 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 				else{
 					LOG("f");
 				}
+*/
+				
 			}
+			PROFILE_END();
 			LOG(" done\n");
 		}
 	}

@@ -14,7 +14,7 @@
 #include "collision_edges_node.h"
 
 #include "traverser.h"
-#include "traversers/traverser_distance_point_to_geom.h"
+#include "traversers/traverser_project_point.h"
 
 #include "octree.h"
 

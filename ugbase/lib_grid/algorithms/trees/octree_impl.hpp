@@ -15,7 +15,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	CreateOctree
 template <class TIterator>
-node_tree::SPCollisionTreeRootNode
+SPOctree
 CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 			int maxDepth, int elemThreshold, bool bLoose,
 			APosition& aPos)
@@ -26,7 +26,7 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 		return node_tree::SPCollisionTreeRootNode(NULL);
 
 //	access the position attachment of the grid.	
-	if(grid.has_vertex_attachment(aPos)){
+	if(!grid.has_vertex_attachment(aPos)){
 		UG_LOG(logMsgPrefix << "vertex-attachment missing: aPos\n");
 		return node_tree::SPCollisionTreeRootNode(NULL);
 	}
@@ -52,7 +52,7 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 //	create the vElems and the vPoints arrays.
 	std::vector<vector3> 	vPoints;
 	std::vector<int>		vElems;
-	std::vector<node_tree::OctreeElementID> vElemIDs;
+	std::vector<node_tree::CollisionElementID> vElemIDs;
 	
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
 		typename TIterator::value_type elem = *iter;

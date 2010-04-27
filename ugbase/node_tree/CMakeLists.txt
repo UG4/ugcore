@@ -16,6 +16,7 @@ set(srcNodeTree	boxed_group_node.cpp
 				traverser.cpp
 				octree.cpp)
 
-set(srcTraversers	traversers/traverser_distance_point_to_geom.cpp)
+set(srcTraversers	traversers/traverser_collision_tree.cpp
+				traversers/traverser_project_point.cpp)
 
 add_library(node_tree ${srcNodeTree} ${srcTraversers})

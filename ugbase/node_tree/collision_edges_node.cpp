@@ -32,7 +32,7 @@ void CollisionEdgesNode::add_edge(int ind1, int ind2)
 {
 	if(m_bEdgeIDsSupplied)
 	{
-		add_edge(ind1, ind2, -1);
+		add_edge(ind1, ind2, CollisionElementID());
 	}
 	else
 	{
@@ -42,13 +42,14 @@ void CollisionEdgesNode::add_edge(int ind1, int ind2)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void CollisionEdgesNode::add_edge(int ind1, int ind2, int edgeID)
+void CollisionEdgesNode::
+add_edge(int ind1, int ind2, CollisionElementID edgeID)
 {
 	if(!m_bEdgeIDsSupplied)
 	{
 		m_bEdgeIDsSupplied = true;
 		if(num_edges() > 0)
-			m_vEdgeIDs.resize(num_edges(), -1);
+			m_vEdgeIDs.resize(num_edges());
 	}
 
 	m_vEdges.push_back(ind1);
@@ -62,7 +63,7 @@ void CollisionEdgesNode::add_edges(int* pIndices, int numEdges)
 	int maxEdge = m_vEdges.size() / 2;
 	
 	if(m_bEdgeIDsSupplied)
-		m_vEdgeIDs.resize(maxEdge + numEdges, -1);
+		m_vEdgeIDs.resize(maxEdge + numEdges);
 	
 	int startEdge = m_vEdges.size();
 //	resize m_vEdges
@@ -74,7 +75,8 @@ void CollisionEdgesNode::add_edges(int* pIndices, int numEdges)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void CollisionEdgesNode::add_edges(int* pIndices, int* pEdgeIDs, int numEdges)
+void CollisionEdgesNode::
+add_edges(int* pIndices, CollisionElementID* pEdgeIDs, int numEdges)
 {
 	int maxEdge = m_vEdges.size() / 2;
 	
@@ -82,7 +84,7 @@ void CollisionEdgesNode::add_edges(int* pIndices, int* pEdgeIDs, int numEdges)
 		m_vEdgeIDs.resize(maxEdge + numEdges);
 	else
 	{
-		m_vEdgeIDs.resize(maxEdge + numEdges, -1);
+		m_vEdgeIDs.resize(maxEdge + numEdges);
 		m_bEdgeIDsSupplied = true;
 	}
 
@@ -127,25 +129,27 @@ const int* CollisionEdgesNode::get_edges() const
 }
 
 ////////////////////////////////////////////////////////////////////////
-void CollisionEdgesNode::set_edge_id(int edgeIndex, int edgeID)
+void CollisionEdgesNode::
+set_edge_id(int edgeIndex, CollisionElementID edgeID)
 {
 	if(!m_bEdgeIDsSupplied)
 	{
 		m_bEdgeIDsSupplied = true;
 		if(num_edges() > 0)
-			m_vEdgeIDs.resize(num_edges(), -1);
+			m_vEdgeIDs.resize(num_edges());
 	}
 
 	m_vEdgeIDs[edgeIndex] = edgeID;
 }
 
 ////////////////////////////////////////////////////////////////////////
-int CollisionEdgesNode::get_edge_id(int edgeIndex)
+CollisionElementID CollisionEdgesNode::
+get_edge_id(int edgeIndex)
 {
 	if(m_bEdgeIDsSupplied)
 		return m_vEdgeIDs[edgeIndex];
 
-	return -1;
+	return CollisionElementID();
 }
 
 }//	end of namespace node_tree

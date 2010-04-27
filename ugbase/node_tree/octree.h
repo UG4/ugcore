@@ -13,12 +13,6 @@
 namespace ug{
 namespace node_tree
 {
-
-///	Associated with triangles in the octree.
-/**	Allows to associate user-data with octree-triangles.
- *	Can either be a void-pointer or an int-entry.*/
-typedef CollisionTrianglesNode::TriangleID OctreeElementID;
-
 ////////////////////////////////////////////////////////////////////////
 //	CreateOctree
 ///	Creates an Octree from a list of elements
@@ -44,8 +38,8 @@ typedef CollisionTrianglesNode::TriangleID OctreeElementID;
  * \param numIndsPerElem: The number of points required to describe an element.
  *					Please note, that currently only 2 or 3 are supported.
  *
- * \param triangleIDs: Array of size numElemInds / numIndsPerElem, that allows
- *				to specify an identifier associated with each triangle in the oct-tree.
+ * \param elemIDs: Array of size numElemInds / numIndsPerElem, that allows
+ *				to specify an identifier associated with each element in the oct-tree.
  *				This parameter may be NULL.
  *
  * \param maxDepth: Maximal depth of the generated trees.
@@ -56,7 +50,7 @@ typedef CollisionTrianglesNode::TriangleID OctreeElementID;
 SPCollisionTreeRootNode 
 CreateOctree(vector3* points, size_t numPoints,
 			  int* elemInds, size_t numElemInds, int numIndsPerElem,
-			  OctreeElementID* elemIDs, int maxDepth,
+			  CollisionElementID* elemIDs, int maxDepth,
 			  int elemThreshold, bool bLoose);
 
 
@@ -74,8 +68,6 @@ CreateOctree(vector3* points, size_t numPoints,
  * Arrays passed to this method will be copied to the resulting tree
  * and may thus be deleted after the method returned.
  *
- * \todo: the CollisionEdgesNode is not created in the moment, since
- *		the IDType is not yet fully integrated.
  *
  * \param parentNode: The tree-node into which created trees shall be inserted.
  *
@@ -92,8 +84,8 @@ CreateOctree(vector3* points, size_t numPoints,
  * \param numIndsPerElem: The number of points required to describe an element.
  *					Please note, that currently only 2 and 3 are supported.
  *
- * \param triangleIDs: Array of size numElemInds / numIndsPerElem, that allows
- *				to specify an identifier associated with each triangle in the oct-tree.
+ * \param elemIDs: Array of size numElemInds / numIndsPerElem, that allows
+ *				to specify an identifier associated with each element in the oct-tree.
  *				This parameter may be NULL.
  *
  * \param maxDepth: Maximal depth of the generated trees.
@@ -114,7 +106,7 @@ CreateOctree(vector3* points, size_t numPoints,
 void CreateSubOctrees(BoxedGroupNode* parentNode,
 					  vector3* points, size_t numPoints,
 			  		  int* elemInds, size_t numElemInds, int numIndsPerElem,
-			  		  OctreeElementID* elemIDs, int maxDepth,
+			  		  CollisionElementID* elemIDs, int maxDepth,
 					  int elemThreshold, bool bLoose);
 								   
 }//	end of namesapce node_tree

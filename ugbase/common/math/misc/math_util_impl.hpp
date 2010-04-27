@@ -85,34 +85,146 @@ number ProjectPointToRay(vector_t& vOut, const vector_t& v,
 		VecAdd(vOut, from, tmpDir);
 		return s;
 	}
-	else
+	else{
 		vOut = from;
+	}
 	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+inline
 number DistancePointToLine(const vector_t& v, const vector_t& v1,
 						  const vector_t& v2)
 {
+	number t;
+	return DistancePointToLine(t, v, v1, v2);
+}
+
+template <class vector_t>
+number DistancePointToLine(number& tOut, const vector_t& v,
+						   const vector_t& v1, const vector_t& v2)
+{
 	vector_t tmp;
-	number s = DropAPerpendicular(tmp, v, v1, v2);
-	if(s > 1)
+	tOut = DropAPerpendicular(tmp, v, v1, v2);
+	if(tOut > 1){
+		tOut = 1;
 		return VecDistance(v, v2);
-	else if(s < 0)
+	}
+	else if(tOut < 0){
+		tOut = 0;
 		return VecDistance(v, v1);
+	}
 	else
 		return VecDistance(v, tmp);
 }
 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
+inline
 number DistancePointToRay(const vector_t& v, const vector_t& from,
 						  const vector_t& dir)
 {
 	vector_t tmp;
 	ProjectPointToRay(tmp, v, from, dir);
 	return VecDistance(v, tmp);
+}
+
+template <class vector_t>
+inline
+number DistancePointToRay(vector_t& vOut, number& tOut, const vector_t& v,
+						  const vector_t& from, const vector_t& dir)
+{
+	tOut = ProjectPointToRay(vOut, v, from, dir);
+	return VecDistance(v, vOut);
+}
+
+template <class vector_t>
+number DistancePointToTriangle(vector_t& vOut, number& bc1Out, number& bc2Out,
+							const vector_t& p, const vector_t& v1, const vector_t& v2,
+							const vector_t& v3, const vector_t& n)
+{
+//	parameter of line-intersection and of point-ray-projection.
+	number t;
+	
+//	first try an orthogonal projection of p onto the triangle
+	if(RayTriangleIntersection(vOut, bc1Out, bc2Out, t, v1, v2, v3, p, n))
+	{	//min distance found
+		return VecDistance(vOut, p);
+	}
+	
+//	if ortho projection is not in triangle perform edge-point distance
+	number d, tmpDist, tmpT;
+	vector_t vDir, vTmp;
+	int bestIndex = 0;
+	
+	VecSubtract(vDir, v2, v1);
+	d = DistancePointToRay(vOut, t, p, v1, vDir);
+	bc1Out = t; bc2Out = 0;
+	
+	VecSubtract(vDir, v3, v1);
+	tmpDist = DistancePointToRay(vTmp, tmpT, p, v1, vDir);
+	if(tmpDist < d){
+		bestIndex = 1;
+		d = tmpDist;
+		t = tmpT;
+		bc1Out = 0; bc2Out = tmpT;
+		vOut = vTmp;
+	}
+	
+	VecSubtract(vDir, v3, v2);
+	tmpDist = DistancePointToRay(vTmp, tmpT, p, v2, vDir);
+	if(tmpDist < d){
+		bestIndex = 2;
+		d = tmpDist;
+		t = tmpT;
+		bc1Out = 1. - t; bc2Out = t;
+		vOut = vTmp;
+	}
+	
+//	we now have to check whether the projection to an edge was
+//	orthogonal. If not we'll return the distance to a point.
+	if(t > 0 && t < 1){
+		return d;
+	}
+	else{
+		switch(bestIndex){
+			case 0:
+				if(t < 0.5){
+					vOut = v1;
+					bc1Out = 0; bc2Out = 0;
+				}
+				else{
+					vOut = v2;
+					bc1Out = 1; bc2Out = 0;
+				}
+				break;
+				
+			case 1:
+				if(t < 0.5){
+					vOut = v1;
+					bc1Out = 0; bc2Out = 0;
+				}
+				else{
+					vOut = v3;
+					bc1Out = 0; bc2Out = 1;
+				}
+				break;
+			case 2:
+				if(t < 0.5){
+					vOut = v2;
+					bc1Out = 1; bc2Out = 0;
+				}
+				else{
+					vOut = v3;
+					bc1Out = 0; bc2Out = 1;
+				}
+				break;
+		}
+	}
+	
+//	return the distance
+	return VecDistance(p, vOut);
 }
 
 ////////////////////////////////////////////////////////////////////////

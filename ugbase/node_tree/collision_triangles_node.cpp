@@ -44,7 +44,7 @@ void CollisionTrianglesNode::add_triangle(int ind1, int ind2, int ind3)
 
 ////////////////////////////////////////////////////////////////////////
 void CollisionTrianglesNode::add_triangle(int ind1, int ind2, int ind3,
-										  TriangleID triID)
+										  CollisionElementID triID)
 {
 	m_vTris.push_back(ind1);
 	m_vTris.push_back(ind2);
@@ -54,7 +54,7 @@ void CollisionTrianglesNode::add_triangle(int ind1, int ind2, int ind3,
 	{
 		m_bTriangleIDsSupplied = true;
 		if(num_triangles() > 0)
-			m_vTriIDs.resize(num_triangles(), -1);
+			m_vTriIDs.resize(num_triangles());
 	}
 	
 	m_vTriIDs.push_back(triID);
@@ -66,7 +66,7 @@ void CollisionTrianglesNode::add_triangles(int* pIndices, size_t numTris)
 	size_t maxTri = m_vTris.size() / 3;
 	
 	if(m_bTriangleIDsSupplied)
-		m_vTriIDs.resize(maxTri + numTris, -1);
+		m_vTriIDs.resize(maxTri + numTris);
 	
 	size_t startInd = m_vTris.size();
 	
@@ -80,7 +80,7 @@ void CollisionTrianglesNode::add_triangles(int* pIndices, size_t numTris)
 
 ////////////////////////////////////////////////////////////////////////
 void CollisionTrianglesNode::
-add_triangles(int* pIndices, TriangleID* pTriIDs, size_t numTris)
+add_triangles(int* pIndices, CollisionElementID* pTriIDs, size_t numTris)
 {
 	size_t maxTri = m_vTris.size() / 3;
 	
@@ -88,7 +88,7 @@ add_triangles(int* pIndices, TriangleID* pTriIDs, size_t numTris)
 		m_vTriIDs.resize(maxTri + numTris);
 	else
 	{
-		m_vTriIDs.resize(maxTri + numTris, -1);
+		m_vTriIDs.resize(maxTri + numTris);
 		m_bTriangleIDsSupplied = true;
 	}
 
@@ -137,29 +137,29 @@ const int* CollisionTrianglesNode::get_triangles() const
 
 ////////////////////////////////////////////////////////////////////////
 void CollisionTrianglesNode::
-set_triangle_id(size_t triInd, TriangleID triID)
+set_triangle_id(size_t triInd, CollisionElementID triID)
 {
 	if(!m_bTriangleIDsSupplied)
 	{
 		m_bTriangleIDsSupplied = true;
 		if(num_triangles() > 0)
-			m_vTriIDs.resize(num_triangles(), -1);
+			m_vTriIDs.resize(num_triangles());
 	}
 
 	if(triInd >= m_vTriIDs.size())
-		m_vTriIDs.resize(triInd + 1, -1);
+		m_vTriIDs.resize(triInd + 1);
 		
 	m_vTriIDs[triInd] = triID;
 }
 
 ////////////////////////////////////////////////////////////////////////
-CollisionTrianglesNode::TriangleID 
+CollisionElementID
 CollisionTrianglesNode::get_triangle_id(size_t triInd)
 {
 	if(m_bTriangleIDsSupplied)
 		return m_vTriIDs[triInd];
 
-	return -1;
+	return CollisionElementID();
 }
 
 }//	end of namespace node_tree

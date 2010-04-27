@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "node.h"
+#include "collision_element_info.h"
 
 namespace ug{
 namespace node_tree
@@ -31,29 +32,20 @@ typedef SmartPtr<CollisionTrianglesNode> SPCollisionTrianglesNode;
 class CollisionTrianglesNode : public Node
 {
 	public:
-		union TriangleID{
-			TriangleID()						{}
-			TriangleID(void* p)	: m_ptrID(p)	{}
-			TriangleID(int i)	: m_intID(i)	{}
-
-			void* 	m_ptrID;
-			int		m_intID;
-		};
-		
-	public:
 		static SPCollisionTrianglesNode create();
 
 		virtual ~CollisionTrianglesNode();
 
 		virtual void add_triangle(int ind1, int ind2, int ind3);
 		virtual void add_triangle(int ind1, int ind2, int ind3,
-								  TriangleID triID);
+								  CollisionElementID triID);
 		
 	/// pIndices has to be of size numTris*3
 		virtual void add_triangles(int* pIndices, size_t numTris);
 		
 	///	pIndices and pTriIDs have to be of size numTris*3
-		virtual void add_triangles(int* pIndices, TriangleID* pTriIDs,
+		virtual void add_triangles(int* pIndices,
+								   CollisionElementID* pTriIDs,
 								   size_t numTris);
 		
 		virtual size_t num_triangles() const;
@@ -63,17 +55,18 @@ class CollisionTrianglesNode : public Node
 
 		virtual const int* get_triangles() const;
 
-		virtual void set_triangle_id(size_t triInd, TriangleID triID);
+		virtual void set_triangle_id(size_t triInd,
+									 CollisionElementID triID);
 		
 	/// if no identifier has been set for an edge -1 is returned.
-		virtual TriangleID get_triangle_id(size_t triInd);
+		virtual CollisionElementID get_triangle_id(size_t triInd);
 
 	protected:
 		CollisionTrianglesNode();
 
 	protected:
-		typedef std::vector<int>		IndexVec;
-		typedef std::vector<TriangleID>	IDVec;
+		typedef std::vector<int>				IndexVec;
+		typedef std::vector<CollisionElementID>	IDVec;
 
 		IndexVec	m_vTris;
 		IDVec		m_vTriIDs;

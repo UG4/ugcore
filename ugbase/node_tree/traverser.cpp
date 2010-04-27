@@ -18,8 +18,6 @@ Traverser::Traverser()
 //	register handler functions
 	register_handler_function(OC_GROUP_NODE, &Traverser::handle_group);
 	register_handler_function(OC_BOXED_GROUP_NODE, &Traverser::handle_boxed_group);
-	register_handler_function(OC_COLLISION_TREE_ROOT_NODE, &Traverser::handle_collision_tree_root);
-	register_handler_function(OC_COLLISION_EDGES_NODE, &Traverser::handle_collision_edges);
 }
 
 Traverser::~Traverser()
@@ -66,19 +64,6 @@ void Traverser::handle_boxed_group(BoxedGroupNode* boxedGroup)
 
 //	traverse the group
 	handle_group(boxedGroup);
-}
-
-void Traverser::handle_collision_tree_root(CollisionTreeRootNode* collisionTreeRoot)
-{
-	//std::cout << "handling collision tree root" << std::endl;
-
-//	handle the boxed group
-	handle_boxed_group(collisionTreeRoot);
-}
-
-void Traverser::handle_collision_edges(CollisionEdgesNode* collisionEdges)
-{
-	//std::cout << "handling collision edges" << std::endl;
 }
 
 }//	end of namespace node_tree

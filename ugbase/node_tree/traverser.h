@@ -8,7 +8,6 @@
 #include <vector>
 #include "object.h"
 #include "node.h"
-#include "group_node.h"
 
 namespace ug{
 namespace node_tree
@@ -17,12 +16,10 @@ namespace node_tree
 class Traverser;
 class GroupNode;
 class BoxedGroupNode;
-class CollisionTreeRootNode;
-class CollisionEdgesNode;
 
 ////////////////////////////////////////////////////////////////////////
 //	Traverser
-///	a Traverser can be used to traverse a scenegraph.
+///	Derivates of a Traverser can be used to traverse a scenegraph.
 /**
 */
 class Traverser
@@ -31,18 +28,16 @@ class Traverser
 		Traverser();
 		virtual ~Traverser();
 
+	protected:
 		void apply(SPNode& node);
 
 		template<typename HandlerType>
 		void register_handler_function(unsigned int oc, HandlerType func);
 
-	protected:
 		void traverse_object(Object* obj);
 
 		virtual void handle_group(GroupNode* group);
 		virtual void handle_boxed_group(BoxedGroupNode* boxedGroup);
-		virtual void handle_collision_tree_root(CollisionTreeRootNode* collisionTreeRoot);
-		virtual void handle_collision_edges(CollisionEdgesNode* collisionEdges);
 
 	private:
 		bool handler_function_registered(unsigned int oc);

@@ -71,6 +71,9 @@ class SmartPtr : public FreePolicy
 
 		T* get_impl() const	{return m_ptr;}
 		int get_refcount() const {if(m_refCount) return *m_refCount; return 0;}
+
+	///	returns true if the pointer is valid, false if not.
+		inline bool is_valid()		{return m_ptr != NULL;}
 		
 	///	WARNING: this method is dangerous!
 	/**	This method should never be used since it may be removed in future
