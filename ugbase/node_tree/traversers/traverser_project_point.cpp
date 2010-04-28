@@ -5,12 +5,26 @@
 #include <iostream>
 #include "traverser_project_point.h"
 #include "../node_tree.h"
+#include "common/log.h"
+#include "common/profiler/profiler.h"
 
 using namespace std;
 
 namespace ug{
 namespace node_tree
 {
+
+/*
+force_find muss überarbeitet werden:
+Problem: kleinste box in der der knoten liegt hält keine dreiecke.
+Ansatz: Falls nach dem Abarbeiten der nächst kleineren Box der Status
+	noch auf SEARCHING steht, wird er auf FORCE_FIND gesetzt.
+	War der Status auf SEARCHING, wurde aber von Kindknoten oder dem
+	Knoten selbst auf FORCE_FIND gesetzt, so wird über alle Nachbarn
+	der Box iteriert und mit ihnen ein Test durchgeführt.
+	Ist der Status zu Begin der Evaluierung eines Knotens auf FORCE_FIND,
+	so werden gleich alle Kind-Knoten evaluiert.
+*/
 
 Traverser_ProjectPoint::Traverser_ProjectPoint()
 {
@@ -127,8 +141,10 @@ handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode)
 //	if we didn't find an edge force it
 	if(m_searchState == SEARCHING)
 	{
+		PROFILE_BEGIN(tree_force_find);
 		m_searchState = FORCE_FIND;
 		Traverser_CollisionTree::handle_collision_tree_root(colTreeRootNode);
+		PROFILE_END();
 	}
 
 //	pop the rootNode from the stack
