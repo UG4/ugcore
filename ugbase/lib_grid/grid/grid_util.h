@@ -99,8 +99,11 @@ void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool
 
 ////////////////////////////////////////////////////////////////////////
 //	EdgeContains
+///	returns true if the given edge contains the given vertex
+inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt);
+
 ///	returns true if the given edge contains the given vertices
-bool EdgeContains(EdgeBase* e, VertexBase* vrt1, VertexBase* vrt2);
+inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt1, VertexBase* vrt2);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectFaces

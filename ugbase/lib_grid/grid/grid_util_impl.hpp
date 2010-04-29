@@ -11,6 +11,19 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
+//	EdgeContains
+inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt)
+{
+	return e->vertex(0) == vrt || e->vertex(1) == vrt;
+}
+
+inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt1, VertexBase* vrt2)
+{
+	return ((e->vertex(0) == vrt1 && e->vertex(1) == vrt2)
+			|| (e->vertex(1) == vrt1 && e->vertex(0) == vrt2));
+}
+
+////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	new methods
 

@@ -58,6 +58,11 @@ VertexBase* GetConnectedVertex(EdgeVertices* e, Face* f);
 int GetConnectedVertexIndex(Face* f, const EdgeDescriptor& ed);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns the edge in the triangle tri, which does not contain vrt.
+/**	Make sure that tri is a triangle!*/
+EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
+
+////////////////////////////////////////////////////////////////////////
 //	CollectNeighbours
 ///	fills an array with all neighbour-vertices of v.
 /**

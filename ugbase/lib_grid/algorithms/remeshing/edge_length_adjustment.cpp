@@ -301,11 +301,13 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 
 			if((vrtSI[0] == RM_FIXED) || ((vrtSI[0] != RM_NONE) && (vrtSI[1] == RM_NONE))){
 				bestIndex = 0;
+				sg.vertices[newInd] = v[0];
 				newApproxDeg[0] = GeometricApproximationDegree(sg);
 				newShapeDeg[0] = ShapeQualityDegree(sg);
 			}
 			else if((vrtSI[1] == RM_FIXED) || ((vrtSI[1] != RM_NONE) && (vrtSI[0] == RM_NONE))){
 				bestIndex = 1;
+				sg.vertices[newInd] = v[1];
 				newApproxDeg[1] = GeometricApproximationDegree(sg);
 				newShapeDeg[1] = ShapeQualityDegree(sg);
 			}
@@ -336,13 +338,91 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		if(newApproxDeg[bestIndex] > 0.8 * approxDeg)
 		{						
 		//	pick one of the endpoints to be the one that resides
-			VertexBase* vrt = e->vertex(1);
-			if(vrtSI[0] != RM_NONE)
-				vrt = e->vertex(0);
+		//	This has to be done with care, since the residing vertex
+		//	determines which edges will be removed and which will remain
+		//	(this is important, since we want crease edges to remain!).
+		//	If only one of the endpoints lies on a crease or is fixed, the
+		//	decision is easy (the marked one has to remain).
+		//	If both are marked, we have to investigate the triangles which
+		//	are adjacent to the collapsed edge (quadrilaterals don't make
+		//	problems here).
+		//	- If all three corner vertices are marked we have to distinguish:
+		//		(a) all three edges are marked -> abort
+		//		(b) two edges are marked -> the vertex connecting both remains.
+		//		(c) one edge is marked -> the chosen vertex doesn't affect edge-marks.
+		//	- If only the two are marked they don't affect the edge-marks.
+		//	
+		//	Even more care has to be taken if a fixed vertex is involved.
+		//	If case (b) applies and the creas-vertex is has to remain, it
+		//	has to be moved to the position of the fixed-vertex and has to
+		//	be marked fixed itself.
+					
+		//	choose the vertex that shall remain.
+			VertexBase* vrt = e->vertex(0);
+			bestIndex = 0;
+			if(vrtSI[1] != RM_NONE && vrtSI[0] != RM_FIXED)
+			{
+				bestIndex = 1;
+				vrt = e->vertex(1);
+			}
+
+			if(vrtSI[0] != RM_NONE && vrtSI[1] != RM_NONE){
+			//	both are marked. Things are getting complicated now!
+			//	get adjacent faces of e
+				vector<Face*> vFaces;
+				vFaces.reserve(2);
+				CollectFaces(vFaces, grid, e);
 			
+				vector<EdgeBase*> vEdges;
+				vEdges.reserve(4);
+				for(size_t i = 0; i < vFaces.size(); ++i){
+					Face* f = vFaces[i];
+				//	only triangles are interesting
+					if(f->num_edges() == 3){
+					//	get the number of marked edges
+						CollectEdges(vEdges, grid, f);
+					//	count the marked edges
+						int numMarked = 0;
+						for(size_t j = 0; j < vEdges.size(); ++j){
+						//	note that pshMarks exists since vrtSI != RM_NONE
+							if(pshMarks->get_subset_index(vEdges[j]) != RM_NONE)
+								++numMarked;
+						}
+					
+						if(numMarked == 3){
+							return false;	//	case (a) applies
+						}
+						else if(numMarked == 2){
+						//	check which of the vrts is connected to two
+						//	marked edges of the triangle
+							for(size_t j = 0; j < 2; ++j){
+								int numMarked = 0;
+								for(size_t k = 0; k < vEdges.size(); ++k){
+									if(pshMarks->get_subset_index(vEdges[k]) != RM_NONE){
+										if(EdgeContains(vEdges[k], e->vertex(j)))
+											++numMarked;
+									}
+								}
+							//	if numMarked == 2 we found it
+								if(numMarked == 2){
+								//	the connected edge has to be marked as a crease
+									EdgeBase* ce = GetConnectedEdge(grid, e->vertex(j), f);
+									if(ce)
+										pshMarks->assign_subset(ce, RM_CREASE);
+								//	we're done. break
+									break;
+								}
+							}
+						}
+						else{
+						}
+					}
+				}
+			}
+
 		//	collapse the edge
 			CollapseEdge(grid, e, vrt);
-
+			
 		//	assign best position
 			aaPos[vrt] = v[bestIndex];
 		//	assign the normal
@@ -418,18 +498,10 @@ bool TrySplit(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 		VecAdd(n, aaNorm[e->vertex(0)], aaNorm[e->vertex(1)]);
 		VecNormalize(n, n);
 	}
-/*
-	int ni = 0;
-	if(pshMarks)
-		ni = pshMarks->get_subset_index(e);
-*/	
+
 //	split the edge
 	Vertex* vrt = SplitEdge<Vertex>(grid, e, false);
 
-/*
-	if(pshMarks)
-		pshMarks->assign_subset(vrt, ni);
-*/
 //	assign the new position
 	aaPos[vrt] = vCenter;
 
@@ -518,7 +590,18 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 //		make sure that edge-collapse leaves the grid regular.
 //		swaps should be the final operation
 //		separate collapses, swaps and splits
-
+/*
+//	we have to make sure that the mesh consist of triangles only,
+//	since the algorithm would produce bad results if not.
+	if(gridIn.num<Quadrilateral>() > 0)
+	{
+		UG_LOG("  INFO: grid contains quadrilaterals. Attemting to triangulize them.\n");
+				
+//TODO:	not gridIn but a copy of gridIn (pRefGrid) should be triangulated.
+		Triangulate(gridIn, gridIn.begin<Quadrilateral>(),
+					gridIn.end<Quadrilateral>());
+	}
+*/
 //	replace this by a template parameter
 	APosition aPos = aPosition;
 	
@@ -597,17 +680,18 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	esel.enable_selection_inheritance(false);
 
 //	sort the triangles of pRefGrid into a octree to speed-up projection performance
-	PROFILE_BEGIN(octree_construction);
-	SPOctree octree = CreateOctree(*pRefGrid, pRefGrid->begin<Triangle>(),
+	SPOctree octree;
+	node_tree::Traverser_ProjectPoint pojectionTraverser;
+	if(projectPoints){
+		PROFILE_BEGIN(octree_construction);
+		octree = CreateOctree(*pRefGrid, pRefGrid->begin<Triangle>(),
 									pRefGrid->end<Triangle>(),
 									15, 30, false, aPos);
-	PROFILE_END();
-	
-	node_tree::Traverser_ProjectPoint pojectionTraverser;
-	
-	if(!octree.is_valid()){
-		UG_LOG("  Octree creation failed in AdjustEdgeLength. Aborting.\n");
-		return false;
+		PROFILE_END();
+		if(!octree.is_valid()){
+			UG_LOG("  Octree creation failed in AdjustEdgeLength. Aborting.\n");
+			return false;
+		}
 	}
 	
 //	start the main iteration
@@ -630,7 +714,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 
 	//	relocate points
 		LOG("  smoothing points...");
-		//if(0)
 		{
 			PROFILE_BEGIN(smoothing_points);
 			vector<vector3> vNodes;
@@ -666,7 +749,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 
 	//	project points back on the surface
 		if(projectPoints)
-		//if(0)
 		{
 			LOG("  projecting points...");
 			PROFILE_BEGIN(projecting_points);

@@ -138,15 +138,6 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	EdgeContains
-///	returns true if the given edge contains the given vertices
-bool EdgeContains(EdgeBase* e, VertexBase* vrt1, VertexBase* vrt2)
-{
-	return ((e->vertex(0) == vrt1 && e->vertex(1) == vrt2)
-			|| (e->vertex(1) == vrt1 && e->vertex(0) == vrt2));
-}
-
-////////////////////////////////////////////////////////////////////////
 //	CollectFaces
 ///	Collects all faces that exist in the given grid which contain the given edge.
 void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer)
