@@ -57,41 +57,48 @@ get_closest_element_id()
 }
 
 void Traverser_ProjectPoint::handle_group(GroupNode* group)
-{	
+{
 	SearchState tSearchState = m_searchState;
 	switch(tSearchState)
 	{
 		case SEARCHING:
-		case FORCE_FIND:
 			{
 			//	traverse each subnode
 				int numChildren = group->num_children();
-				int i;
 
-				for(i = 0; i < numChildren; ++i)
+				for(int i = 0; i < numChildren; ++i)
 				{
 					traverse_object(group->get_child(i).get_impl());
-				//	check if the gotOne state changed during the traversal of the sub-node
-					if(m_searchState == GOT_ONE){
-					//	it did. break the loop and revisit all children of the group.
+				
+				//	check whether the state changed during traversal of
+				//	the i-th subnode
+					if(m_searchState != SEARCHING){
+					//	the state changed. we have to traverse the neighbours
+					//	of this node again, since other boxed-groups may be
+					//	entered now.
+					//	ignore child i (since this has been checked already)
+						for(int j = 0; j < numChildren; ++j)
+						{
+							if(j != i)
+								traverse_object(group->get_child(j).get_impl());
+						}
+					//	all children have been traversed. We're done in here.
 						break;
 					}
 				}
-
-				if(m_searchState == GOT_ONE)
-				{
-				//	the got one state was just enabled.
-				//	We have to recheck all children with m_gotOne enabled.
-				//	ignore child i (since this has been checked already)
-					for(int j = 0; j < numChildren; ++j)
-					{
-						if(j != i)
-							Traverser_CollisionTree::traverse_object(group->get_child(j).get_impl());
-					}			
+			
+			//	At this point we have traversed all child nodes of
+			//	the node. If we're still in SEARCHING mode at this
+			//	point, we have to force a find and re-traverse the
+			//	children.
+				if(m_searchState == SEARCHING){
+					m_searchState = FORCE_FIND;
+					Traverser_CollisionTree::handle_group(group);
 				}
 			}
 			break;
-
+			
+		case FORCE_FIND:
 		case GOT_ONE:
 			{
 			//	traverse all children
@@ -107,23 +114,28 @@ void Traverser_ProjectPoint::handle_boxed_group(BoxedGroupNode* boxedGroup)
 	switch(tSearchState)
 	{
 		case SEARCHING:
-			//	check if the point lies inside the box. If so traverse the group.
+		//	check whether the point lies inside the box.
+		//	If so traverse the group (all children).
 			if(BoxBoundProbe(m_point, boxedGroup->min_corner(),
 							boxedGroup->max_corner()))
 			{
-				Traverser_CollisionTree::handle_boxed_group(boxedGroup);
+				handle_group(boxedGroup);
 			}
 			break;
 
 		case FORCE_FIND:
-			Traverser_CollisionTree::handle_boxed_group(boxedGroup);
+			handle_group(boxedGroup);
 			break;
 
 		case GOT_ONE:
-			if(BoxBoxIntersection(boxedGroup->min_corner(), boxedGroup->max_corner(),
-									m_boxMin, m_boxMax))
+		//	check whether the box around the point being projected, which
+		//	contains all points which could possibly be closer than the
+		//	temporarily closest point, intersects the boxedGroups bounding box.
+			if(BoxBoxIntersection(boxedGroup->min_corner(),
+								  boxedGroup->max_corner(),
+								  m_boxMin, m_boxMax))
 			{
-				Traverser_CollisionTree::handle_boxed_group(boxedGroup);
+				handle_group(boxedGroup);
 			}
 			break;
 	}
@@ -137,8 +149,9 @@ handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode)
 	m_stackRootNodes.push(colTreeRootNode);
 
 //	traverse the node
-	Traverser_CollisionTree::handle_group(colTreeRootNode);
+	handle_group(colTreeRootNode);
 //	if we didn't find an edge force it
+/*
 	if(m_searchState == SEARCHING)
 	{
 		PROFILE_BEGIN(tree_force_find);
@@ -146,7 +159,7 @@ handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode)
 		Traverser_CollisionTree::handle_collision_tree_root(colTreeRootNode);
 		PROFILE_END();
 	}
-
+*/
 //	pop the rootNode from the stack
 	m_stackRootNodes.pop();
 }

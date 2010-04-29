@@ -90,7 +90,7 @@ static bool PerformTetrahedralization(Grid& grid,
 	}
 
 //	call tetrahedralization
-	tetrahedralize("pqYYQ", &in, &out);
+	tetrahedralize(const_cast<char*>("pqYYQ"), &in, &out);
 
 	if(out.numberofpoints < (int)grid.num_vertices()){
 		LOG("  aborting tetrahedralization - bad number of points\n");

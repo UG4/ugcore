@@ -45,7 +45,6 @@ class Traverser
 	private:
 		typedef void (Traverser::*HandlerFunc)(Object* obj);
 		std::vector<HandlerFunc>	m_vHandlerFuncs;
-
 };
 
 

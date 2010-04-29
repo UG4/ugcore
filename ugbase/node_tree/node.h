@@ -42,6 +42,8 @@ typedef SmartPtr<Node> SPNode;
  */
 class Node : public Object
 {
+	friend class Traverser;
+	
 	public:
 		virtual ~Node()	{}
 		
