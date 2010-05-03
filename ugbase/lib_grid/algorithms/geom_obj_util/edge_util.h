@@ -160,6 +160,7 @@ template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 
+								
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

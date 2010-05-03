@@ -35,6 +35,10 @@ add_subdirectory(node_tree)
 add_subdirectory(lib_grid)
 
 ########################
+# lib_grid
+add_subdirectory(lib_ug_script)
+
+########################
 # lib_algebra and lib_discretization
 
 if(WITH_ALGEBRA)
