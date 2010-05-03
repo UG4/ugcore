@@ -560,6 +560,9 @@ void RelocatePointBySmoothing(vector3& vOut, const vector3&v,
 						  size_t numIterations, number stepSize,
 						  std::vector<number>* pvWeights = NULL)
 {
+	if(vNodes.empty())
+		return;
+
 //TODO:	incorporate weights
 //	iterate through all nodes, calculate the direction
 //	from v to each node, and add the scaled sum to v.
@@ -577,7 +580,122 @@ void RelocatePointBySmoothing(vector3& vOut, const vector3&v,
 	}
 }
 
+template <class TAAPosVRT, class TAANormVRT>
+bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
+					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
+					number qualityThreshold)
+{
+	LOG("  fixing bad triangles... ");
+//	iterate through marked edges and check whether adjacent triangles are
+//	badly shaped. If this is the case, then split the non-marked
+//	edges of the triangle.
+//	store newly inserted vertices and smooth them at the end of the algo
+	vector<VertexBase*> vNewVrts;
+	vector<Face*> vFaces;
+	vector<EdgeBase*> vEdges;
+	
+//	we wont assign this selector to the grid until it is clear that
+//	we'll need it.
+	Selector sel;
+	
+	
+	EdgeBaseIterator iter = esel.begin<EdgeBase>();
+	while(iter != esel.end<EdgeBase>())
+	{
+	//	store edge and increase iterator immediatly
+		EdgeBase* e = *iter;
+		++iter;
+		
+	//	get the adjacent faces
+		CollectFaces(vFaces, grid, e);
+		
+	//	check whether one of them is degenerated.
+		for(size_t i = 0; i < vFaces.size(); ++i){
+			Face* f = vFaces[i];
+			number q = FaceQuality(f, aaPos);
+		//	if the quality is smaller than threshold, we have to
+		//	do something
+			if(q < qualityThreshold){
+			//	make sure that the selector is connected to the grid
+				if(sel.get_assigned_grid() == NULL)
+					sel.assign_grid(grid);
+					
+			//	get associated edges and mark them for refinement
+				CollectEdges(vEdges, grid, f);
 
+				for(size_t j = 0; j < vEdges.size(); ++j){
+					if(shMarks.get_subset_index(vEdges[j]) == RM_NONE)
+						sel.select(vEdges[j]);
+				}
+			}
+		}
+	}
+	
+//	if edges have been selected, we'll now call refine.
+	if(sel.get_assigned_grid() != NULL){
+		if(sel.num<EdgeBase>() > 0){
+			if(Refine(grid, sel)){
+				LOG(sel.num<VertexBase>() << " new vertices... ");
+			//	retriangulate surface
+				if(grid.num<Quadrilateral>() > 0)
+					Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>());
+				
+			//	calculate normals, then
+			//	smooth new vertices (all vertices selected in sel).
+				vector<VertexBase*> vNeighbours;
+				vector<vector3> vNodes;
+				
+			//	calculate normals
+				for(VertexBaseIterator iter = sel.begin<VertexBase>();
+						iter != sel.end<VertexBase>(); ++iter)
+				{
+				//	collect neighbour nodes
+					VertexBase* vrt = *iter;
+					CollectNeighbours(vNeighbours, grid, vrt);
+					
+				//	sum their normals and interpolate it
+				//	make sure to only add valid normals
+					vector3 n(0, 0, 0);
+					for(size_t i = 0; i < vNeighbours.size(); ++i){
+						if(!sel.is_selected(vNeighbours[i]))
+							VecAdd(n, n, aaNorm[vNeighbours[i]]);
+					}
+					VecNormalize(aaNorm[vrt], n);
+				}
+				
+			//	repeat smoothing.
+				for(size_t i = 0; i < 5; ++i){
+					for(VertexBaseIterator iter = sel.begin<VertexBase>();
+						iter != sel.end<VertexBase>(); ++iter)
+					{
+						VertexBase* vrt = *iter;
+
+					//	collect the neighbours and project them to the plane
+					//	that is defined by vrt and its normal
+						vector3 v = aaPos[vrt];
+						vector3 n = aaNorm[vrt];
+
+						CollectNeighbours(vNeighbours, grid, vrt);
+						vNodes.resize(vNeighbours.size());
+						
+						for(size_t j = 0; j < vNodes.size(); ++j)
+							ProjectPointToPlane(vNodes[j], aaPos[vNeighbours[j]], v, n);
+						
+					//	perform point relocation
+						RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, 0.05);
+					}
+				}
+			}
+			else{
+				LOG("refine failed!\n");
+				return false;
+			}
+		}
+	}
+	
+	LOG("done\n");
+	return true;
+}
 
 ////////////////////////////////////////////////////////////////////////
 bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMarksOut,
@@ -711,7 +829,18 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
 		if(!PerformSwaps(grid, shMarks, esel, aaPos, aaNorm, aaInt))
 			return false;
-
+/*
+//	This is uncommented, since it didn't help with the problems encountered
+//	in the geometries at that time.
+//	The algorithm however works and may prove useful in the future.
+	//	fix bad triangles
+	//	adjacent to crease-edges badly shaped triangles may occur,
+	//	which have to be treated somehow.
+		esel.clear();
+		esel.select(shMarks.begin<EdgeBase>(RM_CREASE), shMarks.end<EdgeBase>(RM_CREASE));
+		esel.select(shMarks.begin<EdgeBase>(RM_FIXED), shMarks.end<EdgeBase>(RM_FIXED));
+		FixBadTriangles(grid, shMarks, esel, aaPos, aaNorm, 0.1);
+*/
 	//	relocate points
 		LOG("  smoothing points...");
 		{

@@ -101,11 +101,12 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 			aaInt[*iter] = i;
 		//	create the new vertex
 			edgeVrts[i] = *grid.create<Vertex>(*iter);
+			sel.select(edgeVrts[i]);
 		//	caculate new position
 			aaPos[edgeVrts[i]] = CalculateCenter(*iter, aaPos);
 		}
 	}
-	
+
 //	set up face arrays
 	{
 	//	this estimate will be exact in most cases
@@ -150,7 +151,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 			LOG("  WARNING in Refine: could not refine edge.\n");
 		}
 	}
-	
+
 //	refine the selected faces
 	vector<Face*> newFaces;
 	newFaces.reserve(4);
@@ -163,6 +164,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 			if(newVrt){
 				grid.register_element(newVrt, f);
 				aaPos[newVrt] = CalculateCenter(f, aaPos);
+				sel.select(newVrt);
 			}
 
 		//	register the new faces

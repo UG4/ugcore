@@ -27,6 +27,8 @@ namespace ug
  * values. You have to pass it to the algorithm to allow
  * maximal speed for repeated small refinements.
  * 
+ * Newly created vertices will be selected in the selector.
+ *
  * aInt has to be attached to the edges of the grid.
  *
  * If you are interested in rare, big refinements, you may also use
