@@ -167,6 +167,15 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 					TIterator vrtsEnd, AAPosVRT& aaPos,
 					number alpha, int numIterations);
 
+////////////////////////////////////////////////////////////////////////
+///	returns the position of the vertex.
+/**	Main purpose is to allow the use of vertices in template-methods
+ *	that call CalculateCenter*/
+template<class TVertexPositionAttachmentAccessor>
+inline
+typename TVertexPositionAttachmentAccessor::ValueType
+CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
+
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

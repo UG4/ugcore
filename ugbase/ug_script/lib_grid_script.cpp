@@ -581,58 +581,61 @@ namespace script
 bool InitLibGridScript(lua_State* L)
 {
 	using namespace lgscript;
+	using namespace luabind;
 	
-//	bind classes
-	luabind::module(L)[luabind::class_<Grid>("Grid")];
-	luabind::module(L)[luabind::class_<MultiGrid>("MultiGrid")];
+	module(L)[
+	//	bind classes
+		class_<Grid>("Grid"),
+		class_<MultiGrid>("MultiGrid"),
 
-	luabind::module(L)[luabind::class_<SubsetHandler>("SubsetHandler")];
-	luabind::module(L)[luabind::class_<MultiGridSubsetHandler>("MultiGridSubsetHandler")];
+		class_<SubsetHandler>("SubsetHandler"),
+		class_<MultiGridSubsetHandler>("MultiGridSubsetHandler"),
 
-	luabind::module(L)[luabind::class_<MarkerPointManager>("MarkerPointManager")];
+		class_<MarkerPointManager>("MarkerPointManager"),
 
-//	bind methods to lua
-	luabind::module(L)[luabind::def("new_grid", new_grid)];
-	luabind::module(L)[luabind::def("clone_grid", clone_grid)];
-	luabind::module(L)[luabind::def("copy_grid", copy_grid)];
-	luabind::module(L)[luabind::def("delete_grid", delete_grid)];
-	luabind::module(L)[luabind::def("new_multi_grid", new_multi_grid)];
-	luabind::module(L)[luabind::def("delete_multi_grid", delete_multi_grid)];
+	//	bind methods to lua
+		def("new_grid", new_grid),
+		def("clone_grid", clone_grid),
+		def("copy_grid", copy_grid),
+		def("delete_grid", delete_grid),
+		def("new_multi_grid", new_multi_grid),
+		def("delete_multi_grid", delete_multi_grid),
 
-	luabind::module(L)[luabind::def("new_subset_handler", new_subset_handler)];
-	luabind::module(L)[luabind::def("copy_subset_handler", copy_subset_handler)];
-	luabind::module(L)[luabind::def("delete_subset_handler", delete_subset_handler)];
-	luabind::module(L)[luabind::def("new_multi_grid_subset_handler", new_multi_grid_subset_handler)];
-	luabind::module(L)[luabind::def("delete_multi_grid_subset_handler", delete_multi_grid_subset_handler)];
+		def("new_subset_handler", new_subset_handler),
+		def("copy_subset_handler", copy_subset_handler),
+		def("delete_subset_handler", delete_subset_handler),
+		def("new_multi_grid_subset_handler", new_multi_grid_subset_handler),
+		def("delete_multi_grid_subset_handler", delete_multi_grid_subset_handler),
 
-	luabind::module(L)[luabind::def("load_grid", load_grid)];
-	luabind::module(L)[luabind::def("save_grid", save_grid)];
-	luabind::module(L)[luabind::def("load_multi_grid", load_multi_grid)];
-	luabind::module(L)[luabind::def("adjust_subsets_for_ug3", adjust_subsets_for_ug3)];
-	luabind::module(L)[luabind::def("export_grid_to_ug3", export_grid_to_ug3)];
+		def("load_grid", load_grid),
+		def("save_grid", save_grid),
+		def("load_multi_grid", load_multi_grid),
+		def("adjust_subsets_for_ug3", adjust_subsets_for_ug3),
+		def("export_grid_to_ug3", export_grid_to_ug3),
 
-	luabind::module(L)[luabind::def("save_marked_edges_to_obj", save_marked_edges_to_obj)];
-	
-	luabind::module(L)[luabind::def("remove_doubles", remove_doubles)];
-	luabind::module(L)[luabind::def("convert_to_triangle_grid", triangulate)];
-	luabind::module(L)[luabind::def("triangulate", triangulate)];
-	luabind::module(L)[luabind::def("mark_crease_elements", mark_crease_elements)];
-	luabind::module(L)[luabind::def("adjust_edge_length", adjust_edge_length)];
+		def("save_marked_edges_to_obj", save_marked_edges_to_obj),
+		
+		def("remove_doubles", remove_doubles),
+		def("convert_to_triangle_grid", triangulate),
+		def("triangulate", triangulate),
+		def("mark_crease_elements", mark_crease_elements),
+		def("adjust_edge_length", adjust_edge_length),
 
-	luabind::module(L)[luabind::def("extrude_cylinder", extrude_cylinder)];
-	luabind::module(L)[luabind::def("extrude_cylinders", extrude_cylinders)];
-	
-	luabind::module(L)[luabind::def("fracture_to_subset", fracture_to_subset)];
-	luabind::module(L)[luabind::def("frac_extrude", frac_extrude)];
-	
-	luabind::module(L)[luabind::def("tetrahedralize", tetrahedralize)];
+		def("extrude_cylinder", extrude_cylinder),
+		def("extrude_cylinders", extrude_cylinders),
+		
+		def("fracture_to_subset", fracture_to_subset),
+		def("frac_extrude", frac_extrude),
+		
+		def("tetrahedralize", tetrahedralize),
 
-	luabind::module(L)[luabind::def("separate_regions", separate_regions)];
-	
-	luabind::module(L)[luabind::def("new_markers", new_markers)];
-	luabind::module(L)[luabind::def("delete_markers", delete_markers)];
-	luabind::module(L)[luabind::def("load_markers", load_markers)];
-	luabind::module(L)[luabind::def("snap_markers_to_vertices", snap_markers_to_vertices)];
+		def("separate_regions", separate_regions),
+		
+		def("new_markers", new_markers),
+		def("delete_markers", delete_markers),
+		def("load_markers", load_markers),
+		def("snap_markers_to_vertices", snap_markers_to_vertices)
+	];
 
 	return true;
 }

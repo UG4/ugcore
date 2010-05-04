@@ -39,12 +39,16 @@ namespace script
 bool InitLibDiscScript(lua_State* L)
 {
 	using namespace ldscript;
-
+	using namespace luabind;
+	
+	module(L)[
 //	bind classes
-	luabind::module(L)[luabind::class_<P1ConformDoFManager>("P1ConformDoFManager")];
+		class_<P1ConformDoFManager>("P1ConformDoFManager"),
 
 //	bind methods to lua
-	luabind::module(L)[luabind::def("new_P1ConformDoFManager", new_P1ConformDoFManager)];
+		def("new_P1ConformDoFManager", new_P1ConformDoFManager)
+	
+	];
 
 	return true;
 }
