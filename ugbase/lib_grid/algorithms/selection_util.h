@@ -149,6 +149,16 @@ void SelectAssociatedFaces(TSelector& sel,
  */
 void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
 
+////////////////////////////////////////////////////////////////////////
+//	SelectSmoothEdgePath
+///	selects for each selected edge all edges that can be reached by a smooth path.
+/**
+ * \param thresholdDegree defines the maximal degree at which the angle
+ *			between two edges is regarded as smooth. Between 0 and 180.
+ * \todo: replace aPos by an template AttachmentAccessor TAAPosVrt.*/ 
+void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
+							APosition& aPos = aPosition);
+
 }// end of namespace
 
 #endif

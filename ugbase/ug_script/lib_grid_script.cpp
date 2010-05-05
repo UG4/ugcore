@@ -13,46 +13,33 @@ using namespace ug;
 
 #define CHECK_POINTER(grid, retVal) {if(!grid){LOG("invalid pointer\n"); return retVal;}}
 
+///	contains all lib_grid related script-functions.
 namespace lgscript
 {
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup objectCreation Object Creation
+ * @{
+ */
+ 
 ////////////////////////////////////////////////////////////////////////
 //	marker points
+///	Creates a MarkerPointManager.
 MarkerPointManager* new_markers()
 {
 	return new MarkerPointManager;
 }
 
+///	Deletes a previously created MarkerPointManager.
 void delete_markers(MarkerPointManager* mpm)
 {
 	CHECK_POINTER(mpm, );
 	delete mpm;
 }
 
-bool load_markers(MarkerPointManager* mpm, const char* filename)
-{
-	CHECK_POINTER(mpm, false);
-	return LoadMarkerPointsFromFile(*mpm, filename);
-}
-
-bool snap_markers_to_vertices(MarkerPointManager* mpm, Grid* grid,
-									number normalOffset)
-{
-	CHECK_POINTER(mpm, false);
-	CHECK_POINTER(grid, false);
-	if(!grid->has_vertex_attachment(aPosition))
-		return false;
-
-	Grid::VertexAttachmentAccessor<APosition> aaPos(*grid, aPosition);
-	
-	for(size_t i = 0; i < mpm->num_markers(); ++i)
-		SnapMarkerPointToGridVertex(mpm->get_marker(i), *grid, normalOffset, aaPos);
-	
-	return true;
-}
-
-
 ////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
+///	Creates an empty grid.
 Grid* new_grid()
 {
 	Grid* grid = new Grid(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
@@ -60,6 +47,7 @@ Grid* new_grid()
 	return grid;
 }
 
+///	Clones a grid.
 Grid* clone_grid(Grid* grid)
 {
 	CHECK_POINTER(grid, NULL);
@@ -68,6 +56,7 @@ Grid* clone_grid(Grid* grid)
 	return clone;
 }
 
+///	Copies a grid to another.
 void copy_grid(Grid* dest, Grid* src)
 {
 	CHECK_POINTER(dest, );
@@ -78,6 +67,7 @@ void copy_grid(Grid* dest, Grid* src)
 	LOG("  grid copied\n");
 }
 
+///	Deletes a previously created grid.
 void delete_grid(Grid* grid)
 {
 	CHECK_POINTER(grid,);
@@ -85,6 +75,7 @@ void delete_grid(Grid* grid)
 	delete grid;
 }
 
+///	Creates a MultiGrid.
 MultiGrid* new_multi_grid()
 {
 	MultiGrid* multigrid = new MultiGrid(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION);
@@ -92,6 +83,7 @@ MultiGrid* new_multi_grid()
 	return multigrid;
 }
 
+///	Deletes a previously created MultiGrid.
 void delete_multi_grid(MultiGrid* multigrid)
 {
 	CHECK_POINTER(multigrid,);
@@ -99,6 +91,7 @@ void delete_multi_grid(MultiGrid* multigrid)
 	delete multigrid;
 }
 
+///	Creates a SubsetHandler.
 SubsetHandler* new_subset_handler(Grid* grid)
 {
 	CHECK_POINTER(grid, NULL);
@@ -106,6 +99,7 @@ SubsetHandler* new_subset_handler(Grid* grid)
 	return new SubsetHandler(*grid);
 }
 
+///	Copies a SubsetHandler to another SubsetHandler.
 void copy_subset_handler(SubsetHandler* dest, SubsetHandler* src)
 {
 	CHECK_POINTER(dest, );
@@ -115,6 +109,7 @@ void copy_subset_handler(SubsetHandler* dest, SubsetHandler* src)
 	LOG("  subset-handler copied\n");
 }
 
+///	Deletes a SubsetHandler.
 void delete_subset_handler(SubsetHandler* sh)
 {
 	CHECK_POINTER(sh, );
@@ -122,6 +117,7 @@ void delete_subset_handler(SubsetHandler* sh)
 	delete sh;
 }
 
+///	Creates a MultiGridSubsetHandler.
 MultiGridSubsetHandler* new_multi_grid_subset_handler(MultiGrid* multigrid)
 {
 	CHECK_POINTER(multigrid, NULL);
@@ -129,6 +125,7 @@ MultiGridSubsetHandler* new_multi_grid_subset_handler(MultiGrid* multigrid)
 	return new MultiGridSubsetHandler(*multigrid);
 }
 
+///	Deletes a MultiGridSubsetHandler.
 void delete_multi_grid_subset_handler(MultiGridSubsetHandler* mg_sh)
 {
 	CHECK_POINTER(mg_sh, );
@@ -136,6 +133,23 @@ void delete_multi_grid_subset_handler(MultiGridSubsetHandler* mg_sh)
 	delete mg_sh;
 }
 
+/**@}*/ // end of objectCreation
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup loadAndSave Load and Save
+ * @{
+ */
+ 
+///	Loads marker points from a file.
+bool load_markers(MarkerPointManager* mpm, const char* filename)
+{
+	CHECK_POINTER(mpm, false);
+	return LoadMarkerPointsFromFile(*mpm, filename);
+}
+
+///	Loads a grid from a file.
 bool load_grid(Grid* grid, SubsetHandler* sh, const char* filename)
 {
 	CHECK_POINTER(grid, false);
@@ -160,6 +174,7 @@ bool load_grid(Grid* grid, SubsetHandler* sh, const char* filename)
 	return bSuccess;
 }
 
+///	Loads a MultiGrid from a file.
 bool load_multi_grid(MultiGrid* multigrid, MultiGridSubsetHandler* mg_sh, const char* filename)
 {
 	CHECK_POINTER(multigrid, false);
@@ -184,6 +199,7 @@ bool load_multi_grid(MultiGrid* multigrid, MultiGridSubsetHandler* mg_sh, const 
 	return bSuccess;
 }
 
+///	Saves a grid to a file.
 bool save_grid(Grid* grid, SubsetHandler* sh, const char* filename)
 {
 	CHECK_POINTER(grid, false);
@@ -210,6 +226,7 @@ bool save_grid(Grid* grid, SubsetHandler* sh, const char* filename)
 	return bSuccess;
 }
 
+///	Saves marked edges to a 'Wavefront .obj' file.
 bool save_marked_edges_to_obj(Grid* grid, SubsetHandler* sh,
 								const char* filename)
 {
@@ -221,6 +238,7 @@ bool save_marked_edges_to_obj(Grid* grid, SubsetHandler* sh,
 	return retVal;
 }
 
+///	Adjusts subsets so that they are compatible with ug3.
 bool adjust_subsets_for_ug3(Grid* pGrid, SubsetHandler* pSH)
 {
 	CHECK_POINTER(pGrid, false);
@@ -231,6 +249,9 @@ bool adjust_subsets_for_ug3(Grid* pGrid, SubsetHandler* pSH)
 	return true;
 }
 
+///	Exports a grid to ug3 (.lgm / .ng).
+/**	Make sure that the subsets in pSH have been adjusted for export.
+ *	\sa adjust_subsets_for_ug3*/
 bool export_grid_to_ug3(Grid* pGrid, SubsetHandler* pSH,
 				const char* fileNamePrefix, const char* lgmName,
 				const char* problemName, int convex)
@@ -268,6 +289,16 @@ bool export_grid_to_ug3(Grid* pGrid, SubsetHandler* pSH,
 						lgmName, problemName, convex);
 }
 
+/**@}*/ // end of loadAndSave
+
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup geometry Geometry
+ * @{
+ */
+///	Converts quadrilaterals to triangles.
 bool triangulate(Grid* grid)
 {
 	CHECK_POINTER(grid, false);
@@ -278,6 +309,7 @@ bool triangulate(Grid* grid)
 	return true;
 }
 
+///	Merges vertices which are closer to each other than a given threshold.
 int remove_doubles(Grid* grid, number threshold)
 {
 	CHECK_POINTER(grid, 0);
@@ -293,6 +325,57 @@ int remove_doubles(Grid* grid, number threshold)
 	return numRemoved;
 }
 
+///	fills a closed triangular surface with tetrahedrons.
+/**	Make sure that the given surface-grid does not contain any
+ *	holes or degenerated faces and make sure that the surface
+ *	does not intersect itself.*/
+bool tetrahedralize(Grid* grid, SubsetHandler* sh)
+{
+	CHECK_POINTER(grid, false);
+	
+	LOG("  tetrahedralizing...");
+	bool bSuccess = false;
+
+	if(sh)
+		bSuccess = Tetrahedralize(*grid, *sh);
+	else
+		bSuccess = Tetrahedralize(*grid);
+
+	if(bSuccess){
+		LOG(" done\n");
+	}
+	else{
+		LOG(" failed\n");
+	}
+
+	return bSuccess;
+}
+
+/**@}*/ // end of geometry
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup marks Marks
+ * @{
+ */
+///	Moves each marker-point to its closest vertex.
+bool snap_markers_to_vertices(MarkerPointManager* mpm, Grid* grid,
+									number normalOffset)
+{
+	CHECK_POINTER(mpm, false);
+	CHECK_POINTER(grid, false);
+	if(!grid->has_vertex_attachment(aPosition))
+		return false;
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(*grid, aPosition);
+	
+	for(size_t i = 0; i < mpm->num_markers(); ++i)
+		SnapMarkerPointToGridVertex(mpm->get_marker(i), *grid, normalOffset, aaPos);
+	
+	return true;
+}
+
+///	Marks edges with a high dihedral angle as crease-edges.
 void mark_crease_elements(Grid* grid, SubsetHandler* shMarks,
 						float creaseAngle)
 {
@@ -316,6 +399,30 @@ void mark_crease_elements(Grid* grid, SubsetHandler* shMarks,
 	LOG(" done\n");
 }
 
+///	marks selected edges as crease elements.
+void mark_selected_edges(Selector* sel, SubsetHandler* shMarks)
+{
+	CHECK_POINTER(sel, );
+	CHECK_POINTER(shMarks, );
+	LOG("  marking selected edges... ");
+	shMarks->assign_subset(sel->begin<EdgeBase>(), sel->end<EdgeBase>(),
+							RM_CREASE);
+							
+	MarkFixedCreaseVertices(*sel->get_assigned_grid(), *shMarks,
+							RM_CREASE, RM_FIXED);
+	
+	LOG("done\n");
+}
+
+/**@}*/ // end of marks
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup optimization Optimization
+ * @{
+ */
+///	Retriangulates the grid so that all edges approximatly have a certain legth.
+/**	Please note that this algorithm only works for triangular grids.*/
 bool adjust_edge_length(Grid* gridOut, SubsetHandler* shOut, SubsetHandler* shMarksOut,
 						Grid* gridIn, SubsetHandler* shIn, SubsetHandler* shMarksIn,
 						float minEdgeLen, float maxEdgeLen, int numIterations, bool bProjectPoints)
@@ -361,6 +468,19 @@ bool adjust_edge_length(Grid* gridOut, SubsetHandler* shOut, SubsetHandler* shMa
 	return bSuccess;
 }
 
+/**@}*/ // end of optimization
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup neuro Neuro
+ * @{
+ */
+ 
+///	Extrudes a cylinder around a given point.
+/**	The algorithm first moves the given point to the closest
+ *	vertex, then adapts the grid around that vertex to the
+ *	given cylinder and then extrudes the triangles which lie
+ *	inside the cylinder.*/
 bool extrude_cylinder(Grid* grid, SubsetHandler* sh, double x, double y, double z,
 					 double height, double radius)
 {
@@ -412,6 +532,8 @@ bool extrude_cylinder(Grid* grid, SubsetHandler* sh, double x, double y, double 
 	return bSuccess;
 }
 
+///	extrudes multiple cylinders.
+/**	\sa extrude_cylinder.*/
 bool extrude_cylinders(Grid* grid, SubsetHandler* sh, MarkerPointManager* mgm,
 					 double height, double radius)
 {
@@ -429,50 +551,15 @@ bool extrude_cylinders(Grid* grid, SubsetHandler* sh, MarkerPointManager* mgm,
 
 	return bSuccess;
 }
+/**@}*/ // end of neuro
 
-bool tetrahedralize(Grid* grid, SubsetHandler* sh)
-{
-	CHECK_POINTER(grid, false);
-	
-	LOG("  tetrahedralizing...");
-	bool bSuccess = false;
 
-	if(sh)
-		bSuccess = Tetrahedralize(*grid, *sh);
-	else
-		bSuccess = Tetrahedralize(*grid);
-
-	if(bSuccess){
-		LOG(" done\n");
-	}
-	else{
-		LOG(" failed\n");
-	}
-
-	return bSuccess;
-}
-
-bool separate_regions(Grid* grid, SubsetHandler* shVolsOut,
-					  SubsetHandler* shFaces, MarkerPointManager* mpm,
-					  int firstSubsetIndex)
-{
-	CHECK_POINTER(grid, false);
-	CHECK_POINTER(shVolsOut, false);
-	CHECK_POINTER(shFaces, false);
-	CHECK_POINTER(mpm, false);
-
-	LOG("  separating regions...");
-	if(SeparateRegions(*grid, *shVolsOut, *shFaces, *mpm, firstSubsetIndex))
-	{
-		LOG(" done\n");
-		return true;
-	}
-	else{
-		LOG(" failed\n");
-		return false;
-	}
-}
-
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup fractures Fractures
+ * @{
+ */
+///	Collects degenerated faces and moves them to the specified subset.
 bool fracture_to_subset(Grid* pGrid, SubsetHandler* pSH,
 						int subsetIndex, number threshold)
 {
@@ -517,6 +604,10 @@ bool fracture_to_subset(Grid* pGrid, SubsetHandler* pSH,
 
 ////////////////////////////////////////////////////////////////////////
 //	frac_extrude
+///	extrudes a 2d geometry. Suited for fractured geometries.
+/**	Extrudes a geometry along the given direction (dirX, dirY, dirZ).
+ *	\param numSecs: defines how many extrusion steps are performed.
+ *	\sa fracture to subset.*/
 bool frac_extrude(Grid* pGrid, SubsetHandler* pSH, int numSecs,
 					number dirX, number dirY, number dirZ)
 {
@@ -561,6 +652,48 @@ bool frac_extrude(Grid* pGrid, SubsetHandler* pSH, int numSecs,
 	return true;
 }
 
+/**@}*/ // end of fractures
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup subsets Subsets
+ * @{
+ */
+///	Separates volume-regions.
+/**	A volume region is a set of volumes, which is surrounded by
+ *	a set of faces.*/
+bool separate_regions(Grid* grid, SubsetHandler* shVolsOut,
+					  SubsetHandler* shFaces, MarkerPointManager* mpm,
+					  int firstSubsetIndex)
+{
+	CHECK_POINTER(grid, false);
+	CHECK_POINTER(shVolsOut, false);
+	CHECK_POINTER(shFaces, false);
+	CHECK_POINTER(mpm, false);
+
+	LOG("  separating regions...");
+	if(SeparateRegions(*grid, *shVolsOut, *shFaces, *mpm, firstSubsetIndex))
+	{
+		LOG(" done\n");
+		return true;
+	}
+	else{
+		LOG(" failed\n");
+		return false;
+	}
+}
+
+/**@}*/ // end of subsets
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+/** \defgroup selection Selection
+ * @{
+ */
+ 
+
+/**@}*/ // end of selection
+
 }//	end of namespace
 
 
@@ -587,7 +720,9 @@ bool InitLibGridScript(lua_State* L)
 	//	bind classes
 		class_<Grid>("Grid"),
 		class_<MultiGrid>("MultiGrid"),
-
+		
+		class_ <Selector>("Selector"),
+		
 		class_<SubsetHandler>("SubsetHandler"),
 		class_<MultiGridSubsetHandler>("MultiGridSubsetHandler"),
 
@@ -634,7 +769,8 @@ bool InitLibGridScript(lua_State* L)
 		def("new_markers", new_markers),
 		def("delete_markers", delete_markers),
 		def("load_markers", load_markers),
-		def("snap_markers_to_vertices", snap_markers_to_vertices)
+		def("snap_markers_to_vertices", snap_markers_to_vertices),
+		def("mark_selected_edges", mark_selected_edges)
 	];
 
 	return true;

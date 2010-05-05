@@ -3,7 +3,9 @@
 // s.b.reiter@googlemail.com
 
 #include <vector>
+#include <stack>
 #include "selection_util.h"
+#include "geom_obj_util/vertex_util.h"
 
 using namespace std;
 
@@ -99,6 +101,124 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 	}
 
 //	thats it. done!
+}
+
+////////////////////////////////////////////////////////////////////////
+//	SelectSmoothEdgePath
+void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
+							APosition& aPos)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+//	access the position attachment
+	assert(grid.has_vertex_attachment(aPos) &&
+			"INFO in SelectSmoothEdgePath: missing position attachment.");
+	
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	
+//	make sure that associated edges can be easily accessed.
+	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES)){
+		UG_LOG("  INFO in SelectSmoothEdgePath: auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
+	}
+	
+//	convert the thresholdDegree to thresholdDot
+	number thresholdDot = cos(deg_to_rad(thresholdDegree));
+	
+//	here we'll store candidates.
+	stack<VertexBase*>	m_candidates;
+	
+//	initially mark all vertices of selected edges as candidates
+	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
+		iter != sel.end<EdgeBase>(); ++iter)
+	{
+	//	we don't care if vertices are pushed twice.
+		m_candidates.push((*iter)->vertex(0));
+		m_candidates.push((*iter)->vertex(1));
+	}
+	
+//	while there are candidates left
+	while(!m_candidates.empty())
+	{
+		VertexBase* srcVrt = m_candidates.top();
+		m_candidates.pop();
+
+	//	search for associated selected edges (there has to be at last one!)
+		EdgeBase* lastEdge = NULL;
+		int counter = 0;
+		
+		for(EdgeBaseIterator iter = grid.associated_edges_begin(srcVrt);
+			iter != grid.associated_edges_end(srcVrt); ++iter)
+		{
+			EdgeBase* e = *iter;
+			if(sel.is_selected(e)){
+				lastEdge = e;
+				++counter;
+			}
+		}
+		
+		assert(lastEdge && "there has to be at least one selected associated edge!");
+		
+	//	if more than one associated selected edge have been found,
+	//	then the vertex has already been completly handled.
+		if(counter > 1)
+			continue;
+			
+	//	the direction of the last edge
+		vector3 lastDir;
+		VecSubtract(lastDir, aaPos[GetConnectedVertex(lastEdge, srcVrt)],
+					aaPos[srcVrt]);
+		VecNormalize(lastDir, lastDir);
+		
+	//	follow the smooth path
+		while(srcVrt)
+		{
+		//	check smoothness for each connected unselected edge
+			EdgeBase* bestEdge = NULL;
+			number bestDot = -1.1;
+			vector3 bestDir(0, 0, 0);
+			
+			int counter = 0;
+			EdgeBaseIterator iterEnd = grid.associated_edges_end(srcVrt);
+			for(EdgeBaseIterator iter = grid.associated_edges_begin(srcVrt);
+				iter != iterEnd; ++iter)
+			{
+				EdgeBase* e = *iter;
+				if(!sel.is_selected(e)){
+				//	check smoothness
+					vector3 dir;
+					VecSubtract(dir, aaPos[srcVrt],
+								aaPos[GetConnectedVertex(e, srcVrt)]);
+					VecNormalize(dir, dir);
+					
+					number d = VecDot(lastDir, dir);
+					if(d > bestDot && d > thresholdDot){
+						bestEdge = e;
+						bestDot = d;
+						bestDir = dir;
+					}
+				}
+				else {
+					counter++;
+				}
+
+			}
+			
+			if((bestEdge != NULL) && (counter < 2)){
+				sel.select(bestEdge);
+			//	the next vertex has to be checked
+				srcVrt = GetConnectedVertex(bestEdge, srcVrt);
+				lastEdge = bestEdge;
+				lastDir = bestDir;
+			}
+			else{
+				srcVrt = NULL;
+			}
+		}
+	}
 }
 
 }//	end of namespace
