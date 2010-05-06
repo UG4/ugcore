@@ -55,6 +55,25 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 						EdgeBase* e, int maxNumFaces);
 
 ////////////////////////////////////////////////////////////////////////
+//	CalculateNormal
+///	Calculates the normal of the given edge
+/**
+ * This method indirectly uses ug::Grid::mark.
+ *
+ * The normal is calculated as the normized sum of associated face normals.
+ * If there are no associated faces, the normal is set to (0, 0, 0) and
+ * 0 is returned.
+ *
+ * \param paaNormFACE: An optional parameter that allows to specify an
+ *						accessor for precalculated face normals.
+ *
+ * \returns the number of faces that are associated with the edge.
+ */
+int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
+					Grid::VertexAttachmentAccessor<APosition>& aaPos,
+					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE = NULL);
+					
+////////////////////////////////////////////////////////////////////////
 //	CollapseEdge
 ///	Collapses the specified edge performs local grid restructuring.
 /**

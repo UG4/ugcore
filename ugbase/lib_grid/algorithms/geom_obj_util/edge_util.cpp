@@ -126,6 +126,45 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
+int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
+					Grid::VertexAttachmentAccessor<APosition>& aaPos,
+					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE)
+{
+	Face* f[2];
+	
+	int numFaces = GetAssociatedFaces(f, grid, e, 2);
+	
+	switch(numFaces){
+	
+	case 0: //	if there are no associated faces we can't calculate a normal
+		vNormOut = vector3(0, 0, 0);
+		break;
+	
+	case 1: //	if there is one face, the normal will be set to the faces normal
+		if(paaNormFACE)
+			vNormOut = (*paaNormFACE)[f[0]];
+		else{
+			CalculateNormal(vNormOut, f[0], aaPos);
+		}
+		break;
+	
+	default: //	there are at least 2 associated faces
+		if(paaNormFACE)
+			VecAdd(vNormOut, (*paaNormFACE)[f[0]], (*paaNormFACE)[f[1]]);
+		else{
+			vector3 fn0, fn1;
+			CalculateNormal(fn0, f[0], aaPos);
+			CalculateNormal(fn1, f[1], aaPos);
+			VecAdd(vNormOut, fn0, fn1);
+		}
+		VecNormalize(vNormOut, vNormOut);
+		break;
+	}
+	
+	return numFaces;
+}
+					
+////////////////////////////////////////////////////////////////////////
 bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt)
 {
 //	prepare the grid, so that we may perform Grid::replace_vertex.

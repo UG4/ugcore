@@ -20,7 +20,8 @@ enum LGBConstants
 };
 
 bool SaveGridToLGB(Grid& grid, const char* filename,
-				   SubsetHandler* pSH, APosition aPos)
+				   SubsetHandler** ppSH, int numSHs,
+				   APosition aPos)
 {
 //	make sure that aPos is attached to the grid
 	if(!grid.has_vertex_attachment(aPos))
@@ -34,7 +35,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	byte endianess = 1;
 	byte intSize = (byte)sizeof(int);
 	byte numberSize = (byte)sizeof(number);
-	int versionNumber = 1;
+	int versionNumber = 2;
 	
 	out.write((char*)&endianess, sizeof(byte));
 	out.write((char*)&intSize, sizeof(byte));
@@ -43,7 +44,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 
 //	the options
 	uint opts = LGBC_POS3D;
-	if(pSH)
+	if(numSHs > 0)
 		opts |= LGBC_SUBSET_HANDLER;
 
 //	write the options
@@ -56,8 +57,12 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	SerializeAttachment<VertexBase>(grid, aPos, out);
 
 //	Serialize the subset-handler
-	if(pSH)
-		SerializeSubsetHandler(grid, *pSH, out);
+	if(numSHs > 0){
+	//	write the number of subset handlers which shall be serialized
+		out.write((char*)&numSHs, sizeof(int));
+		for(int i = 0; i< numSHs; ++i)
+			SerializeSubsetHandler(grid, *ppSH[i], out);
+	}
 
 //	write a magic-number that allows us to check during read
 //	whether everything went ok.
@@ -72,7 +77,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 
 
 bool LoadGridFromLGB(Grid& grid, const char* filename,
-				   SubsetHandler* pSH, APosition aPos)
+				   SubsetHandler** ppSH, int numSHs, APosition aPos)
 {
 //	if aPos is not yet attached to the grid, we'll do it now.
 	if(!grid.has_vertex_attachment(aPos))
@@ -80,7 +85,10 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 
 //	open the outstream
 	ifstream in(filename, ios::binary);
-	if(!in) return false;
+	if(!in){
+		UG_LOG("ERROR in LoadGridFromLGB: couldn't open file: " << filename << endl);
+		return false;
+	}
 
 //	read the header
 	byte endianess;
@@ -96,22 +104,22 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 //	check whether the values are ok
 	if(endianess != 1)
 	{
-		LOG("ERROR during LoadGridFromLGB: wrong endianess\n");
+		LOG("ERROR in LoadGridFromLGB: wrong endianess\n");
 		return false;
 	}
 	if(intSize != sizeof(int))
 	{
-		LOG("ERROR during LoadGridFromLGB: bad integer-size\n");
+		LOG("ERROR in LoadGridFromLGB: bad integer-size\n");
 		return false;
 	}
 	if(numberSize != sizeof(number))
 	{
-		LOG("ERROR during LoadGridFromLGB: bad number-size\n");
+		LOG("ERROR in LoadGridFromLGB: bad number-size\n");
 		return false;
 	}
-	if(versionNumber != 1)
+	if(versionNumber != 2)
 	{
-		LOG("ERROR during LoadGridFromLGB: bad file-version: " << versionNumber << ". Expected 1.\n");
+		LOG("ERROR in LoadGridFromLGB: bad file-version: " << versionNumber << ". Expected 2.\n");
 		return false;
 	}
 
@@ -133,9 +141,16 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 //	Serialize the subset-handler
 	if((opts & LGBC_SUBSET_HANDLER) == LGBC_SUBSET_HANDLER)
 	{
-		if(pSH)
-			DeserializeSubsetHandler(grid, *pSH, in);
-		else
+	//	read number of subset handlers
+		int numSrcSHs;
+		in.read((char*)&numSrcSHs, sizeof(int));
+		
+		int i;
+		for(i = 0; i < min(numSrcSHs, numSHs); ++i)
+			DeserializeSubsetHandler(grid, *ppSH[i], in);
+		
+	//	read the rest
+		for(; i < numSrcSHs; ++i)
 		{
 			SubsetHandler sh(grid);
 			DeserializeSubsetHandler(grid, sh, in);
@@ -149,8 +164,10 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	int magicNumber;
 	in.read((char*)&magicNumber, sizeof(int));
 
-	if(magicNumber != 3478384)
+	if(magicNumber != 3478384){
+		LOG("ERROR in LoadGridFromLGB: Bad magic number at end of file: " << magicNumber << endl);
 		return false;
+	}
 //	done
 	in.close();
 	return true;

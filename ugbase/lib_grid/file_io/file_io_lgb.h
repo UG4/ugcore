@@ -11,16 +11,24 @@ namespace ug
 {
 /**
  * Saves a grid to LibGridBinary-format.
+ * Awaits a list of subset-handler-pointers and the number
+ * of subset-handlers that shall be written.
  */
 bool SaveGridToLGB(Grid& grid, const char* filename,
-				   SubsetHandler* pSH = NULL, APosition aPos = aPosition);
+				   SubsetHandler** ppSH, int numSHs,
+				   APosition aPos = aPosition);
 
 
 /**
  * Loads a grid from LibGridBinary-format.
+ * Awaits a list of subset-handler-pointers and the number
+ * of subset-handlers that shall be read.
+ * Make sure that all passed subset-handlers are already registered
+ * at the grid.
  */
 bool LoadGridFromLGB(Grid& grid, const char* filename,
-				   SubsetHandler* pSH = NULL, APosition aPos = aPosition);
+				   SubsetHandler** ppSH, int numSHs,
+				   APosition aPos = aPosition);
 
 }//	end of namespace
 

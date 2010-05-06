@@ -6,7 +6,7 @@
 #include <stack>
 #include "selection_util.h"
 #include "geom_obj_util/vertex_util.h"
-
+#include "geom_obj_util/edge_util.h"
 using namespace std;
 
 namespace ug
@@ -108,6 +108,8 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 							APosition& aPos)
 {
+	bool bMinimalNormalDeviation = true;
+	
 	if(!sel.get_assigned_grid())
 		return;
 	
@@ -139,7 +141,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 		m_candidates.push((*iter)->vertex(0));
 		m_candidates.push((*iter)->vertex(1));
 	}
-	
+		
 //	while there are candidates left
 	while(!m_candidates.empty())
 	{
@@ -173,13 +175,24 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 					aaPos[srcVrt]);
 		VecNormalize(lastDir, lastDir);
 		
+		vector3 lastNormal;
+		int numInvolvedFaces = CalculateNormal(lastNormal, grid, lastEdge, aaPos);
+		bool bLastNormalValid = (numInvolvedFaces > 0 && numInvolvedFaces < 3);
+		
 	//	follow the smooth path
 		while(srcVrt)
 		{
 		//	check smoothness for each connected unselected edge
 			EdgeBase* bestEdge = NULL;
 			number bestDot = -1.1;
+			number bestNormalDot = -1.1;
 			vector3 bestDir(0, 0, 0);
+			vector3 bestNormal(0, 0, 0);
+			bool bBestNormalValid = false;
+		
+		//	if invalid normals are involved we have to skip further normal
+		//	tests for this edge-set.
+			bool ignoreNormalChecks = false;
 			
 			int counter = 0;
 			EdgeBaseIterator iterEnd = grid.associated_edges_end(srcVrt);
@@ -195,10 +208,49 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 					VecNormalize(dir, dir);
 					
 					number d = VecDot(lastDir, dir);
-					if(d > bestDot && d > thresholdDot){
-						bestEdge = e;
-						bestDot = d;
-						bestDir = dir;
+					if(d > thresholdDot){
+						bool moreChecks = true;
+						bool bNormalValid = false;
+						vector3 n(0, 0, 0);
+					//	if minimal normal deviation is activated, then first try do perform
+					//	the following checks. Take into account, that edges can be connected
+					//	to an arbitrary amount of faces.
+						if(bMinimalNormalDeviation){
+							int numAdjacentFaces = CalculateNormal(n, grid, e, aaPos);
+							bNormalValid = (numAdjacentFaces > 0 && numAdjacentFaces < 3);
+							
+							if(bLastNormalValid && bNormalValid &! ignoreNormalChecks){
+								moreChecks = false;
+							//	check whether the normal dot is better than the last one.
+								number nd = VecDot(lastNormal, n);
+							//	weight the dots to ensure that the better edge is found even
+							//	for equal normal-dots.
+								if((0.9*nd + 0.1*d) > (0.9*bestNormalDot + 0.1*bestDot)){
+									bestEdge = e;
+									bestDot = d;
+									bestDir = dir;
+									bestNormal = n;
+									bestNormalDot = nd;
+									bBestNormalValid = true;
+								}
+							}
+						}
+						
+					//	either bMinimalNormalDeviation was false, or a normal of one
+					//	of the edges was not valid.
+						if(moreChecks){
+							if(d > bestDot){
+								bestEdge = e;
+								bestDot = d;
+								bestDir = dir;
+
+								if(bMinimalNormalDeviation){
+									bestNormal = n;
+									bBestNormalValid = bNormalValid;
+									ignoreNormalChecks = true;
+								}
+							}
+						}
 					}
 				}
 				else {
@@ -213,6 +265,8 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 				srcVrt = GetConnectedVertex(bestEdge, srcVrt);
 				lastEdge = bestEdge;
 				lastDir = bestDir;
+				bLastNormalValid = bBestNormalValid;
+				lastNormal = bestNormal;
 			}
 			else{
 				srcVrt = NULL;

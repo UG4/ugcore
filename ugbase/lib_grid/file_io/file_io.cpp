@@ -28,10 +28,11 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	else if(strName.find(".lgb") != string::npos)
 	{
 		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
+		int numSHs = 0;
 		if(shGrid)
-			bSuccess = LoadGridFromLGB(grid, filename, shGrid, aPos);
-		else
-			bSuccess = false;
+			numSHs = 1;
+		
+		bSuccess = LoadGridFromLGB(grid, filename, &shGrid, numSHs, aPos);
 	}
 	else if(strName.find(".net") != string::npos)
 		bSuccess = LoadGridFromART(grid, filename, pSH, aPos);
@@ -68,7 +69,11 @@ static bool SaveGrid(Grid& grid, const char* filename,
 		return SaveGridToOBJ(grid, filename, aPos, NULL, pSH);
 	else if(strName.find(".lgb") != string::npos)
 	{
-		return SaveGridToLGB(grid, filename, pSH, aPos);
+		int numSHs = 0;
+		if(pSH)
+			numSHs = 1;
+		
+		return SaveGridToLGB(grid, filename, &pSH, numSHs, aPos);
 	}
 	else if(strName.find(".ele") != string::npos)
 		return SaveGridToELE(grid, filename, pSH, aPos);
