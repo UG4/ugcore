@@ -3,10 +3,87 @@
 //	y10 m01 d18
 
 #include "neighbourhood.h"
+#include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
+
+using namespace std;
 
 namespace ug
 {
+							
+////////////////////////////////////////////////////////////////////////
+//
+void CollectSubsetNeighbours(vector<VertexBase*>& vNeighboursOut,
+							Grid& grid, SubsetHandler& sh,
+							VertexBase* vrt, int subsetIndex,
+							uint nbhType)
+{
+//	clear the container
+	vNeighboursOut.clear();
+	
+//	begin marking
+	grid.begin_marking();
+	
+//	mark vrt - this makes things easier
+	grid.mark(vrt);
+	
+//	iterate through associated edges
+	if(nbhType & NHT_EDGE_NEIGHBOURS){
+		EdgeBaseIterator iterEnd = grid.associated_edges_end(vrt);
+		for(EdgeBaseIterator iter = grid.associated_edges_begin(vrt);
+			iter != iterEnd; ++iter)
+		{
+			if(sh.get_subset_index(*iter) == subsetIndex){
+				VertexBase* neighbour = GetConnectedVertex(*iter, vrt);
+				if(!grid.is_marked(neighbour)){
+					grid.mark(neighbour);
+					vNeighboursOut.push_back(neighbour);
+				}
+			}
+		}
+	}
 
+//	iterate through associated faces
+	if(nbhType & NHT_FACE_NEIGHBOURS){
+		FaceIterator iterEnd = grid.associated_faces_end(vrt);
+		for(FaceIterator iter = grid.associated_faces_begin(vrt);
+			iter != iterEnd; ++iter)
+		{
+			if(sh.get_subset_index(*iter) == subsetIndex){
+				Face* f = *iter;
+				for(size_t i = 0; i < f->num_vertices(); ++i){
+					VertexBase* neighbour = f->vertex(i);
+					if(!grid.is_marked(neighbour)){
+						grid.mark(neighbour);
+						vNeighboursOut.push_back(neighbour);
+					}
+				}
+			}
+		}
+	}
+
+//	iterate through associated volumes
+	if(nbhType & NHT_VOLUME_NEIGHBOURS){
+		VolumeIterator iterEnd = grid.associated_volumes_end(vrt);
+		for(VolumeIterator iter = grid.associated_volumes_begin(vrt);
+			iter != iterEnd; ++iter)
+		{
+			if(sh.get_subset_index(*iter) == subsetIndex){
+				Volume* v = *iter;
+				for(size_t i = 0; i < v->num_vertices(); ++i){
+					VertexBase* neighbour = v->vertex(i);
+					if(!grid.is_marked(neighbour)){
+						grid.mark(neighbour);
+						vNeighboursOut.push_back(neighbour);
+					}
+				}
+			}
+		}
+	}
+		
+//	end marking
+	grid.end_marking();
+}
+							
 ////////////////////////////////////////////////////////////////////////
 //	CollectNeighbours
 void CollectNeighbours(std::vector<EdgeBase*>& vNeighboursOut, EdgeBase* e,

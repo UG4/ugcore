@@ -580,6 +580,8 @@ void RelocatePointBySmoothing(vector3& vOut, const vector3&v,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+//	FixBadTriangles
 template <class TAAPosVRT, class TAANormVRT>
 bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
@@ -695,6 +697,77 @@ bool FixBadTriangles(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	
 	LOG("done\n");
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	PerformSmoothing
+template <class TAAPosVRT, class TAANormVRT>
+void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
+					TAAPosVRT& aaPos, TAANormVRT& aaNorm,
+					size_t numIterations, number stepSize)
+{
+	vector<vector3> vNodes;
+	vector<VertexBase*> vNeighbours;
+	for(int i = 0; i < numIterations; ++i){
+		for(VertexBaseIterator iter = grid.begin<VertexBase>();
+			iter != grid.end<VertexBase>(); ++iter)
+		{
+			VertexBase* vrt = *iter;
+		//	if the vertex has marks then leave it where it is
+//TODO:	crease-vertices should be moved, but should only be influenced by associated crease edges
+			if(shMarks.get_subset_index(vrt) == RM_FIXED)
+				continue;
+			
+		//	collect the neighbours and project them to the plane
+		//	that is defined by vrt and its normal
+			vector3 v = aaPos[vrt];
+			vector3 n = aaNorm[vrt];
+
+			bool bProjectPointsToPlane = true;
+			
+			if(shMarks.get_subset_index(vrt) == RM_CREASE){
+				CollectSubsetNeighbours(vNeighbours, grid, shMarks,
+										vrt, RM_CREASE, NHT_EDGE_NEIGHBOURS);
+			//	we have to choose a special normal
+				bool bGotIt = false;
+				if(vNeighbours.size() != 2){
+					UG_LOG("n"<<vNeighbours.size());
+					continue;
+				}
+				else{
+					vector3 v1, v2;
+					VecSubtract(v1, v, aaPos[vNeighbours[0]]);
+					VecSubtract(v2, v, aaPos[vNeighbours[1]]);
+					VecNormalize(v1, v1);
+					VecNormalize(v2, v2);
+					VecAdd(n, v1, v2);
+					if(VecLengthSq(n) > SMALL)
+						VecNormalize(n, n);
+					else {
+					//	both edges have the same direction.
+					//	don't project normals
+						bProjectPointsToPlane = false;
+					}
+				}
+			}
+			else{
+				CollectNeighbours(vNeighbours, grid, vrt);
+			}
+			
+			vNodes.resize(vNeighbours.size());
+
+			if(bProjectPointsToPlane){
+				for(size_t j = 0; j < vNodes.size(); ++j)
+					ProjectPointToPlane(vNodes[j], aaPos[vNeighbours[j]], v, n);
+			}
+			else{
+				for(size_t j = 0; j < vNodes.size(); ++j)
+					vNodes[j] = aaPos[vNeighbours[j]];
+			}
+		//	perform point relocation
+			RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, stepSize);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -843,37 +916,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 */
 	//	relocate points
 		LOG("  smoothing points...");
-		{
-			PROFILE_BEGIN(smoothing_points);
-			vector<vector3> vNodes;
-			vector<VertexBase*> vNeighbours;
-			for(int i = 0; i < 10; ++i){
-				for(VertexBaseIterator iter = grid.begin<VertexBase>();
-					iter != grid.end<VertexBase>(); ++iter)
-				{
-					VertexBase* vrt = *iter;
-				//	if the vertex has marks then leave it where it is
-//TODO:	crease-vertices should be moved, but should only be influenced by associated crease edges
-					if(shMarks.get_subset_index(vrt) != RM_NONE)
-						continue;
-				
-				//	collect the neighbours and project them to the plane
-				//	that is defined by vrt and its normal
-					vector3 v = aaPos[vrt];
-					vector3 n = aaNorm[vrt];
-
-					CollectNeighbours(vNeighbours, grid, vrt);
-					vNodes.resize(vNeighbours.size());
-					
-					for(size_t j = 0; j < vNodes.size(); ++j)
-						ProjectPointToPlane(vNodes[j], aaPos[vNeighbours[j]], v, n);
-					
-				//	perform point relocation
-					RelocatePointBySmoothing(aaPos[vrt], v, vNodes, 5, 0.1);
-				}
-			}
-			PROFILE_END();
-		}
+		PerformSmoothing(grid, shMarks, aaPos, aaNorm, 10, 0.1);
 		LOG(" done\n");
 
 	//	project points back on the surface

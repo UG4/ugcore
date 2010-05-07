@@ -12,7 +12,7 @@ int ng_error(struct ng_info* info, const char* msg)
     if(info)
     {
         info->error = 1;
-        sprintf(err_buf, msg);
+        sprintf(err_buf, "%s", msg);
         if(info->err_msg)
             free((char*)info->err_msg);
         info->err_msg = malloc(strlen(err_buf)+1);

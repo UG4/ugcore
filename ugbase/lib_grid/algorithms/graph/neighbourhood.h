@@ -15,9 +15,27 @@ enum NeighbourhoodType
 {
 	NHT_DEFAULT = 0,
 	NHT_VERTEX_NEIGHBOURS = 1,
-	NHT_EDGE_NEIGHBOURS = 2,
-	NHT_FACE_NEIGHBOURS = 3
+	NHT_EDGE_NEIGHBOURS = 1<<1,
+	NHT_FACE_NEIGHBOURS = 1<<2,
+	NHT_VOLUME_NEIGHBOURS = 1<<3,
+	NHT_ALL = NHT_VERTEX_NEIGHBOURS
+			| NHT_EDGE_NEIGHBOURS
+			| NHT_FACE_NEIGHBOURS
+			| NHT_VOLUME_NEIGHBOURS
 };
+
+////////////////////////////////////////////////////////////////////////
+///	Collects all vertices that are connected by edges in the specified subset.
+/**
+ * This method uses Grid::mark.
+ *
+ * \param nbhType: Accepts or-combinations of any NeighbourhoodType
+ *					enumerated constants.
+ */
+void CollectSubsetNeighbours(std::vector<VertexBase*>& vNeighboursOut,
+							Grid& grid, SubsetHandler& sh,
+							VertexBase* vrt, int subsetIndex,
+							uint nbhType = NHT_ALL);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectNeighbours
