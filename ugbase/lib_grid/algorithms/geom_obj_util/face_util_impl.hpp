@@ -206,38 +206,43 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 						   TTriangleIterator trisBegin, TTriangleIterator trisEnd,
 						   TAAPosVRT& aaPos, bool compareNormals)
 {
-	vector3 vInter;
 	bool gotOne = false;
-	number b1, b2, t;
-	number tBest = 0;	// value doesn't matter - will be overwritten later on.
+	number bestDist = 0;	// value doesn't matter - will be overwritten later on.
 
 //	iterate through all triangles and find the closest intersection
 	for(TTriangleIterator iter = trisBegin; iter != trisEnd; ++iter)
 	{
 		Triangle* tri = *iter;
-		if(RayTriangleIntersection(vInter, b1, b2, t, aaPos[tri->vertex(0)],
-								aaPos[tri->vertex(1)], aaPos[tri->vertex(2)], v, n))
-		{
-		//	check the normal
-			vector3 tn = n;
-			if(compareNormals){
-				CalculateTriangleNormal(tn, aaPos[tri->vertex(0)], aaPos[tri->vertex(1)],
-										aaPos[tri->vertex(2)]);
+		
+		const vector3& p1 = aaPos[tri->vertex(0)];
+		const vector3& p2 = aaPos[tri->vertex(1)];
+		const vector3& p3 = aaPos[tri->vertex(2)];
+		
+		vector3 tn;
+		CalculateTriangleNormalNoNormalize(tn, p1, p2, p3);
+		
+	//	if normal-check is enabled, we have to make sure, that the points
+	//	normal points into the same direction as the triangles normal.
+		if(compareNormals){
+			if(VecDot(tn, n) <= 0)
+				continue;
+		}
+		
+		number bc1, bc2;
+		vector3 vTmp;
+		number distance = DistancePointToTriangle(vTmp, bc1, bc2,
+													v, p1, p2, p3, tn);
+	
+		if(gotOne){
+			if(distance < bestDist){
+				bestDist = distance;
+				vOut = vTmp;
 			}
-		//	the triangle normal and the point - normal should match
-			if(VecDot(tn, n) > 0){
-				if(gotOne){
-					if(fabs(t) < tBest){
-						vOut = vInter;
-						tBest = fabs(t);
-					}
-				}
-				else{
-					gotOne = true;
-					vOut = vInter;
-					tBest = fabs(t);
-				}
-			}
+		}
+		else{
+			gotOne = true;
+			vOut = vTmp;
+			bestDist = distance;
 		}
 	}
 

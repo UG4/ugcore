@@ -155,8 +155,11 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
 /**
  * \param thresholdDegree defines the maximal degree at which the angle
  *			between two edges is regarded as smooth. Between 0 and 180.
+ * \param stopAtSelVrts: If set to true, the edge-path will stop at selected
+ *						vertices.
  * \todo: replace aPos by an template AttachmentAccessor TAAPosVrt.*/ 
 void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
+							bool stopAtSelVrts = true,
 							APosition& aPos = aPosition);
 
 }// end of namespace

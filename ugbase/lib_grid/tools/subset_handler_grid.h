@@ -189,7 +189,8 @@ class GridSubsetHandler : public ISubsetHandler
 		typedef std::vector<Subset*>	SubsetVec;
 
 	protected:
-		SubsetVec		m_subsets;
+		SubsetVec			m_subsets;
+		SectionContainer	m_invalidContainer;///< used to retrieve an invalid begin- and end-iterator
 };
 
 

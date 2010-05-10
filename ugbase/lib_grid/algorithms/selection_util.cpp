@@ -106,7 +106,7 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 ////////////////////////////////////////////////////////////////////////
 //	SelectSmoothEdgePath
 void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
-							APosition& aPos)
+							bool stopAtSelVrts, APosition& aPos)
 {
 	bool bMinimalNormalDeviation = true;
 	
@@ -138,8 +138,12 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 		iter != sel.end<EdgeBase>(); ++iter)
 	{
 	//	we don't care if vertices are pushed twice.
-		m_candidates.push((*iter)->vertex(0));
-		m_candidates.push((*iter)->vertex(1));
+	//	if a vertex is selected and stopAtSelVrts is true,
+	//	then we don't need to push them on the stack.
+		for(size_t i = 0; i < 2; ++i){
+			if(!(stopAtSelVrts && sel.is_selected((*iter)->vertex(i))))
+				m_candidates.push((*iter)->vertex(i));
+		}
 	}
 		
 //	while there are candidates left
@@ -263,6 +267,10 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 				sel.select(bestEdge);
 			//	the next vertex has to be checked
 				srcVrt = GetConnectedVertex(bestEdge, srcVrt);
+			//	make sure that we stop at selected vertices - if desired
+				if(stopAtSelVrts && sel.is_selected(srcVrt))
+					srcVrt = NULL;
+					
 				lastEdge = bestEdge;
 				lastDir = bestDir;
 				bLastNormalValid = bBestNormalValid;

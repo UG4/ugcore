@@ -15,11 +15,35 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
-{
+{	
+	grid.begin_marking();
+	
+//	mark all vertices that are not regular crease-vertices as fixed
+	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(RM_CREASE);
+		iter != shMarks.end<EdgeBase>(RM_CREASE); ++iter)
+	{
+		EdgeBase* e = *iter;
+		for(size_t i = 0; i < 2; ++i){
+			VertexBase* vrt = e->vertex(i);
+			if(!grid.is_marked(vrt)){
+				grid.mark(vrt);
+				int counter = 0;
+				for(EdgeBaseIterator nbIter = grid.associated_edges_begin(vrt);
+					nbIter != grid.associated_edges_end(vrt); ++nbIter)
+				{
+					if(shMarks.get_subset_index(*nbIter) != RM_NONE)
+						++counter;
+				}
+				
+				if(counter != 2)
+					shMarks.assign_subset(vrt, RM_FIXED);
+			}
+		}
+	}
+	
+	grid.end_marking();
+	
 //	mark all vertices that lie on a fixed edge as fixed vertex
-	if(shMarks.num_subsets() <= RM_FIXED)
-		return;
-
 	for(EdgeBaseIterator iter = shMarks.begin<EdgeBase>(RM_FIXED);
 		iter != shMarks.end<EdgeBase>(RM_FIXED); ++iter)
 	{
@@ -45,7 +69,6 @@ static void AssignCreaseVertices(Grid& grid, SubsetHandler& shMarks)
 				shMarks.assign_subset(e->vertex(i), RM_CREASE);
 	}
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -494,9 +517,14 @@ bool TrySplit(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 
 //	the new normal
 	vector3 n;
-	if(bCreaseEdge){
-		VecAdd(n, aaNorm[e->vertex(0)], aaNorm[e->vertex(1)]);
-		VecNormalize(n, n);
+	if(bCreaseEdge){		
+	//	interpolating the normal can cause severe problems at highly
+	//	irregular vertices or if one vertecs lies on a very
+	//	sharp edge (the normals of the endpoints thus point
+	//	in different directions.)
+//		VecAdd(n, aaNorm[e->vertex(0)], aaNorm[e->vertex(1)]);
+//		VecNormalize(n, n);
+		CalculateNormal(n, grid, e, aaPos);
 	}
 
 //	split the edge
@@ -713,11 +741,11 @@ void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 			iter != grid.end<VertexBase>(); ++iter)
 		{
 			VertexBase* vrt = *iter;
-		//	if the vertex has marks then leave it where it is
-//TODO:	crease-vertices should be moved, but should only be influenced by associated crease edges
+		//	if the vertex is fixed then leave it where it is.
 			if(shMarks.get_subset_index(vrt) == RM_FIXED)
 				continue;
-			
+if(shMarks.get_subset_index(vrt) == RM_CREASE)
+	continue;
 		//	collect the neighbours and project them to the plane
 		//	that is defined by vrt and its normal
 			vector3 v = aaPos[vrt];
@@ -929,16 +957,17 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 			{
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
 				vector3 vNew;
-				if(pojectionTraverser.project(aaPos[*iter], octree)){
+				if(pojectionTraverser.project(aaPos[*iter], octree, &aaNorm[*iter])){
 					aaPos[*iter] = pojectionTraverser.get_closest_point();
 				}
 				else{
 					LOG("f");
 				}
+
 /*
 				if(ProjectPointToSurface(vNew, aaPos[*iter], aaNorm[*iter],
 										pRefGrid->begin<Triangle>(),
-										pRefGrid->end<Triangle>(), aaPosRef, true))
+										pRefGrid->end<Triangle>(), aaPosRef, false))
 				{
 					aaPos[*iter] = vNew;
 				}
@@ -946,7 +975,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 					LOG("f");
 				}
 */
-				
 			}
 			PROFILE_END();
 			LOG(" done\n");

@@ -21,7 +21,8 @@ class Traverser_ProjectPoint : protected Traverser_CollisionTree
 		Traverser_ProjectPoint();
 		virtual ~Traverser_ProjectPoint();
 
-		virtual bool project(const vector3& point, SPNode nodeGraph);
+		virtual bool project(const vector3& point, SPNode nodeGraph,
+							vector3* pPointNormal = NULL);
 
 	/** after the distance of a point to the geometry has been determined,
 	 *	this funtion returns the id of the element closest to the point.*/
@@ -59,7 +60,9 @@ class Traverser_ProjectPoint : protected Traverser_CollisionTree
 
 	private:
 		SearchState			m_searchState;
-
+		bool 	m_checkNormals;
+		vector3	m_pointNormal;
+		
 		vector3	m_boxMin;
 		vector3	m_boxMax;
 

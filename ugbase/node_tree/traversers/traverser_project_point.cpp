@@ -37,13 +37,21 @@ Traverser_ProjectPoint::~Traverser_ProjectPoint()
 }
 
 bool Traverser_ProjectPoint::
-project(const vector3& point, SPNode nodeGraph)
+project(const vector3& point, SPNode nodeGraph,
+		vector3* pPointNormal)
 {
 	m_searchState = SEARCHING;
 	m_distance = -1.0;
 	m_closestElemID = -1;
 	m_closestElemType = 0;
 	m_point = point;
+	
+	if(pPointNormal){
+		m_checkNormals = true;
+		m_pointNormal = *pPointNormal;
+	}
+	else
+		m_checkNormals= false;
 	
 	Traverser_CollisionTree::apply(nodeGraph);
 
@@ -219,6 +227,13 @@ handle_collision_triangles(CollisionTrianglesNode* colTrisNode)
 		vector3 n;
 		CalculateTriangleNormalNoNormalize(n, p1, p2, p3);
 		
+	//	if normal-check is enabled, we have to make sure, that the points
+	//	normal points into the same direction as the triangles normal.
+		if(m_checkNormals){
+			if(VecDot(n, m_pointNormal) <= 0)
+				continue;
+		}
+		
 		number bc1, bc2;
 		vector3 vTmp;
 		number distance = DistancePointToTriangle(vTmp, bc1, bc2,
@@ -237,12 +252,12 @@ handle_collision_triangles(CollisionTrianglesNode* colTrisNode)
 			m_closestPoint = vTmp;
 			
 		//	reset the box
-			m_boxMin.x = m_point.x - distance;			
-			m_boxMin.y = m_point.y - distance;
-			m_boxMin.z = m_point.z - distance;
-			m_boxMax.x = m_point.x + distance;
-			m_boxMax.y = m_point.y + distance;
-			m_boxMax.z = m_point.z + distance;
+			m_boxMin.x = m_point.x - distance * 1.01;			
+			m_boxMin.y = m_point.y - distance * 1.01;
+			m_boxMin.z = m_point.z - distance * 1.01;
+			m_boxMax.x = m_point.x + distance * 1.01;
+			m_boxMax.y = m_point.y + distance * 1.01;
+			m_boxMax.z = m_point.z + distance * 1.01;
 		}
 	}
 }
