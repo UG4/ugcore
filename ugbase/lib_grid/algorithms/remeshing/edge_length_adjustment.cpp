@@ -143,7 +143,6 @@ number CalculateLengthFac(Grid& grid, SubsetHandler& shMarks,
 	return max(0.25, lenFac);
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
@@ -177,10 +176,27 @@ bool TrySwap(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	}
 
 //	calculate geometric-approximation-degree and triangle quality
-	number approxDeg = GeometricApproximationDegree(sg);
+	//number approxDeg = GeometricApproximationDegree(sg);
 	number shapeDeg = ShapeQualityDegree(sg);
 
 	number smoothDeg = VecDot(sg.triangleNormals[0], sg.triangleNormals[1]);
+
+//	this is a new test. the idea is that each edge should be orthogonal to
+//	the normals of its endpoints - at least in a perfectly smooth surface.
+	number approxDeg;
+	number newApproxDeg;
+	{
+		vector3 v;
+		VecSubtract(v, sg.vertices[1], sg.vertices[0]);
+		VecNormalize(v, v);
+		approxDeg = 1. - 0.5*(fabs(VecDot(v, sg.vertexNormals[0])) +
+							fabs(VecDot(v, sg.vertexNormals[1])));
+						
+		VecSubtract(v, sg.vertices[3], sg.vertices[2]);
+		VecNormalize(v, v);
+		newApproxDeg = 1. - 0.5*(fabs(VecDot(v, sg.vertexNormals[2])) +
+								fabs(VecDot(v, sg.vertexNormals[3])));
+	}
 
 //	perform a swap on the simple grid
 	if(!SwapEdge(sg))
@@ -190,7 +206,7 @@ bool TrySwap(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	}
 
 //	calculate new geometric-approximation-degree and triangle quality
-	number newApproxDeg = GeometricApproximationDegree(sg);
+	//number newApproxDeg = GeometricApproximationDegree(sg);
 	number newShapeDeg = ShapeQualityDegree(sg);
 	number newSmoothDeg = VecDot(sg.triangleNormals[0], sg.triangleNormals[1]);
 
@@ -202,8 +218,9 @@ bool TrySwap(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	if(newSmoothDeg < 0.1 * smoothDeg)
 		return false;
 
-	//if((newApproxDeg - approxDeg) + 0.5 * (newShapeDeg - shapeDeg) > 0)
-	if(newShapeDeg > shapeDeg)
+	if(0.5 * (newApproxDeg - approxDeg) + 0.5 * (newShapeDeg - shapeDeg) > 0)
+	//if(newShapeDeg > shapeDeg)
+	//if(newApproxDeg > approxDeg)
 	{
 	//	swap the edge
 		e = SwapEdge(grid, e);
@@ -234,14 +251,20 @@ bool PerformSwaps(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 	PROFILE_FUNC();
 	LOG("  performing swaps\n");
 	int numSwaps = 0;
-	
+	int maxNumSwaps = esel.num<EdgeBase>() * 2;
+		
 	while(!esel.empty())
 	{
 		EdgeBase* e = *esel.begin<EdgeBase>();
 		esel.deselect(e);
-			
-		if(TrySwap(grid, e, aaPos, aaNorm, aaInt, &shMarks, &esel))
+
+		if(TrySwap(grid, e, aaPos, aaNorm, aaInt, &shMarks, &esel)){
 			++numSwaps;
+			if(numSwaps > maxNumSwaps){
+				UG_LOG("  aborting since maxNumSwaps was reached...");
+				esel.clear();
+			}
+		}
 	}
 	LOG("  swaps performed: " << numSwaps << endl);
 	
