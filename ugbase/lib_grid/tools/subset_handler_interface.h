@@ -400,7 +400,7 @@ class ISubsetHandler : public GridObserver
 		get_attachment_data_container(TAttachment& attachment, int subsetIndex);
 
 	protected:
-		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
+		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
 		typedef SectionContainer::iterator iterator;
 		
 	protected:		

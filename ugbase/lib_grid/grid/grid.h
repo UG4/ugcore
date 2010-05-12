@@ -67,7 +67,7 @@ class Grid
 {
 	public:
 	///	the attachment-pipe used by Grid
-		typedef AttachmentPipe<GeometricObject*, Grid>	AttachmentPipe;
+		typedef ug::AttachmentPipe<GeometricObject*, Grid>	AttachmentPipe;
 
 	///	the generic attachment-accessor for access to grids attachment pipes.
 		template <class TElem, class TAttachment>
@@ -614,7 +614,7 @@ class Grid
 		void remove_marks();
 												
 	protected:
-		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> > SectionContainer;
+		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> > SectionContainer;
 
 	///	This struct is used to hold GeometricObjects and their attachment pipes.
 		struct ElementStorage

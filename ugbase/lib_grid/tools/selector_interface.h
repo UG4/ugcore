@@ -158,7 +158,7 @@ class ISelector : public GridObserver
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol);
 
 	protected:
-		typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
+		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
 		typedef SectionContainer::iterator iterator;
 		typedef Attachment<iterator> AIterator;
 

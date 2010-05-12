@@ -36,7 +36,7 @@ inline void ISelector::select(GeometricObject* elem){
 			break;
 		default:
 			LOG("  ERROR: Bad Element Type in ISelector::select. Aborting.\n");
-			std::abort();
+			assert(0);
 			break;
 	}
 }
