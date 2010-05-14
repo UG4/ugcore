@@ -581,10 +581,51 @@ bool BoxBoundProbe(const vector_t& v, const vector_t& boxMin,
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////
+//	PointIsInsideTriangle
+template <class vector_t>
+bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
+							const vector_t& v1, const vector_t& v2)
+{
+//	we'll check for each side of the tri, whether v and the point of
+//	the tri, that does not lie on the edge, do lie on the same side.
+	vector_t e;			// the examined edge
+	vector_t edgeNorm;	// the normal of the examined edge
+	vector_t triNorm;	// normal of the triangle. used to calculate edge-normals.
+	vector_t tv1, tv2;	// the direction of a tri-point to v
+	
+	
+	VecSubtract(e, v1, v0);
+	edgeNorm.x = e.y;
+	edgeNorm.y = -e.x;
+	VecSubtract(tv1, v2, v0);
+	VecSubtract(tv2, v, v0);
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
+		return false;
+
+	VecSubtract(e, v2, v1);
+	edgeNorm.x = e.y;
+	edgeNorm.y = -e.x;
+	VecSubtract(tv1, v0, v1);
+	VecSubtract(tv2, v, v1);
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
+		return false;
+
+	VecSubtract(e, v0, v2);
+	edgeNorm.x = e.y;
+	edgeNorm.y = -e.x;
+	VecSubtract(tv1, v1, v2);
+	VecSubtract(tv2, v, v2);
+	if(VecDot(tv1, edgeNorm) * VecDot(tv2, edgeNorm) < -SMALL)
+		return false;
+	
+//	all tests succeeded. return true.
+	return true;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron
-///	Returns true if the point lies inside or on the boundary of a tetrahedron
 template <class vector_t>
 bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vector_t& v1,
 							  const vector_t& v2, const vector_t& v3)

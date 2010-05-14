@@ -6,5 +6,6 @@
 #define __H__LIB_GRID__GRID_GENERATION__
 
 #include "tetrahedralization.h"
+#include "triangle_fill.h"
 
 #endif

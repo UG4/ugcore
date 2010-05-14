@@ -264,6 +264,15 @@ number TriangleQuality_Area(const vector_t& p1, const vector_t& p2,
 							const vector_t& p3);
 
 ////////////////////////////////////////////////////////////////////////
+///	Returns true if the point lies inside or on the boundary of a triangle
+/**
+ * This method should only be used for 2-dimensional vectors!
+ */
+template <class vector_t>
+bool PointIsInsideTriangle(const vector_t& v, const vector_t& v0,
+							const vector_t& v1, const vector_t& v2);
+							
+////////////////////////////////////////////////////////////////////////
 //	PointIsInsideTetrahedron
 ///	Returns true if the point lies inside or on the boundary of a tetrahedron
 /**
