@@ -1,6 +1,6 @@
 
-#ifndef __H__LIB_DISCRETIZATION__DOMAIN_DISCRETIZATION__PLUG_IN_DISC__CONVECTION_DIFFUSION_EQUATION__CONVECTION_DIFFUSION_ASSEMBLE__
-#define __H__LIB_DISCRETIZATION__DOMAIN_DISCRETIZATION__PLUG_IN_DISC__CONVECTION_DIFFUSION_EQUATION__CONVECTION_DIFFUSION_ASSEMBLE__
+#ifndef __H__LIB_DISCRETIZATION__DOMAIN_DISCRETIZATION__PLUG_IN_DISC__DENSITY_DRIVEN_FLOW__DENSITY_DRIVEN_FLOW_ASSEMBLE__
+#define __H__LIB_DISCRETIZATION__DOMAIN_DISCRETIZATION__PLUG_IN_DISC__DENSITY_DRIVEN_FLOW__DENSITY_DRIVEN_FLOW_ASSEMBLE__
 
 // other ug4 modules
 #include "common/common.h"
@@ -13,12 +13,11 @@
 #include "lib_discretization/domain_discretization/plug_in_disc/plug_in_element_disc_interface.h"
 #include "lib_discretization/domain_discretization/disc_coupling/element_data.h"
 
-
 namespace ug{
 
 
 template<typename TDomain, typename TAlgebra, typename TElem >
-class ConvectionDiffusionEquation {
+class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, MathVector<TDomain::dim>, TAlgebra>{
 	public:
 		// forward constants and types
 
@@ -44,20 +43,26 @@ class ConvectionDiffusionEquation {
 		typedef typename algebra_type::vector_type::local_index_type local_index_type;
 
 	protected:
-		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
-		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
-		typedef void (*Reaction_fct)(number&, const position_type&, number);
-		typedef void (*Rhs_fct)(number&, const position_type&, number);
+		typedef void (*Pososity_fct)(number&);
+		typedef void (*Viscosity_fct)(number&, number);
+		typedef void (*Density_fct)(number&, number);
+		typedef void (*D_Density_fct)(number&, number);
+		typedef void (*Mol_Diff_Tensor_fct)(MathMatrix<dim,dim>&);
+		typedef void (*Permeability_Tensor_fct)(MathMatrix<dim,dim>&);
+		typedef void (*Gravity_fct)(MathVector<dim>&);
 
 	public:
-		ConvectionDiffusionEquation(TDomain& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs, DataImport<MathVector<dim>, MathVector<dim> >& Velocity)
-		: m_domain(domain), m_upwind_amount(upwind_amount), m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs), m_Velocity(Velocity)
+		DensityDrivenFlow(TDomain& domain, number upwind_amount, Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
+				Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity, DataClassExportPossibility<MathVector<dim>, MathVector<dim>,TAlgebra>& Darcy_Velocity_export)
+		: m_domain(domain), m_upwind_amount(upwind_amount),
+			m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
+			m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity), m_Darcy_Velocity_export(Darcy_Velocity_export)
 		{};
 
 	public:
 
 		// total number of shape functions on elements of type 'TElem'
-		inline uint num_sh(){return reference_element_traits<TElem>::num_corners;};
+		inline uint num_sh(){return 2*reference_element_traits<TElem>::num_corners;};
 
 		// number of shape functions on elements of type 'TElem' for the 'i'-th fundamental function
 		inline uint num_sh(uint i){return reference_element_traits<TElem>::num_corners;};
@@ -95,18 +100,137 @@ class ConvectionDiffusionEquation {
 		number m_upwind_amount;
 
 		// User functions
-		Diff_Tensor_fct m_Diff_Tensor;
-		Conv_Vel_fct m_Conv_Vel;
-		Reaction_fct m_Reaction;
-		Rhs_fct m_Rhs;
+		Pososity_fct m_Porosity;
+		Viscosity_fct m_Viscosity;
+		Density_fct m_Density;
+		D_Density_fct m_D_Density;
+		Mol_Diff_Tensor_fct m_Mol_Diff_Tensor;
+		Permeability_Tensor_fct m_Permeability_Tensor;
+		Gravity_fct m_Gravity;
 
-		DataImport<MathVector<dim>, MathVector<dim> >& m_Velocity;
+		DataClassExportPossibility<MathVector<dim>, MathVector<dim>, TAlgebra>& m_Darcy_Velocity_export;
+		// constant values, read in once
+		number m_porosity;
+
+	private:
+		void export1(std::vector<MathVector<dim> >& val, std::vector<std::vector<MathVector<dim> > >& deriv, const std::vector<MathVector<dim> >& pos, const local_vector_type& u, bool compute_derivatives)
+		{
+
+		#define _C_ 0
+		#define _P_ 1
+		#define u(fct, i)    ( (u)[reference_element_traits<TElem>::num_corners*(fct) + (i)])
+
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace = LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+			static const typename reference_element_traits<TElem>::reference_element_type refElem;
+			const uint num_co = reference_element_traits<TElem>::num_corners;
+
+
+			number c;
+			MathVector<TDomain::dim> grad_p, grad_p_local;
+			MathMatrix<TDomain::dim,TDomain::dim> Jinv, J;
+			number detJ;
+			number shape;
+			MathVector<TDomain::dim> grad_local;
+
+			VecSet(grad_p, 0.0);
+
+			for(std::size_t i = 0; i < val.size(); ++i)
+			{
+				// compute c and grad_p
+				VecSet(grad_p_local, 0.0);
+				c = 0.0;
+
+				for(uint co = 0; co < num_co; ++co)
+				{
+					if(TrialSpace.evaluate(co, pos[i], shape) == false) UG_ASSERT(0, "");
+					c += u(_C_, co) * shape;
+
+					if(TrialSpace.evaluate_grad(co, pos[i], grad_local) == false)  UG_ASSERT(0, "");
+					if(refElem.Trafo(m_corners, pos[i], Jinv, detJ) == false) UG_ASSERT(0, "");
+					VecScaleAppend(grad_p_local, u(_P_,co), grad_local);
+
+					// compute _J
+					Inverse(J, Jinv);
+
+					MatVecMult(grad_p, Jinv, grad_p_local);
+				}
+
+				compute_ip_Darcy_velocity(val[i], c, grad_p);
+			}
+
+			if(compute_derivatives == true)
+			{
+
+			}
+
+		#undef _C_
+		#undef _P_
+		#undef u
+		}
+
+
+
+	public:
+		/* HELP FUNCTIONS, TODO: Make a nicer solution */
+		void compute_ip_Darcy_velocity(MathVector<dim>& Darcy_vel, number c_ip, const MathVector<dim>& grad_p_ip)
+		{
+			number s, viscosity_ip;
+			MathVector<dim> vel;
+			MathMatrix<dim, dim> K;
+
+			m_Density(s, c_ip);
+			m_Viscosity(viscosity_ip, c_ip);
+			m_Gravity(vel);
+			m_Permeability_Tensor(K);
+			VecScale(vel, vel, s);
+			VecSubtract(vel, vel, grad_p_ip);
+			MatVecMult(Darcy_vel, K, vel);
+			VecScale(Darcy_vel, Darcy_vel, 1./viscosity_ip);
+		};
+
+
+		void compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem>& scvf,
+											MathVector<dim>& Darcy_vel, MathVector<dim> D_Darcy_vel_c[], MathVector<dim> D_Darcy_vel_p[],
+											number c_ip, const MathVector<dim>& grad_p_ip)
+		{
+			const int num_co = reference_element_traits<TElem>::num_corners;
+			number s, mu_ip;
+			MathVector<dim> vel, gravity;
+			MathVector<dim> D_vel_c[num_co], D_vel_p[num_co];
+			MathMatrix<dim, dim> K;
+			const SD_Values<TElem>& sdv = scvf.sdv();
+
+			m_Density(s, c_ip);
+			m_Gravity(gravity);
+			m_Viscosity(mu_ip, c_ip);
+			m_Permeability_Tensor(K);
+			VecScale(vel, gravity, s);
+			VecSubtract(vel, vel, grad_p_ip);
+			MatVecMult(Darcy_vel, K, vel);
+			VecScale(Darcy_vel, Darcy_vel, 1./mu_ip);
+
+			m_D_Density(s, c_ip);
+			for(int co = 0; co < num_co; ++co)
+			{
+				VecScale(D_vel_c[co], gravity, s*sdv.shape(co));
+				VecScale(D_vel_p[co], sdv.grad_global(co), -1);
+				MatVecMult(D_Darcy_vel_c[co], K, D_vel_c[co]);
+				MatVecMult(D_Darcy_vel_p[co], K, D_vel_p[co]);
+
+				VecScale(D_Darcy_vel_c[co],D_Darcy_vel_c[co],1./mu_ip);
+				VecScale(D_Darcy_vel_p[co],D_Darcy_vel_p[co],1./mu_ip);
+			}
+
+			// D_Viscosity == 0 !!!!
+		};
+
+
 };
 
 
-
 template <typename TDomain, typename TAlgebra>
-class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TAlgebra>{
+class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, public DataExportingClass<MathVector<TDomain::dim>, MathVector<TDomain::dim>,TAlgebra>{
 
 	public:
 		// domain type
@@ -131,27 +255,33 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		typedef typename algebra_type::vector_type::local_index_type local_index_type;
 
 	protected:
-		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
-		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
-		typedef void (*Reaction_fct)(number&, const position_type&, number);
-		typedef void (*Rhs_fct)(number&, const position_type&, number);
+		typedef void (*Pososity_fct)(number&);
+		typedef void (*Viscosity_fct)(number&, number);
+		typedef void (*Density_fct)(number&, number);
+		typedef void (*D_Density_fct)(number&, number);
+		typedef void (*Mol_Diff_Tensor_fct)(MathMatrix<dim,dim>&);
+		typedef void (*Permeability_Tensor_fct)(MathMatrix<dim,dim>&);
+		typedef void (*Gravity_fct)(MathVector<dim>&);
 
 	protected:
 		typedef bool (*Boundary_fct)(number&, const position_type&, uint, number);
 
 	public:
-		ConvectionDiffusionEquationPlugIn(uint fct, domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs, Boundary_fct bndfct) :
-			m_fct(fct),
+		DensityDrivenFlowPlugIn(uint c_fct, uint p_fct, TDomain& domain, number upwind_amount,
+				Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
+				Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity,
+				Boundary_fct bndfct) :
+			m_c_fct(c_fct), m_p_fct(p_fct),
 			m_bndfct(bndfct),
-			m_Velocity("Velocity"),
-			m_ImpTriangle(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity),
-			m_ImpQuadrilateral(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity)
+			m_Darcy_velocity_export("Darcy velocity"),
+			m_ImpTriangle(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export),
+			m_ImpQuadrilateral(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export)
 			{};
 
 	public:
 		/* GENERAL INFORMATIONS */
 		// number of fundamental functions required for this assembling
-		inline uint num_fct(){return 1;}
+		inline uint num_fct(){return 2;}
 
 		// local shape function set required for the 'i'-th fundamental function
 		inline LocalShapeFunctionSetID local_shape_function_set(uint i)
@@ -162,13 +292,19 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 
 		inline uint fct(uint i)
 		{
-			UG_ASSERT(i == 0, "Convection Diffusion Assembling has only one component.");
-			return m_fct;
+			UG_ASSERT(i < 2, "D3F has only two component.");
+			switch(i)
+			{
+			case 0: return m_c_fct;
+			case 1: return m_p_fct;
+			}
+			return (uint)-1;
 		}
 
 	protected:
 		// number of fundamental function, where this assembling works
-		uint m_fct;
+		uint m_c_fct;
+		uint m_p_fct;
 
 	public:
 	/* DIRICHLET BOUNDARY CONDITIONS */
@@ -184,38 +320,40 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 
 		bool register_exports(DataContainer& Cont)
 		{
+			if(Cont.register_item(m_Darcy_velocity_export) != true)
+			{
+				UG_ASSERT(0, "Must work.");
+				return false;
+			}
 			return true;
 		}
 
 		bool unregister_exports(DataContainer& Cont)
 		{
+			if(Cont.register_item(m_Darcy_velocity_export) != true)
+			{
+				UG_ASSERT(0, "Must work.");
+				return false;
+			}
 			return true;
 		}
 
 		bool register_imports(DataContainer& Cont)
 		{
-			if(Cont.register_item(m_Velocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
 			return true;
 		}
 
 		bool unregister_imports(DataContainer& Cont)
 		{
-			if(Cont.register_item(m_Velocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
 			return true;
 		}
+
+		//void Darcy_Vel_test(std::vector<MathVector<dim> >& val, std::vector<MathVector<dim> >& pos)
 
 	protected:
 		Boundary_fct m_bndfct;
 
-		DataImport<MathVector<dim>, MathVector<dim> > m_Velocity;
+		DataClassExportPossibility<MathVector<dim>, MathVector<dim>,TAlgebra> m_Darcy_velocity_export;
 
 	/* ELEMENT WISE ASSEMBLNG */
 	public:
@@ -251,7 +389,7 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		{ return m_ImpTriangle.finish_element_loop(); };
 
 	protected:
-		ConvectionDiffusionEquation<domain_type, algebra_type, Triangle> m_ImpTriangle;
+		DensityDrivenFlow<domain_type, algebra_type, Triangle> m_ImpTriangle;
 
 
 	public:
@@ -267,6 +405,9 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 
 		inline IPlugInReturn prepare_element(Quadrilateral* elem, const local_vector_type& u, const local_index_type& glob_ind)
 		{ return m_ImpQuadrilateral.prepare_element(elem, u, glob_ind); };
+
+		inline IPlugInReturn prepare_element_loop(Quadrilateral* elem, const local_vector_type& u, const local_index_type& glob_ind)
+		{ return m_ImpQuadrilateral.prepare_element_loop(u, glob_ind); };
 
 		inline IPlugInReturn assemble_element_JA(Quadrilateral* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
 		{ return m_ImpQuadrilateral.assemble_element_JA(J, u, time); };
@@ -287,12 +428,12 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		{ return m_ImpQuadrilateral.finish_element_loop(); };
 
 	protected:
-		ConvectionDiffusionEquation<domain_type, algebra_type, Quadrilateral> m_ImpQuadrilateral;
+		DensityDrivenFlow<domain_type, algebra_type, Quadrilateral> m_ImpQuadrilateral;
 
 };
 
 }
 
-#include "convection_diffusion_assemble_impl.h"
+#include "density_driven_flow_assemble_impl.h"
 
-#endif /*__H__LIB_DISCRETIZATION__DOMAIN_DISCRETIZATION__PLUG_IN_DISC__CONVECTION_DIFFUSION_EQUATION__CONVECTION_DIFFUSION_ASSEMBLE__*/
+#endif /*__H__LIB_DISCRETIZATION__DOMAIN_DISCRETIZATION__PLUG_IN_DISC__DENSITY_DRIVEN_FLOW__DENSITY_DRIVEN_FLOW_ASSEMBLE__*/

@@ -33,10 +33,10 @@ class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
 		typedef TAlgebra algebra_type;
 
 		// type of algebra matrix
-		typedef typename TAlgebra::matrix_type matrix_type;
+		typedef typename algebra_type::matrix_type matrix_type;
 
 		// type of algebra vector
-		typedef typename TAlgebra::vector_type vector_type;
+		typedef typename algebra_type::vector_type vector_type;
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian) and Defect at a given Solution u for a time dependent problem
@@ -53,7 +53,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
 		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
 		 *
 		 */
-		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, discrete_function_type& u, number time, number s_m, number s_a, uint level = 0)
+		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// assembles Jacobian (or Approximation of Jacobian)
@@ -68,7 +68,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
 		 * 			IAssemble_ERROR 			if problem is time dependent and an error occurred
 		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
 		 */
-		virtual IAssembleReturn assemble_jacobian(matrix_type& J, discrete_function_type& u, number time, number s_m, number s_a, uint level = 0)
+		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// assembles Defect
@@ -83,7 +83,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
 		 * 			IAssemble_ERROR 			if problem is time dependent and an error occurred
 		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
 		 */
-		virtual IAssembleReturn assemble_defect(vector_type& d, discrete_function_type& u, number time, number s_m, number s_a, uint level = 0)
+		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// Assembles matrix_type and Right-Hand-Side for a linear problem
@@ -99,7 +99,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
 		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent and linear
 		 * 			IAssemble_NONLINEAR			if problem is time dependent, but nonlinear
 		 */
-		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, number time, number s_m, number s_a, uint level = 0)
+		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const discrete_function_type& u, number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// sets dirichlet values in solution vector
@@ -113,7 +113,7 @@ class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
 		 * 			IAssemble_NOT_IMPLEMENTED 	if function has not been implemented
 		 * 			IAssemble_ERROR 			if function is implemented and an error occurred during assembling
 		 */
-		virtual IAssembleReturn assemble_solution(discrete_function_type& u, number time, uint level = 0)
+		virtual IAssembleReturn assemble_solution(discrete_function_type& u, number time)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 };
