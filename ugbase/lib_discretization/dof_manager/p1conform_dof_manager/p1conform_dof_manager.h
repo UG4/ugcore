@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
-#define __H__LIBDISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
+#ifndef __H__LIBDISCRETIZATION__P1_DOF_MANAGER__DOF_MANAGER__
+#define __H__LIBDISCRETIZATION__P1_DOF_MANAGER__DOF_MANAGER__
 
 #include "common/common.h"
 #include "lib_grid/lib_grid.h"
@@ -34,25 +34,17 @@ namespace ug{
  * All solutions are grouped automatically.
  * Invoking the finalize command let the P1ConformDoFManager distribute the DoFs.
  */
+template <typename TGeomObjContainer>
 class P1ConformDoFManager : public GridObserver{
 	public:
 		// type of multiindex used
-		typedef MultiIndex<1> multi_index_type;
-
-		// type of single index (e.g. uint or int)
-		typedef multi_index_type::single_index_type single_index_type;
+		typedef MultiIndex<1> index_type;
 
 		// value container for element local indices
-		typedef std::vector<multi_index_type> local_index_type;
-
-		// type of grid
-		typedef MultiGrid grid_type;
+		typedef std::vector<index_type> local_index_type;
 
 		// element container type (i.e. grid or subset_handler)
-		typedef grid_type element_container_type;
-
-		// type of subset handler
-		typedef MultiGridSubsetHandler subset_handler_type;
+		typedef TGeomObjContainer geom_obj_container_type;
 
 	public:
 		/// constructor
@@ -60,7 +52,7 @@ class P1ConformDoFManager : public GridObserver{
 		 * \param[in] name	Name of this P1ConformDoFManager
 		 * \param[in] sh	SubsetHandler
 		 */
-		P1ConformDoFManager(grid_type& grid);
+		P1ConformDoFManager(geom_obj_container_type& objContainer);
 
 		/// add a single solution of LocalShapeFunctionSetID to the entire domain (i.e. all elements of the (Multi-)grid)
 		/**
@@ -113,22 +105,22 @@ class P1ConformDoFManager : public GridObserver{
 		bool finalize();
 
 		/// returns the trial space of the discrete function fct
-		LocalShapeFunctionSetID get_local_shape_function_set_id(uint fct);
+		LocalShapeFunctionSetID get_local_shape_function_set_id(uint fct) const;
 
 		// returns the number of multi_indices on the Element for the discrete function 'fct'
 		template<typename TElem>
-		std::size_t num_multi_indices(TElem* elem, uint fct);
+		std::size_t num_multi_indices(TElem* elem, uint fct) const;
 
 		/// returns the indices of the dofs on the Element elem for the discrete function 'fct' and returns num_indices
 		template<typename TElem>
-		std::size_t get_multi_indices(TElem* elem, uint fct, local_index_type& ind);
+		std::size_t get_multi_indices(TElem* elem, uint fct, local_index_type& ind, std::size_t offset = 0) const;
 
 		/// returns the index of the dofs on the Geom Obj for the discrete function 'fct'
 		template<typename TElem>
-		std::size_t get_multi_indices_of_geom_obj(TElem* vrt, uint fct, local_index_type& ind);
+		std::size_t get_multi_indices_of_geom_obj(TElem* vrt, uint fct, local_index_type& ind, std::size_t offset = 0) const;
 
 		/// returns the number of dofs on level 'level'
-		inline uint num_dofs(uint level)
+		inline uint num_dofs(uint level) const
 		{
 			return m_num_dof_index[level];
 		}
@@ -136,13 +128,14 @@ class P1ConformDoFManager : public GridObserver{
 		/// returns the number of levels
 		inline uint num_levels() const
 		{
-			return m_num_levels;
+			return m_objContainer.num_levels();
 		}
 
 		/// returns the number of levels
 		inline int num_subsets() const
 		{
-			return 1;
+			UG_ASSERT(m_objContainer.num_subsets() == 1, "Currently only subsetIndex 0 is valid.");
+			return m_objContainer.num_subsets();
 		}
 
 		/// returns the number of discrete functions in this dof pattern
@@ -164,43 +157,51 @@ class P1ConformDoFManager : public GridObserver{
 		/// returns true if the discrete function nr_fct is defined on subset s
 		bool fct_is_def_in_subset(uint fct, int subsetIndex) const
 		{
-			UG_ASSERT(subsetIndex == 0, "This DoFManager uses a MultiGrid and not a SubsetHandler. Therefore only subsetIndex 0 is valid.");
+			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
 			UG_ASSERT(fct < num_fct(), "Accessing fundamental discrete function, that does not exist.");
 
 			return true;
 		}
 
+		/// number of elments of type 'TElem' on level and subset
+		template <typename TElem>
+		uint num(int subsetIndex, uint level) const
+		{
+			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
+			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
+			return m_objContainer.template num<TElem>(subsetIndex, level);
+		}
+
 		/// returns the begin iterator for all elements of type 'TElem' on level 'level' on subset 'subsetIndex'
 		template <typename TElem>
-		typename geometry_traits<TElem>::iterator begin(uint level, int subsetIndex) const
+		typename geometry_traits<TElem>::iterator begin(int subsetIndex, uint level) const
 		{
-			UG_ASSERT(subsetIndex == 0, "This DoFManager uses a MultiGrid and not a SubsetHandler. Therefore only subsetIndex 0 is valid.");
+			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
-			return m_grid.begin<TElem>(level);
+			return m_objContainer.template begin<TElem>(subsetIndex, level);
 		}
 
 		/// returns the end iterator for all elements of type 'TElem' on level 'level' on subset 'subsetIndex'
 		template <typename TElem>
-		typename geometry_traits<TElem>::iterator end(uint level, int subsetIndex) const
+		typename geometry_traits<TElem>::iterator end(int subsetIndex, uint level) const
 		{
-			UG_ASSERT(subsetIndex == 0, "This DoFManager uses a MultiGrid and not a SubsetHandler. Therefore only subsetIndex 0 is valid.");
+			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
-			return m_grid.end<TElem>(level);
+			return m_objContainer.template end<TElem>(subsetIndex, level);
 		}
 
 		/// returns the assigned SubsetHandler
-		element_container_type& get_assigned_element_container();
-
-		/// return the assigned (Multi-)grid
-		grid_type& get_grid()
-		{
-			return m_grid;
-		}
+		geom_obj_container_type& get_assigned_geom_object_container();
 
 		const IndexInfo& get_index_info(uint level) const
 		{
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
 			return m_IndexInfo[level];
+		}
+
+		inline bool is_locked() const
+		{
+			return m_bLocked;
 		}
 
 		/// destructor
@@ -216,22 +217,30 @@ class P1ConformDoFManager : public GridObserver{
 		// dimension, in which function lives
 		std::vector<int> m_dim;
 
-		single_index_type m_num_single_discrete_functions;
+		uint m_num_single_discrete_functions;
 
 		// attachment type
-		typedef ug::Attachment<single_index_type> AIndex;
+		typedef ug::Attachment<uint> AIndex;
 		AIndex m_aIndex;
 
 		// Accessor type
-		Grid::AttachmentAccessor<VertexBase, AIndex> m_aaIndex;
-		std::vector<single_index_type> m_num_dof_index;
+		typename geom_obj_container_type::template AttachmentAccessor<VertexBase, AIndex> m_aaIndex;
+		std::vector<uint> m_num_dof_index;
 
 		// number of Levels
 		uint m_num_levels;
 		std::vector<IndexInfo> m_IndexInfo;
 
-		// associated Grid
-		grid_type& m_grid;
+		// associated object container
+		geom_obj_container_type& m_objContainer;
+
+	private:
+		// helper function (since partial template specialization for member function not possible)
+		template<typename TElem>
+		inline std::size_t get_multi_indices_of_geom_obj_helper(TElem* vrt, uint fct, local_index_type& ind, std::size_t offset = 0) const;
+
+		inline std::size_t get_multi_indices_of_geom_obj_helper(VertexBase* vrt, uint fct, local_index_type& ind, std::size_t offset = 0) const;
+
 };
 
 

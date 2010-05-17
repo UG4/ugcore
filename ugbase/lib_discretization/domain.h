@@ -59,10 +59,15 @@ class Domain {
 			{};
 
 		inline TGrid& get_grid();
+		inline const TGrid& get_grid() const {return m_grid;};
+
 		inline TSubsetHandler& get_subset_handler();
-		inline uint get_dim();
+		inline uint get_dim() const;
+
 		inline position_attachment_type& get_position_attachment();
+
 		inline position_accessor_type& get_position_accessor();
+		inline const position_accessor_type& get_position_accessor() const {return m_aaPos;};
 
 	protected:
 		TGrid& m_grid;
@@ -95,7 +100,7 @@ template <int d, typename TGrid, typename TSubsetHandler>
 inline
 uint
 Domain<d, TGrid, TSubsetHandler>::
-get_dim()
+get_dim() const
 {
 	return d;
 }

@@ -10,49 +10,82 @@
 
 namespace ug{
 
-template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
-MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
-MultiGridCycle(	IAssemble<algebra_type, discrete_function_type>& ass, domain_type& domain, discrete_function_type& u,
-				uint surfaceLevel, uint baseLevel, int cycle_type,
-				TransferOperator<TDomain, TAlgebra, typename TDiscreteFunction::dof_manager_type>& transferOperator,
-				IIterativeStep<TAlgebra>& smoother, int nu1, int nu2, ILinearSolver<TAlgebra>& baseSolver) :
-				m_ass(ass), m_domain(domain), m_u(u),
+template <typename TApproximationSpace, typename TAlgebra>
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+AssembledMultiGridCycle(	IAssemble<algebra_type, level_function_type>& ass, approximation_space_type& approxSpace,
+							uint surfaceLevel, uint baseLevel, int cycle_type,
+							smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes) :
+				m_ass(ass), m_approxSpace(approxSpace), m_domain(approxSpace.get_domain()),
 				m_surfaceLevel(surfaceLevel), m_baseLevel(baseLevel), m_cycle_type(cycle_type),
 				m_smoother(smoother), m_nu1(nu1), m_nu2(nu2),
-				m_baseSolver(baseSolver),
-				m_c(u), m_d(u), m_t(u),
-				m_trans(transferOperator)
+				m_baseSolver(baseSolver), m_grid_changes(grid_changes), m_allocated(false)
+
 				{};
 
 
-template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
+template <typename TApproximationSpace, typename TAlgebra>
 bool
-MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
-lmgc(matrix_type* A[], discrete_function_type& c, discrete_function_type& d, uint l)
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+smooth(level_function_type& d, level_function_type& c, uint l, int nu)
+{
+	// init smoother iterators for Matrix
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::smooth on level " << l << ": Init smoother ... ");
+	if(m_smoother.init(*m_A[l]) != true) return false;
+	UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
+
+	// Presmooth
+	for(int i = 0; i < nu; ++i)
+	{
+		// prepare smoother
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Prepare smoother ... ");
+		if(m_smoother.prepare(*m_u[l], d, *m_t[l]) != true) return false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
+
+		// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Apply smoother ... ");
+		if(m_smoother.apply(d, *m_t[l]) != true) return false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
+
+		// add correction of smoothing step to level correction
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Update correction ... ");
+		c += *m_t[l];
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
+	}
+
+	return true;
+}
+
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+lmgc(uint l)
 {
 	// reset correction
-	c.get_vector(l).set(0.0);
+	m_c[l]->set(0.0);
 
 	if(l > m_baseLevel)
 	{
-		// Presmooth
-		for(int i = 0; i < m_nu1; ++i)
-		{
-			// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
-			m_smoother.step(*A[l], m_t.get_vector(l), d.get_vector(l));
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after restriction of defect: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
-			// add correction of smoothing step to level correction
-			c.get_vector(l) += m_t.get_vector(l);
-		}
+		// presmooth
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Calling Smoother ... ");
+		if(smooth(*m_d[l], *m_c[l], l, m_nu1) != true) return false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		// Restrict Defect
-		m_trans.init(l-1);
-		m_trans.applyTransposed(d, d);
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after pre-smoothing: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
+
+		// restrict defect
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Restrict defect ... ");
+		if(m_I[l-1]->applyTransposed(*m_d[l-1], *m_d[l]) != true) return false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
 		// apply lmgc on coarser grid
 		for(int i = 0; i < m_cycle_type; ++i)
 		{
-			if(lmgc(A, c, d, l-1) == false)
+			if(lmgc(l-1) == false)
 			{
 				UG_LOG("Error in lmgc on level " << l-1 << "." << std::endl);
 				return false;
@@ -60,34 +93,58 @@ lmgc(matrix_type* A[], discrete_function_type& c, discrete_function_type& d, uin
 		}
 
 		//interpolate correction
-		m_trans.init(l-1);
-		m_trans.apply( m_t, c);
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Interpolate correction ... ");
+		if(m_I[l-1]->apply(*m_t[l], *m_c[l-1]) != true) return false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
 		// add coarse grid correction to level correction
-		c.get_vector(l) += m_t.get_vector(l);
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Add coarse grid correction ... ");
+		*m_c[l] += *m_t[l];
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
+		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Coarse grid correction on level " << l << ":\n" << *m_t[l] << " \n---------- END: Coarse grid correction on level " << l << ".\n");
 
 		//update defect
-		A[l]->matmul_minus(d.get_vector(l), m_t.get_vector(l));
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Update defect ... ");
+		if(m_A[l]->apply_sub(*m_t[l], *m_d[l]) != true) return false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		// Postsmooth
-		for(int i = 0; i < m_nu2; ++i)
-		{
-			// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
-			m_smoother.step(*A[l], m_t.get_vector(l), d.get_vector(l));
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after coarse grid correction: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
-			// add correction of smoothing step to level correction
-			c.get_vector(l) += m_t.get_vector(l);
-		}
+		// postsmooth
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Calling Smoother ... ");
+		if(smooth(*m_d[l], *m_c[l], l, m_nu2) != true) return false;
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
+
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after post-smoothing: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
 		return true;
 	}
 	else if(l == m_baseLevel)
 	{
-		 // solve on base level
-		 m_baseSolver.solve(*A[l], c.get_vector(l), d.get_vector(l));
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Init Coarse Grid solver ... ");
+		m_baseSolver.init(*m_A[l]);
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----\n");
 
-		 // update defect
-		 A[l]->matmul_minus(d.get_vector(l), c.get_vector(l));
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " before exact solving: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
+
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Prepare Coarse Grid solver ... ");
+		m_baseSolver.prepare(*m_u[l], *m_d[l], *m_c[l]);
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----\n");
+
+		// solve on base level
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Apply Coarse Grid solver ... ");
+		m_baseSolver.apply(*m_d[l], *m_c[l]);
+		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
+
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after exact solving: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
+
+		// no update of the defect is needed, since the linear solver interface requires, that the updated defect is already returned.
+		// TODO: needed ????
+		//m_A[l]->apply_sub(*m_c[l], *m_d[l]);
 
 		return true;
 	}
@@ -98,31 +155,65 @@ lmgc(matrix_type* A[], discrete_function_type& c, discrete_function_type& d, uin
 	}
 }
 
-
-template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
+template <typename TApproximationSpace, typename TAlgebra>
 bool
-MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
-step(matrix_type& A, vector_type& c, vector_type& d)
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+init(IDiscreteLinearizedOperator<surface_function_type,surface_function_type>& A)
 {
-	// set matrix_type for surface Level
-	m_A[m_surfaceLevel] = &A;
+	// TODO: This is full refined problem only
+	m_Op = dynamic_cast<AssembledDiscreteLinearizedOperator<surface_function_type>*>(&A);
 
-	// perform one multigrid cycle
-	if(lmgc(m_A, m_c, m_d, m_surfaceLevel) == false)
+	if(m_Op == NULL)
 	{
-		UG_LOG("MultiGridCycle: Error in step. Aborting.\n");
+		UG_LOG("AssembledMultiGridCycle.init: Can not cast Operator to matrix based operator.\n");
 		return false;
 	}
 
 	return true;
 }
 
-template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
+template <typename TApproximationSpace, typename TAlgebra>
 bool
-MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
-prepare()
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+apply(surface_function_type& d, surface_function_type &c)
 {
-	typename domain_type::grid_type& mg = m_domain.get_grid();
+	// TODO: currently the matrix on finest level exists twice
+
+	// TODO: project defect onto grids
+	m_d[m_surfaceLevel]->project_surface(d);
+	m_c[m_surfaceLevel]->project_surface(c);
+
+	// TODO: For non-adaptive refinement this should use the passed (already assembled) operator
+	m_A[m_surfaceLevel] = m_Op;
+
+	/*
+	if(m_A[m_surfaceLevel]->prepare(*m_c[m_surfaceLevel], *m_d[m_surfaceLevel]) != true)
+	{
+		UG_LOG("ERROR while constructing coarse grid matrices for level "<< m_surfaceLevel << ", aborting.\n");
+		return false;
+	}
+	*/
+
+	// perform one multigrid cycle
+	if(lmgc(m_surfaceLevel) == false)
+	{
+		UG_LOG("MultiGridCycle: Error in step. Aborting.\n");
+		return false;
+	}
+
+	// TODO: Project correction to surface correction
+	m_d[m_surfaceLevel]->release_surface(d);
+	m_c[m_surfaceLevel]->release_surface(c);
+
+	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+prepare(surface_function_type &u, surface_function_type& d, surface_function_type &c)
+{
+	typename TApproximationSpace::domain_type::grid_type& mg = m_domain.get_grid();
 
 	// check if grid type is a Multigrid.
 	if(dynamic_cast<MultiGrid*>(&mg) == NULL)
@@ -145,49 +236,171 @@ prepare()
 		return false;
 	}
 
-	// reset defect
-	for(uint i = m_baseLevel; i < m_surfaceLevel; ++i)
+	// if grid may be changed, we reallocate all memory
+	if(m_grid_changes && m_allocated)
 	{
-		m_d.set(0.0); //TODO: Needed ???
-	}
-
-	// assemble matrices on coarser grids
-	for(uint i = m_baseLevel; i < m_surfaceLevel; ++i)
-	{
-		if(m_ass.assemble_jacobian(*m_A[i], m_u, i) != IAssemble_OK)
+		if(free_memory() != true)
 		{
-			UG_LOG(" Error in assemble_stiffness matrix, aborting.\n");
+			UG_LOG("AssembledMultiGridCycle::prepare: Cannot free memory. Aborting.\n");
 			return false;
 		}
 	}
 
-	// prepare transfer operator
-	if(m_trans.prepare() != true) return false;
+	bool reallocated = false;
 
-	// prepare smoother and base solver
-	if(m_smoother.prepare() != true) return false;
-	if(m_baseSolver.prepare() != true) return false;
+	if(!(m_allocated))
+	{
+		if(allocate_memory() != true)
+		{
+			UG_LOG("AssembledMultiGridCycle::prepare: Cannot allocate memory. Aborting.\n");
+			return false;
+		}
+		reallocated = true;
+	}
+
+	// top level matrix and vectors
+	m_u[m_surfaceLevel]->project_surface(u);
+
+	UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Solution on level " << m_surfaceLevel << ":\n" << *m_u[m_surfaceLevel] << " \n---------- END: Solution on level " << m_surfaceLevel << ".\n");
+
+	// create Interpolation and Projection Operators
+	if(reallocated)
+	{
+		for(uint lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
+		{
+			if(m_I[lev]->prepare(*m_d[lev], *m_d[lev+1]) != true)
+			{
+				UG_LOG("ERROR while constructing coarse grid matrices for level "<< lev << ", aborting.\n");
+				return false;
+			}
+			if(m_P[lev]->prepare(*m_u[lev], *m_u[lev+1]) != true)
+			{
+				UG_LOG("ERROR while constructing coarse grid matrices for level "<< lev << ", aborting.\n");
+				return false;
+			}
+		}
+	}
+
+	// project solution from surface grid to coarser grid levels
+	for(uint lev = m_surfaceLevel; lev != m_baseLevel; --lev)
+	{
+		if(m_P[lev-1]->applyTransposed(*m_u[lev-1], *m_u[lev]) != true)
+		{
+			UG_LOG("ERROR while projecting solution to coarse grid function of level "<< lev -1 << ", aborting.\n");
+			return false;
+		}
+	}
+
+	// create coarse level operators
+	for(uint lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
+	{
+		if(m_A[lev]->prepare(*m_u[lev], *m_c[lev], *m_d[lev]) != true)
+		{
+			UG_LOG("ERROR while constructing coarse grid matrices for level "<< lev << ", aborting.\n");
+			return false;
+		}
+	}
 
 	return true;
 }
 
-template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
+template <typename TApproximationSpace, typename TAlgebra>
 bool
-MultiGridCycle<TDomain, TAlgebra, TDiscreteFunction>::
-finish()
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+allocate_memory()
 {
-	for(uint j = m_baseLevel; j < m_surfaceLevel; ++j)
+	//	dynamically created pointer for Coarse Operators
+	m_A = new level_operator_type*[m_surfaceLevel + 1];
+	m_I = new prolongation_operator_type*[m_surfaceLevel];
+	m_P = new projection_operator_type*[m_surfaceLevel];
+
+	// dynamically created pointer for Coarse Grid Functions
+	m_u = new level_function_type*[m_surfaceLevel+1];
+	m_c = new level_function_type*[m_surfaceLevel+1];
+	m_t = new level_function_type*[m_surfaceLevel+1];
+	m_d = new level_function_type*[m_surfaceLevel+1];
+
+	// top level matrix and vectors
+	m_u[m_surfaceLevel] = m_approxSpace.create_level_grid_function("u", m_surfaceLevel, false);
+	m_c[m_surfaceLevel] = m_approxSpace.create_level_grid_function("c", m_surfaceLevel, false);
+	m_t[m_surfaceLevel] = m_approxSpace.create_level_grid_function("t", m_surfaceLevel);
+	m_d[m_surfaceLevel] = m_approxSpace.create_level_grid_function("d", m_surfaceLevel, false);
+
+	// create coarse level vectors
+	for(uint lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 	{
-		delete m_A[j];
-		delete m_I[j];
+		// create solution
+		m_u[lev] = m_approxSpace.create_level_grid_function("u", lev);
+
+		// create correction
+		m_c[lev] = m_approxSpace.create_level_grid_function("c", lev);
+
+		// create help vector
+		m_t[lev] = m_approxSpace.create_level_grid_function("t", lev);
+
+		// create defect
+		m_d[lev] = m_approxSpace.create_level_grid_function("d", lev);
 	}
-	delete[] m_A;
-	delete[] m_I;
 
-	if(m_smoother.finish() != true) return false;
-	if(m_baseSolver.finish() != true) return false;
+	for(uint lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
+	{
+		// create prolongation operators
+		m_I[lev] = new prolongation_operator_type(m_approxSpace, m_ass, lev);
+		// create prolongation operators
+		m_P[lev] = new projection_operator_type(m_approxSpace, m_ass, lev);
+		// create coarse grid matrices
+		m_A[lev] = new level_operator_type(m_ass);
+	}
 
+	m_allocated = true;
 	return true;
+}
+
+template <typename TApproximationSpace, typename TAlgebra>
+bool
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+free_memory()
+{
+	for(uint j = m_baseLevel; j != m_surfaceLevel; ++j)
+	{
+		if(m_A != NULL)
+			if(m_A[j] != NULL) {delete m_A[j]; m_A[j] = NULL;};
+
+		if(m_I != NULL)
+			if(m_I[j] != NULL) {delete m_I[j]; m_I[j] = NULL;};
+
+		if(m_P != NULL)
+			if(m_P[j] != NULL) {delete m_P[j]; m_P[j] = NULL;};
+
+		if(m_u != NULL)
+			if(m_u[j] != NULL) {delete m_u[j]; m_u[j] = NULL;};
+		if(m_c != NULL)
+			if(m_c[j] != NULL) {delete m_c[j]; m_c[j] = NULL;};
+		if(m_t != NULL)
+			if(m_t[j] != NULL) {delete m_t[j]; m_t[j] = NULL;};
+		if(m_d != NULL)
+			if(m_d[j] != NULL) {delete m_d[j]; m_d[j] = NULL;};
+
+	}
+
+	if(m_A != NULL) {delete[] m_A; m_A = NULL;};
+	if(m_I != NULL) {delete[] m_I; m_I = NULL;};
+
+	if(m_u != NULL) {delete[] m_u; m_u = NULL;};
+	if(m_c != NULL) {delete[] m_c; m_c = NULL;};
+	if(m_t != NULL) {delete[] m_t; m_t = NULL;};
+	if(m_d != NULL) {delete[] m_d; m_d = NULL;};
+
+	m_allocated = false;
+	return true;
+}
+
+
+template <typename TApproximationSpace, typename TAlgebra>
+AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
+~AssembledMultiGridCycle()
+{
+	free_memory();
 }
 
 

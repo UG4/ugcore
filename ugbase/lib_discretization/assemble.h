@@ -93,7 +93,7 @@ class IAssemble {
 		 * \param[out] d Defect d(u) to be filled
 		 * \param[in]  u Numerical solution
 		 */
-		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, discrete_function_type& u, uint level = 0)
+		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// assembles Jacobian (or Approximation of Jacobian)
@@ -104,7 +104,7 @@ class IAssemble {
 		 * \param[out] J Jacobian J(u) (or Precondition) matrix_type to be filled
 		 * \param[in]  u Numerical solution
 		 */
-		virtual IAssembleReturn assemble_jacobian(matrix_type& J, discrete_function_type& u, uint level = 0)
+		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// assembles Defect
@@ -115,7 +115,7 @@ class IAssemble {
 		 * \param[out] d Defect d(u) to be filled
 		 * \param[in]  u Numerical solution
 		 */
-		virtual IAssembleReturn assemble_defect(vector_type& d, discrete_function_type& u, uint level = 0)
+		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// Assembles matrix_type and Right-Hand-Side for a linear problem
@@ -130,7 +130,7 @@ class IAssemble {
 		 * 			IAssemble_ERROR 		if problem is linear and an error occurred during assembling
 		 * 			IAssemble_NONLINEAR 	if problem is non-linear
 		 */
-		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, uint level = 0)
+		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const discrete_function_type& u)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// sets dirichlet values in solution vector
@@ -143,8 +143,15 @@ class IAssemble {
 		 * 			IAssemble_NOT_IMPLEMENTED 	if function has not been implemented
 		 * 			IAssemble_ERROR 			if function is implemented and an error occurred during assembling
 		 */
-		virtual IAssembleReturn assemble_solution(discrete_function_type& u, uint level = 0)
+		virtual IAssembleReturn assemble_solution(discrete_function_type& u)
 		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual std::size_t num_fct() const
+		{return 0;}
+
+		virtual bool boundary_value(number& val, typename discrete_function_type::position_type& corner, uint fct, number time = 0.0)
+		{return false;}
+
 
 		/// virtual Destructor
 		virtual ~IAssemble(){};

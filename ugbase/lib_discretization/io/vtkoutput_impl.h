@@ -84,7 +84,7 @@ static void BStreamFlush(FILE* File)
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-print(discrete_function_type& u, uint level, const char* filename, double Time)
+print(discrete_function_type& u, const char* filename, double Time)
 {
 	Grid* grid = dynamic_cast<Grid*>(&u.get_domain().get_grid());
 
@@ -113,7 +113,7 @@ print(discrete_function_type& u, uint level, const char* filename, double Time)
 	// loop subsets
 	for(int subsetIndex = 0; subsetIndex < u.num_subsets(); ++subsetIndex)
 	{
-		if(write_subset(File, u, level, subsetIndex)!= true)
+		if(write_subset(File, u, subsetIndex)!= true)
 		{
 			UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl);
 			fclose(File);
@@ -141,7 +141,7 @@ print(discrete_function_type& u, uint level, const char* filename, double Time)
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-print_subset(discrete_function_type& u, uint level, int subsetIndex, const char* filename, double Time)
+print_subset(discrete_function_type& u, int subsetIndex, const char* filename, double Time)
 {
 	Grid* grid = dynamic_cast<Grid*>(&u.get_domain().get_grid());
 
@@ -168,7 +168,7 @@ print_subset(discrete_function_type& u, uint level, int subsetIndex, const char*
 	}
 
 	// Write Subset
-	if(write_subset(u, level, subsetIndex, File) != true)
+	if(write_subset(u, subsetIndex, File) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl);
 		fclose(File);
@@ -196,11 +196,11 @@ print_subset(discrete_function_type& u, uint level, int subsetIndex, const char*
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-write_subset(FILE* File, discrete_function_type& u, uint level, int subsetIndex)
+write_subset(FILE* File, discrete_function_type& u, int subsetIndex)
 {
 	// Read sizes
 	UG_DLOG(LIB_DISC_OUTPUT, 1, " Initiallizing subset.\n");
-	if(init_subset(u, level, subsetIndex) != true)
+	if(init_subset(u, subsetIndex) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not init subset" << std::endl);
 		return false;
@@ -214,14 +214,14 @@ write_subset(FILE* File, discrete_function_type& u, uint level, int subsetIndex)
 	}
 
 	UG_DLOG(LIB_DISC_OUTPUT, 1, " Writing points.\n");
-	if(write_points(File, u, level, subsetIndex) != true)
+	if(write_points(File, u, subsetIndex) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Points" << std::endl);
 		return false;
 	}
 
 	UG_DLOG(LIB_DISC_OUTPUT, 1, " Writing elements.\n");
-	if(write_elements(File, u, level, subsetIndex) != true)
+	if(write_elements(File, u, subsetIndex) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Elements" << std::endl);
 		return false;
@@ -234,7 +234,7 @@ write_subset(FILE* File, discrete_function_type& u, uint level, int subsetIndex)
 		if(u.fct_is_def_in_subset(fct, subsetIndex) == false) continue;
 
 		UG_DLOG(LIB_DISC_OUTPUT, 1, "  - Writing nodal values of solutions ' " << u.get_name(fct) <<"'.\n");
-		if(write_scalar(File, u, fct, level, subsetIndex) != true)
+		if(write_scalar(File, u, fct, subsetIndex) != true)
 		{
 			UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Scalar Values" << std::endl);
 			return false;
@@ -271,16 +271,16 @@ count_elem_conn(int& num_elem, int& num_connections,
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-init_subset(discrete_function_type& u, uint level, int subsetIndex)
+init_subset(discrete_function_type& u, int subsetIndex)
 {
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "\n ---- Init Numbers ----\n");
 
 	typename geometry_traits<VertexBase>::iterator iterVRT, iterEndVRT;
-	iterEndVRT = u.template end<Vertex>(level, subsetIndex);
+	iterEndVRT = u.template end<Vertex>(subsetIndex);
 
 	// count vertices on subset
 	Numbers.noVertices = 0;
-	for( iterVRT = u.template begin<Vertex>(level, subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
+	for( iterVRT = u.template begin<Vertex>(subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
 	{
 		Numbers.noVertices++;
 	}
@@ -290,13 +290,13 @@ init_subset(discrete_function_type& u, uint level, int subsetIndex)
 	int num_elem = 0, num_connections = 0;
 	Numbers.noElements = 0;
 	Numbers.noConnections = 0;
-	if(count_elem_conn<Triangle>(num_elem, num_connections, u.template begin<Triangle>(level, subsetIndex), u.template end<Triangle>(level, subsetIndex)) == true)
+	if(count_elem_conn<Triangle>(num_elem, num_connections, u.template begin<Triangle>(subsetIndex), u.template end<Triangle>(subsetIndex)) == true)
 	{
 		Numbers.noElements += num_elem;
 		Numbers.noConnections += num_connections;
 	}
 	else return false;
-	if(count_elem_conn<Quadrilateral>(num_elem, num_connections, u.template begin<Quadrilateral>(level, subsetIndex), u.template end<Quadrilateral>(level, subsetIndex)) == true)
+	if(count_elem_conn<Quadrilateral>(num_elem, num_connections, u.template begin<Quadrilateral>(subsetIndex), u.template end<Quadrilateral>(subsetIndex)) == true)
 	{
 		Numbers.noElements += num_elem;
 		Numbers.noConnections += num_connections;
@@ -313,7 +313,7 @@ init_subset(discrete_function_type& u, uint level, int subsetIndex)
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-write_points(FILE* File, discrete_function_type& u, uint level, int subsetIndex)
+write_points(FILE* File, discrete_function_type& u, int subsetIndex)
 {
 	float co;
 	int n;
@@ -335,11 +335,11 @@ write_points(FILE* File, discrete_function_type& u, uint level, int subsetIndex)
 	typename domain_type::position_type Pos;
 	n = 0;
 	typename geometry_traits<VertexBase>::iterator iterVRT, iterEndVRT;
-	iterEndVRT = u.template end<Vertex>(level, subsetIndex);
+	iterEndVRT = u.template end<Vertex>(subsetIndex);
 
 	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing Vertices to file ----\n");
 
-	for(iterVRT = u.template begin<Vertex>(level, subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
+	for(iterVRT = u.template begin<Vertex>(subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
 	{
 		VertexBase *v = *iterVRT;
 		m_aaDOFIndexVRT[v] = n++;
@@ -469,7 +469,7 @@ write_elements_types(FILE* File,
 
 template <typename TDiscreteFunction>
 bool VTKOutput<TDiscreteFunction>::
-write_elements(FILE* File, discrete_function_type& u, uint level, int subsetIndex)
+write_elements(FILE* File, discrete_function_type& u, int subsetIndex)
 {
 	int n;
 
@@ -482,8 +482,8 @@ write_elements(FILE* File, discrete_function_type& u, uint level, int subsetInde
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
 
-	if(write_elements_connectivity<Triangle>(File, u.template begin<Triangle>(level, subsetIndex), u.template end<Triangle>(level, subsetIndex)) != true) return false;
-	if(write_elements_connectivity<Quadrilateral>(File,  u.template begin<Quadrilateral>(level, subsetIndex), u.template end<Quadrilateral>(level, subsetIndex)) != true) return false;
+	if(write_elements_connectivity<Triangle>(File, u.template begin<Triangle>(subsetIndex), u.template end<Triangle>(subsetIndex)) != true) return false;
+	if(write_elements_connectivity<Quadrilateral>(File,  u.template begin<Quadrilateral>(subsetIndex), u.template end<Quadrilateral>(subsetIndex)) != true) return false;
 
 	BStreamFlush(File);
 	fprintf(File, "\n        </DataArray>\n");
@@ -494,8 +494,8 @@ write_elements(FILE* File, discrete_function_type& u, uint level, int subsetInde
 	BStreamWrite(File, &n);
 	BStreamFlush(File);
 	n = 0;
-	if(write_elements_offsets<Triangle>(File, u.template begin<Triangle>(level, subsetIndex), u.template end<Triangle>(level, subsetIndex),  n) == false) return false;
-	if(write_elements_offsets<Quadrilateral>(File, u.template begin<Quadrilateral>(level, subsetIndex), u.template end<Quadrilateral>(level, subsetIndex), n) == false) return false;
+	if(write_elements_offsets<Triangle>(File, u.template begin<Triangle>(subsetIndex), u.template end<Triangle>(subsetIndex),  n) == false) return false;
+	if(write_elements_offsets<Quadrilateral>(File, u.template begin<Quadrilateral>(subsetIndex), u.template end<Quadrilateral>(subsetIndex), n) == false) return false;
 	fprintf(File, "\n        </DataArray>\n");
 
 	/*** types ***/
@@ -503,8 +503,8 @@ write_elements(FILE* File, discrete_function_type& u, uint level, int subsetInde
 	BStreamWrite(File, &Numbers.noElements);
 	BStreamFlush(File);
 
-	if(write_elements_types<Triangle>(File, u.template begin<Triangle>(level, subsetIndex), u.template end<Triangle>(level, subsetIndex)) == false) return false;
-	if(write_elements_types<Quadrilateral>(File, u.template begin<Quadrilateral>(level, subsetIndex), u.template end<Quadrilateral>(level, subsetIndex)) == false) return false;
+	if(write_elements_types<Triangle>(File, u.template begin<Triangle>(subsetIndex), u.template end<Triangle>(subsetIndex)) == false) return false;
+	if(write_elements_types<Quadrilateral>(File, u.template begin<Quadrilateral>(subsetIndex), u.template end<Quadrilateral>(subsetIndex)) == false) return false;
 
 	fprintf(File, "\n        </DataArray>\n");
 
@@ -516,7 +516,7 @@ write_elements(FILE* File, discrete_function_type& u, uint level, int subsetInde
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-write_scalar(FILE* File, discrete_function_type& u, uint fct, uint level, int subsetIndex)
+write_scalar(FILE* File, discrete_function_type& u, uint fct, int subsetIndex)
 {
 	float valf;
 	int n;
@@ -532,11 +532,11 @@ write_scalar(FILE* File, discrete_function_type& u, uint fct, uint level, int su
 	BStream.size = sizeof(float);
 
 	typename geometry_traits<VertexBase>::iterator iterVRT, iterEndVRT;
-	iterEndVRT = u.template end<Vertex>(level, subsetIndex);
+	iterEndVRT = u.template end<Vertex>(subsetIndex);
 
 	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing nodal values to file for function " << u.get_name(fct) << " ----\n");
 
-	for(iterVRT = u.template begin<Vertex>(level, subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
+	for(iterVRT = u.template begin<Vertex>(subsetIndex); iterVRT != iterEndVRT; ++iterVRT)
 	{
 		typename discrete_function_type::local_vector_type val(1);
 		VertexBase *v = *iterVRT;

@@ -34,7 +34,7 @@
 
 #include "lib_discretization/function_spaces/function_spaces.h"
 
-#include "lib_discretization/linear_operator/linear_operator.h"
+#include "lib_discretization/operator/operator.h"
 
 ////////////////////////
 // spacial discretizations
@@ -42,23 +42,46 @@
 
 // plug in discs
 #include "lib_discretization/domain_discretization/plug_in_disc/convection_diffusion_equation/convection_diffusion_assemble.h"
+#include "lib_discretization/domain_discretization/plug_in_disc/density_driven_flow/density_driven_flow_assemble.h"
 
 // domain discretization
 #include "lib_discretization/domain_discretization/plug_in_domain_discretization.h"
 
+// coupled system discretization
+#include "lib_discretization/domain_discretization/system_discretization/coupled_system_domain_discretization.h"
+
+////////////////////////
+// time discretizations
+////////////////////////
+
+// time step
+#include "lib_discretization/time_discretization/timestep.h"
 
 ////////////////////////
 // geometric linear solvers
 ////////////////////////
 
-#include "multi_grid_solver/mg_solver.h"
+#include "lib_discretization/multi_grid_solver/mg_solver.h"
+
+////////////////////////
+// non-linear solvers
+////////////////////////
+
+#include "lib_discretization/non_linear_solver/newton.h"
+
 
 ////////////////////////
 // output
 ////////////////////////
 
-#include "io/vtkoutput.h"
+#include "lib_discretization/io/vtkoutput.h"
 
+
+////////////////////////
+// element data
+////////////////////////
+
+#include "lib_discretization/domain_discretization/disc_coupling/element_data.h"
 
 //#include "numericalsolution.h"
 

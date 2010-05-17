@@ -19,68 +19,97 @@
 // library intern headers
 #include "lib_discretization/assemble.h"
 #include "lib_discretization/function_spaces/grid_function_space.h"
-#include "lib_discretization/linear_operator/transfer_operator.h"
+#include "lib_discretization/operator/operator.h"
 
 namespace ug{
 
-template <typename TDomain, typename TAlgebra, typename TDiscreteFunction>
-class MultiGridCycle : public IIterativeStep<TAlgebra> {
+template <typename TApproximationSpace, typename TAlgebra>
+class AssembledMultiGridCycle : public IDiscreteLinearizedIteratorOperator<typename TApproximationSpace::surface_function_type, typename TApproximationSpace::surface_function_type> {
 	public:
-		typedef TDomain domain_type;
+		typedef typename TApproximationSpace::domain_type phys_domain_type;
 
-		typedef TDiscreteFunction discrete_function_type;
+		typedef typename TApproximationSpace::surface_function_type surface_function_type;
+
+		typedef typename TApproximationSpace::level_function_type level_function_type;
 
 		typedef TAlgebra algebra_type;
 
-		typedef typename TAlgebra::matrix_type matrix_type;
+		typedef typename algebra_type::matrix_type matrix_type;
 
-		typedef typename TAlgebra::vector_type vector_type;
+		typedef typename algebra_type::vector_type vector_type;
+
+		typedef AssembledDiscreteLinearizedOperator<level_function_type> level_operator_type;
+
+		typedef ProlongationOperator<level_function_type> prolongation_operator_type;
+
+		typedef ProjectionOperator<level_function_type> projection_operator_type;
+
+	private:
+		typedef TApproximationSpace approximation_space_type;
+
+		typedef IDiscreteLinearizedOperatorInverse<level_function_type, level_function_type> base_solver_type;
+
+		typedef IDiscreteLinearizedIteratorOperator<level_function_type, level_function_type> smoother_type;
 
 	public:
 		// constructore
-		MultiGridCycle(	IAssemble<algebra_type, discrete_function_type>& ass, domain_type& domain, discrete_function_type& u,
-						uint surfaceLevel, uint baseLevel, int cycle_type,
-						TransferOperator<TDomain, TAlgebra, typename TDiscreteFunction::dof_manager_type>& transferOperator,
-						IIterativeStep<TAlgebra>& smoother, int nu1, int nu2, ILinearSolver<TAlgebra>& baseSolver);
+		AssembledMultiGridCycle(	IAssemble<algebra_type, level_function_type>& ass, approximation_space_type& approxSpace,
+									uint surfaceLevel, uint baseLevel, int cycle_type,
+									smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes = true);
+
+		bool init(IDiscreteLinearizedOperator<surface_function_type,surface_function_type>& A);
 
 		// This functions allocates the Memory for the solver
 		// and assembles coarse grid matrices using 'ass'
-		bool prepare();
+		bool prepare(surface_function_type &u, surface_function_type& d, surface_function_type &c);
 
 		// This function performes one multi-grid cycle step
 		// A correction c is returned as well as the updated defect d := d - A*c
-		// The Matrix A remains unchanged
-		bool step(matrix_type& A, vector_type& c, vector_type &d);
+		bool apply(surface_function_type& d, surface_function_type &c);
 
 		// This functions deallocates the Memory for the solver
-		bool finish();
+		~AssembledMultiGridCycle();
 
  	protected:
-		bool lmgc(matrix_type* A[], discrete_function_type& c, discrete_function_type& d, uint l);
+ 		// smooth on level l, restrict defect, call lmgc (..., l-1) and interpolate correction
+		bool lmgc(uint l);
 
+		// smmoth help function: perform smoothing on level l, nu times
+		bool smooth(level_function_type& d, level_function_type& c, uint l, int nu);
+
+		bool allocate_memory();
+		bool free_memory();
 
 	protected:
-		IAssemble<TAlgebra, discrete_function_type>& m_ass;
-		domain_type& m_domain;
-		discrete_function_type& m_u;
+		// operator to invert (surface level)
+		AssembledDiscreteLinearizedOperator<surface_function_type>* m_Op;
+
+		IAssemble<algebra_type, level_function_type>& m_ass;
+		approximation_space_type& m_approxSpace;
+		phys_domain_type& m_domain;
 
 		uint m_surfaceLevel;
 		uint m_baseLevel;
 		int m_cycle_type;
 
-		IIterativeStep<TAlgebra>& m_smoother;
+		smoother_type& m_smoother;
 		int m_nu1;
 		int m_nu2;
 
-		ILinearSolver<TAlgebra>& m_baseSolver;
+		base_solver_type& m_baseSolver;
 
-		matrix_type** m_A;
-		matrix_type** m_I;
-		discrete_function_type& m_c;
-		discrete_function_type& m_d;
-		discrete_function_type& m_t;
+		level_operator_type** m_A;
+		projection_operator_type** m_P;
+		prolongation_operator_type** m_I;
 
-		TransferOperator<TDomain, TAlgebra, typename  TDiscreteFunction::dof_manager_type>& m_trans;
+		level_function_type** m_u;
+		level_function_type** m_c;
+		level_function_type** m_d;
+		level_function_type** m_t;
+
+		// true -> allocate new matrices on every prepare
+		bool m_grid_changes;
+		bool m_allocated;
 };
 
 }

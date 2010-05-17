@@ -9,7 +9,7 @@ class ContinuousFunctionSpace {
 		typedef typename TDomain::position_type position_type;
 
 	public:
-		typedef bool (*function_type)(const position_type& x, number& val);
+		typedef bool (function_type)(const position_type& x, number& val);
 
 };
 

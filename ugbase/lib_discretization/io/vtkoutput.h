@@ -27,17 +27,17 @@ class VTKOutput{
 		typedef TDiscreteFunction discrete_function_type;
 
 	public:
-		bool print(discrete_function_type& u, uint level, const char* filename, double Time = 0.0);
-		bool print_subset(discrete_function_type& u, uint level, int subsetIndex, const char* filename, double Time = 0.0);
+		bool print(discrete_function_type& u, const char* filename, double Time = 0.0);
+		bool print_subset(discrete_function_type& u, int subsetIndex, const char* filename, double Time = 0.0);
 
 	private:
 		bool write_prolog(FILE* file, double Time);
 		bool write_piece_prolog(FILE* file);
-		bool write_subset(FILE* File, discrete_function_type& u, uint level, int subsetIndex);
-		bool init_subset(discrete_function_type& u, uint level, int subsetIndex);
-		bool write_points(FILE* File, discrete_function_type& u, uint level, int subsetIndex);
-		bool write_elements(FILE* File,discrete_function_type& u, uint level, int subsetIndex);
-		bool write_scalar(FILE* File, discrete_function_type& u, uint fct, uint level, int subsetIndex);
+		bool write_subset(FILE* File, discrete_function_type& u,int subsetIndex);
+		bool init_subset(discrete_function_type& u, int subsetIndex);
+		bool write_points(FILE* File, discrete_function_type& u, int subsetIndex);
+		bool write_elements(FILE* File,discrete_function_type& u, int subsetIndex);
+		bool write_scalar(FILE* File, discrete_function_type& u, uint fct, int subsetIndex);
 		bool write_epilog(FILE* file);
 		bool write_piece_epilog(FILE* file);
 
