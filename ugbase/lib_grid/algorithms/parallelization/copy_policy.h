@@ -93,6 +93,7 @@ collect(std::ostream& buff, Interface& interface)
 	for(typename Interface::iterator iter = interface.begin();
 		iter != interface.end(); ++iter)
 		buff.write((char*)&m_aaVal[interface.get_element(iter)], sizeof(Value));
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -103,6 +104,7 @@ extract(std::istream& buff, Interface& interface)
 	for(typename Interface::iterator iter = interface.begin();
 		iter != interface.end(); ++iter)
 		buff.read((char*)&m_aaVal[interface.get_element(iter)], sizeof(Value));
+	return true;
 }
 
 };

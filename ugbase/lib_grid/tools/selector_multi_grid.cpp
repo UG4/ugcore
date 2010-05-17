@@ -29,6 +29,8 @@ void MGSelector::assign_grid(MultiGrid& grid)
 
 void MGSelector::clear_lists()
 {
+	for(size_t i = 0; i < m_levels.size(); ++i)
+		delete m_levels[i];
 	m_levels.clear();
 }
 

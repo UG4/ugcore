@@ -330,6 +330,9 @@ communicate()
 //	clean up
 	m_streamPackOut.clear();
 	m_extractorInfos.clear();
+
+//	done
+	return true;
 }
 
 }//	end of namespace pcl

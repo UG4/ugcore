@@ -12,6 +12,9 @@
 
 namespace ug{
 
+//	predeclarations
+class DistributedGridManager;
+
 /**
  *
  * A Domain collects and exports relevant informations about the
@@ -52,11 +55,18 @@ class Domain {
 
 		// type of accessor to the position data attachement
 		typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+		
+		typedef DistributedGridManager distributed_grid_manager_type;
 
 	public:
-		Domain(TGrid& grid, TSubsetHandler& sh, position_attachment_type& aPos) :
-			m_grid(grid), m_sh(sh), m_aPos(aPos), m_aaPos(grid, aPos)
-			{};
+		Domain(TGrid& grid, TSubsetHandler& sh, position_attachment_type& aPos, 
+				DistributedGridManager* pDistGridMgr = NULL) :
+			m_grid(grid), m_sh(sh), m_aPos(aPos), m_pDistGridMgr(pDistGridMgr)
+			{
+				if(!grid.template has_attachment<VertexBase>(aPos))
+					grid.template attach_to<VertexBase>(aPos);
+				m_aaPos.access(grid, aPos);
+			}
 
 		inline TGrid& get_grid();
 		inline const TGrid& get_grid() const {return m_grid;};
@@ -69,6 +79,8 @@ class Domain {
 		inline position_accessor_type& get_position_accessor();
 		inline const position_accessor_type& get_position_accessor() const {return m_aaPos;};
 
+		inline DistributedGridManager* get_distributed_grid_manager()	{return m_pDistGridMgr;}
+		
 	protected:
 		TGrid& m_grid;
 
@@ -76,6 +88,9 @@ class Domain {
 
 		position_attachment_type& m_aPos;
 		position_accessor_type m_aaPos;
+
+	//	for parallelization only
+		DistributedGridManager*	m_pDistGridMgr;
 };
 
 template <int d, typename TGrid, typename TSubsetHandler>

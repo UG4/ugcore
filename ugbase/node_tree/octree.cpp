@@ -140,7 +140,7 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 			"unsupported number of indices per element.");
 
 //	the number of elements
-	size_t numElems = numElemInds / numIndsPerElem;
+	int numElems = numElemInds / numIndsPerElem;
 	
 //	check if subnodes have to be created
 	if((maxDepth > 0) && (numElems > elemThreshold))
@@ -198,7 +198,7 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 					{
 					//	calculate the center
 						vector3 center(0, 0, 0);
-						for(size_t j = 0; j < numIndsPerElem; ++j){
+						for(int j = 0; j < numIndsPerElem; ++j){
 							VecAdd(center, center, points[elemInds[i + j]]);
 						}
 						
@@ -211,7 +211,7 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 						//	add it to the new-lists.
 							elemAssigned[elemIndex] = 1;
 							
-							for(size_t j = 0; j < numIndsPerElem; ++j)
+							for(int j = 0; j < numIndsPerElem; ++j)
 								vNewElems.push_back(elemInds[i + j]);
 								
 							if(elemIDs)
@@ -258,7 +258,7 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 				//	if we found an intersection, the element has to be assigned
 				//	to the subtree, which is associated with the box.
 					if(intersects){
-						for(size_t j = 0; j < numIndsPerElem; ++j)
+						for(int j = 0; j < numIndsPerElem; ++j)
 							vNewElems.push_back(elemInds[i + j]);
 						
 						if(elemIDs)

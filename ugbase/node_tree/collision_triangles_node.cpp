@@ -74,7 +74,7 @@ void CollisionTrianglesNode::add_triangles(int* pIndices, size_t numTris)
 	m_vTris.resize(m_vTris.size() + numTris * 3);
 	
 	size_t numInds = numTris * 3;
-	for(int i = 0; i < numInds; ++i)
+	for(size_t i = 0; i < numInds; ++i)
 		m_vTris[startInd + i] = pIndices[i];
 }
 
@@ -95,7 +95,7 @@ add_triangles(int* pIndices, CollisionElementID* pTriIDs, size_t numTris)
 	
 //	fill the ids
 	{
-		for(int i = 0; i < numTris; ++i)
+		for(size_t i = 0; i < numTris; ++i)
 			m_vTriIDs[maxTri + i] = pTriIDs[i];
 	}	
 	
@@ -107,7 +107,7 @@ add_triangles(int* pIndices, CollisionElementID* pTriIDs, size_t numTris)
 //	fill m_vEdges
 	{
 		size_t numInds = numTris * 3;
-		for(int i = 0; i < numInds; ++i)
+		for(size_t i = 0; i < numInds; ++i)
 			m_vTris[startInd + i] = pIndices[i];
 	}
 

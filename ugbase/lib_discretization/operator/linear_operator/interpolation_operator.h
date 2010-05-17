@@ -58,19 +58,16 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 		{
 			uint level = v.get_level();
 			LocalShapeFunctionSetID id = v.get_local_shape_function_set_id(m_fct);
-
 			if(id == LSFS_INVALID)
 			{
 				UG_LOG("Fundamental discrete function nr " << m_fct << " is not contained in Approximation Space. Can not determine Local Shape Function Set.\n");
 				return false;
 			}
-
 			if(v.dim_fct(m_fct) == 2)
 			{
 				for(int subsetIndex = 0; subsetIndex < v.num_subsets(); ++subsetIndex)
 				{
 					if(v.fct_is_def_in_subset(m_fct, subsetIndex) != true) continue;
-
 					if(interpolate_values<Triangle>(u, v, id, level, subsetIndex) != true) return false;
 					if(interpolate_values<Quadrilateral>(u, v, id, level, subsetIndex) != true) return false;
 				}
