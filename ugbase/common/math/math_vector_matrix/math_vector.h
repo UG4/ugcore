@@ -247,9 +247,21 @@ class MathVector<4, T>
 
 };
 
+template <std::size_t N>
+bool operator== (const MathVector<N>& v, const MathVector<N>& w)
+{
+	for(std::size_t i = 0; i < N; ++i)
+	{
+		if(v[i] != w[i]) return false;
+	}
+	return true;
+}
 
-
-}//	end of namespace
+template <std::size_t N>
+bool operator!= (const MathVector<N>& v, const MathVector<N>& w)
+{
+	return !(v == w);
+}
 
 template <std::size_t N>
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N>& v)
@@ -262,6 +274,8 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N>& v)
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v);
+
+}//	end of namespace
 
 
 #endif /* __H__COMMON__MATH_MathVector__ */

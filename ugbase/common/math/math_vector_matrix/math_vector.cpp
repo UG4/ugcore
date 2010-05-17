@@ -8,6 +8,8 @@
 #include "math_vector.h"
 #include  <iostream>
 
+namespace ug{
+
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v)
 {
 	outStream << "(" << v.coord(0) << ", " << v.coord(1) << ")";
@@ -24,4 +26,6 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v)
 {
 	outStream << "(" << v.coord(0) << ", " << v.coord(1) << ", " << v.coord(2) << ", " << v.coord(3) << ")";
 	return outStream;
+}
+
 }

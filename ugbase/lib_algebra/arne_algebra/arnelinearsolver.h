@@ -33,6 +33,7 @@ class ArneJacobi{
 		bool _verbose;
 };
 
+bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp);
 
 }
 

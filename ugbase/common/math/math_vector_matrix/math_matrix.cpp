@@ -8,6 +8,8 @@
 #include "math_matrix.h"
 #include  <iostream>
 
+namespace ug{
+
 std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,2>& m)
 {
 	using namespace std;
@@ -68,3 +70,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,3>& m)
 	}
 	return outStream;
 }
+
+
+} //end of namespace: ug
+

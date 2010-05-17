@@ -97,7 +97,14 @@ class ArneVector{
 	private:
 		ScalarVector* _Vector;
 
+	friend std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector& v);
+
 };
+
+std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector& v);
+
+std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector::local_index_type& ind);
+
 
 }
 

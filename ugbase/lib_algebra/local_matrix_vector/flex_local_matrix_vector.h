@@ -21,6 +21,11 @@ class FlexLocalMatrix{
 		typedef std::vector<number>::iterator col_iterator;
 
 	public:
+	FlexLocalMatrix()
+	{
+		m_values.clear();
+	}
+
 	FlexLocalMatrix(std::size_t nrow, std::size_t ncol)
 	{
 		m_values.resize(nrow);
@@ -39,6 +44,16 @@ class FlexLocalMatrix{
 		{
 			(*iter).resize(ncol);
 		}
+	}
+
+	std::size_t num_rows() const
+	{
+		return m_values.size();
+	}
+
+	std::size_t num_cols() const
+	{
+		return m_values[0].size();
 	}
 
 	void set(number val)
@@ -195,6 +210,19 @@ class FlexLocalVector{
 	private:
 		std::vector<number> m_values;
 };
+
+inline std::ostream& operator<< (std::ostream& outStream, const ug::FlexLocalMatrix& m)
+{
+	for(std::size_t i = 0; i < m.num_rows(); ++i)
+	{
+		for(std::size_t j = 0; j < m.num_cols(); ++j)
+		{
+			outStream << "[" << i << ", " << j << "]: " <<  m(i,j) << std::endl;
+		}
+	}
+
+ 	return outStream;
+}
 
 
 }

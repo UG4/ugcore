@@ -204,8 +204,6 @@ class MathMatrix
 
 };
 
-} //end of namespace: lgmath
-
 
 /// Print MathMatrix<N,M> to standard output
 template <std::size_t N, std::size_t M>
@@ -226,6 +224,8 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<2,3>& m)
 std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,2>& m);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathMatrix<3,3>& m);
 
+
+} //end of namespace: lgmath
 
 
 #endif /* MathMatrix_H_ */

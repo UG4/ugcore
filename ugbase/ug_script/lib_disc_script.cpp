@@ -13,10 +13,10 @@ using namespace ug;
 namespace ldscript
 {
 
-P1ConformDoFManager* new_P1ConformDoFManager(MultiGrid* sh)
+P1ConformDoFManager<MultiGrid>* new_P1ConformDoFManager(MultiGrid* sh)
 {
-	P1ConformDoFManager* manager = new P1ConformDoFManager(*sh);
-	LOG("  P1ConformDoFManager created\n");
+	P1ConformDoFManager<MultiGrid>* manager = new P1ConformDoFManager<MultiGrid>(*sh);
+	LOG("  P1ConformDoFManager for MultiGrid created\n");
 	return manager;
 }
 
@@ -40,14 +40,14 @@ bool InitLibDiscScript(lua_State* L)
 {
 	using namespace ldscript;
 	using namespace luabind;
-	
+
 	module(L)[
 //	bind classes
-		class_<P1ConformDoFManager>("P1ConformDoFManager"),
+		class_<P1ConformDoFManager<MultiGrid> >("P1ConformDoFManagerMultiGrid"),
 
 //	bind methods to lua
 		def("new_P1ConformDoFManager", new_P1ConformDoFManager)
-	
+
 	];
 
 	return true;

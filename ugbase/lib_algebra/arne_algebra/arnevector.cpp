@@ -34,7 +34,10 @@ create(const ArneVector& v)
 
 bool ArneVector::destroy()
 {
-	delete _Vector;
+	if(_Vector != NULL)
+		delete _Vector;
+
+	_Vector = NULL;
 	return true;
 }
 
@@ -103,7 +106,9 @@ ArneVector::
 ~ArneVector()
 {
 	if(_Vector != NULL)
-	delete _Vector;
+		delete _Vector;
+
+	_Vector = NULL;
 }
 
 ArneVector&
@@ -167,7 +172,7 @@ two_norm() const
 		norm += (*_Vector)(i) * (*_Vector)(i);
 	}
 
-	return sqrt(norm);
+	return (number) sqrt(norm);
 }
 
 bool
@@ -220,6 +225,22 @@ ArneVector::
 getStorage() const
 {
 	return _Vector;
+}
+
+std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector& v)
+{
+	if(v._Vector == NULL) return outStream;
+
+	for(std::size_t i = 0; i < v._Vector->size(); ++i)
+		outStream << "[" << i << "]: " << (*(v._Vector))(i) << std::endl;
+	return outStream;
+}
+
+std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector::local_index_type& ind)
+{
+	for(std::size_t i = 0; i < ind.size(); ++i)
+		outStream << "[" << i << "]: " << ind[i] << std::endl;
+	return outStream;
 }
 
 } // namespace ug

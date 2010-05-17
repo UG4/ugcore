@@ -172,6 +172,7 @@ uint
 ArneMatrix::
 row_size() const
 {
+	if(_Matrix == NULL) return 0;
 	return _Matrix->size1();
 }
 
@@ -179,6 +180,7 @@ uint
 ArneMatrix::
 col_size() const
 {
+	if(_Matrix == NULL) return 0;
 	return _Matrix->size2();
 }
 
@@ -229,5 +231,23 @@ ArneMatrix::
 	destroy();
 }
 
+std::ostream& operator<< (std::ostream& outStream, const ug::ArneMatrix& m)
+{
+	if(m._Matrix == NULL) return outStream;
 
+	typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
+    typedef ScalarMatrix::value_type value_type;
+    typedef ScalarMatrix::const_iterator1 row_iter_type;
+    typedef ScalarMatrix::const_iterator2 entry_iter_type;
+
+    for (row_iter_type rowi = m._Matrix->begin1(); rowi != m._Matrix->end1(); ++rowi)
+    {
+		for(entry_iter_type iter_ij = rowi.begin(); iter_ij != rowi.end(); ++iter_ij)
+		{
+			outStream << "[" << iter_ij.index1() << ", " << iter_ij.index2() << "]: " <<  *iter_ij << std::endl;
+		}
+	}
+
+ 	return outStream;
+}
 };

@@ -28,7 +28,7 @@ class ArneMatrix{
 
 	public:
 
-		ArneMatrix() {};
+		ArneMatrix() : _Matrix(NULL) {};
 
 		bool create(uint nrow, uint ncol);
 		bool create(const ArneMatrix& v);
@@ -79,7 +79,11 @@ class ArneMatrix{
 	private:
 		ScalarMatrix* _Matrix;
 
+		friend std::ostream& operator<< (std::ostream& outStream, const ug::ArneMatrix& m);
+
 };
+
+std::ostream& operator<< (std::ostream& outStream, const ug::ArneMatrix& m);
 
 }
 

@@ -165,12 +165,18 @@ class IterativeLinearSolver : public ILinearSolver<TAlgebra>{
 
 	public:
 		IterativeLinearSolver(IIterativeStep<TAlgebra>& step, int maxIter, number absTol, number relTol) :
-			m_step(step), m_absTol(absTol), m_relTol(relTol)
+			m_step(step), m_maxIter(maxIter), m_absTol(absTol), m_relTol(relTol)
 			{};
 
 		bool prepare()
 		{
-			return m_step.prepare();
+			if(m_step.prepare() != true)
+			{
+				UG_LOG("ERROR on 'IterativeLinearSolver::prepare': Cannot prepare step routine.\n");
+				return false;
+			}
+
+			return true;
 		}
 
 		bool solve(matrix_type& A, vector_type& x, vector_type &b)
@@ -219,7 +225,13 @@ class IterativeLinearSolver : public ILinearSolver<TAlgebra>{
 				}
 
 				// add correction to solution
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 3, "   ||c||_2 = " << c.two_norm() << "\n");
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 10, "  c = \n" << c << "\n");
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 3, "   ||x||_2 = " << x.two_norm() << "\n");
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 10, "  x = \n" << x << "\n");
 				x += c;
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 3, "   ||x+c||_2 = " << x.two_norm() << "\n");
+				UG_DLOG(LIB_ALG_LINEAR_SOLVER, 10, "  x+c = \n" << x << "\n");
 
 				// compute new defect norm
 				norm = d.two_norm();
@@ -231,7 +243,7 @@ class IterativeLinearSolver : public ILinearSolver<TAlgebra>{
 				norm_old = norm;
 			}
 
-			UG_LOG("\n ##### Absolute defect " << m_absTol << " and relative defect " << m_relTol << " NOT reached after " << m_maxIter << " Iterations. Iterative Linear Solver did NOT CONVERGE.\n #####");
+			UG_LOG("\n ##### Absolute defect " << m_absTol << " and relative defect " << m_relTol << " NOT reached after " << m_maxIter << " Iterations. Iterative Linear Solver did NOT CONVERGE. ##### \n");
 			return false;
 		}
 
@@ -364,9 +376,8 @@ class ArneAlgebra{
 
 		// index_type
 		typedef MultiIndex<1> index_type;
-
-		typedef ArneJacobi linear_solver_type;
 };
+
 
 } // namespace ug
 
