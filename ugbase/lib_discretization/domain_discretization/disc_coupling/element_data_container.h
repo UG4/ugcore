@@ -75,7 +75,7 @@ class DataContainer {
 		void compute(bool compute_derivatives);
 
 		// print informations
-		bool print_export_possibilities(DataContainerInfoType type);
+		bool print_export_possibilities(DataContainerInfoType type = DCI_NONE);
 		bool print_linkage();
 
 	protected:

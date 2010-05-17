@@ -287,9 +287,9 @@ class CoupledSystemDomainDiscretization : public IDomainDiscretization<typename 
 
 		std::size_t num_system_discretizations() {return m_systems.size();}
 
-		bool print_export_possibilities(){return m_ElemDataContainer.print_export_possibilities();}
-		bool print_exports(){return m_ElemDataContainer.print_exports(1);}
-		bool print_imports(){return m_ElemDataContainer.print_imports(1);};
+		bool print_export_possibilities(){return m_ElemDataContainer.print_export_possibilities(DCI_LINKS);}
+		bool print_exports(){return m_ElemDataContainer.print_exports(DCI_LINKS);}
+		bool print_imports(){return m_ElemDataContainer.print_imports(DCI_LINKS);};
 		bool print_linkage(){return m_ElemDataContainer.print_linkage();};
 		bool link(int exp, int imp){return m_ElemDataContainer.link(exp, imp);};
 
