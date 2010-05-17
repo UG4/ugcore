@@ -42,6 +42,11 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 	int magicNumber = 8304548;
 	out.write((char*)&magicNumber, sizeof(int));
 
+//TODO: remove the following test code.
+//	test: write a number-value to check whether it is send correctly
+	number tNum = 1247.001234;
+	out.write((char*)&tNum, sizeof(number));
+	
 	for(; iterBegin != iterEnd; ++iterBegin)
 	{
 		out.write((char*)&aa[*iterBegin], sizeof(ValueType));
@@ -84,9 +89,20 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 	int tInt;
 	in.read((char*)&tInt, sizeof(int));
 
-	if(tInt != magicNumber)
+	if(tInt != magicNumber){
+		UG_LOG("  WARNING: magic-number mismatch before read in DeserializeAttachment. Data-salad possible!\n");
 		return false;
+	}
 
+//TODO: remove the following test code.
+//	test: write a number-value to check whether it is send correctly
+	number tNum;
+	in.read((char*)&tNum, sizeof(number));
+	if(tNum != 1247.001234){
+		UG_LOG("TEST-NUMBER TRANSMIT FAILED in DeserializeAttachment!\n");
+		return false;
+	}
+	
 	for(; iterBegin != iterEnd; ++iterBegin)
 	{
 		in.read((char*)&aa[*iterBegin], sizeof(ValueType));
@@ -94,8 +110,10 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 
 	in.read((char*)&tInt, sizeof(int));
 
-	if(tInt != magicNumber)
+	if(tInt != magicNumber){
+		UG_LOG("  WARNING: magic-number mismatch after read in DeserializeAttachment. Data-salad possible!\n");
 		return false;
+	}
 
 	return true;
 }

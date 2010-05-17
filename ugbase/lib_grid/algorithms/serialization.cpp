@@ -71,7 +71,7 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 //	SerializeGridElements
 bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 						   AInt& aIntVRT, std::ostream& out)
-{
+{	
 //TODO: add volume support
 	assert(grid.has_vertex_attachment(aIntVRT) && "aIntVRT is not attached to the grid");
 	if(!grid.has_vertex_attachment(aIntVRT))
