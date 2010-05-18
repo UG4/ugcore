@@ -276,6 +276,10 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 {
 	friend class Grid;
 	public:
+		// lower dimensional Base Object
+		typedef VertexBase lower_dim_base_object;
+
+	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<EdgeBase*>(pObj) != NULL;}
 
 		virtual ~EdgeBase()	{}
@@ -422,6 +426,10 @@ class Face : public GeometricObject, public FaceVertices
 {
 	friend class Grid;
 	public:
+		// lower dimensional Base Object
+		typedef EdgeBase lower_dim_base_object;
+
+	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Face*>(pObj) != NULL;}
 
 		virtual ~Face()	{}
@@ -443,7 +451,7 @@ class Face : public GeometricObject, public FaceVertices
 	 *	for compile-time method selection by dummy-parameters.
 	 *	It is cruical that derived classes overload this method.*/
 		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
-		
+
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices
@@ -645,6 +653,10 @@ class VolumeVertices
 class Volume : public GeometricObject, public VolumeVertices
 {
 	friend class Grid;
+	public:
+		// lower dimensional Base Object
+		typedef Face lower_dim_base_object;
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Volume*>(pObj) != NULL;}
 
