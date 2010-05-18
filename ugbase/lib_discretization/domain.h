@@ -55,11 +55,11 @@ class Domain {
 
 		// type of accessor to the position data attachement
 		typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
-		
+
 		typedef DistributedGridManager distributed_grid_manager_type;
 
 	public:
-		Domain(TGrid& grid, TSubsetHandler& sh, position_attachment_type& aPos, 
+		Domain(TGrid& grid, TSubsetHandler& sh, position_attachment_type& aPos,
 				DistributedGridManager* pDistGridMgr = NULL) :
 			m_grid(grid), m_sh(sh), m_aPos(aPos), m_pDistGridMgr(pDistGridMgr)
 			{
@@ -68,19 +68,19 @@ class Domain {
 				m_aaPos.access(grid, aPos);
 			}
 
-		inline TGrid& get_grid();
+		inline TGrid& get_grid() {return m_grid;};
 		inline const TGrid& get_grid() const {return m_grid;};
 
-		inline TSubsetHandler& get_subset_handler();
-		inline uint get_dim() const;
+		inline TSubsetHandler& get_subset_handler() {return m_sh;};
+		inline uint get_dim() const {return d;};
 
-		inline position_attachment_type& get_position_attachment();
+		inline position_attachment_type& get_position_attachment() {return m_aPos;};
 
-		inline position_accessor_type& get_position_accessor();
+		inline position_accessor_type& get_position_accessor() {return m_aaPos;};
 		inline const position_accessor_type& get_position_accessor() const {return m_aaPos;};
 
 		inline DistributedGridManager* get_distributed_grid_manager()	{return m_pDistGridMgr;}
-		
+
 	protected:
 		TGrid& m_grid;
 
@@ -93,53 +93,7 @@ class Domain {
 		DistributedGridManager*	m_pDistGridMgr;
 };
 
-template <int d, typename TGrid, typename TSubsetHandler>
-inline
-TGrid&
-Domain<d, TGrid, TSubsetHandler>::
-get_grid()
-{
-	return m_grid;
-}
-
-template <int d, typename TGrid, typename TSubsetHandler>
-inline
-TSubsetHandler&
-Domain<d, TGrid, TSubsetHandler>::
-get_subset_handler()
-{
-	return m_sh;
-}
-
-template <int d, typename TGrid, typename TSubsetHandler>
-inline
-uint
-Domain<d, TGrid, TSubsetHandler>::
-get_dim() const
-{
-	return d;
-}
-
-template <int d, typename TGrid, typename TSubsetHandler>
-inline
-typename Domain<d, TGrid, TSubsetHandler>::position_attachment_type&
-Domain<d, TGrid, TSubsetHandler>::
-get_position_attachment()
-{
-	return m_aPos;
-}
-
-template <int d, typename TGrid, typename TSubsetHandler>
-inline
-typename Domain<d, TGrid, TSubsetHandler>::position_accessor_type&
-Domain<d, TGrid, TSubsetHandler>::
-get_position_accessor()
-{
-	return m_aaPos;
-}
-
-
-}
+} // end namespace ug
 
 
 #endif /* __H__LIBDISCRETIZATION__DOMAIN__ */
