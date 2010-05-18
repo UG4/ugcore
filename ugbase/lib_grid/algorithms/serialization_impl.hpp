@@ -44,9 +44,10 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 
 //TODO: remove the following test code.
 //	test: write a number-value to check whether it is send correctly
+/*
 	number tNum = 1247.001234;
 	out.write((char*)&tNum, sizeof(number));
-	
+*/	
 	for(; iterBegin != iterEnd; ++iterBegin)
 	{
 		out.write((char*)&aa[*iterBegin], sizeof(ValueType));
@@ -85,6 +86,7 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 	typedef typename TAttachment::ValueType ValueType;
 	
 //	compare with the magic number
+
 	int magicNumber = 8304548;
 	int tInt;
 	in.read((char*)&tInt, sizeof(int));
@@ -96,13 +98,14 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 
 //TODO: remove the following test code.
 //	test: write a number-value to check whether it is send correctly
+/*
 	number tNum;
 	in.read((char*)&tNum, sizeof(number));
 	if(tNum != 1247.001234){
 		UG_LOG("TEST-NUMBER TRANSMIT FAILED in DeserializeAttachment!\n");
 		return false;
 	}
-	
+*/
 	for(; iterBegin != iterEnd; ++iterBegin)
 	{
 		in.read((char*)&aa[*iterBegin], sizeof(ValueType));

@@ -35,17 +35,8 @@ namespace ug
  */
 template <class TSelector, class TElemIterator>
 void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
-								TElemIterator elemsEnd)
-{
-	while(elemsBegin != elemsEnd)
-	{
-		uint numVrts = (*elemsBegin)->num_vertices();
-		for(uint i = 0; i < numVrts; ++i)
-			sel.select((*elemsBegin)->vertex(i));
-		elemsBegin++;
-	}
-}
-
+								TElemIterator elemsEnd);
+								
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedEdges
 ///	selects all associated edges of the elements between elemsBegin and elemsEnd
@@ -64,22 +55,7 @@ void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,
 template <class TSelector, class TElemIterator>
 void SelectAssociatedEdges(TSelector& sel,
 								TElemIterator elemsBegin,
-								TElemIterator elemsEnd)
-{
-	Grid* pGrid = sel.get_assigned_grid();
-	if(pGrid)
-	{
-		Grid& grid = *pGrid;
-		std::vector<EdgeBase*> vEdges;
-		while(elemsBegin != elemsEnd)
-		{
-			CollectEdges(vEdges, grid, *elemsBegin);
-			for(uint i = 0; i < vEdges.size(); ++i)
-				sel.select(vEdges[i]);
-			elemsBegin++;
-		}
-	}
-}
+								TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
 ///	selects edges that are only adjacent to one of the given faces
@@ -114,22 +90,7 @@ void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
 template <class TSelector, class TElemIterator>
 void SelectAssociatedFaces(TSelector& sel,
 								TElemIterator elemsBegin,
-								TElemIterator elemsEnd)
-{
-	Grid* pGrid = sel.get_assigned_grid();
-	if(pGrid)
-	{
-		Grid& grid = *pGrid;
-		std::vector<Face*> vFaces;
-		while(elemsBegin != elemsEnd)
-		{
-			CollectFaces(vFaces, grid, *elemsBegin);
-			for(uint i = 0; i < vFaces.size(); ++i)
-				sel.select(vFaces[i]);
-			elemsBegin++;
-		}
-	}
-}
+								TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGenealogy
@@ -162,6 +123,35 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 							bool stopAtSelVrts = true,
 							APosition& aPos = aPosition);
 
+////////////////////////////////////////////////////////////////////////
+//	SelectInnerSelectionVertices
+///	selects all vertices that are only connected to selected elements.
+/**	
+ * This algorithm uses Grid::mark.
+ */
+void SelectInnerSelectionVertices(Selector& sel);
+
+////////////////////////////////////////////////////////////////////////
+//	SelectInnerSelectionEdges
+///	selects all edges that are only connected to selected elements.
+/**
+ * This algorithm uses Grid::mark.
+ */
+void SelectInnerSelectionEdges(Selector& sel);
+
+////////////////////////////////////////////////////////////////////////
+//	SelectInnerSelectionFaces
+///	selects all faces that are only connected to selected elements.
+/**
+ * This algorithm uses Grid::mark.
+ */
+void SelectInnerSelectionFaces(Selector& sel);
+
 }// end of namespace
+
+
+////////////////////////////////
+//	include implementation
+#include "selection_util_impl.hpp"
 
 #endif

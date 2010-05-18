@@ -14,7 +14,9 @@ set(srcCommon	log.cpp
 				util/stream_pack.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp
-				math/misc/tri_box.cpp)
+				math/misc/tri_box.cpp
+				math/misc/eigenvalues.cpp
+				math/misc/math_util.cpp)
 				
 set(srcProfiler	profiler/src/ShinyManager.cpp
 				profiler/src/ShinyNode.cpp

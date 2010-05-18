@@ -55,7 +55,22 @@ clip(TNumber val, TNumber lowerBound, TNumber upperBound)
 	return val;
 }
 
-
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
+					 size_t numPoints)
+{
+	for(size_t i = 0; i < centerOut.size(); ++i)
+		centerOut[i] = 0;
+	
+	if(numPoints > 0){
+		for(size_t i = 0; i < numPoints; ++i)
+			VecAdd(centerOut, centerOut, pointSet[i]);
+	
+		VecScale(centerOut, centerOut, 1. / (number)numPoints);
+	}
+}
+					 
 ////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 number DropAPerpendicular(vector_t& vOut, const vector_t& v,

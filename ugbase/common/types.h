@@ -5,10 +5,11 @@
 #ifndef __H__LIB_GRID__TYPES__
 #define __H__LIB_GRID__TYPES__
 
+#include <cstddef>
+
 //	stdint.h is included with most compilers.
 //	If stdint.h is not available (e.g. in Microsoft Visual C++.)
 //	you may either download pstint.h or use boost/cstdint.h
-
 #include <stdint.h>
 //#include "pstdint.h"
 ///brief Include C99 int-types into the lg namespace.
@@ -74,6 +75,8 @@ namespace ugtypes
 	using boost::uintmax_t;
 };
 */
+
+using std::size_t;
 
 typedef unsigned char byte;
 typedef unsigned int uint;

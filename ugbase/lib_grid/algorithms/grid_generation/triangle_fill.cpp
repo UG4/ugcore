@@ -301,16 +301,23 @@ bool TriangleFill(Grid& grid, EdgeBaseIterator edgesBegin,
 //	get the vertices of the poly-chain
 	std::vector<VertexBase*> vrtPolyChain;
 	CreatePolyChain(vrtPolyChain, grid, edgesBegin, edgesEnd);
-	
-//	perform trivial projection
-//TODO: perform a more elaborated projection!
+
+//	a poly-chain that stores positions
+	std::vector<vector3> polyChain3D(vrtPolyChain.size());
+	for(size_t i = 0; i < vrtPolyChain.size(); ++i)
+		polyChain3D[i] = aaPos[vrtPolyChain[i]];
+		
+//	perform transform to 2d	
 	std::vector<vector2> polyChain2D(vrtPolyChain.size());
-	
+	TransformPointSetTo2D(&polyChain2D.front(), &polyChain3D.front(),
+						  polyChain3D.size());
+/*
+//TODO: perform a more elaborated projection!
 	for(size_t i = 0; i < vrtPolyChain.size(); ++i){
 		vector3& v = aaPos[vrtPolyChain[i]];
 		polyChain2D[i] = vector2(v.x, v.y);
 	}
-	
+*/	
 
 //	perform triangulation
 	vector<int> triIndices;

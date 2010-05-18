@@ -395,29 +395,13 @@ get_subset_index(GeometricObject* elem) const
 	switch(type)
 	{
 		case VERTEX:
-		{
-			VertexBase* pVrt = dynamic_cast<VertexBase*>(elem);
-			assert((pVrt != NULL) && "ERROR in SubsetHandler::get_subset_index(GeometricObject* elem): elem type and base_type_id do not match!");
-			return get_subset_index(pVrt);
-		}
+			return get_subset_index(reinterpret_cast<VertexBase*>(elem));
 		case EDGE:
-		{
-			EdgeBase* pEdge = dynamic_cast<EdgeBase*>(elem);
-			assert((pEdge != NULL) && "ERROR in SubsetHandler::get_subset_index(GeometricObject* elem): elem type and base_type_id do not match!");
-			return get_subset_index(pEdge);
-		}
+			return get_subset_index(reinterpret_cast<EdgeBase*>(elem));
 		case FACE:
-		{
-			Face* pFace = dynamic_cast<Face*>(elem);
-			assert((pFace != NULL) && "ERROR in SubsetHandler::get_subset_index(GeometricObject* elem): elem type and base_type_id do not match!");
-			return get_subset_index(pFace);
-		}
+			return get_subset_index(reinterpret_cast<Face*>(elem));
 		case VOLUME:
-		{
-			Volume* pVol = dynamic_cast<Volume*>(elem);
-			assert((pVol != NULL) && "ERROR in SubsetHandler::get_subset_index(GeometricObject* elem): elem type and base_type_id do not match!");
-			return get_subset_index(pVol);
-		}
+			return get_subset_index(reinterpret_cast<Volume*>(elem));
 	}
 
 //	we should never arrive at this point

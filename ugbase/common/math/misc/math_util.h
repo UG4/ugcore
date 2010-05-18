@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include "../math_vector_matrix/math_vector.h"
 #include "../math_vector_matrix/math_vector_functions.h"
+#include "eigenvalues.h"
 
 namespace ug
 {
@@ -42,6 +43,56 @@ TNumber
 clip(TNumber val, TNumber lowerBound, TNumber upperBound);
 
 
+////////////////////////////////////////////////////////////////////////
+///	finds a normal to the given vector in 3d.
+bool FindNormal(vector3& normOut, const vector3& v);
+
+////////////////////////////////////////////////////////////////////////
+///	constructs a orthonormal matrix given a vector in 3d.
+/**
+ * Given a vector in 3d, this method constructs an orthonormal system.
+ * The given vector correspond to one of the matrix columns, the others
+ * are found so that matOut is orthonormal (inv(matOut) == trans(matOut)).
+ * Please note that matOut is not unique.
+ *
+ * This method assumes that the matrix is accessed as follows:
+ * m[colInd][rowInd].
+ *
+ * \param vColInd: specifies in which column to put v.
+ */
+bool ConstructOrthonormalSystem(matrix33& matOut, const vector3& v,
+								size_t vColInd);
+
+////////////////////////////////////////////////////////////////////////
+///	calculates the center of a point-set
+template <class vector_t>
+void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
+					 size_t numPoints);
+
+////////////////////////////////////////////////////////////////////////
+///	Calculates the covariance matrix of a given point-set.
+/**	
+ * Please note that you have to specify the point-set together with
+ * its center-point.
+ */
+void CalculateCovarianceMatrix(matrix33& matOut, const vector3* pointSet,
+							  const vector3& center, size_t numPoints);
+
+////////////////////////////////////////////////////////////////////////
+///	transforms points from 3d space to 2d space.
+/**
+ * This method calculates the plane that minimizes the distances
+ * between the points and the plane. It then transforms all points
+ * to 2d so that the normal of the new min-distance-plane would
+ * point along the z-axis. It the projects all points onto
+ * the x-y-plane using the trivial projection.
+ *
+ * \param pointSetOut: An array of 2d-points of size numPoints.
+ * \param pointSet: An array of 3d-points of size numPoints.
+ * \param numPoints: Specifies the size of the point sets.
+ */
+bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
+						  size_t numPoints);
 
 ////////////////////////////////////////////////////////////////////////
 ///	finds the projection of v onto the line defined by v0 and v1

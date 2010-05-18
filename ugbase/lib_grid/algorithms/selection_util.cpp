@@ -283,4 +283,232 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+//	SelectInnerSelectionVertices
+void SelectInnerSelectionVertices(Selector& sel)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+	grid.begin_marking();
+	
+//	we'll first collect all vertices that we want to check
+	vector<VertexBase*> vrts;
+	
+	for(VolumeIterator iter = sel.begin<Volume>();
+		iter != sel.end<Volume>(); ++iter)
+	{
+		Volume* vol = *iter;
+		for(size_t i = 0; i < vol->num_vertices(); ++i){
+			VertexBase* v = vol->vertex(i);
+			if(!grid.is_marked(v)){
+				grid.mark(v);
+				vrts.push_back(v);
+			}
+		}
+	}
+
+	for(FaceIterator iter = sel.begin<Face>();
+		iter != sel.end<Face>(); ++iter)
+	{
+		Face* f = *iter;
+		for(size_t i = 0; i < f->num_vertices(); ++i){
+			VertexBase* v = f->vertex(i);
+			if(!grid.is_marked(v)){
+				grid.mark(v);
+				vrts.push_back(v);
+			}
+		}
+	}
+
+	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
+		iter != sel.end<EdgeBase>(); ++iter)
+	{
+		EdgeBase* e = *iter;
+		for(size_t i = 0; i < 2; ++i){
+			VertexBase* v = e->vertex(i);
+			if(!grid.is_marked(v)){
+				grid.mark(v);
+				vrts.push_back(v);
+			}
+		}
+	}
+		
+	grid.end_marking();
+
+
+//	now check for each vertex if an unselected element is associated
+	for(size_t i = 0; i < vrts.size(); ++i)
+	{
+		VertexBase* v = vrts[i];
+	
+	//	check whether all associated elements are selected
+		bool foundUnselected = false;
+		
+	//	volumes
+		for(VolumeIterator aIter = grid.associated_volumes_begin(v);
+			aIter != grid.associated_volumes_end(v); ++ aIter)
+		{
+			if(!sel.is_selected(*aIter)){
+				foundUnselected = true;
+				break;
+			}
+		}
+
+	//	face		
+		if(!foundUnselected){
+			for(FaceIterator aIter = grid.associated_faces_begin(v);
+				aIter != grid.associated_faces_end(v); ++ aIter)
+			{
+				if(!sel.is_selected(*aIter)){
+					foundUnselected = true;
+					break;
+				}
+			}
+		}
+	
+	//	edge		
+		if(!foundUnselected){
+			for(EdgeBaseIterator aIter = grid.associated_edges_begin(v);
+				aIter != grid.associated_edges_end(v); ++ aIter)
+			{
+				if(!sel.is_selected(*aIter)){
+					foundUnselected = true;
+					break;
+				}
+			}
+		}
+
+		if(!foundUnselected)
+			sel.select(v);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//	SelectInnerSelectionEdges
+void SelectInnerSelectionEdges(Selector& sel)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+	grid.begin_marking();
+	
+//	we'll first collect all edges that we want to check
+	vector<EdgeBase*> edges;
+	vector<EdgeBase*> vAssEdges;
+	
+	for(VolumeIterator iter = sel.begin<Volume>();
+		iter != sel.end<Volume>(); ++iter)
+	{
+		CollectEdges(vAssEdges, grid, *iter);
+		for(size_t i = 0; i < vAssEdges.size(); ++i){
+			EdgeBase* e = vAssEdges[i];
+			if(!grid.is_marked(e)){
+				grid.mark(e);
+				edges.push_back(e);
+			}
+		}
+	}
+
+	for(FaceIterator iter = sel.begin<Face>();
+		iter != sel.end<Face>(); ++iter)
+	{
+		CollectEdges(vAssEdges, grid, *iter);
+		for(size_t i = 0; i < vAssEdges.size(); ++i){
+			EdgeBase* e = vAssEdges[i];
+			if(!grid.is_marked(e)){
+				grid.mark(e);
+				edges.push_back(e);
+			}
+		}
+	}
+
+	grid.end_marking();
+
+
+//	now check for each edge if an unselected element is associated
+	vector<Face*> vAssFaces;
+	vector<Volume*> vAssVols;
+	
+	for(size_t i = 0; i < edges.size(); ++i)
+	{
+		EdgeBase* e = edges[i];
+	
+	//	check whether all associated elements are selected
+		bool foundUnselected = false;
+		
+	//	volumes
+		CollectVolumes(vAssVols, grid, e);
+		for(size_t j = 0; j < vAssVols.size(); ++j)
+		{
+			if(!sel.is_selected(vAssVols[j])){
+				foundUnselected = true;
+				break;
+			}
+		}
+
+	//	face		
+		if(!foundUnselected){
+			CollectFaces(vAssFaces, grid, e);
+			for(size_t j = 0; j < vAssFaces.size(); ++j)
+			{
+				if(!sel.is_selected(vAssFaces[j])){
+					foundUnselected = true;
+					break;
+				}
+			}
+		}
+
+		if(!foundUnselected)
+			sel.select(e);
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//	SelectInnerSelectionFaces
+void SelectInnerSelectionFaces(Selector& sel)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+	grid.begin_marking();
+	
+//	iterate through selected volumes and check for each side
+//	whether it is connected to any unselected volumes.
+	vector<Face*> vAssFaces;
+	vector<Volume*> vAssVols;
+	
+	for(VolumeIterator iter = sel.begin<Volume>();
+		iter != sel.end<Volume>(); ++iter)
+	{
+		CollectFaces(vAssFaces, grid, *iter);
+		for(size_t i = 0; i < vAssFaces.size(); ++i){
+			Face* f = vAssFaces[i];
+			if(!grid.is_marked(f)){
+				grid.mark(f);
+				CollectVolumes(vAssVols, grid, f);
+				bool foundUnselected = false;
+				for(size_t j = 0; j < vAssVols.size(); ++j){
+					if(!sel.is_selected(vAssVols[j])){
+						foundUnselected = true;
+						break;
+					}
+				}
+				
+				if(!foundUnselected)
+					sel.select(f);
+			}
+		}
+	}
+
+	grid.end_marking();
+}
+
 }//	end of namespace
