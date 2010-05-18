@@ -16,6 +16,10 @@ namespace ug{
 
 class FlexLocalMatrix{
 
+	public:
+		// type of value entry
+		typedef number value_type;
+
 	private:
 		typedef std::vector<std::vector<number> >::iterator   row_iterator;
 		typedef std::vector<number>::iterator col_iterator;
@@ -128,6 +132,10 @@ class FlexLocalMatrix{
 
 
 class FlexLocalVector{
+
+	public:
+	// type of value entry
+	typedef number value_type;
 
 	private:
 		typedef std::vector<number>::iterator   iterator;
