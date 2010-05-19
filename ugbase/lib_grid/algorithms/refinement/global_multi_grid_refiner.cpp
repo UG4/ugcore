@@ -123,8 +123,6 @@ void GlobalMultiGridRefiner::refine()
 
 //LOG("creating new edges\n");
 //	create new vertices and edges from marked edges
-	int numNewEdges = 0;
-
 	for(EdgeBaseIterator iter = mg.begin<EdgeBase>(oldTopLevel);
 		iter != mg.end<EdgeBase>(oldTopLevel); ++iter)
 	{

@@ -117,7 +117,7 @@ class RefinementMarkDistributor : public pcl::ICommunicationPolicy<TLayout>
 				++iter;
 				++counter;
 				
-				if(counter > interface.size()){
+				if(counter > (int)interface.size()){
 					UG_LOG("ERROR in RefinementMarkDistributor: invalid element index in extract.\n");
 					return false;
 				}
@@ -151,9 +151,9 @@ ParallelMultiGridRefiner() : m_pLayoutMap(NULL)
 */
 ParallelMultiGridRefiner::
 ParallelMultiGridRefiner(DistributedGridManager& distGridMgr) :
+	MultiGridRefiner(*distGridMgr.get_assigned_grid()),
 	m_distGridMgr(distGridMgr),
-	m_bCommunicationEnabled(true),
-	MultiGridRefiner(*distGridMgr.get_assigned_grid())
+	m_bCommunicationEnabled(true)
 {
 }
 
@@ -248,7 +248,7 @@ The refinement distributor classes
 	pcl::ParallelCommunicator<VertexLayout>	vertexCommunicator;	
 	pcl::ParallelCommunicator<EdgeLayout>	edgeCommunicator;
 	
-	GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
+	//GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
 	
 //	element buffers
 	vector<VertexBase*> vVrts;

@@ -75,9 +75,9 @@ struct ChainInfo{
 	bool operator < (const ChainInfo& ci) const	{return associatedDistanceSq > 
 													ci.associatedDistanceSq;}
 
-	int myVrt;
-	int inVrt;
-	int outVrt;
+	size_t myVrt;
+	size_t inVrt;
+	size_t outVrt;
 	bool isCandidate;
 	number associatedDistanceSq;
 };

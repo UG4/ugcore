@@ -242,7 +242,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 	CollectFaces(vFaces, grid, e);
 	
 //	push them to vFacesOut - except f
-	for(int i = 0; i < vFaces.size(); ++i)
+	for(size_t i = 0; i < vFaces.size(); ++i)
 	{
 		if(vFaces[i] != f)
 			vFacesOut.push_back(vFaces[i]);
@@ -252,7 +252,7 @@ void GetNeighbours(std::vector<Face*>& vFacesOut, Grid& grid, Face* f,
 bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f)
 {
 //	find the first vertex of ed in f
-	int i;
+	size_t i;
 	for(i = 0; i < f->num_vertices(); ++i)
 	{
 		if(f->vertex(i) == ed.vertex(0))

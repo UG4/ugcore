@@ -864,6 +864,31 @@ Volume* Grid::get_volume(VolumeVertices& vv)
 	return find_volume_in_associated_volumes(vv.vertex(0), vv);
 }
 
+////////////////////////////////////////////////////////////////////////
+//	sides
+template <>
+EdgeBase::lower_dim_base_object*
+Grid::get_side<EdgeBase>(EdgeBase* obj, size_t side)
+{
+	assert(side >= 0 && side < 2 && "ERROR in Grid::get_side(EdgeBase*, ...): Bad side index!");
+	return obj->vertex(side);
+}
+
+template <>
+Face::lower_dim_base_object*
+Grid::get_side<Face>(Face* obj, size_t side)
+{
+	assert(side >= 0 && side < obj->num_edges() && "ERROR in Grid::get_side(Face*, ...): Bad side index!");
+	return get_edge(obj, side);
+}
+
+template <>
+Volume::lower_dim_base_object*
+Grid::get_side<Volume>(Volume* obj, size_t side)
+{
+	assert(side >= 0 && side < obj->num_faces() && "ERROR in Grid::get_side(Volume*, ...): Bad side index!");
+	return get_face(obj, side);
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	marks

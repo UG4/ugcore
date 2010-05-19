@@ -245,7 +245,8 @@ communicate()
 		iter != m_streamPackOut.end(); ++iter, ++counter)
 	{
 		int streamSize = (int)iter->second->size();
-		int retVal = MPI_Isend(&streamSize, sizeof(int), MPI_UNSIGNED_CHAR,
+		//int retVal =
+		MPI_Isend(&streamSize, sizeof(int), MPI_UNSIGNED_CHAR,
 				iter->first, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 	}
 	
@@ -277,7 +278,8 @@ communicate()
 	for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
 		iter != m_streamPackOut.end(); ++iter, ++counter)
 	{
-		int retVal = MPI_Isend(iter->second->buffer(), iter->second->size(), MPI_UNSIGNED_CHAR,
+		//int retVal =
+		MPI_Isend(iter->second->buffer(), iter->second->size(), MPI_UNSIGNED_CHAR,
 				iter->first, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 	}
 

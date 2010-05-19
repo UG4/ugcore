@@ -42,8 +42,8 @@ void SerializeDistributionLayoutInterfaces(
 			int procID = iter->first;
 			if(pProcessMap)
 			{
-				assert(pProcessMap->size() > procID && "process-map to small.");
-				if(pProcessMap->size() > procID)
+				assert((int)pProcessMap->size() > procID && "process-map to small.");
+				if((int)pProcessMap->size() > procID)
 					procID = (*pProcessMap)[procID];
 			}
 			out.write((char*)&procID, sizeof(int));
@@ -86,7 +86,7 @@ void DeserializeDistributionLayoutInterfaces(
 	in.read((char*)&numLevels, sizeof(int));
 	
 //	iterate through the levels of the layout
-	for(size_t level = 0; level < numLevels; ++level)
+	for(int level = 0; level < numLevels; ++level)
 	{
 	//	read the number of interfaces for this level
 		int numInterfaces;
@@ -108,7 +108,7 @@ void DeserializeDistributionLayoutInterfaces(
 			pLayout = NULL;
 			
 		//	read the interface-entries
-			for(size_t j = 0; j < numEntries; ++j)
+			for(int j = 0; j < numEntries; ++j)
 			{
 				in.read((char*)&entry, sizeof(DistributionInterfaceEntry));
 			//	we're caching the last used layout to avoid too much lookups.

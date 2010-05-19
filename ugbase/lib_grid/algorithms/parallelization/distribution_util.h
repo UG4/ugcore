@@ -63,11 +63,11 @@ struct DistributionNodeLayout
 	
 ///	returns the interface to the given process on the given level.
 	/**	if you don't specify a level, level = 0 will be used.*/
-	inline Interface& interface(int procID, int level = 0)	{return interface_map(level)[procID];}
+	inline Interface& interface(int procID, size_t level = 0)	{return interface_map(level)[procID];}
 	
 ///	returns the interface-map for the given level.
 	/**	if you don't specify a level, level = 0 will be used.*/
-	inline InterfaceMap& interface_map(int level = 0)		{if(level >= m_vInterfaceMaps.size()) m_vInterfaceMaps.resize(level + 1); return m_vInterfaceMaps[level];}
+	inline InterfaceMap& interface_map(size_t level = 0)		{if(level >= m_vInterfaceMaps.size()) m_vInterfaceMaps.resize(level + 1); return m_vInterfaceMaps[level];}
 	
 ///	sets the number of levels.
 	/**	Setting the number of levels is optional. Increases performance for #levels > 1.*/

@@ -333,13 +333,59 @@ class Grid
 
 	////////////////////////////////////////////////
 	//	connectivity-information
+	///	returns the edge between v1 and v2, if it exists. Returns NULL if not.
 		EdgeBase* get_edge(VertexBase* v1, VertexBase* v2);
+	///	returns the edge that is described by ev.
+	/**	Note that you may pass an EdgeDescriptor to this method.*/
 		EdgeBase* get_edge(EdgeVertices& ev);
+	///	If it exists, this method returns the i-th edge of the given Face. If not NULL is returned.
+	/**	To make sure that associated edges always exist, enable the grid-option
+	 *	FACEOPT_AUTOGENERATE_EDGES.
+	 *	For maximal performance, the option FACEOPT_STORE_ASSOCIATED_EDGES
+	 *	should be enabled.*/
 		EdgeBase* get_edge(Face* f, int ind);
+	///	If it exists, this method returns the i-th edge of the given Volume. If not NULL is returned.
+	/**	To make sure that associated edges always exist, enable the grid-option
+	 *	VOLOPT_AUTOGENERATE_EDGES.
+	 *	For maximal performance, the option VOLOPT_STORE_ASSOCIATED_EDGES
+	 *	should be enabled.*/
 		EdgeBase* get_edge(Volume* v, int ind);
+	///	returns the face that is described by fv.
+	/**	Note that you may pass a FaceDescriptor to this method.*/
 		Face* get_face(FaceVertices& fv);
+	///	If it exists, this method returns the i-th face of the given Volume. If not NULL is returned.
+	/**	To make sure that associated faces always exist, enable the grid-option
+	 *	VOLOPT_AUTOGENERATE_FACES.
+	 *	For maximal performance, the option VOLOPT_STORE_ASSOCIATED_FACES
+	 *	should be enabled.*/
 		Face* get_face(Volume* v, int ind);
+	///	returns the volume that is described by ev.
+	/**	Note that you may pass an VolumeDescriptor to this method.*/
 		Volume* get_volume(VolumeVertices& vv);
+		
+	////////////////////////////////////////////////
+	//	access to the sides of an geometric object
+	///	This method returns the i-th side of an EdgeBase, Face or Volume.
+	/**	If obj has dimension d, then all associated elements of dimension d-1
+	 *	are regarded as sides. (Face -> EdgeBase). Only derivates of Volume,
+	 *	Face or EdgeBase may be queried for their sides. You may not pass a general
+	 * 	GeometricObject nor objects of a type not mentioned above.
+	 *
+	 *	It is not in all cases guaranteed that an object has sides.
+	 *	If i.e. the FACEOPT_AUTOGENERATE_EDGES is not enabled in the grids options,
+	 *	then it is not guaranteed that all side-edges of each face exist (in most
+	 *	cases they wont exist). The method returns NULL in this case.
+	 *	If however FACEOPT_AUTOGENERATE_EDGES is enabled then this method always
+	 *	will return an edge if queried for the side of a face.
+	 *	For volumes the appropriate option is called VOLOPT_AUTOGENERATE_FACES.
+	 *
+	 *	The method will be faster if elements store associated lower dimensional
+	 *	elements. Options VOLOPT_STORE_ASSOCIATED_FACES and
+	 *	FACEOPT_STORE_ASSOCIATED_EDGES have to be enabled for this.
+	 */
+		template <class TGeomObj>
+		typename TGeomObj::lower_dim_base_object*
+		get_side(TGeomObj* obj, size_t side);
 
 	////////////////////////////////////////////////
 	//	attachments

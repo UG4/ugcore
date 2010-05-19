@@ -254,7 +254,7 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 
 			CalculateNormal(vN, f, aaPos);
 
-			for(int i = 0; i < f->num_vertices(); ++i)
+			for(size_t i = 0; i < f->num_vertices(); ++i)
 				VecAdd(aaNorm[f->vertex(i)], aaNorm[f->vertex(i)], vN);
 		}
 	}
@@ -528,7 +528,7 @@ void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,
 							int creaseSI, int fixedSI)
 {
 //	if there are no crease-edges then there is nothing to do.
-	if(sh.num_subsets() <= creaseSI)
+	if((int)sh.num_subsets() <= creaseSI)
 		return;
 	if(sh.num<EdgeBase>(creaseSI) == 0)
 		return;

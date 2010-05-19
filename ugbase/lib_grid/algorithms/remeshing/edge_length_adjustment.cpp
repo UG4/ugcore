@@ -759,7 +759,7 @@ void PerformSmoothing(Grid& grid, SubsetHandler& shMarks,
 {
 	vector<vector3> vNodes;
 	vector<VertexBase*> vNeighbours;
-	for(int i = 0; i < numIterations; ++i){
+	for(size_t i = 0; i < numIterations; ++i){
 		for(VertexBaseIterator iter = grid.begin<VertexBase>();
 			iter != grid.end<VertexBase>(); ++iter)
 		{
@@ -780,7 +780,6 @@ if(shMarks.get_subset_index(vrt) == RM_CREASE)
 				CollectSubsetNeighbours(vNeighbours, grid, shMarks,
 										vrt, RM_CREASE, NHT_EDGE_NEIGHBOURS);
 			//	we have to choose a special normal
-				bool bGotIt = false;
 				if(vNeighbours.size() != 2){
 					UG_LOG("n"<<vNeighbours.size());
 					continue;

@@ -74,12 +74,12 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 	protected:
 		DistributedGridManager& m_distGridMgr;
 		
-		bool m_bCommunicationEnabled;	///< only for debugging purposes
-		
 		std::vector<VertexBase*>	m_vNewlyMarkedInterfaceVrts;
 		std::vector<EdgeBase*>		m_vNewlyMarkedInterfaceEdges;
 		std::vector<Face*>			m_vNewlyMarkedInterfaceFaces;
 		std::vector<Volume*>		m_vNewlyMarkedInterfaceVols;
+		
+		bool m_bCommunicationEnabled;	///< only for debugging purposes
 };
 
 }//	end of namespace

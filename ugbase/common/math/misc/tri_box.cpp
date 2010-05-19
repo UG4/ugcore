@@ -374,7 +374,6 @@ bool TriangleBoxIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 	vector3 Trans;
 	vector3 Scale;
 	vector3 TransMax;
-	int		i;
 	TRI		TestTri;
 
 	///

@@ -160,8 +160,6 @@ void MultiGridRefiner::refine()
 
 //LOG("creating new edges\n");
 //	create new vertices and edges from marked edges
-	int numNewEdges = 0;
-
 	for(EdgeBaseIterator iter = m_selMarks.begin<EdgeBase>();
 		iter != m_selMarks.end<EdgeBase>(); ++iter)
 	{
@@ -656,7 +654,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 	//	iEnd to vVrts.size(), to process the next neighbourhood.
 		size_t iEnd = vVrts.size();
 	//	iterate for each neighbourhood
-		for(size_t iNbr = 0; iNbr < copyRange; ++iNbr)
+		for(int iNbr = 0; iNbr < copyRange; ++iNbr)
 		{
 		//	iterate over candidates
 			for(size_t i = iFirst; i != iEnd; ++i){

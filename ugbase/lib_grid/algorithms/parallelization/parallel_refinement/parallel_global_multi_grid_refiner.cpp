@@ -13,8 +13,8 @@ namespace ug
 
 ParallelGlobalMultiGridRefiner::
 ParallelGlobalMultiGridRefiner(DistributedGridManager& distGridMgr) :
-	m_distGridMgr(distGridMgr),
-	GlobalMultiGridRefiner(*distGridMgr.get_assigned_grid())
+	GlobalMultiGridRefiner(*distGridMgr.get_assigned_grid()),
+	m_distGridMgr(distGridMgr)
 {
 }
 

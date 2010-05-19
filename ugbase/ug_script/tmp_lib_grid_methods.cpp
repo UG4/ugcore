@@ -38,7 +38,7 @@ bool SaveMarkedEdgesToObj(Grid& grid, const char* filename,
 			Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
 			int counter = 1;
 		//	iterate through all edges (from all subsets) and assign indices and output the vertices
-			for(int si = 0; si < sh.num_subsets(); ++si)
+			for(size_t si = 0; si < sh.num_subsets(); ++si)
 			{
 				for(EdgeBaseIterator iter = sh.begin<EdgeBase>(si);
 					iter != sh.end<EdgeBase>(si); ++iter)
@@ -58,7 +58,7 @@ bool SaveMarkedEdgesToObj(Grid& grid, const char* filename,
 		}
 
 	//	write objects
-		for(int si = 0; si < sh.num_subsets(); ++si)
+		for(size_t si = 0; si < sh.num_subsets(); ++si)
 		{
 			if(sh.subset_info(si).name.size() > 0)
 				out << "o " << sh.subset_info(si).name << endl;

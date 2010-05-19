@@ -50,7 +50,7 @@ void PrintSimpleGrid(SimpleGrid& sg)
 void CalculateTriangleNormal(SimpleGrid& sg, int triIndex)
 {
 	int i = triIndex * 3;
-	assert((sg.triangles.size() > i + 2) && (sg.triangleNormals.size() > triIndex) && "bad triangle index.");
+	assert(((int)sg.triangles.size() > i + 2) && ((int)sg.triangleNormals.size() > triIndex) && "bad triangle index.");
 
 	CalculateTriangleNormal(sg.triangleNormals[triIndex],
 							sg.vertices[sg.triangles[i]],

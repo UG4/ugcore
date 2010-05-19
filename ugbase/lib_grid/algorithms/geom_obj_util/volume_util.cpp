@@ -54,7 +54,7 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 	{
 		Volume* vol = *iter;
 		if(vol != v){
-			int count = 0;
+			size_t count = 0;
 			uint numVrts = vol->num_vertices();
 			for(uint i = 0; i < numVrts; ++i){
 				if(grid.is_marked(vol->vertex(i)))

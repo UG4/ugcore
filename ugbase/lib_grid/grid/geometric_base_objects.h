@@ -288,6 +288,7 @@ class EdgeBase : public GeometricObject, public EdgeVertices
 		virtual int base_object_type_id() const	{return EDGE;}
 		virtual int reference_object_id() const	{return -1;}
 
+		virtual int num_sides() const {return 2;}
 	/**
 	 * create 2 new edges, connecting the original edges end-points with vrtNew.
 	 * Newly created edges have to be registered at a grid manually by the caller.
@@ -440,8 +441,9 @@ class Face : public GeometricObject, public FaceVertices
 		inline void edge(int index, EdgeDescriptor& edOut)
 			{edOut.set_vertices(m_vertices[index], m_vertices[(index+1) % size()]);}
 
-		inline uint num_edges()	{return num_vertices();}
-
+		inline uint num_edges() const	{return num_vertices();}
+		inline uint num_sides() const	{return num_edges();}
+		
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return FACE;}
 		virtual int reference_object_id() const	{return -1;}
@@ -669,6 +671,7 @@ class Volume : public GeometricObject, public VolumeVertices
 		virtual FaceDescriptor face(int index) const				{return FaceDescriptor(0);}
 		virtual void face(int index, FaceDescriptor& fdOut) const	{fdOut = FaceDescriptor(0);}
 		virtual uint num_faces() const								{return 0;}
+		inline uint num_sides() const								{return num_faces();}
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices

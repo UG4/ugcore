@@ -1196,12 +1196,12 @@ void HangingNodeRefiner::refine_face_with_normal_vertex(Face* f)
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 //	collect all associated edges.
 	CollectEdges(vEdges, grid, f);
-	uint numEdges = vEdges.size();
+	size_t numEdges = vEdges.size();
 
 	assert(numEdges == f->num_edges() && "ERROR in RefineFaceWithNormalVertex(...): associated edges missing.");
 
 //	each should have an associated vertex. sort them into vNewEdgeVertices.
-	for(uint i = 0; i < vEdges.size(); ++i)
+	for(size_t i = 0; i < numEdges; ++i)
 	{
 		EdgeBase* e = vEdges[i];
 		int edgeIndex = GetEdgeIndex(f, e);
@@ -1245,12 +1245,12 @@ void HangingNodeRefiner::refine_face_with_hanging_vertex(Face* f)
 	vector<Face*>		vFaces(f->num_vertices());// heuristic
 //	collect all associated edges.
 	CollectEdges(vEdges, grid, f);
-	uint numEdges = vEdges.size();
+	size_t numEdges = vEdges.size();
 
 	assert(numEdges == f->num_edges() && "ERROR in RefineFaceWithNormalVertex(...): associated edges missing.");
 
 //	each should have an associated vertex. sort them into vNewEdgeVertices.
-	for(uint i = 0; i < vEdges.size(); ++i)
+	for(size_t i = 0; i < numEdges; ++i)
 	{
 		EdgeBase* e = vEdges[i];
 		int edgeIndex = GetEdgeIndex(f, e);

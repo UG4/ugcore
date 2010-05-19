@@ -74,7 +74,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 	shVolumes = shVolume;
 
 //	fix orientation of faces
-	for(int i = 0; i < shFaces.num_subsets(); ++i)
+	for(size_t i = 0; i < shFaces.num_subsets(); ++i)
 		FixOrientation(grid, shFaces.begin<Face>(i), shFaces.end<Face>(i));
 
 //	initialization

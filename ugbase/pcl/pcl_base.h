@@ -448,7 +448,7 @@ class MultiLevelLayout
 		inline int proc_id(iterator& iter)				{return iter->first;}
 	
 	///	returns the number of levels.
-		inline int num_levels()							{return m_vLayouts.size();}
+		inline size_t num_levels()						{return m_vLayouts.size();}
 
 	////////////////////////////////////////////////
 	//	methods that enhance the layout-tag
@@ -474,10 +474,10 @@ class MultiLevelLayout
 
 	protected:
 	///	adds num new levels.
-		inline void new_levels(int num)			{for(int i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout());}
+		inline void new_levels(size_t num)		{for(size_t i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout());}
 		
 	///	if the required level doesn't exist yet, it will created.
-		inline void require_level(int level)	{if(level >= num_levels()) new_levels(level - num_levels() + 1);}
+		inline void require_level(size_t level)	{if(level >= num_levels()) new_levels(level - num_levels() + 1);}
 		
 	///	clears this layout and then copies all levels from the given layout
 		void assign_layout(const MultiLevelLayout& mll)
@@ -592,6 +592,8 @@ class ICommunicationPolicy
 	public:
 		typedef TLayout						Layout;
 		typedef typename Layout::Interface 	Interface;
+		
+		virtual ~ICommunicationPolicy()	{}
 		
 	////////////////////////////////
 	//	COLLECT

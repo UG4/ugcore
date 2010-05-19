@@ -815,16 +815,16 @@ GetParent(std::istream& in, vector<VertexBase*>& vVrts,
 	switch(type)
 	{
 		case GOID_VERTEX_BASE:
-			assert(index < vVrts.size() && "bad index!");
+			assert(index < (int)vVrts.size() && "bad index!");
 			return vVrts[index];
 		case GOID_EDGE_BASE:
-			assert(index < vEdges.size() && "bad index!");
+			assert(index < (int)vEdges.size() && "bad index!");
 			return vEdges[index];
 		case GOID_FACE:
-			assert(index < vFaces.size() && "bad index!");
+			assert(index < (int)vFaces.size() && "bad index!");
 			return vFaces[index];
 		case GOID_VOLUME:
-			assert(index < vVols.size() && "bad index!");
+			assert(index < (int)vVols.size() && "bad index!");
 			return vVols[index];
 	}
 	

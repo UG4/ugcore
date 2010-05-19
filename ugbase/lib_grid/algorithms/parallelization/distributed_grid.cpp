@@ -156,7 +156,7 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus)
 				iiter != layout.end(l); ++iiter)
 			{
 				typename Layout::Interface& interface = layout.interface(iiter);
-				int procID = layout.proc_id(iiter);
+				//int procID = layout.proc_id(iiter);
 				
 			///	iterate through the elements of the interface
 				for(typename Layout::Interface::iterator iter = interface.begin();
@@ -193,6 +193,7 @@ get_status(GeometricObject* go)
 		case VOLUME:
 			return get_status(static_cast<Volume*>(go));
 	}
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////
