@@ -111,6 +111,6 @@ class GaussQuadrature : public QuadratureRule<TRefElem>{
 
 } // namespace ug
 
-#include "quadrature_impl.h";
+#include "quadrature_impl.h"
 
 #endif /* __H__LIBDISCRETIZATION__QUADRATURE__ */

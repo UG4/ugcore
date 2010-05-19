@@ -10,7 +10,7 @@
 
 #include "arnevector.h"
 #include "arnematrix.h"
-#include "../solver/ExtAlgSolver.hh"
+#include "../solver/ExtalgSolver.hh"
 #include "../solver/BoostBlock.hh"
 
 
