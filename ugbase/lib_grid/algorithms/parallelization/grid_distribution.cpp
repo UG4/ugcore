@@ -24,8 +24,10 @@ void PrintData(int* data, int size)
 */
 ////////////////////////////////////////////////////////////////////////
 //	DistributeGrid
-void DistributeGrid(MultiGrid& mg, SubsetHandler& sh,
+bool DistributeGrid(MultiGrid& mg, ISubsetHandler& sh,
+					SubsetHandler& shPartition,
 					int localProcID, MultiGrid* pLocalGridOut,
+					ISubsetHandler* pLocalSHOut,
 					GridLayoutMap* pLocalGridLayoutMapOut,
 					std::vector<int>* pProcessMap)
 {
@@ -47,7 +49,7 @@ void DistributeGrid(MultiGrid& mg, SubsetHandler& sh,
 	MGSelector msel(mg);
 	
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
-								vVolumeLayouts, mg, sh, &msel);
+								vVolumeLayouts, mg, shPartition, &msel);
 
 //	we will now fill a binary stream with all the grids.
 //	this stream will receive the data that has to be copied to the local grid.
@@ -59,7 +61,7 @@ void DistributeGrid(MultiGrid& mg, SubsetHandler& sh,
 //	here we'll store the ids of the receiving processes.
 	vector<int> vReceiverIDs;
 
-	int numProcs = (int)sh.num_subsets();
+	int numProcs = (int)shPartition.num_subsets();
 	if(pProcessMap)
 		numProcs = std::min((int)pProcessMap->size(), numProcs);
 		
@@ -83,7 +85,12 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 								localStream, mg, vVertexLayouts[i],
 								vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
 								aInt, aInt, aInt, aInt, &msel, pProcessMap);
-									
+		
+		//	serialize subset indices
+			SerializeSubsetHandler(mg, sh,
+								   msel.get_multi_level_geometric_object_collection(),
+								   localStream);
+								   
 		//	serialize position attachment
 			for(uint iLevel = 0; iLevel < mg.num_levels(); ++iLevel)
 			{
@@ -103,6 +110,11 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 									vEdgeLayouts[i], vFaceLayouts[i], vVolumeLayouts[i],
 									aInt, aInt, aInt, aInt, &msel, pProcessMap);
 
+		//	serialize subset indices
+			SerializeSubsetHandler(mg, sh,
+								   msel.get_multi_level_geometric_object_collection(),
+								   globalStream);
+								   
 		//	serialize position attachment
 			for(uint iLevel = 0; iLevel < mg.num_levels(); ++iLevel)
 			{
@@ -135,7 +147,8 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 	}
 
 //	fill the local grid and subset-handler
-	if(pLocalGridOut && pLocalGridLayoutMapOut && (localStream.size() > 0))
+	if(pLocalGridOut && pLocalSHOut && 
+		pLocalGridLayoutMapOut && (localStream.size() > 0))
 	{		
 		if(!pLocalGridOut->has_vertex_attachment(aPosition))
 			pLocalGridOut->attach_to_vertices(aPosition);
@@ -144,24 +157,47 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 									*pLocalGridOut, *pLocalGridLayoutMapOut,
 									localStream);
 
-		DeserializeAttachment<VertexBase>(*pLocalGridOut, aPosition,
+	//	deserialize subset handler
+		if(!DeserializeSubsetHandler(*pLocalGridOut, *pLocalSHOut,
+									localStream))
+		{
+			goto bailout_false;
+		}
+					
+		if(!DeserializeAttachment<VertexBase>(*pLocalGridOut, aPosition,
 										pLocalGridOut->begin<VertexBase>(),
 										pLocalGridOut->end<VertexBase>(),
-										localStream);
+										localStream))
+		{
+			goto bailout_false;
+		}
 	}
 	
 //	clean up
+//bailout_true:
 	mg.detach_from_vertices(aInt);
 	mg.detach_from_edges(aInt);
 	mg.detach_from_faces(aInt);
 	mg.detach_from_volumes(aInt);
+	
+	return true;
+
+bailout_false:
+	mg.detach_from_vertices(aInt);
+	mg.detach_from_edges(aInt);
+	mg.detach_from_faces(aInt);
+	mg.detach_from_volumes(aInt);
+	
+	return false;
+
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 //	ReceiveGrid
-void ReceiveGrid(MultiGrid& mgOut, GridLayoutMap& gridLayoutMapOut,
-					int srcProcID)
+bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
+				 GridLayoutMap& gridLayoutMapOut,
+				 int srcProcID)
 {
 //	receive the stream-size
 	int streamSize;
@@ -175,13 +211,20 @@ void ReceiveGrid(MultiGrid& mgOut, GridLayoutMap& gridLayoutMapOut,
 	DeserializeGridAndDistributionLayouts(mgOut, gridLayoutMapOut,
 											binaryStream);
 	
+//	deserialize subset handler
+	if(!DeserializeSubsetHandler(mgOut, shOut, binaryStream))
+		return false;
+	
 //	read the attached data
 	if(!mgOut.has_vertex_attachment(aPosition))
 		mgOut.attach_to_vertices(aPosition);
 
-	DeserializeAttachment<VertexBase>(mgOut, aPosition, binaryStream);
+	if(!DeserializeAttachment<VertexBase>(mgOut, aPosition, binaryStream))
+		return false;
 
 //TODO:	allow the user to read his data.
+
+	return true;
 }
 
 }//	end of namespace

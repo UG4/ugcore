@@ -134,9 +134,7 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 {
 //	the maximal number of indices per element.
 //	has to be adjusted if new element-types are supported.
-	static const int maxIndsPerElem = 3;
-	
-	assert(numIndsPerElem > 1 && numIndsPerElem <= maxIndsPerElem &&
+	assert(numIndsPerElem > 1 && numIndsPerElem <= 3 &&
 			"unsupported number of indices per element.");
 
 //	the number of elements

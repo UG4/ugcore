@@ -207,13 +207,19 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 
 ////////////////////////////////////////////////////////////////////////
 ///	writes the subset-indices of all elements in the goc to a stream.
-bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
 							std::ostream& out);
 
 ////////////////////////////////////////////////////////////////////////
+///	writes the subset-indices of all elements in the mlgoc to a stream.
+bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
+							MultiLevelGeometricObjectCollection mlgoc,
+							std::ostream& out);
+							
+////////////////////////////////////////////////////////////////////////
 ///	writes the subset-indices of all elements in the grid to a stream.
-bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							std::ostream& out);
 
 ////////////////////////////////////////////////////////////////////////
@@ -224,7 +230,7 @@ bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
  * consider to set grid.set_option(GRIDOPT_NONE) before loading
  * the grid.
  */
-bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
 							std::istream& in);
 
@@ -236,7 +242,7 @@ bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
  * consider to set grid.set_option(GRIDOPT_NONE) before loading
  * the grid.
  */
-bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							std::istream& in);
 
 /*

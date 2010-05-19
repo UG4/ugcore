@@ -1052,7 +1052,7 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 template <class TElemIter>
 static
 void WriteSubsetIndicesToStream(TElemIter iterBegin, TElemIter iterEnd,
-								SubsetHandler& sh, std::ostream& out)
+								ISubsetHandler& sh, std::ostream& out)
 {
 	for(;iterBegin != iterEnd; ++iterBegin)
 	{
@@ -1063,7 +1063,7 @@ void WriteSubsetIndicesToStream(TElemIter iterBegin, TElemIter iterEnd,
 
 ////////////////////////////////////////////////////////////////////////
 //	SerializeSubsetHandler
-bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
 							std::ostream& out)
 {
@@ -1072,11 +1072,10 @@ bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
 	out.write((char*)&magicNumber, sizeof(int));
 
 //	serialize subset-infos
-	int tInt;
-	tInt = (int)sh.num_subsets();
-	out.write((char*)&tInt, sizeof(int));
+	int numSubsets = (int)sh.num_subset_infos();
+	out.write((char*)&numSubsets, sizeof(int));
 
-	for(uint i = 0; i < sh.num_subsets(); ++i)
+	for(int i = 0; i < numSubsets; ++i)
 	{
 		SubsetInfo& si = sh.subset_info(i);
 	//	write the name (first the size, then the rest)
@@ -1118,8 +1117,66 @@ bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
 }
 
 ////////////////////////////////////////////////////////////////////////
+bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
+							MultiLevelGeometricObjectCollection mlgoc,
+							std::ostream& out)
+{
+//	write a magic number at the beginning and at the end.
+	int magicNumber = 654664;
+	out.write((char*)&magicNumber, sizeof(int));
+
+//	serialize subset-infos
+	int numSubsets = (int)sh.num_subset_infos();
+	out.write((char*)&numSubsets, sizeof(int));
+
+	for(int i = 0; i < numSubsets; ++i)
+	{
+		SubsetInfo& si = sh.subset_info(i);
+	//	write the name (first the size, then the rest)
+		int nameSize = si.name.size() + 1;
+		out.write((char*)&nameSize, sizeof(int));
+		out.write(si.name.c_str(), nameSize);
+
+	//	write the material index
+		out.write((char*)&si.materialIndex, sizeof(int));
+	//	write the color
+		out.write((char*)&si.color, sizeof(vector4));
+	//	write the subset-state
+		out.write((char*)&si.subsetState, sizeof(uint));
+	}
+
+	for(size_t i = 0; i < mlgoc.num_levels(); ++i)
+	{
+	//	serialize vertex-subsets
+		WriteSubsetIndicesToStream(mlgoc.begin<VertexBase>(i),
+									mlgoc.end<VertexBase>(i),
+									sh, out);
+
+	//	serialize edge-subsets
+		WriteSubsetIndicesToStream(mlgoc.begin<EdgeBase>(i),
+									mlgoc.end<EdgeBase>(i),
+									sh, out);
+
+	//	serialize face-subsets
+		WriteSubsetIndicesToStream(mlgoc.begin<Face>(i),
+									mlgoc.end<Face>(i),
+									sh, out);
+
+	//	serialize volume-subsets
+		WriteSubsetIndicesToStream(mlgoc.begin<Volume>(i),
+									mlgoc.end<Volume>(i),
+									sh, out);
+	}
+	
+	out.write((char*)&magicNumber, sizeof(int));
+
+	return true;
+
+}
+
+////////////////////////////////////////////////////////////////////////
 //	SerializeSubsetHandler
-bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							std::ostream& out)
 {
 	return SerializeSubsetHandler(grid, sh,
@@ -1133,7 +1190,7 @@ bool SerializeSubsetHandler(Grid& grid, SubsetHandler& sh,
 template <class TElemIter>
 static
 void ReadSubsetIndicesFromStream(TElemIter iterBegin, TElemIter iterEnd,
-								SubsetHandler& sh, std::istream& in)
+								ISubsetHandler& sh, std::istream& in)
 {
 	for(;iterBegin != iterEnd; ++iterBegin)
 	{
@@ -1145,7 +1202,7 @@ void ReadSubsetIndicesFromStream(TElemIter iterBegin, TElemIter iterEnd,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeSubsetHandler
-bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
 							std::istream& in)
 {
@@ -1155,8 +1212,10 @@ bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
 
 //	make sure that the magic number matches
 	in.read((char*)&tInd, sizeof(int));
-	if(tInd != magicNumber)
+	if(tInd != magicNumber){
+		UG_LOG(" WARNING: magic-number mismatch before read in DeserializeSubsetHandler. Data-salad possible!\n");
 		return false;
+	}
 
 //	deserialize subset-infos
 	int numSubsets;
@@ -1207,15 +1266,17 @@ bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
 
 	//	make sure that the magic number matches
 	in.read((char*)&tInd, sizeof(int));
-	if(tInd != magicNumber)
+	if(tInd != magicNumber){
+				UG_LOG(" WARNING: magic-number mismatch after read in DeserializeSubsetHandler. Data-salad possible!\n");
 		return false;
+	}
 
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeSubsetHandler
-bool DeserializeSubsetHandler(Grid& grid, SubsetHandler& sh,
+bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							std::istream& in)
 {
 	return DeserializeSubsetHandler(grid, sh,

@@ -23,8 +23,9 @@ namespace ug
  * have to specify your parts in the SubsetHandler.
  * The part for the local (the calling) process (specified by localProcID)
  * won't be send through the network, instead it will be directly written
- * to pLocalGridOut and pLocalGridCommSetOut - if those are specified.
- * Both should be empty before calling this method. Passing NULL only makes
+ * to pLocalGridOut, pLocalSubsetHandlerOut and pLocalGridCommSetOut - if
+ * those are specified.
+ * All three should be empty before calling this method. Passing NULL only makes
  * sense if you specified a processMap that has no entry for the calling
  * process.
  * You may optionally specify a process-map. This map is represented by
@@ -35,8 +36,10 @@ namespace ug
  *
  * Grids distributed through this method may be received by ReveiveGrid.
  */
-void DistributeGrid(MultiGrid& mg, SubsetHandler& sh, int localProcID,
+bool DistributeGrid(MultiGrid& mg, ISubsetHandler& sh,
+					SubsetHandler& shPartition, int localProcID,
 					MultiGrid* pLocalGridOut = NULL,
+					ISubsetHandler* pLocalSHOut = NULL,
 					GridLayoutMap* pLocalGridLayoutMapOut = NULL,
 					std::vector<int>* pProcessMap = NULL);
 
@@ -49,8 +52,9 @@ void DistributeGrid(MultiGrid& mg, SubsetHandler& sh, int localProcID,
  * The keys in the gridLayoutMap correspond to the type of the nodes that
  * each layout contains.
  */
-void ReceiveGrid(MultiGrid& mgOut, GridLayoutMap& gridLayoutMapOut,
-					int srcProcID);
+bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
+				GridLayoutMap& gridLayoutMapOut,
+				int srcProcID);
 }//	end of namespace
 
 #endif
