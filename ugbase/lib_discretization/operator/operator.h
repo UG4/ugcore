@@ -379,6 +379,9 @@ class IDiscreteLinearizedOperatorInverse
 #include "linear_operator/projection_operator.h"
 #include "linear_operator/transfer_operator.h"
 #include "linear_operator/assembled_linear_operator.h"
+#include "linear_operator/multi_grid_solver/mg_solver.h"
+
 #include "non_linear_operator/assembled_non_linear_operator.h"
+#include "non_linear_operator/newton_solver/newton.h"
 
 #endif /* __H__LIBDISCRETIZATION__OPERATOR__OPERATOR__ */
