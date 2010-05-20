@@ -83,18 +83,3 @@
 
 #include "lib_discretization/domain_discretization/disc_coupling/element_data.h"
 
-//#include "numericalsolution.h"
-
-//#include "differentialoperator.h"
-//#include "rhs.h"
-//#include "dirichletbndcond.h"
-
-/*#include "spacialdiscretization.h"
-#include "subsetdiscretization.h"
-#include "systemdiscretization.h"
-#include "equation.h"*/
-
-//#include "vtkoutput.h"
-//#include "timestep.h"
-//#include "newton.h"
-//#include "elementdata.h"
