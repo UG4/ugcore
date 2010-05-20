@@ -1,5 +1,5 @@
 /*
- * linear_operator.h
+ * interpolation_operator.h
  *
  *  Created on: 22.02.2010
  *      Author: andreasvogel
