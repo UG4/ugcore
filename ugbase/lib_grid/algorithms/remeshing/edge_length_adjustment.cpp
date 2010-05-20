@@ -183,6 +183,7 @@ bool TrySwap(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 
 //	this is a new test. the idea is that each edge should be orthogonal to
 //	the normals of its endpoints - at least in a perfectly smooth surface.
+
 	number approxDeg;
 	number newApproxDeg;
 	{
@@ -218,7 +219,7 @@ bool TrySwap(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 	if(newSmoothDeg < 0.1 * smoothDeg)
 		return false;
 
-	if(0.5 * (newApproxDeg - approxDeg) + 0.5 * (newShapeDeg - shapeDeg) > 0)
+	if(0.2 * (newApproxDeg - approxDeg) + 0.8 * (newShapeDeg - shapeDeg) > 0)
 	//if(newShapeDeg > shapeDeg)
 	//if(newApproxDeg > approxDeg)
 	{

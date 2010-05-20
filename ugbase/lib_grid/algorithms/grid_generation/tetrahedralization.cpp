@@ -90,7 +90,13 @@ static bool PerformTetrahedralization(Grid& grid,
 	}
 
 //	call tetrahedralization
-	tetrahedralize(const_cast<char*>("pqYYQ"), &in, &out);
+	try{
+		tetrahedralize(const_cast<char*>("pqYYQ"), &in, &out);
+	}
+	catch(int errCode){
+		UG_LOG("  aborting tetrahedralization. Received error: " << errCode << endl);
+		return false;
+	}
 
 	if(out.numberofpoints < (int)grid.num_vertices()){
 		LOG("  aborting tetrahedralization - bad number of points\n");
