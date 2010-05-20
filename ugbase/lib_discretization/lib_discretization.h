@@ -58,19 +58,6 @@
 #include "lib_discretization/time_discretization/timestep.h"
 
 ////////////////////////
-// geometric linear solvers
-////////////////////////
-
-#include "lib_discretization/multi_grid_solver/mg_solver.h"
-
-////////////////////////
-// non-linear solvers
-////////////////////////
-
-#include "lib_discretization/non_linear_solver/newton.h"
-
-
-////////////////////////
 // output
 ////////////////////////
 
