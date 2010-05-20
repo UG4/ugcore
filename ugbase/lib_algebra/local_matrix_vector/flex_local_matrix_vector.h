@@ -156,6 +156,11 @@ class FlexLocalVector{
 		m_values.resize(nrow);
 	}
 
+	std::size_t size() const
+	{
+		return m_values.size();
+	}
+
 	void set(number val)
 	{
 		iterator iterEnd = m_values.end();

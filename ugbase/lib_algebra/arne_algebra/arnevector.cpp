@@ -48,7 +48,7 @@ set(const local_vector_type& u, const local_index_type& ind)
 	if(_Vector == NULL) return false;
 	for(std::size_t i = 0; i < ind.size(); ++i)
 	{
-		assert(ind[i][0] < _Vector->size() && ind[i][0] >= 0);
+		UG_ASSERT(ind[i][0] < _Vector->size() && ind[i][0] >= 0, "ind = " << ind[i][0] << ", size = " << _Vector->size());
 		(*_Vector)(ind[i][0]) = u[i];
 	}
 	return true;
