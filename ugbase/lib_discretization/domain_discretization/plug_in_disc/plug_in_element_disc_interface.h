@@ -48,6 +48,10 @@ class IPlugInElementDiscretization{
 		{ return IPlugInReturn_NOT_IMPLEMENTED; };
 
 		template <typename TElem>
+		inline IPlugInReturn assemble_element_JABnd(TElem* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
+		{ return IPlugInReturn_NOT_IMPLEMENTED; };
+
+		template <typename TElem>
 		inline IPlugInReturn assemble_element_JM(TElem* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
 		{ return IPlugInReturn_NOT_IMPLEMENTED; };
 
@@ -56,7 +60,11 @@ class IPlugInElementDiscretization{
 		{ return IPlugInReturn_NOT_IMPLEMENTED; };
 
 		template <typename TElem>
-		inline void assemble_element_M(TElem* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		inline IPlugInReturn assemble_element_ABnd(TElem* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		{ return IPlugInReturn_NOT_IMPLEMENTED; };
+
+		template <typename TElem>
+		inline IPlugInReturn assemble_element_M(TElem* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
 		{ return IPlugInReturn_NOT_IMPLEMENTED; };
 
 		template <typename TElem>

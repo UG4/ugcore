@@ -15,6 +15,11 @@
 
 namespace ug{
 
+enum D3F_BND_TYPE {
+	D3F_BND_NONE = 0,
+	D3F_BND_DIRICHLET,
+	D3F_BND_NEUMANN
+};
 
 template<typename TDomain, typename TAlgebra, typename TElem >
 class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, MathVector<TDomain::dim>, TAlgebra>{
@@ -75,9 +80,13 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 
 		inline IPlugInReturn assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0);
 
+		inline IPlugInReturn assemble_element_JABnd(local_matrix_type& J, const local_vector_type& u, number time=0.0);
+
 		inline IPlugInReturn assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time=0.0);
 
 		inline IPlugInReturn assemble_element_A(local_vector_type& d, const local_vector_type& u, number time=0.0);
+
+		inline IPlugInReturn assemble_element_ABnd(local_vector_type& d, const local_vector_type& u, number time=0.0);
 
 		inline IPlugInReturn assemble_element_M(local_vector_type& d, const local_vector_type& u, number time=0.0);
 
@@ -113,11 +122,16 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		number m_porosity;
 
 	private:
+		// local constants for readability (local function 0 == _C_, local function 1 == _P_)
+		static const uint _C_ = 0;
+		static const uint _P_ = 1;
+
+		// local access to local solution vector splitted for each component
+		// TODO: Implement access to u, J, d as member functions, avoid defines !!!
+
+	private:
 		void export1(std::vector<MathVector<dim> >& val, std::vector<std::vector<MathVector<dim> > >& deriv, const std::vector<MathVector<dim> >& pos, const local_vector_type& u, bool compute_derivatives)
 		{
-
-		#define _C_ 0
-		#define _P_ 1
 		#define u(fct, i)    ( (u)[reference_element_traits<TElem>::num_corners*(fct) + (i)])
 
 			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -163,9 +177,6 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 			{
 
 			}
-
-		#undef _C_
-		#undef _P_
 		#undef u
 		}
 
@@ -264,19 +275,27 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 		typedef void (*Gravity_fct)(MathVector<dim>&);
 
 	protected:
-		typedef bool (*Boundary_fct)(number&, const position_type&, uint, number);
+		typedef bool (*Boundary_fct)(number&, const position_type&, number);
 
 	public:
 		DensityDrivenFlowPlugIn(uint c_fct, uint p_fct, TDomain& domain, number upwind_amount,
 				Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
-				Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity,
-				Boundary_fct bndfct) :
+				Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity) :
 			m_c_fct(c_fct), m_p_fct(p_fct),
-			m_bndfct(bndfct),
 			m_Darcy_velocity_export("Darcy velocity"),
 			m_ImpTriangle(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export),
 			m_ImpQuadrilateral(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export)
-			{};
+			{
+				typename TDomain::subset_handler_type& sh = domain.get_subset_handler();
+				int num_sh = sh.num_subsets();
+				m_bndfct.resize(2);
+				m_bndtype.resize(2);
+				for(size_t fct = 0; fct < 2; ++fct)
+				{
+					m_bndfct[fct].resize(num_sh, NULL);
+					m_bndtype[fct].resize(num_sh, D3F_BND_NONE);
+				}
+			};
 
 	public:
 		/* GENERAL INFORMATIONS */
@@ -312,12 +331,49 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 		// must return true for dirichlet, false else
 		// fct is local fct number, i.e. 0,...,num_fct-1
 		// TODO: Implement others
-		inline bool boundary_value(number& value, const position_type& pos, uint fct, number time)
+		inline bool boundary_value(number& value, const position_type& pos, number time, int s, uint fct)
 		{
 			UG_ASSERT(fct < num_fct(), "Accessing function, that does not exist in this assembling.");
-			return m_bndfct(value, pos, fct, time);
+			UG_ASSERT((uint)s < m_bndfct.size(), "Accessing function, that does not exist in this assembling.");
+			return (m_bndfct[fct][s])(value, pos, time);
 		}
 
+		// add bndtype and bndfunction to subset s for function fct
+		bool add_boundary_value(uint d, int s, uint fct, Boundary_fct func, D3F_BND_TYPE type)
+		{
+			std::vector<int>::iterator iter = find(m_bnd_subset[d].begin(), m_bnd_subset[d].end(), s);
+			if(iter == m_bnd_subset[d].end())
+				m_bnd_subset[d].push_back(s);
+
+			m_bndtype[fct][s] = type;
+			m_bndfct[fct][s] = func;
+			return true;
+		}
+
+		// returns is subset is dirichlet for function fct
+		bool is_dirichlet(int s, uint fct) {return m_bndtype[fct][s] == D3F_BND_DIRICHLET;}
+
+		uint num_bnd_subsets(uint d) {return m_bnd_subset[d].size();}
+		int bnd_subset(uint d, uint i) {return m_bnd_subset[d][i];}
+
+		uint num_elem_subsets(uint d) {return m_elem_subset[d].size();}
+		int elem_subset(uint d, uint i) {return m_elem_subset[d][i];}
+		bool add_elem_assemble_subset(uint d, int s)
+		{
+			std::vector<int>::iterator iter = find(m_elem_subset[d].begin(), m_elem_subset[d].end(), s);
+			if(iter == m_elem_subset[d].end())
+				m_elem_subset[d].push_back(s);
+			return true;
+		}
+
+	protected:
+		std::vector<int> m_bnd_subset[dim];
+		std::vector<int> m_elem_subset[dim+1]; // 3 = max dimensions
+
+		std::vector<std::vector<D3F_BND_TYPE> > m_bndtype;
+		std::vector<std::vector<Boundary_fct> > m_bndfct;
+
+	public:
 		bool register_exports(DataContainer& Cont)
 		{
 			if(Cont.register_item(m_Darcy_velocity_export) != true)
@@ -348,11 +404,7 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 			return true;
 		}
 
-		//void Darcy_Vel_test(std::vector<MathVector<dim> >& val, std::vector<MathVector<dim> >& pos)
-
 	protected:
-		Boundary_fct m_bndfct;
-
 		DataClassExportPossibility<MathVector<dim>, MathVector<dim>,TAlgebra> m_Darcy_velocity_export;
 
 	/* ELEMENT WISE ASSEMBLNG */

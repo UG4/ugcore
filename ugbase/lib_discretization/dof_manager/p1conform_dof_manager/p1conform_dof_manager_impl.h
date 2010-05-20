@@ -121,12 +121,16 @@ finalize()
 
 	// TODO: Generalize for more than one subset
 	int subsetIndex = 0;
-	UG_ASSERT(m_objContainer.num_subsets() == 1, "Currently only subsetIndex 0 is valid.");
 
 	// Attach indices
-	m_objContainer.enable_subset_attachments(true);
-	m_objContainer.template attach_to<VertexBase>(m_aIndex, subsetIndex);
-	m_aaIndex.access(m_objContainer, m_aIndex, subsetIndex);
+	m_aIndex.resize(num_subsets());
+	m_aaIndex.resize(num_subsets());
+	for(subsetIndex = 0; subsetIndex < (int)m_objContainer.num_subsets(); ++subsetIndex)
+	{
+		m_objContainer.enable_subset_attachments(true);
+		m_objContainer.template attach_to<VertexBase>(m_aIndex[subsetIndex], subsetIndex);
+		m_aaIndex[subsetIndex].access(m_objContainer, m_aIndex[subsetIndex], subsetIndex);
+	}
 
 	// iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
@@ -138,15 +142,19 @@ finalize()
 	m_num_dof_index.resize(m_objContainer.num_levels());
 	for(uint level = 0; level < m_objContainer.num_levels(); ++level)
 	{
-		iterBegin =  m_objContainer.begin<VertexBase>(subsetIndex, level);
-		iterEnd = m_objContainer.end<VertexBase>(subsetIndex, level);
-
 		uint i = 0;
-		for(iter = iterBegin; iter != iterEnd; ++iter)
+
+		for(subsetIndex = 0; subsetIndex < (int)m_objContainer.num_subsets(); ++subsetIndex)
 		{
-			VertexBase* vrt = *iter;
-			m_aaIndex[vrt] = i;
-			i += m_num_single_discrete_functions;
+			iterBegin =  m_objContainer.begin<VertexBase>(subsetIndex, level);
+			iterEnd = m_objContainer.end<VertexBase>(subsetIndex, level);
+
+			for(iter = iterBegin; iter != iterEnd; ++iter)
+			{
+				VertexBase* vrt = *iter;
+				m_aaIndex[subsetIndex][vrt] = i;
+				i += m_num_single_discrete_functions;
+			}
 		}
 		m_num_dof_index[level] = i;
 
@@ -225,7 +233,9 @@ get_multi_indices(TElem* elem, uint fct, local_index_type& ind, std::size_t offs
 	for(int i = 0; i < reference_element_traits<reference_element>::num_corners; ++i)
 	{
 		VertexBase* vrt = elem->vertex(i);
-		ind[offset + i][0] = m_aaIndex[vrt] + fct;
+		int subsetIndex = m_objContainer.get_subset_index(vrt);
+
+		ind[offset + i][0] = m_aaIndex[subsetIndex][vrt] + fct;
 	}
 
 	return reference_element_traits<reference_element>::num_corners;
@@ -259,7 +269,9 @@ get_multi_indices_of_geom_obj_helper(VertexBase* vrt, uint fct, local_index_type
 {
 	assert (fct < m_num_single_discrete_functions);
 
-	ind[offset + 0][0] = m_aaIndex[vrt] + fct;
+	int subsetIndex = m_objContainer.get_subset_index(vrt);
+
+	ind[offset + 0][0] = m_aaIndex[subsetIndex][vrt] + fct;
 
 	return 1;
 }

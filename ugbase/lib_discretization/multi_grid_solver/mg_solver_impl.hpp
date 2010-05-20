@@ -361,6 +361,9 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 free_memory()
 {
+	// do nothing, if no memory allocated
+	if(m_allocated == false) return true;
+
 	for(uint j = m_baseLevel; j != m_surfaceLevel; ++j)
 	{
 		if(m_A != NULL)

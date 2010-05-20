@@ -126,7 +126,7 @@ template<typename TDataType, typename TPositionType, typename TAlgebra>
 bool DataClassExport<TDataType, TPositionType, TAlgebra>::
 set_local_solution(const local_vector_type& u)
 {
-	UG_ASSERT(u.size() == this->num_sh(), "Wrong number of unknowns in local vector. Must match the number set in this export.");
+	UG_ASSERT(u.size() == this->m_num_sh[0], "Wrong number of unknowns in local vector. Must match the number set in this export.");
 
 	m_u = &u;
 

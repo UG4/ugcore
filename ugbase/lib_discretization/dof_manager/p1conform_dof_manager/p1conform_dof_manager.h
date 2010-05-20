@@ -134,7 +134,6 @@ class P1ConformDoFManager : public GridObserver{
 		/// returns the number of levels
 		inline int num_subsets() const
 		{
-			UG_ASSERT(m_objContainer.num_subsets() == 1, "Currently only subsetIndex 0 is valid.");
 			return m_objContainer.num_subsets();
 		}
 
@@ -157,7 +156,7 @@ class P1ConformDoFManager : public GridObserver{
 		/// returns true if the discrete function nr_fct is defined on subset s
 		bool fct_is_def_in_subset(uint fct, int subsetIndex) const
 		{
-			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
+			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index.");
 			UG_ASSERT(fct < num_fct(), "Accessing fundamental discrete function, that does not exist.");
 
 			return true;
@@ -167,7 +166,7 @@ class P1ConformDoFManager : public GridObserver{
 		template <typename TElem>
 		uint num(int subsetIndex, uint level) const
 		{
-			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
+			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index " << subsetIndex << " (only " << num_subsets() << " subset present)");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
 			return m_objContainer.template num<TElem>(subsetIndex, level);
 		}
@@ -176,7 +175,7 @@ class P1ConformDoFManager : public GridObserver{
 		template <typename TElem>
 		typename geometry_traits<TElem>::iterator begin(int subsetIndex, uint level) const
 		{
-			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
+			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index.");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
 			return m_objContainer.template begin<TElem>(subsetIndex, level);
 		}
@@ -185,7 +184,7 @@ class P1ConformDoFManager : public GridObserver{
 		template <typename TElem>
 		typename geometry_traits<TElem>::iterator end(int subsetIndex, uint level) const
 		{
-			UG_ASSERT(subsetIndex == 0, "Currently only subsetIndex 0 is valid.");
+			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index.");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
 			return m_objContainer.template end<TElem>(subsetIndex, level);
 		}
@@ -221,10 +220,11 @@ class P1ConformDoFManager : public GridObserver{
 
 		// attachment type
 		typedef ug::Attachment<uint> AIndex;
-		AIndex m_aIndex;
+		std::vector<AIndex> m_aIndex;
 
 		// Accessor type
-		typename geom_obj_container_type::template AttachmentAccessor<VertexBase, AIndex> m_aaIndex;
+		typedef typename geom_obj_container_type::template AttachmentAccessor<VertexBase, AIndex> attachment_accessor_type;
+		std::vector<attachment_accessor_type> m_aaIndex;
 		std::vector<uint> m_num_dof_index;
 
 		// number of Levels

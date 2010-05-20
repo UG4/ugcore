@@ -72,6 +72,19 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 		m_corners[i] = m_aaPos[vert];
 	}
 
+	// get subset indices of side
+	/*
+	typename domain_type::grid_type& grid = m_domain.get_grid();
+	typename domain_type::subset_handler_type& sh = m_domain.get_subset_handler();
+	for(size_t i = 0; i < TElem::num_sides; ++i)
+	{
+		typedef typename TElem::lower_dim_base_object bnd_base_type;
+		bnd_base_type* bnd_geom_obj = grid.get_side<TElem>(elem, i);
+
+		m_subset_index[i] = sh.get_subset_index(bnd_geom_obj);
+	}
+	*/
+
 	// update Geometry for this element
 	m_geo->update(m_corners);
 
@@ -84,8 +97,6 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	return IPlugInReturn_OK;
 }
 
-#define _C_ 0
-#define _P_ 1
 #define J(fct1, fct2, i, j) ( J( (reference_element_traits<TElem>::num_corners)*(fct1) + i, (reference_element_traits<TElem>::num_corners)*(fct2) + j) )
 #define d(fct, i)    ( d[reference_element_traits<TElem>::num_corners*(fct) + (i)])
 #define u(fct, i)    ( u[reference_element_traits<TElem>::num_corners*(fct) + (i)])
@@ -201,6 +212,17 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	return IPlugInReturn_OK;
 }
 
+template<typename TDomain, typename TAlgebra, typename TElem >
+inline
+IPlugInReturn
+DensityDrivenFlow<TDomain, TAlgebra, TElem>::
+assemble_element_JABnd(local_matrix_type& J, const local_vector_type& u, number time)
+{
+	// Here, we implement all boundary conditions, that depend on the solution. (If they do not depend (even implicitly) on the solution, there is no contribution to the Jacobian)
+	// ONLY DIRICHLET BOUNDARY conditions are not processed here.
+
+	return IPlugInReturn_OK;
+}
 
 template<typename TDomain, typename TAlgebra, typename TElem >
 inline
@@ -300,6 +322,17 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	return IPlugInReturn_OK;
 }
 
+template<typename TDomain, typename TAlgebra, typename TElem >
+inline
+IPlugInReturn
+DensityDrivenFlow<TDomain, TAlgebra, TElem>::
+assemble_element_ABnd(local_vector_type& d, const local_vector_type& u, number time)
+{
+	// Here, we implement all boundary conditions, that depend on the solution.
+	// ONLY DIRICHLET BOUNDARY conditions are not processed here.
+
+	return IPlugInReturn_OK;
+}
 
 template<typename TDomain, typename TAlgebra, typename TElem >
 inline
@@ -327,6 +360,8 @@ IPlugInReturn
 DensityDrivenFlow<TDomain, TAlgebra, TElem>::
 assemble_element_f(local_vector_type& d, number time)
 {
+	// Here we implement the right hand side and the boundary conditions, that do not depend on the solution
+
 	return IPlugInReturn_OK;
 }
 
