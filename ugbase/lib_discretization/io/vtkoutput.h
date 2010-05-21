@@ -21,6 +21,8 @@
 
 namespace ug{
 
+
+/// ATTENTION: This class uses heavily the mark-function of the grid. Do not use any member function while having called begin_mark()
 template <typename TDiscreteFunction>
 class VTKOutput{
 	public:
@@ -33,13 +35,23 @@ class VTKOutput{
 	private:
 		bool write_prolog(FILE* file, double Time);
 		bool write_piece_prolog(FILE* file);
-		bool write_subset(FILE* File, discrete_function_type& u,int subsetIndex);
-		bool init_subset(discrete_function_type& u, int subsetIndex);
-		bool write_points(FILE* File, discrete_function_type& u, int subsetIndex);
-		bool write_elements(FILE* File,discrete_function_type& u, int subsetIndex);
-		bool write_scalar(FILE* File, discrete_function_type& u, uint fct, int subsetIndex);
+		bool write_subset(FILE* File, discrete_function_type& u,int subsetIndex, int dim);
+		bool init_subset(discrete_function_type& u, int subsetIndex, int dim);
+		bool write_points(FILE* File, discrete_function_type& u, int subsetIndex, int dim);
+		bool write_elements(FILE* File,discrete_function_type& u, int subsetIndex, int dim);
+		bool write_scalar(FILE* File, discrete_function_type& u, uint fct, int subsetIndex, int dim);
 		bool write_epilog(FILE* file);
 		bool write_piece_epilog(FILE* file);
+
+		template <typename TElem>
+		void count_elem_conn(discrete_function_type& u, int subsetIndex,
+								typename geometry_traits<TElem>::iterator iterBegin,
+								typename geometry_traits<TElem>::iterator iterEnd);
+
+		template <typename TElem>
+		bool write_points_elementwise(	FILE* File, discrete_function_type& u,
+											typename geometry_traits<TElem>::iterator iterBegin,
+											typename geometry_traits<TElem>::iterator iterEnd, int& n);
 
 		template <typename TElem>
 		bool write_elements_connectivity(	FILE* File,
@@ -57,9 +69,10 @@ class VTKOutput{
 									typename geometry_traits<TElem>::iterator iterEnd);
 
 		template <typename TElem>
-		bool count_elem_conn(int& num_elem, int& num_connections,
-								typename geometry_traits<TElem>::iterator iterBegin,
-								typename geometry_traits<TElem>::iterator iterEnd);
+		bool write_scalar_elementwise(	FILE* File,
+										discrete_function_type& u, uint fct,
+										typename geometry_traits<TElem>::iterator iterBegin,
+										typename geometry_traits<TElem>::iterator iterEnd);
 
 
 	private:
@@ -70,9 +83,12 @@ class VTKOutput{
 		} Numbers;
 
 	protected:
-		typedef ug::Attachment<uint> ADOFIndex;
+		typedef ug::Attachment<int> ADOFIndex;
 
 	protected:
+
+		Grid* m_grid;
+
 		ADOFIndex m_aDOFIndex;
 		Grid::VertexAttachmentAccessor<ADOFIndex> m_aaDOFIndexVRT;
 		uint m_numberOfDOF;
