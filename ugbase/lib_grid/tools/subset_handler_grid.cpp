@@ -115,14 +115,15 @@ change_subset_indices(int indOld, int indNew)
 {
 	if(m_pGrid)
 	{
-		if(elements_are_supported(VERTEX))
+		if(elements_are_supported(SHE_VERTEX))
 			change_elem_subset_indices<VertexBase>(indOld, indNew);
-		if(elements_are_supported(EDGE))
+		if(elements_are_supported(SHE_EDGE))
 			change_elem_subset_indices<EdgeBase>(indOld, indNew);
-		if(elements_are_supported(FACE))
+		if(elements_are_supported(SHE_FACE))
 			change_elem_subset_indices<Face>(indOld, indNew);
-		if(elements_are_supported(VOLUME))
+		if(elements_are_supported(SHE_VOLUME)){
 			change_elem_subset_indices<Volume>(indOld, indNew);
+		}
 	}
 }				
 
