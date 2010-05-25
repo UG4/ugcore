@@ -489,16 +489,16 @@ public:
 struct nonadaptive{};
 struct adaptive{};
 
-template <typename TDomain, template <class TDomain> class TDoFManager, typename TCategory = typename TDomain::categroy_type>
+template <typename TDomain, typename TAlgebra, template <class TDomain> class TDoFManager, typename TCategory = typename TDomain::categroy_type>
 class ApproximationSpace;
 
 
 // non adaptive Approximation space
-template <typename TDomain, template <class TDomain> class TDoFManager>
-class ApproximationSpace<TDomain, TDoFManager, nonadaptive>{
+template <typename TDomain, typename TAlgebra, template <class TDomain> class TDoFManager>
+class ApproximationSpace<TDomain, TAlgebra, TDoFManager, nonadaptive>{
 	private:
 		// to make it more readable
-		typedef ApproximationSpace<TDomain, TDoFManager, nonadaptive> approximation_space_type;
+		typedef ApproximationSpace<TDomain, TAlgebra, TDoFManager, nonadaptive> approximation_space_type;
 
 	public:
 		// DOMAIN
@@ -517,12 +517,14 @@ class ApproximationSpace<TDomain, TDoFManager, nonadaptive>{
 
 
 		// GRID FUNCTION of this factory
+		typedef TAlgebra algebra_type;
+
 		// dof manager used
 		typedef TDoFManager<level_subset_handler_type> level_dof_manager_type;
 		typedef TDoFManager<surface_subset_handler_type> surface_dof_manager_type;
 
-		typedef GridFunction<approximation_space_type, level_dof_manager_type, ArneAlgebra> level_function_type;
-		typedef GridFunction<approximation_space_type, surface_dof_manager_type, ArneAlgebra> surface_function_type;
+		typedef GridFunction<approximation_space_type, level_dof_manager_type, algebra_type> level_function_type;
+		typedef GridFunction<approximation_space_type, surface_dof_manager_type, algebra_type> surface_function_type;
 		typedef surface_function_type function_type;
 
 	public:
