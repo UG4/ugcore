@@ -296,7 +296,7 @@ set_dirichlet_linear(	geometry_traits<Vertex>::iterator iterBegin,
 			for(uint i = 0; i < m_elemDisc.num_fct(); i++)
 			{
 				if(u.get_multi_indices_of_geom_obj(vert, m_elemDisc.fct(fct), ind) != 1) assert(0);
-				if(m_elemDisc.boundary_value(val, corner, time, fct, s))
+				if(m_elemDisc.boundary_value(val, corner, time, s, fct))
 				{
 					dirichlet_vals.push_back(val);
 					glob_ind.push_back(ind[0]);

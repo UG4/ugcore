@@ -17,6 +17,14 @@
 namespace ug{
 
 
+enum CONV_DIFF_BND_TYPE {
+	CONV_DIFF_BND_NONE = 0,
+	CONV_DIFF_BND_DIRICHLET,
+	CONV_DIFF_BND_NEUMANN
+};
+
+
+
 template<typename TDomain, typename TAlgebra, typename TElem >
 class ConvectionDiffusionEquation {
 	public:
@@ -137,16 +145,25 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	protected:
-		typedef bool (*Boundary_fct)(number&, const position_type&, uint, number);
+		typedef bool (*Boundary_fct)(number&, const position_type&, number);
 
 	public:
-		ConvectionDiffusionEquationPlugIn(uint fct, domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs, Boundary_fct bndfct) :
+		ConvectionDiffusionEquationPlugIn(uint fct, domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs) :
 			m_fct(fct),
-			m_bndfct(bndfct),
 			m_Velocity("Velocity"),
 			m_ImpTriangle(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity),
 			m_ImpQuadrilateral(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity)
-			{};
+			{
+				typename TDomain::subset_handler_type& sh = domain.get_subset_handler();
+				int num_sh = sh.num_subsets();
+				m_bndfct.resize(2);
+				m_bndtype.resize(2);
+				for(size_t fct = 0; fct < 2; ++fct)
+				{
+					m_bndfct[fct].resize(num_sh, NULL);
+					m_bndtype[fct].resize(num_sh, CONV_DIFF_BND_NONE);
+				}
+			};
 
 	public:
 		/* GENERAL INFORMATIONS */
@@ -213,9 +230,56 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		}
 
 	protected:
-		Boundary_fct m_bndfct;
-
 		DataImport<MathVector<dim>, MathVector<dim> > m_Velocity;
+
+	public:
+	/* DIRICHLET BOUNDARY CONDITIONS */
+		// currently only dirichlet bnd cond for nodes
+		// must return true for dirichlet, false else
+		// fct is local fct number, i.e. 0,...,num_fct-1
+		// TODO: Implement others
+		inline bool boundary_value(number& value, const position_type& pos, number time, int s, uint fct)
+		{
+			UG_ASSERT(fct < num_fct(), "Accessing function, that does not exist in this assembling.");
+			UG_ASSERT((uint)s < m_bndfct.size(), "Accessing function, that does not exist in this assembling.");
+			return (m_bndfct[fct][s])(value, pos, time);
+		}
+
+		// add bndtype and bndfunction to subset s for function fct
+		bool add_boundary_value(uint d, int s, uint fct, Boundary_fct func, CONV_DIFF_BND_TYPE type)
+		{
+			std::vector<int>::iterator iter = find(m_bnd_subset[d].begin(), m_bnd_subset[d].end(), s);
+			if(iter == m_bnd_subset[d].end())
+				m_bnd_subset[d].push_back(s);
+
+			m_bndtype[fct][s] = type;
+			m_bndfct[fct][s] = func;
+			return true;
+		}
+
+		// returns is subset is dirichlet for function fct
+		bool is_dirichlet(int s, uint fct) {return m_bndtype[fct][s] == CONV_DIFF_BND_DIRICHLET;}
+
+		uint num_bnd_subsets(uint d) {return m_bnd_subset[d].size();}
+		int bnd_subset(uint d, uint i) {return m_bnd_subset[d][i];}
+
+		uint num_elem_subsets(uint d) {return m_elem_subset[d].size();}
+		int elem_subset(uint d, uint i) {return m_elem_subset[d][i];}
+		bool add_elem_assemble_subset(uint d, int s)
+		{
+			std::vector<int>::iterator iter = find(m_elem_subset[d].begin(), m_elem_subset[d].end(), s);
+			if(iter == m_elem_subset[d].end())
+				m_elem_subset[d].push_back(s);
+			return true;
+		}
+
+	protected:
+		std::vector<int> m_bnd_subset[dim];
+		std::vector<int> m_elem_subset[dim+1]; // 3 = max dimensions
+
+		std::vector<std::vector<CONV_DIFF_BND_TYPE> > m_bndtype;
+		std::vector<std::vector<Boundary_fct> > m_bndfct;
+
 
 	/* ELEMENT WISE ASSEMBLNG */
 	public:

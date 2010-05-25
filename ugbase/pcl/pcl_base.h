@@ -69,12 +69,11 @@ class basic_interface_tag									{};
  *	with the basic_interface_tag will operate on interfaces with
  *	this tag, too.
  *
- *	Interfaces with this category have to feature a cmp compare
- *	method that compares two iterators. If iter1 < iter2 then
- *	the method should return true
+ *	Interfaces with this category have to associated a local id with
+ *	each entry.
  *
  *	Methods that have to be featured in such interfaces:
- *		- static bool cmp(iterator iter1, iterator iter2);
+ *		- get_local_id(iterator iter);
  */
 class ordered_interface_tag : public basic_interface_tag	{};
 }//	end of namespace interface_tags
@@ -108,31 +107,31 @@ class BasicInterface
 	protected:
 		typedef typename type_traits<TType>::Elem		TElem;
 		typedef TContainer<TElem, TAlloc<TElem> >		ElemContainer;
-		
+
 	public:
 		typedef interface_tags::basic_interface_tag		category_tag;
-		
+
 		typedef TType									Type;
 		typedef typename type_traits<TType>::Elem		Element;
 		typedef typename ElemContainer::iterator		iterator;
 		typedef typename ElemContainer::const_iterator	const_iterator;
-		
+
 	public:
 		BasicInterface(int targetProc = -1)	: m_size(0), m_targetProc(targetProc)	{};
-		
+
 		inline iterator push_back(const Element& elem)	{++m_size; return m_elements.insert(m_elements.end(), elem);}
 		inline void erase(iterator iter)				{--m_size; m_elements.erase(iter);}
-		
+
 		inline iterator begin()		{return m_elements.begin();}
 		inline iterator end()		{return m_elements.end();}
-		
+
 		inline Element& get_element(iterator iter)	{return *iter;}
-		
+
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
-		
+
 		int get_target_proc()						{return m_targetProc;}
-		
+
 	protected:
 		ElemContainer	m_elements;
 		size_t			m_size;
@@ -150,64 +149,64 @@ class OrderedInterface
 {
 	protected:
 		typedef typename type_traits<TType>::Elem	TElem;
-		
+
 		struct InterfaceEntry
 		{
 			InterfaceEntry(TElem e, size_t locID) : elem(e), localID(locID)	{}
-			
+
 			TElem	elem;
 			size_t	localID;
 		};
-														
+
 		typedef TContainer<InterfaceEntry, TAlloc<InterfaceEntry> >
 														ElemContainer;
-		
+
 	public:
 		typedef TType									Type;
 		typedef typename type_traits<TType>::Elem		Element;
-		
+
 		typedef interface_tags::ordered_interface_tag	category_tag;
-		
+
 		typedef typename ElemContainer::iterator		iterator;
 		typedef typename ElemContainer::const_iterator	const_iterator;
-		
+
 	public:
 		OrderedInterface(int targetProc = -1) :
 			m_size(0),
 			m_targetProc(targetProc),
 			m_idCounter(1)	{}
-		
+
 		inline iterator push_back(const Element& elem)
 		{
 			++m_size;
 			return m_elements.insert(m_elements.end(),
 									(InterfaceEntry(elem, get_free_id())));
 		}
-		
+
 		inline void erase(iterator iter)
 		{
 			--m_size;
 			m_elements.erase(iter);
 		}
-		
+
 		inline iterator begin()		{return m_elements.begin();}
 		inline iterator end()		{return m_elements.end();}
-		
+
 		inline Element& get_element(iterator iter)	{return (*iter).elem;}
 		inline size_t get_local_id(iterator iter)	{return (*iter).localID;}
-		
+
 	///	returns the number of elements that are stored in the interface.
 		inline size_t size()						{return m_size;}
-		
+
 		int get_target_proc()						{return m_targetProc;}
-		
+
 	///	returns true if iter1 < iter2.
 		static inline bool cmp(iterator iter1, iterator iter2,
 								const std::input_iterator_tag&)
 		{
 			return (*iter1).localID < (*iter2).localID;
 		}
-		
+
 	protected:
 	///	returns a free id in each call.
 	/**	Those ids are not necessarily aligned.*/
@@ -220,10 +219,10 @@ class OrderedInterface
 				for(iterator iter = begin(); iter != end(); ++iter)
 					(*iter).localID = m_idCounter++;
 			}
-			
+
 			return m_idCounter++;
 		}
-		
+
 	protected:
 		ElemContainer	m_elements;
 		uint m_size;
@@ -297,23 +296,23 @@ class SingleLevelLayout
 {
 	public:
 		SingleLevelLayout()		{}
-		
+
 	////////////////////////////////////////////////
 	//	typedefs required by implementation
 	///	an interface-map is a list of interfaces, each associated with a process id.
 		typedef std::map<int, TInterface>	InterfaceMap;
 
 	////////////////////////////////////////////////
-	//	typedefs required by layout-tag		
+	//	typedefs required by layout-tag
 	///	Layout category
 		typedef layout_tags::single_level_layout_tag	category_tag;
-		
+
 	///	Interface type
 		typedef TInterface						Interface;
-		
+
 	///	Type
 		typedef typename Interface::Type		Type;
-		
+
 	///	Element type
 		typedef typename Interface::Element		Element;
 
@@ -323,20 +322,20 @@ class SingleLevelLayout
 	public:
 	////////////////////////////////////////////////
 	//	methods required by the layout-tag
-	
+
 	///	returns the iterator to the first interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
 		inline iterator begin()							{return m_interfaceMap.begin();}
 
-	///	returns the iterator to the last interface of the layout.	
+	///	returns the iterator to the last interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
 		inline iterator end()							{return m_interfaceMap.end();}
 
 	///	returns the interface to the given iterator.
 		inline Interface& interface(iterator& iter)		{return iter->second;}
-		
+
 	///	returns the interface to the given iterator.
 		inline int proc_id(iterator& iter)				{return iter->first;}
 
@@ -359,7 +358,7 @@ class SingleLevelLayout
 /*
 	///	copy-constructor is not yet implemented
 		SingleLevelLayout(const SingleLevelLayout& sll);
-		
+
 	///	assignement-operator is not yet implemented
 		SingleLevelLayout& operator = (const SingleLevelLayout& sll);
 */
@@ -396,15 +395,15 @@ class MultiLevelLayout
 	//	typedefs required by implementation
 	///	on each level a single-level-layout is used
 		typedef SingleLevelLayout<TInterface>		LevelLayout;
-		
+
 	////////////////////////////////////////////////
-	//	typedefs required by layout-tag		
+	//	typedefs required by layout-tag
 	///	Layout category
 		typedef layout_tags::multi_level_layout_tag	category_tag;
-		
+
 	///	Interface type
 		typedef TInterface							Interface;
-		
+
 	///	Type
 		typedef typename Interface::Type			Type;
 
@@ -417,15 +416,15 @@ class MultiLevelLayout
 	public:
 		MultiLevelLayout()								{}
 		MultiLevelLayout(const MultiLevelLayout& mll)	{assign_layout(mll);}
-		
+
 		~MultiLevelLayout()								{clear();}
-		
+
 		MultiLevelLayout& operator = (const MultiLevelLayout& mll)
 		{
 			assign_layout(mll);
 			return *this;
 		}
-		
+
 	////////////////////////////////////////////////
 	//	methods required by the layout-tag
 
@@ -435,7 +434,7 @@ class MultiLevelLayout
 	 *	Make sure that the level matches the level in the associated end() call.*/
 		inline iterator begin(size_t level)				{require_level(level); return m_vLayouts[level]->begin();}
 
-	///	returns the iterator to the last interface of the layout in the given level.	
+	///	returns the iterator to the last interface of the layout in the given level.
 	/**	You should access the values of this iterator using the methods
 	 *	Layout::interface and Layout::proc_id.
 	 *	Make sure that the level matches the level in the associated begin() call.*/
@@ -443,10 +442,10 @@ class MultiLevelLayout
 
 	///	returns the interface to the given iterator.
 		inline Interface& interface(iterator& iter)		{return iter->second;}
-		
+
 	///	returns the interface to the given iterator.
 		inline int proc_id(iterator& iter)				{return iter->first;}
-	
+
 	///	returns the number of levels.
 		inline size_t num_levels()						{return m_vLayouts.size();}
 
@@ -459,14 +458,14 @@ class MultiLevelLayout
 				delete m_vLayouts[i];
 			m_vLayouts.clear();
 		}
-		
+
 	///	returns the interface to the given process.
 	/**	if the interface doesn't exist yet, it will be created.*/
 		inline Interface& interface(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface(procID);}
 
 	///	returns true if an interface to the given procID already exists.
 		inline bool interface_exists(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface_exists(procID);}
-	
+
 	///	returns the layout at the given level.
 	/**	If level >= num_levels() then the layouts in between
 		will be automatically created.*/
@@ -475,18 +474,18 @@ class MultiLevelLayout
 	protected:
 	///	adds num new levels.
 		inline void new_levels(size_t num)		{for(size_t i = 0; i < num; ++i) m_vLayouts.push_back(new LevelLayout());}
-		
+
 	///	if the required level doesn't exist yet, it will created.
 		inline void require_level(size_t level)	{if(level >= num_levels()) new_levels(level - num_levels() + 1);}
-		
+
 	///	clears this layout and then copies all levels from the given layout
 		void assign_layout(const MultiLevelLayout& mll)
 		{
 			clear();
 			for(size_t i = 0; i < mll.m_vLayouts.size(); ++i)
 				m_vLayouts.push_back(new LevelLayout(*mll.m_vLayouts[i]));
-		}		
-		
+		}
+
 	protected:
 		std::vector<LevelLayout*>	m_vLayouts;
 };
@@ -535,14 +534,14 @@ template <template <class TInterface> class TLayout,
 			class TKey,
 			template<class T, class Alloc>
 				class TInterfaceElemContainer = std::vector,
-			template<class T> 
+			template<class T>
 				class TAlloc = std::allocator>
-			
+
 class LayoutMap
 {
 	public:
 		typedef TKey	Key;
-		
+
 	///	defines the types that are used by a LayoutMap for a given TType.
 		template <class TType>
 		struct Types
@@ -554,16 +553,16 @@ class LayoutMap
 			typedef typename Interface::Element		Element;
 			typedef std::map<TKey, Layout>			Map;
 		};
-		
+
 	public:
 	///	checks whether the layout associated with the given key exists for the given type.
 		template <class TType>
 		bool has_layout(TKey key)
 		{
 			typename Types<TType>::Map& m = get_layout_map<TType>();
-			return m.find(key) != m.end();											
+			return m.find(key) != m.end();
 		}
-		
+
 	///	creates the required layout if it doesn't exist already.
 		template <class TType>
 		typename Types<TType>::Layout& get_layout(TKey key)
@@ -571,7 +570,7 @@ class LayoutMap
 			typename Types<TType>::Map& m = get_layout_map<TType>();
 			return m[key];
 		}
-		
+
 	protected:
 		template <class TType>
 		inline typename Types<TType>::Map&
@@ -592,9 +591,9 @@ class ICommunicationPolicy
 	public:
 		typedef TLayout						Layout;
 		typedef typename Layout::Interface 	Interface;
-		
+
 		virtual ~ICommunicationPolicy()	{}
-		
+
 	////////////////////////////////
 	//	COLLECT
 	///	signals the beginning of a layout collection.
@@ -606,11 +605,11 @@ class ICommunicationPolicy
 	/**	the default implementation returns true and does nothing else.*/
 		virtual bool
 		end_layout_collection()						{return true;}
-		
+
 	///	should write data which is associated with the interface elements to the buffer.
 		virtual bool
 		collect(std::ostream& buff, Interface& interface) = 0;
-		
+
 	////////////////////////////////
 	//	EXTRACT
 	///	signals the beginning of a layout extraction.
@@ -632,7 +631,7 @@ class ICommunicationPolicy
 	 *	This method is called after begin_layout_extraction and before
 	 *	the associated extract calls.*/
 	 	virtual void begin_level_extraction(int level)		{}
-		
+
 	///	extract data from the buffer and assigns it to the interface-elements.
 	/**	If this method is called between calls to begin_layout_extraction and
 		end_layout_extraction, the interface that is passed to this method

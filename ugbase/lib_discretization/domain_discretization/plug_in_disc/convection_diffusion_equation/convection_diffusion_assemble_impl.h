@@ -47,8 +47,8 @@ prepare_element_loop()
 	}
 
 	// overwrite old positions (maybe form other element type)
-	m_Velocity.set_positions(pos, true);
-	m_Velocity.set_num_eq(reference_element_traits<TElem>::num_corners);
+	//m_Velocity.set_positions(pos, true);
+	//m_Velocity.set_num_eq(reference_element_traits<TElem>::num_corners);
 
 	return IPlugInReturn_OK;
 }
@@ -101,7 +101,8 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	static const int dim = TDomain::dim;
 	std::size_t ip_pos = 0;
 
-	number flux, shape_u;
+	number flux;
+	//number shape_u;
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v, lin_Defect;
 	MathVector<dim> Dgrad;
@@ -116,7 +117,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 			m_Diff_Tensor(D, scvf.global_ip(), time);
 			m_Conv_Vel(v, scvf.global_ip(), time);
 
-			v = m_Velocity[ip_pos];
+			//v = m_Velocity[ip_pos];
 
 			for(uint j = 0; j < sdv.num_sh(); ++j)
 			{
@@ -143,6 +144,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 					J(scvf.to()  , j) -= flux;
 
 					// linearization of defect
+					/*
 					if(m_Velocity.num_sh() > 0)
 					{
 						shape_u = 0.0;
@@ -155,7 +157,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 						VecScale(lin_Defect, lin_Defect, shape_u);
 						m_Velocity.lin_defect(scvf.from(), ip_pos) = lin_Defect;
 						VecScale(m_Velocity.lin_defect(scvf.to(), ip_pos), lin_Defect, -1.);
-					}
+					}*/
 				}
 			}
 			// upwind part convection
@@ -168,14 +170,14 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 				J(scvf.to()  , up) -= flux;
 
 				// linearization of defect
-				if(m_Velocity.num_sh() > 0)
+				/*if(m_Velocity.num_sh() > 0)
 				{
 					shape_u = u[up] * m_upwind_amount;
 					lin_Defect = scvf.normal();
 					VecScale(lin_Defect, lin_Defect, shape_u);
 					m_Velocity.lin_defect(scvf.from(), ip_pos) = lin_Defect;
 					VecScale(m_Velocity.lin_defect(scvf.to(), ip_pos), lin_Defect, -1.);
-				}
+				}*/
 			}
 
 			// next ip position
@@ -226,7 +228,7 @@ ConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
 assemble_element_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 	static const int dim = TDomain::dim;
-	std::size_t ip_pos = 0;
+//	std::size_t ip_pos = 0;
 
 	number flux;
 	MathVector<dim> grad_u;
@@ -253,7 +255,7 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 			m_Diff_Tensor(D, scvf.global_ip(), time);
 			m_Conv_Vel(v, scvf.global_ip(), time);
 
-			v = m_Velocity[ip_pos++];
+			//v = m_Velocity[ip_pos++];
 
 			////////////////////////////////////
 			// diffusiv term (central discretization)
