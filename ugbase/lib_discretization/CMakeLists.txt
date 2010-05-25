@@ -12,7 +12,6 @@ project(P_LIB_DISCRETIZATION)
 include_directories(${P_UGBASE_SOURCE_DIR})
 
 set(srcDiscretization		dof_manager/general_dof_manager/general_dof_manager.cpp
-				dof_manager/p1conform_dof_manager/p1conform_dof_manager.cpp
 				quadrature/gauss_quadratures_ReferenceTriangle.cpp
 				quadrature/gauss_quadratures_ReferenceQuadrilateral.cpp
 				local_shape_function_set/local_shape_function_set_factory.cpp

@@ -78,18 +78,18 @@ class P1ConformDoFManager : public GridObserver{
 		 * each dof, a Grouped Solution has on index with several components.
 		 *
 		 */
-		bool group_discrete_functions(std::string name, std::vector<uint>& GroupSolutions);
+		bool group_discrete_functions(std::string name, std::vector<size_t>& GroupSolutions);
 
 		/// groups selected dof-groups associated with one Geom Object
 		template <typename TGeomObj>
-		bool group_dof_groups(std::vector<uint>& dofgroups);
+		bool group_dof_groups(std::vector<size_t>& dofgroups);
 
 		/// groups all dofgroups on a given geometric object type, where a component of selected functions appear
 		template <typename TGeomObj>
-		bool group_discrete_functions(std::vector<uint>& selected_functions);
+		bool group_discrete_functions(std::vector<size_t>& selected_functions);
 
 		/// groups all dof on every geometric object for selected functions
-		bool group_discrete_functions(std::vector<uint>& selected_functions);
+		bool group_discrete_functions(std::vector<size_t>& selected_functions);
 
 		/// resets grouping for a geometric object
 		template <typename TGeomObj>
@@ -105,56 +105,44 @@ class P1ConformDoFManager : public GridObserver{
 		bool finalize();
 
 		/// returns the trial space of the discrete function fct
-		LocalShapeFunctionSetID get_local_shape_function_set_id(uint fct) const;
+		LocalShapeFunctionSetID get_local_shape_function_set_id(size_t fct) const;
 
 		// returns the number of multi_indices on the Element for the discrete function 'fct'
 		template<typename TElem>
-		std::size_t num_multi_indices(TElem* elem, uint fct) const;
+		std::size_t num_multi_indices(TElem* elem, size_t fct) const;
 
 		/// returns the indices of the dofs on the Element elem for the discrete function 'fct' and returns num_indices
 		template<typename TElem>
-		std::size_t get_multi_indices(TElem* elem, uint fct, local_index_type& ind, std::size_t offset = 0) const;
+		std::size_t get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
 
 		/// returns the index of the dofs on the Geom Obj for the discrete function 'fct'
 		template<typename TElem>
-		std::size_t get_multi_indices_of_geom_obj(TElem* vrt, uint fct, local_index_type& ind, std::size_t offset = 0) const;
+		std::size_t get_multi_indices_of_geom_obj(TElem* vrt, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
 
 		/// returns the number of dofs on level 'level'
-		inline uint num_dofs(uint level) const
-		{
-			return m_num_dof_index[level];
-		}
+		inline size_t num_dofs(size_t level) const {return m_vLevelInfo[level].numDoFIndex;}
 
 		/// returns the number of levels
-		inline uint num_levels() const
-		{
-			return m_objContainer.num_levels();
-		}
+		inline size_t num_levels() const {return m_objContainer.num_levels();}
 
 		/// returns the number of levels
-		inline int num_subsets() const
-		{
-			return m_objContainer.num_subsets();
-		}
+		inline int num_subsets() const {return m_objContainer.num_subsets();}
 
 		/// returns the number of discrete functions in this dof pattern
-		inline uint num_fct() const
-		{
-			return m_SingleDiscreteFunctionNames.size();
-		}
+		inline size_t num_fct() const {return m_vFunctionInfo.size();}
 
 		/// returns the name of the discrete function nr_fct
-		std::string get_name(uint nr_fct) const;
+		std::string get_name(size_t fct) const {return m_vFunctionInfo[fct].name;}
 
 		/// returns the dimension in which solution lives
-		inline int dim_fct(uint fct) const
+		inline int dim_fct(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "Accessing fundamental discrete function, that does not exist.");
-			return m_dim[fct];
+			return m_vFunctionInfo[fct].dim;
 		}
 
 		/// returns true if the discrete function nr_fct is defined on subset s
-		bool fct_is_def_in_subset(uint fct, int subsetIndex) const
+		bool fct_is_def_in_subset(size_t fct, int subsetIndex) const
 		{
 			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index.");
 			UG_ASSERT(fct < num_fct(), "Accessing fundamental discrete function, that does not exist.");
@@ -164,7 +152,7 @@ class P1ConformDoFManager : public GridObserver{
 
 		/// number of elments of type 'TElem' on level and subset
 		template <typename TElem>
-		uint num(int subsetIndex, uint level) const
+		size_t num(int subsetIndex, size_t level) const
 		{
 			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index " << subsetIndex << " (only " << num_subsets() << " subset present)");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
@@ -173,7 +161,7 @@ class P1ConformDoFManager : public GridObserver{
 
 		/// returns the begin iterator for all elements of type 'TElem' on level 'level' on subset 'subsetIndex'
 		template <typename TElem>
-		typename geometry_traits<TElem>::iterator begin(int subsetIndex, uint level) const
+		typename geometry_traits<TElem>::iterator begin(int subsetIndex, size_t level) const
 		{
 			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index.");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
@@ -182,7 +170,7 @@ class P1ConformDoFManager : public GridObserver{
 
 		/// returns the end iterator for all elements of type 'TElem' on level 'level' on subset 'subsetIndex'
 		template <typename TElem>
-		typename geometry_traits<TElem>::iterator end(int subsetIndex, uint level) const
+		typename geometry_traits<TElem>::iterator end(int subsetIndex, size_t level) const
 		{
 			UG_ASSERT(subsetIndex < num_subsets(), "Wrong subset index.");
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
@@ -192,44 +180,53 @@ class P1ConformDoFManager : public GridObserver{
 		/// returns the assigned SubsetHandler
 		geom_obj_container_type& get_assigned_geom_object_container();
 
-		const IndexInfo& get_index_info(uint level) const
+		const IndexInfo& get_index_info(size_t level) const
 		{
 			UG_ASSERT(level < num_levels(), "Accessing level, that does not exist.");
-			return m_IndexInfo[level];
+			return m_vLevelInfo[level].indexInfo;
 		}
 
-		inline bool is_locked() const
-		{
-			return m_bLocked;
-		}
+		/// returns if dof manager has a locked pattern
+		inline bool is_locked() const {	return m_bLocked;}
 
 		/// destructor
 		~P1ConformDoFManager();
 
 	protected:
+		struct FunctionInfo
+		{
+			std::string name;
+			int dim;
+		};
+
+		struct LevelInfo
+		{
+			size_t numDoFIndex;
+			IndexInfo indexInfo;
+		};
+
+		struct SubsetInfo
+		{
+			typedef ug::Attachment<size_t> ADoF;
+			typedef typename geom_obj_container_type::template AttachmentAccessor<VertexBase, ADoF> attachment_accessor_type;
+
+			attachment_accessor_type aaDoF;
+
+			ADoF aDoF;
+		};
+
+	protected:
 		// if locked, pattern can not be changed anymore
 		bool m_bLocked;
 
-		// names of functions
-		std::vector<std::string> m_SingleDiscreteFunctionNames;
+		// informations about Functions
+		std::vector<FunctionInfo> m_vFunctionInfo;
 
-		// dimension, in which function lives
-		std::vector<int> m_dim;
+		// informations about Levels
+		std::vector<LevelInfo> m_vLevelInfo;
 
-		uint m_num_single_discrete_functions;
-
-		// attachment type
-		typedef ug::Attachment<uint> AIndex;
-		std::vector<AIndex> m_aIndex;
-
-		// Accessor type
-		typedef typename geom_obj_container_type::template AttachmentAccessor<VertexBase, AIndex> attachment_accessor_type;
-		std::vector<attachment_accessor_type> m_aaIndex;
-		std::vector<uint> m_num_dof_index;
-
-		// number of Levels
-		uint m_num_levels;
-		std::vector<IndexInfo> m_IndexInfo;
+		// informations about Subsets
+		std::vector<SubsetInfo> m_vSubsetInfo;
 
 		// associated object container
 		geom_obj_container_type& m_objContainer;
@@ -237,9 +234,9 @@ class P1ConformDoFManager : public GridObserver{
 	private:
 		// helper function (since partial template specialization for member function not possible)
 		template<typename TElem>
-		inline std::size_t get_multi_indices_of_geom_obj_helper(TElem* vrt, uint fct, local_index_type& ind, std::size_t offset = 0) const;
+		inline std::size_t get_multi_indices_of_geom_obj_helper(TElem* vrt, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
 
-		inline std::size_t get_multi_indices_of_geom_obj_helper(VertexBase* vrt, uint fct, local_index_type& ind, std::size_t offset = 0) const;
+		inline std::size_t get_multi_indices_of_geom_obj_helper(VertexBase* vrt, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
 
 };
 

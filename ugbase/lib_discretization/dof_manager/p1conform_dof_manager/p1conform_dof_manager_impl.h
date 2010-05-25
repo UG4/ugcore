@@ -14,27 +14,29 @@ namespace ug{
 
 template <typename TGeomObjContainer>
 P1ConformDoFManager<TGeomObjContainer>::
-P1ConformDoFManager(geom_obj_container_type& grid) : m_objContainer(grid)
-{
-	m_num_levels = grid.num_levels();
-	m_bLocked = false;
-}
+P1ConformDoFManager(geom_obj_container_type& grid) : m_bLocked(false), m_objContainer(grid)
+{}
 
 template <typename TGeomObjContainer>
 bool
 P1ConformDoFManager<TGeomObjContainer>::
 add_discrete_function(std::string name, LocalShapeFunctionSetID id, int dim)
 {
+	// for a P1 dof manager only Lagrange P1 function space is permitted
 	if(id != LSFS_LAGRANGEP1)
 	{
-		std::cout << "P1ConformDoFManager: Only LSFS_LAGRANGEP1 functions are supported. Can not add function." << std::endl;
+		UG_LOG("P1ConformDoFManager: Only LSFS_LAGRANGEP1 functions are supported. Can not add function.\n");
 		return false;
 	}
 
-	m_SingleDiscreteFunctionNames.push_back(name);
-
 	// TODO: Check if dim has been chosen correctly
-	m_dim.push_back(dim);
+
+	// create a new function
+	FunctionInfo info;
+	info.name = name;
+	info.dim = dim;
+
+	m_vFunctionInfo.push_back(info);
 	return true;
 }
 
@@ -46,27 +48,26 @@ add_discrete_function(std::string name, LocalShapeFunctionSetID id, std::vector<
 {
 	if(m_bLocked == true)
 	{
-		std::cout << "DoF Pattern is locked. Can not alter pattern.\n";
+		UG_LOG("DoF Pattern is locked. Can not alter pattern.\n");
 		return false;
 	}
 
-	std::cout << "P1ConformDoFManager currently only works on a grid. No Subset support." << std::endl;
+	UG_LOG("P1ConformDoFManager: Subset support not implemented yet. Currently only global function assignment possible.\n");
 	return false;
 }
 
 template <typename TGeomObjContainer>
 bool
 P1ConformDoFManager<TGeomObjContainer>::
-group_discrete_functions(std::vector<uint>& selected_solutions)
+group_discrete_functions(std::vector<size_t>& selected_solutions)
 {
 	if(m_bLocked == true)
 	{
-		std::cout << "DoF Pattern is locked. Can not alter pattern.\n";
+		UG_LOG("DoF Pattern is locked. Can not alter pattern.\n");
 		return false;
 	}
 
-	std::cout << "P1ConformDoFManager groups solutions automatically.\n";
-
+	UG_LOG("P1ConformDoFManager groups solutions automatically.\n");
 	return true;
 }
 
@@ -77,12 +78,11 @@ reset_grouping()
 {
 	if(m_bLocked == true)
 	{
-		std::cout << "DoF Pattern is locked. Can not alter pattern.\n";
+		UG_LOG("DoF Pattern is locked. Can not alter pattern.\n");
 		return false;
 	}
 
-	std::cout << "P1ConformDoFManager groups solutions automatically.\n";
-
+	UG_LOG("P1ConformDoFManager groups solutions automatically.\n");
 	return true;
 }
 
@@ -91,20 +91,18 @@ bool
 P1ConformDoFManager<TGeomObjContainer>::
 print_info()
 {
-	using namespace std;
-
-	cout << "\n================\n";
-	cout << "P1 Conform DoF-Pattern INFO: " << endl;
-	cout << "================\n";
+	UG_LOG("\n================\n");
+	UG_LOG("P1 Conform DoF-Pattern INFO: \n");
+	UG_LOG("================\n");
 
 	// print discrete functions
-	cout << "Number of discrete functions: " << m_SingleDiscreteFunctionNames.size() << endl;
-	for(uint nr_fct = 0; nr_fct < m_SingleDiscreteFunctionNames.size(); ++nr_fct)
+	UG_LOG("Number of discrete functions: " << num_fct() << "\n");
+	for(size_t fct = 0; fct < num_fct(); ++fct)
 	{
-		cout << "# " << nr_fct << ":  '" << m_SingleDiscreteFunctionNames[nr_fct] << endl;
+		UG_LOG("# " << fct << ":  '" << get_name(fct) << "\n");
 	}
 
-	cout << "================\n";
+	UG_LOG("================\n");
 	return true;
 }
 
@@ -115,48 +113,44 @@ finalize()
 {
 	if(m_bLocked == true)
 	{
-		std::cout << "DoF Pattern is already locked.\n";
+		UG_LOG("DoF Pattern is already locked.\n");
 		return true;
 	}
 
 	// TODO: Generalize for more than one subset
-	int subsetIndex = 0;
+	int si = 0;
 
 	// Attach indices
-	m_aIndex.resize(num_subsets());
-	m_aaIndex.resize(num_subsets());
-	for(subsetIndex = 0; subsetIndex < (int)m_objContainer.num_subsets(); ++subsetIndex)
+	m_vSubsetInfo.resize(num_subsets());
+	for(si = 0; si < num_subsets(); ++si)
 	{
 		m_objContainer.enable_subset_attachments(true);
-		m_objContainer.template attach_to<VertexBase>(m_aIndex[subsetIndex], subsetIndex);
-		m_aaIndex[subsetIndex].access(m_objContainer, m_aIndex[subsetIndex], subsetIndex);
+		m_objContainer.template attach_to<VertexBase>(m_vSubsetInfo[si].aDoF, si);
+		m_vSubsetInfo[si].aaDoF.access(m_objContainer, m_vSubsetInfo[si].aDoF, si);
 	}
 
 	// iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
 
-	// get number of single grid functions
-	m_num_single_discrete_functions = m_SingleDiscreteFunctionNames.size();
-
 	// loop levels
-	m_num_dof_index.resize(m_objContainer.num_levels());
-	for(uint level = 0; level < m_objContainer.num_levels(); ++level)
+	m_vLevelInfo.resize(num_levels());
+	for(size_t level = 0; level < num_levels(); ++level)
 	{
-		uint i = 0;
+		size_t i = 0;
 
-		for(subsetIndex = 0; subsetIndex < (int)m_objContainer.num_subsets(); ++subsetIndex)
+		for(si = 0; si < num_subsets(); ++si)
 		{
-			iterBegin =  m_objContainer.begin<VertexBase>(subsetIndex, level);
-			iterEnd = m_objContainer.end<VertexBase>(subsetIndex, level);
+			iterBegin =  begin<VertexBase>(si, level);
+			iterEnd = end<VertexBase>(si, level);
 
 			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
 				VertexBase* vrt = *iter;
-				m_aaIndex[subsetIndex][vrt] = i;
-				i += m_num_single_discrete_functions;
+				(m_vSubsetInfo[si].aaDoF)[vrt] = i;
+				i += num_fct();
 			}
 		}
-		m_num_dof_index[level] = i;
+		m_vLevelInfo[level].numDoFIndex = i;
 
 		UG_LOG( std::setw(8) << i << " DoF indices distributed" <<
 					" on level " << std::setw(2) << level << " [each carrying " << 1 << " component(s)]" << std::endl);
@@ -168,12 +162,11 @@ finalize()
 	// update IndexInfo
 
 	// loop all levels
-	m_IndexInfo.resize(m_num_levels);
-	for(uint level = 0; level < m_num_levels; ++level)
+	for(size_t level = 0; level < num_levels(); ++level)
 	{
-		m_IndexInfo[level].set_leaf(true);
-		m_IndexInfo[level].set_num_index(m_num_dof_index[level]);
-		m_IndexInfo[level].set_num_comp(1);
+		m_vLevelInfo[level].indexInfo.set_leaf(true);
+		m_vLevelInfo[level].indexInfo.set_num_index(num_dofs(level));
+		m_vLevelInfo[level].indexInfo.set_num_comp(1);
 	}
 	return true;
 }
@@ -181,17 +174,9 @@ finalize()
 template <typename TGeomObjContainer>
 LocalShapeFunctionSetID
 P1ConformDoFManager<TGeomObjContainer>::
-get_local_shape_function_set_id(uint nr_fct) const
+get_local_shape_function_set_id(size_t fct) const
 {
 	return LSFS_LAGRANGEP1;
-}
-
-template <typename TGeomObjContainer>
-std::string
-P1ConformDoFManager<TGeomObjContainer>::
-get_name(uint fct) const
-{
-	return m_SingleDiscreteFunctionNames[fct];
 }
 
 template <typename TGeomObjContainer>
@@ -207,15 +192,13 @@ P1ConformDoFManager<TGeomObjContainer>::
 ~P1ConformDoFManager()
 {}
 
-
-
 template <typename TGeomObjContainer>
 template <typename TElem>
-std::size_t
+size_t
 P1ConformDoFManager<TGeomObjContainer>::
-num_multi_indices(TElem* elem, uint fct) const
+num_multi_indices(TElem* elem, size_t fct) const
 {
-	assert (fct < m_num_single_discrete_functions);
+	UG_ASSERT(fct < num_fct(), "Function not defined in DoF Manager");
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element;
 	return reference_element_traits<reference_element>::num_corners;
 };
@@ -223,19 +206,19 @@ num_multi_indices(TElem* elem, uint fct) const
 template <typename TGeomObjContainer>
 template<typename TElem>
 inline
-std::size_t
+size_t
 P1ConformDoFManager<TGeomObjContainer>::
-get_multi_indices(TElem* elem, uint fct, local_index_type& ind, std::size_t offset) const
+get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, size_t offset) const
 {
-	assert (fct < m_num_single_discrete_functions);
+	UG_ASSERT(fct < num_fct(), "Function not defined in DoF Manager");
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element;
 
 	for(int i = 0; i < reference_element_traits<reference_element>::num_corners; ++i)
 	{
 		VertexBase* vrt = elem->vertex(i);
-		int subsetIndex = m_objContainer.get_subset_index(vrt);
+		int si = m_objContainer.get_subset_index(vrt);
 
-		ind[offset + i][0] = m_aaIndex[subsetIndex][vrt] + fct;
+		ind[offset + i][0] = (m_vSubsetInfo[si].aaDoF)[vrt] + fct;
 	}
 
 	return reference_element_traits<reference_element>::num_corners;
@@ -244,9 +227,9 @@ get_multi_indices(TElem* elem, uint fct, local_index_type& ind, std::size_t offs
 template <typename TGeomObjContainer>
 template<typename TGeomObj>
 inline
-std::size_t
+size_t
 P1ConformDoFManager<TGeomObjContainer>::
-get_multi_indices_of_geom_obj(TGeomObj* obj, uint fct, local_index_type& ind, std::size_t offset) const
+get_multi_indices_of_geom_obj(TGeomObj* obj, size_t fct, local_index_type& ind, size_t offset) const
 {
 	return get_multi_indices_of_geom_obj_helper(obj, fct, ind, offset);
 }
@@ -254,24 +237,24 @@ get_multi_indices_of_geom_obj(TGeomObj* obj, uint fct, local_index_type& ind, st
 template <typename TGeomObjContainer>
 template<typename TGeomObj>
 inline
-std::size_t
+size_t
 P1ConformDoFManager<TGeomObjContainer>::
-get_multi_indices_of_geom_obj_helper(TGeomObj* obj, uint fct, local_index_type& ind, std::size_t offset) const
+get_multi_indices_of_geom_obj_helper(TGeomObj* obj, size_t fct, local_index_type& ind, size_t offset) const
 {
 	return 0;
 }
 
 template <typename TGeomObjContainer>
 inline
-std::size_t
+size_t
 P1ConformDoFManager<TGeomObjContainer>::
-get_multi_indices_of_geom_obj_helper(VertexBase* vrt, uint fct, local_index_type& ind, std::size_t offset) const
+get_multi_indices_of_geom_obj_helper(VertexBase* vrt, size_t fct, local_index_type& ind, size_t offset) const
 {
-	assert (fct < m_num_single_discrete_functions);
+	UG_ASSERT(fct < num_fct(), "Function not defined in DoF Manager");
 
-	int subsetIndex = m_objContainer.get_subset_index(vrt);
+	int si = m_objContainer.get_subset_index(vrt);
 
-	ind[offset + 0][0] = m_aaIndex[subsetIndex][vrt] + fct;
+	ind[offset + 0][0] = (m_vSubsetInfo[si].aaDoF)[vrt] + fct;
 
 	return 1;
 }
@@ -282,16 +265,15 @@ template <typename TGeomObjContainer>
 template <typename TGeomObj>
 bool
 P1ConformDoFManager<TGeomObjContainer>::
-group_dof_groups(std::vector<uint>& selected_dofgroup_ids)
+group_dof_groups(std::vector<size_t>& selected_dofgroup_ids)
 {
 	if(m_bLocked == true)
 	{
-		std::cout << "DoF Pattern is locked. Can not alter pattern.\n";
+		UG_LOG("DoF Pattern is locked. Can not alter pattern.\n");
 		return false;
 	}
 
-	std::cout << "P1ConformDoFManager has only one DoF group in a Vertex. You can not alter this pattern." << std::endl;
-
+	UG_LOG("P1ConformDoFManager has only one DoF group in a Vertex. You can not alter this pattern.\n");
 	return true;
 }
 
@@ -299,16 +281,15 @@ template <typename TGeomObjContainer>
 template<typename TGeomObj>
 bool
 P1ConformDoFManager<TGeomObjContainer>::
-group_discrete_functions(std::vector<uint>& selected_functions)
+group_discrete_functions(std::vector<size_t>& selected_functions)
 {
 	if(m_bLocked == true)
 	{
-		std::cout << "DoF Pattern is locked. Can not alter pattern.\n";
+		UG_LOG("DoF Pattern is locked. Can not alter pattern.\n");
 		return false;
 	}
 
-	std::cout << "P1ConformDoFManager automatically groups solutions. You can not alter this pattern." << std::endl;
-
+	UG_LOG("P1ConformDoFManager automatically groups solutions. You can not alter this pattern.\n");
 	return true;
 }
 
@@ -320,11 +301,11 @@ reset_grouping()
 {
 	if(m_bLocked == true)
 	{
-		std::cout << "DoF Pattern is locked. Can not alter pattern.\n";
+		UG_LOG("DoF Pattern is locked. Can not alter pattern.\n");
 		return false;
 	}
 
-	std::cout << "P1ConformDoFManager automatically groups solutions. You can not alter this pattern." << std::endl;
+	UG_LOG("P1ConformDoFManager automatically groups solutions. You can not alter this pattern.\n");
 	return true;
 }
 
