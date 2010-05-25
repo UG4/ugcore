@@ -139,6 +139,7 @@ template<class TElem>
 void GridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)
 {
+LOG("c");
 	typedef typename geometry_traits<TElem>::iterator iterator;
 	for(iterator iter = begin<TElem>(indOld);
 		iter != end<TElem>(indOld); iter++){
