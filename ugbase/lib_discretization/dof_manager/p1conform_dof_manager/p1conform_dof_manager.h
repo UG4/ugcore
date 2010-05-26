@@ -102,7 +102,7 @@ class P1ConformDoFManager : public GridObserver{
 		bool print_info();
 
 		/// performs a finalizing step. The Pattern can not be altered after finishing
-		bool finalize();
+		virtual bool finalize();
 
 		/// returns the trial space of the discrete function fct
 		LocalShapeFunctionSetID get_local_shape_function_set_id(size_t fct) const;

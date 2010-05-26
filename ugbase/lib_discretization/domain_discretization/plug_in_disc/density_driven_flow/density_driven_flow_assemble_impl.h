@@ -365,7 +365,9 @@ assemble_element_f(local_vector_type& d, number time)
 	return IPlugInReturn_OK;
 }
 
-
+#undef J
+#undef d
+#undef u
 } // namespace ug
 
 

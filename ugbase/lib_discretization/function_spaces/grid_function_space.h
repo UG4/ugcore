@@ -10,6 +10,10 @@
 
 #include "lib_discretization/dof_manager/p1conform_dof_manager/p1conform_dof_manager.h"
 
+#ifdef UG_PARALLEL
+	#include "lib_discretization/parallelization/parallelization.h"
+#endif
+
 namespace ug{
 
 // A grid function brings approximation space and algebra together. For a given DoFManager and level, a grid function
@@ -401,6 +405,39 @@ class GridFunction{
 			return m_name;
 		}
 
+	///	testversion
+	/**	If no communicator is passed, then the method will create its
+	 *	own temporarily. This may expensive if the method is called
+	 *	repeatedly.*/
+		void parallel_additive_to_consistent(pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+		{
+		#ifdef UG_PARALLEL
+		//	create a new communicator if required.
+			pcl::ParallelCommunicator<IndexLayout> tCom;
+			if(!pCom)
+				pCom = &tCom;
+			pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+
+		//	step 1: add slave values to master
+		//	create the required communication policies
+			ComPol_VecAdd<vector_type> cpVecAdd(m_dof_storage_vector);
+			
+		//	perform communication on the level
+			com.send_data(m_dof_manager.get_slave_layout(m_level), cpVecAdd);
+			com.receive_data(m_dof_manager.get_master_layout(m_level), cpVecAdd);
+			com.communicate();
+			
+		//	step 2: copy master values to slaves
+		//	create the required communication policies
+			ComPol_VecCopy<vector_type> cpVecCopy(m_dof_storage_vector);
+			
+		//	perform communication on the level
+			com.send_data(m_dof_manager.get_master_layout(m_level), cpVecCopy);
+			com.receive_data(m_dof_manager.get_slave_layout(m_level), cpVecCopy);
+			com.communicate();
+		#endif
+		}
+		
 	protected:
 		// Approximation Space
 		approximation_space_type& m_approximationSpace;
@@ -520,8 +557,15 @@ class ApproximationSpace<TDomain, TAlgebra, TDoFManager, nonadaptive>{
 		typedef TAlgebra algebra_type;
 
 		// dof manager used
-		typedef TDoFManager<level_subset_handler_type> level_dof_manager_type;
-		typedef TDoFManager<surface_subset_handler_type> surface_dof_manager_type;
+		#ifdef UG_PARALLEL
+			typedef ParallelDoFManager<TDoFManager<level_subset_handler_type> >
+				level_dof_manager_type;
+			typedef ParallelDoFManager<TDoFManager<surface_subset_handler_type> >
+				surface_dof_manager_type;
+		#else
+			typedef TDoFManager<level_subset_handler_type> level_dof_manager_type;
+			typedef TDoFManager<surface_subset_handler_type> surface_dof_manager_type;
+		#endif
 
 		typedef GridFunction<approximation_space_type, level_dof_manager_type, algebra_type> level_function_type;
 		typedef GridFunction<approximation_space_type, surface_dof_manager_type, algebra_type> surface_function_type;
@@ -531,7 +575,13 @@ class ApproximationSpace<TDomain, TAlgebra, TDoFManager, nonadaptive>{
 		ApproximationSpace(std::string name, domain_type& domain) :
 			m_name(name), m_domain(domain),
 			m_subset_handler(domain.get_subset_handler()), m_level_dof_manager(m_subset_handler)
-		{};
+		{
+			#ifdef UG_PARALLEL
+				m_level_dof_manager.set_grid_layout_map(
+					domain.get_distributed_grid_manager()->
+					grid_layout_map());
+			#endif
+		};
 
 
 		/// add a single solution of LocalShapeFunctionSetID to selected subsets in dimension 'dim'
@@ -665,7 +715,7 @@ class ApproximationSpace<TDomain, TAlgebra, TDoFManager, nonadaptive>{
 		typename domain_type::subset_handler_type& m_subset_handler;
 
 		// dof manager used for this Approximation Space
-		TDoFManager<level_subset_handler_type> m_level_dof_manager;
+		level_dof_manager_type m_level_dof_manager;
 };
 
 

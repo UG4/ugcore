@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__
 
 #include <vector>
+#include "pcl/pcl.h"
 #include "lib_grid/algorithms/parallelization/parallelization.h"
 
 namespace ug
@@ -25,7 +26,8 @@ typedef pcl::MultiLevelLayout<
 			pcl::OrderedInterface<uint, std::vector> > IndexLayout;
 */
 
-typedef pcl::Layout<pcl::OrderedInterface<uint, std::vector> > IndexLayout;
+typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
+		IndexLayout;
 
 /*
 ///	Holds master and slave layouts for each process
