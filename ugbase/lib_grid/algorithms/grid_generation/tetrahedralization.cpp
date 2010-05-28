@@ -24,8 +24,10 @@ static bool PerformTetrahedralization(Grid& grid,
 
 //	access position data
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+/*
 //	make sure that no double-points exist
 	RemoveDoubles(grid, grid.vertices_begin(), grid.vertices_end(), aPos, 1e-12);
+*/
 //	convert quadrilaterals to triangles
 	if(grid.num<Quadrilateral>() > 0)
 		Triangulate(grid, grid.begin<Quadrilateral>(), grid.end<Quadrilateral>(), &aaPos);
@@ -51,9 +53,14 @@ static bool PerformTetrahedralization(Grid& grid,
 		{
 			aaInd[*iter] = counter;
 			vector3& v = aaPos[*iter];
-			in.pointlist[counter * 3] = v.x;
-			in.pointlist[counter * 3 + 1] = v.y;
-			in.pointlist[counter * 3 + 2] = v.z;
+		//	position types are casted to float, since this circumvents an
+		//	error that occurs on some geometries. Somehow tetgen constructs
+		//	selfintersecting facets otherwise (sometimes). I didn't really understand
+		//	this behaviour yet.
+		//TODO: Think about how the following code could be improved.
+			in.pointlist[counter * 3] = (float)v.x;
+			in.pointlist[counter * 3 + 1] = (float)v.y;
+			in.pointlist[counter * 3 + 2] = (float)v.z;
 		}
 	}
 

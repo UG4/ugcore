@@ -4,9 +4,11 @@
 
 #include <vector>
 #include <stack>
+#include <queue>
 #include "selection_util.h"
 #include "geom_obj_util/vertex_util.h"
 #include "geom_obj_util/edge_util.h"
+#include "graph/graph.h"
 using namespace std;
 
 namespace ug
@@ -509,6 +511,64 @@ void SelectInnerSelectionFaces(Selector& sel)
 	}
 
 	grid.end_marking();
+}
+
+////////////////////////////////////////////////////////////////////////
+// SelectLinkedFlatFaces
+void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
+						   APosition& aPos)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+	if(!grid.has_vertex_attachment(aPosition))
+		return;
+		
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+	
+//	convert the thresholdDegree to thresholdDot
+	number thresholdDot = cos(deg_to_rad(maxDeviationAngle));
+	
+//	all initially selected faces are candidates
+	queue<Face*> qCandidates;
+	for(FaceIterator iter = sel.begin<Face>(); iter != sel.end<Face>(); ++iter)
+		qCandidates.push(*iter);
+	
+//	we'll collect neighbours in this vector
+	vector<Face*> vNeighbours;
+	
+//	while there are candidates left
+	while(!qCandidates.empty())
+	{
+		Face* f = qCandidates.front();
+		qCandidates.pop();
+		
+	//	calculate the normal
+		vector3 n;
+		CalculateNormal(n, f, aaPos);
+		
+		CollectNeighbours(vNeighbours, f, grid);
+		
+	//	iterate through all neighbours
+		for(size_t i = 0; i < vNeighbours.size(); ++i)
+		{
+			Face* nbr = vNeighbours[i];
+			if(!sel.is_selected(nbr)){
+			//	compare normals
+				vector3 nNbr;
+				CalculateNormal(nNbr, nbr, aaPos);
+				
+			//	check dots
+				if(VecDot(n, nNbr) >= thresholdDot){
+				//	nbr is a linked flat face
+					sel.select(nbr);
+					qCandidates.push(nbr);
+				}
+			}
+		}
+	}
 }
 
 }//	end of namespace

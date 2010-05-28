@@ -832,18 +832,18 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 //		make sure that edge-collapse leaves the grid regular.
 //		swaps should be the final operation
 //		separate collapses, swaps and splits
-/*
+
 //	we have to make sure that the mesh consist of triangles only,
 //	since the algorithm would produce bad results if not.
 	if(gridIn.num<Quadrilateral>() > 0)
 	{
-		UG_LOG("  INFO: grid contains quadrilaterals. Attemting to triangulize them.\n");
+		UG_LOG("  INFO: grid contains quadrilaterals. Converting to triangles...\n");
 				
 //TODO:	not gridIn but a copy of gridIn (pRefGrid) should be triangulated.
 		Triangulate(gridIn, gridIn.begin<Quadrilateral>(),
 					gridIn.end<Quadrilateral>());
 	}
-*/
+
 //	replace this by a template parameter
 	APosition aPos = aPosition;
 	
@@ -929,6 +929,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		octree = CreateOctree(*pRefGrid, pRefGrid->begin<Triangle>(),
 									pRefGrid->end<Triangle>(),
 									15, 30, false, aPos);
+
 		PROFILE_END();
 		if(!octree.is_valid()){
 			UG_LOG("  Octree creation failed in AdjustEdgeLength. Aborting.\n");
@@ -954,7 +955,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		if(!PerformSwaps(grid, shMarks, esel, aaPos, aaNorm, aaInt))
 			return false;
 /*
-//	This is uncommented, since it didn't help with the problems encountered
+//	This is commented out, since it didn't help with the problems encountered
 //	in the geometries at that time.
 //	The algorithm however works and may prove useful in the future.
 	//	fix bad triangles
@@ -979,6 +980,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 				iter != grid.vertices_end(); ++iter)
 			{
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
+
 				vector3 vNew;
 				if(pojectionTraverser.project(aaPos[*iter], octree, &aaNorm[*iter])){
 					aaPos[*iter] = pojectionTraverser.get_closest_point();
@@ -986,7 +988,6 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 				else{
 					LOG("f");
 				}
-
 /*
 				if(ProjectPointToSurface(vNew, aaPos[*iter], aaNorm[*iter],
 										pRefGrid->begin<Triangle>(),

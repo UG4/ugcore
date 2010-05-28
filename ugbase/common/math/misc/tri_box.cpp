@@ -161,7 +161,7 @@ int Bevel3d(const vector3& p)
 //  See if it is on a face of the cube   
 //	Consider only faces in "mask"                   
 static
-int CheckPoint(const vector3& p1, const vector3& p2, float alpha, long mask)
+int CheckPoint(const vector3& p1, const vector3& p2, number alpha, long mask)
 {
 	vector3 plane_point;
 
@@ -261,7 +261,7 @@ static
 int TriCubeIntersection(const TRI& t)
 {
 	int v1_test,v2_test,v3_test;
-	float d;
+	number d;
 	vector3 vect12,vect13,norm;
 	vector3 hitpp,hitpn,hitnp,hitnn;
 

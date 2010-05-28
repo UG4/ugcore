@@ -125,7 +125,7 @@ void Traverser_ProjectPoint::handle_boxed_group(BoxedGroupNode* boxedGroup)
 		//	check whether the point lies inside the box.
 		//	If so traverse the group (all children).
 			if(BoxBoundProbe(m_point, boxedGroup->min_corner(),
-							boxedGroup->max_corner()))
+							 boxedGroup->max_corner()))
 			{
 				handle_group(boxedGroup);
 			}
@@ -158,16 +158,7 @@ handle_collision_tree_root(CollisionTreeRootNode* colTreeRootNode)
 
 //	traverse the node
 	handle_group(colTreeRootNode);
-//	if we didn't find an edge force it
-/*
-	if(m_searchState == SEARCHING)
-	{
-		PROFILE_BEGIN(tree_force_find);
-		m_searchState = FORCE_FIND;
-		Traverser_CollisionTree::handle_collision_tree_root(colTreeRootNode);
-		PROFILE_END();
-	}
-*/
+
 //	pop the rootNode from the stack
 	m_stackRootNodes.pop();
 }
@@ -200,12 +191,12 @@ handle_collision_edges(CollisionEdgesNode* colEdgesNode)
 			VecScaleAdd(m_closestPoint, 1. - t, p1, t, p2);
 			
 		//	reset the box
-			m_boxMin.x = m_point.x - distance;			
-			m_boxMin.y = m_point.y - distance;
-			m_boxMin.z = m_point.z - distance;
-			m_boxMax.x = m_point.x + distance;
-			m_boxMax.y = m_point.y + distance;
-			m_boxMax.z = m_point.z + distance;
+			m_boxMin.x = m_point.x - distance * 1.01;			
+			m_boxMin.y = m_point.y - distance * 1.01;
+			m_boxMin.z = m_point.z - distance * 1.01;
+			m_boxMax.x = m_point.x + distance * 1.01;
+			m_boxMax.y = m_point.y + distance * 1.01;
+			m_boxMax.z = m_point.z + distance * 1.01;
 		}
 	}
 }

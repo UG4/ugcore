@@ -122,6 +122,16 @@ void FixOrientation(Grid& grid, TFaceIterator facesBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	InvertOrientation
+template <class TFaceIterator>
+void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
+					   TFaceIterator facesEnd)
+{
+	for(TFaceIterator iter = facesBegin; iter != facesEnd; ++iter)
+		grid.flip_orientation(*iter);
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateFaceCenter
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType

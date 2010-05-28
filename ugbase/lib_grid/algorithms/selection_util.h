@@ -147,6 +147,15 @@ void SelectInnerSelectionEdges(Selector& sel);
  */
 void SelectInnerSelectionFaces(Selector& sel);
 
+////////////////////////////////////////////////////////////////////////
+//	SelectLinkedFlatFaces
+///	Extends the selection of faces to all neighbouring faces that have a similar normal.
+/**
+ * \param maxDeviationAngle: in degree. Maximal angle between normals of faces considered as flat.
+ */
+void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
+						   APosition& aPos = aPosition);
+
 }// end of namespace
 
 

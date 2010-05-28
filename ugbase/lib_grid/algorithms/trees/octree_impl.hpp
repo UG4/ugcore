@@ -53,7 +53,19 @@ CreateOctree(Grid& grid, TIterator elemsBegin, TIterator elemsEnd,
 	std::vector<vector3> 	vPoints;
 	std::vector<int>		vElems;
 	std::vector<node_tree::CollisionElementID> vElemIDs;
-	
+
+/* If you want to match the indices that are referenced by the oct-trees
+ * triangles with the order of the grids vertices, than you can uncomment
+ * the following code. Please note, that this code is slower than the
+ * original code, if only a tiny subset of the grid is sorted into the
+ * tree.
+int tmpCounter = 0;
+for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); ++iter){
+	aaInt[*iter] = tmpCounter++;
+	vPoints.push_back(aaPos[*iter]);
+}
+*/
+
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
 		typename TIterator::value_type elem = *iter;
 		

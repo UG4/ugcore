@@ -170,7 +170,7 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 		//	clear arrays
 			vNewElems.clear();
 			vNewIDs.clear();
-			
+
 		//	create the box of the subnode
 			vector3 subBoxMin, subBoxMax;
 
@@ -186,6 +186,7 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 		//	different approaches have to be taken, depending on
 		//	whether a loose tree shall be created or not.
 			if(bLoose){
+				GrowBox(subBoxMin, subBoxMax, 1.001);
 			//	create a loose tree.
 			//	check for each element whether the center lies in the box or not.
 				for(size_t i = 0; i < numElemInds; i += numIndsPerElem)
@@ -262,9 +263,9 @@ void CreateSubOctrees(BoxedGroupNode* parentNode,
 						if(elemIDs)
 							vNewIDs.push_back(elemIDs[i / numIndsPerElem]);
 					}
-				}				
+				}
 			}
-		
+
 		//	all elements that go into this subtree have been found.
 		//	now create the subtree
 			SPBoxedGroupNode spSubNode = BoxedGroupNode::create();

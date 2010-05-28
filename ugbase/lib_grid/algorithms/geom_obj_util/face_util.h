@@ -157,7 +157,15 @@ template <class TFaceIterator>
 void FixOrientation(Grid& grid, TFaceIterator facesBegin,
 					TFaceIterator facesEnd);
 
-	
+////////////////////////////////////////////////////////////////////////
+//	InvertOrientation
+///	inverts the orientation of all faces between facesBegin and facesEnd
+/**	Make sure that TFaceIterator::value_type is castable to Face*.
+ *	TFaceIterator has to be compatible with stl-iterators.*/
+template <class TFaceIterator>
+void InvertOrientation(Grid& grid, TFaceIterator facesBegin,
+					   TFaceIterator facesEnd);
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	template methods

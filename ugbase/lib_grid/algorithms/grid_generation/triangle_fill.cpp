@@ -87,8 +87,25 @@ void UpdateChainInfo(ChainInfo& ci, vector2* polyChain, vector2* edgeNormals)
 	vector2 outEdge;
 	VecSubtract(outEdge, polyChain[ci.outVrt], polyChain[ci.myVrt]);
 	ci.isCandidate = VecDot(edgeNormals[ci.inVrt], outEdge) < -SMALL; //ci.inVrt == inEdgeIndex.
-	ci.associatedDistanceSq = VecDistanceSq(polyChain[ci.inVrt],
-											polyChain[ci.outVrt]);
+
+//	calculate relative length
+	number l = VecDistance(polyChain[ci.inVrt], polyChain[ci.outVrt]);
+	number t1 = VecDistance(polyChain[ci.inVrt], polyChain[ci.myVrt]); 
+	number t2 = VecDistance(polyChain[ci.outVrt], polyChain[ci.myVrt]);
+	number relLen = 1;
+	if(t1 + t2 > SMALL)
+		relLen = l / (t1 + t2);
+
+//	if the relative length is small we'll calculate the squared length as the indiceator	
+	if(relLen < 0.9)
+	{
+		ci.associatedDistanceSq = VecDistanceSq(polyChain[ci.inVrt],
+												polyChain[ci.outVrt]);
+	}
+	else{
+	//	set it to a very big value
+		ci.associatedDistanceSq = 1e+12;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////

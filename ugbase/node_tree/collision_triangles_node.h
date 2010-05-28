@@ -70,7 +70,7 @@ class CollisionTrianglesNode : public Node
 
 		IndexVec	m_vTris;
 		IDVec		m_vTriIDs;
-
+		
 		bool m_bTriangleIDsSupplied;
 };
 
