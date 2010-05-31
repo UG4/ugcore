@@ -8,6 +8,7 @@
 #ifndef __H__LIB_ALGEBRA__
 #define __H__LIB_ALGEBRA__
 
+#include <iomanip>
 // other ug4 modules
 #include "common/common.h"
 

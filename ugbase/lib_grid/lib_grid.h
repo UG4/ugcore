@@ -11,3 +11,7 @@
 #include "file_io/file_io.h"
 #include "algorithms/algorithms.h"
 #include "multi_grid.h"
+
+#ifdef UG_PARALLEL
+	#include "lib_grid/algorithms/parallelization/parallelization.h"
+#endif
