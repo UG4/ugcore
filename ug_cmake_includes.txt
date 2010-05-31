@@ -121,7 +121,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	endif(Boost_FOUND)
 	
 	if(NOT NO_ALGEBRA)
-		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
+		set(UG_LIBRARIES ${UG_LIBRARIES} discretization)
 	endif(NOT NO_ALGEBRA)
 
 	set(UG_LIBRARIES ${UG_LIBRARIES} grid)
