@@ -1,5 +1,5 @@
 ################################################
-# created by Sebastian Reiter
+# created by Sebastian Reiter, Andreas Vogel
 # s.b.reiter@googlemail.com
 #
 # ugbase
@@ -14,13 +14,6 @@ project(P_UGBASE)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
-#######################
-# gcc compiler flags
-
-# Enable these flags for a fast ublas algebra
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall")
-#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 
 ########################
 # common
@@ -41,21 +34,9 @@ add_subdirectory(ug_script)
 ########################
 # lib_algebra and lib_discretization
 
-if(WITH_ALGEBRA)
-
-	find_package(Boost)
-
-	if(Boost_FOUND)
-		message("-- Boost - Library found at '${Boost_INCLUDE_DIRS}'. \n   Compiling WITH Boost.")
-
-		# add include path	
-		include_directories (${Boost_INCLUDE_DIRS})
-
-	else(Boost_FOUND)
-		message("-- WARNING: Boost - Libraray NOT found. Compiling WITHOUT Boost.")
-	endif(Boost_FOUND)
-
-
+if(NO_ALGEBRA)
+	message("-- INFO: Compiling WITHOUT algebra and discretization. (Enable compilation by defining -DNO_ALGEBRA=OFF)")
+else(NO_ALGEBRA)
 	find_path (HYPRELIB_LIB_DIR libHYPRE.a 
 			PATHS ENV PATH
 			PATH_SUFFIXES src/hypre/lib/ )
@@ -80,7 +61,7 @@ if(WITH_ALGEBRA)
 	endif(HYPRELIB_LIB_DIR)
 
 	if(Boost_FOUND OR HYPRE_LIB_DIR)
-		message("-- INFO: compiling 'algebra' library enabled")
+		message("-- INFO: compiling 'algebra' library enabled. (To disable algebra define -DNO_ALGEBRA=ON)")
 		add_subdirectory(lib_algebra)	
 
 		message("-- INFO: compiling 'discretization' library enabled")
@@ -88,21 +69,25 @@ if(WITH_ALGEBRA)
 	else(Boost_FOUND OR HYPRE_LIB_DIR)
 		message("-- INFO: Boost-Library and Hypre-Library NOT found. Skipping compilation of 'algebra' and 'discretization'. ")
 	endif(Boost_FOUND OR HYPRE_LIB_DIR)
+endif(NO_ALGEBRA)
 
-else(WITH_ALGEBRA)
-	message("-- INFO: not compiling 'algebra' library (enable option using: 'cmake -DWITH_ALGEBRA=ON')")
-	message("-- INFO: not compiling 'discretization' library (enable option using: 'cmake -DWITH_ALGEBRA=ON')")
-endif(WITH_ALGEBRA)
 
 ########################
 # pcl
-# pcl will be compiled only if a parallel toolchain has been specified.
-if(COMPILE_WITH_PCL)
-	# compile pcl
-	message("-- INFO: compiling 'pcl' library enabled")
-	add_subdirectory(pcl)
 
-else(COMPILE_WITH_PCL)
-	# give a warning that pcl will not be compiled.
-	message("-- INFO: not compiling 'pcl' library (check the README for more information)")
-endif(COMPILE_WITH_PCL)
+if(MPI_FOUND)
+	if(NO_PCL)
+		message("-- INFO: not compiling 'pcl' library. (Enable compilation by defining -DNO_PCL=OFF)")
+	else(NO_PCL)
+		message("-- INFO: compiling 'pcl' library. (Disable compilation by defining -DNO_PCL=ON)")
+		add_subdirectory(pcl)
+	endif(NO_PCL)
+
+else(MPI_FOUND)
+	if(NO_PCL)
+		message("-- INFO: not compiling 'pcl' library. (Enable compilation by defining -DNO_PCL=OFF)")
+	else(NO_PCL)
+		message("-- INFO: not compiling 'pcl' library. MPI is required!")
+	endif(NO_PCL)
+
+endif(MPI_FOUND)

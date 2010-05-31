@@ -1,0 +1,142 @@
+################################################
+# created by Sebastian Reiter
+# s.b.reiter@googlemail.com
+#
+# ug cmake includes
+################################################
+
+################################################
+# OVERVIEW
+# This file is a compilation of code required by cmake files of most applications.
+# If you want to use ug in your application, you should add
+# include(ug_cmake_includes.txt)
+# to your CMakeLists.txt file. Make sure that you specify the right path to this file.
+# Please note that this file only works correctly if it is located in the ug-root path.
+#
+# The following code automatically takes care of finding important external libraries,
+# adding important include paths (including ug-include paths),
+# and links with the ug libraries and external libraries.
+#
+#
+# OPTIONS
+# You can enable and disable some parts of ug, in order to reduce build-times or
+# unwanted dependencies.
+# It is good practice to disable everything you don't need.
+# The following options can be enabled / disabled:
+#
+# - UG_DEBUG: Produces slow but debuggable applications.
+# - NO_MPI: Disables MPI support.
+# - NO_ALGEBRA: Disables support for algebra and discretization.
+# - NO_BOOST: Disables support for boost (should only be disabled if required).
+# - NO_PCL: Disables creation of the pcl-library.
+#
+# To enable or disable options during the cmake call, call cmake like this:
+# cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
+#
+# If you want to disable some parts of ug in the CMakeLists.txt file of your
+# application (a good idea if your application doesn't need some part of ug)
+# you can set those options before including the ug_cmake_includes file using
+# set(NO_MPI ON)
+# set(NO_ALGEBRA OFF)
+# include(ug_cmake_includes.txt)
+#
+# Please note that UG_DEBUG should not be set in any CMakeLists.txt file. It should
+# only be used as a command-line parameter to cmake.
+#
+#
+# DEFINES
+# Some defines that are accessible from your source-code are defined here:
+# - UG_DEBUG is defined if UG_DEBUG is set to ON (use cmake -DUG_DEBUG=ON)
+# - UG_PARALLEL is defined if NO_PCL is set to OFF and NO_MPI is set to OFF.
+################################################
+
+
+# Make sure code is only executed once.
+if(NOT UG_CMAKE_INCLUDES_INCLUDED)
+	set(UG_CMAKE_INCLUDES_INCLUDED on)
+
+	#######################
+	# include ug header and library path
+	get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
+	include_directories(${UG_ROOT_PATH}/ugbase)
+	link_directories(${UG_ROOT_PATH}/lib)
+	
+	#######################
+	# compiler flags
+	# Check whether debug or release mode is activated.
+	if(UG_DEBUG)
+		# Enable debugging output
+		message("-- INFO: Debug mode. (Enable release-mode by defining -DUG_DEBUG=OFF)")
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
+		add_definitions(-DUG_DEBUG)
+	else(UG_DEBUG)
+		message("-- INFO: Release mode. (Enable debug-mode by defining -DUG_DEBUG=ON)")
+		# Enable these flags for a fast ublas algebra
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall")
+	endif(UG_DEBUG)
+
+
+	#######################
+	# MPI - find include-path and link-libraries
+	if(NO_MPI)
+		message("-- INFO: Not using MPI. (To use MPI define -DNO_MPI=OFF)")
+	else(NO_MPI)
+		message("-- INFO: Using MPI. (To disbale MPI define -DNO_MPI=ON)")
+		
+		find_package(MPI)
+		if(MPI_FOUND)
+			include_directories(${MPI_INCLUDE_PATH})
+			set(MPI_LIBS ${MPI_LIBRARY} ${MPI_EXTRA_LIBRARY})
+			ADD_DEFINITIONS(-DUG_PARALLEL)
+		else(MPI_FOUND)
+			message("-- WARNING: MPI not found!")
+		endif(MPI_FOUND)
+	endif(NO_MPI)
+
+	#######################
+	# BOOST
+	if(NO_BOOST)
+		message("-- INFO: Compiling WITHOUT boost. (To enable boost define -DNO_BOOST=OFF)")
+	else(NO_BOOST)
+		find_package(Boost)
+
+		if(Boost_FOUND)
+			message("-- Boost - Library found at '${Boost_INCLUDE_DIRS}'. \n   Compiling WITH Boost. (To disable boost define -DNO_BOOST=ON)")
+
+			# add include path	
+			include_directories (${Boost_INCLUDE_DIRS})
+
+		else(Boost_FOUND)
+			message("-- WARNING: Boost - Libraray NOT found. Compiling WITHOUT Boost.")
+		endif(Boost_FOUND)
+	endif(NO_BOOST)
+
+	#######################
+	# UG_LIBRARIES
+	# clear UG_LIBRARIES
+	set(UG_LIBRARIES )
+
+	if(Boost_FOUND)
+		set(UG_LIBRARIES ${UG_LIBRARIES} ugscript)
+	endif(Boost_FOUND)
+	
+	if(NOT NO_ALGEBRA)
+		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
+	endif(NOT NO_ALGEBRA)
+
+	set(UG_LIBRARIES ${UG_LIBRARIES} grid)
+
+	if(NOT NO_PCL AND MPI_FOUND)
+		set(UG_LIBRARIES ${UG_LIBRARIES} pcl)
+	endif(NOT NO_PCL AND MPI_FOUND)
+
+	set(UG_LIBRARIES ${UG_LIBRARIES} node_tree common)
+	
+	if(MPI_FOUND)
+		set(UG_LIBRARIES ${UG_LIBRARIES} ${MPI_LIBS})
+	endif(MPI_FOUND)
+
+	link_libraries(${UG_LIBRARIES})
+		
+endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
+

@@ -16,9 +16,7 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/luabind)
 
-find_package(Boost)
 if(Boost_FOUND)
-	message("-- Boost - Library found at '${Boost_INCLUDE_DIRS}'. \n   Compiling WITH Boost.")
 #	add include path	
 	include_directories (${Boost_INCLUDE_DIRS})
 
@@ -100,14 +98,14 @@ if(Boost_FOUND)
 	# if algebra is enabled, we have to add additional src-files and link with the
 	# discretization module.
 
-	if(WITH_ALGEBRA)
+	if(NOT NO_ALGEBRA)
 		# add the source files
 		set(srcUGScript	${srcUGScript}
 						lib_disc_script.cpp)
-	else(WITH_ALGEBRA)
-		message("-- INFO: not compiling 'lib_disc' script module. (enable option using: 'cmake -DWITH_ALGEBRA=ON')")
+	else(NOT NO_ALGEBRA)
+		message("-- INFO: not compiling 'lib_disc' script module. (enable option using: 'cmake -D NO_ALGEBRA =OFF')")
 
-	endif(WITH_ALGEBRA)
+	endif(NOT NO_ALGEBRA)
 	add_library(ugscript  ${srcUGScript} ${srcLua} ${srcLuaBind})
 
 else(Boost_FOUND)

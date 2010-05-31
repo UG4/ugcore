@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(P_LIB_GRID)
 
-include_directories(${P_UGBASE_SOURCE_DIR})
+include("../../ug_cmake_includes.txt")
 
 set(srcGrid		grid/grid.cpp
 				grid/geometric_base_objects.cpp
@@ -65,7 +65,7 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				)
 
 
-if(COMPILE_WITH_PCL)
+if(NOT NO_PCL)
 	# add parallelization
 	set(srcParallelization	algorithms/parallelization/distribution_util.cpp
 							algorithms/parallelization/grid_distribution.cpp
@@ -73,10 +73,10 @@ if(COMPILE_WITH_PCL)
 							algorithms/parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
 							algorithms/parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp)
 
-else(COMPILE_WITH_PCL)
+else(NOT NO_PCL)
 	# give a warning that pcl will not be compiled.
 	set(srcParallelization )
-endif(COMPILE_WITH_PCL)
+endif(NOT NO_PCL)
 
 ################################################
 # EXTERNALS - TetGen
@@ -115,7 +115,7 @@ set(srcNg
 	externals/src/ng/src/tokstream/tokstream.c
 )
 
-#the real library					
+#the grid library					
 add_library(grid 	${srcGrid} ${srcLibGrid}
 					${srcParallelization}
 					${srcAlgorithms} ${srcFileIO}
