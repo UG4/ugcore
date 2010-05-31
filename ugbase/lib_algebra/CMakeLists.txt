@@ -11,7 +11,7 @@ project (P_LIB_ALGEBRA)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-if(WITH_ALGEBRA)
+if(NOT NO_ALGEBRA)
 
 if(Boost_FOUND)
 	set(src_Algebra	 arne_algebra/arnevector.cpp
@@ -37,5 +37,5 @@ endif(HYPRELIB_LIB_DIR)
 add_library(algebra ${src_Algebra} )
 add_dependencies(algebra common lib_algebra.h)
 
-endif(WITH_ALGEBRA)
+endif(NOT NO_ALGEBRA)
 
