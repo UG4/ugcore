@@ -37,38 +37,39 @@ add_subdirectory(ug_script)
 if(NO_ALGEBRA)
 	message("-- INFO: Compiling WITHOUT algebra and discretization. (Enable compilation by defining -DNO_ALGEBRA=OFF)")
 else(NO_ALGEBRA)
-	find_path (HYPRELIB_LIB_DIR libHYPRE.a 
+	find_path (HYPRELIB_DIR libHYPRE.a 
 			PATHS ENV PATH
 			PATH_SUFFIXES src/hypre/lib/ )
 
-	if(HYPRELIB_LIB_DIR)
-		message("-- HYPRE - Library found at '${HYPRELIB_LIB_DIR}'.\n   Compiling WITH Hypre.")
+	if(HYPRELIB_DIR)
+		message("-- HYPRE - Library found at '${HYPRELIB_DIR}'.\n   Compiling WITH Hypre.")
 
 		# add include path
-		include_directories (${HYPRELIB_LIB_DIR}/../include/)
+		include_directories (${HYPRELIB_DIR}/../include/)
 
 		# add lib path
 		link_directories(${HYPRELIB_LIB_DIR})
 
 		# let all executables link against libHYPRE.a 
-		link_libraries (${HYPRELIB_LIB_DIR}/libHYPRE.a)
+		link_libraries (${HYPRELIB_DIR}/libHYPRE.a)
 
 		# add include directories
 		include_directories(${P_UGBASE_SOURCE_DIR})
 
-	else(HYPRELIB_LIB_DIR)
-		message("-- WARNING: HYPRE - Libraray NOT found. Compiling WITHOUT Hypre.")
-	endif(HYPRELIB_LIB_DIR)
+	else(HYPRELIB_DIR)
+		message("-- WARNING: HYPRE - Library NOT found. Compiling WITHOUT Hypre.")
+	endif(HYPRELIB_DIR)
 
-	if(Boost_FOUND OR HYPRE_LIB_DIR)
+
+	if(Boost_FOUND OR HYPRELIB_DIR)
 		message("-- INFO: compiling 'algebra' library enabled. (To disable algebra define -DNO_ALGEBRA=ON)")
 		add_subdirectory(lib_algebra)	
 
 		message("-- INFO: compiling 'discretization' library enabled")
 		add_subdirectory(lib_discretization)
-	else(Boost_FOUND OR HYPRE_LIB_DIR)
+	else(Boost_FOUND OR HYPRELIB_DIR)
 		message("-- INFO: Boost-Library and Hypre-Library NOT found. Skipping compilation of 'algebra' and 'discretization'. ")
-	endif(Boost_FOUND OR HYPRE_LIB_DIR)
+	endif(Boost_FOUND OR HYPRELIB_DIR)
 endif(NO_ALGEBRA)
 
 
