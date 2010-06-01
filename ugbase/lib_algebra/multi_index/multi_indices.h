@@ -10,7 +10,7 @@
 
 #include <vector>
 #include <iostream>
-
+#include <assert.h>
 namespace ug{
 
 template<int N>
