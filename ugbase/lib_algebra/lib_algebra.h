@@ -440,6 +440,7 @@ class MartinAlgebra
 		//	typedef HYPREboomerAMG linear_solver_type;
 	};
 
+  // this will soon be moved
 bool diag_step(const SparseMatrix<number>& A, Vector<number>& x, Vector<number>& b, number damp)
 {
 	UG_ASSERT(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
