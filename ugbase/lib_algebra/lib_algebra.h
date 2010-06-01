@@ -414,5 +414,45 @@ class HypreAlgebra{
 
 #endif
 
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+//   Martin Algebra
+/////////////////////////////////////////////
+/////////////////////////////////////////////
+#ifdef USE_MARTIN_ALGEBRA
+#include "martin_algebra/vector.h"
+
+namespace ug
+{
+class MartinAlgebra
+	{
+	public:
+		// matrix type
+		typedef SparseMatrix<double> matrix_type;
+		
+		// vector type
+		typedef Vector<double> vector_type;
+		
+		// index_type
+		typedef MultiIndex<1> index_type;
+		
+		//	typedef HYPREboomerAMG linear_solver_type;
+	};
+
+bool diag_step(const SparseMatrix<number>& A, Vector<number>& x, Vector<number>& b, number damp)
+{
+	UG_ASSERT(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
+
+	for(int j=0; j < A.getLength(); j++)
+		x[j] += damp * b[j] / A.getDiag(j);
+
+	// update defect
+	b -= A*x;
+
+	return true;
+}
+}
+
+#endif
 
 #endif /* __H__LIB_ALGEBRA__ */
