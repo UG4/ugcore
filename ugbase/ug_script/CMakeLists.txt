@@ -16,6 +16,8 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/lua)
 include_directories(${P_UGSCRIPT_SOURCE_DIR}/externals/luabind)
 
+include("../../ug_cmake_includes.txt")
+
 if(Boost_FOUND)
 #	add include path	
 	include_directories (${Boost_INCLUDE_DIRS})
