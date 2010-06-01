@@ -28,8 +28,8 @@ if(HYPRELIB_LIB_DIR)
 endif(HYPRELIB_LIB_DIR)
 
 
-	set(src_Algebra	 ${src_Algebra}
-			 martin_algebra/misc.cpp)
+#	set(src_Algebra	 ${src_Algebra}
+#			 martin_algebra/misc.cpp)
 
 ##########################
 # setup library
