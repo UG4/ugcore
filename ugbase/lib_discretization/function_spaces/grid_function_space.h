@@ -399,6 +399,11 @@ class GridFunction{
 			*m_dof_storage_vector -= *(v.m_dof_storage_vector);
 			return *this;
 		}
+		GridFunction& operator*=(number w)
+		{
+			*m_dof_storage_vector *= w;
+			return *this;
+		}
 
 		std::string get_name()
 		{
@@ -421,23 +426,23 @@ class GridFunction{
 		//	step 1: add slave values to master
 		//	create the required communication policies
 			ComPol_VecAdd<vector_type> cpVecAdd(m_dof_storage_vector);
-			
+
 		//	perform communication on the level
 			com.send_data(m_dof_manager.get_slave_layout(m_level), cpVecAdd);
 			com.receive_data(m_dof_manager.get_master_layout(m_level), cpVecAdd);
 			com.communicate();
-			
+
 		//	step 2: copy master values to slaves
 		//	create the required communication policies
 			ComPol_VecCopy<vector_type> cpVecCopy(m_dof_storage_vector);
-			
+
 		//	perform communication on the level
 			com.send_data(m_dof_manager.get_master_layout(m_level), cpVecCopy);
 			com.receive_data(m_dof_manager.get_slave_layout(m_level), cpVecCopy);
 			com.communicate();
 		#endif
 		}
-		
+
 	protected:
 		// Approximation Space
 		approximation_space_type& m_approximationSpace;

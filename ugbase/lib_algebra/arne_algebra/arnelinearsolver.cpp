@@ -17,13 +17,14 @@ bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
 	// invert approx(A):  c = diag(A)^{-1} * d
 	mv_dsolve(Amat, cVec, dVec);
 
+/* THIS IS NOW MOVED TO JACOBI SOLVER, only STEP left
 	// damp correction
 	c *= damp;
 
 	// update defect
 	// dVec -= Amat*cVec
 	mvsub(Amat, cVec, dVec);
-
+*/
 	return true;
 }
 

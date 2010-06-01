@@ -1,5 +1,5 @@
 /*
- * dofpattern.h
+ * p1conform_dof_manager.h
  *
  *  Created on: 05.02.2010
  *      Author: andreasvogel
@@ -109,15 +109,15 @@ class P1ConformDoFManager : public GridObserver{
 
 		// returns the number of multi_indices on the Element for the discrete function 'fct'
 		template<typename TElem>
-		std::size_t num_multi_indices(TElem* elem, size_t fct) const;
+		size_t num_multi_indices(TElem* elem, size_t fct) const;
 
 		/// returns the indices of the dofs on the Element elem for the discrete function 'fct' and returns num_indices
 		template<typename TElem>
-		std::size_t get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
+		size_t get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, size_t offset = 0) const;
 
 		/// returns the index of the dofs on the Geom Obj for the discrete function 'fct'
 		template<typename TElem>
-		std::size_t get_multi_indices_of_geom_obj(TElem* vrt, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
+		size_t get_multi_indices_of_geom_obj(TElem* vrt, size_t fct, local_index_type& ind, size_t offset = 0) const;
 
 		/// returns the number of dofs on level 'level'
 		inline size_t num_dofs(size_t level) const {return m_vLevelInfo[level].numDoFIndex;}
@@ -234,9 +234,9 @@ class P1ConformDoFManager : public GridObserver{
 	private:
 		// helper function (since partial template specialization for member function not possible)
 		template<typename TElem>
-		inline std::size_t get_multi_indices_of_geom_obj_helper(TElem* vrt, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
+		inline size_t get_multi_indices_of_geom_obj_helper(TElem* vrt, size_t fct, local_index_type& ind, size_t offset = 0) const;
 
-		inline std::size_t get_multi_indices_of_geom_obj_helper(VertexBase* vrt, size_t fct, local_index_type& ind, std::size_t offset = 0) const;
+		inline size_t get_multi_indices_of_geom_obj_helper(VertexBase* vrt, size_t fct, local_index_type& ind, size_t offset = 0) const;
 
 };
 

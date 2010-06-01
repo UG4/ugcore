@@ -275,7 +275,21 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 			UG_ASSERT(d_vec.size() == m_matrix->row_size(), "Row size '" << m_matrix->row_size() << "' of Matrix B and size '" << d_vec.size() << "' of Vector d do not match. Cannot calculate B*d.");
 			UG_ASSERT(c_vec.size() == m_matrix->col_size(), "Column size '" << m_matrix->row_size() << "' of Matrix B and size  '" << c_vec.size() << "' of Vector c do not match. Cannot calculate c := B*d.");
 
-			return diag_step(*m_matrix, c_vec, d_vec, m_damp);
+			// apply iterator: c = B*d (damp is not used)
+			diag_step(*m_matrix, c_vec, d_vec, m_damp);
+
+			// make correction consistent
+#ifdef UG_PARALLEL
+			//c.parallel_additive_to_consistent();
+#endif
+
+			// damp correction
+			c *= m_damp;
+
+			// update defect
+			m_matrix->matmul_minus(d_vec, c_vec);
+
+			return true;
 		}
 
 		// destructor
