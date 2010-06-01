@@ -41,4 +41,15 @@
 #define SAFE_DELETE(a)		{if(a){ delete a; a = NULL;}}
 #define SAFE_RELEASE(p)		{if(p) { (p)->Release(); (p)=NULL;}}
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+#ifndef NDEBUG
+static int ___never_happens___ = 0;
+//!
+//! use this to force the creation of print routines or similar for use in gdb.
+#define FORCE_CREATION if(___never_happens___)
+#else
+#define FORCE_CREATION if(0)
+#endif
+
+
 #endif
