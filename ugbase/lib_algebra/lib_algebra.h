@@ -389,7 +389,8 @@ class ArneAlgebra{
 /////////////////////////////////////////////
 
 
-#ifdef HYPRELIB_LIB_DIR
+#if 0
+//def HYPRELIB_LIB_DIR
 
 #include "hypre_algebra/hyprematrix.h"
 #include "hypre_algebra/hyprevector.h"
@@ -444,10 +445,10 @@ bool diag_step(const SparseMatrix<number>& A, Vector<number>& x, Vector<number>&
 	UG_ASSERT(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
 
 	for(int j=0; j < A.getLength(); j++)
-		x[j] += damp * b[j] / A.getDiag(j);
+		x[j] += b[j] / A.getDiag(j);
 
 	// update defect
-	b -= A*x;
+	// b -= A*x;
 
 	return true;
 }
