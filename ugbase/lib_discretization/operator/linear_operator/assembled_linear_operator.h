@@ -275,17 +275,55 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 			UG_ASSERT(d_vec.size() == m_matrix->row_size(), "Row size '" << m_matrix->row_size() << "' of Matrix B and size '" << d_vec.size() << "' of Vector d do not match. Cannot calculate B*d.");
 			UG_ASSERT(c_vec.size() == m_matrix->col_size(), "Column size '" << m_matrix->row_size() << "' of Matrix B and size  '" << c_vec.size() << "' of Vector c do not match. Cannot calculate c := B*d.");
 
+#ifdef UG_PARALLEL
+			UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
+			domain_function_type diagInvFunc(d);
+			typename domain_function_type::vector_type& diagInv = diagInvFunc.get_vector();
+			
+			typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
+			typename algebra_type::matrix_type::local_index_type locInd(1);
+			typename domain_function_type::vector_type::local_vector_type locVec(1);
+			
+			static bool firstTime = true;
+			for(size_t i = 0; i < diagInv.size(); ++i){
+				locInd[0][0] = i;
+				m_matrix->get(locMat, locInd, locInd);
+				
+				if(firstTime){
+					PCLLOG("(" << i << ", " << locMat(0, 0) << "), ");
+				}
+
+				locVec[0] = m_damp / locMat(0, 0);
+				diagInv.set(locVec, locInd);
+			}
+			
+			//	make consistent
+			diagInvFunc.parallel_additive_to_consistent();
+
+			for(size_t i = 0; i < diagInv.size(); ++i){
+				locInd[0][0] = i;
+				diagInv.get(locVec, locInd);
+				number a = locVec[0];
+
+				d_vec.get(locVec, locInd);
+				locVec[0] *= a;
+				
+				c_vec.set(locVec, locInd);
+			}
+		if(firstTime){
+			PCLLOG("\n");
+		}
+			firstTime = false;
+			// make correction consistent
+			c.parallel_additive_to_consistent();
+
+#else
 			// apply iterator: c = B*d (damp is not used)
 			diag_step(*m_matrix, c_vec, d_vec, m_damp);
-
-			// make correction consistent
-#ifdef UG_PARALLEL
-			//c.parallel_additive_to_consistent();
-#endif
-
+			
 			// damp correction
 			c *= m_damp;
-
+#endif
 			// update defect
 			m_matrix->matmul_minus(d_vec, c_vec);
 
