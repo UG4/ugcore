@@ -21,6 +21,7 @@ bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
 	c *= damp;
 
 	// update defect
+	// dVec -= Amat*cVec
 	mvsub(Amat, cVec, dVec);
 
 	return true;

@@ -9,6 +9,7 @@ bool
 ArneVector::
 create(uint nentries)
 {
+	FORCE_CREATION { p(); }
 	int err = 0;
 
 	_Vector = new ScalarVector((int)nentries);

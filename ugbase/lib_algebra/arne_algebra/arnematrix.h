@@ -81,6 +81,9 @@ class ArneMatrix{
 
 		friend std::ostream& operator<< (std::ostream& outStream, const ug::ArneMatrix& m);
 
+	public:
+		void p() { std::cout << *this; }
+
 };
 
 std::ostream& operator<< (std::ostream& outStream, const ug::ArneMatrix& m);
