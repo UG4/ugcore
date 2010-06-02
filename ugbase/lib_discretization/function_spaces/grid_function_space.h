@@ -442,6 +442,25 @@ class GridFunction{
 			com.communicate();
 		#endif
 		}
+		void parallel_additive_to_unique(pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+		{
+		#ifdef UG_PARALLEL
+		//	create a new communicator if required.
+			pcl::ParallelCommunicator<IndexLayout> tCom;
+			if(!pCom)
+				pCom = &tCom;
+			pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+
+		//	step 1: add slave values to master and set slave values to zero
+		//	create the required communication policies
+			ComPol_VecAddSetZero<vector_type> cpVecAddSetZero(m_dof_storage_vector);
+
+		//	perform communication on the level
+			com.send_data(m_dof_manager.get_slave_layout(m_level), cpVecAddSetZero);
+			com.receive_data(m_dof_manager.get_master_layout(m_level), cpVecAddSetZero);
+			com.communicate();
+		#endif
+		}
 
 	protected:
 		// Approximation Space

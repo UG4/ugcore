@@ -115,9 +115,10 @@ class ProlongationOperator : public IDiscreteLinearOperator<TDiscreteFunction, T
 
 			typename phys_domain_type::position_accessor_type aaPos = m_approxSpace.get_domain().get_position_accessor();
 			typename phys_domain_type::grid_type& grid = m_approxSpace.get_domain().get_grid();
+			typename phys_domain_type::subset_handler_type& sh = m_approxSpace.get_domain().get_subset_handler();
 			typename phys_domain_type::position_type corner;
-			number dummy_val;
-			number time = 0.0;
+//			number dummy_val;
+//			number time = 0.0;
 
 			const uint num_dofs_fineLevel = v.num_dofs();
 			const uint num_dofs_coarseLevel = u.num_dofs();
@@ -166,14 +167,22 @@ class ProlongationOperator : public IDiscreteLinearOperator<TDiscreteFunction, T
 
 					for(uint fct = 0; fct < num_fct; fct++)
 					{
+						if(m_ass.is_dirichlet(subsetIndex, fct))
+						{
+							//UG_LOG("Subset " << subsetIndex << " is dirichlet for this fct " << fct << " !!!!!!\n");
+							continue;
+						}
 						if(v.fct_is_def_in_subset(fct, subsetIndex) != true) continue;
 
 						// skip boundary nodes
-						corner = aaPos[*iter];
+/*						corner = aaPos[*iter];
 						if(IsBoundaryVertex2D(grid, *iter))
-							if(m_ass.boundary_value(dummy_val, corner, fct, time))
-								continue;
-
+							if(m_ass.boundary_value(dummy_val, corner, time, subsetIndex, fct))
+								{
+									UG_LOG("Dirichlet\n");
+									continue;
+								}
+*/
 						if(v.get_multi_indices_of_geom_obj(*iter, fct, fine_ind) != 1)
 						{
 							UG_LOG("Cannot determine fine index of node."); return false;
@@ -192,11 +201,14 @@ class ProlongationOperator : public IDiscreteLinearOperator<TDiscreteFunction, T
 							}
 
 							// skip boundary nodes
-							corner = aaPos[vert];
-							if(IsBoundaryVertex2D(grid, vert))
-								if(m_ass.boundary_value(dummy_val, corner, fct, time))
-									continue;
+							int si = sh.get_subset_index(vert);
+							if(m_ass.is_dirichlet(si, fct)) continue;
 
+/*							corner = aaPos[vert];
+							if(IsBoundaryVertex2D(grid, vert))
+								if(m_ass.boundary_value(dummy_val, corner, time, subsetIndex, fct))
+									continue;
+*/
 							UG_DLOG(LIB_DISC_TRANSFER, 10, " Coarse Node: "<< coarse_ind << " will be used.\n");
 
 							mat.add(val, fine_ind, coarse_ind);
@@ -214,12 +226,16 @@ class ProlongationOperator : public IDiscreteLinearOperator<TDiscreteFunction, T
 								{
 									UG_LOG("Cannot determine fine index of node."); return false;
 								}
-								// skip boundary nodes
-								corner = aaPos[vert];
-								if(IsBoundaryVertex2D(grid, vert))
-									if(m_ass.boundary_value(dummy_val, corner, fct, time))
-										continue;
 
+								// skip boundary nodes
+								int si = sh.get_subset_index(vert);
+								if(m_ass.is_dirichlet(si, fct)) continue;
+
+/*								corner = aaPos[vert];
+								if(IsBoundaryVertex2D(grid, vert))
+									if(m_ass.boundary_value(dummy_val, corner, time, subsetIndex, fct))
+										continue;
+*/
 								UG_DLOG(LIB_DISC_TRANSFER, 10, " Coarse Node: "<< coarse_ind << " will be used.\n");
 								mat.add(val, fine_ind, coarse_ind);
 							}
@@ -239,11 +255,14 @@ class ProlongationOperator : public IDiscreteLinearOperator<TDiscreteFunction, T
 									UG_LOG("Cannot determine fine index of node."); return false;
 								}
 								// skip boundary nodes
-								corner = aaPos[vert];
-								if(IsBoundaryVertex2D(grid, vert))
-									if(m_ass.boundary_value(dummy_val, corner, fct, time))
-										continue;
+								int si = sh.get_subset_index(vert);
+								if(m_ass.is_dirichlet(si, fct)) continue;
 
+/*								corner = aaPos[vert];
+								if(IsBoundaryVertex2D(grid, vert))
+									if(m_ass.boundary_value(dummy_val, corner, time, subsetIndex, fct))
+										continue;
+*/
 								UG_DLOG(LIB_DISC_TRANSFER, 10, " Coarse Node: "<< coarse_ind << " will be used.\n");
 								mat.add(val, fine_ind, coarse_ind);
 							}

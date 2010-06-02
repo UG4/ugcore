@@ -264,6 +264,11 @@ class IDiscreteLinearizedOperatorInverse
 			// create correction, that has same memory pattern as u
 			codomain_function_type c(c_nl);
 
+#ifdef UG_PARALLEL
+			// make defect unique
+			d.parallel_additive_to_unique();
+#endif
+
 			// compute start norm ||d||_2
 			number norm, norm_old, norm_start;
 			norm = norm_old = norm_start = d.norm();
@@ -320,6 +325,11 @@ class IDiscreteLinearizedOperatorInverse
 				c_nl += c;
 
 				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Sol after step " << i << ": \n" << c_nl << " ----- END Sol after step " << i << "\n");
+
+#ifdef UG_PARALLEL
+				// make defect unique
+				d.parallel_additive_to_unique();
+#endif
 
 				// compute new defect norm
 				norm = d.norm();

@@ -77,11 +77,25 @@ lmgc(uint l)
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after pre-smoothing: " << m_d[l]->norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
+		// debug
+/*		static int iter1 = 0;
+		VTKOutput<level_function_type> out;
+		char fileName[50];
+
+		//m_d[l-1]->set(0.0);
+		//m_d[l]->set(10.0);
+		sprintf(fileName, "Defect_Proc%02i_BeforeRes%03i.vtu", pcl::GetProcRank(), iter1);
+		out.print(*m_d[l], fileName, 0.0);
+*/
 		// restrict defect
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Restrict defect ... ");
 		if(m_I[l-1]->applyTransposed(*m_d[l-1], *m_d[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
+		//debug
+/*		sprintf(fileName, "Defect_Proc%02i_AfterRes%03i.vtu", pcl::GetProcRank(), iter1++);
+		out.print(*m_d[l-1], fileName, 0.0);
+*/
 		// apply lmgc on coarser grid
 		for(int i = 0; i < m_cycle_type; ++i)
 		{
@@ -92,11 +106,21 @@ lmgc(uint l)
 			}
 		}
 
+		//debug
+		//m_c[l-1]->set(10.0);
+/*		static int iter2 = 0;
+		sprintf(fileName, "Correction_Proc%02i_BeforeInt%03i.vtu", pcl::GetProcRank(), iter2);
+		out.print(*m_c[l-1], fileName, 0.0);
+*/
 		//interpolate correction
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Interpolate correction ... ");
 		if(m_I[l-1]->apply(*m_t[l], *m_c[l-1]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
+		//debug
+/*		sprintf(fileName, "Correction_Proc%02i_AfterInt%03i.vtu", pcl::GetProcRank(), iter2++);
+		out.print(*m_t[l], fileName, 0.0);
+*/
 		// add coarse grid correction to level correction
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Add coarse grid correction ... ");
 		*m_c[l] += *m_t[l];

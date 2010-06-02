@@ -149,9 +149,8 @@ class IAssemble {
 		virtual std::size_t num_fct() const
 		{return 0;}
 
-		virtual bool boundary_value(number& val, typename discrete_function_type::position_type& corner, uint fct, number time = 0.0)
+		virtual bool is_dirichlet(int s, uint fct)
 		{return false;}
-
 
 		/// virtual Destructor
 		virtual ~IAssemble(){};

@@ -3,6 +3,7 @@
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ASSEMBLED_LINEAR_OPERATOR__
 
 #include "lib_algebra/lib_algebra.h"
+#include "lib_discretization/io/vtkoutput.h"
 
 namespace ug{
 
@@ -279,27 +280,33 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 			UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
 			domain_function_type diagInvFunc(d);
 			typename domain_function_type::vector_type& diagInv = diagInvFunc.get_vector();
-			
+
 			typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
 			typename algebra_type::matrix_type::local_index_type locInd(1);
 			typename domain_function_type::vector_type::local_vector_type locVec(1);
-			
-			static bool firstTime = true;
+
+			// collect diagonal
 			for(size_t i = 0; i < diagInv.size(); ++i){
 				locInd[0][0] = i;
 				m_matrix->get(locMat, locInd, locInd);
-				
-				if(firstTime){
-					PCLLOG("(" << i << ", " << locMat(0, 0) << "), ");
-				}
 
-				locVec[0] = m_damp / locMat(0, 0);
+				locVec[0] = locMat(0, 0);
 				diagInv.set(locVec, locInd);
 			}
-			
-			//	make consistent
+
+			//	make diagonal consistent
 			diagInvFunc.parallel_additive_to_consistent();
 
+			// invert diagonal and multiply by damping
+			for(size_t i = 0; i < diagInv.size(); ++i){
+				locInd[0][0] = i;
+				diagInv.get(locVec, locInd);
+
+				locVec[0] = m_damp / locVec[0];
+				diagInv.set(locVec, locInd);
+			}
+
+			// multiply defect with diagonal, c = damp * D^{-1} * d
 			for(size_t i = 0; i < diagInv.size(); ++i){
 				locInd[0][0] = i;
 				diagInv.get(locVec, locInd);
@@ -307,20 +314,17 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 
 				d_vec.get(locVec, locInd);
 				locVec[0] *= a;
-				
+
 				c_vec.set(locVec, locInd);
 			}
-		if(firstTime){
-			PCLLOG("\n");
-		}
-			firstTime = false;
+
 			// make correction consistent
 			c.parallel_additive_to_consistent();
 
 #else
 			// apply iterator: c = B*d (damp is not used)
 			diag_step(*m_matrix, c_vec, d_vec, m_damp);
-			
+
 			// damp correction
 			c *= m_damp;
 #endif

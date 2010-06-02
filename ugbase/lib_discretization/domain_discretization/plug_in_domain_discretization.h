@@ -82,15 +82,16 @@ class PlugInDomainDiscretization : public IDomainDiscretization<typename TDiscre
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a);
 		IAssembleReturn assemble_solution(discrete_function_type& u, number time);
 
-		std::size_t num_fct() const
+		virtual std::size_t num_fct() const
 		{
 			return m_elemDisc.num_fct();
 		}
 
-		/*bool boundary_value(number& val, position_type& corner, uint fct, number time = 0.0)
+		virtual bool is_dirichlet(int s, uint fct)
 		{
-			return m_elemDisc.boundary_value(val, corner, fct, time);
-		}*/
+			//UG_LOG("Checking Dirichlet value");
+			return m_elemDisc.is_dirichlet(s, fct);
+		}
 
 	protected:
 		template <typename TElem>
