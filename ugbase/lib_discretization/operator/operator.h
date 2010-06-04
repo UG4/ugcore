@@ -271,7 +271,10 @@ class IDiscreteLinearizedOperatorInverse
 
 			// compute start norm ||d||_2
 			number norm, norm_old, norm_start;
-			norm = norm_old = norm_start = d.norm();
+			double tNormLocal = (double)d.norm();
+			double tNormGlobal;
+			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+			norm = norm_old = norm_start = (number)tNormGlobal;
 
 			// Print Start information
 			if(m_verboseLevel >= 1) UG_LOG("\n    %%%%%%%%%% Iterative Linear Solver %%%%%%%%%%\n");
