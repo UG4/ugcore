@@ -773,7 +773,7 @@ template<typename T>
 bool SparseMatrix<T>::add(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
 {
 	connection *c = new connection[J.size()];
-	int nc;
+	std::size_t nc;
 	for(std::size_t i=0; i < I.size(); i++)
 	{
 		nc = 0;
@@ -798,7 +798,7 @@ bool SparseMatrix<T>::add(const local_matrix_type& mat, const local_index_type& 
 template<typename T> bool SparseMatrix<T>::set(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
 {
 	connection *c = new connection[J.size()];
-	int nc;
+	std::size_t nc;
 	for(int i=0; i < I.size(); i++)
 	{
 		nc = 0;
@@ -954,16 +954,10 @@ void SparseMatrix<T>::setMatrixRow(int row, connection *c, int nr)
 template<typename T>
 void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 {	
-	cout << "row: " << row << " nr: " << nr << " oldnr " << iNrOfConnections[row] << endl;
-
 	connection *old = cons[row];	
 	if(old == NULL)
 	{		
 		setMatrixRow(row, c, nr);
-		cout << row << "  - ";
-		for(int i=0;i<iNrOfConnections[row];i++)
-			cout << cons[row][i] << " ";
-		cout << endl;
 		return;
 	}
 	
@@ -978,8 +972,6 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 		int s;
 		for(s=1; s<iNrOfConnections[row]; s++)
 		{
-			if(row==2&&nr==1) cout << __LINE__  << " s = " << s << endl;
-
 			if(c->iIndex < old[s].iIndex) break;
 		}
 
@@ -1052,7 +1044,6 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 
 	while(ic < nr || iold < oldNrOfConnections)
 	{
-		cout.flush();
 		if(iold >= oldNrOfConnections || (ic < nr && c[ic].iIndex < old[iold].iIndex))
 		{
 			UG_ASSERT(i < iNewSize && ic < nr, "");
@@ -1398,9 +1389,8 @@ void SparseMatrix<T>::getNeighborhood(int node, int depth, vector<int> &indices,
 			posInConnections[indices[i]] = -1;
 	}	
 
-	for(int i=0; i<indices.size(); i++) cout << indices[i] << " "; cout << endl;
-	sort(indices.begin(), indices.end());		
-	for(int i=0; i<indices.size(); i++) cout << indices[i] << " "; cout << endl;
+	sort(indices.begin(), indices.end());
+
 }
 
 
