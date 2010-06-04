@@ -264,17 +264,9 @@ class IDiscreteLinearizedOperatorInverse
 			// create correction, that has same memory pattern as u
 			codomain_function_type c(c_nl);
 
-#ifdef UG_PARALLEL
-			// make defect unique
-			d.parallel_additive_to_unique();
-#endif
-
 			// compute start norm ||d||_2
 			number norm, norm_old, norm_start;
-			double tNormLocal = (double)d.norm();
-			double tNormGlobal;
-			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			norm = norm_old = norm_start = (number)tNormGlobal;
+			norm = norm_old = norm_start = compute_global_norm(d);
 
 			// Print Start information
 			if(m_verboseLevel >= 1) UG_LOG("\n    %%%%%%%%%% Iterative Linear Solver %%%%%%%%%%\n");
@@ -329,16 +321,7 @@ class IDiscreteLinearizedOperatorInverse
 
 				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Sol after step " << i << ": \n" << c_nl << " ----- END Sol after step " << i << "\n");
 
-#ifdef UG_PARALLEL
-				// make defect unique
-				d.parallel_additive_to_unique();
-#endif
-
-				// compute new defect norm
-				double tNormLocal = (double)d.norm();
-				double tNormGlobal;
-				pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-				norm = (number)tNormGlobal;
+				norm = compute_global_norm(d);
 
 				// print convergence rate
 				if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
@@ -354,6 +337,29 @@ class IDiscreteLinearizedOperatorInverse
 		virtual ~IDiscreteLinearizedOperatorInverse() {};
 
 	protected:
+		// computes the global norm
+		// ATTENTION: d must be addative at entry and will by additive unique on exit
+		number compute_global_norm(domain_function_type& d)
+		{
+			number norm;
+
+			// step 1: make vector d additiv unique
+#ifdef UG_PARALLEL
+			d.parallel_additive_to_unique();
+#endif
+
+			// step 2: compute new defect norm
+#ifdef UG_PARALLEL
+			double tNormLocal = (double)d.norm();
+			double tNormGlobal;
+			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+			norm = (number)tNormGlobal;
+#else
+			norm = d.norm();
+#endif
+			return norm;
+		}
+
 		void print(int verboseLevel, std::ostream outStream)
 		{
 			if(verboseLevel >= m_verboseLevel) UG_LOG(outStream);
