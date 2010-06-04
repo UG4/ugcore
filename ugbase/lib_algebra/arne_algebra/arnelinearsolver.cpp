@@ -3,7 +3,7 @@
 
 namespace ug{
 
-
+using namespace std;
 /// jacobi step
 bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
 {

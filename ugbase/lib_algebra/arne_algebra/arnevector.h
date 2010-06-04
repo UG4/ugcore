@@ -99,7 +99,7 @@ class ArneVector{
 
 	friend std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector& v);
 	public:
-		void p() { std::cout << *this; }
+		void p() const { std::cout << *this; }
 
 };
 
