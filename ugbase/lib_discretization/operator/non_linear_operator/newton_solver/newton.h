@@ -58,6 +58,28 @@ class NewtonSolver : public IDiscreteOperatorInverse<TDiscreteFunction, TDiscret
 		~NewtonSolver();
 
 	private:
+		// ATTENTION: d must be addative at entry and will by additive unique on exit
+		number compute_global_norm(discrete_function_type& d)
+		{
+			number norm;
+
+			// step 1: make vector d additiv unique
+#ifdef UG_PARALLEL
+			d.parallel_additive_to_unique();
+#endif
+
+			// step 2: compute new defect norm
+#ifdef UG_PARALLEL
+			double tNormLocal = (double)d.norm();
+			double tNormGlobal;
+			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+			norm = (number)tNormGlobal;
+#else
+			norm = d.norm();
+#endif
+			return norm;
+		}
+
 		bool allocate_memory(const discrete_function_type& u);
 
 		bool deallocate_memory();
@@ -184,7 +206,7 @@ apply(discrete_function_type& u)
 	UG_DLOG(LIB_DISC_NEWTON, 10, "NewtonSolver::apply: BEGIN start defect:\n" << *m_d << "\n END defect \n");
 
 	// Compute first Residuum
-	norm = norm_old = norm_start = m_d->norm();
+	norm = norm_old = norm_start = compute_global_norm(*m_d);
 
 	//verbose
 	UG_LOG(" ###### NEWTON - METHOD ######" << std::endl);
@@ -290,7 +312,7 @@ apply(discrete_function_type& u)
 		UG_DLOG(LIB_DISC_NEWTON, 10, " BEGIN defect after adding correction of step " << i << ":\n" << *m_d << "\n END defect \n");
 
 		//compute new Residuum
-		norm = m_d->norm();
+		norm = compute_global_norm(*m_d);
 
 		// print convergence rate
 		UG_LOG(" ## " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);

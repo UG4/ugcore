@@ -321,6 +321,7 @@ class IDiscreteLinearizedOperatorInverse
 
 				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Sol after step " << i << ": \n" << c_nl << " ----- END Sol after step " << i << "\n");
 
+				// compute global norm
 				norm = compute_global_norm(d);
 
 				// print convergence rate
