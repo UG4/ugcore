@@ -420,6 +420,7 @@ class HypreAlgebra{
 //   Martin Algebra
 /////////////////////////////////////////////
 /////////////////////////////////////////////
+//#define USE_MARTIN_ALGEBRA
 #ifdef USE_MARTIN_ALGEBRA
 #include "martin_algebra/vector.h"
 
@@ -443,13 +444,10 @@ class MartinAlgebra
   // this will soon be moved
 bool diag_step(const SparseMatrix<number>& A, Vector<number>& x, Vector<number>& b, number damp)
 {
-	UG_ASSERT(x.getLength() == b.getLength() && x.getLength() == A.getLength(), x << ", " << b << " and " << A << " need to have same size.");
+	UG_ASSERT(x.size() == b.size() && x.size() == A.getCols(), x << ", " << b << " and " << A << " need to have same size.");
 
-	for(int j=0; j < A.getLength(); j++)
-		x[j] += b[j] / A.getDiag(j);
-
-	// update defect
-	// b -= A*x;
+	for(int j=0; j < x.size(); j++)
+		x[j] = b[j] / A.getDiag(j);
 
 	return true;
 }
