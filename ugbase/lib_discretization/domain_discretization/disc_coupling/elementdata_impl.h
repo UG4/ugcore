@@ -4,6 +4,8 @@
  *  Created on: 09.11.2009
  *      Author: andreasvogel
  */
+#ifndef __H__LIB_DISCRETIZATION__ELEMENTDATA_IMPL__
+#define __H__LIB_DISCRETIZATION__ELEMENTDATA_IMPL__
 
 #include <iostream>
 #include <cassert>
@@ -314,3 +316,5 @@ bool DataContainer::link(DataImport<TDataType, TPositionType>& ImportItem, DataE
 
 
 } // End namespace ug
+
+#endif
