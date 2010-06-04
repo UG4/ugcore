@@ -25,7 +25,8 @@
 # The following options can be enabled / disabled:
 #
 # - UG_DEBUG: Produces slow but debuggable applications.
-# - UG_64: Produces 64bit-code (otherwise 32bit)
+# - FORCE_64: Produces 64bit-code
+# - FORCE_32: Produces 32bit-code
 # - NO_MPI: Disables MPI support.
 # - NO_ALGEBRA: Disables support for algebra and discretization.
 # - NO_BOOST: Disables support for boost (should only be disabled if required).
@@ -77,19 +78,25 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O2 -Wall")
 	endif(UG_DEBUG)
 
-	# check whether 32bit or 64bit mode
-	if(UG_64)
+	# force 32bit or 64bit mode
+	if(FORCE_64 AND FORCE_32)
+		message(FATAL_ERROR "FORCE_64=ON and FORCE_32=ON. do not use FORCE_32 and FORCE_64 together.")
+	endif(FORCE_64 AND FORCE_32)
+	
+	if(FORCE_64)
 	   # set 64bit mode
-		message("-- INFO: 64bit mode. (Enable 32bit-mode by defining -DUG_64=OFF)")
+		message("-- INFO: 64bit mode. (Disable by defining -DFORCE_64=OFF)")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
-	else(UG_64)
+	endif(FORCE_64)
+
+	if(FORCE_32)
 	    # set 32bit mode
-		message("-- INFO: 32bit mode. (Enable 64bit-mode by defining -DUG_64=ON)")
+		message("-- INFO: 32bit mode. (Disable by defining -DFORCE_32=OFF)")
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
 		# otherwise it gets compiled as 64bit on Snow Leopard Systems
-	endif(UG_64)
+	endif(FORCE_32)
 
 	#######################
 	# MPI - find include-path and link-libraries
