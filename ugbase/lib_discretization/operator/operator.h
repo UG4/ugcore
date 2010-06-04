@@ -332,7 +332,10 @@ class IDiscreteLinearizedOperatorInverse
 #endif
 
 				// compute new defect norm
-				norm = d.norm();
+				double tNormLocal = (double)d.norm();
+				double tNormGlobal;
+				pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+				norm = (number)tNormGlobal;
 
 				// print convergence rate
 				if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
