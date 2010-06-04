@@ -44,17 +44,24 @@ inline int UGInit(int argc, char* argv[], int parallelOutputProcRank = -1)
  */
 inline int UGFinalize(bool outputProfilerStats = false)
 {
-#ifdef UG_PARALLEL
-	pcl::Finalize();
-#endif
-
 	if(outputProfilerStats){
 	//	output the profiled data.
-		UG_LOG("\n");
 		PROFILER_UPDATE();
-		PROFILER_OUTPUT();
+		#ifdef UG_PARALLEL
+			if(pcl::IsOutputProc()){
+				UG_LOG("\n");
+				PROFILER_OUTPUT();
+			}
+		#else
+			UG_LOG("\n");
+			PROFILER_OUTPUT();
+		#endif
 	}
-	
+
+#ifdef UG_PARALLEL
+	pcl::Finalize();
+#endif	
+
 	return 0;
 }
 

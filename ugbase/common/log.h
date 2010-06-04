@@ -11,6 +11,12 @@
 #include <iostream>
 #include <fstream>
 
+//	in order to support parallel logs, we're including pcl.h
+//	you can set the output process using pcl::SetOutputProcRank(int rank).
+#ifdef UG_PARALLEL
+	#include "pcl/pcl_base.h"
+#endif
+
 namespace ug{
 
 /* LogAssistant
@@ -115,9 +121,17 @@ inline LogAssistant& GetLogAssistant();
 	#define UG_SET_DEBUG_LEVEL(tag, level)		{ug::GetLogAssistant().set_debug_level(ug::LogAssistant::tag, level);}
 	#define UG_RESET_DEBUG_LEVELS()				{ug::GetLogAssistant().set_debug_levels(-1);}
 	#define UG_SET_DEBUG_LEVELS(level)			{ug::GetLogAssistant().set_debug_levels(level);}
-	#define UG_DLOG(tag, level, msg)			{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level) {ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
 	#define UG_DEBUG_BEGIN(tag, level)			{ if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level) {
 	#define UG_DEBUG_END(tag, level)			}; }
+
+	#ifdef UG_PARALLEL
+		#define UG_DLOG(tag, level, msg)			{if(pcl::IsOutputProc()){\
+														if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+														{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}}
+	#else
+		#define UG_DLOG(tag, level, msg)			{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+													 {ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
+	#endif
 #else
 	#define UG_SET_DEBUG_LEVEL(tag, level)		{}
 	#define UG_RESET_DEBUG_LEVELS()				{}
@@ -155,11 +169,17 @@ inline LogAssistant& GetLogAssistant();
 /////////////////////////////////////////////////////////////////
 
 // Usage:
-/*
+/**
  * UG_LOG(msg)  					- prints a message to the normal output stream
+ * If ug is compiled in a parallel environment (UG_PARALLEL is defined),
+ * UG_LOG will use PCLLOG to output its data.
  */
-
-#define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg; ug::GetLogAssistant().logger().flush();}
+#ifdef UG_PARALLEL
+	#define UG_LOG(msg) {if(pcl::IsOutputProc())\
+						{ug::GetLogAssistant().logger() << msg; ug::GetLogAssistant().logger().flush();}}
+#else
+	#define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg; ug::GetLogAssistant().logger().flush();}
+#endif
 
 // include implementation
 #include "log_impl.h"

@@ -13,16 +13,8 @@
 //	It is only included to allow us to define some constants.
 //	This include will most likely be removed in future versions.
 #include "mpi.h"
-
+#include "pcl_base.h"
 #include "common/types.h"
-
-////////////////////////////////////////////////////////////////////////
-///	this allows us to print messages to the users terminal
-/**
- * if an output-processor is specified through \sa pcl::SetOutputProcRank
- * only messages from that processor will be printed to the screen.
- */
-#define PCLLOG(msg) if((pcl::GetProcRank() == pcl::GetOutputProcRank()) || pcl::GetOutputProcRank() == -1) {std::cout << msg; std::cout.flush();}
 
 namespace pcl
 {
@@ -61,21 +53,6 @@ typedef MPI_Datatype DataType;
 
 
 ////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-
-///	call this method before any other pcl-operations.
-void Init(int argc, char* argv[]);
-///	call this method right before quitting your application
-void Finalize();
-
-///	returns the number of processes
-int GetNumProcesses();
-///	returns the rank of the process
-ProcID GetProcRank();
-///	returns the rank of the process for which the output shall be printed to the screen.
-ProcID GetOutputProcRank();
-///	sets the rank of the process for which the output shall be printed.
-void SetOutputProcRank(ProcID rank);
 
 ///	returns the time in seconds
 double Time();

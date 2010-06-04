@@ -9,7 +9,7 @@
 #include <map>
 #include "common/util/binary_stream.h"
 #include "common/util/stream_pack.h"
-#include "pcl_base.h"
+#include "pcl_communication_structs.h"
 
 namespace pcl
 {

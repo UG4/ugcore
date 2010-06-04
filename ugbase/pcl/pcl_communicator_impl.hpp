@@ -8,7 +8,7 @@
 #include <iostream>
 #include "mpi.h"
 #include "pcl_methods.h"
-#include "pcl_base.h"
+#include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
 
 namespace pcl
