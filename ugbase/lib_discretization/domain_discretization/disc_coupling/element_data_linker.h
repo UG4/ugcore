@@ -499,10 +499,8 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 };
 
 // print current values of import to ostream
-std::ostream& operator<<(std::ostream& out, const EmptyType& data)
-{
-	return out;
-}
+std::ostream& operator<<(std::ostream& out, const EmptyType& data);
 
 }
+
 #endif /*__H__LIB_DISCRETIZATION__ELEMENT_DATA_LINKER__*/
