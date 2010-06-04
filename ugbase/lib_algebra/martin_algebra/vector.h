@@ -98,16 +98,21 @@ public:
 	bool get(local_vector_type &u, const local_index_type &ind) const;
 
 	//template<typename T> inline void apply(Operation_type op, const T &t);
-	
-	// for Function Expression, sh. TemplateExpression.h // remove this
-	template<class Function> inline void operator = (Function &ex);
-	
+		
 	//! assign other vector v
 	inline void operator = (const Vector &v);
+	inline bool operator *= (const number &a)
+	{
+		for(int i=0; i<size(); i++) values[i] *= a;
+		return true;
+	}
 	
 	//! assign this vector to another vector v
 	inline void applyto(Vector &v) const;
 			
+	// template expressions for functions
+	template<class Function> inline void operator = (Function &ex);
+	
 	//! template expression assignment
 	template<typename Type> inline void operator = (const Type &t);		
 	//! template expression +=
@@ -122,7 +127,6 @@ public:
 	//! printofile: posx posy value
 	void printtofile(const char *filename);
 			
-	int getLength() const { return length; }
 	int size() const { return length; }
 	
 	void addTo(entry_type &dest, int i) const
@@ -146,8 +150,7 @@ public:
 		bFirst = false;
 	}
 	
-public: // output functions
-	
+public: // output functions	
 	//! print vector to console
 	void print(const char * const text = NULL) const;
 	void p() {print(); } ///< gdb shortcut for print
@@ -169,7 +172,7 @@ public:
 	const char *name;		///< name 
 	
 	// TODO: for parallelization: auto-detect non-matching distributions
-	enum vector_mode		
+	/*enum vector_mode		
 	{
 		DIST_ADDITIVE, 
 		DIST_CONSISTENT
@@ -178,18 +181,16 @@ public:
 	/*vector_mode getDistMode()
 	{
 		return dist_mode;
-	}*/
+	}
 	
-	void assureConsistent();
+	void assureConsistent(); */
 	
 	
 private:
 	int length;				///< length of the vector (vector is from 0..length-1)
 	entry_type *values;		///< array where the values are stored, size length
 
-	//mutable vector_mode dist_mode;
-
-	
+	//mutable vector_mode dist_mode;	
 };
 
 } // namespace ug

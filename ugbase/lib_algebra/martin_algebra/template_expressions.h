@@ -52,7 +52,7 @@ private:
 //! class TE_AMV_X: class for template Expressions.
 //! this is the CRTP base class for all expressions with
 //! alpha Mat Vec + alpha Mat Vec used in this file.
-//! need functions assign, addTo, substractFrom, prevent, getLength and <<.
+//! need functions assign, addTo, substractFrom, prevent, size and <<.
 template<class A> class TE_AMV_X
 {
 public:
@@ -65,7 +65,7 @@ public:
 //! class TE_MAT: class for template Expressions.
 //! this is the CRTP base class for all Sparse Matrices used by
 //! Template Expressions in this file.
-//! need functions assign, addTo, substractFrom, prevent, getLength and <<.
+//! need functions assign, addTo, substractFrom, prevent, size and <<.
 template<class A> class TE_MAT
 {
 public:
@@ -77,7 +77,7 @@ public:
 //! class TE_MAT: class for template Expressions.
 //! this is the CRTP base class for all Vectors used by
 //! Template Expressions in this file.
-//! need functions assign, addTo, substractFrom, prevent, getLength and <<.
+//! need functions assign, addTo, substractFrom, prevent, size and <<.
 template<class A> class TE_VEC : public TE_AMV_X<A>
 {
 public:
@@ -137,7 +137,7 @@ public:
 		bFirst = false;
 	}	
 	
-	inline int getLength() const	{	return r.getLength();	}
+	inline int size() const	{	return r.size();	}
 	
 // print functions
 	friend ostream &operator<<(ostream &out, const AlphaVec_Expression<R>  &ex)
@@ -165,7 +165,7 @@ public:
 	const L& l; 
 	const R& r; 
 	inline MatVec_Expression(const L & l_, const R & r_) : l(l_),r(r_) 
-	{ UG_ASSERT(l.getCols() == r.getLength(), l << " has different length as " <<  r); }
+	{ UG_ASSERT(l.getCols() == r.size(), l << " has different length as " <<  r); }
 	
 	//! calcs d = expression[i]
 	inline void assign(entry_type &d, int i) const
@@ -203,7 +203,7 @@ public:
 		bFirst = false;		
 	}	
 	
-	inline int getLength() const	{	return l.getLength();	}
+	inline int size() const	{	return l.size();	}
 	
 // print functions
 	friend ostream &operator<<(ostream &out, const MatVec_Expression<L, R>  &ex)
@@ -223,7 +223,7 @@ public:
 	const L& l; 
 	const R& r; 
 	inline Expression(double ld_, const L& l_, const R& r_) : ld(ld_), l(l_), r(r_) 
-	{ UG_ASSERT(l.getLength() == r.getLength(), l << " has different length as " <<  r); }
+	{ UG_ASSERT(l.size() == r.size(), l << " has different length as " <<  r); }
 	
 	
 	inline void assign(vector_type &d, int i) const
@@ -241,7 +241,7 @@ public:
 		l[i].sub_mult_scale(d, r, ld);
 	}	
 	
-	inline int getLength() const	{	return l.getLength();	}
+	inline int size() const	{	return l.size();	}
 }; */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +256,7 @@ public:
 	const L& l; 
 	const R& r; 
 	inline AlphaMatVec_Add_Expression(const L& l_, const R& r_) : l(l_),r(r_) 
-	{ UG_ASSERT(l.getLength() == r.getLength(), l << " has different length as " <<  r); }
+	{ UG_ASSERT(l.size() == r.size(), l << " has different length as " <<  r); }
 	
 	//! calcs d = expression[i]
 	inline void assign(entry_type &d, int i) const
@@ -295,7 +295,7 @@ public:
 		r.preventForbiddenDestination(p, bFirst);
 	}
 	
-	inline int getLength() const	{	return l.getLength();	}
+	inline int size() const	{	return l.size();	}
 	
 // print functions
 	friend ostream &operator<<(ostream &out, const AlphaMatVec_Add_Expression<L, R>   &ex)
@@ -318,7 +318,7 @@ public:
 	const L& l; 
 	const R& r; 
 	inline AlphaMatVec_Sub_Expression(const L& l_, const R& r_) : l(l_),r(r_) 
-	{ UG_ASSERT(l.getLength() == r.getLength(), l << " has different length as " <<  r); }
+	{ UG_ASSERT(l.size() == r.size(), l << " has different length as " <<  r); }
 	
 	//! calcs d = expression[i]
 	inline void assign(entry_type &d, int i) const
@@ -356,7 +356,7 @@ public:
 		r.preventForbiddenDestination(p, bFirst);
 	}
 
-	inline int getLength() const	{	return l.getLength();	}
+	inline int size() const	{	return l.size();	}
 
 // print functions
 	friend ostream &operator<<(ostream &out, const AlphaMatVec_Sub_Expression<L, R>   &ex)
@@ -426,7 +426,7 @@ inline double norm2(const TE_AMV_X<X> &ex_)
 	const X &ex = ex_.cast();
 	double sum=0;
 	typename X::entry_type t;
-	for(int i=0; i < ex.getLength(); i++)	
+	for(int i=0; i < ex.size(); i++)	
 	{
 		ex.assign(t, i);
 		sum += mnorm2(t);
@@ -447,7 +447,7 @@ inline double absmax2(const TE_AMV_X<X> &ex_)
 	const X &ex = ex_.cast();
 	double absmax=-1;
 	typename X::entry_type t;
-	for(int i=0; i < ex.getLength(); i++)	
+	for(int i=0; i < ex.size(); i++)	
 	{
 		ex.assign(t, i);
 		double d= mnorm2(t);
@@ -471,13 +471,13 @@ inline double dotProd(const TE_AMV_X<L> &l_, const TE_AMV_X<R> &r_)
 {
 	const L &l = l_.cast();
 	const R &r = r_.cast();
-	UG_ASSERT(l.getLength() == r.getLength(), "expression L=" << l << " and R=" << r << " differ in length.");
+	UG_ASSERT(l.size() == r.size(), "expression L=" << l << " and R=" << r << " differ in length.");
 	
 	double sum=0;
 	typename L::entry_type block_l;
 	typename R::entry_type block_r;
 	
-	int N = l.getLength();
+	int N = l.size();
 	for(int i=0; i < N; i++)	
 	{
 		l.assign(block_l, i);

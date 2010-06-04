@@ -87,7 +87,7 @@ inline void Vector<entry_type>::applyto(Vector &v) const
 
 /*void operator = (const Expression<SparseMatrix, Multiply_Operator, Vector> ex)
  {
- ASSERT2(ex.getLength() == length, *this << " has not same length as " << ex);
+ ASSERT2(ex.size() == length, *this << " has not same length as " << ex);
  const matrix &m = ex.l;
  const Vector &r = ex.r;
  //for(int i=0; i < length; i++) values[i] = m[i]*r; 
@@ -98,7 +98,7 @@ template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
 { 
 	//IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
-	UG_ASSERT(t.getLength() == length, *this << " has not same length as " << t);
+	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	t.preventForbiddenDestination(this);
 
 	for(int i=0; i < length; i++)
@@ -116,7 +116,7 @@ template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator += (const Type &t)
 { 
 	//IF_PRINTLEVEL(5) cout << *this << " += " << t << " (unspecialized) " << endl;
-	UG_ASSERT(t.getLength() == length, *this << " has not same length as " << t);
+	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	//t.preventForbiddenDestination(this);
 	
 	for(int i=0; i < length; i++) 
@@ -133,7 +133,7 @@ template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator -= (const Type &t)
 {
 	UG_DLOG(LIB_ALG_VECTOR, 5, *this << " -= " << t << " (unspecialized) ");
-	UG_ASSERT(t.getLength() == length, *this << " has not same length as " << t);
+	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	//t.preventForbiddenDestination(this);
 	
 	for(int i=0; i < length; i++) 
