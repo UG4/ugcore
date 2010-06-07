@@ -29,22 +29,35 @@ class VTKOutput{
 		typedef TDiscreteFunction discrete_function_type;
 
 	public:
-		bool print(discrete_function_type& u, const char* filename, double Time = 0.0);
-		bool print_subset(discrete_function_type& u, int subsetIndex, const char* filename, double Time = 0.0);
+		bool begin_timeseries(const char* filename, discrete_function_type& u);
+		bool end_timeseries(const char* filename, discrete_function_type& u);
+
+		bool print(const char* filename, discrete_function_type& u, size_t step = 0, number time = 0.0);
+		bool print_subset(const char* filename, discrete_function_type& u, int si, size_t step = 0, number time = 0.0);
 
 	private:
 		bool write_prolog(FILE* file, double Time);
 		bool write_piece_prolog(FILE* file);
-		bool write_subset(FILE* File, discrete_function_type& u,int subsetIndex, int dim);
-		bool init_subset(discrete_function_type& u, int subsetIndex, int dim);
-		bool write_points(FILE* File, discrete_function_type& u, int subsetIndex, int dim);
-		bool write_elements(FILE* File,discrete_function_type& u, int subsetIndex, int dim);
-		bool write_scalar(FILE* File, discrete_function_type& u, uint fct, int subsetIndex, int dim);
+		bool write_subset(FILE* File, discrete_function_type& u,int si, int dim);
+		bool init_subset(discrete_function_type& u, int si, int dim);
+		bool write_points(FILE* File, discrete_function_type& u, int si, int dim);
+		bool write_elements(FILE* File,discrete_function_type& u, int si, int dim);
+		bool write_scalar(FILE* File, discrete_function_type& u, uint fct, int si, int dim);
 		bool write_epilog(FILE* file);
 		bool write_piece_epilog(FILE* file);
 
+#ifdef UG_PARALLEL
+		bool write_pvtu(discrete_function_type& u, const char* filename, int si, size_t step, number time);
+		bool write_pvd(discrete_function_type& u, const char* filename);
+#endif
+
+		bool vtu_filename(char *nameOut, const char *nameIn, int rank, int si, size_t step);
+		bool pvtu_filename(char *nameOut, const char *nameIn, int si, size_t step);
+		bool pvd_filename(char *nameOut, const char *nameIn);
+		bool is_valid_filename(const char *nameIn);
+
 		template <typename TElem>
-		void count_elem_conn(discrete_function_type& u, int subsetIndex,
+		void count_elem_conn(discrete_function_type& u, int si,
 								typename geometry_traits<TElem>::iterator iterBegin,
 								typename geometry_traits<TElem>::iterator iterEnd);
 
@@ -93,6 +106,12 @@ class VTKOutput{
 		Grid::VertexAttachmentAccessor<ADOFIndex> m_aaDOFIndexVRT;
 		uint m_numberOfDOF;
 
+	protected:
+		static const size_t NAMESIZE = 64;
+
+		char m_seriesname[NAMESIZE];
+		discrete_function_type* m_u;
+		std::vector<number> m_timestep;
 };
 
 

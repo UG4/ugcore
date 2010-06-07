@@ -17,8 +17,9 @@ AssembledMultiGridCycle(	IAssemble<algebra_type, level_function_type>& ass, appr
 							smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes) :
 				m_ass(ass), m_approxSpace(approxSpace), m_domain(approxSpace.get_domain()),
 				m_surfaceLevel(surfaceLevel), m_baseLevel(baseLevel), m_cycle_type(cycle_type),
-				m_smoother(smoother), m_nu1(nu1), m_nu2(nu2),
-				m_baseSolver(baseSolver), m_grid_changes(grid_changes), m_allocated(false)
+				m_smoother(smoother), m_nu1(nu1), m_nu2(nu2), m_baseSolver(baseSolver),
+				m_A(NULL), m_P(NULL), m_I(NULL),
+				m_grid_changes(grid_changes), m_allocated(false)
 
 				{};
 
