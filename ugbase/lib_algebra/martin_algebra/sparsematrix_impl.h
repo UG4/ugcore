@@ -10,7 +10,6 @@
 #pragma mark creation etc
 
 #include <fstream>
-#include "memcheck.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 static int GetOriginalIndex(int level, int i) { return i; }
@@ -754,7 +753,7 @@ void SparseMatrix<T>::setMatrixRow(int row, connection *c, int nr)
 template<typename T>
 void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 {	
-	//VALGRIND_DO_LEAK_CHECK
+	if(nr <= 0) return;
 
 	//cout << "row: " << row << " nr: " << nr << endl;
 	connection *old = cons[row];	
@@ -766,47 +765,6 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 	
 	UG_ASSERT(iNrOfConnections[row] != 0, "cons[row] != NULL but iNrOfConnections[row] == 0 ???");
 
-	/*if(nr == 1)
-	{
-		// we only have one connection to add
-
-		if(row == c->iIndex)
-		{
-			// if its the diagonal, just add to the diagonal
-			old[0].dValue += c->dValue;
-			return;
-		}
-		// else : its not the diagonal
-
-		// search entry
-		int s;
-		for(s=1; s<iNrOfConnections[row]; s++)
-		{
-			if(c->iIndex < old[s].iIndex) break;
-		}
-
-		if(c->iIndex == old[s].iIndex) 	// entry found
-			old[s].dValue += c->dValue;
-		else	// entry not found, extend cons[row]
-		{
-			int oldNrOfConnections = iNrOfConnections[row];
-			connection *n = new connection[oldNrOfConnections+1];
-			// copy diagonal and connections with index < c->index
-			memcpy(n, old, sizeof(connection)*s);
-			// copy *c
-			n[s] = *c;
-			// copy connections with index > c->index
-			memcpy(n+s+1, old+s, sizeof(connection)*(oldNrOfConnections-s));
-			
-			safeSetConnections(row, n);
-			iTotalNrOfConnections ++;
-			iNrOfConnections[row]++;
-			iMaxNrOfConnections[row] = iNrOfConnections[row];
-		}
-		return;
-	}	*/
-	
-	//IFDEBUG( for(int i=0; i<nr; i++) UG_ASSERT(c[i].iIndex >= 0 && c[i].iIndex < getRows(), *A << " cannot have connection " << c[i] << "."); )
 
 	// the matrix row is not empty and we are adding more than one connection
 
@@ -869,7 +827,10 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 	while(ic < nr && iold < oldNrOfConnections)
 	{
 		if(c[ic].iIndex < old[iold].iIndex)
+		{
+			UG_ASSERT(c[ic].iIndex >= 0 && c[ic].iIndex < getCols(), "");
 			n[i++] = c[ic++];
+		}
 		else if(c[ic].iIndex > old[iold].iIndex)
 			n[i++] = old[iold++];
 		else // "="
