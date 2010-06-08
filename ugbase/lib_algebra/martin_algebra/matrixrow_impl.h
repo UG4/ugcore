@@ -9,6 +9,8 @@
 #pragma once
 //#include "blockMatrix.h"
 
+#include "algebra_misc.h"
+
 namespace ug{
 
 void add_mult(double &a, const double &b, const double &c)

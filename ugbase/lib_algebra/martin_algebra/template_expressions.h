@@ -110,19 +110,19 @@ public:
 	//! calcs d = expression[i]
 	inline void assign(entry_type &d, int i) const
 	{
-		assign_mult(d, alpha, r[i]);
+		AssignMult(d, alpha, r[i]);
 	}
 	
 	//! calcs d += expression[i]
 	inline void addTo(entry_type &d, int i) const
 	{
-		add_mult(d, alpha, r[i]);
+		AddMult(d, alpha, r[i]);
 	}
 	
 	//! calcs d -= expression[i]
 	inline void substractFrom(entry_type &d, int i) const
 	{
-		sub_mult(d, alpha, r[i]);
+		SubMult(d, alpha, r[i]);
 	}
 	
 	//! as only argument on right side, this is always ok.

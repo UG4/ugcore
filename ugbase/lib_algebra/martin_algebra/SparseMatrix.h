@@ -12,7 +12,8 @@
 
 #include "math.h"
 #include "template_expressions.h"
-//#include "blockMatrix.h"
+#include "blocks/blocks.h"
+#include "blocks/blockVector.h"
 
 
 //#define SPECIALIZE_EXPRESSION_TEMPLATES

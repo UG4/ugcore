@@ -8,6 +8,7 @@
  */
 
 #include <fstream>
+#include "algebra_misc.h"
 
 #define prefetchReadWrite(a)
 

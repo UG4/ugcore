@@ -10,6 +10,7 @@
 #pragma mark creation etc
 
 #include <fstream>
+#include "algebra_misc.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 static int GetOriginalIndex(int level, int i) { return i; }
@@ -765,7 +766,6 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 	
 	UG_ASSERT(iNrOfConnections[row] != 0, "cons[row] != NULL but iNrOfConnections[row] == 0 ???");
 
-
 	// the matrix row is not empty and we are adding more than one connection
 
 	int oldNrOfConnections = iNrOfConnections[row];
@@ -808,7 +808,6 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 	if(skipped == 0)  // everything already done
 		return;
 	
-
 	// else realloc
 	
 	int iNewSize = oldNrOfConnections + skipped;
