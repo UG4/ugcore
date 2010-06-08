@@ -11,6 +11,12 @@ namespace ug
 {
 
 template <class TValue, class TContainer>
+SectionContainer<TValue, TContainer>::
+SectionContainer() : m_numElements(0)
+{
+}
+
+template <class TValue, class TContainer>
 void
 SectionContainer<TValue, TContainer>::
 clear()

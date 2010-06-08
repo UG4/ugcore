@@ -32,7 +32,7 @@ class SectionContainer
 		typedef typename Container::const_iterator	const_iterator;
 
 	public:
-		SectionContainer() : m_numElements(0)	{}
+		SectionContainer();
 
 		void clear();
 		void clear_section(int sectionIndex);
