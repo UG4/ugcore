@@ -10,6 +10,8 @@
 #pragma mark creation etc
 
 #include <fstream>
+#include "memcheck.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 static int GetOriginalIndex(int level, int i) { return i; }
 
@@ -152,208 +154,6 @@ void SparseMatrix<T>::createAsTransposeOf(const SparseMatrix &B)
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// createAsMultiplyOf:
-//-------------------------
-//! Calculates *this = A B C. posInConnections only needed for speedup (has to be -1 forall i).
-//! other possibility: search in vector con for con[i].iIndex == indexTo about 3-4x slower (3d)
-//! @param  A
-//! @param  B
-//! @param  C
-//! @param posInConnections		array of size B.getCols() for speedup of neighbor-neighbor-calculation inited with -1.
-template<typename T>
-template<typename A_type, typename B_type, typename C_type>
-void SparseMatrix<T>::createAsMultiplyOf(const A_type &A, const B_type &B, const C_type &C, int *posInConnections)
-{
-	UG_ASSERT(C.getRows() == B.getCols() && B.getRows() == A.getCols(), "-");
-	//cout << endl << " Creating Galerkin Matrix_type..." << endl;
-	
-	
-	// speedup with array posInConnections, needs n memory
-	// posInConnections[i]: index in the connections for current row.
-	// has to be -1 for all nodes
-	
-	bool bOwnMem = false;
-	if(posInConnections == NULL)
-	{		
-		posInConnections = new int[C.getCols()];
-		for(int i=0; i<C.getCols(); i++) posInConnections[i] = -1; // memset(posInConnections, -1, sizeof(int)*C.getCols());
-		bOwnMem = true;
-		UG_ASSERT(0, "");
-	}
-#ifdef DEBUG
-	else
-	{
-		for(int i=0; i<C.getCols(); i++) 
-			UG_ASSERT(posInConnections[i] == -1, "posInConnections[" << i << "] has to be -1, but is " << posInConnections[i] << ".");
-	}
-#endif
-	
-	vector<connection > con(255);
-	
-	//typename A_type::entry_type a;
-	//typename Mult_Traits<typename A_type::entry_type, typename B_type::entry_type>::ReturnType ab;
-	//typename C_type::entry_type cvalue;
-	double a, ab, cvalue;
-	
-	
-	connection c;
-	
-	create(A.getRows(), C.getCols());	
-	
-	for(int i=0; i < A.getRows(); i++)
-	{
-		// we want to have the diagonal first:
-		posInConnections[i] = 0;
-		con.clear();
-		c.iIndex = i;
-		c.dValue = 0.0;
-		con.push_back(c);
-		
-		
-		for(typename A_type::cRowIterator itA(A, i); !itA.isEnd(); ++itA)
-		{			
-			if((*itA).dValue == 0.0) continue;
-			a = (*itA).dValue;
-			
-			for(typename B_type::cRowIterator itB(B, (*itA).iIndex); !itB.isEnd(); ++itB)
-			{
-				if((*itB).dValue == 0.0) continue;
-				assign_mult(ab, a, (*itB).dValue);
-				
-				for(typename C_type::cRowIterator itC(C, (*itB).iIndex); !itC.isEnd(); ++itC)
-				{
-					cvalue = (*itC).dValue;
-					if(cvalue == 0.0) continue;					
-					int indexTo = (*itC).iIndex;					
-										
-					if(posInConnections[indexTo] == -1)
-					{
-						// we havent visited node <indexTo>
-						// so we need to add a Connection to the row
-						// save the index of the connection in the row
-						posInConnections[indexTo] = con.size();
-						c.iIndex = indexTo;
-						assign_mult(c.dValue, ab, cvalue);
-						con.push_back(c);				
-					}
-					else
-					{
-						// we have visited this node before,
-						// so we know the index of the connection
-						// -> add a*b*c
-						//TODO 
-						add_mult(con[posInConnections[indexTo]].dValue, ab, cvalue);
-					}
-					
-				}
-			}
-		}
-		
-		// reset posInConnections to -1
-		for(int j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;				
-		// set Matrix_type Row in AH
-		setMatrixRow(i, &con[0], con.size());
-	}
-	
-	if(bOwnMem)
-		delete[] posInConnections;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// createAsMultiplyOf:
-//-------------------------
-//! Calculates *this = A B. posInConnections only needed for speedup (has to be -1 forall i).
-//! other possibility: search in vector con for con[i].iIndex == indexTo about 3-4x slower (3d)
-//! @param  A
-//! @param  B
-//! @param posInConnections		array of size B.getCols() for speedup of neighbor-neighbor-calculation inited with -1.
-template<typename T>
-template<typename A_type, typename B_type>
-void SparseMatrix<T>::createAsMultiplyOf(const A_type &A, const B_type &B, int *posInConnections)
-{
-	UG_ASSERT(B.getRows() == A.getCols(), "");
-	//cout << endl << " Creating Galerkin Matrix_type..." << endl;
-	
-	
-	// speedup with array posInConnections, needs n memory
-	// posInConnections[i]: index in the connections for current row.
-	// has to be -1 for all nodes
-	
-	bool bOwnMem = false;
-	if(posInConnections == NULL)
-	{		
-		posInConnections = new int[B.getCols()];
-		for(int i=0; i<B.getCols(); i++) posInConnections[i] = -1; // memset(posInConnections, -1, sizeof(int)*C.getCols());
-		bOwnMem = true;
-	}
-#ifdef DEBUG
-	else
-	{
-		for(int i=0; i<B.getCols(); i++) 
-			UG_ASSERT(posInConnections[i] == -1, "posInConnections[" << i << "] has to be -1, but is " << posInConnections[i] << ".");
-	}
-#endif
-	
-	vector<connection > con(255);
-	
-	typename A_type::entry_type a;
-	typename B_type::entry_type b;
-	
-	connection c;	
-	create(A.getRows(), B.getCols());	
-	
-	for(int i=0; i < A.getRows(); i++)
-	{
-		// we want to have the diagonal first:
-		posInConnections[i] = 0;
-		con.clear();
-		c.iIndex = i;
-		c.dValue = 0.0;
-		con.push_back(c);
-		
-		for(typename A_type::cRowIterator itA(A, i); !itA.isEnd(); ++itA)
-		{			
-			if((*itA).dValue == 0.0) continue;
-			a = (*itA).dValue;
-			
-			for(typename B_type::cRowIterator itB(B, (*itA).iIndex); !itB.isEnd(); ++itB)
-			{
-				if((*itB).dValue == 0.0) continue;
-				b = (*itB).dValue; 
-				
-				int indexTo = (*itB).iIndex;					
-				if(posInConnections[indexTo] == -1)
-				{
-					// we havent visited node <indexTo>
-					// so we need to add a Connection to the row
-					// save the index of the connection in the row
-					posInConnections[indexTo] = con.size();
-					c.iIndex = indexTo;
-					c.dValue = a * b;
-					con.push_back(c);				
-				}
-				else
-				{
-					// we have visited this node before,
-					// so we know the index of the connection
-					// -> add a*b*c
-					//TODO 
-					con[posInConnections[indexTo]].dValue += a * b;
-				}
-			}
-		}
-		
-		// reset posInConnections to -1
-		for(int j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;				
-		// set Matrix_type Row in AH
-		setMatrixRow(i, &con[0], con.size());
-	}
-	
-	if(bOwnMem)
-		delete[] posInConnections;
-}
 
 
 /*void SparseMatrix<T>::recreateWithMaxNrOfConnections(int newMax) const
@@ -954,6 +754,9 @@ void SparseMatrix<T>::setMatrixRow(int row, connection *c, int nr)
 template<typename T>
 void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 {	
+	//VALGRIND_DO_LEAK_CHECK
+
+	//cout << "row: " << row << " nr: " << nr << endl;
 	connection *old = cons[row];	
 	if(old == NULL)
 	{		
@@ -961,28 +764,38 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 		return;
 	}
 	
-	if(nr == 1)
+	UG_ASSERT(iNrOfConnections[row] != 0, "cons[row] != NULL but iNrOfConnections[row] == 0 ???");
+
+	/*if(nr == 1)
 	{
+		// we only have one connection to add
+
 		if(row == c->iIndex)
 		{
+			// if its the diagonal, just add to the diagonal
 			old[0].dValue += c->dValue;
 			return;
 		}
+		// else : its not the diagonal
 
+		// search entry
 		int s;
 		for(s=1; s<iNrOfConnections[row]; s++)
 		{
 			if(c->iIndex < old[s].iIndex) break;
 		}
 
-		if(c->iIndex == old[s].iIndex)
+		if(c->iIndex == old[s].iIndex) 	// entry found
 			old[s].dValue += c->dValue;
-		else
+		else	// entry not found, extend cons[row]
 		{
 			int oldNrOfConnections = iNrOfConnections[row];
 			connection *n = new connection[oldNrOfConnections+1];
+			// copy diagonal and connections with index < c->index
 			memcpy(n, old, sizeof(connection)*s);
+			// copy *c
 			n[s] = *c;
+			// copy connections with index > c->index
 			memcpy(n+s+1, old+s, sizeof(connection)*(oldNrOfConnections-s));
 			
 			safeSetConnections(row, n);
@@ -991,14 +804,18 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 			iMaxNrOfConnections[row] = iNrOfConnections[row];
 		}
 		return;
-	}	
+	}	*/
 	
 	//IFDEBUG( for(int i=0; i<nr; i++) UG_ASSERT(c[i].iIndex >= 0 && c[i].iIndex < getRows(), *A << " cannot have connection " << c[i] << "."); )
 
+	// the matrix row is not empty and we are adding more than one connection
+
 	int oldNrOfConnections = iNrOfConnections[row];
-	// sort the connections
+
+	// sort the connections: diagonal, then index1 < index2 < ...
 	sortConnections<entry_type>(c, nr, row);	
 	
+	// diagonal
 	int ic, skipped=0, iold=1;
 	if(c[0].iIndex == row) 
 	{
@@ -1008,6 +825,9 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 	else
 		ic = 0;
 	
+	// off-diagonals:
+	// - add connections which are there
+	// - count not existing connections (=skipped)
 	while(ic < nr && iold < oldNrOfConnections)
 	{
 		if(c[ic].iIndex < old[iold].iIndex)
@@ -1024,7 +844,9 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 			iold++;
 		}
 	}
+	// add the rest (when iold == oldNrOfConnections, but still ic < nr)
 	skipped += nr - ic;
+
 	if(skipped == 0)  // everything already done
 		return;
 	
@@ -1034,37 +856,37 @@ void SparseMatrix<T>::addMatrixRow(int row, connection *c, int nr)
 	int iNewSize = oldNrOfConnections + skipped;
 	connection *n = new connection[iNewSize];
 	iFragmentedMem += iNewSize;
-	n[0] = old[0];
-	int i=1;
-	iold=1;
+
+	int i=0; iold=0;
+	// deal with diagonal
+	n[i++] = old[iold++];
 	if(c[0].iIndex == row) 
 		ic = 1; 		
 	else
 		ic = 0;
 
-	while(ic < nr || iold < oldNrOfConnections)
+	// merge the two arrays
+	while(ic < nr && iold < oldNrOfConnections)
 	{
-		if(iold >= oldNrOfConnections || (ic < nr && c[ic].iIndex < old[iold].iIndex))
-		{
-			UG_ASSERT(i < iNewSize && ic < nr, "");
-			n[i++] = c[ic];
-			ic++;
-		}
-		else if(ic >= nr || c[ic].iIndex > old[iold].iIndex)
-		{
-			UG_ASSERT(i < iNewSize && iold < oldNrOfConnections, "");
-			n[i++] = old[iold];
-			iold++;
-		}
+		if(c[ic].iIndex < old[iold].iIndex)
+			n[i++] = c[ic++];
+		else if(c[ic].iIndex > old[iold].iIndex)
+			n[i++] = old[iold++];
 		else // "="
 		{
-			UG_ASSERT(i < iNewSize && iold < oldNrOfConnections, "");
+			// "add" already done
 			n[i++] = old[iold];
 			ic++;
 			iold++;
 		}
 	}
+	// deal with the rest
+	while(ic<nr) n[i++] = c[ic++];
+	while(iold<oldNrOfConnections) n[i++] = old[iold++];
 
+	UG_ASSERT(i == iNewSize, "row: " << row << " i: " << i << " iNewSize: " << iNewSize);
+
+	// set connections
 	safeSetConnections(row, n);
 	iTotalNrOfConnections += iNewSize - oldNrOfConnections;
 	iNrOfConnections[row] = iNewSize;
@@ -1093,53 +915,6 @@ void SparseMatrix<T>::removezeros(int row)
 
 #pragma mark output functions
 ////////////////////////////////////////////////////////////////////////////////
-
-#define CONNECTION_VIEWER_VERSION 1
-
-// writeToFile
-//--------------------------------------------------
-//! writes to a file in somewhat SparseMatrix-market format (for connection viewer)
-/*template<typename T>
-void SparseMatrix<T>::writeToFile(const char *filename) const
-{
-	fstream file(filename, ios::out);
-	file << CONNECTION_VIEWER_VERSION << endl;
-	file << 2 << endl; // TODO: enter correct dimension here
-	
-	writePosToStream(file);	
-	file << 1 << endl;
-	for(int i=0; i < rows; i++)
-	{
-		for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
-			if((*conn).dValue != 0.0)
-				file << GetOriginalIndex(tolevel, i) << " " << GetOriginalIndex(fromlevel, (*conn).iIndex) << " " << ((*conn).dValue) <<		endl;
-	}
-}*/
-
-// writeToFile: in somewhat SparseMatrix-market format:
-// length \n then for each connection: from to value
-/*template<typename T>
- void SparseMatrix<T>::writeToFile2(const char *filename) const
- {
- fstream file(filename, ios::out);
- 
- int level = min(fromlevel, tolevel);
- int m = max(rows, cols);
- cout << m << endl;
- for(int i=0; i < m; i++)
- {		
- int index = GetOriginalIndex(level, i)
- postype p = GetPosForIndex(index);
- file << p.x << " " << p.y << endl;
- }
- file << 1 << endl;
- for(int i=0; i < rows; i++)
- {
- for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
- if((*conn).dValue != 0.0)
- file << GetOriginalIndex(tolevel, i) << " " << GetOriginalIndex(fromlevel, (*conn).iIndex) << " " << ((*conn).dValue) <<		endl;
- }
- }	*/
 
 
 //!
@@ -1213,95 +988,6 @@ void SparseMatrix<T>::safeSetConnections(int row, connection *mem) const
 #pragma mark Template Expressions
 ////////////////////////////////////////////////////////////////////////////////
 
-// operator *
-//--------------------
-//!
-//! * operator for template expression x = A y. (x, y Vector, A SparseMatrix).
-/*
-template<typename entry_type, typename Vector_type>
-Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type>, Vector_type> 
-	operator * (const SparseMatrix<entry_type> &l, const XD< Vector_type > &r)
-{ 
-	return Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type>, Vector_type> (l, r.cast()); 
-}
-
-
-// todo: prevent x = A * x; mit feld forbiddenDestination
-//!
-//! class for template Expression x = A y (x, y Vector, A SparseMatrix).
-template<typename entry_type, typename Vector_type> 
-class Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type >, Vector_type > 
-: public XD< Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type >, Vector_type > >
-{ 
-public:	
-	typedef typename Multiply_Operator<entry_type, typename Vector_type::entry_type>::ReturnType ReturnType;
-	const SparseMatrix<entry_type>& l;
-	const Vector_type & r; 
-	inline Expression(const SparseMatrix<entry_type> &l_, const Vector_type &r_) : l(l_), r(r_) {} 
-	
-	inline ReturnType operator [] (int i) const
-	{
-		return l[i] * r;
-	} 
-	
-	inline void copyTo(ReturnType &d, int i) const
-	{
-		l[i].assign_mult(d, r);
-	}
-	
-	inline void addTo(ReturnType &d, int i) const
-	{
-		l[i].add_mult(d, r);
-	}
-	
-	inline void substractFrom(ReturnType &d, int i) const
-	{
-		l[i].sub_mult(d, r);
-	}	
-	
-	inline int size() const	{	return l.size();	}
-	
-	// print routines
-	friend ostream &operator<<(ostream &output, 
-			const Expression<SparseMatrix<entry_type>, Multiply_Operator<entry_type, typename Vector_type::entry_type >, Vector_type >  &ex)
-	{
-		output << "(" << ex.l	<< "*" << ex.r << ")"; 
-		return output;
-	}
-	inline void printtype() const	{	cout << *this; }
-}; 
-
-/*
-// todo: prevent x = A * x; mit feld forbiddenDestination
-// x = r / A.Diag();
-/*
-template<> 
-struct Expression<Vector, Divide_Operator, SparseMatrix<T>::diagcomponent> 
-{ 
-	const Vector& l;
-	const SparseMatrix<T>::diagcomponent& r; 
-	inline Expression(const Vector &l_, const SparseMatrix<T>::diagcomponent &r_) : l(l_), r(r_) 
-	{ UG_ASSERT(l.size() == r.size(), l << " has different length as " <<  r); }
-	
-	inline double operator [] (int i) const
-	{
-		return l[i] / r[i];
-	} 
-	
-	inline int size() const	{	return l.size();	}
-	
-	// print routines
-	friend ostream &operator<<(ostream &output, const Expression<Vector, Divide_Operator, SparseMatrix<T>::diagcomponent>  &ex)
-	{
-		output << "(" << ex.l << Divide_Operator::cTyp() << ex.r << ")"; 
-		return output;
-	}
-	inline void printtype() const	{	cout << *this; }
-}; 
-
-Expression<Vector, Divide_Operator, SparseMatrix<T>::diagcomponent> operator/(const Vector &l, const SparseMatrix<T>::diagcomponent &r);
-*/	
-
 
 
 //!
@@ -1310,7 +996,6 @@ Expression<Vector, Divide_Operator, SparseMatrix<T>::diagcomponent> operator/(co
 template<typename T>
 void SparseMatrix<T>::defrag()
 {
-	//UG_ASSERT(0, "this function is broken");
 	iTotalNrOfConnections=0;
 	for(int i=0; i<rows; i++)
 		iTotalNrOfConnections+=iNrOfConnections[i];
@@ -1332,80 +1017,7 @@ void SparseMatrix<T>::defrag()
 }
 
 
-//!
-//! @param node
-//! @param depth 
-template<typename T>
-void SparseMatrix<T>::getNeighborhood(int node, int depth, vector<int> &indices, int *posInConnections) const
-{
-	// do this with a map???
-	indices.clear();
-	
-	vector<cRowIterator> iterators;
-	iterators.reserve(depth);
-	
-	iterators.push_back( beginRow(node) );
-	
-	while(iterators.size() != 0)
-	{
-		if(iterators.back().isEnd())
-			iterators.pop_back();			
-		else
-		{
-			int index = (*iterators.back()).iIndex;
-			++iterators.back();
-			if(iterators.size() < depth)
-				iterators.push_back( beginRow(index) );
-			else
-			{
-				int pos;
-				if(posInConnections == NULL)
-				{
-					for(pos=0; pos<indices.size(); pos++)
-						if(indices[pos] == index)
-							break;
-					if(pos == indices.size())
-						indices.push_back(index);
-				}
-				else 
-				{
-					pos = posInConnections[index];
-					if(pos == -1)
-					{
-						pos = posInConnections[index] = indices.size();
-						indices.push_back(index);
-					}
-				}
-				// else (count etc.)
-			}				
-									
-			
-		}
-	}
-	
-	if(posInConnections)
-	{
-		for(int i=0; i<indices.size(); i++)
-			posInConnections[indices[i]] = -1;
-	}	
 
-	sort(indices.begin(), indices.end());
-
-}
-
-
-
-
-template<typename T>
-bool SparseMatrix<T>::isCloseToBoundary(int node, int distance) const
-{
-	if(distance == 0) return isUnconnected(node);
-	bool bFound = false;
-	for(cRowIterator itA = beginRow(node); !itA.isEnd() && !bFound; ++itA)
-		bFound = isCloseToBoundary((*itA).iIndex, distance-1);
-		
-	return bFound;	
-}
 
 } // namespace ug
 

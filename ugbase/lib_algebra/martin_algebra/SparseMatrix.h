@@ -91,14 +91,6 @@ public: // construction etc
 	
 	//! create this as a transpose of SparseMatrix B
 	void createAsTransposeOf(const SparseMatrix &B);
-	
-	//! create as = A * B * C
-	template<typename A_type, typename B_type, typename C_type>
-	void createAsMultiplyOf(const A_type &A, const B_type &B, const C_type &C, int *posInConnections=NULL);
-	
-	//! create as = A * B
-	template<typename A_type, typename B_type>
-	void createAsMultiplyOf(const A_type &A, const B_type &B, int *posInConnections=NULL);
 
 	
 private: // disallowed operations (not defined):
@@ -132,22 +124,22 @@ public:	// general functions
 	
 	//! get Diagonal A_[i,i] of matrix
 	inline const entry_type &getDiag(int i) const;
-	inline entry_type &getDiag(int i);	
+	inline entry_type &getDiag(int i);
 	
 	//! isUnconnected: true if only A[i,i] != 0.0.
-	inline bool isUnconnected(int i) const;	
+	inline bool isUnconnected(int i) const;
 
 	//! adds the submatrix mat to A. 	
 	
 	template<typename M>
-	void add(const M &mat, int *rows, int *cols);	
+	void add(const M &mat, int *rows, int *cols);
 	template<typename M>
-	void set(const M &mat, int *rows, int *cols);	
+	void set(const M &mat, int *rows, int *cols);
 	template<typename M>
 	void get(M &mat, int *rows, int *cols) const;
 	
 	template<typename M>
-	void add(const M &mat, vector<int> &rows, vector<int> &cols);	
+	void add(const M &mat, vector<int> &rows, vector<int> &cols);
 	template<typename M>
 	void set(const M &mat, vector<int> &rows, vector<int> &cols);
 	template<typename M>
@@ -164,11 +156,7 @@ public:	// general functions
 	
 	bool set(double a);
 
-	//! get neighborhood
-	void getNeighborhood(int node, int depth, vector<int> &indices, int *posInConnections=NULL) const;
 
-	bool isCloseToBoundary(int node, int distance) const;
-	
 	// for other manipulation/accessor functions see matrixrow functions,
 	// that is A[i].matrixrowfunction(params).
 		
@@ -189,14 +177,14 @@ public:	// row functions
 	void removezeros(int row);
 	
 	void setMatrixRow(int row, connection *c, int nr);
-	void addMatrixRow(int row, connection *c, int nr);	
-	int getNrOfConnections(int row) const { return iNrOfConnections[row]; }	
+	void addMatrixRow(int row, connection *c, int nr);
+	int getNrOfConnections(int row) const { return iNrOfConnections[row]; }
 
 public: // output functions
 
 	void print(const char * const name = NULL) const;
 	void printToFile(const char *filename) const;
-	void printrow(int row) const;	
+	void printrow(int row) const;
 	void p() const; // for use in gdb
 	void pr(int i) const; // for use in gdb
 
@@ -385,7 +373,7 @@ public:
 		inline connection &operator *(){	return row[m_position];	}
 		inline void operator ++(){		m_position++;			}
 		inline void rewind(){m_position = 0;}
-		inline int getPos() const{	return m_position;	}		
+		inline int getPos() const{	return m_position;	}
 		inline const matrixrow &getMatrixRow() const{return row;}
 		inline bool isEnd() const { return m_position >= row.getNrOfConnections(); }
 	}
@@ -525,7 +513,7 @@ private:
 	
 	connection *consmem;		//!< consecutive memory for the connections
 	int consmemsize;					//!< size of the consecutive memory for connections
-	int iFragmentedMem;			//!< size of connections memory not in consmem 	
+	int iFragmentedMem;			//!< size of connections memory not in consmem
 	
 	friend class matrixrow<entry_type>;
 	
