@@ -160,6 +160,9 @@ class MGSelector : public ISelector
 		virtual void unregistered_from_grid(Grid* grid);
 
 	protected:
+		iterator begin(int objID, int level, int section);
+		iterator end(int objID, int level, int section);
+
 		void clear_lists();
 
 		virtual iterator add_to_list(VertexBase* elem);
@@ -193,6 +196,8 @@ class MGSelector : public ISelector
 	protected:
 		MultiGrid*	m_pMultiGrid;
 		LevelVec 	m_levels;
+		VertexBaseIterator m_tmpVBegin;
+		VertexBaseIterator m_tmpVEnd;
 };
 
 }//	end of namespace

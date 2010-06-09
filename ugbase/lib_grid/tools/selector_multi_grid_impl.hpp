@@ -141,13 +141,13 @@ template <class TElem>
 inline typename geometry_traits<TElem>::iterator
 MGSelector::begin(int level)
 {
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS));
+	
 	const int sInd = get_section_index<TElem>();
-	if(sInd < 0)
-		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-							get_section_container<TElem>(level).begin());
-	else
-		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-				get_section_container<TElem>(level).section_begin(sInd));
+
+	return iterator_cast<typename geometry_traits<TElem>::iterator>(
+		begin(baseObjID, level, sInd));
 }
 
 //	end
@@ -155,13 +155,13 @@ template <class TElem>
 inline typename geometry_traits<TElem>::iterator
 MGSelector::end(int level)
 {
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS));
+	
 	const int sInd = get_section_index<TElem>();
-	if(sInd < 0)
-		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-								get_section_container<TElem>(level).end());
-	else
-		return iterator_cast<typename geometry_traits<TElem>::iterator>(
-					get_section_container<TElem>(level).section_end(sInd));
+
+	return iterator_cast<typename geometry_traits<TElem>::iterator>(
+		end(baseObjID, level, sInd));
 }
 
 
