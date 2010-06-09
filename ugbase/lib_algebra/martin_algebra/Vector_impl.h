@@ -14,14 +14,14 @@
 
 namespace ug{
 template<typename entry_type>
-inline entry_type &Vector<entry_type>::operator [] (int i)
+inline entry_type &Vector<entry_type>::operator [] (size_t i)
 {
 	UG_ASSERT(i >= 0 && i < length, *this << ": tried to access element " << i);
 	return values[i];
 }
 
 template<typename entry_type>
-inline const entry_type &Vector<entry_type>::operator [] (int i) const
+inline const entry_type &Vector<entry_type>::operator [] (size_t i) const
 {
 	UG_ASSERT(i >= 0 && i < length, *this << ": tried to access element " << i);
 	return values[i];
@@ -32,7 +32,7 @@ inline const entry_type &Vector<entry_type>::operator [] (int i) const
 /*inline double Vector<entry_type>::energynorm2(const SparseMatrix &A) const
 {
 	double sum=0;
-	for(int i=0; i<length; i++)	sum += (A[i] * (*this)) * values[i];
+	for(size_t i=0; i<length; i++)	sum += (A[i] * (*this)) * values[i];
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, sum += A[i] * (*this) * values[i]);
 	return sum;
 }*/
@@ -44,7 +44,7 @@ inline double Vector<entry_type>::dotprod(const Vector &w) const
 	UG_ASSERT(length == w.length,  *this << " has not same length as " << w);
 	
 	double sum=0;
-	for(int i=0; i<length; i++)	sum += values[i] * w[i];
+	for(size_t i=0; i<length; i++)	sum += values[i] * w[i];
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, sum += values[i] * w[i]);
 	return sum;
 }
@@ -53,7 +53,7 @@ inline double Vector<entry_type>::dotprod(const Vector &w) const
 template<typename entry_type>
 inline double Vector<entry_type>::operator = (double d)
 {
-	for(int i=0; i<length; i++)	
+	for(size_t i=0; i<length; i++)
 	{
 		prefetchReadWrite(values+i+512);
 		values[i] = d;
@@ -81,7 +81,7 @@ inline void Vector<entry_type>::applyto(Vector &v) const
 {
 	UG_ASSERT(v.length == length, *this << " has not same length as " << v);
 	//memcpy(v.values, values, length*sizeof(entry_type));
-	for(int i=0; i<length; i++)
+	for(size_t i=0; i<length; i++)
 		v.values[i] = values[i];
 }
 
@@ -91,7 +91,7 @@ inline void Vector<entry_type>::applyto(Vector &v) const
  ASSERT2(ex.size() == length, *this << " has not same length as " << ex);
  const matrix &m = ex.l;
  const Vector &r = ex.r;
- //for(int i=0; i < length; i++) values[i] = m[i]*r; 
+ //for(size_t i=0; i < length; i++) values[i] = m[i]*r;
  FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = m[i]*r);
  }	*/
 
@@ -102,7 +102,7 @@ template<typename Type> inline void Vector<entry_type>::operator = (const Type &
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	t.preventForbiddenDestination(this);
 
-	for(int i=0; i < length; i++)
+	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
 		//values[i] = t[i];
@@ -120,7 +120,7 @@ template<typename Type> inline void Vector<entry_type>::operator += (const Type 
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	//t.preventForbiddenDestination(this);
 	
-	for(int i=0; i < length; i++) 
+	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
 		//values[i] += t[i]; 
@@ -137,7 +137,7 @@ template<typename Type> inline void Vector<entry_type>::operator -= (const Type 
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	//t.preventForbiddenDestination(this);
 	
-	for(int i=0; i < length; i++) 
+	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
 		//values[i] -= t[i]; 
@@ -169,7 +169,7 @@ Vector<entry_type>::Vector (const char *_name)
 }	
 
 template<typename entry_type>
-Vector<entry_type>::Vector(int _length, const char *_name)
+Vector<entry_type>::Vector(size_t _length, const char *_name)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 
@@ -199,7 +199,7 @@ bool Vector<entry_type>::destroy()
 
 
 template<typename entry_type>
-bool Vector<entry_type>::create(int _length)
+bool Vector<entry_type>::create(size_t _length)
 {
 	UG_ASSERT(length == 0, *this << " already created");
 	length = _length;
@@ -217,7 +217,7 @@ bool Vector<entry_type>::create(const Vector &v)
 	values = new entry_type[length];
 	
 	// we cannot use memcpy here bcs of variable blocks.
-	for(int i=0; i<length; i++)
+	for(size_t i=0; i<length; i++)
 		values[i] = v.values[i]; 
 	
 	return true;
@@ -230,7 +230,7 @@ void Vector<entry_type>::printtofile(const char *filename)
 {
 /*	fstream fil(filename, ios::out);
 	
-	for(int i=0; i < length; i++)
+	for(size_t i=0; i < length; i++)
 	{
 		postype pos = GetPosForIndex(i);
 		fil << pos.x << " " << pos.y << " " << values[i] << endl;
@@ -246,7 +246,7 @@ void Vector<entry_type>::print(const char * const text) const
   if(name) cout << endl << "================ " << name;
 	if(text) cout << " == " << text;
 	cout << " == level: " << level << " length: " << length << " =================" << endl;
-	for(int i=0; i<length; i++)
+	for(size_t i=0; i<length; i++)
 		//cout << values[i] << " ";
 		cout << i << ": " << values[i] << endl;
 	cout << endl;
@@ -261,21 +261,21 @@ void Vector<entry_type>::printtype() const
 /*template<typename entry_type>
 void Vector<entry_type>::add(const subvector<entry_type> &subvec)
 {
-	for(int i=0; i < subvec.getNr(); i++)
+	for(size_t i=0; i < subvec.getNr(); i++)
 		values[subvec.getIndex(i)] += subvec(i);
 }
 
 template<typename entry_type>
 void Vector<entry_type>::set(const subvector<entry_type> &subvec)
 {
-	for(int i=0; i < subvec.getNr(); i++)
+	for(size_t i=0; i < subvec.getNr(); i++)
 		values[subvec.getIndex(i)] = subvec(i);	
 }
 
 template<typename entry_type>
 void Vector<entry_type>::get(subvector<entry_type> &subvec) const
 {
-	for(int i=0; i < subvec.getNr(); i++)
+	for(size_t i=0; i < subvec.getNr(); i++)
 		subvec(i) = values[subvec.getIndex(i)];
 }*/
 
@@ -305,17 +305,17 @@ bool Vector<entry_type>::get(local_vector_type &u, const local_index_type &ind) 
 
 
 template<typename entry_type>
-void Vector<entry_type>::add(const entry_type &d, int i)
+void Vector<entry_type>::add(const entry_type &d, size_t i)
 {
 	values[i] += d;
 }
 template<typename entry_type>
-void Vector<entry_type>::set(const entry_type &d, int i)
+void Vector<entry_type>::set(const entry_type &d, size_t i)
 {
 	values[i] = d;
 }
 template<typename entry_type>
-void Vector<entry_type>::get(entry_type &d, int i) const
+void Vector<entry_type>::get(entry_type &d, size_t i) const
 {
 	d = values[i];
 }

@@ -31,7 +31,7 @@ void sub_mult(double &a, const double &b, const double &c)
 //! @param	i	connection nr i 
 //! @return A[row] * x 
 template<typename entry_type>
-inline const typename matrixrow<entry_type>::connection &matrixrow<entry_type>::operator [] (int i) const
+inline const typename matrixrow<entry_type>::connection &matrixrow<entry_type>::operator [] (size_t i) const
 {
 	ASSERT2(i < A.iNrOfConnections[row] && i >= 0, *this << " has no connection nr. " << i);
 	/*ASSERT(A.cons[row]+i < A.consmem+A.iMaxTotalNrOfConnections
@@ -43,9 +43,9 @@ inline const typename matrixrow<entry_type>::connection &matrixrow<entry_type>::
 
 
 template<typename entry_type>
-inline int matrixrow<entry_type>::getConNr(int index) const
+inline size_t matrixrow<entry_type>::getConNr(size_t index) const
 {
-	for(int i=0; i< getNrOfConnections(); i++)
+	for(size_t i=0; i< getNrOfConnections(); i++)
 	{
 		if(A.cons[row][i].iIndex == index)
 			return i;

@@ -17,7 +17,7 @@
 template<typename T>
 struct sortStruct
 {
-	int index; // for example "original" position.
+	size_t index; // for example "original" position.
 	T sortValue;
 
 	bool operator < (const sortStruct<T> &other) const
@@ -108,19 +108,19 @@ public:
 	{ } 
 	
 	//! calcs d = expression[i]
-	inline void assign(entry_type &d, int i) const
+	inline void assign(entry_type &d, size_t i) const
 	{
 		AssignMult(d, alpha, r[i]);
 	}
 	
 	//! calcs d += expression[i]
-	inline void addTo(entry_type &d, int i) const
+	inline void addTo(entry_type &d, size_t i) const
 	{
 		AddMult(d, alpha, r[i]);
 	}
 	
 	//! calcs d -= expression[i]
-	inline void substractFrom(entry_type &d, int i) const
+	inline void substractFrom(entry_type &d, size_t i) const
 	{
 		SubMult(d, alpha, r[i]);
 	}
@@ -137,7 +137,7 @@ public:
 		bFirst = false;
 	}	
 	
-	inline int size() const	{	return r.size();	}
+	inline size_t size() const	{	return r.size();	}
 	
 // print functions
 	friend ostream &operator<<(ostream &out, const AlphaVec_Expression<R>  &ex)
@@ -168,21 +168,21 @@ public:
 	{ UG_ASSERT(l.getCols() == r.size(), l << " has different length as " <<  r); }
 	
 	//! calcs d = expression[i]
-	inline void assign(entry_type &d, int i) const
+	inline void assign(entry_type &d, size_t i) const
 	{
 		//LEFT_RIGHT_CHECK(&d != &r[i]);
 		l[i].assign_mult(d, r);
 	}
 	
 	//! calcs d += expression[i]
-	inline void addTo(entry_type &d, int i) const
+	inline void addTo(entry_type &d, size_t i) const
 	{
 		//LEFT_RIGHT_CHECK(&d != &r[i]);
 		l[i].add_mult(d, r);
 	}
 	
 	//! calcs d -= expression[i]
-	inline void substractFrom(entry_type &d, int i) const
+	inline void substractFrom(entry_type &d, size_t i) const
 	{
 		//LEFT_RIGHT_CHECK(&d != &r[i]);
 		l[i].sub_mult(d, r);
@@ -203,7 +203,7 @@ public:
 		bFirst = false;		
 	}	
 	
-	inline int size() const	{	return l.size();	}
+	inline size_t size() const	{	return l.size();	}
 	
 // print functions
 	friend ostream &operator<<(ostream &out, const MatVec_Expression<L, R>  &ex)
@@ -226,22 +226,22 @@ public:
 	{ UG_ASSERT(l.size() == r.size(), l << " has different length as " <<  r); }
 	
 	
-	inline void assign(vector_type &d, int i) const
+	inline void assign(vector_type &d, size_t i) const
 	{			
 		l[i].assign_mult_scale(d, r);
 	}
 	
-	inline void addTo(vector_type &d, int i) const
+	inline void addTo(vector_type &d, size_t i) const
 	{
 		l[i].add_mult_scale(d, r, ld);
 	}
 	
-	inline void substractFrom(vector_type &d, int i) const
+	inline void substractFrom(vector_type &d, size_t i) const
 	{
 		l[i].sub_mult_scale(d, r, ld);
 	}	
 	
-	inline int size() const	{	return l.size();	}
+	inline size_t size() const	{	return l.size();	}
 }; */
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -259,21 +259,21 @@ public:
 	{ UG_ASSERT(l.size() == r.size(), l << " has different length as " <<  r); }
 	
 	//! calcs d = expression[i]
-	inline void assign(entry_type &d, int i) const
+	inline void assign(entry_type &d, size_t i) const
 	{
 		l.assign(d, i);
 		r.addTo(d, i);
 	}
 	
 	//! calcs d += expression[i]
-	inline void addTo(entry_type &d, int i) const
+	inline void addTo(entry_type &d, size_t i) const
 	{
 		l.addTo(d, i);
 		r.addTo(d, i);
 	}
 	
 	//! calcs d -= expression[i]
-	inline void substractFrom(entry_type &d, int i) const
+	inline void substractFrom(entry_type &d, size_t i) const
 	{
 		l.substractFrom(d, i);
 		r.substractFrom(d, i);
@@ -295,7 +295,7 @@ public:
 		r.preventForbiddenDestination(p, bFirst);
 	}
 	
-	inline int size() const	{	return l.size();	}
+	inline size_t size() const	{	return l.size();	}
 	
 // print functions
 	friend ostream &operator<<(ostream &out, const AlphaMatVec_Add_Expression<L, R>   &ex)
@@ -321,21 +321,21 @@ public:
 	{ UG_ASSERT(l.size() == r.size(), l << " has different length as " <<  r); }
 	
 	//! calcs d = expression[i]
-	inline void assign(entry_type &d, int i) const
+	inline void assign(entry_type &d, size_t i) const
 	{
 		l.assign(d, i);
 		r.substractFrom(d, i);
 	}
 	
 	//! calcs d += expression[i]
-	inline void addTo(entry_type &d, int i) const
+	inline void addTo(entry_type &d, size_t i) const
 	{
 		l.substractFrom(d, i);
 		r.substractFrom(d, i);
 	}
 	
 	//! calcs d -= expression[i]
-	inline void substractFrom(entry_type &d, int i) const
+	inline void substractFrom(entry_type &d, size_t i) const
 	{
 		l.substractFrom(d, i);
 		r.addTo(d, i);
@@ -356,7 +356,7 @@ public:
 		r.preventForbiddenDestination(p, bFirst);
 	}
 
-	inline int size() const	{	return l.size();	}
+	inline size_t size() const	{	return l.size();	}
 
 // print functions
 	friend ostream &operator<<(ostream &out, const AlphaMatVec_Sub_Expression<L, R>   &ex)
@@ -426,7 +426,7 @@ inline double norm2(const TE_AMV_X<X> &ex_)
 	const X &ex = ex_.cast();
 	double sum=0;
 	typename X::entry_type t;
-	for(int i=0; i < ex.size(); i++)	
+	for(size_t i=0; i < ex.size(); i++)
 	{
 		ex.assign(t, i);
 		sum += mnorm2(t);
@@ -447,7 +447,7 @@ inline double absmax2(const TE_AMV_X<X> &ex_)
 	const X &ex = ex_.cast();
 	double absmax=-1;
 	typename X::entry_type t;
-	for(int i=0; i < ex.size(); i++)	
+	for(size_t i=0; i < ex.size(); i++)
 	{
 		ex.assign(t, i);
 		double d= mnorm2(t);
@@ -477,8 +477,8 @@ inline double dotProd(const TE_AMV_X<L> &l_, const TE_AMV_X<R> &r_)
 	typename L::entry_type block_l;
 	typename R::entry_type block_r;
 	
-	int N = l.size();
-	for(int i=0; i < N; i++)	
+	size_t N = l.size();
+	for(size_t i=0; i < N; i++)
 	{
 		l.assign(block_l, i);
 		r.assign(block_r, i);

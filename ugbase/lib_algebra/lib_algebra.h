@@ -447,7 +447,7 @@ bool diag_step(const SparseMatrix<number>& A, Vector<number>& x, Vector<number>&
 	//exit(3);
 	UG_ASSERT(x.size() == b.size() && x.size() == A.getCols(), x << ", " << b << " and " << A << " need to have same size.");
 
-	for(int j=0; j < x.size(); j++)
+	for(size_t j=0; j < x.size(); j++)
 		x[j] = b[j] / A.getDiag(j);
 
 	return true;

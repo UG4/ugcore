@@ -35,7 +35,7 @@ public:
 	
 	// functions
 public:
-	matrixrow(const matrix_type &A_, const int row_) : A(A_), row(row_)
+	matrixrow(const matrix_type &A_, const size_t row_) : A(A_), row(row_)
 	{
 		UG_ASSERT(row < A.rows, *this);
 	}
@@ -47,10 +47,10 @@ public:
 	//!
 	//! operator []:
 	//! get connection nr i.
-	inline const connection &operator [] (int i) const;	
-	//inline connection &operator [] (int i);
+	inline const connection &operator [] (size_t i) const;
+	//inline connection &operator [] (size_t i);
 	
-	inline int getConNr(int index) const;
+	inline size_t getConNr(size_t index) const;
 	
 	//!
 	//! operator * with Vector. This Vector is templated, since then one can do
@@ -75,9 +75,9 @@ public:
 	}
 	
 	// wrapped functions of SparseMatrix
-	inline bool indexWithinBounds(int i) const	{return i >=0 && i < getNrOfConnections(); }
-	inline int getRow() const { return row; }	
-	inline int getNrOfConnections() const {	return A.getNrOfConnections(row);	}
+	inline bool indexWithinBounds(size_t i) const	{return i < getNrOfConnections(); }
+	inline size_t getRow() const { return row; }
+	inline size_t getNrOfConnections() const {	return A.getNrOfConnections(row);	}
 	inline bool isUnconnected() const {	return A.isUnconnected(row); }
 	
 	void printtype() const { cout << *this; }	
@@ -85,14 +85,14 @@ public:
 	void p() const { A.printrow(row); } //gdb
 	
 	cRowIterator beginRow() const {	return A.beginRow(row); }
-	cLowerLeftIterator beginLowerLeftRow(int row)  const { return cLowerLeftIterator(*this, row); }
-	cUpperRightIterator beginUpperRightRow(int row)  const { return cUpperRightIterator(*this, row); }		
+	cLowerLeftIterator beginLowerLeftRow(size_t row)  const { return cLowerLeftIterator(*this, row); }
+	cUpperRightIterator beginUpperRightRow(size_t row)  const { return cUpperRightIterator(*this, row); }
 	//     data
 	//----------------
 	
 private:
 	const matrix_type &A;
-	const int row;
+	const size_t row;
 };
 
 } // namespace ug

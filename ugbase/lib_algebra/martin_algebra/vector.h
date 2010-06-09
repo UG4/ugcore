@@ -40,7 +40,7 @@ public:
 	Vector(const char *_name = "");		
 	
 	//! constructor with length
-	Vector(int _length, const char *_name = "");		
+	Vector(size_t _length, const char *_name = "");
 	
 	//! destructor
 	~Vector();
@@ -50,7 +50,7 @@ private: // forbidden functions
 	
 public:
 	//! create a vector with specific length
-	bool create(int _length);
+	bool create(size_t _length);
 	//! create as a copy of other vector
 	bool create(const Vector &v);
 	
@@ -58,8 +58,8 @@ public:
 	
 	
 	//! access element i of the vector
-	inline entry_type &operator [] (int i);
-	inline const entry_type &operator [] (int i) const;
+	inline entry_type &operator [] (size_t i);
+	inline const entry_type &operator [] (size_t i) const;
 	
 	
 
@@ -89,9 +89,9 @@ public:
 	//! get subvector
 	void get(subvector<entry_type> &subvec) const;*/
 	
-	void add(const entry_type &d, int i);
-	void set(const entry_type &d, int i);
-	void get(entry_type &d, int i) const;
+	void add(const entry_type &d, size_t i);
+	void set(const entry_type &d, size_t i);
+	void get(entry_type &d, size_t i) const;
 	
 	bool add(const local_vector_type &u, const local_index_type &ind);
 	bool set(const local_vector_type &u, const local_index_type &ind);
@@ -103,7 +103,7 @@ public:
 	inline void operator = (const Vector &v);
 	inline bool operator *= (const number &a)
 	{
-		for(int i=0; i<size(); i++) values[i] *= a;
+		for(size_t i=0; i<size(); i++) values[i] *= a;
 		return true;
 	}
 	
@@ -127,19 +127,19 @@ public:
 	//! printofile: posx posy value
 	void printtofile(const char *filename);
 			
-	int size() const { return length; }
+	size_t size() const { return length; }
 	
-	void addTo(entry_type &dest, int i) const
+	void addTo(entry_type &dest, size_t i) const
 	{
 		dest += values[i];
 	}
 	
-	void substractFrom(entry_type &dest, int i) const
+	void substractFrom(entry_type &dest, size_t i) const
 	{
 		dest -= values[i];
 	}
 	
-	void assign(entry_type &dest, int i) const
+	void assign(entry_type &dest, size_t i) const
 	{
 		dest = values[i];
 	}
@@ -163,12 +163,12 @@ public: // output functions
 	}
 	
 	void printtype() const; 
-	int finalize() { return true; }
+	size_t finalize() { return true; }
 	
 
 	// data
 public:
-	int level;				///< multigrid level of this vecotr
+	size_t level;				///< multigrid level of this vecotr
 	const char *name;		///< name 
 	
 	// TODO: for parallelization: auto-detect non-matching distributions
@@ -178,7 +178,7 @@ public:
 		DIST_CONSISTENT
 	};
 	
-	/*vector_mode getDistMode()
+	vector_mode getDistMode()
 	{
 		return dist_mode;
 	}
@@ -187,7 +187,7 @@ public:
 	
 	
 private:
-	int length;				///< length of the vector (vector is from 0..length-1)
+	size_t length;				///< length of the vector (vector is from 0..length-1)
 	entry_type *values;		///< array where the values are stored, size length
 
 	//mutable vector_mode dist_mode;	
