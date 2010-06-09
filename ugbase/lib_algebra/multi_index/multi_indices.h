@@ -17,8 +17,8 @@ template<int N>
 class MultiIndex
 {
 	public:
-		typedef uint size_type;
-		typedef uint single_index_type;
+		typedef size_t size_type;
+		typedef size_t single_index_type;
 
 	public:
 		inline size_type num_index() const
@@ -44,7 +44,7 @@ template <int N>
 std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
 {
 	outStream << "[" ;
-	for(std::size_t i = 0; i < N; ++i)
+	for(size_t i = 0; i < N; ++i)
 		outStream << v[i];
 	outStream << "]";
 	return outStream;
@@ -69,26 +69,26 @@ public:
 		}
 	}
 
-	void set_num_index(std::size_t n)
+	void set_num_index(size_t n)
 	{
 		m_num_index = n;
 		if(!m_isLeaf)
 			m_IndexInfoList.resize(n);
 	}
 
-	bool set_num_comp(std::size_t n)
+	bool set_num_comp(size_t n)
 	{
 		if(!m_isLeaf) return false;
 		m_num_comp = n;
 		return true;
 	}
 
-	std::size_t num_index()
+	size_t num_index()
 	{
 		return m_num_index;
 	}
 
-	std::size_t num_comp()
+	size_t num_comp()
 	{
 		return m_num_comp;
 	}
@@ -130,8 +130,8 @@ public:
 
 private:
 	bool m_isLeaf;
-	std::size_t m_num_index;
-	std::size_t m_num_comp; // for leaf
+	size_t m_num_index;
+	size_t m_num_comp; // for leaf
 	std::vector<IndexInfo> m_IndexInfoList;
 };
 
