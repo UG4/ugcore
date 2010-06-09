@@ -76,7 +76,7 @@ class MGSelector : public ISelector
 	public:
 		MGSelector(uint supportedElements = SE_ALL);
 		MGSelector(MultiGrid& grid, uint supportedElements = SE_ALL);
-		virtual ~MGSelector()	{}
+		virtual ~MGSelector();
 
 		void assign_grid(MultiGrid& grid);
 		inline MultiGrid* get_assigned_multi_grid()	{return m_pMultiGrid;}

@@ -54,6 +54,9 @@ Grid::~Grid()
 		unregister_observer(m_gridObservers.back());
 	}
 	
+//	erase all elements
+	clear_geometry();
+	
 //	remove marks - would be done anyway...
 	remove_marks();
 }

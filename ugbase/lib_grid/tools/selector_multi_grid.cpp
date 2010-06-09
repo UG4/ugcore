@@ -17,9 +17,15 @@ MGSelector::MGSelector(uint supportedElements) :
 }
 
 MGSelector::MGSelector(MultiGrid& grid, uint supportedElements) :
-	ISelector(grid, supportedElements)
+	ISelector(supportedElements)
 {
 	m_pMultiGrid = &grid;
+	set_grid(&grid);
+}
+
+MGSelector::~MGSelector()
+{
+	set_grid(NULL);
 }
 
 void MGSelector::assign_grid(MultiGrid& grid)
@@ -130,10 +136,12 @@ void MGSelector::registered_at_grid(Grid* grid)
 {
 	m_pMultiGrid = dynamic_cast<MultiGrid*>(grid);
 	assert(m_pMultiGrid && "bad grid type!");
+	ISelector::registered_at_grid(grid);
 }
 
 void MGSelector::unregistered_from_grid(Grid* grid)
 {
+	ISelector::unregistered_from_grid(grid);
 	clear_lists();
 }
 

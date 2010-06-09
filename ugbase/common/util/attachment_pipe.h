@@ -285,6 +285,7 @@ class AttachmentPipe
 	public:
 		AttachmentPipe() : m_pHandler(NULL)	{}
 		AttachmentPipe(typename atraits::ElemHandlerPtr pHandler) : m_pHandler(pHandler)	{}
+		~AttachmentPipe();
 		
 		inline typename atraits::ElemHandlerPtr get_elem_handler()		{return m_pHandler;}
 		

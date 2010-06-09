@@ -13,6 +13,19 @@ namespace ug
 {
 
 template <class TElem, class TElemHandler>
+AttachmentPipe<TElem, TElemHandler>::
+~AttachmentPipe()
+{
+//	clear attachment entries
+	for(AttachmentEntryIterator iter = m_attachmentEntryContainer.begin();
+					iter != m_attachmentEntryContainer.end(); iter++)
+	{
+		delete (*iter).m_pAttachment;
+		delete (*iter).m_pContainer;
+	}
+}
+
+template <class TElem, class TElemHandler>
 void
 AttachmentPipe<TElem, TElemHandler>::
 clear()
