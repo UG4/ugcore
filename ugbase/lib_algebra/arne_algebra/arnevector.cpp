@@ -9,7 +9,6 @@ bool
 ArneVector::
 create(uint nentries)
 {
-	FORCE_CREATION { p(); }
 	int err = 0;
 
 	_Vector = new ScalarVector((int)nentries);
@@ -157,7 +156,7 @@ number ArneVector::one_norm() const
 		double norm = 0;
 		for(uint i = 0; i < _Vector->size(); ++i)
 		{
-			norm += abs( (*_Vector)(i) );
+			norm += fabs( (*_Vector)(i) );
 		}
 
 		return norm;

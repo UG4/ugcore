@@ -7,7 +7,6 @@ bool
 ArneMatrix::
 create(uint nrow, uint ncol)
 {
-	FORCE_CREATION { p(); }
 	_Matrix = new ScalarMatrix(nrow, ncol, 8);
 
 	if(_Matrix == NULL) return false;
