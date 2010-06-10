@@ -39,8 +39,11 @@ class GridObserver
 		virtual ~GridObserver()	{}
 
 	//	grid callbacks
+
 		virtual void registered_at_grid(Grid* grid)			{}
 		virtual void unregistered_from_grid(Grid* grid)		{}
+
+		virtual void grid_to_be_destroyed(Grid* grid)	{}
 		virtual void elements_to_be_cleared(Grid* grid)		{}
 
 	//	vertex callbacks

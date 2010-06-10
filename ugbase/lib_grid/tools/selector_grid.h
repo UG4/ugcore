@@ -131,7 +131,8 @@ class Selector : public ISelector
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
-		virtual void unregistered_from_grid(Grid* grid);
+		//virtual void unregistered_from_grid(Grid* grid);
+		virtual void grid_to_be_destroyed(Grid* grid);
 
 	protected:
 		void clear_lists();

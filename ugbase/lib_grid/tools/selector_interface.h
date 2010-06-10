@@ -137,8 +137,11 @@ class ISelector : public GridObserver
 
 
 	//	grid callbacks
+	/*
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);
+	*/
+		virtual void grid_to_be_destroyed(Grid* grid);
 		virtual void elements_to_be_cleared(Grid* grid);
 
 	//	vertex callbacks
@@ -174,7 +177,9 @@ class ISelector : public GridObserver
 		virtual void erase_from_list(Volume* elem) = 0;
 
 	protected:
-		void set_grid(Grid* grid);///	registers the observer at the grid.
+	///	performs grid registration / deregistration and initialisation of the observer.
+	/**	If you call this method with NULL, deregistration and cleanup is performed.*/
+		void set_grid(Grid* grid);
 
 	///	set the type of elements that shall be handled by the SubsetHandler.
 	/**	Pass an or-combination of constants enumerated in SubsetHandlerElements.

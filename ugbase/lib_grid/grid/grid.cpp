@@ -48,7 +48,14 @@ Grid::Grid(const Grid& grid) : m_aVertexContainer(false), m_aEdgeContainer(false
 
 Grid::~Grid()
 {
-//	unregister all observers
+//	tell registered grid-observers that the grid is to be destroyed.
+	for(ObserverContainer::iterator iter = m_gridObservers.begin();
+		iter != m_gridObservers.end(); ++iter)
+	{
+		(*iter)->grid_to_be_destroyed(this);
+	}
+
+//	unregister all observers	
 	while(!m_gridObservers.empty())
 	{
 		unregister_observer(m_gridObservers.back());
@@ -595,6 +602,7 @@ void Grid::unregister_observer(GridObserver* observer)
 //	if the observer is a grid observer, notify him about the unregistration
 	if(unregisterdFromGridObservers)
 		observer->unregistered_from_grid(this);
+
 }
 
 

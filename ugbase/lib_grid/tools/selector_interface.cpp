@@ -22,19 +22,33 @@ ISelector::ISelector(uint supportedElements) :
 ISelector::ISelector(Grid& grid, uint supportedElements) :
 	m_aIterator(false)
 {
-	m_pGrid = NULL;
-	m_supportedElements = supportedElements;
+	m_pGrid = &grid;
+	m_supportedElements = SE_NONE;
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
 	m_invalidContainer.push_back(NULL);
 	m_invalidIterator = m_invalidContainer.begin();
-	set_grid(&grid);
+
+//	register at grid. Don't use set_grid here since it invokes virtual methods.
+	if(m_pGrid){
+		m_pGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+									
+	//	initialise attachments and accessors.
+		enable_element_support(supportedElements);
+	}
 }
 
 ISelector::~ISelector()
 {
 //	unregister from grid
-	set_grid(NULL);
+//	don't use set_grid here, since it invokes virtual methods.
+	if(m_pGrid){
+	//	disable all currently supported elements (this will remove any attachments)
+		disable_element_support(m_supportedElements);
+		m_pGrid->unregister_observer(this);
+		m_pGrid = NULL;
+	}
 }
 
 void ISelector::
@@ -153,22 +167,38 @@ void ISelector::enable_selection_inheritance(bool bEnable)
 
 void ISelector::set_grid(Grid* grid)
 {
-//	if grid is empty, then unregister from the current grid and return
-	if(!grid){
-		if(m_pGrid){
-			m_pGrid->unregister_observer(this);
-			m_pGrid = NULL;
-		}
+//	if we're already registered at this grid then return
+	if(m_pGrid == grid)
 		return;
+		
+//	if we're already registered at a grid unregister first.
+	if(m_pGrid){
+	//	disable all currently supported elements (this will remove any attachments)
+		clear();
+		disable_element_support(m_supportedElements);
+		m_pGrid->unregister_observer(this);
+		m_pGrid = NULL;
 	}
 
-//	grid is not empty. register at grid. The rest is handled by registered_at_grid
-	grid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+//	if the new grid is not empty, we'll initialise and register
+	if(grid){
+		grid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
 									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+		m_pGrid = grid;
+
+	//	initialise attachments and accessors.
+	//	do this whith a little trick:
+	//	set the supported-element-options to SE_NONE,
+	//	then call enable for all element-types that should be supported.
+		uint tmpOpts = m_supportedElements;
+		m_supportedElements = SE_NONE;
+		enable_element_support(tmpOpts);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
 //	grid callbacks
+/*
 void ISelector::registered_at_grid(Grid* grid)
 {
 //	if we're already registered at this grid then return
@@ -199,6 +229,15 @@ void ISelector::unregistered_from_grid(Grid* grid)
 	//	disable all currently supported elements (this will remove any attachments)
 		disable_element_support(m_supportedElements);
 		m_pGrid = NULL;
+	}
+}
+*/
+void ISelector::grid_to_be_destroyed(Grid* grid)
+{
+	assert(m_pGrid == grid && "grids do not match!");
+
+	if(m_pGrid == grid){
+		set_grid(NULL);
 	}
 }
 

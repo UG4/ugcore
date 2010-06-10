@@ -102,8 +102,15 @@ Selector::get_geometric_object_collection()
 									&m_elements[VOLUME]);
 }
 
+/*
 void Selector::unregistered_from_grid(Grid* grid)
 {
+	clear_lists();
+}
+*/
+void Selector::grid_to_be_destroyed(Grid* grid)
+{
+	ISelector::grid_to_be_destroyed(grid);
 	clear_lists();
 }
 

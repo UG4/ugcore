@@ -17,19 +17,18 @@ MGSelector::MGSelector(uint supportedElements) :
 }
 
 MGSelector::MGSelector(MultiGrid& grid, uint supportedElements) :
-	ISelector(supportedElements)
+	ISelector(grid, supportedElements)
 {
 	m_pMultiGrid = &grid;
-	set_grid(&grid);
 }
 
 MGSelector::~MGSelector()
 {
-	set_grid(NULL);
 }
 
 void MGSelector::assign_grid(MultiGrid& grid)
 {
+	m_pMultiGrid = &grid;
 	BaseClass::set_grid(&grid);
 }
 
@@ -154,6 +153,7 @@ MGSelector::get_multi_level_geometric_object_collection()
 	return mgoc;
 }
 
+/*
 void MGSelector::registered_at_grid(Grid* grid)
 {
 	m_pMultiGrid = dynamic_cast<MultiGrid*>(grid);
@@ -164,6 +164,13 @@ void MGSelector::registered_at_grid(Grid* grid)
 void MGSelector::unregistered_from_grid(Grid* grid)
 {
 	ISelector::unregistered_from_grid(grid);
+	clear_lists();
+}
+*/
+void MGSelector::grid_to_be_destroyed(Grid* grid)
+{
+	ISelector::grid_to_be_destroyed(grid);
+	m_pMultiGrid = NULL;
 	clear_lists();
 }
 

@@ -156,9 +156,12 @@ class MGSelector : public ISelector
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver
+	/*
 		virtual void registered_at_grid(Grid* grid);
 		virtual void unregistered_from_grid(Grid* grid);
-
+	*/
+		virtual void grid_to_be_destroyed(Grid* grid);
+		
 	protected:
 		iterator begin(int objID, int level, int section);
 		iterator end(int objID, int level, int section);
