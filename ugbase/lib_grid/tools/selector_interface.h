@@ -178,7 +178,10 @@ class ISelector : public GridObserver
 
 	protected:
 	///	performs grid registration / deregistration and initialisation of the observer.
-	/**	If you call this method with NULL, deregistration and cleanup is performed.*/
+	/**	If you call this method with NULL, deregistration and cleanup is performed.
+	 *
+	 *	Please note: sine set_grid calls virtual methods it shouldn't
+	 *	be invoked from any constructors / destructors.*/
 		void set_grid(Grid* grid);
 
 	///	set the type of elements that shall be handled by the SubsetHandler.

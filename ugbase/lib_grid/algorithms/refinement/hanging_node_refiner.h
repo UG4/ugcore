@@ -35,8 +35,7 @@ class HangingNodeRefiner : public GridObserver
 		HangingNodeRefiner(const HangingNodeRefiner& hnr);
 		virtual ~HangingNodeRefiner();
 
-		virtual void registered_at_grid(Grid* grid);
-		virtual void unregistered_from_grid(Grid* grid);
+		virtual void grid_to_be_destroyed(Grid* grid);
 
 		void assign_grid(Grid& grid);
 
@@ -72,6 +71,10 @@ class HangingNodeRefiner : public GridObserver
 		typedef std::queue<Volume*> VolumeQueue;
 
 	protected:
+	///	performs registration and deregistration at a grid.
+	/**	call set_grid(NULL) to unregister the observer from a grid.*/
+		void set_grid(Grid* grid);
+		
 	///	marks unmarked elements that have to be refined due to marked neighbors.
 	/**
 	 * all elements that have to be refined will be written to the passed queues.

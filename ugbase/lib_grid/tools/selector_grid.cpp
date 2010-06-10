@@ -24,6 +24,11 @@ void Selector::assign_grid(Grid& grid)
 	BaseClass::set_grid(&grid);
 }
 
+void Selector::assign_grid(Grid* grid)
+{
+	BaseClass::set_grid(grid);
+}
+
 void Selector::clear_lists()
 {
 	get_section_container<VertexBase>().clear();

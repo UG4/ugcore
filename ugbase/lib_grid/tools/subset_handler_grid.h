@@ -29,7 +29,7 @@ class GridSubsetHandler : public ISubsetHandler
 		
 		GridSubsetHandler& operator = (const GridSubsetHandler& sh);
 
-		inline void assign_grid(Grid& grid)		{ISubsetHandler::assign_grid(grid);}
+		inline void assign_grid(Grid& grid)		{ISubsetHandler::set_grid(&grid);}
 		
 	///	Makes sure that the subset with the given index exists.
 	/**	If required the subsets between num_subsets() and index will be created.
@@ -96,7 +96,7 @@ class GridSubsetHandler : public ISubsetHandler
 		get_multi_level_geometric_object_collection();
 
 	//	derived from GridObserver
-		virtual void unregistered_from_grid(Grid* grid);
+		//virtual void unregistered_from_grid(Grid* grid);
 		
 	///	only for debug purposes
 		template <class TElem>

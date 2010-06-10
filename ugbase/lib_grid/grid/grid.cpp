@@ -553,14 +553,14 @@ void Grid::register_observer(GridObserver* observer, uint observerType)
 	}
 
 //	if the observer is a grid observer, notify him about the registration
-	if((observerType & OT_GRID_OBSERVER) == OT_GRID_OBSERVER)
-		observer->registered_at_grid(this);
+//	if((observerType & OT_GRID_OBSERVER) == OT_GRID_OBSERVER)
+//		observer->registered_at_grid(this);
 }
 
 void Grid::unregister_observer(GridObserver* observer)
 {
 //	check where the observer has been registered and erase the corresponding entries.
-	bool unregisterdFromGridObservers = false;
+	//bool unregisterdFromGridObservers = false;
 
 	{
 		ObserverContainer::iterator iter = find(m_gridObservers.begin(),
@@ -568,7 +568,7 @@ void Grid::unregister_observer(GridObserver* observer)
 		if(iter != m_gridObservers.end())
 			m_gridObservers.erase(iter);
 
-		unregisterdFromGridObservers = true;
+//		unregisterdFromGridObservers = true;
 	}
 
 	{
@@ -600,8 +600,8 @@ void Grid::unregister_observer(GridObserver* observer)
 	}
 
 //	if the observer is a grid observer, notify him about the unregistration
-	if(unregisterdFromGridObservers)
-		observer->unregistered_from_grid(this);
+//	if(unregisterdFromGridObservers)
+//		observer->unregistered_from_grid(this);
 
 }
 

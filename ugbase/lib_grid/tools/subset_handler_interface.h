@@ -188,14 +188,11 @@ class ISubsetHandler : public GridObserver
 	 *	Default is SHE_ALL (all element-types).*/
 		ISubsetHandler(uint supportedElements = SHE_ALL);
 
-	///	assigns subsets based on the subsets in the given subset-handler
-	/**	The constructed subset-handler will work on the same grid as the
-	 *	subset handler that was passed to the constructor.
-	 *	Elements will be assigned to the same subsets as in the given handler.
-	 *	All properties are copied too.
-	 *
-	 *	Please note, that attachments are not copied in the current version.*/
-
+	///	pass a grid and an or-combination of SubsetHandlerElements to supportedElements.
+	/**	supportedElements define the elements on which the SubsetHandler works.
+	 *	Default is SHE_ALL (all element-types).*/
+		ISubsetHandler(Grid& grid, uint supportedElements = SHE_ALL);
+		
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
 		virtual ~ISubsetHandler();
@@ -287,8 +284,9 @@ class ISubsetHandler : public GridObserver
 		inline int get_subset_index(Volume* elem) const		{return m_aaSubsetIndexVOL[elem];}
 
 	//	grid callbacks
-		virtual void registered_at_grid(Grid* grid);
-		virtual void unregistered_from_grid(Grid* grid);
+		//virtual void registered_at_grid(Grid* grid);
+		//virtual void unregistered_from_grid(Grid* grid);
+		virtual void grid_to_be_destroyed(Grid* grid);
 		virtual void elements_to_be_cleared(Grid* grid);
 
 	//	vertex callbacks
@@ -412,8 +410,11 @@ class ISubsetHandler : public GridObserver
 	///	set the grid on which the subset-handler shall work.
 	/**	The subset-handler can only work on one grid at a time.
 	 *	It is cruicial that assign_grid methods of derived classes call
-	 *	this method.*/
-		void assign_grid(Grid& grid);
+	 *	this method.
+	 *
+	 *	Please note: sine set_grid calls virtual methods it shouldn't
+	 *	be invoked from any constructors / destructors.*/
+		void set_grid(Grid* grid);
 		
 	///	sets the subset-indices of all elements of m_pGrid to -1.
 	/**	Use with care! Only indices are affected. The elements are not

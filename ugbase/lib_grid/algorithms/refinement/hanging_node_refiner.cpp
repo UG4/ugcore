@@ -121,71 +121,52 @@ HangingNodeRefiner::~HangingNodeRefiner()
 	if(m_pGrid)
 	{
 		m_pGrid->unregister_observer(this);
+		m_pGrid->detach_from_edges(m_aVertex);
+		m_pGrid->detach_from_faces(m_aVertex);
 	}
 }
 
 void HangingNodeRefiner::assign_grid(Grid& grid)
 {
+	set_grid(&grid);
+}
+
+void HangingNodeRefiner::
+set_grid(Grid* grid)
+{
 	if(m_pGrid)
 	{
 		m_pGrid->unregister_observer(this);
-		m_pGrid = NULL;
-	}
-
-	grid.register_observer(this, OT_GRID_OBSERVER);
-}
-
-void HangingNodeRefiner::registered_at_grid(Grid* grid)
-{
-	if(m_pGrid)
-		m_pGrid->unregister_observer(this);
-
-	m_pGrid = grid;
-
-	m_selMarkedElements.assign_grid(*grid);
-	m_selMarkedElements.enable_autoselection(false);
-	m_selMarkedElements.enable_selection_inheritance(false);
-
-	m_selScheduledElements.assign_grid(*grid);
-	m_selScheduledElements.enable_autoselection(false);
-	m_selScheduledElements.enable_selection_inheritance(false);
-
-	grid->attach_to_edges_dv(m_aVertex, NULL, false);
-	grid->attach_to_faces_dv(m_aVertex, NULL, false);
-
-	m_aaVertexEDGE.access(*grid, m_aVertex);
-	m_aaVertexFACE.access(*grid, m_aVertex);
-}
-
-void HangingNodeRefiner::unregistered_from_grid(Grid* grid)
-{
-	assert(m_pGrid == grid && "WARNING in HangingNodeRefiner::unregistered_from_grid(...): grids do not match!");
-
-	if(m_pGrid)
-	{
-		m_pGrid->unregister_observer(&m_selMarkedElements);
-		m_pGrid->unregister_observer(&m_selScheduledElements);
+		m_selMarkedElements.assign_grid(NULL);
+		m_selScheduledElements.assign_grid(NULL);
 		m_pGrid->detach_from_edges(m_aVertex);
 		m_pGrid->detach_from_faces(m_aVertex);
 		m_pGrid = NULL;
 	}
+	
+	if(grid){
+		m_pGrid = grid;
+		grid->register_observer(this, OT_GRID_OBSERVER);
+		m_selMarkedElements.assign_grid(*grid);
+		m_selMarkedElements.enable_autoselection(false);
+		m_selMarkedElements.enable_selection_inheritance(false);
+
+		m_selScheduledElements.assign_grid(*grid);
+		m_selScheduledElements.enable_autoselection(false);
+		m_selScheduledElements.enable_selection_inheritance(false);
+
+		grid->attach_to_edges_dv(m_aVertex, NULL, false);
+		grid->attach_to_faces_dv(m_aVertex, NULL, false);
+
+		m_aaVertexEDGE.access(*grid, m_aVertex);
+		m_aaVertexFACE.access(*grid, m_aVertex);
+	}
 }
 
-void HangingNodeRefiner::clear_marks()
+void HangingNodeRefiner::grid_to_be_destroyed(Grid* grid)
 {
-//	clear all entries and marks.
 	if(m_pGrid)
-	{
-		for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
-			iter != m_selMarkedElements.end<EdgeBase>(); ++iter)
-			m_aaVertexEDGE[*iter] = NULL;
-
-		for(FaceIterator iter = m_selMarkedElements.begin<Face>();
-			iter != m_selMarkedElements.end<Face>(); ++iter)
-			m_aaVertexFACE[*iter] = NULL;
-
-		m_selMarkedElements.clear();
-	}
+		set_grid(NULL);
 }
 
 void HangingNodeRefiner::mark_for_refinement(EdgeBase* e)

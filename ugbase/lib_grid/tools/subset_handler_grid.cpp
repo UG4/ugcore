@@ -17,9 +17,9 @@ GridSubsetHandler(uint supportedElements) : ISubsetHandler(supportedElements)
 }
 
 GridSubsetHandler::
-GridSubsetHandler(Grid& grid, uint supportedElements) : ISubsetHandler(supportedElements)
+GridSubsetHandler(Grid& grid, uint supportedElements) :
+ISubsetHandler(grid, supportedElements)
 {
-	assign_grid(grid);
 }
 
 GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
@@ -28,6 +28,7 @@ GridSubsetHandler::GridSubsetHandler(const GridSubsetHandler& sh) :
 	Grid* pGrid = sh.get_assigned_grid();
 
 	if(pGrid){
+//TODO: remove virtual function calls from constructor
 		assign_grid(*pGrid);		
 		assign_subset_handler(sh);
 	}
@@ -232,7 +233,7 @@ get_multi_level_geometric_object_collection()
 	return mgoc;
 }
 
-
+/*
 void GridSubsetHandler::
 unregistered_from_grid(Grid* grid)
 {
@@ -245,5 +246,5 @@ unregistered_from_grid(Grid* grid)
 
 	ISubsetHandler::unregistered_from_grid(grid);
 }
-
+*/
 }//	end of namespace

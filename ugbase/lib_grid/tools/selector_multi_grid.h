@@ -79,6 +79,7 @@ class MGSelector : public ISelector
 		virtual ~MGSelector();
 
 		void assign_grid(MultiGrid& grid);
+		void assign_grid(MultiGrid* grid);
 		inline MultiGrid* get_assigned_multi_grid()	{return m_pMultiGrid;}
 
 	///	set the type of elements that shall be handled by the Selector.

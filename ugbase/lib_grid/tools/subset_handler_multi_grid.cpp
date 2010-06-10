@@ -19,11 +19,11 @@ MultiGridSubsetHandler(uint supportedElements) : ISubsetHandler(supportedElement
 }
 
 MultiGridSubsetHandler::
-MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements) : ISubsetHandler(supportedElements)
+MultiGridSubsetHandler(MultiGrid& mg, uint supportedElements) :
+ISubsetHandler(mg, supportedElements)
 {
 	m_numSubsets = 0;
 	m_pMG = &mg;
-	assign_grid(mg);
 }
 
 MultiGridSubsetHandler::
@@ -33,6 +33,7 @@ MultiGridSubsetHandler(const MultiGridSubsetHandler& sh) :
 	MultiGrid* pGrid = sh.m_pMG;
 
 	if(pGrid){
+//TODO: remove virtual function calls from constructor
 		assign_grid(*pGrid);		
 		assign_subset_handler(sh);
 	}
@@ -292,6 +293,7 @@ void MultiGridSubsetHandler::add_subset_to_all_levels()
 	m_numSubsets++;
 }
 
+/*
 void MultiGridSubsetHandler::
 unregistered_from_grid(Grid* grid)
 {
@@ -304,5 +306,5 @@ unregistered_from_grid(Grid* grid)
 
 	ISubsetHandler::unregistered_from_grid(grid);
 }
-
+*/
 }//	end of namespace

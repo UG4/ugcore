@@ -32,6 +32,12 @@ void MGSelector::assign_grid(MultiGrid& grid)
 	BaseClass::set_grid(&grid);
 }
 
+void MGSelector::assign_grid(MultiGrid* grid)
+{
+	m_pMultiGrid = grid;
+	BaseClass::set_grid(grid);
+}
+
 void MGSelector::clear_lists()
 {
 	for(size_t i = 0; i < m_levels.size(); ++i)

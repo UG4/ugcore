@@ -30,8 +30,7 @@ class MultiGridRefiner : public GridObserver
 		MultiGridRefiner(MultiGrid& mg);
 		~MultiGridRefiner();
 		
-		virtual void registered_at_grid(Grid* grid);
-		virtual void unregistered_from_grid(Grid* grid);
+		virtual void grid_to_be_destroyed(Grid* grid);
 
 		void assign_grid(MultiGrid& mg);
 
@@ -103,6 +102,10 @@ class MultiGridRefiner : public GridObserver
 		};
 
 	protected:
+	///	performs registration and deregistration at a grid.
+	/**	call set_grid(NULL) to unregister the observer from a grid.*/
+		void set_grid(Grid* grid);
+		
 		virtual void collect_objects_for_refine();
 	///	this method helps derived classes to perform operations directly before actual element refinment is performed.
 	/**	Called from the refine() method in each refinement-iteration after

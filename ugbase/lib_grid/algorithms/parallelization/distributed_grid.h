@@ -86,8 +86,7 @@ class DistributedGridManager : public GridObserver
 		
 	////////////////////////////////
 	//	grid callbacks
-		virtual void registered_at_grid(Grid* grid);
-		virtual void unregistered_from_grid(Grid* grid);
+		virtual void grid_to_be_destroyed(Grid* grid);
 		
 	//	vertex callbacks
 		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL);
@@ -97,6 +96,10 @@ class DistributedGridManager : public GridObserver
 		virtual void edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent = NULL);
 		
 	protected:
+	///	performs registration and deregistration at a grid.
+	/**	call set_grid(NULL) to unregister the observer from a grid.*/
+		void set_grid(Grid* grid);
+		
 		template <class TGeomObj>
 		void reset_elem_infos();
 		

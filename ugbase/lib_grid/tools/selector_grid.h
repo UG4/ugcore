@@ -73,6 +73,7 @@ class Selector : public ISelector
 		virtual ~Selector()	{}
 
 		void assign_grid(Grid& grid);
+		void assign_grid(Grid* grid);
 
 	///	set the type of elements that shall be handled by the Selector.
 	/**	Pass an or-combination of constants enumerated in SelectorElements.

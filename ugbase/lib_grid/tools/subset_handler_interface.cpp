@@ -30,40 +30,47 @@ ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false), m_aIterator(fals
 	m_bSubsetInheritanceEnabled = true;
 	m_bSubsetAttachmentsEnabled = false;
 }
-/*
+
 ISubsetHandler::
-ISubsetHandler(GridType& grid, uint supportedElements) : m_aSubsetIndex(false), m_aIterator(false)
+ISubsetHandler(Grid& grid, uint supportedElements) :
+	m_aSubsetIndex(false), m_aIterator(false)
 {
-	m_pGrid = NULL;
-	m_supportedElements = supportedElements;
-	m_defaultSubsetIndex = -1;
-	m_bSubsetInheritanceEnabled = true;
-	assign_grid(grid);
-}
-*/
-/*
-ISubsetHandler::
-ISubsetHandler(const ISubsetHandler& sh) : m_aSubsetIndex(false), m_aIterator(false)
-{
-	m_pGrid = NULL;
+	m_pGrid = &grid;
 	m_supportedElements = SHE_NONE;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
 	m_bSubsetAttachmentsEnabled = false;
-	
-	Grid* pGrid = sh.get_assigned_grid();
 
-	if(pGrid){
-		assign_grid(*pGrid);		
-		assign_subset_handler(sh);
-	}
+	enable_element_support(supportedElements);
+	grid.register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
 }
-*/
+
 ISubsetHandler::
 ~ISubsetHandler()
 {
-	if(m_pGrid != NULL)
+	if(m_pGrid)
+	{
+	//	clear the subsets
+		m_subsetInfos.clear();
+
+	//	disable all currently supported elements (this will remove any attachments)
+		disable_element_support(m_supportedElements);
+
+	//	clear attachment data
+		if(subset_attachments_are_enabled())
+		{
+			m_pGrid->detach_from_vertices(m_aDataIndex);
+			m_pGrid->detach_from_edges(m_aDataIndex);
+			m_pGrid->detach_from_faces(m_aDataIndex);
+			m_pGrid->detach_from_volumes(m_aDataIndex);
+			
+		//	clear pipes
+			clear_attachment_pipes();
+		}
+	
 		m_pGrid->unregister_observer(this);
+	}
 }
 
 ISubsetHandler& ISubsetHandler::operator = (const ISubsetHandler& sh)
@@ -150,10 +157,51 @@ create_required_subset_infos(int index)
 
 void
 ISubsetHandler::
-assign_grid(Grid& grid)
+set_grid(Grid* grid)
 {
-	grid.register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
-									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+	if(m_pGrid != NULL){
+		clear();
+		
+	//	disable all currently supported elements (this will remove any attachments)
+		disable_element_support(m_supportedElements);
+
+	//	clear attachment data
+		if(subset_attachments_are_enabled())
+		{
+			m_pGrid->detach_from_vertices(m_aDataIndex);
+			m_pGrid->detach_from_edges(m_aDataIndex);
+			m_pGrid->detach_from_faces(m_aDataIndex);
+			m_pGrid->detach_from_volumes(m_aDataIndex);
+			
+		//	clear pipes
+			clear_attachment_pipes();
+		}
+		
+		m_pGrid->unregister_observer(this);
+		m_pGrid = NULL;
+	}
+	
+	if(grid){
+		m_pGrid = grid;
+
+	//	initialise attachments and accessors.
+	//	do this whith a little trick:
+	//	set the supported-element-options to SHE_NONE,
+	//	then call enable for all element-types that should be supported.
+		uint tmpOpts = m_supportedElements;
+		m_supportedElements = SHE_NONE;
+		enable_element_support(tmpOpts);
+
+	//	enable attachments - if required
+		if(subset_attachments_are_enabled())
+		{
+			m_bSubsetAttachmentsEnabled = false;
+			enable_subset_attachments(true);
+		}
+
+		m_pGrid->register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
+										OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
+	}
 }
 
 void ISubsetHandler::
@@ -651,6 +699,7 @@ enable_subset_attachments(bool bEnable)
 
 ////////////////////////////////////////////////////////////////////////
 //	grid callbacks
+/*
 void ISubsetHandler::
 registered_at_grid(Grid* grid)
 {
@@ -711,6 +760,14 @@ unregistered_from_grid(Grid* grid)
 		//LOG("supported elements after deregistration: " << m_supportedElements << "\n");
 		m_pGrid = NULL;
 	}
+}
+*/
+void ISubsetHandler::
+grid_to_be_destroyed(Grid* grid)
+{
+	assert((m_pGrid == grid) && "ERROR in ISubsetHandler::grid_to_be_destroyed(...): Grids do not match.");
+	if(m_pGrid == grid)
+		set_grid(NULL);
 }
 
 void ISubsetHandler::

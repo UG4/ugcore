@@ -27,7 +27,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
 		~MultiGridSubsetHandler();
 		
-		inline void assign_grid(MultiGrid& mg)	{m_pMG = &mg; ISubsetHandler::assign_grid(mg);}
+		inline void assign_grid(MultiGrid& mg)	{m_pMG = &mg; ISubsetHandler::set_grid(&mg);}
 		inline MultiGrid* get_assigned_multi_grid()	{return m_pMG;}
 		
 	///	Makes sure that the subset with the given index exists.
@@ -115,7 +115,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		get_mlgoc_by_level(int level);
 
 	//	derived from GridObserver
-		virtual void unregistered_from_grid(Grid* grid);
+		//virtual void unregistered_from_grid(Grid* grid);
 		
 	protected:
 	////////////////////////////////////////////////

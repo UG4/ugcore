@@ -31,8 +31,14 @@ DistributedGridManager(MultiGrid& grid)
 DistributedGridManager::		
 ~DistributedGridManager()
 {
-	if(m_pGrid)
+	if(m_pGrid){
 		m_pGrid->unregister_observer(this);
+	//	remove attached data
+		m_pGrid->detach_from_vertices(m_aElemInfoVrt);
+		m_pGrid->detach_from_edges(m_aElemInfoEdge);
+		m_pGrid->detach_from_faces(m_aElemInfoFace);
+		m_pGrid->detach_from_volumes(m_aElemInfoVol);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -41,47 +47,54 @@ void
 DistributedGridManager::
 assign(MultiGrid& grid)
 {
-	grid.register_observer(this);
+	set_grid(&grid);
 }
 
-void DistributedGridManager::registered_at_grid(Grid* grid)
+void DistributedGridManager::
+set_grid(Grid* grid)
+{
+	if(m_pGrid){
+		m_pGrid->unregister_observer(this);
+	//	remove attached data
+		m_pGrid->detach_from_vertices(m_aElemInfoVrt);
+		m_pGrid->detach_from_edges(m_aElemInfoEdge);
+		m_pGrid->detach_from_faces(m_aElemInfoFace);
+		m_pGrid->detach_from_volumes(m_aElemInfoVol);
+		m_pGrid = NULL;
+		
+	//	clear the layout-map
+		m_gridLayoutMap = GridLayoutMap();
+	}
+	
+	if(grid){
+		m_pGrid = dynamic_cast<MultiGrid*>(grid);
+		m_pGrid->register_observer(this, OT_FULL_OBSERVER);
+		UG_ASSERT(m_pGrid, "Only MultiGrids are supported by the DistributedGridManager"
+						   " in its current implementation.");
+						   
+	//	attach element infos
+		grid->attach_to_vertices(m_aElemInfoVrt);
+		grid->attach_to_edges(m_aElemInfoEdge);
+		grid->attach_to_faces(m_aElemInfoFace);
+		grid->attach_to_volumes(m_aElemInfoVol);
+		
+	//	access them
+		m_aaElemInfoVRT.access(*grid, m_aElemInfoVrt);
+		m_aaElemInfoEDGE.access(*grid, m_aElemInfoEdge);
+		m_aaElemInfoFACE.access(*grid, m_aElemInfoFace);
+		m_aaElemInfoVOL.access(*grid, m_aElemInfoVol);
+		
+	//	initialise the element statuses. This is automatically done
+	//	on a call to grid_layout_changed.
+		grid_layouts_changed();						   
+	}
+}
+
+void DistributedGridManager::
+grid_to_be_destroyed(Grid* grid)
 {
 	if(m_pGrid)
-		m_pGrid->unregister_observer(this);
-
-	m_pGrid = dynamic_cast<MultiGrid*>(grid);
-	UG_ASSERT(m_pGrid, "Only MultiGrids are supported by the DistributedGridManager"
-						" in its current implementation.");
-//	attach element infos
-	grid->attach_to_vertices(m_aElemInfoVrt);
-	grid->attach_to_edges(m_aElemInfoEdge);
-	grid->attach_to_faces(m_aElemInfoFace);
-	grid->attach_to_volumes(m_aElemInfoVol);
-	
-//	access them
-	m_aaElemInfoVRT.access(*grid, m_aElemInfoVrt);
-	m_aaElemInfoEDGE.access(*grid, m_aElemInfoEdge);
-	m_aaElemInfoFACE.access(*grid, m_aElemInfoFace);
-	m_aaElemInfoVOL.access(*grid, m_aElemInfoVol);
-	
-//	initialise the element statuses. This is automatically done
-//	on a call to grid_layout_changed.
-	grid_layouts_changed();
-}
-
-void DistributedGridManager::unregistered_from_grid(Grid* grid)
-{
-	UG_ASSERT(m_pGrid == grid, "Grids do not match in DistributedGridManager::unregistered_from_grid");
-	
-//	remove attached data
-	grid->detach_from_vertices(m_aElemInfoVrt);
-	grid->detach_from_edges(m_aElemInfoEdge);
-	grid->detach_from_faces(m_aElemInfoFace);
-	grid->detach_from_volumes(m_aElemInfoVol);
-	m_pGrid = NULL;
-	
-//	clear the layout-map
-	m_gridLayoutMap = GridLayoutMap();
+		set_grid(NULL);
 }
 
 ////////////////////////////////////////////////////////////////////////

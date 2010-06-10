@@ -26,63 +26,67 @@ MultiGridRefiner::MultiGridRefiner(MultiGrid& mg)
 
 MultiGridRefiner::~MultiGridRefiner()
 {
-	if(m_pMG)
+	if(m_pMG){
 		m_pMG->unregister_observer(this);
+		
+		m_pMG->detach_from_vertices(m_aInt);
+		m_pMG->detach_from_edges(m_aInt);
+		m_pMG->detach_from_faces(m_aInt);
+		m_pMG->detach_from_volumes(m_aInt);
+	}
 }
 
 void MultiGridRefiner::assign_grid(MultiGrid& mg)
 {
-	if(m_pMG)
-	{
-		m_pMG->unregister_observer(this);
-		m_pMG = NULL;
-	}
-
-	mg.register_observer(this, OT_GRID_OBSERVER);
+	set_grid(&mg);
 }
 
-void MultiGridRefiner::registered_at_grid(Grid* grid)
+void MultiGridRefiner::
+set_grid(Grid* grid)
 {
-	if(m_pMG)
+	if(m_pMG){
 		m_pMG->unregister_observer(this);
-
-	m_pMG = dynamic_cast<MultiGrid*>(grid);
-	assert(m_pMG && "MultiGridRefiner registered at incopatible grid.");
-
-	if(!m_pMG)
-		return;
-
-	MultiGrid& mg = *m_pMG;
-
-//	selection-marks
-	m_selMarks.assign_grid(mg);
-	m_selMarks.enable_autoselection(false);
-	m_selMarks.enable_selection_inheritance(false);
-
-//	status- and refinement-marks
-	mg.attach_to_vertices_dv(m_aInt, 0);
-	mg.attach_to_edges_dv(m_aInt, 0);
-	mg.attach_to_faces_dv(m_aInt, 0);
-	mg.attach_to_volumes_dv(m_aInt, 0);
-
-	m_aaIntVRT.access(mg, m_aInt);
-	m_aaIntEDGE.access(mg, m_aInt);
-	m_aaIntFACE.access(mg, m_aInt);
-	m_aaIntVOL.access(mg, m_aInt);
-}
-
-void MultiGridRefiner::unregistered_from_grid(Grid* grid)
-{
-	if(m_pMG)
-	{
+		
 		m_pMG->detach_from_vertices(m_aInt);
 		m_pMG->detach_from_edges(m_aInt);
 		m_pMG->detach_from_faces(m_aInt);
 		m_pMG->detach_from_volumes(m_aInt);
 
-		m_pMG->unregister_observer(&m_selMarks);
+		m_selMarks.assign_grid(NULL);
 		m_pMG = NULL;
 	}
+	
+	if(grid){
+		m_pMG = dynamic_cast<MultiGrid*>(grid);
+		assert(m_pMG && "MultiGridRefiner registered at incopatible grid.");
+
+		if(!m_pMG)
+			return;
+
+		MultiGrid& mg = *m_pMG;
+		mg.register_observer(this, OT_GRID_OBSERVER);
+	//	selection-marks
+		m_selMarks.assign_grid(mg);
+		m_selMarks.enable_autoselection(false);
+		m_selMarks.enable_selection_inheritance(false);
+
+	//	status- and refinement-marks
+		mg.attach_to_vertices_dv(m_aInt, 0);
+		mg.attach_to_edges_dv(m_aInt, 0);
+		mg.attach_to_faces_dv(m_aInt, 0);
+		mg.attach_to_volumes_dv(m_aInt, 0);
+
+		m_aaIntVRT.access(mg, m_aInt);
+		m_aaIntEDGE.access(mg, m_aInt);
+		m_aaIntFACE.access(mg, m_aInt);
+		m_aaIntVOL.access(mg, m_aInt);
+	}
+}
+
+void MultiGridRefiner::grid_to_be_destroyed(Grid* grid)
+{
+	if(m_pMG)
+		set_grid(NULL);
 }
 
 void MultiGridRefiner::clear_marks()
