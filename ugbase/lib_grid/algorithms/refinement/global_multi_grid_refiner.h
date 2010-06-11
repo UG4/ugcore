@@ -18,11 +18,11 @@ class GlobalMultiGridRefiner : public GridObserver
 		GlobalMultiGridRefiner();
 		GlobalMultiGridRefiner(MultiGrid& mg);
 		virtual ~GlobalMultiGridRefiner();
-		
-		virtual void registered_at_grid(Grid* grid);
-		virtual void unregistered_from_grid(Grid* grid);
 
+		virtual void grid_to_be_destroyed(Grid* grid);
+		
 		void assign_grid(MultiGrid& mg);
+		void assign_grid(MultiGrid* mg);
 
 	////////////////////////////////
 	//	refine

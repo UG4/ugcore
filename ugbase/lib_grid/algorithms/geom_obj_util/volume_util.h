@@ -57,6 +57,11 @@ number CalculateTetrahedronVolume(const vector3& a, const vector3& b,
 inline bool
 PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 						 Grid::VertexAttachmentAccessor<APosition>& aaPos);
+						 
+////////////////////////////////////////////////////////////////////////
+template<class TVertexPositionAttachmentAccessor>
+typename TVertexPositionAttachmentAccessor::ValueType
+CalculateCenter(Volume* vol, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 }//	end of namespace
 

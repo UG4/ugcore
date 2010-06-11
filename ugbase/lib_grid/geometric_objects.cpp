@@ -1256,7 +1256,7 @@ bool Hexahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 {
 //	NOT YET SUPPORTED!
 //TODO: implement Hexahedron::collapse_edge
-	assert(!"edge-collapse for hexahedrons not yet implemented... sorry");
+	UG_LOG("edge-collapse for hexahedrons not yet implemented... sorry\n");
 	return false;
 }
 
@@ -1269,7 +1269,7 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 					std::vector<VertexBase*>* pvSubstituteVertices)
 {
 //TODO: refine for hexahedrons not yet implemented.
-	assert(!"refine for hexahedrons not yet implemented... sorry");
+	UG_LOG("refine for hexahedrons not yet implemented... sorry\n");
 	return false;
 }
 
@@ -1419,7 +1419,7 @@ bool Prism::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 {
 //	NOT YET SUPPORTED!
 //TODO: implement prism::collapse_edge
-	assert(!"edge-collapse for prism not yet implemented... sorry");
+	UG_LOG("edge-collapse for prism not yet implemented... sorry\n");
 	return false;
 }
 
@@ -1432,7 +1432,7 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 					std::vector<VertexBase*>* pvSubstituteVertices)
 {
 //TODO: refine for prisms not yet implemented.
-	assert(!"refine for prisms not yet implemented... sorry");
+	UG_LOG("refine for prisms not yet implemented... sorry\n");
 	return false;
 }
 
@@ -1575,7 +1575,7 @@ bool Pyramid::collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 {
 //	NOT YET SUPPORTED!
 //TODO: implement pyramids::collapse_edge
-	assert(!"edge-collapse for pyramids not yet implemented... sorry");
+	UG_LOG("edge-collapse for pyramids not yet implemented... sorry\n");
 	return false;
 }
 
@@ -1588,7 +1588,7 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 					std::vector<VertexBase*>* pvSubstituteVertices)
 {
 //TODO: refine for pyramids not yet implemented.
-	assert(!"refine for pyramids not yet implemented... sorry");
+	UG_LOG("refine for pyramids not yet implemented... sorry\n");
 	return false;
 }
 

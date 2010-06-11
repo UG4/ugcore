@@ -19,6 +19,28 @@ PointIsInsideTetrahedron(const vector3& v, Tetrahedron* tet,
 									aaPos[tet->vertex(2)], aaPos[tet->vertex(3)]);
 }
 
+template<class TVertexPositionAttachmentAccessor>
+typename TVertexPositionAttachmentAccessor::ValueType
+CalculateCenter(Volume* vol, TVertexPositionAttachmentAccessor& aaPosVRT)
+{
+	uint numVrts = vol->num_vertices();
+	typename TVertexPositionAttachmentAccessor::ValueType v;
+//	init v with 0.
+	VecSet(v, 0);
+
+//	sum up
+	for(uint i = 0; i < numVrts; ++i)
+	{
+		VecAdd(v, v, aaPosVRT[vol->vertex(i)]);
+	}
+
+//	average
+	if(numVrts > 0)
+		VecScale(v, v, 1./(number)numVrts);
+
+	return v;
+}
+
 }//	end of namespace
 
 #endif

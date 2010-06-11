@@ -28,38 +28,34 @@ GlobalMultiGridRefiner::~GlobalMultiGridRefiner()
 		m_pMG->unregister_observer(this);
 }
 
-void GlobalMultiGridRefiner::assign_grid(MultiGrid& mg)
+void GlobalMultiGridRefiner::grid_to_be_destroyed(Grid* grid)
 {
 	if(m_pMG)
-	{
+		assign_grid(NULL);
+}
+
+void GlobalMultiGridRefiner::assign_grid(MultiGrid& mg)
+{
+	assign_grid(&mg);
+}
+
+void GlobalMultiGridRefiner::assign_grid(MultiGrid* mg)
+{
+	if(m_pMG){
 		m_pMG->unregister_observer(this);
 		m_pMG = NULL;
 	}
-
-	mg.register_observer(this, OT_GRID_OBSERVER);
-}
-
-void GlobalMultiGridRefiner::registered_at_grid(Grid* grid)
-{
-	if(m_pMG)
-		m_pMG->unregister_observer(this);
-
-	m_pMG = dynamic_cast<MultiGrid*>(grid);
-	assert(m_pMG && "MultiGridRefiner registered at incopatible grid.");
-}
-
-void GlobalMultiGridRefiner::unregistered_from_grid(Grid* grid)
-{
-	if(m_pMG)
-	{
-		m_pMG = NULL;
+	
+	if(mg){
+		m_pMG = mg;
+		m_pMG->register_observer(this, OT_GRID_OBSERVER);
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
 void GlobalMultiGridRefiner::refine()
 {
-	assert(m_pMG && "refiner not has to be assigned to a multi-grid!");
+	assert(m_pMG && "refiner has to be assigned to a multi-grid!");
 	if(!m_pMG)
 		return;
 
@@ -93,9 +89,11 @@ void GlobalMultiGridRefiner::refine()
 //	some buffers
 	vector<VertexBase*> vVrts;
 	vector<VertexBase*> vEdgeVrts;
+	vector<VertexBase*> vFaceVrts;
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
-
+	vector<Volume*>		vVols;
+	
 //	some repeatedly used objects
 	EdgeDescriptor ed;
 	FaceDescriptor fd;
@@ -189,6 +187,49 @@ void GlobalMultiGridRefiner::refine()
 		}
 	}
 
+//	create new vertices and volumes from marked volumes
+	for(VolumeIterator iter = mg.begin<Volume>(oldTopLevel);
+		iter != mg.end<Volume>(oldTopLevel); ++iter)
+	{
+		Volume* v = *iter;
+	//	collect child-vertices
+		vVrts.clear();
+		for(uint j = 0; j < v->num_vertices(); ++j)
+			vVrts.push_back(mg.get_child_vertex(v->vertex(j)));
+
+	//	collect the associated edges
+		vEdgeVrts.clear();
+		//bool bIrregular = false;
+		for(uint j = 0; j < v->num_edges(); ++j)
+			vEdgeVrts.push_back(mg.get_child_vertex(mg.get_edge(v, j)));
+
+	//	collect associated face-vertices
+		vFaceVrts.clear();
+		for(uint j = 0; j < v->num_faces(); ++j)
+			vFaceVrts.push_back(mg.get_child_vertex(mg.get_face(v, j)));
+		
+		VertexBase* newVrt;
+		if(v->refine(vVols, &newVrt, vEdgeVrts, vFaceVrts,
+					NULL, Vertex(), &vVrts)){
+		//	if a new vertex was generated, we have to register it
+			if(newVrt){
+				mg.register_element(newVrt, v);
+				if(aaPos.valid()){
+					aaPos[newVrt] = CalculateCenter(v, aaPos);
+				//	change z-coord to visualise the hierarchy
+					//aaPos[newVrt].z += 0.01;
+				}
+			}
+
+		//	register the new faces and assign status
+			for(size_t j = 0; j < vVols.size(); ++j)
+				mg.register_element(vVols[j], v);
+		}
+		else{
+			LOG("  WARINING in Refine: could not refine volume.\n");
+		}
+	}
+	
 //	done - clean up
 	if(!bHierarchicalInsertionWasEnabled)
 		mg.enable_hierarchical_insertion(false);
