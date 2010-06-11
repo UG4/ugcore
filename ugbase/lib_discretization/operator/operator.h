@@ -9,6 +9,7 @@
 #define __H__LIBDISCRETIZATION__OPERATOR__OPERATOR__
 
 #include <iomanip>
+#include <cmath>
 
 #include "common/common.h"
 #include "lib_discretization/assemble.h"
@@ -353,12 +354,14 @@ class IDiscreteLinearizedOperatorInverse
 			// step 2: compute new defect norm
 #ifdef UG_PARALLEL
 			double tNormLocal = (double)d.norm();
+			tNormLocal *= tNormLocal;
 			double tNormGlobal;
 			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			norm = (number)tNormGlobal;
+			norm = sqrt((number)tNormGlobal);
 #else
 			norm = d.norm();
 #endif
+
 			return norm;
 		}
 

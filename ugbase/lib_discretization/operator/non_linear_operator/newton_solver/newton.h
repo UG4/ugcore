@@ -8,6 +8,8 @@
 #ifndef __H__LIBDISCRETIZATION__NEWTON__
 #define __H__LIBDISCRETIZATION__NEWTON__
 
+#include <cmath>
+
 // other ug libraries
 #include "lib_algebra/lib_algebra.h"
 
@@ -71,9 +73,11 @@ class NewtonSolver : public IDiscreteOperatorInverse<TDiscreteFunction, TDiscret
 			// step 2: compute new defect norm
 #ifdef UG_PARALLEL
 			double tNormLocal = (double)d.norm();
+			tNormLocal *= tNormLocal;
 			double tNormGlobal;
 			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 			norm = (number)tNormGlobal;
+			norm = sqrt((number)tNormGlobal);
 #else
 			norm = d.norm();
 #endif
