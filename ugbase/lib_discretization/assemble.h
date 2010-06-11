@@ -146,11 +146,9 @@ class IAssemble {
 		virtual IAssembleReturn assemble_solution(discrete_function_type& u)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
-		virtual std::size_t num_fct() const
-		{return 0;}
+		virtual size_t num_fct() const = 0;
 
-		virtual bool is_dirichlet(int s, uint fct)
-		{return false;}
+		virtual bool is_dirichlet(int si, size_t fct) = 0;
 
 		/// virtual Destructor
 		virtual ~IAssemble(){};

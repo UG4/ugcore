@@ -55,15 +55,9 @@ class ITimeDiscretization : public IAssemble<TAlgebra, TDiscreteFunction> {
 		 */
 		virtual bool prepare_step(std::deque<discrete_function_type*>& u_old, std::deque<number>& time_old, number dt) = 0;
 
-		std::size_t num_fct() const
-		{
-			return m_dd.num_fct();
-		}
+		size_t num_fct() const{return m_dd.num_fct();}
 
-		bool boundary_value(number& val, typename discrete_function_type::position_type& corner, uint fct, number time = 0.0)
-		{
-			return m_dd.boundary_value(val, corner, fct, time);
-		}
+		virtual bool is_dirichlet(int si, size_t fct) {return m_dd.is_dirichlet(si, fct);}
 
 	protected:
 		IDomainDiscretization<algebra_type, discrete_function_type>& m_dd;

@@ -45,6 +45,7 @@
 #include "lib_discretization/domain_discretization/plug_in_disc/density_driven_flow/density_driven_flow_assemble.h"
 
 // domain discretization
+#include "lib_discretization/domain_discretization/dirichlet_bnd_values.h"
 #include "lib_discretization/domain_discretization/plug_in_domain_discretization.h"
 
 // coupled system discretization

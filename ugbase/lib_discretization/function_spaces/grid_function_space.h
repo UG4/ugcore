@@ -252,14 +252,14 @@ class GridFunction{
 
 		// get multiindices on an finite element in canonical order
 		template <typename TElem>
-		inline std::size_t get_multi_indices(TElem* elem, unsigned int fct, local_index_type& ind, std::size_t offset = 0) const
+		inline size_t get_multi_indices(TElem* elem, unsigned int fct, local_index_type& ind, std::size_t offset = 0) const
 		{
 			return m_dof_manager.get_multi_indices(elem, fct, ind, offset);
 		}
 
 		// get multiindices on an geometric object in canonical order
 		template <typename TGeomObj>
-		inline std::size_t get_multi_indices_of_geom_obj(TGeomObj* elem, unsigned int fct, local_index_type& ind, std::size_t offset = 0) const
+		inline size_t get_multi_indices_of_geom_obj(TGeomObj* elem, unsigned int fct, local_index_type& ind, std::size_t offset = 0) const
 		{
 			return m_dof_manager.get_multi_indices_of_geom_obj(elem, fct, ind, offset);
 		}

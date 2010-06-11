@@ -15,12 +15,6 @@
 
 namespace ug{
 
-enum D3F_BND_TYPE {
-	D3F_BND_NONE = 0,
-	D3F_BND_DIRICHLET,
-	D3F_BND_NEUMANN
-};
-
 template<typename TDomain, typename TAlgebra, typename TElem >
 class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, MathVector<TDomain::dim>, TAlgebra>{
 	public:
@@ -67,10 +61,10 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 	public:
 
 		// total number of shape functions on elements of type 'TElem'
-		inline uint num_sh(){return 2*reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(){return 2*reference_element_traits<TElem>::num_corners;};
 
 		// number of shape functions on elements of type 'TElem' for the 'i'-th fundamental function
-		inline uint num_sh(uint i){return reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(size_t loc_fct){return reference_element_traits<TElem>::num_corners;};
 
 		// prepares the loop. Must be called, before prepare_element can be used
 		inline IPlugInReturn prepare_element_loop();
@@ -123,8 +117,8 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 
 	private:
 		// local constants for readability (local function 0 == _C_, local function 1 == _P_)
-		static const uint _C_ = 0;
-		static const uint _P_ = 1;
+		static const size_t _C_ = 0;
+		static const size_t _P_ = 1;
 
 		// local access to local solution vector splitted for each component
 		// TODO: Implement access to u, J, d as member functions, avoid defines !!!
@@ -137,7 +131,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace = LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
 			static const typename reference_element_traits<TElem>::reference_element_type refElem;
-			const uint num_co = reference_element_traits<TElem>::num_corners;
+			const size_t num_co = reference_element_traits<TElem>::num_corners;
 
 
 			number c;
@@ -149,13 +143,13 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 
 			VecSet(grad_p, 0.0);
 
-			for(std::size_t i = 0; i < val.size(); ++i)
+			for(size_t i = 0; i < val.size(); ++i)
 			{
 				// compute c and grad_p
 				VecSet(grad_p_local, 0.0);
 				c = 0.0;
 
-				for(uint co = 0; co < num_co; ++co)
+				for(size_t co = 0; co < num_co; ++co)
 				{
 					if(TrialSpace.evaluate(co, pos[i], shape) == false) UG_ASSERT(0, "");
 					c += u(_C_, co) * shape;
@@ -274,42 +268,30 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 		typedef void (*Permeability_Tensor_fct)(MathMatrix<dim,dim>&);
 		typedef void (*Gravity_fct)(MathVector<dim>&);
 
-	protected:
-		typedef bool (*Boundary_fct)(number&, const position_type&, number);
-
 	public:
-		DensityDrivenFlowPlugIn(uint c_fct, uint p_fct, TDomain& domain, number upwind_amount,
+		DensityDrivenFlowPlugIn(size_t c_fct, size_t p_fct, TDomain& domain, number upwind_amount,
 				Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
 				Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity) :
 			m_c_fct(c_fct), m_p_fct(p_fct),
 			m_Darcy_velocity_export("Darcy velocity"),
 			m_ImpTriangle(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export),
 			m_ImpQuadrilateral(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export)
-			{
-				typename TDomain::subset_handler_type& sh = domain.get_subset_handler();
-				int num_sh = sh.num_subsets();
-				m_bndfct.resize(2);
-				m_bndtype.resize(2);
-				for(size_t fct = 0; fct < 2; ++fct)
-				{
-					m_bndfct[fct].resize(num_sh, NULL);
-					m_bndtype[fct].resize(num_sh, D3F_BND_NONE);
-				}
-			};
+			{};
 
 	public:
 		/* GENERAL INFORMATIONS */
 		// number of fundamental functions required for this assembling
-		inline uint num_fct(){return 2;}
+		inline size_t num_fct(){return 2;}
 
 		// local shape function set required for the 'i'-th fundamental function
-		inline LocalShapeFunctionSetID local_shape_function_set(uint i)
+		inline LocalShapeFunctionSetID local_shape_function_set(size_t i)
 		{
 			UG_ASSERT(i < num_fct(), "Accessing fundamental function, that is not contained in this assembling.");
 			return LSFS_LAGRANGEP1;
 		}
 
-		inline uint fct(uint i)
+		// global number of fundamental function of local fundamental function
+		inline size_t fct(size_t i)
 		{
 			UG_ASSERT(i < 2, "D3F has only two component.");
 			switch(i)
@@ -317,61 +299,13 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 			case 0: return m_c_fct;
 			case 1: return m_p_fct;
 			}
-			return (uint)-1;
+			return (size_t)-1;
 		}
 
 	protected:
 		// number of fundamental function, where this assembling works
-		uint m_c_fct;
-		uint m_p_fct;
-
-	public:
-	/* DIRICHLET BOUNDARY CONDITIONS */
-		// currently only dirichlet bnd cond for nodes
-		// must return true for dirichlet, false else
-		// fct is local fct number, i.e. 0,...,num_fct-1
-		// TODO: Implement others
-		inline bool boundary_value(number& value, const position_type& pos, number time, int s, uint fct)
-		{
-			UG_ASSERT(fct < num_fct(), "Accessing function, that does not exist in this assembling.");
-			UG_ASSERT((uint)s < m_bndfct.size(), "Accessing function, that does not exist in this assembling.");
-			return (m_bndfct[fct][s])(value, pos, time);
-		}
-
-		// add bndtype and bndfunction to subset s for function fct
-		bool add_boundary_value(uint d, int s, uint fct, Boundary_fct func, D3F_BND_TYPE type)
-		{
-			std::vector<int>::iterator iter = find(m_bnd_subset[d].begin(), m_bnd_subset[d].end(), s);
-			if(iter == m_bnd_subset[d].end())
-				m_bnd_subset[d].push_back(s);
-
-			m_bndtype[fct][s] = type;
-			m_bndfct[fct][s] = func;
-			return true;
-		}
-
-		// returns is subset is dirichlet for function fct
-		bool is_dirichlet(int s, uint fct) {return m_bndtype[fct][s] == D3F_BND_DIRICHLET;}
-
-		uint num_bnd_subsets(uint d) {return m_bnd_subset[d].size();}
-		int bnd_subset(uint d, uint i) {return m_bnd_subset[d][i];}
-
-		uint num_elem_subsets(uint d) {return m_elem_subset[d].size();}
-		int elem_subset(uint d, uint i) {return m_elem_subset[d][i];}
-		bool add_elem_assemble_subset(uint d, int s)
-		{
-			std::vector<int>::iterator iter = find(m_elem_subset[d].begin(), m_elem_subset[d].end(), s);
-			if(iter == m_elem_subset[d].end())
-				m_elem_subset[d].push_back(s);
-			return true;
-		}
-
-	protected:
-		std::vector<int> m_bnd_subset[dim];
-		std::vector<int> m_elem_subset[dim+1]; // 3 = max dimensions
-
-		std::vector<std::vector<D3F_BND_TYPE> > m_bndtype;
-		std::vector<std::vector<Boundary_fct> > m_bndfct;
+		size_t m_c_fct;
+		size_t m_p_fct;
 
 	public:
 		bool register_exports(DataContainer& Cont)
@@ -410,11 +344,11 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 	/* ELEMENT WISE ASSEMBLNG */
 	public:
 		// support assembling on triangles
-		inline uint num_sh(Triangle* elem)
+		inline size_t num_sh(Triangle* elem)
 		{ return m_ImpTriangle.num_sh();};
 
-		inline uint num_sh(Triangle* elem, uint fct)
-		{ return m_ImpTriangle.num_sh(fct);};
+		inline size_t num_sh(Triangle* elem, size_t loc_fct)
+		{ return m_ImpTriangle.num_sh(loc_fct);};
 
 		inline IPlugInReturn prepare_element_loop(Triangle* elem)
 		{ return m_ImpTriangle.prepare_element_loop(); };
@@ -446,11 +380,11 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 
 	public:
 		// support assembling on triangles
-		inline uint num_sh(Quadrilateral* elem)
+		inline size_t num_sh(Quadrilateral* elem)
 		{ return m_ImpQuadrilateral.num_sh();};
 
-		inline uint num_sh(Quadrilateral* elem, uint fct)
-		{ return m_ImpQuadrilateral.num_sh(fct);};
+		inline size_t num_sh(Quadrilateral* elem, size_t loc_fct)
+		{ return m_ImpQuadrilateral.num_sh(loc_fct);};
 
 		inline IPlugInReturn prepare_element_loop(Quadrilateral* elem)
 		{ return m_ImpQuadrilateral.prepare_element_loop(); };

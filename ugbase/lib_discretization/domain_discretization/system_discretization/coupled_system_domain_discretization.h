@@ -61,7 +61,9 @@ class ISystemDomainDiscretization {
 		// must return true for dirichlet, false else
 		// fct is local fct number, i.e. 0,...,num_fct-1
 		// TODO: Implement others
-		virtual bool boundary_value(number& value, const position_type& pos, uint fct, number time) = 0;
+		virtual bool is_dirichlet(int s, size_t fct) = 0;
+
+		virtual bool boundary_value(number& value, const position_type& pos, number time, int s, size_t fct) = 0;
 
 		virtual bool register_exports(DataContainer& Cont) = 0;
 
@@ -167,7 +169,11 @@ class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDom
 		// must return true for dirichlet, false else
 		// fct is local fct number, i.e. 0,...,num_fct-1
 		// TODO: Implement others
-		virtual bool boundary_value(number& value, const position_type& pos, uint fct, number time){return m_elemDisc.boundary_value(value, pos, fct, time);}
+		virtual bool is_dirichlet(int s, size_t fct)
+		{return m_elemDisc.is_dirichlet(s, fct);}
+
+		virtual bool boundary_value(number& value, const position_type& pos, number time, int si, size_t fct)
+		{return m_elemDisc.boundary_value(value, pos, time, si, fct);}
 
 		virtual bool register_exports(DataContainer& Cont) {return m_elemDisc.register_exports(Cont);}
 
@@ -285,7 +291,7 @@ class CoupledSystemDomainDiscretization : public IDomainDiscretization<typename 
 			sys.register_imports(m_ElemDataContainer);
 		};
 
-		std::size_t num_system_discretizations() {return m_systems.size();}
+		size_t num_system_discretizations() {return m_systems.size();}
 
 		bool print_export_possibilities(){return m_ElemDataContainer.print_export_possibilities(DCI_LINKS);}
 		bool print_exports(){return m_ElemDataContainer.print_exports(DCI_LINKS);}
@@ -321,31 +327,28 @@ class CoupledSystemDomainDiscretization : public IDomainDiscretization<typename 
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a);
 		IAssembleReturn assemble_solution(discrete_function_type& u, number time);
 
-		std::size_t num_fct() const
+		size_t num_fct() const
 		{
-			std::size_t num = 0;
-			for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+			size_t num = 0;
+			for(size_t sys = 0; sys < m_systems.size(); ++sys)
 			{
 				num += m_systems[sys]->num_fct();
 			}
 			return num;
 		}
 
-		bool boundary_value(number& val, position_type& corner, uint fct, number time = 0.0)
+		virtual bool is_dirichlet(int s, size_t fct)
 		{
-			for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+			for(size_t sys = 0; sys < m_systems.size(); ++sys)
 			{
-				for(std::size_t i = 0; i < m_systems[sys]->num_fct(); ++i)
+				for(size_t i = 0; i < m_systems[sys]->num_fct(); ++i)
 				{
 					if(m_systems[sys]->fct(i) == fct)
-						return m_systems[sys]->boundary_value(val, corner, i, time);
+						return m_systems[sys]->is_dirichlet(s, fct);
 				}
 			}
-
-			UG_ASSERT(0, "Cannot find fundamental function.");
 			return false;
 		}
-
 
 
 	protected:
@@ -370,11 +373,11 @@ class CoupledSystemDomainDiscretization : public IDomainDiscretization<typename 
 											typename geometry_traits<TElem>::iterator iterEnd,
 											matrix_type& mat, vector_type& rhs, const discrete_function_type& u);
 
-		bool clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, matrix_type& J, vector_type& d, const discrete_function_type& u, number time = 0.0);
-		bool clear_dirichlet_jacobian(			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, matrix_type& J, const discrete_function_type& u, number time = 0.0);
-		bool clear_dirichlet_defect(			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, vector_type& d, const discrete_function_type& u, number time = 0.0);
-		bool set_dirichlet_solution( 			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, vector_type& x, const discrete_function_type& u, number time = 0.0);
-		bool set_dirichlet_linear(				geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time = 0.0);
+		bool clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t sys, size_t loc_fct, int si, matrix_type& J, vector_type& d, const discrete_function_type& u, number time = 0.0);
+		bool clear_dirichlet_jacobian(			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t sys, size_t loc_fct, int si, matrix_type& J, const discrete_function_type& u, number time = 0.0);
+		bool clear_dirichlet_defect(			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t sys, size_t loc_fct, int si, vector_type& d, const discrete_function_type& u, number time = 0.0);
+		bool set_dirichlet_solution( 			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t sys, size_t loc_fct, int si, vector_type& x, const discrete_function_type& u, number time = 0.0);
+		bool set_dirichlet_linear(				geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t sys, size_t loc_fct, int si, matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time = 0.0);
 };
 
 } // end namespace ug

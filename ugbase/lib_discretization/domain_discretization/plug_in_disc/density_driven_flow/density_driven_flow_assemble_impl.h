@@ -115,17 +115,17 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	MathVector<dim> Darcy_vel, D_Darcy_vel_c[num_co], D_Darcy_vel_p[num_co];
 	number c_ip;
 	MathVector<dim> Dgrad;
-	for(uint i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
 		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
 
-		for(uint ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
 			const SD_Values<TElem>& sdv = scvf.sdv();
 
 			VecSet(grad_p_ip, 0.0); VecSet(grad_c_ip, 0.0);
 			c_ip = 0.0;
-			for(uint j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
 				VecScaleAppend(grad_p_ip, u(_P_,j), sdv.grad_global(j));
 				VecScaleAppend(grad_c_ip, u(_C_,j), sdv.grad_global(j));
@@ -135,7 +135,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 			compute_D_ip_Darcy_velocity(scvf, Darcy_vel, D_Darcy_vel_c, D_Darcy_vel_p, c_ip, grad_p_ip);
 			m_Mol_Diff_Tensor(D);
 
-			for(uint j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
 				////////////////////////////////////
 				// diffusiv term (central discretization)
@@ -170,11 +170,11 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 			// TODO: Something wrong here or in Newton solver, since Newton solver does not converge by quadratic rate if upwind is used
 			if(m_upwind_amount != 0.0)
 			{
-				uint up;
+				size_t up;
 				flux_c = m_upwind_amount * VecDot(Darcy_vel, scvf.normal());
 				if(flux_c >= 0.0) up = scvf.from(); else up = scvf.to();
 
-				for(uint j = 0; j < sdv.num_sh(); ++j)
+				for(size_t j = 0; j < sdv.num_sh(); ++j)
 				{
 					if(j == up) flux_c = m_upwind_amount * ( sdv.shape(up) * VecDot(Darcy_vel, scvf.normal()) );
 					else flux_c = 0.0;
@@ -192,7 +192,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 
 			///////////////////
 			///// flow equation
-			for(uint j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
 				flux_c = VecDot(D_Darcy_vel_c[j], scvf.normal());
 				flux_p = VecDot(D_Darcy_vel_p[j], scvf.normal());
@@ -231,7 +231,7 @@ DensityDrivenFlow<TDomain, TAlgebra, TElem>::
 assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	int co;
-	for(uint i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem>& scv = m_geo->scv(i);
 
@@ -259,17 +259,17 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	MathMatrix<dim,dim> D;
 	MathVector<dim> Dgrad_c_ip;
 	MathVector<dim> Darcy_vel;
-	for(uint i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
 		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
 
-		for(uint ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
 			const SD_Values<TElem>& sdv = scvf.sdv();
 
 			VecSet(grad_p_ip, 0.0); VecSet(grad_c_ip, 0.0);
 			c_ip = 0.0;
-			for(uint j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
 				VecScaleAppend(grad_p_ip, u(_P_,j), sdv.grad_global(j));
 				VecScaleAppend(grad_c_ip, u(_C_,j), sdv.grad_global(j));
@@ -341,7 +341,7 @@ DensityDrivenFlow<TDomain, TAlgebra, TElem>::
 assemble_element_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	int co;
-	for(uint i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem>& scv = m_geo->scv(i);
 

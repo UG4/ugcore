@@ -17,14 +17,6 @@
 namespace ug{
 
 
-enum CONV_DIFF_BND_TYPE {
-	CONV_DIFF_BND_NONE = 0,
-	CONV_DIFF_BND_DIRICHLET,
-	CONV_DIFF_BND_NEUMANN
-};
-
-
-
 template<typename TDomain, typename TAlgebra, typename TElem >
 class ConvectionDiffusionEquation {
 	public:
@@ -65,10 +57,10 @@ class ConvectionDiffusionEquation {
 	public:
 
 		// total number of shape functions on elements of type 'TElem'
-		inline uint num_sh(){return reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(){return reference_element_traits<TElem>::num_corners;};
 
 		// number of shape functions on elements of type 'TElem' for the 'i'-th fundamental function
-		inline uint num_sh(uint i){return reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(size_t loc_fct){return reference_element_traits<TElem>::num_corners;};
 
 		// prepares the loop. Must be called, before prepare_element can be used
 		inline IPlugInReturn prepare_element_loop();
@@ -144,70 +136,41 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
-	protected:
-		typedef bool (*Boundary_fct)(number&, const position_type&, number);
-
 	public:
-		ConvectionDiffusionEquationPlugIn(uint fct, domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs) :
+		ConvectionDiffusionEquationPlugIn(size_t fct, domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs) :
 			m_fct(fct),
 			m_Velocity("Velocity"),
 			m_ImpTriangle(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity),
 			m_ImpQuadrilateral(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity)
-			{
-				typename TDomain::subset_handler_type& sh = domain.get_subset_handler();
-				int num_sh = sh.num_subsets();
-				m_bndfct.resize(2);
-				m_bndtype.resize(2);
-				for(size_t fct = 0; fct < 2; ++fct)
-				{
-					m_bndfct[fct].resize(num_sh, NULL);
-					m_bndtype[fct].resize(num_sh, CONV_DIFF_BND_NONE);
-				}
-			};
+			{};
 
 	public:
 		/* GENERAL INFORMATIONS */
 		// number of fundamental functions required for this assembling
-		inline uint num_fct(){return 1;}
+		inline size_t num_fct(){return 1;}
 
 		// local shape function set required for the 'i'-th fundamental function
-		inline LocalShapeFunctionSetID local_shape_function_set(uint i)
+		inline LocalShapeFunctionSetID local_shape_function_set(size_t loc_fct)
 		{
-			UG_ASSERT(i < num_fct(), "Accessing fundamental function, that is not contained in this assembling.");
+			UG_ASSERT(loc_fct < num_fct(), "Accessing fundamental function, that is not contained in this assembling.");
 			return LSFS_LAGRANGEP1;
 		}
 
-		inline uint fct(uint i)
+		// global number of fundamental function of local fundamental function
+		inline size_t fct(size_t loc_fct)
 		{
-			UG_ASSERT(i == 0, "Convection Diffusion Assembling has only one component.");
+			UG_ASSERT(loc_fct == 0, "Convection Diffusion Assembling has only one component.");
 			return m_fct;
 		}
 
 	protected:
 		// number of fundamental function, where this assembling works
-		uint m_fct;
+		size_t m_fct;
 
 	public:
-	/* DIRICHLET BOUNDARY CONDITIONS */
-		// currently only dirichlet bnd cond for nodes
-		// must return true for dirichlet, false else
-		// fct is local fct number, i.e. 0,...,num_fct-1
-		// TODO: Implement others
-		inline bool boundary_value(number& value, const position_type& pos, uint fct, number time)
-		{
-			UG_ASSERT(fct < num_fct(), "Accessing function, that does not exist in this assembling.");
-			return m_bndfct(value, pos, fct, time);
-		}
+		bool register_exports(DataContainer& Cont){ return true;}
 
-		bool register_exports(DataContainer& Cont)
-		{
-			return true;
-		}
-
-		bool unregister_exports(DataContainer& Cont)
-		{
-			return true;
-		}
+		bool unregister_exports(DataContainer& Cont) {return true;}
 
 		bool register_imports(DataContainer& Cont)
 		{
@@ -221,7 +184,7 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 
 		bool unregister_imports(DataContainer& Cont)
 		{
-			if(Cont.register_item(m_Velocity) != true)
+			if(Cont.unregister_item(m_Velocity) != true)
 			{
 				UG_ASSERT(0, "Must work.");
 				return false;
@@ -232,62 +195,13 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 	protected:
 		DataImport<MathVector<dim>, MathVector<dim> > m_Velocity;
 
-	public:
-	/* DIRICHLET BOUNDARY CONDITIONS */
-		// currently only dirichlet bnd cond for nodes
-		// must return true for dirichlet, false else
-		// fct is local fct number, i.e. 0,...,num_fct-1
-		// TODO: Implement others
-		inline bool boundary_value(number& value, const position_type& pos, number time, int s, uint fct)
-		{
-			UG_ASSERT(fct < num_fct(), "Accessing function, that does not exist in this assembling.");
-			UG_ASSERT((uint)s < m_bndfct.size(), "Accessing function, that does not exist in this assembling.");
-			return (m_bndfct[fct][s])(value, pos, time);
-		}
-
-		// add bndtype and bndfunction to subset s for function fct
-		bool add_boundary_value(uint d, int s, uint fct, Boundary_fct func, CONV_DIFF_BND_TYPE type)
-		{
-			std::vector<int>::iterator iter = find(m_bnd_subset[d].begin(), m_bnd_subset[d].end(), s);
-			if(iter == m_bnd_subset[d].end())
-				m_bnd_subset[d].push_back(s);
-
-			m_bndtype[fct][s] = type;
-			m_bndfct[fct][s] = func;
-			return true;
-		}
-
-		// returns is subset is dirichlet for function fct
-		bool is_dirichlet(int s, uint fct) {return m_bndtype[fct][s] == CONV_DIFF_BND_DIRICHLET;}
-
-		uint num_bnd_subsets(uint d) {return m_bnd_subset[d].size();}
-		int bnd_subset(uint d, uint i) {return m_bnd_subset[d][i];}
-
-		uint num_elem_subsets(uint d) {return m_elem_subset[d].size();}
-		int elem_subset(uint d, uint i) {return m_elem_subset[d][i];}
-		bool add_elem_assemble_subset(uint d, int s)
-		{
-			std::vector<int>::iterator iter = find(m_elem_subset[d].begin(), m_elem_subset[d].end(), s);
-			if(iter == m_elem_subset[d].end())
-				m_elem_subset[d].push_back(s);
-			return true;
-		}
-
-	protected:
-		std::vector<int> m_bnd_subset[dim];
-		std::vector<int> m_elem_subset[dim+1]; // 3 = max dimensions
-
-		std::vector<std::vector<CONV_DIFF_BND_TYPE> > m_bndtype;
-		std::vector<std::vector<Boundary_fct> > m_bndfct;
-
-
 	/* ELEMENT WISE ASSEMBLNG */
 	public:
 		// support assembling on triangles
-		inline uint num_sh(Triangle* elem)
+		inline size_t num_sh(Triangle* elem)
 		{ return m_ImpTriangle.num_sh();};
 
-		inline uint num_sh(Triangle* elem, uint fct)
+		inline size_t num_sh(Triangle* elem, size_t fct)
 		{ return m_ImpTriangle.num_sh(fct);};
 
 		inline IPlugInReturn prepare_element_loop(Triangle* elem)
@@ -320,10 +234,10 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 
 	public:
 		// support assembling on triangles
-		inline uint num_sh(Quadrilateral* elem)
+		inline size_t num_sh(Quadrilateral* elem)
 		{ return m_ImpQuadrilateral.num_sh();};
 
-		inline uint num_sh(Quadrilateral* elem, uint fct)
+		inline size_t num_sh(Quadrilateral* elem, size_t fct)
 		{ return m_ImpQuadrilateral.num_sh(fct);};
 
 		inline IPlugInReturn prepare_element_loop(Quadrilateral* elem)

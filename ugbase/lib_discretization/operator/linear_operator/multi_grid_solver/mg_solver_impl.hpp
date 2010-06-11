@@ -161,6 +161,7 @@ lmgc(uint l)
 
 		// solve on base level
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Apply Coarse Grid solver ... ");
+		m_c[l]->set(0.0);
 		m_baseSolver.apply(*m_d[l], *m_c[l]);
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 

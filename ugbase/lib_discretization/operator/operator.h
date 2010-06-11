@@ -221,9 +221,10 @@ class IDiscreteLinearizedOperatorInverse
 		}
 
 		// prepare Operator
-		virtual bool prepare(codomain_function_type& u, domain_function_type& d, codomain_function_type& c)
+		virtual bool prepare(codomain_function_type& u, domain_function_type& d_nl, codomain_function_type& c_nl)
 		{
 			// TODO: Do we assume, that operator has been prepared? Do we have to prepare it here?
+			// m_A->prepare(u, d_nl, c_nl);
 
 			// init iterator B for operator A
 			if(m_iter->init(*m_A) != true)
@@ -232,8 +233,8 @@ class IDiscreteLinearizedOperatorInverse
 				return false;
 			}
 
-			// prepare iterator B for d and c
-			if(m_iter->prepare(u, d, c) != true)
+			// prepare iterator B for d_nl and c_nl
+			if(m_iter->prepare(u, d_nl, c_nl) != true)
 			{
 				UG_LOG("ERROR in 'DiscreteLinearizedOperatorInverse::prepare': Cannot prepare Iterator Operator.\n");
 				return false;

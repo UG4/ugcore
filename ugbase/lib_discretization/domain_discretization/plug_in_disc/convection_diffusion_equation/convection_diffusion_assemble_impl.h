@@ -36,11 +36,11 @@ prepare_element_loop()
 	m_aaPos = m_domain.get_position_accessor();
 
 	typename std::vector<MathVector<TDomain::dim> > pos;
-	for(uint i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
 		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
 
-		for(uint ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
 			pos.push_back(scvf.local_ip());
 		}
@@ -99,18 +99,18 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 {
 
 	static const int dim = TDomain::dim;
-	std::size_t ip_pos = 0;
+	size_t ip_pos = 0;
 
 	number flux;
 	//number shape_u;
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v, lin_Defect;
 	MathVector<dim> Dgrad;
-	for(uint i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
 		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
 
-		for(uint ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
 			const SD_Values<TElem>& sdv = scvf.sdv();
 
@@ -119,7 +119,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 
 			//v = m_Velocity[ip_pos];
 
-			for(uint j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
 				////////////////////////////////////
 				// diffusiv term (central discretization)
@@ -148,7 +148,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 					if(m_Velocity.num_sh() > 0)
 					{
 						shape_u = 0.0;
-						for(uint j = 0; j < sdv.num_sh(); ++j)
+						for(size_t j = 0; j < sdv.num_sh(); ++j)
 						{
 							shape_u += u[j] * sdv.shape(j);
 						}
@@ -186,7 +186,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	}
 	int co;
 	number reac_val;
-	for(uint i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem>& scv = m_geo->scv(i);
 
@@ -208,7 +208,7 @@ ConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
 assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	int co;
-	for(uint i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem>& scv = m_geo->scv(i);
 
@@ -228,7 +228,7 @@ ConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
 assemble_element_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 	static const int dim = TDomain::dim;
-//	std::size_t ip_pos = 0;
+//	size_t ip_pos = 0;
 
 	number flux;
 	MathVector<dim> grad_u;
@@ -236,17 +236,17 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v;
 	MathVector<dim> Dgrad_u;
-	for(uint i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
 		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
 
-		for(uint ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
 			const SD_Values<TElem>& sdv = scvf.sdv();
 
 			VecSet(grad_u, 0.0);
 			shape_u = 0.0;
-			for(uint j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
 				VecScaleAppend(grad_u, u[j], sdv.grad_global(j));
 				shape_u += u[j] * sdv.shape(j);
@@ -295,7 +295,7 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	}
 	int co;
 	number reac_val;
-	for(uint i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem>& scv = m_geo->scv(i);
 
@@ -317,7 +317,7 @@ ConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
 assemble_element_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	int co;
-	for(uint i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem>& scv = m_geo->scv(i);
 
@@ -337,7 +337,7 @@ ConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
 assemble_element_f(local_vector_type& d, number time)
 {
 	number fvalue = 0.0;
-	for(uint i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem>& scv = m_geo->scv(i);
 

@@ -16,38 +16,28 @@ bool
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
 clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin,
 									geometry_traits<Vertex>::iterator iterEnd,
+									size_t sys, size_t loc_fct, int si,
 									matrix_type& J, vector_type& d,
 									const discrete_function_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-	grid_type& grid = *const_cast<grid_type*>(&u.get_domain().get_grid());
 
 	local_index_type ind(1);
 	local_index_type glob_ind;
 	local_vector_type dirichlet_vals;
 
-	number val;
 	position_type corner;
+	size_t glob_fct = m_systems[sys]->fct(loc_fct);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		VertexBase *vert = *iter;
 		corner = aaPos[vert];
 
-		if(IsBoundaryVertex2D(grid, vert))
-		{
-			for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
-			{
-			for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
-			{
-				if(u.get_multi_indices_of_geom_obj(vert, m_systems[sys]->fct(i), ind) != 1) assert(0);
-				if(m_systems[sys]->boundary_value(val, corner, i, time))
-				{
-					glob_ind.push_back(ind[0]);
-					dirichlet_vals.push_back(0.0);
-				}
-			}}
-		}
+		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
+
+		glob_ind.push_back(ind[0]);
+		dirichlet_vals.push_back(0.0);
 	}
 
 	if(d.set(dirichlet_vals, glob_ind) != true)
@@ -64,38 +54,28 @@ bool
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
 clear_dirichlet_defect(	geometry_traits<Vertex>::iterator iterBegin,
 						geometry_traits<Vertex>::iterator iterEnd,
+						size_t sys, size_t loc_fct, int si,
 						vector_type& d,
 						const discrete_function_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-	grid_type& grid = *const_cast<grid_type*>(&u.get_domain().get_grid());
 
 	local_index_type ind(1);
 	local_index_type glob_ind;
 	local_vector_type dirichlet_vals;
 
-	number val;
 	position_type corner;
+	size_t glob_fct = m_systems[sys]->fct(loc_fct);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		VertexBase *vert = *iter;
 		corner = aaPos[vert];
 
-		if(IsBoundaryVertex2D(grid, vert))
-		{
-			for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
-			{
-			for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
-			{
-				if(u.get_multi_indices_of_geom_obj(vert, m_systems[sys]->fct(i), ind) != 1) assert(0);
-				if(m_systems[sys]->boundary_value(val, corner, i, time))
-				{
-					glob_ind.push_back(ind[0]);
-					dirichlet_vals.push_back(0.0);
-				}
-			}}
-		}
+		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
+
+		glob_ind.push_back(ind[0]);
+		dirichlet_vals.push_back(0.0);
 	}
 
 	if(d.set(dirichlet_vals, glob_ind) != true)
@@ -109,36 +89,26 @@ bool
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
 clear_dirichlet_jacobian(	geometry_traits<Vertex>::iterator iterBegin,
 							geometry_traits<Vertex>::iterator iterEnd,
+							size_t sys, size_t loc_fct, int si,
 							matrix_type& J,
 							const discrete_function_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-	grid_type& grid = *const_cast<grid_type*>(&u.get_domain().get_grid());
 
 	local_index_type ind(1);
 	local_index_type glob_ind;
 
-	number val;
 	position_type corner;
+	size_t glob_fct = m_systems[sys]->fct(loc_fct);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		VertexBase *vert = *iter;
 		corner = aaPos[vert];
 
-		if(IsBoundaryVertex2D(grid, vert))
-		{
-			for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
-			{
-			for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
-			{
-				if(u.get_multi_indices_of_geom_obj(vert, m_systems[sys]->fct(i), ind) != 1) assert(0);
-				if(m_systems[sys]->boundary_value(val, corner, i, time))
-				{
-					glob_ind.push_back(ind[0]);
-				}
-			}}
-		}
+		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
+
+		glob_ind.push_back(ind[0]);
 	}
 
 	if(J.set_dirichlet_rows(glob_ind) != true)
@@ -152,11 +122,11 @@ bool
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
 set_dirichlet_solution(	geometry_traits<Vertex>::iterator iterBegin,
 						geometry_traits<Vertex>::iterator iterEnd,
+						size_t sys, size_t loc_fct, int si,
 						vector_type& x,
 						const discrete_function_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-	grid_type& grid = *const_cast<grid_type*>(&u.get_domain().get_grid());
 
 	local_index_type ind(1);
 	local_index_type glob_ind;
@@ -164,25 +134,18 @@ set_dirichlet_solution(	geometry_traits<Vertex>::iterator iterBegin,
 
 	number val;
 	position_type corner;
+	size_t glob_fct = m_systems[sys]->fct(loc_fct);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		VertexBase *vert = *iter;
 		corner = aaPos[vert];
 
-		if(IsBoundaryVertex2D(grid, vert))
+		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
+		if(m_systems[sys]->boundary_value(val, corner, time, si, loc_fct))
 		{
-			for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
-			{
-			for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
-			{
-				if(u.get_multi_indices_of_geom_obj(vert, m_systems[sys]->fct(i), ind) != 1) assert(0);
-				if(m_systems[sys]->boundary_value(val, corner, i, time))
-				{
-					glob_ind.push_back(ind[0]);
-					dirichlet_vals.push_back(val);
-				}
-			}}
+			glob_ind.push_back(ind[0]);
+			dirichlet_vals.push_back(val);
 		}
 	}
 
@@ -198,11 +161,11 @@ bool
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
 set_dirichlet_linear(	geometry_traits<Vertex>::iterator iterBegin,
 						geometry_traits<Vertex>::iterator iterEnd,
+						size_t sys, size_t loc_fct, int si,
 						matrix_type& mat, vector_type& rhs,
 						const discrete_function_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-	grid_type& grid = *const_cast<grid_type*>(&u.get_domain().get_grid());
 
 	local_index_type ind(1);
 	local_index_type glob_ind;
@@ -210,26 +173,18 @@ set_dirichlet_linear(	geometry_traits<Vertex>::iterator iterBegin,
 
 	number val;
 	position_type corner;
+	size_t glob_fct = m_systems[sys]->fct(loc_fct);
 
 	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		VertexBase *vert = *iter;
 		corner = aaPos[vert];
 
-		if(IsBoundaryVertex2D(grid, vert))
+		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
+		if(m_systems[sys]->boundary_value(val, corner, time, si, loc_fct))
 		{
-			for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
-			{
-			for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
-			{
-				if(u.get_multi_indices_of_geom_obj(vert, m_systems[sys]->fct(i), ind) != 1) assert(0);
-				if(m_systems[sys]->boundary_value(val, corner, i, time))
-				{
-					dirichlet_vals.push_back(val);
-					glob_ind.push_back(ind[0]);
-
-				}
-			}}
+			dirichlet_vals.push_back(val);
+			glob_ind.push_back(ind[0]);
 		}
 	}
 
@@ -255,7 +210,7 @@ assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	// element
 	TElem* elem = NULL;
 
-	std::size_t num_systems = m_systems.size();
+	size_t num_systems = m_systems.size();
 	std::vector<uint> num_sh(num_systems);
 
 	std::vector<local_index_type> glob_ind(num_systems);
@@ -265,7 +220,7 @@ assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	std::vector<local_matrix_type> loc_J(num_systems);
 	std::vector<local_matrix_type> loc_J_temp(num_systems);
 
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		// get total number of DoF's on this element type 'TElem'
 		num_sh[sys] = m_systems[sys]->num_sh(elem);
@@ -288,7 +243,7 @@ assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 		elem = *iter;
 
 		// loop all systems
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset index offset
 			uint offset = 0;
@@ -310,7 +265,7 @@ assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 		m_ElemDataContainer.compute(true);
 
 		// loop all systems
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset local matrix and rhs
 			loc_d[sys].set(0.0);
@@ -348,7 +303,7 @@ assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	}
 
 	// finish element loop for each system
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		m_systems[sys]->finish_element_loop(elem);
 	}
@@ -372,7 +327,7 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 	// clear identification ( may be skipped if identification is the same for all GeomObject types)
 	m_ElemDataContainer.clear_identification();
 
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		// prepare element loop:
 		// Imports: set_positions and num_eq
@@ -384,7 +339,7 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 	m_ElemDataContainer.identify_exports();
 
 
-	std::size_t num_sys = m_systems.size();
+	size_t num_sys = m_systems.size();
 	std::vector<uint> num_sh(num_sys);
 
 	std::vector<local_index_type> glob_ind(num_sys);
@@ -395,7 +350,7 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 	//std::vector<std::vector<local_matrix_type> > loc_J_coupl(num_sys);
 
 	// allocating memory
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		// get total number of DoF's on this element type 'TElem'
 		num_sh[sys] = m_systems[sys]->num_sh(elem);
@@ -412,11 +367,11 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 
 		// allocate matrix for off-diagonal part (induced by coupling)
 /*		loc_J_coupl[sys].resize(m_systems[sys]->num_imports());
-		for(std::size_t i = 0; i < m_systems[sys]->num_imports(); ++i)
+		for(size_t i = 0; i < m_systems[sys]->num_imports(); ++i)
 		{
 			DataImport* Imp = m_systems[sys]->import(i);
 
-			for(std::size_t s = 0; s < Imp->num_sys(); ++s)
+			for(size_t s = 0; s < Imp->num_sys(); ++s)
 			{
 				loc_J_coupl[sys][i][s].resize(num_sh[sys], num_sh[Imp->sys(s)]);
 			}
@@ -430,7 +385,7 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 		elem = *iter;
 
 		// loop all systems
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset index offset
 			uint offset = 0;
@@ -452,7 +407,7 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 
 		m_ElemDataContainer.compute(true);
 
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset local matrix and rhs
 			loc_J[sys].set(0.0);
@@ -474,18 +429,18 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 			// compute matrix entries induced by coupling
 			loc_J_coupl[sys].set(0.0);
 
-			for(std::size_t i = 0; i < m_systems[sys]->num_imports(); ++i)
+			for(size_t i = 0; i < m_systems[sys]->num_imports(); ++i)
 			{
 				DataImport* Imp = m_systems[sys]->import(i);
 
-				for(std::size_t r = 0; r < Imp->num_sys(); ++r)
+				for(size_t r = 0; r < Imp->num_sys(); ++r)
 				{
 					s = Imp->sys(r);
-					for(std::size_t k = 0; k < Imp->num_sh(r); ++k)
+					for(size_t k = 0; k < Imp->num_sh(r); ++k)
 					{
-						for(std::size_t j = 0; j < num_sh[sys]; ++j)
+						for(size_t j = 0; j < num_sh[sys]; ++j)
 						{
-							for(std::size_t ip = 0; ip < Imp->num_ip(); ++ip)
+							for(size_t ip = 0; ip < Imp->num_ip(); ++ip)
 							{
 
 								loc_J_coupl[sys][i][s](j, k) += Imp->defect(j, ip) * (*Imp)(s, ip, k);
@@ -503,7 +458,7 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 	}
 
 	// finish element loop for each system
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		m_systems[sys]->finish_element_loop(elem);
 	}
@@ -524,7 +479,7 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	// element
 	TElem* elem = NULL;
 
-	std::size_t num_systems = m_systems.size();
+	size_t num_systems = m_systems.size();
 	std::vector<uint> num_sh(num_systems);
 
 	std::vector<local_index_type> glob_ind(num_systems);
@@ -533,7 +488,7 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	std::vector<local_vector_type> loc_d_temp(num_systems);
 
 	// prepare each systems
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		// get total number of DoF's on this element type 'TElem'
 		num_sh[sys] = m_systems[sys]->num_sh(elem);
@@ -555,7 +510,7 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 		elem = *iter;
 
 		// loop all systems
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset index offset
 			uint offset = 0;
@@ -576,7 +531,7 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 
 		m_ElemDataContainer.compute(false);
 
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset local matrix and rhs
 			loc_d[sys].set(0.0);
@@ -602,7 +557,7 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	}
 
 	// finish element loop
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		m_systems[sys]->finish_element_loop(elem);
 	}
@@ -624,7 +579,7 @@ assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 	// element
 	TElem* elem = NULL;
 
-	std::size_t num_systems = m_systems.size();
+	size_t num_systems = m_systems.size();
 	std::vector<uint> num_sh(num_systems);
 
 	std::vector<local_index_type> glob_ind(num_systems);
@@ -632,7 +587,7 @@ assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 	std::vector<local_vector_type> loc_rhs(num_systems);
 	std::vector<local_matrix_type> loc_mat(num_systems);
 
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		// get total number of DoF's on this element type 'TElem'
 		num_sh[sys] = m_systems[sys]->num_sh(elem);
@@ -654,7 +609,7 @@ assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 		elem = *iter;
 
 		// loop all systems
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset index offset
 			uint offset = 0;
@@ -675,7 +630,7 @@ assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 
 		m_ElemDataContainer.compute(true);
 
-		for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+		for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		{
 			// reset local matrix and rhs
 			loc_mat[sys].set(0.0);
@@ -694,7 +649,7 @@ assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 	}
 
 	// finish element loop
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		if(m_systems[sys]->finish_element_loop(elem) != IPlugInReturn_OK) return false;
 	}
@@ -736,7 +691,7 @@ CoupledSystemDomainDiscretization<TDiscreteFunction>::
 assemble_solution(discrete_function_type& u)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
 		{
@@ -748,17 +703,23 @@ assemble_solution(discrete_function_type& u)
 		}
 	}
 
-	uint si = 0;
-	UG_ASSERT(u.num_subsets() == 1, "Currently only one subset allowed.\n");
-
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes in solution vector ...");
-	if(set_dirichlet_solution(u.template begin<Vertex>(si), u.template end<Vertex>(si), u.get_vector(), u) == false)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
-		std::cout << "Error in set_dirichlet_nodes, aborting." << std::endl;
-		return IAssemble_ERROR;
-	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+		for(size_t i = 0; i < m_systems[sys]->num_bnd_subsets(0); ++i)
+		{
+			int si = m_systems[sys]->bnd_subset(0, i);
+			for(size_t fct = 0; fct < m_systems[sys]->num_fct(); ++fct)
+			{
+				if(!m_systems[sys]->is_dirichlet(si, fct)) continue;
 
+				if(set_dirichlet_solution(u.template begin<Vertex>(si), u.template end<Vertex>(si), sys, fct, si, u.get_vector(), u) == false)
+				{
+					UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
+					return IAssemble_ERROR;
+				}
+			}
+		}
+	}
 	return IAssemble_OK;
 }
 
@@ -770,7 +731,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type
 	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- START: 'assemble_linear' (level = " << u.get_level() << ") ----\n");
 
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
 		{
@@ -785,29 +746,39 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type
 	uint si = 0;
 	UG_ASSERT(u.num_subsets() == 1, "Currently only one subset allowed.\n");
 
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
-	if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
-	{
-		UG_LOG("Error in assemble_linear, aborting.\n");
-		return IAssemble_ERROR;
-	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
+		if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
+		{
+			UG_LOG("Error in assemble_linear, aborting.\n");
+			return IAssemble_ERROR;
+		}
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
 
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
-	if(assemble_linear<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u)==false)
-	{
-		UG_LOG("Error in assemble_linear, aborting.\n");
-		return IAssemble_ERROR;
-	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
+		if(assemble_linear<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u)==false)
+		{
+			UG_LOG("Error in assemble_linear, aborting.\n");
+			return IAssemble_ERROR;
+		}
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
 
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes ..." );
-	if(set_dirichlet_linear(u.template begin<Vertex>(si), u.template end<Vertex>(si), mat, rhs, u) == false)
+
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
-		UG_LOG("Error in assemble_linear, aborting.\n");
-		return IAssemble_ERROR;
+		for(size_t i = 0; i < m_systems[sys]->num_bnd_subsets(0); ++i)
+		{
+			int si = m_systems[sys]->bnd_subset(0, i);
+			for(size_t fct = 0; fct < m_systems[sys]->num_fct(); ++fct)
+			{
+				if(!m_systems[sys]->is_dirichlet(si, fct)) continue;
+				if(set_dirichlet_linear(u.template begin<Vertex>(si), u.template end<Vertex>(si), sys, fct, si, mat, rhs, u) == false)
+				{
+					UG_LOG("Error in assemble_linear, aborting.\n");
+					return IAssemble_ERROR;
+				}
+			}
+		}
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- END: 'assemble_linear' ----\n");
 	return IAssemble_OK;
@@ -819,7 +790,7 @@ CoupledSystemDomainDiscretization<TDiscreteFunction>::
 assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
 		{
@@ -834,29 +805,39 @@ assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function
 	uint si = 0;
 	UG_ASSERT(u.num_subsets() == 1, "Currently only one subset allowed.\n");
 
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
-	if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
-	{
-		std::cout << "Error in assemble_linear, aborting." << std::endl;
-		return IAssemble_ERROR;
-	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
+		if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
+		{
+			UG_LOG("Error in assemble_linear, aborting.\n");
+			return IAssemble_ERROR;
+		}
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
-	if(assemble_jacobian_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, d, u, time, s_m, s_a)==false)
-	{
-		std::cout << "Error in assemble_linear, aborting." << std::endl;
-		return IAssemble_ERROR;
-	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
+		if(assemble_jacobian_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, d, u, time, s_m, s_a)==false)
+		{
+			UG_LOG("Error in assemble_linear, aborting.\n");
+			return IAssemble_ERROR;
+		}
+		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes ...");
-	if(clear_dirichlet_jacobian_defect(u.template begin<Vertex>(si),u.template end<Vertex>(si), J, d, u, time) == false)
+
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
-		std::cout << "Error in set_dirichlet_nodes, aborting." << std::endl;
-		return IAssemble_ERROR;
+		for(size_t i = 0; i < m_systems[sys]->num_bnd_subsets(0); ++i)
+		{
+			int si = m_systems[sys]->bnd_subset(0, i);
+			for(size_t fct = 0; fct < m_systems[sys]->num_fct(); ++fct)
+			{
+				if(!m_systems[sys]->is_dirichlet(si, fct)) continue;
+				if(clear_dirichlet_jacobian_defect(u.template begin<Vertex>(si),u.template end<Vertex>(si), J, d, u, time) == false)
+				{
+					UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
+					return IAssemble_ERROR;
+				}
+			}
+		}
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
 
 	return IAssemble_OK;
 }
@@ -869,7 +850,7 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- START: 'assembling_jacobian' (time = " << time << ", s_m = " << s_m << ", s_a = " << s_a << ", level = " << 	u.get_level() << ") ----\n");
 
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
 		{
@@ -887,26 +868,26 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 	if(assemble_jacobian<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, time, s_m, s_a)==false)
 	{
-		UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting." << std::endl);
+		UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");
 		return IAssemble_ERROR;
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
 	if(assemble_jacobian<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, u, time, s_m, s_a)==false)
 	{
-		UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting." << std::endl);
+		UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");
 		return IAssemble_ERROR;
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes ...");
 	if(clear_dirichlet_jacobian(u.template begin<Vertex>(si),u.template end<Vertex>(si), J, u, time) == false)
 	{
-		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting." << std::endl);
+		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
 		return IAssemble_ERROR;
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- END: 'assembling_jacobian' ----\n");
 
@@ -919,7 +900,7 @@ CoupledSystemDomainDiscretization<TDiscreteFunction>::
 assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
 		{
@@ -937,26 +918,26 @@ assemble_defect(vector_type& d, const discrete_function_type& u, number time, nu
 	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 	if(assemble_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, time, s_m, s_a)==false)
 	{
-		std::cout << "Error in assemble_linear, aborting." << std::endl;
+		UG_LOG("Error in assemble_linear, aborting.\n");
 		return IAssemble_ERROR;
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
 	if(assemble_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, time, s_m, s_a)==false)
 	{
-		std::cout << "Error in assemble_linear, aborting." << std::endl;
+		UG_LOG("Error in assemble_linear, aborting.\n");
 		return IAssemble_ERROR;
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes ...");
 	if(clear_dirichlet_defect(u.template begin<Vertex>(si),u.template end<Vertex>(si), d, u, time) == false)
 	{
-		std::cout << "Error in set_dirichlet_nodes, aborting." << std::endl;
+		UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
 		return IAssemble_ERROR;
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
 	return IAssemble_OK;
 }
@@ -975,7 +956,7 @@ CoupledSystemDomainDiscretization<TDiscreteFunction>::
 assemble_solution(discrete_function_type& u, number time)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(std::size_t sys = 0; sys < m_systems.size(); ++sys)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
 		for(uint i = 0; i < m_systems[sys]->num_fct(); i++)
 		{
@@ -993,10 +974,10 @@ assemble_solution(discrete_function_type& u, number time)
 	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes in solution vector ...");
 	if(set_dirichlet_solution(u.template begin<Vertex>(si), u.template end<Vertex>(si), u.get_vector(), u, time) == false)
 	{
-		std::cout << "Error in set_dirichlet_nodes, aborting." << std::endl;
+		UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
 		return IAssemble_ERROR;
 	}
-	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done." << std::endl);
+	UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 
 	return IAssemble_OK;
 }

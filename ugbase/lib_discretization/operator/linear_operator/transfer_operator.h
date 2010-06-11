@@ -173,6 +173,7 @@ class ProlongationOperator : public IDiscreteLinearOperator<TDiscreteFunction, T
 							continue;
 						}
 						if(v.fct_is_def_in_subset(fct, subsetIndex) != true) continue;
+						//UG_LOG("Subset " << subsetIndex << " is NOT dirichlet for this fct " << fct << " !!!!!!\n");
 
 						// skip boundary nodes
 /*						corner = aaPos[*iter];

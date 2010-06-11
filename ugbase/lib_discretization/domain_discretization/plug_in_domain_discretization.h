@@ -19,6 +19,7 @@
 // library intern headers
 #include "lib_discretization/domain_discretization/domain_discretization_interface.h"
 #include "lib_discretization/domain_discretization/disc_helper/fvgeom.h"
+#include "lib_discretization/domain_discretization/dirichlet_bnd_values.h"
 
 namespace ug {
 
@@ -64,8 +65,8 @@ class PlugInDomainDiscretization : public IDomainDiscretization<typename TDiscre
 		typedef typename matrix_type::local_index_type local_index_type;
 
 	public:
-		PlugInDomainDiscretization(TElemDisc<domain_type, algebra_type>& elemDisc) :
-		  m_elemDisc(elemDisc)
+		PlugInDomainDiscretization(TElemDisc<domain_type, algebra_type>& elemDisc, DirichletBNDValues<discrete_function_type>& bndDisc, domain_type& domain) :
+		  m_elemDisc(elemDisc), m_dirichletDisc(bndDisc), m_domain(domain)
 		{};
 
 		// Assemble routines for time independent problems
@@ -82,18 +83,8 @@ class PlugInDomainDiscretization : public IDomainDiscretization<typename TDiscre
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a);
 		IAssembleReturn assemble_solution(discrete_function_type& u, number time);
 
-		virtual std::size_t num_fct() const
-		{
-			return m_elemDisc.num_fct();
-		}
-
-		virtual bool is_dirichlet(int s, size_t fct)
-		{
-			//UG_LOG("Checking Dirichlet value");
-			return m_elemDisc.is_dirichlet(s, fct);
-		}
-
 	protected:
+		// Element assembling routines
 		template <typename TElem>
 		bool assemble_jacobian_defect	(	typename geometry_traits<TElem>::iterator iterBegin,
 											typename geometry_traits<TElem>::iterator iterEnd,
@@ -115,198 +106,33 @@ class PlugInDomainDiscretization : public IDomainDiscretization<typename TDiscre
 											typename geometry_traits<TElem>::iterator iterEnd,
 											matrix_type& mat, vector_type& rhs, const discrete_function_type& u);
 
-		bool clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t fct, int si,matrix_type& J,vector_type& d, const discrete_function_type& u, number time = 0.0);
-		bool clear_dirichlet_jacobian(			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t fct, int si,matrix_type& J, const discrete_function_type& u, number time = 0.0);
-		bool clear_dirichlet_defect(			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t fct, int si,vector_type& d, const discrete_function_type& u, number time = 0.0);
-		bool set_dirichlet_solution( 			geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t fct, int si,vector_type& x, const discrete_function_type& u, number time = 0.0);
-		bool set_dirichlet_linear(				geometry_traits<Vertex>::iterator iterBegin, geometry_traits<Vertex>::iterator iterEnd, size_t fct, int si,matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time = 0.0);
-
 		TElemDisc<domain_type, algebra_type>& m_elemDisc;
+
+
+	public:
+		virtual size_t num_fct() const{ return m_elemDisc.num_fct();}
+
+		size_t num_elem_subsets(size_t d) {return m_elem_subset[d].size();}
+		int elem_subset(size_t d, size_t i) {return m_elem_subset[d][i];}
+		bool add_elem_assemble_subset(size_t d, int s)
+		{
+			std::vector<int>::iterator iter = find(m_elem_subset[d].begin(), m_elem_subset[d].end(), s);
+			if(iter == m_elem_subset[d].end())
+				m_elem_subset[d].push_back(s);
+			return true;
+		}
+
+	protected:
+		std::vector<int> m_elem_subset[domain_type::dim+1]; // 3 = max dimensions
+
+	protected:
+		DirichletBNDValues<discrete_function_type>& m_dirichletDisc;
+
+		virtual bool is_dirichlet(int si, size_t fct) {	return m_dirichletDisc.is_dirichlet(si, fct);}
+
+		domain_type& m_domain;
 };
 
-
-
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin,
-									geometry_traits<Vertex>::iterator iterEnd,
-									size_t loc_fct, int si,
-									matrix_type& J, vector_type& d,
-									const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	position_type corner;
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, m_elemDisc.fct(loc_fct), ind) != 1) assert(0);
-
-		glob_ind.push_back(ind[0]);
-		dirichlet_vals.push_back(0.0);
-	}
-
-	if(d.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	if(J.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-clear_dirichlet_defect(	geometry_traits<Vertex>::iterator iterBegin,
-						geometry_traits<Vertex>::iterator iterEnd,
-						size_t loc_fct, int si,
-						vector_type& d,
-						const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	position_type corner;
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, m_elemDisc.fct(loc_fct), ind) != 1) assert(0);
-
-		glob_ind.push_back(ind[0]);
-		dirichlet_vals.push_back(0.0);
-	}
-
-	if(d.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-clear_dirichlet_jacobian(	geometry_traits<Vertex>::iterator iterBegin,
-							geometry_traits<Vertex>::iterator iterEnd,
-							size_t loc_fct, int si,
-							matrix_type& J,
-							const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-
-	position_type corner;
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, m_elemDisc.fct(loc_fct), ind) != 1) assert(0);
-
-		glob_ind.push_back(ind[0]);
-	}
-
-	if(J.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-set_dirichlet_solution(	geometry_traits<Vertex>::iterator iterBegin,
-						geometry_traits<Vertex>::iterator iterEnd,
-						size_t loc_fct, int si,
-						vector_type& x,
-						const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	number val;
-	position_type corner;
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, m_elemDisc.fct(loc_fct), ind) != 1) assert(0);
-
-		if(m_elemDisc.boundary_value(val, corner, time, si, loc_fct))
-		{
-			glob_ind.push_back(ind[0]);
-			dirichlet_vals.push_back(val);
-		}
-	}
-
-	if(x.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-set_dirichlet_linear(	geometry_traits<Vertex>::iterator iterBegin,
-						geometry_traits<Vertex>::iterator iterEnd,
-						size_t loc_fct, int si,
-						matrix_type& mat, vector_type& rhs,
-						const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	number val;
-	position_type corner;
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, m_elemDisc.fct(loc_fct), ind) != 1) assert(0);
-		if(m_elemDisc.boundary_value(val, corner, time, si, loc_fct))
-		{
-			dirichlet_vals.push_back(val);
-			glob_ind.push_back(ind[0]);
-		}
-	}
-
-	if(rhs.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	if(mat.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
-	return true;
-}
 
 // assemble elements of type TElem in d dimensions
 template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
@@ -647,21 +473,10 @@ assemble_solution(discrete_function_type& u)
 		}
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_bnd_subsets(0); ++i)
+	if(m_dirichletDisc.set_dirichlet_solution(u) != true)
 	{
-		int si = m_elemDisc.bnd_subset(0, i);
-
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes in solution vector ...");
-		for(size_t fct = 0; fct < m_elemDisc.num_fct(); ++fct)
-		{
-			if(!m_elemDisc.is_dirichlet(si, fct)) continue;
-			if(set_dirichlet_solution(u.template begin<Vertex>(si), u.template end<Vertex>(si), fct, si, u.get_vector(), u) == false)
-			{
-				UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
-				return IAssemble_ERROR;
-			}
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
+		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
+		return IAssemble_ERROR;
 	}
 
 	return IAssemble_OK;
@@ -684,9 +499,9 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type
 		}
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_elem_subsets(2); ++i)
+	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
-		int si = m_elemDisc.elem_subset(2, i);
+		int si = elem_subset(2, i);
 
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
@@ -705,21 +520,10 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_bnd_subsets(0); ++i)
+	if(m_dirichletDisc.set_dirichlet_linear(mat, rhs, u) != true)
 	{
-		int si = m_elemDisc.bnd_subset(0, i);
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes in solution vector ...");
-		for(size_t fct = 0; fct < m_elemDisc.num_fct(); ++fct)
-		{
-			if(!m_elemDisc.is_dirichlet(si, fct)) continue;
-			UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes ..." );
-			if(set_dirichlet_linear(u.template begin<Vertex>(si), u.template end<Vertex>(si), fct, si, mat, rhs, u) == false)
-			{
-				UG_LOG("Error in assemble_linear, aborting.\n");
-				return IAssemble_ERROR;
-			}
-			UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
-		}
+		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
+		return IAssemble_ERROR;
 	}
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- END: 'assemble_linear' ----\n");
@@ -741,9 +545,9 @@ assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function
 		}
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_elem_subsets(2); ++i)
+	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
-		int si = m_elemDisc.elem_subset(2, i);
+		int si = elem_subset(2, i);
 
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
@@ -762,22 +566,10 @@ assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_bnd_subsets(0); ++i)
+	if(m_dirichletDisc.clear_dirichlet_jacobian_defect(J, d, u, time) != true)
 	{
-		int si = m_elemDisc.bnd_subset(0, i);
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes in solution vector ...");
-		for(size_t fct = 0; fct < m_elemDisc.num_fct(); ++fct)
-		{
-			if(!m_elemDisc.is_dirichlet(si, fct)) continue;
-
-			UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes ...");
-			if(clear_dirichlet_jacobian_defect(u.template begin<Vertex>(si),u.template end<Vertex>(si), fct, si, J, d, u, time) == false)
-			{
-				UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
-				return IAssemble_ERROR;
-			}
-			UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
-		}
+		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
+		return IAssemble_ERROR;
 	}
 
 	return IAssemble_OK;
@@ -800,9 +592,9 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 		}
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_elem_subsets(2); ++i)
+	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
-		int si = m_elemDisc.elem_subset(2, i);
+		int si = elem_subset(2, i);
 
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_jacobian<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, time, s_m, s_a)==false)
@@ -821,22 +613,10 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_bnd_subsets(0); ++i)
+	if(m_dirichletDisc.clear_dirichlet_jacobian(J, u, time) != true)
 	{
-		int si = m_elemDisc.bnd_subset(0, i);
-
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes in solution vector ...");
-		for(size_t fct = 0; fct < m_elemDisc.num_fct(); ++fct)
-		{
-			if(!m_elemDisc.is_dirichlet(si, fct)) continue;
-			UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting dirichlet nodes ...");
-			if(clear_dirichlet_jacobian(u.template begin<Vertex>(si),u.template end<Vertex>(si), fct, si, J, u, time) == false)
-			{
-				UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
-				return IAssemble_ERROR;
-			}
-			UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
-		}
+		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
+		return IAssemble_ERROR;
 	}
 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- END: 'assembling_jacobian' ----\n");
@@ -859,14 +639,14 @@ assemble_defect(vector_type& d, const discrete_function_type& u, number time, nu
 		}
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_elem_subsets(2); ++i)
+	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
-		int si = m_elemDisc.elem_subset(2, i);
+		int si = elem_subset(2, i);
 
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, time, s_m, s_a)==false)
 		{
-			UG_LOG("Error in assemble_linear, aborting.\n");
+			UG_LOG("Error in assemble_defect, aborting.\n");
 			return IAssemble_ERROR;
 		}
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done. \n");
@@ -874,27 +654,16 @@ assemble_defect(vector_type& d, const discrete_function_type& u, number time, nu
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
 		if(assemble_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, time, s_m, s_a)==false)
 		{
-			UG_LOG("Error in assemble_linear, aborting.\n");
+			UG_LOG("Error in assemble_defect, aborting.\n");
 			return IAssemble_ERROR;
 		}
 		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done. \n");
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_bnd_subsets(0); ++i)
+	if(m_dirichletDisc.clear_dirichlet_defect(d, u, time) != true)
 	{
-		int si = m_elemDisc.bnd_subset(0, i);
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting " << u.template num<Vertex>(si) << " dirichlet nodes in Subset " << si <<" ...");
-		for(size_t fct = 0; fct < m_elemDisc.num_fct(); ++fct)
-		{
-			if(!m_elemDisc.is_dirichlet(si, fct)) continue;
-
-			if(clear_dirichlet_defect(u.template begin<Vertex>(si),u.template end<Vertex>(si), fct, si, d, u, time) == false)
-			{
-				UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
-				return IAssemble_ERROR;
-			}
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
+		UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");
+		return IAssemble_ERROR;
 	}
 
 	return IAssemble_OK;
@@ -923,21 +692,10 @@ assemble_solution(discrete_function_type& u, number time)
 		}
 	}
 
-	for(size_t i = 0; i < m_elemDisc.num_bnd_subsets(0); ++i)
+	if(m_dirichletDisc.set_dirichlet_solution(u, time) != true)
 	{
-		int si = m_elemDisc.bnd_subset(0, i);
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Setting " << u.template num<Vertex>(si) << " dirichlet values in solution vector ...");
-
-		for(size_t fct = 0; fct < m_elemDisc.num_fct(); ++fct)
-		{
-			if(!m_elemDisc.is_dirichlet(si, fct)) continue;
-			if(set_dirichlet_solution(u.template begin<Vertex>(si), u.template end<Vertex>(si), fct, si, u.get_vector(), u, time) == false)
-			{
-				UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
-				return IAssemble_ERROR;
-			}
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
+		UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");
+		return IAssemble_ERROR;
 	}
 
 	return IAssemble_OK;

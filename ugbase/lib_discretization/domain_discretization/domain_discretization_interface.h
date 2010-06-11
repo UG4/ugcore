@@ -116,11 +116,11 @@ class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
 		virtual IAssembleReturn assemble_solution(discrete_function_type& u, number time)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
-		virtual std::size_t num_fct() const
-		{return 0;}
+		/// returns if the number of functions of this assembling
+		virtual size_t num_fct() const = 0;
 
-		virtual bool is_dirichlet(int s, uint fct)
-		{return false;}
+		/// returns true if the subset is dirchlet for the function fct
+		virtual bool is_dirichlet(int si, size_t fct) = 0;
 };
 
 
