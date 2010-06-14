@@ -8,8 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 
+#include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_discretization/lib_discretization.h"
-#include "parallel_index_layout.h"
 
 namespace ug
 {

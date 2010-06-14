@@ -1,5 +1,6 @@
 
-// include all files from the lib_discretization module
+#ifndef __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
+#define __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
 
 /////////////////////
 // basics
@@ -14,6 +15,8 @@
 #include "lib_discretization/dof_manager/general_dof_manager/general_dof_manager.h"
 
 // function spaces
+#include "lib_discretization/function_spaces/grid_function.h"
+
 #include "lib_discretization/function_spaces/grid_function_space.h"
 
 // reference elements
@@ -71,3 +74,4 @@
 
 #include "lib_discretization/domain_discretization/disc_coupling/element_data.h"
 
+#endif /* __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__ */

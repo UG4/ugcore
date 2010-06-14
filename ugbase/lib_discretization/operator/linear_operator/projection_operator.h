@@ -77,6 +77,7 @@ class ProjectionOperator : public IDiscreteLinearOperator<TDiscreteFunction, TDi
 
 			// v = coarse, u = fine
 			m_matrix.apply(u.get_vector(), v.get_vector());
+			u.copy_storage_type(v);
 			return true;
 		}
 
@@ -91,6 +92,7 @@ class ProjectionOperator : public IDiscreteLinearOperator<TDiscreteFunction, TDi
 
 			// v = coarse, u = fine
 			m_matrix.applyTransposed(v.get_vector(), u.get_vector());
+			u.copy_storage_type(v);
 			return true;
 		}
 

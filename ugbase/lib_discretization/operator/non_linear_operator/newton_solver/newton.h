@@ -60,30 +60,6 @@ class NewtonSolver : public IDiscreteOperatorInverse<TDiscreteFunction, TDiscret
 		~NewtonSolver();
 
 	private:
-		// ATTENTION: d must be addative at entry and will by additive unique on exit
-		number compute_global_norm(discrete_function_type& d)
-		{
-			number norm;
-
-			// step 1: make vector d additiv unique
-#ifdef UG_PARALLEL
-			d.parallel_additive_to_unique();
-#endif
-
-			// step 2: compute new defect norm
-#ifdef UG_PARALLEL
-			double tNormLocal = (double)d.norm();
-			tNormLocal *= tNormLocal;
-			double tNormGlobal;
-			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			norm = (number)tNormGlobal;
-			norm = sqrt((number)tNormGlobal);
-#else
-			norm = d.norm();
-#endif
-			return norm;
-		}
-
 		bool allocate_memory(const discrete_function_type& u);
 
 		bool deallocate_memory();
@@ -93,8 +69,8 @@ class NewtonSolver : public IDiscreteOperatorInverse<TDiscreteFunction, TDiscret
 			// (value >= std::numeric_limits<number>::min() ) == true if value > -infty
 			// (value <= std::numeric_limits<number>::max() ) == true if value < infty
 			// (value == value                         ) == true if value != NaN
-
-			return value >= std::numeric_limits<number>::min() && value <= std::numeric_limits<number>::max() && value == value;
+			if(value == 0.0) return true;
+			else return value >= std::numeric_limits<number>::min() && value <= std::numeric_limits<number>::max() && value == value && value >= 0;
 		}
 
 	private:
@@ -118,10 +94,16 @@ bool
 NewtonSolver<TAlgebra, TDiscreteFunction>::
 allocate_memory(const discrete_function_type& u)
 {
-	m_J = new AssembledDiscreteLinearizedOperator<discrete_function_type>(*m_ass);  // Jacobian
+	// Jacobian
+	m_J = new AssembledDiscreteLinearizedOperator<discrete_function_type>(*m_ass);
 
-	m_d = new discrete_function_type(u);  // defect
-	m_c = new discrete_function_type(u);  // correction
+	// defect
+	m_d = new discrete_function_type;
+	m_d->clone_pattern(u);
+
+	// correction
+	m_c = new discrete_function_type;
+	m_c->clone_pattern(u);
 
 	if(m_d == NULL || m_c == NULL || m_J == NULL)
 	{
@@ -210,7 +192,7 @@ apply(discrete_function_type& u)
 	UG_DLOG(LIB_DISC_NEWTON, 10, "NewtonSolver::apply: BEGIN start defect:\n" << *m_d << "\n END defect \n");
 
 	// Compute first Residuum
-	norm = norm_old = norm_start = compute_global_norm(*m_d);
+	norm = norm_old = norm_start = m_d->two_norm();
 
 	//verbose
 	UG_LOG(" ###### NEWTON - METHOD ######" << std::endl);
@@ -221,6 +203,14 @@ apply(discrete_function_type& u)
 	int i;
 	for(i = 1; ; ++i)
 	{
+		// check that defect is a still a valid number
+		if(!is_valid_number(norm))
+		{
+			UG_LOG(" ##### Defect " << norm << " is not a valid number. Linear Solver did NOT CONVERGE. #####\n\n");
+			if(m_reallocate){UG_ASSERT(deallocate_memory(), "NewtonSolver: Cannot deallocate memory");}
+			return false;
+		}
+
 		// check if defect is small enough (absolute)
 		if(norm < m_absTol)
 		{
@@ -235,14 +225,6 @@ apply(discrete_function_type& u)
 			UG_LOG(" ##### Relative defect " << m_relTol << " reached. Newton Solver converged. #####\n\n");
 			if(m_reallocate){UG_ASSERT(deallocate_memory(), "NewtonSolver: Cannot deallocate memory");}
 			return true;
-		}
-
-		// check that defect is a still a valid number
-		if(!is_valid_number(norm))
-		{
-			UG_LOG(" ##### Defect " << norm << " is not a valid number. Linear Solver did NOT CONVERGE. #####\n\n");
-			if(m_reallocate){UG_ASSERT(deallocate_memory(), "NewtonSolver: Cannot deallocate memory");}
-			return false;
 		}
 
 		// check that maximum number of iterations is not reached
@@ -316,7 +298,7 @@ apply(discrete_function_type& u)
 		UG_DLOG(LIB_DISC_NEWTON, 10, " BEGIN defect after adding correction of step " << i << ":\n" << *m_d << "\n END defect \n");
 
 		//compute new Residuum
-		norm = compute_global_norm(*m_d);
+		norm = m_d->two_norm();
 
 		// print convergence rate
 		UG_LOG(" ## " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);

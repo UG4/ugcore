@@ -67,7 +67,7 @@ lmgc(uint l)
 
 	if(l > m_baseLevel)
 	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after restriction of defect: " << m_d[l]->norm() << ".");
+		//UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after restriction of defect: " << m_d[l]->two_norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
 		// presmooth
@@ -75,28 +75,14 @@ lmgc(uint l)
 		if(smooth(*m_d[l], *m_c[l], l, m_nu1) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after pre-smoothing: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after pre-smoothing: " << m_d[l]->two_norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
-		// debug
-/*		static int iter1 = 0;
-		VTKOutput<level_function_type> out;
-		char fileName[50];
-
-		//m_d[l-1]->set(0.0);
-		//m_d[l]->set(10.0);
-		sprintf(fileName, "Defect_Proc%02i_BeforeRes%03i.vtu", pcl::GetProcRank(), iter1);
-		out.print(*m_d[l], fileName, 0.0);
-*/
 		// restrict defect
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Restrict defect ... ");
 		if(m_I[l-1]->applyTransposed(*m_d[l-1], *m_d[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		//debug
-/*		sprintf(fileName, "Defect_Proc%02i_AfterRes%03i.vtu", pcl::GetProcRank(), iter1++);
-		out.print(*m_d[l-1], fileName, 0.0);
-*/
 		// apply lmgc on coarser grid
 		for(int i = 0; i < m_cycle_type; ++i)
 		{
@@ -107,21 +93,11 @@ lmgc(uint l)
 			}
 		}
 
-		//debug
-		//m_c[l-1]->set(10.0);
-/*		static int iter2 = 0;
-		sprintf(fileName, "Correction_Proc%02i_BeforeInt%03i.vtu", pcl::GetProcRank(), iter2);
-		out.print(*m_c[l-1], fileName, 0.0);
-*/
 		//interpolate correction
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Interpolate correction ... ");
 		if(m_I[l-1]->apply(*m_t[l], *m_c[l-1]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		//debug
-/*		sprintf(fileName, "Correction_Proc%02i_AfterInt%03i.vtu", pcl::GetProcRank(), iter2++);
-		out.print(*m_t[l], fileName, 0.0);
-*/
 		// add coarse grid correction to level correction
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Add coarse grid correction ... ");
 		*m_c[l] += *m_t[l];
@@ -133,7 +109,7 @@ lmgc(uint l)
 		if(m_A[l]->apply_sub(*m_t[l], *m_d[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after coarse grid correction: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after coarse grid correction: " << m_d[l]->two_norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
 		// postsmooth
@@ -141,7 +117,7 @@ lmgc(uint l)
 		if(smooth(*m_d[l], *m_c[l], l, m_nu2) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after post-smoothing: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after post-smoothing: " << m_d[l]->two_norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
 		return true;
@@ -149,23 +125,24 @@ lmgc(uint l)
 	else if(l == m_baseLevel)
 	{
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Init Coarse Grid solver ... ");
-		m_baseSolver.init(*m_A[l]);
+		if(m_baseSolver.init(*m_A[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----\n");
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " before exact solving: " << m_d[l]->norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Prepare Coarse Grid solver ... ");
-		m_baseSolver.prepare(*m_u[l], *m_d[l], *m_c[l]);
+		if(m_baseSolver.prepare(*m_u[l], *m_d[l], *m_c[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----\n");
+		m_d[l]->set_storage_type(GFST_ADDITIVE);
 
 		// solve on base level
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Apply Coarse Grid solver ... ");
 		m_c[l]->set(0.0);
-		m_baseSolver.apply(*m_d[l], *m_c[l]);
+//		m_c[l]->set_storage_type(GFST_CONSISTENT);
+		if(m_baseSolver.apply(*m_d[l], *m_c[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after exact solving: " << m_d[l]->norm() << ".");
+		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after exact solving: " << m_d[l]->two_norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
 		// no update of the defect is needed, since the linear solver interface requires, that the updated defect is already returned.

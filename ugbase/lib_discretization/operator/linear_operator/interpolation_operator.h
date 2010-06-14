@@ -78,6 +78,7 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 				return false;
 			}
 
+			v.set_storage_type(GFST_CONSISTENT);
 			return true;
 		}
 

@@ -259,16 +259,25 @@ class IDiscreteLinearizedOperatorInverse
 			UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN start sol: \n" << c_nl << " ----- END start sol \n");
 
 			// build defect:  d := d_nl - J(u)*c_nl
-			m_A->apply_sub(c_nl, d);
+			if(m_A->apply_sub(c_nl, d) != true)
+			{
+				UG_LOG("ERROR in 'DiscreteLinearOperatorInverse::apply': Unable to build defect. Aborting.\n");
+				return false;
+			}
 
 			UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Start Defect: \n" << d << " ----- END Start Defect \n");
 
 			// create correction, that has same memory pattern as u
-			codomain_function_type c(c_nl);
+			codomain_function_type c;
+			if(c.clone_pattern(c_nl) != true)
+			{
+				UG_LOG("ERROR in 'DiscreteLinearOperatorInverse::apply': Unable to clone pattern for correction. Aborting.\n");
+				return false;
+			}
 
 			// compute start norm ||d||_2
 			number norm, norm_old, norm_start;
-			norm = norm_old = norm_start = compute_global_norm(d);
+			norm = norm_old = norm_start = d.two_norm();
 
 			// Print Start information
 			if(m_verboseLevel >= 1) UG_LOG("\n    %%%%%%%%%% Iterative Linear Solver %%%%%%%%%%\n");
@@ -278,6 +287,13 @@ class IDiscreteLinearizedOperatorInverse
 			// Iteration loop
 			for(int i = 1; ; ++i)
 			{
+				// check that defect is a still a valid number
+				if(!is_valid_number(norm))
+				{
+					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Defect " << norm << " is not a valid number. Linear Solver did NOT CONVERGE. %%%%%\n\n");
+					return false;
+				}
+
 				// check if defect is small enough (absolute)
 				if(norm < m_absTol)
 				{
@@ -290,13 +306,6 @@ class IDiscreteLinearizedOperatorInverse
 				{
 					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Relative defect " << m_relTol << " reached. Linear Solver converged. %%%%%\n\n");
 					return true;
-				}
-
-				// check that defect is a still a valid number
-				if(!is_valid_number(norm))
-				{
-					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Defect " << norm << " is not a valid number. Linear Solver did NOT CONVERGE. %%%%%\n\n");
-					return false;
 				}
 
 				// check that maximum number of iterations is not reached
@@ -324,7 +333,7 @@ class IDiscreteLinearizedOperatorInverse
 				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Sol after step " << i << ": \n" << c_nl << " ----- END Sol after step " << i << "\n");
 
 				// compute global norm
-				norm = compute_global_norm(d);
+				norm = d.two_norm();
 
 				// print convergence rate
 				if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
@@ -340,31 +349,6 @@ class IDiscreteLinearizedOperatorInverse
 		virtual ~IDiscreteLinearizedOperatorInverse() {};
 
 	protected:
-		// computes the global norm
-		// ATTENTION: d must be addative at entry and will by additive unique on exit
-		number compute_global_norm(domain_function_type& d)
-		{
-			number norm;
-
-			// step 1: make vector d additiv unique
-#ifdef UG_PARALLEL
-			d.parallel_additive_to_unique();
-#endif
-
-			// step 2: compute new defect norm
-#ifdef UG_PARALLEL
-			double tNormLocal = (double)d.norm();
-			tNormLocal *= tNormLocal;
-			double tNormGlobal;
-			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			norm = sqrt((number)tNormGlobal);
-#else
-			norm = d.norm();
-#endif
-
-			return norm;
-		}
-
 		void print(int verboseLevel, std::ostream outStream)
 		{
 			if(verboseLevel >= m_verboseLevel) UG_LOG(outStream);
@@ -376,7 +360,8 @@ class IDiscreteLinearizedOperatorInverse
 			// (value <= std::numeric_limits<number>::max() ) == true if value < infty
 			// (value == value                         ) == true if value != NaN
 
-			return value >= std::numeric_limits<number>::min() && value <= std::numeric_limits<number>::max() && value == value;
+			if (value == 0.0) return true;
+			else return value >= std::numeric_limits<number>::min() && value <= std::numeric_limits<number>::max() && value == value && value >= 0.0;
 		}
 
 		// Discribes, how many output is printed. (0 = nothing, 1 = major informations, 2 = all)

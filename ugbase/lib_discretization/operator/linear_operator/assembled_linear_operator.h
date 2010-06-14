@@ -69,6 +69,8 @@ class AssembledDiscreteLinearizedOperator : public IDiscreteLinearizedOperator<T
 			UG_ASSERT(x.size() == m_J.row_size(), "Row size '" << m_J.row_size() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_J.col_size(), "Column size '" << m_J.row_size() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
 
+			if(!c.has_storage_type(GFST_CONSISTENT)) return false;
+			d.set_storage_type(GFST_ADDITIVE);
 			return m_J.apply(b,x);
 		}
 
@@ -81,6 +83,10 @@ class AssembledDiscreteLinearizedOperator : public IDiscreteLinearizedOperator<T
 			UG_ASSERT(x.size() == m_J.row_size(), "Row size '" << m_J.row_size() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_J.col_size(), "Column size '" << m_J.row_size() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
 
+			// TODO: Check that matrix has correct type (additive)
+			if(!c.has_storage_type(GFST_CONSISTENT)) return false;
+			if(!d.has_storage_type(GFST_ADDITIVE)) return false;
+			d.set_storage_type(GFST_ADDITIVE);
 			return m_J.matmul_minus(b,x);
 		}
 
@@ -158,6 +164,7 @@ class AssembledDiscreteLinearOperator : public AssembledDiscreteLinearizedOperat
 			{
 				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 2, " ---- 'prepare': Calling 'm_ass.assemble_linear'.\n");
 				if(m_ass.assemble_linear(m_Matrix, b, u) != IAssemble_OK) return false;
+				f.set_storage_type(GFST_ADDITIVE);
 			}
 			else
 			{
@@ -181,6 +188,9 @@ class AssembledDiscreteLinearOperator : public AssembledDiscreteLinearizedOperat
 			UG_ASSERT(x.size() == m_Matrix.row_size(), "Row size '" << m_Matrix.row_size() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_Matrix.col_size(), "Column size '" << m_Matrix.row_size() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
 
+			// TODO: Check that matrix has correct type (additive)
+			if(!u.has_storage_type(GFST_CONSISTENT)) return false;
+			f.set_storage_type(GFST_ADDITIVE);
 			return m_Matrix.apply(b,x);
 		}
 
@@ -193,6 +203,10 @@ class AssembledDiscreteLinearOperator : public AssembledDiscreteLinearizedOperat
 			UG_ASSERT(x.size() == m_Matrix.row_size(), "Row size '" << m_Matrix.row_size() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_Matrix.col_size(), "Column size '" << m_Matrix.row_size() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
 
+			// TODO: Check that matrix has correct type (additive)
+			if(!u.has_storage_type(GFST_CONSISTENT)) return false;
+			if(!f.has_storage_type(GFST_ADDITIVE)) return false;
+			f.set_storage_type(GFST_ADDITIVE);
 			return m_Matrix.matmul_minus(b,x);
 		}
 
@@ -270,6 +284,10 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 		// update defect: d := d - A*c
 		virtual bool apply(domain_function_type& d, codomain_function_type& c)
 		{
+			// TODO: Check that matrix has correct type (additive)
+			if(!d.has_storage_type(GFST_ADDITIVE)) return false;
+//			if(!c.has_storage_type(GFST_CONSISTENT)) return false;
+
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
 
@@ -278,7 +296,8 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 
 #ifdef UG_PARALLEL
 			UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
-			domain_function_type diagInvFunc(d);
+			domain_function_type diagInvFunc;
+			diagInvFunc.clone_pattern(d);
 			typename domain_function_type::vector_type& diagInv = diagInvFunc.get_vector();
 
 			typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
@@ -295,7 +314,9 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 			}
 
 			//	make diagonal consistent
-			diagInvFunc.parallel_additive_to_consistent();
+			diagInvFunc.set_storage_type(GFST_ADDITIVE);
+			if(diagInvFunc.change_storage_type(GFST_CONSISTENT) != true) return false;
+			//diagInvFunc.parallel_additive_to_consistent();
 
 			// invert diagonal and multiply by damping
 			for(size_t i = 0; i < diagInv.size(); ++i){
@@ -319,8 +340,9 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 			}
 
 			// make correction consistent
-			c.parallel_additive_to_consistent();
-
+			//c.parallel_additive_to_consistent();
+			c.set_storage_type(GFST_ADDITIVE);
+			if(c.change_storage_type(GFST_CONSISTENT) != true) return false;
 #else
 			// apply iterator: c = B*d (damp is not used)
 			diag_step(*m_matrix, c_vec, d_vec, m_damp);
@@ -330,7 +352,7 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 #endif
 			// update defect
 			m_matrix->matmul_minus(d_vec, c_vec);
-
+			d.set_storage_type(GFST_ADDITIVE);
 			return true;
 		}
 
