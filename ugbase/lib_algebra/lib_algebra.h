@@ -17,7 +17,10 @@
 // library intern includes
 #include "lib_algebra/multi_index/multi_indices.h"
 
-
+// parallel support
+#ifdef UG_PARALLEL
+	#include "lib_algebra/parallelization/parallelization.h"
+#endif
 
 /////////////////////////////////////////////
 /////////////////////////////////////////////
@@ -431,13 +434,13 @@ class MartinAlgebra
 	public:
 		// matrix type
 		typedef SparseMatrix<double> matrix_type;
-		
+
 		// vector type
 		typedef Vector<double> vector_type;
-		
+
 		// index_type
 		typedef MultiIndex<1> index_type;
-		
+
 		//	typedef HYPREboomerAMG linear_solver_type;
 	};
 
