@@ -5,7 +5,7 @@
 #ifndef __H__LIB_GRID__GEOMETRIC_OBJECTS__
 #define __H__LIB_GRID__GEOMETRIC_OBJECTS__
 
-#include "grid/geometric_base_objects.h"
+#include "../grid/geometric_base_objects.h"
 #include "common/math/ugmath.h"
 
 namespace ug
@@ -960,6 +960,9 @@ class TetrahedronDescriptor
 class Tetrahedron : public Volume
 {
 	public:
+		typedef Volume BaseClass;
+		
+	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != NULL;}
 
 		Tetrahedron()	{m_vertices.resize(4);}
@@ -976,14 +979,16 @@ class Tetrahedron : public Volume
 		virtual void face(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
-	///	see Volume::refine for a detailed description.
+	///	Creates new volume elements through refinement.
+	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
+	 *	newFaceVertices is ignored for Tetrahedrons.*/
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							std::vector<VertexBase*>& vNewFaceVertices,
+							VertexBase** newEdgeVertices,
+							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,
@@ -1050,6 +1055,9 @@ class HexahedronDescriptor
 class Hexahedron : public Volume
 {
 	public:
+		typedef Volume BaseClass;
+		
+	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != NULL;}
 
 		Hexahedron()	{m_vertices.resize(8);}
@@ -1070,11 +1078,11 @@ class Hexahedron : public Volume
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							std::vector<VertexBase*>& vNewFaceVertices,
+							VertexBase** newEdgeVertices,
+							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,
@@ -1141,6 +1149,9 @@ class PrismDescriptor
 class Prism : public Volume
 {
 	public:
+		typedef Volume BaseClass;
+		
+	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Prism*>(pObj) != NULL;}
 
 		Prism()	{m_vertices.resize(6);}
@@ -1161,11 +1172,11 @@ class Prism : public Volume
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							std::vector<VertexBase*>& vNewFaceVertices,
+							VertexBase** newEdgeVertices,
+							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,
@@ -1232,6 +1243,9 @@ class PyramidDescriptor
 class Pyramid : public Volume
 {
 	public:
+		typedef Volume BaseClass;
+		
+	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != NULL;}
 
 		Pyramid()	{m_vertices.resize(5);}
@@ -1252,11 +1266,11 @@ class Pyramid : public Volume
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							std::vector<VertexBase*>& vNewFaceVertices,
+							VertexBase** newEdgeVertices,
+							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL);
+							VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Volume*>& vNewVolumesOut,
 								int edgeIndex, VertexBase* newVertex,

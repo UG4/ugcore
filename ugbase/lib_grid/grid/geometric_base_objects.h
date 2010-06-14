@@ -102,6 +102,13 @@ class geometry_traits
 {};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+//	predeclaration of iterator_cast
+/*
+template <class TIterDest, class TIterSrc>
+inline TIterDest
+iterator_cast(const TIterSrc& iter);
+*/
+////////////////////////////////////////////////////////////////////////////////////////////////
 //	GenericGeometricObjectIterator
 ///	Use this class as a tool to create iterators to your own geometric objects.
 /**
@@ -111,6 +118,7 @@ template <class TValue, class TBaseIterator = GeometricObjectIterator>
 class GenericGeometricObjectIterator : public TBaseIterator
 {
 	friend class Grid;
+	//template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
 
 	public:
 		typedef TValue	value_type;
@@ -126,6 +134,13 @@ class GenericGeometricObjectIterator : public TBaseIterator
 
 		inline TValue& operator* ()	{return (TValue&)(TBaseIterator::operator*());}
 		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
+		
+	protected:
+/*
+	//	This method will be useful as soon as iterator-const-correctnes is given throughout lib_grid.
+		GenericGeometricObjectIterator(const TBaseIterator& iter) :
+			TBaseIterator(iter)	{}
+*/
 };
 
 
@@ -136,7 +151,10 @@ template <class TIterDest, class TIterSrc>
 inline TIterDest
 iterator_cast(const TIterSrc& iter)
 {
+//TODO: replace the first call by the second as soon as
+//		iterator-const-correcness is given in lib_grid.
 	return *reinterpret_cast<const TIterDest*>(&iter);
+	//return TIterDest(iter);
 }
 
 /**
@@ -706,12 +724,11 @@ class Volume : public GeometricObject, public VolumeVertices
 	 */
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
-							std::vector<VertexBase*>& vNewEdgeVertices,
-							std::vector<VertexBase*>& vNewFaceVertices,
+							VertexBase** newEdgeVertices,
+							VertexBase** newFaceVertices,
 							VertexBase* newVolumeVertex,
 							const VertexBase& prototypeVertex,
-							std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
-
+							VertexBase** pSubstituteVertices = NULL)	{return false;}
 	/**
 	 * See the refine-method for a detailed explanation of each parameter.
 	 * Please note that for each edge and for each face a new vertex has to be specified.

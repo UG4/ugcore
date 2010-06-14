@@ -209,8 +209,8 @@ void GlobalMultiGridRefiner::refine()
 			vFaceVrts.push_back(mg.get_child_vertex(mg.get_face(v, j)));
 		
 		VertexBase* newVrt;
-		if(v->refine(vVols, &newVrt, vEdgeVrts, vFaceVrts,
-					NULL, Vertex(), &vVrts)){
+		if(v->refine(vVols, &newVrt, &vEdgeVrts.front(), &vFaceVrts.front(),
+					NULL, Vertex(), &vVrts.front())){
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				mg.register_element(newVrt, v);

@@ -9,7 +9,6 @@
 #define __H__LIBDISCRETIZATION__RHS__
 
 #include "lib_grid/lib_grid.h"
-#include "lib_grid/geometric_objects.h"
 #include "numericalsolution.h"
 #include "common/math/ugmath.h"
 #include <string>

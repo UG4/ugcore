@@ -59,7 +59,8 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				tools/selector_multi_grid.cpp
 				tools/selector_grid_elem.cpp
 				tools/marker_points.cpp
-				geometric_objects.cpp
+				geometric_objects/geometric_objects_2d.cpp
+				geometric_objects/geometric_objects_3d.cpp
 				common_attachments.cpp
 				multi_grid.cpp
 				)

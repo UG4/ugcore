@@ -1398,7 +1398,8 @@ void HangingNodeRefiner::refine_volume_with_normal_vertex(Volume* v)
 */
 //	refine the volume and register new volumes at the grid.
 	VertexBase* createdVrt = NULL;
-	v->refine(vVolumes, &createdVrt, vNewEdgeVertices, vNewFaceVertices, NULL, Vertex(), NULL);
+	v->refine(vVolumes, &createdVrt, &vNewEdgeVertices.front(),
+			  &vNewFaceVertices.front(), NULL, Vertex(), NULL);
 
 
 	for(uint i = 0; i < vVolumes.size(); ++i)
