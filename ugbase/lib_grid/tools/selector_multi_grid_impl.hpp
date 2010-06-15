@@ -146,8 +146,13 @@ MGSelector::begin(int level)
 	
 	const int sInd = get_section_index<TElem>();
 
-	return iterator_cast<typename geometry_traits<TElem>::iterator>(
-		begin(baseObjID, level, sInd));
+	level_required(level);
+	if(sInd < 0)
+		return iterator_cast<typename geometry_traits<TElem>::iterator>(
+			m_levels[level]->m_elements[baseObjID].begin());
+	else
+		return iterator_cast<typename geometry_traits<TElem>::iterator>(
+			m_levels[level]->m_elements[baseObjID].section_begin(sInd));
 }
 
 //	end
@@ -160,8 +165,13 @@ MGSelector::end(int level)
 	
 	const int sInd = get_section_index<TElem>();
 
-	return iterator_cast<typename geometry_traits<TElem>::iterator>(
-		end(baseObjID, level, sInd));
+	level_required(level);
+	if(sInd < 0)
+		return iterator_cast<typename geometry_traits<TElem>::iterator>(
+			m_levels[level]->m_elements[baseObjID].end());
+	else
+		return iterator_cast<typename geometry_traits<TElem>::iterator>(
+			m_levels[level]->m_elements[baseObjID].section_end(sInd));
 }
 
 

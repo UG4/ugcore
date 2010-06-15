@@ -164,9 +164,6 @@ class MGSelector : public ISelector
 		virtual void grid_to_be_destroyed(Grid* grid);
 		
 	protected:
-		iterator begin(int objID, int level, int section);
-		iterator end(int objID, int level, int section);
-
 		void clear_lists();
 
 		virtual iterator add_to_list(VertexBase* elem);

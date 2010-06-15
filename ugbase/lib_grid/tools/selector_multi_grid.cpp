@@ -62,26 +62,6 @@ void MGSelector::clear(int level)
 }
 
 MGSelector::iterator
-MGSelector::begin(int objID, int level, int section)
-{
-	level_required(level);
-	if(section < 0)
-		return m_levels[level]->m_elements[objID].begin();
-	else
-		return m_levels[level]->m_elements[objID].section_begin(section);
-}
-	
-MGSelector::iterator
-MGSelector::end(int objID, int level, int section)
-{
-	level_required(level);
-	if(section < 0)
-		return m_levels[level]->m_elements[objID].end();
-	else
-		return m_levels[level]->m_elements[objID].section_end(section);
-}
-
-MGSelector::iterator
 MGSelector::add_to_list(VertexBase* elem)
 {
 	const int level = m_pMultiGrid->get_level(elem);

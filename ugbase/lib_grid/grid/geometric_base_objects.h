@@ -103,13 +103,6 @@ class geometry_traits
 {};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-//	predeclaration of iterator_cast
-/*
-template <class TIterDest, class TIterSrc>
-inline TIterDest
-iterator_cast(const TIterSrc& iter);
-*/
-////////////////////////////////////////////////////////////////////////////////////////////////
 //	GenericGeometricObjectIterator
 ///	Use this class as a tool to create iterators to your own geometric objects.
 /**
@@ -129,17 +122,11 @@ class GenericGeometricObjectIterator : public TBaseIterator
 
 		GenericGeometricObjectIterator(const GenericGeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
-/*
-		GenericGeometricObjectIterator(const typename std::list<TValue>::iterator& iter) :
-			TBaseIterator(*((TBaseIterator*)&iter)){}
-*/
+
 		inline TValue& operator* ()	{return (TValue&)(TBaseIterator::operator*());}
 		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
 		
-	protected:/*
-		GenericGeometricObjectIterator(const TBaseIterator& iter) :
-			TBaseIterator(iter)	{}*/
-			
+	protected:
 		GenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
 };
@@ -164,19 +151,10 @@ class ConstGenericGeometricObjectIterator : public TBaseIterator
 
 		ConstGenericGeometricObjectIterator(const ConstGenericGeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
-/*
-		ConstGenericGeometricObjectIterator(const typename std::list<TValue>::iterator& iter) :
-			TBaseIterator(*((TBaseIterator*)&iter)){}
-			
-		ConstGenericGeometricObjectIterator(const typename std::list<TValue>::const_iterator& iter) :
-			TBaseIterator(*((TBaseIterator*)&iter)){}
-*/
+
 		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
 		
-	protected:/*
-		ConstGenericGeometricObjectIterator(const TBaseIterator& iter) :
-			TBaseIterator(iter)	{}*/
-
+	protected:
 		ConstGenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
 
@@ -187,14 +165,11 @@ class ConstGenericGeometricObjectIterator : public TBaseIterator
 
 ////////////////////////////////////////////////////////////////////////
 //	iterator_cast
-///	This method is unsave and should not be used until you know exactly what you are doing!
+///	You should avoid casting whenever possible!
 template <class TIterDest, class TIterSrc>
 inline TIterDest
 iterator_cast(const TIterSrc& iter)
 {
-//TODO: replace the first call by the second as soon as
-//		iterator-const-correcness is given in lib_grid.
-	//return *reinterpret_cast<const TIterDest*>(&iter);
 	return TIterDest(iter);
 }
 
