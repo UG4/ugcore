@@ -5,7 +5,7 @@ namespace ug{
 
 bool
 UblasMatrix::
-create(uint nrow, uint ncol)
+create(size_t nrow, size_t ncol)
 {
 	m_pMatrix = new ScalarMatrix(nrow, ncol, 8);
 
@@ -19,8 +19,8 @@ create(const UblasMatrix& v)
 {
 	if(m_pMatrix == NULL) return false;
 
-	uint nrow = v.row_size();
-	uint ncol = v.col_size();
+	size_t nrow = v.row_size();
+	size_t ncol = v.col_size();
 	m_pMatrix = new ScalarMatrix(nrow, ncol, 8);
 
 	if(m_pMatrix == NULL) return false;
@@ -44,9 +44,9 @@ set(const local_matrix_type& mat, const local_index_type& I, const local_index_t
 {
 	if(m_pMatrix == NULL) return false;
 
-	for(uint i = 0; i < I.size(); ++i)
+	for(size_t i = 0; i < I.size(); ++i)
 	{
-		for(uint j = 0; j < J.size(); ++j)
+		for(size_t j = 0; j < J.size(); ++j)
 		{
 			(*m_pMatrix)(I[i][0], J[j][0]) = mat(i,j);
 		}
@@ -60,9 +60,9 @@ add(const local_matrix_type& mat, const local_index_type& I, const local_index_t
 {
 	if(m_pMatrix == NULL) return false;
 
-	for(uint i = 0; i < I.size(); ++i)
+	for(size_t i = 0; i < I.size(); ++i)
 	{
-		for(uint j = 0; j < J.size(); ++j)
+		for(size_t j = 0; j < J.size(); ++j)
 		{
 			(*m_pMatrix)(I[i][0], J[j][0]) += mat(i,j);
 		}
@@ -76,9 +76,9 @@ get(local_matrix_type& mat, const local_index_type& I, const local_index_type& J
 {
 	if(m_pMatrix == NULL) return false;
 
-	for(uint i = 0; i < I.size(); ++i)
+	for(size_t i = 0; i < I.size(); ++i)
 	{
-		for(uint j = 0; j < J.size(); ++j)
+		for(size_t j = 0; j < J.size(); ++j)
 		{
 			mat(i,j) = (*m_pMatrix)(I[i][0], J[j][0]);
 		}
@@ -92,7 +92,7 @@ bool UblasMatrix::set_dirichlet_rows(const local_index_type& I)
 
 	typedef ublas::matrix_row< ScalarMatrix > row_type;
 
-	for(uint i = 0; i < I.size(); ++i)
+	for(size_t i = 0; i < I.size(); ++i)
 	{
 		row_type row(*m_pMatrix, I[i][0]);
 		for(row_type::iterator iter_ij = row.begin(); iter_ij != row.end(); ++iter_ij)
@@ -168,7 +168,7 @@ matmul_minus(UblasVector&b, const UblasVector& x)
 	return true;
 }
 
-uint
+size_t
 UblasMatrix::
 row_size() const
 {
@@ -176,7 +176,7 @@ row_size() const
 	return m_pMatrix->size1();
 }
 
-uint
+size_t
 UblasMatrix::
 col_size() const
 {

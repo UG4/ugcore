@@ -32,7 +32,7 @@ class UblasMatrix{
 
 		UblasMatrix() : m_pMatrix(NULL) {};
 
-		bool create(uint nrow, uint ncol);
+		bool create(size_t nrow, size_t ncol);
 		bool create(const UblasMatrix& v);
 		bool destroy();
 
@@ -64,8 +64,8 @@ class UblasMatrix{
 		bool matmul_minus(UblasVector&b, const UblasVector& x);
 
 		// sizes
-		uint row_size() const;
-		uint col_size() const;
+		size_t row_size() const;
+		size_t col_size() const;
 
 	// not generic part
 	private:

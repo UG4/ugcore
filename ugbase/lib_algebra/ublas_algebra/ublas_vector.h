@@ -38,7 +38,7 @@ class UblasVector{
 		UblasVector() : m_pVector(NULL){};
 
 		// create and destroy
-		bool create(uint nentries);
+		bool create(size_t nentries);
 
 		// create as copy of other vector
 		bool create(const UblasVector& v);
@@ -72,7 +72,7 @@ class UblasVector{
 		bool operator*= (number w);
 
 		// number of Blocks
-		uint size() const;
+		size_t size() const;
 
 		// write to file
 		bool printToFile(const char* filename) const;

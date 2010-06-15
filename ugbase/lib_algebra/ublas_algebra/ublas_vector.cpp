@@ -7,7 +7,7 @@ namespace ug{
 
 bool
 UblasVector::
-create(uint nentries)
+create(size_t nentries)
 {
 	int err = 0;
 
@@ -23,7 +23,7 @@ bool
 UblasVector::
 create(const UblasVector& v)
 {
-	uint nentries = v.size();
+	size_t nentries = v.size();
 
 	m_pVector = new ScalarVector((int)nentries);
 
@@ -93,7 +93,7 @@ bool UblasVector::printToFile(const char* filename) const
 	file = fopen(filename, "w");
 	if(file == NULL) return false;
 
-	for(uint i = 0; i < m_pVector->size(); ++i)
+	for(size_t i = 0; i < m_pVector->size(); ++i)
 	{
 		fprintf(file, "%i: %e\n", i, (*m_pVector)(i));
 	}
@@ -154,7 +154,7 @@ operator *(const UblasVector& v)
 number UblasVector::one_norm() const
 	{
 		double norm = 0;
-		for(uint i = 0; i < m_pVector->size(); ++i)
+		for(size_t i = 0; i < m_pVector->size(); ++i)
 		{
 			norm += fabs( (*m_pVector)(i) );
 		}
@@ -167,7 +167,7 @@ UblasVector::
 two_norm() const
 {
 	double norm = 0;
-	for(uint i = 0; i < m_pVector->size(); ++i)
+	for(size_t i = 0; i < m_pVector->size(); ++i)
 	{
 		norm += (*m_pVector)(i) * (*m_pVector)(i);
 	}
@@ -179,7 +179,7 @@ bool
 UblasVector::
 set(number w)
 {
-	for(uint i = 0; i < m_pVector->size(); ++i)
+	for(size_t i = 0; i < m_pVector->size(); ++i)
 	{
 		(*m_pVector)(i) = w;
 	}
@@ -191,7 +191,7 @@ bool
 UblasVector::
 operator*=(number w)
 {
-	for(uint i = 0; i < m_pVector->size(); ++i)
+	for(size_t i = 0; i < m_pVector->size(); ++i)
 	{
 		(*m_pVector)(i) *= w;
 	}
@@ -206,7 +206,7 @@ operator=(number w)
 	return this->set(w);
 }
 
-uint
+size_t
 UblasVector::
 size() const
 {
