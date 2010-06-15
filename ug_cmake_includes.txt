@@ -29,7 +29,7 @@
 # - FORCE_32: Produces 32bit-code
 # - NO_MPI: Disables MPI support.
 # - NO_ALGEBRA: Disables support for algebra and discretization.
-# - NO_HYPRE: Disables support for hypre.
+# - HYPRE: Enables support for hypre.
 # - NO_BOOST: Disables support for boost (should only be disabled if required).
 # - NO_PCL: Disables creation of the pcl-library.
 #
@@ -137,23 +137,24 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	#######################
 	# ALGEBRA
  	if (NOT NO_ALGEBRA)
-		if(NO_HYPRE)
-			message("-- INFO: Not using HYPRE. (To enable HYPRE define -DNO_HYPRE=OFF)")
-		else(NO_HYPRE)
+		if(NOT HYPRE)
+			message("-- INFO: Not using HYPRE. (To enable HYPRE define -DHYPRE=ON)")
+		else(NOT HYPRE)
 			find_path (HYPRELIB_DIR libHYPRE.a 
 					PATHS ENV PATH
 					PATH_SUFFIXES src/hypre/lib/ )
 		
 			if(HYPRELIB_DIR)
-				message("-- INFO: Using HYPRE (libs at '${HYPRELIB_DIR}'). (To disable boost define -DNO_HYPRE=ON)")
+				message("-- INFO: Using HYPRE (libs at '${HYPRELIB_DIR}'). (To disable HYPRE define -DHYPRE=OFF)")
 		
 				# add include path
 				include_directories (${HYPRELIB_DIR}/../include/)
+				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHYPRELIB_DIR")
 
 			else(HYPRELIB_DIR)
 				message("-- WARNING: HYPRE not found! Compiling WITHOUT HYPRE.")
 			endif(HYPRELIB_DIR)
-		endif(NO_HYPRE)
+		endif(NOT HYPRE)
 	endif(NOT NO_ALGEBRA)
 
 	#######################
