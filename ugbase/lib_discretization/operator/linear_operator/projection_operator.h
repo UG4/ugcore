@@ -82,7 +82,7 @@ class ProjectionOperator : public IDiscreteLinearOperator<TDiscreteFunction, TDi
 		}
 
 		// apply Operator
-		bool applyTransposed(codomain_function_type& v, domain_function_type& u)
+		bool apply_transposed(codomain_function_type& v, domain_function_type& u)
 		{
 			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Matrix: (" << m_matrix.row_size() << " x " << m_matrix.col_size() << ").\n");
 			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Coarse Vector: (" <<  v.get_vector().size() << ").\n");
@@ -91,7 +91,7 @@ class ProjectionOperator : public IDiscreteLinearOperator<TDiscreteFunction, TDi
 			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 10, "Interpolation Matrix: \n" << m_matrix);
 
 			// v = coarse, u = fine
-			m_matrix.applyTransposed(v.get_vector(), u.get_vector());
+			m_matrix.apply_transposed(v.get_vector(), u.get_vector());
 			u.copy_storage_type(v);
 			return true;
 		}

@@ -56,7 +56,7 @@ class ArneMatrix{
 		bool apply(ArneVector&b, const ArneVector& x);
 
 		// b := A^T * x (A^T = transposed of this object)
-		bool applyTransposed(ArneVector&b, const ArneVector& x);
+		bool apply_transposed(ArneVector&b, const ArneVector& x);
 
 		// b := b - A * x (A = this object)
 		bool matmul_minus(ArneVector&b, const ArneVector& x);

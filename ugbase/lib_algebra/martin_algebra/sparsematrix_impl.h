@@ -290,6 +290,12 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 	return true;
 }
 
+template<typename T>
+template<typename Vector_type>
+bool SparseMatrix<T>::apply_transposed(Vector_type &res, const Vector_type &x) const
+{
+	return applyTransposed(res, x);
+}
 
 
 // res = A.T() * x

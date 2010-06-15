@@ -79,7 +79,7 @@ lmgc(uint l)
 
 		// restrict defect
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Restrict defect ... ");
-		if(m_I[l-1]->applyTransposed(*m_d[l-1], *m_d[l]) != true) return false;
+		if(m_I[l-1]->apply_transposed(*m_d[l-1], *m_d[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
 		// apply lmgc on coarser grid
@@ -286,7 +286,7 @@ prepare(surface_function_type &u, surface_function_type& d, surface_function_typ
 	// project solution from surface grid to coarser grid levels
 	for(uint lev = m_surfaceLevel; lev != m_baseLevel; --lev)
 	{
-		if(m_P[lev-1]->applyTransposed(*m_u[lev-1], *m_u[lev]) != true)
+		if(m_P[lev-1]->apply_transposed(*m_u[lev-1], *m_u[lev]) != true)
 		{
 			UG_LOG("ERROR while projecting solution to coarse grid function of level "<< lev -1 << ", aborting.\n");
 			return false;

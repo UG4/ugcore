@@ -150,7 +150,7 @@ apply(ArneVector&b, const ArneVector& x)
 
 bool
 ArneMatrix::
-applyTransposed(ArneVector&b, const ArneVector& x)
+apply_transposed(ArneVector&b, const ArneVector& x)
 {
 	ublas::axpy_prod(*x.getStorage(), *_Matrix, *b.getStorage(), true);
 	return true;
