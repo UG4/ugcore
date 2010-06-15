@@ -1,243 +1,243 @@
 
-#include "arnevector.h"
+#include "ublas_vector.h"
 #include "stdio.h"
 #include <cmath>
 
 namespace ug{
 
 bool
-ArneVector::
+UblasVector::
 create(uint nentries)
 {
 	int err = 0;
 
-	_Vector = new ScalarVector((int)nentries);
+	m_pVector = new ScalarVector((int)nentries);
 
-	if(_Vector == NULL) err = 1;
+	if(m_pVector == NULL) err = 1;
 
 	if(err) return false;
 	else return true;
 }
 
 bool
-ArneVector::
-create(const ArneVector& v)
+UblasVector::
+create(const UblasVector& v)
 {
 	uint nentries = v.size();
 
-	_Vector = new ScalarVector((int)nentries);
+	m_pVector = new ScalarVector((int)nentries);
 
-	if(_Vector == NULL) return false;
+	if(m_pVector == NULL) return false;
 	return true;
 }
 
 
-bool ArneVector::destroy()
+bool UblasVector::destroy()
 {
-	if(_Vector != NULL)
-		delete _Vector;
+	if(m_pVector != NULL)
+		delete m_pVector;
 
-	_Vector = NULL;
+	m_pVector = NULL;
 	return true;
 }
 
 bool
-ArneVector::
+UblasVector::
 set(const local_vector_type& u, const local_index_type& ind)
 {
-	if(_Vector == NULL) return false;
+	if(m_pVector == NULL) return false;
 	for(std::size_t i = 0; i < ind.size(); ++i)
 	{
-		UG_ASSERT(ind[i][0] < _Vector->size() && ind[i][0] >= 0, "ind = " << ind[i][0] << ", size = " << _Vector->size());
-		(*_Vector)(ind[i][0]) = u[i];
+		UG_ASSERT(ind[i][0] < m_pVector->size() && ind[i][0] >= 0, "ind = " << ind[i][0] << ", size = " << m_pVector->size());
+		(*m_pVector)(ind[i][0]) = u[i];
 	}
 	return true;
 }
 
 bool
-ArneVector::
+UblasVector::
 add(const local_vector_type& u, const local_index_type& ind)
 {
-	if(_Vector == NULL) return false;
+	if(m_pVector == NULL) return false;
 	for(std::size_t i = 0; i < ind.size(); ++i)
 	{
-		assert(ind[i][0] < _Vector->size() && ind[i][0] >= 0);
-		(*_Vector)(ind[i][0]) += u[i];
+		assert(ind[i][0] < m_pVector->size() && ind[i][0] >= 0);
+		(*m_pVector)(ind[i][0]) += u[i];
 	}
 	return true;
 }
 
 bool
-ArneVector::
+UblasVector::
 get(local_vector_type& u, const local_index_type& ind) const
 {
-	if(_Vector == NULL) return false;
+	if(m_pVector == NULL) return false;
 	for(std::size_t i = 0; i < ind.size(); ++i)
 	{
-		assert(ind[i][0] < _Vector->size() && ind[i][0] >= 0);
-		u[i] = (*_Vector)(ind[i][0]);
+		assert(ind[i][0] < m_pVector->size() && ind[i][0] >= 0);
+		u[i] = (*m_pVector)(ind[i][0]);
 	}
 	return true;
 }
 
-bool ArneVector::finalize()
+bool UblasVector::finalize()
 {
 	return true;
 }
 
-bool ArneVector::printToFile(const char* filename) const
+bool UblasVector::printToFile(const char* filename) const
 {
-	if(_Vector == NULL) return false;
+	if(m_pVector == NULL) return false;
 
 	FILE* file;
 	file = fopen(filename, "w");
 	if(file == NULL) return false;
 
-	for(uint i = 0; i < _Vector->size(); ++i)
+	for(uint i = 0; i < m_pVector->size(); ++i)
 	{
-		fprintf(file, "%i: %e\n", i, (*_Vector)(i));
+		fprintf(file, "%i: %e\n", i, (*m_pVector)(i));
 	}
 
 	fclose(file);
 	return true;
 }
 
-ArneVector::
-~ArneVector()
+UblasVector::
+~UblasVector()
 {
-	if(_Vector != NULL)
-		delete _Vector;
+	if(m_pVector != NULL)
+		delete m_pVector;
 
-	_Vector = NULL;
+	m_pVector = NULL;
 }
 
-ArneVector&
-ArneVector::
-operator+= (const ArneVector& v) {
+UblasVector&
+UblasVector::
+operator+= (const UblasVector& v) {
 
-		(*_Vector) += *(v._Vector);
+		(*m_pVector) += *(v.m_pVector);
 
 		return *this;
 }
 
-ArneVector&
-ArneVector::
-operator-= (const ArneVector& v) {
+UblasVector&
+UblasVector::
+operator-= (const UblasVector& v) {
 
-		(*_Vector) -= *(v._Vector);
+		(*m_pVector) -= *(v.m_pVector);
 
 		return *this;
 }
 
-ArneVector&
-ArneVector::
-operator= (const ArneVector& v) {
+UblasVector&
+UblasVector::
+operator= (const UblasVector& v) {
 
-		for(unsigned int i = 0; i < v._Vector->size(); ++i)
-			(*_Vector)(i) = (*(v._Vector))(i);
+		for(unsigned int i = 0; i < v.m_pVector->size(); ++i)
+			(*m_pVector)(i) = (*(v.m_pVector))(i);
 
 		return *this;
 }
 
 number
-ArneVector::
-operator *(const ArneVector& v)
+UblasVector::
+operator *(const UblasVector& v)
 {
 	number val = 0;
-	for(unsigned int i = 0; i < v._Vector->size(); ++i)
+	for(unsigned int i = 0; i < v.m_pVector->size(); ++i)
 	{
-		val += (*_Vector)(i) * (*(v._Vector))(i);
+		val += (*m_pVector)(i) * (*(v.m_pVector))(i);
 	}
 	return val;
 }
 
-number ArneVector::one_norm() const
+number UblasVector::one_norm() const
 	{
 		double norm = 0;
-		for(uint i = 0; i < _Vector->size(); ++i)
+		for(uint i = 0; i < m_pVector->size(); ++i)
 		{
-			norm += fabs( (*_Vector)(i) );
+			norm += fabs( (*m_pVector)(i) );
 		}
 
 		return norm;
 }
 
 number
-ArneVector::
+UblasVector::
 two_norm() const
 {
 	double norm = 0;
-	for(uint i = 0; i < _Vector->size(); ++i)
+	for(uint i = 0; i < m_pVector->size(); ++i)
 	{
-		norm += (*_Vector)(i) * (*_Vector)(i);
+		norm += (*m_pVector)(i) * (*m_pVector)(i);
 	}
 
 	return (number) sqrt(norm);
 }
 
 bool
-ArneVector::
+UblasVector::
 set(number w)
 {
-	for(uint i = 0; i < _Vector->size(); ++i)
+	for(uint i = 0; i < m_pVector->size(); ++i)
 	{
-		(*_Vector)(i) = w;
+		(*m_pVector)(i) = w;
 	}
 
 	return true;
 }
 
 bool
-ArneVector::
+UblasVector::
 operator*=(number w)
 {
-	for(uint i = 0; i < _Vector->size(); ++i)
+	for(uint i = 0; i < m_pVector->size(); ++i)
 	{
-		(*_Vector)(i) *= w;
+		(*m_pVector)(i) *= w;
 	}
 
 	return true;
 }
 
 bool
-ArneVector::
+UblasVector::
 operator=(number w)
 {
 	return this->set(w);
 }
 
 uint
-ArneVector::
+UblasVector::
 size() const
 {
-	if(_Vector != NULL) return _Vector->size();
+	if(m_pVector != NULL) return m_pVector->size();
 	else return 0;
 }
 
-ArneVector::ScalarVector*
-ArneVector::
+UblasVector::ScalarVector*
+UblasVector::
 getStorage()
 {
-	return _Vector;
+	return m_pVector;
 }
 
-const ArneVector::ScalarVector*
-ArneVector::
+const UblasVector::ScalarVector*
+UblasVector::
 getStorage() const
 {
-	return _Vector;
+	return m_pVector;
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector& v)
+std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector& v)
 {
-	if(v._Vector == NULL) return outStream;
+	if(v.m_pVector == NULL) return outStream;
 
-	for(std::size_t i = 0; i < v._Vector->size(); ++i)
-		outStream << "[" << i << "]: " << (*(v._Vector))(i) << std::endl;
+	for(std::size_t i = 0; i < v.m_pVector->size(); ++i)
+		outStream << "[" << i << "]: " << (*(v.m_pVector))(i) << std::endl;
 	return outStream;
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector::local_index_type& ind)
+std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector::local_index_type& ind)
 {
 	for(std::size_t i = 0; i < ind.size(); ++i)
 		outStream << "[" << i << "]: " << ind[i] << std::endl;

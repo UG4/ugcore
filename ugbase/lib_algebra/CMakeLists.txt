@@ -14,9 +14,9 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 if(NOT NO_ALGEBRA)
 
 if(Boost_FOUND)
-	set(src_Algebra	 arne_algebra/arnevector.cpp
-			 arne_algebra/arnematrix.cpp
-			 arne_algebra/arnelinearsolver.cpp)
+	set(src_Algebra	 ublas_algebra/ublas_vector.cpp
+					 ublas_algebra/ublas_matrix.cpp
+			 		 ublas_algebra/ublas_linearsolver.cpp)
 endif(Boost_FOUND)
 
 if(HYPRELIB_LIB_DIR)

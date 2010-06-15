@@ -1,12 +1,12 @@
 /*
- * arnevector.h
+ * ublas_vector.h
  *
  *  Created on: 02.07.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_ALGEBRA__ARNEVECTOR__
-#define __H__LIB_ALGEBRA__ARNEVECTOR__
+#ifndef __H__LIB_ALGEBRA__UBLAS_ALGEBRA__UBLAS_VECTOR__
+#define __H__LIB_ALGEBRA__UBLAS_ALGEBRA__UBLAS_VECTOR__
 
 #include "../solver/BoostBlock.hh"
 
@@ -21,10 +21,10 @@
 
 namespace ug{
 
-class ArneMatrix;
-class ArneJacobi;
+class UblasMatrix;
+class UblasJacobi;
 
-class ArneVector{
+class UblasVector{
 	public:
 		// index_type
 		typedef MultiIndex<1> index_type;
@@ -35,13 +35,13 @@ class ArneVector{
 
 	public:
 		// constructor
-		ArneVector() : _Vector(NULL){};
+		UblasVector() : m_pVector(NULL){};
 
 		// create and destroy
 		bool create(uint nentries);
 
 		// create as copy of other vector
-		bool create(const ArneVector& v);
+		bool create(const UblasVector& v);
 
 		// destroy
 		bool destroy();
@@ -55,12 +55,12 @@ class ArneVector{
 		bool finalize();
 
 		// operations with other vectors
-		ArneVector& operator+= (const ArneVector& v);
-		ArneVector& operator-= (const ArneVector& v);
-		ArneVector& operator= (const ArneVector& v);
+		UblasVector& operator+= (const UblasVector& v);
+		UblasVector& operator-= (const UblasVector& v);
+		UblasVector& operator= (const UblasVector& v);
 
 		// scalar product
-		number operator *(const ArneVector& v);
+		number operator *(const UblasVector& v);
 
 		// norms
 		number one_norm() const;
@@ -78,36 +78,36 @@ class ArneVector{
 		bool printToFile(const char* filename) const;
 
 		// destructor
-		~ArneVector();
+		~UblasVector();
 
 	private:
 		// disallow copy constructor
-		ArneVector(const ArneVector& v);
+		UblasVector(const UblasVector& v);
 
 	private:
-		friend class ArneMatrix;
-		friend class ArneJacobi;
-		friend bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp);
+		friend class UblasMatrix;
+		friend class UblasJacobi;
+		friend bool diag_step(const UblasMatrix& A, UblasVector& c, UblasVector& d, number damp);
 
 		typedef ublas::vector<double> ScalarVector;
 
-		ArneVector::ScalarVector* getStorage();
-		const ArneVector::ScalarVector* getStorage() const;
+		UblasVector::ScalarVector* getStorage();
+		const UblasVector::ScalarVector* getStorage() const;
 
 	private:
-		ScalarVector* _Vector;
+		ScalarVector* m_pVector;
 
-	friend std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector& v);
+	friend std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector& v);
 	public:
 		void p() const { std::cout << *this; }
 
 };
 
-std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector& v);
+std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector& v);
 
-std::ostream& operator<< (std::ostream& outStream, const ug::ArneVector::local_index_type& ind);
+std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector::local_index_type& ind);
 
 
 }
 
-#endif /* __H__LIB_ALGEBRA__ARNEVECTOR__ */
+#endif /* __H__LIB_ALGEBRA__UBLAS_ALGEBRA__UBLAS_VECTOR__ */

@@ -1,11 +1,11 @@
 
-#include "arnelinearsolver.h"
+#include "ublas_linearsolver.h"
 
 namespace ug{
 
 using namespace std;
 /// jacobi step
-bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
+bool diag_step(const UblasMatrix& A, UblasVector& c, UblasVector& d, number damp)
 {
 	typedef ublas::vector<double> ScalarVector;
 	typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
@@ -29,14 +29,14 @@ bool diag_step(const ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
 }
 
 
-ArneJacobi::ArneJacobi(int maxIter, number tol, bool verbose)
+UblasJacobi::UblasJacobi(int maxIter, number tol, bool verbose)
 {
-	_maxIter = maxIter;
-	_tol = tol;
-	_verbose = verbose;
+	m_maxIter = maxIter;
+	m_tol = tol;
+	m_verbose = verbose;
 }
 
-bool ArneJacobi::solve(ArneMatrix& A, ArneVector& x, ArneVector& b)
+bool UblasJacobi::solve(UblasMatrix& A, UblasVector& x, UblasVector& b)
 {
 	typedef ublas::vector<double> ScalarVector;
 	typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
@@ -48,7 +48,7 @@ bool ArneJacobi::solve(ArneMatrix& A, ArneVector& x, ArneVector& b)
 
 	ScalarLinop linop_s(*A.getStorage());
 	ScalarPrecond pjac_s(*A.getStorage());
-	ScalarConvCheck conv_s(_maxIter, _tol, _verbose);
+	ScalarConvCheck conv_s(m_maxIter, m_tol, m_verbose);
 	ScalarSolver solver_s(linop_s, pjac_s, conv_s);
 
 	solver_s.apply(*x.getStorage(),*b.getStorage());
@@ -56,7 +56,7 @@ bool ArneJacobi::solve(ArneMatrix& A, ArneVector& x, ArneVector& b)
 	return true;
 }
 
-bool ArneJacobi::step(ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
+bool UblasJacobi::step(UblasMatrix& A, UblasVector& c, UblasVector& d, number damp)
 {
 	typedef ublas::vector<double> ScalarVector;
 	typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
@@ -71,7 +71,7 @@ bool ArneJacobi::step(ArneMatrix& A, ArneVector& c, ArneVector& d, number damp)
 	return true;
 }
 
-ArneJacobi::~ArneJacobi()
+UblasJacobi::~UblasJacobi()
 {
 
 }

@@ -1,100 +1,100 @@
-#include "arnematrix.h"
+#include "ublas_matrix.h"
 #include <iostream>
 
 namespace ug{
 
 bool
-ArneMatrix::
+UblasMatrix::
 create(uint nrow, uint ncol)
 {
-	_Matrix = new ScalarMatrix(nrow, ncol, 8);
+	m_pMatrix = new ScalarMatrix(nrow, ncol, 8);
 
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 	else return true;
 }
 
 bool
-ArneMatrix::
-create(const ArneMatrix& v)
+UblasMatrix::
+create(const UblasMatrix& v)
 {
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 
 	uint nrow = v.row_size();
 	uint ncol = v.col_size();
-	_Matrix = new ScalarMatrix(nrow, ncol, 8);
+	m_pMatrix = new ScalarMatrix(nrow, ncol, 8);
 
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 	else return true;
 }
 
 
 bool
-ArneMatrix::
+UblasMatrix::
 destroy()
 {
-	if(_Matrix != NULL)
-		delete _Matrix;
-	_Matrix = NULL;
+	if(m_pMatrix != NULL)
+		delete m_pMatrix;
+	m_pMatrix = NULL;
 	return true;
 }
 
 bool
-ArneMatrix::
+UblasMatrix::
 set(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
 {
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 
 	for(uint i = 0; i < I.size(); ++i)
 	{
 		for(uint j = 0; j < J.size(); ++j)
 		{
-			(*_Matrix)(I[i][0], J[j][0]) = mat(i,j);
+			(*m_pMatrix)(I[i][0], J[j][0]) = mat(i,j);
 		}
 	}
 	return true;
 }
 
 bool
-ArneMatrix::
+UblasMatrix::
 add(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
 {
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 
 	for(uint i = 0; i < I.size(); ++i)
 	{
 		for(uint j = 0; j < J.size(); ++j)
 		{
-			(*_Matrix)(I[i][0], J[j][0]) += mat(i,j);
+			(*m_pMatrix)(I[i][0], J[j][0]) += mat(i,j);
 		}
 	}
 	return true;
 }
 
 bool
-ArneMatrix::
+UblasMatrix::
 get(local_matrix_type& mat, const local_index_type& I, const local_index_type& J) const
 {
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 
 	for(uint i = 0; i < I.size(); ++i)
 	{
 		for(uint j = 0; j < J.size(); ++j)
 		{
-			mat(i,j) = (*_Matrix)(I[i][0], J[j][0]);
+			mat(i,j) = (*m_pMatrix)(I[i][0], J[j][0]);
 		}
 	}
 	return true;
 }
 
-bool ArneMatrix::set_dirichlet_rows(const local_index_type& I)
+bool UblasMatrix::set_dirichlet_rows(const local_index_type& I)
 {
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 
 	typedef ublas::matrix_row< ScalarMatrix > row_type;
 
 	for(uint i = 0; i < I.size(); ++i)
 	{
-		row_type row(*_Matrix, I[i][0]);
+		row_type row(*m_pMatrix, I[i][0]);
 		for(row_type::iterator iter_ij = row.begin(); iter_ij != row.end(); ++iter_ij)
 		{
 			if(iter_ij.index() == I[i][0]) *iter_ij = 1.0;
@@ -105,17 +105,17 @@ bool ArneMatrix::set_dirichlet_rows(const local_index_type& I)
 }
 
 bool
-ArneMatrix::
+UblasMatrix::
 set(number w)
 {
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 
     typedef ScalarMatrix::value_type value_type;
 
     typedef ScalarMatrix::iterator1 row_iter_type;
     typedef ScalarMatrix::iterator2 entry_iter_type;
 
-    for (row_iter_type rowi = _Matrix->begin1(); rowi != _Matrix->end1(); ++rowi)
+    for (row_iter_type rowi = m_pMatrix->begin1(); rowi != m_pMatrix->end1(); ++rowi)
     {
 		for(entry_iter_type iter_ij = rowi.begin(); iter_ij != rowi.end(); ++iter_ij)
 		{
@@ -127,68 +127,68 @@ set(number w)
 
 
 bool
-ArneMatrix::
+UblasMatrix::
 operator=(number w)
 {
 	return this->set(w);
 }
 
 bool
-ArneMatrix::
+UblasMatrix::
 finalize()
 {
 	return true;
 }
 
 bool
-ArneMatrix::
-apply(ArneVector&b, const ArneVector& x)
+UblasMatrix::
+apply(UblasVector&b, const UblasVector& x)
 {
-	ublas::axpy_prod(*_Matrix, *x.getStorage(), *b.getStorage(), true);
+	ublas::axpy_prod(*m_pMatrix, *x.getStorage(), *b.getStorage(), true);
 	return true;
 }
 
 bool
-ArneMatrix::
-apply_transposed(ArneVector&b, const ArneVector& x)
+UblasMatrix::
+apply_transposed(UblasVector&b, const UblasVector& x)
 {
-	ublas::axpy_prod(*x.getStorage(), *_Matrix, *b.getStorage(), true);
+	ublas::axpy_prod(*x.getStorage(), *m_pMatrix, *b.getStorage(), true);
 	return true;
 }
 
 bool
-ArneMatrix::
-matmul_minus(ArneVector&b, const ArneVector& x)
+UblasMatrix::
+matmul_minus(UblasVector&b, const UblasVector& x)
 {
-	ArneVector& x2 = const_cast<ArneVector&>(x);
+	UblasVector& x2 = const_cast<UblasVector&>(x);
 
 	*x2.getStorage() *= -1.0;
-	ublas::axpy_prod(*_Matrix, *x2.getStorage(), *b.getStorage(), false);
+	ublas::axpy_prod(*m_pMatrix, *x2.getStorage(), *b.getStorage(), false);
 	*x2.getStorage() *= -1.0;
 	return true;
 }
 
 uint
-ArneMatrix::
+UblasMatrix::
 row_size() const
 {
-	if(_Matrix == NULL) return 0;
-	return _Matrix->size1();
+	if(m_pMatrix == NULL) return 0;
+	return m_pMatrix->size1();
 }
 
 uint
-ArneMatrix::
+UblasMatrix::
 col_size() const
 {
-	if(_Matrix == NULL) return 0;
-	return _Matrix->size2();
+	if(m_pMatrix == NULL) return 0;
+	return m_pMatrix->size2();
 }
 
 bool
-ArneMatrix::
+UblasMatrix::
 printToFile(const char* filename)
 {
-	if(_Matrix == NULL) return false;
+	if(m_pMatrix == NULL) return false;
 	FILE* file;
 
 	file = fopen(filename, "w");
@@ -198,7 +198,7 @@ printToFile(const char* filename)
     typedef ScalarMatrix::const_iterator1 row_iter_type;
     typedef ScalarMatrix::const_iterator2 entry_iter_type;
 
-    for (row_iter_type rowi = _Matrix->begin1(); rowi != _Matrix->end1(); ++rowi)
+    for (row_iter_type rowi = m_pMatrix->begin1(); rowi != m_pMatrix->end1(); ++rowi)
     {
 		for(entry_iter_type iter_ij = rowi.begin(); iter_ij != rowi.end(); ++iter_ij)
 		{
@@ -210,37 +210,37 @@ printToFile(const char* filename)
 	return true;
 }
 
-ArneMatrix::ScalarMatrix*
-ArneMatrix::
+UblasMatrix::ScalarMatrix*
+UblasMatrix::
 getStorage()
 {
-	return _Matrix;
+	return m_pMatrix;
 }
 
-const ArneMatrix::ScalarMatrix*
-ArneMatrix::
+const UblasMatrix::ScalarMatrix*
+UblasMatrix::
 getStorage() const
 {
-	return _Matrix;
+	return m_pMatrix;
 }
 
 
-ArneMatrix::
-~ArneMatrix()
+UblasMatrix::
+~UblasMatrix()
 {
 	destroy();
 }
 
-std::ostream& operator<< (std::ostream& outStream, const ug::ArneMatrix& m)
+std::ostream& operator<< (std::ostream& outStream, const ug::UblasMatrix& m)
 {
-	if(m._Matrix == NULL) return outStream;
+	if(m.m_pMatrix == NULL) return outStream;
 
 	typedef ublas::compressed_matrix<double, ublas::row_major> ScalarMatrix;
     typedef ScalarMatrix::value_type value_type;
     typedef ScalarMatrix::const_iterator1 row_iter_type;
     typedef ScalarMatrix::const_iterator2 entry_iter_type;
 
-    for (row_iter_type rowi = m._Matrix->begin1(); rowi != m._Matrix->end1(); ++rowi)
+    for (row_iter_type rowi = m.m_pMatrix->begin1(); rowi != m.m_pMatrix->end1(); ++rowi)
     {
 		for(entry_iter_type iter_ij = rowi.begin(); iter_ij != rowi.end(); ++iter_ij)
 		{

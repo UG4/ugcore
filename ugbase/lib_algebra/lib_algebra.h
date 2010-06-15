@@ -26,13 +26,13 @@
 
 /////////////////////////////////////////////
 /////////////////////////////////////////////
-//   Arne Algebra
+//   ublas algebra
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 
-#include "arne_algebra/arnematrix.h"
-#include "arne_algebra/arnevector.h"
-#include "arne_algebra/arnelinearsolver.h"
+#include "ublas_algebra/ublas_matrix.h"
+#include "ublas_algebra/ublas_vector.h"
+#include "ublas_algebra/ublas_linearsolver.h"
 
 namespace ug {
 
@@ -45,10 +45,10 @@ namespace ug {
 class ArneAlgebra{
 	public:
 		// matrix type
-		typedef ArneMatrix matrix_type;
+		typedef UblasMatrix matrix_type;
 
 		// vector type
-		typedef ArneVector vector_type;
+		typedef UblasVector vector_type;
 
 		// index_type
 		typedef MultiIndex<1> index_type;
