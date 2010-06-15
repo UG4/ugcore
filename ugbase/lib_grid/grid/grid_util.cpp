@@ -84,8 +84,8 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearC
 	if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	ok. simply push them into the container.
-		EdgeBaseIterator iterEnd = grid.associated_edges_end(f);
-		for(EdgeBaseIterator iter = grid.associated_edges_begin(f);
+		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(f);
+		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(f);
 			iter != iterEnd; ++iter)
 		{
 			vEdgesOut.push_back(*iter);
@@ -115,8 +115,8 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 	if(grid.option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
 	//	iterate through the associated edges and push them into the container.
-		EdgeBaseIterator iterEnd = grid.associated_edges_end(v);
-		for(EdgeBaseIterator iter = grid.associated_edges_begin(v);
+		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(v);
+		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
 			iter != iterEnd; ++iter)
 		{
 			vEdgesOut.push_back(*iter);
@@ -148,8 +148,8 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool c
 //	best option: EDGEOPT_STORE_ASSOCIATED_FACES
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
-		FaceIterator iterEnd = grid.associated_faces_end(e);
-		for(FaceIterator iter = grid.associated_faces_begin(e);
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
 			iter != iterEnd; ++iter)
 		{
 			vFacesOut.push_back(*iter);
@@ -161,8 +161,8 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool c
 //	and check for each if it contains e. If so push it into the container.
 	{
 		VertexBase* v1 = e->vertex(0);
-		FaceIterator iterEnd = grid.associated_faces_end(v1);
-		for(FaceIterator iter = grid.associated_faces_begin(v1);
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v1);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v1);
 			iter != iterEnd; ++iter)
 		{
 			if(FaceContains(*iter, e))
@@ -181,8 +181,8 @@ void CollectFaces(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool clearCon
 	if(grid.option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
 	{
 	//	iterate through the faces and add them to the container
-		FaceIterator iterEnd = grid.associated_faces_end(v);
-		for(FaceIterator iter = grid.associated_faces_begin(v);
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
 			iter != iterEnd; ++iter)
 		{
 			vFacesOut.push_back(*iter);
@@ -243,8 +243,8 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, 
 //	best option: EDGEOPT_STORE_ASSOCIATED_VOLUMES
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		VolumeIterator iterEnd = grid.associated_volumes_end(e);
-		for(VolumeIterator iter = grid.associated_volumes_begin(e);
+		Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(e);
+		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(e);
 			iter != iterEnd; ++iter)
 		{
 			vVolumesOut.push_back(*iter);
@@ -255,8 +255,8 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, 
 //	second best: iterate through all volumes that are associated with the first vertex of e.
 //	check for each if it contains e. if so then store it in the container.
 	VertexBase* v1 = e->vertex(0);
-	VolumeIterator iterEnd = grid.associated_volumes_end(v1);
-	for(VolumeIterator iter = grid.associated_volumes_begin(v1);
+	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v1);
+	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
 		iter != iterEnd; ++iter)
 	{
 		if(VolumeContains(*iter, e))
@@ -275,8 +275,8 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Face* f, bool
 	//	best option: FACEOPT_STORE_ASSOCIATED_VOLUMES
 		if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
 		{
-			VolumeIterator iterEnd = grid.associated_volumes_end(f);
-			for(VolumeIterator iter = grid.associated_volumes_begin(f);
+			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(f);
+			for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f);
 				iter != iterEnd; ++iter)
 			{
 				vVolumesOut.push_back(*iter);
@@ -298,8 +298,8 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Face* f, bool
 //	to make things a little faster we'll check if the associated volumes contain a second vertex of f.
 	VertexBase* v1 = f->vertex(0);
 
-	VolumeIterator iterEnd = grid.associated_volumes_end(v1);
-	for(VolumeIterator iter = grid.associated_volumes_begin(v1);
+	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v1);
+	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
 		iter != iterEnd; ++iter)
 	{
 		Volume* v = *iter;
@@ -326,8 +326,8 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescripto
 //	to make things a little faster we'll check if the associated volumes contain a second vertex of f.
 	VertexBase* v1 = fd.vertex(0);
 
-	VolumeIterator iterEnd = grid.associated_volumes_end(v1);
-	for(VolumeIterator iter = grid.associated_volumes_begin(v1);
+	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v1);
+	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
 		iter != iterEnd; ++iter)
 	{
 		Volume* v = *iter;

@@ -670,8 +670,8 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 			
 			//	check edges
 				{
-					EdgeBaseIterator iterEnd = grid.associated_edges_end(vrt);
-					for(EdgeBaseIterator iter = grid.associated_edges_begin(vrt);
+					Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
+					for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
 						iter != iterEnd; ++iter)
 					{
 						EdgeBase* e = *iter;
@@ -694,8 +694,8 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 
 			//	check faces
 				{
-					FaceIterator iterEnd = grid.associated_faces_end(vrt);
-					for(FaceIterator iter = grid.associated_faces_begin(vrt);
+					Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
+					for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
 						iter != iterEnd; ++iter)
 					{
 						Face* f = *iter;
@@ -728,8 +728,8 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 
 			//	check volumes
 				{
-					VolumeIterator iterEnd = grid.associated_volumes_end(vrt);
-					for(VolumeIterator iter = grid.associated_volumes_begin(vrt);
+					Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrt);
+					for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrt);
 						iter != iterEnd; ++iter)
 					{
 						Volume* v = *iter;

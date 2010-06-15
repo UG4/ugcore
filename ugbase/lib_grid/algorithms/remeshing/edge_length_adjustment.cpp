@@ -28,7 +28,7 @@ static void AssignFixedVertices(Grid& grid, SubsetHandler& shMarks)
 			if(!grid.is_marked(vrt)){
 				grid.mark(vrt);
 				int counter = 0;
-				for(EdgeBaseIterator nbIter = grid.associated_edges_begin(vrt);
+				for(Grid::AssociatedEdgeIterator nbIter = grid.associated_edges_begin(vrt);
 					nbIter != grid.associated_edges_end(vrt); ++nbIter)
 				{
 					if(shMarks.get_subset_index(*nbIter) != RM_NONE)
@@ -102,8 +102,8 @@ number CalculateMinCurvature(Grid& grid, SubsetHandler& shMarks,
 	
 //	calculate the normals of associated faces
 	vNormals.clear();
-	FaceIterator iterEnd = grid.associated_faces_end(vrt);
-	for(FaceIterator iter = grid.associated_faces_begin(vrt);
+	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
+	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
 		iter != iterEnd; ++iter)
 	{
 		vector3 nTmp;

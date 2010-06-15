@@ -275,8 +275,8 @@ bool CreatePolyChain(std::vector<VertexBase*>& polyChainOut, Grid& grid,
 	while(bRunning){
 		bRunning = false;
 	//	find a connected  unmarked vertex
-		EdgeBaseIterator assEdgesEnd = grid.associated_edges_end(actVrt);
-		for(EdgeBaseIterator eIter = grid.associated_edges_begin(actVrt);
+		Grid::AssociatedEdgeIterator assEdgesEnd = grid.associated_edges_end(actVrt);
+		for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(actVrt);
 			eIter != assEdgesEnd; ++eIter)
 		{
 			EdgeBase* e = *eIter;

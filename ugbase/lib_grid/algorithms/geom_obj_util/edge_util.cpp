@@ -48,7 +48,7 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
 	int counter = 0;
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
-		for(FaceIterator iter = grid.associated_faces_begin(e);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
 			iter != grid.associated_faces_end(e); ++iter)
 			++counter;
 
@@ -74,8 +74,8 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
 		int counter = 0;
-		FaceIterator iterEnd = grid.associated_faces_end(e);
-		for(FaceIterator iter = grid.associated_faces_begin(e);
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
 			iter != grid.associated_faces_end(e); ++iter)
 		{
 			Face* tf = *iter;
@@ -99,8 +99,8 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 	//	iterate over all associated faces of vertex 0
 		int counter = 0;
 		VertexBase* v = e->vertex(0);
-		FaceIterator iterEnd = grid.associated_faces_end(v);
-		for(FaceIterator iter = grid.associated_faces_begin(v);
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
 			iter != iterEnd; ++iter)
 		{
 			Face* tf = *iter;

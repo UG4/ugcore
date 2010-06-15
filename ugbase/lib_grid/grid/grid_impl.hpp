@@ -117,24 +117,24 @@ Grid::end()
 }
 
 template <class TGeomObj>
-typename geometry_traits<TGeomObj>::iterator
+typename geometry_traits<TGeomObj>::const_iterator
 Grid::begin() const
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);
 
-	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
+	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
 		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
 template <class TGeomObj>
-typename geometry_traits<TGeomObj>::iterator
+typename geometry_traits<TGeomObj>::const_iterator
 Grid::end() const
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);
 
-	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
+	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
 		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
@@ -270,8 +270,8 @@ template <class TGeomObj>
 EdgeBase* Grid::find_edge_in_associated_edges(TGeomObj* obj,
 												EdgeVertices& ev)
 {
-	EdgeBaseIterator iterEnd = associated_edges_end(obj);
-	for(EdgeBaseIterator iter = associated_edges_begin(obj);
+	AssociatedEdgeIterator iterEnd = associated_edges_end(obj);
+	for(AssociatedEdgeIterator iter = associated_edges_begin(obj);
 		iter != iterEnd; ++iter)
 	{
 		EdgeBase* e = *iter;
@@ -287,8 +287,8 @@ Face* Grid::find_face_in_associated_faces(TGeomObj* obj,
 											FaceVertices& fv)
 {
 	unsigned long key = hash_key(&fv);
-	FaceIterator iterEnd = associated_faces_end(obj);
-	for(FaceIterator iter = associated_faces_begin(obj);
+	AssociatedFaceIterator iterEnd = associated_faces_end(obj);
+	for(AssociatedFaceIterator iter = associated_faces_begin(obj);
 		iter != iterEnd; ++iter)
 	{
 		Face* f = *iter;
@@ -307,8 +307,8 @@ Volume* Grid::find_volume_in_associated_volumes(TGeomObj* obj,
 												VolumeVertices& vv)
 {
 	unsigned long key = hash_key(&vv);
-	VolumeIterator iterEnd = associated_volumes_end(obj);
-	for(VolumeIterator iter = associated_volumes_begin(obj);
+	AssociatedVolumeIterator iterEnd = associated_volumes_end(obj);
+	for(AssociatedVolumeIterator iter = associated_volumes_begin(obj);
 		iter != iterEnd; ++iter)
 	{
 		Volume* v = *iter;

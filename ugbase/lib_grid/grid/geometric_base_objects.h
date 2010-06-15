@@ -71,7 +71,8 @@ typedef std::list<GeometricObject*> 		GeometricObjectContainer;
 ////////////////////////////////////////////////////////////////////////
 //	GeometricObjectIterator
 ///	This Iterator will be used as base-class for iterators of specialized geometric objects.
-typedef GeometricObjectContainer::iterator	GeometricObjectIterator;
+typedef GeometricObjectContainer::iterator			GeometricObjectIterator;
+typedef GeometricObjectContainer::const_iterator	ConstGeometricObjectIterator;
 
 ////////////////////////////////////////////////////////////////////////
 //	The geometry_traits. This class can be specialized by each element-type.
@@ -118,7 +119,7 @@ template <class TValue, class TBaseIterator = GeometricObjectIterator>
 class GenericGeometricObjectIterator : public TBaseIterator
 {
 	friend class Grid;
-	//template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
+	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
 
 	public:
 		typedef TValue	value_type;
@@ -128,19 +129,59 @@ class GenericGeometricObjectIterator : public TBaseIterator
 
 		GenericGeometricObjectIterator(const GenericGeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
-
+/*
 		GenericGeometricObjectIterator(const typename std::list<TValue>::iterator& iter) :
 			TBaseIterator(*((TBaseIterator*)&iter)){}
-
+*/
 		inline TValue& operator* ()	{return (TValue&)(TBaseIterator::operator*());}
 		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
 		
-	protected:
-/*
-	//	This method will be useful as soon as iterator-const-correctnes is given throughout lib_grid.
+	protected:/*
 		GenericGeometricObjectIterator(const TBaseIterator& iter) :
+			TBaseIterator(iter)	{}*/
+			
+		GenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//	ConstGenericGeometricObjectIterator
+///	Use this class as a tool to create const_iterators to your own geometric objects.
+/**
+ *
+ */
+template <class TValue, class TBaseIterator = ConstGeometricObjectIterator>
+class ConstGenericGeometricObjectIterator : public TBaseIterator
+{
+	friend class Grid;
+	template <class TIterDest, class TIterSrc> friend TIterDest iterator_cast(const TIterSrc& iter);
+
+	public:
+		typedef TValue	value_type;
+
+	public:
+		ConstGenericGeometricObjectIterator()	{}
+
+		ConstGenericGeometricObjectIterator(const ConstGenericGeometricObjectIterator& iter) :
+			TBaseIterator(iter)	{}
+/*
+		ConstGenericGeometricObjectIterator(const typename std::list<TValue>::iterator& iter) :
+			TBaseIterator(*((TBaseIterator*)&iter)){}
+			
+		ConstGenericGeometricObjectIterator(const typename std::list<TValue>::const_iterator& iter) :
+			TBaseIterator(*((TBaseIterator*)&iter)){}
 */
+		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
+		
+	protected:/*
+		ConstGenericGeometricObjectIterator(const TBaseIterator& iter) :
+			TBaseIterator(iter)	{}*/
+
+		ConstGenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
+			TBaseIterator(iter)	{}
+
+		ConstGenericGeometricObjectIterator(const ConstGeometricObjectIterator& iter) :
+			TBaseIterator(iter)	{}
 };
 
 
@@ -153,8 +194,8 @@ iterator_cast(const TIterSrc& iter)
 {
 //TODO: replace the first call by the second as soon as
 //		iterator-const-correcness is given in lib_grid.
-	return *reinterpret_cast<const TIterDest*>(&iter);
-	//return TIterDest(iter);
+	//return *reinterpret_cast<const TIterDest*>(&iter);
+	return TIterDest(iter);
 }
 
 /**
@@ -199,7 +240,9 @@ template <>
 class geometry_traits<GeometricObject>
 {
 	public:
-		typedef GeometricObjectIterator		iterator;
+		typedef GeometricObjectIterator			iterator;
+		typedef ConstGeometricObjectIterator	const_iterator;
+		
 		enum
 		{
 			SHARED_PIPE_SECTION = -1,
@@ -243,7 +286,9 @@ template <>
 class geometry_traits<VertexBase>
 {
 	public:
-		typedef GenericGeometricObjectIterator<VertexBase*>	iterator;
+		typedef GenericGeometricObjectIterator<VertexBase*>			iterator;
+		typedef ConstGenericGeometricObjectIterator<VertexBase*>	const_iterator;
+		
 		typedef VertexBase	geometric_base_object;
 
 		enum
@@ -332,7 +377,9 @@ template <>
 class geometry_traits<EdgeBase>
 {
 	public:
-		typedef GenericGeometricObjectIterator<EdgeBase*>	iterator;
+		typedef GenericGeometricObjectIterator<EdgeBase*>		iterator;
+		typedef ConstGenericGeometricObjectIterator<EdgeBase*>	const_iterator;
+		
 		typedef EdgeBase	geometric_base_object;
 
 		enum
@@ -584,7 +631,9 @@ template <>
 class geometry_traits<Face>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Face*>	iterator;
+		typedef GenericGeometricObjectIterator<Face*>		iterator;
+		typedef ConstGenericGeometricObjectIterator<Face*>	const_iterator;
+		
 		typedef Face	geometric_base_object;
 		//typedef void Descriptor;	///< Faces can't be created directly
 
@@ -783,7 +832,9 @@ template <>
 class geometry_traits<Volume>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Volume*>		iterator;
+		typedef GenericGeometricObjectIterator<Volume*>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Volume*>	const_iterator;
+		
 		typedef Volume		geometric_base_object;
 
 		enum
@@ -840,6 +891,10 @@ typedef geometry_traits<EdgeBase>::iterator		EdgeBaseIterator;
 typedef geometry_traits<Face>::iterator			FaceIterator;
 typedef geometry_traits<Volume>::iterator		VolumeIterator;
 
+typedef geometry_traits<VertexBase>::const_iterator	ConstVertexBaseIterator;
+typedef geometry_traits<EdgeBase>::const_iterator	ConstEdgeBaseIterator;
+typedef geometry_traits<Face>::const_iterator		ConstFaceIterator;
+typedef geometry_traits<Volume>::const_iterator		ConstVolumeIterator;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

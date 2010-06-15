@@ -158,7 +158,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 		EdgeBase* lastEdge = NULL;
 		int counter = 0;
 		
-		for(EdgeBaseIterator iter = grid.associated_edges_begin(srcVrt);
+		for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(srcVrt);
 			iter != grid.associated_edges_end(srcVrt); ++iter)
 		{
 			EdgeBase* e = *iter;
@@ -201,8 +201,8 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 			bool ignoreNormalChecks = false;
 			
 			int counter = 0;
-			EdgeBaseIterator iterEnd = grid.associated_edges_end(srcVrt);
-			for(EdgeBaseIterator iter = grid.associated_edges_begin(srcVrt);
+			Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(srcVrt);
+			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(srcVrt);
 				iter != iterEnd; ++iter)
 			{
 				EdgeBase* e = *iter;
@@ -350,7 +350,7 @@ void SelectInnerSelectionVertices(Selector& sel)
 		bool foundUnselected = false;
 		
 	//	volumes
-		for(VolumeIterator aIter = grid.associated_volumes_begin(v);
+		for(Grid::AssociatedVolumeIterator aIter = grid.associated_volumes_begin(v);
 			aIter != grid.associated_volumes_end(v); ++ aIter)
 		{
 			if(!sel.is_selected(*aIter)){
@@ -361,7 +361,7 @@ void SelectInnerSelectionVertices(Selector& sel)
 
 	//	face		
 		if(!foundUnselected){
-			for(FaceIterator aIter = grid.associated_faces_begin(v);
+			for(Grid::AssociatedFaceIterator aIter = grid.associated_faces_begin(v);
 				aIter != grid.associated_faces_end(v); ++ aIter)
 			{
 				if(!sel.is_selected(*aIter)){
@@ -373,7 +373,7 @@ void SelectInnerSelectionVertices(Selector& sel)
 	
 	//	edge		
 		if(!foundUnselected){
-			for(EdgeBaseIterator aIter = grid.associated_edges_begin(v);
+			for(Grid::AssociatedEdgeIterator aIter = grid.associated_edges_begin(v);
 				aIter != grid.associated_edges_end(v); ++ aIter)
 			{
 				if(!sel.is_selected(*aIter)){

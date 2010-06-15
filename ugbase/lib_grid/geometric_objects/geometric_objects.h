@@ -105,7 +105,9 @@ template <>
 class geometry_traits<Vertex>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Vertex*, VertexBaseIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Vertex*, VertexBaseIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<Vertex*, ConstVertexBaseIterator>	const_iterator;
+		
 		typedef VertexBase	geometric_base_object;
 
 		enum
@@ -115,7 +117,8 @@ class geometry_traits<Vertex>
 		};
 };
 
-typedef geometry_traits<Vertex>::iterator VertexIterator;
+typedef geometry_traits<Vertex>::iterator 		VertexIterator;
+typedef geometry_traits<Vertex>::const_iterator	ConstVertexIterator;
 
 ////////////////////////////////////////////////////////////////////////
 //	HangingVertex
@@ -167,7 +170,9 @@ template <>
 class geometry_traits<HangingVertex>
 {
 	public:
-		typedef GenericGeometricObjectIterator<HangingVertex*, VertexBaseIterator>	iterator;
+		typedef GenericGeometricObjectIterator<HangingVertex*, VertexBaseIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<HangingVertex*, ConstVertexBaseIterator>	const_iterator;
+		
 		typedef VertexBase	geometric_base_object;
 
 		enum
@@ -177,7 +182,8 @@ class geometry_traits<HangingVertex>
 		};
 };
 
-typedef geometry_traits<HangingVertex>::iterator HangingVertexIterator;
+typedef geometry_traits<HangingVertex>::iterator 		HangingVertexIterator;
+typedef geometry_traits<HangingVertex>::const_iterator	ConstHangingVertexIterator;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -242,7 +248,9 @@ template <>
 class geometry_traits<Edge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Edge*, EdgeBaseIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Edge*, EdgeBaseIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<Edge*, ConstEdgeBaseIterator>	const_iterator;
+		
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
 
@@ -253,7 +261,8 @@ class geometry_traits<Edge>
 		};
 };
 
-typedef geometry_traits<Edge>::iterator EdgeIterator;
+typedef geometry_traits<Edge>::iterator 		EdgeIterator;
+typedef geometry_traits<Edge>::const_iterator 	ConstEdgeIterator;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -329,7 +338,9 @@ template <>
 class geometry_traits<ConstrainedEdge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator>	iterator;
+		typedef GenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainedEdge*, ConstEdgeBaseIterator>	const_iterator;
+		
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
 
@@ -340,7 +351,8 @@ class geometry_traits<ConstrainedEdge>
 		};
 };
 
-typedef geometry_traits<ConstrainedEdge>::iterator ConstrainedEdgeIterator;
+typedef geometry_traits<ConstrainedEdge>::iterator 			ConstrainedEdgeIterator;
+typedef geometry_traits<ConstrainedEdge>::const_iterator 	ConstConstrainedEdgeIterator;
 
 ////////////////////////////////////////////////////////////////////////
 //	ConstrainingEdge
@@ -412,28 +424,28 @@ class ConstrainingEdge : public EdgeBase
 					m_lstConstrainedEdges.push_back(pObj);
 			}
 
-		inline VertexBaseIterator constrained_vertices_begin()		{return m_lstConstrainedVertices.begin();}
-		inline VertexBaseIterator constrained_vertices_end()		{return m_lstConstrainedVertices.end();}
-		inline EdgeBaseIterator constrained_edges_begin()			{return m_lstConstrainedEdges.begin();}
-		inline EdgeBaseIterator constrained_edges_end()				{return m_lstConstrainedEdges.end();}
+		inline VertexBaseIterator constrained_vertices_begin()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.begin());}
+		inline VertexBaseIterator constrained_vertices_end()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.end());}
+		inline EdgeBaseIterator constrained_edges_begin()			{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.begin());}
+		inline EdgeBaseIterator constrained_edges_end()				{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.end());}
 
 		inline bool is_constrained_object(VertexBase* vrt)
 			{
-				std::list<VertexBase*>::iterator iter = find(m_lstConstrainedVertices.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
 																m_lstConstrainedVertices.end(), vrt);
 				return iter != m_lstConstrainedVertices.end();
 			}
 
 		inline bool is_constrained_object(EdgeBase* edge)
 			{
-				std::list<EdgeBase*>::iterator iter = find(m_lstConstrainedEdges.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
 																m_lstConstrainedEdges.end(), edge);
 				return iter != m_lstConstrainedEdges.end();
 			}
 
 		inline void unconstrain_vertex(const VertexBase* vrt)
 			{
-				std::list<VertexBase*>::iterator iter = find(m_lstConstrainedVertices.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
 																m_lstConstrainedVertices.end(), vrt);
 				if(iter != m_lstConstrainedVertices.end())
 					m_lstConstrainedVertices.erase(iter);
@@ -441,7 +453,7 @@ class ConstrainingEdge : public EdgeBase
 
 		inline void unconstrain_edge(const EdgeBase* edge)
 			{
-				std::list<EdgeBase*>::iterator iter = find(m_lstConstrainedEdges.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
 																m_lstConstrainedEdges.end(), edge);
 				if(iter != m_lstConstrainedEdges.end())
 					m_lstConstrainedEdges.erase(iter);
@@ -461,15 +473,17 @@ class ConstrainingEdge : public EdgeBase
 		inline uint num_constrained_edges()		{return m_lstConstrainedEdges.size();}
 
 	protected:
-		std::list<VertexBase*>	m_lstConstrainedVertices;
-		std::list<EdgeBase*>	m_lstConstrainedEdges;
+		std::list<GeometricObject*>	m_lstConstrainedVertices;
+		std::list<GeometricObject*>	m_lstConstrainedEdges;
 };
 
 template <>
 class geometry_traits<ConstrainingEdge>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator>	iterator;
+		typedef GenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainingEdge*, ConstEdgeBaseIterator>	const_iterator;
+		
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
 
@@ -480,7 +494,8 @@ class geometry_traits<ConstrainingEdge>
 		};
 };
 
-typedef geometry_traits<ConstrainingEdge>::iterator ConstrainingEdgeIterator;
+typedef geometry_traits<ConstrainingEdge>::iterator 		ConstrainingEdgeIterator;
+typedef geometry_traits<ConstrainingEdge>::const_iterator 	ConstConstrainingEdgeIterator;
 
 
 
@@ -605,7 +620,9 @@ template <>
 class geometry_traits<Triangle>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Triangle*, FaceIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Triangle*, FaceIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<Triangle*, ConstFaceIterator>	const_iterator;
+		
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
@@ -616,7 +633,8 @@ class geometry_traits<Triangle>
 		};
 };
 
-typedef geometry_traits<Triangle>::iterator	TriangleIterator;
+typedef geometry_traits<Triangle>::iterator			TriangleIterator;
+typedef geometry_traits<Triangle>::const_iterator	ConstTriangleIterator;
 
 ////////////////////////////////////////////////////////////////////////
 //	ConstrainingFace
@@ -651,37 +669,37 @@ class ConstrainingFace : public Face
 					m_lstConstrainedFaces.push_back(pObj);
 			}
 
-		inline VertexBaseIterator constrained_vertices_begin()		{return m_lstConstrainedVertices.begin();}
-		inline VertexBaseIterator constrained_vertices_end()		{return m_lstConstrainedVertices.end();}
-		inline EdgeBaseIterator constrained_edges_begin()			{return m_lstConstrainedEdges.begin();}
-		inline EdgeBaseIterator constrained_edges_end()				{return m_lstConstrainedEdges.end();}
-		inline FaceIterator constrained_faces_begin()				{return m_lstConstrainedFaces.begin();}
-		inline FaceIterator constrained_faces_end()					{return m_lstConstrainedFaces.end();}
+		inline VertexBaseIterator constrained_vertices_begin()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.begin());}
+		inline VertexBaseIterator constrained_vertices_end()		{return iterator_cast<VertexBaseIterator>(m_lstConstrainedVertices.end());}
+		inline EdgeBaseIterator constrained_edges_begin()			{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.begin());}
+		inline EdgeBaseIterator constrained_edges_end()				{return iterator_cast<EdgeBaseIterator>(m_lstConstrainedEdges.end());}
+		inline FaceIterator constrained_faces_begin()				{return iterator_cast<FaceIterator>(m_lstConstrainedFaces.begin());}
+		inline FaceIterator constrained_faces_end()					{return iterator_cast<FaceIterator>(m_lstConstrainedFaces.end());}
 
 		inline bool is_constrained_object(VertexBase* vrt)
 			{
-				std::list<VertexBase*>::iterator iter = find(m_lstConstrainedVertices.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
 																m_lstConstrainedVertices.end(), vrt);
 				return iter != m_lstConstrainedVertices.end();
 			}
 
 		inline bool is_constrained_object(EdgeBase* edge)
 			{
-				std::list<EdgeBase*>::iterator iter = find(m_lstConstrainedEdges.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
 																m_lstConstrainedEdges.end(), edge);
 				return iter != m_lstConstrainedEdges.end();
 			}
 
 		inline bool is_constrained_object(Face* face)
 			{
-				std::list<Face*>::iterator iter = find(m_lstConstrainedFaces.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedFaces.begin(),
 																m_lstConstrainedFaces.end(), face);
 				return iter != m_lstConstrainedFaces.end();
 			}
 
 		inline void unconstrain_object(const VertexBase* vrt)
 			{
-				std::list<VertexBase*>::iterator iter = find(m_lstConstrainedVertices.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedVertices.begin(),
 																m_lstConstrainedVertices.end(), vrt);
 				if(iter != m_lstConstrainedVertices.end())
 					m_lstConstrainedVertices.erase(iter);
@@ -689,7 +707,7 @@ class ConstrainingFace : public Face
 
 		inline void unconstrain_object(const EdgeBase* edge)
 			{
-				std::list<EdgeBase*>::iterator iter = find(m_lstConstrainedEdges.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedEdges.begin(),
 																m_lstConstrainedEdges.end(), edge);
 				if(iter != m_lstConstrainedEdges.end())
 					m_lstConstrainedEdges.erase(iter);
@@ -697,7 +715,7 @@ class ConstrainingFace : public Face
 
 		inline void unconstrain_object(const Face* face)
 			{
-				std::list<Face*>::iterator iter = find(m_lstConstrainedFaces.begin(),
+				std::list<GeometricObject*>::iterator iter = find(m_lstConstrainedFaces.begin(),
 																m_lstConstrainedFaces.end(), face);
 				if(iter != m_lstConstrainedFaces.end())
 					m_lstConstrainedFaces.erase(iter);
@@ -721,9 +739,9 @@ class ConstrainingFace : public Face
 		inline uint num_constrained_faces()		{return m_lstConstrainedFaces.size();}
 
 	protected:
-		std::list<VertexBase*>	m_lstConstrainedVertices;
-		std::list<EdgeBase*>	m_lstConstrainedEdges;
-		std::list<Face*>		m_lstConstrainedFaces;
+		std::list<GeometricObject*>	m_lstConstrainedVertices;
+		std::list<GeometricObject*>	m_lstConstrainedEdges;
+		std::list<GeometricObject*>		m_lstConstrainedFaces;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -777,7 +795,9 @@ template <>
 class geometry_traits<ConstrainedTriangle>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainedTriangle*, TriangleIterator>	iterator;
+		typedef GenericGeometricObjectIterator<ConstrainedTriangle*, TriangleIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainedTriangle*, ConstTriangleIterator>	const_iterator;
+		
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
@@ -788,7 +808,8 @@ class geometry_traits<ConstrainedTriangle>
 		};
 };
 
-typedef geometry_traits<ConstrainedTriangle>::iterator	ConstrainedTriangleIterator;
+typedef geometry_traits<ConstrainedTriangle>::iterator			ConstrainedTriangleIterator;
+typedef geometry_traits<ConstrainedTriangle>::const_iterator	ConstConstrainedTriangleIterator;
 
 ////////////////////////////////////////////////////////////////////////
 //	ConstrainedTriangle
@@ -820,7 +841,9 @@ template <>
 class geometry_traits<ConstrainingTriangle>
 {
 	public:
-		typedef GenericGeometricObjectIterator<ConstrainingTriangle*, TriangleIterator>	iterator;
+		typedef GenericGeometricObjectIterator<ConstrainingTriangle*, FaceIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainingTriangle*, ConstFaceIterator>	const_iterator;
+		
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
@@ -831,8 +854,8 @@ class geometry_traits<ConstrainingTriangle>
 		};
 };
 
-typedef geometry_traits<ConstrainingTriangle>::iterator	ConstrainingTriangleIterator;
-
+typedef geometry_traits<ConstrainingTriangle>::iterator			ConstrainingTriangleIterator;
+typedef geometry_traits<ConstrainingTriangle>::const_iterator	ConstConstrainingTriangleIterator;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -910,7 +933,9 @@ template <>
 class geometry_traits<Quadrilateral>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Quadrilateral*, FaceIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Quadrilateral*, FaceIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Quadrilateral*, ConstFaceIterator>	const_iterator;
+		
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
@@ -921,7 +946,8 @@ class geometry_traits<Quadrilateral>
 		};
 };
 
-typedef geometry_traits<Quadrilateral>::iterator	QuadrilateralIterator;
+typedef geometry_traits<Quadrilateral>::iterator		QuadrilateralIterator;
+typedef geometry_traits<Quadrilateral>::const_iterator	ConstQuadrilateralIterator;
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -1007,7 +1033,9 @@ template <>
 class geometry_traits<Tetrahedron>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Tetrahedron*, VolumeIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Tetrahedron*, VolumeIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Tetrahedron*, ConstVolumeIterator>	const_iterator;
+		
 		typedef TetrahedronDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
@@ -1018,7 +1046,8 @@ class geometry_traits<Tetrahedron>
 		};
 };
 
-typedef geometry_traits<Tetrahedron>::iterator	TetrahedronIterator;
+typedef geometry_traits<Tetrahedron>::iterator			TetrahedronIterator;
+typedef geometry_traits<Tetrahedron>::const_iterator	ConstTetrahedronIterator;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1101,7 +1130,9 @@ template <>
 class geometry_traits<Hexahedron>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Hexahedron*, VolumeIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Hexahedron*, VolumeIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<Hexahedron*, ConstVolumeIterator>	const_iterator;
+		
 		typedef HexahedronDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
@@ -1113,6 +1144,7 @@ class geometry_traits<Hexahedron>
 };
 
 typedef geometry_traits<Hexahedron>::iterator	HexahedronIterator;
+typedef geometry_traits<Hexahedron>::const_iterator	ConstHexahedronIterator;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1195,7 +1227,9 @@ template <>
 class geometry_traits<Prism>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Prism*, VolumeIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Prism*, VolumeIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<Prism*, ConstVolumeIterator>	const_iterator;
+		
 		typedef PrismDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
@@ -1206,7 +1240,8 @@ class geometry_traits<Prism>
 		};
 };
 
-typedef geometry_traits<Prism>::iterator	PrismIterator;
+typedef geometry_traits<Prism>::iterator		PrismIterator;
+typedef geometry_traits<Prism>::const_iterator	ConstPrismIterator;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -1289,7 +1324,9 @@ template <>
 class geometry_traits<Pyramid>
 {
 	public:
-		typedef GenericGeometricObjectIterator<Pyramid*, VolumeIterator>	iterator;
+		typedef GenericGeometricObjectIterator<Pyramid*, VolumeIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<Pyramid*, ConstVolumeIterator>	const_iterator;
+		
 		typedef PyramidDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
@@ -1300,7 +1337,8 @@ class geometry_traits<Pyramid>
 		};
 };
 
-typedef geometry_traits<Pyramid>::iterator	PyramidIterator;
+typedef geometry_traits<Pyramid>::iterator			PyramidIterator;
+typedef geometry_traits<Pyramid>::const_iterator	ConstPyramidIterator;
 
 }//	end of namespace
 

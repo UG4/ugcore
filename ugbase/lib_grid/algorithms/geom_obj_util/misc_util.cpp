@@ -16,8 +16,8 @@ void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2)
 	if(grid.num_edges() > 0)
 	{
 	//	iterate through associated edges
-		EdgeBaseIterator iterEnd = grid.associated_edges_end(v1);
-		EdgeBaseIterator iter = grid.associated_edges_begin(v1);
+		Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(v1);
+		Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v1);
 		while(iter != iterEnd)
 		{
 			EdgeBase* e = *iter;
@@ -36,8 +36,8 @@ void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2)
 		if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		{
 		//	iterate through associated faces
-			FaceIterator iter = grid.associated_faces_begin(v1);
-			FaceIterator iterEnd = grid.associated_faces_end(v1);
+			Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v1);
+			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v1);
 			while(iter != iterEnd)
 			{
 				Face* f = *iter;
@@ -68,8 +68,8 @@ void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2)
 			grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)))
 		{
 		//	iterate through associated volumes
-			VolumeIterator iter = grid.associated_volumes_begin(v1);
-			VolumeIterator iterEnd = grid.associated_volumes_end(v2);
+			Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
+			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v2);
 			while(iter != iterEnd)
 			{
 				Volume* v = *iter;

@@ -151,8 +151,8 @@ void Grid::assign_grid(const Grid& grid)
 
 //	copy all vertices
 	vSrcDataIndexVRT.resize(grid.num<VertexBase>());
-	VertexBaseIterator vrtsEnd = grid.end<VertexBase>();
-	for(VertexBaseIterator iter = grid.begin<VertexBase>(); iter != vrtsEnd; ++iter)
+	ConstVertexBaseIterator vrtsEnd = grid.end<VertexBase>();
+	for(ConstVertexBaseIterator iter = grid.begin<VertexBase>(); iter != vrtsEnd; ++iter)
 	{
 		VertexBase* vrt = *iter;
 		VertexBase* nVrt = *create_by_cloning(vrt);
@@ -162,8 +162,8 @@ void Grid::assign_grid(const Grid& grid)
 
 //	copy all edges
 	vSrcDataIndexEDGE.resize(grid.num<EdgeBase>());
-	EdgeBaseIterator edgesEnd = grid.end<EdgeBase>();
-	for(EdgeBaseIterator iter = grid.begin<EdgeBase>(); iter != edgesEnd; ++iter)
+	ConstEdgeBaseIterator edgesEnd = grid.end<EdgeBase>();
+	for(ConstEdgeBaseIterator iter = grid.begin<EdgeBase>(); iter != edgesEnd; ++iter)
 	{
 		EdgeBase* e = *iter;
 		EdgeBase* nE = *create_by_cloning(e, EdgeDescriptor(
@@ -175,8 +175,8 @@ void Grid::assign_grid(const Grid& grid)
 //	copy all faces
 	vSrcDataIndexFACE.resize(grid.num<Face>());
 	FaceDescriptor fd;
-	FaceIterator facesEnd = grid.end<Face>();
-	for(FaceIterator iter = grid.begin<Face>(); iter != facesEnd; ++iter)
+	ConstFaceIterator facesEnd = grid.end<Face>();
+	for(ConstFaceIterator iter = grid.begin<Face>(); iter != facesEnd; ++iter)
 	{
 		Face* f = *iter;
 		uint numVrts = f->num_vertices();
@@ -197,8 +197,8 @@ void Grid::assign_grid(const Grid& grid)
 //	copy all volumes
 	vSrcDataIndexVOL.resize(grid.num<Volume>());
 	VolumeDescriptor vd;
-	VolumeIterator volsEnd = grid.end<Volume>();
-	for(VolumeIterator iter = grid.begin<Volume>(); iter != volsEnd; ++iter)
+	ConstVolumeIterator volsEnd = grid.end<Volume>();
+	for(ConstVolumeIterator iter = grid.begin<Volume>(); iter != volsEnd; ++iter)
 	{
 		Volume* v = *iter;
 		uint numVrts = v->num_vertices();
@@ -608,7 +608,7 @@ void Grid::unregister_observer(GridObserver* observer)
 
 ////////////////////////////////////////////////////////////////////////
 //	associated edge access
-EdgeBaseIterator Grid::associated_edges_begin(VertexBase* vrt)
+Grid::AssociatedEdgeIterator Grid::associated_edges_begin(VertexBase* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -618,7 +618,7 @@ EdgeBaseIterator Grid::associated_edges_begin(VertexBase* vrt)
 	return m_aaEdgeContainerVERTEX[vrt].begin();
 }
 
-EdgeBaseIterator Grid::associated_edges_end(VertexBase* vrt)
+Grid::AssociatedEdgeIterator Grid::associated_edges_end(VertexBase* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -628,7 +628,7 @@ EdgeBaseIterator Grid::associated_edges_end(VertexBase* vrt)
 	return m_aaEdgeContainerVERTEX[vrt].end();
 }
 
-EdgeBaseIterator Grid::associated_edges_begin(Face* face)
+Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Face* face)
 {
 	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -638,7 +638,7 @@ EdgeBaseIterator Grid::associated_edges_begin(Face* face)
 	return m_aaEdgeContainerFACE[face].begin();
 }
 
-EdgeBaseIterator Grid::associated_edges_end(Face* face)
+Grid::AssociatedEdgeIterator Grid::associated_edges_end(Face* face)
 {
 	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -648,7 +648,7 @@ EdgeBaseIterator Grid::associated_edges_end(Face* face)
 	return m_aaEdgeContainerFACE[face].end();
 }
 
-EdgeBaseIterator Grid::associated_edges_begin(Volume* vol)
+Grid::AssociatedEdgeIterator Grid::associated_edges_begin(Volume* vol)
 {
 	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -658,7 +658,7 @@ EdgeBaseIterator Grid::associated_edges_begin(Volume* vol)
 	return m_aaEdgeContainerVOLUME[vol].begin();
 }
 
-EdgeBaseIterator Grid::associated_edges_end(Volume* vol)
+Grid::AssociatedEdgeIterator Grid::associated_edges_end(Volume* vol)
 {
 	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_EDGES))
 	{
@@ -670,7 +670,7 @@ EdgeBaseIterator Grid::associated_edges_end(Volume* vol)
 
 ////////////////////////////////////////////////////////////////////////
 //	associated face access
-FaceIterator Grid::associated_faces_begin(VertexBase* vrt)
+Grid::AssociatedFaceIterator Grid::associated_faces_begin(VertexBase* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -680,7 +680,7 @@ FaceIterator Grid::associated_faces_begin(VertexBase* vrt)
 	return m_aaFaceContainerVERTEX[vrt].begin();
 }
 
-FaceIterator Grid::associated_faces_end(VertexBase* vrt)
+Grid::AssociatedFaceIterator Grid::associated_faces_end(VertexBase* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -690,7 +690,7 @@ FaceIterator Grid::associated_faces_end(VertexBase* vrt)
 	return m_aaFaceContainerVERTEX[vrt].end();
 }
 
-FaceIterator Grid::associated_faces_begin(EdgeBase* edge)
+Grid::AssociatedFaceIterator Grid::associated_faces_begin(EdgeBase* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -700,7 +700,7 @@ FaceIterator Grid::associated_faces_begin(EdgeBase* edge)
 	return m_aaFaceContainerEDGE[edge].begin();
 }
 
-FaceIterator Grid::associated_faces_end(EdgeBase* edge)
+Grid::AssociatedFaceIterator Grid::associated_faces_end(EdgeBase* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -710,7 +710,7 @@ FaceIterator Grid::associated_faces_end(EdgeBase* edge)
 	return m_aaFaceContainerEDGE[edge].end();
 }
 
-FaceIterator Grid::associated_faces_begin(Volume* vol)
+Grid::AssociatedFaceIterator Grid::associated_faces_begin(Volume* vol)
 {
 	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -720,7 +720,7 @@ FaceIterator Grid::associated_faces_begin(Volume* vol)
 	return m_aaFaceContainerVOLUME[vol].begin();
 }
 
-FaceIterator Grid::associated_faces_end(Volume* vol)
+Grid::AssociatedFaceIterator Grid::associated_faces_end(Volume* vol)
 {
 	if(!option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
 	{
@@ -732,7 +732,7 @@ FaceIterator Grid::associated_faces_end(Volume* vol)
 
 ////////////////////////////////////////////////////////////////////////
 //	associated volume access
-VolumeIterator Grid::associated_volumes_begin(VertexBase* vrt)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(VertexBase* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -742,7 +742,7 @@ VolumeIterator Grid::associated_volumes_begin(VertexBase* vrt)
 	return m_aaVolumeContainerVERTEX[vrt].begin();
 }
 
-VolumeIterator Grid::associated_volumes_end(VertexBase* vrt)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_end(VertexBase* vrt)
 {
 	if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -752,7 +752,7 @@ VolumeIterator Grid::associated_volumes_end(VertexBase* vrt)
 	return m_aaVolumeContainerVERTEX[vrt].end();
 }
 
-VolumeIterator Grid::associated_volumes_begin(EdgeBase* edge)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(EdgeBase* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -762,7 +762,7 @@ VolumeIterator Grid::associated_volumes_begin(EdgeBase* edge)
 	return m_aaVolumeContainerEDGE[edge].begin();
 }
 
-VolumeIterator Grid::associated_volumes_end(EdgeBase* edge)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_end(EdgeBase* edge)
 {
 	if(!option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -772,7 +772,7 @@ VolumeIterator Grid::associated_volumes_end(EdgeBase* edge)
 	return m_aaVolumeContainerEDGE[edge].end();
 }
 
-VolumeIterator Grid::associated_volumes_begin(Face* face)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_begin(Face* face)
 {
 	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
@@ -782,7 +782,7 @@ VolumeIterator Grid::associated_volumes_begin(Face* face)
 	return m_aaVolumeContainerFACE[face].begin();
 }
 
-VolumeIterator Grid::associated_volumes_end(Face* face)
+Grid::AssociatedVolumeIterator Grid::associated_volumes_end(Face* face)
 {
 	if(!option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{

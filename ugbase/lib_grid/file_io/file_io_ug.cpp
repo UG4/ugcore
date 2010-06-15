@@ -360,7 +360,7 @@ static bool WriteLGM(Grid& grid,
 			}
 
 			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; points:";
-			for(FaceIterator FIter = shFaces.begin<Face>(i);
+			for(ConstFaceIterator FIter = shFaces.begin<Face>(i);
 				FIter != shFaces.end<Face>(i); ++FIter)
 			{
 				Face* f = *FIter;
@@ -379,7 +379,7 @@ static bool WriteLGM(Grid& grid,
 			out << "; lines:";
 			{
 				vector<EdgeBase*> vEdges;
-				for(FaceIterator FIter = shFaces.begin<Face>(i);
+				for(ConstFaceIterator FIter = shFaces.begin<Face>(i);
 					FIter != shFaces.end<Face>(i); ++FIter)
 				{
 					CollectEdges(vEdges, grid, *FIter);
@@ -399,7 +399,7 @@ static bool WriteLGM(Grid& grid,
 			out << "; triangles:";
 			{
 				vector<VertexBase*> vVertices;
-				for(TriangleIterator TIter = shFaces.begin<Triangle>(i);
+				for(ConstTriangleIterator TIter = shFaces.begin<Triangle>(i);
 					TIter != shFaces.end<Triangle>(i); ++TIter)
 				{
 					Triangle* t = *TIter;
@@ -413,7 +413,7 @@ static bool WriteLGM(Grid& grid,
 
 		//	write quadrilaterals as triangles
 			{
-				for(QuadrilateralIterator iter = shFaces.begin<Quadrilateral>(i);
+				for(ConstQuadrilateralIterator iter = shFaces.begin<Quadrilateral>(i);
 					iter != shFaces.end<Quadrilateral>(i); ++iter)
 				{
 					Quadrilateral* q = *iter;
@@ -562,7 +562,7 @@ static bool WriteNG(Grid& grid,
 
 	//	surface data
 	//	iterate through all associated boundary-faces of vertex v
-		for(FaceIterator FIter = grid.associated_faces_begin(v);
+		for(Grid::AssociatedFaceIterator FIter = grid.associated_faces_begin(v);
 			FIter != grid.associated_faces_end(v); ++FIter)
 		{
 			Face* f = *FIter;
@@ -619,7 +619,7 @@ static bool WriteNG(Grid& grid,
 	for(uint i = 0; i < shVolumes.num_subsets(); ++i)
 	{
 	// 	iterate through all volumes
-		for(VolumeIterator VIter = shVolumes.begin<Volume>(i);
+		for(ConstVolumeIterator VIter = shVolumes.begin<Volume>(i);
 			VIter != shVolumes.end<Volume>(i); ++VIter)
 		{
 			Volume* v = *VIter;

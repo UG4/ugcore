@@ -91,7 +91,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 
 //	update edges
 	{
-		for(EdgeBaseIterator iter = associated_edges_begin(pReplaceMe);
+		for(AssociatedEdgeIterator iter = associated_edges_begin(pReplaceMe);
 			iter != associated_edges_end(pReplaceMe); ++iter)
 		{
 			EdgeBase* e = *iter;
@@ -108,7 +108,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 
 //	update faces
 	{
-		for(FaceIterator iter = associated_faces_begin(pReplaceMe);
+		for(AssociatedFaceIterator iter = associated_faces_begin(pReplaceMe);
 			iter != associated_faces_end(pReplaceMe); ++iter)
 		{
 			Face* f = *iter;
@@ -126,7 +126,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 
 //	update volumes
 	{
-		for(VolumeIterator iter = associated_volumes_begin(pReplaceMe);
+		for(AssociatedVolumeIterator iter = associated_volumes_begin(pReplaceMe);
 			iter != associated_volumes_end(pReplaceMe); ++iter)
 		{
 			Volume* vol = *iter;
@@ -219,8 +219,8 @@ void Grid::unregister_vertex(VertexBase* v)
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 		{
 		//	remove associated volumes
-			VolumeIterator iterEnd = associated_volumes_end(v);
-			for(VolumeIterator iter = associated_volumes_begin(v); iter != iterEnd;)
+			AssociatedVolumeIterator iterEnd = associated_volumes_end(v);
+			for(AssociatedVolumeIterator iter = associated_volumes_begin(v); iter != iterEnd;)
 			{
 				Volume* eraseVol = *iter;
 				++iter;
@@ -235,8 +235,8 @@ void Grid::unregister_vertex(VertexBase* v)
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
 		{
 		//	remove all associated faces.
-			FaceIterator iterEnd = associated_faces_end(v);
-			for(FaceIterator iter = associated_faces_begin(v); iter != iterEnd;)
+			AssociatedFaceIterator iterEnd = associated_faces_end(v);
+			for(AssociatedFaceIterator iter = associated_faces_begin(v); iter != iterEnd;)
 			{
 				Face* eraseFace = *iter;
 				++iter;
@@ -250,8 +250,8 @@ void Grid::unregister_vertex(VertexBase* v)
 	{
 		assert(option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES) && "unexpected internal error in Grid::unregister_vertex - rae.");
 	//	remove all associated edges.
-		EdgeBaseIterator iterEnd = associated_edges_end(v);
-		for(EdgeBaseIterator iter = associated_edges_begin(v); iter != iterEnd;)
+		AssociatedEdgeIterator iterEnd = associated_edges_end(v);
+		for(AssociatedEdgeIterator iter = associated_edges_begin(v); iter != iterEnd;)
 		{
 			EdgeBase* eraseEdge = *iter;
 			++iter;
@@ -431,11 +431,11 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent)
 		if(switchVar > 0)
 		{
 		//	find the faces that contain the edge. search the associated vertices for connected faces.
-			FaceIterator iterStart = associated_faces_begin(e->vertex(0));
-			FaceIterator iterEnd = associated_faces_end(e->vertex(0));
+			AssociatedFaceIterator iterStart = associated_faces_begin(e->vertex(0));
+			AssociatedFaceIterator iterEnd = associated_faces_end(e->vertex(0));
 
 			EdgeDescriptor ed;
-			for(FaceIterator iter = iterStart; iter != iterEnd; iter++)
+			for(AssociatedFaceIterator iter = iterStart; iter != iterEnd; iter++)
 			{
 				Face* f = *iter;
 				uint numEdges = f->num_edges();
@@ -472,10 +472,10 @@ void Grid::register_edge(EdgeBase* e, GeometricObject* pParent)
 		if(switchVar > 0)
 		{
 		//	find the volumes that contain the edge.
-			VolumeIterator iterStart = associated_volumes_begin(e->vertex(0));
-			VolumeIterator iterEnd = associated_volumes_end(e->vertex(0));
+			AssociatedVolumeIterator iterStart = associated_volumes_begin(e->vertex(0));
+			AssociatedVolumeIterator iterEnd = associated_volumes_end(e->vertex(0));
 
-			for(VolumeIterator iter = iterStart; iter != iterEnd; iter++)
+			for(AssociatedVolumeIterator iter = iterStart; iter != iterEnd; iter++)
 			{
 				Volume* v = *iter;
 				uint numEdges = v->num_edges();
@@ -1129,7 +1129,7 @@ void Grid::face_store_associated_edges(bool bStoreIt)
 				{
 					EdgeBase* e = *iter;
 				//	iterate through the edges associated faces
-					for(FaceIterator fIter = associated_faces_begin(e);
+					for(AssociatedFaceIterator fIter = associated_faces_begin(e);
 						fIter != associated_faces_end(e); fIter++)
 					{
 						m_aaEdgeContainerFACE[*fIter].push_back(e);
@@ -1187,8 +1187,8 @@ void Grid::face_store_associated_volumes(bool bStoreIt)
 			//	if faces are already stored at their associated volumes, we iterate over them.
 				if(option_is_enabled(VOLOPT_STORE_ASSOCIATED_FACES))
 				{
-					FaceIterator iterEnd = associated_faces_end(v);
-					for(FaceIterator iter = associated_faces_begin(v); iter != iterEnd; iter++)
+					AssociatedFaceIterator iterEnd = associated_faces_end(v);
+					for(AssociatedFaceIterator iter = associated_faces_begin(v); iter != iterEnd; iter++)
 						m_aaVolumeContainerFACE[*iter].push_back(v);
 				}
 				else
@@ -1572,7 +1572,7 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 				{
 					EdgeBase* e = *iter;
 				//	iterate through the edges associated faces
-					for(VolumeIterator vIter = associated_volumes_begin(e);
+					for(AssociatedVolumeIterator vIter = associated_volumes_begin(e);
 						vIter != associated_volumes_end(e); vIter++)
 					{
 						m_aaEdgeContainerVOLUME[*vIter].push_back(e);
@@ -1634,7 +1634,7 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 				{
 					Face* f = *iter;
 				//	iterate through the faces associated volumes
-					for(VolumeIterator vIter = associated_volumes_begin(f);
+					for(AssociatedVolumeIterator vIter = associated_volumes_begin(f);
 						vIter != associated_volumes_end(f); vIter++)
 					{
 						m_aaFaceContainerVOLUME[*vIter].push_back(f);
@@ -1789,8 +1789,8 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 						"Grid::replace_vertex(...)",
 						"VRTOPT_STORE_ASSOCIATED_EDGES");
 
-		EdgeBaseIterator iter = associated_edges_begin(vrtOld);
-		EdgeBaseIterator iterEnd = associated_edges_end(vrtOld);
+		AssociatedEdgeIterator iter = associated_edges_begin(vrtOld);
+		AssociatedEdgeIterator iterEnd = associated_edges_end(vrtOld);
 		while(iter != iterEnd)
 		{
 			EdgeBase* e = *iter;
@@ -1891,8 +1891,8 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 						"Grid::replace_vertex(...)",
 						"VRTOPT_STORE_ASSOCIATED_FACES");
 
-		FaceIterator iter = associated_faces_begin(vrtOld);
-		FaceIterator iterEnd = associated_faces_end(vrtOld);
+		AssociatedFaceIterator iter = associated_faces_begin(vrtOld);
+		AssociatedFaceIterator iterEnd = associated_faces_end(vrtOld);
 		while(iter != iterEnd)
 		{
 			Face* f = *iter;
@@ -2030,8 +2030,8 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 						"Grid::replace_vertex(...)",
 						"VRTOPT_STORE_ASSOCIATED_VOLUMES");
 
-		VolumeIterator iter = associated_volumes_begin(vrtOld);
-		VolumeIterator iterEnd = associated_volumes_end(vrtOld);
+		AssociatedVolumeIterator iter = associated_volumes_begin(vrtOld);
+		AssociatedVolumeIterator iterEnd = associated_volumes_end(vrtOld);
 		while(iter != iterEnd)
 		{
 			Volume* v = *iter;
@@ -2216,8 +2216,8 @@ bool Grid::replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew)
 						"Grid::replace_vertex_is_valid(...)",
 						"VRTOPT_STORE_ASSOCIATED_EDGES");
 
-		EdgeBaseIterator iterEnd = associated_edges_end(vrtOld);
-		for(EdgeBaseIterator iter = associated_edges_begin(vrtOld);
+		AssociatedEdgeIterator iterEnd = associated_edges_end(vrtOld);
+		for(AssociatedEdgeIterator iter = associated_edges_begin(vrtOld);
 			iter != iterEnd; ++iter)
 		{
 		//	check whether vrtNew is contained in the edge.
@@ -2236,8 +2236,8 @@ bool Grid::replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew)
 						"Grid::replace_vertex_is_valid(...)",
 						"VRTOPT_STORE_ASSOCIATED_FACES");
 
-		FaceIterator iterEnd = associated_faces_end(vrtOld);
-		for(FaceIterator iter = associated_faces_begin(vrtOld);
+		AssociatedFaceIterator iterEnd = associated_faces_end(vrtOld);
+		for(AssociatedFaceIterator iter = associated_faces_begin(vrtOld);
 			iter != iterEnd; ++iter)
 		{
 			if(FaceContains(*iter, vrtNew))
@@ -2253,8 +2253,8 @@ bool Grid::replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew)
 						"Grid::replace_vertex_is_valid(...)",
 						"VRTOPT_STORE_ASSOCIATED_VOLUMES");
 
-		VolumeIterator iterEnd = associated_volumes_end(vrtOld);
-		for(VolumeIterator iter = associated_volumes_begin(vrtOld);
+		AssociatedVolumeIterator iterEnd = associated_volumes_end(vrtOld);
+		for(AssociatedVolumeIterator iter = associated_volumes_begin(vrtOld);
 			iter != iterEnd; ++iter)
 		{
 			if(VolumeContains(*iter, vrtNew))

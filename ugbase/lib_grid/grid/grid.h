@@ -119,6 +119,17 @@ class Grid
 				VolumeAttachmentAccessor(Grid& grid, TAttachment& a);
 		};
 
+		typedef std::list<VertexBase*>	VertexContainer;
+		typedef std::list<EdgeBase*>	EdgeContainer;
+		typedef std::list<Face*>		FaceContainer;
+		typedef std::list<Volume*>		VolumeContainer;
+	///	used to iterate over associated edges of vertices, faces and volumes
+		typedef EdgeContainer::iterator 	AssociatedEdgeIterator;
+	///	used to iterate over associated faces of vertices, edges and volumes
+		typedef FaceContainer::iterator 	AssociatedFaceIterator;
+	///	used to iterate over associated volumes of vertices, edges and faces
+		typedef VolumeContainer::iterator 	AssociatedVolumeIterator;
+
 	public:
 	////////////////////////////////////////////////
 	//	constructors and destructor
@@ -293,16 +304,12 @@ class Grid
 		inline VolumeIterator		volumes_begin()		{return begin<Volume>();}
 		inline VolumeIterator		volumes_end()		{return end<Volume>();}
 	
-//TODO:	this method should return a const_iterator
-	///	\todo: this method should return a const_iterator
 		template <class TGeomObj>
-		typename geometry_traits<TGeomObj>::iterator
+		typename geometry_traits<TGeomObj>::const_iterator
 		begin() const;
 
-//TODO:	this method should return a const_iterator
-	///	\todo: this method should return a const_iterator
 		template <class TGeomObj>
-		typename geometry_traits<TGeomObj>::iterator
+		typename geometry_traits<TGeomObj>::const_iterator
 		end() const;
 
 	//	element manipulation
@@ -490,26 +497,26 @@ class Grid
 		void pass_on_values(Volume* objSrc, Volume* objDest);
 
 	//	subject to change!
-		EdgeBaseIterator associated_edges_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
-		EdgeBaseIterator associated_edges_end(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
-		EdgeBaseIterator associated_edges_begin(Face* face);///< DO NOT INVOKE! Subject to change.
-		EdgeBaseIterator associated_edges_end(Face* face);///< DO NOT INVOKE! Subject to change.
-		EdgeBaseIterator associated_edges_begin(Volume* vol);///< DO NOT INVOKE! Subject to change.
-		EdgeBaseIterator associated_edges_end(Volume* vol);///< DO NOT INVOKE! Subject to change.
+		AssociatedEdgeIterator associated_edges_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
+		AssociatedEdgeIterator associated_edges_end(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
+		AssociatedEdgeIterator associated_edges_begin(Face* face);///< DO NOT INVOKE! Subject to change.
+		AssociatedEdgeIterator associated_edges_end(Face* face);///< DO NOT INVOKE! Subject to change.
+		AssociatedEdgeIterator associated_edges_begin(Volume* vol);///< DO NOT INVOKE! Subject to change.
+		AssociatedEdgeIterator associated_edges_end(Volume* vol);///< DO NOT INVOKE! Subject to change.
 
-		FaceIterator associated_faces_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
-		FaceIterator associated_faces_end(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
-		FaceIterator associated_faces_begin(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
-		FaceIterator associated_faces_end(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
-		FaceIterator associated_faces_begin(Volume* vol);///< DO NOT INVOKE! Subject to change.
-		FaceIterator associated_faces_end(Volume* vol);///< DO NOT INVOKE! Subject to change.
+		AssociatedFaceIterator associated_faces_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
+		AssociatedFaceIterator associated_faces_end(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
+		AssociatedFaceIterator associated_faces_begin(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
+		AssociatedFaceIterator associated_faces_end(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
+		AssociatedFaceIterator associated_faces_begin(Volume* vol);///< DO NOT INVOKE! Subject to change.
+		AssociatedFaceIterator associated_faces_end(Volume* vol);///< DO NOT INVOKE! Subject to change.
 
-		VolumeIterator associated_volumes_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
-		VolumeIterator associated_volumes_end(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
-		VolumeIterator associated_volumes_begin(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
-		VolumeIterator associated_volumes_end(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
-		VolumeIterator associated_volumes_begin(Face* face);///< DO NOT INVOKE! Subject to change.
-		VolumeIterator associated_volumes_end(Face* face);///< DO NOT INVOKE! Subject to change.
+		AssociatedVolumeIterator associated_volumes_begin(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
+		AssociatedVolumeIterator associated_volumes_end(VertexBase* vrt);///< DO NOT INVOKE! Subject to change.
+		AssociatedVolumeIterator associated_volumes_begin(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
+		AssociatedVolumeIterator associated_volumes_end(EdgeBase* edge);///< DO NOT INVOKE! Subject to change.
+		AssociatedVolumeIterator associated_volumes_begin(Face* face);///< DO NOT INVOKE! Subject to change.
+		AssociatedVolumeIterator associated_volumes_end(Face* face);///< DO NOT INVOKE! Subject to change.
 
 	////////////////////////////////////////////////
 	//	advanced element manipulation
@@ -672,10 +679,6 @@ class Grid
 	protected:
 	//	typedefs
 		typedef std::vector<GridObserver*>	ObserverContainer;
-		typedef std::list<VertexBase*>	VertexContainer;
-		typedef std::list<EdgeBase*>	EdgeContainer;
-		typedef std::list<Face*>		FaceContainer;
-		typedef std::list<Volume*>		VolumeContainer;
 
 		typedef Attachment<VertexContainer>	AVertexContainer;
 		typedef Attachment<EdgeContainer>	AEdgeContainer;

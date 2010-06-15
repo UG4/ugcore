@@ -43,8 +43,8 @@ class SectionContainer
 		inline iterator begin()	{return m_container.begin();}
 		inline iterator end()	{return m_container.end();}
 
-		const_iterator begin() const	{return m_container.begin();}
-		const_iterator end() const		{return m_container.end();}
+		inline const_iterator begin() const	{return m_container.begin();}
+		inline const_iterator end() const	{return m_container.end();}
 
 	/**if the section is empty section_begin and section_end return the same iterators.
 	 * However, no assumptions on the positions of these iterators should be made.*/

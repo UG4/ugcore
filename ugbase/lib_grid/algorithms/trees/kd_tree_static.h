@@ -93,13 +93,16 @@ class KDTreeStatic
 
 		void neighbourhood(KDVertexDistanceList& vrtsOut, Node* pNode, TVector& pos, int numClosest);
 
-		bool create_barycentric(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end,
+		template <class TVertexIterator>
+		bool create_barycentric(TVertexIterator vrts_begin, TVertexIterator vrts_end,
 								int numVertices, Node* pNode, int actDimension, int maxTreeDepth);
 
-		int get_largest_dimension(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end);
+		template <class TVertexIterator>
+		int get_largest_dimension(TVertexIterator vrts_begin, TVertexIterator vrts_end);
 
-		int get_next_split_dimension(int actSplitDimension, VertexBaseIterator vrts_begin,
-										VertexBaseIterator vrts_end);
+		template <class TVertexIterator>
+		int get_next_split_dimension(int actSplitDimension, TVertexIterator vrts_begin,
+										TVertexIterator vrts_end);
 		
 		void get_leafs_recursive(std::vector<Node*>& vLeafsOut, Node* pNode);
 

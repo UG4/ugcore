@@ -23,8 +23,8 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 							| FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
 		Face* f = grid.get_face(v, side);
-		VolumeIterator iterEnd = grid.associated_volumes_end(f);
-		for(VolumeIterator iter = grid.associated_volumes_begin(f);
+		Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(f);
+		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f);
 			iter != iterEnd; ++iter)
 		{
 			if(*iter != v)
@@ -48,8 +48,8 @@ void GetNeighbours(std::vector<Volume*>& vVolsOut, Grid& grid, Volume* v,
 //	iterate over associated volumes of the first vertex and count
 //	the number of marked vertices it contains.
 	VertexBase* vrt = fd.vertex(0);
-	VolumeIterator iterEnd = grid.associated_volumes_end(vrt);
-	for(VolumeIterator iter = grid.associated_volumes_begin(vrt);
+	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrt);
+	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrt);
 		iter != iterEnd; ++iter)
 	{
 		Volume* vol = *iter;

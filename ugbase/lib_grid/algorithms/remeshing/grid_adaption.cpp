@@ -116,7 +116,7 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 
 		//	collect associated faces - they will be needed twice
 			vFaces.clear();
-			for(FaceIterator iter = grid.associated_faces_begin(vrt);
+			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
 				iter != grid.associated_faces_end(vrt); ++iter)
 				vFaces.push_back(*iter);
 
@@ -195,8 +195,8 @@ bool AdaptSurfaceGridToCylinder(Selector& selOut, Grid& grid,
 			}
 			
 		//	iterate over all associated edges of vrt
-			EdgeBaseIterator iterEnd = grid.associated_edges_end(vrt);
-			for(EdgeBaseIterator iter = grid.associated_edges_begin(vrt);
+			Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
+			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
 				iter != iterEnd; ++iter)
 			{
 				EdgeBase* e = *iter;
@@ -359,7 +359,7 @@ LOG("8 ");
 //	all their vertices are marked. and their normal points
 //	into the right direction
 	for(size_t i = 0; i < vVrts.size(); ++i){
-		for(FaceIterator iter = grid.associated_faces_begin(vVrts[i]);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vVrts[i]);
 			iter != grid.associated_faces_end(vVrts[i]); ++iter)
 		{
 			Face* f = *iter;

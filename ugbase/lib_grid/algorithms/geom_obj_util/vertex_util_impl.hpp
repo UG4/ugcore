@@ -19,8 +19,8 @@ void CalculateVertexNormal(vector3& nOut, Grid& grid, VertexBase* vrt, TAAPosVRT
 	nOut = vector3(0, 0, 0);
 
 //	loop through all associated faces, calculate their normal and add them to thee normal
-	FaceIterator iterEnd = grid.associated_faces_end(vrt);
-	for(FaceIterator iter = grid.associated_faces_begin(vrt);
+	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
+	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
 		iter != iterEnd; iter++)
 	{
 		vector3 vN;
@@ -45,8 +45,8 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 			vector3 v(0, 0, 0);
 			int num = 0;
 			
-			EdgeBaseIterator edgesEnd = grid.associated_edges_end(vrt);
-			for(EdgeBaseIterator eIter = grid.associated_edges_begin(vrt);
+			Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(vrt);
+			for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(vrt);
 				eIter != edgesEnd; ++eIter)
 			{
 				VecAdd(v, v, aaPos[GetConnectedVertex(*eIter, vrt)]);

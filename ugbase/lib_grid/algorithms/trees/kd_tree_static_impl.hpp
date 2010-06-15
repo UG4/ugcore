@@ -229,9 +229,11 @@ neighbourhood(KDVertexDistanceList& vrtsOut, Node* pNode, TVector& pos, int numC
 }
 
 template<class TPositionAttachment, int numDimensions, class TVector>
+template <class TVertexIterator>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-create_barycentric(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end, int numVertices, Node* pNode, int actDimension, int maxTreeDepth)
+create_barycentric(TVertexIterator vrts_begin, TVertexIterator vrts_end, int numVertices,
+					Node* pNode, int actDimension, int maxTreeDepth)
 {
 //	check if we are in a leaf
 	{
@@ -240,7 +242,7 @@ create_barycentric(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end, i
 		//	we are
 			pNode->m_pvVertices = new VertexVec;
 		//	loop through the points and add them to the node
-			for(VertexBaseIterator iter = vrts_begin; iter != vrts_end; iter++)
+			for(TVertexIterator iter = vrts_begin; iter != vrts_end; iter++)
 				pNode->m_pvVertices->push_back(*iter);
 		//	we're done
 			return true;
@@ -250,7 +252,7 @@ create_barycentric(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end, i
 //	loop through the points and calculate the barycentre
 	float barycentre = 0;
 	{
-		for(VertexBaseIterator iter = vrts_begin; iter != vrts_end; iter++)
+		for(TVertexIterator iter = vrts_begin; iter != vrts_end; iter++)
 			barycentre += m_aaPos[*iter].coord(actDimension);
 		barycentre /= (float)numVertices;
 	}
@@ -261,7 +263,7 @@ create_barycentric(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end, i
 	int numPos = 0;
 	int numNeg = 0;
 	{
-		for(VertexBaseIterator iter = vrts_begin; iter != vrts_end; iter++, numPos++, numNeg++)
+		for(TVertexIterator iter = vrts_begin; iter != vrts_end; iter++, numPos++, numNeg++)
 		{
 			if(m_aaPos[*iter].coord(actDimension) >= barycentre)
 				lstPos.push_back(*iter);
@@ -289,15 +291,16 @@ create_barycentric(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end, i
 }
 
 template<class TPositionAttachment, int numDimensions, class TVector>
+template <class TVertexIterator>
 int
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_largest_dimension(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end)
+get_largest_dimension(TVertexIterator vrts_begin, TVertexIterator vrts_end)
 {
 	using namespace std;
 	TVector boxMin;
 	TVector boxMax;
 
-	VertexBaseIterator iter = vrts_begin;
+	TVertexIterator iter = vrts_begin;
 //	assign initial values
 	{
 		for(int i = 0; i < numDimensions; i++)
@@ -333,9 +336,10 @@ get_largest_dimension(VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end
 }
 
 template<class TPositionAttachment, int numDimensions, class TVector>
+template <class TVertexIterator>
 int
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-get_next_split_dimension(int actSplitDimension, VertexBaseIterator vrts_begin, VertexBaseIterator vrts_end)
+get_next_split_dimension(int actSplitDimension, TVertexIterator vrts_begin, TVertexIterator vrts_end)
 {
 	switch(m_splitDimension)
 	{

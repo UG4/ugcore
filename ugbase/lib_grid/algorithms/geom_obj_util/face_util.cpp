@@ -75,7 +75,7 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f)
 	int counter = 0;
 	if(grid.option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
 	{
-		for(VolumeIterator iter = grid.associated_volumes_begin(f);
+		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f);
 			iter != grid.associated_volumes_end(f); iter++)
 		{
 			counter++;
@@ -85,8 +85,8 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f)
 	{
 	//	iterate over all volumes which are connected to the first vertex
 	//	and check if they contain the face...
-		VolumeIterator iterEnd = grid.associated_volumes_end(f->vertex(0));
-		for(VolumeIterator iter = grid.associated_volumes_begin(f->vertex(0));
+		Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(f->vertex(0));
+		for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(f->vertex(0));
 			iter != iterEnd; iter++)
 		{
 			uint numFaces = (*iter)->num_faces();
