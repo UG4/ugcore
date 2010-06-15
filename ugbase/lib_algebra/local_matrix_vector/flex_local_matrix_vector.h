@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef FLEX_LOCAL_MATRIX_H_
-#define FLEX_LOCAL_MATRIX_H_
+#ifndef __H__LIB_ALGEBRA__LOCAL_MATRIX_VECTOR__FLEX_LOCAL_MATRIX_VECTOR__
+#define __H__LIB_ALGEBRA__LOCAL_MATRIX_VECTOR__FLEX_LOCAL_MATRIX_VECTOR__
 
 #include <vector>
 
@@ -30,7 +30,7 @@ class FlexLocalMatrix{
 		m_values.clear();
 	}
 
-	FlexLocalMatrix(std::size_t nrow, std::size_t ncol)
+	FlexLocalMatrix(size_t nrow, size_t ncol)
 	{
 		m_values.resize(nrow);
 		row_iterator row_iterEnd = m_values.end();
@@ -40,7 +40,7 @@ class FlexLocalMatrix{
 		}
 	}
 
-	void resize(std::size_t nrow, std::size_t ncol)
+	void resize(size_t nrow, size_t ncol)
 	{
 		m_values.resize(nrow);
 		row_iterator row_iterEnd = m_values.end();
@@ -50,21 +50,21 @@ class FlexLocalMatrix{
 		}
 	}
 
-	std::size_t num_rows() const
+	size_t num_rows() const
 	{
 		return m_values.size();
 	}
 
-	std::size_t num_cols() const
+	size_t num_cols() const
 	{
 		return m_values[0].size();
 	}
 
 	void set(number val)
 	{
-		for(std::size_t i = 0; i < m_values.size(); ++i)
+		for(size_t i = 0; i < m_values.size(); ++i)
 		{
-			for(std::size_t j = 0; j < m_values[i].size(); ++j)
+			for(size_t j = 0; j < m_values[i].size(); ++j)
 			{
 				m_values[i][j] = val;
 			}
@@ -73,9 +73,9 @@ class FlexLocalMatrix{
 
 	FlexLocalMatrix& operator*(number val)
 	{
-		for(std::size_t i = 0; i < m_values.size(); ++i)
+		for(size_t i = 0; i < m_values.size(); ++i)
 		{
-			for(std::size_t j = 0; j < m_values[i].size(); ++j)
+			for(size_t j = 0; j < m_values[i].size(); ++j)
 			{
 				m_values[i][j] *= val;
 			}
@@ -87,9 +87,9 @@ class FlexLocalMatrix{
 	{
 		assert(m_values.size() == rhs.m_values.size());
 
-		for(std::size_t i = 0; i < m_values.size(); ++i)
+		for(size_t i = 0; i < m_values.size(); ++i)
 		{
-			for(std::size_t j = 0; j < m_values[i].size(); ++j)
+			for(size_t j = 0; j < m_values[i].size(); ++j)
 			{
 				m_values[i][j] += rhs.m_values[i][j];
 			}
@@ -101,9 +101,9 @@ class FlexLocalMatrix{
 	{
 		assert(m_values.size() == rhs.m_values.size());
 
-		for(std::size_t i = 0; i < m_values.size(); ++i)
+		for(size_t i = 0; i < m_values.size(); ++i)
 		{
-			for(std::size_t j = 0; j < m_values[i].size(); ++j)
+			for(size_t j = 0; j < m_values[i].size(); ++j)
 			{
 				m_values[i][j] -= rhs.m_values[i][j];
 			}
@@ -111,14 +111,14 @@ class FlexLocalMatrix{
 		return *this;
 	}
 
-	number& operator() (std::size_t i, std::size_t j)
+	number& operator() (size_t i, size_t j)
 	{
 		assert(i < m_values.size());
 		assert(j < m_values[i].size());
 		return m_values[i][j];
 	}
 
-	const number& operator() (std::size_t i, std::size_t j) const
+	const number& operator() (size_t i, size_t j) const
 	{
 		assert(i < m_values.size());
 		assert(j < m_values[i].size());
@@ -146,17 +146,17 @@ class FlexLocalVector{
 		m_values.clear();
 	}
 
-	FlexLocalVector(std::size_t nrow)
+	FlexLocalVector(size_t nrow)
 	{
 		m_values.resize(nrow);
 	}
 
-	void resize(std::size_t nrow)
+	void resize(size_t nrow)
 	{
 		m_values.resize(nrow);
 	}
 
-	std::size_t size() const
+	size_t size() const
 	{
 		return m_values.size();
 	}
@@ -189,7 +189,7 @@ class FlexLocalVector{
 	{
 		assert(m_values.size() == rhs.m_values.size());
 
-		for(std::size_t i = 0; i < m_values.size(); ++i)
+		for(size_t i = 0; i < m_values.size(); ++i)
 		{
 				m_values[i] += rhs.m_values[i];
 		}
@@ -200,20 +200,20 @@ class FlexLocalVector{
 	{
 		assert(m_values.size() == rhs.m_values.size());
 
-		for(std::size_t i = 0; i < m_values.size(); ++i)
+		for(size_t i = 0; i < m_values.size(); ++i)
 		{
 				m_values[i] -= rhs.m_values[i];
 		}
 		return *this;
 	}
 
-	number& operator[] (std::size_t i)
+	number& operator[] (size_t i)
 	{
 		assert(i < m_values.size());
 		return m_values[i];
 	}
 
-	const number& operator[] (std::size_t i) const
+	const number& operator[] (size_t i) const
 	{
 		assert(i < m_values.size());
 		return m_values[i];
@@ -226,9 +226,9 @@ class FlexLocalVector{
 
 inline std::ostream& operator<< (std::ostream& outStream, const ug::FlexLocalMatrix& m)
 {
-	for(std::size_t i = 0; i < m.num_rows(); ++i)
+	for(size_t i = 0; i < m.num_rows(); ++i)
 	{
-		for(std::size_t j = 0; j < m.num_cols(); ++j)
+		for(size_t j = 0; j < m.num_cols(); ++j)
 		{
 			outStream << "[" << i << ", " << j << "]: " <<  m(i,j) << std::endl;
 		}
@@ -240,4 +240,4 @@ inline std::ostream& operator<< (std::ostream& outStream, const ug::FlexLocalMat
 
 }
 
-#endif /* FLEX_LOCAL_MATRIX_H_ */
+#endif /* __H__LIB_ALGEBRA__LOCAL_MATRIX_VECTOR__FLEX_LOCAL_MATRIX_VECTOR__ */
