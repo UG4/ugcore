@@ -278,6 +278,9 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 		// prepare Operator
 		virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
 		{
+			typename domain_function_type::vector_type& d_vec = d.get_vector();
+			typename codomain_function_type::vector_type& c_vec = c.get_vector();
+
 			UG_ASSERT(d_vec.size() == m_pMatrix->row_size(),	"Vector and Row sizes have to match!");
 			UG_ASSERT(c_vec.size() == m_pMatrix->col_size(), "Vector and Column sizes have to match!");
 
