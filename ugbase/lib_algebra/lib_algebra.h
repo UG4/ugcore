@@ -65,7 +65,6 @@ class UblasAlgebra{
 
 
 #if 0
-//def HYPRELIB_LIB_DIR
 
 #include "hypre_algebra/hyprematrix.h"
 #include "hypre_algebra/hyprevector.h"

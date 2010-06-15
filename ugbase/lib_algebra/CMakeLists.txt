@@ -12,6 +12,7 @@ project (P_LIB_ALGEBRA)
 include_directories(${P_UGBASE_SOURCE_DIR})
 
 if(NOT NO_ALGEBRA)
+	set(src_Algebra)
 
 	##########################
 	# ublas algebra
@@ -25,12 +26,12 @@ if(NOT NO_ALGEBRA)
 	##########################
 	# hypre algebra
 	##########################
-	if(HYPRELIB_LIB_DIR)
+	if(HYPRELIB_DIR)
 		set(src_Algebra	 ${src_Algebra}
 				 hypre_algebra/hyprematrix.cpp
 		     		 hypre_algebra/hyprevector.cpp
-	       		 	hypre_algebra/hyprelinearsolver.cpp)
-	endif(HYPRELIB_LIB_DIR)
+	       		 	 hypre_algebra/hyprelinearsolver.cpp)
+	endif(HYPRELIB_DIR)
 
 	##########################
 	# martin algebra
