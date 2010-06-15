@@ -5,6 +5,7 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_discretization/io/vtkoutput.h"
 
+
 namespace ug{
 
 template <typename TDiscreteFunction>
@@ -255,24 +256,79 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
 
 	public:
-		AssembledJacobiOperator(number damp) : m_damp(damp)
+		AssembledJacobiOperator(number damp) : m_damp(damp), m_bOpChanged(true)
 		{};
 
 		bool init(IDiscreteLinearizedOperator<domain_function_type,codomain_function_type>& Op)
 		{
-			AssembledDiscreteLinearizedOperator<TDiscreteFunction>* A = dynamic_cast<AssembledDiscreteLinearizedOperator<TDiscreteFunction>*>(&Op);
-			UG_ASSERT(A != NULL, "Operator used does not use a matrix. Currently only matrix based operators can be inverted by this Jacobi.\n");
+			AssembledDiscreteLinearizedOperator<TDiscreteFunction>* A
+				= dynamic_cast<AssembledDiscreteLinearizedOperator<TDiscreteFunction>*>(&Op);
+			UG_ASSERT(A != NULL, 	"Operator used does not use a matrix."
+									" Currently only matrix based operators can be inverted by this Jacobi.\n");
 
-			m_Op = A;
-			m_matrix = &m_Op->get_matrix();
+			// remember operator
+			m_pOperator = A;
+			m_pMatrix = &m_pOperator->get_matrix();
+
+			m_bOpChanged = true;
+
 			return true;
 		}
 
 		// prepare Operator
 		virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
 		{
-			UG_ASSERT(d.get_vector().size() == m_matrix->row_size(), "Row size '" << m_matrix->row_size() << "' of Matrix B and size '" << d.get_vector().size() << "' of Vector d do not match. Cannot calculate B*d.");
-			UG_ASSERT(c.get_vector().size() == m_matrix->col_size(), "Column size '" << m_matrix->row_size() << "' of Matrix B and size  '" << c.get_vector().size() << "' of Vector c do not match. Cannot calculate c := B*d.");
+			UG_ASSERT(d_vec.size() == m_pMatrix->row_size(),	"Vector and Row sizes have to match!");
+			UG_ASSERT(c_vec.size() == m_pMatrix->col_size(), "Vector and Column sizes have to match!");
+
+#ifdef UG_PARALLEL
+			if(m_bOpChanged)
+			{
+				// create help vector to apply diagonal
+				size_t size = m_pMatrix->row_size();
+				if(size != m_pMatrix->col_size())
+				{
+					UG_LOG("Square Matrix needed for Jacobi Iteration.\n");
+					return false;
+				}
+
+				if(m_diagInv.size() == size) m_diagInv.set(0.0);
+				else {
+					m_diagInv.destroy();
+					m_diagInv.create(size);
+				}
+
+				typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
+				typename algebra_type::matrix_type::local_index_type locInd(1);
+				typename domain_function_type::vector_type::local_vector_type locVec(1);
+
+				// collect diagonal
+				for(size_t i = 0; i < m_diagInv.size(); ++i){
+					locInd[0][0] = i;
+					m_pMatrix->get(locMat, locInd, locInd);
+
+					locVec[0] = locMat(0, 0);
+					m_diagInv.set(locVec, locInd);
+				}
+
+				typename domain_function_type::dof_manager_type& dofManager = d.get_dof_manager();
+
+				//	make diagonal consistent
+				AdditiveToConsistent(	&m_diagInv,
+										dofManager.get_master_layout(d.get_level()),
+										dofManager.get_slave_layout(d.get_level()));
+
+				// invert diagonal and multiply by damping
+				for(size_t i = 0; i < m_diagInv.size(); ++i){
+					locInd[0][0] = i;
+					m_diagInv.get(locVec, locInd);
+
+					locVec[0] = m_damp / locVec[0];
+					m_diagInv.set(locVec, locInd);
+				}
+				m_bOpChanged = false;
+			}
+#endif
 
 			// TODO: Do we assume, that m_Op has been prepared?
 			//m_Op->prepare(c,d);
@@ -284,53 +340,24 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 		// update defect: d := d - A*c
 		virtual bool apply(domain_function_type& d, codomain_function_type& c)
 		{
-			// TODO: Check that matrix has correct type (additive)
 			if(!d.has_storage_type(GFST_ADDITIVE)) return false;
-//			if(!c.has_storage_type(GFST_CONSISTENT)) return false;
 
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
 
-			UG_ASSERT(d_vec.size() == m_matrix->row_size(), "Row size '" << m_matrix->row_size() << "' of Matrix B and size '" << d_vec.size() << "' of Vector d do not match. Cannot calculate B*d.");
-			UG_ASSERT(c_vec.size() == m_matrix->col_size(), "Column size '" << m_matrix->row_size() << "' of Matrix B and size  '" << c_vec.size() << "' of Vector c do not match. Cannot calculate c := B*d.");
+			UG_ASSERT(d_vec.size() == m_pMatrix->row_size(),	"Vector and Row sizes have to match!");
+			UG_ASSERT(c_vec.size() == m_pMatrix->col_size(), "Vector and Column sizes have to match!");
+			UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
 
 #ifdef UG_PARALLEL
-			UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
-			domain_function_type diagInvFunc;
-			diagInvFunc.clone_pattern(d);
-			typename domain_function_type::vector_type& diagInv = diagInvFunc.get_vector();
-
 			typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
 			typename algebra_type::matrix_type::local_index_type locInd(1);
 			typename domain_function_type::vector_type::local_vector_type locVec(1);
 
-			// collect diagonal
-			for(size_t i = 0; i < diagInv.size(); ++i){
-				locInd[0][0] = i;
-				m_matrix->get(locMat, locInd, locInd);
-
-				locVec[0] = locMat(0, 0);
-				diagInv.set(locVec, locInd);
-			}
-
-			//	make diagonal consistent
-			diagInvFunc.set_storage_type(GFST_ADDITIVE);
-			if(diagInvFunc.change_storage_type(GFST_CONSISTENT) != true) return false;
-			//diagInvFunc.parallel_additive_to_consistent();
-
-			// invert diagonal and multiply by damping
-			for(size_t i = 0; i < diagInv.size(); ++i){
-				locInd[0][0] = i;
-				diagInv.get(locVec, locInd);
-
-				locVec[0] = m_damp / locVec[0];
-				diagInv.set(locVec, locInd);
-			}
-
 			// multiply defect with diagonal, c = damp * D^{-1} * d
-			for(size_t i = 0; i < diagInv.size(); ++i){
+			for(size_t i = 0; i < m_diagInv.size(); ++i){
 				locInd[0][0] = i;
-				diagInv.get(locVec, locInd);
+				m_diagInv.get(locVec, locInd);
 				number a = locVec[0];
 
 				d_vec.get(locVec, locInd);
@@ -340,18 +367,21 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 			}
 
 			// make correction consistent
-			//c.parallel_additive_to_consistent();
 			c.set_storage_type(GFST_ADDITIVE);
-			if(c.change_storage_type(GFST_CONSISTENT) != true) return false;
+			if(c.change_storage_type(GFST_CONSISTENT) != true)
+				return false;
 #else
 			// apply iterator: c = B*d (damp is not used)
-			diag_step(*m_matrix, c_vec, d_vec, m_damp);
+			diag_step(*m_pMatrix, c_vec, d_vec, m_damp);
 
 			// damp correction
 			c *= m_damp;
 #endif
 			// update defect
-			m_matrix->matmul_minus(d_vec, c_vec);
+			// TODO: Check that matrix has correct type (additive)
+			m_pMatrix->matmul_minus(d_vec, c_vec);
+
+			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
 			d.set_storage_type(GFST_ADDITIVE);
 			return true;
 		}
@@ -360,11 +390,15 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 		virtual ~AssembledJacobiOperator() {};
 
 	protected:
-		AssembledDiscreteLinearizedOperator<TDiscreteFunction>* m_Op;
+		AssembledDiscreteLinearizedOperator<TDiscreteFunction>* m_pOperator;
 
-		typename algebra_type::matrix_type* m_matrix;
+		typename algebra_type::matrix_type* m_pMatrix;
+
+		typename domain_function_type::vector_type m_diagInv;
 
 		number m_damp;
+
+		bool m_bOpChanged;
 };
 
 
