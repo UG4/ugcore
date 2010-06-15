@@ -210,7 +210,8 @@ uint
 ArneVector::
 size() const
 {
-	return _Vector->size();
+	if(_Vector != NULL) return _Vector->size();
+	else return 0;
 }
 
 ArneVector::ScalarVector*

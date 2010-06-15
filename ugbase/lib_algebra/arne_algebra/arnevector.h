@@ -35,7 +35,7 @@ class ArneVector{
 
 	public:
 		// constructor
-		ArneVector() {};
+		ArneVector() : _Vector(NULL){};
 
 		// create and destroy
 		bool create(uint nentries);

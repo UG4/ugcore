@@ -65,7 +65,7 @@ void UniqueToConsistent(	TVector* pVec,
 
 template <typename TVector>
 void AdditiveToUnique(	TVector* pVec,
-						IndexLayout& slaveLayout, IndexLayout& masterLayout,
+						IndexLayout& masterLayout, IndexLayout& slaveLayout,
 						pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
 {
 	//	create a new communicator if required.

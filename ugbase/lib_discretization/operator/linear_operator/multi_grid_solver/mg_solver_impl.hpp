@@ -75,7 +75,6 @@ lmgc(uint l)
 		if(smooth(*m_d[l], *m_c[l], l, m_nu1) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
-		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after pre-smoothing: " << m_d[l]->two_norm() << ".");
 		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
 
 		// restrict defect

@@ -367,7 +367,7 @@ class GridFunction{
 		// set all dofs on level 'level' to value 'w'
 		bool set(number w, GridFunctionStorageType type = GFST_CONSISTENT)
 		{
-			if(type & GFST_UNDEFINED) return false;
+			if(type == GFST_UNDEFINED) return false;
 
 			if(m_pVector->set(w) != true) return false;
 			set_storage_type(GFST_CONSISTENT);

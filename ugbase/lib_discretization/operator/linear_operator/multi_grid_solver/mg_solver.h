@@ -17,9 +17,7 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/assemble.h"
-#include "lib_discretization/function_spaces/grid_function_space.h"
-#include "lib_discretization/operator/operator.h"
+#include "lib_discretization/lib_discretization.h"
 
 namespace ug{
 
