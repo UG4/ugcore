@@ -42,7 +42,7 @@ namespace ug {
  *  - vector_type
  *  - index_type
  */
-class ArneAlgebra{
+class UblasAlgebra{
 	public:
 		// matrix type
 		typedef UblasMatrix matrix_type;
