@@ -10,8 +10,9 @@
 
 #include "ublas_vector.h"
 #include "ublas_matrix.h"
-#include "../solver/ExtalgSolver.hh"
-#include "../solver/BoostBlock.hh"
+
+#include "solver/ExtalgSolver.hh"
+#include "solver/BoostBlock.hh"
 
 
 namespace ug{

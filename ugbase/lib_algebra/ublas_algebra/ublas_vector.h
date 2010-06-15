@@ -8,7 +8,7 @@
 #ifndef __H__LIB_ALGEBRA__UBLAS_ALGEBRA__UBLAS_VECTOR__
 #define __H__LIB_ALGEBRA__UBLAS_ALGEBRA__UBLAS_VECTOR__
 
-#include "../solver/BoostBlock.hh"
+#include "solver/BoostBlock.hh"
 
 #include <cmath>
 #include <vector>

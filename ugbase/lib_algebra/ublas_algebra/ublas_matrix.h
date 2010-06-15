@@ -12,7 +12,8 @@
 #include "common/common.h"
 
 #include "ublas_vector.h"
-#include "../solver/BoostBlock.hh"
+#include "solver/BoostBlock.hh"
+
 #include "lib_algebra/multi_index/multi_indices.h"
 #include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
 
