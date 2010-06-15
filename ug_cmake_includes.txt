@@ -29,6 +29,7 @@
 # - FORCE_32: Produces 32bit-code
 # - NO_MPI: Disables MPI support.
 # - NO_ALGEBRA: Disables support for algebra and discretization.
+# - NO_HYPRE: Disables support for hypre.
 # - NO_BOOST: Disables support for boost (should only be disabled if required).
 # - NO_PCL: Disables creation of the pcl-library.
 #
@@ -118,45 +119,70 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	#######################
 	# BOOST
 	if(NO_BOOST)
-		message("-- INFO: Compiling WITHOUT boost. (To enable boost define -DNO_BOOST=OFF)")
+		message("-- INFO: Not using BOOST. (To enable BOOST define -DNO_BOOST=OFF)")
 	else(NO_BOOST)
 		find_package(Boost)
 
 		if(Boost_FOUND)
-			message("-- Boost - Library found at '${Boost_INCLUDE_DIRS}'. \n   Compiling WITH Boost. (To disable boost define -DNO_BOOST=ON)")
+			message("-- INFO: Using BOOST (libs at '${Boost_INCLUDE_DIRS}'). (To disable boost define -DNO_BOOST=ON)")
 
 			# add include path	
 			include_directories (${Boost_INCLUDE_DIRS})
 
 		else(Boost_FOUND)
-			message("-- WARNING: Boost - Library NOT found. Compiling WITHOUT Boost.")
+			message("-- WARNING: BOOST not found! Compiling WITHOUT Boost.")
 		endif(Boost_FOUND)
 	endif(NO_BOOST)
+
+	#######################
+	# ALGEBRA
+ 	if (NOT NO_ALGEBRA)
+		if(NO_HYPRE)
+			message("-- INFO: Not using HYPRE. (To enable HYPRE define -DNO_HYPRE=OFF)")
+		else(NO_HYPRE)
+			find_path (HYPRELIB_DIR libHYPRE.a 
+					PATHS ENV PATH
+					PATH_SUFFIXES src/hypre/lib/ )
+		
+			if(HYPRELIB_DIR)
+				message("-- INFO: Using HYPRE (libs at '${HYPRELIB_DIR}'). (To disable boost define -DNO_HYPRE=ON)")
+		
+				# add include path
+				include_directories (${HYPRELIB_DIR}/../include/)
+
+			else(HYPRELIB_DIR)
+				message("-- WARNING: HYPRE not found! Compiling WITHOUT HYPRE.")
+			endif(HYPRELIB_DIR)
+		endif(NO_HYPRE)
+	endif(NOT NO_ALGEBRA)
 
 	#######################
 	# UG_LIBRARIES
 	# clear UG_LIBRARIES
 	set(UG_LIBRARIES )
 
-	if(Boost_FOUND)
-		set(UG_LIBRARIES ${UG_LIBRARIES} ugscript)
-	endif(Boost_FOUND)
-	
-	if(NOT NO_ALGEBRA)
-		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
-	endif(NOT NO_ALGEBRA)
-
-	set(UG_LIBRARIES ${UG_LIBRARIES} grid)
-
 	if(NOT NO_PCL AND MPI_FOUND)
 		set(UG_LIBRARIES ${UG_LIBRARIES} pcl)
 	endif(NOT NO_PCL AND MPI_FOUND)
 
-	set(UG_LIBRARIES ${UG_LIBRARIES} node_tree common)
-	
 	if(MPI_FOUND)
 		set(UG_LIBRARIES ${UG_LIBRARIES} ${MPI_LIBS})
 	endif(MPI_FOUND)
+
+	set(UG_LIBRARIES ${UG_LIBRARIES} node_tree common)
+
+	set(UG_LIBRARIES ${UG_LIBRARIES} grid)
+
+	if(Boost_FOUND)
+		set(UG_LIBRARIES ${UG_LIBRARIES} ugscript)
+	endif(Boost_FOUND)
+
+	if(NOT NO_ALGEBRA)
+		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
+		if(NOT NO_HYPRE AND HYPRELIB_DIR)
+			set(UG_LIBRARIES ${UG_LIBRARIES} ${HYPRELIB_DIR}/libHYPRE.a)
+		endif(NOT NO_HYPRE AND HYPRELIB_DIR)
+	endif(NOT NO_ALGEBRA)
 
 	link_libraries(${UG_LIBRARIES})
 		

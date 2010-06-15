@@ -13,29 +13,36 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 
 if(NOT NO_ALGEBRA)
 
-if(Boost_FOUND)
-	set(src_Algebra	 ublas_algebra/ublas_vector.cpp
-					 ublas_algebra/ublas_matrix.cpp
-			 		 ublas_algebra/ublas_linearsolver.cpp)
-endif(Boost_FOUND)
+	##########################
+	# ublas algebra
+	##########################
+	if(Boost_FOUND)
+		set(src_Algebra	 ublas_algebra/ublas_vector.cpp
+				 ublas_algebra/ublas_matrix.cpp
+				 ublas_algebra/ublas_linearsolver.cpp)
+	endif(Boost_FOUND)
 
-if(HYPRELIB_LIB_DIR)
+	##########################
+	# hypre algebra
+	##########################
+	if(HYPRELIB_LIB_DIR)
+		set(src_Algebra	 ${src_Algebra}
+				 hypre_algebra/hyprematrix.cpp
+		     		 hypre_algebra/hyprevector.cpp
+	       		 	hypre_algebra/hyprelinearsolver.cpp)
+	endif(HYPRELIB_LIB_DIR)
 
-	set(src_Algebra	 ${src_Algebra}
-			 hypre_algebra/hyprematrix.cpp
-		     	 hypre_algebra/hyprevector.cpp
-	       		 hypre_algebra/hyprelinearsolver.cpp)
-endif(HYPRELIB_LIB_DIR)
-
-
+	##########################
+	# martin algebra
+	##########################
 #	set(src_Algebra	 ${src_Algebra}
 #			 martin_algebra/misc.cpp)
 
-##########################
-# setup library
+	##########################
+	# setup library
 
-add_library(algebra ${src_Algebra} )
-add_dependencies(algebra common lib_algebra.h)
+	add_library(algebra ${src_Algebra} )
+	add_dependencies(algebra common lib_algebra.h)
 
 endif(NOT NO_ALGEBRA)
 

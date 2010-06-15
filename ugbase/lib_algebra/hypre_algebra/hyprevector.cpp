@@ -1,9 +1,10 @@
 
 #include "hyprevector.h"
+#include <cmath>
 
 namespace ug{
 
-bool HypreVector::create(uint nentries)
+bool HypreVector::create(size_t nentries)
 {
 	UG_DLOG(LIB_ALG_VECTOR, 1, "Creating Hypre Vector of length " << nentries << ". \n");
 	int n = (int) nentries;
@@ -199,8 +200,8 @@ HypreVector::~HypreVector()
 		return *this;
 	}
 
-	number HypreVector::norm2()
-	{
+number HypreVector::two_norm() const
+{
 		int jlower, jupper, nvalues;
 
 		HYPRE_IJVectorGetLocalRange(m_hyprex, &jlower, &jupper);
@@ -223,9 +224,36 @@ HypreVector::~HypreVector()
 		}
 
 		return sqrt(norm);
-	}
-	bool HypreVector::set(number w)
-	{
+}
+
+number HypreVector::one_norm() const
+{
+		int jlower, jupper, nvalues;
+
+		HYPRE_IJVectorGetLocalRange(m_hyprex, &jlower, &jupper);
+
+		nvalues = jupper - jlower + 1;
+		double* values = new double[nvalues];
+		int* indices = new int[nvalues];
+
+		for(int i = 0; i < nvalues; ++i)
+		{
+			indices[i] = i;
+		}
+
+		if(get_values(nvalues, indices, values) == false) return false;
+
+		double norm = 0;
+		for(int i = 0; i < nvalues; ++i)
+		{
+			norm += fabs((double)values[i]);
+		}
+
+		return sqrt(norm);
+}
+
+bool HypreVector::set(number w)
+{
 		int jlower, jupper, nvalues;
 
 		HYPRE_IJVectorGetLocalRange(m_hyprex, &jlower, &jupper);
@@ -243,13 +271,15 @@ HypreVector::~HypreVector()
 		if(set_values(nvalues, indices, values) == false) return false;
 
 		return true;
-	}
-	int HypreVector::length()
-	{
+}
+
+size_t HypreVector::size() const
+{
 		int jlower, jupper;
 
 		HYPRE_IJVectorGetLocalRange(m_hyprex, &jlower, &jupper);
 
 		return jupper - jlower + 1;
-	}
 }
+
+} // namespace ug

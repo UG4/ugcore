@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_ALGEBRA__HYPREVECTOR__
-#define __H__LIB_ALGEBRA__HYPREVECTOR__
+#ifndef __H__LIB_ALGEBRA__HYPRE_ALGEBRA__HYPREVECTOR__
+#define __H__LIB_ALGEBRA__HYPRE_ALGEBRA__HYPREVECTOR__
 
 #include <HYPRE.h>
 #include <_hypre_utilities.h>
@@ -39,7 +39,7 @@ class HypreVector{
 		typedef std::vector<index_type> local_index_type;
 
 	public:
-		bool create(uint nentries);
+		bool create(size_t nentries);
 		bool destroy();
 
 		bool set(const local_vector_type& u, local_index_type& ind);
@@ -49,13 +49,16 @@ class HypreVector{
 		HypreVector& operator+= (const HypreVector& v);
 		HypreVector& operator-= (const HypreVector& v);
 
-		number norm2();
+		bool finalize();
+
+		number one_norm() const;
+		number two_norm() const;
 
 		bool set(number w);
+		bool operator= (number w);
+		bool operator*= (number w);
 
-		int length();
-
-		bool finalize();
+		size_t size() const;
 
 		~HypreVector();
 
@@ -78,4 +81,4 @@ class HypreVector{
 
 }
 
-#endif /* __H__LIB_ALGEBRA__HYPREVECTOR__ */
+#endif /* __H__LIB_ALGEBRA__HYPRE_ALGEBRA__HYPREVECTOR__ */

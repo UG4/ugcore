@@ -36,11 +36,11 @@ bool HypreMatrix::set(const local_matrix_type& mat, local_index_type& I, local_i
 	int * cols = new int[nentries];
 	double* values = new double[nentries];
 
-	for(std::size_t i = 0; i < (uint) nrows; ++i)
+	for(size_t i = 0; i < (size_t) nrows; ++i)
 	{
 		rows[i] = I[i][0];
 		ncols[i] = num_cols;
-		for(std::size_t j = 0; j < (uint)num_cols; ++j)
+		for(size_t j = 0; j < (size_t)num_cols; ++j)
 		{
 			cols[num_cols * i + j] = J[j][0];
 			values[num_cols * i + j] = (double) mat(i,j);

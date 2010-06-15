@@ -27,12 +27,6 @@ set(srcDiscretization		dof_manager/general_dof_manager/general_dof_manager.cpp
 				#quadrature/gauss_quadratures_ReferencePyramid.cpp
 				#quadrature/gauss_quadratures_ReferenceHexahedron.cpp
 
-				#vtkoutput.cpp
-			     	#newton.cpp)
-				#differentialoperator.cpp
-				#elementdata.cpp
-				#equation.cpp
-
 add_library(discretization 	${srcDiscretization})
 
 add_dependencies(discretization algebra grid common)

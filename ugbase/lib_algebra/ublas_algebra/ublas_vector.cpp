@@ -95,7 +95,7 @@ bool UblasVector::printToFile(const char* filename) const
 
 	for(size_t i = 0; i < m_pVector->size(); ++i)
 	{
-		fprintf(file, "%i: %e\n", i, (*m_pVector)(i));
+		fprintf(file, "%i: %e\n", (int)i, (*m_pVector)(i));
 	}
 
 	fclose(file);
