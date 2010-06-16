@@ -7,24 +7,13 @@
  *
  */
 #pragma once
-//#include "blockMatrix.h"
 
+
+#ifndef FLEXAMG
 #include "algebra_misc.h"
+#endif
 
 namespace ug{
-
-void add_mult(double &a, const double &b, const double &c)
-{
-	a += b*c;
-}
-
-void sub_mult(double &a, const double &b, const double &c)
-{
-	a -= b*c;
-}
-
-
-
 // operator []
 //-------------
 //! access connection nr i
@@ -33,15 +22,11 @@ void sub_mult(double &a, const double &b, const double &c)
 template<typename entry_type>
 inline const typename matrixrow<entry_type>::connection &matrixrow<entry_type>::operator [] (size_t i) const
 {
-	ASSERT2(i < A.iNrOfConnections[row] && i >= 0, *this << " has no connection nr. " << i);
-	/*ASSERT(A.cons[row]+i < A.consmem+A.iMaxTotalNrOfConnections
-	 && A.cons[row]+i >= A.consmem);*/
-	//ASSERT(A.consmem.isMemInChunk(A.cons[row][i]));		
-	return A.cons[row][i];
+	UG_ASSERT(i < A.getNrOfConnections(row) && i >= 0, *this << " has no connection nr. " << i);
+	return A.pRowStart[row][i];
 }
 
-
-
+/*
 template<typename entry_type>
 inline size_t matrixrow<entry_type>::getConNr(size_t index) const
 {
@@ -51,7 +36,7 @@ inline size_t matrixrow<entry_type>::getConNr(size_t index) const
 			return i;
 	}
 	return -1;
-}
+}*/
 
 #pragma mark -
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,16 +51,8 @@ template<typename vec_type>
 inline vec_type matrixrow<entry_type>::operator *(const Vector<vec_type> &x) const
 {
 	vec_type d;
-	cRowIterator it = beginRow();
-	
-	if(row >= x.getLength()) ++it; // skip diag		
-	if(it.isEnd()) return 0.0;
-	
-	d = (*it).dValue * x[(*it).iIndex];
-	++it;	
-	for(; !it.isEnd(); ++it)
-		//d += (*it).dValue * x[(*it).iIndex];
-		::ug::add_mult(d, (*it).dValue, x[(*it).iIndex]);
+	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
+		AddMult(d, (*it).dValue, x[(*it).iIndex]);
 	return d;
 }
 
@@ -103,12 +80,8 @@ template<typename entry_type>
 template<typename vec_type>
 inline void matrixrow<entry_type>::sub_mult(vec_type &d, const Vector<vec_type> &x) const
 {
-	cRowIterator it = beginRow();
-	if(row >= x.getLength()) ++it; // skip diag
-
-	for(; !it.isEnd(); ++it)
-		//d -= (*it).dValue * x[(*it).iIndex];
-		::ug::sub_mult(d, (*it).dValue, x[(*it).iIndex]);
+	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
+		SubMult(d, (*it).dValue, x[(*it).iIndex]);
 }
 
 
@@ -120,11 +93,8 @@ template<typename entry_type>
 template<typename vec_type>
 inline void matrixrow<entry_type>::add_mult(vec_type &d, const Vector<vec_type> &x) const
 {
-	cRowIterator it = beginRow();
-	if(row >= x.getLength()) ++it; // skip diag
-	
-	for(; !it.isEnd(); ++it)
-		::ug::add_mult(d, (*it).dValue, x[(*it).iIndex]);
+	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
+		AddMult(d, (*it).dValue, x[(*it).iIndex]);
 }
 
 
@@ -150,3 +120,4 @@ inline void multiplySubstractFrom(vec_type &d, const matrixrow<entry_type> &r, c
 }
 
 } // namespace ug
+

@@ -1,14 +1,20 @@
 /*
- *  matrixRow.h
- *  flexamg
- *
- *  Created by Martin Rupp on 18.01.10.
- *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
- *
- */
+*  matrixRow.h
+*  flexamg
+*
+*  Created by Martin Rupp on 18.01.10.
+*  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
+*
+*/
 #pragma once
 
+
+#ifndef FLEXAMG
 #include "blocks/blocks.h"
+#else
+#include "blocks.h"
+#endif
+
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////
@@ -78,7 +84,10 @@ public:
 	inline bool indexWithinBounds(size_t i) const	{return i < getNrOfConnections(); }
 	inline size_t getRow() const { return row; }
 	inline size_t getNrOfConnections() const {	return A.getNrOfConnections(row);	}
-	inline bool isUnconnected() const {	return A.isUnconnected(row); }
+	inline bool isUnconnected() const
+	{
+		return A.isUnconnected(row);
+	}
 	
 	void printtype() const { cout << *this; }	
 	void print() const { A.printrow(row); }
@@ -96,4 +105,6 @@ private:
 };
 
 } // namespace ug
+
+
 #include "matrixrow_impl.h"
