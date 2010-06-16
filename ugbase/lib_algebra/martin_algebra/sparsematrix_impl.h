@@ -34,10 +34,10 @@ SparseMatrix<T>::SparseMatrix()
 	consmem = NULL; consmemsize = 0;
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
-
+	
 	estimatedRowSize = 0;
 	iMaxNrOfConnections = NULL;
-
+	
 #ifdef FLEXAMG
 	tolevel = fromlevel = 0;
 #endif
@@ -94,20 +94,20 @@ template<typename T>
 bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 {
 	UG_ASSERT(rows == 0 && cols == 0, *this << " not empty.");
-
+	
 	rows = _rows;
 	cols = _cols;
-
+	
 	pRowStart = new connection*[rows+1];
 	memset(pRowStart, 0, sizeof(connection*)*(rows+1));
 
 	pRowEnd = new connection*[rows+1];
 	memset(pRowEnd, 0, sizeof(connection*)*(rows+1));
-
+	
 
 	iMaxNrOfConnections = new size_t[rows];
 	memset(iMaxNrOfConnections, 0, sizeof(size_t)*rows);
-
+	
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
 	return true;
@@ -145,7 +145,7 @@ void SparseMatrix<T>::createAsTransposeOf(const SparseMatrix &B)
 		for(cRowIterator conn = B.beginRow(j); !conn.isEnd(); ++conn)
 			if((*conn).dValue == 0) continue;
 			else nr[(*conn).iIndex]++;
-
+	
 
 	size_t newTotal = 0;
 	for(size_t i=0; i < rows; i++)
@@ -155,7 +155,7 @@ void SparseMatrix<T>::createAsTransposeOf(const SparseMatrix &B)
 	// allocate one big connection memory
 	consmem = new connection[newTotal];
 	consmemsize = newTotal;
-
+	
 	// init pRowStart array
 	// (this also inits pRowEnd)
 	connection *p = consmem;
@@ -172,7 +172,7 @@ void SparseMatrix<T>::createAsTransposeOf(const SparseMatrix &B)
 	memset(nr, 0, sizeof(size_t)*rows);
 	iTotalNrOfConnections = newTotal;
 	iFragmentedMem = 0;
-
+	
 	bandwidth = 0;
 
 	for(size_t i=0; i < B.rows; i++)
@@ -181,17 +181,17 @@ void SparseMatrix<T>::createAsTransposeOf(const SparseMatrix &B)
 			if((*conn).dValue == 0) continue;
 			size_t ndx = (*conn).iIndex;
 			UG_ASSERT(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
-
+			
 			size_t k = nr[ndx];
-
+			
 			UG_ASSERT(k>=0 && k<getNrOfConnections(ndx), "k = " << k << ". precalculated nr of Connections " << getNrOfConnections(ndx) << " wrong?");
-
+			
 			pRowStart[ndx][k].dValue = (*conn).dValue;
 			pRowStart[ndx][k].iIndex = i;
 			if(bandwidth < i-ndx) bandwidth = i-ndx;
 			nr[ndx]++;
 		}
-
+	
 	// note that all connections are sorted.
 
 	delete[] nr;
@@ -203,15 +203,15 @@ void SparseMatrix<T>::createAsTransposeOf(const SparseMatrix &B)
  {
  // create new cons Memory
  connection *consmemNew = new connection[newMax];
-
+ 
  // adjust pointers
  size_t diff = consmemNew - consmem;
  for(size_t i=0; i<rows; i++)
  {
- if(cons[i] != NULL)
+ if(cons[i] != NULL) 
  cons[i] += diff;
  }
-
+ 
  // copy, delete old and swap
  memcpy(consmemNew, consmem, sizeof(connection)*iTotalNrOfConnections);
  delete[] consmem;
@@ -235,7 +235,7 @@ void SparseMatrix<T>::eliminateDirichletValues(Vector_type &b)
 {
 	for(size_t i=0; i<rows; i++)
 	{
-		if(isUnconnected(i)) continue;
+		if(isUnconnected(i)) continue;		
 		for(rowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
 		{
 			size_t conindex = (*conn).iIndex;
@@ -300,7 +300,7 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 {
 	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
-
+	
 	for(size_t i=0; i < rows; i++)
 	{
 		res[i] = 0.0;
@@ -311,12 +311,6 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 	return true;
 }
 
-template<typename T>
-template<typename Vector_type>
-bool SparseMatrix<T>::apply_transposed(Vector_type &res, const Vector_type &x) const
-{
-	return applyTransposed(res, x);
-}
 
 
 // res = A.T() * x
@@ -326,7 +320,7 @@ bool SparseMatrix<T>::applyTransposed(Vector_type &res, const Vector_type &x) co
 {
 	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
-
+	
 	res = 0.0;
 
 	for(size_t i=0; i<rows; i++)
@@ -348,14 +342,14 @@ bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
 {
 	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
-
+	
 	for(size_t i=0; i < rows; i++)
 	{
 		cRowIterator conn = beginRow(i);
 		for(; !conn.isEnd(); ++conn)
 			res[i] -= (*conn).dValue * x[(*conn).iIndex];
 	}
-
+	
 
 	return true;
 }
@@ -365,7 +359,7 @@ bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
 //! @return a matrixrow object of row i
 template<typename T>
 const matrixrow<T> SparseMatrix<T>::getrow(size_t i) const
-{
+{	
 	return matrixrow<entry_type> (*this, i);
 }
 
@@ -373,7 +367,7 @@ const matrixrow<T> SparseMatrix<T>::getrow(size_t i) const
 //! @return a matrixrow object of row i
 template<typename T>
 const matrixrow<T> SparseMatrix<T>::operator [] (size_t i) const
-{
+{		
 	return matrixrow<entry_type> (*this, i);
 }
 
