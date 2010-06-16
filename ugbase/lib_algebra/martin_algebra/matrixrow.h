@@ -10,7 +10,7 @@
 
 
 #ifndef FLEXAMG
-#include "blocks/blocks.h"
+//#include "blocks/blocks.h"
 #else
 #include "blocks.h"
 #endif
