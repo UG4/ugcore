@@ -283,7 +283,7 @@ void SparseMatrix<T>::setDirichletRows(size_t *pRows, size_t nrows)
 		setDirichletRow(pRows[i]);
 }
 
-
+#ifndef FLEXAMG
 template<typename T>
 bool SparseMatrix<T>::set_dirichlet_rows(const local_index_type &ind)
 {
@@ -291,6 +291,7 @@ bool SparseMatrix<T>::set_dirichlet_rows(const local_index_type &ind)
 		setDirichletRow(ind[i][0]);
 	return true;
 }
+#endif
 
 
 // res = A*x
@@ -316,7 +317,7 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 // res = A.T() * x
 template<typename T>
 template<typename Vector_type>
-bool SparseMatrix<T>::applyTransposed(Vector_type &res, const Vector_type &x) const
+bool SparseMatrix<T>::apply_transposed(Vector_type &res, const Vector_type &x) const
 {
 	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);

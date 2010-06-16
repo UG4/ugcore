@@ -14,16 +14,16 @@
 
 #include <pmmintrin.h>
 
+
 #ifdef FLEXAMG
 #include "blocks.h"
 #include "blockVector.h"
-#include "TemplateExpressions.h"
-
 #else
-#include "template_expressions.h"
 #include "blocks/blocks.h"
 #include "blocks/blockVector.h"
 #endif
+
+#include "template_expressions.h"
 
 //#define SPECIALIZE_EXPRESSION_TEMPLATES
 
@@ -125,7 +125,7 @@ public:	// general functions
 	bool apply(Vector_type &res, const Vector_type &x) const;
 	//! calculate res = A.T x
 	template<typename Vector_type>
-	bool applyTransposed(Vector_type &res, const Vector_type &x) const;
+	bool apply_transposed(Vector_type &res, const Vector_type &x) const;
 	//! calculate res -= A x
 	template<typename Vector_type>
 	bool matmul_minus(Vector_type &res, const Vector_type &x) const;
@@ -373,5 +373,5 @@ private:
 
 } // namespace ug
 
-#include "matrixRow.h"
-#include "sparseMatrix_impl.h"
+#include "matrixrow.h"
+#include "sparsematrix_impl.h"
