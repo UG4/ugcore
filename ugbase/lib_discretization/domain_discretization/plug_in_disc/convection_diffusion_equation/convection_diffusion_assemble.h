@@ -89,7 +89,7 @@ class ConvectionDiffusionEquation {
 		typename TDomain::position_accessor_type m_aaPos;
 
 		// Finite Volume Element Geometry
-		FVElementGeometry<TElem>* m_geo;
+		FVElementGeometry<TElem, dim>* m_geo;
 
 		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
 		number m_upwind_amount;

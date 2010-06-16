@@ -33,7 +33,7 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 		LagrangeInterpolationOperator() : m_fct(-1) {};
 
 		// Init Operator
-		bool init(uint fct)
+		bool init(size_t fct)
 		{
 			m_fct = fct;
 
@@ -56,25 +56,34 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 		// apply Operator, i.e. v = L(u);
 		bool apply(domain_function_type& u, codomain_function_type& v)
 		{
-			uint level = v.get_level();
-			LocalShapeFunctionSetID id = v.get_local_shape_function_set_id(m_fct);
-			if(id == LSFS_INVALID)
+			if(m_fct >= v.num_fct())
 			{
-				UG_LOG("Fundamental discrete function nr " << m_fct << " is not contained in Approximation Space. Can not determine Local Shape Function Set.\n");
+				UG_LOG("Function space does not contain a function with index " << m_fct << ".\n");
 				return false;
 			}
 			if(v.dim_fct(m_fct) == 2)
 			{
-				for(int subsetIndex = 0; subsetIndex < v.num_subsets(); ++subsetIndex)
+				for(int si = 0; si < v.num_subsets(); ++si)
 				{
-					if(v.fct_is_def_in_subset(m_fct, subsetIndex) != true) continue;
-					if(interpolate_values<Triangle>(u, v, id, level, subsetIndex) != true) return false;
-					if(interpolate_values<Quadrilateral>(u, v, id, level, subsetIndex) != true) return false;
+					if(v.fct_is_def_in_subset(m_fct, si) != true) continue;
+
+					if(interpolate_values<Triangle>(u, v, si) != true) return false;
+					if(interpolate_values<Quadrilateral>(u, v, si) != true) return false;
+				}
+			}
+			else if(v.dim_fct(m_fct) == 3)
+			{
+				for(int si = 0; si < v.num_subsets(); ++si)
+				{
+					if(v.fct_is_def_in_subset(m_fct, si) != true) continue;
+
+					if(interpolate_values<Triangle>(u, v, si) != true) return false;
+					if(interpolate_values<Quadrilateral>(u, v, si) != true) return false;
 				}
 			}
 			else
 			{
-				UG_LOG("Currently only 2D interpolation implemented.\n");
+				UG_LOG("Not implemented.\n");
 				return false;
 			}
 
@@ -91,23 +100,19 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 
 	protected:
 		template <typename TElem>
-		bool interpolate_values(const domain_function_type& u, codomain_function_type& v, LocalShapeFunctionSetID id, uint level, int subsetIndex)
+		bool interpolate_values(const domain_function_type& u, codomain_function_type& v, int si)
 		{
-			const int refDim = reference_element_traits<TElem>::dim;
+			const int dim = reference_element_traits<TElem>::dim;
 			typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 
-
+			LocalShapeFunctionSetID id = v.get_local_shape_function_set_id(m_fct);
 
 			const LocalShapeFunctionSet<reference_element_type>& trialSpace = LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<reference_element_type>(id);
-			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
-
-			iterBegin = v.template begin<TElem>(subsetIndex);
-			iterEnd = v.template end<TElem>(subsetIndex);
 
 			// get local positions of interpolation points
-			const int num_sh = trialSpace.num_shape_functions();
-			std::vector<MathVector<refDim> > loc_pos(num_sh);
-			for(int i = 0; i < num_sh; ++i)
+			const size_t num_sh = trialSpace.num_shape_functions();
+			std::vector<MathVector<dim> > loc_pos(num_sh);
+			for(size_t i = 0; i < num_sh; ++i)
 			{
 				if(trialSpace.position_of_dof(i, loc_pos[i]) != true)
 				{
@@ -120,10 +125,14 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 			typename domain_type::position_accessor_type aaPos = domain.get_position_accessor();
 			typename domain_type::position_type corners[reference_element_traits<TElem>::num_corners];
 
-			reference_element_type refElem;
 			typename codomain_function_type::local_vector_type val(num_sh);
+			//reference_element_type refElem;
+			ReferenceMapping<reference_element_type, domain_type::dim> mapping;
 
 			// iterate over all elements
+			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
+			iterBegin = v.template begin<TElem>(si);
+			iterEnd = v.template end<TElem>(si);
 			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
 				TElem* elem = *iter;
@@ -135,16 +144,22 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 					corners[i] = aaPos[vert];
 				}
 
-				for(int i = 0; i < num_sh; ++i)
+				mapping.update(corners);
+
+				// get global positions
+				for(size_t i = 0; i < num_sh; ++i)
 				{
 					typename domain_type::position_type glob_pos;
-					refElem.template mapLocalToGlobal<domain_type::dim>(corners, loc_pos[i], glob_pos);
+					//refElem.template mapLocalToGlobal<domain_type::dim>(corners, loc_pos[i], glob_pos);
+					if(mapping.local_to_global(loc_pos[i], glob_pos) != true) return false;
 					if(u(glob_pos, val[i]) != true)
 					{
 						UG_LOG("Error while evaluating function u. Aborting interpolation.\n");
 						return false;
 					}
 				}
+
+				// set values
 				if(v.set_dof_values(elem, m_fct, val) != true)
 				{
 					UG_LOG("Error while writing values of degrees of freedom. Aborting interpolation.\n");
@@ -155,7 +170,7 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 		}
 
 	protected:
-		uint m_fct;
+		size_t m_fct;
 };
 
 } // namespace ug

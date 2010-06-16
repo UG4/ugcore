@@ -29,16 +29,16 @@ prepare_element_loop()
 	// Therefore it is not time critical.
 
 	// create new Geometry
-	m_geo = new FVElementGeometry<TElem>();
+	m_geo = new FVElementGeometry<TElem, TDomain::dim>();
 	assert(m_geo != NULL);
 
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
-	typename std::vector<MathVector<TDomain::dim> > pos;
+	typename std::vector<MathVector<reference_element_traits<TElem>::dim> > pos;
 	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -108,11 +108,11 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	MathVector<dim> Dgrad;
 	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			const SD_Values<TElem>& sdv = scvf.sdv();
+			const SD_Values<TElem, TDomain::dim>& sdv = scvf.sdv();
 
 			m_Diff_Tensor(D, scvf.global_ip(), time);
 			m_Conv_Vel(v, scvf.global_ip(), time);
@@ -188,7 +188,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	number reac_val;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
-		const SubControlVolume<TElem>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
 
@@ -210,7 +210,7 @@ assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number tim
 	int co;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
-		const SubControlVolume<TElem>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
 
@@ -238,11 +238,11 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	MathVector<dim> Dgrad_u;
 	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			const SD_Values<TElem>& sdv = scvf.sdv();
+			const SD_Values<TElem, TDomain::dim>& sdv = scvf.sdv();
 
 			VecSet(grad_u, 0.0);
 			shape_u = 0.0;
@@ -297,7 +297,7 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	number reac_val;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
-		const SubControlVolume<TElem>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
 
@@ -319,7 +319,7 @@ assemble_element_M(local_vector_type& d, const local_vector_type& u, number time
 	int co;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
-		const SubControlVolume<TElem>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
 
@@ -339,7 +339,7 @@ assemble_element_f(local_vector_type& d, number time)
 	number fvalue = 0.0;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
-		const SubControlVolume<TElem>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
 
 		m_Rhs(fvalue, scv.global_corner_pos(), time);
 		d[scv.local_corner_id()] += fvalue * scv.volume();

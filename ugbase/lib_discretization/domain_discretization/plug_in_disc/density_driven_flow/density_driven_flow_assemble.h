@@ -93,6 +93,8 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		TDomain& m_domain;
 
 		// position access
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+		ReferenceMapping<ref_elem_type, TDomain::dim> m_mapping;
 		typename TDomain::position_type m_corners[reference_element_traits<TElem>::num_corners];
 		typename TDomain::position_accessor_type m_aaPos;
 
@@ -136,13 +138,12 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 
 			number c;
 			MathVector<TDomain::dim> grad_p, grad_p_local;
-			MathMatrix<TDomain::dim,TDomain::dim> Jinv, J;
-			number detJ;
+			MathMatrix<TDomain::dim, ref_elem_type::dim> JTInv;
 			number shape;
 			MathVector<TDomain::dim> grad_local;
 
 			VecSet(grad_p, 0.0);
-
+			m_mapping.update(m_corners);
 			for(size_t i = 0; i < val.size(); ++i)
 			{
 				// compute c and grad_p
@@ -155,13 +156,10 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 					c += u(_C_, co) * shape;
 
 					if(TrialSpace.evaluate_grad(co, pos[i], grad_local) == false)  UG_ASSERT(0, "");
-					if(refElem.Trafo(m_corners, pos[i], Jinv, detJ) == false) UG_ASSERT(0, "");
+					if(m_mapping.jacobian_transposed_inverse(pos[i], JTInv) == false) UG_ASSERT(0, "");
 					VecScaleAppend(grad_p_local, u(_P_,co), grad_local);
 
-					// compute _J
-					Inverse(J, Jinv);
-
-					MatVecMult(grad_p, Jinv, grad_p_local);
+					MatVecMult(grad_p, JTInv, grad_p_local);
 				}
 
 				compute_ip_Darcy_velocity(val[i], c, grad_p);

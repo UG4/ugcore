@@ -151,8 +151,9 @@ void FE1Discretization<TElem, d>::prepareElement(TElem* elem, typename ug::Numer
 		// and Shape and ShapeGrad of Solution u at those points
 		for(int i = 0; i< m_nsh; i++)
 		{
-			m_TrialSpace->evaluateShapeGrad(i, m_LocalIP[ip], m_LocShapeGrad[ip][i]);
-			m_TrialSpace->evaluateShape(i, m_LocalIP[ip], m_Shape[ip][i]);
+			// TODO: This does not work anymore
+			//m_TrialSpace->evaluateShapeGrad(i, m_LocalIP[ip], m_LocShapeGrad[ip][i]);
+			//m_TrialSpace->evaluateShape(i, m_LocalIP[ip], m_Shape[ip][i]);
 			MatVecMult(m_GlobShapeGrad[ip][i], m_IPTrafo[ip], m_LocShapeGrad[ip][i]);
 		}
 	}
@@ -485,8 +486,9 @@ void FVE1lumpDiscretization<TElem, d>::prepareElement(TElem* elem, NumericalSolu
 	// get global ip's ...
 	for(int ip=0; ip<m_nip; ip++)
 	{
-		m_RefElem.template mapLocalToGlobal<d>(m_corners, m_LocalIP[ip], m_GlobalIP[ip]);
-		m_RefElem.Trafo(m_corners, m_LocalIP[ip], m_IPTrafo[ip], m_det[ip]);
+		//TODO: This does not work anymore
+		//m_RefElem.template mapLocalToGlobal<d>(m_corners, m_LocalIP[ip], m_GlobalIP[ip]);
+		//m_RefElem.Trafo(m_corners, m_LocalIP[ip], m_IPTrafo[ip], m_det[ip]);
 
 		// and Shape and ShapeGrad of Solution u at those points
 		for(int i = 0; i< m_nsh; i++)
