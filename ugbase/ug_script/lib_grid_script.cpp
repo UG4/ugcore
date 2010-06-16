@@ -7,6 +7,7 @@
 #include "tmp_lib_grid_methods.h"
 #include "lib_grid/tools/marker_points.h"
 #include "ug_script.h"
+#include "lib_grid/file_io/file_io_ugx.h"
 
 using namespace std;
 using namespace ug;
@@ -694,6 +695,25 @@ bool separate_regions(Grid* grid, SubsetHandler* shVolsOut,
 
 /**@}*/ // end of selection
 
+
+// only for tests
+
+void test()
+{
+//	create a new grid and load a file
+	Grid grid;
+	SubsetHandler sh(grid);
+	if(!LoadGridFromFile(grid, "/Users/sreiter/Projects/ug4/trunk/data/grids/unit_square_quads_1x1.obj", sh)){
+		UG_LOG("  file-load failed. aborting test\n");
+		return;
+	}
+	
+	UG_LOG("  grid loaded... attempting xml-write\n");
+	FileAccessorUGX ugx;
+	ugx.add_grid(grid, "grid", aPosition);
+	ugx.write_to_stream(cout);
+}
+
 }//	end of namespace
 
 
@@ -770,7 +790,9 @@ bool InitLibGridScript(lua_State* L)
 		def("delete_markers", delete_markers),
 		def("load_markers", load_markers),
 		def("snap_markers_to_vertices", snap_markers_to_vertices),
-		def("mark_selected_edges", mark_selected_edges)
+		def("mark_selected_edges", mark_selected_edges),
+		
+		def("test", test)
 	];
 
 	return true;
