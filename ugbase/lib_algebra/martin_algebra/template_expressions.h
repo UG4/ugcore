@@ -7,7 +7,9 @@
  *
  */
 
-#pragma once
+#ifndef __H__UG__MARTIN_ALGEBRA__TEMPLATE_EXPRESSIONS__
+#define __H__UG__MARTIN_ALGEBRA__TEMPLATE_EXPRESSIONS__
+
 //#include "blockMatrix.h"
 
 // misc stuff remove this!!
@@ -30,7 +32,7 @@ using namespace std;
 
 namespace ug{
 
-#pragma mark template expression CRTP base classes
+//#pragma mark template expression CRTP base classes
 //! only classes which inherit from TE_AMV_X, TE_MAT or TE_VEC (via class myClass : public XD<myClass> )
 //! can use templateExpressions used in this file
 //! CRTP = Curiously recurring template pattern
@@ -495,3 +497,5 @@ inline double operator *(const TRANSPOSED<TE_AMV_X<L> > &l, const TE_AMV_X<R> &r
 }
 
 } // namespace ug
+
+#endif

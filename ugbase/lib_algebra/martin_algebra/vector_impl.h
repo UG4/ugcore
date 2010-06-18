@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef __H__UG__MARTIN_ALGEBRA__VECTOR_IMPL__
+#define __H__UG__MARTIN_ALGEBRA__VECTOR_IMPL__
+
 #include <fstream>
 #include "algebra_misc.h"
 
@@ -328,3 +331,5 @@ double operator *(const TRANSPOSED<Vector<entry_type> > &x, const Vector<entry_t
 }
 	
 }//namespace ug
+
+#endif

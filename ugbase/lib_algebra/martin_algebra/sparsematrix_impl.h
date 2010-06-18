@@ -6,7 +6,9 @@
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
  *
  */
-#pragma once
+#ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_IMPL__
+#define __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_IMPL__
+
 // creation etc
 
 #include <fstream>
@@ -1042,3 +1044,5 @@ void SparseMatrix<T>::get(entry_type &d, size_t row, size_t col) const
 
 
 } // namespace ug
+
+#endif

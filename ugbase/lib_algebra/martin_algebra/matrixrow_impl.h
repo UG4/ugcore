@@ -6,8 +6,9 @@
  *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
  *
  */
-#pragma once
 
+#ifndef __H__UG__MARTIN_ALGEBRA__MATRIXROW_IMPL__
+#define __H__UG__MARTIN_ALGEBRA__MATRIXROW_IMPL__
 
 #ifndef FLEXAMG
 #include "algebra_misc.h"
@@ -121,3 +122,4 @@ inline void multiplySubstractFrom(vec_type &d, const matrixrow<entry_type> &r, c
 
 } // namespace ug
 
+#endif

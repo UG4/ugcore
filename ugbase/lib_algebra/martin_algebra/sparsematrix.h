@@ -8,7 +8,8 @@
  */
 
 
-#pragma once
+#ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX__
+#define __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX__
 
 #include "math.h"
 
@@ -375,3 +376,5 @@ private:
 
 #include "matrixrow.h"
 #include "sparsematrix_impl.h"
+
+#endif

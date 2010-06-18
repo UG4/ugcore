@@ -6,8 +6,9 @@
 *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
 *
 */
-#pragma once
 
+#ifndef __H__UG__MARTIN_ALGEBRA__MATRIXROW__
+#define __H__UG__MARTIN_ALGEBRA__MATRIXROW__
 
 #ifndef FLEXAMG
 //#include "blocks/blocks.h"
@@ -108,3 +109,5 @@ private:
 
 
 #include "matrixrow_impl.h"
+
+#endif

@@ -7,6 +7,9 @@
  *
  */
 
+#ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_UTIL__
+#define __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_UTIL__
+
 namespace ug
 {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -186,3 +189,5 @@ bool isCloseToBoundary(const SparseMatrix<T> &A, int node, int distance)
 }
 
 }
+
+#endif

@@ -12,7 +12,9 @@
  *	by the same methods.
  */
 
-#pragma once
+#ifndef __H__UG__MARTIN_ALGEBRA__DOUBLE__
+#define __H__UG__MARTIN_ALGEBRA__DOUBLE__
+
 namespace ug{
 	
 template <typename t> class block_matrix_traits;
@@ -119,3 +121,4 @@ template<> struct block_multiply_traits<double, double>
 
 } // namespace ug
 
+#endif

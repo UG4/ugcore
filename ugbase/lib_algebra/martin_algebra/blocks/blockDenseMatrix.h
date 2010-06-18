@@ -9,7 +9,8 @@
  *  optimized for small memory consumption
  *  SmallInverse: Inverse for blockDenseMatrices using LAPACK
  */
-#pragma once
+#ifndef __H__UG__MARTIN_ALGEBRA__BLOCK_DENSE_MATRIX__
+#define __H__UG__MARTIN_ALGEBRA__BLOCK_DENSE_MATRIX__
 
 #include "math.h"
 
@@ -561,3 +562,5 @@ struct block_multiply_traits<blockVector<double, storage_type, n_>, double >
 //#endif
 
 } // namespace ug
+
+#endif

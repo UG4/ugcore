@@ -12,7 +12,8 @@
  *	by the same methods.
  */
 
-#pragma once
+#ifndef __H__UG__MARTIN_ALGEBRA__BLOCKS__
+#define __H__UG__MARTIN_ALGEBRA__BLOCKS__
 
 namespace ug{
 	
@@ -175,3 +176,5 @@ inline int getCols(const T &t)
 }
 
 } // namespace ug
+
+#endif

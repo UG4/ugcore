@@ -7,7 +7,8 @@
  *
  */
 
-#pragma once
+#ifndef __H__UG__MARTIN_ALGEBRA__BLOCK_VECTOR__
+#define __H__UG__MARTIN_ALGEBRA__BLOCK_VECTOR__
 
 #include "arrayStorage.h"
 #include "blockDenseMatrix.h"
@@ -315,3 +316,5 @@ blockVector<value_type, storage_type, n> operator * (double alpha, blockVector<v
 }
 
 } // namespace ug
+
+#endif

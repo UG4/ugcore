@@ -703,15 +703,38 @@ void test()
 //	create a new grid and load a file
 	Grid grid;
 	SubsetHandler sh(grid);
-	if(!LoadGridFromFile(grid, "/Users/sreiter/Projects/ug4/trunk/data/grids/unit_square_quads_1x1.obj", sh)){
+	if(!LoadGridFromFile(grid, "/Users/sreiter/Projects/ug4/trunk/data/grids/unit_cube_tets_150.ele", sh)){
 		UG_LOG("  file-load failed. aborting test\n");
 		return;
 	}
 	
 	UG_LOG("  grid loaded... attempting xml-write\n");
-	FileAccessorUGX ugx;
-	ugx.add_grid(grid, "grid", aPosition);
-	ugx.write_to_stream(cout);
+	GridWriterUGX ugxOut;
+	ugxOut.add_grid(grid, "grid", aPosition);
+	ugxOut.write_to_file("first_ugx_file.ugx");
+	
+	UG_LOG("  reading and printing saved grid...\n");
+	GridReaderUGX ugxIn;
+	ugxIn.parse_file("first_ugx_file.ugx");
+	
+	UG_LOG("num grids: " << ugxIn.num_grids() << endl);
+	for(size_t i = 0; i < ugxIn.num_grids(); ++i){
+		UG_LOG(i << ": " << ugxIn.get_grid_name(i) << endl);
+	}
+	
+	if(ugxIn.num_grids() > 0){
+		Grid nGrid;
+		SubsetHandler nSH(nGrid);
+		
+		ugxIn.get_grid(nGrid, 0, aPosition);
+	
+		Grid::VertexAttachmentAccessor<APosition> aaPos(nGrid, aPosition);
+			
+		UG_LOG("num edges: " << nGrid.num<Edge>() << endl);
+		UG_LOG("num triangles: " << nGrid.num<Triangle>() << endl);
+		UG_LOG("num quadrilaterals: " << nGrid.num<Quadrilateral>() << endl);
+		UG_LOG("num tetrahedron: " << nGrid.num<Tetrahedron>() << endl);
+	}
 }
 
 }//	end of namespace

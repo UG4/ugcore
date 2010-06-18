@@ -8,7 +8,10 @@
  *  variable (stl::vector-like) and fixed (T arr[SIZE];-like)
  *  arrays with same interface.
  */
-#pragma once
+
+#ifndef __H__UG__MARTIN_ALGEBRA__ARRAYSTORAGE__
+#define __H__UG__MARTIN_ALGEBRA__ARRAYSTORAGE__
+
 //#include "misc.h"
 
 namespace ug{
@@ -350,3 +353,5 @@ public:
 };
 
 } // namespace ug
+
+#endif

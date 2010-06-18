@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef __H__UG__MARTIN_ALGEBRA__ALGEBRA_MISC__
+#define __H__UG__MARTIN_ALGEBRA__ALGEBRA_MISC__
 ////////////////////////////////////////////////////////////////////////////////////////////////
 #ifndef NDEBUG
 
@@ -8,4 +8,6 @@
 #define FORCE_CREATION volatile int ___never_happens___ = 0; if(___never_happens___)
 #else
 #define FORCE_CREATION if(0)
+#endif
+
 #endif

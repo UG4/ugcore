@@ -6,8 +6,10 @@
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
  *
  */
-#pragma once
-#include "sparseMatrix.h"
+#ifndef __H__UG__MARTIN_ALGEBRA__VECTOR__
+#define __H__UG__MARTIN_ALGEBRA__VECTOR__
+
+#include "sparsematrix.h"
 
 #include "template_expressions.h"
 
@@ -195,4 +197,6 @@ private:
 
 } // namespace ug
 
-#include "Vector_impl.h"
+#include "vector_impl.h"
+
+#endif
