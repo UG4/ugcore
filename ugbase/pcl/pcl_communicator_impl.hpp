@@ -10,6 +10,7 @@
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
+#include "common/profiler/profiler.h"
 
 namespace pcl
 {
@@ -202,6 +203,7 @@ template <class TLayout>
 bool ParallelCommunicator<TLayout>::
 communicate()
 {
+	PROFILE_FUNC();
 //	prepare receive streams
 //TODO:	This should be done in a way so that the least possible amount
 //		of data has to be reallocated (very often the map won't change
@@ -239,7 +241,18 @@ communicate()
 	int sizeTag = 189345;//	an arbitrary number
 	int counter;
 
-//	first send buffer sizes
+
+//	shedule receives first
+	std::vector<int> vBufferSizesIn(numInStreams);
+	counter = 0;
+	for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
+		iter != m_streamPackIn.end(); ++iter, ++counter)
+	{
+		MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
+				iter->first, sizeTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
+	}
+
+//	send buffer sizes
 	counter = 0;
 	for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
 		iter != m_streamPackOut.end(); ++iter, ++counter)
@@ -250,40 +263,22 @@ communicate()
 				iter->first, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
 	}
 	
-//	now receive buffer sizes
-	std::vector<int> vBufferSizesIn(numInStreams);
-	counter = 0;
-	for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
-		iter != m_streamPackIn.end(); ++iter, ++counter)
-	{
-		MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
-				iter->first, sizeTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
-	}
-	
 //	wait until data has been received
 	std::vector<MPI_Status> vReceiveStatii(numInStreams);//TODO: fix spelling!
-	
+	std::vector<MPI_Status> vSendStatii(numOutStreams);//TODO: fix spelling!
+
 //	TODO: this can be improved:
 //		instead of waiting for all, one could wait until one has finished and directly
 //		start copying the data to the local receive buffer. Afterwards on could continue
 //		by waiting for the next one etc...
 	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStatii[0]);
+	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStatii[0]);
 
 ////////////////////////////////////////////////
 //	communicate data.
 	int dataTag = 749345;//	an arbitrary number
 
-//	first send data
-	counter = 0;
-	for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
-		iter != m_streamPackOut.end(); ++iter, ++counter)
-	{
-		//int retVal =
-		MPI_Isend(iter->second->buffer(), iter->second->size(), MPI_UNSIGNED_CHAR,
-				iter->first, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
-	}
-
-//	now receive data
+//	first shedule receives
 	counter = 0;
 	for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
 		iter != m_streamPackIn.end(); ++iter, ++counter)
@@ -296,11 +291,22 @@ communicate()
 				iter->first, dataTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
 	}
 
+//	now send data
+	counter = 0;
+	for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
+		iter != m_streamPackOut.end(); ++iter, ++counter)
+	{
+		//int retVal =
+		MPI_Isend(iter->second->buffer(), iter->second->size(), MPI_UNSIGNED_CHAR,
+				iter->first, dataTag, MPI_COMM_WORLD, &vSendRequests[counter]);
+	}
+
 //	TODO: this can be improved:
 //		instead of waiting for all, one could wait until one has finished and directly
 //		start copying the data to the local receive buffer. Afterwards on could continue
 //		by waiting for the next one etc...
 	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStatii[0]);
+	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStatii[0]);
 
 //	call the extractors with the received data
 	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
