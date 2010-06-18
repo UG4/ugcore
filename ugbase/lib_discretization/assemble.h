@@ -66,7 +66,8 @@ enum IAssembleReturn {
  *
  *
  */
-template <typename TAlgebra, typename TDiscreteFunction>
+template <	typename TDiscreteFunction,
+			typename TAlgebra = typename TDiscreteFunction::algebra_type >
 class IAssemble {
 	public:
 		// forward types and constants

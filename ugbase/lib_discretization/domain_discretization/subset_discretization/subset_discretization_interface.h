@@ -10,7 +10,7 @@
 
 namespace ug{
 
-
+// TODO: Must be reworked
 template <typename TDomain, typename TAlgebra>
 class ISubsetDiscretization : public IAssemble<TDomain, TAlgebra>{
 	public:

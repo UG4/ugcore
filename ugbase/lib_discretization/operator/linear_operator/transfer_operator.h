@@ -40,7 +40,7 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 
 	public:
 		// Transfer Operator acts on level -> level + 1
-		ProlongationOperator(approximation_space_type& approxSpace, IAssemble<algebra_type, domain_function_type>& ass, uint level) :
+		ProlongationOperator(approximation_space_type& approxSpace, IAssemble<domain_function_type, algebra_type>& ass, uint level) :
 			m_approxSpace(approxSpace), m_ass(ass), m_level(level)
 		{
 			UG_ASSERT(level < m_approxSpace.num_levels() - 1, "Interpolation is from (level -> level+1). Requested (" << level <<" -> " << level + 1<< "), but only " << m_approxSpace.num_levels() << " levels in multigrid.\n");
@@ -249,7 +249,7 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 
 	protected:
 		approximation_space_type& m_approxSpace;
-		IAssemble<algebra_type, domain_function_type>& m_ass;
+		IAssemble<domain_function_type, algebra_type>& m_ass;
 		uint m_level;
 		matrix_type m_matrix;
 };

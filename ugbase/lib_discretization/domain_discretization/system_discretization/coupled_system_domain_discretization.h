@@ -235,7 +235,7 @@ class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDom
 
 
 template <typename TDiscreteFunction>
-class CoupledSystemDomainDiscretization : public IDomainDiscretization<typename TDiscreteFunction::algebra_type, TDiscreteFunction> {
+class CoupledSystemDomainDiscretization : public IDomainDiscretization<TDiscreteFunction> {
 	protected:
 		// forward constants and typenames
 

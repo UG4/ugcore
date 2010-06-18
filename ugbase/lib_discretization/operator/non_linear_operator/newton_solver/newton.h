@@ -20,18 +20,10 @@
 
 namespace ug {
 
-template <typename TAlgebra, typename TDiscreteFunction>
+template <typename TDiscreteFunction>
 class NewtonSolver : public IOperatorInverse<TDiscreteFunction, TDiscreteFunction>{
 	public:
 		typedef TDiscreteFunction discrete_function_type;
-
-		typedef TAlgebra algebra_type;
-
-		// type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
-
-		// type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
 
 	public:
 		NewtonSolver(ILinearizedOperatorInverse<discrete_function_type, discrete_function_type>& LinearSolver, int MaxIterations, number absTol, number relTol, bool reallocate) :
@@ -83,15 +75,15 @@ class NewtonSolver : public IOperatorInverse<TDiscreteFunction, TDiscreteFunctio
 
 		AssembledOperator<discrete_function_type>* m_N;
 		AssembledLinearizedOperator<discrete_function_type>* m_J;
-		IAssemble<algebra_type, discrete_function_type>* m_ass;
+		IAssemble<discrete_function_type>* m_ass;
 
 		bool m_reallocate;
 		bool m_allocated;
 };
 
-template <typename TAlgebra, typename TDiscreteFunction>
+template <typename TDiscreteFunction>
 bool
-NewtonSolver<TAlgebra, TDiscreteFunction>::
+NewtonSolver<TDiscreteFunction>::
 allocate_memory(const discrete_function_type& u)
 {
 	// Jacobian
@@ -115,9 +107,9 @@ allocate_memory(const discrete_function_type& u)
 	return true;
 }
 
-template <typename TAlgebra, typename TDiscreteFunction>
+template <typename TDiscreteFunction>
 bool
-NewtonSolver<TAlgebra, TDiscreteFunction>::
+NewtonSolver<TDiscreteFunction>::
 deallocate_memory()
 {
 	if(m_allocated)
@@ -130,9 +122,9 @@ deallocate_memory()
 }
 
 
-template <typename TAlgebra, typename TDiscreteFunction>
+template <typename TDiscreteFunction>
 bool
-NewtonSolver<TAlgebra, TDiscreteFunction>::
+NewtonSolver<TDiscreteFunction>::
 prepare(discrete_function_type& u)
 {
 	//m_ass = &ass;
@@ -149,8 +141,8 @@ prepare(discrete_function_type& u)
 }
 
 
-template <typename TAlgebra, typename TDiscreteFunction>
-NewtonSolver<TAlgebra, TDiscreteFunction>::
+template <typename TDiscreteFunction>
+NewtonSolver<TDiscreteFunction>::
 ~NewtonSolver()
 {
 	if(m_allocated)
@@ -160,9 +152,9 @@ NewtonSolver<TAlgebra, TDiscreteFunction>::
 }
 
 
-template <typename TAlgebra, typename TDiscreteFunction>
+template <typename TDiscreteFunction>
 bool
-NewtonSolver<TAlgebra, TDiscreteFunction>::
+NewtonSolver<TDiscreteFunction>::
 apply(discrete_function_type& u)
 {
 	number norm, norm_old, norm_start;

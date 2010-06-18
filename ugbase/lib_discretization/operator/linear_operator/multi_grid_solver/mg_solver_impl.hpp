@@ -12,7 +12,7 @@ namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-AssembledMultiGridCycle(	IAssemble<algebra_type, level_function_type>& ass, approximation_space_type& approxSpace,
+AssembledMultiGridCycle(	IAssemble<level_function_type, algebra_type>& ass, approximation_space_type& approxSpace,
 							uint surfaceLevel, uint baseLevel, int cycle_type,
 							smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes) :
 				m_ass(ass), m_approxSpace(approxSpace), m_domain(approxSpace.get_domain()),

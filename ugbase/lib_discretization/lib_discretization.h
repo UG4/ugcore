@@ -58,8 +58,7 @@
 // time discretizations
 ////////////////////////
 
-// time step
-#include "lib_discretization/time_discretization/timestep.h"
+#include "lib_discretization/time_discretization/time_discretization.h"
 
 ////////////////////////
 // output

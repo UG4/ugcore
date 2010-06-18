@@ -24,7 +24,7 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
 
 	public:
-		AssembledLinearizedOperator(IAssemble<algebra_type, domain_function_type>& ass) :
+		AssembledLinearizedOperator(IAssemble<domain_function_type, algebra_type>& ass) :
 			m_ass(ass)
 		{};
 
@@ -108,7 +108,7 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 
 	protected:
 		// assembling procedure
-		IAssemble<algebra_type, domain_function_type>& m_ass;
+		IAssemble<domain_function_type, algebra_type>& m_ass;
 
 		// matrix storage
 		matrix_type m_J;
@@ -131,7 +131,7 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TDiscreteFunc
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
 
 	public:
-		AssembledLinearOperator(IAssemble<algebra_type, domain_function_type>& ass, bool assemble_rhs = false) :
+		AssembledLinearOperator(IAssemble<domain_function_type, algebra_type>& ass, bool assemble_rhs = false) :
 			AssembledLinearizedOperator<TDiscreteFunction>(ass),
 			m_assemble_rhs(assemble_rhs), m_ass(ass)
 		{};
@@ -231,7 +231,7 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TDiscreteFunc
 		bool m_assemble_rhs;
 
 		// assembling procedure
-		IAssemble<algebra_type, domain_function_type>& m_ass;
+		IAssemble<domain_function_type, algebra_type>& m_ass;
 
 		// matrix storage
 		matrix_type m_Matrix;

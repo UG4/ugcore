@@ -24,7 +24,7 @@
 namespace ug {
 
 template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-class PlugInDomainDiscretization : public IDomainDiscretization<typename TDiscreteFunction::algebra_type, TDiscreteFunction> {
+class PlugInDomainDiscretization : public IDomainDiscretization<TDiscreteFunction> {
 	protected:
 		// forward constants and typenames
 

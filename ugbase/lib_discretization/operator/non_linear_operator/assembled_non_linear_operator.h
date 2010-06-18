@@ -21,7 +21,7 @@ class AssembledOperator : public IOperator<TDiscreteFunction, TDiscreteFunction>
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
 
 	public:
-		AssembledOperator(IAssemble<algebra_type, domain_function_type>& ass) :
+		AssembledOperator(IAssemble<domain_function_type, algebra_type>& ass) :
 			m_ass(ass)
 		{};
 
@@ -58,14 +58,14 @@ class AssembledOperator : public IOperator<TDiscreteFunction, TDiscreteFunction>
 			return true;
 		}
 
-		IAssemble<algebra_type, domain_function_type>* get_assemble()
+		IAssemble<domain_function_type, algebra_type>* get_assemble()
 		{
 			return &m_ass;
 		}
 
 	protected:
 		// assembling procedure
-		IAssemble<algebra_type, domain_function_type>& m_ass;
+		IAssemble<domain_function_type, algebra_type>& m_ass;
 };
 
 } // end namepace ug

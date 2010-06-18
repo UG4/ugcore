@@ -21,8 +21,9 @@ namespace ug {
  * time - dependent part can call Mass- and Stiffness - matrix_type assembling.
  *
  */
-template <typename TAlgebra, typename TDiscreteFunction>
-class IDomainDiscretization : public IAssemble<TAlgebra, TDiscreteFunction>{
+template <	typename TDiscreteFunction,
+			typename TAlgebra = typename TDiscreteFunction::algebra_type >
+class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 	public:
 		// forward types and constants
 

@@ -22,7 +22,8 @@
 namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
-class AssembledMultiGridCycle : public ILinearizedIteratorOperator<typename TApproximationSpace::surface_function_type, typename TApproximationSpace::surface_function_type> {
+class AssembledMultiGridCycle :
+	public ILinearizedIteratorOperator<typename TApproximationSpace::surface_function_type, typename TApproximationSpace::surface_function_type> {
 	public:
 		typedef typename TApproximationSpace::domain_type phys_domain_type;
 
@@ -51,7 +52,7 @@ class AssembledMultiGridCycle : public ILinearizedIteratorOperator<typename TApp
 
 	public:
 		// constructore
-		AssembledMultiGridCycle(	IAssemble<algebra_type, level_function_type>& ass, approximation_space_type& approxSpace,
+		AssembledMultiGridCycle(	IAssemble<level_function_type, algebra_type>& ass, approximation_space_type& approxSpace,
 									uint surfaceLevel, uint baseLevel, int cycle_type,
 									smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes = true);
 
@@ -82,7 +83,7 @@ class AssembledMultiGridCycle : public ILinearizedIteratorOperator<typename TApp
 		// operator to invert (surface level)
 		AssembledLinearizedOperator<surface_function_type>* m_Op;
 
-		IAssemble<algebra_type, level_function_type>& m_ass;
+		IAssemble<level_function_type, algebra_type>& m_ass;
 		approximation_space_type& m_approxSpace;
 		phys_domain_type& m_domain;
 
