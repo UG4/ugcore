@@ -383,6 +383,15 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			return true;
 		}
 
+		// clone
+		ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* clone()
+		{
+			AssembledJacobiOperator<TDiscreteFunction>* clone = new AssembledJacobiOperator<TDiscreteFunction>(m_damp);
+
+			return dynamic_cast<ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* >(clone);
+		}
+
+
 		// destructor
 		virtual ~AssembledJacobiOperator() {};
 

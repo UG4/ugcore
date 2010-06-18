@@ -17,11 +17,14 @@ AssembledMultiGridCycle(	IAssemble<level_function_type, algebra_type>& ass, appr
 							smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes) :
 				m_ass(ass), m_approxSpace(approxSpace), m_domain(approxSpace.get_domain()),
 				m_surfaceLevel(surfaceLevel), m_baseLevel(baseLevel), m_cycle_type(cycle_type),
-				m_smoother(smoother), m_nu1(nu1), m_nu2(nu2), m_baseSolver(baseSolver),
+				m_nu1(nu1), m_nu2(nu2), m_baseSolver(baseSolver),
 				m_A(NULL), m_P(NULL), m_I(NULL),
 				m_grid_changes(grid_changes), m_allocated(false)
 
-				{};
+				{
+					m_smoother.resize(1);
+					m_smoother[0] = &smoother;
+				};
 
 
 template <typename TApproximationSpace, typename TAlgebra>
@@ -29,22 +32,13 @@ bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 smooth(level_function_type& d, level_function_type& c, uint l, int nu)
 {
-	// init smoother iterators for Matrix
-	UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::smooth on level " << l << ": Init smoother ... ");
-	if(m_smoother.init(*m_A[l]) != true) return false;
-	UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
 	// Presmooth
 	for(int i = 0; i < nu; ++i)
 	{
-		// prepare smoother
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Prepare smoother ... ");
-		if(m_smoother.prepare(*m_u[l], d, *m_t[l]) != true) return false;
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
-
 		// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Apply smoother ... ");
-		if(m_smoother.apply(d, *m_t[l]) != true) return false;
+		if(m_smoother[l]->apply(d, *m_t[l]) != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
 		// add correction of smoothing step to level correction
@@ -123,15 +117,6 @@ lmgc(uint l)
 	}
 	else if(l == m_baseLevel)
 	{
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Init Coarse Grid solver ... ");
-		if(m_baseSolver.init(*m_A[l]) != true) return false;
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----\n");
-
-		UG_DLOG(LIB_DISC_MULTIGRID, 10, "\n ---------- BEGIN: Defect on level " << l << ":\n" << *m_d[l] << " \n---------- END: Defect on level " << l << ".\n");
-
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Prepare Coarse Grid solver ... ");
-		if(m_baseSolver.prepare(*m_u[l], *m_d[l], *m_c[l]) != true) return false;
-		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----\n");
 		m_d[l]->set_storage_type(GFST_ADDITIVE);
 
 		// solve on base level
@@ -185,8 +170,6 @@ apply(surface_function_type& d, surface_function_type &c)
 	m_d[m_surfaceLevel]->project_surface(d);
 	m_c[m_surfaceLevel]->project_surface(c);
 
-	// TODO: For non-adaptive refinement this should use the passed (already assembled) operator
-	m_A[m_surfaceLevel] = m_Op;
 
 	/*
 	if(m_A[m_surfaceLevel]->prepare(*m_c[m_surfaceLevel], *m_d[m_surfaceLevel]) != true)
@@ -303,6 +286,22 @@ prepare(surface_function_type &u, surface_function_type& d, surface_function_typ
 		}
 	}
 
+	// init smoother
+	for(size_t lev = m_baseLevel; lev < m_surfaceLevel; ++lev)
+	{
+		if(m_smoother[lev]->init(*m_A[lev]) != true) return false;
+		if(m_smoother[lev]->prepare(*m_u[lev], *m_d[lev], *m_t[lev]) != true) return false;
+	}
+
+	// TODO: For non-adaptive refinement this should use the passed (already assembled) operator
+	m_A[m_surfaceLevel] = m_Op;
+	if(m_smoother[m_surfaceLevel]->init(*m_A[m_surfaceLevel]) != true) return false;
+	if(m_smoother[m_surfaceLevel]->prepare(*m_u[m_surfaceLevel], *m_d[m_surfaceLevel], *m_t[m_surfaceLevel]) != true) return false;
+
+	// prepare base solver
+	if(m_baseSolver.init(*m_A[0]) != true) return false;
+	if(m_baseSolver.prepare(*m_u[0], *m_d[0], *m_c[0]) != true) return false;
+
 	return true;
 }
 
@@ -354,6 +353,16 @@ allocate_memory()
 		m_A[lev] = new level_operator_type(m_ass);
 	}
 
+	// create smoother for all level
+	m_smoother.resize(m_surfaceLevel+1);
+	for(size_t lev = m_baseLevel; lev <= m_surfaceLevel; ++lev)
+	{
+		if(lev != 0)
+		{
+			m_smoother[lev] = m_smoother[0]->clone();
+		}
+	}
+
 	m_allocated = true;
 	return true;
 }
@@ -395,6 +404,13 @@ free_memory()
 	if(m_c != NULL) {delete[] m_c; m_c = NULL;};
 	if(m_t != NULL) {delete[] m_t; m_t = NULL;};
 	if(m_d != NULL) {delete[] m_d; m_d = NULL;};
+
+	// delete smoother
+	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
+	{
+		if(lev == 0) continue;
+		delete m_smoother[lev];
+	}
 
 	m_allocated = false;
 	return true;

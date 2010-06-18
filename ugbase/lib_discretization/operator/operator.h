@@ -141,6 +141,9 @@ class ILinearizedIteratorOperator
 		// update defect: d := d - J(u)*c
 		virtual bool apply(domain_function_type& d, codomain_function_type& c) = 0;
 
+		// clone
+		virtual ILinearizedIteratorOperator<X,Y>* clone() = 0;
+
 		// destructor
 		virtual ~ILinearizedIteratorOperator() {};
 };

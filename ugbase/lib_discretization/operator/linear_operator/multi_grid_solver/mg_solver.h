@@ -10,6 +10,7 @@
 
 // extern includes
 #include <iostream>
+#include <vector>
 
 // other ug4 modules
 #include "common/common.h"
@@ -66,6 +67,16 @@ class AssembledMultiGridCycle :
 		// A correction c is returned as well as the updated defect d := d - A*c
 		bool apply(surface_function_type& d, surface_function_type &c);
 
+		ILinearizedIteratorOperator<surface_function_type,surface_function_type>* clone()
+		{
+			AssembledMultiGridCycle<TApproximationSpace, TAlgebra>* clone =
+				new AssembledMultiGridCycle<TApproximationSpace, TAlgebra>(	m_ass, m_approxSpace,
+																			m_surfaceLevel, m_baseLevel, m_cycle_type,
+																			*(m_smoother[0]), m_nu1, m_nu2, m_baseSolver, m_grid_changes);
+
+			return dynamic_cast<ILinearizedIteratorOperator<surface_function_type,surface_function_type>* >(clone);
+		}
+
 		// This functions deallocates the Memory for the solver
 		~AssembledMultiGridCycle();
 
@@ -91,7 +102,7 @@ class AssembledMultiGridCycle :
 		uint m_baseLevel;
 		int m_cycle_type;
 
-		smoother_type& m_smoother;
+		std::vector<smoother_type*> m_smoother;
 		int m_nu1;
 		int m_nu2;
 
