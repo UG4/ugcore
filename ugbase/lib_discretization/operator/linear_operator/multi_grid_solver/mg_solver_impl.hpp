@@ -160,10 +160,10 @@ lmgc(uint l)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-init(IDiscreteLinearizedOperator<surface_function_type,surface_function_type>& A)
+init(ILinearizedOperator<surface_function_type,surface_function_type>& A)
 {
 	// TODO: This is full refined problem only
-	m_Op = dynamic_cast<AssembledDiscreteLinearizedOperator<surface_function_type>*>(&A);
+	m_Op = dynamic_cast<AssembledLinearizedOperator<surface_function_type>*>(&A);
 
 	if(m_Op == NULL)
 	{

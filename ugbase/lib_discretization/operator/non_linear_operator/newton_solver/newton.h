@@ -21,7 +21,7 @@
 namespace ug {
 
 template <typename TAlgebra, typename TDiscreteFunction>
-class NewtonSolver : public IDiscreteOperatorInverse<TDiscreteFunction, TDiscreteFunction>{
+class NewtonSolver : public IOperatorInverse<TDiscreteFunction, TDiscreteFunction>{
 	public:
 		typedef TDiscreteFunction discrete_function_type;
 
@@ -34,14 +34,14 @@ class NewtonSolver : public IDiscreteOperatorInverse<TDiscreteFunction, TDiscret
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		NewtonSolver(IDiscreteLinearizedOperatorInverse<discrete_function_type, discrete_function_type>& LinearSolver, int MaxIterations, number absTol, number relTol, bool reallocate) :
+		NewtonSolver(ILinearizedOperatorInverse<discrete_function_type, discrete_function_type>& LinearSolver, int MaxIterations, number absTol, number relTol, bool reallocate) :
 			m_LinearSolver(LinearSolver), m_MaxIterations(MaxIterations), m_absTol(absTol), m_relTol(relTol), m_reallocate(reallocate), m_allocated(false)
 			{};
 
-		// init: This operator inverts the DiscreteOperator N: Y -> X
-		virtual bool init(IDiscreteOperator<discrete_function_type, discrete_function_type>& N)
+		// init: This operator inverts the Operator N: Y -> X
+		virtual bool init(IOperator<discrete_function_type, discrete_function_type>& N)
 		{
-			m_N = dynamic_cast<AssembledDiscreteOperator<discrete_function_type>* >(&N);
+			m_N = dynamic_cast<AssembledOperator<discrete_function_type>* >(&N);
 			if(m_N == NULL)
 			{
 				UG_LOG("NewtonSolver currently only works for AssembledDiscreteOperator.\n");
@@ -74,15 +74,15 @@ class NewtonSolver : public IDiscreteOperatorInverse<TDiscreteFunction, TDiscret
 		}
 
 	private:
-		IDiscreteLinearizedOperatorInverse<discrete_function_type, discrete_function_type>& m_LinearSolver;
+		ILinearizedOperatorInverse<discrete_function_type, discrete_function_type>& m_LinearSolver;
 		int m_MaxIterations;
 		number m_absTol;
 		number m_relTol;
 		discrete_function_type* m_d;
 		discrete_function_type* m_c;
 
-		AssembledDiscreteOperator<discrete_function_type>* m_N;
-		AssembledDiscreteLinearizedOperator<discrete_function_type>* m_J;
+		AssembledOperator<discrete_function_type>* m_N;
+		AssembledLinearizedOperator<discrete_function_type>* m_J;
 		IAssemble<algebra_type, discrete_function_type>* m_ass;
 
 		bool m_reallocate;
@@ -95,7 +95,7 @@ NewtonSolver<TAlgebra, TDiscreteFunction>::
 allocate_memory(const discrete_function_type& u)
 {
 	// Jacobian
-	m_J = new AssembledDiscreteLinearizedOperator<discrete_function_type>(*m_ass);
+	m_J = new AssembledLinearizedOperator<discrete_function_type>(*m_ass);
 
 	// defect
 	m_d = new discrete_function_type;

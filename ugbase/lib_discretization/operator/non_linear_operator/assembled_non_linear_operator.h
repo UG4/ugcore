@@ -6,7 +6,7 @@
 namespace ug{
 
 template <typename TDiscreteFunction>
-class AssembledDiscreteOperator : public IDiscreteOperator<TDiscreteFunction, TDiscreteFunction>
+class AssembledOperator : public IOperator<TDiscreteFunction, TDiscreteFunction>
 {
 	public:
 		// export types:
@@ -21,7 +21,7 @@ class AssembledDiscreteOperator : public IDiscreteOperator<TDiscreteFunction, TD
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
 
 	public:
-		AssembledDiscreteOperator(IAssemble<algebra_type, domain_function_type>& ass) :
+		AssembledOperator(IAssemble<algebra_type, domain_function_type>& ass) :
 			m_ass(ass)
 		{};
 
@@ -43,14 +43,14 @@ class AssembledDiscreteOperator : public IDiscreteOperator<TDiscreteFunction, TD
 			// reset vector
 			if(d_vec.set(0.0) != true)
 			{
-				UG_LOG("AssembledDiscreteOperator::apply: Could not reset defect to zero before assembling. Aborting.\n");
+				UG_LOG("AssembledOperator::apply: Could not reset defect to zero before assembling. Aborting.\n");
 				return false;
 			}
 
 			// assemble
 			if(m_ass.assemble_defect(d_vec, u) != IAssemble_OK)
 			{
-				UG_LOG("AssembledDiscreteOperator::apply: Could not assemble defect. Aborting.\n");
+				UG_LOG("AssembledOperator::apply: Could not assemble defect. Aborting.\n");
 				return false;
 			}
 

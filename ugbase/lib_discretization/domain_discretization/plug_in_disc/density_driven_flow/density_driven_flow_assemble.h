@@ -17,6 +17,8 @@ namespace ug{
 
 template<typename TDomain, typename TAlgebra, typename TElem >
 class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, MathVector<TDomain::dim>, TAlgebra>{
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
 	public:
 		// forward constants and types
 
@@ -25,6 +27,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 
 		// world dimension
 		static const int dim = TDomain::dim;
+		static const int ref_dim = ref_elem_type::dim;
 
 		// position type
 		typedef typename TDomain::position_type position_type;
@@ -42,7 +45,6 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		typedef typename algebra_type::vector_type::local_index_type local_index_type;
 
 	protected:
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 		typedef void (*Pososity_fct)(number&);
 		typedef void (*Viscosity_fct)(number&, number);
 		typedef void (*Density_fct)(number&, number);
@@ -99,7 +101,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		typename TDomain::position_accessor_type m_aaPos;
 
 		// Finite Volume Element Geometry
-		FVElementGeometry<TElem>* m_geo;
+		FVElementGeometry<TElem, dim>* m_geo;
 
 		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
 		number m_upwind_amount;
@@ -126,7 +128,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		// TODO: Implement access to u, J, d as member functions, avoid defines !!!
 
 	private:
-		void export1(std::vector<MathVector<dim> >& val, std::vector<std::vector<MathVector<dim> > >& deriv, const std::vector<MathVector<dim> >& pos, const local_vector_type& u, bool compute_derivatives)
+		void export1(std::vector<MathVector<dim> >& val, std::vector<std::vector<MathVector<dim> > >& deriv, const std::vector<MathVector<ref_dim> >& pos, const local_vector_type& u, bool compute_derivatives)
 		{
 		#define u(fct, i)    ( (u)[ref_elem_type::num_corners*(fct) + (i)])
 
@@ -192,7 +194,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		};
 
 
-		void compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem>& scvf,
+		void compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
 											MathVector<dim>& Darcy_vel, MathVector<dim> D_Darcy_vel_c[], MathVector<dim> D_Darcy_vel_p[],
 											number c_ip, const MathVector<dim>& grad_p_ip)
 		{
@@ -201,7 +203,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 			MathVector<dim> vel, gravity;
 			MathVector<dim> D_vel_c[num_co], D_vel_p[num_co];
 			MathMatrix<dim, dim> K;
-			const SD_Values<TElem>& sdv = scvf.sdv();
+			const SD_Values<TElem, dim>& sdv = scvf.sdv();
 
 			m_Density(s, c_ip);
 			m_Gravity(gravity);
@@ -272,7 +274,8 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 			m_c_fct(c_fct), m_p_fct(p_fct),
 			m_Darcy_velocity_export("Darcy velocity"),
 			m_ImpTriangle(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export),
-			m_ImpQuadrilateral(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export)
+			m_ImpQuadrilateral(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export),
+			m_ImpTetrahedron(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, m_Darcy_velocity_export)
 			{};
 
 	public:
@@ -412,6 +415,44 @@ class DensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>, p
 
 	protected:
 		DensityDrivenFlow<domain_type, algebra_type, Quadrilateral> m_ImpQuadrilateral;
+
+	public:
+		// support assembling on triangles
+		inline size_t num_sh(Tetrahedron* elem)
+		{ return m_ImpTetrahedron.num_sh();};
+
+		inline size_t num_sh(Tetrahedron* elem, size_t loc_fct)
+		{ return m_ImpTetrahedron.num_sh(loc_fct);};
+
+		inline IPlugInReturn prepare_element_loop(Tetrahedron* elem)
+		{ return m_ImpTetrahedron.prepare_element_loop(); };
+
+		inline IPlugInReturn prepare_element(Tetrahedron* elem, const local_vector_type& u, const local_index_type& glob_ind)
+		{ return m_ImpTetrahedron.prepare_element(elem, u, glob_ind); };
+
+		inline IPlugInReturn prepare_element_loop(Tetrahedron* elem, const local_vector_type& u, const local_index_type& glob_ind)
+		{ return m_ImpTetrahedron.prepare_element_loop(u, glob_ind); };
+
+		inline IPlugInReturn assemble_element_JA(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_JA(J, u, time); };
+
+		inline IPlugInReturn assemble_element_JM(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_JM(J, u, time); };
+
+		inline IPlugInReturn assemble_element_A(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_A(d, u, time); };
+
+		inline IPlugInReturn assemble_element_M(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_M(d, u, time); };
+
+		inline IPlugInReturn assemble_element_f(Tetrahedron* elem, local_vector_type& d, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_f(d, time); };
+
+		inline IPlugInReturn finish_element_loop(Tetrahedron* elem)
+		{ return m_ImpTetrahedron.finish_element_loop(); };
+
+	protected:
+		DensityDrivenFlow<domain_type, algebra_type, Tetrahedron> m_ImpTetrahedron;
 
 };
 

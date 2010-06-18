@@ -17,7 +17,7 @@
 namespace ug{
 
 template <typename TDiscreteFunction>
-class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename ContinuousFunctionSpace<typename TDiscreteFunction::domain_type>::function_type, TDiscreteFunction> {
+class LagrangeInterpolationOperator : public ILinearOperator<typename ContinuousFunctionSpace<typename TDiscreteFunction::domain_type>::function_type, TDiscreteFunction> {
 	protected:
 		// type of physical domain
 		typedef typename TDiscreteFunction::domain_type domain_type;

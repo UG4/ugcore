@@ -23,7 +23,7 @@ namespace ug{
 // TODO: Assert, that discrete function is a level grid function or define a senseful prolongation for surface functions
 
 template <typename TDiscreteFunction>
-class ProlongationOperator : public IDiscreteLinearOperator<TDiscreteFunction, TDiscreteFunction> {
+class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFunction> {
 	public:
 		// domain space
 		typedef TDiscreteFunction domain_function_type;

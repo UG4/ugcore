@@ -22,7 +22,7 @@
 namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
-class AssembledMultiGridCycle : public IDiscreteLinearizedIteratorOperator<typename TApproximationSpace::surface_function_type, typename TApproximationSpace::surface_function_type> {
+class AssembledMultiGridCycle : public ILinearizedIteratorOperator<typename TApproximationSpace::surface_function_type, typename TApproximationSpace::surface_function_type> {
 	public:
 		typedef typename TApproximationSpace::domain_type phys_domain_type;
 
@@ -36,7 +36,7 @@ class AssembledMultiGridCycle : public IDiscreteLinearizedIteratorOperator<typen
 
 		typedef typename algebra_type::vector_type vector_type;
 
-		typedef AssembledDiscreteLinearizedOperator<level_function_type> level_operator_type;
+		typedef AssembledLinearizedOperator<level_function_type> level_operator_type;
 
 		typedef ProlongationOperator<level_function_type> prolongation_operator_type;
 
@@ -45,9 +45,9 @@ class AssembledMultiGridCycle : public IDiscreteLinearizedIteratorOperator<typen
 	private:
 		typedef TApproximationSpace approximation_space_type;
 
-		typedef IDiscreteLinearizedOperatorInverse<level_function_type, level_function_type> base_solver_type;
+		typedef ILinearizedOperatorInverse<level_function_type, level_function_type> base_solver_type;
 
-		typedef IDiscreteLinearizedIteratorOperator<level_function_type, level_function_type> smoother_type;
+		typedef ILinearizedIteratorOperator<level_function_type, level_function_type> smoother_type;
 
 	public:
 		// constructore
@@ -55,7 +55,7 @@ class AssembledMultiGridCycle : public IDiscreteLinearizedIteratorOperator<typen
 									uint surfaceLevel, uint baseLevel, int cycle_type,
 									smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes = true);
 
-		bool init(IDiscreteLinearizedOperator<surface_function_type,surface_function_type>& A);
+		bool init(ILinearizedOperator<surface_function_type,surface_function_type>& A);
 
 		// This functions allocates the Memory for the solver
 		// and assembles coarse grid matrices using 'ass'
@@ -80,7 +80,7 @@ class AssembledMultiGridCycle : public IDiscreteLinearizedIteratorOperator<typen
 
 	protected:
 		// operator to invert (surface level)
-		AssembledDiscreteLinearizedOperator<surface_function_type>* m_Op;
+		AssembledLinearizedOperator<surface_function_type>* m_Op;
 
 		IAssemble<algebra_type, level_function_type>& m_ass;
 		approximation_space_type& m_approxSpace;

@@ -29,7 +29,7 @@ prepare_element_loop()
 	// Therefore it is not time critical.
 
 	// create new Geometry
-	m_geo = new FVElementGeometry<TElem>();
+	m_geo = new FVElementGeometry<TElem, dim>();
 	assert(m_geo != NULL);
 
 	// remember position attachement
@@ -79,7 +79,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	for(size_t i = 0; i < TElem::num_sides; ++i)
 	{
 		typedef typename TElem::lower_dim_base_object bnd_base_type;
-		bnd_base_type* bnd_geom_obj = grid.get_side<TElem>(elem, i);
+		bnd_base_type* bnd_geom_obj = grid.get_side<TElem, dim>(elem, i);
 
 		m_subset_index[i] = sh.get_subset_index(bnd_geom_obj);
 	}
@@ -117,11 +117,11 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	MathVector<dim> Dgrad;
 	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, dim>& scvf = m_geo->scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			const SD_Values<TElem>& sdv = scvf.sdv();
+			const SD_Values<TElem, dim>& sdv = scvf.sdv();
 
 			VecSet(grad_p_ip, 0.0); VecSet(grad_c_ip, 0.0);
 			c_ip = 0.0;
@@ -233,7 +233,7 @@ assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number tim
 	int co;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
-		const SubControlVolume<TElem>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
 
@@ -261,11 +261,11 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	MathVector<dim> Darcy_vel;
 	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, dim>& scvf = m_geo->scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			const SD_Values<TElem>& sdv = scvf.sdv();
+			const SD_Values<TElem, dim>& sdv = scvf.sdv();
 
 			VecSet(grad_p_ip, 0.0); VecSet(grad_c_ip, 0.0);
 			c_ip = 0.0;
@@ -343,7 +343,7 @@ assemble_element_M(local_vector_type& d, const local_vector_type& u, number time
 	int co;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
-		const SubControlVolume<TElem>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
 

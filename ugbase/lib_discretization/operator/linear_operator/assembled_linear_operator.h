@@ -9,7 +9,7 @@
 namespace ug{
 
 template <typename TDiscreteFunction>
-class AssembledDiscreteLinearizedOperator : public IDiscreteLinearizedOperator<TDiscreteFunction, TDiscreteFunction>
+class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction, TDiscreteFunction>
 {
 	public:
 		// export types:
@@ -24,7 +24,7 @@ class AssembledDiscreteLinearizedOperator : public IDiscreteLinearizedOperator<T
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
 
 	public:
-		AssembledDiscreteLinearizedOperator(IAssemble<algebra_type, domain_function_type>& ass) :
+		AssembledLinearizedOperator(IAssemble<algebra_type, domain_function_type>& ass) :
 			m_ass(ass)
 		{};
 
@@ -97,7 +97,7 @@ class AssembledDiscreteLinearizedOperator : public IDiscreteLinearizedOperator<T
 		}
 
 		// destructor
-		virtual ~AssembledDiscreteLinearizedOperator()
+		virtual ~AssembledLinearizedOperator()
 		{
 			m_J.destroy();
 		};
@@ -116,7 +116,7 @@ class AssembledDiscreteLinearizedOperator : public IDiscreteLinearizedOperator<T
 
 
 template <typename TDiscreteFunction>
-class AssembledDiscreteLinearOperator : public AssembledDiscreteLinearizedOperator<TDiscreteFunction>
+class AssembledLinearOperator : public AssembledLinearizedOperator<TDiscreteFunction>
 {
 	public:
 		// export types:
@@ -131,8 +131,8 @@ class AssembledDiscreteLinearOperator : public AssembledDiscreteLinearizedOperat
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
 
 	public:
-		AssembledDiscreteLinearOperator(IAssemble<algebra_type, domain_function_type>& ass, bool assemble_rhs = false) :
-			AssembledDiscreteLinearizedOperator<TDiscreteFunction>(ass),
+		AssembledLinearOperator(IAssemble<algebra_type, domain_function_type>& ass, bool assemble_rhs = false) :
+			AssembledLinearizedOperator<TDiscreteFunction>(ass),
 			m_assemble_rhs(assemble_rhs), m_ass(ass)
 		{};
 
@@ -217,7 +217,7 @@ class AssembledDiscreteLinearOperator : public AssembledDiscreteLinearizedOperat
 		}
 
 		// destructor
-		virtual ~AssembledDiscreteLinearOperator()
+		virtual ~AssembledLinearOperator()
 		{
 			m_Matrix.destroy();
 		};
@@ -241,7 +241,7 @@ class AssembledDiscreteLinearOperator : public AssembledDiscreteLinearizedOperat
 /* This Operator type behaves different on application. It not only computes v = L*u, but also changes u. */
 /* It is used in iterative schemes. */
 template <typename TDiscreteFunction>
-class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDiscreteFunction, TDiscreteFunction>
+class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunction, TDiscreteFunction>
 {
 	public:
 		// export types:
@@ -259,10 +259,10 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 		AssembledJacobiOperator(number damp) : m_damp(damp), m_bOpChanged(true)
 		{};
 
-		bool init(IDiscreteLinearizedOperator<domain_function_type,codomain_function_type>& Op)
+		bool init(ILinearizedOperator<domain_function_type,codomain_function_type>& Op)
 		{
-			AssembledDiscreteLinearizedOperator<TDiscreteFunction>* A
-				= dynamic_cast<AssembledDiscreteLinearizedOperator<TDiscreteFunction>*>(&Op);
+			AssembledLinearizedOperator<TDiscreteFunction>* A
+				= dynamic_cast<AssembledLinearizedOperator<TDiscreteFunction>*>(&Op);
 			UG_ASSERT(A != NULL, 	"Operator used does not use a matrix."
 									" Currently only matrix based operators can be inverted by this Jacobi.\n");
 
@@ -387,7 +387,7 @@ class AssembledJacobiOperator : public IDiscreteLinearizedIteratorOperator<TDisc
 		virtual ~AssembledJacobiOperator() {};
 
 	protected:
-		AssembledDiscreteLinearizedOperator<TDiscreteFunction>* m_pOperator;
+		AssembledLinearizedOperator<TDiscreteFunction>* m_pOperator;
 
 		typename algebra_type::matrix_type* m_pMatrix;
 
