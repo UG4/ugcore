@@ -1046,3 +1046,4 @@ void SparseMatrix<T>::get(entry_type &d, size_t row, size_t col) const
 } // namespace ug
 
 #endif
+

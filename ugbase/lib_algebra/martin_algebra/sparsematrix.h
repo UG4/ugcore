@@ -13,7 +13,7 @@
 
 #include "math.h"
 
-#include <pmmintrin.h>
+//#include <pmmintrin.h>
 
 
 #ifdef FLEXAMG
@@ -33,7 +33,7 @@
 ///////////////////////////////////////////////////////////////////
 //#include "submatrix.h"
 
-#include "Vector.h"
+#include "vector.h"
 
 namespace ug{
 

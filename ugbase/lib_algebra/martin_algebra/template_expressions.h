@@ -32,7 +32,7 @@ using namespace std;
 
 namespace ug{
 
-//#pragma mark template expression CRTP base classes
+#pragma mark template expression CRTP base classes
 //! only classes which inherit from TE_AMV_X, TE_MAT or TE_VEC (via class myClass : public XD<myClass> )
 //! can use templateExpressions used in this file
 //! CRTP = Curiously recurring template pattern
