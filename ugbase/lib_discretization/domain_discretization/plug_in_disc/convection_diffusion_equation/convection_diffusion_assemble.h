@@ -44,6 +44,7 @@ class ConvectionDiffusionEquation {
 		typedef typename algebra_type::vector_type::local_index_type local_index_type;
 
 	protected:
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
 		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
@@ -57,10 +58,10 @@ class ConvectionDiffusionEquation {
 	public:
 
 		// total number of shape functions on elements of type 'TElem'
-		inline size_t num_sh(){return reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(){return ref_elem_type::num_corners;};
 
 		// number of shape functions on elements of type 'TElem' for the 'i'-th fundamental function
-		inline size_t num_sh(size_t loc_fct){return reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(size_t loc_fct){return ref_elem_type::num_corners;};
 
 		// prepares the loop. Must be called, before prepare_element can be used
 		inline IPlugInReturn prepare_element_loop();
@@ -85,7 +86,7 @@ class ConvectionDiffusionEquation {
 		TDomain& m_domain;
 
 		// position access
-		typename TDomain::position_type m_corners[reference_element_traits<TElem>::num_corners];
+		typename TDomain::position_type m_corners[ref_elem_type::num_corners];
 		typename TDomain::position_accessor_type m_aaPos;
 
 		// Finite Volume Element Geometry
@@ -141,7 +142,8 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 			m_fct(fct),
 			m_Velocity("Velocity"),
 			m_ImpTriangle(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity),
-			m_ImpQuadrilateral(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity)
+			m_ImpQuadrilateral(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity),
+			m_ImpTetrahedron(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity)
 			{};
 
 	public:
@@ -266,6 +268,41 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 
 	protected:
 		ConvectionDiffusionEquation<domain_type, algebra_type, Quadrilateral> m_ImpQuadrilateral;
+
+	public:
+		// support assembling on triangles
+		inline size_t num_sh(Tetrahedron* elem)
+		{ return m_ImpTetrahedron.num_sh();};
+
+		inline size_t num_sh(Tetrahedron* elem, size_t fct)
+		{ return m_ImpTetrahedron.num_sh(fct);};
+
+		inline IPlugInReturn prepare_element_loop(Tetrahedron* elem)
+		{ return m_ImpTetrahedron.prepare_element_loop(); };
+
+		inline IPlugInReturn prepare_element(Tetrahedron* elem, const local_vector_type& u, const local_index_type& glob_ind)
+		{ return m_ImpTetrahedron.prepare_element(elem, u, glob_ind); };
+
+		inline IPlugInReturn assemble_element_JA(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_JA(J, u, time); };
+
+		inline IPlugInReturn assemble_element_JM(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_JM(J, u, time); };
+
+		inline IPlugInReturn assemble_element_A(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_A(d, u, time); };
+
+		inline IPlugInReturn assemble_element_M(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_M(d, u, time); };
+
+		inline IPlugInReturn assemble_element_f(Tetrahedron* elem, local_vector_type& d, number time=0.0)
+		{ return m_ImpTetrahedron.assemble_element_f(d, time); };
+
+		inline IPlugInReturn finish_element_loop(Tetrahedron* elem)
+		{ return m_ImpTetrahedron.finish_element_loop(); };
+
+	protected:
+		ConvectionDiffusionEquation<domain_type, algebra_type, Tetrahedron> m_ImpTetrahedron;
 
 };
 

@@ -22,6 +22,7 @@ enum ReferenceElementType {
 	RET_EDGE,
 	RET_TRIANGLE,
 	RET_QUADRILATERAL,
+	RET_TETRAHEDRON,
 	NUM_REFERENCE_ELEMENTS
 };
 
@@ -144,11 +145,15 @@ class ReferenceMapping
 
 class ReferenceVertex
 {
-	// TODO: Implement
-};
+public:
+	static const ReferenceElementType REFERENCE_ELEMENT_TYPE = RET_POINT;
 
-class ReferenceEdge
-{
+	static const int dim = 0;
+	static const int num_corners = 1;
+	static const int num_edges = 0;
+	static const int num_faces = 0;
+	static const int num_volumes = 0;
+
 	// TODO: Implement
 };
 
@@ -158,73 +163,17 @@ class reference_element_traits
 {};
 
 template <>
-class reference_element_traits<ReferenceVertex>
-{
-	public:
-		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = RET_POINT;
-
-		static const int dim = 0;
-		static const int num_corners = 1;
-		static const int num_edges = 0;
-		static const int num_faces = 0;
-		static const int num_volumes = 0;
-
-		typedef MathVector<dim> position_type;
-};
-
-template <>
-class reference_element_traits<ReferenceEdge>
-{
-	public:
-		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = RET_EDGE;
-
-		static const int dim = 1;
-		static const int num_corners = 2;
-		static const int num_edges = 1;
-		static const int num_faces = 0;
-		static const int num_volumes = 0;
-
-		typedef MathVector<dim> position_type;
-};
-
-
-
-template <>
 class reference_element_traits<VertexBase>
 {
 	public:
 		typedef ReferenceVertex reference_element_type;
-		typedef reference_element_traits<ReferenceVertex> reference_element_type_traits;
-
-		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = reference_element_type_traits::REFERENCE_ELEMENT_TYPE;
-		static const int dim = reference_element_type_traits::dim;
-		static const int num_corners = reference_element_type_traits::num_corners;
-		static const int num_edges = reference_element_type_traits::num_edges;
-		static const int num_faces = reference_element_type_traits::num_faces;
-		static const int num_volumes = reference_element_type_traits::num_volumes;
-		typedef reference_element_type_traits::position_type position_type;
 };
-
-template <>
-class reference_element_traits<Edge>
-{
-	public:
-		typedef ReferenceEdge reference_element_type;
-		typedef reference_element_traits<ReferenceEdge> reference_element_type_traits;
-
-		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = reference_element_type_traits::REFERENCE_ELEMENT_TYPE;
-		static const int dim = reference_element_type_traits::dim;
-		static const int num_corners = reference_element_type_traits::num_corners;
-		static const int num_edges = reference_element_type_traits::num_edges;
-		static const int num_faces = reference_element_type_traits::num_faces;
-		static const int num_volumes = reference_element_type_traits::num_volumes;
-		typedef reference_element_type_traits::position_type position_type;
-};
-
 
 }
 
+#include "reference_edge.h"
 #include "reference_triangle.h"
 #include "reference_quadrilateral.h"
+#include "reference_tetrahedron.h"
 
 #endif /* __H__LIBDISCRETIZATION__REFERENCEELEMENT__ */

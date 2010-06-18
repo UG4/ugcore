@@ -119,7 +119,7 @@ add_local_dof_pattern(const LocalDoFPattern<TRefElem>& p)
 	}
 
 	// update total num dofs (for element that is added)
-	ReferenceElementType id = reference_element_traits<TRefElem>::REFERENCE_ELEMENT_TYPE;
+	ReferenceElementType id = TRefElem::REFERENCE_ELEMENT_TYPE;
 	m_total_num_dofs[id] = m_num_dofs[id];
 	for(int d = 0; d < dim; ++d)
 	{

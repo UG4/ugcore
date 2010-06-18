@@ -171,6 +171,7 @@ print_subset(const char* filename, discrete_function_type& u, int si, size_t ste
 	// Write Subset
 	int dim = 1;
 	if(u.template num<Triangle>(si) > 0 || u.template num<Quadrilateral>(si) > 0) dim = 2;
+	if(u.template num<Tetrahedron>(si) > 0) dim = 3;
 	if(write_subset(File, u, si, dim) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl);
@@ -287,6 +288,10 @@ init_subset(discrete_function_type& u, int si, int dim)
 		count_elem_conn<Triangle>(u, si, u.template begin<Triangle>(si), u.template end<Triangle>(si));
 		count_elem_conn<Quadrilateral>(u, si, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si));
 	}
+	if(dim == 3)
+	{
+		count_elem_conn<Tetrahedron>(u, si, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si));
+	}
 
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Vertices: " << Numbers.noVertices << "\n");
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Elements: " << Numbers.noElements << "\n");
@@ -322,6 +327,9 @@ write_points(FILE* File, discrete_function_type& u, int si, int dim)
 			write_points_elementwise<Triangle>(File, u, u.template begin<Triangle>(si), u.template end<Triangle>(si), n);
 			write_points_elementwise<Quadrilateral>(File, u, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), n);
 			break;
+		case 3:
+			write_points_elementwise<Tetrahedron>(File, u, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), n);
+			break;
 	}
 
 	fprintf(File, "\n        </DataArray>\n");
@@ -355,6 +363,9 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 			if(write_elements_connectivity<Triangle>(File, u.template begin<Triangle>(si), u.template end<Triangle>(si)) != true) return false;
 			if(write_elements_connectivity<Quadrilateral>(File,  u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si)) != true) return false;
 			break;
+		case 3:
+			if(write_elements_connectivity<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) != true) return false;
+			break;
 	}
 	BStreamFlush(File);
 	fprintf(File, "\n        </DataArray>\n");
@@ -375,6 +386,9 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 			if(write_elements_offsets<Triangle>(File, u.template begin<Triangle>(si), u.template end<Triangle>(si),  n) == false) return false;
 			if(write_elements_offsets<Quadrilateral>(File, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), n) == false) return false;
 			break;
+		case 3:
+			if(write_elements_offsets<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si),  n) == false) return false;
+			break;
 	}
 	BStreamFlush(File);
 	fprintf(File, "\n        </DataArray>\n");
@@ -392,6 +406,9 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 		case 2:
 			if(write_elements_types<Triangle>(File, u.template begin<Triangle>(si), u.template end<Triangle>(si)) == false) return false;
 			if(write_elements_types<Quadrilateral>(File, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si)) == false) return false;
+			break;
+		case 3:
+			if(write_elements_types<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) == false) return false;
 			break;
 	}
 	fprintf(File, "\n        </DataArray>\n");
@@ -425,6 +442,9 @@ write_scalar(FILE* File, discrete_function_type& u, uint fct, int si, int dim)
 			if(write_scalar_elementwise<Triangle>(File, u, fct, u.template begin<Triangle>(si), u.template end<Triangle>(si)) == false) return false;
 			if(write_scalar_elementwise<Quadrilateral>(File, u, fct, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si)) == false) return false;
 			break;
+		case 3:
+			if(write_scalar_elementwise<Tetrahedron>(File, u, fct, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) == false) return false;
+			break;
 	}
 
 	BStreamFlush(File);
@@ -442,14 +462,15 @@ count_elem_conn(discrete_function_type& u, int si,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	Numbers.noElements += u.template num<TElem>(si);
-	Numbers.noConnections += u.template num<TElem>(si) * reference_element_traits<TElem>::num_corners;
+	Numbers.noConnections += u.template num<TElem>(si) * ref_elem_type::num_corners;
 
 	m_grid->begin_marking();
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
 		TElem *elem = *iterBegin;
-		for(uint i = 0; i < (uint)reference_element_traits<TElem>::num_corners; ++i)
+		for(uint i = 0; i < (uint) ref_elem_type::num_corners; ++i)
 		{
 			VertexBase* v = elem->vertex(i);
 			if(m_grid->is_marked(v)) continue;
@@ -470,6 +491,7 @@ write_points_elementwise(FILE* File, discrete_function_type& u,
 							typename geometry_traits<TElem>::iterator iterBegin,
 							typename geometry_traits<TElem>::iterator iterEnd, int& n)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	typedef typename discrete_function_type::domain_type domain_type;
 	typename domain_type::position_accessor_type& aaPos = u.get_domain().get_position_accessor();
 
@@ -481,7 +503,7 @@ write_points_elementwise(FILE* File, discrete_function_type& u,
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
 		TElem *elem = *iterBegin;
-		for(uint i = 0; i < (uint) reference_element_traits<TElem>::num_corners; ++i)
+		for(uint i = 0; i < (uint) ref_elem_type::num_corners; ++i)
 		{
 			VertexBase* v = elem->vertex(i);
 			if(m_grid->is_marked(v)) continue;
@@ -520,6 +542,7 @@ write_elements_connectivity(FILE* File,
 							typename geometry_traits<TElem>::iterator iterBegin,
 							typename geometry_traits<TElem>::iterator iterEnd)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	assert(m_aaDOFIndexVRT.valid());
 
 	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing Connectivity (i.e. Vertices of each cell) to file ----");
@@ -529,7 +552,7 @@ write_elements_connectivity(FILE* File,
 		TElem *t = *iterBegin;
 		UG_DLOG(LIB_DISC_OUTPUT, 3, "\nWriting Vertices of Finite Element: ");
 
-		for(uint i=0; i< (uint) reference_element_traits<TElem>::num_corners; i++)
+		for(uint i=0; i< (uint) ref_elem_type::num_corners; i++)
 		{
 			VertexBase* vert = t->vertex(i);
 			int id = m_aaDOFIndexVRT[vert];
@@ -554,11 +577,12 @@ write_elements_offsets(	FILE* File,
 										typename geometry_traits<TElem>::iterator iterEnd,
 										int& n)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "\n ---- Start: Writing element offsets to file ----\n");
 
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
-		n += reference_element_traits<TElem>::num_corners;
+		n += ref_elem_type::num_corners;
 		UG_DLOG(LIB_DISC_OUTPUT, 3, n << " ");
 		BStreamWrite(File, &n);
 	}
@@ -577,7 +601,9 @@ write_elements_types(FILE* File,
 					typename geometry_traits<TElem>::iterator iterBegin,
 					typename geometry_traits<TElem>::iterator iterEnd)
 {
-	static const ReferenceElementType reftype = reference_element_traits<TElem>::REFERENCE_ELEMENT_TYPE;
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	static const ReferenceElementType reftype = ref_elem_type::REFERENCE_ELEMENT_TYPE;
+
 	char type;
 
 	// TODO: This is 1D and 2D only
@@ -586,6 +612,7 @@ write_elements_types(FILE* File,
 	case RET_EDGE: type = (char) 3; break;
 	case RET_TRIANGLE: type = (char) 5; break;
 	case RET_QUADRILATERAL: type = (char) 9; break;
+	case RET_TETRAHEDRON: type = (char) 10; break;
 	default:UG_ASSERT(0, "Element Type not known.");
 	}
 
@@ -613,6 +640,7 @@ write_scalar_elementwise(FILE* File,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	float valf;
 	BStream.size = sizeof(float);
 
@@ -622,7 +650,7 @@ write_scalar_elementwise(FILE* File,
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
 		TElem *elem = *iterBegin;
-		for(uint i = 0; i < (uint) reference_element_traits<TElem>::num_corners; ++i)
+		for(uint i = 0; i < (uint) ref_elem_type::num_corners; ++i)
 		{
 			VertexBase* v = elem->vertex(i);
 			if(m_grid->is_marked(v)) continue;

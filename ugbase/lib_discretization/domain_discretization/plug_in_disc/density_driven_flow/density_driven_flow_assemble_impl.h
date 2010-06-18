@@ -66,7 +66,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	// Therefore, it is TIME CRITICAL
 
 	// load corners of this element
-	for(int i = 0; i < reference_element_traits<TElem>::num_corners; ++i)
+	for(int i = 0; i < ref_elem_type::num_corners; ++i)
 	{
 		VertexBase* vert = elem->vertex(i);
 		m_corners[i] = m_aaPos[vert];
@@ -97,9 +97,9 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	return IPlugInReturn_OK;
 }
 
-#define J(fct1, fct2, i, j) ( J( (reference_element_traits<TElem>::num_corners)*(fct1) + i, (reference_element_traits<TElem>::num_corners)*(fct2) + j) )
-#define d(fct, i)    ( d[reference_element_traits<TElem>::num_corners*(fct) + (i)])
-#define u(fct, i)    ( u[reference_element_traits<TElem>::num_corners*(fct) + (i)])
+#define J(fct1, fct2, i, j) ( J( (ref_elem_type::num_corners)*(fct1) + i, (ref_elem_type::num_corners)*(fct2) + j) )
+#define d(fct, i)    ( d[ref_elem_type::num_corners*(fct) + (i)])
+#define u(fct, i)    ( u[ref_elem_type::num_corners*(fct) + (i)])
 
 
 template<typename TDomain, typename TAlgebra, typename TElem >
@@ -108,7 +108,7 @@ IPlugInReturn
 DensityDrivenFlow<TDomain, TAlgebra, TElem>::
 assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
-	const int num_co = reference_element_traits<TElem>::num_corners;
+	const int num_co = ref_elem_type::num_corners;
 	number flux, flux_c, flux_p;
 	MathMatrix<dim,dim> D;
 	MathVector<dim> grad_p_ip, grad_c_ip;

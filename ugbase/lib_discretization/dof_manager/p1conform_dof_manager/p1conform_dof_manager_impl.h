@@ -199,8 +199,8 @@ P1ConformDoFManager<TGeomObjContainer>::
 num_multi_indices(TElem* elem, size_t fct) const
 {
 	UG_ASSERT(fct < num_fct(), "Function not defined in DoF Manager");
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element;
-	return reference_element_traits<reference_element>::num_corners;
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	return ref_elem_type::num_corners;
 };
 
 template <typename TGeomObjContainer>
@@ -211,9 +211,9 @@ P1ConformDoFManager<TGeomObjContainer>::
 get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, size_t offset) const
 {
 	UG_ASSERT(fct < num_fct(), "Function not defined in DoF Manager");
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element;
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
-	for(int i = 0; i < reference_element_traits<reference_element>::num_corners; ++i)
+	for(int i = 0; i < ref_elem_type::num_corners; ++i)
 	{
 		VertexBase* vrt = elem->vertex(i);
 		int si = m_objContainer.get_subset_index(vrt);
@@ -221,7 +221,7 @@ get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, size_t offset)
 		ind[offset + i][0] = (m_vSubsetInfo[si].aaDoF)[vrt] + fct;
 	}
 
-	return reference_element_traits<reference_element>::num_corners;
+	return ref_elem_type::num_corners;
 }
 
 template <typename TGeomObjContainer>

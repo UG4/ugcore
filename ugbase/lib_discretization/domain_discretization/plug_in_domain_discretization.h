@@ -67,7 +67,11 @@ class PlugInDomainDiscretization : public IDomainDiscretization<typename TDiscre
 	public:
 		PlugInDomainDiscretization(TElemDisc<domain_type, algebra_type>& elemDisc, DirichletBNDValues<discrete_function_type>& bndDisc, domain_type& domain) :
 		  m_elemDisc(elemDisc), m_dirichletDisc(bndDisc), m_domain(domain)
-		{};
+		{
+			m_elem_subset.resize(4);
+			for(std::size_t i = 0; i < 3; ++i)
+				m_elem_subset[i].clear();
+		};
 
 		// Assemble routines for time independent problems
 		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u);
@@ -123,7 +127,7 @@ class PlugInDomainDiscretization : public IDomainDiscretization<typename TDiscre
 		}
 
 	protected:
-		std::vector<int> m_elem_subset[domain_type::dim+1]; // 3 = max dimensions
+		std::vector<std::vector<int> > m_elem_subset; // 3 = max dimensions
 
 	protected:
 		DirichletBNDValues<discrete_function_type>& m_dirichletDisc;
@@ -464,20 +468,13 @@ PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
 assemble_solution(discrete_function_type& u)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++)
-	{
+	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
 		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-		{
-			UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");
-			return IAssemble_ERROR;
+			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
-	}
 
 	if(m_dirichletDisc.set_dirichlet_solution(u) != true)
-	{
-		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
-		return IAssemble_ERROR;
-	}
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -487,46 +484,33 @@ IAssembleReturn
 PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
 assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
 {
-	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- START: 'assemble_linear' (level = " << u.get_level() << ") ----\n");
-
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++)
-	{
+	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
 		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-		{
-			UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");
-			return IAssemble_ERROR;
+			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
-	}
 
 	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
 		int si = elem_subset(2, i);
 
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
-		{
-			UG_LOG("Error in assemble_linear, aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
-
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
+			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 		if(assemble_linear<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u)==false)
-		{
-			UG_LOG("Error in assemble_linear, aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "done.\n");
+			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
+	}
+
+	for(size_t i = 0; i < num_elem_subsets(3); ++i)
+	{
+		int si = elem_subset(3, i);
+
+		if(assemble_linear<Tetrahedron>(u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), mat, rhs, u)==false)
+			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 	}
 
 	if(m_dirichletDisc.set_dirichlet_linear(mat, rhs, u) != true)
-	{
-		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
-		return IAssemble_ERROR;
-	}
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
 
-	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- END: 'assemble_linear' ----\n");
 	return IAssemble_OK;
 }
 
@@ -536,41 +520,23 @@ PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
 assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++)
-	{
+	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
 		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-		{
-			UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");
-			return IAssemble_ERROR;
+			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
-	}
 
 	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
 		int si = elem_subset(2, i);
 
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
-		{
-			UG_LOG("Error in assemble_linear, aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
-
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
+			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 		if(assemble_jacobian_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, d, u, time, s_m, s_a)==false)
-		{
-			UG_LOG("Error in assemble_linear, aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
+			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 	}
 
 	if(m_dirichletDisc.clear_dirichlet_jacobian_defect(J, d, u, time) != true)
-	{
-		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
-		return IAssemble_ERROR;
-	}
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -583,43 +549,30 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- START: 'assembling_jacobian' (time = " << time << ", s_m = " << s_m << ", s_a = " << s_a << ", level = " << 	u.get_level() << ") ----\n");
 
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++)
-	{
+	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
 		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-		{
-			UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");
-			return IAssemble_ERROR;
+			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
-	}
 
 	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
 		int si = elem_subset(2, i);
 
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_jacobian<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, time, s_m, s_a)==false)
-		{
-			UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
-
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
+			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
 		if(assemble_jacobian<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, u, time, s_m, s_a)==false)
-		{
-			UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done.\n");
+			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
+	}
+	for(size_t i = 0; i < num_elem_subsets(3); ++i)
+	{
+		int si = elem_subset(3, i);
+
+		if(assemble_jacobian<Tetrahedron>(u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), J, u, time, s_m, s_a)==false)
+			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
 	}
 
 	if(m_dirichletDisc.clear_dirichlet_jacobian(J, u, time) != true)
-	{
-		UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
-		return IAssemble_ERROR;
-	}
-
-	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- END: 'assembling_jacobian' ----\n");
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -630,41 +583,23 @@ PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
 assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++)
-	{
+	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
 		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-		{
-			UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");
-			return IAssemble_ERROR;
+		{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
-	}
 
 	for(size_t i = 0; i < num_elem_subsets(2); ++i)
 	{
 		int si = elem_subset(2, i);
 
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Triangle>(si) << " Triangle(s) on Level " << u.get_level() << " ... ");
 		if(assemble_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, time, s_m, s_a)==false)
-		{
-			UG_LOG("Error in assemble_defect, aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done. \n");
-
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilateral(s) on Level " << u.get_level() << " ... ");
+			{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
 		if(assemble_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, time, s_m, s_a)==false)
-		{
-			UG_LOG("Error in assemble_defect, aborting.\n");
-			return IAssemble_ERROR;
-		}
-		UG_DLOG(LIB_DISC_ASSEMBLE, 1, "Done. \n");
+			{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
 	}
 
 	if(m_dirichletDisc.clear_dirichlet_defect(d, u, time) != true)
-	{
-		UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");
-		return IAssemble_ERROR;
-	}
+		{UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -683,20 +618,13 @@ PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
 assemble_solution(discrete_function_type& u, number time)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++)
-	{
+	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
 		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-		{
-			UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");
-			return IAssemble_ERROR;
-		}
+			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 	}
 
 	if(m_dirichletDisc.set_dirichlet_solution(u, time) != true)
-	{
-		UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");
-		return IAssemble_ERROR;
-	}
+		{UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }

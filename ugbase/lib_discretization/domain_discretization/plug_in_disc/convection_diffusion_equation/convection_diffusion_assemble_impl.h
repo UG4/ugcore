@@ -35,7 +35,7 @@ prepare_element_loop()
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
-	typename std::vector<MathVector<reference_element_traits<TElem>::dim> > pos;
+	typename std::vector<MathVector<ref_elem_type::dim> > pos;
 	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
 	{
 		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
@@ -79,7 +79,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	// Therefore, it is TIME CRITICAL
 
 	// load corners of this element
-	for(int i = 0; i < reference_element_traits<TElem>::num_corners; ++i)
+	for(int i = 0; i < ref_elem_type::num_corners; ++i)
 	{
 		VertexBase* vert = elem->vertex(i);
 		m_corners[i] = m_aaPos[vert];
@@ -143,6 +143,11 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 					J(scvf.from(), j) += flux;
 					J(scvf.to()  , j) -= flux;
 
+					/*UG_LOG("Convex Flux: " << flux << "\n");
+					UG_LOG("shape: " << sdv.shape(j) << "\n");
+					UG_LOG("scvf.normal(): " << scvf.normal() << "\n");
+					UG_LOG("v: " << v << "\n");
+*/
 					// linearization of defect
 					/*
 					if(m_Velocity.num_sh() > 0)

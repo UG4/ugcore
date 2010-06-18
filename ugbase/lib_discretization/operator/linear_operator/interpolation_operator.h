@@ -102,12 +102,13 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 		template <typename TElem>
 		bool interpolate_values(const domain_function_type& u, codomain_function_type& v, int si)
 		{
-			const int dim = reference_element_traits<TElem>::dim;
-			typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+			const int dim = ref_elem_type::dim;
 
 			LocalShapeFunctionSetID id = v.get_local_shape_function_set_id(m_fct);
 
-			const LocalShapeFunctionSet<reference_element_type>& trialSpace = LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<reference_element_type>(id);
+			const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
+					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(id);
 
 			// get local positions of interpolation points
 			const size_t num_sh = trialSpace.num_shape_functions();
@@ -123,11 +124,11 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 
 			domain_type& domain = v.get_domain();
 			typename domain_type::position_accessor_type aaPos = domain.get_position_accessor();
-			typename domain_type::position_type corners[reference_element_traits<TElem>::num_corners];
+			typename domain_type::position_type corners[ref_elem_type::num_corners];
 
 			typename codomain_function_type::local_vector_type val(num_sh);
 			//reference_element_type refElem;
-			ReferenceMapping<reference_element_type, domain_type::dim> mapping;
+			ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
 
 			// iterate over all elements
 			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
@@ -138,7 +139,7 @@ class LagrangeInterpolationOperator : public IDiscreteLinearOperator<typename Co
 				TElem* elem = *iter;
 
 				// load corners of this element
-				for(int i = 0; i < reference_element_traits<TElem>::num_corners; ++i)
+				for(int i = 0; i < ref_elem_type::num_corners; ++i)
 				{
 					VertexBase* vert = elem->vertex(i);
 					corners[i] = aaPos[vert];

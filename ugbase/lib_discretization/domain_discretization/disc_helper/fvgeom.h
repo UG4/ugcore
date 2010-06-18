@@ -23,12 +23,15 @@
 namespace ug{
 
 template <	typename TElem,
-			int TWorldDim = reference_element_traits<TElem>::dim>
+			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
 class SD_Values{
+	private:
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
 	public:
-		static const int dim = reference_element_traits<TElem>::dim;
+		static const int dim = ref_elem_type::dim;
 		static const int world_dim = TWorldDim;
-		static const size_t m_num_co = reference_element_traits<TElem>::num_corners;
+		static const size_t m_num_co = ref_elem_type::num_corners;
 
 	public:
 		inline size_t num_sh() const {return m_num_co;}
@@ -36,15 +39,14 @@ class SD_Values{
 		inline number shape(int i) const {return m_shape[i];}
 		inline const MathVector<world_dim>* gradptr_global() const {return m_grad_global;}
 		inline const MathVector<world_dim>& grad_global(int i) const {return m_grad_global[i];}
-		inline const MathMatrix<world_dim,dim>& J() const {return m_JT;}
-		inline const MathMatrix<dim,world_dim>& Jinv() const {return m_JTInv;}
+		inline const MathMatrix<dim,world_dim>& JTInv() const {return m_JTInv;}
 		inline number detJ() const {return m_detJ;}
 
 	public:
 		bool update_local(const MathVector<dim>& ip_local)
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace = LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
 
 			for(size_t i = 0; i < m_num_co; ++i)
 			{
@@ -57,7 +59,6 @@ class SD_Values{
 
 		bool update_global(const MathVector<dim>& ip_local, MathVector<world_dim> corners[])
 		{
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 			static ReferenceMapping<ref_elem_type, world_dim> mapping;
 
 			mapping.update(corners);
@@ -65,10 +66,6 @@ class SD_Values{
 			// compute transformation inverse and determinate at ip
 			if(mapping.jacobian_transposed_inverse(ip_local, m_JTInv) == false) return false;
 			if(mapping.jacobian_det(ip_local, m_detJ) == false) return false;
-
-			// compute m_J
-			// TODO: Maybe someone needs this. Compute J
-			//Inverse(m_J, m_Jinv);
 
 			// compute Shape Gradient
 			for(size_t i = 0; i < m_num_co; ++i)
@@ -83,20 +80,22 @@ class SD_Values{
 		MathVector<dim> m_grad_local[m_num_co];
 
 		MathVector<world_dim> m_grad_global[m_num_co];
-		MathMatrix<dim,world_dim> m_JT;
 		MathMatrix<world_dim,dim> m_JTInv;
 		number m_detJ;
 };
 
 // predeclaration
-template <typename TElem, int TWorldDim = reference_element_traits<TElem>::dim>
+template <typename TElem,
+			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
 class FVElementGeometry;
 
 template <	typename TElem,
-			int TWorldDim = reference_element_traits<TElem>::dim>
+			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
 class SubControlVolume{
+	private:
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	public:
-		static const int dim = reference_element_traits<TElem>::dim;
+		static const int dim = ref_elem_type::dim;
 		static const int world_dim = TWorldDim;
 
 	public:
@@ -113,28 +112,31 @@ class SubControlVolume{
 
 		inline bool update_global(const FVElementGeometry<TElem, TWorldDim>& geo, MathVector<world_dim> corners[])
 		{
-			static const typename reference_element_traits<TElem>::reference_element_type m_refElem;
+			static const ref_elem_type refElem;
 
 			// remember center coordinates
 			m_center = corners[m_co];
 
+			//TODO: must be implemented
+			if(dim != world_dim) return false;
+
 			// compute size of scv
-			if(world_dim == 1)
+			if(dim == 1)
 			{
 				m_volume = 0.5*(corners[0][0] - corners[1][0]);
 			}
-			else if(world_dim == 2)
+			else if(dim == 2)
 			{
 				m_volume = qarea(corners[m_co],
-								geo.obj_midpoint_global(1, m_refElem.id(0, m_co, 1, 1)),
-								geo.obj_midpoint_global(2, m_refElem.id(0, m_co, 2, 0)),
-								geo.obj_midpoint_global(1, m_refElem.id(0, m_co, 1, 0)) );
+								geo.obj_midpoint_global(1, refElem.id(0, m_co, 1, 1)),
+								geo.obj_midpoint_global(2, refElem.id(0, m_co, 2, 0)),
+								geo.obj_midpoint_global(1, refElem.id(0, m_co, 1, 0)) );
 			}
-			else if(world_dim == 3)
+			else if(dim == 3)
 			{
-				assert(0 && "Must be implemented");
+				//TODO: This is Tetrahedron only
+				m_volume = 0.25 * tetra_area(corners[0], corners[1], corners[2], corners[3]);
 			}
-
 			return true;
 		}
 
@@ -145,6 +147,20 @@ class SubControlVolume{
 			return 0.5 * fabs( tmp );
 		}
 		number qarea(const MathVector<3>& x0, const MathVector<3>& x1, const MathVector<3>& x2, const MathVector<3>& x3){return -1;}
+		number qarea(const MathVector<1>& x0, const MathVector<1>& x1, const MathVector<1>& x2, const MathVector<1>& x3){return -1;}
+
+		number tetra_area(const MathVector<1>& x0, const MathVector<1>& x1, const MathVector<1>& x2, const MathVector<1>& x3){return -1;}
+		number tetra_area(const MathVector<2>& x0, const MathVector<2>& x1, const MathVector<2>& x2, const MathVector<2>& x3){return -1;}
+		number tetra_area(const MathVector<3>& x0, const MathVector<3>& x1, const MathVector<3>& x2, const MathVector<3>& x3)
+		{
+			MathVector<3> a, b, h, n;
+			VecSubtract(a, x1, x0);
+			VecSubtract(b, x2, x0);
+			VecSubtract(h, x3, x0);
+			VecCross(n,a,b);
+
+			return ((1./6.) * (VecDot(n,h)));
+		}
 
 	protected:
 		size_t m_co;
@@ -153,10 +169,12 @@ class SubControlVolume{
 };
 
 template <	typename TElem,
-			int TWorldDim = reference_element_traits<TElem>::dim>
+			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
 class SubControlVolumeFace{
+	private:
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	public:
-		static const int dim = reference_element_traits<TElem>::dim;
+		static const int dim = ref_elem_type::dim;
 		static const int world_dim = TWorldDim;
 
 	public:
@@ -171,29 +189,31 @@ class SubControlVolumeFace{
 	public:
 		inline bool update_local(int edge, const FVElementGeometry<TElem, TWorldDim>& geo)
 		{
-			static const typename reference_element_traits<TElem>::reference_element_type m_refElem;
+			static const ref_elem_type refElem;
 
 			m_edge = edge;
 
 			// normal of this scvf points from corner '_from' to corner '_to'
-			for(size_t i = 0; i < m_refElem.num_obj_of_obj(1, edge, 0); ++i)
+			for(size_t i = 0; i < refElem.num_obj_of_obj(1, edge, 0); ++i)
 			{
-				m_from = m_refElem.id(1,edge, 0, 0);
-				m_to = m_refElem.id(1,edge, 0, 1);
+				m_from = refElem.id(1,edge, 0, 0);
+				m_to = refElem.id(1,edge, 0, 1);
 			}
 
 			// compute ip on scvf
-			int scale = 0;
+			m_num_mid = 0;
 			m_ip_local = 0.0;
 			for(size_t d = dim; d >= 1; --d)
 			{
-				for(size_t i = 0; i < m_refElem.num_obj_of_obj(1, edge, d); ++i)
+				for(size_t i = 0; i < refElem.num_obj_of_obj(1, edge, d); ++i)
 				{
-					m_ip_local += geo.obj_midpoint_local(d, m_refElem.id(1, edge, d, i));
-					++scale;
+					m_mid_dim[m_num_mid] = d;
+					m_mid_id[m_num_mid] = refElem.id(1, edge, d, i);
+					m_ip_local += geo.obj_midpoint_local(d, refElem.id(1, edge, d, i));
+					++m_num_mid;
 				}
 			}
-			m_ip_local *= 1./scale;
+			m_ip_local *= 1./m_num_mid;
 
 			m_sdv.update_local(m_ip_local);
 			return true;
@@ -201,46 +221,71 @@ class SubControlVolumeFace{
 
 		inline bool update_global(const FVElementGeometry<TElem, TWorldDim>& geo, MathVector<world_dim> corners[])
 		{
-			static const typename reference_element_traits<TElem>::reference_element_type m_refElem;
+			static const ref_elem_type refElem;
 
 			// compute ip on scvf
-			int scale = 0;
 			m_ip_global = 0.0;
-			for(size_t d = dim; d >= 1; --d)
+			for(size_t i = 0; i < m_num_mid; ++i)
 			{
-				for(size_t i = 0; i < m_refElem.num_obj_of_obj(1, m_edge, d); ++i)
-				{
-					m_ip_global += geo.obj_midpoint_global(d, m_refElem.id(1, m_edge, d, i));
-					++scale;
-				}
+				m_ip_global += geo.obj_midpoint_global(m_mid_dim[i], m_mid_id[i]);
 			}
-			m_ip_global *= 1./scale;
+			m_ip_global *= 1./m_num_mid;
+
+			//TODO: must be implemented
+			if(world_dim != dim) return false;
 
 			//compute normal on scvf
-			if(world_dim == 1)
+			if(dim == 1)
 			{
 				m_normal[0] = 1;
 			}
-			if(world_dim == 2)
+			if(dim == 2)
 			{
-				MathVector<world_dim> diff = geo.obj_midpoint_global(2, m_refElem.id(1, m_edge, 2, 0)); // center of element
-				diff -= geo.obj_midpoint_global(1, m_refElem.id(1, m_edge, 1, 0)); // edge midpoint
+				MathVector<world_dim> diff = geo.obj_midpoint_global(2, refElem.id(1, m_edge, 2, 0)); // center of element
+				diff -= geo.obj_midpoint_global(1, refElem.id(1, m_edge, 1, 0)); // edge midpoint
 
 				m_normal[0] = diff[1];
 				m_normal[1] = -diff[0];
 			}
-			else if(world_dim == 3)
+			else if(dim == 3)
 			{
-				assert(0 && "Must be implemented");
+				normal_3d(	geo.obj_midpoint_global(m_mid_dim[3], m_mid_id[3]),
+							geo.obj_midpoint_global(m_mid_dim[1], m_mid_id[1]),
+							geo.obj_midpoint_global(m_mid_dim[0], m_mid_id[0]),
+							geo.obj_midpoint_global(m_mid_dim[2], m_mid_id[2]),
+							m_normal);
 			}
 
 			m_sdv.update_global(m_ip_local, corners);
 			return true;
 		}
 
+	private:
+		bool normal_3d(const MathVector<1>& x0, const MathVector<1>& x1, const MathVector<1>& x2, const MathVector<1>& x3, MathVector<1>& normal)
+		{return false;}
+		bool normal_3d(const MathVector<2>& x0, const MathVector<2>& x1, const MathVector<2>& x2, const MathVector<2>& x3, MathVector<2>& normal)
+		{return false;}
+
+		// Normal including area
+		bool normal_3d(const MathVector<3>& x0, const MathVector<3>& x1, const MathVector<3>& x2, const MathVector<3>& x3, MathVector<3>& normal)
+		{
+			MathVector<3> a, b;
+			VecSubtract(a, x2, x0);
+			VecSubtract(b, x3, x1);
+			VecCross(normal, a,b);
+			VecScale(normal, normal, 0.5);
+			return true;
+		}
+
 	protected:
 		size_t m_edge;
 		size_t m_from, m_to;
+
+		// help arrays to access midpoints
+		size_t m_num_mid;
+		size_t m_mid_dim[2*(dim-1)+1];
+		size_t m_mid_id[2*(dim-1)+1];
+
 		MathVector<dim> m_ip_local;
 
 		MathVector<world_dim> m_ip_global;
@@ -251,10 +296,12 @@ class SubControlVolumeFace{
 
 
 template <	typename TElem,
-			int TWorldDim = reference_element_traits<TElem>::dim>
+			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
 class BoundaryFace{
+	private:
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	public:
-		static const int dim = reference_element_traits<TElem>::dim;
+		static const int dim = ref_elem_type::dim;
 		static const int world_dim = TWorldDim;
 
 	public:
@@ -270,10 +317,10 @@ class BoundaryFace{
 	public:
 		inline bool update_local(int face, int loc_co, const FVElementGeometry<TElem, TWorldDim>& geo)
 		{
-			static const typename reference_element_traits<TElem>::reference_element_type m_refElem;
+			static const ref_elem_type refElem;
 
 			m_face = face;
-			m_co = m_refElem.id(1, m_face, 0, loc_co);
+			m_co = refElem.id(dim-1, m_face, 0, loc_co);
 
 			// compute ip on bf
 			int scale = 2;
@@ -283,7 +330,17 @@ class BoundaryFace{
 
 			if(world_dim == 3)
 			{
-				assert(0 && "3D not supported, average over edge mid points missing");
+				for(size_t e = 0; e < refElem.num_obj_of_obj(dim-1, m_face, 1); ++e)
+				{
+					for(size_t p = 0; p < refElem.num_obj_of_obj(1, e, 0); ++p)
+					{
+						if((size_t)refElem.id(1,e,0, p) == m_co)
+						{
+							m_ip_local += geo.obj_midpoint_local(1, e);
+						}
+					}
+				}
+				scale += 2;
 			}
 			m_ip_local *= 1./scale;
 
@@ -293,7 +350,7 @@ class BoundaryFace{
 
 		inline bool update_global(const FVElementGeometry<TElem, TWorldDim>& geo, MathVector<world_dim> corners[])
 		{
-			static const typename reference_element_traits<TElem>::reference_element_type m_refElem;
+			static const typename reference_element_traits<TElem>::reference_element_type refElem;
 
 			// compute ip on bf
 			int scale = 2;
@@ -303,17 +360,30 @@ class BoundaryFace{
 
 			if(world_dim == 3)
 			{
-				assert(0 && "3D not supported, average over edge mid points missing");
+				for(size_t e = 0; e < refElem.num_obj_of_obj(dim-1, m_face, 1); ++e)
+				{
+					for(size_t p = 0; p < refElem.num_obj_of_obj(1, e, 0); ++p)
+					{
+						if((size_t)refElem.id(1,e,0, p) == m_co)
+						{
+							m_ip_local += geo.obj_midpoint_local(1, e);
+						}
+					}
+				}
+				scale += 2;
 			}
 			m_ip_global *= 1./scale;
 
+			//TODO: must be implemented
+			if(dim != world_dim) return false;
+
 			//compute normal on bf
 			MathVector<world_dim> diff ;
-			if(world_dim == 1)
+			if(dim == 1)
 			{
 				m_normal[0] = 1;
 			}
-			if(world_dim == 2)
+			if(dim == 2)
 			{
 				diff = geo.obj_midpoint_global(1, m_face); // edge midpoint
 				diff -= geo.corner_global(m_co); // corner
@@ -321,9 +391,11 @@ class BoundaryFace{
 				m_normal[0] = diff[1];
 				m_normal[1] = -diff[0];
 			}
-			else if(world_dim == 3)
+			else if(dim == 3)
 			{
-				assert(0 && "Must be implemented");
+				//TODO: must be implemented
+				return false;
+				//assert(0 && "Must be implemented");
 			}
 
 			m_size = VecTwoNorm(diff);
@@ -348,48 +420,50 @@ class BoundaryFace{
 template <	typename TElem,
 			int TWorldDim>
 class FVElementGeometry {
+	private:
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	public:
-		static const int dim = reference_element_traits<TElem>::dim;
+		static const int dim = ref_elem_type::dim;
 		static const int world_dim = TWorldDim;
 
 	private:
-		static const size_t m_num_co = reference_element_traits<TElem>::num_corners;
-		static const size_t m_num_ed = reference_element_traits<TElem>::num_edges;
-		static const size_t m_num_fa = reference_element_traits<TElem>::num_faces;
-		static const size_t m_num_vol = reference_element_traits<TElem>::num_volumes;
+		static const size_t m_num_co = ref_elem_type::num_corners;
+		static const size_t m_num_ed = ref_elem_type::num_edges;
+		static const size_t m_num_fa = ref_elem_type::num_faces;
+		static const size_t m_num_vol = ref_elem_type::num_volumes;
 
 	public:
 		FVElementGeometry()
 		{
-			static const typename reference_element_traits<TElem>::reference_element_type m_refElem;
+			static const ref_elem_type refElem;
 
 			// compute local corners
 			for(size_t i = 0; i < m_num_co; ++i)
 			{
-				m_co_local[i] = m_refElem.corner(i);
+				m_co_local[i] = refElem.corner(i);
 			}
 
 			// compute number of bf for each side
-			m_num_bnd_sides = m_refElem.num_obj(dim -1);
-			for(size_t i = 0; i < m_refElem.num_obj(dim -1); ++i)
+			m_num_bnd_sides = refElem.num_obj(dim -1);
+			for(size_t i = 0; i < m_num_bnd_sides; ++i)
 			{
-				m_num_bf[i] =  m_refElem.num_obj_of_obj(dim - 1, i, 0);
+				m_num_bf[i] =  refElem.num_obj_of_obj(dim - 1, i, 0);
 			}
 
-			// compute local midpoints for all geometric objects with  0 < dim <= m_Dim
+			// compute local midpoints for all geometric objects with  0 < d <= dim
 			for(int d = 1; d <= dim; ++d)
 			{
 				// loop geometric objects of dimension d
-				for(size_t i = 0; i < m_refElem.num_obj(d); ++i)
+				for(size_t i = 0; i < refElem.num_obj(d); ++i)
 				{
 					m_obj_mid_local[d-1][i] = 0.0;
 					// add corner coordinates of the corners of the geometric object
-					for(size_t j = 0; j < m_refElem.num_obj_of_obj(d, i, 0); ++j)
+					for(size_t j = 0; j < refElem.num_obj_of_obj(d, i, 0); ++j)
 					{
-						m_obj_mid_local[d-1][i] += m_co_local[m_refElem.id(d, i, 0, j)];
+						m_obj_mid_local[d-1][i] += m_co_local[refElem.id(d, i, 0, j)];
 					}
 					// scale for correct averaging
-					m_obj_mid_local[d-1][i] *= 1./(m_refElem.num_obj_of_obj(d, i, 0));
+					m_obj_mid_local[d-1][i] *= 1./(refElem.num_obj_of_obj(d, i, 0));
 				}
 			}
 
@@ -418,7 +492,7 @@ class FVElementGeometry {
 
 		bool update(MathVector<world_dim> corners[])
 		{
-			static const typename reference_element_traits<TElem>::reference_element_type m_refElem;
+			static const ref_elem_type refElem;
 
 			// copy global corners
 			for(size_t i = 0; i < m_num_co; ++i)
@@ -426,20 +500,20 @@ class FVElementGeometry {
 				m_co_global[i] = corners[i];
 			}
 
-			// compute local midpoints for all geometric objects with  0 < dim <= m_Dim
+			// compute local midpoints for all geometric objects with  0 < d <= dim
 			for(int d = 1; d <= dim; ++d)
 			{
 				// loop geometric objects of dimension d
-				for(size_t i = 0; i < m_refElem.num_obj(d); ++i)
+				for(size_t i = 0; i < refElem.num_obj(d); ++i)
 				{
 					m_obj_mid_global[d-1][i] = 0.0;
 					// add corner coordinates of the corners of the geometric object
-					for(size_t j = 0; j < m_refElem.num_obj_of_obj(d, i, 0); ++j)
+					for(size_t j = 0; j < refElem.num_obj_of_obj(d, i, 0); ++j)
 					{
-						m_obj_mid_global[d-1][i] += m_co_global[m_refElem.id(d, i, 0, j)];
+						m_obj_mid_global[d-1][i] += m_co_global[refElem.id(d, i, 0, j)];
 					}
 					// scale for correct averaging
-					m_obj_mid_global[d-1][i] *= 1./(m_refElem.num_obj_of_obj(d, i, 0));
+					m_obj_mid_global[d-1][i] *= 1./(refElem.num_obj_of_obj(d, i, 0));
 				}
 			}
 
@@ -478,10 +552,10 @@ class FVElementGeometry {
 		const BoundaryFace<TElem, TWorldDim>& bf(size_t side, size_t i) const {return m_bf[side][i];}
 
 		const MathVector<dim>& corner_local(size_t i) const{return m_co_local[i];}
-		const MathVector<dim>& obj_midpoint_local(size_t dim_i, size_t i) const{return m_obj_mid_local[dim_i-1][i];}
+		const MathVector<dim>& obj_midpoint_local(int dim_i, size_t i) const{return m_obj_mid_local[dim_i-1][i];}
 
 		const MathVector<world_dim>& corner_global(size_t i) const{return m_co_global[i];}
-		const MathVector<world_dim>& obj_midpoint_global(size_t dim_i, size_t i) const{	return m_obj_mid_global[dim_i-1][i];}
+		const MathVector<world_dim>& obj_midpoint_global(int dim_i, size_t i) const{	return m_obj_mid_global[dim_i-1][i];}
 
 	public:
 
@@ -489,8 +563,7 @@ class FVElementGeometry {
 
 		size_t m_num_bnd_sides;
 
-		// TODO: Handle this max_sides is not 4 in 3D
-		size_t m_num_bf[4];
+		size_t m_num_bf[6];
 
 		MathVector<world_dim> m_co_global[m_num_co];
 		MathVector<world_dim> m_obj_mid_global[dim][m_max_obj];
@@ -500,7 +573,7 @@ class FVElementGeometry {
 
 		SubControlVolume<TElem, TWorldDim> m_scv[m_num_co]; // one scv per corner
 		SubControlVolumeFace<TElem, TWorldDim> m_scvf[m_num_ed]; // one scvf per edge
-		BoundaryFace<TElem, TWorldDim> m_bf[4][4]; // one bf for each corner of each side
+		BoundaryFace<TElem, TWorldDim> m_bf[6][4]; // one bf for each corner of each side
 };
 
 }

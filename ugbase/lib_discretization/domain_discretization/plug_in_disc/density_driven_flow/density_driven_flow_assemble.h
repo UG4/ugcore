@@ -42,6 +42,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		typedef typename algebra_type::vector_type::local_index_type local_index_type;
 
 	protected:
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 		typedef void (*Pososity_fct)(number&);
 		typedef void (*Viscosity_fct)(number&, number);
 		typedef void (*Density_fct)(number&, number);
@@ -61,10 +62,10 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 	public:
 
 		// total number of shape functions on elements of type 'TElem'
-		inline size_t num_sh(){return 2*reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(){return 2*ref_elem_type::num_corners;};
 
 		// number of shape functions on elements of type 'TElem' for the 'i'-th fundamental function
-		inline size_t num_sh(size_t loc_fct){return reference_element_traits<TElem>::num_corners;};
+		inline size_t num_sh(size_t loc_fct){return ref_elem_type::num_corners;};
 
 		// prepares the loop. Must be called, before prepare_element can be used
 		inline IPlugInReturn prepare_element_loop();
@@ -93,9 +94,8 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 		TDomain& m_domain;
 
 		// position access
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 		ReferenceMapping<ref_elem_type, TDomain::dim> m_mapping;
-		typename TDomain::position_type m_corners[reference_element_traits<TElem>::num_corners];
+		typename TDomain::position_type m_corners[ref_elem_type::num_corners];
 		typename TDomain::position_accessor_type m_aaPos;
 
 		// Finite Volume Element Geometry
@@ -128,12 +128,11 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 	private:
 		void export1(std::vector<MathVector<dim> >& val, std::vector<std::vector<MathVector<dim> > >& deriv, const std::vector<MathVector<dim> >& pos, const local_vector_type& u, bool compute_derivatives)
 		{
-		#define u(fct, i)    ( (u)[reference_element_traits<TElem>::num_corners*(fct) + (i)])
+		#define u(fct, i)    ( (u)[ref_elem_type::num_corners*(fct) + (i)])
 
-			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace = LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
-			static const typename reference_element_traits<TElem>::reference_element_type refElem;
-			const size_t num_co = reference_element_traits<TElem>::num_corners;
+			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+			const size_t num_co = ref_elem_type::num_corners;
 
 
 			number c;
@@ -197,7 +196,7 @@ class DensityDrivenFlow : public DataExportingClass<MathVector<TDomain::dim>, Ma
 											MathVector<dim>& Darcy_vel, MathVector<dim> D_Darcy_vel_c[], MathVector<dim> D_Darcy_vel_p[],
 											number c_ip, const MathVector<dim>& grad_p_ip)
 		{
-			const int num_co = reference_element_traits<TElem>::num_corners;
+			const int num_co = ref_elem_type::num_corners;
 			number s, mu_ip;
 			MathVector<dim> vel, gravity;
 			MathVector<dim> D_vel_c[num_co], D_vel_p[num_co];

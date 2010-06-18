@@ -13,8 +13,14 @@ namespace ug{
 
 class ReferenceTriangle{
 	public:
+		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = RET_TRIANGLE;
 		static const int dim = 2;
+		static const int num_corners = 3;
+		static const int num_edges = 3;
+		static const int num_faces = 1;
+		static const int num_volumes = 0;
 
+	public:
 		ReferenceTriangle(){initializeArrays();}
 
 		/* Dimension where reference element lives */
@@ -54,7 +60,7 @@ class ReferenceTriangle{
 		/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
 		unsigned int m_num_obj_of_obj[dim+1][MAXOBJECTS][dim+1];
 		/* coordinates of Reference Corner */
-		vector2 m_corner[3];
+		MathVector<dim> m_corner[num_corners];
 		// indices of GeomObjects
 		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];
 
@@ -240,38 +246,11 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 };
 
 
-
-
-
-template <>
-class reference_element_traits<ReferenceTriangle>
-{
-	public:
-		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = RET_TRIANGLE;
-
-		static const int dim = 2;
-		static const int num_corners = 3;
-		static const int num_edges = 3;
-		static const int num_faces = 1;
-		static const int num_volumes = 0;
-
-		typedef MathVector<dim> position_type;
-};
-
 template <>
 class reference_element_traits<Triangle>
 {
 	public:
 		typedef ReferenceTriangle reference_element_type;
-		typedef reference_element_traits<ReferenceTriangle> reference_element_type_traits;
-
-		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = reference_element_type_traits::REFERENCE_ELEMENT_TYPE;
-		static const int dim = reference_element_type_traits::dim;
-		static const int num_corners = reference_element_type_traits::num_corners;
-		static const int num_edges = reference_element_type_traits::num_edges;
-		static const int num_faces = reference_element_type_traits::num_faces;
-		static const int num_volumes = reference_element_type_traits::num_volumes;
-		typedef reference_element_type_traits::position_type position_type;
 };
 
 

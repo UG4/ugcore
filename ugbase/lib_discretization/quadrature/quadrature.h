@@ -15,7 +15,8 @@ namespace ug{
 template <typename TRefElem>
 class QuadratureRule{
 	public:
-		typedef typename reference_element_traits<TRefElem>::position_type position_type;
+		static const int dim = TRefElem::dim;
+		typedef MathVector<dim> position_type;
 		typedef number weight_type;
 
 	public:

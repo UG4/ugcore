@@ -31,7 +31,7 @@ class P1conform : public ug::LocalShapeFunctionSet<TRefElem>{
 		typedef MathVector<dim> grad_value_type;
 
 		// number of shape functions
-		static const std::size_t nsh = reference_element_traits<TRefElem>::num_corners;
+		static const std::size_t nsh = TRefElem::num_corners;
 
 	public:
 		uint num_shape_functions() const { return nsh;	}
