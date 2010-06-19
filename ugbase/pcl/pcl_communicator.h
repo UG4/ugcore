@@ -43,6 +43,8 @@ class ParallelCommunicator
 		typedef ICommunicationPolicy<Layout>	CommPol;
 		
 	public:
+		ParallelCommunicator();
+		
 	////////////////////////////////
 	//	COLLECT
 	///	collects data that will be send during communicate.
@@ -130,6 +132,26 @@ class ParallelCommunicator
 										TLayout& layout,
 										const layout_tags::multi_level_layout_tag&);
 
+	///	collects buffer sizes for a given layout and stores them in a map
+	/**	The given map holds pairs of procID, bufferSize
+	 *	If buffer-sizes can't be determined, false is returned.
+	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
+	 *	whether all buffersizes can be calculated.*/
+	 	bool collect_layout_buffer_sizes(TLayout& layout,
+										ICommunicationPolicy<TLayout>& commPol,
+										std::map<int, int>* pMapBuffSizesOut,
+										const layout_tags::single_level_layout_tag&);
+
+	///	collects buffer sizes for a given layout and stores them in a map
+	/**	The given map holds pairs of procID, bufferSize
+	 *	If buffer-sizes can't be determined, false is returned.
+	 *	if pMmapBuffSizesOut == NULL, the method will simply determine
+	 *	whether all buffersizes can be calculated.*/
+	 	bool collect_layout_buffer_sizes(TLayout& layout,
+										ICommunicationPolicy<TLayout>& commPol,
+										std::map<int, int>* pMapBuffSizesOut,
+										const layout_tags::multi_level_layout_tag&);	
+	
 	///	extract data from stream-pack
 		void extract_data(TLayout& layout, ug::StreamPack& streamPack,
 						CommPol& extractor);
@@ -169,6 +191,10 @@ class ParallelCommunicator
 		ug::StreamPack		m_streamPackIn;
 	///	holds information about the extractors that are awaiting data.
 		ExtractorInfoList	m_extractorInfos;
+		
+	///	holds info whether all send-buffers are of predetermined fixed size.
+	/**	reset to true after each communication-step.*/
+		bool m_bSendBuffersFixed;
 };
 
 }//	end of namespace pcl

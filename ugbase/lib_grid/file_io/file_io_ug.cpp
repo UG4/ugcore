@@ -2,14 +2,15 @@
 // s.b.reiter@googlemail.com
 //	y09 m05 d27
 
-#include "file_io_ug.h"
-#include "lib_grid/lib_grid.h"
 #include <vector>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
 #include <cstring>
+#include "file_io_ug.h"
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
 using namespace std;
 

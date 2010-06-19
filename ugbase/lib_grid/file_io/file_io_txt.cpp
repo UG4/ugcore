@@ -5,7 +5,7 @@
 #include <fstream>
 #include <vector>
 #include "file_io_txt.h"
-#include "../lib_grid.h"
+#include "../lg_base.h"
 
 using namespace std;
 

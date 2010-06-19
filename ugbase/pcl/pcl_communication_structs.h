@@ -585,6 +585,9 @@ class LayoutMap
 ////////////////////////////////////////////////////////////////////////
 //	ICommunicationPolicy
 ///	specializations are responsible to pack and unpack interface data during communication.
+/**	Make sure that you use the same communication-policy for send and receive operations.
+ *	Otherwise problems regarding buffer-sizes may occur.
+ */
 template <class TLayout>
 class ICommunicationPolicy
 {
@@ -594,6 +597,24 @@ class ICommunicationPolicy
 
 		virtual ~ICommunicationPolicy()	{}
 
+	////////////////////////////////
+	//	COLLECT AND EXTRACT
+	///	returns the size of the buffer in bytes, that will be required for interface-communication.
+	/**	Determines the size of the buffer on which the extract and receive methods
+	 *	for the given interface will operate.
+	 *	If the buffer-size can't be calculated on both sides (sender and receiver)
+	 *	this method should return -1. This will lead to an additional communication
+	 *	step in which buffer-sizes will be exchanged.
+	 *	If the buffer-size can be calculated on both sides, it makes sense to do so,
+	 *	since this leads to less communication and overall improved performance.
+	 *	The buffer-size has to exactly match the size of required memory. Make sure that you
+	 *	completly fill the buffer during collect(...) and that you read all data during
+	 *	extract(...).
+	 *	The default implementation returns -1.
+	 */	
+		virtual int
+		get_required_buffer_size(Interface& interface)		{return -1;}
+		
 	////////////////////////////////
 	//	COLLECT
 	///	signals the beginning of a layout collection.

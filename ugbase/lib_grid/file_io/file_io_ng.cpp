@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 
 extern "C" {
 #include <lib_grid/externals/include/ng/ng.h>

@@ -7,9 +7,9 @@
 #include <iostream>
 #include <cstring>
 #include "file_io_art.h"
-#include "../lib_grid.h"
-#include "lib_grid/subset_handler.h"
-
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/attachment_util.h"
 using namespace std;
 
 namespace ug

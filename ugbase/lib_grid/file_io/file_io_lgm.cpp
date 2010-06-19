@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "common/math/ugmath.h"
 
 extern "C" {

@@ -5,7 +5,6 @@
 #include <iostream>
 #include <vector>
 #include "../lg_base.h"
-#include "../common_attachments.h"
 #include "common/parser/rapidxml/rapidxml.hpp"
 
 #ifndef __H__LIB_GRID__FILE_IO_UGX__

@@ -12,7 +12,7 @@
 #include <iostream>
 #include "common/common.h"
 #include "common/math/ugmath.h"
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 
 namespace ug{
 

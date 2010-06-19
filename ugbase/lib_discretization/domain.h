@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__DOMAIN__
 #define __H__LIBDISCRETIZATION__DOMAIN__
 
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 
 namespace ug{
 

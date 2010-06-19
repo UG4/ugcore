@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
-
+#include "lib_grid/algorithms/trees/kd_tree_static.h"
 ///	
 /**
  * this is a very simple and unoptimized algorithm!

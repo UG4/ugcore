@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__RHS__
 #define __H__LIBDISCRETIZATION__RHS__
 
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "numericalsolution.h"
 #include "common/math/ugmath.h"
 #include <string>

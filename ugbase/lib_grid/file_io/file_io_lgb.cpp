@@ -3,7 +3,8 @@
 //	y09 m11 d11
 
 #include <fstream>
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/serialization.h"
 #include "file_io_lgb.h"
 
 using namespace std;

@@ -14,6 +14,14 @@
 
 namespace pcl
 {
+
+template <class TLayout>
+ParallelCommunicator<TLayout>::
+ParallelCommunicator() :
+	m_bSendBuffersFixed(true)
+{
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
@@ -22,6 +30,7 @@ send_data(int targetProc, Interface& interface,
 {
 	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
 	commPol.collect(stream, interface);
+	m_bSendBuffersFixed &= (commPol.get_required_buffer_size(interface) >= 0);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -49,6 +58,7 @@ send_data(Layout& layout,
 	{
 		ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
 		commPol.collect(stream, layout.interface(iter));
+		m_bSendBuffersFixed &= (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 	}
 	
 	commPol.end_layout_collection();
@@ -72,6 +82,7 @@ send_data(Layout& layout,
 		{
 			ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
 			commPol.collect(stream, layout.interface(iter));
+			m_bSendBuffersFixed &= (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 		}
 	}
 	
@@ -155,6 +166,69 @@ prepare_receiver_stream_pack(ug::StreamPack& streamPack,
 
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
+bool ParallelCommunicator<TLayout>::
+collect_layout_buffer_sizes(TLayout& layout,
+							ICommunicationPolicy<TLayout>& commPol,
+							std::map<int, int>* pMapBuffSizesOut,
+							const layout_tags::single_level_layout_tag&)
+{
+	for(typename TLayout::iterator li = layout.begin();
+		li != layout.end(); ++li)
+	{
+	//	get the buffer size
+		int buffSize = commPol.get_required_buffer_size(
+								layout.interface(li));
+		if(buffSize < 0){
+		//	buffer sizes can't be determined
+			return false;
+		}
+		else if(pMapBuffSizesOut){
+		//	find the entry in the map
+			std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
+			if(iter != pMapBuffSizesOut->end())
+				iter->second += buffSize;
+			else
+				(*pMapBuffSizesOut)[layout.proc_id(li)] = buffSize;
+		}
+	}
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+bool ParallelCommunicator<TLayout>::
+collect_layout_buffer_sizes(TLayout& layout,
+							ICommunicationPolicy<TLayout>& commPol,
+							std::map<int, int>* pMapBuffSizesOut,
+							const layout_tags::multi_level_layout_tag&)
+{
+//	iterate through all interfaces
+	for(size_t i = 0; i < layout.num_levels(); ++i){
+		for(typename TLayout::iterator li = layout.begin(i);
+			li != layout.end(i); ++li)
+		{
+		//	get the buffer size
+			int buffSize = commPol.get_required_buffer_size(
+									layout.interface(li));
+			if(buffSize < 0){
+			//	buffer sizes can't be determined
+				return false;
+			}
+			else if(pMapBuffSizesOut){
+			//	find the entry in the map
+				std::map<int, int>::iterator iter = pMapBuffSizesOut->find(layout.proc_id(li));
+				if(iter != pMapBuffSizesOut->end())
+					iter->second += buffSize;
+				else
+					(*pMapBuffSizesOut)[layout.proc_id(li)] = buffSize;
+			}
+		}
+	}
+	return true;
+}
+										
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
 void ParallelCommunicator<TLayout>::
 extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor)
 {
@@ -192,8 +266,8 @@ extract_data(TLayout& layout, ug::StreamPack& streamPack, CommPol& extractor,
 		for(typename Layout::iterator li = layout.begin(i);
 			li != layout.end(i); ++li)
 		{
-		extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
-						layout.interface(li));
+			extractor.extract(*streamPack.get_stream(layout.proc_id(li)),
+							layout.interface(li));
 		}
 	}
 }
@@ -232,54 +306,108 @@ communicate()
 //	used for mpi-communication.
 	std::vector<MPI_Request> vSendRequests(numOutStreams);
 	std::vector<MPI_Request> vReceiveRequests(numInStreams);
-
-////////////////////////////////////////////////
-//	communicate buffer sizes.
-//TODO:	this could be avoided if extractors would calculate the
-//		size of the data that they receive.
-
-	int sizeTag = 189345;//	an arbitrary number
-	int counter;
-
-
-//	shedule receives first
-	std::vector<int> vBufferSizesIn(numInStreams);
-	counter = 0;
-	for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
-		iter != m_streamPackIn.end(); ++iter, ++counter)
-	{
-		MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
-				iter->first, sizeTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
-	}
-
-//	send buffer sizes
-	counter = 0;
-	for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
-		iter != m_streamPackOut.end(); ++iter, ++counter)
-	{
-		int streamSize = (int)iter->second->size();
-		//int retVal =
-		MPI_Isend(&streamSize, sizeof(int), MPI_UNSIGNED_CHAR,
-				iter->first, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
-	}
 	
 //	wait until data has been received
-	std::vector<MPI_Status> vReceiveStatii(numInStreams);//TODO: fix spelling!
-	std::vector<MPI_Status> vSendStatii(numOutStreams);//TODO: fix spelling!
+	std::vector<MPI_Status> vReceiveStates(numInStreams);//TODO: fix spelling!
+	std::vector<MPI_Status> vSendStates(numOutStreams);//TODO: fix spelling!
 
-//	TODO: this can be improved:
-//		instead of waiting for all, one could wait until one has finished and directly
-//		start copying the data to the local receive buffer. Afterwards on could continue
-//		by waiting for the next one etc...
-	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStatii[0]);
-	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStatii[0]);
+
+////////////////////////////////////////////////
+//	determine buffer sizes and communicate them if required.
+	std::vector<int> vBufferSizesIn(numInStreams);
+	bool allBufferSizesFixed = m_bSendBuffersFixed;
+	
+	if(allBufferSizesFixed)
+	{
+	//	a map with <procId, Size>. Will be used to collect stream-sizes
+		std::map<int, int> mapBuffSizes;
+	//	initialise all sizes with 0
+		for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
+			iter != m_streamPackIn.end(); ++iter)
+		{
+			mapBuffSizes[iter->first] = 0;
+		}
+		
+	//	iterate over all extractors and collect the buffer sizes
+		for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
+			iter != m_extractorInfos.end(); ++iter)
+		{
+			ExtractorInfo& info = *iter;
+			if(info.m_srcProc > -1){
+			//	the extractor only has a single interface.
+				int buffSize = info.m_extractor->get_required_buffer_size(*info.m_interface);
+				if(buffSize < 0){
+					allBufferSizesFixed = false;
+					break;
+				}
+				else
+					mapBuffSizes[info.m_srcProc] += buffSize;
+			}
+			else{
+				if(!collect_layout_buffer_sizes(*info.m_layout,
+												*info.m_extractor,
+												&mapBuffSizes,
+												typename TLayout::category_tag()))
+				{
+					allBufferSizesFixed = false;
+					break;
+				}
+			}
+		}
+		
+	//	if all buffer sizes are fixed, we'll copy them to vBufferSizes.
+	//	to reduce the amount of possible errors, we'll iterate over
+	//	m_streamPackIn...
+		if(allBufferSizesFixed){
+			int counter = 0;
+			for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
+				iter != m_streamPackIn.end(); ++iter, ++counter)
+			{
+				vBufferSizesIn[counter] = mapBuffSizes[iter->first];
+			}
+		}
+	}
+	
+	//	if the buffer size could not be determined, we have to communicate it.
+	if(!allBufferSizesFixed)
+	{
+		int sizeTag = 189345;//	an arbitrary number
+		int counter;
+
+	//	shedule receives first
+		counter = 0;
+		for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
+			iter != m_streamPackIn.end(); ++iter, ++counter)
+		{
+			MPI_Irecv(&vBufferSizesIn[counter], sizeof(int), MPI_UNSIGNED_CHAR,	
+					iter->first, sizeTag, MPI_COMM_WORLD, &vReceiveRequests[counter]);
+		}
+
+	//	send buffer sizes
+		counter = 0;
+		for(ug::StreamPack::iterator iter = m_streamPackOut.begin();
+			iter != m_streamPackOut.end(); ++iter, ++counter)
+		{
+			int streamSize = (int)iter->second->size();
+			//int retVal =
+			MPI_Isend(&streamSize, sizeof(int), MPI_UNSIGNED_CHAR,
+					iter->first, sizeTag, MPI_COMM_WORLD, &vSendRequests[counter]);
+		}
+
+	//	TODO: this can be improved:
+	//		instead of waiting for all, one could wait until one has finished and directly
+	//		start copying the data to the local receive buffer. Afterwards on could continue
+	//		by waiting for the next one etc...
+		MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
+		MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
+	}
 
 ////////////////////////////////////////////////
 //	communicate data.
 	int dataTag = 749345;//	an arbitrary number
 
 //	first shedule receives
-	counter = 0;
+	int counter = 0;
 	for(ug::StreamPack::iterator iter = m_streamPackIn.begin();
 		iter != m_streamPackIn.end(); ++iter, ++counter)
 	{
@@ -305,8 +433,8 @@ communicate()
 //		instead of waiting for all, one could wait until one has finished and directly
 //		start copying the data to the local receive buffer. Afterwards on could continue
 //		by waiting for the next one etc...
-	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStatii[0]);
-	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStatii[0]);
+	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
+	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
 
 //	call the extractors with the received data
 	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
@@ -339,6 +467,9 @@ communicate()
 	m_streamPackOut.clear();
 	m_extractorInfos.clear();
 
+//	reset m_bSendBuffersFixed
+	m_bSendBuffersFixed = true;
+	
 //	done
 	return true;
 }

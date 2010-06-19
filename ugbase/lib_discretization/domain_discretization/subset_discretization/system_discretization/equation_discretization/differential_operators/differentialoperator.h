@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__DIFFERENTIALOPERATOR__
 #define __H__LIBDISCRETIZATION__DIFFERENTIALOPERATOR__
 
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "numericalsolution.h"
 #include "../common/common.h"
 #include <string>

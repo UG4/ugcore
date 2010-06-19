@@ -23,6 +23,14 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
 
+		virtual int
+		get_required_buffer_size(Interface& interface)
+		{
+			return interface.size() * sizeof(typename TVector::
+												local_vector_type::
+												value_type);
+		}
+		
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
@@ -74,6 +82,14 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
 
+		virtual int
+		get_required_buffer_size(Interface& interface)
+		{
+			return interface.size() * sizeof(typename TVector::
+												local_vector_type::
+												value_type);
+		}
+		
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
@@ -125,6 +141,14 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 
 		void set_vector(TVector* pVec)	{m_pVec = pVec;}
 
+		virtual int
+		get_required_buffer_size(Interface& interface)
+		{
+			return interface.size() * sizeof(typename TVector::
+												local_vector_type::
+												value_type);
+		}
+		
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{

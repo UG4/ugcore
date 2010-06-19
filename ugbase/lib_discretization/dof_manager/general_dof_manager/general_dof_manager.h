@@ -9,7 +9,7 @@
 #define __H__LIBDISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
 
 #include "common/common.h"
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 #include "lib_algebra/lib_algebra.h"
 
 // trial spaces

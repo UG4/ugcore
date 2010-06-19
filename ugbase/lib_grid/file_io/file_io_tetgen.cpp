@@ -4,7 +4,7 @@
 
 #include <fstream>
 #include "file_io_tetgen.h"
-#include "../lib_grid.h"
+#include "../lg_base.h"
 
 using namespace std;
 
