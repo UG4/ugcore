@@ -405,14 +405,16 @@ class GridFunction{
 					 if(has_storage_type(GFST_UNIQUE)){
 						 UniqueToConsistent(	m_pVector,
 												m_pDoFManager->get_master_layout(m_level),
-												m_pDoFManager->get_slave_layout(m_level));
+												m_pDoFManager->get_slave_layout(m_level),
+												&(m_pDoFManager->get_communicator()));
 						 set_storage_type(GFST_CONSISTENT);
 						 break;
 					 }
 					 else if(has_storage_type(GFST_ADDITIVE)){
 						AdditiveToConsistent(	m_pVector,
 												m_pDoFManager->get_master_layout(m_level),
-												m_pDoFManager->get_slave_layout(m_level));
+												m_pDoFManager->get_slave_layout(m_level),
+												&(m_pDoFManager->get_communicator()));
 						set_storage_type(GFST_CONSISTENT);
 						break;
 					}
@@ -434,7 +436,8 @@ class GridFunction{
 					if(has_storage_type(GFST_ADDITIVE)){
 						AdditiveToUnique(	m_pVector,
 											m_pDoFManager->get_master_layout(m_level),
-											m_pDoFManager->get_slave_layout(m_level));
+											m_pDoFManager->get_slave_layout(m_level),
+											&(m_pDoFManager->get_communicator()));
 						add_storage_type(GFST_UNIQUE);
 						break;
 					}

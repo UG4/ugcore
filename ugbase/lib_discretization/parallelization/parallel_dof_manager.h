@@ -8,6 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER__
 
+#include "pcl/pcl.h"
 #include "parallelization_util.h"
 
 namespace ug
@@ -18,7 +19,7 @@ class ParallelDoFManager : public TDoFManager
 {
 	public:
 		typedef typename TDoFManager::geom_obj_container_type geom_obj_container_type;
-		
+
 	public:
 		ParallelDoFManager(geom_obj_container_type& geomObjCont)
 		: TDoFManager(geomObjCont), m_pLayoutMap(NULL)
@@ -32,7 +33,7 @@ class ParallelDoFManager : public TDoFManager
 		{
 			m_pLayoutMap = &layoutMap;
 		}
-		
+
 		//bool create_index_layouts()
 		virtual bool finalize()
 		{
@@ -40,9 +41,9 @@ class ParallelDoFManager : public TDoFManager
 				UG_LOG("  no layout map specified. aborting.\n");
 				return false;
 			}
-			
+
 			TDoFManager::finalize();
-			
+
 			bool bRetVal = true;
 
 			uint num_levels = this->num_levels();
@@ -50,7 +51,7 @@ class ParallelDoFManager : public TDoFManager
 			m_slaveLayouts.resize(num_levels);
 			m_masterLayouts.clear();
 			m_masterLayouts.resize(num_levels);
-			
+
 			for(uint l = 0; l < num_levels; ++l)
 			{
 /*
@@ -71,7 +72,8 @@ class ParallelDoFManager : public TDoFManager
 
 		inline IndexLayout& get_slave_layout(size_t level)	{return m_slaveLayouts[level];}
 		inline IndexLayout& get_master_layout(size_t level)	{return m_masterLayouts[level];}
-		
+		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_Communicator;}
+
 	private:
 		// Layout map of grid
 		GridLayoutMap* m_pLayoutMap;
@@ -81,6 +83,9 @@ class ParallelDoFManager : public TDoFManager
 
 		// index layout for each grid level
 		std::vector<IndexLayout> m_masterLayouts;
+
+		// communicator
+		pcl::ParallelCommunicator<IndexLayout> m_Communicator;
 
 };
 

@@ -8,8 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION__
 
+#include "pcl/pcl.h"
 #include "parallel_dof_manager.h"
 #include "parallelization_util.h"
-#include "pcl/pcl.h"
 
 #endif
