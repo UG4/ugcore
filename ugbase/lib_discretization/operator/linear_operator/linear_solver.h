@@ -25,9 +25,9 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 	public:
 		LinearSolver( 	ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>& B,
 						int maxIter, number absTol, number relTol,
-						int verboseLevel = 0) :
+						int verboseLevel = 0, int checkNormFrequency = 1) :
 			m_verboseLevel(verboseLevel), m_iter(&B),
-			m_maxIter(maxIter), m_absTol(absTol), m_relTol(relTol)
+			m_maxIter(maxIter), m_absTol(absTol), m_relTol(relTol), m_checkNormFrequency(checkNormFrequency)
 			{};
 
 		virtual bool init(ILinearizedOperator<TDiscreteFunction, TDiscreteFunction>& A)
@@ -154,7 +154,8 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Sol after step " << i << ": \n" << c_nl << " ----- END Sol after step " << i << "\n");
 
 				// compute global norm
-				norm = d.two_norm();
+				if(i % m_checkNormFrequency == 0)
+					norm = d.two_norm();
 
 				// print convergence rate
 				if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
@@ -204,6 +205,8 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 		// relative defect to be reached
 		number m_relTol;
 
+		// checking the norm of defect every m_checkNormFrequency steps
+		int m_checkNormFrequency;
 };
 
 } // end namespace ug

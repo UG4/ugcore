@@ -477,6 +477,7 @@ class GridFunction{
 		// two norm
 		inline number two_norm()
 		{
+			PROFILE_BEGIN(Norm);
 			number norm;
 
 			// step 1: make vector d additive unique
@@ -492,11 +493,14 @@ class GridFunction{
 #ifdef UG_PARALLEL
 			tNormLocal *= tNormLocal;
 			double tNormGlobal;
+			PROFILE_BEGIN(NormReduceAll);
 			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+			PROFILE_END();
 			norm = sqrt((number)tNormGlobal);
 #else
 			norm = tNormLocal;
 #endif
+			PROFILE_END();
 			return norm;
 		}
 
