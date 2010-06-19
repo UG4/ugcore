@@ -8,6 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 #define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 
+#include "common/profiler/profiler.h"
+
 namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
@@ -123,7 +125,10 @@ lmgc(uint l)
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " ---- AssembledMultiGridCycle::lmgc on level " << l << ": Apply Coarse Grid solver ... ");
 		m_c[l]->set(0.0);
 //		m_c[l]->set_storage_type(GFST_CONSISTENT);
-		if(m_baseSolver.apply(*m_d[l], *m_c[l]) != true) return false;
+		PROFILE_BEGIN(baseSolver);
+		bool bSuccess = m_baseSolver.apply(*m_d[l], *m_c[l]);
+		PROFILE_END();
+		if(bSuccess != true) return false;
 		UG_DLOG(LIB_DISC_MULTIGRID, 4, " done ----.\n");
 
 		UG_DLOG(LIB_DISC_MULTIGRID, 3, "\n --- Defect on level " << l << " after exact solving: " << m_d[l]->two_norm() << ".");
