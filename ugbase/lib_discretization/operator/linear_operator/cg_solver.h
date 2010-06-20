@@ -1,19 +1,19 @@
 /*
- * linear_solver.h
+ * cg_solver.h
  *
  *  Created on: 22.02.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__LINEAR_SOLVER__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__LINEAR_SOLVER__
+#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
+#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
 
 #include "lib_discretization/operator/operator.h"
 
 namespace ug{
 
 template <typename TDiscreteFunction>
-class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteFunction>
+class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteFunction>
 {
 	public:
 		// domain space
@@ -23,11 +23,12 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 		typedef TDiscreteFunction codomain_function_type;
 
 	public:
-		LinearSolver( 	ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>& B,
-						int maxIter, number absTol, number relTol,
-						int verboseLevel = 0, int checkNormFrequency = 1) :
+		//TODO: Implement usage of preconditioner
+		CGSolver( 	ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>& B,
+					int maxIter, number absTol, number relTol,
+					int verboseLevel = 0) :
 			m_verboseLevel(verboseLevel), m_iter(&B),
-			m_maxIter(maxIter), m_absTol(absTol), m_relTol(relTol), m_checkNormFrequency(checkNormFrequency)
+			m_maxIter(maxIter), m_absTol(absTol), m_relTol(relTol)
 			{};
 
 		virtual bool init(ILinearizedOperator<TDiscreteFunction, TDiscreteFunction>& A)
@@ -59,49 +60,40 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 			return true;
 		}
 
-		// Solve J(u)*c_nl = d_nl, such that c_nl = J(u)^{-1} d_nl
-		// This is done by iterating: c_nl := c_nl + B(u)(d_nl - J(u)*c_nl)
-		// In d_nl the last defect d := d_nl - J(u)*c_nl is returned
-		// In the following:
-		// c_nl, d_nl refer to the non-linear defect and correction as e.g. in J(u) * c_nl = d_nl as it appears in Newton scheme
-		// c, d are the correction and defect for solving that linear equation iteratively.
-		virtual bool apply(domain_function_type& d_nl, codomain_function_type& c_nl)
+		// Solve J(u)*x = b, such that x = J(u)^{-1} b
+		virtual bool apply(domain_function_type& b, codomain_function_type& x)
 		{
-			if(!d_nl.has_storage_type(GFST_ADDITIVE) || !c_nl.has_storage_type(GFST_CONSISTENT))
+			if(!b.has_storage_type(GFST_ADDITIVE) || !x.has_storage_type(GFST_CONSISTENT))
 			{
 				UG_LOG("ERROR in 'LinearOperatorInverse::apply': Wrong storage format of Vectors. Aborting.\n");
 				return false;
 			}
 
-			// copy d_nl as d
-			domain_function_type& d = d_nl;
+			// copy b as r
+			domain_function_type& r = b;
 
-			UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN start rhs: \n" << d << " ----- END start rhs \n");
-			UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN start sol: \n" << c_nl << " ----- END start sol \n");
+			// build defect:  r := b - J(u)*x
+			if(m_A->apply_sub(x, r) != true)
+				{UG_LOG("ERROR in 'LinearOperatorInverse::apply': Unable to build defect. Aborting.\n");return false;}
 
-			// build defect:  d := d_nl - J(u)*c_nl
-			if(m_A->apply_sub(c_nl, d) != true)
-			{
-				UG_LOG("ERROR in 'LinearOperatorInverse::apply': Unable to build defect. Aborting.\n");
-				return false;
-			}
+			// create help vector (h will be consistent r)
+			codomain_function_type h(r);
 
-			UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Start Defect: \n" << d << " ----- END Start Defect \n");
+			// make h consistent
+			if(!h.change_storage_type(GFST_CONSISTENT))
+				{UG_LOG("Cannot convert h to consistent vector.\n"); return false;}
 
-			// create correction, that has same memory pattern as u
-			codomain_function_type c;
-			if(c.clone_pattern(c_nl) != true)
-			{
-				UG_LOG("ERROR in 'LinearOperatorInverse::apply': Unable to clone pattern for correction. Aborting.\n");
-				return false;
-			}
+			// create help vector (search direction)
+			codomain_function_type d(h);
 
 			// compute start norm ||d||_2
 			number norm, norm_old, norm_start;
-			norm = norm_old = norm_start = d.two_norm();
+
+			// compute first norm
+			norm = norm_old = norm_start = VecProd(h, r);
 
 			// Print Start information
-			if(m_verboseLevel >= 1) UG_LOG("\n    %%%%%%%%%% Iterative Linear Solver %%%%%%%%%%\n");
+			if(m_verboseLevel >= 1) UG_LOG("\n    %%%%%%%%%% CG Solver %%%%%%%%%%\n");
 			if(m_verboseLevel >= 2) UG_LOG("    %   Iter     Defect         Rate \n");
 			if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << 0 << ":  " << std::scientific << norm_old <<  "      -------" << std::endl);
 
@@ -137,25 +129,36 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 					return false;
 				}
 
-				// Compute a correction c := B*c using one the iterative step
-				// Internally the defect is updated d := d - A*c = d - A*(x+c)
-				if(m_iter->apply(d, c) == false)
-				{
-					UG_LOG("ERROR in 'LinearOperatorInverse::apply': Iterator Operator applied incorrectly. Aborting.\n");
-					return false;
-				}
+				// build h = A*d (h is additive afterwards)
+				if(m_A->apply(d, h) != true)
+					{UG_LOG("ERROR in 'LinearOperatorInverse::apply': Unable to build h = A*d. Aborting.\n");return false;}
 
-				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Correction of step " << i << ": \n" << c << " ----- END Correction of step " << i << "\n");
-				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Defect after step " << i << ": \n" << d << " ----- END Defect after step " << i << "\n");
+				// compute alpha
+				number alpha = VecProd(d, h);
+				alpha = norm/alpha;
 
-				// add correction to solution
-				c_nl += c;
+				// update x := x + alpha*d
+				VecScaleAdd(x, d, alpha);
 
-				UG_DLOG(LIB_DISC_OPERATOR_INVERSE, 10, " ----- BEGIN Sol after step " << i << ": \n" << c_nl << " ----- END Sol after step " << i << "\n");
+				// update r := r - alpha*h
+				VecScaleAdd(r, h, (-1)*alpha);
 
-				// compute global norm
-				if(i % m_checkNormFrequency == 0)
-					norm = d.two_norm();
+				// copy new r into h
+				h = r;
+
+				// make h consistent
+				if(!h.change_storage_type(GFST_CONSISTENT))
+					{UG_LOG("Cannot convert h to consistent vector.\n"); return false;}
+
+				// compute new norm
+				norm = VecProd(h, r);
+
+				// new beta
+				number beta = norm/norm_old;
+
+				// new direction d:= beta*d + h
+				d *= beta;
+				d += h;
 
 				// print convergence rate
 				if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
@@ -168,7 +171,51 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 		}
 
 		// destructor
-		virtual ~LinearSolver() {};
+		virtual ~CGSolver() {};
+
+	protected:
+		bool VecScaleAdd(domain_function_type& a_func, domain_function_type& b_func, number s)
+		{
+			typename domain_function_type::vector_type& a = a_func.get_vector();
+			typename domain_function_type::vector_type& b = b_func.get_vector();
+			typename domain_function_type::algebra_type::matrix_type::local_matrix_type locMat(1, 1);
+			typename domain_function_type::algebra_type::matrix_type::local_index_type locInd(1);
+			typename domain_function_type::vector_type::local_vector_type locVec(1);
+
+			for(size_t i = 0; i < a.size(); ++i){
+				locInd[0][0] = i;
+				b.get(locVec, locInd);
+				locVec[0] *= s;
+
+				a.add(locVec, locInd);
+			}
+			return true;
+		}
+
+		number VecProd(domain_function_type& a, domain_function_type& b)
+		{
+			bool check = false;
+			if(a.has_storage_type(GFST_ADDITIVE) && b.has_storage_type(GFST_CONSISTENT)) check = true;
+			if(b.has_storage_type(GFST_ADDITIVE) && a.has_storage_type(GFST_CONSISTENT)) check = true;
+
+			if(!check) return -1;
+
+			typename domain_function_type::vector_type& a_vec = a.get_vector();
+			typename domain_function_type::vector_type& b_vec = b.get_vector();
+
+			// step 1: compute local dot product
+			double tSumLocal = (double)a_vec.dotprod(b_vec);
+			double tSumGlobal;
+
+			// step 2: compute new defect norm
+#ifdef UG_PARALLEL
+			pcl::AllReduce(&tSumLocal, &tSumGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+#else
+			tSumGlobal = tSumLocal;
+#endif
+
+			return tSumGlobal;
+		}
 
 	protected:
 		void print(int verboseLevel, std::ostream outStream)
@@ -204,11 +251,8 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 
 		// relative defect to be reached
 		number m_relTol;
-
-		// checking the norm of defect every m_checkNormFrequency steps
-		int m_checkNormFrequency;
 };
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__LINEAR_SOLVER__ */
+#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__ */
