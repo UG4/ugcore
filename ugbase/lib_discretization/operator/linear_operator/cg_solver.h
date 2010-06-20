@@ -9,6 +9,7 @@
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
 
 #include "lib_discretization/operator/operator.h"
+#include "common/profiler/profiler.h"
 
 namespace ug{
 
@@ -90,8 +91,10 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 			number norm, norm_old, norm_start;
 
 			// compute first norm
-			norm = norm_old = norm_start = VecProd(h, r);
-
+			PROFILE_BEGIN(GlobalVecProd_FirstNorm);
+				norm = norm_old = norm_start = VecProd(h, r);
+			PROFILE_END();
+			
 			// Print Start information
 			if(m_verboseLevel >= 1) UG_LOG("\n    %%%%%%%%%% CG Solver %%%%%%%%%%\n");
 			if(m_verboseLevel >= 2) UG_LOG("    %   Iter     Defect         Rate \n");
@@ -151,8 +154,10 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 					{UG_LOG("Cannot convert h to consistent vector.\n"); return false;}
 
 				// compute new norm
+				PROFILE_BEGIN(GlobalVecProd_NewNorm);
 				norm = VecProd(h, r);
-
+				PROFILE_END();
+				
 				// new beta
 				number beta = norm/norm_old;
 
