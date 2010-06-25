@@ -51,8 +51,10 @@ class ConvectionDiffusionEquation {
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
-		ConvectionDiffusionEquation(TDomain& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs, DataImport<MathVector<dim>, MathVector<dim> >& Velocity)
-		: m_domain(domain), m_upwind_amount(upwind_amount), m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs), m_Velocity(Velocity)
+		ConvectionDiffusionEquation(TDomain& domain, number upwind_amount,
+									Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs)
+		: m_domain(domain), m_upwind_amount(upwind_amount),
+			m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
 		{};
 
 	public:
@@ -100,8 +102,6 @@ class ConvectionDiffusionEquation {
 		Conv_Vel_fct m_Conv_Vel;
 		Reaction_fct m_Reaction;
 		Rhs_fct m_Rhs;
-
-		DataImport<MathVector<dim>, MathVector<dim> >& m_Velocity;
 };
 
 
@@ -137,13 +137,17 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
+#define ____TEMP_TRICK
 	public:
-		ConvectionDiffusionEquationPlugIn(size_t fct, domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs) :
+		ConvectionDiffusionEquationPlugIn(	size_t fct, domain_type& domain, number upwind_amount,
+											Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs) :
 			m_fct(fct),
-			m_Velocity("Velocity"),
-			m_ImpTriangle(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity),
-			m_ImpQuadrilateral(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity),
-			m_ImpTetrahedron(domain, upwind_amount, diff, vel, reac, rhs, m_Velocity)
+			m_domain(domain),
+			m_upwind_amount(upwind_amount),
+			m_diff(diff),
+			m_vel(vel),
+			m_reac(reac),
+			m_rhs(rhs)
 			{};
 
 	public:
@@ -169,140 +173,65 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		// number of fundamental function, where this assembling works
 		size_t m_fct;
 
-	public:
-		bool register_exports(DataContainer& Cont){ return true;}
-
-		bool unregister_exports(DataContainer& Cont) {return true;}
-
-		bool register_imports(DataContainer& Cont)
+	protected:
+		template<typename TElem>
+		ConvectionDiffusionEquation<domain_type, algebra_type, TElem>&
+		get_inst(	domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel,
+					Reaction_fct reac, Rhs_fct rhs)
 		{
-			if(Cont.register_item(m_Velocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
-			return true;
+			static ConvectionDiffusionEquation<domain_type, algebra_type, TElem> inst(domain, upwind_amount, diff, vel, reac, rhs);
+			return inst;
 		}
 
-		bool unregister_imports(DataContainer& Cont)
-		{
-			if(Cont.unregister_item(m_Velocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
-			return true;
-		}
-
-	protected:
-		DataImport<MathVector<dim>, MathVector<dim> > m_Velocity;
-
-	/* ELEMENT WISE ASSEMBLNG */
 	public:
 		// support assembling on triangles
-		inline size_t num_sh(Triangle* elem)
-		{ return m_ImpTriangle.num_sh();};
+		template <typename TElem>
+		inline size_t num_sh(TElem* elem)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).num_sh();};
 
-		inline size_t num_sh(Triangle* elem, size_t fct)
-		{ return m_ImpTriangle.num_sh(fct);};
+		template <typename TElem>
+		inline size_t num_sh(TElem* elem, size_t fct)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).num_sh(fct);};
 
-		inline IPlugInReturn prepare_element_loop(Triangle* elem)
-		{ return m_ImpTriangle.prepare_element_loop(); };
+		template <typename TElem>
+		inline IPlugInReturn prepare_element_loop(TElem* elem)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).prepare_element_loop(); };
 
-		inline IPlugInReturn prepare_element(Triangle* elem, const local_vector_type& u, const local_index_type& glob_ind)
-		{ return m_ImpTriangle.prepare_element(elem, u, glob_ind); };
+		template <typename TElem>
+		inline IPlugInReturn prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).prepare_element(elem, u, glob_ind); };
 
-		inline IPlugInReturn assemble_element_JA(Triangle* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTriangle.assemble_element_JA(J, u, time); };
+		template <typename TElem>
+		inline IPlugInReturn assemble_element_JA(TElem* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).assemble_element_JA(J, u, time); };
 
-		inline IPlugInReturn assemble_element_JM(Triangle* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTriangle.assemble_element_JM(J, u, time); };
+		template <typename TElem>
+		inline IPlugInReturn assemble_element_JM(TElem* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).assemble_element_JM(J, u, time); };
 
-		inline IPlugInReturn assemble_element_A(Triangle* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTriangle.assemble_element_A(d, u, time); };
+		template <typename TElem>
+		inline IPlugInReturn assemble_element_A(TElem* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).assemble_element_A(d, u, time); };
 
-		inline IPlugInReturn assemble_element_M(Triangle* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTriangle.assemble_element_M(d, u, time); };
+		template <typename TElem>
+		inline IPlugInReturn assemble_element_M(TElem* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).assemble_element_M(d, u, time); };
 
-		inline IPlugInReturn assemble_element_f(Triangle* elem, local_vector_type& d, number time=0.0)
-		{ return m_ImpTriangle.assemble_element_f(d, time); };
+		template <typename TElem>
+		inline IPlugInReturn assemble_element_f(TElem* elem, local_vector_type& d, number time=0.0)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).assemble_element_f(d, time); };
 
-		inline IPlugInReturn finish_element_loop(Triangle* elem)
-		{ return m_ImpTriangle.finish_element_loop(); };
-
-	protected:
-		ConvectionDiffusionEquation<domain_type, algebra_type, Triangle> m_ImpTriangle;
-
-
-	public:
-		// support assembling on triangles
-		inline size_t num_sh(Quadrilateral* elem)
-		{ return m_ImpQuadrilateral.num_sh();};
-
-		inline size_t num_sh(Quadrilateral* elem, size_t fct)
-		{ return m_ImpQuadrilateral.num_sh(fct);};
-
-		inline IPlugInReturn prepare_element_loop(Quadrilateral* elem)
-		{ return m_ImpQuadrilateral.prepare_element_loop(); };
-
-		inline IPlugInReturn prepare_element(Quadrilateral* elem, const local_vector_type& u, const local_index_type& glob_ind)
-		{ return m_ImpQuadrilateral.prepare_element(elem, u, glob_ind); };
-
-		inline IPlugInReturn assemble_element_JA(Quadrilateral* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return m_ImpQuadrilateral.assemble_element_JA(J, u, time); };
-
-		inline IPlugInReturn assemble_element_JM(Quadrilateral* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return m_ImpQuadrilateral.assemble_element_JM(J, u, time); };
-
-		inline IPlugInReturn assemble_element_A(Quadrilateral* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return m_ImpQuadrilateral.assemble_element_A(d, u, time); };
-
-		inline IPlugInReturn assemble_element_M(Quadrilateral* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return m_ImpQuadrilateral.assemble_element_M(d, u, time); };
-
-		inline IPlugInReturn assemble_element_f(Quadrilateral* elem, local_vector_type& d, number time=0.0)
-		{ return m_ImpQuadrilateral.assemble_element_f(d, time); };
-
-		inline IPlugInReturn finish_element_loop(Quadrilateral* elem)
-		{ return m_ImpQuadrilateral.finish_element_loop(); };
+		template <typename TElem>
+		inline IPlugInReturn finish_element_loop(TElem* elem)
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs).finish_element_loop(); };
 
 	protected:
-		ConvectionDiffusionEquation<domain_type, algebra_type, Quadrilateral> m_ImpQuadrilateral;
-
-	public:
-		// support assembling on triangles
-		inline size_t num_sh(Tetrahedron* elem)
-		{ return m_ImpTetrahedron.num_sh();};
-
-		inline size_t num_sh(Tetrahedron* elem, size_t fct)
-		{ return m_ImpTetrahedron.num_sh(fct);};
-
-		inline IPlugInReturn prepare_element_loop(Tetrahedron* elem)
-		{ return m_ImpTetrahedron.prepare_element_loop(); };
-
-		inline IPlugInReturn prepare_element(Tetrahedron* elem, const local_vector_type& u, const local_index_type& glob_ind)
-		{ return m_ImpTetrahedron.prepare_element(elem, u, glob_ind); };
-
-		inline IPlugInReturn assemble_element_JA(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTetrahedron.assemble_element_JA(J, u, time); };
-
-		inline IPlugInReturn assemble_element_JM(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTetrahedron.assemble_element_JM(J, u, time); };
-
-		inline IPlugInReturn assemble_element_A(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTetrahedron.assemble_element_A(d, u, time); };
-
-		inline IPlugInReturn assemble_element_M(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return m_ImpTetrahedron.assemble_element_M(d, u, time); };
-
-		inline IPlugInReturn assemble_element_f(Tetrahedron* elem, local_vector_type& d, number time=0.0)
-		{ return m_ImpTetrahedron.assemble_element_f(d, time); };
-
-		inline IPlugInReturn finish_element_loop(Tetrahedron* elem)
-		{ return m_ImpTetrahedron.finish_element_loop(); };
-
-	protected:
-		ConvectionDiffusionEquation<domain_type, algebra_type, Tetrahedron> m_ImpTetrahedron;
+		domain_type& m_domain;
+		number m_upwind_amount;
+		Diff_Tensor_fct m_diff;
+		Conv_Vel_fct m_vel;
+		Reaction_fct m_reac;
+		Rhs_fct m_rhs;
 
 };
 

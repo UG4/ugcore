@@ -35,8 +35,6 @@ prepare_element_loop()
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
-	m_Darcy_Velocity_export.set_eval_function(&DataExportingClass<MathVector<TDomain::dim>, MathVector<TDomain::dim>,TAlgebra>::export1, this);
-
 	return IPlugInReturn_OK;
 }
 
@@ -72,27 +70,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 		m_corners[i] = m_aaPos[vert];
 	}
 
-	// get subset indices of side
-	/*
-	typename domain_type::grid_type& grid = m_domain.get_grid();
-	typename domain_type::subset_handler_type& sh = m_domain.get_subset_handler();
-	for(size_t i = 0; i < TElem::num_sides; ++i)
-	{
-		typedef typename TElem::lower_dim_base_object bnd_base_type;
-		bnd_base_type* bnd_geom_obj = grid.get_side<TElem, dim>(elem, i);
-
-		m_subset_index[i] = sh.get_subset_index(bnd_geom_obj);
-	}
-	*/
-
 	// update Geometry for this element
 	m_geo->update(m_corners);
 
 	// user function
 	m_Porosity(m_porosity);
-
-	//prepare Export for computation
-	m_Darcy_Velocity_export.set_local_solution(u);
 
 	return IPlugInReturn_OK;
 }
@@ -216,18 +198,6 @@ template<typename TDomain, typename TAlgebra, typename TElem >
 inline
 IPlugInReturn
 DensityDrivenFlow<TDomain, TAlgebra, TElem>::
-assemble_element_JABnd(local_matrix_type& J, const local_vector_type& u, number time)
-{
-	// Here, we implement all boundary conditions, that depend on the solution. (If they do not depend (even implicitly) on the solution, there is no contribution to the Jacobian)
-	// ONLY DIRICHLET BOUNDARY conditions are not processed here.
-
-	return IPlugInReturn_OK;
-}
-
-template<typename TDomain, typename TAlgebra, typename TElem >
-inline
-IPlugInReturn
-DensityDrivenFlow<TDomain, TAlgebra, TElem>::
 assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	int co;
@@ -318,18 +288,6 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 			d(_P_,scvf.to()) -= flux;
 		}
 	}
-
-	return IPlugInReturn_OK;
-}
-
-template<typename TDomain, typename TAlgebra, typename TElem >
-inline
-IPlugInReturn
-DensityDrivenFlow<TDomain, TAlgebra, TElem>::
-assemble_element_ABnd(local_vector_type& d, const local_vector_type& u, number time)
-{
-	// Here, we implement all boundary conditions, that depend on the solution.
-	// ONLY DIRICHLET BOUNDARY conditions are not processed here.
 
 	return IPlugInReturn_OK;
 }
