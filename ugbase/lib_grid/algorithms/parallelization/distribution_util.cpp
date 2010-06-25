@@ -85,6 +85,7 @@ void CreateDistributionLayouts(
 						std::vector<DistributionFaceLayout>& faceLayoutsOut,
 						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
+						bool distributeGenealogy,
 						MGSelector* pSel)
 {
 //	initialize a selector.
@@ -168,7 +169,16 @@ void CreateDistributionLayouts(
 	//	the hierarchy has to be complete. make sure the whole geneology
 	//	is selected. By passing true, all associated elements of lower
 	//	dimension will be selected, too.
-		SelectAssociatedGenealogy(msel, true);
+	
+	//	if the whole genealogy shall be distributed, then select it here.
+	//	associated elements will automatically be selected.
+	//	If howerver vertical interfaces shall be created, the genealogy
+	//	shouldn't be distributed. In this case only associated geometric
+	//	objects have to be selected.
+		if(distributeGenealogy)
+			SelectAssociatedGenealogy(msel, true);
+		else
+			SelectAssociatedGeometricObjects(msel);
 
 	//	make sure that we won't add elements twice.
 		msel.deselect(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
@@ -282,6 +292,7 @@ FillLayoutWithNodes(TLayout& layout, Grid& grid)
 		nodes.push_back(*iter);
 }
 */
+
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridAndLayouts
 void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
@@ -318,7 +329,7 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 													vFaces, in);
 	DeserializeDistributionLayoutInterfaces<Volume>(gridLayoutOut,
 													vVols, in);
-
+	
 //DEBUG
 /*
 	PCLLOG("deserialization done.\n");

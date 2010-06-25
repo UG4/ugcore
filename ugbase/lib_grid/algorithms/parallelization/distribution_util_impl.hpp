@@ -103,7 +103,7 @@ void DeserializeDistributionLayoutInterfaces(
 			int numEntries;
 			in.read((char*)&numEntries, sizeof(int));
 			
-		//	we'll set pLayout to NULL at the before we read the interface.
+		//	we'll set pLayout to NULL before we read the interface.
 		//	This is important since this will cause the actualization of pInterface.
 			pLayout = NULL;
 			

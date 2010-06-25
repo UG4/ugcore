@@ -93,6 +93,10 @@ void SelectAssociatedFaces(TSelector& sel,
 								TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
+///	selects associated geometric objects of selected ones on each level.
+void SelectAssociatedGeometricObjects(MGSelector& msel);
+
+////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGenealogy
 ///	Selects the complete genealogy of all selected elements.
 /**

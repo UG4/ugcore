@@ -59,7 +59,10 @@ struct DistributionNodeLayout
 */	
 ///	returns a reference to the vector that holds the nodes.
 	inline NodeVec& node_vec()								{return m_vNodes;}
-	
+
+///	returns a const reference to the vector that holds the nodes.
+	inline const NodeVec& node_vec() const					{return m_vNodes;}
+		
 ///	returns the interface to the given process on the given level.
 	/**	if you don't specify a level, level = 0 will be used.*/
 	inline Interface& interface(int procID, size_t level = 0)	{return interface_map(level)[procID];}
@@ -115,6 +118,7 @@ void CreateDistributionLayouts(
 						std::vector<DistributionFaceLayout>& faceLayoutsOut,
 						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
 						MultiGrid& mg, SubsetHandler& sh,
+						bool distributeGenealogy,
 						MGSelector* pSel = NULL);
 
 ////////////////////////////////////////////////////////////////////////

@@ -53,6 +53,24 @@ void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	SelectAssociatedGeometricObjects
+void SelectAssociatedGeometricObjects(MGSelector& msel)
+{
+//	select associated elements of selected elements on each level
+	for(size_t i = 0; i < msel.num_levels(); ++i)
+	{
+		SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i), msel.end<EdgeBase>(i));
+		SelectAssociatedVertices(msel, msel.begin<Face>(i), msel.end<Face>(i));
+		SelectAssociatedVertices(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		
+		SelectAssociatedEdges(msel, msel.begin<Face>(i), msel.end<Face>(i));
+		SelectAssociatedEdges(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		
+		SelectAssociatedFaces(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	SelectParents
 ///	helper for SelectAssociatedGenealogy.
 template <class TIterator>

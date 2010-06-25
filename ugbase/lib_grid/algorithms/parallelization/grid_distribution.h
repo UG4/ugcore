@@ -34,7 +34,7 @@ namespace ug
  * for the associated subset. You may pass NULL as parameter. The grids
  * are distributed to processes 0 to sh.num_subsets()-1 in this case.
  *
- * Grids distributed through this method may be received by ReveiveGrid.
+ * Grids distributed through this method may be received by ReceiveGrid.
  */
 bool DistributeGrid(MultiGrid& mg, ISubsetHandler& sh,
 					SubsetHandler& shPartition, int localProcID,
@@ -43,6 +43,28 @@ bool DistributeGrid(MultiGrid& mg, ISubsetHandler& sh,
 					GridLayoutMap* pLocalGridLayoutMapOut = NULL,
 					std::vector<int>* pProcessMap = NULL);
 
+////////////////////////////////////////////////////////////////////////
+///	copies parts of the grid to other processes.
+/**
+ * Copies the parts of the grid to the processes given in the subset-handler
+ * (optionally to the processes in the process-map).
+ * In contrary to DistributeGrid(...) the given multigrid is regarded
+ * as the local grid-instance. The interfaces in the layoutMap will thus
+ * be created for the given grid instance.
+ * Vertical interfaces will be created that allow to communicate data
+ * between the local VerticalMasters and their copies (vertical slaves).
+ * All elements that are copied to other processes will be regarded as
+ * vertical slaves there.
+ * To make sure that those vertical interfaces are created on the
+ * receiving processes, you have to call ReceiveGrid(...) with
+ * createVerticalLayouts == true.
+ */
+bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
+								GridLayoutMap& layoutMap,
+								SubsetHandler& shPartition,
+								int localProcID,
+								std::vector<int>* pProcessMap);
+								
 ////////////////////////////////////////////////////////////////////////
 //	ReceiveGrid
 ///	receives a part of a grid that was distributed through DistributeGrid.
@@ -54,7 +76,8 @@ bool DistributeGrid(MultiGrid& mg, ISubsetHandler& sh,
  */
 bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 				GridLayoutMap& gridLayoutMapOut,
-				int srcProcID);
+				int srcProcID,
+				bool createVerticalLayouts = false);
 }//	end of namespace
 
 #endif

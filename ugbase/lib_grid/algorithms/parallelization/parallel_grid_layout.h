@@ -49,12 +49,23 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 ///	The types of interface-entries.
+/**	INT_MASTER and INT_SLAVE describe (horizontal) connections between
+ *	nodes on one level in a grid-hierarchy. They are used to communicate
+ *	data between neighbours.
+ *
+ *	INT_VERTICAL_MASTER and INT_VERTICAL_SLAVE describe connections
+ *	between nodes on different levels of a grid. They are used to
+ *	communicate data between parents and children. They are only used
+ *	for multigrids.
+ */
 enum InterfaceNodeTypes
 {
 	INT_UNKNOWN =	0,
-	INT_MASTER =	1,
-	INT_SLAVE =		1<<1,
-	INT_LINK =		1<<2
+	INT_MASTER,	//horizontal
+	INT_SLAVE,	//horizontal
+	INT_LINK,	//not yet used
+	INT_VERTICAL_MASTER,
+	INT_VERTICAL_SLAVE
 };
 
 //	declare vertex-, edge-, face- and volume-layouts
