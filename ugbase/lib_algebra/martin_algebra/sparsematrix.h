@@ -375,6 +375,6 @@ private:
 
 #include "matrixrow.h"
 #include "sparsematrix_impl.h"
-#include "sparsematrix_util.h"
+//#include "sparsematrix_util.h"
 
 #endif
