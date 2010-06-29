@@ -258,9 +258,11 @@ class ILinearIteratorOperator : public ILinearizedIteratorOperator<X,Y>
 #include "linear_operator/linear_solver.h"
 #include "linear_operator/cg_solver.h"
 
+#ifdef USE_MARTIN_ALGEBRA
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
 #include "linear_operator/lapack_lu_operator.h" 
+#endif
 #endif
 #endif
 
