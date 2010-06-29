@@ -98,6 +98,12 @@ class HypreAlgebra{
 #ifdef USE_MARTIN_ALGEBRA
 #include "martin_algebra/vector.h"
 
+#ifdef LAPACK_AVAILABLE
+#ifdef BLAS_AVAILABLE
+#include "martin_algebra/lapack_lu.h"
+#endif
+#endif
+
 namespace ug
 {
 class MartinAlgebra
