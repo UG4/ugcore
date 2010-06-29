@@ -258,6 +258,11 @@ class ILinearIteratorOperator : public ILinearizedIteratorOperator<X,Y>
 #include "linear_operator/linear_solver.h"
 #include "linear_operator/cg_solver.h"
 
+#ifdef LAPACK_AVAILABLE
+#ifdef BLAS_AVAILABLE
+#include "linear_operator/lapack_lu_operator.h" 
+#endif
+#endif
 
 #include "non_linear_operator/assembled_non_linear_operator.h"
 #include "non_linear_operator/newton_solver/newton.h"
