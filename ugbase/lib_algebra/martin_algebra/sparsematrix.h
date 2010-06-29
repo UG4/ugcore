@@ -20,8 +20,8 @@
 #include "blocks.h"
 #include "blockVector.h"
 #else
-//#include "blocks/blocks.h"
-//#include "blocks/blockVector.h"
+#include "blocks/blocks.h"
+#include "blocks/blockVector.h"
 #endif
 
 #include "template_expressions.h"
@@ -369,12 +369,12 @@ private:
 	size_t iFragmentedMem;				//!< size of connections memory not in consmem
 	
 	friend class matrixrow<entry_type>;
-	
 };
 
 } // namespace ug
 
 #include "matrixrow.h"
 #include "sparsematrix_impl.h"
+#include "sparsematrix_util.h"
 
 #endif

@@ -999,7 +999,7 @@ template<typename T> bool SparseMatrix<T>::set(const local_matrix_type& mat, con
 	delete[] c;
 	return true;
 }
-#endif FLEXAMG
+#endif // FLEXAMG
 //////////////////////////////////////////////////////////////////////////
 
 

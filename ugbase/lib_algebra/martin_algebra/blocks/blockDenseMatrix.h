@@ -318,7 +318,7 @@ public:
 
 	void invert()
 	{
-		static vector<__CLPK_integer> interchange;
+		static std::vector<__CLPK_integer> interchange;
 		interchange.resize(max(getCols(), getRows()));
 		__CLPK_integer info = 0;
 		__CLPK_integer rows = getRows();
@@ -335,7 +335,7 @@ public:
 		UG_ASSERT(info == 0, "");
 		iWorksize = worksize;
 		
-		static vector<double> work;
+		static std::vector<double> work;
 		work.resize(iWorksize);
 
 		dgetri_(&rows, ptr, &rows, &interchange[0], &work[0], &iWorksize, &info);
@@ -345,10 +345,10 @@ public:
 	//inline void setAsInverseOf(const matrix_type &mat ); // deprecated
 	
 // print
-	void p() { cout << *this; cout.flush();}
+	void p() { std::cout << *this << std::endl; }
 	void print() { p(); }
 
-	friend ostream &operator << (ostream &out, const matrix_type &s)
+	friend std::ostream &operator << (std::ostream &out, const matrix_type &s)
 	{
 		//out <<  storage_type::getType() << " mat " << s.getRows() << "x" << s.getCols() << " : ";
 		out << "[ ";
@@ -464,7 +464,7 @@ public:
 	{
 		// we need one temporary variable
 		// keep static so it gets reallocated only once or twice
-		static vector<double> erg;
+		static std::vector<double> erg;
 		erg.resize(vec.getSize());
 		
 		apply(&erg[0], vec);
@@ -476,7 +476,7 @@ public:
 	{
 		// we need one temporary variable
 		// keep static so it gets reallocated only once or twice
-		static vector<double> erg;
+		static std::vector<double> erg;
 		erg.resize(vec.getSize());
 		
 		apply(&erg[0], vec);

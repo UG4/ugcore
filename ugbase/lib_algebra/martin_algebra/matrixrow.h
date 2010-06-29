@@ -11,7 +11,7 @@
 #define __H__UG__MARTIN_ALGEBRA__MATRIXROW__
 
 #ifndef FLEXAMG
-//#include "blocks/blocks.h"
+#include "blocks/blocks.h"
 #else
 #include "blocks.h"
 #endif

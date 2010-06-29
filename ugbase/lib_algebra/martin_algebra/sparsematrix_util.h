@@ -40,7 +40,7 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 		posInConnections = new int[C.num_cols()];
 		for(int i=0; i<C.num_cols(); i++) posInConnections[i] = -1; // memset(posInConnections, -1, sizeof(int)*C.num_cols());
 		bOwnMem = true;
-		ASSERT1(0);
+		//assert(0);
 	}
 #ifndef NDEBUG
 	else

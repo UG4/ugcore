@@ -220,7 +220,7 @@ public:
 // print functions	
 	void p();
 	void print() { p(); }
-	friend ostream &operator << (ostream &out, const vector_type &v)
+	friend std::ostream &operator << (std::ostream &out, const vector_type &v)
 	{
 		out << "( ";
 		for(int i=0; i < v.getSize(); i++)

@@ -32,7 +32,7 @@ using namespace std;
 
 namespace ug{
 
-#pragma mark template expression CRTP base classes
+//#pragma mark template expression CRTP base classes
 //! only classes which inherit from TE_AMV_X, TE_MAT or TE_VEC (via class myClass : public XD<myClass> )
 //! can use templateExpressions used in this file
 //! CRTP = Curiously recurring template pattern
@@ -370,7 +370,7 @@ public:
 }; 
 
 
-#pragma mark operator x -> X_Operator
+//#pragma mark operator x -> X_Operator
 ////////////////////////////////////////////////////////////////////////////////
 
 //! create AlphaMatVec_Add_Expression by conjunction of two TE_AMV_X
@@ -413,7 +413,7 @@ AlphaMatVec_Expression <L, R>  operator * (double d, const MatVec_Expression <L,
 // * and / only for special
 
 
-#pragma mark Templated Functions
+//#pragma mark Templated Functions
 ////////////////////////////////////////////////////////////////////////////////
 
 double mnorm2(double &a)
