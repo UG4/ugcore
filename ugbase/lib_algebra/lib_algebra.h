@@ -100,7 +100,7 @@ class HypreAlgebra{
 
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
-//#include "martin_algebra/lapack_lu.h"
+#include "martin_algebra/lapack_lu.h"
 #endif
 #endif
 
