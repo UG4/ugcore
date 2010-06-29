@@ -39,7 +39,7 @@ inline size_t matrixrow<entry_type>::getConNr(size_t index) const
 	return -1;
 }*/
 
-#pragma mark -
+ //#pragma mark -
 ////////////////////////////////////////////////////////////////////////////////
 
 // operator *
@@ -99,7 +99,7 @@ inline void matrixrow<entry_type>::add_mult(vec_type &d, const Vector<vec_type> 
 }
 
 
-#pragma mark -
+//#pragma mark -
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename entry_type, typename vec_type>
