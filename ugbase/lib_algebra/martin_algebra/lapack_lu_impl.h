@@ -10,18 +10,13 @@
 #ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__
 #define __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__
 
-/*#include <iostream>
 
-#include <veclib/cblas.h>
-#include <veclib/clapack.h>
-
-#include "misc.h"
-#include "SparseMatrix.h"
-
-#include "CoarseSolver.h" */
-
-#include <cblas.h>
-#include <clapack.h>
+extern "C"
+{
+    void dgetrf_(int *m, int *n, double *a, int *lda, int *ipiv, int *info);
+    void dgetrs_(char *trans, int *n, int *nrhs, const double *a, int *lda,
+            const int *ipiv, double *b, int *ldb, int *info);
+}
 
 //using namespace std;
 namespace ug{
@@ -42,9 +37,9 @@ void LapackLU::apply(const Vector<double> &b, Vector<double> &x)
 
 	// solve system
 	char trans ='N';
-	__CLPK_integer dim = size;
-	__CLPK_integer nrhs = 1;
-	__CLPK_integer info;
+	int dim = size;
+	int nrhs = 1;
+	int info;
 
 	dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, &x[0], &dim, &info);
 	UG_ASSERT(info == 0, "info is " << info);
@@ -63,7 +58,7 @@ void LapackLU::init(const SparseMatrix<double> &A)
 	size = A.row_size() * nrOfUnknowns;
 
 	densemat = new double[size*size];
-	interchange = new __CLPK_integer[size];
+	interchange = new int[size];
 
 	memset(densemat, 0, sizeof(double)*size*size);
 
@@ -85,8 +80,8 @@ void LapackLU::init(const SparseMatrix<double> &A)
 			densemat[rr + cc*size] = (*it).dValue;
 		}
 
-	__CLPK_integer info = 0;
-	__CLPK_integer dim = size;
+	int info = 0;
+	int dim = size;
 	dgetrf_(&dim, &dim, densemat, &dim, interchange, &info);
 	UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": matrix singular in U(i,i)" : ": i-th argument had had illegal value"));
 }

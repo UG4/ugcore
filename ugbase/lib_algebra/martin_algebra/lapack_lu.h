@@ -12,7 +12,10 @@
 
 #include "sparsematrix.h"
 #include "vector.h"
-//typedef long int __CLPK_integer;
+
+#include <cblas.h>
+#include <clapack.h>
+
 
 // TODO: for smallmatrix tasks like this, better use sth. like FLENS
 namespace ug{
@@ -43,7 +46,7 @@ public:
 private:
 	size_t size;
 	double *densemat;
-	__CLPK_integer *interchange;
+	int *interchange;
 };
 
 } // namespace ug
