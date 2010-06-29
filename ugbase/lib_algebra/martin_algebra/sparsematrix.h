@@ -18,10 +18,10 @@
 
 #ifdef FLEXAMG
 #include "blocks.h"
-//#include "blockVector.h"
+#include "blockVector.h"
 #else
 #include "blocks/blocks.h"
-#include "blocks/blockVector.h"
+//#include "blocks/blockVector.h"
 #endif
 
 #include "template_expressions.h"

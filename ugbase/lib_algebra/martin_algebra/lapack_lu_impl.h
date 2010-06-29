@@ -20,7 +20,7 @@
 
 #include "CoarseSolver.h" */
 
-#include <veclib/cblas.h>
+#include <cblas.h>
 #include <clapack.h>
 
 //using namespace std;
