@@ -215,6 +215,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 
 	#######################
 	# LAPACK
+	SET(NO_LAPACK ON)
 	IF(NO_LAPACK)
 	    message("-- INFO: Not using LAPACK. (To enable LAPACK define -DNO_LAPACK=OFF)")
 	ELSE(NO_LAPACK)
@@ -245,6 +246,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	
 	#######################
 	# BLAS
+	SET(NO_BLAS ON)
 	IF(NO_BLAS)
 	    message("-- INFO: Not using BLAS. (To enable BLAS define -DNO_BLAS=OFF)")
 	ELSE(NO_BLAS)
