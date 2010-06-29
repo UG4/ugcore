@@ -47,24 +47,15 @@ class ISystemDomainDiscretization {
 	/* GENERAL INFORMATIONS */
 	public:
 		// number of fundamental functions required for this assembling
-		virtual uint num_fct() = 0;
+		virtual size_t num_fct() = 0;
 
 		// local shape function set required for the 'i'-th fundamental function
-		virtual LocalShapeFunctionSetID local_shape_function_set(uint i) = 0;
+		virtual LocalShapeFunctionSetID local_shape_function_set(size_t i) = 0;
 
 		// get global fundamental function number from local on
-		virtual uint fct(uint i) = 0;
+		virtual size_t fct(size_t i) = 0;
 
-	/* DIRICHLET BOUNDARY CONDITIONS */
 	public:
-		// currently only dirichlet bnd cond for nodes
-		// must return true for dirichlet, false else
-		// fct is local fct number, i.e. 0,...,num_fct-1
-		// TODO: Implement others
-		virtual bool is_dirichlet(int s, size_t fct) = 0;
-
-		virtual bool boundary_value(number& value, const position_type& pos, number time, int s, size_t fct) = 0;
-
 		virtual bool register_exports(DataContainer& Cont) = 0;
 
 		virtual bool unregister_exports(DataContainer& Cont) = 0;
@@ -76,9 +67,9 @@ class ISystemDomainDiscretization {
 	/* ELEMENT WISE ASSEMBLNG */
 	public:
 		// support assembling on triangles
-		virtual uint num_sh(Triangle* elem) = 0;
+		virtual size_t num_sh(Triangle* elem) = 0;
 
-		virtual uint num_sh(Triangle* elem, uint fct) = 0;
+		virtual size_t num_sh(Triangle* elem, size_t fct) = 0;
 
 		virtual IPlugInReturn prepare_element_loop(Triangle* elem) = 0;
 
@@ -98,9 +89,9 @@ class ISystemDomainDiscretization {
 
 	public:
 		// support assembling on quadrilateral
-		virtual uint num_sh(Quadrilateral* elem) = 0;
+		virtual size_t num_sh(Quadrilateral* elem) = 0;
 
-		virtual uint num_sh(Quadrilateral* elem, uint fct) = 0;
+		virtual size_t num_sh(Quadrilateral* elem, size_t fct) = 0;
 
 		virtual IPlugInReturn prepare_element_loop(Quadrilateral* elem) = 0;
 
@@ -117,6 +108,28 @@ class ISystemDomainDiscretization {
 		virtual IPlugInReturn assemble_element_f(Quadrilateral* elem, local_vector_type& d, number time=0.0) = 0;
 
 		virtual IPlugInReturn finish_element_loop(Quadrilateral* elem) = 0;
+
+	public:
+		// support assembling on tetrahedron
+		virtual size_t num_sh(Tetrahedron* elem) = 0;
+
+		virtual size_t num_sh(Tetrahedron* elem, size_t fct) = 0;
+
+		virtual IPlugInReturn prepare_element_loop(Tetrahedron* elem) = 0;
+
+		virtual IPlugInReturn prepare_element(Tetrahedron* elem, const local_vector_type& u, const local_index_type& glob_ind) = 0;
+
+		virtual IPlugInReturn assemble_element_JA(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0) = 0;
+
+		virtual IPlugInReturn assemble_element_JM(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0) = 0;
+
+		virtual IPlugInReturn assemble_element_A(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0) = 0;
+
+		virtual IPlugInReturn assemble_element_M(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0) = 0;
+
+		virtual IPlugInReturn assemble_element_f(Tetrahedron* elem, local_vector_type& d, number time=0.0) = 0;
+
+		virtual IPlugInReturn finish_element_loop(Tetrahedron* elem) = 0;
 
 
 		virtual ~ISystemDomainDiscretization()
@@ -155,26 +168,15 @@ class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDom
 	/* GENERAL INFORMATIONS */
 	public:
 		// number of fundamental functions required for this assembling
-		virtual uint num_fct(){return m_elemDisc.num_fct();}
+		virtual size_t num_fct(){return m_elemDisc.num_fct();}
 
 		// local shape function set required for the 'i'-th fundamental function
-		virtual LocalShapeFunctionSetID local_shape_function_set(uint i){return m_elemDisc.local_shape_function_set(i);}
+		virtual LocalShapeFunctionSetID local_shape_function_set(size_t i){return m_elemDisc.local_shape_function_set(i);}
 
 		// get global fundamental function number from local on
-		virtual uint fct(uint i) {return m_elemDisc.fct(i);}
+		virtual size_t fct(size_t i) {return m_elemDisc.fct(i);}
 
-	/* DIRICHLET BOUNDARY CONDITIONS */
 	public:
-		// currently only dirichlet bnd cond for nodes
-		// must return true for dirichlet, false else
-		// fct is local fct number, i.e. 0,...,num_fct-1
-		// TODO: Implement others
-		virtual bool is_dirichlet(int s, size_t fct)
-		{return m_elemDisc.is_dirichlet(s, fct);}
-
-		virtual bool boundary_value(number& value, const position_type& pos, number time, int si, size_t fct)
-		{return m_elemDisc.boundary_value(value, pos, time, si, fct);}
-
 		virtual bool register_exports(DataContainer& Cont) {return m_elemDisc.register_exports(Cont);}
 
 		virtual bool unregister_exports(DataContainer& Cont) {return m_elemDisc.unregister_exports(Cont);}
@@ -186,9 +188,9 @@ class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDom
 	/* ELEMENT WISE ASSEMBLNG */
 	public:
 		// support assembling on triangles
-		virtual uint num_sh(Triangle* elem){return m_elemDisc.num_sh(elem);}
+		virtual size_t num_sh(Triangle* elem){return m_elemDisc.num_sh(elem);}
 
-		virtual uint num_sh(Triangle* elem, uint fct){return m_elemDisc.num_sh(elem, fct);}
+		virtual size_t num_sh(Triangle* elem, size_t fct){return m_elemDisc.num_sh(elem, fct);}
 
 		virtual IPlugInReturn prepare_element_loop(Triangle* elem){return m_elemDisc.prepare_element_loop(elem);}
 
@@ -208,9 +210,9 @@ class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDom
 
 	public:
 		// support assembling on quadrilateral
-		virtual uint num_sh(Quadrilateral* elem){return m_elemDisc.num_sh(elem);}
+		virtual size_t num_sh(Quadrilateral* elem){return m_elemDisc.num_sh(elem);}
 
-		virtual uint num_sh(Quadrilateral* elem, uint fct){return m_elemDisc.num_sh(elem, fct);}
+		virtual size_t num_sh(Quadrilateral* elem, size_t fct){return m_elemDisc.num_sh(elem, fct);}
 
 		virtual IPlugInReturn prepare_element_loop(Quadrilateral* elem){return m_elemDisc.prepare_element_loop(elem);}
 
@@ -227,6 +229,28 @@ class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDom
 		virtual IPlugInReturn assemble_element_f(Quadrilateral* elem, local_vector_type& d, number time=0.0) {return m_elemDisc.assemble_element_f(elem, d, time);}
 
 		virtual IPlugInReturn finish_element_loop(Quadrilateral* elem){return m_elemDisc.finish_element_loop(elem);}
+
+	public:
+		// support assembling on quadrilateral
+		virtual size_t num_sh(Tetrahedron* elem){return m_elemDisc.num_sh(elem);}
+
+		virtual size_t num_sh(Tetrahedron* elem, size_t fct){return m_elemDisc.num_sh(elem, fct);}
+
+		virtual IPlugInReturn prepare_element_loop(Tetrahedron* elem){return m_elemDisc.prepare_element_loop(elem);}
+
+		virtual IPlugInReturn prepare_element(Tetrahedron* elem, const local_vector_type& u, const local_index_type& glob_ind){return m_elemDisc.prepare_element(elem, u, glob_ind);}
+
+		virtual IPlugInReturn assemble_element_JA(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_JA(elem, J, u, time);}
+
+		virtual IPlugInReturn assemble_element_JM(Tetrahedron* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_JM(elem, J, u, time);}
+
+		virtual IPlugInReturn assemble_element_A(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0) {return m_elemDisc.assemble_element_A(elem, d, u, time);}
+
+		virtual IPlugInReturn assemble_element_M(Tetrahedron* elem, local_vector_type& d, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_M(elem, d, u, time);}
+
+		virtual IPlugInReturn assemble_element_f(Tetrahedron* elem, local_vector_type& d, number time=0.0) {return m_elemDisc.assemble_element_f(elem, d, time);}
+
+		virtual IPlugInReturn finish_element_loop(Tetrahedron* elem){return m_elemDisc.finish_element_loop(elem);}
 
 	protected:
 		TElemDisc<domain_type, algebra_type>& m_elemDisc;
@@ -279,8 +303,14 @@ class CoupledSystemDomainDiscretization : public IDomainDiscretization<TDiscrete
 		typedef ISystemDomainDiscretization<domain_type, algebra_type> system_type;
 
 	public:
-		CoupledSystemDomainDiscretization(std::string name) : m_name(name)
-		{};
+		CoupledSystemDomainDiscretization(std::string name, DirichletBNDValues<discrete_function_type>& bndDisc, domain_type& domain)
+		: m_name(name),
+		  m_dirichletDisc(bndDisc), m_domain(domain)
+		{
+			m_elem_subset.resize(4);
+			for(std::size_t i = 0; i < 3; ++i)
+				m_elem_subset[i].clear();
+		};
 
 		std::string name() const {return m_name;}
 
@@ -327,7 +357,18 @@ class CoupledSystemDomainDiscretization : public IDomainDiscretization<TDiscrete
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a);
 		IAssembleReturn assemble_solution(discrete_function_type& u, number time);
 
-		size_t num_fct() const
+	public:
+		size_t num_elem_subsets(size_t d) {return m_elem_subset[d].size();}
+		int elem_subset(size_t d, size_t i) {return m_elem_subset[d][i];}
+		bool add_elem_assemble_subset(size_t d, int s)
+		{
+			std::vector<int>::iterator iter = find(m_elem_subset[d].begin(), m_elem_subset[d].end(), s);
+			if(iter == m_elem_subset[d].end())
+				m_elem_subset[d].push_back(s);
+			return true;
+		}
+
+		virtual size_t num_fct() const
 		{
 			size_t num = 0;
 			for(size_t sys = 0; sys < m_systems.size(); ++sys)
@@ -337,18 +378,15 @@ class CoupledSystemDomainDiscretization : public IDomainDiscretization<TDiscrete
 			return num;
 		}
 
-		virtual bool is_dirichlet(int s, size_t fct)
-		{
-			for(size_t sys = 0; sys < m_systems.size(); ++sys)
-			{
-				for(size_t i = 0; i < m_systems[sys]->num_fct(); ++i)
-				{
-					if(m_systems[sys]->fct(i) == fct)
-						return m_systems[sys]->is_dirichlet(s, fct);
-				}
-			}
-			return false;
-		}
+	protected:
+		std::vector<std::vector<int> > m_elem_subset; // 3 = max dimensions
+
+	protected:
+		DirichletBNDValues<discrete_function_type>& m_dirichletDisc;
+
+		domain_type& m_domain;
+
+		virtual bool is_dirichlet(int si, size_t fct) {	return m_dirichletDisc.is_dirichlet(si, fct);}
 
 
 	protected:

@@ -8,6 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DIRICHLET_BND_VALUES__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DIRICHLET_BND_VALUES__
 
+#include "lib_discretization/domain_discretization/domain_discretization_interface.h"
+
 namespace ug{
 
 enum BND_TYPE {
@@ -16,8 +18,9 @@ enum BND_TYPE {
 	BND_TYPE_NEUMANN
 };
 
-template <typename TDiscreteFunction>
-class DirichletBNDValues {
+template <	typename TDiscreteFunction,
+			int ref_dim>
+class DirichletBNDValues : public IDirichletBoundaryValues<TDiscreteFunction> {
 	public:
 		// type of discrete function
 		typedef TDiscreteFunction discrete_function_type;
@@ -50,28 +53,18 @@ class DirichletBNDValues {
 		typedef typename matrix_type::local_index_type local_index_type;
 
 	public:
-		DirichletBNDValues(domain_type& domain) :
-		  m_domain(domain)
-		{
-			typename domain_type::subset_handler_type& sh = domain.get_subset_handler();
-			int num_sh = sh.num_subsets();
-			// TODO: Handle this
-			size_t num_fct = 10;
-			m_bndfct.resize(num_fct);
-			m_bndtype.resize(num_fct);
-			for(size_t fct = 0; fct < num_fct; ++fct)
-			{
-				m_bndfct[fct].resize(num_sh, NULL);
-				m_bndtype[fct].resize(num_sh, BND_TYPE_NONE);
-			}
-		}
+		typedef bool (*Boundary_fct)(number&, const position_type&, number);
 
-		bool clear_dirichlet_jacobian_defect(	 	matrix_type& J, vector_type& d, const discrete_function_type& u, number time = 0.0);
-		bool clear_dirichlet_jacobian(				matrix_type& J, const discrete_function_type& u, number time = 0.0);
-		bool clear_dirichlet_defect(				vector_type& d, const discrete_function_type& u, number time = 0.0);
-		bool set_dirichlet_linear(					matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time = 0.0);
+		DirichletBNDValues(size_t fct, Boundary_fct bnd_fct, domain_type& domain) :
+		  m_bndfct(bnd_fct), m_fct(fct), m_domain(domain)
+		  {}
 
-		bool set_dirichlet_solution(				discrete_function_type& u, number time = 0.0);
+		IAssembleReturn clear_dirichlet_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time = 0.0);
+		IAssembleReturn clear_dirichlet_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time = 0.0);
+		IAssembleReturn clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, int si,number time = 0.0);
+		IAssembleReturn set_dirichlet_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time = 0.0);
+
+		IAssembleReturn set_dirichlet_solution(discrete_function_type& u, int si, number time = 0.0);
 
 	protected:
 		template <typename TElem>
@@ -104,161 +97,76 @@ class DirichletBNDValues {
 												size_t fct, int si, matrix_type& mat, vector_type& rhs,
 												const discrete_function_type& u, number time = 0.0);
 
-	protected:
-		typedef bool (*Boundary_fct)(number&, const position_type&, number);
-
-		struct DirichletSubset
-		{
-			int si;
-			size_t fct;
-			Boundary_fct func;
-		};
-
-	public:
-		inline bool boundary_value(number& value, const position_type& pos, size_t fct, int si, number time)
-		{
-			return (m_bndfct[fct][si])(value, pos, time);
-		}
-
-		// add bndtype and bndfunction to subset s for function fct
-		bool add_boundary_value(size_t d, int si, size_t fct, Boundary_fct func, BND_TYPE type)
-		{
-			std::vector<int>::iterator iter = find(m_bnd_subset[d].begin(), m_bnd_subset[d].end(), si);
-			if(iter == m_bnd_subset[d].end())
-				m_bnd_subset[d].push_back(si);
-
-			m_bndtype[fct][si] = type;
-			m_bndfct[fct][si] = func;
-			return true;
-		}
-
-		bool is_dirichlet(int si, size_t fct) {return m_bndtype[fct][si] == BND_TYPE_DIRICHLET;}
-
-		size_t num_bnd_subsets(size_t d) {return m_bnd_subset[d].size();}
-		int bnd_subset(size_t d, size_t i) {return m_bnd_subset[d][i];}
+		bool is_dirichlet(size_t fct) {return fct == m_fct;}
 
 	protected:
+		Boundary_fct m_bndfct;
+		size_t m_fct;
 		domain_type& m_domain;
-
-		std::vector<int> m_bnd_subset[domain_type::dim];
-
-		std::vector<std::vector<BND_TYPE> > m_bndtype;
-		std::vector<std::vector<Boundary_fct> > m_bndfct;
-
 };
 
 
-template <typename TDiscreteFunction>
-bool
-DirichletBNDValues<TDiscreteFunction>::
-clear_dirichlet_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time)
+template <typename TDiscreteFunction, int ref_dim>
+IAssembleReturn
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
+clear_dirichlet_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time)
 {
-	for(size_t i = 0; i < num_bnd_subsets(0); ++i)
-	{
-		int si = bnd_subset(0, i);
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-		{
-			if(!is_dirichlet(si, fct)) continue;
-			if(clear_dirichlet_jacobian_defect<VertexBase>(u.template begin<VertexBase>(si),u.template end<VertexBase>(si), fct, si, J, d, u, time) == false)
-			{
-				UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
-				return false;
-			}
-		}
-	}
-	return true;
+	if(clear_dirichlet_jacobian_defect<VertexBase>(u.template begin<VertexBase>(si),u.template end<VertexBase>(si), m_fct, si, J, d, u, time) == false)
+		{UG_LOG("Error in set_dirichlet_nodes, aborting.\n"); return IAssemble_ERROR;}
+
+	return IAssemble_OK;
 }
 
 
-template <typename TDiscreteFunction>
-bool
-DirichletBNDValues<TDiscreteFunction>::
-clear_dirichlet_jacobian(matrix_type& J, const discrete_function_type& u, number time)
+template <typename TDiscreteFunction, int ref_dim>
+IAssembleReturn
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
+clear_dirichlet_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time)
 {
-	for(size_t i = 0; i < num_bnd_subsets(0); ++i)
-	{
-		int si = bnd_subset(0, i);
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-		{
-			if(!is_dirichlet(si, fct)) continue;
-			if(clear_dirichlet_jacobian<VertexBase>(u.template begin<VertexBase>(si),u.template end<VertexBase>(si), fct, si, J, u, time) == false)
-			{
-				UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");
-				return false;
-			}
-		}
-	}
-	return true;
+	if(clear_dirichlet_jacobian<VertexBase>(u.template begin<VertexBase>(si),u.template end<VertexBase>(si), m_fct, si, J, u, time) == false)
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n"); return IAssemble_ERROR;}
+
+	return IAssemble_OK;
 }
 
-template <typename TDiscreteFunction>
-bool
-DirichletBNDValues<TDiscreteFunction>::
-clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, number time)
+template <typename TDiscreteFunction, int ref_dim>
+IAssembleReturn
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
+clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, int si, number time)
 {
-	for(size_t i = 0; i < num_bnd_subsets(0); ++i)
-	{
-		int si = bnd_subset(0, i);
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-		{
-			if(!is_dirichlet(si, fct)) continue;
-			if(clear_dirichlet_defect<VertexBase>(u.template begin<VertexBase>(si),u.template end<VertexBase>(si), fct, si, d, u, time) == false)
-			{
-				UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
-				return false;
-			}
-		}
-	}
-	return true;
+	if(clear_dirichlet_defect<VertexBase>(u.template begin<VertexBase>(si),u.template end<VertexBase>(si), m_fct, si, d, u, time) == false)
+		{UG_LOG("Error in set_dirichlet_nodes, aborting.\n");return IAssemble_ERROR;}
+
+	return IAssemble_OK;
 }
 
-template <typename TDiscreteFunction>
-bool
-DirichletBNDValues<TDiscreteFunction>::
-set_dirichlet_solution(discrete_function_type& u, number time)
+template <typename TDiscreteFunction, int ref_dim>
+IAssembleReturn
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
+set_dirichlet_solution(discrete_function_type& u, int si, number time)
 {
-	for(size_t i = 0; i < num_bnd_subsets(0); ++i)
-	{
-		int si = bnd_subset(0, i);
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-		{
-			if(!is_dirichlet(si, fct)) continue;
-			if(set_dirichlet_solution<VertexBase>(u.template begin<VertexBase>(si), u.template end<VertexBase>(si), fct, si, u.get_vector(), u, time) == false)
-			{
-				UG_LOG("Error in set_dirichlet_nodes, aborting.\n");
-				return false;
-			}
-		}
-	}
-	return true;
+	if(set_dirichlet_solution<VertexBase>(u.template begin<VertexBase>(si), u.template end<VertexBase>(si), m_fct, si, u.get_vector(), u, time) == false)
+		{UG_LOG("Error in set_dirichlet_nodes, aborting.\n"); return IAssemble_ERROR;}
+
+	return IAssemble_OK;
 }
 
-template <typename TDiscreteFunction>
-bool
-DirichletBNDValues<TDiscreteFunction>::
-set_dirichlet_linear(		matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time)
+template <typename TDiscreteFunction, int ref_dim>
+IAssembleReturn
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
+set_dirichlet_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time)
 {
-	for(size_t i = 0; i < num_bnd_subsets(0); ++i)
-	{
-		int si = bnd_subset(0, i);
-		for(size_t fct = 0; fct < u.num_fct(); ++fct)
-		{
-			if(!is_dirichlet(si, fct)) continue;
-			if(set_dirichlet_linear<VertexBase>(u.template begin<VertexBase>(si), u.template end<VertexBase>(si), fct, si, mat, rhs, u) == false)
-			{
-				UG_LOG("Error in assemble_linear, aborting.\n");
-				return false;
-			}
-		}
-	}
-	return true;
+	if(set_dirichlet_linear<VertexBase>(u.template begin<VertexBase>(si), u.template end<VertexBase>(si), m_fct, si, mat, rhs, u) == false)
+		{UG_LOG("Error in assemble_linear, aborting.\n"); return IAssemble_ERROR;}
+
+	return IAssemble_OK;
 }
 
 
-template <typename TDiscreteFunction>
+template <typename TDiscreteFunction, int ref_dim>
 template <typename TElem>
 bool
-DirichletBNDValues<TDiscreteFunction>::
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
 clear_dirichlet_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 									typename geometry_traits<TElem>::iterator iterEnd,
 									size_t fct, int si,
@@ -288,10 +196,10 @@ clear_dirichlet_jacobian_defect(	typename geometry_traits<TElem>::iterator iterB
 	return true;
 }
 
-template <typename TDiscreteFunction>
+template <typename TDiscreteFunction, int ref_dim>
 template <typename TElem>
 bool
-DirichletBNDValues<TDiscreteFunction>::
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
 clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						size_t fct, int si,
@@ -318,10 +226,10 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	return true;
 }
 
-template <typename TDiscreteFunction>
+template <typename TDiscreteFunction, int ref_dim>
 template <typename TElem>
 bool
-DirichletBNDValues<TDiscreteFunction>::
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
 clear_dirichlet_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 							typename geometry_traits<TElem>::iterator iterEnd,
 							size_t fct, int si,
@@ -346,10 +254,10 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 	return true;
 }
 
-template <typename TDiscreteFunction>
+template <typename TDiscreteFunction, int ref_dim>
 template <typename TElem>
 bool
-DirichletBNDValues<TDiscreteFunction>::
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
 set_dirichlet_solution(	typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						size_t fct, int si,
@@ -373,7 +281,7 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::iterator iterBegin,
 
 		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1) assert(0);
 
-		if(boundary_value(val, corner, fct, si, time))
+		if(m_bndfct(val, corner, time))
 		{
 			glob_ind.push_back(ind[0]);
 			dirichlet_vals.push_back(val);
@@ -387,10 +295,10 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::iterator iterBegin,
 }
 
 
-template <typename TDiscreteFunction>
+template <typename TDiscreteFunction, int ref_dim>
 template <typename TElem>
 bool
-DirichletBNDValues<TDiscreteFunction>::
+DirichletBNDValues<TDiscreteFunction, ref_dim>::
 set_dirichlet_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						size_t fct, int si,
@@ -413,7 +321,7 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 		corner = aaPos[elem];
 
 		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, ind) != 1) assert(0);
-		if(boundary_value(val, corner, fct, si, time))
+		if(m_bndfct(val, corner, time))
 		{
 			glob_ind.push_back(ind[0]);
 			dirichlet_vals.push_back(val);

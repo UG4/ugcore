@@ -23,25 +23,16 @@
 
 namespace ug {
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-class PlugInDomainDiscretization : public IDomainDiscretization<TDiscreteFunction> {
+template <	typename TDiscreteFunction,
+			int ref_dim,
+			template<typename TDomain, typename TAlgebra > class TElemDisc>
+class PlugInDomainDiscretization : public IDimensionDomainDiscretization<TDiscreteFunction> {
 	protected:
-		// forward constants and typenames
-
 		// type of discrete function
 		typedef TDiscreteFunction discrete_function_type;
 
 		// type of domain
 		typedef typename TDiscreteFunction::domain_type domain_type;
-
-		// type of grid used
-		typedef typename domain_type::grid_type grid_type;
-
-		// type of position coordinates (e.g. position_type)
-		typedef typename domain_type::position_type position_type;
-
-		// type of dof manager
-		typedef typename TDiscreteFunction::dof_manager_type dof_manager_type;
 
 		// type of algebra
 		typedef typename TDiscreteFunction::algebra_type algebra_type;
@@ -65,27 +56,23 @@ class PlugInDomainDiscretization : public IDomainDiscretization<TDiscreteFunctio
 		typedef typename matrix_type::local_index_type local_index_type;
 
 	public:
-		PlugInDomainDiscretization(TElemDisc<domain_type, algebra_type>& elemDisc, DirichletBNDValues<discrete_function_type>& bndDisc, domain_type& domain) :
-		  m_elemDisc(elemDisc), m_dirichletDisc(bndDisc), m_domain(domain)
-		{
-			m_elem_subset.resize(4);
-			for(std::size_t i = 0; i < 3; ++i)
-				m_elem_subset[i].clear();
-		};
+		PlugInDomainDiscretization(TElemDisc<domain_type, algebra_type>& elemDisc)
+			: m_elemDisc(elemDisc)
+		  {}
 
 		// Assemble routines for time independent problems
-		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u);
-		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u);
-		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u);
-		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u);
-		IAssembleReturn assemble_solution(discrete_function_type& u);
+		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si);
+		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si);
+		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si);
+		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si);
 
 		// Assemble routines for time dependent problems
-		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a);
-		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, number s_m, number s_a);
-		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a);
-		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a);
-		IAssembleReturn assemble_solution(discrete_function_type& u, number time);
+		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a);
+		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time, number s_m, number s_a);
+		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a);
+		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time, number s_m, number s_a);
+
+		virtual size_t num_fct() const{ return m_elemDisc.num_fct();}
 
 	protected:
 		// Element assembling routines
@@ -111,38 +98,14 @@ class PlugInDomainDiscretization : public IDomainDiscretization<TDiscreteFunctio
 											matrix_type& mat, vector_type& rhs, const discrete_function_type& u);
 
 		TElemDisc<domain_type, algebra_type>& m_elemDisc;
-
-
-	public:
-		virtual size_t num_fct() const{ return m_elemDisc.num_fct();}
-
-		size_t num_elem_subsets(size_t d) {return m_elem_subset[d].size();}
-		int elem_subset(size_t d, size_t i) {return m_elem_subset[d][i];}
-		bool add_elem_assemble_subset(size_t d, int s)
-		{
-			std::vector<int>::iterator iter = find(m_elem_subset[d].begin(), m_elem_subset[d].end(), s);
-			if(iter == m_elem_subset[d].end())
-				m_elem_subset[d].push_back(s);
-			return true;
-		}
-
-	protected:
-		std::vector<std::vector<int> > m_elem_subset; // 3 = max dimensions
-
-	protected:
-		DirichletBNDValues<discrete_function_type>& m_dirichletDisc;
-
-		virtual bool is_dirichlet(int si, size_t fct) {	return m_dirichletDisc.is_dirichlet(si, fct);}
-
-		domain_type& m_domain;
 };
 
 
 // assemble elements of type TElem in d dimensions
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 template <typename TElem>
 bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
 assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 							typename geometry_traits<TElem>::iterator iterEnd,
 							matrix_type& J, vector_type& d, const discrete_function_type& u,
@@ -226,10 +189,10 @@ assemble_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 }
 
 // assemble elements of type TElem in d dimensions
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 template <typename TElem>
 bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
 assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 					typename geometry_traits<TElem>::iterator iterEnd,
 					matrix_type& J, const discrete_function_type& u,
@@ -296,10 +259,10 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 }
 
 // assemble elements of type TElem in d dimensions
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 template <typename TElem>
 bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
 assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 					typename geometry_traits<TElem>::iterator iterEnd,
 					vector_type& d, const discrete_function_type& u,
@@ -370,10 +333,10 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 
 
 // assemble elements of type TElem in d dimensions
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 template <typename TElem>
 bool
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
 assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 					typename geometry_traits<TElem>::iterator iterEnd,
 					matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
@@ -435,37 +398,37 @@ assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 }
 
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si)
 {
 	return IAssemble_NOT_IMPLEMENTED;
 }
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_jacobian(matrix_type& J, const discrete_function_type& u)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
 	//return IAssemble_NOT_IMPLEMENTED;
 
-	return this->assemble_jacobian(J, u, 0.0, 0.0, 1.0);
+	return this->assemble_jacobian(J, u, si, 0.0, 0.0, 1.0);
 }
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_defect(vector_type& d, const discrete_function_type& u)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_defect(vector_type& d, const discrete_function_type& u, int si)
 {
 	return IAssemble_NOT_IMPLEMENTED;
 }
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_solution(discrete_function_type& u)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
 	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
@@ -473,16 +436,18 @@ assemble_solution(discrete_function_type& u)
 			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
 
-	if(m_dirichletDisc.set_dirichlet_solution(u) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
+	if(assemble_linear<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
 	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
@@ -490,63 +455,19 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type
 			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
 
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-		if(assemble_linear<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-	}
-
-	for(size_t i = 0; i < num_elem_subsets(3); ++i)
-	{
-		int si = elem_subset(3, i);
-
-		if(assemble_linear<Tetrahedron>(u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), mat, rhs, u)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.set_dirichlet_linear(mat, rhs, u) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
-	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
-		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
-		}
-
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-		if(assemble_jacobian_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.clear_dirichlet_jacobian_defect(J, d, u, time) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
-
-	return IAssemble_OK;
-}
-
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, number s_m, number s_a)
-{
-	UG_DLOG(LIB_DISC_ASSEMBLE, 0, " ---- START: 'assembling_jacobian' (time = " << time << ", s_m = " << s_m << ", s_a = " << s_a << ", level = " << 	u.get_level() << ") ----\n");
 
 	// check that Solution number 'nr' matches trial space required by Discretization
 	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
@@ -554,33 +475,18 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
 
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_jacobian<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
-		if(assemble_jacobian<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
-	}
-	for(size_t i = 0; i < num_elem_subsets(3); ++i)
-	{
-		int si = elem_subset(3, i);
-
-		if(assemble_jacobian<Tetrahedron>(u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), J, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.clear_dirichlet_jacobian(J, u, time) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_defect(vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
 	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
@@ -588,47 +494,21 @@ assemble_defect(vector_type& d, const discrete_function_type& u, number time, nu
 		{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 		}
 
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
-		if(assemble_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.clear_dirichlet_defect(d, u, time) != true)
-		{UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
+	if(assemble_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
 
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
+template <typename TDiscreteFunction, int ref_dim, template<typename TDomain, typename TAlgebra > class TElemDisc>
 IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a)
+PlugInDomainDiscretization<TDiscreteFunction, ref_dim, TElemDisc>::
+assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
 	return IAssemble_NOT_IMPLEMENTED;
 }
-
-template <typename TDiscreteFunction, template<typename TDomain, typename TAlgebra > class TElemDisc>
-IAssembleReturn
-PlugInDomainDiscretization<TDiscreteFunction, TElemDisc>::
-assemble_solution(discrete_function_type& u, number time)
-{
-	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t i = 0; i < m_elemDisc.num_fct(); i++){
-		if(u.get_local_shape_function_set_id(m_elemDisc.fct(i)) != m_elemDisc.local_shape_function_set(i))
-			{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.set_dirichlet_solution(u, time) != true)
-		{UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
-
-	return IAssemble_OK;
-}
-
 
 
 
