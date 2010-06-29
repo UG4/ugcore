@@ -63,7 +63,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 								GridLayoutMap& layoutMap,
 								SubsetHandler& shPartition,
 								int localProcID,
-								std::vector<int>* pProcessMap);
+								std::vector<int>* pProcessMap = NULL);
 								
 ////////////////////////////////////////////////////////////////////////
 //	ReceiveGrid

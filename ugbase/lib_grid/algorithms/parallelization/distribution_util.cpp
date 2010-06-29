@@ -175,11 +175,14 @@ void CreateDistributionLayouts(
 	//	If howerver vertical interfaces shall be created, the genealogy
 	//	shouldn't be distributed. In this case only associated geometric
 	//	objects have to be selected.
+//TODO: do it as commented above and use the uncommented code below.
+		SelectAssociatedGenealogy(msel, true);//remove this
+	/*
 		if(distributeGenealogy)
 			SelectAssociatedGenealogy(msel, true);
 		else
 			SelectAssociatedGeometricObjects(msel);
-
+	*/
 	//	make sure that we won't add elements twice.
 		msel.deselect(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
 		msel.deselect(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));

@@ -52,7 +52,6 @@ bool SerializeAttachment(Grid& grid, TAttachment& attachment,
 	{
 		out.write((char*)&aa[*iterBegin], sizeof(ValueType));
 	}
-
 	out.write((char*)&magicNumber, sizeof(int));
 
 	return true;
@@ -110,7 +109,6 @@ bool DeserializeAttachment(Grid& grid, TAttachment& attachment,
 	{
 		in.read((char*)&aa[*iterBegin], sizeof(ValueType));
 	}
-
 	in.read((char*)&tInt, sizeof(int));
 
 	if(tInt != magicNumber){

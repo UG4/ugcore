@@ -431,7 +431,7 @@ create_quadrilaterals(Grid& grid, rapidxml::xml_node<>* node,
 			return false;
 		}
 		
-	//	create the triangle
+	//	create the quad
 		grid.create<Quadrilateral>(QuadrilateralDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4]));
 	}
 	
@@ -463,8 +463,114 @@ create_tetrahedrons(Grid& grid, rapidxml::xml_node<>* node,
 			return false;
 		}
 		
-	//	create the triangle
+	//	create the element
 		grid.create<Tetrahedron>(TetrahedronDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4]));
+	}
+	
+	return true;
+}
+
+bool GridReaderUGX::
+create_hexahedrons(Grid& grid, rapidxml::xml_node<>* node,
+					std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+	
+//	read the hexahedrons
+	int i1, i2, i3, i4, i5, i6, i7, i8;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3 >> i4 >> i5 >> i6 >> i7 >> i8;
+		
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd ||
+		   i4 < 0 || i4 > maxInd ||
+		   i5 < 0 || i5 > maxInd ||
+		   i6 < 0 || i6 > maxInd ||
+		   i7 < 0 || i7 > maxInd ||
+		   i8 < 0 || i8 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_hexahedrons: invalid vertex index.\n");
+			return false;
+		}
+		
+	//	create the element
+		grid.create<Hexahedron>(HexahedronDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
+													 vrts[i5], vrts[i6], vrts[i7], vrts[i8]));
+	}
+	
+	return true;
+}
+
+bool GridReaderUGX::
+create_prisms(Grid& grid, rapidxml::xml_node<>* node,
+				std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+	
+//	read the hexahedrons
+	int i1, i2, i3, i4, i5, i6;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3 >> i4 >> i5 >> i6;
+		
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd ||
+		   i4 < 0 || i4 > maxInd ||
+		   i5 < 0 || i5 > maxInd ||
+		   i6 < 0 || i6 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_prisms: invalid vertex index.\n");
+			return false;
+		}
+		
+	//	create the element
+		grid.create<Prism>(PrismDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
+										   vrts[i5], vrts[i6]));
+	}
+	
+	return true;
+}
+
+bool GridReaderUGX::
+create_pyramids(Grid& grid, rapidxml::xml_node<>* node,
+				std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+	
+//	read the hexahedrons
+	int i1, i2, i3, i4, i5;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3 >> i4 >> i5;
+		
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd ||
+		   i4 < 0 || i4 > maxInd ||
+		   i5 < 0 || i5 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_pyramids: invalid vertex index.\n");
+			return false;
+		}
+		
+	//	create the element
+		grid.create<Pyramid>(PyramidDescriptor(vrts[i1], vrts[i2], vrts[i3],
+												vrts[i4], vrts[i5]));
 	}
 	
 	return true;

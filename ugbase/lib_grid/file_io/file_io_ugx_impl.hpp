@@ -166,6 +166,12 @@ get_grid(Grid& gridOut, size_t index,
 			bSuccess = create_quadrilaterals(grid, curNode, vertices);
 		else if(strcmp(name, "tetrahedrons") == 0)
 			bSuccess = create_tetrahedrons(grid, curNode, vertices);
+		else if(strcmp(name, "hexahedrons") == 0)
+			bSuccess = create_hexahedrons(grid, curNode, vertices);
+		else if(strcmp(name, "prisms") == 0)
+			bSuccess = create_prisms(grid, curNode, vertices);
+		else if(strcmp(name, "pyramids") == 0)
+			bSuccess = create_pyramids(grid, curNode, vertices);
 								
 		if(!bSuccess)
 			return false;

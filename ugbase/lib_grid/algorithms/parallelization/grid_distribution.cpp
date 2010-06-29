@@ -165,7 +165,8 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 	int numProcs = (int)shPartition.num_subsets();
 	if(pProcessMap)
 		numProcs = std::min((int)pProcessMap->size(), numProcs);
-		
+	
+	UG_LOG("numProcs: " << numProcs << endl);
 	for(int i = 0; i < numProcs; ++i)
 	{
 		int proc = i;
@@ -175,6 +176,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 		if(proc == localProcID)
 		{
 		//	create local horizontal interfaces
+			UG_LOG("adding horizontal interfaces\n");
 			AddHorizontalInterfaces<VertexBase>(layoutMap, vVertexLayouts[i], pProcessMap);
 			AddHorizontalInterfaces<EdgeBase>(layoutMap, vEdgeLayouts[i], pProcessMap);
 			AddHorizontalInterfaces<Face>(layoutMap, vFaceLayouts[i], pProcessMap);
@@ -182,6 +184,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 		}
 		else
 		{
+			UG_LOG("adding vertical interfaces\n");
 		//	since the original grid is kept, we have to add vertical interfaces.
 		//	all nodes in the layouts will be vertical interface members.
 		//	Here we create the local vertical interfaces.
@@ -492,8 +495,13 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 	if(!mgOut.has_vertex_attachment(aPosition))
 		mgOut.attach_to_vertices(aPosition);
 
-	if(!DeserializeAttachment<VertexBase>(mgOut, aPosition, binaryStream))
-		return false;
+	for(size_t i = 0; i < mgOut.num_levels(); ++i){
+		if(!DeserializeAttachment<VertexBase>(mgOut, aPosition,
+											mgOut.begin<VertexBase>(i),
+											mgOut.end<VertexBase>(i),
+											binaryStream))
+			return false;
+	}
 
 //TODO:	allow the user to read his data.
 

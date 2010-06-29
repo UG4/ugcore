@@ -113,6 +113,8 @@ class GridWriterUGX
 ///	Grants read access to ugx files.
 /**	Before any data can be retrieved using the get_* methods, a file
  *	has to be successfully loaded using load_file.
+ *
+ *	\todo: Improve performance by using in-situ stringstreams during element creation.
  */
 class GridReaderUGX
 {
@@ -176,6 +178,16 @@ class GridReaderUGX
 								   
 		bool create_tetrahedrons(Grid& grid, rapidxml::xml_node<>* node,
 						 		  std::vector<VertexBase*>& vrts);
+
+		bool create_hexahedrons(Grid& grid, rapidxml::xml_node<>* node,
+								std::vector<VertexBase*>& vrts);
+								
+		bool create_prisms(Grid& grid, rapidxml::xml_node<>* node,
+							std::vector<VertexBase*>& vrts);
+							
+		bool create_pyramids(Grid& grid, rapidxml::xml_node<>* node,
+							std::vector<VertexBase*>& vrts);
+							
 	protected:
 	///	the xml_document which stores the data
 		rapidxml::xml_document<> m_doc;
