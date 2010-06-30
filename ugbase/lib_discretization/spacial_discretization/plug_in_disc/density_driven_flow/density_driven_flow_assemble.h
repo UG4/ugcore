@@ -9,9 +9,7 @@
 
 // library intern headers
 #include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
-
 #include "lib_discretization/spacial_discretization/plug_in_disc/plug_in_element_disc_interface.h"
-#include "lib_discretization/spacial_discretization/disc_coupling/element_data.h"
 
 namespace ug{
 

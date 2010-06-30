@@ -35,17 +35,6 @@ prepare_element_loop()
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
-	typename std::vector<MathVector<ref_elem_type::dim> > pos;
-	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
-	{
-		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
-
-		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
-		{
-			pos.push_back(scvf.local_ip());
-		}
-	}
-
 	return IPlugInReturn_OK;
 }
 
@@ -95,7 +84,6 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 {
 
 	static const int dim = TDomain::dim;
-	size_t ip_pos = 0;
 
 	number flux;
 	MathMatrix<dim,dim> D;
@@ -148,8 +136,6 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 				J(scvf.to()  , up) -= flux;
 			}
 
-			// next ip position
-			++ip_pos;
 		}
 	}
 	int co;

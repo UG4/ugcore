@@ -14,7 +14,6 @@
 
 // library intern headers
 #include "lib_discretization/spacial_discretization/domain_discretization_interface.h"
-#include "lib_discretization/spacial_discretization/dirichlet_bnd_values.h"
 
 namespace ug {
 
