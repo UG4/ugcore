@@ -47,8 +47,8 @@
 #include "lib_discretization/domain_discretization/plug_in_disc/convection_diffusion_equation/convection_diffusion_assemble.h"
 #include "lib_discretization/domain_discretization/plug_in_disc/density_driven_flow/density_driven_flow_assemble.h"
 
-#include "lib_discretization/domain_discretization/coupled_plug_in_disc/convection_diffusion_equation/convection_diffusion_assemble.h"
-#include "lib_discretization/domain_discretization/coupled_plug_in_disc/density_driven_flow/density_driven_flow_assemble.h"
+//#include "lib_discretization/domain_discretization/coupled_plug_in_disc/convection_diffusion_equation/convection_diffusion_assemble.h"
+//#include "lib_discretization/domain_discretization/coupled_plug_in_disc/density_driven_flow/density_driven_flow_assemble.h"
 
 // domain discretization
 #include "lib_discretization/domain_discretization/dirichlet_bnd_values.h"
