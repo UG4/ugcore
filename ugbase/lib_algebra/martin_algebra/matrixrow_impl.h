@@ -51,7 +51,7 @@ template<typename entry_type>
 template<typename vec_type>
 inline vec_type matrixrow<entry_type>::operator *(const Vector<vec_type> &x) const
 {
-	vec_type d;
+	vec_type d=0;
 	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
 		AddMult(d, (*it).dValue, x[(*it).iIndex]);
 	return d;
