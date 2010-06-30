@@ -11,6 +11,10 @@
 #define __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__
 
 
+
+//using namespace std;
+namespace ug{
+
 extern "C"
 {
     void dgetrf_(int *m, int *n, double *a, int *lda, int *ipiv, int *info);
@@ -18,13 +22,11 @@ extern "C"
             const int *ipiv, double *b, int *ldb, int *info);
 }
 
-//using namespace std;
-namespace ug{
 
 //template<typename vec_type>
 void LapackLU::apply(const Vector<double> &b, Vector<double> &x)
 {
-	cout << "LapackLU::apply" << endl;
+	//cout << "LapackLU::apply" << endl;
 	// TODO: Variing nr of unknowns
 	//int nrOfUnknowns = block_vector_traits<vec_type>::nrOfUnknowns;
 	const int nrOfUnknowns = 1;
@@ -53,7 +55,7 @@ void LapackLU::apply(const Vector<double> &b, Vector<double> &x)
 //template<typename entry_type>
 void LapackLU::init(const SparseMatrix<double> &A)
 {
-	cout << "LapackLU::init, A = " << A.num_rows() << " x " << A.num_cols() << endl;
+	//cout << "LapackLU::init, A = " << A.num_rows() << " x " << A.num_cols() << endl;
 	const int nrOfUnknowns = 1 ; //block_matrix_traits<entry_type>::nrOfUnknowns;
 	size = A.row_size() * nrOfUnknowns;
 
