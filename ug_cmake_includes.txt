@@ -1,3 +1,4 @@
+
 ################################################
 # created by Sebastian Reiter
 # s.b.reiter@googlemail.com
@@ -67,7 +68,8 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(HYPRE "Enable Hypre")
 	OPTION(NO_BOOST "disable support for BOOST")
 	OPTION(NO_PCL "Disable parallel communication library")
-	
+
+	OPTION(NO_FORTRAN "Disable Fortran")
 	OPTION(NO_LAPACK "Disable LAPACK")
 	OPTION(NO_BLAS "Disable BLAS")
 
@@ -77,7 +79,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	get_filename_component(UG_ROOT_PATH ${CMAKE_CURRENT_LIST_FILE} PATH)
 	include_directories(${UG_ROOT_PATH}/ugbase)
 	link_directories(${UG_ROOT_PATH}/lib)
-	
+
 	#######################
 	# compiler flags
 
@@ -97,7 +99,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	if(FORCE_64 AND FORCE_32)
 		message(FATAL_ERROR "FORCE_64=ON and FORCE_32=ON. do not use FORCE_32 and FORCE_64 together.")
 	endif(FORCE_64 AND FORCE_32)
-	
+
 	#######################
 	# FORCE_32/64 . for use e.g. on MacOS 10.6, where -m64 is default otherwise
 	if(FORCE_64)
@@ -121,7 +123,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		message(STATUS "INFO: Not using MPI. (To use MPI define -DNO_MPI=OFF)")
 	else(NO_MPI)
 		message(STATUS "INFO: Using MPI. (To disbale MPI define -DNO_MPI=ON)")
-		
+
 		find_package(MPI)
 		if(MPI_FOUND)
 			include_directories(${MPI_INCLUDE_PATH})
@@ -142,16 +144,16 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		if(Boost_FOUND)
 			message(STATUS "INFO: Using BOOST (version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}, libs at '${Boost_INCLUDE_DIRS}'). (To disable boost define -DNO_BOOST=ON)")
 
-			# add include path	
+			# add include path
 			include_directories (${Boost_INCLUDE_DIRS})
-			
+
 		else(Boost_FOUND)
 		    find_package(Boost)
 			if(Boost_FOUND)
 			    message(WARNING " BOOST in ${Boost_INCLUDE_DIRS} is not compatible (requires 1.40.0, but is ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}) . Compiling WITHOUT Boost.")
-				UNSET(Boost_FOUND)				
+				UNSET(Boost_FOUND)
 				UNSET(Boost_INCLUDE_DIRS CACHE)
-				UNSET(Boost_INCLUDE_DIR CACHE)							
+				UNSET(Boost_INCLUDE_DIR CACHE)
 			ELSE(Boost_FOUND)
 			 message(WARNING " BOOST not found! Compiling WITHOUT Boost.")
 			 ENDIF(Boost_FOUND)
@@ -164,13 +166,13 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		if(NOT HYPRE)
 			message(STATUS "INFO: Not using HYPRE. (To enable HYPRE define -DHYPRE=ON)")
 		else(NOT HYPRE)
-			find_path (HYPRELIB_DIR libHYPRE.a 
+			find_path (HYPRELIB_DIR libHYPRE.a
 					PATHS ENV PATH
 					PATH_SUFFIXES src/hypre/lib/ )
-		
+
 			if(HYPRELIB_DIR)
 				message(STATUS "INFO: Using HYPRE (libs at '${HYPRELIB_DIR}'). (To disable HYPRE define -DHYPRE=OFF)")
-		
+
 				# add include path
 				include_directories (${HYPRELIB_DIR}/../include/)
 				SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHYPRELIB_DIR")
@@ -211,18 +213,29 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	endif(MPI_FOUND)
 
 	link_libraries(${UG_LIBRARIES})
-
-
+	
 	#######################
 	# LAPACK
-	SET(NO_LAPACK ON)
 	IF(NO_LAPACK)
 	    message("-- INFO: Not using LAPACK. (To enable LAPACK define -DNO_LAPACK=OFF)")
 	ELSE(NO_LAPACK)
-	    ENABLE_LANGUAGE(Fortran)
 
-		MESSAGE(STATUS "INFO: Searching for LAPACK... (To disable LAPACK define -DNO_LAPACK=ON)")
-		find_package(LAPACK)
+	    MESSAGE(STATUS "INFO: Searching for LAPACK... (To disable LAPACK define -DNO_LAPACK=ON)")
+
+		IF(NOT NO_FORTRAN)
+	    	   ENABLE_LANGUAGE(Fortran)
+			   	find_package(LAPACK)
+		ELSE(NOT NO_FORTRAN)
+				IF(APPLE)
+				      SET(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
+				ELSE(APPLE)
+				      FIND_LIBRARY(LAPACK_LIBRARIES NAMES atlas PATHS /usr/local/lib /usr/lib /lib)
+				ENDIF(APPLE)
+
+				IF(LAPACK_LIBRARIES)
+		             SET(LAPACK_FOUND YES)
+			  	ENDIF(LAPACK_LIBRARIES)
+		ENDIF(NOT NO_FORTRAN)
 
 		IF(NOT LAPACK_INCLUDE_PATH)
 				FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
@@ -243,22 +256,33 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		ENDIF(LAPACK_FOUND AND LAPACK_INCLUDE_PATH)
 
 	ENDIF(NO_LAPACK)
-	
+
 	#######################
 	# BLAS
-	SET(NO_BLAS ON)
 	IF(NO_BLAS)
 	    message("-- INFO: Not using BLAS. (To enable BLAS define -DNO_BLAS=OFF)")
 	ELSE(NO_BLAS)
-	    ENABLE_LANGUAGE(Fortran)
+	    IF(NOT NO_FORTRAN)
+		    ENABLE_LANGUAGE(Fortran)
 
-		IF(NOT BLAS_FOUND) # BLAS can be found by FindLAPACK
+			IF(NOT BLAS_FOUND) # BLAS can be found by FindLAPACK
 				MESSAGE(STATUS "INFO: Searching for BLAS... (To disable BLAS define -DNO_BLAS=ON)")
 				find_package(BLAS)
-		ENDIF(NOT BLAS_FOUND)
+			ENDIF(NOT BLAS_FOUND)
+
+		ELSE(NOT NO_FORTRAN)
+		    IF(APPLE)
+				SET(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
+			ELSE(APPLE)
+				FIND_LIBRARY(BLAS_LIBRARIES NAMES cblas PATHS)
+			ENDIF(APPLE)
+			IF(BLAS_LIBRARIES)
+				SET(BLAS_FOUND YES)
+			ENDIF(BLAS_LIBRARIES)
+		ENDIF(NOT NO_FORTRAN)
 
 		IF(NOT BLAS_INCLUDE_PATH)
-				FIND_PATH(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
+			FIND_PATH(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
 		ENDIF(NOT BLAS_INCLUDE_PATH)
 
 		IF(BLAS_FOUND AND BLAS_INCLUDE_PATH)
@@ -273,11 +297,10 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		   	IF(NOT BLAS_INCLUDE_PATH)
 				   MESSAGE(WARNING " Did not find clapack.h ! (To disable BLAS define -DNO_BLAS=ON)")
 		   ENDIF(NOT BLAS_INCLUDE_PATH)
-		   
+
 		ENDIF(BLAS_FOUND AND BLAS_INCLUDE_PATH)
 
 	ENDIF(NO_BLAS)
-
+	ELSE(NO_FORTRAN)
 
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
-
