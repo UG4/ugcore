@@ -177,4 +177,5 @@ inline int getCols(const T &t)
 
 } // namespace ug
 
+#include "double.h"
 #endif

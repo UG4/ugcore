@@ -14,14 +14,16 @@
 
 #ifndef __H__UG__MARTIN_ALGEBRA__DOUBLE__
 #define __H__UG__MARTIN_ALGEBRA__DOUBLE__
-
+#include "blocks.h"
 namespace ug{
-	
-template <typename t> class block_matrix_traits;
-template <typename t> class block_vector_traits;
+
+template <typename t> struct block_matrix_traits;
+template <typename t> struct block_vector_traits;
 template<typename entry_type, typename vec_type> struct block_multiply_traits;
 
+
 //////////////////////////////////////////////////////
+template<typename T> double mnorm(const T &t);
 
 template <>
 inline double mnorm(const double &a)
@@ -29,6 +31,7 @@ inline double mnorm(const double &a)
 	return a>0 ? a : -a;
 }
 
+template<typename T> double mnorm2(const T &t);
 template <>
 inline double mnorm2(const double &a)
 {
@@ -61,11 +64,14 @@ inline void AddMult(double &dest, const double &b, const double &vec)
 {
 	dest += b*vec;
 }
+
+
 // dest -= vec*b
 inline void SubMult(double &dest, const double &b, const double &vec)
 {
 	dest -= b*vec;
 }
+
 
 //////////////////////////////////////////////////////
 //setSize(t, a, b) for doubles
@@ -74,13 +80,14 @@ inline void setSize(double &d, int a)
 {
 	return;
 }
+
 template<>
 inline void setSize(double &d, int a, int b)
 {
 	return;
 }
 template<>
-inline int getSize(double &t)
+inline int getSize(const double &t)
 {
 	return 1;
 }
@@ -99,6 +106,9 @@ inline int getCols(const double &t)
 
 ///////////////////////////////////////////////////////////////////
 // traits: information for doubles
+
+
+
 template<>
 struct block_matrix_traits<double>
 {
@@ -122,3 +132,6 @@ template<> struct block_multiply_traits<double, double>
 } // namespace ug
 
 #endif
+
+
+
