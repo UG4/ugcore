@@ -116,6 +116,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 
 			compute_D_ip_Darcy_velocity(scvf, Darcy_vel, D_Darcy_vel_c, D_Darcy_vel_p, c_ip, grad_p_ip);
 			m_Mol_Diff_Tensor(D);
+			MatScale(D, m_porosity, D);
 
 			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
@@ -249,7 +250,7 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 			compute_ip_Darcy_velocity(Darcy_vel, c_ip, grad_p_ip);
 
 			m_Mol_Diff_Tensor(D);
-
+			MatScale(D, m_porosity, D);
 
 			////////////////////////////////////
 			// diffusiv term (central discretization)
