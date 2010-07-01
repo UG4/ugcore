@@ -84,13 +84,13 @@ static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 //	iterate over the nodes
 	for(size_t level = 0; level < distLayout.num_levels(); ++level)
 	{
-		TInterface* pInterface = NULL;
-		int elemType = -1;
-		
 		typename DistLayout::InterfaceMap& imap = distLayout.interface_map(level);
 		for(typename DistLayout::InterfaceMap::iterator iter = imap.begin();
 			iter != imap.end(); ++iter)
 		{
+			TInterface* pInterface = NULL;
+			int elemType = -1;
+
 		//	get the proc-id of this interface
 			int procID = iter->first;
 			if(pProcessMap)
@@ -167,7 +167,6 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 	if(pProcessMap)
 		numProcs = std::min((int)pProcessMap->size(), numProcs);
 	
-	UG_LOG("numProcs: " << numProcs << endl);
 	for(int i = 0; i < numProcs; ++i)
 	{
 		int proc = i;
@@ -177,7 +176,6 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 		if(proc == localProcID)
 		{
 		//	create local horizontal interfaces
-			UG_LOG("adding horizontal interfaces\n");
 			AddHorizontalInterfaces<VertexBase>(layoutMap, vVertexLayouts[i], pProcessMap);
 			AddHorizontalInterfaces<EdgeBase>(layoutMap, vEdgeLayouts[i], pProcessMap);
 			AddHorizontalInterfaces<Face>(layoutMap, vFaceLayouts[i], pProcessMap);
@@ -185,7 +183,6 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 		}
 		else
 		{
-			UG_LOG("adding vertical interfaces\n");
 		//	since the original grid is kept, we have to add vertical interfaces.
 		//	all nodes in the layouts will be vertical interface members.
 		//	Here we create the local vertical interfaces.

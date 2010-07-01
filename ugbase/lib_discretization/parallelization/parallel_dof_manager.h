@@ -51,7 +51,11 @@ class ParallelDoFManager : public TDoFManager
 			m_slaveLayouts.resize(num_levels);
 			m_masterLayouts.clear();
 			m_masterLayouts.resize(num_levels);
-
+			m_verticalSlaveLayouts.clear();
+			m_verticalSlaveLayouts.resize(num_levels);
+			m_verticalMasterLayouts.clear();
+			m_verticalMasterLayouts.resize(num_levels);
+			
 			for(uint l = 0; l < num_levels; ++l)
 			{
 /*
@@ -64,7 +68,17 @@ class ParallelDoFManager : public TDoFManager
 							*this, *m_pLayoutMap, INT_MASTER,l);
 				bRetVal &= CreateIndexLayout(m_slaveLayouts[l],
 							*this, *m_pLayoutMap, INT_SLAVE,l);
+				bRetVal &= CreateIndexLayout(m_verticalMasterLayouts[l],
+							*this, *m_pLayoutMap, INT_VERTICAL_MASTER,l);
+				bRetVal &= CreateIndexLayout(m_verticalSlaveLayouts[l],
+							*this, *m_pLayoutMap, INT_VERTICAL_SLAVE,l);
+/*			
+				if(!m_verticalMasterLayouts[l].empty())
+					{UG_LOG("  vertical masters on level " << l << std::endl);}
 
+				if(!m_verticalSlaveLayouts[l].empty())
+					{UG_LOG("  vertical slaves on level " << l << std::endl);}
+*/
 			}
 
 			return bRetVal;
@@ -72,6 +86,9 @@ class ParallelDoFManager : public TDoFManager
 
 		inline IndexLayout& get_slave_layout(size_t level)	{return m_slaveLayouts[level];}
 		inline IndexLayout& get_master_layout(size_t level)	{return m_masterLayouts[level];}
+		inline IndexLayout& get_vertical_slave_layout(size_t level)		{return m_verticalSlaveLayouts[level];}
+		inline IndexLayout& get_vertical_master_layout(size_t level)	{return m_verticalMasterLayouts[level];}
+		
 		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_Communicator;}
 
 	private:
@@ -83,7 +100,13 @@ class ParallelDoFManager : public TDoFManager
 
 		// index layout for each grid level
 		std::vector<IndexLayout> m_masterLayouts;
+		
+		// index layout for each grid level
+		std::vector<IndexLayout> m_verticalMasterLayouts;
 
+		// index layout for each grid level
+		std::vector<IndexLayout> m_verticalSlaveLayouts;
+		
 		// communicator
 		pcl::ParallelCommunicator<IndexLayout> m_Communicator;
 

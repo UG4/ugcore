@@ -166,7 +166,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 		}
 	}
 */
-
+/*
 //debug: check interfaces
 	GridLayoutMap& gridLayoutMap = distGridMgr.grid_layout_map();
 	if(gridLayoutMap.has_layout<VertexBase>(INT_VERTICAL_MASTER)){
@@ -225,6 +225,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 			}
 		}
 	}
+*/
 
 //	we have to copy or convert the grids position attachment.
 //	if we're in 2d, the third dimension will be skipped.

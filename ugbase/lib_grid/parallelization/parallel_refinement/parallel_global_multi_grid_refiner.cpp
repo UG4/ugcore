@@ -25,7 +25,6 @@ ParallelGlobalMultiGridRefiner::~ParallelGlobalMultiGridRefiner()
 bool ParallelGlobalMultiGridRefiner::
 refinement_is_allowed(VertexBase* elem)
 {
-	UG_LOG("vrt");
 	return !m_distGridMgr.is_ghost(elem);
 }
 
@@ -38,7 +37,6 @@ refinement_is_allowed(EdgeBase* elem)
 bool ParallelGlobalMultiGridRefiner::
 refinement_is_allowed(Face* elem)
 {
-	UG_LOG("f");
 	return !m_distGridMgr.is_ghost(elem);
 }
 

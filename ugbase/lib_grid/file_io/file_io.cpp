@@ -18,6 +18,7 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	string strName = filename;
 	bool bAutoassignFaces = false;
 	bool bSuccess = false;
+	//if(strName.find(".ugx") != string::npos)
 	if(strName.find(".txt") != string::npos)
 	{
 		bAutoassignFaces = true;

@@ -333,6 +333,9 @@ class SingleLevelLayout
 		Layout::interface and Layout::proc_id.*/
 		inline iterator end()							{return m_interfaceMap.end();}
 
+	///	returns true if the layout has no interfaces.
+		inline bool empty()								{return begin() == end();}
+		
 	///	returns the interface to the given iterator.
 		inline Interface& interface(iterator& iter)		{return iter->second;}
 
@@ -439,6 +442,12 @@ class MultiLevelLayout
 	 *	Layout::interface and Layout::proc_id.
 	 *	Make sure that the level matches the level in the associated begin() call.*/
 		inline iterator end(size_t level)				{require_level(level); return m_vLayouts[level]->end();}
+
+	///	returns true if the layout has no interfaces on the given level.
+		inline bool empty(size_t level)					{return begin(level) == end(level);}
+
+	///	returns true if the layout has no interfaces.
+		inline bool empty()								{for(size_t l = 0; l < num_levels(); ++l){if(!empty(l)) return false;} return true;}
 
 	///	returns the interface to the given iterator.
 		inline Interface& interface(iterator& iter)		{return iter->second;}

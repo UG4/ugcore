@@ -177,7 +177,7 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 
             LOG("Element Distribution - min: " << minElems << ", max: " << maxElems << endl);
 				
-			const char* partitionMapFileName = "partitionMap.ugx";
+			const char* partitionMapFileName = "partitionMap.obj";
 			LOG("saving partition map to " << partitionMapFileName << endl);
 			SaveGridToFile(mg, partitionMapFileName, shPartition);
 
