@@ -715,7 +715,7 @@ void SparseMatrix<T>::defrag()
 	connection *p = consmemNew;
 	for(size_t i=0; i<rows; i++)
 	{
-		int nr=getNrOfConnections(i);
+		size_t nr=getNrOfConnections(i);
 		for(size_t k=0; k < nr; k++)
 			swap(p[k], pRowStart[i][k]);
 		safeSetConnections(i, p);
