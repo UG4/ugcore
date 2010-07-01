@@ -120,18 +120,6 @@ class MartinAlgebra
 
 		//	typedef HYPREboomerAMG linear_solver_type;
 	};
-
-  // this will soon be moved
-bool diag_step(const SparseMatrix<number>& A, Vector<number>& x, Vector<number>& b, number damp)
-{
-	//exit(3);
-	UG_ASSERT(x.size() == b.size() && x.size() == A.row_size(), x << ", " << b << " and " << A << " need to have same size.");
-
-	for(size_t j=0; j < x.size(); j++)
-		x[j] = b[j] / A.getDiag(j);
-
-	return true;
-}
 }
 
 #endif
