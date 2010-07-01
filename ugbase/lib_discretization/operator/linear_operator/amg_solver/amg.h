@@ -91,7 +91,7 @@ public:
 //  functions
 	void writeMatrices(const char *pathAndName);
 	amg() ;
-	~amg();
+	virtual ~amg();
 	virtual bool init(const Matrix_type& A);
 
 #ifdef FLEXAMG
