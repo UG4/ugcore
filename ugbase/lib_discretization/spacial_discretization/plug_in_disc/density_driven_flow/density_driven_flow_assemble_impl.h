@@ -159,7 +159,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 
 				for(size_t j = 0; j < sdv.num_sh(); ++j)
 				{
-					if(j == up) flux_c = m_upwind_amount * ( sdv.shape(up) * VecDot(Darcy_vel, scvf.normal()) );
+					if(j == up) flux_c = m_upwind_amount * ( VecDot(Darcy_vel, scvf.normal()) );
 					else flux_c = 0.0;
 					flux_c += m_upwind_amount * u(_C_, up) * VecDot(D_Darcy_vel_c[j], scvf.normal());
 
