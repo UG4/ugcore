@@ -20,7 +20,6 @@ AssembledMultiGridCycle(	IAssemble<level_function_type, algebra_type>& ass, appr
 				m_ass(ass), m_approxSpace(approxSpace), m_domain(approxSpace.get_domain()),
 				m_surfaceLevel(surfaceLevel), m_baseLevel(baseLevel), m_cycle_type(cycle_type),
 				m_nu1(nu1), m_nu2(nu2), m_baseSolver(baseSolver),
-				m_A(NULL), m_P(NULL), m_I(NULL),
 				m_grid_changes(grid_changes), m_allocated(false)
 
 				{
