@@ -195,8 +195,10 @@ DataContainer::
 link(std::size_t nr_imp, std::size_t nr_exp)
 {
 	// check if linking is possible
-	if(nr_imp >= m_importItemList.size()) return false;
-	if(nr_exp >= m_exportItemList.size()) return false;
+	if(nr_imp >= m_importItemList.size())
+		{UG_LOG("Import with number " << nr_imp << " does not exist.\n"); return false;}
+	if(nr_exp >= m_exportItemList.size())
+		{UG_LOG("Export with number " << nr_exp << " does not exist.\n"); return false;}
 
 	return link(*m_importItemList[nr_imp], *m_exportItemList[nr_exp]);
 }

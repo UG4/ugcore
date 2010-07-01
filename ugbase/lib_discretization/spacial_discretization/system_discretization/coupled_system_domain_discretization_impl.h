@@ -11,192 +11,6 @@
 namespace ug {
 
 
-template <typename TDiscreteFunction>
-bool
-CoupledSystemDomainDiscretization<TDiscreteFunction>::
-clear_dirichlet_jacobian_defect(	geometry_traits<Vertex>::iterator iterBegin,
-									geometry_traits<Vertex>::iterator iterEnd,
-									size_t sys, size_t loc_fct, int si,
-									matrix_type& J, vector_type& d,
-									const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	position_type corner;
-	size_t glob_fct = m_systems[sys]->fct(loc_fct);
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
-
-		glob_ind.push_back(ind[0]);
-		dirichlet_vals.push_back(0.0);
-	}
-
-	if(d.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	if(J.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-template <typename TDiscreteFunction>
-bool
-CoupledSystemDomainDiscretization<TDiscreteFunction>::
-clear_dirichlet_defect(	geometry_traits<Vertex>::iterator iterBegin,
-						geometry_traits<Vertex>::iterator iterEnd,
-						size_t sys, size_t loc_fct, int si,
-						vector_type& d,
-						const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	position_type corner;
-	size_t glob_fct = m_systems[sys]->fct(loc_fct);
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
-
-		glob_ind.push_back(ind[0]);
-		dirichlet_vals.push_back(0.0);
-	}
-
-	if(d.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-template <typename TDiscreteFunction>
-bool
-CoupledSystemDomainDiscretization<TDiscreteFunction>::
-clear_dirichlet_jacobian(	geometry_traits<Vertex>::iterator iterBegin,
-							geometry_traits<Vertex>::iterator iterEnd,
-							size_t sys, size_t loc_fct, int si,
-							matrix_type& J,
-							const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-
-	position_type corner;
-	size_t glob_fct = m_systems[sys]->fct(loc_fct);
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
-
-		glob_ind.push_back(ind[0]);
-	}
-
-	if(J.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-template <typename TDiscreteFunction>
-bool
-CoupledSystemDomainDiscretization<TDiscreteFunction>::
-set_dirichlet_solution(	geometry_traits<Vertex>::iterator iterBegin,
-						geometry_traits<Vertex>::iterator iterEnd,
-						size_t sys, size_t loc_fct, int si,
-						vector_type& x,
-						const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	number val;
-	position_type corner;
-	size_t glob_fct = m_systems[sys]->fct(loc_fct);
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
-		if(m_systems[sys]->boundary_value(val, corner, time, si, loc_fct))
-		{
-			glob_ind.push_back(ind[0]);
-			dirichlet_vals.push_back(val);
-		}
-	}
-
-	if(x.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-
-template <typename TDiscreteFunction>
-bool
-CoupledSystemDomainDiscretization<TDiscreteFunction>::
-set_dirichlet_linear(	geometry_traits<Vertex>::iterator iterBegin,
-						geometry_traits<Vertex>::iterator iterEnd,
-						size_t sys, size_t loc_fct, int si,
-						matrix_type& mat, vector_type& rhs,
-						const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	number val;
-	position_type corner;
-	size_t glob_fct = m_systems[sys]->fct(loc_fct);
-
-	for(geometry_traits<Vertex>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		VertexBase *vert = *iter;
-		corner = aaPos[vert];
-
-		if(u.get_multi_indices_of_geom_obj(vert, glob_fct, ind) != 1) assert(0);
-		if(m_systems[sys]->boundary_value(val, corner, time, si, loc_fct))
-		{
-			dirichlet_vals.push_back(val);
-			glob_ind.push_back(ind[0]);
-		}
-	}
-
-	if(rhs.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	if(mat.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
-	return true;
-}
-
 // assemble elements of type TElem in d dimensions
 template <typename TDiscreteFunction>
 template <typename TElem>
@@ -490,6 +304,9 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 	// prepare each systems
 	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 	{
+		// prepare element loop
+		m_systems[sys]->prepare_element_loop(elem);
+
 		// get total number of DoF's on this element type 'TElem'
 		num_sh[sys] = m_systems[sys]->num_sh(elem);
 
@@ -498,9 +315,6 @@ assemble_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 		loc_u[sys].resize(num_sh[sys]);
 		loc_d[sys].resize(num_sh[sys]);
 		loc_d_temp[sys].resize(num_sh[sys]);
-
-		// prepare element loop
-		m_systems[sys]->prepare_element_loop(elem);
 	}
 
 	// loop over all elements
@@ -661,7 +475,7 @@ assemble_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u)
+assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si)
 {
 	return IAssemble_NOT_IMPLEMENTED;
 }
@@ -669,18 +483,18 @@ assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_jacobian(matrix_type& J, const discrete_function_type& u)
+assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
 	//return IAssemble_NOT_IMPLEMENTED;
 
-	return this->assemble_jacobian(J, u, 0.0, 0.0, 1.0);
+	return this->assemble_jacobian(J, u, si, 0.0, 0.0, 1.0);
 }
 
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_defect(vector_type& d, const discrete_function_type& u)
+assemble_defect(vector_type& d, const discrete_function_type& u, int si)
 {
 	return IAssemble_NOT_IMPLEMENTED;
 }
@@ -688,42 +502,17 @@ assemble_defect(vector_type& d, const discrete_function_type& u)
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_solution(discrete_function_type& u)
-{
-	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t sys = 0; sys < m_systems.size(); ++sys)
-		for(size_t i = 0; i < m_systems[sys]->num_fct(); i++)
-			if(u.get_local_shape_function_set_id(m_systems[sys]->fct(i)) != m_systems[sys]->local_shape_function_set(i))
-				{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
-
-	if(m_dirichletDisc.set_dirichlet_solution(u) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
-
-	return IAssemble_OK;
-}
-
-template <typename TDiscreteFunction>
-IAssembleReturn
-CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
+assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si)
 {
 	for(size_t sys = 0; sys < m_systems.size(); ++sys)
 		for(size_t i = 0; i < m_systems[sys]->num_fct(); i++)
 			if(u.get_local_shape_function_set_id(m_systems[sys]->fct(i)) != m_systems[sys]->local_shape_function_set(i))
 				{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n");return IAssemble_ERROR;}
 
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-		if(assemble_linear<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.set_dirichlet_linear(mat, rhs, u) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_linear<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
+	if(assemble_linear<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -731,7 +520,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
+assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
 	for(size_t sys = 0; sys < m_systems.size(); ++sys)
@@ -739,18 +528,10 @@ assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function
 			if(u.get_local_shape_function_set_id(m_systems[sys]->fct(i)) != m_systems[sys]->local_shape_function_set(i))
 				{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n"); return IAssemble_ERROR;}
 
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-		if(assemble_jacobian_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.clear_dirichlet_jacobian_defect(J, d, u, time) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_linear, aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -758,7 +539,7 @@ assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, number s_m, number s_a)
+assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
 	for(size_t sys = 0; sys < m_systems.size(); ++sys)
@@ -766,25 +547,10 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 			if(u.get_local_shape_function_set_id(m_systems[sys]->fct(i)) != m_systems[sys]->local_shape_function_set(i))
 				{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n"); return IAssemble_ERROR;}
 
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_jacobian<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
-		if(assemble_jacobian<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
-	}
-	for(size_t i = 0; i < num_elem_subsets(3); ++i)
-	{
-		int si = elem_subset(3, i);
-
-		if(assemble_jacobian<Tetrahedron>(u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), J, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.clear_dirichlet_jacobian(J, u, time) != true)
-		{UG_LOG("Error in 'assemble_jacobian' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_jacobian<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in 'assemble_jacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -792,7 +558,7 @@ assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, 
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
+assemble_defect(vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
 	// check that Solution number 'nr' matches trial space required by Discretization
 	for(size_t sys = 0; sys < m_systems.size(); ++sys)
@@ -800,18 +566,10 @@ assemble_defect(vector_type& d, const discrete_function_type& u, number time, nu
 			if(u.get_local_shape_function_set_id(m_systems[sys]->fct(i)) != m_systems[sys]->local_shape_function_set(i))
 				{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n"); return IAssemble_ERROR;}
 
-	for(size_t i = 0; i < num_elem_subsets(2); ++i)
-	{
-		int si = elem_subset(2, i);
-
-		if(assemble_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
-		if(assemble_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, time, s_m, s_a)==false)
-			{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
-	}
-
-	if(m_dirichletDisc.clear_dirichlet_defect(d, u, time) != true)
-		{UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
+	if(assemble_defect<Triangle>(u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
+	if(assemble_defect<Quadrilateral>(u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, time, s_m, s_a)==false)
+		{UG_LOG("Error in assemble_defect, aborting.\n");return IAssemble_ERROR;}
 
 	return IAssemble_OK;
 }
@@ -819,26 +577,9 @@ assemble_defect(vector_type& d, const discrete_function_type& u, number time, nu
 template <typename TDiscreteFunction>
 IAssembleReturn
 CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a)
+assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 {
 	return IAssemble_NOT_IMPLEMENTED;
-}
-
-template <typename TDiscreteFunction>
-IAssembleReturn
-CoupledSystemDomainDiscretization<TDiscreteFunction>::
-assemble_solution(discrete_function_type& u, number time)
-{
-	// check that Solution number 'nr' matches trial space required by Discretization
-	for(size_t sys = 0; sys < m_systems.size(); ++sys)
-		for(size_t i = 0; i < m_systems[sys]->num_fct(); i++)
-			if(u.get_local_shape_function_set_id(m_systems[sys]->fct(i)) != m_systems[sys]->local_shape_function_set(i))
-				{UG_LOG("Choosen Trial Space does not match this Discretization scheme. Abort discretization.\n"); return IAssemble_ERROR;}
-
-	if(m_dirichletDisc.set_dirichlet_solution(u, time) != true)
-		{UG_LOG("Error in 'assemble_defect' while calling 'clear_dirichlet_jacobian', aborting.\n");return IAssemble_ERROR;}
-
-	return IAssemble_OK;
 }
 
 

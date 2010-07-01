@@ -173,18 +173,26 @@ clear_dirichlet_jacobian_defect(	typename geometry_traits<TElem>::iterator iterB
 									matrix_type& J, vector_type& d,
 									const discrete_function_type& u, number time)
 {
+	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
 	local_index_type ind(1);
 	local_index_type glob_ind;
 	local_vector_type dirichlet_vals;
 
+	number val;
+	position_type corner;
+
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		TElem* elem = *iter;
+		corner = aaPos[elem];
 
 		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1) assert(0);
 
-		glob_ind.push_back(ind[0]);
-		dirichlet_vals.push_back(0.0);
+		if(m_bndfct(val, corner, time))
+		{
+			glob_ind.push_back(ind[0]);
+			dirichlet_vals.push_back(0.0);
+		}
 	}
 
 	if(d.set(dirichlet_vals, glob_ind) != true)
@@ -206,18 +214,26 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 						vector_type& d,
 						const discrete_function_type& u, number time)
 {
+	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
 	local_index_type ind(1);
 	local_index_type glob_ind;
 	local_vector_type dirichlet_vals;
 
+	number val;
+	position_type corner;
+
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		TElem* elem = *iter;
+		corner = aaPos[elem];
 
 		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1) assert(0);
 
-		glob_ind.push_back(ind[0]);
-		dirichlet_vals.push_back(0.0);
+		if(m_bndfct(val, corner, time))
+		{
+			glob_ind.push_back(ind[0]);
+			dirichlet_vals.push_back(0.0);
+		}
 	}
 
 	if(d.set(dirichlet_vals, glob_ind) != true)
@@ -236,16 +252,25 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 							matrix_type& J,
 							const discrete_function_type& u, number time)
 {
+	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
 	local_index_type ind(1);
 	local_index_type glob_ind;
+
+	number val;
+	position_type corner;
 
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 		TElem* elem = *iter;
+		corner = aaPos[elem];
 
 		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1) assert(0);
 
-		glob_ind.push_back(ind[0]);
+		if(m_bndfct(val, corner, time))
+		{
+			glob_ind.push_back(ind[0]);
+		}
+
 	}
 
 	if(J.set_dirichlet_rows(glob_ind) != true)

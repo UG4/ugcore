@@ -8,10 +8,10 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/domain_discretization/disc_helper/fvgeom.h"
+#include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
 
-#include "lib_discretization/domain_discretization/plug_in_disc/plug_in_element_disc_interface.h"
-#include "lib_discretization/domain_discretization/disc_coupling/element_data.h"
+#include "lib_discretization/spacial_discretization/plug_in_disc/plug_in_element_disc_interface.h"
+#include "lib_discretization/spacial_discretization/disc_coupling/element_data.h"
 
 
 namespace ug{
@@ -20,13 +20,14 @@ namespace ug{
 template<typename TDomain, typename TAlgebra, typename TElem >
 class CplConvectionDiffusionEquation {
 	public:
-		// forward constants and types
+		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 		// domain type
 		typedef TDomain domain_type;
 
 		// world dimension
 		static const int dim = TDomain::dim;
+		static const int ref_dim = ref_elem_type::dim;
 
 		// position type
 		typedef typename TDomain::position_type position_type;
@@ -44,7 +45,6 @@ class CplConvectionDiffusionEquation {
 		typedef typename algebra_type::vector_type::local_index_type local_index_type;
 
 	protected:
-		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
 		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
@@ -110,7 +110,9 @@ class CplConvectionDiffusionEquation {
 
 
 
-template <typename TDomain, typename TAlgebra>
+template <	typename TDomain,
+			int ref_dim,
+			typename TAlgebra>
 class CplConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TAlgebra>{
 
 	public:
@@ -181,7 +183,7 @@ class CplConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization
 		}
 
 	protected:
-		DataImport<MathVector<dim>, MathVector<dim> > m_Velocity;
+		DataImport<MathVector<dim>, MathVector<ref_dim> > m_Velocity;
 
 	public:
 		// number of fundamental functions required for this assembling
@@ -208,9 +210,10 @@ class CplConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization
 		template<typename TElem>
 		CplConvectionDiffusionEquation<domain_type, algebra_type, TElem>&
 		get_inst(	domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel,
-					Reaction_fct reac, Rhs_fct rhs, DataImport<MathVector<dim>, MathVector<dim> >& Velocity)
+					Reaction_fct reac, Rhs_fct rhs, DataImport<MathVector<dim>, MathVector<ref_dim> >& Velocity)
 		{
-			static CplConvectionDiffusionEquation<domain_type, algebra_type, TElem> inst(domain, upwind_amount, diff, vel, reac, rhs, Velocity);
+			static CplConvectionDiffusionEquation<domain_type, algebra_type, TElem>
+						inst(domain, upwind_amount, diff, vel, reac, rhs, Velocity);
 			return inst;
 		}
 

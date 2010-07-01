@@ -36,7 +36,7 @@ prepare_element_loop()
 	m_aaPos = m_domain.get_position_accessor();
 
 	m_Darcy_Velocity_export.set_eval_function(&DataExportingClass<MathVector<dim>, MathVector<ref_elem_type::dim>,TAlgebra>::export1, this);
-
+	m_Darcy_Velocity_export.set_num_sh(1, 2*ref_elem_type::num_corners); //(num_sys, num_sh)
 	return IPlugInReturn_OK;
 }
 

@@ -28,6 +28,8 @@ DataExportItem*
 DataClassExportPossibility<TDataType, TPositionType, TAlgebra>::
 create_data_export()
 {
+	// This is left out, since exports are corrected afterwards for every element type (Triangle, Quads, ...)
+	/*
 	UG_ASSERT(m_evalFunction != NULL, "Eval function not set.");
 	UG_ASSERT(m_ExportingClass != NULL, "Exporting Class not set.");
 
@@ -36,6 +38,7 @@ create_data_export()
 		UG_LOG("DataClassExportPossibility::create_data_export: Can not create Export, since evaluation Function or exporting Class not set.\n");
 		return NULL;
 	}
+	*/
 	DataClassExport<TDataType, TPositionType, TAlgebra> * exp = new DataClassExport<TDataType, TPositionType, TAlgebra>(this->name(), this, m_evalFunction, m_ExportingClass);
 	m_createdDataExports.push_back(dynamic_cast<DataExportItem*>(exp));
 	if(exp->set_num_sh(m_sys, m_num_sh) != true) return false;

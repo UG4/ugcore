@@ -256,7 +256,7 @@ class DataImportItem : public DataItem{
 		inline std::size_t num_sh() const {
 			UG_ASSERT(m_export != NULL, "No Export set.");
 			std::size_t t = 0;
-			for(std::size_t s = 0; s < num_sys(); ++s) t += num_sh();
+			for(std::size_t s = 0; s < num_sys(); ++s) t += num_sh(s);
 			return t;};
 
 		inline bool depends_on_sys(std::size_t glob_sys, std::size_t& loc_sys) const {

@@ -8,10 +8,10 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/domain_discretization/disc_helper/fvgeom.h"
+#include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
 
-#include "lib_discretization/domain_discretization/plug_in_disc/plug_in_element_disc_interface.h"
-#include "lib_discretization/domain_discretization/disc_coupling/element_data.h"
+#include "lib_discretization/spacial_discretization/plug_in_disc/plug_in_element_disc_interface.h"
+#include "lib_discretization/spacial_discretization/disc_coupling/element_data.h"
 
 namespace ug{
 
@@ -60,7 +60,7 @@ class CplDensityDrivenFlow :
 		CplDensityDrivenFlow(	TDomain& domain, number upwind_amount,
 							Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
 							Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity,
-							DataClassExportPossibility<MathVector<dim>, MathVector<ref_elem_type::dim>, algebra_type>& DarcyExport)
+							DataClassExportPossibility<MathVector<dim>, MathVector<ref_dim>, algebra_type>& DarcyExport)
 		: 	m_Darcy_Velocity_export(DarcyExport),
 			m_domain(domain), m_upwind_amount(upwind_amount),
 			m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
@@ -94,6 +94,7 @@ class CplDensityDrivenFlow :
 		inline IPlugInReturn finish_element_loop();
 
 	private:
+		DataClassExportPossibility<MathVector<dim>, MathVector<ref_dim>, algebra_type>& m_Darcy_Velocity_export;
 		// domain
 		TDomain& m_domain;
 
@@ -120,7 +121,6 @@ class CplDensityDrivenFlow :
 		// constant values, read in once
 		number m_porosity;
 
-		DataClassExportPossibility<MathVector<dim>, MathVector<ref_elem_type::dim>, algebra_type>& m_Darcy_Velocity_export;
 	private:
 		// local constants for readability (local function 0 == _C_, local function 1 == _P_)
 		static const size_t _C_ = 0;
@@ -230,7 +230,9 @@ class CplDensityDrivenFlow :
 };
 
 
-template <typename TDomain, typename TAlgebra>
+template <	typename TDomain,
+			int ref_dim,
+			typename TAlgebra>
 class CplDensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>{
 
 	public:
@@ -300,7 +302,7 @@ class CplDensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>
 		bool unregister_imports(DataContainer& Cont){ return true;}
 
 	protected:
-		DataClassExportPossibility<MathVector<dim>, MathVector<dim>, algebra_type>  m_DarcyVelocity;
+		DataClassExportPossibility<MathVector<dim>, MathVector<ref_dim>, algebra_type>  m_DarcyVelocity;
 
 	public:
 		// number of fundamental functions required for this assembling
@@ -380,7 +382,7 @@ class CplDensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>
 		get_inst(	TDomain& domain, number upwind_amount,
 					Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
 					Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity,
-					DataClassExportPossibility<MathVector<dim>, MathVector<dim>, algebra_type>& DarcyExport)
+					DataClassExportPossibility<MathVector<dim>, MathVector<ref_dim>, algebra_type>& DarcyExport)
 		{
 			static CplDensityDrivenFlow<domain_type, algebra_type, TElem>
 						inst(domain, upwind_amount, Porosity, Viscosity, Density, D_Density, Mol_Diff, Permeability_Tensor, Gravity, DarcyExport);
