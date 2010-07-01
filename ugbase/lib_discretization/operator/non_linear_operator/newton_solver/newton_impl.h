@@ -135,8 +135,8 @@ apply(discrete_function_type& u)
 
 	//verbose
 	UG_LOG(" ###### NEWTON - METHOD ######" << std::endl);
-	UG_LOG(" #   Iter     Defect         Rate \n");
-	UG_LOG(" # " << std::setw(4) << 0 << ":  " << std::scientific << norm_old <<  "      -------" << std::endl);
+	UG_LOG(" ##   Iter     Defect         Rate \n");
+	UG_LOG(" ## " << std::setw(4) << 0 << ":  " << std::scientific << norm_old <<  "      -------" << std::endl);
 
 	//loop iteration
 	int i;
