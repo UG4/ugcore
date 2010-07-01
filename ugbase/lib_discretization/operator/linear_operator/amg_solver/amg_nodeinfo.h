@@ -67,4 +67,5 @@ struct amg_nodeinfo
 };
 
 
+
 }
