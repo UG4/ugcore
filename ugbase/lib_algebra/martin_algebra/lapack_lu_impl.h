@@ -59,6 +59,9 @@ void LapackLU::init(const SparseMatrix<double> &A)
 	const int nrOfUnknowns = 1 ; //block_matrix_traits<entry_type>::nrOfUnknowns;
 	size = A.row_size() * nrOfUnknowns;
 
+	if(densemat) delete[] densemat;
+	if(interchange) delete[] interchange;
+
 	densemat = new double[size*size];
 	interchange = new int[size];
 
