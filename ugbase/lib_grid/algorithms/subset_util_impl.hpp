@@ -194,6 +194,20 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 											srcIndHandler, TElem());
 }
 
+////////////////////////////////////////////////////////////////////////
+//	CreateTopView
+template <class TIterator>
+void CreateTopView(MultiGrid& mg, SubsetHandler& sh,
+					TIterator iterBegin, TIterator iterEnd)
+{
+	while(iterBegin != iterEnd)
+	{
+		if(!mg.has_children(*iterBegin))
+			sh.assign_subset(*iterBegin, 0);
+		++iterBegin;
+	}
+}
+
 }//	end of namespace
 
 #endif

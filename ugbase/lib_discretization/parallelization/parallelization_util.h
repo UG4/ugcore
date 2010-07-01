@@ -10,7 +10,7 @@
 
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_discretization/lib_discretization.h"
-#include "lib_grid/algorithms/parallelization/parallelization.h"
+#include "lib_grid/parallelization/parallelization.h"
 
 namespace ug
 {

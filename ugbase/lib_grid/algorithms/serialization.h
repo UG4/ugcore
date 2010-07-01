@@ -235,6 +235,18 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							std::istream& in);
 
 ////////////////////////////////////////////////////////////////////////
+///	assigns subset-indices to all elements in the mlgoc from a stream.
+/**	One has to be very careful that the given goc only contains
+ * the elements that were passed to the serialization routine.
+ * Problems could be caused by automatic element creation.
+ * consider to set grid.set_option(GRIDOPT_NONE) before loading
+ * the grid.
+ */
+bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
+							MultiLevelGeometricObjectCollection mlgoc,
+							std::istream& in);
+							
+////////////////////////////////////////////////////////////////////////
 ///	assigns subset-indices to all elements in the grid from a stream.
 /**	One has to be very careful that the given grid only contains
  * the elements that were passed to the serialization routine.

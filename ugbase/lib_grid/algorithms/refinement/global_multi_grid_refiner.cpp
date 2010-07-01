@@ -107,6 +107,9 @@ void GlobalMultiGridRefiner::refine()
 	for(VertexBaseIterator iter = mg.begin<VertexBase>(oldTopLevel);
 		iter != mg.end<VertexBase>(oldTopLevel); ++iter)
 	{
+		if(!refinement_is_allowed(*iter))
+			continue;
+
 		VertexBase* v = *iter;
 	//	create a new vertex in the next layer.
 		VertexBase* nVrt = *mg.create_by_cloning(v, v);
@@ -124,6 +127,9 @@ void GlobalMultiGridRefiner::refine()
 	for(EdgeBaseIterator iter = mg.begin<EdgeBase>(oldTopLevel);
 		iter != mg.end<EdgeBase>(oldTopLevel); ++iter)
 	{
+		if(!refinement_is_allowed(*iter))
+			continue;
+			
 	//	collect_objects_for_refine removed all edges that already were
 	//	refined. No need to check that again.
 		EdgeBase* e = *iter;
@@ -154,6 +160,9 @@ void GlobalMultiGridRefiner::refine()
 	for(FaceIterator iter = mg.begin<Face>(oldTopLevel);
 		iter != mg.end<Face>(oldTopLevel); ++iter)
 	{
+		if(!refinement_is_allowed(*iter))
+			continue;
+			
 		Face* f = *iter;
 	//	collect child-vertices
 		vVrts.clear();
@@ -191,6 +200,9 @@ void GlobalMultiGridRefiner::refine()
 	for(VolumeIterator iter = mg.begin<Volume>(oldTopLevel);
 		iter != mg.end<Volume>(oldTopLevel); ++iter)
 	{
+		if(!refinement_is_allowed(*iter))
+			continue;
+			
 		Volume* v = *iter;
 	//	collect child-vertices
 		vVrts.clear();

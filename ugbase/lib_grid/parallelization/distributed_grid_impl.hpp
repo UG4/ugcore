@@ -16,7 +16,22 @@ is_interface_element(TElem* elem)
 {
 	return elem_info(elem).get_status() & ES_IN_INTERFACE;
 }
-		
+
+template<class TElem>
+inline bool DistributedGridManager::
+is_ghost(TElem* elem)
+{
+	byte status = get_status(elem);
+	if((status & ES_VERTICAL_MASTER))
+		UG_LOG("vm-");
+	if((status & ES_MASTER))
+		UG_LOG("hm-");
+	if((status & ES_SLAVE))
+		UG_LOG("hs-");
+	return 	(status & (ES_VERTICAL_MASTER | ES_MASTER | ES_SLAVE))
+			== ES_VERTICAL_MASTER;
+}
+
 template <class TElem>
 void DistributedGridManager::
 collect_interface_entries(

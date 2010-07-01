@@ -203,12 +203,33 @@ exchange_data(TDistributor& distributor,
 		}
 	}
 }
-
+/*
+template <class TGeomObj, class TIterator>
+void ParallelMultiGridRefiner::
+mark_fixed_elements(TIterator iterBegin, TIterator iterEnd)
+{
+	if(m_distGridMgr.grid_layout_map().has_layout<TGeomObj>(INT_VERTICAL_MASTER))
+	{
+		for(TIterator iter = iterBegin; iter != iterEnd; ++iter)
+		{
+			byte status = distGridMgr.get_status(*iter);
+			if(( status & ES_VERTICAL_MASTER)
+				&! (status & ES_MASTER)
+				&! (status & ES_SLAVE))
+			{
+				set_rule(*iter, RM_FIXED);
+			}
+		}
+	}
+}
+*/
 void ParallelMultiGridRefiner::
 collect_objects_for_refine()
 {
 /*
 Algorithm Layout:
+mark elements that may not be refined as fixed
+
 initial mark distribution
 	- adjust_initial_selection
 	- distribute marks for edges (and faces).
@@ -232,9 +253,12 @@ whose rule changed during the collect_objects_for_refie method (m_vNewlyMarked..
 This is realised via protected virtual set_rule methods in MultiGridRefiner.
 Since those methods are only called during collect_objects_for_refine,
 it is clear that those vectors always hold valid and existing elements.
-
-The refinement distributor classes
 */
+
+//	mark fixed elements
+	//mark_fixed_elements<VertexBase>(m_pMG->begin<VertexBase>(), m_pMG->end<VertexBase>());
+	
+//	The refinement distributor classes
 	RefinementMarkDistributor<VertexLayout> vertexMarkDistributor(
 												*m_distGridMgr.get_assigned_grid(),
 												*this,

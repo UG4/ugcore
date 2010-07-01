@@ -534,6 +534,85 @@ bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
 	return true;
 }
 
+void AssignInnerAndBoundarySubsets(Grid& grid, ISubsetHandler& shOut,
+									int inSubset, int bndSubset)
+{
+	if(grid.num<Volume>() > 0){
+	//	assign volumes to inSubset
+		for(VolumeIterator iter = grid.begin<Volume>();
+			iter != grid.end<Volume>(); ++iter)
+		{
+			if(shOut.get_subset_index(*iter) == -1)
+				shOut.assign_subset(*iter, inSubset);
+		}
+
+		vector<EdgeBase*> vEdges;
+	//	assign volume-boundary elements to bndSubset
+		for(FaceIterator iter = grid.begin<Face>(); iter != grid.end<Face>(); ++iter)
+		{
+			Face* f = *iter;
+			if(shOut.get_subset_index(f) == -1){
+				if(IsVolumeBoundaryFace(grid, f)){
+				//	assign the face to the boundary subset.
+					shOut.assign_subset(f, bndSubset);
+
+				//	assign associated vertices and edges to the boundary subset, too.
+					for(size_t i = 0; i < f->num_vertices(); ++i){
+						if(shOut.get_subset_index(f->vertex(i)) == -1)
+							shOut.assign_subset(f->vertex(i), bndSubset);
+					}
+
+					CollectEdges(vEdges, grid, f);
+					for(size_t i = 0; i < vEdges.size(); ++i){
+						if(shOut.get_subset_index(vEdges[i]) == -1)
+							shOut.assign_subset(vEdges[i], bndSubset);
+					}
+				}
+				else{
+				//	assing the face to the inner subset
+					shOut.assign_subset(f, inSubset);
+				}
+			}
+		}
+	}
+	else{
+		for(FaceIterator iter = grid.begin<Face>();
+			iter != grid.end<Face>(); ++iter)
+		{
+			if(shOut.get_subset_index(*iter) == -1)
+				shOut.assign_subset(*iter, inSubset);
+		}
+	}
+
+//	assign edges and vertices
+	for(EdgeBaseIterator iter = grid.begin<EdgeBase>();
+		iter != grid.end<EdgeBase>(); ++iter)
+	{
+		EdgeBase* e = *iter;
+		if(shOut.get_subset_index(e) == -1){
+			if(IsBoundaryEdge2D(grid, e))
+			{
+				shOut.assign_subset(e, bndSubset);
+				for(size_t i = 0; i < 2; ++i)
+				{
+					if(shOut.get_subset_index(e->vertex(i)) == -1)
+						shOut.assign_subset(e->vertex(i), bndSubset);
+				}
+			}
+			else
+				shOut.assign_subset(e, inSubset);
+		}
+	}
+
+//	assign unassigned vertices
+	for(VertexBaseIterator iter = grid.begin<VertexBase>();
+		iter != grid.end<VertexBase>(); ++iter)
+	{
+		if(shOut.get_subset_index(*iter) == -1)
+			shOut.assign_subset(*iter, inSubset);
+	}
+}
+
 static vector3 GetColorFromStandardPalette(int index)
 {
 //	values taken from http://en.wikipedia.org/wiki/Web_colors

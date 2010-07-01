@@ -13,5 +13,5 @@
 #include "multi_grid.h"
 
 #ifdef UG_PARALLEL
-	#include "lib_grid/algorithms/parallelization/parallelization.h"
+	#include "lib_grid/parallelization/parallelization.h"
 #endif

@@ -30,6 +30,15 @@ class GlobalMultiGridRefiner : public GridObserver
 		void refine();
 
 	protected:
+	///	a callback that allows to deny refinement of special vertices
+		virtual bool refinement_is_allowed(VertexBase* elem)	{return true;}
+	///	a callback that allows to deny refinement of special edges
+		virtual bool refinement_is_allowed(EdgeBase* elem)		{return true;}
+	///	a callback that allows to deny refinement of special faces
+		virtual bool refinement_is_allowed(Face* elem)			{return true;}
+	///	a callback that allows to deny refinement of special volumes
+		virtual bool refinement_is_allowed(Volume* elem)		{return true;}
+		
 	///	this method helps derived classes to perform operations directly before actual element refinment is performed.
 	/**	Called from the refine() method in each refinement-iteration after
 	 *	collect_objects_for_refine().

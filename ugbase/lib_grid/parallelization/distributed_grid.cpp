@@ -119,13 +119,25 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 	update_elem_info<VertexBase>(m_gridLayoutMap, INT_SLAVE,
 								ES_IN_INTERFACE | ES_SLAVE);
 
+	update_elem_info<VertexBase>(m_gridLayoutMap, INT_VERTICAL_MASTER,
+								ES_VERTICAL_MASTER, true);
+
+	update_elem_info<VertexBase>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
+								ES_VERTICAL_SLAVE, true);
+								
 //	EDGES						
 	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_MASTER,
 								ES_IN_INTERFACE | ES_MASTER);
 
 	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_SLAVE,
 								ES_IN_INTERFACE | ES_SLAVE);
-								
+
+	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_VERTICAL_MASTER,
+								ES_VERTICAL_MASTER, true);
+
+	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
+								ES_VERTICAL_SLAVE, true);
+																
 //	FACES
 	update_elem_info<Face>(m_gridLayoutMap, INT_MASTER,
 								ES_IN_INTERFACE | ES_MASTER);
@@ -133,12 +145,26 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 	update_elem_info<Face>(m_gridLayoutMap, INT_SLAVE,
 								ES_IN_INTERFACE | ES_SLAVE);
 
+	update_elem_info<Face>(m_gridLayoutMap, INT_VERTICAL_MASTER,
+								ES_VERTICAL_MASTER, true);
+
+	update_elem_info<Face>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
+								ES_VERTICAL_SLAVE, true);
+								
 //	VOLUMES				
 	update_elem_info<Volume>(m_gridLayoutMap, INT_MASTER,
 								ES_IN_INTERFACE | ES_MASTER);
 
 	update_elem_info<Volume>(m_gridLayoutMap, INT_SLAVE,
-								ES_IN_INTERFACE | ES_SLAVE);}
+								ES_IN_INTERFACE | ES_SLAVE);
+
+	update_elem_info<Volume>(m_gridLayoutMap, INT_VERTICAL_MASTER,
+								ES_VERTICAL_MASTER, true);
+
+	update_elem_info<Volume>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
+								ES_VERTICAL_SLAVE, true);
+
+}
 
 ////////////////////////////////////////////////////////////////////////
 template <class TGeomObj>
@@ -155,7 +181,7 @@ void DistributedGridManager::reset_elem_infos()
 ////////////////////////////////////////////////////////////////////////
 template <class TGeomObj, class TLayoutMap>
 void DistributedGridManager::
-update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus)
+update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus, bool addStatus)
 {	
 	typedef typename TLayoutMap::template Types<TGeomObj>::Layout Layout;
 	if(layoutMap.template has_layout<TGeomObj>(nodeType)){
@@ -177,10 +203,15 @@ update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus)
 				{
 				//	set the new status
 					//set_status(*iter, newStatus);
-					elem_info(interface.get_element(iter)).set_status(newStatus);
+					if(addStatus)
+						elem_info(interface.get_element(iter)).set_status(
+							elem_info(interface.get_element(iter)).get_status() | newStatus);
+					else
+						elem_info(interface.get_element(iter)).set_status(newStatus);
 					
 				//	add the iterator to the iterator list and set the proc-id
-					elem_info(interface.get_element(iter)).add_entry(&interface, iter);
+					if(newStatus & ES_IN_INTERFACE)
+						elem_info(interface.get_element(iter)).add_entry(&interface, iter);
 				/*
 					elem_info(*iter).lstProcIterPairs.push_back(
 								typename ElementInfo<TGeomObj>(procID, iter));

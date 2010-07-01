@@ -22,6 +22,11 @@ class ParallelGlobalMultiGridRefiner : public GlobalMultiGridRefiner
 		virtual ~ParallelGlobalMultiGridRefiner();
 
 	protected:
+		virtual bool refinement_is_allowed(VertexBase* elem);
+		virtual bool refinement_is_allowed(EdgeBase* elem);
+		virtual bool refinement_is_allowed(Face* elem);
+		virtual bool refinement_is_allowed(Volume* elem);
+		
 		virtual void refinement_step_begins();
 		virtual void refinement_step_ends();
 

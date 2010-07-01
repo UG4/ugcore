@@ -92,6 +92,7 @@ class MultiGridRefiner : public GridObserver
 			RM_COPY = 1 << 10,
 			RM_IRREGULAR = 1 << 11,
 			RM_UNKNOWN = 1 << 12
+//			RM_FIXED = 1 << 13
 		};
 
 	/**	Those constants define the range in which associated marks lie.*/
@@ -140,7 +141,10 @@ class MultiGridRefiner : public GridObserver
 		inline int get_rule(EdgeBase* e)	{return m_aaIntEDGE[e] & MR_REFINEMENT;}
 		inline int get_rule(Face* e)		{return m_aaIntFACE[e] & MR_REFINEMENT;}
 		inline int get_rule(Volume* e)		{return m_aaIntVOL[e] & MR_REFINEMENT;}
-
+/*
+		template <class TIterator>
+		void mark_fixed_elements(TIterator iterBegin, TIterator iterEnd);
+*/
 	protected:
 		MultiGrid*	m_pMG;
 

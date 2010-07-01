@@ -8,6 +8,8 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/trees/kd_tree_static.h"
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+
 ///	
 /**
  * this is a very simple and unoptimized algorithm!

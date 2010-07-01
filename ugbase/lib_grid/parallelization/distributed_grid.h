@@ -18,7 +18,9 @@ enum ElementStatus
 	ES_SCHEDULED_FOR_INTERFACE = 1 << 1,
 	ES_IN_INTERFACE = 1 << 2,
 	ES_MASTER = 1 << 3,
-	ES_SLAVE = 1 << 4
+	ES_SLAVE = 1 << 4,
+	ES_VERTICAL_MASTER = 1 << 5,
+	ES_VERTICAL_SLAVE = 1 << 6
 };
 
 
@@ -57,6 +59,11 @@ class DistributedGridManager : public GridObserver
 		inline byte get_status(Face* face)		{return elem_info(face).get_status();}
 		inline byte get_status(Volume* vol)		{return elem_info(vol).get_status();}
 
+	///	returns true if the element is a ghost
+	/**	ghost elements are vertical masters that are in no other interfaces.
+	 *	Those elements shouldn't be refined.*/
+	 	template<class TElem>
+		inline bool is_ghost(TElem* elem);
 
 	//	element creation
 	///	call this method before you start creating new elements in the associated grid.
@@ -104,7 +111,8 @@ class DistributedGridManager : public GridObserver
 		void reset_elem_infos();
 		
 		template <class TGeomObj, class TLayoutMap>
-		void update_elem_info(TLayoutMap& layoutMap, int nodeType, byte newStatus);
+		void update_elem_info(TLayoutMap& layoutMap, int nodeType,
+							  byte newStatus, bool addStatus = false);
 
 	///	vertex_created, edge_created, ... callbacks call this method.
 		template <class TElem>

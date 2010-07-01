@@ -15,4 +15,6 @@
 #include "parallel_refinement/parallel_multi_grid_refiner.h"
 #include "parallel_refinement/parallel_global_multi_grid_refiner.h"
 
+#include "parallelization_util.h"
+
 #endif

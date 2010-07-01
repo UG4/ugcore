@@ -1274,6 +1274,81 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 	return true;
 }
 
+bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
+							MultiLevelGeometricObjectCollection mlgoc,
+							std::istream& in)
+{
+//	read a magic number at the beginning and at the end.
+	int magicNumber = 654664;
+	int tInd;
+
+//	make sure that the magic number matches
+	in.read((char*)&tInd, sizeof(int));
+	if(tInd != magicNumber){
+		UG_LOG(" WARNING: magic-number mismatch before read in DeserializeSubsetHandler. Data-salad possible!\n");
+		return false;
+	}
+
+//	deserialize subset-infos
+	int numSubsets;
+	in.read((char*)&numSubsets, sizeof(int));
+
+//	a buffer to read the name
+	vector<char> vBuff(256);
+	for(int i = 0; i < numSubsets; ++i)
+	{
+		SubsetInfo& si = sh.subset_info(i);
+	//	read the name (first the size, then the rest)
+		int nameSize;
+		in.read((char*)&nameSize, sizeof(int));
+	//	check whether the buffer has to be resized
+		if(nameSize > (int)vBuff.size())
+			vBuff.resize(nameSize);
+	//	read the name
+		in.read(&vBuff.front(), nameSize);
+		si.name = &vBuff.front();
+
+	//	read the material index
+		in.read((char*)&si.materialIndex, sizeof(int));
+	//	read the color
+		in.read((char*)&si.color, sizeof(vector4));
+	//	read the subset-state
+		in.read((char*)&si.subsetState, sizeof(uint));
+	}
+
+	for(size_t i = 0; i < mlgoc.num_levels(); ++i)
+	{
+	//	serialize vertex-subsets
+		ReadSubsetIndicesFromStream(mlgoc.begin<VertexBase>(i),
+									mlgoc.end<VertexBase>(i),
+									sh, in);
+
+	//	serialize edge-subsets
+		ReadSubsetIndicesFromStream(mlgoc.begin<EdgeBase>(i),
+									mlgoc.end<EdgeBase>(i),
+									sh, in);
+
+	//	serialize face-subsets
+		ReadSubsetIndicesFromStream(mlgoc.begin<Face>(i),
+									mlgoc.end<Face>(i),
+									sh, in);
+
+	//	serialize volume-subsets
+		ReadSubsetIndicesFromStream(mlgoc.begin<Volume>(i),
+									mlgoc.end<Volume>(i),
+									sh, in);
+	}
+
+	//	make sure that the magic number matches
+	in.read((char*)&tInd, sizeof(int));
+	if(tInd != magicNumber){
+				UG_LOG(" WARNING: magic-number mismatch after read in DeserializeSubsetHandler. Data-salad possible!\n");
+		return false;
+	}
+
+	return true;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeSubsetHandler
 bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,

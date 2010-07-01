@@ -80,12 +80,13 @@ static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 
 //	we'll cache the layout and interface.
 	TLayout* pLayout = NULL;
-	TInterface* pInterface = NULL;
-	int elemType = -1;
 
 //	iterate over the nodes
 	for(size_t level = 0; level < distLayout.num_levels(); ++level)
 	{
+		TInterface* pInterface = NULL;
+		int elemType = -1;
+		
 		typename DistLayout::InterfaceMap& imap = distLayout.interface_map(level);
 		for(typename DistLayout::InterfaceMap::iterator iter = imap.begin();
 			iter != imap.end(); ++iter)
@@ -387,17 +388,18 @@ cout << "    vols: " << vVolumeLayouts[i].node_vec().size() << endl;
 
 	//	deserialize subset handler
 		if(!DeserializeSubsetHandler(*pLocalGridOut, *pLocalSHOut,
+									pLocalGridOut->get_multi_level_geometric_object_collection(),
 									localStream))
 		{
 			goto bailout_false;
 		}
 					
-		if(!DeserializeAttachment<VertexBase>(*pLocalGridOut, aPosition,
-										pLocalGridOut->begin<VertexBase>(),
-										pLocalGridOut->end<VertexBase>(),
-										localStream))
-		{
-			goto bailout_false;
+		for(size_t i = 0; i < pLocalGridOut->num_levels(); ++i){
+			if(!DeserializeAttachment<VertexBase>(*pLocalGridOut, aPosition,
+											pLocalGridOut->begin<VertexBase>(i),
+											pLocalGridOut->end<VertexBase>(i),
+											localStream))
+				goto bailout_false;
 		}
 	}
 	
@@ -488,7 +490,9 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 	}
 	
 //	deserialize subset handler
-	if(!DeserializeSubsetHandler(mgOut, shOut, binaryStream))
+	if(!DeserializeSubsetHandler(mgOut, shOut,
+								mgOut.get_multi_level_geometric_object_collection(),
+								binaryStream))
 		return false;
 	
 //	read the attached data

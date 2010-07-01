@@ -69,11 +69,12 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 
 if(NOT NO_PCL)
 	# add parallelization
-	set(srcParallelization	algorithms/parallelization/distribution_util.cpp
-							algorithms/parallelization/grid_distribution.cpp
-							algorithms/parallelization/distributed_grid.cpp
-							algorithms/parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
-							algorithms/parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp)
+	set(srcParallelization	parallelization/distribution_util.cpp
+							parallelization/grid_distribution.cpp
+							parallelization/distributed_grid.cpp
+							parallelization/parallelization_util.cpp
+							parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
+							parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp)
 
 else(NOT NO_PCL)
 	# give a warning that pcl will not be compiled.

@@ -8,6 +8,7 @@
 
 // domain description
 #include "lib_discretization/domain.h"
+#include "lib_discretization/domain_util.h"
 
 // degree of freedom managers
 #include "lib_discretization/dof_manager/dof_manager.h"
