@@ -167,7 +167,7 @@ public:
 	const L& l; 
 	const R& r; 
 	inline MatVec_Expression(const L & l_, const R & r_) : l(l_),r(r_) 
-	{ UG_ASSERT(l.getCols() == r.size(), l << " has different length as " <<  r); }
+	{ UG_ASSERT(l.num_cols() == r.size(), l << " has different length as " <<  r); }
 	
 	//! calcs d = expression[i]
 	inline void assign(entry_type &d, size_t i) const
@@ -205,7 +205,7 @@ public:
 		bFirst = false;		
 	}	
 	
-	inline size_t size() const	{	return l.size();	}
+	inline size_t size() const	{	return l.num_rows();	}
 	
 // print functions
 	friend ostream &operator<<(ostream &out, const MatVec_Expression<L, R>  &ex)
