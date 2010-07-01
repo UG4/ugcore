@@ -38,14 +38,14 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	if(posInConnections == NULL)
 	{
 		posInConnections = new int[C.num_cols()];
-		for(int i=0; i<C.num_cols(); i++) posInConnections[i] = -1; // memset(posInConnections, -1, sizeof(int)*C.num_cols());
+		for(size_t i=0; i<C.num_cols(); i++) posInConnections[i] = -1; // memset(posInConnections, -1, sizeof(int)*C.num_cols());
 		bOwnMem = true;
 		//assert(0);
 	}
 #ifndef NDEBUG
 	else
 	{
-		for(int i=0; i<C.num_cols(); i++)
+		for(size_t i=0; i<C.num_cols(); i++)
 			UG_ASSERT(posInConnections[i] == -1, "posInConnections[" << i << "] has to be -1, but is " << posInConnections[i] << ".");
 	}
 #endif
@@ -60,7 +60,7 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	typename ABC_type::connection c;
 
 	// do
-	for(int i=0; i < A.num_rows(); i++)
+	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		con.clear();
 		for(typename A_type::cRowIterator itA(A, i); !itA.isEnd(); ++itA)
@@ -77,7 +77,7 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 				{
 					cvalue = (*itC).dValue;
 					if(cvalue == 0.0) continue;
-					int indexTo = (*itC).iIndex;
+					size_t indexTo = (*itC).iIndex;
 
 					if(posInConnections[indexTo] == -1)
 					{
@@ -103,7 +103,7 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 		}
 
 		// reset posInConnections to -1
-		for(int j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
+		for(size_t j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
 		// set Matrix_type Row in AH
 		M.setMatrixRow(i, &con[0], con.size());
 	}
@@ -120,7 +120,7 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 //! @param node
 //! @param depth
 template<typename T>
-void getNeighborhood(SparseMatrix<T> &A, int node, int depth, vector<int> &indices, int *posInConnections)
+void getNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_t> &indices, int *posInConnections)
 {
 	// do this with a map???
 	indices.clear();
@@ -136,13 +136,13 @@ void getNeighborhood(SparseMatrix<T> &A, int node, int depth, vector<int> &indic
 			iterators.pop_back();
 		else
 		{
-			int index = (*iterators.back()).iIndex;
+			size_t index = (*iterators.back()).iIndex;
 			++iterators.back();
 			if(iterators.size() < depth)
 				iterators.push_back( A.beginRow(index) );
 			else
 			{
-				int pos;
+				size_t pos;
 				if(posInConnections == NULL)
 				{
 					for(pos=0; pos<indices.size(); pos++)
@@ -167,7 +167,7 @@ void getNeighborhood(SparseMatrix<T> &A, int node, int depth, vector<int> &indic
 
 	if(posInConnections)
 	{
-		for(int i=0; i<indices.size(); i++)
+		for(size_t i=0; i<indices.size(); i++)
 			posInConnections[indices[i]] = -1;
 	}
 
@@ -178,7 +178,7 @@ void getNeighborhood(SparseMatrix<T> &A, int node, int depth, vector<int> &indic
 
 
 template<typename T>
-bool isCloseToBoundary(const SparseMatrix<T> &A, int node, int distance)
+bool isCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 {
 	if(distance == 0) return A.isUnconnected(node);
 	bool bFound = false;
