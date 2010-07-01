@@ -232,6 +232,7 @@ class DataImport : public DataImportPosition<TPositionType> {
 			return m_linearized_defect[j][ip];
 		}
 
+
 	public:
 		// set new positions
 		virtual bool set_positions(const std::vector<position_type>& pos, bool overwrite = false);

@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__MULTI_GRID_SOLVER__MG_SOLVER_IMPL__
 
 #include "common/profiler/profiler.h"
+#include "lib_discretization/io/vtkoutput.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
@@ -75,35 +76,28 @@ lmgc(size_t lev)
 									dofMgr.get_vertical_master_layout(lev-1));
 			}
 		#endif
-		
+
 		// restrict defect
 		if(!m_I[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
 			{UG_LOG("Error in restriction from level " << lev << " to " << lev-1 << ".\n"); return false;}
 
 		bool resume = true;
-		
+
 		#ifdef UG_PARALLEL
 		//	send vertical-slaves -> vertical-masters
 		//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+			ComPol_VecAdd<typename level_function_type::vector_type> cpVecAdd(&m_d[lev-1]->get_vector());
 			if(!dofMgr.get_vertical_slave_layout(lev-1).empty()){
 				resume = false;
-				ComPol_VecAdd<typename level_function_type::vector_type> cpVecAdd(&m_d[lev-1]->get_vector());
-				pcl::ParallelCommunicator<IndexLayout> communicator;
-				
-				communicator.send_data(dofMgr.get_vertical_slave_layout(lev-1),
-										cpVecAdd);
+				m_Com.send_data(dofMgr.get_vertical_slave_layout(lev-1), cpVecAdd);
 			}
 			else if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
-				
-			//	communicate
-				ComPol_VecAdd<typename level_function_type::vector_type> cpVecAdd(&m_d[lev-1]->get_vector());
-				pcl::ParallelCommunicator<IndexLayout> communicator;
-				
-				communicator.receive_data(dofMgr.get_vertical_master_layout(lev-1),
-											cpVecAdd);			
+
+				m_Com.receive_data(dofMgr.get_vertical_master_layout(lev-1), cpVecAdd);
 			}
+			m_Com.communicate();
 		#endif
-		
+
 		if(resume)
 		{
 			// apply lmgc on coarser grid
@@ -115,32 +109,21 @@ lmgc(size_t lev)
 		}
 
 		#ifdef UG_PARALLEL
-		{
-		//	send vertical-masters -> vertical-slaves
-		//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+			//	send vertical-masters -> vertical-slaves
+			//	one proc may not have both, a vertical-slave- and vertical-master-layout.
+			ComPol_VecCopy<typename level_function_type::vector_type> cpVecCopy(&m_c[lev-1]->get_vector());
 			if(!dofMgr.get_vertical_slave_layout(lev-1).empty()){
-				resume = false;
-				ComPol_VecCopy<typename level_function_type::vector_type> cpVecCopy(&m_c[lev-1]->get_vector());
-				pcl::ParallelCommunicator<IndexLayout> communicator;
-				
-				communicator.receive_data(dofMgr.get_vertical_slave_layout(lev-1),
-										cpVecCopy);
-				
+				m_Com.receive_data(dofMgr.get_vertical_slave_layout(lev-1),	cpVecCopy);
+
 				m_c[lev-1]->set_storage_type(GFST_CONSISTENT);
 			}
 			else if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
-				
-			//	communicate
-				ComPol_VecCopy<typename level_function_type::vector_type> cpVecCopy(&m_c[lev-1]->get_vector());
-				pcl::ParallelCommunicator<IndexLayout> communicator;
-				
-				communicator.send_data(dofMgr.get_vertical_master_layout(lev-1),
-											cpVecCopy);			
+				m_Com.send_data(dofMgr.get_vertical_master_layout(lev-1), cpVecCopy);
 				m_c[lev-1]->set_storage_type(GFST_CONSISTENT);
 			}
-		}
+		m_Com.communicate();
 		#endif
-		
+
 		//interpolate correction
 		if(!m_I[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
 			{UG_LOG("Error in prolongation from level " << lev-1 << " to " << lev << ".\n"); return false;}

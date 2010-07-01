@@ -158,6 +158,14 @@ class CplConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization
 
 
 	public:
+		size_t num_imports() {return 1;}
+
+		DataImportItem* import(size_t i)
+		{
+			if(i != 0) return NULL;
+			return &m_Velocity;
+		}
+
 		bool register_exports(DataContainer& Cont){ return true;}
 
 		bool unregister_exports(DataContainer& Cont) {return true;}

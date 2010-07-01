@@ -150,7 +150,6 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 				}
 			}
 			// upwind part convection
-			// TODO: Something wrong here or in Newton solver, since Newton solver does not converge by quadratic rate if upwind is used
 			if(m_upwind_amount != 0.0)
 			{
 				size_t up;

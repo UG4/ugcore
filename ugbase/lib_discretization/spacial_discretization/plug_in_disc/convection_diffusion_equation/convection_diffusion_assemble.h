@@ -135,7 +135,6 @@ class ConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization<TA
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
-#define ____TEMP_TRICK
 	public:
 		ConvectionDiffusionEquationPlugIn(	size_t fct, domain_type& domain, number upwind_amount,
 											Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs) :

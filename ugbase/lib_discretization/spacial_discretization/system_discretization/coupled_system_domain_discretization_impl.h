@@ -161,7 +161,7 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 	std::vector<local_matrix_type> loc_J(num_sys);
 	std::vector<local_matrix_type> loc_J_temp(num_sys);
 
-	//std::vector<std::vector<local_matrix_type> > loc_J_coupl(num_sys);
+	std::vector<std::vector<std::vector<local_matrix_type> > > loc_J_coupl(num_sys);
 
 	// allocating memory
 	for(size_t sys = 0; sys < m_systems.size(); ++sys)
@@ -178,19 +178,23 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 		// local matrix of unknowns (diagonal part)
 		loc_J[sys].resize(num_sh[sys], num_sh[sys]);
 		loc_J_temp[sys].resize(num_sh[sys], num_sh[sys]);
+	}
 
-		// allocate matrix for off-diagonal part (induced by coupling)
-/*		loc_J_coupl[sys].resize(m_systems[sys]->num_imports());
+	// allocate matrix for off-diagonal part (induced by coupling)
+	for(size_t sys = 0; sys < m_systems.size(); ++sys)
+	{
+		loc_J_coupl[sys].resize(m_systems[sys]->num_imports());
 		for(size_t i = 0; i < m_systems[sys]->num_imports(); ++i)
 		{
-			DataImport* Imp = m_systems[sys]->import(i);
+			DataImportItem* Imp = m_systems[sys]->import(i);
 
 			for(size_t s = 0; s < Imp->num_sys(); ++s)
 			{
+				loc_J_coupl[sys][i].resize(Imp->num_sys());
 				loc_J_coupl[sys][i][s].resize(num_sh[sys], num_sh[Imp->sys(s)]);
 			}
 		}
-*/	}
+	}
 
 	// loop over all elements
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
@@ -239,35 +243,31 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 			// send local to global matrix
 			J.add(loc_J[sys], glob_ind[sys], glob_ind[sys]);
 
-/*
 			// compute matrix entries induced by coupling
-			loc_J_coupl[sys].set(0.0);
-
 			for(size_t i = 0; i < m_systems[sys]->num_imports(); ++i)
 			{
-				DataImport* Imp = m_systems[sys]->import(i);
+				DataImportItem* Imp = m_systems[sys]->import(i);
 
 				for(size_t r = 0; r < Imp->num_sys(); ++r)
 				{
-					s = Imp->sys(r);
+					loc_J_coupl[sys][i][r].set(0.0);
+					size_t s = Imp->sys(r);
+
 					for(size_t k = 0; k < Imp->num_sh(r); ++k)
 					{
 						for(size_t j = 0; j < num_sh[sys]; ++j)
 						{
-							for(size_t ip = 0; ip < Imp->num_ip(); ++ip)
+						//	for(size_t ip = 0; ip < Imp->num_ip(); ++ip)
 							{
-
-								loc_J_coupl[sys][i][s](j, k) += Imp->defect(j, ip) * (*Imp)(s, ip, k);
+								//loc_J_coupl[sys][i][s](j, k) += Imp->lin_defect(j, ip) * (*Imp)(s, ip, k);
 							}
 						}
 					}
 				}
-				if(Imp->in_mass_part() != true) loc_J_coupl *= s_a;
+				//if(Imp->in_mass_part() != true) loc_J_coupl *= s_a;
 
-				J.add(loc_J_coupl[sys][i][s], glob_ind[sys], glob_ind[s]);
-				}
+				//J.add(loc_J_coupl[sys][i][s], glob_ind[sys], glob_ind[s]);
 			}
-*/
 		}
 	}
 

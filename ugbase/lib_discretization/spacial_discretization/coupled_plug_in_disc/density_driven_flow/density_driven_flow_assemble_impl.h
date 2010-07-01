@@ -72,19 +72,6 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 		m_corners[i] = m_aaPos[vert];
 	}
 
-	// get subset indices of side
-	/*
-	typename domain_type::grid_type& grid = m_domain.get_grid();
-	typename domain_type::subset_handler_type& sh = m_domain.get_subset_handler();
-	for(size_t i = 0; i < TElem::num_sides; ++i)
-	{
-		typedef typename TElem::lower_dim_base_object bnd_base_type;
-		bnd_base_type* bnd_geom_obj = grid.get_side<TElem, dim>(elem, i);
-
-		m_subset_index[i] = sh.get_subset_index(bnd_geom_obj);
-	}
-	*/
-
 	// update Geometry for this element
 	m_geo->update(m_corners);
 
@@ -134,6 +121,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 
 			compute_D_ip_Darcy_velocity(scvf, Darcy_vel, D_Darcy_vel_c, D_Darcy_vel_p, c_ip, grad_p_ip);
 			m_Mol_Diff_Tensor(D);
+			MatScale(D, m_porosity, D);
 
 			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
@@ -167,7 +155,6 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 				}
 			}
 			// upwind part convection
-			// TODO: Something wrong here or in Newton solver, since Newton solver does not converge by quadratic rate if upwind is used
 			if(m_upwind_amount != 0.0)
 			{
 				size_t up;
@@ -176,7 +163,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 
 				for(size_t j = 0; j < sdv.num_sh(); ++j)
 				{
-					if(j == up) flux_c = m_upwind_amount * ( sdv.shape(up) * VecDot(Darcy_vel, scvf.normal()) );
+					if(j == up) flux_c = m_upwind_amount * ( VecDot(Darcy_vel, scvf.normal()) );
 					else flux_c = 0.0;
 					flux_c += m_upwind_amount * u(_C_, up) * VecDot(D_Darcy_vel_c[j], scvf.normal());
 
@@ -267,7 +254,7 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 			compute_ip_Darcy_velocity(Darcy_vel, c_ip, grad_p_ip);
 
 			m_Mol_Diff_Tensor(D);
-
+			MatScale(D, m_porosity, D);
 
 			////////////////////////////////////
 			// diffusiv term (central discretization)

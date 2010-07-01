@@ -56,6 +56,10 @@ class ISystemDomainDiscretization {
 		virtual size_t fct(size_t i) = 0;
 
 	public:
+		virtual size_t num_imports() = 0;
+
+		virtual DataImportItem* import(size_t i) = 0;
+
 		virtual bool register_exports(DataContainer& Cont) = 0;
 
 		virtual bool unregister_exports(DataContainer& Cont) = 0;
@@ -157,6 +161,10 @@ class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDom
 		virtual size_t fct(size_t i) {return m_elemDisc.fct(i);}
 
 	public:
+		virtual size_t num_imports() {return m_elemDisc.num_imports();}
+
+		virtual DataImportItem* import(size_t i){return m_elemDisc.import(i);}
+
 		virtual bool register_exports(DataContainer& Cont) {return m_elemDisc.register_exports(Cont);}
 
 		virtual bool unregister_exports(DataContainer& Cont) {return m_elemDisc.unregister_exports(Cont);}

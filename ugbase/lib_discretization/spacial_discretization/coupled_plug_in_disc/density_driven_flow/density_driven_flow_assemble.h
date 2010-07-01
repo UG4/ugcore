@@ -278,6 +278,13 @@ class CplDensityDrivenFlowPlugIn : public IPlugInElementDiscretization<TAlgebra>
 			{};
 
 	public:
+		size_t num_imports() {return 0;}
+
+		DataImportItem* import(size_t i)
+		{
+			return NULL;
+		}
+
 		bool register_exports(DataContainer& Cont)
 		{
 			if(Cont.register_item(m_DarcyVelocity) != true)

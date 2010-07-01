@@ -116,6 +116,11 @@ class AssembledMultiGridCycle :
 		// true -> allocate new matrices on every prepare
 		bool m_grid_changes;
 		bool m_allocated;
+
+#ifdef UG_PARALLEL
+		// communicator
+		pcl::ParallelCommunicator<IndexLayout> m_Com;
+#endif
 };
 
 }
