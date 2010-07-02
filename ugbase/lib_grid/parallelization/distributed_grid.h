@@ -20,7 +20,8 @@ enum ElementStatus
 	ES_MASTER = 1 << 3,
 	ES_SLAVE = 1 << 4,
 	ES_VERTICAL_MASTER = 1 << 5,
-	ES_VERTICAL_SLAVE = 1 << 6
+	ES_VERTICAL_SLAVE = 1 << 6,
+	ES_VIRTUAL = 1 << 7
 };
 
 
@@ -114,6 +115,9 @@ class DistributedGridManager : public GridObserver
 		void update_elem_info(TLayoutMap& layoutMap, int nodeType,
 							  byte newStatus, bool addStatus = false);
 
+		template <class TGeomObj>
+		void update_all_elem_infos();
+							  
 	///	vertex_created, edge_created, ... callbacks call this method.
 		template <class TElem>
 		void handle_created_element(TElem* pElem, GeometricObject* pParent);

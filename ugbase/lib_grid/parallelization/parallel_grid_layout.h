@@ -61,9 +61,10 @@ namespace ug
 enum InterfaceNodeTypes
 {
 	INT_UNKNOWN =	0,
-	INT_MASTER,	//horizontal
-	INT_SLAVE,	//horizontal
-	INT_LINK,	//not yet used
+	INT_MASTER,	///< horizontal master
+	INT_SLAVE,	///< horizontal slave
+	INT_VIRTUAL_MASTER,	///< virtual horizontal master. Required to build master-interfaces in special cases.
+	INT_VIRTUAL_SLAVE,	///< virtual horizontal slave. Required to build slave-interfaces in special cases.
 	INT_VERTICAL_MASTER,
 	INT_VERTICAL_SLAVE
 };

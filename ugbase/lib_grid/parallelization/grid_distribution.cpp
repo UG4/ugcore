@@ -67,6 +67,12 @@ static void AddVerticalMasterInterfaces(GridLayoutMap& layoutMapOut,
 	}
 }
 
+///	adds virtual horizontal interfaces.
+/**	This method is only used if the source-grid shall be kept on
+ *	the distributing process. Instead of creating horizontal interfaces
+ *	it thus has to create virtual horizontal interfaces.
+ *	\todo: create virtual horizontal interfaces only for surface elements.
+ */
 template <class TGeomObj>
 static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 								DistributionNodeLayout<TGeomObj*>& distLayout,
@@ -126,6 +132,41 @@ static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 	}
 }
 
+////////////////////////////////////////////////////////////////////////
+/**	This method is only called if the source-grid is kept on the distributing
+ *	process. In this case all master and slave entries have to be transformed
+ *	to virtual-master and virtual-slave entries.
+ */
+template <class TGeomObj>
+static void AdjustInterfaceElementType(DistributionNodeLayout<TGeomObj*>& distLayout)
+{
+//	some typedefs
+	typedef DistributionNodeLayout<TGeomObj*> 			DistLayout;
+
+//	iterate over the nodes
+	for(size_t level = 0; level < distLayout.num_levels(); ++level)
+	{
+		typename DistLayout::InterfaceMap& imap = distLayout.interface_map(level);
+		for(typename DistLayout::InterfaceMap::iterator iter = imap.begin();
+			iter != imap.end(); ++iter)
+		{
+			typename DistLayout::Interface& distInterface = iter->second;
+
+		//	iterate over the nodes in the interface
+			for(size_t i = 0; i < distInterface.size(); ++i){
+			//	change the types:
+			//		MASTER -> VIRTUAL_MASTER
+			//		SLAVE -> VIRTUAL_SLAVE
+
+				int elemType = distInterface[i].type;
+				switch(elemType){
+					case INT_MASTER: distInterface[i].type = INT_VIRTUAL_MASTER; break;
+					case INT_SLAVE: distInterface[i].type = INT_VIRTUAL_SLAVE; break;
+				}
+			}
+		}
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	DistributeGrid_KeepSrcGrid
@@ -157,7 +198,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
 							  false, &msel);
-	
+
 //	we will now fill a binary stream with all the grids.
 //	this stream will receive all the data that is to be sent to other processes.
 	BinaryStream globalStream;
@@ -175,7 +216,14 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 		int proc = i;
 		if(pProcessMap)
 			proc = (*pProcessMap)[i];
+	
+	//	all horizontal nodes have to be transformed to virtual horizontal nodes.
+		AdjustInterfaceElementType(vVertexLayouts[i]);
+		AdjustInterfaceElementType(vEdgeLayouts[i]);
+		AdjustInterfaceElementType(vFaceLayouts[i]);
+		AdjustInterfaceElementType(vVolumeLayouts[i]);
 		
+	//	check whether the current proc is the local proc or another proc.
 		if(proc == localProcID)
 		{
 		//	create local horizontal interfaces

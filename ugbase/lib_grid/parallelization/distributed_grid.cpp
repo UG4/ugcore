@@ -111,61 +111,35 @@ void DistributedGridManager::grid_layouts_changed(bool addedElemsOnly)
 //	call for each layout in the grid-layout the corresponding
 //	init_elem_status_from_layout function.
 //	every layout has multiple levels
-
-//	VERTICES
-	update_elem_info<VertexBase>(m_gridLayoutMap, INT_MASTER,
-								ES_IN_INTERFACE | ES_MASTER);
-
-	update_elem_info<VertexBase>(m_gridLayoutMap, INT_SLAVE,
-								ES_IN_INTERFACE | ES_SLAVE);
-
-	update_elem_info<VertexBase>(m_gridLayoutMap, INT_VERTICAL_MASTER,
-								ES_VERTICAL_MASTER, true);
-
-	update_elem_info<VertexBase>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
-								ES_VERTICAL_SLAVE, true);
-								
-//	EDGES						
-	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_MASTER,
-								ES_IN_INTERFACE | ES_MASTER);
-
-	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_SLAVE,
-								ES_IN_INTERFACE | ES_SLAVE);
-
-	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_VERTICAL_MASTER,
-								ES_VERTICAL_MASTER, true);
-
-	update_elem_info<EdgeBase>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
-								ES_VERTICAL_SLAVE, true);
-																
-//	FACES
-	update_elem_info<Face>(m_gridLayoutMap, INT_MASTER,
-								ES_IN_INTERFACE | ES_MASTER);
-
-	update_elem_info<Face>(m_gridLayoutMap, INT_SLAVE,
-								ES_IN_INTERFACE | ES_SLAVE);
-
-	update_elem_info<Face>(m_gridLayoutMap, INT_VERTICAL_MASTER,
-								ES_VERTICAL_MASTER, true);
-
-	update_elem_info<Face>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
-								ES_VERTICAL_SLAVE, true);
-								
-//	VOLUMES				
-	update_elem_info<Volume>(m_gridLayoutMap, INT_MASTER,
-								ES_IN_INTERFACE | ES_MASTER);
-
-	update_elem_info<Volume>(m_gridLayoutMap, INT_SLAVE,
-								ES_IN_INTERFACE | ES_SLAVE);
-
-	update_elem_info<Volume>(m_gridLayoutMap, INT_VERTICAL_MASTER,
-								ES_VERTICAL_MASTER, true);
-
-	update_elem_info<Volume>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
-								ES_VERTICAL_SLAVE, true);
-
+	update_all_elem_infos<VertexBase>();
+	update_all_elem_infos<EdgeBase>();
+	update_all_elem_infos<Face>();
+	update_all_elem_infos<Volume>();
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TGeomObj>
+void DistributedGridManager::update_all_elem_infos()
+{
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_MASTER,
+							   ES_IN_INTERFACE | ES_MASTER);
+
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_SLAVE,
+							   ES_IN_INTERFACE | ES_SLAVE);
+
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VIRTUAL_MASTER,
+							   ES_IN_INTERFACE | ES_MASTER | ES_VIRTUAL);
+
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VIRTUAL_SLAVE,
+							   ES_IN_INTERFACE | ES_SLAVE | ES_VIRTUAL);
+
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VERTICAL_MASTER,
+							   ES_VERTICAL_MASTER, true);
+
+	update_elem_info<TGeomObj>(m_gridLayoutMap, INT_VERTICAL_SLAVE,
+							   ES_VERTICAL_SLAVE, true);
+}
+		
 ////////////////////////////////////////////////////////////////////////
 template <class TGeomObj>
 void DistributedGridManager::reset_elem_infos()
@@ -377,11 +351,11 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 	}
 	
 //	set the status
-	if(parentInfo.get_status() & ES_MASTER)
+	if(parentInfo.get_status() & (ES_MASTER))
 		elem_info(elem).set_status(ES_MASTER | ES_SCHEDULED_FOR_INTERFACE);
 	else{
-		UG_ASSERT(parentInfo.get_status() & ES_SLAVE, "interface-elements have to be either master or slave!");
-		elem_info(elem).set_status(ES_SLAVE | ES_SCHEDULED_FOR_INTERFACE);
+		UG_ASSERT(parentInfo.get_status() & (ES_SLAVE | ES_VIRTUAL_SLAVE), "interface-elements have to be either master or slave!");
+		elem_info(elem).set_status(ES_SLAVE);
 	}
 }
 
@@ -431,7 +405,6 @@ handle_created_element(TElem* pElem,
 				UG_DLOG(LIB_GRID, 3, endl);
 				break;
 		}
-		elem_info(pElem).set_status(get_status(pElem) | ES_SCHEDULED_FOR_INTERFACE);
 	}
 	else
 	{

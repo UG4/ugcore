@@ -166,6 +166,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 		}
 	}
 */
+
 /*
 //debug: check interfaces
 	GridLayoutMap& gridLayoutMap = distGridMgr.grid_layout_map();
