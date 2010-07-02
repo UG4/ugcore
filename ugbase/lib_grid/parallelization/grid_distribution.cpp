@@ -49,18 +49,21 @@ static void AddVerticalMasterInterfaces(GridLayoutMap& layoutMapOut,
 //	iterate over the nodes
 	for(size_t i = 0; i < nodeVec.size(); ++i){
 		TGeomObj* node = nodeVec[i];
-	//	get the level and the matching layout and interface
-		int level = (int)mg.get_level(node);
-		if(level != currentLevel){
-			currentLevel = level;
-		//	get the layout and the interface to targetProc
-			pLayout = &layoutMapOut.template get_layout<TGeomObj>(INT_VERTICAL_MASTER).
-														layout_on_level(level);
-			pInterface = &pLayout->interface(targetProc);
+	//	only surface-nodes are stored in vertical interfaces
+		if(!mg.has_children(node)){
+		//	get the level and the matching layout and interface
+			int level = (int)mg.get_level(node);
+			if(level != currentLevel){
+				currentLevel = level;
+			//	get the layout and the interface to targetProc
+				pLayout = &layoutMapOut.template get_layout<TGeomObj>(INT_VERTICAL_MASTER).
+															layout_on_level(level);
+				pInterface = &pLayout->interface(targetProc);
+			}
+			
+		//	add node to the interface
+			pInterface->push_back(node);
 		}
-		
-	//	add node to the interface
-		pInterface->push_back(node);
 	}
 }
 
@@ -184,7 +187,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 		else
 		{
 		//	since the original grid is kept, we have to add vertical interfaces.
-		//	all nodes in the layouts will be vertical interface members.
+		//	all surface nodes in the layouts will be vertical interface members.
 		//	Here we create the local vertical interfaces.
 			AddVerticalMasterInterfaces<VertexBase>(layoutMap, mg,
 													vVertexLayouts[i], proc);
@@ -444,18 +447,29 @@ static void AddVerticalSlaveInterfaces(GridLayoutMap& layoutMapOut,
 	//	if there are no nodes in this level, we can return immediatly
 		if(mg.num<TGeomObj>(level) == 0)
 			break;
+			
 	//	get the appropriate layout and interface
-		TLayout& layout = layoutMapOut.template
-							get_layout<TGeomObj>(INT_VERTICAL_SLAVE).
-								layout_on_level(level);
-								
-		TInterface& interface = layout.interface(srcProc);
+		TLayout* pLayout = NULL;
+		TInterface* pInterface = NULL;
 		
 	//	iterate over the elements of the level
 		for(ObjIter iter = mg.begin<TGeomObj>(level);
 			iter != mg.end<TGeomObj>(level); ++iter)
 		{
-			interface.push_back(*iter);
+		//TODO: this will change when we no longer send parents along with children.
+		//	make sure that the node is a surface node
+			if(!mg.has_children(*iter)){
+			//	get the appropriate layout and interface
+				if(!pInterface){
+					pLayout = &layoutMapOut.template
+								get_layout<TGeomObj>(INT_VERTICAL_SLAVE).
+									layout_on_level(level);
+											
+					pInterface = &pLayout->interface(srcProc);
+				}
+					
+				pInterface->push_back(*iter);
+			}
 		}
 	}
 }
@@ -479,6 +493,7 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 											binaryStream);
 	
 //	if vertical layouts shall be created, do it now.
+//	note that only surface-nodes are assigned to vertical interfaces.
 	if(createVerticalLayouts){
 		AddVerticalSlaveInterfaces<VertexBase>(gridLayoutMapOut, mgOut, srcProcID);
 		AddVerticalSlaveInterfaces<EdgeBase>(gridLayoutMapOut, mgOut, srcProcID);
