@@ -52,7 +52,11 @@ class UblasAlgebra{
 		typedef UblasMatrix matrix_type;
 
 		// vector type
+#ifdef UG_PARALLEL
+		typedef ParallelVector<UblasVector> vector_type;
+#else
 		typedef UblasVector vector_type;
+#endif
 
 		// index_type
 		typedef MultiIndex<1> index_type;
@@ -113,8 +117,11 @@ class MartinAlgebra
 		typedef SparseMatrix<double> matrix_type;
 
 		// vector type
+#ifdef UG_PARALLEL
+		typedef ParallelVector<Vector<double> > vector_type;
+#else
 		typedef Vector<double> vector_type;
-
+#endif
 		// index_type
 		typedef MultiIndex<1> index_type;
 
