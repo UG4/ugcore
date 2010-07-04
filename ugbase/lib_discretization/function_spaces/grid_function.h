@@ -15,32 +15,6 @@
 
 namespace ug{
 
-/**
- * The storage type of a grid function is used in parallel applications.
- * We assume that the dofs are distributed to the processes in the way that
- * each dof is master on exactly one process and can be a slave (i.e. a local
- * copy) on several other processes. Given the real values of the dofs the different
- * storage type are defined as follows:
- *  - GFST_UNDEFINED: no information given
- *  - GFST_CONSISTENT: The real value is saved in the master and every slave
- *  - GFST_ADDITIVE: The sum over the values in the master and all slaves gives the exact value
- *  - GFST_UNIQUE: Same as GFST_ADDITIV, but value is zero in all slaves (i.e. master has exact value)
- *
- *  Note, that a GridFunction can have more than one type. E.g. every unique GridFunction is additive. Moreover,
- *  the GridFunction being zero everywhere is consistent, additive and unique at the same time. Therefore,
- *  the information is given bitwise.
- *  To check, whether a function is in a type one may ask:
- *  	 -- v.has_storage_type(GFST_CONSISTENT), etc.
- *  To change into another type
- *       -- v.change_storage_type(GFST_ADDITIVE)
- */
-enum GridFunctionStorageType {
-	GFST_UNDEFINED = 0,
-	GFST_CONSISTENT = 1 << 0,
-	GFST_ADDITIVE = 1 << 1,
-	GFST_UNIQUE = 1 << 2
-};
-
 // A grid function brings approximation space and algebra together. For a given DoFManager and level, a grid function
 // represents the solutions on the level 'level'
 template <typename TApproximationSpace, typename TDoFManager, typename TAlgebra>
@@ -88,14 +62,14 @@ class GridFunction{
 		// Default constructor
 		GridFunction() :
 			m_pApproxSpace(NULL), m_pDoFManager(NULL), m_level(0),
-			m_name(""), m_pVector(NULL), m_type(GFST_UNDEFINED)
+			m_name(""), m_pVector(NULL)
 			{}
 
 		// Constructor
 		GridFunction(	std::string name, approximation_space_type& ApproxSpace,
 						dof_manager_type& DoFManager, size_t level, bool allocate = true) :
 			m_pApproxSpace(&ApproxSpace), m_pDoFManager(&DoFManager), m_level(level),
-			m_name(name), m_pVector(NULL), m_type(GFST_UNDEFINED)
+			m_name(name), m_pVector(NULL)
 		{
 			UG_ASSERT(level < m_pDoFManager->num_levels(), "Accessing level that does not exist");
 			if(allocate){
@@ -108,7 +82,7 @@ class GridFunction{
 		// copy constructor
 		GridFunction(const this_type& v) :
 			m_pApproxSpace(v.m_pApproxSpace), m_pDoFManager(v.m_pDoFManager), m_level(v.m_level),
-			m_name(v.m_name), m_pVector(NULL), m_type(GFST_UNDEFINED)
+			m_name(v.m_name), m_pVector(NULL)
 		{
 			assign(v);
 		};
@@ -117,6 +91,12 @@ class GridFunction{
 		~GridFunction()
 		{
 			release_storage();
+		}
+
+		// clone
+		this_type& clone()
+		{
+			return *(new this_type(*this));
 		}
 
 		// copies the GridFunction v, except that the values are copied.
@@ -151,7 +131,6 @@ class GridFunction{
 			{
 				// set pointer to dof storage
 				m_pVector = v.m_pVector;
-				m_type = v.m_type;
 				return true;
 			}
 			else{UG_ASSERT(0, "Not implemented.");}
@@ -168,12 +147,8 @@ class GridFunction{
 			{
 				if(m_pVector != v.m_pVector) return false;
 
-				// give information about storage type to surface
-				v.m_type = m_type;
-
 				// forget about memory without deleting it.
 				m_pVector = NULL;
-				set_storage_type(GFST_UNDEFINED);
 				return true;
 			}
 			else
@@ -365,147 +340,39 @@ class GridFunction{
 			{*m_pVector *= w; return *this;}
 
 		// set all dofs on level 'level' to value 'w'
-		bool set(number w, GridFunctionStorageType type = GFST_CONSISTENT)
-		{
-			if(type == GFST_UNDEFINED) return false;
-
-			if(m_pVector->set(w) != true) return false;
-			set_storage_type(GFST_CONSISTENT);
-
-			// if w == 0.0, we have all types
-			if(w == 0.0){
-				add_storage_type(GFST_ADDITIVE);
-				add_storage_type(GFST_UNIQUE);
-				return true;
-			}
-			// consistent required
-			if(type & GFST_CONSISTENT) return true;
-
-			// additive or additive unique
-			return change_storage_type(GFST_UNIQUE);
-		}
+		bool set(number w, ParallelStorageType type = PST_CONSISTENT)
+			{return m_pVector->set(w, type);}
 
 		// name of grid function
 		std::string name()
 			{return m_name;}
 
 		// changes to the requested storage type if possible
-		bool change_storage_type(GridFunctionStorageType type)
-		{
-			// can only change if current state is defined
-			if(has_storage_type(GFST_UNDEFINED)) return false;
-
-			// if already in that type
-			if(has_storage_type(type)) return true;
-
-			// else switch to that type
-			switch(type)
-			{
-			case GFST_CONSISTENT:
-					 if(has_storage_type(GFST_UNIQUE)){
-						 UniqueToConsistent(	m_pVector,
-												m_pDoFManager->get_master_layout(m_level),
-												m_pDoFManager->get_slave_layout(m_level),
-												&(m_pDoFManager->get_communicator()));
-						 set_storage_type(GFST_CONSISTENT);
-						 break;
-					 }
-					 else if(has_storage_type(GFST_ADDITIVE)){
-						AdditiveToConsistent(	m_pVector,
-												m_pDoFManager->get_master_layout(m_level),
-												m_pDoFManager->get_slave_layout(m_level),
-												&(m_pDoFManager->get_communicator()));
-						set_storage_type(GFST_CONSISTENT);
-						break;
-					}
-					else return false;
-			case GFST_ADDITIVE:
-					if(has_storage_type(GFST_UNIQUE)){
-						add_storage_type(GFST_ADDITIVE);
-						break;
-					}
-					else if(has_storage_type(GFST_CONSISTENT)){
-						ConsistentToUnique( m_pVector,
-											m_pDoFManager->get_slave_layout(m_level));
-						set_storage_type(GFST_ADDITIVE);
-						add_storage_type(GFST_UNIQUE);
-						break;
-					}
-					else return false;
-			case GFST_UNIQUE:
-					if(has_storage_type(GFST_ADDITIVE)){
-						AdditiveToUnique(	m_pVector,
-											m_pDoFManager->get_master_layout(m_level),
-											m_pDoFManager->get_slave_layout(m_level),
-											&(m_pDoFManager->get_communicator()));
-						add_storage_type(GFST_UNIQUE);
-						break;
-					}
-					else if(has_storage_type(GFST_CONSISTENT)){
-						ConsistentToUnique( m_pVector,
-											m_pDoFManager->get_slave_layout(m_level));
-						set_storage_type(GFST_ADDITIVE);
-						add_storage_type(GFST_UNIQUE);
-						break;
-					}
-					else return false;
-			default: return false;
-			}
-			return true;
-		}
+		bool change_storage_type(ParallelStorageType type)
+			{return m_pVector->change_storage_type(type);}
 
 		// returns if the current storage type has a given representation
-		bool has_storage_type(GridFunctionStorageType type)
-			{return (bool)(m_type & type);}
+		bool has_storage_type(ParallelStorageType type)
+			{return m_pVector->has_storage_type(type);}
 
 		// sets the storage type
-		void set_storage_type(GridFunctionStorageType type)
-			{m_type = type;}
+		void set_storage_type(ParallelStorageType type)
+			{m_pVector->set_storage_type(type);}
 
 		// adds the storage type
-		void add_storage_type(GridFunctionStorageType type)
-			{m_type |= type;}
+		void add_storage_type(ParallelStorageType type)
+			{m_pVector->add_storage_type(type);}
 
 		// removes the storage type
-		void remove_storage_type(GridFunctionStorageType type)
-			{m_type &= ~type;}
+		void remove_storage_type(ParallelStorageType type)
+			{m_pVector->remove_storage_type(type);}
 
 		// copies the storage type from another vector
 		void copy_storage_type(const this_type& v)
-			{m_type = v.m_type;}
+			{m_pVector->copy_storage_type(*v.m_pVector);}
 
 		// two norm
 		inline number two_norm()
-		{
-			PROFILE_BEGIN(Norm);
-			number norm;
-
-			// step 1: make vector d additive unique
-#ifdef UG_PARALLEL
-			if(!change_storage_type(GFST_UNIQUE)) {
-				UG_ASSERT(0, "Cannot change to unique representation.");
-				return -1;
-			}
-#endif
-
-			// step 2: compute new defect norm
-			double tNormLocal = (double)local_two_norm();
-#ifdef UG_PARALLEL
-			tNormLocal *= tNormLocal;
-			double tNormGlobal;
-			PROFILE_BEGIN(NormReduceAll);
-			pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-			PROFILE_END();
-			norm = sqrt((number)tNormGlobal);
-#else
-			norm = tNormLocal;
-#endif
-			PROFILE_END();
-			return norm;
-		}
-
-		// square norm for of the part of grid function on this process
-		inline number local_two_norm() const
 			{return m_pVector->two_norm();}
 
 	protected:
@@ -526,7 +393,6 @@ class GridFunction{
 
 			// copy values
 			*m_pVector = *v.m_pVector;
-			m_type = v.m_type;
 			return true;
 		}
 
@@ -534,6 +400,11 @@ class GridFunction{
 		bool create_storage(size_t num_dofs)
 		{
 			m_pVector = new vector_type;
+#ifdef UG_PARALLEL
+			m_pVector->set_slave_layout(m_pDoFManager->get_slave_layout(m_level));
+			m_pVector->set_master_layout(m_pDoFManager->get_master_layout(m_level));
+			m_pVector->set_storage_type(PST_UNDEFINED);
+#endif
 			if(m_pVector->create(num_dofs) != true) return false;
 			else return true;
 		}
@@ -560,9 +431,6 @@ class GridFunction{
 
 		// vector storage, to store values of local degrees of freedom
 		vector_type* m_pVector;
-
-		// type of storage in parallel (i.e. consistent, additiv, additiv unique)
-		int m_type;
 };
 
 template <typename TApproximationSpace, typename TDoFManager, typename TAlgebra>
