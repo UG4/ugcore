@@ -22,6 +22,8 @@
 #include "linear_operator/multi_grid_solver/mg_solver.h"
 #include "linear_operator/linear_solver.h"
 #include "linear_operator/cg_solver.h"
+#include "linear_operator/jacobi.h"
+#include "linear_operator/ilu.h"
 
 #ifdef USE_MARTIN_ALGEBRA
 #ifdef LAPACK_AVAILABLE

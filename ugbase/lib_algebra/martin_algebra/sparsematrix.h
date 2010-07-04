@@ -50,7 +50,7 @@ template<typename vec_type> class Vector;
 //! SparseMatrix for big, variable sparse matrices.
 //! matrix is stored independent row-wise
 //! \sa matrixRow
-template<typename T> 
+template<typename T>
 class SparseMatrix : public TE_MAT<SparseMatrix<T> >
 {
 public:
@@ -70,57 +70,57 @@ public:
 	{
 		size_t iIndex;		// index to
 		entry_type dValue; // smallmatrix value;
-		
+
 		void print(){cout << *this;}
 		friend ostream &operator<<(ostream &output, const connection &c)
-		{		
+		{
 			output << "(" << c.iIndex << "-> ";
 			cout << c.dValue;
 			cout << ")";
 			return output;
 		}
-		
+
 		void operator = (const connection &other)
 		{
 			iIndex = other.iIndex;
 			dValue = other.dValue;
 		}
-		
+
 		int operator < (const connection &c) const
 		{
 			return iIndex < c.iIndex;
 		}
 	};
-	
+
 public: // construction etc
-	
+
 	// constructor for empty SparseMatrix
 	SparseMatrix();
 	// destructor
-	~SparseMatrix ();	
-	
+	~SparseMatrix ();
+
 
 	bool create(size_t _rows, size_t _cols);
 	bool destroy();
-	
+
 	//! create this as a transpose of SparseMatrix B
 	void createAsTransposeOf(const SparseMatrix &B);
-	
+
 
 private: // disallowed operations (not defined):
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 	void operator = (const SparseMatrix &v); ///< disallow assignment
-	
-public:	// general functions	
+
+public:	// general functions
 	template<typename Vector_type>
 	void eliminateDirichletValues(Vector_type &b);
-	
+
 	void setDirichletRow(size_t row);
 	void setDirichletRows(size_t *pRows, size_t nrows);
 #ifndef FLEXAMG
 	bool set_dirichlet_rows(const local_index_type &ind);
 #endif
-	
+
 
 	//! calculate res = A x
 	template<typename Vector_type>
@@ -133,27 +133,27 @@ public:	// general functions
 	bool matmul_minus(Vector_type &res, const Vector_type &x) const;
 
 
-	//! accessor functions for artificial matrixrow-object (= just wrapper with A and row)	
+	//! accessor functions for artificial matrixrow-object (= just wrapper with A and row)
 	inline const matrixrow_type getrow(size_t i) const;
 	inline const matrixrow_type operator [] (size_t i) const;
-	
-	
+
+
 	//! get Diagonal A_[i,i] of matrix
 	inline const entry_type &getDiag(size_t i) const;
 	inline entry_type &getDiag(size_t i);
-	
+
 	//! isUnconnected: true if only A[i,i] != 0.0.
 	inline bool isUnconnected(size_t i) const;
 
-	//! adds the submatrix mat to A. 	
-	
+	//! adds the submatrix mat to A.
+
 	template<typename M>
 	void add(const M &mat, size_t *rows, size_t *cols);
 	template<typename M>
 	void set(const M &mat, size_t *rows, size_t *cols);
 	template<typename M>
 	void get(M &mat, size_t *rows, size_t *cols) const;
-	
+
 	template<typename M>
 	void add(const M &mat, vector<size_t> &rows, vector<size_t> &cols);
 	template<typename M>
@@ -166,12 +166,12 @@ public:	// general functions
 	bool set(const local_matrix_type &mat, const local_index_type &I, const local_index_type &J);
 	bool get(local_matrix_type &mat, const local_index_type &I, const local_index_type &J) const;
 #endif
-	
-	
+
+
 	void add(const entry_type &d, size_t row, size_t col);
 	void set(const entry_type &d, size_t row, size_t col);
 	void get(entry_type &d, size_t row, size_t col) const;
-	
+
 	bool set(double a);
 
 	const entry_type &operator() (int r, int c) const;
@@ -183,18 +183,18 @@ public:	// general functions
 public: // accessor functions
 	size_t row_size() const { return rows; } // deprecated
 	size_t col_size() const { return cols; } // deprecated
-	
+
 	size_t num_rows() const { return rows; }
 	size_t num_cols() const { return cols; }
 
 	size_t getTotalNrOfConnections() const { return iTotalNrOfConnections; }
-	
-	
-	
+
+
+
 public:	// row functions
 	//! remove zero entries of SparseMatrix (experimental)
 	void removezeros(size_t row);
-	
+
 	void setMatrixRow(size_t row, connection *c, size_t nr);
 	void addMatrixRow(size_t row, connection *c, size_t nr);
 	inline size_t getNrOfConnections(size_t row) const;
@@ -209,16 +209,16 @@ public: // output functions
 
 	friend ostream &operator<<(ostream &output, const SparseMatrix &m)
 	{
-		output << "SparseMatrix " //<< m.name 
+		output << "SparseMatrix " //<< m.name
 		<< " [ " << m.rows << " x " << m.cols << " ]";
 		return output;
 	}
-	void printtype() const; 
-	
+	void printtype() const;
+
 	//! writes Matrix into file filename in ConnectionViewer format.
 	void writeToFile(const char *filename) const;
-	
-	
+
+
 public:
 	// finalizing functions
 	//----------------------
@@ -231,13 +231,13 @@ public:
 
 
 public:
-	
+
 	// Iterators
 	//---------------------------
-	
+
 	// const_RowIterator
 
-	class cRowIterator 
+	class cRowIterator
 	{
 	public:
 		//const SparseMatrix<entry_type> &A;
@@ -256,9 +256,9 @@ public:
 
 		inline bool isEnd() const { return p >= pEnd; }
 	};
-	
+
 	// unconst row iterator
-	class rowIterator 
+	class rowIterator
 	{
 	public:
 		connection * const pStart;
@@ -313,7 +313,7 @@ public:
 	{
 		return cRowIterator(*this, row);
 	}
-	
+
 	rowIterator beginRow(size_t row)
 	{
 		return rowIterator(*this, row);
@@ -323,19 +323,20 @@ public:
 	{
 		return cLowerLeftIterator(*this, row);
 	}
-	
+
 	cUpperRightIterator beginUpperRightRow(size_t row)  const
 	{
 		return cUpperRightIterator(*this, row);
 	}
-	
-	
-private:	
+
+
+private:
 	//! "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
 	void safeSetConnections(size_t row, connection *mem) const;
 
 	bool isFinalized() const;
 	bool isInConsMem(size_t row) const;
+public:
 	size_t getConnection(size_t r, size_t c) const;
 public:
 	void setEstimatedRowSize(size_t estimatedRowSize_)
@@ -344,31 +345,31 @@ public:
 	}
 	//     data
 	//----------------
-	
+
 public:
 #ifdef FLEXAMG
 	int tolevel, fromlevel;
 #endif
 	const char *name;					//!< name of the SparseMatrix for debuging / printing.
-	
-private:	
+
+private:
 
 	size_t rows;						//!< nr of rows
 	size_t cols;						//!< nr of cols
 	connection **pRowStart;				//< pointers to array of connections of each row
 	connection **pRowEnd;				//< pointers to array of connections of each row
-	
+
 	size_t iTotalNrOfConnections;		//!< number of non-zeros
 	size_t bandwidth;					//!< bandwidth (experimental)
-	
+
 	size_t estimatedRowSize;			//!< estimated length of each row
 	size_t *iMaxNrOfConnections;		//!< max nr of connections for row [i]. TODO.
-	
+
 
 	connection *consmem;				//!< consecutive memory for the connections
 	size_t consmemsize;					//!< size of the consecutive memory for connections
 	size_t iFragmentedMem;				//!< size of connections memory not in consmem
-	
+
 	friend class matrixrow<entry_type>;
 };
 
