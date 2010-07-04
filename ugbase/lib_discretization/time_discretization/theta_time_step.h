@@ -40,6 +40,9 @@ class ThetaTimeDiscretization : public ITimeDiscretization<TDiscreteFunction, TA
 		// theta = 0 -> Backward Euler
 		ThetaTimeDiscretization(IDomainDiscretization<discrete_function_type, algebra_type>& sd, number theta);
 
+		// return number of previous time steps needed
+		size_t num_prev_steps() {return m_previousSteps;}
+
 		// implements the time step interface
 		bool prepare_step(std::deque<discrete_function_type*>& u_old, std::deque<number>& time_old, number dt);
 

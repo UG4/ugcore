@@ -101,7 +101,7 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	static const int dim = TDomain::dim;
 	size_t ip_pos = 0;
 
-	number flux;
+	number flux, conv_scale;
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v, lin_Defect;
 	MathVector<dim> Dgrad;
@@ -114,9 +114,9 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 			const SD_Values<TElem, TDomain::dim>& sdv = scvf.sdv();
 
 			m_Diff_Tensor(D, scvf.global_ip(), time);
-//			m_Conv_Vel(v, scvf.global_ip(), time);
-
 			v = m_Velocity[ip_pos];
+			m_Conv_Scale(conv_scale, scvf.global_ip(), time);
+			v *= conv_scale;
 
 			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
@@ -207,13 +207,15 @@ CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
 assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	int co;
+	number mass_scale;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
+		m_Mass_Scale(mass_scale, scv.global_corner_pos(), time);
 
-		J(co , co) += 1.0 * scv.volume();
+		J(co , co) += mass_scale * scv.volume();
 	}
 
 	return IPlugInReturn_OK;
@@ -229,7 +231,7 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	static const int dim = TDomain::dim;
 	size_t ip_pos = 0;
 
-	number flux;
+	number flux, conv_scale;
 	MathVector<dim> grad_u;
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v;
@@ -251,9 +253,9 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 			}
 
 			m_Diff_Tensor(D, scvf.global_ip(), time);
-//			m_Conv_Vel(v, scvf.global_ip(), time);
-
 			v = m_Velocity[ip_pos++];
+			m_Conv_Scale(conv_scale, scvf.global_ip(), time);
+			v *= conv_scale;
 
 			////////////////////////////////////
 			// diffusiv term (central discretization)
@@ -312,13 +314,17 @@ CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
 assemble_element_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	int co;
+	number mass_scale , mass_const;
 	for(size_t i = 0; i < m_geo->num_scv(); ++i)
 	{
 		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
 
 		co = scv.local_corner_id();
 
-		d[co] += u[co] * scv.volume();
+		m_Mass_Scale(mass_scale, scv.global_corner_pos(), time);
+		m_Mass_Const(mass_const, scv.global_corner_pos(), time);
+
+		d[co] += (mass_const * mass_scale * u[co]) * scv.volume();
 	}
 
 	return IPlugInReturn_OK;

@@ -64,7 +64,7 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 		// Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply(domain_function_type& b, codomain_function_type& x)
 		{
-			if(!b.has_storage_type(GFST_ADDITIVE) || !x.has_storage_type(GFST_CONSISTENT))
+			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 			{
 				UG_LOG("ERROR in 'LinearOperatorInverse::apply': Wrong storage format of Vectors. Aborting.\n");
 				return false;
@@ -81,7 +81,7 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 			codomain_function_type h(r);
 
 			// make h consistent
-			if(!h.change_storage_type(GFST_CONSISTENT))
+			if(!h.change_storage_type(PST_CONSISTENT))
 				{UG_LOG("Cannot convert h to consistent vector.\n"); return false;}
 
 			// create help vector (search direction)
@@ -94,7 +94,7 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 			PROFILE_BEGIN(GlobalVecProd_FirstNorm);
 				norm = norm_old = norm_start = VecProd(h, r);
 			PROFILE_END();
-			
+
 			// Print Start information
 			if(m_verboseLevel >= 1) UG_LOG("\n    %%%%%%%%%% CG Solver %%%%%%%%%%\n");
 			if(m_verboseLevel >= 2) UG_LOG("    %   Iter     Defect         Rate \n");
@@ -150,14 +150,14 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 				h = r;
 
 				// make h consistent
-				if(!h.change_storage_type(GFST_CONSISTENT))
+				if(!h.change_storage_type(PST_CONSISTENT))
 					{UG_LOG("Cannot convert h to consistent vector.\n"); return false;}
 
 				// compute new norm
 				PROFILE_BEGIN(GlobalVecProd_NewNorm);
 				norm = VecProd(h, r);
 				PROFILE_END();
-				
+
 				// new beta
 				number beta = norm/norm_old;
 
@@ -200,8 +200,8 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 		number VecProd(domain_function_type& a, domain_function_type& b)
 		{
 			bool check = false;
-			if(a.has_storage_type(GFST_ADDITIVE) && b.has_storage_type(GFST_CONSISTENT)) check = true;
-			if(b.has_storage_type(GFST_ADDITIVE) && a.has_storage_type(GFST_CONSISTENT)) check = true;
+			if(a.has_storage_type(PST_ADDITIVE) && b.has_storage_type(PST_CONSISTENT)) check = true;
+			if(b.has_storage_type(PST_ADDITIVE) && a.has_storage_type(PST_CONSISTENT)) check = true;
 
 			if(!check) return -1;
 

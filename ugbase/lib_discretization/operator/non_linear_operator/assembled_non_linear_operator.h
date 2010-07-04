@@ -54,7 +54,7 @@ class AssembledOperator : public IOperator<TDiscreteFunction, TDiscreteFunction>
 				return false;
 			}
 
-			d.set_storage_type(GFST_ADDITIVE);
+			d.set_storage_type(PST_ADDITIVE);
 			return true;
 		}
 

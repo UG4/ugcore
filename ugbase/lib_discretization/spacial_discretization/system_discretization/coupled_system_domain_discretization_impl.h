@@ -218,6 +218,12 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 			// get local dof values of all unknowns
 			u.get_dof_values(loc_u[sys], glob_ind[sys]);
 
+/*			UG_LOG("sys = " << sys << "\n");
+			for(size_t i = 0; i < loc_u[sys].size(); ++i)
+			{
+				UG_LOG("i = " << i << ", u= " << loc_u[sys][i] << "ind = "<<  glob_ind[sys][i][0] << "\n");
+			}
+*/
 			// prepare export
 			// Exports: set_local_solution(elem, local_vector_type& u, local_index_type& glob_ind)
 			m_systems[sys]->prepare_element(elem, loc_u[sys], glob_ind[sys]);
@@ -251,22 +257,16 @@ assemble_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 				for(size_t r = 0; r < Imp->num_sys(); ++r)
 				{
 					loc_J_coupl[sys][i][r].set(0.0);
-					size_t s = Imp->sys(r);
 
-					for(size_t k = 0; k < Imp->num_sh(r); ++k)
-					{
-						for(size_t j = 0; j < num_sh[sys]; ++j)
-						{
-						//	for(size_t ip = 0; ip < Imp->num_ip(); ++ip)
-							{
-								//loc_J_coupl[sys][i][s](j, k) += Imp->lin_defect(j, ip) * (*Imp)(s, ip, k);
-							}
-						}
-					}
+					// TODO: currently we assume, that imports are only in the stiffness part
+					if(!Imp->add_offdiagonal(loc_J_coupl[sys][i][r], r, s_a))
+						{UG_LOG("Offdiagonal coupling went wrong.\n"); return false;}
+
+					//UG_LOG("Adding Local Couling: "<< loc_J_coupl[sys][i][r] << "\n");
+
+					// add coupling
+					J.add(loc_J_coupl[sys][i][r], glob_ind[sys], glob_ind[Imp->sys(r)]);
 				}
-				//if(Imp->in_mass_part() != true) loc_J_coupl *= s_a;
-
-				//J.add(loc_J_coupl[sys][i][s], glob_ind[sys], glob_ind[s]);
 			}
 		}
 	}

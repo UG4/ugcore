@@ -232,6 +232,22 @@ class DataImport : public DataImportPosition<TPositionType> {
 			return m_linearized_defect[j][ip];
 		}
 
+		// add offdiagonal coupling to other system 's'
+		virtual bool add_offdiagonal(FlexLocalMatrix& J, size_t s, number s_a)
+		{
+			for(size_t k = 0; k < this->num_sh(s); ++k)
+			{
+				for(size_t j = 0; j < this->num_eq(); ++j)
+				{
+					for(size_t ip = 0; ip < this->num_ip(); ++ip)
+					{
+						//UG_LOG("lin_defect = " << this->lin_defect(j, ip) << " * op() = " << this->operator()(s, ip, k) << "\n");
+						J(j, k) += s_a * (this->lin_defect(j, ip) * this->operator()(s, ip, k));
+					}
+				}
+			}
+			return true;
+		}
 
 	public:
 		// set new positions

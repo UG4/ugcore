@@ -46,16 +46,22 @@ class CplConvectionDiffusionEquation {
 
 	protected:
 		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
-		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
+		typedef void (*Conv_Scale_fct)(number&, const position_type&, number);
+		typedef void (*Mass_Scale_fct)(number&, const position_type&, number);
+		typedef void (*Mass_Const_fct)(number&, const position_type&, number);
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
 		CplConvectionDiffusionEquation(TDomain& domain, number upwind_amount,
-										Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs,
+										Diff_Tensor_fct diff, Conv_Scale_fct conv_scale,
+										Mass_Scale_fct mass_scale, Mass_Const_fct mass_const,
+										Reaction_fct reac, Rhs_fct rhs,
 										DataImport<MathVector<dim>, MathVector<dim> >& Velocity)
 		: m_domain(domain), m_upwind_amount(upwind_amount),
-			m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs),
+			m_Diff_Tensor(diff), m_Conv_Scale(conv_scale),
+			m_Mass_Scale(mass_scale), m_Mass_Const(mass_const),
+			m_Reaction(reac), m_Rhs(rhs),
 			m_Velocity(Velocity)
 		{};
 
@@ -101,7 +107,9 @@ class CplConvectionDiffusionEquation {
 
 		// User functions
 		Diff_Tensor_fct m_Diff_Tensor;
-		Conv_Vel_fct m_Conv_Vel;
+		Conv_Scale_fct m_Conv_Scale;
+		Mass_Scale_fct m_Mass_Scale;
+		Mass_Const_fct m_Mass_Const;
 		Reaction_fct m_Reaction;
 		Rhs_fct m_Rhs;
 
@@ -139,19 +147,25 @@ class CplConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization
 
 	protected:
 		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
-		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
+		typedef void (*Conv_Scale_fct)(number&, const position_type&, number);
+		typedef void (*Mass_Scale_fct)(number&, const position_type&, number);
+		typedef void (*Mass_Const_fct)(number&, const position_type&, number);
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
 		CplConvectionDiffusionEquationPlugIn(	size_t fct, domain_type& domain, number upwind_amount,
-											Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs) :
+												Diff_Tensor_fct diff, Conv_Scale_fct conv_scale,
+												Mass_Scale_fct mass_scale, Mass_Const_fct mass_const,
+												Reaction_fct reac, Rhs_fct rhs) :
 			m_Velocity("Velocity"),
 			m_fct(fct),
 			m_domain(domain),
 			m_upwind_amount(upwind_amount),
 			m_diff(diff),
-			m_vel(vel),
+			m_conv_scale(conv_scale),
+			m_mass_scale(mass_scale),
+			m_mass_const(mass_scale),
 			m_reac(reac),
 			m_rhs(rhs)
 			{};
@@ -217,11 +231,13 @@ class CplConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization
 
 		template<typename TElem>
 		CplConvectionDiffusionEquation<domain_type, algebra_type, TElem>&
-		get_inst(	domain_type& domain, number upwind_amount, Diff_Tensor_fct diff, Conv_Vel_fct vel,
+		get_inst(	domain_type& domain, number upwind_amount,
+					Diff_Tensor_fct diff, Conv_Scale_fct conv_scale,
+					Mass_Scale_fct mass_scale, Mass_Const_fct mass_const,
 					Reaction_fct reac, Rhs_fct rhs, DataImport<MathVector<dim>, MathVector<ref_dim> >& Velocity)
 		{
 			static CplConvectionDiffusionEquation<domain_type, algebra_type, TElem>
-						inst(domain, upwind_amount, diff, vel, reac, rhs, Velocity);
+						inst(domain, upwind_amount, diff, conv_scale, mass_scale, mass_const, reac, rhs, Velocity);
 			return inst;
 		}
 
@@ -229,49 +245,51 @@ class CplConvectionDiffusionEquationPlugIn : public IPlugInElementDiscretization
 		// support assembling on triangles
 		template <typename TElem>
 		inline size_t num_sh(TElem* elem)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).num_sh();};
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).num_sh();};
 
 		template <typename TElem>
 		inline size_t num_sh(TElem* elem, size_t fct)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).num_sh(fct);};
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).num_sh(fct);};
 
 		template <typename TElem>
 		inline IPlugInReturn prepare_element_loop(TElem* elem)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).prepare_element_loop(); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).prepare_element_loop(); };
 
 		template <typename TElem>
 		inline IPlugInReturn prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).prepare_element(elem, u, glob_ind); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).prepare_element(elem, u, glob_ind); };
 
 		template <typename TElem>
 		inline IPlugInReturn assemble_element_JA(TElem* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).assemble_element_JA(J, u, time); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).assemble_element_JA(J, u, time); };
 
 		template <typename TElem>
 		inline IPlugInReturn assemble_element_JM(TElem* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).assemble_element_JM(J, u, time); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).assemble_element_JM(J, u, time); };
 
 		template <typename TElem>
 		inline IPlugInReturn assemble_element_A(TElem* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).assemble_element_A(d, u, time); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).assemble_element_A(d, u, time); };
 
 		template <typename TElem>
 		inline IPlugInReturn assemble_element_M(TElem* elem, local_vector_type& d, const local_vector_type& u, number time=0.0)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).assemble_element_M(d, u, time); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).assemble_element_M(d, u, time); };
 
 		template <typename TElem>
 		inline IPlugInReturn assemble_element_f(TElem* elem, local_vector_type& d, number time=0.0)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).assemble_element_f(d, time); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).assemble_element_f(d, time); };
 
 		template <typename TElem>
 		inline IPlugInReturn finish_element_loop(TElem* elem)
-		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_vel, m_reac, m_rhs, m_Velocity).finish_element_loop(); };
+		{ return get_inst<TElem>(m_domain, m_upwind_amount, m_diff, m_conv_scale, m_mass_scale, m_mass_const, m_reac, m_rhs, m_Velocity).finish_element_loop(); };
 
 	protected:
 		domain_type& m_domain;
 		number m_upwind_amount;
 		Diff_Tensor_fct m_diff;
-		Conv_Vel_fct m_vel;
+		Conv_Scale_fct m_conv_scale;
+		Mass_Scale_fct m_mass_scale;
+		Mass_Const_fct m_mass_const;
 		Reaction_fct m_reac;
 		Rhs_fct m_rhs;
 

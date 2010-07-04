@@ -15,7 +15,7 @@
 #include "common/common.h"
 
 // modul intern libraries
-#include "lib_discretization/assemble.h"
+#include "lib_discretization/spacial_discretization/domain_discretization_interface.h"
 
 namespace ug{
 
@@ -54,6 +54,9 @@ class ITimeDiscretization : public IAssemble<TDiscreteFunction, TAlgebra> {
 		 * \param[in] dt		size of time step
 		 */
 		virtual bool prepare_step(std::deque<discrete_function_type*>& u_old, std::deque<number>& time_old, number dt) = 0;
+
+		// returns number of previous time steps needed (i.e. size of deque for time_old and u_old)
+		virtual size_t num_prev_steps() = 0;
 
 		size_t num_fct() const{return m_dd.num_fct();}
 

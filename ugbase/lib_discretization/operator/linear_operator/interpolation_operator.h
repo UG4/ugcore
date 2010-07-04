@@ -87,7 +87,7 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 				return false;
 			}
 
-			v.set_storage_type(GFST_CONSISTENT);
+			v.set_storage_type(PST_CONSISTENT);
 			return true;
 		}
 

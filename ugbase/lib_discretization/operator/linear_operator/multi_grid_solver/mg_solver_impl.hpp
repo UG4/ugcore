@@ -115,11 +115,11 @@ lmgc(size_t lev)
 			if(!dofMgr.get_vertical_slave_layout(lev-1).empty()){
 				m_Com.receive_data(dofMgr.get_vertical_slave_layout(lev-1),	cpVecCopy);
 
-				m_c[lev-1]->set_storage_type(GFST_CONSISTENT);
+				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}
 			else if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
 				m_Com.send_data(dofMgr.get_vertical_master_layout(lev-1), cpVecCopy);
-				m_c[lev-1]->set_storage_type(GFST_CONSISTENT);
+				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}
 		m_Com.communicate();
 		#endif
@@ -144,7 +144,7 @@ lmgc(size_t lev)
 	else if(lev == m_baseLevel)
 	{
 		// set d to be additive
-		m_d[lev]->set_storage_type(GFST_ADDITIVE);
+		m_d[lev]->set_storage_type(PST_ADDITIVE);
 
 		// solve on base level
 		m_c[lev]->set(0.0);

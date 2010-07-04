@@ -92,7 +92,7 @@ class ProjectionOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFu
 
 			// v = coarse, u = fine
 			m_matrix.apply_transposed(v.get_vector(), u.get_vector());
-			u.copy_storage_type(v);
+			v.copy_storage_type(u);
 			return true;
 		}
 

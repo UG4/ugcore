@@ -136,40 +136,59 @@ class CplDensityDrivenFlow :
 					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
 			const size_t num_co = ref_elem_type::num_corners;
 
-
-			number c;
-			MathVector<TDomain::dim> grad_p, grad_p_local;
+			number c_ip;
+			MathVector<TDomain::dim> grad_p_ip, grad_p_local;
 			MathMatrix<TDomain::dim, ref_elem_type::dim> JTInv;
-			number shape;
-			MathVector<TDomain::dim> grad_local;
+			std::vector<number> shape_ip(val.size());
+			std::vector<MathVector<TDomain::dim> > grad_local_ip(val.size());
+			std::vector<MathVector<TDomain::dim> > grad_global_ip(val.size());
 
-			VecSet(grad_p, 0.0);
 			m_mapping.update(m_corners);
-			for(size_t i = 0; i < val.size(); ++i)
+			for(size_t ip = 0; ip < val.size(); ++ip)
 			{
-				// compute c and grad_p
-				VecSet(grad_p_local, 0.0);
-				c = 0.0;
+				VecSet(grad_p_ip, 0.0); c_ip = 0.0;
 
+				if(m_mapping.jacobian_transposed_inverse(pos[ip], JTInv) == false) UG_ASSERT(0, "");
 				for(size_t co = 0; co < num_co; ++co)
 				{
-					if(TrialSpace.evaluate(co, pos[i], shape) == false) UG_ASSERT(0, "");
-					c += u(_C_, co) * shape;
-
-					if(TrialSpace.evaluate_grad(co, pos[i], grad_local) == false)  UG_ASSERT(0, "");
-					if(m_mapping.jacobian_transposed_inverse(pos[i], JTInv) == false) UG_ASSERT(0, "");
-					VecScaleAppend(grad_p_local, u(_P_,co), grad_local);
-
-					MatVecMult(grad_p, JTInv, grad_p_local);
+					if(TrialSpace.evaluate(co, pos[ip], shape_ip[co]) == false) UG_ASSERT(0, "");
+					if(TrialSpace.evaluate_grad(co, pos[ip], grad_local_ip[co]) == false)  UG_ASSERT(0, "");
+					c_ip += u(_C_, co) * shape_ip[co];
+					MatVecMult(grad_global_ip[co], JTInv, grad_local_ip[co]);
+					VecScaleAppend(grad_p_ip, u(_P_,co), grad_global_ip[co]);
 				}
 
-				compute_ip_Darcy_velocity(val[i], c, grad_p);
+				number s, mu_ip;
+				MathVector<dim> vel, gravity;
+				MathMatrix<dim, dim> K;
+
+				m_Density(s, c_ip);
+				m_Gravity(gravity);
+				m_Viscosity(mu_ip, c_ip);
+				m_Permeability_Tensor(K);
+				VecScale(vel, gravity, s);
+				VecSubtract(vel, vel, grad_p_ip);
+				MatVecMult(val[ip], K, vel);
+				VecScale(val[ip], val[ip], 1./mu_ip);
+
+				if(compute_derivatives == true)
+				{
+					m_D_Density(s, c_ip);
+					MathVector<dim> D_vel_c[num_co], D_vel_p[num_co];
+					for(size_t co = 0; co < num_co; ++co)
+					{
+
+						VecScale(D_vel_c[co], gravity, s*shape_ip[co]);
+						VecScale(D_vel_p[co], grad_global_ip[co], -1);
+						MatVecMult(deriv[ip][co], K, D_vel_c[co]);
+						MatVecMult(deriv[ip][num_co + co], K, D_vel_p[co]);
+
+						VecScale(deriv[ip][co],deriv[ip][co],1./mu_ip);
+						VecScale(deriv[ip][num_co + co],deriv[ip][num_co + co],1./mu_ip);
+					}
+				}
 			}
 
-			if(compute_derivatives == true)
-			{
-
-			}
 		#undef u
 		}
 

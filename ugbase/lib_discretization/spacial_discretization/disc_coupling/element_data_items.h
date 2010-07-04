@@ -7,6 +7,7 @@
 #include <string>
 
 #include "common/common.h"
+#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
 
 namespace ug{
 
@@ -263,6 +264,8 @@ class DataImportItem : public DataItem{
 			UG_ASSERT(m_export != NULL, "No Export set.");
 			return m_export->depends_on_sys(glob_sys, loc_sys);
 		}
+
+		virtual bool add_offdiagonal(FlexLocalMatrix& J, size_t s, number s_a) = 0;
 
 	public:
 		// link this import to an export

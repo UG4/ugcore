@@ -67,11 +67,10 @@ class LinearSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscr
 		// c, d are the correction and defect for solving that linear equation iteratively.
 		virtual bool apply(domain_function_type& d_nl, codomain_function_type& c_nl)
 		{
-			if(!d_nl.has_storage_type(GFST_ADDITIVE) || !c_nl.has_storage_type(GFST_CONSISTENT))
-			{
-				UG_LOG("ERROR in 'LinearOperatorInverse::apply': Wrong storage format of Vectors. Aborting.\n");
-				return false;
-			}
+			if(!d_nl.has_storage_type(PST_ADDITIVE))
+				{UG_LOG("ERROR in 'LinearSolver::apply': d must be additive. Aborting.\n"); return false;}
+			if(!c_nl.has_storage_type(PST_CONSISTENT))
+				{UG_LOG("ERROR in 'LinearSolver::apply': c must be consistent. Aborting.\n"); return false;}
 
 			// copy d_nl as d
 			domain_function_type& d = d_nl;

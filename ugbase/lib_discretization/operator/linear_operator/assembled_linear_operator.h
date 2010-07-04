@@ -39,24 +39,17 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 			const typename domain_function_type::vector_type& c_vec = c.get_vector();
 			typename codomain_function_type::vector_type& d_vec = d.get_vector();
 
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 2, "Creating Matrix of size (" << d_vec.size() <<", " << c_vec.size() <<").\n");
 			if(m_J.row_size() == d_vec.size() && m_J.col_size() == c_vec.size())
 			{
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- 'prepare': Reset matrix to 0.0.\n");
 				if(m_J.set(0.0) != true) return false;
 			}
 			else
 			{
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- 'prepare': Calling destroy matrix.\n");
 				if(m_J.destroy() != true) return false;
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- 'prepare': Calling allocate matrix.\n");
 				if(m_J.create(d_vec.size(), c_vec.size()) != true) return false;
 			}
 
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 2, " ---- 'prepare': Calling 'm_ass.assemble_jacobian'.\n");
 			if(m_ass.assemble_jacobian(m_J, u) != IAssemble_OK) return false;
-
-			UG_DLOG(LIB_DISC_ASSEMBLE, 10, "Matrix:\n" << m_J << "\n");
 
 			return true;
 		}
@@ -70,8 +63,8 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 			UG_ASSERT(x.size() == m_J.row_size(), "Row size '" << m_J.row_size() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_J.col_size(), "Column size '" << m_J.row_size() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
 
-			if(!c.has_storage_type(GFST_CONSISTENT)) return false;
-			d.set_storage_type(GFST_ADDITIVE);
+			if(!c.has_storage_type(PST_CONSISTENT)) return false;
+			d.set_storage_type(PST_ADDITIVE);
 			return m_J.apply(b,x);
 		}
 
@@ -85,9 +78,9 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 			UG_ASSERT(b.size() == m_J.col_size(), "Column size '" << m_J.row_size() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
 
 			// TODO: Check that matrix has correct type (additive)
-			if(!c.has_storage_type(GFST_CONSISTENT)) return false;
-			if(!d.has_storage_type(GFST_ADDITIVE)) return false;
-			d.set_storage_type(GFST_ADDITIVE);
+			if(!c.has_storage_type(PST_CONSISTENT)) return false;
+			if(!d.has_storage_type(PST_ADDITIVE)) return false;
+			d.set_storage_type(PST_ADDITIVE);
 			return m_J.matmul_minus(b,x);
 		}
 
@@ -116,7 +109,7 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 
 
 template <typename TDiscreteFunction>
-class AssembledLinearOperator : public AssembledLinearizedOperator<TDiscreteFunction>
+class AssembledLinearOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFunction>, public AssembledLinearizedOperator<TDiscreteFunction>
 {
 	public:
 		// export types:
@@ -147,35 +140,28 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TDiscreteFunc
 			const typename domain_function_type::vector_type& x = u.get_vector();
 			typename codomain_function_type::vector_type& b = f.get_vector();
 
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 2, "Creating Matrix of size (" << b.size() <<", " << x.size() <<").\n");
 			if(m_Matrix.row_size() == b.size() && m_Matrix.col_size() == x.size())
 			{
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- 'prepare': Reset matrix to 0.0.\n");
 				if(m_Matrix.set(0.0) != true) return false;
 			}
 			else
 			{
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- 'prepare': Calling destroy matrix.\n");
 				if(m_Matrix.destroy() != true) return false;
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- 'prepare': Calling allocate matrix.\n");
 				if(m_Matrix.create(b.size(), x.size()) != true) return false;
 			}
 
 			if(m_assemble_rhs)
 			{
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 2, " ---- 'prepare': Calling 'm_ass.assemble_linear'.\n");
+				b.set(0.0);
 				if(m_ass.assemble_linear(m_Matrix, b, u) != IAssemble_OK) return false;
-				f.set_storage_type(GFST_ADDITIVE);
+				f.set_storage_type(PST_ADDITIVE);
 			}
 			else
 			{
-				UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 2, " ---- 'prepare': Calling 'm_ass.assemble_jacobian'.\n");
 				if(m_ass.assemble_jacobian(m_Matrix, u) != IAssemble_OK) return false;
 			}
 
 			if(m_ass.assemble_solution(u) != IAssemble_OK) return false;
-
-			UG_DLOG(LIB_DISC_ASSEMBLE, 10, "Matrix:\n" << m_Matrix << "\n");
 
 			return true;
 		}
@@ -190,8 +176,8 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TDiscreteFunc
 			UG_ASSERT(b.size() == m_Matrix.col_size(), "Column size '" << m_Matrix.row_size() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
 
 			// TODO: Check that matrix has correct type (additive)
-			if(!u.has_storage_type(GFST_CONSISTENT)) return false;
-			f.set_storage_type(GFST_ADDITIVE);
+			if(!u.has_storage_type(PST_CONSISTENT)) return false;
+			f.set_storage_type(PST_ADDITIVE);
 			return m_Matrix.apply(b,x);
 		}
 
@@ -205,9 +191,9 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TDiscreteFunc
 			UG_ASSERT(b.size() == m_Matrix.col_size(), "Column size '" << m_Matrix.row_size() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
 
 			// TODO: Check that matrix has correct type (additive)
-			if(!u.has_storage_type(GFST_CONSISTENT)) return false;
-			if(!f.has_storage_type(GFST_ADDITIVE)) return false;
-			f.set_storage_type(GFST_ADDITIVE);
+			if(!u.has_storage_type(PST_CONSISTENT)) return false;
+			if(!f.has_storage_type(PST_ADDITIVE)) return false;
+			f.set_storage_type(PST_ADDITIVE);
 			return m_Matrix.matmul_minus(b,x);
 		}
 
@@ -337,7 +323,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 		// update defect: d := d - A*c
 		virtual bool apply(domain_function_type& d, codomain_function_type& c)
 		{
-			if(!d.has_storage_type(GFST_ADDITIVE)) return false;
+			if(!d.has_storage_type(PST_ADDITIVE)) return false;
 
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
@@ -364,8 +350,8 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			}
 
 			// make correction consistent
-			c.set_storage_type(GFST_ADDITIVE);
-			if(c.change_storage_type(GFST_CONSISTENT) != true)
+			c.set_storage_type(PST_ADDITIVE);
+			if(c.change_storage_type(PST_CONSISTENT) != true)
 				return false;
 #else
 			// apply iterator: c = B*d (damp is not used)
@@ -379,7 +365,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
-			d.set_storage_type(GFST_ADDITIVE);
+			d.set_storage_type(PST_ADDITIVE);
 			return true;
 		}
 
