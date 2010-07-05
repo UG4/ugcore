@@ -49,7 +49,8 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 				TGridFunction& u,
 				ITimeDiscretization<TGridFunction>& surface_timestep,
 				ITimeDiscretization<TLevelFunction>& level_timestep,
-				size_t timesteps, number dt,
+				size_t timesteps, size_t& step,
+				number& time, number dt,
 				VTKOutput<TGridFunction>& out, const char* outName)
 {
 //  create deques for old solutions and old timesteps
@@ -59,13 +60,16 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 	time_old.resize(surface_timestep.num_prev_steps());
 
 //  set start time
-	time_old[0] = 0.0;
+	time_old[0] = time;
 
 //  get help vectors
 	u_old[0] = &u.clone();
 
+//  end timestep
+	const size_t end_timestep = timesteps + step -1;
+
 //  loop over time steps
-	for(size_t step = 1; step <= timesteps; ++step)
+	for(; step <= end_timestep; ++step)
 	{
 		UG_LOG("++++++ TIMESTEP " << step << " BEGIN ++++++\n");
 
@@ -80,12 +84,12 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 
 		//	execute newton solver
 		if(!newton.apply(u))
-			{UG_LOG("Time step " << step << " did not converge. Aborting.\n"); return true;}
+			{UG_LOG("Time step " << step << " did not converge. Aborting.\n"); return false;}
 
 		// update time
-		number current_time = time_old[0] + dt;
+		time = time_old[0] + dt;
 		time_old.pop_back();
-		time_old.push_front(current_time);
+		time_old.push_front(time);
 
 		// update old solutions
 		TGridFunction* current_u = u_old.back();
@@ -94,7 +98,7 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 		u_old.push_front(current_u);
 
 		// plot solution to file
-		out.print(outName, u, step, current_time);
+		out.print(outName, u, step, time);
 		UG_LOG("++++++ TIMESTEP " << step << " END ++++++\n");
 	}
 

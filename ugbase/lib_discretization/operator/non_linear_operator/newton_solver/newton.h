@@ -23,9 +23,12 @@ class NewtonSolver : public IOperatorInverse<TDiscreteFunction, TDiscreteFunctio
 
 	public:
 		NewtonSolver(ILinearizedOperatorInverse<discrete_function_type, discrete_function_type>& LinearSolver,
-						int MaxIterations, number absTol, number relTol, bool reallocate) :
-					m_LinearSolver(LinearSolver), m_MaxIterations(MaxIterations), m_absTol(absTol),
-					m_relTol(relTol), m_reallocate(reallocate), m_allocated(false)
+						int MaxIterations, number absTol, number relTol,
+						int MaxLineSearch, number lambda_start, number lambda_reduce, bool reallocate) :
+					m_LinearSolver(LinearSolver),
+					m_MaxIterations(MaxIterations), m_absTol(absTol), m_relTol(relTol),
+					m_maxLineSearch(MaxLineSearch), m_lambda_start(lambda_start), m_lambda_reduce(lambda_reduce),
+					m_reallocate(reallocate), m_allocated(false)
 			{};
 
 		// init: This operator inverts the Operator N: Y -> X
@@ -52,6 +55,24 @@ class NewtonSolver : public IOperatorInverse<TDiscreteFunction, TDiscreteFunctio
 			else return value >= std::numeric_limits<number>::min() && value <= std::numeric_limits<number>::max() && value == value && value >= 0;
 		}
 
+		bool VecScaleAdd(discrete_function_type& a_func, discrete_function_type& b_func, number s)
+		{
+			typename discrete_function_type::vector_type& a = a_func.get_vector();
+			typename discrete_function_type::vector_type& b = b_func.get_vector();
+			typename discrete_function_type::algebra_type::matrix_type::local_matrix_type locMat(1, 1);
+			typename discrete_function_type::algebra_type::matrix_type::local_index_type locInd(1);
+			typename discrete_function_type::vector_type::local_vector_type locVec(1);
+
+			for(size_t i = 0; i < a.size(); ++i){
+				locInd[0][0] = i;
+				b.get(locVec, locInd);
+				locVec[0] *= s;
+
+				a.add(locVec, locInd);
+			}
+			return true;
+		}
+
 	private:
 		ILinearizedOperatorInverse<discrete_function_type, discrete_function_type>& m_LinearSolver;
 		int m_MaxIterations;
@@ -63,6 +84,12 @@ class NewtonSolver : public IOperatorInverse<TDiscreteFunction, TDiscreteFunctio
 		AssembledOperator<discrete_function_type>* m_N;
 		AssembledLinearizedOperator<discrete_function_type>* m_J;
 		IAssemble<discrete_function_type>* m_ass;
+
+		// line search parameters
+		int m_maxLineSearch;
+		number m_lambda_start;
+		number m_lambda_reduce;
+
 
 		bool m_reallocate;
 		bool m_allocated;

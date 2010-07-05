@@ -9,6 +9,7 @@
 #define __H__LIBDISCRETIZATION__OPERATOR__NON_LINEAR_OPERATOR__NEWTON_SOLVER__NEWTON_IMPL__
 
 #include "newton.h"
+#include "lib_discretization/io/vtkoutput.h"
 
 namespace ug{
 
@@ -107,28 +108,14 @@ apply(discrete_function_type& u)
 	number norm, norm_old, norm_start;
 
 	// Set Dirichlet - Nodes to exact values
-	UG_DLOG(LIB_DISC_NEWTON, 1, "NewtonSolver::apply: Set dirichlet values for u ... ");
 	if(m_ass->assemble_solution(u) != IAssemble_OK)
-	{
-		UG_LOG("NewtonSolver::apply: Cannot set dirichlet values in solution.\n");
-		return false;
-	}
-	UG_DLOG(LIB_DISC_NEWTON, 1, "done.\n");
+		{UG_LOG("NewtonSolver::apply: Cannot set dirichlet values in solution.\n"); return false;}
 
 	// Compute first Defect
-	UG_DLOG(LIB_DISC_NEWTON, 1, "NewtonSolver::apply: Compute start defect ... ");
 	if(m_N->prepare(u, *m_d) != true)
-	{
-		UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator.\n");
-		return false;
-	}
+		{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator.\n"); return false;}
 	if(m_N->apply(u, *m_d) != true)
-	{
-		UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n");
-		return false;
-	}
-	UG_DLOG(LIB_DISC_NEWTON, 1, "done.\n");
-	UG_DLOG(LIB_DISC_NEWTON, 10, "NewtonSolver::apply: BEGIN start defect:\n" << *m_d << "\n END defect \n");
+		{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n"); return false;}
 
 	// Compute first Residuum
 	norm = norm_old = norm_start = m_d->two_norm();
@@ -138,6 +125,9 @@ apply(discrete_function_type& u)
 	UG_LOG(" ##   Iter     Defect         Rate \n");
 	UG_LOG(" ## " << std::setw(4) << 0 << ":  " << std::scientific << norm_old <<  "      -------" << std::endl);
 
+	discrete_function_type s;
+	s.clone_pattern(u);
+
 	//loop iteration
 	int i;
 	for(i = 1; ; ++i)
@@ -145,7 +135,7 @@ apply(discrete_function_type& u)
 		// check that defect is a still a valid number
 		if(!is_valid_number(norm))
 		{
-			UG_LOG(" ##### Defect " << norm << " is not a valid number. Linear Solver did NOT CONVERGE. #####\n\n");
+			UG_LOG(" ##### Defect " << norm << " is not a valid number. Newton Solver did NOT CONVERGE. #####\n\n");
 			if(m_reallocate){deallocate_memory();}
 			return false;
 		}
@@ -170,7 +160,7 @@ apply(discrete_function_type& u)
 		if(i > m_MaxIterations)
 		{
 			UG_LOG(" ##### Absolute defect " << m_absTol << " and relative defect " << m_relTol << " NOT reached after " << m_MaxIterations << " Iterations. #####\n");
-			UG_LOG(" ##### Iterative Linear Solver did NOT CONVERGE. #####\n\n");
+			UG_LOG(" ##### Iterative Newton Solver did NOT CONVERGE. #####\n\n");
 			if(m_reallocate){deallocate_memory();}
 			return false;
 		}
@@ -178,68 +168,70 @@ apply(discrete_function_type& u)
 		// COMPUTE next iterate
 		// set c = 0
 		if(m_c->set(0.0) != true)
-		{
-			UG_LOG("NewtonSolver::apply: Cannot reset correction to zero.\n");
-			return false;
-		}
+			{UG_LOG("NewtonSolver::apply: Cannot reset correction to zero.\n"); return false;}
 
 		// Compute Jacobian
-		UG_DLOG(LIB_DISC_NEWTON, 1, "Compute Jacobian ... ");
 		if(m_J->prepare(u, *m_c, *m_d) != true)
-		{
-			UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n");
-			return false;
-		}
-		UG_DLOG(LIB_DISC_NEWTON, 1, "done\n");
+			{UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n"); return false;}
 
 		// Init Jacobi Inverse
-		UG_DLOG(LIB_DISC_NEWTON, 1, "Init and prepare Jacobi-Inverse ... ");
 		if(m_LinearSolver.init(*m_J) != true)
-		{
-			UG_LOG("NewtonSolver::apply: Cannot init Inverse Linear Operator for Jacobi-Operator.\n");
-			return false;
-		}
+			{UG_LOG("NewtonSolver::apply: Cannot init Inverse Linear Operator for Jacobi-Operator.\n"); return false;}
 		if(m_LinearSolver.prepare(u, *m_d, *m_c) != true)
-		{
-			UG_LOG("NewtonSolver::apply: Cannot prepare Inverse Linear Operator for Jacobi-Operator.\n");
-			return false;
-		}
-		UG_DLOG(LIB_DISC_NEWTON, 1, "done\n");
+			{UG_LOG("NewtonSolver::apply: Cannot prepare Inverse Linear Operator for Jacobi-Operator.\n"); return false;}
 
 		// Solve Linearized System
-		UG_DLOG(LIB_DISC_NEWTON, 1, "Apply Jacobi inverse ... ");
 		if(m_LinearSolver.apply(*m_d, *m_c) != true)
-		{
-			UG_LOG("NewtonSolver::apply: Cannot apply Inverse Linear Operator for Jacobi-Operator.\n");
-			return false;
-		}
-		UG_DLOG(LIB_DISC_NEWTON, 1, "done\n");
+			{UG_LOG("NewtonSolver::apply: Cannot apply Inverse Linear Operator for Jacobi-Operator.\n"); return false;}
 
-		// update Solution
-		UG_DLOG(LIB_DISC_NEWTON, 10, " BEGIN sol before adding correction of step " << i << ":\n" << u << "\n END sol \n");
-		UG_DLOG(LIB_DISC_NEWTON, 10, " BEGIN Correction step " << i << ":\n" << *m_c << "\n END Correction step " << i << "\n");
-		u -= *m_c;
-		UG_DLOG(LIB_DISC_NEWTON, 10, " BEGIN sol after adding correction of step " << i << ":\n" << u << "\n END sol \n");
 
-		// compute new Defect
-		UG_DLOG(LIB_DISC_NEWTON, 1, "Compute new defect ... ");
-		if(m_N->prepare(u, *m_d) != true)
-		{
-			UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator for defect computation.\n");
-			return false;
-		}
-		if(m_N->apply(u, *m_d) != true)
-		{
-			UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute defect after step " << i << ".\n");
-			return false;
-		}
-		UG_DLOG(LIB_DISC_NEWTON, 1, "done\n");
-		UG_DLOG(LIB_DISC_NEWTON, 10, " BEGIN defect after adding correction of step " << i << ":\n" << *m_d << "\n END defect \n");
+		VTKOutput<discrete_function_type> out;
+		out.print("correction_lu", *m_c, i, i);
 
-		//compute new Residuum
-		norm = m_d->two_norm();
+
+		////////////////
+		// Line Search
+		////////////////
+
+		number lambda = m_lambda_start;
+		number alpha = 0.25;
+		s = u;
+		UG_LOG(" ## Begin Line Search (lambda_start = " << lambda << ", alpha = " << alpha << ")\n");
+		for(int k = 1; k <= m_maxLineSearch; ++k)
+		{
+			// try on line
+			VecScaleAdd(u, *m_c, (-1)*lambda);
+
+			// compute new Defect
+			if(m_N->prepare(u, *m_d) != true)
+				{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator for defect computation.\n"); return false;}
+			if(m_N->apply(u, *m_d) != true)
+				{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute defect after step " << i << ".\n"); return false;}
+
+			//compute new Residuum
+			norm = m_d->two_norm();
+
+			// compute reduction
+			number rho = norm/norm_old;
+
+			// print rate
+			UG_LOG(" # s = " << k << ",  lambda = " << lambda << ", norm = " << norm << ", rho = " << rho <<"\n");
+
+			// check if reduction fits
+			if(rho <= 1 - alpha * fabs(lambda)) break;
+			else lambda *= m_lambda_reduce;
+
+			if(k == m_maxLineSearch)
+				{UG_LOG(" ## Line Search did not converge. Newton Solver did not converge.\n"); return false;}
+
+			// reset u
+			u = s;
+		}
+
+		out.print("u_lu", u, i, i);
 
 		// print convergence rate
+		UG_LOG(" ## Line Search converged.\n");
 		UG_LOG(" ## " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
 
 		// remember current norm
