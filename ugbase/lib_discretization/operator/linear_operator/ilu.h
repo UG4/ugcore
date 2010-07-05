@@ -163,24 +163,7 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 
 			// apply iterator: c = LU^{-1}*d (damp is not used)
 			invert_L(m_ILU, m_h, d_vec); // h := L^-1 d
-/*			static int count = 0;
-			UG_LOG("m_h: "<<count<<"\n");
-			for(size_t i = 0; i < m_h.size(); ++i)
-			{
-			//	UG_LOG("[" << i << "]: " << m_h[i] << "\n");
-			}
-*/
-			c_vec.set(0.0);
 			invert_U(m_ILU, c_vec, m_h); // c := U^-1 h = (LU)^-1 d
-/*			UG_LOG("c_vec: " << count << "\n");
-			for(size_t i = 0; i < c_vec.size(); ++i)
-			{
-				//UG_LOG("[" << i << "]: " << c_vec[i] << "\n");
-			}
-			count++;
-*/
-			// damp correction
-//				c *= m_damp;
 
 			// update defect
 			// TODO: Check that matrix has correct type (additive)
@@ -194,9 +177,7 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 		// clone
 		ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* clone()
 		{
-			AssembledILUOperator<TDiscreteFunction>* clone = new AssembledILUOperator<TDiscreteFunction>();
-
-			return dynamic_cast<ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* >(clone);
+			return new AssembledILUOperator<TDiscreteFunction>();
 		}
 
 
