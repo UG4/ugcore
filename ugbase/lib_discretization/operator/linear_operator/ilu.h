@@ -122,6 +122,9 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 		{
 			if(m_bOpChanged)
 			{
+				m_ILU.destroy();
+				m_h.destroy();
+
 				// copy matrix
 				typename algebra_type::matrix_type& A = *m_pMatrix;
 				m_ILU.create(A.row_size(), A.col_size());

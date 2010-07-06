@@ -306,33 +306,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDis
 
 		number VecProd(domain_function_type& a, domain_function_type& b)
 		{
-			bool check = false;
-			if(a.has_storage_type(PST_ADDITIVE) && b.has_storage_type(PST_CONSISTENT)) check = true;
-			if(b.has_storage_type(PST_ADDITIVE) && a.has_storage_type(PST_CONSISTENT)) check = true;
-			if(b.has_storage_type(PST_UNIQUE) && a.has_storage_type(PST_UNIQUE)) check = true;
-
-			if(!check)
-			{
-				// fall back, should be improved. For this function, we always expect to match the upper 3 cases
-				a.change_storage_type(PST_ADDITIVE);
-				b.change_storage_type(PST_CONSISTENT);
-			}
-
-			typename domain_function_type::vector_type& a_vec = a.get_vector();
-			typename domain_function_type::vector_type& b_vec = b.get_vector();
-
-			// step 1: compute local dot product
-			double tSumLocal = (double)a_vec.dotprod(b_vec);
-			double tSumGlobal;
-
-			// step 2: compute new defect norm
-#ifdef UG_PARALLEL
-			pcl::AllReduce(&tSumLocal, &tSumGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
-#else
-			tSumGlobal = tSumLocal;
-#endif
-
-			return tSumGlobal;
+			return a.dotprod(b);
 		}
 
 	protected:

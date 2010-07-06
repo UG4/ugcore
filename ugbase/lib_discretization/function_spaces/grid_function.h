@@ -323,6 +323,9 @@ class GridFunction{
 		bool finalize()
 			{return m_pVector->finalize();}
 
+		number dotprod(const this_type& v)
+			{return m_pVector->dotprod(*v.m_pVector);}
+
 		// sets grid function
 		this_type& operator=(const this_type& v)
 			{assign(v); return *this;}

@@ -42,10 +42,10 @@ inline const entry_type &Vector<entry_type>::operator [] (size_t i) const
 
 // dotprod
 template<typename entry_type>
-inline double Vector<entry_type>::dotprod(const Vector &w) const
+inline double Vector<entry_type>::dotprod(const Vector &w) //const
 {
 	UG_ASSERT(length == w.length,  *this << " has not same length as " << w);
-	
+
 	double sum=0;
 	for(size_t i=0; i<length; i++)	sum += values[i] * w[i];
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, sum += values[i] * w[i]);
@@ -68,17 +68,17 @@ inline double Vector<entry_type>::operator = (double d)
 
 
 // für Function Expression, sh. TemplateExpression.h
-template<typename entry_type> 
+template<typename entry_type>
 template<class Function> inline void Vector<entry_type>::operator = (Function &ex)
-{ 
+{
 	ex.applyto(*this);
 }
 
 template<typename entry_type>
 inline void Vector<entry_type>::operator = (const Vector &v)
-{ 
+{
 	v.applyto(*this);
-}	
+}
 template<typename entry_type>
 inline void Vector<entry_type>::applyto(Vector &v) const
 {
@@ -98,9 +98,9 @@ inline void Vector<entry_type>::applyto(Vector &v) const
  FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = m[i]*r);
  }	*/
 
-template<typename entry_type> 
+template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
-{ 
+{
 	//IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	t.preventForbiddenDestination(this);
@@ -116,36 +116,36 @@ template<typename Type> inline void Vector<entry_type>::operator = (const Type &
 }
 
 // v += exp
-template<typename entry_type> 
+template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator += (const Type &t)
-{ 
+{
 	//IF_PRINTLEVEL(5) cout << *this << " += " << t << " (unspecialized) " << endl;
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	//t.preventForbiddenDestination(this);
-	
+
 	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
-		//values[i] += t[i]; 
+		//values[i] += t[i];
 		t.addTo(values[i], i);
 	}
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] += t[i]);
-} 
+}
 
 // v -= exp
-template<typename entry_type> 
+template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator -= (const Type &t)
 {
 	UG_DLOG(LIB_ALG_VECTOR, 5, *this << " -= " << t << " (unspecialized) ");
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	//t.preventForbiddenDestination(this);
-	
+
 	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
-		//values[i] -= t[i]; 
+		//values[i] -= t[i];
 		t.substractFrom(values[i], i);
-	}			
+	}
 	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] -= t[i]);
 }
 /*template<typename entry_type>
@@ -167,9 +167,9 @@ template<typename entry_type>
 Vector<entry_type>::Vector (const char *_name)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
-		
+
 	length = 0; values = NULL; name = _name; level = 0;
-}	
+}
 
 template<typename entry_type>
 Vector<entry_type>::Vector(size_t _length, const char *_name)
@@ -180,14 +180,14 @@ Vector<entry_type>::Vector(size_t _length, const char *_name)
 	create(_length);
 	name = _name;
 	level = 0;
-}	
+}
 
 template<typename entry_type>
 Vector<entry_type>::~Vector()
 {
 	destroy();
 }
-	
+
 template<typename entry_type>
 bool Vector<entry_type>::destroy()
 {
@@ -207,7 +207,7 @@ bool Vector<entry_type>::create(size_t _length)
 	UG_ASSERT(length == 0, *this << " already created");
 	length = _length;
 	values = new entry_type[length];
-	
+
 	return true;
 }
 
@@ -218,11 +218,11 @@ bool Vector<entry_type>::create(const Vector &v)
 	UG_ASSERT(length == 0, *this << " already created");
 	length = v.length;
 	values = new entry_type[length];
-	
+
 	// we cannot use memcpy here bcs of variable blocks.
 	for(size_t i=0; i<length; i++)
-		values[i] = v.values[i]; 
-	
+		values[i] = v.values[i];
+
 	return true;
 }
 
@@ -232,20 +232,20 @@ template<typename entry_type>
 void Vector<entry_type>::printtofile(const char *filename)
 {
 /*	fstream fil(filename, ios::out);
-	
+
 	for(size_t i=0; i < length; i++)
 	{
 		postype pos = GetPosForIndex(i);
 		fil << pos.x << " " << pos.y << " " << values[i] << endl;
 	}*/
-	
+
 }
 
 // print
 template<typename entry_type>
 void Vector<entry_type>::print(const char * const text) const
 {
-  
+
   if(name) cout << endl << "================ " << name;
 	if(text) cout << " == " << text;
 	cout << " == level: " << level << " length: " << length << " =================" << endl;
@@ -257,7 +257,7 @@ void Vector<entry_type>::print(const char * const text) const
 
 template<typename entry_type>
 void Vector<entry_type>::printtype() const
-{ 
+{
 	cout << *this;
 }
 
@@ -272,7 +272,7 @@ template<typename entry_type>
 void Vector<entry_type>::set(const subvector<entry_type> &subvec)
 {
 	for(size_t i=0; i < subvec.getNr(); i++)
-		values[subvec.getIndex(i)] = subvec(i);	
+		values[subvec.getIndex(i)] = subvec(i);
 }
 
 template<typename entry_type>
@@ -329,7 +329,7 @@ double operator *(const TRANSPOSED<Vector<entry_type> > &x, const Vector<entry_t
 {
 	return x.T().dotprod(y);
 }
-	
+
 }//namespace ug
 
 #endif

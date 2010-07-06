@@ -108,7 +108,7 @@ class ParallelVector : public TVector
 		bool change_storage_type(ParallelStorageType type);
 
 		// returns if the current storage type has a given representation
-		bool has_storage_type(ParallelStorageType type) {return (bool)(m_type & type);}
+		bool has_storage_type(ParallelStorageType type) const {return (bool)(m_type & type);}
 
 		// copies the storage type from another vector
 		void copy_storage_type(const this_type& v) {m_type = v.m_type;}
@@ -119,7 +119,11 @@ class ParallelVector : public TVector
 		/////////////////////////
 
 		// two norm (overwrites TVector::two_norm())
+		// TODO: should be const
 		inline number two_norm();
+
+		// dotprod (overwrites TVector::dotprod())
+		inline number dotprod(const this_type& v);
 
 		// set all dofs to value 'w' (overwrites TVector::set(number w))
 		bool set(number w, ParallelStorageType type = PST_CONSISTENT);

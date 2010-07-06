@@ -61,6 +61,7 @@ class UblasVector{
 
 		// scalar product
 		number operator *(const UblasVector& v);
+		number dotprod(const UblasVector &v) { return this->operator*(v);}
 
 		// norms
 		number one_norm() const;

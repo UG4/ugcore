@@ -117,12 +117,60 @@ two_norm()
 
 	// step 3: sum local norms
 	double tNormGlobal;
+	// TODO: Replace this by allreduce only between layout
 	pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 
 	// step 4: return global norm
 	return sqrt((number)tNormGlobal);
 }
 
+template <typename TVector>
+inline
+number
+ParallelVector<TVector>::
+dotprod(const this_type& v)
+{
+	// step 0: check that storage type is given
+	if(this->has_storage_type(PST_UNDEFINED) || v.has_storage_type(PST_UNDEFINED))
+	{
+		// TODO: rethink this arrangement, should throw an error
+		UG_ASSERT(0, "Parallel storage type not given.\n");
+	}
+
+	bool check = false;
+	// step 1: Check if good storage type are given (no communication needed)
+	//         - additive (unique) <-> consistent is ok
+	//         - unique <-> unique is ok
+	if(this->has_storage_type(PST_ADDITIVE) && v.has_storage_type(PST_CONSISTENT)) check = true;
+	if(this->has_storage_type(PST_CONSISTENT) && v.has_storage_type(PST_ADDITIVE)) check = true;
+	if(this->has_storage_type(PST_UNIQUE)   && v.has_storage_type(PST_UNIQUE))     check = true;
+
+	// step 2: fall back
+	//         if storage type not as in the upper cases, communicate to correct solution
+	//         a user of this function should ideally avoid such a change and do it outside of this function
+	if(!check)
+	{
+		// unique <-> additive => consistent <-> additive
+		if(this->has_storage_type(PST_UNIQUE) && v.has_storage_type(PST_ADDITIVE))
+			{this->change_storage_type(PST_CONSISTENT);}
+		// additive <-> unique => unique <-> unique
+		else if(this->has_storage_type(PST_ADDITIVE) && v.has_storage_type(PST_UNIQUE))
+			{this->change_storage_type(PST_UNIQUE);}
+		// consistent <-> consistent => unique <-> consistent
+		else {this->change_storage_type(PST_UNIQUE);}
+	}
+
+	// step 3: compute local dot product
+	double tSumLocal = (double)TVector::dotprod(v);
+	double tSumGlobal;
+
+	// step 4: sum global contributions
+	// TODO: Replace this by allreduce only between layout
+	pcl::AllReduce(&tSumLocal, &tSumGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+
+	// step 5: return result
+	return tSumGlobal;
+}
 
 
 } // end namespace ug
