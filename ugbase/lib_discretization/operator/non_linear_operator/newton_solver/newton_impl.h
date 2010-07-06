@@ -186,7 +186,7 @@ apply(discrete_function_type& u)
 
 
 		VTKOutput<discrete_function_type> out;
-		out.print("correction_bcgs", *m_c, i, i);
+		//out.print("correction_bcgs", *m_c, i, i);
 
 
 		////////////////
@@ -228,7 +228,7 @@ apply(discrete_function_type& u)
 			u = s;
 		}
 
-		out.print("u_bcgs", u, i, i);
+		//out.print("u_bcgs", u, i, i);
 
 		// print convergence rate
 		UG_LOG(" ## Line Search converged.\n");

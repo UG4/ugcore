@@ -89,10 +89,12 @@ lmgc(size_t lev)
 			ComPol_VecAdd<typename level_function_type::vector_type> cpVecAdd(&m_d[lev-1]->get_vector());
 			if(!dofMgr.get_vertical_slave_layout(lev-1).empty()){
 				resume = false;
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going down: SENDS slave dofs on level " << lev -1 << ".\n");
 				m_Com.send_data(dofMgr.get_vertical_slave_layout(lev-1), cpVecAdd);
 			}
 			else if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
 
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going down:  WAITS FOR RECIEVE of slave dofs on level " << lev -1 << ".\n");
 				m_Com.receive_data(dofMgr.get_vertical_master_layout(lev-1), cpVecAdd);
 			}
 			m_Com.communicate();
@@ -113,11 +115,13 @@ lmgc(size_t lev)
 			//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 			ComPol_VecCopy<typename level_function_type::vector_type> cpVecCopy(&m_c[lev-1]->get_vector());
 			if(!dofMgr.get_vertical_slave_layout(lev-1).empty()){
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going up: WAITS FOR RECIEVE of slave dofs on level " << lev -1 << ".\n");
 				m_Com.receive_data(dofMgr.get_vertical_slave_layout(lev-1),	cpVecCopy);
 
 				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}
 			else if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going up: SENDS slave dofs on level " << lev -1 << ".\n");
 				m_Com.send_data(dofMgr.get_vertical_master_layout(lev-1), cpVecCopy);
 				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}

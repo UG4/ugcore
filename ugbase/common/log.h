@@ -128,9 +128,15 @@ inline LogAssistant& GetLogAssistant();
 		#define UG_DLOG(tag, level, msg)			{if(pcl::IsOutputProc()){\
 														if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
 														{ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}}
+		#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+													{ug::GetLogAssistant().debug_logger() << "[Proc " << pcl::GetProcRank() << "]: "; \
+														ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
 	#else
 		#define UG_DLOG(tag, level, msg)			{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
 													 {ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
+		#define UG_DLOG_ALL_PROCS(tag, level, msg)	{if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)\
+													{ug::GetLogAssistant().debug_logger() << "[Proc 0]: "; \
+													ug::GetLogAssistant().debug_logger() << msg; ug::GetLogAssistant().debug_logger().flush();}}
 	#endif
 #else
 	#define UG_SET_DEBUG_LEVEL(tag, level)		{}
