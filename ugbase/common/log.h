@@ -143,6 +143,7 @@ inline LogAssistant& GetLogAssistant();
 	#define UG_RESET_DEBUG_LEVELS()				{}
 	#define UG_SET_DEBUG_LEVELS(level)			{}
 	#define UG_DLOG(tag, level, msg)			{}
+	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{}
 	#define UG_DEBUG_BEGIN(tag, level)			{ if(1==0) {
 	#define UG_DEBUG_END(tag, level)			}; }
 #endif
