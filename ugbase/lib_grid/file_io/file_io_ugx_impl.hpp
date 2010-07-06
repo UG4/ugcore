@@ -26,21 +26,12 @@ add_grid(Grid& grid, const char* name,
 	
 	Grid::VertexAttachmentAccessor<TPositionAttachment> aaPos(grid, aPos);
 	
-//	store the grid in the grid-vector and assign indices to the vertices
-	m_vGrids.push_back(&grid);
-	grid.attach_to_vertices(m_aInt);
-	Grid::VertexAttachmentAccessor<AInt> aaInd(grid, m_aInt);
-	
-	int vertexIndex = 0;
-	for(VertexBaseIterator iter = grid.vertices_begin();
-		iter != grid.vertices_end(); ++iter, ++vertexIndex)
-	{
-		aaInd[*iter] = vertexIndex;
-	}
-	
 //	create a new grid-node
 	xml_node<>* gridNode = m_doc.allocate_node(node_element, "grid");
 	gridNode->append_attribute(m_doc.allocate_attribute("name", name));
+	
+//	store the grid and the node in an entry
+	m_vEntries.push_back(Entry(&grid, gridNode));
 	
 //	append it to the document
 	m_doc.append_node(gridNode);
@@ -52,7 +43,7 @@ add_grid(Grid& grid, const char* name,
 //TODO: write hanging-vertices
 
 //	add the remaining grid elements to the nodes
-	add_elements_to_node(gridNode, grid, aaInd);
+	add_elements_to_node(gridNode, grid);
 	
 	return true;
 }
@@ -155,7 +146,6 @@ get_grid(Grid& gridOut, size_t index,
 	for(;curNode; curNode = curNode->next_sibling()){
 		bool bSuccess = true;
 		const char* name = curNode->name();
-		UG_LOG("curNode: " << name << endl);
 		if(strcmp(name, "vertices") == 0)
 			bSuccess = create_vertices(grid, curNode, vertices, aaPos);
 		else if(strcmp(name, "edges") == 0)

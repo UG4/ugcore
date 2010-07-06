@@ -5,6 +5,7 @@
 #include <sstream>
 #include "file_io_ugx.h"
 #include "common/parser/rapidxml/rapidxml_print.hpp"
+#include "lib_grid/algorithms/attachment_util.h"
 
 using namespace std;
 using namespace rapidxml;
@@ -26,22 +27,9 @@ GridWriterUGX::GridWriterUGX()
 GridWriterUGX::~GridWriterUGX()
 {
 //	detach aInt from the vertices of the grid
-	for(size_t i = 0; i < m_vGrids.size(); ++i)
-		m_vGrids[i]->detach_from_vertices(m_aInt);
+	for(size_t i = 0; i < m_vEntries.size(); ++i)
+		m_vEntries[i].grid->detach_from_vertices(m_aInt);
 }
-					
-void GridWriterUGX::
-add_subset_handler(SubsetHandler* sh, const char* name,
-				   size_t refGridIndex)
-{
-}
-						
-void GridWriterUGX::
-add_subset_handler(MGSubsetHandler* mgsh, const char* name,
-				   size_t refGridIndex)
-{
-}			
-
 
 bool GridWriterUGX::
 write_to_stream(std::ostream& out)
@@ -61,10 +49,53 @@ write_to_file(const char* filename)
 }
 
 void GridWriterUGX::
-add_elements_to_node(rapidxml::xml_node<>* node,
-					  Grid& grid,
-					  AAVrtIndex aaIndVRT)
+add_subset_attributes(rapidxml::xml_node<>* targetNode,
+					  ISubsetHandler& sh, size_t subsetIndex)
 {
+	stringstream ss;
+	SubsetInfo& si = sh.subset_info(subsetIndex);
+//	write color
+	for(size_t i = 0; i < 4; ++i)
+		ss << si.color[i];
+		
+	targetNode->append_attribute(m_doc.allocate_attribute("name", si.name.c_str()));
+	targetNode->append_attribute(m_doc.allocate_attribute("color", ss.str().c_str()));
+}
+
+void GridWriterUGX::
+add_subset_handler(SubsetHandler* sh, const char* name,
+					size_t refGridIndex)
+{
+//	create the subset-handler node
+	xml_node<>* ndSH = m_doc.allocate_node(node_element, "subset_handler");
+	ndSH->append_attribute(m_doc.allocate_attribute("name", name));
+	
+//	add the subsets
+	for(size_t i = 0; i < sh->num_subsets(); ++i){
+		xml_node<>* ndSubset = m_doc.allocate_node(node_element, "subset");
+		add_subset_attributes(ndSubset, *sh, i);
+		ndSH->append_node(ndSubset);
+		
+	//	add elements
+	}
+}
+						
+void GridWriterUGX::
+add_subset_handler(MGSubsetHandler* mgsh, const char* name,
+					size_t refGridIndex)
+{
+
+}
+						
+void GridWriterUGX::
+add_elements_to_node(rapidxml::xml_node<>* node,
+					  Grid& grid)
+{
+//	assign indices to the vertices
+	grid.attach_to_vertices(m_aInt);
+	Grid::VertexAttachmentAccessor<AInt> aaIndVRT(grid, m_aInt);	
+	AssignIndices(grid.begin<Vertex>(), grid.end<Vertex>(), aaIndVRT, 0);
+	
 //	write edges
 	if(grid.num<Edge>() > 0)
 		node->append_node(create_edge_node(grid.begin<Edge>(),

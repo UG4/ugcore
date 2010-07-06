@@ -9,6 +9,7 @@
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
+#include "pcl_process_communicator.h"
 
 ////////////////////////////////////////////////////////////////////////
 ///	this allows us to print messages to the users terminal

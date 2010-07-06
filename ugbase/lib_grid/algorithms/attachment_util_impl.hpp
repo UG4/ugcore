@@ -114,6 +114,15 @@ bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class TIterator, class TAAInt>
+void AssignIndices(TIterator begin, TIterator end,
+					TAAInt& aaInt, int baseIndex)
+{
+	for(TIterator iter = begin; iter != end; ++iter)
+		aaInt[*iter] = baseIndex++;
+}
+					
 }//	end of namespace
 
 #endif

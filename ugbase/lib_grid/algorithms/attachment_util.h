@@ -62,6 +62,16 @@ template <class TElem, class TAttachment>
 bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
 					Grid& destGrid, TAttachment& aDest);
 
+////////////////////////////////////////////////////////////////////////
+///	assigns indices to the elements between begin and end.
+/**	Indices are stored in the given attachment. Make sure that the
+ *	given attachment-accessor operates on an attachment-pipe at which
+ *	those elements are registered.
+ */
+template <class TIterator, class TAAInt>
+void AssignIndices(TIterator begin, TIterator end,
+					TAAInt& aaInt, int baseIndex = 0);
+							
 /**@}*/ // end of doxygen defgroup command
 }//	end of namespace
 

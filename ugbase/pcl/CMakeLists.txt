@@ -13,6 +13,7 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 include_directories("externals/metis")
 
 set(srcPcl	pcl_base.cpp
-			pcl_methods.cpp)
+			pcl_methods.cpp
+			pcl_process_communicator.cpp)
 
 add_library(pcl ${srcPcl})

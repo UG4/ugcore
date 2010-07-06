@@ -65,7 +65,7 @@ struct SubsetInfo
 {
 	SubsetInfo();
 	std::string	name;
-	int			materialIndex;
+	int			materialIndex;///< mostly ignored.
 	vector4		color;
 	uint		subsetState;///< an or-combination of SubsetState flags.
 };

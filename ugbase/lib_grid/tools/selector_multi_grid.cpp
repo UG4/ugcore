@@ -122,21 +122,21 @@ void MGSelector::erase_from_list(Volume* elem)
 }
 
 //	geometric-object-collection
-MultiLevelGeometricObjectCollection 
-MGSelector::get_multi_level_geometric_object_collection()
+GeometricObjectCollection 
+MGSelector::get_geometric_object_collection()
 {
 	uint numLevels = num_levels();
-	MultiLevelGeometricObjectCollection mgoc(numLevels);
+	GeometricObjectCollection goc(numLevels);
 	
 	for(uint i = 0; i < numLevels; ++i)
 	{
-		mgoc.add_level(&m_levels[i]->m_elements[VERTEX],
+		goc.add_level(	&m_levels[i]->m_elements[VERTEX],
 						&m_levels[i]->m_elements[EDGE],
 						&m_levels[i]->m_elements[FACE],
 						&m_levels[i]->m_elements[VOLUME]);
 	}
 	
-	return mgoc;
+	return goc;
 }
 
 /*

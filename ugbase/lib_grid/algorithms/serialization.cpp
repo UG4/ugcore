@@ -513,7 +513,7 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 
 ////////////////////////////////////////////////////////////////////////
 bool SerializeMultiGridElements(MultiGrid& mg,
-								MultiLevelGeometricObjectCollection mgoc,
+								GeometricObjectCollection mgoc,
 								AInt& aIntVRT, AInt& aIntEDGE,
 								AInt& aIntFACE, AInt& aIntVOL,
 								std::ostream& out)
@@ -767,7 +767,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 ////////////////////////////////////////////////////////////////////////
 //	SerializeMultiGridElements
 bool SerializeMultiGridElements(MultiGrid& mg,
-								MultiLevelGeometricObjectCollection mgoc,
+								GeometricObjectCollection goc,
 								std::ostream& out)
 {
 	AInt aInt;
@@ -777,7 +777,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	mg.attach_to_volumes(aInt);
 	
 	bool retVal = SerializeMultiGridElements(mg,
-						mg.get_multi_level_geometric_object_collection(),
+						goc,
 						aInt, aInt, aInt, aInt,
 						out);
 						
@@ -795,7 +795,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 								std::ostream& out)
 {
 	return SerializeMultiGridElements(mg,
-						mg.get_multi_level_geometric_object_collection(),
+						mg.get_geometric_object_collection(),
 						out);
 }
 
@@ -1062,7 +1062,6 @@ void WriteSubsetIndicesToStream(TElemIter iterBegin, TElemIter iterEnd,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	SerializeSubsetHandler
 bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 							GeometricObjectCollection goc,
 							std::ostream& out)
@@ -1091,80 +1090,26 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 		out.write((char*)&si.subsetState, sizeof(uint));
 	}
 
-//	serialize vertex-subsets
-	WriteSubsetIndicesToStream(goc.begin<VertexBase>(),
-								goc.end<VertexBase>(),
-								sh, out);
-
-//	serialize edge-subsets
-	WriteSubsetIndicesToStream(goc.begin<EdgeBase>(),
-								goc.end<EdgeBase>(),
-								sh, out);
-
-//	serialize face-subsets
-	WriteSubsetIndicesToStream(goc.begin<Face>(),
-								goc.end<Face>(),
-								sh, out);
-
-//	serialize volume-subsets
-	WriteSubsetIndicesToStream(goc.begin<Volume>(),
-								goc.end<Volume>(),
-								sh, out);
-
-	out.write((char*)&magicNumber, sizeof(int));
-
-	return true;
-}
-
-////////////////////////////////////////////////////////////////////////
-bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							MultiLevelGeometricObjectCollection mlgoc,
-							std::ostream& out)
-{
-//	write a magic number at the beginning and at the end.
-	int magicNumber = 654664;
-	out.write((char*)&magicNumber, sizeof(int));
-
-//	serialize subset-infos
-	int numSubsets = (int)sh.num_subset_infos();
-	out.write((char*)&numSubsets, sizeof(int));
-
-	for(int i = 0; i < numSubsets; ++i)
-	{
-		SubsetInfo& si = sh.subset_info(i);
-	//	write the name (first the size, then the rest)
-		int nameSize = si.name.size() + 1;
-		out.write((char*)&nameSize, sizeof(int));
-		out.write(si.name.c_str(), nameSize);
-
-	//	write the material index
-		out.write((char*)&si.materialIndex, sizeof(int));
-	//	write the color
-		out.write((char*)&si.color, sizeof(vector4));
-	//	write the subset-state
-		out.write((char*)&si.subsetState, sizeof(uint));
-	}
-
-	for(size_t i = 0; i < mlgoc.num_levels(); ++i)
+	for(size_t i = 0; i < goc.num_levels(); ++i)
 	{
 	//	serialize vertex-subsets
-		WriteSubsetIndicesToStream(mlgoc.begin<VertexBase>(i),
-									mlgoc.end<VertexBase>(i),
+		WriteSubsetIndicesToStream(goc.begin<VertexBase>(i),
+									goc.end<VertexBase>(i),
 									sh, out);
 
 	//	serialize edge-subsets
-		WriteSubsetIndicesToStream(mlgoc.begin<EdgeBase>(i),
-									mlgoc.end<EdgeBase>(i),
+		WriteSubsetIndicesToStream(goc.begin<EdgeBase>(i),
+									goc.end<EdgeBase>(i),
 									sh, out);
 
 	//	serialize face-subsets
-		WriteSubsetIndicesToStream(mlgoc.begin<Face>(i),
-									mlgoc.end<Face>(i),
+		WriteSubsetIndicesToStream(goc.begin<Face>(i),
+									goc.end<Face>(i),
 									sh, out);
 
 	//	serialize volume-subsets
-		WriteSubsetIndicesToStream(mlgoc.begin<Volume>(i),
-									mlgoc.end<Volume>(i),
+		WriteSubsetIndicesToStream(goc.begin<Volume>(i),
+									goc.end<Volume>(i),
 									sh, out);
 	}
 	
@@ -1244,98 +1189,26 @@ bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 		in.read((char*)&si.subsetState, sizeof(uint));
 	}
 
-//	serialize vertex-subsets
-	ReadSubsetIndicesFromStream(goc.begin<VertexBase>(),
-								goc.end<VertexBase>(),
-								sh, in);
-
-//	serialize edge-subsets
-	ReadSubsetIndicesFromStream(goc.begin<EdgeBase>(),
-								goc.end<EdgeBase>(),
-								sh, in);
-
-//	serialize face-subsets
-	ReadSubsetIndicesFromStream(goc.begin<Face>(),
-								goc.end<Face>(),
-								sh, in);
-
-//	serialize volume-subsets
-	ReadSubsetIndicesFromStream(goc.begin<Volume>(),
-								goc.end<Volume>(),
-								sh, in);
-
-	//	make sure that the magic number matches
-	in.read((char*)&tInd, sizeof(int));
-	if(tInd != magicNumber){
-				UG_LOG(" WARNING: magic-number mismatch after read in DeserializeSubsetHandler. Data-salad possible!\n");
-		return false;
-	}
-
-	return true;
-}
-
-bool DeserializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
-							MultiLevelGeometricObjectCollection mlgoc,
-							std::istream& in)
-{
-//	read a magic number at the beginning and at the end.
-	int magicNumber = 654664;
-	int tInd;
-
-//	make sure that the magic number matches
-	in.read((char*)&tInd, sizeof(int));
-	if(tInd != magicNumber){
-		UG_LOG(" WARNING: magic-number mismatch before read in DeserializeSubsetHandler. Data-salad possible!\n");
-		return false;
-	}
-
-//	deserialize subset-infos
-	int numSubsets;
-	in.read((char*)&numSubsets, sizeof(int));
-
-//	a buffer to read the name
-	vector<char> vBuff(256);
-	for(int i = 0; i < numSubsets; ++i)
-	{
-		SubsetInfo& si = sh.subset_info(i);
-	//	read the name (first the size, then the rest)
-		int nameSize;
-		in.read((char*)&nameSize, sizeof(int));
-	//	check whether the buffer has to be resized
-		if(nameSize > (int)vBuff.size())
-			vBuff.resize(nameSize);
-	//	read the name
-		in.read(&vBuff.front(), nameSize);
-		si.name = &vBuff.front();
-
-	//	read the material index
-		in.read((char*)&si.materialIndex, sizeof(int));
-	//	read the color
-		in.read((char*)&si.color, sizeof(vector4));
-	//	read the subset-state
-		in.read((char*)&si.subsetState, sizeof(uint));
-	}
-
-	for(size_t i = 0; i < mlgoc.num_levels(); ++i)
+	for(size_t i = 0; i < goc.num_levels(); ++i)
 	{
 	//	serialize vertex-subsets
-		ReadSubsetIndicesFromStream(mlgoc.begin<VertexBase>(i),
-									mlgoc.end<VertexBase>(i),
+		ReadSubsetIndicesFromStream(goc.begin<VertexBase>(i),
+									goc.end<VertexBase>(i),
 									sh, in);
 
 	//	serialize edge-subsets
-		ReadSubsetIndicesFromStream(mlgoc.begin<EdgeBase>(i),
-									mlgoc.end<EdgeBase>(i),
+		ReadSubsetIndicesFromStream(goc.begin<EdgeBase>(i),
+									goc.end<EdgeBase>(i),
 									sh, in);
 
 	//	serialize face-subsets
-		ReadSubsetIndicesFromStream(mlgoc.begin<Face>(i),
-									mlgoc.end<Face>(i),
+		ReadSubsetIndicesFromStream(goc.begin<Face>(i),
+									goc.end<Face>(i),
 									sh, in);
 
 	//	serialize volume-subsets
-		ReadSubsetIndicesFromStream(mlgoc.begin<Volume>(i),
-									mlgoc.end<Volume>(i),
+		ReadSubsetIndicesFromStream(goc.begin<Volume>(i),
+									goc.end<Volume>(i),
 									sh, in);
 	}
 

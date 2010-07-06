@@ -8,6 +8,7 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR_IMPL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR_IMPL__
 
+#include <cmath>
 #include "parallel_vector.h"
 
 namespace ug

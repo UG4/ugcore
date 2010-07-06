@@ -242,39 +242,39 @@ get_goc(int subsetIndex, int level)
 									 &m_levels[level][subsetIndex]->m_elements[VOLUME]);
 }
 
-MultiLevelGeometricObjectCollection
+GeometricObjectCollection
 MultiGridSubsetHandler::
-get_mlgoc_by_subset(int subsetIndex)
+get_goc_by_subset(int subsetIndex)
 {
 	subset_required(subsetIndex);
-	MultiLevelGeometricObjectCollection mgoc(m_levels.size());
+	GeometricObjectCollection goc(m_levels.size());
 	for(size_t i = 0; i < m_levels.size(); ++i)
 	{
-		mgoc.add_level(	&m_levels[i][subsetIndex]->m_elements[VERTEX],
+		goc.add_level(	&m_levels[i][subsetIndex]->m_elements[VERTEX],
 						&m_levels[i][subsetIndex]->m_elements[EDGE],
 						&m_levels[i][subsetIndex]->m_elements[FACE],
 						&m_levels[i][subsetIndex]->m_elements[VOLUME]);
 	}
 	
-	return mgoc;
+	return goc;
 }
 
-MultiLevelGeometricObjectCollection
+GeometricObjectCollection
 MultiGridSubsetHandler::
-get_mlgoc_by_level(int level)
+get_goc_by_level(int level)
 {
 	level_required(level);
 	uint numSubsets = num_subsets();
-	MultiLevelGeometricObjectCollection mgoc(numSubsets);
+	GeometricObjectCollection goc(numSubsets);
 	for(uint i = 0; i < numSubsets; ++i)
 	{
-		mgoc.add_level(	&m_levels[level][i]->m_elements[VERTEX],
+		goc.add_level(	&m_levels[level][i]->m_elements[VERTEX],
 						&m_levels[level][i]->m_elements[EDGE],
 						&m_levels[level][i]->m_elements[FACE],
 						&m_levels[level][i]->m_elements[VOLUME]);
 	}
 	
-	return mgoc;
+	return goc;
 }
 
 void MultiGridSubsetHandler::add_level()

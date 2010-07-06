@@ -102,17 +102,18 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		GeometricObjectCollection
 		get_goc(int subsetIndex, int level);
 		
-	///	returns a MultiLevelGeometricObjectCollection
-	/**	the returned MultiLevelGeometricObjectCollection hold the
+	///	returns a GeometricObjectCollection with multiple levels
+	/**	the returned GeometricObjectCollection hold the
 	 *	elements of the specified subset.*/
-		MultiLevelGeometricObjectCollection
-		get_mlgoc_by_subset(int subsetIndex);
+		GeometricObjectCollection
+		get_goc_by_subset(int subsetIndex);
 
-	///	returns a MultiLevelGeometricObjectCollection
-	/**	the returned MultiLevelGeometricObjectCollection hold the
-	 *	elements of the specified level.*/
-		MultiLevelGeometricObjectCollection
-		get_mlgoc_by_level(int level);
+	///	returns a GeometricObjectCollection with multiple levels - each representing a subset.
+	/**	the returned GeometricObjectCollection hold the
+	 *	elements of the specified level, each level of the collection
+	 *	represents a subset.*/
+		GeometricObjectCollection
+		get_goc_by_level(int level);
 
 	//	derived from GridObserver
 		//virtual void unregistered_from_grid(Grid* grid);

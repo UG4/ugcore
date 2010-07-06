@@ -354,7 +354,7 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 	if(parentInfo.get_status() & (ES_MASTER))
 		elem_info(elem).set_status(ES_MASTER | ES_SCHEDULED_FOR_INTERFACE);
 	else{
-		UG_ASSERT(parentInfo.get_status() & (ES_SLAVE | ES_VIRTUAL_SLAVE), "interface-elements have to be either master or slave!");
+		UG_ASSERT(parentInfo.get_status() & (ES_SLAVE), "interface-elements have to be either master or slave!");
 		elem_info(elem).set_status(ES_SLAVE);
 	}
 }

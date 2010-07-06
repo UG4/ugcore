@@ -68,8 +68,7 @@ class GridWriterUGX
 		
 	///	adds grid elements (edges, faces, volumes) to the given node.
 		void add_elements_to_node(rapidxml::xml_node<>* node,
-								  Grid& grid,
-								  AAVrtIndex aaIndVRT);
+								  Grid& grid);
 								  
 		rapidxml::xml_node<>*
 		create_edge_node(EdgeIterator edgesBegin,
@@ -105,12 +104,27 @@ class GridWriterUGX
 		create_pyramid_node(PyramidIterator pyrasBegin,
 							PyramidIterator pyrasEnd,
 							AAVrtIndex aaIndVRT);
+
+		void add_subset_attributes(rapidxml::xml_node<>* targetNode,
+								   ISubsetHandler& sh, size_t subsetIndex);
+		
 	protected:
+	///	entries are stored for each grid.
+	/**	an entry holds a pointer to a grid together with its xml_node.*/
+		struct Entry{
+			Entry()	{}
+			Entry(Grid* g, rapidxml::xml_node<>* n) :
+				grid(g), node(n)	{}
+
+			Grid* grid;
+			rapidxml::xml_node<>* node;
+		};
+		
 	///	the xml_document which stores the data
 		rapidxml::xml_document<> m_doc;
 		
 	///	List of accessible grids
-		std::vector<Grid*> m_vGrids;
+		std::vector<Entry> m_vEntries;
 		
 	///	attached to vertices of each grid during add_grid.
 		AInt	m_aInt;

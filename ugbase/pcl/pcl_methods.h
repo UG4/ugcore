@@ -38,7 +38,7 @@ typedef int ProcID;
 typedef MPI_Op ReduceOperation;
 
 //	DataType
-#define PCL_DT_BYTE 			MPI_BYTE,
+#define PCL_DT_BYTE 			MPI_BYTE
 #define PCL_DT_PACKED 			MPI_PACKED
 #define PCL_DT_CHAR 			MPI_CHAR
 #define PCL_DT_SHORT 			MPI_SHORT

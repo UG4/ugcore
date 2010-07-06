@@ -216,21 +216,21 @@ get_geometric_object_collection(int subsetIndex)
 									 &m_subsets[subsetIndex]->m_elements[VOLUME]);
 }
 
-MultiLevelGeometricObjectCollection
+GeometricObjectCollection
 GridSubsetHandler::
-get_multi_level_geometric_object_collection()
+get_geometric_object_collection()
 {
 	uint numSubsets = num_subsets();
-	MultiLevelGeometricObjectCollection mgoc(numSubsets);
+	GeometricObjectCollection goc(numSubsets);
 	for(uint i = 0; i < numSubsets; ++i)
 	{
-		mgoc.add_level(	&m_subsets[i]->m_elements[VERTEX],
+		goc.add_level(	&m_subsets[i]->m_elements[VERTEX],
 						&m_subsets[i]->m_elements[EDGE],
 						&m_subsets[i]->m_elements[FACE],
 						&m_subsets[i]->m_elements[VOLUME]);
 	}
 	
-	return mgoc;
+	return goc;
 }
 
 /*

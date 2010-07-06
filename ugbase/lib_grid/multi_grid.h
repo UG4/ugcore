@@ -253,9 +253,8 @@ class MultiGrid : public Grid, public GridObserver
 		{return m_hierarchy.get_geometric_object_collection(level);}
 		
 	//	multi-level-geometric-object-collection
-		inline
-		MultiLevelGeometricObjectCollection
-		get_multi_level_geometric_object_collection()	{return m_hierarchy.get_multi_level_geometric_object_collection();}
+		virtual GeometricObjectCollection get_geometric_object_collection()
+		{return m_hierarchy.get_geometric_object_collection();}
 		
 		template <class TElem> inline
 		int get_level(TElem* elem)

@@ -151,9 +151,9 @@ class MGSelector : public ISelector
 		inline VolumeIterator volumes_begin(int level)		{return begin<Volume>(level);}
 		inline VolumeIterator volumes_end(int level)		{return end<Volume>(level);}
 
-	//	multi-level-geometric-object-collection
-		MultiLevelGeometricObjectCollection
-		get_multi_level_geometric_object_collection();
+	//	geometric-object-collection
+		GeometricObjectCollection
+		get_geometric_object_collection();
 
 	//	callbacks that allows us to clean-up
 	//	derived from GridObserver

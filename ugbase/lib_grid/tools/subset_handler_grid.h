@@ -104,8 +104,8 @@ class GridSubsetHandler : public ISubsetHandler
 		get_geometric_object_collection(int subsetIndex);
 		
 	//	multi-level-geometric-object-collection
-		MultiLevelGeometricObjectCollection
-		get_multi_level_geometric_object_collection();
+		GeometricObjectCollection
+		get_geometric_object_collection();
 
 	//	derived from GridObserver
 		//virtual void unregistered_from_grid(Grid* grid);
