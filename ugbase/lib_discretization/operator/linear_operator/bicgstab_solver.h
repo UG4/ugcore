@@ -182,7 +182,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDis
 					if(alpha != 0.0) alpha = rho_new/alpha;
 					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
 
-					// add: x := x + alpha * q
+					// add: x := x + alpha * p
 					VecScaleAdd(x, p, alpha);
 				}
 
@@ -222,7 +222,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDis
 					if(m_pIter->prepare(*m_pCurrentU, t, q) != true)
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
-					// apply q = M^-1 * p
+					// apply q = M^-1 * t
 					if(!m_pIter->apply(t, q))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 				}
@@ -255,7 +255,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDis
 				else {UG_LOG("tt= " << tt << " is an invalid value. Aborting.\n"); return false;}
 
 				// add: x := x + omega * q
-				VecScaleAdd(x, q, alpha);
+				VecScaleAdd(x, q, omega);
 
 				// set b := s
 				b = s;
