@@ -46,7 +46,7 @@ class ParallelDoFManager : public TDoFManager
 
 			bool bRetVal = true;
 
-			uint num_levels = this->num_levels();
+			size_t num_levels = TDoFManager::num_levels();
 			m_slaveLayouts.clear();
 			m_slaveLayouts.resize(num_levels);
 			m_masterLayouts.clear();
@@ -55,15 +55,13 @@ class ParallelDoFManager : public TDoFManager
 			m_verticalSlaveLayouts.resize(num_levels);
 			m_verticalMasterLayouts.clear();
 			m_verticalMasterLayouts.resize(num_levels);
-			
-			for(uint l = 0; l < num_levels; ++l)
+			m_processCommunicators.resize(num_levels);
+
+		//TODO:	this communicator should be specified from the application
+			pcl::ProcessCommunicator commWorld;
+
+			for(size_t l = 0; l < num_levels; ++l)
 			{
-/*
-				bRetVal &= CreateIndexLayout(m_masterLayouts[l],
-							*static_cast<TDoFManager*>(this), *m_pLayoutMap, INT_MASTER,l);
-				bRetVal &= CreateIndexLayout(m_slaveLayouts[l],
-							*static_cast<TDoFManager*>(this), *m_pLayoutMap, INT_SLAVE,l);
-*/
 				bRetVal &= CreateIndexLayout(m_masterLayouts[l],
 							*this, *m_pLayoutMap, INT_MASTER,l);
 				bRetVal &= CreateIndexLayout(m_slaveLayouts[l],
@@ -72,13 +70,14 @@ class ParallelDoFManager : public TDoFManager
 							*this, *m_pLayoutMap, INT_VERTICAL_MASTER,l);
 				bRetVal &= CreateIndexLayout(m_verticalSlaveLayouts[l],
 							*this, *m_pLayoutMap, INT_VERTICAL_SLAVE,l);
-/*			
-				if(!m_verticalMasterLayouts[l].empty())
-					{UG_LOG("  vertical masters on level " << l << std::endl);}
 
-				if(!m_verticalSlaveLayouts[l].empty())
-					{UG_LOG("  vertical slaves on level " << l << std::endl);}
-*/
+			//	create local process communicator
+			//	if a process has only vertical slaves, it is not involved in process communication.
+			//TODO: perform a more precise check
+				bool participate = m_verticalSlaveLayouts[l].empty()
+								   && !commWorld.empty()
+								   && (TDoFManager::num_dofs(l) > 0);
+				m_processCommunicators[l] = commWorld.create_sub_communicator(participate);
 			}
 
 			return bRetVal;
@@ -88,8 +87,10 @@ class ParallelDoFManager : public TDoFManager
 		inline IndexLayout& get_master_layout(size_t level)	{return m_masterLayouts[level];}
 		inline IndexLayout& get_vertical_slave_layout(size_t level)		{return m_verticalSlaveLayouts[level];}
 		inline IndexLayout& get_vertical_master_layout(size_t level)	{return m_verticalMasterLayouts[level];}
-		
-		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_Communicator;}
+
+		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
+
+		inline pcl::ProcessCommunicator get_process_communicator(size_t level)	{return m_processCommunicators[level];}
 
 	private:
 		// Layout map of grid
@@ -100,15 +101,18 @@ class ParallelDoFManager : public TDoFManager
 
 		// index layout for each grid level
 		std::vector<IndexLayout> m_masterLayouts;
-		
+
 		// index layout for each grid level
 		std::vector<IndexLayout> m_verticalMasterLayouts;
 
 		// index layout for each grid level
 		std::vector<IndexLayout> m_verticalSlaveLayouts;
-		
+
 		// communicator
-		pcl::ParallelCommunicator<IndexLayout> m_Communicator;
+		pcl::ParallelCommunicator<IndexLayout> m_communicator;
+
+		// process communicator
+		std::vector<pcl::ProcessCommunicator> m_processCommunicators;
 
 };
 

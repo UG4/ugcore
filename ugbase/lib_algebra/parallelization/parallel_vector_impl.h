@@ -31,13 +31,13 @@ change_storage_type(ParallelStorageType type)
 	case PST_CONSISTENT:
 			 if(has_storage_type(PST_UNIQUE)){
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, &m_Communicator);
+				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, &m_communicator);
 				 set_storage_type(PST_CONSISTENT);
 				 break;
 			 }
 			 else if(has_storage_type(PST_ADDITIVE)){
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, &m_Communicator);
+				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, &m_communicator);
 				set_storage_type(PST_CONSISTENT);
 				break;
 			}
@@ -58,7 +58,7 @@ change_storage_type(ParallelStorageType type)
 	case PST_UNIQUE:
 			if(has_storage_type(PST_ADDITIVE)){
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout, &m_Communicator);
+				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout, &m_communicator);
 				add_storage_type(PST_UNIQUE);
 				break;
 			}
@@ -109,6 +109,7 @@ two_norm()
 	// step 1: make vector d additive unique
 	if(!change_storage_type(PST_UNIQUE)) {
 		UG_ASSERT(0, "Cannot change to unique representation.");
+		UG_LOG("ERROR in ParallelVector: Cannot change to unique representation.\n");
 		return -1;
 	}
 
@@ -118,8 +119,9 @@ two_norm()
 
 	// step 3: sum local norms
 	double tNormGlobal;
-	// TODO: Replace this by allreduce only between layout
-	pcl::AllReduce(&tNormLocal, &tNormGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+
+	m_processCommunicator.allreduce(&tNormLocal, &tNormGlobal, 1,
+									PCL_DT_DOUBLE, PCL_RO_SUM);
 
 	// step 4: return global norm
 	return sqrt((number)tNormGlobal);
@@ -136,6 +138,7 @@ dotprod(const this_type& v)
 	{
 		// TODO: rethink this arrangement, should throw an error
 		UG_ASSERT(0, "Parallel storage type not given.\n");
+		UG_LOG("ERROR in ParallelVector: Parallel storage type not given.\n");
 	}
 
 	bool check = false;
@@ -166,8 +169,8 @@ dotprod(const this_type& v)
 	double tSumGlobal;
 
 	// step 4: sum global contributions
-	// TODO: Replace this by allreduce only between layout
-	pcl::AllReduce(&tSumLocal, &tSumGlobal, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+	m_processCommunicator.allreduce(&tSumLocal, &tSumGlobal, 1,
+									PCL_DT_DOUBLE, PCL_RO_SUM);
 
 	// step 5: return result
 	return tSumGlobal;

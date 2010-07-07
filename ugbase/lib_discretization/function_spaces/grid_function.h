@@ -406,6 +406,7 @@ class GridFunction{
 #ifdef UG_PARALLEL
 			m_pVector->set_slave_layout(m_pDoFManager->get_slave_layout(m_level));
 			m_pVector->set_master_layout(m_pDoFManager->get_master_layout(m_level));
+			m_pVector->set_process_communicator(m_pDoFManager->get_process_communicator(m_level));
 			m_pVector->set_storage_type(PST_UNDEFINED);
 #endif
 			if(m_pVector->create(num_dofs) != true) return false;

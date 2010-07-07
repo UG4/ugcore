@@ -40,9 +40,6 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDis
 		// prepare Operator
 		virtual bool prepare(codomain_function_type& u, domain_function_type& b, codomain_function_type& x)
 		{
-			// TODO: Do we assume, that operator has been prepared? Do we have to prepare it here?
-			// m_A->prepare(u, d_nl, c_nl);
-
 			// init iterator B for operator A
 			if(m_pIter != NULL)
 				if(m_pIter->init(*m_A) != true)

@@ -25,10 +25,10 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 
 	public:
 		//TODO: Implement usage of preconditioner
-		CGSolver( 	ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>& B,
+		CGSolver( 	ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* Precond,
 					int maxIter, number absTol, number relTol,
 					int verboseLevel = 0) :
-			m_verboseLevel(verboseLevel), m_iter(&B),
+			m_verboseLevel(verboseLevel), m_pIter(Precond),
 			m_maxIter(maxIter), m_absTol(absTol), m_relTol(relTol)
 			{};
 
@@ -41,22 +41,17 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 		// prepare Operator
 		virtual bool prepare(codomain_function_type& u, domain_function_type& d_nl, codomain_function_type& c_nl)
 		{
-			// TODO: Do we assume, that operator has been prepared? Do we have to prepare it here?
-			// m_A->prepare(u, d_nl, c_nl);
-
 			// init iterator B for operator A
-			if(m_iter->init(*m_A) != true)
-			{
-				UG_LOG("ERROR in 'LinearizedOperatorInverse::prepare': Cannot init Iterator Operator for Operator A.\n");
-				return false;
-			}
+			if(m_pIter != NULL)
+				if(m_pIter->init(*m_A) != true)
+				{UG_LOG("ERROR in 'CGSolver::prepare': Cannot init Iterator Operator for Operator A.\n");return false;}
 
 			// prepare iterator B for d_nl and c_nl
-			if(m_iter->prepare(u, d_nl, c_nl) != true)
-			{
-				UG_LOG("ERROR in 'LinearizedOperatorInverse::prepare': Cannot prepare Iterator Operator.\n");
-				return false;
-			}
+			if(m_pIter != NULL)
+				if(m_pIter->prepare(u, d_nl, c_nl) != true)
+				{UG_LOG("ERROR in 'CGSolver::prepare': Cannot prepare Iterator Operator.\n"); return false;}
+
+			m_pCurrentU = &u;
 
 			return true;
 		}
@@ -65,34 +60,50 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 		virtual bool apply(domain_function_type& b, codomain_function_type& x)
 		{
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-			{
-				UG_LOG("ERROR in 'LinearOperatorInverse::apply': Wrong storage format of Vectors. Aborting.\n");
-				return false;
-			}
+				{UG_LOG("ERROR in 'CGSolver::apply': Wrong storage format of Vectors. Aborting.\n"); return false;}
 
 			// copy b as r
 			domain_function_type& r = b;
 
 			// build defect:  r := b - J(u)*x
 			if(m_A->apply_sub(x, r) != true)
-				{UG_LOG("ERROR in 'LinearOperatorInverse::apply': Unable to build defect. Aborting.\n");return false;}
+				{UG_LOG("ERROR in 'CGSolver::apply': Unable to build defect. Aborting.\n");return false;}
 
 			// create help vector (h will be consistent r)
-			codomain_function_type h(r);
+			domain_function_type t;
+			codomain_function_type z, p;
+			t.clone_pattern(r);
+			z.clone_pattern(x);
+			p.clone_pattern(x);
 
-			// make h consistent
-			if(!h.change_storage_type(PST_CONSISTENT))
-				{UG_LOG("Cannot convert h to consistent vector.\n"); return false;}
+			// Preconditioning
+			if(m_pIter != NULL)
+			{
+				// copy r
+				t = r;
 
-			// create help vector (search direction)
-			codomain_function_type d(h);
+				if(m_pIter->prepare(*m_pCurrentU, t, z) != true)
+					{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
-			// compute start norm ||d||_2
+				// apply z = M^-1 * s
+				if(!m_pIter->apply(t, z))
+					{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
+			}
+			else
+			{
+				z = r;
+
+				// make z consistent
+				if(!z.change_storage_type(PST_CONSISTENT))
+					{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
+			}
+
+			// compute start norm ||r||_2
 			number norm, norm_old, norm_start;
 
 			// compute first norm
 			PROFILE_BEGIN(GlobalVecProd_FirstNorm);
-				norm = norm_old = norm_start = VecProd(h, r);
+				norm = norm_old = norm_start = r.two_norm();
 			PROFILE_END();
 
 			// Print Start information
@@ -100,76 +111,84 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 			if(m_verboseLevel >= 2) UG_LOG("    %   Iter     Defect         Rate \n");
 			if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << 0 << ":  " << std::scientific << norm_old <<  "      -------" << std::endl);
 
+			// exit flag
+			bool bExit;
+
+			// check convergence
+			if(!check_convergence(norm, norm_start, 0, bExit)) return bExit;
+
+			number rho, rho_new, beta, alpha, lambda;
+			rho = rho_new = beta = alpha = lambda = 0.0;
+
+			// start rho
+			rho = VecProd(z, r);
+
+			// start search direction
+			p = z;
+
 			// Iteration loop
 			for(int i = 1; ; ++i)
 			{
-				// check that defect is a still a valid number
-				if(!is_valid_number(norm))
-				{
-					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Defect " << norm << " is not a valid number. Linear Solver did NOT CONVERGE. %%%%%\n\n");
-					return false;
-				}
-
-				// check if defect is small enough (absolute)
-				if(norm < m_absTol)
-				{
-					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Absolute defect " << m_absTol << " reached. Linear Solver converged. %%%%%\n\n");
-					return true;
-				}
-
-				// check if defect is small enough (relative)
-				if(norm/norm_start < m_relTol)
-				{
-					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Relative defect " << m_relTol << " reached. Linear Solver converged. %%%%%\n\n");
-					return true;
-				}
-
-				// check that maximum number of iterations is not reached
-				if(i > m_maxIter)
-				{
-					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Absolute defect " << m_absTol << " and relative defect " << m_relTol << " NOT reached after " << m_maxIter << " Iterations. %%%%%");
-					if(m_verboseLevel >= 1) UG_LOG("    %%%%% Iterative Linear Solver did NOT CONVERGE. %%%%%\n\n");
-					return false;
-				}
-
-				// build h = A*d (h is additive afterwards)
-				if(m_A->apply(d, h) != true)
-					{UG_LOG("ERROR in 'LinearOperatorInverse::apply': Unable to build h = A*d. Aborting.\n");return false;}
+				// build t = A*p (t is additive afterwards)
+				if(m_A->apply(p, t) != true)
+					{UG_LOG("ERROR in 'CGSolver::apply': Unable to build t = A*p. Aborting.\n");return false;}
 
 				// compute alpha
-				number alpha = VecProd(d, h);
-				alpha = norm/alpha;
+				lambda = VecProd(t, p);
+				alpha = rho/lambda;
 
-				// update x := x + alpha*d
-				VecScaleAdd(x, d, alpha);
+				// update x := x + alpha*p
+				VecScaleAdd(x, p, alpha);
 
-				// update r := r - alpha*h
-				VecScaleAdd(r, h, (-1)*alpha);
-
-				// copy new r into h
-				h = r;
-
-				// make h consistent
-				if(!h.change_storage_type(PST_CONSISTENT))
-					{UG_LOG("Cannot convert h to consistent vector.\n"); return false;}
+				// update r := r - alpha*t
+				VecScaleAdd(r, t, (-1)*alpha);
 
 				// compute new norm
-				PROFILE_BEGIN(GlobalVecProd_NewNorm);
-				norm = VecProd(h, r);
-				PROFILE_END();
-
-				// new beta
-				number beta = norm/norm_old;
-
-				// new direction d:= beta*d + h
-				d *= beta;
-				d += h;
+				norm = r.two_norm();
 
 				// print convergence rate
 				if(m_verboseLevel >= 2) UG_LOG("    % " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
 
+				// check convergence
+				if(!check_convergence(norm, norm_start, i, bExit)) return bExit;
+
 				// remember current norm
 				norm_old = norm;
+
+				// Preconditioning
+				if(m_pIter != NULL)
+				{
+					// copy r
+					t = r;
+
+					if(m_pIter->prepare(*m_pCurrentU, t, z) != true)
+						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
+
+					// apply z = M^-1 * s
+					if(!m_pIter->apply(t, z))
+						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
+				}
+				else
+				{
+					z = r;
+
+					// make z consistent
+					if(!z.change_storage_type(PST_CONSISTENT))
+						{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
+				}
+
+				// new rho
+				rho_new = VecProd(z, r);
+
+				// new beta
+				beta = rho_new/rho;
+
+				// new direction p:= beta*p + z
+				p *= beta;
+				p+= z;
+
+				// update rho
+				rho = rho_new;
 			}
 			UG_ASSERT(0, "This line should never be reached.");
 			return false;
@@ -203,6 +222,45 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 		}
 
 	protected:
+		bool check_convergence(number norm, number norm_start, int num_iter, bool& bExit)
+		{
+			// check that defect is a still a valid number
+			if(!is_valid_number(norm))
+			{
+				if(m_verboseLevel >= 1) UG_LOG("    %%%%% Defect " << norm << " is not a valid number. Linear Solver did NOT CONVERGE. %%%%%\n\n");
+				bExit = false;
+				return false;
+			}
+
+			// check if defect is small enough (absolute)
+			if(norm < m_absTol)
+			{
+				if(m_verboseLevel >= 1) UG_LOG("    %%%%% Absolute defect " << m_absTol << " reached. Linear Solver converged. %%%%%\n\n");
+				bExit = true;
+				return false;
+			}
+
+			// check if defect is small enough (relative)
+			if(norm/norm_start < m_relTol)
+			{
+				if(m_verboseLevel >= 1) UG_LOG("    %%%%% Relative defect " << m_relTol << " reached. Linear Solver converged. %%%%%\n\n");
+				bExit = true;
+				return false;
+			}
+
+			// check that maximum number of iterations is not reached
+			if(num_iter > m_maxIter)
+			{
+				if(m_verboseLevel >= 1) UG_LOG("    %%%%% Absolute defect " << m_absTol << " and relative defect " << m_relTol << " NOT reached after " << m_maxIter << " Iterations. %%%%%\n");
+				if(m_verboseLevel >= 1) UG_LOG("    %%%%% Iterative Linear Solver did NOT CONVERGE. %%%%%\n\n");
+				bExit = false;
+				return false;
+			}
+
+			// return false, if still continuing iteration
+			return true;
+		}
+
 		void print(int verboseLevel, std::ostream outStream)
 		{
 			if(verboseLevel >= m_verboseLevel) UG_LOG(outStream);
@@ -226,7 +284,9 @@ class CGSolver : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteF
 		ILinearizedOperator<TDiscreteFunction,TDiscreteFunction>* m_A;
 
 		// Iterator used in the iterative scheme to compute the correction and update the defect
-		ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* m_iter;
+		ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* m_pIter;
+
+		TDiscreteFunction* m_pCurrentU;
 
 		// maximal number of iterations
 		int m_maxIter;
