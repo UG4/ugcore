@@ -3,6 +3,7 @@
 //	y10 m07 d06
 
 #include <vector>
+#include <cassert>
 #include "pcl_methods.h"
 #include "common/smart_pointer.h"
 #include "pcl_process_communicator.h"
