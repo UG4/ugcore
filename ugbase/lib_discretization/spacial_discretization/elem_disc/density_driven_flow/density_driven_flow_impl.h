@@ -28,47 +28,8 @@ DensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
 	m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
 	m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity)
 {
-	register_num_total_sh_function(			RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template num_total_sh<Triangle>);
-	register_num_sh_function(				RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template num_sh<Triangle>);
-	register_prepare_element_loop_function( RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template prepare_element_loop<Triangle>);
-	register_prepare_element_function( 		RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template prepare_element<Triangle>);
-	register_finish_element_loop_function( 	RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template finish_element_loop<Triangle>);
-	register_assemble_JA_function( 			RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template assemble_JA<Triangle>);
-	register_assemble_JM_function( 			RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template assemble_JM<Triangle>);
-	register_assemble_A_function( 			RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template assemble_A<Triangle>);
-	register_assemble_M_function( 			RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template assemble_M<Triangle>);
-	register_assemble_f_function( 			RET_TRIANGLE,
-											&DensityDrivenFlowElemDisc::template assemble_f<Triangle>);
-
-	register_num_total_sh_function(			RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template num_total_sh<Quadrilateral>);
-	register_num_sh_function(				RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template num_sh<Quadrilateral>);
-	register_prepare_element_loop_function( RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template prepare_element_loop<Quadrilateral>);
-	register_prepare_element_function( 		RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template prepare_element<Quadrilateral>);
-	register_finish_element_loop_function( 	RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template finish_element_loop<Quadrilateral>);
-	register_assemble_JA_function( 			RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template assemble_JA<Quadrilateral>);
-	register_assemble_JM_function( 			RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template assemble_JM<Quadrilateral>);
-	register_assemble_A_function( 			RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template assemble_A<Quadrilateral>);
-	register_assemble_M_function( 			RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template assemble_M<Quadrilateral>);
-	register_assemble_f_function( 			RET_QUADRILATERAL,
-											&DensityDrivenFlowElemDisc::template assemble_f<Quadrilateral>);
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Triangle, 		DensityDrivenFlowElemDisc>(RET_TRIANGLE);
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Quadrilateral, 	DensityDrivenFlowElemDisc>(RET_QUADRILATERAL);
 };
 
 

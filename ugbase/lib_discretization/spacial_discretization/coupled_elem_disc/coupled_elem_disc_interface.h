@@ -1,12 +1,12 @@
 /*
- * coupled_system_domain_discretization.h
+ * coupled_elem_disc_interface.h
  *
  *  Created on: 25.06.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SYSTEM_DISCREZIZATION__COUPLED_SYSTEM_DOMAIN_DISCRETIZATION__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SYSTEM_DISCREZIZATION__COUPLED_SYSTEM_DOMAIN_DISCRETIZATION__
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__COUPLED_ELEM_DISC_INTERFACE__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__COUPLED_ELEM_DISC_INTERFACE__
 
 #include <vector>
 #include <string>
@@ -118,111 +118,6 @@ class ISystemDomainDiscretization {
 
 };
 
-// implement all virtual functions by Elem Disc
-template <	typename TDomain,
-			int ref_dim,
-			typename TAlgebra,
-			template<typename TDomain, int ref_dim, typename TAlgebra > class TElemDisc>
-class SystemDomainDiscretizationPlugIn : public ISystemDomainDiscretization<TDomain, TAlgebra>{
-
-	public:
-		// domain type
-		typedef TDomain domain_type;
-
-		// position type
-		typedef typename domain_type::position_type position_type;
-
-		// algebra type
-		typedef TAlgebra algebra_type;
-
-		// local matrix type
-		typedef typename algebra_type::matrix_type::local_matrix_type local_matrix_type;
-
-		// local vector type
-		typedef typename algebra_type::vector_type::local_vector_type local_vector_type;
-
-		// local index type
-		typedef typename algebra_type::vector_type::local_index_type local_index_type;
-
-	public:
-		SystemDomainDiscretizationPlugIn(TElemDisc<domain_type, ref_dim, algebra_type>& elemDisc) :
-			  m_elemDisc(elemDisc)
-			{};
-
-	/* GENERAL INFORMATIONS */
-	public:
-		// number of fundamental functions required for this assembling
-		virtual size_t num_fct(){return m_elemDisc.num_fct();}
-
-		// local shape function set required for the 'i'-th fundamental function
-		virtual LocalShapeFunctionSetID local_shape_function_set(size_t i){return m_elemDisc.local_shape_function_set(i);}
-
-		// get global fundamental function number from local on
-		virtual size_t fct(size_t i) {return m_elemDisc.fct(i);}
-
-	public:
-		virtual size_t num_imports() {return m_elemDisc.num_imports();}
-
-		virtual DataImportItem* import(size_t i){return m_elemDisc.import(i);}
-
-		virtual bool register_exports(DataContainer& Cont) {return m_elemDisc.register_exports(Cont);}
-
-		virtual bool unregister_exports(DataContainer& Cont) {return m_elemDisc.unregister_exports(Cont);}
-
-		virtual bool register_imports(DataContainer& Cont) {return m_elemDisc.register_imports(Cont);}
-
-		virtual bool unregister_imports(DataContainer& Cont) {return m_elemDisc.unregister_imports(Cont);}
-
-	/* ELEMENT WISE ASSEMBLNG */
-	public:
-		// support assembling on triangles
-		virtual size_t num_sh(Triangle* elem){return m_elemDisc.num_sh(elem);}
-
-		virtual size_t num_sh(Triangle* elem, size_t fct){return m_elemDisc.num_sh(elem, fct);}
-
-		virtual IPlugInReturn prepare_element_loop(Triangle* elem){return m_elemDisc.prepare_element_loop(elem);}
-
-		virtual IPlugInReturn prepare_element(Triangle* elem, const local_vector_type& u, const local_index_type& glob_ind){return m_elemDisc.prepare_element(elem, u, glob_ind);}
-
-		virtual IPlugInReturn assemble_element_JA(Triangle* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_JA(elem, J, u, time);}
-
-		virtual IPlugInReturn assemble_element_JM(Triangle* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_JM(elem, J, u, time);}
-
-		virtual IPlugInReturn assemble_element_A(Triangle* elem, local_vector_type& d, const local_vector_type& u, number time=0.0) {return m_elemDisc.assemble_element_A(elem, d, u, time);}
-
-		virtual IPlugInReturn assemble_element_M(Triangle* elem, local_vector_type& d, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_M(elem, d, u, time);}
-
-		virtual IPlugInReturn assemble_element_f(Triangle* elem, local_vector_type& d, number time=0.0) {return m_elemDisc.assemble_element_f(elem, d, time);}
-
-		virtual IPlugInReturn finish_element_loop(Triangle* elem){return m_elemDisc.finish_element_loop(elem);}
-
-	public:
-		// support assembling on quadrilateral
-		virtual size_t num_sh(Quadrilateral* elem){return m_elemDisc.num_sh(elem);}
-
-		virtual size_t num_sh(Quadrilateral* elem, size_t fct){return m_elemDisc.num_sh(elem, fct);}
-
-		virtual IPlugInReturn prepare_element_loop(Quadrilateral* elem){return m_elemDisc.prepare_element_loop(elem);}
-
-		virtual IPlugInReturn prepare_element(Quadrilateral* elem, const local_vector_type& u, const local_index_type& glob_ind){return m_elemDisc.prepare_element(elem, u, glob_ind);}
-
-		virtual IPlugInReturn assemble_element_JA(Quadrilateral* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_JA(elem, J, u, time);}
-
-		virtual IPlugInReturn assemble_element_JM(Quadrilateral* elem, local_matrix_type& J, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_JM(elem, J, u, time);}
-
-		virtual IPlugInReturn assemble_element_A(Quadrilateral* elem, local_vector_type& d, const local_vector_type& u, number time=0.0) {return m_elemDisc.assemble_element_A(elem, d, u, time);}
-
-		virtual IPlugInReturn assemble_element_M(Quadrilateral* elem, local_vector_type& d, const local_vector_type& u, number time=0.0){return m_elemDisc.assemble_element_M(elem, d, u, time);}
-
-		virtual IPlugInReturn assemble_element_f(Quadrilateral* elem, local_vector_type& d, number time=0.0) {return m_elemDisc.assemble_element_f(elem, d, time);}
-
-		virtual IPlugInReturn finish_element_loop(Quadrilateral* elem){return m_elemDisc.finish_element_loop(elem);}
-
-	protected:
-		TElemDisc<domain_type, ref_dim, algebra_type>& m_elemDisc;
-
-};
-
 
 template <typename TDiscreteFunction>
 class CoupledSystemDomainDiscretization : public IDimensionDomainDiscretization<TDiscreteFunction> {
@@ -304,17 +199,6 @@ class CoupledSystemDomainDiscretization : public IDimensionDomainDiscretization<
 		// name of discretiztaion
 		std::string m_name;
 
-	protected:
-		// Assemble routines for time independent problems
-		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si);
-		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si);
-		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si);
-
-		// Assemble routines for time dependent problems
-		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time, number s_m, number s_a);
-		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a);
-		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time, number s_m, number s_a);
-
 	public:
 		// TODO: NEEDED ?
 		virtual size_t num_fct() const
@@ -327,26 +211,8 @@ class CoupledSystemDomainDiscretization : public IDimensionDomainDiscretization<
 			return num;
 		}
 
-	protected:
-		template <typename TElem>
-		bool assemble_jacobian			(	typename geometry_traits<TElem>::iterator iterBegin,
-											typename geometry_traits<TElem>::iterator iterEnd,
-											matrix_type& J, const discrete_function_type& u,
-											number time, number s_m, number s_a);
-		template <typename TElem>
-		bool assemble_defect			(	typename geometry_traits<TElem>::iterator iterBegin,
-											typename geometry_traits<TElem>::iterator iterEnd,
-											vector_type& d, const discrete_function_type& u,
-											number time, number s_m, number s_a);
-
-		template <typename TElem>
-		bool assemble_linear			(	typename geometry_traits<TElem>::iterator iterBegin,
-											typename geometry_traits<TElem>::iterator iterEnd,
-											matrix_type& mat, vector_type& rhs, const discrete_function_type& u);
 };
 
 } // end namespace ug
 
-#include "coupled_system_domain_discretization_impl.h"
-
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SYSTEM_DISCREZIZATION__COUPLED_SYSTEM_DOMAIN_DISCRETIZATION__ */
+#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__COUPLED_ELEM_DISC_INTERFACE__ */

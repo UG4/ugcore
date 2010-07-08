@@ -27,8 +27,6 @@ template <	typename TDiscreteFunction,
 			typename TAlgebra = typename TDiscreteFunction::algebra_type >
 class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 	public:
-		// forward types and constants
-
 		// discrete function type
 		typedef TDiscreteFunction discrete_function_type;
 

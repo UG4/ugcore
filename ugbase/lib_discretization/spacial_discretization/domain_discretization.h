@@ -43,44 +43,44 @@ class DomainDiscretization :
 		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_disc.size(); ++i)
-				if(!AssembleJacobian(*m_disc[i].disc, J, u, m_disc[i].u_comp, m_disc[i].si))
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				if(!AssembleJacobian(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].u_comp, m_vElemDisc[i].si))
 					return IAssemble_ERROR;
 
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_dirichletDisc[i].si) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_disc.size(); ++i)
-				if(!AssembleDefect(*m_disc[i].disc, d, u, m_disc[i].u_comp, m_disc[i].si))
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				if(!AssembleDefect(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].u_comp, m_vElemDisc[i].si))
 					return IAssemble_ERROR;
 
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_dirichletDisc[i].si) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_disc.size(); ++i)
-				if(!AssembleLinear(*m_disc[i].disc, mat, rhs, u, m_disc[i].u_comp, m_disc[i].si))
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				if(!AssembleLinear(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].u_comp, m_vElemDisc[i].si))
 					return IAssemble_ERROR;
 
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_dirichletDisc[i].si) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 		IAssembleReturn assemble_solution(discrete_function_type& u)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->set_dirichlet_solution(u, m_dirichletDisc[i].si) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
@@ -91,44 +91,44 @@ class DomainDiscretization :
 		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, number s_m, number s_a)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_disc.size(); ++i)
-				if(!AssembleJacobian(*m_disc[i].disc, J, u, m_disc[i].u_comp, m_disc[i].si, time, s_m, s_a))
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				if(!AssembleJacobian(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].u_comp, m_vElemDisc[i].si, time, s_m, s_a))
 					return IAssemble_ERROR;
 
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_dirichletDisc[i].si, time) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_disc.size(); ++i)
-				if(!AssembleDefect(*m_disc[i].disc, d, u, m_disc[i].u_comp, m_disc[i].si, time, s_m, s_a))
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				if(!AssembleDefect(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].u_comp, m_vElemDisc[i].si, time, s_m, s_a))
 					return IAssemble_ERROR;
 
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_dirichletDisc[i].si, time) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_disc.size(); ++i)
-				if(!AssembleLinear(*m_disc[i].disc, mat, rhs, u, m_disc[i].u_comp, m_disc[i].si, time, s_m, s_a))
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				if(!AssembleLinear(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].u_comp, m_vElemDisc[i].si, time, s_m, s_a))
 					return IAssemble_ERROR;
 
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_dirichletDisc[i].si, time) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 		IAssembleReturn assemble_solution(discrete_function_type& u, number time)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
-				if((m_dirichletDisc[i].disc)->set_dirichlet_solution(u, m_dirichletDisc[i].si, time) != IAssemble_OK)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
@@ -147,7 +147,7 @@ class DomainDiscretization :
 				UG_LOG("Cannot add element discretization.\n");
 				return false;
 			}
-			m_disc.push_back(ElemDisc(si, elemDisc, u_comp));
+			m_vElemDisc.push_back(ElemDisc(si, elemDisc, u_comp));
 			return true;
 		}
 
@@ -162,15 +162,15 @@ class DomainDiscretization :
 			comp_vec_type u_comp;
 		};
 
-		std::vector<ElemDisc> m_disc;
+		std::vector<ElemDisc> m_vElemDisc;
 
 		bool check_solution(const discrete_function_type& u)
 		{
-			for(size_t i = 0; i < m_disc.size(); ++i)
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 			{
-				for(size_t fct = 0; fct < (m_disc[i].disc)->num_fct(); ++fct)
+				for(size_t fct = 0; fct < (m_vElemDisc[i].disc)->num_fct(); ++fct)
 				{
-					if((u.get_local_shape_function_set_id((m_disc[i].u_comp)[fct]) !=	(m_disc[i].disc)->local_shape_function_set_id(fct)))
+					if((u.get_local_shape_function_set_id((m_vElemDisc[i].u_comp)[fct]) !=	(m_vElemDisc[i].disc)->local_shape_function_set_id(fct)))
 					{
 						UG_LOG("Solution does not match requirements of discretization.\n");
 						return false;
@@ -183,7 +183,7 @@ class DomainDiscretization :
 	public:
 		bool add_dirichlet_bnd(IDirichletBoundaryValues<discrete_function_type>& bnd_disc, int si)
 		{
-			m_dirichletDisc.push_back(DirichletDisc(si, &bnd_disc));
+			m_vDirichletDisc.push_back(DirichletDisc(si, &bnd_disc));
 			return true;
 		}
 
@@ -197,25 +197,25 @@ class DomainDiscretization :
 			IDirichletBoundaryValues<discrete_function_type>* disc;
 		};
 
-		std::vector<DirichletDisc> m_dirichletDisc;
+		std::vector<DirichletDisc> m_vDirichletDisc;
 
 	protected:
 		// TODO: What is this function used for???? Do we have to include it
 		virtual size_t num_fct() const
 		{
 			size_t sum = 0;
-			for(size_t i = 0; i < m_disc.size(); ++i)
-				sum += m_disc[i].u_comp.size();
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				sum += m_vElemDisc[i].u_comp.size();
 
 			return sum;
 		}
 
 		virtual bool is_dirichlet(int si, size_t fct)
 		{
-			for(size_t i = 0; i < m_dirichletDisc.size(); ++i)
+			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 			{
-				if(m_dirichletDisc[i].si != si) continue;
-				if((m_dirichletDisc[i].disc)->is_dirichlet(fct) == true) return true;
+				if(m_vDirichletDisc[i].si != si) continue;
+				if((m_vDirichletDisc[i].disc)->is_dirichlet(fct) == true) return true;
 			}
 			return false;
 		}

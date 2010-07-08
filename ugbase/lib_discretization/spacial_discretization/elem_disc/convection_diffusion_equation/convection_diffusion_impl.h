@@ -20,6 +20,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
+
 template<typename TDomain, typename TAlgebra>
 ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 ConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
@@ -27,47 +28,8 @@ ConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 	: 	m_domain(domain), m_upwind_amount(upwind_amount),
 		m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
 {
-	register_num_total_sh_function(			RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template num_total_sh<Triangle>);
-	register_num_sh_function(				RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template num_sh<Triangle>);
-	register_prepare_element_loop_function( RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template prepare_element_loop<Triangle>);
-	register_prepare_element_function( 		RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template prepare_element<Triangle>);
-	register_finish_element_loop_function( 	RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template finish_element_loop<Triangle>);
-	register_assemble_JA_function( 			RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template assemble_JA<Triangle>);
-	register_assemble_JM_function( 			RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template assemble_JM<Triangle>);
-	register_assemble_A_function( 			RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template assemble_A<Triangle>);
-	register_assemble_M_function( 			RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template assemble_M<Triangle>);
-	register_assemble_f_function( 			RET_TRIANGLE,
-											&ConvectionDiffusionElemDisc::template assemble_f<Triangle>);
-
-	register_num_total_sh_function(			RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template num_total_sh<Quadrilateral>);
-	register_num_sh_function(				RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template num_sh<Quadrilateral>);
-	register_prepare_element_loop_function( RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template prepare_element_loop<Quadrilateral>);
-	register_prepare_element_function( 		RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template prepare_element<Quadrilateral>);
-	register_finish_element_loop_function( 	RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template finish_element_loop<Quadrilateral>);
-	register_assemble_JA_function( 			RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template assemble_JA<Quadrilateral>);
-	register_assemble_JM_function( 			RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template assemble_JM<Quadrilateral>);
-	register_assemble_A_function( 			RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template assemble_A<Quadrilateral>);
-	register_assemble_M_function( 			RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template assemble_M<Quadrilateral>);
-	register_assemble_f_function( 			RET_QUADRILATERAL,
-											&ConvectionDiffusionElemDisc::template assemble_f<Quadrilateral>);
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Triangle, 		ConvectionDiffusionElemDisc>(RET_TRIANGLE);
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Quadrilateral, 	ConvectionDiffusionElemDisc>(RET_QUADRILATERAL);
 };
 
 
