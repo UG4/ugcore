@@ -306,13 +306,11 @@ class CoupledSystemDomainDiscretization : public IDimensionDomainDiscretization<
 
 	protected:
 		// Assemble routines for time independent problems
-		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si);
 		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si);
 		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si);
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si);
 
 		// Assemble routines for time dependent problems
-		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a);
 		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time, number s_m, number s_a);
 		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a);
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time, number s_m, number s_a);
@@ -330,11 +328,6 @@ class CoupledSystemDomainDiscretization : public IDimensionDomainDiscretization<
 		}
 
 	protected:
-		template <typename TElem>
-		bool assemble_jacobian_defect	(	typename geometry_traits<TElem>::iterator iterBegin,
-											typename geometry_traits<TElem>::iterator iterEnd,
-											matrix_type& J, vector_type& d, const discrete_function_type& u,
-											number time, number s_m, number s_a);
 		template <typename TElem>
 		bool assemble_jacobian			(	typename geometry_traits<TElem>::iterator iterBegin,
 											typename geometry_traits<TElem>::iterator iterEnd,
