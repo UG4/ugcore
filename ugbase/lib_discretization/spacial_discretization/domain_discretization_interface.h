@@ -42,23 +42,6 @@ class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		/// assembles Jacobian (or Approximation of Jacobian) and Defect at a given Solution u for a time dependent problem
-		/**
-		 * Assembles Jacobian and Defect at a given Solution u on level 'level'.
-		 * The size of matrix_type and vector_type have to match the DoFPattern of the NumericalSolution
-		 *
-		 * \param[out] J Jacobian J(u) (or Precondition) matrix_type to be filled
-		 * \param[out] d Defect d(u) to be filled
-		 * \param[in]  u Numerical solution
-		 *
-		 * \return 	IAssemble_OK  				if problem is time dependent and assembling successful
-		 * 			IAssemble_ERROR 			if problem is time dependent and an error occurred
-		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
-		 *
-		 */
-		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
-
 		/// assembles Jacobian (or Approximation of Jacobian)
 		/**
 		 * Assembles Jacobian at a given Solution u.
@@ -145,9 +128,6 @@ class IDimensionDomainDiscretization{
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		// Assemble routines for time independent problems
-		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si)
-		{return IAssemble_NOT_IMPLEMENTED;}
 		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si)
 		{return IAssemble_NOT_IMPLEMENTED;}
 		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si)
@@ -156,8 +136,6 @@ class IDimensionDomainDiscretization{
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 
-		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
 		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a)
@@ -190,8 +168,6 @@ class IDirichletBoundaryValues{
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		virtual IAssembleReturn clear_dirichlet_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time = 0.0)
-		{return IAssemble_NOT_IMPLEMENTED;}
 		virtual IAssembleReturn clear_dirichlet_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
 		virtual IAssembleReturn clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, int si,number time = 0.0)
