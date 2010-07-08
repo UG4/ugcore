@@ -85,18 +85,6 @@ class IAssemble {
 		typedef TDiscreteFunction discrete_function_type;
 
 	public:
-		/// assembles Jacobian (or Approximation of Jacobian) and Defect at a given Solution u
-		/**
-		 * Assembles Jacobian and Defect at a given Solution u on level 'level'.
-		 * The size of matrix_type and vector_type have to match the DoFPattern of the NumericalSolution
-		 *
-		 * \param[out] J Jacobian J(u) (or Precondition) matrix_type to be filled
-		 * \param[out] d Defect d(u) to be filled
-		 * \param[in]  u Numerical solution
-		 */
-		virtual IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u)
-		{return IAssemble_NOT_IMPLEMENTED;}
-
 		/// assembles Jacobian (or Approximation of Jacobian)
 		/**
 		 * Assembles Jacobian at a given Solution u.
