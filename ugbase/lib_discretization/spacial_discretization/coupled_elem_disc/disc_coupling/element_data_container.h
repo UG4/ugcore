@@ -6,7 +6,7 @@
 #include <vector>
 #include "common/common.h"
 
-#include "lib_discretization/spacial_discretization/disc_coupling/element_data_items.h"
+#include "element_data_items.h"
 
 
 namespace ug{

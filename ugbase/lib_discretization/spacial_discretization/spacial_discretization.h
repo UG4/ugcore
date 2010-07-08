@@ -18,16 +18,8 @@
 // element discs
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc.h"
 
-
-////////////////////////
-// coupling data
-////////////////////////
-
-//#include "lib_discretization/spacial_discretization/system_discretization/coupled_system_domain_discretization.h"
-//#include "lib_discretization/spacial_discretization/disc_coupling/element_data.h"
-//#include "lib_discretization/spacial_discretization/coupled_plug_in_disc/convection_diffusion_equation/convection_diffusion_assemble.h"
-//#include "lib_discretization/spacial_discretization/coupled_plug_in_disc/density_driven_flow/density_driven_flow_assemble.h"
-
+// coupled element discs
+#include "lib_discretization/spacial_discretization/coupled_elem_disc/coupled_elem_disc.h"
 
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__ */

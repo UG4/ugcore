@@ -4,8 +4,8 @@
 
 #include <typeinfo>
 
-#include "lib_discretization/spacial_discretization/disc_coupling/element_data_items.h"
-#include "lib_discretization/spacial_discretization/disc_coupling/element_data_import_export.h"
+#include "element_data_items.h"
+#include "element_data_import_export.h"
 
 namespace ug{
 
