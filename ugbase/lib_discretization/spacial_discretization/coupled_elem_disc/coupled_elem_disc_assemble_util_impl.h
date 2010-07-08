@@ -1,5 +1,5 @@
 /*
- * coupled_system_domain_discretization_impl.h
+ * coupled_elem_disc_assemble_util.h
  *
  *  Created on: 25.06.2009
  *      Author: andreasvogel
