@@ -109,45 +109,6 @@ class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 		virtual bool is_dirichlet(int si, size_t fct) = 0;
 };
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
-class IDimensionDomainDiscretization{
-	public:
-		// forward types and constants
-
-		// discrete function type
-		typedef TDiscreteFunction discrete_function_type;
-
-		// algebra type
-		typedef TAlgebra algebra_type;
-
-		// type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
-
-		// type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
-
-	public:
-		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si)
-		{return IAssemble_NOT_IMPLEMENTED;}
-		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si)
-		{return IAssemble_NOT_IMPLEMENTED;}
-		virtual IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si)
-		{return IAssemble_NOT_IMPLEMENTED;}
-
-
-		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
-		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, int si, number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
-		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const discrete_function_type& u, int si, number time, number s_m, number s_a)
-		{return IAssemble_NOT_IMPLEMENTED;}
-
-		/// returns if the number of functions of this assembling
-		virtual size_t num_fct() const = 0;
-
-		virtual ~IDimensionDomainDiscretization() {};
-};
 
 template <	typename TDiscreteFunction,
 			typename TAlgebra = typename TDiscreteFunction::algebra_type >
