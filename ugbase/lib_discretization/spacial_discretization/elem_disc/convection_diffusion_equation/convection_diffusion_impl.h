@@ -28,8 +28,8 @@ ConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 	: 	m_domain(domain), m_upwind_amount(upwind_amount),
 		m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
 {
-	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Triangle, 		ConvectionDiffusionElemDisc>(RET_TRIANGLE);
-	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Quadrilateral, 	ConvectionDiffusionElemDisc>(RET_QUADRILATERAL);
+	register_all_assemble_functions<Triangle>(RET_TRIANGLE);
+	register_all_assemble_functions<Quadrilateral>(RET_QUADRILATERAL);
 };
 
 

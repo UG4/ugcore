@@ -13,6 +13,11 @@
 // coupling data
 ////////////////////////
 
-#include "lib_discretization/spacial_discretization/coupled_elem_disc/disc_coupling/element_data.h"
+#include "./coupled_elem_disc_interface.h"
+
+#include "./disc_coupling/element_data.h"
+
+#include "./convection_diffusion_equation/convection_diffusion_assemble.h"
+#include "./density_driven_flow/density_driven_flow_assemble.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__COUPLED_ELEM_DISC__ */

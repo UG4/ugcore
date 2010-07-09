@@ -48,7 +48,7 @@ create_data_export()
 template<typename TDataType, typename TPositionType, typename TAlgebra>
 bool
 DataClassExportPossibility<TDataType, TPositionType, TAlgebra>::
-set_eval_function(EvalFunction func, DataExportingClass<TDataType, TPositionType, TAlgebra>* Class)
+set_eval_function(EvalFunction func, IElemDisc<TAlgebra>* Class)
 {
 	m_evalFunction = func;
 	m_ExportingClass = Class;
@@ -93,7 +93,7 @@ set_local_solution(const local_vector_type& u)
 
 template<typename TDataType, typename TPositionType, typename TAlgebra>
 bool DataClassExport<TDataType, TPositionType, TAlgebra>::
-set_eval_function(EvalFunction func, DataExportingClass<TDataType, TPositionType, TAlgebra>* Class)
+set_eval_function(EvalFunction func, IElemDisc<TAlgebra>* Class)
 {
 	m_evalFunction = func;
 	m_ExportingClass = Class;

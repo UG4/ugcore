@@ -10,8 +10,10 @@
 
 #include "element_data_import_export.h"
 
-namespace ug{
+#include "../../elem_disc/elem_disc_interface.h"
 
+namespace ug{
+/*
 template <typename TDataType, typename TPositionType, typename TAlgebra>
 class DataExportingClass
 {
@@ -26,7 +28,7 @@ public:
 
 	virtual ~DataExportingClass(){};
 };
-
+*/
 
 
 template <typename TDataType, typename TPositionType, typename TAlgebra>
@@ -39,10 +41,11 @@ class DataClassExportPossibility : public DataPossibilityItem
 		typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
 
 	protected:
-		typedef void (DataExportingClass<TDataType, TPositionType, TAlgebra>::*EvalFunction)(std::vector<data_type>&, std::vector<std::vector<data_type> >&, const std::vector<position_type>&, const local_vector_type&, bool);
+		//typedef void (IElemDisc<TAlgebra>::*EvalFunction)(std::vector<data_type>&, std::vector<std::vector<data_type> >&, const std::vector<position_type>&, const local_vector_type&, bool);
+		typedef void (IElemDisc<TAlgebra>::*EvalFunction)(std::vector<data_type>&, std::vector<std::vector<data_type> >&, const std::vector<position_type>&, const local_vector_type&, bool);
 
 	public:
-		DataClassExportPossibility(std::string name, EvalFunction func = NULL, DataExportingClass<TDataType, TPositionType, TAlgebra>* Class = NULL) :
+		DataClassExportPossibility(std::string name, EvalFunction func = NULL, IElemDisc<TAlgebra>* Class = NULL) :
 			DataPossibilityItem(name, 0, &typeid(TDataType), &typeid(TPositionType)),
 			m_sys(0), m_num_sh(0), m_evalFunction(func), m_u(NULL), m_ExportingClass(Class)
 		{m_createdDataExports.clear();};
@@ -56,7 +59,7 @@ class DataClassExportPossibility : public DataPossibilityItem
 
 	public:
 		// set the eval function of this possibility and all exports created from this possibility
-		bool set_eval_function(EvalFunction func, DataExportingClass<TDataType, TPositionType, TAlgebra>* Class);
+		bool set_eval_function(EvalFunction func, IElemDisc<TAlgebra>* Class);
 
 		// set the number of unknowns this possibility depends on of this possibility and all exports created from this possibility
 		bool set_num_sh(std::size_t sys, std::size_t num_sh);
@@ -72,7 +75,7 @@ class DataClassExportPossibility : public DataPossibilityItem
 
 		EvalFunction m_evalFunction;
 		const local_vector_type* m_u;
-		DataExportingClass<TDataType, TPositionType, TAlgebra>* m_ExportingClass;
+		IElemDisc<TAlgebra>* m_ExportingClass;
 };
 
 template <typename TDataType, typename TPositionType, typename TAlgebra>
@@ -87,17 +90,17 @@ class DataClassExport : public DataExport<TDataType, TPositionType>{
 		typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
 
 	protected:
-		typedef void (DataExportingClass<TDataType, TPositionType, TAlgebra>::*EvalFunction)(std::vector<data_type>&, std::vector<std::vector<data_type> >&, const std::vector<position_type>&, const local_vector_type&, bool);
+		typedef void (IElemDisc<TAlgebra>::*EvalFunction)(std::vector<data_type>&, std::vector<std::vector<data_type> >&, const std::vector<position_type>&, const local_vector_type&, bool);
 
 	protected:
 		// Only Data Possibility can create an instance
-		DataClassExport(std::string name, DataPossibilityItem* possibility, EvalFunction func, DataExportingClass<TDataType, TPositionType, TAlgebra>* expClass) 	:
+		DataClassExport(std::string name, DataPossibilityItem* possibility, EvalFunction func, IElemDisc<TAlgebra>* expClass) 	:
 			DataExport<TDataType, TPositionType>(name, possibility),
 			m_u(NULL), m_evalFunction(func), m_ExportingClass(expClass)
 			{};
 
 		// set evaluation function
-		bool set_eval_function(EvalFunction func, DataExportingClass<TDataType, TPositionType, TAlgebra>* Class);
+		bool set_eval_function(EvalFunction func, IElemDisc<TAlgebra>* Class);
 
 		// set number of unknowns, this export depends on
 		bool set_num_sh(std::size_t sys, std::size_t num_sh);
@@ -137,7 +140,7 @@ class DataClassExport : public DataExport<TDataType, TPositionType>{
 
 		// evaluation function of this export
 		EvalFunction m_evalFunction;
-		DataExportingClass<TDataType, TPositionType, TAlgebra>* m_ExportingClass;
+		IElemDisc<TAlgebra>* m_ExportingClass;
 };
 
 }

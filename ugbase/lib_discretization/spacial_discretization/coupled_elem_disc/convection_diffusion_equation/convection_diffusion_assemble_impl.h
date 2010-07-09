@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__PLUG_IN_DISC__CPL_CONVECTION_DIFFUSION_EQUATION__CPL_CONVECTION_DIFFUSION_ASSEMBLE_IMPL__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__PLUG_IN_DISC__CPL_CONVECTION_DIFFUSION_EQUATION__CPL_CONVECTION_DIFFUSION_ASSEMBLE_IMPL__
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__CPL_CONVECTION_DIFFUSION_EQUATION__CPL_CONVECTION_DIFFUSION_ASSEMBLE_IMPL__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__CPL_CONVECTION_DIFFUSION_EQUATION__CPL_CONVECTION_DIFFUSION_ASSEMBLE_IMPL__
 
 
 namespace ug{
@@ -19,26 +19,43 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
+								Diff_Tensor_fct diff, Conv_Scale_fct conv_scale,
+								Mass_Scale_fct mass_scale, Mass_Const_fct mass_const,
+								Reaction_fct reac, Rhs_fct rhs)
+: 	m_Velocity("Velocity"),
+	m_domain(domain), m_upwind_amount(upwind_amount),
+	m_Diff_Tensor(diff), m_Conv_Scale(conv_scale),
+	m_Mass_Scale(mass_scale), m_Mass_Const(mass_const),
+	m_Reaction(reac), m_Rhs(rhs)
+{
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Triangle, 		CplConvectionDiffusionElemDisc>(RET_TRIANGLE);
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Quadrilateral, 	CplConvectionDiffusionElemDisc>(RET_QUADRILATERAL);
+};
+
+
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
 
-	// create new Geometry
-	m_geo = new FVElementGeometry<TElem, TDomain::dim>();
-	assert(m_geo != NULL);
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	m_corners = new position_type[ref_elem_type::num_corners];
 
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
 	typename std::vector<MathVector<ref_elem_type::dim> > pos;
-	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = get_fvgeom<TElem>().scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -50,31 +67,31 @@ prepare_element_loop()
 	m_Velocity.set_positions(pos, true);
 	m_Velocity.set_num_eq(ref_elem_type::num_corners);
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
 finish_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
+	delete[] m_corners;
 
-	// delete Geometry
-	if(m_geo != NULL)
-		delete m_geo;
-
-	return IPlugInReturn_OK;
+	return true;
 }
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL
 
@@ -86,16 +103,17 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	}
 
 	// update Geometry for this element
-	m_geo->update(m_corners);
+	get_fvgeom<TElem>().update(m_corners);
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
-assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number time)
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
 
 	static const int dim = TDomain::dim;
@@ -105,9 +123,9 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v, lin_Defect;
 	MathVector<dim> Dgrad;
-	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = get_fvgeom<TElem>().scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -185,9 +203,9 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	}
 	int co;
 	number reac_val;
-	for(size_t i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		co = scv.local_corner_id();
 
@@ -196,21 +214,21 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 		J(co , co) += reac_val * scv.volume();
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra> template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
-assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time)
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	int co;
 	number mass_scale;
-	for(size_t i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		co = scv.local_corner_id();
 		m_Mass_Scale(mass_scale, scv.global_corner_pos(), time);
@@ -218,15 +236,16 @@ assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number tim
 		J(co , co) += mass_scale * scv.volume();
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
-assemble_element_A(local_vector_type& d, const local_vector_type& u, number time)
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 	static const int dim = TDomain::dim;
 	size_t ip_pos = 0;
@@ -236,9 +255,9 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v;
 	MathVector<dim> Dgrad_u;
-	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = get_fvgeom<TElem>().scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -292,9 +311,9 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 	}
 	int co;
 	number reac_val;
-	for(size_t i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		co = scv.local_corner_id();
 
@@ -303,21 +322,22 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 		d[co] += reac_val * u[co] * scv.volume();
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
-assemble_element_M(local_vector_type& d, const local_vector_type& u, number time)
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	int co;
 	number mass_scale , mass_const;
-	for(size_t i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		co = scv.local_corner_id();
 
@@ -327,30 +347,31 @@ assemble_element_M(local_vector_type& d, const local_vector_type& u, number time
 		d[co] += (mass_const * mass_scale * u[co]) * scv.volume();
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplConvectionDiffusionEquation<TDomain, TAlgebra, TElem>::
-assemble_element_f(local_vector_type& d, number time)
+bool
+CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_f(local_vector_type& d, number time)
 {
 	number fvalue = 0.0;
-	for(size_t i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		m_Rhs(fvalue, scv.global_corner_pos(), time);
 		d[scv.local_corner_id()] += fvalue * scv.volume();
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 
 } // namespace ug
 
 
-#endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__PLUG_IN_DISC__CPL_CONVECTION_DIFFUSION_EQUATION__CPL_CONVECTION_DIFFUSION_ASSEMBLE_IMPL__*/
+#endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__CPL_CONVECTION_DIFFUSION_EQUATION__CPL_CONVECTION_DIFFUSION_ASSEMBLE_IMPL__*/

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__CPL_PLUG_IN_DISC__DENSITY_DRIVEN_FLOW__CPL_DENSITY_DRIVEN_FLOW_ASSEMBLE_IMPL__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__CPL_PLUG_IN_DISC__DENSITY_DRIVEN_FLOW__CPL_DENSITY_DRIVEN_FLOW_ASSEMBLE_IMPL__
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__DENSITY_DRIVEN_FLOW__CPL_DENSITY_DRIVEN_FLOW_ASSEMBLE_IMPL__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__DENSITY_DRIVEN_FLOW__CPL_DENSITY_DRIVEN_FLOW_ASSEMBLE_IMPL__
 
 
 namespace ug{
@@ -19,51 +19,135 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
+								Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
+								Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity)
+: 	m_DarcyVelocity("Darcy Velocity"),
+	m_domain(domain), m_upwind_amount(upwind_amount),
+	m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
+	m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity)
+{
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Triangle, 		CplDensityDrivenFlowElemDisc>(RET_TRIANGLE);
+	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Quadrilateral, 	CplDensityDrivenFlowElemDisc>(RET_QUADRILATERAL);
+
+	typedef void (IElemDisc<TAlgebra>::*ExpFunc)(std::vector<MathVector<dim> >&, std::vector<std::vector<MathVector<dim> > >&,
+			const std::vector<MathVector<ref_dim> >&, const local_vector_type&, bool );
+
+	IElemDisc<TAlgebra>:: template register_data_export_function<ExpFunc, MathVector<dim>, MathVector<ref_dim> >
+			(RET_TRIANGLE, 0, NULL);
+};
+
+
+template<typename TDomain, int ref_dim, typename TAlgebra>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+compute_ip_Darcy_velocity(MathVector<dim>& Darcy_vel, number c_ip, const MathVector<dim>& grad_p_ip)
+{
+	number s, viscosity_ip;
+	MathVector<dim> vel;
+	MathMatrix<dim, dim> K;
+
+	m_Density(s, c_ip);
+	m_Viscosity(viscosity_ip, c_ip);
+	m_Gravity(vel);
+	m_Permeability_Tensor(K);
+	VecScale(vel, vel, s);
+	VecSubtract(vel, vel, grad_p_ip);
+	MatVecMult(Darcy_vel, K, vel);
+	VecScale(Darcy_vel, Darcy_vel, 1./viscosity_ip);
+	return true;
+};
+
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
+inline
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
+								MathVector<dim>& Darcy_vel, MathVector<dim> D_Darcy_vel_c[], MathVector<dim> D_Darcy_vel_p[],
+								number c_ip, const MathVector<dim>& grad_p_ip)
+{
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	const int num_co = ref_elem_type::num_corners;
+	number s, mu_ip;
+	MathVector<dim> vel, gravity;
+	MathVector<dim> D_vel_c[num_co], D_vel_p[num_co];
+	MathMatrix<dim, dim> K;
+	const SD_Values<TElem, dim>& sdv = scvf.sdv();
+
+	m_Density(s, c_ip);
+	m_Gravity(gravity);
+	m_Viscosity(mu_ip, c_ip);
+	m_Permeability_Tensor(K);
+	VecScale(vel, gravity, s);
+	VecSubtract(vel, vel, grad_p_ip);
+	MatVecMult(Darcy_vel, K, vel);
+	VecScale(Darcy_vel, Darcy_vel, 1./mu_ip);
+
+	m_D_Density(s, c_ip);
+	for(int co = 0; co < num_co; ++co)
+	{
+		VecScale(D_vel_c[co], gravity, s*sdv.shape(co));
+		VecScale(D_vel_p[co], sdv.grad_global(co), -1);
+		MatVecMult(D_Darcy_vel_c[co], K, D_vel_c[co]);
+		MatVecMult(D_Darcy_vel_p[co], K, D_vel_p[co]);
+
+		VecScale(D_Darcy_vel_c[co],D_Darcy_vel_c[co],1./mu_ip);
+		VecScale(D_Darcy_vel_p[co],D_Darcy_vel_p[co],1./mu_ip);
+	}
+
+	// D_Viscosity == 0 !!!!
+	return true;
+};
+
+
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
+inline
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
-
-	// create new Geometry
-	m_geo = new FVElementGeometry<TElem, dim>();
-	assert(m_geo != NULL);
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	m_corners = new position_type[ref_elem_type::num_corners];
 
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
-	m_Darcy_Velocity_export.set_eval_function(&DataExportingClass<MathVector<dim>, MathVector<ref_elem_type::dim>,TAlgebra>::export1, this);
-	m_Darcy_Velocity_export.set_num_sh(1, 2*ref_elem_type::num_corners); //(num_sys, num_sh)
-	return IPlugInReturn_OK;
+	m_DarcyVelocity.set_eval_function(&IElemDisc<TAlgebra>::template export1<TElem>, this);
+	m_DarcyVelocity.set_num_sh(1, 2*ref_elem_type::num_corners); //(num_sys, num_sh)
+	return true;
 }
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
 finish_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
+	delete[] m_corners;
 
-	// delete Geometry
-	if(m_geo != NULL)
-		delete m_geo;
-
-	return IPlugInReturn_OK;
+	return true;
 }
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 	// load corners of this element
 	for(int i = 0; i < ref_elem_type::num_corners; ++i)
@@ -73,15 +157,15 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	}
 
 	// update Geometry for this element
-	m_geo->update(m_corners);
+	get_fvgeom<TElem>().update(m_corners);
 
 	// user function
 	m_Porosity(m_porosity);
 
 	//prepare Export for computation
-	m_Darcy_Velocity_export.set_local_solution(u);
+	m_DarcyVelocity.set_local_solution(u);
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 #define J(fct1, fct2, i, j) ( J( (ref_elem_type::num_corners)*(fct1) + i, (ref_elem_type::num_corners)*(fct2) + j) )
@@ -89,12 +173,14 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 #define u(fct, i)    ( u[ref_elem_type::num_corners*(fct) + (i)])
 
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
-assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number time)
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	const int num_co = ref_elem_type::num_corners;
 	number flux, flux_c, flux_p;
 	MathMatrix<dim,dim> D;
@@ -102,9 +188,9 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 	MathVector<dim> Darcy_vel, D_Darcy_vel_c[num_co], D_Darcy_vel_p[num_co];
 	number c_ip;
 	MathVector<dim> Dgrad;
-	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem, dim>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, dim>& scvf = get_fvgeom<TElem>().scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -196,19 +282,21 @@ assemble_element_JA(local_matrix_type& J, const local_vector_type& u, number tim
 		}
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
-assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number time)
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	int co;
-	for(size_t i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, dim>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		co = scv.local_corner_id();
 
@@ -218,25 +306,27 @@ assemble_element_JM(local_matrix_type& J, const local_vector_type& u, number tim
 		//J(_P_, _P_, co, co) += 0;
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
-assemble_element_A(local_vector_type& d, const local_vector_type& u, number time)
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	number flux;
 	MathVector<dim> grad_p_ip, grad_c_ip;
 	number c_ip;
 	MathMatrix<dim,dim> D;
 	MathVector<dim> Dgrad_c_ip;
 	MathVector<dim> Darcy_vel;
-	for(size_t i = 0; i < m_geo->num_scvf(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem, dim>& scvf = m_geo->scvf(i);
+		const SubControlVolumeFace<TElem, dim>& scvf = get_fvgeom<TElem>().scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
@@ -294,38 +384,41 @@ assemble_element_A(local_vector_type& d, const local_vector_type& u, number time
 		}
 	}
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
-assemble_element_M(local_vector_type& d, const local_vector_type& u, number time)
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	int co;
-	for(size_t i = 0; i < m_geo->num_scv(); ++i)
+	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, dim>& scv = m_geo->scv(i);
+		const SubControlVolume<TElem, dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		co = scv.local_corner_id();
 
 		d(_C_,co) += m_porosity * u(_C_,co) * scv.volume();
 		d(_P_,co) += m_porosity * scv.volume();
 	}
-	return IPlugInReturn_OK;
+	return true;
 }
 
 
-template<typename TDomain, typename TAlgebra, typename TElem >
+template<typename TDomain, int ref_dim, typename TAlgebra>
+template <typename TElem>
 inline
-IPlugInReturn
-CplDensityDrivenFlow<TDomain, TAlgebra, TElem>::
-assemble_element_f(local_vector_type& d, number time)
+bool
+CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+assemble_f(local_vector_type& d, number time)
 {
 	// Here we implement the right hand side and the boundary conditions, that do not depend on the solution
 
-	return IPlugInReturn_OK;
+	return true;
 }
 
 #undef J
@@ -334,4 +427,4 @@ assemble_element_f(local_vector_type& d, number time)
 } // namespace ug
 
 
-#endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__CPL_PLUG_IN_DISC__DENSITY_DRIVEN_FLOW__CPL_DENSITY_DRIVEN_FLOW_ASSEMBLE_IMPL__*/
+#endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__DENSITY_DRIVEN_FLOW__CPL_DENSITY_DRIVEN_FLOW_ASSEMBLE_IMPL__*/
