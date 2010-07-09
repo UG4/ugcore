@@ -28,8 +28,8 @@ DensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
 	m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
 	m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity)
 {
-	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Triangle, 		DensityDrivenFlowElemDisc>(RET_TRIANGLE);
-	IElemDisc<TAlgebra>:: template register_all_assemble_functions<Quadrilateral, 	DensityDrivenFlowElemDisc>(RET_QUADRILATERAL);
+	register_all_assemble_functions<Triangle>(RET_TRIANGLE);
+	register_all_assemble_functions<Quadrilateral>(RET_QUADRILATERAL);
 };
 
 

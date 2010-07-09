@@ -144,6 +144,23 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		bool compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
 											MathVector<dim>& Darcy_vel, MathVector<dim> D_Darcy_vel_c[], MathVector<dim> D_Darcy_vel_p[],
 											number c_ip, const MathVector<dim>& grad_p_ip);
+
+	private:
+		// help function
+		template <typename TElem>
+		void register_all_assemble_functions(int id)
+		{
+			register_num_total_sh_function(			id, &DensityDrivenFlowElemDisc::template num_total_sh<TElem>);
+			register_num_sh_function(				id, &DensityDrivenFlowElemDisc::template num_sh<TElem>);
+			register_prepare_element_loop_function(	id, &DensityDrivenFlowElemDisc::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &DensityDrivenFlowElemDisc::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &DensityDrivenFlowElemDisc::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &DensityDrivenFlowElemDisc::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &DensityDrivenFlowElemDisc::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &DensityDrivenFlowElemDisc::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &DensityDrivenFlowElemDisc::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &DensityDrivenFlowElemDisc::template assemble_f<TElem>);
+		}
 };
 
 

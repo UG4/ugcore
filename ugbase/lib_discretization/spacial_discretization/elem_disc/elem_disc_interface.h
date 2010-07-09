@@ -228,23 +228,6 @@ class IElemDisc{
 		// current Geometric Object
 		int m_id;
 
-	protected:
-		// help function to register all functions of one type at once
-		template <typename TElem, class TElemDisc>
-		void register_all_assemble_functions(int id)
-		{
-			register_num_total_sh_function(			id, &TElemDisc::template num_total_sh<TElem>);
-			register_num_sh_function(				id, &TElemDisc::template num_sh<TElem>);
-			register_prepare_element_loop_function(	id, &TElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &TElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &TElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &TElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &TElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &TElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &TElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &TElemDisc::template assemble_f<TElem>);
-		}
-
 };
 
 } // end namespace ug
