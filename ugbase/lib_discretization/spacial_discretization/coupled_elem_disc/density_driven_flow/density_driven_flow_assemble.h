@@ -62,20 +62,12 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 
 		virtual bool register_exports(DataContainer& Cont)
 		{
-			if(Cont.register_item(m_DarcyVelocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
+			if(Cont.register_item(m_DarcyVelocity) != true)	return false;
 			return true;
 		}
 		virtual bool unregister_exports(DataContainer& Cont)
 		{
-			if(Cont.unregister_item(m_DarcyVelocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
+			if(Cont.unregister_item(m_DarcyVelocity) != true) return false;
 			return true;
 		}
 
@@ -268,7 +260,8 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			typedef void (CplDensityDrivenFlowElemDisc::*ExpFunc)(std::vector<data_type>&, std::vector<std::vector<data_type> >&,
 																	const std::vector<position_type>&, const local_vector_type&, bool);
 
-			IElemDisc<TAlgebra>::template register_data_export_function<data_type, position_type, ExpFunc>(id, 0, &CplDensityDrivenFlowElemDisc::template data_export<TElem>);
+			ICoupledElemDisc<TAlgebra>::
+			template register_data_export_function<data_type, position_type, ExpFunc>(id, 0, &CplDensityDrivenFlowElemDisc::template data_export<TElem>);
 		}
 
 };

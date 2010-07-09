@@ -77,21 +77,13 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 
 		virtual bool register_imports(DataContainer& Cont)
 		{
-			if(Cont.register_item(m_Velocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
+			if(Cont.register_item(m_Velocity) != true) return false;
 			return true;
 		}
 
 		virtual bool unregister_imports(DataContainer& Cont)
 		{
-			if(Cont.unregister_item(m_Velocity) != true)
-			{
-				UG_ASSERT(0, "Must work.");
-				return false;
-			}
+			if(Cont.unregister_item(m_Velocity) != true) return false;
 			return true;
 		}
 

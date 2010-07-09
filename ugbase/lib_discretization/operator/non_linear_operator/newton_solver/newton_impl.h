@@ -196,7 +196,7 @@ apply(discrete_function_type& u)
 		number lambda = m_lambda_start;
 		number alpha = 0.25;
 		s = u;
-		UG_LOG(" ## Begin Line Search (lambda_start = " << lambda << ", alpha = " << alpha << ")\n");
+		UG_LOG(" # ++ Begin Line Search (lambda_start = " << lambda << ", alpha = " << alpha << ")\n");
 		for(int k = 1; k <= m_maxLineSearch; ++k)
 		{
 			// try on line
@@ -215,14 +215,14 @@ apply(discrete_function_type& u)
 			number rho = norm/norm_old;
 
 			// print rate
-			UG_LOG(" # s = " << k << ",  lambda = " << lambda << ", norm = " << norm << ", rho = " << rho <<"\n");
+			UG_LOG(" # +  s = " << k << ",  lambda = " << lambda << ", norm = " << norm << ", rho = " << rho <<"\n");
 
 			// check if reduction fits
 			if(rho <= 1 - alpha * fabs(lambda)) break;
 			else lambda *= m_lambda_reduce;
 
 			if(k == m_maxLineSearch)
-				{UG_LOG(" ## Line Search did not converge. Newton Solver did not converge.\n"); return false;}
+				{UG_LOG(" # ++ Line Search did not converge. Newton Solver did not converge.\n"); return false;}
 
 			// reset u
 			u = s;
@@ -231,7 +231,7 @@ apply(discrete_function_type& u)
 		//out.print("u_bcgs", u, i, i);
 
 		// print convergence rate
-		UG_LOG(" ## Line Search converged.\n");
+		UG_LOG(" # ++ Line Search converged.\n");
 		UG_LOG(" ## " << std::setw(4) << i << ":  " << std::scientific << norm << "    " << norm/norm_old << std::endl);
 
 		// remember current norm

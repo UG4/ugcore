@@ -17,7 +17,8 @@
 #include "lib_algebra/lib_algebra.h"
 
 #include "../elem_disc/elem_disc_interface.h"
-#include "./disc_coupling/element_data.h"
+#include "./disc_coupling/element_data_items.h"
+#include "./disc_coupling/element_data_container.h"
 
 namespace ug {
 
@@ -48,69 +49,78 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 		virtual bool register_imports(DataContainer& Cont) = 0;
 
 		virtual bool unregister_imports(DataContainer& Cont) = 0;
-};
 
-
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type>
-class CoupledSystem {
-	protected:
-		// type of discrete function
-		typedef TDiscreteFunction discrete_function_type;
-
-		typedef TAlgebra algebra_type;
 	public:
-		CoupledSystem(std::string name)
-			: m_name(name)
-		{};
-
-		std::string name() const {return m_name;}
-
-		inline void add_system_discretization(ICoupledElemDisc<algebra_type>& sys)
+		template <typename data_type, typename position_type>
+		void data_export(	int nr, std::vector<data_type>& val, std::vector<std::vector<data_type> >& deriv,
+							const std::vector<position_type>& pos, const local_vector_type& u, bool compDeriv)
 		{
-			m_vSystem.push_back(&sys);
-			sys.register_exports(m_ElemDataContainer);
-			sys.register_imports(m_ElemDataContainer);
+			using std::vector;
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>& val, vector<vector<data_type> >& deriv,
+															const vector<position_type>& pos, const local_vector_type& u, bool compDeriv);
+			vector<vector<ExportFunc> >& vDataExport = get_vDataExport<data_type,position_type>();
+
+			return (this->*(vDataExport[nr][IElemDisc<TAlgebra>::m_id]))(val, deriv, pos, u, compDeriv);
 		};
 
-		size_t num_sys() {return m_vSystem.size();}
-		ICoupledElemDisc<algebra_type>& sys(size_t i) {return *m_vSystem[i];}
-		DataContainer& get_elem_data_container() {return m_ElemDataContainer;}
-
-		bool print_export_possibilities(){return m_ElemDataContainer.print_export_possibilities(DCI_LINKS);}
-		bool print_exports(){return m_ElemDataContainer.print_exports(DCI_LINKS);}
-		bool print_imports(){return m_ElemDataContainer.print_imports(DCI_LINKS);};
-		bool print_linkage(){return m_ElemDataContainer.print_linkage();};
-		bool link(size_t exp, size_t imp)
-		{
-			m_ElemDataContainer.create_export(exp);
-			return m_ElemDataContainer.link(exp, imp);
-		}
-
-		virtual ~CoupledSystem(){}
 	protected:
-		// list of systems coupled by this discretization
-		std::vector<ICoupledElemDisc<algebra_type>*> m_vSystem;
 
-		// Containes the Data, that will be linked together
-		DataContainer m_ElemDataContainer;
-
-		// name of discretiztaion
-		std::string m_name;
-
-	public:
-		// TODO: NEEDED ?
-		virtual size_t num_fct() const
+		template <typename data_type, typename position_type, typename TFunc>
+		bool register_data_export_function(int id, size_t nr, TFunc func)
 		{
-			size_t num = 0;
-			for(size_t sys = 0; sys < m_vSystem.size(); ++sys)
+			using std::vector;
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, vector<vector<data_type> >&,
+															const vector<position_type>&, const local_vector_type&, bool);
+			vector<vector<ExportFunc> >& vDataExport = get_vDataExport<data_type,position_type>();
+
+			if(nr < vDataExport.size() && (size_t)id < vDataExport[nr].size() && vDataExport[nr][id] != 0)
 			{
-				num += m_vSystem[sys]->num_fct();
+				UG_LOG("Trying to register export function for id "<< id << " and nr " << nr << "twice.\n");
+				return false;
 			}
-			return num;
+
+			if((size_t)nr >= vDataExport.size())
+				vDataExport.resize(nr+1);
+
+			if((size_t)id >= vDataExport[nr].size())
+				vDataExport[nr].resize(id+1, 0);
+
+			vDataExport[nr][id] = (ExportFunc)func;
+
+			return 0;
 		}
 
+		template <typename data_type, typename position_type>
+		bool data_export_function_registered(int id, size_t nr)
+		{
+			using std::vector;
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, vector<vector<data_type> >&,
+															const vector<position_type>&, const local_vector_type&, bool);
+			vector<vector<ExportFunc> >& vDataExport = get_vDataExport<data_type,position_type>();
+
+			if(nr < vDataExport.size())
+			{
+				if(id >= 0 && (size_t)id < vDataExport[nr].size())
+				{
+					if(vDataExport[nr][id] != 0)
+						return true;
+				}
+			}
+			return false;
+		}
+
+		template <typename data_type, typename position_type>
+		std::vector<std::vector<void (ICoupledElemDisc<TAlgebra>::*)(	std::vector<data_type>&, std::vector<std::vector<data_type> >&,
+													const std::vector<position_type>&, const local_vector_type&, bool)> >& get_vDataExport()
+		{
+			using std::vector;
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, vector<vector<data_type> >&,
+															const vector<position_type>&, const local_vector_type&, bool);
+			static vector<vector<ExportFunc> > vDataExport;
+			return vDataExport;
+		};
 };
+
 
 } // end namespace ug
 

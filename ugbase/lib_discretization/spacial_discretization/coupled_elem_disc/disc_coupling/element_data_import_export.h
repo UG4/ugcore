@@ -40,10 +40,10 @@ class DataExport : public DataExportItem{
 
 	public:
 		// number of values / positions / derivatives == number of integration points
-		inline std::size_t num_ip() const {return m_positions.size();};
+		inline size_t num_ip() const {return m_positions.size();};
 
 		// return value at ip (read only, are updated by compute())
-		inline const data_type& operator[](std::size_t ip) const {
+		inline const data_type& operator[](size_t ip) const {
 			UG_ASSERT(ip < m_values.size(), "Accessing Value array at not allocated position.");
 			return m_values[ip];};
 
@@ -51,18 +51,18 @@ class DataExport : public DataExportItem{
 		inline const std::vector<data_type>& values() const	{return m_values;}
 
 		// return value of derivative with respect to unknown k at ip (read only, are updated by compute())
-		inline const data_type& operator()(std::size_t loc_sys, std::size_t ip, std::size_t k) const {
+		inline const data_type& operator()(size_t loc_sys, size_t ip, size_t k) const {
 			UG_ASSERT(loc_sys < m_derivatives.size(), "Accessing Derivative array at not allocated position: sys = " << loc_sys);
 			UG_ASSERT(ip < m_derivatives[loc_sys].size(), "Accessing Derivative array at not allocated position ip = " << ip);
 			UG_ASSERT(k < m_derivatives[loc_sys][ip].size(), "Accessing Derivative array at not allocated position k = " << k);
 			return m_derivatives[loc_sys][ip][k];};
 
-		inline const std::vector<std::vector<data_type> >& derivatives(std::size_t loc_sys) const {
+		inline const std::vector<std::vector<data_type> >& derivatives(size_t loc_sys) const {
 			UG_ASSERT(loc_sys < m_derivatives.size(), "Accessing Derivative array at not allocated position: sys = " << loc_sys);
 			return m_derivatives[loc_sys];}
 
 		// return position number i (read only, are induced by import)
-		inline const position_type& position(std::size_t ip) const {
+		inline const position_type& position(size_t ip) const {
 			UG_ASSERT(ip < m_positions.size(), "Accessing Position array at not allocated position.");
 			return m_positions[ip];};
 
@@ -105,22 +105,22 @@ class DataExport : public DataExportItem{
 	// Import (Linker) side
 	public:
 		// number of data exports linked by this linker
-		virtual std::size_t num_data_exports() const {return 0;};
+		virtual size_t num_data_exports() const {return 0;};
 
 		// name of import i
-		virtual std::string import_name(std::size_t) const {return "";};
+		virtual std::string import_name(size_t) const {return "";};
 
 		// add a Data Export number i
-		virtual bool link_data_export(std::size_t i, DataExportItem* exportItem) {return false;};
+		virtual bool link_data_export(size_t i, DataExportItem* exportItem) {return false;};
 
 		// remove Data Export number i
-		virtual bool clear_data_export(std::size_t i) {return false;};
+		virtual bool clear_data_export(size_t i) {return false;};
 
 		// get registered export of slot i
-		virtual const DataExportItem* get_data_export(std::size_t i) const {return NULL;};
+		virtual const DataExportItem* get_data_export(size_t i) const {return NULL;};
 
 		// return if an export is set at slot i
-		virtual bool is_linked(std::size_t i) const {return false;};
+		virtual bool is_linked(size_t i) const {return false;};
 
 		// return if all exports are set
 		virtual bool is_linked() const {return false;};
@@ -149,10 +149,10 @@ class DataImportPosition : public DataImportItem {
 			{m_positions.clear();};
 
 		// number of values / positions / derivatives == number of integration points (num_ip)
-		inline std::size_t num_ip() const {return m_positions.size();};
+		inline size_t num_ip() const {return m_positions.size();};
 
 		// return position number i (read only, are induced by import)
-		inline const position_type& position(std::size_t ip) const {
+		inline const position_type& position(size_t ip) const {
 			UG_ASSERT(ip < m_positions.size(), "Accessing Position array at not allocated position.");
 			return m_positions[ip];};
 
@@ -194,10 +194,10 @@ class DataImport : public DataImportPosition<TPositionType> {
 			{m_linearized_defect.clear();};
 
 		// number of equations the data is provided for (num_eq)
-		inline std::size_t num_eq() const {return m_linearized_defect.size();};
+		inline size_t num_eq() const {return m_linearized_defect.size();};
 
 		// return value at ip (read only, are updated by compute())
-		inline const data_type& operator[](std::size_t ip) const
+		inline const data_type& operator[](size_t ip) const
 			{UG_ASSERT(m_Export != NULL, "No Export set.");
 			 return m_Export->operator[](ip);};
 
@@ -208,25 +208,25 @@ class DataImport : public DataImportPosition<TPositionType> {
 		}
 
 		// return vector of values
-		inline const std::vector<std::vector<data_type> >& derivatives(std::size_t loc_sys) const
+		inline const std::vector<std::vector<data_type> >& derivatives(size_t loc_sys) const
 		{UG_ASSERT(m_Export != NULL, "No Export set.");
 			return m_Export->derivatives(loc_sys);
 		}
 
 		// return value of derivative with respect to unknown k at ip (read only, are updated by compute())
-		inline const data_type& operator()(std::size_t sys, std::size_t ip, std::size_t k) const
+		inline const data_type& operator()(size_t sys, size_t ip, size_t k) const
 			{UG_ASSERT(m_Export != NULL, "No Export set.");
 			return m_Export->operator()(sys, ip, k);};
 
 		// linearized defect (with respect to import) for the j'th local defect and position ip
-		inline data_type& lin_defect(std::size_t j, std::size_t ip){
+		inline data_type& lin_defect(size_t j, size_t ip){
 			UG_ASSERT(ip < m_linearized_defect[j].size(), "Accessing Global Index Array at position, that is not allocated.");
 			UG_ASSERT(j < m_linearized_defect.size(), "Accessing Global Index Array at position, that is not allocated.");
 			return m_linearized_defect[j][ip];
 		}
 
 		// linearized defect (with respect to import) for the j'th local defect and position ip
-		inline const data_type& lin_defect(std::size_t j, std::size_t ip) const {
+		inline const data_type& lin_defect(size_t j, size_t ip) const {
 			UG_ASSERT(ip < m_linearized_defect[j].size(), "Accessing Global Index Array at position, that is not allocated.");
 			UG_ASSERT(j < m_linearized_defect.size(), "Accessing Global Index Array at position, that is not allocated.");
 			return m_linearized_defect[j][ip];
@@ -254,7 +254,7 @@ class DataImport : public DataImportPosition<TPositionType> {
 		virtual bool set_positions(const std::vector<position_type>& pos, bool overwrite = false);
 
 		// set number of equations the defect is provided for
-		bool set_num_eq(std::size_t num_eq);
+		bool set_num_eq(size_t num_eq);
 
 		~DataImport();
 
@@ -274,7 +274,7 @@ class DataImport : public DataImportPosition<TPositionType> {
 
 	protected:
 		// number of equations the defect is provided for
-		std::size_t m_num_eq;
+		size_t m_num_eq;
 
 		// linearization of defect of equation s for ip (defect is considered as function of this import, and linearized at given current solution)
 		// (size: (0, ... , num_ip-1) x (0, ... , num_eq) )

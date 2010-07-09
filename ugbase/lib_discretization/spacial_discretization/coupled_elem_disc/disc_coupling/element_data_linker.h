@@ -65,7 +65,7 @@ struct LinkFunctionType<TDataType, TPos, T0,T1,T2,T3,T4, 5>
 	typedef void (*LinkValueFunction)(std::vector<TDataType>&,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&, const DataImport<T2, TPos>&, const DataImport<T3, TPos>&, const DataImport<T4, TPos>&);
 
-	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, std::size_t glob_sys,
+	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, size_t glob_sys,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&, const DataImport<T2, TPos>&, const DataImport<T3, TPos>&, const DataImport<T4, TPos>&);
 };
 
@@ -76,7 +76,7 @@ struct LinkFunctionType<TDataType, TPos,  T0,T1,T2,T3,T4, 4>
 	typedef void (*LinkValueFunction)(std::vector<TDataType>&,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&, const DataImport<T2, TPos>&, const DataImport<T3, TPos>&);
 
-	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, std::size_t glob_sys,
+	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, size_t glob_sys,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&, const DataImport<T2, TPos>&, const DataImport<T3, TPos>&);
 };
 
@@ -87,7 +87,7 @@ struct LinkFunctionType<TDataType, TPos,  T0,T1,T2,T3,T4, 3>
 	typedef void (*LinkValueFunction)(std::vector<TDataType>&,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&, const DataImport<T2, TPos>&);
 
-	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, std::size_t glob_sys,
+	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, size_t glob_sys,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&, const DataImport<T2, TPos>&);
 };
 
@@ -98,7 +98,7 @@ struct LinkFunctionType<TDataType, TPos,  T0,T1,T2,T3,T4, 2>
 	typedef void (*LinkValueFunction)(std::vector<TDataType>&,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&);
 
-	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, std::size_t glob_sys,
+	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, size_t glob_sys,
 										const DataImport<T0, TPos>&, const DataImport<T1, TPos>&);
 };
 
@@ -109,7 +109,7 @@ struct LinkFunctionType<TDataType, TPos,  T0,T1,T2,T3,T4, 1>
 	typedef void (*LinkValueFunction)(std::vector<TDataType>&,
 										const DataImport<T0, TPos>&);
 
-	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, std::size_t glob_sys,
+	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, size_t glob_sys,
 										const DataImport<T0, TPos>&);
 };
 
@@ -119,7 +119,7 @@ struct LinkFunctionType<TDataType, TPos,  T0,T1,T2,T3,T4, 0>
 {
 	typedef void (*LinkValueFunction)(std::vector<TDataType>&);
 
-	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, std::size_t glob_sys);
+	typedef void (*LinkDerivativeFunction)(std::vector<std::vector<TDataType> >&, size_t glob_sys);
 };
 
 // predeclaration
@@ -135,7 +135,7 @@ template <typename TDataType, typename TPositionType,  typename T0, typename T1,
 struct InvokeClass<TDataType, TPositionType,  T0,T1,T2,T3,T4, 0>{public:
 	void compute_values(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me)
 	{me->m_linkValueFunction(me->m_values);	}
-	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, std::size_t sys)
+	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, size_t sys)
 	{}
 };
 
@@ -144,7 +144,7 @@ template <typename TDataType, typename TPositionType,  typename T0, typename T1,
 struct InvokeClass<TDataType, TPositionType,  T0,T1,T2,T3,T4, 1>{public:
 	void compute_values(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me)
 	{me->m_linkValueFunction(me->m_values, me->m_import0);	}
-	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, std::size_t sys)
+	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, size_t sys)
 	{me->m_linkDerivativeFunction((me->m_derivatives)[sys], sys, me->m_import0);	}
 };
 
@@ -153,7 +153,7 @@ template <typename TDataType, typename TPositionType,  typename T0, typename T1,
 struct InvokeClass<TDataType, TPositionType,  T0,T1,T2,T3,T4, 2>{public:
 	void compute_values(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me)
 	{me->m_linkValueFunction(me->m_values, me->m_import0, me->m_import1);	}
-	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, std::size_t sys)
+	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, size_t sys)
 	{me->m_linkDerivativeFunction((me->m_derivatives)[sys], sys, me->m_import0, me->m_import1);};
 };
 
@@ -162,7 +162,7 @@ template <typename TDataType, typename TPositionType,  typename T0, typename T1,
 struct InvokeClass<TDataType, TPositionType,  T0,T1,T2,T3,T4, 3>{public:
 	void compute_values(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me)
 	{me->m_linkValueFunction(me->m_values, me->m_import0, me->m_import1, me->m_import2);	}
-	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, std::size_t sys)
+	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, size_t sys)
 	{me->m_linkDerivativeFunction((me->m_derivatives)[sys], sys, me->m_import0, me->m_import1, me->m_import2);};
 };
 
@@ -171,7 +171,7 @@ template <typename TDataType, typename TPositionType,  typename T0, typename T1,
 struct InvokeClass<TDataType, TPositionType,  T0,T1,T2,T3,T4, 4>{public:
 	void compute_values(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me)
 	{me->m_linkValueFunction(me->m_values, me->m_import0, me->m_import1, me->m_import2, me->m_import3);	}
-	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, std::size_t sys)
+	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, size_t sys)
 	{me->m_linkDerivativeFunction((me->m_derivatives)[sys], sys, me->m_import0, me->m_import1, me->m_import2, me->m_import3);};
 };
 
@@ -180,7 +180,7 @@ template <typename TDataType, typename TPositionType,  typename T0, typename T1,
 struct InvokeClass<TDataType, TPositionType,  T0,T1,T2,T3,T4, 5>{public:
 	void compute_values(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me)
 	{me->m_linkValueFunction(me->m_values, me->m_import0, me->m_import1, me->m_import2, me->m_import3, me->m_import4);	}
-	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, std::size_t sys)
+	void compute_derivatives(DataLinker<TDataType, TPositionType,  T0,T1,T2,T3,T4>* me, size_t sys)
 	{me->m_linkDerivativeFunction((me->m_derivatives)[sys], sys, me->m_import0, me->m_import1, me->m_import2, me->m_import3, me->m_import4); };
 };
 
@@ -215,7 +215,7 @@ class DataLinkerPossibility : public DataPossibilityItem {
 			return dynamic_cast<DataExportItem*>(linker);
 		}
 
-		bool link(DataPossibilityItem* posItem, std::size_t slot)
+		bool link(DataPossibilityItem* posItem, size_t slot)
 		{
 			if(!(slot < InTypeList::length))
 			{
@@ -260,7 +260,7 @@ class DataLinkerPossibility : public DataPossibilityItem {
 		const LinkValueFunction get_eval_function() const {return m_valueFunction;};
 
 	protected:
-		const std::type_info* data_type(std::size_t slot)
+		const std::type_info* data_type(size_t slot)
 		{
 			switch(slot)
 			{
@@ -327,7 +327,7 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 			if(computeDerivatives)
 			{
 				UG_DLOG(LIB_DISC_LINKER, 2, "DataLinker::compute: Compute Derivatives w.r.t " << this->num_sys() << " system(s).\n");
-				for(std::size_t sys = 0; sys < this->num_sys(); ++sys)
+				for(size_t sys = 0; sys < this->num_sys(); ++sys)
 				{
 					UG_DLOG(LIB_DISC_LINKER, 2, "DataLinker::compute: Compute derivatives w.r.t system " << this->sys(sys) << ".\n");
 					m_Invoke.compute_derivatives(this, sys);
@@ -349,17 +349,17 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 
 			UG_DLOG(LIB_DISC_LINKER, 2, "DataLinker::reset_derivative_array: Checking " << num_slots() << " own imports.\n");
 			// get all systems this linker depends on and remember num_sh of each sys
-			for(std::size_t i = 0; i < num_slots();  ++i)
+			for(size_t i = 0; i < num_slots();  ++i)
 			{
-				std::size_t num_sys = m_impItem[i]->num_sys();
+				size_t num_sys = m_impItem[i]->num_sys();
 				UG_DLOG(LIB_DISC_LINKER, 2, "DataLinker::reset_derivative_array: Checking import " << i << ", num_sys = " << num_sys << ".\n");
-				for(std::size_t s = 0; s < num_sys; ++s)
+				for(size_t s = 0; s < num_sys; ++s)
 				{
-					std::size_t t = m_impItem[i]->sys(s);
-					std::size_t num_sh = m_impItem[i]->num_sh(s);
+					size_t t = m_impItem[i]->sys(s);
+					size_t num_sh = m_impItem[i]->num_sh(s);
 					UG_DLOG(LIB_DISC_LINKER, 2, "DataLinker::reset_derivative_array: Adding system " << t << " with " << num_sh << " unknowns (if not already added).\n");
 
-					std::vector<std::size_t>::iterator it, it_num;
+					std::vector<size_t>::iterator it, it_num;
 
 					if(this->m_sys.empty())
 					{
@@ -402,11 +402,11 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 			m_max_sh = 0;
 			this->m_values.resize(this->num_ip());
 			this->m_derivatives.resize(this->num_sys());
-			for(std::size_t s = 0; s < this->num_sys(); ++s)
+			for(size_t s = 0; s < this->num_sys(); ++s)
 			{
 				m_max_sh = (this->num_sh(s) > m_max_sh) ? this->num_sh(s) : m_max_sh;
 				this->m_derivatives[s].resize(this->num_ip());
-				for(std::size_t ip = 0; ip < this->m_derivatives[s].size(); ++ip)
+				for(size_t ip = 0; ip < this->m_derivatives[s].size(); ++ip)
 				{
 					this->m_derivatives[s][ip].resize(this->num_sh(s));
 				}
@@ -416,12 +416,12 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 		}
 
 		// number of data exports linked by this linker
-		virtual std::size_t num_slots() const {	return InTypeList::length;}
+		virtual size_t num_slots() const {	return InTypeList::length;}
 
-		virtual std::string slot_name(std::size_t slot) const{ return m_impItem[slot]->name();}
+		virtual std::string slot_name(size_t slot) const{ return m_impItem[slot]->name();}
 
 		// add a Data Export number i
-		virtual bool link(DataExportItem* Export, std::size_t slot)
+		virtual bool link(DataExportItem* Export, size_t slot)
 		{
 			UG_ASSERT(slot < num_slots(), "Access to slot 'slot', but linker has not so many slots.");
 
@@ -441,14 +441,14 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 		}
 
 		// remove Data Export number i
-		virtual bool clear_slot(std::size_t slot)
+		virtual bool clear_slot(size_t slot)
 		{
 			UG_ASSERT(slot < num_slots(), "Access to slot 'slot', but linker has not so many slots.");
 			return m_impItem[slot]->clear_data_export();
 		}
 
 		// return if an export is set at slot i
-		virtual bool is_linked(std::size_t slot) const
+		virtual bool is_linked(size_t slot) const
 		{
 			UG_ASSERT(slot < num_slots(), "Access to slot 'slot', but linker has not so many slots.");
 			return m_impItem[slot]->is_linked();
@@ -457,7 +457,7 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 		// return if all exports are set
 		virtual bool is_linked() const
 		{
-			for(std::size_t i = 0; i < num_slots(); ++i)
+			for(size_t i = 0; i < num_slots(); ++i)
 			{
 				if(is_linked(i) == false) return false;
 			}
@@ -467,7 +467,7 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 		// help function: is called to set values in linker imports as well
 		virtual bool set_linker_positions(const std::vector<position_type>& positions)
 		{
-			for(std::size_t i = 0; i < num_slots(); ++i)
+			for(size_t i = 0; i < num_slots(); ++i)
 			{
 				dynamic_cast<DataImportPosition<TPositionType>*>(m_impItem[i])->set_positions(positions);
 			}
@@ -475,7 +475,7 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 		};
 
 		// get registered export of slot i
-		virtual const DataExportItem* get_data_export(std::size_t slot) const
+		virtual const DataExportItem* get_data_export(size_t slot) const
 		{
 			UG_ASSERT(slot < num_slots(), "Access to slot i, but linker has not so many slots.");
 
@@ -486,7 +486,7 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 		LinkValueFunction m_linkValueFunction;
 		LinkDerivativeFunction m_linkDerivativeFunction;
 
-		std::size_t m_max_sh;
+		size_t m_max_sh;
 
 		DataImportItem* m_impItem[5];
 

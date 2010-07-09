@@ -44,21 +44,21 @@ class DataContainer {
 		bool unregister_item(DataExportItem& ExportItem);
 
 	public:
-		bool link_possibility(DataPossibilityItem& posItem1, std::size_t slot, DataPossibilityItem& posItem2);
-		bool link_possibility(std::size_t nr_pos1, std::size_t slot, std::size_t nr_pos2);
+		bool link_possibility(DataPossibilityItem& posItem1, size_t slot, DataPossibilityItem& posItem2);
+		bool link_possibility(size_t nr_pos1, size_t slot, size_t nr_pos2);
 
 		// create an instance of the Data Possibility (called DataExport)
 		DataExportItem* create_export(DataPossibilityItem& PossibilityItem);
-		DataExportItem* create_export(std::size_t nr_pos);
+		DataExportItem* create_export(size_t nr_pos);
 		bool create_export_recursive(DataPossibilityItem& PossibilityItem, DataExportItem& expItem);
 
 		// linking
 		bool link(DataImportItem& ImportItem, DataExportItem& ExportItem);
-		bool link(DataExportItem& Export1Item, std::size_t slot, DataExportItem& Export2Item);
+		bool link(DataExportItem& Export1Item, size_t slot, DataExportItem& Export2Item);
 
 		// linking by number
-		bool link(std::size_t nr_imp, std::size_t nr_exp);
-		bool link(std::size_t nr_exp1, std::size_t slot, std::size_t nr_exp2);
+		bool link(size_t nr_imp, size_t nr_exp);
+		bool link(size_t nr_exp1, size_t slot, size_t nr_exp2);
 
 		// identify exports: Those from same ExportPossibility that have the same positions
 		// Afterwards only one export of each type exist and all imports are linked to this one,

@@ -19,7 +19,7 @@ DataContainer::
 	UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::~DataContainer: Deleting Data Container.\n");
 
 	// delete export items
-	for(std::size_t i = 0; i < m_exportItemList.size(); ++i)
+	for(size_t i = 0; i < m_exportItemList.size(); ++i)
 	{
 		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::~DataContainer: Deleting ExportItem '" << m_exportItemList[i]->name() << "' [" << i << "].\n");
 		delete m_exportItemList[i];
@@ -126,7 +126,7 @@ unregister_item(DataPossibilityItem& PossibilityItem)
 	}
 
 	UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::unregister_item: Deleting " << PossibilityItem.num_created_data_export_items()<<" Data Export created by Data Possibility " << PossibilityItem.name() << ".\n");
-	for(std::size_t i = 0; i < PossibilityItem.num_created_data_export_items(); ++i)
+	for(size_t i = 0; i < PossibilityItem.num_created_data_export_items(); ++i)
 	{
 		unregister_item(*PossibilityItem.get_created_data_export_item(i));
 	}
@@ -140,7 +140,7 @@ unregister_item(DataPossibilityItem& PossibilityItem)
 ////////////////////////////////
 bool
 DataContainer::
-link_possibility(std::size_t nr_pos1, std::size_t slot, std::size_t nr_pos2)
+link_possibility(size_t nr_pos1, size_t slot, size_t nr_pos2)
 {
 	// check if linking is possible
 	if(nr_pos1 >= m_possibilityItemList.size()) return false;
@@ -151,7 +151,7 @@ link_possibility(std::size_t nr_pos1, std::size_t slot, std::size_t nr_pos2)
 
 bool
 DataContainer::
-link_possibility(DataPossibilityItem& posItem1, std::size_t slot, DataPossibilityItem& posItem2)
+link_possibility(DataPossibilityItem& posItem1, size_t slot, DataPossibilityItem& posItem2)
 {
 	std::vector<DataPossibilityItem*>::iterator posIter;
 
@@ -192,7 +192,7 @@ link_possibility(DataPossibilityItem& posItem1, std::size_t slot, DataPossibilit
 
 bool
 DataContainer::
-link(std::size_t nr_imp, std::size_t nr_exp)
+link(size_t nr_imp, size_t nr_exp)
 {
 	// check if linking is possible
 	if(nr_imp >= m_importItemList.size())
@@ -205,7 +205,7 @@ link(std::size_t nr_imp, std::size_t nr_exp)
 
 bool
 DataContainer::
-link(std::size_t nr_exp1, std::size_t slot, std::size_t nr_exp2)
+link(size_t nr_exp1, size_t slot, size_t nr_exp2)
 {
 	// check if linking is possible
 	if(nr_exp1 >= m_exportItemList.size()) return false;
@@ -216,7 +216,7 @@ link(std::size_t nr_exp1, std::size_t slot, std::size_t nr_exp2)
 
 bool
 DataContainer::
-link(DataExportItem& Export1Item, std::size_t slot, DataExportItem& Export2Item)
+link(DataExportItem& Export1Item, size_t slot, DataExportItem& Export2Item)
 {
 	std::vector<DataExportItem*>::iterator expIter;
 
@@ -296,7 +296,7 @@ link(DataImportItem& ImportItem, DataExportItem& ExportItem)
 
 DataExportItem*
 DataContainer::
-create_export(std::size_t nr_pos)
+create_export(size_t nr_pos)
 {
 	// check if creation is possible
 	if(nr_pos >= m_possibilityItemList.size()) return false;
@@ -343,7 +343,7 @@ bool
 DataContainer::
 create_export_recursive(DataPossibilityItem& PossibilityItem, DataExportItem& exp)
 {
-	for(std::size_t i = 0; i < PossibilityItem.num_slots(); ++i)
+	for(size_t i = 0; i < PossibilityItem.num_slots(); ++i)
 	{
 		UG_ASSERT(PossibilityItem.is_linked(i) == true, "Can only create recursively from Possibility if all slots are linked.");
 		DataPossibilityItem* slotPos = PossibilityItem.get_linked_possibility(i);
@@ -428,7 +428,7 @@ identify_exports()
 				UG_DLOG(LIB_DISC_LINKER, 3, "DataContainer::identify_exports:  ---- Equal exports detected: '" << exp->name() << "' [" << find_nr(exp) << "] == '"<< expCopy->name() << "' [" << find_nr(expCopy) << "]  .\n");
 
 				// link all imports to the original
-				for(std::size_t i = 0; i < expCopy->num_data_imports(); ++i)
+				for(size_t i = 0; i < expCopy->num_data_imports(); ++i)
 				{
 					// get data import i
 					DataImportItem* imp = expCopy->get_data_import(i);
@@ -477,12 +477,12 @@ clear_identification()
 		DataExportItem* exp = *iter;
 		UG_ASSERT(exp != NULL, "Export must exist, but does not. Internal error.");
 
-		std::size_t num_imports;
+		size_t num_imports;
 		// if this export has more than on import registered
 		if((num_imports = exp->num_data_imports()) > 1)
 		{
 			// loop over registered imports, except first one
-			for(std::size_t i = num_imports - 1; i != 0; --i)
+			for(size_t i = num_imports - 1; i != 0; --i)
 			{
 				// get data import
 				DataImportItem* imp = exp->get_data_import(i);
@@ -529,7 +529,7 @@ void
 DataContainer::
 compute(bool compute_derivatives)
 {
-	for(std::size_t i=0; i < m_exportItemList.size(); ++i)
+	for(size_t i=0; i < m_exportItemList.size(); ++i)
 	{
 		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::compute: Computing Export '" << m_exportItemList[i]->name() << "' [" << i << "] ...");
 		m_exportItemList[i]->compute(compute_derivatives);
@@ -568,7 +568,7 @@ print_export_possibilities(DataContainerInfoType type)
 				UG_LOG("\n");
 			}
 
-			for(std::size_t slot = 0; slot < pos->num_slots(); ++slot)
+			for(size_t slot = 0; slot < pos->num_slots(); ++slot)
 			{
 				if(slot==0) offset = " ";
 				else offset = std::string(output.size() - 3, ' ');
@@ -604,7 +604,7 @@ print_export_possibilities(const DataPossibilityItem* pos, std::string output)
 		return true;
 	}
 
-	for(std::size_t i = 0; i < pos->num_slots(); ++i)
+	for(size_t i = 0; i < pos->num_slots(); ++i)
 	{
 		if(i==0) offset = " ";
 		else offset = std::string(output.size() + 1, ' ');
@@ -666,7 +666,7 @@ print_linkage(const DataExportItem* exp, std::string output)
 		return true;
 	}
 
-	for(std::size_t i = 0; i < exp->num_slots(); ++i)
+	for(size_t i = 0; i < exp->num_slots(); ++i)
 	{
 		if(i==0) offset = " ";
 		else offset = std::string(output.size() + 1, ' ');
@@ -756,11 +756,11 @@ print_linker_imports(DataContainerInfoType type)
 
 	// Imports
 	UG_LOG("\n   Linker (Imports): " << m_exportItemList.size() << "\n");
-	for(std::size_t l=0; l < m_exportItemList.size(); ++l)
+	for(size_t l=0; l < m_exportItemList.size(); ++l)
 	{
 		UG_LOG("   # [" << l << "] " << m_exportItemList[l]->name() << " [" << m_exportItemList[l]->num_slots() <<" Slot(s)]");
 
-		for(std::size_t i = 0; i < m_exportItemList[l]->num_slots(); ++i)
+		for(size_t i = 0; i < m_exportItemList[l]->num_slots(); ++i)
 		{
 			UG_LOG("\n           | " <<  m_exportItemList[l]->slot_name(i) << " -<   ");
 		}

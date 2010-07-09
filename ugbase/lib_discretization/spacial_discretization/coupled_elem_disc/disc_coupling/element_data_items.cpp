@@ -21,11 +21,11 @@ delete_data_export(DataExportItem* exportItem)
 
 bool
 DataPossibilityItem::
-clear_slot(std::size_t slot) {
+clear_slot(size_t slot) {
 	UG_ASSERT(slot < m_num_slots, "Slot does not exist.");
 
 	// remove from all possibilities slots this possibility is linked to.
-	for(std::size_t i = 0; i < m_linkedPosItems.size(); ++i)
+	for(size_t i = 0; i < m_linkedPosItems.size(); ++i)
 	{
 		if((m_linkedPosItems[i].item)->clear_slot(m_linkedPosItems[i].slot) != true) return false;
 	}
@@ -58,7 +58,7 @@ bool
 DataPossibilityItem::
 remove_linked_possibility(LinkedPossibility& linkedPos)
 {
-	for(std::size_t i = 0; i < m_linkedPosItems.size(); ++i)
+	for(size_t i = 0; i < m_linkedPosItems.size(); ++i)
 	{
 		if(m_linkedPosItems[i].item == linkedPos.item)
 		{

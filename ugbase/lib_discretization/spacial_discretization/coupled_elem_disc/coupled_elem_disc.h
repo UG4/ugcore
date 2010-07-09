@@ -17,6 +17,8 @@
 
 #include "./disc_coupling/element_data.h"
 
+#include "./coupled_system.h"
+
 #include "./convection_diffusion_equation/convection_diffusion_assemble.h"
 #include "./density_driven_flow/density_driven_flow_assemble.h"
 

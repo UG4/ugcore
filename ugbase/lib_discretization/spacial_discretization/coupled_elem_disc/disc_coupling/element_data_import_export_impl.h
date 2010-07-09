@@ -113,9 +113,9 @@ remove_data_import(DataImportItem* importItem)
 	{
 		m_positions.clear();
 		m_values.clear();
-		for(std::size_t s = 0; s < m_derivatives.size(); ++s)
+		for(size_t s = 0; s < m_derivatives.size(); ++s)
 		{
-			for(std::size_t ip = 0; ip < m_derivatives[s].size(); ++ip)
+			for(size_t ip = 0; ip < m_derivatives[s].size(); ++ip)
 			{
 				m_derivatives[s][ip].clear();
 			}
@@ -144,10 +144,10 @@ set_positions(const std::vector<position_type>& positions, bool overwrite)
 
 		UG_DLOG(LIB_DISC_LINKER, 3, "DataExport::set_positions: Resize derivatives array to size " << this->num_sys() <<" x " << this->num_ip() << " x num_sh(s) for each system s.\n");
 		m_derivatives.resize(this->num_sys());
-		for(std::size_t s = 0; s < this->num_sys(); ++s)
+		for(size_t s = 0; s < this->num_sys(); ++s)
 		{
 			m_derivatives[s].resize(this->num_ip());
-			for(std::size_t ip = 0; ip < m_derivatives[s].size(); ++ip)
+			for(size_t ip = 0; ip < m_derivatives[s].size(); ++ip)
 			{
 				m_derivatives[s][ip].resize(num_sh(s));
 			}
@@ -202,7 +202,7 @@ equal(const DataExportItem& v) const
 	if(this->num_ip() != cast_v->num_ip()) return false;
 
 	// check each position
-	for(std::size_t ip = 0; ip < this->num_ip(); ++ip)
+	for(size_t ip = 0; ip < this->num_ip(); ++ip)
 	{
 		if(m_positions[ip] != cast_v->m_positions[ip]) return false;
 	}
@@ -215,7 +215,7 @@ bool
 DataExport<TDataType, TPositionType>::
 print_positions() const
 {
-	for(std::size_t ip = 0; ip < this->num_ip(); ++ip)
+	for(size_t ip = 0; ip < this->num_ip(); ++ip)
 	{
 		UG_LOG(m_positions[ip]);
 		if(ip != this->num_ip() - 1) UG_LOG(", ");
@@ -228,7 +228,7 @@ bool
 DataExport<TDataType, TPositionType>::
 print_values() const
 {
-	for(std::size_t ip = 0; ip < this->num_ip(); ++ip)
+	for(size_t ip = 0; ip < this->num_ip(); ++ip)
 	{
 		UG_LOG(operator[](ip));
 		if(ip != this->num_ip() - 1) UG_LOG(", ");
@@ -242,16 +242,16 @@ DataExport<TDataType, TPositionType>::
 print_derivatives(std::string offset) const
 {
 	UG_LOG("Depending on "<< this->num_sys()<< " systems.\n");
-	for(std::size_t s = 0; s < this->num_sys(); ++s)
+	for(size_t s = 0; s < this->num_sys(); ++s)
 	{
 		UG_LOG(offset << "w.r.t. sys = " << sys(s) << ": ");
 
-		for(std::size_t k = 0; k < num_sh(s); ++k)
+		for(size_t k = 0; k < num_sh(s); ++k)
 		{
 			if(k==0) {UG_LOG(" k="<< k<< ": [ ");}
 			else {UG_LOG(offset << "                 k="<< k<< ": [ ");};
 
-			for(std::size_t ip = 0; ip < this->num_ip(); ++ip)
+			for(size_t ip = 0; ip < this->num_ip(); ++ip)
 			{
 				{
 					UG_LOG(operator()(s,ip,k));
@@ -303,7 +303,7 @@ set_positions(const std::vector<position_type>& pos, bool overwrite)
 	this->m_positions = pos;
 
 	// adjust lin defect array for ip's
-	for(std::size_t i = 0; i < m_linearized_defect.size(); ++i)
+	for(size_t i = 0; i < m_linearized_defect.size(); ++i)
 	{
 		m_linearized_defect[i].resize(this->num_ip());
 	}
@@ -334,13 +334,13 @@ set_positions(const std::vector<position_type>& pos, bool overwrite)
 template<typename TDataType, typename TPositionType>
 bool
 DataImport<TDataType, TPositionType>::
-set_num_eq(std::size_t num_eq)
+set_num_eq(size_t num_eq)
 {
 	m_num_eq = num_eq;
 
 	m_linearized_defect.resize(m_num_eq);
 
-	for(std::size_t i = 0; i < m_linearized_defect.size(); ++i)
+	for(size_t i = 0; i < m_linearized_defect.size(); ++i)
 	{
 		m_linearized_defect[i].resize(this->num_ip());
 	}
@@ -426,7 +426,7 @@ bool
 DataImport<TDataType, TPositionType>::
 print_positions() const
 {
-	for(std::size_t ip = 0; ip < this->num_ip(); ++ip)
+	for(size_t ip = 0; ip < this->num_ip(); ++ip)
 	{
 		UG_LOG(this->m_positions[ip]);
 		if(ip != this->num_ip() - 1) UG_LOG(", ");
@@ -445,7 +445,7 @@ print_values() const
 		return true;
 	}
 
-	for(std::size_t ip = 0; ip < this->num_ip(); ++ip)
+	for(size_t ip = 0; ip < this->num_ip(); ++ip)
 	{
 		UG_LOG(this->operator[](ip));
 		if(ip != this->num_ip() - 1) UG_LOG(", ");
@@ -465,13 +465,13 @@ print_derivatives(std::string offset) const
 	}
 
 	UG_LOG("Depending on "<< this->num_sys()<< " systems.\n");
-	for(std::size_t s = 0; s < this->num_sys(); ++s)
+	for(size_t s = 0; s < this->num_sys(); ++s)
 	{
-		for(std::size_t k = 0; k < this->num_sh(s); ++k)
+		for(size_t k = 0; k < this->num_sh(s); ++k)
 		{
 			UG_LOG(offset << "w.r.t.: sys = " << this->sys(s) <<", k="<< k<< ": [ ");
 
-			for(std::size_t ip = 0; ip < this->num_ip(); ++ip)
+			for(size_t ip = 0; ip < this->num_ip(); ++ip)
 			{
 				{
 					UG_LOG(this->operator()(s, ip, k));
@@ -498,7 +498,7 @@ print_info(std::string offset) const
 template <typename TDataType, typename TPositionType, typename TAlgebra>
 std::ostream& operator<<(std::ostream& out, const DataImport<TDataType, TPositionType>& data)
 {
-	for(std::size_t ip = 0; ip < data.num_ip(); ++ip)
+	for(size_t ip = 0; ip < data.num_ip(); ++ip)
 	{
 		out << data[ip];
 		if(ip != data.num_ip() - 1) out << ", ";

@@ -24,20 +24,13 @@ CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
 CplDensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
 								Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
 								Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity)
-: 	m_DarcyVelocity("Darcy Velocity"),
+: 	m_DarcyVelocity("Darcy Velocity", this, 0),
 	m_domain(domain), m_upwind_amount(upwind_amount),
 	m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
 	m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity)
 {
 	register_all_assemble_functions<Triangle>(RET_TRIANGLE);
 	register_all_assemble_functions<Quadrilateral>(RET_QUADRILATERAL);
-
-/*	typedef void (IElemDisc<TAlgebra>::*ExpFunc)(std::vector<MathVector<dim> >&, std::vector<std::vector<MathVector<dim> > >&,
-			const std::vector<MathVector<ref_dim> >&, const local_vector_type&, bool );
-
-	IElemDisc<TAlgebra>:: template register_data_export_function<ExpFunc, MathVector<dim>, MathVector<ref_dim> >
-			(RET_TRIANGLE, 0, NULL);
-*/
 };
 
 
@@ -120,7 +113,7 @@ prepare_element_loop()
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
-//	m_DarcyVelocity.set_eval_function(&IElemDisc<TAlgebra>::template export1<TElem>, this);
+	//m_DarcyVelocity.set_eval_function(&CplDensityDrivenFlowElemDisc::template data_export<TElem>, this);
 	m_DarcyVelocity.set_num_sh(1, 2*ref_elem_type::num_corners); //(num_sys, num_sh)
 	return true;
 }

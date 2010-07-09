@@ -36,13 +36,13 @@ class DataItem {
 // Factory to create Exports
 class DataPossibilityItem : public DataItem {
 	public:
-		DataPossibilityItem(std::string name, std::size_t num_slots, const std::type_info* dataType, const std::type_info* posType) :
+		DataPossibilityItem(std::string name, size_t num_slots, const std::type_info* dataType, const std::type_info* posType) :
 			DataItem(name, dataType, posType), m_num_slots(num_slots)
 			{m_slotPosItems.resize(m_num_slots); m_linkedPosItems.clear(); m_createdDataExports.clear();};
 
 	public:
 		// links a Possibility to slot 'slot'
-		virtual bool link(DataPossibilityItem* posItem, std::size_t slot) = 0;
+		virtual bool link(DataPossibilityItem* posItem, size_t slot) = 0;
 
 	public:
 		// create data export
@@ -52,33 +52,33 @@ class DataPossibilityItem : public DataItem {
 		bool delete_data_export(DataExportItem* exportItem);
 
 		// number of exports created by this factory
-		std::size_t num_created_data_export_items() const {	return m_createdDataExports.size();}
+		size_t num_created_data_export_items() const {	return m_createdDataExports.size();}
 
 		// the i'th created export
-		DataExportItem* get_created_data_export_item(std::size_t i) const {return m_createdDataExports[i];}
+		DataExportItem* get_created_data_export_item(size_t i) const {return m_createdDataExports[i];}
 
 	public:
 		// number of slots this possibility needs to be linked to
-		std::size_t num_slots() const {return m_num_slots;};
+		size_t num_slots() const {return m_num_slots;};
 
 		// returns if slot 'slot' is already linked
-		bool is_linked(std::size_t slot) const {
+		bool is_linked(size_t slot) const {
 			UG_ASSERT(slot < m_num_slots, "Slot does not exist.");
 			return (m_slotPosItems[slot] != NULL);};
 
 		// returns if all slots are linked
 		bool is_linked() const {
-			for(std::size_t i = 0; i < num_slots(); ++i){if(is_linked(i) == false) return false;};
+			for(size_t i = 0; i < num_slots(); ++i){if(is_linked(i) == false) return false;};
 			return true;}
 
 		// returns if this possibility is ready to create an export
 		bool is_instantiable() const {return is_linked();};
 
 		// clear slot 'slot'
-		bool clear_slot(std::size_t slot);
+		bool clear_slot(size_t slot);
 
 		// returns the possibility linked to slot 'slot', NULL if not linked
-		DataPossibilityItem* get_linked_possibility(std::size_t slot) const {
+		DataPossibilityItem* get_linked_possibility(size_t slot) const {
 			UG_ASSERT(slot < m_num_slots, "Slot does not exist.");
 			return m_slotPosItems[slot];};
 
@@ -86,7 +86,7 @@ class DataPossibilityItem : public DataItem {
 		struct LinkedPossibility
 		{
 			DataPossibilityItem* item;
-			std::size_t slot;
+			size_t slot;
 		};
 
 		void add_linked_possibility(LinkedPossibility& linkedPos);
@@ -94,7 +94,7 @@ class DataPossibilityItem : public DataItem {
 
 	protected:
 		// number of slots of this possibility
-		std::size_t m_num_slots;
+		size_t m_num_slots;
 
 		// linked possibilities to the slots
 		std::vector<DataPossibilityItem*> m_slotPosItems;
@@ -118,23 +118,23 @@ class DataExportItem : public DataItem {
 			{m_importList.clear(); m_sys.clear(); m_num_sh.clear();};
 
 		// number of system unknowns this export depends on
-		inline std::size_t num_sys() const {return m_num_sys;};
+		inline size_t num_sys() const {return m_num_sys;};
 
 		// number of unknowns the data depends on
-		inline std::size_t num_sh(std::size_t loc_sys) const {
+		inline size_t num_sh(size_t loc_sys) const {
 			UG_ASSERT(loc_sys < m_num_sys, "Accessing system, that is not registered, sys = " << loc_sys << ", num_sys = " << m_num_sys);
 			UG_ASSERT(loc_sys < m_sys.size(), "Accessing system, that is not registered, sys = " << loc_sys << ", m_sys.size() = " <<  m_sys.size());
 			return m_num_sh[loc_sys];};
 
 		// id of system this exports depends on
-		inline std::size_t sys(std::size_t loc_sys) const{
+		inline size_t sys(size_t loc_sys) const{
 			UG_ASSERT(loc_sys < m_num_sys, "Accessing system, that is not registered, sys = " << loc_sys << ", num_sys = " << m_num_sys);
 			UG_ASSERT(loc_sys < m_sys.size(), "Accessing system, that is not registered, sys = " << loc_sys << ", m_sys.size() = " <<  m_sys.size());
 			return m_sys[loc_sys];}
 
-		inline bool depends_on_sys(std::size_t glob_sys, std::size_t& loc_sys) const
+		inline bool depends_on_sys(size_t glob_sys, size_t& loc_sys) const
 		{
-			for(std::size_t k = 0; k < num_sys(); ++k)
+			for(size_t k = 0; k < num_sys(); ++k)
 			{
 				if(sys(k) == glob_sys)
 				{
@@ -160,11 +160,11 @@ class DataExportItem : public DataItem {
 		virtual bool remove_data_import(DataImportItem* importItem) = 0;
 
 		// number of registered imports
-		std::size_t num_data_imports() const {return m_importList.size();};
+		size_t num_data_imports() const {return m_importList.size();};
 
 		// get registered import
-		DataImportItem* get_data_import(std::size_t i) {return m_importList[i];};
-		const DataImportItem* get_data_import(std::size_t i) const {return m_importList[i];};
+		DataImportItem* get_data_import(size_t i) {return m_importList[i];};
+		const DataImportItem* get_data_import(size_t i) const {return m_importList[i];};
 
 	protected:
 		// get underlying data export possibility
@@ -174,22 +174,22 @@ class DataExportItem : public DataItem {
 	// Import (Linker) side
 	public:
 		// number of data exports linked by this linker
-		virtual std::size_t num_slots() const = 0;
+		virtual size_t num_slots() const = 0;
 
 		// name of import i
-		virtual std::string slot_name(std::size_t slot) const = 0;
+		virtual std::string slot_name(size_t slot) const = 0;
 
 		// add a Data Export number i
-		virtual bool link(DataExportItem* exportItem, std::size_t slot) = 0;
+		virtual bool link(DataExportItem* exportItem, size_t slot) = 0;
 
 		// remove Data Export number i
-		virtual bool clear_slot(std::size_t slot) = 0;
+		virtual bool clear_slot(size_t slot) = 0;
 
 		// get registered export of slot i
-		virtual const DataExportItem* get_data_export(std::size_t slot) const = 0;
+		virtual const DataExportItem* get_data_export(size_t slot) const = 0;
 
 		// return if an export is set at slot i
-		virtual bool is_linked(std::size_t slot) const = 0;
+		virtual bool is_linked(size_t slot) const = 0;
 
 		// return if all exports are set
 		virtual bool is_linked() const = 0;
@@ -213,13 +213,13 @@ class DataExportItem : public DataItem {
 
 	protected:
 		// number of system this export depends on
-		std::size_t m_num_sys;
+		size_t m_num_sys;
 
 		// id of system this export depends on
-		std::vector<std::size_t> m_sys;
+		std::vector<size_t> m_sys;
 
 		// number of unknowns the export depends on
-		std::vector<std::size_t> m_num_sh;
+		std::vector<size_t> m_num_sh;
 
 		// Imports linked to this export
 		std::vector<DataImportItem*> m_importList;
@@ -239,28 +239,28 @@ class DataImportItem : public DataItem{
 			{};
 
 		// number of systems the data depends on (num_sys)
-		inline std::size_t num_sys() const {
+		inline size_t num_sys() const {
 			UG_ASSERT(m_export != NULL, "No Export set.");
 			return m_export->num_sys();};
 
 		// number of systems the data depends on (num_sys)
-		inline std::size_t sys(std::size_t s) const {
+		inline size_t sys(size_t s) const {
 			UG_ASSERT(m_export != NULL, "No Export set.");
 			return m_export->sys(s);};
 
 		// number of unknowns the data depends on per system (num_sh)
-		inline std::size_t num_sh(std::size_t s) const {
+		inline size_t num_sh(size_t s) const {
 			UG_ASSERT(m_export != NULL, "No Export set.");
 			return m_export->num_sh(s);};
 
 		// number of unknowns the data depends on for all systems (num_sh)
-		inline std::size_t num_sh() const {
+		inline size_t num_sh() const {
 			UG_ASSERT(m_export != NULL, "No Export set.");
-			std::size_t t = 0;
-			for(std::size_t s = 0; s < num_sys(); ++s) t += num_sh(s);
+			size_t t = 0;
+			for(size_t s = 0; s < num_sys(); ++s) t += num_sh(s);
 			return t;};
 
-		inline bool depends_on_sys(std::size_t glob_sys, std::size_t& loc_sys) const {
+		inline bool depends_on_sys(size_t glob_sys, size_t& loc_sys) const {
 			UG_ASSERT(m_export != NULL, "No Export set.");
 			return m_export->depends_on_sys(glob_sys, loc_sys);
 		}
