@@ -189,12 +189,12 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			std::vector<MathVector<TDomain::dim> > grad_local_ip(val.size());
 			std::vector<MathVector<TDomain::dim> > grad_global_ip(val.size());
 
-			get_mapping().update(m_corners);
+			get_mapping<TElem>().update(m_corners);
 			for(size_t ip = 0; ip < val.size(); ++ip)
 			{
 				VecSet(grad_p_ip, 0.0); c_ip = 0.0;
 
-				if(get_mapping().jacobian_transposed_inverse(pos[ip], JTInv) == false) UG_ASSERT(0, "");
+				if(get_mapping<TElem>().jacobian_transposed_inverse(pos[ip], JTInv) == false) UG_ASSERT(0, "");
 				for(size_t co = 0; co < num_co; ++co)
 				{
 					if(TrialSpace.evaluate(co, pos[ip], shape_ip[co]) == false) UG_ASSERT(0, "");
@@ -265,7 +265,10 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			typedef MathVector<dim> data_type;
 			typedef MathVector<ref_dim> position_type;
 
-			register_data_export_function<data_type,position_type>(id, 0, CplDensityDrivenFlowElemDisc::template data_export<TElem>);
+			typedef void (CplDensityDrivenFlowElemDisc::*ExpFunc)(std::vector<data_type>&, std::vector<std::vector<data_type> >&,
+																	const std::vector<position_type>&, const local_vector_type&, bool);
+
+			IElemDisc<TAlgebra>::template register_data_export_function<data_type, position_type, ExpFunc>(id, 0, &CplDensityDrivenFlowElemDisc::template data_export<TElem>);
 		}
 
 };

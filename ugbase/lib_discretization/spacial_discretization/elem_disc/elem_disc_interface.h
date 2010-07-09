@@ -91,9 +91,8 @@ class IElemDisc{
 
 	protected:
 
-		template <typename data_type, typename position_type>
-		bool register_data_export_function(int id, size_t nr, void (IElemDisc<TAlgebra>::*func)(std::vector<data_type>&, std::vector<std::vector<data_type> >&,
-																	const std::vector<position_type>&, const local_vector_type&, bool))
+		template <typename data_type, typename position_type, typename TFunc>
+		bool register_data_export_function(int id, size_t nr, TFunc func)
 		{
 			using std::vector;
 			typedef void (IElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, vector<vector<data_type> >&,
@@ -107,7 +106,7 @@ class IElemDisc{
 			}
 
 			if((size_t)nr >= vDataExport.size())
-				vDataExport.resize(nr+1, 0);
+				vDataExport.resize(nr+1);
 
 			if((size_t)id >= vDataExport[nr].size())
 				vDataExport[nr].resize(id+1, 0);
@@ -224,7 +223,7 @@ class IElemDisc{
 		// Rhs function pointers
 		std::vector<AssembleFFunc> 	m_vAssembleFFunc;
 
-	private:
+	protected:
 		// current Geometric Object
 		int m_id;
 
