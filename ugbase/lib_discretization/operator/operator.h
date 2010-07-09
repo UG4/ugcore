@@ -30,6 +30,8 @@
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
 #include "linear_operator/lapack_lu_operator.h"
+//#include "linear_operator/ilut.h"
+//#include "linear_operator/amg_solver/amg_solver.h"
 #endif
 #endif
 #endif
