@@ -157,6 +157,23 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		Mass_Const_fct m_Mass_Const;
 		Reaction_fct m_Reaction;
 		Rhs_fct m_Rhs;
+
+	private:
+		// help function
+		template <typename TElem>
+		void register_all_assemble_functions(int id)
+		{
+			register_num_total_sh_function(			id, &CplConvectionDiffusionElemDisc::template num_total_sh<TElem>);
+			register_num_sh_function(				id, &CplConvectionDiffusionElemDisc::template num_sh<TElem>);
+			register_prepare_element_loop_function(	id, &CplConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &CplConvectionDiffusionElemDisc::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &CplConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &CplConvectionDiffusionElemDisc::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &CplConvectionDiffusionElemDisc::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &CplConvectionDiffusionElemDisc::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &CplConvectionDiffusionElemDisc::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &CplConvectionDiffusionElemDisc::template assemble_f<TElem>);
+		}
 };
 
 
