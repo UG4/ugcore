@@ -15,7 +15,7 @@
 
 #include "./coupled_elem_disc_interface.h"
 
-#include "./disc_coupling/element_data.h"
+#include "./elem_data/element_data.h"
 
 #include "./coupled_system.h"
 
