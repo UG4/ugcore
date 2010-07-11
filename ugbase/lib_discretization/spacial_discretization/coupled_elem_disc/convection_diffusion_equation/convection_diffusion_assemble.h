@@ -87,6 +87,8 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 			return true;
 		}
 
+		virtual bool set_sys_id(size_t sys_id) {return true;}
+
 	protected:
 		DataImport<MathVector<dim>, MathVector<ref_dim> > m_Velocity;
 

@@ -114,7 +114,7 @@ prepare_element_loop()
 	m_aaPos = m_domain.get_position_accessor();
 
 	//m_DarcyVelocity.set_eval_function(&CplDensityDrivenFlowElemDisc::template data_export<TElem>, this);
-	m_DarcyVelocity.set_num_sh(1, 2*ref_elem_type::num_corners); //(num_sys, num_sh)
+	m_DarcyVelocity.set_num_sh(2*ref_elem_type::num_corners); //(num_sys, num_sh)
 	return true;
 }
 

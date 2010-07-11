@@ -75,6 +75,10 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 
 		virtual bool unregister_imports(DataContainer& Cont){ return true;}
 
+		virtual bool set_sys_id(size_t sys_id)
+		{
+			return m_DarcyVelocity.set_sys_id(sys_id);
+		}
 	protected:
 		DataClassExportPossibility<MathVector<dim>, MathVector<ref_dim>, algebra_type>  m_DarcyVelocity;
 

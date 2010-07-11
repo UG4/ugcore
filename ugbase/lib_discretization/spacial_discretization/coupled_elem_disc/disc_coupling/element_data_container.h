@@ -91,14 +91,14 @@ class DataContainer {
 		~DataContainer();
 
 	protected:
-		uint find_nr(DataExportItem* exp);
+		size_t find_nr(DataExportItem* exp);
 
 	protected:
-		std::vector<DataPossibilityItem*> m_possibilityItemList;
+		std::vector<DataPossibilityItem*> m_vPossibilityItemList;
 
-		std::vector<DataImportItem*> m_importItemList;
+		std::vector<DataImportItem*> m_vImportItemList;
 
-		std::vector<DataExportItem*> m_exportItemList;
+		std::vector<DataExportItem*> m_vExportItemList;
 };
 
 }

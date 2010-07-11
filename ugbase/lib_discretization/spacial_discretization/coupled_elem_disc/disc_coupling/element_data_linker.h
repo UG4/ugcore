@@ -211,7 +211,7 @@ class DataLinkerPossibility : public DataPossibilityItem {
 			DataLinker<TDataType, TPositionType,  T0, T1, T2, T3, T4>* linker =
 				new DataLinker<TDataType, TPositionType,  T0, T1, T2, T3, T4>(this->name(), this, m_valueFunction, m_derivFunction);
 
-			m_createdDataExports.push_back(dynamic_cast<DataExportItem*>(linker));
+			m_vCreatedDataExports.push_back(dynamic_cast<DataExportItem*>(linker));
 			return dynamic_cast<DataExportItem*>(linker);
 		}
 
@@ -355,7 +355,7 @@ class DataLinker : public DataExport<TDataType, TPositionType> {
 				UG_DLOG(LIB_DISC_LINKER, 2, "DataLinker::reset_derivative_array: Checking import " << i << ", num_sys = " << num_sys << ".\n");
 				for(size_t s = 0; s < num_sys; ++s)
 				{
-					size_t t = m_impItem[i]->sys(s);
+					size_t t = m_impItem[i]->sys_id(s);
 					size_t num_sh = m_impItem[i]->num_sh(s);
 					UG_DLOG(LIB_DISC_LINKER, 2, "DataLinker::reset_derivative_array: Adding system " << t << " with " << num_sh << " unknowns (if not already added).\n");
 

@@ -50,6 +50,8 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 
 		virtual bool unregister_imports(DataContainer& Cont) = 0;
 
+		virtual bool set_sys_id(size_t sys_id) = 0;
+
 	public:
 		template <typename data_type, typename position_type>
 		void data_export(	int nr, std::vector<data_type>& val, std::vector<std::vector<data_type> >& deriv,

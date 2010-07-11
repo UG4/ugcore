@@ -27,11 +27,16 @@ class CoupledSystem {
 
 		std::string name() const {return m_name;}
 
-		inline void add_system_discretization(ICoupledElemDisc<algebra_type>& sys)
+		inline bool add_system_discretization(ICoupledElemDisc<algebra_type>& sys)
 		{
 			m_vSystem.push_back(&sys);
-			sys.register_exports(m_ElemDataContainer);
-			sys.register_imports(m_ElemDataContainer);
+			if(!sys.register_exports(m_ElemDataContainer))
+				{UG_LOG("CoupledSystem::add_system_discretization: Cannot register exports of system"); return false;}
+			if(!sys.register_imports(m_ElemDataContainer))
+				{UG_LOG("CoupledSystem::add_system_discretization: Cannot register imports of system"); return false;}
+			if(!set_sys_ids())
+				{UG_LOG("CoupledSystem::add_system_discretization: Cannot assign system ids"); return false;}
+			return true;
 		};
 
 		size_t num_sys() {return m_vSystem.size();}
@@ -46,6 +51,15 @@ class CoupledSystem {
 			return fct + loc_fct;
 		}
 
+		bool set_sys_ids()
+		{
+			for(size_t id = 0; id < num_sys(); ++id)
+			{
+				if(!m_vSystem[id]->set_sys_id(id)) return false;
+			}
+			return true;
+		}
+
 
 		DataContainer& get_elem_data_container() {return m_ElemDataContainer;}
 
@@ -55,8 +69,13 @@ class CoupledSystem {
 		bool print_linkage(){return m_ElemDataContainer.print_linkage();};
 		bool link(size_t exp, size_t imp)
 		{
-			m_ElemDataContainer.create_export(exp);
-			return m_ElemDataContainer.link(exp, imp);
+			if(!m_ElemDataContainer.create_export(exp))
+				{UG_LOG("CoupledSystem::link: Cannot create export"); return false;}
+
+			if(!m_ElemDataContainer.link(exp, imp))
+				{UG_LOG("CoupledSystem::link: Cannot link created export to import"); return false;}
+
+			return true;
 		}
 
 		virtual ~CoupledSystem(){}

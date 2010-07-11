@@ -115,8 +115,8 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			{
 				loc_J_coupl[sys][i].resize(Imp->num_sys());
 
-				UG_LOG("Coupling system " << sys << " ("<< num_sh[sys]<< ") with "<< s << " (" << num_sh[Imp->sys(s)] <<").\n");
-				loc_J_coupl[sys][i][s].resize(num_sh[sys], num_sh[Imp->sys(s)]);
+				UG_LOG("Coupling system " << sys << " ("<< num_sh[sys]<< ") with "<< s << " (" << num_sh[Imp->sys_id(s)] <<").\n");
+				loc_J_coupl[sys][i][s].resize(num_sh[sys], num_sh[Imp->sys_id(s)]);
 			}
 		}
 	}
@@ -194,7 +194,7 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 					//UG_LOG("Adding Local Couling: "<< loc_J_coupl[sys][i][r] << "\n");
 
 					// add coupling
-					J.add(loc_J_coupl[sys][i][r], glob_ind[sys], glob_ind[Imp->sys(r)]);
+					J.add(loc_J_coupl[sys][i][r], glob_ind[sys], glob_ind[Imp->sys_id(r)]);
 				}
 			}
 		}

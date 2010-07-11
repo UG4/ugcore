@@ -19,12 +19,12 @@ DataContainer::
 	UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::~DataContainer: Deleting Data Container.\n");
 
 	// delete export items
-	for(size_t i = 0; i < m_exportItemList.size(); ++i)
+	for(size_t i = 0; i < m_vExportItemList.size(); ++i)
 	{
-		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::~DataContainer: Deleting ExportItem '" << m_exportItemList[i]->name() << "' [" << i << "].\n");
-		delete m_exportItemList[i];
+		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::~DataContainer: Deleting ExportItem '" << m_vExportItemList[i]->name() << "' [" << i << "].\n");
+		delete m_vExportItemList[i];
 	}
-	m_exportItemList.clear();
+	m_vExportItemList.clear();
 }
 
 ////////////////////////////////
@@ -36,14 +36,14 @@ DataContainer::
 register_item(DataImportItem& ImportItem)
 {
 	std::vector<DataImportItem*>::iterator iter;
-	iter = find(m_importItemList.begin(), m_importItemList.end(), &ImportItem);
-	if(iter != m_importItemList.end())
+	iter = find(m_vImportItemList.begin(), m_vImportItemList.end(), &ImportItem);
+	if(iter != m_vImportItemList.end())
 	{
 		UG_LOG("Container already contains DataExportItem. Can not add.\n");
 		return false;
 	}
 
-	m_importItemList.push_back(&ImportItem);
+	m_vImportItemList.push_back(&ImportItem);
 	return true;
 }
 
@@ -52,13 +52,13 @@ DataContainer::
 register_item(DataExportItem& ExportItem)
 {
 	std::vector<DataExportItem*>::iterator iter;
-	iter = find(m_exportItemList.begin(), m_exportItemList.end(), &ExportItem);
-	if(iter != m_exportItemList.end())
+	iter = find(m_vExportItemList.begin(), m_vExportItemList.end(), &ExportItem);
+	if(iter != m_vExportItemList.end())
 	{
 		UG_LOG("Container already contains DataExportItem. Can not add.\n");
 		return false;
 	}
-	m_exportItemList.push_back(&ExportItem);
+	m_vExportItemList.push_back(&ExportItem);
 	return true;
 }
 
@@ -67,13 +67,13 @@ DataContainer::
 register_item(DataPossibilityItem& PossibilityItem)
 {
 	std::vector<DataPossibilityItem*>::iterator iter;
-	iter = find(m_possibilityItemList.begin(), m_possibilityItemList.end(), &PossibilityItem);
-	if(iter != m_possibilityItemList.end())
+	iter = find(m_vPossibilityItemList.begin(), m_vPossibilityItemList.end(), &PossibilityItem);
+	if(iter != m_vPossibilityItemList.end())
 	{
 		UG_LOG("Container already contains DataPossibilityItem. Can not add.\n");
 		return false;
 	}
-	m_possibilityItemList.push_back(&PossibilityItem);
+	m_vPossibilityItemList.push_back(&PossibilityItem);
 	return true;
 }
 
@@ -86,14 +86,14 @@ DataContainer::
 unregister_item(DataImportItem& ImportItem)
 {
 	std::vector<DataImportItem*>::iterator iter;
-	iter = find(m_importItemList.begin(), m_importItemList.end(), &ImportItem);
-	if(iter == m_importItemList.end())
+	iter = find(m_vImportItemList.begin(), m_vImportItemList.end(), &ImportItem);
+	if(iter == m_vImportItemList.end())
 	{
 		UG_LOG("DataContainer::unregister_item: Container does not ImportItem. Can not remove it.\n");
 		return false;
 	}
 
-	m_importItemList.erase(iter);
+	m_vImportItemList.erase(iter);
 	return true;
 }
 
@@ -102,14 +102,14 @@ DataContainer::
 unregister_item(DataExportItem& ExportItem)
 {
 	std::vector<DataExportItem*>::iterator iter;
-	iter = find(m_exportItemList.begin(), m_exportItemList.end(), &ExportItem);
-	if(iter == m_exportItemList.end())
+	iter = find(m_vExportItemList.begin(), m_vExportItemList.end(), &ExportItem);
+	if(iter == m_vExportItemList.end())
 	{
 		UG_LOG("DataContainer::unregister_export: Container does not contain DataExportItem. Can not remove it.\n");
 		return false;
 	}
 
-	m_exportItemList.erase(iter);
+	m_vExportItemList.erase(iter);
 	return true;
 }
 
@@ -118,8 +118,8 @@ DataContainer::
 unregister_item(DataPossibilityItem& PossibilityItem)
 {
 	std::vector<DataPossibilityItem*>::iterator iter;
-	iter = find(m_possibilityItemList.begin(), m_possibilityItemList.end(), &PossibilityItem);
-	if(iter == m_possibilityItemList.end())
+	iter = find(m_vPossibilityItemList.begin(), m_vPossibilityItemList.end(), &PossibilityItem);
+	if(iter == m_vPossibilityItemList.end())
 	{
 		UG_LOG("DataContainer::unregister_item: Container does not PossibilityItem. Can not remove it.\n");
 		return false;
@@ -131,7 +131,7 @@ unregister_item(DataPossibilityItem& PossibilityItem)
 		unregister_item(*PossibilityItem.get_created_data_export_item(i));
 	}
 
-	m_possibilityItemList.erase(iter);
+	m_vPossibilityItemList.erase(iter);
 	return true;
 }
 
@@ -143,10 +143,10 @@ DataContainer::
 link_possibility(size_t nr_pos1, size_t slot, size_t nr_pos2)
 {
 	// check if linking is possible
-	if(nr_pos1 >= m_possibilityItemList.size()) return false;
-	if(nr_pos2 >= m_possibilityItemList.size()) return false;
+	if(nr_pos1 >= m_vPossibilityItemList.size()) return false;
+	if(nr_pos2 >= m_vPossibilityItemList.size()) return false;
 
-	return link_possibility(*m_possibilityItemList[nr_pos1], slot, *m_possibilityItemList[nr_pos2]);
+	return link_possibility(*m_vPossibilityItemList[nr_pos1], slot, *m_vPossibilityItemList[nr_pos2]);
 }
 
 bool
@@ -155,14 +155,14 @@ link_possibility(DataPossibilityItem& posItem1, size_t slot, DataPossibilityItem
 {
 	std::vector<DataPossibilityItem*>::iterator posIter;
 
-	posIter = find(m_possibilityItemList.begin(), m_possibilityItemList.end(), &posItem1);
-	if(posIter == m_possibilityItemList.end())
+	posIter = find(m_vPossibilityItemList.begin(), m_vPossibilityItemList.end(), &posItem1);
+	if(posIter == m_vPossibilityItemList.end())
 	{
 		UG_LOG("DataContainer::link: Container does not contain DataExportItem. Can not link.\n");
 		return false;
 	}
-	posIter = find(m_possibilityItemList.begin(), m_possibilityItemList.end(), &posItem2);
-	if(posIter == m_possibilityItemList.end())
+	posIter = find(m_vPossibilityItemList.begin(), m_vPossibilityItemList.end(), &posItem2);
+	if(posIter == m_vPossibilityItemList.end())
 	{
 		UG_LOG("DataContainer::link: Container does not contain DataExportItem. Can not link.\n");
 		return false;
@@ -195,12 +195,12 @@ DataContainer::
 link(size_t nr_imp, size_t nr_exp)
 {
 	// check if linking is possible
-	if(nr_imp >= m_importItemList.size())
+	if(nr_imp >= m_vImportItemList.size())
 		{UG_LOG("Import with number " << nr_imp << " does not exist.\n"); return false;}
-	if(nr_exp >= m_exportItemList.size())
+	if(nr_exp >= m_vExportItemList.size())
 		{UG_LOG("Export with number " << nr_exp << " does not exist.\n"); return false;}
 
-	return link(*m_importItemList[nr_imp], *m_exportItemList[nr_exp]);
+	return link(*m_vImportItemList[nr_imp], *m_vExportItemList[nr_exp]);
 }
 
 bool
@@ -208,10 +208,10 @@ DataContainer::
 link(size_t nr_exp1, size_t slot, size_t nr_exp2)
 {
 	// check if linking is possible
-	if(nr_exp1 >= m_exportItemList.size()) return false;
-	if(nr_exp2 >= m_exportItemList.size()) return false;
+	if(nr_exp1 >= m_vExportItemList.size()) return false;
+	if(nr_exp2 >= m_vExportItemList.size()) return false;
 
-	return link(*m_exportItemList[nr_exp1], slot, *m_exportItemList[nr_exp2]);
+	return link(*m_vExportItemList[nr_exp1], slot, *m_vExportItemList[nr_exp2]);
 }
 
 bool
@@ -220,14 +220,14 @@ link(DataExportItem& Export1Item, size_t slot, DataExportItem& Export2Item)
 {
 	std::vector<DataExportItem*>::iterator expIter;
 
-	expIter = find(m_exportItemList.begin(), m_exportItemList.end(), &Export1Item);
-	if(expIter == m_exportItemList.end())
+	expIter = find(m_vExportItemList.begin(), m_vExportItemList.end(), &Export1Item);
+	if(expIter == m_vExportItemList.end())
 	{
 		UG_LOG("DataContainer::link: Container does not contain DataExportItem. Can not link.\n");
 		return false;
 	}
-	expIter = find(m_exportItemList.begin(), m_exportItemList.end(), &Export2Item);
-	if(expIter == m_exportItemList.end())
+	expIter = find(m_vExportItemList.begin(), m_vExportItemList.end(), &Export2Item);
+	if(expIter == m_vExportItemList.end())
 	{
 		UG_LOG("DataContainer::link: Container does not contain DataExportItem. Can not link.\n");
 		return false;
@@ -270,16 +270,16 @@ link(DataImportItem& ImportItem, DataExportItem& ExportItem)
 	std::vector<DataExportItem*>::iterator expIter;
 
 	// Find requested Import in Import list
-	importIter = find(m_importItemList.begin(), m_importItemList.end(), &ImportItem);
-	if(importIter == m_importItemList.end())
+	importIter = find(m_vImportItemList.begin(), m_vImportItemList.end(), &ImportItem);
+	if(importIter == m_vImportItemList.end())
 	{
 		UG_LOG("DataContainer::link: Container does not contain DataImportItem. Can not link.\n");
 		return false;
 	}
 
 	// Find requested ExportPossibility in ExportPossibility list
-	expIter = find(m_exportItemList.begin(), m_exportItemList.end(), &ExportItem);
-	if(expIter == m_exportItemList.end())
+	expIter = find(m_vExportItemList.begin(), m_vExportItemList.end(), &ExportItem);
+	if(expIter == m_vExportItemList.end())
 	{
 		UG_LOG("DataContainer::link: Container does not contain DataExportItem. Can not link.\n");
 		return false;
@@ -299,9 +299,9 @@ DataContainer::
 create_export(size_t nr_pos)
 {
 	// check if creation is possible
-	if(nr_pos >= m_possibilityItemList.size()) return false;
+	if(nr_pos >= m_vPossibilityItemList.size()) return false;
 
-	return create_export(* m_possibilityItemList[nr_pos]);
+	return create_export(* m_vPossibilityItemList[nr_pos]);
 }
 
 DataExportItem*
@@ -310,8 +310,8 @@ create_export(DataPossibilityItem& PossibilityItem)
 {
 	// Find requested ExportPossibility in ExportPossibility list
 	std::vector<DataPossibilityItem*>::iterator possibilityIter;
-	possibilityIter = find(m_possibilityItemList.begin(), m_possibilityItemList.end(), &PossibilityItem);
-	if(possibilityIter == m_possibilityItemList.end())
+	possibilityIter = find(m_vPossibilityItemList.begin(), m_vPossibilityItemList.end(), &PossibilityItem);
+	if(possibilityIter == m_vPossibilityItemList.end())
 	{
 		UG_LOG("DataContainer::create_export: Container does not contain DataExportPossiblityItem. Can not create Data Export.\n");
 		return NULL;
@@ -326,7 +326,7 @@ create_export(DataPossibilityItem& PossibilityItem)
 	}
 
 	// add export to list
-	m_exportItemList.push_back(expItem);
+	m_vExportItemList.push_back(expItem);
 
 	// handle recursive creation of dependent exports if linker
 	if(create_export_recursive(PossibilityItem, *expItem) != true)
@@ -351,8 +351,8 @@ create_export_recursive(DataPossibilityItem& PossibilityItem, DataExportItem& ex
 		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::create_export_recursive: Trying to create Export from Possibility '" << slotPos->name() << "'.\n");
 		// Find requested ExportPossibility in ExportPossibility list
 		std::vector<DataPossibilityItem*>::iterator possibilityIter;
-		possibilityIter = find(m_possibilityItemList.begin(), m_possibilityItemList.end(), slotPos);
-		if(possibilityIter == m_possibilityItemList.end())
+		possibilityIter = find(m_vPossibilityItemList.begin(), m_vPossibilityItemList.end(), slotPos);
+		if(possibilityIter == m_vPossibilityItemList.end())
 		{
 			UG_LOG("DataContainer::create_export_recursive: Container does not contain DataExportPossiblityItem. Can not create Data Export.\n");
 			return false;
@@ -367,15 +367,15 @@ create_export_recursive(DataPossibilityItem& PossibilityItem, DataExportItem& ex
 		}
 
 		std::vector<DataExportItem*>::iterator expIter;
-		expIter = find(m_exportItemList.begin(), m_exportItemList.end(), &exp);
-		if(expIter == m_exportItemList.end())
+		expIter = find(m_vExportItemList.begin(), m_vExportItemList.end(), &exp);
+		if(expIter == m_vExportItemList.end())
 		{
 			UG_LOG("DataContainer::create_export_recursive: Container does not contain ExportItem.\n");
 			return false;
 		}
 
 		// add export to list
-		m_exportItemList.insert(expIter, expItem);
+		m_vExportItemList.insert(expIter, expItem);
 		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::create_export_recursive: ExportItem '" << expItem->name() << "' created.\n");
 
 		// link directly to slot
@@ -408,11 +408,11 @@ identify_exports()
 {
 	std::vector<DataExportItem*>::iterator iter, iterCopy;
 
-	for(iter = m_exportItemList.begin(); iter != m_exportItemList.end(); ++iter)
+	for(iter = m_vExportItemList.begin(); iter != m_vExportItemList.end(); ++iter)
 	{
 		UG_DLOG(LIB_DISC_LINKER, 3, "DataContainer::identify_exports: Checking for copies of: '" << (*iter)->name() << "' [" << find_nr(*iter) << "].\n");
 
-		for(iterCopy = iter, ++iterCopy; iterCopy != m_exportItemList.end(); )
+		for(iterCopy = iter, ++iterCopy; iterCopy != m_vExportItemList.end(); )
 		{
 			UG_DLOG(LIB_DISC_LINKER, 3, "DataContainer::identify_exports:  -- comparing to : '" << (*iterCopy)->name() << "' [" << find_nr(*iterCopy) << "].\n");
 
@@ -451,7 +451,7 @@ identify_exports()
 				}
 
 				// remove export item from container and set iterator to next element
-				iterCopy = m_exportItemList.erase(iterCopy);
+				iterCopy = m_vExportItemList.erase(iterCopy);
 			}
 			else
 			{
@@ -471,7 +471,7 @@ clear_identification()
 {
 	std::vector<DataExportItem*>::reverse_iterator iter;
 
-	for(iter = m_exportItemList.rbegin(); iter != m_exportItemList.rend(); ++iter)
+	for(iter = m_vExportItemList.rbegin(); iter != m_vExportItemList.rend(); ++iter)
 	{
 		// get export
 		DataExportItem* exp = *iter;
@@ -529,10 +529,10 @@ void
 DataContainer::
 compute(bool compute_derivatives)
 {
-	for(size_t i=0; i < m_exportItemList.size(); ++i)
+	for(size_t i=0; i < m_vExportItemList.size(); ++i)
 	{
-		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::compute: Computing Export '" << m_exportItemList[i]->name() << "' [" << i << "] ...");
-		m_exportItemList[i]->compute(compute_derivatives);
+		UG_DLOG(LIB_DISC_LINKER, 2, "DataContainer::compute: Computing Export '" << m_vExportItemList[i]->name() << "' [" << i << "] ...");
+		m_vExportItemList[i]->compute(compute_derivatives);
 		UG_DLOG(LIB_DISC_LINKER, 2, "done.\n");
 	}
 }
@@ -546,10 +546,10 @@ DataContainer::
 print_export_possibilities(DataContainerInfoType type)
 {
 	// Export Possibilities
-	UG_LOG("\n   Export Possibilities: " << m_possibilityItemList.size() << "\n");
-	for(uint i=0; i < m_possibilityItemList.size(); ++i)
+	UG_LOG("\n   Export Possibilities: " << m_vPossibilityItemList.size() << "\n");
+	for(size_t i=0; i < m_vPossibilityItemList.size(); ++i)
 	{
-		DataPossibilityItem* pos = m_possibilityItemList[i];
+		DataPossibilityItem* pos = m_vPossibilityItemList[i];
 		UG_LOG("   # [" << i << "]  <- " << pos->name() << " ");
 
 		if(type == DCI_TYPES)
@@ -627,9 +627,9 @@ print_linkage()
 	std::string output;
 
 	UG_LOG("\n   Linkage: \n");
-	for(uint i=0; i < m_importItemList.size(); ++i)
+	for(size_t i=0; i < m_vImportItemList.size(); ++i)
 	{
-		DataImportItem* imp = m_importItemList[i];
+		DataImportItem* imp = m_vImportItemList[i];
 
 		// print import
 		UG_LOG("   # [" << i << "] " <<imp->name() << " -<");
@@ -687,28 +687,28 @@ bool
 DataContainer::
 print_imports(DataContainerInfoType type)
 {
-	UG_LOG("\n   Imports: " << m_importItemList.size() << "\n");
-	for(uint i=0; i < m_importItemList.size(); ++i)
+	UG_LOG("\n   Imports: " << m_vImportItemList.size() << "\n");
+	for(size_t i=0; i < m_vImportItemList.size(); ++i)
 	{
-		UG_LOG("   # [" << i << "] " << m_importItemList[i]->name() << " -<   ");
+		UG_LOG("   # [" << i << "] " << m_vImportItemList[i]->name() << " -<   ");
 
 		if(type == DCI_IPS)
 		{
 			UG_LOG(" [ at  ");
-			if(m_importItemList[i]->print_positions() != true) return false;
+			if(m_vImportItemList[i]->print_positions() != true) return false;
 			UG_LOG(" ]");
 		}
 
 		if(type == DCI_TYPES)
 		{
-			UG_LOG(",  [DataType: " << m_importItemList[i]->data_type()->name());
-			UG_LOG(",  PositionType: " << m_importItemList[i]->position_type()->name() << "]");
+			UG_LOG(",  [DataType: " << m_vImportItemList[i]->data_type()->name());
+			UG_LOG(",  PositionType: " << m_vImportItemList[i]->position_type()->name() << "]");
 		}
 
 		if(type == DCI_VALUES)
 		{
 			UG_LOG("\n");
-			if(m_importItemList[i]->print_info("             - ") != true) return false;
+			if(m_vImportItemList[i]->print_info("             - ") != true) return false;
 		}
 		UG_LOG("\n");
 	}
@@ -719,28 +719,28 @@ bool
 DataContainer::
 print_exports(DataContainerInfoType type)
 {
-	UG_LOG("\n   Exports: " << m_exportItemList.size() << "\n");
-	for(uint i=0; i < m_exportItemList.size(); ++i)
+	UG_LOG("\n   Exports: " << m_vExportItemList.size() << "\n");
+	for(size_t i=0; i < m_vExportItemList.size(); ++i)
 	{
-		UG_LOG("   # [" << i << "]  <- " << m_exportItemList[i]->name() << "  ");
+		UG_LOG("   # [" << i << "]  <- " << m_vExportItemList[i]->name() << "  ");
 
 		if(type == DCI_IPS)
 		{
 			UG_LOG(" [ at  ");
-			if(m_exportItemList[i]->print_positions() != true) return false;
+			if(m_vExportItemList[i]->print_positions() != true) return false;
 			UG_LOG(" ]");
 		}
 
 		if(type == DCI_TYPES)
 		{
-			UG_LOG(",  [DataType: " << m_exportItemList[i]->data_type()->name());
-			UG_LOG(",  PositionType: " << m_exportItemList[i]->position_type()->name() << "]");
+			UG_LOG(",  [DataType: " << m_vExportItemList[i]->data_type()->name());
+			UG_LOG(",  PositionType: " << m_vExportItemList[i]->position_type()->name() << "]");
 		}
 
 		if(type == DCI_VALUES)
 		{
 			UG_LOG("\n");
-			if(m_exportItemList[i]->print_info("             - ") != true) return false;
+			if(m_vExportItemList[i]->print_info("             - ") != true) return false;
 		}
 
 		UG_LOG("\n");
@@ -755,14 +755,14 @@ print_linker_imports(DataContainerInfoType type)
 	if(type < 0 || type > 3) return false;
 
 	// Imports
-	UG_LOG("\n   Linker (Imports): " << m_exportItemList.size() << "\n");
-	for(size_t l=0; l < m_exportItemList.size(); ++l)
+	UG_LOG("\n   Linker (Imports): " << m_vExportItemList.size() << "\n");
+	for(size_t l=0; l < m_vExportItemList.size(); ++l)
 	{
-		UG_LOG("   # [" << l << "] " << m_exportItemList[l]->name() << " [" << m_exportItemList[l]->num_slots() <<" Slot(s)]");
+		UG_LOG("   # [" << l << "] " << m_vExportItemList[l]->name() << " [" << m_vExportItemList[l]->num_slots() <<" Slot(s)]");
 
-		for(size_t i = 0; i < m_exportItemList[l]->num_slots(); ++i)
+		for(size_t i = 0; i < m_vExportItemList[l]->num_slots(); ++i)
 		{
-			UG_LOG("\n           | " <<  m_exportItemList[l]->slot_name(i) << " -<   ");
+			UG_LOG("\n           | " <<  m_vExportItemList[l]->slot_name(i) << " -<   ");
 		}
 		UG_LOG("\n");
 	}
@@ -770,17 +770,17 @@ print_linker_imports(DataContainerInfoType type)
 }
 
 
-uint
+size_t
 DataContainer::
 find_nr(DataExportItem* exp)
 {
-	for(uint i = 0; i < m_exportItemList.size(); ++i)
+	for(size_t i = 0; i < m_vExportItemList.size(); ++i)
 	{
-		if(m_exportItemList[i] == exp) return i;
+		if(m_vExportItemList[i] == exp) return i;
 	}
 
 	UG_ASSERT(0, "Export Item '" << exp->name() << "' not found in list.");
-	return (uint)-1;
+	return (size_t)-1;
 }
 
 }
