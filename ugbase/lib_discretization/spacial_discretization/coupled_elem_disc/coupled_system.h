@@ -8,7 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__COUPLED_SYSTEM__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__COUPLED_SYSTEM__
 
-#include "./disc_coupling/element_data.h"
+#include "./elem_data/element_data.h"
 
 namespace ug {
 

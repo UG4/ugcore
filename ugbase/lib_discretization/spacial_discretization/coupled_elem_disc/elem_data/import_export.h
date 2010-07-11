@@ -14,7 +14,7 @@
 
 #include "common/common.h"
 
-#include "element_data_items.h"
+#include "data_items.h"
 
 namespace ug{
 
@@ -299,6 +299,6 @@ template <typename TDataType, typename TPositionType>
 std::ostream& operator<<(std::ostream& out, const DataImport<TDataType,TPositionType>& data);
 
 };
-#include "element_data_import_export_impl.h"
+#include "import_export_impl.h"
 
 #endif /* __H__LIB_DISCRETIZATION__ELEMENT_DATA_IMPORT_EXPORT__ */

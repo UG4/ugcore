@@ -8,7 +8,7 @@
 
 #include "common/common.h"
 
-#include "element_data_import_export.h"
+#include "import_export.h"
 
 #include "../coupled_elem_disc_interface.h"
 
@@ -98,7 +98,7 @@ class DataClassExport : public DataExport<TDataType, TPositionType>{
 
 }
 
-#include "element_data_class_export_impl.h"
+#include "class_export_impl.h"
 
 #endif
 

@@ -17,8 +17,8 @@
 #include "lib_algebra/lib_algebra.h"
 
 #include "../elem_disc/elem_disc_interface.h"
-#include "./disc_coupling/element_data_items.h"
-#include "./disc_coupling/element_data_container.h"
+#include "./elem_data/data_items.h"
+#include "./elem_data/data_container.h"
 
 namespace ug {
 

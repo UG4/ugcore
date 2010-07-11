@@ -17,9 +17,9 @@ set(srcDiscretization		dof_manager/general_dof_manager/general_dof_manager.cpp
 				local_shape_function_set/local_shape_function_set_factory.cpp
 				local_shape_function_set/local_dof_pattern.cpp
 				local_shape_function_set/LagrangeP1/p1conform.cpp
-				spacial_discretization/coupled_elem_disc/disc_coupling/element_data_items.cpp
-				spacial_discretization/coupled_elem_disc/disc_coupling/element_data_container.cpp
-				spacial_discretization/coupled_elem_disc/disc_coupling/element_data_linker.cpp)
+				spacial_discretization/coupled_elem_disc/elem_data/data_items.cpp
+				spacial_discretization/coupled_elem_disc/elem_data/data_container.cpp
+				spacial_discretization/coupled_elem_disc/elem_data/linker.cpp)
 
 				#quadrature/gauss_quadratures_ReferenceVertex.cpp
 				#quadrature/gauss_quadratures_ReferenceTetrahedron.cpp

@@ -11,7 +11,7 @@
 #include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
 
 #include "../coupled_elem_disc_interface.h"
-#include "../disc_coupling/element_data.h"
+#include "../elem_data/element_data.h"
 
 namespace ug{
 

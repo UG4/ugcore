@@ -8,7 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__ELEMENT_DATA_USER_DATA__
 #define __H__LIB_DISCRETIZATION__ELEMENT_DATA_USER_DATA__
 
-#include "element_data_import_export.h"
+#include "import_export.h"
 
 namespace ug {
 
