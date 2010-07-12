@@ -60,7 +60,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		//	set the subset-info of this object - if requested.
 			if(pSubsetHandler != NULL)
 			{
-				SubsetInfo si;
+				SubsetInfo si = pSubsetHandler->subset_info(objCounter);
 				si.materialIndex = obj.m_iMaterialIndex;
 				si.name = obj.m_strName;
 
