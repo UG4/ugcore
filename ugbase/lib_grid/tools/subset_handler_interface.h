@@ -258,6 +258,9 @@ class ISubsetHandler : public GridObserver
 	/** Be careful: queried subset has to exist! Check with num_subset_infos()*/
 		const SubsetInfo& subset_info(int subsetIndex) const;
 
+	///	sets the default subset-info. Used when initializing new subset-infos.
+		void set_default_subset_info(const SubsetInfo& defSI);
+		
 	////////////////////////////////
 	//	clear methods
 		void clear();
@@ -577,6 +580,7 @@ class ISubsetHandler : public GridObserver
 		VolumeAttachmentPipeVec	m_volumeAttachmentPipes;
 
 		SubsetInfoVec	m_subsetInfos;
+		SubsetInfo		m_defaultSubsetInfo;
 		uint			m_supportedElements;
 
 		ASubsetIndex	m_aSubsetIndex;

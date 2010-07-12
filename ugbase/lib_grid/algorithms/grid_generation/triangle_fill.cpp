@@ -135,7 +135,8 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 //	create a priority queue that holds pointers to the chain-infos.
 //	warning: this queue will contain invalid entries later on.
 //	this is handled by a special check before an element is used.
-	priority_queue<ChainInfo> qChainInfos;
+	//priority_queue<ChainInfo> qChainInfos;
+	queue<ChainInfo> qChainInfos;
 	for(size_t i = 0; i < polyChainSize; ++i){
 		int inVrtInd = (polyChainSize + i - 1) % polyChainSize;//avoid negativity in %
 		int outVrtInd = (i + 1) % polyChainSize;
@@ -150,7 +151,8 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 	while(counter > 0 &! qChainInfos.empty())
 	{
 	//	get the element with top priority
-		ChainInfo ci = qChainInfos.top();
+		//ChainInfo ci = qChainInfos.top();
+		ChainInfo ci = qChainInfos.front();
 		qChainInfos.pop();
 		if(!ci.isCandidate){
 			continue;

@@ -928,7 +928,7 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 		PROFILE_BEGIN(octree_construction);
 		octree = CreateOctree(*pRefGrid, pRefGrid->begin<Triangle>(),
 									pRefGrid->end<Triangle>(),
-									15, 30, false, aPos);
+									10, 30, false, aPos);
 
 		PROFILE_END();
 		if(!octree.is_valid()){

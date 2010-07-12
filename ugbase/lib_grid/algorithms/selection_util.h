@@ -93,8 +93,23 @@ void SelectAssociatedFaces(TSelector& sel,
 								TElemIterator elemsEnd);
 
 ////////////////////////////////////////////////////////////////////////
+///	selects associated geometric objects of selected ones.
+void SelectAssociatedGeometricObjects(Selector& sel);
+
+////////////////////////////////////////////////////////////////////////
 ///	selects associated geometric objects of selected ones on each level.
 void SelectAssociatedGeometricObjects(MGSelector& msel);
+
+////////////////////////////////////////////////////////////////////////
+///	extends the selection to neighbours of selected elements.
+/**	
+ * This algorithm uses Grid::mark.
+ *
+ * Extension is performed extSize times.
+ *
+ * \todo: Performance can be improved. See implementation.
+ */
+void ExtendSelection(Selector& sel, size_t extSize);
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGenealogy

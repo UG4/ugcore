@@ -38,6 +38,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
 					algorithms/refinement/global_multi_grid_refiner.cpp
+					algorithms/refinement/refinement_callbacks.cpp
 					algorithms/subdivision/subdivision_loop.cpp)
 					
 set(srcFileIO	file_io/file_io_art.cpp
@@ -50,6 +51,7 @@ set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_txt.cpp
 				file_io/file_io_ug.cpp
 				file_io/file_io_ugx.cpp
+				file_io/file_io_ncdf.cpp
 				file_io/file_io.cpp)
 								
 set(srcLibGrid	tools/subset_handler_interface.cpp

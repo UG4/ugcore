@@ -371,9 +371,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 
 }
 
-void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh,
-									vector3* pMaterialPoints,
-									int numMaterialPoints)
+void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh)
 {
 //	first we'll assign all volumes to subset -1.
 	sh.assign_subset(grid.volumes_begin(), grid.volumes_end(), -1);

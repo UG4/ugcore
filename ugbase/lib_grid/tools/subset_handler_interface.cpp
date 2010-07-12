@@ -29,6 +29,10 @@ ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false), m_aIterator(fals
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
 	m_bSubsetAttachmentsEnabled = false;
+	m_defaultSubsetInfo.name = "defSub";
+	m_defaultSubsetInfo.materialIndex = 0;
+	m_defaultSubsetInfo.color = vector4(1., 1., 1., 1.);
+	m_defaultSubsetInfo.subsetState = SS_NONE;
 }
 
 ISubsetHandler::
@@ -40,7 +44,11 @@ ISubsetHandler(Grid& grid, uint supportedElements) :
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
 	m_bSubsetAttachmentsEnabled = false;
-
+	m_defaultSubsetInfo.name = "defSub";
+	m_defaultSubsetInfo.materialIndex = 0;
+	m_defaultSubsetInfo.color = vector4(1., 1., 1., 1.);
+	m_defaultSubsetInfo.subsetState = SS_NONE;
+	
 	enable_element_support(supportedElements);
 	grid.register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
 									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
@@ -103,6 +111,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	set_supported_elements(sh.m_supportedElements);
 	enable_subset_inheritance(sh.m_bSubsetInheritanceEnabled);
 	set_default_subset_index(sh.m_defaultSubsetIndex);
+	set_default_subset_info(sh.m_defaultSubsetInfo);
 	
 //TODO: enable attachment support based on the source-hanlders attachment support!?!
 	subset_info_required(sh.num_subset_infos() - 1);
@@ -147,7 +156,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 void ISubsetHandler::
 create_required_subset_infos(int index)
 {
-	m_subsetInfos.resize(index+1);
+	m_subsetInfos.resize(index+1, m_defaultSubsetInfo);
 
 	if(subset_attachments_are_enabled())
 		resize_attachment_pipes(index+1);
@@ -374,6 +383,12 @@ subset_info(int subsetIndex) const
 	assert(((subsetIndex >= 0) && (subsetIndex < (int)num_subset_infos())) && "ERROR in SubsetHandler::subset_info(..) const: bad subset index. Use non-const version to avoid this Problem.");
 
 	return m_subsetInfos[subsetIndex];
+}
+
+void ISubsetHandler::
+set_default_subset_info(const SubsetInfo& defSI)
+{
+	m_defaultSubsetInfo = defSI;
 }
 
 void ISubsetHandler::

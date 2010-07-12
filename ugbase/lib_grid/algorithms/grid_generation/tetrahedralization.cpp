@@ -3,6 +3,7 @@
 //	y09 m09 d17
 
 #include <vector>
+#include <sstream>
 #include "tetrahedralization.h"
 #include "lib_grid/externals/include/tetgen/tetgen.h"
 #include "../geom_obj_util/geom_obj_util.h"
@@ -14,6 +15,7 @@ namespace ug
 
 static bool PerformTetrahedralization(Grid& grid,
 										SubsetHandler* pSH,
+										number quality,
 										APosition& aPos)
 {
 	if(!grid.has_vertex_attachment(aPos))
@@ -98,7 +100,12 @@ static bool PerformTetrahedralization(Grid& grid,
 
 //	call tetrahedralization
 	try{
-		tetrahedralize(const_cast<char*>("pqYYQ"), &in, &out);
+		stringstream ss;
+		ss << "p";
+		if(quality > SMALL)
+			ss << "q" << quality;
+		ss << "YYQ";
+		tetrahedralize(const_cast<char*>(ss.str().c_str()), &in, &out);
 	}
 	catch(int errCode){
 		UG_LOG("  aborting tetrahedralization. Received error: " << errCode << endl);
@@ -176,15 +183,15 @@ static bool PerformTetrahedralization(Grid& grid,
 }
 
 
-bool Tetrahedralize(Grid& grid, APosition& aPos)
+bool Tetrahedralize(Grid& grid, number quality, APosition& aPos)
 {
-	return PerformTetrahedralization(grid, NULL, aPos);
+	return PerformTetrahedralization(grid, NULL, quality, aPos);
 }
 
 bool Tetrahedralize(Grid& grid, SubsetHandler& sh,
-					APosition& aPos)
+					number quality, APosition& aPos)
 {
-	return PerformTetrahedralization(grid, &sh, aPos);
+	return PerformTetrahedralization(grid, &sh, quality, aPos);
 }
 
 }//	end of namespace

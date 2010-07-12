@@ -82,6 +82,8 @@ static bool SaveGrid(Grid& grid, const char* filename,
 		return SaveGridToART(grid, filename, pSH, aPos);
 	else if(strName.find(".art") != string::npos)
 		return SaveGridToART(grid, filename, pSH, aPos);
+	else if(strName.find(".ncdf") != string::npos)
+		return SaveGridToNCDF(grid, filename, pSH, aPos);
 				
 	return false;
 }

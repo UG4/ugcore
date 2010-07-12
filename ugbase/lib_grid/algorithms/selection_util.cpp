@@ -54,19 +54,57 @@ void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedGeometricObjects
+void SelectAssociatedGeometricObjects(Selector& sel)
+{
+	if(!sel.get_assigned_grid()){
+		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
+		return;
+	}
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+//	select associated elements of selected elements
+	SelectAssociatedFaces(sel, sel.begin<Volume>(), sel.end<Volume>());
+	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+		SelectAssociatedEdges(sel, sel.begin<Volume>(), sel.end<Volume>());
+		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+			SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>());
+	}
+	
+	SelectAssociatedEdges(sel, sel.begin<Face>(), sel.end<Face>());
+	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+		SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
+		
+	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//	SelectAssociatedGeometricObjects
 void SelectAssociatedGeometricObjects(MGSelector& msel)
 {
+	if(!msel.get_assigned_grid()){
+		UG_LOG("ERROR in SelectAssociatedGeometricObjects: Selector has to be assigned to a grid.\n");
+		return;
+	}
+	
+	Grid& grid = *msel.get_assigned_grid();
+	
 //	select associated elements of selected elements on each level
 	for(size_t i = 0; i < msel.num_levels(); ++i)
 	{
-		SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i), msel.end<EdgeBase>(i));
-		SelectAssociatedVertices(msel, msel.begin<Face>(i), msel.end<Face>(i));
-		SelectAssociatedVertices(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		SelectAssociatedFaces(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+			SelectAssociatedEdges(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+			if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
+				SelectAssociatedVertices(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		}
 		
 		SelectAssociatedEdges(msel, msel.begin<Face>(i), msel.end<Face>(i));
-		SelectAssociatedEdges(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
-		
-		SelectAssociatedFaces(msel, msel.begin<Volume>(i), msel.end<Volume>(i));
+		if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
+			SelectAssociatedVertices(msel, msel.begin<Face>(i), msel.end<Face>(i));
+			
+		SelectAssociatedVertices(msel, msel.begin<EdgeBase>(i), msel.end<EdgeBase>(i));
 	}
 }
 
@@ -86,6 +124,67 @@ static void SelectParents(MultiGrid& mg, MGSelector& msel,
 
 		iterBegin++;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//	ExtendSelection
+void ExtendSelection(Selector& sel, size_t extSize)
+{
+	if(!sel.get_assigned_grid()){
+		UG_LOG("ERROR in ExtendSelection: Selector has to be assigned to a grid.\n");
+		return;
+	}
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+//	first select associated elements of volumes, faces and edges.
+//	then select associated elements of selected vertices.
+//	do this extSize times.
+//	elements that have already been processed are marked.
+	
+	grid.begin_marking();
+	
+//	perform iteration
+	for(size_t extIters = 0; extIters < extSize; ++extIters)
+	{
+//TODO: speed-up by only calling SelectAssociatedGeometricObjects once before the loop.
+//		During the loop only newly selected elements should be checked for associated elements.
+
+	//	select associated elements
+		SelectAssociatedGeometricObjects(sel);
+	
+	//	iterate over all selected vertices.
+		for(VertexBaseIterator iter = sel.begin<VertexBase>();
+			iter != sel.end<VertexBase>(); ++iter)
+		{
+			VertexBase* vrt = *iter;
+		//	all marked vertices have already been processed.
+			if(!grid.is_marked(vrt)){
+				grid.mark(vrt);
+				
+			//	select associated volumes, faces and edges.
+				for(Grid::AssociatedEdgeIterator asIter = grid.associated_edges_begin(vrt);
+					asIter != grid.associated_edges_end(vrt); ++asIter)
+				{
+					sel.select(*asIter);
+				}
+				
+				for(Grid::AssociatedFaceIterator asIter = grid.associated_faces_begin(vrt);
+					asIter != grid.associated_faces_end(vrt); ++asIter)
+				{
+					sel.select(*asIter);
+				}
+				
+				for(Grid::AssociatedVolumeIterator asIter = grid.associated_volumes_begin(vrt);
+					asIter != grid.associated_volumes_end(vrt); ++asIter)
+				{
+					sel.select(*asIter);
+				}
+			}
+		}
+	}
+	
+	grid.end_marking();
 }
 
 ////////////////////////////////////////////////////////////////////////

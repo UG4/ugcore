@@ -11,14 +11,16 @@ using namespace std;
 namespace ug
 {
 
-bool Refine(Grid& grid, Selector& sel){
+bool Refine(Grid& grid, Selector& sel,
+			IRefinementCallback* refCallback)
+{
 	AInt aInt;
 	if(grid.num<Face>() > 0)
 		grid.attach_to_edges(aInt);
 	if(grid.num<Volume>() > 0)
 		grid.attach_to_faces(aInt);
 		
-	bool bSuccess = Refine(grid, sel, aInt);
+	bool bSuccess = Refine(grid, sel, aInt, refCallback);
 
 	if(grid.num<Face>() > 0)
 		grid.detach_from_edges(aInt);
@@ -278,7 +280,8 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 	return true;
 }
 */
-bool Refine(Grid& grid, Selector& sel, AInt& aInt)
+bool Refine(Grid& grid, Selector& sel, AInt& aInt,
+			IRefinementCallback* refCallback)
 {
 //	aInt has to be attached to the edges of the grid
 	if(grid.num<Face>() > 0 &! grid.has_edge_attachment(aInt)){
@@ -299,6 +302,11 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 		return false;
 	}
 
+//	if the refinement-callback is empty, use a linear one.
+	RefinementCallbackLinear LinRefCallback(grid, aPosition);
+	if(!refCallback)
+		refCallback = &LinRefCallback;
+		
 //	make sure that GRIDOPT_VERTEXCENTRIC_INTERCONNECTION is enabled
 	if(!grid.option_is_enabled(GRIDOPT_VERTEXCENTRIC_INTERCONNECTION)){
 		LOG("  INFO in Refine: autoenabling GRIDOPT_VERTEXCENTRIC_INTERCONNECTION\n");
@@ -369,7 +377,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 			edgeVrts[i] = *grid.create<Vertex>(*iter);
 			sel.select(edgeVrts[i]);
 		//	calculate new position
-			aaPos[edgeVrts[i]] = CalculateCenter(*iter, aaPos);
+			refCallback->new_vertex(edgeVrts[i], *iter);
 		}
 	}
 
@@ -430,7 +438,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				grid.register_element(newVrt, f);
-				aaPos[newVrt] = CalculateCenter(f, aaPos);
+				refCallback->new_vertex(newVrt, f);
 				sel.select(newVrt);
 			}
 			
@@ -503,7 +511,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				grid.register_element(newVrt, v);
-				aaPos[newVrt] = CalculateCenter(v, aaPos);
+				refCallback->new_vertex(newVrt, v);
 				sel.select(newVrt);
 			}
 				

@@ -6,6 +6,7 @@
 #include "edge_util.h"
 #include "lib_grid/grid/grid_util.h"
 #include "vertex_util.h"
+#include "lib_grid/algorithms/refinement/regular_refinement.h"
 
 using namespace std;
 
@@ -485,6 +486,58 @@ EdgeBase* SwapEdge(Grid& grid, EdgeBase* e)
 	grid.erase(e);
 	
 	return nEdge;
+}
+
+////////////////////////////////////////////////////////////////////////
+bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
+						APosition& aPos)
+{
+	if(!sel.get_assigned_grid()){
+		UG_LOG("ERROR in CutEdgesWithPlane: sel has to be assigned to a grid.\n");
+		return false;
+	}
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+	if(!grid.has_vertex_attachment(aPos)){
+		UG_LOG("ERROR in CutEdgesWithPlane: aPos has to be attached to the vertices of the grid.\n");
+		return false;
+	}
+	
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
+	
+//	used for plane-intersection
+	number t;
+	vector3 v;
+	
+//	iterate through all edges and deselect all that do not intersect the plane
+//	deselect all vertices, faces and volumes, too.
+	sel.clear<VertexBase>();
+	sel.clear<Face>();
+	sel.clear<Volume>();
+		
+	EdgeBaseIterator iter = sel.begin<EdgeBase>();
+	while(iter != sel.end<EdgeBase>()){
+		EdgeBase* e = *iter;
+		iter++;
+	
+	//	check whether the edge intersects the plane
+		vector3 rayDir;
+		VecSubtract(rayDir, aaPos[e->vertex(1)], aaPos[e->vertex(0)]);
+		
+		bool bIntersect = RayPlaneIntersection(v, t, aaPos[e->vertex(0)],
+												rayDir, p, n);
+		if(!bIntersect || t < SMALL || t > 1. - SMALL)
+		{
+		//	it doesn't. Remove it from the selector
+			sel.deselect(e);
+		}
+	}
+	
+//	refine all selected edges. RefinementCallbackEdgePlaneCut will insert
+//	new vertices on the plane.
+	RefinementCallbackEdgePlaneCut refCallbackEdgePlaneCut(grid, p, n, aPos);
+	return Refine(grid, sel, &refCallbackEdgePlaneCut);
 }
 
 }//	end of namespace

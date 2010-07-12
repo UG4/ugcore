@@ -182,6 +182,14 @@ void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 
 
 ////////////////////////////////////////////////////////////////////////
+//	RayPlaneIntersection
+///	calculates the intersection of the ray rayFrom+t*rayDir and the plane (x-p)*n=0.
+template <class vector_t>
+bool RayPlaneIntersection(vector_t& vOut, number& tOut,
+						  const vector_t& rayFrom, const vector_t& rayDir,
+						  const vector_t& p, const vector_t& n);
+
+////////////////////////////////////////////////////////////////////////
 //	RayTriangleIntersection
 ///	calculates the intersection of a ray with a triangle
 /**

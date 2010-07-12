@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__REGULAR_REFINER__
 
 #include "lib_grid/lg_base.h"
+#include "refinement_callbacks.h"
 
 namespace ug
 {
@@ -37,7 +38,8 @@ namespace ug
  *
  * \sa RegularRefiner, HangingNodeRefiner
  */
-bool Refine(Grid& grid, Selector& sel, AInt& aInt);
+bool Refine(Grid& grid, Selector& sel, AInt& aInt,
+			IRefinementCallback* refCallback = NULL);
 
 ///	refines selected faces and edges regularily and builds a closure on adjacent unselected faces.
 /**
@@ -51,7 +53,8 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt);
  *
  * \sa RegularRefiner, HangingNodeRefiner
  */
-bool Refine(Grid& grid, Selector& sel);
+bool Refine(Grid& grid, Selector& sel,
+			IRefinementCallback* refCallback = NULL);
 
 }// end of namespace
 

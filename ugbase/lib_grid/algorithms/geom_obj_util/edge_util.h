@@ -175,11 +175,19 @@ void MarkCreaseEdges(Grid& grid, ISubsetHandler& sh,
 					ANormal* paFaceNormal = NULL);
 
 
+////////////////////////////////////////////////////////////////////////
+///	Calculates the center of an edge
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 
-								
+////////////////////////////////////////////////////////////////////////
+///	refines all edges in sel which cut the given plane.
+/**	New vertices are inserted on the plane.
+ *	When the method is done, sel will contain all refined elements.*/
+bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
+						APosition& aPos = aPosition);
+
 /**@}*/ // end of doxygen defgroup command
 
 }//	end of namespace

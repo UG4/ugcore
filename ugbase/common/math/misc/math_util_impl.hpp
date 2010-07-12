@@ -276,6 +276,29 @@ void ProjectPointToPlane(vector_t& vOut, const vector_t& v,
 	VecSubtract(vOut, v, t);
 }
 
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+bool RayPlaneIntersection(vector_t& vOut, number& tOut,
+						  const vector_t& rayFrom, const vector_t& rayDir,
+						  const vector_t& p, const vector_t& n)
+{
+//	solve: t = (p-rayFrom)*n / rayDir*n
+	number denom = VecDot(rayDir, n);
+	if(fabs(denom) < SMALL)
+		return false;
+	
+//	calculate intersection parameter
+	vector_t v;
+	VecSubtract(v, p, rayFrom);
+	tOut = VecDot(v, n) / denom;
+	
+//	calculate intersection point
+	VecScale(v, rayDir, tOut);
+	VecAdd(vOut, rayFrom, v);
+	return true;
+}
+						  
+////////////////////////////////////////////////////////////////////////
 template <class vector_t>
 bool RayTriangleIntersection(vector_t &vOut, number& bc1Out, number& bc2Out, number& tOut,
 						   const vector_t &p0, const vector_t &p1, const vector_t &p2, 
