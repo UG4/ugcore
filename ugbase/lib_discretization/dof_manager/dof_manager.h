@@ -8,6 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
 #define __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
 
+#include "./mg_dof_manager.h"
+
 namespace ug{
 
 enum DoFManagerGroupStrategy {
