@@ -57,8 +57,8 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			if(m_bOpChanged)
 			{
 				// create help vector to apply diagonal
-				size_t size = m_pMatrix->row_size();
-				if(size != m_pMatrix->col_size())
+				size_t size = m_pMatrix->num_rows();
+				if(size != m_pMatrix->num_cols())
 				{
 					UG_LOG("Square Matrix needed for Jacobi Iteration.\n");
 					return false;
@@ -118,8 +118,8 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
 
-			UG_ASSERT(d_vec.size() == m_pMatrix->row_size(),	"Vector and Row sizes have to match!");
-			UG_ASSERT(c_vec.size() == m_pMatrix->col_size(), "Vector and Column sizes have to match!");
+			UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
+			UG_ASSERT(c_vec.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
 			UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
 
 #ifdef UG_PARALLEL
