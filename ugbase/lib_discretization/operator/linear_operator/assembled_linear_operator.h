@@ -39,7 +39,7 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 			const typename domain_function_type::vector_type& c_vec = c.get_vector();
 			typename codomain_function_type::vector_type& d_vec = d.get_vector();
 
-			if(m_J.row_size() == d_vec.size() && m_J.col_size() == c_vec.size())
+			if(m_J.num_rows() == d_vec.size() && m_J.num_cols() == c_vec.size())
 			{
 				if(m_J.set(0.0) != true) return false;
 			}
@@ -60,8 +60,8 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 			const typename domain_function_type::vector_type& x = c.get_vector();
 			typename codomain_function_type::vector_type& b = d.get_vector();
 
-			UG_ASSERT(x.size() == m_J.row_size(), "Row size '" << m_J.row_size() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
-			UG_ASSERT(b.size() == m_J.col_size(), "Column size '" << m_J.row_size() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
+			UG_ASSERT(x.size() == m_J.num_rows(), "Row size '" << m_J.num_rows() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
+			UG_ASSERT(b.size() == m_J.num_cols(), "Column size '" << m_J.num_rows() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
 
 			if(!c.has_storage_type(PST_CONSISTENT)) return false;
 			d.set_storage_type(PST_ADDITIVE);
@@ -74,8 +74,8 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 			const typename domain_function_type::vector_type& x = c.get_vector();
 			typename codomain_function_type::vector_type& b = d.get_vector();
 
-			UG_ASSERT(x.size() == m_J.row_size(), "Row size '" << m_J.row_size() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
-			UG_ASSERT(b.size() == m_J.col_size(), "Column size '" << m_J.row_size() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
+			UG_ASSERT(x.size() == m_J.num_rows(), "Row size '" << m_J.num_rows() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
+			UG_ASSERT(b.size() == m_J.num_cols(), "Column size '" << m_J.num_rows() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
 
 			// TODO: Check that matrix has correct type (additive)
 			if(!c.has_storage_type(PST_CONSISTENT)) return false;
@@ -140,7 +140,7 @@ class AssembledLinearOperator : public ILinearOperator<TDiscreteFunction, TDiscr
 			const typename domain_function_type::vector_type& x = u.get_vector();
 			typename codomain_function_type::vector_type& b = f.get_vector();
 
-			if(m_Matrix.row_size() == b.size() && m_Matrix.col_size() == x.size())
+			if(m_Matrix.num_rows() == b.size() && m_Matrix.num_cols() == x.size())
 			{
 				if(m_Matrix.set(0.0) != true) return false;
 			}
@@ -172,8 +172,8 @@ class AssembledLinearOperator : public ILinearOperator<TDiscreteFunction, TDiscr
 			const typename domain_function_type::vector_type& x = u.get_vector();
 			typename codomain_function_type::vector_type& b = f.get_vector();
 
-			UG_ASSERT(x.size() == m_Matrix.row_size(), "Row size '" << m_Matrix.row_size() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
-			UG_ASSERT(b.size() == m_Matrix.col_size(), "Column size '" << m_Matrix.row_size() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
+			UG_ASSERT(x.size() == m_Matrix.num_rows(), "Row size '" << m_Matrix.num_rows() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
+			UG_ASSERT(b.size() == m_Matrix.num_cols(), "Column size '" << m_Matrix.num_rows() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
 
 			// TODO: Check that matrix has correct type (additive)
 			if(!u.has_storage_type(PST_CONSISTENT)) return false;
@@ -187,8 +187,8 @@ class AssembledLinearOperator : public ILinearOperator<TDiscreteFunction, TDiscr
 			const typename domain_function_type::vector_type& x = u.get_vector();
 			typename codomain_function_type::vector_type& b = f.get_vector();
 
-			UG_ASSERT(x.size() == m_Matrix.row_size(), "Row size '" << m_Matrix.row_size() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
-			UG_ASSERT(b.size() == m_Matrix.col_size(), "Column size '" << m_Matrix.row_size() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
+			UG_ASSERT(x.size() == m_Matrix.num_rows(), "Row size '" << m_Matrix.num_rows() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
+			UG_ASSERT(b.size() == m_Matrix.num_cols(), "Column size '" << m_Matrix.num_rows() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
 
 			// TODO: Check that matrix has correct type (additive)
 			if(!u.has_storage_type(PST_CONSISTENT)) return false;
