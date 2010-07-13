@@ -10,8 +10,6 @@
 
 namespace ug{
 
-#define AMG_MAX_LEVELS 32
-
 template <typename TDiscreteFunction>
 class LapackLUOperator : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteFunction>
 {
