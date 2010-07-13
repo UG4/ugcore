@@ -70,7 +70,7 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 		// apply Operator, i.e. v = L(u);
 		bool apply(domain_function_type& u, codomain_function_type& v)
 		{
-			UG_DLOG(LIB_DISC_TRANSFER, 5, " Matrix: (" << m_matrix.row_size() << " x " << m_matrix.col_size() << ").\n");
+			UG_DLOG(LIB_DISC_TRANSFER, 5, " Matrix: (" << m_matrix.num_rows() << " x " << m_matrix.num_cols() << ").\n");
 			UG_DLOG(LIB_DISC_TRANSFER, 5, " Fine Vector: (" <<  v.get_vector().size() << ").\n");
 			UG_DLOG(LIB_DISC_TRANSFER, 5, " Coarse Vector: (" <<  u.get_vector().size() << ").\n");
 
@@ -85,7 +85,7 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 		// apply Operator
 		bool apply_transposed(codomain_function_type& v, domain_function_type& u)
 		{
-			UG_DLOG(LIB_DISC_TRANSFER, 5, " Matrix: (" << m_matrix.row_size() << " x " << m_matrix.col_size() << ").\n");
+			UG_DLOG(LIB_DISC_TRANSFER, 5, " Matrix: (" << m_matrix.num_rows() << " x " << m_matrix.num_cols() << ").\n");
 			UG_DLOG(LIB_DISC_TRANSFER, 5, " Coarse Vector: (" <<  v.get_vector().size() << ").\n");
 			UG_DLOG(LIB_DISC_TRANSFER, 5, " Fine Vector: (" <<  u.get_vector().size() << ").\n");
 
