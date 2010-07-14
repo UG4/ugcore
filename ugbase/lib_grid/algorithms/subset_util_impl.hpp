@@ -195,15 +195,18 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	CreateTopView
+//	CreateSurfaceView
 template <class TIterator>
-void CreateTopView(MultiGrid& mg, SubsetHandler& sh,
-					TIterator iterBegin, TIterator iterEnd)
+void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
+						ISubsetHandler& sh, TIterator iterBegin,
+						TIterator iterEnd)
 {
 	while(iterBegin != iterEnd)
 	{
-		if(!mg.has_children(*iterBegin))
-			sh.assign_subset(*iterBegin, 0);
+		if(!mg.has_children(*iterBegin)){
+			shSurfaceViewOut.assign_subset(*iterBegin,
+									sh.get_subset_index(*iterBegin));
+		}
 		++iterBegin;
 	}
 }

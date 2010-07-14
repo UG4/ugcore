@@ -62,6 +62,7 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				tools/selector_multi_grid.cpp
 				tools/selector_grid_elem.cpp
 				tools/marker_points.cpp
+				tools/surface_view.cpp
 				geometric_objects/geometric_objects_2d.cpp
 				geometric_objects/geometric_objects_3d.cpp
 				common_attachments.cpp
@@ -71,12 +72,12 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 
 if(NOT NO_PCL)
 	# add parallelization
-	set(srcParallelization	parallelization/distribution_util.cpp
-							parallelization/grid_distribution.cpp
+	set(srcParallelization		parallelization/grid_distribution.cpp
 							parallelization/distributed_grid.cpp
 							parallelization/parallelization_util.cpp
 							parallelization/parallel_refinement/parallel_multi_grid_refiner.cpp
-							parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp)
+							parallelization/parallel_refinement/parallel_global_multi_grid_refiner.cpp
+							parallelization/util/distribution_util.cpp)
 
 else(NOT NO_PCL)
 	# give a warning that pcl will not be compiled.

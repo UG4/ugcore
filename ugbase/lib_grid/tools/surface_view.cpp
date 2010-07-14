@@ -23,11 +23,25 @@ SurfaceView::SurfaceView(MultiGrid& mg) : SubsetHandler(mg)
 
 SurfaceView::~SurfaceView()
 {
+//	tell registered grid-observers that the SurfaceView is to be destroyed.
+	for(ObserverContainer::iterator iter = m_gridObservers.begin();
+		iter != m_gridObservers.end(); ++iter)
+	{
+	//	we have to pass the underlying grid here, since SurfaceViews are
+	//	not directly supported by GridObservers.
+		(*iter)->grid_to_be_destroyed(m_pGrid);
+	}
+	
 //	unregister all observers
 	while(!m_gridObservers.empty())
 	{
 		unregister_observer(m_gridObservers.back());
 	}
+}
+
+void SurfaceView::grid_to_be_destroyed(Grid* grid)
+{
+//	notify all observers that the underlying grid is to be destroyed.
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -37,11 +51,6 @@ void SurfaceView::assign_grid(MultiGrid& mg)
 	SubsetHandler::assign_grid(mg);
 }
 
-void SurfaceView::registered_at_grid(Grid* grid)
-{
-	assert(static_cast<MultiGrid*>(grid) == m_pMG && "you should assign a grid using SurfaceView::assign_grid(...)");
-}
-
 ////////////////////////////////////////////////////////////////////////
 void SurfaceView::assign_subset(VertexBase* elem, int subsetIndex)
 {
@@ -49,9 +58,9 @@ void SurfaceView::assign_subset(VertexBase* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_erased(m_pGrid, elem));
 	}
-
+		
 	SubsetHandler::assign_subset(elem, subsetIndex);
-
+	
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_vertexObservers, vertex_created(m_pGrid, elem, NULL));
 	}
@@ -63,9 +72,9 @@ void SurfaceView::assign_subset(EdgeBase* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_erased(m_pGrid, elem));
 	}
-
+		
 	SubsetHandler::assign_subset(elem, subsetIndex);
-
+	
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_edgeObservers, edge_created(m_pGrid, elem, NULL));
 	}
@@ -77,9 +86,9 @@ void SurfaceView::assign_subset(Face* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_faceObservers, face_to_be_erased(m_pGrid, elem));
 	}
-
+		
 	SubsetHandler::assign_subset(elem, subsetIndex);
-
+	
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_faceObservers, face_created(m_pGrid, elem, NULL));
 	}
@@ -91,9 +100,9 @@ void SurfaceView::assign_subset(Volume* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_erased(m_pGrid, elem));
 	}
-
+		
 	SubsetHandler::assign_subset(elem, subsetIndex);
-
+	
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_volumeObservers, volume_created(m_pGrid, elem, NULL));
 	}
@@ -143,25 +152,17 @@ void SurfaceView::register_observer(GridObserver* observer, uint observerType)
 		if(iter == m_volumeObservers.end())
 			m_volumeObservers.push_back(observer);
 	}
-/*
-//	if the observer is a grid observer, notify him about the registration
-	if((observerType & OT_GRID_OBSERVER) == OT_GRID_OBSERVER)
-		observer->registered_at_grid(this);
-*/
 }
 
 void SurfaceView::unregister_observer(GridObserver* observer)
 {
 //	check where the observer has been registered and erase the corresponding entries.
-	bool unregisterdFromGridObservers = false;
 
 	{
 		ObserverContainer::iterator iter = find(m_gridObservers.begin(),
 												m_gridObservers.end(), observer);
 		if(iter != m_gridObservers.end())
 			m_gridObservers.erase(iter);
-
-		unregisterdFromGridObservers = true;
 	}
 
 	{
@@ -191,10 +192,6 @@ void SurfaceView::unregister_observer(GridObserver* observer)
 		if(iter != m_volumeObservers.end())
 			m_volumeObservers.erase(iter);
 	}
-
-//	if the observer is a grid observer, notify him about the unregistration
-//	if(unregisterdFromGridObservers)
-//		observer->unregistered_from_grid(NULL);
 }
 
 }//	end of namespace

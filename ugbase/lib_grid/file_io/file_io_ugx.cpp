@@ -55,25 +55,39 @@ add_subset_attributes(rapidxml::xml_node<>* targetNode,
 	stringstream ss;
 	SubsetInfo& si = sh.subset_info(subsetIndex);
 //	write color
-	for(size_t i = 0; i < 4; ++i)
+	for(size_t i = 0; i < 4; ++i){
 		ss << si.color[i];
+		if(i < 3)
+			ss << " ";
+	}
 		
 	targetNode->append_attribute(m_doc.allocate_attribute("name", si.name.c_str()));
 	targetNode->append_attribute(m_doc.allocate_attribute("color", ss.str().c_str()));
 }
 
 void GridWriterUGX::
-add_subset_handler(SubsetHandler* sh, const char* name,
+add_subset_handler(SubsetHandler& sh, const char* name,
 					size_t refGridIndex)
 {
+//	get the node of the referenced grid
+	if(refGridIndex >= m_vEntries.size()){
+		UG_LOG("GridWriterUGX::add_subset_handler: bad refGridIndex. Aborting.\n");
+		return;
+	}
+	
+	xml_node<>* parentNode = m_vEntries[refGridIndex].node;
+	
 //	create the subset-handler node
 	xml_node<>* ndSH = m_doc.allocate_node(node_element, "subset_handler");
 	ndSH->append_attribute(m_doc.allocate_attribute("name", name));
 	
+//	add the subset-handler-node to the grid-node.
+	parentNode->append_node(ndSH);
+	
 //	add the subsets
-	for(size_t i = 0; i < sh->num_subsets(); ++i){
+	for(size_t i = 0; i < sh.num_subsets(); ++i){
 		xml_node<>* ndSubset = m_doc.allocate_node(node_element, "subset");
-		add_subset_attributes(ndSubset, *sh, i);
+		add_subset_attributes(ndSubset, sh, i);
 		ndSH->append_node(ndSubset);
 		
 	//	add elements
@@ -81,7 +95,7 @@ add_subset_handler(SubsetHandler* sh, const char* name,
 }
 						
 void GridWriterUGX::
-add_subset_handler(MGSubsetHandler* mgsh, const char* name,
+add_subset_handler(MGSubsetHandler& mgsh, const char* name,
 					size_t refGridIndex)
 {
 

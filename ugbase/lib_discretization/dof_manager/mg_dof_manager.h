@@ -12,8 +12,6 @@
 
 #include "lib_grid/lib_grid.h"
 #include "./function_pattern.h"
-#include "lib_discretization/geom_object_container/surface_view.h"
-#include "lib_grid/algorithms/subset_util.h"
 
 namespace ug{
 
@@ -146,10 +144,14 @@ class MGDoFManager
 				{UG_LOG("Allocation of Surface View failed.\n"); return false;}
 
 			// Create surface view for all elements
-			CreateTopView(*m_pMultiGrid, *pSurfaceView, m_pMultiGrid->vertices_begin(), m_pMultiGrid->vertices_end());
-			CreateTopView(*m_pMultiGrid, *pSurfaceView, m_pMultiGrid->edges_begin(), m_pMultiGrid->edges_end());
-			CreateTopView(*m_pMultiGrid, *pSurfaceView, m_pMultiGrid->faces_begin(), m_pMultiGrid->faces_end());
-			CreateTopView(*m_pMultiGrid, *pSurfaceView, m_pMultiGrid->volumes_begin(), m_pMultiGrid->volumes_end());
+			CreateSurfaceView(*pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
+							m_pMultiGrid->vertices_begin(), m_pMultiGrid->vertices_end());
+			CreateSurfaceView(*pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
+							m_pMultiGrid->edges_begin(), m_pMultiGrid->edges_end());
+			CreateSurfaceView(*pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
+							m_pMultiGrid->faces_begin(), m_pMultiGrid->faces_end());
+			CreateSurfaceView(*pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
+							m_pMultiGrid->volumes_begin(), m_pMultiGrid->volumes_end());
 
 			// set storage manager
 			m_surfaceStorageManager.set_subset_handler(*pSurfaceView);

@@ -142,30 +142,23 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	for(VertexBaseIterator iter = grid.vertices_begin();
 		iter != grid.vertices_end(); ++iter, ++endlCounter)
 	{
-		if(iter != grid.vertices_begin()){
-			out << ",";
-			if(endlCounter > 5){
-				endlCounter = 1;
-				out << endl << " ";
-			}
+		if(endlCounter > 5){
+			endlCounter = 1;
+			out << endl << " ";
 		}
 
-		out << " " << aaPos[*iter].x;
+		out << " " << aaPos[*iter].x << ",";
 	}
 
 //	y
 	for(VertexBaseIterator iter = grid.vertices_begin();
 		iter != grid.vertices_end(); ++iter, ++endlCounter)
 	{
-		if(iter != grid.vertices_begin()){
-			out << ",";
-			if(endlCounter > 5){
-				endlCounter = 1;
-				out << endl << " ";
-			}
+		if(endlCounter > 5){
+			endlCounter = 1;
+			out << endl << " ";
 		}
-
-		out << " " << aaPos[*iter].y;
+		out << " " << aaPos[*iter].y << ",";
 	}
 	
 //	z

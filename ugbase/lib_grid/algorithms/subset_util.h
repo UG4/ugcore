@@ -146,24 +146,26 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 									const TSubsetHandlerSrc& srcIndHandler);
 
 ////////////////////////////////////////////////////////////////////////
-//	CreateTopView
+//	CreateSurfaceView
 ///	Collects all elements between iterBegin and iterEnd that don't have any children.
 /**
- * In the current implementation all top-view-elements will be assigned
- * to subset 0 - this will change in future versions (as well as the parameters).
+ * Elements which are on the surface of the multi-grid-hierarchy
+ * (elements that don't have children) are assigned to a subset of the
+ * shSurfaceViewOut. The subset-index is taken from sh.
  *
  * TIterator has to be an STL compatible iterator, whose value-type is a
- * pointer to an VertexBase, EdgeBase, Face, Volume or derived class.
+ * pointer to a VertexBase, EdgeBase, Face, Volume or derived class.
  *
  * make sure that all elements between iterBegin and iterEnd are members
  * of the given MultiGrid.
  *
- * This method will extend the subsets. The caller is responsible for
- * clearing them before calling this method.
+ * This method will extend the surface-view. The caller is responsible for
+ * clearing it before calling this method.
  */
 template <class TIterator>
-void CreateTopView(MultiGrid& mg, SubsetHandler& sh,
-					TIterator iterBegin, TIterator iterEnd);
+void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
+						ISubsetHandler& sh, TIterator iterBegin,
+						TIterator iterEnd);
 					
 ////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg

@@ -10,7 +10,7 @@
 
 #include "pcl/pcl.h"
 #include "lib_grid/parallelization/distributed_grid.h"
-#include "lib_discretization/domain_util.h"
+#include "lib_grid/parallelization/util/parallel_subset_util.h"
 #include "parallelization_util.h"
 
 namespace ug
@@ -93,10 +93,14 @@ class ParallelMGDoFManager : public TMGDoFManager
 				{UG_LOG("Allocation of Surface View failed.\n"); return false;}
 
 			// Create surface view for all elements
-			CreateTopView(*m_DistGridManager, *pSurfaceView, this->m_pMultiGrid->vertices_begin(), this->m_pMultiGrid->vertices_end());
-			CreateTopView(*m_DistGridManager, *pSurfaceView, this->m_pMultiGrid->edges_begin(), this->m_pMultiGrid->edges_end());
-			CreateTopView(*m_DistGridManager, *pSurfaceView, this->m_pMultiGrid->faces_begin(), this->m_pMultiGrid->faces_end());
-			CreateTopView(*m_DistGridManager, *pSurfaceView, this->m_pMultiGrid->volumes_begin(), this->m_pMultiGrid->volumes_end());
+			CreateSurfaceView(*pSurfaceView, *m_DistGridManager, *this->m_pMGSubsetHandler,
+							this->m_pMultiGrid->vertices_begin(), this->m_pMultiGrid->vertices_end());
+			CreateSurfaceView(*pSurfaceView, *m_DistGridManager, *this->m_pMGSubsetHandler,
+							this->m_pMultiGrid->edges_begin(), this->m_pMultiGrid->edges_end());
+			CreateSurfaceView(*pSurfaceView, *m_DistGridManager, *this->m_pMGSubsetHandler,
+							this->m_pMultiGrid->faces_begin(), this->m_pMultiGrid->faces_end());
+			CreateSurfaceView(*pSurfaceView, *m_DistGridManager, *this->m_pMGSubsetHandler,
+							this->m_pMultiGrid->volumes_begin(), this->m_pMultiGrid->volumes_end());
 
 			// set storage manager
 			this->m_surfaceStorageManager.set_subset_handler(*pSurfaceView);

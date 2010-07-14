@@ -8,51 +8,10 @@
 #include <sstream>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/lg_base.h"
-#include "lib_grid/algorithms/subset_util.h"
 #include "lib_grid/parallelization/parallelization.h"
 #include "lib_grid/algorithms/attachment_util.h"
 
 namespace ug{
-
-////////////////////////////////////////////////////////////////////////
-//	CreateTopView
-///	Collects all geom-objects between iterBegin and iterEnd that don't have any children.
-/**
- * Ghost objects are ignored.
- *
- * In the current implementation all top-view-elements will be assigned
- * to subset 0 - this will change in future versions (as well as the parameters).
- *
- * TIterator has to be an STL compatible iterator, whose value-type is a
- * pointer to an VertexBase, EdgeBase, Face, Volume or derived class.
- *
- * make sure that all elements between iterBegin and iterEnd are members
- * of the given MultiGrid.
- *
- * This method will extend the subsets. The caller is responsible for
- * clearing them before calling this method.
- */
-
-template <class TIterator>
-void CreateTopView(DistributedGridManager& distGridMgr,
-					SubsetHandler& sh,
-					TIterator iterBegin, TIterator iterEnd)
-{
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgr.get_assigned_grid());
-	if(!pMG){
-		UG_LOG("  Can't create top-view. A Multigrid is required.\n");
-		return;
-	}
-
-	while(iterBegin != iterEnd)
-	{
-		if(!distGridMgr.is_ghost(*iterBegin)){
-			if(!pMG->has_children(*iterBegin))
-				sh.assign_subset(*iterBegin, 0);
-		}
-		++iterBegin;
-	}
-}
 
 ////////////////////////////////////////////////////////////////////////
 template <class TDomain>
@@ -87,7 +46,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 	typename TDomain::distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
 	
 //TODO: add partition-method
-	if(!LoadAndDistributeGrid(*pDistGridMgr, sh, numProcs, filename,
+	if(!LoadAndDistributeGrid(distGridMgr, sh, numProcs, filename,
 							keepSrcGrid,
 							AdjustGrid_AutoAssignSubsetsAndRefine(
 								autoAssignInnerObjectsToSubset,
@@ -118,7 +77,8 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 
 //	select the top-view
 	LOG("creating top view ...");
-	CreateTopView(distGridMgr, shTopViewOut, mg.faces_begin(), mg.faces_end());
+	CreateSurfaceView(shTopViewOut, distGridMgr, sh,
+					  mg.faces_begin(), mg.faces_end());
 	LOG(" done\n");
 
 //	save the top-view for debug purposes

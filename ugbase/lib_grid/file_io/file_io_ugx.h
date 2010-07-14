@@ -38,13 +38,13 @@ class GridWriterUGX
 					  TPositionAttachment& aPos);
 					  
 		template <class TPositionAttachment>
-		void add_grid(MultiGrid* mg, const char* name,
+		void add_grid(MultiGrid& mg, const char* name,
 					  TPositionAttachment& aPos);
 					  		
-		void add_subset_handler(SubsetHandler* sh, const char* name,
+		void add_subset_handler(SubsetHandler& sh, const char* name,
 								size_t refGridIndex);
 								
-		void add_subset_handler(MGSubsetHandler* mgsh, const char* name,
+		void add_subset_handler(MGSubsetHandler& mgsh, const char* name,
 								size_t refGridIndex);
 		
 		template <class TAttachment>

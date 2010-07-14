@@ -5,7 +5,7 @@
 #include "grid_distribution.h"
 #include "lib_grid/lib_grid.h"
 #include "pcl/pcl.h"
-#include "distribution_util.h"
+#include "util/distribution_util.h"
 #include "common/util/stream_pack.h"
 #include "common/util/binary_stream.h"
 

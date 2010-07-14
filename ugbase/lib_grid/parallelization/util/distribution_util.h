@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 #include "lib_grid/lg_base.h"
-#include "parallel_grid_layout.h"
+#include "../parallel_grid_layout.h"
 
 namespace ug
 {

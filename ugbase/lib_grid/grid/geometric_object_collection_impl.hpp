@@ -10,63 +10,23 @@
 
 namespace ug
 {
-
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	GeometricObjectCollection
 
 ////////////////////////////////////////////////////////////////////////
-//	Iterators
-/*
-////////////////////////////////////////////////////////////////////////
-//	begin
-template <class TGeomObj>
-typename geometry_traits<TGeomObj>::iterator
-GeometricObjectCollection::begin()
-{
-	assert(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1
-		&& "ERROR. Invalid base_object_type of GeomObjType!");
-
-	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
-		(m_pSectionContainers[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID]->section_begin(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
-}
-
-////////////////////////////////////////////////////////////////////////
-//	end
-template <class TGeomObj>
-typename geometry_traits<TGeomObj>::iterator
-GeometricObjectCollection::end()
-{
-	assert(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1
-		&& "ERROR. Invalid base_object_type of GeomObjType!");
-		
-	return iterator_cast<typename geometry_traits<TGeomObj>::iterator>
-		(m_pSectionContainers[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID]->section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
-}
-
-
-////////////////////////////////////////////////////////////////////////
-//	element numbers
-template <class TGeomObj>
-uint
-GeometricObjectCollection::num()
-{
-	assert(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1
-		&& "ERROR in Grid::num(). Invalid base_object_type of GeomObjType!");
-
-	int objType = geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID;
-	int secIndex = geometry_traits<TGeomObj>::SHARED_PIPE_SECTION;
-
-	if(secIndex == -1)
-		return m_pSectionContainers[objType]->num_elements();
-
-	return m_pSectionContainers[objType]->num_elements(secIndex);
-}
-*/
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
 //	get_container
+
+template <class TGeomObj> inline
+const GeometricObjectSectionContainer*
+GeometricObjectCollection::get_container(size_t level) const
+{
+	int objType = geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID;
+	assert(objType >= 0 && objType < 5 && "ERROR. Invalid base_object_type of GeomObjType!");
+		
+	return m_levels[level].pSectionContainers[objType];
+}
+
 template <class TGeomObj> inline
 GeometricObjectSectionContainer*
 GeometricObjectCollection::get_container(size_t level)
@@ -75,6 +35,28 @@ GeometricObjectCollection::get_container(size_t level)
 	assert(objType >= 0 && objType < 5 && "ERROR. Invalid base_object_type of GeomObjType!");
 		
 	return m_levels[level].pSectionContainers[objType];
+}
+
+////////////////////////////////////////////////////////////////////////
+//	begin
+template <class TGeomObj>
+typename geometry_traits<TGeomObj>::const_iterator
+GeometricObjectCollection::begin(size_t level) const
+{
+	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
+		(get_container<TGeomObj>(level)->section_begin(
+			geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+}
+
+////////////////////////////////////////////////////////////////////////
+//	end
+template <class TGeomObj>
+typename geometry_traits<TGeomObj>::const_iterator
+GeometricObjectCollection::end(size_t level) const
+{
+	return iterator_cast<typename geometry_traits<TGeomObj>::const_iterator>
+		(get_container<TGeomObj>(level)->section_end(
+			geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -99,12 +81,11 @@ GeometricObjectCollection::end(size_t level)
 			geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 //	element numbers
 template <class TGeomObj>
 size_t
-GeometricObjectCollection::num(size_t level)
+GeometricObjectCollection::num(size_t level) const
 {
 	int secIndex = geometry_traits<TGeomObj>::SHARED_PIPE_SECTION;
 
@@ -117,7 +98,7 @@ GeometricObjectCollection::num(size_t level)
 //	GeometricObjectCollection
 template <class TGeomObj>
 size_t
-GeometricObjectCollection::num()
+GeometricObjectCollection::num() const
 {
 	size_t counter = 0;
 	for(size_t i = 0; i < m_levels.size(); ++i)

@@ -17,4 +17,6 @@
 
 #include "parallelization_util.h"
 
+#include "util/parallel_subset_util.h"
+
 #endif

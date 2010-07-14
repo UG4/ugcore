@@ -6,7 +6,7 @@
 #define __H__UG__SURFACE_VIEW__
 
 #include <vector>
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 
 namespace ug
 {
@@ -18,8 +18,8 @@ namespace ug
  * or are to be erased (assigned to subset -1).
  * The SurfaceView passes the associated grid to those methods.
  *
- * Please note that registered_at_grid will not be called.
- * unregistered_from_grid will be called with a NULL pointer.
+ * \todo: instead of (ab)using GridObservers it would probably make
+ *		sense to introduce a SurfaceViewObserver...
  */
 class SurfaceView : public SubsetHandler
 {
@@ -27,29 +27,29 @@ class SurfaceView : public SubsetHandler
 		SurfaceView();
 		SurfaceView(MultiGrid& mg);
 		virtual ~SurfaceView();
-
+		
 	///	warning: this method is not virtual!
 		void assign_grid(MultiGrid& mg);
-
+		
 		virtual void assign_subset(VertexBase* elem, int subsetIndex);
 		virtual void assign_subset(EdgeBase* elem, int subsetIndex);
 		virtual void assign_subset(Face* elem, int subsetIndex);
 		virtual void assign_subset(Volume* elem, int subsetIndex);
-
+		
 		void register_observer(GridObserver* observer, uint observerType = OT_FULL_OBSERVER);
 		void unregister_observer(GridObserver* observer);
-
-		virtual void registered_at_grid(Grid* grid);
-
+		
 		template <class TGeomObj>
 		inline bool is_shadow(TGeomObj* obj)	{return m_pMG->has_children(obj);}
-
+		
+		virtual void grid_to_be_destroyed(Grid* grid);
+		
 	protected:
 		typedef std::vector<GridObserver*>	ObserverContainer;
-
+		
 	protected:
 		MultiGrid*			m_pMG;
-
+		
 	//	observer handling
 		ObserverContainer	m_gridObservers;
 		ObserverContainer	m_vertexObservers;

@@ -709,10 +709,16 @@ void test()
 	}
 	
 	UG_LOG("  grid loaded... attempting xml-write\n");
+	
+//	write a ugx file
 	GridWriterUGX ugxOut;
+	
 	ugxOut.add_grid(grid, "grid", aPosition);
+	ugxOut.add_subset_handler(sh, "defaultSubsetHandler", 0);
+	
 	ugxOut.write_to_file("first_ugx_file.ugx");
 	
+//	read a ugx file
 	UG_LOG("  reading and printing saved grid...\n");
 	GridReaderUGX ugxIn;
 	ugxIn.parse_file("first_ugx_file.ugx");

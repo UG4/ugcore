@@ -8,6 +8,7 @@
 #include "common_attachments.h"
 #include "selector.h"
 #include "subset_handler.h"
+#include "tools/surface_view.h"
 #include "file_io/file_io.h"
 #include "algorithms/algorithms.h"
 #include "multi_grid.h"
