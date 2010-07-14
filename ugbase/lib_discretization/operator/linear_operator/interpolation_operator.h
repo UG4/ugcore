@@ -61,21 +61,21 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 				UG_LOG("Function space does not contain a function with index " << m_fct << ".\n");
 				return false;
 			}
-			if(v.dim_fct(m_fct) == 2)
+			if(v.dim(m_fct) == 2)
 			{
 				for(int si = 0; si < v.num_subsets(); ++si)
 				{
-					if(v.fct_is_def_in_subset(m_fct, si) != true) continue;
+					if(v.is_def_in_subset(m_fct, si) != true) continue;
 
 					if(interpolate_values<Triangle>(u, v, si) != true) return false;
 					if(interpolate_values<Quadrilateral>(u, v, si) != true) return false;
 				}
 			}
-			else if(v.dim_fct(m_fct) == 3)
+			else if(v.dim(m_fct) == 3)
 			{
 				for(int si = 0; si < v.num_subsets(); ++si)
 				{
-					if(v.fct_is_def_in_subset(m_fct, si) != true) continue;
+					if(v.is_def_in_subset(m_fct, si) != true) continue;
 
 					if(interpolate_values<Triangle>(u, v, si) != true) return false;
 					if(interpolate_values<Quadrilateral>(u, v, si) != true) return false;
@@ -105,7 +105,7 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 			const int dim = ref_elem_type::dim;
 
-			LocalShapeFunctionSetID id = v.get_local_shape_function_set_id(m_fct);
+			LocalShapeFunctionSetID id = v.local_shape_function_set_id(m_fct);
 
 			const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
 					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(id);
@@ -122,7 +122,7 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 				}
 			}
 
-			domain_type& domain = v.get_domain();
+			domain_type& domain = v.get_approximation_space().get_domain();
 			typename domain_type::position_accessor_type aaPos = domain.get_position_accessor();
 			typename domain_type::position_type corners[ref_elem_type::num_corners];
 

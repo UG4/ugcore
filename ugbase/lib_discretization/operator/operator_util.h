@@ -43,12 +43,11 @@ bool ApplyLinearSolver(	ILinearOperator<TGridFunction, TGridFunction>& A,
 	return true;
 }
 
-template <typename TGridFunction, typename TLevelFunction>
+template <typename TGridFunction>
 bool
 PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 				TGridFunction& u,
-				ITimeDiscretization<TGridFunction>& surface_timestep,
-				ITimeDiscretization<TLevelFunction>& level_timestep,
+				ITimeDiscretization<TGridFunction>& timestep,
 				size_t timesteps, size_t& step,
 				number& time, number dt,
 				VTKOutput<TGridFunction>& out, const char* outName)
@@ -56,8 +55,8 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 //  create deques for old solutions and old timesteps
 	std::deque<TGridFunction*> u_old;
 	std::deque<number> time_old;
-	u_old.resize(surface_timestep.num_prev_steps());
-	time_old.resize(surface_timestep.num_prev_steps());
+	u_old.resize(timestep.num_prev_steps());
+	time_old.resize(timestep.num_prev_steps());
 
 //  set start time
 	time_old[0] = time;
@@ -74,9 +73,7 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 		UG_LOG("++++++ TIMESTEP " << step << " BEGIN ++++++\n");
 
 		//	prepare time step
-		surface_timestep.prepare_step(u_old, time_old, dt);
-		// TODO: This is wrong, should be u_old_level
-		level_timestep.prepare_step(u_old, time_old, dt);
+		timestep.prepare_step(u_old, time_old, dt);
 
 		// preapre newton solver
 		if(!newton.prepare(u))
@@ -99,7 +96,7 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 
 		// plot solution to file
 		out.print(outName, u, step, time);
-		UG_LOG("++++++ TIMESTEP " << step << " END ++++++\n");
+		UG_LOG("++++++ TIMESTEP " << step << "  END ++++++\n");
 	}
 
 	// free help vectors

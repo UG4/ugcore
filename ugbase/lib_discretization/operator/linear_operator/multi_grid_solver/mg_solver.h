@@ -24,53 +24,51 @@ namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
 class AssembledMultiGridCycle :
-	public ILinearizedIteratorOperator<typename TApproximationSpace::surface_function_type, typename TApproximationSpace::surface_function_type> {
+	public ILinearizedIteratorOperator<typename TApproximationSpace::function_type, typename TApproximationSpace::function_type> {
 	public:
 		typedef typename TApproximationSpace::domain_type phys_domain_type;
 
-		typedef typename TApproximationSpace::surface_function_type surface_function_type;
-
-		typedef typename TApproximationSpace::level_function_type level_function_type;
+		typedef typename TApproximationSpace::function_type function_type;
 
 		typedef TAlgebra algebra_type;
 
-		typedef AssembledLinearizedOperator<level_function_type> level_operator_type;
+		typedef AssembledLinearizedOperator<function_type> operator_type;
 
-		typedef ProlongationOperator<level_function_type> prolongation_operator_type;
+		typedef ProlongationOperator<function_type> prolongation_operator_type;
 
-		typedef ProjectionOperator<level_function_type> projection_operator_type;
+		typedef ProjectionOperator<function_type> projection_operator_type;
 
 	private:
 		typedef TApproximationSpace approximation_space_type;
 
-		typedef ILinearizedOperatorInverse<level_function_type, level_function_type> base_solver_type;
+		typedef ILinearizedOperatorInverse<function_type, function_type> base_solver_type;
 
-		typedef ILinearizedIteratorOperator<level_function_type, level_function_type> smoother_type;
+		typedef ILinearizedIteratorOperator<function_type, function_type> smoother_type;
 
 	public:
 		// constructore
-		AssembledMultiGridCycle(	IAssemble<level_function_type, algebra_type>& ass, approximation_space_type& approxSpace,
+		AssembledMultiGridCycle(	IAssemble<function_type, algebra_type>& ass, approximation_space_type& approxSpace,
 									size_t surfaceLevel, size_t baseLevel, int cycle_type,
 									smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes = true);
 
-		bool init(ILinearizedOperator<surface_function_type,surface_function_type>& A);
+		bool init(ILinearizedOperator<function_type, function_type>& A);
 
 		// This functions allocates the Memory for the solver
 		// and assembles coarse grid matrices using 'ass'
-		bool prepare(surface_function_type &u, surface_function_type& d, surface_function_type &c);
+		bool prepare(function_type &u, function_type& d, function_type &c);
 
 		// This function performes one multi-grid cycle step
 		// A correction c is returned as well as the updated defect d := d - A*c
-		bool apply(surface_function_type& d, surface_function_type &c);
+		bool apply(function_type& d, function_type &c);
 
-		ILinearizedIteratorOperator<surface_function_type,surface_function_type>* clone()
+		ILinearizedIteratorOperator<function_type,function_type>* clone()
 		{
 			AssembledMultiGridCycle<TApproximationSpace, TAlgebra>* clone =
 				new AssembledMultiGridCycle<TApproximationSpace, TAlgebra>(	m_ass, m_approxSpace,
 																			m_surfaceLevel, m_baseLevel, m_cycle_type,
 																			*(m_smoother[0]), m_nu1, m_nu2, m_baseSolver, m_grid_changes);
 
-			return dynamic_cast<ILinearizedIteratorOperator<surface_function_type,surface_function_type>* >(clone);
+			return dynamic_cast<ILinearizedIteratorOperator<function_type,function_type>* >(clone);
 		}
 
 		// This functions deallocates the Memory for the solver
@@ -81,16 +79,16 @@ class AssembledMultiGridCycle :
 		bool lmgc(size_t lev);
 
 		// smmoth help function: perform smoothing on level l, nu times
-		bool smooth(level_function_type& d, level_function_type& c, size_t lev, int nu);
+		bool smooth(function_type& d, function_type& c, size_t lev, int nu);
 
 		bool allocate_memory();
 		bool free_memory();
 
 	protected:
 		// operator to invert (surface level)
-		AssembledLinearizedOperator<surface_function_type>* m_Op;
+		AssembledLinearizedOperator<function_type>* m_Op;
 
-		IAssemble<level_function_type, algebra_type>& m_ass;
+		IAssemble<function_type, algebra_type>& m_ass;
 		approximation_space_type& m_approxSpace;
 		phys_domain_type& m_domain;
 
@@ -104,14 +102,14 @@ class AssembledMultiGridCycle :
 		std::vector<smoother_type*> m_smoother;
 		base_solver_type& m_baseSolver;
 
-		std::vector<level_operator_type*> m_A;
+		std::vector<operator_type*> m_A;
 		std::vector<projection_operator_type*> m_P;
 		std::vector<prolongation_operator_type*> m_I;
 
-		std::vector<level_function_type*> m_u;
-		std::vector<level_function_type*> m_c;
-		std::vector<level_function_type*> m_d;
-		std::vector<level_function_type*> m_t;
+		std::vector<function_type*> m_u;
+		std::vector<function_type*> m_c;
+		std::vector<function_type*> m_d;
+		std::vector<function_type*> m_t;
 
 		// true -> allocate new matrices on every prepare
 		bool m_grid_changes;

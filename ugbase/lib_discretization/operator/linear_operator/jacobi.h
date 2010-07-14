@@ -70,9 +70,8 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 					m_diagInv.create(size);
 				}
 
-				typename domain_function_type::dof_manager_type& dofManager = d.get_dof_manager();
-				m_diagInv.set_slave_layout(dofManager.get_slave_layout(d.get_level()));
-				m_diagInv.set_master_layout(dofManager.get_master_layout(d.get_level()));
+				m_diagInv.set_slave_layout(d.get_slave_layout());
+				m_diagInv.set_master_layout(d.get_master_layout());
 
 				typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
 				typename algebra_type::matrix_type::local_index_type locInd(1);

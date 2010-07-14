@@ -142,26 +142,32 @@ class AssembledLinearOperator : public ILinearOperator<TDiscreteFunction, TDiscr
 
 			if(m_Matrix.num_rows() == b.size() && m_Matrix.num_cols() == x.size())
 			{
+				UG_LOG("b size = " << b.size() << ", x size = " << x.size() << "\n");
 				if(m_Matrix.set(0.0) != true) return false;
 			}
 			else
 			{
-				if(m_Matrix.destroy() != true) return false;
-				if(m_Matrix.create(b.size(), x.size()) != true) return false;
+				if(m_Matrix.destroy() != true)
+					{UG_LOG("Cannot destroy matrix.\n"); return false;}
+				if(m_Matrix.create(b.size(), x.size()) != true)
+					{UG_LOG("Cannot create matrix of size " << b.size() << "x" << x.size() << ".\n"); return false;}
 			}
 
 			if(m_assemble_rhs)
 			{
 				b.set(0.0);
-				if(m_ass.assemble_linear(m_Matrix, b, u) != IAssemble_OK) return false;
+				if(m_ass.assemble_linear(m_Matrix, b, u) != IAssemble_OK)
+					{UG_LOG("Error while assembling Matrix and rhs.\n"); return false;}
 				f.set_storage_type(PST_ADDITIVE);
 			}
 			else
 			{
-				if(m_ass.assemble_jacobian(m_Matrix, u) != IAssemble_OK) return false;
+				if(m_ass.assemble_jacobian(m_Matrix, u) != IAssemble_OK)
+					{UG_LOG("Error while assembling Matrix.\n"); return false;}
 			}
 
-			if(m_ass.assemble_solution(u) != IAssemble_OK) return false;
+			if(m_ass.assemble_solution(u) != IAssemble_OK)
+				{UG_LOG("Error while assembling solution.\n"); return false;}
 
 			return true;
 		}

@@ -43,7 +43,6 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 		ProlongationOperator(approximation_space_type& approxSpace, IAssemble<domain_function_type, algebra_type>& ass, uint level) :
 			m_approxSpace(approxSpace), m_ass(ass), m_level(level)
 		{
-			UG_ASSERT(level < m_approxSpace.num_levels() - 1, "Interpolation is from (level -> level+1). Requested (" << level <<" -> " << level + 1<< "), but only " << m_approxSpace.num_levels() << " levels in multigrid.\n");
 
 		};
 
@@ -134,7 +133,7 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 
 			for(uint i = 0; i < num_fct; ++i)
 			{
-				if(m_approxSpace.get_local_shape_function_set_id(i) != LSFS_LAGRANGEP1)
+				if(u.local_shape_function_set_id(i) != LSFS_LAGRANGEP1)
 				{
 					UG_LOG("Interpolation only implemented for Lagrange P1 functions.");
 					return false;
@@ -149,7 +148,7 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 			geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
 
 			// loop fine level
-			for(int subsetIndex = 0; subsetIndex < m_approxSpace.num_subsets(); ++subsetIndex)
+			for(int subsetIndex = 0; subsetIndex < u.num_subsets(); ++subsetIndex)
 			{
 				iterBegin = v.template begin<Vertex>(subsetIndex);
 				iterEnd = v.template end<Vertex>(subsetIndex);
@@ -168,7 +167,7 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 					for(uint fct = 0; fct < num_fct; fct++)
 					{
 						if(m_ass.is_dirichlet(subsetIndex, fct)) continue;
-						if(v.fct_is_def_in_subset(fct, subsetIndex) != true) continue;
+						if(v.is_def_in_subset(fct, subsetIndex) != true) continue;
 
 						if(v.get_multi_indices_of_geom_obj(*iter, fct, fine_ind) != 1)
 						{

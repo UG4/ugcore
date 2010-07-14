@@ -18,7 +18,7 @@ namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-AssembledMultiGridCycle(	IAssemble<level_function_type, algebra_type>& ass, approximation_space_type& approxSpace,
+AssembledMultiGridCycle(	IAssemble<function_type, algebra_type>& ass, approximation_space_type& approxSpace,
 							size_t surfaceLevel, size_t baseLevel, int cycle_type,
 							smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes) :
 				m_ass(ass), m_approxSpace(approxSpace), m_domain(approxSpace.get_domain()),
@@ -35,7 +35,7 @@ AssembledMultiGridCycle(	IAssemble<level_function_type, algebra_type>& ass, appr
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-smooth(level_function_type& d, level_function_type& c, size_t lev, int nu)
+smooth(function_type& d, function_type& c, size_t lev, int nu)
 {
 
 	// Presmooth
@@ -68,12 +68,11 @@ lmgc(size_t lev)
 			{UG_LOG("Error in premoothing on level " << lev << ".\n"); return false;}
 
 		#ifdef UG_PARALLEL
-			typename level_function_type::dof_manager_type& dofMgr = m_d[lev-1]->get_dof_manager();
-			if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
+			if(!m_d[lev-1]->get_vertical_master_layout().empty()){
 			//	set all dofs to 0. This is important since we will add vertical slave values
 			//	after restriction.
 				ConsistentToUnique( &m_d[lev-1]->get_vector(),
-									dofMgr.get_vertical_master_layout(lev-1));
+						m_d[lev-1]->get_vertical_master_layout());
 			}
 		#endif
 
@@ -86,16 +85,16 @@ lmgc(size_t lev)
 		#ifdef UG_PARALLEL
 		//	send vertical-slaves -> vertical-masters
 		//	one proc may not have both, a vertical-slave- and vertical-master-layout.
-			ComPol_VecAdd<typename level_function_type::vector_type> cpVecAdd(&m_d[lev-1]->get_vector());
-			if(!dofMgr.get_vertical_slave_layout(lev-1).empty()){
+			ComPol_VecAdd<typename function_type::vector_type> cpVecAdd(&m_d[lev-1]->get_vector());
+			if(!m_d[lev-1]->get_vertical_slave_layout().empty()){
 				resume = false;
 				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going down: SENDS vertical dofs on level " << lev -1 << ".\n");
-				m_Com.send_data(dofMgr.get_vertical_slave_layout(lev-1), cpVecAdd);
+				m_Com.send_data(m_d[lev-1]->get_vertical_slave_layout(), cpVecAdd);
 			}
-			else if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
+			else if(!m_d[lev-1]->get_vertical_master_layout().empty()){
 
 				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going down:  WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
-				m_Com.receive_data(dofMgr.get_vertical_master_layout(lev-1), cpVecAdd);
+				m_Com.receive_data(m_d[lev-1]->get_vertical_master_layout(), cpVecAdd);
 			}
 			m_Com.communicate();
 		#endif
@@ -113,16 +112,16 @@ lmgc(size_t lev)
 		#ifdef UG_PARALLEL
 			//	send vertical-masters -> vertical-slaves
 			//	one proc may not have both, a vertical-slave- and vertical-master-layout.
-			ComPol_VecCopy<typename level_function_type::vector_type> cpVecCopy(&m_c[lev-1]->get_vector());
-			if(!dofMgr.get_vertical_slave_layout(lev-1).empty()){
+			ComPol_VecCopy<typename function_type::vector_type> cpVecCopy(&m_c[lev-1]->get_vector());
+			if(!m_c[lev-1]->get_vertical_slave_layout().empty()){
 				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going up: WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
-				m_Com.receive_data(dofMgr.get_vertical_slave_layout(lev-1),	cpVecCopy);
+				m_Com.receive_data(m_c[lev-1]->get_vertical_slave_layout(),	cpVecCopy);
 
 				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}
-			else if(!dofMgr.get_vertical_master_layout(lev-1).empty()){
+			else if(!m_c[lev-1]->get_vertical_master_layout().empty()){
 				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going up: SENDS vertical dofs on level " << lev -1 << ".\n");
-				m_Com.send_data(dofMgr.get_vertical_master_layout(lev-1), cpVecCopy);
+				m_Com.send_data(m_c[lev-1]->get_vertical_master_layout(), cpVecCopy);
 				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}
 		m_Com.communicate();
@@ -179,10 +178,10 @@ lmgc(size_t lev)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-init(ILinearizedOperator<surface_function_type,surface_function_type>& A)
+init(ILinearizedOperator<function_type,function_type>& A)
 {
 	// TODO: This is full refined problem only
-	m_Op = dynamic_cast<AssembledLinearizedOperator<surface_function_type>*>(&A);
+	m_Op = dynamic_cast<AssembledLinearizedOperator<function_type>*>(&A);
 
 	if(m_Op == NULL)
 	{
@@ -196,7 +195,7 @@ init(ILinearizedOperator<surface_function_type,surface_function_type>& A)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-apply(surface_function_type& d, surface_function_type &c)
+apply(function_type& d, function_type &c)
 {
 	// TODO: currently the matrix on finest level exists twice
 
@@ -218,7 +217,7 @@ apply(surface_function_type& d, surface_function_type &c)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-prepare(surface_function_type &u, surface_function_type& d, surface_function_type &c)
+prepare(function_type &u, function_type& d, function_type &c)
 {
 	typename TApproximationSpace::domain_type::grid_type& mg = m_domain.get_grid();
 
@@ -331,25 +330,25 @@ allocate_memory()
 	m_d.resize(m_surfaceLevel+1);
 
 	// top level matrix and vectors
-	m_u[m_surfaceLevel] = m_approxSpace.create_level_grid_function("u", m_surfaceLevel, false);
-	m_c[m_surfaceLevel] = m_approxSpace.create_level_grid_function("c", m_surfaceLevel, false);
-	m_t[m_surfaceLevel] = m_approxSpace.create_level_grid_function("t", m_surfaceLevel);
-	m_d[m_surfaceLevel] = m_approxSpace.create_level_grid_function("d", m_surfaceLevel, false);
+	m_u[m_surfaceLevel] = m_approxSpace.create_level_function("u", m_surfaceLevel, false);
+	m_c[m_surfaceLevel] = m_approxSpace.create_level_function("c", m_surfaceLevel, false);
+	m_t[m_surfaceLevel] = m_approxSpace.create_level_function("t", m_surfaceLevel);
+	m_d[m_surfaceLevel] = m_approxSpace.create_level_function("d", m_surfaceLevel, false);
 
 	// create coarse level vectors
 	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 	{
 		// create solution
-		m_u[lev] = m_approxSpace.create_level_grid_function("u", lev);
+		m_u[lev] = m_approxSpace.create_level_function("u", lev);
 
 		// create correction
-		m_c[lev] = m_approxSpace.create_level_grid_function("c", lev);
+		m_c[lev] = m_approxSpace.create_level_function("c", lev);
 
 		// create help vector
-		m_t[lev] = m_approxSpace.create_level_grid_function("t", lev);
+		m_t[lev] = m_approxSpace.create_level_function("t", lev);
 
 		// create defect
-		m_d[lev] = m_approxSpace.create_level_grid_function("d", lev);
+		m_d[lev] = m_approxSpace.create_level_function("d", lev);
 	}
 
 	//	dynamically created pointer for Coarse Operators
@@ -364,7 +363,7 @@ allocate_memory()
 		// create prolongation operators
 		m_P[lev] = new projection_operator_type(m_approxSpace, m_ass, lev);
 		// create coarse grid matrices
-		m_A[lev] = new level_operator_type(m_ass);
+		m_A[lev] = new operator_type(m_ass);
 	}
 
 	// create smoother for all level
