@@ -214,7 +214,7 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 						vector_type& d,
 						const discrete_function_type& u, number time)
 {
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
+	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 	local_index_type ind(1);
 	local_index_type glob_ind;
 	local_vector_type dirichlet_vals;
@@ -253,7 +253,7 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 							matrix_type& J,
 							const discrete_function_type& u, number time)
 {
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
+	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 	local_index_type ind(1);
 	local_index_type glob_ind;
 
@@ -291,7 +291,7 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::iterator iterBegin,
 						vector_type& x,
 						const discrete_function_type& u, number time)
 {
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
+	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 
 	local_index_type ind(1);
 	local_index_type glob_ind;
@@ -333,7 +333,7 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 						matrix_type& mat, vector_type& rhs,
 						const discrete_function_type& u, number time)
 {
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
+	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 
 	local_index_type ind(1);
 	local_index_type glob_ind;

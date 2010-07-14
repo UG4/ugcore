@@ -20,6 +20,7 @@
 // intern headers
 #include "lib_discretization/reference_element/reference_elements.h"
 #include "elem_disc_interface.h"
+#include "../function_group.h"
 
 namespace ug {
 
@@ -37,7 +38,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 					typename geometry_traits<TElem>::iterator iterEnd,
 					typename TAlgebra::matrix_type& J,
 					const TDiscreteFunction& u,
-					const std::vector<size_t>& u_comp,
+					const FunctionGroup& fcts,
 					number time, number s_m, number s_a)
 {
 	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
@@ -74,9 +75,9 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		size_t offset = 0;
 
 		// loop over all functions
-		for(size_t i = 0; i < u_comp.size(); i++)
+		for(size_t i = 0; i < fcts.num_functions(); i++)
 		{
-			offset += u.get_multi_indices(elem, u_comp[i], glob_ind, offset);
+			offset += u.get_multi_indices(elem, fcts[i], glob_ind, offset);
 		}
 		UG_ASSERT(offset == num_sh, offset << " indices are read in, but we have " << num_sh << " dofs on this element.\n");
 
@@ -124,7 +125,7 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 				typename geometry_traits<TElem>::iterator iterEnd,
 				typename TAlgebra::vector_type& d,
 				const TDiscreteFunction& u,
-				const std::vector<size_t>& u_comp,
+				const FunctionGroup& fcts,
 				number time, number s_m, number s_a)
 {
 	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
@@ -161,9 +162,9 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		size_t offset = 0;
 
 		// loop over all functions
-		for(size_t i = 0; i < u_comp.size(); i++)
+		for(size_t i = 0; i < fcts.num_functions(); i++)
 		{
-			offset += u.get_multi_indices(elem, u_comp[i], glob_ind, offset);
+			offset += u.get_multi_indices(elem, fcts[i], glob_ind, offset);
 		}
 		UG_ASSERT(offset == num_sh, offset << " indices are read in, but we have " << num_sh << " dofs on this element.\n");
 
@@ -214,7 +215,7 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const TDiscreteFunction& u,
-				const std::vector<size_t>& u_comp)
+				const FunctionGroup& fcts)
 {
 	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
 	typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
@@ -250,9 +251,9 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 		size_t offset = 0;
 
 		// loop over all functions
-		for(size_t i = 0; i < u_comp.size(); i++)
+		for(size_t i = 0; i < fcts.num_functions(); i++)
 		{
-			offset += u.get_multi_indices(elem, u_comp[i], glob_ind, offset);
+			offset += u.get_multi_indices(elem, fcts[i], glob_ind, offset);
 		}
 		UG_ASSERT(offset == num_sh, offset << " indices are read in, but we have " << num_sh << " dofs on this element.\n");
 

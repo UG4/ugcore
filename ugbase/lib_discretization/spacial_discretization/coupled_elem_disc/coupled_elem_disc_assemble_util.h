@@ -21,6 +21,8 @@
 #include "lib_discretization/reference_element/reference_elements.h"
 #include "./coupled_elem_disc_interface.h"
 #include "./coupled_system.h"
+#include "../function_group.h"
+
 
 namespace ug {
 
@@ -38,7 +40,7 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 					typename geometry_traits<TElem>::iterator iterEnd,
 					typename TAlgebra::matrix_type& J,
 					const TDiscreteFunction& u,
-					const std::vector<size_t>& u_comp,
+					const FunctionGroup& fcts,
 					number time, number s_m, number s_a)
 {
 	using std::vector;
@@ -138,7 +140,7 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			// get local indices and fill local matrix pattern
 			for(size_t i = 0; i < system.num_fct(); i++)
 			{
-				offset += u.get_multi_indices(elem, u_comp[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
+				offset += u.get_multi_indices(elem, fcts[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
 			}
 			UG_ASSERT(offset == num_sh[sys], offset << " indices are read in, but we have " << num_sh[sys] << " dofs on this element.\n");
 
@@ -223,7 +225,7 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 				typename geometry_traits<TElem>::iterator iterEnd,
 				typename TAlgebra::vector_type& d,
 				const TDiscreteFunction& u,
-				const std::vector<size_t>& u_comp,
+				const FunctionGroup& fcts,
 				number time, number s_m, number s_a)
 {
 	using std::vector;
@@ -288,7 +290,7 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			// get local indices and fill local matrix pattern
 			for(size_t i = 0; i < system.num_fct(); i++)
 			{
-				offset += u.get_multi_indices(elem, u_comp[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
+				offset += u.get_multi_indices(elem, fcts[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
 			}
 			UG_ASSERT(offset == num_sh[sys], offset << " indices are read in, but we have " << num_sh[sys] << " dofs on this element.\n");
 
@@ -354,7 +356,7 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const TDiscreteFunction& u,
-				const std::vector<size_t>& u_comp)
+				const FunctionGroup& fcts)
 {
 	using std::vector;
 	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
@@ -417,7 +419,7 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			// get local indices and fill local matrix pattern
 			for(size_t i = 0; i < system.num_fct(); i++)
 			{
-				offset += u.get_multi_indices(elem, u_comp[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
+				offset += u.get_multi_indices(elem, fcts[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
 			}
 			UG_ASSERT(offset == num_sh[sys], offset << " indices are read in, but we have " << num_sh[sys] << " dofs on this element.\n");
 
