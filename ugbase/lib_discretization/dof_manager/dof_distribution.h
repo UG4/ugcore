@@ -60,7 +60,7 @@ class DoFDistribution
 		inline IndexLayout& get_vertical_slave_layout()		{return m_verticalSlaveLayout;}
 		inline IndexLayout& get_vertical_master_layout()	{return m_verticalMasterLayout;}
 
-		inline pcl::ProcessCommunicator get_process_communicator()	{return m_processCommunicator;}
+		inline pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
 
 	protected:
 		// index layout for each grid level

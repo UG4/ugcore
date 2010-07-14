@@ -91,6 +91,7 @@ class MGDoFManager
 			// distribute on level grids
 			for(size_t l = 0; l < num_levels(); ++l)
 			{
+				UG_LOG("  Distributing dofs on level " << l << ":\n");
 				if(!m_vLevelDoFDistribution[l]->distribute_dofs())
 					{UG_LOG("Cannot distribute dofs on level "<<l<<".\n"); return false;}
 			}
@@ -101,7 +102,7 @@ class MGDoFManager
 
 		bool distribute_surface_dofs()
 		{
-			return true;
+			UG_LOG("  Distributing dofs on surface grid:\n");
 
 			// update surface distribution
 			if(!update_surface_distribution())
@@ -116,7 +117,6 @@ class MGDoFManager
 
 		TDoFDistribution* get_surface_dof_distribution()
 		{
-			// TODO: SHOULD BE:
 			//return m_pSurfaceDoFDistribution;
 
 			if(!level_distribution_required(num_levels()-1)) return NULL;

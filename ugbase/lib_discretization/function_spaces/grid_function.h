@@ -335,7 +335,11 @@ class GridFunction{
 #ifdef UG_PARALLEL
 			m_pVector->set_slave_layout(m_pDoFDistribution->get_slave_layout());
 			m_pVector->set_master_layout(m_pDoFDistribution->get_master_layout());
+			m_pVector->set_vertical_slave_layout(m_pDoFDistribution->get_vertical_slave_layout());
+			m_pVector->set_vertical_master_layout(m_pDoFDistribution->get_vertical_master_layout());
+
 			m_pVector->set_process_communicator(m_pDoFDistribution->get_process_communicator());
+
 			m_pVector->set_storage_type(PST_UNDEFINED);
 #endif
 			if(m_pVector->create(num_dofs) != true) return false;
@@ -380,7 +384,7 @@ class GridFunction{
 		inline IndexLayout& get_vertical_slave_layout()		{return m_pDoFDistribution->get_vertical_slave_layout();}
 		inline IndexLayout& get_vertical_master_layout()	{return m_pDoFDistribution->get_vertical_master_layout();}
 
-		inline pcl::ProcessCommunicator get_process_communicator()	{return m_pDoFDistribution->get_process_communicator();}
+		inline pcl::ProcessCommunicator& get_process_communicator()	{return m_pDoFDistribution->get_process_communicator();}
 #endif
 
 	protected:

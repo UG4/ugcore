@@ -118,7 +118,7 @@ class P1ConformDoFDistribution : public DoFDistribution
 		///////////////////////////
 
 		/// number of subsets
-		inline int num_subsets() const {return const_cast<GeometricObjectCollection*>(&m_goc)->num_levels();}
+		inline int num_subsets() const {return m_goc.num_levels();}
 
 		/// return the number of dofs distributed
 		inline size_t num_dofs() const {return m_numDoFs;}
@@ -131,17 +131,17 @@ class P1ConformDoFDistribution : public DoFDistribution
 		///////////////////////////////////////
 
 		template<typename TElem>
-		inline size_t num(int si) const {return const_cast<GeometricObjectCollection*>(&m_goc)->num<TElem>(si);}
+		inline size_t num(int si) const {return m_goc.num<TElem>(si);}
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator begin(int si) const
-			{return const_cast<GeometricObjectCollection*>(&m_goc)->begin<TElem>(si);}
+		inline typename geometry_traits<TElem>::iterator begin(int si)
+			{return m_goc.begin<TElem>(si);}
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator end(int si) const
-			{return const_cast<GeometricObjectCollection*>(&m_goc)->end<TElem>(si);}
+		inline typename geometry_traits<TElem>::iterator end(int si)
+			{return m_goc.end<TElem>(si);}
 
 		///////////////////////////////////////
 		// Index access
@@ -222,8 +222,8 @@ class P1ConformDoFDistribution : public DoFDistribution
 				// remember number of functions
 				size_t num_fct =  m_pFunctionPattern->num_fct(si);
 
-				iterBegin = const_cast<GeometricObjectCollection*>(&m_goc)->begin<VertexBase>(si);
-				iterEnd =  const_cast<GeometricObjectCollection*>(&m_goc)->end<VertexBase>(si);
+				iterBegin = m_goc.begin<VertexBase>(si);
+				iterEnd =  m_goc.end<VertexBase>(si);
 
 				// loop Verices
 				for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -251,7 +251,7 @@ class P1ConformDoFDistribution : public DoFDistribution
 
 	protected:
 		// geometric object collection for this Distributor
-		const GeometricObjectCollection m_goc;
+		GeometricObjectCollection m_goc;
 
 		// subset handler for this distributor
 		ISubsetHandler* m_pISubsetHandler;

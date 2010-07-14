@@ -91,7 +91,7 @@ class ParallelVector : public TVector
 		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return m_communicator;}
 
 		inline void set_process_communicator(const pcl::ProcessCommunicator& pc)	{m_processCommunicator = pc;}
-		inline pcl::ProcessCommunicator get_process_communicator()					{return m_processCommunicator;}
+		inline pcl::ProcessCommunicator& get_process_communicator()					{return m_processCommunicator;}
 
 		/////////////////////////
 		// Storage type handling
