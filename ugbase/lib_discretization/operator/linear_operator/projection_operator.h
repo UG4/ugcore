@@ -164,8 +164,6 @@ class ProjectionOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFu
 						{
 							UG_LOG("Cannot determine fine index of node."); return false;
 						}
-					//	UG_LOG("Fine index = " << fine_ind[0][0] << "\n");
-					//	UG_ASSERT(fine_ind[0][0] < num_dofs_fineLevel, "Projection: "<<fine_ind[0][0] <<"<"<<num_dofs_fineLevel<<"\n");
 
 						// Check if father is Vertex
 						if(vert != NULL)
@@ -176,9 +174,6 @@ class ProjectionOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFu
 							{
 								UG_LOG("Cannot determine fine index of node."); return false;
 							}
-
-							UG_LOG("Coarse index = " << coarse_ind[0][0] << "\n");
-							UG_ASSERT(coarse_ind[0][0] < num_dofs_coarseLevel, "Projection: "<<coarse_ind[0][0] <<"<"<<num_dofs_coarseLevel<<"\n");
 
 							mat.add(val, fine_ind, coarse_ind);
 							continue;
