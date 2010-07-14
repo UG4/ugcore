@@ -18,12 +18,13 @@ bool FactorizeILU(Matrix_type &A)
 {
 
 
-	for(size_t i=1; i < A.row_size(); i++)
+	for(size_t i=1; i < A.num_rows(); i++)
 	{
 		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
 		{
 			const size_t k = (*it_k).iIndex;
 			typename Matrix_type::entry_type a_ik = (*it_k).dValue;
+			if(dabs(a_ik) < 1e-7)	continue;
 			typename Matrix_type::entry_type a_kk = A(k,k);
 
 			a_ik /= a_kk;
@@ -35,10 +36,13 @@ bool FactorizeILU(Matrix_type &A)
 			{
 				const size_t j = (*it_j).iIndex;
 				typename Matrix_type::entry_type& a_ij = (*it_j).dValue;
-
-				if(A.getConnection(k,j) == (size_t)-1) continue;
-				const typename Matrix_type::entry_type a_kj = A(k,j);
-				a_ij -= a_ik*a_kj;
+				bool bFound;
+				typename Matrix_type::rowIterator p = A.get_connection(k,j, bFound);
+				if(bFound)
+				{
+					const typename Matrix_type::entry_type a_kj = (*p).dValue;
+					a_ij -= a_ik*a_kj;
+				}
 			}
 		}
 	}
@@ -127,20 +131,20 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 
 				// copy matrix
 				typename algebra_type::matrix_type& A = *m_pMatrix;
-				m_ILU.create(A.row_size(), A.col_size());
-				for(size_t i=0; i < A.row_size(); i++)
+				m_ILU.create(A.num_rows(), A.num_cols());
+				for(size_t i=0; i < A.num_rows(); i++)
 				{
 					for(typename algebra_type::matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd(); ++it_k)
 					{
 						const size_t k = (*it_k).iIndex;
-						m_ILU.add((*it_k).dValue, i,k);
+						m_ILU(i,k) = (*it_k).dValue;
 					}
 				}
 
 				// Compute ILU Factorization
 				FactorizeILU(m_ILU);
 
-				m_h.create(A.col_size());
+				m_h.create(A.num_cols());
 				m_bOpChanged = false;
 			}
 
