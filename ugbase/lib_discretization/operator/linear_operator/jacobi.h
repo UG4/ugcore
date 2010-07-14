@@ -159,7 +159,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 		}
 
 		// clone
-		ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* clone()
+		virtual ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* clone()
 		{
 			AssembledJacobiOperator<TDiscreteFunction>* clone = new AssembledJacobiOperator<TDiscreteFunction>(m_damp);
 
