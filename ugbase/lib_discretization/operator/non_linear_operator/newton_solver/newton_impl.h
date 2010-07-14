@@ -107,10 +107,6 @@ apply(discrete_function_type& u)
 {
 	number norm, norm_old, norm_start;
 
-	// Set Dirichlet - Nodes to exact values
-	if(m_ass->assemble_solution(u) != IAssemble_OK)
-		{UG_LOG("NewtonSolver::apply: Cannot set dirichlet values in solution.\n"); return false;}
-
 	// Compute first Defect
 	if(m_N->prepare(u, *m_d) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator.\n"); return false;}
@@ -184,11 +180,6 @@ apply(discrete_function_type& u)
 		if(m_LinearSolver.apply(*m_d, *m_c) != true)
 			{UG_LOG("NewtonSolver::apply: Cannot apply Inverse Linear Operator for Jacobi-Operator.\n"); return false;}
 
-
-		VTKOutput<discrete_function_type> out;
-		//out.print("correction_bcgs", *m_c, i, i);
-
-
 		////////////////
 		// Line Search
 		////////////////
@@ -227,8 +218,6 @@ apply(discrete_function_type& u)
 			// reset u
 			u = s;
 		}
-
-		//out.print("u_bcgs", u, i, i);
 
 		// print convergence rate
 		UG_LOG(" #    ++ Line Search converged.\n");

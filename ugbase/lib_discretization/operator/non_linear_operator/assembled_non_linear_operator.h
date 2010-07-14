@@ -32,6 +32,10 @@ class AssembledOperator : public IOperator<TDiscreteFunction, TDiscreteFunction>
 
 		virtual bool prepare(domain_function_type& u, codomain_function_type& d)
 		{
+			// Set Dirichlet - Nodes to exact values
+			if(m_ass.assemble_solution(u) != IAssemble_OK)
+				{UG_LOG("AssembledOperator::apply: Cannot set dirichlet values in solution.\n"); return false;}
+
 			return true;
 		}
 
