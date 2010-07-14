@@ -135,7 +135,7 @@ bool
 VTKOutput<TDiscreteFunction>::
 print_subset(const char* filename, discrete_function_type& u, int si, size_t step, number time)
 {
-	m_grid = dynamic_cast<Grid*>(&u.get_domain().get_grid());
+	m_grid = dynamic_cast<Grid*>(&u.get_approximation_space().get_domain().get_grid());
 
 	// attach help indices
 	m_grid->attach_to_vertices(m_aDOFIndex);
@@ -249,9 +249,9 @@ write_subset(FILE* File, discrete_function_type& u, int si, int dim)
 	fprintf(File, "      <PointData>\n");
 	for(uint fct = 0; fct < u.num_fct(); ++fct)
 	{
-		if(u.fct_is_def_in_subset(fct, si) == false) continue;
+		if(u.is_def_in_subset(fct, si) == false) continue;
 
-		UG_DLOG(LIB_DISC_OUTPUT, 1, "  - Writing nodal values of solutions ' " << u.get_name(fct) <<"'.\n");
+		UG_DLOG(LIB_DISC_OUTPUT, 1, "  - Writing nodal values of solutions ' " << u.name(fct) <<"'.\n");
 		if(write_scalar(File, u, fct, si, dim) != true)
 		{
 			UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Scalar Values" << std::endl);
@@ -426,7 +426,7 @@ write_scalar(FILE* File, discrete_function_type& u, uint fct, int si, int dim)
 	int n;
 
 	fprintf(File, "        <DataArray type=\"Float32\" Name=\"%s\" "
-			"NumberOfComponents=\"%d\" format=\"binary\">\n", u.get_name(fct).c_str(), 1);
+			"NumberOfComponents=\"%d\" format=\"binary\">\n", u.name(fct).c_str(), 1);
 
 	BStream.size = sizeof(int);
 	n = sizeof(float)*Numbers.noVertices;
@@ -493,7 +493,7 @@ write_points_elementwise(FILE* File, discrete_function_type& u,
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	typedef typename discrete_function_type::domain_type domain_type;
-	typename domain_type::position_accessor_type& aaPos = u.get_domain().get_position_accessor();
+	typename domain_type::position_accessor_type& aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 
 	// write points and remember numbering
 	assert(m_aaDOFIndexVRT.valid());
@@ -644,7 +644,7 @@ write_scalar_elementwise(FILE* File,
 	float valf;
 	BStream.size = sizeof(float);
 
-	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing nodal values to file for function " << u.get_name(fct) << " ----\n");
+	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing nodal values to file for function " << u.name(fct) << " ----\n");
 
 	m_grid->begin_marking();
 	for( ; iterBegin != iterEnd; ++iterBegin)
@@ -852,11 +852,11 @@ write_pvtu(discrete_function_type& u, const char* filename, int si, size_t step,
 		fprintf(file, "    <PPointData>\n");
 		for(uint fct = 0; fct < u.num_fct(); ++fct)
 		{
-			if(u.fct_is_def_in_subset(fct, si) == false) continue;
+			if(u.is_def_in_subset(fct, si) == false) continue;
 
 			fprintf(file, "      <PDataArray type=\"Float32\" Name=\"%s\" "
 					"NumberOfComponents=\"%d\"/>\n",
-					u.get_name(fct).c_str(), 1);
+					u.name(fct).c_str(), 1);
 		}
 		fprintf(file, "    </PPointData>\n");
 

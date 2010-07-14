@@ -6,7 +6,7 @@
 #define __H__UG__SURFACE_VIEW__
 
 #include <vector>
-#include "lib_grid/lg_base.h"
+#include "lib_grid/lib_grid.h"
 
 namespace ug
 {
@@ -27,29 +27,29 @@ class SurfaceView : public SubsetHandler
 		SurfaceView();
 		SurfaceView(MultiGrid& mg);
 		virtual ~SurfaceView();
-		
+
 	///	warning: this method is not virtual!
 		void assign_grid(MultiGrid& mg);
-		
+
 		virtual void assign_subset(VertexBase* elem, int subsetIndex);
 		virtual void assign_subset(EdgeBase* elem, int subsetIndex);
 		virtual void assign_subset(Face* elem, int subsetIndex);
 		virtual void assign_subset(Volume* elem, int subsetIndex);
-		
+
 		void register_observer(GridObserver* observer, uint observerType = OT_FULL_OBSERVER);
 		void unregister_observer(GridObserver* observer);
 
 		virtual void registered_at_grid(Grid* grid);
-		
+
 		template <class TGeomObj>
 		inline bool is_shadow(TGeomObj* obj)	{return m_pMG->has_children(obj);}
-		
+
 	protected:
 		typedef std::vector<GridObserver*>	ObserverContainer;
-		
+
 	protected:
 		MultiGrid*			m_pMG;
-		
+
 	//	observer handling
 		ObserverContainer	m_gridObservers;
 		ObserverContainer	m_vertexObservers;

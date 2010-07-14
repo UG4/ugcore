@@ -49,9 +49,9 @@ void SurfaceView::assign_subset(VertexBase* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_erased(m_pGrid, elem));
 	}
-		
+
 	SubsetHandler::assign_subset(elem, subsetIndex);
-	
+
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_vertexObservers, vertex_created(m_pGrid, elem, NULL));
 	}
@@ -63,9 +63,9 @@ void SurfaceView::assign_subset(EdgeBase* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_erased(m_pGrid, elem));
 	}
-		
+
 	SubsetHandler::assign_subset(elem, subsetIndex);
-	
+
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_edgeObservers, edge_created(m_pGrid, elem, NULL));
 	}
@@ -77,9 +77,9 @@ void SurfaceView::assign_subset(Face* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_faceObservers, face_to_be_erased(m_pGrid, elem));
 	}
-		
+
 	SubsetHandler::assign_subset(elem, subsetIndex);
-	
+
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_faceObservers, face_created(m_pGrid, elem, NULL));
 	}
@@ -91,9 +91,9 @@ void SurfaceView::assign_subset(Volume* elem, int subsetIndex)
 	if(oldInd >= 0 && subsetIndex == -1){
 		NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_erased(m_pGrid, elem));
 	}
-		
+
 	SubsetHandler::assign_subset(elem, subsetIndex);
-	
+
 	if(oldInd == -1 && subsetIndex >= 0){
 		NOTIFY_OBSERVERS(m_volumeObservers, volume_created(m_pGrid, elem, NULL));
 	}
@@ -193,8 +193,8 @@ void SurfaceView::unregister_observer(GridObserver* observer)
 	}
 
 //	if the observer is a grid observer, notify him about the unregistration
-	if(unregisterdFromGridObservers)
-		observer->unregistered_from_grid(NULL);
+//	if(unregisterdFromGridObservers)
+//		observer->unregistered_from_grid(NULL);
 }
 
 }//	end of namespace

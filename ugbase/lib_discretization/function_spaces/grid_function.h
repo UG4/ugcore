@@ -15,26 +15,24 @@
 
 namespace ug{
 
+// predeclaration
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+class ApproximationSpace;
+
+
 // A grid function brings approximation space and algebra together. For a given DoFManager and level, a grid function
 // represents the solutions on the level 'level'
-template <typename TApproximationSpace, typename TDoFManager, typename TAlgebra>
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 class GridFunction{
 	public:
-		typedef GridFunction<TApproximationSpace, TDoFManager, TAlgebra> this_type;
+		// this type
+		typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> this_type;
 
-		// DOMAIN
-		// domain type
-		typedef typename TApproximationSpace::domain_type domain_type;
+		// this type
+		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> approximation_space_type;
 
-		// global coordinate type
-		typedef typename domain_type::position_type position_type;
-
-		// subset handler, where DoF Manager is defined
-		typedef typename domain_type::grid_type grid_type;
-
-		// subset handler, where DoF Manager is defined
-		typedef typename domain_type::subset_handler_type subset_handler_type;
-
+		// Domain
+		typedef TDomain domain_type;
 
 		// ALGEBRA
 		// algebra type
@@ -49,40 +47,31 @@ class GridFunction{
 		// local index type
 		typedef typename vector_type::local_index_type local_index_type;
 
-
-		// APPROXIMATIONSPACE
-		// Approximation Space
-		typedef TApproximationSpace approximation_space_type;
-
-		// DOFMANAGER
+		// DOF DISTRIBUTION
 		// dof manager used for this approximation space
-		typedef TDoFManager dof_manager_type;
+		typedef TDoFDistribution dof_distribution_type;
 
 	public:
 		// Default constructor
 		GridFunction() :
-			m_pApproxSpace(NULL), m_pDoFManager(NULL), m_level(0),
-			m_name(""), m_pVector(NULL)
+			m_name(""), m_pApproxSpace(NULL), m_pDoFDistribution(NULL), m_pVector(NULL)
 			{}
 
 		// Constructor
-		GridFunction(	std::string name, approximation_space_type& ApproxSpace,
-						dof_manager_type& DoFManager, size_t level, bool allocate = true) :
-			m_pApproxSpace(&ApproxSpace), m_pDoFManager(&DoFManager), m_level(level),
-			m_name(name), m_pVector(NULL)
+		GridFunction(std::string name, approximation_space_type& approxSpace, dof_distribution_type& DoFDistr, bool allocate = true) :
+			m_name(name), m_pApproxSpace(&approxSpace), m_pDoFDistribution(&DoFDistr), m_pVector(NULL)
 		{
-			UG_ASSERT(level < m_pDoFManager->num_levels(), "Accessing level that does not exist");
 			if(allocate){
-				size_t num_dofs = m_pDoFManager->num_dofs(level);
-				if(create_storage(num_dofs) != true)
+				size_t num_dofs = m_pDoFDistribution->num_dofs();
+				if(!create_storage(num_dofs))
 					UG_ASSERT(0, "Cannot create vector memory for " << num_dofs << " dofs.\n");
 			}
 		};
 
 		// copy constructor
 		GridFunction(const this_type& v) :
-			m_pApproxSpace(v.m_pApproxSpace), m_pDoFManager(v.m_pDoFManager), m_level(v.m_level),
-			m_name(v.m_name), m_pVector(NULL)
+			m_name(v.m_name), m_pApproxSpace(v.m_pApproxSpace),
+			m_pDoFDistribution(v.m_pDoFDistribution), m_pVector(NULL)
 		{
 			assign(v);
 		};
@@ -106,10 +95,9 @@ class GridFunction{
 			if(m_pVector != NULL) release_storage();
 
 			// copy informations
-			m_pApproxSpace = v.m_pApproxSpace;
-			m_pDoFManager = v.m_pDoFManager;
-			m_level = v.m_level;
 			m_name = v.m_name;
+			m_pApproxSpace = v.m_pApproxSpace;
+			m_pDoFDistribution = v.m_pDoFDistribution;
 
 			// create new vector
 			if(create_storage(v.num_dofs()) != true)
@@ -122,12 +110,10 @@ class GridFunction{
 		// currently this is only implemented for a full refinement
 		// (surface level == full refinement level).
 		// Then, only the pointer to the dof storage is copied to avoid unnecessary copy-work.
-		template <typename TSurfaceDoFManager>
-		bool project_surface(GridFunction<TApproximationSpace, TSurfaceDoFManager, TAlgebra>& v)
+		template <typename TDoFDist>
+		bool project_surface(GridFunction<TDomain, TDoFDist, TAlgebra>& v)
 		{
-			if(m_pApproxSpace != v.m_pApproxSpace) {return false;}
-
-			if(m_pDoFManager == v.m_pDoFManager && m_level == v.m_level)
+			if(m_pDoFDistribution == v.m_pDoFDistribution)
 			{
 				// set pointer to dof storage
 				m_pVector = v.m_pVector;
@@ -138,12 +124,10 @@ class GridFunction{
 		}
 
 		// inverse operation to project surface
-		template <typename TSurfaceDoFManager>
-		bool release_surface(GridFunction<TApproximationSpace, TSurfaceDoFManager, TAlgebra>& v)
+		template <typename TDoFDist>
+		bool release_surface(GridFunction<TDomain, TDoFDist, TAlgebra>& v)
 		{
-			if(m_pApproxSpace != v.m_pApproxSpace) {return false;}
-
-			if(m_pDoFManager == v.m_pDoFManager && m_level == v.m_level)
+			if(m_pDoFDistribution == v.m_pDoFDistribution)
 			{
 				if(m_pVector != v.m_pVector) return false;
 
@@ -156,54 +140,63 @@ class GridFunction{
 			return false;
 		}
 
-		// number of dofs
-		inline size_t num_dofs() const
-			{return m_pDoFManager->num_dofs(m_level);}
+		// name of grid function
+		std::string name()
+			{return m_name;}
 
-		// number of functions
-		inline size_t num_fct() const
-			{return m_pDoFManager->num_fct();}
+		// get approximation space
+		const approximation_space_type& get_approximation_space() const {return *m_pApproxSpace;}
+		approximation_space_type& get_approximation_space() {return *m_pApproxSpace;}
 
-		// name of function
-		inline std::string get_name(size_t fct) const
-			{return m_pDoFManager->get_name(fct);}
+		/////////////////////////////////
+		// DoF Distribution requirements
+		/////////////////////////////////
 
-		// dim of function
-		inline size_t dim_fct(size_t fct) const
-			{return m_pDoFManager->dim_fct(fct);}
+		/// number of discrete functions
+		size_t num_fct() const {return m_pDoFDistribution->num_fct();}
 
-		// returns if function 'fct' is defined in subset 'si'
-		inline bool fct_is_def_in_subset(size_t fct, int si) const
-			{return m_pDoFManager->fct_is_def_in_subset(fct, si);}
+		/// number of discrete functions on subset si
+		size_t num_fct(int si) const {return m_pDoFDistribution->num_fct(si);}
 
-		// number of subsets
-		inline int num_subsets() const
-			{return m_pDoFManager->num_subsets();}
+		/// returns the trial space of the discrete function fct
+		LocalShapeFunctionSetID local_shape_function_set_id(size_t fct) const  {return m_pDoFDistribution->local_shape_function_set_id(fct);}
 
-		// iterator for elements where this grid function is defined
-		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator begin(int si) const
-			{return m_pDoFManager->template begin<TElem>(si, m_level);}
+		/// returns the name of the discrete function nr_fct
+		std::string name(size_t fct) const {return m_pDoFDistribution->name(fct);}
 
-		// iterator for elements where this grid function is defined
-		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator end(int si) const
-			{return m_pDoFManager->template end<TElem>(si, m_level);}
+		/// returns the dimension in which solution lives
+		int dim(size_t fct) const {return m_pDoFDistribution->dim(fct);}
+
+		/// returns true if the discrete function nr_fct is defined on subset s
+		bool is_def_in_subset(size_t fct, int si) const {return m_pDoFDistribution->is_def_in_subset(fct, si);}
+
+
+		/// number of subsets
+		inline int num_subsets() const {return m_pDoFDistribution->num_subsets();}
+
+		/// return the number of dofs distributed
+		inline size_t num_dofs() const {return m_pDoFDistribution->num_dofs();}
+
+		/// return the number of dofs distributed on subset si
+		inline size_t num_dofs(int si) const {return m_pDoFDistribution->num_dofs(si);}
+
 
 		// number of elements of this type for a subset
 		template <typename TElem>
 		inline size_t num(int si) const
-			{return m_pDoFManager->template num<TElem>(si, m_level);}
+			{return m_pDoFDistribution->template num<TElem>(si);}
 
-/* NEEDED ???
-		// evaluate Grid function on an element
+		// iterator for elements where this grid function is defined
 		template <typename TElem>
-		number evaluate(TElem* elem, size_t fct, size_t comp,
-						const MathVector<reference_element_traits<TElem>::dim>& loc_pos) const;
+		inline typename geometry_traits<TElem>::iterator begin(int si) const
+			{return m_pDoFDistribution->template begin<TElem>(si);}
 
-		// evaluate Grid function for a global position
-		number evaluate(size_t fct, size_t comp, const position_type& glob_pos) const;
-*/
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::iterator end(int si) const
+			{return m_pDoFDistribution->template end<TElem>(si);}
+
+
 		// get dof values
 		inline bool get_dof_values(local_vector_type& val, local_index_type& ind) const
 			{m_pVector->get(val, ind); return true;}
@@ -212,94 +205,58 @@ class GridFunction{
 		template <typename TElem>
 		inline size_t get_multi_indices(TElem* elem, size_t fct,
 										local_index_type& ind, size_t offset = 0) const
-			{return m_pDoFManager->get_multi_indices(elem, fct, ind, offset);}
+			{return m_pDoFDistribution->get_multi_indices(elem, fct, ind, offset);}
 
 		// get multiindices on an geometric object in canonical order
 		template <typename TGeomObj>
 		inline size_t get_multi_indices_of_geom_obj(TGeomObj* elem, size_t fct,
 													local_index_type& ind, size_t offset = 0) const
-			{return m_pDoFManager->get_multi_indices_of_geom_obj(elem, fct, ind, offset);}
+			{return m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind, offset);}
 
 		// get local dof values
 		template <typename TElem>
-		inline int get_dof_values(TElem* elem, size_t fct, local_vector_type& val) const
+		inline size_t get_dof_values(TElem* elem, size_t fct, local_vector_type& val) const
 		{
-			const int num_ind = m_pDoFManager->num_multi_indices(elem, fct);
+			const size_t num_ind = m_pDoFDistribution->num_multi_indices(elem, fct);
 			local_index_type ind(num_ind);
-
-			m_pDoFManager->get_multi_indices(elem, fct, ind);
-
+			m_pDoFDistribution->get_multi_indices(elem, fct, ind);
 			m_pVector->get(val, ind);
-
 			return num_ind;
 		}
 
 		template <typename TGeomObj>
-		inline int get_dof_values_of_geom_obj(TGeomObj* elem, size_t fct, local_vector_type& val) const
+		inline size_t get_dof_values_of_geom_obj(TGeomObj* elem, size_t fct, local_vector_type& val) const
 		{
-			int num_ind = m_pDoFManager->num_multi_indices(elem, fct);
+			const size_t num_ind = m_pDoFDistribution->num_multi_indices_of_geom_obj(elem, fct);
 			local_index_type ind(num_ind);
-
-			// TODO: This is a quick hack. Needed: function num_multi_indices_of_geom_obj
-			num_ind = m_pDoFManager->get_multi_indices_of_geom_obj(elem, fct, ind);
-
-			ind.resize(num_ind);
-
+			m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind);
 			m_pVector->get(val, ind);
-
 			return num_ind;
 		}
 
 		template <typename TElem>
 		inline bool set_dof_values(TElem* elem, size_t fct, local_vector_type& val)
 		{
-			const int num_ind = m_pDoFManager->num_multi_indices(elem, fct);
+			const size_t num_ind = m_pDoFDistribution->num_multi_indices(elem, fct);
 			local_index_type ind(num_ind);
-
-			m_pDoFManager->get_multi_indices(elem, fct, ind);
-
+			m_pDoFDistribution->get_multi_indices(elem, fct, ind);
 			m_pVector->set(val, ind);
-
-			UG_DEBUG_BEGIN(LIB_DISC_DISCRETE_FUNCTION, 2);
-				UG_DLOG(LIB_DISC_DISCRETE_FUNCTION, 2, "\n " << num_ind << " Values set: ");
-				for(size_t i = 0; i < ind.size(); ++i)
-					UG_DLOG(LIB_DISC_DISCRETE_FUNCTION, 2, "(" << ind[i] << ", " << val[i] << ") ");
-			UG_DEBUG_END(LIB_DISC_DISCRETE_FUNCTION, 2);
-
 			return true;
 		}
 
 		template <typename TGeomObj>
 		inline bool set_dof_values_of_geom_obj(TGeomObj* elem, size_t fct, local_vector_type& val)
 		{
-			int num_ind = m_pDoFManager->num_multi_indices(elem, fct);
+			size_t num_ind = m_pDoFDistribution->num_multi_indices_of_geom_obj(elem, fct);
 			local_index_type ind(num_ind);
-
-			// TODO: This is a quick hack. Needed: function num_multi_indices_of_geom_obj
-			num_ind = m_pDoFManager->get_multi_indices_of_geom_obj(elem, fct, ind);
-
-			ind.resize(num_ind);
-
+			m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind);
 			m_pVector->set(val, ind);
-
 			return true;
 		}
 
-		// approximation space of this gridfunction
-		approximation_space_type& get_approximation_space()
-			{return *m_pApproxSpace;}
-
-		// returns the dofmanager used for this discrete function
-		dof_manager_type& get_dof_manager()
-			{return *m_pDoFManager;}
-
-		// type of fundamental function
-		LocalShapeFunctionSetID get_local_shape_function_set_id(size_t fct) const
-			{return m_pDoFManager->get_local_shape_function_set_id(fct);}
-
-		// returns the level of the dofmanager, that is used for this grid function
-		size_t get_level() const
-			{return m_level;}
+		////////////////////////////
+		// Algebra requirements
+		////////////////////////////
 
 		// export the dof storage of this vector
 		vector_type& get_vector()
@@ -308,14 +265,6 @@ class GridFunction{
 		// export the dof storage of this vector
 		const vector_type& get_vector() const
 			{return *m_pVector;}
-
-		// return the domain
-		const domain_type& get_domain() const
-			{return m_pApproxSpace->get_domain();}
-
-		// return the domain
-		domain_type& get_domain()
-			{return m_pApproxSpace->get_domain();}
 
 		// this function finalizes the dof pattern.
 		// Afterwards the pattern can only be changed by
@@ -346,9 +295,13 @@ class GridFunction{
 		bool set(number w, ParallelStorageType type = PST_CONSISTENT)
 			{return m_pVector->set(w, type);}
 
-		// name of grid function
-		std::string name()
-			{return m_name;}
+		// two norm
+		inline number two_norm()
+			{return m_pVector->two_norm();}
+
+		////////////////////////////
+		// Parallel requirements
+		////////////////////////////
 
 		// changes to the requested storage type if possible
 		bool change_storage_type(ParallelStorageType type)
@@ -374,39 +327,15 @@ class GridFunction{
 		void copy_storage_type(const this_type& v)
 			{m_pVector->copy_storage_type(*v.m_pVector);}
 
-		// two norm
-		inline number two_norm()
-			{return m_pVector->two_norm();}
-
 	protected:
-		// sets the values of GridFunction 'v' to this GridFunction
-		// DofManager and level must be the same
-		bool assign(const this_type& v)
-		{
-			// check that Grid functions are of same type
-			if(	m_pApproxSpace != v.m_pApproxSpace ||
-				m_pDoFManager != v.m_pDoFManager ||
-				m_level != v.m_level)
-					return false;
-
-			// allocate memory if needed
-			if(m_pVector == NULL) create_storage(v.m_pVector->size());
-			else if (v.m_pVector->size() != m_pVector->size())
-				{UG_LOG("Size of discrete function does not match."); return false;}
-
-			// copy values
-			*m_pVector = *v.m_pVector;
-			return true;
-		}
-
 		// creates storage for dofs
 		bool create_storage(size_t num_dofs)
 		{
 			m_pVector = new vector_type;
 #ifdef UG_PARALLEL
-			m_pVector->set_slave_layout(m_pDoFManager->get_slave_layout(m_level));
-			m_pVector->set_master_layout(m_pDoFManager->get_master_layout(m_level));
-			m_pVector->set_process_communicator(m_pDoFManager->get_process_communicator(m_level));
+			m_pVector->set_slave_layout(m_pDoFDistribution->get_slave_layout());
+			m_pVector->set_master_layout(m_pDoFDistribution->get_master_layout());
+			m_pVector->set_process_communicator(m_pDoFDistribution->get_process_communicator());
 			m_pVector->set_storage_type(PST_UNDEFINED);
 #endif
 			if(m_pVector->create(num_dofs) != true) return false;
@@ -421,75 +350,59 @@ class GridFunction{
 		}
 
 	protected:
+		// sets the values of GridFunction 'v' to this GridFunction
+		// DofManager and level must be the same
+		bool assign(const this_type& v)
+		{
+			// check that approximation space is equal
+			if(m_pApproxSpace != v.m_pApproxSpace)
+				return false;
+
+			// check that Grid functions are of same type
+			if(	m_pDoFDistribution != v.m_pDoFDistribution)
+					return false;
+
+			// allocate memory if needed
+			if(m_pVector == NULL) create_storage(v.m_pVector->size());
+			else if (v.m_pVector->size() != m_pVector->size())
+				{UG_LOG("Size of discrete function does not match."); return false;}
+
+			// copy values
+			*m_pVector = *v.m_pVector;
+			return true;
+		}
+
+
+#ifdef UG_PARALLEL
+	public:
+		inline IndexLayout& get_slave_layout()	{return m_pDoFDistribution->get_slave_layout();}
+		inline IndexLayout& get_master_layout()	{return m_pDoFDistribution->get_master_layout();}
+		inline IndexLayout& get_vertical_slave_layout()		{return m_pDoFDistribution->get_vertical_slave_layout();}
+		inline IndexLayout& get_vertical_master_layout()	{return m_pDoFDistribution->get_vertical_master_layout();}
+
+		inline pcl::ProcessCommunicator get_process_communicator()	{return m_pDoFDistribution->get_process_communicator();}
+#endif
+
+	protected:
+		// name
+		std::string m_name;
+
 		// Approximation Space
 		approximation_space_type* m_pApproxSpace;
 
 		// dof manager of this discrete function
-		dof_manager_type* m_pDoFManager;
-
-		// level of Approximation Space, where this Grid Function lives
-		size_t m_level;
-
-		// name
-		std::string m_name;
+		dof_distribution_type* m_pDoFDistribution;
 
 		// vector storage, to store values of local degrees of freedom
 		vector_type* m_pVector;
 };
 
-template <typename TApproximationSpace, typename TDoFManager, typename TAlgebra>
-inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TApproximationSpace, TDoFManager, TAlgebra>& v)
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDomain, TDoFDistribution, TAlgebra>& v)
 {
 	outStream << v.get_vector();
 	return outStream;
 }
-
-
-// Surface Grid function lives on the surface grid
-template <typename TApproximationSpace, typename TAlgebra>
-class SurfaceGridFunction : public GridFunction<TApproximationSpace, typename TApproximationSpace::surface_dof_manager_type, TAlgebra>{
-	public:
-		// Approximation Space
-		typedef TApproximationSpace approximation_space_type;
-
-		// DOFMANAGER
-		// dof manager used for this approximation space
-		typedef typename TApproximationSpace::surface_dof_manager_type dof_manager_type;
-
-	public:
-		// Constructor
-		SurfaceGridFunction(approximation_space_type& approximationSpace, dof_manager_type& dof_manager) :
-			GridFunction<TApproximationSpace, dof_manager_type, TAlgebra>(approximationSpace, dof_manager, dof_manager.num_levels() - 1)
-		{};
-
-		SurfaceGridFunction(const SurfaceGridFunction& v) :
-			GridFunction<TApproximationSpace, dof_manager_type, TAlgebra>(v)
-		{}
-};
-
-// Level Grid function lives on a level grid
-template <typename TApproximationSpace, typename TAlgebra>
-class LevelGridFunction : public GridFunction<TApproximationSpace, typename TApproximationSpace::level_dof_manager_type, TAlgebra>{
-public:
-	// Approximation Space
-	typedef TApproximationSpace approximation_space_type;
-
-	// DOFMANAGER
-	// dof manager used for this approximation space
-	typedef typename TApproximationSpace::level_dof_manager_type dof_manager_type;
-
-	public:
-		// Constructor
-		LevelGridFunction(approximation_space_type& approximationSpace, dof_manager_type& dof_manager, size_t level) :
-			GridFunction<TApproximationSpace, dof_manager_type, TAlgebra>(approximationSpace, dof_manager, level)
-		{};
-
-		LevelGridFunction(const LevelGridFunction& v) :
-			GridFunction<TApproximationSpace, dof_manager_type, TAlgebra>(v)
-		{}
-
-
-};
 
 } // end namespace ug
 

@@ -21,9 +21,9 @@ namespace ug
  *
  *  \todo: replace IndexLayout with TDoFManager::IndexLayout.
  */
-template <class TDoFManager, class TLayout>
+template <class TDoFDistr, class TLayout>
 bool AddEntriesToIndexLayout(IndexLayout& indexLayoutOut,
-							TDoFManager& dofManager,
+							TDoFDistr& dofDistr,
 							TLayout& elemLayout)
 {
 	typedef typename TLayout::iterator InterfaceIterator;
@@ -46,12 +46,12 @@ bool AddEntriesToIndexLayout(IndexLayout& indexLayoutOut,
 			eIter != elemInterface.end(); ++eIter)
 		{
 			typename ElemInterface::Element elem = elemInterface.get_element(eIter);
-			typename TDoFManager::local_index_type loc_index;
-			for(size_t fct = 0; fct < dofManager.num_fct(); ++fct)
+			typename TDoFDistr::local_index_type loc_index;
+			for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
 			{
 			//TODO: num_multi_indices_of_geom_obj
-				loc_index.resize(dofManager.num_multi_indices(elem, fct));
-				dofManager.get_multi_indices_of_geom_obj(elem, fct, loc_index);
+				loc_index.resize(dofDistr.num_multi_indices(elem, fct));
+				dofDistr.get_multi_indices_of_geom_obj(elem, fct, loc_index);
 				for(size_t i = 0; i < loc_index.size(); ++i)
 				{
 					indexInterface.push_back(loc_index[i][0]);
@@ -63,16 +63,16 @@ bool AddEntriesToIndexLayout(IndexLayout& indexLayoutOut,
 }
 
 
-template <class TDoFManager>
-bool CreateIndexLayout(IndexLayout& layoutOut,
-					  TDoFManager& dofManager,
-					  GridLayoutMap& layoutMap,
-					  int keyType, int level)
+template <class TDoFDistribution>
+bool CreateIndexLayout(	IndexLayout& layoutOut,
+						TDoFDistribution& dofDistr,
+						GridLayoutMap& layoutMap,
+						int keyType, int level)
 {
 //TODO: clear the layout!
 	bool bRetVal = true;
 	if(layoutMap.has_layout<VertexBase>(keyType)){
-		bRetVal &= AddEntriesToIndexLayout(layoutOut, dofManager,
+		bRetVal &= AddEntriesToIndexLayout(layoutOut, dofDistr,
 								layoutMap.get_layout<VertexBase>(keyType).layout_on_level(level));
 	}
 /*

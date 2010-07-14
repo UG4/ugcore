@@ -11,12 +11,18 @@ project(P_LIB_DISCRETIZATION)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-set(srcDiscretization		dof_manager/general_dof_manager/general_dof_manager.cpp
+set(srcDiscretization	dof_manager/general_dof_manager/general_dof_manager.cpp	
+						dof_manager/subset_index_group.cpp
+
+						geom_object_container/surface_view.cpp
+
 				quadrature/gauss_quadratures_ReferenceTriangle.cpp
 				quadrature/gauss_quadratures_ReferenceQuadrilateral.cpp
 				local_shape_function_set/local_shape_function_set_factory.cpp
 				local_shape_function_set/local_dof_pattern.cpp
 				local_shape_function_set/LagrangeP1/p1conform.cpp
+
+				spacial_discretization/function_group.cpp
 				spacial_discretization/coupled_elem_disc/elem_data/data_items.cpp
 				spacial_discretization/coupled_elem_disc/elem_data/data_container.cpp
 				spacial_discretization/coupled_elem_disc/elem_data/linker.cpp)
