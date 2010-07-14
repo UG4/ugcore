@@ -22,7 +22,7 @@ namespace ug
 //! @param  C
 //! @param posInConnections		array of size B.getLength() for speedup of neighbor-neighbor-calculation inited with -1.
 template<typename ABC_type, typename A_type, typename B_type, typename C_type>
-void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, int *posInConnections)
+void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, int *posInConnections)
 {
 	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
 	//cout << endl << " Creating Galerkin Matrix_type..." << endl;
@@ -33,6 +33,8 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	// speedup with array posInConnections, needs n memory
 	// posInConnections[i]: index in the connections for current row.
 	// has to be -1 for all nodes
+
+	// tried this also with std::map, but took 1511.53 ms instead of 393.972 ms
 
 	bool bOwnMem = false;
 	if(posInConnections == NULL)
@@ -105,7 +107,7 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 		// reset posInConnections to -1
 		for(size_t j=0; j<con.size(); j++) posInConnections[con[j].iIndex] = -1;
 		// set Matrix_type Row in AH
-		M.setMatrixRow(i, &con[0], con.size());
+		M.set_matrix_row(i, &con[0], con.size());
 	}
 
 	if(bOwnMem)
@@ -120,7 +122,7 @@ void createAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 //! @param node
 //! @param depth
 template<typename T>
-void getNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_t> &indices, int *posInConnections)
+void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_t> &indices, int *posInConnections)
 {
 	// do this with a map???
 	indices.clear();
@@ -178,12 +180,12 @@ void getNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_
 
 
 template<typename T>
-bool isCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
+bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 {
 	if(distance == 0) return A.isUnconnected(node);
 	bool bFound = false;
 	for(typename SparseMatrix<T>::cRowIterator itA = A.beginRow(node); !itA.isEnd() && !bFound; ++itA)
-		bFound = isCloseToBoundary(A, (*itA).iIndex, distance-1);
+		bFound = IsCloseToBoundary(A, (*itA).iIndex, distance-1);
 
 	return bFound;
 }

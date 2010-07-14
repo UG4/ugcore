@@ -52,14 +52,6 @@ public:
 	
 	
 	//!
-	//! operator []:
-	//! get connection nr i.
-	inline const connection &operator [] (size_t i) const;
-	//inline connection &operator [] (size_t i);
-	
-	inline size_t getConNr(size_t index) const;
-	
-	//!
 	//! operator * with Vector. This Vector is templated, since then one can do
 	//! blockDenseMatrix<3> = matrixrow<double> * Vector<blockDenseMatrix<3> >, or
 	//! Vector<blockDenseMatrix<3> > = SparseMatrix<double> * Vector<blockDenseMatrix<3> >
@@ -82,12 +74,12 @@ public:
 	}
 	
 	// wrapped functions of SparseMatrix
-	inline bool indexWithinBounds(size_t i) const	{return i < getNrOfConnections(); }
-	inline size_t getRow() const { return row; }
-	inline size_t getNrOfConnections() const {	return A.getNrOfConnections(row);	}
-	inline bool isUnconnected() const
+	inline bool indexWithinBounds(size_t i) const	{return i < num_connections(); }
+	inline size_t get_row() const { return row; }
+	inline size_t num_connections() const {	return A.num_connections(row);	}
+	inline bool is_unconnected() const
 	{
-		return A.isUnconnected(row);
+		return A.is_unconnected(row);
 	}
 	
 	void printtype() const { cout << *this; }	

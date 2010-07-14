@@ -15,31 +15,8 @@
 #endif
 
 namespace ug{
-// operator []
-//-------------
-//! access connection nr i
-//! @param	i	connection nr i 
-//! @return A[row] * x 
-template<typename entry_type>
-inline const typename matrixrow<entry_type>::connection &matrixrow<entry_type>::operator [] (size_t i) const
-{
-	UG_ASSERT(i < A.getNrOfConnections(row) && i >= 0, *this << " has no connection nr. " << i);
-	return A.pRowStart[row][i];
-}
 
-/*
-template<typename entry_type>
-inline size_t matrixrow<entry_type>::getConNr(size_t index) const
-{
-	for(size_t i=0; i< getNrOfConnections(); i++)
-	{
-		if(A.cons[row][i].iIndex == index)
-			return i;
-	}
-	return -1;
-}*/
-
- //#pragma mark -
+//#pragma mark -
 ////////////////////////////////////////////////////////////////////////////////
 
 // operator *

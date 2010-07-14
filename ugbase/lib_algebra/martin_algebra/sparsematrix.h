@@ -14,6 +14,24 @@
 #include "math.h"
 
 //#include <pmmintrin.h>
+/*
+template<typename T>
+class typeOut
+{
+public:
+	typeOut(const T &t)
+	{
+		p = &t;
+	}
+
+	friend ostream operator <<(ostream &out, typeOut<T> &t)
+	{
+		t.p->printtype(out);
+	}
+
+private:
+	T *p;
+};*/
 
 
 #ifdef FLEXAMG
@@ -92,7 +110,9 @@ public:
 		}
 	};
 
-public: // construction etc
+public:
+	// construction etc
+	//----------------------
 
 	// constructor for empty SparseMatrix
 	SparseMatrix();
@@ -101,17 +121,39 @@ public: // construction etc
 
 
 	bool create(size_t _rows, size_t _cols);
+	bool resize(size_t newRows, size_t newCols);
 	bool destroy();
 
 	//! create this as a transpose of SparseMatrix B
-	void createAsTransposeOf(const SparseMatrix &B);
+	void create_as_transpose_of(const SparseMatrix &B);
 
+	void create_as_copy_of(const SparseMatrix &B);
 
-private: // disallowed operations (not defined):
+public:
+	// finalizing functions
+	//----------------------
+	void defrag();
+	void definalize();
+	void finalize()
+	{
+		defrag();
+	}
+	bool is_finalized() const;
+
+private:
+	//! "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
+	void safe_set_connections(size_t row, connection *mem) const;
+	bool in_consmem(size_t row) const;
+
+private:
+	// disallowed operations (not defined):
+	//---------------------------------------
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
 	void operator = (const SparseMatrix &v); ///< disallow assignment
 
-public:	// general functions
+public:
+	// general functions
+	//----------------------
 	template<typename Vector_type>
 	void eliminateDirichletValues(Vector_type &b);
 
@@ -125,41 +167,35 @@ public:	// general functions
 	//! calculate res = A x
 	template<typename Vector_type>
 	bool apply(Vector_type &res, const Vector_type &x) const;
+
 	//! calculate res = A.T x
 	template<typename Vector_type>
 	bool apply_transposed(Vector_type &res, const Vector_type &x) const;
+
 	//! calculate res -= A x
 	template<typename Vector_type>
 	bool matmul_minus(Vector_type &res, const Vector_type &x) const;
 
-
-	//! accessor functions for artificial matrixrow-object (= just wrapper with A and row)
-	inline const matrixrow_type getrow(size_t i) const;
-	inline const matrixrow_type operator [] (size_t i) const;
-
-
 	//! get Diagonal A_[i,i] of matrix
-	inline const entry_type &getDiag(size_t i) const;
-	inline entry_type &getDiag(size_t i);
+	inline const entry_type &get_diag(size_t i) const;
+	inline entry_type &get_diag(size_t i);
 
 	//! isUnconnected: true if only A[i,i] != 0.0.
-	inline bool isUnconnected(size_t i) const;
+	inline bool is_unconnected(size_t i) const;
+
+
+
+public:
+	// submatrix set/get functions
+	//-------------------------------
 
 	//! adds the submatrix mat to A.
-
 	template<typename M>
 	void add(const M &mat, size_t *rows, size_t *cols);
 	template<typename M>
 	void set(const M &mat, size_t *rows, size_t *cols);
 	template<typename M>
 	void get(M &mat, size_t *rows, size_t *cols) const;
-
-	template<typename M>
-	void add(const M &mat, vector<size_t> &rows, vector<size_t> &cols);
-	template<typename M>
-	void set(const M &mat, vector<size_t> &rows, vector<size_t> &cols);
-	template<typename M>
-	void get(M &mat, vector<size_t> &rows, vector<size_t> &cols) const;
 
 #ifndef FLEXAMG
 	bool add(const local_matrix_type &mat, const local_index_type &I, const local_index_type &J);
@@ -168,67 +204,77 @@ public:	// general functions
 #endif
 
 
-	void add(const entry_type &d, size_t row, size_t col);
-	void set(const entry_type &d, size_t row, size_t col);
-	void get(entry_type &d, size_t row, size_t col) const;
-
 	bool set(double a);
 
-	const entry_type &operator() (int r, int c) const;
-	entry_type &operator() (int r, int c);
+	const entry_type &operator() (size_t r, size_t c) const;
+	entry_type &operator() (size_t r, size_t c);
+
+	const entry_type &operator() (size_t r, size_t c, bool &bConnectionFound) const;
+	entry_type &operator() (size_t r, size_t c, bool &bConnectionFound);
 
 	// for other manipulation/accessor functions see matrixrow functions,
 	// that is A[i].matrixrowfunction(params).
 
-public: // accessor functions
-	size_t row_size() const { return rows; } // deprecated
-	size_t col_size() const { return cols; } // deprecated
+public:
+	// accessor functions
+	//----------------------
 
 	size_t num_rows() const { return rows; }
 	size_t num_cols() const { return cols; }
 
-	size_t getTotalNrOfConnections() const { return iTotalNrOfConnections; }
+	size_t total_num_connections() const { return iTotalNrOfConnections; }
 
-
-
-public:	// row functions
-	//! remove zero entries of SparseMatrix (experimental)
-	void removezeros(size_t row);
-
-	void setMatrixRow(size_t row, connection *c, size_t nr);
-	void addMatrixRow(size_t row, connection *c, size_t nr);
-	inline size_t getNrOfConnections(size_t row) const;
-
-public: // output functions
-
-	void print(const char * const name = NULL) const;
-	void printToFile(const char *filename) const;
-	void printrow(size_t row) const;
-	void p() const; // for use in gdb
-	void pr(size_t i) const; // for use in gdb
-
-	friend ostream &operator<<(ostream &output, const SparseMatrix &m)
+private:
+	enum get_connection_nr_flag
 	{
-		output << "SparseMatrix " //<< m.name
-		<< " [ " << m.rows << " x " << m.cols << " ]";
-		return output;
-	}
-	void printtype() const;
+		// find the first (in terms of distance) which is
+		LESS =1,
+		LESS_EQUAL = 2,
+		EQUAL = 3,
+		GREATER_EQUAL = 4,
+		GREATER = 5
+		// than the connection (r,c)
+	};
 
-	//! writes Matrix into file filename in ConnectionViewer format.
-	void writeToFile(const char *filename) const;
+	bool get_connection_nr(size_t r, size_t c, size_t &nr, get_connection_nr_flag flag=EQUAL) const;
 
+	template<get_connection_nr_flag flag>
+	bool get_connection_nr_templ(size_t r, size_t c, size_t &nr) const;
+public:
+	// row functions
+	//----------------------
+
+	//! accessor functions for artificial matrixrow-object (= just wrapper with A and row)
+	inline const matrixrow_type getrow(size_t i) const;
+	inline const matrixrow_type operator [] (size_t i) const;
+
+	//! remove zero entries of SparseMatrix (experimental)
+	void remove_zeros(size_t row);
+
+	void set_matrix_row(size_t row, connection *c, size_t nr);
+	void add_matrix_row(size_t row, connection *c, size_t nr);
+	inline size_t num_connections(size_t row) const;
 
 public:
-	// finalizing functions
+	// output functions
 	//----------------------
-	void defrag();
-	void definalize();
-	void finalize()
+
+	void print(const char * const name = NULL) const;
+	void printtype() const;
+
+	void print_to_file(const char *filename) const;
+	void printrow(size_t row) const;
+
+	friend ostream &operator<<(ostream &out, const SparseMatrix &m)
 	{
-		defrag();
+		out << "SparseMatrix " //<< m.name
+		<< " [ " << m.rows << " x " << m.cols << " ]";
+		return out;
 	}
 
+
+	void p() const { print(); } // for use in gdb
+	void pr(size_t row) const {printrow(row); } // for use in gdb
 
 public:
 
@@ -241,40 +287,50 @@ public:
 	{
 	public:
 		//const SparseMatrix<entry_type> &A;
-		const connection * const pStart;
-		const connection * const pEnd;
+		const connection * pEnd;
 		const connection * p;
 	public:
-		inline cRowIterator(const SparseMatrix<entry_type> &A, size_t row) : pStart(A.pRowStart[row]), pEnd(A.pRowEnd[row]) { rewind();	}
-		inline cRowIterator(const cRowIterator &other) : pStart(other.pStart), pEnd(other.pEnd), p(other.p)	{ }
+		inline cRowIterator(const SparseMatrix<entry_type> &A, size_t row)
+			: pEnd(A.pRowEnd[row]), p(A.pRowStart[row])
+			  { }
+		inline cRowIterator(const cRowIterator &other)
+			: pEnd(other.pEnd), p(other.p)
+			{ }
 
 		inline const connection &operator *() const {return *p;}
 
+		inline size_t index() const { return p->iIndex; }
+		inline const entry_type &value() const { return p->dValue; }
+
 		inline void operator ++() {	++p; }
+		inline void operator += (int nr) { p+=nr;}
 
-		inline void rewind() { p = pStart;}
-
-		inline bool isEnd() const { return p >= pEnd; }
+		inline bool isEnd() const { return p >= pEnd; } // remove this
 	};
 
 	// unconst row iterator
 	class rowIterator
 	{
 	public:
-		connection * const pStart;
-		connection * const pEnd;
+		connection * pEnd;
 		connection * p;
 	public:
-		inline rowIterator(SparseMatrix<entry_type> &A, size_t row_) : pStart(A.pRowStart[row_]), pEnd(A.pRowEnd[row_]) { rewind(); }
-		inline rowIterator(const cRowIterator &other) : pStart(other.pStart), pEnd(other.pEnd), p(other.p) { }
+		inline rowIterator(SparseMatrix<entry_type> &A, size_t row_)
+		: pEnd(A.pRowEnd[row_]), p(A.pRowStart[row_])
+		  { }
+		inline rowIterator(const cRowIterator &other)
+		: pEnd(other.pEnd), p(other.p)
+		  { }
 
 		inline connection &operator *() const {return *p;}
 
+		inline size_t index() const { return p->iIndex; }
+		inline entry_type &value() const { return p->dValue; }
+
 		inline void operator ++() {	++p; }
+		inline void operator += (int nr) { p+=nr;}
 
-		inline void rewind() { p = pStart;}
-
-		inline bool isEnd() const { return p >= pEnd; }
+		inline bool isEnd() const { return p >= pEnd; } // remove this
 	};
 
 	class cLowerLeftIterator : public cRowIterator
@@ -282,30 +338,23 @@ public:
 	private:
 		int row;
 	public:
-		cLowerLeftIterator(const SparseMatrix<entry_type> &A, size_t row_) : cRowIterator(A, row_), row(row_) { cRowIterator::rewind();	}
+		cLowerLeftIterator(const SparseMatrix<entry_type> &A, size_t row_)
+		: cRowIterator(A, row_), row(row_)
+		  {	}
 
 		inline bool isEnd() const { return this->p >= this->pEnd || this->p->iIndex >= row; }
 	};
 
 	class cUpperRightIterator : public cRowIterator
 	{
-	private:
-		int row;
 	public:
-		cUpperRightIterator(const SparseMatrix<entry_type> &A, size_t row_) : cRowIterator(A, row_), row(row_) { 	rewind();	}
-		inline void rewind()
+		cUpperRightIterator(const SparseMatrix<entry_type> &A, size_t row_) : cRowIterator(A, row_)
 		{
-			int left = 0, right = this->pEnd-this->pStart;
-			int mid;
-			while(left < right)
-			{
-				mid = (left+right)/2;
-				if(this->pStart[mid].iIndex <= row)
-					left = mid+1;
-				else
-					right = mid-1;
-			}
-			this->p = this->pStart+mid;
+			size_t nr=0;
+			if(A.get_connection_nr(row_, row_, nr, GREATER))
+				this->p+=nr;
+			else
+				this->p = this->pEnd;
 		}
 	};
 
@@ -324,36 +373,31 @@ public:
 		return cLowerLeftIterator(*this, row);
 	}
 
-	cUpperRightIterator beginUpperRightRow(size_t row)  const
+	cUpperRightIterator beginUpperRightRow(size_t row) const
 	{
 		return cUpperRightIterator(*this, row);
 	}
 
 
-private:
-	//! "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
-	void safeSetConnections(size_t row, connection *mem) const;
+public:
+	// connectivity functions
+	//-------------------------
+	cRowIterator get_connection(size_t r, size_t c, bool &bFound) const;
+	rowIterator get_connection(size_t r, size_t c, bool &bFound);
 
-	bool isFinalized() const;
-	bool isInConsMem(size_t row) const;
+	cRowIterator get_connection(size_t r, size_t c) const;
+	rowIterator get_connection(size_t r, size_t c);
+
 public:
-	size_t getConnection(size_t r, size_t c) const;
-public:
-	void setEstimatedRowSize(size_t estimatedRowSize_)
-	{
-		estimatedRowSize = estimatedRowSize_;
-	}
 	//     data
-	//----------------
+	//----------------------
 
-public:
 #ifdef FLEXAMG
 	int tolevel, fromlevel;
 #endif
 	const char *name;					//!< name of the SparseMatrix for debuging / printing.
 
 private:
-
 	size_t rows;						//!< nr of rows
 	size_t cols;						//!< nr of cols
 	connection **pRowStart;				//< pointers to array of connections of each row
@@ -378,5 +422,6 @@ private:
 #include "matrixrow.h"
 #include "sparsematrix_impl.h"
 #include "sparsematrix_util.h"
+#include "sparsematrix_print.h"
 
 #endif

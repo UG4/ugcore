@@ -57,7 +57,7 @@ void LapackLU::init(const SparseMatrix<double> &A)
 {
 	//cout << "LapackLU::init, A = " << A.num_rows() << " x " << A.num_cols() << endl;
 	const int nrOfUnknowns = 1 ; //block_matrix_traits<entry_type>::nrOfUnknowns;
-	size = A.row_size() * nrOfUnknowns;
+	size = A.num_rows() * nrOfUnknowns;
 
 	if(densemat) delete[] densemat;
 	if(interchange) delete[] interchange;
@@ -67,7 +67,7 @@ void LapackLU::init(const SparseMatrix<double> &A)
 
 	memset(densemat, 0, sizeof(double)*size*size);
 
-	/*for(int r=0; r<A.row_size(); r++)
+	/*for(int r=0; r<A.num_rows(); r++)
 		for(typename SparseMatrix<entry_type>::cRowIterator it(A, r); !it.isEnd(); ++it)
 		{
 			int rr = r*nrOfUnknowns;
@@ -77,7 +77,7 @@ void LapackLU::init(const SparseMatrix<double> &A)
 						densemat[(rr+r2) + (cc+c2)*size] = getAt((*it).dValue, r2, c2);
 		}*/
 
-	for(size_t r=0; r<A.row_size(); r++)
+	for(size_t r=0; r<A.num_rows(); r++)
 		for(SparseMatrix<double>::cRowIterator it = A.beginRow(r); !it.isEnd(); ++it)
 		{
 			int rr = r*nrOfUnknowns;
