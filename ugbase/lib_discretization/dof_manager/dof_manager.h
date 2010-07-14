@@ -9,6 +9,12 @@
 #define __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
 
 #include "./mg_dof_manager.h"
+#include "./dof_distribution.h"
+#include "./mg_dof_manager.h"
+#include "./subset_index_group.h"
+#include "./function_pattern.h"
+
+#include "./p1conform/p1conform.h"
 
 namespace ug{
 
