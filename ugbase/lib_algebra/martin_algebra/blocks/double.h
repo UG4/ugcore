@@ -23,17 +23,16 @@ template<typename entry_type, typename vec_type> struct block_multiply_traits;
 
 
 //////////////////////////////////////////////////////
-template<typename T> double mnorm(const T &t);
-
+template<typename T> double BlockNorm(const T &t);
 template <>
-inline double mnorm(const double &a)
+inline double BlockNorm(const double &a)
 {
 	return a>0 ? a : -a;
 }
 
-template<typename T> double mnorm2(const T &t);
+template<typename T> double BlockNorm2(const T &t);
 template <>
-inline double mnorm2(const double &a)
+inline double BlockNorm2(const double &a)
 {
 	return a*a;
 }
@@ -41,12 +40,27 @@ inline double mnorm2(const double &a)
 //////////////////////////////////////////////////////
 // get/set specialization for doubles
 
-template<> inline double getAt(const double &m, int i) { return m; }
-template<> inline double setAt(double &m, int i, double a) { m = a; return a; }
+template<> inline double &BlockRef(double &m, int i)
+{
+	UG_ASSERT(i == 0, "block is double, doesnt have component (" << i << ").");
+	return m;
+}
+template<> inline const double &BlockRef(const double &m, int i)
+{
+	UG_ASSERT(i == 0, "block is double, doesnt have component (" << i << ").");
+	return m;
+}
 
-template<> inline double getAt(const double &m, int i, int j) { return m; }
-template<> inline double setAt(double &m, int i, int j, double a) { m = a; return a; }
-
+template<> inline double &BlockRef(double &m, int i, int j)
+{
+	UG_ASSERT(i == 0 && j == 0, "block is double, doesnt have component (" << i << ", " << j << ").");
+	return m;
+}
+template<> inline const double &BlockRef(const double &m, int i, int j)
+{
+	UG_ASSERT(i == 0 && j == 0, "block is double, doesnt have component (" << i << ", " << j << ").");
+	return m;
+}
 
 //////////////////////////////////////////////////////
 // algebra stuff to avoid temporary variables 
@@ -76,30 +90,33 @@ inline void SubMult(double &dest, const double &b, const double &vec)
 //////////////////////////////////////////////////////
 //setSize(t, a, b) for doubles
 template<>
-inline void setSize(double &d, int a)
+inline void SetSize(double &d, int a)
 {
+	UG_ASSERT(a == 1, "block is double, cannot change size to " << a << ".");
 	return;
 }
 
 template<>
-inline void setSize(double &d, int a, int b)
+inline void SetSize(double &d, int a, int b)
 {
+	UG_ASSERT(a == 1 && b == 1, "block is double, cannot change size to (" << a << ", " << b << ").");
 	return;
 }
+
 template<>
-inline int getSize(const double &t)
+inline int GetSize(const double &t)
 {
 	return 1;
 }
 
 template<>
-inline int getRows(const double &t)
+inline int GetRows(const double &t)
 {
 	return 1;
 }
 
 template<>
-inline int getCols(const double &t)
+inline int GetCols(const double &t)
 {
 	return 1;
 }
@@ -127,6 +144,15 @@ template<> struct block_multiply_traits<double, double>
 {
 	typedef double ReturnType;
 };
+
+template<typename M>
+void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m);
+
+template<>
+void GetInverse(double &inv, const double &m)
+{
+	inv = 1.0/m;
+}
 
 
 } // namespace ug

@@ -82,7 +82,7 @@ public:
 	
 	blockVector(const vector_type &other) : values(other.values)
 	{
-		UG_ASSERT(0, "thou shall not use the copy constructor for it is slow");
+		//UG_ASSERT(0, "thou shall not use the copy constructor for it is slow");
 	}
 	
 
@@ -173,12 +173,12 @@ public:
 	//}
 	
 	//! calc this = this/mat = mat^{-1} * this
-	template<typename array_type>
-	inline void operator /= (const blockDenseMatrix<value_type, array_type> &mat);
 	
+	inline void operator /= (const blockDenseMatrix<value_type, storage_type, n_, n_> &mat);
+
 	//! return mat^{-1} * this
-	template<typename array_type>
-	vector_type operator / (const blockDenseMatrix<value_type, array_type> &mat )
+
+	vector_type operator / (const blockDenseMatrix<value_type, storage_type, n_, n_> &mat)
 	{
 		vector_type erg = *this;
 		erg /= mat;
@@ -236,47 +236,39 @@ inline blockVector<value_type, storage_type, n> operator * (double alpha, const 
 	return v * alpha;
 }
 
-/*
- template<typename storage_type>
- inline void blockVector<storage_type, 1>::operator /= (const blockDenseMatrix<storage_type, 1, 1> &mat )
+ 
+ template<typename value_type, typename storage_type, int rows_>
+ inline void blockVector<value_type, storage_type, rows_>::operator /= (const blockDenseMatrix<value_type, storage_type, rows_, rows_> &mat )
  {
- getAt(0) = getAt(0) / mat(0, 0);
+	 smallInverse<storage_type, rows_, rows_> inv;
+	 inv.setAsInverseOf(mat);
+
+	 inv.apply(&values[0], *this);
  }
+
+// TODO: do this with template specialisation
+// template<typename value_type, typename storage_type>
+// inline void blockVector<value_type, storage_type, 1>::operator /= (const blockDenseMatrix<value_type, storage_type, 1, 1> &mat )
+
+template<>
+inline void blockVector<double, fixedStorage, 1>::operator /= (const blockDenseMatrix<double, fixedStorage, 1, 1> &mat )
+{
+	getAt(0) = getAt(0) / mat(0, 0);
+}
+
+
+template<>
+inline void blockVector<double, fixedStorage, 2>::operator /= (const blockDenseMatrix<double, fixedStorage, 2, 2> &mat )
+{
+	double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
+	UG_ASSERT(invD != 0.0, "");
+	double a = invD*(getAt(0) * mat(1,1) - getAt(1) * mat(0,1));
+	double b = invD*(getAt(1) * mat(0,0) - getAt(0) * mat(1,0));
+	getAt(0) = a;
+	getAt(1) = b;
+}
+
  
- template<typename storage_type>
- inline void blockVector<storage_type, 2>::operator /= (const blockDenseMatrix<storage_type, 2> &mat )
- {
- double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
- ASSERT(invD != 0.0);
- 
- double a = invD*(getAt(0) * mat(1,1) - getAt(1) * mat(0,1));
- double b = invD*(getAt(1) * mat(0,0) - getAt(0) * mat(1,0));
- getAt(0) = a;
- getAt(1) = b;
- }
- 
- 
- template<typename storage_type>
- inline void blockVector<storage_type, rows_>::operator /= (const blockDenseMatrix<storage_type, rows_, rows_> &mat )
- {
- double densemat[n*n];	
- 
- for(int r=0; r<n; r++)
- for(int c=0; c<n; c++)
- densemat[c + r*n] = mat(r, c);
- 
- __CLPK_integer interchange[n];
- 
- __CLPK_integer info = 0;
- __CLPK_integer dim = n;
- dgetrf_(&dim, &dim, densemat, &dim, interchange, &info);
- ASSERT2(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had had illegal value"));
- 
- char trans ='N';
- __CLPK_integer nrhs = 1;
- dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, values, &dim, &info);	
- }
- */
 /*template<>
  template<typename array_type>
  inline void blockDenseMatrix<array_type, 2>::setAsInverseOf(const blockDenseMatrix<array_type, 2> &mat )

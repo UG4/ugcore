@@ -144,7 +144,7 @@ public:
 			erg.values[i] = values[i] + other.values[i];
 		return erg;
 	}
-	
+
 	void operator += (const matrix_type &other )
 	{
 		if(getRows() == 0 && getCols() == 0)
@@ -206,6 +206,18 @@ public:
 		return erg;
 	}
 	
+	void operator *= (double d)
+	{
+		for(int i=0; i< values.size(); i++)
+			values[i] *= d;
+	}
+
+	void operator /= (double d)
+	{
+		for(int i=0; i< values.size(); i++)
+			values[i] /= d;
+	}
+
 	vector_type operator * (const vector_type &vec ) const
 	{
 		vector_type erg(getRows());
@@ -414,7 +426,7 @@ public:
 		densemat.setSize(rows, cols);
 		for(int r=0; r < rows; r++)
 			for(int c=0; c < cols; c++)
-				densemat[c + r*cols] = mat(r, c);
+				densemat[r + c*rows] = mat(r, c);
 		
 		interchange.setSize(rows);
 		
@@ -441,7 +453,7 @@ public:
 				&(*const_cast<array2_type*> (&densemat))(0,0), 
 				&dim, 
 				&(*const_cast<interchange_array_type*> (&interchange))[0], 
-				dest, 
+				dest,
 				&dim, 
 				&info);	
 	}
@@ -561,6 +573,15 @@ struct block_multiply_traits<blockVector<double, storage_type, n_>, double >
 };
 //#endif
 
+
+template<typename M>
+void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m)
+{
+	inv.setAsInverseOf(m);
+}
+
+
 } // namespace ug
 
 #endif
+

@@ -40,7 +40,9 @@ private:
 #include "blockVector.h"
 #else
 #include "blocks/blocks.h"
-//#include "blocks/blockVector.h"
+#ifdef LAPACK_AVAILABLE
+#include "blocks/blockVector.h"
+#endif
 #endif
 
 #include "template_expressions.h"

@@ -780,7 +780,7 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 	sort(n, n+nr);
 
 	for(size_t i=0; i<nr; i++)
-		UG_ASSERT(n[i].iIndex >= 0 && n[i].iIndex < num_rows(), *this << " cannot have connection " << n[i] << ".");
+		UG_ASSERT(n[i].iIndex >= 0 && n[i].iIndex < num_cols(), "Matrix is " << num_rows() << "x" << num_cols() << ", row " << row << " cannot have connection " << n[i] << ".");
 
 
 	bandwidth = max(bandwidth, abs(n[0].iIndex, row));

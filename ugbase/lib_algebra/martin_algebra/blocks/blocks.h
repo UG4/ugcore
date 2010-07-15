@@ -28,13 +28,13 @@ inline double mnorm2(const  blockVector<n> &v)
 }*/
 
 template<typename TYPE>
-inline double mnorm2(const TYPE &v)
+inline double BlockNorm2(const TYPE &v)
 {
 	return v.norm2();
 }
 
 template<typename TYPE>
-inline double mnorm(const TYPE &v)
+inline double BlockNorm(const TYPE &v)
 {
 	return sqrt(v.norm2());
 }
@@ -43,24 +43,25 @@ inline double mnorm(const TYPE &v)
 //////////////////////////////////////////////////////
 
 // get/set vector
-template<typename M> inline double getAt(const M &m, int i)
+template<typename M> inline double &BlockRef(M &m, int i)
 {
 	return m(i);
 }
-template<typename M> inline double setAt(M &m, int i, double a)
+
+template<typename M> inline const double &BlockRef(const M &m, int i)
 {
-	return m(i) = a;
+	return m(i);
 }
 
 // get/set matrix
-template<typename M> inline double getAt(const M &m, int i, int j)
+template<typename M> inline double &BlockRef(M &m, int i, int j)
 {
 	return m(i, j);
 }
 
-template<typename M> inline double setAt(M &m, int i, int j, double a)
+template<typename M> inline const double &BlockRef(const M &m, int i, int j)
 {
-	return m(i, j) = a;
+	return m(i, j);
 }
 
 //////////////////////////////////////////////////////
@@ -143,34 +144,34 @@ inline void SubMult(double &dest, const double &b, const double &vec)
 //////////////////////////////////////////////////////
 //setSize(t, a, b) for matrices
 template<typename T>
-inline void setSize(T &t, int a, int b)
+inline void SetSize(T &t, int a, int b)
 {
 	t.setSize(a, b);
 }
 
 //setSize(t, a) for vectors
 template<typename T>
-inline void setSize(T &t, int a)
+inline void SetSize(T &t, int a)
 {
 	t.setSize(a);
 }
 
 // getSize
 template<typename T>
-inline int getSize(T &t)
+inline int GetSize(T &t)
 {
 	return t.getSize();
 }
 
 //getRows
 template<typename T>
-inline int getRows(const T &t)
+inline int GetRows(const T &t)
 {
 	return t.getRows();
 }
 
 template<typename T>
-inline int getCols(const T &t)
+inline int GetCols(const T &t)
 {
 	return t.getCols();
 }
