@@ -77,7 +77,7 @@ lmgc(size_t lev)
 		#endif
 
 		// restrict defect
-		if(!m_I[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
+		if(!m_I[lev-1]->apply_transposed(*m_d[lev], *m_d[lev-1]))
 			{UG_LOG("Error in restriction from level " << lev << " to " << lev-1 << ".\n"); return false;}
 
 		bool resume = true;
@@ -128,7 +128,7 @@ lmgc(size_t lev)
 		#endif
 
 		//interpolate correction
-		if(!m_I[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
+		if(!m_I[lev-1]->apply(*m_c[lev-1], *m_t[lev]))
 			{UG_LOG("Error in prolongation from level " << lev-1 << " to " << lev << ".\n"); return false;}
 
 		// add coarse grid correction to level correction
@@ -274,7 +274,7 @@ prepare(function_type &u, function_type& d, function_type &c)
 		{
 			if(m_I[lev]->prepare(*m_d[lev], *m_d[lev+1]) != true)
 				{UG_LOG("ERROR while constructing interpolation matrices for level "<< lev << ", aborting.\n");return false;}
-			if(m_P[lev]->prepare(*m_u[lev], *m_u[lev+1]) != true)
+			if(m_P[lev]->prepare(*m_u[lev+1], *m_u[lev]) != true)
 				{UG_LOG("ERROR while constructing projection matrices for level "<< lev << ", aborting.\n");return false;}
 		}
 	}
@@ -282,7 +282,7 @@ prepare(function_type &u, function_type& d, function_type &c)
 	// project solution from surface grid to coarser grid levels
 	for(size_t lev = m_surfaceLevel; lev != m_baseLevel; --lev)
 	{
-		if(m_P[lev-1]->apply_transposed(*m_u[lev-1], *m_u[lev]) != true)
+		if(m_P[lev-1]->apply(*m_u[lev], *m_u[lev-1]) != true)
 			{UG_LOG("ERROR while projecting solution to coarse grid function of level "<< lev -1 << ", aborting.\n");return false;}
 	}
 
@@ -359,9 +359,9 @@ allocate_memory()
 	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 	{
 		// create prolongation operators
-		m_I[lev] = new prolongation_operator_type(m_approxSpace, m_ass, lev);
+		m_I[lev] = new prolongation_operator_type(m_ass);
 		// create prolongation operators
-		m_P[lev] = new projection_operator_type(m_approxSpace, m_ass, lev);
+		m_P[lev] = new projection_operator_type();
 		// create coarse grid matrices
 		m_A[lev] = new operator_type(m_ass);
 	}

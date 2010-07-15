@@ -16,90 +16,140 @@
 #include "lib_grid/lg_base.h"
 #include "lib_algebra/lib_algebra.h"
 
-// library intern headers
-
 namespace ug{
 
-// TODO: Assert, that discrete function is a level grid function or define a senseful prolongation for surface functions
+// TODO: This function should be put to an util file
+/** AssembleVertexProjection
+ *
+ * This functions assembles the interpolation matrix between to
+ * grid levels using only the Vertex degrees of freedom.
+ *
+ * \param[in] 	uCoarse			Grid function on coarse level
+ * \param[in] 	uFine 			Grid function on fine level
+ * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
+ *
+ */
+template <typename TFunction, typename TMatrix>
+bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse)
+{
+	// check, that u and v are from same approximatio space
+	if(&uFine.get_approximation_space() != &uCoarse.get_approximation_space())
+		{UG_LOG("Interpolation only implemented for equal approximation space.\n"); return false;}
 
-template <typename TDiscreteFunction>
-class ProjectionOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFunction> {
+	// allow only lagrange P1 functions
+	for(size_t fct = 0; fct < uFine.num_fct(); ++fct)
+		if(uFine.local_shape_function_set_id(fct) != LSFS_LAGRANGEP1)
+			{UG_LOG("Interpolation only implemented for Lagrange P1 functions.\n"); return false;}
+
+	// get MultiGrid
+	MultiGrid& grid = uFine.get_approximation_space().get_domain().get_grid();
+
+	// get number of dofs on different levels
+	const size_t numFineDoFs = uFine.num_dofs();
+	const size_t numCoarseDoFs = uCoarse.num_dofs();
+
+	// create matrix
+	if(!mat.destroy())
+		{UG_LOG("Cannot destroy Interpolation Matrix.\n"); return false;}
+	if(!mat.create(numCoarseDoFs, numFineDoFs))
+		{UG_LOG("Cannot create Interpolation Matrix.\n"); return false;}
+
+	// TODO: Change matrix access
+	typename TMatrix::local_matrix_type val(1,1);
+	typename TMatrix::local_index_type coarse_ind(1);
+	typename TMatrix::local_index_type fine_ind(1);
+	// value will always be one
+	val(0,0) = 1.0;
+
+	// Vertex iterators
+	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
+
+	// loop subsets of fine level
+	for(int si = 0; si < uFine.num_subsets(); ++si)
+	{
+		iterBegin = uFine.template begin<Vertex>(si);
+		iterEnd = uFine.template end<Vertex>(si);
+
+		// loop nodes of fine subset
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+			// get father
+			GeometricObject* geomObj = grid.get_parent(*iter);
+			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
+
+			// loop functions on subset
+			for(size_t fct = 0; fct < uFine.num_fct(); ++fct)
+			{
+				if(!uFine.is_def_in_subset(fct, si)) continue;
+
+				// get fine index
+				if(uFine.get_multi_indices_of_geom_obj(*iter, fct, fine_ind) != 1)
+					{UG_LOG("Cannot determine fine index of node."); return false;}
+
+				// Check if father is Vertex
+				if(vert != NULL)
+				{
+					if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarse_ind) != 1)
+						{UG_LOG("Cannot determine coarse index of node."); return false;}
+
+					mat.add(val, coarse_ind, fine_ind);
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+
+template <typename TFunction>
+class ProjectionOperator : public ILinearOperator<TFunction, TFunction> {
 	public:
 		// domain space
-		typedef TDiscreteFunction domain_function_type;
+		typedef TFunction domain_function_type;
 
 		// range space
-		typedef TDiscreteFunction  codomain_function_type;
+		typedef TFunction  codomain_function_type;
 
 	protected:
-		typedef typename TDiscreteFunction::approximation_space_type approximation_space_type;
-		typedef typename TDiscreteFunction::domain_type phys_domain_type;
-		typedef typename TDiscreteFunction::algebra_type algebra_type;
+		typedef typename TFunction::algebra_type algebra_type;
 		typedef typename algebra_type::matrix_type matrix_type;
 
 
 	public:
-		// Transfer Operator acts on level -> level + 1
-		ProjectionOperator(approximation_space_type& approxSpace, IAssemble<domain_function_type, algebra_type>& ass, uint level) :
-			m_approxSpace(approxSpace), m_ass(ass), m_level(level)
-		{
-
-		};
-
-		bool init()
-		{
-			return true;
-		}
+		bool init(){return true;}
 
 		// prepare Operator (u=coarse, v = fine)
-		bool prepare(domain_function_type& u, codomain_function_type& v)
+		bool prepare(domain_function_type& uFine, codomain_function_type& uCoarse)
 		{
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- START: 'TransferOperator::prepare'\n");
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " Constructing Interpolation for levels (" << m_level << " -> "<<m_level+1<<").\n");
-			if(this->assemble_interpolation(m_matrix, m_level, u, v) != true)
-			{
-				UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix for level transfer (" << m_level << " -> "<<m_level+1<<").\n");
-				return false;
-			}
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 3, " ---- END: 'TransferOperator::prepare'\n");
+			if(!AssembleVertexProjection(m_matrix, uFine, uCoarse))
+				{UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n"); return false;}
 			return true;
 		}
 
-		// apply Operator, i.e. v = L(u);
-		bool apply(domain_function_type& u, codomain_function_type& v)
+		// Project uFine to uCoarse; uCoarse = P(uFine);
+		bool apply(domain_function_type& uFine, codomain_function_type& uCoarse)
 		{
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Matrix: (" << m_matrix.num_rows() << " x " << m_matrix.num_cols() << ").\n");
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Fine Vector: (" <<  v.get_vector().size() << ").\n");
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Coarse Vector: (" <<  u.get_vector().size() << ").\n");
-
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 10, "Interpolation Matrix: \n" << m_matrix);
-
-			// v = coarse, u = fine
-			m_matrix.apply(u.get_vector(), v.get_vector());
-			u.copy_storage_type(v);
+			m_matrix.apply(uCoarse.get_vector(), uFine.get_vector());
+			uCoarse.copy_storage_type(uFine);
 			return true;
 		}
 
-		// apply Operator
-		bool apply_transposed(codomain_function_type& v, domain_function_type& u)
+		/// Project uCoarse to uFine; uFine = P^{-1}(uCoarse);
+		// ATTENTION: This will only affect fine nodes, that are also coarse node, thus
+		//            this operation is not very senseful
+		bool apply_transposed(codomain_function_type& uCoarse, domain_function_type& uFine)
 		{
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Matrix: (" << m_matrix.num_rows() << " x " << m_matrix.num_cols() << ").\n");
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Coarse Vector: (" <<  v.get_vector().size() << ").\n");
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 5, " Fine Vector: (" <<  u.get_vector().size() << ").\n");
-
-			UG_DLOG(LIB_ALG_LINEAR_OPERATOR, 10, "Interpolation Matrix: \n" << m_matrix);
-
-			// v = coarse, u = fine
-			m_matrix.apply_transposed(v.get_vector(), u.get_vector());
-			v.copy_storage_type(u);
+			m_matrix.apply_transposed(uFine.get_vector(), uCoarse.get_vector());
+			uFine.copy_storage_type(uCoarse);
 			return true;
 		}
 
-		// apply Operator, i.e. v := v - L(u);
+		// apply sub not implemented
 		bool apply_sub(domain_function_type& u, codomain_function_type& v)
 		{
 			UG_ASSERT(0, "Not Implemented.");
-			return true;
+			return false;
 		}
 
 		~ProjectionOperator()
@@ -108,89 +158,6 @@ class ProjectionOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFu
 		}
 
 	protected:
-		// u = coarse level, v = fine level
-		bool assemble_interpolation(matrix_type& mat, uint coarseLevel, domain_function_type& u, codomain_function_type& v)
-		{
-			typename phys_domain_type::position_accessor_type aaPos = m_approxSpace.get_domain().get_position_accessor();
-			typename phys_domain_type::grid_type& grid = m_approxSpace.get_domain().get_grid();
-			typename phys_domain_type::position_type corner;
-
-			const uint num_dofs_fineLevel = v.num_dofs();
-			const uint num_dofs_coarseLevel = u.num_dofs();
-
-			if(mat.create(num_dofs_fineLevel, num_dofs_coarseLevel) != true)
-			{
-				UG_LOG("Cannot create Interpolation Matrix.\n");
-				return false;
-			}
-
-			// TODO: Handle this
-			uint num_fct = m_ass.num_fct();
-
-			for(uint i = 0; i < num_fct; ++i)
-			{
-				if(u.local_shape_function_set_id(i) != LSFS_LAGRANGEP1)
-				{
-					UG_LOG("Interpolation only implemented for Lagrange P1 functions.");
-					return false;
-				}
-			}
-
-			typename algebra_type::matrix_type::local_matrix_type val(1,1);
-
-			typename algebra_type::matrix_type::local_index_type coarse_ind(1);
-			typename algebra_type::matrix_type::local_index_type fine_ind(1);
-
-			geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
-
-			// loop fine level
-			for(int subsetIndex = 0; subsetIndex < v.num_subsets(); ++subsetIndex)
-			{
-				iterBegin = v.template begin<Vertex>(subsetIndex);
-				iterEnd = v.template end<Vertex>(subsetIndex);
-
-				for(iter = iterBegin; iter != iterEnd; ++iter)
-				{
-
-					// get father
-					GeometricObject* geomObj = grid.get_parent(*iter);
-					VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
-
-					for(uint fct = 0; fct < num_fct; fct++)
-					{
-						if(v.is_def_in_subset(fct, subsetIndex) != true) continue;
-
-						if(v.get_multi_indices_of_geom_obj(*iter, fct, fine_ind) != 1)
-						{
-							UG_LOG("Cannot determine fine index of node."); return false;
-						}
-
-						// Check if father is Vertex
-						if(vert != NULL)
-						{
-							val(0,0) = 1.0;
-
-							if(u.get_multi_indices_of_geom_obj(vert, fct, coarse_ind) != 1)
-							{
-								UG_LOG("Cannot determine fine index of node."); return false;
-							}
-
-							mat.add(val, fine_ind, coarse_ind);
-							continue;
-						}
-
-					}
-				}
-			}
-
-			return true;
-		}
-
-
-	protected:
-		approximation_space_type& m_approxSpace;
-		IAssemble<domain_function_type, algebra_type>& m_ass;
-		uint m_level;
 		matrix_type m_matrix;
 };
 

@@ -17,7 +17,7 @@
 // special operators
 #include "linear_operator/interpolation_operator.h"
 #include "linear_operator/projection_operator.h"
-#include "linear_operator/transfer_operator.h"
+#include "linear_operator/prolongation_operator.h"
 #include "linear_operator/assembled_linear_operator.h"
 #include "linear_operator/multi_grid_solver/mg_solver.h"
 #include "linear_operator/linear_solver.h"
