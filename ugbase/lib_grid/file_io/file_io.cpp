@@ -18,8 +18,13 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	string strName = filename;
 	bool bAutoassignFaces = false;
 	bool bSuccess = false;
-	//if(strName.find(".ugx") != string::npos)
-	if(strName.find(".txt") != string::npos)
+	if(strName.find(".ugx") != string::npos){
+		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
+		if(shGrid){
+			bSuccess = LoadGridFromUGX(grid, *shGrid, filename);
+		}
+	}
+	else if(strName.find(".txt") != string::npos)
 	{
 		bAutoassignFaces = true;
 		bSuccess = LoadGridFromTXT(grid, filename, aPos);
@@ -64,7 +69,12 @@ static bool SaveGrid(Grid& grid, const char* filename,
 					SubsetHandler* pSH)
 {
 	string strName = filename;
-	if(strName.find(".txt") != string::npos)
+	if(strName.find(".ugx") != string::npos){
+		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
+		if(shGrid)
+			return SaveGridToUGX(grid, *shGrid, filename);
+	}
+	else if(strName.find(".txt") != string::npos)
 		return SaveGridToTXT(grid, filename, aPos);
 	else if(strName.find(".obj") != string::npos)
 		return SaveGridToOBJ(grid, filename, aPos, NULL, pSH);

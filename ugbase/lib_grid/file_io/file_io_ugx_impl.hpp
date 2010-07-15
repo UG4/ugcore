@@ -200,15 +200,22 @@ create_vertices(Grid& grid, rapidxml::xml_node<>* vrtNode,
 //	if numDestCoords == numSrcCoords parsing will be faster
 	if(numSrcCoords == numDestCoords){
 		while(!ss.eof()){
+		//	read the data
+			typename TAAPos::ValueType v;
+			
+			for(int i = 0; i < numSrcCoords; ++i)
+				ss >> v[i];
+			
+		//	make sure that everything went right
+			if(ss.fail())
+				break;
+				
 		//	create a new vertex
 			Vertex* vrt = *grid.create<Vertex>();
 			vrts.push_back(vrt);
 			
-		//	read the coordinates
-			typename TAAPos::ValueType& v = aaPos[vrt];
-			
-			for(int i = 0; i < numSrcCoords; ++i)
-				ss >> v[i];
+		//	set the coordinates
+			aaPos[vrt] = v;
 		}
 	}
 	else{
@@ -219,12 +226,8 @@ create_vertices(Grid& grid, rapidxml::xml_node<>* vrtNode,
 		typename TAAPos::ValueType::value_type dummy = 0;
 		
 		while(!ss.eof()){
-		//	create a new vertex
-			Vertex* vrt = *grid.create<Vertex>();
-			vrts.push_back(vrt);
-			
-		//	read the coordinates
-			typename TAAPos::ValueType& v = aaPos[vrt];
+		//	read the data
+			typename TAAPos::ValueType v;
 			
 			int iMin;
 			for(iMin = 0; iMin < minNumCoords; ++iMin)
@@ -237,6 +240,17 @@ create_vertices(Grid& grid, rapidxml::xml_node<>* vrtNode,
 		//	add 0's to the vector
 			for(int i = iMin; i < numDestCoords; ++i)
 				v[i] = 0;
+				
+		//	make sure that everything went right
+			if(ss.fail())
+				break;
+			
+		//	create a new vertex
+			Vertex* vrt = *grid.create<Vertex>();
+			vrts.push_back(vrt);
+			
+		//	set the coordinates
+			aaPos[vrt] = v;
 		}
 	}
 	

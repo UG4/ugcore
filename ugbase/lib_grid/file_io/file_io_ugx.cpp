@@ -3,6 +3,7 @@
 //	y10 m06 d16
 
 #include <sstream>
+#include "common/common.h"
 #include "file_io_ugx.h"
 #include "common/parser/rapidxml/rapidxml_print.hpp"
 #include "lib_grid/algorithms/attachment_util.h"
@@ -14,8 +15,47 @@ namespace ug
 {
 
 
+////////////////////////////////////////////////////////////////////////
+///	Writes a grid to an ugx file. internally uses GridWriterUGX.
+//...
+bool SaveGridToUGX(Grid& grid, SubsetHandler& sh, const char* filename)
+{
+	GridWriterUGX ugxWriter;
+	ugxWriter.add_grid(grid, "defGrid", aPosition);
+	ugxWriter.add_subset_handler(sh, "defSH", 0);
+	return ugxWriter.write_to_file(filename);
+};
+
+////////////////////////////////////////////////////////////////////////
+///	Reads a grid to an ugx file. internally uses GridReaderUGX.
+//...
+bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename)
+{
+	GridReaderUGX ugxReader;
+	if(!ugxReader.parse_file(filename)){
+		UG_LOG("ERROR in LoadGridFromUGX: File not found: " << filename << endl);
+		return false;
+	}
+		
+	if(ugxReader.num_grids() < 1){
+		UG_LOG("ERROR in LoadGridFromUGX: File contains no grid.\n");
+		return false;
+	}
+		
+	ugxReader.get_grid(grid, 0, aPosition);
+	
+//	temporary
+//TODO: replace this with a ugxReader.get_subset_handler call
+	sh.assign_subset(grid.faces_begin(), grid.faces_end(), 0);
+	sh.assign_subset(grid.volumes_begin(), grid.volumes_end(), 0);
+	
+	return true;
+}
 
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	GridWriterUGX
 GridWriterUGX::GridWriterUGX()
 {
 	xml_node<>* decl = m_doc.allocate_node(node_declaration);
@@ -403,6 +443,10 @@ create_edges(Grid& grid, rapidxml::xml_node<>* node,
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2;
+	
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
 		
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
@@ -433,7 +477,11 @@ create_triangles(Grid& grid, rapidxml::xml_node<>* node,
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2 >> i3;
-		
+
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -465,6 +513,10 @@ create_quadrilaterals(Grid& grid, rapidxml::xml_node<>* node,
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4;
 		
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+			
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -497,6 +549,10 @@ create_tetrahedrons(Grid& grid, rapidxml::xml_node<>* node,
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4;
 		
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+			
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -529,6 +585,10 @@ create_hexahedrons(Grid& grid, rapidxml::xml_node<>* node,
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4 >> i5 >> i6 >> i7 >> i8;
 		
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+			
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -566,6 +626,10 @@ create_prisms(Grid& grid, rapidxml::xml_node<>* node,
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4 >> i5 >> i6;
 		
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+			
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -601,6 +665,10 @@ create_pyramids(Grid& grid, rapidxml::xml_node<>* node,
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4 >> i5;
 		
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+			
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
