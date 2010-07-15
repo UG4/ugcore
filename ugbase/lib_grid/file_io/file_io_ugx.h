@@ -111,6 +111,12 @@ class GridWriterUGX
 		void add_subset_attributes(rapidxml::xml_node<>* targetNode,
 								   ISubsetHandler& sh, size_t subsetIndex);
 		
+		template <class TGeomObj>
+		rapidxml::xml_node<>*
+		create_subset_element_node(const char* name,
+								   const SubsetHandler& sh,
+								   size_t si);
+		
 	protected:
 	///	entries are stored for each grid.
 	/**	an entry holds a pointer to a grid together with its xml_node.*/

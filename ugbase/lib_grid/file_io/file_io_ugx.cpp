@@ -131,6 +131,18 @@ add_subset_handler(SubsetHandler& sh, const char* name,
 		ndSH->append_node(ndSubset);
 		
 	//	add elements
+		if(sh.num<VertexBase>(i) > 0)
+			ndSubset->append_node(
+				create_subset_element_node<VertexBase>("vertices", sh, i));
+		if(sh.num<EdgeBase>(i) > 0)
+			ndSubset->append_node(
+				create_subset_element_node<EdgeBase>("edges", sh, i));
+		if(sh.num<Face>(i) > 0)
+			ndSubset->append_node(
+				create_subset_element_node<Face>("faces", sh, i));
+		if(sh.num<Volume>(i) > 0)
+			ndSubset->append_node(
+				create_subset_element_node<Volume>("volumes", sh, i));
 	}
 }
 						
@@ -141,14 +153,64 @@ add_subset_handler(MGSubsetHandler& mgsh, const char* name,
 
 }
 						
+template <class TGeomObj>
+rapidxml::xml_node<>* GridWriterUGX::
+create_subset_element_node(const char* name, const SubsetHandler& sh,
+							size_t si)
+{
+
+//	the stringstream to which we'll write the data
+	stringstream ss;
+	
+	if(sh.get_assigned_grid()){
+	//	access the grid
+		Grid& grid = *sh.get_assigned_grid();
+		
+	//	access the attachment
+		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);
+		if(aaInd.valid()){
+			typedef typename geometry_traits<TGeomObj>::const_iterator iterator;
+			for(iterator iter = sh.begin<TGeomObj>(si);
+				iter != sh.end<TGeomObj>(si); ++iter)
+			{
+				ss << aaInd[*iter] << " ";
+			}
+		}
+	}
+	
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, name, nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, name);
+	}
+}
+
 void GridWriterUGX::
 add_elements_to_node(rapidxml::xml_node<>* node,
 					  Grid& grid)
 {
-//	assign indices to the vertices
+//	assign indices to the vertices, edges, faces and volumes
 	grid.attach_to_vertices(m_aInt);
-	Grid::VertexAttachmentAccessor<AInt> aaIndVRT(grid, m_aInt);	
-	AssignIndices(grid.begin<Vertex>(), grid.end<Vertex>(), aaIndVRT, 0);
+	grid.attach_to_edges(m_aInt);
+	grid.attach_to_faces(m_aInt);
+	grid.attach_to_volumes(m_aInt);
+	
+//	access and initialise indices
+	Grid::VertexAttachmentAccessor<AInt> aaIndVRT(grid, m_aInt);
+	Grid::EdgeAttachmentAccessor<AInt> aaIndEDGE(grid, m_aInt);
+	Grid::FaceAttachmentAccessor<AInt> aaIndFACE(grid, m_aInt);
+	Grid::VolumeAttachmentAccessor<AInt> aaIndVOL(grid, m_aInt);
+	
+	AssignIndices(grid.begin<VertexBase>(), grid.end<VertexBase>(), aaIndVRT, 0);
+	AssignIndices(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), aaIndEDGE, 0);
+	AssignIndices(grid.begin<Face>(), grid.end<Face>(), aaIndFACE, 0);
+	AssignIndices(grid.begin<Volume>(), grid.end<Volume>(), aaIndVOL, 0);
 	
 //	write edges
 	if(grid.num<Edge>() > 0)

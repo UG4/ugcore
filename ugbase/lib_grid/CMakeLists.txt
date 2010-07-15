@@ -122,8 +122,8 @@ set(srcNg
 )
 
 #the grid library					
-add_library(grid 	${srcGrid} ${srcLibGrid}
-					${srcParallelization}
+add_library(grid 	${srcParallelization}
+					${srcGrid} ${srcLibGrid}
 					${srcAlgorithms} ${srcFileIO}
 					${srcTetgen} ${srcLgm} ${srcNg})
 
