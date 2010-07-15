@@ -6,6 +6,7 @@
  */
 
 #include "data_container.h"
+#include <algorithm>
 
 namespace ug{
 
