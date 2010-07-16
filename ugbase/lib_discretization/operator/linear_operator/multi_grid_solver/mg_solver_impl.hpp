@@ -157,6 +157,8 @@ lmgc(size_t lev)
 #endif
 
 		PROFILE_BEGIN(baseSolver);
+		if(!m_baseSolver.prepare(*m_u[lev], *m_d[lev], *m_c[lev]))
+			{UG_LOG("ERROR while preparing base solver on level "<< m_baseLevel << ", aborting.\n");return false;}
 		if(!m_baseSolver.apply(*m_d[lev], *m_c[lev]))
 			{UG_LOG("Error in base solver on level " << lev << ".\n"); return false;}
 		PROFILE_END();
@@ -312,8 +314,6 @@ prepare(function_type &u, function_type& d, function_type &c)
 	// prepare base solver
 	if(!m_baseSolver.init(*m_A[m_baseLevel]))
 		{UG_LOG("ERROR while initializing base solver on level "<< m_baseLevel << ", aborting.\n");return false;}
-	if(!m_baseSolver.prepare(*m_u[m_baseLevel], *m_d[m_baseLevel], *m_c[m_baseLevel]))
-		{UG_LOG("ERROR while preparing base solver on level "<< m_baseLevel << ", aborting.\n");return false;}
 
 	return true;
 }
