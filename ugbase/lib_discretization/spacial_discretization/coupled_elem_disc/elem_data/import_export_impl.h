@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <algorithm>
 
 namespace ug{
 

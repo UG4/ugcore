@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__FILE_IO_UGX_IMPL__
 
 #include <sstream>
+#include <cstring>
 
 namespace ug
 {
