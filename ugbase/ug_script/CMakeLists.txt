@@ -105,11 +105,11 @@ if(Boost_FOUND)
 		set(srcUGScript	${srcUGScript}
 						lib_disc_script.cpp)
 	else(NOT NO_ALGEBRA)
-		message("-- INFO: not compiling 'lib_disc' script module. (enable option using: 'cmake -D NO_ALGEBRA =OFF')")
+		message(STATUS "INFO: not compiling 'lib_disc' script module. (enable option using: 'cmake -D NO_ALGEBRA =OFF')")
 
 	endif(NOT NO_ALGEBRA)
 	add_library(ugscript  ${srcUGScript} ${srcLua} ${srcLuaBind})
 
 else(Boost_FOUND)
-	message("-- WARNING: Boost - Libraray NOT found. Not generating any files for lib_ugscript.")
+	message("-- WARNING: Boost - Library NOT found. Not generating any files for lib_ugscript.")
 endif(Boost_FOUND)	
