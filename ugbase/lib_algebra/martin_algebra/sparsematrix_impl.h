@@ -342,71 +342,51 @@ bool SparseMatrix<T>::in_consmem(size_t row) const
 //======================================================================================================
 // general functions
 
-
-// eliminateDirichletValues
-//----------------------------
-//!
-//! eliminates Dirichlet Values by putting them on the rhs b and setting the row to i,i = 1.0;
-template<typename T>
-template<typename Vector_type>
-void SparseMatrix<T>::eliminateDirichletValues(Vector_type &b)
-{
-	for(size_t i=0; i<rows; i++)
-	{
-		if(is_unconnected(i)) continue;
-		for(rowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
-		{
-			size_t conindex = (*conn).iIndex;
-			if(is_unconnected(conindex))
-			{
-				SubMult(b[i], (*conn).dValue, b[conindex]);
-				(*conn).dValue = 0;
-			}
-		}
-	}
-}
-
 // setDirichletRow
 //----------------------------
 //!
 //! sets the row to i,i = 1.0.
 template<typename T>
-void SparseMatrix<T>::setDirichletRow(size_t row)
+bool SparseMatrix<T>::set_dirichlet_rows(const size_t *pDirichletRows, size_t iNr)
 {
-	UG_ASSERT(row >= 0 && row < rows, *this << ": row " << row << " out of bounds.");
-	if(num_connections(row) == 0 || !in_consmem(row))
+	for(int i=0; i<iNr; i++)
 	{
-		if(in_consmem(row))
-			iFragmentedMem += 1;
-		else
-			iFragmentedMem += 1-num_connections(row);
+		size_t row = pDirichletRows[i];
+		UG_ASSERT(row >= 0 && row < rows, *this << ": row " << row << " out of bounds.");
 
-		connection *c = new connection[1];
-		safe_set_connections(row, c);
-		iMaxNrOfConnections[row] = 1;
+		if(num_connections(row) != 1)
+			definalize();
+
+		if(num_connections(row) == 0 || !in_consmem(row))
+		{
+			if(in_consmem(row))
+				iFragmentedMem += 1;
+			else
+				iFragmentedMem += 1-num_connections(row);
+
+			connection *c = new connection[1];
+			definalize();
+			safe_set_connections(row, c);
+			iMaxNrOfConnections[row] = 1;
+		}
+
+		pRowStart[row][0].dValue = 1.0;
+		pRowStart[row][0].iIndex= row;
+		pRowEnd[row] = pRowStart[row]+1;
 	}
 
-	pRowStart[row][0].dValue = 1.0;
-	pRowStart[row][0].iIndex= row;
-	pRowEnd[row] = pRowStart[row]+1;
-
+	return true;
 }
 
 //!
 //! sets the # nrows in pRows to i,i = 1.0.
-template<typename T>
-void SparseMatrix<T>::setDirichletRows(size_t *pRows, size_t nrows)
-{
-	for(size_t i=0; i<nrows; i++)
-		setDirichletRow(pRows[i]);
-}
-
 #ifndef FLEXAMG
 template<typename T>
 bool SparseMatrix<T>::set_dirichlet_rows(const local_index_type &ind)
 {
-	for(std::size_t i=0; i<ind.size(); i++)
-		setDirichletRow(ind[i][0]);
+	vector<size_t> ind2;
+	for(int i=0; i<ind.size(); i++) ind2.push_back(ind[i][0]);
+	set_dirichlet_rows(&ind2[0], ind2.size());
 	return true;
 }
 #endif

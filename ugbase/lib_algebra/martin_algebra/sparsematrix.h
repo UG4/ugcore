@@ -156,11 +156,7 @@ private:
 public:
 	// general functions
 	//----------------------
-	template<typename Vector_type>
-	void eliminateDirichletValues(Vector_type &b);
-
-	void setDirichletRow(size_t row);
-	void setDirichletRows(size_t *pRows, size_t nrows);
+	bool set_dirichlet_rows(const size_t *pDirichletRows, size_t iNr);
 #ifndef FLEXAMG
 	bool set_dirichlet_rows(const local_index_type &ind);
 #endif
