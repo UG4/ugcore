@@ -91,16 +91,18 @@ add_subset_attributes(rapidxml::xml_node<>* targetNode,
 					  ISubsetHandler& sh, size_t subsetIndex)
 {
 	stringstream ss;
-	SubsetInfo& si = sh.subset_info(subsetIndex);
+	const SubsetInfo& si = sh.subset_info(subsetIndex);
 //	write color
 	for(size_t i = 0; i < 4; ++i){
-		ss << si.color[i];
-		if(i < 3)
-			ss << " ";
+		ss << si.color[i] << " ";
 	}
-		
+
 	targetNode->append_attribute(m_doc.allocate_attribute("name", si.name.c_str()));
-	targetNode->append_attribute(m_doc.allocate_attribute("color", ss.str().c_str()));
+														  
+//	allocate a string and erase last character(' ')
+	char* colorData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+	colorData[ss.str().size()-1] = 0;
+	targetNode->append_attribute(m_doc.allocate_attribute("color", colorData));
 }
 
 void GridWriterUGX::
@@ -458,7 +460,7 @@ size_t GridReaderUGX::num_subset_handlers(size_t refGridIndex) const
 }
 
 bool GridReaderUGX::
-get_subset_handler(SubsetHandler& shOut,
+get_subset_handler(ISubsetHandler& shOut,
 					size_t subsetHandlerIndex,
 					size_t refGridIndex)
 {
@@ -483,6 +485,8 @@ get_subset_handler(SubsetHandler& shOut,
 	size_t subsetInd = 0;
 	while(subsetNode)
 	{
+		UG_LOG("  reading subset " << subsetInd << " elements\n");
+		
 	//	set subset info
 	//	retrieve an initial subset-info from shOut, so that initialised values are kept.
 		SubsetInfo si = shOut.subset_info(subsetInd);
@@ -539,7 +543,7 @@ read_subset_handler_elements(ISubsetHandler& shOut,
 		size_t index;
 		while(!ss.eof()){
 			ss >> index;
-			if(!ss.good())
+			if(ss.fail())
 				continue;
 			
 			if(index < vElems.size()){
@@ -601,7 +605,7 @@ new_document_parsed()
 	
 	//	collect associated subset handlers
 		xml_node<>* curSHNode = curNode->first_node("subset_handler");
-		while(curNode){
+		while(curSHNode){
 			gridEntry.subsetHandlerEntries.push_back(SubsetHandlerEntry(curSHNode));
 			curSHNode = curSHNode->next_sibling("subset_handler");
 		}
@@ -724,7 +728,7 @@ create_quadrilaterals(std::vector<Face*>& facesOut,
 }
 
 bool GridReaderUGX::
-create_tetrahedrons(std::vector<Volume*> volsOut,
+create_tetrahedrons(std::vector<Volume*>& volsOut,
 					 Grid& grid, rapidxml::xml_node<>* node,
 					 std::vector<VertexBase*>& vrts)
 {
@@ -763,7 +767,7 @@ create_tetrahedrons(std::vector<Volume*> volsOut,
 }
 
 bool GridReaderUGX::
-create_hexahedrons(std::vector<Volume*> volsOut,
+create_hexahedrons(std::vector<Volume*>& volsOut,
 					Grid& grid, rapidxml::xml_node<>* node,
 					std::vector<VertexBase*>& vrts)
 {
@@ -806,7 +810,7 @@ create_hexahedrons(std::vector<Volume*> volsOut,
 }
 
 bool GridReaderUGX::
-create_prisms(std::vector<Volume*> volsOut,
+create_prisms(std::vector<Volume*>& volsOut,
 			  Grid& grid, rapidxml::xml_node<>* node,
 			  std::vector<VertexBase*>& vrts)
 {
@@ -847,7 +851,7 @@ create_prisms(std::vector<Volume*> volsOut,
 }
 
 bool GridReaderUGX::
-create_pyramids(std::vector<Volume*> volsOut,
+create_pyramids(std::vector<Volume*>& volsOut,
 				Grid& grid, rapidxml::xml_node<>* node,
 				std::vector<VertexBase*>& vrts)
 {

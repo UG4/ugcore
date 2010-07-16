@@ -733,7 +733,9 @@ void test()
 		SubsetHandler nSH(nGrid);
 		
 		ugxIn.get_grid(nGrid, 0, aPosition);
-	
+		if(ugxIn.num_subset_handlers(0) > 0){
+			ugxIn.get_subset_handler(nSH, 0, 0);
+		}
 		Grid::VertexAttachmentAccessor<APosition> aaPos(nGrid, aPosition);
 			
 		UG_LOG("num edges: " << nGrid.num<Edge>() << endl);

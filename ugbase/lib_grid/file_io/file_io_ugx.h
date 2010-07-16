@@ -169,7 +169,7 @@ class GridReaderUGX
 		size_t num_subset_handlers(size_t refGridIndex) const;
 				
 	///	fills the given subset-handler
-		bool get_subset_handler(SubsetHandler& shOut,
+		bool get_subset_handler(ISubsetHandler& shOut,
 								size_t subsetHandlerIndex,
 								size_t refGridIndex);
 		
@@ -179,11 +179,10 @@ class GridReaderUGX
 	protected:
 		struct SubsetHandlerEntry
 		{
-			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(NULL), mgsh(NULL) {}
+			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(NULL) {}
 
 			rapidxml::xml_node<>* 	node;
-			SubsetHandler*			sh;
-			MGSubsetHandler*		mgsh;
+			ISubsetHandler*			sh;
 		};
 		
 		struct GridEntry
@@ -229,19 +228,19 @@ class GridReaderUGX
 								   Grid& grid, rapidxml::xml_node<>* node,
 								   std::vector<VertexBase*>& vrts);
 								   
-		bool create_tetrahedrons(std::vector<Volume*> volsOut,
+		bool create_tetrahedrons(std::vector<Volume*>& volsOut,
 								 Grid& grid, rapidxml::xml_node<>* node,
 								 std::vector<VertexBase*>& vrts);
 
-		bool create_hexahedrons(std::vector<Volume*> volsOut,
+		bool create_hexahedrons(std::vector<Volume*>& volsOut,
 								Grid& grid, rapidxml::xml_node<>* node,
 								std::vector<VertexBase*>& vrts);
 								
-		bool create_prisms(std::vector<Volume*> volsOut,
+		bool create_prisms(std::vector<Volume*>& volsOut,
 							Grid& grid, rapidxml::xml_node<>* node,
 							std::vector<VertexBase*>& vrts);
 							
-		bool create_pyramids(std::vector<Volume*> volsOut,
+		bool create_pyramids(std::vector<Volume*>& volsOut,
 							Grid& grid, rapidxml::xml_node<>* node,
 							std::vector<VertexBase*>& vrts);
 							
