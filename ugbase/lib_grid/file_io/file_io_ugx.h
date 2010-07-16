@@ -164,12 +164,28 @@ class GridReaderUGX
 		
 	///	returns the name of the i-th grid
 		const char* get_grid_name(size_t index) const;
-		
+
+	///	returns the number of subset handlers for the given grid
+		size_t num_subset_handlers(size_t refGridIndex) const;
+				
+	///	fills the given subset-handler
+		bool get_subset_handler(SubsetHandler& shOut,
+								size_t subsetHandlerIndex,
+								size_t refGridIndex);
 		
 	///	parses an xml file
 		bool parse_file(const char* filename);
 	
 	protected:
+		struct SubsetHandlerEntry
+		{
+			SubsetHandlerEntry(rapidxml::xml_node<>* n) : node(n), sh(NULL), mgsh(NULL) {}
+
+			rapidxml::xml_node<>* 	node;
+			SubsetHandler*			sh;
+			MGSubsetHandler*		mgsh;
+		};
+		
 		struct GridEntry
 		{
 			GridEntry(rapidxml::xml_node<>* n) : node(n), grid(NULL), mg(NULL)	{}
@@ -177,7 +193,11 @@ class GridReaderUGX
 			rapidxml::xml_node<>* node;
 			Grid* 		grid;
 			MultiGrid* 	mg;
-			std::vector<VertexBase*> vertices;
+			std::vector<SubsetHandlerEntry>	subsetHandlerEntries;
+			std::vector<VertexBase*> 	vertices;
+			std::vector<EdgeBase*> 		edges;
+			std::vector<Face*>			faces;
+			std::vector<Volume*>		volumes;
 		};
 		
 	protected:
@@ -194,30 +214,44 @@ class GridReaderUGX
 	 *	0's will be appended. If it has less, unused coordinates will
 	 *	be ignored.*/
 		template <class TAAPos>
-		bool create_vertices(Grid& grid, rapidxml::xml_node<>* vrtNode,
-							 std::vector<VertexBase*>& vrts, TAAPos aaPos);
+		bool create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
+							rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
 							 
-		bool create_edges(Grid& grid, rapidxml::xml_node<>* node,
+		bool create_edges(std::vector<EdgeBase*>& edgesOut,
+						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<VertexBase*>& vrts);
 		
-		bool create_triangles(Grid& grid, rapidxml::xml_node<>* node,
+		bool create_triangles(std::vector<Face*>& facesOut,
+							  Grid& grid, rapidxml::xml_node<>* node,
 							  std::vector<VertexBase*>& vrts);
 							  
-		bool create_quadrilaterals(Grid& grid, rapidxml::xml_node<>* node,
+		bool create_quadrilaterals(std::vector<Face*>& facesOut,
+								   Grid& grid, rapidxml::xml_node<>* node,
 								   std::vector<VertexBase*>& vrts);
 								   
-		bool create_tetrahedrons(Grid& grid, rapidxml::xml_node<>* node,
-						 		  std::vector<VertexBase*>& vrts);
+		bool create_tetrahedrons(std::vector<Volume*> volsOut,
+								 Grid& grid, rapidxml::xml_node<>* node,
+								 std::vector<VertexBase*>& vrts);
 
-		bool create_hexahedrons(Grid& grid, rapidxml::xml_node<>* node,
+		bool create_hexahedrons(std::vector<Volume*> volsOut,
+								Grid& grid, rapidxml::xml_node<>* node,
 								std::vector<VertexBase*>& vrts);
 								
-		bool create_prisms(Grid& grid, rapidxml::xml_node<>* node,
+		bool create_prisms(std::vector<Volume*> volsOut,
+							Grid& grid, rapidxml::xml_node<>* node,
 							std::vector<VertexBase*>& vrts);
 							
-		bool create_pyramids(Grid& grid, rapidxml::xml_node<>* node,
+		bool create_pyramids(std::vector<Volume*> volsOut,
+							Grid& grid, rapidxml::xml_node<>* node,
 							std::vector<VertexBase*>& vrts);
 							
+		template <class TGeomObj>
+		bool read_subset_handler_elements(ISubsetHandler& shOut,
+										 const char* elemNodeName,
+										 rapidxml::xml_node<>* subsetNode,
+										 int subsetIndex,
+										 std::vector<TGeomObj*>& vElems);
+								
 	protected:
 	///	the xml_document which stores the data
 		rapidxml::xml_document<> m_doc;

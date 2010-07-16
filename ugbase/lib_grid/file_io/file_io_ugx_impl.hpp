@@ -128,6 +128,12 @@ get_grid(Grid& gridOut, size_t index,
 	
 	Grid& grid = gridOut;
 	
+//	Since we have to create all elements in the correct order and
+//	since we have to make sure that no elements are created in between,
+//	we'll first disable all grid-options and reenable them later on
+	uint gridopts = grid.get_options();
+	grid.set_options(GRIDOPT_NONE);
+	
 //	access node data
 	if(!grid.has_vertex_attachment(aPos)){
 		grid.attach_to_vertices(aPos);
@@ -141,6 +147,9 @@ get_grid(Grid& gridOut, size_t index,
 //	get the grid-node and the vertex-vector
 	xml_node<>* gridNode = m_entries[index].node;
 	vector<VertexBase*>& vertices = m_entries[index].vertices;
+	vector<EdgeBase*>& edges = m_entries[index].edges;
+	vector<Face*>& faces = m_entries[index].faces;
+	vector<Volume*>& volumes = m_entries[index].volumes;
 	
 //	iterate through the nodes in the grid and create the entries
 	xml_node<>* curNode = gridNode->first_node();
@@ -148,36 +157,40 @@ get_grid(Grid& gridOut, size_t index,
 		bool bSuccess = true;
 		const char* name = curNode->name();
 		if(strcmp(name, "vertices") == 0)
-			bSuccess = create_vertices(grid, curNode, vertices, aaPos);
+			bSuccess = create_vertices(vertices, grid, curNode, aaPos);
 		else if(strcmp(name, "edges") == 0)
-			bSuccess = create_edges(grid, curNode, vertices);
+			bSuccess = create_edges(edges, grid, curNode, vertices);
 		else if(strcmp(name, "triangles") == 0)
-			bSuccess = create_triangles(grid, curNode, vertices);
+			bSuccess = create_triangles(faces, grid, curNode, vertices);
 		else if(strcmp(name, "quadrilaterals") == 0)
-			bSuccess = create_quadrilaterals(grid, curNode, vertices);
+			bSuccess = create_quadrilaterals(faces, grid, curNode, vertices);
 		else if(strcmp(name, "tetrahedrons") == 0)
-			bSuccess = create_tetrahedrons(grid, curNode, vertices);
+			bSuccess = create_tetrahedrons(volumes, grid, curNode, vertices);
 		else if(strcmp(name, "hexahedrons") == 0)
-			bSuccess = create_hexahedrons(grid, curNode, vertices);
+			bSuccess = create_hexahedrons(volumes, grid, curNode, vertices);
 		else if(strcmp(name, "prisms") == 0)
-			bSuccess = create_prisms(grid, curNode, vertices);
+			bSuccess = create_prisms(volumes, grid, curNode, vertices);
 		else if(strcmp(name, "pyramids") == 0)
-			bSuccess = create_pyramids(grid, curNode, vertices);
+			bSuccess = create_pyramids(volumes, grid, curNode, vertices);
 								
-		if(!bSuccess)
+		if(!bSuccess){
+			grid.set_options(gridopts);
 			return false;
+		}
 	}
 	
 //TODO: read hanging-vertices
 
+//	reenable the grids options.
+	grid.set_options(gridopts);
 	
 	return true;
 }
 
 template <class TAAPos>
 bool GridReaderUGX::
-create_vertices(Grid& grid, rapidxml::xml_node<>* vrtNode,
-				std::vector<VertexBase*>& vrts, TAAPos aaPos)
+create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
+				rapidxml::xml_node<>* vrtNode, TAAPos aaPos)
 {
 	using namespace rapidxml;
 	using namespace std;
@@ -213,7 +226,7 @@ create_vertices(Grid& grid, rapidxml::xml_node<>* vrtNode,
 				
 		//	create a new vertex
 			Vertex* vrt = *grid.create<Vertex>();
-			vrts.push_back(vrt);
+			vrtsOut.push_back(vrt);
 			
 		//	set the coordinates
 			aaPos[vrt] = v;
@@ -248,7 +261,7 @@ create_vertices(Grid& grid, rapidxml::xml_node<>* vrtNode,
 			
 		//	create a new vertex
 			Vertex* vrt = *grid.create<Vertex>();
-			vrts.push_back(vrt);
+			vrtsOut.push_back(vrt);
 			
 		//	set the coordinates
 			aaPos[vrt] = v;

@@ -44,10 +44,8 @@ bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename)
 		
 	ugxReader.get_grid(grid, 0, aPosition);
 	
-//	temporary
-//TODO: replace this with a ugxReader.get_subset_handler call
-	sh.assign_subset(grid.faces_begin(), grid.faces_end(), 0);
-	sh.assign_subset(grid.volumes_begin(), grid.volumes_end(), 0);
+	if(ugxReader.num_subset_handlers(0) > 0)
+		ugxReader.get_subset_handler(sh, 0, 0);
 	
 	return true;
 }
@@ -448,6 +446,118 @@ get_grid_name(size_t index) const
 	return NULL;
 }
 
+size_t GridReaderUGX::num_subset_handlers(size_t refGridIndex) const
+{
+//	access the referred grid-entry
+	if(refGridIndex >= m_entries.size()){
+		UG_LOG("GridReaderUGX::num_subset_handlers: bad refGridIndex. Aborting.\n");
+		return 0;
+	}
+	
+	return m_entries[refGridIndex].subsetHandlerEntries.size();
+}
+
+bool GridReaderUGX::
+get_subset_handler(SubsetHandler& shOut,
+					size_t subsetHandlerIndex,
+					size_t refGridIndex)
+{
+//	access the referred grid-entry
+	if(refGridIndex >= m_entries.size()){
+		UG_LOG("GridReaderUGX::get_subset_handler: bad refGridIndex. Aborting.\n");
+		return false;
+	}
+	
+	GridEntry& gridEntry = m_entries[refGridIndex];
+	
+//	get the referenced subset-handler entry
+	if(subsetHandlerIndex >= gridEntry.subsetHandlerEntries.size()){
+		UG_LOG("GridReaderUGX::get_subset_handler: bad subsetHandlerIndex. Aborting.\n");
+		return false;
+	}
+
+	SubsetHandlerEntry& shEntry = gridEntry.subsetHandlerEntries[subsetHandlerIndex];
+	shEntry.sh = &shOut;
+
+	xml_node<>* subsetNode = shEntry.node->first_node("subset");
+	size_t subsetInd = 0;
+	while(subsetNode)
+	{
+	//	set subset info
+	//	retrieve an initial subset-info from shOut, so that initialised values are kept.
+		SubsetInfo si = shOut.subset_info(subsetInd);
+	
+		xml_attribute<>* attrib = subsetNode->first_attribute("name");
+		if(attrib)
+			si.name = attrib->value();
+		
+		attrib = subsetNode->first_attribute("color");
+		if(attrib){
+			stringstream ss(attrib->value(), ios_base::in);
+			for(size_t i = 0; i < 4; ++i)
+				ss >> si.color[i];
+		}
+		
+		shOut.set_subset_info(subsetInd, si);
+		
+	//	read elements of this subset
+		read_subset_handler_elements<VertexBase>(shOut, "vertices",
+												 subsetNode, subsetInd,
+												 gridEntry.vertices);
+		read_subset_handler_elements<EdgeBase>(shOut, "edges",
+												 subsetNode, subsetInd,
+												 gridEntry.edges);
+		read_subset_handler_elements<Face>(shOut, "faces",
+											 subsetNode, subsetInd,
+											 gridEntry.faces);
+		read_subset_handler_elements<Volume>(shOut, "volumes",
+											 subsetNode, subsetInd,
+											 gridEntry.volumes);		
+	//	next subset
+		subsetNode = subsetNode->next_sibling("subset");
+		++subsetInd;
+	}
+	
+	return true;
+}
+
+template <class TGeomObj>
+bool GridReaderUGX::
+read_subset_handler_elements(ISubsetHandler& shOut,
+							 const char* elemNodeName,
+							 rapidxml::xml_node<>* subsetNode,
+							 int subsetIndex,
+							 std::vector<TGeomObj*>& vElems)
+{
+	xml_node<>* elemNode = subsetNode->first_node(elemNodeName);
+	
+	while(elemNode)
+	{
+	//	read the indices
+		stringstream ss(elemNode->value(), ios_base::in);
+		
+		size_t index;
+		while(!ss.eof()){
+			ss >> index;
+			if(!ss.good())
+				continue;
+			
+			if(index < vElems.size()){
+				shOut.assign_subset(vElems[index], subsetIndex);
+			}
+			else{
+				UG_LOG("Bad element index in subset-node " << elemNodeName <<
+						": " << index << ". Ignoring element.\n");
+			}
+		}
+		
+	//	get next element node
+		elemNode = elemNode->next_sibling(elemNodeName);
+	}
+	
+	return true;
+}
+							 
 bool GridReaderUGX::
 parse_file(const char* filename)
 {
@@ -483,9 +593,19 @@ new_document_parsed()
 //	update entries
 	m_entries.clear();
 	
+//	iterate through all grids
 	xml_node<>* curNode = m_doc.first_node("grid");
 	while(curNode){
 		m_entries.push_back(GridEntry(curNode));
+		GridEntry& gridEntry = m_entries.back();
+	
+	//	collect associated subset handlers
+		xml_node<>* curSHNode = curNode->first_node("subset_handler");
+		while(curNode){
+			gridEntry.subsetHandlerEntries.push_back(SubsetHandlerEntry(curSHNode));
+			curSHNode = curSHNode->next_sibling("subset_handler");
+		}
+		
 		curNode = curNode->next_sibling("grid");
 	}
 	
@@ -493,8 +613,9 @@ new_document_parsed()
 }
 
 bool GridReaderUGX::
-create_edges(Grid& grid, rapidxml::xml_node<>* node,
-			 std::vector<VertexBase*>& vrts)
+create_edges(std::vector<EdgeBase*>& edgesOut,
+			Grid& grid, rapidxml::xml_node<>* node,
+			std::vector<VertexBase*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -520,15 +641,16 @@ create_edges(Grid& grid, rapidxml::xml_node<>* node,
 		}
 		
 	//	create the edge
-		grid.create<Edge>(EdgeDescriptor(vrts[i1], vrts[i2]));
+		edgesOut.push_back(*grid.create<Edge>(EdgeDescriptor(vrts[i1], vrts[i2])));
 	}
 	
 	return true;
 }
 
 bool GridReaderUGX::
-create_triangles(Grid& grid, rapidxml::xml_node<>* node,
-			 std::vector<VertexBase*>& vrts)
+create_triangles(std::vector<Face*>& facesOut,
+				  Grid& grid, rapidxml::xml_node<>* node,
+				  std::vector<VertexBase*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -555,15 +677,17 @@ create_triangles(Grid& grid, rapidxml::xml_node<>* node,
 		}
 		
 	//	create the triangle
-		grid.create<Triangle>(TriangleDescriptor(vrts[i1], vrts[i2], vrts[i3]));
+		facesOut.push_back(
+			*grid.create<Triangle>(TriangleDescriptor(vrts[i1], vrts[i2], vrts[i3])));
 	}
 	
 	return true;
 }
 
 bool GridReaderUGX::
-create_quadrilaterals(Grid& grid, rapidxml::xml_node<>* node,
-			 		  std::vector<VertexBase*>& vrts)
+create_quadrilaterals(std::vector<Face*>& facesOut,
+					   Grid& grid, rapidxml::xml_node<>* node,
+					   std::vector<VertexBase*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -591,15 +715,18 @@ create_quadrilaterals(Grid& grid, rapidxml::xml_node<>* node,
 		}
 		
 	//	create the quad
-		grid.create<Quadrilateral>(QuadrilateralDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4]));
+		facesOut.push_back(
+			*grid.create<Quadrilateral>(QuadrilateralDescriptor(vrts[i1], vrts[i2],
+															   vrts[i3], vrts[i4])));
 	}
 	
 	return true;
 }
 
 bool GridReaderUGX::
-create_tetrahedrons(Grid& grid, rapidxml::xml_node<>* node,
-			 		  std::vector<VertexBase*>& vrts)
+create_tetrahedrons(std::vector<Volume*> volsOut,
+					 Grid& grid, rapidxml::xml_node<>* node,
+					 std::vector<VertexBase*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -627,14 +754,17 @@ create_tetrahedrons(Grid& grid, rapidxml::xml_node<>* node,
 		}
 		
 	//	create the element
-		grid.create<Tetrahedron>(TetrahedronDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4]));
+		volsOut.push_back(
+			*grid.create<Tetrahedron>(TetrahedronDescriptor(vrts[i1], vrts[i2],
+														   vrts[i3], vrts[i4])));
 	}
 	
 	return true;
 }
 
 bool GridReaderUGX::
-create_hexahedrons(Grid& grid, rapidxml::xml_node<>* node,
+create_hexahedrons(std::vector<Volume*> volsOut,
+					Grid& grid, rapidxml::xml_node<>* node,
 					std::vector<VertexBase*>& vrts)
 {
 //	create a buffer with which we can access the data
@@ -667,16 +797,18 @@ create_hexahedrons(Grid& grid, rapidxml::xml_node<>* node,
 		}
 		
 	//	create the element
-		grid.create<Hexahedron>(HexahedronDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
-													 vrts[i5], vrts[i6], vrts[i7], vrts[i8]));
+		volsOut.push_back(
+			*grid.create<Hexahedron>(HexahedronDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
+														  vrts[i5], vrts[i6], vrts[i7], vrts[i8])));
 	}
 	
 	return true;
 }
 
 bool GridReaderUGX::
-create_prisms(Grid& grid, rapidxml::xml_node<>* node,
-				std::vector<VertexBase*>& vrts)
+create_prisms(std::vector<Volume*> volsOut,
+			  Grid& grid, rapidxml::xml_node<>* node,
+			  std::vector<VertexBase*>& vrts)
 {
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
@@ -706,15 +838,17 @@ create_prisms(Grid& grid, rapidxml::xml_node<>* node,
 		}
 		
 	//	create the element
-		grid.create<Prism>(PrismDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
-										   vrts[i5], vrts[i6]));
+		volsOut.push_back(
+			*grid.create<Prism>(PrismDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
+												vrts[i5], vrts[i6])));
 	}
 	
 	return true;
 }
 
 bool GridReaderUGX::
-create_pyramids(Grid& grid, rapidxml::xml_node<>* node,
+create_pyramids(std::vector<Volume*> volsOut,
+				Grid& grid, rapidxml::xml_node<>* node,
 				std::vector<VertexBase*>& vrts)
 {
 //	create a buffer with which we can access the data
@@ -744,8 +878,9 @@ create_pyramids(Grid& grid, rapidxml::xml_node<>* node,
 		}
 		
 	//	create the element
-		grid.create<Pyramid>(PyramidDescriptor(vrts[i1], vrts[i2], vrts[i3],
-												vrts[i4], vrts[i5]));
+		volsOut.push_back(
+			*grid.create<Pyramid>(PyramidDescriptor(vrts[i1], vrts[i2], vrts[i3],
+													vrts[i4], vrts[i5])));
 	}
 	
 	return true;
