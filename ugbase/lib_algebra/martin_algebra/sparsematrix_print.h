@@ -59,7 +59,7 @@ void SparseMatrix<T>::printtype() const
 //--------------------------------------------------
 //! writes to a file in somewhat SparseMatrix-market format (for connection viewer)
 template<typename Matrix_type, typename postype>
-void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type A, postype *positions, int dimensions)
+void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, postype *positions, int dimensions)
 {
 	fstream file(filename, ios::out);
 	file << CONNECTION_VIEWER_VERSION << endl;
