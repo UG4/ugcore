@@ -34,6 +34,20 @@ struct position2d
 		//out << p.x << " " << p.y << " " << p.z;
 		return out;
 	}
+
+	double operator [] (int i)
+	{
+		switch(i)
+		{
+		case 0: return x;
+		case 1: return y;
+		case 2: return z;
+		}
+		UG_ASSERT(false, "position only has 3 components");
+		return 0;
+	}
+
+
 };
 
 struct cAMG_helper
