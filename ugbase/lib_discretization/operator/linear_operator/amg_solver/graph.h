@@ -188,7 +188,7 @@ public:
 			m_rowStart[i] = m_rowStart[i-1] + m_iNrOfConnections[i-1];
 			m_iNrOfConnections[i-1] = 0;
 		}
-		UG_ASSERT(m_rowStart[m_size] <= m_iTotalNrOfConnections, "");
+		UG_ASSERT((size_t)m_rowStart[m_size] <= m_iTotalNrOfConnections, "");
 		
 		for(size_t i=0; i < m_size; i++)
 			for(cRowIterator it = other.beginRow(i); !it.isEnd(); ++it)

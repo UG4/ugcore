@@ -35,21 +35,21 @@ string nrstring(int i)
 string nrstring(size_t i)
 {
 	char s[255];
-	sprintf(s, "%u", i);
+	sprintf(s, "%u", (unsigned int) i);
 	return string(s);
 }
 
 //#define GRAPH_WITH_LOCAL_INVERSE
 
 
-#define LATE_COARSE_SOLVER // do coarsening down to 10 nodes.
 	
 
 #define AMG_WRITE_MATRICES_PATH "/Users/mrupp/matrices/AMG_"
 #define AMG_WRITE_MATRICES_MAX (200*200)
 #if 0
 	
-	
+
+#define LATE_COARSE_SOLVER // do coarsening down to 10 nodes.
 //#define AMG_WRITE_GRAPH
 
 
@@ -153,6 +153,7 @@ public:
 					"%%Title: " << filename << "\n"
 					"%%Creator: ug postscript output\n"
 					"%%CreationDate:\n";
+		return true;
 	}
 
 	void setcolor(double r, double g, double b)
