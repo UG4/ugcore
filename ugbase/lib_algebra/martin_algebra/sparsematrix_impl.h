@@ -349,7 +349,7 @@ bool SparseMatrix<T>::in_consmem(size_t row) const
 template<typename T>
 bool SparseMatrix<T>::set_dirichlet_rows(const size_t *pDirichletRows, size_t iNr)
 {
-	for(int i=0; i<iNr; i++)
+	for(size_t i=0; i<iNr; i++)
 	{
 		size_t row = pDirichletRows[i];
 		UG_ASSERT(row >= 0 && row < rows, *this << ": row " << row << " out of bounds.");
@@ -385,7 +385,7 @@ template<typename T>
 bool SparseMatrix<T>::set_dirichlet_rows(const local_index_type &ind)
 {
 	vector<size_t> ind2;
-	for(int i=0; i<ind.size(); i++) ind2.push_back(ind[i][0]);
+	for(size_t i=0; i<ind.size(); i++) ind2.push_back(ind[i][0]);
 	set_dirichlet_rows(&ind2[0], ind2.size());
 	return true;
 }
