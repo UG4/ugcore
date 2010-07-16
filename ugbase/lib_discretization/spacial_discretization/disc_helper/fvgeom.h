@@ -244,8 +244,23 @@ class SubControlVolumeFace{
 				MathVector<world_dim> diff = geo.obj_midpoint_global(2, refElem.id(1, m_edge, 2, 0)); // center of element
 				diff -= geo.obj_midpoint_global(1, refElem.id(1, m_edge, 1, 0)); // edge midpoint
 
+				// this gives the normal on the clockwise side of the vector 'diff', where 'diff' represents the vector form the
+				// edge midpoint to the center. For counterclockwise ordering of global corners, the resulting normal, thus points
+				// from 'm_from' to 'm_to'
 				m_normal[0] = diff[1];
 				m_normal[1] = -diff[0];
+
+				//TODO: This is should be improved. If the real element is not in counter-clockwise ordering,
+				//      we have to flip the normal.
+				//      Maybe this could be handled more elegant. One could use the information of the cross product, or similar things.
+				//      Maybe also the mapping determinante.....
+
+				MathVector<world_dim> e = geo.corner_global(m_to); e -= geo.corner_global(m_from); // e point from 'from' to 'to'
+				number prod = VecDot(e, m_normal);
+				if(prod < 0.0)
+				{
+					m_normal *= -1.0;
+				}
 			}
 			else if(dim == 3)
 			{
@@ -254,6 +269,8 @@ class SubControlVolumeFace{
 							geo.obj_midpoint_global(m_mid_dim[0], m_mid_id[0]),
 							geo.obj_midpoint_global(m_mid_dim[2], m_mid_id[2]),
 							m_normal);
+
+				// TODO: Check orientation !!!! (See 2d case...)
 			}
 
 			m_sdv.update_global(m_ip_local, corners);
