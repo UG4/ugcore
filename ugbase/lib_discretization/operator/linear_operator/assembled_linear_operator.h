@@ -8,20 +8,18 @@
 
 namespace ug{
 
-template <typename TDiscreteFunction>
-class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction, TDiscreteFunction>
+template <typename TFunction>
+class AssembledLinearizedOperator : public ILinearizedOperator<TFunction, TFunction>
 {
 	public:
-		// export types:
-
 		// domain function type
-		typedef TDiscreteFunction domain_function_type;
+		typedef TFunction domain_function_type;
 
 		// codomain function type
-		typedef TDiscreteFunction codomain_function_type;
+		typedef TFunction codomain_function_type;
 
 		// type of algebra
-		typedef typename TDiscreteFunction::algebra_type algebra_type;
+		typedef typename TFunction::algebra_type algebra_type;
 
 	public:
 		AssembledLinearizedOperator(IAssemble<domain_function_type, algebra_type>& ass) :
@@ -108,24 +106,22 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TDiscreteFunction
 };
 
 
-template <typename TDiscreteFunction>
-class AssembledLinearOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFunction>, public AssembledLinearizedOperator<TDiscreteFunction>
+template <typename TFunction>
+class AssembledLinearOperator : public ILinearOperator<TFunction, TFunction>, public AssembledLinearizedOperator<TFunction>
 {
 	public:
-		// export types:
-
 		// domain function type
-		typedef TDiscreteFunction domain_function_type;
+		typedef TFunction domain_function_type;
 
 		// codomain function type
-		typedef TDiscreteFunction codomain_function_type;
+		typedef TFunction codomain_function_type;
 
 		// type of algebra
-		typedef typename TDiscreteFunction::algebra_type algebra_type;
+		typedef typename TFunction::algebra_type algebra_type;
 
 	public:
 		AssembledLinearOperator(IAssemble<domain_function_type, algebra_type>& ass, bool assemble_rhs = false) :
-			AssembledLinearizedOperator<TDiscreteFunction>(ass),
+			AssembledLinearizedOperator<TFunction>(ass),
 			m_assemble_rhs(assemble_rhs), m_ass(ass)
 		{};
 

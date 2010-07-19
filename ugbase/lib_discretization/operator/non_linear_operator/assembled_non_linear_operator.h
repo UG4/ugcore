@@ -5,20 +5,18 @@
 
 namespace ug{
 
-template <typename TDiscreteFunction>
-class AssembledOperator : public IOperator<TDiscreteFunction, TDiscreteFunction>
+template <typename TFunction>
+class AssembledOperator : public IOperator<TFunction, TFunction>
 {
 	public:
-		// export types:
-
 		// domain function type
-		typedef TDiscreteFunction domain_function_type;
+		typedef TFunction domain_function_type;
 
 		// codomain function type
-		typedef TDiscreteFunction codomain_function_type;
+		typedef TFunction codomain_function_type;
 
 		// type of algebra
-		typedef typename TDiscreteFunction::algebra_type algebra_type;
+		typedef typename TFunction::algebra_type algebra_type;
 
 	public:
 		AssembledOperator(IAssemble<domain_function_type, algebra_type>& ass) :
@@ -45,18 +43,14 @@ class AssembledOperator : public IOperator<TDiscreteFunction, TDiscreteFunction>
 			typename codomain_function_type::vector_type& d_vec = d.get_vector();
 
 			// reset vector
-			if(d_vec.set(0.0) != true)
-			{
-				UG_LOG("AssembledOperator::apply: Could not reset defect to zero before assembling. Aborting.\n");
-				return false;
-			}
+			if(!d_vec.set(0.0))
+				{UG_LOG("AssembledOperator::apply: Could not reset defect "
+						"to zero before assembling. Aborting.\n"); return false;}
 
 			// assemble
 			if(m_ass.assemble_defect(d_vec, u) != IAssemble_OK)
-			{
-				UG_LOG("AssembledOperator::apply: Could not assemble defect. Aborting.\n");
-				return false;
-			}
+				{UG_LOG("AssembledOperator::apply: Could not "
+						"assemble defect. Aborting.\n"); return false;}
 
 			d.set_storage_type(PST_ADDITIVE);
 			return true;
