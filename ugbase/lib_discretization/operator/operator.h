@@ -11,6 +11,9 @@
 // operator interface
 #include "operator_interface.h"
 
+// convergence check
+#include "convergence_check.h"
+
 // generic solver routines
 #include "operator_util.h"
 
@@ -40,5 +43,6 @@
 // non linear operators
 #include "non_linear_operator/assembled_non_linear_operator.h"
 #include "non_linear_operator/newton_solver/newton.h"
+#include "non_linear_operator/line_search.h"
 
 #endif /* __H__LIB_DISCRETIZATION__OPERATOR__OPERATOR__ */
