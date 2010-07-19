@@ -121,9 +121,15 @@ class ILinearizedIteratorOperator
 		// prepare B(u) for application of B(u)*d = c
 		virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c) = 0;
 
-		// compute new correction c = B(u)*d
-		//    AND
-		// update defect: d := d - J(u)*c
+		/** apply
+		 *
+		 * This function computes a new correction c = B(u)*d by applying the Operator.
+		 * The defect is updated, if updateDefect is true
+		 *
+		 * \param[in] 	d 				Defect
+		 * \param[out]	c				Correction, c = B(u)*d
+		 * \param[in]	updateDefect	if true, the defect is updated, d:= d - J(u)*c
+		 */
 		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect) = 0;
 
 		// clone
