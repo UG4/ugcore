@@ -59,7 +59,7 @@ class AssembledMultiGridCycle :
 
 		// This function performes one multi-grid cycle step
 		// A correction c is returned as well as the updated defect d := d - A*c
-		bool apply(function_type& d, function_type &c);
+		bool apply(function_type& d, function_type &c, bool updateDefect);
 
 		ILinearizedIteratorOperator<function_type,function_type>* clone()
 		{

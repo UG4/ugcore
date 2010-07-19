@@ -42,7 +42,7 @@ smooth(function_type& d, function_type& c, size_t lev, int nu)
 	for(int i = 0; i < nu; ++i)
 	{
 		// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
-		if(!m_smoother[lev]->apply(d, *m_t[lev]))
+		if(!m_smoother[lev]->apply(d, *m_t[lev], true))
 			{UG_LOG("Error in smoothing step " << i << " on level " << lev << ".\n"); return false;}
 
 		// add correction of smoothing step to level correction
@@ -197,12 +197,23 @@ init(ILinearizedOperator<function_type,function_type>& A)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-apply(function_type& d, function_type &c)
+apply(function_type& d, function_type &c, bool updateDefect)
 {
-	// TODO: currently the matrix on finest level exists twice
+	function_type* d_copy;
+
+	if(!updateDefect)
+	{
+		// copy defect
+		d_copy = new function_type(d);
+	}
+	else
+	{
+		// work on given defect
+		d_copy = &d;
+	}
 
 	// TODO: project defect onto grids
-	m_d[m_surfaceLevel]->project_surface(d);
+	m_d[m_surfaceLevel]->project_surface(*d_copy);
 	m_c[m_surfaceLevel]->project_surface(c);
 
 	// perform one multigrid cycle
@@ -210,7 +221,7 @@ apply(function_type& d, function_type &c)
 		{UG_LOG("MultiGridCycle: Error in step. Aborting.\n"); return false;}
 
 	// TODO: Project correction to surface correction
-	m_d[m_surfaceLevel]->release_surface(d);
+	m_d[m_surfaceLevel]->release_surface(*d_copy);
 	m_c[m_surfaceLevel]->release_surface(c);
 
 	return true;

@@ -83,7 +83,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 				// apply z = M^-1 * s
-				if(!m_pPrecond->apply(t, z))
+				if(!m_pPrecond->apply(t, z, true))
 					{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 			}
 			else
@@ -140,7 +140,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply z = M^-1 * s
-					if(!m_pPrecond->apply(t, z))
+					if(!m_pPrecond->apply(t, z, true))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 				}
 				else

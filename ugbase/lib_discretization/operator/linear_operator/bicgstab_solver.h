@@ -134,11 +134,11 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply q = M^-1 * p
-					if(!m_pPrecond->apply(s, q))
+					if(!m_pPrecond->apply(s, q, true))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 
 					// compute v := A*q
-					if(m_A->apply(q, v) != true)
+					if(!m_A->apply(q, v))
 						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
 					// make v unique
@@ -204,7 +204,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply q = M^-1 * t
-					if(!m_pPrecond->apply(t, q))
+					if(!m_pPrecond->apply(t, q, true))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 				}
 				else

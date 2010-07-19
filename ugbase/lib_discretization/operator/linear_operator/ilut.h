@@ -58,14 +58,14 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 
 				// con is the current line of L/U
 				std::vector<typename Matrix_type::connection> con;
-				con.reserve(300);	
+				con.reserve(300);
 				con.resize(0);
-				
+
 				// init row 0 of U
 				for(typename Matrix_type::rowIterator i_it = m_pMatrix->beginRow(0); !i_it.isEnd(); ++i_it)
 					con.push_back(*i_it);
 				m_U.set_matrix_row(0, &con[0], con.size());
-				
+
 				size_t totalentries=0;
 				size_t maxentries=0;
 				for(size_t i=1; i<m_pMatrix->num_rows(); i++)
@@ -81,12 +81,12 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 						if(dmax < dabs((*i_it).dValue))
 							dmax = dabs((*i_it).dValue);
 					}
-					
+
 					// eliminate all entries A(i, k) with k<i with rows U(k, .) and k<i
 					for(size_t i_it = 0; i_it < con.size(); ++i_it)
 					{
 						size_t k = con[i_it].iIndex;
-						if(k >= i) 
+						if(k >= i)
 						{
 							// safe where U begins / L ends in con
 							u_part = i_it;
@@ -96,12 +96,12 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 						UG_ASSERT(!m_U.beginRow(k).isEnd() && (*m_U.beginRow(k)).iIndex == k, "");
 						double ukk = (*m_U.beginRow(k)).dValue;
 						double d = con[i_it].dValue / ukk;
-						
+
 						// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
 						// so that A(i,k) is zero.
 						// safe A(i,k)/U(k,k) in con, (later L(i,k) )
 						con[i_it].dValue = d;
-						
+
 						typename Matrix_type::rowIterator k_it = m_U.beginRow(k); // upper row iterator
 						++k_it; // skip diag
 						size_t j = i_it+1;
@@ -136,17 +136,17 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 								// we have a value in A(k, con[j].iIndex), but not in U.
 								++j;
 							}
-						}			
+						}
 					}
-					
+
 					totalentries+=con.size();
 					if(maxentries < con.size()) maxentries = con.size();
-					
+
 					// safe L and U
 					m_L.set_matrix_row(i, &con[0], u_part);
 					m_U.set_matrix_row(i, &con[u_part], con.size()-u_part);
-				}	
-				
+				}
+
 				m_L.finalize();
 				m_U.finalize();
 
@@ -159,7 +159,7 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c)
+		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 		{
 			if(!d.has_storage_type(PST_ADDITIVE)) return false;
 
@@ -188,11 +188,11 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 					s -= (*it).dValue * c_vec[(*it).iIndex];
 				c_vec[i] = s/uii;
 				if(i==0) break;
-			}		
+			}
 
 			// update defect
 			// TODO: Check that matrix has correct type (additive)
-			m_pMatrix->matmul_minus(d_vec, c_vec);
+			if(updateDefect) m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
 			d.set_storage_type(PST_ADDITIVE);
@@ -216,7 +216,7 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 
 		typename algebra_type::matrix_type m_L;
 		typename algebra_type::matrix_type m_U;
-	
+
 		bool m_bOpChanged;
 		double m_eps;
 };

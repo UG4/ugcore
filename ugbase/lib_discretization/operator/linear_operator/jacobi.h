@@ -110,7 +110,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c)
+		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 		{
 			if(!d.has_storage_type(PST_ADDITIVE)) return false;
 
@@ -151,7 +151,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 #endif
 			// update defect
 			// TODO: Check that matrix has correct type (additive)
-			m_pMatrix->matmul_minus(d_vec, c_vec);
+			if(updateDefect) m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
 			d.set_storage_type(PST_ADDITIVE);

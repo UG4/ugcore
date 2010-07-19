@@ -93,7 +93,7 @@ class LinearSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				// Compute a correction c := B*c using one the iterative step
 				// Internally the defect is updated d := d - A*c = d - A*(x+c)
 				if(m_pPrecond != NULL)
-					if(!m_pPrecond->apply(d, c))
+					if(!m_pPrecond->apply(d, c, true))
 						{UG_LOG("ERROR in 'LinearOperatorInverse::apply': Iterator Operator "
 									"applied incorrectly. Aborting.\n"); return false;}
 

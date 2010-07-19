@@ -138,7 +138,6 @@ class AssembledLinearOperator : public ILinearOperator<TFunction, TFunction>, pu
 
 			if(m_Matrix.num_rows() == b.size() && m_Matrix.num_cols() == x.size())
 			{
-				UG_LOG("b size = " << b.size() << ", x size = " << x.size() << "\n");
 				if(m_Matrix.set(0.0) != true) return false;
 			}
 			else
