@@ -31,13 +31,13 @@ change_storage_type(ParallelStorageType type)
 	case PST_CONSISTENT:
 			 if(has_storage_type(PST_UNIQUE)){
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, m_pCommunicator);
+				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, &m_communicator);
 				 set_storage_type(PST_CONSISTENT);
 				 break;
 			 }
 			 else if(has_storage_type(PST_ADDITIVE)){
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, m_pCommunicator);
+				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, &m_communicator);
 				set_storage_type(PST_CONSISTENT);
 				break;
 			}
@@ -58,7 +58,7 @@ change_storage_type(ParallelStorageType type)
 	case PST_UNIQUE:
 			if(has_storage_type(PST_ADDITIVE)){
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout, m_pCommunicator);
+				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout, &m_communicator);
 				add_storage_type(PST_UNIQUE);
 				break;
 			}
