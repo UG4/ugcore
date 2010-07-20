@@ -52,7 +52,9 @@ class AssembledOperator : public IOperator<TFunction, TFunction>
 				{UG_LOG("AssembledOperator::apply: Could not "
 						"assemble defect. Aborting.\n"); return false;}
 
+#ifdef UG_PARALLEL
 			d.set_storage_type(PST_ADDITIVE);
+#endif
 			return true;
 		}
 

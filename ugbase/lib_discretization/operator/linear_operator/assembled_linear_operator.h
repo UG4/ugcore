@@ -72,7 +72,10 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TFunction, TFunct
 
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
+			#ifdef UG_PARALLEL
 			d.set_storage_type(PST_ADDITIVE);
+			#endif
+
 			return m_J.apply(b,x);
 		}
 
@@ -96,7 +99,10 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TFunction, TFunct
 
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
+			#ifdef UG_PARALLEL
 			d.set_storage_type(PST_ADDITIVE);
+			#endif
+
 			return m_J.matmul_minus(b,x);
 		}
 
@@ -171,7 +177,9 @@ class AssembledLinearOperator : public ILinearOperator<TFunction, TFunction>, pu
 				b.set(0.0);
 				if(m_ass.assemble_linear(m_Matrix, b, u) != IAssemble_OK)
 					{UG_LOG("Error while assembling Matrix and rhs.\n"); return false;}
+				#ifdef UG_PARALLEL
 				f.set_storage_type(PST_ADDITIVE);
+				#endif
 			}
 			else
 			{
@@ -205,7 +213,10 @@ class AssembledLinearOperator : public ILinearOperator<TFunction, TFunction>, pu
 
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
+			#ifdef UG_PARALLEL
 			f.set_storage_type(PST_ADDITIVE);
+			#endif
+
 			return m_Matrix.apply(b,x);
 		}
 
@@ -229,7 +240,10 @@ class AssembledLinearOperator : public ILinearOperator<TFunction, TFunction>, pu
 
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
+			#ifdef UG_PARALLEL
 			f.set_storage_type(PST_ADDITIVE);
+			#endif
+
 			return m_Matrix.matmul_minus(b,x);
 		}
 

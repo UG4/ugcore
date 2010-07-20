@@ -161,8 +161,9 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 		// update defect: d := d - A*c
 		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 		{
+#ifdef UG_PARALLEL
 			if(!d.has_storage_type(PST_ADDITIVE)) return false;
-
+#endif
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
 
@@ -170,9 +171,11 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 			// Apply ILU on d:   c := ILU^{-1}*d
 
 			// make correction consistent
+#ifdef UG_PARALLEL
 			c.set_storage_type(PST_ADDITIVE);
 			if(c.change_storage_type(PST_CONSISTENT) != true)
 				return false;
+#endif
 
 			// apply iterator: c = LU^{-1}*d (damp is not used)
 			for(size_t i=0; i < m_L.num_rows(); i++)
@@ -195,7 +198,9 @@ class AssembledILUTOperator : public ILinearizedIteratorOperator<TDiscreteFuncti
 			if(updateDefect) m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
+#ifdef UG_PARALLEL
 			d.set_storage_type(PST_ADDITIVE);
+#endif
 			return true;
 		}
 

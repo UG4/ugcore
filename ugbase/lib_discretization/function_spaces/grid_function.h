@@ -342,8 +342,8 @@ class GridFunction{
 			{*m_pVector *= w; return *this;}
 
 		// set all dofs on level 'level' to value 'w'
-		bool set(number w, ParallelStorageType type = PST_CONSISTENT)
-			{return m_pVector->set(w, type);}
+		bool set(number w)
+			{return m_pVector->set(w);}
 
 		// two norm
 		inline number two_norm()

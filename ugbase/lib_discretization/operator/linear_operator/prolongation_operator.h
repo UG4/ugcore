@@ -198,7 +198,9 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 		{
 			// v = coarse, u = fine
 			m_matrix.apply(uFine.get_vector(), uCoarse.get_vector());
+#ifdef UG_PARALLEL
 			uFine.copy_storage_type(uCoarse);
+#endif
 			return true;
 		}
 
@@ -207,7 +209,9 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 		{
 			// v = coarse, u = fine
 			m_matrix.apply_transposed(uCoarse.get_vector(), uFine.get_vector());
+#ifdef UG_PARALLEL
 			uCoarse.copy_storage_type(uFine);
+#endif
 			return true;
 		}
 

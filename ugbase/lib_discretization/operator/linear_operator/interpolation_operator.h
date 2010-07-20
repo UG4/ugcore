@@ -87,7 +87,9 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 				return false;
 			}
 
+			#ifdef UG_PARALLEL
 			v.set_storage_type(PST_CONSISTENT);
+			#endif
 			return true;
 		}
 

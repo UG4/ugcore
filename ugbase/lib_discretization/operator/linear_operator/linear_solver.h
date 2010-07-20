@@ -64,10 +64,15 @@ class LinearSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		// c, d are the correction and defect for solving that linear equation iteratively.
 		virtual bool apply(domain_function_type& d_nl, codomain_function_type& c_nl)
 		{
-			if(!d_nl.has_storage_type(PST_ADDITIVE))
-				{UG_LOG("ERROR in 'LinearSolver::apply': d must be additive. Aborting.\n"); return false;}
-			if(!c_nl.has_storage_type(PST_CONSISTENT))
-				{UG_LOG("ERROR in 'LinearSolver::apply': c must be consistent. Aborting.\n"); return false;}
+			#ifdef UG_PARALLEL
+			if(!d_nl.has_storage_type(PST_ADDITIVE) || !c_nl.has_storage_type(PST_CONSISTENT))
+				{
+					UG_LOG("WARNING: In 'CGSolver::apply':Inadequate storage format of Vectors.\n");
+					UG_LOG("                          use: b additive and x consistent to avoid internal type conversion.\n");
+					if(!d_nl.change_storage_type(PST_ADDITIVE)) return false;
+					if(!c_nl.change_storage_type(PST_CONSISTENT)) return false;
+				}
+			#endif
 
 			// copy d_nl as d
 			domain_function_type& d = d_nl;

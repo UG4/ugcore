@@ -62,9 +62,11 @@ class AssembledGSOperator : public ILinearizedIteratorOperator<TDiscreteFunction
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c)
+		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 		{
+#ifdef UG_PARALLEL
 			if(!d.has_storage_type(PST_ADDITIVE)) return false;
+#endif
 
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
@@ -79,10 +81,12 @@ class AssembledGSOperator : public ILinearizedIteratorOperator<TDiscreteFunction
 
 			// update defect
 			// TODO: Check that matrix has correct type (additive)
-			m_pMatrix->matmul_minus(d_vec, c_vec);
+			if(updateDefect) m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
-			//d.set_storage_type(PST_ADDITIVE);
+#ifdef UG_PARALLEL
+			d.set_storage_type(PST_ADDITIVE);
+#endif
 			return true;
 		}
 
@@ -152,9 +156,11 @@ class AssembledBGSOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c)
+		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 		{
+#ifdef UG_PARALLEL
 			if(!d.has_storage_type(PST_ADDITIVE)) return false;
+#endif
 
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
@@ -169,10 +175,12 @@ class AssembledBGSOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 
 			// update defect
 			// TODO: Check that matrix has correct type (additive)
-			m_pMatrix->matmul_minus(d_vec, c_vec);
+			if(updateDefect) m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
+#ifdef UG_PARALLEL
 			d.set_storage_type(PST_ADDITIVE);
+#endif
 			return true;
 		}
 
@@ -243,10 +251,11 @@ class AssembledSGSOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c)
+		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 		{
+#ifdef UG_PARALLEL
 			if(!d.has_storage_type(PST_ADDITIVE)) return false;
-
+#endif
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
 
@@ -260,10 +269,12 @@ class AssembledSGSOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 
 			// update defect
 			// TODO: Check that matrix has correct type (additive)
-			m_pMatrix->matmul_minus(d_vec, c_vec);
+			if(updateDefect) m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
+#ifdef UG_PARALLEL
 			d.set_storage_type(PST_ADDITIVE);
+#endif
 			return true;
 		}
 

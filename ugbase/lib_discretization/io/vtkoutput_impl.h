@@ -101,11 +101,13 @@ end_timeseries(const char* filename, discrete_function_type& u)
 	if(strcmp(m_seriesname, filename) != 0) return false;
 	if(m_u != &u) return false;
 
+#ifdef UG_PARALLEL
 	if(write_pvd(u, filename) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write pvd - file. \n");
 		return false;
 	}
+#endif
 
 	return true;
 }

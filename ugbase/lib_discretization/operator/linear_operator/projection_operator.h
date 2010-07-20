@@ -131,7 +131,9 @@ class ProjectionOperator : public ILinearOperator<TFunction, TFunction> {
 		bool apply(domain_function_type& uFine, codomain_function_type& uCoarse)
 		{
 			m_matrix.apply(uCoarse.get_vector(), uFine.get_vector());
+#ifdef UG_PARALLEL
 			uCoarse.copy_storage_type(uFine);
+#endif
 			return true;
 		}
 
@@ -141,7 +143,9 @@ class ProjectionOperator : public ILinearOperator<TFunction, TFunction> {
 		bool apply_transposed(codomain_function_type& uCoarse, domain_function_type& uFine)
 		{
 			m_matrix.apply_transposed(uFine.get_vector(), uCoarse.get_vector());
+#ifdef UG_PARALLEL
 			uFine.copy_storage_type(uCoarse);
+#endif
 			return true;
 		}
 

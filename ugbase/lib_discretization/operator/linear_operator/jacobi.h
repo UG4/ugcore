@@ -113,7 +113,9 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 		// update defect: d := d - A*c
 		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 		{
+#ifdef UG_PARALLEL
 			if(!d.has_storage_type(PST_ADDITIVE)) return false;
+#endif
 
 			typename domain_function_type::vector_type& d_vec = d.get_vector();
 			typename codomain_function_type::vector_type& c_vec = c.get_vector();
@@ -155,7 +157,9 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			if(updateDefect) m_pMatrix->matmul_minus(d_vec, c_vec);
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
+#ifdef UG_PARALLEL
 			d.set_storage_type(PST_ADDITIVE);
+#endif
 			return true;
 		}
 

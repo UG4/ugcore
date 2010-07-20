@@ -147,7 +147,9 @@ lmgc(size_t lev)
 	else if(lev == m_baseLevel)
 	{
 		// set d to be additive
+#ifdef UG_PARALLEL
 		m_d[lev]->set_storage_type(PST_ADDITIVE);
+#endif
 
 		// solve on base level
 		m_c[lev]->set(0.0);
