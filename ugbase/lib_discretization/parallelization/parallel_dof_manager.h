@@ -47,7 +47,9 @@ class ParallelMGDoFManager : public TMGDoFManager
 			pcl::ProcessCommunicator commWorld;
 
 			bool bRetVal = true;
-			for(size_t l = 0; l < TMGDoFManager::num_levels(); ++l)
+			// if no cut level has appeared
+			bool no_cut = true;
+			for(size_t l = TMGDoFManager::num_levels() - 1; ; --l)
 			{
 				typename TMGDoFManager::dof_distribution_type& distr = *TMGDoFManager::get_level_dof_distribution(l);
 
@@ -59,14 +61,17 @@ class ParallelMGDoFManager : public TMGDoFManager
 			//	create local process communicator
 			//	if a process has only vertical slaves, it is not involved in process communication.
 			//TODO: perform a more precise check
-				bool participate = distr.get_vertical_slave_layout().empty()
+				if(!distr.get_vertical_slave_layout().empty()) no_cut = false;
+				bool participate = no_cut
 								   && !commWorld.empty()
 								   && (distr.num_dofs() > 0);
 
-				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, "  Says: Participate = "<< participate << " for level " << l << ".\n");
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, "  Says: Participate = "<< participate << " for level " << l << ""
+						" (since num_dofs =	" << distr.num_dofs() << ".\n");
 
 				distr.get_process_communicator() = commWorld.create_sub_communicator(participate);
 
+				if(l==0) break;
 			}
 
 			return bRetVal;

@@ -8,11 +8,6 @@
 #ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__
 
-#ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
-	#include "lib_discretization/parallelization/parallelization.h"
-#endif
-
 namespace ug{
 
 // predeclaration
@@ -77,7 +72,7 @@ class GridFunction{
 		};
 
 		// destructor
-		~GridFunction()
+		virtual ~GridFunction()
 		{
 			release_storage();
 		}
@@ -89,7 +84,7 @@ class GridFunction{
 		}
 
 		// copies the GridFunction v, except that the values are copied.
-		bool clone_pattern(const this_type& v)
+		virtual bool clone_pattern(const this_type& v)
 		{
 			// delete memory if vector storage exists already
 			if(m_pVector != NULL) release_storage();
@@ -299,49 +294,11 @@ class GridFunction{
 		inline number two_norm()
 			{return m_pVector->two_norm();}
 
-		////////////////////////////
-		// Parallel requirements
-		////////////////////////////
-
-		// changes to the requested storage type if possible
-		bool change_storage_type(ParallelStorageType type)
-			{return m_pVector->change_storage_type(type);}
-
-		// returns if the current storage type has a given representation
-		bool has_storage_type(ParallelStorageType type)
-			{return m_pVector->has_storage_type(type);}
-
-		// sets the storage type
-		void set_storage_type(ParallelStorageType type)
-			{m_pVector->set_storage_type(type);}
-
-		// adds the storage type
-		void add_storage_type(ParallelStorageType type)
-			{m_pVector->add_storage_type(type);}
-
-		// removes the storage type
-		void remove_storage_type(ParallelStorageType type)
-			{m_pVector->remove_storage_type(type);}
-
-		// copies the storage type from another vector
-		void copy_storage_type(const this_type& v)
-			{m_pVector->copy_storage_type(*v.m_pVector);}
-
 	protected:
 		// creates storage for dofs
 		bool create_storage(size_t num_dofs)
 		{
 			m_pVector = new vector_type;
-#ifdef UG_PARALLEL
-			m_pVector->set_slave_layout(m_pDoFDistribution->get_slave_layout());
-			m_pVector->set_master_layout(m_pDoFDistribution->get_master_layout());
-			m_pVector->set_vertical_slave_layout(m_pDoFDistribution->get_vertical_slave_layout());
-			m_pVector->set_vertical_master_layout(m_pDoFDistribution->get_vertical_master_layout());
-
-			m_pVector->set_process_communicator(m_pDoFDistribution->get_process_communicator());
-
-			m_pVector->set_storage_type(PST_UNDEFINED);
-#endif
 			if(m_pVector->create(num_dofs) != true) return false;
 			else return true;
 		}
@@ -375,17 +332,6 @@ class GridFunction{
 			*m_pVector = *v.m_pVector;
 			return true;
 		}
-
-
-#ifdef UG_PARALLEL
-	public:
-		inline IndexLayout& get_slave_layout()	{return m_pDoFDistribution->get_slave_layout();}
-		inline IndexLayout& get_master_layout()	{return m_pDoFDistribution->get_master_layout();}
-		inline IndexLayout& get_vertical_slave_layout()		{return m_pDoFDistribution->get_vertical_slave_layout();}
-		inline IndexLayout& get_vertical_master_layout()	{return m_pDoFDistribution->get_vertical_master_layout();}
-
-		inline pcl::ProcessCommunicator& get_process_communicator()	{return m_pDoFDistribution->get_process_communicator();}
-#endif
 
 	protected:
 		// name

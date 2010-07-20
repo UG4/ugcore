@@ -10,6 +10,7 @@
 
 #include "pcl/pcl.h"
 #include "parallel_dof_manager.h"
+#include "parallel_grid_function.h"
 #include "parallelization_util.h"
 
 #endif

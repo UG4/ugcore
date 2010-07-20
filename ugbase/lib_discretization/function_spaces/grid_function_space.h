@@ -59,7 +59,11 @@ class ApproximationSpace{
 		#endif
 
 		// grid function type
-		typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> function_type;
+		#ifdef UG_PARALLEL
+			typedef ParallelGridFunction<GridFunction<TDomain, TDoFDistribution, TAlgebra> > function_type;
+		#else
+			typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> function_type;
+		#endif
 
 	public:
 		ApproximationSpace(std::string name, domain_type& domain) :

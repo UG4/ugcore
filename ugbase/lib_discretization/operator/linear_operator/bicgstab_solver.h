@@ -32,18 +32,19 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		virtual bool init(ILinearizedOperator<TFunction, TFunction>& A)
 		{
 			m_A = &A;
+
+			// init Preconditioner for operator A
+			if(m_pPrecond != NULL)
+				if(!m_pPrecond->init(*m_A))
+					{UG_LOG("ERROR in 'LinearizedOperatorInverse::prepare': Cannot init "
+							"Iterator Operator for Operator A.\n"); return false;}
+
 			return true;
 		}
 
 		// prepare Operator
 		virtual bool prepare(codomain_function_type& u, domain_function_type& b, codomain_function_type& x)
 		{
-			// init iterator B for operator A
-			if(m_pPrecond != NULL)
-				if(m_pPrecond->init(*m_A) != true)
-				{UG_LOG("ERROR in 'LinearizedOperatorInverse::prepare': Cannot init "
-							"Iterator Operator for Operator A.\n"); return false;}
-
 			m_pCurrentU = &u;
 
 			return true;

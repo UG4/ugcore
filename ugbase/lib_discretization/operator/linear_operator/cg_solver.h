@@ -32,22 +32,18 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		virtual bool init(ILinearizedOperator<TFunction, TFunction>& A)
 		{
 			m_A = &A;
+
+			// init Preconditioner for operator A
+			if(m_pPrecond != NULL)
+				if(m_pPrecond->init(*m_A) != true)
+					{UG_LOG("ERROR in 'CGSolver::prepare': Cannot init Iterator Operator for Operator A.\n");return false;}
+
 			return true;
 		}
 
 		// prepare Operator
 		virtual bool prepare(codomain_function_type& u, domain_function_type& d_nl, codomain_function_type& c_nl)
 		{
-			// init iterator B for operator A
-			if(m_pPrecond != NULL)
-				if(m_pPrecond->init(*m_A) != true)
-				{UG_LOG("ERROR in 'CGSolver::prepare': Cannot init Iterator Operator for Operator A.\n");return false;}
-
-			// prepare iterator B for d_nl and c_nl
-			if(m_pPrecond != NULL)
-				if(m_pPrecond->prepare(u, d_nl, c_nl) != true)
-				{UG_LOG("ERROR in 'CGSolver::prepare': Cannot prepare Iterator Operator.\n"); return false;}
-
 			m_pCurrentU = &u;
 
 			return true;
@@ -79,7 +75,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				// copy r
 				t = r;
 
-				if(m_pPrecond->prepare(*m_pCurrentU, t, z) != true)
+				if(!m_pPrecond->prepare(*m_pCurrentU, t, z))
 					{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 				// apply z = M^-1 * s
@@ -136,7 +132,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					// copy r
 					t = r;
 
-					if(m_pPrecond->prepare(*m_pCurrentU, t, z) != true)
+					if(!m_pPrecond->prepare(*m_pCurrentU, t, z))
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply z = M^-1 * s
