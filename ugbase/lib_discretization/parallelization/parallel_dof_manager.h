@@ -67,7 +67,7 @@ class ParallelMGDoFManager : public TMGDoFManager
 								   && (distr.num_dofs() > 0);
 
 				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, "  Says: Participate = "<< participate << " for level " << l << ""
-						" (since num_dofs =	" << distr.num_dofs() << ".\n");
+															" (num_dofs = " << distr.num_dofs() << ").\n");
 
 				distr.get_process_communicator() = commWorld.create_sub_communicator(participate);
 
