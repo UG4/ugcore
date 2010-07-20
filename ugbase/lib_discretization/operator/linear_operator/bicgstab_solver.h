@@ -53,9 +53,15 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		// Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply(domain_function_type& b, codomain_function_type& x)
 		{
+			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-			{UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
-					"Wrong storage format of Vectors. Aborting.\n");return false;}
+				{
+					UG_LOG("WARNING: In 'CGSolver::apply':Inadequate storage format of Vectors.\n");
+					UG_LOG("                          use: b additive and x consistent to avoid internal type conversion.\n");
+					if(!b.change_storage_type(PST_ADDITIVE)) return false;
+					if(!x.change_storage_type(PST_CONSISTENT)) return false;
+				}
+			#endif
 
 			// build defect:  b := b - J(u)*x
 			if(m_A->apply_sub(x, b) != true)
@@ -76,9 +82,11 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			m_ConvCheck.set_name("BiCGStab Solver");
 			m_ConvCheck.start(b);
 
+			#ifdef UG_PARALLEL
 			// convert b to unique (should already be unique due to norm calculation)
 			if(!b.change_storage_type(PST_UNIQUE))
 				{UG_LOG("Cannot convert b to unique vector.\n"); return false;}
+			#endif
 
 			number rho, rho_new, alpha, omega, beta, tt;
 			tt = rho = alpha = omega = 0;
@@ -98,8 +106,10 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					r = b;
 
 					// make r additive unique
+				#ifdef UG_PARALLEL
 					if(!r.change_storage_type(PST_UNIQUE))
 						{UG_LOG("Cannot convert r to unique vector.\n"); return false;}
+				#endif
 					p.set(0.0);
 					v.set(0.0);
 					rho = alpha = omega = 1.0;
@@ -125,26 +135,22 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				// if preconditioner given
 				if(m_pPrecond != NULL)
 				{
-					// reset q
-					q.set(0.0);
-
-					// set s
-					s = p;
-
-					if(m_pPrecond->prepare(*m_pCurrentU, s, q) != true)
+					if(!m_pPrecond->prepare(*m_pCurrentU, p, q))
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply q = M^-1 * p
-					if(!m_pPrecond->apply(s, q, true))
+					if(!m_pPrecond->apply(p, q, false))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 
 					// compute v := A*q
 					if(!m_A->apply(q, v))
 						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
+					#ifdef UG_PARALLEL
 					// make v unique
 					if(!v.change_storage_type(PST_UNIQUE))
 						{UG_LOG("Cannot convert v to unique vector.\n"); return false;}
+					#endif
 
 					alpha = VecProd(v, r);
 
@@ -156,17 +162,21 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				}
 				else
 				{
+					#ifdef UG_PARALLEL
 					// make p consistent
 					if(!p.change_storage_type(PST_CONSISTENT))
 						{UG_LOG("Cannot convert p to consistent vector.\n"); return false;}
+					#endif
 
 					// compute v := A*p
 					if(m_A->apply(p, v) != true)
 						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
+					#ifdef UG_PARALLEL
 					// make v unique
 					if(!v.change_storage_type(PST_UNIQUE))
 						{UG_LOG("Cannot convert v to unique vector.\n"); return false;}
+					#endif
 
 					alpha = VecProd(v, r);
 
@@ -195,17 +205,11 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				// if preconditioner given
 				if(m_pPrecond != NULL)
 				{
-					// reset q
-					q.set(0.0);
-
-					// copy s
-					t = s;
-
-					if(m_pPrecond->prepare(*m_pCurrentU, t, q) != true)
+					if(m_pPrecond->prepare(*m_pCurrentU, s, q) != true)
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply q = M^-1 * t
-					if(!m_pPrecond->apply(t, q, true))
+					if(!m_pPrecond->apply(s, q, false))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 				}
 				else
@@ -213,18 +217,22 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					// set q:=s
 					q = s;
 
+					#ifdef UG_PARALLEL
 					// make q consistent
 					if(!q.change_storage_type(PST_CONSISTENT))
 						{UG_LOG("Cannot convert q to consistent vector.\n"); return false;}
-				}
+					#endif
+					}
 
 				// compute t := A*q
 				if(m_A->apply(q, t) != true)
 					{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
+				#ifdef UG_PARALLEL
 				// make t unique
 				if(!t.change_storage_type(PST_UNIQUE))
 					{UG_LOG("Cannot convert v to unique vector.\n"); return false;}
+				#endif
 
 				// tt = (t,t)
 				tt = VecProd(t, t);
@@ -261,6 +269,15 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 	protected:
 		bool VecScaleAdd(domain_function_type& a_func, domain_function_type& b_func, number s)
 		{
+			#ifdef UG_PARALLEL
+			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
+			else if(a_func.has_storage_type(PST_CONSISTENT) && b_func.has_storage_type(PST_CONSISTENT));
+			else if (a_func.has_storage_type(PST_ADDITIVE) && b_func.has_storage_type(PST_ADDITIVE))
+			{
+				a_func.set_storage_type(PST_ADDITIVE);
+				b_func.set_storage_type(PST_ADDITIVE);
+			}
+			#endif
 			typename domain_function_type::vector_type& a = a_func.get_vector();
 			typename domain_function_type::vector_type& b = b_func.get_vector();
 			typename domain_function_type::algebra_type::matrix_type::local_matrix_type locMat(1, 1);

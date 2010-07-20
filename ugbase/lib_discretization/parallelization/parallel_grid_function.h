@@ -74,13 +74,21 @@ class ParallelGridFunction : public TGridFunction
 		this_type& clone()
 		{return *(new this_type(*this));}
 
-		virtual bool assign(const this_type& v)
+		bool assign(const this_type& v)
 		{
-			if(!TGridFunction::assign(v)) return false;
+			if(!TGridFunction::assign(v))
+			{
+				UG_ASSERT(0, "Assigning failed.");
+				return false;
+			}
 			set_layouts();
 			copy_storage_type(v);
 			return true;
 		}
+
+		// sets grid function
+		this_type& operator=(const this_type& v)
+			{assign(v); return *this;}
 
 		////////////////////////////
 		// Storage type

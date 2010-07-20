@@ -10,7 +10,7 @@
 
 #include "lib_discretization/operator/operator.h"
 #include "common/profiler/profiler.h"
-
+#include "lib_discretization/io/vtkoutput.h"
 namespace ug{
 
 template <typename TFunction>
@@ -35,7 +35,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 
 			// init Preconditioner for operator A
 			if(m_pPrecond != NULL)
-				if(m_pPrecond->init(*m_A) != true)
+				if(!m_pPrecond->init(*m_A))
 					{UG_LOG("ERROR in 'CGSolver::prepare': Cannot init Iterator Operator for Operator A.\n");return false;}
 
 			return true;
@@ -52,8 +52,15 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		// Solve J(u)*x = b, such that x = J(u)^{-1} b
 		virtual bool apply(domain_function_type& b, codomain_function_type& x)
 		{
+			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
-				{UG_LOG("ERROR in 'CGSolver::apply': Wrong storage format of Vectors. Aborting.\n"); return false;}
+				{
+					UG_LOG("WARNING: In 'CGSolver::apply':Inadequate storage format of Vectors.\n");
+					UG_LOG("                          use: b additive and x consistent to avoid internal type conversion.\n");
+					if(!b.change_storage_type(PST_ADDITIVE)) return false;
+					if(!x.change_storage_type(PST_CONSISTENT)) return false;
+				}
+			#endif
 
 			// copy b as r
 			domain_function_type& r = b;
@@ -72,24 +79,21 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			// Preconditioning
 			if(m_pPrecond != NULL)
 			{
-				// copy r
-				t = r;
-
-				if(!m_pPrecond->prepare(*m_pCurrentU, t, z))
+				if(!m_pPrecond->prepare(*m_pCurrentU, r, z))
 					{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 				// apply z = M^-1 * s
-				if(!m_pPrecond->apply(t, z, true))
+				if(!m_pPrecond->apply(r, z, false))
 					{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 			}
-			else
-			{
-				z = r;
+			else z = r;
 
-				// make z consistent
-				if(!z.change_storage_type(PST_CONSISTENT))
-					{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
-			}
+
+			#ifdef UG_PARALLEL
+			// make z consistent
+			if(!z.change_storage_type(PST_CONSISTENT))
+				{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
+			#endif
 
 			m_ConvCheck.set_offset(3);
 			m_ConvCheck.set_symbol('%');
@@ -99,11 +103,11 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			number rho, rho_new, beta, alpha, lambda;
 			rho = rho_new = beta = alpha = lambda = 0.0;
 
-			// start rho
-			rho = VecProd(z, r);
-
 			// start search direction
 			p = z;
+
+			// start rho
+			rho = VecProd(z, r);
 
 			// Iteration loop
 			while(!m_ConvCheck.iteration_ended())
@@ -129,24 +133,21 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				// Preconditioning
 				if(m_pPrecond != NULL)
 				{
-					// copy r
-					t = r;
-
-					if(!m_pPrecond->prepare(*m_pCurrentU, t, z))
+					if(!m_pPrecond->prepare(*m_pCurrentU, r, z))
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
-					// apply z = M^-1 * s
-					if(!m_pPrecond->apply(t, z, true))
+					// apply z = M^-1 * r
+					if(!m_pPrecond->apply(r, z, false))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 				}
-				else
-				{
-					z = r;
+				else z = r;
 
-					// make z consistent
-					if(!z.change_storage_type(PST_CONSISTENT))
-						{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
-				}
+
+				#ifdef UG_PARALLEL
+				// make z consistent
+				if(!z.change_storage_type(PST_CONSISTENT))
+					{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
+				#endif
 
 				// new rho
 				rho_new = VecProd(z, r);
@@ -156,7 +157,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 
 				// new direction p:= beta*p + z
 				p *= beta;
-				p+= z;
+				p += z;
 
 				// update rho
 				rho = rho_new;
@@ -171,6 +172,15 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 	protected:
 		bool VecScaleAdd(domain_function_type& a_func, domain_function_type& b_func, number s)
 		{
+			#ifdef UG_PARALLEL
+			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
+			else if(a_func.has_storage_type(PST_CONSISTENT) && b_func.has_storage_type(PST_CONSISTENT));
+			else if (a_func.has_storage_type(PST_ADDITIVE) && b_func.has_storage_type(PST_ADDITIVE))
+			{
+				a_func.set_storage_type(PST_ADDITIVE);
+				b_func.set_storage_type(PST_ADDITIVE);
+			}
+			#endif
 			typename domain_function_type::vector_type& a = a_func.get_vector();
 			typename domain_function_type::vector_type& b = b_func.get_vector();
 			typename domain_function_type::algebra_type::matrix_type::local_matrix_type locMat(1, 1);

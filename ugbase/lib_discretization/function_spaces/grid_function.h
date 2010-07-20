@@ -166,7 +166,7 @@ class GridFunction{
 
 		// sets the values of GridFunction 'v' to this GridFunction
 		// DofManager and level must be the same
-		virtual bool assign(const this_type& v)
+		bool assign(const this_type& v)
 		{
 			// check that approximation space is equal
 			if(m_pApproxSpace != v.m_pApproxSpace)
