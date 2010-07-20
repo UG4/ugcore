@@ -135,6 +135,7 @@ class ParallelGridFunction : public TGridFunction
 				TGridFunction::m_pVector->set_vertical_slave_layout(TGridFunction::m_pDoFDistribution->get_vertical_slave_layout());
 				TGridFunction::m_pVector->set_vertical_master_layout(TGridFunction::m_pDoFDistribution->get_vertical_master_layout());
 
+				TGridFunction::m_pVector->set_communicator(TGridFunction::m_pDoFDistribution->get_communicator());
 				TGridFunction::m_pVector->set_process_communicator(TGridFunction::m_pDoFDistribution->get_process_communicator());
 			}
 		}

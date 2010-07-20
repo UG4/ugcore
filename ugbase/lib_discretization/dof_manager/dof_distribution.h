@@ -60,6 +60,7 @@ class DoFDistribution
 		inline IndexLayout& get_vertical_slave_layout()		{return m_verticalSlaveLayout;}
 		inline IndexLayout& get_vertical_master_layout()	{return m_verticalMasterLayout;}
 
+		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
 		inline pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
 
 	protected:
@@ -77,6 +78,9 @@ class DoFDistribution
 
 		// process communicator
 		pcl::ProcessCommunicator m_processCommunicator;
+
+		// communicator
+		pcl::ParallelCommunicator<IndexLayout> m_communicator;
 #endif
 };
 

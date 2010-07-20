@@ -89,8 +89,6 @@ class ParallelMGDoFManager : public TMGDoFManager
 			// TODO: Implement surface layouts
 		}
 
-		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
-
 	protected:
 		virtual SurfaceView* create_surface_view()
 		{
@@ -121,10 +119,6 @@ class ParallelMGDoFManager : public TMGDoFManager
 
 		// Layout map of grid
 		GridLayoutMap* m_pLayoutMap;
-
-		// communicator
-		pcl::ParallelCommunicator<IndexLayout> m_communicator;
-
 };
 
 } // end namespace ug
