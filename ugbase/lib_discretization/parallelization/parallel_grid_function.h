@@ -50,8 +50,11 @@ class ParallelGridFunction : public TGridFunction
 		ParallelGridFunction(std::string name, approximation_space_type& approxSpace, dof_distribution_type& DoFDistr, bool allocate = true)
 			: TGridFunction(name, approxSpace, DoFDistr, allocate)
 		{
-			set_layouts();
-			set_storage_type(PST_UNDEFINED);
+			if(allocate)
+			{
+				set_layouts();
+				set_storage_type(PST_UNDEFINED);
+			}
 		};
 
 
