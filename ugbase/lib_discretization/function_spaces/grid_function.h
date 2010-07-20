@@ -56,11 +56,9 @@ class GridFunction{
 		GridFunction(std::string name, approximation_space_type& approxSpace, dof_distribution_type& DoFDistr, bool allocate = true) :
 			m_name(name), m_pApproxSpace(&approxSpace), m_pDoFDistribution(&DoFDistr), m_pVector(NULL)
 		{
-			if(allocate){
-				size_t num_dofs = m_pDoFDistribution->num_dofs();
-				if(!create_storage(num_dofs))
-					UG_ASSERT(0, "Cannot create vector memory for " << num_dofs << " dofs.\n");
-			}
+			if(allocate)
+				if(!create_storage())
+					UG_ASSERT(0, "Cannot create vector memory.\n");
 		};
 
 		// copy constructor
@@ -70,6 +68,10 @@ class GridFunction{
 		{
 			assign(v);
 		};
+
+		// sets grid function
+		this_type& operator=(const this_type& v)
+			{assign(v); return *this;}
 
 		// destructor
 		virtual ~GridFunction()
@@ -95,7 +97,7 @@ class GridFunction{
 			m_pDoFDistribution = v.m_pDoFDistribution;
 
 			// create new vector
-			if(create_storage(v.num_dofs()) != true)
+			if(!create_storage())
 				{UG_LOG("Cannot create pattern.\n"); return false;}
 
 			return true;
@@ -135,6 +137,63 @@ class GridFunction{
 			return false;
 		}
 
+		/////////////////////////////////
+		// help functions
+		/////////////////////////////////
+
+	protected:
+		// create storage vector. DoFDistrution must be set.
+		bool create_storage()
+		{
+			if(m_pDoFDistribution == NULL)
+				{UG_LOG("Cannot create vector without DoFDistribution.\n"); return false;}
+
+			m_pVector = new vector_type;
+			if(m_pVector == NULL)
+				{UG_LOG("Cannot create new storage vector.(Memory?)\n"); return false;}
+
+			size_t num_dofs = m_pDoFDistribution->num_dofs();
+			if(!m_pVector->create(num_dofs)) return false;
+			return true;
+		}
+
+		// deletes the memory
+		bool release_storage()
+		{
+			if(m_pVector != NULL){m_pVector->destroy(); delete m_pVector;}
+			return true;
+		}
+
+		// sets the values of GridFunction 'v' to this GridFunction
+		// DofManager and level must be the same
+		virtual bool assign(const this_type& v)
+		{
+			// check that approximation space is equal
+			if(m_pApproxSpace != v.m_pApproxSpace)
+				return false;
+
+			// check that Grid functions are of same type
+			if(	m_pDoFDistribution != v.m_pDoFDistribution)
+				return false;
+
+			// allocate memory if needed
+			if(m_pVector == NULL)
+			{
+				if(!create_storage())
+					{UG_LOG("Cannot create storage for assignment.\n"); return false;}
+			}
+			else if (v.m_pVector->size() != m_pVector->size())
+				{UG_LOG("Size of discrete function does not match."); return false;}
+
+			// copy values
+			*m_pVector = *v.m_pVector;
+			return true;
+		}
+
+		/////////////////////////////////
+		// General informations
+		/////////////////////////////////
+	public:
 		// name of grid function
 		std::string name()
 			{return m_name;}
@@ -270,10 +329,6 @@ class GridFunction{
 		number dotprod(const this_type& v)
 			{return m_pVector->dotprod(*v.m_pVector);}
 
-		// sets grid function
-		this_type& operator=(const this_type& v)
-			{assign(v); return *this;}
-
 		// add a grid function to this grid function
 		this_type& operator+=(const this_type& v)
 			{*m_pVector += *(v.m_pVector); return *this;}
@@ -293,45 +348,6 @@ class GridFunction{
 		// two norm
 		inline number two_norm()
 			{return m_pVector->two_norm();}
-
-	protected:
-		// creates storage for dofs
-		bool create_storage(size_t num_dofs)
-		{
-			m_pVector = new vector_type;
-			if(m_pVector->create(num_dofs) != true) return false;
-			else return true;
-		}
-
-		// deletes the memory
-		bool release_storage()
-		{
-			if(m_pVector != NULL){m_pVector->destroy(); delete m_pVector;}
-			return true;
-		}
-
-	protected:
-		// sets the values of GridFunction 'v' to this GridFunction
-		// DofManager and level must be the same
-		bool assign(const this_type& v)
-		{
-			// check that approximation space is equal
-			if(m_pApproxSpace != v.m_pApproxSpace)
-				return false;
-
-			// check that Grid functions are of same type
-			if(	m_pDoFDistribution != v.m_pDoFDistribution)
-					return false;
-
-			// allocate memory if needed
-			if(m_pVector == NULL) create_storage(v.m_pVector->size());
-			else if (v.m_pVector->size() != m_pVector->size())
-				{UG_LOG("Size of discrete function does not match."); return false;}
-
-			// copy values
-			*m_pVector = *v.m_pVector;
-			return true;
-		}
 
 	protected:
 		// name

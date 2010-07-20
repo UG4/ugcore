@@ -51,14 +51,33 @@ class ParallelGridFunction : public TGridFunction
 			: TGridFunction(name, approxSpace, DoFDistr, allocate)
 		{
 			set_layouts();
+			set_storage_type(PST_UNDEFINED);
 		};
 
-		// copy constructor
-		ParallelGridFunction(const this_type& v) : TGridFunction(v) {set_layouts();};
+
+		///////////////////////////////
+		// overloaded functions
+		///////////////////////////////
+
+		virtual bool clone_pattern(const this_type& v)
+		{
+			if(!TGridFunction::clone_pattern(v)) return false;
+			set_layouts();
+			set_storage_type(PST_UNDEFINED);
+			return true;
+		}
 
 		// clone
 		this_type& clone()
 		{return *(new this_type(*this));}
+
+		virtual bool assign(const this_type& v)
+		{
+			if(!TGridFunction::assign(v)) return false;
+			set_layouts();
+			copy_storage_type(v);
+			return true;
+		}
 
 		////////////////////////////
 		// Storage type
@@ -100,17 +119,6 @@ class ParallelGridFunction : public TGridFunction
 		inline pcl::ProcessCommunicator& get_process_communicator()	{return TGridFunction::m_pDoFDistribution->get_process_communicator();}
 
 		///////////////////////////////
-		// overloaded functions
-		///////////////////////////////
-
-		virtual bool clone_pattern(const this_type& v)
-		{
-			if(!TGridFunction::clone_pattern(v)) return false;
-			set_layouts();
-			return true;
-		}
-
-		///////////////////////////////
 		// help functions
 		///////////////////////////////
 
@@ -125,8 +133,6 @@ class ParallelGridFunction : public TGridFunction
 				TGridFunction::m_pVector->set_vertical_master_layout(TGridFunction::m_pDoFDistribution->get_vertical_master_layout());
 
 				TGridFunction::m_pVector->set_process_communicator(TGridFunction::m_pDoFDistribution->get_process_communicator());
-
-				TGridFunction::m_pVector->set_storage_type(PST_UNDEFINED);
 			}
 		}
 
