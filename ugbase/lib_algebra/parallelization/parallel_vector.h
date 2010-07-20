@@ -88,11 +88,11 @@ class ParallelVector : public TVector
 		inline IndexLayout& get_vertical_slave_layout()	{return *m_pVerticalSlaveLayout;}
 		inline IndexLayout& get_vertical_master_layout() {return *m_pVerticalMasterLayout;}
 
-		inline void set_communicator(const pcl::ParallelCommunicator<IndexLayout>& pc) {m_communicator = pc;}
-		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return m_communicator;}
+		inline void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc) {m_pCommunicator = &pc;}
+		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return *m_pCommunicator;}
 
-		inline void set_process_communicator(pcl::ProcessCommunicator& pc)	{m_pCommunicator = &pc;}
-		inline pcl::ProcessCommunicator& get_process_communicator()					{return *m_pCommunicator;}
+		inline void set_process_communicator(const pcl::ProcessCommunicator& pc)	{m_processCommunicator = pc;}
+		inline pcl::ProcessCommunicator& get_process_communicator()					{return m_processCommunicator;}
 
 		/////////////////////////
 		// Storage type handling
