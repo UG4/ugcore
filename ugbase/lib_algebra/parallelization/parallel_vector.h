@@ -64,14 +64,14 @@ class ParallelVector : public TVector
 		ParallelVector()
 		: TVector(), m_type(PST_UNDEFINED),
 			m_pSlaveLayout(NULL), m_pMasterLayout(NULL),
-			m_pVerticalSlaveLayout(NULL), m_pVerticalMasterLayout(NULL)
+			m_pVerticalSlaveLayout(NULL), m_pVerticalMasterLayout(NULL), m_pCommunicator(NULL)
 		{}
 
 		ParallelVector(	IndexLayout& slaveLayout, IndexLayout masterLayout,
 						IndexLayout& verticalSlaveLayout, IndexLayout& verticalMasterLayout)
 		: TVector(), m_type(PST_UNDEFINED),
 			m_pSlaveLayout(&slaveLayout), m_pMasterLayout(&masterLayout),
-			m_pVerticalSlaveLayout(&verticalSlaveLayout), m_pVerticalMasterLayout(&verticalMasterLayout)
+			m_pVerticalSlaveLayout(&verticalSlaveLayout), m_pVerticalMasterLayout(&verticalMasterLayout), m_pCommunicator(NULL)
 		{}
 
 		/////////////////////////

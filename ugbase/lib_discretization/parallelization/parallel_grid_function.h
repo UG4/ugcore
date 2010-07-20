@@ -119,6 +119,7 @@ class ParallelGridFunction : public TGridFunction
 		inline IndexLayout& get_vertical_slave_layout()		{return TGridFunction::m_pDoFDistribution->get_vertical_slave_layout();}
 		inline IndexLayout& get_vertical_master_layout()	{return TGridFunction::m_pDoFDistribution->get_vertical_master_layout();}
 
+		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return TGridFunction::m_pDoFDistribution->get_communicator();;}
 		inline pcl::ProcessCommunicator& get_process_communicator()	{return TGridFunction::m_pDoFDistribution->get_process_communicator();}
 
 		///////////////////////////////

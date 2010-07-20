@@ -19,6 +19,10 @@ bool
 ParallelVector<TVector>::
 change_storage_type(ParallelStorageType type)
 {
+	// check that communicator exists
+	if(m_pCommunicator == NULL)
+		{UG_LOG("No communicator set. Cannot change storage type.\n"); return false;}
+
 	// can only change if current state is defined
 	if(has_storage_type(PST_UNDEFINED)) return false;
 

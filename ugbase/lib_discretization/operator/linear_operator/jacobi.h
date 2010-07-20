@@ -72,6 +72,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 
 				m_diagInv.set_slave_layout(d.get_slave_layout());
 				m_diagInv.set_master_layout(d.get_master_layout());
+				m_diagInv.set_communicator(d.get_communicator());
 
 				typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
 				typename algebra_type::matrix_type::local_index_type locInd(1);
