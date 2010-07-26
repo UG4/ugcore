@@ -28,6 +28,20 @@ ProcessCommunicator(ProcessCommunicatorDefaults pcd)
 	}
 }
 
+size_t ProcessCommunicator::
+size()
+{
+	if(m_comm->m_mpiComm == MPI_COMM_NULL)
+		return 0;
+	
+	int size;
+	if(MPI_Comm_size(m_comm->m_mpiComm, &size) == MPI_SUCCESS)
+		return (size_t)size;
+		
+	UG_LOG("  ERROR in ProcessCommunicator::size(): Unknown MPI Error. Returning 0.\n");
+	return 0;
+}
+
 ProcessCommunicator
 ProcessCommunicator::
 create_sub_communicator(bool participate)
@@ -102,10 +116,24 @@ allreduce(void* sendBuf, void* recBuf, int count,
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
 	}
+	
 	MPI_Allreduce(sendBuf, recBuf, count, type, op, m_comm->m_mpiComm);
 }
 
-
+void
+ProcessCommunicator::
+allgather(void* sendBuf, int sendCount, DataType sendType,
+		  void* recBuf, int recCount, DataType recType)
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::allreduce: can't perform all_reduce on empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
+	}
+	
+	MPI_Allgather(sendBuf, sendCount, sendType, recBuf,
+				  recCount, recType, m_comm->m_mpiComm);
+}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y09 m12 d08
 
+#include <algorithm>
 #include "grid_distribution.h"
 #include "lib_grid/lib_grid.h"
 #include "pcl/pcl.h"
@@ -569,6 +570,143 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 
 //TODO:	allow the user to read his data.
 
+	return true;
+}
+
+
+
+//	processes which have to communicate with each other are
+//	notified through this method.
+//	vProcRanksInOut will grow if other processes want to
+//	communicate with this process.
+//	todo: pass a communicator. Currently COMM_WORLD is used.
+void CommunicateInvolvedProcesses(vector<int>& vProcRanksInOut)
+{
+	using namespace pcl;
+	
+	ProcessCommunicator procComm;//	world by default.
+	int localProcRank = GetProcRank();
+	
+//	if there is only one process in the communicator, there's
+//	nothing to do.
+	if(procComm.size() < 2)
+		return;
+
+//	we'll use an array in which we'll store the number of
+//	processes, to which each process wants to talk.
+	vector<int> vNumAssProcs(procComm.size());
+	
+//	perform allgather with proc-numbers
+	int procCount = (int)vProcRanksInOut.size();
+
+	procComm.allgather(&procCount, 1, PCL_DT_INT,
+					   &vNumAssProcs.front(),
+					   (int)vNumAssProcs.size(),
+					   PCL_DT_INT);
+					   
+//	sum the number of processes so that the absolute list size can
+//	be determined.
+	size_t listSize = 0;
+	for(size_t i = 0; i < vNumAssProcs.size(); ++i)
+		listSize += vNumAssProcs[i];
+		
+//	perform allgather with proc-lists
+//	this list will later on contain an adjacency-list for each proc.
+//	adjacency in this case means, that processes want to communicate.
+	vector<int> vGlobalProcList(listSize);
+	
+	procComm.allgather(&vProcRanksInOut.front(), procCount,
+					   PCL_DT_INT,
+					   &vGlobalProcList.front(), listSize,
+					   PCL_DT_INT);
+
+//	we can now check for each process whether it wants to
+//	communicate with this process. Simply iterate over
+//	the adjacency list to do so.
+	int gInd = 0;//	the index into the vGlobalProcList
+	for(size_t i = 0; i < vNumAssProcs.size(); ++i)
+	{
+		if((int)i != localProcRank){
+			for(int j = 0; j < vNumAssProcs[i]; ++j, ++gInd)
+			{
+			//	check whether vProcRanksInOut already contains the entry
+				if(find(vProcRanksInOut.begin(),
+						 vProcRanksInOut.end(),
+						 vGlobalProcList[gInd])
+						== vProcRanksInOut.end())
+				{
+					vProcRanksInOut.push_back(vGlobalProcList[gInd]);
+				}
+						 
+			}
+		}
+		else {
+			gInd += procCount;
+		}
+	}
+	
+//	vProcRanksInOut should now contain all process-ranks with which
+//	the local proc should communicate.
+}
+
+bool RedistributeGrid(MultiGrid& mgInOut, ISubsetHandler& shInOut,
+					  GridLayoutMap& gridLayoutMapInOut,
+					  SubsetHandler& shPartition)
+{
+	MultiGrid& mg = mgInOut;
+	//ISubsetHandler& sh = shInOut;
+	//GridLayoutMap& glm = gridLayoutMapInOut;
+	
+//	we have to store the layouts for all the processes.
+	vector<DistributionVertexLayout> vVertexLayouts;
+	vector<DistributionEdgeLayout> vEdgeLayouts;
+	vector<DistributionFaceLayout> vFaceLayouts;
+	vector<DistributionVolumeLayout> vVolumeLayouts;
+	
+//	we need some attachments that will speed up the called processes.
+	AInt aInt;
+	mg.attach_to_vertices(aInt);
+	mg.attach_to_edges(aInt);
+	mg.attach_to_faces(aInt);
+	mg.attach_to_volumes(aInt);
+	
+//	the selector will help to speed things up a little.
+	MGSelector msel(mg);
+
+	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
+							  vVolumeLayouts, mg, shPartition,
+							  false, &msel);
+							  
+	
+//	first we have to communicate which process has to wait for data
+//	from which other processes. In order to avoid a m^2 communication,
+//	we'll first communicate for each process, with how many processes it
+//	wants to communicate, and in the second step we'll distribute a list
+//	that contains the ranks of those processes.
+
+//	iterate over all partitions
+//	if the i-th partition is not empty, we have to communicate with
+//	the process of rank i.
+//TODO: use a proc-map to decouple subsets-indices and proces-ranks.
+/*
+	vector<int> vCommProcRanks;
+	for(size_t si = 0; si < shPartition.num_subsets(); ++si)
+	{
+	//	check whether there is anything in the partition
+		if(!shPartition.empty()){
+			vCommProcRanks.push_back((size_t)si);
+		}
+	}
+	
+//	send and receive communication requests from other processes.
+	CommunicateInvolvedProcesses(vCommProcRanks);
+*/
+//	clean up
+	mg.detach_from_vertices(aInt);
+	mg.detach_from_edges(aInt);
+	mg.detach_from_faces(aInt);
+	mg.detach_from_volumes(aInt);
+	
 	return true;
 }
 

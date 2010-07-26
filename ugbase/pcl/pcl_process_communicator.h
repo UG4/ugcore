@@ -41,6 +41,9 @@ class ProcessCommunicator
 	///	returns true if the communicator is empty, false if not.
 		inline bool empty()		{return m_comm->m_mpiComm == MPI_COMM_NULL;}
 		
+	///	returns the size of the communicator
+		size_t size();
+		
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current
 	 *	communicator - even if they don't want to participate in the new one.*/
@@ -49,6 +52,10 @@ class ProcessCommunicator
 	///	performs MPI_Allreduce on the processes of the communicator.
 		void allreduce(void* sendBuf, void* recBuf, int count,
 					   DataType type, ReduceOperation op);
+		
+	///	performs MPI_Allgather on the processes of the communicator.
+		void allgather(void* sendBuf, int sendCount, DataType sendType,
+					   void* recBuf, int recCount, DataType recType);
 		
 	private:
 	///	holds an mpi-communicator.
