@@ -1,6 +1,5 @@
 /*
- *  CoarseSolver.cpp
- *  flexamg
+ *  lapack_lu_impl.h
  *
  *  Created by Martin Rupp on 26.11.09.
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
