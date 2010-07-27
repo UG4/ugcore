@@ -190,6 +190,57 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 	return bFound;
 }
 
+
+/// set Dirichlet row for entry (i,alpha)
+/// assumes, that diagonal block (i,i) exists
+// TODO: This should also work, if diag block does not exist
+template <typename T>
+void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
+{
+	typename SparseMatrix<T>::rowIterator conn = A.beginRow(i);
+
+	// diag block
+	typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
+	for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+	{
+		if(beta == alpha) BlockRef(block, alpha, beta) = 1.0;
+		else BlockRef(block, alpha, beta) = 0.0;
+	}
+	++conn;
+
+	// off-diag blocks
+	for(; !conn.isEnd(); ++conn)
+	{
+		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
+		for(size_t beta = 0; beta < (size_t)GetCols(block); ++beta)
+		{
+			BlockRef(block, alpha, beta) = 0.0;
+		}
+	}
 }
+
+/// set Dirichlet row for block i
+/// assumes, that diagonal block (i,i) exists
+// TODO: This should also work, if diag block does not exist
+template <typename T>
+void SetDirichletRow(SparseMatrix<T>& A, size_t i)
+{
+	typename SparseMatrix<T>::rowIterator conn = A.beginRow(i);
+
+	// diag block
+	typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
+	block = 1.0;
+	conn++;
+
+	// off-diag blocks
+	for(; !conn.isEnd(); ++conn)
+	{
+		(*conn).dValue = 0.0;
+	}
+}
+
+
+} // end namespace ug
+
 
 #endif

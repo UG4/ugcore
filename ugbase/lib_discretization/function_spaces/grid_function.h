@@ -37,10 +37,13 @@ class GridFunction{
 		typedef typename algebra_type::vector_type vector_type;
 
 		// local vector type
-		typedef typename vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename vector_type::entry_type> local_vector_type;
 
 		// local index type
-		typedef typename vector_type::local_index_type local_index_type;
+		typedef LocalIndices local_index_type;
+
+		// multi index
+		typedef typename TDoFDistribution::multi_index_vector_type multi_index_vector_type;
 
 		// DOF DISTRIBUTION
 		// dof manager used for this approximation space
@@ -250,6 +253,7 @@ class GridFunction{
 		inline typename geometry_traits<TElem>::iterator end(int si) const
 			{return m_pDoFDistribution->template end<TElem>(si);}
 
+		/// number of algebra indices on an element
 		size_t num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
 			{return m_pDoFDistribution->num_indices(refID, si, funcGroup);}
 
@@ -266,58 +270,26 @@ class GridFunction{
 		inline bool get_dof_values(local_vector_type& val, local_index_type& ind) const
 			{m_pVector->get(val, ind); return true;}
 
-		// get multiindices on an finite element in canonical order
+		// number of multi indices on an finite element in canonical order
 		template <typename TElem>
-		inline size_t get_multi_indices(TElem* elem, size_t fct,
-										local_index_type& ind, size_t offset = 0) const
-			{return m_pDoFDistribution->get_multi_indices(elem, fct, ind, offset);}
+		inline size_t num_multi_indices(TElem* elem, size_t fct) const
+			{return m_pDoFDistribution->num_multi_indices(elem, fct);}
 
-		// get multiindices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline size_t get_multi_indices_of_geom_obj(TGeomObj* elem, size_t fct,
-													local_index_type& ind, size_t offset = 0) const
-			{return m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind, offset);}
-
-		// get local dof values
+		// get multi indices on an finite element in canonical order
 		template <typename TElem>
-		inline size_t get_dof_values(TElem* elem, size_t fct, local_vector_type& val) const
-		{
-			const size_t num_ind = m_pDoFDistribution->num_multi_indices(elem, fct);
-			local_index_type ind(num_ind);
-			m_pDoFDistribution->get_multi_indices(elem, fct, ind);
-			m_pVector->get(val, ind);
-			return num_ind;
-		}
+		inline size_t get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
+			{return m_pDoFDistribution->get_multi_indices(elem, fct, ind);}
 
+		// number of multi indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		inline size_t get_dof_values_of_geom_obj(TGeomObj* elem, size_t fct, local_vector_type& val) const
-		{
-			const size_t num_ind = m_pDoFDistribution->num_multi_indices_of_geom_obj(elem, fct);
-			local_index_type ind(num_ind);
-			m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind);
-			m_pVector->get(val, ind);
-			return num_ind;
-		}
+		inline size_t num_multi_indices_of_geom_obj(TGeomObj* elem, size_t fct) const
+			{return m_pDoFDistribution->num_multi_indices_of_geom_obj(elem, fct);}
 
-		template <typename TElem>
-		inline bool set_dof_values(TElem* elem, size_t fct, local_vector_type& val)
-		{
-			const size_t num_ind = m_pDoFDistribution->num_multi_indices(elem, fct);
-			local_index_type ind(num_ind);
-			m_pDoFDistribution->get_multi_indices(elem, fct, ind);
-			m_pVector->set(val, ind);
-			return true;
-		}
-
+		// get multi indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		inline bool set_dof_values_of_geom_obj(TGeomObj* elem, size_t fct, local_vector_type& val)
-		{
-			size_t num_ind = m_pDoFDistribution->num_multi_indices_of_geom_obj(elem, fct);
-			local_index_type ind(num_ind);
-			m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind);
-			m_pVector->set(val, ind);
-			return true;
-		}
+		inline size_t get_multi_indices_of_geom_obj(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
+			{return m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind);}
+
 
 		////////////////////////////
 		// Algebra requirements

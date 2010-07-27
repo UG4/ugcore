@@ -122,10 +122,10 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				alpha = rho/lambda;
 
 				// update x := x + alpha*p
-				VecScaleAdd(x, p, alpha);
+				VecScaleAppend(x, p, alpha);
 
 				// update r := r - alpha*t
-				VecScaleAdd(r, t, (-1)*alpha);
+				VecScaleAppend(r, t, (-1)*alpha);
 
 				// check convergence
 				m_ConvCheck.update(r);
@@ -170,7 +170,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		virtual ~CGSolver() {};
 
 	protected:
-		bool VecScaleAdd(domain_function_type& a_func, domain_function_type& b_func, number s)
+		bool VecScaleAppend(domain_function_type& a_func, domain_function_type& b_func, number s)
 		{
 			#ifdef UG_PARALLEL
 			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
@@ -183,16 +183,14 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			#endif
 			typename domain_function_type::vector_type& a = a_func.get_vector();
 			typename domain_function_type::vector_type& b = b_func.get_vector();
-			typename domain_function_type::algebra_type::matrix_type::local_matrix_type locMat(1, 1);
-			typename domain_function_type::algebra_type::matrix_type::local_index_type locInd(1);
-			typename domain_function_type::vector_type::local_vector_type locVec(1);
+
+			typedef typename domain_function_type::vector_type::entry_type entry_type;
 
 			for(size_t i = 0; i < a.size(); ++i){
-				locInd[0][0] = i;
-				b.get(locVec, locInd);
-				locVec[0] *= s;
 
-				a.add(locVec, locInd);
+				entry_type& block = b[i];
+				block *= s;
+				a[i] += block;
 			}
 			return true;
 		}

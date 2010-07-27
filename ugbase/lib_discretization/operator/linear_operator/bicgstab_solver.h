@@ -129,7 +129,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				p += b;
 
 				// subtract: p := p - beta * omega * v
-				VecScaleAdd(p, v, (-1)*beta*omega);
+				VecScaleAppend(p, v, (-1)*beta*omega);
 
 
 				// if preconditioner given
@@ -158,7 +158,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
 
 					// add: x := x + alpha * q
-					VecScaleAdd(x, q, alpha);
+					VecScaleAppend(x, q, alpha);
 				}
 				else
 				{
@@ -184,7 +184,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
 
 					// add: x := x + alpha * p
-					VecScaleAdd(x, p, alpha);
+					VecScaleAppend(x, p, alpha);
 				}
 
 
@@ -192,7 +192,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				s = b;
 
 				// update s := s - alpha*v
-				VecScaleAdd(s, v, (-1)*alpha);
+				VecScaleAppend(s, v, (-1)*alpha);
 
 				// check convergence
 				m_ConvCheck.update(s);
@@ -245,13 +245,13 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				else {UG_LOG("tt= " << tt << " is an invalid value. Aborting.\n"); return false;}
 
 				// add: x := x + omega * q
-				VecScaleAdd(x, q, omega);
+				VecScaleAppend(x, q, omega);
 
 				// set b := s
 				b = s;
 
 				// 2. update of b:  b:= b - omega*t
-				VecScaleAdd(b, t, (-1)*omega);
+				VecScaleAppend(b, t, (-1)*omega);
 
 				// check convergence
 				m_ConvCheck.update(b);
@@ -267,7 +267,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		virtual ~BiCGStabSolver() {};
 
 	protected:
-		bool VecScaleAdd(domain_function_type& a_func, domain_function_type& b_func, number s)
+		bool VecScaleAppend(domain_function_type& a_func, domain_function_type& b_func, number s)
 		{
 			#ifdef UG_PARALLEL
 			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
@@ -280,16 +280,14 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			#endif
 			typename domain_function_type::vector_type& a = a_func.get_vector();
 			typename domain_function_type::vector_type& b = b_func.get_vector();
-			typename domain_function_type::algebra_type::matrix_type::local_matrix_type locMat(1, 1);
-			typename domain_function_type::algebra_type::matrix_type::local_index_type locInd(1);
-			typename domain_function_type::vector_type::local_vector_type locVec(1);
+
+			typedef typename domain_function_type::vector_type::entry_type entry_type;
 
 			for(size_t i = 0; i < a.size(); ++i){
-				locInd[0][0] = i;
-				b.get(locVec, locInd);
-				locVec[0] *= s;
 
-				a.add(locVec, locInd);
+				entry_type& block = b[i];
+				block *= s;
+				a[i] += block;
 			}
 			return true;
 		}

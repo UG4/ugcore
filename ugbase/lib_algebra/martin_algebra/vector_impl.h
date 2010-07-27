@@ -292,6 +292,25 @@ bool Vector<entry_type>::add(const V& u)
 }
 
 template<typename entry_type>
+template<typename V>
+bool Vector<entry_type>::set(const V& u)
+{
+	for(size_t i=0; i < u.size(); i++)
+		values[u.index(i)] = u[i];
+	return true;
+}
+
+template<typename entry_type>
+template<typename V>
+bool Vector<entry_type>::get(V& u) const
+{
+	for(size_t i=0; i < u.size(); i++)
+		u[i] = values[u.index(i)];
+	return true;
+}
+
+/*
+template<typename entry_type>
 bool Vector<entry_type>::add(const local_vector_type &u, const local_index_type &ind)
 {
 	for(std::size_t i=0; i < ind.size(); i++)
@@ -314,7 +333,7 @@ bool Vector<entry_type>::get(local_vector_type &u, const local_index_type &ind) 
 		u[i] = values[ind[i][0]];
 	return true;
 }
-
+*/
 
 template<typename entry_type>
 void Vector<entry_type>::add(const entry_type &d, size_t i)

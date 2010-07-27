@@ -85,7 +85,7 @@ class VTKOutput{
 		bool write_scalar_elementwise(	FILE* File,
 										discrete_function_type& u, uint fct,
 										typename geometry_traits<TElem>::iterator iterBegin,
-										typename geometry_traits<TElem>::iterator iterEnd);
+										typename geometry_traits<TElem>::iterator iterEnd, int si);
 
 
 	private:

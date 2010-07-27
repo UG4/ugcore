@@ -105,7 +105,7 @@ class P1ConformDoFDistribution : public DoFDistribution
 		typedef MultiIndex<1> index_type;
 
 		// value container for element local indices
-		typedef std::vector<index_type> local_index_type;
+		typedef std::vector<index_type> multi_index_vector_type;
 
 		// Storage type
 		typedef P1StorageManager StorageManager;
@@ -218,19 +218,21 @@ class P1ConformDoFDistribution : public DoFDistribution
 
 		/// get indices of element for a function fct including boundary of element
 		template<typename TElem>
-		size_t get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, size_t offset = 0) const
+		size_t get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 		{
 			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
-			for(int i = 0; i < ref_elem_type::num_corners; ++i)
+			const size_t numDofs = ref_elem_type::num_corners;
+			ind.resize(numDofs);
+			for(size_t i = 0; i < numDofs; ++i)
 			{
 				VertexBase* vrt = elem->vertex(i);
 				int si = m_pISubsetHandler->get_subset_index(vrt);
 
-				ind[offset + i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+				ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+				ind[i][1] = 0;
 			}
-
-			return ref_elem_type::num_corners;
+			return numDofs;
 		}
 
 		template<typename TElem>
@@ -243,13 +245,15 @@ class P1ConformDoFDistribution : public DoFDistribution
 
 		/// get indices of element for a function fct excluding boundary of element
 		template<typename TElem>
-		size_t get_multi_indices_of_geom_obj(TElem* obj, size_t fct, local_index_type& ind, size_t offset = 0) const
+		size_t get_multi_indices_of_geom_obj(TElem* obj, size_t fct, multi_index_vector_type& ind) const
 		{
 			if((GeometricBaseObject)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID == (GeometricBaseObject)VERTEX)
 			{
 				VertexBase* vrt = (VertexBase*)obj;
 				int si = m_pISubsetHandler->get_subset_index(vrt);
-				ind[offset + 0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+				ind.resize(1);
+				ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+				ind[0][1] = 0;
 				return 1;
 			}
 			else return 0;
@@ -336,7 +340,7 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 		typedef MultiIndex<1> index_type;
 
 		// value container for element local indices
-		typedef std::vector<index_type> local_index_type;
+		typedef std::vector<index_type> multi_index_vector_type;
 
 		// Storage type
 		typedef P1StorageManager StorageManager;
@@ -431,9 +435,16 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 				int si = m_pISubsetHandler->get_subset_index(vrt);
 
 				const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
-
 				ind.set_index(i, index);
 			}
+		}
+
+		void update_indices(VertexBase* vrt, LocalIndices& ind) const
+		{
+			int si = m_pISubsetHandler->get_subset_index(vrt);
+
+			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			ind.set_index(0, index);
 		}
 
 
@@ -446,19 +457,21 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 
 		/// get indices of element for a function fct including boundary of element
 		template<typename TElem>
-		size_t get_multi_indices(TElem* elem, size_t fct, local_index_type& ind, size_t offset = 0) const
+		size_t get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 		{
 			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
-			for(int i = 0; i < ref_elem_type::num_corners; ++i)
+			const size_t numDofs = ref_elem_type::num_corners;
+			ind.resize(numDofs);
+			for(size_t i = 0; i < numDofs; ++i)
 			{
 				VertexBase* vrt = elem->vertex(i);
 				int si = m_pISubsetHandler->get_subset_index(vrt);
 
-				ind[offset + i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+				ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+				ind[i][1] = fct;
 			}
-
-			return ref_elem_type::num_corners;
+			return numDofs;
 		}
 
 		template<typename TElem>
@@ -471,13 +484,15 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 
 		/// get indices of element for a function fct excluding boundary of element
 		template<typename TElem>
-		size_t get_multi_indices_of_geom_obj(TElem* obj, size_t fct, local_index_type& ind, size_t offset = 0) const
+		size_t get_multi_indices_of_geom_obj(TElem* obj, size_t fct, multi_index_vector_type& ind) const
 		{
 			if((GeometricBaseObject)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID == (GeometricBaseObject)VERTEX)
 			{
 				VertexBase* vrt = (VertexBase*)obj;
 				int si = m_pISubsetHandler->get_subset_index(vrt);
-				ind[offset + 0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+				ind.resize(1);
+				ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+				ind[0][1] = fct;
 				return 1;
 			}
 			else return 0;

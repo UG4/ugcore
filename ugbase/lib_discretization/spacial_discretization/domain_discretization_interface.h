@@ -129,7 +129,7 @@ class IDirichletBoundaryValues{
 	public:
 		virtual IAssembleReturn clear_dirichlet_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
-		virtual IAssembleReturn clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, int si,number time = 0.0)
+		virtual IAssembleReturn clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
 		virtual IAssembleReturn set_dirichlet_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}

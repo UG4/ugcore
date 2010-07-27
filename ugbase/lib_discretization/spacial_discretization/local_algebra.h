@@ -232,7 +232,7 @@ class LocalVector
 		}
 
 		/// set all components of the vector
-		void set(entry_type val)
+		void set(number val)
 		{
 			iterator iterEnd = m_entries.end();
 			for(iterator iter = m_entries.begin(); iter != iterEnd; ++iter)
@@ -240,7 +240,7 @@ class LocalVector
 		}
 
 		/// multiply all components of the vector
-		this_type& operator*(entry_type val)
+		this_type& operator*(number val)
 		{
 			iterator iterEnd = m_entries.end();
 			for(iterator iter = m_entries.begin(); iter != iterEnd; ++iter)
@@ -397,7 +397,7 @@ class LocalMatrix
 		}
 
 		/// set all entries
-		void set(entry_type val)
+		void set(number val)
 		{
 			for(size_t i = 0; i < num_rows(); ++i)
 				for(size_t j = 0; j < num_cols(); ++j)
@@ -405,7 +405,7 @@ class LocalMatrix
 		}
 
 		/// multiply all entries
-		this_type& operator*(entry_type val)
+		this_type& operator*(number val)
 		{
 			for(size_t i = 0; i < num_rows(); ++i)
 				for(size_t j = 0; j < num_cols(); ++j)

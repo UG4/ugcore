@@ -125,7 +125,7 @@ class GenericGeometricObjectIterator : public TBaseIterator
 
 		inline TValue& operator* ()	{return (TValue&)(TBaseIterator::operator*());}
 		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
-		
+
 	protected:
 		GenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
@@ -153,7 +153,7 @@ class ConstGenericGeometricObjectIterator : public TBaseIterator
 			TBaseIterator(iter)	{}
 
 		inline const TValue& operator* () const	{return (TValue&)(TBaseIterator::operator*());}
-		
+
 	protected:
 		ConstGenericGeometricObjectIterator(const GeometricObjectIterator& iter) :
 			TBaseIterator(iter)	{}
@@ -217,7 +217,7 @@ class geometry_traits<GeometricObject>
 	public:
 		typedef GeometricObjectIterator			iterator;
 		typedef ConstGeometricObjectIterator	const_iterator;
-		
+
 		enum
 		{
 			SHARED_PIPE_SECTION = -1,
@@ -263,7 +263,7 @@ class geometry_traits<VertexBase>
 	public:
 		typedef GenericGeometricObjectIterator<VertexBase*>			iterator;
 		typedef ConstGenericGeometricObjectIterator<VertexBase*>	const_iterator;
-		
+
 		typedef VertexBase	geometric_base_object;
 
 		enum
@@ -354,7 +354,7 @@ class geometry_traits<EdgeBase>
 	public:
 		typedef GenericGeometricObjectIterator<EdgeBase*>		iterator;
 		typedef ConstGenericGeometricObjectIterator<EdgeBase*>	const_iterator;
-		
+
 		typedef EdgeBase	geometric_base_object;
 
 		enum
@@ -483,7 +483,7 @@ class Face : public GeometricObject, public FaceVertices
 
 		inline uint num_edges() const	{return num_vertices();}
 		inline uint num_sides() const	{return num_edges();}
-		
+
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return FACE;}
 		virtual int reference_object_id() const	{return -1;}
@@ -608,7 +608,7 @@ class geometry_traits<Face>
 	public:
 		typedef GenericGeometricObjectIterator<Face*>		iterator;
 		typedef ConstGenericGeometricObjectIterator<Face*>	const_iterator;
-		
+
 		typedef Face	geometric_base_object;
 		//typedef void Descriptor;	///< Faces can't be created directly
 
@@ -809,7 +809,7 @@ class geometry_traits<Volume>
 	public:
 		typedef GenericGeometricObjectIterator<Volume*>			iterator;
 		typedef ConstGenericGeometricObjectIterator<Volume*>	const_iterator;
-		
+
 		typedef Volume		geometric_base_object;
 
 		enum

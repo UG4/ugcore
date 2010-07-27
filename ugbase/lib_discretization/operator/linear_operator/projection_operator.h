@@ -54,12 +54,9 @@ bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse
 	if(!mat.create(numCoarseDoFs, numFineDoFs))
 		{UG_LOG("Cannot create Interpolation Matrix.\n"); return false;}
 
-	// TODO: Change matrix access
-	typename TMatrix::local_matrix_type val(1,1);
-	typename TMatrix::local_index_type coarse_ind(1);
-	typename TMatrix::local_index_type fine_ind(1);
-	// value will always be one
-	val(0,0) = 1.0;
+	LocalMatrix<typename TMatrix::entry_type> loc_mat;
+	typename TFunction::local_index_type coarse_ind;
+	typename TFunction::local_index_type fine_ind;
 
 	// Vertex iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
@@ -67,6 +64,13 @@ bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse
 	// loop subsets of fine level
 	for(int si = 0; si < uFine.num_subsets(); ++si)
 	{
+		// prepare local indices for elem type
+		if(!uCoarse.prepare_indices(ROID_VERTEX, si, fine_ind))
+			{UG_LOG("Cannot prepare indices.\n"); return false;}
+		// prepare local indices for elem type
+		if(!uFine.prepare_indices(ROID_VERTEX, si, coarse_ind))
+			{UG_LOG("Cannot prepare indices.\n"); return false;}
+
 		iterBegin = uFine.template begin<Vertex>(si);
 		iterEnd = uFine.template end<Vertex>(si);
 
@@ -77,23 +81,33 @@ bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse
 			GeometricObject* geomObj = grid.get_parent(*iter);
 			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 
+			// get global indices
+			uFine.update_indices(*iter, fine_ind);
+
+			// Check if father is Vertex
+			if(vert != NULL)
+			{
+				// get global indices
+				uCoarse.update_indices(vert, coarse_ind);
+			}
+			else
+			{UG_LOG("Vertex found, that has no father. This is impossible.\n"); return false;}
+
+			// adjust local matrix
+			loc_mat.set_indices(coarse_ind, fine_ind);
+			loc_mat.set(0.0);
+
 			// loop functions on subset
 			for(size_t fct = 0; fct < uFine.num_fct(); ++fct)
 			{
 				if(!uFine.is_def_in_subset(fct, si)) continue;
+				if(!uCoarse.is_def_in_subset(fct, si)) continue;
 
-				// get fine index
-				if(uFine.get_multi_indices_of_geom_obj(*iter, fct, fine_ind) != 1)
-					{UG_LOG("Cannot determine fine index of node."); return false;}
+				// This is for nodal elements only
+				loc_mat(fct, 0, fct, 0) = 1.0;
 
-				// Check if father is Vertex
-				if(vert != NULL)
-				{
-					if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarse_ind) != 1)
-						{UG_LOG("Cannot determine coarse index of node."); return false;}
-
-					mat.add(val, coarse_ind, fine_ind);
-				}
+				// Add to global matrix
+				mat.add(loc_mat);
 			}
 		}
 	}

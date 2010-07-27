@@ -95,19 +95,22 @@ public:
 	void set(const entry_type &d, size_t i);
 	void get(entry_type &d, size_t i) const;
 
-	/** Add a local vector
+	/** add/set/get a local vector
 	 *
 	 * The local vector type must provide the following members:
 	 * - size()					- length of local vector
 	 * - index(size_t i)		- global index for component i
 	 * - operator[](size_t i)	- access to value of component i
 	 */
-	template <typename V>
-	bool add(const V& u);
+	template <typename V> bool add(const V& u);
+	template <typename V> bool set(const V& u);
+	template <typename V> bool get(V& u) const;
 
+/*
 	bool add(const local_vector_type &u, const local_index_type &ind);
 	bool set(const local_vector_type &u, const local_index_type &ind);
 	bool get(local_vector_type &u, const local_index_type &ind) const;
+*/
 
 	//template<typename T> inline void apply(Operation_type op, const T &t);
 

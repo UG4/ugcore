@@ -438,14 +438,14 @@ write_scalar(FILE* File, discrete_function_type& u, uint fct, int si, int dim)
 	switch(dim)
 	{
 		case 1:
-			if(write_scalar_elementwise<Edge>(File, u, fct, u.template begin<Edge>(si), u.template end<Edge>(si)) == false) return false;
+			if(write_scalar_elementwise<Edge>(File, u, fct, u.template begin<Edge>(si), u.template end<Edge>(si), si) == false) return false;
 			break;
 		case 2:
-			if(write_scalar_elementwise<Triangle>(File, u, fct, u.template begin<Triangle>(si), u.template end<Triangle>(si)) == false) return false;
-			if(write_scalar_elementwise<Quadrilateral>(File, u, fct, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si)) == false) return false;
+			if(write_scalar_elementwise<Triangle>(File, u, fct, u.template begin<Triangle>(si), u.template end<Triangle>(si), si) == false) return false;
+			if(write_scalar_elementwise<Quadrilateral>(File, u, fct, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si) == false) return false;
 			break;
 		case 3:
-			if(write_scalar_elementwise<Tetrahedron>(File, u, fct, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) == false) return false;
+			if(write_scalar_elementwise<Tetrahedron>(File, u, fct, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si) == false) return false;
 			break;
 	}
 
@@ -640,13 +640,22 @@ VTKOutput<TDiscreteFunction>::
 write_scalar_elementwise(FILE* File,
 						discrete_function_type& u, uint fct,
 						typename geometry_traits<TElem>::iterator iterBegin,
-						typename geometry_traits<TElem>::iterator iterEnd)
+						typename geometry_traits<TElem>::iterator iterEnd,
+						int si)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
 	float valf;
 	BStream.size = sizeof(float);
 
 	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing nodal values to file for function " << u.name(fct) << " ----\n");
+
+	typename discrete_function_type::local_vector_type loc_u;
+	typename discrete_function_type::local_index_type ind;
+
+	// prepare local indices for elem type
+	if(!u.prepare_indices(refID, si, ind))
+		{UG_LOG("Cannot prepare indices.\n"); return false;}
 
 	m_grid->begin_marking();
 	for( ; iterBegin != iterEnd; ++iterBegin)
@@ -659,9 +668,14 @@ write_scalar_elementwise(FILE* File,
 
 			m_grid->mark(v);
 
-			typename discrete_function_type::local_vector_type val(1);
-			u.get_dof_values_of_geom_obj(v, fct, val);
-			valf = (float) val[0];
+			// get global indices
+			u.update_indices(elem, ind);
+
+			// read local values of u
+			const typename TDiscreteFunction::vector_type& u_vec = u.get_vector();
+			loc_u.read_values(u_vec);
+
+			valf = (float) loc_u(fct, 0);
 
 			UG_DLOG(LIB_DISC_OUTPUT, 3, "Writing value: " << valf << "\n");
 			BStreamWrite(File, &valf);

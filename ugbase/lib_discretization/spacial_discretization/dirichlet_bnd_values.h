@@ -37,20 +37,14 @@ class DirichletBNDValues : public IDirichletBoundaryValues<TDiscreteFunction> {
 		// type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of local matrix
-		typedef typename matrix_type::local_matrix_type local_matrix_type;
-
 		// type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
-
-		// type of algebra vector
-		typedef typename vector_type::local_vector_type local_vector_type;
-
-		// type of multi_index used in algebra
-		typedef typename matrix_type::index_type index_type;
+		typedef typename TDiscreteFunction::vector_type vector_type;
 
 		// type of local index container
-		typedef typename matrix_type::local_index_type local_index_type;
+		typedef typename TDiscreteFunction::local_index_type local_index_type;
+
+		// type of multi index vector
+		typedef typename TDiscreteFunction::multi_index_vector_type multi_index_vector_type;
 
 	public:
 		typedef bool (*Boundary_fct)(number&, const position_type&, number);
@@ -59,7 +53,6 @@ class DirichletBNDValues : public IDirichletBoundaryValues<TDiscreteFunction> {
 		  m_bndfct(bnd_fct), m_fct(fct), m_domain(domain)
 		  {}
 
-		IAssembleReturn clear_dirichlet_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time = 0.0);
 		IAssembleReturn clear_dirichlet_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time = 0.0);
 		IAssembleReturn clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, int si,number time = 0.0);
 		IAssembleReturn set_dirichlet_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time = 0.0);
@@ -67,12 +60,6 @@ class DirichletBNDValues : public IDirichletBoundaryValues<TDiscreteFunction> {
 		IAssembleReturn set_dirichlet_solution(discrete_function_type& u, int si, number time = 0.0);
 
 	protected:
-		template <typename TElem>
-		bool clear_dirichlet_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
-												typename geometry_traits<TElem>::iterator iterEnd,
-												size_t fct, int si, matrix_type& J, vector_type& d,
-												const discrete_function_type& u, number time = 0.0);
-
 		template <typename TElem>
 		bool clear_dirichlet_jacobian(			typename geometry_traits<TElem>::iterator iterBegin,
 												typename geometry_traits<TElem>::iterator iterEnd,
@@ -104,18 +91,6 @@ class DirichletBNDValues : public IDirichletBoundaryValues<TDiscreteFunction> {
 		size_t m_fct;
 		domain_type& m_domain;
 };
-
-
-template <typename TDiscreteFunction, int ref_dim>
-IAssembleReturn
-DirichletBNDValues<TDiscreteFunction, ref_dim>::
-clear_dirichlet_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u, int si, number time)
-{
-	if(clear_dirichlet_jacobian_defect<VertexBase>(u.template begin<VertexBase>(si),u.template end<VertexBase>(si), m_fct, si, J, d, u, time) == false)
-		{UG_LOG("Error in set_dirichlet_nodes, aborting.\n"); return IAssemble_ERROR;}
-
-	return IAssemble_OK;
-}
 
 
 template <typename TDiscreteFunction, int ref_dim>
@@ -167,47 +142,6 @@ template <typename TDiscreteFunction, int ref_dim>
 template <typename TElem>
 bool
 DirichletBNDValues<TDiscreteFunction, ref_dim>::
-clear_dirichlet_jacobian_defect(	typename geometry_traits<TElem>::iterator iterBegin,
-									typename geometry_traits<TElem>::iterator iterEnd,
-									size_t fct, int si,
-									matrix_type& J, vector_type& d,
-									const discrete_function_type& u, number time)
-{
-	typename domain_type::position_accessor_type aaPos = u.get_domain().get_position_accessor();
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
-
-	number val;
-	position_type corner;
-
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
-	{
-		TElem* elem = *iter;
-		corner = aaPos[elem];
-
-		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1) assert(0);
-
-		if(m_bndfct(val, corner, time))
-		{
-			glob_ind.push_back(ind[0]);
-			dirichlet_vals.push_back(0.0);
-		}
-	}
-
-	if(d.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	if(J.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
-	return true;
-}
-
-template <typename TDiscreteFunction, int ref_dim>
-template <typename TElem>
-bool
-DirichletBNDValues<TDiscreteFunction, ref_dim>::
 clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						size_t fct, int si,
@@ -215,9 +149,7 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 						const discrete_function_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
+	multi_index_vector_type multInd;
 
 	number val;
 	position_type corner;
@@ -227,18 +159,14 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 		TElem* elem = *iter;
 		corner = aaPos[elem];
 
-		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1)
+		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
 			return false;
 
 		if(m_bndfct(val, corner, time))
 		{
-			glob_ind.push_back(ind[0]);
-			dirichlet_vals.push_back(0.0);
+			BlockRef(d[multInd[0][0]], multInd[0][1]) = 0.0;
 		}
 	}
-
-	if(d.set(dirichlet_vals, glob_ind) != true)
-		return false;
 
 	return true;
 }
@@ -254,8 +182,7 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 							const discrete_function_type& u, number time)
 {
 	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
-	local_index_type ind(1);
-	local_index_type glob_ind;
+	multi_index_vector_type multInd;
 
 	number val;
 	position_type corner;
@@ -265,19 +192,15 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 		TElem* elem = *iter;
 		corner = aaPos[elem];
 
-		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1)
+		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
 			return false;
 
 		if(m_bndfct(val, corner, time))
 		{
-			glob_ind.push_back(ind[0]);
+			SetDirichletRow(J, multInd[0][0], multInd[0][1]);
 		}
 
 	}
-
-	if(J.set_dirichlet_rows(glob_ind) != true)
-		return false;
-
 	return true;
 }
 
@@ -293,9 +216,7 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::iterator iterBegin,
 {
 	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
+	multi_index_vector_type multInd;
 
 	number val;
 	position_type corner;
@@ -306,19 +227,14 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::iterator iterBegin,
 		// TODO: if TElem != Vertex we have to do something else
 		corner = aaPos[elem];
 
-		if(u.get_multi_indices_of_geom_obj(elem, fct, ind) != 1)
+		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
 			return false;
 
 		if(m_bndfct(val, corner, time))
 		{
-			glob_ind.push_back(ind[0]);
-			dirichlet_vals.push_back(val);
+			BlockRef(x[multInd[0][0]], multInd[0][1]) = val;
 		}
 	}
-
-	if(x.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
 	return true;
 }
 
@@ -335,9 +251,7 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 {
 	typename domain_type::position_accessor_type aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 
-	local_index_type ind(1);
-	local_index_type glob_ind;
-	local_vector_type dirichlet_vals;
+	multi_index_vector_type multInd;
 
 	number val;
 	position_type corner;
@@ -348,20 +262,14 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 		// TODO: if TElem != Vertex we have to do something else
 		corner = aaPos[elem];
 
-		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, ind) != 1)
+		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
 			return false;
 		if(m_bndfct(val, corner, time))
 		{
-			glob_ind.push_back(ind[0]);
-			dirichlet_vals.push_back(val);
+			BlockRef(rhs[multInd[0][0]], multInd[0][1]) = val;
+			SetDirichletRow(mat, multInd[0][0], multInd[0][1]);
 		}
 	}
-
-	if(rhs.set(dirichlet_vals, glob_ind) != true)
-		return false;
-
-	if(mat.set_dirichlet_rows(glob_ind) != true)
-		return false;
 
 	return true;
 }
