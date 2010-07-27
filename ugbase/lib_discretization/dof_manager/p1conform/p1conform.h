@@ -102,10 +102,13 @@ class P1ConformDoFDistribution : public DoFDistribution
 {
 	public:
 		// type of multiindex used
-		typedef MultiIndex<1> index_type;
+		typedef MultiIndex<2> index_type;
 
 		// value container for element local indices
 		typedef std::vector<index_type> multi_index_vector_type;
+
+		// algebra index vector
+		typedef std::vector<size_t> algebra_index_vector_type;
 
 		// Storage type
 		typedef P1StorageManager StorageManager;
@@ -208,6 +211,16 @@ class P1ConformDoFDistribution : public DoFDistribution
 			}
 		}
 
+		void update_indices(VertexBase* vrt, LocalIndices& ind) const
+		{
+			int si = m_pISubsetHandler->get_subset_index(vrt);
+			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+
+			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+			{
+				ind.set_index(fct, index + ind.fct_id(fct));
+			}
+		}
 
 		template<typename TElem>
 		size_t num_multi_indices(TElem* obj, size_t fct) const
@@ -259,6 +272,44 @@ class P1ConformDoFDistribution : public DoFDistribution
 			else return 0;
 		}
 
+		/// get algebra indices of element including boundary of element
+		template<typename TElem>
+		void get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
+		{
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
+			ind.clear();
+
+			const int elem_si = m_pISubsetHandler->get_subset_index(elem);
+			for(size_t fct = 0; fct < num_fct(elem_si); ++fct)
+			{
+				for(size_t i = 0; i < ref_elem_type::num_corners; ++i)
+				{
+					VertexBase* vrt = elem->vertex(i);
+					int si = m_pISubsetHandler->get_subset_index(vrt);
+					const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+					ind.push_back(ind);
+				}
+			}
+		}
+
+		/// get indices of element for a function fct excluding boundary of element
+		template<typename TElem>
+		void get_algebra_indices_of_geom_obj(TElem* obj, algebra_index_vector_type& ind) const
+		{
+			ind.clear();
+			if((GeometricBaseObject)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID == (GeometricBaseObject)VERTEX)
+			{
+				VertexBase* vrt = (VertexBase*)obj;
+				int si = m_pISubsetHandler->get_subset_index(vrt);
+
+				const size_t index =  m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+				for(size_t fct = 0; fct < num_fct(si); ++fct)
+				{
+					ind.push_back(index + fct);
+				}
+			}
+		}
 
 		///////////////////////////
 		// Creation
@@ -337,10 +388,13 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 {
 	public:
 		// type of multiindex used
-		typedef MultiIndex<1> index_type;
+		typedef MultiIndex<2> index_type;
 
 		// value container for element local indices
 		typedef std::vector<index_type> multi_index_vector_type;
+
+		// algebra index vector
+		typedef std::vector<size_t> algebra_index_vector_type;
 
 		// Storage type
 		typedef P1StorageManager StorageManager;
@@ -498,6 +552,42 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 			else return 0;
 		}
 
+		/// get algebra indices of element including boundary of element
+		template<typename TElem>
+		void get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
+		{
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
+			ind.clear();
+
+			// if no functions, return
+			const int elem_si = m_pISubsetHandler->get_subset_index(elem);
+			if(num_fct(elem_si) == 0) return;
+
+			for(size_t i = 0; i < ref_elem_type::num_corners; ++i)
+			{
+					VertexBase* vrt = elem->vertex(i);
+					int si = m_pISubsetHandler->get_subset_index(vrt);
+					const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+					ind.push_back(ind);
+			}
+		}
+
+		/// get indices of element for a function fct excluding boundary of element
+		template<typename TElem>
+		void get_algebra_indices_of_geom_obj(TElem* obj, algebra_index_vector_type& ind) const
+		{
+			ind.clear();
+			if((GeometricBaseObject)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID == (GeometricBaseObject)VERTEX)
+			{
+				VertexBase* vrt = (VertexBase*)obj;
+				int si = m_pISubsetHandler->get_subset_index(vrt);
+				if(num_fct(si) == 0) return;
+
+				const size_t index =  m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+				ind.push_back(index);
+			}
+		}
 
 		///////////////////////////
 		// Creation

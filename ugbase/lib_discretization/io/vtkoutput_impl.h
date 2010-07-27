@@ -644,18 +644,13 @@ write_scalar_elementwise(FILE* File,
 						int si)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
 	float valf;
 	BStream.size = sizeof(float);
 
 	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing nodal values to file for function " << u.name(fct) << " ----\n");
 
-	typename discrete_function_type::local_vector_type loc_u;
-	typename discrete_function_type::local_index_type ind;
-
-	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind))
-		{UG_LOG("Cannot prepare indices.\n"); return false;}
+	typename TDiscreteFunction::multi_index_vector_type multInd;
+	typename TDiscreteFunction::vector_type& u_vec = u.get_vector();
 
 	m_grid->begin_marking();
 	for( ; iterBegin != iterEnd; ++iterBegin)
@@ -668,14 +663,13 @@ write_scalar_elementwise(FILE* File,
 
 			m_grid->mark(v);
 
-			// get global indices
-			u.update_indices(elem, ind);
+			if(u.get_multi_indices_of_geom_obj(v, fct, multInd) != 1)
+				return false;
 
-			// read local values of u
-			const typename TDiscreteFunction::vector_type& u_vec = u.get_vector();
-			loc_u.read_values(u_vec);
+			const size_t index = multInd[0][0];
+			const size_t alpha = multInd[0][1];
 
-			valf = (float) loc_u(fct, 0);
+			valf = (float) BlockRef(u_vec[index], alpha);
 
 			UG_DLOG(LIB_DISC_OUTPUT, 3, "Writing value: " << valf << "\n");
 			BStreamWrite(File, &valf);

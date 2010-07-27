@@ -46,16 +46,11 @@ bool AddEntriesToIndexLayout(IndexLayout& indexLayoutOut,
 			eIter != elemInterface.end(); ++eIter)
 		{
 			typename ElemInterface::Element elem = elemInterface.get_element(eIter);
-			typename TDoFDistr::local_index_type loc_index;
-			for(size_t fct = 0; fct < dofDistr.num_fct(); ++fct)
+			typename TDoFDistr::algebra_index_vector_type indices;
+			dofDistr.get_algebra_indices_of_geom_obj(elem, indices);
+			for(size_t i = 0; i < indices.size(); ++i)
 			{
-			//TODO: num_multi_indices_of_geom_obj
-				loc_index.resize(dofDistr.num_multi_indices(elem, fct));
-				dofDistr.get_multi_indices_of_geom_obj(elem, fct, loc_index);
-				for(size_t i = 0; i < loc_index.size(); ++i)
-				{
-					indexInterface.push_back(loc_index[i][0]);
-				}
+				indexInterface.push_back(indices[i]);
 			}
 		}
 	}

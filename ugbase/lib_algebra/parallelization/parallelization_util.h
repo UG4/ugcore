@@ -96,15 +96,11 @@ void ConsistentToUnique(	TVector* pVec,
 	{
 		typename IndexLayout::Interface& interface = slaveLayout.interface(iter);
 		{
-			typename TVector::local_vector_type u(1);
-			typename TVector::local_index_type i(1);
-
-			u[0] = 0.0;
 			for(typename IndexLayout::Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
-				i[0][0] = interface.get_element(iter);
-				pVec->set(u, i);
+				const size_t index = interface.get_element(iter);
+				(*pVec)[index] = 0.0;
 			}
 		}
 	}

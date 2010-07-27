@@ -34,18 +34,14 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
-			typename TVector::local_vector_type u(1);
-			typename TVector::local_index_type i(1);
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
-				i[0][0] = interface.get_element(iter);
-				v.get(u, i);
-				buff.write((char*)&u[0], sizeof(typename TVector::
-												local_vector_type::
-												entry_type));
+				const size_t index = interface.get_element(iter);
+				typename TVector::entry_type entry = v[index];
+				buff.write((char*)&entry, sizeof(typename TVector::entry_type));
 			}
 			return true;
 		}
@@ -53,18 +49,15 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::local_vector_type u(1);
-			typename TVector::local_index_type i(1);
+			typename TVector::entry_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
-				i[0][0] = interface.get_element(iter);
-				buff.read((char*)&u[0], sizeof(typename TVector::
-												local_vector_type::
-												entry_type));
-				v.set(u, i);
+				const size_t index = interface.get_element(iter);
+				buff.read((char*)&entry, sizeof(typename TVector::entry_type));
+				v[index] = entry;
 			}
 			return true;
 		}
@@ -93,18 +86,14 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
-			typename TVector::local_vector_type u(1);
-			typename TVector::local_index_type i(1);
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
-				i[0][0] = interface.get_element(iter);
-				v.get(u, i);
-				buff.write((char*)&u[0], sizeof(typename TVector::
-												local_vector_type::
-												entry_type));
+				const size_t index = interface.get_element(iter);
+				typename TVector::entry_type entry = v[index];
+				buff.write((char*)&entry, sizeof(typename TVector::entry_type));
 			}
 			return true;
 		}
@@ -112,18 +101,15 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::local_vector_type u(1);
-			typename TVector::local_index_type i(1);
+			typename TVector::entry_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
-				i[0][0] = interface.get_element(iter);
-				buff.read((char*)&u[0], sizeof(typename TVector::
-												local_vector_type::
-												entry_type));
-				v.add(u, i);
+				const size_t index = interface.get_element(iter);
+				buff.read((char*)&entry, sizeof(typename TVector::entry_type));
+				v[index] += entry;
 			}
 			return true;
 		}
@@ -152,20 +138,15 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
-			typename TVector::local_vector_type u(1);
-			typename TVector::local_index_type i(1);
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
-				i[0][0] = interface.get_element(iter);
-				v.get(u, i);
-				buff.write((char*)&u[0], sizeof(typename TVector::
-												local_vector_type::
-												entry_type));
-				u[0] = 0.0;
-				v.set(u, i);
+				const size_t index = interface.get_element(iter);
+				typename TVector::entry_type entry = v[index];
+				buff.write((char*)&entry, sizeof(typename TVector::entry_type));
+				v[index] = 0.0;
 			}
 			return true;
 		}
@@ -173,18 +154,15 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::local_vector_type u(1);
-			typename TVector::local_index_type i(1);
+			typename TVector::entry_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
-				i[0][0] = interface.get_element(iter);
-				buff.read((char*)&u[0], sizeof(typename TVector::
-												local_vector_type::
-												entry_type));
-				v.add(u, i);
+				const size_t index = interface.get_element(iter);
+				buff.read((char*)&entry, sizeof(typename TVector::entry_type));
+				v[index] += entry;
 			}
 			return true;
 		}

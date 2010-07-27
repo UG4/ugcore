@@ -63,9 +63,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 	if(!mat.create(numFineDoFs, numCoarseDoFs))
 		{UG_LOG("Cannot create Interpolation Matrix.\n"); return false;}
 
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_mat;
-	typename TFunction::local_index_type coarse_ind;
-	typename TFunction::local_index_type fine_ind;
+	typename TFunction::multi_index_vector_type fineMultInd;
+	typename TFunction::multi_index_vector_type coarseMultInd;
 
 	// iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
@@ -73,13 +72,6 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 	// loop subsets on fine level
 	for(int si = 0; si < uFine.num_subsets(); ++si)
 	{
-		// prepare local indices for elem type
-		if(!uFine.prepare_indices(ROID_VERTEX, si, fine_ind))
-			{UG_LOG("Cannot prepare indices.\n"); return false;}
-		// prepare local indices for elem type
-		if(!uCoarse.prepare_indices(ROID_VERTEX, si, coarse_ind))
-			{UG_LOG("Cannot prepare indices.\n"); return false;}
-
 		iterBegin = uFine.template begin<Vertex>(si);
 		iterEnd = uFine.template end<Vertex>(si);
 
@@ -92,32 +84,28 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 			Edge* edge = dynamic_cast<Edge*>(geomObj);
 			Quadrilateral* quad = dynamic_cast<Quadrilateral*>(geomObj);
 
-			// get global indices
-			uFine.update_indices(*iter, fine_ind);
-
 			for(size_t fct = 0; fct < uFine.num_fct(); fct++)
 			{
 				if(ass.is_dirichlet(si, fct)) continue;
 				if(!uFine.is_def_in_subset(fct, si)) continue;
 
+				// get global indices
+				if(uFine.get_multi_indices_of_geom_obj(*iter, fct, fineMultInd) != 1)
+					return false;
+
 				// Check if father is Vertex
 				if(vert != NULL)
 				{
 					// get global indices
-					uCoarse.update_indices(vert, coarse_ind);
+					if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarseMultInd) != 1)
+						return false;
 
 					// skip boundary nodes
 					int si = sh.get_subset_index(vert);
 					if(ass.is_dirichlet(si, fct)) continue;
 
-					// adjust local matrix
-					loc_mat.set_indices(coarse_ind, fine_ind);
-					loc_mat.set(0.0);
-
-					// This is for nodal elements only
-					loc_mat(fct, 0, fct, 0) = 1.0;
-
-					mat.add(loc_mat);
+					BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
+								fineMultInd[0][1], coarseMultInd[0][1]) = 1.0;
 					continue;
 				}
 
@@ -129,20 +117,15 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 						vert = edge->vertex(i);
 
 						// get global indices
-						uCoarse.update_indices(vert, coarse_ind);
+						if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarseMultInd) != 1)
+							return false;
 
 						// skip boundary nodes
 						int si = sh.get_subset_index(vert);
 						if(ass.is_dirichlet(si, fct)) continue;
 
-						// adjust local matrix
-						loc_mat.set_indices(coarse_ind, fine_ind);
-						loc_mat.set(0.0);
-
-						// This is for nodal elements only
-						loc_mat(fct, 0, fct, 0) = 0.5;
-
-						mat.add(loc_mat);
+						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
+									fineMultInd[0][1], coarseMultInd[0][1]) = 0.5;
 					}
 					continue;
 				}
@@ -155,20 +138,15 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 						vert = quad->vertex(i);
 
 						// get global indices
-						uCoarse.update_indices(vert, coarse_ind);
+						if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarseMultInd) != 1)
+							return false;
 
 						// skip boundary nodes
 						int si = sh.get_subset_index(vert);
 						if(ass.is_dirichlet(si, fct)) continue;
 
-						// adjust local matrix
-						loc_mat.set_indices(coarse_ind, fine_ind);
-						loc_mat.set(0.0);
-
-						// This is for nodal elements only
-						loc_mat(fct, 0, fct, 0) = 0.25;
-
-						mat.add(loc_mat);
+						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
+									fineMultInd[0][1], coarseMultInd[0][1]) = 0.25;
 					}
 					continue;
 				}

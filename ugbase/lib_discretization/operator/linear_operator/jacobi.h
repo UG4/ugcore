@@ -74,17 +74,9 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 				m_diagInv.set_master_layout(d.get_master_layout());
 				m_diagInv.set_communicator(d.get_communicator());
 
-				typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
-				typename algebra_type::matrix_type::local_index_type locInd(1);
-				typename domain_function_type::vector_type::local_vector_type locVec(1);
-
-				// collect diagonal
+				// copy diagonal
 				for(size_t i = 0; i < m_diagInv.size(); ++i){
-					locInd[0][0] = i;
-					m_pMatrix->get(locMat, locInd, locInd);
-
-					locVec[0] = locMat(0, 0);
-					m_diagInv.set(locVec, locInd);
+					m_diagInv[i] = (*m_pMatrix)(i,i);
 				}
 
 				//	make diagonal consistent
@@ -93,11 +85,8 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 
 				// invert diagonal and multiply by damping
 				for(size_t i = 0; i < m_diagInv.size(); ++i){
-					locInd[0][0] = i;
-					m_diagInv.get(locVec, locInd);
-
-					locVec[0] = m_damp / locVec[0];
-					m_diagInv.set(locVec, locInd);
+					typename domain_function_type::vector_type::entry_type entry = m_diagInv[i];
+					m_diagInv[i] = m_damp / entry;
 				}
 				m_bOpChanged = false;
 			}
@@ -125,20 +114,10 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
 
 #ifdef UG_PARALLEL
-			typename algebra_type::matrix_type::local_matrix_type locMat(1, 1);
-			typename algebra_type::matrix_type::local_index_type locInd(1);
-			typename domain_function_type::vector_type::local_vector_type locVec(1);
-
 			// multiply defect with diagonal, c = damp * D^{-1} * d
+			// TODO: We should handle this by a VecEntrywiseMultiply
 			for(size_t i = 0; i < m_diagInv.size(); ++i){
-				locInd[0][0] = i;
-				m_diagInv.get(locVec, locInd);
-				number a = locVec[0];
-
-				d_vec.get(locVec, locInd);
-				locVec[0] *= a;
-
-				c_vec.set(locVec, locInd);
+				c_vec[i] = m_diagInv[i] * d_vec[i];
 			}
 
 			// make correction consistent

@@ -45,6 +45,9 @@ class GridFunction{
 		// multi index
 		typedef typename TDoFDistribution::multi_index_vector_type multi_index_vector_type;
 
+		// algebra index
+		typedef typename TDoFDistribution::algebra_index_vector_type algebra_index_vector_type;
+
 		// DOF DISTRIBUTION
 		// dof manager used for this approximation space
 		typedef TDoFDistribution dof_distribution_type;
@@ -290,6 +293,15 @@ class GridFunction{
 		inline size_t get_multi_indices_of_geom_obj(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
 			{return m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind);}
 
+		// get algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		inline void get_algebra_indices_of_geom_obj(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{m_pDoFDistribution->get_algebra_indices_of_geom_obj(elem, ind);}
+
+		// get algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		inline void get_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{m_pDoFDistribution->get_algebra_indices(elem, ind);}
 
 		////////////////////////////
 		// Algebra requirements

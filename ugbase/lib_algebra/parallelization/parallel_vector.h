@@ -134,8 +134,8 @@ class ParallelVector : public TVector
 		/////////////////////////
 		// forward hidden (due to overloading in base class) functions of sequential vector
 		/////////////////////////
-		bool set(const local_vector_type &u, const local_index_type &ind)
-			{return TVector::set(u, ind);}
+//		bool set(const local_vector_type &u, const local_index_type &ind)
+//			{return TVector::set(u, ind);}
 		// TODO: Ask Martin why return is void, compile error in other operator=
 /*		void operator= (const this_type& v)
 			{return TVector::operator=(v);}

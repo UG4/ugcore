@@ -20,13 +20,11 @@ using namespace ug;
 ///////////////
 // Vertex
 ///////////////
-/*
+
 ReferenceElementWrapper<ReferenceVertex> refVertex;
-DimReferenceElementWrapper<ReferenceVertex, 2> dimRefVertex;
 
 static const bool registered_1 = ReferenceElementFactory::register_reference_element(refVertex);
-static const bool registered_2 = DimReferenceElementFactory<2>::register_reference_element(dimRefVertex);
-*/
+
 ///////////////
 // Edge
 ///////////////
