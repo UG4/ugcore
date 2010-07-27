@@ -32,6 +32,37 @@ void
 MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2);
 
 ////////////////////////////////////////////////////////////////
+// Multiplication of Matrices
+
+///	multiply two matrices and stores the result in a third one
+// mOut = m1 * m2
+template <size_t N, size_t M, size_t L, typename T>
+inline
+void
+MatMult(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const MathMatrix<L, M, T>& m2);
+
+///	multiply two transposed matrices and stores the result in a third one
+// mOut = m1^T * m2^T
+template <size_t N, size_t M, size_t L, typename T>
+inline
+void
+MatMultiplyTransposed(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1, const MathMatrix<M, L, T>& m2);
+
+///	multiply a transposed matrix with itself and stores the result in a second one
+// mOut = m^T * m
+template <size_t N, size_t M, typename T>
+inline
+void
+MatMultiplyMTM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m);
+
+///	multiply a matrix with its transposed and stores the result in a second one
+// mOut = m * m^T
+template <size_t N, size_t M, typename T>
+inline
+void
+MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m);
+
+////////////////////////////////////////////////////////////////
 // Scaling of Matrices
 
 ///	scales a matrix_t
@@ -76,6 +107,10 @@ Transpose(matrix_t& m);
 template <typename T>
 inline
 void
+Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m);
+template <typename T>
+inline
+void
 Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m);
 template <typename T>
 inline
@@ -83,6 +118,10 @@ void
 Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 
 /// Inverse of a matrix_t
+template <typename T>
+inline
+void
+Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det);
 template <typename T>
 inline
 void
@@ -99,6 +138,10 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix
 template <typename T>
 inline
 void
+InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m);
+template <typename T>
+inline
+void
 InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m);
 template <typename T>
 inline
@@ -109,11 +152,29 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m);
 template <typename T>
 inline
 void
+InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det);
+template <typename T>
+inline
+void
 InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det);
 template <typename T>
 inline
 void
 InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix<3,3,T>::value_type& det);
+
+////////////////////////////////////////////////////////////////
+// Right-Inverse of Matrix
+template <size_t N, size_t M, typename T>
+inline
+void
+RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
+
+////////////////////////////////////////////////////////////////
+// Left-Inverse of Matrix
+template <size_t N, size_t M, typename T>
+inline
+void
+LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m);
 
 ////////////////////////////////////////////////////////////////
 // Scalar operations for Matrices

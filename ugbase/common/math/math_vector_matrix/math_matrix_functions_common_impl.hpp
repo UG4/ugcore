@@ -46,6 +46,94 @@ MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 		}
 }
 
+///	multiply two matrices and stores the result in a third one
+// mOut = m1 * m2
+template <size_t N, size_t M, size_t L, typename T>
+inline
+void
+MatMultiply(MathMatrix<N, M, T>& mOut, const MathMatrix<N, L, T>& m1, const MathMatrix<L, M, T>& m2)
+{
+	for(size_t i = 0; i < N; ++i)
+		for(size_t j = 0; j < M; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < L; ++k)
+			{
+				mOut(i,j) += m1(i,k) * m2(k,j);
+			}
+		}
+}
+
+///	multiply two transposed matrices and stores the result in a third one
+// mOut = m1^T * m2^T
+template <size_t N, size_t M, size_t L, typename T>
+inline
+void
+MatMultiplyTransposed(MathMatrix<N, M, T>& mOut, const MathMatrix<L, N, T>& m1, const MathMatrix<M, L, T>& m2)
+{
+	for(size_t i = 0; i < N; ++i)
+		for(size_t j = 0; j < M; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < L; ++k)
+			{
+				mOut(i,j) += m1(k,i) * m2(j,k);
+			}
+		}
+}
+
+///	multiply a transposed matrix with itself and stores the result in a second one
+// mOut = m^T * m
+template <size_t N, size_t M, typename T>
+inline
+void
+MatMultiplyMTM(MathMatrix<N, N, T>& mOut, const MathMatrix<M, N, T>& m)
+{
+	for(size_t i = 0; i < N; ++i)
+	{
+		for(size_t j = 0; j < i; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < M; ++k)
+			{
+				mOut(i,j) += m(k,i) * m(k,j);
+			}
+			mOut(j,i) = mOut(i,j);
+		}
+		mOut(i,i) = 0;
+		for(size_t k = 0; k < M; ++k)
+		{
+			mOut(i,i) += m(k,i) * m(k,i);
+		}
+	}
+}
+
+///	multiply a matrix with its transposed and stores the result in a second one
+// mOut = m * m^T
+template <size_t N, size_t M, typename T>
+inline
+void
+MatMultiplyMMT(MathMatrix<M, M, T>& mOut, const MathMatrix<M, N, T>& m)
+{
+	for(size_t i = 0; i < M; ++i)
+	{
+		for(size_t j = 0; j < i; ++j)
+		{
+			mOut(i,j) = 0;
+			for(size_t k = 0; k < N; ++k)
+			{
+				mOut(i,j) += m(i,k) * m(j,k);
+			}
+			mOut(j,i) = mOut(i,j);
+		}
+		mOut(i,i) = 0;
+		for(size_t k = 0; k < N; ++k)
+		{
+			mOut(i,i) += m(i,k) * m(i,k);
+		}
+	}
+}
+
 ///	scales a matrix_t and returns the resulting matrix_t
 // mOut = scaleFac * m
 template <typename matrix_t>
@@ -125,6 +213,16 @@ Determinant(const MathMatrix<3,3,T>& m)
 template <typename T>
 inline
 void
+Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m)
+{
+	assert(&mOut != &m && "ERROR: mOut and m have to be different");
+	assert(m(0,0) != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	mOut(0,0) =  1./m(0,0);
+}
+
+template <typename T>
+inline
+void
 Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m)
 {
 	typename MathMatrix<2,2,T>::value_type det;
@@ -164,6 +262,18 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 template <typename T>
 inline
 void
+Inverse(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det)
+{
+	det = m(0,0);
+	assert(&mOut != &m && "ERROR: mOut and m have to be different");
+	assert(m(0,0) != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
+	mOut(0,0) =  1./m(0,0);
+}
+
+
+template <typename T>
+inline
+void
 Inverse(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det)
 {
 	det = Determinant(m);
@@ -196,6 +306,14 @@ Inverse(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename MathMatrix
 	mOut(2,0) = ( m(1,0)*m(2,1) - m(1,1)*m(2,0)) * invdet;
 	mOut(2,1) = (-m(0,0)*m(2,1) + m(0,1)*m(2,0)) * invdet;
 	mOut(2,2) = ( m(0,0)*m(1,1) - m(0,1)*m(1,0)) * invdet;
+}
+
+template <typename T>
+inline
+void
+InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m)
+{
+	Inverse(mOut, m);
 }
 
 template <typename T>
@@ -240,6 +358,14 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m)
 template <typename T>
 inline
 void
+InverseTransposed(MathMatrix<1,1,T>& mOut, const MathMatrix<1,1,T>& m, typename MathMatrix<1,1,T>::value_type& det)
+{
+	Inverse(mOut, m, det);
+}
+
+template <typename T>
+inline
+void
 InverseTransposed(MathMatrix<2,2,T>& mOut, const MathMatrix<2,2,T>& m, typename MathMatrix<2,2,T>::value_type& det)
 {
 	det = Determinant(m);
@@ -273,6 +399,67 @@ InverseTransposed(MathMatrix<3,3,T>& mOut, const MathMatrix<3,3,T>& m, typename 
     mOut(2,1) = (-m(0,0)*m(1,2) + m(1,0)*m(0,2)) * invdet;
     mOut(2,2) = ( m(0,0)*m(1,1) - m(1,0)*m(0,1)) * invdet;
 }
+
+// Right-Inverse of Matrix
+template <size_t N, size_t M, typename T>
+inline
+void
+RightInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
+{
+	UG_STATIC_ASSERT(M <= N, pseudo_inverse_does_not_exist);
+
+	// H = m*mT (H is symmetric)
+	// TODO: Since H is symmetric, we could store only lower or upper elements
+	MathMatrix<M,M,T> H, HInv;
+	MatMultiplyMMT(H, m);
+	// Invert H
+	Inverse(HInv, H);
+
+	MatMultiplyTransposed(mOut, m, HInv);
+}
+
+// Left-Inverse of Matrix
+template <size_t N, size_t M, typename T>
+inline
+void
+LeftInverse(MathMatrix<N,M,T>& mOut, MathMatrix<M,N,T>& m)
+{
+	UG_STATIC_ASSERT(N <= M, pseudo_inverse_does_not_exist);
+
+	// H = mT*m (H is symmetric)
+	// TODO: Since H is symmetric, we could store only lower or upper elements
+	MathMatrix<M,M,T> H, HInv;
+	MatMultiplyMTM(H, m);
+
+	// Invert H
+	Inverse(HInv, H);
+
+	MatMultiplyTransposed(mOut, HInv, m);
+}
+
+template <>
+inline void
+RightInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){Inverse(mOut, m);}
+
+template <>
+inline void
+RightInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){Inverse(mOut, m);}
+
+template <>
+inline void
+RightInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
+
+template <>
+inline void
+LeftInverse(MathMatrix<1,1>& mOut, MathMatrix<1,1>& m){Inverse(mOut, m);}
+
+template <>
+inline void
+LeftInverse(MathMatrix<2,2>& mOut, MathMatrix<2,2>& m){Inverse(mOut, m);}
+
+template <>
+inline void
+LeftInverse(MathMatrix<3,3>& mOut, MathMatrix<3,3>& m){Inverse(mOut, m);}
 
 /// Set each matrix entry to a scalar (componentwise)
 template <typename matrix_t>
@@ -370,7 +557,7 @@ MatFrobeniusNormSq(matrix_t& m)
 		{
 			norm += m(i,j)*m(i,j);
 		}
-		
+
 	return norm;
 }
 
@@ -432,7 +619,7 @@ MatMaxNorm(matrix_t& m)
 		{
 			max = (m(i,j) > max) ? m(i,j) : max;
 		}
-		
+
 	return max;
 }
 
