@@ -12,116 +12,121 @@ namespace ug{
 
 class ReferenceEdge
 {
-public:
-	static const ReferenceElementType REFERENCE_ELEMENT_TYPE = RET_EDGE;
-	static const int dim = 1;
-	static const int num_corners = 2;
-	static const int num_edges = 1;
-	static const int num_faces = 0;
-	static const int num_volumes = 0;
-public:
-	ReferenceEdge(){initializeArrays();}
+	public:
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
+		static const int dim = 1;
+		static const int num_corners = 2;
+		static const int num_edges = 1;
+		static const int num_faces = 0;
+		static const int num_volumes = 0;
 
-	/* Dimension where reference element lives */
-	int dimension() const {return dim;}
+	public:
+		ReferenceEdge() {initializeArrays();}
 
-	/* size of reference triangle */
-	number size() const	{return 1.0;}
+		/// reference object id
+		ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
 
-	/* coordinates of reference corner Nr i (i=0..numberOfCorners) */
-	const MathVector<dim>& corner(int i) const {return m_corner[i];}
+		/// Dimension where reference element lives
+		int dimension() const {return dim;}
 
-	/* number of reference elements with id of dimension 'dim' of this reference element */
-	unsigned int num_ref_elem(ReferenceElementType type) const {return m_ref_elem[type];}
+		/// size of reference triangle
+		number size() const	{return 0.5;}
 
-	/* reference element type of subObject nr i of dimension dim_i */
-	ReferenceElementType ref_elem_type(int dim_i, int i) const{	return m_ref_elem_type[dim_i][i];}
+		/// number of objects of dim
+		size_t num_obj(int dim)	const {return m_num_obj[dim];}
 
-	unsigned int num_obj(int dim) const	{return m_num_obj[dim];}
+		/// number of object of dim
+		size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const
+			{return m_num_obj_of_obj[dim_i][i][dim_j];}
 
-	unsigned int num_obj_of_obj(int dim_i, int i, int dim_j) const
-		{return m_num_obj_of_obj[dim_i][i][dim_j];}
+		/// id of object j in dimension dim_j of obj i in dimension dim_i
+		int id(int dim_i, size_t i, int dim_j, size_t j) const
+			{return m_id[dim_i][i][dim_j][j];}
 
-	int id(int dim_i, int i, int dim_j, int j) const
-		{return m_id[dim_i][i][dim_j][j];}
+		/// number of reference elements this element is contained of
+		size_t num_ref_elem(ReferenceObjectID type) const {return m_ref_elem[type];}
 
-	~ReferenceEdge()
-	{}
+		/// reference element type of obj nr i in dimension dim_i */
+		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_ref_elem_type[dim_i][i];}
 
-private:
-	// to make it more readable
-	enum{POINT = 0, EDGE = 1};
-	enum{MAXOBJECTS = 2};
+		/// coordinates of reference corner (i = 0 ... num_obj(0))
+		const MathVector<dim>& corner(int i) const {return m_corner[i];}
 
-	/* number of Geometric Objects of Reference Element
-	 * (m_num_obj[dim] = number of GeomObjects of dimension dim) */
-	unsigned int m_num_obj[dim+1];
-	/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
-	unsigned int m_num_obj_of_obj[dim+1][MAXOBJECTS][dim+1];
-	/* coordinates of Reference Corner */
-	MathVector<dim> m_corner[2];
-	// indices of GeomObjects
-	int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];
+	private:
+		// to make it more readable
+		enum{POINT = 0, EDGE = 1};
+		enum{MAXOBJECTS = 2};
 
-	unsigned int m_ref_elem[NUM_REFERENCE_ELEMENTS];
-	ReferenceElementType m_ref_elem_type[dim+1][MAXOBJECTS];
+		/* number of Geometric Objects of Reference Element
+		 * (m_num_obj[dim] = number of GeomObjects of dimension dim) */
+		size_t m_num_obj[dim+1];
+		/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
+		size_t m_num_obj_of_obj[dim+1][MAXOBJECTS][dim+1];
+		/* coordinates of Reference Corner */
+		MathVector<dim> m_corner[2];
+		// indices of GeomObjects
+		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];
 
-	void initializeArrays()
-	{
-		//number of Geometric Objects
-	 	m_num_obj[POINT] = 2;
-	 	m_num_obj[EDGE] = 1;
+		size_t m_ref_elem[NUM_REFERENCE_OBJECTS];
+		ReferenceObjectID m_ref_elem_type[dim+1][MAXOBJECTS];
 
-		// number of Geometric Objects
-	 	m_num_obj_of_obj[EDGE][0][POINT] = 2;
-	 	m_num_obj_of_obj[EDGE][0][EDGE] = 1;
+		void initializeArrays()
+		{
+			//number of Geometric Objects
+			m_num_obj[POINT] = 2;
+			m_num_obj[EDGE] = 1;
 
-	 	m_ref_elem_type[EDGE][0] = RET_EDGE;
+			// number of Geometric Objects
+			m_num_obj_of_obj[EDGE][0][POINT] = 2;
+			m_num_obj_of_obj[EDGE][0][EDGE] = 1;
 
-	 	for(unsigned int i = 0; i < m_num_obj[POINT]; ++i)
-	 	{
-		 	m_num_obj_of_obj[POINT][i][POINT] = 1;
-		 	m_num_obj_of_obj[POINT][i][EDGE] = 1;
+			m_ref_elem_type[EDGE][0] = ROID_EDGE;
 
-		 	m_ref_elem_type[POINT][i] = RET_POINT;
-	 	}
-
-		//reset m_id to -1
-		for(int i=0; i<=dim; ++i)
-			for(unsigned int j=0; j<MAXOBJECTS; ++j)
-				for(int k=0; k<=dim; ++k)
-					for(unsigned int l=0; l<MAXOBJECTS; l++)
-					{
-					 	m_id[i][j][k][l] = -1;
-					}
-
-		//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
-		for(int i=0; i<=dim; ++i)
-			for(unsigned int j=0; j<m_num_obj[i]; ++j)
+			for(size_t i = 0; i < m_num_obj[POINT]; ++i)
 			{
-			 	m_id[i][j][i][0] = j;
+				m_num_obj_of_obj[POINT][i][POINT] = 1;
+				m_num_obj_of_obj[POINT][i][EDGE] = 1;
+
+				m_ref_elem_type[POINT][i] = ROID_VERTEX;
 			}
 
-		// Points <-> Face
-		for(unsigned int i=0; i<m_num_obj[POINT]; ++i)
-		{
-		 	m_id[EDGE][0][POINT][i] = i;
-		 	m_id[POINT][i][EDGE][0] = 0;
+			//reset m_id to -1
+			for(int i=0; i<=dim; ++i)
+				for(size_t j=0; j<MAXOBJECTS; ++j)
+					for(int k=0; k<=dim; ++k)
+						for(size_t l=0; l<MAXOBJECTS; l++)
+						{
+							m_id[i][j][k][l] = -1;
+						}
+
+			//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
+			for(int i=0; i<=dim; ++i)
+				for(size_t j=0; j<m_num_obj[i]; ++j)
+				{
+					m_id[i][j][i][0] = j;
+				}
+
+			// Points <-> Face
+			for(size_t i=0; i<m_num_obj[POINT]; ++i)
+			{
+				m_id[EDGE][0][POINT][i] = i;
+				m_id[POINT][i][EDGE][0] = 0;
+			}
+
+			// Reference Corners
+			m_corner[0][0] = 0.0;
+			m_corner[1][0] = 1.0;
+
+			// Reference Element Types
+			for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
+			{
+				m_ref_elem[i] = 0;
+			}
+			m_ref_elem[ROID_VERTEX] = 2;
+			m_ref_elem[ROID_EDGE] = 1;
 		}
-
-		// Reference Corners
-	 	m_corner[0][0] = 0.0;
-	 	m_corner[1][0] = 1.0;
-
-	 	// Reference Element Types
-	 	for(int i = 0; i < NUM_REFERENCE_ELEMENTS; ++i)
-	 	{
-			m_ref_elem[i] = 0;
-	 	}
-	 	m_ref_elem[RET_POINT] = 2;
-	 	m_ref_elem[RET_EDGE] = 1;
-	}
 };
+
 
 template <>
 template <int TWorldDim>
@@ -164,16 +169,14 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 		{
 			MathMatrix<dim, world_dim> JT;
 
-			if(!jacobian_transposed(loc_pos, JT)) return false;
+			// get jacobian transposed
+			if(!jacobian_transposed(loc_pos, JT))
+				{UG_LOG("Cannot get jacobian transposed.\n");return false;}
 
-			if( (world_dim == 1) && (dim==1) )
-			{
-				JTInv[0][0] = 1./ JT[0][0];
-				return true;
-			}
+			// compute right inverse
+			RightInverse(JTInv, JT);
 
-			//TODO: Implement pseudo inverse
-			return false;
+			return true;
 		}
 
 		bool jacobian_det(const MathVector<dim>& loc_pos, number& det) const

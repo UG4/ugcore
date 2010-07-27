@@ -13,7 +13,7 @@ namespace ug{
 
 class ReferenceTriangle{
 	public:
-		static const ReferenceElementType REFERENCE_ELEMENT_TYPE = RET_TRIANGLE;
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 		static const int dim = 2;
 		static const int num_corners = 3;
 		static const int num_edges = 3;
@@ -23,31 +23,34 @@ class ReferenceTriangle{
 	public:
 		ReferenceTriangle(){initializeArrays();}
 
-		/* Dimension where reference element lives */
+		/// reference object id
+		ReferenceObjectID reference_object_id() const {return REFERENCE_OBJECT_ID;}
+
+		/// Dimension where reference element lives
 		int dimension() const {return dim;}
 
-		/* size of reference triangle */
+		/// size of reference triangle
 		number size() const	{return 0.5;}
 
-		/* coordinates of reference corner Nr i (i=0..numberOfCorners) */
-		const MathVector<dim>& corner(int i) const {return m_corner[i];}
+		/// number of objects of dim
+		size_t num_obj(int dim) const	{return m_num_obj[dim];}
 
-		/* number of reference elements with id of dimension 'dim' of this reference element */
-		unsigned int num_ref_elem(ReferenceElementType type) const {return m_ref_elem[type];}
-
-		/* reference element type of subObject nr i of dimension dim_i */
-		ReferenceElementType ref_elem_type(int dim_i, int i) const{	return m_ref_elem_type[dim_i][i];}
-
-		unsigned int num_obj(int dim) const	{return m_num_obj[dim];}
-
-		unsigned int num_obj_of_obj(int dim_i, int i, int dim_j) const
+		/// number of object of dim
+		size_t num_obj_of_obj(int dim_i, size_t i, int dim_j) const
 			{return m_num_obj_of_obj[dim_i][i][dim_j];}
 
-		int id(int dim_i, int i, int dim_j, int j) const
+		/// id of object j in dimension dim_j of obj i in dimension dim_i
+		int id(int dim_i, size_t i, int dim_j, size_t j) const
 			{return m_id[dim_i][i][dim_j][j];}
 
-		~ReferenceTriangle()
-		{}
+		/// number of reference elements this element is contained of
+		size_t num_ref_elem(ReferenceObjectID type) const {return m_ref_elem[type];}
+
+		/// reference element type of obj nr i in dimension dim_i */
+		ReferenceObjectID ref_elem_type(int dim_i, size_t i) const{	return m_ref_elem_type[dim_i][i];}
+
+		/// coordinates of reference corner (i = 0 ... num_obj(0))
+		const MathVector<dim>& corner(int i) const {return m_corner[i];}
 
 	private:
 		// to make it more readable
@@ -56,16 +59,16 @@ class ReferenceTriangle{
 
 		/* number of Geometric Objects of Reference Element
 		 * (m_num_obj[dim] = number of GeomObjects of dimension dim) */
-		unsigned int m_num_obj[dim+1];
+		size_t m_num_obj[dim+1];
 		/* number of Geometric Objects contained in a (Sub-)Geometric Object of the Element */
-		unsigned int m_num_obj_of_obj[dim+1][MAXOBJECTS][dim+1];
+		size_t m_num_obj_of_obj[dim+1][MAXOBJECTS][dim+1];
 		/* coordinates of Reference Corner */
 		MathVector<dim> m_corner[num_corners];
 		// indices of GeomObjects
 		int m_id[dim+1][MAXOBJECTS][dim+1][MAXOBJECTS];
 
-		unsigned int m_ref_elem[NUM_REFERENCE_ELEMENTS];
-		ReferenceElementType m_ref_elem_type[dim+1][MAXOBJECTS];
+		size_t m_ref_elem[NUM_REFERENCE_OBJECTS];
+		ReferenceObjectID m_ref_elem_type[dim+1][MAXOBJECTS];
 
 		void initializeArrays()
 		{
@@ -79,51 +82,51 @@ class ReferenceTriangle{
 		 	m_num_obj_of_obj[FACE][0][EDGE] = 3;
 		 	m_num_obj_of_obj[FACE][0][FACE] = 1;
 
-		 	m_ref_elem_type[FACE][0] = RET_TRIANGLE;
+		 	m_ref_elem_type[FACE][0] = ROID_TRIANGLE;
 
-		 	for(unsigned int i = 0; i < m_num_obj[EDGE]; ++i)
+		 	for(size_t i = 0; i < m_num_obj[EDGE]; ++i)
 		 	{
 			 	m_num_obj_of_obj[EDGE][i][POINT] = 2;
 			 	m_num_obj_of_obj[EDGE][i][EDGE] = 1;
 			 	m_num_obj_of_obj[EDGE][i][FACE] = 1;
 
-			 	m_ref_elem_type[EDGE][i] = RET_EDGE;
+			 	m_ref_elem_type[EDGE][i] = ROID_EDGE;
 		 	}
 
-		 	for(unsigned int i = 0; i < m_num_obj[POINT]; ++i)
+		 	for(size_t i = 0; i < m_num_obj[POINT]; ++i)
 		 	{
 			 	m_num_obj_of_obj[POINT][i][POINT] = 1;
 			 	m_num_obj_of_obj[POINT][i][EDGE] = 2;
 			 	m_num_obj_of_obj[POINT][i][FACE] = 1;
 
-			 	m_ref_elem_type[POINT][i] = RET_POINT;
+			 	m_ref_elem_type[POINT][i] = ROID_VERTEX;
 		 	}
 
 			//reset m_id to -1
 			for(int i=0; i<=dim; ++i)
-				for(unsigned int j=0; j<MAXOBJECTS; ++j)
+				for(size_t j=0; j<MAXOBJECTS; ++j)
 					for(int k=0; k<=dim; ++k)
-						for(unsigned int l=0; l<MAXOBJECTS; l++)
+						for(size_t l=0; l<MAXOBJECTS; l++)
 						{
 						 	m_id[i][j][k][l] = -1;
 						}
 
 			//self references: (i.e. Point <-> Point, Edge <-> Edge, etc.)
 			for(int i=0; i<=dim; ++i)
-				for(unsigned int j=0; j<m_num_obj[i]; ++j)
+				for(size_t j=0; j<m_num_obj[i]; ++j)
 				{
 				 	m_id[i][j][i][0] = j;
 				}
 
 			//Edges <-> Face
-			for(unsigned int i=0; i<m_num_obj[EDGE]; ++i)
+			for(size_t i=0; i<m_num_obj[EDGE]; ++i)
 			{
 			 	m_id[FACE][0][EDGE][i] = i;
 			 	m_id[EDGE][i][FACE][0] = 0;
 			}
 
 			// Points <-> Face
-			for(unsigned int i=0; i<m_num_obj[POINT]; ++i)
+			for(size_t i=0; i<m_num_obj[POINT]; ++i)
 			{
 			 	m_id[FACE][0][POINT][i] = i;
 			 	m_id[POINT][i][FACE][0] = 0;
@@ -157,13 +160,13 @@ class ReferenceTriangle{
 		 	m_corner[2] = MathVector<dim>(0.0, 1.0);
 
 		 	// Reference Element Types
-		 	for(int i = 0; i < NUM_REFERENCE_ELEMENTS; ++i)
+		 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
 		 	{
 				m_ref_elem[i] = 0;
 		 	}
-		 	m_ref_elem[RET_POINT] = 3;
-		 	m_ref_elem[RET_EDGE] = 3;
-		 	m_ref_elem[RET_TRIANGLE] = 1;
+		 	m_ref_elem[ROID_VERTEX] = 3;
+		 	m_ref_elem[ROID_EDGE] = 3;
+		 	m_ref_elem[ROID_TRIANGLE] = 1;
 		}
 
 
@@ -216,7 +219,10 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 
 			if(!jacobian_transposed(loc_pos, JT)) return false;
 
-			if( (world_dim == 2) && (dim==2) )
+			// compute right inverse
+			RightInverse(JTInv, JT);
+
+/*			if( (world_dim == 2) && (dim==2) )
 			{
 				const number det = JT[0][0]*JT[1][1] - JT[0][1]*JT[1][0];
 				UG_ASSERT(det != 0.0, "Zero Determinant. Impossible to invert");
@@ -230,6 +236,7 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 
 			//TODO: Implement pseudo inverse
 			return false;
+*/			return true;
 		}
 
 		bool jacobian_det(const MathVector<dim>& loc_pos, number& det) const
