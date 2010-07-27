@@ -449,7 +449,7 @@ class LocalMatrix
 		// discretization access
 		///////////////////////////
 
-		entry_type& operator()(size_t rowFct, size_t rowDof, size_t colFct, size_t colDof)
+		number& operator()(size_t rowFct, size_t rowDof, size_t colFct, size_t colDof)
 		{
 			const index_type row_index = m_pRowIndices->local_index(rowFct, rowDof);
 			const index_type col_index = m_pColIndices->local_index(colFct, colDof);
@@ -462,7 +462,7 @@ class LocalMatrix
 		}
 
 		/// const access to dof of function fct
-		const entry_type& operator()(size_t rowFct, size_t rowDof, size_t colFct, size_t colDof) const
+		const number& operator()(size_t rowFct, size_t rowDof, size_t colFct, size_t colDof) const
 		{
 			const index_type row_index = m_pRowIndices->local_index(rowFct, rowDof);
 			const index_type col_index = m_pColIndices->local_index(colFct, colDof);

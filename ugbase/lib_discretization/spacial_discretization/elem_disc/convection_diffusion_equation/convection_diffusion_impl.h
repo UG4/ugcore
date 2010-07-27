@@ -220,8 +220,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			shape_u = 0.0;
 			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
-				VecScaleAppend(grad_u, u[j], sdv.grad_global(j));
-				shape_u += u[j] * sdv.shape(j);
+				VecScaleAppend(grad_u, u(_C_,j), sdv.grad_global(j));
+				shape_u += u(_C_,j) * sdv.shape(j);
 			}
 
 			m_Diff_Tensor(D, scvf.global_ip(), time);
@@ -253,7 +253,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			if(m_upwind_amount != 0.0)
 			{
 				flux = m_upwind_amount * VecDot(v, scvf.normal());
-				if(flux >= 0.0) flux *= u[scvf.from()]; else flux *= u[scvf.to()];
+				if(flux >= 0.0) flux *= u(_C_, scvf.from()); else flux *= u(_C_, scvf.to());
 				d(_C_, scvf.from()) += flux;
 				d(_C_, scvf.to()  ) -= flux;
 			}
@@ -270,7 +270,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 		m_Reaction(reac_val, scv.global_corner_pos(), time);
 
-		d(_C_, co) += reac_val * u[co] * scv.volume();
+		d(_C_, co) += reac_val * u(_C_, co) * scv.volume();
 	}
 
 	return true;
@@ -291,7 +291,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 
 		co = scv.local_corner_id();
 
-		d(_C_, co) += u[co] * scv.volume();
+		d(_C_, co) += u(_C_, co) * scv.volume();
 	}
 
 	return true;
