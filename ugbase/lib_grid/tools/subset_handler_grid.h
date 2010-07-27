@@ -95,6 +95,19 @@ class GridSubsetHandler : public ISubsetHandler
 		template <class TElem>
 		uint num(int subsetIndex) const;
 
+	///	returns true if the subset-handler contains no elements of the given type.
+		template <class TElem> inline
+		bool empty() const;
+		
+	///	returns true if the subset-handler contains no elements at all.
+		inline bool empty() const;
+
+		template <class TElem> inline
+		bool empty(int subsetIndex) const;
+		
+	///	returns true if the subset-handler contains no elements at all.
+		inline bool empty(int subsetIndex) const;
+		
 	///	removes all elements of type TElem from the specified subset.
 		template <class TElem>
 		void clear_subset_elements(int subsetIndex);

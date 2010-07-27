@@ -182,6 +182,34 @@ num() const
 	return n;
 }
 
+template <class TElem> inline
+bool GridSubsetHandler::
+empty() const
+{
+	return num<TElem>() == 0;
+}
+
+inline bool GridSubsetHandler::
+empty() const
+{
+	return empty<VertexBase>() && empty<EdgeBase>()
+		   && empty<Face>() && empty<Volume>();
+}
+
+template <class TElem> inline
+bool GridSubsetHandler::
+empty(int subsetIndex) const
+{
+	return num<TElem>(subsetIndex) == 0;
+}
+
+inline bool GridSubsetHandler::
+empty(int subsetIndex) const
+{
+	return empty<VertexBase>(subsetIndex) && empty<EdgeBase>(subsetIndex)
+		   && empty<Face>(subsetIndex) && empty<Volume>(subsetIndex);
+}
+
 template<class TElem>
 void GridSubsetHandler::
 change_elem_subset_indices(int indOld, int indNew)

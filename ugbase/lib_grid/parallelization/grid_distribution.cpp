@@ -580,68 +580,79 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 //	vProcRanksInOut will grow if other processes want to
 //	communicate with this process.
 //	todo: pass a communicator. Currently COMM_WORLD is used.
-void CommunicateInvolvedProcesses(vector<int>& vProcRanksInOut)
+void CommunicateInvolvedProcesses(vector<int>& vReceiveFromRanksOut,
+								  vector<int>& vSendToRanks,
+								  const pcl::ProcessCommunicator& procComm
+								  	= pcl::ProcessCommunicator())
 {
 	using namespace pcl;
-	
-	ProcessCommunicator procComm;//	world by default.
-	int localProcRank = GetProcRank();
 	
 //	if there is only one process in the communicator, there's
 //	nothing to do.
 	if(procComm.size() < 2)
 		return;
 
+	const int localProcRank = GetProcRank();
+	
 //	we'll use an array in which we'll store the number of
 //	processes, to which each process wants to talk.
 	vector<int> vNumAssProcs(procComm.size());
+	UG_LOG("  procCommSize: " << procComm.size() << endl);
 	
 //	perform allgather with proc-numbers
-	int procCount = (int)vProcRanksInOut.size();
+	int procCount = (int)vSendToRanks.size();
 
 	procComm.allgather(&procCount, 1, PCL_DT_INT,
 					   &vNumAssProcs.front(),
-					   (int)vNumAssProcs.size(),
+					   1,
 					   PCL_DT_INT);
 					   
 //	sum the number of processes so that the absolute list size can
 //	be determined.
 	size_t listSize = 0;
-	for(size_t i = 0; i < vNumAssProcs.size(); ++i)
+	vector<int> vDisplacements(vNumAssProcs.size());
+	for(size_t i = 0; i < vNumAssProcs.size(); ++i){
+		vDisplacements[i] = (int)listSize;
 		listSize += vNumAssProcs[i];
+	}
 		
+	UG_LOG("  list-size: " << listSize << endl);
+	
 //	perform allgather with proc-lists
 //	this list will later on contain an adjacency-list for each proc.
 //	adjacency in this case means, that processes want to communicate.
 	vector<int> vGlobalProcList(listSize);
 	
-	procComm.allgather(&vProcRanksInOut.front(), procCount,
-					   PCL_DT_INT,
-					   &vGlobalProcList.front(), listSize,
-					   PCL_DT_INT);
+	procComm.allgatherv(&vSendToRanks.front(),
+						procCount,
+						PCL_DT_INT,
+						&vGlobalProcList.front(),
+						&vNumAssProcs.front(),
+						&vDisplacements.front(),
+						PCL_DT_INT);
 
 //	we can now check for each process whether it wants to
 //	communicate with this process. Simply iterate over
 //	the adjacency list to do so.
-	int gInd = 0;//	the index into the vGlobalProcList
-	for(size_t i = 0; i < vNumAssProcs.size(); ++i)
+	for(int i = 0; i < (int)vNumAssProcs.size(); ++i)
 	{
-		if((int)i != localProcRank){
-			for(int j = 0; j < vNumAssProcs[i]; ++j, ++gInd)
+		if(i != localProcRank){
+		//	check whether the i-th proc wants to communicate with the local proc
+			for(int j = 0; j < vNumAssProcs[i]; ++j)
 			{
-			//	check whether vProcRanksInOut already contains the entry
-				if(find(vProcRanksInOut.begin(),
-						 vProcRanksInOut.end(),
-						 vGlobalProcList[gInd])
-						== vProcRanksInOut.end())
+				if(vGlobalProcList[vDisplacements[i] + j] == localProcRank)
 				{
-					vProcRanksInOut.push_back(vGlobalProcList[gInd]);
-				}
-						 
+				//	check whether vProcRanksInOut already contains the entry
+					if(find(vReceiveFromRanksOut.begin(), vReceiveFromRanksOut.end(), i)
+							== vReceiveFromRanksOut.end())
+					{
+						vReceiveFromRanksOut.push_back(i);
+					}
+				
+				//	the i-th proc is handled completly. resume with the next.
+					break;
+				}						 
 			}
-		}
-		else {
-			gInd += procCount;
 		}
 	}
 	
@@ -649,11 +660,22 @@ void CommunicateInvolvedProcesses(vector<int>& vProcRanksInOut)
 //	the local proc should communicate.
 }
 
-bool RedistributeGrid(MultiGrid& mgInOut, ISubsetHandler& shInOut,
-					  GridLayoutMap& gridLayoutMapInOut,
+bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
+					  ISubsetHandler& shInOut,
 					  SubsetHandler& shPartition)
 {
-	MultiGrid& mg = mgInOut;
+	using namespace pcl;
+	
+	DistributedGridManager& distGridMgr = distGridMgrInOut;
+	
+	if(!distGridMgr.get_assigned_grid()){
+		UG_LOG("  WARNING in RedistributeGrid: distGridMgrInOut is not associated with a grid. Aborting.\n");
+		return false;
+	}
+	
+	const int localProcRank = GetProcRank();
+	
+	MultiGrid& mg = *distGridMgr.get_assigned_grid();
 	//ISubsetHandler& sh = shInOut;
 	//GridLayoutMap& glm = gridLayoutMapInOut;
 	
@@ -688,19 +710,70 @@ bool RedistributeGrid(MultiGrid& mgInOut, ISubsetHandler& shInOut,
 //	if the i-th partition is not empty, we have to communicate with
 //	the process of rank i.
 //TODO: use a proc-map to decouple subsets-indices and proces-ranks.
-/*
-	vector<int> vCommProcRanks;
+
+	vector<int> vSendToRanks;
 	for(size_t si = 0; si < shPartition.num_subsets(); ++si)
 	{
-	//	check whether there is anything in the partition
-		if(!shPartition.empty()){
-			vCommProcRanks.push_back((size_t)si);
+		//	todo: we have to check whether interfaces change and notify the
+		//		  associated processes.
+		if((int)si != localProcRank){
+		//	check whether there is anything in the partition
+			if(!shPartition.empty(si)){
+				vSendToRanks.push_back((size_t)si);
+			}
 		}
 	}
-	
+
 //	send and receive communication requests from other processes.
-	CommunicateInvolvedProcesses(vCommProcRanks);
-*/
+	vector<int> vReceiveFromRanks;
+	CommunicateInvolvedProcesses(vReceiveFromRanks, vSendToRanks);
+
+//	log the comm ranks
+	UG_LOG("  sending to ranks: ");
+	for(size_t i = 0; i < vSendToRanks.size(); ++i){
+		UG_LOG(vSendToRanks[i] << ", ");
+	}
+	UG_LOG(endl);
+
+	UG_LOG("  receiving from ranks: ");
+	for(size_t i = 0; i < vReceiveFromRanks.size(); ++i){
+		UG_LOG(vReceiveFromRanks[i] << ", ");
+	}
+	UG_LOG(endl);
+
+
+//	copy and delete the grid-parts
+//	todo: interfaces are ignored in the moment
+//	iterate over all processes to which we want to send data
+	BinaryStream binStreamOut;
+	vector<int> vBlockSizesOut;
+	
+	for(size_t i = 0; i < vSendToRanks.size(); ++i){
+	//	mark select the part of the grid that shall be sent to the process
+		int destProc = vSendToRanks[i];
+		msel.clear();
+		SelectNodesInLayout(msel, vVertexLayouts[i]);
+		SelectNodesInLayout(msel, vEdgeLayouts[i]);
+		SelectNodesInLayout(msel, vFaceLayouts[i]);
+		SelectNodesInLayout(msel, vVolumeLayouts[i]);
+		
+		size_t oldSize = binStreamOut.size();
+	
+	//	todo: write interface changes
+	
+	//	todo: write interfaces
+		
+	//	write the grid.
+	//	during serialization the local indices are automatically generated
+	//	and written to the aLocalInd... attachments.
+		SerializeMultiGridElements(mg,
+							msel.get_geometric_object_collection(),
+							aInt, aInt,
+							aInt, aInt, binStreamOut);
+		
+		vBlockSizesOut.push_back((int)(binStreamOut.size() - oldSize));
+	}
+	
 //	clean up
 	mg.detach_from_vertices(aInt);
 	mg.detach_from_edges(aInt);

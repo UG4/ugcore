@@ -29,7 +29,7 @@ ProcessCommunicator(ProcessCommunicatorDefaults pcd)
 }
 
 size_t ProcessCommunicator::
-size()
+size() const
 {
 	if(m_comm->m_mpiComm == MPI_COMM_NULL)
 		return 0;
@@ -109,7 +109,7 @@ create_sub_communicator(bool participate)
 void
 ProcessCommunicator::
 allreduce(void* sendBuf, void* recBuf, int count,
-		  DataType type, ReduceOperation op)
+		  DataType type, ReduceOperation op) const
 {
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::allreduce: can't perform all_reduce on empty communicator.");
@@ -123,7 +123,7 @@ allreduce(void* sendBuf, void* recBuf, int count,
 void
 ProcessCommunicator::
 allgather(void* sendBuf, int sendCount, DataType sendType,
-		  void* recBuf, int recCount, DataType recType)
+		  void* recBuf, int recCount, DataType recType) const
 {
 	assert(!empty() &&
 			"ERROR in ProcessCommunicator::allreduce: can't perform all_reduce on empty communicator.");
@@ -133,6 +133,22 @@ allgather(void* sendBuf, int sendCount, DataType sendType,
 	
 	MPI_Allgather(sendBuf, sendCount, sendType, recBuf,
 				  recCount, recType, m_comm->m_mpiComm);
+}
+
+void
+ProcessCommunicator::
+allgatherv(void* sendBuf, int sendCount, DataType sendType,
+			void* recBuf, int* recCounts, int* displs,
+			DataType recType) const
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::allreduce: can't perform all_reduce on empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
+	}
+	
+	MPI_Allgatherv(sendBuf, sendCount, sendType, recBuf,
+				   recCounts, displs, recType, m_comm->m_mpiComm);
 }
 
 ////////////////////////////////////////////////////////////////////////

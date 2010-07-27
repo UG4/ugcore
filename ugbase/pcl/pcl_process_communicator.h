@@ -39,10 +39,10 @@ class ProcessCommunicator
 		ProcessCommunicator(ProcessCommunicatorDefaults pcd = PCD_WORLD);
 		
 	///	returns true if the communicator is empty, false if not.
-		inline bool empty()		{return m_comm->m_mpiComm == MPI_COMM_NULL;}
+		inline bool empty() const		{return m_comm->m_mpiComm == MPI_COMM_NULL;}
 		
 	///	returns the size of the communicator
-		size_t size();
+		size_t size() const;
 		
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current
@@ -51,12 +51,31 @@ class ProcessCommunicator
 		
 	///	performs MPI_Allreduce on the processes of the communicator.
 		void allreduce(void* sendBuf, void* recBuf, int count,
-					   DataType type, ReduceOperation op);
+					   DataType type, ReduceOperation op) const;
 		
 	///	performs MPI_Allgather on the processes of the communicator.
+	/**
+	 * \param sendBuf starting address of send buffer (choice)
+	 * \param sendCount number of elements in send buffer (integer)
+	 * \param sendType data type of send buffer elements (handle)
+	 * \param recCount number of elements received from any process (integer)
+	 * \param recType data type of receive buffer elements (handle)
+	 */
 		void allgather(void* sendBuf, int sendCount, DataType sendType,
-					   void* recBuf, int recCount, DataType recType);
-		
+					   void* recBuf, int recCount, DataType recType) const;
+
+	///	performs MPI_Allgatherv on the processes of the communicator.
+	/**
+	 * \param sendBuf 	starting address of send buffer (choice)
+	 * \param sendCount 	number of elements in send buffer (integer)
+	 * \param sendType 	data type of send buffer elements (handle)
+	 * \param recCounts 	integer array (of length group size) containing the number of elements that are received from each process
+	 * \param displs 	integer array (of length group size). Entry i specifies the displacement (relative to recvbuf ) at which to place the incoming data from process i
+	 * \param recType 	data type of receive buffer elements (handle)
+	 */
+		void allgatherv(void* sendBuf, int sendCount, DataType sendType,
+						void* recBuf, int* recCounts, int* displs,
+						DataType recType) const;
 	private:
 	///	holds an mpi-communicator.
 	/**	A variable stores whether the communicator has to be freed when the

@@ -168,6 +168,23 @@ void DeserializeDistributionLayoutInterfaces(
 									TLayoutMap& layoutMapOut,
 									std::vector<TGeomObj*> vGeomObjs,
 									std::istream& in);
+									
+////////////////////////////////////////////////////////////////////////
+///	selects all elements in a DistributionLayout into a selector
+/**	TSelector should be either Selector or MGSelector.
+ *	TDistributionLayout has to be a specialization of
+ *	DistributionNodeLayout for either VertexBase, EdgeBase,
+ *	Face or Volume.
+ */
+template <class TSelector, class TDistributionLayout>
+static
+void SelectNodesInLayout(TSelector& sel, TDistributionLayout& layout)
+{
+	typename TDistributionLayout::NodeVec& nodes = layout.node_vec();
+	for(size_t i = 0; i < nodes.size(); ++i)
+		sel.select(nodes[i]);
+}
+
 }//	end of namespace
 
 ////////////////////////////////

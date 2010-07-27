@@ -9,6 +9,7 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "parallel_grid_layout.h"
+#include "distributed_grid.h"
 
 namespace ug
 {
@@ -78,6 +79,15 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 				GridLayoutMap& gridLayoutMapOut,
 				int srcProcID,
 				bool createVerticalLayouts = false);
+				
+				
+///	redistributes parts of distributed grids.
+/**	This method is still in development... Use with care!
+ *	(If possible, you shouldn't use it at all in its current incarnation!).
+ */
+bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
+					  ISubsetHandler& shInOut,
+					  SubsetHandler& shPartition);
 }//	end of namespace
 
 #endif

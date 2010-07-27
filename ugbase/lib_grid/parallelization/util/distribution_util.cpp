@@ -223,17 +223,6 @@ void CreateDistributionLayouts(
 	mg.detach_from_volumes(aFirstProcLocalInd);
 }
 
-
-////////////////////////////////////////////////////////////////////////
-template <class TSelector, class TLayout>
-static
-void SelectNodesInLayout(TSelector& sel, TLayout& layout)
-{
-	typename TLayout::NodeVec& nodes = layout.node_vec();
-	for(size_t i = 0; i < nodes.size(); ++i)
-		sel.select(nodes[i]);
-}
-
 ////////////////////////////////////////////////////////////////////////
 void SerializeGridAndDistributionLayouts(
 								std::ostream& out, MultiGrid& mg,
