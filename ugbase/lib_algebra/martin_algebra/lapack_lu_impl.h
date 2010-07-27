@@ -28,9 +28,10 @@ void LapackLU::apply(const Vector<double> &b, Vector<double> &x)
 	//cout << "LapackLU::apply" << endl;
 	// TODO: Variing nr of unknowns
 	//int nrOfUnknowns = block_vector_traits<vec_type>::nrOfUnknowns;
+#ifndef NDEBUG
 	const int nrOfUnknowns = 1;
 	UG_ASSERT(size == b.size() * nrOfUnknowns && size == x.size() * nrOfUnknowns, " wrong size! has to be " << size << ", but is " << b << " and " << x);
-
+#endif
 	x = b;
 	//for(int i=0; i < b.size(); i++)
 		//for(int j=0; j<nrOfUnknowns; j++)
