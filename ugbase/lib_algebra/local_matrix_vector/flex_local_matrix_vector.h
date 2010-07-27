@@ -14,226 +14,225 @@
 
 namespace ug{
 
+/** Flex Local Matrix
+ *
+ * This is a Matrix of small range, that has components of TValue.
+ * The value_type must provide the following operators:
+ * 	- operator=
+ *  - operator*
+ * 	- operator-=
+ *  - operator+=
+ */
+template <typename TValue>
 class FlexLocalMatrix{
 
 	public:
 		// type of value entry
-		typedef number value_type;
+		typedef TValue entry_type;
+
+		// own type
+		typedef FlexLocalMatrix<TValue> this_type;
 
 	private:
-		typedef std::vector<std::vector<number> >::iterator   row_iterator;
-		typedef std::vector<number>::iterator col_iterator;
+		typedef typename std::vector<std::vector<entry_type> >::iterator   row_iterator;
+		typedef typename std::vector<entry_type>::iterator col_iterator;
 
 	public:
-	FlexLocalMatrix()
-	{
-		m_values.clear();
-	}
+		/// constructor for empty matrix
+		FlexLocalMatrix(){m_values.clear();}
 
-	FlexLocalMatrix(size_t nrow, size_t ncol)
-	{
-		m_values.resize(nrow);
-		row_iterator row_iterEnd = m_values.end();
-		for(row_iterator iter = m_values.begin(); iter != row_iterEnd; ++iter)
+		/// constructor for matrix of size nrow x ncol
+		FlexLocalMatrix(size_t nrow, size_t ncol)
 		{
-			(*iter).resize(ncol);
+			m_values.resize(nrow);
+			row_iterator row_iterEnd = m_values.end();
+			for(row_iterator iter = m_values.begin(); iter != row_iterEnd; ++iter)
+				(*iter).resize(ncol);
 		}
-	}
 
-	void resize(size_t nrow, size_t ncol)
-	{
-		m_values.resize(nrow);
-		row_iterator row_iterEnd = m_values.end();
-		for(row_iterator iter = m_values.begin(); iter != row_iterEnd; ++iter)
+		/// resize matrix
+		void resize(size_t nrow, size_t ncol)
 		{
-			(*iter).resize(ncol);
+			m_values.resize(nrow);
+			row_iterator row_iterEnd = m_values.end();
+			for(row_iterator iter = m_values.begin(); iter != row_iterEnd; ++iter)
+				(*iter).resize(ncol);
 		}
-	}
 
-	size_t num_rows() const
-	{
-		return m_values.size();
-	}
+		/// number of rows
+		size_t num_rows() const {return m_values.size();}
 
-	size_t num_cols() const
-	{
-		return m_values[0].size();
-	}
+		/// number of columns
+		size_t num_cols() const {return m_values[0].size();}
 
-	void set(number val)
-	{
-		for(size_t i = 0; i < m_values.size(); ++i)
+		/// set all entries
+		void set(entry_type val)
 		{
-			for(size_t j = 0; j < m_values[i].size(); ++j)
-			{
-				m_values[i][j] = val;
-			}
+			for(size_t i = 0; i < num_rows(); ++i)
+				for(size_t j = 0; j < num_cols(); ++j)
+					m_values[i][j] = val;
 		}
-	}
 
-	FlexLocalMatrix& operator*(number val)
-	{
-		for(size_t i = 0; i < m_values.size(); ++i)
+		/// multiply all entries
+		this_type& operator*(entry_type val)
 		{
-			for(size_t j = 0; j < m_values[i].size(); ++j)
-			{
-				m_values[i][j] *= val;
-			}
+			for(size_t i = 0; i < num_rows(); ++i)
+				for(size_t j = 0; j < num_cols(); ++j)
+					m_values[i][j] *= val;
+			return *this;
 		}
-		return *this;
-	}
 
-	FlexLocalMatrix& operator+=(const FlexLocalMatrix& rhs)
-	{
-		assert(m_values.size() == rhs.m_values.size());
-
-		for(size_t i = 0; i < m_values.size(); ++i)
+		/// add matrix
+		this_type& operator+=(const this_type& rhs)
 		{
-			for(size_t j = 0; j < m_values[i].size(); ++j)
-			{
-				m_values[i][j] += rhs.m_values[i][j];
-			}
+			UG_ASSERT(num_rows() == rhs.num_rows(), "Row size does not match");
+			UG_ASSERT(num_cols() == rhs.num_cols(), "Column size does not match");
+
+			for(size_t i = 0; i < num_rows(); ++i)
+				for(size_t j = 0; j < num_cols(); ++j)
+					m_values[i][j] += rhs(i,j);
+			return *this;
 		}
-		return *this;
-	}
 
-	FlexLocalMatrix& operator-=(const FlexLocalMatrix& rhs)
-	{
-		assert(m_values.size() == rhs.m_values.size());
-
-		for(size_t i = 0; i < m_values.size(); ++i)
+		/// subtract matrix
+		this_type& operator-=(const this_type& rhs)
 		{
-			for(size_t j = 0; j < m_values[i].size(); ++j)
-			{
-				m_values[i][j] -= rhs.m_values[i][j];
-			}
+			UG_ASSERT(num_rows() == rhs.num_rows(), "Row size does not match");
+			UG_ASSERT(num_cols() == rhs.num_cols(), "Column size does not match");
+
+			for(size_t i = 0; i < num_rows(); ++i)
+				for(size_t j = 0; j < num_cols(); ++j)
+					m_values[i][j] -= rhs(i,j);
+			return *this;
 		}
-		return *this;
-	}
 
-	number& operator() (size_t i, size_t j)
-	{
-		assert(i < m_values.size());
-		assert(j < m_values[i].size());
-		return m_values[i][j];
-	}
+		/// access to entry
+		entry_type& operator() (size_t i, size_t j)
+		{
+			UG_ASSERT(i < num_rows(), "Row does not exist.");
+			UG_ASSERT(j < num_cols(), "Column does not exist.");
+			return m_values[i][j];
+		}
 
-	const number& operator() (size_t i, size_t j) const
-	{
-		assert(i < m_values.size());
-		assert(j < m_values[i].size());
-		return m_values[i][j];
-	}
+		/// const access to entry
+		const entry_type& operator() (size_t i, size_t j) const
+		{
+			UG_ASSERT(i < num_rows(), "Row does not exist.");
+			UG_ASSERT(j < num_cols(), "Column does not exist.");
+			return m_values[i][j];
+		}
 
 	private:
 		std::vector<std::vector<number> > m_values;
 };
 
 
-
+/** Flex Local Vector
+ *
+ * This is a Vector of small range, that has components of TValue.
+ * The value_type must provide the following operators:
+ * 	- operator=
+ *  - operator*
+ * 	- operator-=
+ *  - operator+=
+ */
+template <typename TValue>
 class FlexLocalVector{
 
 	public:
-	// type of value entry
-	typedef number value_type;
+		// type of value entry
+		typedef TValue entry_type;
+
+		// own type
+		typedef FlexLocalVector<TValue> this_type;
 
 	private:
-		typedef std::vector<number>::iterator   iterator;
+		typedef typename std::vector<entry_type>::iterator   iterator;
 
 	public:
-	FlexLocalVector()
-	{
-		m_values.clear();
-	}
+		/// constructor for vector of size 0
+		FlexLocalVector(){m_values.clear();}
 
-	FlexLocalVector(size_t nrow)
-	{
-		m_values.resize(nrow);
-	}
+		/// constructor of vector of size nrow
+		FlexLocalVector(size_t size){m_values.resize(size);}
 
-	void resize(size_t nrow)
-	{
-		m_values.resize(nrow);
-	}
+		/// resize the vector, entries 0, ..., newSize-1 remain valid
+		void resize(size_t newSize){m_values.resize(newSize);}
 
-	size_t size() const
-	{
-		return m_values.size();
-	}
+		/// size of vector
+		size_t size() const {return m_values.size();}
 
-	void set(number val)
-	{
-		iterator iterEnd = m_values.end();
-		for(iterator i = m_values.begin(); i != iterEnd; ++i)
+		/// set all components of the vector
+		void set(entry_type val)
 		{
-				(*i) = val;
+			iterator iterEnd = m_values.end();
+			for(iterator iter = m_values.begin(); iter != iterEnd; ++iter)
+				(*iter) = val;
 		}
-	}
 
-	void push_back(number val)
-	{
-		m_values.push_back(val);
-	}
-
-	FlexLocalVector& operator*(number val)
-	{
-		iterator iterEnd = m_values.end();
-		for(iterator i = m_values.begin(); i != iterEnd; ++i)
+		/// multiply all components of the vector
+		this_type& operator*(entry_type val)
 		{
-				(*i) *= val;
+			iterator iterEnd = m_values.end();
+			for(iterator iter = m_values.begin(); iter != iterEnd; ++iter)
+				(*iter) *= val;
+			return *this;
 		}
-		return *this;
-	}
 
-	FlexLocalVector& operator+=(const FlexLocalVector& rhs)
-	{
-		assert(m_values.size() == rhs.m_values.size());
-
-		for(size_t i = 0; i < m_values.size(); ++i)
+		/// add a vector
+		this_type& operator+=(const this_type& rhs)
 		{
-				m_values[i] += rhs.m_values[i];
+			UG_ASSERT(size() == rhs.size(), "Size does not match.");
+			for(size_t i = 0; i < size(); ++i)
+				m_values[i] += rhs[i];
+			return *this;
 		}
-		return *this;
-	}
 
-	FlexLocalVector& operator-=(const FlexLocalVector& rhs)
-	{
-		assert(m_values.size() == rhs.m_values.size());
-
-		for(size_t i = 0; i < m_values.size(); ++i)
+		/// subtract a vector
+		this_type& operator-=(const this_type& rhs)
 		{
-				m_values[i] -= rhs.m_values[i];
+			UG_ASSERT(size() == rhs.size(), "Size does not match.");
+			for(size_t i = 0; i < m_values.size(); ++i)
+					m_values[i] -= rhs[i];
+			return *this;
 		}
-		return *this;
-	}
 
-	number& operator[] (size_t i)
-	{
-		assert(i < m_values.size());
-		return m_values[i];
-	}
+		/// access to component
+		entry_type& operator[] (size_t i)
+		{
+			UG_ASSERT(i < size(), "Out of range.");
+			return m_values[i];
+		}
 
-	const number& operator[] (size_t i) const
-	{
-		assert(i < m_values.size());
-		return m_values[i];
-	}
+		/// const access to component
+		const entry_type& operator[] (size_t i) const
+		{
+			UG_ASSERT(i < size(), "Out of range.");
+			return m_values[i];
+		}
 
+		// depreciated
+		void push_back(const entry_type& v) {m_values.push_back(v);}
 
 	private:
-		std::vector<number> m_values;
+		// values
+		std::vector<entry_type> m_values;
 };
 
-inline std::ostream& operator<< (std::ostream& outStream, const ug::FlexLocalMatrix& m)
+template <typename TValue>
+inline std::ostream& operator<< (std::ostream& outStream, const typename ug::FlexLocalMatrix<TValue>& m)
 {
 	for(size_t i = 0; i < m.num_rows(); ++i)
-	{
 		for(size_t j = 0; j < m.num_cols(); ++j)
-		{
 			outStream << "[" << i << ", " << j << "]: " <<  m(i,j) << std::endl;
-		}
-	}
+ 	return outStream;
+}
 
+template <typename TValue>
+inline std::ostream& operator<< (std::ostream& outStream, const typename ug::FlexLocalVector<TValue>& v)
+{
+	for(size_t i = 0; i < v.size(); ++i)
+		outStream << "[" << i << "]: " <<  v[i] << std::endl;
  	return outStream;
 }
 

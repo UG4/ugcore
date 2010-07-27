@@ -40,10 +40,10 @@ SparseMatrix<T>::SparseMatrix()
 	consmem = NULL; consmemsize = 0;
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
-	
+
 	estimatedRowSize = 0;
 	iMaxNrOfConnections = NULL;
-	
+
 #ifdef FLEXAMG
 	tolevel = fromlevel = 0;
 #endif
@@ -69,20 +69,20 @@ template<typename T>
 bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 {
 	UG_ASSERT(rows == 0 && cols == 0, *this << " not empty.");
-	
+
 	rows = _rows;
 	cols = _cols;
-	
+
 	pRowStart = new connection*[rows+1];
 	memset(pRowStart, 0, sizeof(connection*)*(rows+1));
 
 	pRowEnd = new connection*[rows+1];
 	memset(pRowEnd, 0, sizeof(connection*)*(rows+1));
-	
+
 
 	iMaxNrOfConnections = new size_t[rows];
 	memset(iMaxNrOfConnections, 0, sizeof(size_t)*rows);
-	
+
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
 	return true;
@@ -178,7 +178,7 @@ template<typename T>
 void SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B)
 {
 	UG_ASSERT(rows == 0 && cols == 0, *this << " not empty.");
-	
+
 	rows = B.cols;
 	cols = B.rows;
 #ifdef FLEXAMG
@@ -202,17 +202,17 @@ void SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B)
 		for(cRowIterator conn = B.beginRow(j); !conn.isEnd(); ++conn)
 			if((*conn).dValue == 0) continue;
 			else nr[(*conn).iIndex]++;
-	
+
 
 	size_t newTotal = 0;
 	for(size_t i=0; i < rows; i++)
 		newTotal += nr[i];
-	
-	
+
+
 	// allocate one big connection memory
 	consmem = new connection[newTotal];
 	consmemsize = newTotal;
-	
+
 	// init pRowStart array
 	// (this also inits pRowEnd)
 	connection *p = consmem;
@@ -229,7 +229,7 @@ void SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B)
 	memset(nr, 0, sizeof(size_t)*rows);
 	iTotalNrOfConnections = newTotal;
 	iFragmentedMem = 0;
-	
+
 	bandwidth = 0;
 
 	for(size_t i=0; i < B.rows; i++)
@@ -238,17 +238,17 @@ void SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B)
 			if((*conn).dValue == 0) continue;
 			size_t ndx = (*conn).iIndex;
 			UG_ASSERT(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
-			
+
 			size_t k = nr[ndx];
-			
+
 			UG_ASSERT(k>=0 && k<num_connections(ndx), "k = " << k << ". precalculated nr of Connections " << num_connections(ndx) << " wrong?");
-			
+
 			pRowStart[ndx][k].dValue = (*conn).dValue;
 			pRowStart[ndx][k].iIndex = i;
 			if(bandwidth < i-ndx) bandwidth = i-ndx;
 			nr[ndx]++;
 		}
-	
+
 	// note that all connections are already sorted.
 	delete[] nr;
 }
@@ -399,7 +399,7 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 {
 	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
-	
+
 	for(size_t i=0; i < rows; i++)
 	{
 		res[i] = 0.0;
@@ -419,7 +419,7 @@ bool SparseMatrix<T>::apply_transposed(Vector_type &res, const Vector_type &x) c
 {
 	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
-	
+
 	res = 0.0;
 
 	for(size_t i=0; i<rows; i++)
@@ -441,14 +441,14 @@ bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
 {
 	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
-	
+
 	for(size_t i=0; i < rows; i++)
 	{
 		cRowIterator conn = beginRow(i);
 		for(; !conn.isEnd(); ++conn)
 			res[i] -= (*conn).dValue * x[(*conn).iIndex];
 	}
-	
+
 
 	return true;
 }
@@ -456,6 +456,35 @@ bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
 //======================================================================================================
 // submatrix set/get
 
+
+// add Submatrix
+//--------------------
+//! function to add submatrices ( submatrix )
+template<typename T>
+template<typename M>
+void SparseMatrix<T>::add(const M &mat)
+{
+	connection *c = new connection[mat.num_cols()];
+	size_t nc;
+	for(size_t i=0; i < mat.num_rows(); i++)
+	{
+		nc = 0;
+		for(size_t j=0; j < mat.num_cols(); j++)
+		{
+			if(mat(i,j) != 0.0)
+			{
+				c[nc].iIndex = mat.col_index(j);
+				c[nc].dValue = mat(i, j);
+				nc++;
+			}
+		}
+		UG_ASSERT(nc <= mat.num_cols(), "More column entries read, than local matrix contains.");
+
+		if(nc > 0)
+			add_matrix_row(mat.row_index(i), c, nc);
+	}
+	delete[] c;
+}
 
 
 // add Submatrix
@@ -765,7 +794,7 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 
 	bandwidth = max(bandwidth, abs(n[0].iIndex, row));
 	bandwidth = max(bandwidth, abs(n[nr-1].iIndex, row));
-	
+
 
 	definalize();
 	safe_set_connections(row, n);
@@ -788,18 +817,18 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
  */
 template<typename T>
 void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
-{	
+{
 	if(nr <= 0) return;
 
 	//cout << "row: " << row << " nr: " << nr << endl;
 	connection *old = pRowStart[row];
 
 	if(old == NULL)
-	{		
+	{
 		set_matrix_row(row, c, nr);
 		return;
 	}
-	
+
 	UG_ASSERT(num_connections(row) != 0, "cons[row] != NULL but get_nr_of_connection(row) == 0 ???");
 
 	// the matrix row is not empty and we are adding more than one connection
@@ -808,7 +837,7 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 
 	// sort the connections: diagonal, then index1 < index2 < ...
 	sort(c, c+nr);
-	
+
 	size_t ic=0, iold=0, skipped=0;
 	// - add connections which are there
 	// - count not existing connections (=skipped)
@@ -833,10 +862,10 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 
 	if(skipped == 0)  // everything already done
 		return;
-	
+
 	// else realloc
 	definalize();
-	
+
 	size_t iNewSize = oldNrOfConnections + skipped;
 	connection *n = new connection[iNewSize];
 

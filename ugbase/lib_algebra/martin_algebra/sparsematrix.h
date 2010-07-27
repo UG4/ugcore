@@ -76,7 +76,7 @@ class SparseMatrix : public TE_MAT<SparseMatrix<T> >
 public:
 #ifndef FLEXAMG
 	typedef MultiIndex<1> index_type;
-	typedef FlexLocalMatrix local_matrix_type;
+	typedef FlexLocalMatrix<double> local_matrix_type;
 	typedef std::vector<index_type> local_index_type;
 #endif
 	// functions
@@ -186,6 +186,18 @@ public:
 public:
 	// submatrix set/get functions
 	//-------------------------------
+
+	/** Add a local matrix
+	 *
+	 * The local matrix type must declare the following members:
+	 * - num_rows()
+	 * - num_cols()
+	 * - row_index(size_t i)
+	 * - col_index(size_t j)
+	 * - operator()(size_t i, size_t j)
+	 */
+	template<typename M>
+	void add(const M &mat);
 
 	//! adds the submatrix mat to A.
 	template<typename M>

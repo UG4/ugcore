@@ -24,7 +24,7 @@ class UblasMatrix{
 		// index_type
 		typedef MultiIndex<1> index_type;
 
-		typedef FlexLocalMatrix local_matrix_type;
+		typedef FlexLocalMatrix<double> local_matrix_type;
 
 		typedef std::vector<index_type> local_index_type;
 

@@ -283,6 +283,15 @@ void Vector<entry_type>::get(subvector<entry_type> &subvec) const
 }*/
 
 template<typename entry_type>
+template<typename V>
+bool Vector<entry_type>::add(const V& u)
+{
+	for(size_t i=0; i < u.size(); i++)
+		values[u.index(i)] += u[i];
+	return true;
+}
+
+template<typename entry_type>
 bool Vector<entry_type>::add(const local_vector_type &u, const local_index_type &ind)
 {
 	for(std::size_t i=0; i < ind.size(); i++)

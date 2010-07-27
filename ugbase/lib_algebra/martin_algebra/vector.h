@@ -29,7 +29,7 @@ class Vector : public TE_VEC<Vector<templ_entry_type> >
 {
 public:
 	typedef MultiIndex<1> index_type;
-	typedef FlexLocalVector local_vector_type;
+	typedef FlexLocalVector<double> local_vector_type;
 	typedef std::vector<MultiIndex<1> > local_index_type;
 
 	// functions
@@ -94,6 +94,16 @@ public:
 	void add(const entry_type &d, size_t i);
 	void set(const entry_type &d, size_t i);
 	void get(entry_type &d, size_t i) const;
+
+	/** Add a local vector
+	 *
+	 * The local vector type must provide the following members:
+	 * - size()					- length of local vector
+	 * - index(size_t i)		- global index for component i
+	 * - operator[](size_t i)	- access to value of component i
+	 */
+	template <typename V>
+	bool add(const V& u);
 
 	bool add(const local_vector_type &u, const local_index_type &ind);
 	bool set(const local_vector_type &u, const local_index_type &ind);

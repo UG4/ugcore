@@ -29,7 +29,7 @@ class UblasVector{
 		// index_type
 		typedef MultiIndex<1> index_type;
 
-		typedef FlexLocalVector local_vector_type;
+		typedef FlexLocalVector<double> local_vector_type;
 
 		typedef std::vector<index_type> local_index_type;
 

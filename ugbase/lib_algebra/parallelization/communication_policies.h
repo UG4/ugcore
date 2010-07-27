@@ -28,9 +28,9 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			return interface.size() * sizeof(typename TVector::
 												local_vector_type::
-												value_type);
+												entry_type);
 		}
-		
+
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
@@ -45,7 +45,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				v.get(u, i);
 				buff.write((char*)&u[0], sizeof(typename TVector::
 												local_vector_type::
-												value_type));
+												entry_type));
 			}
 			return true;
 		}
@@ -63,7 +63,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				i[0][0] = interface.get_element(iter);
 				buff.read((char*)&u[0], sizeof(typename TVector::
 												local_vector_type::
-												value_type));
+												entry_type));
 				v.set(u, i);
 			}
 			return true;
@@ -87,9 +87,9 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			return interface.size() * sizeof(typename TVector::
 												local_vector_type::
-												value_type);
+												entry_type);
 		}
-		
+
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
@@ -104,7 +104,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				v.get(u, i);
 				buff.write((char*)&u[0], sizeof(typename TVector::
 												local_vector_type::
-												value_type));
+												entry_type));
 			}
 			return true;
 		}
@@ -122,7 +122,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				i[0][0] = interface.get_element(iter);
 				buff.read((char*)&u[0], sizeof(typename TVector::
 												local_vector_type::
-												value_type));
+												entry_type));
 				v.add(u, i);
 			}
 			return true;
@@ -146,9 +146,9 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		{
 			return interface.size() * sizeof(typename TVector::
 												local_vector_type::
-												value_type);
+												entry_type);
 		}
-		
+
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
@@ -163,7 +163,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				v.get(u, i);
 				buff.write((char*)&u[0], sizeof(typename TVector::
 												local_vector_type::
-												value_type));
+												entry_type));
 				u[0] = 0.0;
 				v.set(u, i);
 			}
@@ -183,7 +183,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				i[0][0] = interface.get_element(iter);
 				buff.read((char*)&u[0], sizeof(typename TVector::
 												local_vector_type::
-												value_type));
+												entry_type));
 				v.add(u, i);
 			}
 			return true;
