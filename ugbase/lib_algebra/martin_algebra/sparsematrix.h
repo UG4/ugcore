@@ -1,6 +1,5 @@
 /*
  *  SparseMatrix.h
- *  flexamg
  *
  *  Created by Martin Rupp on 04.11.09.
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
@@ -13,56 +12,25 @@
 
 #include "math.h"
 
-//#include <pmmintrin.h>
-/*
-template<typename T>
-class typeOut
-{
-public:
-	typeOut(const T &t)
-	{
-		p = &t;
-	}
-
-	friend ostream operator <<(ostream &out, typeOut<T> &t)
-	{
-		t.p->printtype(out);
-	}
-
-private:
-	T *p;
-};*/
 
 
-#ifdef FLEXAMG
-#include "double.h"
-#include "blocks.h"
-#include "blockVector.h"
-#else
 #include "blocks/blocks.h"
 #ifdef LAPACK_AVAILABLE
 #include "blocks/blockVector.h"
 #endif
-#endif
 
 #include "template_expressions.h"
+#include "vector.h"
 
-//#define SPECIALIZE_EXPRESSION_TEMPLATES
 
 ///////////////////////////////////////////////////////////////////
 //							connection
 ///////////////////////////////////////////////////////////////////
-//#include "submatrix.h"
-
-#include "vector.h"
 
 namespace ug{
 
 template<typename entry_type> class matrixrow;
 template<typename vec_type> class Vector;
-///////////////////////////////////////////////////////////////////
-//							SparseMatrix
-///////////////////////////////////////////////////////////////////
 
 //!
 //! SparseMatrix
@@ -74,17 +42,15 @@ template<typename T>
 class SparseMatrix : public TE_MAT<SparseMatrix<T> >
 {
 public:
-#ifndef FLEXAMG
 	typedef MultiIndex<1> index_type;
 	typedef FlexLocalMatrix<double> local_matrix_type;
 	typedef std::vector<index_type> local_index_type;
-#endif
+
 	// functions
 public:
 	typedef T entry_type;
 	typedef matrixrow<entry_type> row_type;
 	typedef matrixrow<entry_type> matrixrow_type;
-	//typedef submatrix<entry_type> submatrix_type;
 
 	struct connection
 	{
@@ -157,9 +123,7 @@ public:
 	// general functions
 	//----------------------
 	bool set_dirichlet_rows(const size_t *pDirichletRows, size_t iNr);
-#ifndef FLEXAMG
 	bool set_dirichlet_rows(const local_index_type &ind);
-#endif
 
 
 	//! calculate res = A x
@@ -180,7 +144,6 @@ public:
 
 	//! isUnconnected: true if only A[i,i] != 0.0.
 	inline bool is_unconnected(size_t i) const;
-
 
 
 public:
@@ -207,11 +170,10 @@ public:
 	template<typename M>
 	void get(M &mat, size_t *rows, size_t *cols) const;
 
-#ifndef FLEXAMG
+
 	bool add(const local_matrix_type &mat, const local_index_type &I, const local_index_type &J);
 	bool set(const local_matrix_type &mat, const local_index_type &I, const local_index_type &J);
 	bool get(local_matrix_type &mat, const local_index_type &I, const local_index_type &J) const;
-#endif
 
 
 	bool set(double a);
@@ -401,11 +363,6 @@ public:
 public:
 	//     data
 	//----------------------
-
-#ifdef FLEXAMG
-	int tolevel, fromlevel;
-#endif
-	const char *name;					//!< name of the SparseMatrix for debuging / printing.
 
 private:
 	size_t rows;						//!< nr of rows

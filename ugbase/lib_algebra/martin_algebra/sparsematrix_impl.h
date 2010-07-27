@@ -13,15 +13,12 @@
 
 #include <fstream>
 
-#ifndef FLEXAMG
 #include "algebra_misc.h"
-#endif
 
 template<typename T> T abs(const T &a, const T &b)
 {
 	if(a > b) return a-b; else return b-a;
 }
-
 
 namespace ug{
 
@@ -33,7 +30,6 @@ namespace ug{
 template<typename T>
 SparseMatrix<T>::SparseMatrix()
 {
-	name = "?";
 	cols = rows = iTotalNrOfConnections = 0;
 	iFragmentedMem = 0;
 	pRowStart = pRowEnd = NULL;
@@ -508,7 +504,7 @@ void SparseMatrix<T>::add(const M &mat, size_t *rows, size_t *cols)
 				nc++;
 			}
 		}
-		UG_ASSERT(nc < mat.num_cols(), "???");
+		UG_ASSERT(nc <= mat.num_cols(), "???");
 
 		if(nc > 0)
 			add_matrix_row(rows[i], c, nc);
@@ -537,7 +533,7 @@ void SparseMatrix<T>::set(const M &mat, size_t *rows, size_t *cols)
 				nc++;
 			}
 		}
-		UG_ASSERT(nc < mat.num_cols(), "???");
+		UG_ASSERT(nc <= mat.num_cols(), "???");
 		if(nc > 0)
 			set_matrix_row(rows[i], c, nc);
 	}

@@ -177,6 +177,9 @@ public: // output functions
 	void printtype() const;
 	size_t finalize() { return true; }
 
+public:
+	int firstIndex() { return 0; }
+	int lastIndex() { return size(); }
 
 	// data
 public:
