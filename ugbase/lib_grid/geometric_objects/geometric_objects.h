@@ -107,13 +107,14 @@ class geometry_traits<Vertex>
 	public:
 		typedef GenericGeometricObjectIterator<Vertex*, VertexBaseIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<Vertex*, ConstVertexBaseIterator>	const_iterator;
-		
+
 		typedef VertexBase	geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVRT_VERTEX,
-			BASE_OBJECT_TYPE_ID = VERTEX
+			BASE_OBJECT_TYPE_ID = VERTEX,
+			REFERENCE_OBJECT_ID = ROID_VERTEX
 		};
 };
 
@@ -172,13 +173,14 @@ class geometry_traits<HangingVertex>
 	public:
 		typedef GenericGeometricObjectIterator<HangingVertex*, VertexBaseIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<HangingVertex*, ConstVertexBaseIterator>	const_iterator;
-		
+
 		typedef VertexBase	geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVRT_HANGING_VERTEX,
-			BASE_OBJECT_TYPE_ID = VERTEX
+			BASE_OBJECT_TYPE_ID = VERTEX,
+			REFERENCE_OBJECT_ID = ROID_VERTEX
 		};
 };
 
@@ -250,14 +252,15 @@ class geometry_traits<Edge>
 	public:
 		typedef GenericGeometricObjectIterator<Edge*, EdgeBaseIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<Edge*, ConstEdgeBaseIterator>	const_iterator;
-		
+
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSEDGE_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE
+			BASE_OBJECT_TYPE_ID = EDGE,
+			REFERENCE_OBJECT_ID = ROID_EDGE
 		};
 };
 
@@ -340,14 +343,15 @@ class geometry_traits<ConstrainedEdge>
 	public:
 		typedef GenericGeometricObjectIterator<ConstrainedEdge*, EdgeBaseIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<ConstrainedEdge*, ConstEdgeBaseIterator>	const_iterator;
-		
+
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSEDGE_CONSTRAINED_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE
+			BASE_OBJECT_TYPE_ID = EDGE,
+			REFERENCE_OBJECT_ID = ROID_EDGE
 		};
 };
 
@@ -483,14 +487,15 @@ class geometry_traits<ConstrainingEdge>
 	public:
 		typedef GenericGeometricObjectIterator<ConstrainingEdge*, EdgeBaseIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<ConstrainingEdge*, ConstEdgeBaseIterator>	const_iterator;
-		
+
 		typedef EdgeDescriptor	Descriptor;
 		typedef EdgeBase		geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSEDGE_CONSTRAINING_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE
+			BASE_OBJECT_TYPE_ID = EDGE,
+			REFERENCE_OBJECT_ID = ROID_EDGE
 		};
 };
 
@@ -622,14 +627,15 @@ class geometry_traits<Triangle>
 	public:
 		typedef GenericGeometricObjectIterator<Triangle*, FaceIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<Triangle*, ConstFaceIterator>	const_iterator;
-		
+
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE
+			BASE_OBJECT_TYPE_ID = FACE,
+			REFERENCE_OBJECT_ID = ROID_TRIANGLE
 		};
 };
 
@@ -797,14 +803,15 @@ class geometry_traits<ConstrainedTriangle>
 	public:
 		typedef GenericGeometricObjectIterator<ConstrainedTriangle*, TriangleIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<ConstrainedTriangle*, ConstTriangleIterator>	const_iterator;
-		
+
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINED_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE
+			BASE_OBJECT_TYPE_ID = FACE,
+			REFERENCE_OBJECT_ID = ROID_TRIANGLE
 		};
 };
 
@@ -843,14 +850,15 @@ class geometry_traits<ConstrainingTriangle>
 	public:
 		typedef GenericGeometricObjectIterator<ConstrainingTriangle*, FaceIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<ConstrainingTriangle*, ConstFaceIterator>	const_iterator;
-		
+
 		typedef TriangleDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINING_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE
+			BASE_OBJECT_TYPE_ID = FACE,
+			REFERENCE_OBJECT_ID = ROID_TRIANGLE
 		};
 };
 
@@ -935,14 +943,15 @@ class geometry_traits<Quadrilateral>
 	public:
 		typedef GenericGeometricObjectIterator<Quadrilateral*, FaceIterator>			iterator;
 		typedef ConstGenericGeometricObjectIterator<Quadrilateral*, ConstFaceIterator>	const_iterator;
-		
+
 		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
 		typedef Face	geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_QUADRILATERAL,
-			BASE_OBJECT_TYPE_ID = FACE
+			BASE_OBJECT_TYPE_ID = FACE,
+			REFERENCE_OBJECT_ID = ROID_QUADRILATERAL
 		};
 };
 
@@ -987,7 +996,7 @@ class Tetrahedron : public Volume
 {
 	public:
 		typedef Volume BaseClass;
-		
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Tetrahedron*>(pObj) != NULL;}
 
@@ -1035,14 +1044,15 @@ class geometry_traits<Tetrahedron>
 	public:
 		typedef GenericGeometricObjectIterator<Tetrahedron*, VolumeIterator>			iterator;
 		typedef ConstGenericGeometricObjectIterator<Tetrahedron*, ConstVolumeIterator>	const_iterator;
-		
+
 		typedef TetrahedronDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_TETRAHEDRON,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			BASE_OBJECT_TYPE_ID = VOLUME,
+			REFERENCE_OBJECT_ID = ROID_TETRAHEDRON
 		};
 };
 
@@ -1085,7 +1095,7 @@ class Hexahedron : public Volume
 {
 	public:
 		typedef Volume BaseClass;
-		
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Hexahedron*>(pObj) != NULL;}
 
@@ -1132,14 +1142,15 @@ class geometry_traits<Hexahedron>
 	public:
 		typedef GenericGeometricObjectIterator<Hexahedron*, VolumeIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<Hexahedron*, ConstVolumeIterator>	const_iterator;
-		
+
 		typedef HexahedronDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_HEXAHEDRON,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			BASE_OBJECT_TYPE_ID = VOLUME,
+			REFERENCE_OBJECT_ID = ROID_HEXAHEDRON
 		};
 };
 
@@ -1182,7 +1193,7 @@ class Prism : public Volume
 {
 	public:
 		typedef Volume BaseClass;
-		
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Prism*>(pObj) != NULL;}
 
@@ -1229,14 +1240,15 @@ class geometry_traits<Prism>
 	public:
 		typedef GenericGeometricObjectIterator<Prism*, VolumeIterator>				iterator;
 		typedef ConstGenericGeometricObjectIterator<Prism*, ConstVolumeIterator>	const_iterator;
-		
+
 		typedef PrismDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_PRISM,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			BASE_OBJECT_TYPE_ID = VOLUME,
+			REFERENCE_OBJECT_ID = ROID_PRISM
 		};
 };
 
@@ -1279,7 +1291,7 @@ class Pyramid : public Volume
 {
 	public:
 		typedef Volume BaseClass;
-		
+
 	public:
 		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Pyramid*>(pObj) != NULL;}
 
@@ -1326,14 +1338,15 @@ class geometry_traits<Pyramid>
 	public:
 		typedef GenericGeometricObjectIterator<Pyramid*, VolumeIterator>			iterator;
 		typedef ConstGenericGeometricObjectIterator<Pyramid*, ConstVolumeIterator>	const_iterator;
-		
+
 		typedef PyramidDescriptor Descriptor;
 		typedef Volume 		geometric_base_object;
 
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_PYRAMID,
-			BASE_OBJECT_TYPE_ID = VOLUME
+			BASE_OBJECT_TYPE_ID = VOLUME,
+			REFERENCE_OBJECT_ID = ROID_PYRAMID
 		};
 };
 
