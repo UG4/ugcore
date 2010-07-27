@@ -17,8 +17,8 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern includes
-#include "lib_discretization/reference_element/reference_elements.h"
-#include "lib_discretization/local_shape_function_set/local_shape_function_set_factory.h"
+#include "../../reference_element/reference_element.h"
+#include "../../local_shape_function_set/local_shape_function_set_factory.h"
 
 namespace ug{
 
@@ -117,26 +117,32 @@ class SubControlVolume{
 			// remember center coordinates
 			m_center = corners[m_co];
 
-			//TODO: must be implemented
-			if(dim != world_dim) return false;
-
 			// compute size of scv
-			if(dim == 1)
+			if(dim == 1 && world_dim == 1)
 			{
 				m_volume = 0.5*(corners[0][0] - corners[1][0]);
 			}
-			else if(dim == 2)
+			if(dim == 1 && world_dim == 2)
+			{
+				m_volume = 0.5*VecDistance( corners[0],  corners[1]);
+			}
+			else if(dim == 2 && world_dim == 2)
 			{
 				m_volume = qarea(corners[m_co],
 								geo.obj_midpoint_global(1, refElem.id(0, m_co, 1, 1)),
 								geo.obj_midpoint_global(2, refElem.id(0, m_co, 2, 0)),
 								geo.obj_midpoint_global(1, refElem.id(0, m_co, 1, 0)) );
 			}
-			else if(dim == 3)
+			else if(dim == 3 &&  world_dim == 3)
 			{
 				//TODO: This is Tetrahedron only
 				m_volume = 0.25 * tetra_area(corners[0], corners[1], corners[2], corners[3]);
 			}
+			else
+			{
+				UG_LOG("Combination ref_dim = " << dim << ", world_dim = " << world_dim << " is currently not supported.\n"); return false;
+			}
+
 			return true;
 		}
 
@@ -231,15 +237,19 @@ class SubControlVolumeFace{
 			}
 			m_ip_global *= 1./m_num_mid;
 
-			//TODO: must be implemented
-			if(world_dim != dim) return false;
-
 			//compute normal on scvf
-			if(dim == 1)
+			if(dim == 1 && world_dim == 1)
 			{
 				m_normal[0] = 1;
 			}
-			if(dim == 2)
+			//compute normal on scvf
+			else if(dim == 1 && world_dim == 2)
+			{
+				m_normal = corners[1];
+				m_normal -= corners[0];
+				VecNormalize(m_normal, m_normal);
+			}
+			else if(dim == 2 && world_dim == 2)
 			{
 				MathVector<world_dim> diff = geo.obj_midpoint_global(2, refElem.id(1, m_edge, 2, 0)); // center of element
 				diff -= geo.obj_midpoint_global(1, refElem.id(1, m_edge, 1, 0)); // edge midpoint
@@ -262,7 +272,7 @@ class SubControlVolumeFace{
 					m_normal *= -1.0;
 				}
 			}
-			else if(dim == 3)
+			else if(dim == 3 && world_dim == 3)
 			{
 				normal_3d(	geo.obj_midpoint_global(m_mid_dim[3], m_mid_id[3]),
 							geo.obj_midpoint_global(m_mid_dim[1], m_mid_id[1]),
@@ -271,6 +281,10 @@ class SubControlVolumeFace{
 							m_normal);
 
 				// TODO: Check orientation !!!! (See 2d case...)
+			}
+			else
+			{
+				UG_LOG("Combination ref_dim = " << dim << ", world_dim = " << world_dim << " is currently not supported.\n"); return false;
 			}
 
 			m_sdv.update_global(m_ip_local, corners);
@@ -537,13 +551,15 @@ class FVElementGeometry {
 			// compute scvf
 			for(size_t i = 0; i < num_scvf(); ++i)
 			{
-				m_scvf[i].update_global(*this, corners);
+				if(!m_scvf[i].update_global(*this, corners))
+					{UG_LOG("Cannot update SubControlVolumeFaces.\n"); return false;}
 			}
 
 			// compute local scv
 			for(size_t i = 0; i < num_scv(); ++i)
 			{
-				m_scv[i].update_global(*this, corners);
+				if(!m_scv[i].update_global(*this, corners))
+					{UG_LOG("Cannot update SubControlVolume.\n"); return false;}
 			}
 
 			// compute local bf
@@ -551,7 +567,9 @@ class FVElementGeometry {
 			{
 				for(size_t i = 0; i < num_bf(side); ++i)
 				{
-					m_bf[side][i].update_global(*this, corners);
+					//TODO: boundary face handling
+			//		if(!m_bf[side][i].update_global(*this, corners))
+			//			{UG_LOG("Cannot update Boundary Faces.\n"); return false;}
 				}
 			}
 

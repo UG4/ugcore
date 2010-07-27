@@ -18,9 +18,10 @@
 #include "lib_algebra/lib_algebra.h"
 
 // intern headers
-#include "lib_discretization/reference_element/reference_elements.h"
+#include "../../reference_element/reference_element.h"
 #include "elem_disc_interface.h"
 #include "../function_group.h"
+#include "../local_algebra.h"
 
 namespace ug {
 
@@ -36,31 +37,39 @@ bool
 AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 					typename geometry_traits<TElem>::iterator iterBegin,
 					typename geometry_traits<TElem>::iterator iterEnd,
+					int si,
 					typename TAlgebra::matrix_type& J,
 					const TDiscreteFunction& u,
 					const FunctionGroup& fcts,
 					number time, number s_m, number s_a)
 {
-	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
-	typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
-	typedef typename TAlgebra::matrix_type::local_index_type local_index_type;
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
-	// set elem type
-	if(!elemDisc.set_geometric_object_type(reference_element_type::REFERENCE_ELEMENT_TYPE, IEDN_LINEAR))
+	// local indices and local algebra
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J;
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J_temp;
+
+	// set functions
+	ind.set_function_group(fcts);
+
+	// prepare local indices for elem type
+	if(!u.prepare_indices(refID, si, ind))
+		{UG_LOG("Cannot prepare indices.\n"); return false;}
+
+	// set elem type in elem disc
+	if(!elemDisc.set_geometric_object_type(refID, IEDN_JACOBIAN))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
 
-	// get total number of DoF's on this element type 'TElem'
-	const size_t num_sh = elemDisc.num_total_sh();
-
-	// allocate memory for local rhs and local Stiffness matrix_type
-	local_index_type glob_ind(num_sh);
-	local_vector_type loc_u(num_sh);
-	local_matrix_type loc_J(num_sh, num_sh);
-	local_matrix_type loc_J_temp(num_sh, num_sh);
+	// adjust local algebra
+	loc_u.set_indices(ind);
+	loc_J.set_indices(ind, ind);
+	loc_J_temp.set_indices(ind, ind);
 
 	// prepare loop
 	elemDisc.prepare_element_loop();
@@ -71,24 +80,18 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		// get Element
 		TElem* elem = *iter;
 
-		// reset index offset
-		size_t offset = 0;
+		// get global indices
+		u.update_indices(elem, ind);
 
-		// loop over all functions
-		for(size_t i = 0; i < fcts.num_functions(); i++)
-		{
-			offset += u.get_multi_indices(elem, fcts[i], glob_ind, offset);
-		}
-		UG_ASSERT(offset == num_sh, offset << " indices are read in, but we have " << num_sh << " dofs on this element.\n");
-
-		// read local values of current solution
-		u.get_dof_values(loc_u, glob_ind);
+		// read local values of u
+		const typename TAlgebra::vector_type& u_vec = u.get_vector();
+		loc_u.read_values(u_vec);
 
 		// reset local matrix and rhs
 		loc_J.set(0.0);
 
 		// prepare element
-		elemDisc.prepare_element(elem, loc_u, glob_ind);
+		elemDisc.prepare_element(elem, loc_u, ind);
 
 		// Assemble JA
 		loc_J_temp.set(0.0);
@@ -101,9 +104,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		loc_J += loc_J_temp * s_m;
 
 		// send local to global matrix
-		J.add(loc_J, glob_ind, glob_ind);
-
-		UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Adding local Matrix: \n" << loc_J << " for indices " << glob_ind << " x " << glob_ind << ".\n");
+		J.add(loc_J);
 	}
 
 	// finish element loop
@@ -123,31 +124,39 @@ bool
 AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 				typename geometry_traits<TElem>::iterator iterBegin,
 				typename geometry_traits<TElem>::iterator iterEnd,
+				int si,
 				typename TAlgebra::vector_type& d,
 				const TDiscreteFunction& u,
 				const FunctionGroup& fcts,
 				number time, number s_m, number s_a)
 {
-	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
-	typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
-	typedef typename TAlgebra::matrix_type::local_index_type local_index_type;
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
-	// set elem type
-	if(!elemDisc.set_geometric_object_type(reference_element_type::REFERENCE_ELEMENT_TYPE, IEDN_LINEAR))
-		{UG_LOG("ERROR in AssembleDefect: Cannot set geometric object type.\n"); return false;}
+	// local indices
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_d;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_d_temp;
 
-	// get total number of DoF's on this element type 'TElem'
-	const size_t num_sh = elemDisc.num_total_sh();
+	// set functions
+	ind.set_function_group(fcts);
 
-	// allocate memory for local rhs and local Stiffness matrix_type
-	local_index_type glob_ind(num_sh);
-	local_vector_type loc_d(num_sh);
-	local_vector_type loc_d_temp(num_sh);
-	local_vector_type loc_u(num_sh);
+	// prepare local indices for elem type
+	if(!u.prepare_indices(refID, si, ind))
+		{UG_LOG("Cannot prepare indices.\n"); return false;}
+
+	// set elem type in elem disc
+	if(!elemDisc.set_geometric_object_type(refID, IEDN_DEFECT))
+		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
+
+	// adjust local algebra
+	loc_u.set_indices(ind);
+	loc_d.set_indices(ind);
+	loc_d_temp.set_indices(ind);
 
 	// prepare loop
 	elemDisc.prepare_element_loop();
@@ -158,23 +167,17 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		// get Element
 		TElem* elem = *iter;
 
-		// reset index offset
-		size_t offset = 0;
-
-		// loop over all functions
-		for(size_t i = 0; i < fcts.num_functions(); i++)
-		{
-			offset += u.get_multi_indices(elem, fcts[i], glob_ind, offset);
-		}
-		UG_ASSERT(offset == num_sh, offset << " indices are read in, but we have " << num_sh << " dofs on this element.\n");
+		// get global indices
+		u.update_indices(elem, ind);
 
 		// read values
-		u.get_dof_values(loc_u, glob_ind);
+		const typename TAlgebra::vector_type& u_vec = u.get_vector();
+		loc_u.read_values(u_vec);
 
 		// reset local matrix and rhs
 		loc_d.set(0.0);
 
-		elemDisc.prepare_element(elem, loc_u, glob_ind);
+		elemDisc.prepare_element(elem, loc_u, ind);
 
 		// Assemble A
 		loc_d_temp.set(0.0);
@@ -192,7 +195,7 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		loc_d -= loc_d_temp * s_a;
 
 		// send local to global matrix
-		d.add(loc_d, glob_ind);
+		d.add(loc_d);
 	}
 
 	// finish element loop
@@ -212,34 +215,43 @@ bool
 AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 				typename geometry_traits<TElem>::iterator iterBegin,
 				typename geometry_traits<TElem>::iterator iterEnd,
+				int si,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const TDiscreteFunction& u,
 				const FunctionGroup& fcts)
 {
-	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
-	typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
-	typedef typename TAlgebra::matrix_type::local_index_type local_index_type;
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
-	// set elem type
-	if(!elemDisc.set_geometric_object_type(reference_element_type::REFERENCE_ELEMENT_TYPE, IEDN_LINEAR))
+	// local indices and local algebra
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_rhs;
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_mat;
+
+	// set functions
+	ind.set_function_group(fcts);
+
+	// prepare local indices for elem type
+	if(!u.prepare_indices(refID, si, ind))
+		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
+
+	// set elem type in elem disc
+	if(!elemDisc.set_geometric_object_type(refID, IEDN_LINEAR))
 		{UG_LOG("ERROR in AssembleLinear: Cannot set geometric object type.\n"); return false;}
 
-	// get total number of DoF's on this element type 'TElem'
-	const size_t num_sh = elemDisc.num_total_sh();
-
-	// allocate memory for local rhs and local Stiffness matrix_type
-	local_index_type glob_ind(num_sh);
-	local_vector_type loc_rhs(num_sh);
-	local_vector_type loc_u(num_sh);
-	local_matrix_type loc_mat(num_sh, num_sh);
+	// adjust local algebra
+	loc_u.set_indices(ind);
+	loc_rhs.set_indices(ind);
+	loc_mat.set_indices(ind, ind);
 
 	// prepare loop
-	elemDisc.prepare_element_loop();
+	if(!elemDisc.prepare_element_loop())
+		{UG_LOG("ERROR in AssembleLinear: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements of type TElem
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
@@ -247,38 +259,37 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 		// get Element
 		TElem* elem = *iter;
 
-		// reset index offset
-		size_t offset = 0;
+		// get global indices
+		u.update_indices(elem, ind);
 
-		// loop over all functions
-		for(size_t i = 0; i < fcts.num_functions(); i++)
-		{
-			offset += u.get_multi_indices(elem, fcts[i], glob_ind, offset);
-		}
-		UG_ASSERT(offset == num_sh, offset << " indices are read in, but we have " << num_sh << " dofs on this element.\n");
-
-		u.get_dof_values(loc_u, glob_ind);
+		// read local values of u
+		const typename TAlgebra::vector_type& u_vec = u.get_vector();
+		loc_u.read_values(u_vec);
 
 		// reset local matrix and rhs
 		loc_mat.set(0.0);
 		loc_rhs.set(0.0);
 
 		// prepare element data
-		if(!elemDisc.prepare_element(elem, loc_u, glob_ind)) return false;
+		if(!elemDisc.prepare_element(elem, loc_u, ind))
+			{UG_LOG("ERROR in AssembleLinear: Cannot prepare element.\n"); return false;}
 
 		// assemble stiffness matrix for inner elements
-		if(!elemDisc.assemble_JA(loc_mat, loc_u)) return false;
+		if(!elemDisc.assemble_JA(loc_mat, loc_u))
+			{UG_LOG("ERROR in AssembleLinear: Cannot assemble_JA.\n"); return false;}
 
 		// assemble rhs for inner elements
-		if(!elemDisc.assemble_f(loc_rhs)) return false;
+		if(!elemDisc.assemble_f(loc_rhs))
+			{UG_LOG("ERROR in AssembleLinear: Cannot assemble_f.\n"); return false;}
 
 		// send local to global (matrix and rhs)
-		mat.add(loc_mat, glob_ind, glob_ind);
-		rhs.add(loc_rhs, glob_ind);
+		mat.add(loc_mat);
+		rhs.add(loc_rhs);
 	}
 
 	// finish element loop
-	if(!elemDisc.finish_element_loop()) return false;
+	if(!elemDisc.finish_element_loop())
+		{UG_LOG("ERROR in AssembleLinear: Cannot finish element loop.\n"); return false;}
 
 	return true;
 };

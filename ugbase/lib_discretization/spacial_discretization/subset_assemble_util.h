@@ -30,13 +30,28 @@ bool
 AssembleJacobian(	TElemDisc& elemDisc,
 					typename TAlgebra::matrix_type& J,
 					const TDiscreteFunction& u,
-					const FunctionGroup& fcts, int si,
+					const FunctionGroup& fcts, int si, int dim,
 					number time, number s_m, number s_a)
 {
-	if(!AssembleJacobian<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), J, u, fcts, time, s_m, s_a))
-		{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
-	if(!AssembleJacobian<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), J, u, fcts, time, s_m, s_a))
-		{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
+
+	switch(dim)
+	{
+		case 1:
+			if(!AssembleJacobian<Edge>(elemDisc, u.template begin<Edge>(si), u.template end<Edge>(si), si, J, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
+			break;
+
+		case 2:
+			if(!AssembleJacobian<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), si, J, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleJacobian<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si, J, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
+			break;
+
+		case 3:
+
+		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
+	}
 
 	return true;
 };
@@ -48,10 +63,10 @@ bool
 AssembleJacobian(	TElemDisc& elemDisc,
 					typename TAlgebra::matrix_type& J,
 					const TDiscreteFunction& u,
-					const FunctionGroup& fcts, int si)
+					const FunctionGroup& fcts, int si, int dim)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
-	return AssembleJacobian<TElemDisc, TDiscreteFunction, TAlgebra>(elemDisc, J, u, fcts, si, 0.0, 0.0, 1.0);
+	return AssembleJacobian<TElemDisc, TDiscreteFunction, TAlgebra>(elemDisc, J, u, fcts, si, dim, 0.0, 0.0, 1.0);
 }
 
 //////////////////////////////////
@@ -65,13 +80,27 @@ bool
 AssembleDefect(	TElemDisc& elemDisc,
 				typename TAlgebra::vector_type& d,
 				const TDiscreteFunction& u,
-				const FunctionGroup& fcts, int si,
+				const FunctionGroup& fcts, int si, int dim,
 				number time, number s_m, number s_a)
 {
-	if(!AssembleDefect<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), d, u, fcts, time, s_m, s_a))
-		{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
-	if(!AssembleDefect<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), d, u, fcts, time, s_m, s_a))
-		{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
+	switch(dim)
+	{
+		case 1:
+			if(!AssembleDefect<Edge>(elemDisc, u.template begin<Edge>(si), u.template end<Edge>(si), si, d, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
+			break;
+
+		case 2:
+			if(!AssembleDefect<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), si, d, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
+			if(!AssembleDefect<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si, d, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
+			break;
+
+		case 3:
+
+		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
+	}
 
 	return true;
 };
@@ -83,10 +112,10 @@ bool
 AssembleDefect(	TElemDisc& elemDisc,
 				typename TAlgebra::vector_type& d,
 				const TDiscreteFunction& u,
-				const FunctionGroup& fcts, int si)
+				const FunctionGroup& fcts, int si, int dim)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
-	return AssembleDefect<TElemDisc, TDiscreteFunction, TAlgebra>(elemDisc, d, u, fcts, si, 0.0, 0.0, 1.0);
+	return AssembleDefect<TElemDisc, TDiscreteFunction, TAlgebra>(elemDisc, d, u, fcts, si, dim, 0.0, 0.0, 1.0);
 }
 
 
@@ -103,7 +132,7 @@ AssembleLinear(	TElemDisc& elemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const TDiscreteFunction& u,
-				const FunctionGroup& fcts, int si,
+				const FunctionGroup& fcts, int si, int dim,
 				number time, number s_m, number s_a)
 {
 
@@ -124,12 +153,30 @@ AssembleLinear(	TElemDisc& elemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const TDiscreteFunction& u,
-				const FunctionGroup& fcts, int si)
+				const FunctionGroup& fcts, int si, int dim)
 {
-	if(!AssembleLinear<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), mat, rhs, u, fcts))
-		{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
-	if(!AssembleLinear<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), mat, rhs, u, fcts))
-		{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
+	switch(dim)
+	{
+		case 1:
+			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Edge>(si) << " Edges on subset " << si << ".\n");
+			if(!AssembleLinear<Edge>(elemDisc, u.template begin<Edge>(si), u.template end<Edge>(si), si, mat, rhs, u, fcts))
+				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
+			break;
+
+		case 2:
+			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Triangle>(si) << " Triangles on subset " << si << ".\n");
+			if(!AssembleLinear<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), si, mat, rhs, u, fcts))
+				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
+
+			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Quadrilateral>(si) << " Quadrilaterals on subset " << si << ".\n");
+			if(!AssembleLinear<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si, mat, rhs, u, fcts))
+				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
+			break;
+
+		case 3:
+
+		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
+	}
 
 	return true;
 };

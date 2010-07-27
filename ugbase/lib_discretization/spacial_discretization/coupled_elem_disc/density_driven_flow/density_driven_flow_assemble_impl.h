@@ -29,8 +29,8 @@ CplDensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
 	m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
 	m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity)
 {
-	register_all_assemble_functions<Triangle>(RET_TRIANGLE);
-	register_all_assemble_functions<Quadrilateral>(RET_QUADRILATERAL);
+	register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+	register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
 };
 
 

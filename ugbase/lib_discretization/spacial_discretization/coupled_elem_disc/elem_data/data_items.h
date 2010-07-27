@@ -299,7 +299,7 @@ class DataImportItem : public DataItem{
 		}
 
 		// add of diagonal couplings to local Matrix J for coupling with system loc_sys
-		virtual bool add_offdiagonal(FlexLocalMatrix& J, size_t loc_sys, number s_a) = 0;
+		virtual bool add_offdiagonal(FlexLocalMatrix<double>& J, size_t loc_sys, number s_a) = 0;
 
 	public:
 		// link this import to an export

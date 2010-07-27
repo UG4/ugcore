@@ -250,6 +250,17 @@ class GridFunction{
 		inline typename geometry_traits<TElem>::iterator end(int si) const
 			{return m_pDoFDistribution->template end<TElem>(si);}
 
+		size_t num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
+			{return m_pDoFDistribution->num_indices(refID, si, funcGroup);}
+
+		/// fill local informations in LocalIndex
+		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
+			{return m_pDoFDistribution->prepare_indices(refID, si, ind);}
+
+		/// fill the global algebra indices in LocalIndex
+		template<typename TElem>
+		void update_indices(TElem* elem, LocalIndices& ind) const
+			{return m_pDoFDistribution->update_indices(elem, ind);}
 
 		// get dof values
 		inline bool get_dof_values(local_vector_type& val, local_index_type& ind) const

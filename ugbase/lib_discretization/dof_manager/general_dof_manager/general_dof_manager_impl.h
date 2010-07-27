@@ -30,7 +30,7 @@ get_multi_indices(TElem* elem, uint nr_fct, multi_index_type ind[])
 
 	const ContinuousDoFPattern& elemPattern = m_SingleDiscreteFunctionVec[nr_fct].get_continuous_dof_pattern();
 
-	if(elemPattern.num_dofs(RET_POINT) > 0)
+	if(elemPattern.num_dofs(ROID_VERTEX) > 0)
 	{
 		for(uint i = 0; i < reference_element_traits<TElem>::num_corners; ++i)
 		{

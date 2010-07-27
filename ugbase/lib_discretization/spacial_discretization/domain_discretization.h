@@ -48,12 +48,14 @@ class DomainDiscretization :
 			if(!check_solution(u)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleJacobian<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si))
-					return IAssemble_ERROR;
+				if(!AssembleJacobian<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleJacobian<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vCoupledElemDisc[i].disc, J, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si))
-					return IAssemble_ERROR;
+				if(!AssembleJacobian<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, J, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si) != IAssemble_OK)
@@ -65,12 +67,14 @@ class DomainDiscretization :
 			if(!check_solution(u)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleDefect<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si))
-					return IAssemble_ERROR;
+				if(!AssembleDefect<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleDefect<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vCoupledElemDisc[i].disc, d, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si))
-					return IAssemble_ERROR;
+				if(!AssembleDefect<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, d, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si,  m_vCoupledElemDisc[i].dim))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_vDirichletDisc[i].si) != IAssemble_OK)
@@ -82,12 +86,14 @@ class DomainDiscretization :
 			if(!check_solution(u)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleLinear<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si))
-					return IAssemble_ERROR;
+				if(!AssembleLinear<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleLinear<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vCoupledElemDisc[i].disc, mat, rhs, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si))
-					return IAssemble_ERROR;
+				if(!AssembleLinear<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, mat, rhs, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_vDirichletDisc[i].si) != IAssemble_OK)
@@ -112,12 +118,14 @@ class DomainDiscretization :
 			if(!check_solution(u)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleJacobian<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, time, s_m, s_a))
-					return IAssemble_ERROR;
+				if(!AssembleJacobian<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleJacobian<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vCoupledElemDisc[i].disc, J, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, time, s_m, s_a))
-					return IAssemble_ERROR;
+				if(!AssembleJacobian<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, J, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim, time, s_m, s_a))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
@@ -129,12 +137,14 @@ class DomainDiscretization :
 			if(!check_solution(u)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleDefect<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, time, s_m, s_a))
-					return IAssemble_ERROR;
+				if(!AssembleDefect<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleDefect<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vCoupledElemDisc[i].disc, d, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, time, s_m, s_a))
-					return IAssemble_ERROR;
+				if(!AssembleDefect<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, d, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si,  m_vCoupledElemDisc[i].dim, time, s_m, s_a))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
@@ -146,12 +156,14 @@ class DomainDiscretization :
 			if(!check_solution(u)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleLinear<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, time, s_m, s_a))
-					return IAssemble_ERROR;
+				if(!AssembleLinear<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleLinear<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>(*m_vCoupledElemDisc[i].disc, mat, rhs, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, time, s_m, s_a))
-					return IAssemble_ERROR;
+				if(!AssembleLinear<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, mat, rhs, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim, time, s_m, s_a))
+						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
@@ -172,27 +184,28 @@ class DomainDiscretization :
 		typedef std::vector<size_t> comp_vec_type;
 
 	public:
-		bool add_disc(IElemDisc<TAlgebra>& elemDisc, const FunctionGroup& fcts, int si)
+		bool add_disc(IElemDisc<TAlgebra>& elemDisc, const FunctionGroup& fcts, int si, int dim)
 		{
 			// check if number of functions match
-			if(elemDisc.num_fct() != fcts.num_functions())
+			if(elemDisc.num_fct() != fcts.num_fct())
 			{
 				UG_LOG("Wrong number of local functions given for Elemet Discretization.\n");
-				UG_LOG("Needed: " << elemDisc.num_fct() << ", given: " << fcts.num_functions() << ".\n");
+				UG_LOG("Needed: " << elemDisc.num_fct() << ", given: " << fcts.num_fct() << ".\n");
 				UG_LOG("Cannot add element discretization.\n");
 				return false;
 			}
-			m_vElemDisc.push_back(ElemDisc(si, elemDisc, fcts));
+			m_vElemDisc.push_back(ElemDisc(si, dim, elemDisc, fcts));
 			return true;
 		}
 
 	protected:
 		struct ElemDisc
 		{
-			ElemDisc(int si_, IElemDisc<TAlgebra>& disc_, const FunctionGroup& fcts_) :
-				si(si_), disc(&disc_), fcts(fcts_) {};
+			ElemDisc(int si_, int dim_, IElemDisc<TAlgebra>& disc_, const FunctionGroup& fcts_) :
+				si(si_), dim(dim_), disc(&disc_), fcts(fcts_) {};
 
 			int si;
+			int dim;
 			IElemDisc<TAlgebra>* disc;
 			FunctionGroup fcts;
 		};
@@ -200,27 +213,28 @@ class DomainDiscretization :
 		std::vector<ElemDisc> m_vElemDisc;
 
 	public:
-		bool add_disc(CoupledSystem<TDiscreteFunction, TAlgebra>& coupledElemDisc, const FunctionGroup& fcts, int si)
+		bool add_disc(CoupledSystem<TDiscreteFunction, TAlgebra>& coupledElemDisc, const FunctionGroup& fcts, int si, int dim)
 		{
 			// check if number of functions match
-			if(coupledElemDisc.num_fct() != fcts.num_functions())
+			if(coupledElemDisc.num_fct() != fcts.num_fct())
 			{
 				UG_LOG("Wrong number of local functions given for Elemet Discretization.\n");
-				UG_LOG("Needed: " << coupledElemDisc.num_fct() << ", given: " << fcts.num_functions() << ".\n");
+				UG_LOG("Needed: " << coupledElemDisc.num_fct() << ", given: " << fcts.num_fct() << ".\n");
 				UG_LOG("Cannot add element discretization.\n");
 				return false;
 			}
-			m_vCoupledElemDisc.push_back(CoupledDisc(si, coupledElemDisc, fcts));
+			m_vCoupledElemDisc.push_back(CoupledDisc(si, dim, coupledElemDisc, fcts));
 			return true;
 		}
 
 	protected:
 		struct CoupledDisc
 		{
-			CoupledDisc(int si_, CoupledSystem<TDiscreteFunction, TAlgebra>& disc_, const FunctionGroup& fcts_) :
-				si(si_), disc(&disc_), fcts(fcts_) {};
+			CoupledDisc(int si_, int dim_, CoupledSystem<TDiscreteFunction, TAlgebra>& disc_, const FunctionGroup& fcts_) :
+				si(si_), dim(dim_), disc(&disc_), fcts(fcts_) {};
 
 			int si;
+			int dim;
 			CoupledSystem<TDiscreteFunction, TAlgebra>* disc;
 			FunctionGroup fcts;
 		};
@@ -272,7 +286,7 @@ class DomainDiscretization :
 		{
 			size_t sum = 0;
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				sum += m_vElemDisc[i].fcts.num_functions();
+				sum += m_vElemDisc[i].fcts.num_fct();
 
 			return sum;
 		}

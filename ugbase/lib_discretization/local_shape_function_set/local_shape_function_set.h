@@ -17,8 +17,8 @@
 #include "lib_grid/lg_base.h"
 
 // library intern headers
-#include "lib_discretization/reference_element/reference_elements.h"
-#include "lib_discretization/local_shape_function_set/local_dof_pattern.h"
+#include "../reference_element/reference_element.h"
+#include "./local_dof_pattern.h"
 
 namespace ug {
 

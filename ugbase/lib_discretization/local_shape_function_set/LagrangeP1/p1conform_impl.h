@@ -32,7 +32,7 @@ template <typename TRefElem>
 P1conform<TRefElem>::
 P1conform()
 {
-	m_ElementDoFPattern.set_num_dofs(RET_POINT, 1);
+	m_ElementDoFPattern.set_num_dofs(ROID_VERTEX, 1);
 };
 
 

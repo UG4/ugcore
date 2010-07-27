@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__QUADRATURE__
 #define __H__LIBDISCRETIZATION__QUADRATURE__
 
-#include "lib_discretization/reference_element/reference_elements.h"
+#include "../reference_element/reference_element.h"
 
 namespace ug{
 

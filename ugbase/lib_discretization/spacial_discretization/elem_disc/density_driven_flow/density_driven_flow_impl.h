@@ -28,8 +28,7 @@ DensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
 	m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
 	m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity)
 {
-	register_all_assemble_functions<Triangle>(RET_TRIANGLE);
-	register_all_assemble_functions<Quadrilateral>(RET_QUADRILATERAL);
+	register_assemble_functions();
 };
 
 
@@ -157,11 +156,6 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	return true;
 }
 
-#define J(fct1, fct2, i, j) ( J( (ref_elem_type::num_corners)*(fct1) + i, (ref_elem_type::num_corners)*(fct2) + j) )
-#define d(fct, i)    ( d[ref_elem_type::num_corners*(fct) + (i)])
-#define u(fct, i)    ( u[ref_elem_type::num_corners*(fct) + (i)])
-
-
 template<typename TDomain, typename TAlgebra>
 template<typename TElem >
 inline
@@ -205,8 +199,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				MatVecMult(Dgrad, D, sdv.grad_global(j));
 				flux = VecDot(Dgrad, scvf.normal());
 
-				J(_C_, _C_, scvf.from(), j) -= flux;
-				J(_C_, _C_, scvf.to(), j) += flux;
+				J(_C_, scvf.from(), _C_, j) -= flux;
+				J(_C_, scvf.to(),   _C_, j) += flux;
 
 				//J(_C_, _P_, scvf.from(), j) -= 0.0;
 				//J(_C_, _P_, scvf.to(), j) += 0.0;;
@@ -222,11 +216,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					flux_p = (1.- m_upwind_amount) * (											0.0	 + c_ip * VecDot(D_Darcy_vel_p[j], scvf.normal()));
 
 					// coupling 'from' with j  (i.e. A[from][j]) and 'to' with j (i.e. A[to][j])
-					J(_C_, _C_, scvf.from(), j) += flux_c;
-					J(_C_, _C_, scvf.to(),j) -= flux_c;
+					J(_C_, scvf.from(), _C_, j) += flux_c;
+					J(_C_, scvf.to(),   _C_, j) -= flux_c;
 
-					J(_C_, _P_, scvf.from(), j) += flux_p;
-					J(_C_, _P_, scvf.to(),j) -= flux_p;
+					J(_C_, scvf.from(), _P_, j) += flux_p;
+					J(_C_, scvf.to(),   _P_, j) -= flux_p;
 				}
 			}
 			// upwind part convection
@@ -242,12 +236,12 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					else flux_c = 0.0;
 					flux_c += m_upwind_amount * u(_C_, up) * VecDot(D_Darcy_vel_c[j], scvf.normal());
 
-					J(_C_, _C_,scvf.from(), j) += flux_c;
-					J(_C_, _C_,scvf.to(), j) -= flux_c;
+					J(_C_, scvf.from(), _C_, j) += flux_c;
+					J(_C_, scvf.to(),   _C_, j) -= flux_c;
 
 					flux_p =  m_upwind_amount * ( u(_C_, up) * VecDot(D_Darcy_vel_p[j], scvf.normal()));
-					J(_C_, _P_,scvf.from(), j) += flux_p;
-					J(_C_, _P_,scvf.to(), j) -= flux_p;
+					J(_C_, scvf.from(), _P_, j) += flux_p;
+					J(_C_, scvf.to(),   _P_, j) -= flux_p;
 				}
 			}
 
@@ -262,11 +256,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				UG_DLOG(LIB_DISC_D3F, 3, "flux_c = " << flux_c << " (scvf.from = " << scvf.from() << ", scvf.to = " <<  scvf.to() << ", j = " << j <<")\n");
 				UG_DLOG(LIB_DISC_D3F, 3, "flux_p = " << flux_p << " (scvf.from = " << scvf.from() << ", scvf.to = " <<  scvf.to() << ", j = " << j <<")\n");
 
-				J(_P_, _C_, scvf.from(), j) += flux_c;
-				J(_P_, _C_, scvf.to(), j) -= flux_c;
+				J(_P_, scvf.from(), _C_, j) += flux_c;
+				J(_P_, scvf.to(),   _C_, j) -= flux_c;
 
-				J(_P_, _P_, scvf.from(), j) += flux_p;
-				J(_P_, _P_, scvf.to(), j) -= flux_p;
+				J(_P_, scvf.from(), _P_, j) += flux_p;
+				J(_P_, scvf.to(),   _P_, j) -= flux_p;
 			}
 		}
 	}
@@ -289,7 +283,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 
 		co = scv.local_corner_id();
 
-		J(_C_, _C_, co, co) += m_porosity * scv.volume();
+		J(_C_, co, _C_, co) += m_porosity * scv.volume();
 		//J(_C_, _P_, co, co) += 0;
 		//J(_P_, _C_, co, co) += 0;
 		//J(_P_, _P_, co, co) += 0;
@@ -411,9 +405,6 @@ assemble_f(local_vector_type& d, number time)
 	return true;
 }
 
-#undef J
-#undef d
-#undef u
 } // namespace ug
 
 

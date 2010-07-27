@@ -12,6 +12,47 @@ namespace ug{
 
 template<>
 bool
+P1conform<ReferenceEdge>::
+evaluate(int nrShapeFct, const position_type& locPos, shape_value_type& value) const
+{
+	switch(nrShapeFct)
+	{
+		case 0: value = (1.-locPos[0]); return true;
+		case 1: value = locPos[0]; return true;
+		default: return false;
+	}
+	return true;
+};
+
+template<>
+bool P1conform<ReferenceEdge>::
+evaluate_grad(int nrShapeFct, const position_type& locPos, grad_value_type& value) const
+{
+	switch(nrShapeFct)
+	{
+	case 0: value[0] = -1.0; return true;
+	case 1: value[0] = 	1.0; return true;
+	default: return false;
+	}
+	return true;
+}
+
+template<>
+bool P1conform<ReferenceEdge>::
+position_of_dof(int nrShapeFct, position_type& value) const
+{
+	switch(nrShapeFct)
+	{
+	case 0: value[0] =  0.0; return true;
+	case 1: value[0] = 	1.0; return true;
+	default: return false;
+	}
+	return true;
+}
+
+
+template<>
+bool
 P1conform<ReferenceTriangle>::
 evaluate(int nrShapeFct, const position_type& locPos, shape_value_type& value) const
 {

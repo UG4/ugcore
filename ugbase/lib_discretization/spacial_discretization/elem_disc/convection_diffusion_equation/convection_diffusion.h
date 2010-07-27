@@ -16,7 +16,7 @@
 // library intern headers
 #include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
-
+#include "../../local_algebra.h"
 
 namespace ug{
 
@@ -38,13 +38,14 @@ class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef typename algebra_type::matrix_type::local_matrix_type local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
 
 		// local vector type
-		typedef typename algebra_type::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 		// local index type
-		typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		//typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		typedef LocalIndices local_index_type;
 
 	protected:
 		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
@@ -109,6 +110,9 @@ class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 			return geo;
 		}
 
+		// to make it more readable
+		static const size_t _C_ = 0;
+
 		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
 		number m_upwind_amount;
 
@@ -119,6 +123,40 @@ class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		Rhs_fct m_Rhs;
 
 	private:
+		///////////////////////////////////////
+		// registering for reference elements
+		///////////////////////////////////////
+		template <int dim> class numType{};
+
+		void register_assemble_functions()
+		{
+			numType<TDomain::dim> dummy;
+			register_assemble_functions(dummy);
+		}
+
+		// register for 1D
+		void register_assemble_functions(numType<1> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+		}
+
+		// register for 2D
+		void register_assemble_functions(numType<2> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+		}
+
+		// register for 3D
+		void register_assemble_functions(numType<3> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+			// TODO: Register 3D Ref-Elems
+		}
+
 		// help function
 		template <typename TElem>
 		void register_all_assemble_functions(int id)

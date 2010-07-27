@@ -35,13 +35,13 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef typename algebra_type::matrix_type::local_matrix_type local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
 
 		// local vector type
-		typedef typename algebra_type::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 		// local index type
-		typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		typedef LocalIndices local_index_type;
 
 	protected:
 		typedef void (*Pososity_fct)(number&);
@@ -146,6 +146,40 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 											number c_ip, const MathVector<dim>& grad_p_ip);
 
 	private:
+		///////////////////////////////////////
+		// registering for reference elements
+		///////////////////////////////////////
+		template <int dim> class numType{};
+
+		void register_assemble_functions()
+		{
+			numType<TDomain::dim> dummy;
+			register_assemble_functions(dummy);
+		}
+
+		// register for 1D
+		void register_assemble_functions(numType<1> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+		}
+
+		// register for 2D
+		void register_assemble_functions(numType<2> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+		}
+
+		// register for 3D
+		void register_assemble_functions(numType<3> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+			// TODO: Register 3D Ref-Elems
+		}
+
 		// help function
 		template <typename TElem>
 		void register_all_assemble_functions(int id)

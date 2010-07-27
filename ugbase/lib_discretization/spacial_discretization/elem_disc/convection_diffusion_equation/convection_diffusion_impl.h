@@ -28,8 +28,7 @@ ConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 	: 	m_domain(domain), m_upwind_amount(upwind_amount),
 		m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
 {
-	register_all_assemble_functions<Triangle>(RET_TRIANGLE);
-	register_all_assemble_functions<Quadrilateral>(RET_QUADRILATERAL);
+	register_assemble_functions();
 };
 
 
@@ -87,7 +86,8 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	}
 
 	// update Geometry for this element
-	get_fvgeom<TElem>().update(m_corners);
+	if(!get_fvgeom<TElem>().update(m_corners))
+		{UG_LOG("ConvectionDiffusionElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
 
 	return true;
 }
@@ -121,10 +121,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				////////////////////////////////////
 				// diffusiv term (central discretization)
 				MatVecMult(Dgrad, D, sdv.grad_global(j));
+
 				flux = VecDot(Dgrad, scvf.normal());
 
-				J(scvf.from(), j) -= flux;
-				J(scvf.to()  , j) += flux;
+				J(_C_, scvf.from(), _C_, j) -= flux;
+				J(_C_, scvf.to()  , _C_, j) += flux;
 
 				////////////////////////////////////
 				// convective term
@@ -137,8 +138,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					flux = (1.- m_upwind_amount) * sdv.shape(j) * VecDot(v, scvf.normal());
 
 					// coupling 'from' with j  (i.e. A[from][j]) and 'to' with j (i.e. A[to][j])
-					J(scvf.from(), j) += flux;
-					J(scvf.to()  , j) -= flux;
+					J(_C_, scvf.from(), _C_, j) += flux;
+					J(_C_, scvf.to()  , _C_, j) -= flux;
 
 				}
 			}
@@ -148,8 +149,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				int up;
 				flux = m_upwind_amount * VecDot(v, scvf.normal());
 				if(flux >= 0.0) up = scvf.from(); else up = scvf.to();
-				J(scvf.from(), up) += flux;
-				J(scvf.to()  , up) -= flux;
+				J(_C_, scvf.from(), _C_, up) += flux;
+				J(_C_, scvf.to()  , _C_, up) -= flux;
 			}
 
 		}
@@ -164,7 +165,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 		m_Reaction(reac_val, scv.global_corner_pos(), time);
 
-		J(co , co) += reac_val * scv.volume();
+		J(_C_, co, _C_, co) += reac_val * scv.volume();
 	}
 
 	return true;
@@ -185,7 +186,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 
 		co = scv.local_corner_id();
 
-		J(co , co) += 1.0 * scv.volume();
+		J(_C_, co, _C_, co) += 1.0 * scv.volume();
 	}
 
 	return true;
@@ -231,8 +232,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			MatVecMult(Dgrad_u, D, grad_u);
 			flux = VecDot(Dgrad_u, scvf.normal());
 
-			d[scvf.from()] -= flux;
-			d[scvf.to()] += flux;
+			d(_C_, scvf.from()) -= flux;
+			d(_C_, scvf.to()  ) += flux;
 
 			////////////////////////////////////
 			// convective term
@@ -244,8 +245,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			{
 				flux = (1.- m_upwind_amount) * shape_u * VecDot(v, scvf.normal());
 
-				d[scvf.from()] += flux;
-				d[scvf.to()] -= flux;
+				d(_C_, scvf.from()) += flux;
+				d(_C_, scvf.to()  ) -= flux;
 			}
 
 			// upwind part convection
@@ -253,8 +254,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			{
 				flux = m_upwind_amount * VecDot(v, scvf.normal());
 				if(flux >= 0.0) flux *= u[scvf.from()]; else flux *= u[scvf.to()];
-				d[scvf.from()] += flux;
-				d[scvf.to()] -= flux;
+				d(_C_, scvf.from()) += flux;
+				d(_C_, scvf.to()  ) -= flux;
 			}
 
 		}
@@ -269,7 +270,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 		m_Reaction(reac_val, scv.global_corner_pos(), time);
 
-		d[co] += reac_val * u[co] * scv.volume();
+		d(_C_, co) += reac_val * u[co] * scv.volume();
 	}
 
 	return true;
@@ -290,7 +291,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 
 		co = scv.local_corner_id();
 
-		d[co] += u[co] * scv.volume();
+		d(_C_, co) += u[co] * scv.volume();
 	}
 
 	return true;
@@ -310,7 +311,7 @@ assemble_f(local_vector_type& d, number time)
 		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		m_Rhs(fvalue, scv.global_corner_pos(), time);
-		d[scv.local_corner_id()] += fvalue * scv.volume();
+		d(_C_, scv.local_corner_id()) += fvalue * scv.volume();
 	}
 
 	return true;

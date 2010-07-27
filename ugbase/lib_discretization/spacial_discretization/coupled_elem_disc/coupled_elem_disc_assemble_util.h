@@ -18,7 +18,7 @@
 #include "lib_algebra/lib_algebra.h"
 
 // intern headers
-#include "lib_discretization/reference_element/reference_elements.h"
+#include "../../reference_element/reference_element.h"
 #include "./coupled_elem_disc_interface.h"
 #include "./coupled_system.h"
 #include "../function_group.h"
@@ -38,16 +38,15 @@ bool
 AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 					typename geometry_traits<TElem>::iterator iterBegin,
 					typename geometry_traits<TElem>::iterator iterEnd,
+					int si,
 					typename TAlgebra::matrix_type& J,
 					const TDiscreteFunction& u,
 					const FunctionGroup& fcts,
 					number time, number s_m, number s_a)
 {
 	using std::vector;
-	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
-	typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
-	typedef typename TAlgebra::matrix_type::local_index_type local_index_type;
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
@@ -56,13 +55,27 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
 	ElemDataContainer.clear_identification();
 
-	for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+	// number of systems
+	const size_t num_sys = cplElemDisc.num_sys();
+
+	// local indices
+	vector<LocalIndices> ind(num_sys);
+
+	for(size_t sys = 0; sys < num_sys; ++sys)
 	{
 		ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
 		// set elem type
-		if(!system.set_geometric_object_type(reference_element_type::REFERENCE_ELEMENT_TYPE, IEDN_LINEAR))
+		if(!system.set_geometric_object_type(refID, IEDN_LINEAR))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
+
+		// set functions
+		// TODO: set correct function group
+		ind[sys].set_function_group(fcts);
+
+		// prepare local indices
+		if(!u.prepare_indices(refID, si, ind[sys]))
+			{UG_LOG("Cannot prepare indices.\n"); return false;}
 
 		// prepare element loop:
 		// Imports: set_positions and num_eq
@@ -73,38 +86,29 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	// identify again the exports to avoid double computation
 	ElemDataContainer.identify_exports();
 
-	size_t num_sys = cplElemDisc.num_sys();
-	vector<size_t> num_sh(num_sys);
+	// local algebra
+	vector<LocalVector<typename TAlgebra::vector_type::entry_type> > loc_u(num_sys);
+	vector<LocalMatrix<typename TAlgebra::matrix_type::entry_type> > loc_J(num_sys);
+	vector<LocalMatrix<typename TAlgebra::matrix_type::entry_type> > loc_J_temp(num_sys);
 
-	vector<local_index_type> glob_ind(num_sys);
-	vector<local_vector_type> loc_u(num_sys);
-	vector<local_matrix_type> loc_J(num_sys);
-	vector<local_matrix_type> loc_J_temp(num_sys);
+	// TODO: set indices in local algebra
 
-	vector<vector<vector<local_matrix_type> > > loc_J_coupl(num_sys);
-	loc_J_coupl.resize(num_sys);
+	// TODO: set couple matrices
 
 	// allocating memory
-	for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+	for(size_t sys = 0; sys < num_sys; ++sys)
 	{
-		ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
-
-		// get total number of DoF's on this element type 'TElem'
-		num_sh[sys] = system.num_total_sh();
-
-		// global indices of system
-		glob_ind[sys].resize(num_sh[sys]);
-
 		// local values of unknowns of system
-		loc_u[sys].resize(num_sh[sys]);
+		loc_u[sys].set_indices(ind[sys]);
 
 		// local matrix of unknowns (diagonal part)
-		loc_J[sys].resize(num_sh[sys], num_sh[sys]);
-		loc_J_temp[sys].resize(num_sh[sys], num_sh[sys]);
+		loc_J[sys].set_indices(ind[sys], ind[sys]);
+		loc_J_temp[sys].set_indices(ind[sys], ind[sys]);
 	}
 
 	// allocate matrix for off-diagonal part (induced by coupling)
-	for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+	/*
+	for(size_t sys = 0; sys < num_sys; ++sys)
 	{
 		ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
@@ -122,6 +126,7 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			}
 		}
 	}
+	*/
 
 	// loop over all elements
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
@@ -134,33 +139,21 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		{
 			ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
-			// reset index offset
-			size_t offset = 0;
+			// get global indices
+			u.update_indices(elem, ind[sys]);
 
-			// get local indices and fill local matrix pattern
-			for(size_t i = 0; i < system.num_fct(); i++)
-			{
-				offset += u.get_multi_indices(elem, fcts[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
-			}
-			UG_ASSERT(offset == num_sh[sys], offset << " indices are read in, but we have " << num_sh[sys] << " dofs on this element.\n");
+			// read local values of u
+			const typename TAlgebra::vector_type& u_vec = u.get_vector();
+			loc_u[sys].read_values(u_vec);
 
-			// get local dof values of all unknowns
-			u.get_dof_values(loc_u[sys], glob_ind[sys]);
-
-/*			UG_LOG("sys = " << sys << "\n");
-			for(size_t i = 0; i < loc_u[sys].size(); ++i)
-			{
-				UG_LOG("i = " << i << ", u= " << loc_u[sys][i] << "ind = "<<  glob_ind[sys][i][0] << "\n");
-			}
-*/
 			// prepare export
 			// Exports: set_local_solution(elem, local_vector_type& u, local_index_type& glob_ind)
-			system.prepare_element(elem, loc_u[sys], glob_ind[sys]);
+			system.prepare_element(elem, loc_u[sys], ind[sys]);
 		}
 
 		ElemDataContainer.compute(true);
 
-		for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+		for(size_t sys = 0; sys < num_sys; ++sys)
 		{
 			ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
@@ -178,10 +171,10 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			loc_J[sys] += loc_J_temp[sys] * s_m;
 
 			// send local to global matrix
-			J.add(loc_J[sys], glob_ind[sys], glob_ind[sys]);
+			J.add(loc_J[sys]);
 
 			// compute matrix entries induced by coupling
-			for(size_t i = 0; i < system.num_imports(); ++i)
+/*			for(size_t i = 0; i < system.num_imports(); ++i)
 			{
 				DataImportItem* Imp = system.import(i);
 
@@ -199,7 +192,7 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 					J.add(loc_J_coupl[sys][i][r], glob_ind[sys], glob_ind[Imp->sys_id(r)]);
 				}
 			}
-		}
+*/		}
 	}
 
 	// finish element loop for each system
@@ -223,16 +216,15 @@ bool
 AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 				typename geometry_traits<TElem>::iterator iterBegin,
 				typename geometry_traits<TElem>::iterator iterEnd,
+				int si,
 				typename TAlgebra::vector_type& d,
 				const TDiscreteFunction& u,
 				const FunctionGroup& fcts,
 				number time, number s_m, number s_a)
 {
 	using std::vector;
-	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
-	typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
-	typedef typename TAlgebra::matrix_type::local_index_type local_index_type;
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
@@ -240,34 +232,36 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
 	ElemDataContainer.clear_identification();
 
-	size_t num_systems = cplElemDisc.num_sys();
-	vector<size_t> num_sh(num_systems);
+	// number of systems
+	const size_t num_sys = cplElemDisc.num_sys();
 
-	vector<local_index_type> glob_ind(num_systems);
-	vector<local_vector_type> loc_u(num_systems);
-	vector<local_vector_type> loc_d(num_systems);
-	vector<local_vector_type> loc_d_temp(num_systems);
+	// local indices
+	vector<LocalIndices> ind(num_sys);
+
+	// local algebra
+	vector<LocalVector<typename TAlgebra::vector_type::entry_type> > loc_u(num_sys);
+	vector<LocalVector<typename TAlgebra::vector_type::entry_type> > loc_d(num_sys);
+	vector<LocalVector<typename TAlgebra::vector_type::entry_type> > loc_d_temp(num_sys);
 
 	// prepare each systems
-	for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+	for(size_t sys = 0; sys < num_sys; ++sys)
 	{
 		ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
 		// set elem type
-		if(!system.set_geometric_object_type(reference_element_type::REFERENCE_ELEMENT_TYPE, IEDN_LINEAR))
+		if(!system.set_geometric_object_type(refID, IEDN_LINEAR))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
 
 		// prepare element loop
 		system.prepare_element_loop();
 
-		// get total number of DoF's on this element type 'TElem'
-		num_sh[sys] = system.num_total_sh();
+		// set functions
+		// TODO: set correct function group
+		ind[sys].set_function_group(fcts);
 
-		// allocate memory for local rhs and local Stiffness matrix_type
-		glob_ind[sys].resize(num_sh[sys]);
-		loc_u[sys].resize(num_sh[sys]);
-		loc_d[sys].resize(num_sh[sys]);
-		loc_d_temp[sys].resize(num_sh[sys]);
+		// prepare local indices
+		if(!u.prepare_indices(refID, si, ind[sys]))
+			{UG_LOG("Cannot prepare indices.\n"); return false;}
 	}
 
 	// identify again the exports to avoid double computation
@@ -280,30 +274,24 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		TElem* elem = *iter;
 
 		// loop all systems
-		for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+		for(size_t sys = 0; sys < num_sys; ++sys)
 		{
 			ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
-			// reset index offset
-			size_t offset = 0;
+			// get global indices
+			u.update_indices(elem, ind[sys]);
 
-			// get local indices and fill local matrix pattern
-			for(size_t i = 0; i < system.num_fct(); i++)
-			{
-				offset += u.get_multi_indices(elem, fcts[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
-			}
-			UG_ASSERT(offset == num_sh[sys], offset << " indices are read in, but we have " << num_sh[sys] << " dofs on this element.\n");
-
-			// get local dof values of all unknowns
-			u.get_dof_values(loc_u[sys], glob_ind[sys]);
+			// read local values of u
+			const typename TAlgebra::vector_type& u_vec = u.get_vector();
+			loc_u[sys].read_values(u_vec);
 
 			// prepare element
-			system.prepare_element(elem, loc_u[sys], glob_ind[sys]);
+			system.prepare_element(elem, loc_u[sys], ind[sys]);
 		}
 
 		ElemDataContainer.compute(false);
 
-		for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+		for(size_t sys = 0; sys < num_sys; ++sys)
 		{
 			ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
@@ -326,7 +314,7 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			loc_d[sys] -= loc_d_temp[sys] * s_a;
 
 			// send local to global matrix
-			d.add(loc_d[sys], glob_ind[sys]);
+			d.add(loc_d[sys]);
 		}
 	}
 
@@ -353,16 +341,15 @@ bool
 AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 				typename geometry_traits<TElem>::iterator iterBegin,
 				typename geometry_traits<TElem>::iterator iterEnd,
+				int si,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const TDiscreteFunction& u,
 				const FunctionGroup& fcts)
 {
 	using std::vector;
-	typedef typename TAlgebra::matrix_type::local_matrix_type local_matrix_type;
-	typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
-	typedef typename TAlgebra::matrix_type::local_index_type local_index_type;
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
@@ -370,34 +357,36 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
 	ElemDataContainer.clear_identification();
 
-	size_t num_systems = cplElemDisc.num_sys();
-	vector<size_t> num_sh(num_systems);
+	// number of systems
+	const size_t num_sys = cplElemDisc.num_sys();
 
-	vector<local_index_type> glob_ind(num_systems);
-	vector<local_vector_type> loc_u(num_systems);
-	vector<local_vector_type> loc_rhs(num_systems);
-	vector<local_matrix_type> loc_mat(num_systems);
+	// local indices
+	vector<LocalIndices> ind(num_sys);
 
-	for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+	for(size_t sys = 0; sys < num_sys; ++sys)
 	{
 		ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
 		// set elem type
-		if(!system.set_geometric_object_type(reference_element_type::REFERENCE_ELEMENT_TYPE, IEDN_LINEAR))
+		if(!system.set_geometric_object_type(refID, IEDN_LINEAR))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
 
-		// get total number of DoF's on this element type 'TElem'
-		num_sh[sys] = system.num_total_sh();
+		// set functions
+		// TODO: set correct function group
+		ind[sys].set_function_group(fcts);
 
-		// allocate memory for local rhs and local Stiffness matrix_type
-		glob_ind[sys].resize(num_sh[sys]);
-		loc_u[sys].resize(num_sh[sys]);
-		loc_rhs[sys].resize(num_sh[sys]);
-		loc_mat[sys].resize(num_sh[sys], num_sh[sys]);
+		// prepare local indices
+		if(!u.prepare_indices(refID, si, ind[sys]))
+			{UG_LOG("Cannot prepare indices.\n"); return false;}
 
 		// prepare for loop
 		if(system.prepare_element_loop() != true) return false;;
 	}
+
+	// local algebra
+	vector<LocalVector<typename TAlgebra::vector_type::entry_type> > loc_u(num_sys);
+	vector<LocalVector<typename TAlgebra::vector_type::entry_type> > loc_rhs(num_sys);
+	vector<LocalMatrix<typename TAlgebra::matrix_type::entry_type> > loc_mat(num_sys);
 
 	// identify again the exports to avoid double computation
 	ElemDataContainer.identify_exports();
@@ -409,30 +398,24 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		TElem* elem = *iter;
 
 		// loop all systems
-		for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+		for(size_t sys = 0; sys < num_sys; ++sys)
 		{
 			ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
-			// reset index offset
-			size_t offset = 0;
+			// get global indices
+			u.update_indices(elem, ind[sys]);
 
-			// get local indices and fill local matrix pattern
-			for(size_t i = 0; i < system.num_fct(); i++)
-			{
-				offset += u.get_multi_indices(elem, fcts[cplElemDisc.sys_fct(sys, i)], glob_ind[sys], offset);
-			}
-			UG_ASSERT(offset == num_sh[sys], offset << " indices are read in, but we have " << num_sh[sys] << " dofs on this element.\n");
-
-			// get local dof values of all unknowns
-			u.get_dof_values(loc_u[sys], glob_ind[sys]);  //<-- not needed, since linear, but maybe for linker
+			// read local values of u
+			const typename TAlgebra::vector_type& u_vec = u.get_vector();
+			loc_u[sys].read_values(u_vec);
 
 			// prepare element
-			system.prepare_element(elem, loc_u[sys], glob_ind[sys]);
+			system.prepare_element(elem, loc_u[sys], ind[sys]);
 		}
 
 		ElemDataContainer.compute(true);
 
-		for(size_t sys = 0; sys < cplElemDisc.num_sys(); ++sys)
+		for(size_t sys = 0; sys < num_sys; ++sys)
 		{
 			ICoupledElemDisc<TAlgebra>& system = cplElemDisc.sys(sys);
 
@@ -447,8 +430,8 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			if(system.assemble_f(loc_rhs[sys]) != true) return false;
 
 			// send local to global (matrix and rhs) [this is a virtual call]
-			mat.add(loc_mat[sys], glob_ind[sys], glob_ind[sys]);
-			rhs.add(loc_rhs[sys], glob_ind[sys]);
+			mat.add(loc_mat[sys]);
+			rhs.add(loc_rhs[sys]);
 		}
 	}
 

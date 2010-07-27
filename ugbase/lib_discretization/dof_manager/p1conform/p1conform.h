@@ -15,7 +15,9 @@
 
 #include "../dof_distribution.h"
 #include "../function_pattern.h"
-#include "lib_discretization/reference_element/reference_elements.h"
+#include "../../spacial_discretization/function_group.h"
+#include "../../spacial_discretization/local_algebra.h"
+#include "../../reference_element/reference_element.h"
 
 namespace ug{
 
@@ -146,6 +148,66 @@ class P1ConformDoFDistribution : public DoFDistribution
 		///////////////////////////////////////
 		// Index access
 		///////////////////////////////////////
+
+		/// number of algebra indices for refType, subset and function group
+		size_t num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
+		{
+			const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+
+			size_t numFct = 0;
+			for(size_t fct = 0; fct < funcGroup.num_fct(); ++fct)
+			{
+				if(is_def_in_subset(funcGroup[fct], si))
+					numFct++;
+			}
+
+			return numFct * refElem.num_obj(0);
+		}
+
+		/// fill local informations in LocalIndex
+		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
+		{
+			const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+
+			ind.clear();
+			size_t numInd = 0;
+			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+			{
+				if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+
+				for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
+				{
+					LocalIndices::dof_index_type dof_ind;
+					dof_ind[0] = dof + fct * refElem.num_obj(0);
+					dof_ind[1] = 0;
+					ind.add_dof(fct, dof_ind);
+				}
+				numInd += refElem.num_obj(0);
+			}
+			ind.set_num_indices(numInd);
+			return true;
+		}
+
+		/// fill the global algebra indices in LocalIndex
+		template<typename TElem>
+		void update_indices(TElem* elem, LocalIndices& ind) const
+		{
+			const ReferenceObjectID refID = reference_element_traits<TElem>::reference_element_type::REFERENCE_OBJECT_ID;
+			const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+
+			for(size_t i = 0; i <  refElem.num_obj(0); ++i)
+			{
+				VertexBase* vrt = elem->vertex(i);
+				int si = m_pISubsetHandler->get_subset_index(vrt);
+
+				const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+				for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+				{
+					ind.set_index(i + fct*refElem.num_obj(0), index + ind.fct_id(fct));
+				}
+			}
+		}
+
 
 		template<typename TElem>
 		size_t num_multi_indices(TElem* obj, size_t fct) const

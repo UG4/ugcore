@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__LOCAL_DOF_PATTERN__
 #define __H__LIBDISCRETIZATION__LOCAL_DOF_PATTERN__
 
-#include "../reference_element/reference_elements.h"
+#include "../reference_element/reference_element.h"
 
 namespace ug{
 
@@ -23,16 +23,16 @@ class LocalDoFPattern
 		LocalDoFPattern();
 
 		// sets the number of dofs
-		void set_num_dofs(ReferenceElementType type, int num);
+		void set_num_dofs(ReferenceObjectID type, int num);
 
 		// returns the total number of dofs on the finite element
 		inline int total_num_dofs() const;
 
 		// returns the number of dof on a geometric object
-		inline int num_dofs(ReferenceElementType type) const;
+		inline int num_dofs(ReferenceObjectID type) const;
 
 	private:
-		int m_num_dof[NUM_REFERENCE_ELEMENTS];
+		int m_num_dof[NUM_REFERENCE_OBJECTS];
 		int m_total_num_dofs;
 };
 
@@ -63,17 +63,17 @@ class ContinuousDoFPattern
 		bool add_local_dof_pattern(const LocalDoFPattern<TRefElem>& p);
 
 		// returns the number of dofs needed on a Reference Element
-		inline int total_num_dofs(ReferenceElementType type) const;
+		inline int total_num_dofs(ReferenceObjectID type) const;
 
 		// returns the number of dofs needed on a Reference Element
-		inline int num_dofs(ReferenceElementType type) const;
+		inline int num_dofs(ReferenceObjectID type) const;
 
 		// comparison operator
 		friend bool operator==(const ContinuousDoFPattern& lhs, const ContinuousDoFPattern& rhs);
 
 	private:
-		int m_num_dofs[NUM_REFERENCE_ELEMENTS];
-		int m_total_num_dofs[NUM_REFERENCE_ELEMENTS];
+		int m_num_dofs[NUM_REFERENCE_OBJECTS];
+		int m_total_num_dofs[NUM_REFERENCE_OBJECTS];
 		int m_dim;
 };
 

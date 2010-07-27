@@ -41,4 +41,17 @@ bool FunctionGroup::containes_function(size_t fct) const
 	return true;
 }
 
+
+bool SubFunctionGroup::select(size_t fct)
+{
+	std::vector<size_t>::iterator iter;
+	iter = find(m_vMap.begin(), m_vMap.end(), fct);
+	if(iter != m_vMap.end())
+		{UG_LOG("Function already contained in FunctionGroup.\n");return false;}
+
+	m_vMap.push_back(fct);
+	sort(m_vMap.begin(), m_vMap.end());
+	return true;
+}
+
 } // end namespace ug

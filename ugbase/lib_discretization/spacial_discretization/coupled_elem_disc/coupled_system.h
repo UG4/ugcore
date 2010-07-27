@@ -39,8 +39,16 @@ class CoupledSystem {
 			return true;
 		};
 
-		size_t num_sys() {return m_vSystem.size();}
-		ICoupledElemDisc<algebra_type>& sys(size_t i) {return *m_vSystem[i];}
+		/// number of systems coupled
+		size_t num_sys() const {return m_vSystem.size();}
+
+		/// return a system
+		ICoupledElemDisc<algebra_type>& sys(size_t sys)
+		{
+			UG_ASSERT(sys < num_sys(), "Invalid system.");
+			return *m_vSystem[sys];
+		}
+
 		size_t sys_fct(size_t sys, size_t loc_fct)
 		{
 			size_t fct = 0;

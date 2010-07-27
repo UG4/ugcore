@@ -14,8 +14,8 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 set(srcDiscretization	dof_manager/general_dof_manager/general_dof_manager.cpp	
 						dof_manager/subset_index_group.cpp
 
-						#geom_object_container/surface_view.cpp
-
+						reference_element/reference_element.cpp
+						
 				quadrature/gauss_quadratures_ReferenceTriangle.cpp
 				quadrature/gauss_quadratures_ReferenceQuadrilateral.cpp
 				local_shape_function_set/local_shape_function_set_factory.cpp

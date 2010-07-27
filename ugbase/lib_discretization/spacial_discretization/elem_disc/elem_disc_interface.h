@@ -13,6 +13,7 @@
 
 // intern headers
 #include "lib_discretization/assemble.h"
+#include "../local_algebra.h"
 
 namespace ug{
 
@@ -30,13 +31,13 @@ class IElemDisc{
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef typename algebra_type::matrix_type::local_matrix_type local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
 
 		// local vector type
-		typedef typename algebra_type::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 		// local index type
-		typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		typedef LocalIndices local_index_type;
 
 	public:
 		// number of functions this discretization handles

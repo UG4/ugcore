@@ -604,17 +604,17 @@ write_elements_types(FILE* File,
 					typename geometry_traits<TElem>::iterator iterEnd)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-	static const ReferenceElementType reftype = ref_elem_type::REFERENCE_ELEMENT_TYPE;
+	static const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
 
 	char type;
 
 	// TODO: This is 1D and 2D only
-	switch(reftype)
+	switch(refID)
 	{
-	case RET_EDGE: type = (char) 3; break;
-	case RET_TRIANGLE: type = (char) 5; break;
-	case RET_QUADRILATERAL: type = (char) 9; break;
-	case RET_TETRAHEDRON: type = (char) 10; break;
+	case ROID_EDGE: type = (char) 3; break;
+	case ROID_TRIANGLE: type = (char) 5; break;
+	case ROID_QUADRILATERAL: type = (char) 9; break;
+	case ROID_TETRAHEDRON: type = (char) 10; break;
 	default:UG_ASSERT(0, "Element Type not known.");
 	}
 

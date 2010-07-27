@@ -94,7 +94,7 @@ add_discrete_function(std::string name, LocalShapeFunctionSetID id, std::vector<
 	{
 		const int subsetIndex = SubsetIndices[i];
 
-		uint num_dofs = contDoFPattern.num_dofs(RET_POINT);
+		uint num_dofs = contDoFPattern.num_dofs(ROID_VERTEX);
 		add_dof_group<VertexBase>(nr_fct, subsetIndex, num_dofs);
 
 		// same for other objects

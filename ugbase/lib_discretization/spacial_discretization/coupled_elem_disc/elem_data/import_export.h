@@ -244,7 +244,7 @@ class DataImport : public DataImportPosition<TPositionType> {
 		}
 
 		// add offdiagonal coupling to other system 's'
-		virtual bool add_offdiagonal(FlexLocalMatrix& J, size_t loc_sys, number s_a)
+		virtual bool add_offdiagonal(FlexLocalMatrix<double>& J, size_t loc_sys, number s_a)
 		{
 			for(size_t k = 0; k < this->num_sh(loc_sys); ++k)
 			{

@@ -31,8 +31,8 @@ CplConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 	m_Mass_Scale(mass_scale), m_Mass_Const(mass_const),
 	m_Reaction(reac), m_Rhs(rhs)
 {
-	register_all_assemble_functions<Triangle>(RET_TRIANGLE);
-	register_all_assemble_functions<Quadrilateral>(RET_QUADRILATERAL);
+	register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+	register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
 };
 
 

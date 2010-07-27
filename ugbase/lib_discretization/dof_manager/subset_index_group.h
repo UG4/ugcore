@@ -16,7 +16,7 @@ namespace ug{
 class SubsetIndexGroup
 {
 	public:
-		SubsetIndexGroup() {m_vSubset.clear();}
+		SubsetIndexGroup() {clear();}
 
 		/// adds a subset to this group
 		bool add_subset(int si);
