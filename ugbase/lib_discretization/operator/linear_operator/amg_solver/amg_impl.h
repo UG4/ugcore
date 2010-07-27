@@ -603,8 +603,9 @@ void amg<Matrix_type, Vector_type>::CreateProlongation(SparseMatrix<double> &P, 
 #ifdef FLEXAMG
 	P.fromlevel = A.fromlevel+1;
 	P.tolevel = A.tolevel;
-#endif
 	P.name = "AMG:P";
+	
+#endif
 	vector<SparseMatrix<double>::connection> con(255);
 	SparseMatrix<double>::connection c;
 	// DIRECT INTERPOLATION
@@ -1051,7 +1052,7 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	if(bTiming) SW.start();
 	// construct restriction R = I_{h -> 2h}		
 	R.create_as_transpose_of(P); // already finished
-	R.name = "AMG:R";
+	//R.name = "AMG:R";
 	//R.print("R");
 	if(bTiming) SW.printTimeDiff();	
 	
