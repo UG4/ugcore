@@ -9,11 +9,13 @@
 
 
 // register elements at factory
-namespace {
-using namespace ug;
-
+namespace ug{
 std::vector<const ReferenceElement* > ReferenceElementFactory::m_vElem =
 	std::vector<const ReferenceElement* >();
+}
+
+namespace {
+using namespace ug;
 
 ///////////////
 // Vertex
