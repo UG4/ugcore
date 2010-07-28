@@ -140,8 +140,8 @@ class ParallelVector : public TVector
 /*		void operator= (const this_type& v)
 			{return TVector::operator=(v);}
 */		// TODO: Ask Martin why double return
-		double operator = (double d)
-			{return TVector::operator=(d);}
+		//double operator = (double d)
+		//	{return TVector::operator=(d);}
 
 	private:
 		// type of storage  (i.e. consistent, additiv, additiv unique)
