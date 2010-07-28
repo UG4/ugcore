@@ -1117,9 +1117,9 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	if(this->A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
 		cout << "write matrices";
-		writeToFile(P, level+1, level, (string(AMG_WRITE_MATRICES_PATH) + "P" + nrstring(level) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
-		writeToFile(R, level, level+1, (string(AMG_WRITE_MATRICES_PATH) + "R" + nrstring(level) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
-		writeToFile(AH, level+1, level+1, (string(AMG_WRITE_MATRICES_PATH) + "A" + nrstring(level+1) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
+		WriteToFile(P, level+1, level, (string(AMG_WRITE_MATRICES_PATH) + "P" + nrstring(level) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
+		WriteToFile(R, level, level+1, (string(AMG_WRITE_MATRICES_PATH) + "R" + nrstring(level) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
+		WriteToFile(AH, level+1, level+1, (string(AMG_WRITE_MATRICES_PATH) + "A" + nrstring(level+1) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
 		cout << " done." << endl;
 	}
 #endif
@@ -1161,7 +1161,7 @@ bool amg<Matrix_type, Vector_type>::init(const Matrix_type& A_)
 	if(A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
 		cout << "write matrix A...";
-		writeToFile(*A[0], 0, 0, (string(AMG_WRITE_MATRICES_PATH) + "A" + nrstring(0) + ".mat").c_str(), amghelper);
+		WriteToFile(*A[0], 0, 0, (string(AMG_WRITE_MATRICES_PATH) + "A" + nrstring(0) + ".mat").c_str(), amghelper);
 		cout << "done." << endl; cout.flush();
 	}
 #endif
