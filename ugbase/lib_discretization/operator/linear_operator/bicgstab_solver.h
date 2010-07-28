@@ -281,14 +281,8 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			typename domain_function_type::vector_type& a = a_func.get_vector();
 			typename domain_function_type::vector_type& b = b_func.get_vector();
 
-			typedef typename domain_function_type::vector_type::entry_type entry_type;
-
-			for(size_t i = 0; i < a.size(); ++i){
-
-				entry_type& block = b[i];
-				block *= s;
-				a[i] += block;
-			}
+            for(size_t i = 0; i < a.size(); ++i)
+				a[i] += s*b[i];
 			return true;
 		}
 
