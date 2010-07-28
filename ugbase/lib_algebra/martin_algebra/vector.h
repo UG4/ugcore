@@ -84,13 +84,6 @@ public:
 	bool set(double d) { operator = (d); return true; }
 
 
-	//! add subvector
-/*	void add(const subvector<entry_type> &subvec);
-	//! set subvector
-	void set(const subvector<entry_type> &subvec);
-	//! get subvector
-	void get(subvector<entry_type> &subvec) const;*/
-
 	void add(const entry_type &d, size_t i);
 	void set(const entry_type &d, size_t i);
 	void get(entry_type &d, size_t i) const;
@@ -106,11 +99,11 @@ public:
 	template <typename V> bool set(const V& u);
 	template <typename V> bool get(V& u) const;
 
-/*
-	bool add(const local_vector_type &u, const local_index_type &ind);
-	bool set(const local_vector_type &u, const local_index_type &ind);
-	bool get(local_vector_type &u, const local_index_type &ind) const;
-*/
+
+	bool add(const entry_type *u, const size_t *indices, int nr);
+	bool set(const entry_type *u, const size_t *indices, int nr);
+	bool get(entry_type *u, const size_t *indices, int nr) const;
+
 
 	//template<typename T> inline void apply(Operation_type op, const T &t);
 
