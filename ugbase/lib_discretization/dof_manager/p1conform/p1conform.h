@@ -288,7 +288,7 @@ class P1ConformDoFDistribution : public DoFDistribution
 					VertexBase* vrt = elem->vertex(i);
 					int si = m_pISubsetHandler->get_subset_index(vrt);
 					const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
-					ind.push_back(ind);
+					ind.push_back(index);
 				}
 			}
 		}
@@ -569,7 +569,7 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 					VertexBase* vrt = elem->vertex(i);
 					int si = m_pISubsetHandler->get_subset_index(vrt);
 					const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
-					ind.push_back(ind);
+					ind.push_back(index);
 			}
 		}
 
