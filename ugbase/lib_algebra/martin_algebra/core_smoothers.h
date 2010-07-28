@@ -5,6 +5,12 @@
  *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
  *
  */
+#ifndef __H__UG__MARTIN_ALGEBRA__CORE_SMOOTHERS__
+#define __H__UG__MARTIN_ALGEBRA__CORE_SMOOTHERS__
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace ug
+{
 template<typename Matrix_type, typename Vector_type>
 bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
@@ -76,3 +82,5 @@ bool diag_step(const Matrix_type& A, Vector_type& x, const Vector_type& b, numbe
 
 	return true;
 }
+}
+#endif // __H__UG__MARTIN_ALGEBRA__CORE_SMOOTHERS__
