@@ -185,7 +185,7 @@ public:
 
 	//! return mat^{-1} * this
 
-	vector_type operator / (const blockDenseMatrix<value_type, storage_type, n_, n_> &mat)
+	vector_type operator / (const blockDenseMatrix<value_type, storage_type, n_, n_> &mat) const
 	{
 		vector_type erg = *this;
 		erg /= mat;
