@@ -944,7 +944,7 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 {
 	size_t nr;
 	bool bFound = get_connection_nr(r, c, nr, GREATER_EQUAL);
-
+	
 	if(!bFound || pRowStart[r][nr].iIndex != c)
 	{
 		int numConnections = num_connections(r);
@@ -954,17 +954,16 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 		if(pRowStart[r]) memcpy(con, pRowStart[r], nr*sizeof(connection));
 		con[nr].iIndex = c;
 		con[nr].dValue = 0.0;
-		if(pRowStart[r]) memcpy(con+nr+1, pRowStart[r], (numConnections-nr)*sizeof(connection));
+		if(pRowStart[r]) memcpy(con+nr+1, pRowStart[r]+nr, (numConnections-nr)*sizeof(connection));
 		definalize();
 		safe_set_connections(r, con);
-		pRowEnd[r] = pRowStart[r]+nr+1;
+		pRowEnd[r] = pRowStart[r]+numConnections+1;
 	}
-
+	
 	rowIterator it=beginRow(r);
 	it += nr;
 	return it;
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection
 /** returns a cRowIterator to the connection A(r,c) if connection already there
