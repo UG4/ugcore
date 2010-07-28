@@ -5,14 +5,65 @@
 #include <vector>
 #include <stack>
 #include <queue>
+#include "lib_grid/selector.h"
 #include "selection_util.h"
-#include "geom_obj_util/vertex_util.h"
-#include "geom_obj_util/edge_util.h"
+#include "geom_obj_util/geom_obj_util.h"
 #include "graph/graph.h"
+
 using namespace std;
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+//	instatiate template specializations
+template void SelectInnerSelectionVertices<Selector>(Selector&);
+template void SelectInnerSelectionVertices<MGSelector>(MGSelector&);
+
+template void SelectInnerSelectionEdges<Selector>(Selector&);
+template void SelectInnerSelectionEdges<MGSelector>(MGSelector&);
+
+template void SelectInnerSelectionFaces<Selector>(Selector&);
+template void SelectInnerSelectionFaces<MGSelector>(MGSelector&);
+
+////////////////////////////////////////////////////////////////////////
+template void DeselectBoundarySelectionVertices<Selector>(Selector&);
+template void DeselectBoundarySelectionVertices<MGSelector>(MGSelector&);
+
+template void DeselectBoundarySelectionEdges<Selector>(Selector&);
+template void DeselectBoundarySelectionEdges<MGSelector>(MGSelector&);
+
+template void DeselectBoundarySelectionFaces<Selector>(Selector&);
+template void DeselectBoundarySelectionFaces<MGSelector>(MGSelector&);
+
+////////////////////////////////////////////////////////////////////////
+template void EraseSelectedObjects<Selector>(Selector&);
+template void EraseSelectedObjects<MGSelector>(MGSelector&);
+
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+template <class TSelector>
+void EraseSelectedObjects(TSelector& sel)
+{/*
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+	for(size_t i = 0; i < sel.num_levels(); ++i)
+	{
+		EraseElements(grid, sel.template begin<VertexBase>(i),
+					  sel.template end<VertexBase>(i));
+		EraseElements(grid, sel.template begin<EdgeBase>(i),
+					  sel.template end<EdgeBase>(i));
+		EraseElements(grid, sel.template begin<Face>(i),
+					  sel.template end<Face>(i));
+		EraseElements(grid, sel.template begin<Volume>(i),
+					  sel.template end<Volume>(i));
+	}*/
+}
+
 ////////////////////////////////////////////////////////////////////////
 void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
 							  FaceIterator facesEnd)
@@ -404,7 +455,8 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionVertices
-void SelectInnerSelectionVertices(Selector& sel)
+template <class TSelector>
+void SelectInnerSelectionVertices(TSelector& sel)
 {
 	if(!sel.get_assigned_grid())
 		return;
@@ -416,45 +468,48 @@ void SelectInnerSelectionVertices(Selector& sel)
 //	we'll first collect all vertices that we want to check
 	vector<VertexBase*> vrts;
 	
-	for(VolumeIterator iter = sel.begin<Volume>();
-		iter != sel.end<Volume>(); ++iter)
+//	iterate over all levels
+	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
 	{
-		Volume* vol = *iter;
-		for(size_t i = 0; i < vol->num_vertices(); ++i){
-			VertexBase* v = vol->vertex(i);
-			if(!grid.is_marked(v)){
-				grid.mark(v);
-				vrts.push_back(v);
+		for(VolumeIterator iter = sel.template begin<Volume>(lvl);
+			iter != sel.template end<Volume>(lvl); ++iter)
+		{
+			Volume* vol = *iter;
+			for(size_t i = 0; i < vol->num_vertices(); ++i){
+				VertexBase* v = vol->vertex(i);
+				if(!grid.is_marked(v)){
+					grid.mark(v);
+					vrts.push_back(v);
+				}
 			}
 		}
-	}
 
-	for(FaceIterator iter = sel.begin<Face>();
-		iter != sel.end<Face>(); ++iter)
-	{
-		Face* f = *iter;
-		for(size_t i = 0; i < f->num_vertices(); ++i){
-			VertexBase* v = f->vertex(i);
-			if(!grid.is_marked(v)){
-				grid.mark(v);
-				vrts.push_back(v);
+		for(FaceIterator iter = sel.template begin<Face>(lvl);
+			iter != sel.template end<Face>(lvl); ++iter)
+		{
+			Face* f = *iter;
+			for(size_t i = 0; i < f->num_vertices(); ++i){
+				VertexBase* v = f->vertex(i);
+				if(!grid.is_marked(v)){
+					grid.mark(v);
+					vrts.push_back(v);
+				}
 			}
 		}
-	}
 
-	for(EdgeBaseIterator iter = sel.begin<EdgeBase>();
-		iter != sel.end<EdgeBase>(); ++iter)
-	{
-		EdgeBase* e = *iter;
-		for(size_t i = 0; i < 2; ++i){
-			VertexBase* v = e->vertex(i);
-			if(!grid.is_marked(v)){
-				grid.mark(v);
-				vrts.push_back(v);
+		for(EdgeBaseIterator iter = sel.template begin<EdgeBase>(lvl);
+			iter != sel.template end<EdgeBase>(lvl); ++iter)
+		{
+			EdgeBase* e = *iter;
+			for(size_t i = 0; i < 2; ++i){
+				VertexBase* v = e->vertex(i);
+				if(!grid.is_marked(v)){
+					grid.mark(v);
+					vrts.push_back(v);
+				}
 			}
 		}
 	}
-		
 	grid.end_marking();
 
 
@@ -507,7 +562,8 @@ void SelectInnerSelectionVertices(Selector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionEdges
-void SelectInnerSelectionEdges(Selector& sel)
+template <class TSelector>
+void SelectInnerSelectionEdges(TSelector& sel)
 {
 	if(!sel.get_assigned_grid())
 		return;
@@ -520,32 +576,35 @@ void SelectInnerSelectionEdges(Selector& sel)
 	vector<EdgeBase*> edges;
 	vector<EdgeBase*> vAssEdges;
 	
-	for(VolumeIterator iter = sel.begin<Volume>();
-		iter != sel.end<Volume>(); ++iter)
+//	iterate over all levels
+	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
 	{
-		CollectEdges(vAssEdges, grid, *iter);
-		for(size_t i = 0; i < vAssEdges.size(); ++i){
-			EdgeBase* e = vAssEdges[i];
-			if(!grid.is_marked(e)){
-				grid.mark(e);
-				edges.push_back(e);
+		for(VolumeIterator iter = sel.template begin<Volume>(lvl);
+			iter != sel.template end<Volume>(lvl); ++iter)
+		{
+			CollectEdges(vAssEdges, grid, *iter);
+			for(size_t i = 0; i < vAssEdges.size(); ++i){
+				EdgeBase* e = vAssEdges[i];
+				if(!grid.is_marked(e)){
+					grid.mark(e);
+					edges.push_back(e);
+				}
+			}
+		}
+
+		for(FaceIterator iter = sel.template begin<Face>(lvl);
+			iter != sel.template end<Face>(lvl); ++iter)
+		{
+			CollectEdges(vAssEdges, grid, *iter);
+			for(size_t i = 0; i < vAssEdges.size(); ++i){
+				EdgeBase* e = vAssEdges[i];
+				if(!grid.is_marked(e)){
+					grid.mark(e);
+					edges.push_back(e);
+				}
 			}
 		}
 	}
-
-	for(FaceIterator iter = sel.begin<Face>();
-		iter != sel.end<Face>(); ++iter)
-	{
-		CollectEdges(vAssEdges, grid, *iter);
-		for(size_t i = 0; i < vAssEdges.size(); ++i){
-			EdgeBase* e = vAssEdges[i];
-			if(!grid.is_marked(e)){
-				grid.mark(e);
-				edges.push_back(e);
-			}
-		}
-	}
-
 	grid.end_marking();
 
 
@@ -590,7 +649,8 @@ void SelectInnerSelectionEdges(Selector& sel)
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionFaces
-void SelectInnerSelectionFaces(Selector& sel)
+template <class TSelector>
+void SelectInnerSelectionFaces(TSelector& sel)
 {
 	if(!sel.get_assigned_grid())
 		return;
@@ -604,31 +664,192 @@ void SelectInnerSelectionFaces(Selector& sel)
 	vector<Face*> vAssFaces;
 	vector<Volume*> vAssVols;
 	
-	for(VolumeIterator iter = sel.begin<Volume>();
-		iter != sel.end<Volume>(); ++iter)
+//	iterate over all levels
+	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
 	{
-		CollectFaces(vAssFaces, grid, *iter);
-		for(size_t i = 0; i < vAssFaces.size(); ++i){
-			Face* f = vAssFaces[i];
-			if(!grid.is_marked(f)){
-				grid.mark(f);
-				CollectVolumes(vAssVols, grid, f);
-				bool foundUnselected = false;
-				for(size_t j = 0; j < vAssVols.size(); ++j){
-					if(!sel.is_selected(vAssVols[j])){
+		for(VolumeIterator iter = sel.template begin<Volume>(lvl);
+			iter != sel.template end<Volume>(lvl); ++iter)
+		{
+			CollectFaces(vAssFaces, grid, *iter);
+			for(size_t i = 0; i < vAssFaces.size(); ++i){
+				Face* f = vAssFaces[i];
+				if(!grid.is_marked(f)){
+					grid.mark(f);
+					CollectVolumes(vAssVols, grid, f);
+					bool foundUnselected = false;
+					for(size_t j = 0; j < vAssVols.size(); ++j){
+						if(!sel.is_selected(vAssVols[j])){
+							foundUnselected = true;
+							break;
+						}
+					}
+					
+					if(!foundUnselected)
+						sel.select(f);
+				}
+			}
+		}
+	}
+	
+	grid.end_marking();
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////
+//	DeselectBoundarySelectionVertices
+template <class TSelector>
+void DeselectBoundarySelectionVertices(TSelector& sel)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+
+//	check each selected vertex of each level
+	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
+	{
+		for(VertexBaseIterator iter = sel.template begin<VertexBase>(lvl);
+			iter != sel.template end<VertexBase>(lvl);)
+		{
+			VertexBase* v = *iter;
+		//	increase iterator here, since v may get deselected.
+			++iter;
+			
+		//	check whether there is an unselected associated element
+			bool foundUnselected = false;
+			
+		//	volumes
+			for(Grid::AssociatedVolumeIterator aIter = grid.associated_volumes_begin(v);
+				aIter != grid.associated_volumes_end(v); ++ aIter)
+			{
+				if(!sel.is_selected(*aIter)){
+					foundUnselected = true;
+					break;
+				}
+			}
+
+		//	face		
+			if(!foundUnselected){
+				for(Grid::AssociatedFaceIterator aIter = grid.associated_faces_begin(v);
+					aIter != grid.associated_faces_end(v); ++ aIter)
+				{
+					if(!sel.is_selected(*aIter)){
 						foundUnselected = true;
 						break;
 					}
 				}
-				
-				if(!foundUnselected)
-					sel.select(f);
+			}
+		
+		//	edge		
+			if(!foundUnselected){
+				for(Grid::AssociatedEdgeIterator aIter = grid.associated_edges_begin(v);
+					aIter != grid.associated_edges_end(v); ++ aIter)
+				{
+					if(!sel.is_selected(*aIter)){
+						foundUnselected = true;
+						break;
+					}
+				}
+			}
+
+			if(foundUnselected)
+				sel.deselect(v);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+//	DeselectBoundarySelectionEdges
+template <class TSelector>
+void DeselectBoundarySelectionEdges(TSelector& sel)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+
+	vector<Face*> vAssFaces;
+	vector<Volume*> vAssVols;
+
+//	check each selected vertex of each level
+	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
+	{
+		for(EdgeBaseIterator iter = sel.template begin<EdgeBase>(lvl);
+			iter != sel.template end<EdgeBase>(lvl);)
+		{
+			EdgeBase* e = *iter;
+		//	increase iterator here, since e may get deselected.
+			++iter;
+			
+		//	check whether there is an unselected associated element
+			bool foundUnselected = false;
+			
+		//	volumes
+			CollectVolumes(vAssVols, grid, e);
+			for(size_t j = 0; j < vAssVols.size(); ++j)
+			{
+				if(!sel.is_selected(vAssVols[j])){
+					foundUnselected = true;
+					break;
+				}
+			}
+
+		//	face		
+			if(!foundUnselected){
+				CollectFaces(vAssFaces, grid, e);
+				for(size_t j = 0; j < vAssFaces.size(); ++j)
+				{
+					if(!sel.is_selected(vAssFaces[j])){
+						foundUnselected = true;
+						break;
+					}
+				}
+			}
+			
+			if(foundUnselected)
+				sel.deselect(e);
+		}
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//	DeselectBoundarySelectionFaces
+template <class TSelector>
+void DeselectBoundarySelectionFaces(TSelector& sel)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+	vector<Volume*> vAssVols;
+	
+//	iterate over all levels
+	for(size_t lvl = 0; lvl < sel.num_levels(); ++lvl)
+	{
+		for(FaceIterator iter = sel.template begin<Face>(lvl);
+			iter != sel.template end<Face>(lvl);)
+		{
+			Face* f = *iter;
+		//	increase iterator here, since f may get deselected.
+			++iter;
+			
+			CollectVolumes(vAssVols, grid, f);
+			for(size_t i = 0; i < vAssVols.size(); ++i){
+				if(!sel.is_selected(vAssVols[i])){
+					sel.deselect(f);
+					break;
+				}
 			}
 		}
 	}
-
-	grid.end_marking();
 }
+
+
+
 
 ////////////////////////////////////////////////////////////////////////
 // SelectLinkedFlatFaces

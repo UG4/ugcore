@@ -135,6 +135,36 @@ class Selector : public ISelector
 		//virtual void unregistered_from_grid(Grid* grid);
 		virtual void grid_to_be_destroyed(Grid* grid);
 
+	////////////////////////////////////////
+	//	for compatibility with MGSelector
+	///	always returns 1
+		inline size_t num_levels();
+		
+	///	calls num();
+		inline uint num(size_t);
+	///	calls num<TElem>();
+		template <class TElem> inline size_t num(size_t);
+		
+	//	empty
+	///	calls empty();
+		inline bool empty(size_t);
+	//	calls empty<TElem>();
+		template <class TElem>
+		inline bool empty(size_t);
+
+	//	begin
+	///	calls begin<TElem>();
+		template <class TElem>
+		inline typename geometry_traits<TElem>::iterator
+		begin(size_t);
+
+	//	end
+	///	calls end<TElem>();
+		template <class TElem>
+		inline typename geometry_traits<TElem>::iterator
+		end(size_t);
+
+
 	protected:
 		void clear_lists();
 

@@ -16,6 +16,15 @@ namespace ug
 //	selection util methods
 
 ////////////////////////////////////////////////////////////////////////
+//	EraseSelectedObjects
+///	Erases selected objects from the associated grid
+/**
+ * TSelector has to either be of type Selector or MGSelector.
+ */
+template <class TSelector>
+void EraseSelectedObjects(TSelector& sel);
+
+////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedVertices
 ///	selects all associated vertices of the elements between elemsBegin and elemsEnd
 /**
@@ -142,30 +151,78 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 							bool stopAtSelVrts = true,
 							APosition& aPos = aPosition);
 
+
+////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionVertices
 ///	selects all vertices that are only connected to selected elements.
 /**	
  * This algorithm uses Grid::mark.
+ *
+ * TSelector either has to be of type Selector or MGSelector.
+ * Only elements of higher dimension are regarded.
  */
-void SelectInnerSelectionVertices(Selector& sel);
+template <class TSelector>
+void SelectInnerSelectionVertices(TSelector& sel);
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionEdges
 ///	selects all edges that are only connected to selected elements.
 /**
  * This algorithm uses Grid::mark.
+ *
+ * TSelector either has to be of type Selector or MGSelector.
+ * Only elements of higher dimension are regarded.
  */
-void SelectInnerSelectionEdges(Selector& sel);
+template <class TSelector>
+void SelectInnerSelectionEdges(TSelector& sel);
 
 ////////////////////////////////////////////////////////////////////////
 //	SelectInnerSelectionFaces
 ///	selects all faces that are only connected to selected elements.
 /**
  * This algorithm uses Grid::mark.
+ *
+ * TSelector either has to be of type Selector or MGSelector.
+ * Only elements of higher dimension are regarded.
  */
-void SelectInnerSelectionFaces(Selector& sel);
+template <class TSelector>
+void SelectInnerSelectionFaces(TSelector& sel);
 
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	DeselectBoundarySelectionVertices
+///	deselects all vertices that are connected to unselected elements.
+/**	
+ * TSelector either has to be of type Selector or MGSelector.
+ * Only elements of higher dimension are regarded.
+ */
+template <class TSelector>
+void DeselectBoundarySelectionVertices(TSelector& sel);
+
+////////////////////////////////////////////////////////////////////////
+//	DeselectBoundarySelectionEdges
+///	deselects all edges that are connected to unselected elements.
+/**
+ * TSelector either has to be of type Selector or MGSelector.
+ * Only elements of higher dimension are regarded.
+ */
+template <class TSelector>
+void DeselectBoundarySelectionEdges(TSelector& sel);
+
+////////////////////////////////////////////////////////////////////////
+//	DeselectBoundarySelectionFaces
+///	deselects all faces that are connected to unselected elements.
+/**
+ * TSelector either has to be of type Selector or MGSelector.
+ * Only elements of higher dimension are regarded.
+ */
+template <class TSelector>
+void DeselectBoundarySelectionFaces(TSelector& sel);
+
+
+////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	SelectLinkedFlatFaces
 ///	Extends the selection of faces to all neighbouring faces that have a similar normal.

@@ -673,6 +673,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		return false;
 	}
 	
+	UG_LOG("redistributing grid:\n");
+	
 //	create the communicator object
 //	todo: this should be passed to the method by a parameter
 	ProcessCommunicator procComm;//	WORLD by default.
@@ -699,6 +701,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	the selector will help to speed things up a little.
 	MGSelector msel(mg);
 
+//TODO: Only prepare layouts for processes to which data is actually send.
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
 							  false, &msel);
@@ -724,6 +727,9 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		//	check whether there is anything in the partition
 			if(!shPartition.empty(si)){
 				vSendToRanks.push_back((size_t)si);
+			//	log
+				UG_LOG("  sending " << shPartition.num<Face>(si)
+						<< " faces to process " << si << endl);
 			}
 		}
 	}
@@ -749,19 +755,19 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	copy and delete the grid-parts
 //	todo: interfaces are ignored in the moment
 //	iterate over all processes to which we want to send data
-	BinaryStream binStreamOut;
-	vector<int> vBlockSizesOut;
+	BinaryStream sendStream;
+	vector<int> vSendBlockSizes;
 	
 	for(size_t i = 0; i < vSendToRanks.size(); ++i){
 	//	mark select the part of the grid that shall be sent to the process
-		//int destProc = vSendToRanks[i];
+		int destProc = vSendToRanks[i];
 		msel.clear();
-		SelectNodesInLayout(msel, vVertexLayouts[i]);
-		SelectNodesInLayout(msel, vEdgeLayouts[i]);
-		SelectNodesInLayout(msel, vFaceLayouts[i]);
-		SelectNodesInLayout(msel, vVolumeLayouts[i]);
+		SelectNodesInLayout(msel, vVertexLayouts[destProc]);
+		SelectNodesInLayout(msel, vEdgeLayouts[destProc]);
+		SelectNodesInLayout(msel, vFaceLayouts[destProc]);
+		SelectNodesInLayout(msel, vVolumeLayouts[destProc]);
 		
-		size_t oldSize = binStreamOut.size();
+		size_t oldSize = sendStream.size();
 	
 	//	todo: write interface changes
 	
@@ -773,17 +779,108 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		SerializeMultiGridElements(mg,
 							msel.get_geometric_object_collection(),
 							aInt, aInt,
-							aInt, aInt, binStreamOut);
+							aInt, aInt, sendStream);
+							
+	//	serialize subset indices
+		SerializeSubsetHandler(mg, shInOut,
+							   msel.get_geometric_object_collection(),
+							   sendStream);
+							   
+	//	serialize position attachment
+	//TODO: take the position-attachment as a template parameter
+		for(uint iLevel = 0; iLevel < mg.num_levels(); ++iLevel)
+		{
+			SerializeAttachment<VertexBase>(mg, aPosition,
+											msel.begin<VertexBase>(iLevel),
+											msel.end<VertexBase>(iLevel),
+											sendStream);
+		}
 		
-		vBlockSizesOut.push_back((int)(binStreamOut.size() - oldSize));
+		vSendBlockSizes.push_back((int)(sendStream.size() - oldSize));
+		
+	//	now delete the unnecessary elements
+	//	we deselect selection boundary elements, since they should not
+	//	be deleted.
+	//todo: delete bounbdary elements that are completly distributed
+	//		to other processes.
+		DeselectBoundarySelectionVertices(msel);
+		DeselectBoundarySelectionEdges(msel);
+		DeselectBoundarySelectionFaces(msel);
+		EraseSelectedObjects(msel);
 	}
 	
 //	we'll use this tag for communication
-	//int redistTag = 23;
+	int redistTag = 23;
 	
 //	send and receive the data from associated processes
 //	first we have to communicate the block sizes
-//	...	
+	vector<int> vRecvBlockSizes(vReceiveFromRanks.size());
+	{
+		vector<int> vRecvSizes(vRecvBlockSizes.size(), sizeof(int));
+		vector<int> vSendSizes(vSendBlockSizes.size(), sizeof(int));
+		procComm.distribute_data(&vRecvBlockSizes.front(),
+								 &vRecvSizes.front(),
+								 &vReceiveFromRanks.front(),
+								 (int)vReceiveFromRanks.size(),
+								 &vSendBlockSizes.front(),
+								 &vSendSizes.front(),
+								 &vSendToRanks.front(),
+								 (int)vSendToRanks.size(),
+								 redistTag);
+	}
+	
+//	log the sizes of the data-bocks that will be received
+	for(size_t i = 0; i < vReceiveFromRanks.size(); ++i)
+	{
+		UG_LOG("  receiving " << vRecvBlockSizes[i]
+				<< " bytes from process " << vReceiveFromRanks[i] << endl);
+	}
+	
+//	prepare receive buffers
+	BinaryStream recvStream;
+	{
+		size_t totalSize = 0;
+		for(size_t i = 0; i < vRecvBlockSizes.size(); ++i)
+			totalSize += vRecvBlockSizes[i];
+		recvStream.resize(totalSize);
+	}
+	
+//	now distribute the data
+	procComm.distribute_data(recvStream.buffer(), &vRecvBlockSizes.front(),
+							 &vReceiveFromRanks.front(),
+							 (int)vReceiveFromRanks.size(),
+							 sendStream.buffer(), &vSendBlockSizes.front(),
+							 &vSendToRanks.front(),
+							 (int)vSendToRanks.size(),
+							 redistTag);
+							 
+//	deserialize the grid
+//WARNING: the current implementation only works as long as
+//			the receiving processes initially contain empty grids.
+//TODO: implement grid-merging
+	if(recvStream.size() > 0)
+	{
+	//	deserialize the multi-grid
+		DeserializeMultiGridElements(mg, recvStream);
+
+	//	deserialize subset handler
+		if(!DeserializeSubsetHandler(mg, shInOut,
+									mg.get_geometric_object_collection(),
+									recvStream))
+			return false;
+		
+	//	read the attached data
+		if(!mg.has_vertex_attachment(aPosition))
+			mg.attach_to_vertices(aPosition);
+
+		for(size_t i = 0; i < mg.num_levels(); ++i){
+			if(!DeserializeAttachment<VertexBase>(mg, aPosition,
+												mg.begin<VertexBase>(i),
+												mg.end<VertexBase>(i),
+												recvStream))
+				return false;
+		}
+	}
 	
 //	clean up
 	mg.detach_from_vertices(aInt);

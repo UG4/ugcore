@@ -136,7 +136,7 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 			ISubsetHandler& sh = *psh;
 
 		//	load			
-			LOG("loading... ");
+			LOG("  loading... ");
 			if(!LoadGridFromFile(mg, filename, sh))
 			{
 				LOG(" failed. Bad or missing file: " << filename << endl);
@@ -147,14 +147,14 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 		//	adjust the grid
 			funcAdjustGrid(mg, sh);
 			
-			cout << "performing load balancing\n";
+			LOG("  performing load balancing\n");
 
 		//	perform load-balancing
 		//TODO: if grid partitioning fails, the whole process should be aborted.
 		//		this has to be communicated to the other processes.
 			SubsetHandler shPartition(mg);
 			if(!funcPartitionGrid(shPartition, mg, sh, numProcs)){
-				UG_LOG("grid partitioning failed. proceeding anyway...\n");
+				UG_LOG("  grid partitioning failed. proceeding anyway...\n");
 			}
 		
 		//	get min and max num elements
@@ -175,14 +175,14 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 				}
 			}
 
-            LOG("Element Distribution - min: " << minElems << ", max: " << maxElems << endl);
+            LOG("  Element Distribution - min: " << minElems << ", max: " << maxElems << endl);
 				
 			const char* partitionMapFileName = "partitionMap.obj";
 			LOG("saving partition map to " << partitionMapFileName << endl);
 			SaveGridToFile(mg, partitionMapFileName, shPartition);
 
 			//	distribute the grid.
-			LOG("distributing grid... ");
+			LOG("  distributing grid... ");
 			bool bSuccess = false;
 			if(keepSrcGrid)
 				bSuccess = DistributeGrid_KeepSrcGrid(mg, sh, glmOut, shPartition, 0);
@@ -203,7 +203,7 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 	//	a grid will only be received, if the process-rank is smaller than numProcs
 		if(pcl::GetProcRank() < numProcs){
 			if(!ReceiveGrid(mgOut, shOut, glmOut, 0, keepSrcGrid)){
-				UG_LOG("ReceiveGrid failed on process " << pcl::GetProcRank() <<
+				UG_LOG("  ReceiveGrid failed on process " << pcl::GetProcRank() <<
 				". Aborting...\n");
 				return false;
 			}

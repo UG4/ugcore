@@ -111,6 +111,57 @@ Selector::end()
 								get_section_container<TElem>().section_end(sInd));
 }
 
+////////////////////////////////////////
+//	for compatibility with MGSelector
+
+
+inline size_t Selector::
+num_levels()
+{
+	return 1;
+}
+
+inline uint Selector::
+num(size_t)
+{
+	return num();
+}
+
+template <class TElem>
+inline size_t Selector::
+num(size_t)
+{
+	return num<TElem>();
+}
+
+inline bool Selector::
+empty(size_t)
+{
+	return empty();
+}
+
+template <class TElem>
+inline bool Selector::
+empty(size_t)
+{
+	return empty<TElem>();
+}
+
+template <class TElem>
+inline typename geometry_traits<TElem>::iterator
+Selector::begin(size_t)
+{
+	return begin<TElem>();
+}
+
+//	end
+///	calls end<TElem>();
+template <class TElem>
+inline typename geometry_traits<TElem>::iterator
+Selector::end(size_t)
+{
+	return end<TElem>();
+}
 
 }//	end of namespace
 
