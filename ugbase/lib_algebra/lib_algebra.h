@@ -98,8 +98,6 @@ class HypreAlgebra{
 //   Martin Algebra
 /////////////////////////////////////////////
 
-//#define USE_MARTIN_ALGEBRA
-#ifdef USE_MARTIN_ALGEBRA
 #include "martin_algebra/vector.h"
 
 #ifdef LAPACK_AVAILABLE
@@ -129,6 +127,6 @@ class MartinAlgebra
 	};
 }
 
-#endif
+
 
 #endif /* __H__LIB_ALGEBRA__LIB_ALGEBRA__ */
