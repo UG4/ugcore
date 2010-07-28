@@ -309,7 +309,7 @@ bool Vector<entry_type>::set(const entry_type *u, const size_t *indices, int nr)
 }
 
 template<typename entry_type>
-bool Vector<entry_type>::get(const entry_type *u, const size_t *indices, int nr)
+bool Vector<entry_type>::get(entry_type *u, const size_t *indices, int nr) const
 {
 	for(size_t i=0; i < nr; i++)
 		u[i] = values[indices[i]] ;
@@ -339,6 +339,15 @@ template<typename entry_type>
 double operator *(const TRANSPOSED<Vector<entry_type> > &x, const Vector<entry_type> &y)
 {
 	return x.T().dotprod(y);
+}
+
+template<typename entry_type>
+inline double Vector<entry_type>::norm()
+{
+	double d=0;
+	for(size_t i=0; i<size(); ++i)
+		d+=BlockNorm2(values[i]);
+	return sqrt(d);
 }
 
 }//namespace ug

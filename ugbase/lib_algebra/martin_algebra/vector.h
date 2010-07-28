@@ -129,7 +129,7 @@ public:
 	template<typename Type> inline void operator -= (const Type &t);
 
 	//! return sqrt(sum values[i]^2) (euclidian norm)
-	inline double norm() { return ug::norm(*this); }
+	inline double norm();
 	inline double two_norm() { return norm(); }
 
 	//! printofile: posx posy value
