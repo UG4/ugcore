@@ -36,7 +36,7 @@ template<typename value_type, typename storage_type, int n> class blockVector;
 //! 2. storage_type: fixedStorage, arrayStorage
 //! 3. rows, 4. cols: with storage_type=fixedStorage, size of the fixed matrix
 //! if storage_type=variableStorage, rows and cols are ignored
-//! supports 
+//! supports
 //! +, -, *, +=, -=, = with other blockDenseMatrix<n>
 //! * with blockVector<n>, * with double
 //! =, == double (== id*d)
@@ -45,16 +45,16 @@ template<typename value_type, typename storage_type, int n> class blockVector;
 //! norm(), norm2(), print(), p(){print();}
 template<typename value_type, typename storage_type, int rows_=0, int cols_=0>
 class blockDenseMatrix
-{	
-private: 
+{
+private:
 // storage specific
 	typedef typename storage_traits<storage_type, value_type, rows_, cols_>::array2_type array_type;
 	typedef blockDenseMatrix<value_type, storage_type, rows_, cols_> matrix_type;
-	typedef blockVector<value_type, storage_type, rows_> vector_type;	
+	typedef blockVector<value_type, storage_type, rows_> vector_type;
 	enum { fixed_rows=rows_, fixed_cols = cols_ };
-	
+
 	array_type values;
-	
+
 public:
 	inline void setSize(int rows, int cols, bool bZero=true)
 	{
@@ -66,12 +66,12 @@ public:
 	{
 		values.swap(other.values);
 	}
-	
+
 
 	inline int getCols() const
 	{
 		return values.getCols();
-	}	
+	}
 
 	inline int getRows() const
 	{
@@ -79,14 +79,14 @@ public:
 	}
 
 
-public: 
+public:
 // create
-	blockDenseMatrix() : values() 
+	blockDenseMatrix() : values()
 	{
 		FORCE_CREATION { p(); print(); }
 	}
 	blockDenseMatrix(int rows, int cols) : values(rows, cols)
-	{	
+	{
 		FORCE_CREATION { p(); print(); }
 	}
 
@@ -126,14 +126,14 @@ public:
 			getAt(i, i) = d;
 		return d;
 	}
-	
+
 	void operator = (const matrix_type &other)
 	{
 		values.setSize(other.getRows(), other.getCols(), false);
 		for(int i=0; i < other.values.size(); i++) values[i] = other.values[i];
-		//memcpy(values, other.values, sizeof(double)*n*n);	
+		//memcpy(values, other.values, sizeof(double)*n*n);
 	}
-	
+
 // add / substract
 	matrix_type operator + (const matrix_type &other ) const
 	{
@@ -149,13 +149,13 @@ public:
 	{
 		if(getRows() == 0 && getCols() == 0)
 			setSize(other.getRows(), other.getCols());
-		else 
+		else
 		{ UG_ASSERT(getRows() == other.getRows() && getCols() == other.getCols(), ""); }
-		
+
 		for(int i=0; i< values.size(); i++)
 			values[i] += other.values[i];
-	}	
-	
+	}
+
 	matrix_type operator - (const matrix_type &other ) const
 	{
 		UG_ASSERT(getRows() == other.getRows() && getCols() == other.getCols(), "");
@@ -166,27 +166,27 @@ public:
 			erg.values[i] = values[i] - other.values[i];
 		return erg;
 	}
-	
+
 	void operator -= (const matrix_type &other )
 	{
 		if(getRows() == 0 && getCols() == 0)
 			setSize(other.getRows(), other.getCols());
-		else 
+		else
 		{ UG_ASSERT(getRows() == other.getRows() && getCols() == other.getCols(), ""); }
-		
+
 		for(int i=0; i< values.size(); i++)
 			values[i] -= other.values[i];
-	}	
-	
+	}
+
 // multiply
 	template<int other_rows, int other_cols>
 	blockDenseMatrix<value_type, storage_type, rows_, other_cols> operator * (const blockDenseMatrix<value_type, storage_type, other_rows, other_cols> &other ) const
 	{
 		UG_ASSERT(getCols() == other.getRows(), "");
-		
+
 		blockDenseMatrix<value_type, storage_type, rows_, other_cols> erg;
 		erg.setSize(getRows(), other.getCols(), false);
-		
+
 		for(int r=0; r < getRows(); r++)
 			for(int c=0; c < other.getCols(); c++)
 			{
@@ -200,12 +200,12 @@ public:
 	matrix_type operator * (double d) const
 	{
 		matrix_type erg(getRows(), getCols());
-		
+
 		for(int i=0; i< values.size(); i++)
 				erg.values[i] = values[i]*d;
 		return erg;
 	}
-	
+
 	void operator *= (double d)
 	{
 		for(int i=0; i< values.size(); i++)
@@ -222,6 +222,7 @@ public:
 	{
 		matrix_type tmp = other;
 		tmp.invert();
+
 		(*this) = (*this) * tmp;
 
 		return *this;
@@ -236,9 +237,9 @@ public:
 
 // compare
 	bool operator == (double d) const
-	{		
+	{
 		for(int i=0; i< values.size(); i++)
-			if(values[i] != d) 
+			if(values[i] != d)
 				return false;
 		return true;
 	}
@@ -248,7 +249,7 @@ public:
 	}
 
 // temporary prevention
-	//! dest -= this*vec . use this to prevent temporary variables	
+	//! dest -= this*vec . use this to prevent temporary variables
 	void sub_mult(vector_type &dest, const vector_type &vec) const
 	{
 		UG_ASSERT1(getRows() == vec.getSize());
@@ -256,10 +257,10 @@ public:
 		{
 			for(int c=0; c < getCols(); c++)
 				SubMult(dest(r), getAt(r, c), vec(c));
-		}			
+		}
 	}
 
-	//! dest += this*vec . use this to prevent temporary variables	
+	//! dest += this*vec . use this to prevent temporary variables
 	void add_mult(vector_type &dest, const vector_type &vec) const
 	{
 		UG_ASSERT(getRows() == vec.getSize(), "");
@@ -267,10 +268,10 @@ public:
 		{
 			for(int c=0; c < getCols(); c++)
 				AddMult(dest(r), getAt(r, c), vec(c));
-		}			
+		}
 	}
 
-	//! dest = this*vec . use this to prevent temporary variables	
+	//! dest = this*vec . use this to prevent temporary variables
 	void assign_mult(vector_type &dest, const vector_type &vec) const
 	{
 		UG_ASSERT(getRows() == vec.getSize(), "");
@@ -279,12 +280,12 @@ public:
 			dest(r) = 0.0;
 			for(int c=0; c < getCols(); c++)
 				AddMult(dest(r), getAt(r, c), vec(c));
-		}			
+		}
 	}
 
 
-	//! this -= alpha*mat . use this to prevent temporary variables	
-	void sub_mult(double alpha, const matrix_type &mat) 
+	//! this -= alpha*mat . use this to prevent temporary variables
+	void sub_mult(double alpha, const matrix_type &mat)
 	{
 		setSize(mat.getRows(), mat.getCols());
 		for(int r=0; r < getRows(); r++)
@@ -294,8 +295,8 @@ public:
 		}
 	}
 
-	//! this += alpha*mat . use this to prevent temporary variables	
-	void add_mult(const double alpha, const matrix_type &mat) 
+	//! this += alpha*mat . use this to prevent temporary variables
+	void add_mult(const double alpha, const matrix_type &mat)
 	{
 		setSize(mat.getRows(), mat.getCols());
 		for(int r=0; r < getRows(); r++)
@@ -305,28 +306,28 @@ public:
 		}
 	}
 
-	//! this = alpha*mat . use this to prevent temporary variables	
-	void assign_mult(const double alpha, const matrix_type &mat) 
+	//! this = alpha*mat . use this to prevent temporary variables
+	void assign_mult(const double alpha, const matrix_type &mat)
 	{
 		setSize(mat.getRows(), mat.getCols());
 		for(int r=0; r < getRows(); r++)
 		{
 			for(int c=0; c < getCols(); c++)
 				AssignMult(getAt(r, c), alpha, mat.getAt(r, c));
-		}			
+		}
 	}
 	void assign_mult(const matrix_type &mat, double alpha)
 	{
 		assign_mult(alpha, mat);
 	}
-	
+
 // other
 	double norm() const
 	{
 		double s = 0;
 		for(int i=0; i< values.size(); i++)
 			s += mnorm2(values[i]);
-		return sqrt(s);			
+		return sqrt(s);
 	}
 	double norm2() const
 	{
@@ -344,27 +345,27 @@ public:
 		__CLPK_integer info = 0;
 		__CLPK_integer rows = getRows();
 		__CLPK_integer cols = getCols();
-		
-		double *ptr = &getAt(0,0); 
-		
+
+		double *ptr = &getAt(0,0);
+
 		dgetrf_(&rows, &cols, ptr, &rows, &interchange[0], &info);
 		UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had had illegal value"));
-		
+
 		// calc work size
 		double worksize; __CLPK_integer iWorksize = -1;
 		dgetri_(&rows, ptr, &rows, &interchange[0], &worksize, &iWorksize, &info);
 		UG_ASSERT(info == 0, "");
 		iWorksize = worksize;
-		
+
 		static std::vector<double> work;
 		work.resize(iWorksize);
 
 		dgetri_(&rows, ptr, &rows, &interchange[0], &work[0], &iWorksize, &info);
 		UG_ASSERT(info == 0, "");
 	}
-	
+
 	//inline void setAsInverseOf(const matrix_type &mat ); // deprecated
-	
+
 // print
 	void p() { std::cout << *this << std::endl; }
 	void print() { p(); }
@@ -376,7 +377,7 @@ public:
 		for(int r=0; r < s.getRows(); r++)
 		{
 			for(int c=0; c< s.getCols(); c++)
-				out << s(r, c) << " ";			
+				out << s(r, c) << " ";
 			if(r != s.getRows() -1) out << "| ";
 		}
 		out << "] ";
@@ -406,23 +407,23 @@ class smallInverse
 private: // storage
 	typedef typename storage_traits<storage_type, double, rows_, cols_>::array2_type array2_type;
 	typedef typename storage_traits<storage_type, __CLPK_integer, rows_, 0>::array_type interchange_array_type;
-	
+
 	typedef blockVector<double, storage_type, rows_> vector_type;
-	
+
 	array2_type densemat;
 	interchange_array_type interchange;
-	
-public:	
+
+public:
 	inline int getCols() const
 	{
 		return densemat.getCols();
-	}	
-	
+	}
+
 	inline int getRows() const
 	{
 		return densemat.getRows();
 	}
-	
+
 ///
 public:
 	//! initializes this object as inverse of mat
@@ -431,20 +432,20 @@ public:
 		UG_ASSERT(mat.getRows() == mat.getCols(), "");
 		__CLPK_integer rows = mat.getRows();
 		__CLPK_integer cols = mat.getCols();
-		
+
 		densemat.setSize(rows, cols);
 		for(int r=0; r < rows; r++)
 			for(int c=0; c < cols; c++)
 				densemat[r + c*rows] = mat(r, c);
-		
+
 		interchange.setSize(rows);
-		
+
 		__CLPK_integer info = 0;
-		
+
 		dgetrf_(&rows, &cols, &densemat[0], &rows, &interchange[0], &info);
 		UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had had illegal value"));
 	}
-	
+
 	//! calc dest = mat^{-1} * vec
 	void apply(double *dest, const vector_type &vec) const
 	{
@@ -455,18 +456,18 @@ public:
 		__CLPK_integer nrhs = 1;
 		__CLPK_integer dim = getRows();
 		__CLPK_integer info = 0;
-		
-		dgetrs_(&trans, 
-				&dim, 
-				&nrhs,  
-				&(*const_cast<array2_type*> (&densemat))(0,0), 
-				&dim, 
-				&(*const_cast<interchange_array_type*> (&interchange))[0], 
+
+		dgetrs_(&trans,
+				&dim,
+				&nrhs,
+				&(*const_cast<array2_type*> (&densemat))(0,0),
+				&dim,
+				&(*const_cast<interchange_array_type*> (&interchange))[0],
 				dest,
-				&dim, 
-				&info);	
+				&dim,
+				&info);
 	}
-	
+
 	vector_type operator * (const vector_type &vec) const
 	{
 		vector_type erg(vec.getSize());
@@ -487,7 +488,7 @@ public:
 		// keep static so it gets reallocated only once or twice
 		static std::vector<double> erg;
 		erg.resize(vec.getSize());
-		
+
 		apply(&erg[0], vec);
 		for(int i=0; i<vec.getSize(); i++)
 			dest(i) += erg[i];
@@ -499,7 +500,7 @@ public:
 		// keep static so it gets reallocated only once or twice
 		static std::vector<double> erg;
 		erg.resize(vec.getSize());
-		
+
 		apply(&erg[0], vec);
 		for(int i=0; i<vec.getSize(); i++)
 			dest(i) -= erg[i];

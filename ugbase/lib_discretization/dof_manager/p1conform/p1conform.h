@@ -469,7 +469,7 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 				{
 					LocalIndices::dof_index_type dof_ind;
 					dof_ind[0] = dof;
-					dof_ind[1] = fct;
+					dof_ind[1] = ind.fct_id(fct);
 					ind.add_dof(fct, dof_ind);
 				}
 				numInd = refElem.num_obj(0);
