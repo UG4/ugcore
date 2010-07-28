@@ -24,8 +24,8 @@ void
 MatAdd(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m1(i, j) + m2(i, j);
 		}
@@ -39,8 +39,8 @@ void
 MatSubtract(matrix_t& mOut, const matrix_t& m1, const matrix_t& m2)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m1(i, j) - m2(i, j);
 		}
@@ -142,8 +142,8 @@ void
 MatScale(matrix_t& mOut, typename matrix_t::value_type s, const matrix_t& m)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m(i, j) * s;
 		}
@@ -159,8 +159,8 @@ Transpose(matrix_t& mOut, const matrix_t& m)
 	assert(&mOut != &m && "ERROR in Transpose(matrix_t& mOut, const matrix_t& m): mOut and m have to be different");
 
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m(j, i);
 		}
@@ -172,20 +172,20 @@ inline
 void
 Transpose(matrix_t& m)
 {
-	assert(m.row_size()==m.col_size() && "ERROR in Transpose(matrix_t& m): Square Matrix needed");
+	assert(m.num_rows()==m.num_cols() && "ERROR in Transpose(matrix_t& m): Square Matrix needed");
 
 	typedef typename matrix_t::size_type size_type;
 	matrix_t _temp;
-	for(size_type i = 1; i < m.row_size(); ++i)
+	for(size_type i = 1; i < m.num_rows(); ++i)
 		for(size_type j = 0; j < i; ++j)
 			_temp(i, j) = m(i, j);
 
-	for(size_type i = 1; i < m.row_size(); ++i)
+	for(size_type i = 1; i < m.num_rows(); ++i)
 		for(size_type j = 0; j < i; ++j)
 			m(i, j) = m(j, i);
 
-	for(size_type i = 0; i < m.row_size()-1; ++i)
-		for(size_type j = i+1; j < m.col_size(); ++j)
+	for(size_type i = 0; i < m.num_rows()-1; ++i)
+		for(size_type j = i+1; j < m.num_cols(); ++j)
 			m(i, j) = _temp(j, i);
 }
 
@@ -468,8 +468,8 @@ void
 MatSet(matrix_t& mInOut, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mInOut.row_size(); ++i)
-		for(size_type j = 0; j < mInOut.col_size(); ++j)
+	for(size_type i = 0; i < mInOut.num_rows(); ++i)
+		for(size_type j = 0; j < mInOut.num_cols(); ++j)
 		{
 			mInOut(i, j) = s;
 		}
@@ -482,8 +482,8 @@ void
 MatDiagSet(matrix_t& mInOut, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mInOut.row_size(); ++i)
-		for(size_type j = 0; j < mInOut.col_size(); ++j)
+	for(size_type i = 0; i < mInOut.num_rows(); ++i)
+		for(size_type j = 0; j < mInOut.num_cols(); ++j)
 		{
 			mInOut(i, i) = s;
 		}
@@ -496,8 +496,8 @@ void
 MatAdd(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m(i,j) + s;
 		}
@@ -510,8 +510,8 @@ void
 MatSubtract(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m(i,j) - s;
 		}
@@ -524,8 +524,8 @@ void
 MatDevide(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m(i,j) /s;
 		}
@@ -538,8 +538,8 @@ void
 MatMultiply(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 {
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < mOut.row_size(); ++i)
-		for(size_type j = 0; j < mOut.col_size(); ++j)
+	for(size_type i = 0; i < mOut.num_rows(); ++i)
+		for(size_type j = 0; j < mOut.num_cols(); ++j)
 		{
 			mOut(i, j) = m(i,j) * s;
 		}
@@ -552,8 +552,8 @@ MatFrobeniusNormSq(matrix_t& m)
 {
 	typename matrix_t::value_type norm = 0;
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < m.row_size(); ++i)
-		for(size_type j = 0; j < m.col_size(); ++j)
+	for(size_type i = 0; i < m.num_rows(); ++i)
+		for(size_type j = 0; j < m.num_cols(); ++j)
 		{
 			norm += m(i,j)*m(i,j);
 		}
@@ -576,10 +576,10 @@ MatOneNorm(matrix_t& m)
 {
 	typename matrix_t::value_type sum, max = 0;
 	typedef typename matrix_t::size_type size_type;
-	for(size_type j = 0; j < m.col_size(); ++j)
+	for(size_type j = 0; j < m.num_cols(); ++j)
 	{
 		sum = 0;
-		for(size_type i = 0; i < m.row_size(); ++i)
+		for(size_type i = 0; i < m.num_rows(); ++i)
 		{
 			sum += fabs(m(i,j));
 		}
@@ -595,10 +595,10 @@ MatInftyNorm(matrix_t& m)
 {
 	typename matrix_t::value_type sum, max = 0;
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < m.row_size(); ++i)
+	for(size_type i = 0; i < m.num_rows(); ++i)
 	{
 		sum = 0;
-		for(size_type j = 0; j < m.col_size(); ++j)
+		for(size_type j = 0; j < m.num_cols(); ++j)
 		{
 			sum += fabs(m(i,j));
 		}
@@ -614,8 +614,8 @@ MatMaxNorm(matrix_t& m)
 {
 	typename matrix_t::value_type max = 0;
 	typedef typename matrix_t::size_type size_type;
-	for(size_type i = 0; i < m.row_size(); ++i)
-		for(size_type j = 0; j < m.col_size(); ++j)
+	for(size_type i = 0; i < m.num_rows(); ++i)
+		for(size_type j = 0; j < m.num_cols(); ++j)
 		{
 			max = (m(i,j) > max) ? m(i,j) : max;
 		}

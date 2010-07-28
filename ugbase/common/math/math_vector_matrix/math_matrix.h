@@ -176,8 +176,11 @@ class MathMatrix
 			return *this;
 		}
 
-		inline std::size_t row_size() const {return N;}
-		inline std::size_t col_size() const {return M;}
+		//inline std::size_t row_size() const {return N;}
+		//inline std::size_t col_size() const {return M;}
+	
+		inline std::size_t num_rows() const {return N;}
+		inline std::size_t num_cols() const {return M;}
 
 		inline value_type& entry(std::size_t row, std::size_t col)				{return m_data[row][col];}
 		inline const value_type& entry(std::size_t row, std::size_t col) const	{return m_data[row][col];}
