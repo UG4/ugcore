@@ -91,7 +91,7 @@ class StandardLineSearch : public LineSearch<TFunction>
 			for(int k = 1; k <= m_maxSteps; ++k)
 			{
 				// try on line u := u - lambda*p
-				VecScaleAdd(u, p, (-1)*lambda);
+				VecScaleAppend(u, p, (-1)*lambda);
 
 				// compute new Defect
 				if(!Op.prepare(u, d))
@@ -132,21 +132,22 @@ class StandardLineSearch : public LineSearch<TFunction>
 		// solution in line direction
 		function_type s;
 
-		bool VecScaleAdd(function_type& a_func, function_type& b_func, number s)
+		bool VecScaleAppend(TFunction& a_func, TFunction& b_func, number s)
 		{
-			typename function_type::vector_type& a = a_func.get_vector();
-			typename function_type::vector_type& b = b_func.get_vector();
-			typename function_type::algebra_type::matrix_type::local_matrix_type locMat(1, 1);
-			typename function_type::algebra_type::matrix_type::local_index_type locInd(1);
-			typename function_type::vector_type::local_vector_type locVec(1);
-
-			for(size_t i = 0; i < a.size(); ++i){
-				locInd[0][0] = i;
-				b.get(locVec, locInd);
-				locVec[0] *= s;
-
-				a.add(locVec, locInd);
+			#ifdef UG_PARALLEL
+			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
+			else if(a_func.has_storage_type(PST_CONSISTENT) && b_func.has_storage_type(PST_CONSISTENT));
+			else if (a_func.has_storage_type(PST_ADDITIVE) && b_func.has_storage_type(PST_ADDITIVE))
+			{
+				a_func.set_storage_type(PST_ADDITIVE);
+				b_func.set_storage_type(PST_ADDITIVE);
 			}
+			#endif
+			typename TFunction::vector_type& a = a_func.get_vector();
+			typename TFunction::vector_type& b = b_func.get_vector();
+
+            for(size_t i = 0; i < a.size(); ++i)
+				a[i] += s*b[i];
 			return true;
 		}
 

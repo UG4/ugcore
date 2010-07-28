@@ -128,14 +128,14 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 			typename domain_type::position_accessor_type aaPos = domain.get_position_accessor();
 			typename domain_type::position_type corners[ref_elem_type::num_corners];
 
-			typename codomain_function_type::local_vector_type val(num_sh);
-			//reference_element_type refElem;
 			ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
 
 			// iterate over all elements
 			typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
 			iterBegin = v.template begin<TElem>(si);
 			iterEnd = v.template end<TElem>(si);
+
+			number val;
 			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
 				TElem* elem = *iter;
@@ -149,25 +149,26 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 
 				mapping.update(corners);
 
+				typename TDiscreteFunction::vector_type& v_vec = v.get_vector();
+				typename TDiscreteFunction::multi_index_vector_type ind;
+				v.get_multi_indices(elem, m_fct, ind);
+				if(ind.size() != num_sh)
+					{UG_LOG("Num dofs on element != num_sh.\n"); return false;}
+
 				// get global positions
 				for(size_t i = 0; i < num_sh; ++i)
 				{
 					typename domain_type::position_type glob_pos;
 					//refElem.template mapLocalToGlobal<domain_type::dim>(corners, loc_pos[i], glob_pos);
 					if(mapping.local_to_global(loc_pos[i], glob_pos) != true) return false;
-					if(u(glob_pos, val[i]) != true)
+					if(u(glob_pos, val) != true)
 					{
 						UG_LOG("Error while evaluating function u. Aborting interpolation.\n");
 						return false;
 					}
+					BlockRef(v_vec[ind[i][0]], ind[i][1]) = val;
 				}
 
-				// set values
-				if(v.set_dof_values(elem, m_fct, val) != true)
-				{
-					UG_LOG("Error while writing values of degrees of freedom. Aborting interpolation.\n");
-					return false;
-				}
 			}
 			return true;
 		}
