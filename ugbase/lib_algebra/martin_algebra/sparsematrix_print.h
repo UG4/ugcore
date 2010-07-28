@@ -85,18 +85,5 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 	}
 }
 
-/*template<>
-template<typename Matrix_type>
-void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type A, MathVector<2> *positions, int dimensions)
-{
-	WriteMatrixToConnectionViewer(filename, A, positions, 2);
-}
-template<>
-template<typename Matrix_type>
-void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type A, MathVector<3> *positions, int dimensions)
-{
-	WriteMatrixToConnectionViewer(filename, A, positions, 3);
-}*/
-
 }
 #endif // __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_PRINT__
