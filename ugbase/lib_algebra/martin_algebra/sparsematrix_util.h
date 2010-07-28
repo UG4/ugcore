@@ -192,8 +192,6 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 
 
 /// set Dirichlet row for entry (i,alpha)
-/// assumes, that diagonal block (i,i) exists
-// TODO: This should also work, if diag block does not exist
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 {
@@ -209,8 +207,6 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 }
 
 /// set Dirichlet row for block i
-/// assumes, that diagonal block (i,i) exists
-// TODO: This should also work, if diag block does not exist
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 {
