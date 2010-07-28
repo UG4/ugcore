@@ -23,6 +23,8 @@
 #include "vector.h"
 
 
+
+
 ///////////////////////////////////////////////////////////////////
 //							connection
 ///////////////////////////////////////////////////////////////////
@@ -161,19 +163,17 @@ public:
 	 */
 	template<typename M>
 	void add(const M &mat);
+	template<typename M>
+	void set(const M &mat);
+	template<typename M>
+	void get(M &mat) const;
 
-	//! adds the submatrix mat to A.
 	template<typename M>
 	void add(const M &mat, size_t *rows, size_t *cols);
 	template<typename M>
 	void set(const M &mat, size_t *rows, size_t *cols);
 	template<typename M>
 	void get(M &mat, size_t *rows, size_t *cols) const;
-
-
-	bool add(const local_matrix_type &mat, const local_index_type &I, const local_index_type &J);
-	bool set(const local_matrix_type &mat, const local_index_type &I, const local_index_type &J);
-	bool get(local_matrix_type &mat, const local_index_type &I, const local_index_type &J) const;
 
 
 	bool set(double a);

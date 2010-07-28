@@ -14,6 +14,7 @@
 #include <fstream>
 
 #include "algebra_misc.h"
+//#include "local_helper.h"
 
 template<typename T> T abs(const T &a, const T &b)
 {
@@ -416,7 +417,7 @@ bool SparseMatrix<T>::apply_transposed(Vector_type &res, const Vector_type &x) c
 	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 
-	res = 0.0;
+	res.set(0.0);
 
 	for(size_t i=0; i<rows; i++)
 	{
@@ -483,12 +484,12 @@ void SparseMatrix<T>::add(const M &mat)
 }
 
 
-// add Submatrix
+// set Submatrix
 //--------------------
 //! function to add submatrices ( submatrix )
 template<typename T>
 template<typename M>
-void SparseMatrix<T>::add(const M &mat, size_t *rows, size_t *cols)
+void SparseMatrix<T>::set(const M &mat)
 {
 	connection *c = new connection[mat.num_cols()];
 	size_t nc;
@@ -499,64 +500,37 @@ void SparseMatrix<T>::add(const M &mat, size_t *rows, size_t *cols)
 		{
 			if(mat(i,j) != 0.0)
 			{
-				c[nc].iIndex = cols[j];
+				c[nc].iIndex = mat.col_index(j);
 				c[nc].dValue = mat(i, j);
 				nc++;
 			}
 		}
-		UG_ASSERT(nc <= mat.num_cols(), "???");
+		UG_ASSERT(nc <= mat.num_cols(), "More column entries read, than local matrix contains.");
 
 		if(nc > 0)
-			add_matrix_row(rows[i], c, nc);
+			set_matrix_row(mat.row_index(i), c, nc);
 	}
 	delete[] c;
 }
 
-// set Submatrix
-//!
-//! function to add submatrices ( \sa submatrix )
-template<typename T>
-template<typename M>
-void SparseMatrix<T>::set(const M &mat, size_t *rows, size_t *cols)
-{
-	connection *c = new connection[mat.num_cols()];
-	size_t nc;
-	for(size_t i=0; i < mat.num_rows(); i++)
-	{
-		nc = 0;
-		for(size_t j=0; j < mat.num_cols(); j++)
-		{
-			if(mat(i,j) != 0.0)
-			{
-				c[nc].iIndex = cols[j];
-				c[nc].dValue = mat(i, j);
-				nc++;
-			}
-		}
-		UG_ASSERT(nc <= mat.num_cols(), "???");
-		if(nc > 0)
-			set_matrix_row(rows[i], c, nc);
-	}
-	delete[] c;
-}
 
 //!
 template<typename T>
 template<typename M>
-void SparseMatrix<T>::get(M &mat, size_t *rows, size_t *cols) const
+void SparseMatrix<T>::get(M &mat) const
 {
 	vector<sortStruct<size_t> > sortedCols(mat.num_cols());
 
 	for(size_t i=0; i<mat.num_cols(); i++)
 	{
 		sortedCols[i].index = i;
-		sortedCols[i].sortValue = cols[i];
+		sortedCols[i].sortValue = mat.col_index(i);
 	}
 	sort(sortedCols.begin(), sortedCols.end());
 
 	for(size_t i=0; i < mat.num_rows(); i++)
 	{
-		size_t iindex_global = rows[i];
+		size_t iindex_global = mat.row_index(i);
 		size_t iindex_local = i;
 
 		cRowIterator conn = beginRow(iindex_global);
@@ -586,81 +560,24 @@ void SparseMatrix<T>::get(M &mat, size_t *rows, size_t *cols) const
 	}
 }
 
-////////////////////////////////////////////////////////////////////////
-
-#ifndef FLEXAMG
-template<typename T>
-bool SparseMatrix<T>::get(local_matrix_type& mat, const local_index_type& I, const local_index_type& J) const
+/*
+template<typename M>
+void SparseMatrix<T>::add(const M &mat, size_t *rows, size_t *cols)
 {
-	for(uint i = 0; i < I.size(); ++i)
-	{
-		// do this sorted
-		for(uint j = 0; j < J.size(); ++j)
-		{
-			mat(i,j) = 0.0;
-			for(cRowIterator conn = beginRow(I[i][0]); !conn.isEnd(); ++conn)
-			{
-				if((*conn).iIndex == J[j][0])
-				{
-					mat(i,j) = (*conn).dValue;
-					break;
-				}
-			}
-		}
-	}
-	return true;
+	add(c_localMatrix_from_mat_and_array<M> (mat, rows, cols));
 }
 
-template<typename T>
-bool SparseMatrix<T>::add(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
+template<typename M>
+void set(const M &mat, size_t *rows, size_t *cols)
 {
-	connection *c = new connection[J.size()];
-	std::size_t nc;
-	for(std::size_t i=0; i < I.size(); i++)
-	{
-		nc = 0;
-		for(std::size_t j=0; j < J.size(); j++)
-		{
-			if(mat(i,j) != 0.0)
-			{
-				c[nc].iIndex = J[j][0];
-				c[nc].dValue = mat(i, j);
-				nc++;
-			}
-		}
-		UG_ASSERT(nc <= J.size(), "???");
-		if(nc > 0)
-			add_matrix_row(I[i][0], c, nc);
-	}
-
-	delete[] c;
-	return true;
+	set(c_localMatrix_from_mat_and_array<M> (mat, rows, cols));
 }
 
-template<typename T> bool SparseMatrix<T>::set(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
+template<typename M>
+void get(M &mat, size_t *rows, size_t *cols) const
 {
-	connection *c = new connection[J.size()];
-	std::size_t nc;
-	for(size_t i=0; i < I.size(); i++)
-	{
-		nc = 0;
-		for(size_t j=0; j < J.size(); j++)
-		{
-			if(mat(i,j) != 0.0)
-			{
-				c[nc].iIndex = J[j][0];
-				c[nc].dValue = mat(i, j);
-				nc++;
-			}
-		}
-		UG_ASSERT(nc <= J.size(), "???");
-		if(nc > 0)
-			set_matrix_row(I[i][0], c, nc);
-	}
-	delete[] c;
-	return true;
-}
-#endif // FLEXAMG
+	get(localMatrix_from_mat_and_array<M> (mat, rows, cols));
+}*/
 
 // getDiag
 //-------------
