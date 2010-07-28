@@ -89,9 +89,10 @@ class MGDoFManager
 				{UG_LOG("Cannot access distribution of level.\n"); return false;}
 
 			// distribute on level grids
+			UG_LOG("  DoFDistr:    Level  |  Total  | BlockSize | (SubsetIndex, BlockSize, DoFs per Subset) \n");
 			for(size_t l = 0; l < num_levels(); ++l)
 			{
-				UG_LOG("  Distributing dofs on level " << l << ":\n");
+				UG_LOG("                 " << l << "    |");
 				if(!m_vLevelDoFDistribution[l]->distribute_dofs())
 					{UG_LOG("Cannot distribute dofs on level "<<l<<".\n"); return false;}
 			}
@@ -102,7 +103,7 @@ class MGDoFManager
 
 		bool distribute_surface_dofs()
 		{
-			UG_LOG("  Distributing dofs on surface grid:\n");
+			UG_LOG("               surf   |");
 
 			// update surface distribution
 			if(!update_surface_distribution())

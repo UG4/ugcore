@@ -357,11 +357,13 @@ class P1ConformDoFDistribution : public DoFDistribution
 			}
 			m_numDoFs = i;
 
+			UG_LOG(std::setw(8) << m_numDoFs <<" |     " << 1 << "     | " );
+
 			for(int si = 0; si < num_subsets(); ++si)
 			{
-				UG_LOG( "     " << std::setw(8) << m_vNumDoFs[si] << " DoF indices on subset " << si << " [each carrying " << 1 << " component(s)]" << std::endl);
+				UG_LOG( " (" << si << ","<<1<<"," << std::setw(8) << m_vNumDoFs[si] << ") ");
 			}
-			UG_LOG( std::setw(8) << m_numDoFs << " DoF indices distributed [each carrying " << 1 << " component(s)]" << std::endl);
+			UG_LOG("\n");
 
 			return true;
 		}
@@ -632,14 +634,14 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 			}
 			m_numDoFs = i;
 
+			UG_LOG(std::setw(8) << m_numDoFs <<" | " << "variable" << "  | " );
+
 			for(int si = 0; si < num_subsets(); ++si)
 			{
-				// remember number of functions
 				size_t num_fct =  m_pFunctionPattern->num_fct(si);
-
-				UG_LOG( "     " << std::setw(8) << m_vNumDoFs[si] << " DoF indices on subset " << si << " [each carrying " << num_fct << " component(s)]\n");
+				UG_LOG( " (" << si << "," <<num_fct<<","<< std::setw(8) << m_vNumDoFs[si] << ") ");
 			}
-			UG_LOG( std::setw(8) << m_numDoFs << " DoF indices distributed.\n");
+			UG_LOG("\n");
 
 			return true;
 		}

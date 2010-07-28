@@ -48,7 +48,7 @@ ISubsetHandler(Grid& grid, uint supportedElements) :
 	m_defaultSubsetInfo.materialIndex = 0;
 	m_defaultSubsetInfo.color = vector4(1., 1., 1., 1.);
 	m_defaultSubsetInfo.subsetState = SS_NONE;
-	
+
 	enable_element_support(supportedElements);
 	grid.register_observer(this, OT_GRID_OBSERVER | OT_VERTEX_OBSERVER | OT_EDGE_OBSERVER |
 									OT_FACE_OBSERVER | OT_VOLUME_OBSERVER);
@@ -72,11 +72,11 @@ ISubsetHandler::
 			m_pGrid->detach_from_edges(m_aDataIndex);
 			m_pGrid->detach_from_faces(m_aDataIndex);
 			m_pGrid->detach_from_volumes(m_aDataIndex);
-			
+
 		//	clear pipes
 			clear_attachment_pipes();
 		}
-	
+
 		m_pGrid->unregister_observer(this);
 	}
 }
@@ -106,16 +106,16 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 //	get the source grid
 	Grid* srcGrid = sh.get_assigned_grid();
 	Grid* destGrid = m_pGrid;
-	
+
 //	copy status and options
 	set_supported_elements(sh.m_supportedElements);
 	enable_subset_inheritance(sh.m_bSubsetInheritanceEnabled);
 	set_default_subset_index(sh.m_defaultSubsetIndex);
 	set_default_subset_info(sh.m_defaultSubsetInfo);
-	
+
 //TODO: enable attachment support based on the source-hanlders attachment support!?!
 	subset_info_required(sh.num_subset_infos() - 1);
-	
+
 //	make sure that both accessors have a valid grid
 	if(srcGrid && destGrid){
 		//LOG("sh-copying -");
@@ -137,17 +137,17 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 			CopySubsetIndices(*this, sh, destGrid->begin<Face>(), destGrid->end<Face>(),
 							srcGrid->begin<Face>(), srcGrid->end<Face>());
 		}
-							
+
 		if(elements_are_supported(SHE_VOLUME)){
 			//LOG(" volumes -");
 			CopySubsetIndices(*this, sh, destGrid->begin<Volume>(), destGrid->end<Volume>(),
 							srcGrid->begin<Volume>(), srcGrid->end<Volume>());
 		}
-		
+
 		//LOG(endl);
 //TODO:	copy attachments!?!
 	}
-	
+
 //	copy subset infos
 	for(uint i = 0; i < num_subset_infos(); ++i)
 		set_subset_info(i, sh.subset_info(i));
@@ -170,7 +170,7 @@ set_grid(Grid* grid)
 {
 	if(m_pGrid != NULL){
 		clear();
-		
+
 	//	disable all currently supported elements (this will remove any attachments)
 		disable_element_support(m_supportedElements);
 
@@ -181,15 +181,15 @@ set_grid(Grid* grid)
 			m_pGrid->detach_from_edges(m_aDataIndex);
 			m_pGrid->detach_from_faces(m_aDataIndex);
 			m_pGrid->detach_from_volumes(m_aDataIndex);
-			
+
 		//	clear pipes
 			clear_attachment_pipes();
 		}
-		
+
 		m_pGrid->unregister_observer(this);
 		m_pGrid = NULL;
 	}
-	
+
 	if(grid){
 		m_pGrid = grid;
 
@@ -376,7 +376,7 @@ subset_info(int subsetIndex)
 	return m_subsetInfos[subsetIndex];
 }
 
- 
+
 const SubsetInfo& ISubsetHandler::
 subset_info(int subsetIndex) const
 {
@@ -513,7 +513,7 @@ erase_subset(int subsetIndex)
 
 		//	move the subset
 			m_subsetInfos[i-1] = m_subsetInfos[i];
-			
+
 		//	move the pipes
 			if(subset_attachments_are_enabled())
 			{
@@ -623,7 +623,7 @@ move_subset(int indexFrom, int indexTo)
 
 		//	assign stored info
 			m_subsetInfos[indexTo] = siFrom;
-			
+
 		//	assign stored attachment pipes
 			if(subset_attachments_are_enabled())
 			{
@@ -687,14 +687,14 @@ enable_subset_attachments(bool bEnable)
 {
 	if(bEnable &! subset_attachments_are_enabled())
 	{
-		LOG("  enabling...\n");
+	//	LOG("  enabling...\n");
 	//	enable subset-attachments.
 		m_bSubsetAttachmentsEnabled = true;
 	//	attach data-indices to the elements
 //TODO:	allow subset-attachments for vertices, edges, faces and volumes separately.
 		if(m_pGrid)
 		{
-			LOG("  attaching data...\n");
+	//		LOG("  attaching data...\n");
 			m_pGrid->attach_to_vertices(m_aDataIndex);
 			m_pGrid->attach_to_edges(m_aDataIndex);
 			m_pGrid->attach_to_faces(m_aDataIndex);
@@ -703,7 +703,7 @@ enable_subset_attachments(bool bEnable)
 			m_aaDataIndEDGE.access(*m_pGrid, m_aDataIndex);
 			m_aaDataIndFACE.access(*m_pGrid, m_aDataIndex);
 			m_aaDataIndVOL.access(*m_pGrid, m_aDataIndex);
-			
+
 			resize_attachment_pipes(num_subset_infos());
 		//	tell the derived class that it should register all
 		//	of its elements at the pipe.
@@ -748,7 +748,7 @@ void ISubsetHandler::
 unregistered_from_grid(Grid* grid)
 {
 	assert(m_pGrid && "this method should only be called while the handler is registered at a grid.");
-	
+
 	if(m_pGrid)
 	{
 		assert((m_pGrid == grid) && "ERROR in SubsetHandler::unregistered_from_grid(...): Grids do not match.");
@@ -766,11 +766,11 @@ unregistered_from_grid(Grid* grid)
 			m_pGrid->detach_from_edges(m_aDataIndex);
 			m_pGrid->detach_from_faces(m_aDataIndex);
 			m_pGrid->detach_from_volumes(m_aDataIndex);
-			
+
 		//	clear pipes
 			clear_attachment_pipes();
 		}
-	
+
 	//DEBUG: log m_supportedElements
 		//LOG("supported elements after deregistration: " << m_supportedElements << "\n");
 		m_pGrid = NULL;
@@ -797,7 +797,7 @@ void ISubsetHandler::
 vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_created(...): Grids do not match.");
-	
+
 //TODO: this if could be removed if the subset-handler was only registered for
 //		the elements that it supports. Note that a dynamic register/unregister
 //		would be required...
@@ -817,7 +817,7 @@ void ISubsetHandler::
 vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_to_be_erased(...): Grids do not match.");
-	
+
 ///TODO: see vertex_created
 	if(elements_are_supported(SHE_VERTEX)){
 		if(m_aaSubsetIndexVRT[vrt] != -1)
@@ -876,7 +876,7 @@ void ISubsetHandler::
 face_to_be_erased(Grid* grid, Face* face)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_to_be_erased(...): Grids do not match.");
-	
+
 ///TODO: see vertex_created
 	if(elements_are_supported(SHE_FACE)){
 		if(m_aaSubsetIndexFACE[face] != -1)
