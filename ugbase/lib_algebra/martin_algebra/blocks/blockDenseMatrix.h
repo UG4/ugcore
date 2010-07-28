@@ -191,7 +191,7 @@ public:
 			for(int c=0; c < other.getCols(); c++)
 			{
 				for(int i=0; i < getCols(); i++)
-					add_mult(erg(r,c), getAt(r, i), other.getAt(i, c));
+					AddMult(erg(r,c), getAt(r, i), other.getAt(i, c));
 			}
 		return erg;
 	}
@@ -216,6 +216,15 @@ public:
 	{
 		for(int i=0; i< values.size(); i++)
 			values[i] /= d;
+	}
+
+	matrix_type &operator /= (matrix_type &other)
+	{
+		matrix_type tmp = other;
+		tmp.invert();
+		(*this) = (*this) * tmp;
+
+		return *this;
 	}
 
 	vector_type operator * (const vector_type &vec ) const
@@ -323,7 +332,7 @@ public:
 	{
 		double s = 0;
 		for(int i=0; i< values.size(); i++)
-			s += mnorm2(values[i]);
+			s += BlockNorm2(values[i]);
 		return s;
 	}
 
