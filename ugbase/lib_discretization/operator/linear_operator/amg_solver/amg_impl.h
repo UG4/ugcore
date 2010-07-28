@@ -77,11 +77,11 @@ template<typename T> inline double amg_diag_value(const T &d) { return d.norm();
 template<typename T> inline double amg_offdiag_value(const T &d) { return -d.norm(); }
 
 
-// writeToFile
+// WriteToFile
 //--------------------------------------------------
 //! writes to a file in somewhat SparseMatrix-market format (for connection viewer)
 template<typename T>
-void writeToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
+void WriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
 {
 	fstream file(filename, ios::out);
 	file << 1 << endl; // connection viewer version
