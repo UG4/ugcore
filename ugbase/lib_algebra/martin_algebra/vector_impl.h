@@ -261,26 +261,6 @@ void Vector<entry_type>::printtype() const
 	cout << *this;
 }
 
-/*template<typename entry_type>
-void Vector<entry_type>::add(const subvector<entry_type> &subvec)
-{
-	for(size_t i=0; i < subvec.getNr(); i++)
-		values[subvec.getIndex(i)] += subvec(i);
-}
-
-template<typename entry_type>
-void Vector<entry_type>::set(const subvector<entry_type> &subvec)
-{
-	for(size_t i=0; i < subvec.getNr(); i++)
-		values[subvec.getIndex(i)] = subvec(i);
-}
-
-template<typename entry_type>
-void Vector<entry_type>::get(subvector<entry_type> &subvec) const
-{
-	for(size_t i=0; i < subvec.getNr(); i++)
-		subvec(i) = values[subvec.getIndex(i)];
-}*/
 
 template<typename entry_type>
 template<typename V>
@@ -309,31 +289,34 @@ bool Vector<entry_type>::get(V& u) const
 	return true;
 }
 
-/*
+
+
+
 template<typename entry_type>
-bool Vector<entry_type>::add(const local_vector_type &u, const local_index_type &ind)
+bool Vector<entry_type>::add(const entry_type *u, const size_t *indices, int nr)
 {
-	for(std::size_t i=0; i < ind.size(); i++)
-		values[ind[i][0]] += u[i];
+	for(size_t i=0; i < nr; i++)
+		values[indices[i]] += u[i];
 	return true;
 }
 
 template<typename entry_type>
-bool Vector<entry_type>::set(const local_vector_type &u, const local_index_type &ind)
+bool Vector<entry_type>::set(const entry_type *u, const size_t *indices, int nr)
 {
-	for(std::size_t i=0; i < ind.size(); i++)
-		values[ind[i][0]] = u[i];
+	for(size_t i=0; i < nr; i++)
+		values[indices[i]] = u[i];
 	return true;
 }
 
 template<typename entry_type>
-bool Vector<entry_type>::get(local_vector_type &u, const local_index_type &ind) const
+bool Vector<entry_type>::get(const entry_type *u, const size_t *indices, int nr)
 {
-	for(std::size_t i=0; i < ind.size(); i++)
-		u[i] = values[ind[i][0]];
+	for(size_t i=0; i < nr; i++)
+		u[i] = values[indices[i]] ;
 	return true;
 }
-*/
+
+
 
 template<typename entry_type>
 void Vector<entry_type>::add(const entry_type &d, size_t i)
