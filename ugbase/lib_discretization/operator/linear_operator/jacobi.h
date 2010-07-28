@@ -76,7 +76,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 
 				// copy diagonal
 				for(size_t i = 0; i < m_diagInv.size(); ++i){
-					m_diagInv[i] = (*m_pMatrix)(i,i);
+					m_diagInv[i] = m_pMatrix->get_diag(i);
 				}
 
 				//	make diagonal consistent
@@ -85,8 +85,9 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 
 				// invert diagonal and multiply by damping
 				for(size_t i = 0; i < m_diagInv.size(); ++i){
-					typename domain_function_type::vector_type::entry_type entry = m_diagInv[i];
-					m_diagInv[i] = m_damp / entry;
+					typename algebra_type::matrix_type::entry_type entry = m_diagInv[i];
+					m_diagInv[i] = m_damp;
+					m_diagInv[i] /= entry;
 				}
 				m_bOpChanged = false;
 			}
@@ -159,7 +160,9 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 
 		typename algebra_type::matrix_type* m_pMatrix;
 
-		typename domain_function_type::vector_type m_diagInv;
+#ifdef UG_PARALLEL
+		ParallelVector<Vector<typename algebra_type::matrix_type::entry_type> > m_diagInv;
+#endif
 
 		number m_damp;
 
