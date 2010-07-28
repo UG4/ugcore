@@ -50,11 +50,13 @@ class ProcessCommunicator
 		ProcessCommunicator create_sub_communicator(bool participate);
 		
 	///	performs MPI_Allreduce on the processes of the communicator.
+	/**	This method synchronises involved processes.
+	 */	
 		void allreduce(void* sendBuf, void* recBuf, int count,
 					   DataType type, ReduceOperation op) const;
 		
 	///	performs MPI_Allgather on the processes of the communicator.
-	/**
+	/**	This method synchronises involved processes.
 	 * \param sendBuf starting address of send buffer (choice)
 	 * \param sendCount number of elements in send buffer (integer)
 	 * \param sendType data type of send buffer elements (handle)
@@ -65,7 +67,7 @@ class ProcessCommunicator
 					   void* recBuf, int recCount, DataType recType) const;
 
 	///	performs MPI_Allgatherv on the processes of the communicator.
-	/**
+	/**	This method synchronises involved processes.
 	 * \param sendBuf 	starting address of send buffer (choice)
 	 * \param sendCount 	number of elements in send buffer (integer)
 	 * \param sendType 	data type of send buffer elements (handle)
@@ -76,6 +78,59 @@ class ProcessCommunicator
 		void allgatherv(void* sendBuf, int sendCount, DataType sendType,
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType) const;
+
+	///	sends data with the given tag to the specified process.
+	/**	This method waits until the data has been sent.*/
+		void send_data(void* pBuffer, int bufferSize, int destProc, int tag);
+		
+	///	sends data in different blocks of pBuffer to the processes in pRecProcMap.
+	/**	This method synchronises involved processes.
+	 *	Call receive_data on the processes in pRecProcMap to receive the sent data.
+	 *
+	 *	\param pBuffer: Blocks of data. The i-th block is send to the i-th process
+	 *					of pRecProcMap.
+	 *	\param pBufferSegSizes: The i-th entry holds the size of the i-th block in pBuffer.
+	 *	\param pRecProcMap: The i-th entry holds the process-rank to which the i-th
+	 *						block shall be send.
+	 *	\param numRecProcs: The number of processes to which data shall be send.
+	 *						Note that pBufferSegSizes and pRecProcMap have to have
+	 *						numRecProcs entries.
+	 *	\param tag: A tag that tags the message. Use the same tag in receive_data.
+	 */
+		void send_data(void* pBuffer, int* pBufferSegSizes,
+					   int* pRecProcMap, int numRecProcs, int tag);
+							 
+	///	receives data from srcPrc with the specified tag.
+	/**	This method waits until the data has been received
+	 */
+		void receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag);
+
+	///	sends and receives data to / from multiple processes.
+	/**
+	 * \param pBufferOut: Received data is written to this buffer.
+	 *					  Make sure that this buffer is big enough (sum of all seg-sizes).
+	 * \param pBufferOutSegSizes: i-th entry corresponds to the size of the i-th
+	 *							  segment of pBufferOut.
+	 * \param pSenderProcMap: The processes from which data is received.
+	 * \param numSenderProcs: The number of processes from which data is received.
+	 *						  Has to be the same as the size of pBufferOutSegSizes and
+	 *						  pSenderProcMap.
+	 *
+	 * \param pBuffer: Holds the data that is to be send to other processes.
+	 * \param pBufferSegSizes: i-th entry corresponds to the size of the i-th
+	 *						   segment in pBuffer.
+	 * \param pRecvProcMap: ranks of processes to which data will be send.
+	 * \param numRecvProcs: Number of processes in pRecvProcMap. Also corresponds
+	 *						to the size of pBufferSegSizes and to the number of
+	 *						segments in pBuffer.
+	 * \param tag: This tag will be used to identify send and received messages.
+	 *			   Default: 1
+	 */
+		void distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
+							 int* pSenderProcMap, int numSenderProcs,
+							 void* pBuffer, int* pBufferSegSizes,
+							 int* pRecvProcMap, int numRecvProcs,
+							 int tag = 1);
 	private:
 	///	holds an mpi-communicator.
 	/**	A variable stores whether the communicator has to be freed when the

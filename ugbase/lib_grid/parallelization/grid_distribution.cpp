@@ -673,6 +673,10 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		return false;
 	}
 	
+//	create the communicator object
+//	todo: this should be passed to the method by a parameter
+	ProcessCommunicator procComm;//	WORLD by default.
+
 	const int localProcRank = GetProcRank();
 	
 	MultiGrid& mg = *distGridMgr.get_assigned_grid();
@@ -726,7 +730,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 //	send and receive communication requests from other processes.
 	vector<int> vReceiveFromRanks;
-	CommunicateInvolvedProcesses(vReceiveFromRanks, vSendToRanks);
+	CommunicateInvolvedProcesses(vReceiveFromRanks, vSendToRanks, procComm);
 
 //	log the comm ranks
 	UG_LOG("  sending to ranks: ");
@@ -750,7 +754,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	
 	for(size_t i = 0; i < vSendToRanks.size(); ++i){
 	//	mark select the part of the grid that shall be sent to the process
-		int destProc = vSendToRanks[i];
+		//int destProc = vSendToRanks[i];
 		msel.clear();
 		SelectNodesInLayout(msel, vVertexLayouts[i]);
 		SelectNodesInLayout(msel, vEdgeLayouts[i]);
@@ -773,6 +777,13 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		
 		vBlockSizesOut.push_back((int)(binStreamOut.size() - oldSize));
 	}
+	
+//	we'll use this tag for communication
+	//int redistTag = 23;
+	
+//	send and receive the data from associated processes
+//	first we have to communicate the block sizes
+//	...	
 	
 //	clean up
 	mg.detach_from_vertices(aInt);

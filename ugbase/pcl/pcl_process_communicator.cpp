@@ -112,7 +112,7 @@ allreduce(void* sendBuf, void* recBuf, int count,
 		  DataType type, ReduceOperation op) const
 {
 	assert(!empty() &&
-			"ERROR in ProcessCommunicator::allreduce: can't perform all_reduce on empty communicator.");
+			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
 	}
@@ -126,7 +126,7 @@ allgather(void* sendBuf, int sendCount, DataType sendType,
 		  void* recBuf, int recCount, DataType recType) const
 {
 	assert(!empty() &&
-			"ERROR in ProcessCommunicator::allreduce: can't perform all_reduce on empty communicator.");
+			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
 	}
@@ -142,13 +142,119 @@ allgatherv(void* sendBuf, int sendCount, DataType sendType,
 			DataType recType) const
 {
 	assert(!empty() &&
-			"ERROR in ProcessCommunicator::allreduce: can't perform all_reduce on empty communicator.");
+			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
 	if(empty()){
 		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
 	}
 	
 	MPI_Allgatherv(sendBuf, sendCount, sendType, recBuf,
 				   recCounts, displs, recType, m_comm->m_mpiComm);
+}
+
+void
+ProcessCommunicator::
+send_data(void* pBuffer, int bufferSize, int destProc, int tag)
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::send_data: empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::send_data: empty communicator.\n");
+	}
+	
+	MPI_Request request;
+	MPI_Status	status;
+	
+	MPI_Isend(pBuffer, bufferSize, MPI_UNSIGNED_CHAR, destProc, 
+			  tag, m_comm->m_mpiComm, &request);
+	MPI_Wait(&request, &status);
+}
+
+void
+ProcessCommunicator::
+send_data(void* pBuffer, int* pBufferSegSizes,
+		  int* pRecProcMap, int numRecProcs, int tag)
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::send_data: empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::send_data: empty communicator.\n");
+	}
+
+//	send data
+	std::vector<MPI_Request> vSendRequests(numRecProcs);
+		
+	for(int i = 0; i < numRecProcs; ++i)
+	{
+		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR,
+				  pRecProcMap[i], tag, m_comm->m_mpiComm, &vSendRequests[i]);
+		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
+	}
+	
+//	wait until data has been received
+	std::vector<MPI_Status> vSendStates(numRecProcs);
+	MPI_Waitall(numRecProcs, &vSendRequests.front(), &vSendStates.front());
+}
+
+void
+ProcessCommunicator::
+receive_data(void* pBuffOut, int bufferSize, int srcProc, int tag)
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::receive_data: empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::receive_data: empty communicator.\n");
+	}
+	
+	MPI_Request request;
+	MPI_Status	status;
+	
+	MPI_Irecv(pBuffOut, bufferSize, MPI_UNSIGNED_CHAR,	
+					srcProc, tag, m_comm->m_mpiComm, &request);
+					
+	MPI_Wait(&request, &status);
+}
+
+void
+ProcessCommunicator::
+distribute_data(void* pBufferOut, int* pBufferOutSegSizes,
+				int* pSenderProcMap, int numSenderProcs,
+				void* pBuffer, int* pBufferSegSizes,
+			  	int* pRecvProcMap, int numRecvProcs, int tag)
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::distribute_data: empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::distribute_data: empty communicator.\n");
+	}
+
+//	used for mpi-communication.
+	std::vector<MPI_Request> vSendRequests(numRecvProcs);
+	std::vector<MPI_Request> vReceiveRequests(numSenderProcs);
+	
+//	wait until data has been received
+	std::vector<MPI_Status> vSendStates(numRecvProcs);
+	std::vector<MPI_Status> vReceiveStates(numSenderProcs);
+
+//	shedule receives first
+	for(int i = 0; i < numSenderProcs; ++i)
+	{
+		MPI_Irecv(pBufferOut, pBufferOutSegSizes[i], MPI_UNSIGNED_CHAR,	
+				  pSenderProcMap[i], tag, m_comm->m_mpiComm,
+				  &vReceiveRequests[i]);
+		pBufferOut = (byte*)pBufferOut + pBufferOutSegSizes[i];
+	}
+
+//	now send the data
+	for(int i = 0; i < numRecvProcs; ++i)
+	{
+		MPI_Isend(pBuffer, pBufferSegSizes[i], MPI_UNSIGNED_CHAR,
+				  pRecvProcMap[i], tag, m_comm->m_mpiComm,
+				  &vSendRequests[i]);
+		pBuffer = (byte*)pBuffer + pBufferSegSizes[i];
+	}
+
+	MPI_Waitall(numSenderProcs, &vReceiveRequests.front(), &vReceiveStates.front());
+	MPI_Waitall(numRecvProcs, &vSendRequests.front(), &vSendStates.front());
 }
 
 ////////////////////////////////////////////////////////////////////////
