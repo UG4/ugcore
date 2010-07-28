@@ -24,7 +24,7 @@ bool FactorizeILU(Matrix_type &A)
 		{
 			const size_t k = (*it_k).iIndex;
 			typename Matrix_type::entry_type a_ik = (*it_k).dValue;
-			if(dabs(a_ik) < 1e-7)	continue;
+			if(BlockNorm(a_ik) < 1e-7)	continue;
 			typename Matrix_type::entry_type a_kk = A(k,k);
 
 			a_ik /= a_kk;
