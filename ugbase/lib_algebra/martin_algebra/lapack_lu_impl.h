@@ -22,41 +22,32 @@ extern "C"
 }
 
 
-//template<typename vec_type>
-void LapackLU::apply(const Vector<double> &b, Vector<double> &x)
+template<typename vec_type>
+void LapackLU::apply(const vec_type &b, vec_type &x)
 {
-	//cout << "LapackLU::apply" << endl;
-	// TODO: Variing nr of unknowns
-	//int nrOfUnknowns = block_vector_traits<vec_type>::nrOfUnknowns;
-#ifndef NDEBUG
-	const int nrOfUnknowns = 1;
+#ifndef NDBEBUG
+    const size_t nrOfUnknowns = block_vector_traits<typename vec_type::entry_type>::nrOfUnknowns;
 	UG_ASSERT(size == b.size() * nrOfUnknowns && size == x.size() * nrOfUnknowns, " wrong size! has to be " << size << ", but is " << b << " and " << x);
 #endif
-	x = b;
-	//for(int i=0; i < b.size(); i++)
-		//for(int j=0; j<nrOfUnknowns; j++)
-			//vec[i*nrOfUnknowns+j] = getAt(b[i], j);
 
+	x = b;
+	// TODO: this only works for fixed array entries.
+	
 	// solve system
 	char trans ='N';
 	int dim = size;
 	int nrhs = 1;
 	int info;
 
-	dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, &x[0], &dim, &info);
+	dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, (double*)&x[0], &dim, &info);
 	UG_ASSERT(info == 0, "info is " << info);
-	//for(int i=0; i<x.size(); i++)
-		//for(int j=0; j<nrOfUnknowns; j++)
-			//setAt(x[i], j, vec[i*nrOfUnknowns+j]);
-
 }
 
 
-//template<typename entry_type>
-void LapackLU::init(const SparseMatrix<double> &A)
+template<typename matrix_type>
+void LapackLU::init(const matrix_type &A)
 {
-	//cout << "LapackLU::init, A = " << A.num_rows() << " x " << A.num_cols() << endl;
-	const int nrOfUnknowns = 1 ; //block_matrix_traits<entry_type>::nrOfUnknowns;
+  const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfUnknowns;
 	size = A.num_rows() * nrOfUnknowns;
 
 	if(densemat) delete[] densemat;
@@ -67,22 +58,14 @@ void LapackLU::init(const SparseMatrix<double> &A)
 
 	memset(densemat, 0, sizeof(double)*size*size);
 
-	/*for(int r=0; r<A.num_rows(); r++)
-		for(typename SparseMatrix<entry_type>::cRowIterator it(A, r); !it.isEnd(); ++it)
-		{
-			int rr = r*nrOfUnknowns;
-			int cc = (*it).iIndex*nrOfUnknowns;
-			for(int r2=0; r2<nrOfUnknowns; r2++)
-					for(int c2=0; c2<nrOfUnknowns; c2++)
-						densemat[(rr+r2) + (cc+c2)*size] = getAt((*it).dValue, r2, c2);
-		}*/
-
 	for(size_t r=0; r<A.num_rows(); r++)
-		for(SparseMatrix<double>::cRowIterator it = A.beginRow(r); !it.isEnd(); ++it)
+		for(typename matrix_type::cRowIterator it(A, r); !it.isEnd(); ++it)
 		{
 			int rr = r*nrOfUnknowns;
 			int cc = (*it).iIndex*nrOfUnknowns;
-			densemat[rr + cc*size] = (*it).dValue;
+			for(size_t r2=0; r2<nrOfUnknowns; r2++)
+					for(size_t c2=0; c2<nrOfUnknowns; c2++)
+					  densemat[ (rr + r2) + (cc+c2)*size ] = BlockRef((*it).dValue, r2, c2);
 		}
 
 	int info = 0;

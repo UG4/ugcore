@@ -19,10 +19,8 @@
 // TODO: for smallmatrix tasks like this, better use sth. like FLENS
 namespace ug{
 
-//template<typename T>
 class LapackLU
 {
-	//typedef T entry_type;
 public:
 	LapackLU()
 	{
@@ -37,10 +35,13 @@ public:
 	}
 
 	// todo: for non-double
-	void init(const SparseMatrix<double> &A);
+	template<typename matrix_type>
+	void init(const matrix_type &A);
 
-	void prepare(const Vector<double> &b, Vector<double> &x) {}
-	void apply(const Vector<double> &b, Vector<double> &x);
+	template<typename vec_type>
+	void prepare(const vec_type &b, vec_type &x) {}
+	template<typename vec_type>
+	void apply(const vec_type &b, vec_type &x);
 
 private:
 	size_t size;
