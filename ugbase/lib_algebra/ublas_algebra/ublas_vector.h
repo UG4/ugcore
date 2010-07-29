@@ -16,23 +16,12 @@
 
 #include "common/common.h"
 
-#include "lib_algebra/multi_index/multi_indices.h"
-#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
-
 namespace ug{
 
 class UblasMatrix;
 class UblasJacobi;
 
 class UblasVector{
-	public:
-		// index_type
-		typedef MultiIndex<1> index_type;
-
-		typedef FlexLocalVector<double> local_vector_type;
-
-		typedef std::vector<index_type> local_index_type;
-
 	public:
 		// constructor
 		UblasVector() : m_pVector(NULL){};
@@ -46,10 +35,13 @@ class UblasVector{
 		// destroy
 		bool destroy();
 
+		// TODO : Rework this. Access interface has changed
+/*
 		// add, set, get a local function
 		bool set(const local_vector_type& u, const local_index_type& ind);
 		bool add(const local_vector_type& u, const local_index_type& ind);
 		bool get(local_vector_type& u, const local_index_type& ind) const;
+*/
 
 		// fix memory pattern
 		bool finalize();
@@ -105,8 +97,6 @@ class UblasVector{
 };
 
 std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector& v);
-
-std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector::local_index_type& ind);
 
 
 }

@@ -37,7 +37,7 @@ destroy()
 	m_pMatrix = NULL;
 	return true;
 }
-
+/*
 bool
 UblasMatrix::
 set(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J)
@@ -103,7 +103,7 @@ bool UblasMatrix::set_dirichlet_rows(const local_index_type& I)
 	}
 	return true;
 }
-
+*/
 bool
 UblasMatrix::
 set(number w)

@@ -14,20 +14,9 @@
 #include "ublas_vector.h"
 #include "solver/BoostBlock.hh"
 
-#include "lib_algebra/multi_index/multi_indices.h"
-#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
-
 namespace ug{
 
 class UblasMatrix{
-	public:
-		// index_type
-		typedef MultiIndex<1> index_type;
-
-		typedef FlexLocalMatrix<double> local_matrix_type;
-
-		typedef std::vector<index_type> local_index_type;
-
 	public:
 
 		UblasMatrix() : m_pMatrix(NULL) {};
@@ -36,14 +25,15 @@ class UblasMatrix{
 		bool create(const UblasMatrix& v);
 		bool destroy();
 
-		// add, set, get
+		// TODO: rework this. Interface has changed
+/*		// add, set, get
 		bool set(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J);
 		bool add(const local_matrix_type& mat, const local_index_type& I, const local_index_type& J);
 		bool get(local_matrix_type& mat, const local_index_type& I, const local_index_type& J) const;
 
 		// normalize rows
 		bool set_dirichlet_rows(const local_index_type& I);
-
+*/
 		// set all entries (only currently allocated memory pattern)
 		bool operator= (number w);
 		bool set(number w);

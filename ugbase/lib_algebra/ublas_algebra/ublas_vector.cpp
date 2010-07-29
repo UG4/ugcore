@@ -41,6 +41,7 @@ bool UblasVector::destroy()
 	return true;
 }
 
+/*
 bool
 UblasVector::
 set(const local_vector_type& u, const local_index_type& ind)
@@ -79,7 +80,7 @@ get(local_vector_type& u, const local_index_type& ind) const
 	}
 	return true;
 }
-
+*/
 bool UblasVector::finalize()
 {
 	return true;
@@ -234,13 +235,6 @@ std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector& v)
 
 	for(std::size_t i = 0; i < v.m_pVector->size(); ++i)
 		outStream << "[" << i << "]: " << (*(v.m_pVector))(i) << std::endl;
-	return outStream;
-}
-
-std::ostream& operator<< (std::ostream& outStream, const ug::UblasVector::local_index_type& ind)
-{
-	for(std::size_t i = 0; i < ind.size(); ++i)
-		outStream << "[" << i << "]: " << ind[i] << std::endl;
 	return outStream;
 }
 
