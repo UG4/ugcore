@@ -5,12 +5,12 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__LOCAL_ALGEBRA__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__LOCAL_ALGEBRA__
+#ifndef __H__LIB_DISCRETIZATION__COMMON__LOCAL_ALGEBRA__
+#define __H__LIB_DISCRETIZATION__COMMON__LOCAL_ALGEBRA__
 
 #include <vector>
 
-#include "./multi_indices.h"
+#include "./multi_index.h"
 #include "./function_group.h"
 
 namespace ug{
@@ -510,4 +510,4 @@ class LocalMatrix
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__LOCAL_ALGEBRA__ */
+#endif /* __H__LIB_DISCRETIZATION__COMMON__LOCAL_ALGEBRA__ */

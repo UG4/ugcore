@@ -1,12 +1,12 @@
 /*
- * multi_indices.h
+ * multi_index.h
  *
  *  Created on: 22.02.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__MULTI_INDICES__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__MULTI_INDICES__
+#ifndef __H__LIB_DISCRETIZATION__COMMON__MULTI_INDEX__
+#define __H__LIB_DISCRETIZATION__COMMON__MULTI_INDEX__
 
 #include <vector>
 #include <iostream>
@@ -55,4 +55,4 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
 }
 
 
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__MULTI_INDICES__ */
+#endif /* __H__LIB_DISCRETIZATION__COMMON__MULTI_INDEX__ */

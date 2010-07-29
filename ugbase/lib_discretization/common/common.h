@@ -12,7 +12,7 @@
 #include "./function_group.h"
 
 // multi indices
-#include "./multi_indices.h"
+#include "./multi_index.h"
 
 // local algebra
 #include "./local_algebra.h"

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__SUBSET_INDEX_GROUP__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__SUBSET_INDEX_GROUP__
+#ifndef __H__LIB_DISCRETIZATION__COMMON__SUBSET_INDEX_GROUP__
+#define __H__LIB_DISCRETIZATION__COMMON__SUBSET_INDEX_GROUP__
 
 #include <vector>
 
@@ -42,4 +42,4 @@ class SubsetIndexGroup
 
 } // end namespace ug
 
-#endif /*__H__LIB_DISCRETIZATION__DOF_MANAGER__SUBSET_INDEX_GROUP__ */
+#endif /*__H__LIB_DISCRETIZATION__COMMON__SUBSET_INDEX_GROUP__ */
