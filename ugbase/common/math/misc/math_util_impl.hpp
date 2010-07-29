@@ -430,7 +430,7 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 						const vector_t& boxMin, const vector_t& boxMax,
 						number* tNearOut, number* tFarOut)
 {
-	number tMin, tMax;
+	number tMin = 0, tMax = 0;// initialized only to avoid mislead compiler warnings...
 	number t1, t2;
 	bool bMinMaxSet = false;
 	
