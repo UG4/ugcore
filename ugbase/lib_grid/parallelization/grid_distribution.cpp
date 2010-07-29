@@ -797,17 +797,29 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		}
 		
 		vSendBlockSizes.push_back((int)(sendStream.size() - oldSize));
-		
-	//	now delete the unnecessary elements
-	//	we deselect selection boundary elements, since they should not
-	//	be deleted.
-	//todo: delete bounbdary elements that are completly distributed
-	//		to other processes.
-		DeselectBoundarySelectionVertices(msel);
-		DeselectBoundarySelectionEdges(msel);
-		DeselectBoundarySelectionFaces(msel);
-		EraseSelectedObjects(msel);
 	}
+	
+//	all send data is now ready. We can now erase unrequired parts of the local grid.
+//	We only have to erase elements if some are actually moved to another process.
+	if(vSendBlockSizes.size() > 0)
+	{
+	//	erase all elements that will not remain.
+		if((int)vVertexLayouts.size() > localProcRank)
+		{
+			msel.clear();
+			SelectNodesInLayout(msel, vVertexLayouts[localProcRank]);
+			SelectNodesInLayout(msel, vEdgeLayouts[localProcRank]);
+			SelectNodesInLayout(msel, vFaceLayouts[localProcRank]);
+			SelectNodesInLayout(msel, vVolumeLayouts[localProcRank]);
+			InvertSelection(msel);
+			EraseSelectedObjects(msel);
+		}
+		else{
+		//	if there is no entry in vVertexLayouts, we can remove all elements
+			mg.clear_geometry();
+		}
+	}
+UG_LOG(endl);
 	
 //	we'll use this tag for communication
 	int redistTag = 23;

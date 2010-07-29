@@ -474,6 +474,15 @@ edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent)
 
 
 
+
+
+
+
+
+
+
+
+
 #ifdef __OLD_IMPLEMENTATION__
 ////////////////////////////////////////////////////////////////////////
 //	GetElemInfo

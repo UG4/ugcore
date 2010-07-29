@@ -114,6 +114,71 @@ void MultiGrid::element_to_be_replaced(TElem* elemOld, TElem* elemNew)
 {
 }
 */
+
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	specialization of wrapper classes
+
+////////////////////////////////////////////////////////////////////////
+//	specialization for Grid
+template <>
+class MGWrapper<Grid>
+{
+	public:
+		MGWrapper(Grid& grid) : m_grid(grid)	{}
+		
+		inline uint num_levels() const
+		{return 1;}
+
+		template <class TElem> inline
+		uint num(int level) const
+		{return m_grid.num<TElem>();}
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		begin(int level)
+		{return m_grid.begin<TElem>();}
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		end(int level)
+		{return m_grid.end<TElem>();}
+
+	protected:
+		Grid&	m_grid;
+};
+
+////////////////////////////////////////////////////////////////////////
+//	specialization for MultiGrid
+template <>
+class MGWrapper<MultiGrid>
+{
+	public:
+		MGWrapper(MultiGrid& grid) : m_grid(grid)	{}
+		
+		inline uint num_levels() const
+		{return m_grid.num_levels();}
+
+		template <class TElem> inline
+		uint num(int level) const
+		{return m_grid.num<TElem>(level);}
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		begin(int level)
+		{return m_grid.begin<TElem>(level);}
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		end(int level)
+		{return m_grid.end<TElem>(level);}
+
+	protected:
+		MultiGrid&	m_grid;
+};
+
 }//	end of namespace
 
 #endif

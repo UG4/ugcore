@@ -72,7 +72,8 @@ class MGSelector : public ISelector
 {
 	public:
 		typedef ISelector	BaseClass;
-
+		typedef MultiGrid	grid_type;
+		
 	public:
 		MGSelector(uint supportedElements = SE_ALL);
 		MGSelector(MultiGrid& grid, uint supportedElements = SE_ALL);
@@ -80,7 +81,7 @@ class MGSelector : public ISelector
 
 		void assign_grid(MultiGrid& grid);
 		void assign_grid(MultiGrid* grid);
-		inline MultiGrid* get_assigned_multi_grid()	{return m_pMultiGrid;}
+		inline MultiGrid* get_assigned_grid()	{return m_pMultiGrid;}
 
 	///	set the type of elements that shall be handled by the Selector.
 	/**	Pass an or-combination of constants enumerated in SelectorElements.

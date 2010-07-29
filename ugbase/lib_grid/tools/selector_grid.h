@@ -66,6 +66,7 @@ class Selector : public ISelector
 {
 	public:
 		typedef ISelector	BaseClass;
+		typedef Grid		grid_type;
 
 	public:
 		Selector(uint supportedElements = SE_ALL);

@@ -39,6 +39,10 @@ template void DeselectBoundarySelectionFaces<MGSelector>(MGSelector&);
 template void EraseSelectedObjects<Selector>(Selector&);
 template void EraseSelectedObjects<MGSelector>(MGSelector&);
 
+////////////////////////////////////////////////////////////////////////
+template void InvertSelection<Selector>(Selector&);
+template void InvertSelection<MGSelector>(MGSelector&);
+
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -61,6 +65,28 @@ void EraseSelectedObjects(TSelector& sel)
 					  		sel.template end<Face>(i));
 		EraseElements<Volume>(grid, sel.template begin<Volume>(i),
 					  		  sel.template end<Volume>(i));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TSelector>
+void InvertSelection(TSelector& sel)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	MGWrapper<typename TSelector::grid_type> wmg(*sel.get_assigned_grid());
+	
+	for(size_t i = 0; i < wmg.num_levels(); ++i)
+	{
+		InvertSelection(sel, wmg.template begin<VertexBase>(i),
+						wmg.template end<VertexBase>(i));
+		InvertSelection(sel, wmg.template begin<EdgeBase>(i),
+						wmg.template end<EdgeBase>(i));
+		InvertSelection(sel, wmg.template begin<Face>(i),
+						wmg.template end<Face>(i));
+		InvertSelection(sel, wmg.template begin<Volume>(i),
+						wmg.template end<Volume>(i));
 	}
 }
 
@@ -242,7 +268,7 @@ void ExtendSelection(Selector& sel, size_t extSize)
 //	SelectAssociatedGenealogy
 void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements)
 {
-	MultiGrid* mg = msel.get_assigned_multi_grid();
+	MultiGrid* mg = msel.get_assigned_grid();
 	if(!mg)
 		return;
 

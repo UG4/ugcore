@@ -229,7 +229,7 @@ class MultiGrid : public Grid, public GridObserver
 		inline uint num_levels() const	{return m_hierarchy.num_subsets();}
 
 		template <class TElem> inline
-		uint num(int level)			{return m_hierarchy.num<TElem>(level);}
+		uint num(int level) const		{return m_hierarchy.num<TElem>(level);}
 
 		template <class TElem> inline
 		typename geometry_traits<TElem>::iterator
@@ -299,9 +299,11 @@ class MultiGrid : public Grid, public GridObserver
 	/**	changes the state of the volume and adjusts the states of its children.*/
 		void set_state(Volume* vol, int state);
 
-	//	for debug purposes
+	///	for debug purposes
 		void check_edge_elem_infos(int level);
+	///	for debug purposes
 		void check_face_elem_infos(int level);
+	///	for debug purposes
 		void check_volume_elem_infos(int level);
 		
 	///	this method may be removed in future versions of the MultiGrid-class.
@@ -386,6 +388,37 @@ class MultiGrid : public Grid, public GridObserver
 		Grid::EdgeAttachmentAccessor<AEdgeInfo>		m_aaEdgeInf;
 		Grid::FaceAttachmentAccessor<AFaceInfo>		m_aaFaceInf;
 		Grid::VolumeAttachmentAccessor<AVolumeInfo>	m_aaVolInf;
+};
+
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+///	wrapper that allows to write method that can operate on a ug::Grid and a ug::MultiGrid.
+/**
+ * This template class is specialized for ug::Grid and ug::MultiGrid.
+ *
+ * The MGWrapper will most likely be enhanced with more mg-methods, like
+ * has_child, get_child or parent.
+ */
+template <class TGrid>
+class MGWrapper
+{
+	public:
+		MGWrapper(TGrid& grid);
+		
+		inline uint num_levels() const;
+
+		template <class TElem> inline
+		uint num(int level) const;
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		begin(int level);
+
+		template <class TElem> inline
+		typename geometry_traits<TElem>::iterator
+		end(int level);
 };
 
 }//	end of namespace

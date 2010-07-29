@@ -242,7 +242,8 @@ template <class TElem, int IDimension>
 bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										ug::Grid& grid,
 										int numSubsets,
-										ug::APosition& aVrtPos)
+										ug::APosition& aVrtPos,
+										int startDim = 0)
 {
 //	TODO: move implementation to seperate ..._impl.hpp file.
 	using namespace ug;
@@ -268,7 +269,8 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 	return PartitionElementsByRepeatedIntersection<TElem, IDimension>(shOut, 0,
 															numSubsets,
 															0, vElems.size(),
-															vElems, 0);
+															vElems,
+															startDim % IDimension);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -285,7 +287,8 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										ug::MultiGrid& mg,
 										int level,
 										int numSubsets,
-										ug::APosition& aVrtPos)
+										ug::APosition& aVrtPos,
+										int startDim = 0)
 {
 //	TODO: move implementation to seperate ..._impl.hpp file.
 	using namespace ug;
@@ -311,7 +314,8 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 	return PartitionElementsByRepeatedIntersection<TElem, IDimension>(shOut, 0,
 															numSubsets,
 															0, vElems.size(),
-															vElems, 0);
+															vElems,
+															startDim % IDimension);
 }
 
 

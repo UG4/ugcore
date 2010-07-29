@@ -24,6 +24,25 @@ namespace ug
 template <class TSelector>
 void EraseSelectedObjects(TSelector& sel);
 
+
+////////////////////////////////////////////////////////////////////////
+//	InvertSelection
+///	Inverts the selection of the elements between begin and end.
+/**
+ * TSelector has to either be of type Selector or MGSelector.
+ */
+template <class TSelector, class TIterator>
+void InvertSelection(TSelector& sel, TIterator begin, TIterator end);
+
+////////////////////////////////////////////////////////////////////////
+//	InvertSelection
+///	Inverts the selection.
+/**
+ * TSelector has to either be of type Selector or MGSelector.
+ */
+template <class TSelector>
+void InvertSelection(TSelector& sel);
+
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedVertices
 ///	selects all associated vertices of the elements between elemsBegin and elemsEnd

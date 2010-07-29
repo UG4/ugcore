@@ -13,6 +13,24 @@ namespace ug
 //	selection util methods
 
 ////////////////////////////////////////////////////////////////////////
+//	InvertSelection
+template <class TSelector, class TIterator>
+void InvertSelection(TSelector& sel, TIterator begin, TIterator end)
+{
+	for(TIterator iter = begin; iter != end;){
+	//	be careful - since iterator could be an iterator of the selector,
+	//	we have to make sure, that we will not invalidate it.
+		typename TIterator::value_type v = *iter;
+		++iter;
+		
+		if(sel.is_selected(v))
+			sel.deselect(v);
+		else
+			sel.select(v);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedVertices
 template <class TSelector, class TElemIterator>
 void SelectAssociatedVertices(TSelector& sel, TElemIterator elemsBegin,

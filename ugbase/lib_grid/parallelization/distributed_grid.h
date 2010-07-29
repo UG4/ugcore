@@ -24,7 +24,26 @@ enum ElementStatus
 	ES_VIRTUAL = 1 << 7
 };
 
-
+///	manages the layouts and interfaces which are associated with a distributed grid.
+/**
+ * This class is work in progress. It not yet works in all situations.
+ * The following things can be performed on a distributed grid:
+ * 	- New elements can be created. If a vertex or an edge is created as
+ * 		a child of an element that lies in an interface, it will be
+ *		added to the corresponding interfaces.
+ *		Note that you have to call begin_ordered_element_insertion() before
+ *		and end_ordered_element_insertion() after you add elements.
+ *
+ * The following things do not yet work properly:
+ *	- Face-interfaces are not yet handled correctly during element-insertion.
+ *	- When you erase elements, interfaces and layouts are not updated.
+ *		That means if an interface element is deleted, a dangling pointer
+ *		will remain in the interfaces - this may lead to bad errors later on.
+ *		Methods that allow correct element removal have to be added somewhen soon.
+ *		Until then you will have to update the grid_layout_map manually
+ *		and inform the DistributedGridManager about changes by calling
+ *		DistributedGridManager::grid_layouts_changed(false). 
+ */
 class DistributedGridManager : public GridObserver
 {	
 	public:
