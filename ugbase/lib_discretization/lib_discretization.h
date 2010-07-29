@@ -12,8 +12,6 @@
 
 // degree of freedom managers
 #include "./dof_manager/dof_manager.h"
-#include "./dof_manager/p1conform_dof_manager/p1conform_dof_manager.h"
-#include "./dof_manager/general_dof_manager/general_dof_manager.h"
 
 // function spaces
 #include "./function_spaces/grid_function.h"
