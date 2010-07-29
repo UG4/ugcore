@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "lib_grid/lib_grid.h"
-#include "lib_algebra/multi_index/multi_indices.h"
+#include "../../spacial_discretization/multi_indices.h"
 
 #include "../dof_distribution.h"
 #include "../function_pattern.h"
@@ -180,7 +180,7 @@ class P1ConformDoFDistribution : public DoFDistribution
 
 				for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
 				{
-					LocalIndices::dof_index_type dof_ind;
+					LocalIndices::multi_index_type dof_ind;
 					dof_ind[0] = dof + fct * refElem.num_obj(0);
 					dof_ind[1] = 0;
 					ind.add_dof(fct, dof_ind);
@@ -467,7 +467,7 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 
 				for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
 				{
-					LocalIndices::dof_index_type dof_ind;
+					LocalIndices::multi_index_type dof_ind;
 					dof_ind[0] = dof;
 					dof_ind[1] = ind.fct_id(fct);
 					ind.add_dof(fct, dof_ind);
