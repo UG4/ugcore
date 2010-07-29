@@ -25,14 +25,14 @@ extern "C"
 template<typename vec_type>
 void LapackLU::apply(const vec_type &b, vec_type &x)
 {
-#ifndef NDBEBUG
+#ifndef NDEBUG
     const size_t nrOfUnknowns = block_vector_traits<typename vec_type::entry_type>::nrOfUnknowns;
 	UG_ASSERT(size == b.size() * nrOfUnknowns && size == x.size() * nrOfUnknowns, " wrong size! has to be " << size << ", but is " << b << " and " << x);
 #endif
 
 	x = b;
 	// TODO: this only works for fixed array entries.
-	
+
 	// solve system
 	char trans ='N';
 	int dim = size;
