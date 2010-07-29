@@ -173,7 +173,7 @@ private:
 #ifdef FLEXAMG
 	CoarseSolver coarseSolver;	///< the coarse(st) grid solver
 #else
-	LapackLU coarseSolver;
+    LapackLU coarseSolver;
 #endif
 
 	int used_levels;			///< nr of AMG levels used

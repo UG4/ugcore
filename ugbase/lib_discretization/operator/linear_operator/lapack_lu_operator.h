@@ -50,7 +50,7 @@ public:
 		typename domain_function_type::vector_type& d_vec = d.get_vector();
 		typename codomain_function_type::vector_type& c_vec = c.get_vector();
 
-		UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
+ 		UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
 		UG_ASSERT(c_vec.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
 
 		m_lapacklu.prepare(d_vec, c_vec);
@@ -70,7 +70,7 @@ public:
 		UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
 
 		m_lapacklu.apply(d_vec, c_vec);
-
+		
 		return true;
 	}
 
@@ -83,7 +83,7 @@ protected:
 	AssembledLinearizedOperator<TDiscreteFunction>* m_pOperator;
 
 	LapackLU m_lapacklu;
-	SparseMatrix<double>* m_pMatrix;
+	typename algebra_type::matrix_type *m_pMatrix;
 	bool m_bOpChanged;
 };
 
