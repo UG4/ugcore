@@ -9,13 +9,9 @@
 #define __H__LIB_ALGEBRA__LIB_ALGEBRA__
 
 #include <iomanip>
+
 // other ug4 modules
 #include "common/common.h"
-
-#include "local_matrix_vector/flex_local_matrix_vector.h"
-
-// library intern includes
-#include "lib_algebra/multi_index/multi_indices.h"
 
 // parallel support
 #ifdef UG_PARALLEL
@@ -57,9 +53,6 @@ class UblasAlgebra{
 #else
 		typedef UblasVector vector_type;
 #endif
-
-		// index_type
-		typedef MultiIndex<1> index_type;
 };
 
 } // namespace ug
@@ -83,9 +76,6 @@ class HypreAlgebra{
 
 		// vector type
 		typedef HypreVector vector_type;
-
-		// index_type
-		typedef MultiIndex<1> index_type;
 
 		typedef HYPREboomerAMG linear_solver_type;
 
@@ -120,10 +110,6 @@ class MartinAlgebra
 #else
 		typedef Vector<double> vector_type;
 #endif
-		// index_type
-		typedef MultiIndex<1> index_type;
-
-		//	typedef HYPREboomerAMG linear_solver_type;
 	};
 }
 
