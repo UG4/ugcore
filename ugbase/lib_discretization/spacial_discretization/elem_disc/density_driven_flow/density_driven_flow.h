@@ -63,14 +63,6 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 
 	private:
 		template <typename TElem>
-		inline size_t num_total_sh(){	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-										return 2*reference_element_type::num_corners;};
-
-		template <typename TElem>
-		inline size_t num_sh(size_t loc_fct){	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-												return reference_element_type::num_corners;};
-
-		template <typename TElem>
 		inline bool prepare_element_loop();
 
 		template <typename TElem>
@@ -184,8 +176,6 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_num_total_sh_function(			id, &DensityDrivenFlowElemDisc::template num_total_sh<TElem>);
-			register_num_sh_function(				id, &DensityDrivenFlowElemDisc::template num_sh<TElem>);
 			register_prepare_element_loop_function(	id, &DensityDrivenFlowElemDisc::template prepare_element_loop<TElem>);
 			register_prepare_element_function(		id, &DensityDrivenFlowElemDisc::template prepare_element<TElem>);
 			register_finish_element_loop_function(	id, &DensityDrivenFlowElemDisc::template finish_element_loop<TElem>);

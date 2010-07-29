@@ -46,16 +46,6 @@ function_registered(int id, IElemDiscNeed need)
 	if(need == IEDN_NONE) return true;
 
 	// loop functions must exist in any case
-	if(!num_total_sh_function_registered(id))
-	{
-		UG_LOG("num_sh() function not registered for id " << id <<".\n");
-		return false;
-	}
-	if(!num_sh_function_registered(id))
-	{
-		UG_LOG("num_sh() function not registered for id " << id <<".\n");
-		return false;
-	}
 	if(!prepare_element_loop_function_registered(id))
 	{
 		UG_LOG("prepare_element_loop() function not registered for id " << id <<".\n");
@@ -132,66 +122,6 @@ function_registered(int id, IElemDiscNeed need)
 
 	return true;
 };
-
-////////////////////////////////////////////////
-// Num Total Shapes
-////////////////////////////////////////////////
-
-template<typename TAlgebra>
-template<typename TAssFunc>
-void
-IElemDisc<TAlgebra>::
-register_num_total_sh_function(int id, TAssFunc func)
-{
-//	make sure that there is enough space
-	if((size_t)id >= m_vNumTotalShFunc.size())
-		m_vNumTotalShFunc.resize(id+1, 0);
-
-	m_vNumTotalShFunc[id] = (NumTotalShFunc)func;
-};
-
-template<typename TAlgebra>
-bool
-IElemDisc<TAlgebra>::
-num_total_sh_function_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vNumTotalShFunc.size())
-	{
-		if(m_vNumTotalShFunc[id] != 0)
-			return true;
-	}
-	return false;
-}
-
-////////////////////////////////////////////////
-// Num Shapes
-////////////////////////////////////////////////
-
-template<typename TAlgebra>
-template<typename TAssFunc>
-void
-IElemDisc<TAlgebra>::
-register_num_sh_function(int id, TAssFunc func)
-{
-//	make sure that there is enough space
-	if((size_t)id >= m_vNumShFunc.size())
-		m_vNumShFunc.resize(id+1, 0);
-
-	m_vNumShFunc[id] = (NumShFunc)func;
-};
-
-template<typename TAlgebra>
-bool
-IElemDisc<TAlgebra>::
-num_sh_function_registered(int id)
-{
-	if(id >= 0 && (size_t)id < m_vNumShFunc.size())
-	{
-		if(m_vNumShFunc[id] != 0)
-			return true;
-	}
-	return false;
-}
 
 ////////////////////////////////////////////////
 // Prepare Element Loop

@@ -50,28 +50,27 @@ class FunctionGroup
 		std::vector<size_t> m_vFunction;
 };
 
-class SubFunctionGroup
+class SubFunctionMap
 {
 	public:
-		SubFunctionGroup() {clear();}
+		SubFunctionMap() {clear();}
 
-		/** select a function of the underlying function group into this SubFunctionGroup
-		 *	The order of the functions is the same as in the underlying function group. Therefore,
-		 *	the order in which the functions are selected does not matter.
+		/** select function
+		 *	The selected function gets the next free index
 		 *
-		 * \param[in] 	fct		index of function in underlying
+		 * \param[in] 	fct		index of function to be selected
 		 * \return 				true is selected
 		 * 						false if unable to select
 		 */
-		bool select(size_t fct);
+		void select(size_t fct) {m_vMap.push_back(fct);}
 
-		/// clear SubFunctionGroup
+		/// clear map
 		void clear() {m_vMap.clear();}
 
-		/// number of functions in this SubFunctionGroup
+		/// number of selected functions
 		size_t num_fct() const {return m_vMap.size();}
 
-		/// return number of function in Function Group
+		/// return number of function
 		size_t operator[](size_t i) const
 		{
 			UG_ASSERT(i < num_fct(), "Invalid function access.");

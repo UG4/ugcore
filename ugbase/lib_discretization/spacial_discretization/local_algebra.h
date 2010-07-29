@@ -10,6 +10,9 @@
 
 #include <vector>
 
+#include "./multi_indices.h"
+#include "./function_group.h"
+
 namespace ug{
 
 class LocalIndices
@@ -22,7 +25,7 @@ class LocalIndices
 		typedef size_t comp_type;
 
 		// multi indices used by discretization
-		typedef MultiIndex<2> dof_index_type;
+		typedef MultiIndex<2> multi_index_type;
 
 	public:
 		LocalIndices() : m_pFunctionGroup(NULL)
@@ -43,21 +46,21 @@ class LocalIndices
 			// resize vectors
 			resize_dof_indices();
 
-			// create default SubFunctionGroup containing all functions of function Group
-			m_defaultSubFunctionGroup.clear();
+			// create default SubFunctionMap containing all functions of function Group
+			m_defaultSubFunctionMap.clear();
 			for(size_t fct = 0; fct < funcGroup.num_fct(); ++fct)
 			{
-				m_defaultSubFunctionGroup.select(fct);
+				m_defaultSubFunctionMap.select(fct);
 			}
 
 			// access default function group
-			access_sub_function_group(m_defaultSubFunctionGroup);
+			access_sub_function_group(m_defaultSubFunctionMap);
 		}
 
 		/// access only part of the function group
-		bool access_sub_function_group(const SubFunctionGroup& subFuncGroup)
+		bool access_sub_function_group(const SubFunctionMap& subFuncMap)
 		{
-			m_pSubFunctionGroup = &subFuncGroup;
+			m_pSubFunctionMap = &subFuncMap;
 			return true;
 		}
 
@@ -70,7 +73,7 @@ class LocalIndices
 		}
 
 		/// add local dof index for local function
-		void add_dof(size_t fct, const dof_index_type& dofIndex)
+		void add_dof(size_t fct, const multi_index_type& dofIndex)
 		{
 			UG_ASSERT(fct < num_fct(), "Local function index not valid.");
 			m_vvDofIndices[fct].push_back(dofIndex);
@@ -91,13 +94,13 @@ class LocalIndices
 		///////////////////////////
 
 		/// number of functions handled
-		size_t num_fct() const {return m_pSubFunctionGroup->num_fct();}
+		size_t num_fct() const {return m_pSubFunctionMap->num_fct();}
 
 		/// return global function id
 		size_t fct_id(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
-			const size_t accFct = (*m_pSubFunctionGroup)[fct];
+			const size_t accFct = (*m_pSubFunctionMap)[fct];
 			return m_pFunctionGroup->fct_id(accFct);
 		}
 
@@ -105,7 +108,7 @@ class LocalIndices
 		size_t num_dofs(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
-			const size_t accFct = (*m_pSubFunctionGroup)[fct];
+			const size_t accFct = (*m_pSubFunctionMap)[fct];
 			return m_vvDofIndices[accFct].size();
 		}
 
@@ -113,7 +116,7 @@ class LocalIndices
 		index_type local_index(size_t fct, size_t dof) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
-			const size_t accFct = (*m_pSubFunctionGroup)[fct];
+			const size_t accFct = (*m_pSubFunctionMap)[fct];
 			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "local dof index not valid");
 			return m_vvDofIndices[accFct][dof][0];
 		}
@@ -122,7 +125,7 @@ class LocalIndices
 		comp_type comp(size_t fct, size_t dof) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
-			const size_t accFct = (*m_pSubFunctionGroup)[fct];
+			const size_t accFct = (*m_pSubFunctionMap)[fct];
 			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "local dof index not valid");
 			return m_vvDofIndices[accFct][dof][1];
 		}
@@ -157,13 +160,13 @@ class LocalIndices
 		const FunctionGroup* m_pFunctionGroup;
 
 		// sub function group, that is accessed
-		const SubFunctionGroup* m_pSubFunctionGroup;
+		const SubFunctionMap* m_pSubFunctionMap;
 
 		// default sub function group, i.e. all functions
-		SubFunctionGroup m_defaultSubFunctionGroup;
+		SubFunctionMap m_defaultSubFunctionMap;
 
 		// Mapping (fct, dof) -> local index
-		std::vector<std::vector<dof_index_type> > m_vvDofIndices;
+		std::vector<std::vector<multi_index_type> > m_vvDofIndices;
 
 		// algebra indices
 		std::vector<index_type> m_vAlgIndices;

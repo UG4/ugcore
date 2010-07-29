@@ -11,6 +11,12 @@
 // function group
 #include "./function_group.h"
 
+// multi indices
+#include "./multi_indices.h"
+
+// local algebra
+#include "./local_algebra.h"
+
 // interface
 #include "./domain_discretization_interface.h"
 

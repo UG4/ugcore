@@ -50,10 +50,6 @@ class IElemDisc{
 		// ATTENTION: type must be set, before other public functions can be called
 		bool set_geometric_object_type(int id, IElemDiscNeed need);
 
-		// number of total shape functions and number of shape functions per function
-		size_t num_total_sh() 			{return (this->*(m_vNumTotalShFunc[m_id]))();}
-		size_t num_sh(size_t loc_fct)	{return (this->*(m_vNumShFunc[m_id]))(loc_fct);}
-
 		// preparing and finishing of loop
 		bool prepare_element_loop()						{return (this->*(m_vPrepareElementLoopFunc[m_id]))();}
 		bool prepare_element(GeometricObject* obj, const local_vector_type& u, const local_index_type& glob_ind)
@@ -76,9 +72,6 @@ class IElemDisc{
 
 	protected:
 		// register the functions
-		template <typename TAssFunc> void register_num_total_sh_function(int id, TAssFunc func);
-		template <typename TAssFunc> void register_num_sh_function(int id, TAssFunc func);
-
 		template <typename TAssFunc> void register_prepare_element_loop_function(int id, TAssFunc func);
 		template <typename TAssFunc> void register_prepare_element_function(int id, TAssFunc func);
 		template <typename TAssFunc> void register_finish_element_loop_function(int id, TAssFunc func);
@@ -94,8 +87,6 @@ class IElemDisc{
 		bool function_registered(int id, IElemDiscNeed need);
 
 		// checks if the functions are present
-		bool num_total_sh_function_registered(int id);
-		bool num_sh_function_registered(int id);
 		bool prepare_element_loop_function_registered(int id);
 		bool prepare_element_function_registered(int id);
 		bool finish_element_loop_function_registered(int id);
@@ -108,10 +99,6 @@ class IElemDisc{
 		bool assemble_f_function_registered(int id);
 
 	private:
-		// types of loop function pointers
-		typedef size_t (IElemDisc<TAlgebra>::*NumTotalShFunc)();
-		typedef size_t (IElemDisc<TAlgebra>::*NumShFunc)(size_t loc_fct);
-
 		// types of loop function pointers
 		typedef bool (IElemDisc<TAlgebra>::*PrepareElementLoopFunc)();
 		typedef bool (IElemDisc<TAlgebra>::*PrepareElementFunc)(GeometricObject* obj, const local_vector_type& u, const local_index_type& glob_ind);
@@ -129,10 +116,6 @@ class IElemDisc{
 		typedef bool (IElemDisc<TAlgebra>::*AssembleFFunc)(local_vector_type& d, number time);
 
 	private:
-		// function pointers
-		std::vector<NumTotalShFunc> 		m_vNumTotalShFunc;
-		std::vector<NumShFunc> 				m_vNumShFunc;
-
 		// loop function pointers
 		std::vector<PrepareElementLoopFunc> m_vPrepareElementLoopFunc;
 		std::vector<PrepareElementFunc> 	m_vPrepareElementFunc;
