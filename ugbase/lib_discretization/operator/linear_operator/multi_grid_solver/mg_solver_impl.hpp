@@ -165,11 +165,13 @@ lmgc(size_t lev)
 			{UG_LOG("Error in base solver on level " << lev << ".\n"); return false;}
 		PROFILE_END();
 
+	//update defect
+		if(!m_A[lev]->apply_sub(*m_c[lev], *m_d[lev]))
+			{UG_LOG("Error in updating defect on level " << lev << ".\n"); return false;}
+
 #ifdef UG_PARALLEL
 		UG_DLOG(LIB_DISC_MULTIGRID, 2, " Base solver done.\n");
 #endif
-
-		// no update of the defect is needed, since the linear solver interface requires, that the updated defect is already returned.
 		return true;
 	}
 	else
