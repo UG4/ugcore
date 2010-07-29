@@ -56,10 +56,6 @@ class ParallelVector : public TVector
 	public:
 		typedef ParallelVector<TVector> this_type;
 
-		typedef typename TVector::local_vector_type local_vector_type;
-
-		typedef typename TVector::local_index_type local_index_type;
-
 	public:
 		ParallelVector()
 		: TVector(), m_type(PST_UNDEFINED),

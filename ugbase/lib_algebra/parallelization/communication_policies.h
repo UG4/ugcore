@@ -26,9 +26,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::
-												local_vector_type::
-												entry_type);
+			return interface.size() * sizeof(typename TVector::entry_type);
 		}
 
 		virtual bool
@@ -78,9 +76,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::
-												local_vector_type::
-												entry_type);
+			return interface.size() * sizeof(typename TVector::entry_type);
 		}
 
 		virtual bool
@@ -130,9 +126,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::
-												local_vector_type::
-												entry_type);
+			return interface.size() * sizeof(typename TVector::entry_type);
 		}
 
 		virtual bool
