@@ -7,7 +7,7 @@
 #include <string>
 
 #include "common/common.h"
-#include "lib_algebra/local_matrix_vector/flex_local_matrix_vector.h"
+#include "../../local_algebra.h"
 
 namespace ug{
 
@@ -299,7 +299,7 @@ class DataImportItem : public DataItem{
 		}
 
 		// add of diagonal couplings to local Matrix J for coupling with system loc_sys
-		virtual bool add_offdiagonal(FlexLocalMatrix<double>& J, size_t loc_sys, number s_a) = 0;
+		virtual bool add_offdiagonal(LocalMatrix<double>& J, size_t loc_sys, number s_a) = 0;
 
 	public:
 		// link this import to an export

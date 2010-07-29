@@ -11,6 +11,7 @@
 #include "import_export.h"
 
 #include "../coupled_elem_disc_interface.h"
+#include "../../local_algebra.h"
 
 namespace ug{
 
@@ -23,7 +24,7 @@ class DataClassExportPossibility : public DataPossibilityItem
 		typedef TDataType data_type;
 		typedef TPositionType position_type;
 		typedef TAlgebra algebra_type;
-		typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 	public:
 		DataClassExportPossibility(std::string name, ICoupledElemDisc<TAlgebra>* Class, size_t nrExport) :
@@ -65,7 +66,7 @@ class DataClassExport : public DataExport<TDataType, TPositionType>{
 		typedef TDataType data_type;
 		typedef TPositionType position_type;
 		typedef TAlgebra algebra_type;
-		typedef typename TAlgebra::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 	protected:
 		// Only Data Possibility can create an instance

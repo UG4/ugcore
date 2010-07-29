@@ -19,8 +19,8 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+template<typename TDomain, typename TAlgebra>
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 CplConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 								Diff_Tensor_fct diff, Conv_Scale_fct conv_scale,
 								Mass_Scale_fct mass_scale, Mass_Const_fct mass_const,
@@ -31,16 +31,15 @@ CplConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 	m_Mass_Scale(mass_scale), m_Mass_Const(mass_const),
 	m_Reaction(reac), m_Rhs(rhs)
 {
-	register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-	register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+	register_assemble_functions();
 };
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -70,11 +69,11 @@ prepare_element_loop()
 	return true;
 }
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -84,11 +83,11 @@ finish_element_loop()
 	return true;
 }
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -108,11 +107,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	return true;
 }
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
 
@@ -143,8 +142,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				MatVecMult(Dgrad, D, sdv.grad_global(j));
 				flux = VecDot(Dgrad, scvf.normal());
 
-				J(scvf.from(), j) -= flux;
-				J(scvf.to()  , j) += flux;
+				J(_C_, scvf.from(), _C_, j) -= flux;
+				J(_C_, scvf.to()  , _C_, j) += flux;
 
 				////////////////////////////////////
 				// convective term
@@ -157,8 +156,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					flux = (1.- m_upwind_amount) * sdv.shape(j) * VecDot(v, scvf.normal());
 
 					// coupling 'from' with j  (i.e. A[from][j]) and 'to' with j (i.e. A[to][j])
-					J(scvf.from(), j) += flux;
-					J(scvf.to()  , j) -= flux;
+					J(_C_, scvf.from(), _C_, j) += flux;
+					J(_C_, scvf.to()  , _C_, j) -= flux;
 
 					// linearization of defect
 
@@ -167,7 +166,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 						number shape_u = 0.0;
 						for(size_t j = 0; j < sdv.num_sh(); ++j)
 						{
-							shape_u += u[j] * sdv.shape(j);
+							shape_u += u(_C_, j) * sdv.shape(j);
 						}
 						shape_u *= (1.- m_upwind_amount);
 						lin_Defect = scvf.normal();
@@ -183,13 +182,13 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				int up;
 				flux = m_upwind_amount * VecDot(v, scvf.normal());
 				if(flux >= 0.0) up = scvf.from(); else up = scvf.to();
-				J(scvf.from(), up) += flux;
-				J(scvf.to()  , up) -= flux;
+				J(_C_, scvf.from(), _C_, up) += flux;
+				J(_C_, scvf.to()  , _C_, up) -= flux;
 
 				// linearization of defect
 				if(m_Velocity.num_sh() > 0)
 				{
-					number shape_u = u[up] * m_upwind_amount;
+					number shape_u = u(_C_, up) * m_upwind_amount;
 					lin_Defect = scvf.normal();
 					VecScale(lin_Defect, lin_Defect, shape_u);
 					m_Velocity.lin_defect(scvf.from(), ip_pos) = lin_Defect;
@@ -211,17 +210,17 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 		m_Reaction(reac_val, scv.global_corner_pos(), time);
 
-		J(co , co) += reac_val * scv.volume();
+		J(_C_, co , _C_, co) += reac_val * scv.volume();
 	}
 
 	return true;
 }
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra> template <typename TElem>
+template<typename TDomain, typename TAlgebra> template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	int co;
@@ -233,18 +232,18 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		co = scv.local_corner_id();
 		m_Mass_Scale(mass_scale, scv.global_corner_pos(), time);
 
-		J(co , co) += mass_scale * scv.volume();
+		J(_C_, co , _C_, co) += mass_scale * scv.volume();
 	}
 
 	return true;
 }
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 	static const int dim = TDomain::dim;
@@ -267,8 +266,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			number shape_u = 0.0;
 			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
-				VecScaleAppend(grad_u, u[j], sdv.grad_global(j));
-				shape_u += u[j] * sdv.shape(j);
+				VecScaleAppend(grad_u, u(_C_, j), sdv.grad_global(j));
+				shape_u += u(_C_, j) * sdv.shape(j);
 			}
 
 			m_Diff_Tensor(D, scvf.global_ip(), time);
@@ -281,8 +280,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			MatVecMult(Dgrad_u, D, grad_u);
 			flux = VecDot(Dgrad_u, scvf.normal());
 
-			d[scvf.from()] -= flux;
-			d[scvf.to()] += flux;
+			d(_C_, scvf.from()) -= flux;
+			d(_C_, scvf.to()) += flux;
 
 			////////////////////////////////////
 			// convective term
@@ -294,17 +293,17 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			{
 				flux = (1.- m_upwind_amount) * shape_u * VecDot(v, scvf.normal());
 
-				d[scvf.from()] += flux;
-				d[scvf.to()] -= flux;
+				d(_C_, scvf.from()) += flux;
+				d(_C_, scvf.to()) -= flux;
 			}
 
 			// upwind part convection
 			if(m_upwind_amount != 0.0)
 			{
 				flux = m_upwind_amount * VecDot(v, scvf.normal());
-				if(flux >= 0.0) flux *= u[scvf.from()]; else flux *= u[scvf.to()];
-				d[scvf.from()] += flux;
-				d[scvf.to()] -= flux;
+				if(flux >= 0.0) flux *= u(_C_, scvf.from()); else flux *= u(_C_, scvf.to());
+				d(_C_, scvf.from()) += flux;
+				d(_C_, scvf.to()) -= flux;
 			}
 
 		}
@@ -319,18 +318,18 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 		m_Reaction(reac_val, scv.global_corner_pos(), time);
 
-		d[co] += reac_val * u[co] * scv.volume();
+		d(_C_, co) += reac_val * u(_C_, co) * scv.volume();
 	}
 
 	return true;
 }
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	int co;
@@ -344,18 +343,18 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		m_Mass_Scale(mass_scale, scv.global_corner_pos(), time);
 		m_Mass_Const(mass_const, scv.global_corner_pos(), time);
 
-		d[co] += (mass_const * mass_scale * u[co]) * scv.volume();
+		d(_C_, co) += (mass_const * mass_scale * u(_C_, co)) * scv.volume();
 	}
 
 	return true;
 }
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplConvectionDiffusionElemDisc<TDomain, ref_dim, TAlgebra>::
+CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
 	number fvalue = 0.0;
@@ -364,7 +363,7 @@ assemble_f(local_vector_type& d, number time)
 		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
 
 		m_Rhs(fvalue, scv.global_corner_pos(), time);
-		d[scv.local_corner_id()] += fvalue * scv.volume();
+		d(_C_, scv.local_corner_id()) += fvalue * scv.volume();
 	}
 
 	return true;

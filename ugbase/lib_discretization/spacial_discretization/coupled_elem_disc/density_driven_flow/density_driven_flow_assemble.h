@@ -15,9 +15,8 @@
 
 namespace ug{
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
-//	public DataExportingClass<MathVector<TDomain::dim>, MathVector<ref_dim>, TAlgebra>
 {
 	public:
 		// domain type
@@ -33,13 +32,13 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef typename algebra_type::matrix_type::local_matrix_type local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
 
 		// local vector type
-		typedef typename algebra_type::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 		// local index type
-		typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		typedef LocalIndices local_index_type;
 
 	protected:
 		typedef void (*Pososity_fct)(number&);
@@ -80,7 +79,8 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			return m_DarcyVelocity.set_sys_id(sys_id);
 		}
 	protected:
-		DataClassExportPossibility<MathVector<dim>, MathVector<ref_dim>, algebra_type>  m_DarcyVelocity;
+		// TODO : This is wrong, should be ref_dim in second argument. A general rework is necessary
+		DataClassExportPossibility<MathVector<dim>, MathVector<dim>, algebra_type>  m_DarcyVelocity;
 
 	public:
 		// number of fundamental functions required for this assembling
@@ -90,14 +90,6 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) {return LSFS_LAGRANGEP1;}
 
 	public:
-		template <typename TElem>
-		inline size_t num_total_sh(){		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-											return 2*ref_elem_type::num_corners;};
-
-		template <typename TElem>
-		inline size_t num_sh(size_t loc_fct){		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-													return ref_elem_type::num_corners;};
-
 		template <typename TElem>
 		inline bool prepare_element_loop();
 
@@ -170,9 +162,9 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 	private:
 		template <typename TElem>
 		void data_export(std::vector<MathVector<dim> >& val, std::vector<std::vector<MathVector<dim> > >& deriv,
-						const std::vector<MathVector<ref_dim> >& pos, const local_vector_type& u, bool compute_derivatives)
+						const std::vector<MathVector< reference_element_traits<TElem>::reference_element_type::dim> >& pos,
+						const local_vector_type& u, bool compute_derivatives)
 		{
-		#define u(fct, i)    ( (u)[ref_elem_type::num_corners*(fct) + (i)])
 			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
@@ -231,7 +223,6 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 				}
 			}
 
-		#undef u
 		}
 
 		bool compute_ip_Darcy_velocity(MathVector<dim>& Darcy_vel, number c_ip, const MathVector<dim>& grad_p_ip);
@@ -243,12 +234,46 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 											number c_ip, const MathVector<dim>& grad_p_ip);
 
 	private:
+		///////////////////////////////////////
+		// registering for reference elements
+		///////////////////////////////////////
+		template <int dim> class numType{};
+
+		void register_assemble_functions()
+		{
+			numType<TDomain::dim> dummy;
+			register_assemble_functions(dummy);
+		}
+
+		// register for 1D
+		void register_assemble_functions(numType<1> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+		}
+
+		// register for 2D
+		void register_assemble_functions(numType<2> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+		}
+
+		// register for 3D
+		void register_assemble_functions(numType<3> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+			// TODO: Register 3D Ref-Elems
+		}
+
 		// help function
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_num_total_sh_function(			id, &CplDensityDrivenFlowElemDisc::template num_total_sh<TElem>);
-			register_num_sh_function(				id, &CplDensityDrivenFlowElemDisc::template num_sh<TElem>);
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
 			register_prepare_element_loop_function(	id, &CplDensityDrivenFlowElemDisc::template prepare_element_loop<TElem>);
 			register_prepare_element_function(		id, &CplDensityDrivenFlowElemDisc::template prepare_element<TElem>);
 			register_finish_element_loop_function(	id, &CplDensityDrivenFlowElemDisc::template finish_element_loop<TElem>);
@@ -259,13 +284,14 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			register_assemble_f_function(			id, &CplDensityDrivenFlowElemDisc::template assemble_f<TElem>);
 
 			typedef MathVector<dim> data_type;
-			typedef MathVector<ref_dim> position_type;
+			typedef MathVector<ref_elem_type::dim> position_type;
 
 			typedef void (CplDensityDrivenFlowElemDisc::*ExpFunc)(std::vector<data_type>&, std::vector<std::vector<data_type> >&,
 																	const std::vector<position_type>&, const local_vector_type&, bool);
 
 			ICoupledElemDisc<TAlgebra>::
-			template register_data_export_function<data_type, position_type, ExpFunc>(id, 0, &CplDensityDrivenFlowElemDisc::template data_export<TElem>);
+			template register_data_export_function<data_type, position_type, ExpFunc>
+						(id, 0, &CplDensityDrivenFlowElemDisc::template data_export<TElem>);
 		}
 
 };

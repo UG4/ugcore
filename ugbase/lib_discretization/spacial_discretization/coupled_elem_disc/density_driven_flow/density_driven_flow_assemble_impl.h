@@ -19,8 +19,8 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+template<typename TDomain, typename TAlgebra>
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 CplDensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
 								Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
 								Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity)
@@ -29,15 +29,14 @@ CplDensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
 	m_Porosity(Porosity), m_Viscosity(Viscosity), m_Density(Density), m_D_Density(D_Density),
 	m_Mol_Diff_Tensor(Mol_Diff), m_Permeability_Tensor(Permeability_Tensor), m_Gravity(Gravity)
 {
-	register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-	register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+	register_assemble_functions();
 };
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 compute_ip_Darcy_velocity(MathVector<dim>& Darcy_vel, number c_ip, const MathVector<dim>& grad_p_ip)
 {
 	number s, viscosity_ip;
@@ -55,11 +54,11 @@ compute_ip_Darcy_velocity(MathVector<dim>& Darcy_vel, number c_ip, const MathVec
 	return true;
 };
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
 								MathVector<dim>& Darcy_vel, MathVector<dim> D_Darcy_vel_c[], MathVector<dim> D_Darcy_vel_p[],
 								number c_ip, const MathVector<dim>& grad_p_ip)
@@ -98,11 +97,11 @@ compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
 };
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -118,11 +117,11 @@ prepare_element_loop()
 	return true;
 }
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -132,11 +131,11 @@ finish_element_loop()
 	return true;
 }
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 	// this loop will be performed inside the loop over the elements.
@@ -162,16 +161,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	return true;
 }
 
-#define J(fct1, fct2, i, j) ( J( (ref_elem_type::num_corners)*(fct1) + i, (ref_elem_type::num_corners)*(fct2) + j) )
-#define d(fct, i)    ( d[ref_elem_type::num_corners*(fct) + (i)])
-#define u(fct, i)    ( u[ref_elem_type::num_corners*(fct) + (i)])
-
-
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -210,11 +204,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				MatVecMult(Dgrad, D, sdv.grad_global(j));
 				flux = VecDot(Dgrad, scvf.normal());
 
-				J(_C_, _C_, scvf.from(), j) -= flux;
-				J(_C_, _C_, scvf.to(), j) += flux;
+				J(_C_, scvf.from(), _C_, j) -= flux;
+				J(_C_, scvf.to(),   _C_, j) += flux;
 
-				//J(_C_, _P_, scvf.from(), j) -= 0.0;
-				//J(_C_, _P_, scvf.to(), j) += 0.0;;
+				//J(_C_, scvf.from(), _P_, j) -= 0.0;
+				//J(_C_, scvf.to(),   _P_, j) += 0.0;;
 				////////////////////////////////////
 				// convective term
 				// (upwinding_amount == 1.0 -> full upwind;
@@ -227,11 +221,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					flux_p = (1.- m_upwind_amount) * (											0.0	 + c_ip * VecDot(D_Darcy_vel_p[j], scvf.normal()));
 
 					// coupling 'from' with j  (i.e. A[from][j]) and 'to' with j (i.e. A[to][j])
-					J(_C_, _C_, scvf.from(), j) += flux_c;
-					J(_C_, _C_, scvf.to(),j) -= flux_c;
+					J(_C_, scvf.from(), _C_, j) += flux_c;
+					J(_C_, scvf.to(),   _C_, j) -= flux_c;
 
-					J(_C_, _P_, scvf.from(), j) += flux_p;
-					J(_C_, _P_, scvf.to(),j) -= flux_p;
+					J(_C_, scvf.from(), _P_, j) += flux_p;
+					J(_C_, scvf.to(),   _P_, j) -= flux_p;
 				}
 			}
 			// upwind part convection
@@ -247,12 +241,12 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					else flux_c = 0.0;
 					flux_c += m_upwind_amount * u(_C_, up) * VecDot(D_Darcy_vel_c[j], scvf.normal());
 
-					J(_C_, _C_,scvf.from(), j) += flux_c;
-					J(_C_, _C_,scvf.to(), j) -= flux_c;
+					J(_C_, scvf.from(), _C_, j) += flux_c;
+					J(_C_, scvf.to(),   _C_, j) -= flux_c;
 
 					flux_p =  m_upwind_amount * ( u(_C_, up) * VecDot(D_Darcy_vel_p[j], scvf.normal()));
-					J(_C_, _P_,scvf.from(), j) += flux_p;
-					J(_C_, _P_,scvf.to(), j) -= flux_p;
+					J(_C_, scvf.from(), _P_, j) += flux_p;
+					J(_C_, scvf.to(),   _P_, j) -= flux_p;
 				}
 			}
 
@@ -267,11 +261,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				UG_DLOG(LIB_DISC_D3F, 3, "flux_c = " << flux_c << " (scvf.from = " << scvf.from() << ", scvf.to = " <<  scvf.to() << ", j = " << j <<")\n");
 				UG_DLOG(LIB_DISC_D3F, 3, "flux_p = " << flux_p << " (scvf.from = " << scvf.from() << ", scvf.to = " <<  scvf.to() << ", j = " << j <<")\n");
 
-				J(_P_, _C_, scvf.from(), j) += flux_c;
-				J(_P_, _C_, scvf.to(), j) -= flux_c;
+				J(_P_, scvf.from(), _C_, j) += flux_c;
+				J(_P_, scvf.to(),   _C_, j) -= flux_c;
 
-				J(_P_, _P_, scvf.from(), j) += flux_p;
-				J(_P_, _P_, scvf.to(), j) -= flux_p;
+				J(_P_, scvf.from(), _P_, j) += flux_p;
+				J(_P_, scvf.to(),   _P_, j) -= flux_p;
 			}
 		}
 	}
@@ -279,11 +273,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	return true;
 }
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -294,21 +288,21 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 
 		co = scv.local_corner_id();
 
-		J(_C_, _C_, co, co) += m_porosity * scv.volume();
-		//J(_C_, _P_, co, co) += 0;
-		//J(_P_, _C_, co, co) += 0;
-		//J(_P_, _P_, co, co) += 0;
+		J(_C_, co, _C_, co) += m_porosity * scv.volume();
+		//J(_C_, co, _P_, co) += 0;
+		//J(_P_, co, _C_, co) += 0;
+		//J(_P_, co, _P_, co) += 0;
 	}
 
 	return true;
 }
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -346,7 +340,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			flux = VecDot(Dgrad_c_ip, scvf.normal());
 
 			d(_C_, scvf.from()) -= flux;
-			d(_C_,scvf.to()) += flux;
+			d(_C_, scvf.to())   += flux;
 
 			////////////////////////////////////
 			// convective term
@@ -358,8 +352,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			{
 				flux = (1.- m_upwind_amount) * c_ip * VecDot(Darcy_vel, scvf.normal());
 
-				d(_C_,scvf.from()) += flux;
-				d(_C_,scvf.to()) -= flux;
+				d(_C_, scvf.from()) += flux;
+				d(_C_, scvf.to())   -= flux;
 
 			}
 
@@ -368,24 +362,24 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			{
 				flux = m_upwind_amount * VecDot(Darcy_vel, scvf.normal());
 				if(flux >= 0.0) flux *= u(_C_,scvf.from()); else flux *= u(_C_,scvf.to());
-				d(_C_,scvf.from()) += flux;
-				d(_C_,scvf.to()) -= flux;
+				d(_C_, scvf.from()) += flux;
+				d(_C_, scvf.to())   -= flux;
 			}
 
 			flux = VecDot(Darcy_vel, scvf.normal());
-			d(_P_,scvf.from()) += flux;
-			d(_P_,scvf.to()) -= flux;
+			d(_P_, scvf.from()) += flux;
+			d(_P_, scvf.to())   -= flux;
 		}
 	}
 
 	return true;
 }
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -396,18 +390,18 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 
 		co = scv.local_corner_id();
 
-		d(_C_,co) += m_porosity * u(_C_,co) * scv.volume();
-		d(_P_,co) += m_porosity * scv.volume();
+		d(_C_, co) += m_porosity * u(_C_,co) * scv.volume();
+		d(_P_, co) += m_porosity * scv.volume();
 	}
 	return true;
 }
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 template <typename TElem>
 inline
 bool
-CplDensityDrivenFlowElemDisc<TDomain, ref_dim, TAlgebra>::
+CplDensityDrivenFlowElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
 	// Here we implement the right hand side and the boundary conditions, that do not depend on the solution
@@ -415,9 +409,6 @@ assemble_f(local_vector_type& d, number time)
 	return true;
 }
 
-#undef J
-#undef d
-#undef u
 } // namespace ug
 
 

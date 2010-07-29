@@ -19,6 +19,7 @@
 #include "../elem_disc/elem_disc_interface.h"
 #include "./elem_data/data_items.h"
 #include "./elem_data/data_container.h"
+#include "../local_algebra.h"
 
 namespace ug {
 
@@ -29,13 +30,13 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef typename algebra_type::matrix_type::local_matrix_type local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
 
 		// local vector type
-		typedef typename algebra_type::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 		// local index type
-		typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		typedef LocalIndices local_index_type;
 
 	public:
 		virtual size_t num_imports() = 0;

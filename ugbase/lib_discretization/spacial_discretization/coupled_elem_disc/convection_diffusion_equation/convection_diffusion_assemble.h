@@ -17,7 +17,7 @@
 namespace ug{
 
 
-template<typename TDomain, int ref_dim, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 	public:
 
@@ -34,13 +34,14 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef typename algebra_type::matrix_type::local_matrix_type local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
 
 		// local vector type
-		typedef typename algebra_type::vector_type::local_vector_type local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 		// local index type
-		typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		//typedef typename algebra_type::vector_type::local_index_type local_index_type;
+		typedef LocalIndices local_index_type;
 
 	protected:
 		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
@@ -90,17 +91,10 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		virtual bool set_sys_id(size_t sys_id) {return true;}
 
 	protected:
-		DataImport<MathVector<dim>, MathVector<ref_dim> > m_Velocity;
+		// TODO : This is wrong, should be ref_dim in second argument. A general rework is necessary
+		DataImport<MathVector<dim>, MathVector<dim> > m_Velocity;
 
 	public:
-		template <typename TElem>
-		inline size_t num_total_sh(){	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-										return ref_elem_type::num_corners;};
-
-		template <typename TElem>
-		inline size_t num_sh(size_t loc_fct){		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
-													return ref_elem_type::num_corners;};
-
 		template <typename TElem>
 		inline bool prepare_element_loop();
 
@@ -129,6 +123,9 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		// domain
 		TDomain& m_domain;
 
+		// to make it more readable
+		const static size_t _C_ = 0;
+
 		// position access
 		typename TDomain::position_type* m_corners;
 		typename TDomain::position_accessor_type m_aaPos;
@@ -153,12 +150,44 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		Rhs_fct m_Rhs;
 
 	private:
+		///////////////////////////////////////
+		// registering for reference elements
+		///////////////////////////////////////
+		template <int dim> class numType{};
+
+		void register_assemble_functions()
+		{
+			numType<TDomain::dim> dummy;
+			register_assemble_functions(dummy);
+		}
+
+		// register for 1D
+		void register_assemble_functions(numType<1> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+		}
+
+		// register for 2D
+		void register_assemble_functions(numType<2> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+		}
+
+		// register for 3D
+		void register_assemble_functions(numType<3> dummy)
+		{
+			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
+			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+			// TODO: Register 3D Ref-Elems
+		}
+
 		// help function
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_num_total_sh_function(			id, &CplConvectionDiffusionElemDisc::template num_total_sh<TElem>);
-			register_num_sh_function(				id, &CplConvectionDiffusionElemDisc::template num_sh<TElem>);
 			register_prepare_element_loop_function(	id, &CplConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
 			register_prepare_element_function(		id, &CplConvectionDiffusionElemDisc::template prepare_element<TElem>);
 			register_finish_element_loop_function(	id, &CplConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
