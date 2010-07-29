@@ -375,20 +375,6 @@ bool SparseMatrix<T>::set_dirichlet_rows(const size_t *pDirichletRows, size_t iN
 	return true;
 }
 
-//!
-//! sets the # nrows in pRows to i,i = 1.0.
-#ifndef FLEXAMG
-template<typename T>
-bool SparseMatrix<T>::set_dirichlet_rows(const local_index_type &ind)
-{
-	vector<size_t> ind2;
-	for(size_t i=0; i<ind.size(); i++) ind2.push_back(ind[i][0]);
-	set_dirichlet_rows(&ind2[0], ind2.size());
-	return true;
-}
-#endif
-
-
 // res = A*x
 template<typename T>
 template<typename Vector_type>
@@ -861,7 +847,7 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 {
 	size_t nr;
 	bool bFound = get_connection_nr(r, c, nr, GREATER_EQUAL);
-	
+
 	if(!bFound || pRowStart[r][nr].iIndex != c)
 	{
 		int numConnections = num_connections(r);
@@ -876,7 +862,7 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 		safe_set_connections(r, con);
 		pRowEnd[r] = pRowStart[r]+numConnections+1;
 	}
-	
+
 	rowIterator it=beginRow(r);
 	it += nr;
 	return it;

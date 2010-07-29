@@ -28,12 +28,6 @@ class Vector : public TE_VEC<Vector<templ_entry_type> >
 	//public XD< Vector<templ_entry_type> >
 {
 public:
-	typedef MultiIndex<1> index_type;
-	typedef FlexLocalVector<double> local_vector_type;
-	typedef std::vector<MultiIndex<1> > local_index_type;
-
-	// functions
-public:
 	typedef templ_entry_type entry_type;
 	//typedef subvector<entry_type> subvector_type;
 	typedef Vector<templ_entry_type> vector_type;

@@ -44,12 +44,6 @@ template<typename T>
 class SparseMatrix : public TE_MAT<SparseMatrix<T> >
 {
 public:
-	typedef MultiIndex<1> index_type;
-	typedef FlexLocalMatrix<double> local_matrix_type;
-	typedef std::vector<index_type> local_index_type;
-
-	// functions
-public:
 	typedef T entry_type;
 	typedef matrixrow<entry_type> row_type;
 	typedef matrixrow<entry_type> matrixrow_type;
@@ -125,8 +119,6 @@ public:
 	// general functions
 	//----------------------
 	bool set_dirichlet_rows(const size_t *pDirichletRows, size_t iNr);
-	bool set_dirichlet_rows(const local_index_type &ind);
-
 
 	//! calculate res = A x
 	template<typename Vector_type>
