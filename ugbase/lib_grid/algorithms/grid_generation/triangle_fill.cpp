@@ -48,7 +48,7 @@ void CalculatePolychainEdgeNormals(vector2* edgeNormalsOut, vector2* polyChain,
 	
 //	if the dot-product is smaller than 0, the normal is an outer normal
 //	if it is bigger than 0, the normal is an inner normal.
-	if((dot < 0 &! bOuterNormals) ||
+	if((dot < 0 && (!bOuterNormals)) ||
 	   (dot > 0 && bOuterNormals))
 	{
 	//	we have to invert the normals
@@ -148,7 +148,7 @@ bool TriangleFill(std::vector<int>& vTriIndsOut, vector2* polyChain,
 	
 //	iterate until all triangles have been created.
 	int counter = polyChainSize - 2;
-	while(counter > 0 &! qChainInfos.empty())
+	while(counter > 0 && (!qChainInfos.empty()))
 	{
 	//	get the element with top priority
 		//ChainInfo ci = qChainInfos.top();

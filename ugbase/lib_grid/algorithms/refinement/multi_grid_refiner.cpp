@@ -514,7 +514,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 			CollectFaces(vFaces, grid, *iter);
 			for(size_t i = 0; i < vFaces.size(); ++i){
 				Face* f = vFaces[i];
-				if(!m_selMarks.is_selected(f) &! mg.has_children(f))
+				if(!m_selMarks.is_selected(f) && (!mg.has_children(f)))
 				{
 					mark_for_refinement(f);
 					
@@ -575,7 +575,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 			CollectVolumes(vVolumes, grid, *iter);
 			for(size_t i = 0; i < vVolumes.size(); ++i){
 				Volume* v = vVolumes[i];
-				if(!m_selMarks.is_selected(v) &! mg.has_children(v))
+				if(!m_selMarks.is_selected(v) && (!mg.has_children(v)))
 				{
 					mark_for_refinement(v);
 					
@@ -610,7 +610,7 @@ select_closure(std::vector<VertexBase*>& vVrts)
 					for(size_t j = 0; j < vEdges.size(); ++j){
 						EdgeBase* e = vEdges[j];
 						if(!m_selMarks.is_selected(e)
-							&! mg.has_children(e))
+							&& (!mg.has_children(e)))
 						{
 							if(!mg.has_children(e)){
 								set_rule(e, RM_COPY);
@@ -675,7 +675,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 						iter != iterEnd; ++iter)
 					{
 						EdgeBase* e = *iter;
-						if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
+						if(!m_selMarks.is_selected(e) && (!mg.has_children(e))){
 						//	we found a copy-element
 							mark_for_refinement(e);
 							set_rule(e, RM_COPY);
@@ -699,7 +699,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 						iter != iterEnd; ++iter)
 					{
 						Face* f = *iter;
-						if(!m_selMarks.is_selected(f) &! mg.has_children(f)){
+						if(!m_selMarks.is_selected(f) && (!mg.has_children(f))){
 						//	we found a copy-element
 							mark_for_refinement(f);
 							set_rule(f, RM_COPY);
@@ -717,7 +717,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 							CollectEdges(vEdges, grid, f);
 							for(size_t j = 0; j < vEdges.size(); ++j){
 								EdgeBase* e = vEdges[j];
-								if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
+								if(!m_selMarks.is_selected(e) && (!mg.has_children(e))){
 									mark_for_refinement(e);
 									set_rule(e, RM_COPY);
 								}
@@ -733,7 +733,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 						iter != iterEnd; ++iter)
 					{
 						Volume* v = *iter;
-						if(!m_selMarks.is_selected(v) &! mg.has_children(v)){
+						if(!m_selMarks.is_selected(v) && (!mg.has_children(v))){
 						//	we found a copy-element
 							mark_for_refinement(v);
 							set_rule(v, RM_COPY);
@@ -751,7 +751,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 							CollectEdges(vEdges, grid, v);
 							for(size_t j = 0; j < vEdges.size(); ++j){
 								EdgeBase* e = vEdges[j];
-								if(!m_selMarks.is_selected(e) &! mg.has_children(e)){
+								if(!m_selMarks.is_selected(e) && (!mg.has_children(e))){
 									mark_for_refinement(e);
 									set_rule(e, RM_COPY);
 								}
@@ -761,7 +761,7 @@ select_copy_elements(std::vector<VertexBase*>& vVrts, int iFirst, int copyRange)
 							CollectFaces(vFaces, grid, v);
 							for(size_t j = 0; j < vFaces.size(); ++j){
 								Face* f = vFaces[j];
-								if(!m_selMarks.is_selected(f) &! mg.has_children(f)){
+								if(!m_selMarks.is_selected(f) && (!mg.has_children(f))){
 									mark_for_refinement(f);
 									set_rule(f, RM_COPY);
 								}

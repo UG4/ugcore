@@ -419,7 +419,7 @@ void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 							int numAdjacentFaces = CalculateNormal(n, grid, e, aaPos);
 							bNormalValid = (numAdjacentFaces > 0 && numAdjacentFaces < 3);
 							
-							if(bLastNormalValid && bNormalValid &! ignoreNormalChecks){
+							if(bLastNormalValid && bNormalValid && (!ignoreNormalChecks)){
 								moreChecks = false;
 							//	check whether the normal dot is better than the last one.
 								number nd = VecDot(lastNormal, n);

@@ -685,7 +685,7 @@ clear_attachment_pipes(int subsetIndex)
 void ISubsetHandler::
 enable_subset_attachments(bool bEnable)
 {
-	if(bEnable &! subset_attachments_are_enabled())
+	if(bEnable && (!subset_attachments_are_enabled()))
 	{
 	//	LOG("  enabling...\n");
 	//	enable subset-attachments.

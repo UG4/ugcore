@@ -68,14 +68,14 @@ static void AdjustSelection(Grid& grid, Selector& sel)
 bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 {
 //	aInt has to be attached to the edges of the grid
-	if(grid.num<Face>() > 0 &! grid.has_edge_attachment(aInt)){
+	if(grid.num<Face>() > 0 && !grid.has_edge_attachment(aInt)){
 		LOG("  WARNING in Refine: aInt is not attached to the edges of the grid. Aborting.\n");
 		return false;
 	}
 
 //	if there are volumes in the grid, 
 //	aInt has to be attached to the faces of the grid
-	if(grid.num<Volume>() &! grid.has_face_attachment(aInt)){
+	if(grid.num<Volume>() && !grid.has_face_attachment(aInt)){
 		LOG("  WARNING in Refine: aInt is not attached to the faces of the grid. Aborting.\n");
 		return false;
 	}
@@ -93,13 +93,13 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 	}
 
 //	make sure that FACEOPT_AUTOGENERATE_EDGES is enabled
-	if(grid.num<Face>() > 0 &! grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(grid.num<Face>() > 0 && !grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
 		LOG("  INFO in Refine: autoenabling FACEOPT_AUTOGENERATE_EDGES\n");
 		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 	
 //	if there are volumes, make sure that VOLOPT_AUTOGENERATE_FACES is enabled.
-	if(grid.num<Volume>() > 0 &! grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+	if(grid.num<Volume>() > 0 && !grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 	{
 		LOG("  INFO in Refine: autoenabling VOLOPT_AUTOGENERATE_FACES\n");
 		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
@@ -284,14 +284,14 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			IRefinementCallback* refCallback)
 {
 //	aInt has to be attached to the edges of the grid
-	if(grid.num<Face>() > 0 &! grid.has_edge_attachment(aInt)){
+	if(grid.num<Face>() > 0 && (!grid.has_edge_attachment(aInt))){
 		LOG("  WARNING in Refine: aInt is not attached to the edges of the grid. Aborting.\n");
 		return false;
 	}
 
 //	if there are volumes in the grid, 
 //	aInt has to be attached to the faces of the grid
-	if(grid.num<Volume>() &! grid.has_face_attachment(aInt)){
+	if(grid.num<Volume>() && (!grid.has_face_attachment(aInt))){
 		LOG("  WARNING in Refine: aInt is not attached to the faces of the grid. Aborting.\n");
 		return false;
 	}
@@ -314,13 +314,13 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	}
 
 //	make sure that FACEOPT_AUTOGENERATE_EDGES is enabled
-	if(grid.num<Face>() > 0 &! grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+	if(grid.num<Face>() > 0 && (!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))){
 		LOG("  INFO in Refine: autoenabling FACEOPT_AUTOGENERATE_EDGES\n");
 		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
 	}
 	
 //	if there are volumes, make sure that VOLOPT_AUTOGENERATE_FACES is enabled.
-	if(grid.num<Volume>() > 0 &! grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
+	if(grid.num<Volume>() > 0 && (!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)))
 	{
 		LOG("  INFO in Refine: autoenabling VOLOPT_AUTOGENERATE_FACES\n");
 		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
