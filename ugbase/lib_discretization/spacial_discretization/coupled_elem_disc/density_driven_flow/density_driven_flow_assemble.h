@@ -80,8 +80,7 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			return m_DarcyVelocity.set_sys_id(sys_id);
 		}
 	protected:
-		// TODO : This is wrong, should be ref_dim in second argument. A general rework is necessary
-		DataClassExportPossibility<MathVector<dim>, MathVector<dim>, algebra_type>  m_DarcyVelocity;
+		DataClassExportPossibility<MathVector<dim>, algebra_type>  m_DarcyVelocity;
 
 	public:
 		// number of fundamental functions required for this assembling

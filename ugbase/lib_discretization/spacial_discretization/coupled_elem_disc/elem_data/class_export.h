@@ -17,18 +17,17 @@ namespace ug{
 
 // Export Possibility of a CoupledElemDisc.
 // It has no slots.
-template <typename TDataType, typename TPositionType, typename TAlgebra>
+template <typename TDataType, typename TAlgebra>
 class DataClassExportPossibility : public DataPossibilityItem
 {
 	public:
 		typedef TDataType data_type;
-		typedef TPositionType position_type;
 		typedef TAlgebra algebra_type;
 		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 	public:
 		DataClassExportPossibility(std::string name, ICoupledElemDisc<TAlgebra>* Class, size_t nrExport) :
-			DataPossibilityItem(name, 0, &typeid(TDataType), &typeid(TPositionType)),
+			DataPossibilityItem(name, 0, &typeid(TDataType)),
 			m_sysId(0), m_numSh(0), m_pSolution(NULL), m_nrExport(nrExport), m_pExportingClass(Class)
 			{m_vCreatedDataExports.clear();};
 
@@ -57,21 +56,20 @@ class DataClassExportPossibility : public DataPossibilityItem
 		ICoupledElemDisc<TAlgebra>* m_pExportingClass;
 };
 
-template <typename TDataType, typename TPositionType, typename TAlgebra>
-class DataClassExport : public DataExport<TDataType, TPositionType>{
-	friend class DataImport<TDataType,TPositionType>;
-	friend class DataClassExportPossibility<TDataType,TPositionType,TAlgebra>;
+template <typename TDataType, typename TAlgebra>
+class DataClassExport : public DataExport<TDataType>{
+	friend class DataImport<TDataType>;
+	friend class DataClassExportPossibility<TDataType,TAlgebra>;
 
 	public:
 		typedef TDataType data_type;
-		typedef TPositionType position_type;
 		typedef TAlgebra algebra_type;
 		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 	protected:
 		// Only Data Possibility can create an instance
 		DataClassExport(std::string name, DataPossibilityItem* possibility, ICoupledElemDisc<TAlgebra>* expClass, size_t nrExport) 	:
-			DataExport<TDataType, TPositionType>(name, possibility),
+			DataExport<TDataType>(name, possibility),
 			m_pSolution(NULL), m_nrExport(nrExport), m_pExportingClass(expClass)
 			{};
 

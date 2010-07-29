@@ -46,8 +46,8 @@ class UserDataExportPossibility : public DataPossibilityItem
 // TODO: This assumes, that TPositionType for evaluation is the same as the one for Import.
 //       But we may have different local and global types
 template <typename TDataType, typename TPositionType>
-class UserDataExport : public DataExport<TDataType, TPositionType>{
-	friend class DataImport<TDataType,TPositionType>;
+class UserDataExport : public DataExport<TDataType>{
+	friend class DataImport<TDataType>;
 
 	public:
 		typedef TDataType data_type;
@@ -58,7 +58,7 @@ class UserDataExport : public DataExport<TDataType, TPositionType>{
 
 	public:
 		UserDataExport(std::string name, DataPossibilityItem* possibility, UserFunction func) 	:
-			DataExport<TDataType, TPositionType>(name, possibility),
+			DataExport<TDataType>(name, possibility),
 			m_userFunc(func)
 			{};
 

@@ -63,7 +63,7 @@ prepare_element_loop()
 	}
 
 	// overwrite old positions (maybe form other element type)
-	m_Velocity.set_positions(pos, true);
+	m_Velocity.template set_positions<ref_elem_type::dim>(pos, true);
 	m_Velocity.set_num_eq(ref_elem_type::num_corners);
 
 	return true;

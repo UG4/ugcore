@@ -91,8 +91,7 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		virtual bool set_sys_id(size_t sys_id) {return true;}
 
 	protected:
-		// TODO : This is wrong, should be ref_dim in second argument. A general rework is necessary
-		DataImport<MathVector<dim>, MathVector<dim> > m_Velocity;
+		DataImport<MathVector<dim> > m_Velocity;
 
 	public:
 		template <typename TElem>

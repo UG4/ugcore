@@ -555,8 +555,7 @@ print_export_possibilities(DataContainerInfoType type)
 
 		if(type == DCI_TYPES)
 		{
-			UG_LOG(",  [DataType: " << pos->data_type()->name());
-			UG_LOG(",  PositionType: " << pos->position_type()->name() << "]");
+			UG_LOG(",  [DataType: " << pos->data_type()->name() << "]");
 		}
 
 		if(type == DCI_LINKS)
@@ -702,8 +701,7 @@ print_imports(DataContainerInfoType type)
 
 		if(type == DCI_TYPES)
 		{
-			UG_LOG(",  [DataType: " << m_vImportItemList[i]->data_type()->name());
-			UG_LOG(",  PositionType: " << m_vImportItemList[i]->position_type()->name() << "]");
+			UG_LOG(",  [DataType: " << m_vImportItemList[i]->data_type()->name() << "]");
 		}
 
 		if(type == DCI_VALUES)
@@ -734,8 +732,7 @@ print_exports(DataContainerInfoType type)
 
 		if(type == DCI_TYPES)
 		{
-			UG_LOG(",  [DataType: " << m_vExportItemList[i]->data_type()->name());
-			UG_LOG(",  PositionType: " << m_vExportItemList[i]->position_type()->name() << "]");
+			UG_LOG(",  [DataType: " << m_vExportItemList[i]->data_type()->name() << "]");
 		}
 
 		if(type == DCI_VALUES)

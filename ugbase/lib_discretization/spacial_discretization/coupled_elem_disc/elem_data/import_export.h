@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "common/common.h"
+#include "common/math/ugmath.h"
 
 #include "data_items.h"
 #include "lib_discretization/common/local_algebra.h"
@@ -20,29 +20,28 @@
 namespace ug{
 
 // predeclaration
-template <typename TDataType, typename TPositionType> class DataImport;
-template <typename TDataType, typename TPositionType> class DataExport;
+template <typename TDataType> class DataImport;
+template <typename TDataType> class DataExport;
 
 
-template <typename TDataType, typename TPositionType>
+template <typename TDataType>
 class DataExport : public DataExportItem{
-	friend class DataImport<TDataType,TPositionType>;
+	friend class DataImport<TDataType>;
 	friend class DataContainer;
 
 	public:
 		typedef TDataType data_type;
-		typedef TPositionType position_type;
 
 	protected:
 		// Only Data Container can create an instance
 		DataExport(std::string name, DataPossibilityItem* possibility) 	:
-			DataExportItem(name,&typeid(TDataType),&typeid(TPositionType), possibility),
-			 m_bGlobalIPs(false)
-			{m_vPosition.clear(); m_vValue.clear(); m_vvvDerivatives.clear();};
+			DataExportItem(name,&typeid(TDataType), possibility), m_bGlobalIPs(false),
+			m_posDim(-1), m_numIp(0)
+			{m_vValue.clear(); m_vvvDerivatives.clear();};
 
 	public:
 		// number of values / positions / derivatives == number of integration points
-		inline size_t num_ip() const {return m_vPosition.size();};
+		inline size_t num_ip() const {return m_numIp;};
 
 		// return value at ip (read only, are updated by compute())
 		inline const data_type& operator[](size_t ip) const {
@@ -65,9 +64,10 @@ class DataExport : public DataExportItem{
 			return m_vvvDerivatives[loc_sys];}
 
 		// return position number i (read only, are induced by import)
-		inline const position_type& position(size_t ip) const {
-			UG_ASSERT(ip < m_vPosition.size(), "Accessing Position array at not allocated position.");
-			return m_vPosition[ip];};
+		template <int dim>
+		inline const MathVector<dim>& position(size_t ip) const {
+			UG_ASSERT(ip < num_ip(), "Accessing Position array at not allocated position.");
+			return const_cast<DataExport<TDataType>*>(this)->get_positions<dim>()[ip];};
 
 		// compute values at positions using evaluation function
 		virtual void compute(bool compute_derivatives) = 0;
@@ -93,7 +93,8 @@ class DataExport : public DataExportItem{
 		// set the positions
 		// a) if first Import set values
 		// b) if already set: check if positions are equal for other Imports
-		bool set_positions(const std::vector<position_type>& positions, bool overwrite = false);
+		template <int dim>
+		bool set_positions(const std::vector<MathVector<dim> >& positions, bool overwrite = false);
 
 		// specifies if local or global ips are needed to compute data
 		// This is only needed for export identification, which will be performed on local ips
@@ -102,7 +103,8 @@ class DataExport : public DataExportItem{
 		void need_global_ids(bool bGlobalNeeded) {m_bGlobalIPs = bGlobalNeeded;}
 
 		// help function: is called to set values in linker imports as well
-		virtual bool set_linker_positions(const std::vector<position_type>& positions) {return true;};
+		// TODO: What to do here ?!?!??
+		virtual bool set_linker_positions(const std::vector<MathVector<2> >& positions) {return true;};
 
 	public:
 		// print infos to UG_LOG stream
@@ -138,12 +140,22 @@ class DataExport : public DataExportItem{
 			return true;
 		}
 
+		template <int dim>
+		std::vector<MathVector<dim> >& get_positions()
+		{
+			static std::vector<MathVector<dim> > vPositions;
+			return vPositions;
+		}
+
 	protected:
 		// specifies if local or global ips are needed for this export to compute data
 		bool m_bGlobalIPs;
 
-		// points (gives implicitly the number of ip's: num_ip = m_vPosition.size())
-		std::vector<position_type> m_vPosition;
+		// current dimension for positions
+		int m_posDim;
+
+		// current number of ips
+		size_t m_numIp;
 
 		// Data (size: (0, ... , num_ip-1))
 		std::vector<data_type> m_vValue;
@@ -152,58 +164,28 @@ class DataExport : public DataExportItem{
 		std::vector<std::vector<std::vector<data_type> > > m_vvvDerivatives;
 };
 
-
-template <typename TPositionType>
-class DataImportPosition : public DataImportItem {
-	public:
-		typedef TPositionType position_type;
-
-	public:
-		DataImportPosition(std::string name, const std::type_info* dataType) :
-			DataImportItem(name, dataType, &typeid(TPositionType))
-			{m_vPosition.clear();};
-
-		// number of values / positions / derivatives == number of integration points (num_ip)
-		inline size_t num_ip() const {return m_vPosition.size();};
-
-		// return position number i (read only, are induced by import)
-		inline const position_type& position(size_t ip) const {
-			UG_ASSERT(ip < m_vPosition.size(), "Accessing Position array at not allocated position.");
-			return m_vPosition[ip];};
-
-		// set new positions
-		virtual bool set_positions(const std::vector<position_type>& pos, bool overwrite = false);
-
-		// get positions
-		const std::vector<position_type>& get_positions() const {return m_vPosition;}
-
-	public:
-		virtual bool print_positions() const {return false;}
-		virtual bool print_values() const {return false;}
-		virtual bool print_derivatives(std::string offset) const {return false;}
-		virtual bool print_info(std::string offset) const {return false;}
-
-	protected:
-		// positions of this data import (saved here), gives implicitly num_ip = m_vPosition.size()
-		// size: (0, ... , num_ip-1)
-		std::vector<position_type> m_vPosition;
-};
-
-
-template <typename TDataType, typename TPositionType>
-class DataImport : public DataImportPosition<TPositionType> {
-	friend class DataExport<TDataType,TPositionType>;
+template <typename TDataType>
+class DataImport : public DataImportItem {
+	friend class DataExport<TDataType>;
 	friend class DataContainer;
 
 	public:
 		typedef TDataType data_type;
-		typedef TPositionType position_type;
 
 	public:
 		DataImport(std::string name) :
-			DataImportPosition<TPositionType>(name,&typeid(TDataType)),
-			m_pTypeExport(NULL)
+			DataImportItem(name,&typeid(TDataType)),
+			m_numEq(0), m_posDim(-1), m_numIp(0), m_pTypeExport(NULL)
 			{m_vvLinearizedDefect.clear();};
+
+		// number of values / positions / derivatives == number of integration points (num_ip)
+		inline size_t num_ip() const {return m_numIp;};
+
+		// return position number i (read only, are induced by import)
+		template <int dim>
+		inline const MathVector<dim>& position(size_t ip) const {
+			UG_ASSERT(ip < num_ip(), "Accessing Position array at not allocated position.");
+			return get_positions<dim>()[ip];};
 
 		// number of equations the data is provided for (num_eq)
 		inline size_t num_eq() const {return m_vvLinearizedDefect.size();};
@@ -262,7 +244,9 @@ class DataImport : public DataImportPosition<TPositionType> {
 
 	public:
 		// set new positions
-		virtual bool set_positions(const std::vector<position_type>& pos, bool overwrite = false);
+		// TODO: What to do here ?!?!??!? this was virtual
+		template <int dim>
+		bool set_positions(const std::vector<MathVector<dim> >& pos, bool overwrite = false);
 
 		// set number of equations the defect is provided for
 		bool set_num_eq(size_t num_eq);
@@ -284,22 +268,38 @@ class DataImport : public DataImportPosition<TPositionType> {
 		virtual bool print_info(std::string offset) const;
 
 	protected:
+		// get positions
+		template <int dim>
+		std::vector<MathVector<dim> >& get_positions() const
+		{
+			static std::vector<MathVector<dim> > vPositions;
+			return vPositions;
+		}
+
+	protected:
 		// number of equations the defect is provided for
 		size_t m_numEq;
+
+		// current dimension for positions
+		int m_posDim;
+
+		// current number of ips
+		size_t m_numIp;
 
 		// linearization of defect of equation s for ip (defect is considered as function of this import, and linearized at given current solution)
 		// (size: (0, ... , num_ip-1) x (0, ... , num_eq) )
 		std::vector<std::vector<data_type> > m_vvLinearizedDefect;
 
 		// Export, this Import is linked to
-		DataExport<data_type, position_type>* m_pTypeExport;
+		DataExport<data_type>* m_pTypeExport;
 };
 
 // print current values of import to ostream
-template <typename TDataType, typename TPositionType>
-std::ostream& operator<<(std::ostream& out, const DataImport<TDataType,TPositionType>& data);
+template <typename TDataType>
+std::ostream& operator<<(std::ostream& out, const DataImport<TDataType>& data);
 
-};
+} // end namespace ug
+
 #include "import_export_impl.h"
 
 #endif /* __H__LIB_DISCRETIZATION__ELEMENT_DATA_IMPORT_EXPORT__ */

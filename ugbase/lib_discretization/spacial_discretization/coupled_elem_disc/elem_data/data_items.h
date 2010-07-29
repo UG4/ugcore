@@ -18,26 +18,28 @@ class DataExportItem;
 
 class DataItem {
 	public:
-		DataItem(std::string name, const std::type_info* dataType, const std::type_info* posType) :
-			m_name(name), m_pDataType(dataType), m_pPositionType(posType) {};
+		DataItem(std::string name, const std::type_info* dataType) :
+			m_name(name), m_pDataType(dataType) {};
 
+		/// name
 		const std::string name() const {return m_name;};
-		const std::type_info* data_type() const {return m_pDataType;};
-		const std::type_info* position_type() const {return m_pPositionType;};
 
+		/// data type
+		const std::type_info* data_type() const {return m_pDataType;};
+
+		/// destructor
 		virtual ~DataItem(){};
 
 	private:
 		std::string m_name;
 		const std::type_info* m_pDataType;
-		const std::type_info* m_pPositionType;
 };
 
 // Factory to create Exports, a possibility can have slots that must be filled by other possbilities
 class DataPossibilityItem : public DataItem {
 	public:
-		DataPossibilityItem(std::string name, size_t num_slots, const std::type_info* dataType, const std::type_info* posType) :
-			DataItem(name, dataType, posType), m_numSlots(num_slots)
+		DataPossibilityItem(std::string name, size_t num_slots, const std::type_info* dataType) :
+			DataItem(name, dataType), m_numSlots(num_slots)
 			{m_vSlotPosItems.resize(m_numSlots, NULL); m_vLinkedPosItems.clear(); m_vCreatedDataExports.clear();};
 
 	public:
@@ -115,8 +117,8 @@ class DataExportItem : public DataItem {
 	friend class DataContainer;
 
 	public:
-		DataExportItem(std::string name, const std::type_info* dataType, const std::type_info* posType, DataPossibilityItem* possibility) :
-			DataItem(name, dataType, posType),
+		DataExportItem(std::string name, const std::type_info* dataType, DataPossibilityItem* possibility) :
+			DataItem(name, dataType),
 			m_numSys(0), m_pPossibilityItem(possibility)
 			{m_vImportList.clear(); m_vSysId.clear(); m_vNumSh.clear();};
 
@@ -264,8 +266,8 @@ class DataImportItem : public DataItem{
 	friend class DataExportItem;
 
 	public:
-		DataImportItem(std::string name, const std::type_info* dataType, const std::type_info* posType) :
-			DataItem(name, dataType, posType),
+		DataImportItem(std::string name, const std::type_info* dataType) :
+			DataItem(name, dataType),
 			m_pExport(NULL)
 			{};
 

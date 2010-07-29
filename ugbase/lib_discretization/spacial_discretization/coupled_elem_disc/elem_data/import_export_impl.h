@@ -19,8 +19,8 @@ namespace ug{
 // Data Export
 //////////////////////////////
 
-template<typename TDataType, typename TPositionType>
-DataExport<TDataType, TPositionType>::
+template<typename TDataType>
+DataExport<TDataType>::
 ~DataExport()
 {
 	// unregister all registered imports
@@ -34,11 +34,11 @@ DataExport<TDataType, TPositionType>::
 		this->get_possibility_item()->delete_data_export(dynamic_cast<DataExportItem*>(this));
 };
 
-template<typename TDataType, typename TPositionType>
-bool DataExport<TDataType, TPositionType>::
+template<typename TDataType>
+bool DataExport<TDataType>::
 add_data_import(DataImportItem* importItem)
 {
-	DataImport<TDataType, TPositionType>* Import = dynamic_cast<DataImport<TDataType, TPositionType>*>(importItem);
+	DataImport<TDataType>* Import = dynamic_cast<DataImport<TDataType>*>(importItem);
 
 	if(Import == NULL)
 	{
@@ -47,7 +47,7 @@ add_data_import(DataImportItem* importItem)
 	}
 
 	// check, that import is not already linked to other export
-	if(Import->is_linked() == true)
+	if(Import->is_linked())
 	{
 		UG_LOG("DataExport::add_data_import: DataImport already registered to an DataExport. Invalid operation.\n");
 		return false;
@@ -67,7 +67,8 @@ add_data_import(DataImportItem* importItem)
 	m_vImportList.push_back(importItem);
 
 	// set positions
-	set_positions(Import->get_positions());
+	// TODO: Do we need this ?!?!
+	//set_positions(Import->get_positions());
 
 	// register export at import
 	Import->m_pTypeExport = this;
@@ -78,11 +79,11 @@ add_data_import(DataImportItem* importItem)
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
-bool DataExport<TDataType, TPositionType>::
+template<typename TDataType>
+bool DataExport<TDataType>::
 remove_data_import(DataImportItem* importItem)
 {
-	DataImport<TDataType, TPositionType>* Import = dynamic_cast<DataImport<TDataType, TPositionType>*>(importItem);
+	DataImport<TDataType>* Import = dynamic_cast<DataImport<TDataType>*>(importItem);
 
 	if(Import == NULL)
 	{
@@ -107,7 +108,13 @@ remove_data_import(DataImportItem* importItem)
 	// if import list is void, delete positions and values
 	if(m_vImportList.empty())
 	{
-		m_vPosition.clear();
+		switch(m_posDim)
+		{
+		case 1: get_positions<1>().clear();
+		case 2: get_positions<1>().clear();
+		case 3: get_positions<1>().clear();
+		default: UG_LOG("Dimension not supported.\n"); return false;
+		}
 		m_vValue.clear();
 		for(size_t s = 0; s < m_vvvDerivatives.size(); ++s)
 		{
@@ -124,60 +131,56 @@ remove_data_import(DataImportItem* importItem)
 }
 
 
-template<typename TDataType, typename TPositionType>
-bool DataExport<TDataType, TPositionType>::
-set_positions(const std::vector<position_type>& positions, bool overwrite)
+template <typename TDataType>
+template <int dim>
+bool DataExport<TDataType>::
+set_positions(const std::vector<MathVector<dim> >& positions, bool overwrite)
 {
+	// get positions
+	std::vector<MathVector<dim> > vPosition = get_positions<dim>();
+
 	// if no positions set
-	if(m_vPosition.empty() || overwrite)
+	if(vPosition.empty() || overwrite)
 	{
 		// copy positions and set same size for value list
-		m_vPosition = positions;
+		vPosition = positions;
 
-		m_vValue.resize(this->num_ip());
+		m_vValue.resize(num_ip());
 
 		m_vvvDerivatives.resize(this->num_sys());
 		for(size_t s = 0; s < this->num_sys(); ++s)
 		{
-			m_vvvDerivatives[s].resize(this->num_ip());
+			m_vvvDerivatives[s].resize(num_ip());
 			for(size_t ip = 0; ip < m_vvvDerivatives[s].size(); ++ip)
 			{
 				m_vvvDerivatives[s][ip].resize(num_sh(s));
 			}
 		}
 
-		if(!set_linker_positions(m_vPosition))
-		{
-			UG_LOG("DataExport::set_positions: Error while setting positions in linker imports.\n");
-			return false;
-		}
-		return true;
+		//TODO : implement linker
+/*		if(!set_linker_positions(vPosition))
+			{UG_LOG("DataExport::set_positions: Error while setting positions in linker imports.\n"); return false;}
+*/		return true;
 	}
 
 	// if already positions set, check, if positions are equal
-	if(positions.size() != this->num_ip())
-	{
-		UG_LOG("DataExport::set_positions: Different number of positions as already set positions.\n");
-		return false;
-	}
+	if(positions.size() != num_ip())
+		{UG_LOG("DataExport::set_positions: Different number of positions as already set positions.\n");return false;}
 
-	for(size_t ip = 0; ip < this->num_ip(); ++ip)
+	for(size_t ip = 0; ip < num_ip(); ++ip)
 	{
-		if(m_vPosition[ip] != positions[ip])
-		{
-			UG_LOG("DataExport::set_positions: Position " << ip << " is different from already set positions.\n");
-			return false;
-		}
+		if(vPosition[ip] != positions[ip])
+			{UG_LOG("DataExport::set_positions: Position " << ip << " is different from already set positions.\n"); return false;}
 	}
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataExport<TDataType, TPositionType>::
+DataExport<TDataType>::
 equal(const DataExportItem& v) const
 {
-	const DataExport<data_type, position_type>* cast_v = dynamic_cast<const DataExport<data_type, position_type>*>(&v);
+	const DataExport<data_type>* cast_v = dynamic_cast<const DataExport<data_type>*>(&v);
 
 	// if type is not the same, they are nor equal
 	if(cast_v == NULL) return false;
@@ -186,46 +189,67 @@ equal(const DataExportItem& v) const
 	if(this->m_pPossibilityItem != cast_v->get_possibility_item()) return false;
 
 	// number of positions have to match
-	if(this->num_ip() != cast_v->num_ip()) return false;
+	if(num_ip() != cast_v->num_ip()) return false;
 
 	// check each position
-	for(size_t ip = 0; ip < this->num_ip(); ++ip)
+	for(size_t ip = 0; ip < num_ip(); ++ip)
 	{
-		if(m_vPosition[ip] != cast_v->m_vPosition[ip]) return false;
+		switch(m_posDim)
+		{
+		case 1:	if(position<1>(ip) != cast_v->position<1>(ip)) return false;
+		case 2:	if(position<2>(ip) != cast_v->position<2>(ip)) return false;
+		case 3:	if(position<3>(ip) != cast_v->position<3>(ip)) return false;
+		default: UG_LOG("Dimension not supported.\n"); UG_ASSERT(0, "Dimension not supported."); return false;
+		}
 	}
 
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataExport<TDataType, TPositionType>::
+DataExport<TDataType>::
 print_positions() const
 {
-	for(size_t ip = 0; ip < this->num_ip(); ++ip)
+	if(m_posDim == 1)
 	{
-		UG_LOG(m_vPosition[ip]);
-		if(ip != this->num_ip() - 1) UG_LOG(", ");
+		std::vector<MathVector<1> >& vPosition1 = const_cast<DataExport<TDataType>*>(this)->get_positions<1>();
+		for(size_t ip = 0; ip < num_ip(); ++ip)
+			{UG_LOG(vPosition1[ip]); if(ip != num_ip()-1) UG_LOG(", ");}
+		return true;
 	}
-	return true;
+	else if(m_posDim == 2)
+	{
+		std::vector<MathVector<2> >& vPosition2 = const_cast<DataExport<TDataType>*>(this)->get_positions<2>();
+		for(size_t ip = 0; ip < num_ip(); ++ip)
+			{UG_LOG(vPosition2[ip]); if(ip != num_ip()-1) UG_LOG(", ");}
+		return true;
+	}
+	else if(m_posDim == 3)
+	{
+		std::vector<MathVector<3> >& vPosition3 = const_cast<DataExport<TDataType>*>(this)->get_positions<3>();
+		for(size_t ip = 0; ip < num_ip(); ++ip)
+			{UG_LOG(vPosition3[ip]); if(ip != num_ip()-1) UG_LOG(", ");}
+		return true;
+	}
+
+	UG_LOG("Dimension not supported.\n");
+	return false;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataExport<TDataType, TPositionType>::
+DataExport<TDataType>::
 print_values() const
 {
-	for(size_t ip = 0; ip < this->num_ip(); ++ip)
-	{
-		UG_LOG(operator[](ip));
-		if(ip != this->num_ip() - 1) UG_LOG(", ");
-	}
+	for(size_t ip = 0; ip < num_ip(); ++ip)
+		{UG_LOG(operator[](ip));if(ip != num_ip()-1) UG_LOG(", ");}
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataExport<TDataType, TPositionType>::
+DataExport<TDataType>::
 print_derivatives(std::string offset) const
 {
 	UG_LOG("Depending on "<< this->num_sys()<< " systems.\n");
@@ -238,11 +262,11 @@ print_derivatives(std::string offset) const
 			if(k==0) {UG_LOG(" k="<< k<< ": [ ");}
 			else {UG_LOG(offset << "                 k="<< k<< ": [ ");};
 
-			for(size_t ip = 0; ip < this->num_ip(); ++ip)
+			for(size_t ip = 0; ip < num_ip(); ++ip)
 			{
 				{
 					UG_LOG(operator()(s,ip,k));
-					if(ip != this->num_ip() - 1) UG_LOG(", ");
+					if(ip != num_ip() - 1) UG_LOG(", ");
 				}
 			}
 			UG_LOG(" ]\n");
@@ -251,63 +275,52 @@ print_derivatives(std::string offset) const
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataExport<TDataType, TPositionType>::
+DataExport<TDataType>::
 print_info(std::string offset) const
 {
-	UG_LOG(offset << "IPs: [ "); if(print_positions() != true) return false; UG_LOG(" ]\n");
-	UG_LOG(offset << "Values: [ "); if(print_values() != true) return false; UG_LOG(" ]\n");
-	UG_LOG(offset << "Derivatives: "); if(print_derivatives(offset) != true) return false;
+	UG_LOG(offset << "IPs: [ "); if(!print_positions()) return false; UG_LOG(" ]\n");
+	UG_LOG(offset << "Values: [ "); if(!print_values()) return false; UG_LOG(" ]\n");
+	UG_LOG(offset << "Derivatives: "); if(!print_derivatives(offset)) return false;
 	return true;
 }
 
-
-//////////////////////////////
-// Data Import Position
-//////////////////////////////
-
-template<typename TPositionType>
-bool
-DataImportPosition<TPositionType>::
-set_positions(const std::vector<position_type>& pos, bool overwrite)
-{
-	// copy new positions (elementwise)
-	m_vPosition = pos;
-	return true;
-}
 
 //////////////////////////////
 // Data Import
 //////////////////////////////
 
-template<typename TDataType, typename TPositionType>
+template <typename TDataType>
+template <int dim>
 bool
-DataImport<TDataType, TPositionType>::
-set_positions(const std::vector<position_type>& pos, bool overwrite)
+DataImport<TDataType>::
+set_positions(const std::vector<MathVector<dim> >& pos, bool overwrite)
 {
+	// get positions
+	std::vector<MathVector<dim> >& vPosition = get_positions<dim>();
+
 	// copy new positions (elementwise)
-	this->m_vPosition = pos;
+	vPosition = pos;
+	m_posDim = dim;
+	m_numIp = vPosition.size();
 
 	// adjust lin defect array for ip's
 	for(size_t i = 0; i < m_vvLinearizedDefect.size(); ++i)
 	{
-		m_vvLinearizedDefect[i].resize(this->num_ip());
+		m_vvLinearizedDefect[i].resize(num_ip());
 	}
 
 	// if no export set, do nothing
 	if(this->m_pExport == NULL) return true;
 
 	// if export set is an DataExport
-	typename ug::DataExport<TDataType, TPositionType>* Cast_Export =
-			dynamic_cast< typename ug::DataExport<TDataType, TPositionType>* >(this->m_pExport);
+	typename ug::DataExport<TDataType>* Cast_Export =
+			dynamic_cast< typename ug::DataExport<TDataType>* >(this->m_pExport);
 	if(Cast_Export != NULL)
 	{
-		if(!Cast_Export->set_positions(pos, overwrite))
-		{
-			UG_LOG("DataImport::set_positions: Cannot set positions in export.\n");
-			return false;
-		}
+		if(!Cast_Export->set_positions<dim>(vPosition, overwrite))
+		{UG_LOG("DataImport::set_positions: Cannot set positions in export.\n"); return false;}
 	}
 
 	// if export set is an DataLinker
@@ -317,9 +330,9 @@ set_positions(const std::vector<position_type>& pos, bool overwrite)
 }
 
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataImport<TDataType, TPositionType>::
+DataImport<TDataType>::
 set_num_eq(size_t num_eq)
 {
 	m_numEq = num_eq;
@@ -328,19 +341,19 @@ set_num_eq(size_t num_eq)
 
 	for(size_t i = 0; i < m_vvLinearizedDefect.size(); ++i)
 	{
-		m_vvLinearizedDefect[i].resize(this->num_ip());
+		m_vvLinearizedDefect[i].resize(num_ip());
 	}
 
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataImport<TDataType, TPositionType>::
+DataImport<TDataType>::
 link_data_export(DataExportItem* exportItem)
 {
-	typename ug::DataExport<TDataType, TPositionType>* Export =
-			dynamic_cast< typename ug::DataExport<TDataType, TPositionType>* >(exportItem);
+	typename ug::DataExport<TDataType>* Export =
+			dynamic_cast< typename ug::DataExport<TDataType>* >(exportItem);
 	if(Export == NULL)
 	{
 		UG_LOG("DataImport::link_data_export: Data type and/or position type of Export<->Import does not match. Cannot register.\n");
@@ -371,19 +384,16 @@ link_data_export(DataExportItem* exportItem)
 }
 
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataImport<TDataType, TPositionType>::
+DataImport<TDataType>::
 clear_data_export()
 {
 	// if registered at export
 	if(this->m_pExport != NULL)
 	{
-		if(m_pTypeExport->remove_data_import(this) != true)
-		{
-			UG_LOG("DataImport::clear_data_export: Can not unregister from export.");
-			return false;
-		}
+		if(!m_pTypeExport->remove_data_import(this))
+		{UG_LOG("DataImport::clear_data_export: Can not unregister from export."); return false;}
 
 		// reset export
 		m_pTypeExport = NULL;
@@ -395,48 +405,61 @@ clear_data_export()
 }
 
 
-template<typename TDataType, typename TPositionType>
-DataImport<TDataType, TPositionType>::
+template<typename TDataType>
+DataImport<TDataType>::
 ~DataImport()
 {
 	clear_data_export();
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataImport<TDataType, TPositionType>::
+DataImport<TDataType>::
 print_positions() const
 {
-	for(size_t ip = 0; ip < this->num_ip(); ++ip)
+	if(m_posDim == 1)
 	{
-		UG_LOG(this->m_vPosition[ip]);
-		if(ip != this->num_ip() - 1) UG_LOG(", ");
+		std::vector<MathVector<1> >& vPosition1 = const_cast<DataImport<TDataType>*>(this)->get_positions<1>();
+		for(size_t ip = 0; ip < num_ip(); ++ip)
+			{UG_LOG(vPosition1[ip]); if(ip != num_ip()-1) UG_LOG(", ");}
+		return true;
 	}
-	return true;
-}
-
-template<typename TDataType, typename TPositionType>
-bool
-DataImport<TDataType, TPositionType>::
-print_values() const
-{
-	if(!this->is_linked())
+	else if(m_posDim == 2)
 	{
-		UG_LOG("Not linked.");
+		std::vector<MathVector<2> >& vPosition2 = const_cast<DataImport<TDataType>*>(this)->get_positions<2>();
+		for(size_t ip = 0; ip < num_ip(); ++ip)
+			{UG_LOG(vPosition2[ip]); if(ip != num_ip()-1) UG_LOG(", ");}
+		return true;
+	}
+	else if(m_posDim == 3)
+	{
+		std::vector<MathVector<3> >& vPosition3 = const_cast<DataImport<TDataType>*>(this)->get_positions<3>();
+		for(size_t ip = 0; ip < num_ip(); ++ip)
+			{UG_LOG(vPosition3[ip]); if(ip != num_ip()-1) UG_LOG(", ");}
 		return true;
 	}
 
-	for(size_t ip = 0; ip < this->num_ip(); ++ip)
-	{
-		UG_LOG(this->operator[](ip));
-		if(ip != this->num_ip() - 1) UG_LOG(", ");
-	}
+	UG_LOG("Dimension not supported.\n");
+	return false;
+}
+
+template<typename TDataType>
+bool
+DataImport<TDataType>::
+print_values() const
+{
+	if(!this->is_linked())
+		{UG_LOG("Not linked."); return true;}
+
+	for(size_t ip = 0; ip < num_ip(); ++ip)
+		{UG_LOG(this->operator[](ip)); if(ip != num_ip()-1) UG_LOG(", ");}
+
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataImport<TDataType, TPositionType>::
+DataImport<TDataType>::
 print_derivatives(std::string offset) const
 {
 	if(!this->is_linked())
@@ -452,11 +475,11 @@ print_derivatives(std::string offset) const
 		{
 			UG_LOG(offset << "w.r.t.: sys = " << this->sys_id(s) <<", k="<< k<< ": [ ");
 
-			for(size_t ip = 0; ip < this->num_ip(); ++ip)
+			for(size_t ip = 0; ip < num_ip(); ++ip)
 			{
 				{
 					UG_LOG(this->operator()(s, ip, k));
-					if(ip != this->num_ip() - 1) UG_LOG(", ");
+					if(ip != num_ip() - 1) UG_LOG(", ");
 				}
 			}
 			UG_LOG(" ]\n");
@@ -465,24 +488,24 @@ print_derivatives(std::string offset) const
 	return true;
 }
 
-template<typename TDataType, typename TPositionType>
+template<typename TDataType>
 bool
-DataImport<TDataType, TPositionType>::
+DataImport<TDataType>::
 print_info(std::string offset) const
 {
-	UG_LOG(offset << "IPs: [ "); if(print_positions() != true) return false; UG_LOG(" ]\n");
-	UG_LOG(offset << "Values: [ "); if(print_values() != true) return false; UG_LOG(" ]\n");
-	UG_LOG(offset << "Derivatives: "); if(print_derivatives(offset) != true) return false;
+	UG_LOG(offset << "IPs: [ "); if(!print_positions()) return false; UG_LOG(" ]\n");
+	UG_LOG(offset << "Values: [ "); if(!print_values()) return false; UG_LOG(" ]\n");
+	UG_LOG(offset << "Derivatives: "); if(!print_derivatives(offset)) return false;
 	return true;
 }
 
-template <typename TDataType, typename TPositionType, typename TAlgebra>
-std::ostream& operator<<(std::ostream& out, const DataImport<TDataType, TPositionType>& data)
+template <typename TDataType, typename TAlgebra>
+std::ostream& operator<<(std::ostream& out, const DataImport<TDataType>& data)
 {
 	for(size_t ip = 0; ip < data.num_ip(); ++ip)
 	{
 		out << data[ip];
-		if(ip != data.num_ip() - 1) out << ", ";
+		if(ip != data.num_ip()-1) out << ", ";
 	}
 	return out;
 }
