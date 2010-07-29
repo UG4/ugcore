@@ -11,7 +11,6 @@
 #include "./mg_dof_manager.h"
 #include "./dof_distribution.h"
 #include "./mg_dof_manager.h"
-#include "./subset_index_group.h"
 #include "./function_pattern.h"
 
 #include "./p1conform/p1conform.h"

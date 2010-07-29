@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-#include "./subset_index_group.h"
+#include "lib_discretization/common/subset_index_group.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_factory.h"
 
 namespace ug{
