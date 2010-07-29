@@ -61,6 +61,7 @@ namespace interface_tags
  *		- Element& get_element(iterator iter);
  *		- const Element& get_element(iterator iter) const;
  *		- int get_target_proc();
+ *		- void swap(Interface& interface);
  */
 class basic_interface_tag									{};
 
@@ -132,6 +133,16 @@ class BasicInterface
 
 		int get_target_proc()						{return m_targetProc;}
 
+	///	swaps the content of two interfaces.
+	/** m_elements, m_size and m_targetProc are swapped.*/
+		void swap(BasicInterface& interface)
+		{
+			using std::swap;
+			m_elements.swap(interface.m_elements);
+			swap(m_size, interface.m_size);
+			swap(m_targetProc, interface.m_targetProc);
+		}
+		
 	protected:
 		ElemContainer	m_elements;
 		size_t			m_size;
@@ -207,6 +218,17 @@ class OrderedInterface
 			return (*iter1).localID < (*iter2).localID;
 		}
 
+	///	swaps the content of two interfaces.
+	/** m_elements, m_size, m_targetProc and m_idCounter are swapped.*/
+		void swap(OrderedInterface& interface)
+		{
+			using std::swap;
+			m_elements.swap(interface.m_elements);
+			swap(m_size, interface.m_size);
+			swap(m_targetProc, interface.m_targetProc);
+			swap(m_idCounter, interface.m_idCounter);
+		}
+		
 	protected:
 	///	returns a free id in each call.
 	/**	Those ids are not necessarily aligned.*/
@@ -250,8 +272,9 @@ namespace layout_tags
  * Methods that have to be supported by a layout with this tag:
  *		- iterator begin()
  *		- iterator end()
- *		- Interface& interface(iterator& iter)
- *		- int proc_id(iterator& iter)
+ *		- Interface& interface(iterator iter)
+ *		- int proc_id(iterator iter)
+ *		- iterator erase(iterator iter)
  *		- int get_local_src_id()
  */
 class single_level_layout_tag	{};
@@ -268,8 +291,9 @@ class single_level_layout_tag	{};
  *		- size_t num_levels()
  *		- iterator begin(size_t level)
  *		- iterator end(size_t level)
- *		- Interface& interface(iterator& iter)
- *		- int proc_id(iterator& iter)
+ *		- Interface& interface(iterator iter)
+ *		- int proc_id(iterator iter)
+ *		- iterator erase(iterator iter, size_t level)
  *		- int get_local_src_id()
  */
 class multi_level_layout_tag	{};
@@ -290,6 +314,11 @@ class multi_level_layout_tag	{};
  * The layout passes its local srcID on to created interfaces.
  *
  * Additionally it features methods that allow to add new interfaces
+ *
+ * In order to allow one method to operate both on a SingleLevelLayout
+ * and a MultiLevelLayout, the (size_t level = 0) conveniance parameter
+ * has been added to some methods. Those parameters are ignored throughout
+ * the whole implementation.
  */
 template <class TInterface>
 class SingleLevelLayout
@@ -326,27 +355,39 @@ class SingleLevelLayout
 	///	returns the iterator to the first interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
-		inline iterator begin()							{return m_interfaceMap.begin();}
+		inline iterator begin(size_t level = 0)			{return m_interfaceMap.begin();}
 
 	///	returns the iterator to the last interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
-		inline iterator end()							{return m_interfaceMap.end();}
+		inline iterator end(size_t level = 0)			{return m_interfaceMap.end();}
 
 	///	returns true if the layout has no interfaces.
-		inline bool empty()								{return begin() == end();}
+		inline bool empty(size_t level = 0)				{return begin() == end();}
+		
+	///	returns 1
+		inline size_t num_levels()						{return 1;}
 		
 	///	returns the interface to the given iterator.
-		inline Interface& interface(iterator& iter)		{return iter->second;}
+		inline Interface& interface(iterator iter)		{return iter->second;}
 
 	///	returns the interface to the given iterator.
-		inline int proc_id(iterator& iter)				{return iter->first;}
+		inline int proc_id(iterator iter)				{return iter->first;}
 
+	///	erases the interface at the given iterator.
+	/**	returns an iterator to the next interface.*/
+		inline iterator erase(iterator iter, size_t level = 0)
+			{
+				iterator tIter = iter++;
+				m_interfaceMap.erase(tIter);
+				return iter;
+			}
+		
 	///	returns the interface to the given process.
 	/**	if the queried interface exist, it will be returned.
 	 *	If not it will be created.
 	 *	The new interfaces localSrcID will be set to the localSrcID of this layout.*/
-		inline Interface& interface(int procID)
+		inline Interface& interface(int procID, size_t level = 0)
 			{
 				typename InterfaceMap::iterator iter = m_interfaceMap.find(procID);
 				if(iter != m_interfaceMap.end())
@@ -355,7 +396,8 @@ class SingleLevelLayout
 			}
 
 	///	returns true if an interface to the given procID already exists.
-		inline bool interface_exists(int procID)		{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
+		inline bool interface_exists(int procID, size_t level = 0)
+			{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
 
 	private:
 /*
@@ -450,13 +492,17 @@ class MultiLevelLayout
 		inline bool empty()								{for(size_t l = 0; l < num_levels(); ++l){if(!empty(l)) return false;} return true;}
 
 	///	returns the interface to the given iterator.
-		inline Interface& interface(iterator& iter)		{return iter->second;}
+		inline Interface& interface(iterator iter)		{return iter->second;}
 
 	///	returns the interface to the given iterator.
-		inline int proc_id(iterator& iter)				{return iter->first;}
+		inline int proc_id(iterator iter)				{return iter->first;}
 
+	///	erases the interface at the given iterator on the given level.
+	/**	returns an iterator to the next interface.*/
+		inline iterator erase(iterator iter, size_t level)	{return m_vLayouts[level]->erase(iter);}
+		
 	///	returns the number of levels.
-		inline size_t num_levels()						{return m_vLayouts.size();}
+		inline size_t num_levels()							{return m_vLayouts.size();}
 
 	////////////////////////////////////////////////
 	//	methods that enhance the layout-tag
@@ -498,7 +544,6 @@ class MultiLevelLayout
 	protected:
 		std::vector<LevelLayout*>	m_vLayouts;
 };
-
 
 ////////////////////////////////////////////////////////////////////////
 //	LayoutMap
@@ -566,7 +611,7 @@ class LayoutMap
 	public:
 	///	checks whether the layout associated with the given key exists for the given type.
 		template <class TType>
-		bool has_layout(TKey key)
+		bool has_layout(const TKey& key)
 		{
 			typename Types<TType>::Map& m = get_layout_map<TType>();
 			return m.find(key) != m.end();
@@ -574,12 +619,54 @@ class LayoutMap
 
 	///	creates the required layout if it doesn't exist already.
 		template <class TType>
-		typename Types<TType>::Layout& get_layout(TKey key)
+		typename Types<TType>::Layout& get_layout(const TKey& key)
 		{
 			typename Types<TType>::Map& m = get_layout_map<TType>();
 			return m[key];
 		}
 
+	///	begin-iterator to the layout-map for the given type.
+	/**	iter.first will return the key, iter.second the layout
+	 *	(of type LayoutMap::Types<TType>::Layout).*/
+		template <class TType>
+		typename Types<TType>::Map::iterator
+		layouts_begin()
+		{
+			return get_layout_map<TType>().begin();
+		}
+
+	///	end-iterator to the layout-map for the given type.
+	/**	iter.first will return the key, iter.second the layout
+	 *	(of type LayoutMap::Types<TType>::Layout).*/
+		template <class TType>
+		typename Types<TType>::Map::iterator
+		layouts_end()
+		{
+			return get_layout_map<TType>().end();
+		}
+
+	///	erases the specified layout
+	/**	returns an iterator to the next layout.*/
+		template <class TType>
+		typename Types<TType>::Map::iterator
+		erase_layout(typename Types<TType>::Map::iterator iter)
+		{
+			typename Types<TType>::Map& m = get_layout_map<TType>();
+			typename Types<TType>::Map::iterator tIter = iter++;
+			m.erase(tIter);
+			return iter;
+		}
+						
+	///	erases the specified layout if it exists
+		template <class TType>
+		void erase_layout(const TKey& key)
+		{
+			typename Types<TType>::Map& m = get_layout_map<TType>();
+			typename Types<TType>::Map::iterator iter = m.find(key);
+			if(iter != m.end())
+				m.erase(iter);
+		}
+		
 	protected:
 		template <class TType>
 		inline typename Types<TType>::Map&

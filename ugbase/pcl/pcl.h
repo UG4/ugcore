@@ -10,13 +10,7 @@
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
 #include "pcl_process_communicator.h"
-
-////////////////////////////////////////////////////////////////////////
-///	this allows us to print messages to the users terminal
-/**
- * if an output-processor is specified through \sa pcl::SetOutputProcRank
- * only messages from that processor will be printed to the screen.
- */
-#define PCLLOG(msg) if(pcl::IsOutputProc()) {std::cout << msg; std::cout.flush();}
+#include "pcl_util.h"
+#include "pcl_debug.h"
 
 #endif

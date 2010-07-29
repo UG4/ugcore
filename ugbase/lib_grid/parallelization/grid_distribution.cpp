@@ -682,8 +682,8 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	const int localProcRank = GetProcRank();
 	
 	MultiGrid& mg = *distGridMgr.get_assigned_grid();
-	//ISubsetHandler& sh = shInOut;
-	//GridLayoutMap& glm = gridLayoutMapInOut;
+	ISubsetHandler& sh = shInOut;
+	GridLayoutMap& glm = distGridMgr.grid_layout_map();
 	
 //	we have to store the layouts for all the processes.
 	vector<DistributionVertexLayout> vVertexLayouts;
@@ -782,7 +782,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							aInt, aInt, sendStream);
 							
 	//	serialize subset indices
-		SerializeSubsetHandler(mg, shInOut,
+		SerializeSubsetHandler(mg, sh,
 							   msel.get_geometric_object_collection(),
 							   sendStream);
 							   
@@ -798,9 +798,14 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		
 		vSendBlockSizes.push_back((int)(sendStream.size() - oldSize));
 	}
-	
+
+
+////////////////////////////////
+//	adjust local interfaces and erase obsolete grid-data.
 //	all send data is now ready. We can now erase unrequired parts of the local grid.
-//	We only have to erase elements if some are actually moved to another process.
+//	We only have to do anything if data is actually moved to other processes.
+	bool bErasedElementsFromLayout = false;
+	
 	if(vSendBlockSizes.size() > 0)
 	{
 	//	erase all elements that will not remain.
@@ -811,16 +816,44 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 			SelectNodesInLayout(msel, vEdgeLayouts[localProcRank]);
 			SelectNodesInLayout(msel, vFaceLayouts[localProcRank]);
 			SelectNodesInLayout(msel, vVolumeLayouts[localProcRank]);
+			
+		//	remove interface entries that are no longer required
+			RemoveUnselectedInterfaceEntries<VertexBase>(glm, msel);
+			RemoveUnselectedInterfaceEntries<EdgeBase>(glm, msel);
+			RemoveUnselectedInterfaceEntries<Face>(glm, msel);
+			RemoveUnselectedInterfaceEntries<Volume>(glm, msel);
+			
+		//	erase data
 			InvertSelection(msel);
 			EraseSelectedObjects(msel);
 		}
 		else{
 		//	if there is no entry in vVertexLayouts, we can remove all elements
 			mg.clear_geometry();
+			//glm.clear();
 		}
+		
+		bErasedElementsFromLayout = true;
 	}
-UG_LOG(endl);
 	
+	
+//	update the layouts - if required.
+	if(bErasedElementsFromLayout){
+		distGridMgr.grid_layouts_changed(false);
+	}
+
+//	only for debugging: log the layout-map-details
+	UG_LOG("-- VertexBase\n");
+	pcl::LogLayoutMapStructure<VertexBase>(glm);
+	UG_LOG("-- EdgeBase\n");
+	pcl::LogLayoutMapStructure<EdgeBase>(glm);
+	UG_LOG("-- Face\n");
+	pcl::LogLayoutMapStructure<Face>(glm);
+	UG_LOG("-- Volume\n");
+	pcl::LogLayoutMapStructure<Volume>(glm);
+	
+////////////////////////////////
+//	communicate data
 //	we'll use this tag for communication
 	int redistTag = 23;
 	
@@ -876,7 +909,7 @@ UG_LOG(endl);
 		DeserializeMultiGridElements(mg, recvStream);
 
 	//	deserialize subset handler
-		if(!DeserializeSubsetHandler(mg, shInOut,
+		if(!DeserializeSubsetHandler(mg, sh,
 									mg.get_geometric_object_collection(),
 									recvStream))
 			return false;
