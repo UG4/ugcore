@@ -15,7 +15,7 @@
 #include "common/common.h"
 
 #include "data_items.h"
-#include "../../local_algebra.h"
+#include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
 

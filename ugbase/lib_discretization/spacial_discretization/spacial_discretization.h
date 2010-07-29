@@ -8,15 +8,6 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
 
-// function group
-#include "./function_group.h"
-
-// multi indices
-#include "./multi_indices.h"
-
-// local algebra
-#include "./local_algebra.h"
-
 // interface
 #include "./domain_discretization_interface.h"
 

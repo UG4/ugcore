@@ -11,7 +11,9 @@ project(P_LIB_DISCRETIZATION)
 
 include_directories(${P_UGBASE_SOURCE_DIR})
 
-set(srcDiscretization	dof_manager/subset_index_group.cpp
+set(srcDiscretization	common/function_group.cpp
+
+						dof_manager/subset_index_group.cpp
 
 						reference_element/reference_element.cpp
 						
@@ -27,7 +29,6 @@ set(srcDiscretization	dof_manager/subset_index_group.cpp
 						local_shape_function_set/local_dof_pattern.cpp
 						local_shape_function_set/LagrangeP1/p1conform.cpp
 
-						spacial_discretization/function_group.cpp
 						spacial_discretization/coupled_elem_disc/elem_data/data_items.cpp
 						spacial_discretization/coupled_elem_disc/elem_data/data_container.cpp
 						spacial_discretization/coupled_elem_disc/elem_data/linker.cpp)

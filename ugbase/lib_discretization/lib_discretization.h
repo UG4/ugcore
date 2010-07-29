@@ -6,6 +6,9 @@
 // basics
 /////////////////////
 
+// common
+#include "./common/common.h"
+
 // domain description
 #include "./domain.h"
 #include "./domain_util.h"

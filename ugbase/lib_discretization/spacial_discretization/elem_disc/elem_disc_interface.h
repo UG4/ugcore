@@ -13,7 +13,7 @@
 
 // intern headers
 #include "lib_discretization/assemble.h"
-#include "../local_algebra.h"
+#include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
 

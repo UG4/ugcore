@@ -7,7 +7,7 @@
 #include <string>
 
 #include "common/common.h"
-#include "../../local_algebra.h"
+#include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
 

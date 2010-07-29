@@ -19,9 +19,8 @@
 
 // intern headers
 #include "../../reference_element/reference_element.h"
-#include "elem_disc_interface.h"
-#include "../function_group.h"
-#include "../local_algebra.h"
+#include "./elem_disc_interface.h"
+#include "lib_discretization/common/common.h"
 
 namespace ug {
 

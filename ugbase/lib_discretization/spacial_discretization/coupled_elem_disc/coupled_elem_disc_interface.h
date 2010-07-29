@@ -19,7 +19,7 @@
 #include "../elem_disc/elem_disc_interface.h"
 #include "./elem_data/data_items.h"
 #include "./elem_data/data_container.h"
-#include "../local_algebra.h"
+#include "lib_discretization/common/local_algebra.h"
 
 namespace ug {
 

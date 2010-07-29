@@ -14,9 +14,7 @@
 
 #include "../dof_distribution.h"
 #include "../function_pattern.h"
-#include "../../spacial_discretization/function_group.h"
-#include "../../spacial_discretization/local_algebra.h"
-#include "../../spacial_discretization/multi_indices.h"
+#include "../../common/common.h"
 #include "../../reference_element/reference_element.h"
 
 namespace ug{

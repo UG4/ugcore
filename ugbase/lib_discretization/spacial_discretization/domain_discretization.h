@@ -17,7 +17,7 @@
 #include "./elem_disc/elem_disc_assemble_util.h"
 #include "./coupled_elem_disc/coupled_elem_disc_assemble_util.h"
 #include "./subset_assemble_util.h"
-#include "./function_group.h"
+#include "lib_discretization/common/function_group.h"
 
 namespace ug {
 

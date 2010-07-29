@@ -21,7 +21,7 @@
 #include "../../reference_element/reference_element.h"
 #include "./coupled_elem_disc_interface.h"
 #include "./coupled_system.h"
-#include "../function_group.h"
+#include "lib_discretization/common/function_group.h"
 
 
 namespace ug {

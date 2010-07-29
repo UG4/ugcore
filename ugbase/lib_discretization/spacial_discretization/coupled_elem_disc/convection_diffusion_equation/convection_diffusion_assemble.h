@@ -12,7 +12,7 @@
 
 #include "../coupled_elem_disc_interface.h"
 #include "../elem_data/element_data.h"
-
+#include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
 
