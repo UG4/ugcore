@@ -45,7 +45,7 @@ template void EraseSelectedObjects<MGSelector>(MGSelector&);
 ////////////////////////////////////////////////////////////////////////
 template <class TSelector>
 void EraseSelectedObjects(TSelector& sel)
-{/*
+{
 	if(!sel.get_assigned_grid())
 		return;
 	
@@ -53,15 +53,15 @@ void EraseSelectedObjects(TSelector& sel)
 	
 	for(size_t i = 0; i < sel.num_levels(); ++i)
 	{
-		EraseElements(grid, sel.template begin<VertexBase>(i),
-					  sel.template end<VertexBase>(i));
-		EraseElements(grid, sel.template begin<EdgeBase>(i),
-					  sel.template end<EdgeBase>(i));
-		EraseElements(grid, sel.template begin<Face>(i),
-					  sel.template end<Face>(i));
-		EraseElements(grid, sel.template begin<Volume>(i),
-					  sel.template end<Volume>(i));
-	}*/
+		EraseElements<VertexBase>(grid, sel.template begin<VertexBase>(i),
+								  sel.template end<VertexBase>(i));
+		EraseElements<EdgeBase>(grid, sel.template begin<EdgeBase>(i),
+					  			sel.template end<EdgeBase>(i));
+		EraseElements<Face>(grid, sel.template begin<Face>(i),
+					  		sel.template end<Face>(i));
+		EraseElements<Volume>(grid, sel.template begin<Volume>(i),
+					  		  sel.template end<Volume>(i));
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////

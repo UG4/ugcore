@@ -33,6 +33,20 @@ enum ObserverType
 
 ////////////////////////////////////////////////////////////////////////
 //	GridObserver
+/**
+ * The grid observer defines an interface that can be specialized by
+ * classes that want to be informed about changes in a grid.
+ * If a class derives from GridObserver, it can be registered at a grid.
+ * Registration is usually performed through a member function of the
+ * observer class itself.
+ * Most observers can only be registered at one grid at a time.
+ *
+ * Please note that methods of different observers are called in the
+ * order in which they were registered at the grid. The only exception
+ * are the vertex_to_be_erased, edge_to_be_erased, face_to_be_erased and
+ * volume_to_be_erased. Those method are called in reverse order of
+ * registration.
+ */
 class GridObserver
 {
 	public:

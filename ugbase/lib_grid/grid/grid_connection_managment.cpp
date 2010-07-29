@@ -36,6 +36,7 @@ using namespace std;
  * Be sure that callback is a complete function call - including parameters.
  */
 #define NOTIFY_OBSERVERS(observerContainer, callback)	{for(Grid::ObserverContainer::iterator iter = observerContainer.begin(); iter != observerContainer.end(); iter++) (*iter)->callback;}
+#define NOTIFY_OBSERVERS_REVERSE(observerContainer, callback)	{for(Grid::ObserverContainer::reverse_iterator iter = observerContainer.rbegin(); iter != observerContainer.rend(); iter++) (*iter)->callback;}
 
 ////////////////////////////////////////////////////////////////////////
 ///	a useful macro that checks if a set of options contains the specified option.
@@ -78,7 +79,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 //	inform observers about the replace
 	NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_replaced(this, pReplaceMe, v));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_vertexObservers, vertex_to_be_erased(this, pReplaceMe));
 
 //TODO:	auto-enabling of some options should be optimized (and avoided).
 //	all edges, faces and volumes associated with pReplaceMe have to be updated.
@@ -159,7 +160,7 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 void Grid::unregister_vertex(VertexBase* v)
 {
 //	notify observers that the vertex is being erased
-	NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_erased(this, v));
+	NOTIFY_OBSERVERS_REVERSE(m_vertexObservers, vertex_to_be_erased(this, v));
 
 //	perform some checks in order to assert grid consistency.
 //	all edges, faces and volume referencing this vertex have to be erased.
@@ -523,7 +524,7 @@ void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 //	inform observers about the replace
 	NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_replaced(this, pReplaceMe, e));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_edgeObservers, edge_to_be_erased(this, pReplaceMe));
 
 //	check if vertices, faces and volumes reference pReplaceMe.
 //	if so, correct those references.
@@ -581,7 +582,7 @@ void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 void Grid::unregister_edge(EdgeBase* e)
 {
 //	notify observers that the edge is being erased
-	NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_erased(this, e));
+	NOTIFY_OBSERVERS_REVERSE(m_edgeObservers, edge_to_be_erased(this, e));
 
 //	delete associated faces or unregister from associated faces
 	if(num_volumes() > 0)
@@ -934,7 +935,7 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 //	inform observers about the replace
 	NOTIFY_OBSERVERS(m_faceObservers, face_to_be_replaced(this, pReplaceMe, f));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS(m_faceObservers, face_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_faceObservers, face_to_be_erased(this, pReplaceMe));
 
 //	check if vertices, edges and volumes reference pReplaceMe.
 //	if so, correct those references.
@@ -992,7 +993,7 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 void Grid::unregister_face(Face* f)
 {
 //	notify observers that the face is being erased
-	NOTIFY_OBSERVERS(m_faceObservers, face_to_be_erased(this, f));
+	NOTIFY_OBSERVERS_REVERSE(m_faceObservers, face_to_be_erased(this, f));
 
 //	remove or disconnect from volumes
 	if(num_volumes() > 0)
@@ -1376,7 +1377,7 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 //	inform observers about the replace
 	NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_replaced(this, pReplaceMe, v));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_volumeObservers, volume_to_be_erased(this, pReplaceMe));
 
 //	check if vertices, edges and faces reference pReplaceMe.
 //	if so, correct those references.
@@ -1434,7 +1435,7 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 void Grid::unregister_volume(Volume* v)
 {
 //	notify observers that the face is being erased
-	NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_erased(this, v));
+	NOTIFY_OBSERVERS_REVERSE(m_volumeObservers, volume_to_be_erased(this, v));
 
 //	disconnect from faces
 	if(option_is_enabled(FACEOPT_STORE_ASSOCIATED_VOLUMES))
@@ -1780,7 +1781,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 	VolumeDescriptor vd;
 
 //	since vrtOld will be erased, we will notify all observers
-	NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_erased(this, vrtOld));
+	NOTIFY_OBSERVERS_REVERSE(m_vertexObservers, vertex_to_be_erased(this, vrtOld));
 
 //	EDGES
 	if(num_edges() > 0)
@@ -1813,7 +1814,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 				if(eNew)
 				{
 				//	The edge will be removed. Notify observers.
-					NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_erased(this, e));
+					NOTIFY_OBSERVERS_REVERSE(m_edgeObservers, edge_to_be_erased(this, e));
 
 				//	Since we want to avoid deletion of associated elements
 				//	we have to handle the erasure of e by our self.
@@ -1921,7 +1922,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 				{
 					LOG("double face" << endl);
 				//	The face will be removed. Notify observers.
-					NOTIFY_OBSERVERS(m_faceObservers, face_to_be_erased(this, f));
+					NOTIFY_OBSERVERS_REVERSE(m_faceObservers, face_to_be_erased(this, f));
 
 				//	Since we want to avoid deletion of associated elements
 				//	we have to handle the erasure of f by our self.
@@ -2059,7 +2060,7 @@ bool Grid::replace_vertex(VertexBase* vrtOld, VertexBase* vrtNew)
 				if(vNew)
 				{
 				//	The volume will be removed. Notify observers.
-					NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_erased(this, v));
+					NOTIFY_OBSERVERS_REVERSE(m_volumeObservers, volume_to_be_erased(this, v));
 
 				//	Since we want to avoid deletion of associated elements
 				//	we have to handle the erasure of v by our self.
