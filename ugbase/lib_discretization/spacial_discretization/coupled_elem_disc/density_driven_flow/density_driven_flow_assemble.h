@@ -171,12 +171,15 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
 			const size_t num_co = ref_elem_type::num_corners;
 
+			const int RefDim = reference_element_traits<TElem>::reference_element_type::dim;
+
 			number c_ip;
-			MathVector<TDomain::dim> grad_p_ip, grad_p_local;
-			MathMatrix<TDomain::dim, ref_elem_type::dim> JTInv;
+			MathVector<dim> grad_p_ip;
+			MathVector<RefDim> grad_p_local;
+			MathMatrix<dim, RefDim> JTInv;
 			std::vector<number> shape_ip(val.size());
-			std::vector<MathVector<TDomain::dim> > grad_local_ip(val.size());
-			std::vector<MathVector<TDomain::dim> > grad_global_ip(val.size());
+			std::vector<MathVector<RefDim> > grad_local_ip(val.size());
+			std::vector<MathVector<dim> > grad_global_ip(val.size());
 
 			get_mapping<TElem>().update(m_corners);
 			for(size_t ip = 0; ip < val.size(); ++ip)
