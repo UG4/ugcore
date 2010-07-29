@@ -18,8 +18,7 @@
 #include "double.h"
 
 #include <vector>
-#include <veclib/cblas.h>
-#include <veclib/clapack.h>
+#include <clapack.h>
 
 #include "arrayStorage.h"
 
