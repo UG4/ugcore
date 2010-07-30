@@ -1,16 +1,16 @@
 //	created by Sebastian Reiter
 //	s.b.reiter@googlemail.com
-//	y09 m09 d14
+//	y10 m07 d30
 
-/** \page pageLGDocumentation libGrid - Documentation
+/** \mainpage ug4 - Documentation
 
-\author Sebastian Reiter, ...
+\author Sebastian Reiter
 
 <hr>
 \section secUserManual User Manual:
 	- \ref pageCopyrights "Copyrights and Licenses"
-	- \ref pageLGIntroduction "Introduction"
-	- \ref pageLGOverview "Overview"
+	- \ref pageUG4Introduction "Introduction"
+	- \ref pageUG4Overview "Overview"
 	- \ref pageSamples "Samples"
 	- \ref pageImportantClasses "Important Classes"
  */
