@@ -159,7 +159,7 @@ class ReferenceMapping<ReferenceEdge, TWorldDim>
 		{
 			for(int i = 0; i < world_dim; ++i)
 			{
-				JT[0][i] = a10[i];
+				JT(0,i) = a10[i];
 			}
 			return true;
 		}
