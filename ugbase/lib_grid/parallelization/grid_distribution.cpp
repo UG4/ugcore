@@ -660,6 +660,79 @@ void CommunicateInvolvedProcesses(vector<int>& vReceiveFromRanksOut,
 //	the local proc should communicate.
 }
 
+
+/*
+interface update algorithm layout:
+for each interface
+	for each entry
+		if the entry is selected, we'll send 1, else 0
+	fi
+fi
+
+when receiving the changes, we'll set up a vector that holds those 0s and 1s.
+This vector can later be used to clean the interfaces.
+*/
+
+////////////////////////////////////////////////////////////////////////
+///	communicates with other processes and removes interface entries as requested.
+/**
+ * \returns:	true, if the layout-map has changed, false if not.
+ */
+template <class TLayout, class TSelector>
+bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel)
+{
+	using namespace pcl;
+	
+//	typedefs
+	typedef typename TLayout::Type GeomObjType;
+	
+//	retrieve the multi-grid
+	if(!sel.get_assigned_grid())
+		return false;
+		
+	Grid& grid = *sel.get_assigned_grid();
+	
+////////////////////////////////
+//	We have to communicate with all direct neighbours (linked by an interface),
+//	how an existing interface has changed.
+//	To do this we need a selector that holds all elements that stay on
+//	the local proc, the old interfaces and the distribution-layouts, that
+//	hold the new interfaces.
+//todo: Take care of direct neighbours that receive data from this process.
+//todo: Take care of vertical interfaces
+//todo: selRemainingEntries should only operate on GeomObjType
+
+	Selector selRemainingEntries(grid);
+//	select all entries in sel initially
+	for(size_t i = 0; i < sel.num_levels(); ++i)
+	{
+		selRemainingEntries.select(sel.template begin<GeomObjType>(i),
+								   sel.template end<GeomObjType>(i));
+	}
+
+	SelectionCommPol<TLayout, TSelector, Selector>
+		selCommPol(sel, selRemainingEntries);
+	ParallelCommunicator<TLayout> communicator;
+	
+	communicator.exchange_data(glm, INT_MASTER, INT_SLAVE, selCommPol);
+	communicator.exchange_data(glm, INT_SLAVE, INT_MASTER, selCommPol);
+	communicator.communicate();
+	
+//	we have to remove entries which are not part of sel.
+	for(typename geometry_traits<GeomObjType>::iterator iter =
+		selRemainingEntries.template begin<GeomObjType>();
+		iter != selRemainingEntries.template end<GeomObjType>(); ++iter)
+	{
+		if(!sel.is_selected(*iter))
+			selRemainingEntries.deselect(*iter);
+	}
+	
+//	remove interface entries that are no longer required
+	bool retVal = RemoveUnselectedInterfaceEntries<GeomObjType>(glm, selRemainingEntries);
+
+	return retVal;
+}
+
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  ISubsetHandler& shInOut,
 					  SubsetHandler& shPartition)
@@ -705,8 +778,9 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
 							  false, &msel);
-							  
-	
+
+////////////////////////////////
+//	SETUP COMMUNICATION PATTERNS	
 //	first we have to communicate which process has to wait for data
 //	from which other processes. In order to avoid a m^2 communication,
 //	we'll first communicate for each process, with how many processes it
@@ -750,10 +824,14 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		UG_LOG(vReceiveFromRanks[i] << ", ");
 	}
 	UG_LOG(endl);
+	
+////////////////////////////////
+//	PREPARE SEND DATA FOR GRIDS
+//	pack the parts of the grid that are to be sent to other processes into
+//	a binary stream.
+//	WARNING: Target processes have to be empty in the current version!
+//todo: Allow to send grids to processes that already have a grid.
 
-
-//	copy and delete the grid-parts
-//	todo: interfaces are ignored in the moment
 //	iterate over all processes to which we want to send data
 	BinaryStream sendStream;
 	vector<int> vSendBlockSizes;
@@ -798,9 +876,10 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		
 		vSendBlockSizes.push_back((int)(sendStream.size() - oldSize));
 	}
-
-
+	
 ////////////////////////////////
+//	ADJUST LOCAL INTERFACES AND ERASE UNUSED GRID PARTS
+//	COMMUNICATE INTERFACE CHANGES TO DIRECT NEIGHBOURS
 //	adjust local interfaces and erase obsolete grid-data.
 //	all send data is now ready. We can now erase unrequired parts of the local grid.
 //	We only have to do anything if data is actually moved to other processes.
@@ -817,11 +896,10 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 			SelectNodesInLayout(msel, vFaceLayouts[localProcRank]);
 			SelectNodesInLayout(msel, vVolumeLayouts[localProcRank]);
 			
-		//	remove interface entries that are no longer required
-			RemoveUnselectedInterfaceEntries<VertexBase>(glm, msel);
-			RemoveUnselectedInterfaceEntries<EdgeBase>(glm, msel);
-			RemoveUnselectedInterfaceEntries<Face>(glm, msel);
-			RemoveUnselectedInterfaceEntries<Volume>(glm, msel);
+			bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel);
+			bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel);
+			bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel);
+			bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel);
 			
 		//	erase data
 			InvertSelection(msel);
@@ -829,11 +907,28 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		}
 		else{
 		//	if there is no entry in vVertexLayouts, we can remove all elements
+			msel.clear();
+			
+			bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel);
+			bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel);
+			bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel);
+			bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel);
+			
 			mg.clear_geometry();
 			//glm.clear();
 		}
+	}
+	else{
+	//	we have to receive interface changes from other processes.
+		msel.select(mg.begin<VertexBase>(), mg.end<VertexBase>());
+		msel.select(mg.begin<EdgeBase>(), mg.end<EdgeBase>());
+		msel.select(mg.begin<Face>(), mg.end<Face>());
+		msel.select(mg.begin<Volume>(), mg.end<Volume>());
 		
-		bErasedElementsFromLayout = true;
+		bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel);
+		bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel);
+		bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel);
+		bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel);
 	}
 	
 	
@@ -841,7 +936,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	if(bErasedElementsFromLayout){
 		distGridMgr.grid_layouts_changed(false);
 	}
-
+	
 //	only for debugging: log the layout-map-details
 	UG_LOG("-- VertexBase\n");
 	pcl::LogLayoutMapStructure<VertexBase>(glm);
@@ -853,7 +948,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	pcl::LogLayoutMapStructure<Volume>(glm);
 	
 ////////////////////////////////
-//	communicate data
+//	COMMUNICATE DATA
 //	we'll use this tag for communication
 	int redistTag = 23;
 	

@@ -114,11 +114,13 @@ exchange_data(TLayoutMap& layoutMap,
 				typename TLayoutMap::Key keyTo,
 				ICommunicationPolicy<TLayout>& commPol)
 {
-	if(layoutMap.template has_layout<Type>(keyFrom))
+	if(layoutMap.template has_layout<Type>(keyFrom)){
 		send_data(layoutMap.template get_layout<Type>(keyFrom), commPol);
+	}
 		
-	if(layoutMap.template has_layout<Type>(keyTo))
+	if(layoutMap.template has_layout<Type>(keyTo)){
 		receive_data(layoutMap.template get_layout<Type>(keyTo), commPol);
+	}
 }
 							
 ////////////////////////////////////////////////////////////////////////
@@ -439,7 +441,7 @@ communicate()
 	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
 	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
 	PROFILE_END();
-
+	
 //	call the extractors with the received data
 	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
 		iter != m_extractorInfos.end(); ++iter)
