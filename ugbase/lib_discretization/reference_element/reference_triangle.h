@@ -206,8 +206,8 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 		{
 			for(int i = 0; i < world_dim; ++i)
 			{
-				JT[0][i] = a10[i];
-				JT[1][i] = a20[i];
+				JT(0, i) = a10[i];
+				JT(1, i) = a20[i];
 			}
 			return true;
 		}
@@ -227,10 +227,10 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 				const number det = JT[0][0]*JT[1][1] - JT[0][1]*JT[1][0];
 				UG_ASSERT(det != 0.0, "Zero Determinant. Impossible to invert");
 
-				JTInv[0][0] = JT[1][1] / det;
-				JTInv[1][0] = -JT[1][0] / det;
-				JTInv[0][1] = -JT[0][1] / det;
-				JTInv[1][1] = JT[0][0] / det;
+				JTInv(0, 0) = JT(1, 1) / det;
+				JTInv(1, 0) = -JT(1, 0) / det;
+				JTInv(0, 1) = -JT(0, 1) / det;
+				JTInv(1, 1) = JT(0, 0) / det;
 				return true;
 			}
 
