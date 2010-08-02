@@ -683,9 +683,14 @@ This vector can later be used to clean the interfaces.
  *
  * \returns	true, if the layout-map has changed, false if not.
  */
+/*
 template <class TLayout, class TSelector, class TDistributionLayout>
 bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel,
 					  std::vector<TDistributionLayout>& distLayoutVec)
+*/
+template <class TLayout, class TSelector>
+bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel)
+
 {
 	using namespace pcl;
 	
