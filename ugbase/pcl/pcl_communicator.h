@@ -46,7 +46,21 @@ class ParallelCommunicator
 		ParallelCommunicator();
 		
 	////////////////////////////////
-	//	COLLECT
+	//	SEND
+	
+	//	sends raw data to a target-proc.
+	/*	Please note that this method should only be used if custom data
+	 *	should be send in a block with data that is communicated through
+	 *	interfaces, since an additional copy-operation at the target process
+	 *	has to be performed.
+	 *	If you're only interested in sending raw data, you should take a
+	 *	look into pcl::ProcessCommunicator::send.
+	 */
+/*
+		void send_raw(int targetProc, void* pBuff, int bufferSize,
+					   bool bSizeKnownAtTarget = false);
+*/
+
 	///	collects data that will be send during communicate.
 	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
 	 *	interface and the binary stream that is associated with the
@@ -67,16 +81,45 @@ class ParallelCommunicator
 						  ICommunicationPolicy<TLayout>& commPol);
 
 	////////////////////////////////
-	//	AWAIT
+	//	RECEIVE
+	
+	//	registers a binary-stream to receive data from a source-proc.
+	/*	Receives data that has been sent with send_raw.
+	 *
+	 *	Please note that this method should only be used if custom data
+	 *	should be send in a block with data that is communicated through
+	 *	interfaces, since an additional copy-operation has to be performed.
+	 *	If you're only interested in sending raw data, you should take a
+	 *	look into pcl::ProcessCommunicator::receive.
+	 */
+/*
+		void receive_raw(int srcProc, BinaryStream& binStreamOut,
+						 int bufferSize = -1);
+*/
+	/*	Receives data that has been sent with send_raw.
+	 *
+	 *	Please note that this method should only be used if custom data
+	 *	should be send in a block with data that is communicated through
+	 *	interfaces, since an additional copy-operation has to be performed.
+	 *	If you're only interested in sending raw data, you should take a
+	 *	look into pcl::ProcessCommunicator::receive.
+	 */
+/*
+		void receive_raw(int srcProc, void* buffOut,
+						 int bufferSize);
+*/
+		
 	///	registers a communication-policy to receive data on communicate.
-	/**	make sure that your instance of the communication-policy
+	/**	Receives have to be registered before communicate is executed.
+		make sure that your instance of the communication-policy
 		exists until communicate has benn executed.*/
 		void receive_data(int srcProc,
 						Interface& interface,
 						ICommunicationPolicy<TLayout>& commPol);
 
 	///	registers an communication-policy to receive data on communicate.
-	/**	make sure that your instance of the communication-policy
+	/**	Receives have to be registered before communicate is executed.
+		make sure that your instance of the communication-policy
 		exists until communicate has benn executed.*/
 		void receive_data(Layout& layout,
 						ICommunicationPolicy<TLayout>& commPol);
@@ -99,7 +142,7 @@ class ParallelCommunicator
 							typename TLayoutMap::Key keyFrom,
 							typename TLayoutMap::Key keyTo,
 							ICommunicationPolicy<TLayout>& commPol);
-			
+	
 	///	sends and receives the collected data.
 	/**	The collected data will be send to the associated processes.
 	 *	The extract routines of the communication-policies which were registered

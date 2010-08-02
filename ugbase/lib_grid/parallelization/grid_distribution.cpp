@@ -676,10 +676,16 @@ This vector can later be used to clean the interfaces.
 ////////////////////////////////////////////////////////////////////////
 ///	communicates with other processes and removes interface entries as requested.
 /**
- * \returns:	true, if the layout-map has changed, false if not.
+ * \param glm: The GridLayoutMap of the local process.
+ * \param sel: A Selector that holds all elements that stay on the process.
+ * \param distLayoutVec: a vector that contains the distribution layouts,
+ *						 that are to be sent to other processes.
+ *
+ * \returns	true, if the layout-map has changed, false if not.
  */
-template <class TLayout, class TSelector>
-bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel)
+template <class TLayout, class TSelector, class TDistributionLayout>
+bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel,
+					  std::vector<TDistributionLayout>& distLayoutVec)
 {
 	using namespace pcl;
 	
@@ -716,6 +722,18 @@ bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel)
 	
 	communicator.exchange_data(glm, INT_MASTER, INT_SLAVE, selCommPol);
 	communicator.exchange_data(glm, INT_SLAVE, INT_MASTER, selCommPol);
+	
+	
+//	we have to tell the neighbours, which new interfaces they have to build.
+//	indices are relative to the interface between localProc and its neighbour.
+//	data is organized as follows:
+//		- int targetProc
+//		- int interfaceType
+//		- int interfaceSize
+//		- {elementIndices}
+//...
+
+//	communicate the data	
 	communicator.communicate();
 	
 //	we have to remove entries which are not part of sel.
@@ -727,6 +745,13 @@ bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel)
 			selRemainingEntries.deselect(*iter);
 	}
 	
+//	receive new interfaces.
+//	it is possible, that other processes want this process to build interfaces
+//	with nodes, that this process sends to another process. We thus have to
+//	forward those interface-build-requests.
+//	...
+
+
 //	remove interface entries that are no longer required
 	bool retVal = RemoveUnselectedInterfaceEntries<GeomObjType>(glm, selRemainingEntries);
 
@@ -873,7 +898,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 											msel.end<VertexBase>(iLevel),
 											sendStream);
 		}
-		
+
 		vSendBlockSizes.push_back((int)(sendStream.size() - oldSize));
 	}
 	
@@ -930,7 +955,6 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel);
 		bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel);
 	}
-	
 	
 //	update the layouts - if required.
 	if(bErasedElementsFromLayout){
