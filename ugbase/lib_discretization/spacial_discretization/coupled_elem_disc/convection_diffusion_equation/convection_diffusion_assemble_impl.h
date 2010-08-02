@@ -63,8 +63,11 @@ prepare_element_loop()
 	}
 
 	// overwrite old positions (maybe form other element type)
-	m_Velocity.template set_positions<ref_elem_type::dim>(pos, true);
-	m_Velocity.set_num_eq(ref_elem_type::num_corners);
+	if(!m_Velocity.template set_positions<ref_elem_type::dim>(pos, true))
+		{UG_LOG("CplConvectionDiffusionElemDisc::prepare_element_loop: Cannot set positions for Velocity.\n"); return false;}
+
+	if(!m_Velocity.set_num_eq(ref_elem_type::num_corners))
+		{UG_LOG("CplConvectionDiffusionElemDisc::prepare_element_loop: Cannot set number of equations.\n"); return false;}
 
 	return true;
 }

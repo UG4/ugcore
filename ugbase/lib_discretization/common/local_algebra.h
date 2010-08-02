@@ -15,6 +15,20 @@
 
 namespace ug{
 
+/** Local index set
+ *
+ * The class LocalIndices is used to represent a local index set. It is intended to suit
+ * for local index sets arising in Finite Element/Finite Volume assemblings. Thus, one
+ * can load the LocalIndices for a FunctionGroup, representing the set of functions in
+ * the discretization. It is also possible to select only a SubGroup of the Function Group.
+ * This is done by adding a SubFunctionMap. By default, the SubFunctionMap is identity.
+ * The access form discretization side is thus by a pair (fct, dof) representing the selected
+ * function (0 <= fct <= # Selected Functions - 1) and local dof indices (0 <= dof <= #DoFs -1).
+ * The access from algebra side is only an access to the algebra i-index. Using
+ *  - local_index(size_t fct, size_t dof)
+ *  - comp(size_t fct, size_t dof)
+ *  will return the correspinding (i,alpha) entry for a (fct, dof) pair.
+ */
 class LocalIndices
 {
 	public:
@@ -47,14 +61,14 @@ class LocalIndices
 			resize_dof_indices();
 
 			// create default SubFunctionMap containing all functions of function Group
-			m_defaultSubFunctionMap.clear();
+			m_identitySubFunctionMap.clear();
 			for(size_t fct = 0; fct < funcGroup.num_fct(); ++fct)
 			{
-				m_defaultSubFunctionMap.select(fct);
+				m_identitySubFunctionMap.select(fct);
 			}
 
 			// access default function group
-			access_sub_function_group(m_defaultSubFunctionMap);
+			access_sub_function_group(m_identitySubFunctionMap);
 		}
 
 		/// access only part of the function group
@@ -62,6 +76,12 @@ class LocalIndices
 		{
 			m_pSubFunctionMap = &subFuncMap;
 			return true;
+		}
+
+		/// access all functions in FunctionGroup
+		bool access_all()
+		{
+			return access_sub_function_group(m_identitySubFunctionMap);
 		}
 
 		/// clear all dofs and indices
@@ -93,10 +113,10 @@ class LocalIndices
 		// discretization access
 		///////////////////////////
 
-		/// number of functions handled
+		/// number of selected functions
 		size_t num_fct() const {return m_pSubFunctionMap->num_fct();}
 
-		/// return global function id
+		/// return global function id for selected functions
 		size_t fct_id(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
@@ -104,28 +124,43 @@ class LocalIndices
 			return m_pFunctionGroup->fct_id(accFct);
 		}
 
-		/// number of dofs per local function
+		/// number of dofs of selected functions (sum)
+		size_t num_dofs() const
+		{
+			// TODO: This could be cached. Would it make sense ???
+			size_t num = 0;
+			for(size_t fct = 0; fct < num_fct(); ++fct)
+			{
+				num += num_dofs(fct);
+			}
+			return num;
+		}
+
+		/// number of dofs per selected function
 		size_t num_dofs(size_t fct) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
 			const size_t accFct = (*m_pSubFunctionMap)[fct];
+			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index " << accFct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
 			return m_vvDofIndices[accFct].size();
 		}
 
-		/// local index for (fct, dof)
+		/// local index for (selected fct, dof)
 		index_type local_index(size_t fct, size_t dof) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
 			const size_t accFct = (*m_pSubFunctionMap)[fct];
+			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index " << accFct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
 			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "local dof index not valid");
 			return m_vvDofIndices[accFct][dof][0];
 		}
 
-		/// algebra comp for (fct, dof)
+		/// algebra comp for (selected fct, dof)
 		comp_type comp(size_t fct, size_t dof) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
 			const size_t accFct = (*m_pSubFunctionMap)[fct];
+			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index " << accFct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
 			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "local dof index not valid");
 			return m_vvDofIndices[accFct][dof][1];
 		}
@@ -163,7 +198,7 @@ class LocalIndices
 		const SubFunctionMap* m_pSubFunctionMap;
 
 		// default sub function group, i.e. all functions
-		SubFunctionMap m_defaultSubFunctionMap;
+		SubFunctionMap m_identitySubFunctionMap;
 
 		// Mapping (fct, dof) -> local index
 		std::vector<std::vector<multi_index_type> > m_vvDofIndices;
@@ -279,6 +314,18 @@ class LocalVector
 		///////////////////////////
 		// discretization access
 		///////////////////////////
+
+		/// number of selected functions
+		size_t num_fct() const {return m_pIndices->num_fct();}
+
+		/// return global function id for selected functions
+		size_t fct_id(size_t fct) const	{return m_pIndices->fct_id(fct);}
+
+		/// number of dofs of selected functions (sum)
+		size_t num_dofs() const {return m_pIndices->num_dofs();}
+
+		/// number of dofs per selected function
+		size_t num_dofs(size_t fct) const {return m_pIndices->num_dofs(fct);}
 
 		/// access to dof of function fct
 		number& operator()(size_t fct, size_t dof)

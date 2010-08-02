@@ -59,7 +59,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 
 	// prepare local indices for elem type
 	if(!u.prepare_indices(refID, si, ind))
-		{UG_LOG("Cannot prepare indices.\n"); return false;}
+		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
 	if(!elemDisc.set_geometric_object_type(refID, IEDN_JACOBIAN))
@@ -71,10 +71,11 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 	loc_J_temp.set_indices(ind, ind);
 
 	// prepare loop
-	elemDisc.prepare_element_loop();
+	if(!elemDisc.prepare_element_loop())
+		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
+	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
@@ -90,16 +91,19 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		loc_J.set(0.0);
 
 		// prepare element
-		elemDisc.prepare_element(elem, loc_u, ind);
+		if(!elemDisc.prepare_element(elem, loc_u, ind))
+			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
 
 		// Assemble JA
 		loc_J_temp.set(0.0);
-		elemDisc.assemble_JA(loc_J_temp, loc_u, time);
+		if(!elemDisc.assemble_JA(loc_J_temp, loc_u, time))
+			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
 		loc_J += loc_J_temp * s_a;
 
 		// Assemble JM
 		loc_J_temp.set(0.0);
-		elemDisc.assemble_JM(loc_J_temp, loc_u, time);
+		if(!elemDisc.assemble_JM(loc_J_temp, loc_u, time))
+			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Mass Matrix.\n"); return false;}
 		loc_J += loc_J_temp * s_m;
 
 		// send local to global matrix
@@ -107,7 +111,8 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 	}
 
 	// finish element loop
-	elemDisc.finish_element_loop();
+	if(!elemDisc.finish_element_loop())
+		{UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n"); return false;}
 
 	return true;
 }
@@ -146,11 +151,11 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 
 	// prepare local indices for elem type
 	if(!u.prepare_indices(refID, si, ind))
-		{UG_LOG("Cannot prepare indices.\n"); return false;}
+		{UG_LOG("ERROR in AssembleDefect: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
 	if(!elemDisc.set_geometric_object_type(refID, IEDN_DEFECT))
-		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
+		{UG_LOG("ERROR in AssembleDefect: Cannot set geometric object type.\n"); return false;}
 
 	// adjust local algebra
 	loc_u.set_indices(ind);
@@ -158,10 +163,11 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 	loc_d_temp.set_indices(ind);
 
 	// prepare loop
-	elemDisc.prepare_element_loop();
+	if(!elemDisc.prepare_element_loop())
+		{UG_LOG("ERROR in AssembleDefect: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
+	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
@@ -176,21 +182,26 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		// reset local matrix and rhs
 		loc_d.set(0.0);
 
-		elemDisc.prepare_element(elem, loc_u, ind);
+		// prepare element
+		if(!elemDisc.prepare_element(elem, loc_u, ind))
+			{UG_LOG("ERROR in AssembleDefect: Cannot prepare element.\n"); return false;}
 
 		// Assemble A
 		loc_d_temp.set(0.0);
-		elemDisc.assemble_A(loc_d_temp, loc_u, time);
+		if(!elemDisc.assemble_A(loc_d_temp, loc_u, time))
+			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Stiffness Defect.\n"); return false;}
 		loc_d += loc_d_temp * s_a;
 
 		// Assemble M
 		loc_d_temp.set(0.0);
-		elemDisc.assemble_M(loc_d_temp, loc_u, time);
+		if(!elemDisc.assemble_M(loc_d_temp, loc_u, time))
+			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Mass Defect.\n"); return false;}
 		loc_d += loc_d_temp * s_m;
 
 		// Assemble f
 		loc_d_temp.set(0.0);
-		elemDisc.assemble_f(loc_d_temp, time);
+		if(!elemDisc.assemble_f(loc_d_temp, time))
+			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Right-Hand Side.\n"); return false;}
 		loc_d -= loc_d_temp * s_a;
 
 		// send local to global matrix
@@ -198,7 +209,8 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 	}
 
 	// finish element loop
-	elemDisc.finish_element_loop();
+	if(!elemDisc.finish_element_loop())
+		{UG_LOG("ERROR in AssembleDefect: Cannot finish element loop.\n"); return false;}
 
 	return true;
 }
@@ -253,7 +265,7 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleLinear: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements of type TElem
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; iter++)
+	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
@@ -275,11 +287,11 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 
 		// assemble stiffness matrix for inner elements
 		if(!elemDisc.assemble_JA(loc_mat, loc_u))
-			{UG_LOG("ERROR in AssembleLinear: Cannot assemble_JA.\n"); return false;}
+			{UG_LOG("ERROR in AssembleLinear: Cannot assemble local Stiffness Matrix.\n"); return false;}
 
 		// assemble rhs for inner elements
 		if(!elemDisc.assemble_f(loc_rhs))
-			{UG_LOG("ERROR in AssembleLinear: Cannot assemble_f.\n"); return false;}
+			{UG_LOG("ERROR in AssembleLinear: Cannot assemble local Right-Hand Side.\n"); return false;}
 
 		// send local to global (matrix and rhs)
 		mat.add(loc_mat);

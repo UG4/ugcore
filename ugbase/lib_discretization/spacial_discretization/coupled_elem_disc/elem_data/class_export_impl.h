@@ -82,7 +82,8 @@ set_local_solution(const local_vector_type& u)
 	{
 		DataClassExport<TDataType, TAlgebra> * exp =
 				dynamic_cast<DataClassExport<TDataType, TAlgebra> *>(m_vCreatedDataExports[i]);
-		if(!exp->set_local_solution(u)) return false;
+		if(!exp->set_local_solution(u))
+			{UG_LOG("DataClassExportPossibility::set_local_solution: Cannot set solution in export.\n"); return false;}
 	}
 	return true;
 }
@@ -113,7 +114,7 @@ template<typename TDataType, typename TAlgebra>
 bool DataClassExport<TDataType, TAlgebra>::
 set_local_solution(const local_vector_type& u)
 {
-	UG_ASSERT(u.size() == this->m_vNumSh[0],
+	UG_ASSERT(u.num_dofs() == this->m_vNumSh[0],
 			"Wrong number of unknowns in local vector. Must match the number set in this export.");
 	m_pSolution = &u;
 	return true;
@@ -144,7 +145,7 @@ compute(bool compute_derivatives)
 		m_pExportingClass->template data_export<TDataType>(m_nrExport, this->m_vValue, this->m_vvvDerivatives[0],
 															this->template get_positions<3>(), *m_pSolution, compute_derivatives);
 		break;
-	default: UG_LOG("Dimension not supported.\n"); UG_ASSERT(0, "Dimension not supported.");
+	default: UG_LOG("Dimension " << this->m_posDim << " not supported.\n"); UG_ASSERT(0, "Dimension " << this->m_posDim << " not supported."); exit(1);
 	}
 }
 

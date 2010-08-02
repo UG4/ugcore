@@ -493,15 +493,6 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 			}
 		}
 
-		void update_indices(VertexBase* vrt, LocalIndices& ind) const
-		{
-			int si = m_pISubsetHandler->get_subset_index(vrt);
-
-			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
-			ind.set_index(0, index);
-		}
-
-
 		template<typename TElem>
 		size_t num_multi_indices(TElem* obj, size_t fct) const
 		{

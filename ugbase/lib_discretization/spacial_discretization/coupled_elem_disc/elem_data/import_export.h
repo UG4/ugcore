@@ -45,7 +45,7 @@ class DataExport : public DataExportItem{
 
 		// return value at ip (read only, are updated by compute())
 		inline const data_type& operator[](size_t ip) const {
-			UG_ASSERT(ip < m_vValue.size(), "Accessing Value array at not allocated position.");
+			UG_ASSERT(ip < m_vValue.size(), "Invalid index. (ip = "<<ip<<", size = "<<m_vValue.size()<<")");
 			return m_vValue[ip];};
 
 		// return vector of values
@@ -53,20 +53,20 @@ class DataExport : public DataExportItem{
 
 		// return value of derivative with respect to unknown k at ip (read only, are updated by compute())
 		inline const data_type& operator()(size_t loc_sys, size_t ip, size_t k) const {
-			UG_ASSERT(loc_sys < m_vvvDerivatives.size(), "Accessing Derivative array at not allocated position: sys = " << loc_sys);
-			UG_ASSERT(ip < m_vvvDerivatives[loc_sys].size(), "Accessing Derivative array at not allocated position ip = " << ip);
-			UG_ASSERT(k < m_vvvDerivatives[loc_sys][ip].size(), "Accessing Derivative array at not allocated position k = " << k);
+			UG_ASSERT(loc_sys < m_vvvDerivatives.size(), "Invalid index. (loc_sys = "<<loc_sys<<", size = "<<m_vvvDerivatives.size()<<")");
+			UG_ASSERT(ip < m_vvvDerivatives[loc_sys].size(), "Invalid index. (ip = "<<ip<<", size = "<< m_vvvDerivatives[loc_sys].size()<<")");
+			UG_ASSERT(k < m_vvvDerivatives[loc_sys][ip].size(), "Invalid index. (k = "<<k<<", size = "<< m_vvvDerivatives[loc_sys][ip].size()<<")");
 			return m_vvvDerivatives[loc_sys][ip][k];};
 
 		// returns array of derivatives for system loc_sys
 		inline const std::vector<std::vector<data_type> >& derivatives(size_t loc_sys) const {
-			UG_ASSERT(loc_sys < m_vvvDerivatives.size(), "Accessing Derivative array at not allocated position: sys = " << loc_sys);
+			UG_ASSERT(loc_sys < m_vvvDerivatives.size(), "Invalid index. (loc_sys = "<<loc_sys<<", size = "<<m_vvvDerivatives.size()<<")");
 			return m_vvvDerivatives[loc_sys];}
 
 		// return position number i (read only, are induced by import)
 		template <int dim>
 		inline const MathVector<dim>& position(size_t ip) const {
-			UG_ASSERT(ip < num_ip(), "Accessing Position array at not allocated position.");
+			UG_ASSERT(ip < num_ip(), "Invalid index. (ip = "<<ip<<", size = "<<num_ip()<<")");
 			return const_cast<DataExport<TDataType>*>(this)->get_positions<dim>()[ip];};
 
 		// compute values at positions using evaluation function
@@ -184,7 +184,7 @@ class DataImport : public DataImportItem {
 		// return position number i (read only, are induced by import)
 		template <int dim>
 		inline const MathVector<dim>& position(size_t ip) const {
-			UG_ASSERT(ip < num_ip(), "Accessing Position array at not allocated position.");
+			UG_ASSERT(ip < num_ip(), "Invalid index. (ip = "<<ip<<", size = "<<num_ip()<<")");
 			return get_positions<dim>()[ip];};
 
 		// number of equations the data is provided for (num_eq)
@@ -214,15 +214,15 @@ class DataImport : public DataImportItem {
 
 		// linearized defect (with respect to import) for the j'th local defect and position ip
 		inline data_type& lin_defect(size_t j, size_t ip){
-			UG_ASSERT(ip < m_vvLinearizedDefect[j].size(), "Accessing Global Index Array at position, that is not allocated.");
-			UG_ASSERT(j < m_vvLinearizedDefect.size(), "Accessing Global Index Array at position, that is not allocated.");
+			UG_ASSERT(j < m_vvLinearizedDefect.size(), "Invalid index. (j = "<<j<<", size = "<<m_vvLinearizedDefect.size()<<")");
+			UG_ASSERT(ip < m_vvLinearizedDefect[j].size(), "Invalid index. (ip = "<<ip<<", size = "<<m_vvLinearizedDefect[j].size()<<")");
 			return m_vvLinearizedDefect[j][ip];
 		}
 
 		// linearized defect (with respect to import) for the j'th local defect and position ip
 		inline const data_type& lin_defect(size_t j, size_t ip) const {
-			UG_ASSERT(ip < m_vvLinearizedDefect[j].size(), "Accessing Global Index Array at position, that is not allocated.");
-			UG_ASSERT(j < m_vvLinearizedDefect.size(), "Accessing Global Index Array at position, that is not allocated.");
+			UG_ASSERT(j < m_vvLinearizedDefect.size(), "Invalid index. (j = "<<j<<", size = "<<m_vvLinearizedDefect.size()<<")");
+			UG_ASSERT(ip < m_vvLinearizedDefect[j].size(), "Invalid index. (ip = "<<ip<<", size = "<<m_vvLinearizedDefect[j].size()<<")");
 			return m_vvLinearizedDefect[j][ip];
 		}
 

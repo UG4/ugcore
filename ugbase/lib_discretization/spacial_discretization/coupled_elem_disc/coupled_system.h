@@ -9,25 +9,36 @@
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__COUPLED_ELEM_DISC__COUPLED_SYSTEM__
 
 #include "./elem_data/element_data.h"
+#include "lib_discretization/common/function_group.h"
 
 namespace ug {
 
 template <	typename TDiscreteFunction,
 			typename TAlgebra = typename TDiscreteFunction::algebra_type>
 class CoupledSystem {
-	protected:
-		// type of discrete function
+	public:
+		// discrete function type
 		typedef TDiscreteFunction discrete_function_type;
 
+		// algebra type
 		typedef TAlgebra algebra_type;
+
 	public:
+		/// Constructor
 		CoupledSystem(std::string name)
 			: m_name(name)
 		{};
 
+		/// name of coupled system
 		std::string name() const {return m_name;}
 
-		inline bool add_system_discretization(ICoupledElemDisc<algebra_type>& sys)
+
+		///////////////////////////////////
+		// Administration of systems
+		///////////////////////////////////
+
+		/// add a system
+		inline bool add_system(ICoupledElemDisc<algebra_type>& sys)
 		{
 			m_vSystem.push_back(&sys);
 			if(!sys.register_exports(m_ElemDataContainer))
@@ -36,45 +47,74 @@ class CoupledSystem {
 				{UG_LOG("CoupledSystem::add_system_discretization: Cannot register imports of system"); return false;}
 			if(!set_sys_ids())
 				{UG_LOG("CoupledSystem::add_system_discretization: Cannot assign system ids"); return false;}
+
+			update_sub_function_maps();
 			return true;
 		};
 
 		/// number of systems coupled
-		size_t num_sys() const {return m_vSystem.size();}
+		size_t num_system() const {return m_vSystem.size();}
 
-		/// return a system
-		ICoupledElemDisc<algebra_type>& sys(size_t sys)
+		/// access to a system
+		ICoupledElemDisc<algebra_type>& system(size_t sys)
 		{
-			UG_ASSERT(sys < num_sys(), "Invalid system.");
+			UG_ASSERT(sys < num_system(), "Invalid system id.");
 			return *m_vSystem[sys];
 		}
 
-		size_t sys_fct(size_t sys, size_t loc_fct)
+		/// get SubFunctionMap for a system
+		const SubFunctionMap& sub_function_map(size_t sys) const
 		{
-			size_t fct = 0;
-			for(size_t s = 0; s < sys; ++s)
-			{
-				fct += m_vSystem[s]->num_fct();
-			}
-			return fct + loc_fct;
+			UG_ASSERT(sys < num_system(), "Invalid system id.");
+			return m_vSubFunctionMap[sys];
 		}
 
+		/// set system id to all systems
 		bool set_sys_ids()
 		{
-			for(size_t id = 0; id < num_sys(); ++id)
+			for(size_t id = 0; id < num_system(); ++id)
 			{
-				if(!m_vSystem[id]->set_sys_id(id)) return false;
+				if(!system(id).set_sys_id(id))
+					{UG_LOG("CoupledSystem::set_sys_ids: Cannot set sys_id for system " << id << ".\n"); return false;}
 			}
 			return true;
 		}
 
+		/// number of functions this coupled discretization requires
+		size_t num_fct() const
+		{
+			/// TODO: Think about, if this value should be cached
+			size_t num = 0;
+			for(size_t sys = 0; sys < num_system(); ++sys)
+			{
+				num += m_vSystem[sys]->num_fct();
+			}
+			return num;
+		}
 
+		/// Destructor
+		virtual ~CoupledSystem(){}
+
+		///////////////////////////////////
+		// Data Coupling
+		///////////////////////////////////
+
+		/// get data container
 		DataContainer& get_elem_data_container() {return m_ElemDataContainer;}
 
+		/// print export possibilities
 		bool print_export_possibilities(){return m_ElemDataContainer.print_export_possibilities(DCI_LINKS);}
+
+		/// print existing exports
 		bool print_exports(){return m_ElemDataContainer.print_exports(DCI_LINKS);}
+
+		/// print existing imports
 		bool print_imports(){return m_ElemDataContainer.print_imports(DCI_LINKS);};
+
+		/// print current linkage between import and export
 		bool print_linkage(){return m_ElemDataContainer.print_linkage();};
+
+		/// link export to import
 		bool link(size_t exp, size_t imp)
 		{
 			if(!m_ElemDataContainer.create_export(exp))
@@ -86,29 +126,35 @@ class CoupledSystem {
 			return true;
 		}
 
-		virtual ~CoupledSystem(){}
 	protected:
-		// list of systems coupled by this discretization
-		std::vector<ICoupledElemDisc<algebra_type>*> m_vSystem;
-
-		// Containes the Data, that will be linked together
-		DataContainer m_ElemDataContainer;
-
-		// name of discretiztaion
-		std::string m_name;
-
-	public:
-		// TODO: NEEDED ?
-		virtual size_t num_fct() const
+		void update_sub_function_maps()
 		{
-			size_t num = 0;
-			for(size_t sys = 0; sys < m_vSystem.size(); ++sys)
+			m_vSubFunctionMap.resize(num_system());
+
+			size_t fct = 0;
+			for(size_t sys = 0; sys < num_system(); ++sys)
 			{
-				num += m_vSystem[sys]->num_fct();
+				m_vSubFunctionMap[sys].clear();
+				for(size_t loc_fct = 0; loc_fct < system(sys).num_fct(); ++loc_fct)
+				{
+					m_vSubFunctionMap[sys].select(fct);
+					fct++;
+				}
 			}
-			return num;
 		}
 
+	protected:
+		// vector of systems coupled by this discretization
+		std::vector<ICoupledElemDisc<algebra_type>*> m_vSystem;
+
+		/// vector of subfunction maps: Mapping loc_fct_id of system to index in Function Group
+		std::vector<SubFunctionMap> m_vSubFunctionMap;
+
+		// Contains the Data, that will be linked together
+		DataContainer m_ElemDataContainer;
+
+		// name of discretization
+		std::string m_name;
 };
 
 

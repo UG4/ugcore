@@ -66,9 +66,17 @@ add_data_import(DataImportItem* importItem)
 	// add import
 	m_vImportList.push_back(importItem);
 
-	// set positions
-	// TODO: Do we need this ?!?!
-	//set_positions(Import->get_positions());
+	// set positions if already positions set
+	if(m_posDim > 0)
+	{
+		switch(m_posDim)
+		{
+		case 1: set_positions<1>(Import->get_positions<1>()); break;
+		case 2: set_positions<2>(Import->get_positions<2>()); break;
+		case 3: set_positions<3>(Import->get_positions<3>()); break;
+		default: UG_LOG("Dimension " << m_posDim << " not supported.\n"); return false;
+		}
+	}
 
 	// register export at import
 	Import->m_pTypeExport = this;
@@ -113,7 +121,7 @@ remove_data_import(DataImportItem* importItem)
 		case 1: get_positions<1>().clear();
 		case 2: get_positions<1>().clear();
 		case 3: get_positions<1>().clear();
-		default: UG_LOG("Dimension not supported.\n"); return false;
+		default: UG_LOG("Dimension "<< this->m_posDim << "not supported.\n"); return false;
 		}
 		m_vValue.clear();
 		for(size_t s = 0; s < m_vvvDerivatives.size(); ++s)
@@ -137,13 +145,16 @@ bool DataExport<TDataType>::
 set_positions(const std::vector<MathVector<dim> >& positions, bool overwrite)
 {
 	// get positions
-	std::vector<MathVector<dim> > vPosition = get_positions<dim>();
+	std::vector<MathVector<dim> >& vPosition = get_positions<dim>();
 
 	// if no positions set
 	if(vPosition.empty() || overwrite)
 	{
 		// copy positions and set same size for value list
 		vPosition = positions;
+
+		m_posDim = dim;
+		m_numIp = vPosition.size();
 
 		m_vValue.resize(num_ip());
 
@@ -199,7 +210,7 @@ equal(const DataExportItem& v) const
 		case 1:	if(position<1>(ip) != cast_v->position<1>(ip)) return false;
 		case 2:	if(position<2>(ip) != cast_v->position<2>(ip)) return false;
 		case 3:	if(position<3>(ip) != cast_v->position<3>(ip)) return false;
-		default: UG_LOG("Dimension not supported.\n"); UG_ASSERT(0, "Dimension not supported."); return false;
+		default: UG_LOG("Dimension " << m_posDim << " not supported.\n"); UG_ASSERT(0, "Dimension " << m_posDim << " not supported."); return false;
 		}
 	}
 
@@ -233,7 +244,7 @@ print_positions() const
 		return true;
 	}
 
-	UG_LOG("Dimension not supported.\n");
+	UG_LOG("Dimension  " << m_posDim << " not supported.\n");
 	return false;
 }
 
@@ -320,7 +331,11 @@ set_positions(const std::vector<MathVector<dim> >& pos, bool overwrite)
 	if(Cast_Export != NULL)
 	{
 		if(!Cast_Export->set_positions<dim>(vPosition, overwrite))
-		{UG_LOG("DataImport::set_positions: Cannot set positions in export.\n"); return false;}
+			{UG_LOG("DataImport::set_positions: Cannot set positions in export.\n"); return false;}
+	}
+	else
+	{
+		UG_LOG("Cast failed. By construction this should be impossible. Bug.\n"); return false;
 	}
 
 	// if export set is an DataLinker
@@ -439,7 +454,7 @@ print_positions() const
 		return true;
 	}
 
-	UG_LOG("Dimension not supported.\n");
+	UG_LOG("Dimension " << m_posDim << " not supported.\n");
 	return false;
 }
 
