@@ -683,19 +683,17 @@ This vector can later be used to clean the interfaces.
  *
  * \returns	true, if the layout-map has changed, false if not.
  */
-/*
-template <class TLayout, class TSelector, class TDistributionLayout>
+template <class TLayout, class TSelector, class TDistLayout>
 bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel,
-					  std::vector<TDistributionLayout>& distLayoutVec)
-*/
-template <class TLayout, class TSelector>
-bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel)
+					  std::vector<TDistLayout>& distLayoutVec)
 
 {
 	using namespace pcl;
 	
 //	typedefs
 	typedef typename TLayout::Type GeomObjType;
+	typedef typename TLayout::iterator	InterfaceIter;
+	typedef typename TLayout::Interface Interface;
 	
 //	retrieve the multi-grid
 	if(!sel.get_assigned_grid())
@@ -737,7 +735,30 @@ bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel)
 //		- int interfaceSize
 //		- {elementIndices}
 //...
-
+/*
+//	iterate through the processes to which interfaces have to be build.
+	for(size_t iDistLayout = 0; iDistLayout < distLayoutVec.size();
+		++iDistLayout)
+	{
+		TDistLayout& distLayout = distLayoutVec[distLayout];
+	//	iterate through the levels
+		for(size_t level = 0; level < distLayout.num_levels(); ++level)
+		{
+			typename TDistLayout::InterfaceMap imap =
+				distLayout.interface_map(level);
+		//	iterate through the entries of the imap
+			for(typename TDistLayout::InterfaceMap::iterator iter = imap.begin();
+				iter != imap.end(); ++iter)
+			{
+				int procID = iter->first;
+			//	check if a neighbour with that interface-id exists
+			//todo: this whole block has to be transfered into a separate
+			//		function, which takes a layout
+			}
+		}
+	}
+*/
+	
 //	communicate the data	
 	communicator.communicate();
 	
@@ -913,8 +934,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	adjust local interfaces and erase obsolete grid-data.
 //	all send data is now ready. We can now erase unrequired parts of the local grid.
 //	We only have to do anything if data is actually moved to other processes.
-	bool bErasedElementsFromLayout = false;
-	
+	int eraseOption = -1;
 	if(vSendBlockSizes.size() > 0)
 	{
 	//	erase all elements that will not remain.
@@ -926,26 +946,13 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 			SelectNodesInLayout(msel, vFaceLayouts[localProcRank]);
 			SelectNodesInLayout(msel, vVolumeLayouts[localProcRank]);
 			
-			bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel);
-			bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel);
-			bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel);
-			bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel);
-			
-		//	erase data
-			InvertSelection(msel);
-			EraseSelectedObjects(msel);
+			eraseOption = 0;
 		}
 		else{
 		//	if there is no entry in vVertexLayouts, we can remove all elements
 			msel.clear();
 			
-			bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel);
-			bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel);
-			bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel);
-			bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel);
-			
-			mg.clear_geometry();
-			//glm.clear();
+			eraseOption = 1;
 		}
 	}
 	else{
@@ -955,10 +962,36 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		msel.select(mg.begin<Face>(), mg.end<Face>());
 		msel.select(mg.begin<Volume>(), mg.end<Volume>());
 		
-		bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel);
-		bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel);
-		bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel);
-		bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel);
+		eraseOption = 2;
+	}
+	
+	bool bErasedElementsFromLayout = false;
+	bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel,
+															vVertexLayouts);
+	bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel,
+															vEdgeLayouts);
+	bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel,
+															vFaceLayouts);
+	bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel,
+															vVolumeLayouts);
+	
+	if(bErasedElementsFromLayout){
+		switch(eraseOption){
+			case 0:{
+			//	erase data
+				InvertSelection(msel);
+				EraseSelectedObjects(msel);
+			}break;
+			
+			case 1:{
+				mg.clear_geometry();
+//todo: clear the glm.
+				//glm.clear();
+			}break;
+			
+			default:{
+			}break;
+		}
 	}
 	
 //	update the layouts - if required.

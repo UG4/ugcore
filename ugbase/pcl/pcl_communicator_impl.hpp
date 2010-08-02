@@ -25,12 +25,28 @@ ParallelCommunicator() :
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
+send_raw(int targetProc, void* pBuff, int bufferSize,
+	     bool bSizeKnownAtTarget)
+{
+	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
+	if(!bSizeKnownAtTarget)
+		stream.write((char*)&bufferSize, sizeof(int));
+		
+	stream.write((char*)&pBuff, bufferSize);
+	m_bSendBuffersFixed = m_bSendBuffersFixed
+						&& bSizeKnownAtTarget;
+}
+			   
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void ParallelCommunicator<TLayout>::
 send_data(int targetProc, Interface& interface,
 			  ICommunicationPolicy<TLayout>& commPol)
 {
 	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
 	commPol.collect(stream, interface);
-	m_bSendBuffersFixed &= (commPol.get_required_buffer_size(interface) >= 0);
+	m_bSendBuffersFixed = m_bSendBuffersFixed
+						&& (commPol.get_required_buffer_size(interface) >= 0);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -58,7 +74,8 @@ send_data(Layout& layout,
 	{
 		ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
 		commPol.collect(stream, layout.interface(iter));
-		m_bSendBuffersFixed &= (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+		m_bSendBuffersFixed = m_bSendBuffersFixed
+			&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 	}
 	
 	commPol.end_layout_collection();
@@ -82,20 +99,47 @@ send_data(Layout& layout,
 		{
 			ug::BinaryStream& stream = *m_streamPackOut.get_stream(layout.proc_id(iter));
 			commPol.collect(stream, layout.interface(iter));
-			m_bSendBuffersFixed &= (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
+			m_bSendBuffersFixed = m_bSendBuffersFixed
+				&& (commPol.get_required_buffer_size(layout.interface(iter)) >= 0);
 		}
 	}
 	
 	commPol.end_layout_collection();
 }
-		  
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void ParallelCommunicator<TLayout>::
+receive_raw(int srcProc, ug::BinaryStream& binStreamOut,
+			int bufferSize)
+{
+	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
+											 NULL, NULL,
+											 NULL, &binStreamOut,
+											 bufferSize));
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class TLayout>
+void ParallelCommunicator<TLayout>::
+receive_raw(int srcProc, void* buffOut,
+			int bufferSize)
+{
+	m_extractorInfos.push_back(ExtractorInfo(srcProc, NULL,
+											 NULL, NULL,
+											 buffOut, NULL,
+											 bufferSize));
+}
+			
 ////////////////////////////////////////////////////////////////////////
 template <class TLayout>
 void ParallelCommunicator<TLayout>::
 receive_data(int srcProc, Interface& interface,
 			ICommunicationPolicy<TLayout>& commPol)
 {
-	m_extractorInfos.push_back(ExtractorInfo(&commPol, srcProc, &interface, NULL));
+	m_extractorInfos.push_back(ExtractorInfo(srcProc, &commPol
+											 &interface, NULL,
+											 NULL, NULL, 0));
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -103,7 +147,9 @@ template <class TLayout>
 void ParallelCommunicator<TLayout>::
 receive_data(Layout& layout, ICommunicationPolicy<TLayout>& commPol)
 {
-	m_extractorInfos.push_back(ExtractorInfo(&commPol, -1, NULL, &layout));
+	m_extractorInfos.push_back(ExtractorInfo(-1, &commPol,
+											 NULL, &layout,
+											 NULL, NULL, 0));
 }
 
 template <class TLayout>
@@ -337,7 +383,12 @@ communicate()
 			ExtractorInfo& info = *iter;
 			if(info.m_srcProc > -1){
 			//	the extractor only has a single interface.
-				int buffSize = info.m_extractor->get_required_buffer_size(*info.m_interface);
+				int buffSize = -1;
+				if(info.m_extractor)
+					buffSize = info.m_extractor->get_required_buffer_size(*info.m_interface);
+				else
+					buffSize = info.m_rawSize;
+
 				if(buffSize < 0){
 					allBufferSizesFixed = false;
 					break;
@@ -450,8 +501,27 @@ communicate()
 		if(info.m_srcProc > -1)
 		{
 		//	extract the data for single proc
-			info.m_extractor->extract(*m_streamPackIn.get_stream(info.m_srcProc),
-										*info.m_interface);
+			ug::BinaryStream& stream = *m_streamPackIn.get_stream(info.m_srcProc);
+		//	this can be either an interface, a void* buffer or a
+		//	binary-stream.
+			if(info.m_interface){
+				info.m_extractor->extract(stream, *info.m_interface);
+			}
+			else if(info.m_buffer){
+				stream.read((char*)info.m_buffer, info.m_rawSize);
+			}
+			else{
+				assert(info.m_stream && "ERROR in ParallelCommunicator::communicate: No valid receiver specified.");
+				
+				int rawSize = info.m_rawSize;
+				if(rawSize < 0){
+				//	the raw size is encoded in the buffer in this case.
+					stream.read((char*)&rawSize, sizeof(int));
+				}
+				
+				info.m_stream->resize(rawSize);
+				stream.read((char*)info.m_stream->buffer(), rawSize);
+			}
 		}
 		else
 		{

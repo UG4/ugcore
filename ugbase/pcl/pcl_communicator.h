@@ -48,18 +48,21 @@ class ParallelCommunicator
 	////////////////////////////////
 	//	SEND
 	
-	//	sends raw data to a target-proc.
-	/*	Please note that this method should only be used if custom data
+	///	sends raw data to a target-proc.
+	/**	Shedules the data in pBuff to be sent to the target-proc
+	 *	pBuff can be reused or cleared directly after the call returns.
+	 *
+	 *	Data sent with this method can be received using receive_raw.
+	 *
+	 *	Please note that this method should only be used if custom data
 	 *	should be send in a block with data that is communicated through
 	 *	interfaces, since an additional copy-operation at the target process
 	 *	has to be performed.
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::send.
 	 */
-/*
 		void send_raw(int targetProc, void* pBuff, int bufferSize,
 					   bool bSizeKnownAtTarget = false);
-*/
 
 	///	collects data that will be send during communicate.
 	/**	Calls ICommunicationPolicy<TLayout>::collect with the specified
@@ -83,8 +86,14 @@ class ParallelCommunicator
 	////////////////////////////////
 	//	RECEIVE
 	
-	//	registers a binary-stream to receive data from a source-proc.
-	/*	Receives data that has been sent with send_raw.
+	///	registers a binary-stream to receive data from a source-proc.
+	/**	Receives data that has been sent with send_raw.
+	 *	If send_raw was called with bSizeKnownAtTarget == true, an
+	 *	exact bufferSize has to be specified. If bSizeKnownAtTarget was
+	 *	set to false, bufferSize has to be set to -1.
+	 *
+	 *	Make sure that binStreamOut exists until communicate has been
+	 *	executed.
 	 *
 	 *	Please note that this method should only be used if custom data
 	 *	should be send in a block with data that is communicated through
@@ -92,11 +101,17 @@ class ParallelCommunicator
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::receive.
 	 */
-/*
-		void receive_raw(int srcProc, BinaryStream& binStreamOut,
+		void receive_raw(int srcProc, ug::BinaryStream& binStreamOut,
 						 int bufferSize = -1);
-*/
-	/*	Receives data that has been sent with send_raw.
+
+	///	registers a buffer to receive data from a source-proc.
+	/**	Receives data that has been sent with send_raw.
+	 *	This method may only be used if send_raw was called with
+	 *	bSizeKnownAtTarget == true. Call receive_raw with a binary-
+	 *	stream instead, if buffer-sizes are not known.
+	 *
+	 *	Make sure that the buffer points to valid memory until
+	 *	communicate has been executed.
 	 *
 	 *	Please note that this method should only be used if custom data
 	 *	should be send in a block with data that is communicated through
@@ -104,10 +119,8 @@ class ParallelCommunicator
 	 *	If you're only interested in sending raw data, you should take a
 	 *	look into pcl::ProcessCommunicator::receive.
 	 */
-/*
 		void receive_raw(int srcProc, void* buffOut,
 						 int bufferSize);
-*/
 		
 	///	registers a communication-policy to receive data on communicate.
 	/**	Receives have to be registered before communicate is executed.
@@ -210,18 +223,27 @@ class ParallelCommunicator
 	protected:		
 	///	holds information that will be passed to the extract routines.
 	/**	if srcProc == -1, the layout will be used for extraction.
-	 *	if srcProc >= 0, the srcProc and the interface will be used.*/
+	 *	if srcProc >= 0, either the buffer, the binaryStream or the
+	 *	interace will be used for extraction, depending on which is
+	 *	not NULL.
+	 */
 		struct ExtractorInfo
 		{
 			ExtractorInfo()			{}
-			ExtractorInfo(CommPol* pExtractor, int srcProc,
-						Interface* pInterface, Layout* pLayout) : m_extractor(pExtractor), m_srcProc(srcProc),
-																m_interface(pInterface), m_layout(pLayout)	{}
+			ExtractorInfo(int srcProc, CommPol* pExtractor,
+						Interface* pInterface, Layout* pLayout,
+						void* buffer, ug::BinaryStream* stream, int rawSize) :
+				m_srcProc(srcProc), m_extractor(pExtractor),
+				m_interface(pInterface), m_layout(pLayout),
+				m_buffer(buffer), m_stream(stream), m_rawSize(rawSize)	{}
 
-			CommPol*	m_extractor;
-			int			m_srcProc;
-			Interface*	m_interface;
-			Layout*		m_layout;
+			int					m_srcProc;
+			CommPol*			m_extractor;			
+			Interface*			m_interface;
+			Layout*				m_layout;
+			void*				m_buffer;
+			ug::BinaryStream*	m_stream;
+			int					m_rawSize;
 		};
 
 	///	A list that holds information about extractors.
