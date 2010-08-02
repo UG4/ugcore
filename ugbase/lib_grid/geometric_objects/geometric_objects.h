@@ -113,9 +113,10 @@ class geometry_traits<Vertex>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVRT_VERTEX,
-			BASE_OBJECT_TYPE_ID = VERTEX,
-			REFERENCE_OBJECT_ID = ROID_VERTEX
+			BASE_OBJECT_TYPE_ID = VERTEX
 		};
+
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
 
 typedef geometry_traits<Vertex>::iterator 		VertexIterator;
@@ -179,9 +180,9 @@ class geometry_traits<HangingVertex>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVRT_HANGING_VERTEX,
-			BASE_OBJECT_TYPE_ID = VERTEX,
-			REFERENCE_OBJECT_ID = ROID_VERTEX
+			BASE_OBJECT_TYPE_ID = VERTEX
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
 
 typedef geometry_traits<HangingVertex>::iterator 		HangingVertexIterator;
@@ -259,9 +260,9 @@ class geometry_traits<Edge>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSEDGE_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE,
-			REFERENCE_OBJECT_ID = ROID_EDGE
+			BASE_OBJECT_TYPE_ID = EDGE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
 typedef geometry_traits<Edge>::iterator 		EdgeIterator;
@@ -350,9 +351,9 @@ class geometry_traits<ConstrainedEdge>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSEDGE_CONSTRAINED_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE,
-			REFERENCE_OBJECT_ID = ROID_EDGE
+			BASE_OBJECT_TYPE_ID = EDGE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
 typedef geometry_traits<ConstrainedEdge>::iterator 			ConstrainedEdgeIterator;
@@ -494,9 +495,9 @@ class geometry_traits<ConstrainingEdge>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSEDGE_CONSTRAINING_EDGE,
-			BASE_OBJECT_TYPE_ID = EDGE,
-			REFERENCE_OBJECT_ID = ROID_EDGE
+			BASE_OBJECT_TYPE_ID = EDGE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
 typedef geometry_traits<ConstrainingEdge>::iterator 		ConstrainingEdgeIterator;
@@ -634,9 +635,9 @@ class geometry_traits<Triangle>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE,
-			REFERENCE_OBJECT_ID = ROID_TRIANGLE
+			BASE_OBJECT_TYPE_ID = FACE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 };
 
 typedef geometry_traits<Triangle>::iterator			TriangleIterator;
@@ -810,9 +811,9 @@ class geometry_traits<ConstrainedTriangle>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINED_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE,
-			REFERENCE_OBJECT_ID = ROID_TRIANGLE
+			BASE_OBJECT_TYPE_ID = FACE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 };
 
 typedef geometry_traits<ConstrainedTriangle>::iterator			ConstrainedTriangleIterator;
@@ -857,9 +858,9 @@ class geometry_traits<ConstrainingTriangle>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINING_TRIANGLE,
-			BASE_OBJECT_TYPE_ID = FACE,
-			REFERENCE_OBJECT_ID = ROID_TRIANGLE
+			BASE_OBJECT_TYPE_ID = FACE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TRIANGLE;
 };
 
 typedef geometry_traits<ConstrainingTriangle>::iterator			ConstrainingTriangleIterator;
@@ -950,9 +951,9 @@ class geometry_traits<Quadrilateral>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSFACE_QUADRILATERAL,
-			BASE_OBJECT_TYPE_ID = FACE,
-			REFERENCE_OBJECT_ID = ROID_QUADRILATERAL
+			BASE_OBJECT_TYPE_ID = FACE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
 };
 
 typedef geometry_traits<Quadrilateral>::iterator		QuadrilateralIterator;
@@ -1051,9 +1052,9 @@ class geometry_traits<Tetrahedron>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_TETRAHEDRON,
-			BASE_OBJECT_TYPE_ID = VOLUME,
-			REFERENCE_OBJECT_ID = ROID_TETRAHEDRON
+			BASE_OBJECT_TYPE_ID = VOLUME
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_TETRAHEDRON;
 };
 
 typedef geometry_traits<Tetrahedron>::iterator			TetrahedronIterator;
@@ -1149,9 +1150,9 @@ class geometry_traits<Hexahedron>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_HEXAHEDRON,
-			BASE_OBJECT_TYPE_ID = VOLUME,
-			REFERENCE_OBJECT_ID = ROID_HEXAHEDRON
+			BASE_OBJECT_TYPE_ID = VOLUME
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_HEXAHEDRON;
 };
 
 typedef geometry_traits<Hexahedron>::iterator	HexahedronIterator;
@@ -1247,9 +1248,9 @@ class geometry_traits<Prism>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_PRISM,
-			BASE_OBJECT_TYPE_ID = VOLUME,
-			REFERENCE_OBJECT_ID = ROID_PRISM
+			BASE_OBJECT_TYPE_ID = VOLUME
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PRISM;
 };
 
 typedef geometry_traits<Prism>::iterator		PrismIterator;
@@ -1345,9 +1346,9 @@ class geometry_traits<Pyramid>
 		enum
 		{
 			SHARED_PIPE_SECTION = SPSVOL_PYRAMID,
-			BASE_OBJECT_TYPE_ID = VOLUME,
-			REFERENCE_OBJECT_ID = ROID_PYRAMID
+			BASE_OBJECT_TYPE_ID = VOLUME
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_PYRAMID;
 };
 
 typedef geometry_traits<Pyramid>::iterator			PyramidIterator;
