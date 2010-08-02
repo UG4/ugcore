@@ -12,7 +12,7 @@
 #include "elem_disc_interface.h"
 
 // include special discs
-#include "convection_diffusion_equation/convection_diffusion.h"
+#include "convection_diffusion/convection_diffusion.h"
 #include "density_driven_flow/density_driven_flow.h"
 
 // include utils for assembling
