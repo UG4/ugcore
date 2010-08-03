@@ -18,7 +18,6 @@ namespace ug{
 //							Vector
 ///////////////////////////////////////////////////////////////////
 
-#define SPECIALIZE_EXPRESSION_TEMPLATES
 //!
 //! "big" Vector class for use with the big SparseMatrix
 //! can = template expressions like x = 0.5*x - y + A*z
@@ -33,10 +32,10 @@ public:
 	typedef Vector<templ_entry_type> vector_type;
 
 	//! constructor
-	Vector(const char *_name = "");
+	Vector();
 
 	//! constructor with length
-	Vector(size_t _length, const char *_name = "");
+	Vector(size_t _length);
 
 	//! destructor
 	~Vector();
@@ -160,7 +159,7 @@ public: // output functions
 	//! ostream << operator
 	friend ostream &operator<<(ostream &output, const Vector &v)
 	{
-		output << "Vector " <<  v.name << "[" << v.length << "]";
+		output << "Vector " <<  "[" << v.length << "]";
 		return output;
 	}
 
@@ -170,25 +169,6 @@ public: // output functions
 public:
 	int firstIndex() { return 0; }
 	int lastIndex() { return size(); }
-
-	// data
-public:
-	size_t level;				///< multigrid level of this vecotr
-	const char *name;		///< name
-
-	// TODO: for parallelization: auto-detect non-matching distributions
-	/*enum vector_mode
-	{
-		DIST_ADDITIVE,
-		DIST_CONSISTENT
-	};
-
-	vector_mode getDistMode()
-	{
-		return dist_mode;
-	}
-
-	void assureConsistent(); */
 
 
 private:

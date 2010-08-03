@@ -1,11 +1,12 @@
-/*
- *  SparseMatrix.h
+/**
+ * \file sparsematrix.h
  *
- *  Created by Martin Rupp on 04.11.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 26.11.2009
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
-
 
 #ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX__
 #define __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX__
@@ -23,23 +24,17 @@
 #include "vector.h"
 
 
-
-
-///////////////////////////////////////////////////////////////////
-//							connection
-///////////////////////////////////////////////////////////////////
-
 namespace ug{
 
 template<typename entry_type> class matrixrow;
 template<typename vec_type> class Vector;
 
-//!
-//! SparseMatrix
-//! template parameter T: blocktype
-//! SparseMatrix for big, variable sparse matrices.
-//! matrix is stored independent row-wise
-//! \sa matrixRow
+/** SparseMatrix
+ * \param T blocktype
+ *  SparseMatrix for big, variable sparse matrices.
+ *   matrix is stored independent row-wise
+ *   \sa matrixrow
+ */
 template<typename T>
 class SparseMatrix : public TE_MAT<SparseMatrix<T> >
 {
@@ -105,8 +100,13 @@ public:
 	bool is_finalized() const;
 
 private:
-	//! "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
+	// safe_set_connections
+	/**
+	 * "safe" way to set a connection, since when cons[row] is in the big consecutive consmem-array,
+	 * you mustnt delete[] mem.
+	 */
 	void safe_set_connections(size_t row, connection *mem) const;
+	//! returns true if the row is stored inside the consecutive mem.
 	bool in_consmem(size_t row) const;
 
 private:
@@ -152,27 +152,71 @@ public:
 	 * - row_index(size_t i)
 	 * - col_index(size_t j)
 	 * - operator()(size_t i, size_t j)
+	 * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
+	 * \param M the whole local matrix type
 	 */
 	template<typename M>
 	void add(const M &mat);
 	template<typename M>
+	//! set local matrix \sa add
 	void set(const M &mat);
+	//! get local matrix \sa add
 	template<typename M>
 	void get(M &mat) const;
 
+	/** Add a local matrix
+	 *
+	 * The matrix type must declare the following members:
+	 * - num_rows()
+	 * - num_cols()
+	 * - operator()(size_t i, size_t j)
+	 * so that mat(i, j) will go to SparseMat(row[i], col[j])
+	 * \param M a small matrix type
+	 * \param rows
+	 * \param cols
+	 */
 	template<typename M>
 	void add(const M &mat, size_t *rows, size_t *cols);
+	//! set local matrix \sa add
 	template<typename M>
 	void set(const M &mat, size_t *rows, size_t *cols);
+	//! get local matrix \sa add
 	template<typename M>
 	void get(M &mat, size_t *rows, size_t *cols) const;
 
 
+	//! set matrix to Id*a
 	bool set(double a);
 
+
+	/** operator() (size_t r, size_t c) const
+	 * access connection (r, c)
+	 * \param r row
+	 * \param c column
+	 * \note it is assert'ed that connection (r,c) is there
+	 * use operator()(r,c,bConnectionFound) to check.
+	 * \return SparseMat(r, c)
+	 */
 	const entry_type &operator() (size_t r, size_t c) const;
+
+	/** operator() (size_t r, size_t c) const
+	 * access or create connection (r, c)
+	 * \param r row
+	 * \param c column
+	 * \note (r,c) is added to sparsity pattern if not already there
+	 * use operator()(r,c,bConnectionFound) to prevent
+	 * \return SparseMat(r, c)=0.0 if connection created, otherwise SparseMat(r, c)
+	 */
 	entry_type &operator() (size_t r, size_t c);
 
+	/** operator() (size_t r, size_t c, bool &bConnectionFound) const
+	 * access SparseMat(r, c) and check if connection is there
+	 * \param r row
+	 * \param c column
+	 * \param bConnectionFound false if connection couldnt be found
+	 * \note the connection (r, c) is not created if not already there.
+	 * \return entry_type(0.0) if not found, otherwise SparseMat(r, c)
+	 */
 	const entry_type &operator() (size_t r, size_t c, bool &bConnectionFound) const;
 	entry_type &operator() (size_t r, size_t c, bool &bConnectionFound);
 
@@ -215,8 +259,25 @@ public:
 	//! remove zero entries of SparseMatrix (experimental)
 	void remove_zeros(size_t row);
 
+	/** set a row of the matrix. all previous content in this row is destroyed (@sa add_matrix_row).
+	 * \param row index of the row to set
+	 * \param c pointer to a array of sorted connections of size nr
+	 * \param nr number of connections in c
+	 * \remark connections have to be sorted
+	 */
 	void set_matrix_row(size_t row, connection *c, size_t nr);
+
+	/** add_matrix_row
+	 *  add a row to a matrix row.
+	 * \param row index of the row to set
+	 * \param c pointer to a array of sorted connections of size nr
+	 * \param nr number of connections in c
+	 * \remark if we get new connections, matrix is definalized.
+	 * \remark connections have to be sorted
+	 */
 	void add_matrix_row(size_t row, connection *c, size_t nr);
+
+	//! returns number of connections of row row.
 	inline size_t num_connections(size_t row) const;
 
 public:
@@ -247,6 +308,10 @@ public:
 
 	// const_RowIterator
 
+	/** cRowIterator
+	 * const iterator over a row
+	 * \note due to cLowerLeftIterator, there is no endRow or similar, use cRowIterator::isEnd()
+	 */
 	class cRowIterator
 	{
 	public:
@@ -272,7 +337,9 @@ public:
 		inline bool isEnd() const { return p >= pEnd; } // remove this
 	};
 
-	// unconst row iterator
+	/** rowIterator
+	 * iterator over a row
+	 */
 	class rowIterator
 	{
 	public:
@@ -297,6 +364,9 @@ public:
 		inline bool isEnd() const { return p >= pEnd; } // remove this
 	};
 
+	/** cLowerLeftIterator
+	 * iterator only over connections with c->iIndex < row
+	 */
 	class cLowerLeftIterator : public cRowIterator
 	{
 	private:
@@ -309,6 +379,9 @@ public:
 		inline bool isEnd() const { return this->p >= this->pEnd || this->p->iIndex >= row; }
 	};
 
+	/** cUpperRightIterator
+	 * iterator only over connections with c->iIndex > row
+	 */
 	class cUpperRightIterator : public cRowIterator
 	{
 	public:
@@ -341,7 +414,6 @@ public:
 	{
 		return cUpperRightIterator(*this, row);
 	}
-
 
 public:
 	// connectivity functions

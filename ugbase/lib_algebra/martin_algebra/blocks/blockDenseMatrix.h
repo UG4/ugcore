@@ -527,7 +527,8 @@ struct block_matrix_traits< blockDenseMatrix<double, storage_type, rows_, cols_>
 {
 	typedef blockVector<double, storage_type, rows_ > vec_type;
 	typedef smallInverse<storage_type, rows_, cols_> inverse_type;
-	enum { nrOfUnknowns = rows_ } ;
+	enum { nrOfRows = rows_ } ;
+	enum { nrOfCols = cols_ } ;
 };
 
 /////////////////////////////////////////////////////////////////

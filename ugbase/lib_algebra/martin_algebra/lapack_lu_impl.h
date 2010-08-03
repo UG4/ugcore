@@ -1,9 +1,11 @@
-/*
- *  lapack_lu_impl.h
+/**
+ * \file lapack_lu_impl.h
  *
- *  Created by Martin Rupp on 26.11.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 26.11.2009
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
 
 #ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__

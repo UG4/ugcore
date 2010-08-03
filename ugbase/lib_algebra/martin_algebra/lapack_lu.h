@@ -1,10 +1,13 @@
-/*
- *  Lapack_lu.h
+/**
+ * \file lapack_lu.h
  *
- *  Created by Martin Rupp on 26.11.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 26.11.2009
+ *
+ * Goethe-Center for Scientific Computing 2010.
  */
+
 #ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU__
 #define __H__UG__MARTIN_ALGEBRA__LAPACK_LU__
 
@@ -15,8 +18,10 @@
 #include <cblas.h>
 #include <clapack.h>
 
-
-// TODO: for smallmatrix tasks like this, better use sth. like FLENS
+/**
+ * \brief solves linear equation systems with dense LU decomposition
+ *
+ */
 namespace ug{
 
 class LapackLU
@@ -34,7 +39,6 @@ public:
 		if(interchange) delete[] interchange;
 	}
 
-	// todo: for non-double
 	template<typename matrix_type>
 	void init(const matrix_type &A);
 

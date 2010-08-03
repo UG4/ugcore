@@ -48,7 +48,6 @@ inline double Vector<entry_type>::dotprod(const Vector &w) //const
 
 	double sum=0;
 	for(size_t i=0; i<length; i++)	sum += values[i] * w[i];
-	//FOR_UNROLL_FWD(i, 0, length, UNROLL, sum += values[i] * w[i]);
 	return sum;
 }
 
@@ -57,11 +56,7 @@ template<typename entry_type>
 inline double Vector<entry_type>::operator = (double d)
 {
 	for(size_t i=0; i<length; i++)
-	{
-		prefetchReadWrite(values+i+512);
 		values[i] = d;
-	}
-	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = d);
 	return d;
 }
 
@@ -83,20 +78,11 @@ template<typename entry_type>
 inline void Vector<entry_type>::applyto(Vector &v) const
 {
 	UG_ASSERT(v.length == length, *this << " has not same length as " << v);
-	//memcpy(v.values, values, length*sizeof(entry_type));
+
 	for(size_t i=0; i<length; i++)
 		v.values[i] = values[i];
 }
 
-
-/*void operator = (const Expression<SparseMatrix, Multiply_Operator, Vector> ex)
- {
- ASSERT2(ex.size() == length, *this << " has not same length as " << ex);
- const matrix &m = ex.l;
- const Vector &r = ex.r;
- //for(size_t i=0; i < length; i++) values[i] = m[i]*r;
- FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = m[i]*r);
- }	*/
 
 template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
@@ -108,28 +94,21 @@ template<typename Type> inline void Vector<entry_type>::operator = (const Type &
 	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
-		//values[i] = t[i];
 		t.assign(values[i], i);
-		//t.copyTo(values[i], i);
 	}
-	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] = t[i]);
 }
 
 // v += exp
 template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator += (const Type &t)
 {
-	//IF_PRINTLEVEL(5) cout << *this << " += " << t << " (unspecialized) " << endl;
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
-	//t.preventForbiddenDestination(this);
 
 	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
-		//values[i] += t[i];
 		t.addTo(values[i], i);
 	}
-	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] += t[i]);
 }
 
 // v -= exp
@@ -141,45 +120,27 @@ template<typename Type> inline void Vector<entry_type>::operator -= (const Type 
 	//t.preventForbiddenDestination(this);
 
 	for(size_t i=0; i < length; i++)
-	{
-		prefetchReadWrite(values+i+512);
-		//values[i] -= t[i];
 		t.substractFrom(values[i], i);
-	}
-	//FOR_UNROLL_FWD(i, 0, length, UNROLL, values[i] -= t[i]);
 }
-/*template<typename entry_type>
-template<typename T> inline void Vector<entry_type>::apply(Operation_type op, const T &t)
-{
-	if(op == OPERATION_SET)
-		operator = (t);
-	else if(op == OPERATION_ADD)
-		operator += (t);
-	if(op == OPERATION_SUB)
-		operator -= (t);
-}*/
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 template<typename entry_type>
-Vector<entry_type>::Vector (const char *_name)
+Vector<entry_type>::Vector ()
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 
-	length = 0; values = NULL; name = _name; level = 0;
+	length = 0; values = NULL;
 }
 
 template<typename entry_type>
-Vector<entry_type>::Vector(size_t _length, const char *_name)
+Vector<entry_type>::Vector(size_t _length)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 
 	length = 0;
 	create(_length);
-	name = _name;
-	level = 0;
 }
 
 template<typename entry_type>
@@ -227,28 +188,13 @@ bool Vector<entry_type>::create(const Vector &v)
 }
 
 
-// printofile: posx posy value
-template<typename entry_type>
-void Vector<entry_type>::printtofile(const char *filename)
-{
-/*	fstream fil(filename, ios::out);
-
-	for(size_t i=0; i < length; i++)
-	{
-		postype pos = GetPosForIndex(i);
-		fil << pos.x << " " << pos.y << " " << values[i] << endl;
-	}*/
-
-}
-
 // print
 template<typename entry_type>
 void Vector<entry_type>::print(const char * const text) const
 {
 
-  if(name) cout << endl << "================ " << name;
 	if(text) cout << " == " << text;
-	cout << " == level: " << level << " length: " << length << " =================" << endl;
+	cout << " length: " << length << " =================" << endl;
 	for(size_t i=0; i<length; i++)
 		//cout << values[i] << " ";
 		cout << i << ": " << values[i] << endl;

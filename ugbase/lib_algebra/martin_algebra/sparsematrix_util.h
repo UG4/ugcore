@@ -1,10 +1,11 @@
-/*
- *  sparsematrix_util.h
- *  flexamg
+/**
+ * \file sparsematrix_util.h
  *
- *  Created by Martin Rupp on 11.06.10.
- *  Copyright 2010 . All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 11.06.2010
+ *
+ * Goethe-Center for Scientific Computing 2010.
  */
 
 #ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_UTIL__
@@ -12,45 +13,32 @@
 
 namespace ug
 {
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// createAsMultiplyOf:
+// CreateAsMultiplyOf:
 //-------------------------
-//! Calculates *this = A B C. posInConnections only needed for speedup (has to be -1 forall i).
-//! other possibility: search in vector con for con[i].iIndex == indexTo about 3-4x slower (3d)
-//! @param  A
-//! @param  B
-//! @param  C
-//! @param posInConnections		array of size B.getLength() for speedup of neighbor-neighbor-calculation inited with -1.
+/**
+ * \brief Calculates M = A*B*C.
+ * \param M (out) Matrix M, M = A*B*C$
+ * \param A (in) Matrix A
+ * \param B (in) Matrix B
+ * \param C (in) Matrix C
+ */
 template<typename ABC_type, typename A_type, typename B_type, typename C_type>
-void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C, int *posInConnections)
+void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_type &C)
 {
 	UG_ASSERT(C.num_rows() == B.num_cols() && B.num_rows() == A.num_cols(), "sizes must match");
-	//cout << endl << " Creating Galerkin Matrix_type..." << endl;
 
 	// create output matrix M
 	M.create(A.num_rows(), C.num_cols());
 
 	// speedup with array posInConnections, needs n memory
-	// posInConnections[i]: index in the connections for current row.
-	// has to be -1 for all nodes
-
+	// posInConnections[i]: index in the connections for current row (if not in row: -1)
 	// tried this also with std::map, but took 1511.53 ms instead of 393.972 ms
+	// searching in the connections is also slower
 
-	bool bOwnMem = false;
-	if(posInConnections == NULL)
-	{
-		posInConnections = new int[C.num_cols()];
-		for(size_t i=0; i<C.num_cols(); i++) posInConnections[i] = -1; // memset(posInConnections, -1, sizeof(int)*C.num_cols());
-		bOwnMem = true;
-		//assert(0);
-	}
-#ifndef NDEBUG
-	else
-	{
-		for(size_t i=0; i<C.num_cols(); i++)
-			UG_ASSERT(posInConnections[i] == -1, "posInConnections[" << i << "] has to be -1, but is " << posInConnections[i] << ".");
-	}
-#endif
+	int *posInConnections = new int[C.num_cols()];
+	for(size_t i=0; i<C.num_cols(); i++) posInConnections[i] = -1;
 
 	// types
 	vector<typename ABC_type::connection > con(255);
@@ -96,7 +84,6 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 						// we have visited this node before,
 						// so we know the index of the connection
 						// -> add a*b*c
-						//TODO
 						AddMult(con[posInConnections[indexTo]].dValue, ab, cvalue);
 					}
 
@@ -110,21 +97,28 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 		M.set_matrix_row(i, &con[0], con.size());
 	}
 
-	if(bOwnMem)
-		delete[] posInConnections;
+	delete[] posInConnections;
 }
 
 
 
 
-
-//!
-//! @param node
-//! @param depth
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GetNeighborhood:
+//-------------------------
+/**
+ * \brief gets the neighborhood of a node in the connectivity graph of a SparseMatrix.
+ * \param A (in) Matrix A
+ * \param node (in) the node where to start
+ * \param depth (in) the depth of neighborhood. 0 = empty.
+ * \param indices (out) the indices of the neighbors
+ * \param posInConnections array to speed up computation. Has to be posInConnections[i] = 0 for all i=0..A.num_rows(). Can be NULL.
+ * \note the node itself is only included if there is a connection from node to node.
+  */
 template<typename T>
-void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_t> &indices, int *posInConnections)
+void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_t> &indices, int *posInConnections=NULL)
 {
-	// do this with a map???
+	// perhaps this is better with recursion
 	indices.clear();
 
 	vector<typename SparseMatrix<T>::cRowIterator> iterators;
@@ -167,18 +161,29 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_
 		}
 	}
 
+	// reset posInConnections
 	if(posInConnections)
 	{
 		for(size_t i=0; i<indices.size(); i++)
 			posInConnections[indices[i]] = -1;
 	}
 
+	// sort indices
 	sort(indices.begin(), indices.end());
 }
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// IsCloseToBoundary:
+//-------------------------
+/**
+ * \brief determines if a node is close to a unconnected node in the connectivity graph of a SparseMatrix.
+ * \param A (in) Matrix A
+ * \param node (in) the node where to start
+ * \param distance (in) up to which distance "close" is.
+ * \return if there is a distance long path in graph(A) to an unconnected node, true. otherwise false.
+  */
 template<typename T>
 bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 {
@@ -191,7 +196,15 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 }
 
 
-/// set Dirichlet row for entry (i,alpha)
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SetDirichletRow:
+//-------------------------
+/**
+ * set Dirichlet row for entry (i,alpha).
+ * \param A (in) Matrix A
+ * \param i (in) row to set dirichlet, that is A(i,i)(alpha, alpha) = 1.0, A(i,k)(alpha, beta) = 0.0 for all (k, beta) != (i, alpha)$.
+   */
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 {
@@ -206,11 +219,19 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 	}
 }
 
-/// set Dirichlet row for block i
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SetDirichletRow:
+//-------------------------
+/**
+ * set Dirichlet row for block i.
+ * \param A (in) Matrix A
+ * \param i (in) row to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
+ */
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 {
-	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(row); !conn.isEnd(); ++conn)
 	{
 		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
 		if((*conn).iIndex == i) block = 1.0;

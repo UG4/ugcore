@@ -1,11 +1,13 @@
-/*
- *  sparsematrix_print.hpp
- *  flexamg
+/**
+ * \file sparsematrix_print.h
  *
- *  Created by Martin Rupp on 04.11.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 04.11.2009
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
+
 #ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_PRINT__
 #define  __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_PRINT__
 
@@ -57,7 +59,12 @@ void SparseMatrix<T>::printtype() const
 
 // WriteMatrixToConnectionViewer
 //--------------------------------------------------
-//! writes to a file in somewhat SparseMatrix-market format (for connection viewer)
+/**
+ * \brief writes to a file in somewhat SparseMatrix-market format (for connection viewer)
+ * \param filename Filename to write matrix to
+ * \param A SparseMatrix A.
+ * \param positions Positions, there has to be one position for each i in (0, ..., max(A.num_rows(), A.num_cols())).
+ */
 template<typename Matrix_type, typename postype>
 void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, postype *positions, int dimensions)
 {

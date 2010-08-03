@@ -1,11 +1,12 @@
-/*
-*  matrixRow.h
-*  flexamg
-*
-*  Created by Martin Rupp on 18.01.10.
-*  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
-*
-*/
+/**
+ * \file matrixrow.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 18.01.10
+ *
+ * Goethe-Center for Scientific Computing 2010.
+ */
 
 #ifndef __H__UG__MARTIN_ALGEBRA__MATRIXROW__
 #define __H__UG__MARTIN_ALGEBRA__MATRIXROW__
@@ -21,12 +22,13 @@ namespace ug{
 ///////////////////////////////////////////////////////////////////
 
 //!
-//! class matrixrow
-//! templated class, parameter is a blockmatrix type like double or blockDenseMatrix
-//! you get a matrixrow variable when A is a SparseMatrix and you do A[i] or A.getrow(i)
-//! you can do A[i].getDiag() or A[i].addMatrixRow(c, nr);
-//! iterators: matrixrow<entry_type>::citerator it(A[i]), ++it, (*it).iIndex, dValue.
-//! also possible: double a = A[i]*x. (thats why i like this concept)
+/** class matrixrow
+ * templated class, parameter is a blockmatrix type like double or blockDenseMatrix
+ * you get a matrixrow variable when A is a SparseMatrix and you do A[i] or A.getrow(i)
+ * you can do A[i].getDiag() or A[i].addMatrixRow(c, nr);
+ * iterators: matrixrow<entry_type>::citerator it(A[i]), ++it, (*it).iIndex, dValue.
+ * also possible: double a = A[i]*x. (thats why i like this concept)
+ */
 template<typename entry_type>
 class matrixrow
 {

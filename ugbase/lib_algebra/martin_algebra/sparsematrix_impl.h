@@ -256,7 +256,8 @@ void SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // defrag
-/** defragmentates the matrix by writing all matrix rows consecutively in memory.
+/**
+ * defragmentates the matrix by writing all matrix rows consecutively in memory.
  * Sets pRowEnd = pRowStart+1.
  */
 template<typename T>
@@ -665,12 +666,6 @@ const matrixrow<T> SparseMatrix<T>::operator [] (size_t i) const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // set_matrix_row
-/** set a row of the matrix. all previous content in this row is destroyed (@sa add_matrix_row).
- * @param row index of the row to set
- * @param c pointer to a array of sorted connections of size nr
- * @param nr number of connections in c
- * @remark connections have to be sorted
- */
 template<typename T>
 void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
@@ -707,13 +702,6 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // add_matrix_row
-/** add a row to a matrix row.
- * @param row index of the row to set
- * @param c pointer to a array of sorted connections of size nr
- * @param nr number of connections in c
- * @remark if we get new connections, matrix is definalized.
- * @remark connections have to be sorted
- */
 template<typename T>
 void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
@@ -837,10 +825,11 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection
-/** returns a rowIterator to the connection A(r,c), creates connection if necessary.
- * @param r index of the row
- * @param c index of the column
- * @remark creates connection if necessary.
+/**
+ * returns a rowIterator to the connection A(r,c), creates connection if necessary.
+ * \param r index of the row
+ * \param c index of the column
+ * \remark creates connection if necessary.
  */
 template<typename T>
 typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, size_t c)
@@ -869,11 +858,12 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection
-/** returns a cRowIterator to the connection A(r,c) if connection already there
- * @param r index of the row
- * @param c index of the column
- * @param bFound returns true if connection found, otherwise false.
- * @remark does not create connections
+/**
+ * returns a cRowIterator to the connection A(r,c) if connection already there
+ * \param r index of the row
+ * \param c index of the column
+ * \param bFound returns true if connection found, otherwise false.
+ * \remark does not create connections
  */
 template<typename T>
 typename SparseMatrix<T>::cRowIterator SparseMatrix<T>::get_connection(size_t r, size_t c, bool &bFound) const
@@ -892,11 +882,12 @@ typename SparseMatrix<T>::cRowIterator SparseMatrix<T>::get_connection(size_t r,
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection
-/** returns a rowIterator to the connection A(r,c) if connection already there
- * @param r index of the row
- * @param c index of the column
- * @param bFound returns true if connection found, otherwise false.
- * @remark does not create connections
+/**
+ * returns a rowIterator to the connection A(r,c) if connection already there
+ * \param r index of the row
+ * \param c index of the column
+ * \param bFound returns true if connection found, otherwise false.
+ * \remark does not create connections
  */
 template<typename T>
 typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, size_t c, bool &bFound)
@@ -917,11 +908,11 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection_nr_templ
 /** binary searches connection A(r,c).
- * @param r index of the row
- * @param c index of the column
- * @param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= @sa get_connection_nr
- * @return true if connection was exactly found in = mode, otherwise always true.
- * @remarks >=/>/=/<=/< depends on template parameters
+ * \param r index of the row
+ * \param c index of the column
+ * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= \sa get_connection_nr
+ * \return true if connection was exactly found in = mode, otherwise always true.
+ * \remarks >=/>/=/<=/< depends on template parameter flag
  */
 template<typename T>
 template<typename SparseMatrix<T>::get_connection_nr_flag flag>
@@ -998,12 +989,12 @@ bool SparseMatrix<T>::get_connection_nr_templ(size_t r, size_t c, size_t &nr) co
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection_nr
 /** searches connections A(r,c)
- * @param r index of the row
- * @param c index of the column
- * @param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= depending on flag
- * @param flag EQUAL, LESS_EQUAL, LESS, GREATER, or GREATER_EQUAL
- * @return true if connection was exactly found in = mode, otherwise always false if no connection at all.
- * @remarks flag=EQUAL is standard parameter
+ * \param r index of the row
+ * \param c index of the column
+ * \param nr returns nr in pRowStart[r], so that pRowStart[r][nr].iIndex = c or >=/>/</<= depending on flag
+ * \param flag EQUAL, LESS_EQUAL, LESS, GREATER, or GREATER_EQUAL
+ * \return true if connection was exactly found in = mode, otherwise always false if no connection at all.
+ * \remarks flag=EQUAL is standard parameter
  */
 template<typename T>
 bool SparseMatrix<T>::get_connection_nr(size_t r, size_t c, size_t &nr, get_connection_nr_flag flag) const

@@ -16,4 +16,4 @@ namespace ug
 
 #include "core_smoothers.h"
 
-#endif
+#endif // __H__UG__MARTIN_ALGEBRA__ALGEBRA_MISC__
