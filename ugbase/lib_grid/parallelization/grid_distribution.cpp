@@ -661,18 +661,60 @@ void CommunicateInvolvedProcesses(vector<int>& vReceiveFromRanksOut,
 }
 
 
+template <class TLayout, class TDistLayout>
+void SendNewInterfaces(DistributedGridManager& distGridMgr,
+					   TLayout& layout,
+					   int interfaceType,
+					   std::vector<TDistLayout>& distLayoutVec,
+					   pcl::ParallelCommunicator<TLayout>& comm)
+{
+	typedef typename TLayout::iterator	InterfaceIter;
+	typedef typename TLayout::Interface Interface;
+
+//	we need some StreamPacks, in which we'll write the data that is
+//	to be sent to neighbours
+	StreamPack	spSlaves;
+	StreamPack	spMasters;
+//todo: add stream-packs for vertical masters / slaves
+
+//	data in each buffer is organized as follows:
+//		- int targetProc
+//		- int interfaceType
+//		- int interfaceSize
+//		- {elementIndices}
+
+//	iterate through the processes to which interfaces have to be build.
+	for(size_t iDistLayout = 0; iDistLayout < distLayoutVec.size();
+		++iDistLayout)
+	{
+		TDistLayout& distLayout = distLayoutVec[iDistLayout];		
 /*
-interface update algorithm layout:
-for each interface
-	for each entry
-		if the entry is selected, we'll send 1, else 0
-	fi
-fi
-
-when receiving the changes, we'll set up a vector that holds those 0s and 1s.
-This vector can later be used to clean the interfaces.
+	//	iterate through the levels
+		for(size_t level = 0; level < distLayout.num_levels(); ++level)
+		{
+			typename TDistLayout::InterfaceMap imap =
+				distLayout.interface_map(level);
+		//	iterate through the entries of the imap
+			for(typename TDistLayout::InterfaceMap::iterator iter = imap.begin();
+				iter != imap.end(); ++iter)
+			{
+				int procID = iter->first;
+				if(layout.interface_exists(procID, level)){
+				//	we have to associate the entries in the distLayouts interface
+				//	with their indices in the layouts interface.
+				//	we then have to write that into a buffer and send it
+				//	along the other data to procID.
+				//	we do this by first marking all entries in the dist-interface,
+				//	then we will iterate over the layout-interface and write the
+				//	entries into the buffer.
+					int numEntries = 0;
+					
+				}
+			}
+		}
 */
-
+	}
+}
 ////////////////////////////////////////////////////////////////////////
 ///	communicates with other processes and removes interface entries as requested.
 /**
@@ -684,7 +726,7 @@ This vector can later be used to clean the interfaces.
  * \returns	true, if the layout-map has changed, false if not.
  */
 template <class TLayout, class TSelector, class TDistLayout>
-bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel,
+bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 					  std::vector<TDistLayout>& distLayoutVec)
 
 {
@@ -700,6 +742,7 @@ bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel,
 		return false;
 		
 	Grid& grid = *sel.get_assigned_grid();
+	GridLayoutMap& glm = distGridMgr.grid_layout_map();
 	
 ////////////////////////////////
 //	We have to communicate with all direct neighbours (linked by an interface),
@@ -729,35 +772,14 @@ bool UpdateInterfaces(GridLayoutMap& glm, TSelector& sel,
 	
 //	we have to tell the neighbours, which new interfaces they have to build.
 //	indices are relative to the interface between localProc and its neighbour.
-//	data is organized as follows:
-//		- int targetProc
-//		- int interfaceType
-//		- int interfaceSize
-//		- {elementIndices}
-//...
-/*
-//	iterate through the processes to which interfaces have to be build.
-	for(size_t iDistLayout = 0; iDistLayout < distLayoutVec.size();
-		++iDistLayout)
-	{
-		TDistLayout& distLayout = distLayoutVec[distLayout];
-	//	iterate through the levels
-		for(size_t level = 0; level < distLayout.num_levels(); ++level)
-		{
-			typename TDistLayout::InterfaceMap imap =
-				distLayout.interface_map(level);
-		//	iterate through the entries of the imap
-			for(typename TDistLayout::InterfaceMap::iterator iter = imap.begin();
-				iter != imap.end(); ++iter)
-			{
-				int procID = iter->first;
-			//	check if a neighbour with that interface-id exists
-			//todo: this whole block has to be transfered into a separate
-			//		function, which takes a layout
-			}
-		}
+//	iterate over all interfaces
+	for(typename GridLayoutMap::Types<GeomObjType>::Map::iterator iter =
+		glm.template layouts_begin<GeomObjType>();
+		iter != glm.template layouts_end<GeomObjType>(); ++iter)
+	{	
+		SendNewInterfaces(distGridMgr, iter->second, iter->first,
+						  distLayoutVec, communicator);
 	}
-*/
 	
 //	communicate the data	
 	communicator.communicate();
@@ -826,9 +848,9 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	MGSelector msel(mg);
 
 //TODO: Only prepare layouts for processes to which data is actually send.
-	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
-							  vVolumeLayouts, mg, shPartition,
-							  false, &msel);
+	CreateRedistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
+								vVolumeLayouts, distGridMgr, shPartition,
+							  	false, &msel);
 
 ////////////////////////////////
 //	SETUP COMMUNICATION PATTERNS	
@@ -966,13 +988,13 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	}
 	
 	bool bErasedElementsFromLayout = false;
-	bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(glm, msel,
+	bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(distGridMgr, msel,
 															vVertexLayouts);
-	bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(glm, msel,
+	bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(distGridMgr, msel,
 															vEdgeLayouts);
-	bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(glm, msel,
+	bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(distGridMgr, msel,
 															vFaceLayouts);
-	bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(glm, msel,
+	bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(distGridMgr, msel,
 															vVolumeLayouts);
 	
 	if(bErasedElementsFromLayout){

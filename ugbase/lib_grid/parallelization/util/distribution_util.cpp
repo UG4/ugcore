@@ -224,6 +224,96 @@ void CreateDistributionLayouts(
 }
 
 ////////////////////////////////////////////////////////////////////////
+template <class TDistLayout>
+void AddExistingInterfacesForRedistribution(
+					DistributedGridManager& distGridMgr,
+					std::vector<TDistLayout>& distLayoutVec)
+{
+//	access the associated multi-grid
+	if(!distGridMgr.get_assigned_grid())
+		return;
+		
+	MultiGrid& mg = *distGridMgr.get_assigned_grid();
+	
+//	we'll use this vector to gather existing interface-entries for a node
+	vector<pair<int, size_t> > interfaceEntries;
+	
+//	iterate through the processes to which interfaces have to be build.
+	for(size_t iDistLayout = 0; iDistLayout < distLayoutVec.size();
+		++iDistLayout)
+	{
+		TDistLayout& distLayout = distLayoutVec[iDistLayout];
+	
+	//	iterate through the nodes of the dist-layout.
+	//	depending on the status, we'll have to add a new interface entry.
+		typename TDistLayout::NodeVec& nodes = distLayout.node_vec();
+		
+		for(size_t iNode = 0; iNode < nodes.size(); ++iNode)
+		{
+			typename TDistLayout::NodeType& node = nodes[iNode];
+			if(distGridMgr.is_interface_element(node))
+			{				
+			//	the node lies in at least one interface to an old neighbour.
+			//	We have to add the entry to corresponding distribution-interfaces
+				byte nodeStatus = distGridMgr.get_status(node);
+				int iType = INT_UNKNOWN;
+				if(nodeStatus & ES_MASTER){
+					iType = INT_MASTER;
+				}
+				else if(nodeStatus & ES_SLAVE){
+					iType = INT_SLAVE;
+				}
+				else{
+					UG_LOG("Only ES_MASTER and ES_SLAVE are supported during redistribution in the moment!\n");
+					throw(int(0));
+				}
+				
+				distGridMgr.collect_interface_entries(interfaceEntries, node);
+				
+				if(iType != INT_UNKNOWN){
+					for(size_t i = 0; i < interfaceEntries.size(); ++i){
+						typename TDistLayout::Interface& interface = 
+											distLayout.interface(interfaceEntries[i].first,
+																 mg.get_level(node));
+						interface.push_back(DistributionInterfaceEntry(iNode, iType,
+																	   interfaceEntries[i].second));
+					}
+				}
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+void CreateRedistributionLayouts(
+						std::vector<DistributionVertexLayout>& vertexLayoutsOut,
+						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
+						std::vector<DistributionFaceLayout>& faceLayoutsOut,
+						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
+						DistributedGridManager& distGridMgr, SubsetHandler& sh,
+						bool distributeGenealogy,
+						MGSelector* pSel)
+{
+//	access the associated multi-grid
+	if(!distGridMgr.get_assigned_grid())
+		return;
+		
+	MultiGrid& mg = *distGridMgr.get_assigned_grid();
+	
+//	first we'll create normal distribution layouts
+	CreateDistributionLayouts(vertexLayoutsOut, edgeLayoutsOut,
+							  faceLayoutsOut, volumeLayoutsOut,
+							  mg, sh, distributeGenealogy, pSel);
+							  
+//	now we can create distribution-interfaces from existing ones
+	AddExistingInterfacesForRedistribution(distGridMgr, vertexLayoutsOut);
+	AddExistingInterfacesForRedistribution(distGridMgr, edgeLayoutsOut);
+	AddExistingInterfacesForRedistribution(distGridMgr, faceLayoutsOut);
+	AddExistingInterfacesForRedistribution(distGridMgr, volumeLayoutsOut);
+	
+}
+						
+////////////////////////////////////////////////////////////////////////
 void SerializeGridAndDistributionLayouts(
 								std::ostream& out, MultiGrid& mg,
 								DistributionVertexLayout& vrtLayout,

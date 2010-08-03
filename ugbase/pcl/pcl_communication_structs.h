@@ -518,8 +518,11 @@ class MultiLevelLayout
 	/**	if the interface doesn't exist yet, it will be created.*/
 		inline Interface& interface(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface(procID);}
 
-	///	returns true if an interface to the given procID already exists.
+	///	returns true if an interface to the given procID on the given level already exists.
 		inline bool interface_exists(int procID, size_t level)	{require_level(level); return m_vLayouts[level]->interface_exists(procID);}
+
+	///	returns true if an interface to the given procID already exists.
+		inline bool interface_exists(int procID)				{for(size_t i = 0; i < num_levels(); ++i) if(m_vLayouts[i]->interface_exists(procID)) return true; return false;}
 
 	///	returns the layout at the given level.
 	/**	If level >= num_levels() then the layouts in between

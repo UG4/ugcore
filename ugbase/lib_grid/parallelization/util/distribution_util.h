@@ -17,11 +17,24 @@ namespace ug
 ///	The interface entry holds a local id and the type of the entry.
 struct DistributionInterfaceEntry
 {
-	DistributionInterfaceEntry()	{}
-	DistributionInterfaceEntry(int nLocalID, int nType) : localID(nLocalID), type(nType)	{}
+	DistributionInterfaceEntry() :
+		localID(0),
+		type(0),
+		associatedInterfaceID(-1)	{}
+		
+	DistributionInterfaceEntry(int nLocalID, int nType) :
+		localID(nLocalID),
+		type(nType),
+		associatedInterfaceID(-1)	{}
 	
+	DistributionInterfaceEntry(int nLocalID, int nType, int nAssInterfaceID) :
+		localID(nLocalID),
+		type(nType),
+		associatedInterfaceID(nAssInterfaceID)	{}
+
 	int localID : 28;
 	int type  	: 4;
+	int associatedInterfaceID;///< required for redistribution only.
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -66,6 +79,9 @@ struct DistributionNodeLayout
 ///	returns the interface to the given process on the given level.
 	/**	if you don't specify a level, level = 0 will be used.*/
 	inline Interface& interface(int procID, size_t level = 0)	{return interface_map(level)[procID];}
+	
+///	returns true if the interface already exists
+	inline bool has_interface(int procID, size_t level = 0)		{InterfaceMap& m = interface_map(level); return (m.find(procID) != m.end());}
 	
 ///	returns the interface-map for the given level.
 	/**	if you don't specify a level, level = 0 will be used.*/
@@ -121,6 +137,44 @@ void CreateDistributionLayouts(
 						bool distributeGenealogy,
 						MGSelector* pSel = NULL);
 
+////////////////////////////////////////////////////////////////////////
+//	CreateRedistributionLayouts
+///	Creates distribution layouts for vertices, edges, faces and volumes
+/**
+ * Given a DistributedGridManager and a SubsetHandler, this method
+ * creates distribution layouts for vertices, edges, ...
+ * Those layouts can then be used to redistribute a distributed grid onto
+ * different processes.
+ * Please note that those layouts are not used to perform
+ * communication later on. Their sole purpose is to help to redistribute
+ * a grid.
+ *
+ * For each subset a separate distribution-layout is created. That means 
+ * that i.e. vertexLayoutsOut[k] holds the vertex-layout for the k-th subset.
+ *
+ * If nodes that lie in an existing interface are to be distributed to
+ * another process, interfaces are automatically generated, which will
+ * connect the nodes on the new process to associated nodes on the old
+ * neighbor. It is cruical to realize, that thos interfaces may not be
+ * be final. If a neighbored process moves associated nodes, too, then
+ * those interfaces will have to be adjusted manually. This has to be done
+ * before the DistributionNodeLayouts are transfered to their target processes.
+ *
+ * If you pass a pointer to a valid selector (which is registered at mg),
+ * the selector will be used for internal calculations. The only reason
+ * for this parameter is a speed increase.
+ * You shouldn't assume anything about the content of pSel after the
+ * method finished.
+ */
+void CreateRedistributionLayouts(
+						std::vector<DistributionVertexLayout>& vertexLayoutsOut,
+						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
+						std::vector<DistributionFaceLayout>& faceLayoutsOut,
+						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
+						DistributedGridManager& distGridMgr, SubsetHandler& sh,
+						bool distributeGenealogy,
+						MGSelector* pSel = NULL);
+						
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridAndDistributionLayouts
 /**
