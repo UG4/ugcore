@@ -16,6 +16,7 @@ set(srcDiscretization	common/function_group.cpp
 
 						reference_element/reference_element.cpp
 						
+						quadrature/gauss_quadratures_ReferenceEdge.cpp
 						quadrature/gauss_quadratures_ReferenceTriangle.cpp
 						quadrature/gauss_quadratures_ReferenceQuadrilateral.cpp
 						#quadrature/gauss_quadratures_ReferenceVertex.cpp
