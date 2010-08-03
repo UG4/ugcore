@@ -85,6 +85,19 @@ GaussQuadrature<ReferencePrism>::GaussQuadrature(int order)
 	default: assert(0 && "Order not availabile. Can not construct GaussQuadrature.\n");
 	}
 }
+
+template <>
+bool RegisterQuadratureRule(QuadratureRuleFactory<ReferencePrism>& factory)
+{
+	static GaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_0(0);
+	static GaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_2(2);
+
+	bool success = true;
+	success &= factory.register_rule(gaussQuadratureReferencePrism_0);
+	success &= factory.register_rule(gaussQuadratureReferencePrism_2);
+	return success;
+}
+
 }; // namespace ug
 
  // register quadratures at factory
@@ -94,11 +107,4 @@ using namespace ug;
 template <>
 std::vector<const QuadratureRule<ReferencePrism>* > QuadratureRuleFactory<ReferencePrism>::m_rules =
 	std::vector<const QuadratureRule<ReferencePrism>* >();
-
-GaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_0(0);
-GaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_2(2);
-
-static const bool registered_0 = QuadratureRuleFactory<ReferencePrism>::instance().register_rule(gaussQuadratureReferencePrism_0);
-static const bool registered_2 = QuadratureRuleFactory<ReferencePrism>::instance().register_rule(gaussQuadratureReferencePrism_2);
-
 };

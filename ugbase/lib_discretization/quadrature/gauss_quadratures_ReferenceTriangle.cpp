@@ -655,6 +655,41 @@ GaussQuadrature<ReferenceTriangle>::GaussQuadrature(int order)
 	default: assert(0 && "Order not availabile. Can not construct GaussQuadrature.\n");
 	}
 }
+
+template <>
+bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceTriangle>& factory)
+{
+
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_1(1);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_2(2);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_3(3);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_4(4);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_5(5);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_6(6);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_7(7);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_8(8);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_9(9);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_10(10);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_11(11);
+	static GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_12(12);
+
+	bool success = true;
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_1);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_2);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_3);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_4);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_5);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_6);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_7);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_8);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_9);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_10);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_11);
+	success &= factory.register_rule(gaussQuadratureReferenceTriangle_12);
+
+	return success;
+};
+
 }; // namespace ug
 
  // register quadratures at factory
@@ -664,31 +699,4 @@ using namespace ug;
 template <>
 std::vector<const QuadratureRule<ReferenceTriangle>* > QuadratureRuleFactory<ReferenceTriangle>::m_rules =
 	std::vector<const QuadratureRule<ReferenceTriangle>* >();
-
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_1(1);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_2(2);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_3(3);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_4(4);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_5(5);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_6(6);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_7(7);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_8(8);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_9(9);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_10(10);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_11(11);
-GaussQuadrature<ReferenceTriangle> gaussQuadratureReferenceTriangle_12(12);
-
-static const bool registered_1 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_1);
-static const bool registered_2 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_2);
-static const bool registered_3 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_3);
-static const bool registered_4 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_4);
-static const bool registered_5 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_5);
-static const bool registered_6 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_6);
-static const bool registered_7 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_7);
-static const bool registered_8 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_8);
-static const bool registered_9 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_9);
-static const bool registered_10 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_10);
-static const bool registered_11 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_11);
-static const bool registered_12 = QuadratureRuleFactory<ReferenceTriangle>::instance().register_rule(gaussQuadratureReferenceTriangle_12);
-
-};
+}

@@ -57,6 +57,17 @@ GaussQuadrature<ReferencePyramid>::GaussQuadrature(int order)
 	default: assert(0 && "Order not availabile. Can not construct GaussQuadrature.\n");
 	}
 }
+
+template <>
+bool RegisterQuadratureRule(QuadratureRuleFactory<ReferencePyramid>& factory)
+{
+	static GaussQuadrature<ReferencePyramid> gaussQuadratureReferencePyramid_2(2);
+
+	bool success = true;
+	success &= factory.register_rule(gaussQuadratureReferencePyramid_2);
+	return success;
+}
+
 }; // namespace ug
 
  // register quadratures at factory
@@ -66,9 +77,5 @@ using namespace ug;
 template <>
 std::vector<const QuadratureRule<ReferencePyramid>* > QuadratureRuleFactory<ReferencePyramid>::m_rules =
 	std::vector<const QuadratureRule<ReferencePyramid>* >();
-
-GaussQuadrature<ReferencePyramid> gaussQuadratureReferencePyramid_2(2);
-
-static const bool registered_2 = QuadratureRuleFactory<ReferencePyramid>::instance().register_rule(gaussQuadratureReferencePyramid_2);
 
 };

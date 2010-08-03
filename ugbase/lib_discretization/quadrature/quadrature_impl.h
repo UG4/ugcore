@@ -10,6 +10,10 @@
 
 namespace ug{
 
+template <typename TRefElem>
+std::vector<const QuadratureRule<TRefElem>*> QuadratureRuleFactory<TRefElem>::m_rules
+	= std::vector<const QuadratureRule<TRefElem>*>();
+
 
 template <typename TRefElem>
 GaussQuadrature<TRefElem>::~GaussQuadrature()

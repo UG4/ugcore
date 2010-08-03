@@ -6,7 +6,7 @@
 namespace ug{
 
 template <>
-GaussQuadrature<Vertex>::GaussQuadrature(int order)
+GaussQuadrature<ReferenceEdge>::GaussQuadrature(int order)
 {
 	switch(order)
 	{
@@ -243,6 +243,39 @@ GaussQuadrature<Vertex>::GaussQuadrature(int order)
 	default: assert(0 && "Order not availabile. Can not construct GaussQuadrature.\n");
 	}
 }
+
+
+
+template <>
+bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceEdge>& factory)
+{
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_1(1);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_3(3);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_5(5);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_7(7);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_9(9);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_11(11);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_13(13);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_15(15);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_17(17);
+	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_19(19);
+
+	bool success = true;
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_1);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_3);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_5);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_7);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_9);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_11);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_13);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_15);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_17);
+	success &= factory.register_rule(gaussQuadratureReferenceEdge_19);
+
+	return true;
+}
+
+
 }; // namespace ug
 
  // register quadratures at factory
@@ -250,29 +283,6 @@ namespace {
 using namespace ug;
 
 template <>
-std::vector<const QuadratureRule<Vertex>* > QuadratureRuleFactory<Vertex>::m_rules =
-	std::vector<const QuadratureRule<Vertex>* >();
-
-GaussQuadrature<Vertex> gaussQuadratureVertex_1(1);
-GaussQuadrature<Vertex> gaussQuadratureVertex_3(3);
-GaussQuadrature<Vertex> gaussQuadratureVertex_5(5);
-GaussQuadrature<Vertex> gaussQuadratureVertex_7(7);
-GaussQuadrature<Vertex> gaussQuadratureVertex_9(9);
-GaussQuadrature<Vertex> gaussQuadratureVertex_11(11);
-GaussQuadrature<Vertex> gaussQuadratureVertex_13(13);
-GaussQuadrature<Vertex> gaussQuadratureVertex_15(15);
-GaussQuadrature<Vertex> gaussQuadratureVertex_17(17);
-GaussQuadrature<Vertex> gaussQuadratureVertex_19(19);
-
-static const bool registered_1 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_1);
-static const bool registered_3 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_3);
-static const bool registered_5 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_5);
-static const bool registered_7 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_7);
-static const bool registered_9 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_9);
-static const bool registered_11 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_11);
-static const bool registered_13 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_13);
-static const bool registered_15 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_15);
-static const bool registered_17 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_17);
-static const bool registered_19 = QuadratureRuleFactory<Vertex>::instance().register_rule(gaussQuadratureVertex_19);
-
+std::vector<const QuadratureRule<ReferenceEdge>* > QuadratureRuleFactory<ReferenceEdge>::m_rules =
+	std::vector<const QuadratureRule<ReferenceEdge>* >();
 };

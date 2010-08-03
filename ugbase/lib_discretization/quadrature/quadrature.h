@@ -59,23 +59,33 @@ class QuadratureRule{
 		int m_order;
 };
 
+template <typename TRefElem>
+class QuadratureRuleFactory;
+
+
+template <typename TRefElem>
+bool RegisterQuadratureRule(QuadratureRuleFactory<TRefElem>& factory);
 
 template <typename TRefElem>
 class QuadratureRuleFactory{
 	private:
-		QuadratureRuleFactory(){};
+		QuadratureRuleFactory()
+		{
+			RegisterQuadratureRule<TRefElem>(*this);
+		}
 		QuadratureRuleFactory(const QuadratureRuleFactory&){};
 		QuadratureRuleFactory& operator=(const QuadratureRuleFactory&);
 
 		static const QuadratureRule<TRefElem>& get_rule(int order)
 		{
-			assert(order < m_rules.size());
-			assert(m_rules[order] != 0);
+			UG_ASSERT(order < (int)m_rules.size(), "Rule does not exist.");
+			UG_ASSERT(m_rules[order] != 0, "Although rule registered, it is zero.");
 
 			return *m_rules[order];
 		}
 
 		static std::vector<const QuadratureRule<TRefElem>*> m_rules;
+		static bool m_initialized;
 
 	public:
 		static QuadratureRuleFactory<TRefElem>& instance()

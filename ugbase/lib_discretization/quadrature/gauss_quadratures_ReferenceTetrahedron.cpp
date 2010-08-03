@@ -641,6 +641,31 @@ GaussQuadrature<ReferenceTetrahedron>::GaussQuadrature(int order)
 	default: assert(0 && "Order not availabile. Can not construct GaussQuadrature.\n");
 	}
 }
+
+template <>
+bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceTetrahedron>& factory)
+{
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_0(0);
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_1(1);
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_2(2);
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_3(3);
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_5(5);
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_6(6);
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_7(7);
+	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_8(8);
+
+	bool success = true;
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_0);
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_1);
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_2);
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_3);
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_5);
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_6);
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_7);
+	success &= factory.register_rule(gaussQuadratureReferenceTetrahedron_8);
+	return success;
+}
+
 }; // namespace ug
 
  // register quadratures at factory
@@ -650,23 +675,5 @@ using namespace ug;
 template <>
 std::vector<const QuadratureRule<ReferenceTetrahedron>* > QuadratureRuleFactory<ReferenceTetrahedron>::m_rules =
 	std::vector<const QuadratureRule<ReferenceTetrahedron>* >();
-
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_0(0);
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_1(1);
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_2(2);
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_3(3);
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_5(5);
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_6(6);
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_7(7);
-GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_8(8);
-
-static const bool registered_0 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_0);
-static const bool registered_1 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_1);
-static const bool registered_2 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_2);
-static const bool registered_3 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_3);
-static const bool registered_5 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_5);
-static const bool registered_6 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_6);
-static const bool registered_7 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_7);
-static const bool registered_8 = QuadratureRuleFactory<ReferenceTetrahedron>::instance().register_rule(gaussQuadratureReferenceTetrahedron_8);
 
 };

@@ -547,6 +547,38 @@ GaussQuadrature<ReferenceQuadrilateral>::GaussQuadrature(int order)
 	default: assert(0 && "Order not availabile. Can not construct GaussQuadrature.\n");
 	}
 }
+
+template <>
+bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceQuadrilateral>& factory)
+{
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_1(1);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_2(2);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_3(3);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_4(4);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_5(5);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_6(6);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_7(7);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_8(8);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_9(9);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_11(11);
+	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_13(13);
+
+	bool success = true;
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_1);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_2);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_3);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_4);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_5);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_6);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_7);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_8);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_9);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_11);
+	success &= factory.register_rule(gaussQuadratureReferenceQuadrilateral_13);
+	return success;
+}
+
+
 }; // namespace ug
 
  // register quadratures at factory
@@ -556,29 +588,5 @@ using namespace ug;
 template <>
 std::vector<const QuadratureRule<ReferenceQuadrilateral>* > QuadratureRuleFactory<ReferenceQuadrilateral>::m_rules =
 	std::vector<const QuadratureRule<ReferenceQuadrilateral>* >();
-
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_1(1);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_2(2);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_3(3);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_4(4);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_5(5);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_6(6);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_7(7);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_8(8);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_9(9);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_11(11);
-GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_13(13);
-
-static const bool registered_1 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_1);
-static const bool registered_2 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_2);
-static const bool registered_3 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_3);
-static const bool registered_4 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_4);
-static const bool registered_5 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_5);
-static const bool registered_6 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_6);
-static const bool registered_7 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_7);
-static const bool registered_8 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_8);
-static const bool registered_9 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_9);
-static const bool registered_11 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_11);
-static const bool registered_13 = QuadratureRuleFactory<ReferenceQuadrilateral>::instance().register_rule(gaussQuadratureReferenceQuadrilateral_13);
 
 };
