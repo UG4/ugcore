@@ -169,6 +169,11 @@ void HangingNodeRefiner::grid_to_be_destroyed(Grid* grid)
 		set_grid(NULL);
 }
 
+void HangingNodeRefiner::clear_marks()
+{
+	m_selMarkedElements.clear();
+}
+
 void HangingNodeRefiner::mark_for_refinement(EdgeBase* e)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefiner::mark_for_refinement(...): No grid assigned.");
