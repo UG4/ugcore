@@ -231,7 +231,7 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 {
-	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(row); !conn.isEnd(); ++conn)
+	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 	{
 		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
 		if((*conn).iIndex == i) block = 1.0;
