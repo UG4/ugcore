@@ -26,4 +26,39 @@
 #include "remeshing/edge_length_adjustment.h"
 #include "remeshing/grid_adaption.h"
 
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	some doxygen group definitions for various algorithm subgroups follow
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief contains a variety of useful algorithms.
+ *
+ * The algorithms section contains a collection of algorithms that can be
+ * used to manipulate a grid, obtain information about a grid. It also
+ * contains many little helper functions that ease programming a lot.
+ *
+ * \defgroup lib_grid_algorithms algorithms
+ * \ingroup lib_grid
+ */
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief refinement classes and algorithms
+ *
+ * The refinement section contains classes that allow to refine a
+ * ug::Grid or a ug::MultiGrid with different methods.
+ * An adaptive refiner that generates a grid that contains hanging vertices
+ * (ug::HangingVertex) and constrained and constraining edges
+ * (ug::ConstrainedEdge, ug::ConstrainingEdge) is featured as well
+ * as a refiner that builds a regular closure.
+ *
+ * Please note that parallel refinement is adressed in the section
+ * \ref lib_grid_parallelization_refinement.
+ *
+ * \defgroup lib_grid_algorithms_refinement refinement
+ * \ingroup lib_grid_algorithms
+ */
+
 #endif

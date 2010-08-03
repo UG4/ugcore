@@ -9,6 +9,14 @@
 
 namespace ug
 {
+/**
+ * \brief contains miscellaneus methods that are related to GeometricObjects.
+ * 
+ * \defgroup lib_grid_algorithms_geom_obj_misc misc geometric object util
+ * \ingroup lib_grid_algorithms
+ * @{
+ */
+
 ////////////////////////////////////////////////////////////////////////
 //	EraseConnectingElements
 ///	erases all elements that connect v1 and v2
@@ -21,18 +29,7 @@ template <class TElem>
 void EraseElements(Grid& grid, typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd);
 
-////////////////////////////////////////////////////////////////////////
-//	AssignIndices
-///	assigns indices starting from 0.
-/** Make sure that the accessor is valid and that it references an
- * attachment of the correct type. The elements between iterBegin and
- * iterEnd have to belong to the same grid for which the accessor was
- * created.*/
-template <class TElem>
-void AssignIndices(typename geometry_traits<TElem>::iterator iterBegin,
-					typename geometry_traits<TElem>::iterator iterEnd,
-					Grid::AttachmentAccessor<TElem, AInt>& aaInt);
-				
+/// @}				
 }//	end of namespace
 
 ////////////////////////////////////////////////////////////////////////

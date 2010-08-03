@@ -14,6 +14,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_parallelization_distribution
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 //	DistributeGrid
 ///	distributes a grid to several processes.
@@ -88,6 +91,8 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 					  ISubsetHandler& shInOut,
 					  SubsetHandler& shPartition);
+					  
+/// @}
 }//	end of namespace
 
 #endif

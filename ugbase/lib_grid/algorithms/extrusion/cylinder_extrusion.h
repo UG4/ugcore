@@ -9,6 +9,9 @@
 
 namespace ug
 {
+/// \addtogroup lib_grid_algorithms_extrusion
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 ///	adapts the grid around the given vertex to a cylinder and extrudes it.
 /**
@@ -69,7 +72,8 @@ bool ExtrudeCylinder(Grid& grid, VertexBase* vrt,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					Selector* pSel = NULL, float minDot = 0.1);
 					
-					
+/// @}
+
 }//	end of namespace
 
 #endif

@@ -11,9 +11,14 @@
 
 namespace ug
 {
-/** \defgroup vertexUtil Vertex Util
+/**
+ * \brief contains methods to manipulate vertices
+ * 
+ * \defgroup lib_grid_algorithms_vertex_util vertex util
+ * \ingroup lib_grid_algorithms
  * @{
  */
+
 
 ////////////////////////////////////////////////////////////////////////
 //	GetVertexIndex
@@ -176,7 +181,7 @@ inline
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
 
-/**@}*/ // end of doxygen defgroup command
+/// @} // end of doxygen defgroup command
 
 }//	end of namespace
 

@@ -10,7 +10,9 @@
 #include "lib_grid/algorithms/trees/kd_tree_static.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 
-///	
+/// \addtogroup lib_grid_parallelization_distribution
+///	@{
+
 /**
  * this is a very simple and unoptimized algorithm!
  * Only intended for testing-purposes.
@@ -318,5 +320,5 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 															startDim % IDimension);
 }
 
-
+/// @}
 #endif

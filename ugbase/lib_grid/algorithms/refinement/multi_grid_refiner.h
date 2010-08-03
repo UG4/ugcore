@@ -12,6 +12,9 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
 class MultiGridRefiner : public GridObserver
 {
 	public:
@@ -162,6 +165,7 @@ class MultiGridRefiner : public GridObserver
 		Grid::VolumeAttachmentAccessor<AInt>	m_aaIntVOL;
 };
 
+/// @}
 }//	end of namespace
 
 #endif

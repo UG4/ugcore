@@ -687,7 +687,7 @@ void SendNewInterfaces(DistributedGridManager& distGridMgr,
 	for(size_t iDistLayout = 0; iDistLayout < distLayoutVec.size();
 		++iDistLayout)
 	{
-		TDistLayout& distLayout = distLayoutVec[iDistLayout];		
+		//TDistLayout& distLayout = distLayoutVec[iDistLayout];		
 /*
 	//	iterate through the levels
 		for(size_t level = 0; level < distLayout.num_levels(); ++level)

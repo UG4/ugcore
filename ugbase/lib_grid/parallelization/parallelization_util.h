@@ -11,6 +11,10 @@
 
 namespace ug
 {
+
+/// \addtogroup lib_grid_parallelization_distribution
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 // declarations of callback functions
 ///	allows the user to adjust a grid or the associated subset-handler
@@ -122,6 +126,7 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 						   FuncAdjustGrid funcAdjustGrid = DefaultAdjustGrid,
 						   FuncPartitionGrid funcPartitionGrid = PartitionGrid_Bisection);
 
+/// @}
 }//	end of namespace
 
 #endif

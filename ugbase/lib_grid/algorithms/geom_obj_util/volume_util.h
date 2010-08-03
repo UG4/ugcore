@@ -11,6 +11,14 @@
 namespace ug
 {
 
+/**
+ * \brief contains methods to manipulate volumes
+ * 
+ * \defgroup lib_grid_algorithms_volume_util volume util
+ * \ingroup lib_grid_algorithms
+ * @{
+ */
+
 ////////////////////////////////////////////////////////////////////////
 //	GetNeighbours - sreiter
 ///	collects neighbours of the given side of a volume.
@@ -65,6 +73,7 @@ CalculateCenter(Volume* vol, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 }//	end of namespace
 
+/// @}
 ////////////////////////////////////////
 //	include implementation
 #include "volume_util_impl.hpp"

@@ -84,7 +84,7 @@ enum SharedPipeSectionVolume
 /**
  * This type represents the most commonly used vertex.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Vertex : public VertexBase
 {
@@ -130,7 +130,7 @@ typedef geometry_traits<Vertex>::const_iterator	ConstVertexIterator;
  * They should be treated with care, since they are often referenced
  * by other elements, as i.e. \sa ConstrainingEdge.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class HangingVertex : public VertexBase
 {
@@ -198,7 +198,7 @@ typedef geometry_traits<HangingVertex>::const_iterator	ConstHangingVertexIterato
 /**
  * The most commonly used edge-type.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Edge : public EdgeBase
 {
@@ -277,7 +277,7 @@ typedef geometry_traits<Edge>::const_iterator 	ConstEdgeIterator;
  * Treat them with care, since they are referenced by other objects,
  * i.e. \sa ConstrainingEdge
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class ConstrainedEdge : public EdgeBase
 {
@@ -366,7 +366,7 @@ typedef geometry_traits<ConstrainedEdge>::const_iterator 	ConstConstrainedEdgeIt
  * Edges of this type appear during hanging-vertex-refinement.
  * Treat with care.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class ConstrainingEdge : public EdgeBase
 {
@@ -601,7 +601,7 @@ class CustomTriangle : public BaseClass
 ///	the most simple form of a face
 /**
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Triangle : public CustomTriangle<Triangle, Face>
 {
@@ -776,7 +776,7 @@ class ConstrainedFace : public Face
 //	ConstrainedTriangle
 ///	a triangle constrained by another object.
 /**
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class ConstrainedTriangle : public CustomTriangle<ConstrainedTriangle, ConstrainedFace>
 {
@@ -823,7 +823,7 @@ typedef geometry_traits<ConstrainedTriangle>::const_iterator	ConstConstrainedTri
 //	ConstrainedTriangle
 ///	a triangle constraining other objects.
 /**
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class ConstrainingTriangle : public CustomTriangle<ConstrainingTriangle, ConstrainingFace>
 {
@@ -893,7 +893,7 @@ class QuadrilateralDescriptor
 //	Quadrilateral
 ///	a face with four points.
 /**
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Quadrilateral : public CustomFace<4, SPSFACE_QUADRILATERAL>
 {
@@ -991,7 +991,7 @@ class TetrahedronDescriptor
 /**
  * order of vertices should be the same as described in \sa TetrahedronDescriptor
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Tetrahedron : public Volume
 {
@@ -1090,7 +1090,7 @@ class HexahedronDescriptor
 /**
  * Order of vertices should be the same as described in \sa HexahedronDescriptor
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Hexahedron : public Volume
 {
@@ -1188,7 +1188,7 @@ class PrismDescriptor
 /**
  * order of vertices should be the same as described in \sa PrismDescriptor
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Prism : public Volume
 {
@@ -1286,7 +1286,7 @@ class PyramidDescriptor
 /**
  * order of vertices should be the same as described in \sa PyramidDescriptor
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Pyramid : public Volume
 {

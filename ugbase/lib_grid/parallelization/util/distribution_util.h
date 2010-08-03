@@ -13,6 +13,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_parallelization_util
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 ///	The interface entry holds a local id and the type of the entry.
 struct DistributionInterfaceEntry
@@ -239,6 +242,7 @@ void SelectNodesInLayout(TSelector& sel, TDistributionLayout& layout)
 		sel.select(nodes[i]);
 }
 
+/// @}
 }//	end of namespace
 
 ////////////////////////////////

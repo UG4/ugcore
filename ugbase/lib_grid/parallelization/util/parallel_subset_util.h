@@ -10,6 +10,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_parallelization
+/// @{
+
 ////////////////////////////////////////////////////////////////////////
 //	CreateSurfaceView
 ///	Collects all elements between iterBegin and iterEnd that don't have any children.
@@ -40,6 +43,7 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut,
 						ISubsetHandler& sh, TIterator iterBegin,
 						TIterator iterEnd);
 
+/// @}
 }//	end of namespace
 
 ////////////////////////////////

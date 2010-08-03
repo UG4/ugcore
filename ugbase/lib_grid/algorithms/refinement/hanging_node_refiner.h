@@ -11,6 +11,9 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 //	HangingNodeRefiner
 ///	Performs adaptive grid refinement with hanging nodes.
@@ -201,6 +204,9 @@ class HangingNodeRefiner : public GridObserver
 		Grid::FaceAttachmentAccessor<AVertexBase>		m_aaVertexFACE;
 		//Grid::VolumeAttachmentAccessor<ARefinementMark>	m_aaRefinementMarkVOL;
 };
+
+
+/// @}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////

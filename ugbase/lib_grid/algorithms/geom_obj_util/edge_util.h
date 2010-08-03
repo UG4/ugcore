@@ -10,7 +10,11 @@
 
 namespace ug
 {
-/** \defgroup edgeUtil Edge Util
+/**
+ * \brief contains methods to manipulate edges
+ * 
+ * \defgroup lib_grid_algorithms_edge_util edge util
+ * \ingroup lib_grid_algorithms
  * @{
  */
 
@@ -188,7 +192,7 @@ CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 						APosition& aPos = aPosition);
 
-/**@}*/ // end of doxygen defgroup command
+/// @} // end of doxygen defgroup command
 
 }//	end of namespace
 

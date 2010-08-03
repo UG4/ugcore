@@ -11,8 +11,10 @@
 namespace ug
 {
 
-/** \defgroup subsetUtil Subset Util
- * Several methods that ease subset-handling are grouped here.
+/**
+ * Several methods that ease subset-handling are grouped here. 
+ * \defgroup lib_grid_algorithms_subset_util subset util
+ * \ingroup lib_grid_algorithms
  * @{
  */
 

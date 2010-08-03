@@ -12,6 +12,11 @@
 
 namespace ug
 {
+
+/// \addtogroup lib_grid_parallelization
+/// @{
+
+///	the states with which elements are marked in ug::DistributedGridManager
 enum ElementStatus
 {
 	ES_NONE = 0,
@@ -255,6 +260,8 @@ class DistributedGridManager : public GridObserver
 		ScheduledElemMap	m_volMap;	///< holds all elements that were scheduled by volumes
 
 };
+
+/// @}
 
 #ifdef __OLD_IMPLEMENTATION__
 ////////////////////////////////////////////////////////////////////////

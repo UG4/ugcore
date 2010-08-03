@@ -47,6 +47,9 @@ struct type_traits<ug::Volume>
 namespace ug
 {
 
+/// \addtogroup lib_grid_parallelization
+/// @{
+
 ////////////////////////////////////////////////////////////////////////
 ///	The types of interface-entries.
 /**	INT_MASTER and INT_SLAVE describe (horizontal) connections between
@@ -88,7 +91,7 @@ typedef pcl::LayoutMap<pcl::MultiLevelLayout,
 						int,
 						std::list>						GridLayoutMap;
 
-
+/// @}
 }//	end of namespace
 
 #endif

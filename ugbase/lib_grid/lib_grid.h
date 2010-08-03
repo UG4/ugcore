@@ -2,6 +2,18 @@
 //	s.b.reiter@googlemail.com
 //	y08 m11 d05
 
+/**
+ * \brief The grid library.
+ *
+ * lib_grid not only defines basic types like ug::Grid and ug::MultiGrid,
+ * it also features tools such as the ug::Selector, ug::MGSelector,
+ * ug::SubsetHandler and ug::MGSubsetHandler as well as a vast collection
+ * of methods that work on those types. Those can mostly be found in the
+ * \ref lib_grid_algorithms section.
+ *
+ * \defgroup lib_grid lib_grid
+ */
+ 
 #include "grid/grid.h"
 #include "grid/grid_util.h"
 #include "geometric_objects/geometric_objects.h"

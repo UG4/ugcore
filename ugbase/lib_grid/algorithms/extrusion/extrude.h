@@ -10,8 +10,10 @@
 
 namespace ug
 {
+/// \addtogroup lib_grid_algorithms_extrusion
+///	@{
 
-///	used to specify the behavior of \sa Extrude.
+///	used to specify the behavior of ug::Extrude.
 enum ExtrusionOptions
 {
 	EO_CREATE_FACES 	= 1,
@@ -47,7 +49,7 @@ enum ExtrusionOptions
  * and can be directly used in a new call to Extrude.
  *
  * If you need to have access to all newly created elements you could use
- * a \sa Selector with enabled autoselection.
+ * a ug::Selector with enabled autoselection.
  */
 void Extrude(Grid& grid,
 			std::vector<VertexBase*>* pvVerticesInOut,
@@ -66,6 +68,9 @@ void Extrude(Grid& grid,
 			uint extrusionOptions = EO_DEFAULT,
 			APosition& aPos = aPosition);
 */
+
+/// @}
+
 }//	end of namespace
 
 

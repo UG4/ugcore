@@ -19,8 +19,16 @@ namespace lgscript
 {
 
 ////////////////////////////////////////////////////////////////////////
+/**
+ * \brief The scripting module of ug4
+ *
+ * \defgroup ug_script ug_script
+ */
+ 
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup objectCreation Object Creation
+////////////////////////////////////////////////////////////////////////
+/** \defgroup ug_script_object_reation object creation
+ * \ingroup ug_script
  * @{
  */
  
@@ -139,7 +147,8 @@ void delete_multi_grid_subset_handler(MultiGridSubsetHandler* mg_sh)
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup loadAndSave Load and Save
+/** \defgroup ug_script_load_and_save load and save
+ * \ingroup ug_script
  * @{
  */
  
@@ -296,7 +305,8 @@ bool export_grid_to_ug3(Grid* pGrid, SubsetHandler* pSH,
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup geometry Geometry
+/** \defgroup ug_script_geometry geometry
+ * \ingroup ug_script
  * @{
  */
 ///	Converts quadrilaterals to triangles.
@@ -356,7 +366,8 @@ bool tetrahedralize(Grid* grid, SubsetHandler* sh)
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup marks Marks
+/** \defgroup ug_script_marks marks
+ * \ingroup ug_script
  * @{
  */
 ///	Moves each marker-point to its closest vertex.
@@ -419,7 +430,8 @@ void mark_selected_edges(Selector* sel, SubsetHandler* shMarks)
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup optimization Optimization
+/** \defgroup ug_script_optimization optimization
+ * \ingroup ug_script
  * @{
  */
 ///	Retriangulates the grid so that all edges approximatly have a certain legth.
@@ -473,7 +485,8 @@ bool adjust_edge_length(Grid* gridOut, SubsetHandler* shOut, SubsetHandler* shMa
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup neuro Neuro
+/** \defgroup ug_script_neuro neuro
+ * \ingroup ug_script
  * @{
  */
  
@@ -557,7 +570,8 @@ bool extrude_cylinders(Grid* grid, SubsetHandler* sh, MarkerPointManager* mgm,
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup fractures Fractures
+/** \defgroup ug_script_fractures fractures
+ * \ingroup ug_script
  * @{
  */
 ///	Collects degenerated faces and moves them to the specified subset.
@@ -657,7 +671,8 @@ bool frac_extrude(Grid* pGrid, SubsetHandler* pSH, int numSecs,
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup subsets Subsets
+/** \defgroup ug_script_subsets Subsets
+ * \ingroup ug_script
  * @{
  */
 ///	Separates volume-regions.
@@ -688,7 +703,8 @@ bool separate_regions(Grid* grid, SubsetHandler* shVolsOut,
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-/** \defgroup selection Selection
+/** \defgroup ug_script_selection Selection
+ * \ingroup ug_script
  * @{
  */
  

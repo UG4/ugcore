@@ -11,6 +11,9 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 //	Refine
 ///	refines selected faces and edges regularily and builds a closure on adjacent unselected faces.
@@ -36,7 +39,7 @@ namespace ug
  * the overloaded version of Refine, which only takes a Grid and a 
  * Selector.
  *
- * \sa RegularRefiner, HangingNodeRefiner
+ * \sa ug::RegularRefiner, ug::HangingNodeRefiner
  */
 bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 			IRefinementCallback* refCallback = NULL);
@@ -51,11 +54,12 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
  * This method should only be used if only very few refinement steps
  * are performed and if speed is not cruical.
  *
- * \sa RegularRefiner, HangingNodeRefiner
+ * \sa ug::RegularRefiner, ug::HangingNodeRefiner
  */
 bool Refine(Grid& grid, Selector& sel,
 			IRefinementCallback* refCallback = NULL);
 
+/// @}
 }// end of namespace
 
 #endif

@@ -12,6 +12,9 @@
 namespace ug
 {
 
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
 class GlobalMultiGridRefiner : public GridObserver
 {
 	public:
@@ -57,6 +60,7 @@ class GlobalMultiGridRefiner : public GridObserver
 		MultiGrid*	m_pMG;
 };
 
+/// @}
 }//	end of namespace
 
 #endif

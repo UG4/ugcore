@@ -14,6 +14,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_parallelization_refinement
+/// @{
+
 class ParallelGlobalMultiGridRefiner : public GlobalMultiGridRefiner
 {
 	public:
@@ -34,6 +37,7 @@ class ParallelGlobalMultiGridRefiner : public GlobalMultiGridRefiner
 		DistributedGridManager& m_distGridMgr;
 };
 
+/// @}
 }//	end of namespace
 
 #endif

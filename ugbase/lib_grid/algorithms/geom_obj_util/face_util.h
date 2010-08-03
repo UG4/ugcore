@@ -10,7 +10,11 @@
 namespace ug
 {
 
-/** \defgroup faceUtil Face Util
+/**
+ * \brief contains methods to manipulate faces
+ * 
+ * \defgroup lib_grid_algorithms_face_util face util
+ * \ingroup lib_grid_algorithms
  * @{
  */
 
@@ -223,7 +227,7 @@ bool ProjectPointToSurface(vector3& vOut, const vector3& v, const vector3& n,
 template <class TAAPosVRT>
 int PointFaceTest(vector3& v, Face* f, TAAPosVRT& aaPos);
 
-/**@}*/ // end of doxygen defgroup command
+/// @}
 
 }//	end of namespace
 

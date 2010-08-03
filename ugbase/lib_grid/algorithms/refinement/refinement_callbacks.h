@@ -9,6 +9,10 @@
 
 namespace ug
 {
+
+///	\addtogroup lib_grid_algorithms_refinement
+///	@{
+
 ////////////////////////////////////////////////////////////////////////
 ///	can be used to calculate new positions of vertices created during refinement.
 class IRefinementCallback
@@ -86,6 +90,8 @@ class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear
 		vector3 m_p;
 		vector3 m_n;
 };
+
+/// @}
 
 }// end of namespace
 

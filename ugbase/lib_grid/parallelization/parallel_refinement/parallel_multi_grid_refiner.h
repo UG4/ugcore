@@ -14,6 +14,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid_parallelization_refinement
+/// @{
+
 //	predeclarations
 template <class TLayout>
 class RefinementMarkDistributor;
@@ -82,6 +85,7 @@ class ParallelMultiGridRefiner : public MultiGridRefiner
 		bool m_bCommunicationEnabled;	///< only for debugging purposes
 };
 
+/// @}
 }//	end of namespace
 
 #endif

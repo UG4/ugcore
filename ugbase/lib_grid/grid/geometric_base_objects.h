@@ -174,8 +174,10 @@ iterator_cast(const TIterSrc& iter)
 }
 
 /**
- * \defgroup GeometricObjects Geometric Objects
  * \brief Geometric objects are the building blocks of a grid.
+ *
+ * \defgroup lib_grid_geometric_objects geometric objects
+ * \ingroup lib_grid
  */
 ////////////////////////////////////////////////////////////////////////
 //	GeometricObject
@@ -184,7 +186,7 @@ iterator_cast(const TIterSrc& iter)
  * In order to be used by libGrid, all derivatives of GeometricObject
  * have to specialize geometry_traits<GeomObjectType>.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class GeometricObject
 {
@@ -233,7 +235,7 @@ class geometry_traits<GeometricObject>
  * They are the geometric objects of lowest dimension.
  * All other geometric objects of higher dimension reference vertices.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class VertexBase : public GeometricObject
 {
@@ -308,7 +310,7 @@ class EdgeVertices
  * EdgeBase is the base class of all 1-dimensional geometric objects.
  * Edges connect two vertices.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class EdgeBase : public GeometricObject, public EdgeVertices
 {
@@ -461,7 +463,7 @@ class FaceVertices
  * You can not create an instance of Face. grids are constructed from derivatives of face.
  * The vertices of a face have always to be specified in counterclockwise order!
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Face : public GeometricObject, public FaceVertices
 {
@@ -692,7 +694,7 @@ class VolumeVertices
  * for compile-time method selection by dummy-parameters.
  * It is cruical that derived classes overload thoes methods.
  *
- * \ingroup GeometricObjects
+ * \ingroup lib_grid_geometric_objects
  */
 class Volume : public GeometricObject, public VolumeVertices
 {

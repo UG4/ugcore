@@ -19,4 +19,54 @@
 
 #include "util/parallel_subset_util.h"
 
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	some doxygen group definitions for various parallelization subgroups follow
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief parallelization of lib_grid
+ *
+ * This section contains classes and algorithms that are required to
+ * distribute a grid on a parallel architecture, to communicate between
+ * parts of a distributed grid and refine a distributed grid.
+ *
+ * It also contains a sub_group, which contains utility methods for
+ * grid distribution and redistribution. 
+ *
+ * \defgroup lib_grid_parallelization parallelization
+ * \ingroup lib_grid
+ */
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief parallel refinement
+ *
+ * Contains classes and mehtods for parallel refinement.
+ *
+ * \defgroup lib_grid_parallelization_refinement parallel refinement
+ * \ingroup lib_grid_parallelization
+ */
+
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief parallel distribution
+ *
+ * Distribution and redistribution of serial and parallel grids.
+ *
+ * \defgroup lib_grid_parallelization_distribution parallel distribution
+ * \ingroup lib_grid_parallelization
+ */
+ 
+////////////////////////////////////////////////////////////////////////
+/**
+ * \brief parallel utilities
+ *
+ * Contains classes and mehtods that are mostly used internally.
+ *
+ * \defgroup lib_grid_parallelization_util parallel utilities
+ * \ingroup lib_grid_parallelization
+ */
+
 #endif
