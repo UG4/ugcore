@@ -47,7 +47,7 @@ bool AddEntriesToIndexLayout(IndexLayout& indexLayoutOut,
 		{
 			typename ElemInterface::Element elem = elemInterface.get_element(eIter);
 			typename TDoFDistr::algebra_index_vector_type indices;
-			dofDistr.get_algebra_indices_of_geom_obj(elem, indices);
+			dofDistr.get_inner_algebra_indices(elem, indices);
 			for(size_t i = 0; i < indices.size(); ++i)
 			{
 				indexInterface.push_back(indices[i]);
