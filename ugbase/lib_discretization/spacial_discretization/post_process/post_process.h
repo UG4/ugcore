@@ -9,8 +9,8 @@
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS__
 
 // include interface
-#include "post_process_interface.h"
+#include "./dirichlet_boundary/dirichlet_post_process_interface.h"
 
-#include "./dirichlet_bnd/dirichlet_bnd.h"
+#include "./dirichlet_boundary/dirichlet_bnd.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS__ */

@@ -122,6 +122,6 @@ class IDirichletPostProcess{
 
 } // end namespace ug
 
-#include "post_process_interface_impl.h"
+#include "dirichlet_post_process_interface_impl.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS_INTERFACE__ */

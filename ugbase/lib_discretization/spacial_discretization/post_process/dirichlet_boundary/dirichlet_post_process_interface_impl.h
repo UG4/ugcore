@@ -9,7 +9,7 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS_INTERFACE_IMPL__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS_INTERFACE_IMPL__
 
-#include "post_process_interface.h"
+#include "./dirichlet_post_process_interface.h"
 
 namespace ug{
 
