@@ -155,6 +155,13 @@ class LocalIndices
 			return m_vvDofIndices[accFct][dof][0];
 		}
 
+		/// global algebra index for (selected fct, dof)
+		index_type global_index(size_t fct, size_t dof) const
+		{
+			const size_t loc_i = local_index(fct, dof);
+			return index(loc_i);
+		}
+
 		/// algebra comp for (selected fct, dof)
 		comp_type comp(size_t fct, size_t dof) const
 		{
