@@ -14,6 +14,7 @@ namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 //	GridSubsetHandler
+/// \ingroup lib_grid
 class GridSubsetHandler : public ISubsetHandler
 {
 	public:
@@ -229,7 +230,7 @@ subset_required(size_t index)
 	}
 }
 
-
+/// \ingroup lib_grid
 typedef GridSubsetHandler SubsetHandler;
 
 }//	end of namespace

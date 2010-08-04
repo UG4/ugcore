@@ -10,6 +10,9 @@
 
 namespace ug
 {
+///	\addtogroup lib_grid
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 //	SelectorElements
 ///	Use these constants to specify which elements shall be supported by a Selector.
@@ -230,6 +233,8 @@ class ISelector : public GridObserver
 		std::list<GeometricObject*>	m_invalidContainer;
 		iterator					m_invalidIterator;
 };
+
+/// \}
 
 }//	end of namespace
 

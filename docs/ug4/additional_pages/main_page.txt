@@ -4,7 +4,7 @@
 
 /** \mainpage ug4 - Documentation
 
-\author Sebastian Reiter
+\author Sebastian Reiter, Martin Rupp, Andreas Vogel
 
 <hr>
 \section secUserManual User Manual:

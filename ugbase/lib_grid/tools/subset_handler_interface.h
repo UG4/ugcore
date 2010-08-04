@@ -17,6 +17,9 @@ namespace ug
 //	predeclarations
 class ISubsetHandler;
 
+/// \addtogroup lib_grid
+/// \{
+
 ////////////////////////////////////////////////////////////////////////
 //	SubsetHandlerElements
 ///	Use these constants to specify which elements shall be supported by a SubsetHandler.
@@ -70,6 +73,7 @@ struct SubsetInfo
 	uint		subsetState;///< an or-combination of SubsetState flags.
 };
 
+/// \}
 
 ////////////////////////////////////////////////////////////////////////
 //	specialization of attachment_traits for VertexBase
@@ -144,6 +148,8 @@ class attachment_traits<Volume*, ISubsetHandler>
 ////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler
 /**
+ * \ingroup lib_grid
+ *
  * A derived class has to implement the following public methods:
  * <code>
  * virtual void assign_subset(VertexBase* elem, int subsetIndex)

@@ -28,7 +28,7 @@ The following main modules are the base of ug4:
 	- common
 	- lib_algebra
 	- lib_discretization
-	- \ref pageLGDocumentation "lib_grid"
+	- \ref pageLGIntroduction "lib_grid"
 	- parallel communication layer (pcl)
 
 Other modules are:

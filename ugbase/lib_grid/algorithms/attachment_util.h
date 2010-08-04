@@ -14,7 +14,7 @@ namespace ug
 /**
  * Several methods that ease attachment-handling are grouped here.
  *
- * \defgroup lib_grid_algorithms_attachment_util attacment util
+ * \defgroup lib_grid_algorithms_attachment_util attachment util
  * \ingroup lib_grid_algorithms
  * @{
  */

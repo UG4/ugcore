@@ -24,6 +24,8 @@ class MultiGrid;
 //	MGSelector
 ///	specialization of ISelector for grids of class MultiGrid.
 /**
+ * \ingroup lib_grid
+ *
  * A selector is a useful class, that allows the user to mark
  * elements of a grid as selected or deselected.
  * The selection status is maintained even if new elements

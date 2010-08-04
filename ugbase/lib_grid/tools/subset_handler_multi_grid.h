@@ -12,8 +12,10 @@
 
 namespace ug
 {
+
 ////////////////////////////////////////////////////////////////////////
 //	MultiGridSubsetHandlerBase
+/// \ingroup lib_grid
 class MultiGridSubsetHandler : public ISubsetHandler
 {
 	public:
@@ -197,6 +199,7 @@ subset_required(int index)
 	}
 }
 
+/// \ingroup lib_grid
 typedef MultiGridSubsetHandler MGSubsetHandler;
 
 }//	end of namespace

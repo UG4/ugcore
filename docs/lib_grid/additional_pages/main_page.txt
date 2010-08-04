@@ -2,9 +2,9 @@
 //	s.b.reiter@googlemail.com
 //	y09 m09 d14
 
-/** \page pageLGDocumentation libGrid - Documentation
+/** \mainpage libGrid - Documentation
 
-\author Sebastian Reiter, ...
+\author Sebastian Reiter
 
 <hr>
 \section secUserManual User Manual:
