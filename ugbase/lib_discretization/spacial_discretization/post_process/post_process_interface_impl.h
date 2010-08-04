@@ -20,8 +20,8 @@ namespace ug{
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
-set_geometric_object_type(int id, IDiscPostProcessNeed need)
+IDirichletPostProcess<TAlgebra>::
+set_geometric_object_type(int id, IDirichletPostProcessNeed need)
 {
 	if(function_registered(id, need))
 	{
@@ -39,11 +39,11 @@ set_geometric_object_type(int id, IDiscPostProcessNeed need)
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
-function_registered(int id, IDiscPostProcessNeed need)
+IDirichletPostProcess<TAlgebra>::
+function_registered(int id, IDirichletPostProcessNeed need)
 {
 	// if nothing required, return true
-	if(need == IEDN_NONE) return true;
+	if(need == IDPPN_NONE) return true;
 
 	// loop functions must exist in any case
 	if(!prepare_element_loop_function_registered(id))
@@ -63,7 +63,7 @@ function_registered(int id, IDiscPostProcessNeed need)
 	}
 
 	// check if functions for defect exist
-	if(need == IEDN_DEFECT)
+	if(need == IDPPN_DEFECT)
 	{
 		if(!post_process_d_function_registered(id))
 		{
@@ -79,7 +79,7 @@ function_registered(int id, IDiscPostProcessNeed need)
 	}
 
 	// check if functions for jacobian exist
-	if(need == IEDN_JACOBIAN)
+	if(need == IDPPN_JACOBIAN)
 	{
 		if(!post_process_J_function_registered(id))
 		{
@@ -89,7 +89,7 @@ function_registered(int id, IDiscPostProcessNeed need)
 	}
 
 	// check if functions for jacobian exist
-	if(need == IEDN_LINEAR)
+	if(need == IDPPN_LINEAR)
 	{
 		if(!post_process_J_function_registered(id))
 		{
@@ -113,7 +113,7 @@ function_registered(int id, IDiscPostProcessNeed need)
 template<typename TAlgebra>
 template<typename TAssFunc>
 void
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 register_prepare_element_loop_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
@@ -125,7 +125,7 @@ register_prepare_element_loop_function(int id, TAssFunc func)
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 prepare_element_loop_function_registered(int id)
 {
 	if(id >= 0 && (size_t)id < m_vPrepareElementLoopFunc.size())
@@ -144,7 +144,7 @@ prepare_element_loop_function_registered(int id)
 template<typename TAlgebra>
 template<typename TAssFunc>
 void
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 register_prepare_element_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
@@ -156,7 +156,7 @@ register_prepare_element_function(int id, TAssFunc func)
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 prepare_element_function_registered(int id)
 {
 	if(id >= 0 && (size_t)id < m_vPrepareElementFunc.size())
@@ -175,7 +175,7 @@ prepare_element_function_registered(int id)
 template<typename TAlgebra>
 template<typename TAssFunc>
 void
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 register_finish_element_loop_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
@@ -187,7 +187,7 @@ register_finish_element_loop_function(int id, TAssFunc func)
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 finish_element_loop_function_registered(int id)
 {
 	if(id >= 0 && (size_t)id < m_vFinishElementLoopFunc.size())
@@ -206,19 +206,19 @@ finish_element_loop_function_registered(int id)
 template<typename TAlgebra>
 template<typename TAssFunc>
 void
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 register_post_process_J_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
 	if((size_t)id >= m_vPostProcessJFunc.size())
-		m_vAssembleJFunc.resize(id+1, 0);
+		m_vPostProcessJFunc.resize(id+1, 0);
 
 	m_vPostProcessJFunc[id] = (PostProcessJFunc)func;
 };
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 post_process_J_function_registered(int id)
 {
 	if(id >= 0 && (size_t)id < m_vPostProcessJFunc.size())
@@ -237,7 +237,7 @@ post_process_J_function_registered(int id)
 template<typename TAlgebra>
 template<typename TAssFunc>
 void
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 register_post_process_d_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
@@ -249,7 +249,7 @@ register_post_process_d_function(int id, TAssFunc func)
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 post_process_d_function_registered(int id)
 {
 	if(id >= 0 && (size_t)id < m_vPostProcessDFunc.size())
@@ -268,7 +268,7 @@ post_process_d_function_registered(int id)
 template<typename TAlgebra>
 template<typename TAssFunc>
 void
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 register_post_process_f_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
@@ -280,7 +280,7 @@ register_post_process_f_function(int id, TAssFunc func)
 
 template<typename TAlgebra>
 bool
-IDiscPostProcess<TAlgebra>::
+IDirichletPostProcess<TAlgebra>::
 post_process_f_function_registered(int id)
 {
 	if(id >= 0 && (size_t)id < m_vPostProcessFFunc.size())

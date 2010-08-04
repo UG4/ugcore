@@ -16,24 +16,24 @@
 
 namespace ug{
 
-enum IDiscPostProcessNeed {
-	IEDN_NONE = 0,
-	IEDN_DEFECT = 1 << 0,
-	IEDN_JACOBIAN = 1 << 1,
-	IEDN_LINEAR = 1 << 2
+enum IDirichletPostProcessNeed {
+	IDPPN_NONE = 0,
+	IDPPN_DEFECT = 1 << 0,
+	IDPPN_JACOBIAN = 1 << 1,
+	IDPPN_LINEAR = 1 << 2
 };
 
 template <typename TAlgebra>
-class IDiscPostProcess{
+class IDirichletPostProcess{
 	protected:
 		// algebra type
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
+		typedef typename algebra_type::matrix_type matrix_type;
 
 		// local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
+		typedef typename algebra_type::vector_type vector_type;
 
 		// local index type
 		typedef LocalIndices local_index_type;
@@ -41,25 +41,24 @@ class IDiscPostProcess{
 	public:
 		// sets the geometric object type
 		// ATTENTION: type must be set, before other public functions can be called
-		bool set_geometric_object_type(int id, IDiscPostProcessNeed need);
+		bool set_geometric_object_type(int id, IDirichletPostProcessNeed need);
 
 		// preparing and finishing of loop
 		bool prepare_element_loop()						{return (this->*(m_vPrepareElementLoopFunc[m_id]))();}
-		bool prepare_element(GeometricObject* obj, const local_vector_type& u, const local_index_type& glob_ind)
-														{return (this->*(m_vPrepareElementFunc[m_id]))(obj, u, glob_ind);}
+		bool prepare_element(GeometricObject* obj)		{return (this->*(m_vPrepareElementFunc[m_id]))(obj);}
 		bool finish_element_loop()						{return (this->*(m_vFinishElementLoopFunc[m_id]))();}
 
 		// post processing  of Jacobian
-		bool post_process_J(local_matrix_type& J, const local_vector_type& u, number time=0.0) 	{return (this->*(m_vPostProcessJFunc[m_id]))(J, u, time);}
+		bool post_process_J(matrix_type& J, const local_index_type& ind, number time=0.0) 	{return (this->*(m_vPostProcessJFunc[m_id]))(J, ind, time);}
 
 		// post processing  of defect
-		bool post_process_d(local_vector_type& d, const local_vector_type& u, number time=0.0)	{return (this->*(m_vPostProcessDFunc[m_id]))(d, u, time);}
+		bool post_process_d(vector_type& d, const local_index_type& ind, number time=0.0)	{return (this->*(m_vPostProcessDFunc[m_id]))(d, ind, time);}
 
 		// post processing of right hand side for linear case
-		bool post_process_f(local_vector_type& d, number time=0.0) 								{return (this->*(m_vPostProcessFFunc[m_id]))(d, time);}
+		bool post_process_f(vector_type& d, const local_index_type& ind, number time=0.0) 	{return (this->*(m_vPostProcessFFunc[m_id]))(d, ind, time);}
 
 		// virtual destructor
-		virtual ~IDiscPostProcess() {}
+		virtual ~IDirichletPostProcess() {}
 
 	protected:
 		// register the functions
@@ -73,7 +72,7 @@ class IDiscPostProcess{
 
 	protected:
 		// checks if the needed functions are registered for the id type
-		bool function_registered(int id, IDiscPostProcessNeed need);
+		bool function_registered(int id, IDirichletPostProcessNeed need);
 
 		// checks if the functions are present
 		bool prepare_element_loop_function_registered(int id);
@@ -87,18 +86,18 @@ class IDiscPostProcess{
 
 	private:
 		// types of loop function pointers
-		typedef bool (IDiscPostProcess<TAlgebra>::*PrepareElementLoopFunc)();
-		typedef bool (IDiscPostProcess<TAlgebra>::*PrepareElementFunc)(GeometricObject* obj, const local_vector_type& u, const local_index_type& glob_ind);
-		typedef bool (IDiscPostProcess<TAlgebra>::*FinishElementLoopFunc)();
+		typedef bool (IDirichletPostProcess<TAlgebra>::*PrepareElementLoopFunc)();
+		typedef bool (IDirichletPostProcess<TAlgebra>::*PrepareElementFunc)(GeometricObject* obj);
+		typedef bool (IDirichletPostProcess<TAlgebra>::*FinishElementLoopFunc)();
 
 		// types of Jacobian assemble functions
-		typedef bool (IDiscPostProcess<TAlgebra>::*PostProcessJFunc)(local_matrix_type& J, const local_vector_type& u, number time);
+		typedef bool (IDirichletPostProcess<TAlgebra>::*PostProcessJFunc)(matrix_type& J, const local_index_type& ind, number time);
 
 		// types of Defect assemble functions
-		typedef bool (IDiscPostProcess<TAlgebra>::*PostProcessDFunc)(local_vector_type& d, const local_vector_type& u, number time);
+		typedef bool (IDirichletPostProcess<TAlgebra>::*PostProcessDFunc)(vector_type& d, const local_index_type& ind, number time);
 
 		// types of right hand side assemble functions
-		typedef bool (IDiscPostProcess<TAlgebra>::*PostProcessFFunc)(local_vector_type& d, number time);
+		typedef bool (IDirichletPostProcess<TAlgebra>::*PostProcessFFunc)(vector_type& d, const local_index_type& ind, number time);
 
 	private:
 		// loop function pointers
