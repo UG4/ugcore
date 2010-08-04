@@ -239,6 +239,15 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 		node->append_node(create_hexahedron_node(grid.begin<Hexahedron>(),
 													grid.end<Hexahedron>(), aaIndVRT));
 
+//	write prisms
+	if(grid.num<Prism>() > 0)
+		node->append_node(create_prism_node(grid.begin<Prism>(),
+											grid.end<Prism>(), aaIndVRT));
+
+//	write pyramids
+	if(grid.num<Pyramid>() > 0)
+		node->append_node(create_pyramid_node(grid.begin<Pyramid>(),
+											  grid.end<Pyramid>(), aaIndVRT));
 }
 
 rapidxml::xml_node<>* GridWriterUGX::

@@ -723,8 +723,121 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 					const VertexBase& prototypeVertex,
 					VertexBase** pSubstituteVertices)
 {
-//TODO: refine for prisms not yet implemented.
-	UG_LOG("refine for prisms not yet implemented... sorry\n");
+//TODO: complete this refine method.
+	vNewVolumesOut.clear();
+	*ppNewVertexOut = NULL;
+
+//	handle substitute vertices.
+	VertexBase** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
+	else
+		vrts = &BaseClass::m_vertices.front();
+
+//	check which edges have to be refined and perform the required operations.
+	{
+		VertexBase** evrts = newEdgeVertices;
+		VertexBase** fvrts = newFaceVertices;
+		
+	//	get the number of new vertices.
+		uint numNewEdgeVrts = 0;
+		for(uint i = 0; i < 9; ++i)
+		{
+			if(newEdgeVertices[i] != NULL)
+				++numNewEdgeVrts;
+		}
+
+	//	ignore face 0 and face 4, since they are triangles. No inner point is needed here.
+		uint numNewFaceVrts = 0;
+		for(uint i = 1; i < 4; ++i)
+		{
+			if(newFaceVertices[i] != NULL)
+				++numNewFaceVrts;
+		}
+
+		switch(numNewEdgeVrts)
+		{
+			case 1:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 1 new edge vertex not yet implemented.");
+				return false;
+			}
+
+			case 2:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 2 new edge vertices not yet implemented.");
+				return false;
+			}
+
+			case 3:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 3 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 4:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 4 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 5:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 5 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 6:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 6 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 7:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 7 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 8:
+			{
+				UG_LOG("PROBLEM in Prism::refine(...): refine with 8 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 9:
+			{
+				if(numNewFaceVrts != 3){
+					assert(!"PROBLEM in Prism::refine(...): All quad-faces have to contain an inner vertex if all edges are marked.");
+					return false;
+				}
+			
+				vNewVolumesOut.reserve(8);
+			//	left bottom front
+				vNewVolumesOut.push_back(new Prism(vrts[0], evrts[0], evrts[2],
+												   evrts[3], fvrts[1], fvrts[3]));
+			//	right bottom front
+				vNewVolumesOut.push_back(new Prism(evrts[0], vrts[1], evrts[1],
+												   fvrts[1], evrts[4], fvrts[2]));
+			//	bottom back
+				vNewVolumesOut.push_back(new Prism(evrts[2], evrts[1], vrts[2],
+												   fvrts[3], fvrts[2], evrts[5]));
+			//	bottom center
+				vNewVolumesOut.push_back(new Prism(evrts[1], evrts[2], evrts[0],
+												   fvrts[2], fvrts[3], fvrts[1]));
+
+			//	left top front
+				vNewVolumesOut.push_back(new Prism(evrts[3], fvrts[1], fvrts[3],
+												   vrts[3], evrts[6], evrts[8]));
+			//	right top front
+				vNewVolumesOut.push_back(new Prism(fvrts[1], evrts[4], fvrts[2],
+												   evrts[6], vrts[4], evrts[7]));
+			//	top back
+				vNewVolumesOut.push_back(new Prism(fvrts[3], fvrts[2], evrts[5],
+												   evrts[8], evrts[7], vrts[5]));
+			//	top center
+				vNewVolumesOut.push_back(new Prism(fvrts[2], fvrts[3], fvrts[1],
+												   evrts[7], evrts[8], evrts[6]));
+				
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 
@@ -879,8 +992,110 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 						const VertexBase& prototypeVertex,
 						VertexBase** pSubstituteVertices)
 {
-//TODO: refine for pyramids not yet implemented.
-	UG_LOG("refine for pyramids not yet implemented... sorry\n");
+//TODO: complete this refine method.
+	vNewVolumesOut.clear();
+	*ppNewVertexOut = NULL;
+
+//	handle substitute vertices.
+	VertexBase** vrts;
+	if(pSubstituteVertices)
+		vrts = pSubstituteVertices;
+	else
+		vrts = &BaseClass::m_vertices.front();
+
+//	check which edges have to be refined and perform the required operations.
+	{
+		VertexBase** evrts = newEdgeVertices;
+		VertexBase* fvrt = newFaceVertices[0];
+		
+	//	get the number of new vertices.
+		uint numNewEdgeVrts = 0;
+		for(uint i = 0; i < 8; ++i)
+		{
+			if(newEdgeVertices[i] != NULL)
+				++numNewEdgeVrts;
+		}
+
+	//	ignore face 1, 2, 3, 4, since they are triangles. No inner point is needed here.
+		uint numNewFaceVrts = 0;
+		if(fvrt != NULL)
+			numNewFaceVrts = 1;
+
+		switch(numNewEdgeVrts)
+		{
+			case 1:
+			{
+				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 1 new edge vertex not yet implemented.");
+				return false;
+			}
+
+			case 2:
+			{
+				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 2 new edge vertices not yet implemented.");
+				return false;
+			}
+
+			case 3:
+			{
+				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 3 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 4:
+			{
+				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 4 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 5:
+			{
+				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 5 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 6:
+			{
+				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 6 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 7:
+			{
+				UG_LOG("PROBLEM in Pyramid::refine(...): refine with 7 new edge vertices not yet implemented.");
+				return false;
+			}
+			case 8:
+			{
+				if(numNewFaceVrts != 1){
+					assert(!"PROBLEM in Pyramid::refine(...): All quad-faces have to contain an inner vertex if all edges are marked.");
+					return false;
+				}
+
+				vNewVolumesOut.reserve(10);
+				
+			//	left bottom front
+				vNewVolumesOut.push_back(new Pyramid(vrts[0], evrts[0], fvrt, evrts[3], evrts[4]));
+			//	right bottom front
+				vNewVolumesOut.push_back(new Pyramid(evrts[0], vrts[1], evrts[1], fvrt, evrts[5]));
+			//	right bottom back
+				vNewVolumesOut.push_back(new Pyramid(fvrt, evrts[1], vrts[2], evrts[2], evrts[6]));
+			//	left bottom back
+				vNewVolumesOut.push_back(new Pyramid(evrts[3], fvrt, evrts[2], vrts[3], evrts[7]));
+			//	central
+				vNewVolumesOut.push_back(new Pyramid(evrts[7], evrts[6], evrts[5], evrts[4], fvrt));				
+			//	top
+				vNewVolumesOut.push_back(new Pyramid(evrts[4], evrts[5], evrts[6], evrts[7], vrts[4]));
+				
+			//	tet front
+				vNewVolumesOut.push_back(new Tetrahedron(evrts[4], evrts[0], evrts[5], fvrt));
+			//	tet right
+				vNewVolumesOut.push_back(new Tetrahedron(evrts[5], evrts[1], evrts[6], fvrt));
+			//	tet back
+				vNewVolumesOut.push_back(new Tetrahedron(evrts[6], evrts[2], evrts[7], fvrt));
+			//	tet left
+				vNewVolumesOut.push_back(new Tetrahedron(evrts[7], evrts[3], evrts[4], fvrt));
+				
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 

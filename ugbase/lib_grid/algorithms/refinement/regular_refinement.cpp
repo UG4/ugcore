@@ -475,11 +475,11 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 //	we need a container that stores the vertex for each edge of a volume
 //	entries will be set to NULL if the associated edge will not be refined
 	vector<VertexBase*> volEdgeVrts;
-	volEdgeVrts.reserve(4);
+	volEdgeVrts.reserve(12);
 //	we need a container that stores the vertex for each face of a volume
 //	entries will be set to NULL if the associated face will not be refined
 	vector<VertexBase*> volFaceVrts;
-	volFaceVrts.reserve(12);
+	volFaceVrts.reserve(6);
 	
 	for(size_t i = 0; i < vols.size(); ++i){
 		Volume* v = vols[i];
@@ -497,7 +497,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 
 	//	collect vertices of associated faces
 		volFaceVrts.clear();
-		for(uint j = 0; j < v->num_edges(); ++j){
+		for(uint j = 0; j < v->num_faces(); ++j){
 			Face* f = grid.get_face(v, j);
 			if(sel.is_selected(f))
 				volFaceVrts.push_back(faceVrts[aaIntFACE[f]]);
