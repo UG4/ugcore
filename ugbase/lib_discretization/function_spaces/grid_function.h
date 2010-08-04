@@ -256,52 +256,83 @@ class GridFunction{
 		inline typename geometry_traits<TElem>::iterator end(int si) const
 			{return m_pDoFDistribution->template end<TElem>(si);}
 
+		////////// Local Algebra ////////////
+
 		/// number of algebra indices on an element
 		size_t num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
 			{return m_pDoFDistribution->num_indices(refID, si, funcGroup);}
 
+		/// number of algebra indices on an element
+		size_t num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
+			{return m_pDoFDistribution->num_inner_indices(refID, si, funcGroup);}
+
 		/// fill local informations in LocalIndex
 		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
 			{return m_pDoFDistribution->prepare_indices(refID, si, ind);}
+
+		/// fill local informations in LocalIndex
+		bool prepare_inner_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
+			{return m_pDoFDistribution->prepare_inner_indices(refID, si, ind);}
 
 		/// fill the global algebra indices in LocalIndex
 		template<typename TElem>
 		void update_indices(TElem* elem, LocalIndices& ind) const
 			{return m_pDoFDistribution->update_indices(elem, ind);}
 
-		// get dof values
-		inline bool get_dof_values(local_vector_type& val, local_index_type& ind) const
-			{m_pVector->get(val, ind); return true;}
+		/// fill the global algebra indices in LocalIndex
+		template<typename TElem>
+		void update_inner_indices(TElem* elem, LocalIndices& ind) const
+			{return m_pDoFDistribution->update_inner_indices(elem, ind);}
+
+		////////// Multi indices ////////////
 
 		// number of multi indices on an finite element in canonical order
 		template <typename TElem>
 		inline size_t num_multi_indices(TElem* elem, size_t fct) const
 			{return m_pDoFDistribution->num_multi_indices(elem, fct);}
 
+		// number of multi indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		inline size_t num_inner_multi_indices(TGeomObj* elem, size_t fct) const
+			{return m_pDoFDistribution->num_inner_multi_indices(elem, fct);}
+
 		// get multi indices on an finite element in canonical order
 		template <typename TElem>
 		inline size_t get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 			{return m_pDoFDistribution->get_multi_indices(elem, fct, ind);}
 
-		// number of multi indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline size_t num_multi_indices_of_geom_obj(TGeomObj* elem, size_t fct) const
-			{return m_pDoFDistribution->num_multi_indices_of_geom_obj(elem, fct);}
-
 		// get multi indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		inline size_t get_multi_indices_of_geom_obj(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
-			{return m_pDoFDistribution->get_multi_indices_of_geom_obj(elem, fct, ind);}
+		inline size_t get_inner_multi_indices(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
+			{return m_pDoFDistribution->get_inner_multi_indices(elem, fct, ind);}
 
-		// get algebra indices on an geometric object in canonical order
+		////////// Algebra indices ////////////
+
+		// number of algebra indices on an geometric object in canonical order
 		template <typename TGeomObj>
-		inline void get_algebra_indices_of_geom_obj(TGeomObj* elem, algebra_index_vector_type& ind) const
-			{m_pDoFDistribution->get_algebra_indices_of_geom_obj(elem, ind);}
+		inline size_t num_algebra_indices(TGeomObj* elem, size_t fct) const
+			{return m_pDoFDistribution->num_algebra_indices(elem, fct);}
+
+		// number of algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		inline size_t num_inner_algebra_indices(TGeomObj* elem, size_t fct) const
+			{return m_pDoFDistribution->num_inner_algebra_indices(elem, fct);}
 
 		// get algebra indices on an geometric object in canonical order
 		template <typename TGeomObj>
 		inline void get_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
 			{m_pDoFDistribution->get_algebra_indices(elem, ind);}
+
+		// get algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		inline void get_inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{m_pDoFDistribution->get_inner_algebra_indices(elem, ind);}
+
+		////////// DoF Values ////////////
+
+		// get dof values
+		inline bool get_dof_values(local_vector_type& val, local_index_type& ind) const
+			{m_pVector->get(val, ind); return true;}
 
 		////////////////////////////
 		// Algebra requirements
