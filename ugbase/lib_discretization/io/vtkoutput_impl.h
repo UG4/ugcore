@@ -663,7 +663,7 @@ write_scalar_elementwise(FILE* File,
 
 			m_grid->mark(v);
 
-			if(u.get_multi_indices_of_geom_obj(v, fct, multInd) != 1)
+			if(u.get_inner_multi_indices(v, fct, multInd) != 1)
 				return false;
 
 			const size_t index = multInd[0][0];
