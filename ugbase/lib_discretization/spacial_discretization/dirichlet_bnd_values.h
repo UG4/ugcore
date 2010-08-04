@@ -159,7 +159,7 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::iterator iterBegin,
 		TElem* elem = *iter;
 		corner = aaPos[elem];
 
-		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
+		if(u.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
 			return false;
 
 		if(m_bndfct(val, corner, time))
@@ -192,7 +192,7 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::iterator iterBegin,
 		TElem* elem = *iter;
 		corner = aaPos[elem];
 
-		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
+		if(u.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
 			return false;
 
 		if(m_bndfct(val, corner, time))
@@ -227,7 +227,7 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::iterator iterBegin,
 		// TODO: if TElem != Vertex we have to do something else
 		corner = aaPos[elem];
 
-		if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
+		if(u.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
 			return false;
 
 		if(m_bndfct(val, corner, time))
@@ -264,7 +264,7 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::iterator iterBegin,
 
 		if(m_bndfct(val, corner, time))
 		{
-			if(u.template get_multi_indices_of_geom_obj<TElem>(elem, fct, multInd) != 1)
+			if(u.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
 				return false;
 			const size_t index = multInd[0][0];
 			const size_t alpha = multInd[0][1];

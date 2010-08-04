@@ -12,6 +12,7 @@
 #include "./domain_discretization_interface.h"
 
 // domain discretization
+#include "./post_process/post_process.h"
 #include "./dirichlet_bnd_values.h"
 #include "./domain_discretization.h"
 

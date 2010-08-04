@@ -62,6 +62,7 @@ class DomainDiscretization :
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
+
 		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
@@ -81,6 +82,7 @@ class DomainDiscretization :
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
+
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
@@ -100,6 +102,7 @@ class DomainDiscretization :
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
+
 		IAssembleReturn assemble_solution(discrete_function_type& u)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
@@ -132,6 +135,7 @@ class DomainDiscretization :
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
+
 		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
@@ -151,6 +155,7 @@ class DomainDiscretization :
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
+
 		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
@@ -170,6 +175,7 @@ class DomainDiscretization :
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
+
 		IAssembleReturn assemble_solution(discrete_function_type& u, number time)
 		{
 			if(!check_solution(u)) return IAssemble_ERROR;
@@ -180,11 +186,8 @@ class DomainDiscretization :
 			return IAssemble_OK;
 		}
 
-	protected:
-		typedef std::vector<size_t> comp_vec_type;
-
 	public:
-		bool add_disc(IElemDisc<TAlgebra>& elemDisc, const FunctionGroup& fcts, int si, int dim)
+		bool add(IElemDisc<TAlgebra>& elemDisc, const FunctionGroup& fcts, int si, int dim)
 		{
 			// check if number of functions match
 			if(elemDisc.num_fct() != fcts.num_fct())
@@ -213,7 +216,7 @@ class DomainDiscretization :
 		std::vector<ElemDisc> m_vElemDisc;
 
 	public:
-		bool add_disc(CoupledSystem<TDiscreteFunction, TAlgebra>& coupledElemDisc, const FunctionGroup& fcts, int si, int dim)
+		bool add(CoupledSystem<TDiscreteFunction, TAlgebra>& coupledElemDisc, const FunctionGroup& fcts, int si, int dim)
 		{
 			// check if number of functions match
 			if(coupledElemDisc.num_fct() != fcts.num_fct())
