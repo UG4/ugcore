@@ -31,6 +31,25 @@ enum GeometricBaseObject
 };
 
 ////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	Reference-Object IDs
+///	these ids are used to identify the shape of a geometric object.
+enum ReferenceObjectID
+{
+	ROID_INVALID = -1,
+	ROID_VERTEX,
+	ROID_EDGE,
+	ROID_TRIANGLE,
+	ROID_QUADRILATERAL,
+	ROID_TETRAHEDRON,
+	ROID_HEXAHEDRON,
+	ROID_PRISM,
+	ROID_PYRAMID,
+	NUM_REFERENCE_OBJECTS
+};
+
+
+////////////////////////////////////////////////////////////////////////
 //	Predeclaration of geometric objects.
 class GeometricObject;	//	geometric base object
 class VertexBase;		//	base for all 0-dimensional grid objects.
@@ -273,6 +292,7 @@ class geometry_traits<VertexBase>
 			SHARED_PIPE_SECTION = -1,
 			BASE_OBJECT_TYPE_ID = VERTEX
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_VERTEX;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,6 +384,7 @@ class geometry_traits<EdgeBase>
 			SHARED_PIPE_SECTION = -1,
 			BASE_OBJECT_TYPE_ID = EDGE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_EDGE;
 };
 
 
@@ -619,6 +640,7 @@ class geometry_traits<Face>
 			SHARED_PIPE_SECTION = -1,
 			BASE_OBJECT_TYPE_ID = FACE
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_INVALID;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -819,6 +841,7 @@ class geometry_traits<Volume>
 			SHARED_PIPE_SECTION = -1,
 			BASE_OBJECT_TYPE_ID = VOLUME
 		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_INVALID;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

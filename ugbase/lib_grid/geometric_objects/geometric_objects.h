@@ -11,24 +11,6 @@
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-//	Reference-Object IDs
-///	these ids are used to identify the shape of a geometric object.
-enum ReferenceObjectID
-{
-	ROID_INVALID = -1,
-	ROID_VERTEX,
-	ROID_EDGE,
-	ROID_TRIANGLE,
-	ROID_QUADRILATERAL,
-	ROID_TETRAHEDRON,
-	ROID_HEXAHEDRON,
-	ROID_PRISM,
-	ROID_PYRAMID,
-	NUM_REFERENCE_OBJECTS
-};
-
-////////////////////////////////////////////////////////////////////////
 //	shared pipe sections vertex
 ///	These numbers define where in the vertex-section-container a vertex will be stored.
 enum SharedPipeSectionVertex
