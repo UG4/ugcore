@@ -17,6 +17,9 @@ class EdgeBase;
 class Face;
 class Volume;
 
+/// \addtogroup lib_grid
+/// @{
+
 ////////////////////////////////////////////////////////////////////////
 //	Observer types
 enum ObserverType
@@ -80,6 +83,8 @@ class GridObserver
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol)		{}
 		virtual void volume_to_be_replaced(Grid* grid, Volume* volOld, Volume* volNew)	{}
 };
+
+/// @}
 
 }//	end of namespace
 

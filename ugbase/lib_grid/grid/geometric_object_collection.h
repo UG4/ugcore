@@ -12,6 +12,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid
+/// @{
+
 ///	a section-container that holds geometric-objects in a std::list
 typedef SectionContainer<GeometricObject*, std::list<GeometricObject*> >
 		GeometricObjectSectionContainer;
@@ -181,6 +184,7 @@ class GeometricObjectCollection
 		ContainerVec	m_levels;
 };
 
+/// @}
 }//	end of namespace
 
 ////////////////////////////////////////////////

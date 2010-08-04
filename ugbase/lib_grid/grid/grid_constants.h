@@ -8,6 +8,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid
+/// @{
+
 ////////////////////////////////////////////////////////////////////////
 //	VertexOptions
 ///	Used to specify the way in which Grid manages vertex-specific data.
@@ -82,6 +85,7 @@ enum GridOptions
 	GRIDOPT_DEFAULT = GRIDOPT_NONE
 };
 
+/// @}
 }
 
 #endif

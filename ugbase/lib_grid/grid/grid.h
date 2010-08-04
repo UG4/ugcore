@@ -16,6 +16,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_grid
+///	@{
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //	Grid
 ///	Manages the elements of a grid and their interconnection.
@@ -731,6 +734,7 @@ class Grid
 		VolumeAttachmentAccessor<AMark>	m_aaMarkVOL;
 };
 
+///	@}
 }//end of namespace
 
 #include "grid_impl.hpp"

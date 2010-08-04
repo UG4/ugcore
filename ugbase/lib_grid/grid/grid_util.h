@@ -18,6 +18,8 @@ class Grid;
 //	CompareVertices
 ///	Checks whether ev1 and ev2 contain the same vertices.
 /**
+ * \ingroup lib_grid_algorithms_edge_util
+ *
  * Can be used to compare EdgeBase with EdgeBase,
  * EdgeDescriptor with EdgeDescriptor or
  * EdgeBase with EdgeDescriptor.
@@ -27,6 +29,8 @@ bool CompareVertices(const EdgeVertices* ev1,
 
 ///	Checks whether fv1 and fv2 contain the same vertices.
 /**
+ * \ingroup lib_grid_algorithms_face_util
+ *
  * Can be used to compare Face with Face,
  * FaceDescriptor with FaceDescriptor or
  * Face with FaceDescriptor.
@@ -39,6 +43,8 @@ bool CompareVertices(const FaceVertices* fv1,
 
 ///	Checks whether vv1 and vv2 contain the same vertices.
 /**
+ * \ingroup lib_grid_algorithms_volume_util
+ *
  * Can be used to compare Volume with Volume,
  * VolumeDescriptor with VolumeDescriptor or
  * Volume with VolumeDescriptor.
@@ -54,6 +60,8 @@ bool CompareVertices(const VolumeVertices* vv1,
 //	CompareVertexContainer
 ///	compares vertices in a container
 /**
+ * \ingroup lib_grid_algorithms_vertex_util
+ *
  *	If you want to compare EdgeBase, Face, Volume, EdgeDescriptor,
  *	FaceDescriptor or VolumeDescriptor with other EdgeBase, ... then please
  *	use CompareVertices instead.
@@ -77,6 +85,8 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 //	CollectEdges
 ///	Collects all edges that exist in the given grid are part of the given face.
 /**
+ * \ingroup lib_grid_algorithms_face_util
+ *
  * if FACEOPT_STORE_ASSOCIATED_EDGES is enabled then the algorithm uses
  * associated_edges_begin(f), associated_edges_end(f)
  * in order to find the edges.
@@ -88,6 +98,8 @@ void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool c
 
 ///	Collects all edges that exist in the given grid are part of the given volume.
 /**
+ * \ingroup lib_grid_algorithms_volume_util
+ *
  * if VOLOPT_STORE_ASSOCIATED_EDGES is enabled then the algorithm uses
  * associated_edges_begin(v), associated_edges_end(v)
  * in order to find the edges.
@@ -100,15 +112,19 @@ void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool
 ////////////////////////////////////////////////////////////////////////
 //	EdgeContains
 ///	returns true if the given edge contains the given vertex
+/// \ingrouop lib_grid_algorithms_edge_util
 inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt);
 
 ///	returns true if the given edge contains the given vertices
+/// \ingrouop lib_grid_algorithms_edge_util
 inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt1, VertexBase* vrt2);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectFaces
 ///	Collects all faces that exist in the given grid which contain the given edge.
 /**
+ * \ingroup lib_grid_algorithms_edge_util
+ *
  * if EDGEOPT_STORE_ASSOCIATED_FACES is enabled then the algorithm uses
  * associated_faces_begin(e), associated_faces_end(e)
  * in order to find the faces.
@@ -119,6 +135,8 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool c
 
 ///	Collects all faces that exist in the given grid are part of the given volume.
 /**
+ * \ingroup lib_grid_algorithms_volume_util
+ *
  * if VOLOPT_STORE_ASSOCIATED_VOLUMES is enabled then the algorithm uses
  * associated_faces_begin(v), associated_faces_end(v)
  * in order to find the faces.
@@ -136,17 +154,21 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cle
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
 ///	returns true if the given face contains the given vertex
+/// \ingrouop lib_grid_algorithms_face_util
 bool FaceContains(Face* f, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
 ///	returns true if the given face contains the given edge
+/// \ingrouop lib_grid_algorithms_face_util
 bool FaceContains(Face* f, EdgeVertices* ev);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectVolumes
 ///	Collects all volumes that exist in the given grid which contain the given edge.
 /**
+ * \ingroup lib_grid_algorithms_edge_util
+ *
  * if EDGEOPT_STORE_ASSOCIATED_VOLUMES is enabled then the algorithm uses
  * associated_volumes_begin(e), associated_volumes_end(e)
  * in order to find the volumes.
@@ -155,8 +177,11 @@ bool FaceContains(Face* f, EdgeVertices* ev);
  */
 void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, bool clearContainer = true);
 
+/// @{
 ///	Collects all volumes that exist in the given grid which contain the given face.
 /**
+ * \ingroup lib_grid_algorithms_face_util
+ *
  * if FACEOPT_STORE_ASSOCIATED_VOLUMES is enabled then the algorithm uses
  * associated_volumes_begin(f), associated_volumes_end(f)
  * in order to find the volumes.
@@ -166,15 +191,19 @@ void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, EdgeBase* e, 
 void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, Face* f, bool clearContainer = true, bool ignoreAssociatedVolumes = false);
 
 void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, FaceDescriptor& fd, bool clearContainer = true);
+/// @}
 
 ////////////////////////////////////////////////////////////////////////
 //	VolumeContains
+/// \ingroup lib_grid_algorithms_volume_util
 ///	returns true if the given volume contains the given vertex
 bool VolumeContains(Volume* v, VertexBase* vrt);
 
+/// \ingroup lib_grid_algorithms_volume_util
 ///	returns true if the given volume contains the given edge
 bool VolumeContains(Volume* v, EdgeVertices* ev);
 
+/// \ingroup lib_grid_algorithms_volume_util
 ///	returns true if the given volume contains the given face
 bool VolumeContains(Volume* v, FaceVertices* f);
 
