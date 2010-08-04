@@ -1,5 +1,14 @@
+/*
+ * dirichlet_post_process_util.h
+ *
+ *  Created on: 04.08.2010
+ *      Author: andreasvogel
+ */
 
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_POST_PROCESS_UTIL__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_POST_PROCESS_UTIL__
 
+namespace ug{
 
 template <	typename TElem,
 			typename TDiscreteFunction,
@@ -250,5 +259,5 @@ BNDSetSolution(			IDiscPostProcess<TAlgebra>& elemDisc,
 	return true;
 }
 
-
-
+} // end namespace ug
+#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_POST_PROCESS_UTIL__ */
