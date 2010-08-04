@@ -77,12 +77,12 @@ bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse
 			if(vert != NULL)
 			{
 				// get global indices
-				uCoarse.get_algebra_indices_of_geom_obj(vert, coarseInd);
+				uCoarse.get_inner_algebra_indices(vert, coarseInd);
 			}
 			else continue;
 
 			// get global indices
-			uFine.get_algebra_indices_of_geom_obj(*iter, fineInd);
+			uFine.get_inner_algebra_indices(*iter, fineInd);
 
 			for(size_t i = 0; i < coarseInd.size(); ++i)
 				mat(coarseInd[i], fineInd[i]) = 1.0;

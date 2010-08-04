@@ -90,14 +90,14 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 				if(!uFine.is_def_in_subset(fct, si)) continue;
 
 				// get global indices
-				if(uFine.get_multi_indices_of_geom_obj(*iter, fct, fineMultInd) != 1)
+				if(uFine.get_inner_multi_indices(*iter, fct, fineMultInd) != 1)
 					return false;
 
 				// Check if father is Vertex
 				if(vert != NULL)
 				{
 					// get global indices
-					if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarseMultInd) != 1)
+					if(uCoarse.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 						return false;
 
 					// skip boundary nodes
@@ -117,7 +117,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 						vert = edge->vertex(i);
 
 						// get global indices
-						if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarseMultInd) != 1)
+						if(uCoarse.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 							return false;
 
 						// skip boundary nodes
@@ -138,7 +138,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 						vert = quad->vertex(i);
 
 						// get global indices
-						if(uCoarse.get_multi_indices_of_geom_obj(vert, fct, coarseMultInd) != 1)
+						if(uCoarse.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 							return false;
 
 						// skip boundary nodes
