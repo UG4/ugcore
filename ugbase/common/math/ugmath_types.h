@@ -13,6 +13,7 @@
 //	include vector and matrix classes
 #include "math_vector_matrix/math_vector.h"
 #include "math_vector_matrix/math_matrix.h"
+#include "math_vector_matrix/math_tensor.h"
 
 ////////////////////////////////////////////////////////////////////////
 //	useful typedefs
