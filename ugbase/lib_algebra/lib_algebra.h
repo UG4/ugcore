@@ -88,10 +88,14 @@ class HypreAlgebra{
 //   Martin Algebra
 /////////////////////////////////////////////
 
+#include "martin_algebra/algebra_misc.h"
 #include "martin_algebra/vector.h"
+#include "martin_algebra/sparsematrix.h"
+#include "martin_algebra/core_smoothers.h"
 
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
+#include "martin_algebra/lapack/lapack.h"
 #include "martin_algebra/lapack_lu.h"
 #endif
 #endif

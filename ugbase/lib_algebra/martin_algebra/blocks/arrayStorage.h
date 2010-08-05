@@ -23,22 +23,22 @@ namespace ug{
 	storage_traits<storage_type, double, 3, 3>::array_type is either
 	fixed Array or variableArray.
  */
-template<typename T, int n>
+template<typename T, size_t n>
 class fixedArray
 {	
 public:
 	//! constructor. does nothing
 	fixedArray(){}
 	//! construct with size
-	fixedArray(int n_) { UG_ASSERT(n_ == n, "fixed array set to " << n << ", tried " << n_ << "."); }
+	fixedArray(size_t n_) { UG_ASSERT(n_ == n, "fixed array set to " << n << ", tried " << n_ << "."); }
 	
 	//fixedArray(const fixedArray &other); // default copy constructor
 	
 public:
 	//! access refernce of an element
-	inline T &operator [] (int i) { return values[i]; }
+	inline T &operator [] (size_t i) { return values[i]; }
 	//! access const element
-	inline const T &operator [] (int i) const { return values[i]; }
+	inline const T &operator [] (size_t i) const { return values[i]; }
 	
 public:	
 	//! compare with other fixedArray
@@ -66,7 +66,7 @@ public:
 	}
 	
 	//! change size (for fixed array trivial)
-	inline void setSize(int s, bool bZero=true)
+	inline void resize(size_t s, bool bZero=true)
 	{
 		UG_ASSERT(s <= n, "fixed Array is too small (max " << n << ", tried " << s << ".");		
 		if(bZero)
@@ -101,11 +101,11 @@ public:
 	}
 	
 	//! construct with size
-	variableArray(int n_)
+	variableArray(size_t n_)
 	{
 		values = 0;
 		n = 0;
-		setSize(n_);
+		resize(n_);
 	}
 	
 	//! copy constructor
@@ -118,9 +118,9 @@ public:
 	
 public:
 	//! access refernce of an element
-	inline T &operator [] (int i) { return values[i]; }
+	inline T &operator [] (size_t i) { return values[i]; }
 	//! access const element
-	inline const T &operator [] (int i) const { return values[i]; }
+	inline const T &operator [] (size_t i) const { return values[i]; }
 	
 public:
 	//! compare with other variableArray
@@ -158,7 +158,7 @@ public:
 		return n;
 	}
 
-	inline void setSize(int s, bool bZero=true)
+	inline void resize(size_t s, bool bZero=true)
 	{
 		if(s > n)
 		{			
@@ -179,7 +179,7 @@ public:
 
 private:
 	T *values;
-	int n;
+	size_t n;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -188,38 +188,38 @@ private:
  use accessor (r, c) or getAt(r, c) function
  \sa fixedArray
  */
-template<typename T, int rows, int cols>
+template<typename T, size_t rows, size_t cols>
 class fixedArray2
 {
 public:
 	fixedArray2() { memset(values, 0, sizeof(double)*rows*cols); }
-	fixedArray2(int rows_, int cols_) 
+	fixedArray2(size_t rows_, size_t cols_) 
 	{
 		UG_ASSERT(rows_ == rows && cols == cols, "fixed Array! (rows " << rows << ", cols " << cols << " tried " << rows_ << ", " << cols_ << ".)");		
 	}
 	
-	inline T &operator () (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline const T &operator () (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline T &getAt (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline const T &getAt (int r, int c) const { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline T &operator [] (int i) { UG_ASSERT(i<rows*cols && i >= 0, ""); return values[i]; }
-	inline const T &operator [] (int i)  const { UG_ASSERT(i<rows*cols && i >= 0, ""); return values[i]; }
-	int size() const { return rows*cols; }
+	inline T &operator () (size_t r, size_t c) { ensure(r+1, c+1); return values[c + r*cols]; }
+	inline const T &operator () (size_t r, size_t c) const { ensure(r+1, c+1); return values[c + r*cols]; }
+	inline T &getAt (size_t r, size_t c) { ensure(r+1, c+1); return values[c + r*cols]; }
+	inline const T &getAt (size_t r, size_t c) const { ensure(r+1, c+1); return values[c + r*cols]; }
+	inline T &operator [] (size_t i) { UG_ASSERT(i<rows*cols && i >= 0, ""); return values[i]; }
+	inline const T &operator [] (size_t i)  const { UG_ASSERT(i<rows*cols && i >= 0, ""); return values[i]; }
+	size_t size() const { return rows*cols; }
 
 	//! ensure size of rows*cols, but do not make smaller
-	inline void ensure(int rows_, int cols_) const
+	inline void ensure(size_t rows_, size_t cols_) const
 	{
 		UG_ASSERT(rows_ <= rows && cols <= cols, "fixed Array is too small (max rows " << rows << ", cols " << cols << " tried " << rows_ << ", " << cols_ << ".)");		
 	}
 	//! set size (bZero: if true, zero new mem)
-	inline void setSize(int rows_, int cols_, bool bZero=true)
+	inline void resize(size_t rows_, size_t cols_, bool bZero=true)
 	{
 		UG_ASSERT(rows_ == rows && cols == cols, "fixed Array! (rows " << rows << ", cols " << cols << " tried " << rows_ << ", " << cols_ << ".)");		
 		memset(values, 0, sizeof(double)*rows*cols);
 	}
 	
-	int getRows() const { return rows; }
-	int getCols() const { return cols; }
+	size_t num_rows() const { return rows; }
+	size_t num_cols() const { return cols; }
 	
 	void swap(fixedArray2<T, rows, cols> &other)
 	{
@@ -241,7 +241,7 @@ class variableArray2
 {
 public:
 	variableArray2() : values() { cols = 0; }
-	variableArray2(int rows_, int cols_) : values(rows_*cols_)
+	variableArray2(size_t rows_, size_t cols_) : values(rows_*cols_)
 	{
 		cols = cols_;
 	}
@@ -252,28 +252,28 @@ public:
 		cols = other.cols;
 	}
 public:
-	void ensure(int r, int c)
+	void ensure(size_t r, size_t c)
 	{
-		if(c < getCols())
+		if(c < num_cols())
 		{
-			if(r >= getRows())
-				values.setSize(r*getCols());
+			if(r >= num_rows())
+				values.resize(r*num_cols());
 			return;
 		}
-		else if(r > getRows() || c > getCols())
+		else if(r > num_rows() || c > num_cols())
 		{
-			int newc = getCols(), newr = getRows();
-			if(c >= getCols())
+			size_t newc = num_cols(), newr = num_rows();
+			if(c >= num_cols())
 				newc = c;				
-			if(r >= getRows())
+			if(r >= num_rows())
 				newr = r;
 
 			variableArray<T> values2(newr*newc);
-			for(int i=0; i<newr*newc; i++) values2[i] = 0.0;
+			for(size_t i=0; i<newr*newc; i++) values2[i] = 0.0;
 			// copy old data
-			for(int ir=0; ir<getRows(); ir++)
+			for(size_t ir=0; ir<num_rows(); ir++)
 			{
-				for(int ic=0; ic<getCols(); ic++)
+				for(size_t ic=0; ic<num_cols(); ic++)
 					values2[ic + ir*newc] = values[ic + ir*cols];				
 			}
 			values.swap(values2);
@@ -281,14 +281,14 @@ public:
 		}
 	}
 	
-	inline void setSize(int rows_, int cols_, bool bZero=true)
+	inline void resize(size_t rows_, size_t cols_, bool bZero=true)
 	{
-		values.setSize(rows_*cols_);
+		values.resize(rows_*cols_);
 		cols = cols_;
 		return;
 		if(bZero)
 		{
-			for(int i=0; i<rows_*cols_; i++) values[i] = 0;
+			for(size_t i=0; i<rows_*cols_; i++) values[i] = 0;
 	//		memset(&values[0], 0, sizeof(T)*rows_*cols_);
 		}
 	}
@@ -298,18 +298,18 @@ public:
 		std::swap(other.cols, cols);
 	}
 	
-	inline T &operator () (int r, int c) { ensure(r+1, c+1); return values[c + r*cols]; }
-	inline const T &operator () (int r, int c) const { return values[c + r*cols]; }
-	inline T &operator [] (int i) { return values[i]; }
-	inline const T &operator [] (int i) const { return values[i]; }	
-	inline int getRows() const {	return cols != 0 ? values.size()/cols : 0; }
-	inline int getCols() const { return cols; }
-	inline int size() const { return values.size(); }
+	inline T &operator () (size_t r, size_t c) { ensure(r+1, c+1); return values[c + r*cols]; }
+	inline const T &operator () (size_t r, size_t c) const { return values[c + r*cols]; }
+	inline T &operator [] (size_t i) { return values[i]; }
+	inline const T &operator [] (size_t i) const { return values[i]; }	
+	inline size_t num_rows() const {	return cols != 0 ? values.size()/cols : 0; }
+	inline size_t num_cols() const { return cols; }
+	inline size_t size() const { return values.size(); }
 	
 	
 private:
 	variableArray<T> values;
-	int cols;
+	size_t cols;
 };
 
 
@@ -332,10 +332,10 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 //! storage traits: used to get corresponding one and two-dimensional arrays for a storage class
-template<typename storage_type, typename value_type, int rows, int cols> class storage_traits;
+template<typename storage_type, typename value_type, size_t rows, size_t cols> class storage_traits;
 
 //! fixed Storage traits
-template<typename value_type, int rows, int cols>
+template<typename value_type, size_t rows, size_t cols>
 class storage_traits<fixedStorage, value_type, rows, cols>
 {
 public:
@@ -344,7 +344,7 @@ public:
 };
 
 //! variable storage traits
-template <typename value_type, int rows, int cols>
+template <typename value_type, size_t rows, size_t cols>
 class storage_traits<variableStorage, value_type, rows, cols>
 {	
 public:

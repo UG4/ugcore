@@ -40,23 +40,23 @@ inline double BlockNorm2(const double &a)
 //////////////////////////////////////////////////////
 // get/set specialization for doubles
 
-template<> inline double &BlockRef(double &m, int i)
+template<> inline double &BlockRef(double &m, size_t i)
 {
 	UG_ASSERT(i == 0, "block is double, doesnt have component (" << i << ").");
 	return m;
 }
-template<> inline const double &BlockRef(const double &m, int i)
+template<> inline const double &BlockRef(const double &m, size_t i)
 {
 	UG_ASSERT(i == 0, "block is double, doesnt have component (" << i << ").");
 	return m;
 }
 
-template<> inline double &BlockRef(double &m, int i, int j)
+template<> inline double &BlockRef(double &m, size_t i, size_t j)
 {
 	UG_ASSERT(i == 0 && j == 0, "block is double, doesnt have component (" << i << ", " << j << ").");
 	return m;
 }
-template<> inline const double &BlockRef(const double &m, int i, int j)
+template<> inline const double &BlockRef(const double &m, size_t i, size_t j)
 {
 	UG_ASSERT(i == 0 && j == 0, "block is double, doesnt have component (" << i << ", " << j << ").");
 	return m;
@@ -90,33 +90,33 @@ inline void SubMult(double &dest, const double &b, const double &vec)
 //////////////////////////////////////////////////////
 //setSize(t, a, b) for doubles
 template<>
-inline void SetSize(double &d, int a)
+inline void SetSize(double &d, size_t a)
 {
 	UG_ASSERT(a == 1, "block is double, cannot change size to " << a << ".");
 	return;
 }
 
 template<>
-inline void SetSize(double &d, int a, int b)
+inline void SetSize(double &d, size_t a, size_t b)
 {
 	UG_ASSERT(a == 1 && b == 1, "block is double, cannot change size to (" << a << ", " << b << ").");
 	return;
 }
 
 template<>
-inline int GetSize(const double &t)
+inline size_t GetSize(const double &t)
 {
 	return 1;
 }
 
 template<>
-inline int GetRows(const double &t)
+inline size_t GetRows(const double &t)
 {
 	return 1;
 }
 
 template<>
-inline int GetCols(const double &t)
+inline size_t GetCols(const double &t)
 {
 	return 1;
 }

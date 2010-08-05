@@ -12,8 +12,9 @@ namespace ug
 #define FORCE_CREATION if(0)
 #endif
 
+//! prevent unused variable-warnings
+#define UNUSED_VARIABLE(var) ((void) var);
 }
 
-#include "core_smoothers.h"
 
 #endif // __H__UG__MARTIN_ALGEBRA__ALGEBRA_MISC__

@@ -11,17 +11,11 @@
 #ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__
 #define __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__
 
-
+#include "lapack/lapack.h"
 
 //using namespace std;
 namespace ug{
 
-extern "C"
-{
-    void dgetrf_(int *m, int *n, double *a, int *lda, int *ipiv, int *info);
-    void dgetrs_(char *trans, int *n, int *nrhs, const double *a, int *lda,
-            const int *ipiv, double *b, int *ldb, int *info);
-}
 
 
 template<typename vec_type>
@@ -34,22 +28,17 @@ void LapackLU::apply(const vec_type &b, vec_type &x)
 
 	x = b;
 	// TODO: this only works for fixed array entries.
-
-	// solve system
-	char trans ='N';
-	int dim = size;
-	int nrhs = 1;
-	int info;
-
-	dgetrs_(&trans, &dim, &nrhs, densemat, &dim, interchange, (double*)&x[0], &dim, &info);
+	int info = getrs(ModeNoTrans, size, 1, densemat, size, interchange, (double*)&x[0], size);
 	UG_ASSERT(info == 0, "info is " << info);
+
+	UNUSED_VARIABLE(info);
 }
 
 
 template<typename matrix_type>
 void LapackLU::init(const matrix_type &A)
 {
-  const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfUnknowns;
+	const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfUnknowns;
 	size = A.num_rows() * nrOfUnknowns;
 
 	if(densemat) delete[] densemat;
@@ -70,10 +59,11 @@ void LapackLU::init(const matrix_type &A)
 					  densemat[ (rr + r2) + (cc+c2)*size ] = BlockRef((*it).dValue, r2, c2);
 		}
 
-	int info = 0;
-	int dim = size;
-	dgetrf_(&dim, &dim, densemat, &dim, interchange, &info);
-	UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": matrix singular in U(i,i)" : ": i-th argument had had illegal value"));
+	int info = getrf(size, size, densemat, size, interchange);
+	UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": matrix singular in U(i,i)" : ": i-th argument had an illegal value"));
+	// todo: put this error text in a lapack_errors.cpp file
+
+	UNUSED_VARIABLE(info);
 }
 
 } // namespace ug

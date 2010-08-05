@@ -22,7 +22,7 @@ namespace ug{
 //! 2. storage_type: fixedStorage, arrayStorage
 //! 3. n: with storage_type=fixedStorage, size of the fixed matrix
 //! if storage_type=variableStorage, n is ignored
-template<typename value_type, typename storage_type, int n_=0>
+template<typename value_type, typename storage_type, size_t n_=0>
 class blockVector
 {
 private:
@@ -35,12 +35,12 @@ private:
 	friend class smallInverse<storage_type, n_, n_>;
 
 public:
-	inline void setSize(int n, bool bZero=true)
+	inline void resize(size_t n, bool bZero=true)
 	{
-		values.setSize(n, bZero);
+		values.resize(n, bZero);
 	}
 
-	inline int getSize() const
+	inline size_t size() const
 	{
 		return values.size();
 	}
@@ -48,19 +48,19 @@ public:
 
 public:
 // access functions
-	value_type &getAt(int i)
+	value_type &at(size_t i)
 	{
 		return values[i];
 	}
-	const value_type &getAt(int i) const
+	const value_type &at(size_t i) const
 	{
 		return values[i];
 	}
-	value_type &operator ()(int i)
+	value_type &operator ()(size_t i)
 	{
 		return values[i];
 	}
-	const value_type &operator () (int i) const
+	const value_type &operator () (size_t i) const
 	{
 		return values[i];
 	}
@@ -72,11 +72,11 @@ public:
 
 	blockVector(double d) : values(n_)
 	{
-		for(int i=0; i<n_; i++)
+		for(size_t i=0; i<n_; i++)
 			values[i] = d;
 	}
 
-	blockVector(int n) : values(n)
+	blockVector(size_t n) : values(n)
 	{
 	}
 
@@ -89,8 +89,8 @@ public:
 // algebra functions
 	double operator = (double d)
 	{
-		for(int i=0; i<getSize(); i++)
-			getAt(i) = d;
+		for(size_t i=0; i<size(); i++)
+			at(i) = d;
 		return d;
 	}
 
@@ -102,13 +102,13 @@ public:
 // add and substract
 	vector_type operator + (const vector_type &other ) const
 	{
-		if(other.getSize() == 0)
+		if(other.size() == 0)
 			return *this;
 		else
 		{
-			UG_ASSERT(getSize() == other.getSize(), "");
-			vector_type erg(getSize());
-			for(int i=0; i<getSize(); i++)
+			UG_ASSERT(size() == other.size(), "");
+			vector_type erg(size());
+			for(size_t i=0; i<size(); i++)
 				erg.values[i] = values[i] + other.values[i];
 			return erg;
 		}
@@ -116,13 +116,13 @@ public:
 
 	vector_type operator - (const vector_type &other ) const
 	{
-		if(other.getSize() == 0)
+		if(other.size() == 0)
 			return *this;
 		else
 		{
-			UG_ASSERT(getSize() == other.getSize(), "");
-			vector_type erg(getSize());
-			for(int i=0; i<getSize(); i++)
+			UG_ASSERT(size() == other.size(), "");
+			vector_type erg(size());
+			for(size_t i=0; i<size(); i++)
 				erg.values[i] = values[i] - other.values[i];
 			return erg;
 		}
@@ -130,28 +130,28 @@ public:
 
 	void operator += (const vector_type &other )
 	{
-		if(other.getSize() == 0) return;
-		UG_ASSERT(getSize() == other.getSize(), "");
-		for(int i=0; i<getSize(); i++)
+		if(other.size() == 0) return;
+		UG_ASSERT(size() == other.size(), "");
+		for(size_t i=0; i<size(); i++)
 			values[i] += other.values[i];
 	}
 
 	void operator -= (const vector_type &other )
 	{
-		if(other.getSize() == 0) return;
+		if(other.size() == 0) return;
 
-		UG_ASSERT(getSize() == other.getSize(), "");
-		for(int i=0; i<getSize(); i++)
+		UG_ASSERT(size() == other.size(), "");
+		for(size_t i=0; i<size(); i++)
 			values[i] -= other.values[i];
 	}
 
 	//! dot product
 	double operator * (const vector_type &other ) const
 	{
-		if(other.getSize() == 0) return 0.0;
-		UG_ASSERT(getSize() == other.getSize(), "");
+		if(other.size() == 0) return 0.0;
+		UG_ASSERT(size() == other.size(), "");
 		double s=0;
-		for(int i=0; i<getSize(); i++)
+		for(size_t i=0; i<size(); i++)
 			s += values[i] * other.values[i];
 		return s;
 	}
@@ -159,16 +159,16 @@ public:
 	//! scale vector by alpha
 	vector_type operator * (double alpha) const
 	{
-		vector_type erg(getSize());
-		for(int i=0; i<getSize(); i++)
-			erg(i) = getAt(i) * alpha;
+		vector_type erg(size());
+		for(size_t i=0; i<size(); i++)
+			erg(i) = at(i) * alpha;
 		return erg;
 	}
 
 	vector_type& operator *= (number alpha)
 	{
-		for(int i=0; i<this->getSize(); i++)
-			getAt(i) *= alpha;
+		for(size_t i=0; i<this->size(); i++)
+			at(i) *= alpha;
 		return *this;
 	}
 
@@ -196,7 +196,7 @@ public:
 	double norm2() const
 	{
 		double s =0;
-		for(int i=0; i<getSize(); i++) s += getAt(i)*getAt(i);
+		for(size_t i=0; i<size(); i++) s += at(i)*at(i);
 		return s;
 	}
 
@@ -204,23 +204,23 @@ public:
 	//! this += alpha *vec . use this to prevent temporary variables
 	void add_mult(double alpha, const vector_type &vec)
 	{
-		for(int i=0; i<getSize(); i++)
-			//add_mult(getAt(i), alpha, vec(i));
-			AddMult(getAt(i), vec(i), alpha);
+		for(size_t i=0; i<size(); i++)
+			//add_mult(at(i), alpha, vec(i));
+			AddMult(at(i), vec(i), alpha);
 	}
 
 	//! this -= alpha *vec . use this to prevent temporary variables
 	void sub_mult(const double alpha, const vector_type &vec)
 	{
-		for(int i=0; i<getSize(); i++)
-			AddMult(getAt(i), vec(i), alpha);
+		for(size_t i=0; i<size(); i++)
+			AddMult(at(i), vec(i), alpha);
 	}
 
 	//! this = alpha *vec . use this to prevent temporary variables
 	void assign_mult(double alpha, const vector_type &vec)
 	{
-		for(int i=0; i<getSize(); i++)
-			AddMult(getAt(i), vec(i), alpha);
+		for(size_t i=0; i<size(); i++)
+			AddMult(at(i), vec(i), alpha);
 	}
 
 
@@ -230,21 +230,21 @@ public:
 	friend std::ostream &operator << (std::ostream &out, const vector_type &v)
 	{
 		out << "( ";
-		for(int i=0; i < v.getSize(); i++)
+		for(size_t i=0; i < v.size(); i++)
 			out << v(i) << " ";
 		out << ") ";
 		return out;
 	}
 };
 
-template<typename value_type, typename storage_type, int n>
+template<typename value_type, typename storage_type, size_t n>
 inline blockVector<value_type, storage_type, n> operator * (double alpha, const blockVector<value_type, storage_type, n> &v)
 {
 	return v * alpha;
 }
 
 
- template<typename value_type, typename storage_type, int rows_>
+ template<typename value_type, typename storage_type, size_t rows_>
  inline void blockVector<value_type, storage_type, rows_>::operator /= (const blockDenseMatrix<value_type, storage_type, rows_, rows_> &mat )
  {
 	 smallInverse<storage_type, rows_, rows_> inv;
@@ -260,7 +260,7 @@ inline blockVector<value_type, storage_type, n> operator * (double alpha, const 
 template<>
 inline void blockVector<double, fixedStorage, 1>::operator /= (const blockDenseMatrix<double, fixedStorage, 1, 1> &mat )
 {
-	getAt(0) = getAt(0) / mat(0, 0);
+	at(0) = at(0) / mat(0, 0);
 }
 
 
@@ -269,10 +269,10 @@ inline void blockVector<double, fixedStorage, 2>::operator /= (const blockDenseM
 {
 	double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
 	UG_ASSERT(invD != 0.0, "");
-	double a = invD*(getAt(0) * mat(1,1) - getAt(1) * mat(0,1));
-	double b = invD*(getAt(1) * mat(0,0) - getAt(0) * mat(1,0));
-	getAt(0) = a;
-	getAt(1) = b;
+	double a = invD*(at(0) * mat(1,1) - at(1) * mat(0,1));
+	double b = invD*(at(1) * mat(0,0) - at(0) * mat(1,0));
+	at(0) = a;
+	at(1) = b;
 }
 
 
@@ -282,10 +282,10 @@ inline void blockVector<double, fixedStorage, 2>::operator /= (const blockDenseM
  {
  double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
  ASSERT(invD != 0.0);
- getAt(0,0) = invD * mat(1,1);
- getAt(0,1) = -invD * mat(0,1);
- getAt(1,0) = -invD * mat(1,0);
- getAt(1,1) = invD * mat(0,0);
+ at(0,0) = invD * mat(1,1);
+ at(0,1) = -invD * mat(0,1);
+ at(1,0) = -invD * mat(1,0);
+ at(1,1) = invD * mat(0,0);
  }*/
 
 /*
@@ -308,7 +308,7 @@ inline void blockVector<double, fixedStorage, 2>::operator /= (const blockDenseM
 
 
 
-template<typename value_type, typename storage_type, int n>
+template<typename value_type, typename storage_type, size_t n>
 blockVector<value_type, storage_type, n> operator * (double alpha, blockVector<value_type, storage_type, n> &vec)
 {
 	return vec*alpha;

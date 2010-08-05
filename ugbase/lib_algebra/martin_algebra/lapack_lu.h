@@ -11,19 +11,17 @@
 #ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU__
 #define __H__UG__MARTIN_ALGEBRA__LAPACK_LU__
 
-
+#include "algebra_misc.h"
 #include "sparsematrix.h"
 #include "vector.h"
 
-#include <cblas.h>
-#include <clapack.h>
+
+namespace ug{
 
 /**
  * \brief solves linear equation systems with dense LU decomposition
  *
  */
-namespace ug{
-
 class LapackLU
 {
 public:
@@ -38,6 +36,7 @@ public:
 		if(densemat) delete[] densemat;
 		if(interchange) delete[] interchange;
 	}
+
 
 	template<typename matrix_type>
 	void init(const matrix_type &A);
