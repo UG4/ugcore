@@ -103,6 +103,16 @@ function_registered(int id, IDirichletPostProcessNeed need)
 		}
 	}
 
+	// check if functions for jacobian exist
+	if(need == IDPPN_SOLUTION)
+	{
+		if(!set_solution_function_registered(id))
+		{
+			UG_LOG("set_solution(...) function not registered for id " << id <<".\n");
+			return false;
+		}
+	}
+
 	return true;
 };
 
@@ -286,6 +296,37 @@ post_process_f_function_registered(int id)
 	if(id >= 0 && (size_t)id < m_vPostProcessFFunc.size())
 	{
 		if(m_vPostProcessFFunc[id] != 0)
+			return true;
+	}
+	return false;
+}
+
+
+////////////////////////////////////////////////
+// set solution
+////////////////////////////////////////////////
+
+template<typename TAlgebra>
+template<typename TAssFunc>
+void
+IDirichletPostProcess<TAlgebra>::
+register_set_solution_function(int id, TAssFunc func)
+{
+//	make sure that there is enough space
+	if((size_t)id >= m_vSetSolutionFunc.size())
+		m_vSetSolutionFunc.resize(id+1, 0);
+
+	m_vSetSolutionFunc[id] = (SetSolutionFunc)func;
+};
+
+template<typename TAlgebra>
+bool
+IDirichletPostProcess<TAlgebra>::
+set_solution_function_registered(int id)
+{
+	if(id >= 0 && (size_t)id < m_vSetSolutionFunc.size())
+	{
+		if(m_vSetSolutionFunc[id] != 0)
 			return true;
 	}
 	return false;

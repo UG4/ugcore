@@ -20,7 +20,8 @@ enum IDirichletPostProcessNeed {
 	IDPPN_NONE = 0,
 	IDPPN_DEFECT = 1 << 0,
 	IDPPN_JACOBIAN = 1 << 1,
-	IDPPN_LINEAR = 1 << 2
+	IDPPN_LINEAR = 1 << 2,
+	IDPPN_SOLUTION = 1 << 3
 };
 
 template <typename TAlgebra>
@@ -57,6 +58,9 @@ class IDirichletPostProcess{
 		// post processing of right hand side for linear case
 		bool post_process_f(vector_type& d, const local_index_type& ind, number time=0.0) 	{return (this->*(m_vPostProcessFFunc[m_id]))(d, ind, time);}
 
+		// set solution
+		bool set_solution(vector_type& x, const local_index_type& ind, number time=0.0) 	{return (this->*(m_vSetSolutionFunc[m_id]))(x, ind, time);}
+
 		// virtual destructor
 		virtual ~IDirichletPostProcess() {}
 
@@ -69,6 +73,7 @@ class IDirichletPostProcess{
 		template <typename TAssFunc> void register_post_process_J_function(int id, TAssFunc func);
 		template <typename TAssFunc> void register_post_process_d_function(int id, TAssFunc func);
 		template <typename TAssFunc> void register_post_process_f_function(int id, TAssFunc func);
+		template <typename TAssFunc> void register_set_solution_function(int id, TAssFunc func);
 
 	protected:
 		// checks if the needed functions are registered for the id type
@@ -83,6 +88,7 @@ class IDirichletPostProcess{
 		bool post_process_J_function_registered(int id);
 		bool post_process_d_function_registered(int id);
 		bool post_process_f_function_registered(int id);
+		bool set_solution_function_registered(int id);
 
 	private:
 		// types of loop function pointers
@@ -99,6 +105,9 @@ class IDirichletPostProcess{
 		// types of right hand side assemble functions
 		typedef bool (IDirichletPostProcess<TAlgebra>::*PostProcessFFunc)(vector_type& d, const local_index_type& ind, number time);
 
+		// types of set solution functions
+		typedef bool (IDirichletPostProcess<TAlgebra>::*SetSolutionFunc)(vector_type& x, const local_index_type& ind, number time);
+
 	private:
 		// loop function pointers
 		std::vector<PrepareElementLoopFunc> m_vPrepareElementLoopFunc;
@@ -114,6 +123,8 @@ class IDirichletPostProcess{
 		// Rhs function pointers
 		std::vector<PostProcessFFunc> 	m_vPostProcessFFunc;
 
+		// Rhs function pointers
+		std::vector<SetSolutionFunc> 	m_vSetSolutionFunc;
 	protected:
 		// current Geometric Object
 		int m_id;

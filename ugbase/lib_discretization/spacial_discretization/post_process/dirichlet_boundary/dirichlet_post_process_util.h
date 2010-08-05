@@ -14,7 +14,7 @@ template <	typename TElem,
 			typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessJacobian(	IDiscPostProcess<TAlgebra>& elemDisc,
+BNDPostProcessJacobian(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						int si,
@@ -75,7 +75,7 @@ template <	typename TElem,
 			typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessDefect(	IDiscPostProcess<TAlgebra>& elemDisc,
+BNDPostProcessDefect(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						int si,
@@ -136,15 +136,14 @@ template <	typename TElem,
 			typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessLinear(	IDiscPostProcess<TAlgebra>& elemDisc,
+BNDPostProcessLinear(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						int si,
 						typename TAlgebra::matrix_type& Mat,
 						typename TAlgebra::vector_type& rhs,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts,
-						number time, number s_m, number s_a)
+						const FunctionGroup& fcts)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
@@ -179,15 +178,15 @@ BNDPostProcessLinear(	IDiscPostProcess<TAlgebra>& elemDisc,
 		u.update_inner_indices(elem, ind);
 
 		// prepare element
-		if(!elemDisc.prepare_element(elem, ind))
+		if(!elemDisc.prepare_element(elem))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
 
 		// Post process d
-		if(!elemDisc.post_process_J(Mat, ind, time))
+		if(!elemDisc.post_process_J(Mat, ind))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
 
 		// Post process f
-		if(!elemDisc.post_process_f(rhs, ind, time))
+		if(!elemDisc.post_process_f(rhs, ind))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
 	}
 
@@ -202,14 +201,13 @@ template <	typename TElem,
 			typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDSetSolution(			IDiscPostProcess<TAlgebra>& elemDisc,
+BNDSetSolution(			IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename geometry_traits<TElem>::iterator iterBegin,
 						typename geometry_traits<TElem>::iterator iterEnd,
 						int si,
 						typename TAlgebra::vector_type& x,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts,
-						number time, number s_m, number s_a)
+						const FunctionGroup& fcts)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
@@ -244,11 +242,11 @@ BNDSetSolution(			IDiscPostProcess<TAlgebra>& elemDisc,
 		u.update_inner_indices(elem, ind);
 
 		// prepare element
-		if(!elemDisc.prepare_element(elem, ind))
+		if(!elemDisc.prepare_element(elem))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
 
 		// Post process d
-		if(!elemDisc.set_solution(x, ind, time))
+		if(!elemDisc.set_solution(x, ind))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
 	}
 

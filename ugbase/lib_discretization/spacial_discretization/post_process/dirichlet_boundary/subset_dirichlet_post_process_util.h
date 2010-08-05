@@ -17,20 +17,21 @@
 #include "lib_grid/lg_base.h"
 #include "lib_algebra/lib_algebra.h"
 
+#include "./dirichlet_post_process_util.h"
+
 namespace ug {
 
 //////////////////////////////////
 // Jacobian subset post process
 //////////////////////////////////
 
-template <	typename TDiscPostProcess,
-			typename TDiscreteFunction,
+template <	typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessJacobian(		TDiscPostProcess& elemDisc,
+BNDPostProcessJacobian(		IDirichletPostProcess<TAlgebra>& elemDisc,
 							typename TAlgebra::matrix_type& J,
 							const TDiscreteFunction& u,
-							const FunctionGroup& fcts, int si, int dim,
+							const FunctionGroup& fcts, int si,
 							number time, number s_m, number s_a)
 {
 	if(!BNDPostProcessJacobian<VertexBase>(elemDisc, u.template begin<VertexBase>(si), u.template end<VertexBase>(si), si, J, u, fcts, time, s_m, s_a))
@@ -40,31 +41,29 @@ BNDPostProcessJacobian(		TDiscPostProcess& elemDisc,
 	return true;
 };
 
-template <	typename TDiscPostProcess,
-			typename TDiscreteFunction,
+template <	typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessJacobian(	TDiscPostProcess& elemDisc,
+BNDPostProcessJacobian(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename TAlgebra::matrix_type& J,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts, int si, int dim)
+						const FunctionGroup& fcts, int si)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
-	return AssembleJacobian<TDiscPostProcess, TDiscreteFunction, TAlgebra>(elemDisc, J, u, fcts, si, dim, 0.0, 0.0, 1.0);
+	return BNDPostProcessJacobian<TDiscreteFunction, TAlgebra>(elemDisc, J, u, fcts, si, 0.0, 0.0, 1.0);
 }
 
 //////////////////////////////////
 // Defect subset post process
 //////////////////////////////////
 
-template <	typename TDiscPostProcess,
-			typename TDiscreteFunction,
+template <	typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessDefect(	TDiscPostProcess& elemDisc,
+BNDPostProcessDefect(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename TAlgebra::vector_type& d,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts, int si, int dim,
+						const FunctionGroup& fcts, int si,
 						number time, number s_m, number s_a)
 {
 	if(!BNDPostProcessDefect<VertexBase>(elemDisc, u.template begin<VertexBase>(si), u.template end<VertexBase>(si), si, d, u, fcts, time, s_m, s_a))
@@ -74,17 +73,16 @@ BNDPostProcessDefect(	TDiscPostProcess& elemDisc,
 	return true;
 };
 
-template <	typename TDiscPostProcess,
-			typename TDiscreteFunction,
+template <	typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessDefect(	TDiscPostProcess& elemDisc,
+BNDPostProcessDefect(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename TAlgebra::vector_type& d,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts, int si, int dim)
+						const FunctionGroup& fcts, int si)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
-	return BNDPostProcessDefect<TDiscPostProcess, TDiscreteFunction, TAlgebra>(elemDisc, d, u, fcts, si, dim, 0.0, 0.0, 1.0);
+	return BNDPostProcessDefect<TDiscreteFunction, TAlgebra>(elemDisc, d, u, fcts, si, 0.0, 0.0, 1.0);
 }
 
 
@@ -93,30 +91,28 @@ BNDPostProcessDefect(	TDiscPostProcess& elemDisc,
 //////////////////////////////////
 
 // TODO: Implement time dependent linear case
-template <	typename TDiscPostProcess,
-			typename TDiscreteFunction,
+template <	typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessLinear(	TDiscPostProcess& elemDisc,
+BNDPostProcessLinear(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename TAlgebra::matrix_type& mat,
 						typename TAlgebra::vector_type& rhs,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts, int si, int dim,
+						const FunctionGroup& fcts, int si,
 						number time, number s_m, number s_a)
 {
 	return false;
 }
 
 
-template <	typename TDiscPostProcess,
-			typename TDiscreteFunction,
+template <	typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDPostProcessLinear(	TDiscPostProcess& elemDisc,
+BNDPostProcessLinear(	IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename TAlgebra::matrix_type& mat,
 						typename TAlgebra::vector_type& rhs,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts, int si, int dim)
+						const FunctionGroup& fcts, int si)
 {
 	UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<VertexBase>(si) << " Edges on subset " << si << ".\n");
 	if(!BNDPostProcessLinear<VertexBase>(elemDisc, u.template begin<VertexBase>(si), u.template end<VertexBase>(si), si, mat, rhs, u, fcts))
@@ -131,22 +127,38 @@ BNDPostProcessLinear(	TDiscPostProcess& elemDisc,
 // Solution subset post process
 //////////////////////////////////
 
-template <	typename TDiscPostProcess,
-			typename TDiscreteFunction,
+template <	typename TDiscreteFunction,
 			typename TAlgebra>
 bool
-BNDSetSolution(			TDiscPostProcess& elemDisc,
+BNDSetSolution(			IDirichletPostProcess<TAlgebra>& elemDisc,
 						typename TAlgebra::vector_type& x,
 						const TDiscreteFunction& u,
-						const FunctionGroup& fcts, int si, int dim)
+						const FunctionGroup& fcts, int si, number time)
 {
 	UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<VertexBase>(si) << " Edges on subset " << si << ".\n");
-	if(!BNDSetSolution<VertexBase>(elemDisc, u.template begin<VertexBase>(si), u.template end<VertexBase>(si), si, mat, rhs, u, fcts))
+	if(!BNDSetSolution<VertexBase>(elemDisc, u.template begin<VertexBase>(si), u.template end<VertexBase>(si), si, x, u, fcts, time))
 		{UG_LOG("Error in BNDSetSolution, aborting.\n"); return false;}
 
 	// TODO: other elements
 	return true;
 };
+
+template <	typename TDiscreteFunction,
+			typename TAlgebra>
+bool
+BNDSetSolution(			IDirichletPostProcess<TAlgebra>& elemDisc,
+						typename TAlgebra::vector_type& x,
+						const TDiscreteFunction& u,
+						const FunctionGroup& fcts, int si)
+{
+	UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<VertexBase>(si) << " Edges on subset " << si << ".\n");
+	if(!BNDSetSolution<VertexBase>(elemDisc, u.template begin<VertexBase>(si), u.template end<VertexBase>(si), si, x, u, fcts))
+		{UG_LOG("Error in BNDSetSolution, aborting.\n"); return false;}
+
+	// TODO: other elements
+	return true;
+};
+
 
 
 } // end namespace ug

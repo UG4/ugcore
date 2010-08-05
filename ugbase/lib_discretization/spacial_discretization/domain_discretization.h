@@ -16,6 +16,7 @@
 #include "./domain_discretization_interface.h"
 #include "./elem_disc/elem_disc_assemble_util.h"
 #include "./coupled_elem_disc/coupled_elem_disc_assemble_util.h"
+#include "./post_process/dirichlet_boundary/subset_dirichlet_post_process_util.h"
 #include "./subset_assemble_util.h"
 #include "lib_discretization/common/function_group.h"
 
@@ -105,11 +106,10 @@ class DomainDiscretization :
 
 		IAssembleReturn assemble_solution(discrete_function_type& u)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
-
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
+
 			return IAssemble_OK;
 		}
 
@@ -244,7 +244,27 @@ class DomainDiscretization :
 
 		std::vector<CoupledDisc> m_vCoupledElemDisc;
 
+	public:
+/*		bool add(IDirichletPostProcess<TAlgebra>& elemDisc, const FunctionGroup& fcts, int si)
+		{
+			m_vDirichletPostProcess.push_back(DirichletPostProcess(si, elemDisc, fcts));
+			return true;
+		}
 
+	protected:
+		struct DirichletPostProcess
+		{
+			DirichletPostProcess(int si_, IDirichletPostProcess<TAlgebra>& disc_, const FunctionGroup& fcts_) :
+				si(si_), disc(&disc_), fcts(fcts_) {};
+
+			int si;
+			IDirichletPostProcess<TAlgebra>* disc;
+			FunctionGroup fcts;
+		};
+
+		std::vector<DirichletPostProcess> m_vDirichletPostProcess;
+
+*/
 	protected:
 		bool check_solution(const discrete_function_type& u)
 		{

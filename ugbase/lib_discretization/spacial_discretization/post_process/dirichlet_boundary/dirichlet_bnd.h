@@ -45,6 +45,7 @@ class DirichletBoundary : public IDirichletPostProcess<TAlgebra> {
 		DirichletBoundary(domain_type& domain) :
 		  m_domain(domain)
 		  {
+			register_assemble_functions();
 			m_vFctId.clear(); m_vBNDFct.clear();
 		  }
 
@@ -115,7 +116,22 @@ class DirichletBoundary : public IDirichletPostProcess<TAlgebra> {
 		}
 
 		template <typename TElem>
-		inline bool post_process_f(local_vector_type& d, const local_index_type& ind, number time=0.0);
+		inline bool post_process_f(local_vector_type& rhs, const local_index_type& ind, number time=0.0)
+		{
+			number val;
+			for(size_t i = 0; i < m_vBNDFct.size(); ++i)
+			{
+				const size_t fct = m_vFctId[i];
+				for(size_t dof = 0; dof < ind.num_dofs(fct); ++dof)
+				{
+					if(m_vBNDFct[i](val, m_vCorner[0], time))
+					{
+						BlockRef(rhs[ind.global_index(fct, dof)], ind.comp(fct, dof)) = val;
+					}
+				}
+			}
+			return true;
+		}
 
 		template <typename TElem>
 		inline bool set_solution(vector_type& x, const local_index_type& ind, number time=0.0)
@@ -177,6 +193,7 @@ class DirichletBoundary : public IDirichletPostProcess<TAlgebra> {
 			register_post_process_J_function(		id, &DirichletBoundary::template post_process_J<TElem>);
 			register_post_process_d_function(		id, &DirichletBoundary::template post_process_d<TElem>);
 			register_post_process_f_function(		id, &DirichletBoundary::template post_process_f<TElem>);
+			register_set_solution_function(			id, &DirichletBoundary::template set_solution<TElem>);
 		}
 
 	protected:
