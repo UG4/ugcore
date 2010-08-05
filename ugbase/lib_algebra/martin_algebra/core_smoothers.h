@@ -1,5 +1,5 @@
 /**
- * \file densevector.h
+ * \file core_smoothers.h
  *
  * \author Martin Rupp
  *
