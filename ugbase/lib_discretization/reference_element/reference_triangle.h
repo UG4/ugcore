@@ -222,21 +222,7 @@ class ReferenceMapping<ReferenceTriangle, TWorldDim>
 			// compute right inverse
 			RightInverse(JTInv, JT);
 
-/*			if( (world_dim == 2) && (dim==2) )
-			{
-				const number det = JT[0][0]*JT[1][1] - JT[0][1]*JT[1][0];
-				UG_ASSERT(det != 0.0, "Zero Determinant. Impossible to invert");
-
-				JTInv(0, 0) = JT(1, 1) / det;
-				JTInv(1, 0) = -JT(1, 0) / det;
-				JTInv(0, 1) = -JT(0, 1) / det;
-				JTInv(1, 1) = JT(0, 0) / det;
-				return true;
-			}
-
-			//TODO: Implement pseudo inverse
-			return false;
-*/			return true;
+			return true;
 		}
 
 		bool jacobian_det(const MathVector<dim>& loc_pos, number& det) const

@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef m__H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
-#define m__H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
+#ifndef __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
+#define __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__
 
 namespace ug{
 
@@ -30,7 +30,7 @@ class ReferenceTetrahedron{
 		int dimension() const {return dim;}
 
 		/// size of reference triangle
-		number size() const	{return 0.5;}
+		number size() const	{return 1.0/6.0;}
 
 		/// number of objects of dim
 		size_t num_obj(int dim) const	{return m_num_obj[dim];}
@@ -262,7 +262,7 @@ class ReferenceTetrahedron{
 		 	m_corner[0] = MathVector<dim>(0.0, 0.0, 0.0);
 		 	m_corner[1] = MathVector<dim>(1.0, 0.0, 0.0);
 		 	m_corner[2] = MathVector<dim>(0.0, 1.0, 0.0);
-		 	m_corner[4] = MathVector<dim>(0.0, 0.0, 1.0);
+		 	m_corner[3] = MathVector<dim>(0.0, 0.0, 1.0);
 
 		 	// Reference Element Types
 		 	for(int i = 0; i < NUM_REFERENCE_OBJECTS; ++i)
@@ -327,46 +327,27 @@ class ReferenceMapping<ReferenceTetrahedron, TWorldDim>
 
 			if(!jacobian_transposed(loc_pos, JT)) return false;
 
-			if( (world_dim == 3) && (dim==3) )
-			{
-				typename MathMatrix<3,3>::value_type det;
-				det = JT(0,0)*JT(1,1)*JT(2,2)
-				+ JT(0,1)*JT(1,2)*JT(2,0)
-				+ JT(0,2)*JT(1,0)*JT(2,1)
-				- JT(0,0)*JT(1,2)*JT(2,1)
-				- JT(0,1)*JT(1,0)*JT(2,2)
-				- JT(0,2)*JT(1,1)*JT(2,0);
+			// compute right inverse
+			RightInverse(JTInv, JT);
 
-				assert(det != 0 && "ERROR in Inverse: determinate is zero, can not Invert Matrix");
-				typename MathMatrix<3,3>::value_type invdet = 1./det;
-
-				JTInv(0,0) = ( JT(1,1)*JT(2,2) - JT(1,2)*JT(2,1)) * invdet;
-				JTInv(0,1) = (-JT(0,1)*JT(2,2) + JT(0,2)*JT(2,1)) * invdet;
-				JTInv(0,2) = ( JT(0,1)*JT(1,2) - JT(0,2)*JT(1,1)) * invdet;
-				JTInv(1,0) = (-JT(1,0)*JT(2,2) + JT(1,2)*JT(2,0)) * invdet;
-				JTInv(1,1) = ( JT(0,0)*JT(2,2) - JT(0,2)*JT(2,0)) * invdet;
-				JTInv(1,2) = (-JT(0,0)*JT(1,2) + JT(0,2)*JT(1,0)) * invdet;
-				JTInv(2,0) = ( JT(1,0)*JT(2,1) - JT(1,1)*JT(2,0)) * invdet;
-				JTInv(2,1) = (-JT(0,0)*JT(2,1) + JT(0,1)*JT(2,0)) * invdet;
-				JTInv(2,2) = ( JT(0,0)*JT(1,1) - JT(0,1)*JT(1,0)) * invdet;
-				return true;
-			}
-
-			//TODO: Implement pseudo inverse
-			return false;
+			return true;
 		}
 
 		bool jacobian_det(const MathVector<dim>& loc_pos, number& det) const
 		{
 			MathMatrix<dim, world_dim> JT;
 			if(!jacobian_transposed(loc_pos, JT)) return false;
-			det = JT(0,0)*JT(1,1)*JT(2,2)
-			+ JT(0,1)*JT(1,2)*JT(2,0)
-			+ JT(0,2)*JT(1,0)*JT(2,1)
-			- JT(0,0)*JT(1,2)*JT(2,1)
-			- JT(0,1)*JT(1,0)*JT(2,2)
-			- JT(0,2)*JT(1,1)*JT(2,0);
-			return true;
+			if((dim==3) && (world_dim==3))
+			{
+				det = JT(0,0)*JT(1,1)*JT(2,2)
+				+ JT(0,1)*JT(1,2)*JT(2,0)
+				+ JT(0,2)*JT(1,0)*JT(2,1)
+				- JT(0,0)*JT(1,2)*JT(2,1)
+				- JT(0,1)*JT(1,0)*JT(2,2)
+				- JT(0,2)*JT(1,1)*JT(2,0);
+				return true;
+			}
+			return false;
 		}
 
 	private:
@@ -386,4 +367,4 @@ class reference_element_traits<Tetrahedron>
 
 }
 
-#endif /* m__H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__ */
+#endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_TETRAHEDRON__ */

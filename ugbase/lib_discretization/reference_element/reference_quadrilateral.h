@@ -210,7 +210,7 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 
 			JT(0, 0) = a*(m_corners[1][0] - m_corners[0][0]) + loc_pos[1]*(m_corners[2][0] - m_corners[3][0]);
 			JT(0, 1) = a*(m_corners[1][1] - m_corners[0][1]) + loc_pos[1]*(m_corners[2][1] - m_corners[3][1]);
-			
+
 			a = 1. - loc_pos[0];
 			JT(1, 0) = a*(m_corners[3][0] - m_corners[0][0]) + loc_pos[0]*(m_corners[2][0] - m_corners[1][0]);
 			JT(1, 1) = a*(m_corners[3][1] - m_corners[0][1]) + loc_pos[0]*(m_corners[2][1] - m_corners[1][1]);
@@ -224,20 +224,10 @@ class ReferenceMapping<ReferenceQuadrilateral, TWorldDim>
 
 			if(!jacobian_transposed(loc_pos, JT)) return false;
 
-			if( (world_dim == 2) && (dim==2) )
-			{
-				const number det = JT(0, 0)*JT(1, 1) - JT(0, 1)*JT(1, 0);
-				UG_ASSERT(det != 0.0, "Zero Determinant. Impossible to invert");
+			// compute right inverse
+			RightInverse(JTInv, JT);
 
-				JTInv(0, 0) = JT(1, 1) / det;
-				JTInv(1, 0) = -JT(1, 0) / det;
-				JTInv(0, 1) = -JT(0, 1) / det;
-				JTInv(1, 1) = JT(0, 0) / det;
-				return true;
-			}
-
-			//TODO: Implement pseudo inverse
-			return false;
+			return true;
 		}
 
 		bool jacobian_det(const MathVector<dim>& loc_pos, number& det) const
