@@ -21,7 +21,9 @@ enum IElemDiscNeed {
 	IEDN_NONE = 0,
 	IEDN_DEFECT = 1 << 0,
 	IEDN_JACOBIAN = 1 << 1,
-	IEDN_LINEAR = 1 << 2
+	IEDN_LINEAR = 1 << 2,
+	IEDN_STIFFNESS = 1 << 3,
+	IEDN_MASS = 1 << 4
 };
 
 template <typename TAlgebra>

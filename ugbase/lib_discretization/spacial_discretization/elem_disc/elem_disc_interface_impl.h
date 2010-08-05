@@ -99,7 +99,7 @@ function_registered(int id, IElemDiscNeed need)
 		}
 	}
 
-	// check if functions for jacobian exist
+	// check if functions for linear exist
 	if(need == IEDN_LINEAR)
 	{
 		if(!assemble_JA_function_registered(id))
@@ -116,6 +116,26 @@ function_registered(int id, IElemDiscNeed need)
 		if(!assemble_f_function_registered(id))
 		{
 			UG_LOG("assemble_f(...) function not registered for id " << id <<".\n");
+			return false;
+		}
+	}
+
+	// check if functions for stiffness matrix exist
+	if(need == IEDN_STIFFNESS)
+	{
+		if(!assemble_JA_function_registered(id))
+		{
+			UG_LOG("assemble_JA(...) function not registered for id " << id <<".\n");
+			return false;
+		}
+	}
+
+	// check if functions for stiffness matrix exist
+	if(need == IEDN_MASS)
+	{
+		if(!assemble_JM_function_registered(id))
+		{
+			UG_LOG("assemble_JM(...) function not registered for id " << id <<".\n");
 			return false;
 		}
 	}

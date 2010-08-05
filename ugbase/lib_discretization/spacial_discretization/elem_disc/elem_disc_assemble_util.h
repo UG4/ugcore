@@ -25,6 +25,171 @@
 namespace ug {
 
 //////////////////////////////////
+// Assemble Stiffness Matrix
+//////////////////////////////////
+
+// assemble elements of type TElem in d dimensions
+template <	typename TElem,
+			typename TDiscreteFunction,
+			typename TAlgebra>
+bool
+AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
+						typename geometry_traits<TElem>::iterator iterBegin,
+						typename geometry_traits<TElem>::iterator iterEnd,
+						int si,
+						typename TAlgebra::matrix_type& J,
+						const TDiscreteFunction& u,
+						const FunctionGroup& fcts)
+{
+	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+
+	// check if at least on element exist, else return
+	if(iterBegin == iterEnd) return true;
+
+	// local indices and local algebra
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J;
+
+	// set functions
+	ind.set_function_group(fcts);
+
+	// prepare local indices for elem type
+	if(!u.prepare_indices(refID, si, ind))
+		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
+
+	// set elem type in elem disc
+	if(!elemDisc.set_geometric_object_type(refID, IEDN_STIFFNESS))
+		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
+
+	// adjust local algebra
+	loc_u.set_indices(ind);
+	loc_J.set_indices(ind, ind);
+
+	// prepare loop
+	if(!elemDisc.prepare_element_loop())
+		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
+
+	// loop over all elements
+	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		// get Element
+		TElem* elem = *iter;
+
+		// get global indices
+		u.update_indices(elem, ind);
+
+		// read local values of u
+		const typename TAlgebra::vector_type& u_vec = u.get_vector();
+		loc_u.read_values(u_vec);
+
+		// prepare element
+		if(!elemDisc.prepare_element(elem, loc_u, ind))
+			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
+
+		// reset local matrix and rhs
+		loc_J.set(0.0);
+
+		// Assemble JA
+		if(!elemDisc.assemble_JA(loc_J, loc_u))
+			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
+
+		// send local to global matrix
+		J.add(loc_J);
+	}
+
+	// finish element loop
+	if(!elemDisc.finish_element_loop())
+		{UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n"); return false;}
+
+	return true;
+}
+
+
+//////////////////////////////////
+// Assemble Mass Matrix
+//////////////////////////////////
+
+// assemble elements of type TElem in d dimensions
+template <	typename TElem,
+			typename TDiscreteFunction,
+			typename TAlgebra>
+bool
+AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
+						typename geometry_traits<TElem>::iterator iterBegin,
+						typename geometry_traits<TElem>::iterator iterEnd,
+						int si,
+						typename TAlgebra::matrix_type& J,
+						const TDiscreteFunction& u,
+						const FunctionGroup& fcts)
+{
+	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
+	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+
+	// check if at least on element exist, else return
+	if(iterBegin == iterEnd) return true;
+
+	// local indices and local algebra
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J;
+
+	// set functions
+	ind.set_function_group(fcts);
+
+	// prepare local indices for elem type
+	if(!u.prepare_indices(refID, si, ind))
+		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
+
+	// set elem type in elem disc
+	if(!elemDisc.set_geometric_object_type(refID, IEDN_MASS))
+		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
+
+	// adjust local algebra
+	loc_u.set_indices(ind);
+	loc_J.set_indices(ind, ind);
+
+	// prepare loop
+	if(!elemDisc.prepare_element_loop())
+		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
+
+	// loop over all elements
+	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		// get Element
+		TElem* elem = *iter;
+
+		// get global indices
+		u.update_indices(elem, ind);
+
+		// read local values of u
+		const typename TAlgebra::vector_type& u_vec = u.get_vector();
+		loc_u.read_values(u_vec);
+
+		// prepare element
+		if(!elemDisc.prepare_element(elem, loc_u, ind))
+			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
+
+		// reset local matrix and rhs
+		loc_J.set(0.0);
+
+		// Assemble JA
+		if(!elemDisc.assemble_JM(loc_J, loc_u))
+			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
+
+		// send local to global matrix
+		J.add(loc_J);
+	}
+
+	// finish element loop
+	if(!elemDisc.finish_element_loop())
+		{UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n"); return false;}
+
+	return true;
+}
+
+//////////////////////////////////
 // Assemble Jacobian
 //////////////////////////////////
 

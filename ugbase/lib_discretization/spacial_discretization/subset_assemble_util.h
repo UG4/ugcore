@@ -20,6 +20,79 @@
 namespace ug {
 
 //////////////////////////////////
+// Stiffness Matrix subset assembling
+//////////////////////////////////
+
+template <	typename TElemDisc,
+			typename TDiscreteFunction,
+			typename TAlgebra>
+bool
+AssembleStiffnessMatrix(	TElemDisc& elemDisc,
+							typename TAlgebra::matrix_type& J,
+							const TDiscreteFunction& u,
+							const FunctionGroup& fcts, int si, int dim)
+{
+
+	switch(dim)
+	{
+		case 1:
+			if(!AssembleStiffnessMatrix<Edge>(elemDisc, u.template begin<Edge>(si), u.template end<Edge>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
+			break;
+
+		case 2:
+			if(!AssembleStiffnessMatrix<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleStiffnessMatrix<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
+			break;
+
+		case 3:
+
+		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
+	}
+
+	return true;
+};
+
+
+//////////////////////////////////
+// Mass Matrix subset assembling
+//////////////////////////////////
+
+template <	typename TElemDisc,
+			typename TDiscreteFunction,
+			typename TAlgebra>
+bool
+AssembleMassMatrix(	TElemDisc& elemDisc,
+					typename TAlgebra::matrix_type& J,
+					const TDiscreteFunction& u,
+					const FunctionGroup& fcts, int si, int dim)
+{
+
+	switch(dim)
+	{
+		case 1:
+			if(!AssembleMassMatrix<Edge>(elemDisc, u.template begin<Edge>(si), u.template end<Edge>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
+			break;
+
+		case 2:
+			if(!AssembleMassMatrix<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleMassMatrix<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
+			break;
+
+		case 3:
+
+		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
+	}
+
+	return true;
+};
+
+//////////////////////////////////
 // Jacobian subset assembling
 //////////////////////////////////
 
