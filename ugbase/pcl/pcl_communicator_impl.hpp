@@ -32,7 +32,7 @@ send_raw(int targetProc, void* pBuff, int bufferSize,
 	if(!bSizeKnownAtTarget)
 		stream.write((char*)&bufferSize, sizeof(int));
 		
-	stream.write((char*)&pBuff, bufferSize);
+	stream.write((char*)pBuff, bufferSize);
 	m_bSendBuffersFixed = m_bSendBuffersFixed
 						&& bSizeKnownAtTarget;
 }
@@ -519,6 +519,7 @@ communicate()
 					stream.read((char*)&rawSize, sizeof(int));
 				}
 				
+				info.m_stream->reset();
 				info.m_stream->resize(rawSize);
 				stream.read((char*)info.m_stream->buffer(), rawSize);
 			}

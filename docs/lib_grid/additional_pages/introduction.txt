@@ -17,7 +17,7 @@ libGrid has been written and is still developed by Sebastian Reiter (Sebastian.R
 libGrid is developed as a part of the ug4 framework.
  
 Amongst others, the following people contributed to libGrid:<br>
-Sebastian Reiter, Martin Rupp, Martin Stepniewski, Nicolas Tessore, Andreas Vogel
+Sebastian Reiter, Martin Stepniewski, Nicolas Tessore
 
 <hr>
 \section secLGWhatIsIt What is libGrid?

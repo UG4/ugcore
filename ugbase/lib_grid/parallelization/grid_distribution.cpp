@@ -660,26 +660,54 @@ void CommunicateInvolvedProcesses(vector<int>& vReceiveFromRanksOut,
 //	the local proc should communicate.
 }
 
-
+///	writes interfaces-changes into a binary-stream-pack
+/**
+ * Data will be written into streamPackSendOut. This method won't
+ * clear stremPackSendOut, since one might call it several times
+ * in order to use one stream for all interface types.
+ * You'll have to clear it yourself, if you want to start with
+ * empty streams.
+ *
+ * Each stream will contain a series of interfaces afterwards.
+ * Layout is as follows:
+ * {proc type size level {indices}}
+ *
+ * Where the entries have the following meaning:
+ * 	- int proc: The connected proc id.
+ *	- int type: The interface type on the connected proc.
+ *	- int size: The number of entries in the following index list:
+ *  - int level: The level on which the interface lies.
+ *	- int-array indices: Indices refer to the interface that connects the
+ *						 local process with the process from which data was received.
+ *						 The interface-type of the referred interface is that, which is
+ *						 connected to the type specified above.
+ */
 template <class TLayout, class TDistLayout>
-void SendNewInterfaces(DistributedGridManager& distGridMgr,
-					   TLayout& layout,
-					   int interfaceType,
-					   std::vector<TDistLayout>& distLayoutVec,
-					   pcl::ParallelCommunicator<TLayout>& comm)
+void PrepareNewInterfaces(StreamPack& streamPackSendOut,
+						DistributedGridManager& distGridMgr,
+					   	TLayout& layout,
+					   	int interfaceType,
+					   	std::vector<TDistLayout>& distLayoutVec)
 {
 	typedef typename TLayout::iterator	InterfaceIter;
 	typedef typename TLayout::Interface Interface;
-
-//	we need some StreamPacks, in which we'll write the data that is
-//	to be sent to neighbours
-	StreamPack	spSlaves;
-	StreamPack	spMasters;
-//todo: add stream-packs for vertical masters / slaves
+	
+//	the local procID
+	int localProcID = pcl::GetProcRank();
+	
+//	we need a stream pack, that holds a stream for each neighbour.
+	StreamPack& streamPack = streamPackSendOut;
+	
+//	touch each neighbor process
+	vector<int> vNeighborProcs;
+	pcl::CollectAssociatedProcesses(vNeighborProcs, layout);
+	for(size_t i = 0; i < vNeighborProcs.size(); ++i){
+		streamPack.get_stream(vNeighborProcs[i]);
+	}
 
 //	data in each buffer is organized as follows:
-//		- int targetProc
-//		- int interfaceType
+//		- int srcProc (the process on which the interface is created)
+//		- int interfaceType	(the type of the interface on the srcPrc)
 //		- int interfaceSize
 //		- {elementIndices}
 
@@ -687,10 +715,14 @@ void SendNewInterfaces(DistributedGridManager& distGridMgr,
 	for(size_t iDistLayout = 0; iDistLayout < distLayoutVec.size();
 		++iDistLayout)
 	{
-		//TDistLayout& distLayout = distLayoutVec[iDistLayout];		
-/*
+	//	the local proc can be ignored.
+		if((int)iDistLayout == localProcID)
+			continue;
+			
+		TDistLayout& distLayout = distLayoutVec[iDistLayout];		
+
 	//	iterate through the levels
-		for(size_t level = 0; level < distLayout.num_levels(); ++level)
+		for(int level = 0; level < (int)distLayout.num_levels(); ++level)
 		{
 			typename TDistLayout::InterfaceMap imap =
 				distLayout.interface_map(level);
@@ -699,20 +731,39 @@ void SendNewInterfaces(DistributedGridManager& distGridMgr,
 				iter != imap.end(); ++iter)
 			{
 				int procID = iter->first;
+			//	interfaces to the local process are ignored
+				if(procID == localProcID)
+					continue;
+
+			//	check whether the interface points to a neighbour	
 				if(layout.interface_exists(procID, level)){
-				//	we have to associate the entries in the distLayouts interface
-				//	with their indices in the layouts interface.
-				//	we then have to write that into a buffer and send it
+				//	we then have to write the assiciated indices into a buffer and send it
 				//	along the other data to procID.
-				//	we do this by first marking all entries in the dist-interface,
-				//	then we will iterate over the layout-interface and write the
-				//	entries into the buffer.
-					int numEntries = 0;
+					typename TDistLayout::Interface& distInterface = iter->second;
+					BinaryStream& stream = *streamPack.get_stream(procID);
 					
+				//	first write the stream-header, then write the associated indices
+				//	(those indices are the indices of each node in the existing pcl-interface)
+					int interfaceSize = (int)distInterface.size();
+					if(interfaceSize > 0){
+						stream.write((char*)&iDistLayout, sizeof(int));
+						stream.write((char*)&interfaceType, sizeof(int));
+						stream.write((char*)&interfaceSize, sizeof(int));
+						stream.write((char*)&level, sizeof(int));
+
+						for(size_t i = 0; i < distInterface.size(); ++i){
+						//todo	In the moment all interfaceIDs are from 1, ..., n.
+						//		However - as soon as we allow dynamic removal of interface
+						//		elements, those ids do not match the indices.
+						//		This means we have to refresh those ids before redistribution
+						//		starts.
+							int index = distInterface[i].associatedInterfaceID - 1;
+							stream.write((char*)&index, sizeof(int));
+						}
+					}
 				}
 			}
 		}
-*/
 	}
 }
 ////////////////////////////////////////////////////////////////////////
@@ -773,17 +824,98 @@ bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 //	we have to tell the neighbours, which new interfaces they have to build.
 //	indices are relative to the interface between localProc and its neighbour.
 //	iterate over all interfaces
+	StreamPack streamPackSend;
+	StreamPack streamPackReceive;
+
 	for(typename GridLayoutMap::Types<GeomObjType>::Map::iterator iter =
 		glm.template layouts_begin<GeomObjType>();
 		iter != glm.template layouts_end<GeomObjType>(); ++iter)
 	{	
-		SendNewInterfaces(distGridMgr, iter->second, iter->first,
-						  distLayoutVec, communicator);
+		UG_LOG("  interface type: " << iter->first << endl);
+		PrepareNewInterfaces(streamPackSend, distGridMgr,
+							 iter->second, iter->first,
+						  	 distLayoutVec);		
 	}
 	
+//	now write each stream into the communicator
+//	at the same time we'll shedule a receive
+//	this is possible and required, since streamPackSend contains
+//	all links to direct neighbours (no other links).
+	for(StreamPack::iterator iter = streamPackSend.begin();
+		iter != streamPackSend.end(); ++iter)
+	{
+		UG_LOG("  sending raw: " << iter->second->size() << endl);
+		
+		communicator.send_raw(iter->first, iter->second->buffer(),
+							  iter->second->size(), false);
+							  	
+		communicator.receive_raw(iter->first, *streamPackReceive.get_stream(iter->first), -1);
+	}
+
 //	communicate the data	
 	communicator.communicate();
 	
+//	this vector will be used to create the new interfaces
+	vector<typename Interface::Element> vInterfaceElements;
+	
+//	we'll create interface entries to other processes now
+//	iterate over the streams and process data
+	for(StreamPack::iterator iter = streamPackReceive.begin();
+		iter != streamPackReceive.end(); ++iter)
+	{
+		BinaryStream& stream = *iter->second;
+//		UG_LOG("  stream.size: " << stream.size() << endl);
+		while(stream.can_read_more()){
+		//	read the header
+			int newConnectedProcID;
+			int newConnectedInterfaceType;
+			int newInterfaceSize;
+			int level;
+			stream.read((char*)&newConnectedProcID, sizeof(int));
+			stream.read((char*)&newConnectedInterfaceType, sizeof(int));
+			stream.read((char*)&newInterfaceSize, sizeof(int));
+			stream.read((char*)&level, sizeof(int));
+/*			
+			UG_LOG("  newConnectedProcID: " << newConnectedProcID << endl);
+			UG_LOG("  newConnectedInterfaceType: " << newConnectedInterfaceType << endl);
+			UG_LOG("  newInterfaceSize: " << newInterfaceSize << endl);
+*/			
+		//	make sure that there are nodes to put into the new interface
+			if(newInterfaceSize > 0){
+			//	we have to get the local interface-type
+				int newInterfaceType = GetAssociatedInterfaceType(newConnectedInterfaceType);
+			
+			//	access the old and the new interface
+				TLayout& layout = glm.template get_layout<GeomObjType>(newInterfaceType);
+				Interface& oldInterface = layout.interface(iter->first, level);
+				Interface& newInterface = layout.interface(newConnectedProcID, level);
+				
+			//	we'll store all nodes of oldInterface in a temporary vector,
+			//	since we want to access them by index
+				vInterfaceElements.clear();
+				for(typename Interface::iterator elemIter = oldInterface.begin();
+					elemIter != oldInterface.end(); ++elemIter)
+					vInterfaceElements.push_back(oldInterface.get_element(elemIter));
+									
+			//	get the nodes from oldInterface and add them to newInterface
+				for(int i = 0; i < newInterfaceSize; ++i){
+					int tInd;
+					stream.read((char*)&tInd, sizeof(int));
+					UG_LOG("interface entry: " << tInd << endl);
+					newInterface.push_back(vInterfaceElements[tInd]);
+				}
+			}
+		}
+	}
+
+/////////////////
+/////////////////
+/////////////////
+//TODO: Don't remove the new interface entries!!!
+/////////////////
+/////////////////
+/////////////////
+
 //	we have to remove entries which are not part of sel.
 	for(typename geometry_traits<GeomObjType>::iterator iter =
 		selRemainingEntries.template begin<GeomObjType>();
@@ -846,6 +978,14 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 	
 //	the selector will help to speed things up a little.
 	MGSelector msel(mg);
+
+
+//todo	before CreateRedistributionLayouts is called, we have to make sure, 
+//		that the localIDs of elements in interfaces are continuos, starting
+//		from 1. This is important, since they are used as indices later on.
+//		In the moment this is automatically given. As soon as dynamic
+//		erasure of interface elements is allowed, this will lead to problems
+//		if not adressed.
 
 //TODO: Only prepare layouts for processes to which data is actually send.
 	CreateRedistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,

@@ -98,8 +98,23 @@ void SelectAssociatedEdges(TSelector& sel,
  * Please note that only existing edges are checked.
  */
 void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
-								  FaceIterator facesEnd);
+							 FaceIterator facesEnd);
 
+////////////////////////////////////////////////////////////////////////
+///	selects faces that are only adjacent to one of the given volumes
+/**
+ * This algorithm uses Grid::mark.
+ * selects the faces of the volumes between volumesBegin and volumesEnd
+ * that are only adjacent to one of those volumes.
+ *
+ * Faces that already are selected will stay selected, even if they are
+ * inner faces.
+ *
+ * Please note that only existing faces are checked.
+ */
+void SelectAreaBoundaryFaces(ISelector& sel, VolumeIterator volumesBegin,
+							 VolumeIterator volumesEnd);
+								  
 ////////////////////////////////////////////////////////////////////////
 //	SelectAssociatedFaces
 ///	selects all associated faces of the elements between elemsBegin and elemsEnd

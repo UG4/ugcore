@@ -6,6 +6,8 @@
 #define __H__PCL_UTIL__
 
 #include <iostream>
+#include <vector>
+#include <algorithm>
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
@@ -13,6 +15,48 @@
 
 namespace pcl
 {
+////////////////////////////////////////////////////////////////////////
+///	collects the ids of all processes to which interfaces exist.
+/**
+ * Fills a vector with the process-ids, to which interfaces exist in
+ * the given layout.
+ *
+ * TLayout has to be compatible with pcl::Layout or pcl::MultiLevelLayout.
+ *
+ * \returns the number of associated processes.
+ */
+template <class TLayout>
+size_t CollectAssociatedProcesses(std::vector<int>& procIDsOut,
+								  TLayout& layout)
+{
+	procIDsOut.clear();
+	
+//	iterate through the levels of the layout
+	for(size_t i = 0; i < layout.num_levels(); ++i){
+	//	iterate through the interfaces on that level
+		for(typename TLayout::iterator iIter = layout.begin(i);
+			iIter != layout.end(i); ++iIter)
+		{
+			int procID = layout.proc_id(iIter);
+		//	check whether the process is already contained in procIDsOut
+			if(i > 0){
+				if(find(procIDsOut.begin(), procIDsOut.end(), procID)
+				   == procIDsOut.end())
+				{
+				//	the entry has not yet been added
+					procIDsOut.push_back(procID);
+				}
+			}
+			else{
+			//	on level 0 each process exists only once
+				procIDsOut.push_back(procID);
+			}
+		}
+	}
+	
+	return procIDsOut.size();
+}
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Removes unselected entries from the interfaces in the given layout.

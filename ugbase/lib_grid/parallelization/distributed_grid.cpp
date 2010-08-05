@@ -413,6 +413,13 @@ handle_created_element(TElem* pElem,
 	}
 }
 /*
+// when handle_erased_element is implemented, one has to be careful with
+// the local interface ids. Those won't be continuous after an erasure
+// was performed. This is normally no problem. But when it comes to
+// grid-redistribution, a method is required that brings those id-s
+// back to continuous. Keep that in mind and have a look at the
+// todos in RedistributeGrid.
+
 template <class TElem, class TCommGrp>
 void DistributedGrid::
 handle_erased_element(TElem* e, TCommGrp& commGrp)

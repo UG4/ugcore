@@ -120,8 +120,48 @@ void SelectAreaBoundaryEdges(ISelector& sel, FaceIterator facesBegin,
 				}
 			}
 			else{
-			//	if the edge is not selected, then it already is an inner edge
+			//	if the edge is marked, then it is an inner edge
 				sel.deselect(e);
+			}
+		}
+	}
+
+	grid.end_marking();
+}
+
+////////////////////////////////////////////////////////////////////////
+//	SelectAreaBoundaryFaces
+void SelectAreaBoundaryFaces(ISelector& sel, VolumeIterator volumesBegin,
+							 VolumeIterator volumesEnd)
+{
+	if(!sel.get_assigned_grid())
+		return;
+	
+	Grid& grid = *sel.get_assigned_grid();
+
+//	iterate over associated faces of volumes.
+//	select faces if they have not yet been examined, unselect them if they
+//	have been (-> inner face). Use Grid::mark to avoid reselection
+//	and to keep existing selections.
+	grid.begin_marking();
+
+	vector<Face*> vFaces;
+	while(volumesBegin != volumesEnd){
+		Volume* v = *volumesBegin;
+		++volumesBegin;
+		CollectFaces(vFaces, grid, v);
+		for(size_t i = 0; i < vFaces.size(); ++i){
+			Face* f = vFaces[i];
+			if(!grid.is_marked(f)){
+			//	if the face was initially selected, it should stay that way
+				if(!sel.is_selected(f)){
+					grid.mark(f);
+					sel.select(f);
+				}
+			}
+			else{
+			//	if the face is marked, then it is an inner edge
+				sel.deselect(f);
 			}
 		}
 	}

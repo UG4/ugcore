@@ -11,6 +11,21 @@
 
 namespace ug
 {
+////////////////////////////////////////////////////////////////////////
+//	utility methods
+///	Returns the type of associated interfaces
+/**
+ * \param interfaceType: a constant enumerated in ug::InterfaceNodeTypes.
+ * \return the associated interface type or INT_UNKNOWN, if no associated
+ *		type is known.
+ */
+int GetAssociatedInterfaceType(int interfaceType);
+
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//	LoadAndDistributeGrid and associated classes
 
 /// \addtogroup lib_grid_parallelization_distribution
 ///	@{

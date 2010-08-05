@@ -15,6 +15,20 @@ using namespace std;
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
+int GetAssociatedInterfaceType(int interfaceType)
+{
+	switch(interfaceType){
+		case INT_MASTER:			return INT_SLAVE;;
+		case INT_SLAVE:				return INT_MASTER;
+		case INT_VERTICAL_MASTER:	return INT_VERTICAL_SLAVE;
+		case INT_VERTICAL_SLAVE:	return INT_VERTICAL_MASTER;
+		case INT_VIRTUAL_MASTER:	return INT_VIRTUAL_SLAVE;
+		case INT_VIRTUAL_SLAVE:		return INT_VIRTUAL_MASTER;
+		default: return INT_UNKNOWN;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 bool PartitionGrid_Bisection(SubsetHandler& partitionOut,
 							  MultiGrid& mg, ISubsetHandler& sh,
 							  size_t numProcs)
