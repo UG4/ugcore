@@ -30,10 +30,16 @@ template<typename entry_type> class matrixrow;
 template<typename vec_type> class Vector;
 
 /** SparseMatrix
+ *  \brief sparse matrix for big, variable sparse matrices.
+ *
+ *  matrix is stored independent row-wise
+ *  When doing discretisation, use the add set and get methods
+ *  for dealing with submatrices of A.
+ *  For other things you can use the row iterators or
+ *  operator()-methods.
+ *
+ * \sa matrixrow, CreateAsMultiplyOf
  * \param T blocktype
- *  SparseMatrix for big, variable sparse matrices.
- *   matrix is stored independent row-wise
- *   \sa matrixrow
  */
 template<typename T>
 class SparseMatrix : public TE_MAT<SparseMatrix<T> >
