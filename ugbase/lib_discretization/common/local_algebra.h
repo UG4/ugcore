@@ -561,6 +561,16 @@ class LocalMatrix
 		std::vector<std::vector<entry_type> > m_entries;
 };
 
+template <typename Entry>
+std::ostream& operator<< (std::ostream& outStream, const ug::LocalMatrix<Entry>& mat)
+{
+	for(size_t i = 0; i < mat.num_rows(); ++i)
+		for(size_t j = 0; j < mat.num_cols(); ++j)
+		{
+			outStream << "["<<i<<","<<j<<"]: (" << mat.row_index(i) << " -> " << mat.col_index(j) << ") : " << mat(i,j) << "\n";
+		}
+	return outStream;
+}
 
 } // end namespace ug
 
