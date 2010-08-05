@@ -92,9 +92,12 @@ class FE1Geometry
 			m_mapping.update(corners);
 
 			// compute transformation inverse and determinate at ip
-			if(!m_mapping.jacobian_transposed_inverse(m_ip_local, m_JTInv)) return false;
-			if(!m_mapping.jacobian_det(m_ip_local, m_detJ)) return false;
-			if(!m_mapping.local_to_global(m_ip_local, m_ip_global)) return false;
+			if(!m_mapping.jacobian_transposed_inverse(m_ip_local, m_JTInv))
+				{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian transposed inverse.\n"); return false;}
+			if(!m_mapping.jacobian_det(m_ip_local, m_detJ))
+				{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian determinante.\n"); return false;}
+			if(!m_mapping.local_to_global(m_ip_local, m_ip_global))
+			{UG_LOG("FE1Geometry:update(..): Cannot compute global ip pos.\n"); return false;}
 
 			// compute Shape Gradient
 			for(size_t sh = 0; sh < (size_t) ref_elem_type::num_corners; ++sh)

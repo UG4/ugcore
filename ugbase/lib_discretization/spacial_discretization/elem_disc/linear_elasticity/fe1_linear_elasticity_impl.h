@@ -48,6 +48,9 @@ prepare_element_loop()
 	// remember position attachement
 	m_aaPos = m_domain.get_position_accessor();
 
+	// evaluate Elasticity Tensor
+	m_ElasticityTensorFct(m_ElasticityTensor);
+
 	return true;
 }
 
@@ -61,9 +64,6 @@ finish_element_loop()
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
 	delete[] m_corners;
-
-	// evaluate Elasticity Tensor
-	m_ElasticityTensorFct(m_ElasticityTensor);
 
 	return true;
 }

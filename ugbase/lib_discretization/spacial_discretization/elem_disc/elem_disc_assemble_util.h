@@ -95,6 +95,8 @@ AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
 		if(!elemDisc.assemble_JA(loc_J, loc_u))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
 
+		UG_LOG("Adding loc_J:\n " << loc_J<<"\n");
+
 		// send local to global matrix
 		J.add(loc_J);
 	}

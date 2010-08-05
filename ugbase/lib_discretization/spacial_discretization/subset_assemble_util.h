@@ -37,17 +37,22 @@ AssembleStiffnessMatrix(	TElemDisc& elemDisc,
 	{
 		case 1:
 			if(!AssembleStiffnessMatrix<Edge>(elemDisc, u.template begin<Edge>(si), u.template end<Edge>(si), si, J, u, fcts))
-				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
+				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
 			break;
 
 		case 2:
 			if(!AssembleStiffnessMatrix<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), si, J, u, fcts))
-				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
+				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleStiffnessMatrix<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si, J, u, fcts))
-				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
+				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
 			break;
 
 		case 3:
+			if(!AssembleStiffnessMatrix<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleStiffnessMatrix<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
+			break;
 
 		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
 	}
@@ -74,17 +79,22 @@ AssembleMassMatrix(	TElemDisc& elemDisc,
 	{
 		case 1:
 			if(!AssembleMassMatrix<Edge>(elemDisc, u.template begin<Edge>(si), u.template end<Edge>(si), si, J, u, fcts))
-				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
+				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
 			break;
 
 		case 2:
 			if(!AssembleMassMatrix<Triangle>(elemDisc, u.template begin<Triangle>(si), u.template end<Triangle>(si), si, J, u, fcts))
-				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
+				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Triangle>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleMassMatrix<Quadrilateral>(elemDisc, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), si, J, u, fcts))
-				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
+				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Quadrilateral>', aborting.\n");return IAssemble_ERROR;}
 			break;
 
 		case 3:
+			if(!AssembleMassMatrix<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleMassMatrix<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
+			break;
 
 		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
 	}
