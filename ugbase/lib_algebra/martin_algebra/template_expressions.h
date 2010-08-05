@@ -1,6 +1,5 @@
 /*
- *  NewTemplateExpressions.h
- *  flexamg
+ *  template_expressions.h
  *
  *  Created by Martin Rupp on 08.02.10.
  *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
@@ -32,7 +31,6 @@ using namespace std;
 
 namespace ug{
 
-//#pragma mark template expression CRTP base classes
 //! only classes which inherit from TE_AMV_X, TE_MAT or TE_VEC (via class myClass : public XD<myClass> )
 //! can use templateExpressions used in this file
 //! CRTP = Curiously recurring template pattern
