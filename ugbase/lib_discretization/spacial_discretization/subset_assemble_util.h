@@ -50,6 +50,8 @@ AssembleStiffnessMatrix(	TElemDisc& elemDisc,
 		case 3:
 			if(!AssembleStiffnessMatrix<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleStiffnessMatrix<Pyramid>(elemDisc, u.template begin<Pyramid>(si), u.template end<Pyramid>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Pyramid>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleStiffnessMatrix<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleStiffnessMatrix<Hexahedron>(elemDisc, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si), si, J, u, fcts))
@@ -94,6 +96,8 @@ AssembleMassMatrix(	TElemDisc& elemDisc,
 		case 3:
 			if(!AssembleMassMatrix<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleMassMatrix<Pyramid>(elemDisc, u.template begin<Pyramid>(si), u.template end<Pyramid>(si), si, J, u, fcts))
+				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Pyramid>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleMassMatrix<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleMassMatrix' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleMassMatrix<Hexahedron>(elemDisc, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si), si, J, u, fcts))
@@ -138,6 +142,8 @@ AssembleJacobian(	TElemDisc& elemDisc,
 		case 3:
 			if(!AssembleJacobian<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts, time, s_m, s_a))
 				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleJacobian<Pyramid>(elemDisc, u.template begin<Pyramid>(si), u.template end<Pyramid>(si), si, J, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Pyramid>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleJacobian<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts, time, s_m, s_a))
 				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
 			if(!AssembleJacobian<Hexahedron>(elemDisc, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si), si, J, u, fcts, time, s_m, s_a))
@@ -193,6 +199,8 @@ AssembleDefect(	TElemDisc& elemDisc,
 
 		case 3:
 			if(!AssembleDefect<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, d, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
+			if(!AssembleDefect<Pyramid>(elemDisc, u.template begin<Pyramid>(si), u.template end<Pyramid>(si), si, d, u, fcts, time, s_m, s_a))
 				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
 			if(!AssembleDefect<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, d, u, fcts, time, s_m, s_a))
 				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
@@ -278,10 +286,13 @@ AssembleLinear(	TElemDisc& elemDisc,
 			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Tetrahedron>(si) << " Tetrahedrons on subset " << si << ".\n");
 			if(!AssembleLinear<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, mat, rhs, u, fcts))
 				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
+			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Pyramid>(si) << " Pyramid on subset " << si << ".\n");
+			if(!AssembleLinear<Pyramid>(elemDisc, u.template begin<Pyramid>(si), u.template end<Pyramid>(si), si, mat, rhs, u, fcts))
+				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
 			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Prism>(si) << " Prisms on subset " << si << ".\n");
 			if(!AssembleLinear<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, mat, rhs, u, fcts))
 				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
-			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Prism>(si) << " Prisms on subset " << si << ".\n");
+			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Hexahedron>(si) << " Hexahedron on subset " << si << ".\n");
 			if(!AssembleLinear<Hexahedron>(elemDisc, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si), si, mat, rhs, u, fcts))
 				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
 			break;

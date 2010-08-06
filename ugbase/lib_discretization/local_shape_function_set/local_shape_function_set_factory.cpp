@@ -16,6 +16,7 @@ LocalShapeFunctionSetFactory()
 	if(init_standard_local_shape_function_sets<ReferenceTriangle>() != true) assert(0);
 	if(init_standard_local_shape_function_sets<ReferenceQuadrilateral>() != true) assert(0);
 	if(init_standard_local_shape_function_sets<ReferenceTetrahedron>() != true) assert(0);
+	if(init_standard_local_shape_function_sets<ReferencePyramid>() != true) assert(0);
 	if(init_standard_local_shape_function_sets<ReferencePrism>() != true) assert(0);
 	if(init_standard_local_shape_function_sets<ReferenceHexahedron>() != true) assert(0);
 };

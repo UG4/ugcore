@@ -277,6 +277,7 @@ class reference_element_traits
 #include "reference_triangle.h"
 #include "reference_quadrilateral.h"
 #include "reference_tetrahedron.h"
+#include "reference_pyramid.h"
 #include "reference_prism.h"
 #include "reference_hexahedron.h"
 

@@ -214,7 +214,8 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
-			if((*conn).iIndex != i && beta != alpha) BlockRef(block, alpha, beta) = 0.0;
+			if((*conn).iIndex != i) BlockRef(block, alpha, beta) = 0.0;
+			else if(beta != alpha) BlockRef(block, alpha, beta) = 0.0;
 		}
 	}
 }

@@ -68,8 +68,17 @@ static const bool registered_10 = DimReferenceElementFactory<3>::register_refere
 ReferenceElementWrapper<ReferencePrism> refPrism;
 DimReferenceElementWrapper<ReferencePrism, 3> dimRefPrism;
 
-static const bool registered_11 = ReferenceElementFactory::register_reference_element(refPrism);
-static const bool registered_12 = DimReferenceElementFactory<3>::register_reference_element(dimRefPrism);
+static const bool registered_15 = ReferenceElementFactory::register_reference_element(refPrism);
+static const bool registered_16 = DimReferenceElementFactory<3>::register_reference_element(dimRefPrism);
+
+///////////////
+// Pyramid
+///////////////
+ReferenceElementWrapper<ReferencePyramid> refPyramid;
+DimReferenceElementWrapper<ReferencePyramid, 3> dimRefPyramid;
+
+static const bool registered_11 = ReferenceElementFactory::register_reference_element(refPyramid);
+static const bool registered_12 = DimReferenceElementFactory<3>::register_reference_element(dimRefPyramid);
 
 ///////////////
 // Hexahedron

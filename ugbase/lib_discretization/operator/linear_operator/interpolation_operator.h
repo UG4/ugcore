@@ -113,7 +113,7 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(id);
 
 			// get local positions of interpolation points
-			const size_t num_sh = trialSpace.num_shape_functions();
+			const size_t num_sh = trialSpace.num_sh();
 			std::vector<MathVector<dim> > loc_pos(num_sh);
 			for(size_t i = 0; i < num_sh; ++i)
 			{

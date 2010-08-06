@@ -221,6 +221,126 @@ position_of_dof(int nrShapeFct, position_type& value) const
 	return true;
 }
 
+template<>
+bool
+P1conform<ReferencePyramid>::
+evaluate(int nrShapeFct, const position_type& locPos, shape_value_type& value) const
+{
+	switch(nrShapeFct)
+	{
+	  case 0 :
+		if (locPos.x > locPos.y)
+		{ value = ((1.0-locPos.x)*(1.0-locPos.y) - locPos.z*(1.0-locPos.y)); return true;}
+		else
+		{ value = ((1.0-locPos.x)*(1.0-locPos.y) - locPos.z*(1.0-locPos.x)); return true;}
+	  case 1 :
+		if (locPos.x > locPos.y)
+		{ value = (locPos.x*(1.0-locPos.y)       - locPos.z*locPos.y); return true;}
+		else
+		{ value = (locPos.x*(1.0-locPos.y)       - locPos.z*locPos.x); return true;}
+	  case 2 :
+		if (locPos.x > locPos.y)
+		{ value = (locPos.x*locPos.y             + locPos.z*locPos.y); return true;}
+		else
+		{ value = (locPos.x*locPos.y             + locPos.z*locPos.x); return true;}
+	  case 3 :
+		if (locPos.x > locPos.y)
+		{ value = ((1.0-locPos.x)*locPos.y       - locPos.z*locPos.y); return true;}
+		else
+		{ value = ((1.0-locPos.x)*locPos.y       - locPos.z*locPos.x); return true;}
+	  case 4 : { value = locPos.z; return true; }
+	  default: return false;
+	}
+	return true;
+};
+
+template<>
+bool P1conform<ReferencePyramid>::
+evaluate_grad(int nrShapeFct, const position_type& locPos, grad_value_type& value) const
+{
+	switch(nrShapeFct)
+	{
+	  case 0:
+		if (locPos.x > locPos.y)
+		  {
+			value[0] = -(1.0-locPos.y);
+			value[1] = -(1.0-locPos.x) + locPos.z;
+			value[2] = -(1.0-locPos.y);
+			return true;
+		  }
+		else
+		  {
+			value[0] = -(1.0-locPos.y) + locPos.z;
+			value[1] = -(1.0-locPos.x);
+			value[2] = -(1.0-locPos.x);
+			return true;
+		  }
+	  case 1:
+		if (locPos.x > locPos.y)
+		  {
+			value[0] = (1.0-locPos.y);
+			value[1] = -locPos.x - locPos.z;
+			value[2] = -locPos.y;
+			return true;
+		  }
+		else
+		  {
+			value[0] = (1.0-locPos.y) - locPos.z;
+			value[1] = -locPos.x;
+			value[2] = -locPos.x;
+			return true;
+		  }
+	  case 2:
+		if (locPos.x > locPos.y)
+		  {
+			value[0] = locPos.y;
+			value[1] = locPos.x + locPos.z;
+			value[2] = locPos.y;
+			return true;
+		  }
+		else
+		  {
+			value[0] = locPos.y + locPos.z;
+			value[1] = locPos.x;
+			value[2] = locPos.x;
+			return true;
+		  }
+	  case 3:
+		if (locPos.x > locPos.y)
+		  {
+			value[0] = -locPos.y;
+			value[1] = 1.0-locPos.x - locPos.z;
+			value[2] = -locPos.y;
+			return true;
+		  }
+		else
+		  {
+			value[0] = -locPos.y - locPos.z;
+			value[1] = 1.0-locPos.x;
+			value[2] = -locPos.x;
+			return true;
+		  }
+      case 4:
+		value[0] = 0.0;
+		value[1] = 0.0;
+		value[2] = 1.0;
+		return true;
+	default: return false;
+	}
+	return true;
+}
+
+template<>
+bool P1conform<ReferencePyramid>::
+position_of_dof(int nrShapeFct, position_type& value) const
+{
+	static const DimReferenceElement<3>& refElem
+		= DimReferenceElementFactory<3>::get_reference_element(ROID_PYRAMID);
+
+	value = refElem.corner(nrShapeFct);
+	return true;
+}
+
 
 template<>
 bool

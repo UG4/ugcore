@@ -23,7 +23,7 @@ set(srcDiscretization	common/function_group.cpp
 						quadrature/gauss_quadratures_ReferenceQuadrilateral.cpp
 						quadrature/gauss_quadratures_ReferenceTetrahedron.cpp
 						quadrature/gauss_quadratures_ReferencePrism.cpp
-						#quadrature/gauss_quadratures_ReferencePyramid.cpp
+						quadrature/gauss_quadratures_ReferencePyramid.cpp
 						quadrature/gauss_quadratures_ReferenceHexahedron.cpp
 
 						local_shape_function_set/local_shape_function_set_factory.cpp

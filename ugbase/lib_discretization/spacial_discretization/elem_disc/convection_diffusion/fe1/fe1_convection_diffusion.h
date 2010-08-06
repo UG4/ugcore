@@ -139,9 +139,9 @@ class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
 			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
 			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
+			register_all_assemble_functions<Prism>(ROID_PYRAMID);
 			register_all_assemble_functions<Prism>(ROID_PRISM);
 			register_all_assemble_functions<Prism>(ROID_HEXAHEDRON);
-			// TODO: Register 3D Ref-Elems
 		}
 
 		// help function
