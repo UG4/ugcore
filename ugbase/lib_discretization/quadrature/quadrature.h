@@ -79,8 +79,14 @@ class QuadratureRuleFactory{
 		static const QuadratureRule<TRefElem>& get_rule(int order)
 		{
 			UG_ASSERT(order < (int)m_rules.size(), "Rule does not exist.");
-			UG_ASSERT(m_rules[order] != 0, "Although rule registered, it is zero.");
-
+			if(m_rules[order] == 0)
+			{
+				for(size_t i = order +1; i < m_rules.size(); ++i)
+				{
+					if(m_rules[i] != 0) return *m_rules[i];
+				}
+				UG_ASSERT(0, "Cannot find rule.");
+			}
 			return *m_rules[order];
 		}
 

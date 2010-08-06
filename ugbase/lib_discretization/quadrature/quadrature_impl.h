@@ -27,7 +27,7 @@ inline bool GaussQuadrature<TRefElem>::allocate_memory(std::size_t n)
 {
 	this->m_points = new typename QuadratureRule<TRefElem>::position_type[this->m_num_points];
 	this->m_weights = new typename QuadratureRule<TRefElem>::weight_type[this->m_num_points];
-	if(this->m_points == 0 || this->m_weights != 0)
+	if(this->m_points == 0 || this->m_weights == 0)
 		return false;
 	return true;
 }

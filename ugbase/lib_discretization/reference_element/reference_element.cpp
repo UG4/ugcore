@@ -62,4 +62,13 @@ DimReferenceElementWrapper<ReferenceTetrahedron, 3> dimRefTetrahedron;
 static const bool registered_9 = ReferenceElementFactory::register_reference_element(refTetrahedron);
 static const bool registered_10 = DimReferenceElementFactory<3>::register_reference_element(dimRefTetrahedron);
 
+///////////////
+// Prism
+///////////////
+ReferenceElementWrapper<ReferencePrism> refPrism;
+DimReferenceElementWrapper<ReferencePrism, 3> dimRefPrism;
+
+static const bool registered_11 = ReferenceElementFactory::register_reference_element(refPrism);
+static const bool registered_12 = DimReferenceElementFactory<3>::register_reference_element(dimRefPrism);
+
 };

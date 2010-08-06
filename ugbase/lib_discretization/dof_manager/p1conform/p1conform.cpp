@@ -200,19 +200,19 @@ VertexBase* P1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t i) cons
 
 VertexBase* P1ConformDoFDistribution::get_vertex(EdgeBase* edge, size_t i) const
 {
-	UG_ASSERT(i < edge.num_vertices(), "Wrong number of vertex");
+	UG_ASSERT(i < edge->num_vertices(), "Wrong number of vertex");
 	return edge->vertex(i);
 }
 
 VertexBase* P1ConformDoFDistribution::get_vertex(Face* face, size_t i) const
 {
-	UG_ASSERT(i < face.num_vertices(), "Wrong number of vertex");
+	UG_ASSERT(i < face->num_vertices(), "Wrong number of vertex");
 	return face->vertex(i);
 }
 
 VertexBase* P1ConformDoFDistribution::get_vertex(Volume* vol, size_t i) const
 {
-	UG_ASSERT(i < vol.num_vertices(), "Wrong number of vertex");
+	UG_ASSERT(i < vol->num_vertices(), "Wrong number of vertex");
 	return vol->vertex(i);
 }
 
@@ -343,19 +343,19 @@ VertexBase* GroupedP1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t 
 
 VertexBase* GroupedP1ConformDoFDistribution::get_vertex(EdgeBase* edge, size_t i) const
 {
-	UG_ASSERT(i < edge.num_vertices(), "Wrong number of vertex");
+	UG_ASSERT(i < edge->num_vertices(), "Wrong number of vertex");
 	return edge->vertex(i);
 }
 
 VertexBase* GroupedP1ConformDoFDistribution::get_vertex(Face* face, size_t i) const
 {
-	UG_ASSERT(i < face.num_vertices(), "Wrong number of vertex");
+	UG_ASSERT(i < face->num_vertices(), "Wrong number of vertex");
 	return face->vertex(i);
 }
 
 VertexBase* GroupedP1ConformDoFDistribution::get_vertex(Volume* vol, size_t i) const
 {
-	UG_ASSERT(i < vol.num_vertices(), "Wrong number of vertex");
+	UG_ASSERT(i < vol->num_vertices(), "Wrong number of vertex");
 	return vol->vertex(i);
 }
 
