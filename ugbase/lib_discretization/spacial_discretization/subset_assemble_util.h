@@ -50,7 +50,6 @@ AssembleStiffnessMatrix(	TElemDisc& elemDisc,
 		case 3:
 			if(!AssembleStiffnessMatrix<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
-			UG_LOG("Assembling " << u.template num<Prism>(si) << " Prism on subset " << si << ".\n");
 			if(!AssembleStiffnessMatrix<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
 			break;
