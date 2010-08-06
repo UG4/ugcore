@@ -208,13 +208,13 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 {
+	BlockRef(A(i,i), alpha, alpha) = 1.0;
 	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 	{
 		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
-			if((*conn).iIndex == i && beta == alpha) BlockRef(block, alpha, beta) = 1.0;
-			else BlockRef(block, alpha, beta) = 0.0;
+			if((*conn).iIndex != i && beta != alpha) BlockRef(block, alpha, beta) = 0.0;
 		}
 	}
 }
@@ -231,11 +231,11 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 {
+	A(i,i) = 1.0;
 	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 	{
 		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
-		if((*conn).iIndex == i) block = 1.0;
-		else block = 0.0;
+		if((*conn).iIndex != i) block = 0.0;
 	}
 }
 

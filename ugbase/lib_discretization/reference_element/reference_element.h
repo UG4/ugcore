@@ -278,5 +278,6 @@ class reference_element_traits
 #include "reference_quadrilateral.h"
 #include "reference_tetrahedron.h"
 #include "reference_prism.h"
+#include "reference_hexahedron.h"
 
 #endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_ELEMENT__ */

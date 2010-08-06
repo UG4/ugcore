@@ -291,14 +291,14 @@ class ReferencePrism{
 		 	m_id[EDGE][5][POINT][0] = 0;
 		 	m_id[EDGE][5][POINT][1] = 5;
 			// edge 6 = (3,4)
-		 	m_id[EDGE][5][POINT][0] = 3;
-		 	m_id[EDGE][5][POINT][1] = 4;
+		 	m_id[EDGE][6][POINT][0] = 3;
+		 	m_id[EDGE][6][POINT][1] = 4;
 			// edge 7 = (4,5)
-		 	m_id[EDGE][5][POINT][0] = 4;
-		 	m_id[EDGE][5][POINT][1] = 5;
+		 	m_id[EDGE][7][POINT][0] = 4;
+		 	m_id[EDGE][7][POINT][1] = 5;
 			// edge 8 = (5,3)
-		 	m_id[EDGE][5][POINT][0] = 5;
-		 	m_id[EDGE][5][POINT][1] = 3;
+		 	m_id[EDGE][8][POINT][0] = 5;
+		 	m_id[EDGE][8][POINT][1] = 3;
 
 		 	// Edges of Point
 		 	m_id[POINT][0][EDGE][0] = 2;
@@ -363,9 +363,6 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 		void update(const MathVector<world_dim>* corners)
 		{
 			m_corners = corners;
-			VecSubtract(a10, m_corners[1], m_corners[0]);
-			VecSubtract(a20, m_corners[2], m_corners[0]);
-			VecSubtract(a30, m_corners[3], m_corners[0]);
 		}
 
 		bool local_to_global(	const MathVector<dim>& local,
@@ -449,8 +446,6 @@ class ReferenceMapping<ReferencePrism, TWorldDim>
 
 	private:
 		const MathVector<world_dim>* m_corners;
-
-		MathVector<world_dim> a10, a20, a30;
 };
 
 

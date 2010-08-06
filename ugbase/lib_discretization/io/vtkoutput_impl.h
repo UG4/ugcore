@@ -173,7 +173,8 @@ print_subset(const char* filename, discrete_function_type& u, int si, size_t ste
 	// Write Subset
 	int dim = 1;
 	if(u.template num<Triangle>(si) > 0 || u.template num<Quadrilateral>(si) > 0) dim = 2;
-	if(u.template num<Tetrahedron>(si) > 0 || u.template num<Prism>(si) > 0) dim = 3;
+	if(u.template num<Tetrahedron>(si) > 0 || u.template num<Prism>(si) > 0
+			|| u.template num<Hexahedron>(si) > 0) dim = 3;
 	if(write_subset(File, u, si, dim) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl);
@@ -294,6 +295,7 @@ init_subset(discrete_function_type& u, int si, int dim)
 	{
 		count_elem_conn<Tetrahedron>(u, si, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si));
 		count_elem_conn<Prism>(u, si, u.template begin<Prism>(si), u.template end<Prism>(si));
+		count_elem_conn<Hexahedron>(u, si, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si));
 	}
 
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Vertices: " << Numbers.noVertices << "\n");
@@ -333,6 +335,7 @@ write_points(FILE* File, discrete_function_type& u, int si, int dim)
 		case 3:
 			write_points_elementwise<Tetrahedron>(File, u, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), n);
 			write_points_elementwise<Prism>(File, u, u.template begin<Prism>(si), u.template end<Prism>(si), n);
+			write_points_elementwise<Hexahedron>(File, u, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si), n);
 			break;
 	}
 
@@ -370,6 +373,7 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 		case 3:
 			if(write_elements_connectivity<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) != true) return false;
 			if(write_elements_connectivity<Prism>(File, u.template begin<Prism>(si), u.template end<Prism>(si)) != true) return false;
+			if(write_elements_connectivity<Hexahedron>(File, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si)) != true) return false;
 			break;
 	}
 	BStreamFlush(File);
@@ -394,6 +398,7 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 		case 3:
 			if(write_elements_offsets<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si),  n) == false) return false;
 			if(write_elements_offsets<Prism>(File, u.template begin<Prism>(si), u.template end<Prism>(si),  n) == false) return false;
+			if(write_elements_offsets<Hexahedron>(File, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si),  n) == false) return false;
 			break;
 	}
 	BStreamFlush(File);
@@ -416,6 +421,7 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 		case 3:
 			if(write_elements_types<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) == false) return false;
 			if(write_elements_types<Prism>(File, u.template begin<Prism>(si), u.template end<Prism>(si)) == false) return false;
+			if(write_elements_types<Hexahedron>(File, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si)) == false) return false;
 			break;
 	}
 	fprintf(File, "\n        </DataArray>\n");
@@ -452,6 +458,7 @@ write_scalar(FILE* File, discrete_function_type& u, uint fct, int si, int dim)
 		case 3:
 			if(write_scalar_elementwise<Tetrahedron>(File, u, fct, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si) == false) return false;
 			if(write_scalar_elementwise<Prism>(File, u, fct, u.template begin<Prism>(si), u.template end<Prism>(si), si) == false) return false;
+			if(write_scalar_elementwise<Hexahedron>(File, u, fct, u.template begin<Hexahedron>(si), u.template end<Hexahedron>(si), si) == false) return false;
 			break;
 	}
 
@@ -634,6 +641,7 @@ write_elements_types(FILE* File,
 	case ROID_QUADRILATERAL: type = (char) 9; break;
 	case ROID_TETRAHEDRON: type = (char) 10; break;
 	case ROID_PRISM: type = (char) 13; break;
+	case ROID_HEXAHEDRON: type = (char) 12; break;
 	default:UG_ASSERT(0, "Element Type not known.");
 	}
 
