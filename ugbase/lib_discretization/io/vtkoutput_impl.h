@@ -173,7 +173,7 @@ print_subset(const char* filename, discrete_function_type& u, int si, size_t ste
 	// Write Subset
 	int dim = 1;
 	if(u.template num<Triangle>(si) > 0 || u.template num<Quadrilateral>(si) > 0) dim = 2;
-	if(u.template num<Tetrahedron>(si) > 0) dim = 3;
+	if(u.template num<Tetrahedron>(si) > 0 || u.template num<Prism>(si) > 0) dim = 3;
 	if(write_subset(File, u, si, dim) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset" << std::endl);
@@ -293,6 +293,7 @@ init_subset(discrete_function_type& u, int si, int dim)
 	if(dim == 3)
 	{
 		count_elem_conn<Tetrahedron>(u, si, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si));
+		count_elem_conn<Prism>(u, si, u.template begin<Prism>(si), u.template end<Prism>(si));
 	}
 
 	UG_DLOG(LIB_DISC_OUTPUT, 2, "Number of Vertices: " << Numbers.noVertices << "\n");
@@ -331,6 +332,7 @@ write_points(FILE* File, discrete_function_type& u, int si, int dim)
 			break;
 		case 3:
 			write_points_elementwise<Tetrahedron>(File, u, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), n);
+			write_points_elementwise<Prism>(File, u, u.template begin<Prism>(si), u.template end<Prism>(si), n);
 			break;
 	}
 
@@ -367,6 +369,7 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 			break;
 		case 3:
 			if(write_elements_connectivity<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) != true) return false;
+			if(write_elements_connectivity<Prism>(File, u.template begin<Prism>(si), u.template end<Prism>(si)) != true) return false;
 			break;
 	}
 	BStreamFlush(File);
@@ -390,6 +393,7 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 			break;
 		case 3:
 			if(write_elements_offsets<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si),  n) == false) return false;
+			if(write_elements_offsets<Prism>(File, u.template begin<Prism>(si), u.template end<Prism>(si),  n) == false) return false;
 			break;
 	}
 	BStreamFlush(File);
@@ -411,6 +415,7 @@ write_elements(FILE* File, discrete_function_type& u, int si, int dim)
 			break;
 		case 3:
 			if(write_elements_types<Tetrahedron>(File, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si)) == false) return false;
+			if(write_elements_types<Prism>(File, u.template begin<Prism>(si), u.template end<Prism>(si)) == false) return false;
 			break;
 	}
 	fprintf(File, "\n        </DataArray>\n");
@@ -446,6 +451,7 @@ write_scalar(FILE* File, discrete_function_type& u, uint fct, int si, int dim)
 			break;
 		case 3:
 			if(write_scalar_elementwise<Tetrahedron>(File, u, fct, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si) == false) return false;
+			if(write_scalar_elementwise<Prism>(File, u, fct, u.template begin<Prism>(si), u.template end<Prism>(si), si) == false) return false;
 			break;
 	}
 
@@ -545,6 +551,7 @@ write_elements_connectivity(FILE* File,
 							typename geometry_traits<TElem>::iterator iterEnd)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	static const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
 	assert(m_aaDOFIndexVRT.valid());
 
 	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing Connectivity (i.e. Vertices of each cell) to file ----");
@@ -554,14 +561,25 @@ write_elements_connectivity(FILE* File,
 		TElem *t = *iterBegin;
 		UG_DLOG(LIB_DISC_OUTPUT, 3, "\nWriting Vertices of Finite Element: ");
 
-		for(uint i=0; i< (uint) ref_elem_type::num_corners; i++)
+		int id = 0;
+		if(refID != ROID_PRISM)
 		{
-			VertexBase* vert = t->vertex(i);
-			int id = m_aaDOFIndexVRT[vert];
-
-			UG_DLOG(LIB_DISC_OUTPUT, 3, id << " ");
-
-			BStreamWrite(File, &id);
+			for(uint i=0; i< (uint) ref_elem_type::num_corners; i++)
+			{
+				VertexBase* vert = t->vertex(i);
+				id = m_aaDOFIndexVRT[vert];
+				UG_DLOG(LIB_DISC_OUTPUT, 3, id << " ");
+				BStreamWrite(File, &id);
+			}
+		}
+		else
+		{
+			id = m_aaDOFIndexVRT[t->vertex(0)]; BStreamWrite(File, &id);
+			id = m_aaDOFIndexVRT[t->vertex(2)]; BStreamWrite(File, &id);
+			id = m_aaDOFIndexVRT[t->vertex(1)]; BStreamWrite(File, &id);
+			id = m_aaDOFIndexVRT[t->vertex(3)]; BStreamWrite(File, &id);
+			id = m_aaDOFIndexVRT[t->vertex(5)]; BStreamWrite(File, &id);
+			id = m_aaDOFIndexVRT[t->vertex(4)]; BStreamWrite(File, &id);
 		}
 	}
 
@@ -615,6 +633,7 @@ write_elements_types(FILE* File,
 	case ROID_TRIANGLE: type = (char) 5; break;
 	case ROID_QUADRILATERAL: type = (char) 9; break;
 	case ROID_TETRAHEDRON: type = (char) 10; break;
+	case ROID_PRISM: type = (char) 13; break;
 	default:UG_ASSERT(0, "Element Type not known.");
 	}
 
