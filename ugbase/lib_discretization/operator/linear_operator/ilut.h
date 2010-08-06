@@ -1,8 +1,8 @@
 /*
- * ilu.h
+ * \file ilut.h
  *
- *  Created on: 04.07.2010
- *      Author: andreasvogel
+ * \date 04.07.2010
+ * \author Martin Rupp
  */
 
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__ILUT__
