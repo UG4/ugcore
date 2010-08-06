@@ -76,7 +76,7 @@ class FEGeometry
 		number weight(size_t ip) const
 		{
 			UG_ASSERT(ip < m_detJ.size(), "Wrong ip.");
-			return m_detJ[ip];
+			return m_detJ[ip] * m_rQuadRule.weight(ip);
 		}
 
 		/// local integration point
