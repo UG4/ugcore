@@ -12,7 +12,7 @@ namespace ug{
 
 template <	typename TElem,
 			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
-class FE1Geometry
+class FEGeometry
 {
 	public:
 		/// reference dim
@@ -26,64 +26,87 @@ class FE1Geometry
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 	public:
-		FE1Geometry()
-			: m_rQuadRule(QuadratureRuleFactory<ref_elem_type>::get_quadrature_rule(1))
+		FEGeometry(int order)
+			: m_rQuadRule(QuadratureRuleFactory<ref_elem_type>::get_quadrature_rule(order))
 			{
+				UG_ASSERT(order == 1, " Currently only first order implemented.");
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 						LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
 
-				m_ip_local = m_rQuadRule.point(0);
+				// number of ips
+				m_numIP = m_rQuadRule.num_points();
+				m_numSH = TrialSpace.num_sh();
 
-				for(size_t sh = 0; sh < (size_t) ref_elem_type::num_corners; ++sh)
+				// resize
+				m_vIPLocal.resize(m_numIP);
+				m_vIPGlobal.resize(m_numIP);
+				m_JTInv.resize(m_numIP);
+				m_detJ.resize(m_numIP);
+				m_vvShape.resize(m_numIP);
+				m_vvGradLocal.resize(m_numIP);
+				m_vvGradGlobal.resize(m_numIP);
+				for(size_t ip = 0; ip < m_numIP; ++ip)
 				{
-					if(!TrialSpace.evaluate(sh, m_ip_local, m_shape[sh]))
-						{UG_ASSERT(0, "Cannot evaluate shape.");}
-					if(!TrialSpace.evaluate_grad(sh, m_ip_local, m_grad_local[sh]))
-						{UG_ASSERT(0, "Cannot evaluate gradient.");}
+					m_vvShape[ip].resize(m_numSH);
+					m_vvGradLocal[ip].resize(m_numSH);
+					m_vvGradGlobal[ip].resize(m_numSH);
+				}
+
+				// write local Data
+				for(size_t ip = 0; ip < m_numIP; ++ip)
+				{
+					m_vIPLocal[ip] = m_rQuadRule.point(ip);
+					for(size_t sh = 0; sh < m_numSH; ++sh)
+					{
+						if(!TrialSpace.evaluate(sh, m_vIPLocal[ip], m_vvShape[ip][sh]))
+							{UG_ASSERT(0, "Cannot evaluate shape.");}
+						if(!TrialSpace.evaluate_grad(sh, m_vIPLocal[ip], m_vvGradLocal[ip][sh]))
+							{UG_ASSERT(0, "Cannot evaluate gradient.");}
+					}
 				}
 			}
 
 		// number of integration points
-		size_t num_ip() const {return 1;}
+		size_t num_ip() const {return m_numIP;}
 
 		// number of shape functions
-		size_t num_sh() const {return ref_elem_type::num_corners;}
+		size_t num_sh() const {return m_numSH;}
 
 		// weight for integration point
 		number weight(size_t ip) const
 		{
-			UG_ASSERT(ip == 0, "Wrong ip.");
-			return m_detJ;
+			UG_ASSERT(ip < m_detJ.size(), "Wrong ip.");
+			return m_detJ[ip];
 		}
 
 		/// local integration point
 		const MathVector<dim>& ip_local(size_t ip) const
 		{
-			UG_ASSERT(ip == 0, "Wrong ip.");
-			return m_ip_local;
+			UG_ASSERT(ip < m_vIPLocal.size(), "Wrong ip.");
+			return m_vIPLocal[ip];
 		}
 
 		/// global integration point
 		const MathVector<world_dim>& ip_global(size_t ip) const
 		{
-			UG_ASSERT(ip == 0, "Wrong ip.");
-			return m_ip_global;
+			UG_ASSERT(ip < m_vIPGlobal.size(), "Wrong ip.");
+			return m_vIPGlobal[ip];
 		}
 
 		/// global gradient at ip
 		const MathVector<world_dim>& grad_global(size_t ip, size_t sh) const
 		{
-			UG_ASSERT(ip == 0, "Wrong ip.");
-			UG_ASSERT(sh < num_sh(), "Wrong sh.");
-			return m_grad_global[sh];
+			UG_ASSERT(ip < m_vvGradGlobal.size(), "Wrong ip.");
+			UG_ASSERT(sh < m_vvGradGlobal[ip].size(), "Wrong sh.");
+			return m_vvGradGlobal[ip][sh];
 		}
 
 		/// shape function at ip
 		number shape(size_t ip, size_t sh) const
 		{
-			UG_ASSERT(ip == 0, "Wrong ip.");
-			UG_ASSERT(sh < num_sh(), "Wrong sh.");
-			return m_shape[sh];
+			UG_ASSERT(ip < m_vvShape.size(), "Wrong ip.");
+			UG_ASSERT(sh < m_vvShape[ip].size(), "Wrong sh.");
+			return m_vvShape[ip][sh];
 		}
 
 		/// update Geometry for corners
@@ -91,20 +114,23 @@ class FE1Geometry
 		{
 			m_mapping.update(corners);
 
-			// compute transformation inverse and determinate at ip
-			if(!m_mapping.jacobian_transposed_inverse(m_ip_local, m_JTInv))
-				{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian transposed inverse.\n"); return false;}
-			if(!m_mapping.jacobian_det(m_ip_local, m_detJ))
-				{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian determinante.\n"); return false;}
-			if(!m_mapping.local_to_global(m_ip_local, m_ip_global))
-			{UG_LOG("FE1Geometry:update(..): Cannot compute global ip pos.\n"); return false;}
-
-			// compute Shape Gradient
-			for(size_t sh = 0; sh < (size_t) ref_elem_type::num_corners; ++sh)
+			// write local Data
+			for(size_t ip = 0; ip < m_numIP; ++ip)
 			{
-				MatVecMult(m_grad_global[sh], m_JTInv, m_grad_local[sh]);
-			}
+				// compute transformation inverse and determinate at ip
+				if(!m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]))
+					{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian transposed inverse.\n"); return false;}
+				if(!m_mapping.jacobian_det(m_vIPLocal[ip], m_detJ[ip]))
+					{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian determinante.\n"); return false;}
+				if(!m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]))
+					{UG_LOG("FE1Geometry:update(..): Cannot compute global ip pos.\n"); return false;}
 
+				// compute global gradients
+				for(size_t sh = 0; sh < m_numSH; ++sh)
+				{
+					MatVecMult(m_vvGradGlobal[ip][sh], m_JTInv[ip], m_vvGradLocal[ip][sh]);
+				}
+			}
 			return true;
 		}
 
@@ -113,32 +139,41 @@ class FE1Geometry
 
 		ReferenceMapping<ref_elem_type, world_dim> m_mapping;
 
-		MathVector<dim> m_ip_local;
-		MathVector<world_dim> m_ip_global;
+		size_t m_numIP;
+		size_t m_numSH;
+		std::vector<MathVector<dim> > m_vIPLocal;
+		std::vector<MathVector<world_dim> > m_vIPGlobal;
 
-		number m_shape[ref_elem_type::num_corners];
-		MathVector<dim> m_grad_local[ref_elem_type::num_corners];
-		MathVector<world_dim> m_grad_global[ref_elem_type::num_corners];
+		std::vector<std::vector<number> > m_vvShape;
+		std::vector<std::vector<MathVector<dim> > > m_vvGradLocal;
+		std::vector<std::vector<MathVector<world_dim> > > m_vvGradGlobal;
 
-		MathMatrix<world_dim,dim> m_JTInv;
-		number m_detJ;
+		std::vector<MathMatrix<world_dim,dim> > m_JTInv;
+		std::vector<number> m_detJ;
 };
 
 // Singeton
 template <	typename TElem,
 			int TWorldDim = reference_element_traits<TElem>::reference_element_type::dim>
-class FE1Geom
+class FEGeometryProvider
 {
 	private:
-		FE1Geom(){};
-		FE1Geom(const FE1Geom&){};
-		FE1Geom& operator=(const FE1Geom&);
+		FEGeometryProvider(){};
+		FEGeometryProvider(const FEGeometryProvider&){};
+		FEGeometryProvider& operator=(const FEGeometryProvider&);
+
+		template <int TOrder>
+		static FEGeometry<TElem, TWorldDim>& geom()
+		{
+			static FEGeometry<TElem, TWorldDim> inst(TOrder);
+			return inst;
+		}
 
 	public:
-		static FE1Geometry<TElem, TWorldDim>& instance()
+		static FEGeometry<TElem, TWorldDim>& get_geom(int order)
 		{
-			static FE1Geometry<TElem, TWorldDim> inst;
-			return inst;
+			UG_ASSERT(order == 1, "Currently only order 1 implemented.");
+			return geom<1>();
 		}
 };
 

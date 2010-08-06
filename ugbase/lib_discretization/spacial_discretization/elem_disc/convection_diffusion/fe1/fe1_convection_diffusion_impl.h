@@ -87,7 +87,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	}
 
 	// update Geometry for this element
-	FE1Geometry<TElem, dim>& geo = FE1Geom<TElem, dim>::instance();
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 	if(!geo.update(m_corners))
 		{UG_LOG("FE1ConvectionDiffusionElemDisc::prepare_element:"
 				" Cannot update Finite Element Geometry.\n"); return false;}
@@ -102,7 +102,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
-	FE1Geometry<TElem, dim>& geo = FE1Geom<TElem, dim>::instance();
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
 	number integrand, reac;
 	MathMatrix<dim,dim> D;
@@ -146,7 +146,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
-	FE1Geometry<TElem, dim>& geo = FE1Geom<TElem, dim>::instance();
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
@@ -176,7 +176,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	MathMatrix<dim,dim> D;
 	MathVector<dim> v, Dgrad_u, grad_u;
 
-	FE1Geometry<TElem, dim>& geo = FE1Geom<TElem, dim>::instance();
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
@@ -222,7 +222,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
-	FE1Geometry<TElem, dim>& geo = FE1Geom<TElem, dim>::instance();
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
 	number shape_u;
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -250,7 +250,7 @@ bool
 FE1ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
-	FE1Geometry<TElem, dim>& geo = FE1Geom<TElem, dim>::instance();
+	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
 	number fvalue = 0.0;
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)

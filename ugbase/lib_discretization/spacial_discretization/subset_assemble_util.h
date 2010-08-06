@@ -50,6 +50,7 @@ AssembleStiffnessMatrix(	TElemDisc& elemDisc,
 		case 3:
 			if(!AssembleStiffnessMatrix<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
+			UG_LOG("Assembling " << u.template num<Prism>(si) << " Prism on subset " << si << ".\n");
 			if(!AssembleStiffnessMatrix<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts))
 				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
 			break;
@@ -132,6 +133,11 @@ AssembleJacobian(	TElemDisc& elemDisc,
 			break;
 
 		case 3:
+			if(!AssembleJacobian<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, J, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Tetrahedron>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleJacobian<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, J, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in 'AssembleJacobian' while calling 'assemble_jacobian<Prism>', aborting.\n");return IAssemble_ERROR;}
+			break;
 
 		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
 	}
@@ -181,6 +187,11 @@ AssembleDefect(	TElemDisc& elemDisc,
 			break;
 
 		case 3:
+			if(!AssembleDefect<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, d, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
+			if(!AssembleDefect<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, d, u, fcts, time, s_m, s_a))
+				{UG_LOG("Error in AssembleDefect, aborting.\n");return false;}
+			break;
 
 		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
 	}
@@ -257,6 +268,14 @@ AssembleLinear(	TElemDisc& elemDisc,
 			break;
 
 		case 3:
+			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Tetrahedron>(si) << " Tetrahedrons on subset " << si << ".\n");
+			if(!AssembleLinear<Tetrahedron>(elemDisc, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), si, mat, rhs, u, fcts))
+				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
+
+			UG_DLOG(LIB_DISC_ASSEMBLE, 3, "Assembling " << u.template num<Prism>(si) << " Prisms on subset " << si << ".\n");
+			if(!AssembleLinear<Prism>(elemDisc, u.template begin<Prism>(si), u.template end<Prism>(si), si, mat, rhs, u, fcts))
+				{UG_LOG("Error in AssembleLinear, aborting.\n"); return false;}
+			break;
 
 		default: UG_LOG("Dimension " << dim << " not supported.\n"); return false;
 	}
