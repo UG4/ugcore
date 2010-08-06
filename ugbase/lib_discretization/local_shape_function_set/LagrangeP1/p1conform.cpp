@@ -221,5 +221,77 @@ position_of_dof(int nrShapeFct, position_type& value) const
 	return true;
 }
 
+
+template<>
+bool
+P1conform<ReferencePrism>::
+evaluate(int nrShapeFct, const position_type& locPos, shape_value_type& value) const
+{
+	switch(nrShapeFct)
+	{
+	case 0: value = (1.0-locPos.x-locPos.y)*(1.0-locPos.z); return true;
+	case 1: value = locPos.x*(1.0-locPos.z); return true;
+	case 2: value = locPos.y*(1.0-locPos.z); return true;
+	case 3: value = (1.0-locPos.x-locPos.y)*locPos.z; return true;
+	case 4: value = locPos.x*locPos.z; return true;
+	case 5: value = locPos.y*locPos.z; return true;
+	default: return false;
+	}
+	return true;
+};
+
+template<>
+bool P1conform<ReferencePrism>::
+evaluate_grad(int nrShapeFct, const position_type& locPos, grad_value_type& value) const
+{
+	switch(nrShapeFct)
+	{
+	  case 0:
+		value[0] = -(1.0-locPos.z);
+		value[1] = -(1.0-locPos.z);
+		value[2] = -(1.0-locPos.x-locPos.y);
+		return true;
+	  case 1:
+		value[0] = (1.0-locPos.z);
+		value[1] = 0.0;
+		value[2] = -locPos.x;
+		return true;
+	  case 2:
+		value[0] = 0.0;
+		value[1] = (1.0-locPos.z);
+		value[2] = -locPos.y;
+		return true;
+	  case 3:
+		value[0] = -locPos.z;
+		value[1] = -locPos.z;
+		value[2] = 1.0-locPos.x-locPos.y;
+      return true;
+    case 4:
+		value[0] = locPos.z;
+		value[1] = 0.0;
+		value[2] = locPos.x;
+		return true;
+    case 5:
+		value[0] = 0.0;
+		value[1] = locPos.z;
+		value[2] = locPos.y;
+		return true;
+	default: return false;
+	}
+	return true;
+}
+
+template<>
+bool P1conform<ReferencePrism>::
+position_of_dof(int nrShapeFct, position_type& value) const
+{
+	static const DimReferenceElement<3>& refElem
+		= DimReferenceElementFactory<3>::get_reference_element(ROID_PRISM);
+
+	value = refElem.corner(nrShapeFct);
+	return true;
+}
+
+
 }
 

@@ -19,7 +19,7 @@ class P1conform : public ug::LocalShapeFunctionSet<TRefElem>{
 		typedef TRefElem reference_element_type;
 
 		// dimension, where shape functions are defined (i.e. reference element dimension)
-		static const std::size_t dim = TRefElem::dim;
+		static const int dim = TRefElem::dim;
 
 		// domain position type
 		typedef MathVector<dim> position_type;
@@ -34,7 +34,7 @@ class P1conform : public ug::LocalShapeFunctionSet<TRefElem>{
 		static const std::size_t nsh = TRefElem::num_corners;
 
 	public:
-		uint num_shape_functions() const { return nsh;	}
+		size_t num_sh() const { return nsh;}
 
 		bool position_of_dof(int nrShapeFct, position_type& value) const;
 
