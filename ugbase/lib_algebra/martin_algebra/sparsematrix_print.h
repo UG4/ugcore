@@ -80,7 +80,7 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 			file << positions[i][0] << " " << positions[i][1] << endl;
 	else
 		for(int i=0; i < rows; i++)
-			file << positions[i][0] << " " << positions[i][1] << positions[i][2] << endl;
+		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
 
 	file << 1 << endl; // show all cons
 	// write connections
