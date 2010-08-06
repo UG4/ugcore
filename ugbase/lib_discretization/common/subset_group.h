@@ -1,22 +1,22 @@
 /*
- * subset_index_group.h
+ * subset_group.h
  *
  *  Created on: 13.07.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__COMMON__SUBSET_INDEX_GROUP__
-#define __H__LIB_DISCRETIZATION__COMMON__SUBSET_INDEX_GROUP__
+#ifndef __H__LIB_DISCRETIZATION__COMMON__SUBSET_GROUP__
+#define __H__LIB_DISCRETIZATION__COMMON__SUBSET_GROUP__
 
 #include <vector>
 
 namespace ug{
 
-// Subset Index Group is just a group integers, representing some subsets
-class SubsetIndexGroup
+// Subset Group is just a group integers, representing some subsets
+class SubsetGroup
 {
 	public:
-		SubsetIndexGroup() {clear();}
+		SubsetGroup() {clear();}
 
 		/// adds a subset to this group
 		bool add_subset(int si);
@@ -42,4 +42,4 @@ class SubsetIndexGroup
 
 } // end namespace ug
 
-#endif /*__H__LIB_DISCRETIZATION__COMMON__SUBSET_INDEX_GROUP__ */
+#endif /*__H__LIB_DISCRETIZATION__COMMON__SUBSET_GROUP__ */

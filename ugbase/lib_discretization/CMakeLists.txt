@@ -12,7 +12,7 @@ project(P_LIB_DISCRETIZATION)
 include_directories(${P_UGBASE_SOURCE_DIR})
 
 set(srcDiscretization	common/function_group.cpp
-						common/subset_index_group.cpp
+						common/subset_group.cpp
 
 						dof_manager/p1conform/p1conform.cpp
 

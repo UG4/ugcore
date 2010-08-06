@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 
-#include "lib_discretization/common/subset_index_group.h"
+#include "lib_discretization/common/subset_group.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_factory.h"
 
 namespace ug{
@@ -31,8 +31,8 @@ class FunctionPattern
 			// if already fixed, return false
 			if(m_bLocked) {UG_LOG("Already fixed. Cannot change Distributor.\n"); return false;}
 
-			// add to function list, everywhere = true, empty SubsetIndexGroup
-			m_vFunction.push_back(Function(name, dim, id, true, SubsetIndexGroup()));
+			// add to function list, everywhere = true, empty SubsetGroup
+			m_vFunction.push_back(Function(name, dim, id, true, SubsetGroup()));
 
 			return true;
 		}
@@ -41,14 +41,14 @@ class FunctionPattern
 		/**
 		 * \param[in] name			Name of this Single Solution
 		 * \param[in] TrialSpace	Trial Space for this function
-		 * \param[in] SubsetIndices	SubsetIndexGroup of subset indices, where this solution lives
+		 * \param[in] SubsetIndices	SubsetGroup of subset indices, where this solution lives
 		 */
-		virtual bool add_discrete_function(std::string name, LocalShapeFunctionSetID id, const SubsetIndexGroup& SubsetIndices, int dim)
+		virtual bool add_discrete_function(std::string name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim)
 		{
 			// if already fixed, return false
 			if(m_bLocked) {UG_LOG("Already fixed. Cannot change Distributor.\n"); return false;}
 
-			// add to function list, everywhere = false, SubsetIndexGroup as given
+			// add to function list, everywhere = false, SubsetGroup as given
 			m_vFunction.push_back(Function(name, dim, id, false, SubsetIndices));
 
 			return true;
@@ -94,14 +94,14 @@ class FunctionPattern
 	protected:
 		struct Function
 		{
-			Function(std::string name_, int dim_, LocalShapeFunctionSetID id_, bool everywhere_, const SubsetIndexGroup& subsetIndices_)
+			Function(std::string name_, int dim_, LocalShapeFunctionSetID id_, bool everywhere_, const SubsetGroup& subsetIndices_)
 				: name(name_), dim(dim_), id(id_), everywhere(everywhere_), subsetIndices(subsetIndices_){};
 
 			std::string name;
 			int dim;
 			LocalShapeFunctionSetID id;
 			bool everywhere;
-			SubsetIndexGroup subsetIndices;
+			SubsetGroup subsetIndices;
 
 			bool is_def_in_subset(int si) const
 			{

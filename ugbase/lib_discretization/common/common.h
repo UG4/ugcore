@@ -18,7 +18,7 @@
 #include "./local_algebra.h"
 
 // subset index group
-#include "./subset_index_group.h"
+#include "./subset_group.h"
 
 
 #endif /* __H__LIB_DISCRETIZATION__COMMON__COMMON__ */

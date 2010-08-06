@@ -58,7 +58,7 @@ class P1ConformFunctionPattern : public FunctionPattern
 	public:
 		bool add_discrete_function(std::string name, LocalShapeFunctionSetID id, int dim);
 
-		bool add_discrete_function(std::string name, LocalShapeFunctionSetID id, const SubsetIndexGroup& SubsetIndices, int dim);
+		bool add_discrete_function(std::string name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim);
 };
 
 
