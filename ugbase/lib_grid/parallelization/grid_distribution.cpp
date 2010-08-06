@@ -857,8 +857,12 @@ bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 	
 //	this vector will be used to create the new interfaces
 	vector<typename Interface::Element> vInterfaceElements;
-	
+
 //	we'll create interface entries to other processes now
+//	we need a temporary GridLayoutMap, since we have to avoid problems,
+//	when it comes to erasing old unused interface entries later on.
+	GridLayoutMap tmpGlm;
+		
 //	iterate over the streams and process data
 	for(StreamPack::iterator iter = streamPackReceive.begin();
 		iter != streamPackReceive.end(); ++iter)
@@ -886,9 +890,10 @@ bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 				int newInterfaceType = GetAssociatedInterfaceType(newConnectedInterfaceType);
 			
 			//	access the old and the new interface
-				TLayout& layout = glm.template get_layout<GeomObjType>(newInterfaceType);
-				Interface& oldInterface = layout.interface(iter->first, level);
-				Interface& newInterface = layout.interface(newConnectedProcID, level);
+				TLayout& oldLayout = glm.template get_layout<GeomObjType>(newInterfaceType);
+				TLayout& newLayout = tmpGlm.template get_layout<GeomObjType>(newInterfaceType);
+				Interface& oldInterface = oldLayout.interface(iter->first, level);
+				Interface& newInterface = newLayout.interface(newConnectedProcID, level);
 				
 			//	we'll store all nodes of oldInterface in a temporary vector,
 			//	since we want to access them by index
@@ -908,14 +913,6 @@ bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 		}
 	}
 
-/////////////////
-/////////////////
-/////////////////
-//TODO: Don't remove the new interface entries!!!
-/////////////////
-/////////////////
-/////////////////
-
 //	we have to remove entries which are not part of sel.
 	for(typename geometry_traits<GeomObjType>::iterator iter =
 		selRemainingEntries.template begin<GeomObjType>();
@@ -925,15 +922,36 @@ bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 			selRemainingEntries.deselect(*iter);
 	}
 	
-//	receive new interfaces.
-//	it is possible, that other processes want this process to build interfaces
-//	with nodes, that this process sends to another process. We thus have to
-//	forward those interface-build-requests.
-//	...
-
-
 //	remove interface entries that are no longer required
 	bool retVal = RemoveUnselectedInterfaceEntries<GeomObjType>(glm, selRemainingEntries);
+
+//	now add the elements that lie in tmpGlm
+	for(typename GridLayoutMap::Types<GeomObjType>::Map::iterator iter =
+		tmpGlm.template layouts_begin<GeomObjType>();
+		iter != tmpGlm.template layouts_end<GeomObjType>(); ++iter)
+	{	
+		TLayout& tmpLayout = iter->second;
+		TLayout& layout = glm.get_layout<GeomObjType>(iter->first);
+		
+	//	add all elements from tmpLayout to layout
+		for(size_t lvl = 0; lvl < tmpLayout.num_levels(); ++lvl)
+		{
+		//	iterate over all interfaces
+			for(InterfaceIter iIter = tmpLayout.begin(lvl);
+				iIter != tmpLayout.end(lvl); ++iIter)
+			{
+				Interface& tmpInterface = tmpLayout.interface(iIter);
+				Interface& interface = layout.interface(tmpLayout.proc_id(iIter), lvl);
+			
+			//	add the elements
+				for(typename Interface::iterator iter = tmpInterface.begin();
+					iter != tmpInterface.end(); ++iter)
+				{
+					interface.push_back(tmpInterface.get_element(iter));
+				}
+			}
+		}
+	}
 
 	return retVal;
 }

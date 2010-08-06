@@ -156,8 +156,8 @@ template <class TLayout>
 template <class TLayoutMap>
 void ParallelCommunicator<TLayout>::
 exchange_data(TLayoutMap& layoutMap,
-				typename TLayoutMap::Key keyFrom,
-				typename TLayoutMap::Key keyTo,
+				const typename TLayoutMap::Key& keyFrom,
+				const typename TLayoutMap::Key& keyTo,
 				ICommunicationPolicy<TLayout>& commPol)
 {
 	if(layoutMap.template has_layout<Type>(keyFrom)){

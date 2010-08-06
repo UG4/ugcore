@@ -9,6 +9,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include "common/smart_pointer.h"
 
 namespace pcl
 {
@@ -247,12 +248,10 @@ class OrderedInterface
 
 	protected:
 		ElemContainer	m_elements;
-		uint m_size;
+		size_t m_size;
 		int m_targetProc;
 		size_t m_idCounter;
 };
-
-
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -547,139 +546,6 @@ class MultiLevelLayout
 	protected:
 		std::vector<LevelLayout*>	m_vLayouts;
 };
-
-////////////////////////////////////////////////////////////////////////
-//	LayoutMap
-///	lets you access layouts by type and key
-/**
- * The LayoutMap helps you to organize your layouts
- * (e.g. master- and slave-layouts).
- *
- * You may query layouts for any type. That makes this class very
- * flexible, however it requires consistent use of types throughout the
- * whole program.
- *
- * You may use a LayoutMap as follows (VertexBase is an arbitrary type):
- *
- * \code
- * LayoutMap<SinlgeLevelLayout, BasicInterface, int> layoutMap;
- * assert(!layoutMap.has_layout<VertexBase>(0));
- * SingleLevelLayout<BasicInterface<VertexBase> > > l = layoutMap.get_layout<VertexBase>(0);
- * assert(layoutMap.has_layout<VertexBase>(0));
- * \endcode
- *
- * It may be good to use some typedefs in order to make the code a little
- * easier to read:
- * \code
- * typedef LayoutMap<SingleLevelLayout, BasicInterface, int> SomeLayoutMap;
- * SomeLayoutMap::Types<VertexBase>::Layout l = layoutMap.get_layout<VertexBase>(0);
- * \endcode
- *
- * The Types struct is very useful when it comes to using a LayoutMap in
- * template code, too.
- */
- /*
- <class TType,
-		  template<class T, class Alloc = std::allocator<T> >
-			class TContainer = std::vector>
-*/
-template <template <class TInterface> class TLayout,
-			template <class TType,
-				template <class T, class Alloc> class TContainer = std::vector,
-				template <class T> class TAlloc = std::allocator>
-				class TInterface,
-			class TKey,
-			template<class T, class Alloc>
-				class TInterfaceElemContainer = std::vector,
-			template<class T>
-				class TAlloc = std::allocator>
-
-class LayoutMap
-{
-	public:
-		typedef TKey	Key;
-
-	///	defines the types that are used by a LayoutMap for a given TType.
-		template <class TType>
-		struct Types
-		{
-			typedef TInterface<TType,
-								TInterfaceElemContainer,
-								TAlloc>	Interface;
-			typedef TLayout<Interface>				Layout;
-			typedef typename Interface::Element		Element;
-			typedef std::map<TKey, Layout>			Map;
-		};
-
-	public:
-	///	checks whether the layout associated with the given key exists for the given type.
-		template <class TType>
-		bool has_layout(const TKey& key)
-		{
-			typename Types<TType>::Map& m = get_layout_map<TType>();
-			return m.find(key) != m.end();
-		}
-
-	///	creates the required layout if it doesn't exist already.
-		template <class TType>
-		typename Types<TType>::Layout& get_layout(const TKey& key)
-		{
-			typename Types<TType>::Map& m = get_layout_map<TType>();
-			return m[key];
-		}
-
-	///	begin-iterator to the layout-map for the given type.
-	/**	iter.first will return the key, iter.second the layout
-	 *	(of type LayoutMap::Types<TType>::Layout).*/
-		template <class TType>
-		typename Types<TType>::Map::iterator
-		layouts_begin()
-		{
-			return get_layout_map<TType>().begin();
-		}
-
-	///	end-iterator to the layout-map for the given type.
-	/**	iter.first will return the key, iter.second the layout
-	 *	(of type LayoutMap::Types<TType>::Layout).*/
-		template <class TType>
-		typename Types<TType>::Map::iterator
-		layouts_end()
-		{
-			return get_layout_map<TType>().end();
-		}
-
-	///	erases the specified layout
-	/**	returns an iterator to the next layout.*/
-		template <class TType>
-		typename Types<TType>::Map::iterator
-		erase_layout(typename Types<TType>::Map::iterator iter)
-		{
-			typename Types<TType>::Map& m = get_layout_map<TType>();
-			typename Types<TType>::Map::iterator tIter = iter++;
-			m.erase(tIter);
-			return iter;
-		}
-						
-	///	erases the specified layout if it exists
-		template <class TType>
-		void erase_layout(const TKey& key)
-		{
-			typename Types<TType>::Map& m = get_layout_map<TType>();
-			typename Types<TType>::Map::iterator iter = m.find(key);
-			if(iter != m.end())
-				m.erase(iter);
-		}
-		
-	protected:
-		template <class TType>
-		inline typename Types<TType>::Map&
-		get_layout_map()
-		{
-			static typename Types<TType>::Map layoutMap;
-			return layoutMap;
-		}
-};
-
 
 ////////////////////////////////////////////////////////////////////////
 //	ICommunicationPolicy

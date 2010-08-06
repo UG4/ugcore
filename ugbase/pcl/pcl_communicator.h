@@ -142,9 +142,21 @@ class ParallelCommunicator
 	///	internally calls send_data and receive_data with the specified layouts.
 	/**	Note that data is not communicated until communicate has been called.
 	 *
-	 *	Make sure that the Layout- and the Interface-type of TLayoutMap
-	 *	are compatible with the layout of the communicator.
-	 *	Layouts are queried for TLayout::Type of the communicators TLayout-type.
+	 *	TLayout has to feature the following typedefs and methods:
+	 *	\code
+	 *	// The type of the key with which a layout can be identified.
+	 *	Key
+	 *
+	 *	// returns true, if the layout exists.
+	 *	template <class TType>
+	 *	bool has_layout(const TLayoutMap::Key& key);
+	 *	
+	 *	// returns the layout that is associated with the given key.
+	 *	template <class TType>
+	 *	TLayout& get_layout(const TLayoutMap::Key& key);
+	 *	\endcode
+	 *
+	 *	The methods will only be called with type ParallelCommunicator::Type. 
 	 *
 	 *	This method is particularily useful if you categorize layouts on a
 	 *	process. If you separate your layouts into master and slave layouts,
@@ -152,8 +164,8 @@ class ParallelCommunicator
 	 *	to all slave-layouts of a type with a single call.*/
 		template <class TLayoutMap>
 		void exchange_data(TLayoutMap& layoutMap,
-							typename TLayoutMap::Key keyFrom,
-							typename TLayoutMap::Key keyTo,
+							const typename TLayoutMap::Key& keyFrom,
+							const typename TLayoutMap::Key& keyTo,
 							ICommunicationPolicy<TLayout>& commPol);
 	
 	///	sends and receives the collected data.

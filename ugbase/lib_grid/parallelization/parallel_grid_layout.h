@@ -76,6 +76,7 @@ enum InterfaceNodeTypes
 //	we're using std::list as interface-element container, since we
 //	require interface-element-iterators that stay valid even if the
 //	interface is altered.
+//	Make sure that those layouts match the ones in GridLayoutMap.
 typedef pcl::MultiLevelLayout<
 		pcl::OrderedInterface<VertexBase, std::list> >	VertexLayout;
 typedef pcl::MultiLevelLayout<
@@ -85,13 +86,115 @@ typedef pcl::MultiLevelLayout<
 typedef pcl::MultiLevelLayout<
 		pcl::OrderedInterface<Volume, std::list> >		VolumeLayout;
 
-//	declare GridLayoutMap
-typedef pcl::LayoutMap<pcl::MultiLevelLayout,
-						pcl::OrderedInterface,
-						int,
-						std::list>						GridLayoutMap;
+
+////////////////////////////////////////////////////////////////////////
+//	GridLayoutMap
+///	lets you access layouts by type and key
+/**
+ * The GridLayoutMap helps you to organize your layouts
+ * (e.g. master- and slave-layouts).
+ *
+ * You may query layouts for VertexBase, EdgeBase, Face and Volume.
+ *
+ * You may use a LayoutMap as follows:
+ *
+ * \code
+ * GridLayoutMap layoutMap;
+ * assert(!layoutMap.has_layout<VertexBase>(0));
+ * VertexLayout& layout = layoutMap.get_layout<VertexBase>(0);
+ * assert(layoutMap.has_layout<VertexBase>(0));
+ * \endcode
+ *
+ * To get associated types you may use the GridLayoutMap::Types array:
+ * \code
+ * GridLayoutMap::Types<VertexBase>::Layout l = layoutMap.get_layout<VertexBase>(0);
+ * \endcode
+ *
+ * The Types struct is very useful when it comes to using a LayoutMap in
+ * template code, too.
+ */
+class GridLayoutMap
+{
+	public:
+		typedef int	Key;
+
+	///	defines the types that are used by a LayoutMap for a given TType.
+		template <class TType>
+		struct Types
+		{
+			typedef pcl::OrderedInterface<TType, std::list> 	Interface;
+			typedef typename pcl::MultiLevelLayout<Interface>	Layout;
+			typedef typename Interface::Element					Element;
+			typedef std::map<Key, Layout>						Map;
+		};
+
+	public:
+	///	checks whether the layout associated with the given key exists for the given type.
+		template <class TType>
+		bool
+		has_layout(const Key& key);
+
+	///	creates the required layout if it doesn't exist already.
+		template <class TType>
+		typename Types<TType>::Layout&
+		get_layout(const Key& key);
+
+	///	begin-iterator to the layout-map for the given type.
+	/**	iter.first will return the key, iter.second the layout
+	 *	(of type LayoutMap::Types<TType>::Layout).*/
+		template <class TType>
+		typename Types<TType>::Map::iterator
+		layouts_begin();
+
+	///	end-iterator to the layout-map for the given type.
+	/**	iter.first will return the key, iter.second the layout
+	 *	(of type LayoutMap::Types<TType>::Layout).*/
+		template <class TType>
+		typename Types<TType>::Map::iterator
+		layouts_end();
+
+	///	erases the specified layout
+	/**	returns an iterator to the next layout.*/
+		template <class TType>
+		typename Types<TType>::Map::iterator
+		erase_layout(typename Types<TType>::Map::iterator iter);
+								
+	///	erases the specified layout if it exists
+		template <class TType>
+		void erase_layout(const Key& key);
+
+	private:
+		template <class TType>
+		inline typename Types<TType>::Map&
+		get_layout_map();
+		
+	///	the argument is only a dummy to allow to choose the right method at compile time
+	// \{
+		inline Types<VertexBase>::Map&
+		get_layout_map(VertexBase*);
+
+		inline Types<EdgeBase>::Map&
+		get_layout_map(EdgeBase*);
+
+		inline Types<Face>::Map&
+		get_layout_map(Face*);
+
+		inline Types<Volume>::Map&
+		get_layout_map(Volume*);
+	// \}
+	
+	private:
+		Types<VertexBase>::Map	m_vertexLayoutMap;
+		Types<EdgeBase>::Map	m_edgeLayoutMap;
+		Types<Face>::Map		m_faceLayoutMap;
+		Types<Volume>::Map		m_volumeLayoutMap;
+};
 
 /// @}
 }//	end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "parallel_grid_layout_impl.hpp"
 
 #endif
