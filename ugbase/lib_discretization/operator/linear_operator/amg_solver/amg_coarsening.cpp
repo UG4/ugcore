@@ -7,10 +7,11 @@
  *
  * Goethe-Center for Scientific Computing 2009-2010.
  */
-
+#ifdef LAPACK_AVAILABLE
 #include <iostream>
 
 #include "ug.h"
+#include "amg.h"
 #include "graph.h"
 #include "amg_nodeinfo.h"
 #include "maxheap.h"
@@ -313,3 +314,4 @@ void PreventFFConnections(cgraph &graphS, cgraph &graphST, amg_nodeinfo *nodes, 
 }
 
 } // namespace ug
+#endif
