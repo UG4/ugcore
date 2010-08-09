@@ -13,6 +13,7 @@
 #include "ug.h"
 #include "graph.h"
 #include "amg_nodeinfo.h"
+#include "maxheap.h"
 
 using namespace std;
 

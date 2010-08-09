@@ -187,4 +187,4 @@ inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_help
 
 } // namespace ug
 
-#endif __H__LIB_DISCRETIZATION__AMG_SOLVER__GRAPH_H__
+#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__GRAPH_H__
