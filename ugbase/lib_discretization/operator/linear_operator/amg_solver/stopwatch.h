@@ -1,12 +1,14 @@
 /*
  *  stopwatch.h
- *  flexamg
  *
  *  Created by Martin Rupp on 03.03.10.
  *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
  *
  */
-#pragma once
+
+#ifndef __H__LIB_DISCRETIZATION__STOPWATCH_H__
+#define __H__LIB_DISCRETIZATION__STOPWATCH_H__
+
 namespace ug{
 ////////////////////////////////////////////////////////////////////////////////
 //!
@@ -57,3 +59,5 @@ private:
 
 } // namespace ug
 
+
+#endif // __H__LIB_DISCRETIZATION__STOPWATCH_H__

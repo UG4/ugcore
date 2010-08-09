@@ -1,217 +1,190 @@
-/*
- *  graph.h
- *  flexamg
+/**
+ * \file amg_rs_prolongation.h
  *
- *  Created by Martin Rupp on 25.11.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 25.11.09
+ *
+ * \brief a simple graph class
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#pragma once
+#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__GRAPH_H__
+#define __H__LIB_DISCRETIZATION__AMG_SOLVER__GRAPH_H__
 
 #include <fstream>
+#include <algorithm> // for lower_bound
+#include <vector>
 
 namespace ug{
 //!
 //! cgraph graph class
-//! with fixed max nr of m_connections.
 class cgraph
 {
-public:	
-	//!
-	//! constructor
-	//! @param n nr of nodes
-	//! @param nnz max. nr of m_connections
-	cgraph() : m_rowStart(0), m_connections(0), m_iTotalNrOfConnections(0)
+public:
+	typedef std::vector<size_t>::const_iterator cRowIterator;
+public:
+	/** constructor
+	 */
+	cgraph()
 	{
-		m_size = 0;
-		m_iTotalNrOfConnections = 0;
 	}
 	
-	cgraph(size_t n) : m_rowStart(0), m_connections(0), m_iTotalNrOfConnections(0)
+	cgraph(size_t n) : m_data(n)
 	{
-		m_size = n;
-		
-		m_iTotalNrOfConnections = n;
+		for(size_t i=0; i<m_data.size(); ++i)
+			m_data[i].resize(0);
 
-		m_connections.reserve(m_iTotalNrOfConnections);
-		m_connections.resize(0);
-
-		m_rowStart.resize(m_size+1);
-		for(size_t i=0; i<m_size+1; i++) m_rowStart[i] = -1;
-		m_iNrOfConnections.resize(m_size+1);
-
+#ifdef FORCE_CREATION
 		FORCE_CREATION { print(); pr(0);} 
+#endif
 	}
 	
+	void resize(size_t n)
+	{
+		m_data.resize(n);
+		for(size_t i=0; i<m_data.size(); ++i)
+			m_data[i].resize(0);
+	}
+
 	//!
 	//! destructor
 	~cgraph()
 	{
-
-	}
-	
-	//!
-	//! @param i init thi
-	void init(size_t i)
-	{
-		UG_ASSERT(i>=0 && i<m_size, "");
-		UG_ASSERT(m_rowStart[i] == -1, "already inited");
-		if(i == 0)
-			m_rowStart[i] = 0;
-		else 
-		{
-			UG_ASSERT(m_rowStart[i-1] != -1, "prev not inited!");
-			m_rowStart[i] = m_rowStart[i-1]+m_iNrOfConnections[i-1];
-		}
-	}
-	
-	size_t getNrOfConnections(size_t row) const
-	{
-		return m_iNrOfConnections[row];
+		// destructors of std::vector are getting called
 	}
 
-	size_t getConnection(size_t row, size_t conn_nr) const
+	//! returns nr of nodes the node "node" is connected to.
+	size_t num_connections(size_t node) const
 	{
-		UG_ASSERT(conn_nr >= 0 && conn_nr < getNrOfConnections(row), "");
-		return m_connections[m_rowStart[row] + conn_nr];
+		return m_data[node].size() ;
 	}
 
-	void setConnection(size_t from, size_t to)
+	bool is_isolated(size_t i)
 	{
-		UG_ASSERT(m_rowStart[from] != -1, "forgot an init?");
-		UG_ASSERT(m_rowStart[from+1] == -1, "only from back to front!");
-
-		m_connections.resize(m_iTotalNrOfConnections++);
-		m_connections[m_rowStart[from] + m_iNrOfConnections[from]] = to;
-		m_iNrOfConnections[from]++;
+		return num_connections(i)==0 ||
+				(num_connections(i)==1 && m_data[i][0] == i);
 	}
 
-	class cRowIterator
+	//! returns true if graph has connection from "from" to "to", otherwise false
+	bool has_connection(size_t from, size_t to)
 	{
-	public:
-		const cgraph &C;
-		size_t m_position;
-		size_t row;
-	public:
-		inline cRowIterator(const cgraph &C_, size_t row_) : C(C_)
-		{
-			row = row_;
-			rewind();
-		}
-		inline cRowIterator(const cRowIterator &other) : C(other.C) { row = other.row; m_position = other.m_position; }
-
-		inline size_t operator () ()const {return C.getConnection(row,m_position);}
-
-		inline void operator ++() {	m_position++; }
-
-		inline void rewind() { m_position = 0;}
-		inline size_t getPos() const{	return m_position;}
-
-		inline bool isEnd() const { return m_position >=C.getNrOfConnections(row); }
-	};
-
-	cRowIterator beginRow(size_t row) const
-	{
-		return cRowIterator(*this, row);
+		return binary_search(m_data[from].begin(), m_data[from].end(), to);
 	}
 
-	void pr(size_t i)
+	//! set a connection from "from" to "to" if not already there
+	void set_connection(size_t from, size_t to)
 	{
-		cout << "graph row " << i << ":" << endl;
-		for(cRowIterator it = beginRow(i); !it.isEnd(); ++it)
-			cout << it() << " ";
-		cout << endl;
-		cout.flush();
-	}
-	
-	void print()
-	{
-		cout << "============= graph ================ " << endl;
-		for(size_t i=0; i < m_size; i++)
-		{
-			cout << i << ": ";
-			for(cRowIterator it = beginRow(i); !it.isEnd(); ++it)
-				cout << it() << " ";
-			cout << endl;
-		}
+		std::vector<size_t>::iterator it = std::lower_bound(m_data[from].begin(), m_data[from].end(), to);
+		if(it == m_data[from].end())
+			m_data[from].push_back(to);
+		else if((*it) != to)
+			m_data[from].insert(it, to);
 	}
 
-
-	void writeToFile(const char *filename, const cAMG_helper &h, int level) const
+	cRowIterator begin_row(size_t row) const
 	{
-		fstream file(filename, ios::out);
-		file << /*CONNECTION_VIEWER_VERSION*/ 1 << endl;
-		file << 2 << endl;
-		
-		h.writePosToStream(file);	
-		file << 1 << endl;
-		for(size_t i=0; i < m_size; i++)
-		{
-			for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
-				file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, conn()) << " " << 1 << endl;
-		}
-	}	
-	
+		return m_data[row].begin();
+	}
+
+	cRowIterator end_row(size_t row) const
+	{
+		return m_data[row].end();
+	}
+
+	//! tranpose this graph (by using create_as_tranpose of)
 	void transpose()
 	{
 		cgraph G;
-		G.createAsTransposeOf(*this);
-		swap(m_iNrOfConnections, G.m_iNrOfConnections);
-		swap(m_iTotalNrOfConnections, G.m_iTotalNrOfConnections);
-		swap(m_connections, G.m_connections);
-		swap(m_rowStart, G.m_rowStart);
-		swap(m_size, G.m_size);
+		G.create_as_transpose_of(*this);
+		swap(m_data, G.m_data);
 	}
 	
-	void createAsTransposeOf(const cgraph &other)
+	//! creates this graph as the transpose of other
+	void create_as_transpose_of(const cgraph &other)
 	{
-		//ASSERT(conn == NULL && consmem == NULL);
-		m_size = other.m_size;
-		m_iNrOfConnections.resize(m_size+1);
-		m_rowStart.resize(m_size+1);
+		std::vector<size_t> rowSize(other.size());
+		for(size_t i=0; i<other.size(); i++) rowSize[i] = 0;
 
-		for(size_t i=0; i<m_size+1; i++) m_iNrOfConnections[i] = 0;
-
-		m_iTotalNrOfConnections = 0;
-		for(size_t i=0; i<m_size; i++)
+		for(size_t i=0; i<other.size(); i++)
 		{
-			for(cRowIterator it = other.beginRow(i); !it.isEnd(); ++it)
-				m_iNrOfConnections[it()]++;
-			m_iTotalNrOfConnections += other.getNrOfConnections(i);
+			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
+				rowSize[(*it)]++;
 		}
 		
-		m_connections.resize(m_iTotalNrOfConnections);
-		m_rowStart[0] = 0;
-		for(size_t i=1; i < m_size+1; i++)
+		m_data.resize(other.size());
+		for(size_t i=0; i<other.size(); i++)
 		{
-			m_rowStart[i] = m_rowStart[i-1] + m_iNrOfConnections[i-1];
-			m_iNrOfConnections[i-1] = 0;
+			m_data[i].clear();
+			m_data[i].reserve(rowSize[i]);
 		}
-		UG_ASSERT((size_t)m_rowStart[m_size] <= m_iTotalNrOfConnections, "");
-		
-		for(size_t i=0; i < m_size; i++)
-			for(cRowIterator it = other.beginRow(i); !it.isEnd(); ++it)
+
+		for(size_t i=0; i < other.size(); i++)
+			for(cRowIterator it = other.begin_row(i); it != other.end_row(i); ++it)
 			{
-				size_t from = it();
+				size_t from = (*it);
 				size_t to = i;
-				m_connections[m_rowStart[from]+m_iNrOfConnections[from]] = to;
-				m_iNrOfConnections[from]++;
+				m_data[from].push_back(to);
 			}
 	}
 	
 		
 	
-	size_t size() { return m_size; }
+	size_t size() const { return m_data.size(); }
 	
-private:
-	size_t m_size;
+public:
+	// print functions
 
-	std::vector<int> m_rowStart;
-	std::vector<size_t> m_connections;
+	//! print row i
+	void pr(size_t i)
+	{
+		cout << "graph row " << i << ", length " << num_connections(i) << ":" << endl;
+		for(cRowIterator it = begin_row(i); it != end_row(i); ++it)
+			cout << (*it) << " ";
+		cout << endl;
+		cout.flush();
+	}
+	//! print whole graph to cout
+	void print()
+	{
+		cout << *this << endl;
+	}
 
-	std::vector<size_t> m_iNrOfConnections;
-	size_t m_iTotalNrOfConnections;
+	friend std::ostream &operator << (std::ostream &out, const cgraph &g)
+	{
+		cout << "============= graph ================ " << std::endl;
+		for(size_t i=0; i<g.size(); ++i)
+		{
+			out << "[" << i << "]:  ";
+			for(cRowIterator it = g.begin_row(i); it != g.end_row(i); ++it)
+				out << (*it) << " ";
+			out << std::endl;
+		}
+		out.flush();
+		return out;
+	}
+
+protected:
+	std::vector<std::vector<size_t> > m_data;
 };
 
+
+// could be in cpp
+inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_helper &h, int level)
+{
+	fstream file(filename, ios::out);
+	file << /*CONNECTION_VIEWER_VERSION*/ 1 << endl;
+
+	h.writePosToStream(file);
+	file << 1 << endl;
+	for(size_t i=0; i < G.size(); i++)
+	{
+		for(cgraph::cRowIterator it = G.begin_row(i); it != G.end_row(i); ++it)
+			file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, (*it)) << "  " << endl;
+	}
+}
+
 } // namespace ug
+
+#endif __H__LIB_DISCRETIZATION__AMG_SOLVER__GRAPH_H__

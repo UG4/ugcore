@@ -1,54 +1,36 @@
-/*
- *  amg.h
- *  flexamg
+/**
+ * \file amg_rs_prolongation.h
  *
- *  Created by Martin Rupp on 03.12.09.
- *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
+ * \author Martin Rupp
  *
- *  class declaration for amg
+ * \date 06.08.2010
+ *
+ * class declaration for amg
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
-#pragma once
+
+
+#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_H__
+#define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_H__
+
 #include <vector>
 #include <iostream>
 
-using namespace std;
-
-
-#ifdef FLEXAMG
-#include "sparseMatrix.h"
-#include "CoarseSolver.h"
-#include "preconditioner.h"
-#endif
-
 #include "maxheap.h"
 
+using namespace std;
 
+namespace ug{
 
-#ifndef FLEXAMG
-struct position2d
+template<typename T>
+std::string ToString(const T &t)
 {
-	double x, y, z;
-	friend std::ostream &operator << (std::ostream &out, const position2d &p)
-	{
-		out << p.x << " " << p.y;
-		//out << p.x << " " << p.y << " " << p.z;
-		return out;
-	}
+	std::stringstream out;
+	out << t;
+	return out.str();
+}
 
-	double operator [] (int i)
-	{
-		switch(i)
-		{
-		case 0: return x;
-		case 1: return y;
-		case 2: return z;
-		}
-		UG_ASSERT(false, "position only has 3 components");
-		return 0;
-	}
-
-
-};
 
 struct cAMG_helper
 {
@@ -60,7 +42,7 @@ struct cAMG_helper
 	}
 	
 	
-	position2d GetPosForIndexAtLevel(int level, int i) const
+	MathVector<3> GetPosForIndexAtLevel(int level, int i) const
 	{
 		return positions[GetOriginalIndex(level, i)];
 	}
@@ -68,36 +50,59 @@ struct cAMG_helper
 	
 	void writePosToStream(std::ostream &out) const
 	{
+		out << dimension << endl;
 		out << size << endl;
 		for(int i=0; i< size ; i++)
-			out << positions[i] << endl;
+		{
+			out << positions[i][0] << " " << positions[i][1];
+			if(dimension == 3)
+				out << " " << positions[i][2];
+			out << endl;
+		}
 	}
 	
-	const position2d *positions;
+	const MathVector<3> *positions;
 	int size;
+	int dimension;
 	int **parentIndex;
 };
 
-#endif
+}
 #include "graph.h"
 
-
+#include "amg_rs_prolongation.h"
+#include "amg_debug.h"
 
 namespace ug{
+
 #define AMG_MAX_LEVELS 32
 
 struct amg_nodeinfo;
+
+
+template<typename Matrix_type>
+void
+CreateStrongConnectionGraph(const Matrix_type &A, cgraph &graph, double theta=0.25);
+
+void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, maxheap<amg_nodeinfo> &PQ, int &unassigned, amg_nodeinfo *nodes);
+
+void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, amg_nodeinfo *nodes,
+		int nrOfPaths, int *posInConnections);
+
+
+void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, maxheap<amg_nodeinfo> &PQ, int &unassigned, int &iNrOfCoarse, int *newIndex, amg_nodeinfo *nodes);
+
+int Coarsen(cgraph &graph, maxheap<amg_nodeinfo> &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes);
+
+void PreventFFConnections(cgraph &graphS, cgraph &graphST, amg_nodeinfo *nodes, int *newIndex, int &nrOfCoarse);
 	
+
 // AMG
 //---------------------------------
 //! algebraic multigrid class.
 //!
 template<typename Matrix_type, typename Vector_type>
-#ifdef FLEXAMG
-class amg : public preconditioner<Matrix_type, Vector_type>
-#else
 class amg
-#endif
 {
 public:
 	typedef typename Matrix_type::entry_type entry_type;
@@ -108,29 +113,7 @@ public:
 	virtual ~amg();
 	virtual bool init(const Matrix_type& A);
 
-#ifdef FLEXAMG
-	virtual void precond2(Vector_type &x, const Vector_type &b)
-	{
-		for(int i=0; i<gamma; i++)
-			MGCycle(x, b, 0);
-	}
-	virtual double iterate(Vector_type &x, const Vector_type &b)
-	{
-		for(int i=0; i<gamma; i++)
-			return MGCycle(x, b, 0);
-		return 0.0;
-	}
-
-	
-	double MGCycle(Vector_type &x, const Vector_type &b, int i=0);	
-	void printCoarsening(int level, amg_nodeinfo *grid);
-	
-	bool onlyOneLevel(const Matrix_type& A_);
-	void amgTest(const Matrix_type& A_, Vector_type &x, const Vector_type &b);
-	void amgTestLevel(Vector_type &x, const Vector_type &b, int level);
-#else
 	bool get_correction_and_update_defect(Vector_type &d, Vector_type &c, int level=0);
-#endif
 	
 	int getNrOfCoarse(int level)
 	{
@@ -158,23 +141,9 @@ private:
 private:
 //  functions
 	void createAMGLevel(Matrix_type &AH, SparseMatrix<double> &R, const Matrix_type &A, SparseMatrix<double> &P, int level);
-	//void createGalerkinMatrix(Matrix_type &AH, const SparseMatrix<double> &R, const Matrix_type &A, const SparseMatrix<double> &P, int *posInConnections);
-	
-	void CreateProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int iNrOfCoarse, int &unassigned, amg_nodeinfo *grid);
-	void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex, int *posInConnections, int unassigned, amg_nodeinfo *grid);
-	
-	//! creates the graph
-	void CreateGraph(const Matrix_type &A, cgraph &graph, maxheap<amg_nodeinfo> &PQ, int &unassigned, amg_nodeinfo *grid);
-	void CreateGraph2(cgraph &graph, cgraph &graph2, maxheap<amg_nodeinfo> &PQ, int &unassigned, int &iNrOfCoarse, int *posInConnections, int *newIndex, amg_nodeinfo *grid);
-	int Coarsen(cgraph &graph, maxheap<amg_nodeinfo> &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, const Matrix_type &A, amg_nodeinfo *grid);
-	
 
 //	data
-#ifdef FLEXAMG
-	CoarseSolver coarseSolver;	///< the coarse(st) grid solver
-#else
     LapackLU coarseSolver;
-#endif
 
 	int used_levels;			///< nr of AMG levels used
 
@@ -186,18 +155,32 @@ private:
 	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Prolongation Matrices
 	Matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
 	
-
-#ifdef FLEXAMG
-	sgs<Matrix_type, Vector_type> smoother[AMG_MAX_LEVELS];  ///< smoother for each level
-#endif
-
 public:
 	int *parentIndex[AMG_MAX_LEVELS];
 	cAMG_helper amghelper;
 
-#ifndef FLEXAMG
-	const position2d *positions;
-#endif
+	void set_debug_positions(const MathVector<2> *pos, size_t size)
+	{
+		dbg_positions.resize(size);
+		for(size_t i=0; i<size; ++i)
+		{
+			dbg_positions[i].x = pos[i].x;
+			dbg_positions[i].y = pos[i].y;
+			dbg_positions[i].z = 0.0;
+		}
+		dbg_dimension = 2;
+	}
+	void set_debug_positions(const MathVector<3> *pos, size_t size)
+	{
+		dbg_positions.resize(size);
+		for(size_t i=0; i<size; ++i)
+			dbg_positions[i] = pos[i];
+		dbg_dimension = 3;
+	}
+
+private:
+	vector<MathVector<3> > dbg_positions;
+	int dbg_dimension;
 };
 	
 	
@@ -205,3 +188,7 @@ public:
 
 } // namespace ug
 #include "amg_impl.h"
+
+
+
+#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_H__

@@ -1,9 +1,13 @@
-/*
- * amg_solver.h
+/**
+ * \file amg_rs_prolongation.h
  *
- *  Created on: 16.06.2010
- *      Author: mrupp
+ * \author Martin Rupp
+ *
+ * \date 16.06.2010
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
+
 
 #ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_SOLVER__
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_SOLVER__
@@ -54,10 +58,16 @@ public:
 		return true;
 	}
 
-	void set_debug_positions(const position2d *p)
+	void set_debug_positions(const MathVector<2> *positions2d, size_t size)
 	{
-		m_amg.positions = p;
+		m_amg.set_debug_positions(positions2d, size);
 	}
+
+	void set_debug_positions(const MathVector<3> *positions3d, size_t size)
+	{
+		m_amg.set_debug_positions(positions3d, size);
+	}
+
 
 	// prepare Operator
 	virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
@@ -68,7 +78,7 @@ public:
 	// compute new correction c = B*d
 	//    AND
 	// update defect: d := d - A*c
-	virtual bool apply(domain_function_type& d, codomain_function_type& c)
+	virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
 	{
 		typename domain_function_type::vector_type& d_vec = d.get_vector();
 		typename codomain_function_type::vector_type& c_vec = c.get_vector();
@@ -100,7 +110,7 @@ protected:
 };
 
 
-}
+} // namespace ug
 
 
 #endif /* __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_SOLVER__ */

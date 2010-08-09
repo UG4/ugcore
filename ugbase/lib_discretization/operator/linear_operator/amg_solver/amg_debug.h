@@ -1,16 +1,24 @@
-/*
- *  amg_debug.h
- *  flexamg
+/**
+ * \file amg_debug.h
  *
- *  Created by Martin Rupp on 16.06.10.
- *  Copyright 2010 . All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 16.06.10
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
 
+
+
+#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_H__
+#define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_H__
+
 #include "amg_nodeinfo.h"
+#include "postscript.h"
 
 namespace ug {
 	
+#if 0
 //
 // writeMatrices:
 //----------------
@@ -27,12 +35,12 @@ void amg<Matrix_type, Vector_type>::writeMatrices(const char *pathAndName)
 	string str(pathAndName);
 	for(int i=0; i<used_levels-1; i++)
 	{
-		A[i]->writeToFile((str + "A" + nrstring(i) + ".mat").c_str()); cout << "."; cout.flush();		
-		P[i].writeToFile((str + "P" + nrstring(i) + ".mat").c_str()); cout << "."; cout.flush();
-		R[i].writeToFile((str + "R" + nrstring(i) + ".mat").c_str()); cout << "."; cout.flush();
+		A[i]->writeToFile((str + "A" + ToString(i) + ".mat").c_str()); cout << "."; cout.flush();
+		P[i].writeToFile((str + "P" + ToString(i) + ".mat").c_str()); cout << "."; cout.flush();
+		R[i].writeToFile((str + "R" + ToString(i) + ".mat").c_str()); cout << "."; cout.flush();
 	}
 	if(used_levels > 0)
-		A[used_levels-1]->writeToFile((str + "A" + nrstring(used_levels-1) + ".mat").c_str());
+		A[used_levels-1]->writeToFile((str + "A" + ToString(used_levels-1) + ".mat").c_str());
 	cout << " finished."; cout.flush();
 }
 
@@ -45,8 +53,8 @@ void amg<Matrix_type, Vector_type>::writeMatrices(const char *pathAndName)
 template<typename Matrix_type, typename Vector_type>
 void amg<Matrix_type, Vector_type>::printCoarsening(int level, amg_nodeinfo *grid)
 {  
-	fstream fcoarse((string("/Users/mrupp/matrices/coarse") + nrstring(level) + ".dat").c_str(), ios::out);	
-	fstream ffine  ((string("/Users/mrupp/matrices/fine") + nrstring(level) + ".dat").c_str(), ios::out);	
+	fstream fcoarse((string("/Users/mrupp/matrices/coarse") + ToString(level) + ".dat").c_str(), ios::out);
+	fstream ffine  ((string("/Users/mrupp/matrices/fine") + ToString(level) + ".dat").c_str(), ios::out);
 	int n = A[level]->row_size();
 	
 	for(int i=0; i < n; i++)
@@ -60,7 +68,7 @@ void amg<Matrix_type, Vector_type>::printCoarsening(int level, amg_nodeinfo *gri
   	
 	/////////////
 	
-	fstream file((string("/Users/mrupp/matrices/coarsening") + nrstring(level) + ".mat").c_str(), ios::out);	
+	fstream file((string("/Users/mrupp/matrices/coarsening") + ToString(level) + ".mat").c_str(), ios::out);
 	writePosToStream(file);
 	file << 0 << endl;
 	for(int i=0; i < n; i++)
@@ -89,7 +97,7 @@ bool amg<Matrix_type, Vector_type>::onlyOneLevel(const Matrix_type& A_)
 	if(A[0]->row_size() < AMG_WRITE_MATRICES_MAX)
 	{
 		cout << "write matrix A...";
-		A[0]->writeToFile((string(AMG_WRITE_MATRICES_PATH) + "A" + nrstring(0) + ".mat").c_str());
+		A[0]->writeToFile((string(AMG_WRITE_MATRICES_PATH) + "A0.mat").c_str());
 		cout << "done." << endl; cout.flush();
 	}
 #endif
@@ -249,5 +257,63 @@ void amg<Matrix_type, Vector_type>::amgTest(const Matrix_type& A_, Vector_type &
 	
 	amgTestLevel(vx, b, 0);		
 }
+#endif // #if 0
+
+
+// WriteToFile
+//--------------------------------------------------
+//! writes to a file in somewhat SparseMatrix-market format (for connection viewer)
+template<typename T>
+void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
+{
+	fstream file(filename, ios::out);
+	file << 1 << endl; // connection viewer version
+
+	h.writePosToStream(file);
+	file << 1 << endl;
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		for(typename SparseMatrix<T>::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+			if((*conn).dValue != 0.0)
+				file << h.GetOriginalIndex(tolevel, i) << " " << h.GetOriginalIndex(fromlevel, (*conn).iIndex) << " " << ((*conn).dValue) << endl;
+	}
+}
+
+// writeToFile
+//--------------------------------------------------
+//! writes to a file in somewhat SparseMatrix-market format (for connection viewer)
+template<typename T>
+void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
+{
+	postscript ps;
+	ps.create(filename);
+
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		int from = h.GetOriginalIndex(tolevel, i);
+		ps.move_to(h.positions[from].x, h.positions[from].y);
+		ps.print_text( string("0") + ToString(i));
+
+		for(typename SparseMatrix<T>::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		{
+			if((*conn).dValue != 0.0)
+			{
+				if((*conn).iIndex != i)
+				{
+					int to = h.GetOriginalIndex(fromlevel, (*conn).iIndex);
+					ps.move_to(h.positions[from].x, h.positions[from].y);
+					ps.line_to(h.positions[to].x, h.positions[to].y);
+
+				}
+			}
+		}
+	}
+
+	cout << endl;
+}
 
 }
+
+
+
+#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_H__

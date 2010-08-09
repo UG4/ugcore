@@ -1,13 +1,15 @@
-/*
- *  amg_nodeinfo.h
- *  flexamg
+/**
+ * \file amg_debug.h
  *
- *  Created by Martin Rupp on 16.06.10.
- *  Copyright 2010 . All rights reserved.
+ * \author Martin Rupp
  *
+ * \date 16.06.10
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#pragma once
+#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
+#define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
 
 namespace ug {
 
@@ -26,18 +28,18 @@ struct amg_nodeinfo
 	
 	inline void setFineIndirect(){rating = FINE_RATING_INDIRECT_UNASSIGNED;}
 	
-	inline bool isCoarse(){	return rating == COARSE_RATING;}
-	inline bool isFineDirect()	{return (rating == FINE_RATING);}
+	inline bool isCoarse() const {	return rating == COARSE_RATING;}
+	inline bool isFineDirect() const {return (rating == FINE_RATING);}
 	
-	inline bool isUnassignedFineIndirect(){return rating == FINE_RATING_INDIRECT_UNASSIGNED;}
+	inline bool isUnassignedFineIndirect() const {return rating == FINE_RATING_INDIRECT_UNASSIGNED;}
 	
 	
-	inline bool isFineIndirectLevel(int level){ return rating == FINE_RATING+1-level;}
-	inline void setFineIndirectLevel(int level){ rating = FINE_RATING+1-level;}
+	inline bool isFineIndirectLevel(int level) const { return rating == FINE_RATING+1-level;}
+	inline void setFineIndirectLevel(int level) { rating = FINE_RATING+1-level;}
 	
-	inline bool isAssigned(){return (rating <= ASSIGNED_RATING);}
+	inline bool isAssigned() const {return (rating <= ASSIGNED_RATING);}
 	
-	friend ostream &operator << (ostream &out, amg_nodeinfo &n)
+	friend ostream &operator << (ostream &out, const amg_nodeinfo &n)
 	{
 		out << "Rating: " << n.rating;
 		if(n.rating < 0)
@@ -52,12 +54,12 @@ struct amg_nodeinfo
 		out << " ";
 		return out;
 	}
-	void print()
+	void print() const
 	{
 		cout << *this << endl;
 	} // << " newindex: " << newIndex << endl;
 	
-	inline bool operator > (const amg_nodeinfo &other)
+	inline bool operator > (const amg_nodeinfo &other) const
 	{
 		if(rating == other.rating)
 			return this < &other; // we somehow want a STABLE sort, for that coarsening is in the direction of the numbering of the elements
@@ -69,3 +71,5 @@ struct amg_nodeinfo
 
 
 }
+
+#endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
