@@ -39,10 +39,18 @@ bool ImportGridFromNG(Grid& grid,
 	ng_info* ninfo = ng_info_new();
 	if(ng_read(filename, n, ninfo))
 	{
-		LOG("WARNING in ImportGridFromNG: " << ninfo->err_msg << endl);
 		ng_info_delete(ninfo);
 		ng_delete(n);
-		return false;
+		n = ng_new();
+		n->dim = 2;
+		ninfo = ng_info_new();
+		
+		if(ng_read(filename, n, ninfo)){
+			LOG("WARNING in ImportGridFromNG: " << ninfo->err_msg << endl);
+			ng_info_delete(ninfo);
+			ng_delete(n);
+			return false;
+		}
 	}
 	ng_info_delete(ninfo);
 

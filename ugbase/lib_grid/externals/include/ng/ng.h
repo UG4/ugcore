@@ -40,6 +40,9 @@
  */
 struct ng
 {
+    /** \brief dimension of lgm, should be 2 or 3 */
+    int dim;
+	
     /** \brief the number of boundary nodes */
     int num_bnodes;
 

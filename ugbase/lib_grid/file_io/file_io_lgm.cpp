@@ -25,17 +25,31 @@ bool ImportGridFromLGM(Grid& grid,
                        AVector3& aPos,
                        ISubsetHandler* pSurfaceHandler)
 {
+//	we'll read the lgm in two steps:
+//	first we'll try to load a 3d lgm. If that fails we'll try to
+//	load a 2d on. If that fails too, we'll give up.
+
 	// create lgm object
 	lgm* l = lgm_new();
-
 	// read lgm file
 	lgm_info* linfo = lgm_info_new();
+	
+//	load 3d
 	if(lgm_read(filename, l, linfo))
 	{
-		LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
 		lgm_info_delete(linfo);
 		lgm_delete(l);
-		return false;
+
+	//	3d could not be loaded. Try 2d.
+		l = lgm_new();
+		l->dim = 2;
+		linfo = lgm_info_new();
+		if(lgm_read(filename, l, linfo)){
+			LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
+			lgm_info_delete(linfo);
+			lgm_delete(l);
+			return false;
+		}
 	}
 	lgm_info_delete(linfo);
 

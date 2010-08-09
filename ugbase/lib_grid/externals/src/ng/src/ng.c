@@ -21,6 +21,8 @@ struct ng* ng_new(void)
     n->num_elements = 0;
     n->elements = 0;
     
+	n->dim = 3;
+	
     /* return */
     return n;
 }

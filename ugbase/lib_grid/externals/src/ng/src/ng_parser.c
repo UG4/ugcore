@@ -82,8 +82,8 @@ int ng_parser_strtod(const char* str, double* d);
 
 /* parsing functions */
 int ng_parse_file(tokstream* ts, struct ng* n, struct ng_info* fileinfo);
-int ng_parse_bnode(tokstream* ts, struct ng_bnode* bnode, struct ng_info* fileinfo);
-int ng_parse_inode(tokstream* ts, struct ng_inode* inode, struct ng_info* fileinfo);
+int ng_parse_bnode(tokstream* ts, struct ng_bnode* bnode, struct ng* n, struct ng_info* fileinfo);
+int ng_parse_inode(tokstream* ts, struct ng_inode* inode, struct ng* n, struct ng_info* fileinfo);
 int ng_parse_element(tokstream* ts, struct ng_element* element, struct ng_info* fileinfo);
 int ng_parse_surface_pos(tokstream* ts, struct ng_surface_pos* spos, struct ng_info* fileinfo);
 int ng_parse_line_pos(tokstream* ts, struct ng_line_pos* lpos, struct ng_info* fileinfo);
@@ -153,7 +153,7 @@ int ng_parse_file(tokstream* ts, struct ng* n, struct ng_info* fileinfo)
             }
 
             /* read bnode */
-            $(ng_parse_bnode(ts, &n->bnodes[n->num_bnodes], fileinfo));
+            $(ng_parse_bnode(ts, &n->bnodes[n->num_bnodes], n, fileinfo));
             ++n->num_bnodes;
 
             continue;
@@ -200,7 +200,7 @@ int ng_parse_file(tokstream* ts, struct ng* n, struct ng_info* fileinfo)
             }
 
             /* read inode */
-            $(ng_parse_inode(ts, &n->inodes[n->num_inodes], fileinfo));
+            $(ng_parse_inode(ts, &n->inodes[n->num_inodes], n, fileinfo));
             ++n->num_inodes;
 
             continue;
@@ -273,7 +273,8 @@ int ng_parse_file(tokstream* ts, struct ng* n, struct ng_info* fileinfo)
     return 0;
 }
 
-int ng_parse_bnode(tokstream* ts, struct ng_bnode* bnode, struct ng_info* fileinfo)
+int ng_parse_bnode(tokstream* ts, struct ng_bnode* bnode,
+				   struct ng* n, struct ng_info* fileinfo)
 {
     const char* tok;
     int i;
@@ -288,7 +289,7 @@ int ng_parse_bnode(tokstream* ts, struct ng_bnode* bnode, struct ng_info* filein
         return ng_error_parse(fileinfo, err_msg_nob, ts);
 
     /* read coordinates */
-    for(i = 0; i < 3; ++i)
+    for(i = 0; i < n->dim; ++i)
     {
         tok = ts_get(ts);
         if(ng_parser_strtod(tok, &coord))
@@ -429,7 +430,8 @@ int ng_parse_line_pos(tokstream* ts, struct ng_line_pos* lpos, struct ng_info* f
     return 0;
 }
 
-int ng_parse_inode(tokstream* ts, struct ng_inode* bnode, struct ng_info* fileinfo)
+int ng_parse_inode(tokstream* ts, struct ng_inode* bnode,
+				   struct ng* n, struct ng_info* fileinfo)
 {
     const char* tok;
     int i;
@@ -440,7 +442,7 @@ int ng_parse_inode(tokstream* ts, struct ng_inode* bnode, struct ng_info* filein
         return ng_error_parse(fileinfo, err_msg_noi, ts);
 
     /* read coordinates */
-    for(i = 0; i < 3; ++i)
+    for(i = 0; i < n->dim; ++i)
     {
         tok = ts_get(ts);
         if(ng_parser_strtod(tok, &bnode->coords[i]))
