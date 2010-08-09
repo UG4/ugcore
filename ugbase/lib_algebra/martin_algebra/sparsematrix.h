@@ -143,7 +143,7 @@ public:
 	inline entry_type &get_diag(size_t i);
 
 	//! isUnconnected: true if only A[i,i] != 0.0.
-	inline bool is_unconnected(size_t i) const;
+	inline bool is_isolated(size_t i) const;
 
 
 public:

@@ -414,7 +414,7 @@ AlphaMatVec_Expression <L, R>  operator * (double d, const MatVec_Expression <L,
 //#pragma mark Templated Functions
 ////////////////////////////////////////////////////////////////////////////////
 
-double mnorm2(double &a)
+inline double mnorm2(double &a)
 {
 	return a*a;
 }

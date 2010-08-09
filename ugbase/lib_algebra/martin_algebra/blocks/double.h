@@ -146,14 +146,19 @@ template<> struct block_multiply_traits<double, double>
 };
 
 template<typename M>
-void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m);
+inline void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m);
 
 template<>
-void GetInverse(double &inv, const double &m)
+inline void GetInverse(double &inv, const double &m)
 {
 	inv = 1.0/m;
 }
 
+template<>
+inline void Invert(double &m)
+{
+	m = 1/m;
+}
 
 } // namespace ug
 

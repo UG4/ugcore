@@ -79,9 +79,9 @@ public:
 	inline bool indexWithinBounds(size_t i) const	{return i < num_connections(); }
 	inline size_t get_row() const { return row; }
 	inline size_t num_connections() const {	return A.num_connections(row);	}
-	inline bool is_unconnected() const
+	inline bool is_isolated() const
 	{
-		return A.is_unconnected(row);
+		return A.is_isolated(row);
 	}
 	
 	void printtype() const { cout << *this; }	

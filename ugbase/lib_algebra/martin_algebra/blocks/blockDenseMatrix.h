@@ -248,85 +248,12 @@ public:
 		return ! operator == (d);
 	}
 
-// temporary prevention
-	//! dest -= this*vec . use this to prevent temporary variables
-	void sub_mult(vector_type &dest, const vector_type &vec) const
-	{
-		UG_ASSERT1(num_rows() == vec.size());
-		for(size_t r=0; r < num_rows(); r++)
-		{
-			for(size_t c=0; c < num_cols(); c++)
-				SubMult(dest(r), at(r, c), vec(c));
-		}
-	}
-
-	//! dest += this*vec . use this to prevent temporary variables
-	void add_mult(vector_type &dest, const vector_type &vec) const
-	{
-		UG_ASSERT(num_rows() == vec.size(), "");
-		for(size_t r=0; r < num_rows(); r++)
-		{
-			for(size_t c=0; c < num_cols(); c++)
-				AddMult(dest(r), at(r, c), vec(c));
-		}
-	}
-
-	//! dest = this*vec . use this to prevent temporary variables
-	void assign_mult(vector_type &dest, const vector_type &vec) const
-	{
-		UG_ASSERT(num_rows() == vec.size(), "");
-		for(size_t r=0; r < num_rows(); r++)
-		{
-			dest(r) = 0.0;
-			for(size_t c=0; c < num_cols(); c++)
-				AddMult(dest(r), at(r, c), vec(c));
-		}
-	}
-
-
-	//! this -= alpha*mat . use this to prevent temporary variables
-	void sub_mult(double alpha, const matrix_type &mat)
-	{
-		resize(mat.num_rows(), mat.num_cols());
-		for(size_t r=0; r < num_rows(); r++)
-		{
-			for(size_t c=0; c < num_cols(); c++)
-				SubMult(at(r, c), alpha, mat.at(r, c));
-		}
-	}
-
-	//! this += alpha*mat . use this to prevent temporary variables
-	void add_mult(const double alpha, const matrix_type &mat)
-	{
-		resize(mat.num_rows(), mat.num_cols());
-		for(size_t r=0; r < num_rows(); r++)
-		{
-			for(size_t c=0; c < num_cols(); c++)
-				AddMult(at(r, c), alpha, mat.at(r, c));
-		}
-	}
-
-	//! this = alpha*mat . use this to prevent temporary variables
-	void assign_mult(const double alpha, const matrix_type &mat)
-	{
-		resize(mat.num_rows(), mat.num_cols());
-		for(size_t r=0; r < num_rows(); r++)
-		{
-			for(size_t c=0; c < num_cols(); c++)
-				AssignMult(at(r, c), alpha, mat.at(r, c));
-		}
-	}
-	void assign_mult(const matrix_type &mat, double alpha)
-	{
-		assign_mult(alpha, mat);
-	}
-
 // other
 	double norm() const
 	{
 		double s = 0;
 		for(size_t i=0; i< values.size(); i++)
-			s += mnorm2(values[i]);
+			s += BlockNorm2(values[i]);
 		return sqrt(s);
 	}
 	double norm2() const
@@ -567,10 +494,13 @@ struct block_multiply_traits<blockVector<double, storage_type, n_>, double >
 
 
 template<typename M>
-void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m)
+inline void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m)
 {
 	inv.setAsInverseOf(m);
 }
+
+
+
 
 
 } // namespace ug

@@ -1,7 +1,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////
 //!
-//! smallInverse<int n>
+//! smallInverse<size_t n>
 //! A class to hold a inverse of a smallMatrix<n>
 //! implemented with LAPACKs LU-Decomposition dgetrf
 //! (uses double[n*n] for LU and interchange[n] for pivoting
@@ -9,12 +9,12 @@
 //! setAsInverseOf(const blockDenseMatrix<n> &mat) : init as inverse of mat
 //! blockVector<n> * smallInverse<n> = smallInverse<n> * blockVector<n>
 //! = A^{-1} b
-template<typename storage_type, int rows_, int cols_>
+template<typename storage_type, size_t rows_, size_t cols_>
 class smallInverse
 {
 private: // storage
 	typedef typename storage_traits<storage_type, double, rows_, cols_>::array2_type array2_type;
-	typedef typename storage_traits<storage_type, __CLPK_integer, rows_, 0>::array_type interchange_array_type;
+	typedef typename storage_traits<storage_type, lapack_int, rows_, 0>::array_type interchange_array_type;
 
 	typedef blockVector<double, storage_type, rows_> vector_type;
 
@@ -22,12 +22,12 @@ private: // storage
 	interchange_array_type interchange;
 
 public:
-	inline int num_cols() const
+	inline size_t num_cols() const
 	{
 		return densemat.num_cols();
 	}
 
-	inline int num_rows() const
+	inline size_t num_rows() const
 	{
 		return densemat.num_rows();
 	}
@@ -37,43 +37,29 @@ public:
 	//! initializes this object as inverse of mat
 	void setAsInverseOf(const blockDenseMatrix<double, storage_type, rows_, cols_> &mat)
 	{
-		UG_ASSERT(mat.num_rows() == mat.num_cols(), "");
-		__CLPK_integer rows = mat.num_rows();
-		__CLPK_integer cols = mat.num_cols();
+		int rows = mat.num_rows(), cols = mat.num_cols();
+		UG_ASSERT(rows == cols, "only for square matrices");
 
 		densemat.resize(rows, cols);
-		for(int r=0; r < rows; r++)
-			for(int c=0; c < cols; c++)
+		for(size_t r=0; r < rows; r++)
+			for(size_t c=0; c < cols; c++)
 				densemat[r + c*rows] = mat(r, c);
 
 		interchange.resize(rows);
 
-		__CLPK_integer info = 0;
-
-		getrf(&rows, &cols, &densemat[0], &rows, &interchange[0], &info);
+		int info = getrf(rows, cols, &densemat(0,0), rows, &interchange[0]);
 		UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had had illegal value"));
 	}
 
 	//! calc dest = mat^{-1} * vec
 	void apply(double *dest, const vector_type &vec) const
 	{
-		UG_ASSERT(num_rows() == num_cols() && num_cols() == vec.size(), "");
-		for(int i=0; i<vec.size(); i++)
+		UG_ASSERT(num_rows() == num_cols(), "only for square matrices");
+		UG_ASSERT(num_cols() == vec.size(), "size mismatch");
+		for(size_t i=0; i<vec.size(); i++)
 			dest[i] = vec(i);
-		char trans ='N';
-		__CLPK_integer nrhs = 1;
-		__CLPK_integer dim = num_rows();
-		__CLPK_integer info = 0;
 
-		getrs(&trans,
-				&dim,
-				&nrhs,
-				&(*const_cast<array2_type*> (&densemat))(0,0),
-				&dim,
-				&(*const_cast<interchange_array_type*> (&interchange))[0],
-				dest,
-				&dim,
-				&info);
+		int info = getrs(ModeNoTrans, num_rows(), 1, &densemat(0,0), num_rows(), &interchange[0], dest,	num_rows());
 	}
 
 	vector_type operator * (const vector_type &vec) const
@@ -98,7 +84,7 @@ public:
 		erg.resize(vec.size());
 
 		apply(&erg[0], vec);
-		for(int i=0; i<vec.size(); i++)
+		for(size_t i=0; i<vec.size(); i++)
 			dest(i) += erg[i];
 	}
 	//! dest -= this*vec . use this to prevent temporary variables
@@ -110,7 +96,7 @@ public:
 		erg.resize(vec.size());
 
 		apply(&erg[0], vec);
-		for(int i=0; i<vec.size(); i++)
+		for(size_t i=0; i<vec.size(); i++)
 			dest(i) -= erg[i];
 	}
 };
@@ -129,24 +115,26 @@ void Invert(blockDenseMatrix<value_type, storage_type, rows, cols> &A)
 {
 	typename storage_traits<storage_type, int, rows_, cols_>::array_type
 		interchange;
-	interchange.set_size(max(A.num_cols(), A.num_rows()));
-	int info = 0;
+	interchange.resize(max(A.num_cols(), A.num_rows()));
+
 	int rows = A.num_rows();
 	int cols = A.num_cols();
 
 	double *ptr = &getAt(0,0);
 
+	int info = getrf(rows, cols, &at(0,0), rows, &interchange[0]);
 	UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": SparseMatrix singular in U(i,i)" : ": i-th argument had had illegal value"));
 
 	// calc work size
 	double worksize; int iWorksize = -1;
-	getri(&rows, ptr, &rows, &interchange[0], &worksize, &iWorksize, &info);
+	info = getri(rows, &at(0,0), rows, &interchange[0], &worksize, iWorksize);
 	UG_ASSERT(info == 0, "");
 	iWorksize = worksize;
 
 	std::vector<double> work;
 	work.resize(iWorksize);
-	getri(&rows, ptr, &rows, &interchange[0], &work[0], &iWorksize, &info);
+
+	info = getri(rows, &at(0,0), rows, &interchange[0], &work[0], iWorksize);
 	UG_ASSERT(info == 0, "");
 }
 

@@ -20,12 +20,6 @@ namespace ug{
 inline double dabs(double a) { return a > 0 ? a : -a; }
 
 //////////////////////////////////////////////////////
-/*
-template<size_t n>
-inline double mnorm2(const  blockVector<n> &v)
-{
-	return v.norm2();
-}*/
 
 template<typename TYPE>
 inline double BlockNorm2(const TYPE &v)
@@ -67,7 +61,7 @@ template<typename M> inline const double &BlockRef(const M &m, size_t i, size_t 
 //////////////////////////////////////////////////////
 // algebra stuff to avoid temporary variables 
 
-	
+
 // MATRICES
 
 // todo: replace add_mult etc. with template expressions
@@ -176,7 +170,15 @@ inline size_t GetCols(const T &t)
 	return t.num_cols();
 }
 
+template<typename M>
+inline void Invert(M &m)
+{
+	m.invert();
+}
+
 } // namespace ug
+
+
 
 #include "double.h"
 #endif

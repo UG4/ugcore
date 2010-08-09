@@ -621,23 +621,23 @@ bool SparseMatrix<T>::set(double a)
 // row functions
 
 
-// is_unconnected
+// is_isolated
 //-----------------
-/*!
- @remark since first connection is always i,i, every row has at least 1 connection
- @return true if row i has no connection to indices other than i
+/**
+ * \brief check if row i is isolated from all other rows.
+ * \return false if there exist a j != i with A(i,j) != 0.0, otherwise true.
  */
 template<typename T>
-inline bool SparseMatrix<T>::is_unconnected(size_t i) const
+inline bool SparseMatrix<T>::is_isolated(size_t i) const
 {
 	UG_ASSERT(i < rows && i >= 0, *this << ": " << i << " out of bounds.");
 	if(pRowStart[i] == NULL)
 		return true;
-	int nr=num_connections(i);
-	if(nr == 0 || (pRowStart[i][0].iIndex == i && nr == 1))
-		return true;
-	else
-		return false;
+
+	for(cRowIterator it = beginRow(i); !it.isEnd(); ++it)
+		if(it.index() != i && it.value() != 0.0)
+			return false;
+	return true;
 }
 
 template<typename T>
