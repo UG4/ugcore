@@ -33,6 +33,10 @@
 # - HYPRE: Enables support for hypre.
 # - NO_BOOST: Disables support for boost (should only be disabled if required).
 # - NO_PCL: Disables creation of the pcl-library.
+# - NO_FORTRAN: Disables Fortran (Fortran may be needed to find LAPACK)
+# - NO_LAPACK: Disable LAPACK libraries
+# - NO_BLAS: Disable BLAS libraries
+#
 #
 # To enable or disable options during the cmake call, call cmake like this:
 # cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
@@ -69,7 +73,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(NO_BOOST "disable support for BOOST")
 	OPTION(NO_PCL "Disable parallel communication library")
 
-	OPTION(USE_FORTRAN "Use Fortran (for find_package(Blas))")
+	OPTION(NO_FORTRAN "Do not use Fortran (Fortran may be needed to find LAPACK)")
 	OPTION(NO_LAPACK "Disable LAPACK")
 	OPTION(NO_BLAS "Disable BLAS")
 
@@ -87,33 +91,34 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	if(UG_DEBUG)
 		# Enable debugging output
 		message(STATUS "INFO: Debug mode. (Enable release-mode by defining -DUG_DEBUG=OFF)")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 		add_definitions(-DUG_DEBUG)
 	else(UG_DEBUG)
 		message(STATUS "INFO: Release mode. (Enable debug-mode by defining -DUG_DEBUG=ON)")
 		# Enable these flags for a fast ublas algebra
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG -DBOOST_UBLAS_NDEBUG -O3 -Wall")
 	endif(UG_DEBUG)
-
-	# force 32bit or 64bit mode
-	if(FORCE_64 AND FORCE_32)
-		message(FATAL_ERROR "FORCE_64=ON and FORCE_32=ON. do not use FORCE_32 and FORCE_64 together.")
-	endif(FORCE_64 AND FORCE_32)
 
 	#######################
 	# FORCE_32/64 . for use e.g. on MacOS 10.6, where -m64 is default otherwise
+
+	# prevent 32 AND 64 bit
+	if(FORCE_64 AND FORCE_32)
+		message(FATAL_ERROR "FORCE_64=ON and FORCE_32=ON. do not use FORCE_32 and FORCE_64 together.")
+	endif(FORCE_64 AND FORCE_32)
+	
 	if(FORCE_64)
 	   # set 64bit mode
 		message(STATUS "INFO: 64bit mode. (Disable by defining -DFORCE_64=OFF)")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
 	endif(FORCE_64)
 
 	if(FORCE_32)
 	    # set 32bit mode
 		message(STATUS "INFO: 32bit mode. (Disable by defining -DFORCE_32=OFF)")
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
 		# otherwise it gets compiled as 64bit on Snow Leopard Systems
 	endif(FORCE_32)
 
@@ -154,9 +159,9 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 				UNSET(Boost_FOUND)
 				UNSET(Boost_INCLUDE_DIRS CACHE)
 				UNSET(Boost_INCLUDE_DIR CACHE)
-			ELSE(Boost_FOUND)
-			 message(WARNING " BOOST not found! Compiling WITHOUT Boost.")
-			 ENDIF(Boost_FOUND)
+			else(Boost_FOUND)
+				message(WARNING " BOOST not found! Compiling WITHOUT Boost.")
+			endif(Boost_FOUND)
 		endif(Boost_FOUND)
 	endif(NO_BOOST)
 
@@ -215,88 +220,114 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	link_libraries(${UG_LIBRARIES})
 	
 	#######################
+	# Fortran compiler
+	# is needed for find_package(LAPACK)
+	# disable with -DNO_FORTRAN=ON
+	# if disabled, you might not be able to use LAPACK on clusters
+
+	if(NOT APPLE)
+		if(NOT NO_FORTRAN)
+			ENABLE_LANGUAGE(Fortran)
+			if(CMAKE_Fortran_COMPILER_WORKS)
+				message(STATUS "INFO: Fortran compiler found: '${CMAKE_Fortran_COMPILER}' (To disable Fortran define -DNO_FORTRAN=ON)")
+			else(CMAKE_Fortran_Compiler_WORKS)
+				message(STATUS "INFO: Fortran compiler NOT found (To disable Fortran define -DNO_FORTRAN=ON).")				
+			endif(CMAKE_Fortran_COMPILER_WORKS)
+		endif(NOT NO_FORTRAN)
+	endif(NOT APPLE)
+
+
+	#######################
 	# LAPACK
-	IF(NO_LAPACK)
+	# find lapack. On Apple Systems, this is -framework vecLib for LAPACK and BLAS
+	# On other systems, it uses find_package(LAPACK) which requires Fortran
+	# without fortran, it tries to find a LAPACK library by itself
+
+	if(NO_LAPACK)
 	    message("-- INFO: Not using LAPACK. (To enable LAPACK define -DNO_LAPACK=OFF)")
-	ELSE(NO_LAPACK)
+	else(NO_LAPACK)	    
+	    if(APPLE)
+		      message(STATUS "INFO: Working on MacOS, using -framework vecLib for LAPACK and BLAS  (To disable LAPACK define -DNO_LAPACK=ON).")
+		      set(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
+			  set(LAPACK_FOUND YES)
+		else(APPLE)
+			if(CMAKE_Fortran_COMPILER_WORKS)
+				message(STATUS "INFO: Searching for LAPACK with find_package... (To disable LAPACK define -DNO_LAPACK=ON)")
+		   		find_package(LAPACK)
+			else(CMAKE_Fortran_COMPILER_WORKS)
+				message(STATUS "INFO: Searching for LAPACK with find_library... (To disable LAPACK define -DNO_LAPACK=ON)")
+			    find_library(LAPACK_LIBRARIES NAMES atlas PATHS /usr/local/lib /usr/lib /lib)
+				if(LAPACK_LIBRARIES)
+		             set(LAPACK_FOUND YES)
+			  	endif(LAPACK_LIBRARIES)
+			endif(CMAKE_Fortran_COMPILER_WORKS)
+		endif(APPLE)
 
-	    #MESSAGE(STATUS "INFO: Searching for LAPACK... (To disable LAPACK define -DNO_LAPACK=ON)")
-	
-	    IF(APPLE)
-		      SET(LAPACK_LIBRARIES "-framework vecLib" CACHE STRING "LAPACK library" FORCE)
-			  SET(LAPACK_FOUND YES)
-		ELSE(APPLE)
-			  IF(USE_FORTRAN)
-	    	  		 ENABLE_LANGUAGE(Fortran)
-					 find_package(LAPACK)
-			ELSE(USE_FORTRAN)
-			    FIND_LIBRARY(LAPACK_LIBRARIES NAMES atlas PATHS /usr/local/lib /usr/lib /lib)
-				IF(LAPACK_LIBRARIES)
-		             SET(LAPACK_FOUND YES)
-			  	ENDIF(LAPACK_LIBRARIES)
-			ENDIF(USE_FORTRAN)
-		ENDIF(APPLE)
-
-		IF(LAPACK_FOUND)
-			IF(NOT LAPACK_INCLUDE_PATH)
+		if(LAPACK_FOUND)
+			if(NOT LAPACK_INCLUDE_PATH)
 				FIND_PATH(LAPACK_INCLUDE_PATH clapack.h /usr/local/include/ /usr/include /include)
-			ENDIF(NOT LAPACK_INCLUDE_PATH)
+			endif(NOT LAPACK_INCLUDE_PATH)
 
-			IF(LAPACK_INCLUDE_PATH)
+			if(LAPACK_INCLUDE_PATH)
 					link_libraries(${LAPACK_LIBRARIES})
 					include_directories (${LAPACK_INCLUDE_PATH})
-					MESSAGE(STATUS "INFO: LAPACK Found. (lib = '${LAPACK_LIBRARIES}', flags = '${LAPACK_LINKER_FLAGS}', headers at '${LAPACK_INCLUDE_PATH})")
-					SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLAPACK_AVAILABLE")
-			ELSE(LAPACK_INCLUDE_PATH)			
-				   MESSAGE(STATUS "INFO:  Found LAPACK (lib = '${LAPACK_LIBRARIES$') , but not clapack.h ! (To disable LAPACK define -DNO_LAPACK=ON)")
-		   ENDIF(LAPACK_INCLUDE_PATH)
+					message(STATUS "INFO: LAPACK Found. (lib = '${LAPACK_LIBRARIES}', flags = '${LAPACK_LINKER_FLAGS}', headers at '${LAPACK_INCLUDE_PATH})")
+					set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLAPACK_AVAILABLE")
+			else(LAPACK_INCLUDE_PATH)			
+				   message(STATUS "INFO:  Found LAPACK (lib = '${LAPACK_LIBRARIES$') , but not clapack.h ! (To disable LAPACK define -DNO_LAPACK=ON)")
+		   endif(LAPACK_INCLUDE_PATH)
 
-		ELSE(LAPACK_FOUND)
-		    MESSAGE(STATUS "INFO: Did not find LAPACK ! (To disable LAPACK define -DNO_LAPACK=ON)")
-		ENDIF(LAPACK_FOUND)
+		else(LAPACK_FOUND)
+		    message(STATUS "INFO: Did not find LAPACK ! (To disable LAPACK define -DNO_LAPACK=ON)")
+		    if(NO_FORTRAN)
+		    	message(STATUS "(NO_FORTRAN is on. When setting -DNO_FORTRAN=OFF, better search routines for LAPACK can be used)")
+		    endif(NO_FORTRAN)
+		endif(LAPACK_FOUND)
 
-	ENDIF(NO_LAPACK)
+	endif(NO_LAPACK)
 
 	#######################
 	# BLAS
-	IF(NO_BLAS)
+	# see LAPACK
+
+	if(NO_BLAS)
 	    message("-- INFO: Not using BLAS. (To enable BLAS define -DNO_BLAS=OFF)")
-	ELSE(NO_BLAS)
-	     IF(APPLE)
-				SET(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
-				SET(BLAS_FOUND YES)
-		ELSE(APPLE)
-		    IF(USE_FORTRAN)			   
-			   IF(NOT BLAS_FOUND) # BLAS can be found by FindLAPACK
-			   		  	ENABLE_LANGUAGE(Fortran)
-			   		  	MESSAGE(STATUS "INFO: Searching for BLAS... (To disable BLAS define -DNO_BLAS=ON)")
-						find_package(BLAS)
-				ENDIF(NOT BLAS_FOUND)
-			ELSE(USE_FORTRAN)
-		   			FIND_LIBRARY(BLAS_LIBRARIES NAMES cblas PATHS)
-					IF(BLAS_LIBRARIES)
-						SET(BLAS_FOUND YES)
-					ENDIF(BLAS_LIBRARIES)
-			ENDIF(USE_FORTRAN)
-		ENDIF(APPLE)
+	else(NO_BLAS)
+		if(APPLE)
+			set(BLAS_LIBRARIES "-framework vecLib" CACHE STRING "CBLAS library" FORCE)
+			set(BLAS_FOUND YES)
+		else(APPLE)
+			if(NOT BLAS_FOUND) # BLAS can be found by FindLAPACK					
+				if(CMAKE_Fortran_COMPILER_WORKS)
+					message(STATUS "INFO: Searching for BLAS with find_package... (To disable BLAS define -DNO_BLAS=ON)")		 	
+					find_package(BLAS)
+				else(CMAKE_Fortran_COMPILER_WORKS)
+					message(STATUS "INFO: Searching for BLAS with find_library... (To disable BLAS define -DNO_BLAS=ON)")
+			   		find_library(BLAS_LIBRARIES NAMES cblas PATHS)
+					if(BLAS_LIBRARIES)
+						set(BLAS_FOUND YES)
+					endif(BLAS_LIBRARIES)
+				endif(CMAKE_Fortran_COMPILER_WORKS)
+			endif(NOT BLAS_FOUND)
+		endif(APPLE)
 
-		IF(BLAS_FOUND)		
-			IF(NOT BLAS_INCLUDE_PATH)
-				FIND_PATH(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
-			ENDIF(NOT BLAS_INCLUDE_PATH)
+		if(BLAS_FOUND)		
+			if(NOT BLAS_INCLUDE_PATH)
+				find_path(BLAS_INCLUDE_PATH cblas.h /usr/local/include/ /usr/include /include)
+			endif(NOT BLAS_INCLUDE_PATH)
 
-			IF(BLAS_INCLUDE_PATH)
+			if(BLAS_INCLUDE_PATH)
 			     link_libraries(${BLAS_LIBRARIES})
 				 include_directories (${BLAS_INCLUDE_PATH})
-				 MESSAGE(STATUS "INFO: BLAS Found. (lib = '${BLAS_LIBRARIES}', flags = '${BLAS_LINKER_FLAGS}', headers at '${BLAS_INCLUDE_PATH})")
-				 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBLAS_AVAILABLE")
-			ELSE(BLAS_INCLUDE_PATH)		  	
-				   MESSAGE(STATUS "INFO: Found BLAS (lib = '${BLAS_LIBRARIES}$), but not cblas.h ! (To disable BLAS define -DNO_BLAS=ON)")
-		   	ENDIF(BLAS_INCLUDE_PATH)
-		ELSE(BLAS_FOUND)
-		    MESSAGE(STATUS "INFO: Did not find BLAS ! (To disable LAPACK define -DNO_LAPACK=ON)")
-		ENDIF(BLAS_FOUND)
+				 message(STATUS "INFO: BLAS Found. (lib = '${BLAS_LIBRARIES}', flags = '${BLAS_LINKER_FLAGS}', headers at '${BLAS_INCLUDE_PATH})")
+				 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBLAS_AVAILABLE")
+			else(BLAS_INCLUDE_PATH)		  	
+				   message(STATUS "INFO: Found BLAS (lib = '${BLAS_LIBRARIES}$), but not cblas.h ! (To disable BLAS define -DNO_BLAS=ON)")
+		   	endif(BLAS_INCLUDE_PATH)
+		else(BLAS_FOUND)
+		    message(STATUS "INFO: Did not find BLAS ! (To disable LAPACK define -DNO_LAPACK=ON)")
+		endif(BLAS_FOUND)
 
-	ENDIF(NO_BLAS)
+	endif(NO_BLAS)
 
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
