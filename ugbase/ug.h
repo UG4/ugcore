@@ -70,7 +70,7 @@ inline int UGFinalize(bool outputProfilerStats = false)
  *	associated value to an integer. Returns true if the parameter was
  *	found, false if not.
  */
-bool ParamToInt(int& iOut, const char* param, int argc, char* argv[])
+inline bool ParamToInt(int& iOut, const char* param, int argc, char* argv[])
 {
 	for(int i = 0; i < argc; ++i){
 		if(strcmp(param, argv[i]) == 0){
@@ -86,7 +86,7 @@ bool ParamToInt(int& iOut, const char* param, int argc, char* argv[])
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter and returns true if it is found.
  */
-bool FindParam(const char* param, int argc, char* argv[])
+inline bool FindParam(const char* param, int argc, char* argv[])
 {
 	for(int i = 0; i < argc; ++i){
 		if(strcmp(param, argv[i]) == 0){
