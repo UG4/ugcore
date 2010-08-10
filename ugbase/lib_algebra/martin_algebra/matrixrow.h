@@ -21,6 +21,9 @@
 namespace ug{
 ///////////////////////////////////////////////////////////////////
 
+/// \addtogroup lib_algebra
+///	@{
+
 //!
 /** class matrixrow
  * templated class, parameter is a blockmatrix type like double or blockDenseMatrix
@@ -98,6 +101,9 @@ private:
 	const matrix_type &A;
 	const size_t row;
 };
+
+
+/// @}
 
 } // namespace ug
 

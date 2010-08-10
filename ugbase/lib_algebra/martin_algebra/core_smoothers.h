@@ -15,6 +15,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_algebra
+///	@{
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 //	gs_step_LL
 /**
@@ -122,5 +125,7 @@ bool diag_step(const Matrix_type& A, Vector_type& x, const Vector_type& b, numbe
 
 	return true;
 }
+
+/// @}
 }
 #endif // __H__UG__MARTIN_ALGEBRA__CORE_SMOOTHERS__

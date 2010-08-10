@@ -14,6 +14,9 @@
 namespace ug
 {
 
+/// \addtogroup lib_algebra
+///	@{
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CreateAsMultiplyOf:
 //-------------------------
@@ -241,6 +244,7 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 }
 
 
+/// @}
 } // end namespace ug
 
 

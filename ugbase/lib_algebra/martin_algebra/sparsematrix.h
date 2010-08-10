@@ -26,6 +26,9 @@
 
 namespace ug{
 
+/// \addtogroup lib_algebra
+///	@{
+
 template<typename entry_type> class matrixrow;
 template<typename vec_type> class Vector;
 
@@ -454,6 +457,7 @@ private:
 	friend class matrixrow<entry_type>;
 };
 
+///	@}
 } // namespace ug
 
 #include "matrixrow.h"

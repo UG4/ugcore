@@ -18,6 +18,9 @@ namespace ug{
 //							Vector
 ///////////////////////////////////////////////////////////////////
 
+/// \addtogroup lib_algebra
+///	@{
+
 //!
 //! "big" Vector class for use with the big SparseMatrix
 //! can = template expressions like x = 0.5*x - y + A*z
@@ -177,6 +180,8 @@ private:
 
 	//mutable vector_mode dist_mode;
 };
+
+// @}
 
 } // namespace ug
 
