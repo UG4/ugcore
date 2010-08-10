@@ -7,16 +7,19 @@
  *
  * Goethe-Center for Scientific Computing 2009-2010.
  */
-#ifdef LAPACK_AVAILABLE
+
 #include <iostream>
 
-#include "ug.h"
-#include "amg.h"
+#include "common/assert.h"
+#include "common/log.h"
+
+using namespace std;
+
 #include "graph.h"
 #include "amg_nodeinfo.h"
 #include "maxheap.h"
 
-using namespace std;
+
 
 namespace ug
 {
@@ -151,8 +154,6 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, maxheap<am
 		unassigned++;
 	}
 
-	//cout << endl << endl;
-	//graph2.print();
 }
 
 #define AMG_PRINT_COARSEN
@@ -314,4 +315,3 @@ void PreventFFConnections(cgraph &graphS, cgraph &graphST, amg_nodeinfo *nodes, 
 }
 
 } // namespace ug
-#endif

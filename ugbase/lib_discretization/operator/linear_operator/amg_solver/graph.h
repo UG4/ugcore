@@ -1,5 +1,5 @@
 /**
- * \file amg_rs_prolongation.h
+ * \file graph.h
  *
  * \author Martin Rupp
  *
@@ -16,6 +16,8 @@
 #include <fstream>
 #include <algorithm> // for lower_bound
 #include <vector>
+#include "common/assert.h"
+#include "common/log.h"
 
 namespace ug{
 //!
@@ -169,21 +171,6 @@ protected:
 	std::vector<std::vector<size_t> > m_data;
 };
 
-
-// could be in cpp
-inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_helper &h, int level)
-{
-	fstream file(filename, ios::out);
-	file << /*CONNECTION_VIEWER_VERSION*/ 1 << endl;
-
-	h.writePosToStream(file);
-	file << 1 << endl;
-	for(size_t i=0; i < G.size(); i++)
-	{
-		for(cgraph::cRowIterator it = G.begin_row(i); it != G.end_row(i); ++it)
-			file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, (*it)) << "  " << endl;
-	}
-}
 
 } // namespace ug
 

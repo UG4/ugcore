@@ -1,5 +1,5 @@
 /**
- * \file amg_rs_prolongation.h
+ * \file amg.h
  *
  * \author Martin Rupp
  *
@@ -21,8 +21,6 @@
 
 using namespace std;
 
-namespace ug{
-
 template<typename T>
 std::string ToString(const T &t)
 {
@@ -31,43 +29,7 @@ std::string ToString(const T &t)
 	return out.str();
 }
 
-
-struct cAMG_helper
-{
-	int GetOriginalIndex(int level, int i) const
-	{
-		while(level > 0)
-			i = parentIndex[level--][i];
-		return i;		
-	}
-	
-	
-	MathVector<3> GetPosForIndexAtLevel(int level, int i) const
-	{
-		return positions[GetOriginalIndex(level, i)];
-	}
-	
-	
-	void writePosToStream(std::ostream &out) const
-	{
-		out << dimension << endl;
-		out << size << endl;
-		for(int i=0; i< size ; i++)
-		{
-			out << positions[i][0] << " " << positions[i][1];
-			if(dimension == 3)
-				out << " " << positions[i][2];
-			out << endl;
-		}
-	}
-	
-	const MathVector<3> *positions;
-	int size;
-	int dimension;
-	int **parentIndex;
-};
-
-}
+#include "amg_debug_helper.h"
 #include "graph.h"
 
 #include "amg_rs_prolongation.h"

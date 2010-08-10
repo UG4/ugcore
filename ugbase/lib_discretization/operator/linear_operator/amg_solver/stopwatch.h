@@ -36,21 +36,16 @@ public:
 	}
 	friend ostream &operator << (ostream &out, stopwatch &s)
 	{
-		out << s.getTimeDiffMS() << " ms";
+		out << s.ms() << " ms";
 		return out;
 	}
 	
-	double getTimeDiffMS()
+	double ms()
 	{
 		if(bRunning) end = clock();
-		return (clock()-beg)/((double)0.001*CLOCKS_PER_SEC);
+		return (end-beg)/((double)0.001*CLOCKS_PER_SEC);
 	}
-	
-	void printTimeDiff()
-	{
-		cout << "took " << getTimeDiffMS() << " ms" << endl;
-		cout.flush();
-	}
+
 private:
 	clock_t beg, end;
 	bool bRunning;

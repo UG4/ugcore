@@ -14,6 +14,7 @@
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_H__
 
 #include "amg_nodeinfo.h"
+#include "amg_debug_helper.h"
 #include "postscript.h"
 
 namespace ug {
@@ -312,6 +313,20 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 	cout << endl;
 }
 
+// could be in cpp
+inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_helper &h, int level)
+{
+	fstream file(filename, ios::out);
+	file << /*CONNECTION_VIEWER_VERSION*/ 1 << endl;
+
+	h.writePosToStream(file);
+	file << 1 << endl;
+	for(size_t i=0; i < G.size(); i++)
+	{
+		for(cgraph::cRowIterator it = G.begin_row(i); it != G.end_row(i); ++it)
+			file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, (*it)) << "  " << endl;
+	}
+}
 }
 
 

@@ -46,10 +46,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 		if(nodes[i].isCoarse())
 		{
 			// a coarse node
-			SparseMatrix<double>::connection con;
-			con.iIndex = newIndex[i];  assert(newIndex[i] != -1);
-			con.dValue = 1.0;
-			P.set_matrix_row(i, &con, 1);
+			UG_ASSERT(newIndex[i] != -1, "coarse node but no new index?");
+			P(i, newIndex[i]) = 1.0;
 		}
 		else if(A[i].is_isolated())
 		{
@@ -122,6 +120,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			}
 			else
 			{
+				// no suitable interpolating nodes for node i,
+				// so this node has to be treated by indirect interpolation
 				unassigned++;
 				nodes[i].setFineIndirect();
 			}
@@ -133,6 +133,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 		}
 	}
 
+	P.finalize();
 	if(unassigned)
 		cout << "Pass 1: " << unassigned << " left. ";
 }
@@ -200,73 +201,60 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 			}
 
 			con.clear();
-			con2.clear();
-			nrOfPaths.clear();
-
 			double sumInterpolatory=0, sumNeighbors=0;
 
 			//cout << "indirect interpolating node " << i << endl;
 
+			// look at neighbors of node i, try to interpolate indirectly through them
 			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			{
 				size_t indexN = (*conn).iIndex;
 				if(indexN == i) continue; // skip diagonal
-
-				// we dont want fine nodes which were indirectly interpolated in THIS pass
-				if(nodes[indexN].isFineIndirectLevel(pass))
-					continue;
-				// all interpolate neighbors are now from pass (pass-1) (otherwise makes no sense)
 
 				double connValue = amg_offdiag_value((*conn).dValue);
 				sumNeighbors += connValue;
 				if(connValue > theta * dmax)
 					continue;
 
+				// we dont want fine nodes which were indirectly interpolated in THIS pass
+				// (no gauss-seidel-style)
+				if(nodes[indexN].isFineIndirectLevel(pass))
+					continue;
+				// all interpolate neighbors are now from pass (pass-1)
+
+
 				UG_ASSERT(!nodes[indexN].isCoarse(), "Node " << i << " indirect, but neighbor " <<  indexN << " coarse?");
 
-				// now we look from which nodes this fine node is interpolated from
-				typename SparseMatrix<double>::rowIterator conn2 = P.beginRow(indexN); // !!! P
-				for(; !conn2.isEnd(); ++conn2)
+				// now we look at the interpolation values of this neighbor (in P !!!)
+				// and set w'(i,indexNN) += A(i,indexN) * P(indexN,indexNN)
+				for(typename SparseMatrix<double>::rowIterator conn2 = P.beginRow(indexN); !conn2.isEnd(); ++conn2)
 				{
 					size_t indexNN = (*conn2).iIndex;
 					int pos = posInConnections[indexNN];
 
 					if(pos == -1)
 					{
-						pos = posInConnections[indexNN] = con2.size();
+						pos = posInConnections[indexNN] = con.size();
 						c.iIndex = indexNN; assert(c.iIndex >= 0);
 
 						AssignMult(c.dValue, connValue, (*conn2).dValue);
-						con2.push_back(c);
-						//nrOfPaths.push_back(1);
+						con.push_back(c);
 					}
 					else
-					{
-						AddMult(con2[pos].dValue, connValue, (*conn2).dValue);
-						//nrOfPaths[pos]++;
-					}
+						AddMult(con[pos].dValue, connValue, (*conn2).dValue);
 				}
 			}
 
-			for(size_t j=0; j<con2.size(); j++)
+			for(size_t j=0; j<con.size(); j++)
 			{
-				//if(nrOfPaths[j] >= aggressiveCoarseningNrOfPaths)
-				{
-					con.push_back(con2[j]);
-
-					sumInterpolatory += con2[j].dValue;
-				}
-				//sumNeighbors += con2[j].dValue; // ???
-
-				// reset posInConnections
-				posInConnections[con2[j].iIndex] = -1;
+				sumInterpolatory += con[j].dValue;		// calc sumInterpolatory
+				posInConnections[con[j].iIndex] = -1; 	// reset posInConnections
 			}
 
 			if(con.size() == 0)
 				continue;
 
 			unassigned --;
-
 			nodes[i].setFineIndirectLevel(pass);
 #ifdef AMG_PRINT_INDIRECT
 			cout << i << " ";
@@ -277,11 +265,12 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 			double alpha =  /*1/sumInterpolatory; */ - (sumNeighbors / sumInterpolatory)/diag;
 			for(size_t j=0; j<con.size(); j++)
 			{
+				// set w(i,j) = alpha * w'(i,j)
 				//cout << con[j].dValue << " - N:" << sumNeighbors << " I: " << sumInterpolatory << " alpha: " << alpha << ". " << con[j].dValue*alpha << " : " << A.get_diag(i) << endl;
 				con[j].dValue *= alpha;
 			}
 
-			// connections hinzufügen
+			// connections hinzufuegen
 			P.set_matrix_row(i, &con[0], con.size());
 
 		}
@@ -296,7 +285,8 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 				   cout << i << " ";
 			}
 		}
-		UG_ASSERT(unassigned != oldUnassigned, "Pass " << pass << ": Indirect Interpolation hangs at " << unassigned << " unassigned nodes.");
+		UG_ASSERT(unassigned != oldUnassigned, "Pass " << pass <<
+				": Indirect Interpolation hangs at " << unassigned << " unassigned nodes.");
 
 #ifdef AMG_PRINT_INDIRECT
 		cout << "calculated, ";

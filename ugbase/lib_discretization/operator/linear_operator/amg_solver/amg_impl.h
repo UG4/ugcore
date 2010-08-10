@@ -169,27 +169,27 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	WriteAMGGraphToFile(graphST, (string(AMG_WRITE_MATRICES_PATH) + "GT" + ToString(level) + ".mat").c_str(), amghelper, level);
 #endif
 
-
 	CreateMeasureOfImportancePQ(graphS, graphST, PQ, unassigned, nodes);
 
-	if(bTiming) SW.printTimeDiff();
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
 
 #ifdef AMG_PRINT_COARSEN_RATINGS
 	 for(size_t i=0; i<A.num_rows(); i++)
 		 cout << i << " [" << GetOriginalIndex(level, i) << "] " << nodes[i] << endl;
 #endif
-	//PQ.print();
 
 	// Coarsen
 	/////////////////////////////////////////
-	cout << "coarsening... "; cout.flush();
+	cout << endl << "coarsening... "; cout.flush();
 
-	if(bTiming) SW.start();
+	SW.start();
 	int iNrOfCoarse = 0;
+
 	Coarsen(graphST, PQ, newIndex, unassigned, iNrOfCoarse, nodes);
+
 	PreventFFConnections(graphS, graphST, nodes, newIndex, iNrOfCoarse);
 
-	if(bTiming) { SW.printTimeDiff();}
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
 
 	// agressive Coarsening
 	/////////////////////////////////////////
@@ -201,7 +201,7 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 
 		cgraph graph2(A.num_rows());
 
-		cout << "building graph2... "; cout.flush();
+		cout << endl << "building graph2... "; cout.flush();
 		if(bTiming) SW.start();
 
 		for(size_t i=0; i < A.num_rows(); i++) newIndex[i] = -1;
@@ -209,28 +209,22 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 		cgraph graphAC;
 		CreateAggressiveCoarseningGraph(graphST, graphAC, nodes, aggressiveCoarseningNrOfPaths, posInConnections);
 		CreateMeasureOfImportanceAggressiveCoarseningPQ(graphAC, PQ, unassigned, iNrOfCoarse, newIndex, nodes);
-		if(bTiming) SW.printTimeDiff();
-
-		/*for(int i=0; i<A.num_rows(); i++)
-		 {
-		 cout << i << " (" << GetPosForIndexAtLevel(i, level).x << " " << GetPosForIndexAtLevel(i, level).y << ") " ;
-		 nodes[i].print();
-		 }//*/
-		//PQ.print();
-
+		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 		// coarsen 2
 		//------------------
 
 		if(unassigned == 0)
-			cout << "skipping coarsening2: no unassigned nodes." << endl;
+		{
+			UG_LOG(endl << "skipping coarsening2: no unassigned nodes.");
+		}
 		else
 		{
-			cout << "coarsening2... "; cout.flush();
+			UG_LOG(endl << "coarsening2... ");
 
 			if(bTiming) SW.start();
 			Coarsen(graphAC, PQ, newIndex, unassigned, iNrOfCoarse, nodes);
 			//PreventFFConnections(graphS, graphST, nodes, newIndex, iNrOfCoarse);
-			if(bTiming) { SW.printTimeDiff();}
+			if(bTiming) UG_LOG("took " << SW.ms() << " ms")
 
 		}
 	}
@@ -238,33 +232,28 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	// create vectors for AMG multigrid
 	/////////////////////////////////////////
 
+	vec3[level] = new Vector_type (A.num_rows());
+
 	vec1[level+1] = new Vector_type (iNrOfCoarse);
 	vec2[level+1] = new Vector_type (iNrOfCoarse);
-	cout << "created vec1 on level" << level +1 << endl;
+	UG_LOG(endl << "created vec1 on level" << level +1);
 
-	// set size for variable sized blockvectors
-	for(size_t i=0; i<A.num_rows(); i++)
+	// todo: set size for variable sized blockvectors
+	/*for(size_t i=0; i<A.num_rows(); i++)
 		if(nodes[i].isCoarse())
 		{
 			int rows = GetRows((*A.beginRow(i)).dValue);
 			UG_ASSERT(newIndex[i] >= 0, "");
 			SetSize((*vec1[level+1])[newIndex[i]], rows);
 			SetSize((*vec2[level+1])[newIndex[i]], rows);
-		}
+		}*/
 
 	// set parentindex for debugging
-//#ifdef FLEXAMG
 	parentIndex[level+1] = new int[iNrOfCoarse];
 	for(size_t i=0; i<A.num_rows(); i++)
 		if(nodes[i].isCoarse())
 			parentIndex[level+1][ newIndex[i] ] = i;
-//#endif
 
-	/*for(size_t i=0; i<A.num_rows(); i++)
-	 {
-	 cout << i << " (" << GetPosForIndexAtLevel(i, level).x << " " << GetPosForIndexAtLevel(i, level).y << ") ";
-	 nodes[i].print();
-	 }//*/
 
 #ifdef AMG_PRINT_COARSENING
 	printCoarsening(level);
@@ -273,14 +262,8 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	// construct prolongation P = I_{2h->h}
 	/////////////////////////////////////////
 
-	cout << "prolongation... "; cout.flush();
-
+	UG_LOG(endl << "prolongation... ");
 	unassigned = 0;
-
-#if FLEXAMG
-	P.fromlevel = level+1;
-	P.tolevel = level;
-#endif
 
 	if(bTiming) SW.start();
 	CreateRugeStuebenProlongation(P, A, newIndex, iNrOfCoarse, unassigned, nodes, theta);
@@ -289,23 +272,24 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	if(unassigned > 0)
 		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, posInConnections, theta);
 
-	if(bTiming) SW.printTimeDiff();
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
 
 #ifdef AMG_PRINT_P
 	cout << "Prolongation level " << level << endl;
 	P.print();
 #endif
 
-	// construct prolongation R = I_{h->2h}
+	// construct restriction R = I_{h->2h}
 	/////////////////////////////////////////
 
-	cout << "restriction... "; cout.flush();
+	UG_LOG(endl << "restriction... ");
 	if(bTiming) SW.start();
+
 	// construct restriction R = I_{h -> 2h}
-	R.create_as_transpose_of(P); // already finished
-	//R.name = "AMG:R";
-	//R.print("R");
-	if(bTiming) SW.printTimeDiff();
+	R.create_as_transpose_of(P);
+	// R is already finalized
+
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
 
 #ifdef AMG_PRINT_R
 	cout << "Restriction level " << level << endl;
@@ -315,17 +299,18 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	// create Galerkin product
 	/////////////////////////////////////////
 
-	cout << "galerkin product... "; cout.flush();
+	UG_LOG("galerkin product... ");
 	if(bTiming) SW.start();
 
 	// AH = R A P
 	CreateAsMultiplyOf(AH, R, A, P);
 
-	if(bTiming) SW.printTimeDiff();
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
 
+	// finalize
 	if(bTiming) SW.start();
 	AH.finalize();
-	if(bTiming) { cout << "finalizing..."; SW.printTimeDiff(); }
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
 
 #ifdef AMG_PRINT_AH
 	cout << "AH level " << level << endl;
@@ -336,29 +321,26 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	/////////////////////////////////////////
 
 	int nnz = AH.total_num_connections();
-	cout << "AH: nnz: " << nnz << " Density: " << double(nnz)/(double(AH.num_rows())*double(AH.num_rows()))*100.0 << "% nnz/n: " << nnz/(double)AH.num_rows() << endl;
-	cout << "Coarsening rate: " << (100.0*AH.num_rows())/(A.num_rows()) << "%" << endl;
+	UG_LOG(endl << "AH: nnz: " << nnz << " Density: " <<
+			double(nnz)/(double(AH.num_rows())*double(AH.num_rows()))*100.0 << "% nnz/n: " << nnz/(double)AH.num_rows() << endl);
 
-	cout << " level "; SWwhole.printTimeDiff();  cout << endl;
-	cout << endl;
-	cout.flush();
+	UG_LOG("Coarsening rate: " << (100.0*AH.num_rows())/(A.num_rows()) << "%" << endl);
+
+	UG_LOG(" level took " << SWwhole.ms() << " ms" << endl);
 
 
 #ifdef AMG_WRITE_MATRICES_PATH
 	if(this->A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
-		cout << "write matrices";
-		AMGWriteToFile(P, level+1, level, (string(AMG_WRITE_MATRICES_PATH) + "P" + ToString(level) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
-		AMGWriteToFile(R, level, level+1, (string(AMG_WRITE_MATRICES_PATH) + "R" + ToString(level) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
-		AMGWriteToFile(AH, level+1, level+1, (string(AMG_WRITE_MATRICES_PATH) + "A" + ToString(level+1) + ".mat").c_str(), amghelper); cout << "."; cout.flush();
-		cout << " done." << endl;
+		UG_LOG("write matrices");
+		AMGWriteToFile(P, level+1, level, (string(AMG_WRITE_MATRICES_PATH) + "P" + ToString(level) + ".mat").c_str(), amghelper);
+		UG_LOG(".");
+		AMGWriteToFile(R, level, level+1, (string(AMG_WRITE_MATRICES_PATH) + "R" + ToString(level) + ".mat").c_str(), amghelper);
+		UG_LOG(".");
+		AMGWriteToFile(AH, level+1, level+1, (string(AMG_WRITE_MATRICES_PATH) + "A" + ToString(level+1) + ".mat").c_str(), amghelper);
+		UG_LOG(". done.");
 	}
 #endif
-
-	//P.print();
-
-	cout << AH << endl;
-	cout << endl;//*/
 
 	delete[] posInConnections;
 	delete[] newIndex;
@@ -373,30 +355,18 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 template<typename Matrix_type, typename Vector_type>
 bool amg<Matrix_type, Vector_type>::init(const Matrix_type& A_)
 {
+	// init amghelper for grid printing
 	amghelper.positions = &dbg_positions[0];
 	amghelper.size = A_.num_rows();
 	amghelper.parentIndex = parentIndex;
 	amghelper.dimension = dbg_dimension;
 
-	cout << "Starting AMG Setup." << endl << endl;
-	stopwatch SW;
+	UG_LOG("Starting AMG Setup." << endl << endl);
+
+	stopwatch SWwhole;
+	SWwhole.start();
 	const Matrix_type *pA = &A_;
 	A[0] = const_cast<Matrix_type*> (pA);
-
-#ifdef FLEXAMG
-	A[0]->fromlevel = 0;
-	A[0]->tolevel = 0;
-#endif
-
-
-#ifdef AMG_WRITE_MATRICES_PATH
-	if(A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
-	{
-		cout << "write matrix A...";
-		AMGWriteToFile(*A[0], 0, 0, (string(AMG_WRITE_MATRICES_PATH) + "A0.mat").c_str(), amghelper);
-		cout << "done." << endl; cout.flush();
-	}
-#endif
 
 	int i=0;
 	while(i< max_levels-1)
@@ -411,32 +381,25 @@ bool amg<Matrix_type, Vector_type>::init(const Matrix_type& A_)
 #endif
 		//smoother[i].init(*A[i]);
 
-		A[i+1] = new Matrix_type();
+		A[i+1] = new Matrix_type;
 		createAMGLevel(*A[i+1], R[i], *A[i], P[i], i);
 
-		vec3[i] = new Vector_type (A[i]->num_rows());
 		i++;
 	}
 
 	int nrOfUnknowns = block_vector_traits< typename Vector_type::entry_type >::nrOfUnknowns;
-	cout << "Creating level " << i << " (" << A[i]->num_rows() << " nodes, total " << A[i]->num_rows()*nrOfUnknowns << " unknowns)" << endl << "Using Direct Solver on Matrix "
-	<< A[i]->num_rows()*nrOfUnknowns << "x" << A[i]->num_rows()*nrOfUnknowns << ". ";
 
-#ifdef FLEXAMG
-	stopwatch SW2; SW2.start();
-	coarseSolver.create(*A[i]);
-	SW2.printTimeDiff();
-	cout << endl << endl;
-#else
-	stopwatch SW2; SW2.start();
+	UG_LOG("Creating level " << i << " (" << A[i]->num_rows() << " nodes, total "
+			<< A[i]->num_rows()*nrOfUnknowns << " unknowns)" << endl << "Using Direct Solver on Matrix "
+			<< A[i]->num_rows()*nrOfUnknowns << "x" << A[i]->num_rows()*nrOfUnknowns << ". ");
+
+	stopwatch SW; SW.start();
 	coarseSolver.init(*A[i]);
-	SW2.printTimeDiff();
-	cout << endl << endl;
-#endif
+	UG_LOG("Coarse Solver Setup took " << SW.ms() << "ms." << endl);
 
 	used_levels = i+1;
-	cout << "AMG Setup finished. Used Levels: " << used_levels << ". ";
-	SW.printTimeDiff();
+	UG_LOG("AMG Setup finished. Used Levels: " << used_levels << ". ");
+	UG_LOG("AMG Setup took " << SWwhole.ms() << " ms." << endl);
 
 	// calc complexities
 	double nnzs=0;
@@ -447,7 +410,8 @@ bool amg<Matrix_type, Vector_type>::init(const Matrix_type& A_)
 		totallength += A[i]->num_rows();
 	}
 
-	cout << "Operator Complexity: " << nnzs/A[0]->total_num_connections() << " nodes complexity: " << totallength/A[0]->num_rows() << endl << endl;
+	UG_LOG("Operator Complexity: " << nnzs/A[0]->total_num_connections() << " nodes complexity: "
+			<< totallength/A[0]->num_rows() << endl << endl);
 
 	return true;
 }
