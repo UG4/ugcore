@@ -35,7 +35,22 @@ std::string ToString(const T &t)
 #include "amg_rs_prolongation.h"
 #include "amg_debug.h"
 
+/// \defgroup AMG
+
+/**
+ * \brief Algebraic Multigrid Functions.
+ *
+ *
+ * \defgroup lib_algebra_AMG AMG
+ * \ingroup lib_algebra
+ */
+
+
+
 namespace ug{
+
+/// \addtogroup lib_algebra_AMG
+///	@{
 
 #define AMG_MAX_LEVELS 32
 
@@ -70,7 +85,6 @@ public:
 	typedef typename Matrix_type::entry_type entry_type;
 	
 //  functions
-	void writeMatrices(const char *pathAndName);
 	amg() ;
 	virtual ~amg();
 	virtual bool init(const Matrix_type& A);
@@ -105,22 +119,21 @@ private:
 	void createAMGLevel(Matrix_type &AH, SparseMatrix<double> &R, const Matrix_type &A, SparseMatrix<double> &P, int level);
 
 //	data
-    LapackLU coarseSolver;
+    LapackLU coarseSolver;				///< the coarse solver
 
-	int used_levels;			///< nr of AMG levels used
+	int used_levels;					///< nr of AMG levels used
 
-	Vector_type *vec1[AMG_MAX_LEVELS]; ///< temporary Vector for storing r = Ax -b
-	Vector_type *vec2[AMG_MAX_LEVELS]; ///< temporary Vector for storing rH
-	Vector_type *vec3[AMG_MAX_LEVELS]; ///< temporary Vector for storing eH
+	Vector_type *vec1[AMG_MAX_LEVELS]; 	///< temporary Vector for storing r = Ax -b
+	Vector_type *vec2[AMG_MAX_LEVELS]; 	///< temporary Vector for storing rH
+	Vector_type *vec3[AMG_MAX_LEVELS]; 	///< temporary Vector for storing eH
 	
 	SparseMatrix<double> R[AMG_MAX_LEVELS]; ///< R Restriction Matrices
 	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Prolongation Matrices
 	Matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
 	
-public:
-	int *parentIndex[AMG_MAX_LEVELS];
-	cAMG_helper amghelper;
 
+	// functions for debug output
+public:
 	void set_debug_positions(const MathVector<2> *pos, size_t size)
 	{
 		dbg_positions.resize(size);
@@ -141,14 +154,22 @@ public:
 	}
 
 private:
-	vector<MathVector<3> > dbg_positions;
-	int dbg_dimension;
+	int *parentIndex[AMG_MAX_LEVELS];			///< parentIndex[L][i] is the index of i on level L-1
+	cAMG_helper amghelper;						///< helper struct for viewing matrices (optional)
+	vector<MathVector<3> > dbg_positions;		///< positions of geometric grid (optional)
+	int dbg_dimension;							///< dimension of geometric grid (optional)
+
+
 };
 	
 	
-
+///	@}
 
 } // namespace ug
+
+
+
+
 #include "amg_impl.h"
 
 
