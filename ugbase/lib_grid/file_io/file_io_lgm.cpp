@@ -41,6 +41,9 @@ bool ImportGridFromLGM(Grid& grid,
 		lgm_delete(l);
 
 	//	3d could not be loaded. Try 2d.
+	//TODO: add full 2d support to lgm_parser. There are problems
+	//		with line left and line right (They are not yet parsed).
+	//		This leads to an error in the current implementation.
 		l = lgm_new();
 		l->dim = 2;
 		linfo = lgm_info_new();

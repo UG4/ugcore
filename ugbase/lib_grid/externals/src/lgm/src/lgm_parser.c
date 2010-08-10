@@ -132,8 +132,7 @@ int lgm_parse(const char* file, struct lgm* l, struct lgm_info* fileinfo)
     $(lgm_parse_domain_info(ts, l, fileinfo));
     $(lgm_parse_subdomain_info(ts, l, fileinfo));
     $(lgm_parse_line_info(ts, l, fileinfo));
-	if(l->dim == 3)
-		$(lgm_parse_surface_info(ts, l, fileinfo));
+	$(lgm_parse_surface_info(ts, l, fileinfo));
     $(lgm_parse_point_info(ts, l, fileinfo));
 
     /* make sure whole file was read */

@@ -45,6 +45,8 @@ bool ImportGridFromNG(Grid& grid,
 		n->dim = 2;
 		ninfo = ng_info_new();
 		
+	//TODO: 2d parsing fails, since it is not fully supported.
+	//		There are problems in the element description (awaits F).
 		if(ng_read(filename, n, ninfo)){
 			LOG("WARNING in ImportGridFromNG: " << ninfo->err_msg << endl);
 			ng_info_delete(ninfo);
