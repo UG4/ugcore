@@ -716,6 +716,46 @@ bool separate_regions(Grid* grid, SubsetHandler* shVolsOut,
 
 void test()
 {
+// Extruder Tests
+//	create a new grid and load a file
+	Grid grid(GRIDOPT_STANDARD_INTERCONNECTION);
+	SubsetHandler sh(grid);
+	if(!LoadGridFromFile(grid, "/Users/sreiter/Projects/ug4/trunk/data/grids/unit_square_quads_8x8.obj", sh)){
+		UG_LOG("  file-load failed. aborting test\n");
+		return;
+	}
+
+	UG_LOG("loading done\n");
+
+//	create a selector
+	UG_LOG("selector\n");
+	Selector sel(grid);
+	sel.select(grid.faces_begin(), grid.faces_end());
+	
+//	perform extrusion
+	UG_LOG("extruding...\n");
+	vector<VertexBase*> vrts;
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+	faces.assign(sel.faces_begin(), sel.faces_end());
+	Extrude(grid, &vrts, &edges, &faces, vector3(0, 0, 1));
+/*
+	sel.clear();
+	sel.select(faces.begin(), faces.end());
+	faces.assign(sel.faces_begin(), sel.faces_end());
+	Extrude(grid, &vrts, &edges, &faces, vector3(0, 0, 1));
+*/
+	UG_LOG("saving...\n");
+	
+//	save file
+	SaveGridToUGX(grid, sh, "/Users/sreiter/Desktop/extrudeTest.ugx");
+	
+	
+	UG_LOG("done\n");
+
+
+/*
+//	UGX-Tests
 //	create a new grid and load a file
 	Grid grid;
 	SubsetHandler sh(grid);
@@ -759,6 +799,7 @@ void test()
 		UG_LOG("num quadrilaterals: " << nGrid.num<Quadrilateral>() << endl);
 		UG_LOG("num tetrahedron: " << nGrid.num<Tetrahedron>() << endl);
 	}
+*/
 }
 
 }//	end of namespace

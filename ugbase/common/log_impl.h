@@ -8,6 +8,7 @@
 #ifndef __H__COMMON__LOG_IMPL__
 #define __H__COMMON__LOG_IMPL__
 
+
 namespace ug{
 
 inline

@@ -22,6 +22,8 @@ void Extrude(Grid& grid,
 			APosition& aPos,
 			bool invertOrientation)
 {
+	UG_DLOG(LIB_GRID, 0, "extruding...\n");
+	
 	if(!grid.has_vertex_attachment(aPos))
 		grid.attach_to_vertices(aPos);
 
@@ -53,9 +55,15 @@ void Extrude(Grid& grid,
 //	we'll record created faces in this vector, since we have to fix the
 //	orientation later on (only if pvEdgesInOut has been specified).
 	vector<Face*> vNewFaces;
-	bool bRecordNewFaces = (pvEdgesInOut != NULL) && (extrusionOptions & EO_CREATE_FACES);
-	if(bRecordNewFaces)
-		vNewFaces.resize(numNewFaces);
+	bool bRecordNewFaces = false;
+	if((pvEdgesInOut != NULL) && (extrusionOptions & EO_CREATE_FACES))
+	{
+		if(pvEdgesInOut->size() > 0){
+			bRecordNewFaces = true;
+			vNewFaces.resize(numNewFaces);
+		}
+	}
+	
 	size_t newFaceCount = 0;
 //	if faces are extruded we want them in the first section of vNewFaces (they shall define the orientation).
 //	Thats why we start in the second section in this case.
@@ -65,6 +73,7 @@ void Extrude(Grid& grid,
 //	first we'll extrude all vertices. For each a new edge will be created.
 	if(pvVerticesInOut)
 	{
+		UG_DLOG(LIB_GRID, 1, "  extruding vertices: " << pvVerticesInOut->size() << endl);
 		vector<VertexBase*>& vVertices = *pvVerticesInOut;
 		for(uint i = 0; i < vVertices.size(); ++i)
 		{
@@ -85,11 +94,13 @@ void Extrude(Grid& grid,
 		//	overwrite the vertex in pvVerticesInOut
 			vVertices[i] = v;
 		}
+		UG_DLOG(LIB_GRID, 1, "  extrunding vertices done.\n");
 	}
 
 //	now extrude edges.
 	if(pvEdgesInOut)
 	{
+		UG_DLOG(LIB_GRID, 1, "  extruding edges: " << pvEdgesInOut->size() << endl);
 		vector<EdgeBase*>& vEdges = *pvEdgesInOut;
 		for(uint i = 0; i < vEdges.size(); ++i)
 		{
@@ -129,11 +140,13 @@ void Extrude(Grid& grid,
 				vNewFaces[newFaceCount++] = f;
 			}
 		}
+		UG_DLOG(LIB_GRID, 1, "  extrunding edges done.\n");
 	}
 
 //	now extrude faces.
 	if(pvFacesInOut)
 	{
+		UG_DLOG(LIB_GRID, 1, "  extruding faces: " << pvFacesInOut->size() << endl);
 	//	fill the first section of vNewFaces
 		newFaceCount = 0;
 
@@ -171,6 +184,7 @@ void Extrude(Grid& grid,
 			Face* fNew = NULL;
 			if(numVrts == 3)
 			{
+				UG_DLOG(LIB_GRID, 2, "    " << i << ": creating tri...\n");
 				fNew = *grid.create<Triangle>(TriangleDescriptor(v[0], v[1], v[2]), f);
 
 			//	create the volume
@@ -187,6 +201,7 @@ void Extrude(Grid& grid,
 			}
 			else if(numVrts == 4)
 			{
+				UG_DLOG(LIB_GRID, 2, "    " << i << ": creating quad...\n");
 				fNew = *grid.create<Quadrilateral>(QuadrilateralDescriptor(v[0], v[1], v[2], v[3]), f);
 
 			//	create the volume
@@ -212,15 +227,20 @@ void Extrude(Grid& grid,
 				vFaces[i] = fNew;
 			//	store the face in vNewFaces - but only if we have
 			//	to re-orientate them later on.
-				if(bRecordNewFaces)
+				if(bRecordNewFaces){
+					UG_DLOG(LIB_GRID, 2, "    storing face for reordering...\n");
 					vNewFaces[newFaceCount++] = fNew;
+				}
 			}
 		}
+		UG_DLOG(LIB_GRID, 1, "  extruding faces done.\n");
 	}
 
 //	if faces were extruded from edges, we have to fix the orientation now
 	if(bRecordNewFaces){
+		UG_DLOG(LIB_GRID, 1, "  reordering faces...\n");
 		FixOrientation(grid, vNewFaces.begin(), vNewFaces.end());
+		UG_DLOG(LIB_GRID, 1, "  reordering faces done.\n");
 	}
 }
 
