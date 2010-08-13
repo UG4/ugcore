@@ -131,7 +131,7 @@ class AssembledLinearizedOperator : virtual public ILinearizedOperator<TFunction
 
 
 template <typename TFunction>
-class AssembledLinearOperator : virtual public ILinearOperator<TFunction, TFunction>, public AssembledLinearizedOperator<TFunction>
+class AssembledLinearOperator : public AssembledLinearizedOperator<TFunction>, virtual public ILinearOperator<TFunction, TFunction>
 {
 	public:
 		// domain function type
@@ -153,6 +153,13 @@ class AssembledLinearOperator : virtual public ILinearOperator<TFunction, TFunct
 		{
 			return true;
 		}
+
+		// otherwise not clear: AssembledLinearizedOperator<TFunction>::prepare(u, c, d) or ILinearOperator(u,c,d)
+		virtual bool prepare(domain_function_type& u, domain_function_type& c, codomain_function_type& d)
+		{
+			return AssembledLinearizedOperator<TFunction>::prepare(u, c, d);
+		}
+
 
 		// prepare the operator for application (e.g. compute an intern Matrix L)
 		virtual bool prepare(domain_function_type& u, codomain_function_type& f)
