@@ -9,7 +9,7 @@
 namespace ug{
 
 template <typename TFunction>
-class AssembledLinearizedOperator : public ILinearizedOperator<TFunction, TFunction>
+class AssembledLinearizedOperator : virtual public ILinearizedOperator<TFunction, TFunction>
 {
 	public:
 		// domain function type
@@ -131,7 +131,7 @@ class AssembledLinearizedOperator : public ILinearizedOperator<TFunction, TFunct
 
 
 template <typename TFunction>
-class AssembledLinearOperator : public ILinearOperator<TFunction, TFunction>, public AssembledLinearizedOperator<TFunction>
+class AssembledLinearOperator : virtual public ILinearOperator<TFunction, TFunction>, public AssembledLinearizedOperator<TFunction>
 {
 	public:
 		// domain function type

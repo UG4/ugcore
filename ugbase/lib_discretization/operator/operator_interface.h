@@ -175,7 +175,7 @@ class ILinearizedOperatorInverse
 ///////////////////////////////////////////////////////////
 
 template <typename X, typename Y>
-class ILinearOperator : public ILinearizedOperator<X,Y>
+class ILinearOperator : virtual public ILinearizedOperator<X,Y>
 {
 	public:
 		// domain space

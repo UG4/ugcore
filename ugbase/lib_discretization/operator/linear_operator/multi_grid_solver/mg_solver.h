@@ -24,7 +24,7 @@ namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
 class AssembledMultiGridCycle :
-	public ILinearizedIteratorOperator<typename TApproximationSpace::function_type, typename TApproximationSpace::function_type> {
+	virtual public ILinearizedIteratorOperator<typename TApproximationSpace::function_type, typename TApproximationSpace::function_type> {
 	public:
 		typedef typename TApproximationSpace::domain_type phys_domain_type;
 
@@ -51,15 +51,15 @@ class AssembledMultiGridCycle :
 									size_t surfaceLevel, size_t baseLevel, int cycle_type,
 									smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes = true);
 
-		bool init(ILinearizedOperator<function_type, function_type>& A);
+		virtual bool init(ILinearizedOperator<function_type, function_type>& A);
 
 		// This functions allocates the Memory for the solver
 		// and assembles coarse grid matrices using 'ass'
-		bool prepare(function_type &u, function_type& d, function_type &c);
+		virtual bool prepare(function_type &u, function_type& d, function_type &c);
 
 		// This function performes one multi-grid cycle step
 		// A correction c is returned as well as the updated defect d := d - A*c
-		bool apply(function_type& d, function_type &c, bool updateDefect);
+		virtual bool apply(function_type& d, function_type &c, bool updateDefect);
 
 		ILinearizedIteratorOperator<function_type,function_type>* clone()
 		{

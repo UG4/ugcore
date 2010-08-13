@@ -18,8 +18,8 @@ namespace ug{
 
 
 template <typename TDiscreteFunction>
-class AMGSolver : 	public ILinearizedIteratorOperator<TDiscreteFunction, TDiscreteFunction>,
-					public amg<SparseMatrix<double>, Vector<double> > //amg<TDiscreteFunction::algebra_type::Matrix_type, TDiscreteFunction::algebra_type::Vector_type>
+class AMGSolver : 	virtual public ILinearizedIteratorOperator<TDiscreteFunction, TDiscreteFunction>
+					//public amg<SparseMatrix<double>, Vector<double> > //amg<TDiscreteFunction::algebra_type::Matrix_type, TDiscreteFunction::algebra_type::Vector_type>
 {
 
 public:
@@ -83,7 +83,7 @@ public:
 		typename domain_function_type::vector_type& d_vec = d.get_vector();
 		typename codomain_function_type::vector_type& c_vec = c.get_vector();
 
-		UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
+		UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(), "Vector and Row sizes have to match!");
 		UG_ASSERT(c_vec.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
 		UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
 

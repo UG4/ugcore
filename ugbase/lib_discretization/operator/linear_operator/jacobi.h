@@ -84,10 +84,10 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 				m_diagInv.change_storage_type(PST_CONSISTENT);
 
 				// invert diagonal and multiply by damping
-				for(size_t i = 0; i < m_diagInv.size(); ++i){
-					typename algebra_type::matrix_type::entry_type entry = m_diagInv[i];
-					m_diagInv[i] = m_damp;
-					m_diagInv[i] /= entry;
+				for(size_t i = 0; i < m_diagInv.size(); ++i)
+				{
+					m_diagInv[i] *= 1/m_damp;
+					Invert(m_diagInv[i]);
 				}
 				m_bOpChanged = false;
 			}
@@ -117,8 +117,10 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 #ifdef UG_PARALLEL
 			// multiply defect with diagonal, c = damp * D^{-1} * d
 			// TODO: We should handle this by a VecEntrywiseMultiply
-			for(size_t i = 0; i < m_diagInv.size(); ++i){
-				c_vec[i] = m_diagInv[i] * d_vec[i];
+			for(size_t i = 0; i < m_diagInv.size(); ++i)
+			{
+				// c_vec[i] = m_diagInv[i] * d_vec[i];
+				AssignMult(c_vec[i], m_diagInv[i], d_vec[i]);
 			}
 
 			// make correction consistent
@@ -127,10 +129,14 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 				return false;
 #else
 			// apply iterator: c = B*d (damp is not used)
-			diag_step(*m_pMatrix, c_vec, d_vec, m_damp);
-
-			// damp correction
-			c *= m_damp;
+			for(size_t i = 0; i < m_diagInv.size(); ++i)
+			{
+				// c_vec[i] = d_vec[i] / m_pMatrix->get_diag(i) * m_damp;
+				c_vec[i] = d_vec[i];
+				c_vec[i] /= m_pMatrix->get_diag(i);
+				// damp correction
+				c_vec[i] *= m_damp;
+			}
 #endif
 			// update defect
 			// TODO: Check that matrix has correct type (additive)
