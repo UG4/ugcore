@@ -97,12 +97,16 @@ class GeometricObjectCollection
 		
 	//	Iterators
 	//	begin
+	/**	returns the begin iterator for the specified level.
+	 *	If no level is given iterators for level 0 are returned.*/
 		template <class TGeomObj>
 		inline
 		typename geometry_traits<TGeomObj>::iterator
 		begin(size_t level = 0);
 
 	//	end
+	/**	returns the end iterator for the specified level.
+	 *	If no level is given iterators for level 0 are returned.*/
 		template <class TGeomObj>
 		inline
 		typename geometry_traits<TGeomObj>::iterator

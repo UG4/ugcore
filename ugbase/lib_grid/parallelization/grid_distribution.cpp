@@ -69,10 +69,11 @@ static void AddVerticalMasterInterfaces(GridLayoutMap& layoutMapOut,
 }
 
 ///	adds virtual horizontal interfaces.
-/**	This method is only used if the source-grid shall be kept on
- *	the distributing process. Instead of creating horizontal interfaces
- *	it thus has to create virtual horizontal interfaces.
- *	\todo: create virtual horizontal interfaces only for surface elements.
+/**	THIS DOCU SEEMS OUTDATED!
+ *	This method creates interfaces in a GridLayoutMap from interfaces
+ *	in a distribution layout.
+ *	Via processMap one can specify alias processes. If a alias-process is
+ *	set to -1, the associated interface is ignored.
  */
 template <class TGeomObj>
 static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
@@ -105,10 +106,15 @@ static void AddHorizontalInterfaces(GridLayoutMap& layoutMapOut,
 			int procID = iter->first;
 			if(pProcessMap)
 			{
-				assert((int)pProcessMap->size() > procID && "process-map to small.");
+				//assert((int)pProcessMap->size() > procID && "process-map to small.");
 				if((int)pProcessMap->size() > procID)
 					procID = (*pProcessMap)[procID];
+				else
+					procID = -1;
 			}
+			
+			if(procID == -1)
+				continue;
 			
 		//	copy the interface-elements to the layoutMap
 			typename DistLayout::Interface& distInterface = iter->second;
@@ -862,7 +868,7 @@ bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 //	we need a temporary GridLayoutMap, since we have to avoid problems,
 //	when it comes to erasing old unused interface entries later on.
 	GridLayoutMap tmpGlm;
-		
+
 //	iterate over the streams and process data
 	for(StreamPack::iterator iter = streamPackReceive.begin();
 		iter != streamPackReceive.end(); ++iter)
@@ -895,6 +901,8 @@ bool UpdateInterfaces(DistributedGridManager& distGridMgr, TSelector& sel,
 				Interface& oldInterface = oldLayout.interface(iter->first, level);
 				Interface& newInterface = newLayout.interface(newConnectedProcID, level);
 				
+//TODO:	ONLY ELEMENTS THAT STAY ON THE LOCAL PROC MAY BE INSERTED INTO INTERFACES.
+
 			//	we'll store all nodes of oldInterface in a temporary vector,
 			//	since we want to access them by index
 				vInterfaceElements.clear();
@@ -1024,6 +1032,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //TODO: use a proc-map to decouple subsets-indices and proces-ranks.
 
 	vector<int> vSendToRanks;
+	int highestSendToRank = -1;
 	for(size_t si = 0; si < shPartition.num_subsets(); ++si)
 	{
 		//	todo: we have to check whether interfaces change and notify the
@@ -1032,9 +1041,13 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		//	check whether there is anything in the partition
 			if(!shPartition.empty(si)){
 				vSendToRanks.push_back((size_t)si);
+				if((int)si > highestSendToRank)
+					highestSendToRank = (int)si;
+			/*
 			//	log
 				UG_LOG("  sending " << shPartition.num<Face>(si)
 						<< " faces to process " << si << endl);
+			*/
 			}
 		}
 	}
@@ -1042,7 +1055,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 //	send and receive communication requests from other processes.
 	vector<int> vReceiveFromRanks;
 	CommunicateInvolvedProcesses(vReceiveFromRanks, vSendToRanks, procComm);
-
+/*
 //	log the comm ranks
 	UG_LOG("  sending to ranks: ");
 	for(size_t i = 0; i < vSendToRanks.size(); ++i){
@@ -1055,7 +1068,52 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		UG_LOG(vReceiveFromRanks[i] << ", ");
 	}
 	UG_LOG(endl);
+*/
+////////////////////////////////
+//	ADJUST LOCAL INTERFACES AND ERASE UNUSED GRID PARTS
+//	COMMUNICATE INTERFACE CHANGES TO DIRECT NEIGHBOURS
+//	adjust local interfaces and erase obsolete grid-data.
+	int eraseOption = -1;
+	if(vSendToRanks.size() > 0)
+	{
+	//	erase all elements that will not remain.
+		if((int)vVertexLayouts.size() > localProcRank)
+		{
+			msel.clear();
+			SelectNodesInLayout(msel, vVertexLayouts[localProcRank]);
+			SelectNodesInLayout(msel, vEdgeLayouts[localProcRank]);
+			SelectNodesInLayout(msel, vFaceLayouts[localProcRank]);
+			SelectNodesInLayout(msel, vVolumeLayouts[localProcRank]);
+			
+			eraseOption = 0;
+		}
+		else{
+		//	if there is no entry in vVertexLayouts, we can remove all elements
+			msel.clear();
+			
+			eraseOption = 1;
+		}
+	}
+	else{
+	//	we have to receive interface changes from other processes.
+		msel.select(mg.begin<VertexBase>(), mg.end<VertexBase>());
+		msel.select(mg.begin<EdgeBase>(), mg.end<EdgeBase>());
+		msel.select(mg.begin<Face>(), mg.end<Face>());
+		msel.select(mg.begin<Volume>(), mg.end<Volume>());
+		
+		eraseOption = 2;
+	}
 	
+	bool bErasedElementsFromLayout = false;
+	bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(distGridMgr, msel,
+															vVertexLayouts);
+	bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(distGridMgr, msel,
+															vEdgeLayouts);
+	bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(distGridMgr, msel,
+															vFaceLayouts);
+	bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(distGridMgr, msel,
+															vVolumeLayouts);
+
 ////////////////////////////////
 //	PREPARE SEND DATA FOR GRIDS
 //	pack the parts of the grid that are to be sent to other processes into
@@ -1095,6 +1153,12 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							   msel.get_geometric_object_collection(),
 							   sendStream);
 							   
+	//	serialize interfaces
+		SerializeDistributionLayoutInterfaces(sendStream, vVertexLayouts[destProc]);
+		SerializeDistributionLayoutInterfaces(sendStream, vEdgeLayouts[destProc]);
+		SerializeDistributionLayoutInterfaces(sendStream, vFaceLayouts[destProc]);
+		SerializeDistributionLayoutInterfaces(sendStream, vVolumeLayouts[destProc]);
+											  
 	//	serialize position attachment
 	//TODO: take the position-attachment as a template parameter
 		for(uint iLevel = 0; iLevel < mg.num_levels(); ++iLevel)
@@ -1107,15 +1171,10 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 
 		vSendBlockSizes.push_back((int)(sendStream.size() - oldSize));
 	}
-	
+
 ////////////////////////////////
-//	ADJUST LOCAL INTERFACES AND ERASE UNUSED GRID PARTS
-//	COMMUNICATE INTERFACE CHANGES TO DIRECT NEIGHBOURS
-//	adjust local interfaces and erase obsolete grid-data.
-//	all send data is now ready. We can now erase unrequired parts of the local grid.
-//	We only have to do anything if data is actually moved to other processes.
-	int eraseOption = -1;
-	if(vSendBlockSizes.size() > 0)
+//	erase unused grid parts		
+	if(vSendToRanks.size() > 0)
 	{
 	//	erase all elements that will not remain.
 		if((int)vVertexLayouts.size() > localProcRank)
@@ -1144,17 +1203,7 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 		
 		eraseOption = 2;
 	}
-	
-	bool bErasedElementsFromLayout = false;
-	bErasedElementsFromLayout |= UpdateInterfaces<VertexLayout>(distGridMgr, msel,
-															vVertexLayouts);
-	bErasedElementsFromLayout |= UpdateInterfaces<EdgeLayout>(distGridMgr, msel,
-															vEdgeLayouts);
-	bErasedElementsFromLayout |= UpdateInterfaces<FaceLayout>(distGridMgr, msel,
-															vFaceLayouts);
-	bErasedElementsFromLayout |= UpdateInterfaces<VolumeLayout>(distGridMgr, msel,
-															vVolumeLayouts);
-	
+
 	if(bErasedElementsFromLayout){
 		switch(eraseOption){
 			case 0:{
@@ -1173,21 +1222,6 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 			}break;
 		}
 	}
-	
-//	update the layouts - if required.
-	if(bErasedElementsFromLayout){
-		distGridMgr.grid_layouts_changed(false);
-	}
-	
-//	only for debugging: log the layout-map-details
-	UG_LOG("-- VertexBase\n");
-	pcl::LogLayoutMapStructure<VertexBase>(glm);
-	UG_LOG("-- EdgeBase\n");
-	pcl::LogLayoutMapStructure<EdgeBase>(glm);
-	UG_LOG("-- Face\n");
-	pcl::LogLayoutMapStructure<Face>(glm);
-	UG_LOG("-- Volume\n");
-	pcl::LogLayoutMapStructure<Volume>(glm);
 	
 ////////////////////////////////
 //	COMMUNICATE DATA
@@ -1210,14 +1244,14 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 								 (int)vSendToRanks.size(),
 								 redistTag);
 	}
-	
+/*
 //	log the sizes of the data-bocks that will be received
 	for(size_t i = 0; i < vReceiveFromRanks.size(); ++i)
 	{
 		UG_LOG("  receiving " << vRecvBlockSizes[i]
 				<< " bytes from process " << vReceiveFromRanks[i] << endl);
 	}
-	
+*/	
 //	prepare receive buffers
 	BinaryStream recvStream;
 	{
@@ -1238,18 +1272,30 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 							 
 //	deserialize the grid
 //WARNING: the current implementation only works as long as
-//			the receiving processes initially contain empty grids.
+//			the receiving processes initially contains empty grids.
 //TODO: implement grid-merging
 	if(recvStream.size() > 0)
 	{
+	//	vectors in which we'll record received elements
+		vector<VertexBase*> vrts;
+		vector<EdgeBase*> edges;
+		vector<Face*> faces;
+		vector<Volume*> vols;
+				
 	//	deserialize the multi-grid
-		DeserializeMultiGridElements(mg, recvStream);
+		DeserializeMultiGridElements(mg, recvStream, &vrts, &edges, &faces, &vols);
 
 	//	deserialize subset handler
 		if(!DeserializeSubsetHandler(mg, sh,
 									mg.get_geometric_object_collection(),
 									recvStream))
 			return false;
+		
+	//	deserialize the distribution layouts
+		DeserializeDistributionLayoutInterfaces(glm, vrts, recvStream);
+		DeserializeDistributionLayoutInterfaces(glm, edges, recvStream);
+		DeserializeDistributionLayoutInterfaces(glm, faces, recvStream);
+		DeserializeDistributionLayoutInterfaces(glm, vols, recvStream);
 		
 	//	read the attached data
 		if(!mg.has_vertex_attachment(aPosition))
@@ -1263,6 +1309,38 @@ bool RedistributeGrid(DistributedGridManager& distGridMgrInOut,
 				return false;
 		}
 	}
+
+//	create local new interfaces
+	if((int)vVertexLayouts.size() > localProcRank){
+	//	we have to create interfaces to the processes that we did send data to.
+	//	by setting alias indices of other processes to -1, we achieve that they
+	//	are ignored
+		vector<int> processMap(highestSendToRank + 1, -1);
+		for(size_t i = 0; i < vSendToRanks.size(); ++i){
+			processMap[vSendToRanks[i]] = vSendToRanks[i];
+		}
+	
+		AddHorizontalInterfaces(glm, vVertexLayouts[localProcRank], &processMap);
+		AddHorizontalInterfaces(glm, vEdgeLayouts[localProcRank], &processMap);
+		AddHorizontalInterfaces(glm, vFaceLayouts[localProcRank], &processMap);
+		AddHorizontalInterfaces(glm, vVolumeLayouts[localProcRank], &processMap);
+	}
+	
+//	update the layouts - if required.
+	//if(bErasedElementsFromLayout)
+	{
+		distGridMgr.grid_layouts_changed(false);
+	}
+	
+//	only for debugging: log the layout-map-details
+	UG_LOG("-- VertexBase\n");
+	pcl::LogLayoutMapStructure<VertexBase>(glm);
+	UG_LOG("-- EdgeBase\n");
+	pcl::LogLayoutMapStructure<EdgeBase>(glm);
+	UG_LOG("-- Face\n");
+	pcl::LogLayoutMapStructure<Face>(glm);
+	UG_LOG("-- Volume\n");
+	pcl::LogLayoutMapStructure<Volume>(glm);
 	
 //	clean up
 	mg.detach_from_vertices(aInt);

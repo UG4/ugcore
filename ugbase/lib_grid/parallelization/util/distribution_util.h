@@ -223,7 +223,7 @@ void DeserializeGridAndDistributionLayouts(
 template <class TGeomObj, class TLayoutMap>
 void DeserializeDistributionLayoutInterfaces(
 									TLayoutMap& layoutMapOut,
-									std::vector<TGeomObj*> vGeomObjs,
+									std::vector<TGeomObj*>& vGeomObjs,
 									std::istream& in);
 									
 ////////////////////////////////////////////////////////////////////////
