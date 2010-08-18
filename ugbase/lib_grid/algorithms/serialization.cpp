@@ -1071,7 +1071,7 @@ bool SerializeSubsetHandler(Grid& grid, ISubsetHandler& sh,
 	out.write((char*)&magicNumber, sizeof(int));
 
 //	serialize subset-infos
-	int numSubsets = (int)sh.num_subset_infos();
+	int numSubsets = (int)sh.num_subsets();
 	out.write((char*)&numSubsets, sizeof(int));
 
 	for(int i = 0; i < numSubsets; ++i)

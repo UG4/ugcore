@@ -196,7 +196,7 @@ void ISubsetHandler::detach_from(IAttachment& attachment, int subsetIndex)
 	STATIC_ASSERT(geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID != -1,
 				invalid_GeomObjClass);
 
-	assert(subsetIndex >= 0 && subsetIndex < (int)num_subset_infos() && "bad subset index.");
+	assert(subsetIndex >= 0 && subsetIndex < (int)num_subsets() && "bad subset index.");
 
 	int objType = geometry_traits<TGeomObjClass>::BASE_OBJECT_TYPE_ID;
 	switch(objType)

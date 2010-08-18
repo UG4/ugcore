@@ -36,9 +36,6 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	/**	If required the subsets between num_subsets() and index will be created.*/
 		inline void subset_required(int index);
 		
-	///	returns the number of subsets
-		inline uint num_subsets() const	{return m_numSubsets;}
-		
 	///	returns the number of levels
 		inline uint num_levels() const	{return (uint)m_levels.size();}
 		
@@ -121,6 +118,9 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		//virtual void unregistered_from_grid(Grid* grid);
 		
 	protected:
+	///	returns the number of subsets in the local list
+		inline uint num_subsets_in_list() const	{return m_numSubsets;}
+		
 	////////////////////////////////////////////////
 	//	implementation of protected virtual methdos of ISubsetHandler.
 	///	erases the subsets. Doesn't alter any indices.

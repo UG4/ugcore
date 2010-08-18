@@ -18,7 +18,7 @@ begin(int subsetIndex)
 	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets())
+	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
 												m_invalidContainer.end());
 			
@@ -41,7 +41,7 @@ end(int subsetIndex)
 	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets())
+	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
 												m_invalidContainer.end());
 
@@ -64,7 +64,7 @@ begin(int subsetIndex) const
 	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets())
+	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
 												m_invalidContainer.end());
 			
@@ -87,7 +87,7 @@ end(int subsetIndex) const
 	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets())
+	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
 												m_invalidContainer.end());
 
@@ -111,7 +111,7 @@ clear_subset_elements(int subsetIndex)
 	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets())
+	if(subsetIndex < 0 || subsetIndex >= (int)num_subsets_in_list())
 		return;
 
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
@@ -138,7 +138,7 @@ num_elements(int subsetIndex) const
 	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets()))
+	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
 		return 0;
 		
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
@@ -158,7 +158,7 @@ num(int subsetIndex) const
 	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	const int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets()))
+	if((subsetIndex < 0) || (subsetIndex >= (int)num_subsets_in_list()))
 		return 0;
 		
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
@@ -176,7 +176,7 @@ GridSubsetHandler::
 num() const
 {
 	uint n = 0;
-	for(size_t i = 0; i < num_subsets(); ++i)
+	for(size_t i = 0; i < num_subsets_in_list(); ++i)
 		n += num<TElem>(i);
 		
 	return n;
@@ -229,12 +229,12 @@ bool GridSubsetHandler::perform_self_tests()
 	bool bSuccess = true;
 	
 	LOG("performing self tests on GridSubsetHandler\n");
-	LOG("  num subets: " << num_subsets() << std::endl);
+	LOG("  num subets: " << num_subsets_in_list() << std::endl);
 	
 //	iterate through the subsets and check whether the assigned
 //	elements have the correct subset index
 	LOG("  checking subset indices\n");
-	for(int i = 0; i < num_subsets(); ++i){
+	for(int i = 0; i < num_subsets_in_list(); ++i){
 		LOG("  checking subset " << i);
 		for(iterator iter = begin<TElem>(i); iter != end<TElem>(i); ++iter)
 		{

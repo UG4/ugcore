@@ -33,7 +33,7 @@ void
 P1StorageManager::
 update_attachments()
 {
-	size_t num_subsets =  m_pSH->num_subset_infos();
+	size_t num_subsets =  m_pSH->num_subsets();
 
 	// Create level dof distributors
 	for(size_t si = m_vSubsetInfo.size(); si <= num_subsets; ++si)

@@ -137,7 +137,7 @@ void GridSubsetHandler::add_required_subset_lists(int maxIndex)
 void GridSubsetHandler::erase_subset_lists(int index)
 {
 	delete m_subsets[index];
-	for(uint i = index + 1; i < num_subsets(); ++i)
+	for(uint i = index + 1; i < num_subsets_in_list(); ++i)
 		m_subsets[i-1] = m_subsets[i];
 	m_subsets.resize(m_subsets.size() - 1);
 }
@@ -179,7 +179,7 @@ void GridSubsetHandler::move_subset_lists(int indexFrom, int indexTo)
 void GridSubsetHandler::
 register_subset_elements_at_pipe()
 {
-	for(size_t i = 0; i < num_subsets(); ++i)
+	for(size_t i = 0; i < num_subsets_in_list(); ++i)
 	{
 	//	register vertices
 		for(VertexBaseIterator iter = begin<VertexBase>(i);
@@ -208,7 +208,7 @@ GeometricObjectCollection
 GridSubsetHandler::
 get_geometric_object_collection(int subsetIndex)
 {
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) && "invalid subset index!");
+	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) && "invalid subset index!");
 
 	return GeometricObjectCollection(&m_subsets[subsetIndex]->m_elements[VERTEX],
 									 &m_subsets[subsetIndex]->m_elements[EDGE],
@@ -220,7 +220,7 @@ GeometricObjectCollection
 GridSubsetHandler::
 get_geometric_object_collection()
 {
-	uint numSubsets = num_subsets();
+	uint numSubsets = num_subsets_in_list();
 	GeometricObjectCollection goc(numSubsets);
 	for(uint i = 0; i < numSubsets; ++i)
 	{

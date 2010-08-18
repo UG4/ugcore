@@ -18,7 +18,7 @@ begin(int subsetIndex, int level)
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
+	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::begin(): bad subset index.");
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::begin(): bad element type.");
@@ -41,7 +41,7 @@ end(int subsetIndex, int level)
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
+	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::end(): bad subset index.");
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::end(): bad element type.");
@@ -72,7 +72,7 @@ clear_subset_elements(int subsetIndex, int level)
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
+	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::clear_subsets_elements(): bad subset index.");
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::clear_subsets_elements(): bad element type.");
@@ -99,7 +99,7 @@ num(int subsetIndex, int level) const
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
+	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::num_elements(): bad subset index.");
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::num_elements(): bad element type.");
@@ -122,7 +122,7 @@ num(int subsetIndex) const
 	int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
 	int sectionInd = geometry_traits<TElem>::SHARED_PIPE_SECTION;
 
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
+	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets_in_list()) &&
 			"ERROR in SubsetHandler::num_elements(): bad subset index.");
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::num_elements(): bad element type.");
@@ -148,7 +148,7 @@ MultiGridSubsetHandler::
 num() const
 {
 	uint n = 0;
-	for(size_t i = 0; i < num_subsets(); ++i)
+	for(size_t i = 0; i < num_subsets_in_list(); ++i)
 		n += num<TElem>(i);
 
 	return n;

@@ -138,7 +138,7 @@ change_subset_indices(int indOld, int indNew)
 
 void MultiGridSubsetHandler::add_required_subset_lists(int maxIndex)
 {
-	while((int)num_subsets() <= maxIndex)
+	while((int)num_subsets_in_list() <= maxIndex)
 		add_subset_to_all_levels();
 }
 
@@ -148,7 +148,7 @@ void MultiGridSubsetHandler::erase_subset_lists(int index)
 	{
 		SubsetVec& subsets = m_levels[level];
 		delete subsets[index];
-		for(uint i = index + 1; i < num_subsets(); ++i)
+		for(uint i = index + 1; i < num_subsets_in_list(); ++i)
 			subsets[i-1] = subsets[i];
 		subsets.resize(subsets.size() - 1);
 	}
@@ -203,7 +203,7 @@ register_subset_elements_at_pipe()
 {
 	for(size_t l = 0; l < num_levels(); ++l)
 	{
-		for(size_t i = 0; i < num_subsets(); ++i)
+		for(size_t i = 0; i < num_subsets_in_list(); ++i)
 		{
 		//	register vertices
 			for(VertexBaseIterator iter = begin<VertexBase>(i, l);
@@ -264,7 +264,7 @@ MultiGridSubsetHandler::
 get_goc_by_level(int level)
 {
 	level_required(level);
-	uint numSubsets = num_subsets();
+	uint numSubsets = num_subsets_in_list();
 	GeometricObjectCollection goc(numSubsets);
 	for(uint i = 0; i < numSubsets; ++i)
 	{
@@ -281,7 +281,7 @@ void MultiGridSubsetHandler::add_level()
 {
 	m_levels.push_back(SubsetVec());
 	int topLevel = m_levels.size() - 1;
-	for(uint i = 0; i < num_subsets(); ++i)
+	for(uint i = 0; i < num_subsets_in_list(); ++i)
 		m_levels[topLevel].push_back(new Subset);
 }
 

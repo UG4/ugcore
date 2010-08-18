@@ -37,9 +37,6 @@ class GridSubsetHandler : public ISubsetHandler
 	 *	ISubsetHandler::subset_info_required is called automatically.*/
 		inline void subset_required(size_t index);
 		
-	///	returns the number of subsets
-		inline uint num_subsets() const	{return m_subsets.size();}
-		
 	////////////////////////////////////////////////
 	//	implementation of public virtual methdos of ISubsetHandler.
 	///	assigns a vertex to a subset.
@@ -163,6 +160,9 @@ class GridSubsetHandler : public ISubsetHandler
 		uint num(int subsetIndex, size_t) const				{return num<TElem>();}
 		
 	protected:
+	///	returns the number of subsets in the local list
+		inline uint num_subsets_in_list() const	{return m_subsets.size();}
+		
 	////////////////////////////////////////////////
 	//	implementation of protected virtual methdos of ISubsetHandler.
 	///	erases the subsets. Doesn't alter any indices.

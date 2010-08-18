@@ -114,7 +114,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	set_default_subset_info(sh.m_defaultSubsetInfo);
 
 //TODO: enable attachment support based on the source-hanlders attachment support!?!
-	subset_info_required(sh.num_subset_infos() - 1);
+	subset_info_required(sh.num_subsets() - 1);
 
 //	make sure that both accessors have a valid grid
 	if(srcGrid && destGrid){
@@ -149,7 +149,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	}
 
 //	copy subset infos
-	for(uint i = 0; i < num_subset_infos(); ++i)
+	for(uint i = 0; i < num_subsets(); ++i)
 		set_subset_info(i, sh.subset_info(i));
 }
 
@@ -380,7 +380,7 @@ subset_info(int subsetIndex)
 const SubsetInfo& ISubsetHandler::
 subset_info(int subsetIndex) const
 {
-	assert(((subsetIndex >= 0) && (subsetIndex < (int)num_subset_infos())) && "ERROR in SubsetHandler::subset_info(..) const: bad subset index. Use non-const version to avoid this Problem.");
+	assert(((subsetIndex >= 0) && (subsetIndex < (int)num_subsets())) && "ERROR in SubsetHandler::subset_info(..) const: bad subset index. Use non-const version to avoid this Problem.");
 
 	return m_subsetInfos[subsetIndex];
 }
@@ -407,7 +407,7 @@ clear()
 void ISubsetHandler::
 clear_subset(int subsetIndex)
 {
-	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subset_infos()) &&
+	assert((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()) &&
 			"ERROR in SubsetHandler::clear_subset(): bad subset index.");
 
 	m_subsetInfos[subsetIndex] = SubsetInfo();
@@ -419,7 +419,7 @@ clear_subset(int subsetIndex)
 void ISubsetHandler::
 clear_subsets()
 {
-	for(int i = 0; i < (int)num_subset_infos(); ++i)
+	for(int i = 0; i < (int)num_subsets(); ++i)
 		clear_subset(i);
 }
 
@@ -479,9 +479,9 @@ insert_subset(int subsetIndex)
 	if(subsetIndex >= 0)
 	{
 	//	make sure that the subset-infos
-		subset_info_required(num_subset_infos());
-		if(subsetIndex < (int)num_subset_infos()-1)
-			move_subset(num_subset_infos() - 1, subsetIndex);
+		subset_info_required(num_subsets());
+		if(subsetIndex < (int)num_subsets()-1)
+			move_subset(num_subsets() - 1, subsetIndex);
 	}
 }
 
@@ -492,7 +492,7 @@ erase_subset(int subsetIndex)
 //	delete the subset
 //	move all subsets with higher index one entry up
 //	and correct indices of assigned elements.
-	if((subsetIndex >= 0) && (subsetIndex < (int)num_subset_infos()))
+	if((subsetIndex >= 0) && (subsetIndex < (int)num_subsets()))
 	{
 		change_subset_indices(subsetIndex, -1);
 
@@ -506,7 +506,7 @@ erase_subset(int subsetIndex)
 			delete m_volumeAttachmentPipes[subsetIndex];
 		}
 
-		for(uint i = subsetIndex + 1; i < num_subset_infos(); ++i)
+		for(uint i = subsetIndex + 1; i < num_subsets(); ++i)
 		{
 		//	alter indices
 			change_subset_indices(i, i-1);
@@ -525,7 +525,7 @@ erase_subset(int subsetIndex)
 		}
 
 	//	resize the subset vector
-		uint numNewSubsets = num_subset_infos() - 1;
+		uint numNewSubsets = num_subsets() - 1;
 		erase_subset_lists(subsetIndex);
 		m_subsetInfos.resize(numNewSubsets);
 		resize_attachment_pipes(numNewSubsets);
@@ -537,8 +537,8 @@ erase_subset(int subsetIndex)
 void ISubsetHandler::
 swap_subsets(int subsetIndex1, int subsetIndex2)
 {
-	if((subsetIndex1 >= 0) && (subsetIndex1 < (int)num_subset_infos())
-		&& (subsetIndex2 >= 0) && (subsetIndex2 < (int)num_subset_infos()))
+	if((subsetIndex1 >= 0) && (subsetIndex1 < (int)num_subsets())
+		&& (subsetIndex2 >= 0) && (subsetIndex2 < (int)num_subsets()))
 	{
 	//	set all indices of subset1 to subsetIndex2 and vice versa.
 	//	swap pointers of subsets afterwards
@@ -577,7 +577,7 @@ swap_subsets(int subsetIndex1, int subsetIndex2)
 void ISubsetHandler::
 move_subset(int indexFrom, int indexTo)
 {
-	if((indexFrom >= 0) && (indexFrom < (int)num_subset_infos()) && (indexTo >= 0))
+	if((indexFrom >= 0) && (indexFrom < (int)num_subsets()) && (indexTo >= 0))
 	{
 		int moveDir = 0;
 	//	we have to distinguish two cases
@@ -704,7 +704,7 @@ enable_subset_attachments(bool bEnable)
 			m_aaDataIndFACE.access(*m_pGrid, m_aDataIndex);
 			m_aaDataIndVOL.access(*m_pGrid, m_aDataIndex);
 
-			resize_attachment_pipes(num_subset_infos());
+			resize_attachment_pipes(num_subsets());
 		//	tell the derived class that it should register all
 		//	of its elements at the pipe.
 			register_subset_elements_at_pipe();
@@ -788,7 +788,7 @@ grid_to_be_destroyed(Grid* grid)
 void ISubsetHandler::
 elements_to_be_cleared(Grid* grid)
 {
-	for(uint si = 0; si < num_subset_infos(); si++)
+	for(uint si = 0; si < num_subsets(); si++)
 		clear_subset_lists(si);
 }
 

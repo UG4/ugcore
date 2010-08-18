@@ -661,7 +661,7 @@ static vector3 GetColorFromStandardPalette(int index)
 //	AssignSubsetColors
 void AssignSubsetColors(ISubsetHandler& sh)
 {
-	for(size_t i = 0; i < sh.num_subset_infos(); ++i)
+	for(size_t i = 0; i < sh.num_subsets(); ++i)
 	{
 		SubsetInfo& si = sh.subset_info(i);
 		vector3 col = GetColorFromStandardPalette(i);
