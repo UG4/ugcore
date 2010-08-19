@@ -191,11 +191,43 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 			}
 		}
 
-	//TODO: as soon as the subset-handler supports reordering of subsets
-	//		for each element-type separately, we should bring the face
-	//		subsets in consecutive order.
+	//	make sure that there are no empty face-subsets between filled ones.
+	//	since we may not swap subsets (otherwise the volume-sequence would be destroyed)
+	//	we have to copy the elements.
+		for(size_t i = 0; i < sh.num_subsets(); ++i){
+			if(sh.num<Face>(i) == 0){
+			//	find the next that has faces
+				size_t next = sh.num_subsets();
+				for(size_t j = i+1; j < sh.num_subsets(); ++j){
+					if(sh.num<Face>(j) > 0){
+						next = j;
+						break;
+					}
+				}
+				
+			//	if a filled one has been found, we'll copy the elements
+				if(next < sh.num_subsets()){
+				//	assign all faces in next to subset i
+					sh.assign_subset(sh.begin<Face>(next), sh.end<Face>(next), i);
+				}
+				else{
+				//	we're done
+					break;
+				}
+			}
+		}
+		
 	//	now we have to assign the interface faces to subsets.
 		AssignVolumeInterfaceFacesToSubsets(grid, sh);
+		
+	//	fix orientation of all face subsets
+		for(size_t i = 0; i < sh.num_subsets(); ++i){
+			if(sh.num<Face>(i) == 0){
+				FixOrientation(grid, sh.begin<Face>(i), sh.end<Face>(i));
+			}
+		}
+		
+	//	make sure that unconnected volume-sets are in separate subsets
 	}
 	else
 	{
@@ -251,9 +283,32 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 			}
 		}
 
-	//TODO: as soon as the subset-handler supports reordering of subsets
-	//		for each element-type separately, we should bring the edge
-	//		subsets in consecutive order.
+	//	make sure that there are no empty edge-subsets between filled ones.
+	//	since we may not swap subsets (otherwise the face-sequence would be destroyed)
+	//	we have to copy the elements.
+		for(size_t i = 0; i < sh.num_subsets(); ++i){
+			if(sh.num<EdgeBase>(i) == 0){
+			//	find the next that has faces
+				size_t next = sh.num_subsets();
+				for(size_t j = i+1; j < sh.num_subsets(); ++j){
+					if(sh.num<EdgeBase>(j) > 0){
+						next = j;
+						break;
+					}
+				}
+				
+			//	if a filled one has been found, we'll copy the elements
+				if(next < sh.num_subsets()){
+				//	assign all edges in next to subset i
+					sh.assign_subset(sh.begin<EdgeBase>(next), sh.end<EdgeBase>(next), i);
+				}
+				else{
+				//	we're done
+					break;
+				}
+			}
+		}
+
 	//	now we have to assign the interface edges to subsets.
 		AssignFaceInterfaceEdgesToSubsets(grid, sh);
 	}

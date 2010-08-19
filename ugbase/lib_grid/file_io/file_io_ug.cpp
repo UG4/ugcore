@@ -78,6 +78,38 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 	for(size_t i = 0; i < shFaces.num_subsets(); ++i)
 		FixOrientation(grid, shFaces.begin<Face>(i), shFaces.end<Face>(i));
 
+//	make sure that all face-subsets are in consecutive order
+	{
+		bool foundEmpty = false;
+		for(size_t i = 0; i < shFaces.num_subsets(); ++i){
+			if(shFaces.num<Face>(i) == 0)
+				foundEmpty = true;
+			else{
+				if(foundEmpty){
+				//	there must be no empty face-subsets between filled ones.
+					UG_LOG("WARNING in ExportGridToUG: Empty face subset found between filled ones. Aborting...\n");
+					return false;
+				}
+			}
+		}
+	}
+
+//	make sure that all volume-subsets are in consecutive order
+	{
+		bool foundEmpty = false;
+		for(size_t i = 0; i < shVolumes.num_subsets(); ++i){
+			if(shVolumes.num<Volume>(i) == 0)
+				foundEmpty = true;
+			else{
+				if(foundEmpty){
+				//	there must be no empty volume-subsets between filled ones.
+					UG_LOG("WARNING in ExportGridToUG: Empty volume subset found between filled ones. Aborting...\n");
+					return false;
+				}
+			}
+		}
+	}
+	
 //	initialization
 	EdgeSelector	LineSel(grid);
 	VertexSelector 	NgVrtSel(grid);
@@ -355,9 +387,10 @@ static bool WriteLGM(Grid& grid,
 			int tmpLeft, tmpRight;
 			if(!GetRightLeftUnitIndex(tmpRight, tmpLeft, grid, *shFaces.begin<Face>(i), shVolumes))
 			{
-				LOG("GetRightLeftUnitIndex failed during lgm-write.\n");
-				LOG("This can happen due to elements with bad orinentation.\n");
-				LOG("IMPLEMENT a geometrical method for fallback!\n");
+				LOG("- GetRightLeftUnitIndex failed during lgm-write.\n");
+				LOG("- In surface " << i << " face 0\n");
+				LOG("- This can happen due to volume-elements with bad orinentation.\n");
+				LOG("- IMPLEMENT a geometrical method for fallback!\n");
 			}
 
 			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; points:";
