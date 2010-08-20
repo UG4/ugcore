@@ -161,7 +161,7 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 
 	private:
 		template <typename TElem>
-		void data_export(std::vector<MathVector<dim> >& val, std::vector<std::vector<MathVector<dim> > >& deriv,
+		void data_export(std::vector<MathVector<dim> >& val, std::vector<IPDerivative<MathVector<dim> > >& deriv,
 						const std::vector<MathVector< reference_element_traits<TElem>::reference_element_type::dim> >& pos,
 						const local_vector_type& u, bool compute_derivatives)
 		{
@@ -185,11 +185,11 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			{
 				VecSet(grad_p_ip, 0.0); c_ip = 0.0;
 
-				if(get_mapping<TElem>().jacobian_transposed_inverse(pos[ip], JTInv) == false) UG_ASSERT(0, "");
+				if(!get_mapping<TElem>().jacobian_transposed_inverse(pos[ip], JTInv)) UG_ASSERT(0, "");
 				for(size_t co = 0; co < num_co; ++co)
 				{
-					if(TrialSpace.evaluate(co, pos[ip], shape_ip[co]) == false) UG_ASSERT(0, "");
-					if(TrialSpace.evaluate_grad(co, pos[ip], grad_local_ip[co]) == false)  UG_ASSERT(0, "");
+					if(!TrialSpace.evaluate(co, pos[ip], shape_ip[co])) UG_ASSERT(0, "");
+					if(!TrialSpace.evaluate_grad(co, pos[ip], grad_local_ip[co]))  UG_ASSERT(0, "");
 					c_ip += u(_C_, co) * shape_ip[co];
 					MatVecMult(grad_global_ip[co], JTInv, grad_local_ip[co]);
 					VecScaleAppend(grad_p_ip, u(_P_,co), grad_global_ip[co]);
@@ -199,16 +199,21 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 				MathVector<dim> vel, gravity;
 				MathMatrix<dim, dim> K;
 
+				// read in user data
 				m_Density(s, c_ip);
 				m_Gravity(gravity);
 				m_Viscosity(mu_ip, c_ip);
 				m_Permeability_Tensor(K);
+
+				// compute Darcy velocity
 				VecScale(vel, gravity, s);
 				VecSubtract(vel, vel, grad_p_ip);
 				MatVecMult(val[ip], K, vel);
 				VecScale(val[ip], val[ip], 1./mu_ip);
 
-				if(compute_derivatives == true)
+				// compute derivative of Darcy Velocity with respect to _C_ and _P_
+				// Out of the parameters, only the density depends on c
+				if(compute_derivatives)
 				{
 					m_D_Density(s, c_ip);
 					MathVector<dim> D_vel_c[num_co], D_vel_p[num_co];
@@ -217,11 +222,14 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 
 						VecScale(D_vel_c[co], gravity, s*shape_ip[co]);
 						VecScale(D_vel_p[co], grad_global_ip[co], -1);
-						MatVecMult(deriv[ip][co], K, D_vel_c[co]);
-						MatVecMult(deriv[ip][num_co + co], K, D_vel_p[co]);
+						MatVecMult(deriv[ip](_C_, co), K, D_vel_c[co]);
+						MatVecMult(deriv[ip](_P_, co), K, D_vel_p[co]);
 
-						VecScale(deriv[ip][co],deriv[ip][co],1./mu_ip);
-						VecScale(deriv[ip][num_co + co],deriv[ip][num_co + co],1./mu_ip);
+						VecScale(deriv[ip](_C_, co),deriv[ip](_C_, co),1./mu_ip);
+						VecScale(deriv[ip](_P_, co),deriv[ip](_P_, co),1./mu_ip);
+
+					//	UG_LOG("D_c = " << deriv[ip](_C_, co)<<" (shape = "<< shape_ip[co] <<", D_dens = "<< s <<")\n");
+					//	UG_LOG("D_p = " << deriv[ip](_P_, co)<<" (grad = "<<  grad_global_ip[co] <<")\n");
 					}
 				}
 			}
@@ -289,7 +297,7 @@ class CplDensityDrivenFlowElemDisc : public ICoupledElemDisc<TAlgebra>
 			typedef MathVector<dim> data_type;
 			typedef MathVector<ref_elem_type::dim> position_type;
 
-			typedef void (CplDensityDrivenFlowElemDisc::*ExpFunc)(std::vector<data_type>&, std::vector<std::vector<data_type> >&,
+			typedef void (CplDensityDrivenFlowElemDisc::*ExpFunc)(std::vector<data_type>&, std::vector<IPDerivative<MathVector<dim> > >&,
 																	const std::vector<position_type>&, const local_vector_type&, bool);
 
 			ICoupledElemDisc<TAlgebra>::

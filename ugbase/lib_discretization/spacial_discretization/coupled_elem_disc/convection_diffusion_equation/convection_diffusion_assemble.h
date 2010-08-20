@@ -47,15 +47,13 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
 		typedef void (*Conv_Scale_fct)(number&, const position_type&, number);
 		typedef void (*Mass_Scale_fct)(number&, const position_type&, number);
-		typedef void (*Mass_Const_fct)(number&, const position_type&, number);
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
 		CplConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 										Diff_Tensor_fct diff, Conv_Scale_fct conv_scale,
-										Mass_Scale_fct mass_scale, Mass_Const_fct mass_const,
-										Reaction_fct reac, Rhs_fct rhs);
+										Mass_Scale_fct mass_scale, Reaction_fct reac, Rhs_fct rhs);
 
 
 	public:
@@ -72,9 +70,15 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 			return &m_Velocity;
 		}
 
-		virtual bool register_exports(DataContainer& Cont){ return true;}
+		virtual bool register_exports(DataContainer& Cont){
+			if(Cont.register_item(m_SolutionGrad) != true)	return false;
+			return true;
+		}
 
-		virtual bool unregister_exports(DataContainer& Cont) {return true;}
+		virtual bool unregister_exports(DataContainer& Cont) {
+			if(Cont.unregister_item(m_SolutionGrad) != true) return false;
+			return true;
+		}
 
 		virtual bool register_imports(DataContainer& Cont)
 		{
@@ -91,7 +95,10 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		virtual bool set_sys_id(size_t sys_id) {return true;}
 
 	protected:
-		DataImport<MathVector<dim> > m_Velocity;
+		AlgebraDataImport<MathVector<dim>, TAlgebra > m_Velocity;
+
+	protected:
+		DataClassExportPossibility<MathVector<dim>, algebra_type>  m_SolutionGrad;
 
 	public:
 		template <typename TElem>
@@ -136,6 +143,12 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 			static FVElementGeometry<TElem, dim> geo;
 			return geo;
 		}
+		template <typename TElem>
+		ReferenceMapping<typename reference_element_traits<TElem>::reference_element_type, dim>& get_mapping()
+		{
+			static ReferenceMapping<typename reference_element_traits<TElem>::reference_element_type, dim> mapping;
+			return mapping;
+		}
 
 		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
 		number m_upwind_amount;
@@ -144,9 +157,50 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		Diff_Tensor_fct m_Diff_Tensor;
 		Conv_Scale_fct m_Conv_Scale;
 		Mass_Scale_fct m_Mass_Scale;
-		Mass_Const_fct m_Mass_Const;
 		Reaction_fct m_Reaction;
 		Rhs_fct m_Rhs;
+
+	private:
+		template <typename TElem>
+		void data_export_grad(std::vector<MathVector<dim> >& val, std::vector<IPDerivative<MathVector<dim> > >& deriv,
+						const std::vector<MathVector< reference_element_traits<TElem>::reference_element_type::dim> >& pos,
+						const local_vector_type& u, bool compute_derivatives)
+		{
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+			const size_t num_co = ref_elem_type::num_corners;
+
+			const int RefDim = reference_element_traits<TElem>::reference_element_type::dim;
+
+			MathVector<dim> grad_c_ip;
+			MathMatrix<dim, RefDim> JTInv;
+			std::vector<MathVector<RefDim> > grad_local_ip(val.size());
+			std::vector<MathVector<dim> > grad_global_ip(val.size());
+
+			get_mapping<TElem>().update(m_corners);
+			for(size_t ip = 0; ip < val.size(); ++ip)
+			{
+				VecSet(grad_c_ip, 0.0);
+
+				if(!get_mapping<TElem>().jacobian_transposed_inverse(pos[ip], JTInv)) UG_ASSERT(0, "");
+				for(size_t co = 0; co < num_co; ++co)
+				{
+					if(!TrialSpace.evaluate_grad(co, pos[ip], grad_local_ip[co]))  UG_ASSERT(0, "");
+					MatVecMult(grad_global_ip[co], JTInv, grad_local_ip[co]);
+					VecScaleAppend(grad_c_ip, u(_C_,co), grad_global_ip[co]);
+				}
+				val[ip] = grad_c_ip;
+
+				if(compute_derivatives)
+				{
+					for(size_t co = 0; co < num_co; ++co)
+					{
+						deriv[ip](_C_, co) = grad_global_ip[co];
+					}
+				}
+			}
+		}
 
 	private:
 		///////////////////////////////////////
@@ -195,7 +249,18 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 			register_assemble_A_function(			id, &CplConvectionDiffusionElemDisc::template assemble_A<TElem>);
 			register_assemble_M_function(			id, &CplConvectionDiffusionElemDisc::template assemble_M<TElem>);
 			register_assemble_f_function(			id, &CplConvectionDiffusionElemDisc::template assemble_f<TElem>);
-		}
+
+			typedef MathVector<dim> data_type;
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+			typedef MathVector<ref_elem_type::dim> position_type;
+
+			typedef void (CplConvectionDiffusionElemDisc::*ExpFunc)(std::vector<data_type>&, std::vector<IPDerivative<MathVector<dim> > >&,
+																	const std::vector<position_type>&, const local_vector_type&, bool);
+
+			ICoupledElemDisc<TAlgebra>::
+			template register_data_export_function<data_type, position_type, ExpFunc>
+						(id, 0, &CplConvectionDiffusionElemDisc::template data_export_grad<TElem>);
+}
 };
 
 

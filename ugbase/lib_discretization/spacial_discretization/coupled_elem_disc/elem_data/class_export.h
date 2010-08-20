@@ -28,8 +28,8 @@ class DataClassExportPossibility : public DataPossibilityItem
 	public:
 		DataClassExportPossibility(std::string name, ICoupledElemDisc<TAlgebra>* Class, size_t nrExport) :
 			DataPossibilityItem(name, 0, &typeid(TDataType)),
-			m_sysId(0), m_numSh(0), m_pSolution(NULL), m_nrExport(nrExport), m_pExportingClass(Class)
-			{m_vCreatedDataExports.clear();};
+			m_sysId(0), m_numFct(0), m_pSolution(NULL), m_nrExport(nrExport), m_pExportingClass(Class)
+			{m_vCreatedDataExports.clear(); m_vNumDoFsPerFct.clear();};
 
 	public:
 		// create a data export from this possibility
@@ -37,7 +37,10 @@ class DataClassExportPossibility : public DataPossibilityItem
 
 	public:
 		// set the number of unknowns this possibility depends on of this possibility and all exports created from this possibility
-		bool set_num_sh(size_t num_sh);
+		bool set_num_fct(size_t num_fct);
+
+		// set number of dofs per fct
+		bool set_num_dofs(size_t fct, size_t num_dofs);
 
 		// set the system id
 		bool set_sys_id(size_t sys_id);
@@ -49,7 +52,8 @@ class DataClassExportPossibility : public DataPossibilityItem
 
 	protected:
 		size_t m_sysId;
-		size_t m_numSh;
+		size_t m_numFct;
+		std::vector<size_t> m_vNumDoFsPerFct;
 		const local_vector_type* m_pSolution;
 
 		size_t m_nrExport;
@@ -71,10 +75,13 @@ class DataClassExport : public DataExport<TDataType>{
 		DataClassExport(std::string name, DataPossibilityItem* possibility, ICoupledElemDisc<TAlgebra>* expClass, size_t nrExport) 	:
 			DataExport<TDataType>(name, possibility),
 			m_pSolution(NULL), m_nrExport(nrExport), m_pExportingClass(expClass)
-			{};
+			{DataExport<TDataType>::set_num_sys(1);};
 
-		// set number of unknowns, this export depends on
-		bool set_num_sh(size_t num_sh);
+		// set the number of unknowns this possibility depends on of this possibility and all exports created from this possibility
+		bool set_num_fct(size_t num_fct);
+
+		// set number of dofs per fct
+		bool set_num_dofs(size_t fct, size_t num_dofs);
 
 		// set sys_id, this export depends on
 		bool set_sys_id(size_t sys_id);
@@ -88,7 +95,8 @@ class DataClassExport : public DataExport<TDataType>{
 
 	protected:
 		// current local solution (size: (0, ... , num_sh-1))
-		const local_vector_type* m_pSolution;
+		const SubFunctionMap* m_pSubFunctionMap;
+		local_vector_type* m_pSolution;
 
 		// evaluation function of this export
 		size_t m_nrExport;

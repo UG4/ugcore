@@ -118,21 +118,21 @@ remove_data_import(DataImportItem* importItem)
 	{
 		switch(m_posDim)
 		{
-		case 1: get_positions<1>().clear();
-		case 2: get_positions<1>().clear();
-		case 3: get_positions<1>().clear();
-		default: UG_LOG("Dimension "<< this->m_posDim << "not supported.\n"); return false;
+		case 1: get_positions<1>().clear(); break;
+		case 2: get_positions<2>().clear(); break;
+		case 3: get_positions<3>().clear(); break;
+		default: UG_LOG("Dimension "<< this->m_posDim << " not supported.\n"); return false;
 		}
 		m_vValue.clear();
-		for(size_t s = 0; s < m_vvvDerivatives.size(); ++s)
+		for(size_t s = 0; s < m_vvDerivatives.size(); ++s)
 		{
-			for(size_t ip = 0; ip < m_vvvDerivatives[s].size(); ++ip)
+			for(size_t ip = 0; ip < m_vvDerivatives[s].size(); ++ip)
 			{
-				m_vvvDerivatives[s][ip].clear();
+				m_vvDerivatives[s][ip].clear();
 			}
-			m_vvvDerivatives[s].clear();
+			m_vvDerivatives[s].clear();
 		}
-		m_vvvDerivatives.clear();
+		m_vvDerivatives.clear();
 	}
 
 	return true;
@@ -158,13 +158,17 @@ set_positions(const std::vector<MathVector<dim> >& positions, bool overwrite)
 
 		m_vValue.resize(num_ip());
 
-		m_vvvDerivatives.resize(this->num_sys());
+		m_vvDerivatives.resize(this->num_sys());
 		for(size_t s = 0; s < this->num_sys(); ++s)
 		{
-			m_vvvDerivatives[s].resize(num_ip());
-			for(size_t ip = 0; ip < m_vvvDerivatives[s].size(); ++ip)
+			m_vvDerivatives[s].resize(num_ip());
+			for(size_t ip = 0; ip < m_vvDerivatives[s].size(); ++ip)
 			{
-				m_vvvDerivatives[s][ip].resize(num_sh(s));
+				m_vvDerivatives[s][ip].set_num_fct(this->num_fct(s));
+				for(size_t fct = 0; fct < this->num_fct(s); ++fct)
+				{
+					m_vvDerivatives[s][ip].set_num_dofs(fct, this->num_dofs(fct, s));
+				}
 			}
 		}
 
@@ -268,19 +272,23 @@ print_derivatives(std::string offset) const
 	{
 		UG_LOG(offset << "w.r.t. sys = " << sys_id(s) << ": ");
 
-		for(size_t k = 0; k < num_sh(s); ++k)
+		for(size_t fct = 0; fct < num_fct(s); ++fct)
 		{
-			if(k==0) {UG_LOG(" k="<< k<< ": [ ");}
-			else {UG_LOG(offset << "                 k="<< k<< ": [ ");};
+			if(fct==0) {UG_LOG(" fct="<< fct );}
+			else {UG_LOG(offset << "                 fct="<< fct );};
 
-			for(size_t ip = 0; ip < num_ip(); ++ip)
+			for(size_t k = 0; k < num_dofs(fct, s); ++k)
 			{
+				UG_LOG(" k= "<<k<<": [ ");
+				for(size_t ip = 0; ip < num_ip(); ++ip)
 				{
-					UG_LOG(operator()(s,ip,k));
-					if(ip != num_ip() - 1) UG_LOG(", ");
+					{
+						UG_LOG(operator()(s,ip,fct, k));
+						if(ip != num_ip() - 1) UG_LOG(", ");
+					}
 				}
+				UG_LOG(" ]\n");
 			}
-			UG_LOG(" ]\n");
 		}
 	}
 	return true;
@@ -317,9 +325,11 @@ set_positions(const std::vector<MathVector<dim> >& pos, bool overwrite)
 	m_numIp = vPosition.size();
 
 	// adjust lin defect array for ip's
-	for(size_t i = 0; i < m_vvLinearizedDefect.size(); ++i)
+	m_vLinearizedDefect.resize(m_numIp);
+	this->set_num_eq_fct(this->num_eq_fct());
+	for(size_t fct = 0; fct < this->num_eq_fct(); ++fct)
 	{
-		m_vvLinearizedDefect[i].resize(num_ip());
+		this->set_num_eq_dofs(fct, this->num_eq_dofs(fct));
 	}
 
 	// if no export set, do nothing
@@ -344,23 +354,6 @@ set_positions(const std::vector<MathVector<dim> >& pos, bool overwrite)
 	return true;
 }
 
-
-template<typename TDataType>
-bool
-DataImport<TDataType>::
-set_num_eq(size_t num_eq)
-{
-	m_numEq = num_eq;
-
-	m_vvLinearizedDefect.resize(m_numEq);
-
-	for(size_t i = 0; i < m_vvLinearizedDefect.size(); ++i)
-	{
-		m_vvLinearizedDefect[i].resize(num_ip());
-	}
-
-	return true;
-}
 
 template<typename TDataType>
 bool
@@ -486,18 +479,25 @@ print_derivatives(std::string offset) const
 	UG_LOG("Depending on "<< this->num_sys()<< " systems.\n");
 	for(size_t s = 0; s < this->num_sys(); ++s)
 	{
-		for(size_t k = 0; k < this->num_sh(s); ++k)
-		{
-			UG_LOG(offset << "w.r.t.: sys = " << this->sys_id(s) <<", k="<< k<< ": [ ");
+		UG_LOG(offset << "w.r.t. sys = " << sys_id(s) << ": ");
 
-			for(size_t ip = 0; ip < num_ip(); ++ip)
+		for(size_t fct = 0; fct < num_fct(s); ++fct)
+		{
+			if(fct==0) {UG_LOG(" fct="<< fct );}
+			else {UG_LOG(offset << "                 fct="<< fct );};
+
+			for(size_t k = 0; k < num_dofs(fct, s); ++k)
 			{
+				UG_LOG(" k= "<<k<<": [ ");
+				for(size_t ip = 0; ip < num_ip(); ++ip)
 				{
-					UG_LOG(this->operator()(s, ip, k));
-					if(ip != num_ip() - 1) UG_LOG(", ");
+					{
+						UG_LOG(operator()(s,ip,fct,k));
+						if(ip != num_ip() - 1) UG_LOG(", ");
+					}
 				}
+				UG_LOG(" ]\n");
 			}
-			UG_LOG(" ]\n");
 		}
 	}
 	return true;

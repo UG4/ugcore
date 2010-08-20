@@ -52,16 +52,21 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 
 	// clear identification ( may be skipped if identification is the same for all GeomObject types)
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
-	ElemDataContainer.clear_identification();
+	//ElemDataContainer.clear_identification();
 
 	// local indices
-	LocalIndices ind;
+	LocalIndices rowInd;
+	LocalIndices colInd;
 
 	// set function group
-	ind.set_function_group(fcts);
+	rowInd.set_function_group(fcts);
+	colInd.set_function_group(fcts);
 
 	// prepare local indices
-	if(!u.prepare_indices(refID, si, ind))
+	if(!u.prepare_indices(refID, si, rowInd))
+		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
+	// prepare local indices
+	if(!u.prepare_indices(refID, si, colInd))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 
 	for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
@@ -81,33 +86,12 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	}
 
 	// identify again the exports to avoid double computation
-	ElemDataContainer.identify_exports();
+	//ElemDataContainer.identify_exports();
 
 	// local algebra
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u(ind);
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J(ind, ind);
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J_temp(ind, ind);
-
-	// TODO: I think this is nor needed anymore
-	// allocate matrix for off-diagonal part (induced by coupling)
-/*	for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
-	{
-		ICoupledElemDisc<TAlgebra>& system = cplElemDisc.system(sys);
-
-		loc_J_coupl[sys].resize( system.num_imports());
-		for(size_t i = 0; i < system.num_imports(); ++i)
-		{
-			DataImportItem* Imp = system.import(i);
-
-			for(size_t s = 0; s < Imp->num_sys(); ++s)
-			{
-				loc_J_coupl[sys][i].resize(Imp->num_sys());
-
-				UG_LOG("Coupling system " << sys << " ("<< num_sh[sys]<< ") with "<< s << " (" << num_sh[Imp->sys_id(s)] <<").\n");
-				loc_J_coupl[sys][i][s].resize(num_sh[sys], num_sh[Imp->sys_id(s)]);
-			}
-		}
-	}*/
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u(colInd);
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J(rowInd, colInd);
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J_temp(rowInd, colInd);
 
 	// loop over all elements
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -116,7 +100,8 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		u.update_indices(elem, rowInd);
+		u.update_indices(elem, colInd);
 
 		// read local values of u
 		const typename TAlgebra::vector_type& u_vec = u.get_vector();
@@ -126,11 +111,12 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
 
 			// prepare export
 			// Exports: set_local_solution(elem, local_vector_type& u, local_index_type& glob_ind)
-			if(!cplElemDisc.system(sys).prepare_element(elem, loc_u, ind))
+			if(!cplElemDisc.system(sys).prepare_element(elem, loc_u, colInd))
 				{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element for system " << sys << ".\n"); return false;}
 		}
 
@@ -144,7 +130,8 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).assemble_JA(loc_J_temp, loc_u, time))
 				{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix for system " << sys << ".\n"); return false;}
@@ -156,38 +143,37 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).assemble_JM(loc_J_temp, loc_u, time))
 				{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Mass Matrix for system " << sys << ".\n"); return false;}
 		}
 		loc_J += loc_J_temp * s_m;
 
-		// send local to global matrix
-		J.add(loc_J);
-
+		// compute matrix entries induced by coupling
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
-			// compute matrix entries induced by coupling
-/*			for(size_t i = 0; i < system.num_imports(); ++i)
+			for(size_t i = 0; i < cplElemDisc.system(sys).num_imports(); ++i)
 			{
-				DataImportItem* Imp = system.import(i);
+				DataImportItem* Imp = cplElemDisc.system(sys).import(i);
 
 				for(size_t r = 0; r < Imp->num_sys(); ++r)
 				{
-					loc_J_coupl[sys][i][r].set(0.0);
+					rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+					colInd.access_sub_function_group(cplElemDisc.sub_function_map(r));
 
 					// TODO: currently we assume, that imports are only in the stiffness part
-					if(!Imp->add_offdiagonal(loc_J_coupl[sys][i][r], r, s_a))
+					if(!Imp->add_offdiagonal(loc_J, r, s_a))
 						{UG_LOG("Offdiagonal coupling went wrong.\n"); return false;}
-
-					//UG_LOG("Adding Local Couling: "<< loc_J_coupl[sys][i][r] << "\n");
-
-					// add coupling
-					J.add(loc_J_coupl[sys][i][r], glob_ind[sys], glob_ind[Imp->sys_id(r)]);
 				}
 			}
-*/		}
+		}
+
+		// send local to global matrix
+		rowInd.access_all();
+		colInd.access_all();
+		J.add(loc_J);
 	}
 
 	// finish element loop for each system
@@ -279,12 +265,6 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 			//set SubFunctionMap
 			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
 
-			const SubFunctionMap& map = cplElemDisc.sub_function_map(sys);
-			for(size_t i = 0; i < map.num_fct(); ++i)
-			{
-				UG_LOG("Map: " << i << " -> " << map[i] << ".\n");
-			}
-
 			if(!cplElemDisc.system(sys).prepare_element(elem, loc_u, ind))
 				{UG_LOG("ERROR in AssembleDefect: Cannot prepare element for system " << sys << ".\n"); return false;}
 		}
@@ -331,6 +311,7 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		loc_d -= loc_d_temp * s_a;
 
 		// send local to global matrix
+		ind.access_all();
 		d.add(loc_d);
 	}
 
@@ -369,39 +350,48 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
+	// clear identification ( may be skipped if identification is the same for all GeomObject types)
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
-	ElemDataContainer.clear_identification();
+	//ElemDataContainer.clear_identification();
 
 	// local indices
-	LocalIndices ind;
+	LocalIndices rowInd;
+	LocalIndices colInd;
 
-	// set functions
-	ind.set_function_group(fcts);
+	// set function group
+	rowInd.set_function_group(fcts);
+	colInd.set_function_group(fcts);
 
 	// prepare local indices
-	if(!u.prepare_indices(refID, si, ind))
+	if(!u.prepare_indices(refID, si, rowInd))
+		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
+	// prepare local indices
+	if(!u.prepare_indices(refID, si, colInd))
 		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
 
 	for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 	{
+		// get system
 		ICoupledElemDisc<TAlgebra>& system = cplElemDisc.system(sys);
 
 		// set elem type
 		if(!system.set_geometric_object_type(refID, IEDN_LINEAR))
 			{UG_LOG("ERROR in AssembleLinear: Cannot set geometric object type for system " << sys << ".\n"); return false;}
 
-		// prepare for loop
-		if(!system.prepare_element_loop()) return false;;
+		// prepare element loop:
+		// Imports: set_positions and num_eq
+		// Exports: set new eval function + set num_shapes + sys
+		if(!system.prepare_element_loop())
 			{UG_LOG("ERROR in AssembleLinear: Cannot prepare element loop for system " << sys << ".\n"); return false;}
 	}
 
-	// local algebra
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u(ind);
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_rhs(ind);
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_mat(ind, ind);
-
 	// identify again the exports to avoid double computation
-	ElemDataContainer.identify_exports();
+	//ElemDataContainer.identify_exports();
+
+	// local algebra
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u(colInd);
+	LocalVector<typename TAlgebra::vector_type::entry_type> loc_rhs(colInd);
+	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_mat(rowInd, colInd);
 
 	// loop over all elements of type TElem
 	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -410,7 +400,8 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		u.update_indices(elem, rowInd);
+		u.update_indices(elem, colInd);
 
 		// read local values of u
 		const typename TAlgebra::vector_type& u_vec = u.get_vector();
@@ -420,10 +411,12 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
 
-			// prepare element
-			cplElemDisc.system(sys).prepare_element(elem, loc_u, ind);
+			// prepare export
+			// Exports: set_local_solution(elem, local_vector_type& u, local_index_type& glob_ind)
+			if(!cplElemDisc.system(sys).prepare_element(elem, loc_u, colInd))
 				{UG_LOG("ERROR in AssembleLinear: Cannot prepare element for system " << sys << ".\n"); return false;}
 		}
 
@@ -437,7 +430,8 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
 
 			// assemble stiffness matrix
 			if(!cplElemDisc.system(sys).assemble_JA(loc_mat, loc_u))
@@ -448,7 +442,27 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 				{UG_LOG("ERROR in AssembleLinear: Cannot assemble local Right-Hand side for system " << sys << ".\n"); return false;}
 		}
 
+		// compute matrix entries induced by coupling
+		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
+		{
+			for(size_t i = 0; i < cplElemDisc.system(sys).num_imports(); ++i)
+			{
+				DataImportItem* Imp = cplElemDisc.system(sys).import(i);
+
+				for(size_t r = 0; r < Imp->num_sys(); ++r)
+				{
+					rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+					colInd.access_sub_function_group(cplElemDisc.sub_function_map(r));
+
+					if(!Imp->add_offdiagonal(loc_mat, r, 1.0))
+						{UG_LOG("Offdiagonal coupling went wrong.\n"); return false;}
+				}
+			}
+		}
+
 		// send local to global (matrix and rhs)
+		rowInd.access_all();
+		colInd.access_all();
 		mat.add(loc_mat);
 		rhs.add(loc_rhs);
 	}

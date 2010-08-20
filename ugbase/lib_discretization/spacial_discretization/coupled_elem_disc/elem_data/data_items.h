@@ -120,16 +120,36 @@ class DataExportItem : public DataItem {
 		DataExportItem(std::string name, const std::type_info* dataType, DataPossibilityItem* possibility) :
 			DataItem(name, dataType),
 			m_numSys(0), m_pPossibilityItem(possibility)
-			{m_vImportList.clear(); m_vSysId.clear(); m_vNumSh.clear();};
+			{m_vImportList.clear(); m_vSysId.clear(); m_vNumFct.clear();};
 
 		// number of system unknowns this export depends on
 		inline size_t num_sys() const {return m_numSys;};
 
-		// number of unknowns the data depends on
-		inline size_t num_sh(size_t loc_sys) const {
+		// number of fct the data depends on
+		inline size_t num_fct(size_t loc_sys) const {
 			UG_ASSERT(loc_sys < m_numSys, "Accessing system, that is not registered, sys = " << loc_sys << ", num_sys = " << m_numSys);
 			UG_ASSERT(loc_sys < m_vSysId.size(), "Accessing system, that is not registered, sys = " << loc_sys << ", m_vSysId.size() = " <<  m_vSysId.size());
-			return m_vNumSh[loc_sys];};
+			return m_vNumFct[loc_sys];};
+
+		// number of unknowns per fct the data depends on
+		inline size_t num_dofs(size_t fct, size_t loc_sys) const {
+			UG_ASSERT(loc_sys < m_numSys, "Accessing system, that is not registered, sys = " << loc_sys << ", num_sys = " << m_numSys);
+			UG_ASSERT(loc_sys < m_vSysId.size(), "Accessing system, that is not registered, sys = " << loc_sys << ", m_vSysId.size() = " <<  m_vSysId.size());
+			return m_vvDoFsPerFct[loc_sys][fct];};
+
+		// number of unknowns per system the data depends on
+		inline size_t num_dofs(size_t loc_sys) const {
+			size_t sum = 0;
+			for(size_t fct = 0; fct < num_fct(loc_sys); ++fct) sum += num_dofs(fct, loc_sys);
+			return sum;
+		}
+
+		// number of unknowns this export depends on
+		inline size_t num_dofs() const {
+			size_t sum = 0;
+			for(size_t s = 0; s < num_sys(); ++s) sum += num_dofs(s);
+			return sum;
+		}
 
 		// id of system this exports depends on
 		inline size_t sys_id(size_t loc_sys) const{
@@ -224,7 +244,8 @@ class DataExportItem : public DataItem {
 		{
 			m_numSys = num_sys;
 			m_vSysId.resize(m_numSys);
-			m_vNumSh.resize(m_numSys);
+			m_vNumFct.resize(m_numSys, 0);
+			m_vvDoFsPerFct.resize(m_numSys);
 			return true;
 		}
 
@@ -236,11 +257,25 @@ class DataExportItem : public DataItem {
 			return true;
 		}
 
-		// sets the number of shape functions (num_sh) for the local system
-		virtual bool set_num_sh(size_t num_sh, size_t loc_sys = 0)
+		// sets the number of shape functions for the local system
+		virtual bool set_num_fct(size_t num_fct, size_t loc_sys = 0)
 		{
-			if(loc_sys >= m_numSys) return false;
-			m_vNumSh[loc_sys] = num_sh;
+			if(loc_sys >= m_numSys)
+				{UG_LOG("Local system does not exist for this export.\n"); return false;}
+			m_vNumFct[loc_sys] = num_fct;
+			m_vvDoFsPerFct[loc_sys].resize(num_fct, 0);
+			return true;
+		}
+
+		// sets the number of dofs for a functions for the local system
+		virtual bool set_num_dofs(size_t fct, size_t num_dofs, size_t loc_sys = 0)
+		{
+			if(loc_sys >= m_numSys)
+				{UG_LOG("Local system does not exist for this export.\n"); return false;}
+			if(fct >= m_vNumFct[loc_sys])
+				{UG_LOG("Function does not exist for this export and system "<<loc_sys<< ".\n"); return false;}
+
+			m_vvDoFsPerFct[loc_sys][fct] = num_dofs;
 			return true;
 		}
 
@@ -252,7 +287,10 @@ class DataExportItem : public DataItem {
 		std::vector<size_t> m_vSysId;
 
 		// number of unknowns the export depends on
-		std::vector<size_t> m_vNumSh;
+		std::vector<size_t> m_vNumFct;
+
+		// number of dofs the export depends on for each function
+		std::vector<std::vector<size_t> > m_vvDoFsPerFct;
 
 		// Imports linked to this export
 		std::vector<DataImportItem*> m_vImportList;
@@ -268,8 +306,8 @@ class DataImportItem : public DataItem{
 	public:
 		DataImportItem(std::string name, const std::type_info* dataType) :
 			DataItem(name, dataType),
-			m_pExport(NULL)
-			{};
+			m_numFct(0), m_pExport(NULL)
+			{m_vDoFsPerFct.clear();};
 
 		// number of systems the data depends on (num_sys)
 		inline size_t num_sys() const {
@@ -281,17 +319,37 @@ class DataImportItem : public DataItem{
 			UG_ASSERT(m_pExport != NULL, "No Export set.");
 			return m_pExport->sys_id(loc_sys);};
 
-		// number of unknowns the data depends on per system (num_sh)
-		inline size_t num_sh(size_t loc_sys) const {
+		// number of functions the data depends on per system
+		inline size_t num_fct(size_t loc_sys) const {
 			UG_ASSERT(m_pExport != NULL, "No Export set.");
-			return m_pExport->num_sh(loc_sys);};
+			return m_pExport->num_fct(loc_sys);};
 
-		// number of unknowns the data depends on for all systems (num_sh)
-		inline size_t num_sh() const {
+		// number of functions the data depends on for all systems
+		inline size_t num_fct() const {
 			UG_ASSERT(m_pExport != NULL, "No Export set.");
 			size_t t = 0;
-			for(size_t s = 0; s < num_sys(); ++s) t += num_sh(s);
+			for(size_t s = 0; s < num_sys(); ++s) t += num_fct(s);
 			return t;};
+
+		// number of unknowns the data depends on per function and system
+		inline size_t num_dofs(size_t fct, size_t loc_sys) const {
+			UG_ASSERT(m_pExport != NULL, "No Export set.");
+			return m_pExport->num_dofs(fct, loc_sys);};
+
+		// number of unknowns the data depends on for all systems
+		inline size_t num_dofs(size_t fct) const {
+			UG_ASSERT(m_pExport != NULL, "No Export set.");
+			size_t t = 0;
+			for(size_t s = 0; s < num_sys(); ++s) t += num_dofs(fct, s);
+			return t;};
+
+		// number of fct the data depends on
+		inline size_t num_eq_fct() const {return m_numFct;};
+
+		// number of unknowns per fct the data depends on
+		inline size_t num_eq_dofs(size_t fct) const {
+			UG_ASSERT(fct < num_eq_fct(), "Invalid index.");
+			return m_vDoFsPerFct[fct];};
 
 		// returns false if import does not depend on sys_id
 		// returns true if import depends on sys_id and the loc_sys corresponding to sys_id
@@ -300,8 +358,26 @@ class DataImportItem : public DataItem{
 			return m_pExport->depends_on_sys(sys_id, loc_sys);
 		}
 
+		// sets the number of shape functions for the local system
+		virtual bool set_num_eq_fct(size_t num_fct)
+		{
+			m_numFct = num_fct;
+			m_vDoFsPerFct.resize(m_numFct);
+			return true;
+		}
+
+		// sets the number of dofs for a functions for the local system
+		virtual bool set_num_eq_dofs(size_t fct, size_t num_dofs)
+		{
+			if(fct >= m_numFct)
+				{UG_LOG("Function does not exist for this import.\n"); return false;}
+
+			m_vDoFsPerFct[fct] = num_dofs;
+			return true;
+		}
+
 		// add of diagonal couplings to local Matrix J for coupling with system loc_sys
-		virtual bool add_offdiagonal(LocalMatrix<double>& J, size_t loc_sys, number s_a) = 0;
+		virtual bool add_offdiagonal(LocalMatrixBase& J, size_t loc_sys, number s_a) = 0;
 
 	public:
 		// link this import to an export
@@ -330,6 +406,12 @@ class DataImportItem : public DataItem{
 		virtual bool print_info(std::string offset) const = 0;
 
 	protected:
+		// number of functions for equations
+		size_t m_numFct;
+
+		// number of dofs per function for equations
+		std::vector<size_t> m_vDoFsPerFct;
+
 		// Data Export, to which this import is linked (may be a Data Linker)
 		DataExportItem* m_pExport;
 };

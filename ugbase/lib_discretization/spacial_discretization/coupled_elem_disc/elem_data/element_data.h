@@ -6,6 +6,7 @@
 #include "import_export.h"
 #include "class_export.h"
 #include "user_data.h"
+#include "const_user_data.h"
 //#include "linker.h"
 #include "data_container.h"
 

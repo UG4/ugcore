@@ -15,6 +15,7 @@
 #include "common/math/ugmath.h"
 
 #include "data_items.h"
+#include "ip_derivative.h"
 #include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
@@ -37,7 +38,7 @@ class DataExport : public DataExportItem{
 		DataExport(std::string name, DataPossibilityItem* possibility) 	:
 			DataExportItem(name,&typeid(TDataType), possibility), m_bGlobalIPs(false),
 			m_posDim(-1), m_numIp(0)
-			{m_vValue.clear(); m_vvvDerivatives.clear();};
+			{m_vValue.clear(); m_vvDerivatives.clear();};
 
 	public:
 		// number of values / positions / derivatives == number of integration points
@@ -52,16 +53,15 @@ class DataExport : public DataExportItem{
 		inline const std::vector<data_type>& values() const	{return m_vValue;}
 
 		// return value of derivative with respect to unknown k at ip (read only, are updated by compute())
-		inline const data_type& operator()(size_t loc_sys, size_t ip, size_t k) const {
-			UG_ASSERT(loc_sys < m_vvvDerivatives.size(), "Invalid index. (loc_sys = "<<loc_sys<<", size = "<<m_vvvDerivatives.size()<<")");
-			UG_ASSERT(ip < m_vvvDerivatives[loc_sys].size(), "Invalid index. (ip = "<<ip<<", size = "<< m_vvvDerivatives[loc_sys].size()<<")");
-			UG_ASSERT(k < m_vvvDerivatives[loc_sys][ip].size(), "Invalid index. (k = "<<k<<", size = "<< m_vvvDerivatives[loc_sys][ip].size()<<")");
-			return m_vvvDerivatives[loc_sys][ip][k];};
+		inline const data_type& operator()(size_t loc_sys, size_t ip, size_t fct, size_t dof) const {
+			UG_ASSERT(loc_sys < m_vvDerivatives.size(), "Invalid index. (loc_sys = "<<loc_sys<<", size = "<<m_vvDerivatives.size()<<")");
+			UG_ASSERT(ip < m_vvDerivatives[loc_sys].size(), "Invalid index. (ip = "<<ip<<", size = "<< m_vvDerivatives[loc_sys].size()<<")");
+			return m_vvDerivatives[loc_sys][ip](fct, dof);};
 
 		// returns array of derivatives for system loc_sys
-		inline const std::vector<std::vector<data_type> >& derivatives(size_t loc_sys) const {
-			UG_ASSERT(loc_sys < m_vvvDerivatives.size(), "Invalid index. (loc_sys = "<<loc_sys<<", size = "<<m_vvvDerivatives.size()<<")");
-			return m_vvvDerivatives[loc_sys];}
+		inline const std::vector<IPDerivative<data_type> >& derivatives(size_t loc_sys) const {
+			UG_ASSERT(loc_sys < m_vvDerivatives.size(), "Invalid index. (loc_sys = "<<loc_sys<<", size = "<<m_vvDerivatives.size()<<")");
+			return m_vvDerivatives[loc_sys];}
 
 		// return position number i (read only, are induced by import)
 		template <int dim>
@@ -113,33 +113,49 @@ class DataExport : public DataExportItem{
 		virtual bool print_derivatives(std::string offset) const;
 		virtual bool print_info(std::string offset) const;
 
-	protected:
 		// sets the number of systems the export depends on
 		virtual bool set_num_sys(size_t num_sys)
 		{
 			if(!DataExportItem::set_num_sys(num_sys)) return false;
-			m_vvvDerivatives.resize(num_sys);
+			m_vvDerivatives.resize(num_sys);
 			for(size_t s = 0; s < this->num_sys(); ++s)
 			{
-				m_vvvDerivatives[s].resize(num_ip());
+				m_vvDerivatives[s].resize(num_ip());
 			}
 			return true;
 		}
 
-		// sets the number of shape functions (num_sh) for the local system
-		virtual bool set_num_sh(size_t num_sh, size_t loc_sys = 0)
+		// sets the number of functions for the local system
+		virtual bool set_num_fct(size_t num_fct, size_t loc_sys = 0)
 		{
-			if(!DataExportItem::set_num_sh(num_sh, loc_sys)) return false;
+			if(!DataExportItem::set_num_fct(num_fct, loc_sys))
+				{UG_LOG("DataExport::set_num_fct: Error while setting num_fct.\n"); return false;}
 			for(size_t s = 0; s < num_sys(); ++s)
 			{
 				for(size_t ip = 0; ip < num_ip(); ++ip)
 				{
-					m_vvvDerivatives[s][ip].resize(num_sh);
+					m_vvDerivatives[s][ip].set_num_fct(num_fct);
 				}
 			}
 			return true;
 		}
 
+		// sets the number of dofs for a functions for the local system
+		virtual bool set_num_dofs(size_t fct, size_t num_dofs, size_t loc_sys = 0)
+		{
+			if(!DataExportItem::set_num_dofs(fct, num_dofs, loc_sys))
+				{UG_LOG("DataExport::set_num_dofs: Error while setting num_dofs.\n"); return false;}
+			for(size_t s = 0; s < num_sys(); ++s)
+			{
+				for(size_t ip = 0; ip < num_ip(); ++ip)
+				{
+					m_vvDerivatives[s][ip].set_num_dofs(fct, num_dofs);
+				}
+			}
+			return true;
+		}
+
+	protected:
 		template <int dim>
 		std::vector<MathVector<dim> >& get_positions()
 		{
@@ -160,8 +176,8 @@ class DataExport : public DataExportItem{
 		// Data (size: (0, ... , num_ip-1))
 		std::vector<data_type> m_vValue;
 
-		// Data (size: (0, ..., num_sys-1) x (0, ... , num_ip-1) x (0, ... , num_sh-1)
-		std::vector<std::vector<std::vector<data_type> > > m_vvvDerivatives;
+		// Data (size: (0, ..., num_sys-1) x (0, ... , num_ip-1))
+		std::vector<std::vector<IPDerivative<data_type> > > m_vvDerivatives;
 };
 
 template <typename TDataType>
@@ -175,8 +191,8 @@ class DataImport : public DataImportItem {
 	public:
 		DataImport(std::string name) :
 			DataImportItem(name,&typeid(TDataType)),
-			m_numEq(0), m_posDim(-1), m_numIp(0), m_pTypeExport(NULL)
-			{m_vvLinearizedDefect.clear();};
+			m_posDim(-1), m_numIp(0), m_pTypeExport(NULL)
+			{m_vLinearizedDefect.clear();};
 
 		// number of values / positions / derivatives == number of integration points (num_ip)
 		inline size_t num_ip() const {return m_numIp;};
@@ -186,9 +202,6 @@ class DataImport : public DataImportItem {
 		inline const MathVector<dim>& position(size_t ip) const {
 			UG_ASSERT(ip < num_ip(), "Invalid index. (ip = "<<ip<<", size = "<<num_ip()<<")");
 			return get_positions<dim>()[ip];};
-
-		// number of equations the data is provided for (num_eq)
-		inline size_t num_eq() const {return m_vvLinearizedDefect.size();};
 
 		// return value at ip (read only, are updated by compute())
 		inline const data_type& operator[](size_t ip) const
@@ -202,44 +215,33 @@ class DataImport : public DataImportItem {
 		}
 
 		// return vector of values
-		inline const std::vector<std::vector<data_type> >& derivatives(size_t loc_sys) const
+		inline const std::vector<IPDerivative<data_type> >& derivatives(size_t loc_sys) const
 		{UG_ASSERT(m_pTypeExport != NULL, "No Export set.");
 			return m_pTypeExport->derivatives(loc_sys);
 		}
 
 		// return value of derivative with respect to unknown k at ip (read only, are updated by compute())
-		inline const data_type& operator()(size_t loc_sys, size_t ip, size_t k) const
+		inline const data_type& operator()(size_t loc_sys, size_t ip, size_t fct, size_t dof) const
 			{UG_ASSERT(m_pTypeExport != NULL, "No Export set.");
-			return m_pTypeExport->operator()(loc_sys, ip, k);};
+			return m_pTypeExport->operator()(loc_sys, ip, fct, dof);};
 
 		// linearized defect (with respect to import) for the j'th local defect and position ip
-		inline data_type& lin_defect(size_t j, size_t ip){
-			UG_ASSERT(j < m_vvLinearizedDefect.size(), "Invalid index. (j = "<<j<<", size = "<<m_vvLinearizedDefect.size()<<")");
-			UG_ASSERT(ip < m_vvLinearizedDefect[j].size(), "Invalid index. (ip = "<<ip<<", size = "<<m_vvLinearizedDefect[j].size()<<")");
-			return m_vvLinearizedDefect[j][ip];
+		inline data_type& lin_defect(size_t ip, size_t fct, size_t dof){
+			UG_ASSERT(ip < m_vLinearizedDefect.size(), "Invalid index. (ip = "<<ip<<", size = "<<m_vLinearizedDefect.size()<<")");
+			return m_vLinearizedDefect[ip](fct, dof);
 		}
 
-		// linearized defect (with respect to import) for the j'th local defect and position ip
-		inline const data_type& lin_defect(size_t j, size_t ip) const {
-			UG_ASSERT(j < m_vvLinearizedDefect.size(), "Invalid index. (j = "<<j<<", size = "<<m_vvLinearizedDefect.size()<<")");
-			UG_ASSERT(ip < m_vvLinearizedDefect[j].size(), "Invalid index. (ip = "<<ip<<", size = "<<m_vvLinearizedDefect[j].size()<<")");
-			return m_vvLinearizedDefect[j][ip];
+		// linearized defect (with respect to import) at position ip
+		inline const data_type& lin_defect(size_t ip, size_t fct, size_t dof) const {
+			UG_ASSERT(ip < m_vLinearizedDefect.size(), "Invalid index. (ip = "<<ip<<", size = "<<m_vLinearizedDefect.size()<<")");
+			return m_vLinearizedDefect[ip](fct, dof);
 		}
 
 		// add offdiagonal coupling to other system 's'
-		virtual bool add_offdiagonal(LocalMatrix<double>& J, size_t loc_sys, number s_a)
+		virtual bool add_offdiagonal(LocalMatrixBase& J, size_t loc_sys, number s_a)
 		{
-			for(size_t k = 0; k < this->num_sh(loc_sys); ++k)
-			{
-				for(size_t j = 0; j < this->num_eq(); ++j)
-				{
-					for(size_t ip = 0; ip < this->num_ip(); ++ip)
-					{
-						J(j, k) += s_a * (this->lin_defect(j, ip) * this->operator()(loc_sys, ip, k));
-					}
-				}
-			}
-			return true;
+			{UG_LOG("DataImport::add_offdiagonal: Should not be called here.\n"); return false;}
+			return false;
 		}
 
 	public:
@@ -249,7 +251,27 @@ class DataImport : public DataImportItem {
 		bool set_positions(const std::vector<MathVector<dim> >& pos, bool overwrite = false);
 
 		// set number of equations the defect is provided for
-		bool set_num_eq(size_t num_eq);
+		bool set_num_eq_fct(size_t num_eq_fct)
+		{
+			if(!DataImportItem::set_num_eq_fct(num_eq_fct)) return false;
+			for(size_t ip = 0; ip < m_vLinearizedDefect.size(); ++ip)
+			{
+				m_vLinearizedDefect[ip].set_num_fct(num_eq_fct);
+			}
+			return true;
+		}
+
+		// set number of equations the defect is provided for
+		bool set_num_eq_dofs(size_t fct, size_t num_eq_dofs)
+		{
+			if(!DataImportItem::set_num_eq_dofs(fct, num_eq_dofs)) return false;
+			for(size_t ip = 0; ip < m_vLinearizedDefect.size(); ++ip)
+			{
+				m_vLinearizedDefect[ip].set_num_dofs(fct, num_eq_dofs);
+
+			}
+			return true;
+		}
 
 		~DataImport();
 
@@ -277,9 +299,6 @@ class DataImport : public DataImportItem {
 		}
 
 	protected:
-		// number of equations the defect is provided for
-		size_t m_numEq;
-
 		// current dimension for positions
 		int m_posDim;
 
@@ -288,10 +307,48 @@ class DataImport : public DataImportItem {
 
 		// linearization of defect of equation s for ip (defect is considered as function of this import, and linearized at given current solution)
 		// (size: (0, ... , num_ip-1) x (0, ... , num_eq) )
-		std::vector<std::vector<data_type> > m_vvLinearizedDefect;
+		std::vector<IPDerivative<data_type> > m_vLinearizedDefect;
 
 		// Export, this Import is linked to
 		DataExport<data_type>* m_pTypeExport;
+};
+
+template <typename TDataType, typename TAlgebra>
+class AlgebraDataImport : public DataImport<TDataType> {
+	public:
+		typedef TDataType data_type;
+
+		typedef typename TAlgebra::matrix_type::entry_type entry_type;
+
+	public:
+		AlgebraDataImport(std::string name) : DataImport<TDataType>(name)
+		{};
+
+		// add offdiagonal coupling to other system 's'
+		virtual bool add_offdiagonal(LocalMatrixBase& baseJ, size_t loc_sys, number s_a)
+		{
+			LocalMatrix<entry_type>* J = dynamic_cast<LocalMatrix<entry_type>*>(&baseJ);
+			if(J == NULL)
+				{UG_LOG("DataImport::add_offdiagonal: Cannot convert Matrix to type based matrix.\n"); return false;}
+
+			for(size_t fct1 = 0; fct1 < this->num_eq_fct(); ++fct1)
+			{
+				for(size_t dof1 = 0; dof1 < this->num_eq_dofs(fct1); ++dof1)
+				{
+					for(size_t fct2 = 0; fct2 < this->num_fct(loc_sys); ++fct2)
+					{
+						for(size_t dof2 = 0; dof2 < this->num_dofs(fct2, loc_sys); ++dof2)
+						{
+							for(size_t ip = 0; ip < this->num_ip(); ++ip)
+							{
+								(*J)(fct1, dof1, fct2, dof2) += s_a * (this->lin_defect(ip, fct1, dof1) * this->operator()(loc_sys, ip, fct2, dof2));
+							}
+						}
+					}
+				}
+			}
+			return true;
+		}
 };
 
 // print current values of import to ostream

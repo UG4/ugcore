@@ -23,12 +23,12 @@ template<typename TDomain, typename TAlgebra>
 CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 CplConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 								Diff_Tensor_fct diff, Conv_Scale_fct conv_scale,
-								Mass_Scale_fct mass_scale, Mass_Const_fct mass_const,
+								Mass_Scale_fct mass_scale,
 								Reaction_fct reac, Rhs_fct rhs)
-: 	m_Velocity("Velocity"),
+: 	m_Velocity("Velocity"), m_SolutionGrad("SolGrad", this, 0),
 	m_domain(domain), m_upwind_amount(upwind_amount),
 	m_Diff_Tensor(diff), m_Conv_Scale(conv_scale),
-	m_Mass_Scale(mass_scale), m_Mass_Const(mass_const),
+	m_Mass_Scale(mass_scale),
 	m_Reaction(reac), m_Rhs(rhs)
 {
 	register_assemble_functions();
@@ -66,8 +66,15 @@ prepare_element_loop()
 	if(!m_Velocity.template set_positions<ref_elem_type::dim>(pos, true))
 		{UG_LOG("CplConvectionDiffusionElemDisc::prepare_element_loop: Cannot set positions for Velocity.\n"); return false;}
 
-	if(!m_Velocity.set_num_eq(ref_elem_type::num_corners))
-		{UG_LOG("CplConvectionDiffusionElemDisc::prepare_element_loop: Cannot set number of equations.\n"); return false;}
+	if(!m_Velocity.set_num_eq_fct(1))
+		{UG_LOG("CplConvectionDiffusionElemDisc::prepare_element_loop: Cannot set number of fct.\n"); return false;}
+	if(!m_Velocity.set_num_eq_dofs(_C_, ref_elem_type::num_corners))
+		{UG_LOG("CplConvectionDiffusionElemDisc::prepare_element_loop: Cannot set number of dofs.\n"); return false;}
+
+	if(!m_SolutionGrad.set_num_fct(1))
+		{UG_LOG("CplDensityDrivenFlowElemDisc::prepare_element_loop: Cannot set num_fct for Velocity.\n"); return false;}
+	if(!m_SolutionGrad.set_num_dofs(_C_, ref_elem_type::num_corners))
+		{UG_LOG("CplDensityDrivenFlowElemDisc::prepare_element_loop: Cannot set num_dofs for Velocity.\n"); return false;}
 
 	return true;
 }
@@ -107,6 +114,9 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	// update Geometry for this element
 	get_fvgeom<TElem>().update(m_corners);
 
+	//prepare Export for computation
+	m_SolutionGrad.set_local_solution(u);
+
 	return true;
 }
 
@@ -138,6 +148,15 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			m_Conv_Scale(conv_scale, scvf.global_ip(), time);
 			v *= conv_scale;
 
+			// reset lin_defect
+			if(m_Velocity.num_fct() > 0)
+			{
+				for(size_t k = 0; k < sdv.num_sh(); ++k)
+				{
+					m_Velocity.lin_defect(ip_pos, _C_, k) = 0.0;
+				}
+			}
+
 			for(size_t j = 0; j < sdv.num_sh(); ++j)
 			{
 				////////////////////////////////////
@@ -153,6 +172,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// (upwinding_amount == 1.0 -> full upwind;
 				//  upwinding_amount == 0.0 -> full central disc)
 
+
 				// central part convection
 				if(m_upwind_amount != 1.0)
 				{
@@ -161,22 +181,6 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 					// coupling 'from' with j  (i.e. A[from][j]) and 'to' with j (i.e. A[to][j])
 					J(_C_, scvf.from(), _C_, j) += flux;
 					J(_C_, scvf.to()  , _C_, j) -= flux;
-
-					// linearization of defect
-
-					if(m_Velocity.num_sh() > 0)
-					{
-						number shape_u = 0.0;
-						for(size_t j = 0; j < sdv.num_sh(); ++j)
-						{
-							shape_u += u(_C_, j) * sdv.shape(j);
-						}
-						shape_u *= (1.- m_upwind_amount);
-						lin_Defect = scvf.normal();
-						VecScale(lin_Defect, lin_Defect, shape_u);
-						m_Velocity.lin_defect(scvf.from(), ip_pos) = lin_Defect;
-						VecScale(m_Velocity.lin_defect(scvf.to(), ip_pos), lin_Defect, -1.);
-					}
 				}
 			}
 			// upwind part convection
@@ -187,15 +191,33 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				if(flux >= 0.0) up = scvf.from(); else up = scvf.to();
 				J(_C_, scvf.from(), _C_, up) += flux;
 				J(_C_, scvf.to()  , _C_, up) -= flux;
+			}
 
-				// linearization of defect
-				if(m_Velocity.num_sh() > 0)
+			// linearization of defect
+			if(m_Velocity.num_fct() > 0)
+			{
+				// central part convection
+				if(m_upwind_amount != 1.0)
 				{
-					number shape_u = u(_C_, up) * m_upwind_amount;
 					lin_Defect = scvf.normal();
-					VecScale(lin_Defect, lin_Defect, shape_u);
-					m_Velocity.lin_defect(scvf.from(), ip_pos) = lin_Defect;
-					VecScale(m_Velocity.lin_defect(scvf.to(), ip_pos), lin_Defect, -1.);
+					lin_Defect *= conv_scale * (1.- m_upwind_amount);
+					number shape_u = 0.0; for(size_t k = 0; k < sdv.num_sh(); ++k) shape_u += u(_C_, k) * sdv.shape(k);
+					lin_Defect *= shape_u;
+
+					m_Velocity.lin_defect(ip_pos, _C_, scvf.from()) += lin_Defect;
+					m_Velocity.lin_defect(ip_pos, _C_, scvf.to()) -= lin_Defect;
+				}
+
+				// upwind part convection
+				if(m_upwind_amount != 0.0)
+				{
+					lin_Defect = scvf.normal();
+					lin_Defect *= conv_scale * m_upwind_amount;
+					flux = m_upwind_amount * VecDot(v, scvf.normal());
+					if(flux >= 0.0) lin_Defect *= u(_C_, scvf.from()); else lin_Defect *= u(_C_, scvf.to());
+
+					m_Velocity.lin_defect(ip_pos, _C_, scvf.from()) += lin_Defect;
+					m_Velocity.lin_defect(ip_pos, _C_, scvf.to()) -= lin_Defect;
 				}
 			}
 
@@ -203,6 +225,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			++ip_pos;
 		}
 	}
+
 	int co;
 	number reac_val;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
@@ -336,7 +359,7 @@ CplConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	int co;
-	number mass_scale , mass_const;
+	number mass_scale;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
 		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
@@ -344,9 +367,8 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		co = scv.local_corner_id();
 
 		m_Mass_Scale(mass_scale, scv.global_corner_pos(), time);
-		m_Mass_Const(mass_const, scv.global_corner_pos(), time);
 
-		d(_C_, co) += (mass_const * mass_scale * u(_C_, co)) * scv.volume();
+		d(_C_, co) += (mass_scale * u(_C_, co)) * scv.volume();
 	}
 
 	return true;

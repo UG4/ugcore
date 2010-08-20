@@ -19,6 +19,7 @@
 #include "../elem_disc/elem_disc_interface.h"
 #include "./elem_data/data_items.h"
 #include "./elem_data/data_container.h"
+#include "./elem_data/ip_derivative.h"
 #include "lib_discretization/common/local_algebra.h"
 
 namespace ug {
@@ -39,6 +40,9 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 		typedef LocalIndices local_index_type;
 
 	public:
+		ICoupledElemDisc() : m_instId(m_instIdCount++) {};
+
+	public:
 		virtual size_t num_imports() = 0;
 
 		virtual DataImportItem* import(size_t i) = 0;
@@ -55,11 +59,11 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 
 	public:
 		template <typename data_type, typename position_type>
-		void data_export(	int nr, std::vector<data_type>& val, std::vector<std::vector<data_type> >& deriv,
+		void data_export(	int nr, std::vector<data_type>& val, std::vector<IPDerivative<data_type> >& deriv,
 							const std::vector<position_type>& pos, const local_vector_type& u, bool compDeriv)
 		{
 			using std::vector;
-			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>& val, vector<vector<data_type> >& deriv,
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>& val, std::vector<IPDerivative<data_type> >& deriv,
 															const vector<position_type>& pos, const local_vector_type& u, bool compDeriv);
 			vector<vector<ExportFunc> >& vDataExport = get_vDataExport<data_type,position_type>();
 
@@ -72,7 +76,7 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 		bool register_data_export_function(int id, size_t nr, TFunc func)
 		{
 			using std::vector;
-			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, vector<vector<data_type> >&,
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, std::vector<IPDerivative<data_type> >&,
 															const vector<position_type>&, const local_vector_type&, bool);
 			vector<vector<ExportFunc> >& vDataExport = get_vDataExport<data_type,position_type>();
 
@@ -90,14 +94,14 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 
 			vDataExport[nr][id] = (ExportFunc)func;
 
-			return 0;
+			return true;
 		}
 
 		template <typename data_type, typename position_type>
 		bool data_export_function_registered(int id, size_t nr)
 		{
 			using std::vector;
-			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, vector<vector<data_type> >&,
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, std::vector<IPDerivative<data_type> >&,
 															const vector<position_type>&, const local_vector_type&, bool);
 			vector<vector<ExportFunc> >& vDataExport = get_vDataExport<data_type,position_type>();
 
@@ -113,16 +117,26 @@ class ICoupledElemDisc : public IElemDisc<TAlgebra> {
 		}
 
 		template <typename data_type, typename position_type>
-		std::vector<std::vector<void (ICoupledElemDisc<TAlgebra>::*)(	std::vector<data_type>&, std::vector<std::vector<data_type> >&,
+		std::vector<std::vector<void (ICoupledElemDisc<TAlgebra>::*)(	std::vector<data_type>&, std::vector<IPDerivative<data_type> >&,
 													const std::vector<position_type>&, const local_vector_type&, bool)> >& get_vDataExport()
 		{
 			using std::vector;
-			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, vector<vector<data_type> >&,
+			typedef void (ICoupledElemDisc<TAlgebra>::*ExportFunc)(vector<data_type>&, std::vector<IPDerivative<data_type> >&,
 															const vector<position_type>&, const local_vector_type&, bool);
-			static vector<vector<ExportFunc> > vDataExport;
-			return vDataExport;
+			static vector<vector<vector<ExportFunc> > > vDataExport;
+			vDataExport.resize(m_instIdCount+1);
+			return vDataExport[m_instId];
 		};
+
+	protected:
+		// This is to distinguish different instances for static variables
+		const int m_instId;
+		static int m_instIdCount;
+
 };
+
+template <typename TAlgebra>
+int ICoupledElemDisc<TAlgebra>::m_instIdCount = 0;
 
 
 } // end namespace ug

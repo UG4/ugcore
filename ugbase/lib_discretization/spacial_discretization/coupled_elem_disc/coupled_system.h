@@ -117,12 +117,17 @@ class CoupledSystem {
 		/// link export to import
 		bool link(size_t exp, size_t imp)
 		{
-			if(!m_ElemDataContainer.create_export(exp))
-				{UG_LOG("CoupledSystem::link: Cannot create export"); return false;}
-
 			if(!m_ElemDataContainer.link(exp, imp))
-				{UG_LOG("CoupledSystem::link: Cannot link created export to import"); return false;}
+				{UG_LOG("CoupledSystem::link: Cannot link created export to import.\n"); return false;}
 
+			return true;
+		}
+
+		/// create export
+		bool create_export(size_t exp)
+		{
+			if(m_ElemDataContainer.create_export(exp) == NULL)
+				{UG_LOG("CoupledSystem::link: Cannot create export.\n"); return false;}
 			return true;
 		}
 

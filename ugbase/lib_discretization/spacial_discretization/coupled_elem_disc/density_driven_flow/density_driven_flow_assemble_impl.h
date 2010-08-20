@@ -43,10 +43,13 @@ compute_ip_Darcy_velocity(MathVector<dim>& Darcy_vel, number c_ip, const MathVec
 	MathVector<dim> vel;
 	MathMatrix<dim, dim> K;
 
+	// read in user data
 	m_Density(s, c_ip);
 	m_Viscosity(viscosity_ip, c_ip);
 	m_Gravity(vel);
 	m_Permeability_Tensor(K);
+
+	// compute Darcy velocity
 	VecScale(vel, vel, s);
 	VecSubtract(vel, vel, grad_p_ip);
 	MatVecMult(Darcy_vel, K, vel);
@@ -71,15 +74,20 @@ compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
 	MathMatrix<dim, dim> K;
 	const SD_Values<TElem, dim>& sdv = scvf.sdv();
 
+	// read in user data
 	m_Density(s, c_ip);
 	m_Gravity(gravity);
 	m_Viscosity(mu_ip, c_ip);
 	m_Permeability_Tensor(K);
+
+	// compute Darcy velocity
 	VecScale(vel, gravity, s);
 	VecSubtract(vel, vel, grad_p_ip);
 	MatVecMult(Darcy_vel, K, vel);
 	VecScale(Darcy_vel, Darcy_vel, 1./mu_ip);
 
+	// compute derivative of Darcy Velocity with respect to _C_ and _P_
+	// Out of the parameters, only the density depends on c
 	m_D_Density(s, c_ip);
 	for(int co = 0; co < num_co; ++co)
 	{
@@ -92,7 +100,7 @@ compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
 		VecScale(D_Darcy_vel_p[co],D_Darcy_vel_p[co],1./mu_ip);
 	}
 
-	// D_Viscosity == 0 !!!!
+	// D_Viscosity == 0 !!!! since mu is constant
 	return true;
 };
 
@@ -113,7 +121,14 @@ prepare_element_loop()
 	m_aaPos = m_domain.get_position_accessor();
 
 	//m_DarcyVelocity.set_eval_function(&CplDensityDrivenFlowElemDisc::template data_export<TElem>, this);
-	m_DarcyVelocity.set_num_sh(2*ref_elem_type::num_corners); //(num_sys, num_sh)
+	if(!m_DarcyVelocity.set_num_fct(2))
+		{UG_LOG("CplDensityDrivenFlowElemDisc::prepare_element_loop: Cannot set num_fct for Velocity.\n"); return false;}
+
+	if(!m_DarcyVelocity.set_num_dofs(_C_, ref_elem_type::num_corners))
+		{UG_LOG("CplDensityDrivenFlowElemDisc::prepare_element_loop: Cannot set num_dofs for Velocity.\n"); return false;}
+	if(!m_DarcyVelocity.set_num_dofs(_P_, ref_elem_type::num_corners))
+		{UG_LOG("CplDensityDrivenFlowElemDisc::prepare_element_loop: Cannot set num_dofs for Velocity.\n"); return false;}
+
 	return true;
 }
 
@@ -291,7 +306,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		J(_C_, co, _C_, co) += m_porosity * scv.volume();
 		//J(_C_, co, _P_, co) += 0;
 		//J(_P_, co, _C_, co) += 0;
-		//J(_P_, co, _P_, co) += 0;
+		//J(_P_, co, _P_, co) += 0
 	}
 
 	return true;
@@ -391,7 +406,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		co = scv.local_corner_id();
 
 		d(_C_, co) += m_porosity * u(_C_,co) * scv.volume();
-		d(_P_, co) += m_porosity * scv.volume();
+//		d(_P_, co) += m_porosity * scv.volume();
 	}
 	return true;
 }
