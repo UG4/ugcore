@@ -240,6 +240,20 @@ class GridFunction{
 		/// return the number of dofs distributed on subset si
 		inline size_t num_dofs(int si) const {return m_pDoFDistribution->num_dofs(si);}
 
+		// number of elements of this type for a subset
+		template <typename TElem>
+		inline size_t num() const
+			{return m_pDoFDistribution->template num<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::iterator begin() const
+			{return m_pDoFDistribution->template begin<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::iterator end() const
+			{return m_pDoFDistribution->template end<TElem>();}
 
 		// number of elements of this type for a subset
 		template <typename TElem>
