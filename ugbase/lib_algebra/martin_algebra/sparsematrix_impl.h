@@ -935,7 +935,7 @@ bool SparseMatrix<T>::get_connection_nr_templ(size_t r, size_t c, size_t &nr) co
 		if (con[mid].iIndex < c)
 			left = mid+1;
 		else if (con[mid].iIndex > c)
-			right = mid-1;
+			{right = mid>0 ? mid-1 : 0;}	// TODO: ATTENTION: I changed this because in case (left-right) == 1 (i.e. mid = left) and left==0, this will lead to huge right: mid = (size_t)(-1)
 		else
 		{
 			if(flag == LESS_EQUAL || flag == EQUAL || flag == GREATER_EQUAL)

@@ -228,6 +228,11 @@ apply(function_type& d, function_type &c, bool updateDefect)
 	m_d[m_surfaceLevel]->release_surface(*d_copy);
 	m_c[m_surfaceLevel]->release_surface(c);
 
+	if(!updateDefect)
+	{
+		delete d_copy;
+	}
+
 	return true;
 }
 
