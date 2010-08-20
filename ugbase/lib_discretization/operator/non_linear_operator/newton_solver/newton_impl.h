@@ -10,6 +10,7 @@
 
 #include "newton.h"
 #include "lib_discretization/io/vtkoutput.h"
+#include "lib_discretization/function_spaces/grid_function_util.h"
 
 namespace ug{
 
@@ -130,6 +131,8 @@ apply(function_type& u)
 		// Compute Jacobian
 		if(!m_J->prepare(u, *m_c, *m_d))
 			{UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n"); return false;}
+
+		WriteMatrixToConnectionViewer("NewtonMat.mat", m_J->get_matrix(), u);
 
 		// Init Jacobi Inverse
 		if(!m_LinearSolver.init(*m_J))

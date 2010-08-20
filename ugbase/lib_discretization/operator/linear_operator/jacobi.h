@@ -119,8 +119,9 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			// TODO: We should handle this by a VecEntrywiseMultiply
 			for(size_t i = 0; i < m_diagInv.size(); ++i)
 			{
-				// c_vec[i] = m_diagInv[i] * d_vec[i];
-				AssignMult(c_vec[i], m_diagInv[i], d_vec[i]);
+				// TODO: I reverted the change, since AssignMult has not been declared for given arguments. Andreas Vogel
+				c_vec[i] = m_diagInv[i] * d_vec[i];
+				//AssignMult(c_vec[i], m_diagInv[i], d_vec[i]);
 			}
 
 			// make correction consistent

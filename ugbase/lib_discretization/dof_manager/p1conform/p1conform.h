@@ -100,6 +100,19 @@ class P1ConformDoFDistribution : public DoFDistribution
 		///////////////////////////////////////
 
 		template<typename TElem>
+		inline size_t num() const {return m_goc.num<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::iterator begin()
+			{return m_goc.begin<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::iterator end()
+			{return m_goc.end<TElem>();}
+
+		template<typename TElem>
 		inline size_t num(int si) const {return m_goc.num<TElem>(si);}
 
 		// iterator for elements where this grid function is defined
@@ -244,6 +257,19 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 		///////////////////////////////////////
 		// Elements where dofs are distributed
 		///////////////////////////////////////
+
+		template<typename TElem>
+		inline size_t num() const {return m_goc.num<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::iterator begin()
+			{return m_goc.begin<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::iterator end()
+			{return m_goc.end<TElem>();}
 
 		template<typename TElem>
 		inline size_t num(int si) const {return m_goc.num<TElem>(si);}

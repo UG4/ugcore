@@ -84,6 +84,12 @@ class LocalIndices
 			return access_sub_function_group(m_identitySubFunctionMap);
 		}
 
+		/// get current sub function map
+		const SubFunctionMap& get_sub_function_map() const
+		{
+			return *m_pSubFunctionMap;
+		}
+
 		/// clear all dofs and indices
 		void clear()
 		{
@@ -239,14 +245,19 @@ class LocalVector
 
 		LocalVector() : m_pIndices(NULL) {m_entries.clear();}
 
-		LocalVector(const LocalIndices& ind){m_entries.clear(); set_indices(ind);}
+		LocalVector(LocalIndices& ind)
+			: m_pIndices(NULL)
+		{m_entries.clear(); set_indices(ind);}
 
 		/// set new local indices
-		void set_indices(const LocalIndices& ind)
+		void set_indices(LocalIndices& ind)
 		{
 			if(ind.num_indices() != size()) m_entries.resize(ind.num_indices());
 			m_pIndices = &ind;
 		}
+
+		/// get current local indices
+		LocalIndices& get_indices() {return *m_pIndices;}
 
 		template <typename TDiscreteFunction>
 		void read_values(const TDiscreteFunction& v)
@@ -354,16 +365,19 @@ class LocalVector
 
 	protected:
 		// indices
-		const LocalIndices* m_pIndices;
+		LocalIndices* m_pIndices;
 
 		// entries (size = m_indices.num_indices())
 		std::vector<entry_type> m_entries;
 };
 
-
+class LocalMatrixBase{
+public:
+	virtual ~LocalMatrixBase(){};
+};
 
 template <typename TEntry>
-class LocalMatrix
+class LocalMatrix : public LocalMatrixBase
 {
 	public:
 		typedef LocalMatrix<TEntry> this_type;
@@ -389,6 +403,7 @@ class LocalMatrix
 		LocalMatrix() : m_pRowIndices(NULL), m_pColIndices(NULL) {}
 
 		LocalMatrix(const LocalIndices& rowInd, const LocalIndices& colInd)
+			: m_pRowIndices(NULL), m_pColIndices(NULL)
 		{
 			set_row_indices(rowInd);
 			set_col_indices(colInd);
@@ -540,11 +555,10 @@ class LocalMatrix
 			}
 			m_entries.clear();
 
-			if(m_pRowIndices == NULL) return;
-			m_entries.resize(m_pRowIndices->num_indices());
+			if(m_pRowIndices == NULL || m_pColIndices == NULL) return;
 
-			if(m_pColIndices == NULL) return;
-			for(size_t i = 0; i < m_pRowIndices->num_indices(); ++i)
+			m_entries.resize(m_pRowIndices->num_indices());
+			for(size_t i = 0; i < m_entries.size(); ++i)
 			{
 				m_entries[i].resize(m_pColIndices->num_indices());
 			}
