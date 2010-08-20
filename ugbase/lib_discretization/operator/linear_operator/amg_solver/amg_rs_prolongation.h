@@ -303,4 +303,4 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 
 } // namespace ug
 
-#endif __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_RS_PROLONGATION_H__
+#endif /* __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_RS_PROLONGATION_H__ */

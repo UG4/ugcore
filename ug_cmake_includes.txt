@@ -274,7 +274,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 					message(STATUS "INFO: LAPACK Found. (lib = '${LAPACK_LIBRARIES}', flags = '${LAPACK_LINKER_FLAGS}', headers at '${LAPACK_INCLUDE_PATH})")
 					set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLAPACK_AVAILABLE")
 			else(LAPACK_INCLUDE_PATH)			
-				   message(STATUS "INFO:  Found LAPACK (lib = '${LAPACK_LIBRARIES') , but not clapack.h ! (To disable LAPACK define -DNO_LAPACK=ON)")
+				   message(STATUS "INFO:  Found LAPACK (lib = '${LAPACK_LIBRARIES}') , but not clapack.h ! (To disable LAPACK define -DNO_LAPACK=ON)")
 		   endif(LAPACK_INCLUDE_PATH)
 
 		else(LAPACK_FOUND)
