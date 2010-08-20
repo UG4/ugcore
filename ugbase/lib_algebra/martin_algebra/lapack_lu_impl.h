@@ -38,7 +38,9 @@ void LapackLU::apply(const vec_type &b, vec_type &x)
 template<typename matrix_type>
 void LapackLU::init(const matrix_type &A)
 {
-	const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfUnknowns;
+	// TODO: Use nrOfRows and nrOfCols here. I have changed this due to compile errors. Andreas Vogel
+	// before: const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfUnknowns;
+	const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfRows;
 	size = A.num_rows() * nrOfUnknowns;
 
 	if(densemat) delete[] densemat;

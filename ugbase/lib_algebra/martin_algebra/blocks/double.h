@@ -5,7 +5,7 @@
  *  Created by Martin Rupp on 16.12.09.
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
  *
- *  Header File for general block matrix / double accessing 
+ *  Header File for general block matrix / double accessing
  *  i.e. setAt(mat, i, j, d) -> mat(i,j) = d
  *	and setAt(f, 0, 0, d) -> f = d.
  *  This means doubles and block matrices can be accessed
@@ -63,10 +63,10 @@ template<> inline const double &BlockRef(const double &m, size_t i, size_t j)
 }
 
 //////////////////////////////////////////////////////
-// algebra stuff to avoid temporary variables 
+// algebra stuff to avoid temporary variables
 
 // with double, it remains the question if this is really fast,
-// because we are writing into memory with double &dest (do we???) 
+// because we are writing into memory with double &dest (do we???)
 // temporary variables would be faster, does gcc know???
 // dest = vec*b
 inline void AssignMult(double &dest, const double &b, const double &vec)
@@ -132,6 +132,10 @@ struct block_matrix_traits<double>
 	typedef double vec_type;
 	typedef double inverse_type;
 	enum { nrOfUnknowns = 1 } ;
+
+	//TODO: Decide weather to use nrOfUnknows or nrOfRows/nrOfCols. Currently mixed. Therefore I added the two below here. Andreas Vogel
+	enum { nrOfRows = 1 } ;
+	enum { nrOfCols = 1 } ;
 };
 
 template<>

@@ -248,6 +248,20 @@ public:
 		return ! operator == (d);
 	}
 
+// TODO: I inserted this, since it is still used in operator*. Otherwise we get compile errors. Andreas Vogel
+	//! dest = this*vec . use this to prevent temporary variables
+	void assign_mult(vector_type &dest, const vector_type &vec) const
+	{
+		UG_ASSERT(num_rows() == vec.size(), "");
+		for(size_t r=0; r < num_rows(); r++)
+		{
+			dest(r) = 0.0;
+			for(size_t c=0; c < num_cols(); c++)
+				AddMult(dest(r), at(r, c), vec(c));
+		}
+	}
+
+
 // other
 	double norm() const
 	{
@@ -352,7 +366,7 @@ public:
 	void setAsInverseOf(const blockDenseMatrix<double, storage_type, rows_, cols_> &mat)
 	{
 		int rows = mat.num_rows(), cols = mat.num_cols();
-		UG_ASSERT(rows == cols, "only for square matrices");	
+		UG_ASSERT(rows == cols, "only for square matrices");
 
 		densemat.resize(rows, cols);
 		for(size_t r=0; r < rows; r++)
