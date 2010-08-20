@@ -19,20 +19,26 @@ bool ApplyLinearSolver(	ILinearOperator<TGridFunction, TGridFunction>& A,
 						ILinearizedOperatorInverse<TGridFunction, TGridFunction>& solver)
 {
 	// step 1: Prepare operator, compute b and set dirichlet values in u
+	PROFILE_BEGIN(assembleLinearMatrix);
 	if(!A.prepare(u,b))
 		{UG_LOG("ApplyLinearSolver: Cannot init Operator.\n"); return false;}
+	PROFILE_END();
 
 	// step 2: Init Linear Inverse Operator
 	if(!solver.init(A))
 		{UG_LOG("ApplyLinearSolver: Cannot init Inverse operator.\n"); return false;}
 
 	// step 3: Prepare Linear Inverse Operator
+	PROFILE_BEGIN(prepareLinearSolver);
 	if(!solver.prepare(u, b, u))
 		{UG_LOG("ApplyLinearSolver: Cannot prepare Inverse operator.\n"); return false;}
+	PROFILE_END();
 
 	// step 4: Apply Operator
+	PROFILE_BEGIN(applyLinearSolver);
 	if(!solver.apply(b,u))
 		{UG_LOG("ApplyLinearSolver: Cannot apply Inverse operator.\n"); return false;}
+	PROFILE_END();
 
 	return true;
 }
