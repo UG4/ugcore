@@ -12,6 +12,7 @@
 // creation etc
 
 #include <fstream>
+#include <cstring>
 
 #include "algebra_misc.h"
 //#include "local_helper.h"
