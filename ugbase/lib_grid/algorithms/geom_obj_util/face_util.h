@@ -33,7 +33,7 @@ namespace ug
  * If the face contains more than 4 vertices the normal of the first
  * sub-triangle is returned.
  */
-void CalculateNormal(vector3& vNormOut, Face* face,
+void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
@@ -190,7 +190,7 @@ CalculateFaceCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 ////////////////////////////////////////////////////////////////////////
 template<class TVertexPositionAttachmentAccessor>
 typename TVertexPositionAttachmentAccessor::ValueType
-CalculateCenter(Face* f, TVertexPositionAttachmentAccessor& aaPosVRT);
+CalculateCenter(FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 
 
 ////////////////////////////////////////////////////////////////////////

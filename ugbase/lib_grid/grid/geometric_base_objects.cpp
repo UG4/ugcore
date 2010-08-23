@@ -52,6 +52,15 @@ FaceDescriptor& FaceDescriptor::operator = (const FaceDescriptor& fd)
 	return *this;
 }
 
+
+////////////////////////////////////////////////////////////////////////
+//	implementation of Volume
+void Volume::get_flipped_orientation(VolumeDescriptor& vdOut) const
+{
+	throw(int(0));
+	vdOut = *this;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	implementation of volume-descriptor
 VolumeDescriptor::VolumeDescriptor()
@@ -68,9 +77,9 @@ VolumeDescriptor::VolumeDescriptor(const VolumeDescriptor& vd)
 	VolumeVertices::assign_volume_vertices(vd);
 }
 
-VolumeDescriptor& VolumeDescriptor::operator = (const VolumeDescriptor& vd)
+VolumeDescriptor& VolumeDescriptor::operator = (const VolumeVertices& vv)
 {
-	VolumeVertices::assign_volume_vertices(vd);
+	VolumeVertices::assign_volume_vertices(vv);
 	return *this;
 }
 

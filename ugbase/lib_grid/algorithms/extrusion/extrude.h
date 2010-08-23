@@ -57,8 +57,7 @@ void Extrude(Grid& grid,
 			std::vector<Face*>* pvFacesInOut,
 			const vector3& direction,
 			uint extrusionOptions = EO_DEFAULT,
-			APosition& aPos = aPosition,
-			bool invertOrientation = false);
+			APosition& aPos = aPosition);
 
 
 /*

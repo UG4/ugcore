@@ -46,6 +46,15 @@ TetrahedronDescriptor::TetrahedronDescriptor(const TetrahedronDescriptor& td)
 	m_vertex[3] = td.vertex(3);
 }
 
+TetrahedronDescriptor::TetrahedronDescriptor(const VolumeVertices& vv)
+{
+	assert((vv.num_vertices() == 4) &&	"Bad number of vertices in volume-descriptor. Should be 4.");
+	m_vertex[0] = vv.vertex(0);
+	m_vertex[1] = vv.vertex(1);
+	m_vertex[2] = vv.vertex(2);
+	m_vertex[3] = vv.vertex(3);
+}
+
 TetrahedronDescriptor::TetrahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
 {
 	m_vertex[0] = v1;
@@ -262,6 +271,17 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	return false;
 }
 
+void Tetrahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
+{
+//	in order to flip a tetrahedrons orientation, we have to invert the order
+//	of the base-vertices
+	vdOut.set_num_vertices(4);
+	vdOut.set_vertex(0, vertex(2));
+	vdOut.set_vertex(1, vertex(1));
+	vdOut.set_vertex(2, vertex(0));
+	vdOut.set_vertex(3, vertex(3));
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	HexahedronDescriptor
 HexahedronDescriptor::HexahedronDescriptor(const HexahedronDescriptor& td)
@@ -274,6 +294,19 @@ HexahedronDescriptor::HexahedronDescriptor(const HexahedronDescriptor& td)
 	m_vertex[5] = td.vertex(5);
 	m_vertex[6] = td.vertex(6);
 	m_vertex[7] = td.vertex(7);
+}
+
+HexahedronDescriptor::HexahedronDescriptor(const VolumeVertices& vv)
+{
+	assert((vv.num_vertices() == 8) &&	"Bad number of vertices in volume-descriptor. Should be 8.");
+	m_vertex[0] = vv.vertex(0);
+	m_vertex[1] = vv.vertex(1);
+	m_vertex[2] = vv.vertex(2);
+	m_vertex[3] = vv.vertex(3);
+	m_vertex[4] = vv.vertex(4);
+	m_vertex[5] = vv.vertex(5);
+	m_vertex[6] = vv.vertex(6);
+	m_vertex[7] = vv.vertex(7);
 }
 
 HexahedronDescriptor::HexahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
@@ -562,8 +595,24 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	}
 
 	return false;
-
 }
+
+void Hexahedron::get_flipped_orientation(VolumeDescriptor& vdOut)  const
+{
+//	in order to flip a hexahedrons orientation, we have to swap
+//	the bottom and top vertices
+	vdOut.set_num_vertices(8);
+	vdOut.set_vertex(0, vertex(4));
+	vdOut.set_vertex(1, vertex(5));
+	vdOut.set_vertex(2, vertex(6));
+	vdOut.set_vertex(3, vertex(7));
+	vdOut.set_vertex(4, vertex(0));
+	vdOut.set_vertex(5, vertex(1));
+	vdOut.set_vertex(6, vertex(2));
+	vdOut.set_vertex(7, vertex(3));
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -576,6 +625,17 @@ PrismDescriptor::PrismDescriptor(const PrismDescriptor& td)
 	m_vertex[3] = td.vertex(3);
 	m_vertex[4] = td.vertex(4);
 	m_vertex[5] = td.vertex(5);
+}
+
+PrismDescriptor::PrismDescriptor(const VolumeVertices& vv)
+{
+	assert((vv.num_vertices() == 6) &&	"Bad number of vertices in volume-descriptor. Should be 6.");
+	m_vertex[0] = vv.vertex(0);
+	m_vertex[1] = vv.vertex(1);
+	m_vertex[2] = vv.vertex(2);
+	m_vertex[3] = vv.vertex(3);
+	m_vertex[4] = vv.vertex(4);
+	m_vertex[5] = vv.vertex(5);
 }
 
 PrismDescriptor::PrismDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
@@ -841,6 +901,19 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 	return false;
 }
 
+void Prism::get_flipped_orientation(VolumeDescriptor& vdOut) const
+{
+//	in order to flip a prisms orientation, we have to swap
+//	the bottom and top vertices
+	vdOut.set_num_vertices(6);
+	vdOut.set_vertex(0, vertex(3));
+	vdOut.set_vertex(1, vertex(4));
+	vdOut.set_vertex(2, vertex(5));
+	vdOut.set_vertex(3, vertex(0));
+	vdOut.set_vertex(4, vertex(1));
+	vdOut.set_vertex(5, vertex(2));
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -852,6 +925,16 @@ PyramidDescriptor::PyramidDescriptor(const PyramidDescriptor& td)
 	m_vertex[2] = td.vertex(2);
 	m_vertex[3] = td.vertex(3);
 	m_vertex[4] = td.vertex(4);
+}
+
+PyramidDescriptor::PyramidDescriptor(const VolumeVertices& vv)
+{
+	assert((vv.num_vertices() == 5) &&	"Bad number of vertices in volume-descriptor. Should be 5.");
+	m_vertex[0] = vv.vertex(0);
+	m_vertex[1] = vv.vertex(1);
+	m_vertex[2] = vv.vertex(2);
+	m_vertex[3] = vv.vertex(3);
+	m_vertex[4] = vv.vertex(4);
 }
 
 PyramidDescriptor::PyramidDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
@@ -1097,6 +1180,18 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 	}
 
 	return false;
+}
+
+void Pyramid::get_flipped_orientation(VolumeDescriptor& vdOut) const
+{
+//	in order to flip a pyramids orientation, we have to invert the order
+//	of the base-vertices
+	vdOut.set_num_vertices(5);
+	vdOut.set_vertex(0, vertex(3));
+	vdOut.set_vertex(1, vertex(2));
+	vdOut.set_vertex(2, vertex(1));
+	vdOut.set_vertex(3, vertex(0));
+	vdOut.set_vertex(4, vertex(4));
 }
 
 }//	end of namespace

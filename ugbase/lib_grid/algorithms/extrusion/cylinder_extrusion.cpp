@@ -66,7 +66,7 @@ static bool ExtrudeCylinder(Grid& grid, SubsetHandler* sh, VertexBase* vrt,
 	vector3 scaledDir;
 	VecScale(scaledDir, direction, height);
 	
-	Extrude(grid, NULL, &vEdges, &vFaces, scaledDir, EO_CREATE_FACES, aPosition, (height < 0));
+	Extrude(grid, NULL, &vEdges, &vFaces, scaledDir, EO_CREATE_FACES, aPosition);
 
 	if(sh){
 	//	restore subset handler

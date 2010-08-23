@@ -223,13 +223,13 @@ class Grid
 		VertexBaseIterator create_by_cloning(VertexBase* pCloneMe, GeometricObject* pParent = NULL);
 
 	///	this method creates a new edge, which has the same type as pCloneMe.
-		EdgeBaseIterator create_by_cloning(EdgeBase* pCloneMe, const EdgeDescriptor& ed, GeometricObject* pParent = NULL);
+		EdgeBaseIterator create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GeometricObject* pParent = NULL);
 
 	///	this method creates a new face, which has the same type as pCloneMe.
-		FaceIterator create_by_cloning(Face* pCloneMe, const FaceDescriptor& fd, GeometricObject* pParent = NULL);
+		FaceIterator create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GeometricObject* pParent = NULL);
 
 	///	this method creates a new volume, which has the same type as pCloneMe.
-		VolumeIterator create_by_cloning(Volume* pCloneMe, const VolumeDescriptor& vd, GeometricObject* pParent = NULL);
+		VolumeIterator create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GeometricObject* pParent = NULL);
 
 	////////////////////////////////////////////////
 	//	element deletion
@@ -285,9 +285,13 @@ class Grid
 		virtual GeometricObjectCollection get_geometric_object_collection();
 
 	////////////////////////////////////////////////
-	///	flips the orientation of an element.
+	///	flips the orientation of a face.
 		void flip_orientation(Face* f);
 
+	////////////////////////////////////////////////
+	///	flips the orientation of a volume.
+		void flip_orientation(Volume* vol);
+		
 	////////////////////////////////////////////////
 	//	Iterators
 		template <class TGeomObj>

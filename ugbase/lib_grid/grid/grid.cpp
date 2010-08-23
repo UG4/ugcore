@@ -252,31 +252,31 @@ VertexBaseIterator Grid::create_by_cloning(VertexBase* pCloneMe, GeometricObject
 	return iterator_cast<VertexBaseIterator>(pNew->m_entryIter);
 }
 
-EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeDescriptor& ed, GeometricObject* pParent)
+EdgeBaseIterator Grid::create_by_cloning(EdgeBase* pCloneMe, const EdgeVertices& ev, GeometricObject* pParent)
 {
 	EdgeBase* pNew = reinterpret_cast<EdgeBase*>(pCloneMe->create_empty_instance());
-	pNew->set_vertex(0, ed.vertex(0));
-	pNew->set_vertex(1, ed.vertex(1));
+	pNew->set_vertex(0, ev.vertex(0));
+	pNew->set_vertex(1, ev.vertex(1));
 	register_edge(pNew, pParent);
 	return iterator_cast<EdgeBaseIterator>(pNew->m_entryIter);
 }
 
-FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceDescriptor& fd, GeometricObject* pParent)
+FaceIterator Grid::create_by_cloning(Face* pCloneMe, const FaceVertices& fv, GeometricObject* pParent)
 {
 	Face* pNew = reinterpret_cast<Face*>(pCloneMe->create_empty_instance());
-	uint numVrts = fd.num_vertices();
+	uint numVrts = fv.num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
-		pNew->set_vertex(i, fd.vertex(i));
+		pNew->set_vertex(i, fv.vertex(i));
 	register_face(pNew, pParent);
 	return iterator_cast<FaceIterator>(pNew->m_entryIter);
 }
 
-VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeDescriptor& vd, GeometricObject* pParent)
+VolumeIterator Grid::create_by_cloning(Volume* pCloneMe, const VolumeVertices& vv, GeometricObject* pParent)
 {
 	Volume* pNew = reinterpret_cast<Volume*>(pCloneMe->create_empty_instance());
-	uint numVrts = vd.num_vertices();
+	uint numVrts = vv.num_vertices();
 	for(uint i = 0; i < numVrts; ++i)
-		pNew->set_vertex(i, vd.vertex(i));
+		pNew->set_vertex(i, vv.vertex(i));
 	register_volume(pNew, pParent);
 	return iterator_cast<VolumeIterator>(pNew->m_entryIter);
 }
@@ -371,6 +371,19 @@ void Grid::flip_orientation(Face* f)
 		
 	for(i = 0; i < numVrts; ++i)
 		f->m_vertices[i] = vVrts[numVrts - 1 - i];
+}
+
+void Grid::flip_orientation(Volume* vol)
+{
+//	flips the orientation of volumes
+//	get the descriptor for the flipped volume
+	VolumeDescriptor vd;
+	vol->get_flipped_orientation(vd);
+	
+//	change vertex order of the original volume
+	size_t numVrts = vol->num_vertices();
+	for(size_t i = 0; i < numVrts; ++i)
+		vol->m_vertices[i] = vd.vertex(i);
 }
 
 uint Grid::vertex_fragmentation()

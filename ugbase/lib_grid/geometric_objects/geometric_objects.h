@@ -958,6 +958,7 @@ class TetrahedronDescriptor
 	public:
 		TetrahedronDescriptor()	{}
 		TetrahedronDescriptor(const TetrahedronDescriptor& td);
+		TetrahedronDescriptor(const VolumeVertices& vv);
 		TetrahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4);
 
 		inline uint num_vertices() const	{return 4;}
@@ -1012,6 +1013,8 @@ class Tetrahedron : public Volume
 								int edgeIndex, VertexBase* newVertex,
 								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
 
+		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		
 		virtual int shared_pipe_section() const	{return SPSVOL_TETRAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_TETRAHEDRON;}
@@ -1056,6 +1059,7 @@ class HexahedronDescriptor
 	public:
 		HexahedronDescriptor()	{}
 		HexahedronDescriptor(const HexahedronDescriptor& td);
+		HexahedronDescriptor(const VolumeVertices& vv);
 		HexahedronDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4,
 							VertexBase* v5, VertexBase* v6, VertexBase* v7, VertexBase* v8);
 
@@ -1110,6 +1114,8 @@ class Hexahedron : public Volume
 								int edgeIndex, VertexBase* newVertex,
 								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
 
+		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		
 		virtual int shared_pipe_section() const	{return SPSVOL_HEXAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_HEXAHEDRON;}
@@ -1154,6 +1160,7 @@ class PrismDescriptor
 	public:
 		PrismDescriptor()	{}
 		PrismDescriptor(const PrismDescriptor& td);
+		PrismDescriptor(const VolumeVertices& vv);
 		PrismDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 						VertexBase* v4, VertexBase* v5, VertexBase* v6);
 
@@ -1208,6 +1215,8 @@ class Prism : public Volume
 								int edgeIndex, VertexBase* newVertex,
 								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
 
+		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		
 		virtual int shared_pipe_section() const	{return SPSVOL_PRISM;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_PRISM;}
@@ -1252,6 +1261,7 @@ class PyramidDescriptor
 	public:
 		PyramidDescriptor()	{}
 		PyramidDescriptor(const PyramidDescriptor& td);
+		PyramidDescriptor(const VolumeVertices& vv);
 		PyramidDescriptor(VertexBase* v1, VertexBase* v2, VertexBase* v3,
 						VertexBase* v4, VertexBase* v5);
 
@@ -1306,6 +1316,8 @@ class Pyramid : public Volume
 								int edgeIndex, VertexBase* newVertex,
 								std::vector<VertexBase*>* pvSubstituteVertices = NULL);
 
+		virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		
 		virtual int shared_pipe_section() const	{return SPSVOL_PYRAMID;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_PYRAMID;}

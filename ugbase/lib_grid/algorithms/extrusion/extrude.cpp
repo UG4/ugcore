@@ -5,6 +5,7 @@
 #include "extrude.h"
 #include "common/util/hash.h"
 #include "lib_grid/algorithms/geom_obj_util/face_util.h"
+#include "lib_grid/algorithms/geom_obj_util/volume_util.h"
 
 using namespace std;
 
@@ -19,8 +20,7 @@ void Extrude(Grid& grid,
 			std::vector<Face*>* pvFacesInOut,
 			const vector3& direction,
 			uint extrusionOptions,
-			APosition& aPos,
-			bool invertOrientation)
+			APosition& aPos)
 {
 	UG_DLOG(LIB_GRID, 0, "extruding...\n");
 	
@@ -190,13 +190,18 @@ void Extrude(Grid& grid,
 			//	create the volume
 				if(extrusionOptions & EO_CREATE_VOLUMES)
 				{
-				//	create a hexahedron from the four points.
-					if(invertOrientation)
-						grid.create<Prism>(PrismDescriptor(f->vertex(2), f->vertex(1), f->vertex(0),
-														fNew->vertex(2), fNew->vertex(1), fNew->vertex(0)), f);
+					Prism prism(f->vertex(0), f->vertex(1), f->vertex(2),
+								fNew->vertex(0), fNew->vertex(1), fNew->vertex(2));
+					
+				//	check the orientation and create the prism
+					if(!CheckOrientation(&prism, aaPos)){
+						VolumeDescriptor vd;
+						prism.get_flipped_orientation(vd);
+						grid.create_by_cloning(&prism, vd, f);	
+					}
 					else
-						grid.create<Prism>(PrismDescriptor(f->vertex(0), f->vertex(1), f->vertex(2),
-														fNew->vertex(0), fNew->vertex(1), fNew->vertex(2)), f);
+						grid.create_by_cloning(&prism, prism, f);					
+
 				}
 			}
 			else if(numVrts == 4)
@@ -207,22 +212,24 @@ void Extrude(Grid& grid,
 			//	create the volume
 				if(extrusionOptions & EO_CREATE_VOLUMES)
 				{
-				//	create a hexahedron from the four points.
-					if(invertOrientation)
-						grid.create<Hexahedron>(HexahedronDescriptor(f->vertex(3), f->vertex(2), f->vertex(1), f->vertex(0),
-														fNew->vertex(3), fNew->vertex(2), fNew->vertex(1), fNew->vertex(0)), f);
+					Hexahedron hex(f->vertex(0), f->vertex(1), f->vertex(2), f->vertex(3),
+								   fNew->vertex(0), fNew->vertex(1), fNew->vertex(2), fNew->vertex(3));
+					
+				//	check the orientation and create the hexahedron
+					if(!CheckOrientation(&hex, aaPos)){
+						VolumeDescriptor vd;
+						hex.get_flipped_orientation(vd);
+						grid.create_by_cloning(&hex, vd, f);	
+					}
 					else
-						grid.create<Hexahedron>(HexahedronDescriptor(f->vertex(0), f->vertex(1), f->vertex(2), f->vertex(3),
-														fNew->vertex(0), fNew->vertex(1), fNew->vertex(2), fNew->vertex(3)), f);
+						grid.create_by_cloning(&hex, hex, f);					
 				}
 			}
-			else
-			{
+			else{
 				assert(!"face has bad number of vertices!");
 			}
 
-			if(fNew)
-			{
+			if(fNew){
 			//	overwrite the face in pvFacesInOut
 				vFaces[i] = fNew;
 			//	store the face in vNewFaces - but only if we have

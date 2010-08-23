@@ -672,6 +672,10 @@ class FaceDescriptor : public FaceVertices
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//	VOLUMES
+
+////////////////////////////////////////////////////////////////////////////////////////////////
 //	VolumeVertices
 ///	holds the vertices of a Volume or a VolumeDescriptor
 /**	Please note that this class does not have a virtual destructor.*/
@@ -714,7 +718,7 @@ class VolumeVertices
  * empty instances of this class.
  * This is required to allow the use of this class
  * for compile-time method selection by dummy-parameters.
- * It is cruical that derived classes overload thoes methods.
+ * It is cruical that derived classes overload those methods.
  *
  * \ingroup lib_grid_geometric_objects
  */
@@ -806,6 +810,16 @@ class Volume : public GeometricObject, public VolumeVertices
 								int edgeIndex, VertexBase* newVertex,
 								std::vector<VertexBase*>* pvSubstituteVertices = NULL)	{return false;}
 
+	/**
+	 * Writes vertices to the volume-descriptor so that it defines a volume with
+	 * flipped orientation. If you want to flip the orientation of a volume in a
+	 * grid, please consider using the grids flip_orientation method.
+	 *
+	 * Please note: The default implementation returns the original volume and has
+	 * to be reimplemented by derived classes.
+	 */
+	 	virtual void get_flipped_orientation(VolumeDescriptor& vdOut) const;
+		
 		virtual int shared_pipe_section() const	{return -1;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const	{return -1;}
@@ -854,7 +868,7 @@ class VolumeDescriptor : public VolumeVertices
 		VolumeDescriptor(uint numVertices, uint numEdges, uint numFaces);
 		VolumeDescriptor(const VolumeDescriptor& vd);
 
-		VolumeDescriptor& operator = (const VolumeDescriptor& vd);
+		VolumeDescriptor& operator = (const VolumeVertices& vv);
 
 		inline void set_num_vertices(uint numVertices)	{m_vertices.resize(numVertices);}
 		inline void set_vertex(uint index, VertexBase* vrt)

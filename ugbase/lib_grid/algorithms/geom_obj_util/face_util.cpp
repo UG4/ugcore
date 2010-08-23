@@ -15,7 +15,7 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
-void CalculateNormal(vector3& vNormOut, Face* face,
+void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	if(face->num_vertices() == 3)
