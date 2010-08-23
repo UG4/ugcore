@@ -21,6 +21,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 					bool keepSrcGrid,
 					size_t numPreRefinements,
 					size_t numPostRefinements,
+					bool writeProcessGrids,
 					int autoAssignInnerObjectsToSubset,
 					int autoAssignBoundaryObjectsToSubset)
 {
@@ -42,9 +43,9 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 		UG_LOG("  Distributed Grid Manager required in PrepareDomain!\n");
 		return false;
 	}
-	
+
 	typename TDomain::distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
-	
+
 //TODO: add partition-method
 	if(!LoadAndDistributeGrid(distGridMgr, sh, numProcs, filename,
 							keepSrcGrid,
@@ -67,7 +68,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 		{
 			size_t level = mg.num_levels() - 1;
 			LOG("refining level " << level << " ...");
-			
+
 		//	perform refinement.
 			refiner.refine();
 			LOG(" done\n");
@@ -82,14 +83,17 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 	LOG(" done\n");
 
 //	save the top-view for debug purposes
-	if(pcl::GetProcRank() == pcl::GetOutputProcRank())
-		SaveGridToFile(mg, "mg_top_view.obj", shTopViewOut);
+	if(writeProcessGrids)
+	{
+		if(pcl::GetProcRank() == pcl::GetOutputProcRank())
+			SaveGridToFile(mg, "mg_top_view.obj", shTopViewOut);
 
-//	save the local geometry to a file
-	std::stringstream ss;
-	ss << "gridOnProc_" << pcl::GetProcRank() << ".obj";
-	SaveGridToFile(mg, ss.str().c_str(), mg.get_hierarchy_handler());
-	
+		//	save the local geometry to a file
+		std::stringstream ss;
+		ss << "gridOnProc_" << pcl::GetProcRank() << ".obj";
+		SaveGridToFile(mg, ss.str().c_str(), mg.get_hierarchy_handler());
+	}
+
 /*
 //	debug - check subsets
 //	make sure that all elements are in the same subset as their parents

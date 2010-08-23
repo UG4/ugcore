@@ -15,6 +15,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 					bool keepSrcGrid,
 					size_t numPreRefinements,
 					size_t numPostRefinements,
+					bool writeProcessGrids,
 					int autoAssignInnerObjectsToSubset,
 					int autoAssignBoundaryObjectsToSubset)
 {

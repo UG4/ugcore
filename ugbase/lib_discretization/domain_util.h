@@ -13,7 +13,7 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////
 ///	creates a domain from a grid-file and distributes it over multiple processes.
 /** After the grid is loaded it will be distributed to the specified processes.
- *		
+ *
  *	\param keepSrcGrid: If set to true a copy of the whole grid
  *		(including pre-refinement) will be kept on process 0.
  *		Vertical interfaces will be created.
@@ -38,6 +38,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 					bool keepSrcGrid,
 					size_t numPreRefinements = 0,
 					size_t numPostRefinements = 0,
+					bool writeProcessGrids = true,
 					int autoAssignInnerObjectsToSubset = -2,
 					int autoAssignBoundaryObjectsToSubset = -2);
 
