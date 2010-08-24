@@ -465,7 +465,7 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 			if((t1 <= tMax) && (t2 >= tMin))
 			{
 				tMin = std::max(t1, tMin);
-				tMax = std::max(t2, tMax);
+				tMax = std::min(t2, tMax);
 			}
 			else
 				return false;
@@ -497,7 +497,7 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 			if((t1 <= tMax) && (t2 >= tMin))
 			{
 				tMin = std::max(t1, tMin);
-				tMax = std::max(t2, tMax);
+				tMax = std::min(t2, tMax);
 			}
 			else
 				return false;
@@ -555,12 +555,8 @@ bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 	vector_t vDir;
 	VecSubtract(vDir, v2, v1);
 	if(RayBoxIntersection(v1, vDir, boxMin, boxMax, &tNear, &tFar))
-	{
-		//if((tNear <= 1.0 && tFar >= 0) || (tNear >= 0 && tFar <= 0))
-		if(tNear * tFar < 0)
-			return true;
-		if(tNear >= 0 && tNear <= 1.)
-			return true;
+	{		
+		return ((tNear * tFar < 0) || (tNear >= 0 && tNear <= 1.));
 	}
 
 	return false;
