@@ -532,8 +532,14 @@ bool RayBoxIntersection(const vector_t& rayFrom, const vector_t& rayDir,
 	else
 	{
 	//	the ray has no direction -> we'll check if the From-point lies inside the box
-		if(BoxBoundProbe(rayFrom, boxMin, boxMax))
+		if(BoxBoundProbe(rayFrom, boxMin, boxMax)){
+		
+			if(*tNearOut)
+				*tNearOut = 0;
+			if(*tFarOut)
+				*tFarOut = 0;
 			return true;
+		}
 		else
 			return false;
 	}
@@ -550,7 +556,10 @@ bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 	VecSubtract(vDir, v2, v1);
 	if(RayBoxIntersection(v1, vDir, boxMin, boxMax, &tNear, &tFar))
 	{
-		if((tNear <= 1.0 && tFar >= 0) || (tNear >= 0 && tFar <= 0))
+		//if((tNear <= 1.0 && tFar >= 0) || (tNear >= 0 && tFar <= 0))
+		if(tNear * tFar < 0)
+			return true;
+		if(tNear >= 0 && tNear <= 1.)
 			return true;
 	}
 

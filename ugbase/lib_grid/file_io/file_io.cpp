@@ -21,8 +21,13 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	if(strName.find(".ugx") != string::npos){
 		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
 		if(shGrid){
-			bSuccess = LoadGridFromUGX(grid, *shGrid, filename);
+			bSuccess = LoadGridFromUGX(grid, *shGrid, filename, aPos);
 		}
+		else {
+			SubsetHandler emptySH(grid);
+			bSuccess = LoadGridFromUGX(grid, emptySH, filename, aPos);
+		}
+
 	}
 	else if(strName.find(".txt") != string::npos)
 	{
@@ -72,7 +77,11 @@ static bool SaveGrid(Grid& grid, const char* filename,
 	if(strName.find(".ugx") != string::npos){
 		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
 		if(shGrid)
-			return SaveGridToUGX(grid, *shGrid, filename);
+			return SaveGridToUGX(grid, *shGrid, filename, aPos);
+		else {
+			SubsetHandler emptySH(grid);
+			return SaveGridToUGX(grid, emptySH, filename, aPos);
+		}
 	}
 	else if(strName.find(".txt") != string::npos)
 		return SaveGridToTXT(grid, filename, aPos);

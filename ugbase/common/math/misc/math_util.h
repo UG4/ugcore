@@ -240,9 +240,6 @@ bool RayTriangleIntersection(vector_t &vOut, const vector_t &p0,
  * \param tNearOut: can be NULL
  * \param tFarOut: can be NULL
  *
- * to check whether the line segment between rayFrom and rayFrom+rayDir
- * intersects the box check if ((tNear <= 1.0 && tFar >= 0) || (tNear >= 0 && tFar <= 0))
- *
  * \sa LineBoxIntersection
  */
 template <class vector_t>

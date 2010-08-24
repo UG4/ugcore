@@ -18,10 +18,11 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	Writes a grid to an ugx file. internally uses GridWriterUGX.
 //...
-bool SaveGridToUGX(Grid& grid, SubsetHandler& sh, const char* filename)
+bool SaveGridToUGX(Grid& grid, SubsetHandler& sh, const char* filename,
+				   APosition& aPos)
 {
 	GridWriterUGX ugxWriter;
-	ugxWriter.add_grid(grid, "defGrid", aPosition);
+	ugxWriter.add_grid(grid, "defGrid", aPos);
 	ugxWriter.add_subset_handler(sh, "defSH", 0);
 	return ugxWriter.write_to_file(filename);
 };
@@ -29,7 +30,8 @@ bool SaveGridToUGX(Grid& grid, SubsetHandler& sh, const char* filename)
 ////////////////////////////////////////////////////////////////////////
 ///	Reads a grid to an ugx file. internally uses GridReaderUGX.
 //...
-bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename)
+bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename,
+					 APosition& aPos)
 {
 	GridReaderUGX ugxReader;
 	if(!ugxReader.parse_file(filename)){
@@ -42,7 +44,7 @@ bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename)
 		return false;
 	}
 		
-	ugxReader.get_grid(grid, 0, aPosition);
+	ugxReader.get_grid(grid, 0, aPos);
 	
 	if(ugxReader.num_subset_handlers(0) > 0)
 		ugxReader.get_subset_handler(sh, 0, 0);

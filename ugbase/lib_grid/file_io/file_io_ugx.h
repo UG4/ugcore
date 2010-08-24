@@ -16,12 +16,14 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	Writes a grid to an ugx file. internally uses GridWriterUGX.
 //...
-bool SaveGridToUGX(Grid& grid, SubsetHandler& sh, const char* filename);
+bool SaveGridToUGX(Grid& grid, SubsetHandler& sh,
+				   const char* filename, APosition& aPos = aPosition);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Reads a grid to an ugx file. internally uses GridReaderUGX.
 //...
-bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename);
+bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh,
+					const char* filename, APosition& aPos = aPosition);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Grants write access to ugx files.
