@@ -10,7 +10,9 @@
 
 // include interface
 #include "./dirichlet_boundary/dirichlet_post_process_interface.h"
-
 #include "./dirichlet_boundary/dirichlet_bnd.h"
+
+// constraints
+#include "./constraints/constraints_post_process_interface.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS__ */

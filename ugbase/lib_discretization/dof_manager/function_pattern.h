@@ -82,6 +82,17 @@ class FunctionPattern
 		/// returns the name of the discrete function nr_fct
 		std::string name(size_t fct) const {return m_vFunction[fct].name;}
 
+		/// returns fct_id of the loc_fct on subset si
+		size_t fct_id(size_t loc_fct, int si) const
+		{
+			size_t fct = 0;
+			for(size_t i = 0; i < loc_fct; ++i)
+			{
+				if(is_def_in_subset(fct, si)) fct++;
+			}
+			return fct;
+		}
+
 		/// returns the dimension in which solution lives
 		int dim(size_t fct) const {return m_vFunction[fct].dim;}
 

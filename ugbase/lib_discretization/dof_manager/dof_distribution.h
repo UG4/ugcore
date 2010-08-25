@@ -49,6 +49,9 @@ class DoFDistribution
 		/// returns true if the discrete function nr_fct is defined on subset s
 		bool is_def_in_subset(size_t fct, int si) const {return m_pFunctionPattern->is_def_in_subset(fct, si);}
 
+		/// returns function id for local function on subset
+		size_t fct_id(size_t loc_fct, int si) const {return m_pFunctionPattern->fct_id(loc_fct, si);}
+
 	protected:
 		// DoFDistributor for dofs
 		FunctionPattern* m_pFunctionPattern;

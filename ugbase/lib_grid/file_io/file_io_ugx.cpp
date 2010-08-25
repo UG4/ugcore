@@ -30,7 +30,7 @@ bool SaveGridToUGX(Grid& grid, SubsetHandler& sh, const char* filename,
 ////////////////////////////////////////////////////////////////////////
 ///	Reads a grid to an ugx file. internally uses GridReaderUGX.
 //...
-bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename,
+bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
 					 APosition& aPos)
 {
 	GridReaderUGX ugxReader;
@@ -38,17 +38,17 @@ bool LoadGridFromUGX(Grid& grid, SubsetHandler& sh, const char* filename,
 		UG_LOG("ERROR in LoadGridFromUGX: File not found: " << filename << endl);
 		return false;
 	}
-		
+
 	if(ugxReader.num_grids() < 1){
 		UG_LOG("ERROR in LoadGridFromUGX: File contains no grid.\n");
 		return false;
 	}
-		
+
 	ugxReader.get_grid(grid, 0, aPos);
-	
+
 	if(ugxReader.num_subset_handlers(0) > 0)
 		ugxReader.get_subset_handler(sh, 0, 0);
-	
+
 	return true;
 }
 
@@ -100,7 +100,7 @@ add_subset_attributes(rapidxml::xml_node<>* targetNode,
 	}
 
 	targetNode->append_attribute(m_doc.allocate_attribute("name", si.name.c_str()));
-														  
+
 //	allocate a string and erase last character(' ')
 	char* colorData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
 	colorData[ss.str().size()-1] = 0;
@@ -116,22 +116,22 @@ add_subset_handler(SubsetHandler& sh, const char* name,
 		UG_LOG("GridWriterUGX::add_subset_handler: bad refGridIndex. Aborting.\n");
 		return;
 	}
-	
+
 	xml_node<>* parentNode = m_vEntries[refGridIndex].node;
-	
+
 //	create the subset-handler node
 	xml_node<>* ndSH = m_doc.allocate_node(node_element, "subset_handler");
 	ndSH->append_attribute(m_doc.allocate_attribute("name", name));
-	
+
 //	add the subset-handler-node to the grid-node.
 	parentNode->append_node(ndSH);
-	
+
 //	add the subsets
 	for(size_t i = 0; i < sh.num_subsets(); ++i){
 		xml_node<>* ndSubset = m_doc.allocate_node(node_element, "subset");
 		add_subset_attributes(ndSubset, sh, i);
 		ndSH->append_node(ndSubset);
-		
+
 	//	add elements
 		if(sh.num<VertexBase>(i) > 0)
 			ndSubset->append_node(
@@ -147,14 +147,14 @@ add_subset_handler(SubsetHandler& sh, const char* name,
 				create_subset_element_node<Volume>("volumes", sh, i));
 	}
 }
-						
+
 void GridWriterUGX::
 add_subset_handler(MGSubsetHandler& mgsh, const char* name,
 					size_t refGridIndex)
 {
 
 }
-						
+
 template <class TGeomObj>
 rapidxml::xml_node<>* GridWriterUGX::
 create_subset_element_node(const char* name, const SubsetHandler& sh,
@@ -163,11 +163,11 @@ create_subset_element_node(const char* name, const SubsetHandler& sh,
 
 //	the stringstream to which we'll write the data
 	stringstream ss;
-	
+
 	if(sh.get_assigned_grid()){
 	//	access the grid
 		Grid& grid = *sh.get_assigned_grid();
-		
+
 	//	access the attachment
 		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);
 		if(aaInd.valid()){
@@ -179,7 +179,7 @@ create_subset_element_node(const char* name, const SubsetHandler& sh,
 			}
 		}
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -202,23 +202,23 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 	grid.attach_to_edges(m_aInt);
 	grid.attach_to_faces(m_aInt);
 	grid.attach_to_volumes(m_aInt);
-	
+
 //	access and initialise indices
 	Grid::VertexAttachmentAccessor<AInt> aaIndVRT(grid, m_aInt);
 	Grid::EdgeAttachmentAccessor<AInt> aaIndEDGE(grid, m_aInt);
 	Grid::FaceAttachmentAccessor<AInt> aaIndFACE(grid, m_aInt);
 	Grid::VolumeAttachmentAccessor<AInt> aaIndVOL(grid, m_aInt);
-	
+
 	AssignIndices(grid.begin<VertexBase>(), grid.end<VertexBase>(), aaIndVRT, 0);
 	AssignIndices(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), aaIndEDGE, 0);
 	AssignIndices(grid.begin<Face>(), grid.end<Face>(), aaIndFACE, 0);
 	AssignIndices(grid.begin<Volume>(), grid.end<Volume>(), aaIndVOL, 0);
-	
+
 //	write edges
 	if(grid.num<Edge>() > 0)
 		node->append_node(create_edge_node(grid.begin<Edge>(),
 										grid.end<Edge>(), aaIndVRT));
-										
+
 //TODO: write constrained / constraining edges
 
 //	write triangles
@@ -263,7 +263,7 @@ create_edge_node(EdgeIterator edgesBegin,
 	{
 		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " ";
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -289,7 +289,7 @@ create_triangle_node(TriangleIterator trisBegin,
 		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)]
 			<< " " << aaIndVRT[(*iter)->vertex(2)] << " " ;
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -312,10 +312,10 @@ create_quadrilateral_node(QuadrilateralIterator quadsBegin,
 	stringstream ss;
 	for(QuadrilateralIterator iter = quadsBegin; iter != quadsEnd; ++iter)
 	{
-		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " " 
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
 			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " " ;
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -338,10 +338,10 @@ create_tetrahedron_node(TetrahedronIterator tetsBegin,
 	stringstream ss;
 	for(TetrahedronIterator iter = tetsBegin; iter != tetsEnd; ++iter)
 	{
-		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " " 
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
 			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " " ;
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -364,12 +364,12 @@ create_hexahedron_node(HexahedronIterator hexasBegin,
 	stringstream ss;
 	for(HexahedronIterator iter = hexasBegin; iter != hexasEnd; ++iter)
 	{
-		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " " 
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
 			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " "
 			<< aaIndVRT[(*iter)->vertex(4)] << " " << aaIndVRT[(*iter)->vertex(5)] << " "
 			<< aaIndVRT[(*iter)->vertex(6)] << " " << aaIndVRT[(*iter)->vertex(7)] << " ";
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -392,11 +392,11 @@ create_prism_node(PrismIterator prismsBegin,
 	stringstream ss;
 	for(PrismIterator iter = prismsBegin; iter != prismsEnd; ++iter)
 	{
-		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " " 
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
 			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " "
 			<< aaIndVRT[(*iter)->vertex(4)] << " " << aaIndVRT[(*iter)->vertex(5)] << " ";
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -419,11 +419,11 @@ create_pyramid_node(PyramidIterator pyrasBegin,
 	stringstream ss;
 	for(PyramidIterator iter = pyrasBegin; iter != pyrasEnd; ++iter)
 	{
-		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " " 
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
 			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " "
 			<< aaIndVRT[(*iter)->vertex(4)] << " ";
 	}
-	
+
 	if(ss.str().size() > 0){
 	//	allocate a string and erase last character(' ')
 		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
@@ -466,7 +466,7 @@ size_t GridReaderUGX::num_subset_handlers(size_t refGridIndex) const
 		UG_LOG("GridReaderUGX::num_subset_handlers: bad refGridIndex. Aborting.\n");
 		return 0;
 	}
-	
+
 	return m_entries[refGridIndex].subsetHandlerEntries.size();
 }
 
@@ -480,9 +480,9 @@ get_subset_handler(ISubsetHandler& shOut,
 		UG_LOG("GridReaderUGX::get_subset_handler: bad refGridIndex. Aborting.\n");
 		return false;
 	}
-	
+
 	GridEntry& gridEntry = m_entries[refGridIndex];
-	
+
 //	get the referenced subset-handler entry
 	if(subsetHandlerIndex >= gridEntry.subsetHandlerEntries.size()){
 		UG_LOG("GridReaderUGX::get_subset_handler: bad subsetHandlerIndex. Aborting.\n");
@@ -497,24 +497,24 @@ get_subset_handler(ISubsetHandler& shOut,
 	while(subsetNode)
 	{
 		UG_LOG("  reading subset " << subsetInd << " elements\n");
-		
+
 	//	set subset info
 	//	retrieve an initial subset-info from shOut, so that initialised values are kept.
 		SubsetInfo si = shOut.subset_info(subsetInd);
-	
+
 		xml_attribute<>* attrib = subsetNode->first_attribute("name");
 		if(attrib)
 			si.name = attrib->value();
-		
+
 		attrib = subsetNode->first_attribute("color");
 		if(attrib){
 			stringstream ss(attrib->value(), ios_base::in);
 			for(size_t i = 0; i < 4; ++i)
 				ss >> si.color[i];
 		}
-		
+
 		shOut.set_subset_info(subsetInd, si);
-		
+
 	//	read elements of this subset
 		read_subset_handler_elements<VertexBase>(shOut, "vertices",
 												 subsetNode, subsetInd,
@@ -527,12 +527,12 @@ get_subset_handler(ISubsetHandler& shOut,
 											 gridEntry.faces);
 		read_subset_handler_elements<Volume>(shOut, "volumes",
 											 subsetNode, subsetInd,
-											 gridEntry.volumes);		
+											 gridEntry.volumes);
 	//	next subset
 		subsetNode = subsetNode->next_sibling("subset");
 		++subsetInd;
 	}
-	
+
 	return true;
 }
 
@@ -545,18 +545,18 @@ read_subset_handler_elements(ISubsetHandler& shOut,
 							 std::vector<TGeomObj*>& vElems)
 {
 	xml_node<>* elemNode = subsetNode->first_node(elemNodeName);
-	
+
 	while(elemNode)
 	{
 	//	read the indices
 		stringstream ss(elemNode->value(), ios_base::in);
-		
+
 		size_t index;
 		while(!ss.eof()){
 			ss >> index;
 			if(ss.fail())
 				continue;
-			
+
 			if(index < vElems.size()){
 				shOut.assign_subset(vElems[index], subsetIndex);
 			}
@@ -565,14 +565,14 @@ read_subset_handler_elements(ISubsetHandler& shOut,
 						": " << index << ". Ignoring element.\n");
 			}
 		}
-		
+
 	//	get next element node
 		elemNode = elemNode->next_sibling(elemNodeName);
 	}
-	
+
 	return true;
 }
-							 
+
 bool GridReaderUGX::
 parse_file(const char* filename)
 {
@@ -585,7 +585,7 @@ parse_file(const char* filename)
 	in.seekg(0, ios_base::end);
 	streampos posEnd = in.tellg();
 	streamsize size = posEnd - posStart;
-	
+
 //	go back to the start of the file
 	in.seekg(posStart);
 
@@ -594,10 +594,10 @@ parse_file(const char* filename)
 	in.read(fileContent, size);
 	fileContent[size] = 0;
 	in.close();
-	
+
 //	parse the xml-data
 	m_doc.parse<0>(fileContent);
-	
+
 //	notify derived classes that a new document has been parsed.
 	return new_document_parsed();
 }
@@ -607,23 +607,23 @@ new_document_parsed()
 {
 //	update entries
 	m_entries.clear();
-	
+
 //	iterate through all grids
 	xml_node<>* curNode = m_doc.first_node("grid");
 	while(curNode){
 		m_entries.push_back(GridEntry(curNode));
 		GridEntry& gridEntry = m_entries.back();
-	
+
 	//	collect associated subset handlers
 		xml_node<>* curSHNode = curNode->first_node("subset_handler");
 		while(curSHNode){
 			gridEntry.subsetHandlerEntries.push_back(SubsetHandlerEntry(curSHNode));
 			curSHNode = curSHNode->next_sibling("subset_handler");
 		}
-		
+
 		curNode = curNode->next_sibling("grid");
 	}
-	
+
 	return true;
 }
 
@@ -635,17 +635,17 @@ create_edges(std::vector<EdgeBase*>& edgesOut,
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	
+
 //	read the edges
 	int i1, i2;
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2;
-	
+
 	//	make sure that everything went right
 		if(ss.fail())
 			break;
-		
+
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -654,11 +654,11 @@ create_edges(std::vector<EdgeBase*>& edgesOut,
 			UG_LOG("  ERROR in GridReaderUGX::create_edges: invalid vertex index.\n");
 			return false;
 		}
-		
+
 	//	create the edge
 		edgesOut.push_back(*grid.create<Edge>(EdgeDescriptor(vrts[i1], vrts[i2])));
 	}
-	
+
 	return true;
 }
 
@@ -670,7 +670,7 @@ create_triangles(std::vector<Face*>& facesOut,
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	
+
 //	read the triangles
 	int i1, i2, i3;
 	while(!ss.eof()){
@@ -690,12 +690,12 @@ create_triangles(std::vector<Face*>& facesOut,
 			UG_LOG("  ERROR in GridReaderUGX::create_triangles: invalid vertex index.\n");
 			return false;
 		}
-		
+
 	//	create the triangle
 		facesOut.push_back(
 			*grid.create<Triangle>(TriangleDescriptor(vrts[i1], vrts[i2], vrts[i3])));
 	}
-	
+
 	return true;
 }
 
@@ -707,17 +707,17 @@ create_quadrilaterals(std::vector<Face*>& facesOut,
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	
+
 //	read the quadrilaterals
 	int i1, i2, i3, i4;
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4;
-		
+
 	//	make sure that everything went right
 		if(ss.fail())
 			break;
-			
+
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -728,13 +728,13 @@ create_quadrilaterals(std::vector<Face*>& facesOut,
 			UG_LOG("  ERROR in GridReaderUGX::create_quadrilaterals: invalid vertex index.\n");
 			return false;
 		}
-		
+
 	//	create the quad
 		facesOut.push_back(
 			*grid.create<Quadrilateral>(QuadrilateralDescriptor(vrts[i1], vrts[i2],
 															   vrts[i3], vrts[i4])));
 	}
-	
+
 	return true;
 }
 
@@ -746,17 +746,17 @@ create_tetrahedrons(std::vector<Volume*>& volsOut,
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	
+
 //	read the tetrahedrons
 	int i1, i2, i3, i4;
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4;
-		
+
 	//	make sure that everything went right
 		if(ss.fail())
 			break;
-			
+
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -767,13 +767,13 @@ create_tetrahedrons(std::vector<Volume*>& volsOut,
 			UG_LOG("  ERROR in GridReaderUGX::create_tetrahedrons: invalid vertex index.\n");
 			return false;
 		}
-		
+
 	//	create the element
 		volsOut.push_back(
 			*grid.create<Tetrahedron>(TetrahedronDescriptor(vrts[i1], vrts[i2],
 														   vrts[i3], vrts[i4])));
 	}
-	
+
 	return true;
 }
 
@@ -785,17 +785,17 @@ create_hexahedrons(std::vector<Volume*>& volsOut,
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	
+
 //	read the hexahedrons
 	int i1, i2, i3, i4, i5, i6, i7, i8;
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4 >> i5 >> i6 >> i7 >> i8;
-		
+
 	//	make sure that everything went right
 		if(ss.fail())
 			break;
-			
+
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -810,13 +810,13 @@ create_hexahedrons(std::vector<Volume*>& volsOut,
 			UG_LOG("  ERROR in GridReaderUGX::create_hexahedrons: invalid vertex index.\n");
 			return false;
 		}
-		
+
 	//	create the element
 		volsOut.push_back(
 			*grid.create<Hexahedron>(HexahedronDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
 														  vrts[i5], vrts[i6], vrts[i7], vrts[i8])));
 	}
-	
+
 	return true;
 }
 
@@ -828,17 +828,17 @@ create_prisms(std::vector<Volume*>& volsOut,
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	
+
 //	read the hexahedrons
 	int i1, i2, i3, i4, i5, i6;
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4 >> i5 >> i6;
-		
+
 	//	make sure that everything went right
 		if(ss.fail())
 			break;
-			
+
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -851,13 +851,13 @@ create_prisms(std::vector<Volume*>& volsOut,
 			UG_LOG("  ERROR in GridReaderUGX::create_prisms: invalid vertex index.\n");
 			return false;
 		}
-		
+
 	//	create the element
 		volsOut.push_back(
 			*grid.create<Prism>(PrismDescriptor(vrts[i1], vrts[i2], vrts[i3], vrts[i4],
 												vrts[i5], vrts[i6])));
 	}
-	
+
 	return true;
 }
 
@@ -869,17 +869,17 @@ create_pyramids(std::vector<Volume*>& volsOut,
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
-	
+
 //	read the hexahedrons
 	int i1, i2, i3, i4, i5;
 	while(!ss.eof()){
 	//	read the indices
 		ss >> i1 >> i2 >> i3 >> i4 >> i5;
-		
+
 	//	make sure that everything went right
 		if(ss.fail())
 			break;
-			
+
 	//	make sure that the indices are valid
 		int maxInd = (int)vrts.size() - 1;
 		if(i1 < 0 || i1 > maxInd ||
@@ -891,13 +891,13 @@ create_pyramids(std::vector<Volume*>& volsOut,
 			UG_LOG("  ERROR in GridReaderUGX::create_pyramids: invalid vertex index.\n");
 			return false;
 		}
-		
+
 	//	create the element
 		volsOut.push_back(
 			*grid.create<Pyramid>(PyramidDescriptor(vrts[i1], vrts[i2], vrts[i3],
 													vrts[i4], vrts[i5])));
 	}
-	
+
 	return true;
 }
 

@@ -100,18 +100,19 @@ prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
 
 	ind.clear();
 	size_t numInd = 0;
+	size_t numFct = 0;
 	for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 	{
 		if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
-
 		for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
 		{
 			LocalIndices::multi_index_type dof_ind;
-			dof_ind[0] = dof + fct * refElem.num_obj(0);
+			dof_ind[0] = dof + numFct * refElem.num_obj(0);
 			dof_ind[1] = 0;
 			ind.add_dof(fct, dof_ind);
 		}
 		numInd += refElem.num_obj(0);
+		numFct++;
 	}
 	ind.set_num_indices(numInd);
 	return true;
@@ -149,23 +150,35 @@ distribute_dofs()
 
 	// loop subsets
 	size_t i = 0;
+	size_t i_per_subset = 0;
 
 	// reset number of dofs
-	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets());
+	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
+	m_vvOffsets.clear(); m_vvOffsets.resize(num_subsets());
 
 	// loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
+		// create offsets
+		size_t count = 0;
+		m_vvOffsets[si].resize(m_pFunctionPattern->num_fct());
+		for(size_t fct = 0; fct < m_pFunctionPattern->num_fct(); ++fct)
+		{
+			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
+			else m_vvOffsets[si][fct] = count++;
+		}
+
 		// skip if no dofs to be distributed
 		if(!(m_pFunctionPattern->num_fct(si)>0)) continue;
-
-		// remember number of functions
-		size_t num_fct =  m_pFunctionPattern->num_fct(si);
 
 		iterBegin = m_goc.begin<VertexBase>(si);
 		iterEnd =  m_goc.end<VertexBase>(si);
 
+		// remember number of functions
+		size_t num_fct =  m_pFunctionPattern->num_fct(si);
+
 		// loop Verices
+		i_per_subset = 0;
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 			// get vertex
@@ -174,9 +187,9 @@ distribute_dofs()
 			// write index
 			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i;
 			i += num_fct;
+			i_per_subset += num_fct;
 		}
-		if(si==0) m_vNumDoFs[si] = i;
-		else m_vNumDoFs[si] = i - m_vNumDoFs[si-1];
+		m_vNumDoFs[si] = i_per_subset;
 	}
 	m_numDoFs = i;
 

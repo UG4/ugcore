@@ -61,6 +61,11 @@ class DomainDiscretization :
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
+
+			for(size_t i = 0; i < m_vConstraintsPostProcess.size(); ++i)
+				if(m_vConstraintsPostProcess[i]->post_process_jacobian(J, u) != IAssemble_OK)
+					return IAssemble_ERROR;
+
 			return IAssemble_OK;
 		}
 
@@ -245,26 +250,16 @@ class DomainDiscretization :
 		std::vector<CoupledDisc> m_vCoupledElemDisc;
 
 	public:
-/*		bool add(IDirichletPostProcess<TAlgebra>& elemDisc, const FunctionGroup& fcts, int si)
+		bool add(IConstraintsPostProcess<TDiscreteFunction, TAlgebra>& constraintsPP)
 		{
-			m_vDirichletPostProcess.push_back(DirichletPostProcess(si, elemDisc, fcts));
+			m_vConstraintsPostProcess.push_back(&constraintsPP);
 			return true;
 		}
 
 	protected:
-		struct DirichletPostProcess
-		{
-			DirichletPostProcess(int si_, IDirichletPostProcess<TAlgebra>& disc_, const FunctionGroup& fcts_) :
-				si(si_), disc(&disc_), fcts(fcts_) {};
+		std::vector<IConstraintsPostProcess<TDiscreteFunction, TAlgebra>*> m_vConstraintsPostProcess;
 
-			int si;
-			IDirichletPostProcess<TAlgebra>* disc;
-			FunctionGroup fcts;
-		};
 
-		std::vector<DirichletPostProcess> m_vDirichletPostProcess;
-
-*/
 	protected:
 		bool check_solution(const discrete_function_type& u)
 		{

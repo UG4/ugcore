@@ -34,9 +34,13 @@ update_indices(TElem* elem, LocalIndices& ind) const
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
 		const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+
+		size_t numFct = 0;
 		for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 		{
-			ind.set_index(i + fct*refElem.num_obj(0), index + ind.fct_id(fct));
+			if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+			ind.set_index(i + numFct*refElem.num_obj(0), index + m_vvOffsets[si][ind.fct_id(fct)]);
+			numFct++;
 		}
 	}
 }
@@ -85,7 +89,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 		VertexBase* vrt = get_vertex(elem, i);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
-		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
 		ind[i][1] = 0;
 	}
 	return numDofs;
@@ -101,7 +105,7 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 		VertexBase* vrt = get_vertex(elem, 0);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 		ind.resize(1);
-		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
 		ind[0][1] = 0;
 		return 1;
 	}
@@ -138,13 +142,14 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	ind.clear();
 
 	const int elem_si = m_pISubsetHandler->get_subset_index(elem);
-	for(size_t fct = 0; fct < num_fct(elem_si); ++fct)
+	for(size_t fct = 0; fct < num_fct(); ++fct)
 	{
 		for(size_t i = 0; i < ref_elem_type::num_corners; ++i)
 		{
 			VertexBase* vrt = get_vertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
-			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + fct;
+			if(!is_def_in_subset(fct, si)) continue;
+			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
 			ind.push_back(index);
 		}
 	}
@@ -162,9 +167,10 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
 		const size_t index =  m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
-		for(size_t fct = 0; fct < num_fct(si); ++fct)
+		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
-			ind.push_back(index + fct);
+			if(!is_def_in_subset(fct, si)) continue;
+			ind.push_back(index + m_vvOffsets[si][fct]);
 		}
 	}
 }

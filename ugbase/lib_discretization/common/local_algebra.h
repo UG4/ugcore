@@ -111,7 +111,7 @@ class LocalIndices
 		/// set algebra index
 		void set_index(size_t i, index_type ind)
 		{
-			UG_ASSERT(i < num_indices(), "Algebra index not valid.");
+			UG_ASSERT(i < num_indices(), "Algebra index not valid. (i="<<i<<", num_indices="<<num_indices()<<")");
 			m_vAlgIndices[i] = ind;
 		}
 

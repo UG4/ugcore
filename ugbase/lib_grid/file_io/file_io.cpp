@@ -19,9 +19,8 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	bool bAutoassignFaces = false;
 	bool bSuccess = false;
 	if(strName.find(".ugx") != string::npos){
-		SubsetHandler* shGrid = dynamic_cast<SubsetHandler*>(pSH);
-		if(shGrid){
-			bSuccess = LoadGridFromUGX(grid, *shGrid, filename, aPos);
+		if(pSH){
+			bSuccess = LoadGridFromUGX(grid, *pSH, filename, aPos);
 		}
 		else {
 			SubsetHandler emptySH(grid);
@@ -42,7 +41,7 @@ static bool LoadGrid(Grid& grid, const char* filename,
 		int numSHs = 0;
 		if(shGrid)
 			numSHs = 1;
-		
+
 		bSuccess = LoadGridFromLGB(grid, filename, &shGrid, numSHs, aPos);
 	}
 	else if(strName.find(".net") != string::npos)
@@ -92,7 +91,7 @@ static bool SaveGrid(Grid& grid, const char* filename,
 		int numSHs = 0;
 		if(pSH)
 			numSHs = 1;
-		
+
 		return SaveGridToLGB(grid, filename, &pSH, numSHs, aPos);
 	}
 	else if(strName.find(".ele") != string::npos)
@@ -103,7 +102,7 @@ static bool SaveGrid(Grid& grid, const char* filename,
 		return SaveGridToART(grid, filename, pSH, aPos);
 	else if(strName.find(".ncdf") != string::npos)
 		return SaveGridToNCDF(grid, filename, pSH, aPos);
-				
+
 	return false;
 }
 
