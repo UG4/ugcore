@@ -62,10 +62,6 @@ class DomainDiscretization :
 				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 
-			for(size_t i = 0; i < m_vConstraintsPostProcess.size(); ++i)
-				if(m_vConstraintsPostProcess[i]->post_process_jacobian(J, u) != IAssemble_OK)
-					return IAssemble_ERROR;
-
 			return IAssemble_OK;
 		}
 
@@ -102,6 +98,10 @@ class DomainDiscretization :
 				if(!AssembleLinear<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
 					(*m_vCoupledElemDisc[i].disc, mat, rhs, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim))
 						return IAssemble_ERROR;
+
+			for(size_t i = 0; i < m_vConstraintsPostProcess.size(); ++i)
+				if(m_vConstraintsPostProcess[i]->post_process_linear(mat, rhs, u) != IAssemble_OK)
+					return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_vDirichletDisc[i].si) != IAssemble_OK)
