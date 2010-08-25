@@ -303,7 +303,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	}
 
 //	if the refinement-callback is empty, use a linear one.
-	RefinementCallbackLinear LinRefCallback(grid, aPosition);
+	RefinementCallbackLinear<APosition> LinRefCallback(grid, aPosition);
 	if(!refCallback)
 		refCallback = &LinRefCallback;
 		

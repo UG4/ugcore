@@ -36,13 +36,14 @@ class IRefinementCallback
  *
  *	An uninitialized refinement-callback may not be used during refinement.
  */
+template <class TAPosition>
 class RefinementCallbackLinear : public IRefinementCallback
 {
 	public:
 		RefinementCallbackLinear();
 		
 	///	make sure that aPos is attached to the vertices of the grid.
-		RefinementCallbackLinear(Grid& grid, APosition& aPos = aPosition);
+		RefinementCallbackLinear(Grid& grid, TAPosition& aPos);
 	
 		virtual ~RefinementCallbackLinear();
 		
@@ -53,7 +54,7 @@ class RefinementCallbackLinear : public IRefinementCallback
 		
 	protected:
 		Grid* 										m_pGrid;
-		Grid::VertexAttachmentAccessor<APosition>	m_aaPos;
+		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -69,10 +70,10 @@ class RefinementCallbackLinear : public IRefinementCallback
  *
  *	An uninitialized refinement-callback may not be used during refinement.
  */
-class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear
+class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear<APosition>
 {
 	public:
-		using RefinementCallbackLinear::new_vertex;
+		using RefinementCallbackLinear<APosition>::new_vertex;
 		
 	public:
 		RefinementCallbackEdgePlaneCut();
@@ -94,5 +95,9 @@ class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear
 /// @}
 
 }// end of namespace
+
+////////////////////////////////
+//	include implementation
+#include "refinement_callbacks_impl.hpp"
 
 #endif

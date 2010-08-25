@@ -245,7 +245,11 @@ void HangingNodeRefiner::refine()
 	if(!m_refCallback){
 		if(grid.has_vertex_attachment(aPosition)){
 			localRefCallbackSet = true;
-			m_refCallback = new RefinementCallbackLinear(grid, aPosition);
+			m_refCallback = new RefinementCallbackLinear<APosition>(grid, aPosition);
+		}
+		else if(grid.has_vertex_attachment(aPosition2)){
+			localRefCallbackSet = true;
+			m_refCallback = new RefinementCallbackLinear<APosition2>(grid, aPosition2);
 		}
 	}
 	

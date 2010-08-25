@@ -10,62 +10,6 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-RefinementCallbackLinear::
-RefinementCallbackLinear() :
-	m_pGrid(NULL)
-{
-}
-
-////////////////////////////////////////////////////////////////////////
-RefinementCallbackLinear::
-RefinementCallbackLinear(Grid& grid, APosition& aPos) :
-	m_pGrid(&grid)
-{
-	m_aaPos.access(grid, aPos);
-}
-
-////////////////////////////////////////////////////////////////////////
-RefinementCallbackLinear::
-~RefinementCallbackLinear()
-{
-}
-
-////////////////////////////////////////////////////////////////////////
-void RefinementCallbackLinear::
-new_vertex(VertexBase* vrt, VertexBase* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-	m_aaPos[vrt] = m_aaPos[parent];
-}
-
-////////////////////////////////////////////////////////////////////////
-void RefinementCallbackLinear::
-new_vertex(VertexBase* vrt, EdgeBase* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
-}
-
-////////////////////////////////////////////////////////////////////////
-void RefinementCallbackLinear::
-new_vertex(VertexBase* vrt, Face* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
-}
-
-////////////////////////////////////////////////////////////////////////
-void RefinementCallbackLinear::
-new_vertex(VertexBase* vrt, Volume* parent)
-{
-	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-	m_aaPos[vrt] = CalculateCenter(parent, m_aaPos);
-}
-
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
 RefinementCallbackEdgePlaneCut::
 RefinementCallbackEdgePlaneCut()
 {
@@ -76,7 +20,7 @@ RefinementCallbackEdgePlaneCut::
 RefinementCallbackEdgePlaneCut(Grid& grid, const vector3& p,
 										const vector3& n,
 										APosition& aPos) :
-	RefinementCallbackLinear(grid, aPos),
+	RefinementCallbackLinear<APosition>(grid, aPos),
 	m_p(p),
 	m_n(n)
 {
@@ -102,7 +46,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 		m_aaPos[vrt] = v;
 	}
 	else{
-		RefinementCallbackLinear::new_vertex(vrt, parent);
+		RefinementCallbackLinear<APosition>::new_vertex(vrt, parent);
 	}
 }
 

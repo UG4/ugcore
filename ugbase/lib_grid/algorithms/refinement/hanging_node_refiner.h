@@ -35,7 +35,7 @@ namespace ug
  * the constructor or through an explicit call to set_refinement_callback.
  * If no refinement-callback is specified, HangingNodeRefiner will
  * attempt to create a standard linear refinement callback for an attached
- * standard position attachment.
+ * standard position attachment (ug::aPosition or ug::aPosition2).
  */
 
 class HangingNodeRefiner : public GridObserver

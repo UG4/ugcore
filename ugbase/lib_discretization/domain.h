@@ -59,13 +59,14 @@ class Domain {
 		typedef DistributedGridManager distributed_grid_manager_type;
 
 	public:
-		Domain(TGrid& grid, TSubsetHandler& sh, position_attachment_type& aPos,
+		Domain(TGrid& grid, TSubsetHandler& sh,
 				DistributedGridManager* pDistGridMgr = NULL) :
-			m_grid(grid), m_sh(sh), m_aPos(aPos), m_pDistGridMgr(pDistGridMgr)
+			m_grid(grid), m_sh(sh), m_pDistGridMgr(pDistGridMgr)
 			{
-				if(!grid.template has_attachment<VertexBase>(aPos))
-					grid.template attach_to<VertexBase>(aPos);
-				m_aaPos.access(grid, aPos);
+				m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
+				if(!grid.template has_attachment<VertexBase>(m_aPos))
+					grid.template attach_to<VertexBase>(m_aPos);
+				m_aaPos.access(grid, m_aPos);
 			}
 
 		inline TGrid& get_grid() {return m_grid;};
@@ -86,7 +87,7 @@ class Domain {
 
 		TSubsetHandler& m_sh;
 
-		position_attachment_type& m_aPos;
+		position_attachment_type m_aPos;
 		position_accessor_type m_aaPos;
 
 	//	for parallelization only

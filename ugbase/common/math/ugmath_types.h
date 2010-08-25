@@ -19,6 +19,7 @@
 //	useful typedefs
 namespace ug
 {
+typedef MathVector<1> vector1;
 typedef MathVector<2> vector2;
 typedef MathVector<3> vector3;
 typedef MathVector<4> vector4;
