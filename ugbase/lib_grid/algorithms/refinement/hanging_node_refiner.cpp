@@ -14,6 +14,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //BEGIN Debug methods
+/*
 static void PrintEdgeCoords(EdgeBase* e, Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
 	LOG("(" << aaPos[e->vertex(0)].x << ", " << aaPos[e->vertex(0)].y <<
@@ -46,6 +47,7 @@ static void PrintConstrainingEdgeInfo(ConstrainingEdge* ce, Grid::VertexAttachme
 		}
 	}
 }
+*/
 /*
 static bool CheckHangingNodeDegree(Grid& grid, uint irregularityRule, Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {
@@ -88,24 +90,32 @@ static number GetLocalVertexCoordinate(EdgeBase* e, VertexBase* vrt)
 	LOG("WARNING in GetLocalVertexCoordinate(...): Vertex does not lie on edge. Returning -1." << endl);
 	return -1.0;
 }
-
+/*
 static void CalculateCenter(vector3& vOut, const vector3& v1, const vector3& v2)
 {
 	vector3 v;
 	VecAdd(v, v1, v2);
 	VecScale(vOut, v, 0.5);
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of HangingNodeRefiner
-HangingNodeRefiner::HangingNodeRefiner() : m_pGrid(NULL), m_aVertex(false),
-										m_irregularityRule(1)
+HangingNodeRefiner::
+HangingNodeRefiner(IRefinementCallback* refCallback) :
+	m_pGrid(NULL),
+	m_aVertex(false),
+	m_irregularityRule(1),
+	m_refCallback(refCallback)
 {
 }
 
-HangingNodeRefiner::HangingNodeRefiner(Grid& grid) : m_pGrid(NULL), m_aVertex(false),
-										m_irregularityRule(1)
+HangingNodeRefiner::
+HangingNodeRefiner(Grid& grid, IRefinementCallback* refCallback) :
+	m_pGrid(NULL),
+	m_aVertex(false),
+	m_irregularityRule(1),
+	m_refCallback(refCallback)
 {
 	assign_grid(grid);
 }
@@ -114,6 +124,7 @@ HangingNodeRefiner::HangingNodeRefiner(const HangingNodeRefiner& hnr) : m_aVerte
 										m_irregularityRule(1)
 {
 	assert(!"WARNING in HangingNodeRefiner: Copy-Constructor not yet implemented. Please use references!");
+	throw(int(0));
 }
 
 HangingNodeRefiner::~HangingNodeRefiner()
@@ -129,6 +140,12 @@ HangingNodeRefiner::~HangingNodeRefiner()
 void HangingNodeRefiner::assign_grid(Grid& grid)
 {
 	set_grid(&grid);
+}
+
+void HangingNodeRefiner::
+set_refinement_callback(IRefinementCallback* refCallback)
+{
+	m_refCallback = refCallback;
 }
 
 void HangingNodeRefiner::
@@ -222,12 +239,16 @@ void HangingNodeRefiner::refine()
 
 	Grid& grid = *m_pGrid;
 
-//	check if the position attachment accessor is valid
-	if(grid.has_vertex_attachment(aPosition))
-		m_aaPos.access(grid, aPosition);
-	else
-		m_aaPos.invalidate();
-
+//	check if a refinement-callback is set.
+//	if not, we'll automatically set one, if a position attachment is available
+	bool localRefCallbackSet = false;
+	if(!m_refCallback){
+		if(grid.has_vertex_attachment(aPosition)){
+			localRefCallbackSet = true;
+			m_refCallback = new RefinementCallbackLinear(grid, aPosition);
+		}
+	}
+	
 //	check grid options.
 	if(!grid.option_is_enabled(GRIDOPT_FULL_INTERCONNECTION))
 	{
@@ -596,6 +617,12 @@ void HangingNodeRefiner::refine()
 		refinement_step_ends();
 		
 	}while(!m_selMarkedElements.empty());
+	
+//	clear the refinement-callback if necessary
+	if(localRefCallbackSet){
+		delete m_refCallback;
+		m_refCallback = NULL;
+	}
 }
 
 void HangingNodeRefiner::collect_objects_for_refine()
@@ -801,9 +828,10 @@ void HangingNodeRefiner::refine_constrained_edge(ConstrainedEdge* constrainedEdg
 	//	the constraining element of ce will constrain the new edges, too.
 	//	create the new vertex first (a hanging vertex)
 		HangingVertex* hv = *grid.create<HangingVertex>(constrainedEdge);
-		if(m_aaPos.valid())
-			CalculateCenter(m_aaPos[hv], m_aaPos[constrainedEdge->vertex(0)],
-							m_aaPos[constrainedEdge->vertex(1)]);
+	
+	//	allow refCallback to calculate a new position
+		if(m_refCallback)
+			m_refCallback->new_vertex(hv, constrainedEdge);
 
 		set_center_vertex(constrainedEdge, hv);
 
@@ -892,13 +920,7 @@ void HangingNodeRefiner::refine_constraining_edge(ConstrainingEdge* constraining
 		ce->unconstrain_vertex(centerVrt);
 		vector3 vPos;
 
-		if(m_aaPos.valid())
-			vPos = m_aaPos[centerVrt];
-
 		Vertex* nCenterVrt = *grid.create_and_replace<Vertex>(centerVrt);
-
-		if(m_aaPos.valid())
-			m_aaPos[nCenterVrt] = vPos;
 
 	//	store this vertex for later use on ce
 		set_center_vertex(ce, nCenterVrt);
@@ -1049,10 +1071,10 @@ void HangingNodeRefiner::refine_constraining_edge(ConstrainingEdge* constraining
 				//	unless someone externally created a constraining edge without appropriate constrained edges.
 					LOG("WARNING in PerformHangingNodeEdgeRefinement(...): Program shouldn't reach this point! Expect undefined behaviour." << endl);
 					LOG("constraining refined " << ce << ": ");
-					PrintEdgeCoords(ce, m_aaPos);
+					//PrintEdgeCoords(ce, m_aaPos);
 					LOG(endl);
 
-					PrintConstrainingEdgeInfo(ce, m_aaPos);
+					//PrintConstrainingEdgeInfo(ce, m_aaPos);
 
 					assert(!"WARNING in PerformHangingNodeEdgeRefinement(...): Program shouldn't reach this point! Expect undefined behaviour.");
 					grid.create<Edge>(EdgeDescriptor(vrt1, vrt2));
@@ -1090,20 +1112,21 @@ void HangingNodeRefiner::refine_constraining_edge(ConstrainingEdge* constraining
 		//LOG("dumping grid to DEBUG_GRID_SAVE.obj\n");
 		//SaveGridToOBJ(grid, "DEBUG_GRID_SAVE.obj");
 	//	save a debug grid. output the coordinates of the edges end-points.
+		/*
 		if(m_aaPos.valid())
 		{
 			LOG("coordinates of problematic edge: ");
 			PrintEdgeCoords(ce, m_aaPos);
 			LOG(endl);
 		}
-
+		*/
 		LOG("Edge attachment index: " << grid.get_attachment_data_index(ce) << endl);
 		LOG("num_constrained_vertices: " << ce->num_constrained_vertices() << endl);
 		LOG("coords of constrained vertices:" << endl);
 		for(VertexBaseIterator vrtIter = ce->constrained_vertices_begin();
 			vrtIter != ce->constrained_vertices_end(); ++vrtIter)
 		{
-			LOG("pos: (" << m_aaPos[*vrtIter].x << ", " << m_aaPos[*vrtIter].y << ")");
+			//LOG("pos: (" << m_aaPos[*vrtIter].x << ", " << m_aaPos[*vrtIter].y << ")");
 			HangingVertex* hv = dynamic_cast<HangingVertex*>(*vrtIter);
 			if(hv)
 			{
@@ -1126,8 +1149,9 @@ void HangingNodeRefiner::refine_edge_with_normal_vertex(EdgeBase* e)
 	Vertex* nVrt = *grid.create<Vertex>(e);
 	set_center_vertex(e, nVrt);
 
-	if(m_aaPos.valid())
-		CalculateCenter(m_aaPos[nVrt], m_aaPos[e->vertex(0)], m_aaPos[e->vertex(1)]);
+//	allow refCallback to calculate a new position
+	if(m_refCallback)
+		m_refCallback->new_vertex(nVrt, e);
 
 //	split the edge
 	vector<EdgeBase*> vEdges(2);
@@ -1151,8 +1175,9 @@ void HangingNodeRefiner::refine_edge_with_hanging_vertex(EdgeBase* e)
 
 	HangingVertex* hv = *grid.create<HangingVertex>(ce);
 
-	if(m_aaPos.valid())
-		CalculateCenter(m_aaPos[hv], m_aaPos[ce->vertex(0)], m_aaPos[ce->vertex(1)]);
+//	allow refCallback to calculate a new position
+	if(m_refCallback)
+		m_refCallback->new_vertex(hv, ce);
 
 	set_center_vertex(ce, hv);
 	hv->set_parent(ce);
@@ -1205,9 +1230,10 @@ void HangingNodeRefiner::refine_face_with_normal_vertex(Face* f)
 	if(vNewVrt)
 	{
 		grid.register_element(vNewVrt, f);
-	//	assign a new position
-		if(m_aaPos.valid())
-			m_aaPos[vNewVrt] = CalculateFaceCenter(f, m_aaPos);
+
+	//	allow refCallback to calculate a new position
+		if(m_refCallback)
+			m_refCallback->new_vertex(vNewVrt, f);
 	}
 
 	for(uint i = 0; i < vFaces.size(); ++i)
@@ -1252,9 +1278,10 @@ void HangingNodeRefiner::refine_face_with_hanging_vertex(Face* f)
 	if(f->num_vertices() > 3)
 	{
 		vNewVrt = *grid.create<HangingVertex>(f);
-	//	assign a new position
-		if(m_aaPos.valid())
-			m_aaPos[vNewVrt] = CalculateFaceCenter(f, m_aaPos);
+
+	//	allow refCallback to calculate a new position
+		if(m_refCallback)
+			m_refCallback->new_vertex(vNewVrt, f);
 
 	//TODO:	assign a local coordinate and store the vertex with the face
 		assert(!"code missing: assign local coordinate.");

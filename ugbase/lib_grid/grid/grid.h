@@ -209,6 +209,8 @@ class Grid
 	 * as TGeomObj, which shall be replaced. The replaced element will be deleted from grid.
 	 * pReplaceMe will be treated as pParent for GridObservers.
 	 *
+	 * Calls pass_on_values.
+	 *
 	 * Notes for GridObservers:
 	 * create_and_replace will call in the given order (replace elem with the appropriate name).
 	 * - elem_created(newElem)
@@ -536,10 +538,13 @@ class Grid
 		inline void register_element(Volume* v, GeometricObject* pParent = NULL)		{register_volume(v, pParent);}
 		inline void unregister_element(Volume* v)										{unregister_volume(v);}
 
+	///	registers the given element and replaces the old one. Calls pass_on_values.
+	/// \{
 		void register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe);
 		void register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe);
 		void register_and_replace_element(Face* f, Face* pReplaceMe);
 		void register_and_replace_element(Volume* v, Volume* pReplaceMe);
+	/// \}
 
 	////////////////////////////////////////////////
 	//	marks

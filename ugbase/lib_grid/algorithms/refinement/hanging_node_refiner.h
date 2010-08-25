@@ -7,6 +7,7 @@
 
 #include <queue>
 #include "lib_grid/lg_base.h"
+#include "refinement_callbacks.h"
 
 namespace ug
 {
@@ -28,20 +29,28 @@ namespace ug
  * will most commonly contain HangingNodes, Constrained- and
  * Constraining- Edges/Faces. Such a grid has to be treated with care,
  * since those elements are tightly connected and reference each other.
+ *
+ * You may specify a refinement callback which can be used to calculate
+ * the new positions of newly generated vertices. You can specify it in
+ * the constructor or through an explicit call to set_refinement_callback.
+ * If no refinement-callback is specified, HangingNodeRefiner will
+ * attempt to create a standard linear refinement callback for an attached
+ * standard position attachment.
  */
 
 class HangingNodeRefiner : public GridObserver
 {
 	public:
-		HangingNodeRefiner();
-		HangingNodeRefiner(Grid& grid);
-		HangingNodeRefiner(const HangingNodeRefiner& hnr);
+		HangingNodeRefiner(IRefinementCallback* refCallback = NULL);
+		HangingNodeRefiner(Grid& grid, IRefinementCallback* refCallback = NULL);
+	//todo: make copy-constructor public
 		virtual ~HangingNodeRefiner();
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 
 		void assign_grid(Grid& grid);
-
+		void set_refinement_callback(IRefinementCallback* refCallback);
+		
 		void clear_marks();
 		void mark_for_refinement(EdgeBase* e);
 		void mark_for_refinement(Face* f);
@@ -155,6 +164,9 @@ class HangingNodeRefiner : public GridObserver
 		inline bool is_marked(Volume* v)							{return m_selMarkedElements.is_selected(v);}
 		inline void mark(Volume* v)									{m_selMarkedElements.select(v);}
 
+	private:
+		HangingNodeRefiner(const HangingNodeRefiner& hnr);
+		
 	protected:
 	///	RefinementMarks are used throughout the refinement-process to indicate how an element shall be processed.
 	/*
@@ -195,9 +207,10 @@ class HangingNodeRefiner : public GridObserver
 		Selector	m_selMarkedElements;
 		Selector	m_selScheduledElements;
 
+		IRefinementCallback*	m_refCallback;
 		//ARefinementInfo m_aRefinementInfo;
 
-		Grid::VertexAttachmentAccessor<APosition>		m_aaPos;
+		//Grid::VertexAttachmentAccessor<APosition>		m_aaPos;
 		//Grid::EdgeAttachmentAccessor<ARefinementInfo>	m_aaRefinementInfoEDGE;
 		//Grid::FaceAttachmentAccessor<ARefinementInfo>	m_aaRefinementInfoFACE;
 		Grid::EdgeAttachmentAccessor<AVertexBase>		m_aaVertexEDGE;
