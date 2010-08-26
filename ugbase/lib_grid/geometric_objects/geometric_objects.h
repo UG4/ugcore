@@ -23,12 +23,14 @@ enum SharedPipeSectionVertex
 ////////////////////////////////////////////////////////////////////////
 //	shared pipe sections edge
 ///	These numbers define where in the edge-section-container an edge will be stored.
+/**	The order of the constants must not be changed! There are algorithms that rely
+ *	on them. I.e. ug::HangingNodeRefiner.*/
 enum SharedPipeSectionEdge
 {
 	SPSEDGE_NONE = -1,
 	SPSEDGE_EDGE = 0,
-	SPSEDGE_CONSTRAINING_EDGE = 1,
-	SPSEDGE_CONSTRAINED_EDGE = 2
+	SPSEDGE_CONSTRAINED_EDGE = 1,
+	SPSEDGE_CONSTRAINING_EDGE = 2
 };
 
 ////////////////////////////////////////////////////////////////////////
