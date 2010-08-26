@@ -93,9 +93,12 @@ class SymP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscreteFunc
 				u.get_inner_algebra_indices(vrt2, ind2);
 				u.get_inner_algebra_indices(vrt3, ind3);
 
-				UG_LOG("ind1 = " << ind1[0] << "\n");
-				UG_LOG("ind2 = " << ind2[0] << "\n");
-				UG_LOG("ind3 = " << ind3[0] << "\n");
+				if(false)
+				{
+					UG_LOG("ind1 = " << ind1[0] << "\n");
+					UG_LOG("ind2 = " << ind2[0] << "\n");
+					UG_LOG("ind3 = " << ind3[0] << "\n");
+				}
 
 				if(!SplitAddRow(mat, ind1, ind2, ind3))
 					{UG_LOG("ERROR while splitting rows. Aborting.\n"); return IAssemble_ERROR;}

@@ -247,6 +247,7 @@ class SubControlVolumeFace{
 			{
 				m_normal = corners[1];
 				m_normal -= corners[0];
+				// TODO: Should be * 1./2. (think about this)
 				//VecNormalize(m_normal, m_normal);
 			}
 			else if(dim == 2 && world_dim == 2)
