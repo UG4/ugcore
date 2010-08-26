@@ -83,6 +83,17 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectEdges
+///	Collects all edges that exist in the given grid are part of the given edge.
+/**
+ * \ingroup lib_grid_algorithms_face_util
+ *
+ * This function simply returns an the edge itself. It is added for completeness,
+ * such that the function can be used in template code.
+ */
+void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
+//	CollectEdges
 ///	Collects all edges that exist in the given grid are part of the given face.
 /**
  * \ingroup lib_grid_algorithms_face_util

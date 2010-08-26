@@ -26,10 +26,10 @@ bool CompareVertices(const FaceVertices* fv1,
 					const FaceVertices* fv2)
 {
 	uint numVrts = fv1->num_vertices();
-	
+
 	if(numVrts != fv2->num_vertices())
 		return false;
-	
+
 	for(uint i = 0; i < numVrts; ++i)
 	{
 		uint j;
@@ -38,12 +38,12 @@ bool CompareVertices(const FaceVertices* fv1,
 			if(fv1->vertex(i) == fv2->vertex(j))
 				break;
 		}
-		
+
 	//	check whether we found a matching vertex
 		if(j == numVrts)
 			return false;
 	}
-	
+
 	return true;
 }
 
@@ -51,10 +51,10 @@ bool CompareVertices(const VolumeVertices* vv1,
 					const VolumeVertices* vv2)
 {
 	uint numVrts = vv1->num_vertices();
-	
+
 	if(numVrts != vv2->num_vertices())
 		return false;
-	
+
 	for(uint i = 0; i < numVrts; ++i)
 	{
 		uint j;
@@ -63,13 +63,24 @@ bool CompareVertices(const VolumeVertices* vv1,
 			if(vv1->vertex(i) == vv2->vertex(j))
 				break;
 		}
-		
+
 	//	check whether we found a matching vertex
 		if(j == numVrts)
 			return false;
 	}
-	
+
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	CollectEdges
+///	Collects all edges. (Returns the edge itself)
+void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	if(clearContainer)
+		vEdgesOut.clear();
+
+	vEdgesOut.push_back(e);
 }
 
 ////////////////////////////////////////////////////////////////////////
