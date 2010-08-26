@@ -27,8 +27,8 @@ enum SharedPipeSectionEdge
 {
 	SPSEDGE_NONE = -1,
 	SPSEDGE_EDGE = 0,
-	SPSEDGE_CONSTRAINED_EDGE = 1,
-	SPSEDGE_CONSTRAINING_EDGE = 2
+	SPSEDGE_CONSTRAINING_EDGE = 1,
+	SPSEDGE_CONSTRAINED_EDGE = 2
 };
 
 ////////////////////////////////////////////////////////////////////////

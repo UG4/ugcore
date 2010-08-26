@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <vector>
+#include <utility>
 #include "../lg_base.h"
 #include "common/parser/rapidxml/rapidxml.hpp"
 
@@ -15,16 +16,49 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 ///	Writes a grid to an ugx file. internally uses GridWriterUGX.
-//...
-bool SaveGridToUGX(Grid& grid, SubsetHandler& sh,
-				   const char* filename, APosition& aPos = aPosition);
+/**	The position attachment can be specified. Since the type of the
+ *	position attachment is a template parameter, MathVector attachments
+ * 	of any dimension are supported. Especially ug::aPosition, ug::aPostion2
+ *	and ug::aPosition1.
+ */
+template <class TAPosition>
+bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
+				   const char* filename, TAPosition& aPos);
+
+///	Writes a grid to a ugx file.
+/**	Before writing a grid to file, this method searches for the
+ *	attached standard position attachment with the highest dimension.
+ *	This will be used as position-attachment in a call to the overloaded
+ *	version of SaveGridToUGX.
+ */
+bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
+				   const char* filename);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Reads a grid to an ugx file. internally uses GridReaderUGX.
-//...
+/**	The position attachment can be specified. Since the type of the
+ *	position attachment is a template parameter, MathVector attachments
+ * 	of any dimension are supported. Especially ug::aPosition, ug::aPostion2
+ *	and ug::aPosition1.
+ */
+template <class TAPosition>
 bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh,
-					const char* filename, APosition& aPos = aPosition);
+					const char* filename, APosition& aPos);
 
+///	Reads a grid to an ugx file.
+/**	Before reading a grid from file, this method searches for the
+ *	attached standard position attachment with the highest dimension.
+ *	This will be used as position-attachment in a call to the overloaded
+ *	version of LoadGridFromUGX.
+ *
+ *	If no standard attachment is found, aPosition will be attached and used.
+ */
+bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh,
+					const char* filename);
+					
+					
+
+////////////////////////////////////////////////////////////////////////					
 ////////////////////////////////////////////////////////////////////////
 ///	Grants write access to ugx files.
 /**	Make sure that all elements added via one of the add_* methods
@@ -46,10 +80,7 @@ class GridWriterUGX
 		void add_grid(MultiGrid& mg, const char* name,
 					  TPositionAttachment& aPos);
 
-		void add_subset_handler(SubsetHandler& sh, const char* name,
-								size_t refGridIndex);
-
-		void add_subset_handler(MGSubsetHandler& mgsh, const char* name,
+		void add_subset_handler(ISubsetHandler& sh, const char* name,
 								size_t refGridIndex);
 
 		template <class TAttachment>
@@ -63,23 +94,52 @@ class GridWriterUGX
 
 	protected:
 		typedef Grid::VertexAttachmentAccessor<AInt> AAVrtIndex;
+		typedef Grid::EdgeAttachmentAccessor<AInt> AAEdgeIndex;
+		typedef Grid::FaceAttachmentAccessor<AInt> AAFaceIndex;
+		typedef Grid::VolumeAttachmentAccessor<AInt> AAVolIndex;
 
 	protected:
+		void init_grid_attachments(Grid& grid);
+		
+	//	VERTICES
 		template <class TAAPos>
 		rapidxml::xml_node<>*
 		create_vertex_node(VertexIterator vrtsBegin,
 						  VertexIterator vrtsEnd,
 						  TAAPos& aaPos);
 
+		template <class TAAPos>
+		rapidxml::xml_node<>*
+		create_constrained_vertex_node(HangingVertexIterator vrtsBegin,
+										HangingVertexIterator vrtsEnd,
+										TAAPos& aaPos,
+										AAEdgeIndex aaIndEDGE,
+										AAFaceIndex aaIndFACE);
+						
+														
 	///	adds grid elements (edges, faces, volumes) to the given node.
 		void add_elements_to_node(rapidxml::xml_node<>* node,
 								  Grid& grid);
 
+	//	EDGES
 		rapidxml::xml_node<>*
 		create_edge_node(EdgeIterator edgesBegin,
 						 EdgeIterator edgesEnd,
 						 AAVrtIndex aaIndVRT);
 
+		rapidxml::xml_node<>*
+		create_constraining_edge_node(ConstrainingEdgeIterator edgesBegin,
+									  ConstrainingEdgeIterator edgesEnd,
+									  AAVrtIndex aaIndVRT);
+							  
+		rapidxml::xml_node<>*
+		create_constrained_edge_node(ConstrainedEdgeIterator edgesBegin,
+									 ConstrainedEdgeIterator edgesEnd,
+									 AAVrtIndex aaIndVRT,
+									 AAEdgeIndex aaIndEDGE,
+									 AAFaceIndex aaIndFACE);
+									 
+	//	FACES
 		rapidxml::xml_node<>*
 		create_triangle_node(TriangleIterator trisBegin,
 							 TriangleIterator trisEnd,
@@ -90,6 +150,7 @@ class GridWriterUGX
 								  QuadrilateralIterator quadsEnd,
 								  AAVrtIndex aaIndVRT);
 
+	//	VOLUMES
 		rapidxml::xml_node<>*
 		create_tetrahedron_node(TetrahedronIterator tetsBegin,
 								  TetrahedronIterator tetsEnd,
@@ -116,7 +177,7 @@ class GridWriterUGX
 		template <class TGeomObj>
 		rapidxml::xml_node<>*
 		create_subset_element_node(const char* name,
-								   const SubsetHandler& sh,
+								   const ISubsetHandler& sh,
 								   size_t si);
 
 	protected:
@@ -218,7 +279,21 @@ class GridReaderUGX
 		bool create_vertices(std::vector<VertexBase*>& vrtsOut, Grid& grid,
 							rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
 
+		template <class TAAPos>
+		bool create_constrained_vertices(std::vector<VertexBase*>& vrtsOut,
+							std::vector<std::pair<int, int> >& constrainingObjsOut,
+							Grid& grid, rapidxml::xml_node<>* vrtNode, TAAPos aaPos);
+							
 		bool create_edges(std::vector<EdgeBase*>& edgesOut,
+						  Grid& grid, rapidxml::xml_node<>* node,
+			 			  std::vector<VertexBase*>& vrts);
+
+		bool create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
+						  Grid& grid, rapidxml::xml_node<>* node,
+			 			  std::vector<VertexBase*>& vrts);
+
+		bool create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
+						  std::vector<std::pair<int, int> >& constrainingObjsOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<VertexBase*>& vrts);
 

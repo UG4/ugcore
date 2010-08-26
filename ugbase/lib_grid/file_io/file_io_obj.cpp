@@ -186,6 +186,12 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		SubsetHandler* pSubsetHandler,
 		std::vector<OBJMaterial>* pvMaterials)
 {
+//	check whether the grid has vertex-position data. If not, return false
+	if(!grid.has_vertex_attachment(aPos)){
+		UG_LOG("ERROR in SaveGridToOBJ: Position attachment missing.\n");
+		return false;
+	}
+		
 	string mtrlFullFilename;
 	string mtrlFilename;
 

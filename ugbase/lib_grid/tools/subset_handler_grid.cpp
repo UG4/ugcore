@@ -233,18 +233,63 @@ get_geometric_object_collection()
 	return goc;
 }
 
-/*
-void GridSubsetHandler::
-unregistered_from_grid(Grid* grid)
+size_t GridSubsetHandler::
+collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const
 {
-	assert(m_pGrid && "this method should only be called while the handler is registered at a grid.");
-	
-	if(m_pGrid)
-	{
-		erase_subset_lists();
-	}
-
-	ISubsetHandler::unregistered_from_grid(grid);
+	return collect_subset_elements_impl(vrtsOut, subsetIndex);
 }
-*/
+
+size_t GridSubsetHandler::
+collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const
+{
+	return collect_subset_elements_impl(edgesOut, subsetIndex);
+}
+
+size_t GridSubsetHandler::
+collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const
+{
+	return collect_subset_elements_impl(facesOut, subsetIndex);
+}
+
+size_t GridSubsetHandler::
+collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const
+{
+	return collect_subset_elements_impl(volsOut, subsetIndex);
+}
+
+template <class TElem>
+size_t GridSubsetHandler::
+collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const
+{
+	typedef typename geometry_traits<TElem>::iterator ElemIter;
+	typedef typename geometry_traits<TElem>::const_iterator ConstElemIter;
+
+	elemsOut.clear();
+	
+	if(!m_pGrid){
+		return 0;
+	}
+		
+	if(subsetIndex < 0){
+	//	iterate over all elements of the underlying grid and compare indices
+		Grid& grid = *m_pGrid;
+		
+		for(ElemIter iter = grid.begin<TElem>(); iter != grid.end<TElem>(); ++iter)
+		{
+			if(get_subset_index(*iter) == -1)
+				elemsOut.push_back(*iter);
+		}
+	}
+	else{
+		elemsOut.reserve(num<TElem>(subsetIndex));
+		for(ConstElemIter iter = begin<TElem>(subsetIndex);
+			iter != end<TElem>(subsetIndex); ++iter)
+		{
+			elemsOut.push_back(*iter);
+		}
+	}
+	
+	return elemsOut.size();
+}
+
 }//	end of namespace

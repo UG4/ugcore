@@ -14,45 +14,37 @@ using namespace rapidxml;
 namespace ug
 {
 
-
 ////////////////////////////////////////////////////////////////////////
-///	Writes a grid to an ugx file. internally uses GridWriterUGX.
-//...
-bool SaveGridToUGX(Grid& grid, SubsetHandler& sh, const char* filename,
-				   APosition& aPos)
+bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
+				   const char* filename)
 {
-	GridWriterUGX ugxWriter;
-	ugxWriter.add_grid(grid, "defGrid", aPos);
-	ugxWriter.add_subset_handler(sh, "defSH", 0);
-	return ugxWriter.write_to_file(filename);
-};
-
-////////////////////////////////////////////////////////////////////////
-///	Reads a grid to an ugx file. internally uses GridReaderUGX.
-//...
-bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh, const char* filename,
-					 APosition& aPos)
-{
-	GridReaderUGX ugxReader;
-	if(!ugxReader.parse_file(filename)){
-		UG_LOG("ERROR in LoadGridFromUGX: File not found: " << filename << endl);
-		return false;
-	}
-
-	if(ugxReader.num_grids() < 1){
-		UG_LOG("ERROR in LoadGridFromUGX: File contains no grid.\n");
-		return false;
-	}
-
-	ugxReader.get_grid(grid, 0, aPos);
-
-	if(ugxReader.num_subset_handlers(0) > 0)
-		ugxReader.get_subset_handler(sh, 0, 0);
-
-	return true;
+	if(grid.has_vertex_attachment(aPosition))
+		return SaveGridToUGX(grid, sh, filename, aPosition);
+	else if(grid.has_vertex_attachment(aPosition2))
+		return SaveGridToUGX(grid, sh, filename, aPosition2);
+	else if(grid.has_vertex_attachment(aPosition1))
+		return SaveGridToUGX(grid, sh, filename, aPosition1);
+		
+	UG_LOG("ERROR in SaveGridToUGX: no standard attachment found.\n");
+	return false;
 }
 
+bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh,
+					const char* filename)
+{
+	if(grid.has_vertex_attachment(aPosition))
+		return LoadGridFromUGX(grid, sh, filename, aPosition);
+	else if(grid.has_vertex_attachment(aPosition2))
+		return LoadGridFromUGX(grid, sh, filename, aPosition2);
+	else if(grid.has_vertex_attachment(aPosition1))
+		return LoadGridFromUGX(grid, sh, filename, aPosition1);
 
+//	no standard position attachments are available.
+//	Attach aPosition and use it.
+	grid.attach_to_vertices(aPosition);
+	return LoadGridFromUGX(grid, sh, filename, aPosition);
+}
+					
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	GridWriterUGX
@@ -108,7 +100,7 @@ add_subset_attributes(rapidxml::xml_node<>* targetNode,
 }
 
 void GridWriterUGX::
-add_subset_handler(SubsetHandler& sh, const char* name,
+add_subset_handler(ISubsetHandler& sh, const char* name,
 					size_t refGridIndex)
 {
 //	get the node of the referenced grid
@@ -133,31 +125,24 @@ add_subset_handler(SubsetHandler& sh, const char* name,
 		ndSH->append_node(ndSubset);
 
 	//	add elements
-		if(sh.num<VertexBase>(i) > 0)
+		if(sh.contains_vertices(i))
 			ndSubset->append_node(
 				create_subset_element_node<VertexBase>("vertices", sh, i));
-		if(sh.num<EdgeBase>(i) > 0)
+		if(sh.contains_edges(i))
 			ndSubset->append_node(
 				create_subset_element_node<EdgeBase>("edges", sh, i));
-		if(sh.num<Face>(i) > 0)
+		if(sh.contains_faces(i))
 			ndSubset->append_node(
 				create_subset_element_node<Face>("faces", sh, i));
-		if(sh.num<Volume>(i) > 0)
+		if(sh.contains_volumes(i))
 			ndSubset->append_node(
 				create_subset_element_node<Volume>("volumes", sh, i));
 	}
 }
 
-void GridWriterUGX::
-add_subset_handler(MGSubsetHandler& mgsh, const char* name,
-					size_t refGridIndex)
-{
-
-}
-
 template <class TGeomObj>
 rapidxml::xml_node<>* GridWriterUGX::
-create_subset_element_node(const char* name, const SubsetHandler& sh,
+create_subset_element_node(const char* name, const ISubsetHandler& sh,
 							size_t si)
 {
 
@@ -171,11 +156,12 @@ create_subset_element_node(const char* name, const SubsetHandler& sh,
 	//	access the attachment
 		Grid::AttachmentAccessor<TGeomObj, AInt> aaInd(grid, m_aInt);
 		if(aaInd.valid()){
-			typedef typename geometry_traits<TGeomObj>::const_iterator iterator;
-			for(iterator iter = sh.begin<TGeomObj>(si);
-				iter != sh.end<TGeomObj>(si); ++iter)
+		//	collect all elements of the given subset
+			std::vector<TGeomObj*> elems;
+			sh.collect_subset_elements(elems, si);
+			for(size_t i = 0; i < elems.size(); ++i)
 			{
-				ss << aaInd[*iter] << " ";
+				ss << aaInd[elems[i]] << " ";
 			}
 		}
 	}
@@ -194,8 +180,7 @@ create_subset_element_node(const char* name, const SubsetHandler& sh,
 }
 
 void GridWriterUGX::
-add_elements_to_node(rapidxml::xml_node<>* node,
-					  Grid& grid)
+init_grid_attachments(Grid& grid)
 {
 //	assign indices to the vertices, edges, faces and volumes
 	grid.attach_to_vertices(m_aInt);
@@ -209,18 +194,52 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 	Grid::FaceAttachmentAccessor<AInt> aaIndFACE(grid, m_aInt);
 	Grid::VolumeAttachmentAccessor<AInt> aaIndVOL(grid, m_aInt);
 
-	AssignIndices(grid.begin<VertexBase>(), grid.end<VertexBase>(), aaIndVRT, 0);
-	AssignIndices(grid.begin<EdgeBase>(), grid.end<EdgeBase>(), aaIndEDGE, 0);
+	int baseInd = 0;
+	AssignIndices(grid.begin<Vertex>(), grid.end<Vertex>(), aaIndVRT, baseInd);
+	baseInd += grid.num<Vertex>();
+	AssignIndices(grid.begin<HangingVertex>(), grid.end<HangingVertex>(),
+				  aaIndVRT, baseInd);
+
+	baseInd = 0;
+	AssignIndices(grid.begin<Edge>(), grid.end<Edge>(), aaIndEDGE, baseInd);
+	baseInd += grid.num<Edge>();
+	AssignIndices(grid.begin<ConstrainingEdge>(), grid.end<ConstrainingEdge>(),
+				  aaIndEDGE, baseInd);
+	baseInd += grid.num<ConstrainingEdge>();
+	AssignIndices(grid.begin<ConstrainedEdge>(), grid.end<ConstrainedEdge>(),
+				  aaIndEDGE, baseInd);
+	
 	AssignIndices(grid.begin<Face>(), grid.end<Face>(), aaIndFACE, 0);
 	AssignIndices(grid.begin<Volume>(), grid.end<Volume>(), aaIndVOL, 0);
+}
 
+void GridWriterUGX::
+add_elements_to_node(rapidxml::xml_node<>* node,
+					  Grid& grid)
+{
+//	access and initialise indices
+	Grid::VertexAttachmentAccessor<AInt> aaIndVRT(grid, m_aInt);
+	Grid::EdgeAttachmentAccessor<AInt> aaIndEDGE(grid, m_aInt);
+	Grid::FaceAttachmentAccessor<AInt> aaIndFACE(grid, m_aInt);
+	Grid::VolumeAttachmentAccessor<AInt> aaIndVOL(grid, m_aInt);
+	
 //	write edges
 	if(grid.num<Edge>() > 0)
 		node->append_node(create_edge_node(grid.begin<Edge>(),
 										grid.end<Edge>(), aaIndVRT));
 
-//TODO: write constrained / constraining edges
+//	write constraining edges
+	if(grid.num<ConstrainingEdge>() > 0)
+		node->append_node(create_constraining_edge_node(
+										grid.begin<ConstrainingEdge>(),
+										grid.end<ConstrainingEdge>(), aaIndVRT));
 
+//	write constrained edges
+	if(grid.num<ConstrainedEdge>() > 0)
+		node->append_node(create_constrained_edge_node(
+										grid.begin<ConstrainedEdge>(),
+										grid.end<ConstrainedEdge>(),
+										aaIndVRT, aaIndEDGE, aaIndFACE));
 //	write triangles
 	if(grid.num<Triangle>() > 0)
 		node->append_node(create_triangle_node(grid.begin<Triangle>(),
@@ -274,6 +293,74 @@ create_edge_node(EdgeIterator edgesBegin,
 	else{
 	//	return an emtpy node
 		return m_doc.allocate_node(node_element, "edges");
+	}
+}
+
+rapidxml::xml_node<>* GridWriterUGX::
+create_constraining_edge_node(ConstrainingEdgeIterator edgesBegin,
+				 			  ConstrainingEdgeIterator edgesEnd,
+							  AAVrtIndex aaIndVRT)
+{
+//	write the elements to a temporary stream
+	stringstream ss;
+	for(ConstrainingEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
+	{
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " ";
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, "constraining_edges", nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, "constraining_edges");
+	}
+}
+
+rapidxml::xml_node<>* GridWriterUGX::
+create_constrained_edge_node(ConstrainedEdgeIterator edgesBegin,
+							 ConstrainedEdgeIterator edgesEnd,
+							 AAVrtIndex aaIndVRT,
+							 AAEdgeIndex aaIndEDGE,
+							 AAFaceIndex aaIndFACE)
+{
+//	write the elements to a temporary stream
+	stringstream ss;
+	for(ConstrainedEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
+	{
+	//	write endpoint indices
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " ";
+		
+	//	write index of associated constraining element
+	//	codes:	-1: no constraining element
+	//			0: vertex. index follows
+	//			1: edge. index follows
+	//			2: face. index follows
+	//			3: volume. index follows
+		EdgeBase* ce = dynamic_cast<EdgeBase*>((*iter)->get_constraining_object());
+		Face* cf = dynamic_cast<Face*>((*iter)->get_constraining_object());
+		if(ce)
+			ss << "1 " << aaIndEDGE[ce] << " ";
+		else if(cf)
+			ss << "2 " << aaIndFACE[cf] << " ";
+		else
+			ss << "-1 ";
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, "constrained_edges", nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, "constrained_edges");
 	}
 }
 
@@ -657,6 +744,91 @@ create_edges(std::vector<EdgeBase*>& edgesOut,
 
 	//	create the edge
 		edgesOut.push_back(*grid.create<Edge>(EdgeDescriptor(vrts[i1], vrts[i2])));
+	}
+
+	return true;
+}
+
+bool GridReaderUGX::
+create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
+						  Grid& grid, rapidxml::xml_node<>* node,
+			 			  std::vector<VertexBase*>& vrts)
+{
+	UG_LOG("creating constraining edges: ");
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+
+//	read the edges
+	int i1, i2;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2;
+
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_constraining_edges: invalid vertex index.\n");
+			return false;
+		}
+
+	//	create the edge
+		UG_LOG(edgesOut.size() << ", ");
+		edgesOut.push_back(*grid.create<ConstrainingEdge>(EdgeDescriptor(vrts[i1], vrts[i2])));
+	}
+
+	UG_LOG("\n");
+	return true;
+}
+
+bool GridReaderUGX::
+create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
+						  std::vector<std::pair<int, int> >& constrainingObjsOut,
+						  Grid& grid, rapidxml::xml_node<>* node,
+			 			  std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+
+//	read the edges
+	int i1, i2;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2;
+
+	//	read the type and index of the constraining object
+		int conObjType, conObjIndex;
+		ss >> conObjType;
+		
+		if(conObjType != -1)
+			ss >> conObjIndex;
+
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_edges: invalid vertex index.\n");
+			return false;
+		}
+
+	//	create the edge
+		ConstrainedEdge* edge = *grid.create<ConstrainedEdge>(EdgeDescriptor(vrts[i1], vrts[i2]));
+		edgesOut.push_back(edge);
+		
+	//	add conObjType and conObjIndex to their list
+		constrainingObjsOut.push_back(std::make_pair(conObjType, conObjIndex));
 	}
 
 	return true;

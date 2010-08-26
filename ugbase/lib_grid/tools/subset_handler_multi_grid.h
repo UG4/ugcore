@@ -75,6 +75,20 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		typename geometry_traits<TElem>::iterator
 		end(int subsetIndex, int level);
 
+	///	returns the begin-iterator for the elements of type TElem in the given subset.
+	/**	e.g. begin<Triangle>(0)
+	 *	Please note that in the const version level < num_levels() has to hold true.*/
+		template <class TElem>
+		typename geometry_traits<TElem>::const_iterator
+		begin(int subsetIndex, int level) const;
+
+	///	returns the end-iterator for the elements of type TElem in the given subset.
+	/**	e.g. end<Triangle>(0)
+	 *	Please note that in the const version level < num_levels() has to hold true.*/
+		template <class TElem>
+		typename geometry_traits<TElem>::const_iterator
+		end(int subsetIndex, int level) const;
+		
 	///	returns the total number of elements
 		template <class TElem>
 		uint num() const;
@@ -113,10 +127,51 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	 *	represents a subset.*/
 		GeometricObjectCollection
 		get_goc_by_level(int level);
-
-	//	derived from GridObserver
-		//virtual void unregistered_from_grid(Grid* grid);
 		
+	///	collects all vertices that are in the given subset.
+	/**	Please consider using begin and end methods instead.
+	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	of vertices in the underlying grid.
+	 *	\returns number of collected elements.
+	 *	\sa begin, end*/
+		virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const;
+
+	///	collects all edges that are in the given subset.
+	/**	Please consider using begin and end methods instead.
+	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	of edges in the underlying grid.
+	 *	\returns number of collected elements.
+	 *	\sa begin, end*/
+		virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const;
+
+	///	collects all faces that are in the given subset.
+	/**	Please consider using begin and end methods instead.
+	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	of faces in the underlying grid.
+	 *	\returns number of collected elements.
+	 *	\sa begin, end*/
+		virtual size_t collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const;
+
+	///	collects all volumes that are in the given subset.
+	/**	Please consider using begin and end methods instead.
+	 *	If subset -1 is specified, the method has compexity O(n), where n is the number
+	 *	of volumes in the underlying grid.
+	 *	\returns number of collected elements.
+	 *	\sa begin, end*/
+		virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const;		
+		
+	///	returns true if the subset contains vertices
+		virtual bool contains_vertices(int subsetIndex) const	{return num<VertexBase>(subsetIndex) > 0;}
+
+	///	returns true if the subset contains edges
+		virtual bool contains_edges(int subsetIndex) const		{return num<EdgeBase>(subsetIndex) > 0;}
+		
+	///	returns true if the subset contains faces
+		virtual bool contains_faces(int subsetIndex) const		{return num<Face>(subsetIndex) > 0;}
+		
+	///	returns true if the subset contains volumes
+		virtual bool contains_volumes(int subsetIndex) const	{return num<Volume>(subsetIndex) > 0;}
+
 	protected:
 	///	returns the number of subsets in the local list
 		inline uint num_subsets_in_list() const	{return m_numSubsets;}
@@ -166,6 +221,10 @@ class MultiGridSubsetHandler : public ISubsetHandler
 		void add_level();
 		void add_subset_to_all_levels();///< increases m_numSubsets.
 
+	///	helper for collect_subset_elements
+		template <class TElem>
+		size_t collect_subset_elements_impl(std::vector<TElem*>& elemsOut, int subsetIndex) const;
+		
 	protected:
 		typedef ISubsetHandler::SectionContainer SectionContainer;
 		

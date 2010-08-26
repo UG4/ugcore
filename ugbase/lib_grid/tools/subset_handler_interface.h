@@ -314,6 +314,7 @@ class ISubsetHandler : public GridObserver
 		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL);
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol);
 		
+	//	Virtual methods for derived classes
 	/**	The implementation in a derived class should store the element in a list
 	 *	and call subset_assigned with the iterators position and the subset-index.
 	 *	The iterator can later be retrieved with get_list_iterator(...).
@@ -338,7 +339,38 @@ class ISubsetHandler : public GridObserver
 	 *	The index can be retrieved with get_subset_index(...).*/
 		virtual void assign_subset(Volume* elem, int subsetIndex) = 0;
 	
-	
+	///	collects all vertices that are in the given subset.
+	/**	Please note: This method should only be used, if the begin and end methods
+	 *	of derived classes are not available.*/
+		virtual size_t collect_subset_elements(std::vector<VertexBase*>& vrtsOut, int subsetIndex) const = 0;
+
+	///	collects all edges that are in the given subset.
+	/**	Please note: This method should only be used, if the begin and end methods
+	 *	of derived classes are not available.*/
+		virtual size_t collect_subset_elements(std::vector<EdgeBase*>& edgesOut, int subsetIndex) const = 0;
+
+	///	collects all faces that are in the given subset.
+	/**	Please note: This method should only be used, if the begin and end methods
+	 *	of derived classes are not available.*/
+		virtual size_t collect_subset_elements(std::vector<Face*>& facesOut, int subsetIndex) const = 0;
+
+	///	collects all volumes that are in the given subset.
+	/**	Please note: This method should only be used, if the begin and end methods
+	 *	of derived classes are not available.*/
+		virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const = 0;
+		
+	///	returns true if the subset contains vertices
+		virtual bool contains_vertices(int subsetIndex) const = 0;
+
+	///	returns true if the subset contains edges
+		virtual bool contains_edges(int subsetIndex) const = 0;
+		
+	///	returns true if the subset contains faces
+		virtual bool contains_faces(int subsetIndex) const = 0;
+		
+	///	returns true if the subset contains volumes
+		virtual bool contains_volumes(int subsetIndex) const = 0;
+		
 	////////////////////////////////
 	//	attachments
 	
