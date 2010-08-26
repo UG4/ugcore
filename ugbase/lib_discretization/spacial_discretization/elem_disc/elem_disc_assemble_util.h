@@ -213,6 +213,9 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
+	// flag, wheather to use haning nodes as well
+	bool useHanging = elemDisc.use_hanging();
+
 	// local indices and local algebra
 	LocalIndices ind;
 	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
@@ -223,7 +226,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind))
+	if(!u.prepare_indices(refID, si, ind, useHanging))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -231,9 +234,12 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
 
 	// adjust local algebra
-	loc_u.set_indices(ind);
-	loc_J.set_indices(ind, ind);
-	loc_J_temp.set_indices(ind, ind);
+	if(!useHanging)
+	{
+		loc_u.set_indices(ind);
+		loc_J.set_indices(ind, ind);
+		loc_J_temp.set_indices(ind, ind);
+	}
 
 	// prepare loop
 	if(!elemDisc.prepare_element_loop())
@@ -246,7 +252,15 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		u.update_indices(elem, ind, useHanging);
+
+		// adapt local algebra
+		if(useHanging)
+		{
+			loc_u.set_indices(ind);
+			loc_J.set_indices(ind, ind);
+			loc_J_temp.set_indices(ind, ind);
+		}
 
 		// read local values of u
 		const typename TAlgebra::vector_type& u_vec = u.get_vector();
@@ -305,6 +319,9 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
+	// flag, wheather to use haning nodes as well
+	bool useHanging = elemDisc.use_hanging();
+
 	// local indices
 	LocalIndices ind;
 	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
@@ -315,7 +332,7 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind))
+	if(!u.prepare_indices(refID, si, ind, useHanging))
 		{UG_LOG("ERROR in AssembleDefect: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -323,9 +340,12 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleDefect: Cannot set geometric object type.\n"); return false;}
 
 	// adjust local algebra
-	loc_u.set_indices(ind);
-	loc_d.set_indices(ind);
-	loc_d_temp.set_indices(ind);
+	if(!useHanging)
+	{
+		loc_u.set_indices(ind);
+		loc_d.set_indices(ind);
+		loc_d_temp.set_indices(ind);
+	}
 
 	// prepare loop
 	if(!elemDisc.prepare_element_loop())
@@ -338,7 +358,15 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		u.update_indices(elem, ind, useHanging);
+
+		// adjust local algebra
+		if(useHanging)
+		{
+			loc_u.set_indices(ind);
+			loc_d.set_indices(ind);
+			loc_d_temp.set_indices(ind);
+		}
 
 		// read values
 		const typename TAlgebra::vector_type& u_vec = u.get_vector();
@@ -403,6 +431,9 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
+	// flag, wheather to use haning nodes as well
+	bool useHanging = elemDisc.use_hanging();
+
 	// local indices and local algebra
 	LocalIndices ind;
 	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
@@ -413,7 +444,7 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind))
+	if(!u.prepare_indices(refID, si, ind, useHanging))
 		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -421,9 +452,12 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleLinear: Cannot set geometric object type.\n"); return false;}
 
 	// adjust local algebra
-	loc_u.set_indices(ind);
-	loc_rhs.set_indices(ind);
-	loc_mat.set_indices(ind, ind);
+	if(!useHanging)
+	{
+		loc_u.set_indices(ind);
+		loc_rhs.set_indices(ind);
+		loc_mat.set_indices(ind, ind);
+	}
 
 	// prepare loop
 	if(!elemDisc.prepare_element_loop())
@@ -436,7 +470,15 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		u.update_indices(elem, ind, useHanging);
+
+		// adjust local algebra
+		if(useHanging)
+		{
+			loc_u.set_indices(ind);
+			loc_rhs.set_indices(ind);
+			loc_mat.set_indices(ind, ind);
+		}
 
 		// read local values of u
 		const typename TAlgebra::vector_type& u_vec = u.get_vector();

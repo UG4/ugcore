@@ -48,6 +48,9 @@ class IElemDisc{
 		// shape function set of the functions handled by this discretization
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) = 0;
 
+		// returns, if hanging nodes should be considered in elem disc as well (default is false)
+		virtual bool use_hanging() const {return false;}
+
 		// sets the geometric object type
 		// ATTENTION: type must be set, before other public functions can be called
 		bool set_geometric_object_type(int id, IElemDiscNeed need);
