@@ -23,26 +23,93 @@ namespace ug{
 template<typename TElem>
 void
 P1ConformDoFDistribution::
-update_indices(TElem* elem, LocalIndices& ind) const
+update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 {
 	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
 
-	for(size_t i = 0; i <  refElem.num_obj(0); ++i)
+	if(!withHanging)
 	{
-		VertexBase* vrt = get_vertex(elem, i);
-		int si = m_pISubsetHandler->get_subset_index(vrt);
-
-		const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
-
-		size_t numFct = 0;
-		for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+		for(size_t i = 0; i <  refElem.num_obj(0); ++i)
 		{
-			if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
-			ind.set_index(i + numFct*refElem.num_obj(0), index + m_vvOffsets[si][ind.fct_id(fct)]);
-			numFct++;
+			VertexBase* vrt = get_vertex(elem, i);
+			int si = m_pISubsetHandler->get_subset_index(vrt);
+
+			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+
+			size_t numFct = 0;
+			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+			{
+				if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+				ind.set_index(i + numFct*refElem.num_obj(0), index + m_vvOffsets[si][ind.fct_id(fct)]);
+				numFct++;
+			}
 		}
 	}
+	else
+	{
+		ind.clear();
+		size_t algDof = 0;
+
+		// natural dofs
+		for(size_t i = 0; i < refElem.num_obj(0); ++i)
+		{
+			VertexBase* vrt = get_vertex(elem, i);
+			int si = m_pISubsetHandler->get_subset_index(vrt);
+			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+
+			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+			{
+				if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+
+				ind.set_num_indices(algDof+1);
+				ind.set_index(algDof, index + m_vvOffsets[si][ind.fct_id(fct)]);
+
+				LocalIndices::multi_index_type dof_ind;
+				dof_ind[0] = algDof;
+				dof_ind[1] = 0;
+				ind.add_dof(fct, dof_ind);
+
+				algDof++;
+			}
+		}
+
+		// hanging dofs
+
+		// get natural edges
+		std::vector<EdgeBase*> vEdges;
+		EdgeBase* ed = dynamic_cast<EdgeBase*>(elem); if(ed != NULL) CollectEdges(vEdges, *(m_pISubsetHandler->get_assigned_grid()), ed);
+		Face* face = dynamic_cast<Face*>(elem); if(face != NULL) CollectEdges(vEdges, *(m_pISubsetHandler->get_assigned_grid()), face);
+		Volume* vol = dynamic_cast<Volume*>(elem); if(vol != NULL) CollectEdges(vEdges, *(m_pISubsetHandler->get_assigned_grid()), vol);
+
+		for(size_t i = 0; i < vEdges.size(); ++i)
+		{
+			ConstrainingEdge* edge = dynamic_cast<ConstrainingEdge*>(vEdges[i]);
+			if(edge == NULL) continue;
+			for(VertexBaseIterator iter = edge->constrained_vertices_begin(); iter != edge->constrained_vertices_end(); ++iter)
+			{
+				VertexBase* vrt = *iter;
+				int si = m_pISubsetHandler->get_subset_index(vrt);
+				const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+
+				for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+				{
+					if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+
+					ind.set_num_indices(algDof+1);
+					ind.set_index(algDof, index + m_vvOffsets[si][ind.fct_id(fct)]);
+
+					LocalIndices::multi_index_type dof_ind;
+					dof_ind[0] = algDof;
+					dof_ind[1] = 0;
+					ind.add_dof(fct, dof_ind);
+
+					algDof++;
+				}
+			}
+		}
+	}
+	return;
 }
 
 template<typename TElem>

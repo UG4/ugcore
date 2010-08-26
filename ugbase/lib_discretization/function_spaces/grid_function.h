@@ -281,8 +281,8 @@ class GridFunction{
 			{return m_pDoFDistribution->num_inner_indices(refID, si, funcGroup);}
 
 		/// fill local informations in LocalIndex
-		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
-			{return m_pDoFDistribution->prepare_indices(refID, si, ind);}
+		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool useHanging = false) const
+			{return m_pDoFDistribution->prepare_indices(refID, si, ind, useHanging);}
 
 		/// fill local informations in LocalIndex
 		bool prepare_inner_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
@@ -290,8 +290,8 @@ class GridFunction{
 
 		/// fill the global algebra indices in LocalIndex
 		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind) const
-			{return m_pDoFDistribution->update_indices(elem, ind);}
+		void update_indices(TElem* elem, LocalIndices& ind, bool useHanging = false) const
+			{return m_pDoFDistribution->update_indices(elem, ind, useHanging);}
 
 		/// fill the global algebra indices in LocalIndex
 		template<typename TElem>

@@ -94,27 +94,30 @@ num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) con
 
 bool
 P1ConformDoFDistribution::
-prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
+prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool withHanging) const
 {
 	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
 
-	ind.clear();
-	size_t numInd = 0;
-	size_t numFct = 0;
-	for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+	if(!withHanging)
 	{
-		if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
-		for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
+		ind.clear();
+		size_t numInd = 0;
+		size_t numFct = 0;
+		for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 		{
-			LocalIndices::multi_index_type dof_ind;
-			dof_ind[0] = dof + numFct * refElem.num_obj(0);
-			dof_ind[1] = 0;
-			ind.add_dof(fct, dof_ind);
+			if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+			for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
+			{
+				LocalIndices::multi_index_type dof_ind;
+				dof_ind[0] = dof + numFct * refElem.num_obj(0);
+				dof_ind[1] = 0;
+				ind.add_dof(fct, dof_ind);
+			}
+			numInd += refElem.num_obj(0);
+			numFct++;
 		}
-		numInd += refElem.num_obj(0);
-		numFct++;
+		ind.set_num_indices(numInd);
 	}
-	ind.set_num_indices(numInd);
 	return true;
 }
 

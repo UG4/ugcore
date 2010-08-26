@@ -136,14 +136,14 @@ class P1ConformDoFDistribution : public DoFDistribution
 		size_t num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const;
 
 		/// fill local informations in LocalIndex (Element + Closure of Element)
-		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const;
+		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool withHanging = false) const;
 
 		/// fill local informations in LocalIndex (only inner part of Element)
 		bool prepare_inner_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const;
 
 		/// fill the global algebra indices in LocalIndex (Element + Closure of Element)
 		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind) const;
+		void update_indices(TElem* elem, LocalIndices& ind, bool withHanging = false) const;
 
 		/// fill the global algebra indices in LocalIndex (only inner part of Element)
 		template<typename TElem>
