@@ -903,7 +903,7 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 		it.p += nr;
 
 	return it;
-}
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -980,12 +980,19 @@ bool SparseMatrix<T>::get_connection_nr_templ(size_t r, size_t c, size_t &nr) co
 			return false;
 		}
 
-		nr = right+1;
+
+		//TODO: PLEASE VERIFY !!! . I change this, because it gave insufficient results.
+		//      But i did not rethink all cases with the care I should have taken. Andreas Vogel
+		// formerly: nr = right+1;
+		if(con[left].iIndex > c)
+			nr = left;
+		else
+			nr = left + 1;
 		return true;
 	}
 
 	return false;
-}
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_connection_nr
