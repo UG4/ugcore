@@ -129,7 +129,7 @@ class HFVGeometry {
 
 			// get natural edges
 			std::vector<EdgeBase*> vEdges;
-			CollectEdges(vEdges, mg, elem);
+			CollectEdgesSorted(vEdges, mg, elem);
 
 			// setup vector with needed edges (i.e. Edge and ConstrainedEdge)
 			m_vSCVF.clear();
@@ -138,6 +138,7 @@ class HFVGeometry {
 				// natural ids of end of edge
 				const size_t left = refElem.id(1, i, 0, 0);
 				const size_t right = refElem.id(1, i, 0, 1);
+				const size_t numSCVF = m_vSCVF.size();
 
 				// choose weather to insert to or one new edge
 				switch(vEdges[i]->shared_pipe_section())
@@ -145,35 +146,36 @@ class HFVGeometry {
 				case SPSEDGE_CONSTRAINED_EDGE:
 				case SPSEDGE_EDGE:
 					// classic case: Just set corner ids
-					m_vSCVF.resize(m_vSCVF.size() + 1);
+					m_vSCVF.resize(numSCVF + 1);
 					m_vSCVF.back().nodeId[0] = left;
 					m_vSCVF.back().nodeId[1] = right;
 					break;
 
 				case SPSEDGE_CONSTRAINING_EDGE:
+					UG_LOG("left = "<<left<<", right="<<right<<"\n");
 					// insert hanging node in list of nodes
 					const size_t newNodeId = m_vSCV.size();
 					m_vSCV.resize(newNodeId + 1);
 					m_vSCV.back().nodeId = newNodeId;
 					m_vSCV.back().isHanging = true;
-					VecInterpolateLinear(	m_vSCV[i].localPosition[0],
+					VecInterpolateLinear(	m_vSCV.back().localPosition[0],
 											m_vSCV[left].localPosition[0],
 											m_vSCV[right].localPosition[0],
 											0.5);
-					VecInterpolateLinear(	m_vSCV[i].globalPosition[0],
+					VecInterpolateLinear(	m_vSCV.back().globalPosition[0],
 											m_vSCV[left].globalPosition[0],
 											m_vSCV[right].globalPosition[0],
 											0.5);
-					m_vSCV[i].interpolNodeId[0] = left;
-					m_vSCV[i].interpolNodeId[1] = right;
+					m_vSCV.back().interpolNodeId[0] = left;
+					m_vSCV.back().interpolNodeId[1] = right;
 
 
 					// insert to edges with nodeIds
-					m_vSCVF.resize(m_vSCVF.size() + 1);
+					m_vSCVF.resize(numSCVF + 1);
 					m_vSCVF.back().nodeId[0] = left;
 					m_vSCVF.back().nodeId[1] = newNodeId;
 
-					m_vSCVF.resize(m_vSCVF.size() + 1);
+					m_vSCVF.resize(numSCVF + 2);
 					m_vSCVF.back().nodeId[0] = newNodeId;
 					m_vSCVF.back().nodeId[1] = right;
 					break;
@@ -226,6 +228,8 @@ class HFVGeometry {
 			// compute size of scv
 			for(size_t i = 0; i < m_vSCV.size(); ++i)
 			{
+				m_vSCV[i].globalPosition[2] = m_globalCenter;
+				m_vSCV[i].localPosition[2] = m_localCenter;
 				m_vSCV[i].vol = VolumeOfSCV<dim, world_dim>(m_vSCV[i].globalPosition);
 			}
 
@@ -242,10 +246,11 @@ class HFVGeometry {
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 						LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
 
-				m_vSCVF[i].vShape.resize(m_vSCV.size());
-				m_vSCVF[i].localGrad.resize(m_vSCV.size());
-				m_vSCVF[i].globalGrad.resize(m_vSCV.size());
-				for(size_t sh = 0 ; sh < m_vSCV.size(); ++sh)
+				const size_t num_sh = ref_elem_type::num_corners;
+				m_vSCVF[i].vShape.resize(num_sh);
+				m_vSCVF[i].localGrad.resize(num_sh);
+				m_vSCVF[i].globalGrad.resize(num_sh);
+				for(size_t sh = 0 ; sh < num_sh; ++sh)
 				{
 					if(!(m_vSCV[sh].isHanging))
 					{
@@ -257,20 +262,71 @@ class HFVGeometry {
 					}
 					else
 					{
+						UG_LOG("\n\nSHOULD NOT HAPPEN\n\n"); return false;
 						// this is ok, since all hanging nodes come last
-						(m_vSCVF[i].vShape)[sh] = 0.5*((m_vSCVF[i].vShape)[m_vSCVF[i].nodeId[0]]
-						                                 +(m_vSCVF[i].vShape)[m_vSCVF[i].nodeId[1]]);
+/*						(m_vSCVF[i].vShape)[sh] = 0.5*((m_vSCVF[i].vShape)[m_vSCV[sh].interpolNodeId[0]]
+						                                 +(m_vSCVF[i].vShape)[m_vSCV[sh].interpolNodeId[1]]);
 						VecInterpolateLinear(	(m_vSCVF[i].localGrad)[sh],
-												(m_vSCVF[i].localGrad)[m_vSCVF[i].nodeId[0]],
-												(m_vSCVF[i].localGrad)[m_vSCVF[i].nodeId[1]],
+												(m_vSCVF[i].localGrad)[m_vSCV[sh].interpolNodeId[0]],
+												(m_vSCVF[i].localGrad)[m_vSCV[sh].interpolNodeId[1]],
 												0.5);
 						VecInterpolateLinear(	(m_vSCVF[i].globalGrad)[sh],
-												(m_vSCVF[i].globalGrad)[m_vSCVF[i].nodeId[0]],
-												(m_vSCVF[i].globalGrad)[m_vSCVF[i].nodeId[1]],
+												(m_vSCVF[i].globalGrad)[m_vSCV[sh].interpolNodeId[0]],
+												(m_vSCVF[i].globalGrad)[m_vSCV[sh].interpolNodeId[1]],
 												0.5);
-					}
+*/					}
 				}
 
+			}
+
+			// debug output
+			if(1)
+			{
+				if(num_scv() == (size_t)ref_elem_type::num_corners) return true;
+				UG_LOG("\nFVG hanging debug output\n");
+				UG_LOG("LocalCenter=" << m_localCenter << ", globalCenter="<<m_globalCenter<<"\n");
+				for(size_t i = 0; i < m_vSCV.size(); ++i)
+				{
+					UG_LOG(i<<" SCV: ");
+					UG_LOG("node_id=" << m_vSCV[i].node_id());
+					UG_LOG(", local_pos="<< m_vSCV[i].local_ip());
+					UG_LOG(", global_pos="<< m_vSCV[i].global_ip());
+					UG_LOG(", vol=" << m_vSCV[i].volume());
+					UG_LOG(", hang="<< m_vSCV[i].isHanging);
+					if(m_vSCV[i].isHanging) UG_LOG(" (between: " <<  m_vSCV[i].interpolNodeId[0] << ", "<<m_vSCV[i].interpolNodeId[1] <<")");
+					UG_LOG("\n    localCorner=" << m_vSCV[i].localPosition[0]);
+					UG_LOG(", localSide1=" << m_vSCV[i].localPosition[1]);
+					UG_LOG(", localCenter=" << m_vSCV[i].localPosition[2]);
+					UG_LOG(", localSide2=" << m_vSCV[i].localPosition[3]);
+					UG_LOG("\n    globalCorner=" << m_vSCV[i].globalPosition[0]);
+					UG_LOG(", globalSide1=" << m_vSCV[i].globalPosition[1]);
+					UG_LOG(", globalCenter=" << m_vSCV[i].globalPosition[2]);
+					UG_LOG(", globalSide2=" << m_vSCV[i].globalPosition[3]);
+
+					UG_LOG("\n");
+				}
+				UG_LOG("\n");
+				for(size_t i = 0; i < m_vSCVF.size(); ++i)
+				{
+					UG_LOG(i<<" SCVF: ");
+					UG_LOG("from=" << m_vSCVF[i].from()<<", to="<<m_vSCVF[i].to());
+					UG_LOG(", local_pos="<< m_vSCVF[i].local_ip());
+					UG_LOG(", global_pos="<< m_vSCVF[i].global_ip());
+					UG_LOG(", normal=" << m_vSCVF[i].normal());
+					UG_LOG("\n    localEdgeMid=" << m_vSCVF[i].localPosition[0]);
+					UG_LOG(", localCenter=" << m_vSCVF[i].localPosition[1]);
+					UG_LOG(", globalEdgeMid=" << m_vSCVF[i].globalPosition[0]);
+					UG_LOG(", globalCenter=" << m_vSCVF[i].globalPosition[1]);
+					UG_LOG("\n    Shapes:\n");
+					for(size_t sh=0; sh < m_vSCVF[i].num_sh(); ++sh)
+					{
+						UG_LOG("         " <<sh << ": shape="<<m_vSCVF[i].shape(sh));
+						UG_LOG(", global_grad="<<m_vSCVF[i].global_grad(sh));
+						UG_LOG(", local_grad="<<m_vSCVF[i].local_grad(sh));
+						UG_LOG("\n");
+					}
+				}
+				UG_LOG("\n");
 			}
 
 			return true;
@@ -312,7 +368,7 @@ class HFVGeometry {
 
 				inline size_t num_sh() const {return vShape.size();}
 				inline number shape(size_t i) const {return vShape[i];}
-				inline const MathVector<world_dim>& local_grad(size_t i) const {return localGrad[i];}
+				inline const MathVector<dim>& local_grad(size_t i) const {return localGrad[i];}
 				inline const MathVector<world_dim>& global_grad(size_t i) const {return globalGrad[i];}
 
 			private:
@@ -349,7 +405,7 @@ class HFVGeometry {
 					globalPosition.resize(2*dim);
 				}
 				inline size_t node_id() const {return nodeId;}
-				inline const MathVector<world_dim>& local_ip() const {return localPosition[0];}
+				inline const MathVector<dim>& local_ip() const {return localPosition[0];}
 				inline const MathVector<world_dim>& global_ip() const {return globalPosition[0];}
 				inline number volume() const {return vol;}
 
