@@ -82,12 +82,43 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 					const TVrtContainer2& con2);
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectEdgesSorted
+///	Collects all edges that exist in the given grid are part of the given edge in the order defined by the reference elements.
+/**
+ * \ingroup lib_grid_algorithms_face_util
+ *
+ * This function simply returns the edge itself. It is added for completeness,
+ * such that the function can be used in template code.
+ */
+void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
+//	CollectEdges
+///	Collects all edges that exist in the given grid are part of the given face in the order defined by the reference elements.
+/**
+ * \ingroup lib_grid_algorithms_face_util
+ *
+ * This function returns the associated edges of a face in an std::vector. The order of the edges in the vector
+ * is equal to the numbering of edges in the reference element for the face.
+ */
+void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearContainer = true);
+
+///	Collects all edges that exist in the given grid are part of the given volume in the order defined by the reference elements
+/**
+ * \ingroup lib_grid_algorithms_volume_util
+ *
+ * This function returns the associated edges of a volume in an std::vector. The order of the edges in the vector
+ * is equal to the numbering of edges in the reference element for the volume.
+ */
+void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
 //	CollectEdges
 ///	Collects all edges that exist in the given grid are part of the given edge.
 /**
  * \ingroup lib_grid_algorithms_face_util
  *
- * This function simply returns an the edge itself. It is added for completeness,
+ * This function simply returns the edge itself. It is added for completeness,
  * such that the function can be used in template code.
  */
 void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer = true);

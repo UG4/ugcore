@@ -73,6 +73,50 @@ bool CompareVertices(const VolumeVertices* vv1,
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectEdgesSorted
+///	Collects all edges. (Returns the edge itself)
+void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	if(clearContainer)
+		vEdgesOut.clear();
+
+	vEdgesOut.push_back(e);
+}
+
+///	Collects all edges which exist in the given grid and which are part of the given face in the order defined by the reference elements.
+void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearContainer)
+{
+	if(clearContainer)
+		vEdgesOut.clear();
+
+//	second-best: use GetEdge in order to find the queried edges
+	uint numEdges = f->num_edges();
+	for(uint i = 0; i < numEdges; ++i)
+	{
+		EdgeBase* e = grid.get_edge(f, i);
+		if(e != NULL)
+			vEdgesOut.push_back(e);
+	}
+}
+
+///	Collects all edges that exist in the given grid are part of the given volume in the order defined by the reference elements.
+void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clearContainer)
+{
+	if(clearContainer)
+		vEdgesOut.clear();
+
+//	second best: use GetEdge in order to find the queried edges.
+	uint numEdges = v->num_edges();
+	for(uint i = 0; i < numEdges; ++i)
+	{
+		EdgeBase* e = grid.get_edge(v, i);
+		if(e != NULL)
+			vEdgesOut.push_back(e);
+	}
+
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CollectEdges
 ///	Collects all edges. (Returns the edge itself)
 void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)
@@ -83,8 +127,6 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool cl
 	vEdgesOut.push_back(e);
 }
 
-////////////////////////////////////////////////////////////////////////
-//	CollectEdges
 ///	Collects all edges which exist in the given grid and which are part of the given face.
 void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Face* f, bool clearContainer)
 {
