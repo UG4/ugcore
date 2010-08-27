@@ -68,7 +68,7 @@ begin(int subsetIndex, int level) const
 			"ERROR in SubsetHandler::begin(): bad subset index.");
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::begin(): bad element type.");
-	assert((level < num_levels()) && "bad level index.");
+	assert((level < (int)num_levels()) && "bad level index.");
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
@@ -90,7 +90,7 @@ end(int subsetIndex, int level) const
 			"ERROR in SubsetHandler::end(): bad subset index.");
 	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
 			"ERROR in SubsetHandler::end(): bad element type.");
-	assert((level < num_levels()) && "bad level index.");
+	assert((level < (int)num_levels()) && "bad level index.");
 
 	if(sectionInd < 0)
 		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
