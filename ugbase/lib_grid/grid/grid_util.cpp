@@ -73,6 +73,66 @@ bool CompareVertices(const VolumeVertices* vv1,
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectVertices
+///	Collects all vertices.
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, VertexBase* v, bool clearContainer)
+{
+	// clear container if wanted
+	if(clearContainer)
+		vVertexOut.clear();
+
+	// add vertex pointers to container
+		vVertexOut.push_back(v);
+}
+
+///	Collects all vertices.
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	// clear container if wanted
+	if(clearContainer)
+		vVertexOut.clear();
+
+	// resize container
+	const size_t numVertex = e->num_vertices();
+
+	// add vertex pointers to container
+	for(size_t i = 0; i < numVertex; ++i)
+		vVertexOut.push_back(e->vertex(i));
+}
+
+///	Collects all vertices.
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Face* f, bool clearContainer)
+{
+	// clear container if wanted
+	if(clearContainer)
+		vVertexOut.clear();
+
+	// resize container
+	const size_t numVertex = f->num_vertices();
+
+	// add vertex pointers to container
+	for(size_t i = 0; i < numVertex; ++i)
+		vVertexOut.push_back(f->vertex(i));
+}
+
+///	Collects all vertices.
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v, bool clearContainer)
+{
+	// clear container if wanted
+	if(clearContainer)
+		vVertexOut.clear();
+
+	// resize container
+	const size_t numVertex = v->num_vertices();
+
+	// add vertex pointers to container
+	for(size_t i = 0; i < numVertex; ++i)
+		vVertexOut.push_back(v->vertex(i));
+}
+
+
+
+////////////////////////////////////////////////////////////////////////
 //	CollectEdgesSorted
 ///	Collects all edges. (Returns the edge itself)
 void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)

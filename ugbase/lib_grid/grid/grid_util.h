@@ -82,10 +82,54 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 					const TVrtContainer2& con2);
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectVertices
+///	Collects all vertex that are part of the given vertex
+/**
+ * \ingroup lib_grid_algorithms_vertex_util
+ *
+ * This function simply returns the vertex itself. It is added for completeness,
+ * such that the function can be used in template code.
+ */
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, VertexBase* v, bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
+//	CollectVertices
+///	Collects all vertex that are part of the given edge
+/**
+ * \ingroup lib_grid_algorithms_edge_util
+ *
+ * This function returns a std::vector of pointers to all vertices,
+ * that are part of the given edge.
+ */
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, EdgeBase* e, bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
+//	CollectVertices
+///	Collects all vertex that are part of the given face
+/**
+ * \ingroup lib_grid_algorithms_face_util
+ *
+ * This function returns a std::vector of pointers to all vertices,
+ * that are part of the given face.
+ */
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Face* f, bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
+//	CollectVertices
+///	Collects all vertex that are part of the given volume
+/**
+ * \ingroup lib_grid_algorithms_volume_util
+ *
+ * This function returns a std::vector of pointers to all vertices,
+ * that are part of the given volume.
+ */
+void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v, bool clearContainer = true);
+
+////////////////////////////////////////////////////////////////////////
 //	CollectEdgesSorted
 ///	Collects all edges that exist in the given grid are part of the given edge in the order defined by the reference elements.
 /**
- * \ingroup lib_grid_algorithms_face_util
+ * \ingroup lib_grid_algorithms_edge_util
  *
  * This function simply returns the edge itself. It is added for completeness,
  * such that the function can be used in template code.
@@ -116,7 +160,7 @@ void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v
 //	CollectEdges
 ///	Collects all edges that exist in the given grid are part of the given edge.
 /**
- * \ingroup lib_grid_algorithms_face_util
+ * \ingroup lib_grid_algorithms_edge_util
  *
  * This function simply returns the edge itself. It is added for completeness,
  * such that the function can be used in template code.

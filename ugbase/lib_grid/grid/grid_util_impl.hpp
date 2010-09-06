@@ -33,10 +33,10 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 					const TVrtContainer2& con2)
 {
 	int con1Size = (int)con1.size();
-	
+
 	if(con1Size != con2.size())
 		return false;
-	
+
 	for(int i = 0; i < con1Size; ++i)
 	{
 		int j;
@@ -45,14 +45,15 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 			if(con1[i] == con2[j])
 				break;
 		}
-		
+
 	//	check whether we found a matching vertex
 		if(j == con1Size)
 			return false;
 	}
-	
+
 	return true;
 }
+
 
 }//	end of namespace libGrid
 
