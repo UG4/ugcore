@@ -23,13 +23,20 @@ class P1StorageManager
 {
 //	for DofManager
 	public:
-		P1StorageManager() : m_pSH(NULL) {}
+		P1StorageManager() : m_pSH(NULL) {m_vSubsetInfo.clear();}
 
 		/// set subset handler
 		void set_subset_handler(ISubsetHandler& sh);
 
+		/// remove subset handler
+		void clear_subset_handler();
+
 		/// clear all dofs
 		void clear();
+
+		/// destructor
+		~P1StorageManager() {clear();};
+
 
 	// TODO: Why all public ?
 	public:

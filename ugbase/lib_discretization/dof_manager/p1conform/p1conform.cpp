@@ -19,9 +19,20 @@ set_subset_handler(ISubsetHandler& sh)
 
 void
 P1StorageManager::
+clear_subset_handler()
+{
+	if(m_pSH != NULL) clear();
+	m_pSH->enable_subset_attachments(false);
+	m_pSH = NULL;
+}
+
+void
+P1StorageManager::
 clear()
 {
-	for(size_t si = 0; si <= m_vSubsetInfo.size(); ++si)
+	if(m_pSH == NULL) return;
+
+	for(size_t si = 0; si < m_vSubsetInfo.size(); ++si)
 	{
 		m_pSH->detach_from<VertexBase>(m_vSubsetInfo[si].aDoF, si);
 		m_vSubsetInfo[si].aaDoFVRT.invalidate();
@@ -33,10 +44,12 @@ void
 P1StorageManager::
 update_attachments()
 {
+	if(m_pSH == NULL) return;
+
 	size_t num_subsets =  m_pSH->num_subsets();
 
 	// Create level dof distributors
-	for(size_t si = m_vSubsetInfo.size(); si <= num_subsets; ++si)
+	for(size_t si = m_vSubsetInfo.size(); si < num_subsets; ++si)
 	{
 		m_vSubsetInfo.push_back(SubsetInfo());
 		m_pSH->attach_to<VertexBase>(m_vSubsetInfo[si].aDoF, si);

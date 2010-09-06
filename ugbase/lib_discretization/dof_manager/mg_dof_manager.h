@@ -133,6 +133,9 @@ class MGDoFManager
 
 		virtual ~MGDoFManager()
 		{
+			m_levelStorageManager.clear_subset_handler();
+			m_surfaceStorageManager.clear_subset_handler();
+
 			delete_distributions();
 		}
 
@@ -196,6 +199,7 @@ class MGDoFManager
 		inline void delete_distributions()
 		{
 			// Delete surface dof distributions
+			m_surfaceStorageManager.clear();
 			if(m_pSurfaceDoFDistribution != NULL)
 				delete m_pSurfaceDoFDistribution;
 			m_pSurfaceDoFDistribution = NULL;
@@ -206,6 +210,7 @@ class MGDoFManager
 			m_pSurfaceView = NULL;
 
 			// Delete level dof distributions
+			m_levelStorageManager.clear();
 			for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
 			{
 				delete m_vLevelDoFDistribution[l];
