@@ -149,7 +149,7 @@ void ISubsetHandler::assign_subset_handler(const ISubsetHandler& sh)
 	}
 
 //	copy subset infos
-	for(uint i = 0; i < num_subsets(); ++i)
+	for(int i = 0; i < num_subsets(); ++i)
 		set_subset_info(i, sh.subset_info(i));
 }
 
@@ -506,7 +506,7 @@ erase_subset(int subsetIndex)
 			delete m_volumeAttachmentPipes[subsetIndex];
 		}
 
-		for(uint i = subsetIndex + 1; i < num_subsets(); ++i)
+		for(int i = subsetIndex + 1; i < num_subsets(); ++i)
 		{
 		//	alter indices
 			change_subset_indices(i, i-1);
@@ -710,6 +710,27 @@ enable_subset_attachments(bool bEnable)
 			register_subset_elements_at_pipe();
 		}
 	}
+
+	if(!bEnable && subset_attachments_are_enabled())
+	{
+		if(m_pGrid)
+		{
+			//	clear attachment data
+			if(subset_attachments_are_enabled())
+			{
+				m_pGrid->detach_from_vertices(m_aDataIndex);
+				m_pGrid->detach_from_edges(m_aDataIndex);
+				m_pGrid->detach_from_faces(m_aDataIndex);
+				m_pGrid->detach_from_volumes(m_aDataIndex);
+
+				//	clear pipes
+				clear_attachment_pipes();
+			}
+
+			m_bSubsetAttachmentsEnabled = false;
+		}
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -788,7 +809,7 @@ grid_to_be_destroyed(Grid* grid)
 void ISubsetHandler::
 elements_to_be_cleared(Grid* grid)
 {
-	for(uint si = 0; si < num_subsets(); si++)
+	for(int si = 0; si < num_subsets(); si++)
 		clear_subset_lists(si);
 }
 

@@ -158,7 +158,7 @@ class attachment_traits<Volume*, ISubsetHandler>
  * virtual void assign_subset(Volume* elem, int subsetIndex)
  * </code>
  *
- * In those methods 
+ * In those methods
  * Derived classes have to store the objects that are selected for
  * a subset in a ISubsetHandler::SectionContainer. Note that multiple
  * SectionContainers per subset may be used.
@@ -167,7 +167,7 @@ class attachment_traits<Volume*, ISubsetHandler>
  * That means that you can attach data to the elements of a subset.
  * Use attach_to_vertices, attach_to_edges, ... to attach data to
  * the elements of the subset.
- * use ISubsetHandler::VertexAttachmentAccessor, ... to access the 
+ * use ISubsetHandler::VertexAttachmentAccessor, ... to access the
  * attached data.
  * Please note that you may only use a subset-attachment-accessor
  * with elements that are contained in the subset for which the
@@ -198,7 +198,7 @@ class ISubsetHandler : public GridObserver
 	/**	supportedElements define the elements on which the SubsetHandler works.
 	 *	Default is SHE_ALL (all element-types).*/
 		ISubsetHandler(Grid& grid, uint supportedElements = SHE_ALL);
-		
+
 	/**	The destructor automatically unregisters the subset-handler from the grid.
 	 *	on deregistration erase_subset_lists of the derived class will be called.*/
 		virtual ~ISubsetHandler();
@@ -209,14 +209,14 @@ class ISubsetHandler : public GridObserver
 	 *	The underlying grid of this handler will not be changed. This is particularly
 	 *	useful if you just copied a grid and if you now want to copy the subsets
 	 *	in the associated subset-handlers.
-	 *	
+	 *
 	 *	Please note, that attachments are not copied in the current version.*/
 		ISubsetHandler& operator = (const ISubsetHandler& sh);
-		
+
 	///	returns a pointer to the grid on which the subset-handler works.
 	/**	returns NULL if no grid is assigned.*/
 		Grid* get_assigned_grid() const;
-		
+
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		bool elements_are_supported(uint shElements);
@@ -233,7 +233,7 @@ class ISubsetHandler : public GridObserver
 	///	disable support for element-types.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		void disable_element_support(uint shElements);
-		
+
 	/**	new elements will be automatically assigned to this subset.
 	 * 	set this to a negative value to avoid automatic assignment (-1 by default).
 	 *	only used if subset_inheritance is disabled or if no parent is specified.*/
@@ -246,14 +246,14 @@ class ISubsetHandler : public GridObserver
 	 *	on element creation.*/
 		void enable_subset_inheritance(bool bEnable);
 		inline bool subset_inheritance_enabled()	{return m_bSubsetInheritanceEnabled;}
-		
+
 	///	if the subset with the given index does not yet exist, it will be created.
 	/**	All subsets in between num_subsets and index will be created, too.*/
 		inline void subset_info_required(int index);
 
 	///	returns the number of subset-infos
-		inline uint num_subsets() const		{return (uint)m_subsetInfos.size();}
-		
+		inline int num_subsets() const		{return (int)m_subsetInfos.size();}
+
 	////////////////////////////////
 	/** if the subset at subsetIndex does not yet exist, it will be created.*/
 		void set_subset_info(int subsetIndex, const SubsetInfo& subsetInfo);
@@ -266,7 +266,7 @@ class ISubsetHandler : public GridObserver
 
 	///	sets the default subset-info. Used when initializing new subset-infos.
 		void set_default_subset_info(const SubsetInfo& defSI);
-		
+
 	////////////////////////////////
 	//	clear methods
 		void clear();
@@ -313,7 +313,7 @@ class ISubsetHandler : public GridObserver
 	//	volume callbacks
 		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL);
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol);
-		
+
 	//	Virtual methods for derived classes
 	/**	The implementation in a derived class should store the element in a list
 	 *	and call subset_assigned with the iterators position and the subset-index.
@@ -338,7 +338,7 @@ class ISubsetHandler : public GridObserver
 	 *	The iterator can later be retrieved with get_list_iterator(...).
 	 *	The index can be retrieved with get_subset_index(...).*/
 		virtual void assign_subset(Volume* elem, int subsetIndex) = 0;
-	
+
 	///	collects all vertices that are in the given subset.
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/
@@ -358,28 +358,28 @@ class ISubsetHandler : public GridObserver
 	/**	Please note: This method should only be used, if the begin and end methods
 	 *	of derived classes are not available.*/
 		virtual size_t collect_subset_elements(std::vector<Volume*>& volsOut, int subsetIndex) const = 0;
-		
+
 	///	returns true if the subset contains vertices
 		virtual bool contains_vertices(int subsetIndex) const = 0;
 
 	///	returns true if the subset contains edges
 		virtual bool contains_edges(int subsetIndex) const = 0;
-		
+
 	///	returns true if the subset contains faces
 		virtual bool contains_faces(int subsetIndex) const = 0;
-		
+
 	///	returns true if the subset contains volumes
 		virtual bool contains_volumes(int subsetIndex) const = 0;
-		
+
 	////////////////////////////////
 	//	attachments
-	
+
 	///	enable subset-attachment support
 	/**	if subset-attachments are enabled you may attach data to the elements
 	 *	of a subset. This is useful if you want to store different data in the
 	 *	elements of different subsets.*/
 		void enable_subset_attachments(bool bEnable);
-		
+
 	///	returns true if subset-attachments are enabled.
 		inline bool subset_attachments_are_enabled()	{return m_bSubsetAttachmentsEnabled;};
 
@@ -441,13 +441,13 @@ class ISubsetHandler : public GridObserver
 	protected:
 		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
 		typedef SectionContainer::iterator iterator;
-		
-	protected:		
+
+	protected:
 	///	selects elements based on the selection in the srcHandler
 	/**	WARNING: This method calls virtual functions. Be careful when using it
 	  *	in a constructor.*/
 		void assign_subset_handler(const ISubsetHandler& sh);
-		
+
 	///	set the grid on which the subset-handler shall work.
 	/**	The subset-handler can only work on one grid at a time.
 	 *	It is cruicial that assign_grid methods of derived classes call
@@ -456,57 +456,57 @@ class ISubsetHandler : public GridObserver
 	 *	Please note: sine set_grid calls virtual methods it shouldn't
 	 *	be invoked from any constructors / destructors.*/
 		void set_grid(Grid* grid);
-		
+
 	///	sets the subset-indices of all elements of m_pGrid to -1.
 	/**	Use with care! Only indices are affected. The elements are not
 	 *	removed from any lists.
 	 *	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
 		void reset_subset_indices(uint shElements = SHE_ALL);
-		
+
 	///	creates all required infos (and pipes) up to the given index.
 		void create_required_subset_infos(int index);
-		
+
 		inline void subset_assigned(VertexBase* v, iterator iter, int subsetIndex);
 		inline void subset_assigned(EdgeBase* e, iterator iter, int subsetIndex);
 		inline void subset_assigned(Face* f, iterator iter, int subsetIndex);
 		inline void subset_assigned(Volume* v, iterator iter, int subsetIndex);
-		
+
 		inline iterator get_list_iterator(VertexBase* v)	{return m_aaIteratorVRT[v];}
 		inline iterator get_list_iterator(EdgeBase* e)		{return m_aaIteratorEDGE[e];}
 		inline iterator get_list_iterator(Face* f)			{return m_aaIteratorFACE[f];}
 		inline iterator get_list_iterator(Volume* v)		{return m_aaIteratorVOL[v];}
-		
-	/**	alters the subset index only. Suited as a helper for methods like 
+
+	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
-	 *	move the element to another subset. Use assign_subset instead for this task.*/	
+	 *	move the element to another subset. Use assign_subset instead for this task.*/
 		inline void alter_subset_index(VertexBase* v, int subsetIndex)	{m_aaSubsetIndexVRT[v] = subsetIndex;}
-	/**	alters the subset index only. Suited as a helper for methods like 
+	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
 		inline void alter_subset_index(EdgeBase* e, int subsetIndex)	{m_aaSubsetIndexEDGE[e] = subsetIndex;}
-	/**	alters the subset index only. Suited as a helper for methods like 
+	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
 		inline void alter_subset_index(Face* f, int subsetIndex)		{m_aaSubsetIndexFACE[f] = subsetIndex;}
-	/**	alters the subset index only. Suited as a helper for methods like 
+	/**	alters the subset index only. Suited as a helper for methods like
 	 *	change_subset_indices or reset_subset_indices.
 	 *	WARNING: This method only alters the index but does not actually
 	 *	move the element to another subset. Use assign_subset instead for this task.*/
 		inline void alter_subset_index(Volume* v, int subsetIndex)		{m_aaSubsetIndexVOL[v] = subsetIndex;}
-		
+
 		virtual void erase_subset_lists() = 0;
-		
+
 		virtual void clear_subset_lists(int index) = 0;
-		
+
 		virtual void change_subset_indices(int indOld, int indNew) = 0;
-		
-		
+
+
 	///	add a subset if requiered - so that the subset with maxIndex exists.
 		virtual void add_required_subset_lists(int maxIndex) = 0;
-		
+
 	///	erase the subset-lists but do not touch the subset-indices.
 		virtual void erase_subset_lists(int index) = 0;
 
@@ -516,7 +516,7 @@ class ISubsetHandler : public GridObserver
 	///	move the subset-lists but do not touch the subset-indices.
 		virtual void move_subset_lists(int indexFrom, int indexTo) = 0;
 
-	
+
 	////////////////////////////////
 	//	attachments
 		inline void set_attachment_data_index(VertexBase* v, uint index)	{m_aaDataIndVRT[v] = index;}
@@ -527,7 +527,7 @@ class ISubsetHandler : public GridObserver
 		void resize_attachment_pipes(size_t newSize);
 		void clear_attachment_pipes(int subsetIndex);
 		void clear_attachment_pipes();
-	
+
 		template <class TGeomObj>
 		inline AttachmentPipe<TGeomObj*, ISubsetHandler>&
 		get_attachment_pipe(int subsetIndex);
@@ -541,7 +541,7 @@ class ISubsetHandler : public GridObserver
 	 *	WARNING: This method is cruical for the attachment system.
 	 *	You should never call it yourself.*/
 		virtual void register_subset_elements_at_pipe() = 0;
-		
+
 	///	this method should be called during \sa register_subset_elements_at_pipe.
 	/**	WARNING: This method is cruical for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
@@ -574,7 +574,7 @@ class ISubsetHandler : public GridObserver
 		{
 			protected:
 				typedef ug::AttachmentAccessor<TGeomObj*, TAttachment, ISubsetHandler>	BaseClass;
-				
+
 			public:
 				AttachmentAccessor()	{}
 				AttachmentAccessor(const AttachmentAccessor& aa) : BaseClass(aa)	{}
@@ -599,7 +599,7 @@ class ISubsetHandler : public GridObserver
 */
 	private:
 		ISubsetHandler(const ISubsetHandler& sh)	{};
-		
+
 	protected:
 		typedef AInt					ASubsetIndex;
 		typedef Attachment<iterator>	AIterator;
@@ -624,11 +624,11 @@ class ISubsetHandler : public GridObserver
 		ASubsetIndex	m_aSubsetIndex;
 		AIterator		m_aIterator;
 		ADataIndex		m_aDataIndex;
-		
+
 		int				m_defaultSubsetIndex;
 		bool			m_bSubsetInheritanceEnabled;
 		bool			m_bSubsetAttachmentsEnabled;
-				
+
 		Grid::VertexAttachmentAccessor<ASubsetIndex>	m_aaSubsetIndexVRT;
 		Grid::EdgeAttachmentAccessor<ASubsetIndex>		m_aaSubsetIndexEDGE;
 		Grid::FaceAttachmentAccessor<ASubsetIndex>		m_aaSubsetIndexFACE;
