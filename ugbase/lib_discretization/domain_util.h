@@ -5,8 +5,14 @@
 #ifndef __H__LIBDISCRETIZATION__DOMAIN_UTIL__
 #define __H__LIBDISCRETIZATION__DOMAIN_UTIL__
 
+// extern libraries
+#include <vector>
+
+// other ug4 libraries
 #include "lib_grid/lg_base.h"
-#include "domain.h"
+
+// other lib_discretization headers
+#include "./domain.h"
 
 namespace ug{
 
@@ -42,11 +48,58 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 					int autoAssignInnerObjectsToSubset = -2,
 					int autoAssignBoundaryObjectsToSubset = -2);
 
-} // end namespace ug
+////////////////////////////////////////////////////////////////////////
+///	returns the current dimension of the subset
+/** Returns the dimension of geometric objects, that are contained in the subset
+ *
+ * This function returns the dimension of the subset. The dimension is simply defined
+ * to be the highest reference dimension of all geometric objects contained in the subset
+ *
+ * \param[in]	domain		Domain
+ * \param[in]	si			Subset Index
+ *
+ * \return		dimension	Dimension of Subset
+ * 				-1 			if no Dimension accessable
+ */
+template <typename TDomain>
+int DimensionOfSubset(const TDomain& domain, int si);
 
+
+////////////////////////////////////////////////////////////////////////
+///	returns the corner coordinates of a geometric object
+/** Returns the corner coordinated of a geometric object in a vector
+ *
+ * This function collects the corner coordinates for a given geometric object
+ * in the order prescribed by the reference elements
+ *
+ * \param[in] 	elem				Geometric Object
+ * \param[in] 	domain				Domain
+ * \param[out]	vCornerCoordsOut	vector of corner coordinates
+ */
+template <typename TElem, typename TDomain>
+void CollectCornerCoordinates(	std::vector<typename TDomain::position_type>& vCornerCoordsOut,
+								const TElem& elem, const TDomain& domain, bool clearContainer = true);
+
+
+////////////////////////////////////////////////////////////////////////
+/// writes domain to *.ugx file
+/** Writes a domain to *.ugx format
+ *
+ * This function writes a domain to a ugx-file.
+ *
+ * \param[in] 	filename		Filename
+ * \param[in]	domain			Domain that is written to file
+ * \return 		true			if successful
+ * 				false			if error occurred
+ */
+template <typename TDomain>
+bool WriteDomainToUGX(const char* filename, const TDomain& domain);
+
+} // end namespace ug
 
 ////////////////////////////////
 //	include implementation
+#include "domain_util_general_impl.h"
 #ifdef UG_PARALLEL
 	#include "domain_util_parallel_impl.hpp"
 #else

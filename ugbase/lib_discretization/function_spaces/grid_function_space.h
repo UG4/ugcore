@@ -124,6 +124,12 @@ class ApproximationSpace{
 			return gridFct;
 		}
 
+		~ApproximationSpace()
+		{
+			if(m_pMGDoFManager != NULL)
+				delete m_pMGDoFManager;
+		}
+
 	protected:
 		// name of this Approximation Space
 		std::string m_name;

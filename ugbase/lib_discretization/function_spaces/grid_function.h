@@ -345,8 +345,8 @@ class GridFunction{
 		////////// DoF Values ////////////
 
 		// get dof values
-		inline bool get_dof_values(local_vector_type& val, local_index_type& ind) const
-			{m_pVector->get(val, ind); return true;}
+		inline number get_dof_value(size_t i, size_t comp) const
+			{return BlockRef(((*m_pVector)[i]), comp);}
 
 		////////////////////////////
 		// Algebra requirements

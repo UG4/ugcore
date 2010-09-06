@@ -73,9 +73,12 @@ class Domain {
 		inline const TGrid& get_grid() const {return m_grid;};
 
 		inline TSubsetHandler& get_subset_handler() {return m_sh;};
-		inline uint get_dim() const {return d;};
+		inline const TSubsetHandler& get_subset_handler() const {return m_sh;};
+
+		inline int get_dim() const {return d;};
 
 		inline position_attachment_type& get_position_attachment() {return m_aPos;};
+		inline const position_attachment_type& get_position_attachment() const {return m_aPos;};
 
 		inline position_accessor_type& get_position_accessor() {return m_aaPos;};
 		inline const position_accessor_type& get_position_accessor() const {return m_aaPos;};
