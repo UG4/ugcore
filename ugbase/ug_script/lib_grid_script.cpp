@@ -24,14 +24,14 @@ namespace lgscript
  *
  * \defgroup ug_script ug_script
  */
- 
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 /** \defgroup ug_script_object_reation object creation
  * \ingroup ug_script
  * @{
  */
- 
+
 ////////////////////////////////////////////////////////////////////////
 //	marker points
 ///	Creates a MarkerPointManager.
@@ -70,9 +70,9 @@ void copy_grid(Grid* dest, Grid* src)
 {
 	CHECK_POINTER(dest, );
 	CHECK_POINTER(src, );
-	
+
 	*dest = *src;
-	
+
 	LOG("  grid copied\n");
 }
 
@@ -113,7 +113,7 @@ void copy_subset_handler(SubsetHandler* dest, SubsetHandler* src)
 {
 	CHECK_POINTER(dest, );
 	CHECK_POINTER(src, );
-	
+
 	*dest = *src;
 	LOG("  subset-handler copied\n");
 }
@@ -151,7 +151,7 @@ void delete_multi_grid_subset_handler(MultiGridSubsetHandler* mg_sh)
  * \ingroup ug_script
  * @{
  */
- 
+
 ///	Loads marker points from a file.
 bool load_markers(MarkerPointManager* mpm, const char* filename)
 {
@@ -253,9 +253,9 @@ bool adjust_subsets_for_ug3(Grid* pGrid, SubsetHandler* pSH)
 {
 	CHECK_POINTER(pGrid, false);
 	CHECK_POINTER(pSH, false);
-	
+
 	AdjustSubsetsForLgmNg(*pGrid, *pSH);
-	
+
 	return true;
 }
 
@@ -274,20 +274,20 @@ bool export_grid_to_ug3(Grid* pGrid, SubsetHandler* pSH,
 
 	Grid& grid = *pGrid;
 	SubsetHandler& sh = *pSH;
-	
+
 //	we have to separate volume- and face-subsets
 	SubsetHandler shFaces(grid, SHE_FACE);
 	SubsetHandler shVols(grid, SHE_VOLUME);
-	
+
 //	assign subsets
-	for(size_t i = 0; i < sh.num_subsets(); ++i){
-		
+	for(int i = 0; i < sh.num_subsets(); ++i){
+
 		for(FaceIterator iter = sh.begin<Face>(i);
 			iter != sh.end<Face>(i); ++iter)
 		{
 			shFaces.assign_subset(*iter, i);
 		}
-		
+
 		for(VolumeIterator iter = sh.begin<Volume>(i);
 			iter != sh.end<Volume>(i); ++iter)
 		{
@@ -326,13 +326,13 @@ int remove_doubles(Grid* grid, number threshold)
 	CHECK_POINTER(grid, 0);
 	LOG("  removing doubles... ");
 	size_t numVrtsAtStart = grid->num_vertices();
-	
+
 	RemoveDoubles(*grid, grid->vertices_begin(), grid->vertices_end(),
 					aPosition, threshold);
-	
+
 	int numRemoved = int(numVrtsAtStart - grid->num_vertices());
 	LOG(numRemoved << endl);
-	
+
 	return numRemoved;
 }
 
@@ -343,7 +343,7 @@ int remove_doubles(Grid* grid, number threshold)
 bool tetrahedralize(Grid* grid, SubsetHandler* sh)
 {
 	CHECK_POINTER(grid, false);
-	
+
 	LOG("  tetrahedralizing...");
 	bool bSuccess = false;
 
@@ -380,10 +380,10 @@ bool snap_markers_to_vertices(MarkerPointManager* mpm, Grid* grid,
 		return false;
 
 	Grid::VertexAttachmentAccessor<APosition> aaPos(*grid, aPosition);
-	
+
 	for(size_t i = 0; i < mpm->num_markers(); ++i)
 		SnapMarkerPointToGridVertex(mpm->get_marker(i), *grid, normalOffset, aaPos);
-	
+
 	return true;
 }
 
@@ -419,10 +419,10 @@ void mark_selected_edges(Selector* sel, SubsetHandler* shMarks)
 	LOG("  marking selected edges... ");
 	shMarks->assign_subset(sel->begin<EdgeBase>(), sel->end<EdgeBase>(),
 							RM_CREASE);
-							
+
 	MarkFixedCreaseVertices(*sel->get_assigned_grid(), *shMarks,
 							RM_CREASE, RM_FIXED);
-	
+
 	LOG("done\n");
 }
 
@@ -489,7 +489,7 @@ bool adjust_edge_length(Grid* gridOut, SubsetHandler* shOut, SubsetHandler* shMa
  * \ingroup ug_script
  * @{
  */
- 
+
 ///	Extrudes a cylinder around a given point.
 /**	The algorithm first moves the given point to the closest
  *	vertex, then adapts the grid around that vertex to the
@@ -499,7 +499,7 @@ bool extrude_cylinder(Grid* grid, SubsetHandler* sh, double x, double y, double 
 					 double height, double radius)
 {
 	CHECK_POINTER(grid, false);
-	
+
 	bool bSuccess = false;
 
 	Grid& g = *grid;
@@ -542,7 +542,7 @@ bool extrude_cylinder(Grid* grid, SubsetHandler* sh, double x, double y, double 
 	}
 	else
 		bSuccess = ExtrudeCylinder(g, vrt, n, height, radius, aaPos);
-						
+
 	return bSuccess;
 }
 
@@ -581,19 +581,19 @@ bool fracture_to_subset(Grid* pGrid, SubsetHandler* pSH,
 //	make sure that FACEOPT_AUTOGENERATE_EDGES is enabled
 	CHECK_POINTER(pGrid, false);
 	CHECK_POINTER(pSH, false);
-	
+
 	Grid& grid = *pGrid;
 	SubsetHandler& sh = *pSH;
 
 //	compare squares
 	number maxDistSq = threshold * threshold;
-	
+
 //	access the position attachment
 	if(!grid.has_vertex_attachment(aPosition))
 		return false;
-		
+
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
-	
+
 //	iterate over all faces and check whether they contain
 //	degenerated edges
 	EdgeDescriptor ed;
@@ -601,7 +601,7 @@ bool fracture_to_subset(Grid* pGrid, SubsetHandler* pSH,
 		iter != grid.end<Face>(); ++iter)
 	{
 		Face* f = *iter;
-		
+
 		for(size_t i = 0; i < f->num_edges(); ++i){
 			f->edge(i, ed);
 			if(VecDistanceSq(aaPos[ed.vertex(0)],
@@ -612,7 +612,7 @@ bool fracture_to_subset(Grid* pGrid, SubsetHandler* pSH,
 			}
 		}
 	}
-	
+
 //	done
 	return true;
 }
@@ -628,16 +628,16 @@ bool frac_extrude(Grid* pGrid, SubsetHandler* pSH, int numSecs,
 {
 	CHECK_POINTER(pGrid, false);
 	CHECK_POINTER(pSH, false);
-	
+
 	Grid& grid = *pGrid;
 	SubsetHandler& sh = *pSH;
-	
+
 	if(!grid.option_is_enabled(GRIDOPT_STANDARD_INTERCONNECTION))
 	{
 		UG_LOG("  INFO in frac_extrude: auto-enabling GRIDOPT_STANDARD_INTERCONNECTION.\n");
 		grid.enable_options(GRIDOPT_STANDARD_INTERCONNECTION);
 	}
-	
+
 //	first of all we'll enable auto-selection of the subset-handler
 	bool subsetInheritanceWasEnabled = sh.subset_inheritance_enabled();
 	sh.enable_subset_inheritance(true);
@@ -660,10 +660,10 @@ bool frac_extrude(Grid* pGrid, SubsetHandler* pSH, int numSecs,
 //	remove all edges and faces from the subset-handler that have been created by extrusion.
 	sh.assign_subset(sel.begin<EdgeBase>(), sel.end<EdgeBase>(), -1);
 	sh.assign_subset(sel.begin<Face>(), sel.end<Face>(), -1);
-	
+
 //	clean up
 	sh.enable_subset_inheritance(subsetInheritanceWasEnabled);
-	
+
 	return true;
 }
 
@@ -707,7 +707,7 @@ bool separate_regions(Grid* grid, SubsetHandler* shVolsOut,
  * \ingroup ug_script
  * @{
  */
- 
+
 
 /**@}*/ // end of selection
 
@@ -731,7 +731,7 @@ void test()
 	UG_LOG("selector\n");
 	Selector sel(grid);
 	sel.select(grid.faces_begin(), grid.faces_end());
-	
+
 //	perform extrusion
 	UG_LOG("extruding...\n");
 	vector<VertexBase*> vrts;
@@ -746,11 +746,11 @@ void test()
 	Extrude(grid, &vrts, &edges, &faces, vector3(0, 0, 1));
 */
 	UG_LOG("saving...\n");
-	
+
 //	save file
 	SaveGridToUGX(grid, sh, "/Users/sreiter/Desktop/extrudeTest.ugx");
-	
-	
+
+
 	UG_LOG("done\n");
 
 
@@ -763,37 +763,37 @@ void test()
 		UG_LOG("  file-load failed. aborting test\n");
 		return;
 	}
-	
+
 	UG_LOG("  grid loaded... attempting xml-write\n");
-	
+
 //	write a ugx file
 	GridWriterUGX ugxOut;
-	
+
 	ugxOut.add_grid(grid, "grid", aPosition);
 	ugxOut.add_subset_handler(sh, "defaultSubsetHandler", 0);
-	
+
 	ugxOut.write_to_file("first_ugx_file.ugx");
-	
+
 //	read a ugx file
 	UG_LOG("  reading and printing saved grid...\n");
 	GridReaderUGX ugxIn;
 	ugxIn.parse_file("first_ugx_file.ugx");
-	
+
 	UG_LOG("num grids: " << ugxIn.num_grids() << endl);
 	for(size_t i = 0; i < ugxIn.num_grids(); ++i){
 		UG_LOG(i << ": " << ugxIn.get_grid_name(i) << endl);
 	}
-	
+
 	if(ugxIn.num_grids() > 0){
 		Grid nGrid;
 		SubsetHandler nSH(nGrid);
-		
+
 		ugxIn.get_grid(nGrid, 0, aPosition);
 		if(ugxIn.num_subset_handlers(0) > 0){
 			ugxIn.get_subset_handler(nSH, 0, 0);
 		}
 		Grid::VertexAttachmentAccessor<APosition> aaPos(nGrid, aPosition);
-			
+
 		UG_LOG("num edges: " << nGrid.num<Edge>() << endl);
 		UG_LOG("num triangles: " << nGrid.num<Triangle>() << endl);
 		UG_LOG("num quadrilaterals: " << nGrid.num<Quadrilateral>() << endl);
@@ -823,14 +823,14 @@ bool InitLibGridScript(lua_State* L)
 {
 	using namespace lgscript;
 	using namespace luabind;
-	
+
 	module(L)[
 	//	bind classes
 		class_<Grid>("Grid"),
 		class_<MultiGrid>("MultiGrid"),
-		
+
 		class_ <Selector>("Selector"),
-		
+
 		class_<SubsetHandler>("SubsetHandler"),
 		class_<MultiGridSubsetHandler>("MultiGridSubsetHandler"),
 
@@ -857,7 +857,7 @@ bool InitLibGridScript(lua_State* L)
 		def("export_grid_to_ug3", export_grid_to_ug3),
 
 		def("save_marked_edges_to_obj", save_marked_edges_to_obj),
-		
+
 		def("remove_doubles", remove_doubles),
 		def("convert_to_triangle_grid", triangulate),
 		def("triangulate", triangulate),
@@ -866,20 +866,20 @@ bool InitLibGridScript(lua_State* L)
 
 		def("extrude_cylinder", extrude_cylinder),
 		def("extrude_cylinders", extrude_cylinders),
-		
+
 		def("fracture_to_subset", fracture_to_subset),
 		def("frac_extrude", frac_extrude),
-		
+
 		def("tetrahedralize", tetrahedralize),
 
 		def("separate_regions", separate_regions),
-		
+
 		def("new_markers", new_markers),
 		def("delete_markers", delete_markers),
 		def("load_markers", load_markers),
 		def("snap_markers_to_vertices", snap_markers_to_vertices),
 		def("mark_selected_edges", mark_selected_edges),
-		
+
 		def("test", test)
 	];
 

@@ -38,7 +38,7 @@ bool SaveMarkedEdgesToObj(Grid& grid, const char* filename,
 			Grid::VertexAttachmentAccessor<AVector3> aaPos(grid, aPos);
 			int counter = 1;
 		//	iterate through all edges (from all subsets) and assign indices and output the vertices
-			for(size_t si = 0; si < sh.num_subsets(); ++si)
+			for(int si = 0; si < sh.num_subsets(); ++si)
 			{
 				for(EdgeBaseIterator iter = sh.begin<EdgeBase>(si);
 					iter != sh.end<EdgeBase>(si); ++iter)
@@ -58,7 +58,7 @@ bool SaveMarkedEdgesToObj(Grid& grid, const char* filename,
 		}
 
 	//	write objects
-		for(size_t si = 0; si < sh.num_subsets(); ++si)
+		for(int si = 0; si < sh.num_subsets(); ++si)
 		{
 			if(sh.subset_info(si).name.size() > 0)
 				out << "o " << sh.subset_info(si).name << endl;
@@ -102,17 +102,17 @@ number TriangleValueMin(Vector& v1, Vector& v2, Vector& v3)
 	VecSubtract(e2, v3, v1);
 	VecNormalize(e1, e1);
 	VecNormalize(e2, e2);
-	
+
 	number a1 = VecDot(e1, e2);
-	
+
 	VecSubtract(e3, v3, v2);
 	VecNormalize(e3, e3);
-	
+
 	number a2 = VecDot(e3, e2);
-	
+
 	VecScale(e3, e3, -1.0f);
 	number a3 = VecDot(e3, e1);
-	
+
 	return std::min(1.0-fabs(a1), std::min(1.0-fabs(a2), 1.0-fabs(a3)));
 }
 
@@ -129,7 +129,7 @@ number CalculateAreaValue(Iterator trisBegin, Iterator trisEnd, TVertexPositionA
 
 ////////////////////////////////////////////////////////////////////////
 template<typename TVertexPositionAccessor>
-inline number CalculateAreaValue(Grid& grid, VertexBase* v, 
+inline number CalculateAreaValue(Grid& grid, VertexBase* v,
 								TVertexPositionAccessor& aaPos)
 {
 	return CalculateAreaValue(grid.associated_faces_begin(v),
