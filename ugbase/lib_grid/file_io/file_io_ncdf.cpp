@@ -20,32 +20,32 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	ofstream out(filename);
 	if(!out)
 		return false;
-	
+
 //	access subset-handler
 	if(!pSH){
 		UG_LOG("ERROR: SubsetHandler required for NCDF (Exodus) export.\n");
 		return false;
 	}
-	
+
 	SubsetHandler& sh = *pSH;
-	
+
 //	access the position attachment
 	if(!grid.has_vertex_attachment(aPos))
 		return false;
-		
+
 	if(grid.num_volumes() != grid.num<Tetrahedron>()){
 		UG_LOG("Saving grid to EXODUS-format.\n"
 				<< "  WARNING: only Tetrahedrons exported in the moment.\n");
 	}
-	
+
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPos);
-	
+
 //	assign vertex indices
 	AInt aInt;
 	grid.attach_to_vertices(aInt);
 	Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aInt);
 	AssignIndices(grid.vertices_begin(), grid.vertices_end(), aaInt, 1);
-	
+
 //	write exodus header
 	int var4 = 4;
 	out << "netcdf object {" << endl;
@@ -58,14 +58,14 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	out << "\tnum_nodes = " << grid.num_vertices() << " ;" << endl;
 	out << "\tnum_elem = " << grid.num<Tetrahedron>() << " ;" << endl;
 	out << "\tnum_el_blk = " << sh.num_subsets() << " ;" << endl;
-	
-	for(size_t i = 0; i < sh.num_subsets(); ++i){
+
+	for(int i = 0; i < sh.num_subsets(); ++i){
 		out << "\tnum_el_in_blk" << i+1 << " = " << sh.num<Tetrahedron>(i) << " ;" << endl;
 		out << "\tnum_nod_per_el" << i+1 << " = 4 ;" << endl;
 	}
-	
+
 	out << "\tnum_qa_rec = 1 ;" << endl;
-	
+
 //	write variables
 	out << endl;
 	out << "variables:" << endl;
@@ -73,42 +73,42 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	out << "\tint eb_status(num_el_blk) ;" << endl;
 	out << "\tint eb_prop1(num_el_blk) ;" << endl;
 	out << "\t\teb_prop1:name = \"ID\" ;" << endl;
-	
-	for(size_t i = 0; i < sh.num_subsets(); ++i){
+
+	for(int i = 0; i < sh.num_subsets(); ++i){
 		out << "\tint connect" << i+1
 			<< "(num_el_in_blk" << i+1
 			<< ", num_nod_per_el" << i+1 << ") ;" << endl;
 		out << "\t\tconnect" << i+1 << ":elem_type = \"TETRA4\" ;" << endl;
 	}
-	
+
 	out << "\tdouble coord(num_dim, num_nodes) ;" << endl;
 	out << "\tchar qa_records(num_qa_rec, four, len_string) ;" << endl;
 	out << "\tchar coor_names(num_dim, len_string) ;" << endl;
 	out << "\tint elem_map(num_elem) ;" << endl;
 	out << "\tint elem_num_map(num_elem) ;" << endl;
 	out << "\tint node_num_map(num_nodes) ;" << endl;
-	
+
 	out << "// global attributes:" << endl;
 	out << "\t:api_version = 4.01f ;" << endl;
 	out << "\t:version = 3.01f ;" << endl;
 	out << "\t:floating_point_word_size = " << sizeof(number) << " ;" << endl;
 	out << "\t:file_size = 0 ;" << endl;
 	out << "\t:title = \"Exported from lib_grid.\" ;" << endl;
-	
+
 //	write data
 	out << endl;
 	out << "data:" << endl;
-	
+
 	out << "eb_status = ";
-	for(size_t i = 0; i < sh.num_subsets(); ++i){
+	for(int i = 0; i < sh.num_subsets(); ++i){
 		out << "1";
 		if(i + 1 < sh.num_subsets())
 			out << ", ";
 	}
 	out << " ;" << endl << endl;
-	
+
 	out << "eb_prop1 = ";
-	for(size_t i = 0; i < sh.num_subsets(); ++i){
+	for(int i = 0; i < sh.num_subsets(); ++i){
 		out << i+1;
 		if(i + 1 < sh.num_subsets())
 			out << ", ";
@@ -116,7 +116,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 	out << " ;" << endl << endl;
 
 //	write elements
-	for(size_t i = 0; i < sh.num_subsets(); ++i){
+	for(int i = 0; i < sh.num_subsets(); ++i){
 		out << "connect" << i+1 << " =" << endl;
 		for(TetrahedronIterator iter = sh.begin<Tetrahedron>(i);
 			iter != sh.end<Tetrahedron>(i); ++iter)
@@ -124,7 +124,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		//	last comma in each row
 			if(iter != sh.begin<Tetrahedron>(i))
 				out << "," << endl;
-			
+
 			Tetrahedron* tet = *iter;
 			out << "  ";
 			out << aaInt[tet->vertex(0)] << ", ";
@@ -160,7 +160,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		}
 		out << " " << aaPos[*iter].y << ",";
 	}
-	
+
 //	z
 	for(VertexBaseIterator iter = grid.vertices_begin();
 		iter != grid.vertices_end(); ++iter, ++endlCounter)
@@ -176,21 +176,21 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		out << " " << aaPos[*iter].z;
 	}
 	out << " ;" << endl << endl;
-	
+
 //	write qa_records
 	out << "qa_records =" << endl;
 	out << "  \"lib_grid\"," << endl;
 	out << "  \"...\"," << endl;
 	out << "  \"...\"," << endl;
 	out << "  \"...\" ;" << endl;
-	
+
 //	write coor_names
 	out << endl;
 	out << "coor_names =" << endl;
 	out << "  \"x\"," << endl;
 	out << "  \"y\"," << endl;
 	out << "  \"z\" ;" << endl;
-	
+
 //	write elem_map
 	out << endl;
 	out << "elem_map = ";
@@ -200,7 +200,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		out << i+1;
 		if(i+1 < grid.num<Tetrahedron>()){
 			out << ", ";
-		
+
 			if(endlCounter > 4){
 				endlCounter = 0;
 				out << endl << "  ";
@@ -218,7 +218,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		out << i+1;
 		if(i+1 < grid.num<Tetrahedron>()){
 			out << ", ";
-		
+
 			if(endlCounter > 4){
 				endlCounter = 0;
 				out << endl << "  ";
@@ -226,7 +226,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		}
 	}
 	out << " ;" << endl;
-		
+
 //	write node_num_map
 	out << endl;
 	out << "node_num_map = ";
@@ -236,7 +236,7 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		out << i+1;
 		if(i+1 < grid.num<VertexBase>()){
 			out << ", ";
-		
+
 			if(endlCounter > 4){
 				endlCounter = 0;
 				out << endl << "  ";
@@ -244,12 +244,12 @@ bool SaveGridToNCDF(Grid& grid, const char* filename,
 		}
 	}
 	out << " ;" << endl;
-	
+
 //	close object
 	out << "}" << endl;
 //	remove vertex indices
 	grid.detach_from_vertices(aInt);
-	
+
 //	done
 	return true;
 }

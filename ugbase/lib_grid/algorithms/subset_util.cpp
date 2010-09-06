@@ -26,10 +26,10 @@ void AssignFaceInterfaceEdgesToSubsets(Grid& grid, SubsetHandler& sh)
 	vector<Face*> vFaces;
 
 //	iterate through all subsets
-	for(int j = -1; j < (int)sh.num_subsets(); ++j)
+	for(int j = -1; j < sh.num_subsets(); ++j)
 	{
 	//	find interface-edges to the other subsets.
-		for(uint i = j + 1; i < sh.num_subsets(); ++i)
+		for(int i = j + 1; i < sh.num_subsets(); ++i)
 		{
 		//	iterate through all faces of subset i and check
 		//	whether some edges are adjacent to subset j.
@@ -194,17 +194,17 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 	//	make sure that there are no empty face-subsets between filled ones.
 	//	since we may not swap subsets (otherwise the volume-sequence would be destroyed)
 	//	we have to copy the elements.
-		for(size_t i = 0; i < sh.num_subsets(); ++i){
+		for(int i = 0; i < sh.num_subsets(); ++i){
 			if(sh.num<Face>(i) == 0){
 			//	find the next that has faces
-				size_t next = sh.num_subsets();
-				for(size_t j = i+1; j < sh.num_subsets(); ++j){
+				int next = sh.num_subsets();
+				for(int j = i+1; j < sh.num_subsets(); ++j){
 					if(sh.num<Face>(j) > 0){
 						next = j;
 						break;
 					}
 				}
-				
+
 			//	if a filled one has been found, we'll copy the elements
 				if(next < sh.num_subsets()){
 				//	assign all faces in next to subset i
@@ -216,17 +216,17 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 				}
 			}
 		}
-		
+
 	//	now we have to assign the interface faces to subsets.
 		AssignVolumeInterfaceFacesToSubsets(grid, sh);
-		
+
 	//	fix orientation of all face subsets
-		for(size_t i = 0; i < sh.num_subsets(); ++i){
+		for(int i = 0; i < sh.num_subsets(); ++i){
 			if(sh.num<Face>(i) == 0){
 				FixOrientation(grid, sh.begin<Face>(i), sh.end<Face>(i));
 			}
 		}
-		
+
 	//	make sure that unconnected volume-sets are in separate subsets
 	}
 	else
@@ -286,17 +286,17 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 	//	make sure that there are no empty edge-subsets between filled ones.
 	//	since we may not swap subsets (otherwise the face-sequence would be destroyed)
 	//	we have to copy the elements.
-		for(size_t i = 0; i < sh.num_subsets(); ++i){
+		for(int i = 0; i < sh.num_subsets(); ++i){
 			if(sh.num<EdgeBase>(i) == 0){
 			//	find the next that has faces
-				size_t next = sh.num_subsets();
-				for(size_t j = i+1; j < sh.num_subsets(); ++j){
+				int next = sh.num_subsets();
+				for(int j = i+1; j < sh.num_subsets(); ++j){
 					if(sh.num<EdgeBase>(j) > 0){
 						next = j;
 						break;
 					}
 				}
-				
+
 			//	if a filled one has been found, we'll copy the elements
 				if(next < sh.num_subsets()){
 				//	assign all edges in next to subset i
@@ -685,12 +685,12 @@ static vector3 GetColorFromStandardPalette(int index)
 							};
 
 	int numCols = 13;
-	
+
 	if(index >= 0 && index < numCols)
 		return vector3(stdColors[index][0] / 255.f, stdColors[index][1] / 255.f, stdColors[index][2] / 255.f);
-		
+
 	index -= numCols;
-	
+
 	float val = 2.f* 3.14159265 * (float)index / 3.148 + (float)index / 15.f;
 	vector3 vCol(1.f + cos(val), 1.f + sin(0.6* val), 1.f - cos(0.373*val));
 //	vCol.x *= vCol.x;
@@ -702,7 +702,7 @@ static vector3 GetColorFromStandardPalette(int index)
 	vector2 vRed(1.f, 0);
 	vector2 vGreen(0.866, -0.5);
 	vector2 vBlue(-0.866, -0.5);
-	
+
 	vector3 col;
 	col.x = 0.5 * (1.f + VecDot(vCol, vRed));
 	col.y = 0.5 * (1.f + VecDot(vCol, vGreen));
@@ -716,7 +716,7 @@ static vector3 GetColorFromStandardPalette(int index)
 //	AssignSubsetColors
 void AssignSubsetColors(ISubsetHandler& sh)
 {
-	for(size_t i = 0; i < sh.num_subsets(); ++i)
+	for(int i = 0; i < sh.num_subsets(); ++i)
 	{
 		SubsetInfo& si = sh.subset_info(i);
 		vector3 col = GetColorFromStandardPalette(i);

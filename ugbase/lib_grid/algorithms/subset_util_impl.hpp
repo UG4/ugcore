@@ -36,13 +36,13 @@ void MakeSubsetsConsecutive(SubsetHandler& sh)
 //	TODO: this algo could be slightly improved regarding runtime.
 
 //	iterate through all subsets.
-	for(uint i = 0; i < sh.num_subsets(); ++i)
+	for(int i = 0; i < sh.num_subsets(); ++i)
 	{
 	//	check whether the subset is empty
 		if(sh.num_elements<TElem>(i) == 0)
 		{
 		//	it is. find the next filled one.
-			for(uint j = i + 1; j < sh.num_subsets(); ++j)
+			for(int j = i + 1; j < sh.num_subsets(); ++j)
 			{
 				if(sh.num_elements<TElem>(j) > 0)
 				{
@@ -93,7 +93,7 @@ void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 		}
 	}
 }
-									
+
 ////////////////////////////////////////////////////////////////////////
 template <class TElem, class TSubsetHandler>
 void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
@@ -101,7 +101,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 {
 	typedef typename geometry_traits<TElem>::iterator iterator;
 	std::vector<EdgeBase*> vEdges;
-	
+
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
 		for(size_t si = 0; si < sh.num_subsets(); ++si){
 			for(iterator iter = sh.template begin<TElem>(si, l);
@@ -109,7 +109,7 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 			{
 				TElem* e = *iter;
 				CollectEdges(vEdges, *sh.get_assigned_grid(), e);
-				
+
 				for(size_t i = 0; i < vEdges.size(); ++i)
 				{
 					EdgeBase* edge = vEdges[i];
@@ -127,7 +127,7 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 {
 	typedef typename geometry_traits<TElem>::iterator iterator;
 	std::vector<Face*> vFaces;
-	
+
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
 		for(size_t si = 0; si < sh.num_subsets(); ++si){
 			for(iterator iter = sh.template begin<TElem>(si, l);
@@ -135,7 +135,7 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 			{
 				TElem* e = *iter;
 				CollectFaces(vFaces, *sh.get_assigned_grid(), e);
-				
+
 				for(size_t i = 0; i < vFaces.size(); ++i)
 				{
 					Face* f = vFaces[i];

@@ -17,7 +17,7 @@ void PrintData(int* data, int size)
 {
 	for(int i = 0; i < size; ++i)
 		cout << data[i] << ", ";
-	
+
 	cout << endl;
 }
 */
@@ -34,14 +34,14 @@ void PrintData(int* data, int size)
 template <class TNodeLayout, class TIterator, class TAIntAccessor>
 static
 void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
-						int layoutIndex, 
+						int layoutIndex,
 						TIterator nodesBegin, TIterator nodesEnd,
 						TAIntAccessor& aaFirstLayout,
 						TAIntAccessor& aaFirstProcLocalInd,
 						int level = 0)
 {
-	TNodeLayout& layout = layouts[layoutIndex];	
-	
+	TNodeLayout& layout = layouts[layoutIndex];
+
 	for(TIterator iter = nodesBegin; iter != nodesEnd; ++iter)
 	{
 		typename TNodeLayout::NodeType node = *iter;
@@ -60,7 +60,7 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 		//	this helps debugging: if you assume that no interfaces will be build
 		//	during the execution of this method, you may pass a level of -1.
 			assert(level != -1 && "bad level index.");
-			
+
 		//	the node has already been added to another layout.
 		//	add it to the new layout and create interface entries
 		//	on both sides.
@@ -68,7 +68,7 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 			int localID = (int)layout.node_vec().size();
 			TNodeLayout& masterLayout = layouts[masterLayoutIndex];
 			layout.node_vec().push_back(node);
-			
+
 		//	access the interfaces
 			typename TNodeLayout::Interface& masterInterface = masterLayout.interface(layoutIndex, level);
 			typename TNodeLayout::Interface& slaveInterface = layout.interface(masterLayoutIndex, level);
@@ -137,7 +137,7 @@ void CreateDistributionLayouts(
 //	in the subsethandler.
 
 //	step 1: add the elements to the groups to which they were assigned.
-	for(uint i = 0; i < sh.num_subsets(); ++i)
+	for(int i = 0; i < sh.num_subsets(); ++i)
 	{
 	//	the level is ignored since it won't be used in this phase.
 	//	by passing -1 we can assert that no interface is accessed.
@@ -157,7 +157,7 @@ void CreateDistributionLayouts(
 
 //	step 2: add all the associated elements to the distribution groups, which
 //			have not already been assigned.
-	for(uint i = 0; i < sh.num_subsets(); ++i)
+	for(int i = 0; i < sh.num_subsets(); ++i)
 	{
 		msel.clear();
 		msel.select(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
@@ -169,7 +169,7 @@ void CreateDistributionLayouts(
 	//	the hierarchy has to be complete. make sure the whole geneology
 	//	is selected. By passing true, all associated elements of lower
 	//	dimension will be selected, too.
-	
+
 	//	if the whole genealogy shall be distributed, then select it here.
 	//	associated elements will automatically be selected.
 	//	If howerver vertical interfaces shall be created, the genealogy
@@ -232,27 +232,27 @@ void AddExistingInterfacesForRedistribution(
 //	access the associated multi-grid
 	if(!distGridMgr.get_assigned_grid())
 		return;
-		
+
 	MultiGrid& mg = *distGridMgr.get_assigned_grid();
-	
+
 //	we'll use this vector to gather existing interface-entries for a node
 	vector<pair<int, size_t> > interfaceEntries;
-	
+
 //	iterate through the processes to which interfaces have to be build.
 	for(size_t iDistLayout = 0; iDistLayout < distLayoutVec.size();
 		++iDistLayout)
 	{
 		TDistLayout& distLayout = distLayoutVec[iDistLayout];
-	
+
 	//	iterate through the nodes of the dist-layout.
 	//	depending on the status, we'll have to add a new interface entry.
 		typename TDistLayout::NodeVec& nodes = distLayout.node_vec();
-		
+
 		for(size_t iNode = 0; iNode < nodes.size(); ++iNode)
 		{
 			typename TDistLayout::NodeType& node = nodes[iNode];
 			if(distGridMgr.is_interface_element(node))
-			{				
+			{
 			//	the node lies in at least one interface to an old neighbour.
 			//	We have to add the entry to corresponding distribution-interfaces
 				byte nodeStatus = distGridMgr.get_status(node);
@@ -267,12 +267,12 @@ void AddExistingInterfacesForRedistribution(
 					UG_LOG("Only ES_MASTER and ES_SLAVE are supported during redistribution in the moment!\n");
 					throw(int(0));
 				}
-				
+
 				distGridMgr.collect_interface_entries(interfaceEntries, node);
-				
+
 				if(iType != INT_UNKNOWN){
 					for(size_t i = 0; i < interfaceEntries.size(); ++i){
-						typename TDistLayout::Interface& interface = 
+						typename TDistLayout::Interface& interface =
 											distLayout.interface(interfaceEntries[i].first,
 																 mg.get_level(node));
 						interface.push_back(DistributionInterfaceEntry(iNode, iType,
@@ -297,22 +297,22 @@ void CreateRedistributionLayouts(
 //	access the associated multi-grid
 	if(!distGridMgr.get_assigned_grid())
 		return;
-		
+
 	MultiGrid& mg = *distGridMgr.get_assigned_grid();
-	
+
 //	first we'll create normal distribution layouts
 	CreateDistributionLayouts(vertexLayoutsOut, edgeLayoutsOut,
 							  faceLayoutsOut, volumeLayoutsOut,
 							  mg, sh, distributeGenealogy, pSel);
-							  
+
 //	now we can create distribution-interfaces from existing ones
 	AddExistingInterfacesForRedistribution(distGridMgr, vertexLayoutsOut);
 	AddExistingInterfacesForRedistribution(distGridMgr, edgeLayoutsOut);
 	AddExistingInterfacesForRedistribution(distGridMgr, faceLayoutsOut);
 	AddExistingInterfacesForRedistribution(distGridMgr, volumeLayoutsOut);
-	
+
 }
-						
+
 ////////////////////////////////////////////////////////////////////////
 void SerializeGridAndDistributionLayouts(
 								std::ostream& out, MultiGrid& mg,
@@ -335,14 +335,14 @@ void SerializeGridAndDistributionLayouts(
 	MGSelector& msel = *pSel;
 
 	msel.clear();
-	
+
 //	select all elements in the layouts so that we can serialize
 //	that part of the grid.
 	SelectNodesInLayout(msel, vrtLayout);
 	SelectNodesInLayout(msel, edgeLayout);
 	SelectNodesInLayout(msel, faceLayout);
 	SelectNodesInLayout(msel, volLayout);
-	
+
 //	write the grid.
 //	during serialization the local indices are automatically generated
 //	and written to the aLocalInd... attachments.
@@ -356,7 +356,7 @@ void SerializeGridAndDistributionLayouts(
 	SerializeDistributionLayoutInterfaces(out, edgeLayout, pProcessMap);
 	SerializeDistributionLayoutInterfaces(out, faceLayout, pProcessMap);
 	SerializeDistributionLayoutInterfaces(out, volLayout, pProcessMap);
-	
+
 //	done. Please note that no attachments have been serialized in this method.
 }
 /*
@@ -368,7 +368,7 @@ FillLayoutWithNodes(TLayout& layout, Grid& grid)
 	typedef typename TLayout::NodeType TNode;
 	typedef typename geometry_traits<TGeomObj>::iterator iterator;
 	typename TLayout::NodeVec& nodes = layout.node_vec();
-	
+
 	for(iterator iter = grid.begin<TGeomObj>();
 		iter != grid.end<TGeomObj>(); ++iter)
 		nodes.push_back(*iter);
@@ -380,7 +380,7 @@ FillLayoutWithNodes(TLayout& layout, Grid& grid)
 void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 											GridLayoutMap& gridLayoutOut,
 											std::istream& in)
-{	
+{
 //	read the grid.
 //	we'll need vectors which contain the elements of the grid later on.
 //	This is handled by the deserialization routine automatically, if
@@ -389,7 +389,7 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
 	vector<Volume*>		vVols;
-	
+
 	DeserializeMultiGridElements(mgOut, in, &vVrts, &vEdges, &vFaces, &vVols);
 
 //	read the layouts
@@ -411,7 +411,7 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 													vFaces, in);
 	DeserializeDistributionLayoutInterfaces<Volume>(gridLayoutOut,
 													vVols, in);
-	
+
 //DEBUG
 /*
 	PCLLOG("deserialization done.\n");

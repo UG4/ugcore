@@ -95,7 +95,7 @@ bool LoadGridFromOBJ(Grid& grid, const char* filename, AVector3& aPos,
 													vVertices[obj.m_vEdgeList[i+1]]));
 					pSubsetHandler->assign_subset(e, objCounter);
 				}
-													
+
 			//	create triangles
 				for(int i = 0; i < (int)obj.m_vTriangleList.size()-1; i+=3)
 				{
@@ -191,7 +191,7 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 		UG_LOG("ERROR in SaveGridToOBJ: Position attachment missing.\n");
 		return false;
 	}
-		
+
 	string mtrlFullFilename;
 	string mtrlFilename;
 
@@ -265,7 +265,7 @@ bool SaveGridToOBJ(Grid& grid, const char* filename, AVector3& aPos,
 	//	if a subset handler is supplied, we'll export each subset as a separate object.
 		if(pSubsetHandler)
 		{
-			for(uint i = 0; i < pSubsetHandler->num_subsets(); ++i)
+			for(int i = 0; i < pSubsetHandler->num_subsets(); ++i)
 			{
 			//	write object
 				if(pSubsetHandler->subset_info(i).name.size() > 0)

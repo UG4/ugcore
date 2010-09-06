@@ -24,7 +24,7 @@ bool SaveGridToUGX(Grid& grid, ISubsetHandler& sh,
 		return SaveGridToUGX(grid, sh, filename, aPosition2);
 	else if(grid.has_vertex_attachment(aPosition1))
 		return SaveGridToUGX(grid, sh, filename, aPosition1);
-		
+
 	UG_LOG("ERROR in SaveGridToUGX: no standard attachment found.\n");
 	return false;
 }
@@ -44,7 +44,7 @@ bool LoadGridFromUGX(Grid& grid, ISubsetHandler& sh,
 	grid.attach_to_vertices(aPosition);
 	return LoadGridFromUGX(grid, sh, filename, aPosition);
 }
-					
+
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	GridWriterUGX
@@ -119,7 +119,7 @@ add_subset_handler(ISubsetHandler& sh, const char* name,
 	parentNode->append_node(ndSH);
 
 //	add the subsets
-	for(size_t i = 0; i < sh.num_subsets(); ++i){
+	for(int i = 0; i < sh.num_subsets(); ++i){
 		xml_node<>* ndSubset = m_doc.allocate_node(node_element, "subset");
 		add_subset_attributes(ndSubset, sh, i);
 		ndSH->append_node(ndSubset);
@@ -208,7 +208,7 @@ init_grid_attachments(Grid& grid)
 	baseInd += grid.num<ConstrainingEdge>();
 	AssignIndices(grid.begin<ConstrainedEdge>(), grid.end<ConstrainedEdge>(),
 				  aaIndEDGE, baseInd);
-	
+
 	AssignIndices(grid.begin<Face>(), grid.end<Face>(), aaIndFACE, 0);
 	AssignIndices(grid.begin<Volume>(), grid.end<Volume>(), aaIndVOL, 0);
 }
@@ -222,7 +222,7 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 	Grid::EdgeAttachmentAccessor<AInt> aaIndEDGE(grid, m_aInt);
 	Grid::FaceAttachmentAccessor<AInt> aaIndFACE(grid, m_aInt);
 	Grid::VolumeAttachmentAccessor<AInt> aaIndVOL(grid, m_aInt);
-	
+
 //	write edges
 	if(grid.num<Edge>() > 0)
 		node->append_node(create_edge_node(grid.begin<Edge>(),
@@ -334,7 +334,7 @@ create_constrained_edge_node(ConstrainedEdgeIterator edgesBegin,
 	{
 	//	write endpoint indices
 		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " ";
-		
+
 	//	write index of associated constraining element
 	//	codes:	-1: no constraining element
 	//			0: vertex. index follows
@@ -806,7 +806,7 @@ create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
 	//	read the type and index of the constraining object
 		int conObjType, conObjIndex;
 		ss >> conObjType;
-		
+
 		if(conObjType != -1)
 			ss >> conObjIndex;
 
@@ -826,7 +826,7 @@ create_constrained_edges(std::vector<EdgeBase*>& edgesOut,
 	//	create the edge
 		ConstrainedEdge* edge = *grid.create<ConstrainedEdge>(EdgeDescriptor(vrts[i1], vrts[i2]));
 		edgesOut.push_back(edge);
-		
+
 	//	add conObjType and conObjIndex to their list
 		constrainingObjsOut.push_back(std::make_pair(conObjType, conObjIndex));
 	}

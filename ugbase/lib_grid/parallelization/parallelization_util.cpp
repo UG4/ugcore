@@ -42,18 +42,18 @@ bool PartitionGrid_Bisection(SubsetHandler& partitionOut,
 		PartitionElementsByRepeatedIntersection<Face, 2>(
 											partitionOut, mg,
 											mg.num_levels() - 1,
-											numProcs, aPosition);									
+											numProcs, aPosition);
 	else if(mg.num<EdgeBase>() > 0)
 		PartitionElementsByRepeatedIntersection<EdgeBase, 1>(
 											partitionOut, mg,
 											mg.num_levels() - 1,
-											numProcs, aPosition);	
+											numProcs, aPosition);
 	else{
 		LOG("partitioning could not be performed - "
 			<< "grid neither containes edges nor faces nor volumes. aborting...\n");
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -121,10 +121,10 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 	UG_ASSERT(dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid()),
 				"Error during LoadAndDistributeGrid: DistributedGridManager has to operate "
 				"on a MultiGrid in the current implementation.");
-	
+
 	MultiGrid& mgOut = *dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid());
 	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
-	
+
 //	make sure that each grid has a position attachment - even if no data
 //	will be received.
 	if(!mgOut.has_vertex_attachment(aPosition))
@@ -149,7 +149,7 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 			MultiGrid& mg = *pmg;
 			ISubsetHandler& sh = *psh;
 
-		//	load			
+		//	load
 			LOG("  loading... ");
 			if(!LoadGridFromFile(mg, filename, sh))
 			{
@@ -157,10 +157,10 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 				return 0;
 			}
 			LOG("done\n");
-			
+
 		//	adjust the grid
 			funcAdjustGrid(mg, sh);
-			
+
 			LOG("  performing load balancing\n");
 
 		//	perform load-balancing
@@ -170,27 +170,27 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 			if(!funcPartitionGrid(shPartition, mg, sh, numProcs)){
 				UG_LOG("  grid partitioning failed. proceeding anyway...\n");
 			}
-		
+
 		//	get min and max num elements
 			int maxElems = 0;
 			int minElems = 0;
 			if(mg.num<Volume>() > 0){
 				minElems = mg.num<Volume>();
-				for(size_t i = 0; i < shPartition.num_subsets(); ++i){
+				for(int i = 0; i < shPartition.num_subsets(); ++i){
 					minElems = min(minElems, (int)shPartition.num<Volume>(i));
 					maxElems = max(maxElems, (int)shPartition.num<Volume>(i));
 				}
 			}
 			else if(mg.num<Face>() > 0){
 				minElems = mg.num<Face>();
-				for(size_t i = 0; i < shPartition.num_subsets(); ++i){
+				for(int i = 0; i < shPartition.num_subsets(); ++i){
 					minElems = min(minElems, (int)shPartition.num<Face>(i));
 					maxElems = max(maxElems, (int)shPartition.num<Face>(i));
 				}
 			}
 
             LOG("  Element Distribution - min: " << minElems << ", max: " << maxElems << endl);
-				
+
 			const char* partitionMapFileName = "partitionMap.obj";
 			LOG("saving partition map to " << partitionMapFileName << endl);
 			SaveGridToFile(mg, partitionMapFileName, shPartition);
@@ -223,7 +223,7 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 			}
 		}
 	}
-		
+
 //	tell the distGridMgr that the associated layout changed.
 	distGridMgrOut.grid_layouts_changed(true);
 

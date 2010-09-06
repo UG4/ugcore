@@ -75,13 +75,13 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 	shVolumes = shVolume;
 
 //	fix orientation of faces
-	for(size_t i = 0; i < shFaces.num_subsets(); ++i)
+	for(int i = 0; i < shFaces.num_subsets(); ++i)
 		FixOrientation(grid, shFaces.begin<Face>(i), shFaces.end<Face>(i));
 
 //	make sure that all face-subsets are in consecutive order
 	{
 		bool foundEmpty = false;
-		for(size_t i = 0; i < shFaces.num_subsets(); ++i){
+		for(int i = 0; i < shFaces.num_subsets(); ++i){
 			if(shFaces.num<Face>(i) == 0)
 				foundEmpty = true;
 			else{
@@ -97,7 +97,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 //	make sure that all volume-subsets are in consecutive order
 	{
 		bool foundEmpty = false;
-		for(size_t i = 0; i < shVolumes.num_subsets(); ++i){
+		for(int i = 0; i < shVolumes.num_subsets(); ++i){
 			if(shVolumes.num<Volume>(i) == 0)
 				foundEmpty = true;
 			else{
@@ -109,7 +109,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 			}
 		}
 	}
-	
+
 //	initialization
 	EdgeSelector	LineSel(grid);
 	VertexSelector 	NgVrtSel(grid);
@@ -146,7 +146,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 		AInt aFaceIndex;
 		grid.attach_to_faces(aFaceIndex);
 		Grid::FaceAttachmentAccessor<AInt> aaFaceIndex(grid, aFaceIndex);
-		for(uint i = 0; i < shFaces.num_subsets(); ++i)
+		for(int i = 0; i < shFaces.num_subsets(); ++i)
 		{
 			counter = 0;
 		//	assign triangle indices
@@ -351,7 +351,7 @@ static bool WriteLGM(Grid& grid,
 
 //	write the units
 	out << "#Unit-Info" << endl;
-	for(uint i = 0; i < shVolumes.num_subsets(); ++i)
+	for(int i = 0; i < shVolumes.num_subsets(); ++i)
 	{
 	//	if the name is empty then write a standard name
 	//	be cautious with the unit indices:	id = 0 is reserved for outer space ONLY by UG
@@ -379,7 +379,7 @@ static bool WriteLGM(Grid& grid,
 	{
 	//	used to find vertices that belong to the i-th subset.
 		VertexSelector tmpSurfVrtSel(grid);
-		for(uint i = 0; i < shFaces.num_subsets(); ++i)
+		for(int i = 0; i < shFaces.num_subsets(); ++i)
 		{
 			tmpSurfVrtSel.clear();
 
@@ -572,7 +572,7 @@ static bool WriteNG(Grid& grid,
 	{
 		VertexBase* v = *VIter;
 
-		for(uint i = 0; i < shFaces.num_subsets(); ++i)
+		for(int i = 0; i < shFaces.num_subsets(); ++i)
 		{
 				faceFlags[i] = false;
 		}
@@ -650,7 +650,7 @@ static bool WriteNG(Grid& grid,
 	out << endl;
 	out << "# elements" << endl;
 
-	for(uint i = 0; i < shVolumes.num_subsets(); ++i)
+	for(int i = 0; i < shVolumes.num_subsets(); ++i)
 	{
 	// 	iterate through all volumes
 		for(ConstVolumeIterator VIter = shVolumes.begin<Volume>(i);
