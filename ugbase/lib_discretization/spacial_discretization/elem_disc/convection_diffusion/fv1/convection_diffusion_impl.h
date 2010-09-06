@@ -86,7 +86,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	}
 
 	// update Geometry for this element
-	if(!get_fvgeom<TElem>().update(m_corners))
+	if(!get_fvgeom<TElem>().update(elem, m_domain.get_grid(), m_corners))
 		{UG_LOG("ConvectionDiffusionElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
 
 	return true;
@@ -107,20 +107,18 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	MathVector<dim> Dgrad;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = get_fvgeom<TElem>().scvf(i);
+		const typename FV1Geometry<TElem, dim>::SCVF& scvf = get_fvgeom<TElem>().scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			const SD_Values<TElem, TDomain::dim>& sdv = scvf.sdv();
+			m_Diff_Tensor(D, scvf.global_ip(ip), time);
+			m_Conv_Vel(v, scvf.global_ip(ip), time);
 
-			m_Diff_Tensor(D, scvf.global_ip(), time);
-			m_Conv_Vel(v, scvf.global_ip(), time);
-
-			for(size_t j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < scvf.num_sh(); ++j)
 			{
 				////////////////////////////////////
 				// diffusiv term (central discretization)
-				MatVecMult(Dgrad, D, sdv.grad_global(j));
+				MatVecMult(Dgrad, D, scvf.global_grad(j, ip));
 
 				flux = VecDot(Dgrad, scvf.normal());
 
@@ -135,7 +133,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// central part convection
 				if(m_upwind_amount != 1.0)
 				{
-					flux = (1.- m_upwind_amount) * sdv.shape(j) * VecDot(v, scvf.normal());
+					flux = (1.- m_upwind_amount) * scvf.shape(j, ip) * VecDot(v, scvf.normal());
 
 					// coupling 'from' with j  (i.e. A[from][j]) and 'to' with j (i.e. A[to][j])
 					J(_C_, scvf.from(), _C_, j) += flux;
@@ -155,17 +153,23 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 		}
 	}
-	int co;
-	number reac_val;
+
+	number ip_val, val;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
+		const typename FV1Geometry<TElem, dim>::SCV& scv = get_fvgeom<TElem>().scv(i);
 
-		co = scv.local_corner_id();
+		val = 0.0;
+		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+		{
+			m_Reaction(ip_val, scv.global_ip(ip), time);
+			// TODO: Add here scaling factor for ip point
+			val += ip_val;
+		}
+		val *= scv.volume();
 
-		m_Reaction(reac_val, scv.global_corner_pos(), time);
-
-		J(_C_, co, _C_, co) += reac_val * scv.volume();
+		const int co = scv.node_id();
+		J(_C_, co, _C_, co) += val;
 	}
 
 	return true;
@@ -179,14 +183,12 @@ bool
 ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
-	int co;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
+		const typename FV1Geometry<TElem, dim>::SCV& scv = get_fvgeom<TElem>().scv(i);
 
-		co = scv.local_corner_id();
-
-		J(_C_, co, _C_, co) += 1.0 * scv.volume();
+		const int co = scv.node_id();
+		J(_C_, co, _C_, co) += scv.volume();
 	}
 
 	return true;
@@ -210,22 +212,20 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	MathVector<dim> Dgrad_u;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scvf(); ++i)
 	{
-		const SubControlVolumeFace<TElem, TDomain::dim>& scvf = get_fvgeom<TElem>().scvf(i);
+		const typename FV1Geometry<TElem, dim>::SCVF& scvf = get_fvgeom<TElem>().scvf(i);
 
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			const SD_Values<TElem, TDomain::dim>& sdv = scvf.sdv();
-
 			VecSet(grad_u, 0.0);
 			shape_u = 0.0;
-			for(size_t j = 0; j < sdv.num_sh(); ++j)
+			for(size_t j = 0; j < scvf.num_sh(); ++j)
 			{
-				VecScaleAppend(grad_u, u(_C_,j), sdv.grad_global(j));
-				shape_u += u(_C_,j) * sdv.shape(j);
+				VecScaleAppend(grad_u, u(_C_,j), scvf.global_grad(j, ip));
+				shape_u += u(_C_,j) * scvf.shape(j, ip);
 			}
 
-			m_Diff_Tensor(D, scvf.global_ip(), time);
-			m_Conv_Vel(v, scvf.global_ip(), time);
+			m_Diff_Tensor(D, scvf.global_ip(ip), time);
+			m_Conv_Vel(v, scvf.global_ip(ip), time);
 
 			////////////////////////////////////
 			// diffusiv term (central discretization)
@@ -260,17 +260,23 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 		}
 	}
-	int co;
-	number reac_val;
+
+	number ip_val, val;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
+		const typename FV1Geometry<TElem, dim>::SCV& scv = get_fvgeom<TElem>().scv(i);
 
-		co = scv.local_corner_id();
+		val = 0.0;
+		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+		{
+			m_Reaction(ip_val, scv.global_ip(ip), time);
+			val += ip_val;
+		}
+		// TODO: Add weight for integration
+		val *= scv.volume();
 
-		m_Reaction(reac_val, scv.global_corner_pos(), time);
-
-		d(_C_, co) += reac_val * u(_C_, co) * scv.volume();
+		const int co = scv.node_id();
+		d(_C_, co) += u(_C_, co) * val;
 	}
 
 	return true;
@@ -284,12 +290,13 @@ bool
 ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
-	int co;
+	static const int dim = TDomain::dim;
+
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
+		const typename FV1Geometry<TElem, dim>::SCV& scv = get_fvgeom<TElem>().scv(i);
 
-		co = scv.local_corner_id();
+		const int co = scv.node_id();
 
 		d(_C_, co) += u(_C_, co) * scv.volume();
 	}
@@ -305,13 +312,21 @@ bool
 ConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
-	number fvalue = 0.0;
 	for(size_t i = 0; i < get_fvgeom<TElem>().num_scv(); ++i)
 	{
-		const SubControlVolume<TElem, TDomain::dim>& scv = get_fvgeom<TElem>().scv(i);
+		const typename FV1Geometry<TElem, dim>::SCV& scv = get_fvgeom<TElem>().scv(i);
 
-		m_Rhs(fvalue, scv.global_corner_pos(), time);
-		d(_C_, scv.local_corner_id()) += fvalue * scv.volume();
+		number val = 0.0;
+		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
+		{
+			number ip_val;
+			m_Rhs(ip_val, scv.global_ip(ip), time);
+			val += ip_val;
+		}
+		val *= scv.volume();
+
+		const int co = scv.node_id();
+		d(_C_, co) += val;
 	}
 
 	return true;

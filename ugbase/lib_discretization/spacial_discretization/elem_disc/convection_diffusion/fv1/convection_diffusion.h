@@ -14,7 +14,7 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
+#include "lib_discretization/spacial_discretization/disc_helper/finite_volume_geometry.h"
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 
@@ -96,9 +96,9 @@ class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 
 		// Finite Volume Element Geometry
 		template <typename TElem>
-		inline FVElementGeometry<TElem, dim>& get_fvgeom()
+		inline FV1Geometry<TElem, dim>& get_fvgeom()
 		{
-			static FVElementGeometry<TElem, dim> geo;
+			static FV1Geometry<TElem, dim> geo;
 			return geo;
 		}
 

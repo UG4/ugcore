@@ -22,5 +22,7 @@
 // coupled element discs
 #include "./coupled_elem_disc/coupled_elem_disc.h"
 
+// disc helper
+#include "./disc_helper/disc_helper.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__ */

@@ -20,63 +20,9 @@
 // library intern includes
 #include "../../reference_element/reference_element.h"
 #include "../../local_shape_function_set/local_shape_function_set_factory.h"
+#include "./finite_volume_util.h"
 
 namespace ug{
-
-//// Some Help Functions //////
-///////////////////////////////
-
-template <int ref_dim, int world_dim>
-number VolumeOfSCV(const std::vector<MathVector<world_dim> >& vPoints);
-
-template <>
-number VolumeOfSCV<1,1>(const std::vector<MathVector<1> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 2, "Must be a line.");
-
-	return fabs(vPoints[0][0] - vPoints[1][0]);
-}
-
-template <>
-number VolumeOfSCV<1,2>(const std::vector<MathVector<2> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 2, "Must be a line.");
-
-	return VecDistance(vPoints[0], vPoints[1]);
-}
-
-template <>
-number VolumeOfSCV<2,2>(const std::vector<MathVector<2> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 4, "Must be a quadrilateral.");
-
-	const number tmp = (vPoints[3][1]-vPoints[1][1])*(vPoints[2][0]-vPoints[0][0])
-				-(vPoints[3][0]-vPoints[1][0])*(vPoints[2][1]-vPoints[0][1]);
-	return 0.5 * fabs( tmp );
-}
-
-////////////////////////////////
-
-template <int ref_dim, int world_dim>
-void NormalOnSCVF(MathVector<world_dim>& outNormal, const std::vector<MathVector<world_dim> >& vPoints)
-{
-	UG_ASSERT(0, "Not implemented.");
-}
-
-template <>
-void NormalOnSCVF<2,2>(MathVector<2>& outNormal, const std::vector<MathVector<2> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 4, "Must be a quadrilateral.");
-
-	MathVector<2> diff = vPoints[1]; // center of element
-	diff -= vPoints[0]; // edge midpoint
-
-	outNormal[0] = diff[1];
-	outNormal[1] = -diff[0];
-}
-
-/////////////////////////////////////////
-/////////////////////////////////////////
 
 template <	typename TElem,
 			int TWorldDim>
@@ -140,7 +86,7 @@ class HFVGeometry {
 				const size_t right = refElem.id(1, i, 0, 1);
 				const size_t numSCVF = m_vSCVF.size();
 
-				// choose weather to insert to or one new edge
+				// choose weather to insert two or one new edge
 				switch(vEdges[i]->shared_pipe_section())
 				{
 				case SPSEDGE_CONSTRAINED_EDGE:
@@ -152,7 +98,6 @@ class HFVGeometry {
 					break;
 
 				case SPSEDGE_CONSTRAINING_EDGE:
-					UG_LOG("left = "<<left<<", right="<<right<<"\n");
 					// insert hanging node in list of nodes
 					const size_t newNodeId = m_vSCV.size();
 					m_vSCV.resize(newNodeId + 1);
@@ -170,7 +115,7 @@ class HFVGeometry {
 					m_vSCV.back().interpolNodeId[1] = right;
 
 
-					// insert to edges with nodeIds
+					// insert two edges with nodeIds
 					m_vSCVF.resize(numSCVF + 1);
 					m_vSCVF.back().nodeId[0] = left;
 					m_vSCVF.back().nodeId[1] = newNodeId;
@@ -252,35 +197,17 @@ class HFVGeometry {
 				m_vSCVF[i].globalGrad.resize(num_sh);
 				for(size_t sh = 0 ; sh < num_sh; ++sh)
 				{
-					if(!(m_vSCV[sh].isHanging))
-					{
-						if(!TrialSpace.evaluate(sh, m_vSCVF[i].localIP, (m_vSCVF[i].vShape)[sh]))
-							{UG_LOG("Cannot evaluate local shape.\n"); return false;}
-						if(!TrialSpace.evaluate_grad(sh, m_vSCVF[i].localIP, (m_vSCVF[i].localGrad)[sh]))
-							{UG_LOG("Cannot evaluate local grad.\n"); return false;}
-						MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
-					}
-					else
-					{
-						UG_LOG("\n\nSHOULD NOT HAPPEN\n\n"); return false;
-						// this is ok, since all hanging nodes come last
-/*						(m_vSCVF[i].vShape)[sh] = 0.5*((m_vSCVF[i].vShape)[m_vSCV[sh].interpolNodeId[0]]
-						                                 +(m_vSCVF[i].vShape)[m_vSCV[sh].interpolNodeId[1]]);
-						VecInterpolateLinear(	(m_vSCVF[i].localGrad)[sh],
-												(m_vSCVF[i].localGrad)[m_vSCV[sh].interpolNodeId[0]],
-												(m_vSCVF[i].localGrad)[m_vSCV[sh].interpolNodeId[1]],
-												0.5);
-						VecInterpolateLinear(	(m_vSCVF[i].globalGrad)[sh],
-												(m_vSCVF[i].globalGrad)[m_vSCV[sh].interpolNodeId[0]],
-												(m_vSCVF[i].globalGrad)[m_vSCV[sh].interpolNodeId[1]],
-												0.5);
-*/					}
+					if(!TrialSpace.evaluate(sh, m_vSCVF[i].localIP, (m_vSCVF[i].vShape)[sh]))
+						{UG_LOG("Cannot evaluate local shape.\n"); return false;}
+					if(!TrialSpace.evaluate_grad(sh, m_vSCVF[i].localIP, (m_vSCVF[i].localGrad)[sh]))
+						{UG_LOG("Cannot evaluate local grad.\n"); return false;}
+					MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
 				}
 
 			}
 
 			// debug output
-			if(1)
+			if(0)
 			{
 				if(num_scv() == (size_t)ref_elem_type::num_corners) return true;
 				UG_LOG("\nFVG hanging debug output\n");
@@ -351,7 +278,7 @@ class HFVGeometry {
 			public:
 				SCVF()
 				{
-					 int num = 2*dim;
+					int num = 2*dim;
 					if(dim == 1) num = 1;
 					localPosition.resize(num);
 					globalPosition.resize(num);
@@ -425,9 +352,6 @@ class HFVGeometry {
 
 		std::vector<SCVF> m_vSCVF;
 		std::vector<SCV> m_vSCV;
-
-		std::vector<std::vector<MathVector<world_dim> > > m_vMidPointGlobal;
-		std::vector<std::vector<MathVector<dim> > > m_vMidPointLocal;
 
 		ReferenceMapping<ref_elem_type, world_dim> m_mapping;
 };
