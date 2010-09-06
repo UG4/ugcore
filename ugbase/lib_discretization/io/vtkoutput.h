@@ -48,12 +48,15 @@ class VTKOutput{
 
 #ifdef UG_PARALLEL
 		bool write_pvtu(discrete_function_type& u, const char* filename, int si, size_t step, number time);
-		bool write_pvd(discrete_function_type& u, const char* filename);
+		bool write_time_pvd(discrete_function_type& u, const char* filename);
 #endif
+
+		bool write_pvd(discrete_function_type& u, const char* filename, size_t timestep = 0, number time = 0.0);
 
 		bool vtu_filename(char *nameOut, const char *nameIn, int rank, int si, size_t step);
 		bool pvtu_filename(char *nameOut, const char *nameIn, int si, size_t step);
 		bool pvd_filename(char *nameOut, const char *nameIn);
+		bool pvd_time_filename(char *nameOut, const char *nameIn, size_t timestep);
 		bool is_valid_filename(const char *nameIn);
 
 		template <typename TElem>

@@ -102,7 +102,7 @@ end_timeseries(const char* filename, discrete_function_type& u)
 	if(m_u != &u) return false;
 
 #ifdef UG_PARALLEL
-	if(write_pvd(u, filename) != true)
+	if(write_time_pvd(u, filename) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write pvd - file. \n");
 		return false;
@@ -128,6 +128,9 @@ print(const char* filename, discrete_function_type& u, size_t step, number time)
 			return false;
 		}
 	}
+
+	if(!write_pvd(u, filename, step, time))
+		{UG_LOG("Cannot write pvd file.\n"); return false;}
 
 	return true;
 }
@@ -863,6 +866,25 @@ pvd_filename(char *nameOut, const char *nameIn)
 
 }
 
+template <typename TDiscreteFunction>
+bool
+VTKOutput<TDiscreteFunction>::
+pvd_time_filename(char *nameOut, const char *nameIn, size_t timestep)
+{
+	char ext[NAMESIZE];
+	if(!is_valid_filename(nameIn)) return false;
+
+	strcpy(nameOut, nameIn);
+
+	// timestep index
+	sprintf(ext, "_t%04d", (int) timestep);
+	strcat(nameOut, ext);
+
+	// add file extension
+	strcat(nameOut, ".pvd");
+	return true;
+
+}
 
 #ifdef UG_PARALLEL
 template <typename TDiscreteFunction>
@@ -922,7 +944,7 @@ write_pvtu(discrete_function_type& u, const char* filename, int si, size_t step,
 template <typename TDiscreteFunction>
 bool
 VTKOutput<TDiscreteFunction>::
-write_pvd(discrete_function_type& u, const char* filename)
+write_time_pvd(discrete_function_type& u, const char* filename)
 {
 	FILE* file;
 	char sname[NAMESIZE], pname[NAMESIZE], procname[NAMESIZE];
@@ -997,6 +1019,78 @@ write_pvd(discrete_function_type& u, const char* filename)
 }
 
 #endif
+
+
+template <typename TDiscreteFunction>
+bool
+VTKOutput<TDiscreteFunction>::
+write_pvd(discrete_function_type& u, const char* filename, size_t timestep, number time)
+{
+	FILE* file;
+	char sname[NAMESIZE], pname[NAMESIZE], procname[NAMESIZE];
+
+	if (pcl::IsOutputProc()) {
+		if(pvd_time_filename(sname, filename, timestep) != true) return false;
+
+		file = fopen(sname, "w");
+		if (file == NULL)
+		{
+			UG_LOG("Cannot print to file.\n");
+			return false;
+		}
+
+		// Write to file
+		fprintf(file, "<?xml version=\"1.0\"?>\n");
+		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
+		fprintf(file, "  <Collection>\n");
+
+		// include files from all procs
+		for(int si = 0; si < u.num_subsets(); ++si)
+		{
+			pvtu_filename(pname, filename, si, timestep);
+			fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n", time, si, pname);
+		}
+
+		fprintf(file, "  </Collection>\n");
+		fprintf(file, "</VTKFile>\n");
+		fclose(file);
+	}
+
+	if (pcl::IsOutputProc()) {
+		strcpy(sname, filename);
+		strcat(sname, "_processwise");
+
+		if(!pvd_time_filename(procname, sname, timestep)) return false;
+
+		file = fopen(procname, "w");
+		if (file == NULL)
+		{
+			UG_LOG("Cannot print to file.\n");
+			return false;
+		}
+
+		// Write to file
+		fprintf(file, "<?xml version=\"1.0\"?>\n");
+		fprintf(file, "<VTKFile type=\"Collection\" version=\"0.1\">\n");
+		fprintf(file, "  <Collection>\n");
+
+		// include files from all procs
+		for (int i = 0; i < pcl::GetNumProcesses(); i++)
+		{
+			for(int si = 0; si < u.num_subsets(); ++si)
+			{
+				vtu_filename(pname, filename, i, si, timestep);
+				fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n", time, i, pname);
+			}
+		}
+
+		fprintf(file, "  </Collection>\n");
+		fprintf(file, "</VTKFile>\n");
+		fclose(file);
+	}
+
+	return true;
+}
 
 }
 
