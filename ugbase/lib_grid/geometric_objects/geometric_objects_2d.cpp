@@ -370,186 +370,7 @@ create_faces_by_edge_split(int splitEdgeIndex,
 	vNewFacesOut.push_back(new Triangle(newVertex, vrts[ind1], vrts[ind2]));
 }
 
-//	explicit instantiation
-template class CustomTriangle<Triangle, Face>;
-template class CustomTriangle<ConstrainedTriangle, ConstrainedFace>;
-template class CustomTriangle<ConstrainingTriangle, ConstrainingFace>;
 
-
-/*
-////////////////////////////////////////////////////////////////////////
-//	Triangle
-Triangle::Triangle(const TriangleDescriptor& td) : CustomFace<3, 0>()
-{
-	m_vertices[0] = td.vertex(0);
-	m_vertices[1] = td.vertex(1);
-	m_vertices[2] = td.vertex(2);
-}
-
-Triangle::Triangle(VertexBase* v1, VertexBase* v2, VertexBase* v3) : CustomFace<3, 0>()
-{
-	m_vertices[0] = v1;
-	m_vertices[1] = v2;
-	m_vertices[2] = v3;
-}
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-//	Triangle
-void Triangle::create_faces_by_edge_split(int splitEdgeIndex,
-							VertexBase* newVertex,
-							std::vector<Face*>& vNewFacesOut,
-							std::vector<VertexBase*>* pvSubstituteVertices)
-{
-	assert(((splitEdgeIndex >= 0) && (splitEdgeIndex < 3)) && "ERROR in Triangle::create_faces_by_edge_split(...): bad edge index!");
-
-//	if pvSubstituteVertices is supplied, we will use the vertices in
-//	pvSubstituteVertices instead the ones of 'this'.
-//	If not, we will redirect the pointer to a local local vector,
-//	that holds the vertices of 'this'
-	vector<VertexBase*> localVertices;
-	if(!pvSubstituteVertices)
-	{
-		pvSubstituteVertices = &localVertices;
-		localVertices.push_back(vertex(0));
-		localVertices.push_back(vertex(1));
-		localVertices.push_back(vertex(2));
-	}
-	else
-		assert(pvSubstituteVertices->size() == 3 && "ERROR in Triangle::create_faces_by_edge_split(...): wrong size of pvSubstituteVertices.");
-
-	vector<VertexBase*>& vVrts = *pvSubstituteVertices;
-
-//	we have to find the indices ind0, ind1, ind2, where
-//	ind0 is the index of the vertex on e before newVertex,
-//	ind1 is the index of the vertex on e after newVertex
-//	and ind2 is the index of the vertex not located on e.
-
-	int ind0 = splitEdgeIndex;
-	int ind1 = (ind0 + 1) % 3;
-	int ind2 = (ind1 + 1) % 3;
-
-	vNewFacesOut.push_back(new Triangle(vVrts[ind0], newVertex, vVrts[ind2]));
-	vNewFacesOut.push_back(new Triangle(newVertex, vVrts[ind1], vVrts[ind2]));
-
-//	we're done.
-}
-
-////////////////////////////////////////////////////////////////////////
-//	Triangle::refine
-bool Triangle::refine(std::vector<Face*>& vNewFacesOut,
-						std::vector<VertexBase*>& vNewEdgeVertices,
-						VertexBase* newFaceVertex,
-						std::vector<VertexBase*>* pvSubstituteVertices)
-{
-//TODO: complete triangle refine
-
-	vNewFacesOut.clear();
-
-//	handle substitute vertices.
-	vector<VertexBase*>	vTmpVrts;
-	if(!pvSubstituteVertices)
-	{
-		vTmpVrts.resize(3);
-		vTmpVrts[0] = vertex(0);
-		vTmpVrts[1] = vertex(1);
-		vTmpVrts[2] = vertex(2);
-		pvSubstituteVertices = &vTmpVrts;
-	}
-
-//	use this vertex-vector during this algorithm.
-	vector<VertexBase*>& vVrts = *pvSubstituteVertices;
-
-//	if newFaceVertex is specified, then create three sub-triangles and
-//	refine each. If not then refine the triangle depending
-	if(newFaceVertex)
-	{
-		assert(!"PROBLEM in Triangle::refine(...): refine with newFaceVertex not yet implemented.");
-		return false;
-	}
-	else
-	{
-	//	get the number of new vertices.
-		uint numNewVrts = 0;
-		for(uint i = 0; (i < 3) && (i < vNewEdgeVertices.size()); ++i)
-		{
-			if(vNewEdgeVertices[i] != NULL)
-				++numNewVrts;
-		}
-
-		switch(numNewVrts)
-		{
-			case 1:
-			{
-				assert(!"PROBLEM in Triangle::refine(...): refine with 1 new edge vertex not yet implemented.");
-				return false;
-			}
-
-			case 2:
-			{
-				assert(!"PROBLEM in Triangle::refine(...): refine with 2 new edge vertices not yet implemented.");
-				return false;
-			}
-
-			case 3:
-			{
-			//	perform regular refine.
-				vNewFacesOut.push_back(new Triangle(vVrts[0], vNewEdgeVertices[0], vNewEdgeVertices[2]));
-				vNewFacesOut.push_back(new Triangle(vVrts[1], vNewEdgeVertices[1], vNewEdgeVertices[0]));
-				vNewFacesOut.push_back(new Triangle(vVrts[2], vNewEdgeVertices[2], vNewEdgeVertices[1]));
-				vNewFacesOut.push_back(new Triangle(vNewEdgeVertices[0], vNewEdgeVertices[1], vNewEdgeVertices[2]));
-				return true;
-			}
-
-		}
-	}
-
-	return false;
-}
-
-bool Triangle::collapse_edge(std::vector<Face*>& vNewFacesOut,
-					int edgeIndex, VertexBase* newVertex,
-					std::vector<VertexBase*>* pvSubstituteVertices)
-{
-//	if an edge of the triangle is collapsed, nothing remains
-	vNewFacesOut.clear();
-	return true;
-}
-
-bool Triangle::collapse_edges(std::vector<Face*>& vNewFacesOut,
-				std::vector<VertexBase*>& vNewEdgeVertices,
-				std::vector<VertexBase*>* pvSubstituteVertices)
-{
-	if(vNewEdgeVertices.size() > num_edges())
-	{
-		assert(!"WARNING in Triangle::collapse_edges(...): bad number of newEdgeVertices.");
-		LOG("WARNING in Triangle::collapse_edges(...): bad number of newEdgeVertices.");
-		return false;
-	}
-
-//	check if there is a valid entry in vNewEdgeVertices
-	bool bGotOne = false;
-	for(uint i = 0; i < vNewEdgeVertices.size(); ++i)
-	{
-		if(vNewEdgeVertices[i] != NULL)
-		{
-			bGotOne = true;
-			break;
-		}
-	}
-
-	if(!bGotOne)
-	{
-		assert(!"WARNING in Triangle::collapse:edges(...): no new vertex was specified.");
-		LOG("WARNING in Triangle::collapse:edges(...): no new vertex was specified.");
-		return false;
-	}
-
-//	if an edge of the triangle is collapsed, nothing remains
-	vNewFacesOut.clear();
-	return true;
-}
-*/
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	QUADRILATERALS
@@ -574,23 +395,33 @@ QuadrilateralDescriptor::QuadrilateralDescriptor(VertexBase* v1, VertexBase* v2,
 
 ////////////////////////////////////////////////////////////////////////
 //	Quad
-Quadrilateral::Quadrilateral(const QuadrilateralDescriptor& qd) : CustomFace<4, 1>()
+
+template <class ConcreteQuadrilateralType, class BaseClass>
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral(const QuadrilateralDescriptor& qd)
 {
-	m_vertices[0] = qd.vertex(0);
-	m_vertices[1] = qd.vertex(1);
-	m_vertices[2] = qd.vertex(2);
-	m_vertices[3] = qd.vertex(3);
+	BaseClass::set_num_vertices(4);
+	BaseClass::m_vertices[0] = qd.vertex(0);
+	BaseClass::m_vertices[1] = qd.vertex(1);
+	BaseClass::m_vertices[2] = qd.vertex(2);
+	BaseClass::m_vertices[3] = qd.vertex(3);
 }
 
-Quadrilateral::Quadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4) : CustomFace<4, 1>()
+template <class ConcreteQuadrilateralType, class BaseClass>
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+CustomQuadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4)
 {
-	m_vertices[0] = v1;
-	m_vertices[1] = v2;
-	m_vertices[2] = v3;
-	m_vertices[3] = v4;
+	BaseClass::set_num_vertices(4);
+	BaseClass::m_vertices[0] = v1;
+	BaseClass::m_vertices[1] = v2;
+	BaseClass::m_vertices[2] = v3;
+	BaseClass::m_vertices[3] = v4;
 }
 
-void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
+template <class ConcreteQuadrilateralType, class BaseClass>
+void
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+create_faces_by_edge_split(int splitEdgeIndex,
 							VertexBase* newVertex,
 							std::vector<Face*>& vNewFacesOut,
 							VertexBase** pSubstituteVertices)
@@ -605,7 +436,7 @@ void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = m_vertices;
+		vrts = BaseClass::m_vertices;
 
 //	we have to find the indices ind0, ind1, ind2, where
 //	ind0 is the index of the vertex on e before newVertex,
@@ -628,11 +459,14 @@ void Quadrilateral::create_faces_by_edge_split(int splitEdgeIndex,
 
 ////////////////////////////////////////////////////////////////////////
 //	Quadrilateral::refine
-bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
-							VertexBase** newFaceVertexOut,
-							VertexBase** edgeVrts,
-							VertexBase* newFaceVertex,
-							VertexBase** pSubstituteVertices)
+template <class ConcreteQuadrilateralType, class BaseClass>
+bool
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+refine(std::vector<Face*>& vNewFacesOut,
+		VertexBase** newFaceVertexOut,
+		VertexBase** edgeVrts,
+		VertexBase* newFaceVertex,
+		VertexBase** pSubstituteVertices)
 {
 //TODO: complete quad refine
 	*newFaceVertexOut = NULL;
@@ -643,7 +477,7 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = m_vertices;
+		vrts = BaseClass::m_vertices;
 
 //	check which edges have to be refined and perform the required operations.
 //	get the number of new vertices.
@@ -700,10 +534,10 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 				ReorderCornersCCW(corner, vrts, 4, (iNew[0] + 3) % 4);
 				
 			//	create new faces
-				vNewFacesOut.push_back(new Quadrilateral(corner[0], corner[1],
+				vNewFacesOut.push_back(new ConcreteQuadrilateralType(corner[0], corner[1],
 													edgeVrts[iNew[0]], edgeVrts[iNew[1]]));
 
-				vNewFacesOut.push_back(new Quadrilateral(edgeVrts[iNew[1]], edgeVrts[iNew[0]],
+				vNewFacesOut.push_back(new ConcreteQuadrilateralType(edgeVrts[iNew[1]], edgeVrts[iNew[0]],
 														corner[2], corner[3]));
 			}
 			else{
@@ -746,7 +580,7 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 			ReorderCornersCCW(corner, vrts, 4, (iFree + 1) % 4);
 
 		//	create the faces
-			vNewFacesOut.push_back(new Quadrilateral(corner[0], nvrts[0], nvrts[2], corner[3]));
+			vNewFacesOut.push_back(new ConcreteQuadrilateralType(corner[0], nvrts[0], nvrts[2], corner[3]));
 			vNewFacesOut.push_back(new Triangle(corner[1], nvrts[1], nvrts[0]));
 			vNewFacesOut.push_back(new Triangle(corner[2], nvrts[2], nvrts[1]));
 			vNewFacesOut.push_back(new Triangle(nvrts[0], nvrts[1], nvrts[2]));
@@ -762,10 +596,10 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 
 			*newFaceVertexOut = newFaceVertex;
 		
-			vNewFacesOut.push_back(new Quadrilateral(vrts[0], edgeVrts[0], newFaceVertex, edgeVrts[3]));
-			vNewFacesOut.push_back(new Quadrilateral(vrts[1], edgeVrts[1], newFaceVertex, edgeVrts[0]));
-			vNewFacesOut.push_back(new Quadrilateral(vrts[2], edgeVrts[2], newFaceVertex, edgeVrts[1]));
-			vNewFacesOut.push_back(new Quadrilateral(vrts[3], edgeVrts[3], newFaceVertex, edgeVrts[2]));
+			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[0], edgeVrts[0], newFaceVertex, edgeVrts[3]));
+			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[1], edgeVrts[1], newFaceVertex, edgeVrts[0]));
+			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[2], edgeVrts[2], newFaceVertex, edgeVrts[1]));
+			vNewFacesOut.push_back(new ConcreteQuadrilateralType(vrts[3], edgeVrts[3], newFaceVertex, edgeVrts[2]));
 			return true;
 		}
 	}
@@ -773,12 +607,15 @@ bool Quadrilateral::refine(std::vector<Face*>& vNewFacesOut,
 	return false;
 }
 
-bool Quadrilateral::refine_regular(std::vector<Face*>& vNewFacesOut,
-									VertexBase** newFaceVertexOut,
-									std::vector<VertexBase*>& vNewEdgeVertices,
-									VertexBase* newFaceVertex,
-									const VertexBase& prototypeVertex,
-									VertexBase** pSubstituteVertices)
+template <class ConcreteQuadrilateralType, class BaseClass>
+bool
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+refine_regular(std::vector<Face*>& vNewFacesOut,
+				VertexBase** newFaceVertexOut,
+				std::vector<VertexBase*>& vNewEdgeVertices,
+				VertexBase* newFaceVertex,
+				const VertexBase& prototypeVertex,
+				VertexBase** pSubstituteVertices)
 {
 	assert(vNewEdgeVertices.size() == 4 && "wrong number of newEdgeVertices.");
 
@@ -795,9 +632,12 @@ bool Quadrilateral::refine_regular(std::vector<Face*>& vNewFacesOut,
 	return refine(vNewFacesOut, newFaceVertexOut, &vNewEdgeVertices.front(), *newFaceVertexOut, pSubstituteVertices);
 }
 
-bool Quadrilateral::collapse_edge(std::vector<Face*>& vNewFacesOut,
-					int edgeIndex, VertexBase* newVertex,
-					VertexBase** pSubstituteVertices)
+template <class ConcreteQuadrilateralType, class BaseClass>
+bool
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+collapse_edge(std::vector<Face*>& vNewFacesOut,
+				int edgeIndex, VertexBase* newVertex,
+				VertexBase** pSubstituteVertices)
 {
 //	if an edge of the triangle is collapsed, nothing remains
 	vNewFacesOut.clear();
@@ -807,7 +647,7 @@ bool Quadrilateral::collapse_edge(std::vector<Face*>& vNewFacesOut,
 	if(pSubstituteVertices)
 		vrts = pSubstituteVertices;
 	else
-		vrts = m_vertices;
+		vrts = BaseClass::m_vertices;
 
 //	the collapsed edge connects vertices at ind0 and ind1.
 	int ind0 = edgeIndex; //edge-index equals the index of its first vertex.
@@ -820,11 +660,14 @@ bool Quadrilateral::collapse_edge(std::vector<Face*>& vNewFacesOut,
 	return true;
 }
 
-bool Quadrilateral::collapse_edges(std::vector<Face*>& vNewFacesOut,
+template <class ConcreteQuadrilateralType, class BaseClass>
+bool
+CustomQuadrilateral<ConcreteQuadrilateralType, BaseClass>::
+collapse_edges(std::vector<Face*>& vNewFacesOut,
 				std::vector<VertexBase*>& vNewEdgeVertices,
 				VertexBase** pSubstituteVertices)
 {
-	if(vNewEdgeVertices.size() > num_edges())
+	if(vNewEdgeVertices.size() > BaseClass::num_edges())
 	{
 		assert(!"WARNING in Quadrilateral::collapse_edges(...): bad number of newEdgeVertices.");
 		LOG("WARNING in Quadrilateral::collapse_edges(...): bad number of newEdgeVertices.");
@@ -863,5 +706,14 @@ bool Quadrilateral::collapse_edges(std::vector<Face*>& vNewFacesOut,
 
 	return true;
 }
+
+//	explicit instantiation
+template class CustomTriangle<Triangle, Face>;
+template class CustomTriangle<ConstrainedTriangle, ConstrainedFace>;
+template class CustomTriangle<ConstrainingTriangle, ConstrainingFace>;
+
+template class CustomQuadrilateral<Quadrilateral, Face>;
+template class CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace>;
+template class CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>;
 
 }//	end of namespace

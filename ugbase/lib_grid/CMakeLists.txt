@@ -35,6 +35,7 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/extrusion/extrude.cpp
 					algorithms/extrusion/cylinder_extrusion.cpp
 					algorithms/refinement/hanging_node_refiner.cpp
+					algorithms/refinement/hanging_node_refiner_ir1.cpp
 					algorithms/refinement/multi_grid_refiner.cpp
 					algorithms/refinement/regular_refinement.cpp
 					algorithms/refinement/global_multi_grid_refiner.cpp

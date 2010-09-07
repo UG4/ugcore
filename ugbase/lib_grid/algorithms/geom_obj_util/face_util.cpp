@@ -14,6 +14,20 @@ namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
+int GetFaceIndex(Volume* vol, Face* f)
+{
+	size_t numFaces = vol->num_faces();
+	FaceDescriptor fd;
+	for(uint i = 0; i < numFaces; ++i)
+	{
+		vol->face(i, fd);
+		if(CompareVertices(f, &fd))
+			return (int)i;
+	}
+	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos)

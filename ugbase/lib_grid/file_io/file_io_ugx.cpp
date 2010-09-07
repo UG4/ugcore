@@ -583,8 +583,6 @@ get_subset_handler(ISubsetHandler& shOut,
 	size_t subsetInd = 0;
 	while(subsetNode)
 	{
-		UG_LOG("  reading subset " << subsetInd << " elements\n");
-
 	//	set subset info
 	//	retrieve an initial subset-info from shOut, so that initialised values are kept.
 		SubsetInfo si = shOut.subset_info(subsetInd);
@@ -754,7 +752,6 @@ create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
 						  Grid& grid, rapidxml::xml_node<>* node,
 			 			  std::vector<VertexBase*>& vrts)
 {
-	UG_LOG("creating constraining edges: ");
 //	create a buffer with which we can access the data
 	string str(node->value(), node->value_size());
 	stringstream ss(str, ios_base::in);
@@ -779,11 +776,9 @@ create_constraining_edges(std::vector<EdgeBase*>& edgesOut,
 		}
 
 	//	create the edge
-		UG_LOG(edgesOut.size() << ", ");
 		edgesOut.push_back(*grid.create<ConstrainingEdge>(EdgeDescriptor(vrts[i1], vrts[i2])));
 	}
 
-	UG_LOG("\n");
 	return true;
 }
 

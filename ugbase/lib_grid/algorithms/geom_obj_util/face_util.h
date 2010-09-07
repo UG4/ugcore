@@ -20,6 +20,15 @@ namespace ug
 
 
 ////////////////////////////////////////////////////////////////////////
+//	GetFaceIndex
+///	returns the index at which face f is found in the given object
+/**
+ * returns -1 if the face was not found.
+ */
+int GetFaceIndex(Volume* vol, Face* f);
+
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
 ///	calculates the normal of the given face
 /**

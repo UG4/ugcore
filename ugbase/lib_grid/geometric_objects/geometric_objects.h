@@ -804,7 +804,7 @@ typedef geometry_traits<ConstrainedTriangle>::iterator			ConstrainedTriangleIter
 typedef geometry_traits<ConstrainedTriangle>::const_iterator	ConstConstrainedTriangleIterator;
 
 ////////////////////////////////////////////////////////////////////////
-//	ConstrainedTriangle
+//	ConstrainingTriangle
 ///	a triangle constraining other objects.
 /**
  * \ingroup lib_grid_geometric_objects
@@ -874,37 +874,39 @@ class QuadrilateralDescriptor
 };
 
 ////////////////////////////////////////////////////////////////////////
-//	Quadrilateral
-///	a face with four points.
+//	CustomQuadrilateral
+///	Concrete types share this base-type. It is not intended for direct use.
 /**
- * \ingroup lib_grid_geometric_objects
+ * BaseClass has to be derived from Face (or simply should be Face).
+ * The ConcreteQuadrilateralType is used in methods like refine, etc. as the type
+ * of newly created objects.
  */
-class Quadrilateral : public CustomFace<4, SPSFACE_QUADRILATERAL>
+template <class ConcreteQuadrilateralType, class BaseClass>
+class CustomQuadrilateral : public BaseClass
 {
 	public:
-		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Quadrilateral*>(pObj) != NULL;}
+		CustomQuadrilateral()	{BaseClass::set_num_vertices(4);}
+		CustomQuadrilateral(const QuadrilateralDescriptor& qd);
+		CustomQuadrilateral(VertexBase* v1, VertexBase* v2,
+							VertexBase* v3, VertexBase* v4);
 
-		Quadrilateral() : CustomFace<4, SPSFACE_QUADRILATERAL>()	{}
-		Quadrilateral(const QuadrilateralDescriptor& td);
-		Quadrilateral(VertexBase* v1, VertexBase* v2, VertexBase* v3, VertexBase* v4);
-
-		virtual GeometricObject* create_empty_instance() const	{return new Quadrilateral;}
+		virtual GeometricObject* create_empty_instance() const	{return new ConcreteQuadrilateralType;}
 		virtual int reference_object_id() const {return ROID_QUADRILATERAL;}
 
-	///	Refines a Quad by inserting new vertices. \sa Face::refine.
+	///	Refines a Quadrilateral by inserting new vertices. \sa Face::refine.
 		virtual bool refine(std::vector<Face*>& vNewFacesOut,
 							VertexBase** newFaceVertexOut,
 							VertexBase** newEdgeVertices,
 							VertexBase* newFaceVertex = NULL,
 							VertexBase** pSubstituteVertices = NULL);
 
-	///	Performs regular refine on a Quad by inserting new vertices. \sa Face::refine_regular.
+	///	Performs a regular refine on the quadrilateral. \sa Face::refine_regular.
 		virtual bool refine_regular(std::vector<Face*>& vNewFacesOut,
-									VertexBase** newFaceVertexOut,
-									std::vector<VertexBase*>& vNewEdgeVertices,
-									VertexBase* newFaceVertex,
-									const VertexBase& prototypeVertex,
-									VertexBase** pSubstituteVertices = NULL);
+										VertexBase** newFaceVertexOut,
+										std::vector<VertexBase*>& vNewEdgeVertices,
+										VertexBase* newFaceVertex,
+										const VertexBase& prototypeVertex,
+										VertexBase** pSubstituteVertices = NULL);
 
 		virtual bool collapse_edge(std::vector<Face*>& vNewFacesOut,
 								int edgeIndex, VertexBase* newVertex,
@@ -919,7 +921,35 @@ class Quadrilateral : public CustomFace<4, SPSFACE_QUADRILATERAL>
 							VertexBase* newVertex,
 							std::vector<Face*>& vNewFacesOut,
 							VertexBase** pSubstituteVertices = NULL);
-//	END Depreciated
+
+		virtual int base_object_type_id() const	{return FACE;}
+};
+
+////////////////////////////////////////////////////////////////////////
+//	Quadrilateral
+///	a face with four points.
+/**
+ * \ingroup lib_grid_geometric_objects
+ */
+class Quadrilateral : public CustomQuadrilateral<Quadrilateral, Face>
+{
+	public:
+		typedef CustomQuadrilateral<Quadrilateral, Face> BaseClass;
+		
+		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<Quadrilateral*>(pObj) != NULL;}
+
+		Quadrilateral()	{}
+		Quadrilateral(const QuadrilateralDescriptor& td) : BaseClass(td)	{}
+		Quadrilateral(VertexBase* v1, VertexBase* v2,
+					  VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
+
+		virtual int shared_pipe_section() const	{return SPSFACE_QUADRILATERAL;}
+		
+	protected:
+		virtual EdgeBase* create_edge(int index)
+		{
+			return new Edge(m_vertices[index], m_vertices[(index+1) % 4]);
+		}
 };
 
 template <>
@@ -942,6 +972,107 @@ class geometry_traits<Quadrilateral>
 
 typedef geometry_traits<Quadrilateral>::iterator		QuadrilateralIterator;
 typedef geometry_traits<Quadrilateral>::const_iterator	ConstQuadrilateralIterator;
+
+
+////////////////////////////////////////////////////////////////////////
+//	ConstrainedQuadrilateral
+///	a quadrilateral constrained by another object.
+/**
+ * \ingroup lib_grid_geometric_objects
+ */
+class ConstrainedQuadrilateral : public CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace>
+{
+	typedef CustomQuadrilateral<ConstrainedQuadrilateral, ConstrainedFace> BaseClass;
+
+	public:
+		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainedQuadrilateral*>(pObj) != NULL;}
+
+		ConstrainedQuadrilateral() : BaseClass()	{}
+		ConstrainedQuadrilateral(const QuadrilateralDescriptor& qd) : BaseClass(qd)	{}
+		ConstrainedQuadrilateral(VertexBase* v1, VertexBase* v2,
+								 VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
+
+		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINED_QUADRILATERAL;}
+
+	protected:
+		virtual EdgeBase* create_edge(int index)
+			{
+				return new ConstrainedEdge(m_vertices[index], m_vertices[(index+1) % 4]);
+			}
+};
+
+template <>
+class geometry_traits<ConstrainedQuadrilateral>
+{
+	public:
+		typedef GenericGeometricObjectIterator<ConstrainedQuadrilateral*, FaceIterator>				iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainedQuadrilateral*, ConstFaceIterator>	const_iterator;
+
+		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
+		typedef Face	geometric_base_object;
+
+		enum
+		{
+			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINED_QUADRILATERAL,
+			BASE_OBJECT_TYPE_ID = FACE
+		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
+};
+
+typedef geometry_traits<ConstrainedQuadrilateral>::iterator			ConstrainedQuadrilateralIterator;
+typedef geometry_traits<ConstrainedQuadrilateral>::const_iterator	ConstConstrainedQuadrilateralIterator;
+
+
+////////////////////////////////////////////////////////////////////////
+//	ConstrainingQuadrilateral
+///	a quadrilateral constraining other objects.
+/**
+ * \ingroup lib_grid_geometric_objects
+ */
+class ConstrainingQuadrilateral : public CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace>
+{
+	typedef CustomQuadrilateral<ConstrainingQuadrilateral, ConstrainingFace> BaseClass;
+
+	public:
+		inline static bool type_match(GeometricObject* pObj)	{return dynamic_cast<ConstrainingQuadrilateral*>(pObj) != NULL;}
+
+		ConstrainingQuadrilateral() : BaseClass()	{}
+		ConstrainingQuadrilateral(const QuadrilateralDescriptor& qd) : BaseClass(qd)	{}
+		ConstrainingQuadrilateral(VertexBase* v1, VertexBase* v2,
+								  VertexBase* v3, VertexBase* v4) : BaseClass(v1, v2, v3, v4)	{}
+
+		virtual int shared_pipe_section() const	{return SPSFACE_CONSTRAINING_QUADRILATERAL;}
+
+	protected:
+		virtual EdgeBase* create_edge(int index)
+			{
+				return new Edge(m_vertices[index], m_vertices[(index+1) % 4]);
+			}
+};
+
+template <>
+class geometry_traits<ConstrainingQuadrilateral>
+{
+	public:
+		typedef GenericGeometricObjectIterator<ConstrainingQuadrilateral*, FaceIterator>			iterator;
+		typedef ConstGenericGeometricObjectIterator<ConstrainingQuadrilateral*, ConstFaceIterator>	const_iterator;
+
+		typedef QuadrilateralDescriptor Descriptor;	///< Faces can't be created directly
+		typedef Face	geometric_base_object;
+
+		enum
+		{
+			SHARED_PIPE_SECTION = SPSFACE_CONSTRAINING_QUADRILATERAL,
+			BASE_OBJECT_TYPE_ID = FACE
+		};
+		static const ReferenceObjectID REFERENCE_OBJECT_ID = ROID_QUADRILATERAL;
+};
+
+typedef geometry_traits<ConstrainingQuadrilateral>::iterator		ConstrainingQuadrilateralIterator;
+typedef geometry_traits<ConstrainingQuadrilateral>::const_iterator	ConstConstrainingQuadrilateralIterator;
+
+
+
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
