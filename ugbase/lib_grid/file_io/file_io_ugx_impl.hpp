@@ -263,6 +263,8 @@ get_grid(Grid& gridOut, size_t index,
 //	we'll record constraining objects for constrained-vertices and constrained-edges
 	std::vector<std::pair<int, int> > constrainingObjsVRT;
 	std::vector<std::pair<int, int> > constrainingObjsEDGE;
+	std::vector<std::pair<int, int> > constrainingObjsTRI;
+	std::vector<std::pair<int, int> > constrainingObjsQUAD;
 	
 //	iterate through the nodes in the grid and create the entries
 	xml_node<>* curNode = gridNode->first_node();
@@ -283,8 +285,18 @@ get_grid(Grid& gridOut, size_t index,
 												grid, curNode, vertices);
 		else if(strcmp(name, "triangles") == 0)
 			bSuccess = create_triangles(faces, grid, curNode, vertices);
+		else if(strcmp(name, "constraining_triangles") == 0)
+			bSuccess = create_constraining_triangles(faces, grid, curNode, vertices);
+		else if(strcmp(name, "constrained_triangles") == 0)
+			bSuccess = create_constrained_triangles(faces, constrainingObjsTRI,
+												grid, curNode, vertices);
 		else if(strcmp(name, "quadrilaterals") == 0)
 			bSuccess = create_quadrilaterals(faces, grid, curNode, vertices);
+		else if(strcmp(name, "constraining_quadrilaterals") == 0)
+			bSuccess = create_constraining_quadrilaterals(faces, grid, curNode, vertices);
+		else if(strcmp(name, "constrained_quadrilaterals") == 0)
+			bSuccess = create_constrained_quadrilaterals(faces, constrainingObjsQUAD,
+												grid, curNode, vertices);
 		else if(strcmp(name, "tetrahedrons") == 0)
 			bSuccess = create_tetrahedrons(volumes, grid, curNode, vertices);
 		else if(strcmp(name, "hexahedrons") == 0)
@@ -302,7 +314,7 @@ get_grid(Grid& gridOut, size_t index,
 	
 //	resolve constrained object relations
 	if(!constrainingObjsVRT.empty()){
-		UG_LOG("num-edges: " << edges.size() << std::endl);
+		//UG_LOG("num-edges: " << edges.size() << std::endl);
 	//	iterate over the pairs.
 	//	at the same time we'll iterate over the constrained vertices since
 	//	they are synchronized.
@@ -324,13 +336,37 @@ get_grid(Grid& gridOut, size_t index,
 							edge->add_constrained_object(hv);
 						}
 						else{
-							UG_LOG("WARNING: Only constraining-edges may constrain constrained-vertices. Ignoring edge " << iter->second << ".\n");
+							UG_LOG("WARNING: Type-ID / type mismatch. Ignoring edge " << iter->second << ".\n");
 						}
 					}
 					else{
 						UG_LOG("ERROR in GridReaderUGX: Bad edge index in constrained vertex: " << iter->second << "\n");
 					}
 				}break;
+				
+				case 2:	// constraining object is an face
+				{
+				//	make sure that the index is valid
+					if(iter->second >= 0 && iter->second < (int)faces.size()){
+					//	get the edge
+						ConstrainingFace* face = dynamic_cast<ConstrainingFace*>(faces[iter->second]);
+						if(face){
+							hv->set_parent(face);
+							face->add_constrained_object(hv);
+						}
+						else{
+							UG_LOG("WARNING in GridReaderUGX: Type-ID / type mismatch. Ignoring face " << iter->second << ".\n");
+						}
+					}
+					else{
+						UG_LOG("ERROR in GridReaderUGX: Bad face index in constrained vertex: " << iter->second << "\n");
+					}
+				}break;
+				
+				default:
+				{
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+				}
 			}
 		}
 	}
@@ -357,13 +393,112 @@ get_grid(Grid& gridOut, size_t index,
 							edge->add_constrained_object(ce);
 						}
 						else{
-							UG_LOG("WARNING: Only constraining-edges may constrain constrained-edges. Ignoring edge " << iter->second << ".\n");
+							UG_LOG("WARNING in GridReaderUGX: Type-ID / type mismatch. Ignoring edge " << iter->second << ".\n");
 						}
 					}
 					else{
 						UG_LOG("ERROR in GridReaderUGX: Bad edge index in constrained edge.\n");
 					}
 				}break;
+				case 2:	// constraining object is an face
+				{
+				//	make sure that the index is valid
+					if(iter->second >= 0 && iter->second < (int)faces.size()){
+					//	get the edge
+						ConstrainingFace* face = dynamic_cast<ConstrainingFace*>(faces[iter->second]);
+						if(face){
+							ce->set_constraining_object(face);
+							face->add_constrained_object(ce);
+						}
+						else{
+							UG_LOG("WARNING in GridReaderUGX: Type-ID / type mismatch. Ignoring face " << iter->second << ".\n");
+						}
+					}
+					else{
+						UG_LOG("ERROR in GridReaderUGX: Bad face index in constrained edge: " << iter->second << "\n");
+					}
+				}break;
+				
+				default:
+				{
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+				}
+			}
+		}
+	}
+
+	if(!constrainingObjsTRI.empty()){
+	//	iterate over the pairs.
+	//	at the same time we'll iterate over the constrained vertices since
+	//	they are synchronized.
+		ConstrainedTriangleIterator cfIter = grid.begin<ConstrainedTriangle>();
+		for(std::vector<std::pair<int, int> >::iterator iter = constrainingObjsTRI.begin();
+			iter != constrainingObjsTRI.end(); ++iter, ++cfIter)
+		{
+			ConstrainedFace* cdf = *cfIter;
+			
+			switch(iter->first){
+				case 2:	// constraining object is an face
+				{
+				//	make sure that the index is valid
+					if(iter->second >= 0 && iter->second < (int)faces.size()){
+					//	get the edge
+						ConstrainingFace* face = dynamic_cast<ConstrainingFace*>(faces[iter->second]);
+						if(face){
+							cdf->set_constraining_object(face);
+							face->add_constrained_object(cdf);
+						}
+						else{
+							UG_LOG("WARNING in GridReaderUGX: Type-ID / type mismatch. Ignoring face " << iter->second << ".\n");
+						}
+					}
+					else{
+						UG_LOG("ERROR in GridReaderUGX: Bad face index in constrained face: " << iter->second << "\n");
+					}
+				}break;
+				
+				default:
+				{
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+				}
+			}
+		}
+	}
+
+	if(!constrainingObjsQUAD.empty()){
+	//	iterate over the pairs.
+	//	at the same time we'll iterate over the constrained vertices since
+	//	they are synchronized.
+		ConstrainedQuadrilateralIterator cfIter = grid.begin<ConstrainedQuadrilateral>();
+		for(std::vector<std::pair<int, int> >::iterator iter = constrainingObjsQUAD.begin();
+			iter != constrainingObjsQUAD.end(); ++iter, ++cfIter)
+		{
+			ConstrainedFace* cdf = *cfIter;
+			
+			switch(iter->first){
+				case 2:	// constraining object is an face
+				{
+				//	make sure that the index is valid
+					if(iter->second >= 0 && iter->second < (int)faces.size()){
+					//	get the edge
+						ConstrainingFace* face = dynamic_cast<ConstrainingFace*>(faces[iter->second]);
+						if(face){
+							cdf->set_constraining_object(face);
+							face->add_constrained_object(cdf);
+						}
+						else{
+							UG_LOG("WARNING in GridReaderUGX: Type-ID / type mismatch. Ignoring face " << iter->second << ".\n");
+						}
+					}
+					else{
+						UG_LOG("ERROR in GridReaderUGX: Bad face index in constrained face: " << iter->second << "\n");
+					}
+				}break;
+				
+				default:
+				{
+					UG_LOG("WARNING in GridReaderUGX: unsupported type-id of constraining element\n");
+				}
 			}
 		}
 	}

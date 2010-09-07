@@ -209,7 +209,21 @@ init_grid_attachments(Grid& grid)
 	AssignIndices(grid.begin<ConstrainedEdge>(), grid.end<ConstrainedEdge>(),
 				  aaIndEDGE, baseInd);
 
-	AssignIndices(grid.begin<Face>(), grid.end<Face>(), aaIndFACE, 0);
+	baseInd = 0;
+	AssignIndices(grid.begin<Triangle>(), grid.end<Triangle>(), aaIndFACE, baseInd);
+	baseInd += grid.num<Triangle>();
+	AssignIndices(grid.begin<ConstrainingTriangle>(), grid.end<ConstrainingTriangle>(), aaIndFACE, baseInd);
+	baseInd += grid.num<ConstrainingTriangle>();
+	AssignIndices(grid.begin<ConstrainedTriangle>(), grid.end<ConstrainedTriangle>(), aaIndFACE, baseInd);
+	baseInd += grid.num<ConstrainedTriangle>();
+	
+	AssignIndices(grid.begin<Quadrilateral>(), grid.end<Quadrilateral>(), aaIndFACE, baseInd);
+	baseInd += grid.num<Quadrilateral>();
+	AssignIndices(grid.begin<ConstrainingQuadrilateral>(), grid.end<ConstrainingQuadrilateral>(), aaIndFACE, baseInd);
+	baseInd += grid.num<ConstrainingQuadrilateral>();
+	AssignIndices(grid.begin<ConstrainedQuadrilateral>(), grid.end<ConstrainedQuadrilateral>(), aaIndFACE, baseInd);
+	baseInd += grid.num<ConstrainedQuadrilateral>();
+	
 	AssignIndices(grid.begin<Volume>(), grid.end<Volume>(), aaIndVOL, 0);
 }
 
@@ -245,11 +259,38 @@ add_elements_to_node(rapidxml::xml_node<>* node,
 		node->append_node(create_triangle_node(grid.begin<Triangle>(),
 												grid.end<Triangle>(), aaIndVRT));
 
+//	write constraining triangles
+	if(grid.num<ConstrainingTriangle>() > 0)
+		node->append_node(create_constraining_triangle_node(
+												grid.begin<ConstrainingTriangle>(),
+												grid.end<ConstrainingTriangle>(),
+												aaIndVRT));
+
+//	write constrained triangles
+	if(grid.num<ConstrainedTriangle>() > 0)
+		node->append_node(create_constrained_triangle_node(
+												grid.begin<ConstrainedTriangle>(),
+												grid.end<ConstrainedTriangle>(),
+												aaIndVRT, aaIndFACE));												
 //	write quadrilaterals
 	if(grid.num<Quadrilateral>() > 0)
 		node->append_node(create_quadrilateral_node(grid.begin<Quadrilateral>(),
 													grid.end<Quadrilateral>(), aaIndVRT));
 
+//	write constraining quadrilaterals
+	if(grid.num<ConstrainingQuadrilateral>() > 0)
+		node->append_node(create_constraining_quadrilateral_node(
+												grid.begin<ConstrainingQuadrilateral>(),
+												grid.end<ConstrainingQuadrilateral>(),
+												aaIndVRT));
+
+//	write constrained quadrilaterals
+	if(grid.num<ConstrainedQuadrilateral>() > 0)
+		node->append_node(create_constrained_quadrilateral_node(
+												grid.begin<ConstrainedQuadrilateral>(),
+												grid.end<ConstrainedQuadrilateral>(),
+												aaIndVRT, aaIndFACE));
+																									
 //	write tetrahedrons
 	if(grid.num<Tetrahedron>() > 0)
 		node->append_node(create_tetrahedron_node(grid.begin<Tetrahedron>(),
@@ -391,6 +432,72 @@ create_triangle_node(TriangleIterator trisBegin,
 }
 
 rapidxml::xml_node<>* GridWriterUGX::
+create_constraining_triangle_node(ConstrainingTriangleIterator trisBegin,
+								  ConstrainingTriangleIterator trisEnd,
+								  AAVrtIndex aaIndVRT)
+{
+//	write the elements to a temporary stream
+	stringstream ss;
+	for(ConstrainingTriangleIterator iter = trisBegin; iter != trisEnd; ++iter)
+	{
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)]
+			<< " " << aaIndVRT[(*iter)->vertex(2)] << " " ;
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, "constraining_triangles", nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, "constraining_triangles");
+	}
+}
+
+rapidxml::xml_node<>* GridWriterUGX::
+create_constrained_triangle_node(ConstrainedTriangleIterator trisBegin,
+								 ConstrainedTriangleIterator trisEnd,
+								 AAVrtIndex aaIndVRT,
+								 AAFaceIndex aaIndFACE)
+{
+//	write the elements to a temporary stream
+	stringstream ss;
+	for(ConstrainedTriangleIterator iter = trisBegin; iter != trisEnd; ++iter)
+	{
+	//	write endpoint indices
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)]
+			<< " " << aaIndVRT[(*iter)->vertex(2)] << " " ;
+	//	write index of associated constraining element
+	//	codes:	-1: no constraining element
+	//			0: vertex. index follows
+	//			1: edge. index follows
+	//			2: face. index follows
+	//			3: volume. index follows
+		Face* cf = dynamic_cast<Face*>((*iter)->get_constraining_object());
+		if(cf)
+			ss << "2 " << aaIndFACE[cf] << " ";
+		else
+			ss << "-1 ";
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, "constrained_triangles", nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, "constrained_triangles");
+	}
+}
+
+
+rapidxml::xml_node<>* GridWriterUGX::
 create_quadrilateral_node(QuadrilateralIterator quadsBegin,
 						  QuadrilateralIterator quadsEnd,
 						  AAVrtIndex aaIndVRT)
@@ -413,6 +520,70 @@ create_quadrilateral_node(QuadrilateralIterator quadsBegin,
 	else{
 	//	return an emtpy node
 		return m_doc.allocate_node(node_element, "quadrilaterals");
+	}
+}
+
+rapidxml::xml_node<>* GridWriterUGX::
+create_constraining_quadrilateral_node(ConstrainingQuadrilateralIterator quadsBegin,
+									   ConstrainingQuadrilateralIterator quadsEnd,
+									   AAVrtIndex aaIndVRT)
+{
+//	write the elements to a temporary stream
+	stringstream ss;
+	for(ConstrainingQuadrilateralIterator iter = quadsBegin; iter != quadsEnd; ++iter)
+	{
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
+			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " " ;
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, "constraining_quadrilaterals", nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, "constraining_quadrilaterals");
+	}
+}
+
+rapidxml::xml_node<>* GridWriterUGX::
+create_constrained_quadrilateral_node(ConstrainedQuadrilateralIterator quadsBegin,
+									  ConstrainedQuadrilateralIterator quadsEnd,
+									  AAVrtIndex aaIndVRT,
+									  AAFaceIndex aaIndFACE)
+{
+//	write the elements to a temporary stream
+	stringstream ss;
+	for(ConstrainedQuadrilateralIterator iter = quadsBegin; iter != quadsEnd; ++iter)
+	{
+		ss << aaIndVRT[(*iter)->vertex(0)] << " " << aaIndVRT[(*iter)->vertex(1)] << " "
+			<< aaIndVRT[(*iter)->vertex(2)] << " " << aaIndVRT[(*iter)->vertex(3)] << " " ;
+	//	write index of associated constraining element
+	//	codes:	-1: no constraining element
+	//			0: vertex. index follows
+	//			1: edge. index follows
+	//			2: face. index follows
+	//			3: volume. index follows
+		Face* cf = dynamic_cast<Face*>((*iter)->get_constraining_object());
+		if(cf)
+			ss << "2 " << aaIndFACE[cf] << " ";
+		else
+			ss << "-1 ";
+	}
+
+	if(ss.str().size() > 0){
+	//	allocate a string and erase last character(' ')
+		char* nodeData = m_doc.allocate_string(ss.str().c_str(), ss.str().size());
+		nodeData[ss.str().size()-1] = 0;
+	//	create and return the node
+		return m_doc.allocate_node(node_element, "constrained_quadrilaterals", nodeData);
+	}
+	else{
+	//	return an emtpy node
+		return m_doc.allocate_node(node_element, "constrained_quadrilaterals");
 	}
 }
 
@@ -867,6 +1038,91 @@ create_triangles(std::vector<Face*>& facesOut,
 }
 
 bool GridReaderUGX::
+create_constraining_triangles(std::vector<Face*>& facesOut,
+					  Grid& grid, rapidxml::xml_node<>* node,
+					  std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+
+//	read the triangles
+	int i1, i2, i3;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3;
+
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_constraining_triangles: invalid vertex index.\n");
+			return false;
+		}
+
+	//	create the triangle
+		facesOut.push_back(
+			*grid.create<ConstrainingTriangle>(TriangleDescriptor(vrts[i1], vrts[i2], vrts[i3])));
+	}
+
+	return true;
+}
+
+bool GridReaderUGX::
+create_constrained_triangles(std::vector<Face*>& facesOut,
+					  std::vector<std::pair<int, int> >& constrainingObjsOut,
+					  Grid& grid, rapidxml::xml_node<>* node,
+					  std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+
+//	read the triangles
+	int i1, i2, i3;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3;
+
+	//	read the type and index of the constraining object
+		int conObjType, conObjIndex;
+		ss >> conObjType;
+
+		if(conObjType != -1)
+			ss >> conObjIndex;
+			
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_constraining_triangles: invalid vertex index.\n");
+			return false;
+		}
+
+	//	create the triangle
+		facesOut.push_back(
+			*grid.create<ConstrainedTriangle>(TriangleDescriptor(vrts[i1], vrts[i2], vrts[i3])));
+			
+	//	add conObjType and conObjIndex to their list
+		constrainingObjsOut.push_back(std::make_pair(conObjType, conObjIndex));
+	}
+
+	return true;
+}
+
+bool GridReaderUGX::
 create_quadrilaterals(std::vector<Face*>& facesOut,
 					   Grid& grid, rapidxml::xml_node<>* node,
 					   std::vector<VertexBase*>& vrts)
@@ -905,6 +1161,98 @@ create_quadrilaterals(std::vector<Face*>& facesOut,
 	return true;
 }
 
+bool GridReaderUGX::
+create_constraining_quadrilaterals(std::vector<Face*>& facesOut,
+					  Grid& grid, rapidxml::xml_node<>* node,
+					  std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+
+//	read the quadrilaterals
+	int i1, i2, i3, i4;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3 >> i4;
+
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd ||
+		   i4 < 0 || i4 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_quadrilaterals: invalid vertex index.\n");
+			return false;
+		}
+
+	//	create the quad
+		facesOut.push_back(
+			*grid.create<ConstrainingQuadrilateral>(QuadrilateralDescriptor(
+															vrts[i1], vrts[i2],
+															vrts[i3], vrts[i4])));
+	}
+
+	return true;
+}
+
+bool GridReaderUGX::
+create_constrained_quadrilaterals(std::vector<Face*>& facesOut,
+					  std::vector<std::pair<int, int> >& constrainingObjsOut,
+					  Grid& grid, rapidxml::xml_node<>* node,
+					  std::vector<VertexBase*>& vrts)
+{
+//	create a buffer with which we can access the data
+	string str(node->value(), node->value_size());
+	stringstream ss(str, ios_base::in);
+
+//	read the quadrilaterals
+	int i1, i2, i3, i4;
+	while(!ss.eof()){
+	//	read the indices
+		ss >> i1 >> i2 >> i3 >> i4;
+
+	//	read the type and index of the constraining object
+		int conObjType, conObjIndex;
+		ss >> conObjType;
+
+		if(conObjType != -1)
+			ss >> conObjIndex;
+			
+	//	make sure that everything went right
+		if(ss.fail())
+			break;
+
+	//	make sure that the indices are valid
+		int maxInd = (int)vrts.size() - 1;
+		if(i1 < 0 || i1 > maxInd ||
+		   i2 < 0 || i2 > maxInd ||
+		   i3 < 0 || i3 > maxInd ||
+		   i4 < 0 || i4 > maxInd)
+		{
+			UG_LOG("  ERROR in GridReaderUGX::create_quadrilaterals: invalid vertex index.\n");
+			return false;
+		}
+
+	//	create the quad
+		facesOut.push_back(
+			*grid.create<ConstrainedQuadrilateral>(QuadrilateralDescriptor(
+															vrts[i1], vrts[i2],
+															vrts[i3], vrts[i4])));
+	
+	//	add conObjType and conObjIndex to their list
+		constrainingObjsOut.push_back(std::make_pair(conObjType, conObjIndex));
+	}
+
+	return true;
+}
+
+					  
 bool GridReaderUGX::
 create_tetrahedrons(std::vector<Volume*>& volsOut,
 					 Grid& grid, rapidxml::xml_node<>* node,

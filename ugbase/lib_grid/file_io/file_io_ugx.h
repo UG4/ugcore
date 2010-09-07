@@ -146,10 +146,31 @@ class GridWriterUGX
 							 AAVrtIndex aaIndVRT);
 
 		rapidxml::xml_node<>*
+		create_constraining_triangle_node(ConstrainingTriangleIterator trisBegin,
+										  ConstrainingTriangleIterator trisEnd,
+										  AAVrtIndex aaIndVRT);
+
+		rapidxml::xml_node<>*
+		create_constrained_triangle_node(ConstrainedTriangleIterator trisBegin,
+							 			 ConstrainedTriangleIterator trisEnd,
+										 AAVrtIndex aaIndVRT,
+									 	 AAFaceIndex aaIndFACE);
+							 
+		rapidxml::xml_node<>*
 		create_quadrilateral_node(QuadrilateralIterator quadsBegin,
 								  QuadrilateralIterator quadsEnd,
 								  AAVrtIndex aaIndVRT);
 
+		rapidxml::xml_node<>*
+		create_constraining_quadrilateral_node(ConstrainingQuadrilateralIterator quadsBegin,
+											   ConstrainingQuadrilateralIterator quadsEnd,
+								  			   AAVrtIndex aaIndVRT);
+
+		rapidxml::xml_node<>*
+		create_constrained_quadrilateral_node(ConstrainedQuadrilateralIterator quadsBegin,
+											  ConstrainedQuadrilateralIterator quadsEnd,
+											  AAVrtIndex aaIndVRT,
+											  AAFaceIndex aaIndFACE);
 	//	VOLUMES
 		rapidxml::xml_node<>*
 		create_tetrahedron_node(TetrahedronIterator tetsBegin,
@@ -301,10 +322,28 @@ class GridReaderUGX
 							  Grid& grid, rapidxml::xml_node<>* node,
 							  std::vector<VertexBase*>& vrts);
 
+		bool create_constraining_triangles(std::vector<Face*>& facesOut,
+							  Grid& grid, rapidxml::xml_node<>* node,
+							  std::vector<VertexBase*>& vrts);
+
+		bool create_constrained_triangles(std::vector<Face*>& facesOut,
+							  std::vector<std::pair<int, int> >& constrainingObjsOut,
+							  Grid& grid, rapidxml::xml_node<>* node,
+							  std::vector<VertexBase*>& vrts);
+							  
 		bool create_quadrilaterals(std::vector<Face*>& facesOut,
 								   Grid& grid, rapidxml::xml_node<>* node,
 								   std::vector<VertexBase*>& vrts);
 
+		bool create_constraining_quadrilaterals(std::vector<Face*>& facesOut,
+							  Grid& grid, rapidxml::xml_node<>* node,
+							  std::vector<VertexBase*>& vrts);
+
+		bool create_constrained_quadrilaterals(std::vector<Face*>& facesOut,
+							  std::vector<std::pair<int, int> >& constrainingObjsOut,
+							  Grid& grid, rapidxml::xml_node<>* node,
+							  std::vector<VertexBase*>& vrts);
+							  
 		bool create_tetrahedrons(std::vector<Volume*>& volsOut,
 								 Grid& grid, rapidxml::xml_node<>* node,
 								 std::vector<VertexBase*>& vrts);
