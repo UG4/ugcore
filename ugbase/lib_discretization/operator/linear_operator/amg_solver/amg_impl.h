@@ -25,16 +25,14 @@ namespace ug{
 //#define GRAPH_WITH_LOCAL_INVERSE
 
 
-
-
 #define AMG_WRITE_MATRICES_PATH "/Users/mrupp/matrices/AMG_"
 #define AMG_WRITE_MATRICES_MAX (200*200)
 
 #define AMG_WRITE_GRAPH
 
 #if 0
-
 #define LATE_COARSE_SOLVER // do coarsening down to 10 nodes.
+
 //#define AMG_WRITE_GRAPH
 
 
@@ -171,7 +169,7 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 
 	CreateMeasureOfImportancePQ(graphS, graphST, PQ, unassigned, nodes);
 
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_COARSEN_RATINGS
 	 for(size_t i=0; i<A.num_rows(); i++)
@@ -189,7 +187,7 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 
 	PreventFFConnections(graphS, graphST, nodes, newIndex, iNrOfCoarse);
 
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 	// agressive Coarsening
 	/////////////////////////////////////////
@@ -224,7 +222,7 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 			if(bTiming) SW.start();
 			Coarsen(graphAC, PQ, newIndex, unassigned, iNrOfCoarse, nodes);
 			//PreventFFConnections(graphS, graphST, nodes, newIndex, iNrOfCoarse);
-			if(bTiming) UG_LOG("took " << SW.ms() << " ms")
+			if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 		}
 	}
@@ -272,10 +270,10 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	if(unassigned > 0)
 		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, posInConnections, theta);
 
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_P
-	cout << "Prolongation level " << level << endl;
+	cout << endl << "Prolongation level " << level << endl;
 	P.print();
 #endif
 
@@ -289,28 +287,28 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 	R.create_as_transpose_of(P);
 	// R is already finalized
 
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_R
-	cout << "Restriction level " << level << endl;
+	cout << endl << "Restriction level " << level << endl;
 	R.print();
 #endif
 
 	// create Galerkin product
 	/////////////////////////////////////////
 
-	UG_LOG("galerkin product... ");
+	UG_LOG("\ngalerkin product... ");
 	if(bTiming) SW.start();
 
 	// AH = R A P
 	CreateAsMultiplyOf(AH, R, A, P);
 
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 	// finalize
 	if(bTiming) SW.start();
 	AH.finalize();
-	if(bTiming) UG_LOG("took " << SW.ms() << " ms")
+	if(bTiming) UG_LOG(endl << "Finalizing... took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_AH
 	cout << "AH level " << level << endl;
@@ -338,9 +336,11 @@ void amg<Matrix_type, Vector_type>::createAMGLevel(Matrix_type &AH, SparseMatrix
 		AMGWriteToFile(R, level, level+1, (string(AMG_WRITE_MATRICES_PATH) + "R" + ToString(level) + ".mat").c_str(), amghelper);
 		UG_LOG(".");
 		AMGWriteToFile(AH, level+1, level+1, (string(AMG_WRITE_MATRICES_PATH) + "A" + ToString(level+1) + ".mat").c_str(), amghelper);
-		UG_LOG(". done.");
+		UG_LOG(". done.\n");
 	}
 #endif
+
+	UG_LOG("\n");
 
 	delete[] posInConnections;
 	delete[] newIndex;
@@ -453,6 +453,16 @@ amg<Matrix_type, Vector_type>::~amg()
 	}
 }
 
+template<typename Matrix_type, typename Vector_type>
+	void amg_jacobi_step(const Matrix_type &Ah, Vector_type &d, Vector_type &c, Vector_type &corr, number damp)
+{
+	for(size_t i=0; i<c.size(); i++)
+	{
+		corr[i] = damp*(d[i] / Ah.get_diag(i));
+		c[i] += corr[i];		
+	}
+	d -= Ah*corr;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // get_correction_and_update_defect:
@@ -480,9 +490,7 @@ bool amg<Matrix_type, Vector_type>::get_correction_and_update_defect(Vector_type
 	for(int i=0; i < nu1; i++)
 	{
 		// calc c = B^{-1} b
-		diag_step(Ah, corr, d, 0.66);
-		c += corr;
-		d -= Ah*corr;
+		amg_jacobi_step(Ah, d, c, corr, 0.8);
 	}
 
 	Vector_type &cH = *vec1[level+1];
@@ -513,12 +521,7 @@ bool amg<Matrix_type, Vector_type>::get_correction_and_update_defect(Vector_type
 
 	// postsmooth
 	for(int i=0; i < nu2; i++)
-	{
-		diag_step(Ah, corr, d, 0.66);
-		c += corr;
-		d-= Ah*corr;
-		//A.matmul_minus(d, c);
-	}
+		amg_jacobi_step(Ah, d, c, corr, 0.8);
 
 	return true;
 }

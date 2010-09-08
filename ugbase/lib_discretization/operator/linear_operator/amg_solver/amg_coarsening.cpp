@@ -19,7 +19,7 @@ using namespace std;
 #include "amg_nodeinfo.h"
 #include "maxheap.h"
 
-
+//#define AMG_PRINT_COARSEN
 
 namespace ug
 {
@@ -156,7 +156,7 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, maxheap<am
 
 }
 
-#define AMG_PRINT_COARSEN
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Coarsen:
