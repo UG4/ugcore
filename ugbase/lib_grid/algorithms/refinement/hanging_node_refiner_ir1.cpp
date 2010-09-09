@@ -65,7 +65,6 @@ set_grid(Grid* grid)
 	{
 		m_pGrid->unregister_observer(this);
 		m_selMarkedElements.assign_grid(NULL);
-		m_selProcessedElements.assign_grid(NULL);
 		m_pGrid->detach_from_edges(m_aVertex);
 		m_pGrid->detach_from_faces(m_aVertex);
 		m_pGrid = NULL;
@@ -77,10 +76,6 @@ set_grid(Grid* grid)
 		m_selMarkedElements.assign_grid(*grid);
 		m_selMarkedElements.enable_autoselection(false);
 		m_selMarkedElements.enable_selection_inheritance(false);
-
-		m_selProcessedElements.assign_grid(*grid);
-		m_selProcessedElements.enable_autoselection(false);
-		m_selProcessedElements.enable_selection_inheritance(false);
 
 		grid->attach_to_edges_dv(m_aVertex, NULL, false);
 		grid->attach_to_faces_dv(m_aVertex, NULL, false);

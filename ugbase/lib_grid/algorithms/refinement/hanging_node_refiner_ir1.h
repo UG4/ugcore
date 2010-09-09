@@ -36,9 +36,6 @@ namespace ug
  * If no refinement-callback is specified, HangingNodeRefiner will
  * attempt to create a standard linear refinement callback for an attached
  * standard position attachment (ug::aPosition or ug::aPosition2).
- *
- * \todo m_selProcessedElements: This selector should be removed and be
- *		replaced with a more efficient tool.
  */
 
 class HangingNodeRefiner_IR1 : public GridObserver
@@ -157,7 +154,6 @@ class HangingNodeRefiner_IR1 : public GridObserver
 		AVertexBase		m_aVertex;
 
 		Selector	m_selMarkedElements;
-		Selector	m_selProcessedElements;//< this selector should be removed.
 
 		IRefinementCallback*	m_refCallback;
 
