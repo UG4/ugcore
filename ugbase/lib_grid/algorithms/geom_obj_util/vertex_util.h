@@ -13,7 +13,7 @@ namespace ug
 {
 /**
  * \brief contains methods to manipulate vertices
- * 
+ *
  * \defgroup lib_grid_algorithms_vertex_util vertex util
  * \ingroup lib_grid_algorithms
  * @{
@@ -134,8 +134,9 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2);
 ////////////////////////////////////////////////////////////////////////
 //	RemoveDoubles
 ///	merges all vertices that are closer to each other than the specified threshold.
+template <int dim>
 void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin,
-					const VertexBaseIterator& iterEnd, AVector3& aPos,
+					const VertexBaseIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
 					number threshold);
 
 ////////////////////////////////////////////////////////////////////////

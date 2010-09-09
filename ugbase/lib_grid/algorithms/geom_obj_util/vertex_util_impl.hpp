@@ -7,6 +7,8 @@
 
 #include "vertex_util.h"
 #include "face_util.h"
+#include "../trees/kd_tree_static.h"
+#include "misc_util.h"
 
 namespace ug
 {
@@ -44,7 +46,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 			VertexBase* vrt = *iter;
 			vector3 v(0, 0, 0);
 			int num = 0;
-			
+
 			Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(vrt);
 			for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(vrt);
 				eIter != edgesEnd; ++eIter)
@@ -52,7 +54,7 @@ void LaplacianSmooth(Grid& grid, TIterator vrtsBegin,
 				VecAdd(v, v, aaPos[GetConnectedVertex(*eIter, vrt)]);
 				++num;
 			}
-			
+
 			if(num > 0){
 				VecScale(v, v, 1. / (number)num);
 				VecSubtract(v, v, aaPos[vrt]);
@@ -71,6 +73,112 @@ CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
 {
 	return aaPosVRT[v];
 }
+
+
+////////////////////////////////////////////////////////////////////////
+//TODO:	replace KDTreeStatic by a dynamic kd-tree.
+template <int dim>
+void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin, const VertexBaseIterator& iterEnd, Attachment<MathVector<dim> >& aPos, number threshold)
+{
+	if(!grid.has_vertex_attachment(aPos))
+		return;
+
+	typedef Attachment<MathVector<dim> > attachment_type;
+
+	Grid::VertexAttachmentAccessor<attachment_type> aaPos(grid, aPos);
+
+	KDTreeStatic<attachment_type, dim, MathVector<dim> > kdTree;
+	kdTree.create_from_grid(grid, iterBegin, iterEnd, aPos, 20, 10, KDSD_LARGEST);
+
+//	we need temporary attachments:
+//	a vector<VertexBase*> attachment, that stores for each vertex all other vertices
+//	closer than threshold, which have higher attachment data index.
+	typedef Attachment<std::list<VertexBase*> >	AVertexList;
+	AVertexList aVertexList;
+	grid.attach_to_vertices(aVertexList);
+	Grid::VertexAttachmentAccessor<AVertexList> aaVL(grid, aVertexList);
+
+//	we'll store in this attachment whether a vertex will be merged or not.
+	AInt aInt;
+	grid.attach_to_vertices(aInt);
+	Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aInt);
+	{
+		for(VertexBaseIterator iter = iterBegin; iter != iterEnd; ++iter)
+			aaInt[*iter] = 0;
+	}
+
+//	compare squares.
+	threshold *= threshold;
+//	iterate over all vertices and collect all that have aInt == 0 and are within range.
+	for(VertexBaseIterator iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		VertexBase* v = *iter;
+		if(aaInt[v] == 0)
+		{//	the vertex will not be removed during merge
+		//	find all vertices closer than threshold
+			std::list<VertexBase*> neighbours;
+			uint numClosest = 3;
+			while(numClosest < grid.num_vertices())
+			{
+				neighbours.clear();
+				kdTree.get_neighbourhood(neighbours, aaPos[v], numClosest);
+
+				if(VecDistanceSq(aaPos[neighbours.back()], aaPos[v]) < threshold)
+					numClosest *= 2;
+				else
+					break;
+			}
+
+		//	store them in the vertexVec attachment
+			if(!neighbours.empty())
+			{
+				for(std::list<VertexBase*>::iterator nIter = neighbours.begin();
+					nIter != neighbours.end(); ++nIter)
+				{
+					VertexBase* nv = *nIter;
+					if(aaInt[nv] == 0)
+					{
+						if(nv != v)
+						{
+							if(VecDistanceSq(aaPos[v], aaPos[nv]) < threshold)
+							{
+								aaVL[v].push_back(nv);
+								aaInt[nv] = 1;
+							}
+							else
+								break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+//	iterate over all vertices again and merge collected ones
+	{
+		VertexBaseIterator iter = iterBegin;
+		while(iter != iterEnd)
+		{
+			VertexBase* v = *iter;
+			if(!aaVL[v].empty())
+			{
+				std::list<VertexBase*>::iterator nIter = aaVL[v].begin();
+				while(nIter != aaVL[v].end())
+				{
+					VertexBase* delVrt = *nIter;
+					nIter++;
+					MergeVertices(grid, v, delVrt);
+				}
+			}
+
+			++iter;
+		}
+	}
+
+	grid.detach_from_vertices(aVertexList);
+	grid.detach_from_vertices(aInt);
+}
+
 
 }//	end of namespace
 

@@ -24,7 +24,10 @@ void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2)
 			++iter;
 		//	if e contains v2 we have to remove it.
 			if((e->vertex(0) == v2) || (e->vertex(1) == v2))
+			{
+				UG_LOG("Erasing edge.\n");
 				grid.erase(e);
+			}
 		}
 	}
 
@@ -35,6 +38,7 @@ void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2)
 	//	v1 and v2 have been already removed on edge-erase.
 		if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 		{
+			UG_LOG(" ++++ Hier geht er nicht rein +++ Faces \n");
 		//	iterate through associated faces
 			Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v1);
 			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v1);
@@ -67,6 +71,7 @@ void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2)
 		if(!(grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES) ||
 			grid.option_is_enabled(VOLOPT_AUTOGENERATE_EDGES)))
 		{
+			UG_LOG(" ++++ Hier geht er nicht rein +++ Volumes\n");
 		//	iterate through associated volumes
 			Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(v1);
 			Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(v2);
