@@ -197,8 +197,8 @@ class ReferencePrism{
 
 
 		 	m_id[POINT][0][FACE][0] = 0;
-		 	m_id[POINT][0][FACE][1] = 1;
-		 	m_id[POINT][0][FACE][2] = 3;
+		 	m_id[POINT][0][FACE][1] = 3;
+		 	m_id[POINT][0][FACE][2] = 1;
 
 		 	m_id[POINT][1][FACE][0] = 0;
 		 	m_id[POINT][1][FACE][1] = 1;
@@ -212,12 +212,12 @@ class ReferencePrism{
 		 	m_id[POINT][3][FACE][1] = 3;
 		 	m_id[POINT][3][FACE][2] = 4;
 
-		 	m_id[POINT][4][FACE][0] = 1;
-		 	m_id[POINT][4][FACE][1] = 2;
+		 	m_id[POINT][4][FACE][0] = 2;
+		 	m_id[POINT][4][FACE][1] = 1;
 		 	m_id[POINT][4][FACE][2] = 4;
 
-		 	m_id[POINT][5][FACE][0] = 2;
-		 	m_id[POINT][5][FACE][1] = 3;
+		 	m_id[POINT][5][FACE][0] = 3;
+		 	m_id[POINT][5][FACE][1] = 2;
 		 	m_id[POINT][5][FACE][2] = 4;
 
 		 	// Edges <-> Faces
@@ -285,10 +285,10 @@ class ReferencePrism{
 		 	m_id[EDGE][3][POINT][0] = 0;
 		 	m_id[EDGE][3][POINT][1] = 3;
 			// edge 4 = (1,3)
-		 	m_id[EDGE][4][POINT][0] = 0;
+		 	m_id[EDGE][4][POINT][0] = 1;
 		 	m_id[EDGE][4][POINT][1] = 4;
 			// edge 5 = (2,3)
-		 	m_id[EDGE][5][POINT][0] = 0;
+		 	m_id[EDGE][5][POINT][0] = 2;
 		 	m_id[EDGE][5][POINT][1] = 5;
 			// edge 6 = (3,4)
 		 	m_id[EDGE][6][POINT][0] = 3;
@@ -313,17 +313,17 @@ class ReferencePrism{
 		 	m_id[POINT][2][EDGE][1] = 2;
 		 	m_id[POINT][2][EDGE][2] = 5;
 
-		 	m_id[POINT][3][EDGE][0] = 8;
+		 	m_id[POINT][3][EDGE][0] = 3;
 		 	m_id[POINT][3][EDGE][1] = 6;
-		 	m_id[POINT][3][EDGE][2] = 3;
+		 	m_id[POINT][3][EDGE][2] = 8;
 
-		 	m_id[POINT][4][EDGE][0] = 6;
+		 	m_id[POINT][4][EDGE][0] = 4;
 		 	m_id[POINT][4][EDGE][1] = 7;
-		 	m_id[POINT][4][EDGE][2] = 3;
+		 	m_id[POINT][4][EDGE][2] = 6;
 
-		 	m_id[POINT][5][EDGE][0] = 7;
+		 	m_id[POINT][5][EDGE][0] = 5;
 		 	m_id[POINT][5][EDGE][1] = 8;
-		 	m_id[POINT][5][EDGE][2] = 5;
+		 	m_id[POINT][5][EDGE][2] = 7;
 
 		 	// Reference Corners
 		 	m_corner[0] = MathVector<dim>(0.0, 0.0, 0.0);

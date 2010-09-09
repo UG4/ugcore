@@ -55,6 +55,36 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
  * This function returns the dimension of the subset. The dimension is simply defined
  * to be the highest reference dimension of all geometric objects contained in the subset
  *
+ * \param[in]	sh			SubsetHandler
+ * \param[in]	si			Subset Index
+ *
+ * \return		dimension	Dimension of Subset
+ * 				-1 			if no Dimension accessable
+ */
+inline int DimensionOfSubset(const SubsetHandler& sh, int si);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the current dimension of the subset
+/** Returns the dimension of geometric objects, that are contained in the subset
+ *
+ * This function returns the dimension of the subset. The dimension is simply defined
+ * to be the highest reference dimension of all geometric objects contained in the subset
+ *
+ * \param[in]	sh			MultiGridSubsetHandler
+ * \param[in]	si			Subset Index
+ *
+ * \return		dimension	Dimension of Subset
+ * 				-1 			if no Dimension accessable
+ */
+inline int DimensionOfSubset(const MGSubsetHandler& sh, int si);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the current dimension of the subset
+/** Returns the dimension of geometric objects, that are contained in the subset
+ *
+ * This function returns the dimension of the subset. The dimension is simply defined
+ * to be the highest reference dimension of all geometric objects contained in the subset
+ *
  * \param[in]	domain		Domain
  * \param[in]	si			Subset Index
  *
@@ -62,7 +92,22 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
  * 				-1 			if no Dimension accessable
  */
 template <typename TDomain>
-int DimensionOfSubset(const TDomain& domain, int si);
+inline int DimensionOfSubset(const TDomain& domain, int si);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the corner coordinates of a geometric object
+/** Returns the corner coordinated of a geometric object in a vector
+ *
+ * This function collects the corner coordinates for a given geometric object
+ * in the order prescribed by the reference elements
+ *
+ * \param[in] 	elem				Geometric Object
+ * \param[in] 	aaPos				AttachmentAccessor for Positions
+ * \param[out]	vCornerCoordsOut	vector of corner coordinates
+ */
+template <typename TElem, typename TAAPos>
+void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerCoordsOut,
+								const TElem& elem, const TAAPos& aaPos, bool clearContainer = true);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -80,6 +125,31 @@ template <typename TElem, typename TDomain>
 void CollectCornerCoordinates(	std::vector<typename TDomain::position_type>& vCornerCoordsOut,
 								const TElem& elem, const TDomain& domain, bool clearContainer = true);
 
+////////////////////////////////////////////////////////////////////////
+///	returns the size of a geometric object
+/** Returns the size of a geometric object
+ *
+ * This function returns the size of a geometric object.
+ *
+ * \param[in] 	elem				Geometric Object
+ * \param[in] 	aaPos				AttachmentAccessor for Positions
+ * \return 		number				Size of Element
+ */
+template <typename TElem, typename TPosition>
+number ElementSize(const TElem& elem, const Grid::VertexAttachmentAccessor<Attachment<TPosition> >& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the size of a geometric object
+/** Returns the size of a geometric object
+ *
+ * This function returns the size of a geometric object.
+ *
+ * \param[in] 	elem				Geometric Object
+ * \param[in] 	domain				Domain
+ * \return 		number				Size of Element
+ */
+template <typename TElem, typename TDomain>
+number ElementSize(const TElem& elem, const TDomain& domain);
 
 ////////////////////////////////////////////////////////////////////////
 /// writes domain to *.ugx file

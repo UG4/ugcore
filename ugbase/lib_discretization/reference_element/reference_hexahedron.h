@@ -153,14 +153,14 @@ class ReferenceHexahedron{
 
 			// Points <-> Faces
 		 	m_id[FACE][0][POINT][0] = 0;
-		 	m_id[FACE][0][POINT][1] = 1;
-		 	m_id[FACE][0][POINT][2] = 3;
-		 	m_id[FACE][0][POINT][3] = 2;
+		 	m_id[FACE][0][POINT][1] = 3;
+		 	m_id[FACE][0][POINT][2] = 2;
+		 	m_id[FACE][0][POINT][3] = 1;
 
 		 	m_id[FACE][1][POINT][0] = 0;
 		 	m_id[FACE][1][POINT][1] = 1;
 		 	m_id[FACE][1][POINT][2] = 5;
-		 	m_id[FACE][1][POINT][3] = 3;
+		 	m_id[FACE][1][POINT][3] = 4;
 
 		 	m_id[FACE][2][POINT][0] = 1;
 		 	m_id[FACE][2][POINT][1] = 2;
@@ -183,8 +183,8 @@ class ReferenceHexahedron{
 		 	m_id[FACE][5][POINT][3] = 7;
 
 		 	m_id[POINT][0][FACE][0] = 0;
-		 	m_id[POINT][0][FACE][1] = 1;
-		 	m_id[POINT][0][FACE][2] = 4;
+		 	m_id[POINT][0][FACE][1] = 4;
+		 	m_id[POINT][0][FACE][2] = 1;
 
 		 	m_id[POINT][1][FACE][0] = 0;
 		 	m_id[POINT][1][FACE][1] = 1;
@@ -206,12 +206,12 @@ class ReferenceHexahedron{
 		 	m_id[POINT][5][FACE][1] = 1;
 		 	m_id[POINT][5][FACE][2] = 5;
 
-		 	m_id[POINT][6][FACE][0] = 2;
-		 	m_id[POINT][6][FACE][1] = 3;
+		 	m_id[POINT][6][FACE][0] = 3;
+		 	m_id[POINT][6][FACE][1] = 2;
 		 	m_id[POINT][6][FACE][2] = 5;
 
-		 	m_id[POINT][7][FACE][0] = 3;
-		 	m_id[POINT][7][FACE][1] = 4;
+		 	m_id[POINT][7][FACE][0] = 4;
+		 	m_id[POINT][7][FACE][1] = 3;
 		 	m_id[POINT][7][FACE][2] = 5;
 
 		 	// Edges <-> Faces
@@ -325,32 +325,32 @@ class ReferenceHexahedron{
 		 	m_id[POINT][0][EDGE][2] = 4;
 
 		 	m_id[POINT][1][EDGE][0] = 0;
-		 	m_id[POINT][1][EDGE][1] = 5;
-		 	m_id[POINT][1][EDGE][2] = 1;
+		 	m_id[POINT][1][EDGE][1] = 1;
+		 	m_id[POINT][1][EDGE][2] = 5;
 
 		 	m_id[POINT][2][EDGE][0] = 1;
-		 	m_id[POINT][2][EDGE][1] = 6;
-		 	m_id[POINT][2][EDGE][2] = 2;
+		 	m_id[POINT][2][EDGE][1] = 2;
+		 	m_id[POINT][2][EDGE][2] = 6;
 
 		 	m_id[POINT][3][EDGE][0] = 2;
-		 	m_id[POINT][3][EDGE][1] = 7;
-		 	m_id[POINT][3][EDGE][2] = 3;
+		 	m_id[POINT][3][EDGE][1] = 3;
+		 	m_id[POINT][3][EDGE][2] = 7;
 
-		 	m_id[POINT][4][EDGE][0] = 11;
+		 	m_id[POINT][4][EDGE][0] = 4;
 		 	m_id[POINT][4][EDGE][1] = 8;
-		 	m_id[POINT][4][EDGE][2] = 4;
+		 	m_id[POINT][4][EDGE][2] = 11;
 
-		 	m_id[POINT][5][EDGE][0] = 8;
+		 	m_id[POINT][5][EDGE][0] = 5;
 		 	m_id[POINT][5][EDGE][1] = 9;
-		 	m_id[POINT][5][EDGE][2] = 5;
+		 	m_id[POINT][5][EDGE][2] = 8;
 
-		 	m_id[POINT][6][EDGE][0] = 9;
+		 	m_id[POINT][6][EDGE][0] = 6;
 		 	m_id[POINT][6][EDGE][1] = 10;
-		 	m_id[POINT][6][EDGE][2] = 6;
+		 	m_id[POINT][6][EDGE][2] = 9;
 
-		 	m_id[POINT][7][EDGE][0] = 10;
+		 	m_id[POINT][7][EDGE][0] = 7;
 		 	m_id[POINT][7][EDGE][1] = 11;
-		 	m_id[POINT][7][EDGE][2] = 7;
+		 	m_id[POINT][7][EDGE][2] = 10;
 
 		 	// Reference Corners
 		 	m_corner[0] = MathVector<dim>(0.0, 0.0, 0.0);

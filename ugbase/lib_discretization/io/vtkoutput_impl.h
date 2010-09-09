@@ -1029,7 +1029,9 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 	FILE* file;
 	char sname[NAMESIZE], pname[NAMESIZE], procname[NAMESIZE];
 
+#ifdef UG_PARALLEL
 	if (pcl::IsOutputProc()) {
+#endif
 		if(pvd_time_filename(sname, filename, timestep) != true) return false;
 
 		file = fopen(sname, "w");
@@ -1054,8 +1056,11 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 		fprintf(file, "  </Collection>\n");
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
+#ifdef UG_PARALLEL
 	}
+#endif
 
+#ifdef UG_PARALLEL
 	if (pcl::IsOutputProc()) {
 		strcpy(sname, filename);
 		strcat(sname, "_processwise");
@@ -1088,6 +1093,7 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 		fprintf(file, "</VTKFile>\n");
 		fclose(file);
 	}
+#endif
 
 	return true;
 }

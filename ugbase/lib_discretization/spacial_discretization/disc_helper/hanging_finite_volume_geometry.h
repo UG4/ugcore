@@ -28,7 +28,18 @@ template <	typename TElem,
 			int TWorldDim>
 class HFVGeometry {
 	private:
+		// type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
+		// number of SubControlVolumes
+		static const size_t m_numSCV = ref_elem_type::num_corners;
+
+		// type of SubControlVolume
+		typedef typename finite_volume_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
+
+		// number of SubControlVolumeFaces
+		static const size_t m_numSCVF = ref_elem_type::num_edges;
+
 	public:
 		static const int dim = ref_elem_type::dim;
 		static const int world_dim = TWorldDim;
@@ -54,7 +65,7 @@ class HFVGeometry {
 			m_localCenter *= 1./(m_vSCV.size());
 		}
 
-		bool update(TElem* elem, Grid& mg, MathVector<world_dim> corners[])
+		bool update(TElem* elem, Grid& mg, MathVector<world_dim> vCornerCoords[])
 		{
 			static const ref_elem_type refElem;
 
@@ -63,7 +74,7 @@ class HFVGeometry {
 
 			// remember global position of nodes
 			for(size_t i = 0; i < (size_t)ref_elem_type::num_corners; ++i)
-				m_vSCV[i].globalPosition[0] = corners[i];
+				m_vSCV[i].globalPosition[0] = vCornerCoords[i];
 
 			// compute center
 			m_globalCenter = 0.0;
@@ -167,7 +178,7 @@ class HFVGeometry {
 				m_vSCVF[i].localPosition[1] = m_localCenter;
 
 				// normal
-				NormalOnSCVF<dim, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].globalPosition);
+				NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, &(m_vSCVF[i].globalPosition[0]));
 			}
 
 			// compute size of scv
@@ -175,11 +186,11 @@ class HFVGeometry {
 			{
 				m_vSCV[i].globalPosition[2] = m_globalCenter;
 				m_vSCV[i].localPosition[2] = m_localCenter;
-				m_vSCV[i].vol = VolumeOfSCV<dim, world_dim>(m_vSCV[i].globalPosition);
+				m_vSCV[i].vol = ElementSize<scv_type, world_dim>(m_vSCV[i].globalPosition);;
 			}
 
 			// compute shapes and derivatives
-			m_mapping.update(corners);
+			m_mapping.update(vCornerCoords);
 
 			for(size_t i = 0; i < m_vSCVF.size(); ++i)
 			{

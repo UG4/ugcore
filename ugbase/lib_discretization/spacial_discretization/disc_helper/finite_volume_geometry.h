@@ -15,9 +15,9 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lib_grid.h"
-#include "lib_algebra/lib_algebra.h"
 
 // library intern includes
+#include "lib_discretization/common/common.h"
 #include "../../reference_element/reference_element.h"
 #include "../../local_shape_function_set/local_shape_function_set_factory.h"
 #include "./finite_volume_util.h"
@@ -34,6 +34,9 @@ class FV1Geometry {
 
 		// number of SubControlVolumes
 		static const size_t m_numSCV = ref_elem_type::num_corners;
+
+		// type of SubControlVolume
+		typedef typename finite_volume_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
 
 		// number of SubControlVolumeFaces
 		static const size_t m_numSCVF = ref_elem_type::num_edges;
@@ -64,15 +67,11 @@ class FV1Geometry {
 				// number of integration points
 				static const size_t m_numIP = 1;
 
+				// Number of corners of scvf
+				static const size_t m_numCorners = finite_volume_traits<ref_elem_type, TWorldDim>::NumCornersOfSCVF;
+
 			public:
-				SCVF()
-				{
-					int m_numCorners = 2*(dim-1);
-					if(dim == 1) m_numCorners = 1;
-					localPosition.resize(m_numCorners);
-					globalPosition.resize(m_numCorners);
-					midId.resize(m_numCorners);
-				}
+				SCVF() {}
 
 				/// index of SubControlVolume on one side of the scvf
 				inline size_t from() const {return m_from;}
@@ -122,11 +121,11 @@ class FV1Geometry {
 
 				/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return localPosition[i];}
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vLocPos[i];}
 
 				/// return glbal corner number i
 				inline const MathVector<world_dim>& global_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return globalPosition[i];}
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vGloPos[i];}
 
 			private:
 				// This scvf separates the scv with the ids given in "from" and "to"
@@ -134,12 +133,12 @@ class FV1Geometry {
 				size_t m_from, m_to;
 
 				// ordering is:
+				// 1D: edgeMidPoint
 				// 2D: edgeMidPoint, CenterOfElement
 				// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				size_t m_numCorners;
-				std::vector<MathVector<dim> > localPosition; // local corners of scvf
-				std::vector<MathVector<world_dim> > globalPosition; // global corners of scvf
-				std::vector<MidID> midId; // dimension and id of object, that's midpoint bounds the scvf
+				MathVector<dim> m_vLocPos[m_numCorners]; // local corners of scvf
+				MathVector<world_dim> m_vGloPos[m_numCorners]; // global corners of scvf
+				MidID midId[m_numCorners]; // dimension and id of object, that's midpoint bounds the scvf
 
 				// scvf part
 				MathVector<dim> localIP; // local integration point
@@ -163,15 +162,11 @@ class FV1Geometry {
 				// number of integration points
 				static const size_t m_numIP = 1;
 
+				// Number of corners of scvf
+				static const size_t m_maxNumCorners = finite_volume_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+
 			public:
-				SCV()
-				{
-					//TODO :this is 2^dim, except for prism, where we have 9
-					m_numCorners = 2*dim;
-					localPosition.resize(m_numCorners);
-					globalPosition.resize(m_numCorners);
-					midId.resize(m_numCorners);
-				}
+				SCV() : m_numCorners(m_maxNumCorners) {};
 
 				/// node id that this scv is associated to
 				inline size_t node_id() const {return nodeId;}
@@ -181,11 +176,11 @@ class FV1Geometry {
 
 				/// local integration point of scv
 				inline const MathVector<dim>& local_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localPosition[0];}
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return m_vLocPos[0];}
 
 				/// global integration point
 				inline const MathVector<world_dim>& global_ip(size_t ip) const
-					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalPosition[0];}
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return m_vGloPos[0];}
 
 				/// volume of scv
 				inline number volume() const {return vol;}
@@ -195,19 +190,18 @@ class FV1Geometry {
 
 				/// return local corner number i
 				inline const MathVector<dim>& local_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return localPosition[i];}
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vLocPos[i];}
 
 				/// return glbal corner number i
 				inline const MathVector<world_dim>& global_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return globalPosition[i];}
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vGloPos[i];}
 
 			private:
 				size_t nodeId; // node id of associated node
-				// The ordering is: Corner, ...
 				size_t m_numCorners;
-				std::vector<MathVector<dim> > localPosition; // local position of node
-				std::vector<MathVector<world_dim> > globalPosition; // global position of node
-				std::vector<MidID> midId; // dimension and id of object, that's midpoint bounds the scv
+				MathVector<dim> m_vLocPos[m_maxNumCorners]; // local position of node
+				MathVector<world_dim> m_vGloPos[m_maxNumCorners]; // global position of node
+				MidID midId[m_maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
 				number vol;
 		};
 
@@ -248,28 +242,32 @@ class FV1Geometry {
 				m_vSCVF[i].m_to = m_refElem.id(1, i, 0, 1);
 
 				// set mid ids
-				m_vSCVF[i].midId[0] = MidID(1,i); // edge midpoint
-				m_vSCVF[i].midId[1] = MidID(dim, 0); // center of element
+				{
+					// start at edge midpoint
+					m_vSCVF[i].midId[0] = MidID(1,i);
+
+					// loop up dimension
+					if(dim == 2)
+					{
+						m_vSCVF[i].midId[1] = MidID(dim, 0); // center of element
+					}
+					else if (dim == 3)
+					{
+						m_vSCVF[i].midId[1] = MidID(2, m_refElem.id(1, i, 2, 0)); // side 0
+						m_vSCVF[i].midId[2] = MidID(dim, 0); // center of element
+						m_vSCVF[i].midId[3] = MidID(2, m_refElem.id(1, i, 2, 1)); // side 1
+					}
+				}
 
 				// copy local corners of scvf
 				copy_local_corners(m_vSCVF[i]);
 
 				// integration point
 				VecInterpolateLinear(	m_vSCVF[i].localIP,
-										m_vSCVF[i].localPosition[0],
-										m_vSCVF[i].localPosition[1],
+										m_vSCVF[i].m_vLocPos[0],
+										m_vSCVF[i].m_vLocPos[1],
 										0.5);
-
-				// set edge midpoint as corner of scv
-				{
-					const size_t from = m_vSCVF[i].m_from;
-					const size_t to = m_vSCVF[i].m_to;
-
-					m_vSCV[from].midId[1] = MidID(1,i);
-					m_vSCV[to].midId[3] = MidID(1,i);
-				}
 			}
-
 
 			// set up local informations for SubControlVolumes (scv)
 			// each scv is associated to one corner of the element
@@ -277,11 +275,37 @@ class FV1Geometry {
 			{
 				m_vSCV[i].nodeId = i;
 
-				// set node as corner of scv
-				m_vSCV[i].midId[0] = MidID(0, i);
-
-				// set center of element as corner of scv
-				m_vSCV[i].midId[2] = MidID(dim, 0);
+				if(dim == 1)
+				{
+					m_vSCV[i].midId[0] = MidID(0, i); // set node as corner of scv
+					m_vSCV[i].midId[1] = MidID(dim, 0);	// center of element
+				}
+				else if(dim == 2)
+				{
+					m_vSCV[i].midId[0] = MidID(0, i); // set node as corner of scv
+					m_vSCV[i].midId[1] = MidID(1, m_refElem.id(0, i, 1, 0)); // edge 1
+					m_vSCV[i].midId[2] = MidID(dim, 0);	// center of element
+					m_vSCV[i].midId[3] = MidID(1, m_refElem.id(0, i, 1, 1)); // edge 2
+				}
+				else if(dim == 3 && (ref_elem_type::REFERENCE_OBJECT_ID != ROID_PYRAMID || i != num_scv()-1))
+				{
+					m_vSCV[i].midId[0] = MidID(0, i); // set node as corner of scv
+					m_vSCV[i].midId[1] = MidID(1, m_refElem.id(0, i, 1, 1)); // edge 1
+					m_vSCV[i].midId[2] = MidID(2, m_refElem.id(0, i, 2, 0)); // face 0
+					m_vSCV[i].midId[3] = MidID(1, m_refElem.id(0, i, 1, 0)); // edge 0
+					m_vSCV[i].midId[4] = MidID(1, m_refElem.id(0, i, 1, 2)); // edge 2
+					m_vSCV[i].midId[5] = MidID(2, m_refElem.id(0, i, 2, 2)); // face 2
+					m_vSCV[i].midId[6] = MidID(dim, 0);	// center of element
+					m_vSCV[i].midId[7] = MidID(2, m_refElem.id(0, i, 2, 1)); // face 1
+				}
+				// TODO: Implement last ControlVolume for Pyramid
+				else if(dim == 3 && ref_elem_type::REFERENCE_OBJECT_ID == ROID_PYRAMID && i == num_scv()-1)
+				{
+					// this scv has 10 corners
+					m_vSCV[i].m_numCorners = 10;
+					//UG_ASSERT(0, "Last SCV for Pyramid must be implemented");
+				}
+				else {UG_ASSERT(0, "Dimension higher that 3 not implemented.");}
 
 				// copy local corners of scv
 				copy_local_corners(m_vSCV[i]);
@@ -295,7 +319,7 @@ class FV1Geometry {
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
 						LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
 
-				const size_t num_sh = m_numSCVF;
+				const size_t num_sh = m_numSCV;
 				m_vSCVF[i].vShape.resize(num_sh);
 				m_vSCVF[i].localGrad.resize(num_sh);
 				m_vSCVF[i].globalGrad.resize(num_sh);
@@ -309,11 +333,11 @@ class FV1Geometry {
 			}
 		}
 
-		bool update(TElem* elem, Grid& mg, MathVector<world_dim> corners[])
+		bool update(TElem* elem, const Grid& mg, MathVector<world_dim> vCornerCoords[])
 		{
 			// remember global position of nodes
 			for(size_t i = 0; i < m_refElem.num_obj(0); ++i)
-				m_gloMid[0][i] = corners[i];
+				m_gloMid[0][i] = vCornerCoords[i];
 
 			// compute global midpoints for all geometric objects with  0 < d <= dim
 			for(int d = 1; d <= dim; ++d)
@@ -345,12 +369,12 @@ class FV1Geometry {
 
 				// integration point
 				VecInterpolateLinear(	m_vSCVF[i].globalIP,
-										m_vSCVF[i].globalPosition[0],
-										m_vSCVF[i].globalPosition[1],
+										m_vSCVF[i].m_vGloPos[0],
+										m_vSCVF[i].m_vGloPos[1],
 										0.5);
 
 				// normal on scvf
-				NormalOnSCVF<dim, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].globalPosition);
+				NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
 			}
 
 			// compute size of scv
@@ -360,11 +384,18 @@ class FV1Geometry {
 				copy_global_corners(m_vSCV[i]);
 
 				// compute volume of scv
-				m_vSCV[i].vol = VolumeOfSCV<dim, world_dim>(m_vSCV[i].globalPosition);
+				if(m_vSCV[i].m_numCorners != 10)
+				{
+					m_vSCV[i].vol = ElementSize<scv_type, world_dim>(m_vSCV[i].m_vGloPos);
+				}
+				else
+				{
+					// special case for pyramid, last scv
+				}
 			}
 
 			// compute shapes and derivatives
-			m_mapping.update(corners);
+			m_mapping.update(vCornerCoords);
 
 			for(size_t i = 0; i < num_scvf(); ++i)
 			{
@@ -384,45 +415,41 @@ class FV1Geometry {
 	protected:
 		void copy_local_corners(SCVF& scvf)
 		{
-			UG_ASSERT(scvf.localPosition.size() == scvf.midId.size(), "Array size must match");
-			for(size_t i = 0; i < scvf.midId.size(); ++i)
+			for(size_t i = 0; i < scvf.m_numCorners; ++i)
 			{
 				const size_t dim = scvf.midId[i].dim;
 				const size_t id = scvf.midId[i].id;
-				scvf.localPosition[i] = m_locMid[dim][id];
+				scvf.m_vLocPos[i] = m_locMid[dim][id];
 			}
 		}
 
 		void copy_global_corners(SCVF& scvf)
 		{
-			UG_ASSERT(scvf.globalPosition.size() == scvf.midId.size(), "Array size must match");
-			for(size_t i = 0; i < scvf.midId.size(); ++i)
+			for(size_t i = 0; i < scvf.m_numCorners; ++i)
 			{
 				const size_t dim = scvf.midId[i].dim;
 				const size_t id = scvf.midId[i].id;
-				scvf.globalPosition[i] = m_gloMid[dim][id];
+				scvf.m_vGloPos[i] = m_gloMid[dim][id];
 			}
 		}
 
 		void copy_local_corners(SCV& scv)
 		{
-			UG_ASSERT(scv.localPosition.size() == scv.midId.size(), "Array size must match");
-			for(size_t i = 0; i < scv.midId.size(); ++i)
+			for(size_t i = 0; i < scv.m_numCorners; ++i)
 			{
 				const size_t dim = scv.midId[i].dim;
 				const size_t id = scv.midId[i].id;
-				scv.localPosition[i] = m_locMid[dim][id];
+				scv.m_vLocPos[i] = m_locMid[dim][id];
 			}
 		}
 
 		void copy_global_corners(SCV& scv)
 		{
-			UG_ASSERT(scv.globalPosition.size() == scv.midId.size(), "Array size must match");
-			for(size_t i = 0; i < scv.midId.size(); ++i)
+			for(size_t i = 0; i < scv.m_numCorners; ++i)
 			{
 				const size_t dim = scv.midId[i].dim;
 				const size_t id = scv.midId[i].id;
-				scv.globalPosition[i] = m_gloMid[dim][id];
+				scv.m_vGloPos[i] = m_gloMid[dim][id];
 			}
 		}
 
@@ -438,14 +465,14 @@ class FV1Geometry {
 				UG_LOG(", local_pos="<< m_vSCV[i].local_ip(0));
 				UG_LOG(", global_pos="<< m_vSCV[i].global_ip(0));
 				UG_LOG(", vol=" << m_vSCV[i].volume());
-				UG_LOG("\n    localCorner=" << m_vSCV[i].localPosition[0]);
-				UG_LOG(", localSide1=" << m_vSCV[i].localPosition[1]);
-				UG_LOG(", localCenter=" << m_vSCV[i].localPosition[2]);
-				UG_LOG(", localSide2=" << m_vSCV[i].localPosition[3]);
-				UG_LOG("\n    globalCorner=" << m_vSCV[i].globalPosition[0]);
-				UG_LOG(", globalSide1=" << m_vSCV[i].globalPosition[1]);
-				UG_LOG(", globalCenter=" << m_vSCV[i].globalPosition[2]);
-				UG_LOG(", globalSide2=" << m_vSCV[i].globalPosition[3]);
+				UG_LOG("\n    localCorner=" << m_vSCV[i].m_vLocPos[0]);
+				UG_LOG(", localSide1=" << m_vSCV[i].m_vLocPos[1]);
+				UG_LOG(", localCenter=" << m_vSCV[i].m_vLocPos[2]);
+				UG_LOG(", localSide2=" << m_vSCV[i].m_vLocPos[3]);
+				UG_LOG("\n    globalCorner=" << m_vSCV[i].m_vGloPos[0]);
+				UG_LOG(", globalSide1=" << m_vSCV[i].m_vGloPos[1]);
+				UG_LOG(", globalCenter=" << m_vSCV[i].m_vGloPos[2]);
+				UG_LOG(", globalSide2=" << m_vSCV[i].m_vGloPos[3]);
 
 				UG_LOG("\n");
 			}
@@ -457,10 +484,10 @@ class FV1Geometry {
 				UG_LOG(", local_pos="<< m_vSCVF[i].local_ip(0));
 				UG_LOG(", global_pos="<< m_vSCVF[i].global_ip(0));
 				UG_LOG(", normal=" << m_vSCVF[i].normal());
-				UG_LOG("\n    localEdgeMid=" << m_vSCVF[i].localPosition[0]);
-				UG_LOG(", localCenter=" << m_vSCVF[i].localPosition[1]);
-				UG_LOG(", globalEdgeMid=" << m_vSCVF[i].globalPosition[0]);
-				UG_LOG(", globalCenter=" << m_vSCVF[i].globalPosition[1]);
+				UG_LOG("\n    localEdgeMid=" << m_vSCVF[i].m_vLocPos[0]);
+				UG_LOG(", localCenter=" << m_vSCVF[i].m_vLocPos[1]);
+				UG_LOG(", globalEdgeMid=" << m_vSCVF[i].m_vGloPos[0]);
+				UG_LOG(", globalCenter=" << m_vSCVF[i].m_vGloPos[1]);
 				UG_LOG("\n    Shapes:\n");
 				for(size_t sh=0; sh < m_vSCVF[i].num_sh(); ++sh)
 				{

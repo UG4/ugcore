@@ -130,7 +130,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 				return false;
 #else
 			// apply iterator: c = B*d (damp is not used)
-			for(size_t i = 0; i < m_diagInv.size(); ++i)
+			for(size_t i = 0; i < c_vec.size(); ++i)
 			{
 				// c_vec[i] = d_vec[i] / m_pMatrix->get_diag(i) * m_damp;
 				c_vec[i] = d_vec[i];

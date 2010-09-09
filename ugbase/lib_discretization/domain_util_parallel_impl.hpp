@@ -195,10 +195,13 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 //	we have to copy or convert the grids position attachment.
 //	if we're in 2d, the third dimension will be skipped.
 //	if we're in 3d, the values are simply copied.
-	typename TDomain::position_attachment_type& aPos =
-				domainOut.get_position_attachment();
-	ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
-	mg.detach_from_vertices(aPosition);
+	if(TDomain::dim != 3)
+	{
+		typename TDomain::position_attachment_type& aPos =
+			domainOut.get_position_attachment();
+		ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, aPos);
+		mg.detach_from_vertices(aPosition);
+	}
 
 	return true;
 }

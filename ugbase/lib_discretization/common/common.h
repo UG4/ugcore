@@ -20,5 +20,8 @@
 // subset index group
 #include "./subset_group.h"
 
+// geometry helper
+#include "./geometry_util.h"
+
 
 #endif /* __H__LIB_DISCRETIZATION__COMMON__COMMON__ */

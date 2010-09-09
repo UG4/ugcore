@@ -58,7 +58,6 @@ class LinearSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 
 		// Solve J(u)*c_nl = d_nl, such that c_nl = J(u)^{-1} d_nl
 		// This is done by iterating: c_nl := c_nl + B(u)(d_nl - J(u)*c_nl)
-		// In d_nl the last defect d := d_nl - J(u)*c_nl is returned
 		// In the following:
 		// c_nl, d_nl refer to the non-linear defect and correction as e.g. in J(u) * c_nl = d_nl as it appears in Newton scheme
 		// c, d are the correction and defect for solving that linear equation iteratively.
@@ -75,7 +74,7 @@ class LinearSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			#endif
 
 			// copy d_nl as d
-			domain_function_type& d = d_nl;
+			domain_function_type d = d_nl;
 
 			// build defect:  d := d_nl - J(u)*c_nl
 			if(!m_A->apply_sub(c_nl, d))

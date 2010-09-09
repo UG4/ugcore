@@ -21,13 +21,5 @@ LocalShapeFunctionSetFactory()
 	if(init_standard_local_shape_function_sets<ReferenceHexahedron>() != true) assert(0);
 };
 
-LocalShapeFunctionSetFactory&
-LocalShapeFunctionSetFactory::
-inst()
-{
-	static LocalShapeFunctionSetFactory myInst;
-	return myInst;
-};
-
 } // namespace ug
 

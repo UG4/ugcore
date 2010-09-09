@@ -41,7 +41,11 @@ class LocalShapeFunctionSetFactory {
 
 	public:
 		// singleton provider
-		static LocalShapeFunctionSetFactory& inst();
+		static LocalShapeFunctionSetFactory& inst()
+		{
+			static LocalShapeFunctionSetFactory myInst;
+			return myInst;
+		};
 
 		// register a local shape function set for a given reference element type
 		template <typename TRefElem>

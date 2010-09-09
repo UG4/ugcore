@@ -272,10 +272,11 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			#ifdef UG_PARALLEL
 			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
 			else if(a_func.has_storage_type(PST_CONSISTENT) && b_func.has_storage_type(PST_CONSISTENT));
-			else if (a_func.has_storage_type(PST_ADDITIVE) && b_func.has_storage_type(PST_ADDITIVE))
+			else if (a_func.has_storage_type(PST_ADDITIVE) && b_func.has_storage_type(PST_ADDITIVE));
+			else
 			{
-				a_func.set_storage_type(PST_ADDITIVE);
-				b_func.set_storage_type(PST_ADDITIVE);
+				a_func.change_storage_type(PST_ADDITIVE);
+				b_func.change_storage_type(PST_ADDITIVE);
 			}
 			#endif
 			typename domain_function_type::vector_type& a = a_func.get_vector();

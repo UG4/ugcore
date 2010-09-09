@@ -10,6 +10,7 @@
 
 #include "lib_discretization/time_discretization/time_discretization_interface.h"
 #include "lib_discretization/io/vtkoutput.h"
+#include "common/profiler/profiler.h"
 
 namespace ug{
 

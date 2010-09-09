@@ -17,122 +17,153 @@
 
 namespace ug{
 
+//////////////////////////
+// Finite Volume Traits
+//////////////////////////
+
+template <typename TRefElem, int TWorldDim> struct finite_volume_traits;
+
+/////////////////////////
+// 1D Reference Element
+/////////////////////////
+
+template <> struct finite_volume_traits<ReferenceEdge, 1>
+{
+	const static size_t NumCornersOfSCVF = 1;
+	const static size_t MaxNumCornersOfSCV = 2;
+
+	static void NormalOnSCVF(MathVector<1>& outNormal, const MathVector<1>* vCornerCoords)
+		{ElementNormal<ReferenceVertex, 1>(outNormal, vCornerCoords);}
+
+	typedef ReferenceEdge scv_type;
+};
+
+template <> struct finite_volume_traits<ReferenceEdge, 2>
+{
+	const static size_t NumCornersOfSCVF = 1;
+	const static size_t MaxNumCornersOfSCV = 2;
+
+	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
+		{UG_ASSERT(0, "Not implemented");}
+
+	typedef ReferenceEdge scv_type;
+};
+
+template <> struct finite_volume_traits<ReferenceEdge, 3>
+{
+	const static size_t NumCornersOfSCVF = 1;
+	const static size_t MaxNumCornersOfSCV = 2;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{UG_ASSERT(0, "Not implemented");}
+
+	typedef ReferenceEdge scv_type;
+};
+
+/////////////////////////
+// 2D Reference Element
+/////////////////////////
+
+template <> struct finite_volume_traits<ReferenceTriangle, 2>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 4;
+
+	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
+		{ElementNormal<ReferenceEdge, 2>(outNormal, vCornerCoords);}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+template <> struct finite_volume_traits<ReferenceTriangle, 3>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 4;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{UG_ASSERT(0, "Not implemented");}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+template <> struct finite_volume_traits<ReferenceQuadrilateral, 2>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 4;
+
+	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
+		{ElementNormal<ReferenceEdge, 2>(outNormal, vCornerCoords);}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+template <> struct finite_volume_traits<ReferenceQuadrilateral, 3>
+{
+	const static size_t NumCornersOfSCVF = 2;
+	const static size_t MaxNumCornersOfSCV = 4;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{UG_ASSERT(0, "Not implemented");}
+
+	typedef ReferenceQuadrilateral scv_type;
+};
+
+/////////////////////////
+// 3D Reference Element
+/////////////////////////
+
+template <> struct finite_volume_traits<ReferenceTetrahedron, 3>
+{
+	const static size_t NumCornersOfSCVF = 4;
+	const static size_t MaxNumCornersOfSCV = 8;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vCornerCoords);}
+
+	typedef ReferenceHexahedron scv_type;
+};
+
+template <> struct finite_volume_traits<ReferencePrism, 3>
+{
+	const static size_t NumCornersOfSCVF = 4;
+	const static size_t MaxNumCornersOfSCV = 8;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vCornerCoords);}
+
+	typedef ReferenceHexahedron scv_type;
+};
+
+template <> struct finite_volume_traits<ReferencePyramid, 3>
+{
+	const static size_t NumCornersOfSCVF = 4;
+	const static size_t MaxNumCornersOfSCV = 10;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vCornerCoords);}
+
+	typedef ReferenceHexahedron scv_type;
+};
+
+template <> struct finite_volume_traits<ReferenceHexahedron, 3>
+{
+	const static size_t NumCornersOfSCVF = 4;
+	const static size_t MaxNumCornersOfSCV = 8;
+
+	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)
+		{ElementNormal<ReferenceQuadrilateral, 3>(outNormal, vCornerCoords);}
+
+	typedef ReferenceHexahedron scv_type;
+};
+
 ///////////////////
-// Volume of SCV
+// Functions
 ///////////////////
 
-template <int TRefDim, int TWorldDim>
-number VolumeOfSCV(const std::vector<MathVector<TWorldDim> >& vPoints);
-
-/////////////////////////////////////////////
-// Specialization for 1D Reference Dimension
-template <>
-number VolumeOfSCV<1,1>(const std::vector<MathVector<1> >& vPoints)
+template <typename TRefElem, int TWorldDim>
+void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const MathVector<TWorldDim>* vCornerCoords)
 {
-	UG_ASSERT(vPoints.size() == 2, "Must be a line.");
-	return VecDistance(vPoints[0], vPoints[1]);
-}
-template <>
-number VolumeOfSCV<1,2>(const std::vector<MathVector<2> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 2, "Must be a line.");
-	return VecDistance(vPoints[0], vPoints[1]);
-}
-template <>
-number VolumeOfSCV<1,3>(const std::vector<MathVector<3> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 2, "Must be a line.");
-	return VecDistance(vPoints[0], vPoints[1]);
-}
-
-/////////////////////////////////////////////
-// Specialization for 2D Reference Dimension
-
-template <>
-number VolumeOfSCV<2,2>(const std::vector<MathVector<2> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 4, "Must be a quadrilateral.");
-
-	const number tmp = (vPoints[3][1]-vPoints[1][1])*(vPoints[2][0]-vPoints[0][0])
-				-(vPoints[3][0]-vPoints[1][0])*(vPoints[2][1]-vPoints[0][1]);
-	return 0.5 * fabs( tmp );
-}
-
-template <>
-number VolumeOfSCV<2,3>(const std::vector<MathVector<3> >& vPoints)
-{
-	UG_ASSERT(0, "Not implemented.");
-	return -1;
-}
-
-/////////////////////////////////////////////
-// Specialization for 3D Reference Dimension
-
-template <>
-number VolumeOfSCV<3,3>(const std::vector<MathVector<3> >& vPoints)
-{
-	UG_ASSERT(0, "Not implemented.");
-	return -1;
-}
-
-
-///////////////////
-// Normal on SCVF
-///////////////////
-
-template <int TRefDim, int TWorldDim>
-void NormalOnSCVF(MathVector<TWorldDim>& outNormal, const std::vector<MathVector<TWorldDim> >& vPoints)
-{
-	UG_ASSERT(0, "Not implemented.");
-}
-
-/////////////////////////////////////////////
-// Specialization for 1D Reference Dimension
-
-template <>
-void NormalOnSCVF<1,1>(MathVector<1>& outNormal, const std::vector<MathVector<1> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 1, "Must be a point.");
-
-	outNormal[0] = 1.0;
-}
-
-template <>
-void NormalOnSCVF<1,2>(MathVector<2>& outNormal, const std::vector<MathVector<2> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 1, "Must be a point.");
-
-	outNormal[0] = 1.0;
-}
-
-/////////////////////////////////////////////
-// Specialization for 2D Reference Dimension
-
-template <>
-void NormalOnSCVF<2,2>(MathVector<2>& outNormal, const std::vector<MathVector<2> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 2, "Must be a line.");
-
-	MathVector<2> diff = vPoints[1]; // center of element
-	diff -= vPoints[0]; // edge midpoint
-
-	outNormal[0] = diff[1];
-	outNormal[1] = -diff[0];
-}
-
-/////////////////////////////////////////////
-// Specialization for 3D Reference Dimension
-
-template <>
-void NormalOnSCVF<3,3>(MathVector<3>& outNormal, const std::vector<MathVector<3> >& vPoints)
-{
-	UG_ASSERT(vPoints.size() == 4, "Must be a quadrilateral.");
-
-	MathVector<3> a, b;
-	VecSubtract(a, vPoints[2], vPoints[0]);
-	VecSubtract(b, vPoints[3], vPoints[1]);
-	VecCross(outNormal, a,b);
-	VecScale(outNormal, outNormal, 0.5);
+	finite_volume_traits<TRefElem, TWorldDim>::NormalOnSCVF(outNormal, vCornerCoords);
 }
 
 } // end namespace ug
