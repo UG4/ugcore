@@ -178,6 +178,20 @@ void CollectEdgesSorted(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, boo
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectEdges
+///	Collects all edges which exist in the given grid and which are part of the given vertex.
+void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
+{
+	if(clearContainer)
+		vEdgesOut.clear();
+
+	Grid::AssociatedEdgeIterator iterEnd = grid.associated_edges_end(vrt);
+	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(vrt);
+		iter != iterEnd; ++iter)
+	{
+		vEdgesOut.push_back(*iter);
+	}
+}
+
 ///	Collects all edges. (Returns the edge itself)
 void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer)
 {
@@ -252,6 +266,20 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectFaces
+///	Collects all faces that exist in the given grid which contain the given vertex.
+void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
+{
+	if(clearContainer)
+		vFacesOut.clear();
+
+	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(vrt);
+	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(vrt);
+		iter != iterEnd; ++iter)
+	{
+		vFacesOut.push_back(*iter);
+	}
+}
+
 ///	Collects all faces that exist in the given grid which contain the given edge.
 void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer)
 {
@@ -343,6 +371,20 @@ bool FaceContains(Face* f, VertexBase* v)
 			return true;
 	}
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
+void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
+{
+	if(clearContainer)
+		vVolumesOut.clear();
+
+	Grid::AssociatedVolumeIterator iterEnd = grid.associated_volumes_end(vrt);
+	for(Grid::AssociatedVolumeIterator iter = grid.associated_volumes_begin(vrt);
+		iter != iterEnd; ++iter)
+	{
+		vVolumesOut.push_back(*iter);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -251,7 +251,7 @@ class ISubsetHandler : public GridObserver
 	/**	All subsets in between num_subsets and index will be created, too.*/
 		inline void subset_info_required(int index);
 
-	///	returns the number of subset-infos
+	///	returns the number of subset-infos (return value is int, since SubsetIndices are of type int)
 		inline int num_subsets() const		{return (int)m_subsetInfos.size();}
 
 	////////////////////////////////

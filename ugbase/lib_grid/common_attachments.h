@@ -68,6 +68,13 @@ TAttachment&
 GetDefaultPositionAttachment();
 
 
+////////////////////////////////////////////////////////////////////////
+//	dimension of Position Attachment
+///	this function returns the dimension of the position attachment at compile time
+template <typename TAPos>
+inline int GetPositionAttachmentDimension();
+
+
 }//	end of namespace
 
 ////////////////////////////////

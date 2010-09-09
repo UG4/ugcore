@@ -32,6 +32,12 @@ GetDefaultPositionAttachment<APosition1>()
 	return aPosition1;
 }
 
+template <typename TAPos>
+inline int GetPositionAttachmentDimension()
+{
+	return TAPos::ValueType::Size;
+}
+
 
 }//	end of namespace
 

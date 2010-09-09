@@ -162,6 +162,13 @@ void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v
 /**
  * \ingroup lib_grid_algorithms_edge_util
  *
+ */
+void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, VertexBase* vrt, bool clearContainer = true);
+
+///	Collects all edges that exist in the given grid are part of the given edge.
+/**
+ * \ingroup lib_grid_algorithms_edge_util
+ *
  * This function simply returns the edge itself. It is added for completeness,
  * such that the function can be used in template code.
  */
@@ -207,6 +214,12 @@ inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt1, VertexBase* vrt2);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectFaces
+/**
+ * \ingroup lib_grid_algorithms_face_util
+ *
+ */
+void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, VertexBase* vrt, bool clearContainer = true);
+
 ///	Collects all faces that exist in the given grid which contain the given edge.
 /**
  * \ingroup lib_grid_algorithms_edge_util
@@ -248,6 +261,14 @@ bool FaceContains(Face* f, VertexBase* v);
 ///	returns true if the given face contains the given edge
 /// \ingrouop lib_grid_algorithms_face_util
 bool FaceContains(Face* f, EdgeVertices* ev);
+
+////////////////////////////////////////////////////////////////////////
+//	CollectVolumes
+///	Collects all volumes that exist in the given grid which contain the given vertex.
+/**
+ * \ingroup lib_grid_algorithms_vertex_util
+ */
+void CollectVolumes(std::vector<Volume*>& vVolumesOut, Grid& grid, VertexBase* vrt, bool clearContainer = true);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectVolumes
