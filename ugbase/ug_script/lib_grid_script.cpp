@@ -327,7 +327,7 @@ int remove_doubles(Grid* grid, number threshold)
 	LOG("  removing doubles... ");
 	size_t numVrtsAtStart = grid->num_vertices();
 
-	RemoveDoubles(*grid, grid->vertices_begin(), grid->vertices_end(),
+	RemoveDoubles<3>(*grid, grid->vertices_begin(), grid->vertices_end(),
 					aPosition, threshold);
 
 	int numRemoved = int(numVrtsAtStart - grid->num_vertices());
