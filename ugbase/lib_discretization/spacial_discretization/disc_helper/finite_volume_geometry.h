@@ -263,11 +263,12 @@ class FV1Geometry {
 				copy_local_corners(m_vSCVF[i]);
 
 				// integration point
-				VecInterpolateLinear(	m_vSCVF[i].localIP,
+				average_corners<dim>(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
+/*				VecInterpolateLinear(	m_vSCVF[i].localIP,
 										m_vSCVF[i].m_vLocPos[0],
 										m_vSCVF[i].m_vLocPos[1],
 										0.5);
-			}
+*/			}
 
 			// set up local informations for SubControlVolumes (scv)
 			// each scv is associated to one corner of the element
@@ -368,11 +369,12 @@ class FV1Geometry {
 				copy_global_corners(m_vSCVF[i]);
 
 				// integration point
-				VecInterpolateLinear(	m_vSCVF[i].globalIP,
+				average_corners<world_dim>(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
+/*				VecInterpolateLinear(	m_vSCVF[i].globalIP,
 										m_vSCVF[i].m_vGloPos[0],
 										m_vSCVF[i].m_vGloPos[1],
 										0.5);
-
+*/
 				// normal on scvf
 				NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
 			}
@@ -413,6 +415,17 @@ class FV1Geometry {
 		}
 
 	protected:
+		template <int TDim>
+		void average_corners(MathVector<TDim>& vOut, const MathVector<TDim>* vCornerCoords, size_t num)
+		{
+			vOut = vCornerCoords[0];
+			for(size_t j = 1; j < num; ++j)
+			{
+				vOut += vCornerCoords[j];
+			}
+			vOut *= 1./(number)num;
+		}
+
 		void copy_local_corners(SCVF& scvf)
 		{
 			for(size_t i = 0; i < scvf.m_numCorners; ++i)
