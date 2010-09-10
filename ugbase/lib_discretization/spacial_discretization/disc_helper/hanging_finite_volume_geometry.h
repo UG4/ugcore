@@ -15,7 +15,6 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lib_grid.h"
-#include "lib_algebra/lib_algebra.h"
 
 // library intern includes
 #include "../../reference_element/reference_element.h"
@@ -186,7 +185,7 @@ class HFVGeometry {
 			{
 				m_vSCV[i].globalPosition[2] = m_globalCenter;
 				m_vSCV[i].localPosition[2] = m_localCenter;
-				m_vSCV[i].vol = ElementSize<scv_type, world_dim>(m_vSCV[i].globalPosition);;
+				m_vSCV[i].vol = ElementSize<scv_type, world_dim>(&(m_vSCV[i].globalPosition[0]));;
 			}
 
 			// compute shapes and derivatives
@@ -309,6 +308,17 @@ class HFVGeometry {
 				inline const MathVector<dim>& local_grad(size_t i) const {return localGrad[i];}
 				inline const MathVector<world_dim>& global_grad(size_t i) const {return globalGrad[i];}
 
+				/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return localPosition.size();}
+
+				/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return localPosition[i];}
+
+				/// return glbal corner number i
+				inline const MathVector<world_dim>& global_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return globalPosition[i];}
+
 			private:
 				// edge part
 				size_t nodeId[2]; // node ids of associated edge
@@ -346,6 +356,17 @@ class HFVGeometry {
 				inline const MathVector<dim>& local_ip() const {return localPosition[0];}
 				inline const MathVector<world_dim>& global_ip() const {return globalPosition[0];}
 				inline number volume() const {return vol;}
+
+				/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return localPosition.size();}
+
+				/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return localPosition[i];}
+
+				/// return glbal corner number i
+				inline const MathVector<world_dim>& global_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return globalPosition[i];}
 
 			private:
 				size_t nodeId; // node id of associated node

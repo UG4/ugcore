@@ -264,11 +264,7 @@ class FV1Geometry {
 
 				// integration point
 				average_corners<dim>(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
-/*				VecInterpolateLinear(	m_vSCVF[i].localIP,
-										m_vSCVF[i].m_vLocPos[0],
-										m_vSCVF[i].m_vLocPos[1],
-										0.5);
-*/			}
+			}
 
 			// set up local informations for SubControlVolumes (scv)
 			// each scv is associated to one corner of the element
@@ -370,11 +366,7 @@ class FV1Geometry {
 
 				// integration point
 				average_corners<world_dim>(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
-/*				VecInterpolateLinear(	m_vSCVF[i].globalIP,
-										m_vSCVF[i].m_vGloPos[0],
-										m_vSCVF[i].m_vGloPos[1],
-										0.5);
-*/
+
 				// normal on scvf
 				NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
 			}
