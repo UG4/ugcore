@@ -368,6 +368,11 @@ void HangingNodeRefiner_IR1::collect_objects_for_refine()
 //		The marks have to be adjusted. All edges on which a vertex has to be generated
 //		should be marked.
 
+//	This variable determines whether a marked edge leads to the refinement of
+//	associated faces and volumes.
+	static const bool automarkHigherDimensionalObjects = false;
+
+//	comfortable grid access.
 	Grid& grid = *m_pGrid;
 
 //	containers used for temporary results
@@ -390,26 +395,66 @@ void HangingNodeRefiner_IR1::collect_objects_for_refine()
 	collect_associated_unmarked_edges(qEdges, grid,
 						m_selMarkedElements.begin<Volume>(),
 						m_selMarkedElements.end<Volume>());
-
+	
 	if(grid.num_faces() > 0){
-		collect_associated_unmarked_faces(qFaces, grid,
-							m_selMarkedElements.begin<EdgeBase>(),
-							m_selMarkedElements.end<EdgeBase>());
-		
+		if(automarkHigherDimensionalObjects){
+		//	automarking of higher dimensional elements
+		//	if a edge is selected, all associated faces will be refined.
+			collect_associated_unmarked_faces(qFaces, grid,
+								m_selMarkedElements.begin<EdgeBase>(),
+								m_selMarkedElements.end<EdgeBase>());
+		}
+
 		collect_associated_unmarked_faces(qFaces, grid,
 							m_selMarkedElements.begin<Volume>(),
 							m_selMarkedElements.end<Volume>());
 	}
 	
 	if(grid.num_volumes() > 0){
-		collect_associated_unmarked_volumes(qVols, grid,
-							m_selMarkedElements.begin<EdgeBase>(),
-							m_selMarkedElements.end<EdgeBase>());
+		if(automarkHigherDimensionalObjects){
+		//	automarking of higher dimensional elements
+		//	if an edge or face is selected, associated volumes will be refined, too.
+			collect_associated_unmarked_volumes(qVols, grid,
+								m_selMarkedElements.begin<EdgeBase>(),
+								m_selMarkedElements.end<EdgeBase>());
 
-		collect_associated_unmarked_volumes(qVols, grid,
-							m_selMarkedElements.begin<Face>(),
-							m_selMarkedElements.end<Face>());
+			collect_associated_unmarked_volumes(qVols, grid,
+								m_selMarkedElements.begin<Face>(),
+								m_selMarkedElements.end<Face>());
+		}
 	}
+
+//	add unmarked constraining edges and faces of constrained ones to the queues.
+//	NOTE: This step is only required if automarking of higher dimensional
+//		  objects is disabled.
+	if(!automarkHigherDimensionalObjects){
+		for(ConstrainedEdgeIterator iter = m_selMarkedElements.begin<ConstrainedEdge>();
+			iter != m_selMarkedElements.end<ConstrainedEdge>(); ++iter)
+		{
+			if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>((*iter)->get_constraining_object()))
+				if(!is_marked(cge))
+					qEdges.push(cge);
+			else if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
+				if(!is_marked(cgf))
+					qFaces.push(cgf);
+		}
+		for(ConstrainedTriangleIterator iter = m_selMarkedElements.begin<ConstrainedTriangle>();
+			iter != m_selMarkedElements.end<ConstrainedTriangle>(); ++iter)
+		{
+			if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
+				if(!is_marked(cgf))
+					qFaces.push(cgf);
+		}
+		for(ConstrainedQuadrilateralIterator iter = m_selMarkedElements.begin<ConstrainedQuadrilateral>();
+			iter != m_selMarkedElements.end<ConstrainedQuadrilateral>(); ++iter)
+		{
+			if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
+				if(!is_marked(cgf))
+					qFaces.push(cgf);
+		}
+	}
+
+
 
 //	we'll now iterate over the queues and adjust the marks
 //	as long as at least one queue contains something, we'll continue looping.

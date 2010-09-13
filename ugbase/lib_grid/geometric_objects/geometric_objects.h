@@ -1131,6 +1131,9 @@ class Tetrahedron : public Volume
 		virtual void face(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
+		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Face* create_face(int index);		///< create the face with index i and return it.
+
 	///	Creates new volume elements through refinement.
 	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
 	 *	newFaceVertices is ignored for Tetrahedrons.*/
@@ -1151,10 +1154,6 @@ class Tetrahedron : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_TETRAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_TETRAHEDRON;}
-
-	protected:
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
 };
 
 template <>
@@ -1234,6 +1233,9 @@ class Hexahedron : public Volume
 		virtual void face(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
+		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Face* create_face(int index);		///< create the face with index i and return it.
+
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
@@ -1252,10 +1254,6 @@ class Hexahedron : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_HEXAHEDRON;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_HEXAHEDRON;}
-
-	protected:
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
 };
 
 template <>
@@ -1335,6 +1333,9 @@ class Prism : public Volume
 		virtual void face(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
+		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Face* create_face(int index);		///< create the face with index i and return it.
+
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
@@ -1353,10 +1354,6 @@ class Prism : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_PRISM;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_PRISM;}
-
-	protected:
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
 };
 
 template <>
@@ -1436,6 +1433,9 @@ class Pyramid : public Volume
 		virtual void face(int index, FaceDescriptor& fdOut) const;
 		virtual uint num_faces() const;
 
+		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
+		virtual Face* create_face(int index);		///< create the face with index i and return it.
+
 	///	see Volume::refine for a detailed description.
 		virtual bool refine(std::vector<Volume*>& vNewVolumesOut,
 							VertexBase** ppNewVertexOut,
@@ -1454,10 +1454,6 @@ class Pyramid : public Volume
 		virtual int shared_pipe_section() const	{return SPSVOL_PYRAMID;}
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const {return ROID_PYRAMID;}
-
-	protected:
-		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
-		virtual Face* create_face(int index);		///< create the face with index i and return it.
 };
 
 template <>

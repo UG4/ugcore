@@ -60,6 +60,8 @@ static bool LoadGrid(Grid& grid, const char* filename,
 	}
 	else if(strName.find(".ele") != string::npos)
 		return LoadGridFromELE(grid, filename, pSH, aPos);
+	else if(strName.find(".msh") != string::npos)
+		bSuccess = LoadGridFromMSH(grid, filename, pSH, aPos);
 
 	if(bAutoassignFaces && pSH)
 		pSH->assign_subset(grid.faces_begin(), grid.faces_end(), 0);

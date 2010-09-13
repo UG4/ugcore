@@ -743,6 +743,9 @@ class Volume : public GeometricObject, public VolumeVertices
 		virtual uint num_faces() const								{return 0;}
 		inline uint num_sides() const								{return num_faces();}
 
+		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
+		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.
+
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices
 	 * on the volume.
@@ -824,10 +827,6 @@ class Volume : public GeometricObject, public VolumeVertices
 		virtual int base_object_type_id() const	{return VOLUME;}
 		virtual int reference_object_id() const	{return -1;}
 
-	protected:
-		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
-		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.
-
 	/**	creates the volumes that result from the splitting of the edge with index 'splitEdgeIndex'.*/
 		//virtual void create_volumes_by_edge_split(int splitEdgeIndex,
 		//						VertexBase* newVertex,
@@ -837,7 +836,7 @@ class Volume : public GeometricObject, public VolumeVertices
 		//virtual void create_Volumes_by_edge_collapse(int collapseEdgeIndex,
 		//						VertexBase* newVertex,
 		//						std::vector<Volume*>& vNewFacesOut) = 0;
-
+	protected:
 		inline void set_vertex(uint index, VertexBase* pVrt)	{m_vertices[index] = pVrt;}
 };
 
