@@ -98,9 +98,9 @@ class HangingConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 
 		// Finite Volume Element Geometry
 		template <typename TElem>
-		inline HFVGeometry<TElem, dim>& get_fvgeom()
+		inline HFV1Geometry<TElem, dim>& get_fvgeom()
 		{
-			static HFVGeometry<TElem, dim> geo;
+			static HFV1Geometry<TElem, dim> geo;
 			return geo;
 		}
 
@@ -148,7 +148,10 @@ class HangingConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 			register_all_assemble_functions<Edge>(ROID_EDGE);
 			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
 			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-			// TODO: Register 3D Ref-Elems
+			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
+			register_all_assemble_functions<Pyramid>(ROID_PYRAMID);
+			register_all_assemble_functions<Prism>(ROID_PRISM);
+			register_all_assemble_functions<Hexahedron>(ROID_HEXAHEDRON);
 		}
 
 		// help function
