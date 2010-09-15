@@ -136,8 +136,6 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v
  */
 void CollectEdgesSorted(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, EdgeBase* e, bool clearContainer = true);
 
-////////////////////////////////////////////////////////////////////////
-//	CollectEdges
 ///	Collects all edges that exist in the given grid are part of the given face in the order defined by the reference elements.
 /**
  * \ingroup lib_grid_algorithms_face_util
@@ -211,6 +209,29 @@ inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt);
 ///	returns true if the given edge contains the given vertices
 /// \ingrouop lib_grid_algorithms_edge_util
 inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt1, VertexBase* vrt2);
+
+////////////////////////////////////////////////////////////////////////
+//	CollectFacesSorted
+///	Collects all face that exist in the given grid are part of the given edge in the order defined by the reference elements.
+/**
+ * \ingroup lib_grid_algorithms_edge_util
+ */
+void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer = true);
+
+///	Collects all face that exist in the given grid are part of the given face in the order defined by the reference elements.
+/**
+ * \ingroup lib_grid_algorithms_face_util
+ */
+void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid, Face* f, bool clearContainer = true);
+
+///	Collects all face that exist in the given grid are part of the given volume in the order defined by the reference elements.
+/**
+ * \ingroup lib_grid_algorithms_volume_util
+ *
+ * This function returns the associated faces of a volume in an std::vector. The order of the faces in the vector
+ * is equal to the numbering of faces in the reference element for the volume.
+ */
+void CollectFacesSorted(std::vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool clearContainer = true);
 
 ////////////////////////////////////////////////////////////////////////
 //	CollectFaces

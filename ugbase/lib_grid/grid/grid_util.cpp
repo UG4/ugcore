@@ -265,6 +265,56 @@ void CollectEdges(vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool clea
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectFacesSorted
+///	Collects all faces and returns them in the order prescribed by the reference element.
+void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	if(clearContainer)
+		vFacesOut.clear();
+
+	VertexBase* v1 = e->vertex(0);
+	Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v1);
+	for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v1);
+		iter != iterEnd; ++iter)
+	{
+		if(FaceContains(*iter, e))
+			vFacesOut.push_back(*iter);
+	}
+
+	// TODO: Must still be sorted
+	UG_ASSERT(0, "Must be sorted as in reference element.");
+
+}
+
+///	Collects all faces and returns them in the order prescribed by the reference element.
+void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Face* f, bool clearContainer)
+{
+	if(clearContainer)
+		vFacesOut.clear();
+
+	if(f != NULL)
+		vFacesOut.push_back(f);
+}
+
+///	Collects all faces and returns them in the order prescribed by the reference element.
+void CollectFacesSorted(vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool clearContainer)
+{
+	if(clearContainer)
+		vFacesOut.clear();
+
+	// TODO:	If option VOLOPT_STORE_ASSOCIATED_FACES enabled, it might be
+	// 			more efficient to use associated_faces and sort them
+
+	uint numFaces = v->num_faces();
+	for(uint i = 0; i < numFaces; ++i)
+	{
+		Face* f = grid.get_face(v, i);
+		if(f != NULL)
+			vFacesOut.push_back(f);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	CollectFaces
 ///	Collects all faces that exist in the given grid which contain the given vertex.
 void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, VertexBase* vrt, bool clearContainer)
