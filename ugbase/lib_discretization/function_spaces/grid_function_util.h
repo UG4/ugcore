@@ -56,6 +56,18 @@ void WriteMatrixToConnectionViewer(const char *filename, const typename TFunctio
 	WriteMatrixToConnectionViewer(filename, A, &positions[0], dim);
 }
 
+template <class TFunction>
+void WriteVectorToConnectionViewer(const char *filename, const typename TFunction::algebra_type::vector_type &b, const TFunction &u)
+{
+	const static int dim = TFunction::domain_type::dim;
+	std::vector<MathVector<dim> > positions;
+
+	// get positions of vertices
+	ExtractPositions(u, positions);
+
+	// write matrix
+	WriteVectorToConnectionViewer(filename, b, &positions[0], dim);
+}
 } // end namespace ug
 
 #endif /* __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_UTIL__ */
