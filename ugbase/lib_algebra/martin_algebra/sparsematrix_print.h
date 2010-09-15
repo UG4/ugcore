@@ -92,5 +92,38 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 	}
 }
 
+// WriteMatrixToConnectionViewer
+//--------------------------------------------------
+/**
+ * \brief writes to a file in somewhat SparseMatrix-market format (for connection viewer)
+ * \param filename Filename to write matrix to
+ * \param A SparseMatrix A.
+ * \param positions Positions, there has to be one position for each i in (0, ..., max(A.num_rows(), A.num_cols())).
+ */
+template<typename Vector_type, typename postype>
+void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, postype *positions, int dimensions)
+{
+	fstream file(filename, ios::out);
+	file << CONNECTION_VIEWER_VERSION << endl;
+	file << dimensions << endl;
+
+	int rows = b.size();
+	// write positions
+	file << rows << endl;
+	if(dimensions == 2)
+		for(int i=0; i < rows; i++)
+			file << positions[i][0] << " " << positions[i][1] << endl;
+	else
+		for(int i=0; i < rows; i++)
+		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
+
+	file << 1 << endl; // show all cons
+	// write connections
+	for(int i=0; i < rows; i++)
+	{
+		file << i << " " << i << " " << b[i] <<		endl;
+	}
+}
+
 }
 #endif // __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_PRINT__
