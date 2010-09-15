@@ -83,6 +83,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 			Edge* edge = dynamic_cast<Edge*>(geomObj);
 			Quadrilateral* quad = dynamic_cast<Quadrilateral*>(geomObj);
+			Hexahedron* hexaeder = dynamic_cast<Hexahedron*>(geomObj);
 
 			for(size_t fct = 0; fct < uFine.num_fct(); fct++)
 			{
@@ -147,6 +148,27 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.25;
+					}
+					continue;
+				}
+
+				// Check if father is Hexaeder
+				if(hexaeder != NULL)
+				{
+					for(int i = 0; i < 8; ++i)
+					{
+						vert = hexaeder->vertex(i);
+
+						// get global indices
+						if(uCoarse.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
+							return false;
+
+						// skip boundary nodes
+						int si = sh.get_subset_index(vert);
+						if(ass.is_dirichlet(si, fct)) continue;
+
+						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
+									fineMultInd[0][1], coarseMultInd[0][1]) = 0.125;
 					}
 					continue;
 				}
