@@ -718,13 +718,13 @@ enable_subset_attachments(bool bEnable)
 			//	clear attachment data
 			if(subset_attachments_are_enabled())
 			{
+				//	clear pipes
+				clear_attachment_pipes();
+
 				m_pGrid->detach_from_vertices(m_aDataIndex);
 				m_pGrid->detach_from_edges(m_aDataIndex);
 				m_pGrid->detach_from_faces(m_aDataIndex);
 				m_pGrid->detach_from_volumes(m_aDataIndex);
-
-				//	clear pipes
-				clear_attachment_pipes();
 			}
 
 			m_bSubsetAttachmentsEnabled = false;
