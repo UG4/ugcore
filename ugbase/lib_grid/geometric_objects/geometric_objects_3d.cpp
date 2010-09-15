@@ -132,18 +132,18 @@ void Tetrahedron::face(int index, FaceDescriptor& fdOut) const
 				fdOut.set_vertex(2, m_vertices[1]);
 				break;
 			case 1:
-				fdOut.set_vertex(0, m_vertices[0]);
-				fdOut.set_vertex(1, m_vertices[1]);
-				fdOut.set_vertex(2, m_vertices[3]);
-				break;
-			case 2:
 				fdOut.set_vertex(0, m_vertices[1]);
 				fdOut.set_vertex(1, m_vertices[2]);
 				fdOut.set_vertex(2, m_vertices[3]);
 				break;
-			case 3:
+			case 2:
 				fdOut.set_vertex(0, m_vertices[2]);
 				fdOut.set_vertex(1, m_vertices[0]);
+				fdOut.set_vertex(2, m_vertices[3]);
+				break;
+			case 3:
+				fdOut.set_vertex(0, m_vertices[0]);
+				fdOut.set_vertex(1, m_vertices[1]);
 				fdOut.set_vertex(2, m_vertices[3]);
 				break;
 		}
@@ -476,7 +476,7 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 	{
 		VertexBase** evrts = newEdgeVertices;
 		VertexBase** fvrts = newFaceVertices;
-		
+
 	//	get the number of new vertices.
 		uint numNewEdgeVrts = 0;
 		for(uint i = 0; i < 12; ++i)
@@ -557,13 +557,13 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 					assert(!"PROBLEM in Hexahedron::refine(...): All faces have to contain an inner vertex if all edges are marked.");
 					return false;
 				}
-				
+
 				if(!newVolumeVertex)
 					newVolumeVertex = reinterpret_cast<VertexBase*>(prototypeVertex.create_empty_instance());
-					
+
 				VertexBase* vvrt = newVolumeVertex;
 				*ppNewVertexOut = vvrt;
-			
+
 				vNewVolumesOut.reserve(8);
 			//	left bottom front
 				vNewVolumesOut.push_back(new Hexahedron(vrts[0], evrts[0], fvrts[0], evrts[3],
@@ -798,7 +798,7 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 	{
 		VertexBase** evrts = newEdgeVertices;
 		VertexBase** fvrts = newFaceVertices;
-		
+
 	//	get the number of new vertices.
 		uint numNewEdgeVrts = 0;
 		for(uint i = 0; i < 9; ++i)
@@ -865,7 +865,7 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 					assert(!"PROBLEM in Prism::refine(...): All quad-faces have to contain an inner vertex if all edges are marked.");
 					return false;
 				}
-			
+
 				vNewVolumesOut.reserve(8);
 			//	left bottom front
 				vNewVolumesOut.push_back(new Prism(vrts[0], evrts[0], evrts[2],
@@ -892,7 +892,7 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 			//	top center
 				vNewVolumesOut.push_back(new Prism(fvrts[2], fvrts[3], fvrts[1],
 												   evrts[7], evrts[8], evrts[6]));
-				
+
 				return true;
 			}
 		}
@@ -1090,7 +1090,7 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 	{
 		VertexBase** evrts = newEdgeVertices;
 		VertexBase* fvrt = newFaceVertices[0];
-		
+
 	//	get the number of new vertices.
 		uint numNewEdgeVrts = 0;
 		for(uint i = 0; i < 8; ++i)
@@ -1151,7 +1151,7 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 				}
 
 				vNewVolumesOut.reserve(10);
-				
+
 			//	left bottom front
 				vNewVolumesOut.push_back(new Pyramid(vrts[0], evrts[0], fvrt, evrts[3], evrts[4]));
 			//	right bottom front
@@ -1161,10 +1161,10 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 			//	left bottom back
 				vNewVolumesOut.push_back(new Pyramid(evrts[3], fvrt, evrts[2], vrts[3], evrts[7]));
 			//	central
-				vNewVolumesOut.push_back(new Pyramid(evrts[7], evrts[6], evrts[5], evrts[4], fvrt));				
+				vNewVolumesOut.push_back(new Pyramid(evrts[7], evrts[6], evrts[5], evrts[4], fvrt));
 			//	top
 				vNewVolumesOut.push_back(new Pyramid(evrts[4], evrts[5], evrts[6], evrts[7], vrts[4]));
-				
+
 			//	tet front
 				vNewVolumesOut.push_back(new Tetrahedron(evrts[4], evrts[0], evrts[5], fvrt));
 			//	tet right
@@ -1173,7 +1173,7 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 				vNewVolumesOut.push_back(new Tetrahedron(evrts[6], evrts[2], evrts[7], fvrt));
 			//	tet left
 				vNewVolumesOut.push_back(new Tetrahedron(evrts[7], evrts[3], evrts[4], fvrt));
-				
+
 				return true;
 			}
 		}
