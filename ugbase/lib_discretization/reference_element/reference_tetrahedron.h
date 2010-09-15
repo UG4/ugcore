@@ -186,17 +186,17 @@ class ReferenceTetrahedron{
 		 	m_id[POINT][3][FACE][2] = 1;
 
 		 	// Edges <-> Faces
-		 	m_id[FACE][0][EDGE][0] = 0;
-		 	m_id[FACE][0][EDGE][1] = 2;
-		 	m_id[FACE][0][EDGE][2] = 1;
+		 	m_id[FACE][0][EDGE][0] = 2;
+		 	m_id[FACE][0][EDGE][1] = 1;
+		 	m_id[FACE][0][EDGE][2] = 0;
 
 		 	m_id[FACE][1][EDGE][0] = 1;
 		 	m_id[FACE][1][EDGE][1] = 5;
 		 	m_id[FACE][1][EDGE][2] = 4;
 
-		 	m_id[FACE][2][EDGE][0] = 2;
-		 	m_id[FACE][2][EDGE][1] = 3;
-		 	m_id[FACE][2][EDGE][2] = 5;
+		 	m_id[FACE][2][EDGE][0] = 3;
+		 	m_id[FACE][2][EDGE][1] = 5;
+		 	m_id[FACE][2][EDGE][2] = 2;
 
 		 	m_id[FACE][3][EDGE][0] = 0;
 		 	m_id[FACE][3][EDGE][1] = 4;
