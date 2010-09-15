@@ -56,18 +56,40 @@ bool CreateSCVF(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler
 
 			//	set the coordinates
 				aaPosOut[vrt] = scvf.global_corner(co);
+
+				//UG_LOG("Creating node " << co << " at " << aaPosOut[vrt] << " (vrt= " << vrt << ")\n");
 		}
+		UG_LOG("\n");
 
 		// edge
 		if(refDim == 2)
 		{
-			grid.template create<Edge>(EdgeDescriptor(vVert[0], vVert[1]));
+			if(scvf.num_corners() == 2)
+			{
+				grid.template create<Edge>(EdgeDescriptor(vVert[0], vVert[1]));
+			}
+			else
+			{
+				UG_LOG("SCVF has a number of nodes, that is not drawable.\n"); return false;
+			}
 		}
 		// face
 		else if(refDim == 3)
 		{
-			grid.template create<Quadrilateral>(QuadrilateralDescriptor(vVert[0], vVert[1],
-																		vVert[2], vVert[3]));
+			if(scvf.num_corners() == 4)
+			{
+				grid.template create<Quadrilateral>(QuadrilateralDescriptor(vVert[0], vVert[1],
+																			vVert[2], vVert[3]));
+			}
+			else if(scvf.num_corners() == 3)
+			{
+				grid.template create<Triangle>(TriangleDescriptor(vVert[0], vVert[1],
+																			vVert[2]));
+			}
+			else
+			{
+				UG_LOG("SCVF has a number of nodes, that is not drawable.\n"); return false;
+			}
 		}
 	}
 	return true;
@@ -250,7 +272,10 @@ bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler&
 			//	The other vertices remain in subset -1
 				if(co == 0) shOut.assign_subset(vrt, 0);
 				else shOut.assign_subset(vrt, -1);
+
+				UG_LOG("Creating node " << co << " at " << aaPosOut[vrt] << " (vrt= " << vrt << ")\n");
 		}
+		UG_LOG("\n");
 
 		// edge
 		if(refDim == 1)
@@ -260,14 +285,32 @@ bool CreateSCV(const TElem& elem, TFVGeom<TElem, TWorldDim>& geo, SubsetHandler&
 		// face
 		else if(refDim == 2)
 		{
-			grid.template create<Quadrilateral>(QuadrilateralDescriptor(vVert[0], vVert[1],
+			if(scv.num_corners() == 4)
+			{
+				grid.template create<Quadrilateral>(QuadrilateralDescriptor(vVert[0], vVert[1],
 																		vVert[2], vVert[3]));
+			}
+			else
+			{
+				UG_LOG("SCV has a number of nodes, that is not drawable.\n"); return false;
+			}
 		}
 		// volume
 		else if(refDim == 3)
 		{
-			grid.template create<Hexahedron>(HexahedronDescriptor(	vVert[0], vVert[1], vVert[2], vVert[3],
-																	vVert[4], vVert[5], vVert[6], vVert[7]));
+			if(scv.num_corners() == 8)
+			{
+				grid.template create<Hexahedron>(HexahedronDescriptor(	vVert[0], vVert[1], vVert[2], vVert[3],
+																		vVert[4], vVert[5], vVert[6], vVert[7]));
+			}
+			else if(scv.num_corners() == 4)
+			{
+				grid.template create<Tetrahedron>(TetrahedronDescriptor(	vVert[0], vVert[1], vVert[2], vVert[3]));
+			}
+			else
+			{
+				UG_LOG("SCV has a number of nodes, that is not drawable.\n"); return false;
+			}
 		}
 	}
 	return true;

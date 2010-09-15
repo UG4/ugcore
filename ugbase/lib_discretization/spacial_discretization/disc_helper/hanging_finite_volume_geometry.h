@@ -25,76 +25,246 @@ namespace ug{
 
 template <	typename TElem,
 			int TWorldDim>
-class HFVGeometry {
+class HFV1Geometry {
 	private:
 		// type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 		// number of SubControlVolumes
-		static const size_t m_numSCV = ref_elem_type::num_corners;
-
-		// type of SubControlVolume
-		typedef typename finite_volume_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
+		static const size_t m_numNaturalSCV = ref_elem_type::num_corners;
 
 		// number of SubControlVolumeFaces
-		static const size_t m_numSCVF = ref_elem_type::num_edges;
+		static const size_t m_numNaturalSCVF = ref_elem_type::num_edges;
 
 	public:
+		// dimension of reference element
 		static const int dim = ref_elem_type::dim;
+
+		// dimension of world
 		static const int world_dim = TWorldDim;
 
-	public:
-		HFVGeometry()
+	protected:
+		struct MidID
 		{
-			m_vSCV.resize(ref_elem_type::num_corners);
-			for(size_t i = 0; i < (size_t) ref_elem_type::num_corners; ++i)
+				MidID() : dim(0), id(0) {};
+				MidID(size_t dim_, size_t id_) : dim(dim_), id(id_) {};
+				size_t dim;
+				size_t id;
+		};
+
+	public:
+		class SCVF
+		{
+			private:
+				// let outer class access private members
+				friend class HFV1Geometry<TElem, TWorldDim>;
+
+				// number of integration points
+				static const size_t m_numIP = 1;
+
+				// Number of corners of scvf
+				static const size_t m_numCorners = dim;
+
+			public:
+				SCVF() {};
+
+				/// index of SubControlVolume on one side of the scvf
+				inline size_t from() const {return m_from;}
+
+				/// index of SubControlVolume on one side of the scvf
+				inline size_t to() const {return m_to;}
+
+				/// number of integration points on scvf
+				inline size_t num_ip() const {return m_numIP;}
+
+				/// local integration point of scvf
+				inline const MathVector<dim>& local_ip(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localIP;}
+
+				/// global integration point of scvf
+				inline const MathVector<world_dim>& global_ip(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalIP;}
+
+				/// normal on scvf (points direction "from"->"to"). Norm is equal to area
+				inline const MathVector<world_dim>& normal() const {return Normal;} // includes area
+
+				/// Transposed Inverse of Jacobian in integration point
+				inline const MathMatrix<dim,world_dim>& JTInv(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return JtInv;}
+
+				/// Determinante of Jacobian in integration point
+				inline number detJ(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return detj;}
+
+				/// number of shape functions
+				inline size_t num_sh() const {return vShape.size();}
+
+				/// value of shape function i in integration point
+				inline number shape(size_t i, size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return vShape[i];}
+
+				/// value of local gradient of shape function i in integration point
+				inline const MathVector<dim>& local_grad(size_t i, size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localGrad[i];}
+
+				/// value of global gradient of shape function i in integration point
+				inline const MathVector<world_dim>& global_grad(size_t i, size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalGrad[i];}
+
+				/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return m_numCorners;}
+
+				/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vLocPos[i];}
+
+				/// return glbal corner number i
+				inline const MathVector<world_dim>& global_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vGloPos[i];}
+
+			private:
+				// This scvf separates the scv with the ids given in "from" and "to"
+				// The computed normal points in direction from->to
+				size_t m_from, m_to;
+
+				// ordering is:
+				// 2D: edgeMidPoint, CenterOfElement
+				// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
+				MathVector<dim> m_vLocPos[m_numCorners]; // local corners of scvf
+				MathVector<world_dim> m_vGloPos[m_numCorners]; // global corners of scvf
+				MidID m_midId[m_numCorners]; // dimension and id of object, that's midpoint bounds the scvf
+
+				// scvf part
+				MathVector<dim> localIP; // local integration point
+				MathVector<world_dim> globalIP; // global intergration point
+				MathVector<world_dim> Normal; // normal (incl. area)
+
+				// shapes and derivatives
+				std::vector<number> vShape; // shapes at ip
+				std::vector<MathVector<dim> > localGrad; // local grad at ip
+				std::vector<MathVector<world_dim> > globalGrad; // global grad at ip
+				MathMatrix<world_dim,dim> JtInv; // Jacobian transposed at ip
+				number detj; // Jacobian det at ip
+		};
+
+		class SCV
+		{
+			private:
+				// let outer class access private members
+				friend class HFV1Geometry<TElem, TWorldDim>;
+
+				// number of integration points
+				static const size_t m_numIP = 1;
+
+				// Number of corners of scvf
+				static const size_t m_maxNumCorners = hanging_finite_volume_traits<ref_elem_type, TWorldDim>::MaxNumCornersOfSCV;
+
+				// type of element the subcontrol volume represents
+				typedef typename hanging_finite_volume_traits<ref_elem_type, TWorldDim>::scv_type scv_type;
+
+			public:
+				SCV() : m_numCorners(m_maxNumCorners) {};
+
+				/// node id that this scv is associated to
+				inline size_t node_id() const {return nodeId;}
+
+				/// number of integration points
+				inline size_t num_ip() const {return m_numIP;}
+
+				/// local integration point of scv
+				inline const MathVector<dim>& local_ip(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return m_vLocPos[0];}
+
+				/// global integration point
+				inline const MathVector<world_dim>& global_ip(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return m_vGloPos[0];}
+
+				/// volume of scv
+				inline number volume() const {return vol;}
+
+				/// number of corners, that bound the scvf
+				inline size_t num_corners() const {return m_numCorners;}
+
+				/// return local corner number i
+				inline const MathVector<dim>& local_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vLocPos[i];}
+
+				/// return glbal corner number i
+				inline const MathVector<world_dim>& global_corner(size_t i) const
+					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return m_vGloPos[i];}
+
+			private:
+				size_t nodeId; // node id of associated node
+				size_t m_numCorners;
+
+				// The ordering is: Corner, ...
+				MathVector<dim> m_vLocPos[m_maxNumCorners]; // local position of node
+				MathVector<world_dim> m_vGloPos[m_maxNumCorners]; // global position of node
+				MidID m_midId[m_maxNumCorners]; // dimension and id of object, that's midpoint bounds the scv
+				number vol;
+		};
+
+
+	public:
+		HFV1Geometry() : m_pElem(NULL)
+		{
+			// local corners
+			m_vSCV.resize(m_numNaturalSCV);
+			m_locMid[0].resize(m_numNaturalSCV);
+			for(size_t i = 0; i < m_numNaturalSCV; ++i)
 			{
-				static const ref_elem_type refElem;
 				m_vSCV[i].nodeId = i;
-				m_vSCV[i].isHanging = false;
-				m_vSCV[i].localPosition[0] = refElem.corner(i);
+				m_vSCV[i].m_vLocPos[0] = m_rRefElem.corner(i);
+				m_locMid[0][i] = m_rRefElem.corner(i);
 			}
 
 			// compute center
-			m_localCenter = 0.0;
-			for(size_t i = 0; i < m_vSCV.size(); ++i)
+			m_locMid[dim].resize(1);
+			m_gloMid[dim].resize(1);
+			m_locMid[dim][0] = 0.0;
+			for(size_t i = 0; i < m_locMid[0].size(); ++i)
 			{
-				m_localCenter += m_vSCV[i].localPosition[0];
+				m_locMid[dim][0] += m_locMid[0][i];
 			}
-			m_localCenter *= 1./(m_vSCV.size());
+			m_locMid[dim][0] *= 1./(m_locMid[0].size());
 		}
 
-		bool update(TElem* elem, Grid& mg, MathVector<world_dim> vCornerCoords[])
+		bool update(TElem* elem, Grid& grid, const MathVector<world_dim>* vCornerCoords)
 		{
-			static const ref_elem_type refElem;
+			// If already update for this element, do nothing
+			if(m_pElem == elem) return true;
+			else m_pElem = elem;
 
 			// reset to natural nodes
-			m_vSCV.resize(ref_elem_type::num_corners);
+			m_gloMid[0].resize(m_numNaturalSCV);
+			m_locMid[0].resize(m_numNaturalSCV);
 
 			// remember global position of nodes
-			for(size_t i = 0; i < (size_t)ref_elem_type::num_corners; ++i)
-				m_vSCV[i].globalPosition[0] = vCornerCoords[i];
+			for(size_t i = 0; i < m_numNaturalSCV; ++i)
+				m_gloMid[0][i] = vCornerCoords[i];
 
 			// compute center
-			m_globalCenter = 0.0;
-			for(size_t i = 0; i < m_vSCV.size(); ++i)
+			m_gloMid[dim][0] = 0.0;
+			for(size_t i = 0; i < m_gloMid[0].size(); ++i)
 			{
-				m_globalCenter += (m_vSCV[i].globalPosition)[0];
+				m_gloMid[dim][0] += m_gloMid[0][i];
 			}
-			m_globalCenter *= 1./(m_vSCV.size());
+			m_gloMid[dim][0] *= 1./(m_gloMid[0].size());
 
-			// get natural edges
+			// get natural edges (and faces if in 3d)
 			std::vector<EdgeBase*> vEdges;
-			CollectEdgesSorted(vEdges, mg, elem);
+			CollectEdgesSorted(vEdges, grid, elem);
 
-			// setup vector with needed edges (i.e. Edge and ConstrainedEdge)
+			// compute Nodes
 			m_vSCVF.clear();
+			m_vNewEdgeInfo.clear();
+			m_vNatEdgeInfo.clear(); m_vNatEdgeInfo.resize(m_numNaturalSCVF);
+            UG_ASSERT(vEdges.size() == m_numNaturalSCVF, "Not correct number of edges found, only " << vEdges.size() << "Edges");
 			for(size_t i = 0; i < vEdges.size(); ++i)
 			{
 				// natural ids of end of edge
-				const size_t left = refElem.id(1, i, 0, 0);
-				const size_t right = refElem.id(1, i, 0, 1);
-				const size_t numSCVF = m_vSCVF.size();
+				const size_t from = m_rRefElem.id(1, i, 0, 0);
+				const size_t to = m_rRefElem.id(1, i, 0, 1);
 
 				// choose weather to insert two or one new edge
 				switch(vEdges[i]->shared_pipe_section())
@@ -102,100 +272,372 @@ class HFVGeometry {
 				case SPSEDGE_CONSTRAINED_EDGE:
 				case SPSEDGE_EDGE:
 					// classic case: Just set corner ids
-					m_vSCVF.resize(numSCVF + 1);
-					m_vSCVF.back().nodeId[0] = left;
-					m_vSCVF.back().nodeId[1] = right;
+					if(dim == 2)
+					{
+						const size_t numSCVF = m_vSCVF.size();
+						m_vSCVF.resize(numSCVF + 1);
+						m_vSCVF[numSCVF].m_from = from;
+						m_vSCVF[numSCVF].m_to = to;
+					}
+					if(dim == 3)
+					{
+						const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
+						m_vNatEdgeInfo[i].numChildEdges = 1;
+						m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
+
+						m_vNewEdgeInfo.resize(numNewEdgeInfo + 1);
+						m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
+						m_vNewEdgeInfo[numNewEdgeInfo].m_to = to;
+					}
 					break;
 
 				case SPSEDGE_CONSTRAINING_EDGE:
 					// insert hanging node in list of nodes
-					const size_t newNodeId = m_vSCV.size();
-					m_vSCV.resize(newNodeId + 1);
-					m_vSCV.back().nodeId = newNodeId;
-					m_vSCV.back().isHanging = true;
-					VecInterpolateLinear(	m_vSCV.back().localPosition[0],
-											m_vSCV[left].localPosition[0],
-											m_vSCV[right].localPosition[0],
+					const size_t newNodeId = m_gloMid[0].size();
+					m_gloMid[0].resize(newNodeId + 1);
+					m_locMid[0].resize(newNodeId + 1);
+					VecInterpolateLinear(	m_gloMid[0].back(),
+											m_gloMid[0][from],
+											m_gloMid[0][to],
 											0.5);
-					VecInterpolateLinear(	m_vSCV.back().globalPosition[0],
-											m_vSCV[left].globalPosition[0],
-											m_vSCV[right].globalPosition[0],
+					VecInterpolateLinear(	m_locMid[0].back(),
+											m_locMid[0][from],
+											m_locMid[0][to],
 											0.5);
-					m_vSCV.back().interpolNodeId[0] = left;
-					m_vSCV.back().interpolNodeId[1] = right;
 
+					if(dim == 2)
+					{
+						// insert two edges with nodeIds
+						const size_t numSCVF = m_vSCVF.size();
+						m_vSCVF.resize(numSCVF + 2);
 
-					// insert two edges with nodeIds
-					m_vSCVF.resize(numSCVF + 1);
-					m_vSCVF.back().nodeId[0] = left;
-					m_vSCVF.back().nodeId[1] = newNodeId;
+						m_vSCVF[numSCVF].m_from = from;
+						m_vSCVF[numSCVF].m_to = newNodeId;
 
-					m_vSCVF.resize(numSCVF + 2);
-					m_vSCVF.back().nodeId[0] = newNodeId;
-					m_vSCVF.back().nodeId[1] = right;
+						m_vSCVF[numSCVF+1].m_from = newNodeId;
+						m_vSCVF[numSCVF+1].m_to = to;
+					}
+					if(dim == 3)
+					{
+						// Mapping NaturalEdges -> New Edges
+						const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
+						m_vNatEdgeInfo[i].nodeId = newNodeId;
+						m_vNatEdgeInfo[i].numChildEdges = 2;
+						m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
+						m_vNatEdgeInfo[i].childEdge[1] = numNewEdgeInfo + 1;
+
+						m_vNewEdgeInfo.resize(numNewEdgeInfo + 2);
+
+                        m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
+                        m_vNewEdgeInfo[numNewEdgeInfo].m_to = newNodeId;
+
+                        m_vNewEdgeInfo[numNewEdgeInfo+1].m_from = newNodeId;
+                        m_vNewEdgeInfo[numNewEdgeInfo+1].m_to = to;
+					}
 					break;
 
 				default: UG_LOG("Cannot detect type of edge.\n"); return false;
 				}
 			}
 
-			// compute midpoints of edges
-			for(size_t i = 0; i < m_vSCVF.size(); ++i)
+			// for 3d case also check faces for hanging nodes
+			if(dim == 3)
 			{
-				const size_t left = m_vSCVF[i].nodeId[0];
-				const size_t right = m_vSCVF[i].nodeId[1];
+				std::vector<Face*> vFaces;
+				CollectFacesSorted(vFaces, grid, elem);
 
-				VecInterpolateLinear(	m_vSCVF[i].localPosition[0],
-										m_vSCV[left].localPosition[0],
-										m_vSCV[right].localPosition[0],
-										0.5);
-				VecInterpolateLinear(	m_vSCVF[i].globalPosition[0],
-										m_vSCV[left].globalPosition[0],
-										m_vSCV[right].globalPosition[0],
-										0.5);
+				// compute Nodes
+				MathVector<dim> locSideMid;
+				MathVector<world_dim> gloSideMid;
+				for(size_t i = 0; i < vFaces.size(); ++i)
+				{
+					///////////
+					// case QUADRILATERAL with all edges hanging and hanging node in middle
+					///////////
+					if(vFaces[i]->shared_pipe_section() == SPSFACE_CONSTRAINING_QUADRILATERAL)
+					{
+						// insert hanging node in list of nodes
+						const size_t newNodeId = m_gloMid[0].size();
+						m_gloMid[0].resize(newNodeId + 1);
+						m_locMid[0].resize(newNodeId + 1);
 
-				// write edge midpoints to as corners of scv
-				m_vSCV[left].localPosition[1] = m_vSCVF[i].localPosition[0];
-				m_vSCV[right].localPosition[3] = m_vSCVF[i].localPosition[0];
-				m_vSCV[left].globalPosition[1] = m_vSCVF[i].globalPosition[0];
-				m_vSCV[right].globalPosition[3] = m_vSCVF[i].globalPosition[0];
+						// compute position of new (hanging) node
+						compute_side_midpoints(i, m_locMid[0][newNodeId], m_gloMid[0][newNodeId]);
+
+						// loop constrained faces
+						for(size_t j = 0; j < m_rRefElem.num_obj_of_obj(2, i, 1); ++j)
+						{
+							const size_t jplus1 = (j+1)%4;
+
+							// natural edges
+							const size_t natEdId1 = m_rRefElem.id(2, i, 1, j);
+							const size_t natEdId2 = m_rRefElem.id(2, i, 1, jplus1);
+
+							// corner of the face
+							const size_t cornerId = m_rRefElem.id(2,i, 0, jplus1);
+
+							// refined edges that belong to this face
+							const size_t edId1 = get_child_edge_of_corner(natEdId1, cornerId);
+							const size_t edId2 = get_child_edge_of_corner(natEdId2, cornerId);
+
+							// nodes of hanging edges
+							const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+							const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+
+							// mid point of hanging side
+							compute_side_midpoints(	cornerId, newNodeId,
+													hangEdNodeId1, hangEdNodeId2,
+													locSideMid, gloSideMid);
+
+							// add side midpoint to already existing scvf of this side
+							const size_t numSCVF = m_vSCVF.size();
+							m_vSCVF.resize(numSCVF + 4);
+
+							m_vSCVF[numSCVF].m_from = m_vNewEdgeInfo[edId1].from();
+							m_vSCVF[numSCVF].m_to = m_vNewEdgeInfo[edId1].to();
+							m_vSCVF[numSCVF].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+1].m_from = m_vNewEdgeInfo[edId2].from();
+							m_vSCVF[numSCVF+1].m_to = m_vNewEdgeInfo[edId2].to();
+							m_vSCVF[numSCVF+1].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+1].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+2].m_from = hangEdNodeId1;
+							m_vSCVF[numSCVF+2].m_to = newNodeId;
+							m_vSCVF[numSCVF+2].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+2].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+3].m_from = hangEdNodeId2;
+							m_vSCVF[numSCVF+3].m_to = newNodeId;
+							m_vSCVF[numSCVF+3].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF+3].m_vGloPos[2] = gloSideMid;
+						}
+					}
+					///////////
+					// case TRIANGLE with all edges hanging, that matches a refined element on other side
+					///////////
+					else if (vFaces[i]->shared_pipe_section() == SPSFACE_CONSTRAINING_TRIANGLE)
+					{
+						// compute position of new (hanging) node
+						compute_side_midpoints(i, locSideMid, gloSideMid);
+
+						// loop constrained faces
+						for(size_t j = 0; j < m_rRefElem.num_obj_of_obj(2, i, 1); ++j)
+						{
+							const size_t jplus1 = (j+1)%3;
+
+							// natural edges
+							const size_t natEdId1 = m_rRefElem.id(2, i, 1, j);
+							const size_t natEdId2 = m_rRefElem.id(2, i, 1, jplus1);
+
+							// corner of the face
+							const size_t cornerId = m_rRefElem.id(2,i, 0, jplus1);
+
+							// nodes of hanging edges
+							const size_t hangEdNodeId1 = m_vNatEdgeInfo[natEdId1].node_id();
+							const size_t hangEdNodeId2 = m_vNatEdgeInfo[natEdId2].node_id();
+
+							MathVector<dim> locSmallSideMid;
+							MathVector<world_dim> gloSmallSideMid;
+
+							// mid point of hanging side
+							compute_side_midpoints(	cornerId, hangEdNodeId1, hangEdNodeId2,
+													locSmallSideMid, gloSmallSideMid);
+
+							// add side midpoint to already existing scvf of this side
+							const size_t numSCVF = m_vSCVF.size();
+							m_vSCVF.resize(numSCVF + 4);
+
+							m_vSCVF[numSCVF].m_from = hangEdNodeId1;
+							m_vSCVF[numSCVF].m_to = hangEdNodeId2;
+							m_vSCVF[numSCVF].m_vLocPos[2] = locSideMid;
+							m_vSCVF[numSCVF].m_vGloPos[2] = gloSideMid;
+
+							m_vSCVF[numSCVF+1].m_from = hangEdNodeId1;
+							m_vSCVF[numSCVF+1].m_to = hangEdNodeId2;
+							m_vSCVF[numSCVF+1].m_vLocPos[2] = locSmallSideMid;
+							m_vSCVF[numSCVF+1].m_vGloPos[2] = gloSmallSideMid;
+
+							m_vSCVF[numSCVF+2].m_from = hangEdNodeId1;
+							m_vSCVF[numSCVF+2].m_to = cornerId;
+							m_vSCVF[numSCVF+2].m_vLocPos[2] = locSmallSideMid;
+							m_vSCVF[numSCVF+2].m_vGloPos[2] = gloSmallSideMid;
+
+							m_vSCVF[numSCVF+3].m_from = cornerId;
+							m_vSCVF[numSCVF+3].m_to = hangEdNodeId2;
+							m_vSCVF[numSCVF+3].m_vLocPos[2] = locSmallSideMid;
+							m_vSCVF[numSCVF+3].m_vGloPos[2] = gloSmallSideMid;
+						}
+					}
+					//////////
+					// other cases: Not all edges hanging (i.e. neighbor not refined)
+					///////////
+					else
+					{
+						// compute side midpoint
+						compute_side_midpoints(i, locSideMid, gloSideMid);
+
+						// connect all edges with side midpoint
+						for(size_t j = 0; j < m_rRefElem.num_obj_of_obj(2, i, 1); ++j)
+						{
+							const size_t natEdgeId = m_rRefElem.id(2, i, 1, j);
+							for(size_t e = 0; e < m_vNatEdgeInfo[natEdgeId].num_child_edges(); ++e)
+							{
+								const size_t edgeId = m_vNatEdgeInfo[natEdgeId].child_edge(e);
+
+								const size_t numSCVF = m_vSCVF.size();
+								m_vSCVF.resize(numSCVF + 1);
+
+								m_vSCVF[numSCVF].m_from = m_vNewEdgeInfo[edgeId].from();
+								m_vSCVF[numSCVF].m_to = m_vNewEdgeInfo[edgeId].to();
+								m_vSCVF[numSCVF].m_vGloPos[2] = gloSideMid;
+								m_vSCVF[numSCVF].m_vLocPos[2] = locSideMid;
+							}
+						}
+					}
+				}
+			}
+
+			// resize number of scv (== number of nodes)
+			if(dim <= 2)
+			{
+				m_vSCV.resize(m_gloMid[0].size());
+			}
+			else
+			{
+				m_vSCV.clear();
 			}
 
 			// compute scvf
 			for(size_t i = 0; i < m_vSCVF.size(); ++i)
 			{
-				VecInterpolateLinear(	m_vSCVF[i].globalIP,
-										m_vSCVF[i].globalPosition[0],
-										m_globalCenter,
-										0.5);
-				VecInterpolateLinear(	m_vSCVF[i].localIP,
-										m_vSCVF[i].localPosition[0],
-										m_localCenter,
-										0.5);
+				// compute midpoints of edges
+				{
+					const size_t from = m_vSCVF[i].m_from;
+					const size_t to = m_vSCVF[i].m_to;
 
-				m_vSCVF[i].globalPosition[1] = m_globalCenter;
-				m_vSCVF[i].localPosition[1] = m_localCenter;
+					VecInterpolateLinear(	m_vSCVF[i].m_vLocPos[0],
+											m_locMid[0][from],
+											m_locMid[0][to],
+											0.5);
+					VecInterpolateLinear(	m_vSCVF[i].m_vGloPos[0],
+											m_gloMid[0][from],
+											m_gloMid[0][to],
+											0.5);
+				}
+
+				// set center of elem as part of scvf
+				m_vSCVF[i].m_vGloPos[1] = m_gloMid[dim][0];
+				m_vSCVF[i].m_vLocPos[1] = m_locMid[dim][0];
+
+				// integration point
+				AveragePositions(m_vSCVF[i].localIP, m_vSCVF[i].m_vLocPos, SCVF::m_numCorners);
+				AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
 
 				// normal
-				NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, &(m_vSCVF[i].globalPosition[0]));
+				HangingNormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, &(m_vSCVF[i].m_vGloPos[0]));
+
+				// TODO: In 3D check orientation
+				if(dim == 3)
+				{
+					const size_t from = m_vSCVF[i].m_from;
+					const size_t to = m_vSCVF[i].m_to;
+
+					MathVector<world_dim> diff;
+					VecSubtract(diff, m_gloMid[0][to], m_gloMid[0][from]);
+
+					if(VecDot(diff, m_vSCVF[i].Normal) < 0)
+					{
+						m_vSCVF[i].m_from = to;
+						m_vSCVF[i].m_to = from;
+					}
+				}
+
+				// write edge midpoints to as corners of scv
+				if(dim == 2)
+				{
+					const size_t from = m_vSCVF[i].m_from;
+					const size_t to = m_vSCVF[i].m_to;
+
+					m_vSCV[from].m_vLocPos[1] = m_vSCVF[i].m_vLocPos[0];
+					m_vSCV[from].m_vGloPos[1] = m_vSCVF[i].m_vGloPos[0];
+
+					m_vSCV[to].m_vLocPos[3] = m_vSCVF[i].m_vLocPos[0];
+					m_vSCV[to].m_vGloPos[3] = m_vSCVF[i].m_vGloPos[0];
+				}
 			}
 
 			// compute size of scv
-			for(size_t i = 0; i < m_vSCV.size(); ++i)
+			if(dim <= 2)
 			{
-				m_vSCV[i].globalPosition[2] = m_globalCenter;
-				m_vSCV[i].localPosition[2] = m_localCenter;
-				m_vSCV[i].vol = ElementSize<scv_type, world_dim>(&(m_vSCV[i].globalPosition[0]));;
+				for(size_t i = 0; i < m_vSCV.size(); ++i)
+				{
+					// set node id
+					m_vSCV[i].nodeId = i;
+
+					// start at node
+					m_vSCV[i].m_vLocPos[0] = m_locMid[0][i];
+					m_vSCV[i].m_vGloPos[0] = m_gloMid[0][i];
+
+					if(dim == 1)
+					{
+						// center of element
+						m_vSCV[i].m_vLocPos[1] = m_locMid[dim][0];
+						m_vSCV[i].m_vGloPos[1] = m_gloMid[dim][0];
+					}
+					else if (dim == 2)
+					{
+						// center of element
+						m_vSCV[i].m_vLocPos[2] = m_locMid[dim][0];
+						m_vSCV[i].m_vGloPos[2] = m_gloMid[dim][0];
+					}
+
+                   m_vSCV[i].vol = ElementSize<typename SCV::scv_type, world_dim>(&(m_vSCV[i].m_vGloPos[0]));;
+				}
 			}
 
-			// compute shapes and derivatives
-			m_mapping.update(vCornerCoords);
-
-			for(size_t i = 0; i < m_vSCVF.size(); ++i)
+			if(dim == 3)
 			{
-				if(!m_mapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv))
+				m_vSCV.resize(m_vSCVF.size() * 2);
+
+				for(size_t i = 0; i < m_vSCVF.size(); ++i)
+                {
+					for(size_t n = 0; n < 3; ++n)
+					{
+						m_vSCV[2*i + 0].m_vLocPos[n+1] = m_vSCVF[i].m_vLocPos[n];
+						m_vSCV[2*i + 0].m_vGloPos[n+1] = m_vSCVF[i].m_vGloPos[n];
+						m_vSCV[2*i + 1].m_vLocPos[n+1] = m_vSCVF[i].m_vLocPos[n];
+						m_vSCV[2*i + 1].m_vGloPos[n+1] = m_vSCVF[i].m_vGloPos[n];
+					}
+					const size_t from = m_vSCVF[i].m_from;
+					const size_t to = m_vSCVF[i].m_to;
+
+					m_vSCV[2*i + 0].m_vLocPos[0] = m_locMid[0][from];
+					m_vSCV[2*i + 0].m_vGloPos[0] = m_gloMid[0][from];
+					m_vSCV[2*i + 0].nodeId = from;
+					m_vSCV[2*i + 0].m_numCorners = 4;
+
+					m_vSCV[2*i + 1].m_vLocPos[0] = m_locMid[0][to];
+					m_vSCV[2*i + 1].m_vGloPos[0] = m_gloMid[0][to];
+					m_vSCV[2*i + 1].nodeId = to;
+					m_vSCV[2*i + 1].m_numCorners = 4;
+
+					m_vSCV[2*i + 0].vol = ElementSize<typename SCV::scv_type, world_dim>(&(m_vSCV[2*i + 0].m_vGloPos[0]));;
+					m_vSCV[2*i + 1].vol = ElementSize<typename SCV::scv_type, world_dim>(&(m_vSCV[2*i + 1].m_vGloPos[0]));;
+				}
+			}
+
+			/////////////////////////
+			// Shapes and Derivatives
+			/////////////////////////
+			m_rMapping.update(vCornerCoords);
+
+			for(size_t i = 0; i < num_scvf(); ++i)
+			{
+				if(!m_rMapping.jacobian_transposed_inverse(m_vSCVF[i].localIP, m_vSCVF[i].JtInv))
 					{UG_LOG("Cannot compute jacobian transposed.\n"); return false;}
-				if(!m_mapping.jacobian_det(m_vSCVF[i].localIP, m_vSCVF[i].detj))
+				if(!m_rMapping.jacobian_det(m_vSCVF[i].localIP, m_vSCVF[i].detj))
 					{UG_LOG("Cannot compute jacobian determinate.\n"); return false;}
 
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
@@ -215,177 +657,224 @@ class HFVGeometry {
 				}
 
 			}
-
-			// debug output
-			if(0)
-			{
-				if(num_scv() == (size_t)ref_elem_type::num_corners) return true;
-				UG_LOG("\nFVG hanging debug output\n");
-				UG_LOG("LocalCenter=" << m_localCenter << ", globalCenter="<<m_globalCenter<<"\n");
-				for(size_t i = 0; i < m_vSCV.size(); ++i)
-				{
-					UG_LOG(i<<" SCV: ");
-					UG_LOG("node_id=" << m_vSCV[i].node_id());
-					UG_LOG(", local_pos="<< m_vSCV[i].local_ip());
-					UG_LOG(", global_pos="<< m_vSCV[i].global_ip());
-					UG_LOG(", vol=" << m_vSCV[i].volume());
-					UG_LOG(", hang="<< m_vSCV[i].isHanging);
-					if(m_vSCV[i].isHanging) UG_LOG(" (between: " <<  m_vSCV[i].interpolNodeId[0] << ", "<<m_vSCV[i].interpolNodeId[1] <<")");
-					UG_LOG("\n    localCorner=" << m_vSCV[i].localPosition[0]);
-					UG_LOG(", localSide1=" << m_vSCV[i].localPosition[1]);
-					UG_LOG(", localCenter=" << m_vSCV[i].localPosition[2]);
-					UG_LOG(", localSide2=" << m_vSCV[i].localPosition[3]);
-					UG_LOG("\n    globalCorner=" << m_vSCV[i].globalPosition[0]);
-					UG_LOG(", globalSide1=" << m_vSCV[i].globalPosition[1]);
-					UG_LOG(", globalCenter=" << m_vSCV[i].globalPosition[2]);
-					UG_LOG(", globalSide2=" << m_vSCV[i].globalPosition[3]);
-
-					UG_LOG("\n");
-				}
-				UG_LOG("\n");
-				for(size_t i = 0; i < m_vSCVF.size(); ++i)
-				{
-					UG_LOG(i<<" SCVF: ");
-					UG_LOG("from=" << m_vSCVF[i].from()<<", to="<<m_vSCVF[i].to());
-					UG_LOG(", local_pos="<< m_vSCVF[i].local_ip());
-					UG_LOG(", global_pos="<< m_vSCVF[i].global_ip());
-					UG_LOG(", normal=" << m_vSCVF[i].normal());
-					UG_LOG("\n    localEdgeMid=" << m_vSCVF[i].localPosition[0]);
-					UG_LOG(", localCenter=" << m_vSCVF[i].localPosition[1]);
-					UG_LOG(", globalEdgeMid=" << m_vSCVF[i].globalPosition[0]);
-					UG_LOG(", globalCenter=" << m_vSCVF[i].globalPosition[1]);
-					UG_LOG("\n    Shapes:\n");
-					for(size_t sh=0; sh < m_vSCVF[i].num_sh(); ++sh)
-					{
-						UG_LOG("         " <<sh << ": shape="<<m_vSCVF[i].shape(sh));
-						UG_LOG(", global_grad="<<m_vSCVF[i].global_grad(sh));
-						UG_LOG(", local_grad="<<m_vSCVF[i].local_grad(sh));
-						UG_LOG("\n");
-					}
-				}
-				UG_LOG("\n");
-			}
-
+			//print();
 			return true;
 		}
 
-	public:
-		class SCVF;
-		class SCV;
+		// debug output
+		void print()
+		{
+			UG_LOG("\nFVG hanging debug output\n");
+			UG_LOG("LocalCenter=" << m_locMid << ", globalCenter="<<m_gloMid<<"\n");
+			for(size_t i = 0; i < m_vSCV.size(); ++i)
+			{
+				UG_LOG(i<<" SCV: ");
+				UG_LOG("node_id=" << m_vSCV[i].node_id());
+				UG_LOG(", local_pos="<< m_vSCV[i].local_ip(0));
+				UG_LOG(", global_pos="<< m_vSCV[i].global_ip(0));
+				UG_LOG(", vol=" << m_vSCV[i].volume());
+				UG_LOG("\n    localCorner=" << m_vSCV[i].m_vLocPos[0]);
+				UG_LOG(", localSide1=" << m_vSCV[i].m_vLocPos[1]);
+				UG_LOG(", localCenter=" << m_vSCV[i].m_vLocPos[2]);
+				UG_LOG(", localSide2=" << m_vSCV[i].m_vLocPos[3]);
+				UG_LOG("\n    globalCorner=" << m_vSCV[i].m_vGloPos[0]);
+				UG_LOG(", globalSide1=" << m_vSCV[i].m_vGloPos[1]);
+				UG_LOG(", globalCenter=" << m_vSCV[i].m_vGloPos[2]);
+				UG_LOG(", globalSide2=" << m_vSCV[i].m_vGloPos[3]);
+
+				UG_LOG("\n");
+			}
+			UG_LOG("\n");
+			for(size_t i = 0; i < m_vSCVF.size(); ++i)
+			{
+				UG_LOG(i<<" SCVF: ");
+				UG_LOG("from=" << m_vSCVF[i].from()<<", to="<<m_vSCVF[i].to());
+				UG_LOG(", local_pos="<< m_vSCVF[i].local_ip(0));
+				UG_LOG(", global_pos="<< m_vSCVF[i].global_ip(0));
+				UG_LOG(", normal=" << m_vSCVF[i].normal());
+				UG_LOG("\n    Shapes:\n");
+				for(size_t sh=0; sh < m_vSCVF[i].num_sh(); ++sh)
+				{
+					UG_LOG("         " <<sh << ": shape="<<m_vSCVF[i].shape(sh, 0));
+					UG_LOG(", global_grad="<<m_vSCVF[i].global_grad(sh, 0));
+					UG_LOG(", local_grad="<<m_vSCVF[i].local_grad(sh, 0));
+					UG_LOG("\n");
+				}
+			}
+			UG_LOG("\n");
+		}
 
 	public:
-		inline size_t num_scvf() const {return m_vSCVF.size();};
-		inline const SCVF& scvf(size_t i) const {return m_vSCVF[i];}
+		/// number of SubControlVolumeFaces
+		inline size_t num_scvf() const {return m_vSCVF.size();}
 
+		/// const access to SubControlVolumeFace number i
+		inline const SCVF& scvf(size_t i) const
+			{UG_ASSERT(i < num_scvf(), "Invalid Index."); return m_vSCVF[i];}
+
+		/// number of SubControlVolumes
 		size_t num_scv() const {return m_vSCV.size();}
-		inline const SCV& scv(size_t i) const {return m_vSCV[i];}
 
-	public:
-		class SCVF
+		/// const access to SubControlVolume number i
+		inline const SCV& scv(size_t i) const
+			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+
+	protected:
+		void copy_local_corners(SCVF& scvf)
 		{
-			friend class HFVGeometry<TElem, TWorldDim>;
+			for(size_t i = 0; i < scvf.num_corners(); ++i)
+			{
+				const size_t dim = scvf.m_midId[i].dim;
+				const size_t id = scvf.m_midId[i].id;
+				scvf.m_vLocPos[i] = m_locMid[dim][id];
+			}
+		}
 
-			public:
-				SCVF()
-				{
-					int num = 2*dim;
-					if(dim == 1) num = 1;
-					localPosition.resize(num);
-					globalPosition.resize(num);
-				}
-
-				inline size_t from() const {return nodeId[0];}
-				inline size_t to() const {return nodeId[1];}
-				inline const MathVector<dim>& local_ip() const {return localIP;}
-				inline const MathVector<world_dim>& global_ip() const {return globalIP;}
-				inline const MathVector<world_dim>& normal() const {return Normal;} // includes area
-
-				inline const MathMatrix<dim,world_dim>& JTInv() const {return JtInv;}
-				inline number detJ() const {return detj;}
-
-				inline size_t num_sh() const {return vShape.size();}
-				inline number shape(size_t i) const {return vShape[i];}
-				inline const MathVector<dim>& local_grad(size_t i) const {return localGrad[i];}
-				inline const MathVector<world_dim>& global_grad(size_t i) const {return globalGrad[i];}
-
-				/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return localPosition.size();}
-
-				/// return local corner number i
-				inline const MathVector<dim>& local_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return localPosition[i];}
-
-				/// return glbal corner number i
-				inline const MathVector<world_dim>& global_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return globalPosition[i];}
-
-			private:
-				// edge part
-				size_t nodeId[2]; // node ids of associated edge
-				// ordering is:
-				// 2D: edgeMidPoint, CenterOfElement
-				// 3D: edgeMidPoint, Side one, CenterOfElement, Side two
-				std::vector<MathVector<dim> > localPosition; // local corners of scvf
-				std::vector<MathVector<world_dim> > globalPosition; // global corners of scvf
-
-				// scvf part
-				MathVector<dim> localIP; // local integration point
-				MathVector<world_dim> globalIP; // global intergration point
-				MathVector<world_dim> Normal; // normal (incl. area)
-
-				// shapes and derivatives
-				std::vector<number> vShape; // shapes at ip
-				std::vector<MathVector<dim> > localGrad; // local grad at ip
-				std::vector<MathVector<world_dim> > globalGrad; // global grad at ip
-				MathMatrix<world_dim,dim> JtInv; // Jacobian transposed at ip
-				number detj; // Jacobian det at ip
-		};
-
-		class SCV
+		void copy_global_corners(SCVF& scvf)
 		{
-			friend class HFVGeometry<TElem, TWorldDim>;
+			for(size_t i = 0; i < scvf.num_corners(); ++i)
+			{
+				const size_t dim = scvf.m_midId[i].dim;
+				const size_t id = scvf.m_midId[i].id;
+				scvf.m_vGloPos[i] = m_gloMid[dim][id];
+			}
+		}
 
-			public:
-				SCV()
-				{
-					//TODO :this is 2^dim, except for prism, where we have 9
-					localPosition.resize(2*dim);
-					globalPosition.resize(2*dim);
-				}
-				inline size_t node_id() const {return nodeId;}
-				inline const MathVector<dim>& local_ip() const {return localPosition[0];}
-				inline const MathVector<world_dim>& global_ip() const {return globalPosition[0];}
-				inline number volume() const {return vol;}
+		void copy_local_corners(SCV& scv)
+		{
+			for(size_t i = 0; i < scv.num_corners(); ++i)
+			{
+				const size_t dim_ = scv.m_midId[i].dim;
+				const size_t id = scv.m_midId[i].id;
+				UG_ASSERT(dim_ >= 0 && dim_ <= (size_t)dim, "Dimension wrong");
+				UG_ASSERT(id < m_locMid[dim_].size(), "id " << id << " in dim="<<dim_<<" wrong. (size is "<< m_locMid[dim_].size()<<")\n");
+				scv.m_vLocPos[i] = m_locMid[dim_][id];
+			}
+		}
 
-				/// number of corners, that bound the scvf
-				inline size_t num_corners() const {return localPosition.size();}
+		void copy_global_corners(SCV& scv)
+		{
+			for(size_t i = 0; i < scv.num_corners(); ++i)
+			{
+				const size_t dim_ = scv.m_midId[i].dim;
+				const size_t id = scv.m_midId[i].id;
+				UG_ASSERT(dim_ >= 0 && dim_ <= (size_t)dim, "Dimension wrong");
+				UG_ASSERT(id < m_gloMid[dim_].size(), "id " << id << " in dim="<<dim_<<" wrong. (size is "<< m_gloMid[dim_].size()<<")\n");
+				scv.m_vGloPos[i] = m_gloMid[dim_][id];
+			}
+		}
 
-				/// return local corner number i
-				inline const MathVector<dim>& local_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return localPosition[i];}
+		// i = number of side
+		void compute_side_midpoints(size_t i, MathVector<dim>& locSideMid, MathVector<world_dim>& gloSideMid)
+		{
+			const size_t coID0 = m_rRefElem.id(2, i, 0, 0);
+			locSideMid = m_locMid[0][coID0];
+			gloSideMid = m_gloMid[0][coID0];
 
-				/// return glbal corner number i
-				inline const MathVector<world_dim>& global_corner(size_t i) const
-					{UG_ASSERT(i < num_corners(), "Invalid corner index."); return globalPosition[i];}
+			// add corner coordinates of the corners of the geometric object
+			for(size_t j = 1; j < m_rRefElem.num_obj_of_obj(2, i, 0); ++j)
+			{
+				const size_t coID = m_rRefElem.id(2, i, 0, j);
+				locSideMid += m_locMid[0][coID];
+				gloSideMid += m_gloMid[0][coID];
+			}
 
-			private:
-				size_t nodeId; // node id of associated node
-				// The ordering is: Corner, ...
-				std::vector<MathVector<dim> > localPosition; // local position of node
-				std::vector<MathVector<world_dim> > globalPosition; // global position of node
-				bool isHanging; // true, if node is a hanging node
-				size_t interpolNodeId[2]; // corners from which is interpolated (only if hanging)
-				number vol;
-		};
+			// scale for correct averaging
+			locSideMid *= 1./(m_rRefElem.num_obj_of_obj(2, i, 0));
+			gloSideMid *= 1./(m_rRefElem.num_obj_of_obj(2, i, 0));
+		}
+
+		// i, j, k, l = number nodes
+		void compute_side_midpoints(size_t i, size_t j, size_t k, size_t l,
+									MathVector<dim>& locSideMid, MathVector<world_dim>& gloSideMid)
+		{
+			VecAdd(locSideMid, m_locMid[0][i], m_locMid[0][j], m_locMid[0][k], m_locMid[0][l]);
+			VecAdd(gloSideMid, m_gloMid[0][i], m_gloMid[0][j], m_gloMid[0][k], m_gloMid[0][l]);
+
+			// scale for correct averaging
+			locSideMid *= 0.25;
+			gloSideMid *= 0.25;
+		}
+
+		// i, j, k = number nodes
+		void compute_side_midpoints(size_t i, size_t j, size_t k,
+									MathVector<dim>& locSideMid, MathVector<world_dim>& gloSideMid)
+		{
+			VecAdd(locSideMid, m_locMid[0][i], m_locMid[0][j], m_locMid[0][k]);
+			VecAdd(gloSideMid, m_gloMid[0][i], m_gloMid[0][j], m_gloMid[0][k]);
+
+			// scale for correct averaging
+			locSideMid *= 1./3.;
+			gloSideMid *= 1./3.;
+		}
+
+		// returns edgeID of child edge, that has corner co. i is the natural edge index
+		size_t get_child_edge_of_corner(size_t i, size_t co)
+        {
+         	for(size_t e = 0; e < m_vNatEdgeInfo[i].num_child_edges(); ++e)
+         	{
+         		const size_t childId = m_vNatEdgeInfo[i].child_edge(e);
+             	UG_LOG("co = " << co << ", ChildId = " << childId << ", from = " << m_vNewEdgeInfo[childId].from() << ", to = " << m_vNewEdgeInfo[childId].to() << "\n");
+         		if(m_vNewEdgeInfo[childId].from() == co)
+         			return childId;
+         		if(m_vNewEdgeInfo[childId].to() == co)
+         			return childId;
+         	}
+         	return -1;
+        }
 
 	private:
-		MathVector<dim> m_localCenter;
-		MathVector<world_dim> m_globalCenter;
+		struct NewEdgeInfo
+		{
+			friend class HFV1Geometry<TElem, TWorldDim>;
+		public:
+			NewEdgeInfo() : m_from(-1), m_to(-1){}
+            size_t from() const {return m_from;}
+            size_t to() const {return m_to;}
+		private:
+			size_t m_from;
+			size_t m_to;
+		};
 
+        struct NatEdgeInfo
+        {
+                friend class HFV1Geometry<TElem, TWorldDim>;
+            public:
+            	NatEdgeInfo() : nodeId(-1), numChildEdges(0) {for(size_t i=0; i<2; ++i) childEdge[i] = -1;}
+                bool is_hanging() const {return numChildEdges == 2;}
+                size_t node_id() const {UG_ASSERT(is_hanging(), "Should only be called, if edge is hanging."); return nodeId;}
+                size_t num_child_edges() const {return numChildEdges;}
+                size_t child_edge(size_t i) const {UG_ASSERT(i < num_child_edges(), "Wrong id."); return childEdge[i];}
+
+            private:
+                size_t nodeId;
+                size_t numChildEdges;
+                size_t childEdge[2];
+        };
+
+         // help array: maps NaturalEdge -> NodeOnEdge (-1 if no node on edge)
+        std::vector<NatEdgeInfo> m_vNatEdgeInfo;
+        std::vector<NewEdgeInfo> m_vNewEdgeInfo;
+
+	private:
+		// pointer to current element
+		TElem* m_pElem;
+
+		std::vector<MathVector<dim> > m_locMid[dim+1];
+		std::vector<MathVector<world_dim> > m_gloMid[dim+1];
+
+		// SubControlVolumeFaces
 		std::vector<SCVF> m_vSCVF;
+
+		// SubControlVolumes
 		std::vector<SCV> m_vSCV;
 
-		ReferenceMapping<ref_elem_type, world_dim> m_mapping;
+		// Reference Mapping
+		ReferenceMapping<ref_elem_type, world_dim> m_rMapping;
+
+		// Reference Element
+		ref_elem_type m_rRefElem;
+
 };
 
 }
