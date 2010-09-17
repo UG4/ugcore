@@ -43,6 +43,9 @@ class HFV1Geometry {
 		// dimension of world
 		static const int world_dim = TWorldDim;
 
+		// Hanging node flag: this Geometry does support hanging nodes
+		static const bool usesHangingNodes = true;
+
 	protected:
 		struct MidID
 		{

@@ -11,7 +11,8 @@
 #include "./finite_volume_output.h"
 #include "./finite_volume_geometry.h"
 
-/*
+namespace ug{
+
 // Singleton, holding a Finite Volume Geometry
 class FVGeometryProvider {
 
@@ -26,21 +27,22 @@ class FVGeometryProvider {
 		~FVGeometryProvider(){};
 
 		// geometry provider
-		template <typename TElem, int TWorldDim>
-		inline static FV1Geometry<TElem, TWorldDim>& inst()
+		template <template <class TElem, int TWorldDim> class TFVGeom, typename TElem, int TWorldDim>
+		inline static TFVGeom<TElem, TWorldDim>& inst()
 		{
-			static FV1Geometry<TElem, TWorldDim> myInst;
+			static TFVGeom<TElem, TWorldDim> myInst;
 			return myInst;
 		};
 
 	public:
 		// get the local shape function set for a given reference element and id
-		template <typename TElem, int TWorldDim>
-		inline static FV1Geometry<TElem, TWorldDim>& get_geom()
+		template <template <class TElem, int TWorldDim> class TFVGeom, typename TElem, int TWorldDim>
+		inline static TFVGeom<TElem, TWorldDim>& get_geom()
 		{
-			return inst<TRefElem, TWorldDim>();
+			return inst<TFVGeom, TElem, TWorldDim>();
 		}
 };
 
-*/
+} // end namespace ug
+
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DISC_HELPER__DISC_HELPER__ */
