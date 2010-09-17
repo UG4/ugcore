@@ -30,6 +30,7 @@
 #include "log.h"
 #include "assert.h"
 #include "static_assert.h"
+#include "metaprogramming_util.h"
 
 // depreciated, currently here for backward compatibility
 #define LOG(msg) UG_LOG(msg)
