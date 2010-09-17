@@ -14,15 +14,15 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/spacial_discretization/disc_helper/finite_volume_geometry.h"
+#include "lib_discretization/spacial_discretization/disc_helper/disc_helper.h"
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
 
 
-template<typename TDomain, typename TAlgebra>
-class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
+template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 {
 	public:
 		// domain type
@@ -54,12 +54,14 @@ class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
-		ConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
+		FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 									Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs);
 
 		virtual size_t num_fct(){return 1;}
 
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) {return LSFS_LAGRANGEP1;}
+
+		virtual bool use_hanging() const {return TFVGeom<Edge, dim>::usesHangingNodes;}
 
 	private:
 		template <typename TElem>
@@ -91,22 +93,14 @@ class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		TDomain& m_domain;
 
 		// position access
-		position_type* m_corners;
+		std::vector<position_type> m_vCornerCoords;
 		typename TDomain::position_accessor_type m_aaPos;
-
-		// Finite Volume Element Geometry
-		template <typename TElem>
-		inline FV1Geometry<TElem, dim>& get_fvgeom()
-		{
-			static FV1Geometry<TElem, dim> geo;
-			return geo;
-		}
 
 		// to make it more readable
 		static const size_t _C_ = 0;
 
 		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwind_amount;
+		number m_upwindAmount;
 
 		// User functions
 		Diff_Tensor_fct m_Diff_Tensor;
@@ -156,14 +150,14 @@ class ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_prepare_element_loop_function(	id, &ConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &ConvectionDiffusionElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &ConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &ConvectionDiffusionElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &ConvectionDiffusionElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &ConvectionDiffusionElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &ConvectionDiffusionElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &ConvectionDiffusionElemDisc::template assemble_f<TElem>);
+			register_prepare_element_loop_function(	id, &FVConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &FVConvectionDiffusionElemDisc::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &FVConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &FVConvectionDiffusionElemDisc::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &FVConvectionDiffusionElemDisc::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &FVConvectionDiffusionElemDisc::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &FVConvectionDiffusionElemDisc::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &FVConvectionDiffusionElemDisc::template assemble_f<TElem>);
 		}
 
 };
