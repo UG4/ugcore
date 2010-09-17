@@ -814,7 +814,6 @@ class HFV1Geometry {
          	for(size_t e = 0; e < m_vNatEdgeInfo[i].num_child_edges(); ++e)
          	{
          		const size_t childId = m_vNatEdgeInfo[i].child_edge(e);
-             	UG_LOG("co = " << co << ", ChildId = " << childId << ", from = " << m_vNewEdgeInfo[childId].from() << ", to = " << m_vNewEdgeInfo[childId].to() << "\n");
          		if(m_vNewEdgeInfo[childId].from() == co)
          			return childId;
          		if(m_vNewEdgeInfo[childId].to() == co)
