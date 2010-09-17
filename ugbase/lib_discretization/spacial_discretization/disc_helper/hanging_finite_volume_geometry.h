@@ -292,47 +292,49 @@ class HFV1Geometry {
 					break;
 
 				case SPSEDGE_CONSTRAINING_EDGE:
-					// insert hanging node in list of nodes
-					const size_t newNodeId = m_gloMid[0].size();
-					m_gloMid[0].resize(newNodeId + 1);
-					m_locMid[0].resize(newNodeId + 1);
-					VecInterpolateLinear(	m_gloMid[0].back(),
-											m_gloMid[0][from],
-											m_gloMid[0][to],
-											0.5);
-					VecInterpolateLinear(	m_locMid[0].back(),
-											m_locMid[0][from],
-											m_locMid[0][to],
-											0.5);
-
-					if(dim == 2)
 					{
-						// insert two edges with nodeIds
-						const size_t numSCVF = m_vSCVF.size();
-						m_vSCVF.resize(numSCVF + 2);
+						// insert hanging node in list of nodes
+						const size_t newNodeId = m_gloMid[0].size();
+						m_gloMid[0].resize(newNodeId + 1);
+						m_locMid[0].resize(newNodeId + 1);
+						VecInterpolateLinear(	m_gloMid[0].back(),
+												m_gloMid[0][from],
+												m_gloMid[0][to],
+												0.5);
+						VecInterpolateLinear(	m_locMid[0].back(),
+												m_locMid[0][from],
+												m_locMid[0][to],
+												0.5);
 
-						m_vSCVF[numSCVF].m_from = from;
-						m_vSCVF[numSCVF].m_to = newNodeId;
+						if(dim == 2)
+						{
+							// insert two edges with nodeIds
+							const size_t numSCVF = m_vSCVF.size();
+							m_vSCVF.resize(numSCVF + 2);
 
-						m_vSCVF[numSCVF+1].m_from = newNodeId;
-						m_vSCVF[numSCVF+1].m_to = to;
-					}
-					if(dim == 3)
-					{
-						// Mapping NaturalEdges -> New Edges
-						const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
-						m_vNatEdgeInfo[i].nodeId = newNodeId;
-						m_vNatEdgeInfo[i].numChildEdges = 2;
-						m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
-						m_vNatEdgeInfo[i].childEdge[1] = numNewEdgeInfo + 1;
+							m_vSCVF[numSCVF].m_from = from;
+							m_vSCVF[numSCVF].m_to = newNodeId;
 
-						m_vNewEdgeInfo.resize(numNewEdgeInfo + 2);
+							m_vSCVF[numSCVF+1].m_from = newNodeId;
+							m_vSCVF[numSCVF+1].m_to = to;
+						}
+						if(dim == 3)
+						{
+							// Mapping NaturalEdges -> New Edges
+							const size_t numNewEdgeInfo = m_vNewEdgeInfo.size();
+							m_vNatEdgeInfo[i].nodeId = newNodeId;
+							m_vNatEdgeInfo[i].numChildEdges = 2;
+							m_vNatEdgeInfo[i].childEdge[0] = numNewEdgeInfo;
+							m_vNatEdgeInfo[i].childEdge[1] = numNewEdgeInfo + 1;
 
-                        m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
-                        m_vNewEdgeInfo[numNewEdgeInfo].m_to = newNodeId;
+							m_vNewEdgeInfo.resize(numNewEdgeInfo + 2);
 
-                        m_vNewEdgeInfo[numNewEdgeInfo+1].m_from = newNodeId;
-                        m_vNewEdgeInfo[numNewEdgeInfo+1].m_to = to;
+							m_vNewEdgeInfo[numNewEdgeInfo].m_from = from;
+							m_vNewEdgeInfo[numNewEdgeInfo].m_to = newNodeId;
+
+							m_vNewEdgeInfo[numNewEdgeInfo+1].m_from = newNodeId;
+							m_vNewEdgeInfo[numNewEdgeInfo+1].m_to = to;
+						}
 					}
 					break;
 
