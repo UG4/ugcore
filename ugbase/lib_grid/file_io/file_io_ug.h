@@ -22,6 +22,14 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace,
 					const char* fileNamePrefix, const char* lgmName,
 					const char* problemName, int convex);
 
+////////////////////////////////////////////////////////////////////////
+///	exports a grid to a 2d lgm / ng file combination.
+/**	Please note that edge-subsets are ignored.
+ *	Only x and y coordinates are written.
+ */
+bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
+					   const char* problemName, int convex,
+					   SubsetHandler* psh = NULL);
 }//	end of namespace
 
 #endif

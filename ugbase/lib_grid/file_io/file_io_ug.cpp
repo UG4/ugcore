@@ -11,6 +11,7 @@
 #include "file_io_ug.h"
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/attachment_util.h"
 
 using namespace std;
 
@@ -369,7 +370,7 @@ static bool WriteLGM(Grid& grid,
 	for(EdgeBaseIterator iter = LineSel.begin(); iter != LineSel.end(); ++iter)
 	{
 		EdgeBase* e = *iter;
-		out << "line " << aaLineIndex[e] << ": points: ";
+		out << "line " << aaLineIndex[e] << ": vertices: ";
 		out << aaSurfVrtIndex[e->vertex(0)] << " " << aaSurfVrtIndex[e->vertex(1)] << ";" << endl;
 	}
 	out << endl;
@@ -393,7 +394,7 @@ static bool WriteLGM(Grid& grid,
 				LOG("- IMPLEMENT a geometrical method for fallback!\n");
 			}
 
-			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; points:";
+			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; vertices:";
 			for(ConstFaceIterator FIter = shFaces.begin<Face>(i);
 				FIter != shFaces.end<Face>(i); ++FIter)
 			{
@@ -467,8 +468,8 @@ static bool WriteLGM(Grid& grid,
 		}
 	}
 
-//	write the points position data
-	out << endl << "#Point-Info" << endl;
+//	write the vertices position data
+	out << endl << "#Vertex-Info" << endl;
 	for(VertexBaseIterator iter = SurfVrtSel.begin(); iter != SurfVrtSel.end(); ++iter)
 	{
 		out << aaPos[*iter].x << " " << aaPos[*iter].y << " " << aaPos[*iter].z << ";" << endl;
@@ -687,6 +688,322 @@ static bool WriteNG(Grid& grid,
 	}
 
 	out.close();
+	return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+//	2D EXPORT
+////////////////////////////////////////////////////////////////////////////////////////////////
+//	ExportMeshToUG_2D and helper functions
+static bool FaceIsOnRightSide(Face* f, EdgeBase* e)
+{
+//  If the vertices in e are in the same order as the vertices in f,
+//  then f is on the left side of e (since vertices are specified counter-clockwise).
+    size_t ind1 = GetVertexIndex(f, e->vertex(0));
+    size_t ind2 = GetVertexIndex(f, e->vertex(1));
+
+    if(ind2 == (ind1 + 1) % f->num_vertices())
+        return false;
+
+    return true;
+}
+
+bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
+					   const char* problemName, int convex,
+					   SubsetHandler* psh)
+{
+	string lgmFileName = fileName;
+	lgmFileName.append(".lgm");
+
+	string ngFileName = fileName;
+	ngFileName.append(".ng");
+
+//	open the file
+	ofstream out(lgmFileName.c_str());
+	if(!out)
+	{
+		LOG("Failure in ExportGridToUG_2D: couldn't open " << lgmFileName << " for write" << endl);
+		return false;
+	}
+
+//	vectors are used to collect associated elements
+	vector<Face*> vFaces;
+	
+//	Position accessor
+	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
+
+//	initialise all indices with -1
+	AInt aInt;
+	grid.attach_to_vertices(aInt);
+	Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aInt);
+	SetAttachmentValues(aaInt, grid.vertices_begin(), grid.vertices_end(), -1);
+
+//	write the header
+	out << "#Domain-Info" << endl;
+	out << "name = " << lgmName << endl;
+	out << "problemname = " << problemName << endl;
+	out << "convex = " << convex << endl << endl;
+
+	bool bUnitsSupplied;
+	out << "#Unit-Info" << endl;
+
+//>TRI-ATTACHMENT OR QUAD-ATTACHMENT
+
+	if(psh)
+	{
+	//	there are units
+		bUnitsSupplied = true;
+
+	//	write the units
+		{
+			for(int i = 0; i < psh->num_subsets(); i++)
+			{
+				SubsetInfo& sh = psh->subset_info(i);
+				string unitName = sh.name;
+				size_t k = sh.name.find(".");
+				if(k != string::npos)
+					unitName.erase(k, unitName.size() - k);
+				if(unitName.size() > 0)
+					out << "unit " << i+1 << " " << unitName.c_str() << endl;
+				else
+					out << "unit " << i+1 << " unit_" << i+1 << endl;
+			}
+		}
+	}
+	else
+	{
+	//	no subsets are attached. This means we'll have to create one unit for all the triangles
+		bUnitsSupplied = false;
+		out << "unit 1 unit_1" << endl;
+	}
+	out << endl;
+
+//	determine the vertices that go into the lgm file and assign indices to them.
+//	This are all vertices wich lie on a border edge or wich are connected to triangles or quads of different subsets.
+	{
+		int pointIndexCounter = 0;
+
+		for(VertexBaseIterator iter = grid.vertices_begin();
+			iter != grid.vertices_end(); iter++)
+		{
+			if(IsBoundaryVertex2D(grid, *iter))
+			{
+             	aaInt[*iter] = pointIndexCounter++;
+			}
+			else if(bUnitsSupplied)
+			{
+			//	check if the point is connected to triangles and quads of different subsets
+                int subsetIndex = -1;
+				
+				CollectFaces(vFaces, grid, *iter);
+				
+				if(vFaces.size() > 0)
+					subsetIndex = psh->get_subset_index(vFaces[0]);
+				
+				for(size_t i = 1; i < vFaces.size(); ++i){
+					if(psh->get_subset_index(vFaces[i]) != subsetIndex){
+						aaInt[*iter] = pointIndexCounter++;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+//	write the lines
+	out << "#Line-Info" << endl;
+//	we attach an int value to the edges wich describes their line-index. -1 if the edge is not a line
+//	initialise line indices with -1
+	grid.attach_to_edges(aInt);
+	Grid::EdgeAttachmentAccessor<AInt> aaLineInt(grid, aInt);
+	SetAttachmentValues(aaLineInt, grid.edges_begin(), grid.edges_end(), -1);
+
+	int numLines = 0;
+	{
+	//	each edge wich is connected to two different subsets or wich is a boundary edge has to be written as a line
+		if(bUnitsSupplied)
+		{
+			for(EdgeBaseIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
+			{
+				EdgeBase* e = *iter;
+			//	check for adjacent faces of different subset indices
+				CollectFaces(vFaces, grid, e);
+				
+				if(vFaces.size() == 2)
+				{
+					if(psh->get_subset_index(vFaces[0]) != psh->get_subset_index(vFaces[1]))
+					{
+					//	e is a line.
+					//	assign the index
+						aaLineInt[e] = numLines;
+
+					//	write the line
+						int subLeft = psh->get_subset_index(vFaces[0]);
+						int subRight = psh->get_subset_index(vFaces[1]);
+						if(!FaceIsOnRightSide(vFaces[0], e))
+							swap(subLeft, subRight);
+
+						out << "line " << numLines << ": left="<< subLeft
+							<< "; right=" << subRight << "; points: "
+							<< aaInt[e->vertex(0)] << " " << aaInt[e->vertex(1)] << ";" << endl;
+
+						numLines++;
+
+                    //  endvertices of lines have to be marked as boundary-vertices
+						assert((aaInt[e->vertex(0)] != -1) && "This point should be marked as boundary vertex!");
+						assert((aaInt[e->vertex(1)] != -1) && "This point should be marked as boundary vertex!");
+					}
+				}
+			}
+		}
+	//	check for boundary lines
+		{
+			for(EdgeBaseIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
+			{
+				EdgeBase* e = *iter;
+				CollectFaces(vFaces, grid, e);
+			//	check if it is a boundary edge
+				if(vFaces.size() == 1)
+				{
+				//	assign the index
+					aaLineInt[e] = numLines;
+
+					int unitIndex = 1;
+					if(bUnitsSupplied)
+						unitIndex = psh->get_subset_index(vFaces[0]);
+
+					int subLeft = 0;
+					int subRight = 0;
+					if(FaceIsOnRightSide(vFaces[0], e))
+						subRight = unitIndex;
+					else
+						subLeft = unitIndex;
+
+					out << "line " << numLines << ": left="<< subLeft
+						<< "; right=" << subRight << "; points: "
+						<< aaInt[e->vertex(0)] << " " << aaInt[e->vertex(1)] << ";" << endl;
+
+					numLines++;
+
+				//  endvertices of lines have to be marked as boundary-vertices
+					assert((aaInt[e->vertex(0)] != -1) && "This point should be marked as boundary vertex!");
+					assert((aaInt[e->vertex(1)] != -1) && "This point should be marked as boundary vertex!");
+				}
+			}
+		}
+	}
+
+//	write the vertices position data
+	{
+		out << endl << "#Vertex-Info" << endl;
+		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
+		{
+		//	only write the point if it lies on a line
+			if(aaInt[*iter] != -1)
+				out << aaPos[*iter].x << " " << aaPos[*iter].y << ";" << endl;
+		}
+	}
+
+//	lgm-write done
+	out.close();
+
+//	now we have to write the ng file
+//	open the file
+	out.open(ngFileName.c_str());
+
+//	enable scientific number format
+	out.setf(ios::scientific);
+
+	if(!out)
+	{
+		LOG("Failure in ExportGridToUG_2D: couldn't open " << ngFileName << " for write" << endl);
+		grid.detach_from_vertices(aInt);
+		grid.detach_from_edges(aInt);
+		return false;
+	}
+
+//	write the nodes
+	{
+		int numNGVertexs = 0;
+	//	first we'll write the boundary vertices
+		{
+			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
+			{
+				VertexBase* p = *iter;
+			//	check if p is a boundary node
+				if(aaInt[p] != -1)
+				{
+				//	it is. write it to the file
+					out << "B ";
+				//	position:
+					out << aaPos[p].x << " " << aaPos[p].y;
+				//	connected lines
+					for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(p);
+						eIter != grid.associated_edges_end(p); ++eIter)
+					{
+						if(aaLineInt[(*eIter)] != -1)
+							out << " L " << aaLineInt[*eIter] << " " << GetVertexIndex(*eIter, p);
+					}
+				//	done
+					out << ";" << endl;
+					numNGVertexs++;
+				}
+			}
+		}
+
+	//	write the inner vertices
+		{
+			for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
+			{
+				VertexBase* p = *iter;
+				if(aaInt[p] == -1)
+				{
+				//	write the point
+					out << "I " << aaPos[p].x << " " << aaPos[p].y << ";" << endl;
+					aaInt[p] = numNGVertexs++;
+				}
+			}
+		}
+	}
+
+//	write the elements
+	{
+	//	loop through all the triangles
+		for(FaceIterator iter = grid.faces_begin(); iter != grid.faces_end(); iter++)
+		{
+			Face* f = *iter;
+
+			int unitIndex = 1;
+			if(bUnitsSupplied)
+				unitIndex = psh->get_subset_index(f) + 1;
+
+			out << "E " << unitIndex;
+			for(size_t i = 0; i < f->num_vertices(); ++i)
+				out << " " << aaInt[f->vertex(i)];
+
+		//	check if one of its edges is a line.
+			for(size_t i = 0; i < f->num_edges(); ++i)
+			{
+				EdgeBase* e = grid.get_edge(f, i);
+				if(aaLineInt[e] != -1)
+				{
+					out << " S " << aaInt[e->vertex(0)] << " " << aaInt[e->vertex(1)];
+				}
+			}
+		//	done
+			out << ";" << endl;
+		}
+	}
+
+//	write complete
+	out.close();
+
+//	clean up
+	grid.detach_from_vertices(aInt);
+	grid.detach_from_edges(aInt);
+
 	return true;
 }
 

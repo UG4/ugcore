@@ -37,22 +37,25 @@ bool ImportGridFromLGM(Grid& grid,
 //	load 3d
 	if(lgm_read(filename, l, linfo))
 	{
-		lgm_info_delete(linfo);
+		LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
 		lgm_delete(l);
+		lgm_info_delete(linfo);
+		return false;
 
 	//	3d could not be loaded. Try 2d.
 	//TODO: add full 2d support to lgm_parser. There are problems
 	//		with line left and line right (They are not yet parsed).
 	//		This leads to an error in the current implementation.
+	/*
 		l = lgm_new();
 		l->dim = 2;
 		linfo = lgm_info_new();
 		if(lgm_read(filename, l, linfo)){
 			LOG("WARNING in ImportGridFromLGM: " << linfo->err_msg << endl);
-			lgm_info_delete(linfo);
 			lgm_delete(l);
 			return false;
 		}
+	*/
 	}
 	lgm_info_delete(linfo);
 
