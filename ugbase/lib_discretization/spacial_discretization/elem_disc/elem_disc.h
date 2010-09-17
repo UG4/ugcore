@@ -17,8 +17,6 @@
 #include "density_driven_flow/fv1/density_driven_flow.h"
 #include "linear_elasticity/fe1_linear_elasticity.h"
 
-#include "convection_diffusion/hanging_fv1/hanging_convection_diffusion.h"
-
 // include utils for assembling
 #include "elem_disc_assemble_util.h"
 
