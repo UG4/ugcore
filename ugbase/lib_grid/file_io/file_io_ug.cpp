@@ -370,7 +370,7 @@ static bool WriteLGM(Grid& grid,
 	for(EdgeBaseIterator iter = LineSel.begin(); iter != LineSel.end(); ++iter)
 	{
 		EdgeBase* e = *iter;
-		out << "line " << aaLineIndex[e] << ": vertices: ";
+		out << "line " << aaLineIndex[e] << ": points: ";
 		out << aaSurfVrtIndex[e->vertex(0)] << " " << aaSurfVrtIndex[e->vertex(1)] << ";" << endl;
 	}
 	out << endl;
@@ -394,7 +394,7 @@ static bool WriteLGM(Grid& grid,
 				LOG("- IMPLEMENT a geometrical method for fallback!\n");
 			}
 
-			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; vertices:";
+			out << "surface " << i << ": left=" << tmpLeft << "; right=" << tmpRight << "; points:";
 			for(ConstFaceIterator FIter = shFaces.begin<Face>(i);
 				FIter != shFaces.end<Face>(i); ++FIter)
 			{
@@ -469,7 +469,7 @@ static bool WriteLGM(Grid& grid,
 	}
 
 //	write the vertices position data
-	out << endl << "#Vertex-Info" << endl;
+	out << endl << "#Point-Info" << endl;
 	for(VertexBaseIterator iter = SurfVrtSel.begin(); iter != SurfVrtSel.end(); ++iter)
 	{
 		out << aaPos[*iter].x << " " << aaPos[*iter].y << " " << aaPos[*iter].z << ";" << endl;
@@ -897,7 +897,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 
 //	write the vertices position data
 	{
-		out << endl << "#Vertex-Info" << endl;
+		out << endl << "#Point-Info" << endl;
 		for(VertexBaseIterator iter = grid.vertices_begin(); iter != grid.vertices_end(); iter++)
 		{
 		//	only write the point if it lies on a line
