@@ -112,34 +112,24 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		///////////////////////////////////////
 		// registering for reference elements
 		///////////////////////////////////////
-		template <int dim> class numType{};
-
-		void register_assemble_functions()
-		{
-			numType<TDomain::dim> dummy;
-			register_assemble_functions(dummy);
-		}
-
 		// register for 1D
-		void register_assemble_functions(numType<1> dummy)
+		void register_assemble_functions(Int2Type<1>)
 		{
 			register_all_assemble_functions<Edge>(ROID_EDGE);
 		}
 
 		// register for 2D
-		void register_assemble_functions(numType<2> dummy)
+		void register_assemble_functions(Int2Type<2>)
 		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_assemble_functions(Int2Type<1>());
 			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
 			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
 		}
 
 		// register for 3D
-		void register_assemble_functions(numType<3> dummy)
+		void register_assemble_functions(Int2Type<3>)
 		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+			register_assemble_functions(Int2Type<2>());
 			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
 			register_all_assemble_functions<Pyramid>(ROID_PYRAMID);
 			register_all_assemble_functions<Prism>(ROID_PRISM);

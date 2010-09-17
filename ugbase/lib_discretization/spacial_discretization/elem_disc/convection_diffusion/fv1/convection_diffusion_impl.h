@@ -28,7 +28,8 @@ FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 	: 	m_domain(domain), m_upwindAmount(upwind_amount),
 		m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
 {
-	register_assemble_functions();
+	// register all Elements with reference dimension <= world dimension
+	register_assemble_functions(Int2Type<dim>());
 };
 
 
