@@ -277,7 +277,7 @@ num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGrou
 
 bool
 GroupedP1ConformDoFDistribution::
-prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
+prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool withHanging) const
 {
 	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
 

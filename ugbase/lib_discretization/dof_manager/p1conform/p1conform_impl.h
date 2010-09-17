@@ -288,7 +288,7 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 template<typename TElem>
 void
 GroupedP1ConformDoFDistribution::
-update_indices(TElem* elem, LocalIndices& ind) const
+update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 {
 	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
