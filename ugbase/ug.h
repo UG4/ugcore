@@ -12,6 +12,7 @@
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid/lib_grid.h"
 #include "node_tree/node_tree.h"
+#include "ug_interface/ug_interface.h"
 #include "ug_script/ug_script.h"
 
 #ifdef UG_PARALLEL
@@ -34,6 +35,10 @@ inline int UGInit(int argc, char* argv[], int parallelOutputProcRank = -1)
 	pcl::Init(argc, argv);
 	pcl::SetOutputProcRank(parallelOutputProcRank);
 #endif
+
+//	initialize ug-interfaces
+	interface::RegisterStandardInterfaces(interface::Registry::inst());
+	
 	return 0;
 }
 
@@ -94,6 +99,20 @@ inline bool FindParam(const char* param, int argc, char* argv[])
 		}
 	}
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
+/**	searches argv for the given parameter and returns its position in argv.
+ *	If the parameter is not contained in argv, -1 is returned.
+ */
+inline int GetParamIndex(const char* param, int argc, char* argv[])
+{
+	for(int i = 0; i < argc; ++i){
+		if(strcmp(param, argv[i]) == 0){
+			return i;
+		}
+	}
+	return -1;
 }
 
 

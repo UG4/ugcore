@@ -28,6 +28,10 @@ add_subdirectory(node_tree)
 add_subdirectory(lib_grid)
 
 ########################
+# lib_interface
+add_subdirectory(ug_interface)
+
+########################
 # lib_script
 add_subdirectory(ug_script)
 

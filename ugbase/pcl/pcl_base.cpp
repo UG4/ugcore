@@ -48,18 +48,12 @@ int GetOutputProcRank()
 ////////////////////////////////////////////////////////////////////////
 void SetOutputProcRank(int rank)
 {
-	if(rank == -1){
-		UG_LOG("-- PCL-LOG: All processes will log data now.\n");
-	}
-	
-	if(rank >= 0 && rank < GetNumProcesses()){
-		UG_LOG("-- PCL-LOG: Output process set to " << rank << ".\n");
-	}
-	else{
+	if(rank < -1 || rank >= GetNumProcesses()){
 		UG_LOG("-- PCL-LOG: Can't change output process: invalid rank specified: " << rank << ".\n");
 		return;
 	}
 	
 	OUTPUT_PROC_RANK = rank;
 }
-}
+
+}//	end of namespace
