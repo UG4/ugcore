@@ -5,7 +5,6 @@
 #include <vector>
 #include "common/common.h"
 #include "registry.h"
-#include "standard_interfaces/standard_interfaces.h"
 
 namespace ug
 {

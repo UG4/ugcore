@@ -168,7 +168,7 @@ class MethodDesc
 				m_help(help),
 				m_index(0)	{}
 
-		MethodDesc(const char* name = "", int index,
+		MethodDesc(const char* name, int index,
 				   const char* tooltip = "",
 				   const char* help = "") :
 				m_name(name),
