@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <cassert>
 
 namespace ug{
 namespace interface{
