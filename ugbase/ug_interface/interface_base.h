@@ -390,6 +390,34 @@ class ObjectBase : public TParent
 		}
 };
 
+////////////////////////////////////////////////////////////////////////
+///	Implements type-check functionality of IObject.
+/**	\sa ug::interface::ObjectBase
+ *	In contrast to ObjectBase, this class declares an empty clone function.
+ *	It thus lends itself nicely to abstract interfaces.
+ */
+template <class TClass, class TParent>
+class AbstractObjectBase : public TParent
+{
+	public:
+		virtual const char* type_name()			{return TClass::static_type_name();}
+		
+		virtual bool type_check(const char* typeName)
+		{
+			if(strcmp(typeName, TClass::static_type_name()) == 0)
+				return true;
+			return TParent::type_check(typeName);
+		}
+		
+		virtual void collect_supported_types(std::string& strOut)
+		{
+			strOut.append(":");
+			strOut.append(TClass::static_type_name());
+			strOut.append(":");
+			TParent::collect_supported_types(strOut);
+		}
+};
+
 }//	end of namespace interface
 }//	end of namespace ug
 

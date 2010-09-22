@@ -6,6 +6,7 @@
 #define __H__LIBGRID__SUBSET_HANDLER_MULTI_GRID__
 
 #include <vector>
+#include <cassert>
 #include "lib_grid/multi_grid.h"
 #include "common/util/section_container.h"
 #include "subset_handler_interface.h"
@@ -28,7 +29,7 @@ class MultiGridSubsetHandler : public ISubsetHandler
 	  *	Since it calls virtual methods.*/
 		MultiGridSubsetHandler(const MultiGridSubsetHandler& sh);
 		~MultiGridSubsetHandler();
-		
+				
 		inline void assign_grid(MultiGrid& mg)	{m_pMG = &mg; ISubsetHandler::set_grid(&mg);}
 		inline MultiGrid* get_assigned_multi_grid()	{return m_pMG;}
 		
