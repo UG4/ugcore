@@ -12,38 +12,12 @@ namespace ug{
 namespace interface
 {
 
-template <class TClass, class TParent>
-class TObject : public TParent
-{
-	public:
-	///	returns an instance of TClass.
-		virtual IObject* clone()	{return new TClass;}
-
-		virtual const char* type_name()			{return TClass::static_type_name();}
-		
-		virtual bool type_check(const char* typeName)
-		{
-			if(strcmp(typeName, TClass::static_type_name()) == 0)
-				return true;
-			return TParent::type_check(typeName);
-		}
-		
-		virtual void collect_supported_types(std::string& strOut)
-		{
-			strOut.append(":");
-			strOut.append(TClass::static_type_name());
-			strOut.append(":");
-			TParent::collect_supported_types(strOut);
-		}
-};
-
-
-class GridObject : public TObject<GridObject, IObject>
+class GridObject : public ObjectBase<GridObject, IObject>
 {
 	public:
 		static const char* static_type_name()			{return "Grid";}
-	
-		GridObject() : m_pGrid(NULL)	{}
+
+		GridObject() : m_pGrid(NULL)	{}	
 		~GridObject()	{if(m_pGrid) delete m_pGrid;}
 		
 		virtual IObject* clone()
@@ -54,15 +28,19 @@ class GridObject : public TObject<GridObject, IObject>
 		}
 		
 		virtual Grid& get_grid()		{return *m_pGrid;}
-	
+
+		
 	private:
 		Grid*	m_pGrid;
 };
 
-class MultiGridObject : public TObject<MultiGridObject, GridObject>
+class MultiGridObject : public ObjectBase<MultiGridObject, GridObject>
 {
 	public:
 		static const char* static_type_name()			{return "MultiGrid";}
+		
+		MultiGridObject() : m_pMultiGrid(NULL)	{}
+		~MultiGridObject()	{if(m_pMultiGrid) delete m_pMultiGrid;}
 		
 		virtual IObject* clone()
 		{
@@ -74,45 +52,43 @@ class MultiGridObject : public TObject<MultiGridObject, GridObject>
 		virtual Grid& get_grid()				{return *m_pMultiGrid;}
 		virtual MultiGrid& get_multigrid()		{return *m_pMultiGrid;}
 		
-	protected:
+	private:
 		MultiGrid* m_pMultiGrid;
 };
 
-class SubsetHandlerObject : public TObject<SubsetHandlerObject, IObject>
+class SubsetHandlerObject : public ObjectBase<SubsetHandlerObject, IObject>
 {
 	public:
 		static const char* static_type_name()	{return "SubsetHandler";}
 		
 		SubsetHandlerObject()
 		{
+			typedef SubsetHandlerObject THIS;
+			
 		//	we need a set_grid method
-			MethodDesc& md0 = add_method("set_grid");
+			MethodDesc& md0 = add_method("set_grid", &THIS::set_grid);
 			md0.params_in().add_object("grid", "Grid");
 			md0.params_out().add_object("this", "SubsetHandler");
 			
-		//	clone
-			MethodDesc& md1 = add_method("clone");
-			md1.params_out().add_object("clone", "SubsetHandler");
+		//	num_subsets
+			MethodDesc& md1 = add_method("num_subsets", &THIS::num_subsets);
+			md1.params_out().add_int("num");
 		}
 		
 		virtual SubsetHandler& get_subset_handler()		{return m_subsetHandler;}
 		
 	protected:
-		virtual void execute(size_t methodIndex,
-						 ParameterList& in, ParameterList& out)
+		void set_grid(ParameterList& in, ParameterList& out)
 		{
-			switch(methodIndex){
-				case 0:{ //	set_grid
-					GridObject* go = static_cast<GridObject*>(in.to_object(0));
-					if(go)
-						m_subsetHandler.assign_grid(go->get_grid());
-					out.set_object(0, this);
-				}break;
-				
-				case 1:{ //	clone
-					out.set_object(0, clone());
-				}break;
-			}
+			GridObject* go = static_cast<GridObject*>(in.to_object(0));
+			if(go)
+				m_subsetHandler.assign_grid(go->get_grid());
+			out.set_object(0, this);
+		}
+		
+		void num_subsets(ParameterList& in, ParameterList& out)
+		{
+			out.set_int(0, (int)m_subsetHandler.num_subsets());
 		}
 		
 	protected:

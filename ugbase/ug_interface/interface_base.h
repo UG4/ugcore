@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <cassert>
+#include <cstring>
 
 namespace ug{
 namespace interface{
@@ -15,6 +16,8 @@ namespace interface{
 
 class IObject;
 
+////////////////////////////////////////////////////////////////////////
+///	Type-id of ug::interface::IParameter
 enum ParameterTypeID{
 	PTID_UNKNOWN = 0,
 	PTID_INT,
@@ -24,6 +27,7 @@ enum ParameterTypeID{
 };
 
 ////////////////////////////////////////////////////////////////////////
+///	Interface to a parameter.
 class IParameter
 {
 	public:
@@ -58,6 +62,7 @@ class IParameter
 };
 
 ////////////////////////////////////////////////////////////////////////
+///	A flexible parameter list. Used for in- and output parameters of custom methods.
 class ParameterList
 {
 	public:
@@ -158,6 +163,7 @@ class ParameterList
 };
 
 ////////////////////////////////////////////////////////////////////////
+///	Describes a methods head.
 class MethodDesc
 {
 	public:
@@ -209,6 +215,8 @@ class MethodDesc
 };
 
 ////////////////////////////////////////////////////////////////////////
+///	Global functions can be registered at ug::interface::Registry
+/**	Defines a method-head and implements its body.*/
 class IGlobalFunction
 {
 	public:
@@ -247,6 +255,16 @@ class IGlobalFunction
 };
 
 ////////////////////////////////////////////////////////////////////////
+///	Interface for interface-objects. Instances can be registered at ug::interface::Registry
+/**
+ * An interface object is the equivalent to a c++ class-instance.
+ * It can define member-methods that can be executed through the execute-mehtod.
+ * Those methods are usually initialized in the constructors of derived
+ * objects.
+ *
+ * Note: instead of deriving from IObject directly, you should derive from
+ * ug::interface::BaseObject<..., IObject> whenever possible.
+ */
 class IObject
 {
 	public:
@@ -255,12 +273,12 @@ class IObject
 	///	clones the object. Has to be implemented by derived classes.
 		virtual IObject* clone() = 0;
 
-	///	executes the method at the specified index. Forwards to the protected overload.
+	///	executes the method at the specified index.
 		inline void execute(size_t index)
 		{
-			assert(index < m_methods.size() && "Bad index.");
-			MethodDesc& md = m_methods[index];
-			execute(index, md.params_in(), md.params_out());
+			assert(index < m_methodDescs.size() && "Bad index.");
+			MethodDesc& md = m_methodDescs[index];
+			(this->*(m_methodPointers[index]))(md.params_in(), md.params_out());
 		}
 		
 	///	returns the objects type_name.
@@ -296,33 +314,80 @@ class IObject
 		
 	///	returns the number of methods.
 	/**	methods are typically created during construction.*/
-		inline size_t num_methods()	const			{return m_methods.size();}
+		inline size_t num_methods()	const			{return m_methodDescs.size();}
 		
 	///	returns the method with the given index.
 	/**	methods are typically created during construction.
 	 *	Make sure that 0 <= index < num_methods().*/
-		const MethodDesc& get_method(size_t index) const	{return m_methods.at(index);}
+		const MethodDesc& get_method(size_t index) const	{return m_methodDescs.at(index);}
 		
 	protected:
-	///	executes the method for the given MethodDesc.
-	/**	this method can be overloaded by derived classes.
-	 *	Please note that only methods created by the object itself are passed
-	 *	as parameter.
-	 *
-	 *	\param in	Passed for conveniance. Same as m_methods[methodIndex].params_in().
-	 *	\param out	Passed for conveniance. Same as m_methods[methodIndex].params_out().
-	 */
-		virtual void execute(size_t methodIndex,
-							 ParameterList& in, ParameterList& out)	{};
+		typedef void (IObject::*MemberMethod)(const ParameterList& in,
+											  const ParameterList& out);
 		
-		MethodDesc& add_method(const char* name)
+		template <typename TMemberMethod>
+		MethodDesc& add_method(const char* name, TMemberMethod methodPtr)
 		{
-			m_methods.push_back(MethodDesc(name));
-			return m_methods.back();
+			m_methodDescs.push_back(MethodDesc(name));
+			m_methodPointers.push_back((MemberMethod)methodPtr);
+			return m_methodDescs.back();
 		}
 		
 	private:
-		std::vector<MethodDesc>	m_methods;
+		std::vector<MethodDesc>		m_methodDescs;
+		std::vector<MemberMethod>	m_methodPointers;
+};
+
+////////////////////////////////////////////////////////////////////////
+///	Implements type-check and clone functionality of IObject.
+/**	ObjectBase is usually used as base-class for derivates of IObject.
+ *	It implements some common functionality like type_name, type_check and
+ *	collect_supported_types.
+ *	If you intend to create a specialization YourSpecialObject from IObject,
+ *	you should derive it from ObjectBase<YourSpecialObject, IObject>.
+ *
+ *	Note that TClass has to feature a static method
+ *	\code
+ *	static const char* static_type_name();
+ *	\codeend
+ *
+ *	Declaration of YourSpecialObject could then look something like this
+ *	\code
+ *	class YourSpecialObject : public BaseObject<YourSpecialObject, IObject>
+ *	{
+ *		public:
+ *			static const char* static_type_name()	{return "YourSpecialObject";}
+ *			
+ *			//...
+ *	};
+ *	\codeend
+ *
+ *	\tparam TClass	the derived class itselt.
+ *	\tparam TParent	the parent class. Should be IObject or a derivate.
+ */
+template <class TClass, class TParent>
+class ObjectBase : public TParent
+{
+	public:
+	///	returns an instance of TClass.
+		virtual IObject* clone()	{return new TClass;}
+
+		virtual const char* type_name()			{return TClass::static_type_name();}
+		
+		virtual bool type_check(const char* typeName)
+		{
+			if(strcmp(typeName, TClass::static_type_name()) == 0)
+				return true;
+			return TParent::type_check(typeName);
+		}
+		
+		virtual void collect_supported_types(std::string& strOut)
+		{
+			strOut.append(":");
+			strOut.append(TClass::static_type_name());
+			strOut.append(":");
+			TParent::collect_supported_types(strOut);
+		}
 };
 
 }//	end of namespace interface

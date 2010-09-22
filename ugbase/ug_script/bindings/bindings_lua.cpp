@@ -362,6 +362,7 @@ bool CreateBindings_LUA(lua_State* L)
 		for(size_t j = 0; j < plist.size(); ++j)
 			ss << ", p" << j;
 		ss << ") end";
+
 	//	parse the buffer
 		script::ParseBuffer(ss.str().c_str());
 	}
