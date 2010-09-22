@@ -12,9 +12,40 @@ namespace ug{
 namespace interface
 {
 
-class GridObject : public IObject
+template <class TClass, class TParent>
+class TObject : public TParent
 {
 	public:
+	///	returns an instance of TClass.
+		virtual IObject* clone()	{return new TClass;}
+
+		virtual const char* type_name()			{return TClass::static_type_name();}
+		
+		virtual bool type_check(const char* typeName)
+		{
+			if(strcmp(typeName, TClass::static_type_name()) == 0)
+				return true;
+			return TParent::type_check(typeName);
+		}
+		
+		virtual void collect_supported_types(std::string& strOut)
+		{
+			strOut.append(":");
+			strOut.append(TClass::static_type_name());
+			strOut.append(":");
+			TParent::collect_supported_types(strOut);
+		}
+};
+
+
+class GridObject : public TObject<GridObject, IObject>
+{
+	public:
+		static const char* static_type_name()			{return "Grid";}
+	
+		GridObject() : m_pGrid(NULL)	{}
+		~GridObject()	{if(m_pGrid) delete m_pGrid;}
+		
 		virtual IObject* clone()
 		{
 			GridObject* go = new GridObject;
@@ -22,54 +53,47 @@ class GridObject : public IObject
 			return go;
 		}
 		
-		virtual const char* type_name()			{return "Grid";}
-		virtual const char* supported_types()	{return ":Grid:";}
-
 		virtual Grid& get_grid()		{return *m_pGrid;}
 	
-	protected:
+	private:
 		Grid*	m_pGrid;
 };
 
-class MultiGridObject : public GridObject
+class MultiGridObject : public TObject<MultiGridObject, GridObject>
 {
 	public:
+		static const char* static_type_name()			{return "MultiGrid";}
+		
 		virtual IObject* clone()
 		{
 			MultiGridObject* mgo = new MultiGridObject;
 			mgo->m_pMultiGrid = new MultiGrid;
-			mgo->m_pGrid = mgo->m_pMultiGrid;
 			return mgo;
 		}
 		
-		virtual const char* type_name()			{return "MultiGrid";}
-		virtual const char* supported_types()	{return ":Grid:MultiGrid:";}
-		
+		virtual Grid& get_grid()				{return *m_pMultiGrid;}
 		virtual MultiGrid& get_multigrid()		{return *m_pMultiGrid;}
 		
 	protected:
 		MultiGrid* m_pMultiGrid;
 };
 
-class SubsetHandlerObject : public IObject
+class SubsetHandlerObject : public TObject<SubsetHandlerObject, IObject>
 {
 	public:
+		static const char* static_type_name()	{return "SubsetHandler";}
+		
 		SubsetHandlerObject()
 		{
 		//	we need a set_grid method
 			MethodDesc& md0 = add_method("set_grid");
-			md0.params_in().add_object("grid", ":Grid:");
-			md0.params_out().add_object("this", ":SubsetHandler:");
+			md0.params_in().add_object("grid", "Grid");
+			md0.params_out().add_object("this", "SubsetHandler");
 			
 		//	clone
 			MethodDesc& md1 = add_method("clone");
-			md1.params_out().add_object("clone", ":SubsetHandler:");
+			md1.params_out().add_object("clone", "SubsetHandler");
 		}
-		
-		virtual IObject* clone()				{return new SubsetHandlerObject;}
-		
-		virtual const char* type_name()			{return "SubsetHandler";}
-		virtual const char* supported_types()	{return ":SubsetHandler:";}
 		
 		virtual SubsetHandler& get_subset_handler()		{return m_subsetHandler;}
 		
@@ -102,8 +126,8 @@ class LoadGridFunc : public IGlobalFunction
 		{
 			m_method.name() = "load_grid";
 			m_method.tooltip() = "loads a grid from file.";
-			m_method.params_in().add_object("grid", ":Grid:");
-			m_method.params_in().add_object("subset_handler", ":SubsetHandler:");
+			m_method.params_in().add_object("grid", "Grid");
+			m_method.params_in().add_object("subset_handler", "SubsetHandler");
 			m_method.params_in().add_string("filename");
 			m_method.params_out().add_int("success");
 		}
@@ -141,8 +165,8 @@ class SaveGridFunc : public IGlobalFunction
 		{
 			m_method.name() = "save_grid";
 			m_method.tooltip() = "saves a grid to a file.";
-			m_method.params_in().add_object("grid", ":Grid:");
-			m_method.params_in().add_object("subset_handler", ":SubsetHandler:");
+			m_method.params_in().add_object("grid", "Grid");
+			m_method.params_in().add_object("subset_handler", "SubsetHandler");
 			m_method.params_in().add_string("filename");
 			m_method.params_out().add_int("success");
 		}

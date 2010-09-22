@@ -3,6 +3,7 @@
 // y10 m01 d20
 
 #include <cassert>
+#include <cstring>
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
 

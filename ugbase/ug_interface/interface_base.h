@@ -267,6 +267,27 @@ class IObject
 	/**	this method is pure virtual and has to be overloaded by derived classes.*/
 		virtual const char* type_name() = 0;
 
+	///	checks whether the specified type is supported by the interface.
+	/**	Derived classes have to overload this function. They then should check
+	 *	whether their type is supported. If not, they should call their parents
+	 *	implementation of type_check and return its result.*/
+		virtual bool type_check(const char* typeName)
+		{
+			if(strcmp(typeName, "IObject") == 0)
+				return true;
+			return false;
+		}
+		
+	///	This string returns a concatenated sequence of all supported typenames separated by ":".
+	/**	Derived classes have to overload this method. They have to append their type-name to
+	 *	the given string encapsulated by a ":" on the left and on the right.
+	 *	They then have to call their parents implementation
+	 *	of collect_supported_types with the string-object they received.*/
+		virtual void collect_supported_types(std::string& strOut)
+		{
+			strOut.append(":IObject:");
+		}
+
 	///	default implementation returns an empty string.
 		virtual const char* group()					{return "";}
 				

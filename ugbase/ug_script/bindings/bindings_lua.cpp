@@ -119,7 +119,7 @@ static int LuaStackToParams(const ParameterList& params, lua_State* L,
 				if(lua_isuserdata(L, index)){
 					IObject* obj = ((UserData_IObject*)lua_touserdata(L, index))->obj;
 				//	check whether the given object supports the correct interface
-					if(strstr(obj->supported_types(), params.get_interface_type(i))){
+					if(obj->type_check(params.get_interface_type(i))){
 					//	types did match
 						param->set_object(obj);
 					}
@@ -127,7 +127,9 @@ static int LuaStackToParams(const ParameterList& params, lua_State* L,
 					//	types did not match.
 						UG_LOG("ERROR: type mismatch in argument " << i + 1);
 						UG_LOG(": Expected type that supports " << params.get_interface_type(i));
-						UG_LOG(", but given object supports " << obj->supported_types() << " only.\n");
+						string strTypes;
+						obj->collect_supported_types(strTypes);
+						UG_LOG(", but given object supports " << strTypes << " only.\n");
 						printDefaultParamErrorMsg = false;
 						badParam = (int)i + 1;
 					}
