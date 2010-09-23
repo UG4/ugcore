@@ -13,64 +13,29 @@ namespace interface
 {
 
 ///	Represents a ug::Grid.
-class GridObject : public ObjectBase<GridObject, IObject>
+class GridObject : public 
+	ObjectBase_ClassWrapper<GridObject, Grid, IObject>
 {
 	public:
 		static const char* static_type_name()			{return "Grid";}
 
-		GridObject() : m_pGrid(NULL)	{}	
-		~GridObject()	{if(m_pGrid) delete m_pGrid;}
-		
-		virtual IObject* clone()
-		{
-			GridObject* go = new GridObject;
-			go->m_pGrid = new Grid;
-			return go;
-		}
-		
-		virtual Grid& get_grid()		{return *m_pGrid;}
-
-		
-	private:
-		Grid*	m_pGrid;
+		virtual Grid& get_grid()				{return *get_inst();}
 };
 
 ///	Represents a ug::MultiGrid
-class MultiGridObject : public ObjectBase<MultiGridObject, GridObject>
+class MultiGridObject : public 
+	ObjectBase_ClassWrapper<MultiGridObject, MultiGrid, GridObject>
 {
 	public:
 		static const char* static_type_name()			{return "MultiGrid";}
-		
-		MultiGridObject() : m_pMultiGrid(NULL), m_deleteIt(false)	{}
-		MultiGridObject(MultiGrid* pmg, bool deleteIt = false) :
-			m_pMultiGrid(pmg), m_deleteIt(deleteIt)	{}
 
-		~MultiGridObject()	{if(m_pMultiGrid && m_deleteIt) delete m_pMultiGrid;}
-
-		void set_grid(MultiGrid* pmg, bool deleteIt = false)
-		{
-			if(m_pMultiGrid && m_deleteIt)
-				delete m_pMultiGrid;
-			m_pMultiGrid = pmg;
-			m_deleteIt = deleteIt;
-		}
-		
-		virtual IObject* clone()
-		{
-			MultiGridObject* mgo = new MultiGridObject;
-			mgo->m_pMultiGrid = new MultiGrid;
-			mgo->m_deleteIt = true;
-			return mgo;
-		}
-		
-		virtual Grid& get_grid()				{return *m_pMultiGrid;}
-		virtual MultiGrid& get_multi_grid()		{return *m_pMultiGrid;}
-		
-	private:
-		MultiGrid* m_pMultiGrid;
-		bool m_deleteIt;
+		virtual Grid& get_grid()				{return *get_inst();}
+		virtual MultiGrid& get_multi_grid()		{return *get_inst();}
 };
 
+///	Interface to subset-handlers. Note that this class is abstract.
+/**	Since this is an abstract interface, it will not be registered at the Registry.
+ *	However, methods declared here will be available in derived classes, too.*/
 class ISubsetHandlerObject : public AbstractObjectBase<ISubsetHandlerObject, IObject>
 {
 	public:
@@ -96,7 +61,8 @@ class ISubsetHandlerObject : public AbstractObjectBase<ISubsetHandlerObject, IOb
 };
 
 ///	Represents a ug::SubsetHandler
-class SubsetHandlerObject : public ObjectBase<SubsetHandlerObject, ISubsetHandlerObject>
+class SubsetHandlerObject : public 
+	ObjectBase_ClassWrapper<SubsetHandlerObject, SubsetHandler, ISubsetHandlerObject>
 {
 	public:
 		static const char* static_type_name()	{return "SubsetHandler";}
@@ -112,65 +78,54 @@ class SubsetHandlerObject : public ObjectBase<SubsetHandlerObject, ISubsetHandle
 			}
 		}
 		
-		virtual ISubsetHandler& get_subset_handler_interface()	{return m_subsetHandler;}
-		virtual SubsetHandler& get_subset_handler()				{return m_subsetHandler;}
+		virtual ISubsetHandler& get_subset_handler_interface()	{return *get_inst();}
+		virtual SubsetHandler& get_subset_handler()				{return *get_inst();}
 				
 	protected:
 		void set_grid(ParameterList& in, ParameterList& out)
 		{
 			GridObject* go = static_cast<GridObject*>(in.to_object(0));
+			SubsetHandler& sh = get_subset_handler();
 			
-			if(go)
-				m_subsetHandler.assign_grid(go->get_grid());
+			sh.assign_grid(go->get_grid());
+			
 			out.set_object(0, this);
 		}
-
-	protected:
-		SubsetHandler m_subsetHandler;
+		
 };
 
-///	Represents a ug::SubsetHandler
-class MGSubsetHandlerObject : public ObjectBase<MGSubsetHandlerObject, ISubsetHandlerObject>
+//	Represents a ug::MGSubsetHandler
+class MGSubsetHandlerObject : public 
+	ObjectBase_ClassWrapper<MGSubsetHandlerObject, MGSubsetHandler, ISubsetHandlerObject>
 {
 	public:
 		static const char* static_type_name()	{return "MGSubsetHandler";}
-
-		MGSubsetHandlerObject(MGSubsetHandler* psh = NULL, bool deleteIt = false)
+		
+		MGSubsetHandlerObject()
 		{
-			if(psh == NULL)
-			{
-				psh = new MGSubsetHandler;
-				deleteIt = true;
-			}
-
-			m_pSubsetHandler = psh;
-			m_deleteIt = deleteIt;
-
 			typedef MGSubsetHandlerObject THIS;
 			
 			{//	set_grid
 				MethodDesc& md = add_method("set_grid", &THIS::set_grid);
-				md.params_in().add_object("grid", "MultiGrid");
+				md.params_in().add_object("multi_grid", "MultiGrid");
 				md.params_out().add_object("this", "MGSubsetHandler");
 			}
 		}
-
-		virtual ISubsetHandler& get_subset_handler_interface()	{return *m_pSubsetHandler;}
-		virtual MGSubsetHandler& get_subset_handler()			{return *m_pSubsetHandler;}
 		
+		virtual ISubsetHandler& get_subset_handler_interface()	{return *get_inst();}
+		virtual MGSubsetHandler& get_subset_handler()			{return *get_inst();}
+				
 	protected:
 		void set_grid(ParameterList& in, ParameterList& out)
 		{
 			MultiGridObject* go = static_cast<MultiGridObject*>(in.to_object(0));
+			MGSubsetHandler& sh = get_subset_handler();
 			
-			if(go)
-				m_pSubsetHandler->assign_grid(go->get_multi_grid());
+			sh.assign_grid(go->get_multi_grid());
+			
 			out.set_object(0, this);
 		}
-
-	protected:
-		MGSubsetHandler* m_pSubsetHandler;
-		bool m_deleteIt;
+		
 };
 
 ///	Represents ug::LoadGridFromFile 

@@ -10,6 +10,7 @@
 
 #include "../ug_interface.h"
 #include "../registry.h"
+#include "common/static_assert.h"
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid_interface.h"
 
@@ -19,7 +20,10 @@ namespace interface
 {
 
 template <int dim>
-class DomainObject : public ObjectBase<DomainObject<dim>, IObject>
+class MGDomainObject : public
+	ObjectBase_ClassWrapper<MGDomainObject<dim>,
+							Domain<dim, MultiGrid, MGSubsetHandler>,
+							IObject>
 {
 	typedef MultiGrid grid_type;
 	typedef MGSubsetHandler subset_handler_type;
@@ -28,53 +32,50 @@ class DomainObject : public ObjectBase<DomainObject<dim>, IObject>
 	public:
 		static const char* static_type_name()
 		{
-			static char name[9];
+			UG_STATIC_ASSERT(dim < 100, DIMENSION_TOO_HIGH);
+			static char name[12];
+			
 			static bool init = false;
 			if(!init)
 			{
-				sprintf(name, "Domain%id", dim);
+				sprintf(name, "MGDomain%id", dim);
 				init = true;
 			}
 
 			return name;
 		}
 
-		DomainObject() : m_gridObj(&m_domain.get_grid()), m_shObj(&m_domain.get_subset_handler())
+		MGDomainObject()
 		{
-			typedef DomainObject THIS;
+			typedef MGDomainObject THIS;
 
 			{//	get_grid method
 				MethodDesc& md = add_method("get_grid", &THIS::get_grid);
-				md.params_out().add_object("grid", "MultiGrid");
+				md.params_out().add_object("multi_grid", "MultiGrid");
 			}
 
 			{//	get_subset_handler method
 				MethodDesc& md = add_method("get_subset_handler", &THIS::get_subset_handler);
-				md.params_out().add_object("subsethandler", "MGSubsetHandler");
+				md.params_out().add_object("mg_subset_handler", "MGSubsetHandler");
 			}
 
 		}
 
-		~DomainObject(){}
-
 	public:
-		domain_type& get_domain() {return m_domain;}
+		domain_type& get_domain() {return *this->get_inst();}
 
 	protected:
 		void get_grid(ParameterList& in, ParameterList& out)
 		{
-			out.set_object(0, &m_gridObj);
+			domain_type& dom = get_domain();
+			out.set_object(0, MultiGridObject::create_with_existing_instance(&dom.get_grid()));
 		}
 
 		void get_subset_handler(ParameterList& in, ParameterList& out)
 		{
-			out.set_object(0, &m_shObj);
+			domain_type& dom = get_domain();
+			out.set_object(0, MGSubsetHandlerObject::create_with_existing_instance(&dom.get_subset_handler()));
 		}
-
-	private:
-		Domain<dim, grid_type, subset_handler_type> m_domain;
-		MultiGridObject m_gridObj;
-		MGSubsetHandlerObject m_shObj;
 };
 
 } // end namespace interface

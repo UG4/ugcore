@@ -16,8 +16,8 @@ namespace interface
 
 void RegisterLibDiscretizationInterface(Registry& reg)
 {
-	reg.register_object<DomainObject<2> >();
-	reg.register_object<DomainObject<3> >();
+	reg.register_object<MGDomainObject<2> >();
+	reg.register_object<MGDomainObject<3> >();
 }
 
 }//	end of namespace ug

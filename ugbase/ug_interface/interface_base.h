@@ -418,6 +418,80 @@ class AbstractObjectBase : public TParent
 		}
 };
 
+template <class TWrapper, class TWrapped, class TParent>
+class ObjectBase_ClassWrapper : public TParent
+{
+	public:
+	///	craetes a new wrapper with an existing instance of its wrapped object.
+		static TWrapper* create_with_existing_instance(TWrapped* inst,
+													bool deleteIt = false)
+		{
+			TWrapper* wrap = new TWrapper;
+			wrap->set_inst(inst, deleteIt);
+			return wrap;
+		}
+		
+	///	returns an instance of TWrapper and sets a new instance of TWrapped to it.
+		virtual IObject* clone()
+		{
+			TWrapper* wrap = new TWrapper;
+			wrap->set_inst(new TWrapped, true);
+			return wrap;
+		}
+
+		virtual const char* type_name()			{return TWrapper::static_type_name();}
+		
+		virtual bool type_check(const char* typeName)
+		{
+			if(strcmp(typeName, TWrapper::static_type_name()) == 0)
+				return true;
+			return TParent::type_check(typeName);
+		}
+		
+		virtual void collect_supported_types(std::string& strOut)
+		{
+			strOut.append(":");
+			strOut.append(TWrapper::static_type_name());
+			strOut.append(":");
+			TParent::collect_supported_types(strOut);
+		}
+	
+		
+	protected:
+		ObjectBase_ClassWrapper() : m_inst(NULL), m_deleteIt(false)	{}
+		ObjectBase_ClassWrapper(TWrapped* inst, bool deleteIt = false) :
+			m_inst(inst), m_deleteIt(deleteIt)
+		{
+		}
+		
+		virtual ~ObjectBase_ClassWrapper()	{clear();}
+		
+		virtual void clear()
+		{
+			if(m_deleteIt && m_inst){
+				delete m_inst;
+			}
+			
+			m_inst = NULL;
+		}
+		
+		virtual void set_inst(TWrapped* inst, bool deleteIt = false)
+		{
+			clear();
+			m_inst = inst;
+			m_deleteIt = deleteIt;
+		}
+		
+		virtual TWrapped* get_inst()
+		{
+			return m_inst;
+		}
+		
+	private:
+		TWrapped*	m_inst;
+		bool		m_deleteIt;
+};
+
 }//	end of namespace interface
 }//	end of namespace ug
 
