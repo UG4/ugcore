@@ -32,17 +32,11 @@ class MGDomainObject : public
 	public:
 		static const char* static_type_name()
 		{
-			UG_STATIC_ASSERT(dim < 100, DIMENSION_TOO_HIGH);
-			static char name[12];
-			
-			static bool init = false;
-			if(!init)
-			{
-				sprintf(name, "MGDomain%id", dim);
-				init = true;
-			}
-
-			return name;
+		   UG_STATIC_ASSERT(dim < 10, DIMENSION_TOO_HIGH);
+		   static char name[12];
+		   static int dummy = sprintf(name, "MGDomain%id", dim);
+		   dummy = 0; // avoid warnings
+		   return name;
 		}
 
 		MGDomainObject()
