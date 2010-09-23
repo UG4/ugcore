@@ -59,15 +59,27 @@ class Domain {
 		typedef DistributedGridManager distributed_grid_manager_type;
 
 	public:
-		Domain(TGrid& grid, TSubsetHandler& sh,
-				DistributedGridManager* pDistGridMgr = NULL) :
-			m_grid(grid), m_sh(sh), m_pDistGridMgr(pDistGridMgr)
+		Domain(uint options = GRIDOPT_STANDARD_INTERCONNECTION) :
+			m_grid(options), m_sh(m_grid), m_distGridMgr(NULL)
 			{
 				m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
-				if(!grid.template has_attachment<VertexBase>(m_aPos))
-					grid.template attach_to<VertexBase>(m_aPos);
-				m_aaPos.access(grid, m_aPos);
+
+				// let position accessor access Vertex Coordinates
+				if(!m_grid.template has_attachment<VertexBase>(m_aPos))
+					m_grid.template attach_to<VertexBase>(m_aPos);
+
+				m_aaPos.access(m_grid, m_aPos);
+
+#ifdef UG_PARALLEL
+				m_distGridMgr = new DistributedGridManager(m_grid);
+#endif
 			}
+
+		~Domain()
+		{
+			if(m_distGridMgr)
+				delete m_distGridMgr;
+		}
 
 		inline TGrid& get_grid() {return m_grid;};
 		inline const TGrid& get_grid() const {return m_grid;};
@@ -83,18 +95,18 @@ class Domain {
 		inline position_accessor_type& get_position_accessor() {return m_aaPos;};
 		inline const position_accessor_type& get_position_accessor() const {return m_aaPos;};
 
-		inline DistributedGridManager* get_distributed_grid_manager()	{return m_pDistGridMgr;}
+		inline DistributedGridManager* get_distributed_grid_manager()	{return m_distGridMgr;}
 
 	protected:
-		TGrid& m_grid;
+		TGrid m_grid;
 
-		TSubsetHandler& m_sh;
+		TSubsetHandler m_sh;
 
 		position_attachment_type m_aPos;
 		position_accessor_type m_aaPos;
 
 	//	for parallelization only
-		DistributedGridManager*	m_pDistGridMgr;
+		DistributedGridManager*	m_distGridMgr;
 };
 
 } // end namespace ug
