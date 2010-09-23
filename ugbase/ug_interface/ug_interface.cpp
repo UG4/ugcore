@@ -15,6 +15,7 @@ namespace interface
 void RegisterStandardInterfaces(Registry& reg)
 {
 	RegisterLibGridInterface(reg);
+	RegisterLibDiscretizationInterface(reg);
 }
 
 }//	end of namespace 

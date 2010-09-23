@@ -16,7 +16,8 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 set(srcUGInterface	registry.cpp
 					interface_base.cpp
 					ug_interface.cpp
-					standard_interfaces/lib_grid_interface.cpp)
+					standard_interfaces/lib_grid_interface.cpp
+					standard_interfaces/lib_discretization_interface.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.

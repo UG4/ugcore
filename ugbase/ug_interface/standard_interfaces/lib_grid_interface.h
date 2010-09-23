@@ -41,13 +41,25 @@ class MultiGridObject : public ObjectBase<MultiGridObject, GridObject>
 	public:
 		static const char* static_type_name()			{return "MultiGrid";}
 		
-		MultiGridObject() : m_pMultiGrid(NULL)	{}
-		~MultiGridObject()	{if(m_pMultiGrid) delete m_pMultiGrid;}
+		MultiGridObject() : m_pMultiGrid(NULL), m_deleteIt(false)	{}
+		MultiGridObject(MultiGrid* pmg, bool deleteIt = false) :
+			m_pMultiGrid(pmg), m_deleteIt(deleteIt)	{}
+
+		~MultiGridObject()	{if(m_pMultiGrid && m_deleteIt) delete m_pMultiGrid;}
+
+		void set_grid(MultiGrid* pmg, bool deleteIt = false)
+		{
+			if(m_pMultiGrid && m_deleteIt)
+				delete m_pMultiGrid;
+			m_pMultiGrid = pmg;
+			m_deleteIt = deleteIt;
+		}
 		
 		virtual IObject* clone()
 		{
 			MultiGridObject* mgo = new MultiGridObject;
 			mgo->m_pMultiGrid = new MultiGrid;
+			mgo->m_deleteIt = true;
 			return mgo;
 		}
 		
@@ -56,6 +68,7 @@ class MultiGridObject : public ObjectBase<MultiGridObject, GridObject>
 		
 	private:
 		MultiGrid* m_pMultiGrid;
+		bool m_deleteIt;
 };
 
 class ISubsetHandlerObject : public AbstractObjectBase<ISubsetHandlerObject, IObject>
@@ -122,8 +135,17 @@ class MGSubsetHandlerObject : public ObjectBase<MGSubsetHandlerObject, ISubsetHa
 	public:
 		static const char* static_type_name()	{return "MGSubsetHandler";}
 
-		MGSubsetHandlerObject()
+		MGSubsetHandlerObject(MGSubsetHandler* psh = NULL, bool deleteIt = false)
 		{
+			if(psh == NULL)
+			{
+				psh = new MGSubsetHandler;
+				deleteIt = true;
+			}
+
+			m_pSubsetHandler = psh;
+			m_deleteIt = deleteIt;
+
 			typedef MGSubsetHandlerObject THIS;
 			
 			{//	set_grid
@@ -132,9 +154,9 @@ class MGSubsetHandlerObject : public ObjectBase<MGSubsetHandlerObject, ISubsetHa
 				md.params_out().add_object("this", "MGSubsetHandler");
 			}
 		}
-		
-		virtual ISubsetHandler& get_subset_handler_interface()	{return m_subsetHandler;}
-		virtual MGSubsetHandler& get_subset_handler()			{return m_subsetHandler;}
+
+		virtual ISubsetHandler& get_subset_handler_interface()	{return *m_pSubsetHandler;}
+		virtual MGSubsetHandler& get_subset_handler()			{return *m_pSubsetHandler;}
 		
 	protected:
 		void set_grid(ParameterList& in, ParameterList& out)
@@ -142,12 +164,13 @@ class MGSubsetHandlerObject : public ObjectBase<MGSubsetHandlerObject, ISubsetHa
 			MultiGridObject* go = static_cast<MultiGridObject*>(in.to_object(0));
 			
 			if(go)
-				m_subsetHandler.assign_grid(go->get_multi_grid());
+				m_pSubsetHandler->assign_grid(go->get_multi_grid());
 			out.set_object(0, this);
 		}
 
 	protected:
-		MGSubsetHandler m_subsetHandler;
+		MGSubsetHandler* m_pSubsetHandler;
+		bool m_deleteIt;
 };
 
 ///	Represents ug::LoadGridFromFile 
