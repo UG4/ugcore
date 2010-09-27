@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include "common/common.h"
+#include "common/math/math_vector_matrix/math_matrix_functions.h"
 
 namespace ug
 {
@@ -296,6 +297,60 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 	VecScale(v, rayDir, tOut);
 	VecAdd(vOut, rayFrom, v);
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+template <class vector_t>
+bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
+						   const vector_t &p0, const vector_t &p1,
+						   const vector_t &vFrom, const vector_t &vDir)
+{
+	// we search for the intersection of the ray vFrom + tOut*vDir with the
+	// Line p0 + bcOut*(p1-p0). Intersection is true, if c0 in [0,1].
+	// We set up the system
+	//   | (p1-p0)[0] , - vDir[0] | ( bcOut ) = ( (vFrom - p0)[0] )
+	//   | (p1-p0)[1] , - vDir[1] | (  tOut ) = ( (vFrom - p0)[1] )
+
+	vector_t v, b;
+	MathMatrix<2,2> m, mInv;
+
+	// compute vector connecting the points of the line (p0 -> p1)
+	VecSubtract(v, p1, p0);
+
+	// set up matrix
+	m[0][0] = v[0]; m[0][1] = -1 * vDir[0];
+	m[1][0] = v[1]; m[1][1] = -1 * vDir[1];
+
+	// invert matrix
+	number det;
+	Inverse(mInv, m, det);
+
+	// if det == 0.0 lines are parallel
+	if(det == 0.0) return false;
+
+	// compute rhs of system
+	VecSubstract(b, vFrom, p0);
+
+	// solve system
+	MatVecMult(v, mInv, b);
+
+	// if bcOut in range
+	bcOut = v[0];
+	if(bcOut >= 0.0 && bcOut <= 1.0)
+	{
+		// return intersection parameter
+		tOut = v[1];
+
+		// compute intersection point
+		VecCopy(vOut, vFrom);
+		VecScaleAppend(vOut, vDir, tOut);
+
+		// intersection
+		return true;
+	}
+
+	// no intersection
+	return false;
 }
 						  
 ////////////////////////////////////////////////////////////////////////

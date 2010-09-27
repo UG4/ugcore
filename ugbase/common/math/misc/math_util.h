@@ -190,6 +190,27 @@ bool RayPlaneIntersection(vector_t& vOut, number& tOut,
 						  const vector_t& p, const vector_t& n);
 
 ////////////////////////////////////////////////////////////////////////
+//	RayLineIntersection2d
+///	calculates the intersection of a ray with a Line in 2d
+/**
+ * You have to pass the line corners through p0 and p1
+ * together with a point on the ray (vFrom) and the rays
+ * direction (vDir).
+ *
+ * If the method succeeds (the ray intersects the line)
+ * the methods returns true and writes the position of
+ * the intersection to vOut.
+ * Furthermore the local (barycentric) coordinate of the
+ * intersection is written to bcOut. tOut
+ * will contain the local coordinate of the intersection
+ * regarding the rays parameter form.
+ */
+template <class vector_t>
+bool RayLineIntersection2d(vector_t &vOut, number& bcOut, number& tOut,
+						   const vector_t &p0, const vector_t &p1,
+						   const vector_t &vFrom, const vector_t &vDir);
+
+////////////////////////////////////////////////////////////////////////
 //	RayTriangleIntersection
 ///	calculates the intersection of a ray with a triangle
 /**
