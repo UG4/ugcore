@@ -58,6 +58,13 @@ class HFV1Geometry {
 	public:
 		class SCVF
 		{
+			public:
+				// dimension of reference element
+				static const int dim = ref_elem_type::dim;
+
+				// dimension of world
+				static const int world_dim = TWorldDim;
+
 			private:
 				// let outer class access private members
 				friend class HFV1Geometry<TElem, TWorldDim>;

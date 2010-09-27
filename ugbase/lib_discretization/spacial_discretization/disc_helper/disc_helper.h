@@ -8,6 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DISC_HELPER__DISC_HELPER__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DISC_HELPER__DISC_HELPER__
 
+#include "./upwind_shapes.h"
 #include "./finite_volume_output.h"
 #include "./finite_volume_geometry.h"
 

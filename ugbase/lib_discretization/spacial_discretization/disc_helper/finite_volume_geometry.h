@@ -28,10 +28,14 @@ namespace ug{
 template <	typename TElem,
 			int TWorldDim>
 class FV1Geometry {
-	private:
+	public:
+		// type of element
+		typedef TElem elem_type;
+
 		// type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
+	private:
 		// number of SubControlVolumes
 		static const size_t m_numSCV = ref_elem_type::num_corners;
 
@@ -63,6 +67,13 @@ class FV1Geometry {
 	public:
 		class SCVF
 		{
+			public:
+				// type of element
+				typedef TElem elem_type;
+
+				// type of reference element
+				typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+
 			private:
 				// let outer class access private members
 				friend class FV1Geometry<TElem, TWorldDim>;
