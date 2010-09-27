@@ -66,6 +66,10 @@ class ApproximationSpace{
 		#endif
 
 	public:
+		ApproximationSpace() :
+			m_name(""), m_pDomain(NULL), m_pMGSubsetHandler(NULL), m_pMGDoFManager(NULL)
+		{};
+
 		ApproximationSpace(std::string name, domain_type& domain) :
 			m_name(name), m_pDomain(NULL), m_pMGSubsetHandler(NULL), m_pMGDoFManager(NULL)
 		{
