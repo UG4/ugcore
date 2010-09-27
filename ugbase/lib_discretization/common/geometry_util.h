@@ -391,6 +391,175 @@ inline void ElementNormal<ReferenceQuadrilateral, 3>(MathVector<3>& normalOut, c
 }
 
 
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+// ElementSideRayIntersection
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+// wrapper class to distinguish reference dimesion
+template <typename TRefElem, int TWorldDim, int TRefDim = TRefElem::dim>
+struct ElementSideRayIntersectionWrapper
+{
+	static bool apply(	size_t& sideOut,
+						MathVector<TWorldDim>& GlobalIntersectionPointOut,
+						MathVector<TRefElem::dim> LocalIntersectionPoint,
+						const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
+						bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
+	{
+		UG_ASSERT(0, "Not implemented.");
+		return false;
+	}
+};
+
+// specialization for 2d
+template <>
+template <typename TRefElem>
+struct ElementSideRayIntersectionWrapper<TRefElem, 2, 2>
+{
+	static bool apply(	size_t& sideOut,
+						MathVector<2>& GlobalIntersectionPointOut,
+						MathVector<TRefElem::dim> LocalIntersectionPoint,
+						const MathVector<2>& From, const MathVector<2>& Direction,
+						bool bPositiv, const MathVector<2>* vCornerCoords)
+	{
+		// TODO: Replace by SingeltonProvider
+		static TRefElem rRefElem;
+
+		// reference dimension
+		const int dim = TRefElem::dim;
+
+		// parameters
+		number bc, t;
+		size_t p0, p1;
+
+		// find side
+		for(sideOut = 0; sideOut < rRefElem.num_obj(dim-1); ++sideOut)
+		{
+			// get corners
+			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
+			p1 = rRefElem.id(dim-1, sideOut, 0, 1);
+
+			// if match: break
+			if(RayLineIntersection2d(	GlobalIntersectionPointOut, bc, t,
+										vCornerCoords[p0], vCornerCoords[p1],
+										From, Direction))
+			{
+				if(bPositiv && t >= 0.0) break;
+				else if(t <= 0.0) break;
+			}
+		}
+		// if not found
+		if(sideOut >= rRefElem.num_obj(dim-1)) return false;
+
+		// Compute local intersection
+		VecScaleAdd(LocalIntersectionPoint, bc, rRefElem.corner(p0), 1.-bc, rRefElem.corner(p1));
+
+		// true if found
+		return true;
+	}
+};
+
+// specialization for 3d
+template <>
+template <typename TRefElem>
+struct ElementSideRayIntersectionWrapper<TRefElem, 3, 3>
+{
+	static bool apply(	size_t& sideOut,
+						MathVector<3>& GlobalIntersectionPointOut,
+						MathVector<TRefElem::dim> LocalIntersectionPoint,
+						const MathVector<3>& From, const MathVector<3>& Direction,
+						bool bPositiv, const MathVector<3>* vCornerCoords)
+	{
+		// TODO: Replace by SingeltonProvider
+		static TRefElem rRefElem;
+
+		// reference dimension
+		const int dim = TRefElem::dim;
+
+		// parameters
+		number bc0, bc1, t;
+		size_t p0, p1, p2;
+
+		// find side
+		for(sideOut = 0; sideOut < rRefElem.num_obj(dim-1); ++sideOut)
+		{
+			// get corners
+			p0 = rRefElem.id(dim-1, sideOut, 0, 0);
+			p1 = rRefElem.id(dim-1, sideOut, 0, 1);
+			p2 = rRefElem.id(dim-1, sideOut, 0, 2);
+
+			// if match: break
+			if(RayTriangleIntersection(	GlobalIntersectionPointOut, bc0, bc1, t,
+										vCornerCoords[p0], vCornerCoords[p1], vCornerCoords[p2],
+										From, Direction))
+			{
+				if(bPositiv && t >= 0.0) break;
+				else if(t <= 0.0) break;
+			}
+
+			// second triangle (only if 4 corners)
+			if(rRefElem.num_obj_of_obj(dim-1, sideOut, 0) == 3) continue;
+
+			// get corner number 4
+			p2 = rRefElem.id(dim-1, sideOut, 0, 3);
+
+			// if match: break
+			if(RayTriangleIntersection(	GlobalIntersectionPointOut, bc0, bc1, t,
+										vCornerCoords[p0], vCornerCoords[p1], vCornerCoords[p2],
+										From, Direction))
+			{
+				if(bPositiv && t >= 0.0) break;
+				else if(t <= 0.0) break;
+			}
+		}
+
+		// if not found
+		if(sideOut >= rRefElem.num_obj(dim-1)) return false;
+
+		// Compute local intersection
+		VecScaleAdd(LocalIntersectionPoint,
+					bc0, rRefElem.corner(p0),
+					bc1, rRefElem.corner(p1),
+					(1.-bc0-bc1), rRefElem.corner(p2));
+
+		// true if found
+		return true;
+	}
+};
+
+
+///////////////////////////////////////////////////////////////
+/// ElementSideRayIntersection
+/**
+ * This function computes the side of element, that is intersected
+ * by a Ray given in Parameter form by 'From + c * Direction'. The
+ * intersection is choose to be at positive parameter if bPositiv == true,
+ * else the intersection at negative parameter is choosen.
+ * Global and local coordinates of the intersection points are returned
+ * as well as the reference element number of the side.
+ *
+ * \param[in]	From							Point of Ray
+ * \param[in]	Direction						Direction of Ray
+ * \param[in]	bPositiv						Flag, whether to search in positiv of negative direction
+ * \param[in]	vCornerCoords					Vector of corner coordinates
+ * \param[out]	sideOut							side of intersection
+ * \param[out]	GlobalIntersectionPointOut		Intersection Point (global)
+ * \param[out]	LocalIntersectionPoint			Intersection Point (local)
+ */
+template <typename TRefElem, int TWorldDim>
+bool ElementSideRayIntersection(	size_t& sideOut,
+									MathVector<TWorldDim>& GlobalIntersectionPointOut,
+									MathVector<TRefElem::dim> LocalIntersectionPoint,
+									const MathVector<TWorldDim>& From, const MathVector<TWorldDim>& Direction,
+									bool bPositiv, const MathVector<TWorldDim>* vCornerCoords)
+{
+	UG_ASSERT(VecTwoNorm(Direction) > 0, "Direction must be non-zero vector.");
+	return ElementSideRayIntersectionWrapper<TRefElem, TWorldDim>::
+			apply(sideOut, GlobalIntersectionPointOut, LocalIntersectionPoint,
+					From, Direction, bPositiv, vCornerCoords);
+}
+
 
 } // end namespace ug
 
