@@ -180,6 +180,24 @@ void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin, const Vertex
 }
 
 
+////////////////////////////////////////////////////////////////////////
+template<class TAAPos> inline
+void TransformVertex(VertexBase* vrt, matrix33& m, TAAPos& aaPos)
+{
+//	todo: avoid unnecessary copy
+	vector3 oldPos = aaPos[vrt];
+	MatVecMult(aaPos[vrt], m, oldPos);
+}
+
+////////////////////////////////////////////////////////////////////////
+template<class TIterator, class TAAPos>
+void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
+					   matrix33& m, TAAPos& aaPos)
+{
+	for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
+		TransformVertex(*iter, m, aaPos);
+}
+					   
 }//	end of namespace
 
 #endif

@@ -41,10 +41,31 @@ int GetFaceIndex(Volume* vol, Face* f);
  * (2, 3, 0) is calculated and averaged.
  * If the face contains more than 4 vertices the normal of the first
  * sub-triangle is returned.
+ *
+ * Performs normalization on the calcluated normals.
  */
 void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos);
 
+////////////////////////////////////////////////////////////////////////
+//	CalculateNormal
+///	calculates the normal of the given face
+/**
+ * aaPos has to be a valid positition-attachment-accessor to the vertices
+ * of the grid which contains the face.
+ * if the face contains less than 3 vertices (0, 0, 0) will be written
+ * to vNormOut (this should never happen!).
+ * For triangles the normal is calculated using the standard cross-product.
+ * for quadrilaterals the normals of the two sub-triangles (0, 1, 2) and
+ * (2, 3, 0) is calculated and averaged.
+ * If the face contains more than 4 vertices the normal of the first
+ * sub-triangle is returned.
+ *
+ * performs no normalization on the calculated normals
+ */
+void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
+						Grid::VertexAttachmentAccessor<APosition>& aaPos);
+					
 ////////////////////////////////////////////////////////////////////////
 //	CalculateFaceNormals
 ///	calculates the normal of each face. Presumes that all faces are flat.

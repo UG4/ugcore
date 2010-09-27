@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <cassert>
 #include "math_matrix.h"
+#include "common/static_assert.h"
 
 namespace ug
 {
@@ -543,6 +544,79 @@ MatMultiply(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s)
 		{
 			mOut(i, j) = m(i,j) * s;
 		}
+}
+
+template <typename matrix_t>
+inline
+void
+MatIdentity(matrix_t& mOut)
+{
+	MatSet(mOut, 0);
+	MatDiagSet(mOut, 1);
+}
+
+template <typename matrix_t>
+inline
+void
+MatRotationX(matrix_t& mOut, typename matrix_t::value_type rads)
+{
+	//UG_STATIC_ASSERT(matrix_t::RowSize > 2, AT_LEAST_3_ROWS_REQUIRED);
+	//UG_STATIC_ASSERT(matrix_t::ColSize > 2, AT_LEAST_3_COLS_REQUIRED);
+	
+	MatIdentity(mOut);
+	typename matrix_t::value_type s = sin(rads);
+	typename matrix_t::value_type c = cos(rads);
+	
+	mOut(1, 1) = c;		mOut(1, 2) = -s;
+	mOut(2, 1) = s;		mOut(2, 2) = c;
+}
+
+template <typename matrix_t>
+inline
+void
+MatRotationY(matrix_t& mOut, typename matrix_t::value_type rads)
+{
+	//UG_STATIC_ASSERT(matrix_t::RowSize > 2, AT_LEAST_3_ROWS_REQUIRED);
+	//UG_STATIC_ASSERT(matrix_t::ColSize > 2, AT_LEAST_3_COLS_REQUIRED);
+	
+	MatIdentity(mOut);
+	typename matrix_t::value_type s = sin(rads);
+	typename matrix_t::value_type c = cos(rads);
+	
+	mOut(0, 0) = c;			mOut(0, 2) = s;
+	mOut(2, 0) = -s;		mOut(2, 2) = c;
+}
+
+template <typename matrix_t>
+inline
+void
+MatRotationZ(matrix_t& mOut, typename matrix_t::value_type rads)
+{
+	MatIdentity(mOut);
+	typename matrix_t::value_type s = sin(rads);
+	typename matrix_t::value_type c = cos(rads);
+	
+	mOut(0, 0) = c;		mOut(0, 1) = -s;
+	mOut(1, 0) = s;		mOut(1, 1) = c;
+}
+
+template <typename matrix_t>
+inline
+void
+MatRotationYawPitchRoll(matrix_t& mOut,
+						typename matrix_t::value_type yaw,
+						typename matrix_t::value_type pitch,
+						typename matrix_t::value_type roll)
+{
+	//UG_STATIC_ASSERT(matrix_t::RowSize > 2, AT_LEAST_3_ROWS_REQUIRED);
+	//UG_STATIC_ASSERT(matrix_t::ColSize > 2, AT_LEAST_3_COLS_REQUIRED);
+
+	matrix_t tMat1, tMat2, tMat3;
+	MatRotationX(tMat1, yaw);
+	MatRotationY(tMat2, pitch);
+	MatMultiply(tMat3, tMat1, tMat2);
+	MatRotationZ(tMat1, roll);
+	MatMultiply(mOut, tMat3, tMat1);
 }
 
 template <typename matrix_t>

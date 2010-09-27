@@ -61,6 +61,38 @@ void CalculateNormal(vector3& vNormOut, FaceVertices* face,
 	return;
 }
 
+void CalculateNormalNoNormalize(vector3& vNormOut, FaceVertices* face,
+								Grid::VertexAttachmentAccessor<APosition>& aaPos)
+{
+	if(face->num_vertices() == 3)
+	{
+		CalculateTriangleNormalNoNormalize(vNormOut, aaPos[face->vertex(0)],
+								aaPos[face->vertex(1)], aaPos[face->vertex(2)]);
+		return;
+	}
+	else if(face->num_vertices() == 4)
+	{
+		vector3 n1, n2;
+		CalculateTriangleNormalNoNormalize(n1, aaPos[face->vertex(0)],
+								aaPos[face->vertex(1)], aaPos[face->vertex(2)]);
+		CalculateTriangleNormalNoNormalize(n2, aaPos[face->vertex(2)],
+								aaPos[face->vertex(3)], aaPos[face->vertex(0)]);
+		VecAdd(vNormOut, n1, n2);
+		VecScale(vNormOut, vNormOut, 0.5);
+
+		return;
+	}
+	else if(face->num_vertices() > 4)
+	{
+		CalculateTriangleNormalNoNormalize(vNormOut, aaPos[face->vertex(0)],
+								aaPos[face->vertex(1)], aaPos[face->vertex(2)]);
+		return;
+	}
+
+	vNormOut = vector3(0, 0, 0);
+	return;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateFaceNormals
 void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,

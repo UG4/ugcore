@@ -182,6 +182,18 @@ inline
 typename TVertexPositionAttachmentAccessor::ValueType
 CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT);
 
+////////////////////////////////////////////////////////////////////////
+///	transforms a vertex by a given matrix
+template<class TAAPos> inline
+void TransformVertex(VertexBase* vrt, matrix33& m, TAAPos& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+///	transforms all given vertices by a given matrix
+template<class TIterator, class TAAPos> inline
+void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
+					   matrix33& m, TAAPos& aaPos);
+
+
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace

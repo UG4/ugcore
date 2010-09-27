@@ -92,6 +92,40 @@ class RefinementCallbackEdgePlaneCut : public RefinementCallbackLinear<APosition
 		vector3 m_n;
 };
 
+
+////////////////////////////////////////////////////////////////////////
+///	calculates new positions by offsetting new vertices to along its parents normal.
+/**
+ *	Make sure to initialise the callback correctly. Use the same grid
+ *	on which the refinement-operations will be performed. Make sure
+ *	that aPos (given in the constructor) is attached to the vertices
+ *	of the grid.
+ *
+ *	An uninitialized refinement-callback may not be used during refinement.
+ */
+class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
+{
+	public:
+		using RefinementCallbackLinear<APosition>::new_vertex;
+		
+	public:
+		RefinementCallbackFractal();
+		
+	///	make sure that aPos is attached to the vertices of the grid.
+		RefinementCallbackFractal(Grid& grid, number scaleFac,
+								  APosition& aPos = aPosition);
+	
+		virtual ~RefinementCallbackFractal();
+		
+		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		virtual void new_vertex(VertexBase* vrt, Face* parent);
+		
+		inline void set_scale_fac(number scaleFac)	{m_scaleFac = scaleFac;}
+		inline number get_scale_fac()				{return m_scaleFac;}
+		
+	protected:
+		number m_scaleFac;
+};
 /// @}
 
 }// end of namespace

@@ -215,6 +215,46 @@ inline
 void
 MatMultiply(matrix_t& mOut, const matrix_t& m, typename matrix_t::value_type s);
 
+///	Fills the matrix with the identity matrix.
+template <typename matrix_t>
+inline
+void
+MatIdentity(matrix_t& mOut);
+
+///	Fills the matrix with a matrix that rotates around the x-axis in 3 dimensions.
+/**	matrix_t has to have at least 3 rows and 3 columns.
+ *	Rotation is specified in radiants.*/
+template <typename matrix_t>
+inline
+void
+MatRotationX(matrix_t& mOut, typename matrix_t::value_type rads);
+
+///	Fills the matrix with a matrix that rotates around the y-axis in 3 dimensions.
+/**	matrix_t has to have at least 3 rows and 3 columns.
+ *	Rotation is specified in radiants.*/
+template <typename matrix_t>
+inline
+void
+MatRotationY(matrix_t& mOut, typename matrix_t::value_type rads);
+
+///	Fills the matrix with a matrix that rotates around the y-axis in 2 or 3 dimensions.
+/**	matrix_t has to have at least 2 rows and 2 columns.
+ *	Rotation is specified in radiants.*/
+template <typename matrix_t>
+inline
+void
+MatRotationZ(matrix_t& mOut, typename matrix_t::value_type rads);
+
+////////////////////////////////////////////////////////////////
+///	Creates a rotation matrix given yaw, pitch and roll in radiants.
+template <typename matrix_t>
+inline
+void
+MatRotationYawPitchRoll(matrix_t& mOut,
+						typename matrix_t::value_type yaw,
+						typename matrix_t::value_type pitch,
+						typename matrix_t::value_type roll);
+						
 ////////////////////////////////////////////////////////////////
 // Norms for Matrices
 
