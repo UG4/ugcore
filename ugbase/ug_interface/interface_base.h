@@ -132,28 +132,28 @@ class ParameterList
 	////////////////////////////////
 	//	CONVENIANCE FUNCTIONS
 	///	a conveniance function. Forwards to param(index).to_int().
-		inline int to_int(size_t index)				{return param(index)->to_int();}
+		inline int to_int(size_t index) const {return param(index)->to_int();}
 		
 	///	a conveniance function. Forwards to param(index).to_double().
-		inline double to_double(size_t index)		{return param(index)->to_double();}
+		inline double to_double(size_t index) const	{return param(index)->to_double();}
 
 	///	a conveniance function. Forwards to param(index).to_string().
-		inline const char* to_string(size_t index)	{return param(index)->to_string();}
+		inline const char* to_string(size_t index) const {return param(index)->to_string();}
 		
 	///	a conveniance function. Forwards to param(index).to_object().
-		inline IObject* to_object(size_t index)		{return param(index)->to_object();}
+		inline IObject* to_object(size_t index)	const {return param(index)->to_object();}
 		
 	///	a conveniance function. Forwards to param(index).set_int(val)
-		inline void set_int(size_t index, int val)				{param(index)->set_int(val);}
+		inline void set_int(size_t index, int val)	const {param(index)->set_int(val);}
 
 	///	a conveniance function. Forwards to param(index).set_double(val)
-		inline void set_double(size_t index, double val)		{param(index)->set_double(val);}
+		inline void set_double(size_t index, double val) const {param(index)->set_double(val);}
 		
 	///	a conveniance function. Forwards to param(index).set_int(val)
-		inline void set_string(size_t index, const char* val)	{param(index)->set_string(val);}
+		inline void set_string(size_t index, const char* val) const	{param(index)->set_string(val);}
 		
 	///	a conveniance function. Forwards to param(index).set_object(val)
-		inline void set_object(size_t index, IObject* val)		{param(index)->set_object(val);}
+		inline void set_object(size_t index, IObject* val) const {param(index)->set_object(val);}
 		
 	protected:
 		std::vector<IParameter*>	m_params;
