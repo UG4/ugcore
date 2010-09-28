@@ -18,6 +18,34 @@ namespace interface
 namespace lua
 {
 
+struct UserDataWrapper
+{
+	void*	obj;
+};
+
+///	creates a new UserData_IObject and associates it with ptr in luas registry
+/**
+ * Creates a new userdata in lua, which encapsulates the given pointer.
+ * It then assigns the specified metatable to the userdata.
+ * When the function is done, the userdata is left on luas stack.
+ */
+static UserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
+										  const char* metatableName)
+{
+//	create the userdata
+	UserDataWrapper* udata = (UserDataWrapper*)lua_newuserdata(L,
+											sizeof(UserDataWrapper));
+	
+//	associate the object with the userdata.
+	udata->obj = ptr;
+		
+//	associate the metatable (userdata is already on the stack)
+	luaL_getmetatable(L, metatableName);
+	lua_setmetatable(L, -2);
+	
+	return udata;
+}
+
 ///	copies parameter values from the lua-stack to a parameter-list.
 /**	\returns	The index of the first bad parameter starting from 1.
  *				Returns 0 if everything went right.
@@ -160,10 +188,10 @@ static int LuaProxyFunction(lua_State* L)
 
 static int LuaProxyConstructor(lua_State* L)
 {
-	const IExportedClass* inst = (const IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
 	
-	lua_pushlightuserdata(L, inst->create());
-	
+	CreateNewUserData(L, c->create(), c->name());
+
 	return 1;
 }
 
@@ -176,7 +204,7 @@ static int LuaProxyMethod(lua_State* L)
 		return 0;
 	}
 	
-	void* self = lua_touserdata(L, 1);
+	UserDataWrapper* self = (UserDataWrapper*)lua_touserdata(L, 1);
 	
 	ParameterStack paramsIn;;
 	ParameterStack paramsOut;
@@ -189,7 +217,7 @@ static int LuaProxyMethod(lua_State* L)
 		return 0;
 	}
 
-	m->execute(self, paramsIn, paramsOut);
+	m->execute(self->obj, paramsIn, paramsOut);
 	
 	return ParamsToLuaStack(paramsOut, L);
 }
@@ -223,22 +251,34 @@ bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg)
 
 	size_t numClasses = reg.num_classes();
 	for(size_t i = 0; i < numClasses; ++i){
-		const IExportedClass* inst = &reg.get_class(i);
-		lua_pushlightuserdata(L, (void*)inst);
-		lua_pushcclosure(L, LuaProxyConstructor, 1);
-		lua_setglobal(L, inst->name());
+		const IExportedClass* c = &reg.get_class(i);
 		
-		lua_newtable(L);
+	//	set the constructor-function
+		lua_pushlightuserdata(L, (void*)c);
+		lua_pushcclosure(L, LuaProxyConstructor, 1);
+		lua_setglobal(L, c->name());
+		
+	//	create the meta-table for the object
+	//	overwrite index and store the class-name
+		luaL_newmetatable(L, c->name());
+		lua_pushvalue(L, -1);
+		lua_setfield(L, -2, "__index");
+		lua_pushstring(L, "name");
+		lua_pushstring(L, c->name());
+		lua_settable(L, -3);
+		
+		
 	//	register methods
-		for(size_t j = 0; j < inst->num_methods(); ++j){
-			const ExportedMethod& m = inst->get_method(j);
+		for(size_t j = 0; j < c->num_methods(); ++j){
+			const ExportedMethod& m = c->get_method(j);
 			lua_pushstring(L, m.name().c_str());
 			lua_pushlightuserdata(L, (void*)&m);
 			lua_pushcclosure(L, LuaProxyMethod, 1);
 			lua_settable(L, -3);
 		}
-	//	set the name of the table
-		lua_setglobal(L, "tmp");
+		
+	//	pop the metatable from the stack.
+		lua_pop(L, 1);
 	}
 	
 	return true;
