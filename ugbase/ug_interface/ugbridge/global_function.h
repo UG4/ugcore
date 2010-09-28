@@ -111,9 +111,7 @@ class ExportedFunction : public ExportedFunctionBase
 							const char* name, const char* retValName, const char* paramValNames,
 							const char* tooltip, const char* help)
 			: ExportedFunctionBase(f, name , retValName, paramValNames, tooltip, help), m_proxy_func(pf)
-		{
-			tokenize(m_paramValNames, m_vParamValNames, ",");
-		}
+		{}
 
 	/// executes the function
 		void execute() const

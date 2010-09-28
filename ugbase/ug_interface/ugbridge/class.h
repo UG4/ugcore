@@ -9,70 +9,52 @@ namespace ug {
 
 namespace interface{
 
-// dummy for unknown class name (used at initialization)
-const char* UnknownClassName;
-
-
+// predeclaration
 template <typename TClass>
-struct ClassNameProvider
-{
-	//  name of class of type 'TClass'
-		static const char* name () 					{return m_name;}
-	//  set name of class of type 'TClass'
-		static void set_name (const char* name)		{m_name = name;}
-	//  return if class is const
-		static bool is_const ()						{return false;}
+class ExportedClass_;
 
-	private:
-		static const char *m_name;
+class IExportedInstance
+{
+	public:
+	//  get raw data of object
+		virtual void* get_raw_instance() = 0;
+
+	//  virtual destructor
+		virtual ~IExportedInstance() {}
 };
 
-// Initialization of name to unknown type
+/** Memory for Instances
+ *
+ */
 template <typename TClass>
-const char* ClassNameProvider<TClass>::m_name = UnknownClassName;
-
-// Specialization for const classes
-template <typename TClass>
-struct ClassNameProvider<const TClass>
+class ExportedInstance : public IExportedInstance
 {
-	//  name of class of type 'TClass'
-		static const char* name () 					{return ClassNameProvider<TClass>::name();}
-	//  set name of class of type 'TClass'
-		static void set_name (const char* name)		{ClassNameProvider<TClass>::set_name(name);}
-	//  return if class is const
-		static bool is_const ()						{return true;}
+	public:
+	//  get raw data of object
+		virtual void* get_raw_instance() {return &m_instance;}
+
+	//  virtual destructor
+		virtual ~ExportedInstance()
+		{
+		//  delete instance from list in class factory
+			ExportedClass_<TClass>::get_inst().remove_instance(this);
+		}
+
+	protected:
+		TClass m_instance;
 };
-
-template <typename TClass, typename TMethod>
-struct ProxyMethod
-{
-	static void apply(void* method, TClass* obj, const ParameterList& in, const ParameterList& out)
-	{
-	//  cast to method pointer
-		TMethod* mp = (TMethod) method;
-
-	//  get parameter
-		typedef typename func_traits<TMethod>::params_type params_type;
-		ParamToTypeValueList<params_type> args(in);
-
-	//  apply method
-		func_traits<TMethod>::apply(mp, obj, args);
-	}
-};
-
 
 
 /** function exported from ug
  * This class describes a wrapper for a c++ - function, that is exported by ug
  */
-template <typename TClass>
 class ExportedMethod : public ExportedFunctionBase
 {
 	// make Registry a friend
 	friend class InterfaceRegistry;
 
 	// all c++ functions are wrapped by a proxy function of the following type
-	typedef void (*ProxyFunc)(void* func, TClass* obj, const ParameterList& in, const ParameterList& out);
+	typedef void (*ProxyFunc)(void* func, IExportedInstance& obj, const ParameterList& in, const ParameterList& out);
 
 	public:
 		ExportedMethod(	void* f, ProxyFunc pf,
@@ -83,7 +65,7 @@ class ExportedMethod : public ExportedFunctionBase
 		{}
 
 	/// executes the function
-		void execute(TClass* obj) const
+		void execute(IExportedInstance& obj) const
 		{
 			m_proxy_func(m_func, obj, m_paramsIn, m_paramsOut);
 		}
@@ -92,19 +74,24 @@ class ExportedMethod : public ExportedFunctionBase
 		ProxyFunc m_proxy_func;
 };
 
-class IExportedInstance {};
-
-/** Memory for Instances
- *
- */
-template <typename TClass>
-class ExportedInstance : public IExportedInstance
+template <typename TClass, typename TMethod>
+struct ProxyMethod
 {
-	public:
-		ExportedInstance() {}
+	static void apply(void* method, IExportedInstance& obj, const ParameterList& in, const ParameterList& out)
+	{
+	//  cast to method pointer
+		TMethod* mptr = (TMethod) method;
 
-	protected:
-		TClass m_instance;
+	//  cast object to type
+		TClass* objPtr = (TClass*) (obj.get_raw_instance());
+
+	//  get parameter
+		typedef typename func_traits<TMethod>::params_type params_type;
+		ParamToTypeValueList<params_type> args(in);
+
+	//  apply method
+		func_traits<TMethod>::apply(mptr, objPtr, args);
+	}
 };
 
 
@@ -114,36 +101,73 @@ class ExportedInstance : public IExportedInstance
 class IExportedClass
 {
 	public:
+	//  name of class
+		virtual const std::string& name() const = 0;
+
+	//  number of method of the class
+		virtual size_t num_methods() const = 0;
+
+	//  get exported method
+		virtual const ExportedMethod& get_method(size_t i) const = 0;
+
+	//  create an instance
 		virtual IExportedInstance* create() = 0;
 
+	//  virtual destructor
 		virtual ~IExportedClass() {};
 };
 
 template <typename TClass>
 class ExportedClass_ : public IExportedClass
 {
-	public:
-		ExportedClass_ ();
-		ExportedClass_ (const char *name)
+	private:
+	//  disallow creation
+		ExportedClass_ () {};
+		ExportedClass_ (const ExportedClass_& other);
+
+	//  singleton provider
+		static ExportedClass_<TClass>& inst()
 		{
-		//  remember class name for this type
-			ClassNameProvider<TClass>::set_name(name);
+			static ExportedClass_<TClass> inst;
+			return inst;
 		}
 
-		// constructor registration
-		template <typename TFunc>
-		ExportedClass_<TClass>& constructor ();
+	public:
+	//  get already created instance
+		static ExportedClass_<TClass>& get_inst() {return inst();}
 
-		// Method registration
+	//  get instance and set name (can only be called with equal name)
+		static ExportedClass_<TClass>& get_inst(const char* name)
+		{
+			// todo: Error handling
+			if(std::string(name) == "")
+				UG_ASSERT(0, "You must specify a name for a class.");
+			if(std::string(name) != m_name)
+				UG_ASSERT(0, "Registering a name twice.");
+
+			m_name = std::string(name);
+			return inst();
+		}
+
+	//  name of class
+		virtual const std::string& name() const {return m_name;}
+
+	//  number of registered methods
+		virtual size_t num_methods() const {return m_vMethod.size();}
+
+	//  get exported method
+		virtual const ExportedMethod& get_method(size_t i) const {return &m_vMethod.at(i);}
+
+	//  Method registration
 		template <typename TMethod>
 		ExportedClass_<TClass>& method (	const char* methodName, TMethod func,
 											const char* retValName = "", const char* paramValNames = "",
 											const char* tooltip = "", const char* help = "")
 		{
 			//  create new exported function
-				m_vMethod.push_back(new ExportedMethod<TClass>(	(void*) func, &ProxyMethod<TClass, TMethod>::apply,
-																methodName, retValName, paramValNames,
-																tooltip, help));
+				m_vMethod.push_back(new ExportedMethod(	(void*) func, &ProxyMethod<TClass, TMethod>::apply,
+														methodName, retValName, paramValNames,
+														tooltip, help));
 
 			//  create parameter in list
 				ParameterList& in = m_vMethod.back()->params_in();
@@ -169,6 +193,11 @@ class ExportedClass_ : public IExportedClass
 
 		virtual ~ExportedClass_()
 		{
+		//  delete methods
+			for(size_t i = 0; i < m_vMethod.size(); ++i)
+			{
+				delete m_vMethod[i];
+			}
 		//  delete instances
 			for(size_t i = 0; i < m_vInstance.size(); ++i)
 			{
@@ -176,11 +205,30 @@ class ExportedClass_ : public IExportedClass
 			}
 		}
 
+		void remove_instance(IExportedInstance* instance)
+		{
+		//  search for instance
+			std::vector<IExportedInstance*>::iterator iter = find(m_vInstance.begin(), m_vInstance.end(), instance);
+
+		//  if not found do nothing
+			if(iter == m_vInstance.end()) return;
+
+		//  remove instance from vector if found
+			m_vInstance.erase(iter);
+		}
+
+
 	private:
-		std::vector<ExportedMethod<TClass>*> m_vMethod;
+		static std::string m_name;
+
+		std::vector<ExportedMethod*> m_vMethod;
 
 		std::vector<IExportedInstance*> m_vInstance;
 };
+
+// Initialization of name to unknown type
+template <typename TClass>
+std::string ExportedClass_<TClass>::m_name = std::string("");
 
 } // end namespace interface
 

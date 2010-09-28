@@ -63,7 +63,7 @@ class InterfaceRegistry {
 		template <typename TClass>
 		ExportedClass_<TClass>& add_class_(const char *className)
 		{
-			m_vClass.push_back(new ExportedClass_<TClass>(className));
+			m_vClass.push_back(ExportedClass_<TClass>::get_inst(className));
 
 			return *m_vClass.back();
 		}
