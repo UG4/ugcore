@@ -2,6 +2,7 @@
 #ifndef __H__UG_INTERFACE__UGBRIDGE__CLASS__
 #define __H__UG_INTERFACE__UGBRIDGE__CLASS__
 
+#include <cstdlib>
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "global_function.h"
