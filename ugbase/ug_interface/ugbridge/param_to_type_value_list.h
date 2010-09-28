@@ -3,6 +3,7 @@
 #define __H__UG_INTERFACE__UGBRIDGE__PARAM_TO_TYPE_VALUE_LIST__
 
 #include "parameter_stack.h"
+#include <string>
 
 namespace ug {
 
@@ -75,6 +76,41 @@ struct PLStack<int>
 		return ps.to_integer(index);
 	}
 };
+
+template <>
+struct PLStack<const char*>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_string();
+	}
+	static void write(ParameterStack& ps, const char* data, int index)
+	{
+		ps.set_string(index, data);
+	}
+	static const char* read(const ParameterStack& ps, int index)
+	{
+		return ps.to_string(index);
+	}
+};
+
+template <>
+struct PLStack<std::string>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_string();
+	}
+	static void write(ParameterStack& ps, std::string data, int index)
+	{
+		ps.set_string(index, data.c_str());
+	}
+	static std::string read(const ParameterStack& ps, int index)
+	{
+		return std::string(ps.to_string(index));
+	}
+};
+
 
 //////////////////////////////
 // classes
