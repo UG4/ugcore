@@ -13,38 +13,6 @@ namespace interface{
 template <typename TClass>
 class ExportedClass_;
 
-class IExportedInstance
-{
-	public:
-	//  get raw data of object
-		virtual void* get_raw_instance() = 0;
-
-	//  virtual destructor
-		virtual ~IExportedInstance() {}
-};
-
-/** Memory for Instances
- *
- */
-template <typename TClass>
-class ExportedInstance : public IExportedInstance
-{
-	public:
-	//  get raw data of object
-		virtual void* get_raw_instance() {return &m_instance;}
-
-	//  virtual destructor
-		virtual ~ExportedInstance()
-		{
-		//  delete instance from list in class factory
-			ExportedClass_<TClass>::get_inst().remove_instance(this);
-		}
-
-	protected:
-		TClass m_instance;
-};
-
-
 /** function exported from ug
  * This class describes a wrapper for a c++ - function, that is exported by ug
  */
@@ -111,7 +79,7 @@ class IExportedClass
 		virtual const ExportedMethod& get_method(size_t i) const = 0;
 
 	//  create an instance
-		virtual IExportedInstance* create() = 0;
+		virtual void* create() = 0;
 
 	//  virtual destructor
 		virtual ~IExportedClass() {};
@@ -185,45 +153,24 @@ class ExportedClass_ : public IExportedClass
 		////////////////////////
 		// memory management
 		////////////////////////
-		virtual IExportedInstance* create()
+		virtual void* create()
 		{
-			m_vInstance.push_back(new ExportedInstance<TClass>());
-			return m_vInstance.back();
+			new TClass();
 		}
-
 		virtual ~ExportedClass_()
 		{
+		
 		//  delete methods
 			for(size_t i = 0; i < m_vMethod.size(); ++i)
 			{
 				delete m_vMethod[i];
 			}
-		//  delete instances
-			for(size_t i = 0; i < m_vInstance.size(); ++i)
-			{
-				delete m_vInstance[i];
-			}
 		}
-
-		void remove_instance(IExportedInstance* instance)
-		{
-		//  search for instance
-			std::vector<IExportedInstance*>::iterator iter = find(m_vInstance.begin(), m_vInstance.end(), instance);
-
-		//  if not found do nothing
-			if(iter == m_vInstance.end()) return;
-
-		//  remove instance from vector if found
-			m_vInstance.erase(iter);
-		}
-
 
 	private:
 		static std::string m_name;
 
 		std::vector<ExportedMethod*> m_vMethod;
-
-		std::vector<IExportedInstance*> m_vInstance;
 };
 
 // Initialization of name to unknown type

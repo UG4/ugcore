@@ -3,9 +3,10 @@
 
 typedef double number;
 
-#define PUSH_PARAM_TO_STACK(paramVar, val, paramType)	{m_entries[m_numEntries].param.paramVar = (val);\
-													 	m_entries[m_numEntries].type = (paramType);\
-													 	++m_numEntries;}
+#define PUSH_PARAM_TO_STACK(paramVar, val, paramType, clName)	{m_entries[m_numEntries].param.paramVar = (val);\
+																m_entries[m_numEntries].type = (paramType);\
+																m_entries[m_numEntries].className = (clName);\
+																++m_numEntries;}
 
 struct ERROR_BadIndex{
 	ERROR_BadIndex(int index) : m_index(index)	{}
@@ -87,17 +88,17 @@ class ParameterStack
 		
 	////////////////////////////////
 	//	push
-		inline void push_integer(int val)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER);}
-		inline void push_number(number val)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER);}
+		inline void push_integer(int val)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, "");}
+		inline void push_number(number val)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, "");}
 		
 	///	strings are not bufferd.
-		inline void push_string(const char* str)	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING);}
+		inline void push_string(const char* str)	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, "");}
 		
 		template<class T>
-		inline void push_reference(T& ref)			{PUSH_PARAM_TO_STACK(m_ptr, (void*)&ref, PT_REFERENCE);}
+		inline void push_reference(T& ref, const char* className)	{PUSH_PARAM_TO_STACK(m_ptr, (void*)&ref, PT_REFERENCE, className);}
 		
 		template<class T>
-		inline void push_pointer(T* ptr)			{PUSH_PARAM_TO_STACK(m_ptr, (void*)ptr, PT_POINTER);}
+		inline void push_pointer(T* ptr, const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, (void*)ptr, PT_POINTER, className);}
 		
 		
 	////////////////////////////////
@@ -106,6 +107,12 @@ class ParameterStack
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			return m_entries[index].type;
+		}
+		
+		const char* get_class_name(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			return m_entries[index].className;
 		}
 		
 		int to_integer(int index) const
@@ -243,6 +250,7 @@ class ParameterStack
 		struct Entry{
 			Parameter param;
 			int type;
+			const char*	className;
 		};
 
 	//	This array is of fixed size, since we want to introduce a minimal
