@@ -99,13 +99,11 @@ class ParameterStack
 		template<class T>
 		inline void push_reference(T& ref, const char* className)	{PUSH_PARAM_TO_STACK(m_ptr, (void*)&ref, PT_REFERENCE, className);}
 
-		template<class T>
 		inline void push_reference(const char* className)			{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_REFERENCE, className);}
 		
 		template<class T>
 		inline void push_pointer(T* ptr, const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, (void*)ptr, PT_POINTER, className);}
 
-		template<class T>
 		inline void push_pointer(const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_POINTER, className);}
 		
 		

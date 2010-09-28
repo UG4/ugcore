@@ -8,8 +8,25 @@ namespace ug {
 
 namespace interface{
 
+
+template <typename TClass>
+struct ClassNameProvider
+{
+	static void set_name(const char* name) {m_name = name;}
+	static const char* name() {return m_name;}
+
+	private:
+		static const char* m_name;
+};
+
+template <typename TClass>
+const char* ClassNameProvider<TClass>::m_name = "";
+
+
+//////////////////////////////
 //////////////////////////////
 // ParameterStack DataStack
+//////////////////////////////
 //////////////////////////////
 
 template <typename TData>
@@ -21,15 +38,9 @@ struct PLStack
 		static TData read(const ParameterStack& ps, int index);
 };
 
-template <>
-struct PLStack<void>
-{
-	static void add(ParameterStack& pl, const char* name)
-	{
-		// do nothing
-	}
-};
-
+//////////////////////////////
+// build-in data types
+//////////////////////////////
 
 template <>
 struct PLStack<double>
@@ -64,6 +75,30 @@ struct PLStack<int>
 		return ps.to_integer(index);
 	}
 };
+
+//////////////////////////////
+// classes
+//////////////////////////////
+
+template <typename TClass>
+struct PLStack<TClass*>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_pointer(ClassNameProvider<TClass>::name());
+	}
+	static void write(ParameterStack& ps, TClass* data, int index)
+	{
+		ps.set_pointer(index, data);
+	}
+	static TClass* read(const ParameterStack& ps, int index)
+	{
+		return ps.to_pointer<TClass>(index);
+	}
+};
+
+
+
 
 //////////////////////////////
 // ParameterStackToTypeValueList

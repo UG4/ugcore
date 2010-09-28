@@ -141,16 +141,6 @@ class IExportedClass
 
 
 template <typename TClass>
-struct ClassNameProvider
-{
-	void set_name(const char* name) {m_name = name;}
-	const char* name() const {return m_name;}
-
-	private:
-		const char* m_name;
-};
-
-template <typename TClass>
 class ExportedClass_ : public IExportedClass
 {
 	private:

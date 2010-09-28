@@ -51,14 +51,12 @@ class Cake
 	public:
 		Cake() : m_numPieces(16)	{}
 		
-		//Piece take_pieces(int size)
-		int take_pieces(int size)
+		Piece* take_pieces(int size)
 		{
 			if(size > m_numPieces)
 				size = m_numPieces;
 			m_numPieces -= size;
-			return size;
-			//return Piece(size);
+			return new Piece(size);
 		}
 		
 		int pieces_left()	{return m_numPieces;}
