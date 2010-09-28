@@ -2,10 +2,7 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
-#include "../ug_interface.h"
-#include "../registry.h"
-#include "lib_grid/lib_grid.h"
-#include "lib_grid_interface.h"
+#include "../ugbridge/registry.h"
 
 using namespace std;
 
@@ -13,15 +10,32 @@ namespace ug{
 namespace interface
 {
 
-void RegisterLibGridInterface(Registry& reg)
+int Add(int a, int b)
 {
-	reg.register_object<GridObject>();
-	reg.register_object<MultiGridObject>();
-	reg.register_object<SubsetHandlerObject>();
-	reg.register_object<MGSubsetHandlerObject>();
-		
-	reg.register_global_function<LoadGridFunc>();
-	reg.register_global_function<SaveGridFunc>();
+	return a + b;
+}
+
+class Test 
+{
+	public:
+		int add(int a, int b)
+		{
+			return a+b;
+		}
+	
+		int print_name()
+		{
+			UG_LOG("Name is Test\n");
+			return 1;
+		}
+};
+
+void RegisterLibGridInterface(InterfaceRegistry& reg)
+{
+	reg.add_function("add", &Add, "c", "a,b");
+	
+	reg.add_class_<Test>("Test")
+		.add_method("add", &Test::add, "c", "a,b");
 }
 
 }//	end of namespace 

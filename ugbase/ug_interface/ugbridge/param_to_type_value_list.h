@@ -48,6 +48,22 @@ struct PLStack<double>
 	}
 };
 
+template <>
+struct PLStack<int>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_integer();
+	}
+	static void write(ParameterStack& ps, int data, int index)
+	{
+		ps.set_integer(index, data);
+	}
+	static int read(const ParameterStack& ps, int index)
+	{
+		return ps.to_integer(index);
+	}
+};
 
 //////////////////////////////
 // ParameterStackToTypeValueList
@@ -86,9 +102,10 @@ struct ParameterStackToTypeValueList :
 
 // WriteTypeValueToParameterStackTop
 template <typename TType>
-void WriteTypeValueToParameterStackTop(TType& val, ParameterStack& out)
+void PushTypeValueToParameterStack(TType& val, ParameterStack& out)
 {
-	PLStack<TType>::write(out, 0);
+	PLStack<TType>::push(out);
+	PLStack<TType>::write(out, val, -1);
 };
 
 
@@ -117,7 +134,7 @@ struct CreateParameterStack
 template <>
 struct CreateParameterStack<TypeList<> >
 {
-	static void create(ParameterStack& in, const char* paramValNames, const char* delimiter)
+	static void create(ParameterStack& in)
 	{
 		// do nothing and end recursion
 	}

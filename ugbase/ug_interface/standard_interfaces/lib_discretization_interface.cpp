@@ -8,7 +8,7 @@
 #include "../ug_interface.h"
 #include "lib_discretization_interface.h"
 
-#include "../ugbridge/registry.h"
+//#include "../ugbridge/registry.h"
 
 namespace ug
 {
@@ -22,17 +22,18 @@ void f1()
 }
 
 
-void RegisterLibDiscretizationInterface(Registry& reg)
+void RegisterLibDiscretizationInterface(InterfaceRegistry& reg)
 {
 /*	InterfaceRegistry regist;
 	regist.add_function("test", &f1);
 */
-
+/*
 	reg.register_object<MGDomainObject<2> >();
 	reg.register_object<MGDomainObject<3> >();
 
 	reg.register_object<P1ConformFunctionPatternObject>();
 	reg.register_object<ApproximationSpaceObject<2, MartinAlgebra> >();
+*/
 }
 
 }//	end of namespace ug

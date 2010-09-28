@@ -2,6 +2,8 @@
 #ifndef __H__UG_INTERFACE__UGBRIDGE__GLOBAL_FUNCTION__
 #define __H__UG_INTERFACE__UGBRIDGE__GLOBAL_FUNCTION__
 
+#include <string>
+#include <vector>
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
@@ -53,17 +55,17 @@ class ExportedFunctionBase
 		const ParameterStack& params_in() const						{return m_paramsIn;}
 
 	/// parameter list for output values
-		const ParameterStack& params_out() const						{return m_paramsOut;}
+		const ParameterStack& params_out() const					{return m_paramsOut;}
 
-	protected:
 	/// non-const export of param list
 		ParameterStack& params_in() 		{return m_paramsIn;}
 		ParameterStack& params_out() 	{return m_paramsOut;}
 
 	protected:
 		// help function to tokenize the parameter string
-		void tokenize(const std::string& str, std::vector<std::string>& tokens, const string& delimiters)
+		void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters)
 		{
+			using namespace std;
 			tokens.clear();
 		    // Skip delimiters at beginning.
 		    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
@@ -104,7 +106,7 @@ class ExportedFunction : public ExportedFunctionBase
 	friend class InterfaceRegistry;
 
 	// all c++ functions are wrapped by a proxy function of the following type
-	typedef void (*ProxyFunc)(void* func, const ParameterStack& in, const ParameterStack& out);
+	typedef void (*ProxyFunc)(void* func, const ParameterStack& in, ParameterStack& out);
 
 	public:
 		ExportedFunction(	void* f, ProxyFunc pf,
@@ -114,9 +116,9 @@ class ExportedFunction : public ExportedFunctionBase
 		{}
 
 	/// executes the function
-		void execute() const
+		void execute(const ParameterStack& paramsIn, ParameterStack& paramsOut) const
 		{
-			m_proxy_func(m_func, m_paramsIn, m_paramsOut);
+			m_proxy_func(m_func, paramsIn, paramsOut);
 		}
 
 	protected:
@@ -137,11 +139,11 @@ void ProxyFunction(void* func, const ParameterStack& in, ParameterStack& out)
 	ParameterStackToTypeValueList<params_type> args(in);
 
 //  apply
-	typedef typename func_traits<TMethod>::result_type result_type;
+	typedef typename func_traits<TFunc>::result_type result_type;
 	result_type res = func_traits<TFunc>::apply(fp, args);
 
 //  write result
-	WriteTypeValueToParameterStackTop(res, out);
+	PushTypeValueToParameterStack(res, out);
 };
 
 } // end namespace interface

@@ -14,6 +14,7 @@ extern "C" {
 }
 
 #include "common/common.h"
+#include "../../ug_interface/ugbridge/registry.h"
 
 namespace ug
 {
@@ -24,7 +25,7 @@ namespace lua
 
 ///	creates bindings for ug_interface and a given lua-state.
 /**	If you use ug::script, this method will be invoked automatically.*/
-bool CreateBindings_LUA(lua_State* L);
+bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg);
 
 }//	end of namespace
 }//	end of namespace

@@ -31,14 +31,20 @@ namespace ug
  */
 inline int UGInit(int argc, char* argv[], int parallelOutputProcRank = -1)
 {
-#ifdef UG_PARALLEL
-	pcl::Init(argc, argv);
-	pcl::SetOutputProcRank(parallelOutputProcRank);
-#endif
+//	make sure that things are only initialized once
+	static bool firstCall = true;
+	if(firstCall){
+		firstCall = false;
+	#ifdef UG_PARALLEL
+		pcl::Init(argc, argv);
+		pcl::SetOutputProcRank(parallelOutputProcRank);
+	#endif
 
-//	initialize ug-interfaces
-	interface::RegisterStandardInterfaces(interface::Registry::inst());
-	
+	//	initialize ug-interfaces
+		static interface::InterfaceRegistry ugReg;
+		interface::RegisterStandardInterfaces(ugReg);
+		script::SetScriptRegistry(&ugReg);
+	}
 	return 0;
 }
 

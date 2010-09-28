@@ -30,6 +30,8 @@ static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
 	
 	if(nIndex < 0 || nIndex >= stackSize)
 		throw(ERROR_BadIndex(index));
+	
+	return nIndex;
 }
 
 
@@ -88,17 +90,23 @@ class ParameterStack
 		
 	////////////////////////////////
 	//	push
-		inline void push_integer(int val)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, "");}
-		inline void push_number(number val)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, "");}
+		inline void push_integer(int val = 0)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, "");}
+		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, "");}
 		
 	///	strings are not bufferd.
-		inline void push_string(const char* str)	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, "");}
+		inline void push_string(const char* str = "")	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, "");}
 		
 		template<class T>
 		inline void push_reference(T& ref, const char* className)	{PUSH_PARAM_TO_STACK(m_ptr, (void*)&ref, PT_REFERENCE, className);}
+
+		template<class T>
+		inline void push_reference(const char* className)			{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_REFERENCE, className);}
 		
 		template<class T>
 		inline void push_pointer(T* ptr, const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, (void*)ptr, PT_POINTER, className);}
+
+		template<class T>
+		inline void push_pointer(const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_POINTER, className);}
 		
 		
 	////////////////////////////////

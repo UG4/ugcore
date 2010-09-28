@@ -12,7 +12,7 @@ namespace interface
 
 
 
-void RegisterStandardInterfaces(Registry& reg)
+void RegisterStandardInterfaces(InterfaceRegistry& reg)
 {
 	RegisterLibGridInterface(reg);
 	RegisterLibDiscretizationInterface(reg);

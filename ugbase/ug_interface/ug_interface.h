@@ -5,7 +5,7 @@
 #ifndef __H__UG__INTERFACE__
 #define __H__UG__INTERFACE__
 
-#include "registry.h"
+#include "ugbridge/registry.h"
 
 namespace ug{
 namespace interface
@@ -15,15 +15,15 @@ namespace interface
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
  */
-void RegisterStandardInterfaces(Registry& reg);
+void RegisterStandardInterfaces(InterfaceRegistry& reg);
 
 ///	registers lib-grid interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterLibGridInterface(Registry& reg);
+void RegisterLibGridInterface(InterfaceRegistry& reg);
 
 ///	registers lib-discretization interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterLibDiscretizationInterface(Registry& reg);
+void RegisterLibDiscretizationInterface(InterfaceRegistry& reg);
 
 }//	end of namespace 
 }//	end of namespace 

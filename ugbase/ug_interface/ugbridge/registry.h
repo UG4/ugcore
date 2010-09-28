@@ -2,6 +2,8 @@
 #ifndef __H__UG_INTERFACE__UGBRIDGE__REGISTRY__
 #define __H__UG_INTERFACE__UGBRIDGE__REGISTRY__
 
+#include <vector>
+
 #include "global_function.h"
 #include "class.h"
 #include "param_to_type_value_list.h"
@@ -17,6 +19,7 @@ namespace interface{
  */
 class InterfaceRegistry {
 	public:
+		InterfaceRegistry()	{}
 	//////////////////////
 	// global functions
 	//////////////////////
@@ -33,16 +36,16 @@ class InterfaceRegistry {
 			m_vFunction.push_back(new ExportedFunction(	(void*) func, &ProxyFunction<TFunc>,
 														funcName, retValName, paramValNames,
 														tooltip, help));
-
+	
 		//  create parameter in list
 			ParameterStack& in = m_vFunction.back()->params_in();
 			typedef typename func_traits<TFunc>::params_type params_type;
-			CreateParameterStack<params_type>::create(in, paramValNames, ",");
+			CreateParameterStack<params_type>::create(in);
 
 		//  create parameter out list
 			ParameterStack& out = m_vFunction.back()->params_out();
 			typedef typename func_traits<TFunc>::result_type result_type;
-			CreateParameterStack<TypeList<result_type> >::create(out, retValName, ",");
+			CreateParameterStack<TypeList<result_type> >::create(out);
 
 			return *this;
 		}
@@ -51,7 +54,7 @@ class InterfaceRegistry {
 		size_t num_functions()							{return m_vFunction.size();}
 
 	/// returns an exported function
-		const ExportedFunction& get_function(size_t ind){return *m_vFunction.at(ind);}
+		ExportedFunction& get_function(size_t ind){return *m_vFunction.at(ind);}
 
 	///////////////////
 	// classes
@@ -63,9 +66,12 @@ class InterfaceRegistry {
 		template <typename TClass>
 		ExportedClass_<TClass>& add_class_(const char *className)
 		{
-			m_vClass.push_back(ExportedClass_<TClass>::get_inst(className));
+		//	todo: check whether a class with the specified name exists aready.
+			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className);
 
-			return *m_vClass.back();
+			m_vClass.push_back(newClass);
+
+			return *newClass;
 		}
 
 	/// number of classes registered at the Registry
@@ -78,14 +84,23 @@ class InterfaceRegistry {
 	/// destructor
 		~InterfaceRegistry()
 		{
+		//  delete registered functions
 			for(size_t i = 0; i < m_vFunction.size(); ++i)
 			{
 				if(m_vFunction[i] != NULL)
 					delete m_vFunction[i];
 			}
+		//  delete registered classes
+			for(size_t i = 0; i < m_vClass.size(); ++i)
+			{
+				if(m_vClass[i] != NULL)
+					delete m_vClass[i];
+			}
 		}
 
 	private:
+		InterfaceRegistry(const InterfaceRegistry& reg)	{}
+		
 		std::vector<ExportedFunction*>	m_vFunction;
 
 		std::vector<IExportedClass*> m_vClass;

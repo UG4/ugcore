@@ -13,6 +13,14 @@ namespace ug{
 namespace script
 {
 
+static ug::interface::InterfaceRegistry* g_pRegistry = NULL;
+
+void SetScriptRegistry(ug::interface::InterfaceRegistry* pReg)
+{
+	g_pRegistry = pReg;
+}
+
+
 lua_State* GetDefaultLuaState()
 {
 	static lua_State* L = NULL;
@@ -20,14 +28,17 @@ lua_State* GetDefaultLuaState()
 //	if the state has not already been opened then do it now.
 	if(!L)
 	{
-	//	open a lua state
-		L = lua_open();
-
-	//	open standard libs
-		luaL_openlibs(L);
-		
-	//	create lua bindings for registered functions and objects
-		ug::interface::lua::CreateBindings_LUA(L);
+		if(g_pRegistry){
+		//	open a lua state
+			L = lua_open();
+		//	open standard libs
+			luaL_openlibs(L);
+		//	create lua bindings for registered functions and objects
+			ug::interface::lua::CreateBindings_LUA(L, *g_pRegistry);
+		}
+		else{
+			UG_LOG("WARNING: Can't create lua-state due to missing registry.n");
+		}
 	}
 	
 	return L;

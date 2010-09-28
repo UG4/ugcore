@@ -35,7 +35,7 @@ struct func_traits <TRet (*) (P1)>
 	typedef TypeList<P1> params_type;
 	static TRet apply(TRet (*fp)(P1),  TypeValueList<params_type>& args)
 	{
-		return fp(args.head);
+		return fp(args.hd);
 	};
 };
 
@@ -47,7 +47,7 @@ struct func_traits <TRet (*) (T1, T2)>
 	typedef TypeList<T1, T2> params_type;
 	static TRet apply(TRet (*fp)(T1, T2),  TypeValueList<params_type>& args)
 	{
-		return fp(args.head, args.tail.head);
+		return fp(args.hd, args.tl.hd);
 	};
 };
 
@@ -82,7 +82,7 @@ struct func_traits <TRet (TClass::*) (P1)>
 	typedef TypeList<P1> params_type;
 	static TRet apply(TRet (TClass::*fp)(P1), TClass* obj, TypeValueList<params_type>& args)
 	{
-		return (obj->*fp)(args.head);
+		return (obj->*fp)(args.hd);
 	};
 };
 
@@ -94,7 +94,7 @@ struct func_traits <TRet (TClass::*) (T1, T2)>
 	typedef TypeList<T1, T2> params_type;
 	static TRet apply(TRet (TClass::*fp)(T1, T2), TClass* obj, TypeValueList<params_type>& args)
 	{
-		return (obj->*fp)(args.head, args.tail.head);
+		return (obj->*fp)(args.hd, args.tl.hd);
 	};
 };
 

@@ -13,11 +13,16 @@ extern "C" {
 }
 
 #include "common/common.h"
+#include "../ug_interface/ugbridge/registry.h"
 
 namespace ug
 {
 namespace script
 {
+
+///	sets the registry from which methods and classes will be used
+/**	As long as the script uses this registry, it may not be deleted!.*/
+void SetScriptRegistry(ug::interface::InterfaceRegistry* pReg);
 
 ///	returns the default lua state
 lua_State* GetDefaultLuaState();
