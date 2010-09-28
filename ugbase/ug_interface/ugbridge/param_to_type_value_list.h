@@ -101,7 +101,24 @@ struct PLStack<std::string>
 	{
 		ps.push_string();
 	}
-	static void write(ParameterStack& ps, std::string data, int index)
+	static void write(ParameterStack& ps, const std::string& data, int index)
+	{
+		ps.set_string(index, data.c_str());
+	}
+	static std::string read(const ParameterStack& ps, int index)
+	{
+		return std::string(ps.to_string(index));
+	}
+};
+
+template <>
+struct PLStack<const std::string&>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_string();
+	}
+	static void write(ParameterStack& ps, const std::string& data, int index)
 	{
 		ps.set_string(index, data.c_str());
 	}
