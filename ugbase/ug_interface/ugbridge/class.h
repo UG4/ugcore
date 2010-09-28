@@ -74,7 +74,7 @@ class ExportedMethod : public ExportedFunctionBase
 		ProxyFunc m_proxy_func;
 };
 
-template <typename TClass, typename TMethod>
+template <typename TClass, typename TMethod, typename TRet = typename func_traits<TMethod>::return_type>
 struct ProxyMethod
 {
 	static void apply(MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
@@ -87,17 +87,35 @@ struct ProxyMethod
 
 	//  get parameter
 		typedef typename func_traits<TMethod>::params_type params_type;
-		typedef typename func_traits<TMethod>::result_type result_type;
 		ParameterStackToTypeValueList<params_type> args(in);
 
 	//  apply method
-		result_type res = func_traits<TMethod>::apply(mptr, objPtr, args);
+		TRet res = func_traits<TMethod>::apply(mptr, objPtr, args);
 
 	//  write return value
 		PushTypeValueToParameterStack(res, out);
 	}
 };
 
+template <typename TClass, typename TMethod>
+struct ProxyMethod<TClass, TMethod, void>
+{
+	static void apply(MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
+	{
+	//  cast to method pointer
+		TMethod mptr = *(TMethod*) method.get_raw_ptr();
+
+	//  cast object to type
+		TClass* objPtr = (TClass*) (obj);
+
+	//  get parameter
+		typedef typename func_traits<TMethod>::params_type params_type;
+		ParameterStackToTypeValueList<params_type> args(in);
+
+	//  apply method
+		func_traits<TMethod>::apply(mptr, objPtr, args);
+	}
+};
 
 /** Base class for exported Classes
  *
@@ -171,8 +189,8 @@ class ExportedClass_ : public IExportedClass
 
 			//  create parameter out list
 				ParameterStack& out = m_vMethod.back()->params_out();
-				typedef typename func_traits<TMethod>::result_type result_type;
-				CreateParameterStack<TypeList<result_type> >::create(out);
+				typedef typename func_traits<TMethod>::return_type return_type;
+				CreateParameterStack<TypeList<return_type> >::create(out);
 
 				return *this;
 		}

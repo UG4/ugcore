@@ -19,7 +19,7 @@ struct func_traits {};
 template <typename TRet>
 struct func_traits <TRet (*) ()>
 {
-	typedef TRet result_type;
+	typedef TRet return_type;
 	typedef TypeList<> params_type;
 	static TRet apply(TRet (*fp)(),  TypeValueList<params_type>& args)
 	{
@@ -31,7 +31,7 @@ struct func_traits <TRet (*) ()>
 template <typename TRet, typename P1>
 struct func_traits <TRet (*) (P1)>
 {
-	typedef TRet result_type;
+	typedef TRet return_type;
 	typedef TypeList<P1> params_type;
 	static TRet apply(TRet (*fp)(P1),  TypeValueList<params_type>& args)
 	{
@@ -43,7 +43,7 @@ struct func_traits <TRet (*) (P1)>
 template <typename TRet, typename T1, typename T2>
 struct func_traits <TRet (*) (T1, T2)>
 {
-	typedef TRet result_type;
+	typedef TRet return_type;
 	typedef TypeList<T1, T2> params_type;
 	static TRet apply(TRet (*fp)(T1, T2),  TypeValueList<params_type>& args)
 	{
@@ -60,7 +60,7 @@ struct func_traits <TRet (*) (T1, T2)>
 #define FUNC_TRAITS_GENERAL_NON_CONST_MEMBER \
 	static const bool const_method = false;\
 	typedef TClass class_type;\
-	typedef TRet result_type
+	typedef TRet return_type
 
 
 template <typename TClass, typename TRet>

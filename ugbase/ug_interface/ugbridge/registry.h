@@ -33,7 +33,7 @@ class InterfaceRegistry {
 										const char* tooltip = "", const char* help = "")
 		{
 		//  create new exported function
-			m_vFunction.push_back(new ExportedFunction(	(void*) func, &ProxyFunction<TFunc>,
+			m_vFunction.push_back(new ExportedFunction(	(void*) func, &FunctionProxy<TFunc>::apply,
 														funcName, retValName, paramValNames,
 														tooltip, help));
 	
@@ -44,8 +44,8 @@ class InterfaceRegistry {
 
 		//  create parameter out list
 			ParameterStack& out = m_vFunction.back()->params_out();
-			typedef typename func_traits<TFunc>::result_type result_type;
-			CreateParameterStack<TypeList<result_type> >::create(out);
+			typedef typename func_traits<TFunc>::return_type return_type;
+			CreateParameterStack<TypeList<return_type> >::create(out);
 
 			return *this;
 		}

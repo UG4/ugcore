@@ -129,22 +129,43 @@ class ExportedFunction : public ExportedFunctionBase
 /**
  * Function that forwards for function pointer for a signature
  */
-template <class TFunc>
-void ProxyFunction(void* func, const ParameterStack& in, ParameterStack& out)
+template <typename TFunc, typename TRet = typename func_traits<TFunc>::return_type>
+struct FunctionProxy
 {
-	typedef typename func_traits<TFunc>::params_type params_type;
-	TFunc fp = (TFunc) func;
+	static void apply(void* func, const ParameterStack& in, ParameterStack& out)
+	{
+		typedef typename func_traits<TFunc>::params_type params_type;
+		TFunc fp = (TFunc) func;
 
-//  convert parameter stack
-	ParameterStackToTypeValueList<params_type> args(in);
+	//  convert parameter stack
+		ParameterStackToTypeValueList<params_type> args(in);
 
-//  apply
-	typedef typename func_traits<TFunc>::result_type result_type;
-	result_type res = func_traits<TFunc>::apply(fp, args);
+	//  apply
+		typedef typename func_traits<TFunc>::return_type return_type;
+		return_type res = func_traits<TFunc>::apply(fp, args);
 
-//  write result
-	PushTypeValueToParameterStack(res, out);
+	//  write result
+		PushTypeValueToParameterStack(res, out);
+	}
 };
+
+// specialization if no return value given
+template <typename TFunc>
+struct FunctionProxy<TFunc, void>
+{
+	static void apply(void* func, const ParameterStack& in, ParameterStack& out)
+	{
+		typedef typename func_traits<TFunc>::params_type params_type;
+		TFunc fp = (TFunc) func;
+
+	//  convert parameter stack
+		ParameterStackToTypeValueList<params_type> args(in);
+
+	//  apply
+		func_traits<TFunc>::apply(fp, args);
+	}
+};
+
 
 } // end namespace interface
 
