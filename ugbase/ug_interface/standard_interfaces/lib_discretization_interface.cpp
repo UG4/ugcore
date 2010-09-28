@@ -24,9 +24,9 @@ void f1()
 
 void RegisterLibDiscretizationInterface(Registry& reg)
 {
-	InterfaceRegistry regist;
+/*	InterfaceRegistry regist;
 	regist.add_function("test", &f1);
-
+*/
 
 	reg.register_object<MGDomainObject<2> >();
 	reg.register_object<MGDomainObject<3> >();
