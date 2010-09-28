@@ -3,6 +3,7 @@
 #define __H__UG_INTERFACE__UGBRIDGE__CLASS__
 
 #include <cstdlib>
+#include <cstring>
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "global_function.h"
