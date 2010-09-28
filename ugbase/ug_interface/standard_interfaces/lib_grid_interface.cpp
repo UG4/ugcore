@@ -59,6 +59,12 @@ class Cake
 			return new Piece(size);
 		}
 		
+		int add_pieces(Piece* piece)
+		{
+			m_numPieces += piece->size();
+			return m_numPieces;
+		}
+		
 		int pieces_left()	{return m_numPieces;}
 		
 	protected:
@@ -79,6 +85,7 @@ void RegisterLibGridInterface(InterfaceRegistry& reg)
 		
 	reg.add_class_<Cake>("Cake")
 		.add_method("take_pieces", &Cake::take_pieces)
+		.add_method("add_pieces", &Cake::add_pieces)
 		.add_method("pieces_left", &Cake::pieces_left);
 }
 

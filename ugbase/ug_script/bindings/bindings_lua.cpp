@@ -83,16 +83,14 @@ static int LuaStackToParams(ParameterStack& params,
 					params.push_string(lua_tostring(L, index));
 				else
 					badParam = (int)i + 1;
-			}break;/*
-			case PTID_OBJECT:{
+			}break;
+			case PT_POINTER:{
 				if(lua_isuserdata(L, index)){
-					IObject* obj = ((UserData_IObject*)lua_touserdata(L, index))->obj;
-				//	check whether the given object supports the correct interface
-					if(obj->type_check(params.get_interface_type(i))){
-					//	types did match
-						param->set_object(obj);
-					}
-					else{
+					void* obj = ((UserDataWrapper*)lua_touserdata(L, index))->obj;
+				//	todo: check whether the given object supports the correct interface
+						params.push_pointer(obj, paramsTemplate.get_class_name(i));
+					/*
+					{
 					//	types did not match.
 						UG_LOG("ERROR: type mismatch in argument " << i + 1);
 						UG_LOG(": Expected type that supports " << params.get_interface_type(i));
@@ -101,11 +99,11 @@ static int LuaStackToParams(ParameterStack& params,
 						UG_LOG(", but given object supports " << strTypes << " only.\n");
 						printDefaultParamErrorMsg = false;
 						badParam = (int)i + 1;
-					}
+					}*/
 				}
 				else
 					badParam = (int)i + 1;
-			}break;*/
+			}break;
 			default:{//	unknown type
 				badParam = (int)i + 1;
 			}break;
@@ -142,19 +140,11 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 			}break;
 			case PT_STRING:{
 				lua_pushstring(L, params.to_string(i));
-			}break;/*
-			case PTID_OBJECT:{
-			//	check whether the object has already been associated with a userdata
-				IObject* obj = param->to_object();
-			//	note that GetRegisteredUserData will leave the data on the stack, if
-			//	it already existed
-				if(!GetRegisteredUserData(L, obj)){
-				//	it is not. We have to register a new one
-				//	Note that the new userdata will be on the top of the stack after
-				//	CreateAndRegisterUserData returns.
-					CreateAndRegisterUserData(L, obj);
-				}
-			}break;*/
+			}break;
+			case PT_POINTER:{
+				void* obj = params.to_pointer<void>(i);
+				CreateNewUserData(L, obj, params.get_class_name(i));
+			}break;
 			default:{
 				UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
 				UG_LOG("Return-values may be incomplete.\n");
