@@ -150,10 +150,14 @@ class ExportedClass_ : public IExportedClass
 
 	public:
 	//  contructor
-		ExportedClass_(const char* name) : m_name(name) {}
+		ExportedClass_(const char* name)
+		{
+			// todo: check that name is not already used
+			ClassNameProvider<TClass>::set_name(name);
+		}
 
 	//  name of class
-		virtual const char* name() const {return m_name;}
+		virtual const char* name() const {return ClassNameProvider<TClass>::name();}
 
 	//  number of registered methods
 		virtual size_t num_methods() const {return m_vMethod.size();}
