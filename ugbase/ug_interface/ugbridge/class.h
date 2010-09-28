@@ -114,7 +114,7 @@ class IExportedClass
 		virtual const ExportedMethod& get_method(size_t i) const = 0;
 
 	//  create an instance
-		virtual void* create() = 0;
+		virtual void* create() const = 0;
 
 	//  virtual destructor
 		virtual ~IExportedClass() {};
@@ -179,7 +179,7 @@ class ExportedClass_ : public IExportedClass
 		////////////////////////
 		// memory management
 		////////////////////////
-		virtual void* create()
+		virtual void* create() const
 		{
 			return new TClass();
 		}

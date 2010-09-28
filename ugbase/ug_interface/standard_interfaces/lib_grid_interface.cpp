@@ -18,6 +18,11 @@ int Add(int a, int b)
 class Test 
 {
 	public:
+		Test()
+		{
+			UG_LOG("Test created!n");
+		}
+		
 		int add(int a, int b)
 		{
 			return a+b;

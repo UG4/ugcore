@@ -158,13 +158,49 @@ static int LuaProxyFunction(lua_State* L)
 	return ParamsToLuaStack(paramsOut, L);
 }
 
+static int LuaProxyConstructor(lua_State* L)
+{
+	const IExportedClass* inst = (const IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
+	
+	lua_pushlightuserdata(L, inst->create());
+	
+	return 1;
+}
+
+static int LuaProxyMethod(lua_State* L)
+{
+	ExportedMethod* m = (ExportedMethod*)lua_touserdata(L, lua_upvalueindex(1));
+
+	if(!lua_isuserdata(L, 1)){
+		UG_LOG("ERROR in call to LuaProxyMethod: No object specified.\n");
+		return 0;
+	}
+	
+	void* self = lua_touserdata(L, 1);
+	
+	ParameterStack paramsIn;;
+	ParameterStack paramsOut;
+	
+	int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
+	
+//	check whether the parameter was correct
+	if(badParam > 0){
+		UG_LOG("ERROR occured during call to " << m->name() << endl);
+		return 0;
+	}
+
+	m->execute(self, paramsIn, paramsOut);
+	
+	return ParamsToLuaStack(paramsOut, L);
+}
+
 bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg)
 {
 //	registers a meta-object for each object found in the ObjectRegistry.
 //	Global functions are registered for all GlobalFunction-objects in the registry.
 
 //	iterate through all registered objects
-	size_t numFuncs = reg.num_functions();
+	
 /*
 //	create the ug-table in which all our methods will go.
 	lua_newtable(L);
@@ -174,6 +210,8 @@ bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg)
 ////////////////////////////////
 //	create a method for each global function, which calls LuaProxyFunction with
 //	a an index to the function.
+	size_t numFuncs = reg.num_functions();
+	
 	for(size_t i = 0; i < numFuncs; ++i){
 		ExportedFunction* func = &reg.get_function(i);
 
@@ -182,6 +220,27 @@ bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg)
 		lua_setglobal(L, func->name().c_str());
 	}
 
+
+	size_t numClasses = reg.num_classes();
+	for(size_t i = 0; i < numClasses; ++i){
+		const IExportedClass* inst = &reg.get_class(i);
+		lua_pushlightuserdata(L, (void*)inst);
+		lua_pushcclosure(L, LuaProxyConstructor, 1);
+		lua_setglobal(L, inst->name());
+		
+		lua_newtable(L);
+	//	register methods
+		for(size_t j = 0; j < inst->num_methods(); ++j){
+			const ExportedMethod& m = inst->get_method(j);
+			lua_pushstring(L, m.name().c_str());
+			lua_pushlightuserdata(L, (void*)&m);
+			lua_pushcclosure(L, LuaProxyMethod, 1);
+			lua_settable(L, -3);
+		}
+	//	set the name of the table
+		lua_setglobal(L, "tmp");
+	}
+	
 	return true;
 }
 
