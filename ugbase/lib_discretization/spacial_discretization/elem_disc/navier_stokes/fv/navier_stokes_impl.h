@@ -121,7 +121,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			for(size_t co = 0; co < scvf.num_sh(); ++co)
 			{
 				////////////////////////////////////////////////////
-				// Diffusiv Term
+				// Diffusiv Term (Momentum Equation)
 				////////////////////////////////////////////////////
 
 				// Compute flux at IP
@@ -142,7 +142,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				}
 
 				////////////////////////////////////////////////////
-				// Pressure Term
+				// Pressure Term (Momentum Equation)
 				////////////////////////////////////////////////////
 				for(size_t vel = 0; vel < dim; ++vel)
 				{
@@ -151,41 +151,13 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				}
 
 				////////////////////////////////////////////////////
-				// Convective Term
-				// (upwinding_amount == 1.0 -> full upwind;
-				//  upwinding_amount == 0.0 -> full central disc)
+				// Convective Term (Momentum Equation)
 				////////////////////////////////////////////////////
 
-				// central part convection
-				if(m_upwindAmount != 1.0)
-				{
-					// Compute flux
-					flux = (1.- m_upwindAmount) * scvf.shape(j, ip) * VecDot(v, scvf.normal());
+				// todo: implement convective term (momentum equation)
 
-					// Add flux to local matrix
-					J(_C_, scvf.from(), _C_, j) += flux;
-					J(_C_, scvf.to()  , _C_, j) -= flux;
+				// todo: implement mass equations
 
-				}
-			}
-
-			// upwind part convection (does only depend on one shape function)
-			if(m_upwindAmount != 0.0)
-			{
-				// corner for upwind switch
-				int up;
-
-				// Compute flux
-				flux = m_upwindAmount * VecDot(v, scvf.normal());
-
-				// switch upwind direction
-				if(flux >= 0.0) up = scvf.from(); else up = scvf.to();
-
-				// Add flux to local matrix
-				J(_C_, scvf.from(), _C_, up) += flux;
-				J(_C_, scvf.to()  , _C_, up) -= flux;
-			}
-		}
 	}
 
 
@@ -213,8 +185,12 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		// get associated node
 		const int co = scv.node_id();
 
-		// Add to local matrix
-		J(_C_, co, _C_, co) += scv.volume();
+		// loop velocity components
+		for(size_t vel1 = 0; vel1 < dim; ++vel1)
+		{
+			// Add to local matrix
+			J(vel1, co, vel1, co) += scv.volume();
+		}
 	}
 
 	// we're done
@@ -233,11 +209,6 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
 	number flux;					// flux at ip
-	MathVector<dim> grad_u;			// gradient of solution at ip
-	number shape_u;					// solution at ip
-	MathMatrix<dim,dim> D;			// Diffusion Tensor
-	MathVector<dim> v;				// Velocity Field
-	MathVector<dim> Dgrad_u;		// Diff.Tensor times gradient of solution
 
 	// loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -258,85 +229,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 				shape_u += u(_C_,j) * scvf.shape(j, ip);
 			}
 
-			// Evaluate user data
-			m_Diff_Tensor(D, scvf.global_ip(ip), time);
-			m_Conv_Vel(v, scvf.global_ip(ip), time);
+			// Read Data at IP
+			m_kinematicViscosity(viscosity, scvf.global_ip(ip), time);
 
-			/////////////////////////////////////////////////////
-			// Diffusive Term
-			// (central discretization)
-			/////////////////////////////////////////////////////
-			MatVecMult(Dgrad_u, D, grad_u);
-
-			// Compute flux
-			flux = VecDot(Dgrad_u, scvf.normal());
-
-			// Add to local matrix
-			d(_C_, scvf.from()) -= flux;
-			d(_C_, scvf.to()  ) += flux;
-
-			/////////////////////////////////////////////////////
-			// Convective Term
-			// (upwinding_amount == 1.0 -> full upwind;
-			//  upwinding_amount == 0.0 -> full central disc)
-			/////////////////////////////////////////////////////
-
-			// central part convection
-			if(m_upwindAmount != 1.0)
-			{
-				// Compute flux at ip
-				flux = (1.- m_upwindAmount) * shape_u * VecDot(v, scvf.normal());
-
-				// Add to local matrix
-				d(_C_, scvf.from()) += flux;
-				d(_C_, scvf.to()  ) -= flux;
-			}
-
-			// upwind part convection
-			if(m_upwindAmount != 0.0)
-			{
-				// compute flux at ip
-				flux = m_upwindAmount * VecDot(v, scvf.normal());
-
-				// Upwind switch
-				if(flux >= 0.0) flux *= u(_C_, scvf.from()); else flux *= u(_C_, scvf.to());
-
-				// Add to local matrix
-				d(_C_, scvf.from()) += flux;
-				d(_C_, scvf.to()  ) -= flux;
-			}
-
+			// todo: implement defect
 		}
-	}
-
-	// loop Sub Control Volumes (SCV)
-	for(size_t i = 0; i < geo.num_scv(); ++i)
-	{
-		// get current SCV
-		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
-
-		// first ip
-		number val;
-		m_Reaction(val, scv.global_ip(0), time);
-
-		// loop other ip
-		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
-		{
-			number ip_val;
-			m_Reaction(ip_val, scv.global_ip(ip), time);
-
-			// TODO: Add weight for integration
-			val += ip_val;
-		}
-
-		// scale with volume of SCV
-		val *= scv.volume();
-
-		// get associated node
-		const int co = scv.node_id();
-
-		// Add to local matrix
-		d(_C_, co) += u(_C_, co) * val;
 	}
 
 	// we're done
@@ -363,8 +260,12 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		// get associated node
 		const int co = scv.node_id();
 
-		// Add to local matrix
-		d(_C_, co) += u(_C_, co) * scv.volume();
+		// loop velocity components
+		for(size_t vel1 = 0; vel1 < dim; ++vel1)
+		{
+			// Add to local matrix
+			d(vel1, co) += u(vel1, co) * scv.volume();
+		}
 	}
 
 	// we're done
@@ -389,13 +290,13 @@ assemble_f(local_vector_type& d, number time)
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
 		// first value
-		number val = 0.0;
+		position_type val;
 		m_Rhs(val, scv.global_ip(0), time);
 
 		// other values
 		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
 		{
-			number ip_val;
+			position_type ip_val;
 			m_Rhs(ip_val, scv.global_ip(ip), time);
 
 			// TODO: add weights for integration
@@ -408,8 +309,12 @@ assemble_f(local_vector_type& d, number time)
 		// get associated node
 		const int co = scv.node_id();
 
-		// Add to local matrix
-		d(_C_, co) += val;
+		// loop velocity components
+		for(size_t vel1 = 0; vel1 < dim; ++vel1)
+		{
+			// Add to local matrix
+			d(vel1, co) += val[vel1];
+		}
 	}
 
 	// we're done

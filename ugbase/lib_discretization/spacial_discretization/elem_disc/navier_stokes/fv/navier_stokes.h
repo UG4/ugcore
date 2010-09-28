@@ -97,9 +97,6 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		// abbreviation for pressure
 		static const size_t _P_ = dim+1;
 
-		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwindAmount;
-
 		// User functions
 		KinematicViscosity_fct m_kinematicViscosity;
 		Rhs_fct m_Rhs;
