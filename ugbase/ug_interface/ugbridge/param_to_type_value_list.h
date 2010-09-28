@@ -2,30 +2,29 @@
 #ifndef __H__UG_INTERFACE__UGBRIDGE__PARAM_TO_TYPE_VALUE_LIST__
 #define __H__UG_INTERFACE__UGBRIDGE__PARAM_TO_TYPE_VALUE_LIST__
 
-#include "../interface_base.h"
-
+#include "parameter_stack.h"
 
 namespace ug {
 
 namespace interface{
 
 //////////////////////////////
-// ParameterList DataStack
+// ParameterStack DataStack
 //////////////////////////////
 
 template <typename TData>
 struct PLStack
 {
 	private:
-		static void add(ParameterList& pl, const char* name);
-		static void write(const ParameterList& pl, TData data, int index);
-		static TData read(const ParameterList& pl, int index);
+		static void push(ParameterStack& ps);
+		static void write(ParameterStack& ps, TData data, int index);
+		static TData read(const ParameterStack& ps, int index);
 };
 
 template <>
 struct PLStack<void>
 {
-	static void add(ParameterList& pl, const char* name)
+	static void add(ParameterStack& pl, const char* name)
 	{
 		// do nothing
 	}
@@ -35,84 +34,90 @@ struct PLStack<void>
 template <>
 struct PLStack<double>
 {
-	static void add(ParameterList& pl, const char* name)
+	static void push(ParameterStack& ps)
 	{
-		pl.add_double(name);
+		ps.push_number();
 	}
-	static void write(const ParameterList& pl, double data, int index)
+	static void write(ParameterStack& ps, double data, int index)
 	{
-		pl.set_double(index, data);
+		ps.set_number(index, data);
 	}
-	static double read(const ParameterList& pl, int index)
+	static double read(const ParameterStack& ps, int index)
 	{
-		return pl.to_double(index);
+		return ps.to_number(index);
 	}
 };
 
 
 //////////////////////////////
-// ParamToTypeValueList
+// ParameterStackToTypeValueList
 //////////////////////////////
 
-// ParamToTypeValueList
+// ParameterStackToTypeValueList
 template <typename TTypeList, int index = 0>
-struct ParamToTypeValueList;
+struct ParameterStackToTypeValueList;
 
 // specialization for empty TypeValueList
 template <int index>
-struct ParamToTypeValueList<TypeList<>, index> :
+struct ParameterStackToTypeValueList<TypeList<>, index> :
 	public TypeValueList<TypeList<> >
 {
-	ParamToTypeValueList(const ParameterList& in) {}
+	ParameterStackToTypeValueList(const ParameterStack& in) {}
 };
 
 // implementation for non-empty TypeValueList
 template <typename TTypeList, int index>
-struct ParamToTypeValueList :
+struct ParameterStackToTypeValueList :
 	public TypeValueList<TTypeList>
 {
 	typedef	typename TTypeList::head	head;
 	typedef	typename TTypeList::tail	tail;
 
-	ParamToTypeValueList(const ParameterList& in) :
+	ParameterStackToTypeValueList(const ParameterStack& in) :
 		TypeValueList<TTypeList>(	PLStack<head>::read(in, index),
-									ParamToTypeValueList<tail, index+1>(in))
+									ParameterStackToTypeValueList<tail, index+1>(in))
 			{}
 };
 
+
 //////////////////////////////
-// ParamToTypeValueList
+// WriteTypeValueToParameterStackTop
+//////////////////////////////
+
+// WriteTypeValueToParameterStackTop
+template <typename TType>
+void WriteTypeValueToParameterStackTop(TType& val, ParameterStack& out)
+{
+	PLStack<TType>::write(out, 0);
+};
+
+
+//////////////////////////////
+// CreateParameterStack
 //////////////////////////////
 
 // implementation for non-empty
 template <typename TTypeList>
-struct CreateParameterList
+struct CreateParameterStack
 {
 	typedef	typename TTypeList::head	head;
 	typedef	typename TTypeList::tail	tail;
 
-	static void create(ParameterList& in, const char* paramValNames, const char* delimiter)
+	static void create(ParameterStack& in)
 	{
-		std::string names(paramValNames);
-		std::string delim(delimiter);
-
-		// find first param name
-		string::size_type begin = names.find_first_not_of(delim, 0);
-	    string::size_type end   = names.find_first_of(delim, begin);
-
 	    // add parameter so list
-		PLStack<head>::add(in, names.substr(begin, end - begin).c_str());
+		PLStack<head>::push(in);
 
 		// recursive call for remaining types and names
-		CreateParameterList<tail>::create(in, names.substr(end, string::npos).c_str(), delimiter);
+		CreateParameterStack<tail>::create(in);
 	}
 };
 
 // specialization for empty typelist
 template <>
-struct CreateParameterList<TypeList<> >
+struct CreateParameterStack<TypeList<> >
 {
-	static void create(ParameterList& in, const char* paramValNames, const char* delimiter)
+	static void create(ParameterStack& in, const char* paramValNames, const char* delimiter)
 	{
 		// do nothing and end recursion
 	}

@@ -2,7 +2,7 @@
 #ifndef __H__UG_INTERFACE__UGBRIDGE__GLOBAL_FUNCTION__
 #define __H__UG_INTERFACE__UGBRIDGE__GLOBAL_FUNCTION__
 
-#include "../interface_base.h"
+#include "parameter_stack.h"
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
 
@@ -50,15 +50,15 @@ class ExportedFunctionBase
 		const std::string& help() const 							{return m_help;}
 
 	/// parameter list for input values
-		const ParameterList& params_in() const						{return m_paramsIn;}
+		const ParameterStack& params_in() const						{return m_paramsIn;}
 
 	/// parameter list for output values
-		const ParameterList& params_out() const						{return m_paramsOut;}
+		const ParameterStack& params_out() const						{return m_paramsOut;}
 
 	protected:
 	/// non-const export of param list
-		ParameterList& params_in() 		{return m_paramsIn;}
-		ParameterList& params_out() 	{return m_paramsOut;}
+		ParameterStack& params_in() 		{return m_paramsIn;}
+		ParameterStack& params_out() 	{return m_paramsOut;}
 
 	protected:
 		// help function to tokenize the parameter string
@@ -91,8 +91,8 @@ class ExportedFunctionBase
 		std::string m_tooltip;
 		std::string m_help;
 
-		ParameterList m_paramsIn;
-		ParameterList m_paramsOut;
+		ParameterStack m_paramsIn;
+		ParameterStack m_paramsOut;
 };
 
 /** function exported from ug
@@ -104,7 +104,7 @@ class ExportedFunction : public ExportedFunctionBase
 	friend class InterfaceRegistry;
 
 	// all c++ functions are wrapped by a proxy function of the following type
-	typedef void (*ProxyFunc)(void* func, const ParameterList& in, const ParameterList& out);
+	typedef void (*ProxyFunc)(void* func, const ParameterStack& in, const ParameterStack& out);
 
 	public:
 		ExportedFunction(	void* f, ProxyFunc pf,
@@ -128,12 +128,20 @@ class ExportedFunction : public ExportedFunctionBase
  * Function that forwards for function pointer for a signature
  */
 template <class TFunc>
-void ProxyFunction(void* func, const ParameterList& in, const ParameterList& out)
+void ProxyFunction(void* func, const ParameterStack& in, ParameterStack& out)
 {
 	typedef typename func_traits<TFunc>::params_type params_type;
 	TFunc fp = (TFunc) func;
-	ParamToTypeValueList<params_type> args(in);
-	func_traits<TFunc>::apply(fp, args);
+
+//  convert parameter stack
+	ParameterStackToTypeValueList<params_type> args(in);
+
+//  apply
+	typedef typename func_traits<TMethod>::result_type result_type;
+	result_type res = func_traits<TFunc>::apply(fp, args);
+
+//  write result
+	WriteTypeValueToParameterStackTop(res, out);
 };
 
 } // end namespace interface

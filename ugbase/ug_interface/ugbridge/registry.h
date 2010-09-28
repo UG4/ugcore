@@ -2,10 +2,10 @@
 #ifndef __H__UG_INTERFACE__UGBRIDGE__REGISTRY__
 #define __H__UG_INTERFACE__UGBRIDGE__REGISTRY__
 
-#include "../interface_base.h"
 #include "global_function.h"
 #include "class.h"
 #include "param_to_type_value_list.h"
+#include "parameter_stack.h"
 
 namespace ug {
 
@@ -35,14 +35,14 @@ class InterfaceRegistry {
 														tooltip, help));
 
 		//  create parameter in list
-			ParameterList& in = m_vFunction.back()->params_in();
+			ParameterStack& in = m_vFunction.back()->params_in();
 			typedef typename func_traits<TFunc>::params_type params_type;
-			CreateParameterList<params_type>::create(in, paramValNames, ",");
+			CreateParameterStack<params_type>::create(in, paramValNames, ",");
 
 		//  create parameter out list
-			ParameterList& out = m_vFunction.back()->params_out();
+			ParameterStack& out = m_vFunction.back()->params_out();
 			typedef typename func_traits<TFunc>::result_type result_type;
-			CreateParameterList<TypeList<result_type> >::create(out, retValName, ",");
+			CreateParameterStack<TypeList<result_type> >::create(out, retValName, ",");
 
 			return *this;
 		}

@@ -2,6 +2,7 @@
 #ifndef __H__UG_INTERFACE__UGBRIDGE__CLASS__
 #define __H__UG_INTERFACE__UGBRIDGE__CLASS__
 
+#include "parameter_stack.h"
 #include "function_traits.h"
 #include "global_function.h"
 
@@ -22,7 +23,7 @@ class ExportedMethod : public ExportedFunctionBase
 	friend class InterfaceRegistry;
 
 	// all c++ functions are wrapped by a proxy function of the following type
-	typedef void (*ProxyFunc)(void* func, IExportedInstance& obj, const ParameterList& in, const ParameterList& out);
+	typedef void (*ProxyFunc)(void* func, IExportedInstance& obj, const ParameterStack& in, const ParameterStack& out);
 
 	public:
 		ExportedMethod(	void* f, ProxyFunc pf,
@@ -45,7 +46,7 @@ class ExportedMethod : public ExportedFunctionBase
 template <typename TClass, typename TMethod>
 struct ProxyMethod
 {
-	static void apply(void* method, IExportedInstance& obj, const ParameterList& in, const ParameterList& out)
+	static void apply(void* method, IExportedInstance& obj, const ParameterStack& in, const ParameterStack& out)
 	{
 	//  cast to method pointer
 		TMethod* mptr = (TMethod) method;
@@ -55,10 +56,14 @@ struct ProxyMethod
 
 	//  get parameter
 		typedef typename func_traits<TMethod>::params_type params_type;
-		ParamToTypeValueList<params_type> args(in);
+		typedef typename func_traits<TMethod>::result_type result_type;
+		ParameterStackToTypeValueList<params_type> args(in);
 
 	//  apply method
-		func_traits<TMethod>::apply(mptr, objPtr, args);
+		result_type res = func_traits<TMethod>::apply(mptr, objPtr, args);
+
+	//  write return value
+		WriteTypeValueToParameterStackTop(res, out);
 	}
 };
 
@@ -83,6 +88,17 @@ class IExportedClass
 
 	//  virtual destructor
 		virtual ~IExportedClass() {};
+};
+
+
+template <typename TClass>
+struct ClassNameProvider
+{
+	void set_name(const char* name) {m_name = name;}
+	const char* name() const {return m_name;}
+
+	private:
+		const char* m_name;
 };
 
 template <typename TClass>
@@ -138,14 +154,14 @@ class ExportedClass_ : public IExportedClass
 														tooltip, help));
 
 			//  create parameter in list
-				ParameterList& in = m_vMethod.back()->params_in();
+				ParameterStack& in = m_vMethod.back()->params_in();
 				typedef typename func_traits<TMethod>::params_type params_type;
-				CreateParameterList<params_type>::create(in, paramValNames, ",");
+				CreateParameterStack<params_type>::create(in, paramValNames, ",");
 
 			//  create parameter out list
-				ParameterList& out = m_vMethod.back()->params_out();
+				ParameterStack& out = m_vMethod.back()->params_out();
 				typedef typename func_traits<TMethod>::result_type result_type;
-				CreateParameterList<TypeList<result_type> >::create(out, retValName, ",");
+				CreateParameterStack<TypeList<result_type> >::create(out, retValName, ",");
 
 				return *this;
 		}

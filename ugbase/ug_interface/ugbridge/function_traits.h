@@ -33,7 +33,7 @@ struct func_traits <TRet (*) (P1)>
 {
 	typedef TRet result_type;
 	typedef TypeList<P1> params_type;
-	static void apply(TRet (*fp)(P1),  TypeValueList<params_type>& args)
+	static TRet apply(TRet (*fp)(P1),  TypeValueList<params_type>& args)
 	{
 		return fp(args.head);
 	};
@@ -45,7 +45,7 @@ struct func_traits <TRet (*) (T1, T2)>
 {
 	typedef TRet result_type;
 	typedef TypeList<T1, T2> params_type;
-	static void apply(TRet (*fp)(T1, T2),  TypeValueList<params_type>& args)
+	static TRet apply(TRet (*fp)(T1, T2),  TypeValueList<params_type>& args)
 	{
 		return fp(args.head, args.tail.head);
 	};
@@ -58,7 +58,7 @@ struct func_traits <TRet (*) (T1, T2)>
 ////////////////////////////////
 
 #define FUNC_TRAITS_GENERAL_NON_CONST_MEMBER \
-	static const bool const_mehtod = false;\
+	static const bool const_method = false;\
 	typedef TClass class_type;\
 	typedef TRet result_type
 
@@ -80,7 +80,7 @@ struct func_traits <TRet (TClass::*) (P1)>
 {
 	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
 	typedef TypeList<P1> params_type;
-	static void apply(TRet (TClass::*fp)(P1), TClass* obj, TypeValueList<params_type>& args)
+	static TRet apply(TRet (TClass::*fp)(P1), TClass* obj, TypeValueList<params_type>& args)
 	{
 		return (obj->*fp)(args.head);
 	};
@@ -92,7 +92,7 @@ struct func_traits <TRet (TClass::*) (T1, T2)>
 {
 	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
 	typedef TypeList<T1, T2> params_type;
-	static void apply(TRet (TClass::*fp)(T1, T2), TClass* obj, TypeValueList<params_type>& args)
+	static TRet apply(TRet (TClass::*fp)(T1, T2), TClass* obj, TypeValueList<params_type>& args)
 	{
 		return (obj->*fp)(args.head, args.tail.head);
 	};
