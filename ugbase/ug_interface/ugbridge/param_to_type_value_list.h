@@ -3,26 +3,14 @@
 #define __H__UG_INTERFACE__UGBRIDGE__PARAM_TO_TYPE_VALUE_LIST__
 
 #include "parameter_stack.h"
+#include "class_name_provider.h"
 #include <string>
+#include <vector>
+#include <cstring>
 
 namespace ug {
 
 namespace interface{
-
-
-template <typename TClass>
-struct ClassNameProvider
-{
-	static void set_name(const char* name) {m_name = name;}
-	static const char* name() {return m_name;}
-
-	private:
-		static const char* m_name;
-};
-
-template <typename TClass>
-const char* ClassNameProvider<TClass>::m_name = "";
-
 
 //////////////////////////////
 //////////////////////////////
@@ -132,7 +120,6 @@ struct PLStack<const std::string&>
 //////////////////////////////
 // classes
 //////////////////////////////
-
 template <typename TClass>
 struct PLStack<TClass*>
 {

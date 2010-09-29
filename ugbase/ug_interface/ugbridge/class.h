@@ -129,6 +129,9 @@ class IExportedClass
 	//  name of class
 		virtual const char* name() const = 0;
 
+	//	name-list of class hierarchy
+		virtual const std::vector<const char*>* class_names() const = 0;
+
 	//  number of method of the class
 		virtual size_t num_methods() const = 0;
 
@@ -161,6 +164,9 @@ class ExportedClass_ : public IExportedClass
 
 	//  name of class
 		virtual const char* name() const {return ClassNameProvider<TClass>::name();}
+
+	//	class-hierarchy
+		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
 
 	//  number of registered methods
 		virtual size_t num_methods() const {return m_vMethod.size();}

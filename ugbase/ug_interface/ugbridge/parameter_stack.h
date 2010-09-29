@@ -1,12 +1,21 @@
+
+#include "class_name_provider.h"
+#include "common/common.h"
+
 #ifndef __H__UG_BRIDGE__PARAMETER_STACK__
 #define __H__UG_BRIDGE__PARAMETER_STACK__
 
-typedef double number;
 
 #define PUSH_PARAM_TO_STACK(paramVar, val, paramType, clName)	{m_entries[m_numEntries].param.paramVar = (val);\
 																m_entries[m_numEntries].type = (paramType);\
-																m_entries[m_numEntries].className = (clName);\
+																m_entries[m_numEntries].pClassNames = (clName);\
 																++m_numEntries;}
+
+
+namespace ug {
+
+namespace interface{
+
 
 struct ERROR_BadIndex{
 	ERROR_BadIndex(int index) : m_index(index)	{}
@@ -21,6 +30,17 @@ struct ERROR_BadConversion{
 	int m_from;
 	int m_to;
 };
+
+struct ERROR_IncompatibleClasses{
+	ERROR_IncompatibleClasses(int index, const char* from, const char* to) :
+		m_index(index), m_from(from), m_to(to)	{}
+
+	int	m_index;
+	const char* m_from;
+	const char* m_to;
+};
+
+
 
 static inline int ARRAY_INDEX_TO_STACK_INDEX(int index, int stackSize)
 {
@@ -90,25 +110,19 @@ class ParameterStack
 		
 	////////////////////////////////
 	//	push
-		inline void push_integer(int val = 0)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, "");}
-		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, "");}
+		inline void push_integer(int val = 0)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, NULL);}
+		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, NULL);}
 		
 	///	strings are not bufferd.
-		inline void push_string(const char* str = "")	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, "");}
-/*
-		template<class T>
-		inline void push_reference(T& ref, const char* className)	{PUSH_PARAM_TO_STACK(m_ptr, (void*)&ref, PT_REFERENCE, className);}
+		inline void push_string(const char* str = "")	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, NULL);}
 
-	///	stores a reference to an object to which only a void pointer exists.
-		inline void push_reference(void* ptr, const char* className){PUSH_PARAM_TO_STACK(m_ptr, ptr, PT_REFERENCE, className);}
-		
-		inline void push_reference(const char* className)			{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_REFERENCE, className);}
-*/		
+	/// user defined classes
 		template<class T>
-		inline void push_pointer(T* ptr, const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, (void*)ptr, PT_POINTER, className);}
+		inline void push_pointer(T* ptr)				{PUSH_PARAM_TO_STACK(	m_ptr, (void*)ptr, PT_POINTER,
+																				&ClassNameProvider<T>::names());}
 
-		inline void push_pointer(const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_POINTER, className);}
-		
+		inline void push_pointer(void* ptr, const std::vector<const char*>* classNames)
+														{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNames);}
 		
 	////////////////////////////////
 	//	get
@@ -118,10 +132,18 @@ class ParameterStack
 			return m_entries[index].type;
 		}
 		
-		const char* get_class_name(int index) const
+		const char* class_name(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			return m_entries[index].className;
+			if(m_entries[index].pClassNames == NULL) return "";
+			else if (m_entries[index].pClassNames->empty()) return "";
+			return (*m_entries[index].pClassNames)[0];
+		}
+
+		const std::vector<const char*>* class_names(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			return m_entries[index].pClassNames;
 		}
 		
 		int to_integer(int index) const
@@ -160,20 +182,7 @@ class ParameterStack
 			
 			throw(ERROR_BadConversion(index, e.type, PT_STRING));
 		}
-		
-/*
-		template <class T>
-		T& to_reference(int index) const
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			const Entry& e = m_entries[index];
-			if(e.type == PT_REFERENCE)
-				return *reinterpret_cast<T*>(e.param.m_ptr);
-			
-			throw(ERROR_BadConversion(index, e.type, PT_REFERENCE));
-		}
-*/
+
 		template <class T>
 		T* to_pointer(int index) const
 		{
@@ -181,8 +190,22 @@ class ParameterStack
 			
 			const Entry& e = m_entries[index];
 			if(e.type == PT_POINTER)
-				return reinterpret_cast<T*>(e.param.m_ptr);
+				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
+					return reinterpret_cast<T*>(e.param.m_ptr);
+				else
+					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
 			
+			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
+		}
+
+		void* to_pointer(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			const Entry& e = m_entries[index];
+			if(e.type == PT_POINTER)
+				return e.param.m_ptr;
+
 			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
 		}
 
@@ -224,19 +247,7 @@ class ParameterStack
 			else
 				throw(ERROR_BadConversion(index, e.type, PT_STRING));
 		}
-/*
-		template <class T>
-		void set_reference(int index, T& ref)
-		{
-			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			
-			Entry& e = m_entries[index];
-			if(e.type == PT_REFERENCE)
-				e.param.m_ptr = (void*)&ref;
-			else
-				throw(ERROR_BadConversion(index, e.type, PT_REFERENCE));
-		}
-*/
+
 		template <class T>
 		void set_pointer(int index, T* ptr)
 		{
@@ -260,7 +271,7 @@ class ParameterStack
 		struct Entry{
 			Parameter param;
 			int type;
-			const char*	className;
+			const std::vector<const char*>*	pClassNames;
 		};
 
 	//	This array is of fixed size, since we want to introduce a minimal
@@ -268,5 +279,8 @@ class ParameterStack
 		Entry m_entries[PARAMETER_STACK_MAX_SIZE];
 		int m_numEntries;
 };
+
+} // end namespace interface
+} // end namespace ug
 
 #endif
