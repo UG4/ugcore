@@ -155,15 +155,15 @@ struct PLStack<TClass&>
 {
 	static void push(ParameterStack& ps)
 	{
-		ps.push_reference(ClassNameProvider<TClass>::name());
+		ps.push_pointer(ClassNameProvider<TClass>::name());
 	}
 	static void write(ParameterStack& ps, TClass& data, int index)
 	{
-		ps.set_reference(index, data);
+		ps.set_pointer(index, &data);
 	}
 	static TClass& read(const ParameterStack& ps, int index)
 	{
-		return ps.to_reference<TClass>(index);
+		return *ps.to_pointer<TClass>(index);
 	}
 };
 

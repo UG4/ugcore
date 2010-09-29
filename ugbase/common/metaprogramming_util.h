@@ -64,8 +64,8 @@ template <typename TTypeList> struct TypeValueList
 	head hd;
 	TypeValueList<tail> tl;
 
-	TypeValueList(const head& _hd,
-				  const TypeValueList<tail>& typValList) :
+	TypeValueList(head _hd,
+				  TypeValueList<tail> typValList) :
 		hd(_hd), tl(typValList)	{}
 
 };

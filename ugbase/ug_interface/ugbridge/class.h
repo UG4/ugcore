@@ -94,7 +94,9 @@ struct ProxyMethod
 		TRet res = func_traits<TMethod>::apply(mptr, objPtr, args);
 
 	//  write return value
-		PushTypeValueToParameterStack(res, out);
+		//PushTypeValueToParameterStack(res, out);
+		PLStack<TRet>::push(out);
+		PLStack<TRet>::write(out, res, -1);
 	}
 };
 

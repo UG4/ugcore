@@ -95,12 +95,15 @@ class ParameterStack
 		
 	///	strings are not bufferd.
 		inline void push_string(const char* str = "")	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, "");}
-		
+/*
 		template<class T>
 		inline void push_reference(T& ref, const char* className)	{PUSH_PARAM_TO_STACK(m_ptr, (void*)&ref, PT_REFERENCE, className);}
 
-		inline void push_reference(const char* className)			{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_REFERENCE, className);}
+	///	stores a reference to an object to which only a void pointer exists.
+		inline void push_reference(void* ptr, const char* className){PUSH_PARAM_TO_STACK(m_ptr, ptr, PT_REFERENCE, className);}
 		
+		inline void push_reference(const char* className)			{PUSH_PARAM_TO_STACK(m_ptr, NULL, PT_REFERENCE, className);}
+*/		
 		template<class T>
 		inline void push_pointer(T* ptr, const char* className)		{PUSH_PARAM_TO_STACK(m_ptr, (void*)ptr, PT_POINTER, className);}
 
@@ -158,6 +161,7 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_STRING));
 		}
 		
+/*
 		template <class T>
 		T& to_reference(int index) const
 		{
@@ -169,7 +173,7 @@ class ParameterStack
 			
 			throw(ERROR_BadConversion(index, e.type, PT_REFERENCE));
 		}
-
+*/
 		template <class T>
 		T* to_pointer(int index) const
 		{
@@ -220,7 +224,7 @@ class ParameterStack
 			else
 				throw(ERROR_BadConversion(index, e.type, PT_STRING));
 		}
-		
+/*
 		template <class T>
 		void set_reference(int index, T& ref)
 		{
@@ -232,7 +236,7 @@ class ParameterStack
 			else
 				throw(ERROR_BadConversion(index, e.type, PT_REFERENCE));
 		}
-
+*/
 		template <class T>
 		void set_pointer(int index, T* ptr)
 		{
