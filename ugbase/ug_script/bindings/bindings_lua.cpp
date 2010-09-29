@@ -86,20 +86,47 @@ static int LuaStackToParams(ParameterStack& params,
 			}break;
 			case PT_POINTER:{
 				if(lua_isuserdata(L, index)){
+				//	get the object and its metatable. Make sure that obj can be cast to
+				//	the type that is expected by the paramsTemplate.
 					void* obj = ((UserDataWrapper*)lua_touserdata(L, index))->obj;
-				//	todo: check whether the given object supports the correct interface
-						params.push_pointer(obj, paramsTemplate.get_class_name(i));
-					/*
-					{
-					//	types did not match.
-						UG_LOG("ERROR: type mismatch in argument " << i + 1);
-						UG_LOG(": Expected type that supports " << params.get_interface_type(i));
-						string strTypes;
-						obj->collect_supported_types(strTypes);
-						UG_LOG(", but given object supports " << strTypes << " only.\n");
-						printDefaultParamErrorMsg = false;
+					if(lua_getmetatable(L, index) != 0){
+
+						lua_pushstring(L, "names");
+						lua_rawget(L, -2);
+						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						lua_pop(L, 2);
+						bool typeMatch = false;
+						if(names){
+							if(!names->empty()){
+								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+									typeMatch = true;
+							}
+						}
+
+						if(typeMatch)
+							params.push_pointer(obj, names);
+						else{
+							UG_LOG("ERROR: type mismatch in argument " << i + 1);
+							UG_LOG(": Expected type that supports " << paramsTemplate.class_name(i));
+							bool gotone = false;
+							if(names){
+								if(!names->empty()){
+									gotone = true;
+									UG_LOG(", but given object of type " << names->at(0) << ".\n");
+								}
+							}
+
+							if(!gotone){
+								UG_LOG(", but given object of unknown type.\n");
+							}
+							printDefaultParamErrorMsg = false;
+							badParam = (int)i + 1;
+						}
+					}
+					else{
+						UG_LOG("METATABLE not found. ");
 						badParam = (int)i + 1;
-					}*/
+					}
 				}
 				else
 					badParam = (int)i + 1;
@@ -142,8 +169,8 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 				lua_pushstring(L, params.to_string(i));
 			}break;
 			case PT_POINTER:{
-				void* obj = params.to_pointer<void>(i);
-				CreateNewUserData(L, obj, params.get_class_name(i));
+				void* obj = params.to_pointer(i);
+				CreateNewUserData(L, obj, params.class_name(i));
 			}break;
 			default:{
 				UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
@@ -253,8 +280,8 @@ bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg)
 		luaL_newmetatable(L, c->name());
 		lua_pushvalue(L, -1);
 		lua_setfield(L, -2, "__index");
-		lua_pushstring(L, "name");
-		lua_pushstring(L, c->name());
+		lua_pushstring(L, "names");
+		lua_pushlightuserdata(L, (void*)c->class_names());
 		lua_settable(L, -3);
 		
 		
