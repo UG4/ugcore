@@ -118,7 +118,7 @@ class ParameterStack
 
 	/// user defined classes
 		template<class T>
-		inline void push_pointer(T* ptr)				{PUSH_PARAM_TO_STACK(	m_ptr, (void*)ptr, PT_POINTER,
+		inline void push_pointer(T* ptr = NULL)			{PUSH_PARAM_TO_STACK(	m_ptr, (void*)ptr, PT_POINTER,
 																				&ClassNameProvider<T>::names());}
 
 		inline void push_pointer(void* ptr, const std::vector<const char*>* classNames)

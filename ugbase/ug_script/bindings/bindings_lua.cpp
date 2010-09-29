@@ -35,7 +35,7 @@ static UserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 //	create the userdata
 	UserDataWrapper* udata = (UserDataWrapper*)lua_newuserdata(L,
 											sizeof(UserDataWrapper));
-	
+		
 //	associate the object with the userdata.
 	udata->obj = ptr;
 		

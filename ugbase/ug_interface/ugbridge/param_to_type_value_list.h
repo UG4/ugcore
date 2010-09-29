@@ -125,7 +125,7 @@ struct PLStack<TClass*>
 {
 	static void push(ParameterStack& ps)
 	{
-		ps.push_pointer(ClassNameProvider<TClass>::name());
+		ps.push_pointer<TClass>();
 	}
 	static void write(ParameterStack& ps, TClass* data, int index)
 	{
@@ -142,7 +142,7 @@ struct PLStack<TClass&>
 {
 	static void push(ParameterStack& ps)
 	{
-		ps.push_pointer(ClassNameProvider<TClass>::name());
+		ps.push_pointer<TClass>();
 	}
 	static void write(ParameterStack& ps, TClass& data, int index)
 	{
