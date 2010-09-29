@@ -27,7 +27,7 @@ struct ClassNameProvider
 		{
 			m_names.clear();
 			m_names.push_back(name);
-			std::vector<const char*>& pnames = ClassNameProvider<TParent>::names();
+			const std::vector<const char*>& pnames = ClassNameProvider<TParent>::names();
 			for(size_t i = 0; i < pnames.size(); ++i)
 				m_names.push_back(pnames[i]);
 		}

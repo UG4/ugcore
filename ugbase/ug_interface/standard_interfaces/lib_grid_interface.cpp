@@ -69,8 +69,32 @@ class Cake
 		
 	protected:
 		int m_numPieces;
-		
 };
+
+class Base
+{
+	public:
+		virtual int print()
+		{
+			UG_LOG("Base::print() called\n");
+			return 1;
+		}
+};
+
+class Derived
+{
+	public:
+		virtual int print()
+		{
+			UG_LOG("Derived::print() called\n");
+			return 1;
+		}
+};
+
+int PrintFunction(Base& b)
+{
+	return b.print();
+}
 
 void RegisterLibGridInterface(InterfaceRegistry& reg)
 {
@@ -87,6 +111,13 @@ void RegisterLibGridInterface(InterfaceRegistry& reg)
 		.add_method("take_pieces", &Cake::take_pieces)
 		.add_method("add_pieces", &Cake::add_pieces)
 		.add_method("pieces_left", &Cake::pieces_left);
+
+	reg.add_class_<Base>("Base")
+		.add_method("print", &Base::print);
+	reg.add_class_<Derived, Base>("Derived")
+		.add_method("print", &Derived::print);
+	reg.add_function("PrintFunction", &PrintFunction);
+
 }
 
 }//	end of namespace 

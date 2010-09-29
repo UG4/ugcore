@@ -74,6 +74,21 @@ class InterfaceRegistry {
 			return *newClass;
 		}
 
+	/** Register a class at this registry
+	 * This function registers any class together with its base class
+	 */
+		template <typename TClass, typename TBaseClass>
+		ExportedClass_<TClass>& add_class_(const char *className)
+		{
+			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className);
+			m_vClass.push_back(newClass);
+
+			// set base class names
+			ClassNameProvider<TClass>::template set_name<TBaseClass>(className);
+
+			return *newClass;
+		}
+
 	/// number of classes registered at the Registry
 		size_t num_classes()							{return m_vClass.size();}
 
