@@ -42,11 +42,6 @@ class InterfaceRegistry {
 			typedef typename func_traits<TFunc>::params_type params_type;
 			CreateParameterStack<params_type>::create(in);
 
-		//  create parameter out list
-			ParameterStack& out = m_vFunction.back()->params_out();
-			typedef typename func_traits<TFunc>::return_type return_type;
-			CreateParameterStack<TypeList<return_type> >::create(out);
-
 			return *this;
 		}
 

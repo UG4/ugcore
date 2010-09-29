@@ -51,6 +51,17 @@ struct func_traits <TRet (*) (T1, T2)>
 	};
 };
 
+template <typename TRet, typename T1, typename T2, typename T3>
+struct func_traits <TRet (*) (T1, T2, T3)>
+{
+	typedef TRet return_type;
+	typedef TypeList<T1, T2, T3> params_type;
+	static TRet apply(TRet (*fp)(T1, T2, T3),  TypeValueList<params_type>& args)
+	{
+		return fp(args.hd, args.tl.hd, args.tl.tl.hd);
+	};
+};
+
 //todo: implement more ...
 
 ////////////////////////////////
@@ -95,6 +106,17 @@ struct func_traits <TRet (TClass::*) (T1, T2)>
 	static TRet apply(TRet (TClass::*fp)(T1, T2), TClass* obj, TypeValueList<params_type>& args)
 	{
 		return (obj->*fp)(args.hd, args.tl.hd);
+	};
+};
+
+template <typename TClass, typename TRet, typename T1, typename T2, typename T3>
+struct func_traits <TRet (TClass::*) (T1, T2, T3)>
+{
+	FUNC_TRAITS_GENERAL_NON_CONST_MEMBER;
+	typedef TypeList<T1, T2, T3> params_type;
+	static TRet apply(TRet (TClass::*fp)(T1, T2, T3), TClass* obj, TypeValueList<params_type>& args)
+	{
+		return (obj->*fp)(args.hd, args.tl.hd, args.tl.tl.hd);
 	};
 };
 

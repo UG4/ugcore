@@ -25,6 +25,10 @@ void RegisterLibGridInterface(InterfaceRegistry& reg);
 /**	This method is automatically invoked during the creation of the Registry.*/
 void RegisterLibDiscretizationInterface(InterfaceRegistry& reg);
 
+///	registers tests for the interface methods at the registry.
+/**	This method is automatically invoked during the creation of the Registry.*/
+void RegisterTestInterface(InterfaceRegistry& reg);
+
 }//	end of namespace 
 }//	end of namespace 
 

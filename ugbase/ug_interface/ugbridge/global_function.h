@@ -12,19 +12,14 @@ namespace ug {
 
 namespace interface{
 
-// predeclaration
-class InterfaceRegistry;
-
 /** Base class for function/method export
  */
 class ExportedFunctionBase
 {
 	public:
-		ExportedFunctionBase(	void* f,
-								const char* name, const char* retValName, const char* paramValNames,
+		ExportedFunctionBase(	const char* name, const char* retValName, const char* paramValNames,
 								const char* tooltip, const char* help)
-		: m_func(f),
-		  m_name(name), m_retValName(retValName), m_paramValNames(paramValNames),
+		: m_name(name), m_retValName(retValName), m_paramValNames(paramValNames),
 		  m_tooltip(tooltip), m_help(help)
 		{
 			tokenize(m_paramValNames, m_vParamValNames, ",");
@@ -54,12 +49,9 @@ class ExportedFunctionBase
 	/// parameter list for input values
 		const ParameterStack& params_in() const						{return m_paramsIn;}
 
-	/// parameter list for output values
-		const ParameterStack& params_out() const					{return m_paramsOut;}
-
+		// todo: we export non-const here, since we can not make ExportedClass_<TClass> a friend
 	/// non-const export of param list
-		ParameterStack& params_in() 		{return m_paramsIn;}
-		ParameterStack& params_out() 	{return m_paramsOut;}
+		ParameterStack& params_in() 								{return m_paramsIn;}
 
 	protected:
 		// help function to tokenize the parameter string
@@ -84,8 +76,6 @@ class ExportedFunctionBase
 		}
 
 	protected:
-		void* m_func;
-
 		std::string m_name;
 		std::string m_retValName;
 		std::string m_paramValNames;
@@ -94,7 +84,6 @@ class ExportedFunctionBase
 		std::string m_help;
 
 		ParameterStack m_paramsIn;
-		ParameterStack m_paramsOut;
 };
 
 /** function exported from ug
@@ -102,9 +91,6 @@ class ExportedFunctionBase
  */
 class ExportedFunction : public ExportedFunctionBase
 {
-	// make Registry a friend
-	friend class InterfaceRegistry;
-
 	// all c++ functions are wrapped by a proxy function of the following type
 	typedef void (*ProxyFunc)(void* func, const ParameterStack& in, ParameterStack& out);
 
@@ -112,7 +98,8 @@ class ExportedFunction : public ExportedFunctionBase
 		ExportedFunction(	void* f, ProxyFunc pf,
 							const char* name, const char* retValName, const char* paramValNames,
 							const char* tooltip, const char* help)
-			: ExportedFunctionBase(f, name , retValName, paramValNames, tooltip, help), m_proxy_func(pf)
+			: ExportedFunctionBase( name , retValName, paramValNames, tooltip, help),
+			  m_func(f), m_proxy_func(pf)
 		{}
 
 	/// executes the function
@@ -122,6 +109,10 @@ class ExportedFunction : public ExportedFunctionBase
 		}
 
 	protected:
+		// pointer to to function
+		void* m_func;
+
+		// proxy function
 		ProxyFunc m_proxy_func;
 };
 

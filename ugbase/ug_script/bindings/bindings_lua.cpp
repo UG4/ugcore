@@ -65,6 +65,12 @@ static int LuaStackToParams(ParameterStack& params,
 		int index = (int)i + offsetToFirstParam + 1;//stack-indices start with 1
 		
 		switch(type){
+			case PT_BOOL:{
+				if(lua_isboolean(L, index))
+					params.push_bool(lua_toboolean(L, index));
+				else
+					badParam = (int)i + 1;
+			}break;
 			case PT_INTEGER:{
 				if(lua_isnumber(L, index))
 					params.push_integer(lua_tonumber(L, index));
@@ -159,6 +165,9 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 	for(int i = 0; i < params.size(); ++i){
 		int type = params.get_type(i);
 		switch(type){
+			case PT_BOOL:{
+				lua_pushboolean(L, (params.to_bool(i)) ? 1 : 0);
+			}break;
 			case PT_INTEGER:{
 				lua_pushnumber(L, params.to_integer(i));
 			}break;
@@ -214,7 +223,7 @@ static int LuaProxyConstructor(lua_State* L)
 
 static int LuaProxyMethod(lua_State* L)
 {
-	ExportedMethod* m = (ExportedMethod*)lua_touserdata(L, lua_upvalueindex(1));
+	const ExportedMethod* m = (const ExportedMethod*)lua_touserdata(L, lua_upvalueindex(1));
 
 	if(!lua_isuserdata(L, 1)){
 		UG_LOG("ERROR in call to LuaProxyMethod: No object specified.\n");
@@ -270,10 +279,13 @@ bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg)
 	for(size_t i = 0; i < numClasses; ++i){
 		const IExportedClass* c = &reg.get_class(i);
 		
-	//	set the constructor-function
-		lua_pushlightuserdata(L, (void*)c);
-		lua_pushcclosure(L, LuaProxyConstructor, 1);
-		lua_setglobal(L, c->name());
+		if(c->is_instantiable())
+		{
+		//	set the constructor-function
+			lua_pushlightuserdata(L, (void*)c);
+			lua_pushcclosure(L, LuaProxyConstructor, 1);
+			lua_setglobal(L, c->name());
+		}
 		
 	//	create the meta-table for the object
 	//	overwrite index and store the class-name

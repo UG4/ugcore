@@ -62,10 +62,10 @@ const int PARAMETER_STACK_MAX_SIZE = 10;
 enum ParameterTypes
 {
 	PT_UNKNOWN = 0,
-	PT_INTEGER = 1,
-	PT_NUMBER = 2,
-	PT_STRING = 3,
-	PT_REFERENCE = 4,
+	PT_BOOL = 1,
+	PT_INTEGER = 2,
+	PT_NUMBER = 3,
+	PT_STRING = 4,
 	PT_POINTER = 5
 };
 
@@ -110,6 +110,7 @@ class ParameterStack
 		
 	////////////////////////////////
 	//	push
+		inline void push_bool(bool val = true)			{PUSH_PARAM_TO_STACK(m_bool, val, PT_BOOL, NULL);}
 		inline void push_integer(int val = 0)			{PUSH_PARAM_TO_STACK(m_int, val, PT_INTEGER, NULL);}
 		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, NULL);}
 		
@@ -145,7 +146,20 @@ class ParameterStack
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			return m_entries[index].pClassNames;
 		}
-		
+
+		bool to_bool(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			const Entry& e = m_entries[index];
+			if(e.type == PT_BOOL)
+				return e.param.m_bool;
+			else if(e.type == PT_INTEGER)
+				return (bool) e.param.m_int;
+
+			throw(ERROR_BadConversion(index, e.type, PT_BOOL));
+		}
+
 		int to_integer(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -211,6 +225,19 @@ class ParameterStack
 
 	////////////////////////////////
 	//	set		
+		void set_bool(int index, bool val)
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			Entry& e = m_entries[index];
+			if(e.type == PT_BOOL)
+				e.param.m_bool = val;
+			else if(e.type == PT_INTEGER)
+				e.param.m_int = (bool)val;
+			else
+				throw(ERROR_BadConversion(index, e.type, PT_BOOL));
+		}
+
 		void set_integer(int index, int val)
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
@@ -262,6 +289,7 @@ class ParameterStack
 		
 	private:
 		union Parameter{
+			bool m_bool;
 			int	m_int;
 			number m_number;
 			const char* m_string;

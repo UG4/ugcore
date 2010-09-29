@@ -3,121 +3,52 @@
 //	y10 m09 d20
 
 #include "../ugbridge/registry.h"
-
-using namespace std;
+#include "lib_grid/lib_grid.h"
 
 namespace ug{
 namespace interface
 {
 
-int Add(int a, int b)
+bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
 {
-	return a + b;
+	return LoadGridFromFile(grid, filename, sh);
 }
 
-class Test 
+bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 {
-	public:		
-		int add(int a, int b)
-		{
-			return a+b;
-		}
-	
-		int print_name()
-		{
-			UG_LOG("Name is Test\n");
-			return 1;
-		}
-};
-
-
-class Piece
-{
-	public:
-		Piece()	: m_size(0)	{}
-		Piece(int size) : m_size(size)	{}
-		
-		int size()
-		{
-			return m_size;
-		}
-	
-	protected:
-		int m_size;
-};
-
-class Cake
-{
-	public:
-		Cake() : m_numPieces(16)	{}
-		
-		Piece& take_pieces(int size)
-		{
-			if(size > m_numPieces)
-				size = m_numPieces;
-			m_numPieces -= size;
-			return *(new Piece(size));
-		}
-		
-		int add_pieces(Piece& piece)
-		{
-			m_numPieces += piece.size();
-			return m_numPieces;
-		}
-		
-		int pieces_left()	{return m_numPieces;}
-		
-	protected:
-		int m_numPieces;
-};
-
-class Base
-{
-	public:
-		virtual int print()
-		{
-			UG_LOG("Base::print() called\n");
-			return 1;
-		}
-};
-
-class Derived
-{
-	public:
-		virtual int print()
-		{
-			UG_LOG("Derived::print() called\n");
-			return 1;
-		}
-};
-
-int PrintFunction(Base& b)
-{
-	return b.print();
+	return SaveGridToFile(grid, filename, sh);
 }
+
 
 void RegisterLibGridInterface(InterfaceRegistry& reg)
 {
-	reg.add_function("add", &Add, "c", "a,b");
-	
-	reg.add_class_<Test>("Test")
-		.add_method("add", &Test::add, "c", "a,b")
-		.add_method("print_name", &Test::print_name);
-		
-	reg.add_class_<Piece>("Piece")
-		.add_method("size", &Piece::size);
-		
-	reg.add_class_<Cake>("Cake")
-		.add_method("take_pieces", &Cake::take_pieces)
-		.add_method("add_pieces", &Cake::add_pieces)
-		.add_method("pieces_left", &Cake::pieces_left);
 
-	reg.add_class_<Base>("Base")
-		.add_method("print", &Base::print);
-	reg.add_class_<Derived, Base>("Derived")
-		.add_method("print", &Derived::print);
-	reg.add_function("PrintFunction", &PrintFunction);
+//	Grid
+	reg.add_class_<Grid>("Grid")
+		.add_constructor();
 
+//	MultiGrid
+	reg.add_class_<MultiGrid, Grid>("MultiGrid")
+		.add_constructor();
+
+//  ISubsetHandler
+	reg.add_class_<ISubsetHandler>("ISubsetHandler");
+
+//	SubsetHandler
+	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler")
+		.add_constructor()
+		.add_method("assign_grid", &SubsetHandler::assign_grid);
+
+//	MGSubsetHandler
+	reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler")
+		.add_constructor()
+		.add_method("assign_grid", &MGSubsetHandler::assign_grid);
+
+//  LoadGrid
+	reg.add_function("LoadGrid", &LoadGrid);
+
+//  SaveGrid
+	reg.add_function("SaveGrid", &SaveGrid);
 }
 
 }//	end of namespace 

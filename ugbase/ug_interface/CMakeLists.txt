@@ -18,6 +18,7 @@ set(srcUGInterface	registry.cpp
 					ug_interface.cpp
 					standard_interfaces/lib_grid_interface.cpp
 					standard_interfaces/lib_discretization_interface.cpp
+					standard_interfaces/test_interface.cpp
 					ugbridge/class_name_provider.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the

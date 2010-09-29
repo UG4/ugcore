@@ -30,21 +30,20 @@ struct PLStack
 //////////////////////////////
 // build-in data types
 //////////////////////////////
-
 template <>
-struct PLStack<double>
+struct PLStack<bool>
 {
 	static void push(ParameterStack& ps)
 	{
-		ps.push_number();
+		ps.push_bool();
 	}
-	static void write(ParameterStack& ps, double data, int index)
+	static void write(ParameterStack& ps, bool data, int index)
 	{
-		ps.set_number(index, data);
+		ps.set_bool(index, data);
 	}
-	static double read(const ParameterStack& ps, int index)
+	static bool read(const ParameterStack& ps, int index)
 	{
-		return ps.to_number(index);
+		return ps.to_bool(index);
 	}
 };
 
@@ -62,6 +61,40 @@ struct PLStack<int>
 	static int read(const ParameterStack& ps, int index)
 	{
 		return ps.to_integer(index);
+	}
+};
+
+template <>
+struct PLStack<float>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_number();
+	}
+	static void write(ParameterStack& ps, float data, int index)
+	{
+		ps.set_number(index, data);
+	}
+	static float read(const ParameterStack& ps, int index)
+	{
+		return ps.to_number(index);
+	}
+};
+
+template <>
+struct PLStack<double>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_number();
+	}
+	static void write(ParameterStack& ps, double data, int index)
+	{
+		ps.set_number(index, data);
+	}
+	static double read(const ParameterStack& ps, int index)
+	{
+		return ps.to_number(index);
 	}
 };
 

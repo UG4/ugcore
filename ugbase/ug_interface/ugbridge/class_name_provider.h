@@ -69,7 +69,6 @@ struct ClassNameProvider
 
 	private:
 		static std::vector<const char*> m_names;
-		//static const char* m_name;
 };
 
 template <typename TClass>

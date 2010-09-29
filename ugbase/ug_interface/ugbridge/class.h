@@ -40,45 +40,40 @@ class MethodPtrWrapper
 		int		size;
 };
 
-// predeclaration
-template <typename TClass>
-class ExportedClass_;
-
 /** function exported from ug
  * This class describes a wrapper for a c++ - function, that is exported by ug
  */
 class ExportedMethod : public ExportedFunctionBase
 {
-	// make Registry a friend
-	friend class InterfaceRegistry;
-
 	// all c++ functions are wrapped by a proxy function of the following type
-	typedef void (*ProxyFunc)(MethodPtrWrapper& func, void* obj, const ParameterStack& in, ParameterStack& out);
+	typedef void (*ProxyFunc)(const MethodPtrWrapper& func, void* obj, const ParameterStack& in, ParameterStack& out);
 
 	public:
 		ExportedMethod(	const MethodPtrWrapper& m, ProxyFunc pf,
 						const char* name, const char* retValName, const char* paramValNames,
 						const char* tooltip, const char* help)
-		: ExportedFunctionBase(NULL, name , retValName, paramValNames, tooltip, help),
+		: ExportedFunctionBase(name , retValName, paramValNames, tooltip, help),
 		  m_ptrWrapper(m), m_proxy_func(pf)
 		{}
 
 	/// executes the function
-		void execute(void* obj, const ParameterStack& paramsIn, ParameterStack& paramsOut)
+		void execute(void* obj, const ParameterStack& paramsIn, ParameterStack& paramsOut) const
 		{
 			m_proxy_func(m_ptrWrapper, obj, paramsIn, paramsOut);
 		}
 
 	private:
+		// pointer to function (stored in a wrapper)
 		MethodPtrWrapper m_ptrWrapper;
 	
+		// proxy function to call method
 		ProxyFunc m_proxy_func;
 };
 
 template <typename TClass, typename TMethod, typename TRet = typename func_traits<TMethod>::return_type>
-struct ProxyMethod
+struct MethodProxy
 {
-	static void apply(MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
+	static void apply(const MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
 	{
 	//  cast to method pointer
 		TMethod mptr = *(TMethod*) method.get_raw_ptr();
@@ -101,9 +96,9 @@ struct ProxyMethod
 };
 
 template <typename TClass, typename TMethod>
-struct ProxyMethod<TClass, TMethod, void>
+struct MethodProxy<TClass, TMethod, void>
 {
-	static void apply(MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
+	static void apply(const MethodPtrWrapper& method, void* obj, const ParameterStack& in, ParameterStack& out)
 	{
 	//  cast to method pointer
 		TMethod mptr = *(TMethod*) method.get_raw_ptr();
@@ -119,6 +114,9 @@ struct ProxyMethod<TClass, TMethod, void>
 		func_traits<TMethod>::apply(mptr, objPtr, args);
 	}
 };
+
+template <typename TClass>
+TClass* ConstructorProxy() {return new TClass();}
 
 /** Base class for exported Classes
  *
@@ -138,7 +136,12 @@ class IExportedClass
 	//  get exported method
 		virtual const ExportedMethod& get_method(size_t i) const = 0;
 
+	//  can we create instances of this class
+	//	(i.e. the class does not contain pure virtual functions)
+		virtual bool is_instantiable() const = 0;
+
 	//  create an instance
+	//  returns NULL id we cannot create instances of this type
 		virtual void* create() const = 0;
 
 	//  virtual destructor
@@ -156,32 +159,32 @@ class ExportedClass_ : public IExportedClass
 
 	public:
 	//  contructor
-		ExportedClass_(const char* name)
+		ExportedClass_(const char* name) : m_constructor(NULL)
 		{
 			// todo: check that name is not already used
 			ClassNameProvider<TClass>::set_name(name);
 		}
 
-	//  name of class
+	/// name of class
 		virtual const char* name() const {return ClassNameProvider<TClass>::name();}
 
-	//	class-hierarchy
+	///	class-hierarchy
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}
 
-	//  number of registered methods
+	/// number of registered methods
 		virtual size_t num_methods() const {return m_vMethod.size();}
 
-	//  get exported method
+	/// get exported method
 		virtual const ExportedMethod& get_method(size_t i) const {return *m_vMethod.at(i);}
 
-	//  Method registration
+	/// Method registration
 		template <typename TMethod>
 		ExportedClass_<TClass>& add_method (	const char* methodName, TMethod func,
 												const char* retValName = "", const char* paramValNames = "",
 												const char* tooltip = "", const char* help = "")
 		{
 			//  create new exported function
-				m_vMethod.push_back(new ExportedMethod(	MethodPtrWrapper(func), &ProxyMethod<TClass, TMethod>::apply,
+				m_vMethod.push_back(new ExportedMethod(	MethodPtrWrapper(func), &MethodProxy<TClass, TMethod>::apply,
 														methodName, retValName, paramValNames,
 														tooltip, help));
 
@@ -190,33 +193,43 @@ class ExportedClass_ : public IExportedClass
 				typedef typename func_traits<TMethod>::params_type params_type;
 				CreateParameterStack<params_type>::create(in);
 
-			//  create parameter out list
-				ParameterStack& out = m_vMethod.back()->params_out();
-				typedef typename func_traits<TMethod>::return_type return_type;
-				CreateParameterStack<TypeList<return_type> >::create(out);
+				return *this;
+		}
+
+	/// Make constructor accessible
+	//  We use a pointer to ConstructorProxy since abstract base classes can not be created but registered.
+	//  Each class that is instantiable must register its constructor
+		ExportedClass_<TClass>& add_constructor ()
+		{
+			//  remember constructor proxy
+				m_constructor = &ConstructorProxy<TClass>;
 
 				return *this;
 		}
 
-		////////////////////////
-		// memory management
-		////////////////////////
+	/// is instantiable
+		virtual bool is_instantiable() const {return m_constructor != NULL;}
+
+	/// create new instance of class
 		virtual void* create() const
 		{
-			return new TClass();
+			if(m_constructor != NULL)
+				return (*m_constructor)();
+			else
+				return NULL;
 		}
+
+	/// destructor
 		virtual ~ExportedClass_()
 		{
-		
 		//  delete methods
 			for(size_t i = 0; i < m_vMethod.size(); ++i)
-			{
 				delete m_vMethod[i];
-			}
 		}
 
 	private:
-		const char* m_name;
+		typedef TClass* (*ConstructorFunc)();
+		ConstructorFunc m_constructor;
 
 		std::vector<ExportedMethod*> m_vMethod;
 };
