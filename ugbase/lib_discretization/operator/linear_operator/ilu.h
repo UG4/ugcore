@@ -107,7 +107,7 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 		AssembledILUOperator() : m_bOpChanged(true)
 		{};
 
-		bool init(ILinearizedOperator<domain_function_type,codomain_function_type>& Op)
+		bool init(ILinearizedOperator<TDiscreteFunction,TDiscreteFunction>& Op)
 		{
 			AssembledLinearizedOperator<TDiscreteFunction>* A
 				= dynamic_cast<AssembledLinearizedOperator<TDiscreteFunction>*>(&Op);
@@ -122,7 +122,7 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 		}
 
 		// prepare Operator
-		virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
+		virtual bool prepare(TDiscreteFunction& cOut, TDiscreteFunction& uIn, TDiscreteFunction& dIn)
 		{
 			if(m_bOpChanged)
 			{
@@ -154,20 +154,20 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
+		virtual bool apply(TDiscreteFunction& cOut, TDiscreteFunction& dInOut, bool updateDefect)
 		{
 #ifdef UG_PARALLEL
-			if(!d.has_storage_type(PST_ADDITIVE)) return false;
+			if(!dInOut.has_storage_type(PST_ADDITIVE)) return false;
 #endif
-			typename domain_function_type::vector_type& d_vec = d.get_vector();
-			typename codomain_function_type::vector_type& c_vec = c.get_vector();
+			typename domain_function_type::vector_type& d_vec = dInOut.get_vector();
+			typename codomain_function_type::vector_type& c_vec = cOut.get_vector();
 
 			// Apply ILU on d:   c := ILU^{-1}*d
 
 			// make correction consistent
 #ifdef UG_PARALLEL
-			c.set_storage_type(PST_ADDITIVE);
-			if(c.change_storage_type(PST_CONSISTENT) != true)
+			cOut.set_storage_type(PST_ADDITIVE);
+			if(cOut.change_storage_type(PST_CONSISTENT) != true)
 				return false;
 #endif
 			// apply iterator: c = LU^{-1}*d (damp is not used)
@@ -180,7 +180,7 @@ class AssembledILUOperator : public ILinearizedIteratorOperator<TDiscreteFunctio
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
 #ifdef UG_PARALLEL
-			d.set_storage_type(PST_ADDITIVE);
+			dInOut.set_storage_type(PST_ADDITIVE);
 #endif
 			return true;
 		}

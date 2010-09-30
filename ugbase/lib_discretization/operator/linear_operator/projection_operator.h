@@ -111,19 +111,19 @@ class ProjectionOperator : public ILinearOperator<TFunction, TFunction> {
 		bool init(){return true;}
 
 		// prepare Operator (u=coarse, v = fine)
-		bool prepare(domain_function_type& uFine, codomain_function_type& uCoarse)
+		bool prepare(TFunction& uCoarseOut, TFunction& uFineIn)
 		{
-			if(!AssembleVertexProjection(m_matrix, uFine, uCoarse))
+			if(!AssembleVertexProjection(m_matrix, uFineIn, uCoarseOut))
 				{UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n"); return false;}
 			return true;
 		}
 
 		// Project uFine to uCoarse; uCoarse = P(uFine);
-		bool apply(domain_function_type& uFine, codomain_function_type& uCoarse)
+		bool apply(TFunction& uCoarseOut, TFunction& uFineIn)
 		{
-			m_matrix.apply(uCoarse.get_vector(), uFine.get_vector());
+			m_matrix.apply(uCoarseOut.get_vector(), uFineIn.get_vector());
 #ifdef UG_PARALLEL
-			uCoarse.copy_storage_type(uFine);
+			uCoarseOut.copy_storage_type(uFineIn);
 #endif
 			return true;
 		}
@@ -131,17 +131,17 @@ class ProjectionOperator : public ILinearOperator<TFunction, TFunction> {
 		/// Project uCoarse to uFine; uFine = P^{-1}(uCoarse);
 		// ATTENTION: This will only affect fine nodes, that are also coarse node, thus
 		//            this operation is not very senseful
-		bool apply_transposed(codomain_function_type& uCoarse, domain_function_type& uFine)
+		bool apply_transposed(TFunction& uCoarseOut, TFunction& uFineIn)
 		{
-			m_matrix.apply_transposed(uFine.get_vector(), uCoarse.get_vector());
+			m_matrix.apply_transposed(uFineIn.get_vector(), uCoarseOut.get_vector());
 #ifdef UG_PARALLEL
-			uFine.copy_storage_type(uCoarse);
+			uFineIn.copy_storage_type(uCoarseOut);
 #endif
 			return true;
 		}
 
 		// apply sub not implemented
-		bool apply_sub(domain_function_type& u, codomain_function_type& v)
+		bool apply_sub(TFunction& u, TFunction& v)
 		{
 			UG_ASSERT(0, "Not Implemented.");
 			return false;

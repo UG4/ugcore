@@ -22,7 +22,7 @@ class AssembledLinearizedOperator : virtual public ILinearizedOperator<TFunction
 		typedef typename TFunction::algebra_type algebra_type;
 
 	public:
-		AssembledLinearizedOperator(IAssemble<domain_function_type, algebra_type>& ass) :
+		AssembledLinearizedOperator(IAssemble<TFunction, algebra_type>& ass) :
 			m_ass(ass)
 		{};
 
@@ -32,10 +32,10 @@ class AssembledLinearizedOperator : virtual public ILinearizedOperator<TFunction
 		}
 
 		// prepare the operator for application (e.g. compute an intern Matrix J(u))
-		virtual bool prepare(domain_function_type& u, domain_function_type& c, codomain_function_type& d)
+		virtual bool prepare(TFunction& dOut, TFunction& uIn, TFunction& cIn)
 		{
-			const typename domain_function_type::vector_type& c_vec = c.get_vector();
-			typename codomain_function_type::vector_type& d_vec = d.get_vector();
+			const typename domain_function_type::vector_type& c_vec = cIn.get_vector();
+			typename codomain_function_type::vector_type& d_vec = dOut.get_vector();
 
 			if(m_J.num_rows() == d_vec.size() && m_J.num_cols() == c_vec.size())
 			{
@@ -47,25 +47,25 @@ class AssembledLinearizedOperator : virtual public ILinearizedOperator<TFunction
 				if(m_J.create(d_vec.size(), c_vec.size()) != true) return false;
 			}
 
-			if(m_ass.assemble_jacobian(m_J, u) != IAssemble_OK) return false;
+			if(m_ass.assemble_jacobian(m_J, uIn) != IAssemble_OK) return false;
 
 			return true;
 		}
 
 		// compute d = J(u)*c (here, J(u) is a Matrix)
-		virtual bool apply(domain_function_type& c, codomain_function_type& d)
+		virtual bool apply(TFunction& dOut, TFunction& cIn)
 		{
 			#ifdef UG_PARALLEL
-			if(!c.has_storage_type(PST_CONSISTENT))
+			if(!cIn.has_storage_type(PST_CONSISTENT))
 				{
 					UG_LOG("WARNING: In 'AssembledLinearizedOperator::apply':Inadequate storage format of Vector c."
 										" Use consistent to avoid internal type conversion.\n");
-					if(!c.change_storage_type(PST_CONSISTENT)) return false;
+					if(!cIn.change_storage_type(PST_CONSISTENT)) return false;
 				}
 			#endif
 
-			const typename domain_function_type::vector_type& x = c.get_vector();
-			typename codomain_function_type::vector_type& b = d.get_vector();
+			const typename domain_function_type::vector_type& x = cIn.get_vector();
+			typename codomain_function_type::vector_type& b = dOut.get_vector();
 
 			UG_ASSERT(x.size() == m_J.num_rows(), "Row size '" << m_J.num_rows() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_J.num_cols(), "Column size '" << m_J.num_rows() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
@@ -73,26 +73,26 @@ class AssembledLinearizedOperator : virtual public ILinearizedOperator<TFunction
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
 			#ifdef UG_PARALLEL
-			d.set_storage_type(PST_ADDITIVE);
+			dOut.set_storage_type(PST_ADDITIVE);
 			#endif
 
 			return m_J.apply(b,x);
 		}
 
 		// d := d - J(u)*c
-		virtual bool apply_sub(domain_function_type& c, codomain_function_type& d)
+		virtual bool apply_sub(TFunction& dOut, TFunction& cIn)
 		{
 			#ifdef UG_PARALLEL
-			if(!d.has_storage_type(PST_ADDITIVE) || !c.has_storage_type(PST_CONSISTENT))
+			if(!dOut.has_storage_type(PST_ADDITIVE) || !cIn.has_storage_type(PST_CONSISTENT))
 				{
 					UG_LOG("WARNING: In 'AssembledLinearizedOperator::apply_sub':Inadequate storage format of Vectors.\n");
 					UG_LOG("                                             	 use: d additive and c consistent to avoid internal type conversion.\n");
-					if(!d.change_storage_type(PST_ADDITIVE)) return false;
-					if(!c.change_storage_type(PST_CONSISTENT)) return false;
+					if(!dOut.change_storage_type(PST_ADDITIVE)) return false;
+					if(!cIn.change_storage_type(PST_CONSISTENT)) return false;
 				}
 			#endif
-			const typename domain_function_type::vector_type& x = c.get_vector();
-			typename codomain_function_type::vector_type& b = d.get_vector();
+			const typename domain_function_type::vector_type& x = cIn.get_vector();
+			typename codomain_function_type::vector_type& b = dOut.get_vector();
 
 			UG_ASSERT(x.size() == m_J.num_rows(), "Row size '" << m_J.num_rows() << "' of Matrix J and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_J.num_cols(), "Column size '" << m_J.num_rows() << "' of Matrix J and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
@@ -100,7 +100,7 @@ class AssembledLinearizedOperator : virtual public ILinearizedOperator<TFunction
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
 			#ifdef UG_PARALLEL
-			d.set_storage_type(PST_ADDITIVE);
+			dOut.set_storage_type(PST_ADDITIVE);
 			#endif
 
 			return m_J.matmul_minus(b,x);
@@ -155,17 +155,17 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TFunction>, v
 		}
 
 		// otherwise not clear: AssembledLinearizedOperator<TFunction>::prepare(u, c, d) or ILinearOperator(u,c,d)
-		virtual bool prepare(domain_function_type& u, domain_function_type& c, codomain_function_type& d)
+		virtual bool prepare(TFunction& dOut, TFunction& uIn, TFunction& cIn)
 		{
-			return AssembledLinearizedOperator<TFunction>::prepare(u, c, d);
+			return AssembledLinearizedOperator<TFunction>::prepare(dOut, uIn, cIn);
 		}
 
 
 		// prepare the operator for application (e.g. compute an intern Matrix L)
-		virtual bool prepare(domain_function_type& u, codomain_function_type& f)
+		virtual bool prepare(TFunction& fOut, TFunction& uIn)
 		{
-			const typename domain_function_type::vector_type& x = u.get_vector();
-			typename codomain_function_type::vector_type& b = f.get_vector();
+			const typename domain_function_type::vector_type& x = uIn.get_vector();
+			typename codomain_function_type::vector_type& b = fOut.get_vector();
 
 			if(m_Matrix.num_rows() == b.size() && m_Matrix.num_cols() == x.size())
 			{
@@ -182,38 +182,38 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TFunction>, v
 			if(m_assemble_rhs)
 			{
 				b.set(0.0);
-				if(m_ass.assemble_linear(m_Matrix, b, u) != IAssemble_OK)
+				if(m_ass.assemble_linear(m_Matrix, b, uIn) != IAssemble_OK)
 					{UG_LOG("Error while assembling Matrix and rhs.\n"); return false;}
 				#ifdef UG_PARALLEL
-				f.set_storage_type(PST_ADDITIVE);
+				fOut.set_storage_type(PST_ADDITIVE);
 				#endif
 			}
 			else
 			{
-				if(m_ass.assemble_jacobian(m_Matrix, u) != IAssemble_OK)
+				if(m_ass.assemble_jacobian(m_Matrix, uIn) != IAssemble_OK)
 					{UG_LOG("Error while assembling Matrix.\n"); return false;}
 			}
 
-			if(m_ass.assemble_solution(u) != IAssemble_OK)
+			if(m_ass.assemble_solution(uIn) != IAssemble_OK)
 				{UG_LOG("Error while assembling solution.\n"); return false;}
 
 			return true;
 		}
 
 		// compute f = L*u (here, L is a Matrix)
-		virtual bool apply(domain_function_type& u, codomain_function_type& f)
+		virtual bool apply(TFunction& fOut, TFunction& uIn)
 		{
 			#ifdef UG_PARALLEL
-			if(!u.has_storage_type(PST_CONSISTENT))
+			if(!uIn.has_storage_type(PST_CONSISTENT))
 				{
 					UG_LOG("WARNING: In 'AssembledLinearOperator::apply':Inadequate storage format of Vector u."
 							" Use consistent to avoid internal type conversion.\n");
-					if(!u.change_storage_type(PST_CONSISTENT)) return false;
+					if(!uIn.change_storage_type(PST_CONSISTENT)) return false;
 				}
 			#endif
 
-			const typename domain_function_type::vector_type& x = u.get_vector();
-			typename codomain_function_type::vector_type& b = f.get_vector();
+			const typename domain_function_type::vector_type& x = uIn.get_vector();
+			typename codomain_function_type::vector_type& b = fOut.get_vector();
 
 			UG_ASSERT(x.size() == m_Matrix.num_rows(), "Row size '" << m_Matrix.num_rows() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_Matrix.num_cols(), "Column size '" << m_Matrix.num_rows() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := L*x.");
@@ -221,26 +221,26 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TFunction>, v
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
 			#ifdef UG_PARALLEL
-			f.set_storage_type(PST_ADDITIVE);
+			fOut.set_storage_type(PST_ADDITIVE);
 			#endif
 
 			return m_Matrix.apply(b,x);
 		}
 
 		// f := f - L*u
-		virtual bool apply_sub(domain_function_type& u, codomain_function_type& f)
+		virtual bool apply_sub(TFunction& fOut, TFunction& uIn)
 		{
 			#ifdef UG_PARALLEL
-			if(!f.has_storage_type(PST_ADDITIVE) || !u.has_storage_type(PST_CONSISTENT))
+			if(!fOut.has_storage_type(PST_ADDITIVE) || !uIn.has_storage_type(PST_CONSISTENT))
 				{
 					UG_LOG("WARNING: In 'AssembledLinearOperator::apply_sub':Inadequate storage format of Vectors.\n");
 					UG_LOG("                                             use: f additive and u consistent to avoid internal type conversion.\n");
-					if(!f.change_storage_type(PST_ADDITIVE)) return false;
-					if(!u.change_storage_type(PST_CONSISTENT)) return false;
+					if(!fOut.change_storage_type(PST_ADDITIVE)) return false;
+					if(!uIn.change_storage_type(PST_CONSISTENT)) return false;
 				}
 			#endif
-			const typename domain_function_type::vector_type& x = u.get_vector();
-			typename codomain_function_type::vector_type& b = f.get_vector();
+			const typename domain_function_type::vector_type& x = uIn.get_vector();
+			typename codomain_function_type::vector_type& b = fOut.get_vector();
 
 			UG_ASSERT(x.size() == m_Matrix.num_rows(), "Row size '" << m_Matrix.num_rows() << "' of Matrix L and size '" << x.size() << "' of Vector x do not match. Cannot calculate L*x.");
 			UG_ASSERT(b.size() == m_Matrix.num_cols(), "Column size '" << m_Matrix.num_rows() << "' of Matrix L and size  '" << b.size() << "' of Vector b do not match. Cannot calculate b := b - L*x.");
@@ -248,7 +248,7 @@ class AssembledLinearOperator : public AssembledLinearizedOperator<TFunction>, v
 			// set storage type to additiv, since it could been additive unique before
 			// TODO: Handle this in matrix multiplication
 			#ifdef UG_PARALLEL
-			f.set_storage_type(PST_ADDITIVE);
+			fOut.set_storage_type(PST_ADDITIVE);
 			#endif
 
 			return m_Matrix.matmul_minus(b,x);

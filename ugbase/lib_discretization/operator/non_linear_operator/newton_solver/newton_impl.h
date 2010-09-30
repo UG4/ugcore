@@ -107,9 +107,9 @@ NewtonSolver<TFunction>::
 apply(function_type& u)
 {
 	// Compute first Defect
-	if(m_N->prepare(u, *m_d) != true)
+	if(m_N->prepare(*m_d, u) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator.\n"); return false;}
-	if(m_N->apply(u, *m_d) != true)
+	if(m_N->apply(*m_d, u) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n"); return false;}
 
 	// start convergence check
@@ -129,7 +129,7 @@ apply(function_type& u)
 			{UG_LOG("NewtonSolver::apply: Cannot reset correction to zero.\n"); return false;}
 
 		// Compute Jacobian
-		if(!m_J->prepare(u, *m_c, *m_d))
+		if(!m_J->prepare(*m_d, u, *m_c))
 			{UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n"); return false;}
 
 		WriteMatrixToConnectionViewer("NewtonMat.mat", m_J->get_matrix(), u);
@@ -138,12 +138,12 @@ apply(function_type& u)
 		if(!m_LinearSolver.init(*m_J))
 			{UG_LOG("NewtonSolver::apply: Cannot init Inverse Linear "
 					"Operator for Jacobi-Operator.\n"); return false;}
-		if(!m_LinearSolver.prepare(u, *m_d, *m_c))
+		if(!m_LinearSolver.prepare(*m_c, u, *m_d))
 			{UG_LOG("NewtonSolver::apply: Cannot prepare Inverse Linear "
 					"Operator for Jacobi-Operator.\n"); return false;}
 
 		// Solve Linearized System
-		if(!m_LinearSolver.apply(*m_d, *m_c))
+		if(!m_LinearSolver.apply(*m_c, *m_d))
 			{UG_LOG("NewtonSolver::apply: Cannot apply Inverse Linear "
 					"Operator for Jacobi-Operator.\n"); return false;}
 
@@ -161,10 +161,10 @@ apply(function_type& u)
 			u -= *m_c;
 
 			// compute new Defect
-			if(!m_N->prepare(u, *m_d))
+			if(!m_N->prepare(*m_d, u))
 				{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear"
 						" Operator for defect computation.\n"); return false;}
-			if(!m_N->apply(u, *m_d))
+			if(!m_N->apply(*m_d, u))
 				{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator "
 						"to compute defect.\n"); return false;}
 		}

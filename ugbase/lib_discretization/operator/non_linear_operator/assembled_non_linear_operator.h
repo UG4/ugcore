@@ -28,19 +28,19 @@ class AssembledOperator : public IOperator<TFunction, TFunction>
 			return true;
 		}
 
-		virtual bool prepare(domain_function_type& u, codomain_function_type& d)
+		virtual bool prepare(TFunction& dOut, TFunction& uIn)
 		{
 			// Set Dirichlet - Nodes to exact values
-			if(m_ass.assemble_solution(u) != IAssemble_OK)
+			if(m_ass.assemble_solution(uIn) != IAssemble_OK)
 				{UG_LOG("AssembledOperator::apply: Cannot set dirichlet values in solution.\n"); return false;}
 
 			return true;
 		}
 
 		// compute f = L*u (here, L is a Matrix)
-		virtual bool apply(domain_function_type& u, codomain_function_type& d)
+		virtual bool apply(TFunction& dOut, TFunction& uIn)
 		{
-			typename codomain_function_type::vector_type& d_vec = d.get_vector();
+			typename codomain_function_type::vector_type& d_vec = dOut.get_vector();
 
 			// reset vector
 			if(!d_vec.set(0.0))
@@ -48,12 +48,12 @@ class AssembledOperator : public IOperator<TFunction, TFunction>
 						"to zero before assembling. Aborting.\n"); return false;}
 
 			// assemble
-			if(m_ass.assemble_defect(d_vec, u) != IAssemble_OK)
+			if(m_ass.assemble_defect(d_vec, uIn) != IAssemble_OK)
 				{UG_LOG("AssembledOperator::apply: Could not "
 						"assemble defect. Aborting.\n"); return false;}
 
 #ifdef UG_PARALLEL
-			d.set_storage_type(PST_ADDITIVE);
+			dOut.set_storage_type(PST_ADDITIVE);
 #endif
 			return true;
 		}

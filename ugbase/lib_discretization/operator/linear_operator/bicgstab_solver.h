@@ -43,48 +43,48 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		}
 
 		// prepare Operator
-		virtual bool prepare(codomain_function_type& u, domain_function_type& b, codomain_function_type& x)
+		virtual bool prepare(TFunction& xOut, TFunction& uIn, TFunction& bIn)
 		{
-			m_pCurrentU = &u;
+			m_pCurrentU = &uIn;
 
 			return true;
 		}
 
 		// Solve J(u)*x = b, such that x = J(u)^{-1} b
-		virtual bool apply(domain_function_type& b, codomain_function_type& x)
+		virtual bool apply(TFunction& xOut, TFunction& bIn)
 		{
 			#ifdef UG_PARALLEL
-			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
+			if(!bIn.has_storage_type(PST_ADDITIVE) || !xOut.has_storage_type(PST_CONSISTENT))
 				{
 					UG_LOG("WARNING: In 'CGSolver::apply':Inadequate storage format of Vectors.\n");
 					UG_LOG("                          use: b additive and x consistent to avoid internal type conversion.\n");
-					if(!b.change_storage_type(PST_ADDITIVE)) return false;
-					if(!x.change_storage_type(PST_CONSISTENT)) return false;
+					if(!bIn.change_storage_type(PST_ADDITIVE)) return false;
+					if(!xOut.change_storage_type(PST_CONSISTENT)) return false;
 				}
 			#endif
 
 			// build defect:  b := b - J(u)*x
-			if(m_A->apply_sub(x, b) != true)
+			if(!m_A->apply_sub(bIn, xOut))
 				{UG_LOG("ERROR in 'LinearOperatorInverse::apply': "
 						"Unable to build defect. Aborting.\n");return false;}
 
 			// create start r_0^* vector
 			codomain_function_type r, p, v, q, t, s;
-			r.clone_pattern(b);
-			p.clone_pattern(b);
-			v.clone_pattern(b);
-			q.clone_pattern(x);
-			t.clone_pattern(b);
-			s.clone_pattern(b);
+			r.clone_pattern(bIn);
+			p.clone_pattern(bIn);
+			v.clone_pattern(bIn);
+			q.clone_pattern(xOut);
+			t.clone_pattern(bIn);
+			s.clone_pattern(bIn);
 
 			m_ConvCheck.set_offset(3);
 			m_ConvCheck.set_symbol('%');
 			m_ConvCheck.set_name("BiCGStab Solver");
-			m_ConvCheck.start(b);
+			m_ConvCheck.start(bIn);
 
 			#ifdef UG_PARALLEL
 			// convert b to unique (should already be unique due to norm calculation)
-			if(!b.change_storage_type(PST_UNIQUE))
+			if(!bIn.change_storage_type(PST_UNIQUE))
 				{UG_LOG("Cannot convert b to unique vector.\n"); return false;}
 			#endif
 
@@ -98,12 +98,12 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				{
 					if(m_ConvCheck.step() != 0)
 					{
-						m_ConvCheck.update(b);
+						m_ConvCheck.update(bIn);
 						if(m_ConvCheck.iteration_ended()) break;
 					}
 
 					// reset vectors
-					r = b;
+					r = bIn;
 
 					// make r additive unique
 				#ifdef UG_PARALLEL
@@ -116,7 +116,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				}
 
 				// compute rho new
-				rho_new = VecProd(b, r);
+				rho_new = VecProd(bIn, r);
 
 				// compute new beta
 				if(rho != 0.0 && omega != 0.0) beta = (rho_new/rho) * (alpha/omega);
@@ -126,7 +126,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				p *= beta;
 
 				// add b to p (p:= p + b)
-				p += b;
+				p += bIn;
 
 				// subtract: p := p - beta * omega * v
 				VecScaleAppend(p, v, (-1)*beta*omega);
@@ -135,15 +135,15 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				// if preconditioner given
 				if(m_pPrecond != NULL)
 				{
-					if(!m_pPrecond->prepare(*m_pCurrentU, p, q))
+					if(!m_pPrecond->prepare(q, *m_pCurrentU, p))
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply q = M^-1 * p
-					if(!m_pPrecond->apply(p, q, false))
+					if(!m_pPrecond->apply(q, p, false))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 
 					// compute v := A*q
-					if(!m_A->apply(q, v))
+					if(!m_A->apply(v, q))
 						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
 					#ifdef UG_PARALLEL
@@ -158,7 +158,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
 
 					// add: x := x + alpha * q
-					VecScaleAppend(x, q, alpha);
+					VecScaleAppend(xOut, q, alpha);
 				}
 				else
 				{
@@ -169,7 +169,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					#endif
 
 					// compute v := A*p
-					if(m_A->apply(p, v) != true)
+					if(m_A->apply(v, p) != true)
 						{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
 					#ifdef UG_PARALLEL
@@ -184,12 +184,12 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					else {UG_LOG("alpha= " << alpha << " is an invalid value. Aborting.\n"); return false;}
 
 					// add: x := x + alpha * p
-					VecScaleAppend(x, p, alpha);
+					VecScaleAppend(xOut, p, alpha);
 				}
 
 
 				// set s := b
-				s = b;
+				s = bIn;
 
 				// update s := s - alpha*v
 				VecScaleAppend(s, v, (-1)*alpha);
@@ -198,18 +198,18 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				m_ConvCheck.update(s);
 				if(m_ConvCheck.iteration_ended())
 				{
-					b = s;
+					bIn = s;
 					break;
 				}
 
 				// if preconditioner given
 				if(m_pPrecond != NULL)
 				{
-					if(m_pPrecond->prepare(*m_pCurrentU, s, q) != true)
+					if(m_pPrecond->prepare(q, *m_pCurrentU, s) != true)
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply q = M^-1 * t
-					if(!m_pPrecond->apply(s, q, false))
+					if(!m_pPrecond->apply(q, s, false))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 				}
 				else
@@ -225,7 +225,7 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 					}
 
 				// compute t := A*q
-				if(m_A->apply(q, t) != true)
+				if(m_A->apply(t, q) != true)
 					{UG_LOG("ERROR: Unable to apply A. Aborting.\n");return false;}
 
 				#ifdef UG_PARALLEL
@@ -245,16 +245,16 @@ class BiCGStabSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				else {UG_LOG("tt= " << tt << " is an invalid value. Aborting.\n"); return false;}
 
 				// add: x := x + omega * q
-				VecScaleAppend(x, q, omega);
+				VecScaleAppend(xOut, q, omega);
 
 				// set b := s
-				b = s;
+				bIn = s;
 
 				// 2. update of b:  b:= b - omega*t
-				VecScaleAppend(b, t, (-1)*omega);
+				VecScaleAppend(bIn, t, (-1)*omega);
 
 				// check convergence
-				m_ConvCheck.update(b);
+				m_ConvCheck.update(bIn);
 
 				// remember current rho
 				rho = rho_new;

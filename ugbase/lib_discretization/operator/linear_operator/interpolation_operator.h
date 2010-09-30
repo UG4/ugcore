@@ -48,13 +48,13 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 		}
 
 		// prepare Operator
-		bool prepare(domain_function_type& u, codomain_function_type& v)
+		bool prepare(codomain_function_type& v, domain_function_type& u)
 		{
 			return true;
 		}
 
 		// apply Operator, i.e. v = L(u);
-		bool apply(domain_function_type& u, codomain_function_type& v)
+		bool apply(codomain_function_type& v, domain_function_type& u)
 		{
 			if(m_fct >= v.num_fct())
 			{
@@ -94,7 +94,7 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 		}
 
 		// apply Operator, i.e. v := v - L(u);
-		bool apply_sub(domain_function_type& u, codomain_function_type& v)
+		bool apply_sub(codomain_function_type& v, domain_function_type& u)
 		{
 			UG_ASSERT(0, "Not Implemented.");
 			return true;

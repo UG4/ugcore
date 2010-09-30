@@ -184,19 +184,19 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat, IAssemble<T
 
 // TODO: Assert, that discrete function is a level grid function or define a senseful prolongation for surface functions
 
-template <typename TDiscreteFunction>
-class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscreteFunction> {
+template <typename TFunction>
+class ProlongationOperator : public ILinearOperator<TFunction, TFunction> {
 	public:
 		// domain space
-		typedef TDiscreteFunction domain_function_type;
+		typedef TFunction domain_function_type;
 
 		// range space
-		typedef TDiscreteFunction  codomain_function_type;
+		typedef TFunction  codomain_function_type;
 
 	protected:
-		typedef typename TDiscreteFunction::approximation_space_type approximation_space_type;
-		typedef typename TDiscreteFunction::domain_type phys_domain_type;
-		typedef typename TDiscreteFunction::algebra_type algebra_type;
+		typedef typename TFunction::approximation_space_type approximation_space_type;
+		typedef typename TFunction::domain_type phys_domain_type;
+		typedef typename TFunction::algebra_type algebra_type;
 		typedef typename algebra_type::matrix_type matrix_type;
 
 
@@ -212,37 +212,37 @@ class ProlongationOperator : public ILinearOperator<TDiscreteFunction, TDiscrete
 		}
 
 		// prepare Operator (u=coarse, v = fine)
-		bool prepare(domain_function_type& uCoarse, codomain_function_type& uFine)
+		bool prepare(TFunction& uFineOut, TFunction& uCoarseIn)
 		{
-			if(!AssembleVertexProlongation(m_matrix, m_ass, uCoarse, uFine))
+			if(!AssembleVertexProlongation(m_matrix, m_ass, uCoarseIn, uFineOut))
 				{UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n"); return false;}
 			return true;
 		}
 
 		// apply Operator, interpolate function
-		bool apply(domain_function_type& uCoarse, codomain_function_type& uFine)
+		bool apply(TFunction& uFineOut, TFunction& uCoarseIn)
 		{
 			// v = coarse, u = fine
-			m_matrix.apply(uFine.get_vector(), uCoarse.get_vector());
+			m_matrix.apply(uFineOut.get_vector(), uCoarseIn.get_vector());
 #ifdef UG_PARALLEL
-			uFine.copy_storage_type(uCoarse);
+			uFineOut.copy_storage_type(uCoarseIn);
 #endif
 			return true;
 		}
 
 		// apply transposed Operator, restrict function
-		bool apply_transposed(codomain_function_type& uFine, domain_function_type& uCoarse)
+		bool apply_transposed(TFunction& uCoarseOut, TFunction& uFineIn)
 		{
 			// v = coarse, u = fine
-			m_matrix.apply_transposed(uCoarse.get_vector(), uFine.get_vector());
+			m_matrix.apply_transposed(uCoarseOut.get_vector(), uFineIn.get_vector());
 #ifdef UG_PARALLEL
-			uCoarse.copy_storage_type(uFine);
+			uCoarseOut.copy_storage_type(uFineIn);
 #endif
 			return true;
 		}
 
 		// apply Operator, i.e. v := v - L(u);
-		bool apply_sub(domain_function_type& u, codomain_function_type& v)
+		bool apply_sub(TFunction& u, TFunction& v)
 		{
 			UG_ASSERT(0, "Not Implemented.");
 			return true;

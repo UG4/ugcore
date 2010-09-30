@@ -55,11 +55,11 @@ class AssembledMultiGridCycle :
 
 		// This functions allocates the Memory for the solver
 		// and assembles coarse grid matrices using 'ass'
-		virtual bool prepare(function_type &u, function_type& d, function_type &c);
+		virtual bool prepare(function_type &c, function_type &u, function_type& d);
 
 		// This function performes one multi-grid cycle step
 		// A correction c is returned as well as the updated defect d := d - A*c
-		virtual bool apply(function_type& d, function_type &c, bool updateDefect);
+		virtual bool apply(function_type &c, function_type& d, bool updateDefect);
 
 		ILinearizedIteratorOperator<function_type,function_type>* clone()
 		{

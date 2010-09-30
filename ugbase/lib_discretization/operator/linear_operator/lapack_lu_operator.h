@@ -10,17 +10,17 @@
 
 namespace ug{
 
-template <typename TDiscreteFunction>
-class LapackLUOperator : public ILinearizedOperatorInverse<TDiscreteFunction, TDiscreteFunction>
+template <typename TFunction>
+class LapackLUOperator : public ILinearizedOperatorInverse<TFunction, TFunction>
 {
 
 public:
 	// domain function type
-	typedef TDiscreteFunction domain_function_type;
+	typedef TFunction domain_function_type;
 	// codomain function type
-	typedef TDiscreteFunction codomain_function_type;
+	typedef TFunction codomain_function_type;
 
-	typedef typename TDiscreteFunction::algebra_type algebra_type;
+	typedef typename TFunction::algebra_type algebra_type;
 	typedef typename algebra_type::matrix_type Matrix_type;
 
 
@@ -28,10 +28,10 @@ public:
 	LapackLUOperator() : m_lapacklu()
 	{};
 
-	virtual bool init(ILinearizedOperator<TDiscreteFunction, TDiscreteFunction>& Op)
+	virtual bool init(ILinearizedOperator<TFunction, TFunction>& Op)
 	{
-		AssembledLinearizedOperator<TDiscreteFunction>* A
-			= dynamic_cast<AssembledLinearizedOperator<TDiscreteFunction>*>(&Op);
+		AssembledLinearizedOperator<TFunction>* A
+			= dynamic_cast<AssembledLinearizedOperator<TFunction>*>(&Op);
 		UG_ASSERT(A != NULL, 	"Operator used does not use a matrix."
 								" Currently only matrix based operators can be inverted.\n");
 
@@ -45,14 +45,15 @@ public:
 	}
 
 		// prepare Operator
-	virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
+	virtual bool prepare(TFunction& dOut, TFunction& uIn, TFunction& cIn)
 	{
-		typename domain_function_type::vector_type& d_vec = d.get_vector();
-		typename codomain_function_type::vector_type& c_vec = c.get_vector();
+		typename domain_function_type::vector_type& d_vec = dOut.get_vector();
+		typename codomain_function_type::vector_type& c_vec = cIn.get_vector();
 
  		UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
 		UG_ASSERT(c_vec.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
 
+		// TODO: This must be inverted
 		m_lapacklu.prepare(d_vec, c_vec);
 		return true;
 	}
@@ -60,15 +61,16 @@ public:
 	// compute new correction c = B*d
 	//    AND
 	// update defect: d := d - A*c
-	virtual bool apply(domain_function_type& d, codomain_function_type& c)
+	virtual bool apply(TFunction& cOut, TFunction& dIn)
 	{
-		typename domain_function_type::vector_type& d_vec = d.get_vector();
-		typename codomain_function_type::vector_type& c_vec = c.get_vector();
+		typename domain_function_type::vector_type& d_vec = dIn.get_vector();
+		typename codomain_function_type::vector_type& c_vec = cOut.get_vector();
 
 		UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
 		UG_ASSERT(c_vec.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
 		UG_ASSERT(d_vec.size() == c_vec.size(), "Vector sizes have to match!");
 
+		// TODO: This must be inverted
 		m_lapacklu.apply(d_vec, c_vec);
 		
 		return true;
@@ -80,7 +82,7 @@ public:
 	virtual ~LapackLUOperator() {};
 
 protected:
-	AssembledLinearizedOperator<TDiscreteFunction>* m_pOperator;
+	AssembledLinearizedOperator<TFunction>* m_pOperator;
 
 	LapackLU m_lapacklu;
 	typename algebra_type::matrix_type *m_pMatrix;

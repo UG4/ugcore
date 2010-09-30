@@ -51,7 +51,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 		}
 
 		// prepare Operator
-		virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
+		virtual bool prepare(TDiscreteFunction& cOut, TDiscreteFunction& uIn, TDiscreteFunction& dIn)
 		{
 #ifdef UG_PARALLEL
 			if(m_bOpChanged)
@@ -70,9 +70,9 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 					m_diagInv.create(size);
 				}
 
-				m_diagInv.set_slave_layout(d.get_slave_layout());
-				m_diagInv.set_master_layout(d.get_master_layout());
-				m_diagInv.set_communicator(d.get_communicator());
+				m_diagInv.set_slave_layout(dIn.get_slave_layout());
+				m_diagInv.set_master_layout(dIn.get_master_layout());
+				m_diagInv.set_communicator(dIn.get_communicator());
 
 				// copy diagonal
 				for(size_t i = 0; i < m_diagInv.size(); ++i){
@@ -92,23 +92,20 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 				m_bOpChanged = false;
 			}
 #endif
-
-			// TODO: Do we assume, that m_Op has been prepared?
-			//m_Op->prepare(c,d);
 			return true;
 		}
 
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
+		virtual bool apply(TDiscreteFunction& cOut, TDiscreteFunction& dIn, bool updateDefect)
 		{
 #ifdef UG_PARALLEL
-			if(!d.has_storage_type(PST_ADDITIVE)) return false;
+			if(!dIn.has_storage_type(PST_ADDITIVE)) return false;
 #endif
 
-			typename domain_function_type::vector_type& d_vec = d.get_vector();
-			typename codomain_function_type::vector_type& c_vec = c.get_vector();
+			typename domain_function_type::vector_type& d_vec = dIn.get_vector();
+			typename codomain_function_type::vector_type& c_vec = cOut.get_vector();
 
 			UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
 			UG_ASSERT(c_vec.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
@@ -125,8 +122,8 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 			}
 
 			// make correction consistent
-			c.set_storage_type(PST_ADDITIVE);
-			if(c.change_storage_type(PST_CONSISTENT) != true)
+			cOut.set_storage_type(PST_ADDITIVE);
+			if(cOut.change_storage_type(PST_CONSISTENT) != true)
 				return false;
 #else
 			// apply iterator: c = B*d (damp is not used)
@@ -145,7 +142,7 @@ class AssembledJacobiOperator : public ILinearizedIteratorOperator<TDiscreteFunc
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
 #ifdef UG_PARALLEL
-			d.set_storage_type(PST_ADDITIVE);
+			dIn.set_storage_type(PST_ADDITIVE);
 #endif
 			return true;
 		}

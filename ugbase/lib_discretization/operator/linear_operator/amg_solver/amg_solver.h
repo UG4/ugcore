@@ -70,7 +70,7 @@ public:
 
 
 	// prepare Operator
-	virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
+	virtual bool prepare(codomain_function_type& c, domain_function_type& u, domain_function_type& d)
 	{
 		return true;
 	}
@@ -78,7 +78,7 @@ public:
 	// compute new correction c = B*d
 	//    AND
 	// update defect: d := d - A*c
-	virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
+	virtual bool apply(codomain_function_type& c, domain_function_type& d, bool updateDefect)
 	{
 		typename domain_function_type::vector_type& d_vec = d.get_vector();
 		typename codomain_function_type::vector_type& c_vec = c.get_vector();

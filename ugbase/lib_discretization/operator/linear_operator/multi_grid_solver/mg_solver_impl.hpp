@@ -42,7 +42,7 @@ smooth(function_type& d, function_type& c, size_t lev, int nu)
 	for(int i = 0; i < nu; ++i)
 	{
 		// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
-		if(!m_smoother[lev]->apply(d, *m_t[lev], true))
+		if(!m_smoother[lev]->apply(*m_t[lev], d, true))
 			{UG_LOG("Error in smoothing step " << i << " on level " << lev << ".\n"); return false;}
 
 		// add correction of smoothing step to level correction
@@ -77,7 +77,7 @@ lmgc(size_t lev)
 		#endif
 
 		// restrict defect
-		if(!m_I[lev-1]->apply_transposed(*m_d[lev], *m_d[lev-1]))
+		if(!m_I[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
 			{UG_LOG("Error in restriction from level " << lev << " to " << lev-1 << ".\n"); return false;}
 
 		bool resume = true;
@@ -128,14 +128,14 @@ lmgc(size_t lev)
 		#endif
 
 		//interpolate correction
-		if(!m_I[lev-1]->apply(*m_c[lev-1], *m_t[lev]))
+		if(!m_I[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
 			{UG_LOG("Error in prolongation from level " << lev-1 << " to " << lev << ".\n"); return false;}
 
 		// add coarse grid correction to level correction
 		*m_c[lev] += *m_t[lev];
 
 		//update defect
-		if(!m_A[lev]->apply_sub(*m_t[lev], *m_d[lev]))
+		if(!m_A[lev]->apply_sub(*m_d[lev], *m_t[lev]))
 			{UG_LOG("Error in updating defect on level " << lev << ".\n"); return false;}
 
 		// postsmooth
@@ -159,14 +159,14 @@ lmgc(size_t lev)
 #endif
 
 		PROFILE_BEGIN(baseSolver);
-		if(!m_baseSolver.prepare(*m_u[lev], *m_d[lev], *m_c[lev]))
+		if(!m_baseSolver.prepare(*m_c[lev], *m_u[lev], *m_d[lev]))
 			{UG_LOG("ERROR while preparing base solver on level "<< m_baseLevel << ", aborting.\n");return false;}
-		if(!m_baseSolver.apply(*m_d[lev], *m_c[lev]))
+		if(!m_baseSolver.apply(*m_c[lev], *m_d[lev]))
 			{UG_LOG("Error in base solver on level " << lev << ".\n"); return false;}
 		PROFILE_END();
 
 	//update defect
-		if(!m_A[lev]->apply_sub(*m_c[lev], *m_d[lev]))
+		if(!m_A[lev]->apply_sub(*m_d[lev], *m_c[lev]))
 			{UG_LOG("Error in updating defect on level " << lev << ".\n"); return false;}
 
 #ifdef UG_PARALLEL
@@ -201,7 +201,7 @@ init(ILinearizedOperator<function_type,function_type>& A)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-apply(function_type& d, function_type &c, bool updateDefect)
+apply(function_type &c, function_type& d, bool updateDefect)
 {
 	function_type* d_copy;
 
@@ -239,7 +239,7 @@ apply(function_type& d, function_type &c, bool updateDefect)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-prepare(function_type &u, function_type& d, function_type &c)
+prepare(function_type &c, function_type &u, function_type& d)
 {
 	typename TApproximationSpace::domain_type::grid_type& mg = m_domain.get_grid();
 
@@ -294,9 +294,9 @@ prepare(function_type &u, function_type& d, function_type &c)
 	{
 		for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 		{
-			if(m_I[lev]->prepare(*m_d[lev], *m_d[lev+1]) != true)
+			if(!m_I[lev]->prepare(*m_d[lev+1], *m_d[lev]))
 				{UG_LOG("ERROR while constructing interpolation matrices for level "<< lev << ", aborting.\n");return false;}
-			if(m_P[lev]->prepare(*m_u[lev+1], *m_u[lev]) != true)
+			if(!m_P[lev]->prepare(*m_u[lev], *m_u[lev+1]))
 				{UG_LOG("ERROR while constructing projection matrices for level "<< lev << ", aborting.\n");return false;}
 		}
 	}
@@ -304,14 +304,14 @@ prepare(function_type &u, function_type& d, function_type &c)
 	// project solution from surface grid to coarser grid levels
 	for(size_t lev = m_surfaceLevel; lev != m_baseLevel; --lev)
 	{
-		if(m_P[lev-1]->apply(*m_u[lev], *m_u[lev-1]) != true)
+		if(!m_P[lev-1]->apply(*m_u[lev-1], *m_u[lev]))
 			{UG_LOG("ERROR while projecting solution to coarse grid function of level "<< lev -1 << ", aborting.\n");return false;}
 	}
 
 	// create coarse level operators
 	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 	{
-		if(m_A[lev]->prepare(*m_u[lev], *m_c[lev], *m_d[lev]) != true)
+		if(!m_A[lev]->prepare(*m_d[lev], *m_u[lev], *m_c[lev]))
 			{UG_LOG("ERROR while constructing coarse grid matrices for level "<< lev << ", aborting.\n");return false;}
 	}
 
@@ -320,7 +320,7 @@ prepare(function_type &u, function_type& d, function_type &c)
 	{
 		if(!m_smoother[lev]->init(*m_A[lev]))
 			{UG_LOG("ERROR while initializing smoother for level "<< lev << ", aborting.\n");return false;}
-		if(!m_smoother[lev]->prepare(*m_u[lev], *m_d[lev], *m_t[lev]))
+		if(!m_smoother[lev]->prepare(*m_t[lev], *m_u[lev], *m_d[lev]))
 			{UG_LOG("ERROR while preparing smoother for level "<< lev << ", aborting.\n");return false;}
 	}
 
@@ -328,7 +328,7 @@ prepare(function_type &u, function_type& d, function_type &c)
 	m_A[m_surfaceLevel] = m_Op;
 	if(!m_smoother[m_surfaceLevel]->init(*m_A[m_surfaceLevel]))
 		{UG_LOG("ERROR while initializing smoother for level "<< m_surfaceLevel << ", aborting.\n");return false;}
-	if(!m_smoother[m_surfaceLevel]->prepare(*m_u[m_surfaceLevel], *m_d[m_surfaceLevel], *m_t[m_surfaceLevel]))
+	if(!m_smoother[m_surfaceLevel]->prepare(*m_t[m_surfaceLevel], *m_u[m_surfaceLevel], *m_d[m_surfaceLevel]))
 		{UG_LOG("ERROR while preparing smoother for level "<< m_surfaceLevel << ", aborting.\n");return false;}
 
 	// prepare base solver

@@ -34,7 +34,7 @@ class AssembledGSOperator : public ILinearizedIteratorOperator<TDiscreteFunction
 		AssembledGSOperator() : m_bOpChanged(true)
 		{};
 
-		bool init(ILinearizedOperator<domain_function_type,codomain_function_type>& Op)
+		bool init(ILinearizedOperator<TDiscreteFunction,TDiscreteFunction>& Op)
 		{
 			AssembledLinearizedOperator<TDiscreteFunction>* A
 				= dynamic_cast<AssembledLinearizedOperator<TDiscreteFunction>*>(&Op);
@@ -51,7 +51,7 @@ class AssembledGSOperator : public ILinearizedIteratorOperator<TDiscreteFunction
 		}
 
 		// prepare Operator
-		virtual bool prepare(domain_function_type& u, domain_function_type& d, codomain_function_type& c)
+		virtual bool prepare(TDiscreteFunction& cOut, TDiscreteFunction& uIn, TDiscreteFunction& dIn)
 		{
 
 			// TODO: Do we assume, that m_Op has been prepared?
@@ -62,14 +62,14 @@ class AssembledGSOperator : public ILinearizedIteratorOperator<TDiscreteFunction
 		// compute new correction c = B*d
 		//    AND
 		// update defect: d := d - A*c
-		virtual bool apply(domain_function_type& d, codomain_function_type& c, bool updateDefect)
+		virtual bool apply(TDiscreteFunction& cOut, TDiscreteFunction& dInOut, bool updateDefect)
 		{
 #ifdef UG_PARALLEL
-			if(!d.has_storage_type(PST_ADDITIVE)) return false;
+			if(!dInOut.has_storage_type(PST_ADDITIVE)) return false;
 #endif
 
-			typename domain_function_type::vector_type& d_vec = d.get_vector();
-			typename codomain_function_type::vector_type& c_vec = c.get_vector();
+			typename domain_function_type::vector_type& d_vec = dInOut.get_vector();
+			typename codomain_function_type::vector_type& c_vec = cOut.get_vector();
 
 			UG_ASSERT(d_vec.size() == m_pMatrix->num_rows(),	"Vector and Row sizes have to match!");
 			UG_ASSERT(c_vec.size() == m_pMatrix->num_cols(), "Vector and Column sizes have to match!");
@@ -85,7 +85,7 @@ class AssembledGSOperator : public ILinearizedIteratorOperator<TDiscreteFunction
 
 			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
 #ifdef UG_PARALLEL
-			d.set_storage_type(PST_ADDITIVE);
+			dInOut.set_storage_type(PST_ADDITIVE);
 #endif
 			return true;
 		}

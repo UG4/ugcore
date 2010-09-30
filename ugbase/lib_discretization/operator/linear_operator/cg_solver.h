@@ -42,48 +42,48 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		}
 
 		// prepare Operator
-		virtual bool prepare(codomain_function_type& u, domain_function_type& d_nl, codomain_function_type& c_nl)
+		virtual bool prepare(TFunction& cNLOut, TFunction& uIn, TFunction& dNLIn)
 		{
-			m_pCurrentU = &u;
+			m_pCurrentU = &uIn;
 
 			return true;
 		}
 
 		// Solve J(u)*x = b, such that x = J(u)^{-1} b
-		virtual bool apply(domain_function_type& b, codomain_function_type& x)
+		virtual bool apply(TFunction& xOut, TFunction& bIn)
 		{
 			#ifdef UG_PARALLEL
-			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
+			if(!bIn.has_storage_type(PST_ADDITIVE) || !xOut.has_storage_type(PST_CONSISTENT))
 				{
 					UG_LOG("WARNING: In 'CGSolver::apply':Inadequate storage format of Vectors.\n");
 					UG_LOG("                          use: b additive and x consistent to avoid internal type conversion.\n");
-					if(!b.change_storage_type(PST_ADDITIVE)) return false;
-					if(!x.change_storage_type(PST_CONSISTENT)) return false;
+					if(!bIn.change_storage_type(PST_ADDITIVE)) return false;
+					if(!xOut.change_storage_type(PST_CONSISTENT)) return false;
 				}
 			#endif
 
 			// copy b as r
-			domain_function_type& r = b;
+			domain_function_type& r = bIn;
 
 			// build defect:  r := b - J(u)*x
-			if(m_A->apply_sub(x, r) != true)
+			if(!m_A->apply_sub(r, xOut))
 				{UG_LOG("ERROR in 'CGSolver::apply': Unable to build defect. Aborting.\n");return false;}
 
 			// create help vector (h will be consistent r)
 			domain_function_type t;
 			codomain_function_type z, p;
 			t.clone_pattern(r);
-			z.clone_pattern(x);
-			p.clone_pattern(x);
+			z.clone_pattern(xOut);
+			p.clone_pattern(xOut);
 
 			// Preconditioning
 			if(m_pPrecond != NULL)
 			{
-				if(!m_pPrecond->prepare(*m_pCurrentU, r, z))
+				if(!m_pPrecond->prepare(z, *m_pCurrentU, r))
 					{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 				// apply z = M^-1 * s
-				if(!m_pPrecond->apply(r, z, false))
+				if(!m_pPrecond->apply(z, r, false))
 					{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 			}
 			else z = r;
@@ -113,7 +113,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 			while(!m_ConvCheck.iteration_ended())
 			{
 				// build t = A*p (t is additive afterwards)
-				if(!m_A->apply(p, t))
+				if(!m_A->apply(t, p))
 					{UG_LOG("ERROR in 'CGSolver::apply': Unable "
 								"to build t = A*p. Aborting.\n"); return false;}
 
@@ -122,7 +122,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				alpha = rho/lambda;
 
 				// update x := x + alpha*p
-				VecScaleAppend(x, p, alpha);
+				VecScaleAppend(xOut, p, alpha);
 
 				// update r := r - alpha*t
 				VecScaleAppend(r, t, (-1)*alpha);
@@ -133,11 +133,11 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				// Preconditioning
 				if(m_pPrecond != NULL)
 				{
-					if(!m_pPrecond->prepare(*m_pCurrentU, r, z))
+					if(!m_pPrecond->prepare(z, *m_pCurrentU, r))
 						{UG_LOG("ERROR: Cannot prepare preconditioner. Aborting.\n"); return false;}
 
 					// apply z = M^-1 * r
-					if(!m_pPrecond->apply(r, z, false))
+					if(!m_pPrecond->apply(z, r, false))
 						{UG_LOG("ERROR: Cannot apply preconditioner. Aborting.\n"); return false;}
 				}
 				else z = r;

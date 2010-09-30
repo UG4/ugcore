@@ -94,10 +94,10 @@ class StandardLineSearch : public LineSearch<TFunction>
 				VecScaleAppend(u, p, (-1)*lambda);
 
 				// compute new Defect
-				if(!Op.prepare(u, d))
+				if(!Op.prepare(d, u))
 					{UG_LOG("StandardLineSearch: Cannot prepare Non-linear"
 							" Operator for defect computation.\n"); return false;}
-				if(!Op.apply(u, d))
+				if(!Op.apply(d, u))
 					{UG_LOG("StandardLineSearch: Cannot apply Non-linear Operator "
 							"to compute defect.\n"); return false;}
 
