@@ -18,7 +18,7 @@ namespace interface
 template <typename TDomain>
 bool LoadDomain(TDomain& domain, const char* filename)
 {
-	char * p = strstr(filename, ".ugx");
+	const char * p = strstr(filename, ".ugx");
 	if(p == NULL)
 	{
 		UG_LOG("Currently only '.ugx' format supported for domains.\n");
