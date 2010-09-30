@@ -248,6 +248,40 @@ static int LuaProxyMethod(lua_State* L)
 	return ParamsToLuaStack(paramsOut, L);
 }
 
+static int MetatableIndexer(lua_State*L)
+{
+//	the stack contains the object and the requested key.
+//	first we push the objects metatable onto the stack.
+	lua_getmetatable(L, 1);
+
+//	now we have to traverse the class hierarchy
+	while(1)
+	{
+	//	check whether the key is in the current metatable
+		lua_pushvalue(L, 2);
+		lua_rawget(L, -2);
+	
+	//	if we retrieved something != nil, we're done.
+		if(!lua_isnil(L, -1))
+			return 1;
+	
+	//	the requested key has not been in the metatable.
+	//	we thus have to check the parents metatable.
+		lua_pop(L, 1);
+		lua_pushstring(L, "__parent");
+		lua_rawget(L, -2);
+		
+	//	if we retrieved a parent-table, we will remove the old table
+	//	and rerun the iteration. If not, we're done in here.
+	//	if no method has been found, nil should be returned.
+		if(lua_isnil(L, -1))
+			return 1;
+		
+	//	remove the old metatable
+		lua_remove(L, -2);
+	}
+}
+
 bool CreateBindings_LUA(lua_State* L, Registry& reg)
 {
 //	registers a meta-object for each object found in the ObjectRegistry.
@@ -290,12 +324,25 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 	//	create the meta-table for the object
 	//	overwrite index and store the class-name
 		luaL_newmetatable(L, c->name());
-		lua_pushvalue(L, -1);
+	//	we use our custom indexing method to allow method-derivation
+		lua_pushcfunction(L, MetatableIndexer);
 		lua_setfield(L, -2, "__index");
+	//	we have to store the class-names of the class hierarchy
 		lua_pushstring(L, "names");
 		lua_pushlightuserdata(L, (void*)c->class_names());
 		lua_settable(L, -3);
-		
+	//	if the class has a parent, we'll store its metatable in the __parent entry.
+		const vector<const char*>* classNames = c->class_names();
+		if(classNames){
+			if(classNames->size() > 1){
+			//	push the entries name
+				lua_pushstring(L, "__parent");
+			//	get the metatable of the parent
+				luaL_getmetatable(L, classNames->at(1));
+			//	assign the entry
+				lua_settable(L, -3);
+			}
+		}
 		
 	//	register methods
 		for(size_t j = 0; j < c->num_methods(); ++j){

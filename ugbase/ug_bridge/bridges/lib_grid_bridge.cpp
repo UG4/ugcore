@@ -27,15 +27,16 @@ void RegisterLibGridInterface(Registry& reg)
 
 //	Grid
 	reg.add_class_<Grid>("Grid")
-		.add_constructor();
-
+		.add_constructor()
+		.add_method("clear", &Grid::clear);
+		
 //	MultiGrid
 	reg.add_class_<MultiGrid, Grid>("MultiGrid")
 		.add_constructor();
 
 //  ISubsetHandler
 	reg.add_class_<ISubsetHandler>("ISubsetHandler");
-
+	
 //	SubsetHandler
 	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler")
 		.add_constructor()
