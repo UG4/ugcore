@@ -35,7 +35,8 @@ void RegisterLibGridInterface(Registry& reg)
 		.add_constructor();
 
 //  ISubsetHandler
-	reg.add_class_<ISubsetHandler>("ISubsetHandler");
+	reg.add_class_<ISubsetHandler>("ISubsetHandler")
+		.add_method("num_subsets", &ISubsetHandler::num_subsets);
 	
 //	SubsetHandler
 	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler")

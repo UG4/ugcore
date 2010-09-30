@@ -120,6 +120,61 @@ struct func_traits <TRet (TClass::*) (T1, T2, T3)>
 	};
 };
 
+////////////////////////////////
+// const method traits
+////////////////////////////////
+
+#define FUNC_TRAITS_GENERAL_CONST_MEMBER \
+	static const bool const_method = true;\
+	typedef TClass class_type;\
+	typedef TRet return_type
+
+
+template <typename TClass, typename TRet>
+struct func_traits <TRet (TClass::*) () const>
+{
+	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	typedef TypeList<> params_type;
+	static TRet apply(TRet (TClass::*fp)() const, const TClass* obj, TypeValueList<params_type>& args)
+	{
+		return (obj->*fp)();
+	};
+};
+
+
+template <typename TClass, typename TRet, typename P1>
+struct func_traits <TRet (TClass::*) (P1) const>
+{
+	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	typedef TypeList<P1> params_type;
+	static TRet apply(TRet (TClass::*fp)(P1) const, const TClass* obj, TypeValueList<params_type>& args)
+	{
+		return (obj->*fp)(args.hd);
+	};
+};
+
+
+template <typename TClass, typename TRet, typename T1, typename T2>
+struct func_traits <TRet (TClass::*) (T1, T2) const>
+{
+	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	typedef TypeList<T1, T2> params_type;
+	static TRet apply(TRet (TClass::*fp)(T1, T2) const, const TClass* obj, TypeValueList<params_type>& args)
+	{
+		return (obj->*fp)(args.hd, args.tl.hd);
+	};
+};
+
+template <typename TClass, typename TRet, typename T1, typename T2, typename T3>
+struct func_traits <TRet (TClass::*) (T1, T2, T3) const>
+{
+	FUNC_TRAITS_GENERAL_CONST_MEMBER;
+	typedef TypeList<T1, T2, T3> params_type;
+	static TRet apply(TRet (TClass::*fp)(T1, T2, T3) const, const TClass* obj, TypeValueList<params_type>& args)
+	{
+		return (obj->*fp)(args.hd, args.tl.hd, args.tl.tl.hd);
+	};
+};
 
 } // end namespace bridge
 } // end namespace ug

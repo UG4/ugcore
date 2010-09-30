@@ -66,7 +66,8 @@ enum ParameterTypes
 	PT_INTEGER = 2,
 	PT_NUMBER = 3,
 	PT_STRING = 4,
-	PT_POINTER = 5
+	PT_POINTER = 5,
+	PT_CONST_POINTER = 5
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -124,7 +125,15 @@ class ParameterStack
 
 		inline void push_pointer(void* ptr, const std::vector<const char*>* classNames)
 														{PUSH_PARAM_TO_STACK(	m_ptr, ptr, PT_POINTER, classNames);}
-		
+
+	/// user defined classes
+		template<class T>
+		inline void push_const_pointer(const T* ptr = NULL)	{PUSH_PARAM_TO_STACK(	m_const_ptr, (const void*)ptr, PT_CONST_POINTER,
+																				&ClassNameProvider<T>::names());}
+
+		inline void push_const_pointer(const void* ptr, const std::vector<const char*>* classNames)
+														{PUSH_PARAM_TO_STACK(m_const_ptr, (const void*)ptr, PT_CONST_POINTER, classNames);}
+
 	////////////////////////////////
 	//	get
 		int get_type(int index) const
@@ -223,6 +232,32 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
 		}
 
+		template <class T>
+		const T* to_const_pointer(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			
+			const Entry& e = m_entries[index];
+			if(e.type == PT_CONST_POINTER)
+				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
+					return reinterpret_cast<const T*>(e.param.m_const_ptr);
+				else
+					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+			
+			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
+		}
+
+		const void* to_const_pointer(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			const Entry& e = m_entries[index];
+			if(e.type == PT_CONST_POINTER)
+				return e.param.m_const_ptr;
+
+			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
+		}
+
 	////////////////////////////////
 	//	set		
 		void set_bool(int index, bool val)
@@ -287,6 +322,18 @@ class ParameterStack
 				throw(ERROR_BadConversion(index, e.type, PT_POINTER));
 		}
 		
+		template <class T>
+		void set_const_pointer(int index, const T* ptr)
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+			
+			Entry& e = m_entries[index];
+			if(e.type == PT_CONST_POINTER)
+				e.param.m_const_ptr = (void*)ptr;
+			else
+				throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
+		}
+		
 	private:
 		union Parameter{
 			bool m_bool;
@@ -294,6 +341,7 @@ class ParameterStack
 			number m_number;
 			const char* m_string;
 			void* m_ptr;
+			const void* m_const_ptr;
 		};
 		
 		struct Entry{
