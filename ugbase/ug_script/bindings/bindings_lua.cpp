@@ -6,7 +6,7 @@
 #include <cstring>
 #include "bindings_lua.h"
 #include "ug_script/ug_script.h"
-#include "ug_interface/registry.h"
+#include "ug_bridge/registry.h"
 #include "common/common.h"
 
 using namespace std;
