@@ -265,6 +265,24 @@ static int MetatableIndexer(lua_State*L)
 		if(!lua_isnil(L, -1))
 			return 1;
 	
+	//	the next thing to check are the const methods
+		lua_pop(L, 1);
+		lua_pushstring(L, "__const");
+		lua_rawget(L, -2);
+		if(!lua_isnil(L, -1)){
+		//	check whether the entry is contained in the table
+			lua_pushvalue(L, 2);
+			lua_rawget(L, -2);
+		
+		//	if we retrieved something != nil, we're done.
+			if(!lua_isnil(L, -1)){
+				return 1;
+			}
+				
+		//	remove nil from stack
+			lua_pop(L, 1);
+		}
+		
 	//	the requested key has not been in the metatable.
 	//	we thus have to check the parents metatable.
 		lua_pop(L, 1);
@@ -351,6 +369,21 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 			lua_pushlightuserdata(L, (void*)&m);
 			lua_pushcclosure(L, LuaProxyMethod, 1);
 			lua_settable(L, -3);
+		}
+		
+	//	register const-methods
+		if(c->num_const_methods() > 0)
+		{
+		//	create a new table in the meta-table and store it in the entry __const
+			lua_newtable(L);
+			for(size_t j = 0; j < c->num_const_methods(); ++j){
+				const ExportedMethod& m = c->get_const_method(j);
+				lua_pushstring(L, m.name().c_str());
+				lua_pushlightuserdata(L, (void*)&m);
+				lua_pushcclosure(L, LuaProxyMethod, 1);
+				lua_settable(L, -3);
+			}
+			lua_setfield(L, -2, "__const");
 		}
 		
 	//	pop the metatable from the stack.

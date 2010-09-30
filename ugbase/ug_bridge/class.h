@@ -125,27 +125,33 @@ TClass* ConstructorProxy() {return new TClass();}
 class IExportedClass
 {
 	public:
-	//  name of class
+	///  name of class
 		virtual const char* name() const = 0;
 
-	//	name-list of class hierarchy
+	///	name-list of class hierarchy
 		virtual const std::vector<const char*>* class_names() const = 0;
 
-	//  number of method of the class
+	///  number of method of the class
 		virtual size_t num_methods() const = 0;
 
-	//  get exported method
+	///	number of registered const-methods
+		virtual size_t num_const_methods() const = 0;
+		
+	///  get exported method
 		virtual const ExportedMethod& get_method(size_t i) const = 0;
 
-	//  can we create instances of this class
-	//	(i.e. the class does not contain pure virtual functions)
+	/// get exported const-method
+		virtual const ExportedMethod& get_const_method(size_t i) const = 0;
+		
+	/**  can we create instances of this class
+	 *	(i.e. the class does not contain pure virtual functions)*/
 		virtual bool is_instantiable() const = 0;
 
-	//  create an instance
-	//  returns NULL id we cannot create instances of this type
+	/**  create an instance
+	 *  returns NULL id we cannot create instances of this type*/
 		virtual void* create() const = 0;
 
-	//  virtual destructor
+	///  virtual destructor
 		virtual ~IExportedClass() {};
 };
 
@@ -175,8 +181,14 @@ class ExportedClass_ : public IExportedClass
 	/// number of registered methods
 		virtual size_t num_methods() const {return m_vMethod.size();}
 
+	///	number of registered const-methods
+		virtual size_t num_const_methods() const {return m_vConstMethod.size();}
+		
 	/// get exported method
 		virtual const ExportedMethod& get_method(size_t i) const {return *m_vMethod.at(i);}
+
+	/// get exported const-method
+		virtual const ExportedMethod& get_const_method(size_t i) const {return *m_vConstMethod.at(i);}
 
 	/// Method registration
 		template <typename TMethod>
@@ -184,17 +196,23 @@ class ExportedClass_ : public IExportedClass
 												const char* retValName = "", const char* paramValNames = "",
 												const char* tooltip = "", const char* help = "")
 		{
-			//  create new exported function
-				m_vMethod.push_back(new ExportedMethod(	MethodPtrWrapper(func), &MethodProxy<TClass, TMethod>::apply,
-														methodName, retValName, paramValNames,
-														tooltip, help));
+		//  create new exported function
+			ExportedMethod* nMethod = NULL;
+			nMethod = new ExportedMethod(	MethodPtrWrapper(func), &MethodProxy<TClass, TMethod>::apply,
+													methodName, retValName, paramValNames,
+													tooltip, help);
+			
+			if(func_traits<TMethod>::const_method)
+				m_vConstMethod.push_back(nMethod);
+			else
+				m_vMethod.push_back(nMethod);
+				
+		//  create parameter in list
+			ParameterStack& in = nMethod->params_in();
+			typedef typename func_traits<TMethod>::params_type params_type;
+			CreateParameterStack<params_type>::create(in);
 
-			//  create parameter in list
-				ParameterStack& in = m_vMethod.back()->params_in();
-				typedef typename func_traits<TMethod>::params_type params_type;
-				CreateParameterStack<params_type>::create(in);
-
-				return *this;
+			return *this;
 		}
 
 	/// Make constructor accessible
@@ -202,10 +220,10 @@ class ExportedClass_ : public IExportedClass
 	//  Each class that is instantiable must register its constructor
 		ExportedClass_<TClass>& add_constructor ()
 		{
-			//  remember constructor proxy
-				m_constructor = &ConstructorProxy<TClass>;
+		//  remember constructor proxy
+			m_constructor = &ConstructorProxy<TClass>;
 
-				return *this;
+			return *this;
 		}
 
 	/// is instantiable
@@ -226,6 +244,9 @@ class ExportedClass_ : public IExportedClass
 		//  delete methods
 			for(size_t i = 0; i < m_vMethod.size(); ++i)
 				delete m_vMethod[i];
+
+			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
+				delete m_vConstMethod[i];
 		}
 
 	private:
@@ -233,6 +254,7 @@ class ExportedClass_ : public IExportedClass
 		ConstructorFunc m_constructor;
 
 		std::vector<ExportedMethod*> m_vMethod;
+		std::vector<ExportedMethod*> m_vConstMethod;
 };
 
 } // end namespace bridge
