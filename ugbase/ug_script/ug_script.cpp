@@ -9,13 +9,14 @@
 
 using namespace std;
 
-namespace ug{
+namespace ug
+{
 namespace script
 {
 
-static ug::interface::InterfaceRegistry* g_pRegistry = NULL;
+static ug::bridge::Registry* g_pRegistry = NULL;
 
-void SetScriptRegistry(ug::interface::InterfaceRegistry* pReg)
+void SetScriptRegistry(ug::bridge::Registry* pReg)
 {
 	g_pRegistry = pReg;
 }
@@ -34,7 +35,7 @@ lua_State* GetDefaultLuaState()
 		//	open standard libs
 			luaL_openlibs(L);
 		//	create lua bindings for registered functions and objects
-			ug::interface::lua::CreateBindings_LUA(L, *g_pRegistry);
+			ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
 		}
 		else{
 			UG_LOG("WARNING: Can't create lua-state due to missing registry.n");

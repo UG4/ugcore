@@ -1,13 +1,13 @@
 
-#ifndef __H__UG_INTERFACE__UGBRIDGE__TYPELIST__
-#define __H__UG_INTERFACE__UGBRIDGE__TYPELIST__
+#ifndef __H__UG_BRIDGE__FUNCTION_TRAITS__
+#define __H__UG_BRIDGE__FUNCTION_TRAITS__
 
 #include "common/metaprogramming_util.h"
 
-namespace ug {
-
-namespace interface{
-
+namespace ug
+{
+namespace bridge
+{
 
 template <typename TFunc>
 struct func_traits {};
@@ -121,8 +121,7 @@ struct func_traits <TRet (TClass::*) (T1, T2, T3)>
 };
 
 
-} // end namespace interface
-
+} // end namespace bridge
 } // end namespace ug
 
-#endif /* __H__UG_INTERFACE__UGBRIDGE__TYPELIST__ */
+#endif /* __H__UG_BRIDGE__FUNCTION_TRAITS__ */

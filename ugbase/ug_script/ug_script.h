@@ -22,7 +22,7 @@ namespace script
 
 ///	sets the registry from which methods and classes will be used
 /**	As long as the script uses this registry, it may not be deleted!.*/
-void SetScriptRegistry(ug::interface::InterfaceRegistry* pReg);
+void SetScriptRegistry(ug::bridge::Registry* pReg);
 
 ///	returns the default lua state
 lua_State* GetDefaultLuaState();

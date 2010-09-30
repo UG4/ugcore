@@ -1,13 +1,14 @@
 
-#ifndef __H__UG_INTERFACE__UGBRIDGE__CLASS_NAME_PROVIDER__
-#define __H__UG_INTERFACE__UGBRIDGE__CLASS_NAME_PROVIDER__
+#ifndef __H__UG_BRIDGE__CLASS_NAME_PROVIDER__
+#define __H__UG_BRIDGE__CLASS_NAME_PROVIDER__
 
 #include <vector>
 #include <cstring>
 
-namespace ug {
-
-namespace interface{
+namespace ug
+{
+namespace bridge
+{
 
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
 
@@ -77,4 +78,4 @@ std::vector<const char*> ClassNameProvider<TClass>::m_names = std::vector<const 
 } // end namespace
 } // end namespace
 
-#endif /* __H__UG_INTERFACE__UGBRIDGE__CLASS_NAME_PROVIDER__ */
+#endif /* __H__UG_BRIDGE__CLASS_NAME_PROVIDER__ */

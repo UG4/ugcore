@@ -41,8 +41,8 @@ inline int UGInit(int argc, char* argv[], int parallelOutputProcRank = -1)
 	#endif
 
 	//	initialize ug-interfaces
-		static interface::InterfaceRegistry ugReg;
-		interface::RegisterStandardInterfaces(ugReg);
+		static bridge::Registry ugReg;
+		bridge::RegisterStandardInterfaces(ugReg);
 		script::SetScriptRegistry(&ugReg);
 	}
 	return 0;

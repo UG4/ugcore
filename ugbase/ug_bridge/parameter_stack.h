@@ -12,10 +12,10 @@
 																++m_numEntries;}
 
 
-namespace ug {
-
-namespace interface{
-
+namespace ug
+{
+namespace bridge
+{
 
 struct ERROR_BadIndex{
 	ERROR_BadIndex(int index) : m_index(index)	{}
@@ -308,7 +308,7 @@ class ParameterStack
 		int m_numEntries;
 };
 
-} // end namespace interface
+} // end namespace bridge
 } // end namespace ug
 
 #endif

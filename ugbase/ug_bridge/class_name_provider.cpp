@@ -1,8 +1,9 @@
 #include "class_name_provider.h"
 
-namespace ug {
-
-namespace interface{
+namespace ug
+{
+namespace bridge
+{
 
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name)
 {

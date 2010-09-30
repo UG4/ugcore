@@ -18,14 +18,14 @@ extern "C" {
 
 namespace ug
 {
-namespace interface
+namespace bridge
 {
 namespace lua
 {
 
 ///	creates bindings for ug_interface and a given lua-state.
 /**	If you use ug::script, this method will be invoked automatically.*/
-bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg);
+bool CreateBindings_LUA(lua_State* L, Registry& reg);
 
 }//	end of namespace
 }//	end of namespace

@@ -6,8 +6,9 @@
 #include "../ug_bridge.h"
 #include "lib_grid/lib_grid.h"
 
-namespace ug{
-namespace interface
+namespace ug
+{
+namespace bridge
 {
 
 bool LoadGrid(Grid& grid, ISubsetHandler& sh, const char* filename)
@@ -21,7 +22,7 @@ bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 }
 
 
-void RegisterLibGridInterface(InterfaceRegistry& reg)
+void RegisterLibGridInterface(Registry& reg)
 {
 
 //	Grid

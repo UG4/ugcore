@@ -8,11 +8,9 @@
 #include "../ug_bridge.h"
 #include "lib_discretization/lib_discretization.h"
 
-//#include "../ugbridge/registry.h"
-
 namespace ug
 {
-namespace interface
+namespace bridge
 {
 
 template <typename TDomain>
@@ -33,7 +31,7 @@ bool AddP1Function(P1ConformFunctionPattern& pattern, std::string name, int dim)
 	return pattern.add_discrete_function(name, LSFS_LAGRANGEP1, dim);
 }
 
-void RegisterLibDiscretizationInterface(InterfaceRegistry& reg)
+void RegisterLibDiscretizationInterface(Registry& reg)
 {
 
 //	Domain2d

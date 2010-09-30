@@ -1,6 +1,6 @@
 
-#ifndef __H__UG_INTERFACE__UGBRIDGE__REGISTRY__
-#define __H__UG_INTERFACE__UGBRIDGE__REGISTRY__
+#ifndef __H__UG_BRIDGE__REGISTRY__
+#define __H__UG_BRIDGE__REGISTRY__
 
 #include <vector>
 
@@ -9,17 +9,18 @@
 #include "param_to_type_value_list.h"
 #include "parameter_stack.h"
 
-namespace ug {
+namespace ug
+{
+namespace bridge
+{
 
-namespace interface{
-
-// InterfaceRegistry
+// Registry
 /** registers functions and classes that are exported to scripts and visualizations
  *
  */
-class InterfaceRegistry {
+class Registry {
 	public:
-		InterfaceRegistry()	{}
+		Registry()	{}
 	//////////////////////
 	// global functions
 	//////////////////////
@@ -28,7 +29,7 @@ class InterfaceRegistry {
 	 * it with the FuntionWrapper.
 	 */
 		template<class TFunc>
-		InterfaceRegistry& add_function(const char* funcName, TFunc func,
+		Registry& add_function(const char* funcName, TFunc func,
 										const char* retValName = "", const char* paramValNames = "",
 										const char* tooltip = "", const char* help = "")
 		{
@@ -92,7 +93,7 @@ class InterfaceRegistry {
 
 
 	/// destructor
-		~InterfaceRegistry()
+		~Registry()
 		{
 		//  delete registered functions
 			for(size_t i = 0; i < m_vFunction.size(); ++i)
@@ -109,16 +110,16 @@ class InterfaceRegistry {
 		}
 
 	private:
-		InterfaceRegistry(const InterfaceRegistry& reg)	{}
+		Registry(const Registry& reg)	{}
 		
 		std::vector<ExportedFunction*>	m_vFunction;
 
 		std::vector<IExportedClass*> m_vClass;
 };
 
-} // end namespace interface
+} // end namespace registry
 
 } // end namespace ug
 
 
-#endif /* __H__UG_INTERFACE__UGBRIDGE__REGISTRY__ */
+#endif /* __H__UG_BRIDGE__REGISTRY__ */

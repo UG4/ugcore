@@ -1,6 +1,6 @@
 
-#ifndef __H__UG_INTERFACE__UGBRIDGE__CLASS__
-#define __H__UG_INTERFACE__UGBRIDGE__CLASS__
+#ifndef __H__UG_BRIDGE__CLASS__
+#define __H__UG_BRIDGE__CLASS__
 
 #include <cstdlib>
 #include <cstring>
@@ -9,9 +9,10 @@
 #include "global_function.h"
 #include "common/common.h"
 
-namespace ug {
-
-namespace interface{
+namespace ug
+{
+namespace bridge
+{
 
 class MethodPtrWrapper
 {
@@ -234,9 +235,8 @@ class ExportedClass_ : public IExportedClass
 		std::vector<ExportedMethod*> m_vMethod;
 };
 
-} // end namespace interface
-
+} // end namespace bridge
 } // end namespace ug
 
 
-#endif /* __H__UG_INTERFACE__UGBRIDGE__CLASS__ */
+#endif /* __H__UG_BRIDGE__CLASS__ */

@@ -1,6 +1,6 @@
 
-#ifndef __H__UG_INTERFACE__UGBRIDGE__PARAM_TO_TYPE_VALUE_LIST__
-#define __H__UG_INTERFACE__UGBRIDGE__PARAM_TO_TYPE_VALUE_LIST__
+#ifndef __H__UG_BRIDGE__PARAM_TO_TYPE_VALUE_LIST__
+#define __H__UG_BRIDGE__PARAM_TO_TYPE_VALUE_LIST__
 
 #include "parameter_stack.h"
 #include "class_name_provider.h"
@@ -8,9 +8,10 @@
 #include <vector>
 #include <cstring>
 
-namespace ug {
-
-namespace interface{
+namespace ug
+{
+namespace bridge
+{
 
 //////////////////////////////
 //////////////////////////////
@@ -263,8 +264,8 @@ struct CreateParameterStack<TypeList<> >
 };
 
 
-} // end namespace interface
+} // end namespace bridge
 
 } // end namespace ug
 
-#endif /* __H__UG_INTERFACE__UGBRIDGE__PARAM_TO_TYPE_VALUE_LIST__ */
+#endif /* __H__UG_BRIDGE__PARAM_TO_TYPE_VALUE_LIST__ */

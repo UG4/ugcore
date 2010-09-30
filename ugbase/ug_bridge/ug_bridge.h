@@ -9,26 +9,26 @@
 
 namespace ug
 {
-namespace interface
+namespace bridge
 {
 
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
  */
-void RegisterStandardInterfaces(InterfaceRegistry& reg);
+void RegisterStandardInterfaces(Registry& reg);
 
 ///	registers lib-grid interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterLibGridInterface(InterfaceRegistry& reg);
+void RegisterLibGridInterface(Registry& reg);
 
 ///	registers lib-discretization interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterLibDiscretizationInterface(InterfaceRegistry& reg);
+void RegisterLibDiscretizationInterface(Registry& reg);
 
 ///	registers tests for the interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterTestInterface(InterfaceRegistry& reg);
+void RegisterTestInterface(Registry& reg);
 
 }//	end of namespace 
 }//	end of namespace 

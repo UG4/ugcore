@@ -13,7 +13,7 @@ using namespace std;
 
 namespace ug
 {
-namespace interface
+namespace bridge
 {
 namespace lua
 {
@@ -248,7 +248,7 @@ static int LuaProxyMethod(lua_State* L)
 	return ParamsToLuaStack(paramsOut, L);
 }
 
-bool CreateBindings_LUA(lua_State* L, InterfaceRegistry& reg)
+bool CreateBindings_LUA(lua_State* L, Registry& reg)
 {
 //	registers a meta-object for each object found in the ObjectRegistry.
 //	Global functions are registered for all GlobalFunction-objects in the registry.

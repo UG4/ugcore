@@ -9,7 +9,7 @@ using namespace std;
 
 namespace ug
 {
-namespace interface
+namespace bridge
 {
 
 int Add(int a, int b)
@@ -93,7 +93,7 @@ void PrintFunction(Base& b)
 	b.print();
 }
 
-void RegisterTestInterface(InterfaceRegistry& reg)
+void RegisterTestInterface(Registry& reg)
 {
 	reg.add_function("add", &Add, "c", "a,b");
 

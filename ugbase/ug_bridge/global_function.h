@@ -1,6 +1,6 @@
 
-#ifndef __H__UG_INTERFACE__UGBRIDGE__GLOBAL_FUNCTION__
-#define __H__UG_INTERFACE__UGBRIDGE__GLOBAL_FUNCTION__
+#ifndef __H__UG_BRIDGE__GLOBAL_FUNCTION__
+#define __H__UG_BRIDGE__GLOBAL_FUNCTION__
 
 #include <string>
 #include <vector>
@@ -8,9 +8,10 @@
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
 
-namespace ug {
-
-namespace interface{
+namespace ug
+{
+namespace bridge
+{
 
 /** Base class for function/method export
  */
@@ -158,9 +159,8 @@ struct FunctionProxy<TFunc, void>
 };
 
 
-} // end namespace interface
-
+} // end namespace bridge
 } // end namespace ug
 
 
-#endif /* __H__UG_INTERFACE__UGBRIDGE__GLOBAL_FUNCTION__ */
+#endif /* __H__UG_BRIDGE__GLOBAL_FUNCTION__ */
