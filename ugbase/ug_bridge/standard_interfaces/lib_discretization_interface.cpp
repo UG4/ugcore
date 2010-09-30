@@ -5,7 +5,7 @@
  *      Author: andreasvogel
  */
 
-#include "../ug_interface.h"
+#include "../ug_bridge.h"
 #include "lib_discretization/lib_discretization.h"
 
 //#include "../ugbridge/registry.h"

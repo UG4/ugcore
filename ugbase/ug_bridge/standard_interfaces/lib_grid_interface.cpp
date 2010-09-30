@@ -2,7 +2,8 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
-#include "../ugbridge/registry.h"
+#include "../registry.h"
+#include "../ug_bridge.h"
 #include "lib_grid/lib_grid.h"
 
 namespace ug{

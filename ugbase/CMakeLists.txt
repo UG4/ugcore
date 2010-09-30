@@ -29,7 +29,7 @@ add_subdirectory(lib_grid)
 
 ########################
 # lib_interface
-add_subdirectory(ug_interface)
+add_subdirectory(ug_bridge)
 
 ########################
 # lib_script

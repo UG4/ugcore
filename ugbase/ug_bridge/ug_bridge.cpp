@@ -2,15 +2,12 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
-#include "ug_interface.h"
+#include "ug_bridge.h"
 #include "registry.h"
 
 namespace ug{
 namespace interface
 {
-
-
-
 
 void RegisterStandardInterfaces(InterfaceRegistry& reg)
 {

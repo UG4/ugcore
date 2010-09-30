@@ -2,12 +2,13 @@
 //	s.b.reiter@googlemail.com
 //	y10 m09 d20
 
-#ifndef __H__UG__INTERFACE__
-#define __H__UG__INTERFACE__
+#ifndef __H__UG_BRIDGE__UG_BRIDGE__
+#define __H__UG_BRIDGE__UG_BRIDGE__
 
-#include "ugbridge/registry.h"
+#include "registry.h"
 
-namespace ug{
+namespace ug
+{
 namespace interface
 {
 
@@ -32,4 +33,4 @@ void RegisterTestInterface(InterfaceRegistry& reg);
 }//	end of namespace 
 }//	end of namespace 
 
-#endif
+#endif /* __H__UG_BRIDGE__UG_BRIDGE__ */

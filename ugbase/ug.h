@@ -12,7 +12,7 @@
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid/lib_grid.h"
 #include "node_tree/node_tree.h"
-#include "ug_interface/ug_interface.h"
+#include "ug_bridge/ug_bridge.h"
 #include "ug_script/ug_script.h"
 
 #ifdef UG_PARALLEL
