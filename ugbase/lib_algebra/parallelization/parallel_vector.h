@@ -11,6 +11,7 @@
 #include "pcl/pcl.h"
 #include "parallel_index_layout.h"
 #include "parallelization_util.h"
+#include "../martin_algebra/template_operations/template_expressions.h"
 
 namespace ug
 {
