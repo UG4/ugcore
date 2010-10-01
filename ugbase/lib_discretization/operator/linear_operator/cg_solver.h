@@ -122,10 +122,13 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				alpha = rho/lambda;
 
 				// update x := x + alpha*p
-				VecScaleAppend(xOut, p, alpha);
+				//VecScaleAppend(xOut, p, alpha);
+				x = x + alpha*p;
+
 
 				// update r := r - alpha*t
-				VecScaleAppend(r, t, (-1)*alpha);
+				// VecScaleAppend(r, t, (-1)*alpha);
+				r = r - alpha*t;
 
 				// check convergence
 				m_ConvCheck.update(r);
@@ -170,26 +173,6 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		virtual ~CGSolver() {};
 
 	protected:
-		bool VecScaleAppend(domain_function_type& a_func, domain_function_type& b_func, number s)
-		{
-			#ifdef UG_PARALLEL
-			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
-			else if(a_func.has_storage_type(PST_CONSISTENT) && b_func.has_storage_type(PST_CONSISTENT));
-			else if (a_func.has_storage_type(PST_ADDITIVE) && b_func.has_storage_type(PST_ADDITIVE))
-			{
-				a_func.set_storage_type(PST_ADDITIVE);
-				b_func.set_storage_type(PST_ADDITIVE);
-			}
-			#endif
-			typename domain_function_type::vector_type& a = a_func.get_vector();
-			typename domain_function_type::vector_type& b = b_func.get_vector();
-
-            for(size_t i = 0; i < a.size(); ++i)
-				a[i] += s*b[i];
-
-			return true;
-		}
-
 		number VecProd(domain_function_type& a, domain_function_type& b)
 		{
 			return a.dotprod(b);
