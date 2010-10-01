@@ -20,6 +20,7 @@ namespace lua
 
 struct UserDataWrapper
 {
+	bool	is_const;
 	void*	obj;
 };
 
@@ -30,7 +31,8 @@ struct UserDataWrapper
  * When the function is done, the userdata is left on luas stack.
  */
 static UserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
-										  const char* metatableName)
+										  const char* metatableName,
+										  bool is_const)
 {
 //	create the userdata
 	UserDataWrapper* udata = (UserDataWrapper*)lua_newuserdata(L,
@@ -38,7 +40,8 @@ static UserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 		
 //	associate the object with the userdata.
 	udata->obj = ptr;
-		
+	udata->is_const = is_const;
+	
 //	associate the metatable (userdata is already on the stack)
 	luaL_getmetatable(L, metatableName);
 	lua_setmetatable(L, -2);
@@ -92,6 +95,13 @@ static int LuaStackToParams(ParameterStack& params,
 			}break;
 			case PT_POINTER:{
 				if(lua_isuserdata(L, index)){
+				//	if the object is a const object, we can't use it here.
+					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const){
+						UG_LOG("ERROR: Can't convert const object to non-const object.\n");
+						badParam = (int)i + 1;
+						break;
+					}
+					
 				//	get the object and its metatable. Make sure that obj can be cast to
 				//	the type that is expected by the paramsTemplate.
 					void* obj = ((UserDataWrapper*)lua_touserdata(L, index))->obj;
@@ -114,6 +124,53 @@ static int LuaStackToParams(ParameterStack& params,
 						else{
 							UG_LOG("ERROR: type mismatch in argument " << i + 1);
 							UG_LOG(": Expected type that supports " << paramsTemplate.class_name(i));
+							bool gotone = false;
+							if(names){
+								if(!names->empty()){
+									gotone = true;
+									UG_LOG(", but given object of type " << names->at(0) << ".\n");
+								}
+							}
+
+							if(!gotone){
+								UG_LOG(", but given object of unknown type.\n");
+							}
+							printDefaultParamErrorMsg = false;
+							badParam = (int)i + 1;
+						}
+					}
+					else{
+						UG_LOG("METATABLE not found. ");
+						badParam = (int)i + 1;
+					}
+				}
+				else
+					badParam = (int)i + 1;
+			}break;
+			case PT_CONST_POINTER:{
+				if(lua_isuserdata(L, index)){
+				//	get the object and its metatable. Make sure that obj can be cast to
+				//	the type that is expected by the paramsTemplate.
+					const void* obj = ((UserDataWrapper*)lua_touserdata(L, index))->obj;
+					if(lua_getmetatable(L, index) != 0){
+
+						lua_pushstring(L, "names");
+						lua_rawget(L, -2);
+						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						lua_pop(L, 2);
+						bool typeMatch = false;
+						if(names){
+							if(!names->empty()){
+								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+									typeMatch = true;
+							}
+						}
+
+						if(typeMatch)
+							params.push_const_pointer(obj, names);
+						else{
+							UG_LOG("ERROR: type mismatch in argument " << i + 1);
+							UG_LOG(": Expected type that supports const " << paramsTemplate.class_name(i));
 							bool gotone = false;
 							if(names){
 								if(!names->empty()){
@@ -179,7 +236,13 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 			}break;
 			case PT_POINTER:{
 				void* obj = params.to_pointer(i);
-				CreateNewUserData(L, obj, params.class_name(i));
+				CreateNewUserData(L, obj, params.class_name(i), false);
+			}break;
+			case PT_CONST_POINTER:{
+			//	we're removing const with a cast. However, it was made sure that
+			//	obj is treated as a const value.
+				void* obj = (void*)params.to_const_pointer(i);
+				CreateNewUserData(L, obj, params.class_name(i), true);
 			}break;
 			default:{
 				UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
@@ -216,7 +279,7 @@ static int LuaProxyConstructor(lua_State* L)
 {
 	IExportedClass* c = (IExportedClass*)lua_touserdata(L, lua_upvalueindex(1));
 	
-	CreateNewUserData(L, c->create(), c->name());
+	CreateNewUserData(L, c->create(), c->name(), false);
 
 	return 1;
 }
@@ -251,22 +314,28 @@ static int LuaProxyMethod(lua_State* L)
 static int MetatableIndexer(lua_State*L)
 {
 //	the stack contains the object and the requested key.
+//	we have to make sure to only call const methods on const objects
+	bool is_const = ((UserDataWrapper*)lua_touserdata(L, 1))->is_const;
+	
 //	first we push the objects metatable onto the stack.
 	lua_getmetatable(L, 1);
 
 //	now we have to traverse the class hierarchy
 	while(1)
 	{
-	//	check whether the key is in the current metatable
-		lua_pushvalue(L, 2);
-		lua_rawget(L, -2);
+	//	if the object is not const, check whether the key is in the current metatable
+		if(!is_const){
+			lua_pushvalue(L, 2);
+			lua_rawget(L, -2);
+		
+		//	if we retrieved something != nil, we're done.
+			if(!lua_isnil(L, -1))
+				return 1;
 	
-	//	if we retrieved something != nil, we're done.
-		if(!lua_isnil(L, -1))
-			return 1;
-	
+			lua_pop(L, 1);
+		}
+		
 	//	the next thing to check are the const methods
-		lua_pop(L, 1);
 		lua_pushstring(L, "__const");
 		lua_rawget(L, -2);
 		if(!lua_isnil(L, -1)){
@@ -282,10 +351,10 @@ static int MetatableIndexer(lua_State*L)
 		//	remove nil from stack
 			lua_pop(L, 1);
 		}
+		lua_pop(L, 1);
 		
 	//	the requested key has not been in the metatable.
 	//	we thus have to check the parents metatable.
-		lua_pop(L, 1);
 		lua_pushstring(L, "__parent");
 		lua_rawget(L, -2);
 		

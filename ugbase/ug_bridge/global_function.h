@@ -137,7 +137,9 @@ struct FunctionProxy
 		return_type res = func_traits<TFunc>::apply(fp, args);
 
 	//  write result
-		PushTypeValueToParameterStack(res, out);
+		//PushTypeValueToParameterStack(res, out);
+		PLStack<return_type>::push(out);
+		PLStack<return_type>::write(out, res, -1);
 	}
 };
 

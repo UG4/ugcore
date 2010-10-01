@@ -170,6 +170,7 @@ class ExportedClass_ : public IExportedClass
 		{
 			// todo: check that name is not already used
 			ClassNameProvider<TClass>::set_name(name);
+			ClassNameProvider<const TClass>::set_name(name);
 		}
 
 	/// name of class

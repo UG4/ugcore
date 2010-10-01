@@ -172,6 +172,23 @@ struct PLStack<TClass*>
 };
 
 template <typename TClass>
+struct PLStack<const TClass*>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_const_pointer<TClass>();
+	}
+	static void write(ParameterStack& ps, const TClass* data, int index)
+	{
+		ps.set_const_pointer(index, data);
+	}
+	static const TClass* read(const ParameterStack& ps, int index)
+	{
+		return ps.to_const_pointer<TClass>(index);
+	}
+};
+
+template <typename TClass>
 struct PLStack<TClass&>
 {
 	static void push(ParameterStack& ps)
@@ -185,6 +202,23 @@ struct PLStack<TClass&>
 	static TClass& read(const ParameterStack& ps, int index)
 	{
 		return *ps.to_pointer<TClass>(index);
+	}
+};
+
+template <typename TClass>
+struct PLStack<const TClass&>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_const_pointer<TClass>();
+	}
+	static void write(ParameterStack& ps, const TClass& data, int index)
+	{
+		ps.set_const_pointer(index, &data);
+	}
+	static const TClass& read(const ParameterStack& ps, int index)
+	{
+		return *ps.to_const_pointer<TClass>(index);
 	}
 };
 
@@ -224,13 +258,14 @@ struct ParameterStackToTypeValueList :
 //////////////////////////////
 
 // WriteTypeValueToParameterStackTop
+/*
 template <typename TType>
 void PushTypeValueToParameterStack(TType& val, ParameterStack& out)
 {
 	PLStack<TType>::push(out);
 	PLStack<TType>::write(out, val, -1);
 };
-
+*/
 
 //////////////////////////////
 // CreateParameterStack

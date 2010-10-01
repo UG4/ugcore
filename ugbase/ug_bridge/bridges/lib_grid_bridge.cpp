@@ -21,23 +21,6 @@ bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 	return SaveGridToFile(grid, filename, sh);
 }
 
-class Test
-{
-	public:
-		int print()			{UG_LOG("Test::print()\n"); return 0;}
-		int print() const	{UG_LOG("Test::print() const\n"); return 1;}
-};
-
-int TestFunc(Test& t)
-{
-	return t.print();
-}
-
-int ConstTestFunc(const Test& t)
-{
-	return t.print();
-}
-
 void RegisterLibGridInterface(Registry& reg)
 {
 
@@ -69,15 +52,6 @@ void RegisterLibGridInterface(Registry& reg)
 
 //  SaveGrid
 	reg.add_function("SaveGrid", &SaveGrid);
-	
-//	test class
-	reg.add_class_<Test>("Test")
-		.add_constructor()
-		.add_method("print", (int(Test::*)()) &Test::print)
-		.add_method("print", (int(Test::*)() const) &Test::print);
-		
-	reg.add_function("TestFunc", TestFunc)
-		.add_function("ConstTestFunc", ConstTestFunc);
 }
 
 }//	end of namespace 

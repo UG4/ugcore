@@ -30,7 +30,29 @@ class Test
 			UG_LOG("Name is Test\n");
 			return 1;
 		}
+		
+		int print()			{UG_LOG("Test::print()\n"); return 0;}
+		int print() const	{UG_LOG("Test::print() const\n"); return 1;}
 };
+
+///	calls non-const print on non-const object of class Test
+int TestFunc(Test& t)
+{
+	return t.print();
+}
+
+///	calls const print on const object of class Test
+int ConstTestFunc(const Test& t)
+{
+	return t.print();
+}
+
+///	returns a const reference to a non-const object of class Test
+const Test& ToConst(Test& test)
+{
+	return test;
+}
+
 
 
 class Piece
@@ -76,12 +98,14 @@ class Cake
 class Base
 {
 	public:
+		virtual ~Base()	{}
 		virtual void print() = 0;
 };
 
 class Derived
 {
 	public:
+		virtual ~Derived()	{}
 		virtual void print()
 		{
 			UG_LOG("Derived::print() called\n");
@@ -120,6 +144,15 @@ void RegisterTestInterface(Registry& reg)
 		.add_method("print", &Derived::print);
 	reg.add_function("PrintFunction", &PrintFunction);
 
+//	test class
+	reg.add_class_<Test>("Test")
+		.add_constructor()
+		.add_method("print", (int(Test::*)()) &Test::print)
+		.add_method("print", (int(Test::*)() const) &Test::print);
+		
+	reg.add_function("TestFunc", TestFunc)
+		.add_function("ConstTestFunc", ConstTestFunc)
+		.add_function("ToConst", ToConst);
 }
 
 }//	end of namespace

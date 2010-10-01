@@ -2,6 +2,12 @@
 // s.b.reiter@googlemail.com
 // y10 m01 d19
 
+
+////////////////////////////////////////////////////////////////////////
+//	PLEASE NOTE: This file is obsolete and no longer used.
+//	It's sole purpose is to reside until all methods are copied or
+//	reimplemented in other files.
+////////////////////////////////////////////////////////////////////////
 #include "luabind/luabind.hpp"
 #include "lib_grid/lib_grid.h"
 #include "tmp_lib_grid_methods.h"

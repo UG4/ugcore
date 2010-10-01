@@ -62,12 +62,12 @@ const int PARAMETER_STACK_MAX_SIZE = 10;
 enum ParameterTypes
 {
 	PT_UNKNOWN = 0,
-	PT_BOOL = 1,
-	PT_INTEGER = 2,
-	PT_NUMBER = 3,
-	PT_STRING = 4,
-	PT_POINTER = 5,
-	PT_CONST_POINTER = 5
+	PT_BOOL,
+	PT_INTEGER,
+	PT_NUMBER,
+	PT_STRING,
+	PT_POINTER,
+	PT_CONST_POINTER
 };
 
 ////////////////////////////////////////////////////////////////////////
