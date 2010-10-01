@@ -121,9 +121,9 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				lambda = VecProd(t, p);
 				alpha = rho/lambda;
 
-				// update x := x + alpha*p
+				// update xOut := xOut + alpha*p
 				//VecScaleAppend(xOut, p, alpha);
-				x = x + alpha*p;
+				xOut = xOut + alpha*p;
 
 
 				// update r := r - alpha*t
