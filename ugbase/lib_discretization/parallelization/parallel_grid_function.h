@@ -95,16 +95,19 @@ class ParallelGridFunction : public TGridFunction, public TE_VEC<ParallelGridFun
 		this_type& operator =(const T &t)
 		{
 			VectorAssign(*this, t);
+			return *this;
 		}
 		template<typename T>
 		this_type& operator -=(const T &t)
 		{
 			VectorSub(*this, t);
+			return *this;
 		}
 		template<typename T>
 		this_type& operator +=(const T &t)
 		{
 			VectorAdd(*this, t);
+			return *this;
 		}
 
 
