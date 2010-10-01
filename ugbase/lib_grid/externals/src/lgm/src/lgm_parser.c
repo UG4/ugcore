@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "tokstream/tokstream.h"
+#include "../../../include/tokstream/tokstream.h"
 
 #include "../include/lgm.h"
 #include "../include/lgm_line.h"

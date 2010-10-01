@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "tokstream/tokstream.h"
+#include "../../../include/tokstream/tokstream.h"
 
 #include "../include/ng_node.h"
 #include "../include/ng_element.h"

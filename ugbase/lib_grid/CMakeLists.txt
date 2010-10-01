@@ -109,7 +109,6 @@ set(srcLgm
 	externals/src/lgm/src/lgm_info.c
 	externals/src/lgm/src/lgm_parser.c
 	externals/src/lgm/src/lgm_writer.c
-	externals/src/lgm/src/tokstream/tokstream.c
 )
 
 ################################################
@@ -120,14 +119,17 @@ set(srcNg
 	externals/src/ng/src/ng_info.c
 	externals/src/ng/src/ng_parser.c
 	externals/src/ng/src/ng_writer.c
-	externals/src/ng/src/tokstream/tokstream.c
+)
+
+set(srcTokstream
+	externals/src/tokstream/tokstream.c
 )
 
 #the grid library					
 add_library(grid 	${srcParallelization}
 					${srcGrid} ${srcLibGrid}
 					${srcAlgorithms} ${srcFileIO}
-					${srcTetgen} ${srcLgm} ${srcNg})
+					${srcTokstream} ${srcTetgen} ${srcLgm} ${srcNg})
 
 #for debug only
 #add_library(grid ${srcGrid} ${srcLibGrid})

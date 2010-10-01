@@ -3,7 +3,7 @@
 
 #include "../include/ng_info.h"
 
-#include "tokstream/tokstream.h"
+#include "../../../include/tokstream/tokstream.h"
 
 
 /* length of temporary error message buffer */
