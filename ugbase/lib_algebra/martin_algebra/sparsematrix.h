@@ -20,7 +20,7 @@
 #include "blocks/blockVector.h"
 #endif
 
-#include "template_expressions.h"
+#include "template_operations/template_expressions.h"
 #include "vector.h"
 
 
@@ -45,7 +45,7 @@ template<typename vec_type> class Vector;
  * \param T blocktype
  */
 template<typename T>
-class SparseMatrix : public TE_MAT<SparseMatrix<T> >
+class SparseMatrix : public TE_MAT_RowApplicable<SparseMatrix<T> >
 {
 public:
 	typedef T entry_type;
@@ -288,6 +288,9 @@ public:
 
 	//! returns number of connections of row row.
 	inline size_t num_connections(size_t row) const;
+
+	template<typename vector_t>
+	inline void mat_mult_add_row(size_t row, typename vector_t::entry_type &dest, double alpha, const vector_t &v) const;
 
 public:
 	// output functions

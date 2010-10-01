@@ -1067,6 +1067,13 @@ typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t r, siz
 }
 
 
+template<typename T>
+template<typename vector_t>
+inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::entry_type &dest, double alpha, const vector_t &v) const
+{
+	for(cRowIterator conn = beginRow(row); !conn.isEnd(); ++conn)
+		dest += alpha * (*conn).dValue * v[(*conn).iIndex];
+}
 
 } // namespace ug
 

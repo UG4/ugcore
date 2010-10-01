@@ -42,6 +42,12 @@ enum ParallelStorageType {
 	PST_UNIQUE = 1 << 2
 };
 
+ParallelStorageType operator & (const ParallelStorageType &a, const ParallelStorageType &b)
+{
+	return (ParallelStorageType) ((int)a&(int)b);
+}
+
+
 
 /**
  * A ParallelVector is a wrapper around a sequential vector to make it usable in parallel.
@@ -51,7 +57,7 @@ enum ParallelStorageType {
  * to parallel (e.g. two_norm, set)
  */
 template <typename TVector>
-class ParallelVector : public TVector
+class ParallelVector : public TVector, public TE_VEC<ParallelVector<TVector> >
 {
 	public:
 		typedef ParallelVector<TVector> this_type;
@@ -108,6 +114,9 @@ class ParallelVector : public TVector
 
 		// returns if the current storage type has a given representation
 		bool has_storage_type(ParallelStorageType type) const {return (bool)(m_type & type);}
+
+		// returns storage type mask
+		ParallelStorageType get_storage_mask() const { return (ParallelStorageType) m_type; }
 
 		// copies the storage type from another vector
 		void copy_storage_type(const this_type& v) {m_type = v.m_type;}

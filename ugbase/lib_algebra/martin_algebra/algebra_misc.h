@@ -14,6 +14,22 @@ namespace ug
 
 //! prevent unused variable-warnings
 #define UNUSED_VARIABLE(var) ((void) var);
+
+
+//!
+//! template struct for sorting some keys after values
+//! for example, sorting a vector of ints and know original pos
+template<typename T>
+struct sortStruct
+{
+	size_t index; // for example "original" position.
+	T sortValue;
+
+	bool operator < (const sortStruct<T> &other) const
+	{
+		return sortValue < other.sortValue;
+	}
+};
 }
 
 

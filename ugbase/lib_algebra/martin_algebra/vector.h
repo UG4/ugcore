@@ -11,7 +11,7 @@
 
 #include "sparsematrix.h"
 
-#include "template_expressions.h"
+#include "template_operations/template_expressions.h"
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////

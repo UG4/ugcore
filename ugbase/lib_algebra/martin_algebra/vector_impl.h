@@ -88,40 +88,46 @@ template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
 {
 	//IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
-	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
+	/*UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	t.preventForbiddenDestination(this);
 
 	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
 		t.assign(values[i], i);
-	}
+	}*/
+	VectorAssign(*this, t);
 }
 
 // v += exp
 template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator += (const Type &t)
 {
-	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
+	/*UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 
 	for(size_t i=0; i < length; i++)
 	{
 		prefetchReadWrite(values+i+512);
 		t.addTo(values[i], i);
-	}
+	}*/
+	VectorAdd(*this, t);
 }
 
 // v -= exp
 template<typename entry_type>
 template<typename Type> inline void Vector<entry_type>::operator -= (const Type &t)
 {
-	UG_DLOG(LIB_ALG_VECTOR, 5, *this << " -= " << t << " (unspecialized) ");
+	/*UG_DLOG(LIB_ALG_VECTOR, 5, *this << " -= " << t << " (unspecialized) ");
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 	//t.preventForbiddenDestination(this);
 
 	for(size_t i=0; i < length; i++)
 		t.substractFrom(values[i], i);
+		*/
+	VectorSub(*this, t);
 }
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

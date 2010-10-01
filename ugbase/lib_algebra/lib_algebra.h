@@ -13,11 +13,6 @@
 // other ug4 modules
 #include "common/common.h"
 
-// parallel support
-#ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
-#endif
-
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 //   Algebra
@@ -31,6 +26,46 @@
  *  - vector_type
  *  - index_type
  */
+
+/////////////////////////////////////////////
+//   Martin Algebra
+/////////////////////////////////////////////
+
+#include "martin_algebra/algebra_misc.h"
+#include "martin_algebra/vector.h"
+#include "martin_algebra/sparsematrix.h"
+#include "martin_algebra/core_smoothers.h"
+
+#ifdef LAPACK_AVAILABLE
+#ifdef BLAS_AVAILABLE
+#include "martin_algebra/lapack/lapack.h"
+#include "martin_algebra/lapack_lu.h"
+#endif
+#endif
+
+// parallel support
+#ifdef UG_PARALLEL
+	#include "lib_algebra/parallelization/parallelization.h"
+#endif
+
+
+namespace ug
+{
+class MartinAlgebra
+	{
+	public:
+		// matrix type
+		typedef SparseMatrix<double> matrix_type;
+
+		// vector type
+#ifdef UG_PARALLEL
+		typedef ParallelVector<Vector<double> > vector_type;
+#else
+		typedef Vector<double> vector_type;
+#endif
+	};
+}
+
 
 /////////////////////////////////////////////
 //   ublas algebra
@@ -83,40 +118,6 @@ class HypreAlgebra{
 }
 
 #endif
-
-/////////////////////////////////////////////
-//   Martin Algebra
-/////////////////////////////////////////////
-
-#include "martin_algebra/algebra_misc.h"
-#include "martin_algebra/vector.h"
-#include "martin_algebra/sparsematrix.h"
-#include "martin_algebra/core_smoothers.h"
-
-#ifdef LAPACK_AVAILABLE
-#ifdef BLAS_AVAILABLE
-#include "martin_algebra/lapack/lapack.h"
-#include "martin_algebra/lapack_lu.h"
-#endif
-#endif
-
-namespace ug
-{
-class MartinAlgebra
-	{
-	public:
-		// matrix type
-		typedef SparseMatrix<double> matrix_type;
-
-		// vector type
-#ifdef UG_PARALLEL
-		typedef ParallelVector<Vector<double> > vector_type;
-#else
-		typedef Vector<double> vector_type;
-#endif
-	};
-}
-
 
 
 #endif /* __H__LIB_ALGEBRA__LIB_ALGEBRA__ */
