@@ -142,7 +142,7 @@ Grid::end() const
 ////////////////////////////////////////////////////////////////////////
 //	element numbers
 template <class TGeomObj>
-uint Grid::num() const
+size_t Grid::num() const
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);
@@ -157,7 +157,7 @@ uint Grid::num() const
 }
 
 template <class TGeomObj>
-uint Grid::attachment_container_size() const
+size_t Grid::attachment_container_size() const
 {
 	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
 		invalid_GeomObj);

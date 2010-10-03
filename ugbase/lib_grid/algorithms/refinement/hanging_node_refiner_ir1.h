@@ -50,6 +50,7 @@ class HangingNodeRefiner_IR1 : public GridObserver
 
 		void assign_grid(Grid& grid);
 		void set_refinement_callback(IRefinementCallback* refCallback);
+		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
 		
 		void clear_marks();
 		void mark_for_refinement(EdgeBase* e);

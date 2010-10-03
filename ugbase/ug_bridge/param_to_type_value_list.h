@@ -66,6 +66,23 @@ struct PLStack<int>
 };
 
 template <>
+struct PLStack<size_t>
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_integer();
+	}
+	static void write(ParameterStack& ps, size_t data, int index)
+	{
+		ps.set_integer(index, (int)data);
+	}
+	static size_t read(const ParameterStack& ps, int index)
+	{
+		return (size_t)ps.to_integer(index);
+	}
+};
+
+template <>
 struct PLStack<float>
 {
 	static void push(ParameterStack& ps)

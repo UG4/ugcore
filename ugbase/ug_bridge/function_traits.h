@@ -62,6 +62,44 @@ struct func_traits <TRet (*) (T1, T2, T3)>
 	};
 };
 
+template <typename TRet, typename T1, typename T2, typename T3,
+		  typename T4>
+struct func_traits <TRet (*) (T1, T2, T3, T4)>
+{
+	typedef TRet return_type;
+	typedef TypeList<T1, T2, T3, T4> params_type;
+	static TRet apply(TRet (*fp)(T1, T2, T3, T4),  TypeValueList<params_type>& args)
+	{
+		return fp(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd);
+	};
+};
+
+template <typename TRet, typename T1, typename T2, typename T3,
+		  typename T4, typename T5>
+struct func_traits <TRet (*) (T1, T2, T3, T4, T5)>
+{
+	typedef TRet return_type;
+	typedef TypeList<T1, T2, T3> params_type;
+	static TRet apply(TRet (*fp)(T1, T2, T3, T4, T5),  TypeValueList<params_type>& args)
+	{
+		return fp(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.hd);
+	};
+};
+
+template <typename TRet, typename T1, typename T2, typename T3,
+		  typename T4, typename T5, typename T6>
+struct func_traits <TRet (*) (T1, T2, T3, T4, T5, T6)>
+{
+	typedef TRet return_type;
+	typedef TypeList<T1, T2, T3> params_type;
+	static TRet apply(TRet (*fp)(T1, T2, T3, T4, T5, T6),  TypeValueList<params_type>& args)
+	{
+		return fp(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.hd);
+	};
+};
+
 //todo: implement more ...
 
 ////////////////////////////////

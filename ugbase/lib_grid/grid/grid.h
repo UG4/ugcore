@@ -331,21 +331,21 @@ class Grid
 	////////////////////////////////////////////////
 	//	element numbers
 		template <class TGeomObj>
-		uint num() const;
-		inline uint num_vertices() const	{return num<VertexBase>();}
-		inline uint num_edges() const		{return num<EdgeBase>();}
-		inline uint num_faces()	const		{return num<Face>();}
-		inline uint num_volumes()const		{return num<Volume>();}
+		size_t num() const;
+		inline size_t num_vertices() const	{return num<VertexBase>();}
+		inline size_t num_edges() const		{return num<EdgeBase>();}
+		inline size_t num_faces()	const		{return num<Face>();}
+		inline size_t num_volumes()const		{return num<Volume>();}
 
-		uint vertex_fragmentation();	///< returns the number of unused vertex-data-entries.
-		uint edge_fragmentation();		///< returns the number of unused edge-data-entries.
-		uint face_fragmentation();		///< returns the number of unused face-data-entries.
-		uint volume_fragmentation();	///< returns the number of unused volume-data-entries.
+		size_t vertex_fragmentation();	///< returns the number of unused vertex-data-entries.
+		size_t edge_fragmentation();		///< returns the number of unused edge-data-entries.
+		size_t face_fragmentation();		///< returns the number of unused face-data-entries.
+		size_t volume_fragmentation();	///< returns the number of unused volume-data-entries.
 
 	///	returns the size of the associated attachment containers.
 	/**	valid types for TGeomObj are VertexBase, EdgeBase, Face, Volume.*/
 		template <class TGeomObj>
-		uint attachment_container_size() const;
+		size_t attachment_container_size() const;
 
 	////////////////////////////////////////////////
 	//	connectivity-information

@@ -6,13 +6,13 @@
  */
 
 #include "../ug_bridge.h"
-#include "lib_discretization/lib_discretization.h"
+//#include "lib_discretization/lib_discretization.h"
 
 namespace ug
 {
 namespace bridge
 {
-
+/*
 template <typename TDomain>
 bool LoadDomain(TDomain& domain, const char* filename)
 {
@@ -30,10 +30,10 @@ bool AddP1Function(P1ConformFunctionPattern& pattern, std::string name, int dim)
 {
 	return pattern.add_discrete_function(name, LSFS_LAGRANGEP1, dim);
 }
-
+*/
 void RegisterLibDiscretizationInterface(Registry& reg)
 {
-
+/*
 //	Domain2d
 	{
 	typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
@@ -89,7 +89,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 			.add_method("assign_domain", &T::assign_domain)
 			.add_method("assign_function_pattern", &T::assign_function_pattern);
 	}
-
+*/
 }
 
 

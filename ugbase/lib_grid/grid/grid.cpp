@@ -386,22 +386,22 @@ void Grid::flip_orientation(Volume* vol)
 		vol->m_vertices[i] = vd.vertex(i);
 }
 
-uint Grid::vertex_fragmentation()
+size_t Grid::vertex_fragmentation()
 {
 	return m_elementStorage[VERTEX].m_attachmentPipe.num_data_entries() - m_elementStorage[VERTEX].m_attachmentPipe.num_elements();
 }
 
-uint Grid::edge_fragmentation()
+size_t Grid::edge_fragmentation()
 {
 	return m_elementStorage[EDGE].m_attachmentPipe.num_data_entries() - m_elementStorage[EDGE].m_attachmentPipe.num_elements();
 }
 
-uint Grid::face_fragmentation()
+size_t Grid::face_fragmentation()
 {
 	return m_elementStorage[FACE].m_attachmentPipe.num_data_entries() - m_elementStorage[FACE].m_attachmentPipe.num_elements();
 }
 
-uint Grid::volume_fragmentation()
+size_t Grid::volume_fragmentation()
 {
 	return m_elementStorage[VOLUME].m_attachmentPipe.num_data_entries() - m_elementStorage[VOLUME].m_attachmentPipe.num_elements();
 }
