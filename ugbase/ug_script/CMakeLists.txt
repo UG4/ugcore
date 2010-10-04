@@ -82,4 +82,8 @@ if(NOT NO_ALGEBRA)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)
-add_library(ugscript  ${srcUGScript} ${srcLua})
+
+
+set(Sources ${srcUGScript} ${srcLua})
+EXPORTSOURCES(ug_script  ${Sources})
+add_library(ugscript  ${Sources})

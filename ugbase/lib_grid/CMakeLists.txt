@@ -126,10 +126,16 @@ set(srcTokstream
 )
 
 #the grid library					
-add_library(grid 	${srcParallelization}
+
+set(Sources
+                                        ${srcParallelization}
 					${srcGrid} ${srcLibGrid}
 					${srcAlgorithms} ${srcFileIO}
 					${srcTokstream} ${srcTetgen} ${srcLgm} ${srcNg})
+
+EXPORTSOURCES("lib_grid" ${Sources})
+
+add_library(grid STATIC	${Sources})
 
 #for debug only
 #add_library(grid ${srcGrid} ${srcLibGrid})

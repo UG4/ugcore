@@ -51,6 +51,9 @@
 # Please note that UG_DEBUG should not be set in any CMakeLists.txt file. It should
 # only be used as a command-line parameter to cmake.
 #
+# If you want to build a library using ug_cmake_includes.txt, you should call
+# set(UG_LIBRARY_BUILD on) before including ug_cmake_includes.txt.
+# This will avoid unnecessary calls to link_libraries.
 #
 # DEFINES
 # Some defines that are accessible from your source-code are defined here:
@@ -192,7 +195,12 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	# UG_LIBRARIES
 	# clear UG_LIBRARIES
 	# THE ORDER OF THE LIBRARIES IN UG_LIBRARIES IS CRUCIAL FOR THE LINKER
-	set(UG_LIBRARIES ugscript ugbridge)
+
+        set(UG_LIBRARIES)
+
+        if(NOT NO_UGBRIDGE)
+            set(UG_LIBRARIES ugscript ugbridge)
+        endif(NOT NO_UGBRIDGE)
 
 	if(NOT NO_ALGEBRA)
 		set(UG_LIBRARIES ${UG_LIBRARIES} discretization algebra)
@@ -213,8 +221,18 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		set(UG_LIBRARIES ${UG_LIBRARIES} ${MPI_LIBS})
 	endif(MPI_FOUND)
 
-	link_libraries(${UG_LIBRARIES})
-	
+
+        if(UG_LIBRARY_BUILD)
+        #   if we're building a library, only mpi has to be linked.
+        #   this is important for the shared library
+            if(MPI_FOUND)
+                link_libraries(${MPI_LIBS})
+            endif(MPI_FOUND)
+        else(UG_LIBRARY_BUILD)
+            link_libraries(${UG_LIBRARIES})
+        endif(UG_LIBRARY_BUILD)
+
+
 	#######################
 	# Fortran compiler
 	# is needed for find_package(LAPACK)
@@ -325,5 +343,28 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		endif(BLAS_FOUND)
 
 	endif(NO_BLAS)
+
+
+        #######################
+        # Export sources to global variable.
+        # PURPOSE: use this function to add local package sources to global
+        #          ugSources property which is used to build libug4
+        # @param prefix current directory prefix
+        # @param sources sources list to export
+        function(ExportSources prefix sources)
+            # iterate over all arguments and insert given prefix
+            foreach(l ${ARGV})
+                # FIXME: this is a hack to omit the first argument
+                #        which is the prefix. Shall we use boolean or index variable?
+                if(NOT "${l}" STREQUAL "${prefix}")
+                    # retrieve the global property ugSources and store it
+                    # in tmp variable
+                    # NOTE: properties must be assigned to variables before being used
+                    get_property(tmp GLOBAL PROPERTY ugSources)
+                    # append tmp to the global ugSources property using the correct prefix
+                    set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
+                endif(NOT "${l}" STREQUAL "${prefix}")
+            endforeach(l)
+        endfunction(ExportSources)
 
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)

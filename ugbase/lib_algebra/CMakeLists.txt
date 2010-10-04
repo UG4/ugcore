@@ -41,6 +41,7 @@ if(NOT NO_ALGEBRA)
 
 	##########################
 	# setup library
+        EXPORTSOURCES(lib_algebra ${src_Algebra})
 
 	add_library(algebra ${src_Algebra} )
 	add_dependencies(algebra common lib_algebra.h)

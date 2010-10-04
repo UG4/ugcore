@@ -16,4 +16,5 @@ set(srcPcl	pcl_base.cpp
 			pcl_methods.cpp
 			pcl_process_communicator.cpp)
 
+EXPORTSOURCES(pcl ${srcPcl})
 add_library(pcl ${srcPcl})

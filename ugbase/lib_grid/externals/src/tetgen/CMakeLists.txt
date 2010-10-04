@@ -1,3 +1,5 @@
+# not in use for ug4
+
 cmake_minimum_required(VERSION 2.6)
 
 ####

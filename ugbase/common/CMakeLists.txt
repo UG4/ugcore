@@ -24,4 +24,8 @@ set(srcProfiler	profiler/src/ShinyManager.cpp
 				profiler/src/ShinyOutput.cpp
 				profiler/src/ShinyTools.cpp)
 
+
+EXPORTSOURCES("common" ${srcCommon})
+EXPORTSOURCES("common" ${srcProfiler})
+
 add_library(common ${srcCommon} ${srcProfiler})

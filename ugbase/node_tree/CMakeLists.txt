@@ -19,4 +19,10 @@ set(srcNodeTree	boxed_group_node.cpp
 set(srcTraversers	traversers/traverser_collision_tree.cpp
 				traversers/traverser_project_point.cpp)
 
-add_library(node_tree ${srcNodeTree} ${srcTraversers})
+
+
+set(Sources     ${srcNodeTree} ${srcTraversers})
+
+
+ExportSources("node_tree" ${Sources})
+add_library(node_tree STATIC ${Sources})

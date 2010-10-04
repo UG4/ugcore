@@ -68,3 +68,24 @@ else(MPI_FOUND)
 	endif(NO_PCL)
 
 endif(MPI_FOUND)
+
+########################
+# ug4 library
+
+get_property(ugSources GLOBAL PROPERTY ugSources)
+
+# todo: Find a better way to set those properties.
+#       They are required for file that are part of lib_grid.
+#       However - since lib_grid is a sub-script of this one,
+#       those properties are not stored (I believe so).
+set_source_files_properties(lib_grid/externals/src/tetgen/predicates.cxx
+	PROPERTIES COMPILE_FLAGS -O0)
+set_source_files_properties(lib_grid/externals/src/tetgen/tetgen.cxx
+	PROPERTIES COMPILE_FLAGS -w)
+
+# the definition -DTETLIBRARY has to be set on this level.
+# this is important for the tetlibrary, which is compiled as
+# a part of lib_grid.
+add_definitions(-DTETLIBRARY)
+
+add_library(ug4 SHARED ${ugSources})

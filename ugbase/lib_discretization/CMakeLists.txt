@@ -37,6 +37,7 @@ set(srcDiscretization	common/function_group.cpp
 						#spacial_discretization/coupled_elem_disc/elem_data/linker.cpp)
 
 
-add_library(discretization 	${srcDiscretization})
-
+EXPORTSOURCES(lib_discretization ${srcDiscretization})
+add_library(discretization STATIC ${srcDiscretization})
 add_dependencies(discretization algebra grid common)
+

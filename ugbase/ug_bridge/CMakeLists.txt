@@ -27,4 +27,7 @@ if(NOT NO_ALGEBRA)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)
-add_library(ugbridge  ${srcUGBridge} ${srcLua})
+
+set(Sources ${srcUGBridge})
+EXPORTSOURCES(ug_bridge  ${Sources})
+add_library(ugbridge  ${Sources})
