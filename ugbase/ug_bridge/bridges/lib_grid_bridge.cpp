@@ -5,6 +5,7 @@
 #include "../registry.h"
 #include "../ug_bridge.h"
 #include "lib_grid/lib_grid.h"
+#include "common/profiler/profiler.h"
 
 namespace ug
 {
