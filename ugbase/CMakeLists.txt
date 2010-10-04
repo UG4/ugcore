@@ -72,7 +72,7 @@ endif(MPI_FOUND)
 ########################
 # ug4 library
 
-get_property(ugSources GLOBAL PROPERTY ugSources)
+get_property(ug4libSources GLOBAL PROPERTY ugSources)
 
 # todo: Find a better way to set those properties.
 #       They are required for file that are part of lib_grid.
@@ -88,4 +88,4 @@ set_source_files_properties(lib_grid/externals/src/tetgen/tetgen.cxx
 # a part of lib_grid.
 add_definitions(-DTETLIBRARY)
 
-add_library(ug4 SHARED ${ugSources})
+add_library(ug4 SHARED ${ug4libSources})
