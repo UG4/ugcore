@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
 
-#include "lib_algebra/operator/operator_interface.h"
+#include "lib_discretization/operator/operator.h"
 #include "common/profiler/profiler.h"
 #include "lib_discretization/io/vtkoutput.h"
 namespace ug{
@@ -25,7 +25,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 
 	public:
 			CGSolver( 	ILinearizedIteratorOperator<TFunction,TFunction>* Precond,
-						ConvergenceCheck& ConvCheck) :
+						ConvergenceCheck<TFunction>& ConvCheck) :
 							m_pPrecond(Precond), m_ConvCheck(ConvCheck)
 			{};
 
@@ -122,10 +122,13 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				alpha = rho/lambda;
 
 				// update xOut := xOut + alpha*p
-				VecScaleAdd(xOut, 1.0, xOut, alpha, p);
+				//VecScaleAppend(xOut, p, alpha);
+				xOut = xOut + alpha*p;
+
 
 				// update r := r - alpha*t
-				VecScaleAdd(r, 1.0, r, -alpha, t);
+				// VecScaleAppend(r, t, (-1)*alpha);
+				r = r - alpha*t;
 
 				// check convergence
 				m_ConvCheck.update(r);
@@ -183,7 +186,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		ILinearizedIteratorOperator<TFunction,TFunction>* m_pPrecond;
 
 		// Convergence Check
-		ConvergenceCheck& m_ConvCheck;
+		ConvergenceCheck<TFunction>& m_ConvCheck;
 
 		// current solution
 		TFunction* m_pCurrentU;
