@@ -150,6 +150,24 @@ bool IsVolumeBoundaryFace(Grid& grid, Face* f)
 	return false;
 }
 
+bool IsVolumeBoundaryFace(Grid& grid, ConstrainedFace* f)
+{
+	static vector<Volume*> vols;//avoid repeated reallocation
+	CollectVolumes(vols, grid, f);
+	if(vols.size() == 0)
+		return true;
+	return false;
+}
+
+bool IsVolumeBoundaryFace(Grid& grid, ConstrainingFace* f)
+{
+	static vector<Volume*> vols;//avoid repeated reallocation
+	CollectVolumes(vols, grid, f);
+	if(vols.size() == 0)
+		return true;
+	return false;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	FaceQuality
 number FaceQuality(Face* f,

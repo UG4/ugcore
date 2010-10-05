@@ -82,8 +82,27 @@ void CalculateFaceNormals(Grid& grid, const FaceIterator& facesBegin,
 //	IsVolumeBoundaryFace
 ///	returns true if the given face is a boundary face.
 /**	A face is regarded as a boundary face if it is adjacent
- *	to exactly one volume.*/
+ *	to exactly one volume.
+ *
+ *	Please note that overloads of this function for Constrained- and
+ *	ConstrainingFaces exist.*/
 bool IsVolumeBoundaryFace(Grid& grid, Face* f);
+
+////////////////////////////////////////////////////////////////////////
+//	IsVolumeBoundaryFace
+///	returns true if the given face is a boundary face.
+/**	Overload for ConstrainedFace.
+ *	A face is regarded as a boundary face if it is adjacent
+ *	to exactly one volume.*/
+bool IsVolumeBoundaryFace(Grid& grid, ConstrainedFace* f);
+
+////////////////////////////////////////////////////////////////////////
+//	IsVolumeBoundaryFace
+///	returns true if the given face is a boundary face.
+/**	Overload for ConstrainedFace.
+ *	A face is regarded as a boundary face if it is adjacent
+ *	to exactly one volume.*/
+bool IsVolumeBoundaryFace(Grid& grid, ConstrainingFace* f);
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceQuality
