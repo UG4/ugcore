@@ -8,7 +8,7 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
 
-#include "lib_discretization/operator/operator.h"
+#include "lib_algebra/operator/operator_interface.h"
 #include "common/profiler/profiler.h"
 #include "lib_discretization/io/vtkoutput.h"
 namespace ug{
@@ -25,7 +25,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 
 	public:
 			CGSolver( 	ILinearizedIteratorOperator<TFunction,TFunction>* Precond,
-						ConvergenceCheck<TFunction>& ConvCheck) :
+						ConvergenceCheck& ConvCheck) :
 							m_pPrecond(Precond), m_ConvCheck(ConvCheck)
 			{};
 
@@ -156,7 +156,8 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				beta = rho_new/rho;
 
 				// new direction p:= beta*p + z
-				VecScaleAdd(p, beta, p, 1.0, z);
+				p *= beta;
+				p += z;
 
 				// update rho
 				rho = rho_new;
@@ -182,7 +183,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 		ILinearizedIteratorOperator<TFunction,TFunction>* m_pPrecond;
 
 		// Convergence Check
-		ConvergenceCheck<TFunction>& m_ConvCheck;
+		ConvergenceCheck& m_ConvCheck;
 
 		// current solution
 		TFunction* m_pCurrentU;
