@@ -12,13 +12,11 @@
 #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_discretization/parallelization/parallelization.h"
 
-#include "lib_algebra/martin_algebra/template_operations/operations.h"
-
 namespace ug
 {
 
 template <typename TGridFunction>
-class ParallelGridFunction : public TGridFunction
+class ParallelGridFunction : public TGridFunction, public TE_VEC<ParallelGridFunction<TGridFunction> >
 {
 	public:
 		typedef ParallelGridFunction<TGridFunction> this_type;
@@ -49,8 +47,7 @@ class ParallelGridFunction : public TGridFunction
 		ParallelGridFunction() : TGridFunction() {};
 
 		// Constructor
-		ParallelGridFunction(	std::string name, approximation_space_type& approxSpace,
-								dof_distribution_type& DoFDistr, bool allocate = true)
+		ParallelGridFunction(std::string name, approximation_space_type& approxSpace, dof_distribution_type& DoFDistr, bool allocate = true)
 			: TGridFunction(name, approxSpace, DoFDistr, allocate)
 		{
 			if(allocate)
@@ -93,10 +90,31 @@ class ParallelGridFunction : public TGridFunction
 		this_type& operator=(const this_type& v)
 			{assign(v); return *this;}
 
+		// for Template Expressions
+		template<typename T>
+		this_type& operator =(const T &t)
+		{
+			VectorAssign(*this, t);
+			return *this;
+		}
+		template<typename T>
+		this_type& operator -=(const T &t)
+		{
+			VectorSub(*this, t);
+			return *this;
+		}
+		template<typename T>
+		this_type& operator +=(const T &t)
+		{
+			VectorAdd(*this, t);
+			return *this;
+		}
+
+
 
 		// set all dofs on level 'level' to value 'w'
 		bool set(number w, ParallelStorageType type = PST_CONSISTENT)
-			{return TGridFunction::get_vector().set(w, type);}
+			{return TGridFunction::m_pVector->set(w, type);}
 
 		////////////////////////////
 		// Storage type
@@ -104,34 +122,34 @@ class ParallelGridFunction : public TGridFunction
 
 		// changes to the requested storage type if possible
 		bool change_storage_type(ParallelStorageType type)
-			{return TGridFunction::get_vector().change_storage_type(type);}
+			{return TGridFunction::m_pVector->change_storage_type(type);}
 
 		// returns if the current storage type has a given representation
 		bool has_storage_type(ParallelStorageType type) const
-			{return TGridFunction::get_vector().has_storage_type(type);}
+			{return TGridFunction::m_pVector->has_storage_type(type);}
 
 		// returns storage type mask
-		ParallelStorageType get_storage_mask() const { return TGridFunction::get_vector().get_storage_mask(); }
+		ParallelStorageType get_storage_mask() const { return TGridFunction::m_pVector->get_storage_mask(); }
 
 		// sets the storage type
 		void set_storage_type(ParallelStorageType type)
-			{TGridFunction::get_vector().set_storage_type(type);}
+			{TGridFunction::m_pVector->set_storage_type(type);}
 
 		// adds the storage type
 		void add_storage_type(ParallelStorageType type)
-			{TGridFunction::get_vector().add_storage_type(type);}
+			{TGridFunction::m_pVector->add_storage_type(type);}
 
 		// removes the storage type
 		void remove_storage_type(ParallelStorageType type)
-			{TGridFunction::get_vector().remove_storage_type(type);}
+			{TGridFunction::m_pVector->remove_storage_type(type);}
 
 		// copies the storage type from another vector
 		void copy_storage_type(const this_type& v)
-			{TGridFunction::get_vector().copy_storage_type(v.TGridFunction::get_vector());}
+			{TGridFunction::m_pVector->copy_storage_type(*v.TGridFunction::m_pVector);}
 
-	///////////////////////////////
-	// index layouts
-	///////////////////////////////
+		///////////////////////////////
+		// index layouts
+		///////////////////////////////
 
 		inline IndexLayout& get_slave_layout()	{return TGridFunction::m_pDoFDistribution->get_slave_layout();}
 		inline IndexLayout& get_master_layout()	{return TGridFunction::m_pDoFDistribution->get_master_layout();}
@@ -141,27 +159,65 @@ class ParallelGridFunction : public TGridFunction
 		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return TGridFunction::m_pDoFDistribution->get_communicator();;}
 		inline pcl::ProcessCommunicator& get_process_communicator()	{return TGridFunction::m_pDoFDistribution->get_process_communicator();}
 
-	///////////////////////////////
-	// help functions
-	///////////////////////////////
+		///////////////////////////////
+		// help functions
+		///////////////////////////////
+
 	protected:
-		// forward all layouts from DoFDistribution to algebra Vector
 		void set_layouts()
 		{
-		//	since we inherite from a Parallel<TVector>, the following functions are inherited
-			set_slave_layout(get_slave_layout());
-			set_master_layout(get_master_layout());
-			set_vertical_slave_layout(get_vertical_slave_layout());
-			set_vertical_master_layout(get_vertical_master_layout());
+			if(TGridFunction::m_pVector != NULL)
+			{
+				TGridFunction::m_pVector->set_slave_layout(TGridFunction::m_pDoFDistribution->get_slave_layout());
+				TGridFunction::m_pVector->set_master_layout(TGridFunction::m_pDoFDistribution->get_master_layout());
+				TGridFunction::m_pVector->set_vertical_slave_layout(TGridFunction::m_pDoFDistribution->get_vertical_slave_layout());
+				TGridFunction::m_pVector->set_vertical_master_layout(TGridFunction::m_pDoFDistribution->get_vertical_master_layout());
 
-			set_communicator(get_communicator());
-			set_process_communicator(get_process_communicator());
+				TGridFunction::m_pVector->set_communicator(TGridFunction::m_pDoFDistribution->get_communicator());
+				TGridFunction::m_pVector->set_process_communicator(TGridFunction::m_pDoFDistribution->get_process_communicator());
+			}
 		}
 
 
 };
 
+// for template expressions
+// d = alpha*v1
+template<typename T>
+inline void VecScale(ParallelGridFunction<T> &dest,
+		double alpha1, const ParallelGridFunction<T> &v1)
+{
+	dest.copy_storage_type(v1);
+	VecScale(dest.get_vector(), alpha1, v1.get_vector());
+}
 
+
+// dest = alpha1*v1 + alpha2*v2
+template<typename T>
+inline void VecScaleAdd(ParallelGridFunction<T>  &dest,
+		double alpha1, const ParallelGridFunction<T> &v1,
+		double alpha2, const ParallelGridFunction<T> &v2)
+{
+	ParallelStorageType mask = v1.get_storage_mask() & v2.get_storage_mask();
+	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	dest.set_storage_type(mask);
+
+	VecScaleAdd(dest.get_vector(), alpha1, v1.get_vector(), alpha2, v2.get_vector());
+}
+
+// dest = alpha1*v1 + alpha2*v2 + alpha3*v3
+template<typename T>
+inline void VecScaleAdd(ParallelGridFunction<T> &dest,
+		double alpha1, const ParallelGridFunction<T> &v1,
+		double alpha2, const ParallelGridFunction<T> &v2,
+		double alpha3, const ParallelGridFunction<T> &v3)
+{
+	ParallelStorageType mask = v1.get_storage_mask() & v2.get_storage_mask() & v3.get_storage_mask();
+	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	dest.set_storage_type(mask);
+
+	VecScaleAdd(dest.get_vector(), alpha1, v1.get_vector(), alpha2, v2.get_vector(), alpha3, v3.get_vector());
+}
 
 
 } // end namespace ug
