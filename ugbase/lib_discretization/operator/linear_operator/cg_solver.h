@@ -122,13 +122,10 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				alpha = rho/lambda;
 
 				// update xOut := xOut + alpha*p
-				//VecScaleAppend(xOut, p, alpha);
-				xOut = xOut + alpha*p;
-
+				VecScaleAdd(xOut, 1.0, xOut, alpha, p);
 
 				// update r := r - alpha*t
-				// VecScaleAppend(r, t, (-1)*alpha);
-				r = r - alpha*t;
+				VecScaleAdd(r, 1.0, r, -alpha, t);
 
 				// check convergence
 				m_ConvCheck.update(r);
@@ -159,8 +156,7 @@ class CGSolver : public ILinearizedOperatorInverse<TFunction, TFunction>
 				beta = rho_new/rho;
 
 				// new direction p:= beta*p + z
-				p *= beta;
-				p += z;
+				VecScaleAdd(p, beta, p, 1.0, z);
 
 				// update rho
 				rho = rho_new;
