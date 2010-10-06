@@ -34,15 +34,10 @@ class Registry {
 										const char* tooltip = "", const char* help = "")
 		{
 		//  create new exported function
-			m_vFunction.push_back(new ExportedFunction(	(void*) func, &FunctionProxy<TFunc>::apply,
+			m_vFunction.push_back(new ExportedFunction(	func, &FunctionProxy<TFunc>::apply,
 														funcName, retValName, paramValNames,
 														tooltip, help));
 	
-		//  create parameter in list
-			ParameterStack& in = m_vFunction.back()->params_in();
-			typedef typename func_traits<TFunc>::params_type params_type;
-			CreateParameterStack<params_type>::create(in);
-
 			return *this;
 		}
 

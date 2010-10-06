@@ -55,6 +55,15 @@ class ExportedFunctionBase
 		ParameterStack& params_in() 								{return m_paramsIn;}
 
 	protected:
+		template <typename TFunc>
+		void create_parameter_stack()
+		{
+			typedef typename func_traits<TFunc>::params_type params_type;
+			CreateParameterStack<params_type>::create(m_paramsIn);
+			for(int i = (int)m_vParamValNames.size(); i < m_paramsIn.size(); ++i)
+				m_vParamValNames.push_back(std::string(""));
+		}
+		
 		// help function to tokenize the parameter string
 		void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters)
 		{
@@ -96,12 +105,15 @@ class ExportedFunction : public ExportedFunctionBase
 	typedef void (*ProxyFunc)(void* func, const ParameterStack& in, ParameterStack& out);
 
 	public:
-		ExportedFunction(	void* f, ProxyFunc pf,
+		template <typename TFunc>
+		ExportedFunction(	TFunc f, ProxyFunc pf,
 							const char* name, const char* retValName, const char* paramValNames,
 							const char* tooltip, const char* help)
 			: ExportedFunctionBase( name , retValName, paramValNames, tooltip, help),
-			  m_func(f), m_proxy_func(pf)
-		{}
+			  m_func((void*)f), m_proxy_func(pf)
+		{
+			create_parameter_stack<TFunc>();
+		}
 
 	/// executes the function
 		void execute(const ParameterStack& paramsIn, ParameterStack& paramsOut) const

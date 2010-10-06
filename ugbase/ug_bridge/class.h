@@ -63,6 +63,13 @@ class ExportedMethod : public ExportedFunctionBase
 			m_proxy_func(m_ptrWrapper, obj, paramsIn, paramsOut);
 		}
 
+	/// \todo: replace this method with a better integrated way.
+		template <typename TFunc>
+		void create_parameter_stack()
+		{
+			ExportedFunctionBase::create_parameter_stack<TFunc>();
+		}
+		
 	private:
 		// pointer to function (stored in a wrapper)
 		MethodPtrWrapper m_ptrWrapper;
@@ -209,9 +216,7 @@ class ExportedClass_ : public IExportedClass
 				m_vMethod.push_back(nMethod);
 				
 		//  create parameter in list
-			ParameterStack& in = nMethod->params_in();
-			typedef typename func_traits<TMethod>::params_type params_type;
-			CreateParameterStack<params_type>::create(in);
+			nMethod->create_parameter_stack<TMethod>();
 
 			return *this;
 		}
