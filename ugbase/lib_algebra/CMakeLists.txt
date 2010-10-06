@@ -43,8 +43,10 @@ if(NOT NO_ALGEBRA)
 	# setup library
         EXPORTSOURCES(lib_algebra ${src_Algebra})
 
+if(NOT UG_SHARED)
 	add_library(algebra ${src_Algebra} )
 	add_dependencies(algebra common lib_algebra.h)
+endif(NOT UG_SHARED)
 
 endif(NOT NO_ALGEBRA)
 

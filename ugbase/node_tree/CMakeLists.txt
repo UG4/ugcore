@@ -25,4 +25,7 @@ set(Sources     ${srcNodeTree} ${srcTraversers})
 
 
 ExportSources("node_tree" ${Sources})
+
+if(NOT UG_SHARED)
 add_library(node_tree STATIC ${Sources})
+endif(NOT UG_SHARED)

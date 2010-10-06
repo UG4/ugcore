@@ -30,4 +30,7 @@ endif(NOT NO_ALGEBRA)
 
 set(Sources ${srcUGBridge})
 EXPORTSOURCES(ug_bridge  ${Sources})
+
+if(NOT UG_SHARED)
 add_library(ugbridge  ${Sources})
+endif(NOT UG_SHARED)

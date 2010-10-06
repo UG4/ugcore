@@ -68,6 +68,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 
 	# options for use in cmake gui and help strings in CMakeCache.txt
 	OPTION(UG_DEBUG "debug mode")
+    OPTION(UG_SHARED "builds a shared lib")
 	OPTION(FORCE_64 "Force -m64, 64bit-Compilation")
 	OPTION(FORCE_32 "Force -m32, 32bit-Compiltation")
 	OPTION(NO_MPI "Disable MPI Support")
@@ -79,7 +80,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(NO_FORTRAN "Do not use Fortran (Fortran may be needed to find LAPACK)")
 	OPTION(NO_LAPACK "Disable LAPACK")
 	OPTION(NO_BLAS "Disable BLAS")
-
+    OPTION(NO_VRL "Disables vrl-bindings. Important if no java environment exists.")
 
 	#######################
 	# include ug header and library path
@@ -222,15 +223,15 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	endif(MPI_FOUND)
 
 
-        if(UG_LIBRARY_BUILD)
-        #   if we're building a library, only mpi has to be linked.
+        if(UG_SHARED)
+        #   if we're building a shared library, only mpi has to be linked.
         #   this is important for the shared library
             if(MPI_FOUND)
                 link_libraries(${MPI_LIBS})
             endif(MPI_FOUND)
-        else(UG_LIBRARY_BUILD)
+        else(UG_SHARED)
             link_libraries(${UG_LIBRARIES})
-        endif(UG_LIBRARY_BUILD)
+        endif(UG_SHARED)
 
 
 	#######################
@@ -345,26 +346,34 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	endif(NO_BLAS)
 
 
-        #######################
-        # Export sources to global variable.
-        # PURPOSE: use this function to add local package sources to global
-        #          ugSources property which is used to build libug4
-        # @param prefix current directory prefix
-        # @param sources sources list to export
-        function(ExportSources prefix sources)
-            # iterate over all arguments and insert given prefix
-            foreach(l ${ARGV})
-                # FIXME: this is a hack to omit the first argument
-                #        which is the prefix. Shall we use boolean or index variable?
-                if(NOT "${l}" STREQUAL "${prefix}")
-                    # retrieve the global property ugSources and store it
-                    # in tmp variable
-                    # NOTE: properties must be assigned to variables before being used
-                    get_property(tmp GLOBAL PROPERTY ugSources)
-                    # append tmp to the global ugSources property using the correct prefix
-                    set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
-                endif(NOT "${l}" STREQUAL "${prefix}")
-            endforeach(l)
-        endfunction(ExportSources)
+    #######################
+    # Export sources to global variable.
+    # PURPOSE: use this function to add local package sources to global
+    #          ugSources property which is used to build libug4
+    # @param prefix current directory prefix
+    # @param sources sources list to export
+    function(ExportSources prefix sources)
+        # iterate over all arguments and insert given prefix
+        foreach(l ${ARGV})
+            # FIXME: this is a hack to omit the first argument
+            #        which is the prefix. Shall we use boolean or index variable?
+            if(NOT "${l}" STREQUAL "${prefix}")
+                # retrieve the global property ugSources and store it
+                # in tmp variable
+                # NOTE: properties must be assigned to variables before being used
+                get_property(tmp GLOBAL PROPERTY ugSources)
+                # append tmp to the global ugSources property using the correct prefix
+                set_property(GLOBAL PROPERTY ugSources ${tmp} "${prefix}/${l}")
+            endif(NOT "${l}" STREQUAL "${prefix}")
+        endforeach(l)
+    endfunction(ExportSources)
+
+    ####
+    # External dependencies
+    ####
+    if(UG_SHARED AND NOT NO_VRL)
+        find_package(JNI REQUIRED)
+        include_directories(${JNI_INCLUDE_DIRS})
+    endif(UG_SHARED AND NOT NO_VRL)
 
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)

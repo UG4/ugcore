@@ -13,6 +13,25 @@ namespace ug
 namespace bridge
 {
 
+template <typename TRet>
+struct CreateParameterOutStack
+{
+	static void create(ParameterStack& stack)
+	{
+		CreateParameterStack<TypeList<TRet> >::create(stack);
+	}
+};
+
+
+template <>
+struct CreateParameterOutStack<void>
+{
+	static void create(ParameterStack& stack)
+	{
+	}
+};
+
+
 /** Base class for function/method export
  */
 class ExportedFunctionBase
@@ -35,7 +54,7 @@ class ExportedFunctionBase
 	/// string of all return parameters
 		const std::string& parameter_names_string(size_t i) const 	{return m_paramValNames;}
 
-	/// number of parameters
+	/// number of parameters.
 		size_t num_parameter() const 								{return m_vParamValNames.size();}
 
 	/// name of parameter i
@@ -50,6 +69,9 @@ class ExportedFunctionBase
 	/// parameter list for input values
 		const ParameterStack& params_in() const						{return m_paramsIn;}
 
+	/// parameter list for input values
+		const ParameterStack& params_out() const					{return m_paramsOut;}
+
 		// todo: we export non-const here, since we can not make ExportedClass_<TClass> a friend
 	/// non-const export of param list
 		ParameterStack& params_in() 								{return m_paramsIn;}
@@ -62,6 +84,9 @@ class ExportedFunctionBase
 			CreateParameterStack<params_type>::create(m_paramsIn);
 			for(int i = (int)m_vParamValNames.size(); i < m_paramsIn.size(); ++i)
 				m_vParamValNames.push_back(std::string(""));
+
+			typedef typename func_traits<TFunc>::return_type return_type;
+			CreateParameterOutStack<return_type>::create(m_paramsOut);
 		}
 		
 		// help function to tokenize the parameter string
@@ -94,6 +119,7 @@ class ExportedFunctionBase
 		std::string m_help;
 
 		ParameterStack m_paramsIn;
+		ParameterStack m_paramsOut;
 };
 
 /** function exported from ug

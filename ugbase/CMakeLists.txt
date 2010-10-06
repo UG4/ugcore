@@ -69,23 +69,34 @@ else(MPI_FOUND)
 
 endif(MPI_FOUND)
 
+
+
 ########################
-# ug4 library
+# lib_bindings_vrl
 
-get_property(ug4libSources GLOBAL PROPERTY ugSources)
+if(UG_SHARED)
+    if(NOT NO_VRL)
+        add_subdirectory(bindings_vrl)
+    endif(NOT NO_VRL)
 
-# todo: Find a better way to set those properties.
-#       They are required for file that are part of lib_grid.
-#       However - since lib_grid is a sub-script of this one,
-#       those properties are not stored (I believe so).
-set_source_files_properties(lib_grid/externals/src/tetgen/predicates.cxx
-	PROPERTIES COMPILE_FLAGS -O0)
-set_source_files_properties(lib_grid/externals/src/tetgen/tetgen.cxx
-	PROPERTIES COMPILE_FLAGS -w)
+    ########################
+    # ug4 library
 
-# the definition -DTETLIBRARY has to be set on this level.
-# this is important for the tetlibrary, which is compiled as
-# a part of lib_grid.
-add_definitions(-DTETLIBRARY)
+    get_property(ug4libSources GLOBAL PROPERTY ugSources)
 
-add_library(ug4 SHARED ${ug4libSources})
+    # todo: Find a better way to set those properties.
+    #       They are required for file that are part of lib_grid.
+    #       However - since lib_grid is a sub-script of this one,
+    #       those properties are not stored (I believe so).
+    set_source_files_properties(lib_grid/externals/src/tetgen/predicates.cxx
+        PROPERTIES COMPILE_FLAGS -O0)
+    set_source_files_properties(lib_grid/externals/src/tetgen/tetgen.cxx
+        PROPERTIES COMPILE_FLAGS -w)
+
+    # the definition -DTETLIBRARY has to be set on this level.
+    # this is important for the tetlibrary, which is compiled as
+    # a part of lib_grid.
+    add_definitions(-DTETLIBRARY)
+
+    add_library(ug4 SHARED ${ug4libSources})
+endif(UG_SHARED)

@@ -28,4 +28,6 @@ set(srcProfiler	profiler/src/ShinyManager.cpp
 EXPORTSOURCES("common" ${srcCommon})
 EXPORTSOURCES("common" ${srcProfiler})
 
+if(NOT UG_SHARED)
 add_library(common ${srcCommon} ${srcProfiler})
+endif(NOT UG_SHARED)

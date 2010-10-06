@@ -135,7 +135,9 @@ set(Sources
 
 EXPORTSOURCES("lib_grid" ${Sources})
 
+if(NOT UG_SHARED)
 add_library(grid STATIC	${Sources})
+endif(NOT UG_SHARED)
 
 #for debug only
 #add_library(grid ${srcGrid} ${srcLibGrid})

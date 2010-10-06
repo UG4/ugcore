@@ -86,4 +86,7 @@ endif(NOT NO_ALGEBRA)
 
 set(Sources ${srcUGScript} ${srcLua})
 EXPORTSOURCES(ug_script  ${Sources})
+
+if(NOT UG_SHARED)
 add_library(ugscript  ${Sources})
+endif(NOT UG_SHARED)
