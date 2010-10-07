@@ -53,6 +53,8 @@ class RefinementCallbackLinear : public IRefinementCallback
 		virtual void new_vertex(VertexBase* vrt, Volume* parent);
 		
 	protected:
+		typedef typename TAPosition::ValueType		pos_type;
+		
 		Grid* 										m_pGrid;
 		Grid::VertexAttachmentAccessor<TAPosition>	m_aaPos;
 };
@@ -126,6 +128,38 @@ class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
 	protected:
 		number m_scaleFac;
 };
+
+
+class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<APosition>
+{
+	private:
+		typedef RefinementCallbackLinear<APosition> BaseClass;
+		
+	public:
+		using BaseClass::new_vertex;
+		
+	public:
+		RefinementCallbackSubdivisionLoop();
+		
+	///	make sure that aPos is attached to the vertices of the grid.
+		RefinementCallbackSubdivisionLoop(MultiGrid& mg,
+										  APosition& aPos = aPosition);
+	
+		virtual ~RefinementCallbackSubdivisionLoop();
+		
+		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
+		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		//virtual void new_vertex(VertexBase* vrt, Face* parent);
+		
+	protected:
+		virtual bool is_crease_vertex(VertexBase* vrt);
+		virtual bool is_crease_edge(EdgeBase* edge);
+
+	protected:
+		MultiGrid* m_pMG;
+};
+
+
 /// @}
 
 }// end of namespace

@@ -11,12 +11,16 @@ using namespace std;
 namespace ug
 {
 
-GlobalMultiGridRefiner::GlobalMultiGridRefiner()
+GlobalMultiGridRefiner::
+GlobalMultiGridRefiner(IRefinementCallback* refCallback) :
+	m_pMG(NULL),
+	m_refCallback(refCallback)
 {
-	m_pMG = NULL;
 }
 
-GlobalMultiGridRefiner::GlobalMultiGridRefiner(MultiGrid& mg)
+GlobalMultiGridRefiner::
+GlobalMultiGridRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
+	m_refCallback(refCallback)
 {
 	m_pMG = NULL;
 	assign_grid(mg);
@@ -52,6 +56,12 @@ void GlobalMultiGridRefiner::assign_grid(MultiGrid* mg)
 	}
 }
 
+void GlobalMultiGridRefiner::
+set_refinement_callback(IRefinementCallback* refCallback)
+{
+	m_refCallback = refCallback;
+}
+
 ////////////////////////////////////////////////////////////////////////
 void GlobalMultiGridRefiner::refine()
 {
@@ -62,17 +72,26 @@ void GlobalMultiGridRefiner::refine()
 //	the multi-grid
 	MultiGrid& mg = *m_pMG;
 
+//	check if a refinement-callback is set.
+//	if not, we'll automatically set one, if a position attachment is available
+	bool localRefCallbackSet = false;
+	if(!m_refCallback){
+		if(mg.has_vertex_attachment(aPosition)){
+			localRefCallbackSet = true;
+			m_refCallback = new RefinementCallbackLinear<APosition>(mg, aPosition);
+		}
+		else if(mg.has_vertex_attachment(aPosition2)){
+			localRefCallbackSet = true;
+			m_refCallback = new RefinementCallbackLinear<APosition2>(mg, aPosition2);
+		}		
+	}
+	
 //	make sure that the required options are enabled.
 	if(!mg.option_is_enabled(GRIDOPT_FULL_INTERCONNECTION))
 	{
 		LOG("WARNING in GlobalMultiGridRefiner::refine(): auto-enabling GRIDOPT_FULL_INTERCONNECTION.\n");
 		mg.enable_options(GRIDOPT_FULL_INTERCONNECTION);
 	}
-
-//	access position attachments
-	Grid::VertexAttachmentAccessor<APosition> aaPos;
-	if(mg.has_vertex_attachment(aPosition))
-		aaPos.access(mg, aPosition);
 
 //	notify derivates that refinement begins
 	refinement_step_begins();
@@ -114,12 +133,9 @@ void GlobalMultiGridRefiner::refine()
 	//	create a new vertex in the next layer.
 		VertexBase* nVrt = *mg.create_by_cloning(v, v);
 
-		if(aaPos.valid())
-		{
-			aaPos[nVrt] = aaPos[v];
-		//	change z-coord to visualise the hierarchy
-			//aaPos[nVrt].z += 0.01;
-		}
+	//	allow refCallback to calculate a new position
+		if(m_refCallback)
+			m_refCallback->new_vertex(nVrt, v);
 	}
 
 //LOG("creating new edges\n");
@@ -140,13 +156,9 @@ void GlobalMultiGridRefiner::refine()
 		substituteVrts[0] = mg.get_child_vertex(e->vertex(0));
 		substituteVrts[1] = mg.get_child_vertex(e->vertex(1));
 
-		if(aaPos.valid())
-		{
-			VecScaleAdd(aaPos[nVrt], 0.5, aaPos[e->vertex(0)],
-									0.5, aaPos[e->vertex(1)]);
-		//	change z-coord to visualise the hierarchy
-			//aaPos[nVrt].z += 0.01;
-		}
+	//	allow refCallback to calculate a new position
+		if(m_refCallback)
+			m_refCallback->new_vertex(nVrt, e);
 
 	//	split the edge
 		e->refine(vEdges, nVrt, substituteVrts);
@@ -180,11 +192,9 @@ void GlobalMultiGridRefiner::refine()
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				mg.register_element(newVrt, f);
-				if(aaPos.valid()){
-					aaPos[newVrt] = CalculateCenter(f, aaPos);
-				//	change z-coord to visualise the hierarchy
-					//aaPos[newVrt].z += 0.01;
-				}
+			//	allow refCallback to calculate a new position
+				if(m_refCallback)
+					m_refCallback->new_vertex(newVrt, f);
 			}
 
 		//	register the new faces and assign status
@@ -226,11 +236,9 @@ void GlobalMultiGridRefiner::refine()
 		//	if a new vertex was generated, we have to register it
 			if(newVrt){
 				mg.register_element(newVrt, v);
-				if(aaPos.valid()){
-					aaPos[newVrt] = CalculateCenter(v, aaPos);
-				//	change z-coord to visualise the hierarchy
-					//aaPos[newVrt].z += 0.01;
-				}
+			//	allow refCallback to calculate a new position
+				if(m_refCallback)
+					m_refCallback->new_vertex(newVrt, v);
 			}
 
 		//	register the new faces and assign status
@@ -248,6 +256,12 @@ void GlobalMultiGridRefiner::refine()
 
 //	notify derivates that refinement ends
 	refinement_step_ends();
+	
+//	clear the refinement-callback if necessary
+	if(localRefCallbackSet){
+		delete m_refCallback;
+		m_refCallback = NULL;
+	}
 }
 	
 }//	end of namespace

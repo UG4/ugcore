@@ -8,6 +8,7 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/multi_grid.h"
+#include "refinement_callbacks.h"
 
 namespace ug
 {
@@ -18,14 +19,19 @@ namespace ug
 class GlobalMultiGridRefiner : public GridObserver
 {
 	public:
-		GlobalMultiGridRefiner();
-		GlobalMultiGridRefiner(MultiGrid& mg);
+		GlobalMultiGridRefiner(IRefinementCallback* refCallback = NULL);
+		GlobalMultiGridRefiner(MultiGrid& mg,
+							   IRefinementCallback* refCallback = NULL);
+							   
 		virtual ~GlobalMultiGridRefiner();
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 		
 		void assign_grid(MultiGrid& mg);
 		void assign_grid(MultiGrid* mg);
+
+		void set_refinement_callback(IRefinementCallback* refCallback);
+		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
 
 	////////////////////////////////
 	//	refine
@@ -58,6 +64,7 @@ class GlobalMultiGridRefiner : public GridObserver
 		
 	protected:
 		MultiGrid*	m_pMG;
+		IRefinementCallback*	m_refCallback;
 };
 
 /// @}

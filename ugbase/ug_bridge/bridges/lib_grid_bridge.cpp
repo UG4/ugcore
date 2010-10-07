@@ -72,7 +72,26 @@ bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 
 
 
-
+void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
+{
+//todo: Callbacks have to make sure that their attachment is accessible in the grid.
+//		even if they were initialized before the attachment was attached to the grid.
+	MultiGrid mg;
+	SubsetHandler sh(mg);
+	
+	if(LoadGridFromFile(mg, fileIn, sh)){
+		RefinementCallbackSubdivisionLoop refCallback(mg);
+		GlobalMultiGridRefiner ref(mg, &refCallback);
+		for(int lvl = 0; lvl < numRefs; ++lvl){
+			ref.refine();
+		}
+		
+		SaveGridToFile(mg, fileOut, mg.get_hierarchy_handler());
+	}
+	else{
+		UG_LOG("Load failed. aborting...\n");
+	}
+}
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -126,6 +145,8 @@ void RegisterLibGridInterface(Registry& reg)
 		.add_function("LoadGridObject", &LoadGridObject)
 		.add_function("SaveGridObject", &SaveGridObject)
 		.add_function("CreateGridObject", &CreateGridObject);
+		
+	reg.add_function("TestSubdivision", &TestSubdivision);
 }
 
 }//	end of namespace 
