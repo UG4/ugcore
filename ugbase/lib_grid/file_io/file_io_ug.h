@@ -11,6 +11,7 @@ namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
 /**
+ * PLEASE NOTE: This algorithm uses Grid::mark
  * shFace has to contain the interface-faces that separate the different
  * volume-subsets (specified in shVolume).
  * 

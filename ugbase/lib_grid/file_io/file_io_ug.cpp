@@ -216,29 +216,41 @@ static bool CollectLines(Grid& grid, const SubsetHandler& shFace, EdgeSelector& 
 	{
 		CollectFaces(vFaces, grid, *EIter);
 
-		if(vFaces.size() > 1)
+		//if(vFaces.size() > 1)
 		{
-			uint i = 0;
+			size_t i = 0;
 			Face* f1 = NULL;
 		//	find the first face that is assigned to a subset
 			for(; i < vFaces.size(); ++i)
 			{
-				f1 = vFaces[i];
-				if(shFace.get_subset_index(f1) != -1)
+				if(shFace.get_subset_index(vFaces[i]) != -1){
+					f1 = vFaces[i];
+				//	if the iteration leaves with a break, we have to increase i manually
+					++i;
 					break;
+				}
 			}
-
+						
 		//	compare with others. only check the ones that are assigned to a subset.
+		//	if only one face is in a subset, we'll need a line anyway
+			bool gotTwoSubsetFaces = false;
 			for(; i < vFaces.size(); ++i)
 			{
 				if(shFace.get_subset_index(vFaces[i]) == -1)
 					continue;
 
+				gotTwoSubsetFaces = true;
 				if(shFace.get_subset_index(f1) != shFace.get_subset_index(vFaces[i]))
 				{
 					LineSel.select(*EIter);
 					break;
 				}
+			}
+			
+			if((!gotTwoSubsetFaces) && f1){
+			//	the edge is adjacent to only one subset-face.
+			//	it thus has to be a line
+				LineSel.select(*EIter);
 			}
 		}
 	}
@@ -411,6 +423,8 @@ static bool WriteLGM(Grid& grid,
 			}
 
 		//	write lines
+		//	we have to avoid to write lines twice which lie inside a subset.
+			grid.begin_marking();
 			out << "; lines:";
 			{
 				vector<EdgeBase*> vEdges;
@@ -422,14 +436,16 @@ static bool WriteLGM(Grid& grid,
 						EIter != vEdges.end(); ++EIter)
 					{
 						EdgeBase* e = *EIter;
-						if(LineSel.is_selected(e))
+						if(LineSel.is_selected(e) && (!grid.is_marked(e)))
 						{
+							grid.mark(e);
 							out << " " << aaLineIndex[e];
 						}
 					}
 				}
 			}
-
+			grid.end_marking();
+			
 		// 	write triangles
 			out << "; triangles:";
 			{

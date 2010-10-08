@@ -5,6 +5,7 @@
 #ifndef __H__LIB_GRID__REFINEMENT_CALLBACKS__
 #define __H__LIB_GRID__REFINEMENT_CALLBACKS__
 
+#include <vector>
 #include "lib_grid/lg_base.h"
 
 namespace ug
@@ -149,14 +150,26 @@ class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<APosit
 		
 		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
 		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
-		//virtual void new_vertex(VertexBase* vrt, Face* parent);
+		virtual void new_vertex(VertexBase* vrt, Face* parent);
 		
 	protected:
 		virtual bool is_crease_vertex(VertexBase* vrt);
 		virtual bool is_crease_edge(EdgeBase* edge);
-
+		
+	//	returns a precalculated value if possible.
+		number get_beta(size_t valency);
+		
+	//	calculates and returns beta.
+		number calculate_beta(size_t valency);
+		
+	private:
+		void init();
+		
 	protected:
 		MultiGrid* m_pMG;
+		
+	private:
+		std::vector<number>	m_betas;//< precalculated betas.
 };
 
 

@@ -3,8 +3,10 @@
 //	y10 m07 d08
 
 #include <cassert>
+#include <algorithm>
 #include "refinement_callbacks.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+using namespace std;
 
 namespace ug
 {
@@ -126,6 +128,7 @@ new_vertex(VertexBase* vrt, Face* parent)
 RefinementCallbackSubdivisionLoop::
 RefinementCallbackSubdivisionLoop()
 {
+	init();
 }
 
 RefinementCallbackSubdivisionLoop::
@@ -134,12 +137,24 @@ RefinementCallbackSubdivisionLoop(MultiGrid& mg,
 	BaseClass(mg, aPos),
 	m_pMG(&mg)
 {
+	init();	
 }
 
 RefinementCallbackSubdivisionLoop::
 ~RefinementCallbackSubdivisionLoop()
 {
 
+}
+
+void RefinementCallbackSubdivisionLoop::
+init()
+{
+//	precalculate betas
+//	the number is quite arbitrary here.
+	size_t numPrecals = 16;
+	m_betas.resize(numPrecals);
+	for(size_t i = 0; i < numPrecals; ++i)
+		m_betas[i] = calculate_beta(i);
 }
 
 void RefinementCallbackSubdivisionLoop::
@@ -171,7 +186,23 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 		}
 	}
 	else{
-		BaseClass::new_vertex(vrt, parent);
+	//	perform loop subdivision on even vertices
+	//	first get neighboured vertices
+	//todo: replace this by a method
+		size_t valence = 0;
+		pos_type p;
+		VecSet(p, 0);
+		for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(parent);
+			iter != m_pMG->associated_edges_end(parent); ++iter)
+		{
+			VecAdd(p, p, m_aaPos[GetConnectedVertex(*iter, parent)]);
+			++valence;
+		}
+		
+		number beta = get_beta(valence);
+	
+		VecScaleAdd(m_aaPos[vrt], beta, p,
+					1.0 - (number)valence * beta, m_aaPos[parent]); 
 	}
 }
 
@@ -183,17 +214,71 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 		BaseClass::new_vertex(vrt, parent);
 	}
 	else{
-	//	todo: apply loop-subdivision on outer elements
-		BaseClass::new_vertex(vrt, parent);
+	//	apply loop-subdivision on inner elements
+	//	get the neighboured triangles
+		Face* f[2];
+		if(GetAssociatedFaces(f, *m_pMG, parent, 2) == 2){
+			if(f[0]->num_vertices() == 3 && f[1]->num_vertices() == 3){
+			//	the 4 vertices that are important for the calculation
+				VertexBase* v[4];
+				v[0] = parent->vertex(0); v[1] = parent->vertex(1);
+				v[2] = GetConnectedVertex(parent, f[0]);
+				v[3] = GetConnectedVertex(parent, f[1]);
+				
+				number gamma = 0.375;
+				
+			/*
+			//	THIS PIECE OF CODE CAN LEAD TO PROBLEMS REGARDING THE LIMIT PROJECTION
+			//	the intention of the following code is to guarantee smoothness of
+			//	the grid even at irregular crease vertices. However, the limit projection
+			//	is not suited for this kind of weighting.
+				bool isCrease0 = is_crease_vertex(v[0]);
+				bool isCrease1 = is_crease_vertex(v[1]);
+			//	if exactly one of the two is a crease vertex, special
+			//	weighting has to be performed
+			//todo: this does not yet work for inner creases.
+				if((isCrease0 && !isCrease1) || (!isCrease0 && isCrease1))
+				{
+				//	the crease vertex has to be in v[0]
+					if(isCrease1)
+						swap(v[0], v[1]);
+
+				//	todo: replace this with a method call
+				//	get the number of faces that are connected to v[0]
+				//	todo: only check faces that are on the correct side of the crease.
+					size_t numFaces = 0;
+					for(Grid::AssociatedFaceIterator iter = m_pMG->associated_faces_begin(v[0]);
+						iter != m_pMG->associated_faces_end(v[0]); ++iter)
+					{
+						++numFaces;
+					}
+					
+					if(numFaces != 3)
+						gamma = 0.5-0.25*cos(PI/(number)numFaces);
+				}
+			*/
+			//	special weighting: inner-edge-point: 1/2, outer-edge-point: 1/4, adjacent-points: 1/8
+			//	normal weighting: edge-points: 3/8, adjacent-points: 1/8
+				VecScaleAdd(m_aaPos[vrt],
+							0.75-gamma, m_aaPos[v[0]], gamma, m_aaPos[v[1]],
+							0.125, m_aaPos[v[2]], 0.125, m_aaPos[v[3]]);
+				
+			}
+			else
+				BaseClass::new_vertex(vrt, parent);				
+		}
+		else
+			BaseClass::new_vertex(vrt, parent);
 	}
 }
-/*
+
 void RefinementCallbackSubdivisionLoop::
 new_vertex(VertexBase* vrt, Face* parent)
 {
-
+//	this woul'd only be interesting for quad subdivision.
+	BaseClass::new_vertex(vrt, parent);
 }
-*/
+
 bool RefinementCallbackSubdivisionLoop::
 is_crease_vertex(VertexBase* vrt)
 {
@@ -204,6 +289,29 @@ bool RefinementCallbackSubdivisionLoop::
 is_crease_edge(EdgeBase* edge)
 {
 	return IsBoundaryEdge2D(*m_pMG, edge);
+}
+
+number RefinementCallbackSubdivisionLoop::
+get_beta(size_t valency)
+{
+	if(valency < m_betas.size())
+		return m_betas[valency];
+		
+	return calculate_beta(valency);
+}
+
+number RefinementCallbackSubdivisionLoop::
+calculate_beta(size_t valency)
+{
+	if(valency == 6)
+		return 0.0625;
+		
+	if(valency > 0){
+		const number tmp = 0.375 + 0.25 * cos((2.0*PI)/(number)valency);
+		return (0.625 - tmp*tmp)/(number)valency;
+	}
+
+	return 0;
 }
 
 }// end of namespace
