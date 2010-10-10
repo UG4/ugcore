@@ -85,11 +85,14 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 		for(int lvl = 0; lvl < numRefs; ++lvl){
 			ref.refine();
 		}
-		
+
+		SaveGridToFile(mg, fileOut, mg.get_hierarchy_handler());
+/*		
 		APosition aProjected;
 		mg.attach_to_vertices(aProjected);
 		ProjectToLimitLoop(mg, aProjected);
 		SaveGridToFile(mg, fileOut, mg.get_hierarchy_handler(), aProjected);
+*/
 	}
 	else{
 		UG_LOG("Load failed. aborting...\n");

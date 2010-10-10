@@ -40,7 +40,8 @@ set(srcAlgorithms	algorithms/subset_util.cpp
 					algorithms/refinement/regular_refinement.cpp
 					algorithms/refinement/global_multi_grid_refiner.cpp
 					algorithms/refinement/refinement_callbacks.cpp
-					algorithms/subdivision/subdivision_loop.cpp)
+					algorithms/subdivision/subdivision_loop.cpp
+					algorithms/subdivision/subdivision_rules_piecewise_loop.cpp)
 					
 set(srcFileIO	file_io/file_io_art.cpp
 				file_io/file_io_dump.cpp

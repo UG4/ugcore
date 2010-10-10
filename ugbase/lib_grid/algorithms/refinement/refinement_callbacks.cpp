@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "refinement_callbacks.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/subdivision/subdivision_rules_piecewise_loop.h"
 using namespace std;
 
 namespace ug
@@ -160,6 +161,8 @@ init()
 void RefinementCallbackSubdivisionLoop::
 new_vertex(VertexBase* vrt, VertexBase* parent)
 {
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+	
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	if(is_crease_vertex(parent)){
 	//	get the neighboured crease edges
@@ -179,7 +182,10 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 		if(numNbrs == 2){
 			pos_type& p0 = m_aaPos[GetConnectedVertex(nbrs[0], parent)];
 			pos_type& p1 = m_aaPos[GetConnectedVertex(nbrs[1], parent)];
-			VecScaleAdd(m_aaPos[vrt], 0.75, m_aaPos[parent], 0.125, p0, 0.125, p1);
+			vector3 w = subdiv.ref_even_crease_weights();
+			
+			VecScaleAdd(m_aaPos[vrt], w.x, m_aaPos[parent],
+						w.y, p0, w.z, p1);
 		}
 		else{
 			BaseClass::new_vertex(vrt, parent);
@@ -192,6 +198,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 		size_t valence = 0;
 		pos_type p;
 		VecSet(p, 0);
+
 		for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(parent);
 			iter != m_pMG->associated_edges_end(parent); ++iter)
 		{
@@ -199,10 +206,19 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 			++valence;
 		}
 		
+		number centerWgt = subdiv.ref_even_inner_center_weight(valence);
+		number nbrWgt = subdiv.ref_even_inner_nbr_weight(valence);
+		
+		VecScaleAdd(m_aaPos[vrt],
+					centerWgt, m_aaPos[parent],
+					nbrWgt, p);
+/*		
 		number beta = get_beta(valence);
 	
 		VecScaleAdd(m_aaPos[vrt], beta, p,
 					1.0 - (number)valence * beta, m_aaPos[parent]); 
+*/
+	
 	}
 }
 
@@ -227,7 +243,6 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 				
 				number gamma = 0.375;
 				
-			/*
 			//	THIS PIECE OF CODE CAN LEAD TO PROBLEMS REGARDING THE LIMIT PROJECTION
 			//	the intention of the following code is to guarantee smoothness of
 			//	the grid even at irregular crease vertices. However, the limit projection
@@ -256,7 +271,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 					if(numFaces != 3)
 						gamma = 0.5-0.25*cos(PI/(number)numFaces);
 				}
-			*/
+				
 			//	special weighting: inner-edge-point: 1/2, outer-edge-point: 1/4, adjacent-points: 1/8
 			//	normal weighting: edge-points: 3/8, adjacent-points: 1/8
 				VecScaleAdd(m_aaPos[vrt],
