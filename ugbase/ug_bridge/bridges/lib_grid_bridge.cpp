@@ -69,7 +69,10 @@ bool SaveGrid(Grid& grid, SubsetHandler& sh, const char* filename)
 	return SaveGridToFile(grid, filename, sh);
 }
 
-
+bool SaveGridHierarchy(MultiGrid& mg, const char* filename)
+{
+	return SaveGridToFile(mg, filename, mg.get_hierarchy_handler());
+}
 
 
 void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
@@ -78,20 +81,16 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 //		even if they were initialized before the attachment was attached to the grid.
 	MultiGrid mg;
 	SubsetHandler sh(mg);
+	RefinementCallbackSubdivisionLoop<APosition> refCallback(mg, aPosition);
+	GlobalMultiGridRefiner ref(mg, &refCallback);
 	
 	if(LoadGridFromFile(mg, fileIn, sh)){
-		RefinementCallbackSubdivisionLoop refCallback(mg);
-		GlobalMultiGridRefiner ref(mg, &refCallback);
 		for(int lvl = 0; lvl < numRefs; ++lvl){
 			ref.refine();
 		}
 
-		//SaveGridToFile(mg, fileOut, mg.get_hierarchy_handler());
-
-		APosition aProjected;
-		mg.attach_to_vertices(aProjected);
-		ProjectToLimitPLoop(mg, aPosition, aProjected);
-		SaveGridToFile(mg, fileOut, mg.get_hierarchy_handler(), aProjected);
+		ProjectToLimitPLoop(mg, aPosition, aPosition);
+		SaveGridToFile(mg, fileOut, mg.get_hierarchy_handler());
 
 	}
 	else{
@@ -99,6 +98,39 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 	}
 }
 
+bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
+{
+	IRefinementCallback* refCallback = NULL;
+//	we're only checking for the main attachments here.
+//todo: improve this - add a domain-based hierarchy creator.
+	if(mg.has_vertex_attachment(aPosition1))
+		refCallback = new RefinementCallbackSubdivisionLoop<APosition1>(mg, aPosition1);
+	else if(mg.has_vertex_attachment(aPosition2))
+		refCallback = new RefinementCallbackSubdivisionLoop<APosition2>(mg, aPosition2);
+	else if(mg.has_vertex_attachment(aPosition))
+		refCallback = new RefinementCallbackSubdivisionLoop<APosition>(mg, aPosition);
+		
+	if(!refCallback){
+		UG_LOG("No standard position attachment found. Aborting.\n");
+		return false;
+	}
+	
+	GlobalMultiGridRefiner ref(mg, refCallback);
+
+	for(size_t lvl = 0; lvl < numRefs; ++lvl){
+		ref.refine();
+	}
+
+	if(mg.has_vertex_attachment(aPosition1))
+		ProjectToLimitPLoop(mg, aPosition1, aPosition1);
+	else if(mg.has_vertex_attachment(aPosition2))
+		ProjectToLimitPLoop(mg, aPosition2, aPosition2);
+	else if(mg.has_vertex_attachment(aPosition))
+		ProjectToLimitPLoop(mg, aPosition, aPosition);
+
+	delete refCallback;
+	return true;
+}
 
 ////////////////////////////////////////////////////////////////////////
 void RegisterLibGridInterface(Registry& reg)
@@ -152,7 +184,10 @@ void RegisterLibGridInterface(Registry& reg)
 		.add_function("SaveGridObject", &SaveGridObject)
 		.add_function("CreateGridObject", &CreateGridObject);
 		
-	reg.add_function("TestSubdivision", &TestSubdivision);
+//	refinement
+	reg.add_function("TestSubdivision", &TestSubdivision)
+		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy)
+		.add_function("SaveGridHierarchy", &SaveGridHierarchy);
 }
 
 }//	end of namespace 

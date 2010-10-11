@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 
 #include "../dof_distribution.h"
 #include "../function_pattern.h"

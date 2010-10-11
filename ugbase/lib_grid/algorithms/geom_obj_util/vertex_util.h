@@ -82,6 +82,19 @@ EdgeBase* GetConnectedEdge(Grid& g, VertexBase* vrt, Face* tri);
 void CollectNeighbours(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectSurfaceNeighborsSorted
+///	Collects neighbour-vertices in either clockwise or counter clockwise order.
+/**	Please note: This algorithm uses Grid::mark.
+ *
+ *	This method will only work if the triangles connected to the given
+ *	vertex are homeomorphic to the unit-disc.
+ *
+ *	Current implementation requires FACEOPT_AUTOGENERATE_EDGES (could be avoided).
+ */
+bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
+								   Grid& grid, VertexBase* v);
+									
+////////////////////////////////////////////////////////////////////////
 //	FindVertexByCoordiante
 ///	returns the vertex that is the closest to the given coordinate
 /**

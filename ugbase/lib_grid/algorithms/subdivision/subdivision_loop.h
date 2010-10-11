@@ -10,17 +10,15 @@
 
 namespace ug
 {
-
-struct VrtInfo{
-		VrtInfo(VertexBase* v, size_t val) : vrt(v), creaseValence(val) {}
-		VertexBase* vrt;
-		size_t creaseValence;//0->no crease
-	};
 	
 ////////////////////////////////////////////////////////////////////////
+///	projects all vertices in the given grid to their limit-positions using the piecewise loop scheme.
 template <class TAVrtPos> void
 ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 {
+//	position type
+	typedef typename TAVrtPos::ValueType	pos_type;
+	
 //	access the subdivision weights
 	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
 	
@@ -41,10 +39,11 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 	Grid::VertexAttachmentAccessor<TAVrtPos> aaPos(grid, aPos);
 	Grid::VertexAttachmentAccessor<TAVrtPos> aaProjPos(grid, aProjPos);
 	
-//todo: remove the struct and the vector. This can be performed on the fly
-//		if surface-marks are supplied.
-	std::vector<VrtInfo>	vrtInfos;
-	
+//	vectors to hold temporary results
+	typedef SubdivRules_PLoop::NeighborInfo NbrInfo;
+	std::vector<NbrInfo> nbrInfos;
+	std::vector<VertexBase*> vrts;
+	std::vector<number> nbrWgts;
 	
 //	iterate through all vertices
 	for(VertexBaseIterator iter = grid.vertices_begin();
@@ -70,8 +69,8 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 			}
 			
 			if(numNbrs == 2){
-				vector3& p0 = aaPos[GetConnectedVertex(nbrs[0], v)];
-				vector3& p1 = aaPos[GetConnectedVertex(nbrs[1], v)];
+				pos_type& p0 = aaPos[GetConnectedVertex(nbrs[0], v)];
+				pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], v)];
 				vector3 w = subdiv.proj_crease_weights();
 				VecScaleAdd(aaProjPos[v], w.x, aaPos[v], w.y, p0, w.z, p1);
 			}
@@ -81,20 +80,26 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 		else{
 		//	project an inner vertex
 		//	we have to calculate the valence and
-		//	we have to check whether the vertex is a neighbour to a crease.
+		//	we have to check whether the vertex is a neighbor to a crease.
 		//todo: This could be given my some kind of mark.
 			bool creaseNbr = false;
 			
-		//	calculate the valence
-		//todo: This should be performed in a common method.
-			vrtInfos.clear();
-			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
-				iter != grid.associated_edges_end(v); ++iter)
+		//	collect all neighbors in an ordered set.
+		//todo: the order is only important if the node is indeed a crease neighbor.
+			if(!CollectSurfaceNeighborsSorted(vrts, grid, v)){
+				UG_LOG("WARNING in ProjectToLimitPLoop: surface is not regular.");
+				UG_LOG(" Ignoring vertex...\n");
+				aaProjPos[v] = aaPos[v];
+				continue;
+			}
+			
+			nbrInfos.resize(vrts.size());
+			for(size_t i = 0; i < vrts.size(); ++i)
 			{
-				VertexBase* nbrVrt = GetConnectedVertex(*iter, v);
+				VertexBase* nbrVrt = vrts[i];
 			//	we have to check whether nbrVrt is a crease edge. If it is,
 			//	we have to calculate its valence.
-				if(IsBoundaryVertex2D(grid, v)){
+				if(IsBoundaryVertex2D(grid, nbrVrt)){
 					creaseNbr = true;
 					size_t creaseValence = 0;
 					for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(nbrVrt);
@@ -103,24 +108,38 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 						++creaseValence;
 					}
 					
-					vrtInfos.push_back(VrtInfo(nbrVrt, creaseValence));
+					nbrInfos[i] = NbrInfo(nbrVrt, creaseValence);
 				}
 				else
-					vrtInfos.push_back(VrtInfo(nbrVrt, 0));
+					nbrInfos[i] = NbrInfo(nbrVrt, 0);
 			}
 
 		//	if the vertex is a crease-nbr, we'll apply special weights.
 		//	if not, normal loop-projection-masks are used.
-		//todo: add special weights
-			{
+
+			if(creaseNbr){
+				number cntrWgt;
+				nbrWgts.resize(vrts.size());
+				subdiv.proj_inner_crease_nbr_weights(cntrWgt, &nbrWgts.front(),
+													 &nbrInfos.front(), nbrInfos.size());
+				
+			//	special crease neighbor projection
+				VecScale(aaProjPos[v], aaPos[v], cntrWgt);
+				
+				for(size_t i = 0; i < nbrWgts.size(); ++i){
+					VecScaleAdd(aaProjPos[v], 1.0, aaProjPos[v],
+								nbrWgts[i], aaPos[nbrInfos[i].nbr]);
+				}				
+			}
+			else{
 			//	default loop projection
 				VecScale(aaProjPos[v], aaPos[v],
-						subdiv.proj_inner_center_weight(vrtInfos.size()));
+						subdiv.proj_inner_center_weight(nbrInfos.size()));
 				
-				for(size_t i = 0; i < vrtInfos.size(); ++i){
+				for(size_t i = 0; i < nbrInfos.size(); ++i){
 					VecScaleAdd(aaProjPos[v], 1.0, aaProjPos[v],
-								subdiv.proj_inner_nbr_weight(vrtInfos.size()),
-								aaPos[vrtInfos[i].vrt]);
+								subdiv.proj_inner_nbr_weight(nbrInfos.size()),
+								aaPos[nbrInfos[i].nbr]);
 				}
 			}
 		}
@@ -128,7 +147,9 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 	
 //	clean up
 	if(usingTmpAttachment){
-	//todo: swap attachment buffers
+	//	swap attachment buffers
+		aaPos.swap(aaProjPos);
+		
 	//	detach it
 		grid.detach_from_vertices(aProjPos);
 	}

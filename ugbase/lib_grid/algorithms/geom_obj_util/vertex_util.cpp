@@ -176,6 +176,66 @@ void CollectNeighbours(std::vector<VertexBase*>& vNeighborsOut, Grid& grid, Vert
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	CollectSurfaceNeighborsSorted
+bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
+								   Grid& grid, VertexBase* v)
+{
+	vNeighborsOut.clear();
+	
+//	the algorithm won't work if volumes are connected
+	if(grid.associated_volumes_begin(v) != grid.associated_volumes_end(v))
+		return false;
+		
+//	the algorithm won't work if no faces are connected
+	if(grid.associated_faces_begin(v) == grid.associated_faces_end(v))
+		return false;
+		
+//	the current implementation demands that all edges exist.
+//	The algorithm could however be implemented without this constraint.
+	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+		UG_LOG("WARNING in CollectSurfaceNeghorsSorted: Auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
+		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+	}
+	
+	grid.begin_marking();
+	
+//	collect edges in this vector
+	vector<EdgeBase*> edges;
+	
+//	start with an arbitrary edge
+	EdgeBase* curEdge = *grid.associated_edges_begin(v);
+	
+	while(curEdge){
+		vNeighborsOut.push_back(GetConnectedVertex(curEdge, v));
+		grid.mark(curEdge);
+		
+	//	get associated faces
+		Face* f[2];
+		if(GetAssociatedFaces(f, grid, curEdge, 2) != 2)
+			return false;
+		
+		curEdge = NULL;
+		for(int i = 0; i < 2; ++i){
+			if(!grid.is_marked(f[i])){
+				CollectEdges(edges, grid, f[i]);
+				for(size_t j = 0; j < edges.size(); ++j){
+					if(!grid.is_marked(edges[j])){
+						if(EdgeContains(edges[j], v)){
+							curEdge = edges[j];
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	grid.end_marking();
+	
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
 VertexBase* FindVertexByCoordiante(vector3& coord, VertexBaseIterator iterBegin, VertexIterator iterEnd,
 									Grid::VertexAttachmentAccessor<APosition>& aaPos)
 {

@@ -157,6 +157,9 @@ template <class T> class AttachmentDataContainer : public IAttachmentDataContain
 
 		virtual void* get_data_buffer()			{return get_ptr();}
 
+	///	swaps the buffer content of associated data
+		void swap(AttachmentDataContainer<T>& container)	{m_vData.swap(container.m_vData);}
+		
 	protected:
 		std::vector<T>	m_vData;
 		bool			m_bDefaultValueSet;
@@ -399,6 +402,12 @@ class AttachmentAccessor
 
 		inline void invalidate()
 			{m_pContainer = NULL;}
+			
+	///	calls swap on associated containers
+		void swap(AttachmentAccessor<TElem, TAttachment, TElemHandler>& acc)
+		{
+			m_pContainer->swap(*acc.m_pContainer);
+		}
 
 	protected:
 		ContainerType*	m_pContainer;

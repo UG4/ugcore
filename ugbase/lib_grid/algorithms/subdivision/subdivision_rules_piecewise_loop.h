@@ -87,9 +87,10 @@ class SubdivRules_PLoop
 		void proj_inner_crease_nbr_weights(number& centerWgtOut, number* nbrWgtsOut,
 										   NeighborInfo* nbrInfos, size_t numNbrs)
 		{
-			number wnbr = proj_inner_nbr_weight(numNbrs);
+			number wcntrProj = proj_inner_center_weight(numNbrs);
+			number wnbrProj = proj_inner_nbr_weight(numNbrs);
 			
-		//	set weights to 0 initially
+		//	initialize all weights with 0
 			centerWgtOut = 0;
 			for(size_t i = 0; i < numNbrs; ++i)
 				nbrWgtsOut[i] = 0;
@@ -106,12 +107,17 @@ class SubdivRules_PLoop
 					oddWeights = ref_odd_inner_weights(nbrInfo.creaseValence);
 				}
 				
-				nbrWgtsOut[i] += oddWeights.x * wnbr;
-				centerWgtOut += oddWeights.y * wnbr;
-				nbrWgtsOut[next_ind(i, numNbrs)] += oddWeights.z * wnbr;
-				nbrWgtsOut[prev_ind(i, numNbrs)] += oddWeights.w * wnbr;
-				
+				nbrWgtsOut[i] += oddWeights.x * wnbrProj;
+				centerWgtOut += oddWeights.y * wnbrProj;
+				nbrWgtsOut[next_ind(i, numNbrs)] += oddWeights.z * wnbrProj;
+				nbrWgtsOut[prev_ind(i, numNbrs)] += oddWeights.w * wnbrProj;
 			}
+			
+			
+		//	add scaled weights for evem refinement mask
+			centerWgtOut += wcntrProj * ref_even_inner_center_weight(numNbrs);
+			for(size_t i = 0; i < numNbrs; ++i)
+				nbrWgtsOut[i] += wcntrProj * ref_even_inner_nbr_weight(numNbrs);
 		}
 /*			
 		number proj_inner_crease_nbr_center_weight(size_t valence);

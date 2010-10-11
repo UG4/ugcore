@@ -130,11 +130,12 @@ class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
 		number m_scaleFac;
 };
 
-
-class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<APosition>
+template <class TAPosition>
+class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<TAPosition>
 {
 	private:
-		typedef RefinementCallbackLinear<APosition> BaseClass;
+		typedef RefinementCallbackLinear<TAPosition> BaseClass;
+		typedef typename TAPosition::ValueType		pos_type;
 		
 	public:
 		using BaseClass::new_vertex;
@@ -144,7 +145,7 @@ class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<APosit
 		
 	///	make sure that aPos is attached to the vertices of the grid.
 		RefinementCallbackSubdivisionLoop(MultiGrid& mg,
-										  APosition& aPos = aPosition);
+										  TAPosition& aPos);
 	
 		virtual ~RefinementCallbackSubdivisionLoop();
 		
@@ -155,21 +156,9 @@ class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<APosit
 	protected:
 		virtual bool is_crease_vertex(VertexBase* vrt);
 		virtual bool is_crease_edge(EdgeBase* edge);
-		
-	//	returns a precalculated value if possible.
-		number get_beta(size_t valency);
-		
-	//	calculates and returns beta.
-		number calculate_beta(size_t valency);
-		
-	private:
-		void init();
-		
+
 	protected:
 		MultiGrid* m_pMG;
-		
-	private:
-		std::vector<number>	m_betas;//< precalculated betas.
 };
 
 
