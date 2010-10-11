@@ -69,13 +69,13 @@ enum ParameterTypes
 	PT_STRING,
 	PT_POINTER,
 	PT_CONST_POINTER,
-	PT_RANGE = 0x1111
+	PT_RANGE = 0xFFFF
 };
 
 enum ParameterFlags
 {
-	PF_STRING_COPY = 1 << 8,
-	PF_RANGE = 0x11110000
+	PF_STRING_COPY = 0x10000,
+	PF_RANGE = 0xFFFF0000
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ class ParameterStack
 
 	////////////////////////////////
 	//	get
-		int get_type(int index) const
+		uint get_type(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 		//	skip the flags by binary and operation
