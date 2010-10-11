@@ -136,7 +136,7 @@ class ParameterStack
 		{
 			if(bCopy){
 			//	copy the string and store it
-				int strSize = sizeof(str) + 1;	// don't forget terminating 0
+				int strSize = strlen(str) + 1;	// don't forget terminating 0
 				char* tstr = new char[strSize];
 				memcpy(tstr, str, strSize);
 				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY, NULL);
@@ -335,14 +335,14 @@ class ParameterStack
 			
 			Entry& e = m_entries[index];
 		//	first check whether the old string has to be cleared
-			if(e.type == PT_STRING | PF_STRING_COPY){
+			if(e.type == (PT_STRING | PF_STRING_COPY)){
 				delete[] e.param.m_string;
 				e.type = PT_STRING;
 			}
 
 			if(e.type == PT_STRING){
 				if(bCopy){
-					int strSize = sizeof(str) + 1;	// don't forget terminating 0
+					int strSize = strlen(str) + 1;	// don't forget terminating 0
 					char* tstr = new char[strSize];
 					memcpy(tstr, str, strSize);
 					e.param.m_string = tstr;

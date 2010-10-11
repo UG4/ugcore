@@ -17,7 +17,11 @@ class SubdivRules_PLoop
 {
 	public:
 		struct NeighborInfo{
-			VertexBase* vrt;
+			NeighborInfo()	{}
+			NeighborInfo(VertexBase* n, size_t cval) :
+				nbr(n), creaseValence(cval)	{}
+				
+			VertexBase* nbr;
 		/**	0 means that the neighbor is not a crease vertex.
 		 *	> 0: The valence of the crease regarding only the
 		 *	part on the side of the center-vertex.*/
@@ -79,7 +83,36 @@ class SubdivRules_PLoop
 		vector3 proj_crease_weights()
 			{return vector3(2./3., 1./6., 1./6.);}
 
-
+	/**	nbrInfos have to be specified in clockwise or counter-clockwise order.*/
+		void proj_inner_crease_nbr_weights(number& centerWgtOut, number* nbrWgtsOut,
+										   NeighborInfo* nbrInfos, size_t numNbrs)
+		{
+			number wnbr = proj_inner_nbr_weight(numNbrs);
+			
+		//	set weights to 0 initially
+			centerWgtOut = 0;
+			for(size_t i = 0; i < numNbrs; ++i)
+				nbrWgtsOut[i] = 0;
+				
+			for(size_t i = 0; i < numNbrs; ++i){
+				NeighborInfo& nbrInfo = nbrInfos[i];
+				vector4 oddWeights(0.5, 0.5, 0, 0);
+				
+				if(nbrInfo.creaseValence == 0){
+				//	Calculate the weights for odd-refinement on the given edge
+					oddWeights = ref_odd_inner_weights();
+				}
+				else{
+					oddWeights = ref_odd_inner_weights(nbrInfo.creaseValence);
+				}
+				
+				nbrWgtsOut[i] += oddWeights.x * wnbr;
+				centerWgtOut += oddWeights.y * wnbr;
+				nbrWgtsOut[next_ind(i, numNbrs)] += oddWeights.z * wnbr;
+				nbrWgtsOut[prev_ind(i, numNbrs)] += oddWeights.w * wnbr;
+				
+			}
+		}
 /*			
 		number proj_inner_crease_nbr_center_weight(size_t valence);
 		number proj_inner_crease_nbr_nbr_weight(size_t valence);
@@ -150,6 +183,12 @@ class SubdivRules_PLoop
 		
 	///	private assignment operator prohibits assignment.
 		SubdivRules_PLoop& operator=(const SubdivRules_PLoop& src);
+		
+	///	returns the next index in a cyclic index set
+		inline size_t next_ind(size_t ind, size_t numInds)	{return (ind + 1) % numInds;}
+	///	returns the previous index in a cyclic index set
+		inline size_t prev_ind(size_t ind, size_t numInds)	{return (ind + numInds - 1) % numInds;}
+		
 		
 	private:
 		std::vector<number>	m_betas;//< precalculated betas.

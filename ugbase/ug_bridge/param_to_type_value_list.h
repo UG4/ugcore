@@ -142,7 +142,7 @@ struct PLStack<std::string>
 	}
 	static void write(ParameterStack& ps, const std::string& data, int index)
 	{
-		ps.set_string(index, data.c_str());
+		ps.set_string(index, data.c_str(), true);
 	}
 	static std::string read(const ParameterStack& ps, int index)
 	{

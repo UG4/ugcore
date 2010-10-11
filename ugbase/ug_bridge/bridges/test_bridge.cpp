@@ -117,6 +117,16 @@ void PrintFunction(Base& b)
 	b.print();
 }
 
+const char* StringTest()
+{
+	return "Jooik";
+}
+
+std::string StdStringTest()
+{
+	return std::string("stdJooik");
+}
+
 void RegisterTestInterface(Registry& reg)
 {
 	reg.add_function("add", &Add, "c", "a,b");
@@ -152,7 +162,9 @@ void RegisterTestInterface(Registry& reg)
 		
 	reg.add_function("TestFunc", TestFunc)
 		.add_function("ConstTestFunc", ConstTestFunc)
-		.add_function("ToConst", ToConst);
+		.add_function("ToConst", ToConst)
+		.add_function("StringTest", StringTest)
+		.add_function("StdStringTest", StdStringTest);
 }
 
 }//	end of namespace
