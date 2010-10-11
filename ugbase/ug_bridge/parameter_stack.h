@@ -1,4 +1,5 @@
 
+#include <cstring>
 #include "class_name_provider.h"
 #include "common/common.h"
 
@@ -67,7 +68,14 @@ enum ParameterTypes
 	PT_NUMBER,
 	PT_STRING,
 	PT_POINTER,
-	PT_CONST_POINTER
+	PT_CONST_POINTER,
+	PT_RANGE = 0x1111
+};
+
+enum ParameterFlags
+{
+	PF_STRING_COPY = 1 << 8,
+	PF_RANGE = 0x11110000
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -105,6 +113,14 @@ class ParameterStack
 	public:
 		ParameterStack() : m_numEntries(0)			{}
 		
+		~ParameterStack()
+		{
+		//	we have to release all string copies.
+			for(int i = 0; i < m_numEntries; ++i){
+				if((m_entries[i].type & PF_RANGE) == PF_STRING_COPY)
+					delete[] m_entries[i].param.m_string;
+			}
+		}
 	////////////////////////////////
 	//	info
 		inline int size() const		{return m_numEntries;}
@@ -116,7 +132,19 @@ class ParameterStack
 		inline void push_number(number val = 0)			{PUSH_PARAM_TO_STACK(m_number, val, PT_NUMBER, NULL);}
 		
 	///	strings are not bufferd.
-		inline void push_string(const char* str = "")	{PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, NULL);}
+		inline void push_string(const char* str = "", bool bCopy = false)
+		{
+			if(bCopy){
+			//	copy the string and store it
+				int strSize = sizeof(str) + 1;	// don't forget terminating 0
+				char* tstr = new char[strSize];
+				memcpy(tstr, str, strSize);
+				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY, NULL);
+			}
+			else{
+				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, NULL);
+			}
+		}
 
 	/// user defined classes
 		template<class T>
@@ -139,7 +167,8 @@ class ParameterStack
 		int get_type(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
-			return m_entries[index].type;
+		//	skip the flags by binary and operation
+			return m_entries[index].type & PT_RANGE;
 		}
 		
 		const char* class_name(int index) const
@@ -200,7 +229,8 @@ class ParameterStack
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			
 			const Entry& e = m_entries[index];
-			if(e.type == PT_STRING)
+
+			if((e.type & PT_RANGE) == PT_STRING)
 				return e.param.m_string;
 			
 			throw(ERROR_BadConversion(index, e.type, PT_STRING));
@@ -299,13 +329,30 @@ class ParameterStack
 				throw(ERROR_BadConversion(index, e.type, PT_NUMBER));
 		}
 
-		void set_string(int index, const char* str)
+		void set_string(int index, const char* str, bool bCopy = false)
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 			
 			Entry& e = m_entries[index];
-			if(e.type == PT_STRING)
-				e.param.m_string = str;
+		//	first check whether the old string has to be cleared
+			if(e.type == PT_STRING | PF_STRING_COPY){
+				delete[] e.param.m_string;
+				e.type = PT_STRING;
+			}
+
+			if(e.type == PT_STRING){
+				if(bCopy){
+					int strSize = sizeof(str) + 1;	// don't forget terminating 0
+					char* tstr = new char[strSize];
+					memcpy(tstr, str, strSize);
+					e.param.m_string = tstr;
+					e.type = PT_STRING | PF_STRING_COPY;
+				}
+				else{
+					e.param.m_string = str;
+					e.type = PT_STRING;				
+				}
+			}
 			else
 				throw(ERROR_BadConversion(index, e.type, PT_STRING));
 		}
@@ -344,7 +391,7 @@ class ParameterStack
 			const void* m_const_ptr;
 		};
 		
-		struct Entry{
+		struct Entry{			
 			Parameter param;
 			int type;
 			const std::vector<const char*>*	pClassNames;

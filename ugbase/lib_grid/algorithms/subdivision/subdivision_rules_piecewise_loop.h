@@ -6,6 +6,7 @@
 #define __H__UG__SUBDIVISION_RULES_PIECEWISE_LOOP__
 
 #include <vector>
+#include <cassert>
 #include "lib_grid/lg_base.h"
 
 namespace ug
@@ -14,6 +15,15 @@ namespace ug
 ///	A singleton that stores all rules for a piecewise-loop subdivision surface.
 class SubdivRules_PLoop
 {
+	public:
+		struct NeighborInfo{
+			VertexBase* vrt;
+		/**	0 means that the neighbor is not a crease vertex.
+		 *	> 0: The valence of the crease regarding only the
+		 *	part on the side of the center-vertex.*/
+			size_t creaseValence;
+		};
+		
 	public:
 	///	returns the only instance to this singleton.
 		static SubdivRules_PLoop& inst()
@@ -34,21 +44,47 @@ class SubdivRules_PLoop
 		vector3 ref_even_crease_weights()
 			{return vector3(0.75, 0.125, 0.125);}
 			
-		vector4 ref_odd_inner_weight()
+		vector4 ref_odd_inner_weights()
 			{return vector4(0.375, 0.375, 0.125, 0.125);}
+		
+	///	weights of an odd vertex on an inner edge that is connected to a crease.
+	/**	The weight for the vertex on the crease is in v.x, the inner edge vertex
+	 *	in v.y and the two indirectly connected vertex weights are in v.z and v.w.
+	 *	creaseValence specifies the number of associated edges of the crease vertex.
+	 *
+	 *	Rules are taken from:
+	 *	"Piecewise Smooth Subdivision Surfaces with Normal Control",
+	 *	H. Biermann, Adi Levin, Denis Zorin.*/
+		vector4 ref_odd_inner_weights(size_t creaseValence)
+		{
+			assert(creaseValence > 2 && "Bad crease valence. Underlying grid is not a surface grid.");
+			if(creaseValence == 4)
+				return ref_odd_inner_weights();
+			number gamma = 0.5 - 0.25 * cos(PI / (number)(creaseValence - 1));
+			return vector4(0.75 - gamma, gamma, 0.125, 0.125);
 			
-		//vector4 ref_odd_inner_weight(size_t creaseValence);
-		vector2 ref_odd_crease_weight()
+			//number c = 0.25 * cos((2.*PI) / (number)(creaseValence - 1));
+			//return vector4(0.5 - c, 0.25 + c, 0.125, 0.125);
+		}
+		
+		vector2 ref_odd_crease_weights()
 			{return vector2(0.5, 0.5);}
-/*
-		number proj_inner_center_weight(size_t valence);
-		number proj_inner_nbr_weight(size_t valence);
-		number proj_crease_center_weight(size_t valence);
-		number proj_crease_nbr_weight(size_t valence);
+
+		number proj_inner_center_weight(size_t valence)
+			{return 1.0 - (number)valence / (0.375 / get_beta(valence) + valence);}
+		
+		number proj_inner_nbr_weight(size_t valence)
+			{return 1.0 / (0.375 / get_beta(valence) + valence);}
+			
+		vector3 proj_crease_weights()
+			{return vector3(2./3., 1./6., 1./6.);}
+
+
+/*			
 		number proj_inner_crease_nbr_center_weight(size_t valence);
 		number proj_inner_crease_nbr_nbr_weight(size_t valence);
 		number proj_inner_crease_nbr_nbr_weight(size_t valence, size_t cValence);
-*/		
+*/
 	///	returns beta as it is used in the subdivision masks.
 	/**	performs a lookup if the valency is small enough.
 	 *	calculates a fresh beta else.*/

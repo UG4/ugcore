@@ -225,9 +225,14 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 void RefinementCallbackSubdivisionLoop::
 new_vertex(VertexBase* vrt, EdgeBase* parent)
 {
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+	
 	assert(m_aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	
 	if(is_crease_edge(parent)){
-		BaseClass::new_vertex(vrt, parent);
+		vector2 wghts = subdiv.ref_odd_crease_weights();
+		VecScaleAdd(m_aaPos[vrt], wghts.x, m_aaPos[parent->vertex(0)],
+					wghts.y, m_aaPos[parent->vertex(1)]);
 	}
 	else{
 	//	apply loop-subdivision on inner elements
@@ -241,7 +246,7 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 				v[2] = GetConnectedVertex(parent, f[0]);
 				v[3] = GetConnectedVertex(parent, f[1]);
 				
-				number gamma = 0.375;
+				vector4 wghts;
 				
 			//	THIS PIECE OF CODE CAN LEAD TO PROBLEMS REGARDING THE LIMIT PROJECTION
 			//	the intention of the following code is to guarantee smoothness of
@@ -259,24 +264,24 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 						swap(v[0], v[1]);
 
 				//	todo: replace this with a method call
-				//	get the number of faces that are connected to v[0]
-				//	todo: only check faces that are on the correct side of the crease.
-					size_t numFaces = 0;
-					for(Grid::AssociatedFaceIterator iter = m_pMG->associated_faces_begin(v[0]);
-						iter != m_pMG->associated_faces_end(v[0]); ++iter)
+				//	get the number of edges that are connected to v[0]
+				//	todo: only check edges that are on the correct side of the crease.
+					size_t valence = 0;
+					for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(v[0]);
+						iter != m_pMG->associated_edges_end(v[0]); ++iter)
 					{
-						++numFaces;
+						++valence;
 					}
 					
-					if(numFaces != 3)
-						gamma = 0.5-0.25*cos(PI/(number)numFaces);
+					wghts = subdiv.ref_odd_inner_weights(valence);
+				}
+				else{
+					wghts = subdiv.ref_odd_inner_weights();
 				}
 				
-			//	special weighting: inner-edge-point: 1/2, outer-edge-point: 1/4, adjacent-points: 1/8
-			//	normal weighting: edge-points: 3/8, adjacent-points: 1/8
 				VecScaleAdd(m_aaPos[vrt],
-							0.75-gamma, m_aaPos[v[0]], gamma, m_aaPos[v[1]],
-							0.125, m_aaPos[v[2]], 0.125, m_aaPos[v[3]]);
+							wghts.x, m_aaPos[v[0]], wghts.y, m_aaPos[v[1]],
+							wghts.z, m_aaPos[v[2]], wghts.w, m_aaPos[v[3]]);
 				
 			}
 			else
