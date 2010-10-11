@@ -393,7 +393,7 @@ class ParameterStack
 		
 		struct Entry{			
 			Parameter param;
-			int type;
+			uint type;
 			const std::vector<const char*>*	pClassNames;
 		};
 
