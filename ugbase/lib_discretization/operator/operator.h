@@ -18,12 +18,6 @@
 #include "linear_operator/assembled_linear_operator.h"
 #include "linear_operator/multi_grid_solver/mg_solver.h"
 
-#ifdef LAPACK_AVAILABLE
-#ifdef BLAS_AVAILABLE
-#include "linear_operator/amg_solver/amg_solver.h"
-#endif
-#endif
-
 // non linear operators
 #include "non_linear_operator/assembled_non_linear_operator.h"
 #include "non_linear_operator/newton_solver/newton.h"
