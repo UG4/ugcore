@@ -43,7 +43,7 @@ if(NOT NO_ALGEBRA)
 	##########################
 
 	set(src_Algebra	 ${src_Algebra}
-		operator/preconditioner/amg_solver/amg_coarsening.cpp )
+		operator/preconditioner/amg/amg_coarsening.cpp )
 
 	##########################
 	# setup library
