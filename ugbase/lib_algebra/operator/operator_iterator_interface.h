@@ -73,7 +73,7 @@ class IPreconditioner :
 		virtual const char* name() const = 0;
 
 	//	Preprocess routine
-		virtual bool preprocess() = 0;
+		virtual bool preprocess(matrix_type& mat) = 0;
 
 	//	Stepping routine
 		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)  = 0;
@@ -135,7 +135,7 @@ class IPreconditioner :
 			}
 
 		//	Preprocess
-			if(!preprocess())
+			if(!preprocess(*m_pMatrix))
 			{
 				UG_LOG("ERROR in '"<< name() << "::init': Preprocess failed.\n");
 				return false;

@@ -52,5 +52,10 @@
 #include "preconditioner/jacobi.h"
 #include "preconditioner/gauss_seidel.h"
 
+#ifdef LAPACK_AVAILABLE
+#ifdef BLAS_AVAILABLE
+#include "preconditioner/amg_solver/amg_solver.h"
+#endif
+#endif
 
 #endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR__ */
