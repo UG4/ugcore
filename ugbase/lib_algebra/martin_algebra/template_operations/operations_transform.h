@@ -8,6 +8,7 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
+
 #ifndef __H__UG__MARTIN_ALGEBRA__OPERATIONS_TRANSFORM__
 #define __H__UG__MARTIN_ALGEBRA__OPERATIONS_TRANSFORM__
 
@@ -116,6 +117,7 @@ inline void VectorAssign(vector_t &dest, double alpha1, const TE_SCALED_VEC<vect
 
 
 
+
 ///
 // 1 Operant
 
@@ -131,7 +133,7 @@ inline void VectorAssign(vector_t &dest, const MatVec_Expression<matrix_t, vecto
 template<typename vector_t, typename vector_t2, typename vector_t3>
 inline void VectorAssign(vector_t &dest, const TE_SCALED_VEC<vector_t2> &v1)
 {
-	VecScale(dest, getScaling(v1), getVector(v1));
+	VecScaleAssign(dest, getScaling(v1), getVector(v1));
 }
 
 
@@ -162,7 +164,7 @@ inline void VectorAssign(vector_t &dest, const AlphaMatVec_X_Expression<T1, oper
 template<typename vector_t, typename T1>
 inline void VectorAdd(vector_t &dest, const T1 &t1)
 {
-	VectorAssign(dest, 1.0, t1, 1.0, dest);
+	VectorAssign<vector_t, T1, vector_t>(dest, 1.0, t1, 1.0, dest);
 }
 
 //! transforms x -= X1 into x = (-1.0)*X1 + (1.0)*x

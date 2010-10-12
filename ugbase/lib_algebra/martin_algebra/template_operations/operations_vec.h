@@ -21,7 +21,7 @@ namespace ug
 // VecScale: These function calculate dest = sum_i alpha_i v_i
 
 //! calculates dest = alpha1*v1. for doubles
-inline void VecScale(double &dest, double alpha1, const double &v1)
+inline void VecScaleAssign(double &dest, double alpha1, const double &v1)
 {
 	dest = alpha1*v1;
 }
@@ -82,10 +82,10 @@ inline void VecNormSquaredAdd(const double &a, double &s)
 
 //! calculates dest = alpha1*v1
 template<typename vector_t>
-inline void VecScale(vector_t &dest, double alpha1, const vector_t &v1)
+inline void VecScaleAssign(vector_t &dest, double alpha1, const vector_t &v1)
 {
 	for(size_t i=0; i<dest.size(); i++)
-		VecScale(dest[i], alpha1, v1[i]);
+		VecScaleAssign(dest[i], alpha1, v1[i]);
 }
 
 //! calculates dest = alpha1*v1 + alpha2*v2
