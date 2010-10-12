@@ -19,7 +19,7 @@ namespace ug{
 
 
 template<typename vec_type>
-void LapackLU::apply(const vec_type &b, vec_type &x)
+bool LapackLU::apply(const vec_type &b, vec_type &x)
 {
 #ifndef NDEBUG
     const size_t nrOfUnknowns = block_vector_traits<typename vec_type::entry_type>::nrOfUnknowns;
@@ -30,13 +30,21 @@ void LapackLU::apply(const vec_type &b, vec_type &x)
 	// TODO: this only works for fixed array entries.
 	int info = getrs(ModeNoTrans, size, 1, densemat, size, interchange, (double*)&x[0], size);
 	UG_ASSERT(info == 0, "info is " << info);
+	if(info != 0)
+	{
+		UG_LOG("ERROR in LapackLU::apply: Cannot apply lapack routine.\n");
+		return false;
+	}
 
 	UNUSED_VARIABLE(info);
+
+//	we're done
+	return true;
 }
 
 
 template<typename matrix_type>
-void LapackLU::init(const matrix_type &A)
+bool LapackLU::init(const matrix_type &A)
 {
 	// TODO: Use nrOfRows and nrOfCols here. I have changed this due to compile errors. Andreas Vogel
 	// before: const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfUnknowns;
@@ -48,6 +56,11 @@ void LapackLU::init(const matrix_type &A)
 
 	densemat = new double[size*size];
 	interchange = new int[size];
+	if(densemat == NULL || interchange == NULL)
+	{
+		UG_LOG("ERROR in LapackLU::init: Not enough memory to allocate lapack matrices.\n");
+		return false;
+	}
 
 	memset(densemat, 0, sizeof(double)*size*size);
 
@@ -64,8 +77,16 @@ void LapackLU::init(const matrix_type &A)
 	int info = getrf(size, size, densemat, size, interchange);
 	UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": matrix singular in U(i,i)" : ": i-th argument had an illegal value"));
 	// todo: put this error text in a lapack_errors.cpp file
+	if(info != 0)
+	{
+		UG_LOG("ERROR in LapackLU::init: Cannot init lapack routine.\n");
+		return false;
+	}
 
 	UNUSED_VARIABLE(info);
+
+//	we're done
+	return true;
 }
 
 } // namespace ug

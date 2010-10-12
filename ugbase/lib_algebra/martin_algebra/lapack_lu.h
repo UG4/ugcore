@@ -39,12 +39,12 @@ public:
 
 
 	template<typename matrix_type>
-	void init(const matrix_type &A);
+	bool init(const matrix_type &A);
 
 	template<typename vec_type>
-	void prepare(const vec_type &b, vec_type &x) {}
+	bool prepare(const vec_type &b, vec_type &x) {return true;}
 	template<typename vec_type>
-	void apply(const vec_type &b, vec_type &x);
+	bool apply(const vec_type &b, vec_type &x);
 
 private:
 	size_t size;
