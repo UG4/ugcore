@@ -20,44 +20,61 @@
 
 namespace ug{
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
-class ThetaTimeDiscretization : public ITimeDiscretization<TDiscreteFunction, TAlgebra> {
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class ThetaTimeDiscretization : public ITimeDiscretization<TDoFDistribution, TAlgebra>
+{
 	public:
-		typedef TDiscreteFunction discrete_function_type;
+	//	DoF Distribution Type
+		typedef TDoFDistribution dof_distribution_type;
 
-		// type of algebra
+	// 	Type of algebra
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
-
 
 	public:
 		// theta = 0 -> Backward Euler
-		ThetaTimeDiscretization(IDomainDiscretization<discrete_function_type, algebra_type>& sd, number theta);
+		ThetaTimeDiscretization(IDomainDiscretization<dof_distribution_type, algebra_type>& sd, number theta);
+
+		ThetaTimeDiscretization()
+		{
+			set_theta(1.0);
+		}
+
+		void set_theta(number theta)
+		{
+			s_a[0] = 1.-theta;
+			s_a[1] = theta;
+			s_m[0] = 1.;
+			s_m[1] = -1.;
+			m_previousSteps = 1;
+		}
+		void set_domain_discretization(IDomainDiscretization<dof_distribution_type, algebra_type>& dd) {this->m_dd = &dd;}
 
 		// return number of previous time steps needed
 		size_t num_prev_steps() {return m_previousSteps;}
 
 		// implements the time step interface
-		bool prepare_step(std::deque<discrete_function_type*>& u_old, std::deque<number>& time_old, number dt);
+		bool prepare_step(std::deque<vector_type*>& u_old, std::deque<number>& time_old, number dt);
 
+	public:
 		// implements the assemble interface
-		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const discrete_function_type& u);
-		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u);
-		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u);
-		IAssembleReturn assemble_solution(discrete_function_type& u);
-		IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const discrete_function_type& u);
+		IAssembleReturn assemble_jacobian_defect(matrix_type& J, vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr);
+		IAssembleReturn assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr);
+		IAssembleReturn assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr);
+		IAssembleReturn assemble_solution(vector_type& u, const dof_distribution_type& dofDistr);
+		IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const dof_distribution_type& dofDistr);
 
 	private:
 		size_t m_previousSteps;
 		number s_a[2];
 		number s_m[2];
-		std::deque<discrete_function_type*> *m_u_old;
+		std::deque<vector_type*> *m_u_old;
 		std::deque<number> *m_time_old;
 		number m_dt; // current time step
 		number m_time_future;
