@@ -56,16 +56,7 @@ public:
 	{
 		return values[i];
 	}
-	value_type &operator ()(size_t i)
-	{
-		return values[i];
-	}
-	const value_type &operator () (size_t i) const
-	{
-		return values[i];
-	}
 
-	// todo: speak with martin: I inserted these functions here, since otherwise VecScaleAdd would not work for block matrices
 	value_type &operator [](size_t i)
 	{
 		return values[i];
@@ -171,7 +162,7 @@ public:
 	{
 		vector_type erg(size());
 		for(size_t i=0; i<size(); i++)
-			erg(i) = at(i) * alpha;
+			erg[i] = at(i) * alpha;
 		return erg;
 	}
 
@@ -241,7 +232,7 @@ public:
 	{
 		out << "( ";
 		for(size_t i=0; i < v.size(); i++)
-			out << v(i) << " ";
+			out << v[i] << " ";
 		out << ") ";
 		return out;
 	}

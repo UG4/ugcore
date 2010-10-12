@@ -39,12 +39,12 @@ inline double BlockNorm(const TYPE &v)
 // get/set vector
 template<typename M> inline double &BlockRef(M &m, size_t i)
 {
-	return m(i);
+	return m[i];
 }
 
 template<typename M> inline const double &BlockRef(const M &m, size_t i)
 {
-	return m(i);
+	return m[i];
 }
 
 // get/set matrix

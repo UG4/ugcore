@@ -255,9 +255,9 @@ public:
 		UG_ASSERT(num_rows() == vec.size(), "");
 		for(size_t r=0; r < num_rows(); r++)
 		{
-			dest(r) = 0.0;
+			dest[r] = 0.0;
 			for(size_t c=0; c < num_cols(); c++)
-				AddMult(dest(r), at(r, c), vec(c));
+				AddMult(dest[r], at(r, c), vec[c]);
 		}
 	}
 
@@ -385,7 +385,7 @@ public:
 		UG_ASSERT(num_rows() == num_cols(), "only for square matrices");
 		UG_ASSERT(num_cols() == vec.size(), "size mismatch");
 		for(size_t i=0; i<vec.size(); i++)
-			dest[i] = vec(i);
+			dest[i] = vec[i];
 
 		int info = getrs(ModeNoTrans, num_rows(), 1, &densemat(0,0), num_rows(), &interchange[0], dest,	num_rows());
 	}
@@ -393,7 +393,7 @@ public:
 	vector_type operator * (const vector_type &vec) const
 	{
 		vector_type erg(vec.size());
-		apply(&erg(0), vec);
+		apply(&erg[0], vec);
 		return erg;
 	}
 
@@ -401,7 +401,7 @@ public:
 	//! dest = this*vec . use this to prevent temporary variables
 	void assign_mult(vector_type &dest, const vector_type &vec) const
 	{
-		apply(&dest(0), vec);
+		apply(&dest[0], vec);
 	}
 	//! dest += this*vec . use this to prevent temporary variables
 	void add_mult(vector_type &dest, const vector_type &vec) const
@@ -413,7 +413,7 @@ public:
 
 		apply(&erg[0], vec);
 		for(size_t i=0; i<vec.size(); i++)
-			dest(i) += erg[i];
+			dest[i] += erg[i];
 	}
 	//! dest -= this*vec . use this to prevent temporary variables
 	void sub_mult(vector_type &dest, const vector_type &vec) const
@@ -425,7 +425,7 @@ public:
 
 		apply(&erg[0], vec);
 		for(size_t i=0; i<vec.size(); i++)
-			dest(i) -= erg[i];
+			dest[i] -= erg[i];
 	}
 };
 
