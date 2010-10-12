@@ -25,7 +25,7 @@ template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, 
 FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
 FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 							Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs)
-	: 	m_domain(domain), m_upwindAmount(upwind_amount),
+	: 	m_pDomain(&domain), m_upwindAmount(upwind_amount),
 		m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
 {
 	// register all Elements with reference dimension <= world dimension
@@ -49,7 +49,14 @@ prepare_element_loop()
 	m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 	// remember position attachement
-	m_aaPos = m_domain.get_position_accessor();
+	if(m_pDomain == NULL)
+	{
+		UG_LOG("ERROR in 'FVConvectionDiffusionElemDisc::prepare_element_loop':"
+				" Domain not set.");
+		return false;
+	}
+
+	m_aaPos = m_pDomain->get_position_accessor();
 
 	return true;
 }
@@ -87,7 +94,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-	if(!geo.update(elem, m_domain.get_grid(), &m_vCornerCoords[0]))
+	if(!geo.update(elem, m_pDomain->get_grid(), &m_vCornerCoords[0]))
 		{UG_LOG("FVConvectionDiffusionElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
 
 	return true;

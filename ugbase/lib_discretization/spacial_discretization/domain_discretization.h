@@ -22,97 +22,97 @@
 
 namespace ug {
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
+template <	typename TDoFDistribution,
+			typename TAlgebra>
 class DomainDiscretization :
-	public IDomainDiscretization<TDiscreteFunction, TAlgebra>
+	public IDomainDiscretization<TDoFDistribution, TAlgebra>
 {
 	protected:
-		// type of algebra
-		typedef TDiscreteFunction discrete_function_type;
+	// 	Type of DoF Distribution
+		typedef TDoFDistribution dof_distribution_type;
 
-		// type of algebra
+	// 	Type of algebra
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
 		DomainDiscretization()
 		{};
 
-		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u)
+		IAssembleReturn assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
+			if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleJacobian<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
+				if(!AssembleJacobian<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vElemDisc[i].disc, J, u, dofDistr, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleJacobian<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vCoupledElemDisc[i].disc, J, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim))
+				if(!AssembleJacobian<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, J, u, dofDistr, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 
 			return IAssemble_OK;
 		}
 
-		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u)
+		IAssembleReturn assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
+			if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleDefect<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
+				if(!AssembleDefect<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vElemDisc[i].disc, d, u, dofDistr, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleDefect<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vCoupledElemDisc[i].disc, d, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si,  m_vCoupledElemDisc[i].dim))
+				if(!AssembleDefect<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, d, u, dofDistr, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si,  m_vCoupledElemDisc[i].dim))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_vDirichletDisc[i].si) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 
-		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
+		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
+			if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleLinear<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
+				if(!AssembleLinear<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vElemDisc[i].disc, mat, rhs, u, dofDistr, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleLinear<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vCoupledElemDisc[i].disc, mat, rhs, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim))
+				if(!AssembleLinear<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, mat, rhs, u, dofDistr, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vConstraintsPostProcess.size(); ++i)
-				if(m_vConstraintsPostProcess[i]->post_process_linear(mat, rhs, u) != IAssemble_OK)
+				if(m_vConstraintsPostProcess[i]->post_process_linear(mat, rhs, u, dofDistr) != IAssemble_OK)
 					return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_vDirichletDisc[i].si) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 
-		IAssembleReturn assemble_solution(discrete_function_type& u)
+		IAssembleReturn assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 		{
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, m_vDirichletDisc[i].si) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
 					return IAssemble_ERROR;
 
 			return IAssemble_OK;
@@ -121,72 +121,75 @@ class DomainDiscretization :
 		///////////////////////
 		// Time dependent part
 		///////////////////////
-		IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, number s_m, number s_a)
+		IAssembleReturn assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr,
+											number time, number s_m, number s_a)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
+			if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleJacobian<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vElemDisc[i].disc, J, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
+				if(!AssembleJacobian<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vElemDisc[i].disc, J, u, dofDistr, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleJacobian<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vCoupledElemDisc[i].disc, J, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim, time, s_m, s_a))
+				if(!AssembleJacobian<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, J, u, dofDistr, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim, time, s_m, s_a))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 
-		IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
+		IAssembleReturn assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr,
+										number time, number s_m, number s_a)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
+			if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleDefect<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vElemDisc[i].disc, d, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
+				if(!AssembleDefect<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vElemDisc[i].disc, d, u, dofDistr, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleDefect<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vCoupledElemDisc[i].disc, d, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si,  m_vCoupledElemDisc[i].dim, time, s_m, s_a))
+				if(!AssembleDefect<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, d, u, dofDistr, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si,  m_vCoupledElemDisc[i].dim, time, s_m, s_a))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 
-		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, number time, number s_m, number s_a)
+		IAssembleReturn assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr,
+										number time, number s_m, number s_a)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
+			if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!AssembleLinear<IElemDisc<TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vElemDisc[i].disc, mat, rhs, u, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
+				if(!AssembleLinear<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vElemDisc[i].disc, mat, rhs, u, dofDistr, m_vElemDisc[i].fcts, m_vElemDisc[i].si, m_vElemDisc[i].dim, time, s_m, s_a))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vCoupledElemDisc.size(); ++i)
-				if(!AssembleLinear<CoupledSystem<TDiscreteFunction, TAlgebra>,TDiscreteFunction,TAlgebra>
-					(*m_vCoupledElemDisc[i].disc, mat, rhs, u, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim, time, s_m, s_a))
+				if(!AssembleLinear<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
+					(*m_vCoupledElemDisc[i].disc, mat, rhs, u, dofDistr, m_vCoupledElemDisc[i].fcts, m_vCoupledElemDisc[i].si, m_vCoupledElemDisc[i].dim, time, s_m, s_a))
 						return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
 
-		IAssembleReturn assemble_solution(discrete_function_type& u, number time)
+		IAssembleReturn assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
 		{
-			if(!check_solution(u)) return IAssemble_ERROR;
+			if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
 			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-				if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+				if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
 					return IAssemble_ERROR;
 			return IAssemble_OK;
 		}
@@ -221,7 +224,7 @@ class DomainDiscretization :
 		std::vector<ElemDisc> m_vElemDisc;
 
 	public:
-		bool add(CoupledSystem<TDiscreteFunction, TAlgebra>& coupledElemDisc, const FunctionGroup& fcts, int si, int dim)
+		bool add(CoupledSystem<TAlgebra>& coupledElemDisc, const FunctionGroup& fcts, int si, int dim)
 		{
 			// check if number of functions match
 			if(coupledElemDisc.num_fct() != fcts.num_fct())
@@ -238,39 +241,39 @@ class DomainDiscretization :
 	protected:
 		struct CoupledDisc
 		{
-			CoupledDisc(int si_, int dim_, CoupledSystem<TDiscreteFunction, TAlgebra>& disc_, const FunctionGroup& fcts_) :
+			CoupledDisc(int si_, int dim_, CoupledSystem<TAlgebra>& disc_, const FunctionGroup& fcts_) :
 				si(si_), dim(dim_), disc(&disc_), fcts(fcts_) {};
 
 			int si;
 			int dim;
-			CoupledSystem<TDiscreteFunction, TAlgebra>* disc;
+			CoupledSystem<TAlgebra>* disc;
 			FunctionGroup fcts;
 		};
 
 		std::vector<CoupledDisc> m_vCoupledElemDisc;
 
 	public:
-		bool add(IConstraintsPostProcess<TDiscreteFunction, TAlgebra>& constraintsPP)
+		bool add(IConstraintsPostProcess<TDoFDistribution, TAlgebra>& constraintsPP)
 		{
 			m_vConstraintsPostProcess.push_back(&constraintsPP);
 			return true;
 		}
 
 	protected:
-		std::vector<IConstraintsPostProcess<TDiscreteFunction, TAlgebra>*> m_vConstraintsPostProcess;
+		std::vector<IConstraintsPostProcess<TDoFDistribution, TAlgebra>*> m_vConstraintsPostProcess;
 
 
 	protected:
-		bool check_solution(const discrete_function_type& u)
+		bool check_solution(const vector_type& u, const dof_distribution_type& dofDistr)
 		{
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
 			{
 				for(size_t fct = 0; fct < (m_vElemDisc[i].disc)->num_fct(); ++fct)
 				{
-					if((u.local_shape_function_set_id((m_vElemDisc[i].fcts)[fct]) !=	(m_vElemDisc[i].disc)->local_shape_function_set_id(fct)))
+					if((dofDistr.local_shape_function_set_id((m_vElemDisc[i].fcts)[fct]) !=	(m_vElemDisc[i].disc)->local_shape_function_set_id(fct)))
 					{
 						UG_LOG("fct " << fct << " of elem disc is fct " << (m_vElemDisc[i].fcts)[fct] << "of solution\n");
-						UG_LOG("id " << u.local_shape_function_set_id((m_vElemDisc[i].fcts)[fct]) << ", " << (m_vElemDisc[i].disc)->local_shape_function_set_id(fct) << "\n");
+						UG_LOG("id " << dofDistr.local_shape_function_set_id((m_vElemDisc[i].fcts)[fct]) << ", " << (m_vElemDisc[i].disc)->local_shape_function_set_id(fct) << "\n");
 						UG_LOG("Solution does not match requirements of discretization.\n");
 						return false;
 					}
@@ -280,7 +283,7 @@ class DomainDiscretization :
 		}
 
 	public:
-		bool add_dirichlet_bnd(IDirichletBoundaryValues<discrete_function_type>& bnd_disc, int si)
+		bool add_dirichlet_bnd(IDirichletBoundaryValues<TDoFDistribution, TAlgebra>& bnd_disc, int si)
 		{
 			m_vDirichletDisc.push_back(DirichletDisc(si, &bnd_disc));
 			return true;
@@ -289,11 +292,11 @@ class DomainDiscretization :
 	protected:
 		struct DirichletDisc
 		{
-			DirichletDisc(int s, IDirichletBoundaryValues<discrete_function_type>* di) :
+			DirichletDisc(int s, IDirichletBoundaryValues<TDoFDistribution, TAlgebra>* di) :
 				si(s), disc(di) {};
 
 			int si;
-			IDirichletBoundaryValues<discrete_function_type>* disc;
+			IDirichletBoundaryValues<TDoFDistribution, TAlgebra>* disc;
 		};
 
 		std::vector<DirichletDisc> m_vDirichletDisc;

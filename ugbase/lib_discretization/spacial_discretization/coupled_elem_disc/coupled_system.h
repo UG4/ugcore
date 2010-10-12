@@ -13,14 +13,10 @@
 
 namespace ug {
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type>
+template <typename TAlgebra>
 class CoupledSystem {
 	public:
-		// discrete function type
-		typedef TDiscreteFunction discrete_function_type;
-
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
 	public:

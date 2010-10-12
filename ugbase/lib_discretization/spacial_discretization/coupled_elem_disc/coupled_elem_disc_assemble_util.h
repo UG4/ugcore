@@ -32,15 +32,16 @@ namespace ug {
 
 // assemble elements of type TElem in d dimensions
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
-					typename geometry_traits<TElem>::iterator iterBegin,
-					typename geometry_traits<TElem>::iterator iterEnd,
+AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
+					typename geometry_traits<TElem>::const_iterator iterBegin,
+					typename geometry_traits<TElem>::const_iterator iterEnd,
 					int si,
 					typename TAlgebra::matrix_type& J,
-					const TDiscreteFunction& u,
+					const typename TAlgebra::vector_type& u,
+					const TDoFDistribution& dofDistr,
 					const FunctionGroup& fcts,
 					number time, number s_m, number s_a)
 {
@@ -63,10 +64,10 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	colInd.set_function_group(fcts);
 
 	// prepare local indices
-	if(!u.prepare_indices(refID, si, rowInd))
+	if(!dofDistr.prepare_indices(refID, si, rowInd))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 	// prepare local indices
-	if(!u.prepare_indices(refID, si, colInd))
+	if(!dofDistr.prepare_indices(refID, si, colInd))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 
 	for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
@@ -94,18 +95,17 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J_temp(rowInd, colInd);
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, rowInd);
-		u.update_indices(elem, colInd);
+		dofDistr.update_indices(elem, rowInd);
+		dofDistr.update_indices(elem, colInd);
 
 		// read local values of u
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// loop all systems
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
@@ -191,15 +191,16 @@ AssembleJacobian(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 //////////////////////////////////
 
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
-				typename geometry_traits<TElem>::iterator iterBegin,
-				typename geometry_traits<TElem>::iterator iterEnd,
+AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
+				typename geometry_traits<TElem>::const_iterator iterBegin,
+				typename geometry_traits<TElem>::const_iterator iterEnd,
 				int si,
 				typename TAlgebra::vector_type& d,
-				const TDiscreteFunction& u,
+				const typename TAlgebra::vector_type& u,
+				const TDoFDistribution& dofDistr,
 				const FunctionGroup& fcts,
 				number time, number s_m, number s_a)
 {
@@ -220,7 +221,7 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices
-	if(!u.prepare_indices(refID, si, ind))
+	if(!dofDistr.prepare_indices(refID, si, ind))
 		{UG_LOG("ERROR in AssembleDefect: Cannot prepare indices.\n"); return false;}
 
 	// local algebra
@@ -247,17 +248,16 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	//ElemDataContainer.identify_exports();
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		dofDistr.update_indices(elem, ind);
 
 		// read local values of u
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// prepare element
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
@@ -332,16 +332,17 @@ AssembleDefect(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 //////////////////////////////////
 
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
-				typename geometry_traits<TElem>::iterator iterBegin,
-				typename geometry_traits<TElem>::iterator iterEnd,
+AssembleLinear(	CoupledSystem<TAlgebra>& cplElemDisc,
+				typename geometry_traits<TElem>::const_iterator iterBegin,
+				typename geometry_traits<TElem>::const_iterator iterEnd,
 				int si,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
-				const TDiscreteFunction& u,
+				const typename TAlgebra::vector_type& u,
+				const TDoFDistribution& dofDistr,
 				const FunctionGroup& fcts)
 {
 	using std::vector;
@@ -363,10 +364,10 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	colInd.set_function_group(fcts);
 
 	// prepare local indices
-	if(!u.prepare_indices(refID, si, rowInd))
+	if(!dofDistr.prepare_indices(refID, si, rowInd))
 		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
 	// prepare local indices
-	if(!u.prepare_indices(refID, si, colInd))
+	if(!dofDistr.prepare_indices(refID, si, colInd))
 		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
 
 	for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
@@ -394,18 +395,17 @@ AssembleLinear(	CoupledSystem<TDiscreteFunction, TAlgebra>& cplElemDisc,
 	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_mat(rowInd, colInd);
 
 	// loop over all elements of type TElem
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, rowInd);
-		u.update_indices(elem, colInd);
+		dofDistr.update_indices(elem, rowInd);
+		dofDistr.update_indices(elem, colInd);
 
 		// read local values of u
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// loop all systems
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)

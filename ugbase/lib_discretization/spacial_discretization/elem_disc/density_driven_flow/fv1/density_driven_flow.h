@@ -20,6 +20,29 @@
 
 namespace ug{
 
+template <int dim>
+class IDensityDrivenFlowUserFunction
+{
+	public:
+	//	Function Types
+		typedef void (*Pososity_fct)(number&);
+		typedef void (*Viscosity_fct)(number&, number);
+		typedef void (*Density_fct)(number&, number);
+		typedef void (*D_Density_fct)(number&, number);
+		typedef void (*Mol_Diff_Tensor_fct)(MathMatrix<dim,dim>&);
+		typedef void (*Permeability_Tensor_fct)(MathMatrix<dim,dim>&);
+		typedef void (*Gravity_fct)(MathVector<dim>&);
+
+	public:
+		virtual Pososity_fct get_porosity_function() const = 0;
+		virtual Viscosity_fct get_viscosity_function() const = 0;
+		virtual Density_fct get_density_function() const = 0;
+		virtual D_Density_fct get_d_density_function() const = 0;
+		virtual Mol_Diff_Tensor_fct get_mol_diff_tensor_function() const = 0;
+		virtual Permeability_Tensor_fct get_perm_tensor_function() const = 0;
+		virtual Gravity_fct get_gravity_function() const = 0;
+};
+
 template<typename TDomain, typename TAlgebra>
 class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 	public:
@@ -58,6 +81,26 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 									Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
 									Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity);
 
+		DensityDrivenFlowElemDisc() :
+			m_pDomain(NULL), m_upwind_amount(0.0),
+			m_Porosity(NULL), m_Viscosity(NULL), m_Density(NULL), m_D_Density(NULL),
+			m_Mol_Diff_Tensor(NULL), m_Permeability_Tensor(NULL), m_Gravity(NULL)
+		{
+			register_assemble_functions();
+		}
+
+		void set_upwind_amount(number amount) {m_upwind_amount = amount;}
+		void set_domain(domain_type& domain) {m_pDomain = &domain;}
+		void set_user_functions(IDensityDrivenFlowUserFunction<dim>& user) {
+			m_Porosity = user.get_porosity_function();
+			m_Viscosity = user.get_viscosity_function();
+			m_Density = user.get_density_function();
+			m_D_Density = user.get_d_density_function();
+			m_Mol_Diff_Tensor = user.get_mol_diff_tensor_function();
+			m_Permeability_Tensor = user.get_perm_tensor_function();
+			m_Gravity = user.get_gravity_function();
+		}
+
 		virtual size_t num_fct() {return 2;}
 
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct)	{return LSFS_LAGRANGEP1;}
@@ -89,7 +132,7 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 
 	private:
 		// domain
-		TDomain& m_domain;
+		TDomain* m_pDomain;
 
 		// position access
 		typename TDomain::position_type* m_corners;

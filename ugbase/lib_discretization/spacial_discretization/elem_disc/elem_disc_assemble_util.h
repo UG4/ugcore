@@ -30,15 +30,16 @@ namespace ug {
 
 // assemble elements of type TElem in d dimensions
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
 AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
-						typename geometry_traits<TElem>::iterator iterBegin,
-						typename geometry_traits<TElem>::iterator iterEnd,
+						typename geometry_traits<TElem>::const_iterator iterBegin,
+						typename geometry_traits<TElem>::const_iterator iterEnd,
 						int si,
 						typename TAlgebra::matrix_type& J,
-						const TDiscreteFunction& u,
+						const typename TAlgebra::vector_type& u,
+						const TDoFDistribution& dofDistr,
 						const FunctionGroup& fcts)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
@@ -56,7 +57,7 @@ AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind))
+	if(!dofDistr.prepare_indices(refID, si, ind))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -72,17 +73,16 @@ AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		dofDistr.update_indices(elem, ind);
 
 		// read local values of u
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// prepare element
 		if(!elemDisc.prepare_element(elem, loc_u, ind))
@@ -113,15 +113,16 @@ AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
 
 // assemble elements of type TElem in d dimensions
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
 AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
-						typename geometry_traits<TElem>::iterator iterBegin,
-						typename geometry_traits<TElem>::iterator iterEnd,
+						typename geometry_traits<TElem>::const_iterator iterBegin,
+						typename geometry_traits<TElem>::const_iterator iterEnd,
 						int si,
 						typename TAlgebra::matrix_type& J,
-						const TDiscreteFunction& u,
+						const typename TAlgebra::vector_type& u,
+						const TDoFDistribution& dofDistr,
 						const FunctionGroup& fcts)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
@@ -139,7 +140,7 @@ AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind))
+	if(!dofDistr.prepare_indices(refID, si, ind))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -155,17 +156,16 @@ AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind);
+		dofDistr.update_indices(elem, ind);
 
 		// read local values of u
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// prepare element
 		if(!elemDisc.prepare_element(elem, loc_u, ind))
@@ -195,15 +195,16 @@ AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
 
 // assemble elements of type TElem in d dimensions
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
 AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
-					typename geometry_traits<TElem>::iterator iterBegin,
-					typename geometry_traits<TElem>::iterator iterEnd,
+					typename geometry_traits<TElem>::const_iterator iterBegin,
+					typename geometry_traits<TElem>::const_iterator iterEnd,
 					int si,
 					typename TAlgebra::matrix_type& J,
-					const TDiscreteFunction& u,
+					const typename TAlgebra::vector_type& u,
+					const TDoFDistribution& dofDistr,
 					const FunctionGroup& fcts,
 					number time, number s_m, number s_a)
 {
@@ -226,7 +227,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -246,13 +247,13 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind, useHanging);
+		dofDistr.update_indices(elem, ind, useHanging);
 
 		// adapt local algebra
 		if(useHanging)
@@ -263,8 +264,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		}
 
 		// read local values of u
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// reset local matrix and rhs
 		loc_J.set(0.0);
@@ -301,15 +301,16 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 //////////////////////////////////
 
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
 AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
-				typename geometry_traits<TElem>::iterator iterBegin,
-				typename geometry_traits<TElem>::iterator iterEnd,
+				typename geometry_traits<TElem>::const_iterator iterBegin,
+				typename geometry_traits<TElem>::const_iterator iterEnd,
 				int si,
 				typename TAlgebra::vector_type& d,
-				const TDiscreteFunction& u,
+				const typename TAlgebra::vector_type& u,
+				const TDoFDistribution& dofDistr,
 				const FunctionGroup& fcts,
 				number time, number s_m, number s_a)
 {
@@ -332,7 +333,7 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 		{UG_LOG("ERROR in AssembleDefect: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -352,13 +353,13 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleDefect: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind, useHanging);
+		dofDistr.update_indices(elem, ind, useHanging);
 
 		// adjust local algebra
 		if(useHanging)
@@ -369,8 +370,7 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		}
 
 		// read values
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// reset local matrix and rhs
 		loc_d.set(0.0);
@@ -413,16 +413,17 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 //////////////////////////////////
 
 template <	typename TElem,
-			typename TDiscreteFunction,
+			typename TDoFDistribution,
 			typename TAlgebra>
 bool
 AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
-				typename geometry_traits<TElem>::iterator iterBegin,
-				typename geometry_traits<TElem>::iterator iterEnd,
+				typename geometry_traits<TElem>::const_iterator iterBegin,
+				typename geometry_traits<TElem>::const_iterator iterEnd,
 				int si,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
-				const TDiscreteFunction& u,
+				const typename TAlgebra::vector_type& u,
+				const TDoFDistribution& dofDistr,
 				const FunctionGroup& fcts)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
@@ -444,7 +445,7 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 	ind.set_function_group(fcts);
 
 	// prepare local indices for elem type
-	if(!u.prepare_indices(refID, si, ind, useHanging))
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
 
 	// set elem type in elem disc
@@ -464,13 +465,13 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 		{UG_LOG("ERROR in AssembleLinear: Cannot prepare element loop.\n"); return false;}
 
 	// loop over all elements of type TElem
-	for(typename geometry_traits<TElem>::iterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		// get Element
 		TElem* elem = *iter;
 
 		// get global indices
-		u.update_indices(elem, ind, useHanging);
+		dofDistr.update_indices(elem, ind, useHanging);
 
 		// adjust local algebra
 		if(useHanging)
@@ -481,8 +482,7 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 		}
 
 		// read local values of u
-		const typename TAlgebra::vector_type& u_vec = u.get_vector();
-		loc_u.read_values(u_vec);
+		loc_u.read_values(u);
 
 		// reset local matrix and rhs
 		loc_mat.set(0.0);

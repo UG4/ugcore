@@ -27,16 +27,16 @@ enum IDirichletPostProcessNeed {
 template <typename TAlgebra>
 class IDirichletPostProcess{
 	protected:
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// local matrix type
+	// 	Matrix type
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// local vector type
+	// 	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
-		// local index type
+	// 	Local index type
 		typedef LocalIndices local_index_type;
 
 	public:

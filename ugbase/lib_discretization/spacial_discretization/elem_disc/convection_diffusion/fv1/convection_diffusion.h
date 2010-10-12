@@ -21,6 +21,23 @@
 namespace ug{
 
 
+template <int dim>
+class IConvDiffUserFunction
+{
+	public:
+	//	Function Types
+		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const MathVector<dim>&, number);
+		typedef void (*Conv_Vel_fct)(MathVector<dim>&, const MathVector<dim>&, number);
+		typedef void (*Reaction_fct)(number&, const MathVector<dim>&, number);
+		typedef void (*Rhs_fct)(number&, const MathVector<dim>&, number);
+
+	public:
+		virtual Diff_Tensor_fct get_diff_tensor_function() const = 0;
+		virtual Conv_Vel_fct get_velocity_function() const = 0;
+		virtual Reaction_fct get_reaction_function() const = 0;
+		virtual Rhs_fct get_rhs_function() const = 0;
+};
+
 template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
 class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 {
@@ -54,8 +71,24 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
+		FVConvectionDiffusionElemDisc()
+		 : m_pDomain(NULL), m_upwindAmount(0.0),
+		  	m_Diff_Tensor(NULL), m_Conv_Vel(NULL), m_Reaction(NULL), m_Rhs(NULL)
+			{
+				register_assemble_functions(Int2Type<dim>());
+			}
+
+		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
+		void set_domain(domain_type& domain) {m_pDomain = &domain;}
+		void set_user_functions(IConvDiffUserFunction<dim>& user) {
+			m_Diff_Tensor = user.get_diff_tensor_function();
+			m_Conv_Vel = user.get_velocity_function();
+			m_Reaction = user.get_reaction_function();
+			m_Rhs = user.get_rhs_function();
+		}
+
 		FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
-									Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs);
+										Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs);
 
 		virtual size_t num_fct(){return 1;}
 
@@ -90,7 +123,7 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 
 	private:
 		// domain
-		TDomain& m_domain;
+		TDomain* m_pDomain;
 
 		// position access
 		std::vector<position_type> m_vCornerCoords;

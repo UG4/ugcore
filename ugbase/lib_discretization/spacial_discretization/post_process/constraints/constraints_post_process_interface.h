@@ -12,58 +12,58 @@
 
 namespace ug {
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
+template <	typename TDoFDistribution,
+			typename TAlgebra>
 class IConstraintsPostProcess{
 	public:
-		// discrete function type
-		typedef TDiscreteFunction discrete_function_type;
+	// 	DoF Distribution Type
+		typedef TDoFDistribution dof_distribution_type;
 
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		virtual IAssembleReturn post_process_jacobian(matrix_type& J, const discrete_function_type& u)
+		virtual IAssembleReturn post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
-		virtual IAssembleReturn post_process_defect(vector_type& d, const discrete_function_type& u)
+		virtual IAssembleReturn post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
+		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		virtual ~IConstraintsPostProcess() {};
 };
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
-class SymP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscreteFunction, TAlgebra> {
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class SymP1ConstraintsPostProcess : public IConstraintsPostProcess<TDoFDistribution, TAlgebra> {
 	public:
-		// discrete function type
-		typedef TDiscreteFunction discrete_function_type;
+	// 	DoF Distribution Type
+		typedef TDoFDistribution dof_distribution_type;
 
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
+		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
 		{
 			typename geometry_traits<ConstrainingEdge>::iterator iter, iterBegin, iterEnd;
 
-			iterBegin = u.template begin<ConstrainingEdge>();
-			iterEnd = u.template end<ConstrainingEdge>();
+			iterBegin = dofDistr.template begin<ConstrainingEdge>();
+			iterEnd = dofDistr.template end<ConstrainingEdge>();
 
 			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
@@ -88,10 +88,10 @@ class SymP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscreteFunc
 					if(vrt3 != vrt2 && vrt3 != vrt1) break;
 				}
 
-				typename discrete_function_type::algebra_index_vector_type ind1, ind2, ind3;
-				u.get_inner_algebra_indices(vrt1, ind1);
-				u.get_inner_algebra_indices(vrt2, ind2);
-				u.get_inner_algebra_indices(vrt3, ind3);
+				typename dof_distribution_type::algebra_index_vector_type ind1, ind2, ind3;
+				dofDistr.get_inner_algebra_indices(vrt1, ind1);
+				dofDistr.get_inner_algebra_indices(vrt2, ind2);
+				dofDistr.get_inner_algebra_indices(vrt3, ind3);
 
 				if(false)
 				{
@@ -174,27 +174,27 @@ class SymP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscreteFunc
 
 
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
-class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscreteFunction, TAlgebra> {
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDoFDistribution, TAlgebra> {
 	public:
-		// discrete function type
-		typedef TDiscreteFunction discrete_function_type;
+	// 	DoF Distribution Type
+		typedef TDoFDistribution dof_distribution_type;
 
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
-		// type of algebra index vector
-		typedef typename discrete_function_type::algebra_index_vector_type algebra_index_vector_type;
+	// 	Type of algebra index vector
+		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
 
 	public:
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u)
+		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
 		{
 			std::vector<algebra_index_vector_type> vConstrainingIndices;
 			algebra_index_vector_type constrainedIndex;
@@ -204,10 +204,10 @@ class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscrete
 			//////////////////////////
 			// Constrained Edges
 			//////////////////////////
-			typename geometry_traits<ConstrainingEdge>::iterator iter, iterBegin, iterEnd;
+			typename geometry_traits<ConstrainingEdge>::const_iterator iter, iterBegin, iterEnd;
 
-			iterBegin = u.template begin<ConstrainingEdge>();
-			iterEnd = u.template end<ConstrainingEdge>();
+			iterBegin = dofDistr.template begin<ConstrainingEdge>();
+			iterEnd = dofDistr.template end<ConstrainingEdge>();
 
 			vConstrainingIndices.resize(2);
 			vConstrainingVertices.resize(2);
@@ -235,9 +235,9 @@ class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscrete
 
 				// get algebra indices
 				for(size_t i=0; i < 2; ++i)
-					u.get_inner_algebra_indices(vConstrainingVertices[i], vConstrainingIndices[i]);
+					dofDistr.get_inner_algebra_indices(vConstrainingVertices[i], vConstrainingIndices[i]);
 
-				u.get_inner_algebra_indices(constrainedVertex, constrainedIndex);
+				dofDistr.get_inner_algebra_indices(constrainedVertex, constrainedIndex);
 
 				// Split using indices
 				if(!SplitAddRow(mat, constrainedIndex, vConstrainingIndices))
@@ -254,10 +254,10 @@ class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscrete
 			//////////////////////////
 			// Constrained Quads
 			//////////////////////////
-			typename geometry_traits<ConstrainingQuadrilateral>::iterator iterQuad, iterQuadBegin, iterQuadEnd;
+			typename geometry_traits<ConstrainingQuadrilateral>::const_iterator iterQuad, iterQuadBegin, iterQuadEnd;
 
-			iterQuadBegin = u.template begin<ConstrainingQuadrilateral>();
-			iterQuadEnd = u.template end<ConstrainingQuadrilateral>();
+			iterQuadBegin = dofDistr.template begin<ConstrainingQuadrilateral>();
+			iterQuadEnd = dofDistr.template end<ConstrainingQuadrilateral>();
 
 			vConstrainingIndices.resize(4);
 			vConstrainingVertices.resize(4);
@@ -274,9 +274,9 @@ class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDiscrete
 
 				// get algebra indices
 				for(size_t i=0; i < 4; ++i)
-					u.get_inner_algebra_indices(vConstrainingVertices[i], vConstrainingIndices[i]);
+					dofDistr.get_inner_algebra_indices(vConstrainingVertices[i], vConstrainingIndices[i]);
 
-				u.get_inner_algebra_indices(constrainedVertex, constrainedIndex);
+				dofDistr.get_inner_algebra_indices(constrainedVertex, constrainedIndex);
 
 				// Split using indices
 				if(!SplitAddRow(mat, constrainedIndex, vConstrainingIndices))

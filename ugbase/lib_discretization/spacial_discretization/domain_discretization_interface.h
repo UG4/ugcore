@@ -23,20 +23,20 @@ namespace ug {
  * time - dependent part can call Mass- and Stiffness - matrix_type assembling.
  *
  */
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
-class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 	public:
-		// discrete function type
-		typedef TDiscreteFunction discrete_function_type;
+	// 	DoF Distribution Type
+		typedef TDoFDistribution dof_distribution_type;
 
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
@@ -52,7 +52,8 @@ class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 		 * 			IAssemble_ERROR 			if problem is time dependent and an error occurred
 		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
 		 */
-		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u, number time, number s_m, number s_a)
+		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr,
+													number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// assembles Defect
@@ -67,7 +68,8 @@ class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 		 * 			IAssemble_ERROR 			if problem is time dependent and an error occurred
 		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent
 		 */
-		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u, number time, number s_m, number s_a)
+		virtual IAssembleReturn assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr,
+												number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// Assembles matrix_type and Right-Hand-Side for a linear problem
@@ -83,7 +85,8 @@ class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 		 * 			IAssemble_TIMEINDEPENDENT 	if problem is time independent and linear
 		 * 			IAssemble_NONLINEAR			if problem is time dependent, but nonlinear
 		 */
-		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const discrete_function_type& u, number time, number s_m, number s_a)
+		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const dof_distribution_type& dofDistr,
+												number time, number s_m, number s_a)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// sets dirichlet values in solution vector
@@ -97,7 +100,7 @@ class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 		 * 			IAssemble_NOT_IMPLEMENTED 	if function has not been implemented
 		 * 			IAssemble_ERROR 			if function is implemented and an error occurred during assembling
 		 */
-		virtual IAssembleReturn assemble_solution(discrete_function_type& u, number time)
+		virtual IAssembleReturn assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// returns if the number of functions of this assembling
@@ -108,33 +111,35 @@ class IDomainDiscretization : public IAssemble<TDiscreteFunction, TAlgebra>{
 };
 
 
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
+template <	typename TDoFDistribution,
+			typename TAlgebra>
 class IDirichletBoundaryValues{
 	public:
-		// forward types and constants
+	// 	DoF Distribution Type
+		typedef TDoFDistribution dof_distribution_type;
 
-		// discrete function type
-		typedef TDiscreteFunction discrete_function_type;
-
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename algebra_type::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		virtual IAssembleReturn clear_dirichlet_jacobian(matrix_type& J, const discrete_function_type& u, int si, number time = 0.0)
+		virtual IAssembleReturn clear_dirichlet_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr,
+															int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
-		virtual IAssembleReturn clear_dirichlet_defect(vector_type& d, const discrete_function_type& u, int si, number time = 0.0)
+		virtual IAssembleReturn clear_dirichlet_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr,
+														int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
-		virtual IAssembleReturn set_dirichlet_linear(matrix_type& mat, vector_type& rhs, const discrete_function_type& u, int si, number time = 0.0)
+		virtual IAssembleReturn set_dirichlet_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr,
+														int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
-		virtual IAssembleReturn set_dirichlet_solution(discrete_function_type& u, int si, number time = 0.0)
+		virtual IAssembleReturn set_dirichlet_solution(vector_type& u, const dof_distribution_type& dofDistr,
+														int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// returns true if the subset is dirchlet for the function fct
