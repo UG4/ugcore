@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
- * Method:    helloUG
- * Signature: ()[Ljava/lang/String;
- */
-JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_helloUG
-  (JNIEnv *, jobject);
-
-/*
- * Class:     edu_gcsc_vrl_ug4_UG4
  * Method:    createJavaBindings
  * Signature: ()[Ljava/lang/String;
  */

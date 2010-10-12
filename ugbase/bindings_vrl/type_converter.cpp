@@ -5,13 +5,18 @@ namespace ug {
 	namespace vrl {
 
 		jstring stringC2J(JNIEnv *env, std::string const& s) {
-			return env->NewStringUTF(s.c_str());
+			return stringC2J(env, s.c_str());
+		}
+
+		jstring stringC2J(JNIEnv *env, const char* s) {
+			return env->NewStringUTF(s);
 		}
 
 		std::string stringJ2C(JNIEnv *env, jstring const& s) {
 			const char* tmpStr = env->GetStringUTFChars(s, false);
-			return std::string(tmpStr);
+			std::string result = (std::string)tmpStr;
 			env->ReleaseStringUTFChars(s, tmpStr);
+			return result;
 		}
 
 		jobjectArray stringArrayC2J(
@@ -69,6 +74,7 @@ namespace ug {
 
 			const ug::bridge::ParameterStack& paramStackIn = func.params_in();
 			size_t numParams = paramStackIn.size();
+
 			for (unsigned int i = 0; i < numParams; i++) {
 				if (i > 0) {
 					params << ", ";
@@ -80,14 +86,24 @@ namespace ug {
 
 			const ug::bridge::ParameterStack& paramStackOut = func.params_out();
 			const char* outType;
-			if (paramStackOut.size() > 0)
+			if (paramStackOut.size() > 0) {
 				outType = paramType2String(paramStackOut.get_type(0));
-			else
+			} else {
 				outType = "void";
+			}
 
-			result << "public " << outType << " " << func.name() << " (" << params.str() << ") {\n"
-					<< "Object[] params = [" << paramsArray.str() << "] \n"
-					<< "return edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction(" << (long) &func << " as long, params)\n}\n}";
+			result << "public " << outType << " " << func.name() << " ("
+					<< params.str() << ") {\n"
+					<< "Object[] params = [" << paramsArray.str() << "] \n";
+
+			if (paramStackOut.size() > 0) {
+				result << "return ";
+			}
+
+			result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction("
+					<< (jlong) & func << " as long, params)";
+
+			result << "\n}\n}";
 
 			return result.str();
 		}
@@ -104,6 +120,56 @@ namespace ug {
 			return env->CallIntMethod(obj, ajf);
 		}
 
+		jobject double2JObject(JNIEnv *env, jdouble value) {
+			jclass cls = env->FindClass("java/lang/Double");
+			jmethodID methodID = env->GetMethodID(cls, "<init>", "(D)V");
+			return env->NewObject(cls, methodID, value);
+		}
+
+		jdouble jObject2Double(JNIEnv *env, jobject obj) {
+			jclass argClass = env->GetObjectClass(obj);
+			jmethodID ajf = env->GetMethodID(argClass, "doubleValue", "()D");
+			return env->CallDoubleMethod(obj, ajf);
+		}
+
+		jobject boolean2JObject(JNIEnv *env, jboolean value) {
+			jclass cls = env->FindClass("java/lang/Boolean");
+			jmethodID methodID = env->GetMethodID(cls, "<init>", "(Z)V");
+			return env->NewObject(cls, methodID, value);
+		}
+
+		jboolean jObject2Boolean(JNIEnv *env, jobject obj) {
+			jclass argClass = env->GetObjectClass(obj);
+			jmethodID ajf = env->GetMethodID(argClass, "booleanValue", "()Z");
+			return env->CallBooleanMethod(obj, ajf);
+		}
+
+		void* jObject2Pointer(JNIEnv *env, jobject obj) {
+			VRL_DBG("INIT",1);
+			jclass argClass = env->GetObjectClass(obj);
+			VRL_DBG("AFTER GET_OBJECT",1);
+			jmethodID ajf = env->GetMethodID(argClass, "getPtr", "()J");
+			VRL_DBG("AFTER METHOD",1);
+			return (void*) env->CallLongMethod(obj, ajf);
+		}
+
+		jobject pointer2JObject(JNIEnv *env, void* value) {
+			VRL_DBG("INIT",1);
+			jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Pointer");
+			VRL_DBG("AFTER CLASS",1);
+			jmethodID methodID = env->GetMethodID(cls, "<init>", "(J)V");
+			VRL_DBG("AFTER METHOD",1);
+			return env->NewObject(cls, methodID, (jlong) value);
+		}
+
+		jobject string2JObject(JNIEnv *env, const char* value) {
+			return env->NewStringUTF(value);
+		}
+
+		std::string jObject2String(JNIEnv *env, jobject obj) {
+			return stringJ2C(env, (jstring) obj);
+		}
+
 		const char* paramType2String(int paramType) {
 
 			switch (paramType) {
@@ -111,8 +177,8 @@ namespace ug {
 				case ug::bridge::PT_INTEGER: return "int";
 				case ug::bridge::PT_NUMBER: return "double";
 				case ug::bridge::PT_STRING: return "String";
-				case ug::bridge::PT_POINTER: return "long";
-				case ug::bridge::PT_CONST_POINTER: return "long";
+				case ug::bridge::PT_POINTER: return "edu.gcsc.vrl.ug4.Pointer";
+				case ug::bridge::PT_CONST_POINTER: return "edu.gcsc.vrl.ug4.Pointer";
 				default: return "Object";
 			}
 		}
@@ -121,35 +187,62 @@ namespace ug {
 				const ug::bridge::ParameterStack& paramsTemplate,
 				jobjectArray const& array) {
 			using namespace ug::bridge;
+
+			std::vector<std::string> stringParams;
+
 			//	iterate through the parameter list and copy the value in the associated
 			//	stack entry.
 			for (int i = 0; i < paramsTemplate.size(); ++i) {
 				int type = paramsTemplate.get_type(i);
+//				const std::vector<const char*>* classNames = paramsTemplate.class_names(i);
+
+//				std::stringstream paramMessage;
+
+//				paramMessage << "CLASSNAMES for PARAM " << i << ": ";
+//
+//				for (unsigned int j = 0; j < classNames->size();j++) {
+//					paramMessage << "(" << j << "):" << (*classNames)[j] <<  ",";
+//				}
+//
+//				VRL_DBG(paramMessage.str(), 1);
+
 
 				jobject value = env->GetObjectArrayElement(array, i);
 
 				switch (type) {
 					case PT_BOOL:
 					{
-						//paramsOut.push_bool((jboolean)value);
+						paramsOut.push_bool(jObject2Boolean(env, value));
 					}
-					break;
+						break;
 					case PT_INTEGER:
 					{
 						paramsOut.push_integer(jObject2Int(env, value));
 					}
-					break;
+						break;
 					case PT_NUMBER:
 					{
-						//paramsOut.push_number((double)(jdouble)value);
+						paramsOut.push_number(jObject2Double(env, value));
 					}
-					break;
+						break;
 					case PT_STRING:
 					{
-						//paramsOut.push_string(stringJ2C(env, (jstring)value));
+						paramsOut.push_string(jObject2String(env, value).c_str(), true);
 					}
-					break;
+						break;
+
+					case PT_POINTER:
+					{
+						paramsOut.push_pointer(jObject2Pointer(env, value));
+					}
+						break;
+					case PT_CONST_POINTER:
+					{
+						paramsOut.push_pointer(jObject2Pointer(env, value));
+					}
+						break;
 				}
+
 			}
 
 			return 0;
@@ -159,28 +252,38 @@ namespace ug {
 			using namespace ug::bridge;
 			//	iterate through the parameter list and copy the value in the associated
 			//	stack entry.
-				int type = params.get_type(index);
+			int type = params.get_type(index);
 
-				switch (type) {
-					case PT_BOOL:
-					{
-						//paramsOut.push_bool((jboolean)value);
-					}
+			switch (type) {
+				case PT_BOOL:
+				{
+					return boolean2JObject(env, params.to_bool(index));
+				}
 					break;
-					case PT_INTEGER:
-					{
-						return int2JObject(env, params.to_integer(index));
-					}
+				case PT_INTEGER:
+				{
+					return int2JObject(env, params.to_integer(index));
+				}
 					break;
-					case PT_NUMBER:
-					{
-						//paramsOut.push_number((double)(jdouble)value);
-					}
+				case PT_NUMBER:
+				{
+					return double2JObject(env, params.to_number(index));
+				}
 					break;
-					case PT_STRING:
-					{
-						//paramsOut.push_string(stringJ2C(env, (jstring)value));
-					}
+				case PT_STRING:
+				{
+					return string2JObject(env, params.to_string(index));
+				}
+					break;
+				case PT_POINTER:
+				{
+					return pointer2JObject(env, params.to_pointer(index));
+				}
+					break;
+				case PT_CONST_POINTER:
+				{
+					return pointer2JObject(env, params.to_pointer(index));
+				}
 					break;
 			}
 

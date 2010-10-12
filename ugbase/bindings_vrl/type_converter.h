@@ -8,6 +8,16 @@
 #ifndef TYPE_CONVERTER_H
 #define	TYPE_CONVERTER_H
 
+#ifdef __GNUC__
+#define PRETTY_FUNCTION __PRETTY_FUNCTION__
+#else
+#define PRETTY_FUNCTION "function name not available (not using GCC)"
+#endif
+
+#define VRL_DEBUG_MODE 1
+
+#define VRL_DBG(msg, level) if( (VRL_DEBUG_MODE) >= (level)) std::cout << "UG4-VRL: in function \"" << PRETTY_FUNCTION << "\": " << msg << std::endl
+
 #include<jni.h>
 #include<string>
 #include<vector>
@@ -73,14 +83,26 @@ namespace ug {
 		std::string exportedFunction2Groovy(
 				ug::bridge::ExportedFunction const& func);
 
+		jobject boolean2JObject(JNIEnv *env, jboolean value);
+		jboolean jObject2Boolean(JNIEnv *env, jobject obj);
+
 		jobject int2JObject(JNIEnv *env, jint value);
 		jint jObject2Int(JNIEnv *env, jobject obj);
+
+		jobject double2JObject(JNIEnv *env, jdouble value);
+		jdouble jObject2Double(JNIEnv *env, jobject obj);
+
+		jobject string2JObject(JNIEnv *env, jstring value);
+		std::string jObject2String(JNIEnv *env, jobject obj);
+
+		jobject pointer2JObject(JNIEnv *env, void* value);
+		void* jObject2Pointer(JNIEnv *env, jobject obj);
 
 		const char* paramType2String(int paramType);
 
 		int jobjectArray2ParamStack(JNIEnv *env, ug::bridge::ParameterStack& paramsOut,
-					const ug::bridge::ParameterStack& paramsTemplate,
-					jobjectArray const& array);
+				const ug::bridge::ParameterStack& paramsTemplate,
+				jobjectArray const& array);
 
 		jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params, int index);
 

@@ -20,34 +20,59 @@ namespace ug {
 	} // end vrl::
 }// end ug::
 
+
+typedef int (*FunctionPtr)(int, int);
+
+std::string TestHello() {
+	return "Hello, World!";
+}
+
 int TestAdd(int a, int b) {
+	return a+b;
+}
+
+int TestMult(int a, int b) {
+	return a*b;
+}
+
+void* GetTestMult() {
+	return (void*)TestMult;
+}
+
+void* GetTestAdd() {
+	return (void*)TestAdd;
+}
+
+bool TestBoolAnd(bool a, bool b) {
+	return a && b;
+}
+
+double TestDoubleAdd(double a, double b) {
 	return a + b;
 }
+
+std::string TestStringAdd1(std::string a, std::string b) {
+	return a;
+}
+
+std::string TestStringAdd2(std::string a, std::string b) {
+	return b;
+}
+
+std::string TestStringAdd3(std::string a, std::string b, std::string c) {
+	return a+b+c;
+}
+
+int TestFuncPointer(void* func, int a, int b) {
+	FunctionPtr function = (FunctionPtr)func;
+	return function(a,b);
+}
+
+
 
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
-
-JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_helloUG
-(JNIEnv *env, jobject obj) {
-	int argc = 0;
-	char* argv[argc];
-
-	ug::UGInit(argc, argv);
-	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
-
-	std::vector<std::string> classes;
-	classes.push_back("class Hello_From_UG4{String hello(){return \"Hello from UG4!\"}}");
-	classes.push_back("***TESTING***");
-
-	const std::vector< const char*> * classNames = ug::vrl::vrlRegistry->get_class(0).class_names();
-
-	for (unsigned int i = 0; i < classNames->size(); i++) {
-		classes.push_back(std::string((*classNames)[i]));
-	}
-
-	return ug::vrl::stringArrayC2J(env, classes);
-}
 
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 (JNIEnv *env, jobject obj, jobjectArray args) {
@@ -60,7 +85,19 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 
 	static ug::bridge::Registry testReg;
-	testReg.add_function("UGAdd", &TestAdd);
+	testReg.add_class_<FunctionPtr>("FunctionPtr");
+
+	testReg.add_function("UGAddInt", &TestAdd);
+	testReg.add_function("UGMultInt", &TestMult);
+	testReg.add_function("TestFuncPointer", &TestFuncPointer);
+	testReg.add_function("UGHello", &TestHello);
+	testReg.add_function("GetUgAddInt", &GetTestAdd);
+	testReg.add_function("GetUgMultInt", &GetTestMult);
+	testReg.add_function("UGAndBool", &TestBoolAnd);
+	testReg.add_function("UGDouble", &TestDoubleAdd);
+	//testReg.add_function("UGAddString1", &TestStringAdd1);
+	//testReg.add_function("UGAddString2", &TestStringAdd2);
+	testReg.add_function("UGAddString3", &TestStringAdd3);
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 	//ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
@@ -76,7 +113,11 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
 
+	std::cout << "PARAMS_BEFORE" << std::endl;
+
 	ug::vrl::jobjectArray2ParamStack(env, paramsIn, func->params_in(), params);
+
+	std::cout << "PARAMS_AFTER" << std::endl;
 
 	func->execute(paramsIn, paramsOut);
 
