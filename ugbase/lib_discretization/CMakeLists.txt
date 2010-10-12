@@ -28,9 +28,7 @@ set(srcDiscretization	common/function_group.cpp
 
 						local_shape_function_set/local_shape_function_set_factory.cpp
 						local_shape_function_set/local_dof_pattern.cpp
-						local_shape_function_set/LagrangeP1/p1conform.cpp
-
-						operator/linear_operator/amg_solver/amg_coarsening.cpp
+						local_shape_function_set/LagrangeP1/p1conform.cpp						
 
 						spacial_discretization/coupled_elem_disc/elem_data/data_items.cpp
 						spacial_discretization/coupled_elem_disc/elem_data/data_container.cpp)
