@@ -145,7 +145,10 @@ static int LuaStackToParams(ParameterStack& params,
 					}
 				}
 				else
+				{
+					UG_LOG("ERROR: Currently only references/pointers to user defined data allowed. ");
 					badParam = (int)i + 1;
+				}
 			}break;
 			case PT_CONST_POINTER:{
 				if(lua_isuserdata(L, index)){
@@ -192,7 +195,10 @@ static int LuaStackToParams(ParameterStack& params,
 					}
 				}
 				else
+				{
+					UG_LOG("ERROR: Currently only references/pointers to user defined data allowed. ");
 					badParam = (int)i + 1;
+				}
 			}break;
 			default:{//	unknown type
 				badParam = (int)i + 1;
