@@ -65,6 +65,16 @@ public:
 		return values[i];
 	}
 
+	// todo: speak with martin: I inserted these functions here, since otherwise VecScaleAdd would not work for block matrices
+	value_type &operator [](size_t i)
+	{
+		return values[i];
+	}
+	const value_type &operator [] (size_t i) const
+	{
+		return values[i];
+	}
+
 // creation
 	blockVector() : values()
 	{
