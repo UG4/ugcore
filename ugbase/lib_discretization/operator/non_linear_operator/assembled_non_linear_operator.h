@@ -5,50 +5,97 @@
 
 namespace ug{
 
-template <typename TFunction>
-class AssembledOperator : public IOperator<TFunction, TFunction>
+template <typename TDoFDistribution, typename TAlgebra>
+class AssembledOperator : public IOperator<	typename TAlgebra::vector_type,
+											typename TAlgebra::vector_type>
 {
+public:
+	// 	Type of algebra
+		typedef TAlgebra algebra_type;
+
+	//	Type of Vector
+		typedef typename TAlgebra::vector_type vector_type;
+
+	//	Type of Vector
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	//	Type of DoFDistribution
+		typedef TDoFDistribution dof_distribution_type;
+
 	public:
-		// domain function type
-		typedef TFunction domain_function_type;
-
-		// codomain function type
-		typedef TFunction codomain_function_type;
-
-		// type of algebra
-		typedef typename TFunction::algebra_type algebra_type;
-
-	public:
-		AssembledOperator(IAssemble<domain_function_type, algebra_type>& ass) :
-			m_ass(ass)
+		AssembledOperator() :
+			m_bInit(false), m_pAss(NULL), m_pDoFDistribution(NULL)
 		{};
 
-		virtual bool init()
+		AssembledOperator(IAssemble<dof_distribution_type, algebra_type>& ass) :
+			m_bInit(false), m_pAss(&ass), m_pDoFDistribution(NULL)
+		{};
+
+		void set_discretization(IAssemble<dof_distribution_type, algebra_type>& ass) {m_pAss = &ass;}
+
+		bool set_dof_distribution(const TDoFDistribution& dofDistr)
 		{
+			m_pDoFDistribution = &dofDistr;
 			return true;
 		}
 
-		virtual bool prepare(TFunction& dOut, TFunction& uIn)
+		const TDoFDistribution* get_dof_distribution()
 		{
-			// Set Dirichlet - Nodes to exact values
-			if(m_ass.assemble_solution(uIn) != IAssemble_OK)
+			return m_pDoFDistribution;
+		}
+
+	//	Init
+		virtual bool init()
+		{
+			if(m_pDoFDistribution == NULL)
+			{
+				UG_LOG("ERROR in AssembledOperator::init: DoF Distribution not set.\n");
+				return false;
+			}
+			if(m_pAss == NULL)
+			{
+				UG_LOG("ERROR in AssembledOperator::prepare: Discretization not set.\n");
+				return false;
+			}
+
+		//	remember that operator has been init
+			m_bInit = true;
+
+			return true;
+		}
+
+	//	Prepare functions
+		virtual bool prepare(vector_type& dOut, vector_type& uIn)
+		{
+			if(!m_bInit)
+			{
+				UG_LOG("ERROR in AssembledOperator::prepare: Operator not initialized.\n");
+				return false;
+			}
+
+		// 	Set Dirichlet - Nodes to exact values
+			if(m_pAss->assemble_solution(uIn, *m_pDoFDistribution) != IAssemble_OK)
 				{UG_LOG("AssembledOperator::apply: Cannot set dirichlet values in solution.\n"); return false;}
 
 			return true;
 		}
 
-		// compute f = L*u (here, L is a Matrix)
-		virtual bool apply(TFunction& dOut, TFunction& uIn)
+	// 	Compute d = L(u)
+		virtual bool apply(vector_type& dOut, const vector_type& uIn)
 		{
-			typename codomain_function_type::vector_type& d_vec = dOut.get_vector();
+			if(!m_bInit)
+			{
+				UG_LOG("ERROR in AssembledOperator::apply: Operator not initialized.\n");
+				return false;
+			}
 
 			// reset vector
-			if(!d_vec.set(0.0))
+			if(!dOut.set(0.0))
 				{UG_LOG("AssembledOperator::apply: Could not reset defect "
 						"to zero before assembling. Aborting.\n"); return false;}
 
 			// assemble
-			if(m_ass.assemble_defect(d_vec, uIn) != IAssemble_OK)
+			if(m_pAss->assemble_defect(dOut, uIn, *m_pDoFDistribution) != IAssemble_OK)
 				{UG_LOG("AssembledOperator::apply: Could not "
 						"assemble defect. Aborting.\n"); return false;}
 
@@ -58,14 +105,20 @@ class AssembledOperator : public IOperator<TFunction, TFunction>
 			return true;
 		}
 
-		IAssemble<domain_function_type, algebra_type>* get_assemble()
+		IAssemble<dof_distribution_type, algebra_type>* get_assemble()
 		{
-			return &m_ass;
+			return m_pAss;
 		}
 
 	protected:
+		// init flag
+		bool m_bInit;
+
 		// assembling procedure
-		IAssemble<domain_function_type, algebra_type>& m_ass;
+		IAssemble<dof_distribution_type, algebra_type>* m_pAss;
+
+		// DoF Distribution used
+		const TDoFDistribution* m_pDoFDistribution;
 };
 
 } // end namepace ug

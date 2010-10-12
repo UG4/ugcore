@@ -15,29 +15,25 @@
 namespace ug{
 
 template <typename TGridFunction>
-bool ApplyLinearSolver(	ILinearOperator<TGridFunction, TGridFunction>& A,
+bool ApplyLinearSolver(	ILinearOperator<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& A,
 						TGridFunction& u, TGridFunction& b,
-						ILinearizedOperatorInverse<TGridFunction, TGridFunction>& solver)
+						ILinearOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& solver)
 {
-	// step 1: Prepare operator, compute b and set dirichlet values in u
+// step 1: Prepare: Assemble matrix
 	PROFILE_BEGIN(assembleLinearMatrix);
-	if(!A.prepare(b,u))
+	if(!A.init())
 		{UG_LOG("ApplyLinearSolver: Cannot init Operator.\n"); return false;}
 	PROFILE_END();
 
-	// step 2: Init Linear Inverse Operator
+// step 2: Init Linear Inverse Operator
+	PROFILE_BEGIN(initLinearSolver);
 	if(!solver.init(A))
 		{UG_LOG("ApplyLinearSolver: Cannot init Inverse operator.\n"); return false;}
-
-	// step 3: Prepare Linear Inverse Operator
-	PROFILE_BEGIN(prepareLinearSolver);
-	if(!solver.prepare(u, u, b))
-		{UG_LOG("ApplyLinearSolver: Cannot prepare Inverse operator.\n"); return false;}
 	PROFILE_END();
 
-	// step 4: Apply Operator
+// step 4: Apply Operator
 	PROFILE_BEGIN(applyLinearSolver);
-	if(!solver.apply(u,b))
+	if(!solver.apply_return_defect(u,b))
 		{UG_LOG("ApplyLinearSolver: Cannot apply Inverse operator.\n"); return false;}
 	PROFILE_END();
 
@@ -46,15 +42,18 @@ bool ApplyLinearSolver(	ILinearOperator<TGridFunction, TGridFunction>& A,
 
 template <typename TGridFunction>
 bool
-PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
+PerformTimeStep(IOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& newton,
 				TGridFunction& u,
-				ITimeDiscretization<TGridFunction>& timestep,
-				size_t timesteps, size_t& step,
-				number& time, number dt,
+				ITimeDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& timestep,
+				size_t timesteps, size_t step,
+				number time, number dt,
 				VTKOutput<TGridFunction>& out, const char* outName)
 {
+//	declare Vector type
+	typedef typename TGridFunction::algebra_type::vector_type vector_type;
+
 //  create deques for old solutions and old timesteps
-	std::deque<TGridFunction*> u_old;
+	std::deque<vector_type*> u_old;
 	std::deque<number> time_old;
 	u_old.resize(timestep.num_prev_steps());
 	time_old.resize(timestep.num_prev_steps());
@@ -63,7 +62,8 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 	time_old[0] = time;
 
 //  get help vectors
-	u_old[0] = &u.clone();
+	TGridFunction* uOldFunc = &u.clone();
+	u_old[0] = uOldFunc;
 
 //  end timestep
 	const size_t end_timestep = timesteps + step -1;
@@ -76,7 +76,7 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 		//	prepare time step
 		timestep.prepare_step(u_old, time_old, dt);
 
-		// preapre newton solver
+		// prepare newton solver
 		if(!newton.prepare(u))
 			{UG_LOG("Cannot prepare Time step " << step << ". Aborting.\n"); return false;}
 
@@ -90,7 +90,7 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 		time_old.push_front(time);
 
 		// update old solutions
-		TGridFunction* current_u = u_old.back();
+		vector_type* current_u = u_old.back();
 		u_old.pop_back();
 		*current_u = u;
 		u_old.push_front(current_u);
@@ -101,7 +101,7 @@ PerformTimeStep(IOperatorInverse<TGridFunction, TGridFunction>& newton,
 	}
 
 	// free help vectors
-	delete u_old[0];
+	delete uOldFunc;
 
 	return true;
 }

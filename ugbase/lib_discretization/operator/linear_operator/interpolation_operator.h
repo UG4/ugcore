@@ -10,14 +10,141 @@
 
 #include "common/common.h"
 
+#include "lib_algebra/operator/operator_interface.h"
 #include "lib_discretization/function_spaces/function_spaces.h"
 #include "lib_discretization/operator/operator.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_factory.h"
 
 namespace ug{
 
+template <typename TElem, typename TGridFunction>
+bool InterpolateFunctionOnElem( bool (*InterpolFunction)(const MathVector<TGridFunction::domain_type::dim>&, number&),
+								TGridFunction& u, size_t fct, int si)
+{
+	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	const int dim = ref_elem_type::dim;
+	typedef typename TGridFunction::domain_type domain_type;
+
+	LocalShapeFunctionSetID id = u.local_shape_function_set_id(fct);
+
+	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
+			LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(id);
+
+	// get local positions of interpolation points
+	const size_t num_sh = trialSpace.num_sh();
+	std::vector<MathVector<dim> > loc_pos(num_sh);
+	for(size_t i = 0; i < num_sh; ++i)
+	{
+		if(!trialSpace.position_of_dof(i, loc_pos[i]))
+		{
+			UG_LOG("Chosen Local Shape function Set does not provide senseful interpolation points. Can not use Lagrange interpolation.\n");
+			return false;
+		}
+	}
+
+	domain_type& domain = u.get_approximation_space().get_domain();
+	typename domain_type::position_accessor_type aaPos = domain.get_position_accessor();
+	typename domain_type::position_type corners[ref_elem_type::num_corners];
+
+	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
+
+	// iterate over all elements
+	typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
+	iterBegin = u.template begin<TElem>(si);
+	iterEnd = u.template end<TElem>(si);
+
+	number val;
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+		TElem* elem = *iter;
+
+		// load corners of this element
+		for(int i = 0; i < ref_elem_type::num_corners; ++i)
+		{
+			VertexBase* vert = elem->vertex(i);
+			corners[i] = aaPos[vert];
+		}
+
+		mapping.update(corners);
+
+		typename TGridFunction::vector_type& v_vec = u.get_vector();
+		typename TGridFunction::multi_index_vector_type ind;
+		u.get_multi_indices(elem, fct, ind);
+		if(ind.size() != num_sh)
+			{UG_LOG("Num dofs on element != num_sh.\n"); return false;}
+
+		// get global positions
+		for(size_t i = 0; i < num_sh; ++i)
+		{
+			typename domain_type::position_type glob_pos;
+			//refElem.template mapLocalToGlobal<domain_type::dim>(corners, loc_pos[i], glob_pos);
+			if(mapping.local_to_global(loc_pos[i], glob_pos) != true) return false;
+			if(!InterpolFunction(glob_pos, val))
+			{
+				UG_LOG("Error while evaluating function u. Aborting interpolation.\n");
+				return false;
+			}
+			BlockRef(v_vec[ind[i][0]], ind[i][1]) = val;
+		}
+	}
+	return true;
+}
+
+
+template <typename TGridFunction>
+bool InterpolateFunction(	bool (*InterpolFunction)(const MathVector<TGridFunction::domain_type::dim>&, number&),
+							TGridFunction& u, size_t fct)
+{
+//	check that function exists
+	if(fct >= u.num_fct())
+	{
+		UG_LOG("Function space does not contain a function with index " << fct << ".\n");
+		return false;
+	}
+
+//	loop for dimensions
+	switch(u.dim(fct))
+	{
+	case 2:
+		for(int si = 0; si < u.num_subsets(); ++si)
+		{
+			if(!u.is_def_in_subset(fct, si)) continue;
+
+			if(!InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si)) return false;
+			if(!InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si)) return false;
+		}
+		break;
+	case 3:
+		for(int si = 0; si < u.num_subsets(); ++si)
+		{
+			if(u.is_def_in_subset(fct, si) != true) continue;
+
+			// todo: more elements
+			if(!InterpolateFunctionOnElem<Tetrahedron, TGridFunction>(InterpolFunction, u, fct, si)) return false;
+			if(!InterpolateFunctionOnElem<Hexahedron, TGridFunction>(InterpolFunction, u, fct, si)) return false;
+		}
+		break;
+	default: UG_LOG("InterpolateFunction: Dimension not implemented.\n"); return false;
+	}
+
+//	adjust parallel storage state
+	#ifdef UG_PARALLEL
+	u.set_storage_type(PST_CONSISTENT);
+	#endif
+	return true;
+
+}
+
+
+
+
+
+
+
+// todo: we need a rework here !
 template <typename TDiscreteFunction>
-class LagrangeInterpolationOperator : public ILinearOperator<typename ContinuousFunctionSpace<typename TDiscreteFunction::domain_type>::function_type, TDiscreteFunction> {
+class LagrangeInterpolationOperator //: public IOperator<typename ContinuousFunctionSpace<typename TDiscreteFunction::domain_type>::function_type, TDiscreteFunction>
+{
 	protected:
 		// type of physical domain
 		typedef typename TDiscreteFunction::domain_type domain_type;
@@ -54,7 +181,7 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 		}
 
 		// apply Operator, i.e. v = L(u);
-		bool apply(codomain_function_type& v, domain_function_type& u)
+		bool apply(codomain_function_type& v, const domain_function_type& u)
 		{
 			if(m_fct >= v.num_fct())
 			{
@@ -94,7 +221,7 @@ class LagrangeInterpolationOperator : public ILinearOperator<typename Continuous
 		}
 
 		// apply Operator, i.e. v := v - L(u);
-		bool apply_sub(codomain_function_type& v, domain_function_type& u)
+		bool apply_sub(codomain_function_type& v, const domain_function_type& u)
 		{
 			UG_ASSERT(0, "Not Implemented.");
 			return true;

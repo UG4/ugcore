@@ -17,57 +17,73 @@
 
 namespace ug {
 
-template <typename TFunction>
-class NewtonSolver : public IOperatorInverse<TFunction, TFunction>{
+template <typename TDoFDistribution, typename TAlgebra>
+class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
+												typename TAlgebra::vector_type>
+{
 	public:
-		typedef TFunction function_type;
+	//	Algebra type
+		typedef TAlgebra algebra_type;
+
+	//	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	//	DoFDistribution Type
+		typedef TDoFDistribution dof_distribution_type;
 
 	public:
-		NewtonSolver(ILinearizedOperatorInverse<function_type, function_type>& LinearSolver,
-					ConvergenceCheck<TFunction>& ConvCheck,
-					LineSearch<TFunction>* LineSearch,	bool reallocate) :
-					m_LinearSolver(LinearSolver),
-					m_ConvCheck(ConvCheck),
-					m_LineSearch(LineSearch),
+		NewtonSolver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver,
+					IConvergenceCheck& ConvCheck,
+					ILineSearch<vector_type>* LineSearch, bool reallocate) :
+					m_pLinearSolver(&LinearSolver),
+					m_pConvCheck(&ConvCheck),
+					m_pLineSearch(LineSearch),
 					m_reallocate(reallocate), m_allocated(false)
 			{};
 
+		NewtonSolver() :
+			m_pLinearSolver(NULL), m_pConvCheck(NULL), m_pLineSearch(NULL), m_reallocate(false), m_allocated(false)
+			{};
+
+		void set_linear_solver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver) {m_pLinearSolver = &LinearSolver;}
+		void set_convergence_check(IConvergenceCheck& ConvCheck) {m_pConvCheck = &ConvCheck;}
+		void set_line_search(ILineSearch<vector_type>& LineSearch) {m_pLineSearch = &LineSearch;}
+
 		// init: This operator inverts the Operator N: Y -> X
-		virtual bool init(IOperator<function_type, function_type>& N);
+		virtual bool init(IOperator<vector_type, vector_type>& N);
 
 		// prepare Operator
-		virtual bool prepare(function_type& u);
+		virtual bool prepare(vector_type& u);
 
 		// apply Operator, i.e. N^{-1}(0) = u
-		virtual bool apply(function_type& u);
+		virtual bool apply(vector_type& u);
 
 		~NewtonSolver();
 
 	private:
-		bool allocate_memory(const function_type& u);
+		bool allocate_memory(const vector_type& u);
 		bool deallocate_memory();
 
 	private:
-		ILinearizedOperatorInverse<function_type, function_type>& m_LinearSolver;
+		ILinearOperatorInverse<vector_type, vector_type>* m_pLinearSolver;
 
 		// Convergence Check
-		ConvergenceCheck<TFunction>& m_ConvCheck;
+		IConvergenceCheck* m_pConvCheck;
 
 		// LineSearch
-		LineSearch<TFunction>* m_LineSearch;
+		ILineSearch<vector_type>* m_pLineSearch;
 
-		function_type* m_d;
-		function_type* m_c;
+		vector_type m_d;
+		vector_type m_c;
 
-		AssembledOperator<function_type>* m_N;
-		AssembledLinearizedOperator<function_type>* m_J;
-		IAssemble<function_type>* m_ass;
+		AssembledOperator<dof_distribution_type, algebra_type>* m_N;
+		AssembledLinearOperator<dof_distribution_type, algebra_type>* m_J;
+		IAssemble<dof_distribution_type, algebra_type>* m_pAss;
 
 		// line search parameters
 		int m_maxLineSearch;
 		number m_lambda_start;
 		number m_lambda_reduce;
-
 
 		bool m_reallocate;
 		bool m_allocated;

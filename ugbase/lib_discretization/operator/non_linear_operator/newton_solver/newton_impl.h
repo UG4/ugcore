@@ -14,39 +14,39 @@
 
 namespace ug{
 
-template <typename TFunction>
+template <typename TDoFDistribution, typename TAlgebra>
 bool
-NewtonSolver<TFunction>::
-init(IOperator<function_type, function_type>& N)
+NewtonSolver<TDoFDistribution, TAlgebra>::
+init(IOperator<vector_type, vector_type>& N)
 {
-	m_N = dynamic_cast<AssembledOperator<function_type>* >(&N);
+	m_N = dynamic_cast<AssembledOperator<dof_distribution_type, algebra_type>* >(&N);
 	if(m_N == NULL)
 	{
 		UG_LOG("NewtonSolver currently only works for AssembledDiscreteOperator.\n");
 		return false;
 	}
-	m_ass = m_N->get_assemble();
+
+	m_pAss = m_N->get_assemble();
 	return true;
 }
 
 
-template <typename TFunction>
+template <typename TDoFDistribution, typename TAlgebra>
 bool
-NewtonSolver<TFunction>::
-allocate_memory(const function_type& u)
+NewtonSolver<TDoFDistribution, TAlgebra>::
+allocate_memory(const vector_type& u)
 {
 	// Jacobian
-	m_J = new AssembledLinearizedOperator<function_type>(*m_ass);
+	m_J = new AssembledLinearOperator<dof_distribution_type, algebra_type>(*m_pAss);
+	m_J->set_dof_distribution(*m_N->get_dof_distribution());
 
 	// defect
-	m_d = new function_type;
-	m_d->clone_pattern(u);
+	m_d.resize(u.size()); m_d = u;
 
 	// correction
-	m_c = new function_type;
-	m_c->clone_pattern(u);
+	m_c.resize(u.size()); m_c = u;
 
-	if(m_d == NULL || m_c == NULL || m_J == NULL)
+	if(m_J == NULL)
 	{
 		UG_ASSERT(0, "Cannot allocate memory.");
 		return false;
@@ -56,14 +56,15 @@ allocate_memory(const function_type& u)
 	return true;
 }
 
-template <typename TFunction>
+template <typename TDoFDistribution, typename TAlgebra>
 bool
-NewtonSolver<TFunction>::
+NewtonSolver<TDoFDistribution, TAlgebra>::
 deallocate_memory()
 {
 	if(m_allocated)
 	{
-		delete m_d; delete m_c;
+		m_d.destroy();
+		m_c.destroy();
 		delete m_J;
 	}
 	m_allocated = false;
@@ -71,10 +72,10 @@ deallocate_memory()
 }
 
 
-template <typename TFunction>
+template <typename TDoFDistribution, typename TAlgebra>
 bool
-NewtonSolver<TFunction>::
-prepare(function_type& u)
+NewtonSolver<TDoFDistribution, TAlgebra>::
+prepare(vector_type& u)
 {
 	if(!m_allocated)
 	{
@@ -89,8 +90,8 @@ prepare(function_type& u)
 }
 
 
-template <typename TFunction>
-NewtonSolver<TFunction>::
+template <typename TDoFDistribution, typename TAlgebra>
+NewtonSolver<TDoFDistribution, TAlgebra>::
 ~NewtonSolver()
 {
 	if(m_allocated)
@@ -101,79 +102,85 @@ NewtonSolver<TFunction>::
 }
 
 
-template <typename TFunction>
+template <typename TDoFDistribution, typename TAlgebra>
 bool
-NewtonSolver<TFunction>::
-apply(function_type& u)
+NewtonSolver<TDoFDistribution, TAlgebra>::
+apply(vector_type& u)
 {
+	if(m_pLinearSolver == NULL)
+	{
+		UG_LOG("ERROR in 'NewtonSolver::apply': Linear Solver not set.\n");
+		return false;
+	}
+	if(m_pConvCheck == NULL)
+	{
+		UG_LOG("ERROR in 'NewtonSolver::apply': Convergence Check not set.\n");
+		return false;
+	}
+
 	// Compute first Defect
-	if(m_N->prepare(*m_d, u) != true)
+	if(m_N->prepare(m_d, u) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator.\n"); return false;}
-	if(m_N->apply(*m_d, u) != true)
+	if(m_N->apply(m_d, u) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n"); return false;}
 
 	// start convergence check
-	m_ConvCheck.set_offset(3);
-	m_ConvCheck.set_symbol('#');
-	m_ConvCheck.set_name("Newton Solver");
-	m_ConvCheck.start(*m_d);
+	m_pConvCheck->set_offset(3);
+	m_pConvCheck->set_symbol('#');
+	m_pConvCheck->set_name("Newton Solver");
+	m_pConvCheck->start(m_d);
 
-	function_type s;
-	s.clone_pattern(u);
+	// copy pattern
+	vector_type s; s.resize(u.size()); s = u;
 
 	//loop iteration
-	while(!m_ConvCheck.iteration_ended())
+	while(!m_pConvCheck->iteration_ended())
 	{
 		// set c = 0
-		if(!m_c->set(0.0))
+		if(!m_c.set(0.0))
 			{UG_LOG("NewtonSolver::apply: Cannot reset correction to zero.\n"); return false;}
 
 		// Compute Jacobian
-		if(!m_J->prepare(*m_d, u, *m_c))
+		if(!m_J->init(u))
 			{UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n"); return false;}
 
-		WriteMatrixToConnectionViewer("NewtonMat.mat", m_J->get_matrix(), u);
-
 		// Init Jacobi Inverse
-		if(!m_LinearSolver.init(*m_J))
+		if(!m_pLinearSolver->init(*m_J, u))
 			{UG_LOG("NewtonSolver::apply: Cannot init Inverse Linear "
-					"Operator for Jacobi-Operator.\n"); return false;}
-		if(!m_LinearSolver.prepare(*m_c, u, *m_d))
-			{UG_LOG("NewtonSolver::apply: Cannot prepare Inverse Linear "
 					"Operator for Jacobi-Operator.\n"); return false;}
 
 		// Solve Linearized System
-		if(!m_LinearSolver.apply(*m_c, *m_d))
+		if(!m_pLinearSolver->apply(m_c, m_d))
 			{UG_LOG("NewtonSolver::apply: Cannot apply Inverse Linear "
 					"Operator for Jacobi-Operator.\n"); return false;}
 
 		// Line Search
-		if(m_LineSearch != NULL)
+		if(m_pLineSearch != NULL)
 		{
-			m_LineSearch->set_offset("   #  ");
-			if(!m_LineSearch->search(*m_N, u, *m_c, *m_d, m_ConvCheck.defect()))
+			m_pLineSearch->set_offset("   #  ");
+			if(!m_pLineSearch->search(*m_N, u, m_c, m_d, m_pConvCheck->defect()))
 				{UG_LOG("Newton Solver did not converge.\n"); return false;}
 		}
 		// no line search: Compute new defect
 		else
 		{
 			// update solution
-			u -= *m_c;
+			u -= m_c;
 
 			// compute new Defect
-			if(!m_N->prepare(*m_d, u))
+			if(!m_N->prepare(m_d, u))
 				{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear"
 						" Operator for defect computation.\n"); return false;}
-			if(!m_N->apply(*m_d, u))
+			if(!m_N->apply(m_d, u))
 				{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator "
 						"to compute defect.\n"); return false;}
 		}
 
 		// check convergence
-		m_ConvCheck.update(*m_d);
+		m_pConvCheck->update(m_d);
 	}
 
-	return m_ConvCheck.post();
+	return m_pConvCheck->post();
 }
 
 }

@@ -18,7 +18,7 @@ namespace ug{
 
 
 template <typename TDiscreteFunction>
-class AMGSolver : 	virtual public ILinearizedIteratorOperator<TDiscreteFunction, TDiscreteFunction>
+class AMGSolver : 	virtual public ILinearIterator<TDiscreteFunction, TDiscreteFunction>
 					//public amg<SparseMatrix<double>, Vector<double> > //amg<TDiscreteFunction::algebra_type::Matrix_type, TDiscreteFunction::algebra_type::Vector_type>
 {
 
@@ -32,18 +32,18 @@ public:
 	typedef typename algebra_type::matrix_type Matrix_type;
 
 private:
-	typedef ILinearizedOperatorInverse<domain_function_type, domain_function_type> base_solver_type;
-	typedef ILinearizedIteratorOperator<domain_function_type, domain_function_type> smoother_type;
+	typedef ILinearOperatorInverse<domain_function_type, domain_function_type> base_solver_type;
+	typedef ILinearIterator<domain_function_type, domain_function_type> smoother_type;
 
 public:
 	AMGSolver() : m_amg()
 	{
 	};
 
-	bool init(ILinearizedOperator<domain_function_type,codomain_function_type>& Op)
+	bool init(ILinearOperator<domain_function_type,codomain_function_type>& Op)
 	{
-		AssembledLinearizedOperator<TDiscreteFunction>* A
-			= dynamic_cast<AssembledLinearizedOperator<TDiscreteFunction>*>(&Op);
+		AssembledLinearOperator<typename TDiscreteFunction::dof_distribution_type, typename TDiscreteFunction::algebra_type>* A
+			= dynamic_cast<AssembledLinearOperator<typename TDiscreteFunction::dof_distribution_type, typename TDiscreteFunction::algebra_type>*>(&Op);
 		UG_ASSERT(A != NULL, 	"Operator used does not use a matrix."
 								" Currently only matrix based operators can be inverted.\n");
 
@@ -95,13 +95,13 @@ public:
 	// destructor
 	virtual ~AMGSolver() {};
 
-	virtual ILinearizedIteratorOperator<TDiscreteFunction,TDiscreteFunction>* clone()
+	virtual ILinearIterator<TDiscreteFunction,TDiscreteFunction>* clone()
 	{
 		return new AMGSolver;
 	}
 
 protected:
-	AssembledLinearizedOperator<TDiscreteFunction>* m_pOperator;
+	AssembledLinearOperator<typename TDiscreteFunction::dof_distribution_type, typename TDiscreteFunction::algebra_type>* m_pOperator;
 
 	SparseMatrix<double>* m_pMatrix;
 	bool m_bOpChanged;

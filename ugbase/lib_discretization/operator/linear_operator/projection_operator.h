@@ -14,7 +14,7 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
-#include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/operator/operator_interface.h"
 
 namespace ug{
 
@@ -29,24 +29,24 @@ namespace ug{
  * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
  *
  */
-template <typename TFunction, typename TMatrix>
-bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse)
+template <typename TApproximationSpace, typename TMatrix>
+bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace, size_t coarseLevel, size_t fineLevel)
 {
-	// check, that u and v are from same approximatio space
-	if(&uFine.get_approximation_space() != &uCoarse.get_approximation_space())
-		{UG_LOG("Interpolation only implemented for equal approximation space.\n"); return false;}
+//	get DoFDistributions
+	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr = approxSpace.get_level_dof_distribution(coarseLevel);
+	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr = approxSpace.get_level_dof_distribution(fineLevel);
 
-	// allow only lagrange P1 functions
-	for(size_t fct = 0; fct < uFine.num_fct(); ++fct)
-		if(uFine.local_shape_function_set_id(fct) != LSFS_LAGRANGEP1)
+//  Allow only lagrange P1 functions
+	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
+		if(fineDoFDistr.local_shape_function_set_id(fct) != LSFS_LAGRANGEP1)
 			{UG_LOG("Interpolation only implemented for Lagrange P1 functions.\n"); return false;}
 
 	// get MultiGrid
-	MultiGrid& grid = uFine.get_approximation_space().get_domain().get_grid();
+	MultiGrid& grid = approxSpace.get_domain().get_grid();
 
 	// get number of dofs on different levels
-	const size_t numFineDoFs = uFine.num_dofs();
-	const size_t numCoarseDoFs = uCoarse.num_dofs();
+	const size_t numFineDoFs = fineDoFDistr.num_dofs();
+	const size_t numCoarseDoFs = coarseDoFDistr.num_dofs();
 
 	// create matrix
 	if(!mat.destroy())
@@ -54,17 +54,17 @@ bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse
 	if(!mat.create(numCoarseDoFs, numFineDoFs))
 		{UG_LOG("Cannot create Interpolation Matrix.\n"); return false;}
 
-	typename TFunction::algebra_index_vector_type fineInd;
-	typename TFunction::algebra_index_vector_type coarseInd;
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type fineInd;
+	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type coarseInd;
 
 	// Vertex iterators
-	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
+	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
 
 	// loop subsets of fine level
-	for(int si = 0; si < uFine.num_subsets(); ++si)
+	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
 	{
-		iterBegin = uFine.template begin<Vertex>(si);
-		iterEnd = uFine.template end<Vertex>(si);
+		iterBegin = fineDoFDistr.template begin<Vertex>(si);
+		iterEnd = fineDoFDistr.template end<Vertex>(si);
 
 		// loop nodes of fine subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -77,12 +77,12 @@ bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse
 			if(vert != NULL)
 			{
 				// get global indices
-				uCoarse.get_inner_algebra_indices(vert, coarseInd);
+				coarseDoFDistr.get_inner_algebra_indices(vert, coarseInd);
 			}
 			else continue;
 
 			// get global indices
-			uFine.get_inner_algebra_indices(*iter, fineInd);
+			fineDoFDistr.get_inner_algebra_indices(*iter, fineInd);
 
 			for(size_t i = 0; i < coarseInd.size(); ++i)
 				mat(coarseInd[i], fineInd[i]) = 1.0;
@@ -93,60 +93,133 @@ bool AssembleVertexProjection(TMatrix& mat, TFunction& uFine, TFunction& uCoarse
 
 
 
-template <typename TFunction>
-class ProjectionOperator : public ILinearOperator<TFunction, TFunction> {
+template <typename TApproximationSpace, typename TAlgebra>
+class ProjectionOperator :
+	virtual public ILinearOperator<	typename TAlgebra::vector_type,
+									typename TAlgebra::vector_type>
+{
 	public:
-		// domain space
-		typedef TFunction domain_function_type;
+	// 	Type of algebra
+		typedef TAlgebra algebra_type;
 
-		// range space
-		typedef TFunction  codomain_function_type;
+	//	Type of Vector
+		typedef typename TAlgebra::vector_type vector_type;
 
-	protected:
-		typedef typename TFunction::algebra_type algebra_type;
-		typedef typename algebra_type::matrix_type matrix_type;
+	//	Type of Vector
+		typedef typename TAlgebra::matrix_type matrix_type;
 
+	//	Type of Approximation Space
+		typedef TApproximationSpace approximation_space_type;
+
+	//	Type of DoFDistribution
+		typedef typename TApproximationSpace::dof_distribution_type dof_distribution_type;
 
 	public:
-		bool init(){return true;}
+	//	Constructor
+		ProjectionOperator() :
+			m_pApproximationSpace(NULL), m_bInit(false)
+		{}
 
-		// prepare Operator (u=coarse, v = fine)
-		bool prepare(TFunction& uCoarseOut, TFunction& uFineIn)
+	//	Set approximation level
+		bool set_approximation_levels(approximation_space_type& approxSpace, size_t coarseLevel, size_t fineLevel)
 		{
-			if(!AssembleVertexProjection(m_matrix, uFineIn, uCoarseOut))
-				{UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n"); return false;}
+			m_pApproximationSpace = &approxSpace;
+			m_fineLevel = fineLevel;
+			m_coarseLevel = coarseLevel;
 			return true;
 		}
 
-		// Project uFine to uCoarse; uCoarse = P(uFine);
-		bool apply(TFunction& uCoarseOut, TFunction& uFineIn)
+	public:
+	//	Init operator
+		virtual bool init()
 		{
-			m_matrix.apply(uCoarseOut.get_vector(), uFineIn.get_vector());
+			if(m_pApproximationSpace == NULL)
+			{
+				UG_LOG("ERROR in 'ProjectionOperator::init': Approximation Space not set. Cannot init Projection.\n");
+				return false;
+			}
+
+			if(m_fineLevel - m_coarseLevel != 1)
+			{
+				UG_LOG("ERROR in ProjectionOperator::set_approximation_levels:"
+						" Can only project between successiv level.\n");
+				return false;
+			}
+
+			if(!AssembleVertexProjection(m_matrix, *m_pApproximationSpace, m_coarseLevel, m_fineLevel))
+			{
+				UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n");
+				return false;
+			}
+
+			m_bInit = true;
+
+			return true;
+		}
+
+		virtual bool init(const vector_type& u)
+		{
+			return init();
+		}
+
+	// 	Project uFine to uCoarse; uCoarse = P(uFine);
+		virtual bool apply(vector_type& uCoarseOut, const vector_type& uFineIn)
+		{
+		//	Check, that operator is initiallized
+			if(!m_bInit)
+			{
+				UG_LOG("ERROR in 'ProjectionOperator::apply':Operator not initialized.\n");
+				return false;
+			}
+
+		//	Some Assertions
+			UG_ASSERT(uCoarseOut.size() == m_matrix.num_rows(),	"Vector [size= " << uCoarseOut.size() << "] and Row [size= " << m_matrix.num_rows() <<"] sizes have to match!");
+			UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= " << uFineIn.size() << "] and Column [size= " << m_matrix.num_cols() <<"] sizes have to match!");
+
+		//	Apply matrix
+			m_matrix.apply(uCoarseOut, uFineIn);
+
+		//	Adjust parallel storage type
 #ifdef UG_PARALLEL
 			uCoarseOut.copy_storage_type(uFineIn);
 #endif
 			return true;
 		}
 
-		/// Project uCoarse to uFine; uFine = P^{-1}(uCoarse);
-		// ATTENTION: This will only affect fine nodes, that are also coarse node, thus
-		//            this operation is not very senseful
-		bool apply_transposed(TFunction& uCoarseOut, TFunction& uFineIn)
+	/// Project uCoarse to uFine; uFine = P^{-1}(uCoarse);
+	// 	ATTENTION: This will only affect fine nodes, that are also coarse node, thus
+	//            this operation is not very senseful
+		bool apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn)
 		{
-			m_matrix.apply_transposed(uFineIn.get_vector(), uCoarseOut.get_vector());
+		//	Check, that operator is initiallized
+			if(!m_bInit)
+			{
+				UG_LOG("ERROR in 'ProjectionOperator::apply':Operator not initialized.\n");
+				return false;
+			}
+
+		//	Some Assertions
+			UG_ASSERT(uCoarseOut.size() == m_matrix.num_rows(),	"Vector [size= " << uCoarseOut.size() << "] and Row [size= " << m_matrix.num_rows() <<"] sizes have to match!");
+			UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= " << uFineIn.size() << "] and Column [size= " << m_matrix.num_cols() <<"] sizes have to match!");
+
+		//	Apply transposed of matrix
+			m_matrix.apply_transposed(uFineIn, uCoarseOut);
+
+		//	Adjust parallel storage type
 #ifdef UG_PARALLEL
 			uFineIn.copy_storage_type(uCoarseOut);
 #endif
 			return true;
 		}
 
-		// apply sub not implemented
-		bool apply_sub(TFunction& u, TFunction& v)
+	// 	Apply sub not implemented
+		virtual bool apply_sub(vector_type& u, const vector_type& v)
 		{
 			UG_ASSERT(0, "Not Implemented.");
 			return false;
 		}
 
+	//	Destructor
 		~ProjectionOperator()
 		{
 			m_matrix.destroy();
@@ -154,6 +227,13 @@ class ProjectionOperator : public ILinearOperator<TFunction, TFunction> {
 
 	protected:
 		matrix_type m_matrix;
+
+		TApproximationSpace* m_pApproximationSpace;
+
+		size_t m_fineLevel;
+		size_t m_coarseLevel;
+
+		bool m_bInit;
 };
 
 

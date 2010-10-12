@@ -12,7 +12,7 @@
 #include <string>
 
 #include "common/common.h"
-#include "lib_discretization/operator/operator_interface.h"
+#include "lib_discretization/operator/operator.h"
 
 namespace ug{
 
@@ -29,7 +29,7 @@ namespace ug{
  *
  */
 template <typename TFunction>
-class LineSearch
+class ILineSearch
 {
 	public:
 		typedef TFunction function_type;
@@ -54,11 +54,11 @@ class LineSearch
 		virtual bool search(IOperator<function_type, function_type>& Op, function_type& u, function_type& p, function_type& d, number defect) = 0;
 
 		/// virtual destructor
-		virtual ~LineSearch() {}
+		virtual ~ILineSearch() {}
 };
 
 template <typename TFunction>
-class StandardLineSearch : public LineSearch<TFunction>
+class StandardLineSearch : public ILineSearch<TFunction>
 {
 	public:
 		typedef TFunction function_type;
@@ -69,12 +69,21 @@ class StandardLineSearch : public LineSearch<TFunction>
 			 m_verbose(verbose), m_offset("")
 			 {};
 
+		StandardLineSearch()
+		 :	 m_maxSteps(10), m_lambdaStart(1.0), m_lambdaReduce(0.5),
+			 m_verbose(true), m_offset("")
+			 {};
+
+		void set_maximum_steps(int steps) {m_maxSteps = steps;}
+		void set_lambda_start(number start) {m_lambdaStart = start;}
+		void set_reduce_factor(number factor) {m_lambdaReduce = factor;}
+		void set_verbose_level(bool level) {m_verbose = level;}
 		void set_offset(std::string offset) {m_offset = offset;};
 
 		bool search(IOperator<function_type, function_type>& Op, function_type& u, function_type& p, function_type& d, number defect)
 		{
 			// clone pattern for s
-			s.clone_pattern(u);
+			s.resize(u.size());
 
 			number lambda = m_lambdaStart;
 			number alpha = 0.25;
@@ -91,7 +100,7 @@ class StandardLineSearch : public LineSearch<TFunction>
 			for(int k = 1; k <= m_maxSteps; ++k)
 			{
 				// try on line u := u - lambda*p
-				VecScaleAppend(u, p, (-1)*lambda);
+				VecScaleAdd(u, 1.0, u, (-1)*lambda, p);
 
 				// compute new Defect
 				if(!Op.prepare(d, u))
@@ -131,25 +140,6 @@ class StandardLineSearch : public LineSearch<TFunction>
 	protected:
 		// solution in line direction
 		function_type s;
-
-		bool VecScaleAppend(TFunction& a_func, TFunction& b_func, number s)
-		{
-			#ifdef UG_PARALLEL
-			if(a_func.has_storage_type(PST_UNIQUE) && b_func.has_storage_type(PST_UNIQUE));
-			else if(a_func.has_storage_type(PST_CONSISTENT) && b_func.has_storage_type(PST_CONSISTENT));
-			else if (a_func.has_storage_type(PST_ADDITIVE) && b_func.has_storage_type(PST_ADDITIVE))
-			{
-				a_func.set_storage_type(PST_ADDITIVE);
-				b_func.set_storage_type(PST_ADDITIVE);
-			}
-			#endif
-			typename TFunction::vector_type& a = a_func.get_vector();
-			typename TFunction::vector_type& b = b_func.get_vector();
-
-            for(size_t i = 0; i < a.size(); ++i)
-				a[i] += s*b[i];
-			return true;
-		}
 
 	protected:
 		// maximum number of steps to be performed
