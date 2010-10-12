@@ -51,6 +51,9 @@ class ApproximationSpace{
 		// algebra of this factory
 		typedef TAlgebra algebra_type;
 
+		// Type of DoF Distribution
+		typedef TDoFDistribution dof_distribution_type;
+
 		// dof manager used
 		#ifdef UG_PARALLEL
 			typedef ParallelMGDoFManager<MGDoFManager<TDoFDistribution> > dof_manager_type;
@@ -85,7 +88,10 @@ class ApproximationSpace{
 		bool assign_function_pattern(FunctionPattern& fp)
 		{
 			if(!fp.is_locked())
-				{UG_LOG("Function pattern nor locked."); return false;}
+				{UG_LOG("Function pattern not locked."); return false;}
+
+			if(m_pMGSubsetHandler == NULL)
+				{UG_LOG("No domain assigned to Approximation Space.\n"); return false;}
 
 			m_pFunctionPattern = &fp;
 			m_pMGDoFManager = new dof_manager_type(*m_pMGSubsetHandler, fp);
@@ -114,7 +120,9 @@ class ApproximationSpace{
 			if(m_pMGDoFManager == NULL)
 				{UG_LOG("Function pattern not set.\n"); return false;}
 
-			function_type* gridFct = new function_type(name, *this, *m_pMGDoFManager->get_level_dof_distribution(level), allocate);
+			function_type* gridFct = new function_type(name, *this,
+														*m_pMGDoFManager->get_level_dof_distribution(level),
+														allocate);
 			return gridFct;
 		}
 
@@ -124,8 +132,20 @@ class ApproximationSpace{
 			if(m_pMGDoFManager == NULL)
 				{UG_LOG("Function pattern not set.\n"); return false;}
 
-			function_type* gridFct = new function_type(name, *this, *m_pMGDoFManager->get_surface_dof_distribution(), allocate);
+			function_type* gridFct = new function_type(name, *this,
+														*m_pMGDoFManager->get_surface_dof_distribution(),
+														allocate);
 			return gridFct;
+		}
+
+		const dof_distribution_type& get_surface_dof_distribution() const
+		{
+			return *m_pMGDoFManager->get_surface_dof_distribution();
+		}
+
+		const dof_distribution_type& get_level_dof_distribution(size_t level) const
+		{
+			return *m_pMGDoFManager->get_level_dof_distribution(level);
 		}
 
 		~ApproximationSpace()

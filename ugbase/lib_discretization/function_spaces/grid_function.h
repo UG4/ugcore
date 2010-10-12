@@ -8,6 +8,8 @@
 #ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION__
 
+#include "lib_algebra/operator/operator_base_interface.h"
+
 namespace ug{
 
 // predeclaration
@@ -18,34 +20,35 @@ class ApproximationSpace;
 // A grid function brings approximation space and algebra together. For a given DoFManager and level, a grid function
 // represents the solutions on the level 'level'
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-class GridFunction{
+class GridFunction :	public TAlgebra::vector_type,
+						public virtual IFunctionBase
+{
 	public:
-		// this type
+	// 	This type
 		typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> this_type;
 
-		// this type
+	// 	Type of Approximation space
 		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> approximation_space_type;
 
-		// Domain
+	// 	Domain
 		typedef TDomain domain_type;
 
-		// ALGEBRA
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// vector type used to store dof values
+	// 	Vector type used to store dof values
 		typedef typename algebra_type::vector_type vector_type;
 
-		// local vector type
+	// 	Local vector type
 		typedef LocalVector<typename vector_type::entry_type> local_vector_type;
 
-		// local index type
+	// 	Local index type
 		typedef LocalIndices local_index_type;
 
-		// multi index
+	//	Multi index
 		typedef typename TDoFDistribution::multi_index_vector_type multi_index_vector_type;
 
-		// algebra index
+	// 	Algebra index
 		typedef typename TDoFDistribution::algebra_index_vector_type algebra_index_vector_type;
 
 		// DOF DISTRIBUTION
@@ -55,12 +58,13 @@ class GridFunction{
 	public:
 		// Default constructor
 		GridFunction() :
-			m_name(""), m_pApproxSpace(NULL), m_pDoFDistribution(NULL), m_pVector(NULL)
+			m_name(""), m_pApproxSpace(NULL), m_pDoFDistribution(NULL)
 			{}
 
 		// Constructor
-		GridFunction(std::string name, approximation_space_type& approxSpace, dof_distribution_type& DoFDistr, bool allocate = true) :
-			m_name(name), m_pApproxSpace(&approxSpace), m_pDoFDistribution(&DoFDistr), m_pVector(NULL)
+		GridFunction(	std::string name, approximation_space_type& approxSpace,
+						dof_distribution_type& DoFDistr, bool allocate = true) :
+			m_name(name), m_pApproxSpace(&approxSpace), m_pDoFDistribution(&DoFDistr)
 		{
 			if(allocate)
 				if(!create_storage())
@@ -70,7 +74,7 @@ class GridFunction{
 		// copy constructor
 		GridFunction(const this_type& v) :
 			m_name(v.m_name), m_pApproxSpace(v.m_pApproxSpace),
-			m_pDoFDistribution(v.m_pDoFDistribution), m_pVector(NULL)
+			m_pDoFDistribution(v.m_pDoFDistribution)
 		{
 			assign(v);
 		};
@@ -78,6 +82,14 @@ class GridFunction{
 		// sets grid function
 		this_type& operator=(const this_type& v)
 			{assign(v); return *this;}
+
+		//	set a vector
+		bool assign(const vector_type& v)
+		{
+			if(v.size() != get_vector().size()) return false;
+			get_vector() = v;
+			return true;
+		}
 
 		// destructor
 		virtual ~GridFunction()
@@ -94,79 +106,49 @@ class GridFunction{
 		// copies the GridFunction v, except that the values are copied.
 		virtual bool clone_pattern(const this_type& v)
 		{
-			// delete memory if vector storage exists already
-			if(m_pVector != NULL) release_storage();
+		// 	delete memory if vector storage exists already
+			release_storage();
 
-			// copy informations
+		// 	copy informations
 			m_name = v.m_name;
 			m_pApproxSpace = v.m_pApproxSpace;
 			m_pDoFDistribution = v.m_pDoFDistribution;
 
-			// create new vector
+		// 	create new vector
 			if(!create_storage())
 				{UG_LOG("Cannot create pattern.\n"); return false;}
 
 			return true;
 		};
 
-		// projects a surface function to this grid function
-		// currently this is only implemented for a full refinement
-		// (surface level == full refinement level).
-		// Then, only the pointer to the dof storage is copied to avoid unnecessary copy-work.
-		template <typename TDoFDist>
-		bool project_surface(GridFunction<TDomain, TDoFDist, TAlgebra>& v)
-		{
-			if(m_pDoFDistribution == v.m_pDoFDistribution)
-			{
-				// set pointer to dof storage
-				m_pVector = v.m_pVector;
-				return true;
-			}
-			else{UG_ASSERT(0, "Not implemented.");}
-			return false;
-		}
-
-		// inverse operation to project surface
-		template <typename TDoFDist>
-		bool release_surface(GridFunction<TDomain, TDoFDist, TAlgebra>& v)
-		{
-			if(m_pDoFDistribution == v.m_pDoFDistribution)
-			{
-				if(m_pVector != v.m_pVector) return false;
-
-				// forget about memory without deleting it.
-				m_pVector = NULL;
-				return true;
-			}
-			else
-			{UG_ASSERT(0, "Not implemented.");}
-			return false;
-		}
-
-		/////////////////////////////////
-		// help functions
-		/////////////////////////////////
-
+	/////////////////////////////////
+	// help functions
+	/////////////////////////////////
 	protected:
 		// create storage vector. DoFDistrution must be set.
 		bool create_storage()
 		{
+		//	DoFDistribution is mandatory
 			if(m_pDoFDistribution == NULL)
 				{UG_LOG("Cannot create vector without DoFDistribution.\n"); return false;}
 
-			m_pVector = new vector_type;
-			if(m_pVector == NULL)
-				{UG_LOG("Cannot create new storage vector.(Memory?)\n"); return false;}
-
+		//	read number of algebra dofs
 			size_t num_dofs = m_pDoFDistribution->num_dofs();
-			if(!m_pVector->create(num_dofs)) return false;
+
+		//	check if vector has correct size. Otherwise resize
+			if(get_vector().size() != num_dofs)
+			{
+				if(!get_vector().destroy()) return false;
+				if(!get_vector().create(num_dofs)) return false;
+			}
 			return true;
 		}
 
 		// deletes the memory
 		bool release_storage()
 		{
-			if(m_pVector != NULL){m_pVector->destroy(); delete m_pVector;}
+		//	delete vector
+			get_vector().destroy();
 			return true;
 		}
 
@@ -182,17 +164,14 @@ class GridFunction{
 			if(	m_pDoFDistribution != v.m_pDoFDistribution)
 				return false;
 
-			// allocate memory if needed
-			if(m_pVector == NULL)
-			{
-				if(!create_storage())
-					{UG_LOG("Cannot create storage for assignment.\n"); return false;}
-			}
-			else if (v.m_pVector->size() != m_pVector->size())
+			if(!create_storage())
+			{UG_LOG("Cannot create storage for assignment.\n"); return false;}
+
+			if (v.get_vector().size() != get_vector().size())
 				{UG_LOG("Size of discrete function does not match."); return false;}
 
 			// copy values
-			*m_pVector = *v.m_pVector;
+			get_vector() = v.get_vector();
 			return true;
 		}
 
@@ -203,6 +182,10 @@ class GridFunction{
 		// name of grid function
 		std::string name()
 			{return m_name;}
+
+		// get dof distribution
+		const dof_distribution_type& get_dof_distribution() const
+			{return *m_pDoFDistribution;}
 
 		// get approximation space
 		const approximation_space_type& get_approximation_space() const {return *m_pApproxSpace;}
@@ -346,48 +329,20 @@ class GridFunction{
 
 		// get dof values
 		inline number get_dof_value(size_t i, size_t comp) const
-			{return BlockRef(((*m_pVector)[i]), comp);}
+			{return BlockRef(((get_vector())[i]), comp);}
 
 		////////////////////////////
 		// Algebra requirements
 		////////////////////////////
-
+		// TODO: Since a GridFunction is a Vector now, we can replace get_vector everywhere
+		// 			and use GridFunction directly
 		// export the dof storage of this vector
 		vector_type& get_vector()
-			{return *m_pVector;}
+			{return *(dynamic_cast<vector_type*>(this));}
 
 		// export the dof storage of this vector
 		const vector_type& get_vector() const
-			{return *m_pVector;}
-
-		// this function finalizes the dof pattern.
-		// Afterwards the pattern can only be changed by
-		// destroying the vector and creating a new one.
-		bool finalize()
-			{return m_pVector->finalize();}
-
-		number dotprod(const this_type& v)
-			{return m_pVector->dotprod(*v.m_pVector);}
-
-		// add a grid function to this grid function
-		this_type& operator+=(const this_type& v)
-			{*m_pVector += *(v.m_pVector); return *this;}
-
-		// subtract a grid function from this grid function
-		this_type& operator-=(const this_type& v)
-			{*m_pVector -= *(v.m_pVector); return *this;}
-
-		// multiply grid function by scalar
-		this_type& operator*=(number w)
-			{*m_pVector *= w; return *this;}
-
-		// set all dofs on level 'level' to value 'w'
-		bool set(number w)
-			{return m_pVector->set(w);}
-
-		// two norm
-		inline number two_norm()
-			{return m_pVector->two_norm();}
+			{return *(dynamic_cast<const vector_type*>(this));}
 
 	protected:
 		// name
@@ -398,9 +353,6 @@ class GridFunction{
 
 		// dof manager of this discrete function
 		dof_distribution_type* m_pDoFDistribution;
-
-		// vector storage, to store values of local degrees of freedom
-		vector_type* m_pVector;
 };
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
