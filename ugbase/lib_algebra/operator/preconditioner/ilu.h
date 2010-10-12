@@ -128,7 +128,7 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ILUPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess()
+		virtual bool preprocess(matrix_type& mat)
 		{
 		//	TODO: error handling / memory check
 		//	clean up

@@ -45,7 +45,7 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "GSPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess() {return true;}
+		virtual bool preprocess(matrix_type& mat) {return true;}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -86,7 +86,7 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "BGSPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess() {return true;}
+		virtual bool preprocess(matrix_type& mat) {return true;}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}
@@ -127,7 +127,7 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "SGSPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess() {return true;}
+		virtual bool preprocess(matrix_type& mat) {return true;}
 
 	//	Postprocess routine
 		virtual bool postprocess() {return true;}

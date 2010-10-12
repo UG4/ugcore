@@ -58,7 +58,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "GSPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess()
+		virtual bool preprocess(matrix_type& mat)
 		{
 		//	Currently remember that Operator has changed
 			m_bOpChanged = true;

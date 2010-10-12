@@ -53,7 +53,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		virtual const char* name() const {return "ILUTPreconditioner";}
 
 	//	Preprocess routine
-		virtual bool preprocess()
+		virtual bool preprocess(matrix_type& mat)
 		{
 		//	Prepare Inverse Matrix
 			matrix_type* A = this->m_pMatrix;
