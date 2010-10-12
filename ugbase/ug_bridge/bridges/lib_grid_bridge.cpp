@@ -98,7 +98,8 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 	}
 }
 
-bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
+bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs,
+						   bool performLoopSubdivision)
 {
 	IRefinementCallback* refCallback = NULL;
 //	we're only checking for the main attachments here.
