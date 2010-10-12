@@ -382,7 +382,7 @@ public:
 	class cLowerLeftIterator : public cRowIterator
 	{
 	private:
-		int row;
+		size_t row;
 	public:
 		cLowerLeftIterator(const SparseMatrix<entry_type> &A, size_t row_)
 		: cRowIterator(A, row_), row(row_)
