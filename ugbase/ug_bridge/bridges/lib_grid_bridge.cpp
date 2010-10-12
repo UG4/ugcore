@@ -168,6 +168,12 @@ void RegisterLibGridInterface(Registry& reg)
 		.add_constructor()
 		.add_method("assign_grid", &HangingNodeRefiner_IR1::assign_grid);
 
+//	GlobalMultiGridRefiner
+	reg.add_class_<GlobalMultiGridRefiner>("GlobalMultiGridRefiner")
+		.add_constructor()
+		.add_method("refine", &GlobalMultiGridRefiner::refine)
+		.add_method("assign_grid", (void (GlobalMultiGridRefiner::*)(MultiGrid&)) &GlobalMultiGridRefiner::assign_grid);
+
 //	GridObject
 	reg.add_class_<GridObject, Grid>("GridObject")
 		.add_constructor()

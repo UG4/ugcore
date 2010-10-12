@@ -13,6 +13,7 @@ namespace bridge
 void RegisterStandardInterfaces(Registry& reg)
 {
 	RegisterLibGridInterface(reg);
+	RegisterLibAlgebraInterface(reg);
 	RegisterLibDiscretizationInterface(reg);
 	RegisterTestInterface(reg);
 }

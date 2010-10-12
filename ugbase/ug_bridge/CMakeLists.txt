@@ -16,8 +16,11 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 set(srcUGBridge    	class_name_provider.cpp
 					ug_bridge.cpp
 					bridges/lib_grid_bridge.cpp
+					bridges/lib_algebra_bridge.cpp
 					bridges/lib_discretization_bridge.cpp
-					bridges/test_bridge.cpp)
+					bridges/test_bridge.cpp
+					bridges/problems/sinus.cpp
+					bridges/problems/elder.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.
