@@ -66,23 +66,21 @@ enum IAssembleReturn {
  *
  *
  */
-template <	typename TDiscreteFunction,
-			typename TAlgebra = typename TDiscreteFunction::algebra_type >
+template <	typename TDoFDistribution,
+			typename TAlgebra>
 class IAssemble {
 	public:
-		// forward types and constants
-
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// type of algebra matrix
+	// 	Type of algebra matrix
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-		// type of algebra vector
+	// 	Type of algebra vector
 		typedef typename TAlgebra::vector_type vector_type;
 
-		// type of discrete function
-		typedef TDiscreteFunction discrete_function_type;
+	// 	Type of DoF Distribution
+		typedef TDoFDistribution dof_distribution_type;
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian)
@@ -93,7 +91,7 @@ class IAssemble {
 		 * \param[out] J Jacobian J(u) (or Precondition) matrix_type to be filled
 		 * \param[in]  u Numerical solution
 		 */
-		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const discrete_function_type& u)
+		virtual IAssembleReturn assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// assembles Defect
@@ -104,7 +102,7 @@ class IAssemble {
 		 * \param[out] d Defect d(u) to be filled
 		 * \param[in]  u Numerical solution
 		 */
-		virtual IAssembleReturn assemble_defect(vector_type& d, const discrete_function_type& u)
+		virtual IAssembleReturn assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// Assembles matrix_type and Right-Hand-Side for a linear problem
@@ -119,7 +117,7 @@ class IAssemble {
 		 * 			IAssemble_ERROR 		if problem is linear and an error occurred during assembling
 		 * 			IAssemble_NONLINEAR 	if problem is non-linear
 		 */
-		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const discrete_function_type& u)
+		virtual IAssembleReturn assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		/// sets dirichlet values in solution vector
@@ -132,7 +130,7 @@ class IAssemble {
 		 * 			IAssemble_NOT_IMPLEMENTED 	if function has not been implemented
 		 * 			IAssemble_ERROR 			if function is implemented and an error occurred during assembling
 		 */
-		virtual IAssembleReturn assemble_solution(discrete_function_type& u)
+		virtual IAssembleReturn assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 		virtual size_t num_fct() const = 0;
