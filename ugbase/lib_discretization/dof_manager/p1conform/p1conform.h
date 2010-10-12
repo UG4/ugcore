@@ -109,6 +109,9 @@ class P1ConformDoFDistribution : public DoFDistribution
 		template<typename TElem>
 		inline size_t num() const {return m_goc.num<TElem>();}
 
+		template<typename TElem>
+		inline size_t num(int si) const {return m_goc.num<TElem>(si);}
+
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator begin()
@@ -119,8 +122,15 @@ class P1ConformDoFDistribution : public DoFDistribution
 		inline typename geometry_traits<TElem>::iterator end()
 			{return m_goc.end<TElem>();}
 
-		template<typename TElem>
-		inline size_t num(int si) const {return m_goc.num<TElem>(si);}
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator begin() const
+			{return m_goc.begin<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator end() const
+			{return m_goc.end<TElem>();}
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
@@ -130,6 +140,16 @@ class P1ConformDoFDistribution : public DoFDistribution
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator end(int si)
+			{return m_goc.end<TElem>(si);}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator begin(int si) const
+			{return m_goc.begin<TElem>(si);}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator end(int si) const
 			{return m_goc.end<TElem>(si);}
 
 		///////////////////////////////////////
@@ -271,6 +291,9 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 		template<typename TElem>
 		inline size_t num() const {return m_goc.num<TElem>();}
 
+		template<typename TElem>
+		inline size_t num(int si) const {return m_goc.num<TElem>(si);}
+
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator begin()
@@ -281,8 +304,15 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 		inline typename geometry_traits<TElem>::iterator end()
 			{return m_goc.end<TElem>();}
 
-		template<typename TElem>
-		inline size_t num(int si) const {return m_goc.num<TElem>(si);}
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator begin() const
+			{return m_goc.begin<TElem>();}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator end() const
+			{return m_goc.end<TElem>();}
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
@@ -292,6 +322,16 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
 		inline typename geometry_traits<TElem>::iterator end(int si)
+			{return m_goc.end<TElem>(si);}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator begin(int si) const
+			{return m_goc.begin<TElem>(si);}
+
+		// iterator for elements where this grid function is defined
+		template <typename TElem>
+		inline typename geometry_traits<TElem>::const_iterator end(int si) const
 			{return m_goc.end<TElem>(si);}
 
 		///////////////////////////////////////
