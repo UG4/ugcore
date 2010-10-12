@@ -517,6 +517,9 @@ class LocalMatrix : public LocalMatrixBase
 		index_type row_index(size_t i) const {return m_pRowIndices->index(i);}
 		index_type col_index(size_t j) const {return m_pColIndices->index(j);}
 
+		comp_type row_sub_index(size_t rowFct, size_t rowDoF) const {return m_pRowIndices->comp(rowFct, rowDoF);}
+		comp_type col_sub_index(size_t colFct, size_t colDoF) const {return m_pColIndices->comp(colFct, colDoF);}
+
 		///////////////////////////
 		// discretization access
 		///////////////////////////
