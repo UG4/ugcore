@@ -98,8 +98,7 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 	}
 }
 
-bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs,
-						   bool performLoopSubdivision)
+bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 {
 	IRefinementCallback* refCallback = NULL;
 //	we're only checking for the main attachments here.
@@ -132,6 +131,41 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs,
 	delete refCallback;
 	return true;
 }
+
+bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
+{
+	IRefinementCallback* refCallback = NULL;
+//	we're only checking for the main attachments here.
+//todo: improve this - add a domain-based hierarchy creator.
+	if(mg.has_vertex_attachment(aPosition1))
+		refCallback = new RefinementCallbackSubdivBoundary<APosition1>(mg, aPosition1);
+	else if(mg.has_vertex_attachment(aPosition2))
+		refCallback = new RefinementCallbackSubdivBoundary<APosition2>(mg, aPosition2);
+	else if(mg.has_vertex_attachment(aPosition))
+		refCallback = new RefinementCallbackSubdivBoundary<APosition>(mg, aPosition);
+		
+	if(!refCallback){
+		UG_LOG("No standard position attachment found. Aborting.\n");
+		return false;
+	}
+	
+	GlobalMultiGridRefiner ref(mg, refCallback);
+
+	for(size_t lvl = 0; lvl < numRefs; ++lvl){
+		ref.refine();
+	}
+
+	if(mg.has_vertex_attachment(aPosition1))
+		ProjectToLimitSubdivBoundary(mg, aPosition1, aPosition1);
+	else if(mg.has_vertex_attachment(aPosition2))
+		ProjectToLimitSubdivBoundary(mg, aPosition2, aPosition2);
+	else if(mg.has_vertex_attachment(aPosition))
+		ProjectToLimitSubdivBoundary(mg, aPosition, aPosition);
+
+	delete refCallback;
+	return true;
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 void RegisterLibGridInterface(Registry& reg)
@@ -194,6 +228,7 @@ void RegisterLibGridInterface(Registry& reg)
 //	refinement
 	reg.add_function("TestSubdivision", &TestSubdivision)
 		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy)
+		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy)
 		.add_function("SaveGridHierarchy", &SaveGridHierarchy);
 }
 

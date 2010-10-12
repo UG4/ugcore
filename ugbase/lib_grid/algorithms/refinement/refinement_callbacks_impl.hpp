@@ -84,6 +84,106 @@ new_vertex(VertexBase* vrt, Volume* parent)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 template <class TAPosition>
+RefinementCallbackSubdivBoundary<TAPosition>::
+RefinementCallbackSubdivBoundary()
+{
+}
+
+template <class TAPosition>
+RefinementCallbackSubdivBoundary<TAPosition>::
+RefinementCallbackSubdivBoundary(MultiGrid& mg,
+								  TAPosition& aPos) :
+	BaseClass(mg, aPos),
+	m_pMG(&mg)
+{
+}
+
+template <class TAPosition>
+RefinementCallbackSubdivBoundary<TAPosition>::
+~RefinementCallbackSubdivBoundary()
+{
+
+}
+
+template <class TAPosition>
+void RefinementCallbackSubdivBoundary<TAPosition>::
+new_vertex(VertexBase* vrt, VertexBase* parent)
+{
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
+	
+	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	if(is_crease_vertex(parent)){
+	//	get the neighboured crease edges
+		EdgeBase* nbrs[2];
+		size_t numNbrs = 0;
+		for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(parent);
+			iter != m_pMG->associated_edges_end(parent); ++iter)
+		{
+			if(is_crease_edge(*iter)){
+				nbrs[numNbrs] = *iter;
+				++numNbrs;
+				if(numNbrs == 2)
+					break;
+			}
+		}
+		
+		if(numNbrs == 2){
+			pos_type& p0 = aaPos[GetConnectedVertex(nbrs[0], parent)];
+			pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], parent)];
+			vector3 w = subdiv.ref_even_crease_weights();
+			
+			VecScaleAdd(aaPos[vrt], w.x, aaPos[parent],
+						w.y, p0, w.z, p1);
+		}
+		else{
+			BaseClass::new_vertex(vrt, parent);
+		}
+	}
+	else{
+		BaseClass::new_vertex(vrt, parent);
+	}
+}
+
+template <class TAPosition>
+void RefinementCallbackSubdivBoundary<TAPosition>::
+new_vertex(VertexBase* vrt, EdgeBase* parent)
+{
+	using std::swap;
+	
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
+	
+	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	
+	if(is_crease_edge(parent)){
+		vector2 wghts = subdiv.ref_odd_crease_weights();
+		VecScaleAdd(aaPos[vrt], wghts.x, aaPos[parent->vertex(0)],
+					wghts.y, aaPos[parent->vertex(1)]);
+	}
+	else{
+		BaseClass::new_vertex(vrt, parent);
+	}
+}
+
+template <class TAPosition>
+bool RefinementCallbackSubdivBoundary<TAPosition>::
+is_crease_vertex(VertexBase* vrt)
+{
+	return IsBoundaryVertex2D(*m_pMG, vrt);
+}
+
+template <class TAPosition>
+bool RefinementCallbackSubdivBoundary<TAPosition>::
+is_crease_edge(EdgeBase* edge)
+{
+	return IsBoundaryEdge2D(*m_pMG, edge);
+}
+
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+template <class TAPosition>
 RefinementCallbackSubdivisionLoop<TAPosition>::
 RefinementCallbackSubdivisionLoop()
 {

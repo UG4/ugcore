@@ -156,6 +156,82 @@ ProjectToLimitPLoop(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
 }
 
 ////////////////////////////////////////////////////////////////////////
+///	projects all boundary vertices in the given grid to their limit-positions using the piecewise loop scheme.
+template <class TAVrtPos> void
+ProjectToLimitSubdivBoundary(Grid& grid, TAVrtPos aPos, TAVrtPos aProjPos)
+{
+//	position type
+	typedef typename TAVrtPos::ValueType	pos_type;
+	
+//	access the subdivision weights
+	SubdivRules_PLoop& subdiv = SubdivRules_PLoop::inst();
+	
+//	if aPos and aProjPos are equal, we'll have to create a temporary
+//	attachment
+	bool usingTmpAttachment = false;
+	if(aPos == aProjPos){
+	//	create temporary attachment
+		usingTmpAttachment = true;
+		aProjPos = TAVrtPos();
+	}
+	
+//	attach aProjPos if required
+	if(!grid.has_vertex_attachment(aProjPos))
+		grid.attach_to_vertices(aProjPos);
+		
+//	attachment accessors
+	Grid::VertexAttachmentAccessor<TAVrtPos> aaPos(grid, aPos);
+	Grid::VertexAttachmentAccessor<TAVrtPos> aaProjPos(grid, aProjPos);
+	
+//	iterate through all vertices
+	for(VertexBaseIterator iter = grid.vertices_begin();
+		iter != grid.vertices_end(); ++iter)
+	{
+		VertexBase* v = *iter;
+		
+	//	check whether the vertex is a crease vertex or not
+	//todo: this has to be more flexible
+		if(IsBoundaryVertex2D(grid, v)){
+		//	project the crease vertex
+			EdgeBase* nbrs[2];
+			size_t numNbrs = 0;
+			for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+				iter != grid.associated_edges_end(v); ++iter)
+			{
+				if(IsBoundaryEdge2D(grid, *iter)){
+					nbrs[numNbrs] = *iter;
+					++numNbrs;
+					if(numNbrs == 2)
+						break;
+				}
+			}
+			
+			if(numNbrs == 2){
+				pos_type& p0 = aaPos[GetConnectedVertex(nbrs[0], v)];
+				pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], v)];
+				vector3 w = subdiv.proj_crease_weights();
+				VecScaleAdd(aaProjPos[v], w.x, aaPos[v], w.y, p0, w.z, p1);
+			}
+			else
+				aaProjPos[v] = aaPos[v];
+		}
+		else{
+		//	inner vertices are not moved
+			aaProjPos[v] = aaPos[v];
+		}
+	}
+	
+//	clean up
+	if(usingTmpAttachment){
+	//	swap attachment buffers
+		aaPos.swap(aaProjPos);
+		
+	//	detach it
+		grid.detach_from_vertices(aProjPos);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 //	ProjectToLimitLoop
 /// projects surface vertices to their limit subdivision surface position
 bool ProjectToLimitLoop(Grid& grid, APosition& aProjPos);

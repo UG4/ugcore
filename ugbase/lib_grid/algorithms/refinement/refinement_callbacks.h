@@ -131,6 +131,37 @@ class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
 };
 
 template <class TAPosition>
+class RefinementCallbackSubdivBoundary : public RefinementCallbackLinear<TAPosition>
+{
+	private:
+		typedef RefinementCallbackLinear<TAPosition> BaseClass;
+		typedef typename TAPosition::ValueType		pos_type;
+		
+	public:
+		using BaseClass::new_vertex;
+		
+	public:
+		RefinementCallbackSubdivBoundary();
+		
+	///	make sure that aPos is attached to the vertices of the grid.
+		RefinementCallbackSubdivBoundary(MultiGrid& mg,
+										TAPosition& aPos);
+	
+		virtual ~RefinementCallbackSubdivBoundary();
+		
+		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
+		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		
+	protected:
+		virtual bool is_crease_vertex(VertexBase* vrt);
+		virtual bool is_crease_edge(EdgeBase* edge);
+
+	protected:
+		MultiGrid* m_pMG;
+};
+
+
+template <class TAPosition>
 class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<TAPosition>
 {
 	private:
