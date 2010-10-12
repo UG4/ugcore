@@ -243,10 +243,12 @@ class ParameterStack
 			
 			const Entry& e = m_entries[index];
 			if(e.type == PT_POINTER)
+			{
 				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
 					return reinterpret_cast<T*>(e.param.m_ptr);
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+			}
 			
 			throw(ERROR_BadConversion(index, e.type, PT_POINTER));
 		}
@@ -269,10 +271,12 @@ class ParameterStack
 			
 			const Entry& e = m_entries[index];
 			if(e.type == PT_CONST_POINTER)
+			{
 				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
 					return reinterpret_cast<const T*>(e.param.m_const_ptr);
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+			}
 			
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}

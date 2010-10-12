@@ -785,7 +785,7 @@ is_valid_filename(const char *nameIn)
 	}
 
 	// no dots allowed in file name
-	char* p = strrchr(nameIn, '.');
+	const char* p = strrchr(nameIn, '.');
 	if (p != NULL)
 	{
 		UG_LOG("Filename must not contain '.'. Cannot print to file.\n");

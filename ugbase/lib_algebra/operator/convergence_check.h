@@ -12,6 +12,7 @@
 
 #include <ostream>
 #include <string>
+#include <limits>
 
 #include "common/common.h"
 #include "lib_algebra/operator/operator_base_interface.h"
