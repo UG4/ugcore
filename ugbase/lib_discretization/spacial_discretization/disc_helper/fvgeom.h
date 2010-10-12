@@ -488,14 +488,14 @@ class FVElementGeometry {
 				// loop geometric objects of dimension d
 				for(size_t i = 0; i < refElem.num_obj(d); ++i)
 				{
-					m_obj_mid_local[d-1][i] = 0.0;
+					m_obj_mid_local[d][i] = 0.0;
 					// add corner coordinates of the corners of the geometric object
 					for(size_t j = 0; j < refElem.num_obj_of_obj(d, i, 0); ++j)
 					{
-						m_obj_mid_local[d-1][i] += m_co_local[refElem.id(d, i, 0, j)];
+						m_obj_mid_local[d][i] += m_co_local[refElem.id(d, i, 0, j)];
 					}
 					// scale for correct averaging
-					m_obj_mid_local[d-1][i] *= 1./(refElem.num_obj_of_obj(d, i, 0));
+					m_obj_mid_local[d][i] *= 1./(refElem.num_obj_of_obj(d, i, 0));
 				}
 			}
 
@@ -538,14 +538,14 @@ class FVElementGeometry {
 				// loop geometric objects of dimension d
 				for(size_t i = 0; i < refElem.num_obj(d); ++i)
 				{
-					m_obj_mid_global[d-1][i] = 0.0;
+					m_obj_mid_global[d][i] = 0.0;
 					// add corner coordinates of the corners of the geometric object
 					for(size_t j = 0; j < refElem.num_obj_of_obj(d, i, 0); ++j)
 					{
-						m_obj_mid_global[d-1][i] += m_co_global[refElem.id(d, i, 0, j)];
+						m_obj_mid_global[d][i] += m_co_global[refElem.id(d, i, 0, j)];
 					}
 					// scale for correct averaging
-					m_obj_mid_global[d-1][i] *= 1./(refElem.num_obj_of_obj(d, i, 0));
+					m_obj_mid_global[d][i] *= 1./(refElem.num_obj_of_obj(d, i, 0));
 				}
 			}
 
@@ -588,10 +588,10 @@ class FVElementGeometry {
 		const BoundaryFace<TElem, TWorldDim>& bf(size_t side, size_t i) const {return m_bf[side][i];}
 
 		const MathVector<dim>& corner_local(size_t i) const{return m_co_local[i];}
-		const MathVector<dim>& obj_midpoint_local(int dim_i, size_t i) const{return m_obj_mid_local[dim_i-1][i];}
+		const MathVector<dim>& obj_midpoint_local(int dim_i, size_t i) const{return m_obj_mid_local[dim_i][i];}
 
 		const MathVector<world_dim>& corner_global(size_t i) const{return m_co_global[i];}
-		const MathVector<world_dim>& obj_midpoint_global(int dim_i, size_t i) const{	return m_obj_mid_global[dim_i-1][i];}
+		const MathVector<world_dim>& obj_midpoint_global(int dim_i, size_t i) const{return m_obj_mid_global[dim_i][i];}
 
 	public:
 
@@ -602,10 +602,10 @@ class FVElementGeometry {
 		size_t m_num_bf[6];
 
 		MathVector<world_dim> m_co_global[m_num_co];
-		MathVector<world_dim> m_obj_mid_global[dim][m_max_obj];
+		MathVector<world_dim> m_obj_mid_global[dim+1][m_max_obj];
 
 		MathVector<dim> m_co_local[m_num_co];
-		MathVector<dim> m_obj_mid_local[dim][m_max_obj];
+		MathVector<dim> m_obj_mid_local[dim+1][m_max_obj];
 
 		SubControlVolume<TElem, TWorldDim> m_scv[m_num_co]; // one scv per corner
 		SubControlVolumeFace<TElem, TWorldDim> m_scvf[m_num_ed]; // one scvf per edge
