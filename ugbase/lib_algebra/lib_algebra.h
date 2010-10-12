@@ -13,8 +13,10 @@
 // other ug4 modules
 #include "common/common.h"
 
+
+#include "martin_algebra/template_operations/template_expressions.h"
 // operator interface
-//#include "operator/operator.h"
+#include "operator/operator.h"
 
 /////////////////////////////////////////////
 /////////////////////////////////////////////
@@ -50,6 +52,7 @@
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
+
 
 
 namespace ug
