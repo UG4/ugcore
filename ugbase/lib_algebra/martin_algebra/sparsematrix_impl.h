@@ -100,7 +100,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 	{
 		definalize();
 		// remove all connections A(r, c) with c >= newCols
-		for(int r=0; r < rows; r++)
+		for(size_t r=0; r < rows; r++)
 		{
 			size_t nr;
 			if(get_connection_nr(r, newCols, nr, GREATER_EQUAL))
@@ -111,7 +111,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 	if(newRows < rows)
 	{
 		// safe delete rows with r >= newRows.
-		for(int r=newRows; r<rows; r++)
+		for(size_t r=newRows; r<rows; r++)
 			safe_set_connections(r, NULL);
 	}
 
@@ -133,7 +133,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 			pRowEnd = pNewRowEnd;
 		}
 
-		int *iNewMaxNrOfConnections = new size_t[newRows];
+		size_t *iNewMaxNrOfConnections = new size_t[newRows];
 		memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t)*newRows);
 		delete[] iMaxNrOfConnections;
 		iMaxNrOfConnections = iNewMaxNrOfConnections;
