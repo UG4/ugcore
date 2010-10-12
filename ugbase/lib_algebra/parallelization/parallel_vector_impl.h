@@ -181,6 +181,50 @@ dotprod(const this_type& v)
 }
 
 
+
+
+// for template expressions
+// d = alpha*v1
+template<typename T>
+inline void VecScaleAssign(ParallelVector<T> &dest,
+		double alpha1, const ParallelVector<T> &v1)
+{
+	dest.copy_storage_type(v1);
+	VecScaleAssign(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1));
+}
+
+
+// dest = alpha1*v1 + alpha2*v2
+template<typename T>
+inline void VecScaleAdd(ParallelVector<T>  &dest,
+		double alpha1, const ParallelVector<T> &v1,
+		double alpha2, const ParallelVector<T> &v2)
+{
+	ParallelStorageType mask = v1.get_storage_mask() & v2.get_storage_mask();
+	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	dest.set_storage_type(mask);
+
+	VecScaleAdd(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1),
+											alpha2, *dynamic_cast<const T*>(&v2));
+}
+
+// dest = alpha1*v1 + alpha2*v2 + alpha3*v3
+template<typename T>
+inline void VecScaleAdd(ParallelVector<T> &dest,
+		double alpha1, const ParallelVector<T> &v1,
+		double alpha2, const ParallelVector<T> &v2,
+		double alpha3, const ParallelVector<T> &v3)
+{
+	ParallelStorageType mask = v1.get_storage_mask() & v2.get_storage_mask() & v3.get_storage_mask();
+	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
+	dest.set_storage_type(mask);
+
+	VecScaleAdd(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1),
+											alpha2, *dynamic_cast<const T*>(&v2),
+											alpha3, *dynamic_cast<const T*>(&v3));
+}
+
+
 } // end namespace ug
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_VECTOR_IMPL__ */

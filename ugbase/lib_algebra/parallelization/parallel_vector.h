@@ -43,7 +43,7 @@ enum ParallelStorageType {
 	PST_UNIQUE = 1 << 2
 };
 
-ParallelStorageType operator & (const ParallelStorageType &a, const ParallelStorageType &b)
+inline ParallelStorageType operator & (const ParallelStorageType &a, const ParallelStorageType &b)
 {
 	return (ParallelStorageType) ((int)a&(int)b);
 }
@@ -60,6 +60,10 @@ ParallelStorageType operator & (const ParallelStorageType &a, const ParallelStor
 template <typename TVector>
 class ParallelVector : public TVector, public TE_VEC<ParallelVector<TVector> >
 {
+	private:
+	// 	disallow copy constructor
+		ParallelVector(const ParallelVector&);
+
 	public:
 		typedef ParallelVector<TVector> this_type;
 
@@ -148,6 +152,32 @@ class ParallelVector : public TVector, public TE_VEC<ParallelVector<TVector> >
 */		// TODO: Ask Martin why double return
 		//double operator = (double d)
 		//	{return TVector::operator=(d);}
+
+/*		this_type &operator =(const this_type &v)
+		{
+			copy_storage_type(v);
+
+			(*(TVector*)this) = (TVector)v;
+		}
+*/
+		this_type &operator -=(const this_type &v)
+		{
+			ParallelStorageType mask = get_storage_mask() & v.get_storage_mask();
+			UG_ASSERT(mask != 0, "cannot substract vector v");
+			set_storage_type(mask);
+
+			TVector::operator-=(*dynamic_cast<const TVector*>(&v));
+			return *this;
+		}
+		this_type &operator +=(const this_type &v)
+		{
+			ParallelStorageType mask = get_storage_mask() & v.get_storage_mask();
+			UG_ASSERT(mask != 0, "cannot add vector v");
+			set_storage_type(mask);
+
+			TVector::operator+=(*dynamic_cast<const TVector*>(&v));
+			return *this;
+		}
 
 	private:
 		// type of storage  (i.e. consistent, additiv, additiv unique)
