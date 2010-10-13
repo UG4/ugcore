@@ -7,12 +7,16 @@
 
 #include "../ug_bridge.h"
 #include "lib_discretization/lib_discretization.h"
-#include "problems/problems.h"
+#include "user_data/user_data.h"
 
 namespace ug
 {
 namespace bridge
 {
+
+//////////////////////////////////
+// Some global functions
+//////////////////////////////////
 
 template <typename TDomain>
 bool LoadDomain(TDomain& domain, const char* filename)
@@ -227,9 +231,6 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 
 //	UserFunction
 	{
-	//	Convection - Diffusion
-		reg.add_class_<IConvDiffUserFunction<2> >("IConvDiffUserFunction2d");
-
 	//	Density - Driven - Flow
 		reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d");
 	}
@@ -246,7 +247,10 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		reg.add_class_<T, IElemDisc<algebra_type> >("FV1ConvectionDiffusionElemDisc")
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
-			.add_method("set_user_functions", &T::set_user_functions)
+			.add_method("set_diffusion_tensor", &T::set_diffusion_tensor)
+			.add_method("set_velocity_field", &T::set_velocity_field)
+			.add_method("set_reaction", &T::set_reaction)
+			.add_method("set_rhs", &T::set_rhs)
 			.add_method("set_upwind_amount", &T::set_upwind_amount);
 
 		typedef DensityDrivenFlowElemDisc<domain_type, algebra_type> T2;
@@ -411,7 +415,9 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 	}
 
 //	Register user functions
-	RegisterSinusUserFunctions(reg);
+	RegisterUserNumber(reg);
+	RegisterUserVector(reg);
+	RegisterUserMatrix(reg);
 	RegisterElderUserFunctions(reg);
 }
 
