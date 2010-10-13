@@ -41,6 +41,8 @@ class IDensityDrivenFlowUserFunction
 		virtual Mol_Diff_Tensor_fct get_mol_diff_tensor_function() const = 0;
 		virtual Permeability_Tensor_fct get_perm_tensor_function() const = 0;
 		virtual Gravity_fct get_gravity_function() const = 0;
+
+		virtual ~IDensityDrivenFlowUserFunction(){}
 };
 
 template<typename TDomain, typename TAlgebra>

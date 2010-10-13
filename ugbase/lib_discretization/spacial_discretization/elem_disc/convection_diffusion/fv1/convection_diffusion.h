@@ -36,6 +36,8 @@ class IConvDiffUserFunction
 		virtual Conv_Vel_fct get_velocity_function() const = 0;
 		virtual Reaction_fct get_reaction_function() const = 0;
 		virtual Rhs_fct get_rhs_function() const = 0;
+
+		virtual ~IConvDiffUserFunction(){}
 };
 
 template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
