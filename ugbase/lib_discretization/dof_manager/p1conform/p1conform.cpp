@@ -64,7 +64,7 @@ update_attachments()
 
 bool
 P1ConformFunctionPattern::
-add_discrete_function(std::string name, LocalShapeFunctionSetID id, int dim)
+add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
 {
 	// for a P1 dof manager only Lagrange P1 function space is permitted
 	if(id != LSFS_LAGRANGEP1)
@@ -75,7 +75,7 @@ add_discrete_function(std::string name, LocalShapeFunctionSetID id, int dim)
 
 bool
 P1ConformFunctionPattern::
-add_discrete_function(std::string name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim)
+add_discrete_function(const char* name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim)
 {
 	// for a P1 dof manager only Lagrange P1 function space is permitted
 	if(id != LSFS_LAGRANGEP1)

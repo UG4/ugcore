@@ -63,9 +63,9 @@ class P1StorageManager
 class P1ConformFunctionPattern : public FunctionPattern
 {
 	public:
-		bool add_discrete_function(std::string name, LocalShapeFunctionSetID id, int dim);
+		virtual bool add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim);
 
-		bool add_discrete_function(std::string name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim);
+		virtual bool add_discrete_function(const char* name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim);
 };
 
 
