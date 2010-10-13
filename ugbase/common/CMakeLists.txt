@@ -9,6 +9,7 @@ project(P_COMMON)
 include_directories(${P_UGBASE_SOURCE_DIR})
 
 set(srcCommon	log.cpp
+                string_util.cpp
 				util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
 				util/stream_pack.cpp
