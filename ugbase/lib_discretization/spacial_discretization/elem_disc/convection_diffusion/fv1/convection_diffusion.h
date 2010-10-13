@@ -17,28 +17,9 @@
 #include "lib_discretization/spacial_discretization/disc_helper/disc_helper.h"
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
+#include "lib_discretization/spacial_discretization/user_data.h"
 
 namespace ug{
-
-
-template <int dim>
-class IConvDiffUserFunction
-{
-	public:
-	//	Function Types
-		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const MathVector<dim>&, number);
-		typedef void (*Conv_Vel_fct)(MathVector<dim>&, const MathVector<dim>&, number);
-		typedef void (*Reaction_fct)(number&, const MathVector<dim>&, number);
-		typedef void (*Rhs_fct)(number&, const MathVector<dim>&, number);
-
-	public:
-		virtual Diff_Tensor_fct get_diff_tensor_function() const = 0;
-		virtual Conv_Vel_fct get_velocity_function() const = 0;
-		virtual Reaction_fct get_reaction_function() const = 0;
-		virtual Rhs_fct get_rhs_function() const = 0;
-
-		virtual ~IConvDiffUserFunction(){}
-};
 
 template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
 class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
@@ -67,7 +48,9 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		typedef LocalIndices local_index_type;
 
 	protected:
-		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
+		typedef typename IUserMatrixProvider<dim>::functor_type DiffusionFunctor;
+		typedef typename IUserVectorProvider<dim>::functor_type VelocityFunctor;
+		typedef typename IUserNumberProvider<dim>::functor_type NumberFunctor;
 		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
 		typedef void (*Reaction_fct)(number&, const position_type&, number);
 		typedef void (*Rhs_fct)(number&, const position_type&, number);
@@ -82,15 +65,20 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 
 		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
-		void set_user_functions(IConvDiffUserFunction<dim>& user) {
-			m_Diff_Tensor = user.get_diff_tensor_function();
-			m_Conv_Vel = user.get_velocity_function();
-			m_Reaction = user.get_reaction_function();
-			m_Rhs = user.get_rhs_function();
-		}
+
+		void set_diffusion_tensor(IUserMatrixProvider<dim>& user) {m_Diff_Tensor = user.get_functor();}
+		void set_velocity_field(IUserVectorProvider<dim>& user) {m_Conv_Vel = user.get_functor();}
+		void set_reaction(IUserNumberProvider<dim>& user) {m_Reaction = user.get_functor();}
+		void set_rhs(IUserNumberProvider<dim>& user) {m_Rhs = user.get_functor();}
 
 		FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
-										Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs);
+										DiffusionFunctor diff, VelocityFunctor vel, NumberFunctor reac, NumberFunctor rhs)
+		: 	m_pDomain(&domain), m_upwindAmount(upwind_amount),
+			m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
+		{
+		// register all Elements with reference dimension <= world dimension
+			register_assemble_functions(Int2Type<dim>());
+		};
 
 		virtual size_t num_fct(){return 1;}
 
@@ -138,10 +126,10 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		number m_upwindAmount;
 
 		// User functions
-		Diff_Tensor_fct m_Diff_Tensor;
-		Conv_Vel_fct m_Conv_Vel;
-		Reaction_fct m_Reaction;
-		Rhs_fct m_Rhs;
+		DiffusionFunctor m_Diff_Tensor;
+		VelocityFunctor m_Conv_Vel;
+		NumberFunctor m_Reaction;
+		NumberFunctor m_Rhs;
 
 	private:
 		///////////////////////////////////////

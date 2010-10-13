@@ -20,20 +20,6 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
-FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
-							Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs)
-	: 	m_pDomain(&domain), m_upwindAmount(upwind_amount),
-		m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
-{
-	// register all Elements with reference dimension <= world dimension
-	register_assemble_functions(Int2Type<dim>());
-};
-
-
-
 template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
 template<typename TElem >
 inline
