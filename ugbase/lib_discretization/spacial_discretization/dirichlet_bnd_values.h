@@ -27,6 +27,8 @@ class DirichletBoundaryFunction
 
 	public:
 		virtual Boundary_fct get_bnd_function() const = 0;
+
+		virtual ~DirichletBoundaryFunction() {};
 };
 
 template <	typename TDomain,
