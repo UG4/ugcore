@@ -40,7 +40,7 @@ bool SaveDomain(TDomain& domain, const char* filename)
 	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), filename);
 }
 
-bool AddP1Function(P1ConformFunctionPattern& pattern, std::string name, int dim)
+bool AddP1Function(P1ConformFunctionPattern& pattern, const char* name, int dim)
 {
 	return pattern.add_discrete_function(name, LSFS_LAGRANGEP1, dim);
 }
@@ -130,6 +130,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 	typedef P1ConformFunctionPattern T;
 	reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern")
 		.add_constructor()
+		.add_method("set_subset_handler", &T::set_subset_handler)
 		.add_method("lock", &T::lock);
 	}
 
@@ -179,7 +180,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization")
 			.add_constructor()
 			.add_method("add_dirichlet_bnd", &T::add_dirichlet_bnd)
-			.add_method("add", (bool (T::*)(IElemDisc<algebra_type>&, const FunctionGroup&, int, int)) &T::add);
+			.add_method("add", (bool (T::*)(IElemDisc<algebra_type>&, const FunctionPattern&, const char*, const char*)) &T::add);
 	}
 
 //	Time Discretization
@@ -259,7 +260,8 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		reg.add_class_<FunctionGroup>("FunctionGroup")
 			.add_constructor()
 			.add_method("clear", &FunctionGroup::clear)
-			.add_method("add_function", &FunctionGroup::add_function);
+			.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
+			.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
 	}
 
 //	AssembledLinearOperator

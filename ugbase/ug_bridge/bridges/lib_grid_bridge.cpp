@@ -186,7 +186,9 @@ void RegisterLibGridInterface(Registry& reg)
 
 //  ISubsetHandler
 	reg.add_class_<ISubsetHandler>("ISubsetHandler")
-		.add_method("num_subsets", &ISubsetHandler::num_subsets);
+		.add_method("num_subsets", &ISubsetHandler::num_subsets)
+		.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
+		.add_method("set_subset_name", &ISubsetHandler::set_subset_name);
 	
 //	SubsetHandler
 	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler")
