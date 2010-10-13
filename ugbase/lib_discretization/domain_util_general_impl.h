@@ -4,7 +4,11 @@
 #define __H__LIB_DISCRETIZATION__DOMAIN_UTIL_GENERAL_IMPL__
 
 #include <string>
+#include "lib_grid/tools/subset_handler_interface.h"
+#include "lib_grid/tools/subset_handler_multi_grid.h"
+#include "lib_grid/tools/subset_handler_grid.h"
 #include "./domain_util.h"
+#include "lib_discretization/reference_element/reference_element.h"
 
 namespace ug{
 
@@ -28,6 +32,23 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si)
 	if(sh.num<EdgeBase>(si) > 0) return 1;
 	if(sh.num<VertexBase>(si) > 0) return 0;
 	else return -1;
+}
+
+///	returns the current dimension of the subset
+inline int DimensionOfSubset(const ISubsetHandler& ish, int si)
+{
+//	test SubsetHandler
+	const SubsetHandler* sh = dynamic_cast<const SubsetHandler*>(&ish);
+	if(sh != NULL)
+		return DimensionOfSubset(*sh, si);
+
+//	test MGSubsetHandler
+	const MGSubsetHandler* mgsh = dynamic_cast<const MGSubsetHandler*>(&ish);
+	if(mgsh != NULL)
+		return DimensionOfSubset(*mgsh, si);
+
+//	unknown type of subset handler
+	return -1;
 }
 
 ///	returns the current dimension of the subset
