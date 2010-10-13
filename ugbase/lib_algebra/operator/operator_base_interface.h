@@ -17,6 +17,8 @@ class IFunctionBase
 {
 	public:
 		virtual number two_norm() = 0;
+
+		virtual ~IFunctionBase() {}
 };
 
 
