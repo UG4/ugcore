@@ -8,6 +8,7 @@
 #include "./function_group.h"
 #include "common/common.h"
 #include <algorithm>
+#include <cstring>
 
 namespace ug{
 

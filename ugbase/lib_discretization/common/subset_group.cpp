@@ -9,6 +9,7 @@
 #include "common/common.h"
 #include "lib_discretization/domain_util.h"
 #include <algorithm>
+#include <cstring>
 
 namespace ug{
 
