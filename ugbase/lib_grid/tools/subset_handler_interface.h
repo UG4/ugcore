@@ -146,6 +146,13 @@ class attachment_traits<Volume*, ISubsetHandler>
 
 
 ////////////////////////////////////////////////////////////////////////
+//	ERROR_BadSubsetIndex
+struct ERROR_BadSubsetIndex{
+	ERROR_BadSubsetIndex(int subsetIndex) : m_subsetIndex(subsetIndex)	{}
+	int m_subsetIndex;
+};
+
+////////////////////////////////////////////////////////////////////////
 //	ISubsetHandler
 /**
  * \ingroup lib_grid
@@ -253,6 +260,12 @@ class ISubsetHandler : public GridObserver
 
 	///	returns the number of subset-infos (return value is int, since SubsetIndices are of type int)
 		inline int num_subsets() const		{return (int)m_subsetInfos.size();}
+
+	///	returns the name of a subset
+		const char* get_subset_name(int subsetIndex) const;
+
+	///	sets the name of a subset
+		void set_subset_name(const char* name, int subsetIndex);
 
 	////////////////////////////////
 	/** if the subset at subsetIndex does not yet exist, it will be created.*/

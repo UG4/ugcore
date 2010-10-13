@@ -362,6 +362,32 @@ enable_subset_inheritance(bool bEnable)
 	m_bSubsetInheritanceEnabled = bEnable;
 }
 
+const char* ISubsetHandler::
+get_subset_name(int subsetIndex) const
+{
+//	check that subset exists
+	if(subsetIndex < 0 || subsetIndex >= num_subsets())
+		throw(ERROR_BadSubsetIndex(subsetIndex));
+
+//	get subset info
+	const SubsetInfo& subsetInfo = subset_info(subsetIndex);
+
+	return subsetInfo.name.c_str();
+}
+
+void ISubsetHandler::
+set_subset_name(const char* name, int subsetIndex)
+{
+//	check that subset exists
+	if(subsetIndex < 0 || subsetIndex >= num_subsets())
+		throw(ERROR_BadSubsetIndex(subsetIndex));
+
+//	get subset info
+	SubsetInfo& subsetInfo = subset_info(subsetIndex);
+
+	subsetInfo.name = std::string(name);
+}
+
 void ISubsetHandler::
 set_subset_info(int subsetIndex, const SubsetInfo& subsetInfo)
 {
