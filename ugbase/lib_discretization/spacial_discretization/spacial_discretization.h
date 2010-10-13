@@ -8,6 +8,9 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
 
+// user data
+#include "./user_data.h"
+
 // interface
 #include "./domain_discretization_interface.h"
 
