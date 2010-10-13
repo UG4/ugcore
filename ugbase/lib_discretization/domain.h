@@ -81,6 +81,8 @@ class Domain {
 				delete m_distGridMgr;
 		}
 
+		inline int get_dim()	{return dim;}
+		
 		inline TGrid& get_grid() {return m_grid;};
 		inline const TGrid& get_grid() const {return m_grid;};
 

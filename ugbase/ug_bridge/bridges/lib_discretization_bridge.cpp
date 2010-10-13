@@ -104,7 +104,8 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 	reg.add_class_<domain_type>("Domain2d")
 		.add_constructor()
 		.add_method("get_subset_handler", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
-		.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid);
+		.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
+		.add_method("get_dim", (int (domain_type::*)()) &domain_type::get_dim);
 
 	reg.add_function("LoadDomain2d", &LoadDomain<domain_type>);
 	reg.add_function("SaveDomain2d", &SaveDomain<domain_type>);
@@ -116,7 +117,8 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 	reg.add_class_<domain_type>("Domain3d")
 		.add_constructor()
 		.add_method("get_subset_handler", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
-		.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid);
+		.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
+		.add_method("get_dim", (int (domain_type::*)()) &domain_type::get_dim);
 
 	reg.add_function("LoadDomain3d", &LoadDomain<domain_type>);
 	reg.add_function("SaveDomain3d", &SaveDomain<domain_type>);
