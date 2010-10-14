@@ -54,6 +54,12 @@ void amg<Matrix_type, Vector_type>::writeMatrices(const char *pathAndName)
 template<typename Matrix_type, typename Vector_type>
 void amg<Matrix_type, Vector_type>::printCoarsening(int level, amg_nodeinfo *grid)
 {  
+	if(h.has_positions() == false)
+	{
+		UG_LOG("printCoarsening not possible: no positions available.")
+		return;
+	}
+
 	fstream fcoarse((string("/Users/mrupp/matrices/coarse") + ToString(level) + ".dat").c_str(), ios::out);
 	fstream ffine  ((string("/Users/mrupp/matrices/fine") + ToString(level) + ".dat").c_str(), ios::out);
 	int n = A[level]->row_size();
@@ -267,6 +273,12 @@ void amg<Matrix_type, Vector_type>::amgTest(const Matrix_type& A_, Vector_type &
 template<typename T>
 void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
 {
+	if(h.has_positions() == false)
+	{
+		UG_LOG("AWriteToFile not possible: no positions available.")
+		return;
+	}
+
 	fstream file(filename, ios::out);
 	file << 1 << endl; // connection viewer version
 
@@ -286,6 +298,12 @@ void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const 
 template<typename T>
 void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, const char *filename, const cAMG_helper &h)
 {
+	if(h.has_positions() == false)
+	{
+		UG_LOG("AWriteToFilePS not possible: no positions available.")
+		return;
+	}
+
 	postscript ps;
 	ps.create(filename);
 
@@ -316,6 +334,12 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 // could be in cpp
 inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_helper &h, int level)
 {
+	if(h.has_positions() == false)
+	{
+		UG_LOG("WriteAMGGraphToFile not possible: no positions available.")
+		return;
+	}
+
 	fstream file(filename, ios::out);
 	file << /*CONNECTION_VIEWER_VERSION*/ 1 << endl;
 

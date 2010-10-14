@@ -25,6 +25,8 @@ namespace ug{
  */
 struct cAMG_helper
 {
+	cAMG_helper() : size(0), dimension(0), parentIndex(NULL) {	}
+
 	//! returns to the node i on level 'level' the corresponding node on the level 0
 	int GetOriginalIndex(int level, int i) const
 	{
@@ -43,6 +45,7 @@ struct cAMG_helper
 	//! writes positions to the stream 'out' (for ConnectionViewer)
 	void writePosToStream(std::ostream &out) const
 	{
+		UG_ASSERT(has_positions(), "cAMG_helper needs positions to write them to a stream.")
 		out << dimension << endl;
 		out << size << endl;
 		for(int i=0; i< size ; i++)
@@ -52,6 +55,11 @@ struct cAMG_helper
 				out << " " << positions[i][2];
 			out << endl;
 		}
+	}
+
+	bool has_positions() const
+	{
+		return dimension != 0;
 	}
 
 	const MathVector<3> *positions; ///< positions on the AMG grid 0

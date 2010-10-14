@@ -74,66 +74,120 @@ int Coarsen(cgraph &graph, maxheap<amg_nodeinfo> &PQ, int *newIndex, int unassig
 void PreventFFConnections(cgraph &graphS, cgraph &graphST, amg_nodeinfo *nodes, int *newIndex, int &nrOfCoarse);
 	
 
+template <typename matrix_type, typename vector_type>
+class SparseMatrixOperator : public virtual IMatrixOperator<vector_type, vector_type, matrix_type >
+{
+	public:
+		SparseMatrixOperator(matrix_type &Matrix) : m_Matrix(Matrix) { }
+		bool init(const vector_type &) { return true; }
+		bool init() { return true; }
+		bool apply(vector_type &c, const vector_type &d)
+		{
+			MatMult(c, 1.0, m_Matrix, d);
+			return true;
+		}
+		bool apply_sub(vector_type &c, const vector_type &d)
+		{
+			MatMultAdd(c, -1.0, m_Matrix, d, 1.0, c);
+			return true;
+		}
+
+		virtual ~SparseMatrixOperator(){}
+
+	public:
+	// 	Access to matrix
+		virtual matrix_type& get_matrix() { return m_Matrix; };
+
+	private:
+		matrix_type &m_Matrix;
+};
+
 // AMG
 //---------------------------------
 //! algebraic multigrid class.
 //!
-template<typename Matrix_type, typename Vector_type>
-class amg
+
+template <typename TAlgebra>
+class amg:
+	public IPreconditioner<	TAlgebra >
 {
 public:
-	typedef typename Matrix_type::entry_type entry_type;
+//	Algebra type
+	typedef TAlgebra algebra_type;
+
+//	Vector type
+	typedef typename TAlgebra::vector_type vector_type;
+
+//	Matrix type
+	typedef typename TAlgebra::matrix_type matrix_type;
+
+	typedef typename matrix_type::entry_type entry_type;
 	
 //  functions
 	amg() ;
+	virtual ILinearIterator<vector_type,vector_type>* clone()
+	{
+		amg<algebra_type>* clone = new amg<algebra_type>();
+		return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
+	}
+	//	Name of preconditioner
 	virtual ~amg();
-	virtual bool init(const Matrix_type& A);
+	void cleanup();
 
-	bool get_correction_and_update_defect(Vector_type &d, Vector_type &c, int level=0);
+protected:
+	virtual const char* name() const {return "AMGPreconditioner";}
+
+//	Preprocess routine
+	virtual bool preprocess(matrix_type& mat);
+
+//	Postprocess routine
+	virtual bool postprocess() {return true;}
+
+//	Stepping routine
+	virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
+	{
+		if(m_bInited == false)
+		{
+#ifdef UG_PARALLEL
+			// set level 0 communicator
+			com[0] = &c.get_communicator();
+#endif
+			init_amg();
+			m_bInited = true;
+		}
+		return get_correction(c, d);
+	}
+
+public:
+	bool get_correction_and_update_defect(vector_type &c, vector_type &d, int level=0);
+	bool get_correction(vector_type &c, const vector_type &d);
 	
-	int getNrOfCoarse(int level)
+	int get_nr_of_coarse(int level)
 	{
 		assert(level+1 < used_levels);
 		return A[level+1]->length;
 	}
 	
-	int getNrOfUsedLevels() { return used_levels; }
+	int get_nr_of_used_levels() { return used_levels; }
+
 //  data
-	int max_levels;
-	int aggressiveCoarsening;
-	int aggressiveCoarseningNrOfPaths;
-	
-	void setAggressiveCoarsening_A_2() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 2;}
-	void setAggressiveCoarsening_A_1() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 1;}
-	
-private:
-	int	nu1;		///< nu_1 : nr. of pre-smoothing steps
-	int nu2;		///< nu_2: nr. of post-smoothing steps
-	int gamma;		///< gamma: cycle type (1 = V-Cycle, 2 = W-Cycle)
-	double eps_truncation_of_interpolation;
-	double theta; ///< measure for strong connectivity
-	double sigma; ///< dunno
-	
-private:
-//  functions
-	void createAMGLevel(Matrix_type &AH, SparseMatrix<double> &R, const Matrix_type &A, SparseMatrix<double> &P, int level);
-
-//	data
-    LapackLU coarseSolver;				///< the coarse solver
-
-	int used_levels;					///< nr of AMG levels used
-
-	Vector_type *vec1[AMG_MAX_LEVELS]; 	///< temporary Vector for storing r = Ax -b
-	Vector_type *vec2[AMG_MAX_LEVELS]; 	///< temporary Vector for storing rH
-	Vector_type *vec3[AMG_MAX_LEVELS]; 	///< temporary Vector for storing eH
-	
-	SparseMatrix<double> R[AMG_MAX_LEVELS]; ///< R Restriction Matrices
-	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Prolongation Matrices
-	Matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
 	
 
-	// functions for debug output
-public:
+	void set_nu1(int new_nu1) { nu1 = new_nu1; }
+	void set_nu2(int new_nu2) { nu2 = new_nu2; }
+	void set_gamma(int new_gamma) { gamma = new_gamma; }
+	void set_theta(double new_theta) { theta = new_theta; }
+	void set_sigma(double new_sigma) { sigma = new_sigma; }
+	void set_max_levels(int new_max_levels)
+	{
+		max_levels = new_max_levels;
+		UG_ASSERT(max_levels <= AMG_MAX_LEVELS, "Currently only " << AMG_MAX_LEVELS << " level supported.\n");
+	}
+	void set_aggressive_coarsening_A_2() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 2;}
+	void set_aggressive_coarsening_A_1() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 1;}
+	void set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
+	void set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
+
 	void set_debug_positions(const MathVector<2> *pos, size_t size)
 	{
 		dbg_positions.resize(size);
@@ -153,13 +207,67 @@ public:
 		dbg_dimension = 3;
 	}
 
+	template <typename TGridFunction>
+	bool set_debug(	TGridFunction& u)
+	{
+		static const int dim = TGridFunction::domain_type::dim;
+
+		vector<MathVector<dim> > positions;
+		ExtractPositions(u, positions);
+		set_debug_positions(&positions[0], positions.size());
+		UG_LOG("successfully set " << positions.size() << " positions.\n");
+		return true;
+	}
+
 private:
+//  functions
+	void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
+							SparseMatrix<double> &P, int level);
+
+	bool init_amg();
+
+private:
+// data
+	
+	int	nu1;								///< nu_1 : nr. of pre-smoothing steps
+	int nu2;								///< nu_2: nr. of post-smoothing steps
+	int gamma;								///< gamma: cycle type (1 = V-Cycle, 2 = W-Cycle)
+
+	double eps_truncation_of_interpolation;	///< parameter used for truncation of interpolation
+	double theta; 							///< measure for strong connectivity
+	double sigma;
+
+	int max_levels;							///< max. nr of levels used for AMG
+	int used_levels;						///< nr of AMG levels used
+	bool aggressiveCoarsening;				///< true if aggressive coarsening is used on first level
+	int aggressiveCoarseningNrOfPaths;  	///<
+
+	vector_type *vec1[AMG_MAX_LEVELS]; 		///< temporary Vector for storing r = Ax -b
+	vector_type *vec2[AMG_MAX_LEVELS]; 		///< temporary Vector for storing rH
+	vector_type *vec3[AMG_MAX_LEVELS]; 		///< temporary Vector for storing eH
+	vector_type *vec4;						///< temporary Vector for defect (in get_correction)
+	
+	SparseMatrix<double> R[AMG_MAX_LEVELS]; ///< R Restriction Matrices
+	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Prolongation Matrices
+	matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
+
+	pcl::ParallelCommunicator<IndexLayout>
+		*com[AMG_MAX_LEVELS]; 				///< the communicator objects on the levels
+
 	int *parentIndex[AMG_MAX_LEVELS];			///< parentIndex[L][i] is the index of i on level L-1
-	cAMG_helper amghelper;						///< helper struct for viewing matrices (optional)
+	cAMG_helper amghelper;					///< helper struct for viewing matrices (optional)
 	vector<MathVector<3> > dbg_positions;		///< positions of geometric grid (optional)
 	int dbg_dimension;							///< dimension of geometric grid (optional)
 
+	LapackLU coarseSolver;						///< the coarse solver
+	ILinearIterator<vector_type, vector_type> *m_presmoother;	///< presmoother template
+	ILinearIterator<vector_type, vector_type> *m_postsmoother;	///< postsmoother template \note: may be pre=post, is optimized away.
 
+	ILinearIterator<vector_type, vector_type> *m_presmoothers[AMG_MAX_LEVELS];	///< presmoothers for each level
+	ILinearIterator<vector_type, vector_type> *m_postsmoothers[AMG_MAX_LEVELS];	///< postsmoothers for each level
+
+	bool m_bInited;
+	IndexLayout pseudoLayout;
 };
 	
 	
