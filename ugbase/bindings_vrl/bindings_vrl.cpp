@@ -28,7 +28,7 @@ std::string TestHello() {
 }
 
 int TestAdd(int a, int b) {
-	return a+b;
+	return a + b;
 }
 
 int TestMult(int a, int b) {
@@ -36,11 +36,11 @@ int TestMult(int a, int b) {
 }
 
 void* GetTestMult() {
-	return (void*)TestMult;
+	return (void*) TestMult;
 }
 
 void* GetTestAdd() {
-	return (void*)TestAdd;
+	return (void*) TestAdd;
 }
 
 bool TestBoolAnd(bool a, bool b) {
@@ -60,13 +60,29 @@ std::string TestStringAdd2(std::string a, std::string b) {
 }
 
 std::string TestStringAdd3(std::string a, std::string b, std::string c) {
-	return a+b+c;
+	return a + b + c;
 }
 
 int TestFuncPointer(void* func, int a, int b) {
-	FunctionPtr function = (FunctionPtr)func;
-	return function(a,b);
+	FunctionPtr function = (FunctionPtr) func;
+	return function(a, b);
 }
+
+class TestClass1 {
+public:
+
+	TestClass1() {
+		//
+	}
+
+
+
+	std::string hello(int a, int b) {
+		std::stringstream result;
+		result << "Hello, World! I'm a class!" << a << ", " << b;
+		return result.str();
+	}
+};
 
 
 
@@ -85,25 +101,78 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 
 	static ug::bridge::Registry testReg;
-	testReg.add_class_<FunctionPtr>("FunctionPtr");
+	testReg.add_class_<TestClass1 > ("TestClass")
+			.add_constructor()
+			.add_method("hello", &TestClass1::hello);
 
-	testReg.add_function("UGAddInt", &TestAdd);
-	testReg.add_function("UGMultInt", &TestMult);
-	testReg.add_function("TestFuncPointer", &TestFuncPointer);
-	testReg.add_function("UGHello", &TestHello);
-	testReg.add_function("GetUgAddInt", &GetTestAdd);
-	testReg.add_function("GetUgMultInt", &GetTestMult);
-	testReg.add_function("UGAndBool", &TestBoolAnd);
-	testReg.add_function("UGDouble", &TestDoubleAdd);
+//	testReg.add_function("UGAddInt", &TestAdd);
+	//	testReg.add_function("UGMultInt", &TestMult);
+	//	testReg.add_function("TestFuncPointer", &TestFuncPointer);
+//	testReg.add_function("UGHello", &TestHello);
+	//	testReg.add_function("GetUgAddInt", &GetTestAdd);
+	//	testReg.add_function("GetUgMultInt", &GetTestMult);
+//	testReg.add_function("UGAndBool", &TestBoolAnd);
+	//	testReg.add_function("UGDouble", &TestDoubleAdd);
 	//testReg.add_function("UGAddString1", &TestStringAdd1);
 	//testReg.add_function("UGAddString2", &TestStringAdd2);
-	testReg.add_function("UGAddString3", &TestStringAdd3);
+	//	testReg.add_function("UGAddString3", &TestStringAdd3);
 
 	int retVal = ug::UGInit(arguments.size(), argv);
-	//ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
+
+	ug::bridge::RegisterTestInterface(testReg);
+
+//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
 	ug::vrl::SetVRLRegistry(&testReg);
 
 	return (jint) retVal;
+}
+
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
+(JNIEnv *env, jobject obj,
+		jstring exportedClassName, jlong objPtr, jstring methodName, jobjectArray params) {
+	//	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*) objPtr;
+
+	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*)
+			ug::vrl::getExportedClassPtrByName(
+			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env,exportedClassName));
+
+	ug::bridge::ParameterStack paramsIn;
+	ug::bridge::ParameterStack paramsOut;
+
+	VRL_DBG("BEFORE_GET_METHOD 1", 1);
+
+	std::string name = ug::vrl::stringJ2C(env, methodName);
+
+	VRL_DBG("BEFORE_GET_METHOD 2", 1);
+
+	const ug::bridge::ExportedMethod& method =
+			ug::vrl::getMethodBySignature(
+			env, clazz, name, params);
+
+	VRL_DBG("AFTER_GET_METHOD", 1);
+
+	VRL_DBG(method.name(), 1);
+
+	VRL_DBG("BEFORE_OBJECT_ARRAY_TO_STACK", 1);
+
+	ug::vrl::jobjectArray2ParamStack(env, paramsIn, method.params_in(), params);
+
+	VRL_DBG("AFTER_OBJECT_ARRAY_TO_STACK", 1);
+
+	method.execute((void*) objPtr, paramsIn, paramsOut);
+
+	jobject result = NULL;
+
+	if (paramsOut.size() > 0) {
+		result = ug::vrl::param2JObject(env, paramsOut, 0);
+	}
+	return result;
+}
+
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
+(JNIEnv *env, jobject obj, jlong objPtr) {
+	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*) objPtr;
+	return (long) clazz->create();
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
@@ -113,11 +182,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
 
-	std::cout << "PARAMS_BEFORE" << std::endl;
-
 	ug::vrl::jobjectArray2ParamStack(env, paramsIn, func->params_in(), params);
-
-	std::cout << "PARAMS_AFTER" << std::endl;
 
 	func->execute(paramsIn, paramsOut);
 
@@ -139,5 +204,16 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 		result.push_back(ug::vrl::exportedFunction2Groovy(func));
 	}
 
+	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
+		const ug::bridge::IExportedClass& clazz = ug::vrl::vrlRegistry->get_class(i);
+		result.push_back(ug::vrl::exportedClass2Groovy(clazz));
+	}
+
 	return ug::vrl::stringArrayC2J(env, result);
+}
+
+JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
+(JNIEnv *env, jobject obj, jstring name) {
+	return (long) ug::vrl::getExportedClassPtrByName(
+			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
 }

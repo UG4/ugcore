@@ -16,15 +16,24 @@
 
 #define VRL_DEBUG_MODE 1
 
+// TODO: crappy, please improve me
 #define VRL_DBG(msg, level) if( (VRL_DEBUG_MODE) >= (level)) std::cout << "UG4-VRL: in function \"" << PRETTY_FUNCTION << "\": " << msg << std::endl
+
 
 #include<jni.h>
 #include<string>
 #include<vector>
 #include "ug_bridge/class.h"
+#include "ug_bridge/registry.h"
 
 namespace ug {
 	namespace vrl {
+
+		enum InvokationType {
+			Function,
+			METHOD
+		};
+
 		/**
 		 * Converts a native string to a Java string.
 		 * @param env JVM environment to operate on
@@ -83,6 +92,9 @@ namespace ug {
 		std::string exportedFunction2Groovy(
 				ug::bridge::ExportedFunction const& func);
 
+		std::string exportedClass2Groovy(
+				ug::bridge::IExportedClass const& clazz);
+
 		jobject boolean2JObject(JNIEnv *env, jboolean value);
 		jboolean jObject2Boolean(JNIEnv *env, jobject obj);
 
@@ -105,6 +117,24 @@ namespace ug {
 				jobjectArray const& array);
 
 		jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params, int index);
+
+		std::string getClassName(JNIEnv *env, jobject obj);
+
+		uint paramClass2ParamType(JNIEnv *env, jobject obj);
+
+		bool compareParamTypes(JNIEnv *env, jobjectArray params,
+				ug::bridge::ParameterStack& paramStack);
+
+		ug::bridge::ExportedMethod const& getMethodBySignature(
+				JNIEnv *env,
+				ug::bridge::IExportedClass* clazz,
+				std::string methodName,
+				jobjectArray params);
+
+		long getExportedClassPtrByName(
+				JNIEnv *env,
+				ug::bridge::Registry* reg,
+				std::string className);
 
 	} // end vrl::
 }// end ug::
