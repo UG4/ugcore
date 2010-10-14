@@ -7,6 +7,7 @@
 
 #include "../ug_bridge.h"
 #include "lib_algebra/lib_algebra.h"
+#include "lib_discretization/lib_discretization.h"
 
 namespace ug
 {
@@ -68,7 +69,7 @@ void RegisterAlgebraType(Registry& reg)
 						IPreconditioner<algebra_type> >("SGSPreconditioner")
 			.add_constructor();
 
-	//	BGS
+	//	Backward GaussSeidel
 		reg.add_class_<	BGSPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("BGSPreconditioner")
 			.add_constructor();
@@ -82,6 +83,32 @@ void RegisterAlgebraType(Registry& reg)
 		reg.add_class_<	ILUTPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("ILUTPreconditioner")
 			.add_constructor();
+
+	//	AMG
+
+		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
+		typedef P1ConformDoFDistribution dof_distribution_type;
+		typedef MartinAlgebra algebra_type;
+
+	#ifdef UG_PARALLEL
+		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, TAlgebra> > function_type;
+	#else
+		typedef GridFunction<domain_type, dof_distribution_type, TAlgebra> function_type;
+	#endif
+
+		reg.add_class_<	amg<algebra_type>,
+			IPreconditioner<algebra_type> >("AMGPreconditioner")
+			.add_constructor()
+			.add_method("set_nu1", &amg<algebra_type>::set_nu1)
+			.add_method("set_nu2", &amg<algebra_type>::set_nu2)
+			.add_method("set_gamma", &amg<algebra_type>::set_gamma)
+			.add_method("set_theta", &amg<algebra_type>::set_theta)
+			.add_method("set_max_levels", &amg<algebra_type>::set_max_levels)
+			.add_method("set_aggressive_coarsening_A_2", &amg<algebra_type>::set_aggressive_coarsening_A_2)
+			.add_method("set_aggressive_coarsening_A_1", &amg<algebra_type>::set_aggressive_coarsening_A_1)
+			.add_method("set_presmoother", &amg<algebra_type>::set_presmoother)
+			.add_method("set_postsmoother", &amg<algebra_type>::set_postsmoother)
+			.add_method("set_debug", &amg<algebra_type>::set_debug<function_type>);
 	}
 
 
