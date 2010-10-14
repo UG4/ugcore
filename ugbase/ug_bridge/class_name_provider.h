@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <cstring>
+#include <string>
 
 namespace ug
 {
@@ -18,16 +19,23 @@ struct ClassNameProvider
 	/// set name of class and copy parent names
 		static void set_name(const char* name)
 		{
+		//	copy name into static string
+		//	This is necessary, since char* could be to temporary memory
+			m_ownName = std::string(name);
+
+		//	remember const char* to own name in first position of names-list
 			m_names.clear();
-			m_names.push_back(name);
+			m_names.push_back(m_ownName.c_str());
 		}
 
 	/// set name of class and copy parent names
 		template <typename TParent>
 		static void set_name(const char* name)
 		{
-			m_names.clear();
-			m_names.push_back(name);
+		//	set own name
+			set_name(name);
+
+		//	copy parent names
 			const std::vector<const char*>& pnames = ClassNameProvider<TParent>::names();
 			for(size_t i = 0; i < pnames.size(); ++i)
 				m_names.push_back(pnames[i]);
@@ -69,11 +77,15 @@ struct ClassNameProvider
 		static const std::vector<const char*>& names()	{return m_names;}
 
 	private:
+		static std::string m_ownName;
 		static std::vector<const char*> m_names;
 };
 
 template <typename TClass>
 std::vector<const char*> ClassNameProvider<TClass>::m_names = std::vector<const char*>();
+
+template <typename TClass>
+std::string ClassNameProvider<TClass>::m_ownName = std::string("");
 
 } // end namespace
 } // end namespace
