@@ -146,33 +146,31 @@ class SinusDirichletBoundaryFunction : public DirichletBoundaryFunction<dim>
 		}
 };
 
+template <int dim>
 void RegisterUserMatrix(Registry& reg)
 {
-	static const int dim = 2;
-
-//	DirichletBoundaryFunction
-	{
-		reg.add_class_<SinusDirichletBoundaryFunction<2>, DirichletBoundaryFunction<2> >("SinusDirichletBoundaryFunction2d")
-			.add_constructor();
-	}
-
 //	UserMatrixProvider
 	{
 	//	Base class
-		reg.add_class_<IUserMatrixProvider<dim> >("IUserMatrixProvider2d");
+		{
+			stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
+			reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str());
+		}
 
 	//	Const Matrix Provider
 		{
 			typedef UserMatrixProvider<dim, ConstUserMatrix<dim> > T;
-			reg.add_class_<T, IUserMatrixProvider<dim> >("ConstUserMatrixProvider2d")
+			stringstream ss; ss << "ConstUserMatrixProvider" << dim << "d";
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_user_matrix", &T::set_user_matrix);
 		}
 
-	//	Lua Matrix Provider
+	//	Lua Matrix
 		{
 			typedef UserMatrixProvider<dim, LuaUserMatrix<dim> > T;
-			reg.add_class_<T, IUserMatrixProvider<dim> >("LuaUserMatrixProvider2d")
+			stringstream ss; ss << "LuaUserMatrixProvider" << dim << "d";
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_user_matrix", &T::set_user_matrix);
 		}
@@ -183,7 +181,8 @@ void RegisterUserMatrix(Registry& reg)
 	//	ConstUserMatrix
 		{
 			typedef ConstUserMatrix<dim> T;
-			reg.add_class_<T>("ConstUserMatrix2d")
+			static stringstream ss; ss << "ConstUserMatrix" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_diag_tensor", &T::set_diag_tensor)
 				.add_method("set_all_entries", &T::set_all_entries)
@@ -194,12 +193,28 @@ void RegisterUserMatrix(Registry& reg)
 	//	LuaUserMatrix
 		{
 			typedef LuaUserMatrix<dim> T;
-			reg.add_class_<T>("LuaUserMatrix2d")
+			stringstream ss; ss << "LuaUserMatrix" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
 	}
 }
+
+void RegisterUserMatrix(Registry& reg)
+{
+	// todo: removed when replaced by adequate structure
+	//	DirichletBoundaryFunction
+		{
+			reg.add_class_<SinusDirichletBoundaryFunction<2>, DirichletBoundaryFunction<2> >("SinusDirichletBoundaryFunction2d")
+				.add_constructor();
+		}
+
+	RegisterUserMatrix<1>(reg);
+	RegisterUserMatrix<2>(reg);
+	RegisterUserMatrix<3>(reg);
+}
+
 
 } // end namespace
 } // end namepace

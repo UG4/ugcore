@@ -90,20 +90,22 @@ class UserNumberProvider : public IUserNumberProvider<dim>
 		TUserNumber	m_UserNumber;
 };
 
-
+template <int dim>
 void RegisterUserNumber(Registry& reg)
 {
-	static const int dim = 2;
-
 //	UserNumberProvider
 	{
 	//	Base class
-		reg.add_class_<IUserNumberProvider<dim> >("IUserNumberProvider2d");
+		{
+			stringstream ss; ss << "IUserNumberProvider" << dim << "d";
+			reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str());
+		}
 
 	//	Const Number Provider
 		{
 			typedef UserNumberProvider<dim, ConstUserNumber<dim> > T;
-			reg.add_class_<T, IUserNumberProvider<dim> >("ConstUserNumberProvider2d")
+			stringstream ss; ss << "ConstUserNumberProvider" << dim << "d";
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_user_number", &T::set_user_number);
 		}
@@ -111,7 +113,8 @@ void RegisterUserNumber(Registry& reg)
 	//	Lua Number
 		{
 			typedef UserNumberProvider<dim, LuaUserNumber<dim> > T;
-			reg.add_class_<T, IUserNumberProvider<dim> >("LuaUserNumberProvider2d")
+			stringstream ss; ss << "LuaUserNumberProvider" << dim << "d";
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_user_number", &T::set_user_number);
 		}
@@ -122,7 +125,8 @@ void RegisterUserNumber(Registry& reg)
 	//	ConstUserNumber
 		{
 			typedef ConstUserNumber<dim> T;
-			reg.add_class_<T>("ConstUserNumber2d")
+			static stringstream ss; ss << "ConstUserNumber" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
 				.add_constructor()
 				.add_method("set", &T::set)
 				.add_method("print", &T::print);
@@ -131,11 +135,19 @@ void RegisterUserNumber(Registry& reg)
 	//	LuaUserNumber
 		{
 			typedef LuaUserNumber<dim> T;
-			reg.add_class_<T>("LuaUserNumber2d")
+			stringstream ss; ss << "LuaUserNumber" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
 	}
+}
+
+void RegisterUserNumber(Registry& reg)
+{
+	RegisterUserNumber<1>(reg);
+	RegisterUserNumber<2>(reg);
+	RegisterUserNumber<3>(reg);
 }
 
 } // end namespace

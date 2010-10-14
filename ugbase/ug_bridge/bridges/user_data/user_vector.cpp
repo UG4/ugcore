@@ -5,6 +5,9 @@
 #include "lib_discretization/lib_discretization.h"
 #include "../../../ug_script/ug_script.h"
 
+#include <sstream>
+#include <string>
+
 namespace ug
 {
 namespace bridge
@@ -96,20 +99,22 @@ class UserVectorProvider : public IUserVectorProvider<dim>
 		TUserVector	m_UserVector;
 };
 
-
+template <int dim>
 void RegisterUserVector(Registry& reg)
 {
-	static const int dim = 2;
-
 //	UserVectorProvider
 	{
 	//	Base class
-		reg.add_class_<IUserVectorProvider<dim> >("IUserVectorProvider2d");
+		{
+			stringstream ss; ss << "IUserVectorProvider" << dim << "d";
+			reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str());
+		}
 
 	//	Const Vector Provider
 		{
 			typedef UserVectorProvider<dim, ConstUserVector<dim> > T;
-			reg.add_class_<T, IUserVectorProvider<dim> >("ConstUserVectorProvider2d")
+			stringstream ss; ss << "ConstUserVectorProvider" << dim << "d";
+			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_user_vector", &T::set_user_vector);
 		}
@@ -117,7 +122,8 @@ void RegisterUserVector(Registry& reg)
 	//	Lua Vector
 		{
 			typedef UserVectorProvider<dim, LuaUserVector<dim> > T;
-			reg.add_class_<T, IUserVectorProvider<dim> >("LuaUserVectorProvider2d")
+			stringstream ss; ss << "LuaUserVectorProvider" << dim << "d";
+			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_user_vector", &T::set_user_vector);
 		}
@@ -128,7 +134,8 @@ void RegisterUserVector(Registry& reg)
 	//	ConstUserVector
 		{
 			typedef ConstUserVector<dim> T;
-			reg.add_class_<T>("ConstUserVector2d")
+			static stringstream ss; ss << "ConstUserVector" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_all_entries", &T::set_all_entries)
 				.add_method("set_entry", &T::set_entry)
@@ -138,11 +145,19 @@ void RegisterUserVector(Registry& reg)
 	//	LuaUserVector
 		{
 			typedef LuaUserVector<dim> T;
-			reg.add_class_<T>("LuaUserVector2d")
+			stringstream ss; ss << "LuaUserVector" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
 	}
+}
+
+void RegisterUserVector(Registry& reg)
+{
+	RegisterUserVector<1>(reg);
+	RegisterUserVector<2>(reg);
+	RegisterUserVector<3>(reg);
 }
 
 } // end namespace
