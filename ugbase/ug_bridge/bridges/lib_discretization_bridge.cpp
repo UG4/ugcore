@@ -99,152 +99,81 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 	return true;
 }
 
-void RegisterLibDiscretizationInterface(Registry& reg)
+template <typename TDomain>
+void RegisterLibDiscretizationDomainDepended(Registry& reg)
 {
+//	typedef domain
+	typedef TDomain domain_type;
+	static const int dim = domain_type::dim;
 
-//	Domain2d
+//	todo: generalize
+	typedef P1ConformDoFDistribution dof_distribution_type;
+	typedef MartinAlgebra algebra_type;
+#ifdef UG_PARALLEL
+		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
+#else
+		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
+#endif
+
+//	GridFunction
 	{
-	typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-	reg.add_class_<domain_type>("Domain2d")
-		.add_constructor()
-		.add_method("get_subset_handler", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
-		.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
-		.add_method("get_dim", (int (domain_type::*)()) &domain_type::get_dim);
-
-	reg.add_function("LoadDomain2d", &LoadDomain<domain_type>);
-	reg.add_function("SaveDomain2d", &SaveDomain<domain_type>);
+		stringstream ss; ss << "GridFunction" << dim << "d";
+		reg.add_class_<function_type, algebra_type::vector_type>(ss.str().c_str())
+			.add_constructor()
+			.add_method("set", (bool (function_type::*)(number))&function_type::set)
+			.add_method("assign", (bool (function_type::*)(const algebra_type::vector_type&))&function_type::assign);
 	}
 
-//	Domain3d
+//	Domain
 	{
-	typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
-	reg.add_class_<domain_type>("Domain3d")
-		.add_constructor()
-		.add_method("get_subset_handler", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
-		.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
-		.add_method("get_dim", (int (domain_type::*)()) &domain_type::get_dim);
-
-	reg.add_function("LoadDomain3d", &LoadDomain<domain_type>);
-	reg.add_function("SaveDomain3d", &SaveDomain<domain_type>);
+		stringstream ss; ss << "Domain" << dim << "d";
+		reg.add_class_<domain_type>(ss.str().c_str())
+			.add_constructor()
+			.add_method("get_subset_handler", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
+			.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
+			.add_method("get_dim", (int (domain_type::*)()) &domain_type::get_dim);
 	}
 
-//	FunctionPattern (Abstract Base Class)
-	reg.add_class_<FunctionPattern>("FunctionPattern");
-
-//	P1ConformFunctionPattern
+// 	LoadDomain
 	{
-	typedef P1ConformFunctionPattern T;
-	reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern")
-		.add_constructor()
-		.add_method("set_subset_handler", &T::set_subset_handler)
-		.add_method("lock", &T::lock);
+		stringstream ss; ss << "LoadDomain" << dim << "d";
+		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>);
 	}
 
-//	P1ConformDoFDistribution
+//	SaveDomain
 	{
-		typedef P1ConformDoFDistribution T;
-		reg.add_class_<T>("P1ConformDoFDistribution");
+		stringstream ss; ss << "SaveDomain" << dim << "d";
+		reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>);
 	}
 
-//  Add discrete function to pattern
-	reg.add_function("AddP1Function", &AddP1Function);
-
-//  ApproximationSpace2d
+//  ApproximationSpace
 	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef ApproximationSpace<domain_type, P1ConformDoFDistribution, MartinAlgebra> T;
-		reg.add_class_<T>("ApproximationSpace2d")
+		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
+		stringstream ss; ss << "ApproximationSpace" << dim << "d";
+		reg.add_class_<T>(ss.str().c_str())
 			.add_constructor()
 			.add_method("assign_domain", &T::assign_domain)
 			.add_method("assign_function_pattern", &T::assign_function_pattern)
 			.add_method("get_surface_dof_distribution", &T::get_surface_dof_distribution)
 			.add_method("create_surface_function", &T::create_surface_function);
-	}
-
-//  ApproximationSpace3d
-	{
-		typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
-		typedef ApproximationSpace<domain_type, P1ConformDoFDistribution, MartinAlgebra> T;
-		reg.add_class_<T>("ApproximationSpace3d")
-			.add_constructor()
-			.add_method("assign_domain", &T::assign_domain)
-			.add_method("assign_function_pattern", &T::assign_function_pattern)
-			.add_method("get_surface_dof_distribution", &T::get_surface_dof_distribution)
-			.add_method("create_surface_function", &T::create_surface_function);
-	}
-
-//	DomainDiscretization
-	{
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
-		typedef DomainDiscretization<dof_distribution_type, algebra_type> T;
-
-		reg.add_class_<IAssemble<dof_distribution_type, algebra_type> >("IAssemble");
-		reg.add_class_<IDomainDiscretization<dof_distribution_type, algebra_type>,
-						IAssemble<dof_distribution_type, algebra_type> >("IDomainDiscretization");
-
-		reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization")
-			.add_constructor()
-			.add_method("add_dirichlet_bnd", &T::add_dirichlet_bnd)
-			.add_method("add", (bool (T::*)(IElemDisc<algebra_type>&, const FunctionPattern&, const char*, const char*)) &T::add);
-	}
-
-//	Time Discretization
-	{
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
-		typedef ThetaTimeDiscretization<dof_distribution_type, algebra_type> T;
-
-		reg.add_class_<	ITimeDiscretization<dof_distribution_type, algebra_type>,
-						IAssemble<dof_distribution_type, algebra_type> >("ITimeDiscretization");
-
-		reg.add_class_<T, ITimeDiscretization<dof_distribution_type, algebra_type> >("ThetaTimeDiscretization")
-				.add_constructor()
-				.add_method("set_domain_discretization", &T::set_domain_discretization)
-				.add_method("set_theta", &T::set_theta);
 	}
 
 //	DirichletBNDValues
 	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
 		typedef DirichletBNDValues<domain_type, dof_distribution_type, algebra_type> T;
-
-	//	Base class
-		reg.add_class_<IDirichletBoundaryValues<dof_distribution_type, algebra_type> >("IDirichletBoundaryValues");
-
-	//	derived implementation
-		reg.add_class_<T, IDirichletBoundaryValues<dof_distribution_type, algebra_type> >("DirichletBND2d")
+		stringstream ss; ss << "DirichletBND" << dim << "d";
+		reg.add_class_<T, IDirichletBoundaryValues<dof_distribution_type, algebra_type> >(ss.str().c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
 			.add_method("set_dirichlet_function", &T::set_dirichlet_function)
 			.add_method("set_function", &T::set_function);
 	}
 
-//	DirichletBoundaryFunction
+//	Convection Diffusion
 	{
-		reg.add_class_<DirichletBoundaryFunction<1> >("DirichletBoundaryFunction1d");
-		reg.add_class_<DirichletBoundaryFunction<2> >("DirichletBoundaryFunction2d");
-		reg.add_class_<DirichletBoundaryFunction<3> >("DirichletBoundaryFunction3d");
-	}
-
-//	UserFunction
-	{
-	//	Density - Driven - Flow
-		reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d");
-	}
-
-//	Elem Discs
-	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef MartinAlgebra algebra_type;
-
-	//	Base class
-		reg.add_class_<IElemDisc<algebra_type> >("IElemDisc");
-
 		typedef FVConvectionDiffusionElemDisc<FV1Geometry, domain_type, algebra_type> T;
-		reg.add_class_<T, IElemDisc<algebra_type> >("FV1ConvectionDiffusionElemDisc")
+		stringstream ss; ss << "FV1ConvectionDiffusionElemDisc" << dim << "d";
+		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
 			.add_method("set_diffusion_tensor", &T::set_diffusion_tensor)
@@ -252,102 +181,50 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 			.add_method("set_reaction", &T::set_reaction)
 			.add_method("set_rhs", &T::set_rhs)
 			.add_method("set_upwind_amount", &T::set_upwind_amount);
+	}
 
+//	Density Driven Flow
+	{
 		typedef DensityDrivenFlowElemDisc<domain_type, algebra_type> T2;
-		reg.add_class_<T2, IElemDisc<algebra_type> >("FV1DensityDrivenFlowElemDisc")
+		stringstream ss; ss << "FV1DensityDrivenFlowElemDisc" << dim << "d";
+		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str())
 			.add_constructor()
 			.add_method("set_domain", &T2::set_domain)
 			.add_method("set_user_functions", &T2::set_user_functions)
 			.add_method("set_upwind_amount", &T2::set_upwind_amount);
 	}
 
-//	FunctionGroup
-	{
-		reg.add_class_<FunctionGroup>("FunctionGroup")
-			.add_constructor()
-			.add_method("clear", &FunctionGroup::clear)
-			.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
-			.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
-	}
-
-//	AssembledLinearOperator
-	{
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
-		typedef AssembledLinearOperator<dof_distribution_type, algebra_type> T;
-
-		reg.add_class_<T, IMatrixOperator<algebra_type::vector_type, algebra_type::vector_type, algebra_type::matrix_type> >
-						("AssembledLinearOperator")
-			.add_constructor()
-			.add_method("init", (bool (T::*)())&T::init)
-			.add_method("set_discretization", &T::set_discretization)
-			.add_method("export_rhs", &T::export_rhs)
-			.add_method("set_dof_distribution", &T::set_dof_distribution)
-			.add_method("set_dirichlet_values", &T::set_dirichlet_values)
-			.add_method("get_rhs", &T::get_rhs);
-	}
-
-//	AssembledOperator
-	{
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
-		typedef AssembledOperator<dof_distribution_type, algebra_type> T;
-
-		reg.add_class_<T, IOperator<algebra_type::vector_type, algebra_type::vector_type> >
-						("AssembledOperator")
-			.add_constructor()
-			.add_method("set_discretization", &T::set_discretization)
-			.add_method("set_dof_distribution", &T::set_dof_distribution)
-			.add_method("init", &T::init);
-	}
-
-//	GridFunction
-	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
-
-#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > T;
-#else
-		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> T;
-#endif
-		reg.add_class_<T, algebra_type::vector_type>("GridFunction2d")
-			.add_constructor()
-			.add_method("set", (bool (T::*)(number))&T::set)
-			.add_method("assign", (bool (T::*)(const algebra_type::vector_type&))&T::assign);
-	}
-
 //	ApplyLinearSolver
 	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
-
-#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
-#else
-		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
-#endif
-
-		reg.add_function("ApplyLinearSolver", &ApplyLinearSolver<function_type> );
-
-		reg.add_function("WriteGridFunctionToVTK", &WriteGridFunctionToVTK<function_type>);
-
-		reg.add_function("SaveMatrixForConnectionViewer", &SaveMatrixForConnectionViewer<function_type>);
-
-		reg.add_function("SaveVectorForConnectionViewer", &SaveVectorForConnectionViewer<function_type>);
+		stringstream ss; ss << "ApplyLinearSolver" << dim << "d";
+		reg.add_function(ss.str().c_str(), &ApplyLinearSolver<function_type> );
 	}
 
+//	WriteGridToVTK
+	{
+		stringstream ss; ss << "WriteGridFunctionToVTK" << dim << "d";
+		reg.add_function(ss.str().c_str(), &WriteGridFunctionToVTK<function_type>);
+	}
+
+//	SaveMatrixForConnectionViewer
+	{
+		stringstream ss; ss << "SaveMatrixForConnectionViewer" << dim << "d";
+		reg.add_function(ss.str().c_str(), &SaveMatrixForConnectionViewer<function_type>);
+	}
+
+//	SaveVectorForConnectionViewer
+	{
+		stringstream ss; ss << "SaveVectorForConnectionViewer" << dim << "d";
+		reg.add_function(ss.str().c_str(), &SaveVectorForConnectionViewer<function_type>);
+	}
 
 //	AssembledMultiGridCycle
 	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef MartinAlgebra algebra_type;
-		typedef ApproximationSpace<domain_type, P1ConformDoFDistribution, algebra_type> approximation_space_type;
+		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 		typedef AssembledMultiGridCycle<approximation_space_type, algebra_type> T;
 
-		reg.add_class_<T, ILinearIterator<algebra_type::vector_type, algebra_type::vector_type> >("GeometricMultiGridPreconditioner2d")
+		stringstream ss; ss << "GeometricMultiGridPreconditioner" << dim << "d";
+		reg.add_class_<T, ILinearIterator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str())
 			.add_constructor()
 			.add_method("set_discretization", &T::set_discretization)
 			.add_method("set_approximation_space", &T::set_approximation_space)
@@ -360,67 +237,181 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 			.add_method("set_num_postsmooth", &T::set_num_postsmooth);
 	}
 
-//	StandardLineSearch
-	{
-		typedef MartinAlgebra algebra_type;
-		typedef StandardLineSearch<algebra_type::vector_type> T;
-
-		reg.add_class_<ILineSearch<algebra_type::vector_type> >("ILineSearch");
-
-		reg.add_class_<StandardLineSearch<algebra_type::vector_type>,
-						ILineSearch<algebra_type::vector_type> >("StandardLineSearch")
-			.add_constructor()
-			.add_method("set_maximum_steps", &T::set_maximum_steps)
-			.add_method("set_lambda_start", &T::set_lambda_start)
-			.add_method("set_reduce_factor", &T::set_reduce_factor)
-			.add_method("set_verbose_level", &T::set_verbose_level)
-			.add_method("set_offset", &T::set_offset);
-	}
-
-//	NewtonSolver
-	{
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
-		typedef NewtonSolver<dof_distribution_type, algebra_type> T;
-
-		reg.add_class_<T, IOperatorInverse<algebra_type::vector_type, algebra_type::vector_type> >("NewtonSolver")
-			.add_constructor()
-			.add_method("set_linear_solver", &T::set_linear_solver)
-			.add_method("set_convergence_check", &T::set_convergence_check)
-			.add_method("set_line_search", &T::set_line_search)
-			.add_method("init", &T::init);
-
-	}
-
 //	VTK Output
 	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
+		stringstream ss; ss << "VTKOutput" << dim << "d";
+		reg.add_class_<VTKOutput<function_type> >(ss.str().c_str())
+			.add_constructor()
+			.add_method("begin_timeseries", &VTKOutput<function_type>::begin_timeseries)
+			.add_method("end_timeseries", &VTKOutput<function_type>::end_timeseries)
+			.add_method("print", &VTKOutput<function_type>::print);
+	}
+
+//	PerformTimeStep
+	{
+		stringstream ss; ss << "PerformTimeStep" << dim << "d";
+		reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>);
+	}
+
+}
+
+
+void RegisterLibDiscretizationInterface(Registry& reg)
+{
+	//	todo: generalize
 		typedef P1ConformDoFDistribution dof_distribution_type;
 		typedef MartinAlgebra algebra_type;
 
-#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > T;
-#else
-		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> T;
-#endif
+	//	FunctionPattern (Abstract Base Class)
+		reg.add_class_<FunctionPattern>("FunctionPattern");
 
-		reg.add_class_<VTKOutput<T> >("VTKOutput")
+	//	P1ConformFunctionPattern
+		{
+		typedef P1ConformFunctionPattern T;
+		reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern")
 			.add_constructor()
-			.add_method("begin_timeseries", &VTKOutput<T>::begin_timeseries)
-			.add_method("end_timeseries", &VTKOutput<T>::end_timeseries)
-			.add_method("print", &VTKOutput<T>::print);
+			.add_method("set_subset_handler", &T::set_subset_handler)
+			.add_method("lock", &T::lock);
+		}
 
-//	PerformTimeStep
-		reg.add_function("PerformTimeStep", &PerformTimeStep<T>);
-	}
+	//	P1ConformDoFDistribution
+		{
+			typedef P1ConformDoFDistribution T;
+			reg.add_class_<T>("P1ConformDoFDistribution");
+		}
 
-//	Register user functions
-	RegisterUserNumber(reg);
-	RegisterUserVector(reg);
-	RegisterUserMatrix(reg);
-	RegisterElderUserFunctions(reg);
+	//  Add discrete function to pattern
+		reg.add_function("AddP1Function", &AddP1Function);
+
+	//	DomainDiscretization
+		{
+			typedef DomainDiscretization<dof_distribution_type, algebra_type> T;
+
+			reg.add_class_<IAssemble<dof_distribution_type, algebra_type> >("IAssemble");
+			reg.add_class_<IDomainDiscretization<dof_distribution_type, algebra_type>,
+							IAssemble<dof_distribution_type, algebra_type> >("IDomainDiscretization");
+
+			reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization")
+				.add_constructor()
+				.add_method("add_dirichlet_bnd", &T::add_dirichlet_bnd)
+				.add_method("add", (bool (T::*)(IElemDisc<algebra_type>&, const FunctionPattern&, const char*, const char*)) &T::add);
+		}
+
+	//	Time Discretization
+		{
+			typedef ThetaTimeDiscretization<dof_distribution_type, algebra_type> T;
+
+			reg.add_class_<	ITimeDiscretization<dof_distribution_type, algebra_type>,
+							IAssemble<dof_distribution_type, algebra_type> >("ITimeDiscretization");
+
+			reg.add_class_<T, ITimeDiscretization<dof_distribution_type, algebra_type> >("ThetaTimeDiscretization")
+					.add_constructor()
+					.add_method("set_domain_discretization", &T::set_domain_discretization)
+					.add_method("set_theta", &T::set_theta);
+		}
+
+	//	Base class
+		reg.add_class_<IDirichletBoundaryValues<dof_distribution_type, algebra_type> >("IDirichletBoundaryValues");
+
+
+	//	DirichletBoundaryFunction
+		{
+			reg.add_class_<DirichletBoundaryFunction<1> >("DirichletBoundaryFunction1d");
+			reg.add_class_<DirichletBoundaryFunction<2> >("DirichletBoundaryFunction2d");
+			reg.add_class_<DirichletBoundaryFunction<3> >("DirichletBoundaryFunction3d");
+		}
+
+	//	UserFunction
+		{
+		//	Density - Driven - Flow
+			reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d");
+		}
+
+	//	Elem Discs
+		{
+		//	Base class
+			reg.add_class_<IElemDisc<algebra_type> >("IElemDisc");
+		}
+
+	//	FunctionGroup
+		{
+			reg.add_class_<FunctionGroup>("FunctionGroup")
+				.add_constructor()
+				.add_method("clear", &FunctionGroup::clear)
+				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
+				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
+		}
+
+	//	AssembledLinearOperator
+		{
+			typedef AssembledLinearOperator<dof_distribution_type, algebra_type> T;
+
+			reg.add_class_<T, IMatrixOperator<algebra_type::vector_type, algebra_type::vector_type, algebra_type::matrix_type> >
+							("AssembledLinearOperator")
+				.add_constructor()
+				.add_method("init", (bool (T::*)())&T::init)
+				.add_method("set_discretization", &T::set_discretization)
+				.add_method("export_rhs", &T::export_rhs)
+				.add_method("set_dof_distribution", &T::set_dof_distribution)
+				.add_method("set_dirichlet_values", &T::set_dirichlet_values)
+				.add_method("get_rhs", &T::get_rhs);
+		}
+
+	//	AssembledOperator
+		{
+			typedef AssembledOperator<dof_distribution_type, algebra_type> T;
+
+			reg.add_class_<T, IOperator<algebra_type::vector_type, algebra_type::vector_type> >
+							("AssembledOperator")
+				.add_constructor()
+				.add_method("set_discretization", &T::set_discretization)
+				.add_method("set_dof_distribution", &T::set_dof_distribution)
+				.add_method("init", &T::init);
+		}
+
+	//	StandardLineSearch
+		{
+			typedef StandardLineSearch<algebra_type::vector_type> T;
+
+			reg.add_class_<ILineSearch<algebra_type::vector_type> >("ILineSearch");
+
+			reg.add_class_<StandardLineSearch<algebra_type::vector_type>,
+							ILineSearch<algebra_type::vector_type> >("StandardLineSearch")
+				.add_constructor()
+				.add_method("set_maximum_steps", &T::set_maximum_steps)
+				.add_method("set_lambda_start", &T::set_lambda_start)
+				.add_method("set_reduce_factor", &T::set_reduce_factor)
+				.add_method("set_verbose_level", &T::set_verbose_level)
+				.add_method("set_offset", &T::set_offset);
+		}
+
+	//	NewtonSolver
+		{
+			typedef NewtonSolver<dof_distribution_type, algebra_type> T;
+
+			reg.add_class_<T, IOperatorInverse<algebra_type::vector_type, algebra_type::vector_type> >("NewtonSolver")
+				.add_constructor()
+				.add_method("set_linear_solver", &T::set_linear_solver)
+				.add_method("set_convergence_check", &T::set_convergence_check)
+				.add_method("set_line_search", &T::set_line_search)
+				.add_method("init", &T::init);
+		}
+
+
+	//	Domain dependend part
+		{
+			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
+			RegisterLibDiscretizationDomainDepended<domain_type>(reg);
+		}
+
+
+
+	//	Register user functions
+		RegisterUserNumber(reg);
+		RegisterUserVector(reg);
+		RegisterUserMatrix(reg);
+		RegisterElderUserFunctions(reg);
 }
-
 
 }//	end of namespace ug
 }//	end of namespace interface
