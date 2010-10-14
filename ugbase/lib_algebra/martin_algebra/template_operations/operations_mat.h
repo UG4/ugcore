@@ -38,7 +38,7 @@ inline void MatMultAdd(vector_t &dest, const number &alpha1, const TE_MAT<matrix
 		"\t= " << alpha1 << " * " << A1.cast() << "\t * " << v1 << endl <<
 		"\t+ " << beta1 << " * " << w1 << endl;
 
-	VecScale(dest, beta1, w1);
+	VecScaleAssign(dest, beta1, w1);
 	MatMultAdd(dest, alpha1, A1.cast(), v1);
 }
 
@@ -52,7 +52,7 @@ inline void MatMultAdd(vector_t &dest, const number &alpha1, const TE_MAT_RowApp
 
 	for(size_t i=0; i<dest.size(); i++)
 	{
-		VecScale(dest[i], beta1, w1[i]);
+		VecScaleAssign(dest[i], beta1, w1[i]);
 		A1.cast().mat_mult_add_row(i, dest[i], alpha1, v1);
 	}
 }
@@ -71,7 +71,7 @@ inline void MatMultAddNorm(vector_t &dest,
 	norm=0;
 	for(size_t i=0; i<dest.size(); i++)
 	{
-		VecScale(dest[i], beta1, w1[i]);
+		VecScaleAssign(dest[i], beta1, w1[i]);
 		A1.cast().mat_mult_add_row(i, dest[i], alpha1, v1);
 		VecNormSquaredAdd(dest[i], norm);
 	}
@@ -119,7 +119,7 @@ inline void MatMultAdd(vector_t &dest, const number &alpha1, const TE_MAT_RowApp
 
 	for(size_t i=0; i<dest.size(); i++)
 	{
-		VecScale(dest[i], beta1, w1[i]);
+		VecScaleAssign(dest[i], beta1, w1[i]);
 		A1.cast().mat_mult_add_row(i, dest[i], alpha1, v1);
 		A2.cast().mat_mult_add_row(i, dest[i], alpha2, v2);
 	}
