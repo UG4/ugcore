@@ -86,7 +86,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-	if(!geo.update(elem, m_domain.get_grid(), &m_vCornerCoords[0]))
+	if(!geo.update(elem, m_domain.get_subset_handler(), &m_vCornerCoords[0]))
 		{UG_LOG("FVNavierStokesElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
 
 	return true;

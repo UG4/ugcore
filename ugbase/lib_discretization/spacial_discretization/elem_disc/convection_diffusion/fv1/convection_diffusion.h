@@ -51,9 +51,6 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		typedef typename IUserMatrixProvider<dim>::functor_type DiffusionFunctor;
 		typedef typename IUserVectorProvider<dim>::functor_type VelocityFunctor;
 		typedef typename IUserNumberProvider<dim>::functor_type NumberFunctor;
-		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
-		typedef void (*Reaction_fct)(number&, const position_type&, number);
-		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
 		FVConvectionDiffusionElemDisc()

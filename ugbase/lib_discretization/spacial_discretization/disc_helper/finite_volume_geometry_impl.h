@@ -109,7 +109,7 @@ FV1Geometry() : m_pElem(NULL)
 		{
 			// this scv has 10 corners
 			m_vSCV[i].m_numCorners = 10;
-			//UG_ASSERT(0, "Last SCV for Pyramid must be implemented");
+			UG_ASSERT(0, "Last SCV for Pyramid must be implemented");
 		}
 		else {UG_ASSERT(0, "Dimension higher that 3 not implemented.");}
 
@@ -144,58 +144,58 @@ FV1Geometry() : m_pElem(NULL)
 template <typename TElem, int TWorldDim>
 bool
 FV1Geometry<TElem, TWorldDim>::
-update(TElem* elem, const Grid& grid, const MathVector<world_dim>* vCornerCoords)
+update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords)
 {
-	// If already update for this element, do nothing
+// 	If already update for this element, do nothing
 	if(m_pElem == elem) return true;
 	else m_pElem = elem;
 
-	// remember global position of nodes
+// 	remember global position of nodes
 	for(size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
 		m_gloMid[0][i] = vCornerCoords[i];
 
-	// compute global midpoints for all geometric objects with  0 < d <= dim
+// 	compute global midpoints for all geometric objects with  0 < d <= dim
 	for(int d = 1; d <= dim; ++d)
 	{
-		// loop geometric objects of dimension d
+	// 	loop geometric objects of dimension d
 		for(size_t i = 0; i < m_rRefElem.num_obj(d); ++i)
 		{
-			// set first node
+		// 	set first node
 			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
 			m_gloMid[d][i] = m_gloMid[0][coID0];
 
-			// add corner coordinates of the corners of the geometric object
+		// 	add corner coordinates of the corners of the geometric object
 			for(size_t j = 1; j < m_rRefElem.num_obj_of_obj(d, i, 0); ++j)
 			{
 				const size_t coID = m_rRefElem.id(d, i, 0, j);
 				m_gloMid[d][i] += m_gloMid[0][coID];
 			}
 
-			// scale for correct averaging
+		// 	scale for correct averaging
 			m_gloMid[d][i] *= 1./(m_rRefElem.num_obj_of_obj(d, i, 0));
 		}
 	}
 
-	// compute global informations for scvf
+// 	compute global informations for scvf
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
-		// copy local corners of scvf
+	// 	copy local corners of scvf
 		copy_global_corners(m_vSCVF[i]);
 
-		// integration point
+	// 	integration point
 		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
 
-		// normal on scvf
+	// 	normal on scvf
 		NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
 	}
 
-	// compute size of scv
+// 	compute size of scv
 	for(size_t i = 0; i < num_scv(); ++i)
 	{
-		// copy global corners
+	// 	copy global corners
 		copy_global_corners(m_vSCV[i]);
 
-		// compute volume of scv
+	// 	compute volume of scv
 		if(m_vSCV[i].m_numCorners != 10)
 		{
 			m_vSCV[i].vol = ElementSize<scv_type, world_dim>(m_vSCV[i].m_vGloPos);
@@ -209,6 +209,8 @@ update(TElem* elem, const Grid& grid, const MathVector<world_dim>* vCornerCoords
 	/////////////////////////
 	// Shapes and Derivatives
 	/////////////////////////
+
+
 	m_rMapping.update(vCornerCoords);
 
 	for(size_t i = 0; i < num_scvf(); ++i)
@@ -222,7 +224,146 @@ update(TElem* elem, const Grid& grid, const MathVector<world_dim>* vCornerCoords
 			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
 	}
 
-	//print();
+
+	/////////////////////////
+	// Boundary Faces
+	/////////////////////////
+
+//	if no boundary subsets required, return
+	if(num_boundary_subsets() == 0) return true;
+
+//	get grid
+	Grid& grid = *ish.get_assigned_grid();
+
+//	vector of subset indices of side
+	std::vector<int> vSubsetIndex;
+
+//	get subset indices for sides (i.e. edge in 2d, faces in 3d)
+	if(dim == 2)
+	{
+		std::vector<EdgeBase*> vEdges;
+		CollectEdgesSorted(vEdges, grid, elem);
+
+		vSubsetIndex.resize(vEdges.size());
+		for(size_t i = 0; i < vEdges.size(); ++i)
+		{
+			vSubsetIndex[i] = ish.get_subset_index(vEdges[i]);
+		}
+	}
+
+	if(dim == 3)
+	{
+		std::vector<Face*> vFaces;
+		CollectFacesSorted(vFaces, grid, elem);
+
+		vSubsetIndex.resize(vFaces.size());
+		for(size_t i = 0; i < vFaces.size(); ++i)
+		{
+			vSubsetIndex[i] = ish.get_subset_index(vFaces[i]);
+		}
+	}
+
+//	loop requested subset
+	typename std::map<int, std::vector<BF> >::iterator it;
+	for (it=m_mapVectorBF.begin() ; it != m_mapVectorBF.end(); ++it)
+	{
+	//	get subset index
+		const int bndIndex = (*it).first;
+
+	//	get vector of BF for element
+		std::vector<BF>& vBF = (*it).second;
+
+	//	clear vector
+		vBF.clear();
+
+	//	current number of bf
+		size_t curr_bf = 0;
+
+	//	loop sides of element
+		for(size_t side = 0; side < vSubsetIndex.size(); ++side)
+		{
+		//	skip non boundary sides
+			if(vSubsetIndex[side] != bndIndex) continue;
+
+		///////////////////////////
+		//	add Boundary faces
+		///////////////////////////
+
+		//	number of corners of side
+			const int coOfSide = m_rRefElem.num_obj_of_obj(dim-1, side, 0);
+
+		//	resize vector
+			vBF.resize(curr_bf + coOfSide);
+
+		//	loop corners
+			for(int co = 0; co < coOfSide; ++co)
+			{
+			//	get current bf
+				BF& bf = vBF[curr_bf];
+
+			//	set node id == scv this bf belongs to
+				bf.m_nodeId = m_rRefElem.id(dim-1, side, 0, co);
+
+			// 	set mid ids
+				if(dim == 2)
+				{
+					bf.midId[co%2] = MidID(0, m_rRefElem.id(1, side, 0, co)); // corner of side
+					bf.midId[(co+1)%2] = MidID(1, side); // side midpoint
+				}
+				else if (dim == 3)
+				{
+					bf.midId[0] = MidID(0, m_rRefElem.id(2, side, 0, co)); // corner of side
+					bf.midId[1] = MidID(1, m_rRefElem.id(2, side, 1, co)); // edge co
+					bf.midId[2] = MidID(2, side); // side midpoint
+					bf.midId[3] = MidID(1, m_rRefElem.id(2, side, 1, (co -1 + coOfSide)%coOfSide)); // edge co-1
+				}
+
+			// 	copy corners of bf
+				copy_local_corners(bf);
+				copy_global_corners(bf);
+
+			// 	integration point
+				AveragePositions(bf.localIP, bf.m_vLocPos, SCVF::m_numCorners);
+				AveragePositions(bf.globalIP, bf.m_vGloPos, SCVF::m_numCorners);
+
+			// 	normal on scvf
+				NormalOnSCVF<ref_elem_type, world_dim>(bf.Normal, bf.m_vGloPos);
+
+			//	compute volume
+				bf.m_volume = VecTwoNorm(bf.Normal);
+
+			/////////////////////////
+			// Shapes and Derivatives
+			/////////////////////////
+				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+						LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+
+				const size_t num_sh = m_numSCV;
+				bf.vShape.resize(num_sh);
+				bf.localGrad.resize(num_sh);
+				bf.globalGrad.resize(num_sh);
+				for(size_t sh = 0 ; sh < num_sh; ++sh)
+				{
+					if(!TrialSpace.evaluate(sh, bf.localIP, (bf.vShape)[sh]))
+						{UG_LOG("Cannot evaluate local shape.\n"); UG_ASSERT(0, "Error in Constructor.");}
+					if(!TrialSpace.evaluate_grad(sh, bf.localIP, (bf.localGrad)[sh]))
+						{UG_LOG("Cannot evaluate local grad.\n"); UG_ASSERT(0, "Error in Constructor.");}
+				}
+
+				if(!m_rMapping.jacobian_transposed_inverse(bf.localIP, bf.JtInv))
+					{UG_LOG("Cannot compute jacobian transposed.\n"); return false;}
+				if(!m_rMapping.jacobian_det(bf.localIP, bf.detj))
+					{UG_LOG("Cannot compute jacobian determinate.\n"); return false;}
+
+				for(size_t sh = 0 ; sh < num_scv(); ++sh)
+					MatVecMult((bf.globalGrad)[sh], bf.JtInv, (bf.localGrad)[sh]);
+
+			//	increase curr_bf
+				++curr_bf;
+			}
+		}
+	}
+
 	return true;
 }
 

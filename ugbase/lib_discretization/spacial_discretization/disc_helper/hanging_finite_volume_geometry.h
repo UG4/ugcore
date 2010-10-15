@@ -239,11 +239,14 @@ class HFV1Geometry {
 			m_locMid[dim][0] *= 1./(m_locMid[0].size());
 		}
 
-		bool update(TElem* elem, Grid& grid, const MathVector<world_dim>* vCornerCoords)
+		bool update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords)
 		{
 			// If already update for this element, do nothing
 			if(m_pElem == elem) return true;
 			else m_pElem = elem;
+
+			// get grid
+			Grid& grid = *ish.get_assigned_grid();
 
 			// reset to natural nodes
 			m_gloMid[0].resize(m_numNaturalSCV);
