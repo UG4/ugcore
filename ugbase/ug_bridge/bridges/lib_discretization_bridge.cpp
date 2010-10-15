@@ -121,7 +121,8 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		reg.add_class_<function_type, algebra_type::vector_type>(ss.str().c_str())
 			.add_constructor()
 			.add_method("set", (bool (function_type::*)(number))&function_type::set)
-			.add_method("assign", (bool (function_type::*)(const algebra_type::vector_type&))&function_type::assign);
+			.add_method("assign", (bool (function_type::*)(const algebra_type::vector_type&))&function_type::assign)
+			.add_method("get_dim", &function_type::get_dim);
 	}
 
 //	Domain
@@ -153,6 +154,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		reg.add_class_<T>(ss.str().c_str())
 			.add_constructor()
 			.add_method("assign_domain", &T::assign_domain)
+			.add_method("get_domain", (domain_type& (T::*)())&T::get_domain)
 			.add_method("assign_function_pattern", &T::assign_function_pattern)
 			.add_method("get_surface_dof_distribution", &T::get_surface_dof_distribution)
 			.add_method("create_surface_function", &T::create_surface_function);
@@ -167,6 +169,16 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 			.add_method("set_domain", &T::set_domain)
 			.add_method("set_dirichlet_function", &T::set_dirichlet_function)
 			.add_method("set_function", &T::set_function);
+	}
+
+//	Neumann Boundary
+	{
+		typedef FVNeumannBoundaryElemDisc<FV1Geometry, domain_type, algebra_type> T;
+		stringstream ss; ss << "FV1NeumannBoundaryElemDisc" << dim << "d";
+		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str())
+			.add_constructor()
+			.add_method("set_domain", &T::set_domain)
+			.add_method("set_bnd_cond", &T::set_bnd_cond);
 	}
 
 //	Convection Diffusion
