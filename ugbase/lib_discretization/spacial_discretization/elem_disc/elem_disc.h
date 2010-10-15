@@ -11,6 +11,9 @@
 // include interface
 #include "elem_disc_interface.h"
 
+// include neumann boundary
+#include "neumann_boundary/fv/neumann_boundary.h"
+
 // include special discs
 #include "convection_diffusion/fe1/fe1_convection_diffusion.h"
 #include "convection_diffusion/fv1/convection_diffusion.h"
