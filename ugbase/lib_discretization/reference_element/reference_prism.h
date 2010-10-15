@@ -221,9 +221,9 @@ class ReferencePrism{
 		 	m_id[POINT][5][FACE][2] = 4;
 
 		 	// Edges <-> Faces
-		 	m_id[FACE][0][EDGE][0] = 0;
-		 	m_id[FACE][0][EDGE][1] = 2;
-		 	m_id[FACE][0][EDGE][2] = 1;
+		 	m_id[FACE][0][EDGE][0] = 2;
+		 	m_id[FACE][0][EDGE][1] = 1;
+		 	m_id[FACE][0][EDGE][2] = 0;
 
 		 	m_id[FACE][1][EDGE][0] = 0;
 		 	m_id[FACE][1][EDGE][1] = 4;
