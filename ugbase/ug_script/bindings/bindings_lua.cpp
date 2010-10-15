@@ -49,6 +49,56 @@ static UserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 	
 	return udata;
 }
+	
+
+/**
+ *
+ * \returns	String describing the content of the lua stack at a given index
+ * and all types it is compatible with (for ex. "2" is string and number)
+ */
+string GetLuaTypeString(lua_State* L, int index)
+{
+	if(lua_isnil(L, index))
+		return string("nil");
+	string str("");
+	// somehow lua_typeinfo always prints userdata
+	if(lua_isfunction(L, index)) str.append("function/");
+	if(lua_iscfunction(L, index)) str.append("cfunction/");
+	if(lua_isboolean(L, index)) str.append("boolean/");
+	if(lua_isnumber(L, index)) 	str.append("number/");
+	if(lua_isstring(L, index)) str.append("string/");
+	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
+	if(lua_isuserdata(L, index))
+	{
+		if(lua_getmetatable(L, index) == 0)
+			str.append("userdata/");
+		else
+		{
+			// get names
+			lua_pushstring(L, "names");
+			lua_rawget(L, -2);
+
+			if(lua_isnil(L, index) || !lua_isuserdata(L, index))
+			{
+				lua_pop(L, 2);
+				str.append("userdata/");
+			}
+			else
+			{
+				const std::vector<const char*> *names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+				lua_pop(L, 2);
+				if(names->size() <= 0) str.append("userdata/");
+				else { str.append((*names)[0]); str.append("/"); }
+			}
+		}
+	}
+
+	if(str.size() == 0)
+		return string("unknown type");
+	else
+		return str.substr(0, str.size()-1);
+}
+
 
 ///	copies parameter values from the lua-stack to a parameter-list.
 /**	\returns	The index of the first bad parameter starting from 1.
@@ -72,27 +122,35 @@ static int LuaStackToParams(ParameterStack& params,
 			case PT_BOOL:{
 				if(lua_isboolean(L, index))
 					params.push_bool(lua_toboolean(L, index));
-				else
+				else{
+					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected bool, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
+				}
 			}break;
 			case PT_INTEGER:{
 				if(lua_isnumber(L, index))
 					params.push_integer(lua_tonumber(L, index));
-				else
+				else{
+					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
+				}
 			}break;
 			case PT_NUMBER:{
 				if(lua_isnumber(L, index)){
 					params.push_number(lua_tonumber(L, index));
 				}
-				else
+				else{
+					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
+				}
 			}break;
 			case PT_STRING:{
 				if(lua_isstring(L, index))
 					params.push_string(lua_tostring(L, index));
-				else
+				else{
 					badParam = (int)i + 1;
+					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected string, but given " << GetLuaTypeString(L, index) << "\n");
+				}
 			}break;
 			case PT_POINTER:{
 				if(lua_isuserdata(L, index)){
@@ -141,13 +199,14 @@ static int LuaStackToParams(ParameterStack& params,
 						}
 					}
 					else{
-						UG_LOG("METATABLE not found. ");
+						UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
 						badParam = (int)i + 1;
 					}
 				}
 				else
 				{
-					UG_LOG("ERROR: Currently only references/pointers to user defined data allowed. ");
+					UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
+					UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ", but given " << GetLuaTypeString(L, index) << ")" << endl);
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -191,13 +250,14 @@ static int LuaStackToParams(ParameterStack& params,
 						}
 					}
 					else{
-						UG_LOG("METATABLE not found. ");
+						UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
 						badParam = (int)i + 1;
 					}
 				}
 				else
 				{
-					UG_LOG("ERROR: Currently only references/pointers to user defined data allowed. ");
+					UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
+					UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ")" << endl);
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -205,18 +265,11 @@ static int LuaStackToParams(ParameterStack& params,
 				badParam = (int)i + 1;
 			}break;
 		}
-		
-	//	if badParam has been set, we'll return immediatly
-		if(badParam){
-			if(printDefaultParamErrorMsg){
-				UG_LOG("ERROR: Bad parameter " << badParam << ": ");
-				//UG_LOG(params.param(badParam - 1)->get_type_string() << " expected.\n");
-			}
+		if(badParam)
 			return badParam;
-		}
 	}
-	
-	return 0;
+		
+	return badParam;
 }
 
 ///	Pushes the parameter-values to the Lua-Stack.
