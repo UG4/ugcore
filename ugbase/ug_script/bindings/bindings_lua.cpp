@@ -4,6 +4,7 @@
 
 #include <sstream>
 #include <cstring>
+#include <cstdlib>
 #include "bindings_lua.h"
 #include "ug_script/ug_script.h"
 #include "ug_bridge/registry.h"
@@ -276,8 +277,21 @@ static int LuaProxyFunction(lua_State* L)
 		return 0;
 	}
 
-	func->execute(paramsIn, paramsOut);
-	
+	try{
+		func->execute(paramsIn, paramsOut);
+	}
+	catch(UGError err){
+		UG_LOG("UGError with code " << err.get_code() << ": ");
+		UG_LOG(err.get_msg() << endl);
+		if(err.terminate()){
+			UG_LOG("terminating..." << endl);
+			exit(err.get_code());
+		}
+	}
+	catch(...){
+		UG_LOG("unknown error occured. continuing execution...\n");
+	}
+
 	return ParamsToLuaStack(paramsOut, L);
 }
 
@@ -312,8 +326,21 @@ static int LuaProxyMethod(lua_State* L)
 		return 0;
 	}
 
-	m->execute(self->obj, paramsIn, paramsOut);
-	
+	try{
+		m->execute(self->obj, paramsIn, paramsOut);
+	}
+	catch(UGError err){
+		UG_LOG("UGError with code " << err.get_code() << ": ");
+		UG_LOG(err.get_msg() << endl);
+		if(err.terminate()){
+			UG_LOG("terminating..." << endl);
+			exit(err.get_code());
+		}
+	}
+	catch(...){
+		UG_LOG("unknown error occured. continuing execution...\n");
+	}
+
 	return ParamsToLuaStack(paramsOut, L);
 }
 

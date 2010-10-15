@@ -107,9 +107,11 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 			Face* tf = *iter;
 			uint numVrts = tf->num_vertices();
 			int numMarked = 0;
-			for(uint i = 0; i < numVrts; ++i)
+			for(uint i = 0; i < numVrts; ++i){
 				if(grid.is_marked(tf->vertex(i)))
 					numMarked++;
+			}
+			
 			if(numMarked > 1)
 			{
 			//	the face is connected with the edge
@@ -118,7 +120,6 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 				counter++;
 			}
 		}
-
 	//	done with marking
 		grid.end_marking();
 

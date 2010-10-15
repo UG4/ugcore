@@ -183,55 +183,96 @@ bool CollectSurfaceNeighborsSorted(std::vector<VertexBase*>& vNeighborsOut,
 	vNeighborsOut.clear();
 	
 //	the algorithm won't work if volumes are connected
-	if(grid.associated_volumes_begin(v) != grid.associated_volumes_end(v))
-		return false;
+	if(grid.num_volumes() > 0){
+		if(grid.associated_volumes_begin(v) != grid.associated_volumes_end(v))
+			return false;
+	}
 		
 //	the algorithm won't work if no faces are connected
 	if(grid.associated_faces_begin(v) == grid.associated_faces_end(v))
 		return false;
-		
-//	the current implementation demands that all edges exist.
-//	The algorithm could however be implemented without this constraint.
-	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
-		UG_LOG("WARNING in CollectSurfaceNeghorsSorted: Auto-enabling FACEOPT_AUTOGENERATE_EDGES.\n");
-		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
-	}
 	
 	grid.begin_marking();
 	
-//	collect edges in this vector
-	vector<EdgeBase*> edges;
-	
-//	start with an arbitrary edge
-	EdgeBase* curEdge = *grid.associated_edges_begin(v);
-	
-	while(curEdge){
-		vNeighborsOut.push_back(GetConnectedVertex(curEdge, v));
-		grid.mark(curEdge);
+	if(grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)
+	   && grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES)){
+	//	collect edges in this vector
+		vector<EdgeBase*> edges;
+	//	start with an arbitrary edge
+		EdgeBase* curEdge = *grid.associated_edges_begin(v);
 		
-	//	get associated faces
-		Face* f[2];
-		if(GetAssociatedFaces(f, grid, curEdge, 2) != 2)
-			return false;
-		
-		curEdge = NULL;
-		for(int i = 0; i < 2; ++i){
-			if(!grid.is_marked(f[i])){
-				CollectEdges(edges, grid, f[i]);
-				for(size_t j = 0; j < edges.size(); ++j){
-					if(!grid.is_marked(edges[j])){
-						if(EdgeContains(edges[j], v)){
-							curEdge = edges[j];
-							break;
+		while(curEdge){
+			vNeighborsOut.push_back(GetConnectedVertex(curEdge, v));
+			grid.mark(curEdge);
+			
+		//	get associated faces
+			Face* f[2];
+			if(GetAssociatedFaces(f, grid, curEdge, 2) != 2)
+				return false;
+			
+			curEdge = NULL;
+			for(int i = 0; i < 2; ++i){
+				if(!grid.is_marked(f[i])){
+					CollectEdges(edges, grid, f[i]);
+					for(size_t j = 0; j < edges.size(); ++j){
+						if(!grid.is_marked(edges[j])){
+							if(EdgeContains(edges[j], v)){
+								curEdge = edges[j];
+								break;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	
+	else{
+	//	we can't use GetAssociatedFaces here, since it uses Grid::mark itself if
+	//	EDGEOPT_STORE_ASSOCIATED_FACES is not enabled.
+	//	Start with an arbitrary face
+		Face* f = *grid.associated_faces_begin(v);
+		grid.mark(v);
+
+		while(f){
+			grid.mark(f);
+			
+		//	mark one of the edges that is connected to v by marking
+		//	the edges endpoints. Make sure that it was not already marked.
+			size_t numVrts = f->num_vertices();
+			int vind = GetVertexIndex(f, v);
+			VertexBase* tvrt = f->vertex((vind + 1)%numVrts);
+			if(grid.is_marked(tvrt))
+				tvrt = f->vertex((vind + numVrts - 1)%numVrts);
+			if(grid.is_marked(tvrt))
+				throw(UGError("CollectSurfaceNeighborsSorted: unexpected exit."));
+				
+			vNeighborsOut.push_back(tvrt);
+			grid.mark(tvrt);
+
+		//	iterate through the faces associated with v and find an unmarked one that
+		//	contains two marked vertices
+			f = NULL;
+			Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
+			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
+				iter != iterEnd; ++iter)
+			{
+				if(!grid.is_marked(*iter)){
+					f = *iter;
+					size_t numMarked = 0;
+					for(size_t i = 0; i < f->num_vertices(); ++i){
+						if(grid.is_marked(f->vertex(i)))
+							++numMarked;
+					}
+					if(numMarked == 2)
+						break;
+					else
+						f = NULL;
+				}
+			}
+		}
+	}
+
 	grid.end_marking();
-	
 	return true;
 }
 

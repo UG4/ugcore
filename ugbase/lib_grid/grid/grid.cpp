@@ -473,6 +473,7 @@ void Grid::change_options(uint optsNew)
 	change_edge_options(optsNew & 	0x0000FF00);
 	change_face_options(optsNew & 	0x00FF0000);
 	change_volume_options(optsNew &	0xFF000000);
+	assert((m_options == optsNew) && "Grid::change_options failed");
 }
 /*
 void Grid::register_observer(GridObserver* observer, uint observerType)
@@ -986,7 +987,9 @@ void Grid::begin_marking()
 		init_marks();
 	}
 	
-	assert(!m_bMarking && "ERROR - marking is already active. Don't forget to call end_marking when you're done with marking.");
+	if(m_bMarking){
+		throw(UGFatalError("ERROR in Grid::begin_marking(): marking is already active. Don't forget to call end_marking when you're done with marking."));
+	}
 	
 //	increase currentMark
 	++m_currentMark;

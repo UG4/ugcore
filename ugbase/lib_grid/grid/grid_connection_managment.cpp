@@ -40,7 +40,7 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////
 ///	a useful macro that checks if a set of options contains the specified option.
-#define OPTIONS_CONTAIN_OPTION(options, option) ((options & option) == option)
+#define OPTIONS_CONTAIN_OPTION(options, option) (((options) & (option)) == (option))
 
 
 namespace ug
@@ -270,13 +270,15 @@ void Grid::change_vertex_options(uint optsNew)
 //	check if associated edge information has to be created or removed.
 	if(OPTIONS_CONTAIN_OPTION(optsNew, VRTOPT_STORE_ASSOCIATED_EDGES))
 	{
-		if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
+		if(!option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES)){
 			vertex_store_associated_edges(true);
+		}
 	}
 	else
 	{
-		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
+		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES)){
 			vertex_store_associated_edges(false);
+		}
 	}
 
 //	check if associated face information has to be created or removed.
@@ -302,9 +304,6 @@ void Grid::change_vertex_options(uint optsNew)
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 			vertex_store_associated_volumes(false);
 	}
-
-//	store new options
-	m_options = m_options | (optsNew & 0x000000FF);
 }
 
 void Grid::vertex_store_associated_edges(bool bStoreIt)
@@ -333,7 +332,7 @@ void Grid::vertex_store_associated_edges(bool bStoreIt)
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 		{
 			detach_from_vertices(m_aEdgeContainer);
-			m_options &= (!VRTOPT_STORE_ASSOCIATED_EDGES);
+			m_options &= (~VRTOPT_STORE_ASSOCIATED_EDGES);
 		}
 	}
 }
@@ -366,7 +365,7 @@ void Grid::vertex_store_associated_faces(bool bStoreIt)
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_FACES))
 		{
 			detach_from_vertices(m_aFaceContainer);
-			m_options &= (!VRTOPT_STORE_ASSOCIATED_FACES);
+			m_options &= (~VRTOPT_STORE_ASSOCIATED_FACES);
 		}
 	}
 }
@@ -399,7 +398,7 @@ void Grid::vertex_store_associated_volumes(bool bStoreIt)
 		if(option_is_enabled(VRTOPT_STORE_ASSOCIATED_VOLUMES))
 		{
 			detach_from_vertices(m_aVolumeContainer);
-			m_options &= (!VRTOPT_STORE_ASSOCIATED_VOLUMES);
+			m_options &= (~VRTOPT_STORE_ASSOCIATED_VOLUMES);
 		}
 	}
 }
@@ -708,9 +707,6 @@ void Grid::change_edge_options(uint optsNew)
 		if(option_is_enabled(EDGEOPT_STORE_ASSOCIATED_VOLUMES))
 			edge_store_associated_volumes(false);
 	}
-
-//	store new options
-	m_options = m_options | (optsNew & 0x0000FF00);
 }
 
 void Grid::edge_store_associated_faces(bool bStoreIt)
@@ -757,7 +753,7 @@ void Grid::edge_store_associated_faces(bool bStoreIt)
 		{
 		//	detach edge-face connections
 			detach_from_edges(m_aFaceContainer);
-			m_options &= (!EDGEOPT_STORE_ASSOCIATED_FACES);
+			m_options &= (~EDGEOPT_STORE_ASSOCIATED_FACES);
 		}
 	}
 }
@@ -810,7 +806,7 @@ void Grid::edge_store_associated_volumes(bool bStoreIt)
 		{
 		//	detach edge-volume connections
 			detach_from_edges(m_aVolumeContainer);
-			m_options &= (!EDGEOPT_STORE_ASSOCIATED_VOLUMES);
+			m_options &= (~EDGEOPT_STORE_ASSOCIATED_VOLUMES);
 		}
 	}
 }
@@ -1103,9 +1099,6 @@ void Grid::change_face_options(uint optsNew)
 		if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 			face_autogenerate_edges(false);
 	}
-
-//	store new options
-	m_options = m_options | (optsNew & 0x00FF0000);
 }
 
 void Grid::face_store_associated_edges(bool bStoreIt)
@@ -1165,7 +1158,7 @@ void Grid::face_store_associated_edges(bool bStoreIt)
 		{
 		//	remove face-edge connections
 			detach_from_faces(m_aEdgeContainer);
-			m_options &= (!FACEOPT_STORE_ASSOCIATED_EDGES);
+			m_options &= (~FACEOPT_STORE_ASSOCIATED_EDGES);
 		}
 	}
 }
@@ -1215,7 +1208,7 @@ void Grid::face_store_associated_volumes(bool bStoreIt)
 		{
 		//	remove face-edge connections
 			detach_from_faces(m_aVolumeContainer);
-			m_options &= (!FACEOPT_STORE_ASSOCIATED_VOLUMES);
+			m_options &= (~FACEOPT_STORE_ASSOCIATED_VOLUMES);
 		}
 	}
 }
@@ -1253,7 +1246,7 @@ void Grid::face_autogenerate_edges(bool bAutogen)
 	else
 	{
 	//	stop auto-generation
-		m_options &= (!FACEOPT_AUTOGENERATE_EDGES);
+		m_options &= (~FACEOPT_AUTOGENERATE_EDGES);
 	}
 }
 
@@ -1547,8 +1540,6 @@ void Grid::change_volume_options(uint optsNew)
 		if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 			volume_autogenerate_faces(false);
 	}
-//	store new options
-	m_options = m_options | (optsNew & 0xFF000000);
 }
 
 void Grid::volume_store_associated_edges(bool bStoreIt)
@@ -1608,7 +1599,7 @@ void Grid::volume_store_associated_edges(bool bStoreIt)
 		{
 			//	remove vol-edge connection
 			detach_from_volumes(m_aEdgeContainer);
-			m_options &= (!VOLOPT_STORE_ASSOCIATED_EDGES);
+			m_options &= (~VOLOPT_STORE_ASSOCIATED_EDGES);
 		}
 	}
 }
@@ -1673,7 +1664,7 @@ void Grid::volume_store_associated_faces(bool bStoreIt)
 		{
 			//	remove vol-edge connection
 			detach_from_volumes(m_aFaceContainer);
-			m_options &= (!VOLOPT_STORE_ASSOCIATED_FACES);
+			m_options &= (~VOLOPT_STORE_ASSOCIATED_FACES);
 		}
 	}
 }
@@ -1711,7 +1702,7 @@ void Grid::volume_autogenerate_edges(bool bAutogen)
 	else
 	{
 	//	stop auto-generation
-		m_options &= (!VOLOPT_STORE_ASSOCIATED_EDGES);
+		m_options &= (~VOLOPT_STORE_ASSOCIATED_EDGES);
 	}
 }
 
@@ -1748,7 +1739,7 @@ void Grid::volume_autogenerate_faces(bool bAutogen)
 	else
 	{
 	//	stop auto-generation
-		m_options &= (!VOLOPT_AUTOGENERATE_FACES);
+		m_options &= (~VOLOPT_AUTOGENERATE_FACES);
 	}
 }
 
