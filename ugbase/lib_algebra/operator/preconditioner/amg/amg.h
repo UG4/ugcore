@@ -187,6 +187,7 @@ public:
 	void set_aggressive_coarsening_A_1() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 1;}
 	void set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
 	void set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
+	void set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
 
 	void set_debug_positions(const MathVector<2> *pos, size_t size)
 	{
@@ -219,6 +220,7 @@ public:
 		return true;
 	}
 
+	void tostring() const;
 private:
 //  functions
 	void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
@@ -253,21 +255,24 @@ private:
 
 	pcl::ParallelCommunicator<IndexLayout>
 		*com[AMG_MAX_LEVELS]; 				///< the communicator objects on the levels
+	IndexLayout pseudoLayout;				///< Pseudo-IndexLayout for the created ParallelVectors.
 
-	int *parentIndex[AMG_MAX_LEVELS];			///< parentIndex[L][i] is the index of i on level L-1
+	int *parentIndex[AMG_MAX_LEVELS];		///< parentIndex[L][i] is the index of i on level L-1
 	cAMG_helper amghelper;					///< helper struct for viewing matrices (optional)
-	vector<MathVector<3> > dbg_positions;		///< positions of geometric grid (optional)
-	int dbg_dimension;							///< dimension of geometric grid (optional)
+	vector<MathVector<3> > dbg_positions;	///< positions of geometric grid (optional)
+	int dbg_dimension;						///< dimension of geometric grid (optional)
 
-	LapackLU coarseSolver;						///< the coarse solver
+
 	ILinearIterator<vector_type, vector_type> *m_presmoother;	///< presmoother template
 	ILinearIterator<vector_type, vector_type> *m_postsmoother;	///< postsmoother template \note: may be pre=post, is optimized away.
 
 	ILinearIterator<vector_type, vector_type> *m_presmoothers[AMG_MAX_LEVELS];	///< presmoothers for each level
 	ILinearIterator<vector_type, vector_type> *m_postsmoothers[AMG_MAX_LEVELS];	///< postsmoothers for each level
 
-	bool m_bInited;
-	IndexLayout pseudoLayout;
+	ILinearOperatorInverse<vector_type, vector_type> *m_basesolver; ///< the base solver
+
+
+	bool m_bInited;				///< true if inited. needed since preprocess doesnt give us a ParallelCommunicator atm.
 };
 	
 	

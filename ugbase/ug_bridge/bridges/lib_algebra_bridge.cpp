@@ -9,6 +9,7 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_discretization/lib_discretization.h"
 
+
 namespace ug
 {
 namespace bridge
@@ -96,18 +97,24 @@ void RegisterAlgebraType(Registry& reg)
 		typedef GridFunction<domain_type, dof_distribution_type, TAlgebra> function_type;
 	#endif
 
-		reg.add_class_<	amg<algebra_type>,
-			IPreconditioner<algebra_type> >("AMGPreconditioner")
+		reg.add_class_<	amg<algebra_type>, IPreconditioner<algebra_type> > ("AMGPreconditioner")
 			.add_constructor()
+
 			.add_method("set_nu1", &amg<algebra_type>::set_nu1)
 			.add_method("set_nu2", &amg<algebra_type>::set_nu2)
 			.add_method("set_gamma", &amg<algebra_type>::set_gamma)
 			.add_method("set_theta", &amg<algebra_type>::set_theta)
 			.add_method("set_max_levels", &amg<algebra_type>::set_max_levels)
+
+			.add_method("tostring", &amg<algebra_type>::tostring)
+
 			.add_method("set_aggressive_coarsening_A_2", &amg<algebra_type>::set_aggressive_coarsening_A_2)
 			.add_method("set_aggressive_coarsening_A_1", &amg<algebra_type>::set_aggressive_coarsening_A_1)
+
 			.add_method("set_presmoother", &amg<algebra_type>::set_presmoother)
 			.add_method("set_postsmoother", &amg<algebra_type>::set_postsmoother)
+			.add_method("set_base_solver", &amg<algebra_type>::set_base_solver)
+
 			.add_method("set_debug", &amg<algebra_type>::set_debug<function_type>);
 	}
 
@@ -140,7 +147,6 @@ void RegisterAlgebraType(Registry& reg)
 						ILinearOperatorInverse<vector_type, vector_type> >("LapackLUSolver")
 			.add_constructor();
 	}
-
 }
 
 

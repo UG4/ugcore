@@ -400,6 +400,10 @@ bool amg<TAlgebra>::preprocess(matrix_type& mat)
 template<typename TAlgebra>
 bool amg<TAlgebra>::init_amg()
 {
+	UG_ASSERT(m_basesolver, "no base solver selected. call set_base_solver(basesolver)");
+	UG_ASSERT(m_presmoother, "no presmoother selected. call set_presmoother(presmoother)");
+	UG_ASSERT(m_postsmoother, "no postsmoother selected. call set_postsmoother(postsmoother)");
+
 	// init amghelper for grid printing
 	amghelper.positions = &dbg_positions[0];
 	amghelper.size = A[0]->num_rows();
@@ -415,14 +419,14 @@ bool amg<TAlgebra>::init_amg()
 	while(i< max_levels-1)
 	{
 		m_presmoothers[i] = m_presmoother->clone();
-		SparseMatrixOperator<matrix_type, vector_type> SSS(*A[i]);
-		m_presmoothers[i]->init(SSS);
+		SparseMatrixOperator<matrix_type, vector_type> SMO(*A[i]);
+		m_presmoothers[i]->init(SMO);
 		if(m_presmoother == m_postsmoother)
 			m_postsmoothers[i] = m_presmoothers[i];
 		else
 		{
 			m_postsmoothers[i] = m_postsmoother->clone();
-			m_postsmoothers[i]->init(SSS);
+			m_postsmoothers[i]->init(SMO);
 		}
 
 		double L = A[i]->num_rows();
@@ -450,7 +454,8 @@ bool amg<TAlgebra>::init_amg()
 			<< A[i]->num_rows()*nrOfUnknowns << "x" << A[i]->num_rows()*nrOfUnknowns << ". ");
 
 	stopwatch SW; SW.start();
-	coarseSolver.init(*A[i]);
+	SparseMatrixOperator<matrix_type, vector_type> SMO(*A[i]);
+	m_basesolver->init(SMO);
 	UG_LOG("Coarse Solver Setup took " << SW.ms() << "ms." << endl);
 
 	used_levels = i+1;
@@ -491,10 +496,12 @@ amg<TAlgebra>::amg() :
 	aggressiveCoarseningNrOfPaths(2),
 
 	m_presmoother(NULL),
-	m_postsmoother(NULL)
+	m_postsmoother(NULL),
+	m_basesolver(NULL)
 {
 	vec4 = NULL;
 	m_bInited = false;
+
 
 #ifdef UG_PARALLEL
 	UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
@@ -558,10 +565,8 @@ bool amg<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type
 
 	if(level == used_levels-1)
 	{
-		coarseSolver.apply(d, c);
-		d.set(0.0);
-		//Ah.matmul_minus(d, c);
-		return 0.1e-14;
+		m_basesolver->apply_return_defect(c, d);
+		return true;
 	}
 
 	vector_type &corr = *vec3[level];
@@ -625,8 +630,8 @@ bool amg<TAlgebra>::get_correction(vector_type &c, const vector_type &const_d)
 	UG_ASSERT(c.size() == const_d.size() && c.size() == A[0]->num_rows(),
 				"c.size = " << c.size() << ", d.size = " << const_d.size() << ", A.size = " << A[0]->num_rows() << ": not matching");
 
-	int level = 0;
-	const matrix_type &Ah = *(A[level]);
+	//int level = 0;
+	//const matrix_type &Ah = *(A[level]);
 
 
 	//////////////////
@@ -650,12 +655,11 @@ bool amg<TAlgebra>::get_correction(vector_type &c, const vector_type &const_d)
 	}
 	//////////////////
 
-
+/*
 	if(level == used_levels-1)
 	{
-		coarseSolver.apply(const_d, c);
-		//Ah.matmul_minus(d, c);
-		return 0.1e-14;
+		m_basesolver.apply_return_defect(c, d);
+		return true;
 	}
 
 	vector_type &corr = *vec3[level];
@@ -725,10 +729,33 @@ bool amg<TAlgebra>::get_correction(vector_type &c, const vector_type &const_d)
 		m_postsmoothers[level]->apply_update_defect(c, d);
 
 	m_postsmoothers[level]->apply(c, d);
-
+*/
 	return true;
 }
 
+template<typename TAlgebra>
+void amg<TAlgebra>::tostring() const
+{
+	UG_LOG("AMGPreconditioner.\n");
+	UG_LOG("nu1 = " << nu1 << endl);
+	UG_LOG("nu2 = " << nu2 << endl);
+	UG_LOG("gamma = " << gamma << endl);
+	UG_LOG("theta = " << theta << endl);
+	UG_LOG("sigma = " << sigma << endl);
+	UG_LOG("max levels = " << max_levels << endl);
+
+	if(aggressiveCoarsening)	{UG_LOG("Aggressive Coarsening is on, A" << aggressiveCoarseningNrOfPaths << "-mode." << endl);}
+	else						{UG_LOG("no Aggressive Coarsening" << endl);}
+
+	if(m_presmoother) 	{UG_LOG("presmoother set.\n");}
+	else				{UG_LOG("no presmoother set!\n");}
+
+	if(m_postsmoother) 	{UG_LOG("postsmoother set.\n");}
+	else				{UG_LOG("no postsmoother set!\n");}
+
+	if(m_basesolver)	{UG_LOG("basesolver set\n");}
+	else				{UG_LOG("no basesolver set!\n");}
+}
 
 } // namespace ug
 
