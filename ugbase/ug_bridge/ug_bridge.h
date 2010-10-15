@@ -34,6 +34,10 @@ void RegisterLibDiscretizationInterface(Registry& reg);
 /**	This method is automatically invoked during the creation of the Registry.*/
 void RegisterTestInterface(Registry& reg);
 
+///	registers info commands TypeInfo and ClassUsage
+/**	This method is automatically invoked during the creation of the Registry.*/
+void RegisterInfoCommands(Registry &reg);
+
 }//	end of namespace 
 }//	end of namespace 
 

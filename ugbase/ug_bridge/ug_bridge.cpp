@@ -16,6 +16,7 @@ void RegisterStandardInterfaces(Registry& reg)
 	RegisterLibAlgebraInterface(reg);
 	RegisterLibDiscretizationInterface(reg);
 	RegisterTestInterface(reg);
+	RegisterInfoCommands(reg);
 }
 
 }//	end of namespace 

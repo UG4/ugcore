@@ -18,6 +18,7 @@ set(srcUGBridge    	class_name_provider.cpp
 					bridges/lib_grid_bridge.cpp
 					bridges/lib_algebra_bridge.cpp
 					bridges/lib_discretization_bridge.cpp
+					bridges/info_commands.cpp
 					bridges/test_bridge.cpp
 					bridges/user_data/user_vector.cpp
 					bridges/user_data/user_number.cpp
