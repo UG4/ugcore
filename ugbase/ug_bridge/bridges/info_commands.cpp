@@ -161,11 +161,18 @@ bool PrintClassInfo(const char *classname)
 	return false;
 }
 
+namespace lua
+{
+	string GetLuaTypeString(lua_State* L, int index);
+}
 
 /**
  * \brief Prints info to a lua type
  * \param 	p			the name of the object in lua.
  * you can use class names, function names or the names of an object
+ * - TypeInfo("class") prints all member functions+parameters of this class and its parents
+ * - TypeInfo("Function") prints all member functions+parameters
+ * - TypeInfo("variable") prints class information if variable is a object of a ug class, otherwise what type in lua it is
  */
 bool UGTypeInfo(const char *p)
 {
@@ -191,20 +198,14 @@ bool UGTypeInfo(const char *p)
 
 	if(lua_isfunction(L, -1))
 	{
-		if(PrintFunctionInfo(p) == false)
-			UG_LOG(p << " is a Lua function\n");
+		UG_LOG(p << " is a function\n");
+		PrintFunctionInfo(p);
 	}
 	else if(lua_iscfunction(L, -1))
 	{
-		if(PrintFunctionInfo(p) == false)
-			UG_LOG(p << " is a cfunction\n");
+		UG_LOG(p << " is a cfunction\n");
+		PrintFunctionInfo(p);
 	}
-	else if(lua_islightuserdata(L, -1))
-	{
-		UG_LOG(p << " is userdata\n");
-	}
-	else if(lua_isstring(L, -1))
-	{ UG_LOG(p << " is a string: \"" << lua_tostring(L, -1) << "\"\n"); }
 	else if(lua_isuserdata(L, -1))
 	{
 		if(lua_getmetatable(L, -1) == 0)
@@ -230,9 +231,8 @@ bool UGTypeInfo(const char *p)
 			PrintClassInfo((*names)[i]);
 	}
 	else
-	{
-		UG_LOG(lua_tostring(L, -1));
-	}
+		UG_LOG(p << " is a " << lua::GetLuaTypeString(L, -1) << endl);
+
 	lua_pop(L, 1);
 
 	UG_LOG("\n");
