@@ -27,4 +27,6 @@ include("ug_cmake_includes.txt")
 
 add_subdirectory(ugbase)
 
-
+if(NOT UG_SHARED)
+    add_subdirectory(apps/ugshell)
+endif(NOT UG_SHARED)
