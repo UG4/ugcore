@@ -183,6 +183,9 @@ class GridFunction :	public TAlgebra::vector_type,
 		std::string name()
 			{return m_name;}
 
+		// dimension
+		int get_dim() const {return domain_type::dim;}
+
 		// get dof distribution
 		const dof_distribution_type& get_dof_distribution() const
 			{return *m_pDoFDistribution;}
