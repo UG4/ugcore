@@ -19,6 +19,8 @@ include("../../ug_cmake_includes.txt")
 set(srcBindingsVRL
                     bindings_vrl.cpp
                     type_converter.cpp
+                    canvas.cpp
+                    messaging.cpp
 )
 
 

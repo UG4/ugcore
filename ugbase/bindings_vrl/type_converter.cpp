@@ -1,5 +1,6 @@
 #include "type_converter.h"
 #include "ug_bridge/registry.h"
+#include "messaging.h"
 #include <sstream>
 
 namespace ug {
@@ -151,6 +152,8 @@ namespace ug {
 
 			result << "public edu.gcsc.vrl.ug4.Pointer getPointer(){return super.getPointer()}\n";
 
+			result << "public void setPointer(edu.gcsc.vrl.ug4.Pointer p){super.setPointer(p)}\n";
+
 			result << "\n}";
 
 			return result.str();
@@ -213,6 +216,7 @@ namespace ug {
 		jobject string2JObject(JNIEnv *env, const char* value) {
 			return env->NewStringUTF(value);
 		}
+		
 
 		std::string jObject2String(JNIEnv *env, jobject obj) {
 			return stringJ2C(env, (jstring) obj);
@@ -229,6 +233,16 @@ namespace ug {
 				case ug::bridge::PT_CONST_POINTER: return "edu.gcsc.vrl.ug4.Pointer";
 				default: return "Object";
 			}
+		}
+
+		jobject getClass(JNIEnv *env, jobject obj) {
+			jclass classMethodAccess = env->FindClass("java/lang/Class");
+
+			jmethodID classNameMethodID = env->GetMethodID(classMethodAccess,
+					"getClass", "()Ljava/lang/Class;");
+
+			return env->CallObjectMethod(obj,
+					classNameMethodID);
 		}
 
 		std::string getClassName(JNIEnv *env, jobject obj) {
@@ -292,7 +306,7 @@ namespace ug {
 			return true;
 		}
 
-		ug::bridge::ExportedMethod const& getMethodBySignature(
+		const ug::bridge::ExportedMethod* getMethodBySignature(
 				JNIEnv *env,
 				ug::bridge::IExportedClass* clazz,
 				std::string methodName,
@@ -307,14 +321,16 @@ namespace ug {
 
 			for (unsigned int i = 0; i < clazz->num_methods(); i++) {
 				VRL_DBG("INSIDE", 1);
-				ug::bridge::ExportedMethod const& method = clazz->get_method(i);
+				const ug::bridge::ExportedMethod* method = &clazz->get_method(i);
 
-				if (strcmp(method.name().c_str(), methodName.c_str()) == 0 &&
-						compareParamTypes(env, params, method.params_in())) {
+				if (strcmp(method->name().c_str(), methodName.c_str()) == 0 &&
+						compareParamTypes(env, params, method->params_in())) {
 					VRL_DBG("METHOD_FOUND", 1);
 					return method;
 				}
 			}
+
+			return NULL;
 		}
 
 		long getExportedClassPtrByName(
@@ -352,17 +368,17 @@ namespace ug {
 			//	stack entry.
 			for (int i = 0; i < paramsTemplate.size(); ++i) {
 				int type = paramsTemplate.get_type(i);
-//				const std::vector<const char*>* classNames = paramsTemplate.class_names(i);
-//
-//				std::stringstream paramMessage;
-//
-//				paramMessage << "CLASSNAMES for PARAM " << i << ": ";
-//
-//				for (unsigned int j = 0; j < classNames->size(); j++) {
-//					paramMessage << "(" << j << "):" << (*classNames)[j] << ",";
-//				}
-//
-//				VRL_DBG(paramMessage.str(), 1);
+				//				const std::vector<const char*>* classNames = paramsTemplate.class_names(i);
+				//
+				//				std::stringstream paramMessage;
+				//
+				//				paramMessage << "CLASSNAMES for PARAM " << i << ": ";
+				//
+				//				for (unsigned int j = 0; j < classNames->size(); j++) {
+				//					paramMessage << "(" << j << "):" << (*classNames)[j] << ",";
+				//				}
+				//
+				//				VRL_DBG(paramMessage.str(), 1);
 
 
 				jobject value = env->GetObjectArrayElement(array, i);
@@ -391,12 +407,13 @@ namespace ug {
 
 					case PT_POINTER:
 					{
-						paramsOut.push_pointer(jObject2Pointer(env, value));
+						paramsOut.push_pointer(jObject2Pointer(env, value),
+								paramsTemplate.class_names(i)); //DON'T USE paramsTemplate here!!! Use the original type string of value
 					}
 						break;
 					case PT_CONST_POINTER:
 					{
-						paramsOut.push_pointer(jObject2Pointer(env, value));
+						paramsOut.push_pointer(jObject2Pointer(env, value), paramsTemplate.class_names(i));
 					}
 						break;
 				}
@@ -448,45 +465,48 @@ namespace ug {
 			return jobject();
 		}
 
-		/*
-				static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
-				{
-				//	push output parameters to the stack
-					for(int i = 0; i < params.size(); ++i){
-						int type = params.get_type(i);
-						switch(type){
-							case PT_BOOL:{
-								lua_pushboolean(L, (params.to_bool(i)) ? 1 : 0);
-							}break;
-							case PT_INTEGER:{
-								lua_pushnumber(L, params.to_integer(i));
-							}break;
-							case PT_NUMBER:{
-								lua_pushnumber(L, params.to_number(i));
-							}break;
-							case PT_STRING:{
-								lua_pushstring(L, params.to_string(i));
-							}break;
-							case PT_POINTER:{
-								void* obj = params.to_pointer(i);
-								CreateNewUserData(L, obj, params.class_name(i), false);
-							}break;
-							case PT_CONST_POINTER:{
-							//	we're removing const with a cast. However, it was made sure that
-							//	obj is treated as a const value.
-								void* obj = (void*)params.to_const_pointer(i);
-								CreateNewUserData(L, obj, params.class_name(i), true);
-							}break;
-							default:{
-								UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
-								UG_LOG("Return-values may be incomplete.\n");
-								return (int)i;
-							}break;
-						}
-					}
 
-					return (int)params.size();
-				}
-		 */
+		jobject messageTypeC2J(JNIEnv *env, MessageType type) {
+			jclass enumCls = env->FindClass("eu/mihosoft/vrl/visual/MessageType");
+
+			jmethodID methodID = env->GetStaticMethodID(enumCls,
+					"values", "()[Leu/mihosoft/vrl/visual/MessageType;");
+
+			if (env->ExceptionCheck()) {
+				VRL_DBG("EXEPTION 0:",1);
+				env->ExceptionDescribe();
+			}
+
+			jobjectArray values = (jobjectArray) env->CallObjectMethod(enumCls, methodID);
+
+			if (env->ExceptionCheck()) {
+				VRL_DBG("EXEPTION 1:",1);
+				env->ExceptionDescribe();
+			}
+
+			jobject result =  env->GetObjectArrayElement(values,type);
+
+
+			methodID = env->GetMethodID(
+					(jclass)getClass(env,result),"name","()Ljava/lang/String;");
+
+			if (env->ExceptionCheck()) {
+				VRL_DBG("EXEPTION 2:",1);
+				env->ExceptionDescribe();
+			}
+
+			jobject name = env->CallObjectMethod(result,
+					methodID);
+
+
+			VRL_DBG(jObject2String(env,name),1);
+
+			if (env->ExceptionCheck()) {
+				VRL_DBG("EXEPTION 3:",1);
+				env->ExceptionDescribe();
+			}
+
+			return result;
+		}
 	} // end vrl::
 }// end ug::

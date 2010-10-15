@@ -6,7 +6,10 @@
 #include "ug_bridge/registry.h"
 #include "ug_bridge/class.h"
 
+
 #include "type_converter.h"
+#include "messaging.h"
+#include "canvas.h"
 #include "bindings_vrl.h"
 #include "bindings_vrl_native.h"
 
@@ -75,8 +78,6 @@ public:
 		//
 	}
 
-
-
 	std::string hello(int a, int b) {
 		std::stringstream result;
 		result << "Hello, World! I'm a class!" << a << ", " << b;
@@ -105,13 +106,13 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 			.add_constructor()
 			.add_method("hello", &TestClass1::hello);
 
-//	testReg.add_function("UGAddInt", &TestAdd);
+	//	testReg.add_function("UGAddInt", &TestAdd);
 	//	testReg.add_function("UGMultInt", &TestMult);
 	//	testReg.add_function("TestFuncPointer", &TestFuncPointer);
-//	testReg.add_function("UGHello", &TestHello);
+	//	testReg.add_function("UGHello", &TestHello);
 	//	testReg.add_function("GetUgAddInt", &GetTestAdd);
 	//	testReg.add_function("GetUgMultInt", &GetTestMult);
-//	testReg.add_function("UGAndBool", &TestBoolAnd);
+	//	testReg.add_function("UGAndBool", &TestBoolAnd);
 	//	testReg.add_function("UGDouble", &TestDoubleAdd);
 	//testReg.add_function("UGAddString1", &TestStringAdd1);
 	//testReg.add_function("UGAddString2", &TestStringAdd2);
@@ -119,9 +120,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-	ug::bridge::RegisterTestInterface(testReg);
+//	ug::bridge::RegisterTestInterface(testReg);
 
-//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
+	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
 	ug::vrl::SetVRLRegistry(&testReg);
 
 	return (jint) retVal;
@@ -134,7 +135,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*)
 			ug::vrl::getExportedClassPtrByName(
-			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env,exportedClassName));
+			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, exportedClassName));
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -145,21 +146,30 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 	VRL_DBG("BEFORE_GET_METHOD 2", 1);
 
-	const ug::bridge::ExportedMethod& method =
+	const ug::bridge::ExportedMethod* method =
 			ug::vrl::getMethodBySignature(
 			env, clazz, name, params);
 
 	VRL_DBG("AFTER_GET_METHOD", 1);
 
-	VRL_DBG(method.name(), 1);
+	VRL_DBG(method->name(), 1);
 
 	VRL_DBG("BEFORE_OBJECT_ARRAY_TO_STACK", 1);
 
-	ug::vrl::jobjectArray2ParamStack(env, paramsIn, method.params_in(), params);
+	ug::vrl::jobjectArray2ParamStack(env, paramsIn, method->params_in(), params);
 
 	VRL_DBG("AFTER_OBJECT_ARRAY_TO_STACK", 1);
 
-	method.execute((void*) objPtr, paramsIn, paramsOut);
+//	ug::vrl::displayMessage("Test-Message",">> Hello from UG4",ug::vrl::INFO);
+
+
+	try {
+
+		method->execute((void*) objPtr, paramsIn, paramsOut);
+
+	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
+		std::cout << "Incopatible Conversion from " << ex.m_from << " : " << ex.m_to << std::endl;
+	}
 
 	jobject result = NULL;
 
@@ -216,4 +226,11 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 (JNIEnv *env, jobject obj, jstring name) {
 	return (long) ug::vrl::getExportedClassPtrByName(
 			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
+}
+
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
+  (JNIEnv *env, jobject obj, jobject canvas) {
+	ug::vrl::Canvas::getInstance()->setJObject(env,canvas);
+	
+//	ug::vrl::Canvas::getInstance()->addObject(ug::vrl::string2JObject(env,"Test_String"));
 }

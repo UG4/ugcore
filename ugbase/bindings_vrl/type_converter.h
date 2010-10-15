@@ -26,6 +26,8 @@
 #include "ug_bridge/class.h"
 #include "ug_bridge/registry.h"
 
+#include "messaging.h"
+
 namespace ug {
 	namespace vrl {
 
@@ -104,7 +106,7 @@ namespace ug {
 		jobject double2JObject(JNIEnv *env, jdouble value);
 		jdouble jObject2Double(JNIEnv *env, jobject obj);
 
-		jobject string2JObject(JNIEnv *env, jstring value);
+		jobject string2JObject(JNIEnv *env, const char* value);
 		std::string jObject2String(JNIEnv *env, jobject obj);
 
 		jobject pointer2JObject(JNIEnv *env, void* value);
@@ -118,6 +120,7 @@ namespace ug {
 
 		jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params, int index);
 
+		jobject getClass(JNIEnv *env, jobject obj);
 		std::string getClassName(JNIEnv *env, jobject obj);
 
 		uint paramClass2ParamType(JNIEnv *env, jobject obj);
@@ -125,7 +128,7 @@ namespace ug {
 		bool compareParamTypes(JNIEnv *env, jobjectArray params,
 				ug::bridge::ParameterStack& paramStack);
 
-		ug::bridge::ExportedMethod const& getMethodBySignature(
+		const ug::bridge::ExportedMethod* getMethodBySignature(
 				JNIEnv *env,
 				ug::bridge::IExportedClass* clazz,
 				std::string methodName,
@@ -135,6 +138,8 @@ namespace ug {
 				JNIEnv *env,
 				ug::bridge::Registry* reg,
 				std::string className);
+
+		jobject messageTypeC2J(JNIEnv *env, MessageType type);
 
 	} // end vrl::
 }// end ug::
