@@ -123,13 +123,13 @@ namespace ug {
 
 			result << "@ComponentInfo(name=\"" << className << "\")\n"
 					<< "public class " << className << " extends edu.gcsc.vrl.ug4.UGObject {\n"
-					<< "private static final serialVersionUID=1L;\n";
+					<< "private static final long serialVersionUID=1L;\n";
 
 			result << "public " << className << "() {\n"
-					<< "setClassName(\"" << clazz.name() << "\");\n"
-					<< "long address = (long) edu.gcsc.vrl.ug4.UG4.getUG4().newInstance("
-					<< "edu.gcsc.vrl.ug4.UG4.getUG4().getExportedClassPtrByName( getClassName()));\n"
-					<< "setPointer(new edu.gcsc.vrl.ug4.Pointer( address ))\n}\n";
+					<< "setClassName(\"" << clazz.name() << "\");\n}\n";
+//					<< "long address = (long) edu.gcsc.vrl.ug4.UG4.getUG4().newInstance("
+//					<< "edu.gcsc.vrl.ug4.UG4.getUG4().getExportedClassPtrByName( getClassName()));\n"
+//					<< "setPointer(new edu.gcsc.vrl.ug4.Pointer( address ))\n}\n";
 
 			VRL_DBG(clazz.num_methods(), 1);
 
