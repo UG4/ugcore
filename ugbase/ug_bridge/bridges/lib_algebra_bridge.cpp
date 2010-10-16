@@ -97,6 +97,9 @@ void RegisterAlgebraType(Registry& reg)
 		typedef GridFunction<domain_type, dof_distribution_type, TAlgebra> function_type;
 	#endif
 
+//todo: existance of AMGPreconditioner class should not depend on defines.
+	#ifdef LAPACK_AVAILABLE
+	#ifdef BLAS_AVAILABLE
 		reg.add_class_<	amg<algebra_type>, IPreconditioner<algebra_type> > ("AMGPreconditioner")
 			.add_constructor()
 
@@ -116,6 +119,9 @@ void RegisterAlgebraType(Registry& reg)
 			.add_method("set_base_solver", &amg<algebra_type>::set_base_solver)
 
 			.add_method("set_debug", &amg<algebra_type>::set_debug<function_type>);
+	#endif
+	#endif
+
 	}
 
 
@@ -142,10 +148,15 @@ void RegisterAlgebraType(Registry& reg)
 			.add_method("set_preconditioner", &BiCGStabSolver<algebra_type>::set_preconditioner)
 			.add_method("set_convergence_check", &BiCGStabSolver<algebra_type>::set_convergence_check);
 
+//todo: existance of LapackLUSolver class should not depend on defines.
+	#ifdef LAPACK_AVAILABLE
+	#ifdef BLAS_AVAILABLE
 	// 	BiCGStab Solver
 		reg.add_class_<	LapackLUSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("LapackLUSolver")
 			.add_constructor();
+	#endif
+	#endif
 	}
 }
 
