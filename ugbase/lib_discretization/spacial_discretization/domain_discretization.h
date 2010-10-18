@@ -17,8 +17,7 @@
 #include "./domain_discretization_interface.h"
 #include "./elem_disc/elem_disc_assemble_util.h"
 #include "./coupled_elem_disc/coupled_elem_disc_assemble_util.h"
-//#include "./post_process/dirichlet_boundary/subset_dirichlet_post_process_util.h"
-#include "./post_process/constraints/constraints_post_process_interface.h"
+#include "./post_process/post_process_interface.h"
 #include "./subset_assemble_util.h"
 #include "lib_discretization/common/function_group.h"
 
@@ -140,33 +139,21 @@ class DomainDiscretization :
 		std::vector<CoupledDisc> m_vCoupledDisc;
 
 	public:
-		bool add(IConstraintsPostProcess<TDoFDistribution, TAlgebra>& constraintsPP)
+		/** adds a post process to the assembling process
+		 * This function adds a Post Process to the assembling. The post process is called when all
+		 * element-wise assembling have been performed.
+		 *
+		 * \param[in] 	pp		Post Process to be added
+		 */
+		bool add_post_process(IPostProcess<TDoFDistribution, TAlgebra>& pp)
 		{
-			m_vConstraintsPostProcess.push_back(&constraintsPP);
+			const int type = pp.type();
+			m_vvPostProcess[type].push_back(&pp);
 			return true;
 		}
 
 	protected:
-		std::vector<IConstraintsPostProcess<TDoFDistribution, TAlgebra>*> m_vConstraintsPostProcess;
-
-	public:
-		bool add_dirichlet_bnd(IPostProcess<TDoFDistribution, TAlgebra>& bnd_pp)
-		{
-			m_vDirichletDisc.push_back(DirichletDisc(&bnd_pp));
-			return true;
-		}
-
-	protected:
-		struct DirichletDisc
-		{
-			DirichletDisc(IPostProcess<TDoFDistribution, TAlgebra>* pp) :
-				disc(pp) {};
-
-			IPostProcess<TDoFDistribution, TAlgebra>* disc;
-		};
-
-		std::vector<DirichletDisc> m_vDirichletDisc;
-
+		std::vector<IPostProcess<TDoFDistribution, TAlgebra>*> m_vvPostProcess[PPT_NUM_POST_PROCESS_TYPES];
 
 	protected:
 		// check that passed solution matches needed setup

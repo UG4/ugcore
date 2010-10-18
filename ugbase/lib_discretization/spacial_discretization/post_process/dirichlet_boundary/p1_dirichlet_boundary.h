@@ -1,12 +1,12 @@
 /*
- * dirichlet_bnd_values.h
+ * p1_dirichlet_boundary.h
  *
  *  Created on: 08.06.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DIRICHLET_BND_VALUES__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DIRICHLET_BND_VALUES__
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__
 
 #include "lib_discretization/common/common.h"
 #include "lib_discretization/spacial_discretization/domain_discretization_interface.h"
@@ -20,7 +20,7 @@ namespace ug{
 template <	typename TDomain,
 			typename TDoFDistribution,
 			typename TAlgebra>
-class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
+class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 	public:
 	// 	Type of discrete function
 		typedef TDoFDistribution dof_distribution_type;
@@ -48,20 +48,16 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 	public:
 		typedef typename IBoundaryNumberProvider<dim>::functor_type BNDNumberFunctor;
-		typedef bool (*Boundary_fct)(number&, const position_type&, number);
 
-		DirichletBNDValues() :
-			m_pDomain(NULL), m_pPattern(NULL)
-		{
-			m_mBoundarySegment.clear();
-		}
+		P1DirichletBoundary() :
+			m_pDomain(NULL), m_pPattern(NULL) {	m_mBoundarySegment.clear();}
 
 		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, const char* function, const char* subsets)
 		{
 		//	check that function pattern exists
 			if(m_pPattern == NULL)
 			{
-				UG_LOG("DirichletBNDValues:add_boundary_value: Function Pattern not set.\n");
+				UG_LOG("P1DirichletBoundary:add_boundary_value: Function Pattern not set.\n");
 				return false;
 			}
 
@@ -81,7 +77,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 			{
 				if(!functionGroup.add_function(tokens[i].c_str()))
 				{
-					UG_LOG("DirichletBNDValues:add_boundary_value: Name of function not found in Function Pattern.\n");
+					UG_LOG("P1DirichletBoundary:add_boundary_value: Name of function not found in Function Pattern.\n");
 					return false;
 				}
 			}
@@ -94,7 +90,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 			{
 				if(!subsetGroup.add_subset(tokens[i].c_str()))
 				{
-					UG_LOG("DirichletBNDValues:add_boundary_value: Name of subset not found in Subset Handler.\n");
+					UG_LOG("P1DirichletBoundary:add_boundary_value: Name of subset not found in Subset Handler.\n");
 					return false;
 				}
 			}
@@ -102,7 +98,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 		//	only one function allowed
 			if(functionGroup.num_fct() != 1)
 			{
-				UG_LOG("DirichletBNDValues:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
+				UG_LOG("P1DirichletBoundary:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
 				return false;
 			}
 
@@ -115,7 +111,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 		//	check that function pattern exists
 			if(m_pPattern == NULL)
 			{
-				UG_LOG("DirichletBNDValues:add_boundary_value: Function Pattern not set.\n");
+				UG_LOG("P1DirichletBoundary:add_boundary_value: Function Pattern not set.\n");
 				return false;
 			}
 
@@ -131,7 +127,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 			//	check that subsetIndex is valid
 				if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
 				{
-					UG_LOG("DirichletBNDValues:add_boundary_value: Invalid subset Index "
+					UG_LOG("P1DirichletBoundary:add_boundary_value: Invalid subset Index "
 							<< subsetIndex << ". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
 					return false;
 				}
@@ -139,7 +135,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 			// 	check if function exist
 				if(fct >= m_pPattern->num_fct())
 				{
-					UG_LOG("DirichletBNDValues:add_boundary_value: Function "
+					UG_LOG("P1DirichletBoundary:add_boundary_value: Function "
 							<< fct << " does not exist in pattern.\n");
 					return false;
 				}
@@ -147,7 +143,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 			// 	check that function is defined for segment
 				if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
 				{
-					UG_LOG("DirichletBNDValues:add_boundary_value: Function "
+					UG_LOG("P1DirichletBoundary:add_boundary_value: Function "
 							<< fct << " not defined in subset " << subsetIndex << ".\n");
 					return false;
 				}
@@ -195,27 +191,23 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 		};
 
 	protected:
-		template <typename TElem>
-		bool clear_dirichlet_jacobian(			typename geometry_traits<TElem>::const_iterator iterBegin,
-												typename geometry_traits<TElem>::const_iterator iterEnd,
+		bool clear_dirichlet_jacobian(			geometry_traits<VertexBase>::const_iterator iterBegin,
+												geometry_traits<VertexBase>::const_iterator iterEnd,
 												const std::vector<UserDataFunction>& userData, int si, matrix_type& J,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
-		template <typename TElem>
-		bool clear_dirichlet_defect(			typename geometry_traits<TElem>::const_iterator iterBegin,
-												typename geometry_traits<TElem>::const_iterator iterEnd,
+		bool clear_dirichlet_defect(			geometry_traits<VertexBase>::const_iterator iterBegin,
+												geometry_traits<VertexBase>::const_iterator iterEnd,
 												const std::vector<UserDataFunction>& userData, int si, vector_type& d,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
-		template <typename TElem>
-		bool set_dirichlet_solution( 			typename geometry_traits<TElem>::const_iterator iterBegin,
-												typename geometry_traits<TElem>::const_iterator iterEnd,
+		bool set_dirichlet_solution( 			geometry_traits<VertexBase>::const_iterator iterBegin,
+												geometry_traits<VertexBase>::const_iterator iterEnd,
 												const std::vector<UserDataFunction>& userData, int si, vector_type& x,
 												const dof_distribution_type& dofDistr, number time = 0.0);
 
-		template <typename TElem>
-		bool set_dirichlet_linear(				typename geometry_traits<TElem>::const_iterator iterBegin,
-												typename geometry_traits<TElem>::const_iterator iterEnd,
+		bool set_dirichlet_linear(				geometry_traits<VertexBase>::const_iterator iterBegin,
+												geometry_traits<VertexBase>::const_iterator iterEnd,
 												const std::vector<UserDataFunction>& userData, int si, matrix_type& mat, vector_type& rhs,
 												const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0);
 
@@ -232,7 +224,7 @@ class DirichletBNDValues : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
@@ -245,9 +237,9 @@ post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distributi
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
-		if(!clear_dirichlet_jacobian<VertexBase>(iterBegin, iterEnd, userData, si, J, u, dofDistr, time))
+		if(!clear_dirichlet_jacobian(iterBegin, iterEnd, userData, si, J, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'DirichletBNDValues::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return IAssemble_ERROR;
 		}
@@ -258,7 +250,7 @@ post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distributi
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
@@ -271,9 +263,9 @@ post_process_defect(vector_type& d, const vector_type& u, const dof_distribution
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
-		if(!clear_dirichlet_defect<VertexBase>(iterBegin, iterEnd, userData, si, d, u, dofDistr, time))
+		if(!clear_dirichlet_defect(iterBegin, iterEnd, userData, si, d, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'DirichletBNDValues::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return IAssemble_ERROR;
 		}
@@ -284,7 +276,7 @@ post_process_defect(vector_type& d, const vector_type& u, const dof_distribution
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
@@ -297,9 +289,9 @@ post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, num
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
-		if(!set_dirichlet_solution<VertexBase>(iterBegin, iterEnd, userData, si, u, dofDistr, time))
+		if(!set_dirichlet_solution(iterBegin, iterEnd, userData, si, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'DirichletBNDValues::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return IAssemble_ERROR;
 		}
@@ -309,7 +301,7 @@ post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, num
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
 post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time)
 {
 //	loop boundary subsets
@@ -322,9 +314,9 @@ post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, co
 		typename geometry_traits<VertexBase>::const_iterator iterBegin 	= dofDistr.template begin<VertexBase>(si);
 		typename geometry_traits<VertexBase>::const_iterator iterEnd 	= dofDistr.template end<VertexBase>(si);
 
-		if(!set_dirichlet_linear<VertexBase>(iterBegin, iterEnd, userData, si, mat, rhs, u, dofDistr, time))
+		if(!set_dirichlet_linear(iterBegin, iterEnd, userData, si, mat, rhs, u, dofDistr, time))
 		{
-			UG_LOG("ERROR in 'DirichletBNDValues::post_process_jacobian':"
+			UG_LOG("ERROR in 'P1DirichletBoundary::post_process_jacobian':"
 					" while calling 'clear_dirichlet_jacobian', aborting.\n");
 			return IAssemble_ERROR;
 		}
@@ -334,11 +326,10 @@ post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, co
 
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-template <typename TElem>
 bool
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
-clear_dirichlet_defect(	typename geometry_traits<TElem>::const_iterator iterBegin,
-						typename geometry_traits<TElem>::const_iterator iterEnd,
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+clear_dirichlet_defect(	geometry_traits<VertexBase>::const_iterator iterBegin,
+						geometry_traits<VertexBase>::const_iterator iterEnd,
 						const std::vector<UserDataFunction>& userData, int si,
 						vector_type& d,
 						const vector_type& u, const dof_distribution_type& dofDistr, number time)
@@ -351,13 +342,13 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::const_iterator iterBegi
 	position_type corner;
 
 //	loop vertices
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 	//	get vertex
-		TElem* elem = *iter;
+		VertexBase* vertex = *iter;
 
 	//	get corner position
-		corner = m_aaPos[elem];
+		corner = m_aaPos[vertex];
 
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < userData.size(); ++i)
@@ -369,7 +360,7 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::const_iterator iterBegi
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
+			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 		//	set dirichlet value
@@ -380,11 +371,10 @@ clear_dirichlet_defect(	typename geometry_traits<TElem>::const_iterator iterBegi
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-template <typename TElem>
 bool
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
-clear_dirichlet_jacobian(	typename geometry_traits<TElem>::const_iterator iterBegin,
-							typename geometry_traits<TElem>::const_iterator iterEnd,
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+clear_dirichlet_jacobian(	geometry_traits<VertexBase>::const_iterator iterBegin,
+							geometry_traits<VertexBase>::const_iterator iterEnd,
 							const std::vector<UserDataFunction>& userData, int si,
 							matrix_type& J,
 							const vector_type& u, const dof_distribution_type& dofDistr, number time)
@@ -397,13 +387,13 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::const_iterator iterBe
 	position_type corner;
 
 //	loop vertices
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 	//	get vertex
-		TElem* elem = *iter;
+		VertexBase* vertex = *iter;
 
 	//	get corner position
-		corner = m_aaPos[elem];
+		corner = m_aaPos[vertex];
 
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < userData.size(); ++i)
@@ -415,7 +405,7 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::const_iterator iterBe
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
+			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 		//	set dirichlet row
@@ -426,11 +416,10 @@ clear_dirichlet_jacobian(	typename geometry_traits<TElem>::const_iterator iterBe
 }
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-template <typename TElem>
 bool
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
-set_dirichlet_solution(	typename geometry_traits<TElem>::const_iterator iterBegin,
-						typename geometry_traits<TElem>::const_iterator iterEnd,
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+set_dirichlet_solution(	geometry_traits<VertexBase>::const_iterator iterBegin,
+						geometry_traits<VertexBase>::const_iterator iterEnd,
 						const std::vector<UserDataFunction>& userData, int si,
 						vector_type& x,
 						const dof_distribution_type& dofDistr, number time)
@@ -443,13 +432,13 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::const_iterator iterBegi
 	position_type corner;
 
 //	loop vertices
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 	//	get vertex
-		TElem* elem = *iter;
+		VertexBase* vertex = *iter;
 
 	//	get corner position
-		corner = m_aaPos[elem];
+		corner = m_aaPos[vertex];
 
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < userData.size(); ++i)
@@ -461,7 +450,7 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::const_iterator iterBegi
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
+			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 		//	set dirichlet value
@@ -473,11 +462,10 @@ set_dirichlet_solution(	typename geometry_traits<TElem>::const_iterator iterBegi
 
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-template <typename TElem>
 bool
-DirichletBNDValues<TDomain, TDoFDistribution, TAlgebra>::
-set_dirichlet_linear(	typename geometry_traits<TElem>::const_iterator iterBegin,
-						typename geometry_traits<TElem>::const_iterator iterEnd,
+P1DirichletBoundary<TDomain, TDoFDistribution, TAlgebra>::
+set_dirichlet_linear(	geometry_traits<VertexBase>::const_iterator iterBegin,
+						geometry_traits<VertexBase>::const_iterator iterEnd,
 						const std::vector<UserDataFunction>& userData, int si,
 						matrix_type& mat, vector_type& rhs,
 						const vector_type& u, const dof_distribution_type& dofDistr, number time)
@@ -490,13 +478,13 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::const_iterator iterBegin,
 	position_type corner;
 
 //	loop vertices
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
+	for(geometry_traits<VertexBase>::const_iterator iter = iterBegin; iter != iterEnd; iter++)
 	{
 	//	get vertex
-		TElem* elem = *iter;
+		VertexBase* vertex = *iter;
 
 	//	get corner position
-		corner = m_aaPos[elem];
+		corner = m_aaPos[vertex];
 
 	//	loop dirichlet functions on this segment
 		for(size_t i = 0; i < userData.size(); ++i)
@@ -508,7 +496,7 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::const_iterator iterBegin,
 			const size_t fct = userData[i].fct;
 
 		//	get multi indices
-			if(dofDistr.template get_inner_multi_indices<TElem>(elem, fct, multInd) != 1)
+			if(dofDistr.template get_inner_multi_indices<VertexBase>(vertex, fct, multInd) != 1)
 				return false;
 
 			const size_t index = multInd[0][0];
@@ -529,4 +517,4 @@ set_dirichlet_linear(	typename geometry_traits<TElem>::const_iterator iterBegin,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DIRICHLET_BND_VALUES__ */
+#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS_DIRICHLET_BOUNDARY__P1_DIRICHLET_BOUNDARY__ */

@@ -64,14 +64,14 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 		}
 	}
 
-//	post process constraints
-	// todo: add constraints
-
-//	post process dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
 	{
-		if((m_vDirichletDisc[i].disc)->post_process_jacobian(J, u, dofDistr) != IAssemble_OK)
-			return IAssemble_ERROR;
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr) != IAssemble_OK)
+				return IAssemble_ERROR;
+		}
 	}
 
 //	done
@@ -123,13 +123,15 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 		}
 	}
 
-//	post process constraints
-	// todo: add constraints
-
-//	post process dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->post_process_defect(d, u, dofDistr) != IAssemble_OK)
-			return IAssemble_ERROR;
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr) != IAssemble_OK)
+				return IAssemble_ERROR;
+		}
+	}
 
 //	done
 	return IAssemble_OK;
@@ -179,15 +181,15 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const 
 		}
 	}
 
-//	post process constraints
-	for(size_t i = 0; i < m_vConstraintsPostProcess.size(); ++i)
-		if(m_vConstraintsPostProcess[i]->post_process_linear(mat, rhs, u, dofDistr) != IAssemble_OK)
-			return IAssemble_ERROR;
-
-//	post process dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->post_process_linear(mat, rhs, u, dofDistr) != IAssemble_OK)
-			return IAssemble_ERROR;
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr) != IAssemble_OK)
+				return IAssemble_ERROR;
+		}
+	}
 
 //	done
 	return IAssemble_OK;
@@ -201,10 +203,12 @@ IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 {
-//	set dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->post_process_solution(u, dofDistr) != IAssemble_OK)
+//	post process dirichlet
+	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
+	{
+		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr) != IAssemble_OK)
 			return IAssemble_ERROR;
+	}
 
 //	done
 	return IAssemble_OK;
@@ -261,13 +265,15 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 		}
 	}
 
-//	post process constraints
-	// todo: add
-
-//	post process dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->post_process_jacobian(J, u, dofDistr, time) != IAssemble_OK)
-			return IAssemble_ERROR;
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr, time) != IAssemble_OK)
+				return IAssemble_ERROR;
+		}
+	}
 
 //	done
 	return IAssemble_OK;
@@ -318,13 +324,15 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 		}
 	}
 
-//	post process constraints
-	// todo: add
-
-//	post process dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->post_process_defect(d, u, dofDistr, time) != IAssemble_OK)
-			return IAssemble_ERROR;
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr, time) != IAssemble_OK)
+				return IAssemble_ERROR;
+		}
+	}
 
 //	done
 	return IAssemble_OK;
@@ -375,13 +383,15 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const 
 		}
 	}
 
-//	post process constraints
-	// todo: add
-
-//	post process dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->post_process_linear(mat, rhs, u, dofDistr, time) != IAssemble_OK)
-			return IAssemble_ERROR;
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr, time) != IAssemble_OK)
+				return IAssemble_ERROR;
+		}
+	}
 
 //	done
 	return IAssemble_OK;
@@ -398,10 +408,12 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number 
 //	check solution
 	if(!check_solution(u, dofDistr)) return IAssemble_ERROR;
 
-//	set dirichlet values
-	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->post_process_solution(u, dofDistr, time) != IAssemble_OK)
+//	post process
+	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
+	{
+		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr, time) != IAssemble_OK)
 			return IAssemble_ERROR;
+	}
 
 //	done
 	return IAssemble_OK;

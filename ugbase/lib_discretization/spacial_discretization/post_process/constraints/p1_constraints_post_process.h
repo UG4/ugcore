@@ -1,12 +1,12 @@
 /*
- * constraints_post_process_interface.h
+ * p1_constraints_post_process.h
  *
  *  Created on: 01.03.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__CONSTRAINTS_POST_PROCESS_INTERFACE__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__CONSTRAINTS_POST_PROCESS_INTERFACE__
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__P1_CONSTRAINTS_POST_PROCESS__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__P1_CONSTRAINTS_POST_PROCESS__
 
 #include "lib_discretization/assemble.h"
 
@@ -14,7 +14,7 @@ namespace ug {
 
 template <	typename TDoFDistribution,
 			typename TAlgebra>
-class IConstraintsPostProcess{
+class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgebra> {
 	public:
 	// 	DoF Distribution Type
 		typedef TDoFDistribution dof_distribution_type;
@@ -29,36 +29,8 @@ class IConstraintsPostProcess{
 		typedef typename algebra_type::vector_type vector_type;
 
 	public:
-		virtual IAssembleReturn post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
-
-		virtual IAssembleReturn post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
-
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
-		{return IAssemble_NOT_IMPLEMENTED;}
-
-		virtual ~IConstraintsPostProcess() {};
-};
-
-template <	typename TDoFDistribution,
-			typename TAlgebra>
-class SymP1ConstraintsPostProcess : public IConstraintsPostProcess<TDoFDistribution, TAlgebra> {
-	public:
-	// 	DoF Distribution Type
-		typedef TDoFDistribution dof_distribution_type;
-
-	// 	Algebra type
-		typedef TAlgebra algebra_type;
-
-	// 	Type of algebra matrix
-		typedef typename algebra_type::matrix_type matrix_type;
-
-	// 	Type of algebra vector
-		typedef typename algebra_type::vector_type vector_type;
-
-	public:
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
+		virtual int type() {return PPT_CONSTRAINTS;}
+		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
 		{
 			typename geometry_traits<ConstrainingEdge>::iterator iter, iterBegin, iterEnd;
 
@@ -176,7 +148,7 @@ class SymP1ConstraintsPostProcess : public IConstraintsPostProcess<TDoFDistribut
 
 template <	typename TDoFDistribution,
 			typename TAlgebra>
-class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDoFDistribution, TAlgebra> {
+class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgebra> {
 	public:
 	// 	DoF Distribution Type
 		typedef TDoFDistribution dof_distribution_type;
@@ -194,7 +166,9 @@ class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDoFDistr
 		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
 
 	public:
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
+		virtual int type() {return PPT_CONSTRAINTS;}
+
+		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
 		{
 			std::vector<algebra_index_vector_type> vConstrainingIndices;
 			algebra_index_vector_type constrainedIndex;
@@ -367,4 +341,4 @@ class OneSideP1ConstraintsPostProcess : public IConstraintsPostProcess<TDoFDistr
 
 
 
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__CONSTRAINTS_POST_PROCESS_INTERFACE__ */
+#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__P1_CONSTRAINTS_POST_PROCESS__ */

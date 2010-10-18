@@ -12,9 +12,9 @@
 #include "./post_process_interface.h"
 
 // dirichlet boundary
-#include "./dirichlet_boundary/dirichlet_bnd.h"
+#include "./dirichlet_boundary/p1_dirichlet_boundary.h"
 
 // constraints
-#include "./constraints/constraints_post_process_interface.h"
+#include "./constraints/p1_constraints_post_process.h"
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS__ */

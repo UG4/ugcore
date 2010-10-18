@@ -19,7 +19,6 @@
 
 // post process
 #include "./post_process/post_process.h"
-#include "./dirichlet_bnd_values.h"
 
 // element discs
 #include "./elem_disc/elem_disc.h"
