@@ -135,8 +135,6 @@ class IAssemble {
 
 		virtual size_t num_fct() const = 0;
 
-		virtual bool is_dirichlet(int si, size_t fct) = 0;
-
 		/// virtual Destructor
 		virtual ~IAssemble(){};
 };
