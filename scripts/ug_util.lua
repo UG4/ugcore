@@ -81,16 +81,6 @@ function utilCreateApproximationSpace(domain, pattern)
 	return approxSpace, pattern
 end
 
--- creates a 2d dirichlet boundary and assigns the given parameters.
--- todo: specify types
-function utilCreateDirichletBnd2d(domain, bndFct, fctInd)
-	local dirichletBND = DirichletBND2d()
-	dirichletBND:set_domain(domain)
-	dirichletBND:set_dirichlet_function(bndFct)
-	dirichletBND:set_function(fctInd)
-	return dirichletBND
-end
-
 -- creates Neumann Boundary
 function utilCreateNeumannBoundary(domain, userFunc, bndSubset)
 	local dim = domain:get_dim()

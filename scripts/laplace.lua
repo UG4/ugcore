@@ -163,7 +163,7 @@ dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 domainDisc = DomainDiscretization()
 domainDisc:add(elemDisc, pattern, "c", "Inner")
 domainDisc:add(neumannDisc, pattern, "c", "Inner")
-domainDisc:add_dirichlet_bnd(dirichletBND)
+domainDisc:add_post_process(dirichletBND)
 
 -------------------------------------------
 --  Algebra

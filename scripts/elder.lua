@@ -119,7 +119,7 @@ elemDisc:set_user_functions(elderElemFct)
 
 -- add Element Discretization to discretization
 domainDisc:add(elemDisc, pattern, "c,p", "Inner")
-domainDisc:add_dirichlet_bnd(dirichletBND)
+domainDisc:add_post_process(dirichletBND)
 
 -- create time discretization
 timeDisc = ThetaTimeDiscretization()
