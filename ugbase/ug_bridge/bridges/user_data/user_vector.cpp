@@ -60,8 +60,9 @@ class LuaUserVector
 			lua_getglobal(m_L, m_callbackName);
 			for(size_t i = 0; i < dim; ++i)
 				lua_pushnumber(m_L, x[i]);
+			lua_pushnumber(m_L, time);
 
-			if(lua_pcall(m_L, dim, dim, 0) != 0)
+			if(lua_pcall(m_L, dim + 1, dim, 0) != 0)
 			{
 				UG_LOG("error running diffusion callback " << m_callbackName << ": "
 								<< lua_tostring(m_L, -1));
@@ -93,7 +94,7 @@ class UserVectorProvider : public IUserVectorProvider<dim>
 		virtual functor_type get_functor() const {return m_UserVector;}
 
 	//	set user Vector
-		void set_user_vector(const TUserVector& userVector) {m_UserVector = userVector;}
+		void set_functor(const TUserVector& userVector) {m_UserVector = userVector;}
 
 	protected:
 		TUserVector	m_UserVector;
@@ -116,7 +117,7 @@ void RegisterUserVector(Registry& reg)
 			stringstream ss; ss << "ConstUserVectorProvider" << dim << "d";
 			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str())
 				.add_constructor()
-				.add_method("set_user_vector", &T::set_user_vector);
+				.add_method("set_functor", &T::set_functor);
 		}
 
 	//	Lua Vector
@@ -125,7 +126,7 @@ void RegisterUserVector(Registry& reg)
 			stringstream ss; ss << "LuaUserVectorProvider" << dim << "d";
 			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str())
 				.add_constructor()
-				.add_method("set_user_vector", &T::set_user_vector);
+				.add_method("set_functor", &T::set_functor);
 		}
 	}
 

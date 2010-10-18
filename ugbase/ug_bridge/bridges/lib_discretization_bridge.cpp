@@ -164,11 +164,11 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 	{
 		typedef DirichletBNDValues<domain_type, dof_distribution_type, algebra_type> T;
 		stringstream ss; ss << "DirichletBND" << dim << "d";
-		reg.add_class_<T, IDirichletBoundaryValues<dof_distribution_type, algebra_type> >(ss.str().c_str())
+		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
-			.add_method("set_dirichlet_function", &T::set_dirichlet_function)
-			.add_method("set_function", &T::set_function);
+			.add_method("set_pattern", &T::set_pattern)
+			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value);
 	}
 
 //	Neumann Boundary
@@ -230,6 +230,30 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		reg.add_function(ss.str().c_str(), &SaveVectorForConnectionViewer<function_type>);
 	}
 
+//	ProlongationOperator
+	{
+		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
+		typedef P1ProlongationOperator<approximation_space_type, algebra_type> T;
+
+		stringstream ss; ss << "P1ProlongationOperator" << dim << "d";
+		reg.add_class_<T, IProlongationOperator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str())
+			.add_constructor()
+			.add_method("set_approximation_space", &T::set_approximation_space)
+			.add_method("set_dirichlet_post_process", &T::set_dirichlet_post_process);
+
+	}
+
+//	ProjectionOperator
+	{
+		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
+		typedef P1ProjectionOperator<approximation_space_type, algebra_type> T;
+
+		stringstream ss; ss << "P1ProjectionOperator" << dim << "d";
+		reg.add_class_<T, IProjectionOperator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str())
+			.add_constructor()
+			.add_method("set_approximation_space", &T::set_approximation_space);
+	}
+
 //	AssembledMultiGridCycle
 	{
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
@@ -246,7 +270,9 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 			.add_method("set_smoother", &T::set_smoother)
 			.add_method("set_cycle_type", &T::set_cycle_type)
 			.add_method("set_num_presmooth", &T::set_num_presmooth)
-			.add_method("set_num_postsmooth", &T::set_num_postsmooth);
+			.add_method("set_num_postsmooth", &T::set_num_postsmooth)
+			.add_method("set_prolongation", &T::set_prolongation_operator)
+			.add_method("set_projection", &T::set_projection_operator);
 	}
 
 //	VTK Output
@@ -323,7 +349,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		}
 
 	//	Base class
-		reg.add_class_<IDirichletBoundaryValues<dof_distribution_type, algebra_type> >("IDirichletBoundaryValues");
+		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess");
 
 
 	//	DirichletBoundaryFunction
@@ -422,6 +448,11 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		RegisterUserNumber(reg);
 		RegisterUserVector(reg);
 		RegisterUserMatrix(reg);
+
+	//	Register Boundary functions
+		RegisterBoundaryNumber(reg);
+
+	//	todo: remove when possible
 		RegisterElderUserFunctions(reg);
 }
 

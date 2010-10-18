@@ -10,6 +10,10 @@ namespace bridge
 void RegisterUserNumber(Registry& reg);
 void RegisterUserVector(Registry& reg);
 void RegisterUserMatrix(Registry& reg);
+
+void RegisterBoundaryNumber(Registry& reg);
+
+
 void RegisterElderUserFunctions(Registry& reg);
 
 } // end namepace bridge

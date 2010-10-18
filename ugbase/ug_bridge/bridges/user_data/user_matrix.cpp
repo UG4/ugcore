@@ -74,10 +74,11 @@ class LuaUserMatrix
 			lua_getglobal(m_L, m_callbackName);
 			for(size_t i = 0; i < dim; ++i)
 				lua_pushnumber(m_L, x[i]);
+			lua_pushnumber(m_L, time);
 
 			size_t matSize = dim*dim;
 
-			if(lua_pcall(m_L, dim, matSize, 0) != 0)
+			if(lua_pcall(m_L, dim + 1, matSize, 0) != 0)
 			{
 				UG_LOG("error running diffusion callback " << m_callbackName << ": "
 								<< lua_tostring(m_L, -1));
@@ -111,39 +112,10 @@ class UserMatrixProvider : public IUserMatrixProvider<dim>
 		virtual functor_type get_functor() const {return m_UserMatrix;}
 
 	//	set user matrix
-		void set_user_matrix(const TUserMatrix& userMatrix) {m_UserMatrix = userMatrix;}
+		void set_functor(const TUserMatrix& userMatrix) {m_UserMatrix = userMatrix;}
 
 	protected:
 		TUserMatrix	m_UserMatrix;
-};
-
-namespace{
-
-template <int dim>
-bool BNDCond( number& value, const MathVector<dim>& x, number time = 0.0)
-{
-	double s = 2*M_PI;
-	value = 0;
-	for(size_t i = 0; i < dim; ++i)
-		value += sin(s*x[i]);
-
-	return true;
-}
-
-}
-
-template <int dim>
-class SinusDirichletBoundaryFunction : public DirichletBoundaryFunction<dim>
-{
-	public:
-	//	Function Type
-		typedef bool (*Boundary_fct)(number&, const MathVector<dim>&, number);
-
-	public:
-		virtual Boundary_fct get_bnd_function() const
-		{
-			return &BNDCond<dim>;
-		}
 };
 
 template <int dim>
@@ -163,7 +135,7 @@ void RegisterUserMatrix(Registry& reg)
 			stringstream ss; ss << "ConstUserMatrixProvider" << dim << "d";
 			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str())
 				.add_constructor()
-				.add_method("set_user_matrix", &T::set_user_matrix);
+				.add_method("set_functor", &T::set_functor);
 		}
 
 	//	Lua Matrix
@@ -172,7 +144,7 @@ void RegisterUserMatrix(Registry& reg)
 			stringstream ss; ss << "LuaUserMatrixProvider" << dim << "d";
 			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str())
 				.add_constructor()
-				.add_method("set_user_matrix", &T::set_user_matrix);
+				.add_method("set_functor", &T::set_functor);
 		}
 	}
 
@@ -203,13 +175,6 @@ void RegisterUserMatrix(Registry& reg)
 
 void RegisterUserMatrix(Registry& reg)
 {
-	// todo: removed when replaced by adequate structure
-	//	DirichletBoundaryFunction
-		{
-			reg.add_class_<SinusDirichletBoundaryFunction<2>, DirichletBoundaryFunction<2> >("SinusDirichletBoundaryFunction2d")
-				.add_constructor();
-		}
-
 	RegisterUserMatrix<1>(reg);
 	RegisterUserMatrix<2>(reg);
 	RegisterUserMatrix<3>(reg);

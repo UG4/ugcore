@@ -55,8 +55,9 @@ class LuaUserNumber
 			lua_getglobal(m_L, m_callbackName);
 			for(size_t i = 0; i < dim; ++i)
 				lua_pushnumber(m_L, x[i]);
+			lua_pushnumber(m_L, time);
 
-			if(lua_pcall(m_L, dim, 1, 0) != 0)
+			if(lua_pcall(m_L, dim + 1, 1, 0) != 0)
 			{
 				UG_LOG("error running diffusion callback " << m_callbackName << ": "
 								<< lua_tostring(m_L, -1));
@@ -84,7 +85,7 @@ class UserNumberProvider : public IUserNumberProvider<dim>
 		virtual functor_type get_functor() const {return m_UserNumber;}
 
 	//	set user Number
-		void set_user_number(const TUserNumber& userNumber) {m_UserNumber = userNumber;}
+		void set_functor(const TUserNumber& userNumber) {m_UserNumber = userNumber;}
 
 	protected:
 		TUserNumber	m_UserNumber;
@@ -107,7 +108,7 @@ void RegisterUserNumber(Registry& reg)
 			stringstream ss; ss << "ConstUserNumberProvider" << dim << "d";
 			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str())
 				.add_constructor()
-				.add_method("set_user_number", &T::set_user_number);
+				.add_method("set_functor", &T::set_functor);
 		}
 
 	//	Lua Number
@@ -116,7 +117,7 @@ void RegisterUserNumber(Registry& reg)
 			stringstream ss; ss << "LuaUserNumberProvider" << dim << "d";
 			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str())
 				.add_constructor()
-				.add_method("set_user_number", &T::set_user_number);
+				.add_method("set_functor", &T::set_functor);
 		}
 	}
 

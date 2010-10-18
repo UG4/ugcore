@@ -50,6 +50,9 @@ void RegisterAlgebraType(Registry& reg)
 
 		reg.add_class_<IOperator<vector_type, vector_type> >("IOperator");
 		reg.add_class_<IOperatorInverse<vector_type, vector_type> >("IOperatorInverse");
+
+		reg.add_class_<IProlongationOperator<vector_type, vector_type> >("IProlongationOperator");
+		reg.add_class_<IProjectionOperator<vector_type, vector_type> >("IProjectionOperator");
 	}
 
 	// Preconditioner
