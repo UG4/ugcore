@@ -351,14 +351,6 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 	//	Base class
 		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess");
 
-
-	//	DirichletBoundaryFunction
-		{
-			reg.add_class_<DirichletBoundaryFunction<1> >("DirichletBoundaryFunction1d");
-			reg.add_class_<DirichletBoundaryFunction<2> >("DirichletBoundaryFunction2d");
-			reg.add_class_<DirichletBoundaryFunction<3> >("DirichletBoundaryFunction3d");
-		}
-
 	//	UserFunction
 		{
 		//	Density - Driven - Flow

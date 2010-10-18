@@ -11,70 +11,6 @@ namespace bridge
 
 namespace {
 
-bool c_BNDCond( number& value, const MathVector<2>& x, number time = 0.0)
-{
-	if(x[1] == 150)
-		if(x[0] > 150 && x[0] < 450)
-		{
-			value = 1.;
-			return true;
-		}
-	if(x[1] == 0)
-	{
-		value = 0.;
-		return true;
-	}
-
-	// else neumann
-	value = 0.;
-	return false;
-}
-
-
-bool p_BNDCond( number& value, const MathVector<2>& x, number time = 0.0)
-{
-	// check if one of the upper corners, then dirichlet
-	if(x[1] == 150 && (x[0] == 0.0 || x[0] == 600))
-	{
-		value = 9810 * (150 - x[1]);
-		return true;
-	}
-
-	// else neumann value
-	value = 0.0;
-	return false;
-}
-
-} // end unnnamed namespace
-
-class c_ElderDirichletBoundaryFunction : public DirichletBoundaryFunction<2>
-{
-	public:
-	//	Function Type
-		typedef bool (*Boundary_fct)(number&, const MathVector<2>&, number);
-
-	public:
-		virtual Boundary_fct get_bnd_function() const
-		{
-			return &c_BNDCond;
-		}
-};
-
-class p_ElderDirichletBoundaryFunction : public DirichletBoundaryFunction<2>
-{
-	public:
-	//	Function Type
-		typedef bool (*Boundary_fct)(number&, const MathVector<2>&, number);
-
-	public:
-		virtual Boundary_fct get_bnd_function() const
-		{
-			return &p_BNDCond;
-		}
-};
-
-namespace {
-
 inline void Porosity(number& n)
 {
 	n = 0.1;
@@ -180,13 +116,6 @@ class InterpolateElder
 void RegisterElderUserFunctions(Registry& reg)
 {
 
-//	DirichletBoundaryFunction
-	{
-		reg.add_class_<c_ElderDirichletBoundaryFunction, DirichletBoundaryFunction<2> >("cElderDirichletBoundaryFunction2d")
-			.add_constructor();
-		reg.add_class_<p_ElderDirichletBoundaryFunction, DirichletBoundaryFunction<2> >("pElderDirichletBoundaryFunction2d")
-			.add_constructor();
-	}
 
 //	DensityDrivenUserFunction
 	{
