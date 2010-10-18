@@ -8,7 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_BND__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_BND__
 
-#include "./dirichlet_post_process_interface.h"
+#include "../post_process_interface.h"
 
 namespace ug{
 

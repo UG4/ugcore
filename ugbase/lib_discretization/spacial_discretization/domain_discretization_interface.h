@@ -105,12 +105,59 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 
 		/// returns if the number of functions of this assembling
 		virtual size_t num_fct() const = 0;
-
-		/// returns true if the subset is dirchlet for the function fct
-		virtual bool is_dirichlet(int si, size_t fct) = 0;
 };
 
 
+/// Types of postprocess
+/**
+ * This types control the order in with the post processes are performed. Postprocesses with a
+ * lower number will be performed first. The order of post processes with equal number is
+ * undefined.
+ */
+enum PostProcessType
+{
+	PPT_NONE = -1,
+	PPT_CONSTRAINTS = 0,
+	PPT_DIRICHLET = 1,
+	PPT_NUM_POST_PROCESS_TYPES
+};
+
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class IPostProcess{
+	public:
+	// 	DoF Distribution Type
+		typedef TDoFDistribution dof_distribution_type;
+
+	// 	Algebra type
+		typedef TAlgebra algebra_type;
+
+	// 	Type of algebra matrix
+		typedef typename algebra_type::matrix_type matrix_type;
+
+	// 	Type of algebra vector
+		typedef typename algebra_type::vector_type vector_type;
+
+	public:
+		virtual IAssembleReturn post_process_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual IAssembleReturn post_process_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual IAssembleReturn post_process_solution(vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual int type()
+		{return PPT_NONE;}
+
+		virtual ~IPostProcess() {};
+};
+
+// todo: REMOVE when not needed anymore
 template <	typename TDoFDistribution,
 			typename TAlgebra>
 class IDirichletBoundaryValues{
@@ -141,9 +188,6 @@ class IDirichletBoundaryValues{
 		virtual IAssembleReturn set_dirichlet_solution(vector_type& u, const dof_distribution_type& dofDistr,
 														int si, number time = 0.0)
 		{return IAssemble_NOT_IMPLEMENTED;}
-
-		/// returns true if the subset is dirchlet for the function fct
-		virtual bool is_dirichlet(size_t fct) = 0;
 
 		virtual ~IDirichletBoundaryValues() {};
 };

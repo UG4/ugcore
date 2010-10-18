@@ -17,7 +17,8 @@
 #include "./domain_discretization_interface.h"
 #include "./elem_disc/elem_disc_assemble_util.h"
 #include "./coupled_elem_disc/coupled_elem_disc_assemble_util.h"
-#include "./post_process/dirichlet_boundary/subset_dirichlet_post_process_util.h"
+//#include "./post_process/dirichlet_boundary/subset_dirichlet_post_process_util.h"
+#include "./post_process/constraints/constraints_post_process_interface.h"
 #include "./subset_assemble_util.h"
 #include "lib_discretization/common/function_group.h"
 
@@ -149,20 +150,19 @@ class DomainDiscretization :
 		std::vector<IConstraintsPostProcess<TDoFDistribution, TAlgebra>*> m_vConstraintsPostProcess;
 
 	public:
-		bool add_dirichlet_bnd(IDirichletBoundaryValues<TDoFDistribution, TAlgebra>& bnd_disc, int si)
+		bool add_dirichlet_bnd(IPostProcess<TDoFDistribution, TAlgebra>& bnd_pp)
 		{
-			m_vDirichletDisc.push_back(DirichletDisc(si, &bnd_disc));
+			m_vDirichletDisc.push_back(DirichletDisc(&bnd_pp));
 			return true;
 		}
 
 	protected:
 		struct DirichletDisc
 		{
-			DirichletDisc(int s, IDirichletBoundaryValues<TDoFDistribution, TAlgebra>* di) :
-				si(s), disc(di) {};
+			DirichletDisc(IPostProcess<TDoFDistribution, TAlgebra>* pp) :
+				disc(pp) {};
 
-			int si;
-			IDirichletBoundaryValues<TDoFDistribution, TAlgebra>* disc;
+			IPostProcess<TDoFDistribution, TAlgebra>* disc;
 		};
 
 		std::vector<DirichletDisc> m_vDirichletDisc;
@@ -181,16 +181,6 @@ class DomainDiscretization :
 				sum += m_vElemDisc[i].functionGroup.num_fct();
 
 			return sum;
-		}
-
-		virtual bool is_dirichlet(int si, size_t fct)
-		{
-			for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-			{
-				if(m_vDirichletDisc[i].si != si) continue;
-				if((m_vDirichletDisc[i].disc)->is_dirichlet(fct) == true) return true;
-			}
-			return false;
 		}
 };
 

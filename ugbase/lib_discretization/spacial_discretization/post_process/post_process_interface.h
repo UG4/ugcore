@@ -1,12 +1,12 @@
 /*
- * dirichlet_post_process_interface.h
+ * post_process_interface.h
  *
  *  Created on: 04.08.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_POST_PROCESS_INTERFACE__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_POST_PROCESS_INTERFACE__
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS_INTERFACE__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS_INTERFACE__
 
 // extern headers
 #include <vector>
@@ -133,6 +133,6 @@ class IDirichletPostProcess{
 
 } // end namespace ug
 
-#include "dirichlet_post_process_interface_impl.h"
+#include "post_process_interface_impl.h"
 
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__DIRICHLET_BOUNDARY__DIRICHLET_POST_PROCESS_INTERFACE__ */
+#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__POST_PROCESS__POST_PROCESS_INTERFACE__ */

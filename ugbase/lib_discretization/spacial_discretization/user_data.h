@@ -59,6 +59,23 @@ class IUserMatrixProvider
 };
 
 
+
+template <int dim>
+class IBoundaryNumberProvider
+{
+	public:
+	//	Functor Type
+		typedef boost::function<bool (number& n, const MathVector<dim>& x, number& time)> functor_type;
+
+	/// provides the functor
+		virtual functor_type get_functor() const = 0;
+
+	///	virtual destructor
+		virtual ~IBoundaryNumberProvider(){}
+};
+
+
+
 }
 
 #endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__USER_DATA__ */

@@ -70,7 +70,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 //	post process dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
 	{
-		if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_jacobian(J, u, dofDistr) != IAssemble_OK)
 			return IAssemble_ERROR;
 	}
 
@@ -128,7 +128,7 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 
 //	post process dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_defect(d, u, dofDistr) != IAssemble_OK)
 			return IAssemble_ERROR;
 
 //	done
@@ -186,7 +186,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const 
 
 //	post process dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_linear(mat, rhs, u, dofDistr) != IAssemble_OK)
 			return IAssemble_ERROR;
 
 //	done
@@ -203,7 +203,7 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 {
 //	set dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, dofDistr, m_vDirichletDisc[i].si) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_solution(u, dofDistr) != IAssemble_OK)
 			return IAssemble_ERROR;
 
 //	done
@@ -266,7 +266,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 
 //	post process dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->clear_dirichlet_jacobian(J, u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_jacobian(J, u, dofDistr, time) != IAssemble_OK)
 			return IAssemble_ERROR;
 
 //	done
@@ -323,7 +323,7 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 
 //	post process dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->clear_dirichlet_defect(d, u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_defect(d, u, dofDistr, time) != IAssemble_OK)
 			return IAssemble_ERROR;
 
 //	done
@@ -380,7 +380,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const 
 
 //	post process dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->set_dirichlet_linear(mat, rhs, u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_linear(mat, rhs, u, dofDistr, time) != IAssemble_OK)
 			return IAssemble_ERROR;
 
 //	done
@@ -400,7 +400,7 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number 
 
 //	set dirichlet values
 	for(size_t i = 0; i < m_vDirichletDisc.size(); ++i)
-		if((m_vDirichletDisc[i].disc)->set_dirichlet_solution(u, dofDistr, m_vDirichletDisc[i].si, time) != IAssemble_OK)
+		if((m_vDirichletDisc[i].disc)->post_process_solution(u, dofDistr, time) != IAssemble_OK)
 			return IAssemble_ERROR;
 
 //	done
