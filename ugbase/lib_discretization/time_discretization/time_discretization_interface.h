@@ -74,7 +74,6 @@ class ITimeDiscretization : public IAssemble<TDoFDistribution, TAlgebra> {
 
 		// todo: remove these two functions
 		size_t num_fct() const{return m_dd->num_fct();}
-		virtual bool is_dirichlet(int si, size_t fct) {return m_dd->is_dirichlet(si, fct);}
 
 	protected:
 		IDomainDiscretization<dof_distribution_type, algebra_type>* m_dd;
