@@ -162,7 +162,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 
 //	DirichletBNDValues
 	{
-		typedef DirichletBNDValues<domain_type, dof_distribution_type, algebra_type> T;
+		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
 		stringstream ss; ss << "DirichletBND" << dim << "d";
 		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str())
 			.add_constructor()
@@ -331,7 +331,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 
 			reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization")
 				.add_constructor()
-				.add_method("add_dirichlet_bnd", &T::add_dirichlet_bnd)
+				.add_method("add_post_process", &T::add_post_process)
 				.add_method("add", (bool (T::*)(IElemDisc<algebra_type>&, const FunctionPattern&, const char*, const char*)) &T::add);
 		}
 
