@@ -96,8 +96,6 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 
 -- dirichlet setup
 ConcentrationDirichlet = utilCreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
-
--- dirichlet setup
 PressureDirichlet = utilCreateLuaBoundaryNumber("PressureDirichletBnd", dim)
 
 -----------------------------------------------------------------
@@ -155,21 +153,30 @@ base = BiCGStabSolver()
 base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
 
-gmg = GeometricMultiGridPreconditioner2d()
+transfer = P1ProlongationOperator2d()
+transfer:set_approximation_space(approxSpace)
+transfer:set_dirichlet_post_process(dirichletBND)
+
+projection = P1ProjectionOperator2d()
+projection:set_approximation_space(approxSpace)
+
+gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
-gmg:set_surface_level(2)
+gmg:set_surface_level(numRefs)
 gmg:set_base_level(0)
 gmg:set_base_solver(base)
-gmg:set_smoother(jac)
+gmg:set_smoother(ilu)
 gmg:set_cycle_type(1)
-gmg:set_num_presmooth(3)
-gmg:set_num_postsmooth(3)
+gmg:set_num_presmooth(5)
+gmg:set_num_postsmooth(5)
+gmg:set_prolongation(transfer)
+gmg:set_projection(projection)
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(1000)
-convCheck:set_minimum_defect(1e-12)
+convCheck:set_minimum_defect(1e-10)
 convCheck:set_reduction(1e-12)
 
 -- create Linear Solver
@@ -179,12 +186,12 @@ linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
 cgSolver = CGSolver()
-cgSolver:set_preconditioner(ilu)
+cgSolver:set_preconditioner(gmg)
 cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStabSolver()
-bicgstabSolver:set_preconditioner(ilu)
+bicgstabSolver:set_preconditioner(gmg)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- convergence check

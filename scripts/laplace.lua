@@ -154,7 +154,7 @@ neumannDisc = utilCreateNeumannBoundary(dom, neumann, _NEUMANN_BND_)
 dirichletBND = DirichletBND2d()
 dirichletBND:set_domain(dom)
 dirichletBND:set_pattern(pattern)
-dirichletBND:add_boundary_value(dirichlet,"c", "DirichletBoundary")
+dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
