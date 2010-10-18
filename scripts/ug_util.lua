@@ -105,9 +105,28 @@ function utilCreateNeumannBoundary(domain, userFunc, bndSubset)
 		return nil
 	end
 
-	neumannDisc:set_domain(dom)
+	neumannDisc:set_domain(domain)
 	neumannDisc:set_bnd_cond(userFunc, bndSubset)
 	return neumannDisc
+end
+
+-- creates Dirichlet Boundary
+function utilCreateDirichletBoundary(domain, pattern)
+	local dim = domain:get_dim()
+	local dirichlet
+	if dim == 1 then
+		dirichlet = DirichletBND1d()
+	elseif dim == 2 then
+		dirichlet = DirichletBND2d()
+	elseif dim == 3 then
+		dirichlet = DirichletBND3d()
+	else
+		return nil
+	end
+
+	dirichlet:set_domain(domain)
+	dirichlet:set_pattern(pattern)
+	return dirichlet
 end
 
 -- creates FV1ConvDiffElemDisc

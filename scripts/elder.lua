@@ -6,97 +6,122 @@
 --
 ----------------------------------------------------------
 
+-- make sure that ug_util is in the right path.
+-- currently only the path in which you start your application is valid.
+dofile("../scripts/ug_util.lua")
+
+-- constants
+dim = 2
+gridName = "elder_quads_8x2.ugx"
+numRefs = 4
+
+--------------------------------
+-- User Data Functions (begin)
+--------------------------------
+
+function ConcentrationDirichletBnd(x, y, t)
+	if y == 150 then
+		if x > 150 and x < 450 then
+			return true, 1.0
+		end
+	end
+	if y == 0.0 then
+		return true, 0.0
+	end
+
+	return false, 0.0
+end
+
+function PressureDirichletBnd(x, y, t)
+	if y == 150 then
+		if x == 0.0 or x == 600 then
+			return true, 9810 * (150 - y)
+		end
+	end
+	
+	return false, 0.0
+end
+
+--------------------------------
+-- User Data Functions (end)
+--------------------------------
+
 -- create Instance of a Domain
 print("Create Domain.")
-dom2d = Domain2d()
+dom = utilCreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if LoadDomain2d(dom2d, "elder_quads_8x2.ugx") == false then 
-   print("Loading Domain failed.")
-   exit()
+if utilLoadDomain(dom, gridName) == false then
+	print("Loading Domain failed.")
+	exit()
 end
 
 -- get subset handler
-sh = dom2d:get_subset_handler()
+sh = dom:get_subset_handler()
+if sh:num_subsets() ~= 2 then 
+	print("Domain must have 2 Subsets for this problem.")
+	exit()
+end
+sh:set_subset_name("Inner", 0)
+sh:set_subset_name("Boundary", 1)
 
 -- create Refiner
 print("Create Refiner")
 refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom2d:get_grid())
+refiner:assign_grid(dom:get_grid())
+for i=1,numRefs do
 refiner:refine()
-refiner:refine()
+end
 
 -- write grid to file for test purpose
-SaveDomain2d(dom2d, "refined_grid.ugx")
+utilSaveDomain(dom, "refined_grid.ugx")
+
 
 -- create function pattern
 print("Create Function Pattern")
 pattern = P1ConformFunctionPattern()
-pattern:set_subset_handler(dom2d:get_subset_handler())
-
--- add function to pattern
-print("Add one function to function pattern")
+pattern:set_subset_handler(sh)
 AddP1Function(pattern, "c", 2)
 AddP1Function(pattern, "p", 2)
-
--- lock pattern
-print("Lock function pattern")
 pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = ApproximationSpace2d()
+approxSpace = utilCreateApproximationSpace(dom, pattern)
 
--- assign function pattern
-print("Assign Domain and FunctionPattern to ApproximationSpace")
-approxSpace:assign_domain(dom2d)
-approxSpace:assign_function_pattern(pattern)
+-------------------------------------------
+--  Setup User Functions
+-------------------------------------------
 
--- name function
-_C_ = 0
-_P_ = 1
+-- dirichlet setup
+ConcentrationDirichlet = utilCreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
 
--- name subsets
-if sh:num_subsets() ~= 2 then 
-   print("Domain must have 2 Subsets for this problem.")
-   exit()
-end
-_INNER_ = 0
-_BND_ = 1
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("Boundary", 1)
+-- dirichlet setup
+PressureDirichlet = utilCreateLuaBoundaryNumber("PressureDirichletBnd", dim)
+
+-----------------------------------------------------------------
+--  Setup FV Element Discretization
+-----------------------------------------------------------------
 
 -- create Discretization
 domainDisc = DomainDiscretization()
 
 -- create dirichlet boundary for concentration
-cBndFct = cElderDirichletBoundaryFunction2d()
-dirichletBND1 = DirichletBND2d()
-dirichletBND1:set_domain(dom2d)
-dirichletBND1:set_dirichlet_function(cBndFct)
-dirichletBND1:set_function(_C_)
-
--- create dirichlet boundary for pressure
-pBndFct = pElderDirichletBoundaryFunction2d()
-dirichletBND2 = DirichletBND2d()
-dirichletBND2:set_domain(dom2d)
-dirichletBND2:set_dirichlet_function(pBndFct)
-dirichletBND2:set_function(_P_)
-
--- add Dirichlet boundary to discretization
-domainDisc:add_dirichlet_bnd(dirichletBND1, _BND_)
-domainDisc:add_dirichlet_bnd(dirichletBND2, _BND_)
+dirichletBND = utilCreateDirichletBoundary(dom, pattern)
+dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
+dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
 elderElemFct = ElderUserFunction2d()
 elemDisc = FV1DensityDrivenFlowElemDisc2d()
-elemDisc:set_domain(dom2d)
+elemDisc:set_domain(dom)
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_user_functions(elderElemFct)
 
 -- add Element Discretization to discretization
 domainDisc:add(elemDisc, pattern, "c,p", "Inner")
+domainDisc:add_dirichlet_bnd(dirichletBND)
 
 -- create time discretization
 timeDisc = ThetaTimeDiscretization()
