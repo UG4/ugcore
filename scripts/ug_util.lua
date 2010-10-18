@@ -18,7 +18,7 @@ function utilLoadDomain(domain, gridName)
 
 	local tname = gridName
 	if ug_file_exists(tname) == false then
-		tname = ug_get_data_path().."/grids/"..gridName
+		tname = ug_get_data_path().."/grids/" .. gridName
 		if ug_file_exists(tname) == false then
 			return false
 		end
