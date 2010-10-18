@@ -15,8 +15,7 @@
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
 #include "lib_algebra/operator/operator_interface.h"
-
-// library intern headers
+#include "lib_discretization/spacial_discretization/post_process/post_process_interface.h"
 
 namespace ug{
 
