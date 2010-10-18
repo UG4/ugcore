@@ -17,19 +17,6 @@
 
 namespace ug{
 
-template <int dim>
-class DirichletBoundaryFunction
-{
-	public:
-	//	Function Type
-		typedef bool (*Boundary_fct)(number&, const MathVector<dim>&, number);
-
-	public:
-		virtual Boundary_fct get_bnd_function() const = 0;
-
-		virtual ~DirichletBoundaryFunction() {};
-};
-
 template <	typename TDomain,
 			typename TDoFDistribution,
 			typename TAlgebra>
