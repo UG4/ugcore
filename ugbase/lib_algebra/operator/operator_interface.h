@@ -95,6 +95,53 @@ class IMatrixOperator :	public virtual ILinearOperator<X,Y>
 		virtual M& get_matrix() = 0;
 };
 
+///////////////////////////////////////////////////////////
+// Prolongation Operator
+///////////////////////////////////////////////////////////
+
+template <typename X, typename Y>
+class IProlongationOperator :	public virtual ILinearOperator<X,Y>
+{
+	public:
+	// 	Domain space
+		typedef X domain_function_type;
+
+	// 	Range space
+		typedef Y codomain_function_type;
+
+	public:
+	// 	Apply Transposed Operator u = L^T*f
+		virtual bool apply_transposed(X& u, const Y& f) = 0;
+
+	// 	Set Levels for Prolongation coarse -> fine
+		virtual bool set_levels(size_t coarseLevel, size_t fineLevel) = 0;
+
+	//	Clone
+		virtual IProlongationOperator<X,Y>* clone() = 0;
+};
+
+///////////////////////////////////////////////////////////
+// Projection Operator
+///////////////////////////////////////////////////////////
+
+template <typename X, typename Y>
+class IProjectionOperator :	public virtual ILinearOperator<X,Y>
+{
+	public:
+	// 	Domain space
+		typedef X domain_function_type;
+
+	// 	Range space
+		typedef Y codomain_function_type;
+
+	public:
+	// 	Set Levels for Prolongation coarse -> fine
+		virtual bool set_levels(size_t coarseLevel, size_t fineLevel) = 0;
+
+	//	Clone
+		virtual IProjectionOperator<X,Y>* clone() = 0;
+};
+
 } // end namespace ug
 
 #endif
