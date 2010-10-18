@@ -237,7 +237,7 @@ function utilCreateLuaUserMatrix(funcName, dim)
 	end
 		
 	mat:set_lua_callback(funcName)
-	provider:set_user_matrix(mat)
+	provider:set_functor(mat)
 	return provider
 end
 
@@ -257,7 +257,7 @@ function utilCreateConstDiagUserMatrix(diagVal, dim)
 	end
 
 	mat:set_diag_tensor(diagVal)
-	provider:set_user_matrix(mat)
+	provider:set_functor(mat)
 	return provider
 end
 
@@ -277,7 +277,7 @@ function utilCreateLuaUserVector(funcName, dim)
 	end
 
 	vec:set_lua_callback(funcName)
-	provider:set_user_vector(vec)
+	provider:set_functor(vec)
 	return provider
 end
 
@@ -297,11 +297,11 @@ function utilCreateConstUserVector(val, dim)
 	end
 	
 	vec:set_all_entries(val)
-	provider:set_user_vector(vec)
+	provider:set_functor(vec)
 	return provider
 end
 
--- creates a Lua User Vector using a lua function and returns the Provider
+-- creates a Lua User Number using a lua function and returns the Provider
 function utilCreateLuaUserNumber(funcName, dim)
 	local number = nil
 	local provider = nil
@@ -317,7 +317,7 @@ function utilCreateLuaUserNumber(funcName, dim)
 	end
 	
 	number:set_lua_callback(funcName)
-	provider:set_user_number(number)
+	provider:set_functor(number)
 	return provider
 end
 
@@ -337,7 +337,47 @@ function utilCreateConstUserNumber(val, dim)
 	end
 	
 	number:set(val)
-	provider:set_user_number(number)
+	provider:set_functor(number)
 	return provider
 end
 
+
+-- creates a Lua Boundary Numver using a lua function and returns the Provider
+function utilCreateLuaBoundaryNumber(funcName, dim)
+	local number = nil
+	local provider = nil
+	if dim == 1 then
+		number = LuaBoundaryNumber1d()
+		provider = LuaBoundaryNumberProvider1d()
+	elseif dim == 2 then
+		number = LuaBoundaryNumber2d()
+		provider = LuaBoundaryNumberProvider2d()
+	elseif dim == 3 then
+		number = LuaBoundaryNumber3d()
+		provider = LuaBoundaryNumberProvider3d()
+	end
+	
+	number:set_lua_callback(funcName)
+	provider:set_functor(number)
+	return provider
+end
+
+-- creates a Const Boundary Number using a lua function and returns the Provider
+function utilCreateConstBoundaryNumber(val, dim)
+	local number = nil
+	local provider = nil
+	if dim == 1 then
+		number = ConstBoundaryNumber1d()
+		provider = ConstBoundaryNumberProvider1d()
+	elseif dim == 2 then
+		number = ConstBoundaryNumber2d()
+		provider = ConstBoundaryNumberProvider2d()
+	elseif dim == 3 then
+		number = ConstBoundaryNumber3d()
+		provider = ConstBoundaryNumberProvider3d()
+	end
+	
+	number:set(val)
+	provider:set_functor(number)
+	return provider
+end
