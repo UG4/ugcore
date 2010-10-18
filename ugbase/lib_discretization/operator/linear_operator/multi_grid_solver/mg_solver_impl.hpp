@@ -63,7 +63,7 @@ lmgc(size_t lev)
 		#endif
 
 		// restrict defect
-		if(!m_I[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
+		if(!m_vProlongation[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
 			{UG_LOG("Error in restriction from level " << lev << " to " << lev-1 << ".\n"); return false;}
 
 		bool resume = true;
@@ -114,7 +114,7 @@ lmgc(size_t lev)
 		#endif
 
 		//interpolate correction
-		if(!m_I[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
+		if(!m_vProlongation[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
 			{UG_LOG("Error in prolongation from level " << lev-1 << " to " << lev << ".\n"); return false;}
 
 		// add coarse grid correction to level correction
@@ -181,7 +181,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	}
 
 //	init common
-	if(!init_common())
+	if(!init_common(true))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': Can init common part.\n");
 		return false;
@@ -198,7 +198,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 // 	Project solution from surface grid to coarser grid levels
 	for(size_t lev = m_surfaceLevel; lev != m_baseLevel; --lev)
 	{
-		if(!m_P[lev-1]->apply(*m_u[lev-1], *m_u[lev]))
+		if(!m_vProjection[lev-1]->apply(*m_u[lev-1], *m_u[lev]))
 			{UG_LOG("ERROR while projecting solution to coarse grid function of level "<< lev -1 << ", aborting.\n");return false;}
 	}
 
@@ -238,7 +238,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	}
 
 //	init common
-	if(!init_common())
+	if(!init_common(false))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': Can init common part.\n");
 		return false;
@@ -269,7 +269,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 template <typename TApproximationSpace, typename TAlgebra>
 bool
 AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
-init_common()
+init_common(bool nonlinear)
 {
 //	Preform some checks:
 	if(m_pAss == NULL)
@@ -292,6 +292,17 @@ init_common()
 		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Smoother not set.\n");
 		return false;
 	}
+	if(m_vProlongation[0] == NULL)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Prolongation not set.\n");
+		return false;
+	}
+	if(nonlinear)
+		if(m_vProjection[0] == NULL)
+		{
+			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Projection not set, although problem nonlinear.\n");
+			return false;
+		}
 
 // 	If grid may be changed, we reallocate all memory
 	if(m_grid_changes && m_allocated)
@@ -318,15 +329,18 @@ init_common()
 	{
 		for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 		{
-			if(!m_I[lev]->set_approximation_levels(*m_pApproxSpace, lev, lev+1))
+			if(!m_vProlongation[lev]->set_levels(lev, lev+1))
 				{UG_LOG("ERROR during setup for interpolation matrices for level "<< lev << ", aborting.\n");return false;}
-			if(!m_I[lev]->init())
+			if(!m_vProlongation[lev]->init())
 				{UG_LOG("ERROR while constructing interpolation matrices for level "<< lev << ", aborting.\n");return false;}
 
-			if(!m_P[lev]->set_approximation_levels(*m_pApproxSpace, lev, lev+1))
-				{UG_LOG("ERROR during setup for projection matrices for level "<< lev << ", aborting.\n");return false;}
-			if(!m_P[lev]->init())
-				{UG_LOG("ERROR while constructing projection matrices for level "<< lev << ", aborting.\n");return false;}
+			if(nonlinear)
+			{
+				if(!m_vProjection[lev]->set_levels(lev, lev+1))
+					{UG_LOG("ERROR during setup for projection matrices for level "<< lev << ", aborting.\n");return false;}
+				if(!m_vProjection[lev]->init())
+					{UG_LOG("ERROR while constructing projection matrices for level "<< lev << ", aborting.\n");return false;}
+			}
 		}
 	}
 
@@ -478,15 +492,19 @@ allocate_memory()
 
 	//	dynamically created pointer for Coarse Operators
 	m_A.resize(m_surfaceLevel + 1);
-	m_I.resize(m_surfaceLevel);
-	m_P.resize(m_surfaceLevel);
+	m_vProlongation.resize(m_surfaceLevel);
+	m_vProjection.resize(m_surfaceLevel);
 
 	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 	{
 		// create prolongation operators
-		m_I[lev] = new prolongation_operator_type(*m_pAss);
+		if(lev != 0)
+			m_vProlongation[lev] = m_vProlongation[0]->clone();
+
 		// create prolongation operators
-		m_P[lev] = new projection_operator_type();
+		if(m_vProjection[0] != NULL && lev != 0)
+			m_vProjection[lev] = m_vProjection[0]->clone();
+
 		// create coarse grid matrices
 		m_A[lev] = new operator_type(*m_pAss);
 	}
@@ -517,11 +535,11 @@ free_memory()
 		if(j < m_A.size())
 			if(m_A[j] != NULL) {delete m_A[j]; m_A[j] = NULL;};
 
-		if(j < m_I.size())
-			if(m_I[j] != NULL) {delete m_I[j]; m_I[j] = NULL;};
+		if(j < m_vProlongation.size() && j != 0)
+			if(m_vProlongation[j] != NULL) {delete m_vProlongation[j]; m_vProlongation[j] = NULL;};
 
-		if(j < m_P.size())
-			if(m_P[j] != NULL) {delete m_P[j]; m_P[j] = NULL;};
+		if(j < m_vProjection.size() && j != 0)
+			if(m_vProjection[j] != NULL) {delete m_vProjection[j]; m_vProjection[j] = NULL;};
 
 		if(j < m_u.size())
 			if(m_u[j] != NULL) {delete m_u[j]; m_u[j] = NULL;};
@@ -534,7 +552,8 @@ free_memory()
 	}
 
 	m_A.clear();
-	m_I.clear();
+	m_vProlongation.resize(1);
+	m_vProjection.resize(1);
 
 	m_u.clear();
 	m_c.clear();

@@ -94,9 +94,9 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace, si
 
 
 template <typename TApproximationSpace, typename TAlgebra>
-class ProjectionOperator :
-	virtual public ILinearOperator<	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type>
+class P1ProjectionOperator :
+	virtual public IProjectionOperator<	typename TAlgebra::vector_type,
+										typename TAlgebra::vector_type>
 {
 	public:
 	// 	Type of algebra
@@ -116,16 +116,27 @@ class ProjectionOperator :
 
 	public:
 	//	Constructor
-		ProjectionOperator() :
-			m_pApproximationSpace(NULL), m_bInit(false)
+		P1ProjectionOperator() :
+			m_pApproximationSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
 		{}
 
-	//	Set approximation level
-		bool set_approximation_levels(approximation_space_type& approxSpace, size_t coarseLevel, size_t fineLevel)
+	//	Set Approximation Space
+		void set_approximation_space(approximation_space_type& approxSpace)
 		{
 			m_pApproximationSpace = &approxSpace;
+		}
+
+	//	Set approximation level
+		bool set_levels(size_t coarseLevel, size_t fineLevel)
+		{
 			m_fineLevel = fineLevel;
 			m_coarseLevel = coarseLevel;
+			if(m_fineLevel - m_coarseLevel != 1)
+			{
+				UG_LOG("ERROR in ProjectionOperator::set_levels:"
+						" Can only project between successiv level.\n");
+				return false;
+			}
 			return true;
 		}
 
@@ -141,7 +152,7 @@ class ProjectionOperator :
 
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in ProjectionOperator::set_approximation_levels:"
+				UG_LOG("ERROR in ProjectionOperator::init:"
 						" Can only project between successiv level.\n");
 				return false;
 			}
@@ -186,32 +197,6 @@ class ProjectionOperator :
 			return true;
 		}
 
-	/// Project uCoarse to uFine; uFine = P^{-1}(uCoarse);
-	// 	ATTENTION: This will only affect fine nodes, that are also coarse node, thus
-	//            this operation is not very senseful
-		bool apply_transposed(vector_type& uCoarseOut, const vector_type& uFineIn)
-		{
-		//	Check, that operator is initiallized
-			if(!m_bInit)
-			{
-				UG_LOG("ERROR in 'ProjectionOperator::apply':Operator not initialized.\n");
-				return false;
-			}
-
-		//	Some Assertions
-			UG_ASSERT(uCoarseOut.size() == m_matrix.num_rows(),	"Vector [size= " << uCoarseOut.size() << "] and Row [size= " << m_matrix.num_rows() <<"] sizes have to match!");
-			UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= " << uFineIn.size() << "] and Column [size= " << m_matrix.num_cols() <<"] sizes have to match!");
-
-		//	Apply transposed of matrix
-			m_matrix.apply_transposed(uFineIn, uCoarseOut);
-
-		//	Adjust parallel storage type
-#ifdef UG_PARALLEL
-			uFineIn.copy_storage_type(uCoarseOut);
-#endif
-			return true;
-		}
-
 	// 	Apply sub not implemented
 		virtual bool apply_sub(vector_type& u, const vector_type& v)
 		{
@@ -220,9 +205,16 @@ class ProjectionOperator :
 		}
 
 	//	Destructor
-		~ProjectionOperator()
+		~P1ProjectionOperator()
 		{
 			m_matrix.destroy();
+		}
+
+		virtual IProjectionOperator<vector_type, vector_type>* clone()
+		{
+			P1ProjectionOperator* op = new P1ProjectionOperator;
+			op->set_approximation_space(*m_pApproximationSpace);
+			return op;
 		}
 
 	protected:

@@ -50,10 +50,10 @@ class AssembledMultiGridCycle :
 		typedef AssembledLinearOperator<dof_distribution_type, algebra_type> operator_type;
 
 	//	Prolongation Operator
-		typedef ProlongationOperator<approximation_space_type, algebra_type> prolongation_operator_type;
+		typedef IProlongationOperator<vector_type, vector_type> prolongation_operator_type;
 
 	//	Projection Operator
-		typedef ProjectionOperator<approximation_space_type, algebra_type> projection_operator_type;
+		typedef IProjectionOperator<vector_type, vector_type> projection_operator_type;
 
 	private:
 	//	Base Solver type
@@ -85,6 +85,12 @@ class AssembledMultiGridCycle :
 		{
 			m_vSmoother.resize(1);
 			m_vSmoother[0] = NULL;
+
+			m_vProlongation.resize(1);
+			m_vProlongation[0] = NULL;
+
+			m_vProjection.resize(1);
+			m_vProjection[0] = NULL;
 		};
 
 	// 	Setup
@@ -97,6 +103,8 @@ class AssembledMultiGridCycle :
 		void set_cycle_type(int type) {m_cycle_type = type;}
 		void set_num_presmooth(int num) {m_nu1 = num;}
 		void set_num_postsmooth(int num) {m_nu2 = num;}
+		void set_prolongation_operator(IProlongationOperator<vector_type, vector_type>& P) {m_vProlongation[0] = &P;}
+		void set_projection_operator(IProjectionOperator<vector_type, vector_type>& P) {m_vProjection[0] = &P;}
 
 	// 	Prepare for Operator J(u) and linearization point u (current solution)
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u);
@@ -131,7 +139,7 @@ class AssembledMultiGridCycle :
 		// smmoth help function: perform smoothing on level l, nu times
 		bool smooth(function_type& d, function_type& c, size_t lev, int nu);
 
-		bool init_common();
+		bool init_common(bool nonlinear);
 		bool init_smoother_and_base_solver();
 		bool allocate_memory();
 		bool free_memory();
@@ -154,8 +162,8 @@ class AssembledMultiGridCycle :
 		base_solver_type* m_pBaseSolver;
 
 		std::vector<operator_type*> m_A;
-		std::vector<projection_operator_type*> m_P;
-		std::vector<prolongation_operator_type*> m_I;
+		std::vector<projection_operator_type*> m_vProjection;
+		std::vector<prolongation_operator_type*> m_vProlongation;
 
 		std::vector<function_type*> m_u;
 		std::vector<function_type*> m_c;

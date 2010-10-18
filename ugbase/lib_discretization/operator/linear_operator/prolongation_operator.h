@@ -34,13 +34,8 @@ namespace ug{
  */
 template <typename TApproximationSpace, typename TAlgebra>
 bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
-								IAssemble<typename TApproximationSpace::dof_distribution_type, TAlgebra>& ass,
 								TApproximationSpace& approxSpace, size_t coarseLevel, size_t fineLevel)
 {
-	// TODO: Currently the dirichlet values are given by IAssemble, but not even each position is checked
-	//       In case,that not the whole domain is dirichlet, this is a problem
-	//       One should replace IAssemble by just a Dirichlet object, indicating dirichlet bnd more flexible
-
 //	get DoFDistributions
 	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr = approxSpace.get_level_dof_distribution(coarseLevel);
 	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr = approxSpace.get_level_dof_distribution(fineLevel);
@@ -52,7 +47,6 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 	// get subsethandler and grid
 	MultiGrid& grid = approxSpace.get_domain().get_grid();
-	MGSubsetHandler& sh = approxSpace.get_domain().get_subset_handler();
 
 	// get number of dofs on different levels
 	const size_t numFineDoFs = fineDoFDistr.num_dofs();
@@ -88,7 +82,6 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 			for(size_t fct = 0; fct < fineDoFDistr.num_fct(); fct++)
 			{
-				if(ass.is_dirichlet(si, fct)) continue;
 				if(!fineDoFDistr.is_def_in_subset(fct, si)) continue;
 
 				// get global indices
@@ -101,10 +94,6 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 					// get global indices
 					if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 						return false;
-
-					// skip boundary nodes
-					int si = sh.get_subset_index(vert);
-					if(ass.is_dirichlet(si, fct)) continue;
 
 					BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 								fineMultInd[0][1], coarseMultInd[0][1]) = 1.0;
@@ -121,10 +110,6 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 						// get global indices
 						if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 							return false;
-
-						// skip boundary nodes
-						int si = sh.get_subset_index(vert);
-						if(ass.is_dirichlet(si, fct)) continue;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.5;
@@ -143,10 +128,6 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 						if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 							return false;
 
-						// skip boundary nodes
-						int si = sh.get_subset_index(vert);
-						if(ass.is_dirichlet(si, fct)) continue;
-
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.25;
 					}
@@ -164,10 +145,6 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 						if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 							return false;
 
-						// skip boundary nodes
-						int si = sh.get_subset_index(vert);
-						if(ass.is_dirichlet(si, fct)) continue;
-
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.125;
 					}
@@ -184,9 +161,9 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 
 template <typename TApproximationSpace, typename TAlgebra>
-class ProlongationOperator :
-	virtual public ILinearOperator<	typename TAlgebra::vector_type,
-									typename TAlgebra::vector_type>
+class P1ProlongationOperator :
+	virtual public IProlongationOperator<	typename TAlgebra::vector_type,
+											typename TAlgebra::vector_type>
 {
 	public:
 	// 	Type of algebra
@@ -206,16 +183,36 @@ class ProlongationOperator :
 
 	public:
 		// Transfer Operator acts on level -> level + 1
-		ProlongationOperator(IAssemble<dof_distribution_type, algebra_type>& ass) :
-			m_ass(ass), m_bInit(false)
-		{};
+		P1ProlongationOperator() :
+			m_pApproximationSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
+		{
+			m_vPostProcess.clear();
+		};
 
-	//	Set approximation level
-		bool set_approximation_levels(approximation_space_type& approxSpace, size_t coarseLevel, size_t fineLevel)
+	//	set dirichlet values
+		// todo: This should be a IPostProcess, indicating dirichlet value, only
+		void set_dirichlet_post_process(IPostProcess<dof_distribution_type, algebra_type>& pp)
+		{
+			m_vPostProcess.push_back(&pp);
+		}
+
+	//	Set approximation space
+		void set_approximation_space(approximation_space_type& approxSpace)
 		{
 			m_pApproximationSpace = &approxSpace;
+		}
+
+	//	Set levels
+		virtual bool set_levels(size_t coarseLevel, size_t fineLevel)
+		{
 			m_fineLevel = fineLevel;
 			m_coarseLevel = coarseLevel;
+			if(m_fineLevel - m_coarseLevel != 1)
+			{
+				UG_LOG("ERROR in ProjectionOperator::set_levels:"
+						" Can only project between successiv level.\n");
+				return false;
+			}
 			return true;
 		}
 
@@ -240,7 +237,8 @@ class ProlongationOperator :
 				return false;
 			}
 
-			if(!AssembleVertexProlongation(m_matrix, m_ass, *m_pApproximationSpace, m_coarseLevel, m_fineLevel))
+			if(!AssembleVertexProlongation<approximation_space_type, algebra_type>
+				(m_matrix, *m_pApproximationSpace, m_coarseLevel, m_fineLevel))
 				{UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n"); return false;}
 
 			m_bInit = true;
@@ -263,6 +261,20 @@ class ProlongationOperator :
 			UG_ASSERT(uCoarseIn.size() == m_matrix.num_cols(),"Vector and Column sizes have to match!");
 
 			m_matrix.apply(uFineOut, uCoarseIn);
+
+		//	Set dirichlet nodes to zero again
+		//	todo: We could handle this by eleminating dirichlet rows as well
+			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
+			{
+				const dof_distribution_type& dofDistr = m_pApproximationSpace->get_level_dof_distribution(m_fineLevel);
+				if(m_vPostProcess[i]->post_process_defect(uFineOut, uFineOut, dofDistr) != IAssemble_OK)
+				{
+					UG_LOG("ERROR in 'ProjectionOperator::apply': "
+							"Error while setting dirichlet defect nr " << i << " to zero.\n");
+					return false;
+				}
+			}
+
 #ifdef UG_PARALLEL
 			uFineOut.copy_storage_type(uCoarseIn);
 #endif
@@ -275,7 +287,7 @@ class ProlongationOperator :
 		//	Check, that operator is initiallized
 			if(!m_bInit)
 			{
-				UG_LOG("ERROR in 'ProjectionOperator::apply':Operator not initialized.\n");
+				UG_LOG("ERROR in 'ProjectionOperator::apply_transposed':Operator not initialized.\n");
 				return false;
 			}
 
@@ -284,6 +296,19 @@ class ProlongationOperator :
 			UG_ASSERT(uCoarseOut.size() == m_matrix.num_cols(),"Vector and Column sizes have to match!");
 
 			m_matrix.apply_transposed(uCoarseOut, uFineIn);
+
+		//	Set dirichlet nodes to zero again
+		//	todo: We could handle this by eleminating dirichlet columns as well
+			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
+			{
+				const dof_distribution_type& dofDistr = m_pApproximationSpace->get_level_dof_distribution(m_coarseLevel);
+				if(m_vPostProcess[i]->post_process_defect(uCoarseOut, uCoarseOut, dofDistr) != IAssemble_OK)
+				{
+					UG_LOG("ERROR in 'ProjectionOperator::apply_transposed': "
+							"Error while setting dirichlet defect nr " << i << " to zero.\n");
+					return false;
+				}
+			}
 #ifdef UG_PARALLEL
 			uCoarseOut.copy_storage_type(uFineIn);
 #endif
@@ -297,7 +322,16 @@ class ProlongationOperator :
 			return true;
 		}
 
-		~ProlongationOperator()
+		virtual IProlongationOperator<vector_type, vector_type>* clone()
+		{
+			P1ProlongationOperator* op = new P1ProlongationOperator;
+			op->set_approximation_space(*m_pApproximationSpace);
+			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
+				op->set_dirichlet_post_process(*m_vPostProcess[i]);
+			return op;
+		}
+
+		~P1ProlongationOperator()
 		{
 			m_matrix.destroy();
 		}
@@ -305,9 +339,9 @@ class ProlongationOperator :
 
 
 	protected:
-		IAssemble<dof_distribution_type, algebra_type>& m_ass;
 		matrix_type m_matrix;
 
+		std::vector<IPostProcess<dof_distribution_type, algebra_type>*> m_vPostProcess;
 		TApproximationSpace* m_pApproximationSpace;
 		size_t m_fineLevel;
 		size_t m_coarseLevel;
