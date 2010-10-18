@@ -12,11 +12,10 @@ dofile("../scripts/ug_util.lua")
 
 -- constants
 dim = 2
-gridName = "../scripts/unit_square_tri_neumann.ugx"
+gridName = "unit_square_tri_neumann.ugx"
 numRefs = 4
 
 -- name function (will be removed in the future, do not use them)
-_C_ = 0
 _INNER_ = 0
 _BND_ = 1
 _NEUMANN_BND_ = 2
@@ -39,13 +38,21 @@ function ourReaction(x, y, t)
 end
 
 function ourRhs(x, y, t)
-	local s = 2*math.pi
-	return	s*s*(math.sin(s*x) + math.sin(s*y))
+	--local s = 2*math.pi
+	--return	s*s*(math.sin(s*x) + math.sin(s*y))
+	return -2*y
 end
 
 function ourNeumannBnd(x, y, t)
-	local s = 2*math.pi
-	return -s*math.cos(s*x)
+	--local s = 2*math.pi
+	--return -s*math.cos(s*x)
+	return -2*x*y
+end
+
+function ourDirichletBnd(x, y, t)
+	--local s = 2*math.pi
+	--return true, math.sin(s*x) + math.sin(s*y)
+	return true, x*x*y
 end
 
 --------------------------------
@@ -70,7 +77,8 @@ if sh:num_subsets() ~= 3 then
 	exit()
 end
 sh:set_subset_name("Inner", 0)
-sh:set_subset_name("Boundary", 1)
+sh:set_subset_name("DirichletBoundary", 1)
+sh:set_subset_name("NeumannBoundary", 2)
 
 -- create Refiner
 print("Create Refiner")
@@ -99,16 +107,16 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -------------------------------------------
 
 -- Diffusion Tensor setup
-	--diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor", dim)
-	diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor", dim)
+	--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-	--velocityField = utilCreateLuaUserVector("ourVelocityField", dim)
-	velocityField = utilCreateConstUserVector(0.0, dim)
+	velocityField = utilCreateLuaUserVector("ourVelocityField", dim)
+	--velocityField = utilCreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-	--reaction = utilCreateLuaUserNumber("ourReaction", dim)
-	reaction = utilCreateConstUserNumber(0.0, dim)
+	reaction = utilCreateLuaUserNumber("ourReaction", dim)
+	--reaction = utilCreateConstUserNumber(0.0, dim)
 
 -- rhs setup
 	rhs = utilCreateLuaUserNumber("ourRhs", dim)
@@ -117,6 +125,10 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -- neumann setup
 	neumann = utilCreateLuaUserNumber("ourNeumannBnd", dim)
 	--neumann = utilCreateConstUserNumber(0.0, dim)
+
+-- dirichlet setup
+	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd", dim)
+	--dirichlet = utilCreateConstBoundaryNumber(0.0, dim)
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -139,12 +151,10 @@ neumannDisc = utilCreateNeumannBoundary(dom, neumann, _NEUMANN_BND_)
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
--- create dirichlet boundary
-bndFct = SinusDirichletBoundaryFunction2d()
 dirichletBND = DirichletBND2d()
 dirichletBND:set_domain(dom)
-dirichletBND:set_dirichlet_function(bndFct)
-dirichletBND:set_function(_C_)
+dirichletBND:set_pattern(pattern)
+dirichletBND:add_boundary_value(dirichlet,"c", "DirichletBoundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
@@ -153,7 +163,7 @@ dirichletBND:set_function(_C_)
 domainDisc = DomainDiscretization()
 domainDisc:add(elemDisc, pattern, "c", "Inner")
 domainDisc:add(neumannDisc, pattern, "c", "Inner")
-domainDisc:add_dirichlet_bnd(dirichletBND, _BND_)
+domainDisc:add_dirichlet_bnd(dirichletBND)
 
 -------------------------------------------
 --  Algebra
@@ -204,6 +214,13 @@ base = LinearSolver()
 base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
 
+transfer = P1ProlongationOperator2d()
+transfer:set_approximation_space(approxSpace)
+transfer:set_dirichlet_post_process(dirichletBND)
+
+projection = P1ProjectionOperator2d()
+projection:set_approximation_space(approxSpace)
+
 gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
 gmg:set_discretization(domainDisc)
 gmg:set_surface_level(numRefs)
@@ -213,6 +230,8 @@ gmg:set_smoother(jac)
 gmg:set_cycle_type(1)
 gmg:set_num_presmooth(3)
 gmg:set_num_postsmooth(3)
+gmg:set_prolongation(transfer)
+gmg:set_projection(projection)
 
 amg = AMGPreconditioner()
 amg:set_nu1(2)
