@@ -13,6 +13,7 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 
 set(srcDiscretization	common/function_group.cpp
 						common/subset_group.cpp
+						common/groups_util.cpp
 
 						dof_manager/p1conform/p1conform.cpp
 
