@@ -82,6 +82,18 @@ namespace ug {
 				paramsArray << " p" << i;
 			}
 
+			// we always need the visual id to get a reference to the
+			// visualization that invokes this method
+			// that is why we add a visual id request to the param list
+			if (numParams > 0) {
+				params << ", ";
+				paramsArray << ", ";
+			}
+			params << " VisualIDRequest id ";
+			paramsArray << " id";
+
+
+
 			const char* outType;
 			if (paramStackOut.size() > 0) {
 				outType = paramType2String(paramStackOut.get_type(0));
@@ -92,6 +104,8 @@ namespace ug {
 			result << "public " << outType << " " << name << " ("
 					<< params.str() << ") {\n"
 					<< "Object[] params = [" << paramsArray.str() << "] \n";
+
+			result << "updatePointer(id.getID());\n";
 
 			if (paramStackOut.size() > 0) {
 				result << "return ";
@@ -127,21 +141,14 @@ namespace ug {
 
 			result << "public " << className << "() {\n"
 					<< "setClassName(\"" << clazz.name() << "\");\n}\n";
-//					<< "long address = (long) edu.gcsc.vrl.ug4.UG4.getUG4().newInstance("
-//					<< "edu.gcsc.vrl.ug4.UG4.getUG4().getExportedClassPtrByName( getClassName()));\n"
-//					<< "setPointer(new edu.gcsc.vrl.ug4.Pointer( address ))\n}\n";
 
 			VRL_DBG(clazz.num_methods(), 1);
-
 
 			for (unsigned int i = 0; i < clazz.num_methods(); i++) {
 				const ug::bridge::ExportedMethod &method = clazz.get_method(i);
 
-
-				generateMethodHeader(result, method.name(), method.params_in(), method.params_out());
-
-				//				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
-				//						<< " getExportedClassPointer().getAddress(), \"" << method.name() << "\", params)";
+				generateMethodHeader(result, method.name(),
+						method.params_in(), method.params_out());
 
 				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 						<< "getClassName(),"
@@ -149,10 +156,6 @@ namespace ug {
 
 				result << "\n}\n\n";
 			}
-
-			result << "public edu.gcsc.vrl.ug4.Pointer getPointer(){return super.getPointer()}\n";
-
-			result << "public void setPointer(edu.gcsc.vrl.ug4.Pointer p){super.setPointer(p)}\n";
 
 			result << "\n}";
 
@@ -216,7 +219,6 @@ namespace ug {
 		jobject string2JObject(JNIEnv *env, const char* value) {
 			return env->NewStringUTF(value);
 		}
-		
 
 		std::string jObject2String(JNIEnv *env, jobject obj) {
 			return stringJ2C(env, (jstring) obj);
@@ -465,7 +467,6 @@ namespace ug {
 			return jobject();
 		}
 
-
 		jobject messageTypeC2J(JNIEnv *env, MessageType type) {
 			jclass enumCls = env->FindClass("eu/mihosoft/vrl/visual/MessageType");
 
@@ -473,25 +474,25 @@ namespace ug {
 					"values", "()[Leu/mihosoft/vrl/visual/MessageType;");
 
 			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 0:",1);
+				VRL_DBG("EXEPTION 0:", 1);
 				env->ExceptionDescribe();
 			}
 
 			jobjectArray values = (jobjectArray) env->CallObjectMethod(enumCls, methodID);
 
 			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 1:",1);
+				VRL_DBG("EXEPTION 1:", 1);
 				env->ExceptionDescribe();
 			}
 
-			jobject result =  env->GetObjectArrayElement(values,type);
+			jobject result = env->GetObjectArrayElement(values, type);
 
 
 			methodID = env->GetMethodID(
-					(jclass)getClass(env,result),"name","()Ljava/lang/String;");
+					(jclass) getClass(env, result), "name", "()Ljava/lang/String;");
 
 			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 2:",1);
+				VRL_DBG("EXEPTION 2:", 1);
 				env->ExceptionDescribe();
 			}
 
@@ -499,10 +500,10 @@ namespace ug {
 					methodID);
 
 
-			VRL_DBG(jObject2String(env,name),1);
+			VRL_DBG(jObject2String(env, name), 1);
 
 			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 3:",1);
+				VRL_DBG("EXEPTION 3:", 1);
 				env->ExceptionDescribe();
 			}
 
