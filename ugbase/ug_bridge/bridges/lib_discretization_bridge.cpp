@@ -155,6 +155,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 			.add_constructor()
 			.add_method("assign_domain", &T::assign_domain)
 			.add_method("get_domain", (domain_type& (T::*)())&T::get_domain)
+			.add_method("get_function_pattern", &T::get_function_pattern)
 			.add_method("assign_function_pattern", &T::assign_function_pattern)
 			.add_method("get_surface_dof_distribution", &T::get_surface_dof_distribution)
 			.add_method("create_surface_function", &T::create_surface_function);
@@ -178,7 +179,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
-			.add_method("set_bnd_cond", &T::set_bnd_cond);
+			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value);
 	}
 
 //	Convection Diffusion
@@ -332,7 +333,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 			reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization")
 				.add_constructor()
 				.add_method("add_post_process", &T::add_post_process)
-				.add_method("add", (bool (T::*)(IElemDisc<algebra_type>&, const FunctionPattern&, const char*, const char*)) &T::add);
+				.add_method("add_elem_disc", (bool (T::*)(IElemDisc<algebra_type>&)) &T::add_elem_disc);
 		}
 
 	//	Time Discretization
@@ -360,7 +361,11 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 	//	Elem Discs
 		{
 		//	Base class
-			reg.add_class_<IElemDisc<algebra_type> >("IElemDisc");
+			typedef IElemDisc<algebra_type> T;
+			reg.add_class_<T>("IElemDisc")
+				.add_method("set_pattern", &T::set_pattern)
+				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions)
+				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets);
 		}
 
 	//	FunctionGroup
