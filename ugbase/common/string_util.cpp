@@ -2,6 +2,8 @@
 
 #include "string_util.h"
 #include <algorithm>
+#include <string>
+#include <iostream>
 #include <cctype>
 
 namespace ug{
@@ -29,7 +31,7 @@ void TokenizeString(const std::string& str, std::vector<std::string>& tokens, co
 
 void RemoveWhitespaceFromString(std::string& string)
 {
-	string.erase(std::remove_if(string.begin(), string.end(), std::isspace), string.end());
+	string.erase(std::remove_if(string.begin(), string.end(), isspace), string.end());
 }
 
 }
