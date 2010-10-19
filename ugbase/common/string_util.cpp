@@ -1,6 +1,7 @@
 // author: Andreas Vogel
 
 #include "string_util.h"
+#include <algorithm>
 
 namespace ug{
 
@@ -23,6 +24,11 @@ void TokenizeString(const std::string& str, std::vector<std::string>& tokens, co
 		// Find next "non-delimiter"
 		pos = str.find_first_of(delimiters, lastPos);
 	}
+}
+
+void RemoveWhitespaceFromString(std::string& string)
+{
+	string.erase(std::remove_if(string.begin(), string.end(), std::isspace), string.end());
 }
 
 }
