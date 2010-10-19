@@ -61,8 +61,11 @@ class MartinAlgebra
 	{
 	public:
 		// matrix type
+#ifdef UG_PARALLEL
+		typedef ParallelMatrix<SparseMatrix<double> > matrix_type;
+#else
 		typedef SparseMatrix<double> matrix_type;
-
+#endif
 		// vector type
 #ifdef UG_PARALLEL
 		typedef ParallelVector<Vector<double> > vector_type;
