@@ -53,6 +53,10 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
 		{
+			// 	set the computed correction to additive
+			//	todo: handle parallel case
+				c.set_storage_type(PST_ADDITIVE);
+
 			return gs_step_LL(mat, c, d);
 		}
 };
@@ -94,6 +98,10 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
 		{
+			// 	set the computed correction to additive
+			//	todo: handle parallel case
+				c.set_storage_type(PST_ADDITIVE);
+
 			return gs_step_UR(mat, c, d);
 		}
 };
@@ -135,6 +143,10 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 	//	Stepping routine
 		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
 		{
+			// 	set the computed correction to additive
+			//	todo: handle parallel case
+				c.set_storage_type(PST_ADDITIVE);
+
 			return sgs_step(mat, c, d);
 		}
 };
