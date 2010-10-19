@@ -40,8 +40,7 @@ class ParallelMatrix : public TMatrix
 			m_pCommunicator(NULL)
 		{}
 
-		ParallelMatrix(	IndexLayout& slaveLayout, IndexLayout masterLayout,
-						IndexLayout& verticalSlaveLayout, IndexLayout& verticalMasterLayout)
+		ParallelMatrix(	IndexLayout& slaveLayout, IndexLayout masterLayout)
 		: TMatrix(), m_type(PST_UNDEFINED),
 			m_pSlaveLayout(&slaveLayout), m_pMasterLayout(&masterLayout),
 			m_pCommunicator(NULL)
