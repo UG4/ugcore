@@ -37,7 +37,7 @@ change_storage_type(ParallelStorageType type)
 		return true;
 
 //	todo: Implement more.
-	UG_LOG("Currently no storage conversion supported.");
+	UG_LOG("ERROR in 'ParallelMatrix::change_storage_type': Currently no storage conversion supported.");
 	return false;
 }
 
