@@ -395,7 +395,6 @@ bool ClassNameVecContains(const std::vector<const char*>& names, const char* nam
 bool ClassInstantiations(const char *classname)
 {
 	UG_LOG(endl);
-	bridge::Registry &reg = GetUGRegistry();
 	const IExportedClass *c = FindClass(classname);
 	if(c == NULL)
 	{
