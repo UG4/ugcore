@@ -178,4 +178,15 @@ bool FunctionGroup::containes_function(size_t fct) const
 	return true;
 }
 
+size_t FunctionGroup::local_index(size_t fct) const
+{
+	for(size_t i = 0; i < m_vFunction.size(); ++i)
+	{
+		if(fct == m_vFunction[i]) return i;
+	}
+
+	throw(ERROR_BadIndexInFunctionGroup(fct));
+	return (size_t)-1;
+}
+
 } // end namespace ug

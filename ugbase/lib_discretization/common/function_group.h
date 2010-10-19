@@ -32,7 +32,7 @@ class FunctionGroup
 		void set_function_pattern(const FunctionPattern& funcPattern) {m_pFunctionPattern = &funcPattern; clear();}
 
 		/// get underlying function pattern
-		const FunctionPattern* get_function_pattern() {return m_pFunctionPattern;}
+		const FunctionPattern* get_function_pattern() const {return m_pFunctionPattern;}
 
 		/// adds a function by id to this group
 		bool add_function(size_t fct);
@@ -63,6 +63,9 @@ class FunctionGroup
 
 		/// clear all subsets
 		void clear() {m_vFunction.clear();}
+
+		/// returns if function group is empty
+		bool empty() {return m_vFunction.empty();}
 
 		/// number of functions in this group
 		size_t num_fct() const
@@ -105,6 +108,9 @@ class FunctionGroup
 
 		/// returns true if subset is contained in this group
 		bool containes_function(size_t fct) const;
+
+		/// return index in Function group for a function
+		size_t local_index(size_t fct) const;
 
 	protected:
 		// returns if FunctionGroup is ready for use
