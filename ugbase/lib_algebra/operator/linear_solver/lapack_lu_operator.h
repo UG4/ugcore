@@ -80,9 +80,7 @@ class LapackLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_
 			if(!m_lapacklu.apply(f, u))
 				{UG_LOG("ERROR in LapackLUOperator::apply: Cannot init LapackLU.\n"); return false;}
 
-			// todo: handle parallel case in a senseful way
-			u.set_storage_type(PST_CONSISTENT);
-
+		//	we're done
 			return true;
 		}
 
@@ -93,8 +91,13 @@ class LapackLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_
 			if(!apply(u, f)) return false;
 
 		//	update defect
-			m_pMatrix->matmul_minus(f, u);
+			if(!m_pMatrix->matmul_minus(f, u))
+			{
+				UG_LOG("ERROR in 'LapackLUSolver::apply_return_defect': Cannot apply matmul_minus.\n");
+				return false;
+			}
 
+		//	we're done
 			return true;
 		}
 
