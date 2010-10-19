@@ -108,12 +108,6 @@ class ApproximationSpace{
 			return true;
 		}
 
-		// return the domain
-		const domain_type& get_domain() const {return *m_pDomain;}
-
-		// return the domain
-		domain_type& get_domain() {return *m_pDomain;}
-
 		// create a new grid function of this approximation space
 		function_type* create_level_function(std::string name, size_t level, bool allocate = true)
 		{
@@ -137,6 +131,15 @@ class ApproximationSpace{
 														allocate);
 			return gridFct;
 		}
+
+		// return function pattern
+		const FunctionPattern& get_function_pattern() const {return *m_pFunctionPattern;}
+
+		// return the domain
+		const domain_type& get_domain() const {return *m_pDomain;}
+
+		// return the domain
+		domain_type& get_domain() {return *m_pDomain;}
 
 		const dof_distribution_type& get_surface_dof_distribution() const
 		{
