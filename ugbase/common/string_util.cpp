@@ -2,6 +2,7 @@
 
 #include "string_util.h"
 #include <algorithm>
+#include <ctype.h>
 
 namespace ug{
 
