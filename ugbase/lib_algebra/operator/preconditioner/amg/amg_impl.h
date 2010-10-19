@@ -400,9 +400,21 @@ bool amg<TAlgebra>::preprocess(matrix_type& mat)
 template<typename TAlgebra>
 bool amg<TAlgebra>::init_amg()
 {
-	UG_ASSERT(m_basesolver, "no base solver selected. call set_base_solver(basesolver)");
-	UG_ASSERT(m_presmoother, "no presmoother selected. call set_presmoother(presmoother)");
-	UG_ASSERT(m_postsmoother, "no postsmoother selected. call set_postsmoother(postsmoother)");
+	if(m_basesolver==NULL)
+	{
+		UG_LOG("AMG::init_amg(): No base solver selected. Call set_base_solver(basesolver) to set a base solver.\n");
+		return false;
+	}
+	if(m_presmoother==NULL)
+	{
+		UG_LOG("AMG::init_amg(): No PreSmoother selected. Call set_presmoother(presmoother) to set a PreSmoother.\n");
+		return false;
+	}
+	if(m_postsmoother==NULL)
+	{
+		UG_LOG("AMG::init_amg(): No PostSmoother selected. Call set_postsmoother(postsmoother) to set a PostSmoother.\n");
+		return false;
+	}
 
 	// init amghelper for grid printing
 	amghelper.positions = &dbg_positions[0];
