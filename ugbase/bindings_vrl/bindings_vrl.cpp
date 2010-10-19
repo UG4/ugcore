@@ -130,7 +130,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 (JNIEnv *env, jobject obj,
-		jstring exportedClassName, jlong objPtr, jstring methodName, jobjectArray params) {
+		jstring exportedClassName, jlong objPtr, jboolean readOnly,
+		jstring methodName, jobjectArray params) {
 	//	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*) objPtr;
 
 	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*)
@@ -148,7 +149,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 	const ug::bridge::ExportedMethod* method =
 			ug::vrl::getMethodBySignature(
-			env, clazz, name, params);
+			env, clazz, ug::vrl::boolJ2C(readOnly), name, params);
 
 	VRL_DBG("AFTER_GET_METHOD", 1);
 
@@ -160,7 +161,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 	VRL_DBG("AFTER_OBJECT_ARRAY_TO_STACK", 1);
 
-//	ug::vrl::displayMessage("Test-Message",">> Hello from UG4",ug::vrl::INFO);
+	//	ug::vrl::displayMessage("Test-Message",">> Hello from UG4",ug::vrl::INFO);
 
 
 	try {
@@ -186,7 +187,7 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
-(JNIEnv *env, jobject obj, jlong fPtr, jobjectArray params) {
+(JNIEnv *env, jobject obj, jlong fPtr, jboolean readOnly, jobjectArray params) {
 	ug::bridge::ExportedFunction* func = (ug::bridge::ExportedFunction*) fPtr;
 
 	ug::bridge::ParameterStack paramsIn;
@@ -209,15 +210,21 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 	std::vector<std::string> result;
 
+	VRL_DBG("BEFORE_FUNCTIONS",1);
+
 	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
 		ug::bridge::ExportedFunction& func = ug::vrl::vrlRegistry->get_function(i);
 		result.push_back(ug::vrl::exportedFunction2Groovy(func));
 	}
 
+	VRL_DBG("FUNCTIONS_DONE",1);
+
 	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
 		const ug::bridge::IExportedClass& clazz = ug::vrl::vrlRegistry->get_class(i);
 		result.push_back(ug::vrl::exportedClass2Groovy(clazz));
 	}
+
+	VRL_DBG("CLASSES_DONE",1);
 
 	return ug::vrl::stringArrayC2J(env, result);
 }
@@ -229,8 +236,8 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 }
 
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
-  (JNIEnv *env, jobject obj, jobject canvas) {
-	ug::vrl::Canvas::getInstance()->setJObject(env,canvas);
-	
-//	ug::vrl::Canvas::getInstance()->addObject(ug::vrl::string2JObject(env,"Test_String"));
+(JNIEnv *env, jobject obj, jobject canvas) {
+	ug::vrl::Canvas::getInstance()->setJObject(env, canvas);
+
+	//	ug::vrl::Canvas::getInstance()->addObject(ug::vrl::string2JObject(env,"Test_String"));
 }

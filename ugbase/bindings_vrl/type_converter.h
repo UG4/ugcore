@@ -91,6 +91,14 @@ namespace ug {
 		std::vector<std::string> stringArrayJ2C(
 				JNIEnv *env, jobjectArray const& array);
 
+		inline bool boolJ2C(jboolean b) {
+			return b == JNI_TRUE;
+		}
+
+		inline jboolean boolC2J(bool b) {
+			return b ? JNI_TRUE : JNI_FALSE;
+		}
+
 		std::string exportedFunction2Groovy(
 				ug::bridge::ExportedFunction const& func);
 
@@ -112,7 +120,20 @@ namespace ug {
 		jobject pointer2JObject(JNIEnv *env, void* value);
 		void* jObject2Pointer(JNIEnv *env, jobject obj);
 
-		const char* paramType2String(int paramType);
+
+		std::string createParamInfo(const char* className,
+				const std::vector<const char*>* classNames, bool isConst,
+				std::string customOptions = "");
+
+
+		std::string createMethodInfo(const char* className,
+				const std::vector<const char*>* classNames, bool isConst,
+				std::string customOptions = "");
+
+
+		const char* paramType2String(int paramType,
+				const char* className,
+				const std::vector<const char*>* classNames, bool isOutput = false);
 
 		int jobjectArray2ParamStack(JNIEnv *env, ug::bridge::ParameterStack& paramsOut,
 				const ug::bridge::ParameterStack& paramsTemplate,
@@ -131,6 +152,7 @@ namespace ug {
 		const ug::bridge::ExportedMethod* getMethodBySignature(
 				JNIEnv *env,
 				ug::bridge::IExportedClass* clazz,
+				bool readOnly,
 				std::string methodName,
 				jobjectArray params);
 

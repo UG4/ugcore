@@ -18,10 +18,10 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
  * Method:    invokeMethod
- * Signature: (Ljava/lang/String;JLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;
+ * Signature: (Ljava/lang/String;JZLjava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
-  (JNIEnv *, jobject, jstring, jlong, jstring, jobjectArray);
+  (JNIEnv *, jobject, jstring, jlong, jboolean, jstring, jobjectArray);
 
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
@@ -42,10 +42,10 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
  * Method:    invokeFunction
- * Signature: (J[Ljava/lang/Object;)Ljava/lang/Object;
+ * Signature: (JZ[Ljava/lang/Object;)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
-  (JNIEnv *, jobject, jlong, jobjectArray);
+  (JNIEnv *, jobject, jlong, jboolean, jobjectArray);
 
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4

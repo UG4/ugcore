@@ -66,7 +66,7 @@ namespace ug {
 		void generateMethodHeader(
 				std::stringstream& result, std::string name,
 				ug::bridge::ParameterStack const& paramStackIn,
-				ug::bridge::ParameterStack const& paramStackOut) {
+				ug::bridge::ParameterStack const& paramStackOut, bool isFunction = false, std::string prefix = "") {
 
 			std::stringstream params;
 			std::stringstream paramsArray;
@@ -78,34 +78,52 @@ namespace ug {
 					params << ", ";
 					paramsArray << ", ";
 				}
-				params << paramType2String(paramStackIn.get_type(i)) << " p" << i;
+				params << paramType2String(paramStackIn.get_type(i),
+						paramStackIn.class_name(i),
+						paramStackIn.class_names(i)) << " p" << i;
+
 				paramsArray << " p" << i;
 			}
 
-			// we always need the visual id to get a reference to the
-			// visualization that invokes this method
-			// that is why we add a visual id request to the param list
-			if (numParams > 0) {
-				params << ", ";
-				paramsArray << ", ";
+			if (!isFunction) {
+				// we always need the visual id to get a reference to the
+				// visualization that invokes this method
+				// that is why we add a visual id request to the param list
+				if (numParams > 0) {
+					params << ", ";
+					paramsArray << ", ";
+				}
+				params << " VisualIDRequest id ";
+				paramsArray << " id";
 			}
-			params << " VisualIDRequest id ";
-			paramsArray << " id";
-
-
 
 			const char* outType;
 			if (paramStackOut.size() > 0) {
-				outType = paramType2String(paramStackOut.get_type(0));
+				outType = paramType2String(
+						paramStackOut.get_type(0),
+						paramStackOut.class_name(0),
+						paramStackOut.class_names(0), true);
+
+				bool readOnly =
+						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
+
+				result << createMethodInfo(
+						paramStackOut.class_name(0),
+						paramStackOut.class_names(0), readOnly) << "\n";
+
 			} else {
 				outType = "void";
 			}
 
-			result << "public " << outType << " " << name << " ("
+
+
+			result << "public " << outType << " " << prefix << name << " ("
 					<< params.str() << ") {\n"
 					<< "Object[] params = [" << paramsArray.str() << "] \n";
 
-			result << "updatePointer(id.getID());\n";
+			if (!isFunction) {
+				result << "updatePointer(id.getID());\n";
+			}
 
 			if (paramStackOut.size() > 0) {
 				result << "return ";
@@ -120,7 +138,8 @@ namespace ug {
 					<< "public class UG4_" << func.name() << " {\n"
 					<< "private static final serialVersionUID=1L;\n";
 
-			generateMethodHeader(result, func.name(), func.params_in(), func.params_out());
+			generateMethodHeader(
+					result, func.name(), func.params_in(), func.params_out(), true);
 
 			result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction("
 					<< (jlong) & func << " as long, params)";
@@ -152,10 +171,31 @@ namespace ug {
 
 				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 						<< "getClassName(),"
-						<< " getPointer().getAddress(), \"" << method.name() << "\", params)";
+						<< " getPointer().getAddress(), false, \"" << method.name() << "\", params)";
 
 				result << "\n}\n\n";
 			}
+
+			for (unsigned int i = 0; i < clazz.num_const_methods(); i++) {
+				const ug::bridge::ExportedMethod &method = clazz.get_const_method(i);
+
+				generateMethodHeader(result, method.name(),
+						method.params_in(), method.params_out(),false,"const_");
+
+				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+						<< "getClassName(),"
+						<< " getPointer().getAddress(), true, \"" << method.name() << "\", params)";
+
+				result << "\n}\n\n";
+			}
+
+			result << createMethodInfo(clazz.name(), clazz.class_names(), false, "interactive=false")
+					<< "\nedu.gcsc.vrl.ug4.Pointer getPointer() { super.getPointer()}\n";
+
+			result << "@MethodInfo(interactive=false)\n"
+					<< " void setPointer(" <<
+					createParamInfo(clazz.name(), clazz.class_names(), false, "nullIsValid=true")
+					<< " edu.gcsc.vrl.ug4.Pointer p) { super.setPointer(p)}\n";
 
 			result << "\n}";
 
@@ -224,15 +264,141 @@ namespace ug {
 			return stringJ2C(env, (jstring) obj);
 		}
 
-		const char* paramType2String(int paramType) {
+		std::string createParamInfo(const char* className,
+				const std::vector<const char*>* classNames, bool isConst,
+				std::string customOptions) {
+			std::stringstream paramInfo;
+			std::stringstream classNameOptions;
+
+			if (className == NULL) {
+				return std::string();
+			}
+
+			if (classNames == NULL) {
+				return std::string();
+			}
+
+			classNameOptions
+					<< ", options=\"className=\\\"" << className << "\\\";"
+					<< "classNames=[";
+
+
+			for (unsigned int i = 0; i < classNames->size(); i++) {
+
+				if (i > 0) {
+					classNameOptions << ",";
+				}
+
+				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
+			}
+
+			classNameOptions << "]";
+
+			if (isConst) {
+				classNameOptions << "; readOnly=true";
+			} else {
+				classNameOptions << "; readOnly=false";
+			}
+
+			paramInfo
+					<< "@ParamInfo( name=\""
+					<< className << "\""
+					<< classNameOptions.str() << "\"";
+
+			if (customOptions.size()>0) {
+				paramInfo << ", " << customOptions;
+			}
+
+		
+			paramInfo << ") ";
+
+			return paramInfo.str();
+		}
+
+		std::string createMethodInfo(const char* className,
+				const std::vector<const char*>* classNames, bool isConst,
+				std::string customOptions) {
+			std::stringstream paramInfo;
+			std::stringstream classNameOptions;
+
+			if (className == NULL) {
+				return std::string();
+			}
+
+			if (classNames == NULL) {
+				return std::string();
+			}
+
+			classNameOptions
+					<< ", valueOptions=\"className=\\\"" << className << "\\\";"
+					<< "classNames=[";
+
+
+			for (unsigned int i = 0; i < classNames->size(); i++) {
+				if (i > 0) {
+					classNameOptions << ",";
+				}
+
+				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
+			}
+
+			classNameOptions << "]";
+
+			if (isConst) {
+				classNameOptions << "; readOnly=true";
+			} else {
+				classNameOptions << "; readOnly=false";
+			}
+
+			paramInfo
+					<< "@MethodInfo( valueName=\""
+					<< className << "\""
+					<< classNameOptions.str() << "\"";
+
+			if (customOptions.size()>0) {
+				paramInfo << ", " << customOptions;
+			}
+
+
+			paramInfo << ") ";
+
+			return paramInfo.str();
+		}
+
+		const char* paramType2String(int paramType,
+				const char* className,
+				const std::vector<const char*>* classNames, bool isOutput) {
+
+
 
 			switch (paramType) {
 				case ug::bridge::PT_BOOL: return "boolean";
 				case ug::bridge::PT_INTEGER: return "int";
 				case ug::bridge::PT_NUMBER: return "double";
 				case ug::bridge::PT_STRING: return "String";
-				case ug::bridge::PT_POINTER: return "edu.gcsc.vrl.ug4.Pointer";
-				case ug::bridge::PT_CONST_POINTER: return "edu.gcsc.vrl.ug4.Pointer";
+				case ug::bridge::PT_POINTER:
+				{
+					if (isOutput) {
+						return "edu.gcsc.vrl.ug4.Pointer";
+					} else {
+						std::string result =
+								createParamInfo(className, classNames, false)
+								+ std::string("edu.gcsc.vrl.ug4.Pointer");
+
+						return result.c_str();
+					}
+				}
+				case ug::bridge::PT_CONST_POINTER:
+				{
+					if (isOutput) {
+						return "edu.gcsc.vrl.ug4.Pointer";
+					} else {
+						std::string result =
+								createParamInfo(className, classNames, true)
+								+ std::string("edu.gcsc.vrl.ug4.Pointer");
+						return result.c_str();
+					}
+				}
 				default: return "Object";
 			}
 		}
@@ -310,7 +476,7 @@ namespace ug {
 
 		const ug::bridge::ExportedMethod* getMethodBySignature(
 				JNIEnv *env,
-				ug::bridge::IExportedClass* clazz,
+				ug::bridge::IExportedClass* clazz, bool readOnly,
 				std::string methodName,
 				jobjectArray params) {
 
@@ -321,9 +487,28 @@ namespace ug {
 
 			VRL_DBG(std::string("BEFORE 2:") + clazz->name(), 1);
 
-			for (unsigned int i = 0; i < clazz->num_methods(); i++) {
+			unsigned int numMethods = 0;
+
+			if (readOnly) {
+				numMethods = clazz->num_const_methods();
+			} else {
+				numMethods = clazz->num_methods();
+			}
+
+			VRL_DBG("BEFORE 3:", 1);
+			VRL_DBG(numMethods, 1);
+
+			VRL_DBG(clazz->num_const_methods(), 1);
+
+			for (unsigned int i = 0; i < numMethods; i++) {
 				VRL_DBG("INSIDE", 1);
-				const ug::bridge::ExportedMethod* method = &clazz->get_method(i);
+				const ug::bridge::ExportedMethod* method = NULL;
+
+				if (readOnly) {
+					method = &clazz->get_const_method(i);
+				} else {
+					method = &clazz->get_method(i);
+				}
 
 				if (strcmp(method->name().c_str(), methodName.c_str()) == 0 &&
 						compareParamTypes(env, params, method->params_in())) {
