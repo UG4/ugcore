@@ -12,5 +12,6 @@
 #include "communication_policies.h"
 #include "parallelization_util.h"
 #include "parallel_vector.h"
+#include "parallel_matrix.h"
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION__ */
