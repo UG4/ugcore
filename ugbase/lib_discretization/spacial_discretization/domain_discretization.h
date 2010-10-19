@@ -71,38 +71,23 @@ class DomainDiscretization :
 		IAssembleReturn assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number time);
 
 	public:
-		/** adds an Element Discretization that will be performed on given subsets
-		 * This function adds an Element Discretization for a given group of functions. The Functions
-		 * must match the requiries of the Discretization and must be defined for the Subsets.
+		/** adds an element discretization to the assembling process
+		 * This function adds an Element Discretization to the assembling. During the
+		 * assembling process the elem disc will assemble a given group of subsets and
+		 * add the output to the passed vectors and matrices. Per Elem Disc one loop
+		 * over all elements of the subset will be performed.
 		 *
-		 * \param[in] 	elemDisc		element discretization
-		 * \param[in]	functionGroup	Function used in discretization
-		 * \param[in]	subsetGroup		Subsets, where discretization should be performed
+		 * \param[in] 	elem		Element Discretization to be added
 		 */
-		bool add(IElemDisc<TAlgebra>& elemDisc, const FunctionGroup& functionGroup, const SubsetGroup& subsetGroup);
-
-		/** adds an Element Discretization that will be performed on given subsets
-		 * This function adds an Element Discretization for a given group of functions. The Functions
-		 * must match the requiries of the Discretization and must be defined for the Subsets.
-		 *
-		 * \param[in] 	elemDisc		element discretization
-		 * \param[in]	pattern			underlying function pattern to be used
-		 * \param[in]	functions		string of Function Names used in discretization, separated by ','
-		 * \param[in]	subsets			string of Subset Names, where discretization should be performed, separated by ','
-		 */
-		bool add(IElemDisc<TAlgebra>& elemDisc, const FunctionPattern& pattern, const char* functions, const char* subsets);
+		bool add_elem_disc(IElemDisc<TAlgebra>& elem)
+		{
+			m_vElemDisc.push_back(&elem);
+			return true;
+		}
 
 	protected:
-		struct ElemDisc
-		{
-			ElemDisc(IElemDisc<TAlgebra>& disc_, const FunctionGroup& fcts_, const SubsetGroup& subsetGroup_) :
-				disc(&disc_), functionGroup(fcts_), subsetGroup(subsetGroup_) {};
+		std::vector<IElemDisc<TAlgebra>*> m_vElemDisc;
 
-			IElemDisc<TAlgebra>* disc;
-			FunctionGroup functionGroup;
-			SubsetGroup subsetGroup;
-		};
-		std::vector<ElemDisc> m_vElemDisc;
 
 	public:
 		/** adds a Coupled Element Discretization that will be performed on given subsets
@@ -156,16 +141,12 @@ class DomainDiscretization :
 		std::vector<IPostProcess<TDoFDistribution, TAlgebra>*> m_vvPostProcess[PPT_NUM_POST_PROCESS_TYPES];
 
 	protected:
-		// check that passed solution matches needed setup
-		bool check_solution(const vector_type& u, const dof_distribution_type& dofDistr);
-
-	protected:
 		// todo: What is this function used for???? Do we have to include it
 		virtual size_t num_fct() const
 		{
 			size_t sum = 0;
 			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				sum += m_vElemDisc[i].functionGroup.num_fct();
+				sum += m_vElemDisc[i]->get_function_group().num_fct();
 
 			return sum;
 		}

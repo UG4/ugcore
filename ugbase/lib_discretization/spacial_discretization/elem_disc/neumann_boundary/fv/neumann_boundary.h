@@ -48,24 +48,142 @@ class FVNeumannBoundaryElemDisc : public IElemDisc<TAlgebra>
 		typedef LocalIndices local_index_type;
 
 	protected:
-		typedef typename IUserNumberProvider<dim>::functor_type NumberFunctor;
+		typedef typename IBoundaryNumberProvider<dim>::functor_type BNDNumberFunctor;
 
 	public:
 		FVNeumannBoundaryElemDisc()
-		 : m_pDomain(NULL),	m_BndCond(NULL), m_BndSubset(-2)
+		 : m_numFct(0), m_pDomain(NULL)
 			{
+				m_mBoundarySegment.clear();
 				register_assemble_functions(Int2Type<dim>());
 			}
 
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
-		void set_bnd_cond(IUserNumberProvider<dim>& user, int subset)
+		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, const char* function, const char* subsets)
 		{
-			m_BndCond = user.get_functor();
-			m_BndSubset = subset;
+		//	check that function pattern exists
+			if(this->m_pPattern == NULL)
+			{
+				UG_LOG("FVNeumannBoundaryElemDisc:add_boundary_value: Function Pattern not set.\n");
+				return false;
+			}
+
+		//	create Function Group and Subset Group
+			FunctionGroup functionGroup;
+			SubsetGroup subsetGroup;
+
+		//	convert strings
+			if(!ConvertStringToSubsetGroup(subsetGroup, *this->m_pPattern, subsets))
+			{
+				UG_LOG("ERROR while parsing Subsets.\n");
+				return false;
+			}
+			if(!ConvertStringToFunctionGroup(functionGroup, *this->m_pPattern, function))
+			{
+				UG_LOG("ERROR while parsing Functions.\n");
+				return false;
+			}
+
+		//	only one function allowed
+			if(functionGroup.num_fct() != 1)
+			{
+				UG_LOG("FVNeumannBoundaryElemDisc:add_boundary_value: Exactly one function needed, but given '"<<function<<"' as functions.\n");
+				return false;
+			}
+
+		//	forward request
+			return add_boundary_value(user, functionGroup.fct_id(0), subsetGroup);
 		}
 
-		virtual size_t num_fct(){return 1;}
+		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, size_t fct, SubsetGroup bndSubsetGroup)
+		{
+		//	check that function pattern exists
+			if(this->m_pPattern == NULL)
+			{
+				UG_LOG("FVNeumannBoundaryElemDisc:add_boundary_value: Function Pattern not set.\n");
+				return false;
+			}
+
+		//	get subsethandler
+			const ISubsetHandler* pSH = this->m_pPattern->get_subset_handler();
+
+		// 	check if function exist
+			if(fct >= this->m_pPattern->num_fct())
+			{
+				UG_LOG("FVNeumannBoundaryElemDisc:add_boundary_value: Function "
+						<< fct << " does not exist in pattern.\n");
+				return false;
+			}
+
+		//	add function to function group if needed
+		//	this will force, that the local vector contains the function
+		//	note: 	The local indices for allready contained functions are not changed.
+		//			Therefore an update in the UserDataFunctions is not necessary
+			if(!this->m_FunctionGroup.containes_function(fct))
+			{
+				this->m_FunctionGroup.add_function(fct);
+				m_numFct = this->m_FunctionGroup.num_fct();
+			}
+
+		//	get position of function in function group
+			const size_t index = this->m_FunctionGroup.local_index(fct);
+
+		// 	check that function is defined on inner subset
+			if(!this->m_SubsetGroup.empty())
+			{
+				for(size_t si = 0; si < this->m_SubsetGroup.num_subsets(); ++si)
+				{
+					const int subsetIndex = this->m_SubsetGroup[si];
+					if(!this->m_pPattern->is_def_in_subset(fct, subsetIndex))
+					{
+						UG_LOG("FVNeumannBoundaryElemDisc:add_boundary_value: Function "
+								<< fct << " not defined in subset " << subsetIndex << ".\n");
+						return false;
+					}
+				}
+			}
+
+		// 	loop subsets
+			for(size_t si = 0; si < bndSubsetGroup.num_subsets(); ++si)
+			{
+			//	get subset index
+				const int subsetIndex = bndSubsetGroup[si];
+
+			//	check that subsetIndex is valid
+				if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
+				{
+					UG_LOG("FVNeumannBoundaryElemDisc:add_boundary_value: Invalid subset Index "
+							<< subsetIndex << ". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
+					return false;
+				}
+
+			//	get Boundary segment from map
+				std::vector<UserDataFunction>& vSegmentFunction = m_mBoundarySegment[subsetIndex];
+
+			//	remember functor and function
+				vSegmentFunction.push_back(UserDataFunction(index, user.get_functor()));
+			}
+
+		//	we're done
+			return true;
+		}
+
+	private:
+		struct UserDataFunction
+		{
+			UserDataFunction(size_t fct_, BNDNumberFunctor functor_)
+				: loc_fct(fct_), functor(functor_) {}
+
+			size_t loc_fct;
+			BNDNumberFunctor functor;
+		};
+
+		std::map<int, std::vector<UserDataFunction> > m_mBoundarySegment;
+		size_t m_numFct;
+
+	public:
+		virtual size_t num_fct(){return m_numFct;}
 
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) {return LSFS_LAGRANGEP1;}
 
@@ -103,13 +221,6 @@ class FVNeumannBoundaryElemDisc : public IElemDisc<TAlgebra>
 		// position access
 		std::vector<position_type> m_vCornerCoords;
 		typename TDomain::position_accessor_type m_aaPos;
-
-		// to make it more readable
-		static const size_t _C_ = 0;
-
-		// User functions
-		NumberFunctor m_BndCond;
-		int m_BndSubset;
 
 	private:
 		///////////////////////////////////////

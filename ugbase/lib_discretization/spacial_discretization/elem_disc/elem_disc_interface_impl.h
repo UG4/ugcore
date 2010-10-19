@@ -10,8 +10,209 @@
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__ELEM_DISC_INTERFACE_IMPL__
 
 #include "elem_disc_interface.h"
+#include "lib_discretization/common/groups_util.h"
 
 namespace ug{
+
+/////////////////////////////////////////////////////
+// Functions and Subsets (default implementation)
+/////////////////////////////////////////////////////
+
+template<typename TAlgebra>
+bool
+IElemDisc<TAlgebra>::
+set_functions(const char* functions)
+{
+//	check that function pattern exists
+	if(m_pPattern == NULL)
+	{
+		UG_LOG("IElemDisc::set_functions: Function Pattern not set.\n");
+		return false;
+	}
+
+//	create Function Group
+	FunctionGroup functionGroup;
+
+//	convert string
+	if(!ConvertStringToFunctionGroup(functionGroup, *m_pPattern, functions))
+	{
+		UG_LOG("ERROR while parsing Functions.\n");
+		return false;
+	}
+
+//	forward request
+	return set_functions(functionGroup);
+}
+
+template<typename TAlgebra>
+bool
+IElemDisc<TAlgebra>::
+set_functions(const FunctionGroup& funcGroup)
+{
+//	check that pattern is set
+	if(m_pPattern == NULL)
+	{
+		UG_LOG("IElemDisc::set_functions: No underlying Function Pattern set.\n");
+		return false;
+	}
+
+//	check, that pattern is the same
+	if(m_pPattern != funcGroup.get_function_pattern())
+	{
+		UG_LOG("IElemDisc::set_functions: Given Function group does "
+				"not have correct underlying Function Pattern.\n");
+		return false;
+	}
+
+//	check number of functions
+	if(funcGroup.num_fct() != this->num_fct())
+	{
+		UG_LOG("IElemDisc::set_functions: Exactly " << this->num_fct() <<
+				" functions needed, but given "<< funcGroup.num_fct() <<" functions.\n");
+		return false;
+	}
+
+//	check trial spaces
+	for(size_t i = 0; i < this->num_fct(); ++i)
+	{
+		if(funcGroup.local_shape_function_set_id(i) !=
+				this->local_shape_function_set_id(i))
+		{
+			UG_LOG("IElemDisc::set_functions: Function " << i << " has incorrect"
+					" local shape function type.\n");
+			return false;
+		}
+	}
+
+//	get Dimension of subset
+	int dim = funcGroup.get_function_dimension();
+
+	if(dim == -1)
+	{
+		UG_LOG("IElemDisc::set_functions: Given function group does not have a unique dimension.\n");
+		return false;
+	}
+
+	if(!m_SubsetGroup.empty())
+	{
+	//	check Dimension of function group
+		int dim_subsets = m_SubsetGroup.get_subset_dimension();
+		if(dim != dim_subsets)
+		{
+			UG_LOG("IElemDisc::set_functions: Dimension of already set subset group"
+					" does not have same dimension as passed functions.\n");
+			return false;
+		}
+
+	// 	check that function is defined for segment
+		for(size_t i = 0; i <funcGroup.num_fct(); ++i)
+		{
+			const size_t fct = funcGroup[i];
+			for(size_t si = 0; si < m_SubsetGroup.num_subsets(); ++si)
+			{
+				const int subsetIndex = m_SubsetGroup[si];
+				if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
+				{
+					UG_LOG("IElemDisc::set_subsets: Function "
+							<< fct << " not defined in subset " << subsetIndex << ".\n");
+					return false;
+				}
+			}
+		}
+	}
+
+//	remember group (copy)
+	m_FunctionGroup = funcGroup;
+	return true;
+}
+
+template<typename TAlgebra>
+bool
+IElemDisc<TAlgebra>::
+set_subsets(const char* subsets)
+{
+//	check that function pattern exists
+	if(m_pPattern == NULL)
+	{
+		UG_LOG("IElemDisc::set_subsets: Function Pattern not set.\n");
+		return false;
+	}
+
+//	create Function Group
+	SubsetGroup subsetGroup;
+
+//	convert string
+	if(!ConvertStringToSubsetGroup(subsetGroup, *m_pPattern, subsets))
+	{
+		UG_LOG("ERROR while parsing Subsets.\n");
+		return false;
+	}
+
+//	forward request
+	return set_subsets(subsetGroup);
+}
+
+template<typename TAlgebra>
+bool
+IElemDisc<TAlgebra>::
+set_subsets(const SubsetGroup& subsetGroup)
+{
+//	check that pattern is set
+	if(m_pPattern == NULL)
+	{
+		UG_LOG("IElemDisc::set_subsets: No underlying Function Pattern set.\n");
+		return false;
+	}
+
+//	check, that subset handler is the same
+	if(m_pPattern->get_subset_handler() != subsetGroup.get_subset_handler())
+	{
+		UG_LOG("IElemDisc::set_subsets: Given subset group does "
+				"not have correct underlying subset handler.\n");
+		return false;
+	}
+
+//	get Dimension of subset
+	int dim = subsetGroup.get_subset_dimension();
+
+	if(dim == -1)
+	{
+		UG_LOG("IElemDisc::set_subsets: Given subset group does not have a unique dimension.\n");
+		return false;
+	}
+
+	if(!m_FunctionGroup.empty())
+	{
+		//	check Dimension of function group
+		int dim_functions = m_FunctionGroup.get_function_dimension();
+		if(dim != dim_functions)
+		{
+			UG_LOG("IElemDisc::set_subsets: Dimension of already set function group"
+					" does not have same dimension as passed subsets.\n");
+			return false;
+		}
+
+	// 	check that function is defined for segment
+		for(size_t i = 0; i < m_FunctionGroup.num_fct(); ++i)
+		{
+			const size_t fct = m_FunctionGroup[i];
+			for(size_t si = 0; si < subsetGroup.num_subsets(); ++si)
+			{
+				const int subsetIndex = subsetGroup[si];
+				if(!m_pPattern->is_def_in_subset(fct, subsetIndex))
+				{
+					UG_LOG("IElemDisc::set_subsets: Function "
+							<< fct << " not defined in subset " << subsetIndex << ".\n");
+					return false;
+				}
+			}
+		}
+	}
+
+//	remember group (copy)
+	m_SubsetGroup = subsetGroup;
+	return true;
+}
 
 
 ////////////////////////////////////////////////

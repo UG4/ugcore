@@ -61,38 +61,20 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 				return false;
 			}
 
-		//	get strings
-			std::string fctString = std::string(function);
-			std::string subsetString = std::string(subsets);
-
 		//	create Function Group and Subset Group
-			FunctionGroup functionGroup; functionGroup.set_function_pattern(*m_pPattern);
-			SubsetGroup subsetGroup; subsetGroup.set_subset_handler(*m_pPattern->get_subset_handler());
+			FunctionGroup functionGroup;
+			SubsetGroup subsetGroup;
 
-		//	tokenize strings and select functions
-			std::vector<std::string> tokens;
-			TokenizeString(fctString, tokens, ",");
-
-			for(size_t i = 0; i < tokens.size(); ++i)
+		//	convert strings
+			if(!ConvertStringToSubsetGroup(subsetGroup, *m_pPattern, subsets))
 			{
-				if(!functionGroup.add_function(tokens[i].c_str()))
-				{
-					UG_LOG("P1DirichletBoundary:add_boundary_value: Name of function not found in Function Pattern.\n");
-					return false;
-				}
+				UG_LOG("ERROR while parsing Subsets.\n");
+				return false;
 			}
-
-		//	tokenize strings and select subsets
-			tokens.clear();
-			TokenizeString(subsetString, tokens, ",");
-
-			for(size_t i = 0; i < tokens.size(); ++i)
+			if(!ConvertStringToFunctionGroup(functionGroup, *m_pPattern, function))
 			{
-				if(!subsetGroup.add_subset(tokens[i].c_str()))
-				{
-					UG_LOG("P1DirichletBoundary:add_boundary_value: Name of subset not found in Subset Handler.\n");
-					return false;
-				}
+				UG_LOG("ERROR while parsing Functions.\n");
+				return false;
 			}
 
 		//	only one function allowed

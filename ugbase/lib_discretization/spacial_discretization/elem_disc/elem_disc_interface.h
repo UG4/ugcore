@@ -42,6 +42,31 @@ class IElemDisc{
 		typedef LocalIndices local_index_type;
 
 	public:
+		IElemDisc() : m_pPattern(NULL) {}
+
+		void set_pattern(const FunctionPattern& pattern)
+		{
+			m_pPattern = &pattern;
+			m_FunctionGroup.set_function_pattern(pattern);
+			m_SubsetGroup.set_subset_handler(*pattern.get_subset_handler());
+		}
+
+		virtual bool set_functions(const char* functions);
+		virtual bool set_functions(const FunctionGroup& funcGroup);
+
+		virtual bool set_subsets(const char* subsets);
+		virtual bool set_subsets(const SubsetGroup& subsetGroup);
+
+		const FunctionGroup& get_function_group() const {return m_FunctionGroup;}
+		const SubsetGroup& get_subset_group() const {return m_SubsetGroup;}
+
+	protected:
+
+		const FunctionPattern* m_pPattern;
+		FunctionGroup m_FunctionGroup;
+		SubsetGroup m_SubsetGroup;
+
+	public:
 		// number of functions this discretization handles
 		virtual size_t num_fct() = 0;
 

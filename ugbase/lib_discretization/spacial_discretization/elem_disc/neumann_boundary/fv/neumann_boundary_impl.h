@@ -37,7 +37,14 @@ prepare_element_loop()
 
 //	register subsetIndex at Geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-	geo.add_boundary_subset(m_BndSubset);
+
+	typename std::map<int, std::vector<UserDataFunction> >::const_iterator subsetIter;
+	for(subsetIter = m_mBoundarySegment.begin(); subsetIter != m_mBoundarySegment.end(); ++subsetIter)
+	{
+		const int bndSubset = (*subsetIter).first;
+
+		geo.add_boundary_subset(bndSubset);
+	}
 
 //	we're done
 	return true;
@@ -52,7 +59,14 @@ finish_element_loop()
 {
 //	remove subsetIndex from Geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-	geo.remove_boundary_subset(m_BndSubset);
+
+	typename std::map<int, std::vector<UserDataFunction> >::const_iterator subsetIter;
+	for(subsetIter = m_mBoundarySegment.begin(); subsetIter != m_mBoundarySegment.end(); ++subsetIter)
+	{
+		const int bndSubset = (*subsetIter).first;
+
+		geo.remove_boundary_subset(bndSubset);
+	}
 
 //	we're done
 	return true;
@@ -139,34 +153,46 @@ assemble_f(local_vector_type& d, number time)
 	// get finite volume geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
 
-	// loop Boundary Faces
-	for(size_t i = 0; i < geo.num_bf(m_BndSubset); ++i)
+	// loop registered boundary segments
+	typename std::map<int, std::vector<UserDataFunction> >::const_iterator subsetIter;
+	for(subsetIter = m_mBoundarySegment.begin(); subsetIter != m_mBoundarySegment.end(); ++subsetIter)
 	{
-		// get current BF
-		const typename TFVGeom<TElem, dim>::BF& bf = geo.bf(m_BndSubset, i);
+		const int bndSubset = (*subsetIter).first;
+		const std::vector<UserDataFunction>& vSegmentFunction = (*subsetIter).second;
 
-		// first value
-		number val = 0.0;
-		m_BndCond(val, bf.global_ip(0), time);
-
-		// other values
-		for(size_t ip = 1; ip < bf.num_ip(); ++ip)
+		// loop Boundary Faces
+		for(size_t i = 0; i < geo.num_bf(bndSubset); ++i)
 		{
-			number ip_val;
-			m_BndCond(ip_val, bf.global_ip(ip), time);
+		// get current BF
+			const typename TFVGeom<TElem, dim>::BF& bf = geo.bf(bndSubset, i);
 
-			// TODO: add weights for integration
-			val += ip_val;
+		//	loop functions, where neumann bnd is set for this bndSubset
+			for(size_t fct = 0; fct < vSegmentFunction.size(); ++fct)
+			{
+				// first value
+				number val = 0.0;
+				vSegmentFunction[fct].functor(val, bf.global_ip(0), time);
+
+				// other values
+				for(size_t ip = 1; ip < bf.num_ip(); ++ip)
+				{
+					number ip_val;
+					vSegmentFunction[fct].functor(ip_val, bf.global_ip(ip), time);
+
+					// TODO: add weights for integration
+					val += ip_val;
+				}
+
+				// scale with volume of BF
+				val *= bf.volume();
+
+				// get associated node
+				const int co = bf.node_id();
+
+				// Add to local matrix
+				d(vSegmentFunction[fct].loc_fct, co) -= val;
+			}
 		}
-
-		// scale with volume of BF
-		val *= bf.volume();
-
-		// get associated node
-		const int co = bf.node_id();
-
-		// Add to local matrix
-		d(_C_, co) -= val;
 	}
 
 	// we're done

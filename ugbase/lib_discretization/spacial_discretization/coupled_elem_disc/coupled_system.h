@@ -45,6 +45,7 @@ class CoupledSystem {
 				{UG_LOG("CoupledSystem::add_system_discretization: Cannot assign system ids"); return false;}
 
 			update_sub_function_maps();
+			update_function_group();
 			return true;
 		};
 
@@ -75,6 +76,8 @@ class CoupledSystem {
 			}
 			return true;
 		}
+
+		const FunctionGroup& get_function_group() const {return m_FunctionGroup;}
 
 		/// number of functions this coupled discretization requires
 		size_t num_fct() const
@@ -144,7 +147,29 @@ class CoupledSystem {
 			}
 		}
 
+		void update_function_group()
+		{
+			m_FunctionGroup.clear();
+
+			for(size_t sys = 0; sys < num_system(); ++sys)
+			{
+				const FunctionGroup& sysFunctionGroup = system(sys).get_function_group();
+
+				// todo: checks if all underlying patterns are equal
+				// todo: check if all subsets are equal
+
+				for(size_t loc_fct = 0; loc_fct < sysFunctionGroup.num_fct(); ++loc_fct)
+				{
+					// todo: check that each function only once added (Does it make sense otherwise?)
+					m_FunctionGroup.add_function(sysFunctionGroup[loc_fct]);
+				}
+			}
+		}
+
 	protected:
+		// function group
+		FunctionGroup m_FunctionGroup;
+
 		// vector of systems coupled by this discretization
 		std::vector<ICoupledElemDisc<algebra_type>*> m_vSystem;
 

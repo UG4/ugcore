@@ -42,7 +42,6 @@ AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
 					const TDoFDistribution& dofDistr,
-					const FunctionGroup& fcts,
 					number time, number s_m, number s_a)
 {
 	using std::vector;
@@ -50,6 +49,9 @@ AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
+
+	// get function group
+	const FunctionGroup& fcts = cplElemDisc.get_function_group();
 
 	// clear identification ( may be skipped if identification is the same for all GeomObject types)
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
@@ -201,7 +203,6 @@ AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
 				typename TAlgebra::vector_type& d,
 				const typename TAlgebra::vector_type& u,
 				const TDoFDistribution& dofDistr,
-				const FunctionGroup& fcts,
 				number time, number s_m, number s_a)
 {
 	using std::vector;
@@ -209,6 +210,9 @@ AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
+
+	// get function group
+	const FunctionGroup& fcts = cplElemDisc.get_function_group();
 
 	// TODO : Handle identification
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
@@ -342,14 +346,16 @@ AssembleLinear(	CoupledSystem<TAlgebra>& cplElemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const typename TAlgebra::vector_type& u,
-				const TDoFDistribution& dofDistr,
-				const FunctionGroup& fcts)
+				const TDoFDistribution& dofDistr)
 {
 	using std::vector;
 	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
+
+	// get function group
+	const FunctionGroup& fcts = cplElemDisc.get_function_group();
 
 	// clear identification ( may be skipped if identification is the same for all GeomObject types)
 	DataContainer& ElemDataContainer = cplElemDisc.get_elem_data_container();
