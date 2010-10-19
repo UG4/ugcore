@@ -106,7 +106,7 @@ PressureDirichlet = utilCreateLuaBoundaryNumber("PressureDirichletBnd", dim)
 domainDisc = DomainDiscretization()
 
 -- create dirichlet boundary for concentration
-dirichletBND = utilCreateDirichletBoundary(dom, pattern)
+dirichletBND = utilCreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
 dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
@@ -116,9 +116,13 @@ elemDisc = FV1DensityDrivenFlowElemDisc2d()
 elemDisc:set_domain(dom)
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_user_functions(elderElemFct)
+elemDisc:set_domain(dom)
+elemDisc:set_pattern(pattern)
+elemDisc:set_functions("c,p")
+elemDisc:set_subsets("Inner")
 
 -- add Element Discretization to discretization
-domainDisc:add(elemDisc, pattern, "c,p", "Inner")
+domainDisc:add_elem_disc(elemDisc)
 domainDisc:add_post_process(dirichletBND)
 
 -- create time discretization

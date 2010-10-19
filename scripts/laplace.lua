@@ -46,7 +46,7 @@ end
 function ourNeumannBnd(x, y, t)
 	--local s = 2*math.pi
 	--return -s*math.cos(s*x)
-	return -2*x*y
+	return true, -2*x*y
 end
 
 function ourDirichletBnd(x, y, t)
@@ -123,7 +123,7 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 	--rhs = utilCreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-	neumann = utilCreateLuaUserNumber("ourNeumannBnd", dim)
+	neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd", dim)
 	--neumann = utilCreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
@@ -134,7 +134,7 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = utilCreateFV1ConvDiffElemDiscNoInit(dom)
+elemDisc = utilCreateFV1ConvDiffElemDisc(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
@@ -145,15 +145,14 @@ elemDisc:set_rhs(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDisc = utilCreateNeumannBoundary(dom, neumann, _NEUMANN_BND_)
+neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
+neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = DirichletBND2d()
-dirichletBND:set_domain(dom)
-dirichletBND:set_pattern(pattern)
+dirichletBND = utilCreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
@@ -161,8 +160,8 @@ dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add(elemDisc, pattern, "c", "Inner")
-domainDisc:add(neumannDisc, pattern, "c", "Inner")
+domainDisc:add_elem_disc(elemDisc)
+domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 
 -------------------------------------------

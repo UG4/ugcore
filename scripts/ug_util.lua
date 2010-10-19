@@ -82,7 +82,9 @@ function utilCreateApproximationSpace(domain, pattern)
 end
 
 -- creates Neumann Boundary
-function utilCreateNeumannBoundary(domain, userFunc, bndSubset)
+function utilCreateNeumannBoundary(approxSpace, subsets)
+	local domain = approxSpace:get_domain()
+	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local neumannDisc
 	if dim == 1 then
@@ -96,12 +98,15 @@ function utilCreateNeumannBoundary(domain, userFunc, bndSubset)
 	end
 
 	neumannDisc:set_domain(domain)
-	neumannDisc:set_bnd_cond(userFunc, bndSubset)
+	neumannDisc:set_pattern(pattern)
+	neumannDisc:set_subsets(subsets)
 	return neumannDisc
 end
 
 -- creates Dirichlet Boundary
-function utilCreateDirichletBoundary(domain, pattern)
+function utilCreateDirichletBoundary(approxSpace)
+	local domain = approxSpace:get_domain()
+	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local dirichlet
 	if dim == 1 then
@@ -120,7 +125,9 @@ function utilCreateDirichletBoundary(domain, pattern)
 end
 
 -- creates FV1ConvDiffElemDisc
-function utilCreateFV1ConvDiffElemDiscNoInit(domain)
+function utilCreateFV1ConvDiffElemDisc(approxSpace, functions, subsets)
+	local domain = approxSpace:get_domain()
+	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local elemDisc
 	if dim == 1 then
@@ -134,11 +141,14 @@ function utilCreateFV1ConvDiffElemDiscNoInit(domain)
 	end
 	
 	elemDisc:set_domain(domain)
+	elemDisc:set_pattern(pattern)
+	elemDisc:set_subsets(subsets)
+	elemDisc:set_functions(functions)
 	return elemDisc
 end
 
-function utilCreateFV1ConvDiffElemDisc(domain, diffusion, velocity, reaction, rhs, upwindAmount)
-	local elemDisc = utilCreateFV1ConvDiffElemDiscNoInit(domain)
+function utilCreateFV1ConvDiffElemDiscInit(approxSpace, functions, subsets, diffusion, velocity, reaction, rhs, upwindAmount)
+	local elemDisc = utilCreateFV1ConvDiffElemDisc(approxSpace, functions, subsets)
 
 	elemDisc:set_upwind_amount(upwindAmount)
 	elemDisc:set_diffusion_tensor(diffusion)
