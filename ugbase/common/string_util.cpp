@@ -2,7 +2,7 @@
 
 #include "string_util.h"
 #include <algorithm>
-#include <ctype.h>
+#include <cctype>
 
 namespace ug{
 
