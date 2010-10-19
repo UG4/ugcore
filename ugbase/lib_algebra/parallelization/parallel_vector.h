@@ -131,6 +131,7 @@ class ParallelVector : public TVector, public TE_VEC<ParallelVector<TVector> >
 		{
 			ParallelStorageType mask = get_storage_mask() & v.get_storage_mask();
 			UG_ASSERT(mask != 0, "cannot substract vector v");
+			if(mask == 0) throw(UG_ERROR_IncompatibleParallelStorageType(get_storage_mask(), v.get_storage_mask()));
 			set_storage_type(mask);
 
 			TVector::operator-=(*dynamic_cast<const TVector*>(&v));
@@ -140,6 +141,7 @@ class ParallelVector : public TVector, public TE_VEC<ParallelVector<TVector> >
 		{
 			ParallelStorageType mask = get_storage_mask() & v.get_storage_mask();
 			UG_ASSERT(mask != 0, "cannot add vector v");
+			if(mask == 0) throw(UG_ERROR_IncompatibleParallelStorageType(get_storage_mask(), v.get_storage_mask()));
 			set_storage_type(mask);
 
 			TVector::operator+=(*dynamic_cast<const TVector*>(&v));

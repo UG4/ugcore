@@ -240,6 +240,10 @@ class P1ProlongationOperator :
 				(m_matrix, *m_pApproximationSpace, m_coarseLevel, m_fineLevel))
 				{UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n"); return false;}
 
+			#ifdef UG_PARALLEL
+				m_matrix.set_storage_type(PST_CONSISTENT);
+			#endif
+
 			m_bInit = true;
 
 			return true;
@@ -259,10 +263,15 @@ class P1ProlongationOperator :
 			UG_ASSERT(uFineOut.size() == m_matrix.num_rows(),"Vector and Row sizes have to match!");
 			UG_ASSERT(uCoarseIn.size() == m_matrix.num_cols(),"Vector and Column sizes have to match!");
 
-			m_matrix.apply(uFineOut, uCoarseIn);
+		//	Apply Matrix
+			if(!m_matrix.apply(uFineOut, uCoarseIn))
+			{
+				UG_LOG("ERROR in 'P1ProlongationOperator::apply': Cannot apply matrix. (Type uCoarse = " <<uCoarseIn.get_storage_mask() <<".\n");
+				return false;
+			}
 
 		//	Set dirichlet nodes to zero again
-		//	todo: We could handle this by eleminating dirichlet rows as well
+		//	todo: We could handle this by eliminating dirichlet rows as well
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 			{
 				const dof_distribution_type& dofDistr = m_pApproximationSpace->get_level_dof_distribution(m_fineLevel);
@@ -274,9 +283,7 @@ class P1ProlongationOperator :
 				}
 			}
 
-#ifdef UG_PARALLEL
-			uFineOut.copy_storage_type(uCoarseIn);
-#endif
+		//	we're done
 			return true;
 		}
 
@@ -294,10 +301,15 @@ class P1ProlongationOperator :
 			UG_ASSERT(uFineIn.size() == m_matrix.num_rows(),"Vector and Row sizes have to match!");
 			UG_ASSERT(uCoarseOut.size() == m_matrix.num_cols(),"Vector and Column sizes have to match!");
 
-			m_matrix.apply_transposed(uCoarseOut, uFineIn);
+		//	Apply transposed matrix
+			if(!m_matrix.apply_transposed(uCoarseOut, uFineIn))
+			{
+				UG_LOG("ERROR in 'P1ProlongationOperator::apply_transposed': Cannot apply transposed matrix.\n");
+				return false;
+			}
 
 		//	Set dirichlet nodes to zero again
-		//	todo: We could handle this by eleminating dirichlet columns as well
+		//	todo: We could handle this by eliminating dirichlet columns as well
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 			{
 				const dof_distribution_type& dofDistr = m_pApproximationSpace->get_level_dof_distribution(m_coarseLevel);
@@ -308,9 +320,8 @@ class P1ProlongationOperator :
 					return false;
 				}
 			}
-#ifdef UG_PARALLEL
-			uCoarseOut.copy_storage_type(uFineIn);
-#endif
+
+		//	we're done
 			return true;
 		}
 

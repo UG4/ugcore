@@ -43,6 +43,16 @@ inline ParallelStorageType operator & (const ParallelStorageType &a, const Paral
 	return (ParallelStorageType) ((int)a&(int)b);
 }
 
+struct UG_ERROR_IncompatibleParallelStorageType
+{
+		UG_ERROR_IncompatibleParallelStorageType(ParallelStorageType a_, ParallelStorageType b_) :
+			a(a_), b(b_)
+		{}
+
+		ParallelStorageType a;
+		ParallelStorageType b;
+};
+
 } // end namespace ug
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_STORAGE_TYPE__ */

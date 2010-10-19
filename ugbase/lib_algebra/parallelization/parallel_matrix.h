@@ -87,6 +87,22 @@ class ParallelMatrix : public TMatrix
 		// copies the storage type from another vector
 		void copy_storage_type(const this_type& v) {m_type = v.m_type;}
 
+		/////////////////////////
+		// OverWritten functions
+		/////////////////////////
+
+		// calculate res = A x
+		template<typename TPVector>
+		bool apply(TPVector &res, const TPVector &x) const;
+
+		// calculate res = A.T x
+		template<typename TPVector>
+		bool apply_transposed(TPVector &res, const TPVector &x) const;
+
+		// calculate res -= A x
+		template<typename TPVector>
+		bool matmul_minus(TPVector &res, const TPVector &x) const;
+
 
 	private:
 		// type of storage  (i.e. consistent, additiv, additiv unique)

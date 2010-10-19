@@ -164,6 +164,10 @@ class P1ProjectionOperator :
 				return false;
 			}
 
+			#ifdef UG_PARALLEL
+				m_matrix.set_storage_type(PST_CONSISTENT);
+			#endif
+
 			m_bInit = true;
 
 			return true;
@@ -189,12 +193,13 @@ class P1ProjectionOperator :
 			UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= " << uFineIn.size() << "] and Column [size= " << m_matrix.num_cols() <<"] sizes have to match!");
 
 		//	Apply matrix
-			m_matrix.apply(uCoarseOut, uFineIn);
+			if(!m_matrix.apply(uCoarseOut, uFineIn))
+			{
+				UG_LOG("ERROR in 'P1ProjectionOperator::apply': Cannot apply matrix.\n");
+				return false;
+			}
 
-		//	Adjust parallel storage type
-#ifdef UG_PARALLEL
-			uCoarseOut.copy_storage_type(uFineIn);
-#endif
+		//	we're done
 			return true;
 		}
 

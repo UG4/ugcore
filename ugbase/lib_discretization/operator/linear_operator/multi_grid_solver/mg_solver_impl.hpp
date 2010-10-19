@@ -29,7 +29,10 @@ smooth(function_type& d, function_type& c, size_t lev, int nu)
 	{
 		// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
 		if(!m_vSmoother[lev]->apply_update_defect(*m_t[lev], d))
-			{UG_LOG("Error in smoothing step " << i << " on level " << lev << ".\n"); return false;}
+		{
+			UG_LOG("Error in smoothing step " << i+1 << " on level " << lev << ".\n");
+			return false;
+		}
 
 		// add correction of smoothing step to level correction
 		c += *m_t[lev];
@@ -49,9 +52,12 @@ lmgc(size_t lev)
 
 	if(lev > m_baseLevel)
 	{
-		// presmooth
+	// 	Presmooth
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_nu1))
-			{UG_LOG("Error in premoothing on level " << lev << ".\n"); return false;}
+		{
+			UG_LOG("Error in premoothing on level " << lev << ".\n");
+			return false;
+		}
 
 		#ifdef UG_PARALLEL
 			if(!m_d[lev-1]->get_vertical_master_layout().empty()){
@@ -62,9 +68,12 @@ lmgc(size_t lev)
 			}
 		#endif
 
-		// restrict defect
+	// 	Restrict Defect
 		if(!m_vProlongation[lev-1]->apply_transposed(*m_d[lev-1], *m_d[lev]))
-			{UG_LOG("Error in restriction from level " << lev << " to " << lev-1 << ".\n"); return false;}
+		{
+			UG_LOG("Error in restriction from level " << lev << " to " << lev-1 << ".\n");
+			return false;
+		}
 
 		bool resume = true;
 
@@ -91,7 +100,10 @@ lmgc(size_t lev)
 			for(int i = 0; i < m_cycle_type; ++i)
 			{
 				if(!lmgc(lev-1))
-					{UG_LOG("Error in lmgc on level " << lev-1 << ".\n"); return false;}
+				{
+					UG_LOG("Error in lmgc on level " << lev-1 << ".\n");
+					return false;
+				}
 			}
 		}
 
@@ -113,20 +125,29 @@ lmgc(size_t lev)
 		m_Com.communicate();
 		#endif
 
-		//interpolate correction
+	//	Interpolate Correction
 		if(!m_vProlongation[lev-1]->apply(*m_t[lev], *m_c[lev-1]))
-			{UG_LOG("Error in prolongation from level " << lev-1 << " to " << lev << ".\n"); return false;}
+		{
+			UG_LOG("Error in prolongation from level " << lev-1 << " to " << lev << ".\n");
+			return false;
+		}
 
-		// add coarse grid correction to level correction
+	// 	Add coarse grid correction to level correction
 		*m_c[lev] += *m_t[lev];
 
-		//update defect
+	//	Update Defect
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_t[lev]))
-			{UG_LOG("Error in updating defect on level " << lev << ".\n"); return false;}
+		{
+			UG_LOG("Error in updating defect on level " << lev << ".\n");
+			return false;
+		}
 
-		// postsmooth
+	// 	Postsmooth
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_nu2))
-			{UG_LOG("Error in postsmoothing on level " << lev << ".\n"); return false;}
+		{
+			UG_LOG("Error in postsmoothing on level " << lev << ".\n");
+			return false;
+		}
 
 		return true;
 	}

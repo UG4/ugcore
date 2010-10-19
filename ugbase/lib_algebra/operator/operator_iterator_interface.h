@@ -198,14 +198,13 @@ class IPreconditioner :
 			if(!apply(c, d)) return false;
 
 		// 	update defect d := d - A*c
-		// 	TODO: Check that matrix has correct type (additive)
-		//	TODO: check return value
-			m_pMatrix->matmul_minus(d, c);
+			if(!m_pMatrix->matmul_minus(d, c))
+			{
+				UG_LOG("ERROR in 'IPreconditioner::apply_update_defect': Cannot execute matmul_minus to compute d:=d-A*c.\n");
+				return false;
+			}
 
-#ifdef UG_PARALLEL
-			// defect is now no longer unique (maybe we should handle this in matrix multiplication)
-			d.set_storage_type(PST_ADDITIVE);
-#endif
+		//	we're done
 			return true;
 		}
 
