@@ -37,29 +37,25 @@ class ParallelMatrix : public TMatrix
 		ParallelMatrix()
 		: TMatrix(), m_type(PST_UNDEFINED),
 			m_pSlaveLayout(NULL), m_pMasterLayout(NULL),
-			m_pVerticalSlaveLayout(NULL), m_pVerticalMasterLayout(NULL), m_pCommunicator(NULL)
+			m_pCommunicator(NULL)
 		{}
 
 		ParallelMatrix(	IndexLayout& slaveLayout, IndexLayout masterLayout,
 						IndexLayout& verticalSlaveLayout, IndexLayout& verticalMasterLayout)
 		: TMatrix(), m_type(PST_UNDEFINED),
 			m_pSlaveLayout(&slaveLayout), m_pMasterLayout(&masterLayout),
-			m_pVerticalSlaveLayout(&verticalSlaveLayout), m_pVerticalMasterLayout(&verticalMasterLayout), m_pCommunicator(NULL)
+			m_pCommunicator(NULL)
 		{}
 
-		/////////////////////////
+		//////////////////////////////
 		// Layouts and communicator
-		/////////////////////////
+		//////////////////////////////
 
 		inline void set_slave_layout(IndexLayout& layout)	{m_pSlaveLayout = &layout;}
 		inline void set_master_layout(IndexLayout& layout)	{m_pMasterLayout = &layout;}
-		inline void set_vertical_slave_layout(IndexLayout& layout)	{m_pVerticalSlaveLayout = &layout;}
-		inline void set_vertical_master_layout(IndexLayout& layout) {m_pVerticalMasterLayout = &layout;}
 
 		inline IndexLayout& get_slave_layout()	{return *m_pSlaveLayout;}
 		inline IndexLayout& get_master_layout()	{return *m_pMasterLayout;}
-		inline IndexLayout& get_vertical_slave_layout()	{return *m_pVerticalSlaveLayout;}
-		inline IndexLayout& get_vertical_master_layout() {return *m_pVerticalMasterLayout;}
 
 		inline void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc) {m_pCommunicator = &pc;}
 		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return *m_pCommunicator;}
@@ -102,12 +98,6 @@ class ParallelMatrix : public TMatrix
 
 		// index layout for master dofs
 		IndexLayout* m_pMasterLayout;
-
-		// index layout for vertical slave dofs
-		IndexLayout* m_pVerticalSlaveLayout;
-
-		// index layout for vertical master dofs
-		IndexLayout* m_pVerticalMasterLayout;
 
 		// communicator for direct neighbor communication
 		pcl::ParallelCommunicator<IndexLayout>* m_pCommunicator;
