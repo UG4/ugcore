@@ -475,8 +475,20 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
 	//	get group string
-		std::stringstream groupString; groupString << parentGroup << "/Discretization";
+		std::stringstream groupString; groupString << parentGroup << "/Discretization/UserData";
 		const char* grp = groupString.str().c_str();
+
+	//	Register user functions
+		RegisterUserNumber(reg);
+		RegisterUserVector(reg);
+		RegisterUserMatrix(reg);
+
+	//	Register Boundary functions
+		RegisterBoundaryNumber(reg);
+
+	//	get group string
+		std::stringstream groupString2; groupString2 << parentGroup << "/Discretization";
+		grp = groupString2.str().c_str();
 
 	//	todo: generalize
 		typedef P1ConformDoFDistribution dof_distribution_type;
@@ -494,6 +506,15 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 			.add_method("lock", &T::lock);
 		}
 
+	//	FunctionGroup
+		{
+			reg.add_class_<FunctionGroup>("FunctionGroup", grp)
+				.add_constructor()
+				.add_method("clear", &FunctionGroup::clear)
+				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
+				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
+		}
+
 	//	P1ConformDoFDistribution
 		{
 			typedef P1ConformDoFDistribution T;
@@ -502,6 +523,19 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 
 	//  Add discrete function to pattern
 		reg.add_function("AddP1Function", &AddP1Function, grp);
+
+	//	Base class
+		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess", grp);
+
+	//	Elem Discs
+		{
+		//	Base class
+			typedef IElemDisc<algebra_type> T;
+			reg.add_class_<T>("IElemDisc", grp)
+				.add_method("set_pattern", &T::set_pattern)
+				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions)
+				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets);
+		}
 
 	//	DomainDiscretization
 		{
@@ -530,32 +564,10 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 					.add_method("set_theta", &T::set_theta);
 		}
 
-	//	Base class
-		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess", grp);
-
 	//	UserFunction
 		{
 		//	Density - Driven - Flow
 			reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d", grp);
-		}
-
-	//	Elem Discs
-		{
-		//	Base class
-			typedef IElemDisc<algebra_type> T;
-			reg.add_class_<T>("IElemDisc", grp)
-				.add_method("set_pattern", &T::set_pattern)
-				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions)
-				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets);
-		}
-
-	//	FunctionGroup
-		{
-			reg.add_class_<FunctionGroup>("FunctionGroup", grp)
-				.add_constructor()
-				.add_method("clear", &FunctionGroup::clear)
-				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
-				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
 		}
 
 	//	AssembledLinearOperator
@@ -620,16 +632,10 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 			RegisterLibDiscretizationDomainDepended<domain_type>(reg);
 		}
 
-	//	Register user functions
-		RegisterUserNumber(reg);
-		RegisterUserVector(reg);
-		RegisterUserMatrix(reg);
-
-	//	Register Boundary functions
-		RegisterBoundaryNumber(reg);
 
 	//	todo: remove when possible
 		RegisterElderUserFunctions(reg);
+
 }
 
 }//	end of namespace ug

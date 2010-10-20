@@ -94,6 +94,28 @@ class UserNumberProvider : public IUserNumberProvider<dim>
 template <int dim>
 void RegisterUserNumber(Registry& reg)
 {
+//	Functor
+	{
+	//	ConstUserNumber
+		{
+			typedef ConstUserNumber<dim> T;
+			static stringstream ss; ss << "ConstUserNumber" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set", &T::set)
+				.add_method("print", &T::print);
+		}
+
+	//	LuaUserNumber
+		{
+			typedef LuaUserNumber<dim> T;
+			stringstream ss; ss << "LuaUserNumber" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set_lua_callback", &T::set_lua_callback);
+		}
+	}
+
 //	UserNumberProvider
 	{
 	//	Base class
@@ -118,28 +140,6 @@ void RegisterUserNumber(Registry& reg)
 			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
-		}
-	}
-
-//	Functor
-	{
-	//	ConstUserNumber
-		{
-			typedef ConstUserNumber<dim> T;
-			static stringstream ss; ss << "ConstUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set", &T::set)
-				.add_method("print", &T::print);
-		}
-
-	//	LuaUserNumber
-		{
-			typedef LuaUserNumber<dim> T;
-			stringstream ss; ss << "LuaUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
 	}
 }

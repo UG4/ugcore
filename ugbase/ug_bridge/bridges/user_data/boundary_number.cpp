@@ -97,6 +97,28 @@ class BoundaryNumberProvider : public IBoundaryNumberProvider<dim>
 template <int dim>
 void RegisterBoundaryNumber(Registry& reg)
 {
+//	Functor
+	{
+	//	ConstBoundaryNumber
+		{
+			typedef ConstBoundaryNumber<dim> T;
+			static stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set", &T::set)
+				.add_method("print", &T::print);
+		}
+
+	//	LuaBoundaryNumber
+		{
+			typedef LuaBoundaryNumber<dim> T;
+			stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set_lua_callback", &T::set_lua_callback);
+		}
+	}
+
 //	BoundaryNumberProvider
 	{
 	//	Base class
@@ -121,28 +143,6 @@ void RegisterBoundaryNumber(Registry& reg)
 			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
-		}
-	}
-
-//	Functor
-	{
-	//	ConstBoundaryNumber
-		{
-			typedef ConstBoundaryNumber<dim> T;
-			static stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set", &T::set)
-				.add_method("print", &T::print);
-		}
-
-	//	LuaBoundaryNumber
-		{
-			typedef LuaBoundaryNumber<dim> T;
-			stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
 	}
 }

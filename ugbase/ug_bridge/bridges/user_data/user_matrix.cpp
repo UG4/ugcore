@@ -121,6 +121,31 @@ class UserMatrixProvider : public IUserMatrixProvider<dim>
 template <int dim>
 void RegisterUserMatrix(Registry& reg)
 {
+
+//	Functor
+	{
+	//	ConstUserMatrix
+		{
+			typedef ConstUserMatrix<dim> T;
+			static stringstream ss; ss << "ConstUserMatrix" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set_diag_tensor", &T::set_diag_tensor)
+				.add_method("set_all_entries", &T::set_all_entries)
+				.add_method("set_entry", &T::set_entry)
+				.add_method("print", &T::print);
+		}
+
+	//	LuaUserMatrix
+		{
+			typedef LuaUserMatrix<dim> T;
+			stringstream ss; ss << "LuaUserMatrix" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set_lua_callback", &T::set_lua_callback);
+		}
+	}
+
 //	UserMatrixProvider
 	{
 	//	Base class
@@ -145,30 +170,6 @@ void RegisterUserMatrix(Registry& reg)
 			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
-		}
-	}
-
-//	Functor
-	{
-	//	ConstUserMatrix
-		{
-			typedef ConstUserMatrix<dim> T;
-			static stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set_diag_tensor", &T::set_diag_tensor)
-				.add_method("set_all_entries", &T::set_all_entries)
-				.add_method("set_entry", &T::set_entry)
-				.add_method("print", &T::print);
-		}
-
-	//	LuaUserMatrix
-		{
-			typedef LuaUserMatrix<dim> T;
-			stringstream ss; ss << "LuaUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
 	}
 }

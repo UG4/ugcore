@@ -103,6 +103,30 @@ class UserVectorProvider : public IUserVectorProvider<dim>
 template <int dim>
 void RegisterUserVector(Registry& reg)
 {
+
+//	Functor
+	{
+	//	ConstUserVector
+		{
+			typedef ConstUserVector<dim> T;
+			static stringstream ss; ss << "ConstUserVector" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set_all_entries", &T::set_all_entries)
+				.add_method("set_entry", &T::set_entry)
+				.add_method("print", &T::print);
+		}
+
+	//	LuaUserVector
+		{
+			typedef LuaUserVector<dim> T;
+			stringstream ss; ss << "LuaUserVector" << dim << "d";
+			reg.add_class_<T>(ss.str().c_str())
+				.add_constructor()
+				.add_method("set_lua_callback", &T::set_lua_callback);
+		}
+	}
+
 //	UserVectorProvider
 	{
 	//	Base class
@@ -127,29 +151,6 @@ void RegisterUserVector(Registry& reg)
 			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
-		}
-	}
-
-//	Functor
-	{
-	//	ConstUserVector
-		{
-			typedef ConstUserVector<dim> T;
-			static stringstream ss; ss << "ConstUserVector" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set_all_entries", &T::set_all_entries)
-				.add_method("set_entry", &T::set_entry)
-				.add_method("print", &T::print);
-		}
-
-	//	LuaUserVector
-		{
-			typedef LuaUserVector<dim> T;
-			stringstream ss; ss << "LuaUserVector" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
 	}
 }

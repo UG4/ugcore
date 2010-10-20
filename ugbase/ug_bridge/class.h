@@ -222,9 +222,9 @@ class ExportedClass_ : public IExportedClass
 			}
 			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry ex)
 			{
-				UG_LOG("Registering method '" << methodName << "' for class '\n");
-				UG_LOG( name() << "' requires argument of user-defined type, that has \n");
-				UG_LOG("not yet been registered to this Registry.\n");
+				UG_LOG("###  Registering method '" << methodName << "' for class '");
+				UG_LOG( name() << "' requires argument of user-defined type,\n");
+				UG_LOG("###  that has not yet been registered to this Registry.\n");
 				exit(1);
 			}
 
