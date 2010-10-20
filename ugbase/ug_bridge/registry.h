@@ -42,10 +42,10 @@ class Registry {
 		}
 
 	/// number of function registered at the Registry
-		size_t num_functions()							{return m_vFunction.size();}
+		size_t num_functions() const						{return m_vFunction.size();}
 
 	/// returns an exported function
-		ExportedFunction& get_function(size_t ind){return *m_vFunction.at(ind);}
+		ExportedFunction& get_function(size_t ind) 			{return *m_vFunction.at(ind);}
 
 	///////////////////
 	// classes
@@ -81,10 +81,10 @@ class Registry {
 		}
 
 	/// number of classes registered at the Registry
-		size_t num_classes()							{return m_vClass.size();}
+		size_t num_classes() const						{return m_vClass.size();}
 
 	/// returns an exported function
-		const IExportedClass& get_class(size_t ind)	{return *m_vClass.at(ind);}
+		const IExportedClass& get_class(size_t ind)	const {return *m_vClass.at(ind);}
 
 
 	/// destructor
