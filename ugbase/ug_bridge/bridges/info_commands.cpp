@@ -11,37 +11,29 @@
  * example: TypeInfo("
  */
 
-#include <iostream>
-#include <sstream>
-
-#include <dirent.h>
-#include <sys/stat.h>
-
 #include "ug.h"
 
 #include "ug_script/ug_script.h"
+#include "../class_helper.h"
+
 extern "C"
 {
 #include "ug_script/externals/lua/lstate.h"
 }
+
+
 
 namespace ug
 {
 namespace bridge
 {
 
-
-const IExportedClass *FindClass(const char* classname)
+namespace lua
 {
-	bridge::Registry &reg = GetUGRegistry();
-	for(size_t j=0; j<reg.num_classes(); ++j)
-		if(strcmp(classname, reg.get_class(j).name()) == 0)
-		{
-			return &reg.get_class(j);
-			break;
-		}
-	return NULL;
+	string GetLuaTypeString(lua_State* L, int index);
 }
+
+bool PrintClassHierarchy(const char *classname);
 
 /**
  *
@@ -77,22 +69,44 @@ string ParameterToString(const bridge::ParameterStack &par, int i)
 	}
 }
 
-/**
- *
- * Prints parameters of the ParameterStack par.
- * If highlightclassname != NULL, it highlights parameters which implement the highlightclassname class.
- */
-bool PrintParameters(const bridge::ParameterStack &par, const char *highlightclassname=NULL)
+bool PrintParametersIn(const bridge::ExportedFunctionBase &thefunc, const char*highlightclassname = NULL)
 {
-	for(int i=0; i<par.size(); ++i)
+	UG_LOG("(");
+	for(size_t i=0; i < (size_t)thefunc.params_in().size(); ++i)
 	{
 		if(i>0) UG_LOG(", ");
 		bool b=false;
-		if(highlightclassname != NULL && par.class_names(i) != NULL && strcmp(par.class_name(i), highlightclassname)==0)
+		if(highlightclassname != NULL && thefunc.params_in().class_name(i) != NULL &&
+				strcmp(thefunc.params_in().class_name(i), highlightclassname)==0)
 			b = true;
 		if(b) UG_LOG("[");
-		UG_LOG(ParameterToString(par, i));;
+		UG_LOG(ParameterToString(thefunc.params_in(), i));
+		if(i < thefunc.num_parameter())
+			UG_LOG(" " << thefunc.parameter_name(i));
 		if(b) UG_LOG("]");
+	}
+	UG_LOG(")");
+	return true;
+}
+
+bool PrintParametersOut(const bridge::ExportedFunctionBase &thefunc)
+{
+	if(thefunc.params_out().size() == 1)
+	{
+		UG_LOG(ParameterToString(thefunc.params_out(), 0));
+		//file << " " << thefunc.return_name();
+		UG_LOG(" ");
+	}
+	else if(thefunc.params_out().size() > 1)
+	{
+		UG_LOG("(");
+		for(int i=0; i < thefunc.params_out().size(); ++i)
+		{
+			if(i>0) UG_LOG(", ");
+			UG_LOG(ParameterToString(thefunc.params_out(), i));
+
+		}
+		UG_LOG(") ");
 	}
 	return true;
 }
@@ -104,20 +118,15 @@ bool PrintParameters(const bridge::ParameterStack &par, const char *highlightcla
  */
 void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst, const char *highlightclassname=NULL)
 {
-	UG_LOG(" " << thefunc.name() << " (");
+	UG_LOG(" ");
+	PrintParametersOut(thefunc);
 
-	PrintParameters(thefunc.params_in(), highlightclassname);
-	UG_LOG(")");
+	UG_LOG(thefunc.name() << " ");
+
+	PrintParametersIn(thefunc, highlightclassname);
+
 	if(isConst) { UG_LOG(" const"); }
-
-	if(thefunc.params_out().size() > 0)
-	{
-		UG_LOG(" => (");
-		PrintParameters(thefunc.params_out(), highlightclassname);
-		UG_LOG(")\n");
-	}
-	else
-		UG_LOG("\n");
+	UG_LOG(endl);
 }
 
 /**
@@ -170,10 +179,7 @@ bool PrintClassInfo(const char *classname)
 		return false;
 }
 
-namespace lua
-{
-	string GetLuaTypeString(lua_State* L, int index);
-}
+
 
 /**
  * \brief Prints info to a lua type
@@ -193,6 +199,7 @@ bool UGTypeInfo(const char *p)
 		for(size_t i=0; i < names->size(); ++i)
 			PrintClassInfo(names->at(i));
 		UG_LOG(endl);
+		PrintClassHierarchy(c->name());
 		return true;
 	}
 
@@ -246,6 +253,8 @@ bool UGTypeInfo(const char *p)
 		UG_LOG("Typeinfo for " << p << ": " << endl);
 		for(size_t i=0; i < names->size(); ++i)
 			PrintClassInfo(names->at(i));
+		if(names->size() > 0)
+			PrintClassHierarchy(names->at(0));
 	}
 	else
 		UG_LOG(p << " is a " << lua::GetLuaTypeString(L, -1) << endl);
@@ -321,86 +330,19 @@ bool ClassUsageExact(const char *classname, bool OutParameters)
 	return true;
 }
 
-bool SubClasses(const char *classname)
-{
-	bridge::Registry &reg = GetUGRegistry();
-	const IExportedClass *c = FindClass(classname);
-	if(c == NULL)
-	{
-		UG_LOG("Class name " << classname << " not found\n");
-		return false;
-	}
-
-	UG_LOG("\n");
-	for(size_t j=0; j<reg.num_classes(); ++j)
-	{
-		const std::vector<const char*> *names = reg.get_class(j).class_names();
-		if(names == NULL) continue;
-
-		for(size_t k=0; k<names->size(); k++)
-		{
-			if(strcmp(names->at(k), classname) == 0)
-			{
-				UG_LOG(reg.get_class(j).name() << " (");
-				for(size_t l=0; l<names->size(); l++)
-				{
-					if(l>0) UG_LOG(" :: ");
-					UG_LOG(names->at(l));
-				}
-				UG_LOG(")\n");
-				break;
-			}
-		}
-	}
-	UG_LOG("\n");
-	return true;
-}
-
-/**
- *
- * \param classname the class to print usage in functions/member functions of (and all its subclasses) .
- * class in in/out parameters is highlighted with [class].
- */
-bool ClassUsage(const char *classname)
-{
-	UG_LOG("\n");
-
-	// find class
-	const IExportedClass *c = FindClass(classname);
-	if(c == NULL)
-	{
-		UG_LOG("Class name " << classname << " not found\n");
-		return false;
-	}
-
-	// print usages in functions
-
-	UG_LOG("--- Functions returning " << classname << ": ---\n");
-	ClassUsageExact(classname, true);
-
-	const std::vector<const char*> *names = c->class_names();
-	if(names != NULL && names->size() > 1)
-	{
-		for(size_t i = 1; i<names->size(); i++)
-		{
-			UG_LOG("--- Functions using " << names->at(i) << ": ---\n");
-			ClassUsageExact(names->at(i), false);
-		}
-	}
-
-	UG_LOG("\n");
-	return true;
-}
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
 bool ClassInstantiations(const char *classname)
 {
-	UG_LOG(endl);
+
 	const IExportedClass *c = FindClass(classname);
 	if(c == NULL)
 	{
 		UG_LOG("Class " << classname << " not found\n");
 		return false;
 	}
+
+	UG_LOG(endl);
+	UG_LOG("Instantiations of Class " << classname << ":\n");
 
 	lua_State* L = script::GetDefaultLuaState();
 	bool bFound = false;
@@ -454,12 +396,100 @@ bool ClassInstantiations(const char *classname)
 	return true;
 }
 
+/**
+ *
+ * \param classname the class to print usage in functions/member functions of (and all its subclasses) .
+ * class in in/out parameters is highlighted with [class].
+ */
+bool ClassUsage(const char *classname)
+{
+	UG_LOG("\n");
+
+	// find class
+	const IExportedClass *c = FindClass(classname);
+	if(c == NULL)
+	{
+		UG_LOG("Class name " << classname << " not found\n");
+		return false;
+	}
+
+	// print usages in functions
+
+	UG_LOG("--- Functions returning " << classname << ": ---\n");
+	ClassUsageExact(classname, true);
+
+	const std::vector<const char*> *names = c->class_names();
+	if(names != NULL && names->size() > 0)
+	{
+		for(size_t i = 0; i<names->size(); i++)
+		{
+			UG_LOG("--- Functions using " << names->at(i) << ": ---\n");
+			ClassUsageExact(names->at(i), false);
+		}
+	}
+
+	ClassInstantiations(classname);
+
+	UG_LOG("\n");
+	return true;
+}
+
+void PrintClassSubHierarchy(ClassHierarchy &c, int level)
+{
+	for(int j=0; j<level; j++) UG_LOG("  ");
+	UG_LOG(c.name << endl);
+	if(c.subclasses.size())
+	{
+		for(size_t i=0; i<c.subclasses.size(); i++)
+			PrintClassSubHierarchy(c.subclasses[i], level+1);
+	}
+}
+
+bool PrintClassHierarchy(const char *classname)
+{
+	const IExportedClass *c = FindClass(classname);
+	if(c == NULL)
+	{
+		UG_LOG("Class name " << classname << " not found\n");
+		return false;
+	}
+
+	UG_LOG("\nClass Hierarchy of " << classname << "\n");
+
+	int level = 0;
+	const std::vector<const char*> *names = c->class_names();
+	if(names != NULL && names->size() > 0)
+	{
+		for(int i = names->size()-1; i>0; i--)
+		{
+			for(int j=0; j<level; j++) UG_LOG("  ");
+			UG_LOG(names->at(i) << endl);
+			level++;
+		}
+	}
+
+	ClassHierarchy hierarchy;
+	GetClassHierarchy(hierarchy, GetUGRegistry());
+	ClassHierarchy *ch = hierarchy.find_class(classname);
+	if(ch)
+		PrintClassSubHierarchy(*ch, level);
+	else
+	{
+		for(int j=0; j<level; j++) UG_LOG("  ");
+		UG_LOG(classname);
+	}
+
+	return true;
+
+}
+
+
 void RegisterInfoCommands(Registry &reg)
 {
 	reg.add_function("TypeInfo", &UGTypeInfo);
 	reg.add_function("ClassUsage", &ClassUsage);
 	reg.add_function("ClassInstantiations" ,&ClassInstantiations);
-	reg.add_function("SubClasses" ,&SubClasses);
+	reg.add_function("ClassHierarchy" ,&PrintClassHierarchy);
 }
 
 

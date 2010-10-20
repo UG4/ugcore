@@ -14,6 +14,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 include_directories(${P_UGBASE_SOURCE_DIR})
 
 set(srcUGBridge    	class_name_provider.cpp
+					class_helper.cpp
 					ug_bridge.cpp
 					bridges/lib_grid_bridge.cpp
 					bridges/lib_algebra_bridge.cpp

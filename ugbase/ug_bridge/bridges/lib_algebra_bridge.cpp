@@ -27,13 +27,22 @@ void RegisterAlgebraType(Registry& reg)
 	//	Vector
 	{
 		reg.add_class_<vector_type>("Vector")
-			.add_constructor();
+			.add_constructor()
+			.add_method("print", &vector_type::p);
+
+		//reg.add_function("VecScaleAssign", , "",
+			//	"dest, alpha1, vec1", "dest = alpha1*vec1");
+		reg.add_function("VecScaleAdd2", &VecScaleAdd2<vector_type>, "",
+				"dest, alpha1, vec1, alpha2, vec2", "dest = alpha1*vec1 + alpha2*vec2");
+		reg.add_function("VecScaleAdd3", &VecScaleAdd3<vector_type>, "",
+				"dest, alpha1, vec1, alpha2, vec2, alpha3, vec3", "dest = alpha1*vec1 + alpha2*vec2 + alpha3*vec3");
 	}
 
 	//	Matrix
 	{
 		reg.add_class_<matrix_type>("Matrix")
-			.add_constructor();
+			.add_constructor()
+			.add_method("print", &matrix_type::p);
 	}
 
 	// Base Classes
@@ -61,7 +70,7 @@ void RegisterAlgebraType(Registry& reg)
 		reg.add_class_<	JacobiPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("JacobiPreconditioner")
 			.add_constructor()
-			.add_method("set_damp", &JacobiPreconditioner<algebra_type>::set_damp);
+			.add_method("set_damp", &JacobiPreconditioner<algebra_type>::set_damp, "", "damp");
 
 	//	GaussSeidel
 		reg.add_class_<	GSPreconditioner<algebra_type>,
@@ -106,22 +115,23 @@ void RegisterAlgebraType(Registry& reg)
 		reg.add_class_<	amg<algebra_type>, IPreconditioner<algebra_type> > ("AMGPreconditioner")
 			.add_constructor()
 
-			.add_method("set_nu1", &amg<algebra_type>::set_nu1)
-			.add_method("set_nu2", &amg<algebra_type>::set_nu2)
-			.add_method("set_gamma", &amg<algebra_type>::set_gamma)
-			.add_method("set_theta", &amg<algebra_type>::set_theta)
-			.add_method("set_max_levels", &amg<algebra_type>::set_max_levels)
+			.add_method("set_nu1", &amg<algebra_type>::set_nu1, "", "nu1", "sets nr. of presmoothing steps")
+			.add_method("set_nu2", &amg<algebra_type>::set_nu2, "", "nu2", "sets nr. of postsmoothing steps")
+			.add_method("set_gamma", &amg<algebra_type>::set_gamma, "", "gamma", "sets gamma in multigrid cycle")
+			.add_method("set_theta", &amg<algebra_type>::set_theta, "", "theta")
+			.add_method("set_max_levels", &amg<algebra_type>::set_max_levels, "", "max_levels", "sets max nr of AMG levels")
 
 			.add_method("tostring", &amg<algebra_type>::tostring)
 
 			.add_method("set_aggressive_coarsening_A_2", &amg<algebra_type>::set_aggressive_coarsening_A_2)
 			.add_method("set_aggressive_coarsening_A_1", &amg<algebra_type>::set_aggressive_coarsening_A_1)
 
-			.add_method("set_presmoother", &amg<algebra_type>::set_presmoother)
-			.add_method("set_postsmoother", &amg<algebra_type>::set_postsmoother)
-			.add_method("set_base_solver", &amg<algebra_type>::set_base_solver)
+			.add_method("set_presmoother", &amg<algebra_type>::set_presmoother, "", "presmoother")
+			.add_method("set_postsmoother", &amg<algebra_type>::set_postsmoother, "", "postsmoother")
+			.add_method("set_base_solver", &amg<algebra_type>::set_base_solver, "", "basesmoother")
 
-			.add_method("set_debug", &amg<algebra_type>::set_debug<function_type>);
+			.add_method("set_debug", &amg<algebra_type>::set_debug<function_type>, "", "u",
+					"sets the internal positions of each node");
 	#endif
 	#endif
 
@@ -134,22 +144,22 @@ void RegisterAlgebraType(Registry& reg)
 		reg.add_class_<	LinearSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("LinearSolver")
 			.add_constructor()
-			.add_method("set_preconditioner", &LinearSolver<algebra_type>::set_preconditioner)
-			.add_method("set_convergence_check", &LinearSolver<algebra_type>::set_convergence_check);
+			.add_method("set_preconditioner", &LinearSolver<algebra_type>::set_preconditioner, "", "preconditioner")
+			.add_method("set_convergence_check", &LinearSolver<algebra_type>::set_convergence_check, "", "check");
 
 	// 	CG Solver
 		reg.add_class_<	CGSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("CGSolver")
 			.add_constructor()
-			.add_method("set_preconditioner", &CGSolver<algebra_type>::set_preconditioner)
-			.add_method("set_convergence_check", &CGSolver<algebra_type>::set_convergence_check);
+			.add_method("set_preconditioner", &CGSolver<algebra_type>::set_preconditioner, "", "preconditioner")
+			.add_method("set_convergence_check", &CGSolver<algebra_type>::set_convergence_check, "", "check");
 
 	// 	BiCGStab Solver
 		reg.add_class_<	BiCGStabSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("BiCGStabSolver")
 			.add_constructor()
-			.add_method("set_preconditioner", &BiCGStabSolver<algebra_type>::set_preconditioner)
-			.add_method("set_convergence_check", &BiCGStabSolver<algebra_type>::set_convergence_check);
+			.add_method("set_preconditioner", &BiCGStabSolver<algebra_type>::set_preconditioner, "", "preconditioner")
+			.add_method("set_convergence_check", &BiCGStabSolver<algebra_type>::set_convergence_check, "", "check");
 
 //todo: existance of LapackLUSolver class should not depend on defines.
 	#ifdef LAPACK_AVAILABLE
@@ -166,17 +176,21 @@ void RegisterAlgebraType(Registry& reg)
 
 void RegisterLibAlgebraInterface(Registry& reg)
 {
-
+	UG_LOG("RegisterLibAlgebraInterface\n");
 	// StandardConvCheck
 	{
 		reg.add_class_<IConvergenceCheck>("IConvergenceCheck");
 
 		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck")
 			.add_constructor()
-			.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps)
-			.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect)
-			.add_method("set_reduction", &StandardConvCheck::set_reduction)
-			.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level);
+			.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps,
+					"", "maximum_steps")
+			.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
+					"", "minimum_defect")
+			.add_method("set_reduction", &StandardConvCheck::set_reduction,
+					"", "reduction")
+			.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
+					"", "verbose_level");
 	}
 
 	// register martin algebra
