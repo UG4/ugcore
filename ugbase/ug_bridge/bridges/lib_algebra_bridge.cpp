@@ -8,7 +8,8 @@
 #include "../ug_bridge.h"
 #include "lib_algebra/lib_algebra.h"
 #include "lib_discretization/lib_discretization.h"
-
+#include <iostream>
+#include <sstream>
 
 namespace ug
 {
@@ -16,8 +17,11 @@ namespace bridge
 {
 
 template <typename TAlgebra>
-void RegisterAlgebraType(Registry& reg)
+void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 {
+//	get group string (use same as parent)
+	const char* grp = parentGroup;
+
 //	typedefs for this algebra
 	typedef TAlgebra algebra_type;
 	typedef typename algebra_type::vector_type vector_type;
@@ -26,7 +30,7 @@ void RegisterAlgebraType(Registry& reg)
 
 	//	Vector
 	{
-		reg.add_class_<vector_type>("Vector")
+		reg.add_class_<vector_type>("Vector", grp)
 			.add_constructor()
 			.add_method("print", &vector_type::p);
 
@@ -40,61 +44,61 @@ void RegisterAlgebraType(Registry& reg)
 
 	//	Matrix
 	{
-		reg.add_class_<matrix_type>("Matrix")
+		reg.add_class_<matrix_type>("Matrix", grp)
 			.add_constructor()
 			.add_method("print", &matrix_type::p);
 	}
 
 	// Base Classes
 	{
-		reg.add_class_<ILinearOperator<vector_type, vector_type> >("ILinearOperator");
+		reg.add_class_<ILinearOperator<vector_type, vector_type> >("ILinearOperator", grp);
 		reg.add_class_<	IMatrixOperator<vector_type, vector_type, matrix_type>,
-						ILinearOperator<vector_type, vector_type> >("IMatrixOperator");
+						ILinearOperator<vector_type, vector_type> >("IMatrixOperator", grp);
 
-		reg.add_class_<ILinearIterator<vector_type, vector_type> >("ILinearIterator");
+		reg.add_class_<ILinearIterator<vector_type, vector_type> >("ILinearIterator", grp);
 		reg.add_class_<	IPreconditioner<algebra_type>,
-						ILinearIterator<vector_type, vector_type> >("IPreconditioner");
+						ILinearIterator<vector_type, vector_type> >("IPreconditioner", grp);
 
-		reg.add_class_<ILinearOperatorInverse<vector_type, vector_type> >("ILinearOperatorInverse");
+		reg.add_class_<ILinearOperatorInverse<vector_type, vector_type> >("ILinearOperatorInverse", grp);
 
-		reg.add_class_<IOperator<vector_type, vector_type> >("IOperator");
-		reg.add_class_<IOperatorInverse<vector_type, vector_type> >("IOperatorInverse");
+		reg.add_class_<IOperator<vector_type, vector_type> >("IOperator", grp);
+		reg.add_class_<IOperatorInverse<vector_type, vector_type> >("IOperatorInverse", grp);
 
-		reg.add_class_<IProlongationOperator<vector_type, vector_type> >("IProlongationOperator");
-		reg.add_class_<IProjectionOperator<vector_type, vector_type> >("IProjectionOperator");
+		reg.add_class_<IProlongationOperator<vector_type, vector_type> >("IProlongationOperator", grp);
+		reg.add_class_<IProjectionOperator<vector_type, vector_type> >("IProjectionOperator", grp);
 	}
 
 	// Preconditioner
 	{
 	//	Jacobi
 		reg.add_class_<	JacobiPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("JacobiPreconditioner")
+						IPreconditioner<algebra_type> >("JacobiPreconditioner", grp)
 			.add_constructor()
 			.add_method("set_damp", &JacobiPreconditioner<algebra_type>::set_damp, "", "damp");
 
 	//	GaussSeidel
 		reg.add_class_<	GSPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("GSPreconditioner")
+						IPreconditioner<algebra_type> >("GSPreconditioner", grp)
 			.add_constructor();
 
 	//	Symmetric GaussSeidel
 		reg.add_class_<	SGSPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("SGSPreconditioner")
+						IPreconditioner<algebra_type> >("SGSPreconditioner", grp)
 			.add_constructor();
 
 	//	Backward GaussSeidel
 		reg.add_class_<	BGSPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("BGSPreconditioner")
+						IPreconditioner<algebra_type> >("BGSPreconditioner", grp)
 			.add_constructor();
 
 	//	ILU
 		reg.add_class_<	ILUPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("ILUPreconditioner")
+						IPreconditioner<algebra_type> >("ILUPreconditioner", grp)
 			.add_constructor();
 
 	//	ILU Threshold
 		reg.add_class_<	ILUTPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("ILUTPreconditioner")
+						IPreconditioner<algebra_type> >("ILUTPreconditioner", grp)
 			.add_constructor();
 
 	//	AMG
@@ -112,7 +116,7 @@ void RegisterAlgebraType(Registry& reg)
 //todo: existance of AMGPreconditioner class should not depend on defines.
 	#ifdef LAPACK_AVAILABLE
 	#ifdef BLAS_AVAILABLE
-		reg.add_class_<	amg<algebra_type>, IPreconditioner<algebra_type> > ("AMGPreconditioner")
+		reg.add_class_<	amg<algebra_type>, IPreconditioner<algebra_type> > ("AMGPreconditioner", grp)
 			.add_constructor()
 
 			.add_method("set_nu1", &amg<algebra_type>::set_nu1, "", "nu1", "sets nr. of presmoothing steps")
@@ -142,21 +146,21 @@ void RegisterAlgebraType(Registry& reg)
 	{
 	// 	LinearSolver
 		reg.add_class_<	LinearSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("LinearSolver")
+						ILinearOperatorInverse<vector_type, vector_type> >("LinearSolver", grp)
 			.add_constructor()
 			.add_method("set_preconditioner", &LinearSolver<algebra_type>::set_preconditioner, "", "preconditioner")
 			.add_method("set_convergence_check", &LinearSolver<algebra_type>::set_convergence_check, "", "check");
 
 	// 	CG Solver
 		reg.add_class_<	CGSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("CGSolver")
+						ILinearOperatorInverse<vector_type, vector_type> >("CGSolver", grp)
 			.add_constructor()
 			.add_method("set_preconditioner", &CGSolver<algebra_type>::set_preconditioner, "", "preconditioner")
 			.add_method("set_convergence_check", &CGSolver<algebra_type>::set_convergence_check, "", "check");
 
 	// 	BiCGStab Solver
 		reg.add_class_<	BiCGStabSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("BiCGStabSolver")
+						ILinearOperatorInverse<vector_type, vector_type> >("BiCGStabSolver", grp)
 			.add_constructor()
 			.add_method("set_preconditioner", &BiCGStabSolver<algebra_type>::set_preconditioner, "", "preconditioner")
 			.add_method("set_convergence_check", &BiCGStabSolver<algebra_type>::set_convergence_check, "", "check");
@@ -166,7 +170,7 @@ void RegisterAlgebraType(Registry& reg)
 	#ifdef BLAS_AVAILABLE
 	// 	BiCGStab Solver
 		reg.add_class_<	LapackLUSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("LapackLUSolver")
+						ILinearOperatorInverse<vector_type, vector_type> >("LapackLUSolver", grp)
 			.add_constructor();
 	#endif
 	#endif
@@ -174,14 +178,18 @@ void RegisterAlgebraType(Registry& reg)
 }
 
 
-void RegisterLibAlgebraInterface(Registry& reg)
+void RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 {
+//	get group string
+	std::stringstream groupString; groupString << parentGroup << "/Algebra";
+	const char* grp = groupString.str().c_str();
+
 	UG_LOG("RegisterLibAlgebraInterface\n");
 	// StandardConvCheck
 	{
-		reg.add_class_<IConvergenceCheck>("IConvergenceCheck");
+		reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp);
 
-		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck")
+		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp)
 			.add_constructor()
 			.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps,
 					"", "maximum_steps")
@@ -194,7 +202,7 @@ void RegisterLibAlgebraInterface(Registry& reg)
 	}
 
 	// register martin algebra
-	RegisterAlgebraType<MartinAlgebra>(reg);
+	RegisterAlgebraType<MartinAlgebra>(reg, grp);
 
 }
 

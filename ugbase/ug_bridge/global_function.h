@@ -133,10 +133,11 @@ class ExportedFunction : public ExportedFunctionBase
 	public:
 		template <typename TFunc>
 		ExportedFunction(	TFunc f, ProxyFunc pf,
-							const char* name, const char* retValName, const char* paramValNames,
+							const char* name, const char* group,
+							const char* retValName, const char* paramValNames,
 							const char* tooltip, const char* help)
 			: ExportedFunctionBase( name , retValName, paramValNames, tooltip, help),
-			  m_func((void*)f), m_proxy_func(pf)
+			  m_group(group), m_func((void*)f), m_proxy_func(pf)
 		{
 			create_parameter_stack<TFunc>();
 		}
@@ -147,7 +148,13 @@ class ExportedFunction : public ExportedFunctionBase
 			m_proxy_func(m_func, paramsIn, paramsOut);
 		}
 
+	///	return groups
+		const std::string& group() const {return m_group;}
+
 	protected:
+		// save groups
+		std::string m_group;
+
 		// pointer to to function
 		void* m_func;
 

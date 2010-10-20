@@ -29,13 +29,14 @@ class Registry {
 	 * it with the FuntionWrapper.
 	 */
 		template<class TFunc>
-		Registry& add_function(const char* funcName, TFunc func,
-										const char* retValName = "", const char* paramValNames = "",
-										const char* tooltip = "", const char* help = "")
+		Registry& add_function(const char* funcName, TFunc func, const char* group = "",
+								const char* retValName = "", const char* paramValNames = "",
+								const char* tooltip = "", const char* help = "")
 		{
 		//  create new exported function
 			m_vFunction.push_back(new ExportedFunction(	func, &FunctionProxy<TFunc>::apply,
-														funcName, retValName, paramValNames,
+														funcName, group,
+														retValName, paramValNames,
 														tooltip, help));
 	
 			return *this;
@@ -55,10 +56,10 @@ class Registry {
 	 * This function registers any class
 	 */
 		template <typename TClass>
-		ExportedClass_<TClass>& add_class_(const char *className)
+		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
 		{
 		//	todo: check whether a class with the specified name exists aready.
-			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className);
+			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className, group);
 
 			m_vClass.push_back(newClass);
 
@@ -69,13 +70,13 @@ class Registry {
 	 * This function registers any class together with its base class
 	 */
 		template <typename TClass, typename TBaseClass>
-		ExportedClass_<TClass>& add_class_(const char *className)
+		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
 		{
-			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className);
+			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className, group);
 			m_vClass.push_back(newClass);
 
 			// set base class names
-			ClassNameProvider<TClass>::template set_name<TBaseClass>(className);
+			ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
 
 			return *newClass;
 		}

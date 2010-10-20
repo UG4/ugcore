@@ -16,27 +16,27 @@ namespace bridge
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!
  */
-void RegisterStandardInterfaces(Registry& reg);
+void RegisterStandardInterfaces(Registry& reg, const char* parentGroup = "/ug4");
 
 ///	registers lib-grid interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterLibGridInterface(Registry& reg);
+void RegisterLibGridInterface(Registry& reg, const char* parentGroup = "/ug4");
 
 ///	registers lib-algebra interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterLibAlgebraInterface(Registry& reg);
+void RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup = "/ug4");
 
 ///	registers lib-discretization interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterLibDiscretizationInterface(Registry& reg);
+void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup = "/ug4");
 
 ///	registers tests for the interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterTestInterface(Registry& reg);
+void RegisterTestInterface(Registry& reg, const char* parentGroup = "/ug4");
 
 ///	registers info commands TypeInfo and ClassUsage
 /**	This method is automatically invoked during the creation of the Registry.*/
-void RegisterInfoCommands(Registry &reg);
+void RegisterInfoCommands(Registry &reg, const char* parentGroup = "/ug4");
 
 }//	end of namespace 
 }//	end of namespace 

@@ -135,6 +135,9 @@ class IExportedClass
 	///  name of class
 		virtual const char* name() const = 0;
 
+	///	get groups
+		virtual const std::string& group() const = 0;
+
 	///	name-list of class hierarchy
 		virtual const std::vector<const char*>* class_names() const = 0;
 
@@ -173,15 +176,18 @@ class ExportedClass_ : public IExportedClass
 
 	public:
 	//  contructor
-		ExportedClass_(const char* name) : m_constructor(NULL)
+		ExportedClass_(const char* name, const char* group = "") : m_constructor(NULL)
 		{
 			// todo: check that name is not already used
-			ClassNameProvider<TClass>::set_name(name);
-			ClassNameProvider<const TClass>::set_name(name);
+			ClassNameProvider<TClass>::set_name(name, group);
+			ClassNameProvider<const TClass>::set_name(name, group);
 		}
 
 	/// name of class
 		virtual const char* name() const {return ClassNameProvider<TClass>::name();}
+
+	///	get groups
+		virtual const std::string& group() const {return ClassNameProvider<TClass>::group();}
 
 	///	class-hierarchy
 		virtual const std::vector<const char*>* class_names() const	{return &ClassNameProvider<TClass>::names();}

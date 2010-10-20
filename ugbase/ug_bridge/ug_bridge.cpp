@@ -10,13 +10,13 @@ namespace ug
 namespace bridge
 {
 
-void RegisterStandardInterfaces(Registry& reg)
+void RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 {
-	RegisterLibGridInterface(reg);
-	RegisterLibAlgebraInterface(reg);
-	RegisterLibDiscretizationInterface(reg);
-	RegisterTestInterface(reg);
-	RegisterInfoCommands(reg);
+	RegisterLibGridInterface(reg, parentGroup);
+	RegisterLibAlgebraInterface(reg, parentGroup);
+	RegisterLibDiscretizationInterface(reg, parentGroup);
+	RegisterTestInterface(reg, parentGroup);
+	RegisterInfoCommands(reg, parentGroup);
 }
 
 }//	end of namespace 

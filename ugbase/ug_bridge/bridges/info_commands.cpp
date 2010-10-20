@@ -483,8 +483,7 @@ bool PrintClassHierarchy(const char *classname)
 
 }
 
-
-void RegisterInfoCommands(Registry &reg)
+void RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
 	reg.add_function("TypeInfo", &UGTypeInfo);
 	reg.add_function("ClassUsage", &ClassUsage);

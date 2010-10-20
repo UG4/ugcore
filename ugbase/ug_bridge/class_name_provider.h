@@ -17,7 +17,7 @@ template <typename TClass>
 struct ClassNameProvider
 {
 	/// set name of class and copy parent names
-		static void set_name(const char* name)
+		static void set_name(const char* name, const char* group = "")
 		{
 		//	copy name into static string
 		//	This is necessary, since char* could be to temporary memory
@@ -26,14 +26,17 @@ struct ClassNameProvider
 		//	remember const char* to own name in first position of names-list
 			m_names.clear();
 			m_names.push_back(m_ownName.c_str());
+
+		//	remember groups
+			m_group = std::string(group);
 		}
 
 	/// set name of class and copy parent names
 		template <typename TParent>
-		static void set_name(const char* name)
+		static void set_name(const char* name, const char* group = "")
 		{
 		//	set own name
-			set_name(name);
+			set_name(name, group);
 
 		//	copy parent names
 			const std::vector<const char*>& pnames = ClassNameProvider<TParent>::names();
@@ -73,12 +76,19 @@ struct ClassNameProvider
 			return m_names[0];
 		}
 
+		/// groups
+		static const std::string& group()
+		{
+			return m_group;
+		}
+
 		/// returns vector of all names including parent class names
 		static const std::vector<const char*>& names()	{return m_names;}
 
 	private:
 		static std::string m_ownName;
 		static std::vector<const char*> m_names;
+		static std::string m_group;
 };
 
 template <typename TClass>
@@ -86,6 +96,9 @@ std::vector<const char*> ClassNameProvider<TClass>::m_names = std::vector<const 
 
 template <typename TClass>
 std::string ClassNameProvider<TClass>::m_ownName = std::string("");
+
+template <typename TClass>
+std::string ClassNameProvider<TClass>::m_group = std::string("");
 
 } // end namespace
 } // end namespace
