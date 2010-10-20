@@ -273,7 +273,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 
 //	todo: generalize
 	typedef P1ConformDoFDistribution dof_distribution_type;
-	typedef MartinAlgebra algebra_type;
+	typedef CPUAlgebra algebra_type;
 #ifdef UG_PARALLEL
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
 #else
@@ -480,7 +480,7 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 
 	//	todo: generalize
 		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
+		typedef CPUAlgebra algebra_type;
 
 	//	FunctionPattern (Abstract Base Class)
 		reg.add_class_<FunctionPattern>("FunctionPattern", grp);

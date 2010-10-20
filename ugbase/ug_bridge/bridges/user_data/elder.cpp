@@ -129,7 +129,7 @@ void RegisterElderUserFunctions(Registry& reg)
 	{
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
+		typedef CPUAlgebra algebra_type;
 
 #ifdef UG_PARALLEL
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > T;

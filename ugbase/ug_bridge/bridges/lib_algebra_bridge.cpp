@@ -105,7 +105,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef MartinAlgebra algebra_type;
+		typedef CPUAlgebra algebra_type;
 
 	#ifdef UG_PARALLEL
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, TAlgebra> > function_type;
@@ -202,7 +202,7 @@ void RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 	}
 
 	// register martin algebra
-	RegisterAlgebraType<MartinAlgebra>(reg, grp);
+	RegisterAlgebraType<CPUAlgebra>(reg, grp);
 
 }
 
