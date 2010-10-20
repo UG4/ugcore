@@ -8,8 +8,12 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
+
 #ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__
+
+//#include "maxheap.h"
+#include "boxsort.h"
 
 namespace ug {
 
@@ -66,10 +70,18 @@ struct amg_nodeinfo
 		else
 			return rating > other.rating;
 	}
+
+	inline size_t get_val() const
+	{
+		UG_ASSERT(rating > 0 && rating < 1000, "rating is " << rating << ", out of bounds [0, 1000]");
+		return (int)rating;
+	}
 };
 
-
+//	typedef maxheap<amg_nodeinfo> nodeinfo_pq_type;
+typedef BoxSort<amg_nodeinfo> nodeinfo_pq_type;
 
 }
+
 
 #endif // __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_NODEINFO_H__

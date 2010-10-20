@@ -17,8 +17,6 @@
 #include <vector>
 #include <iostream>
 
-#include "maxheap.h"
-
 using namespace std;
 
 template<typename T>
@@ -34,6 +32,7 @@ std::string ToString(const T &t)
 
 #include "amg_rs_prolongation.h"
 #include "amg_debug.h"
+#include "amg_nodeinfo.h"
 
 /// \defgroup AMG
 
@@ -54,22 +53,20 @@ namespace ug{
 
 #define AMG_MAX_LEVELS 32
 
-struct amg_nodeinfo;
-
 
 template<typename Matrix_type>
 void
 CreateStrongConnectionGraph(const Matrix_type &A, cgraph &graph, double theta=0.25);
 
-void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, maxheap<amg_nodeinfo> &PQ, int &unassigned, amg_nodeinfo *nodes);
+void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, int &unassigned, amg_nodeinfo *nodes);
 
 void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, amg_nodeinfo *nodes,
 		int nrOfPaths, int *posInConnections);
 
 
-void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, maxheap<amg_nodeinfo> &PQ, int &unassigned, int &iNrOfCoarse, int *newIndex, amg_nodeinfo *nodes);
+void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, int &unassigned, int &iNrOfCoarse, int *newIndex, amg_nodeinfo *nodes);
 
-int Coarsen(cgraph &graph, maxheap<amg_nodeinfo> &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes);
+int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes);
 
 void PreventFFConnections(cgraph &graphS, cgraph &graphST, amg_nodeinfo *nodes, int *newIndex, int &nrOfCoarse);
 	

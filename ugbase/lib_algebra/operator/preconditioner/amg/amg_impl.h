@@ -134,7 +134,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 	// todo: check for isolated condition
 
-	maxheap<amg_nodeinfo> PQ;
+	nodeinfo_pq_type PQ;
 
 	//std::vector<bool coarse(A.num_rows());
 	int unassigned = A.num_rows();
@@ -577,6 +577,7 @@ bool amg<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type
 
 	if(level == used_levels-1)
 	{
+		UG_LOG("basesolver!\n");
 		m_basesolver->apply_return_defect(c, d);
 		return true;
 	}

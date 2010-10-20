@@ -144,7 +144,7 @@ public:
 
 	//!
 	//! debug print output
-	void print() const
+	/*void print() const
 	{
 		for(int i=0; i<m_height; i++)
 		{
@@ -152,8 +152,7 @@ public:
 					(m_arr[m_heap[i]] > m_arr[parent(m_heap[i])] ? " ERR " : "") << endl;
 
 		}
-
-	}
+	}*/
 
 	//! returns size of external array
 	int arr_size() const
@@ -257,10 +256,10 @@ private:
 	}
 	
 private:
-	T *m_arr;				//< pointer to array with elements of type T
-	int *m_heap;			//< m_heap of the elements m_heap[0] is the index of the largest element of m_arr[i] forall i=0..m_size-1 and m_posinheap[i] != -1
-	int *m_posinheap;		//< m_posinheap[i] is the position of element m_arr[i] in the m_heap. -1 if removed, otherwise m_posinheap[m_heap[i]] = i
-	int m_height;			//< m_height of the m_heap, elements m_heap[0]..m_heap[m_height-1] are valid.
+	T *m_arr;			//< pointer to array with elements of type T
+	int *m_heap;		//< m_heap of the elements m_heap[0] is the index of the largest element of m_arr[i] forall i=0..m_size-1 and m_posinheap[i] != -1
+	int *m_posinheap;	//< m_posinheap[i] is the position of element m_arr[i] in the m_heap. -1 if removed, otherwise m_posinheap[m_heap[i]] = i
+	int m_height;		//< m_height of the m_heap, elements m_heap[0]..m_heap[m_height-1] are valid.
 	int m_size;			//< maximal size of the m_heap = size of array m_arr
 };
 	

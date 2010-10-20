@@ -36,7 +36,7 @@ namespace ug
  * \param	nodes
  * \sa	CreateStrongConnectionGraph
  */
-void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, maxheap<amg_nodeinfo> &PQ, int &unassigned, amg_nodeinfo *nodes)
+void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, int &unassigned, amg_nodeinfo *nodes)
 {
 	PQ.create(strongT.size(), nodes);
 	unassigned = 0;
@@ -138,7 +138,7 @@ void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, amg_nodeinfo
  * \param	newIndex		newIndex of new coarse nodes
  * \param	nodes			fine/coarse marks (skip fine nodes)
  */
-void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, maxheap<amg_nodeinfo> &PQ, int &unassigned,
+void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, int &unassigned,
 		int &iNrOfCoarse, int *newIndex, amg_nodeinfo *nodes)
 {
 	PQ.create(graphAC.size(), nodes);
@@ -170,7 +170,7 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, maxheap<am
  * \param A				matrix A (for debug)
  * \return				returns number of new coarse nodes.
  */
-int Coarsen(cgraph &graph, maxheap<amg_nodeinfo> &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes)
+int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes)
 {
 	while(unassigned > 0)
 	{
