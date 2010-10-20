@@ -1,4 +1,15 @@
-// author: Martin Rupp
+/**
+ * \file class_helper.cpp
+ *
+ * \author Martin Rupp
+ *
+ * \date 20.10.2010
+ *
+ * ClassHierarchy implementation, GetClassHierarchy, FindClass
+ *
+ * Goethe-Center for Scientific Computing 2009-2010.
+ */
+
 
 #include "class_helper.h"
 #include "ug_script/ug_script.h"
