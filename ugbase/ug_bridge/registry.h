@@ -79,7 +79,7 @@ class Registry {
 			{
 				ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
 			}
-			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry* ex)
+			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry ex)
 			{
 				std::cout << "Registering class '" << className << "', that derives"
 						 << " from class, that has " 
