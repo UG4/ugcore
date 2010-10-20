@@ -22,6 +22,10 @@ namespace ug
  * Furthermore the ParallelStorageType is remembered and can be switched.
  * In addition some functions of the sequential matrix are overwritten to adapted the functionality
  * to parallel (e.g. set)
+ *
+ * Please Note:
+ * The Implementation is not yet finished. Currently only two types of matrices can be used.
+ *
  */
 template <typename TMatrix>
 class ParallelMatrix : public TMatrix

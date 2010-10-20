@@ -6,6 +6,10 @@
 
 #include "lib_algebra/operator/operator_interface.h"
 
+#ifdef UG_PARALLEL
+#include "lib_discretization/parallelization/parallelization_util.h"
+#endif
+
 namespace ug{
 
 template <typename TDoFDistribution, typename TAlgebra>
@@ -91,6 +95,8 @@ class AssembledLinearOperator :
 		//	Remember parallel storage type
 			#ifdef UG_PARALLEL
 				m_J.set_storage_type(PST_ADDITIVE);
+				TDoFDistribution* dist = const_cast<TDoFDistribution*>(m_pDoFDistribution);
+				CopyLayoutsAndCommunicatorIntoMatrix(m_J, *dist);
 			#endif
 
 		//	remember that operator is initialized
@@ -158,7 +164,9 @@ class AssembledLinearOperator :
 			}
 
 			#ifdef UG_PARALLEL
-				m_J.set_storage_type(PST_ADDITIVE);
+			m_J.set_storage_type(PST_ADDITIVE);
+			TDoFDistribution* dist = const_cast<TDoFDistribution*>(m_pDoFDistribution);
+			CopyLayoutsAndCommunicatorIntoMatrix(m_J, *dist);
 			#endif
 
 		//	Remember that operator has been initialized

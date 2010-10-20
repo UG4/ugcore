@@ -11,6 +11,7 @@
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid/parallelization/parallelization.h"
+#include "lib_discretization/dof_manager/dof_distribution.h"
 
 namespace ug
 {
@@ -85,6 +86,15 @@ bool CreateIndexLayout(	IndexLayout& layoutOut,
 	}
 */
 	return bRetVal;
+}
+
+template <typename TMatrix>
+void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, DoFDistribution& dofDistr)
+{
+	mat.set_slave_layout(dofDistr.get_slave_layout());
+	mat.set_master_layout(dofDistr.get_master_layout());
+	mat.set_communicator(dofDistr.get_communicator());
+	mat.set_process_communicator(dofDistr.get_process_communicator());
 }
 
 }//	end of namespace
