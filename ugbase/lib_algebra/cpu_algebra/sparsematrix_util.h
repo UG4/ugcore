@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_UTIL__
-#define __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_UTIL__
+#ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_UTIL__
+#define __H__UG__CPU_ALGEBRA__SPARSEMATRIX_UTIL__
 
 namespace ug
 {

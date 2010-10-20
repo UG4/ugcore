@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__
-#define __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__
+#ifndef __H__UG__CPU_ALGEBRA__LAPACK_LU_IMPL__
+#define __H__UG__CPU_ALGEBRA__LAPACK_LU_IMPL__
 
 #include "lapack/lapack.h"
 
@@ -91,4 +91,4 @@ bool LapackLU::init(const matrix_type &A)
 
 } // namespace ug
 
-#endif /* __H__UG__MARTIN_ALGEBRA__LAPACK_LU_IMPL__ */
+#endif /* __H__UG__CPU_ALGEBRA__LAPACK_LU_IMPL__ */

@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU_H__
-#define __H__UG__MARTIN_ALGEBRA__LAPACK_LU_H__
+#ifndef __H__UG__CPU_ALGEBRA__LAPACK_LU_H__
+#define __H__UG__CPU_ALGEBRA__LAPACK_LU_H__
 
 #ifndef LAPACK_AVAILABLE
 
@@ -59,4 +59,4 @@ void zgetrs_(char *trans, lapack_int *n, lapack_int *nrhs, const complex<lapack_
 
 #endif // LAPACK_AVAILABLE
 
-#endif // __H__UG__MARTIN_ALGEBRA__LAPACK_H__
+#endif // __H__UG__CPU_ALGEBRA__LAPACK_H__

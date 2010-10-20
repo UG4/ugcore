@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__OPERATIONS_VEC__
-#define __H__UG__MARTIN_ALGEBRA__OPERATIONS_VEC__
+#ifndef __H__UG__CPU_ALGEBRA__OPERATIONS_VEC__
+#define __H__UG__CPU_ALGEBRA__OPERATIONS_VEC__
 
 namespace ug
 {
@@ -156,4 +156,4 @@ inline double VecNormSquared(vector_t &a, vector_t &b)
 
 } // namespace ug
 
-#endif /* __H__UG__MARTIN_ALGEBRA__OPERATIONS_VEC__ */
+#endif /* __H__UG__CPU_ALGEBRA__OPERATIONS_VEC__ */

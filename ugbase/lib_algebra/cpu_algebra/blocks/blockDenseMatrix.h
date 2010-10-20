@@ -9,8 +9,8 @@
  *  optimized for small memory consumption
  *  SmallInverse: Inverse for blockDenseMatrices using LAPACK
  */
-#ifndef __H__UG__MARTIN_ALGEBRA__BLOCK_DENSE_MATRIX__
-#define __H__UG__MARTIN_ALGEBRA__BLOCK_DENSE_MATRIX__
+#ifndef __H__UG__CPU_ALGEBRA__BLOCK_DENSE_MATRIX__
+#define __H__UG__CPU_ALGEBRA__BLOCK_DENSE_MATRIX__
 
 #include "math.h"
 

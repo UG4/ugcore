@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__VECTOR_IMPL__
-#define __H__UG__MARTIN_ALGEBRA__VECTOR_IMPL__
+#ifndef __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
+#define __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
 
 #include <fstream>
 #include "algebra_misc.h"

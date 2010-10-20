@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_PRINT__
-#define  __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_PRINT__
+#ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
+#define  __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
 
 namespace ug {
 
@@ -126,4 +126,4 @@ void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, p
 }
 
 }
-#endif // __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX_PRINT__
+#endif // __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__

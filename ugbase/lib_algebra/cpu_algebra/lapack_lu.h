@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_LU__
-#define __H__UG__MARTIN_ALGEBRA__LAPACK_LU__
+#ifndef __H__UG__CPU_ALGEBRA__LAPACK_LU__
+#define __H__UG__CPU_ALGEBRA__LAPACK_LU__
 
 #include "algebra_misc.h"
 #include "sparsematrix.h"
@@ -55,4 +55,4 @@ private:
 } // namespace ug
 #include "lapack_lu_impl.h"
 
-#endif /* __H__UG__MARTIN_ALGEBRA__LAPACK_LU__ */
+#endif /* __H__UG__CPU_ALGEBRA__LAPACK_LU__ */

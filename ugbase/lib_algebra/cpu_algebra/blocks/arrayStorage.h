@@ -9,8 +9,8 @@
  *  arrays with same interface.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__ARRAYSTORAGE__
-#define __H__UG__MARTIN_ALGEBRA__ARRAYSTORAGE__
+#ifndef __H__UG__CPU_ALGEBRA__ARRAYSTORAGE__
+#define __H__UG__CPU_ALGEBRA__ARRAYSTORAGE__
 
 //#include "misc.h"
 

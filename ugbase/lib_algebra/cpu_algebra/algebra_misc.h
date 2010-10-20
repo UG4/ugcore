@@ -1,5 +1,5 @@
-#ifndef __H__UG__MARTIN_ALGEBRA__ALGEBRA_MISC__
-#define __H__UG__MARTIN_ALGEBRA__ALGEBRA_MISC__
+#ifndef __H__UG__CPU_ALGEBRA__ALGEBRA_MISC__
+#define __H__UG__CPU_ALGEBRA__ALGEBRA_MISC__
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace ug
@@ -33,4 +33,4 @@ struct sortStruct
 }
 
 
-#endif // __H__UG__MARTIN_ALGEBRA__ALGEBRA_MISC__
+#endif // __H__UG__CPU_ALGEBRA__ALGEBRA_MISC__

@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__TEMPLATE_EXPRESSIONS__
-#define __H__UG__MARTIN_ALGEBRA__TEMPLATE_EXPRESSIONS__
+#ifndef __H__UG__CPU_ALGEBRA__TEMPLATE_EXPRESSIONS__
+#define __H__UG__CPU_ALGEBRA__TEMPLATE_EXPRESSIONS__
 
 //#include "blockMatrix.h"
 

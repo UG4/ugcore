@@ -12,8 +12,8 @@
  *	by the same methods.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__BLOCKS__
-#define __H__UG__MARTIN_ALGEBRA__BLOCKS__
+#ifndef __H__UG__CPU_ALGEBRA__BLOCKS__
+#define __H__UG__CPU_ALGEBRA__BLOCKS__
 
 namespace ug{
 	

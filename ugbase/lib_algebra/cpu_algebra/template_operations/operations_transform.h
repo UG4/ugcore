@@ -9,8 +9,8 @@
  */
 
 
-#ifndef __H__UG__MARTIN_ALGEBRA__OPERATIONS_TRANSFORM__
-#define __H__UG__MARTIN_ALGEBRA__OPERATIONS_TRANSFORM__
+#ifndef __H__UG__CPU_ALGEBRA__OPERATIONS_TRANSFORM__
+#define __H__UG__CPU_ALGEBRA__OPERATIONS_TRANSFORM__
 
 // here we transform a Template Expression x = X1 [+/- X2 [+/- X3]]  into
 // a function like VecScaleAdd (in operations_vec.h) or MatMultAdd (in operations_mat.h),
@@ -177,4 +177,4 @@ inline void VectorSub(vector_t &dest, const T1 &t1)
 
 } // namespace ug
 
-#endif /* __H__UG__MARTIN_ALGEBRA__OPERATIONS_TRANSFORM__ */
+#endif /* __H__UG__CPU_ALGEBRA__OPERATIONS_TRANSFORM__ */

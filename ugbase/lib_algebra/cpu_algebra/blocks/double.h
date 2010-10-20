@@ -12,8 +12,8 @@
  *	by the same methods.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__DOUBLE__
-#define __H__UG__MARTIN_ALGEBRA__DOUBLE__
+#ifndef __H__UG__CPU_ALGEBRA__DOUBLE__
+#define __H__UG__CPU_ALGEBRA__DOUBLE__
 #include "blocks.h"
 namespace ug{
 

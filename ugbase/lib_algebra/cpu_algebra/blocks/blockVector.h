@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__BLOCK_VECTOR__
-#define __H__UG__MARTIN_ALGEBRA__BLOCK_VECTOR__
+#ifndef __H__UG__CPU_ALGEBRA__BLOCK_VECTOR__
+#define __H__UG__CPU_ALGEBRA__BLOCK_VECTOR__
 
 #include "arrayStorage.h"
 #include "blockDenseMatrix.h"

@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2009-2010.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX__
-#define __H__UG__MARTIN_ALGEBRA__SPARSEMATRIX__
+#ifndef __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
+#define __H__UG__CPU_ALGEBRA__SPARSEMATRIX__
 
 #include "math.h"
 

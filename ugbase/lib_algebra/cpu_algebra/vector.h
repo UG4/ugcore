@@ -6,8 +6,8 @@
  *  Copyright 2009 G-CSC, University of Frankfurt. All rights reserved.
  *
  */
-#ifndef __H__UG__MARTIN_ALGEBRA__VECTOR__
-#define __H__UG__MARTIN_ALGEBRA__VECTOR__
+#ifndef __H__UG__CPU_ALGEBRA__VECTOR__
+#define __H__UG__CPU_ALGEBRA__VECTOR__
 
 #include "sparsematrix.h"
 

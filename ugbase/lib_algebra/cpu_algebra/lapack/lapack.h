@@ -8,8 +8,8 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_H__
-#define __H__UG__MARTIN_ALGEBRA__LAPACK_H__
+#ifndef __H__UG__CPU_ALGEBRA__LAPACK_H__
+#define __H__UG__CPU_ALGEBRA__LAPACK_H__
 
 #include <complex>
 
@@ -278,6 +278,6 @@ inline lapack_int getri(lapack_int n, lapack_double *pColMajorMatrix, lapack_int
 }
 
 }
-#endif // __H__UG__MARTIN_ALGEBRA__LAPACK_H__
+#endif // __H__UG__CPU_ALGEBRA__LAPACK_H__
 
 

@@ -5,8 +5,8 @@
  *      Author: mrupp
  */
 
-#ifndef __H__UG__MARTIN_ALGEBRA__OPERATIONS_MAT__
-#define __H__UG__MARTIN_ALGEBRA__OPERATIONS_MAT__
+#ifndef __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__
+#define __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__
 
 namespace ug
 {
@@ -173,4 +173,4 @@ inline void MatMultAdd(vector_t &dest, const number &alpha1, const TE_MAT<matrix
 
 
 } // namespace ug
-#endif /* __H__UG__MARTIN_ALGEBRA__OPERATIONS_MAT__ */
+#endif /* __H__UG__CPU_ALGEBRA__OPERATIONS_MAT__ */
