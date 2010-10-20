@@ -17,6 +17,10 @@ extern "C" {
 
 namespace ug
 {
+
+///	Returns ugs default registry.
+ug::bridge::Registry& GetUGRegistry();
+
 namespace script
 {
 

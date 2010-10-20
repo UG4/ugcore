@@ -11,6 +11,14 @@ using namespace std;
 
 namespace ug
 {
+
+// get default registry
+ug::bridge::Registry& GetUGRegistry()
+{
+	static bridge::Registry ugReg;
+	return ugReg;
+}
+
 namespace script
 {
 
