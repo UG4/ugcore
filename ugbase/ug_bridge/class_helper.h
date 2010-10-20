@@ -20,7 +20,7 @@ namespace ug
 namespace bridge
 {
 
-// maxheap
+// ClassHierarchy
 //--------------
 /**
  * \brief Class Hierarchy Helper Class for UG Registry
