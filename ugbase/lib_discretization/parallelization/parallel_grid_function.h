@@ -16,7 +16,7 @@ namespace ug
 {
 
 template <typename TGridFunction>
-class ParallelGridFunction : public TGridFunction, public TE_VEC<ParallelGridFunction<TGridFunction> >
+class ParallelGridFunction : public TGridFunction
 {
 	public:
 		typedef ParallelGridFunction<TGridFunction> this_type;
@@ -101,7 +101,7 @@ class ParallelGridFunction : public TGridFunction, public TE_VEC<ParallelGridFun
 			{assign(v); return *this;}
 
 		// for Template Expressions
-		template<typename T>
+		/*template<typename T>
 		this_type& operator =(const T &t)
 		{
 			VectorAssign(*this, t);
@@ -118,7 +118,7 @@ class ParallelGridFunction : public TGridFunction, public TE_VEC<ParallelGridFun
 		{
 			VectorAdd(*this, t);
 			return *this;
-		}
+		}*/
 
 		// set all dofs on level 'level' to value 'w'
 		bool set(number w, ParallelStorageType type)

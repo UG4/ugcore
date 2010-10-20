@@ -9,7 +9,7 @@
 #define __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__
 
 #include "lib_algebra/operator/operator_interface.h"
-#include "lib_algebra/martin_algebra/lapack_lu.h"
+#include "lib_algebra/cpu_algebra/lapack_lu.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif

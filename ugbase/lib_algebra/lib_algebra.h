@@ -14,7 +14,7 @@
 #include "common/common.h"
 
 
-#include "martin_algebra/template_operations/template_expressions.h"
+#include "cpu_algebra/template_operations/template_expressions.h"
 // operator interface
 #include "operator/operator.h"
 
@@ -33,18 +33,18 @@
  */
 
 /////////////////////////////////////////////
-//   Martin Algebra
+//   CPU Algebra
 /////////////////////////////////////////////
 
-#include "martin_algebra/algebra_misc.h"
-#include "martin_algebra/vector.h"
-#include "martin_algebra/sparsematrix.h"
-#include "martin_algebra/core_smoothers.h"
+#include "cpu_algebra/algebra_misc.h"
+#include "cpu_algebra/vector.h"
+#include "cpu_algebra/sparsematrix.h"
+#include "cpu_algebra/core_smoothers.h"
 
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
-#include "martin_algebra/lapack/lapack.h"
-#include "martin_algebra/lapack_lu.h"
+#include "cpu_algebra/lapack/lapack.h"
+#include "cpu_algebra/lapack_lu.h"
 #endif
 #endif
 
@@ -57,7 +57,7 @@
 
 namespace ug
 {
-class MartinAlgebra
+class CPUAlgebra
 	{
 	public:
 		// matrix type

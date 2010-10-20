@@ -11,7 +11,6 @@
 #include "pcl/pcl.h"
 #include "parallel_index_layout.h"
 #include "parallelization_util.h"
-#include "../martin_algebra/template_operations/template_expressions.h"
 #include "parallel_storage_type.h"
 
 namespace ug
@@ -25,7 +24,7 @@ namespace ug
  * to parallel (e.g. two_norm, set)
  */
 template <typename TVector>
-class ParallelVector : public TVector, public TE_VEC<ParallelVector<TVector> >
+class ParallelVector : public TVector
 {
 	private:
 	// 	disallow copy constructor
