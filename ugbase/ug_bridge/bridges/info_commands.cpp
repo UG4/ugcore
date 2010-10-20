@@ -296,8 +296,8 @@ bool ClassUsageExact(const char *classname, bool OutParameters)
 	for(size_t i=0; i<reg.num_functions(); i++)
 	{
 		const bridge::ExportedFunctionBase &thefunc = reg.get_function(i);
-		if(!OutParameters && IsClassInParameters(thefunc.params_in(), classname) ||
-				OutParameters && IsClassInParameters(thefunc.params_out(), classname))
+		if((!OutParameters && IsClassInParameters(thefunc.params_in(), classname)) ||
+				(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
 			PrintFunctionInfo(thefunc, false, classname);
 	}
 
@@ -308,8 +308,8 @@ bool ClassUsageExact(const char *classname, bool OutParameters)
 		for(size_t i=0; i<c.num_methods(); i++)
 		{
 			const bridge::ExportedFunctionBase &thefunc = c.get_method(i);
-			if(!OutParameters && IsClassInParameters(thefunc.params_in(), classname) ||
-					OutParameters && IsClassInParameters(thefunc.params_out(), classname))
+			if((!OutParameters && IsClassInParameters(thefunc.params_in(), classname)) ||
+					(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
 			{
 				UG_LOG(c.name() << " ::");
 				PrintFunctionInfo(thefunc, false, classname);
@@ -319,8 +319,8 @@ bool ClassUsageExact(const char *classname, bool OutParameters)
 		for(size_t i=0; i<c.num_const_methods(); i++)
 		{
 			const bridge::ExportedFunctionBase &thefunc = c.get_const_method(i);
-			if(!OutParameters && IsClassInParameters(thefunc.params_in(), classname) ||
-					OutParameters && IsClassInParameters(thefunc.params_out(), classname))
+			if((!OutParameters && IsClassInParameters(thefunc.params_in(), classname)) ||
+					(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
 			{
 				UG_LOG(c.name() << " ::");
 				PrintFunctionInfo(thefunc, false, classname);
