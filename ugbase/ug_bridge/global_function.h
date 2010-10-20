@@ -52,7 +52,7 @@ class ExportedFunctionBase
 		const std::string& return_name() const 						{return m_retValName;}
 
 	/// string of all return parameters
-		const std::string& parameter_names_string(size_t i) const 	{return m_paramValNames;}
+		const std::string& parameter_names_string() const 			{return m_paramValNames;}
 
 	/// number of parameters.
 		size_t num_parameter() const 								{return m_vParamValNames.size();}
