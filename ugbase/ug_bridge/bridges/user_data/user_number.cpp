@@ -92,15 +92,17 @@ class UserNumberProvider : public IUserNumberProvider<dim>
 };
 
 template <int dim>
-void RegisterUserNumber(Registry& reg)
+void RegisterUserNumber(Registry& reg, const char* parentGroup)
 {
+	const char* grp = parentGroup;
+
 //	Functor
 	{
 	//	ConstUserNumber
 		{
 			typedef ConstUserNumber<dim> T;
 			static stringstream ss; ss << "ConstUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set", &T::set)
 				.add_method("print", &T::print);
@@ -110,7 +112,7 @@ void RegisterUserNumber(Registry& reg)
 		{
 			typedef LuaUserNumber<dim> T;
 			stringstream ss; ss << "LuaUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
@@ -121,14 +123,14 @@ void RegisterUserNumber(Registry& reg)
 	//	Base class
 		{
 			stringstream ss; ss << "IUserNumberProvider" << dim << "d";
-			reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str());
+			reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp);
 		}
 
 	//	Const Number Provider
 		{
 			typedef UserNumberProvider<dim, ConstUserNumber<dim> > T;
 			stringstream ss; ss << "ConstUserNumberProvider" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
@@ -137,18 +139,18 @@ void RegisterUserNumber(Registry& reg)
 		{
 			typedef UserNumberProvider<dim, LuaUserNumber<dim> > T;
 			stringstream ss; ss << "LuaUserNumberProvider" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
 	}
 }
 
-void RegisterUserNumber(Registry& reg)
+void RegisterUserNumber(Registry& reg, const char* parentGroup)
 {
-	RegisterUserNumber<1>(reg);
-	RegisterUserNumber<2>(reg);
-	RegisterUserNumber<3>(reg);
+	RegisterUserNumber<1>(reg, parentGroup);
+	RegisterUserNumber<2>(reg, parentGroup);
+	RegisterUserNumber<3>(reg, parentGroup);
 }
 
 } // end namespace

@@ -7,14 +7,14 @@ namespace ug
 namespace bridge
 {
 
-void RegisterUserNumber(Registry& reg);
-void RegisterUserVector(Registry& reg);
-void RegisterUserMatrix(Registry& reg);
+void RegisterUserNumber(Registry& reg, const char* parentGroup);
+void RegisterUserVector(Registry& reg, const char* parentGroup);
+void RegisterUserMatrix(Registry& reg, const char* parentGroup);
 
-void RegisterBoundaryNumber(Registry& reg);
+void RegisterBoundaryNumber(Registry& reg, const char* parentGroup);
 
 
-void RegisterElderUserFunctions(Registry& reg);
+void RegisterElderUserFunctions(Registry& reg, const char* parentGroup);
 
 } // end namepace bridge
 } // end namespace ug

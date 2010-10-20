@@ -95,15 +95,17 @@ class BoundaryNumberProvider : public IBoundaryNumberProvider<dim>
 };
 
 template <int dim>
-void RegisterBoundaryNumber(Registry& reg)
+void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 {
+	const char* grp = parentGroup;
+
 //	Functor
 	{
 	//	ConstBoundaryNumber
 		{
 			typedef ConstBoundaryNumber<dim> T;
 			static stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set", &T::set)
 				.add_method("print", &T::print);
@@ -113,7 +115,7 @@ void RegisterBoundaryNumber(Registry& reg)
 		{
 			typedef LuaBoundaryNumber<dim> T;
 			stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
@@ -124,14 +126,14 @@ void RegisterBoundaryNumber(Registry& reg)
 	//	Base class
 		{
 			stringstream ss; ss << "IBoundaryNumberProvider" << dim << "d";
-			reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str());
+			reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp);
 		}
 
 	//	Const Number Provider
 		{
 			typedef BoundaryNumberProvider<dim, ConstBoundaryNumber<dim> > T;
 			stringstream ss; ss << "ConstBoundaryNumberProvider" << dim << "d";
-			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
@@ -140,18 +142,18 @@ void RegisterBoundaryNumber(Registry& reg)
 		{
 			typedef BoundaryNumberProvider<dim, LuaBoundaryNumber<dim> > T;
 			stringstream ss; ss << "LuaBoundaryNumberProvider" << dim << "d";
-			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
 	}
 }
 
-void RegisterBoundaryNumber(Registry& reg)
+void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 {
-	RegisterBoundaryNumber<1>(reg);
-	RegisterBoundaryNumber<2>(reg);
-	RegisterBoundaryNumber<3>(reg);
+	RegisterBoundaryNumber<1>(reg, parentGroup);
+	RegisterBoundaryNumber<2>(reg, parentGroup);
+	RegisterBoundaryNumber<3>(reg, parentGroup);
 }
 
 } // end namespace

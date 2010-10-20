@@ -113,15 +113,15 @@ class InterpolateElder
 };
 
 
-void RegisterElderUserFunctions(Registry& reg)
+void RegisterElderUserFunctions(Registry& reg, const char* parentGroup)
 {
-
+	const char* grp = parentGroup;
 
 //	DensityDrivenUserFunction
 	{
-		reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d");
+		reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d", grp);
 
-		reg.add_class_<ElderUserFunction, IDensityDrivenFlowUserFunction<2> >("ElderUserFunction2d")
+		reg.add_class_<ElderUserFunction, IDensityDrivenFlowUserFunction<2> >("ElderUserFunction2d", grp)
 			.add_constructor();
 	}
 
@@ -137,7 +137,7 @@ void RegisterElderUserFunctions(Registry& reg)
 		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> T;
 #endif
 
-		reg.add_class_<InterpolateElder<T> >("InterpolateElder")
+		reg.add_class_<InterpolateElder<T> >("InterpolateElder", grp)
 			.add_constructor()
 			.add_method("invoke", &InterpolateElder<T>::invoke);
 	}

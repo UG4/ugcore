@@ -265,8 +265,10 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 }
 
 template <typename TDomain>
-void RegisterLibDiscretizationDomainDepended(Registry& reg)
+void RegisterLibDiscretizationDomainDepended(Registry& reg, const char* parentGroup)
 {
+	const char * grp = parentGroup;
+
 //	typedef domain
 	typedef TDomain domain_type;
 	static const int dim = domain_type::dim;
@@ -283,7 +285,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 //	GridFunction
 	{
 		stringstream ss; ss << "GridFunction" << dim << "d";
-		reg.add_class_<function_type, algebra_type::vector_type>(ss.str().c_str())
+		reg.add_class_<function_type, algebra_type::vector_type>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set", (bool (function_type::*)(number))&function_type::set)
 			.add_method("assign", (bool (function_type::*)(const algebra_type::vector_type&))&function_type::assign)
@@ -293,7 +295,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 //	Domain
 	{
 		stringstream ss; ss << "Domain" << dim << "d";
-		reg.add_class_<domain_type>(ss.str().c_str())
+		reg.add_class_<domain_type>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("get_subset_handler", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
 			.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
@@ -303,20 +305,20 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 // 	LoadDomain
 	{
 		stringstream ss; ss << "LoadDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>);
+		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp);
 	}
 
 //	SaveDomain
 	{
 		stringstream ss; ss << "SaveDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>);
+		reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp);
 	}
 
 //  ApproximationSpace
 	{
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
 		stringstream ss; ss << "ApproximationSpace" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str())
+		reg.add_class_<T>(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("assign_domain", &T::assign_domain)
 			.add_method("get_domain", (domain_type& (T::*)())&T::get_domain)
@@ -330,7 +332,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 	{
 		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
 		stringstream ss; ss << "DirichletBND" << dim << "d";
-		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str())
+		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
 			.add_method("set_pattern", &T::set_pattern)
@@ -341,7 +343,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 	{
 		typedef FVNeumannBoundaryElemDisc<FV1Geometry, domain_type, algebra_type> T;
 		stringstream ss; ss << "FV1NeumannBoundaryElemDisc" << dim << "d";
-		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str())
+		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
 			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value);
@@ -351,7 +353,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 	{
 		typedef FVConvectionDiffusionElemDisc<FV1Geometry, domain_type, algebra_type> T;
 		stringstream ss; ss << "FV1ConvectionDiffusionElemDisc" << dim << "d";
-		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str())
+		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
 			.add_method("set_diffusion_tensor", &T::set_diffusion_tensor)
@@ -365,7 +367,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 	{
 		typedef DensityDrivenFlowElemDisc<domain_type, algebra_type> T2;
 		stringstream ss; ss << "FV1DensityDrivenFlowElemDisc" << dim << "d";
-		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str())
+		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_domain", &T2::set_domain)
 			.add_method("set_user_functions", &T2::set_user_functions)
@@ -375,25 +377,25 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 //	ApplyLinearSolver
 	{
 		stringstream ss; ss << "ApplyLinearSolver" << dim << "d";
-		reg.add_function(ss.str().c_str(), &ApplyLinearSolver<function_type> );
+		reg.add_function(ss.str().c_str(), &ApplyLinearSolver<function_type>, grp );
 	}
 
 //	WriteGridToVTK
 	{
 		stringstream ss; ss << "WriteGridFunctionToVTK" << dim << "d";
-		reg.add_function(ss.str().c_str(), &WriteGridFunctionToVTK<function_type>);
+		reg.add_function(ss.str().c_str(), &WriteGridFunctionToVTK<function_type>, grp);
 	}
 
 //	SaveMatrixForConnectionViewer
 	{
 		stringstream ss; ss << "SaveMatrixForConnectionViewer" << dim << "d";
-		reg.add_function(ss.str().c_str(), &SaveMatrixForConnectionViewer<function_type>);
+		reg.add_function(ss.str().c_str(), &SaveMatrixForConnectionViewer<function_type>, grp);
 	}
 
 //	SaveVectorForConnectionViewer
 	{
 		stringstream ss; ss << "SaveVectorForConnectionViewer" << dim << "d";
-		reg.add_function(ss.str().c_str(), &SaveVectorForConnectionViewer<function_type>);
+		reg.add_function(ss.str().c_str(), &SaveVectorForConnectionViewer<function_type>, grp);
 	}
 
 //	ProlongationOperator
@@ -402,7 +404,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		typedef P1ProlongationOperator<approximation_space_type, algebra_type> T;
 
 		stringstream ss; ss << "P1ProlongationOperator" << dim << "d";
-		reg.add_class_<T, IProlongationOperator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str())
+		reg.add_class_<T, IProlongationOperator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space)
 			.add_method("set_dirichlet_post_process", &T::set_dirichlet_post_process);
@@ -415,7 +417,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		typedef P1ProjectionOperator<approximation_space_type, algebra_type> T;
 
 		stringstream ss; ss << "P1ProjectionOperator" << dim << "d";
-		reg.add_class_<T, IProjectionOperator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str())
+		reg.add_class_<T, IProjectionOperator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space);
 	}
@@ -426,7 +428,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		typedef AssembledMultiGridCycle<approximation_space_type, algebra_type> T;
 
 		stringstream ss; ss << "GeometricMultiGridPreconditioner" << dim << "d";
-		reg.add_class_<T, ILinearIterator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str())
+		reg.add_class_<T, ILinearIterator<algebra_type::vector_type, algebra_type::vector_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("set_discretization", &T::set_discretization)
 			.add_method("set_approximation_space", &T::set_approximation_space)
@@ -444,7 +446,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 //	VTK Output
 	{
 		stringstream ss; ss << "VTKOutput" << dim << "d";
-		reg.add_class_<VTKOutput<function_type> >(ss.str().c_str())
+		reg.add_class_<VTKOutput<function_type> >(ss.str().c_str(), grp)
 			.add_constructor()
 			.add_method("begin_timeseries", &VTKOutput<function_type>::begin_timeseries)
 			.add_method("end_timeseries", &VTKOutput<function_type>::end_timeseries)
@@ -454,19 +456,19 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 //	PerformTimeStep
 	{
 		stringstream ss; ss << "PerformTimeStep" << dim << "d";
-		reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>);
+		reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>, grp);
 	}
 
 //	DistributeDomain
 	{
 		stringstream ss; ss << "DistributeDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>);
+		reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>, grp);
 	}
 
 //	GlobalRefineParallelDomain
 	{
 		stringstream ss; ss << "GlobalRefineParallelDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &GlobalRefineParallelDomain<domain_type>);
+		reg.add_function(ss.str().c_str(), &GlobalRefineParallelDomain<domain_type>, grp);
 	}
 
 }
@@ -479,12 +481,12 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 		const char* grp = groupString.str().c_str();
 
 	//	Register user functions
-		RegisterUserNumber(reg);
-		RegisterUserVector(reg);
-		RegisterUserMatrix(reg);
+		RegisterUserNumber(reg, grp);
+		RegisterUserVector(reg, grp);
+		RegisterUserMatrix(reg, grp);
 
 	//	Register Boundary functions
-		RegisterBoundaryNumber(reg);
+		RegisterBoundaryNumber(reg, grp);
 
 	//	get group string
 		std::stringstream groupString2; groupString2 << parentGroup << "/Discretization";
@@ -556,9 +558,9 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 			typedef ThetaTimeDiscretization<dof_distribution_type, algebra_type> T;
 
 			reg.add_class_<	ITimeDiscretization<dof_distribution_type, algebra_type>,
-							IAssemble<dof_distribution_type, algebra_type> >("ITimeDiscretization");
+							IAssemble<dof_distribution_type, algebra_type> >("ITimeDiscretization", grp);
 
-			reg.add_class_<T, ITimeDiscretization<dof_distribution_type, algebra_type> >("ThetaTimeDiscretization")
+			reg.add_class_<T, ITimeDiscretization<dof_distribution_type, algebra_type> >("ThetaTimeDiscretization", grp)
 					.add_constructor()
 					.add_method("set_domain_discretization", &T::set_domain_discretization)
 					.add_method("set_theta", &T::set_theta);
@@ -629,12 +631,12 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 	//	Domain dependend part
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-			RegisterLibDiscretizationDomainDepended<domain_type>(reg);
+			RegisterLibDiscretizationDomainDepended<domain_type>(reg, grp);
 		}
 
 
 	//	todo: remove when possible
-		RegisterElderUserFunctions(reg);
+		RegisterElderUserFunctions(reg, grp);
 
 }
 

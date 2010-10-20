@@ -101,8 +101,9 @@ class UserVectorProvider : public IUserVectorProvider<dim>
 };
 
 template <int dim>
-void RegisterUserVector(Registry& reg)
+void RegisterUserVector(Registry& reg, const char* parentGroup)
 {
+	const char* grp = parentGroup;
 
 //	Functor
 	{
@@ -110,7 +111,7 @@ void RegisterUserVector(Registry& reg)
 		{
 			typedef ConstUserVector<dim> T;
 			static stringstream ss; ss << "ConstUserVector" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_all_entries", &T::set_all_entries)
 				.add_method("set_entry", &T::set_entry)
@@ -121,7 +122,7 @@ void RegisterUserVector(Registry& reg)
 		{
 			typedef LuaUserVector<dim> T;
 			stringstream ss; ss << "LuaUserVector" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
@@ -132,14 +133,14 @@ void RegisterUserVector(Registry& reg)
 	//	Base class
 		{
 			stringstream ss; ss << "IUserVectorProvider" << dim << "d";
-			reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str());
+			reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str(), grp);
 		}
 
 	//	Const Vector Provider
 		{
 			typedef UserVectorProvider<dim, ConstUserVector<dim> > T;
 			stringstream ss; ss << "ConstUserVectorProvider" << dim << "d";
-			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
@@ -148,18 +149,18 @@ void RegisterUserVector(Registry& reg)
 		{
 			typedef UserVectorProvider<dim, LuaUserVector<dim> > T;
 			stringstream ss; ss << "LuaUserVectorProvider" << dim << "d";
-			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
 	}
 }
 
-void RegisterUserVector(Registry& reg)
+void RegisterUserVector(Registry& reg, const char* parentGroup)
 {
-	RegisterUserVector<1>(reg);
-	RegisterUserVector<2>(reg);
-	RegisterUserVector<3>(reg);
+	RegisterUserVector<1>(reg, parentGroup);
+	RegisterUserVector<2>(reg, parentGroup);
+	RegisterUserVector<3>(reg, parentGroup);
 }
 
 } // end namespace

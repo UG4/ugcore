@@ -119,8 +119,9 @@ class UserMatrixProvider : public IUserMatrixProvider<dim>
 };
 
 template <int dim>
-void RegisterUserMatrix(Registry& reg)
+void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 {
+	const char* grp = parentGroup;
 
 //	Functor
 	{
@@ -128,7 +129,7 @@ void RegisterUserMatrix(Registry& reg)
 		{
 			typedef ConstUserMatrix<dim> T;
 			static stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_diag_tensor", &T::set_diag_tensor)
 				.add_method("set_all_entries", &T::set_all_entries)
@@ -140,7 +141,7 @@ void RegisterUserMatrix(Registry& reg)
 		{
 			typedef LuaUserMatrix<dim> T;
 			stringstream ss; ss << "LuaUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str())
+			reg.add_class_<T>(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
@@ -151,14 +152,14 @@ void RegisterUserMatrix(Registry& reg)
 	//	Base class
 		{
 			stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
-			reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str());
+			reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp);
 		}
 
 	//	Const Matrix Provider
 		{
 			typedef UserMatrixProvider<dim, ConstUserMatrix<dim> > T;
 			stringstream ss; ss << "ConstUserMatrixProvider" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
@@ -167,18 +168,18 @@ void RegisterUserMatrix(Registry& reg)
 		{
 			typedef UserMatrixProvider<dim, LuaUserMatrix<dim> > T;
 			stringstream ss; ss << "LuaUserMatrixProvider" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str())
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp)
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
 	}
 }
 
-void RegisterUserMatrix(Registry& reg)
+void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 {
-	RegisterUserMatrix<1>(reg);
-	RegisterUserMatrix<2>(reg);
-	RegisterUserMatrix<3>(reg);
+	RegisterUserMatrix<1>(reg, parentGroup);
+	RegisterUserMatrix<2>(reg, parentGroup);
+	RegisterUserMatrix<3>(reg, parentGroup);
 }
 
 
