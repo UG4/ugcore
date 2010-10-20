@@ -8,6 +8,8 @@
 #include "../ug_bridge.h"
 #include "lib_discretization/lib_discretization.h"
 #include "user_data/user_data.h"
+#include <iostream>
+#include <sstream>
 
 namespace ug
 {
@@ -17,6 +19,169 @@ namespace bridge
 //////////////////////////////////
 // Some global functions
 //////////////////////////////////
+
+template <typename TDomain>
+bool DistributeDomain(TDomain& domainOut)
+{
+#ifdef UG_PARALLEL
+//	typedefs
+	typedef typename TDomain::subset_handler_type subset_handler_type;
+	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
+
+//	get distributed grid manager
+	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
+
+//	check that manager exists
+	if(!pDistGridMgr)
+	{
+		UG_LOG("DistibuteDomain: Cannot find Distributed Grid Manager.\n");
+		return false;
+	}
+	distributed_grid_manager_type& distGridMgrOut = *pDistGridMgr;
+
+//	get subset handler
+	subset_handler_type& sh = domainOut.get_subset_handler();
+
+//	get number of processes
+	const int numProcs = pcl::GetNumProcesses();
+	if(numProcs == 1) return true;
+
+//	check, that grid is a multigrid
+	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid());
+	if(pMG == NULL)
+	{
+		UG_LOG("DistibuteDomain: MultiGrid-Domain required in current implementation.\n");
+		return false;
+	}
+	MultiGrid& mg = *pMG;
+
+//	get Grid Layout
+	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
+
+//	make sure that each grid has a position attachment - even if no data
+//	will be received.
+	typedef typename TDomain::position_attachment_type position_attachment_type;
+	position_attachment_type& domPosition = domainOut.get_position_attachment();
+	bool tmpPosAttachment = false;
+	if(!mg.has_vertex_attachment(aPosition))
+	{
+	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
+       mg.attach_to_vertices(aPosition);
+       ConvertMathVectorAttachmentValues<VertexBase>(mg, domPosition, aPosition);
+
+       UG_LOG("DistributeDomain: temporarily adding Position Attachment.\n");
+       tmpPosAttachment = true;
+	}
+
+//	AdjustFunctions
+	FuncAdjustGrid funcAdjustGrid = DefaultAdjustGrid;
+	FuncPartitionGrid funcPartitionGrid = PartitionGrid_Bisection;
+
+//	process 0 loads and distributes the grid. The others receive it.
+	if(pcl::GetProcRank() == 0)
+	{
+	//	adjust the grid
+		funcAdjustGrid(mg, sh);
+
+		LOG("  Performing load balancing ... \n");
+
+	//	perform load-balancing
+	//TODO: if grid partitioning fails, the whole process should be aborted.
+	//		this has to be communicated to the other processes.
+		SubsetHandler shPartition(mg);
+		if(!funcPartitionGrid(shPartition, mg, sh, numProcs)){
+			UG_LOG("  grid partitioning failed. proceeding anyway...\n");
+		}
+
+	//	get min and max num elements
+		int maxElems = 0;
+		int minElems = 0;
+		if(mg.num<Volume>() > 0){
+			minElems = mg.num<Volume>();
+			for(int i = 0; i < shPartition.num_subsets(); ++i){
+				minElems = min(minElems, (int)shPartition.num<Volume>(i));
+				maxElems = max(maxElems, (int)shPartition.num<Volume>(i));
+			}
+		}
+		else if(mg.num<Face>() > 0){
+			minElems = mg.num<Face>();
+			for(int i = 0; i < shPartition.num_subsets(); ++i){
+				minElems = min(minElems, (int)shPartition.num<Face>(i));
+				maxElems = max(maxElems, (int)shPartition.num<Face>(i));
+			}
+		}
+
+		LOG("  Element Distribution - min: " << minElems << ", max: " << maxElems << endl);
+
+		const char* partitionMapFileName = "partitionMap.obj";
+		LOG("saving partition map to " << partitionMapFileName << endl);
+		SaveGridToFile(mg, partitionMapFileName, shPartition);
+
+		//	distribute the grid.
+		LOG("  Distributing grid... ");
+		if(DistributeGrid_KeepSrcGrid(mg, sh, glmOut, shPartition, 0))
+		{
+			UG_LOG("done!\n");
+		}
+		else{
+			UG_LOG("failed\n");
+		}
+	}
+	else
+	{
+	//	a grid will only be received, if the process-rank is smaller than numProcs
+		if(pcl::GetProcRank() < numProcs){
+			if(!ReceiveGrid(mg, sh, glmOut, 0, true)){
+				UG_LOG("  ReceiveGrid failed on process " << pcl::GetProcRank() <<
+				". Aborting...\n");
+				return false;
+			}
+		}
+	}
+
+	if(tmpPosAttachment)
+	{
+	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
+       ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, domPosition);
+       mg.detach_from_vertices(aPosition);
+
+       UG_LOG("DistributeDomain: removing temporary Position Attachment.\n");
+ 	}
+
+//	tell the distGridMgr that the associated layout changed.
+	distGridMgrOut.grid_layouts_changed(true);
+#endif
+
+//	in serial case: do nothing
+	return true;
+}
+
+template <typename TDomain>
+void GlobalRefineParallelDomain(TDomain& domain)
+{
+#ifdef UG_PARALLEL
+//	get distributed grid manager
+	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
+	distributed_grid_manager_type* pDistGridMgr = domain.get_distributed_grid_manager();
+
+//	check that manager exists
+	if(!pDistGridMgr)
+	{
+		UG_LOG("GlobalRefineParallelDomain: Cannot find Distributed Grid Manager.\n");
+		throw(int(1));
+	}
+	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
+
+//	create Refiner
+	ParallelGlobalMultiGridRefiner refiner(distGridMgr);
+#else
+	GlobalMultiGridRefiner refiner();
+	refiner.assign_grid(domain.get_grid());
+#endif
+
+//	perform refinement.
+	refiner.refine();
+}
 
 template <typename TDomain>
 bool LoadDomain(TDomain& domain, const char* filename)
@@ -292,22 +457,38 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg)
 		reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>);
 	}
 
+//	DistributeDomain
+	{
+		stringstream ss; ss << "DistributeDomain" << dim << "d";
+		reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>);
+	}
+
+//	GlobalRefineParallelDomain
+	{
+		stringstream ss; ss << "GlobalRefineParallelDomain" << dim << "d";
+		reg.add_function(ss.str().c_str(), &GlobalRefineParallelDomain<domain_type>);
+	}
+
 }
 
 
-void RegisterLibDiscretizationInterface(Registry& reg)
+void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
+	//	get group string
+		std::stringstream groupString; groupString << parentGroup << "/Discretization";
+		const char* grp = groupString.str().c_str();
+
 	//	todo: generalize
 		typedef P1ConformDoFDistribution dof_distribution_type;
 		typedef MartinAlgebra algebra_type;
 
 	//	FunctionPattern (Abstract Base Class)
-		reg.add_class_<FunctionPattern>("FunctionPattern");
+		reg.add_class_<FunctionPattern>("FunctionPattern", grp);
 
 	//	P1ConformFunctionPattern
 		{
 		typedef P1ConformFunctionPattern T;
-		reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern")
+		reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern", grp)
 			.add_constructor()
 			.add_method("set_subset_handler", &T::set_subset_handler)
 			.add_method("lock", &T::lock);
@@ -316,21 +497,21 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 	//	P1ConformDoFDistribution
 		{
 			typedef P1ConformDoFDistribution T;
-			reg.add_class_<T>("P1ConformDoFDistribution");
+			reg.add_class_<T>("P1ConformDoFDistribution, grp");
 		}
 
 	//  Add discrete function to pattern
-		reg.add_function("AddP1Function", &AddP1Function);
+		reg.add_function("AddP1Function", &AddP1Function, grp);
 
 	//	DomainDiscretization
 		{
 			typedef DomainDiscretization<dof_distribution_type, algebra_type> T;
 
-			reg.add_class_<IAssemble<dof_distribution_type, algebra_type> >("IAssemble");
+			reg.add_class_<IAssemble<dof_distribution_type, algebra_type> >("IAssemble", grp);
 			reg.add_class_<IDomainDiscretization<dof_distribution_type, algebra_type>,
-							IAssemble<dof_distribution_type, algebra_type> >("IDomainDiscretization");
+							IAssemble<dof_distribution_type, algebra_type> >("IDomainDiscretization", grp);
 
-			reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization")
+			reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization", grp)
 				.add_constructor()
 				.add_method("add_post_process", &T::add_post_process)
 				.add_method("add_elem_disc", (bool (T::*)(IElemDisc<algebra_type>&)) &T::add_elem_disc);
@@ -350,19 +531,19 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		}
 
 	//	Base class
-		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess");
+		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess", grp);
 
 	//	UserFunction
 		{
 		//	Density - Driven - Flow
-			reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d");
+			reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d", grp);
 		}
 
 	//	Elem Discs
 		{
 		//	Base class
 			typedef IElemDisc<algebra_type> T;
-			reg.add_class_<T>("IElemDisc")
+			reg.add_class_<T>("IElemDisc", grp)
 				.add_method("set_pattern", &T::set_pattern)
 				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions)
 				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets);
@@ -370,7 +551,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 
 	//	FunctionGroup
 		{
-			reg.add_class_<FunctionGroup>("FunctionGroup")
+			reg.add_class_<FunctionGroup>("FunctionGroup", grp)
 				.add_constructor()
 				.add_method("clear", &FunctionGroup::clear)
 				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
@@ -382,7 +563,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 			typedef AssembledLinearOperator<dof_distribution_type, algebra_type> T;
 
 			reg.add_class_<T, IMatrixOperator<algebra_type::vector_type, algebra_type::vector_type, algebra_type::matrix_type> >
-							("AssembledLinearOperator")
+							("AssembledLinearOperator", grp)
 				.add_constructor()
 				.add_method("init", (bool (T::*)())&T::init)
 				.add_method("set_discretization", &T::set_discretization)
@@ -397,7 +578,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 			typedef AssembledOperator<dof_distribution_type, algebra_type> T;
 
 			reg.add_class_<T, IOperator<algebra_type::vector_type, algebra_type::vector_type> >
-							("AssembledOperator")
+							("AssembledOperator", grp)
 				.add_constructor()
 				.add_method("set_discretization", &T::set_discretization)
 				.add_method("set_dof_distribution", &T::set_dof_distribution)
@@ -408,10 +589,10 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		{
 			typedef StandardLineSearch<algebra_type::vector_type> T;
 
-			reg.add_class_<ILineSearch<algebra_type::vector_type> >("ILineSearch");
+			reg.add_class_<ILineSearch<algebra_type::vector_type> >("ILineSearch", grp);
 
 			reg.add_class_<StandardLineSearch<algebra_type::vector_type>,
-							ILineSearch<algebra_type::vector_type> >("StandardLineSearch")
+							ILineSearch<algebra_type::vector_type> >("StandardLineSearch", grp)
 				.add_constructor()
 				.add_method("set_maximum_steps", &T::set_maximum_steps)
 				.add_method("set_lambda_start", &T::set_lambda_start)
@@ -424,7 +605,7 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 		{
 			typedef NewtonSolver<dof_distribution_type, algebra_type> T;
 
-			reg.add_class_<T, IOperatorInverse<algebra_type::vector_type, algebra_type::vector_type> >("NewtonSolver")
+			reg.add_class_<T, IOperatorInverse<algebra_type::vector_type, algebra_type::vector_type> >("NewtonSolver", grp)
 				.add_constructor()
 				.add_method("set_linear_solver", &T::set_linear_solver)
 				.add_method("set_convergence_check", &T::set_convergence_check)
@@ -438,8 +619,6 @@ void RegisterLibDiscretizationInterface(Registry& reg)
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainDepended<domain_type>(reg);
 		}
-
-
 
 	//	Register user functions
 		RegisterUserNumber(reg);
