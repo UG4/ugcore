@@ -13,6 +13,8 @@
 #include "bindings_vrl.h"
 #include "bindings_vrl_native.h"
 
+#include "lib_grid/lib_grid.h"
+
 namespace ug {
 	namespace vrl {
 		static ug::bridge::Registry* vrlRegistry = NULL;
@@ -100,11 +102,29 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
+	const char* grp = "/ug4/Grid";
+
+	VRL_DBG("INIT",1);
+
+
 
 	static ug::bridge::Registry testReg;
-	testReg.add_class_<TestClass1 > ("TestClass")
-			.add_constructor()
-			.add_method("hello", &TestClass1::hello);
+	using namespace ug;
+
+//	testReg.add_class_<TestClass1 > ("TestClass", grp)
+//			.add_constructor()
+//			.add_method("hello", &TestClass1::hello);
+//
+//	testReg.add_class_<MGSubsetHandler, ISubsetHandler > ("MGSubsetHandler", grp)
+//			.add_constructor()
+//			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
+//
+//	testReg.add_class_<ISubsetHandler > ("ISubsetHandler", grp)
+//			.add_method("num_subsets", &ISubsetHandler::num_subsets)
+//			.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
+//			.add_method("set_subset_name", &ISubsetHandler::set_subset_name);
+
+	
 
 	//	testReg.add_function("UGAddInt", &TestAdd);
 	//	testReg.add_function("UGMultInt", &TestMult);
@@ -120,7 +140,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-	ug::bridge::RegisterTestInterface(testReg);
+		ug::bridge::RegisterStandardInterfaces(testReg);
+	//	ug::bridge::RegisterLibGridInterface(testReg);
+	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
 	ug::vrl::SetVRLRegistry(&testReg);
@@ -210,21 +232,31 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 	std::vector<std::string> result;
 
-	VRL_DBG("BEFORE_FUNCTIONS",1);
+	try {
 
-	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
-		ug::bridge::ExportedFunction& func = ug::vrl::vrlRegistry->get_function(i);
-		result.push_back(ug::vrl::exportedFunction2Groovy(func));
-	}
-
-	VRL_DBG("FUNCTIONS_DONE",1);
+	VRL_DBG("CLASSES_DONE", 1);
 
 	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
 		const ug::bridge::IExportedClass& clazz = ug::vrl::vrlRegistry->get_class(i);
 		result.push_back(ug::vrl::exportedClass2Groovy(clazz));
 	}
 
-	VRL_DBG("CLASSES_DONE",1);
+	VRL_DBG("BEFORE_FUNCTIONS", 1);
+
+	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
+		ug::bridge::ExportedFunction& func = ug::vrl::vrlRegistry->get_function(i);
+		result.push_back(ug::vrl::exportedFunction2Groovy(func));
+	}
+	} catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry* ex) {
+		VRL_DBG("ug::bridge::UG_ERROR_ClassUnknownToRegistry exception!",1);
+	}
+
+	VRL_DBG("FUNCTIONS_DONE", 1);
+
+	for (unsigned int i = 0; i < 7;i++) {
+		std::cout << "Index: " << i << std::endl;
+		std::cout << result[i] << "\n---------------\n";
+	}
 
 	return ug::vrl::stringArrayC2J(env, result);
 }
@@ -235,9 +267,9 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
-(JNIEnv *env, jobject obj, jobject canvas) {
-	ug::vrl::Canvas::getInstance()->setJObject(env, canvas);
-
-	//	ug::vrl::Canvas::getInstance()->addObject(ug::vrl::string2JObject(env,"Test_String"));
-}
+//JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
+//(JNIEnv *env, jobject obj, jobject canvas) {
+//	ug::vrl::Canvas::getInstance()->setJObject(env, canvas);
+//
+//	//	ug::vrl::Canvas::getInstance()->addObject(ug::vrl::string2JObject(env,"Test_String"));
+//}

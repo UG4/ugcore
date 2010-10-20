@@ -73,11 +73,21 @@ class Registry {
 		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
 		{
 			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className, group);
-			m_vClass.push_back(newClass);
 
 			// set base class names
-			ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
+			try
+			{
+				ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
+			}
+			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry* ex)
+			{
+				std::cout << "Registering class '" << className << "', that derives"
+						 << " from class, that has " 
+						 << "not yet been registered to this Registry.\n";
+				exit(1);
+			}
 
+			m_vClass.push_back(newClass);
 			return *newClass;
 		}
 

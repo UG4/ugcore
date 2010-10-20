@@ -133,7 +133,9 @@ namespace ug {
 		std::string exportedFunction2Groovy(ug::bridge::ExportedFunction const& func) {
 			std::stringstream result;
 
-			result << "@ComponentInfo(name=\"" << func.name() << "\")\n"
+			std::string group = func.group();
+
+			result << "@ComponentInfo(name=\"" << func.name() << "\", category=\"" << group << "\")\n"
 
 					<< "public class UG4_" << func.name() << " {\n"
 					<< "private static final serialVersionUID=1L;\n";
@@ -153,8 +155,10 @@ namespace ug {
 			std::stringstream result;
 
 			std::string className = "UG4_" + std::string(clazz.name());
+			std::string group = clazz.group();
 
-			result << "@ComponentInfo(name=\"" << className << "\")\n"
+
+			result << "@ComponentInfo(name=\"" << className << "\", category=\"" << group << "\")\n"
 					<< "public class " << className << " extends edu.gcsc.vrl.ug4.UGObject {\n"
 					<< "private static final long serialVersionUID=1L;\n";
 
@@ -176,18 +180,18 @@ namespace ug {
 				result << "\n}\n\n";
 			}
 
-			for (unsigned int i = 0; i < clazz.num_const_methods(); i++) {
-				const ug::bridge::ExportedMethod &method = clazz.get_const_method(i);
-
-				generateMethodHeader(result, method.name(),
-						method.params_in(), method.params_out(),false,"const_");
-
-				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
-						<< "getClassName(),"
-						<< " getPointer().getAddress(), true, \"" << method.name() << "\", params)";
-
-				result << "\n}\n\n";
-			}
+			//			for (unsigned int i = 0; i < clazz.num_const_methods(); i++) {
+			//				const ug::bridge::ExportedMethod &method = clazz.get_const_method(i);
+			//
+			//				generateMethodHeader(result, method.name(),
+			//						method.params_in(), method.params_out(),false,"const_");
+			//
+			//				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+			//						<< "getClassName(),"
+			//						<< " getPointer().getAddress(), true, \"" << method.name() << "\", params)";
+			//
+			//				result << "\n}\n\n";
+			//			}
 
 			result << createMethodInfo(clazz.name(), clazz.class_names(), false, "interactive=false")
 					<< "\nedu.gcsc.vrl.ug4.Pointer getPointer() { super.getPointer()}\n";
@@ -271,11 +275,15 @@ namespace ug {
 			std::stringstream classNameOptions;
 
 			if (className == NULL) {
-				return std::string();
+
+				std::cout << "ERROR: ClassName is NULL" << std::endl;
+
+				return std::string("//ERROR PARAMINFO NAME");
 			}
 
 			if (classNames == NULL) {
-				return std::string();
+				std::cout << "ERROR: ClassNames is NULL" << std::endl;
+				return std::string("//ERROR PARAMINFO NAMES");
 			}
 
 			classNameOptions
@@ -283,13 +291,19 @@ namespace ug {
 					<< "classNames=[";
 
 
+			//			for (unsigned int i = 0; i < classNames->size(); i++) {
+			//
+			//				if (i > 0) {
+			//					classNameOptions << ",";
+			//				}
+			//
+			//				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
+			//			}
+
 			for (unsigned int i = 0; i < classNames->size(); i++) {
 
-				if (i > 0) {
-					classNameOptions << ",";
-				}
-
-				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
+				std::cout << "ClassName = '" << i << ": " << (*classNames)[i]  << "'" << std::endl;
+//				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
 			}
 
 			classNameOptions << "]";
@@ -300,16 +314,24 @@ namespace ug {
 				classNameOptions << "; readOnly=false";
 			}
 
+			//			std::cout << "ClassNameOptions = '" << classNameOptions.str() << "'" << std::endl;
+			std::cout << "ClassName = '" << className << "'" << std::endl;
+
+			//			paramInfo
+			//					<< "@ParamInfo( name=\""
+			//					<< className << "\""
+			//					<< classNameOptions.str() << "\"";
+
 			paramInfo
 					<< "@ParamInfo( name=\""
-					<< className << "\""
-					<< classNameOptions.str() << "\"";
+					<< "bla" << "\""
+					<< classNameOptions.str().c_str() << "\"";
 
-			if (customOptions.size()>0) {
+			if (customOptions.size() > 0) {
 				paramInfo << ", " << customOptions;
 			}
 
-		
+
 			paramInfo << ") ";
 
 			return paramInfo.str();
@@ -355,7 +377,7 @@ namespace ug {
 					<< className << "\""
 					<< classNameOptions.str() << "\"";
 
-			if (customOptions.size()>0) {
+			if (customOptions.size() > 0) {
 				paramInfo << ", " << customOptions;
 			}
 
@@ -382,8 +404,8 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(className, classNames, false)
-								+ std::string("edu.gcsc.vrl.ug4.Pointer");
+								createParamInfo(className, classNames, false) +
+								std::string("edu.gcsc.vrl.ug4.Pointer");
 
 						return result.c_str();
 					}
@@ -394,8 +416,8 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(className, classNames, true)
-								+ std::string("edu.gcsc.vrl.ug4.Pointer");
+								createParamInfo(className, classNames, true) +
+								std::string("edu.gcsc.vrl.ug4.Pointer");
 						return result.c_str();
 					}
 				}
@@ -652,47 +674,47 @@ namespace ug {
 			return jobject();
 		}
 
-		jobject messageTypeC2J(JNIEnv *env, MessageType type) {
-			jclass enumCls = env->FindClass("eu/mihosoft/vrl/visual/MessageType");
-
-			jmethodID methodID = env->GetStaticMethodID(enumCls,
-					"values", "()[Leu/mihosoft/vrl/visual/MessageType;");
-
-			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 0:", 1);
-				env->ExceptionDescribe();
-			}
-
-			jobjectArray values = (jobjectArray) env->CallObjectMethod(enumCls, methodID);
-
-			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 1:", 1);
-				env->ExceptionDescribe();
-			}
-
-			jobject result = env->GetObjectArrayElement(values, type);
-
-
-			methodID = env->GetMethodID(
-					(jclass) getClass(env, result), "name", "()Ljava/lang/String;");
-
-			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 2:", 1);
-				env->ExceptionDescribe();
-			}
-
-			jobject name = env->CallObjectMethod(result,
-					methodID);
-
-
-			VRL_DBG(jObject2String(env, name), 1);
-
-			if (env->ExceptionCheck()) {
-				VRL_DBG("EXEPTION 3:", 1);
-				env->ExceptionDescribe();
-			}
-
-			return result;
-		}
+		//		jobject messageTypeC2J(JNIEnv *env, MessageType type) {
+		//			jclass enumCls = env->FindClass("eu/mihosoft/vrl/visual/MessageType");
+		//
+		//			jmethodID methodID = env->GetStaticMethodID(enumCls,
+		//					"values", "()[Leu/mihosoft/vrl/visual/MessageType;");
+		//
+		//			if (env->ExceptionCheck()) {
+		//				VRL_DBG("EXEPTION 0:", 1);
+		//				env->ExceptionDescribe();
+		//			}
+		//
+		//			jobjectArray values = (jobjectArray) env->CallObjectMethod(enumCls, methodID);
+		//
+		//			if (env->ExceptionCheck()) {
+		//				VRL_DBG("EXEPTION 1:", 1);
+		//				env->ExceptionDescribe();
+		//			}
+		//
+		//			jobject result = env->GetObjectArrayElement(values, type);
+		//
+		//
+		//			methodID = env->GetMethodID(
+		//					(jclass) getClass(env, result), "name", "()Ljava/lang/String;");
+		//
+		//			if (env->ExceptionCheck()) {
+		//				VRL_DBG("EXEPTION 2:", 1);
+		//				env->ExceptionDescribe();
+		//			}
+		//
+		//			jobject name = env->CallObjectMethod(result,
+		//					methodID);
+		//
+		//
+		//			VRL_DBG(jObject2String(env, name), 1);
+		//
+		//			if (env->ExceptionCheck()) {
+		//				VRL_DBG("EXEPTION 3:", 1);
+		//				env->ExceptionDescribe();
+		//			}
+		//
+		//			return result;
+		//		}
 	} // end vrl::
 }// end ug::

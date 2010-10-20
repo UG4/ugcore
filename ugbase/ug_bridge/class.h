@@ -216,13 +216,23 @@ class ExportedClass_ : public IExportedClass
 													methodName, retValName, paramValNames,
 													tooltip, help);
 			
+			try{
+		//  create parameter in list
+			nMethod->create_parameter_stack<TMethod>();
+			}
+			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry* ex)
+			{
+				UG_LOG("Registering method " << methodName << " for class \n");
+				UG_LOG( name() << " requires argument of user-defined type, that has \n");
+				UG_LOG("not yet been registered to this Registry.\n");
+				delete nMethod;
+				return *this;
+			}
+
 			if(func_traits<TMethod>::const_method)
 				m_vConstMethod.push_back(nMethod);
 			else
 				m_vMethod.push_back(nMethod);
-				
-		//  create parameter in list
-			nMethod->create_parameter_stack<TMethod>();
 
 			return *this;
 		}

@@ -11,6 +11,8 @@ namespace ug
 namespace bridge
 {
 
+	struct UG_ERROR_ClassUnknownToRegistry {};
+
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
 
 template <typename TClass>
@@ -40,6 +42,7 @@ struct ClassNameProvider
 
 		//	copy parent names
 			const std::vector<const char*>& pnames = ClassNameProvider<TParent>::names();
+
 			for(size_t i = 0; i < pnames.size(); ++i)
 				m_names.push_back(pnames[i]);
 		}
@@ -71,9 +74,9 @@ struct ClassNameProvider
 		/// name of this class
 		static const char* name()
 		{
-			if(m_names.empty())
-				return "";
-			return m_names[0];
+			if(m_ownName.empty())
+				throw(UG_ERROR_ClassUnknownToRegistry());
+			return m_ownName.c_str();
 		}
 
 		/// groups
@@ -83,7 +86,13 @@ struct ClassNameProvider
 		}
 
 		/// returns vector of all names including parent class names
-		static const std::vector<const char*>& names()	{return m_names;}
+		static const std::vector<const char*>& names()	
+		{
+			if(m_names.empty())
+				throw(UG_ERROR_ClassUnknownToRegistry());
+
+			return m_names;
+		}
 
 	private:
 		static std::string m_ownName;

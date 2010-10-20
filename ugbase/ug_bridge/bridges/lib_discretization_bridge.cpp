@@ -497,7 +497,7 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 	//	P1ConformDoFDistribution
 		{
 			typedef P1ConformDoFDistribution T;
-			reg.add_class_<T>("P1ConformDoFDistribution, grp");
+			reg.add_class_<T>("P1ConformDoFDistribution", grp);
 		}
 
 	//  Add discrete function to pattern

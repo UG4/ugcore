@@ -55,14 +55,6 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
   (JNIEnv *, jobject, jobjectArray);
 
-/*
- * Class:     edu_gcsc_vrl_ug4_UG4
- * Method:    attachCanvas
- * Signature: (Leu/mihosoft/vrl/reflection/VisualCanvas;)V
- */
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
-  (JNIEnv *, jobject, jobject);
-
 #ifdef __cplusplus
 }
 #endif

@@ -161,7 +161,7 @@ namespace ug {
 				ug::bridge::Registry* reg,
 				std::string className);
 
-		jobject messageTypeC2J(JNIEnv *env, MessageType type);
+//		jobject messageTypeC2J(JNIEnv *env, MessageType type);
 
 	} // end vrl::
 }// end ug::
