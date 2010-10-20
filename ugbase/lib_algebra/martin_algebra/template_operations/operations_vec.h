@@ -90,18 +90,30 @@ inline void VecScaleAssign(vector_t &dest, double alpha1, const vector_t &v1)
 
 //! calculates dest = alpha1*v1 + alpha2*v2
 template<typename vector_t>
-inline void VecScaleAdd(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2)
+inline void VecScaleAdd2(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2)
 {
 	for(size_t i=0; i<dest.size(); i++)
 		VecScaleAdd(dest[i], alpha1, v1[i], alpha2, v2[i]);
 }
+template<typename vector_t>
+inline void VecScaleAdd(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2)
+{
+	VecScaleAdd2(dest, alpha1, v1, alpha2, v2);
+}
+
 
 //! calculates dest = alpha1*v1 + alpha2*v2 + alpha3*v3
 template<typename vector_t>
-inline void VecScaleAdd(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2, double alpha3, const vector_t &v3)
+inline void VecScaleAdd3(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2, double alpha3, const vector_t &v3)
 {
 	for(size_t i=0; i<dest.size(); i++)
 		VecScaleAdd(dest[i], alpha1, v1[i], alpha2, v2[i], alpha3, v3[i]);
+}
+
+template<typename vector_t>
+inline void VecScaleAdd(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const vector_t &v2, double alpha3, const vector_t &v3)
+{
+	VecScaleAdd3(dest, alpha1, v1, alpha2, v2, alpha3, v3);
 }
 
 // VecProd
