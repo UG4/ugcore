@@ -306,7 +306,10 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg, const char* parentGr
 // 	LoadDomain
 	{
 		stringstream ss; ss << "LoadDomain" << dim << "d";
-		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str());
+		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
+						"ReturnFlag", "Grid,Filename",
+						"Loads a domain", "No help",
+						"", "");
 	}
 
 //	SaveDomain
@@ -362,6 +365,12 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg, const char* parentGr
 			.add_method("set_reaction", &T::set_reaction)
 			.add_method("set_rhs", &T::set_rhs)
 			.add_method("set_upwind_amount", &T::set_upwind_amount);
+	}
+
+//	Density Driven Flow
+	{
+		stringstream ss; ss << "IDensityDrivenFlowUserFunction" << dim << "d";
+		reg.add_class_<IDensityDrivenFlowUserFunction<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	Density Driven Flow
@@ -567,12 +576,6 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 					.add_method("set_theta", &T::set_theta);
 		}
 
-	//	UserFunction
-		{
-		//	Density - Driven - Flow
-			reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d", grp.c_str());
-		}
-
 	//	AssembledLinearOperator
 		{
 			typedef AssembledLinearOperator<dof_distribution_type, algebra_type> T;
@@ -635,9 +638,9 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 			RegisterLibDiscretizationDomainDepended<domain_type>(reg, grp.c_str());
 		}
 
-
 	//	todo: remove when possible
 		RegisterElderUserFunctions(reg, grp.c_str());
+
 
 }
 

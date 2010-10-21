@@ -31,13 +31,24 @@ class Registry {
 		template<class TFunc>
 		Registry& add_function(const char* funcName, TFunc func, const char* group = "",
 								const char* retValName = "", const char* paramValNames = "",
-								const char* tooltip = "", const char* help = "")
+								const char* tooltip = "", const char* help = "",
+								const char* retValInfoType = "", const char* paramValInfoType = "")
 		{
+		//	check that funcName is not already used
+			if(functionname_registered(funcName))
+			{
+				std::cout << "### Registry ERROR: Trying to register function name '" << funcName
+						<< "', that is already used by another function in this registry."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				exit(1);
+			}
+
 		//  create new exported function
 			m_vFunction.push_back(new ExportedFunction(	func, &FunctionProxy<TFunc>::apply,
 														funcName, group,
 														retValName, paramValNames,
-														tooltip, help));
+														tooltip, help,
+														retValInfoType, paramValInfoType));
 	
 			return *this;
 		}
@@ -58,9 +69,32 @@ class Registry {
 		template <typename TClass>
 		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
 		{
-		//	todo: check whether a class with the specified name exists aready.
-			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className, group);
+		//	check that className is not already used
+			if(classname_registered(className))
+			{
+				std::cout << "### Registry ERROR: Trying to register class name '" << className
+						<< "', that is already used by another class in this registry."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				exit(1);
+			}
 
+		//	new class pointer
+			ExportedClass_<TClass>* newClass = NULL;
+
+		//	try creation
+			try
+			{
+				newClass = new ExportedClass_<TClass>(className, group);
+			}
+			catch(ug::bridge::UG_ERROR_ClassAlreadyNamed ex)
+			{
+				std::cout << "### Registry ERROR: Trying to register class with name '" << className
+						<< "', that has already been named. This is not allowed. "
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				exit(1);
+			}
+
+		//	add new class to list of classes
 			m_vClass.push_back(newClass);
 
 			return *newClass;
@@ -72,21 +106,45 @@ class Registry {
 		template <typename TClass, typename TBaseClass>
 		ExportedClass_<TClass>& add_class_(const char* className, const char* group = "")
 		{
-			ExportedClass_<TClass>* newClass = new ExportedClass_<TClass>(className, group);
+		//	check that className is not already used
+			if(classname_registered(className))
+			{
+				std::cout << "### Registry ERROR: Trying to register class name '" << className
+						<< "', that is already used by another class in this registry."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				exit(1);
+			}
 
-			// set base class names
+		//	new class pointer
+			ExportedClass_<TClass>* newClass = NULL;
+
+		//	try creation of new class
+			try
+			{
+				newClass = new ExportedClass_<TClass>(className, group);
+			}
+			catch(ug::bridge::UG_ERROR_ClassAlreadyNamed ex)
+			{
+				std::cout << "### Registry ERROR: Trying to register class with name '" << className
+						<< "', that has already been named. This is not allowed. "
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				exit(1);
+			}
+
+		// 	set base class names
 			try
 			{
 				ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
 			}
 			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry ex)
 			{
-				std::cout << "Registering class '" << className << "', that derives"
-						 << " from class, that has " 
-						 << "not yet been registered to this Registry.\n";
+				std::cout <<"### Registry ERROR: Trying to register class with name '" << className
+						<< "', that derives from class, that has not yet been registered to this Registry."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
 				exit(1);
 			}
 
+		//	add new class to list of classes
 			m_vClass.push_back(newClass);
 			return *newClass;
 		}
@@ -113,6 +171,31 @@ class Registry {
 				if(m_vClass[i] != NULL)
 					delete m_vClass[i];
 			}
+		}
+
+	protected:
+		// returns true if classname is already used by a class in this registry
+		bool classname_registered(const char* name)
+		{
+			for(size_t i = 0; i < m_vClass.size(); ++i)
+			{
+			//  compare strings
+				if(strcmp(name, m_vClass[i]->name()) == 0)
+					return true;
+			}
+			return false;
+		}
+
+		// returns true if functionname is already used by a function in this registry
+		bool functionname_registered(const char* name)
+		{
+			for(size_t i = 0; i < m_vFunction.size(); ++i)
+			{
+			//  compare strings
+				if(strcmp(name, (m_vFunction[i]->name()).c_str()) == 0)
+					return true;
+			}
+			return false;
 		}
 
 	private:

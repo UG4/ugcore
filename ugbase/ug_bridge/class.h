@@ -52,8 +52,9 @@ class ExportedMethod : public ExportedFunctionBase
 	public:
 		ExportedMethod(	const MethodPtrWrapper& m, ProxyFunc pf,
 						const char* name, const char* retValName, const char* paramValNames,
-						const char* tooltip, const char* help)
-		: ExportedFunctionBase(name , retValName, paramValNames, tooltip, help),
+						const char* tooltip, const char* help,
+						const char* retValInfoType, const char* paramValInfoType)
+		: ExportedFunctionBase(name , retValName, paramValNames, tooltip, help, retValInfoType, paramValInfoType),
 		  m_ptrWrapper(m), m_proxy_func(pf)
 		{}
 
@@ -178,9 +179,8 @@ class ExportedClass_ : public IExportedClass
 	//  contructor
 		ExportedClass_(const char* name, const char* group = "") : m_constructor(NULL)
 		{
-			// todo: check that name is not already used
-			ClassNameProvider<TClass>::set_name(name, group);
-			ClassNameProvider<const TClass>::set_name(name, group);
+			ClassNameProvider<TClass>::set_name(name, group, true);
+			ClassNameProvider<const TClass>::set_name(name, group, true);
 		}
 
 	/// name of class
@@ -208,13 +208,31 @@ class ExportedClass_ : public IExportedClass
 		template <typename TMethod>
 		ExportedClass_<TClass>& add_method (	const char* methodName, TMethod func,
 												const char* retValName = "", const char* paramValNames = "",
-												const char* tooltip = "", const char* help = "")
+												const char* tooltip = "", const char* help = "",
+												const char* retValInfoType = "", const char* paramValInfoType = "")
 		{
+		//	check that funcName is not already used
+			bool bUsed = false;
+			if(func_traits<TMethod>::const_method)
+				bUsed = constmethodname_registered(methodName);
+			else
+				bUsed = methodname_registered(methodName);
+			if(bUsed)
+			{
+				std::cout << "### Registry ERROR: Trying to register method name '" << methodName
+						<< "' to class '" << name() << "', but another method with this name is already"
+						<< " registered for this class."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				exit(1);
+			}
+
+
 		//  create new exported function
 			ExportedMethod* nMethod = NULL;
 			nMethod = new ExportedMethod(	MethodPtrWrapper(func), &MethodProxy<TClass, TMethod>::apply,
 													methodName, retValName, paramValNames,
-													tooltip, help);
+													tooltip, help,
+													retValInfoType, paramValInfoType);
 			
 			try{
 		//  create parameter in list
@@ -269,6 +287,31 @@ class ExportedClass_ : public IExportedClass
 			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
 				delete m_vConstMethod[i];
 		}
+
+	protected:
+		// returns true if methodname is already used by a method in this class
+		bool constmethodname_registered(const char* name)
+		{
+			for(size_t i = 0; i < m_vConstMethod.size(); ++i)
+			{
+			//  compare strings
+				if(strcmp(name, (m_vConstMethod[i]->name()).c_str()) == 0)
+					return true;
+			}
+			return false;
+		}
+		// returns true if methodname is already used by a method in this class
+		bool methodname_registered(const char* name)
+		{
+			for(size_t i = 0; i < m_vMethod.size(); ++i)
+			{
+			//  compare strings
+				if(strcmp(name, (m_vMethod[i]->name()).c_str()) == 0)
+					return true;
+			}
+			return false;
+		}
+
 
 	private:
 		typedef TClass* (*ConstructorFunc)();

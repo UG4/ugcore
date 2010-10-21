@@ -11,7 +11,14 @@ namespace ug
 namespace bridge
 {
 
-	struct UG_ERROR_ClassUnknownToRegistry {};
+struct UG_ERROR_ClassUnknownToRegistry {};
+struct UG_ERROR_ClassAlreadyNamed
+{
+		UG_ERROR_ClassAlreadyNamed(const char* name_)
+			: name(name_)
+		{}
+		std::string name;
+};
 
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
 
@@ -19,8 +26,13 @@ template <typename TClass>
 struct ClassNameProvider
 {
 	/// set name of class and copy parent names
-		static void set_name(const char* name, const char* group = "")
+		static void set_name(const char* name, const char* group = "", bool newName = false)
 		{
+		//	if class already named throw error
+			if(newName == true)
+				if(!m_ownName.empty())
+					throw(UG_ERROR_ClassAlreadyNamed(name));
+
 		//	copy name into static string
 		//	This is necessary, since char* could be to temporary memory
 			m_ownName = std::string(name);
@@ -35,10 +47,10 @@ struct ClassNameProvider
 
 	/// set name of class and copy parent names
 		template <typename TParent>
-		static void set_name(const char* name, const char* group = "")
+		static void set_name(const char* name, const char* group = "", bool newName = false)
 		{
 		//	set own name
-			set_name(name, group);
+			set_name(name, group, newName);
 
 		//	copy parent names
 			const std::vector<const char*>& pnames = ClassNameProvider<TParent>::names();

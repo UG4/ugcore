@@ -38,11 +38,14 @@ class ExportedFunctionBase
 {
 	public:
 		ExportedFunctionBase(	const char* name, const char* retValName, const char* paramValNames,
-								const char* tooltip, const char* help)
-		: m_name(name), m_retValName(retValName), m_paramValNames(paramValNames),
+								const char* tooltip, const char* help,
+								const char* retValInfoType, const char* paramValInfoType)
+		: m_name(name), m_retValName(retValName), m_retValTypeInfo(retValInfoType),
+		  m_paramValNames(paramValNames), m_paramValTypeInfos(paramValInfoType),
 		  m_tooltip(tooltip), m_help(help)
 		{
 			tokenize(m_paramValNames, m_vParamValNames, ",");
+			tokenize(m_paramValTypeInfos, m_vParamValTypeInfos, ",");
 		};
 
 	///	name of function
@@ -51,14 +54,23 @@ class ExportedFunctionBase
 	/// name of return value
 		const std::string& return_name() const 						{return m_retValName;}
 
-	/// string of all return parameters
-		const std::string& parameter_names_string() const 			{return m_paramValNames;}
+	///	type info of return type
+		const std::string& return_type_info() const					{return m_retValTypeInfo;}
 
 	/// number of parameters.
 		size_t num_parameter() const 								{return m_vParamValNames.size();}
 
+	/// string of all parameters
+		const std::string& parameter_names_string() const 			{return m_paramValNames;}
+
 	/// name of parameter i
 		const std::string& parameter_name(size_t i) const 			{return m_vParamValNames.at(i);}
+
+	///	type info of all parameters
+		const std::string& parameter_type_info_string() const		{return m_paramValTypeInfos;}
+
+	///	type info of all parameters
+		const std::string& parameter_type_info(size_t i) const		{return m_vParamValTypeInfos.at(i);}
 
 	/// gives some information to the exported functions
 		const std::string& tooltip() const 							{return m_tooltip;}
@@ -112,9 +124,15 @@ class ExportedFunctionBase
 
 	protected:
 		std::string m_name;
+
 		std::string m_retValName;
+		std::string m_retValTypeInfo;
+
 		std::string m_paramValNames;
 		std::vector<std::string> m_vParamValNames;
+		std::string m_paramValTypeInfos;
+		std::vector<std::string> m_vParamValTypeInfos;
+
 		std::string m_tooltip;
 		std::string m_help;
 
@@ -135,8 +153,10 @@ class ExportedFunction : public ExportedFunctionBase
 		ExportedFunction(	TFunc f, ProxyFunc pf,
 							const char* name, const char* group,
 							const char* retValName, const char* paramValNames,
-							const char* tooltip, const char* help)
-			: ExportedFunctionBase( name , retValName, paramValNames, tooltip, help),
+							const char* tooltip, const char* help,
+							const char* retValInfoType, const char* paramValInfoType)
+			: ExportedFunctionBase( name , retValName, paramValNames, tooltip,
+									help, retValInfoType, paramValInfoType),
 			  m_group(group), m_func((void*)f), m_proxy_func(pf)
 		{
 			create_parameter_stack<TFunc>();

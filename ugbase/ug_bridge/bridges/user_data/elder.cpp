@@ -119,8 +119,6 @@ void RegisterElderUserFunctions(Registry& reg, const char* parentGroup)
 
 //	DensityDrivenUserFunction
 	{
-		reg.add_class_<IDensityDrivenFlowUserFunction<2> >("IDensityDrivenFlowUserFunction2d", grp);
-
 		reg.add_class_<ElderUserFunction, IDensityDrivenFlowUserFunction<2> >("ElderUserFunction2d", grp)
 			.add_constructor();
 	}

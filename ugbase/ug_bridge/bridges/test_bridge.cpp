@@ -140,7 +140,9 @@ void RegisterTestInterface(Registry& reg, const char* parentGroup)
 	reg.add_class_<Test>("Test", grp)
 		.add_constructor()
 		.add_method("add", &Test::add, "c", "a,b")
-		.add_method("print_name", &Test::print_name);
+		.add_method("print_name", &Test::print_name)
+		.add_method("print", (int(Test::*)()) &Test::print)
+		.add_method("print", (int(Test::*)() const) &Test::print);
 
 	reg.add_class_<Piece>("Piece", grp)
 		.add_constructor()
@@ -160,12 +162,6 @@ void RegisterTestInterface(Registry& reg, const char* parentGroup)
 		.add_method("print", &Derived::print);
 	reg.add_function("PrintFunction", &PrintFunction);
 
-//	test class
-	reg.add_class_<Test>("Test", grp)
-		.add_constructor()
-		.add_method("print", (int(Test::*)()) &Test::print)
-		.add_method("print", (int(Test::*)() const) &Test::print);
-		
 	reg.add_function("TestFunc", TestFunc, grp)
 		.add_function("ConstTestFunc", ConstTestFunc, grp)
 		.add_function("ToConst", ToConst, grp)
