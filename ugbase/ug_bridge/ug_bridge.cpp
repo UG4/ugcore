@@ -10,13 +10,26 @@ namespace ug
 namespace bridge
 {
 
-void RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
+bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 {
-	RegisterLibGridInterface(reg, parentGroup);
-	RegisterLibAlgebraInterface(reg, parentGroup);
-	RegisterLibDiscretizationInterface(reg, parentGroup);
-	RegisterTestInterface(reg, parentGroup);
-	RegisterInfoCommands(reg, parentGroup);
+	bool bResult = true;
+
+	try
+	{
+		bResult &= RegisterLibGridInterface(reg, parentGroup);
+		bResult &= RegisterLibAlgebraInterface(reg, parentGroup);
+		bResult &= RegisterLibDiscretizationInterface(reg, parentGroup);
+		bResult &= RegisterTestInterface(reg, parentGroup);
+		bResult &= RegisterInfoCommands(reg, parentGroup);
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("ERROR in RegisterStandardInterfaces: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
+
+	return bResult;
 }
 
 }//	end of namespace 

@@ -484,7 +484,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg, const char* parentGr
 }
 
 
-void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
+bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
 	//	get group string
 		std::stringstream groupString; groupString << parentGroup << "/Discretization/UserData";
@@ -641,7 +641,7 @@ void RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 	//	todo: remove when possible
 		RegisterElderUserFunctions(reg, grp.c_str());
 
-
+		return true;
 }
 
 }//	end of namespace ug

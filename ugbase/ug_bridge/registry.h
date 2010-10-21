@@ -3,6 +3,7 @@
 #define __H__UG_BRIDGE__REGISTRY__
 
 #include <vector>
+#include <cstring>
 
 #include "global_function.h"
 #include "class.h"
@@ -40,7 +41,14 @@ class Registry {
 				std::cout << "### Registry ERROR: Trying to register function name '" << funcName
 						<< "', that is already used by another function in this registry."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
+			}
+		// 	check that name is not empty
+			if(strlen(funcName) == 0)
+			{
+				std::cout << "### Registry ERROR: Trying to register empty function name."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
 			}
 
 		//  create new exported function
@@ -75,7 +83,14 @@ class Registry {
 				std::cout << "### Registry ERROR: Trying to register class name '" << className
 						<< "', that is already used by another class in this registry."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+			}
+		// 	check that name is not empty
+			if(strlen(className) == 0)
+			{
+				std::cout << "### Registry ERROR: Trying to register empty class name."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
 
 		//	new class pointer
@@ -91,7 +106,7 @@ class Registry {
 				std::cout << "### Registry ERROR: Trying to register class with name '" << className
 						<< "', that has already been named. This is not allowed. "
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
 
 		//	add new class to list of classes
@@ -112,7 +127,14 @@ class Registry {
 				std::cout << "### Registry ERROR: Trying to register class name '" << className
 						<< "', that is already used by another class in this registry."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
+			}
+		// 	check that name is not empty
+			if(strlen(className) == 0)
+			{
+				std::cout << "### Registry ERROR: Trying to register empty class name."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
 
 		//	new class pointer
@@ -128,7 +150,7 @@ class Registry {
 				std::cout << "### Registry ERROR: Trying to register class with name '" << className
 						<< "', that has already been named. This is not allowed. "
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
 
 		// 	set base class names
@@ -141,7 +163,7 @@ class Registry {
 				std::cout <<"### Registry ERROR: Trying to register class with name '" << className
 						<< "', that derives from class, that has not yet been registered to this Registry."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(className));
 			}
 
 		//	add new class to list of classes

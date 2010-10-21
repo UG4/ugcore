@@ -129,7 +129,7 @@ std::string StdStringTest()
 	return std::string("stdJooik");
 }
 
-void RegisterTestInterface(Registry& reg, const char* parentGroup)
+bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 {
 //	get group string
 	std::stringstream groupString; groupString << parentGroup << "/Test";
@@ -167,6 +167,8 @@ void RegisterTestInterface(Registry& reg, const char* parentGroup)
 		.add_function("ToConst", ToConst, grp)
 		.add_function("StringTest", StringTest, grp)
 		.add_function("StdStringTest", StdStringTest, grp);
+
+	return true;
 }
 
 }//	end of namespace

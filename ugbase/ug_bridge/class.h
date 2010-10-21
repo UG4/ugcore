@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "global_function.h"
@@ -13,6 +14,15 @@ namespace ug
 {
 namespace bridge
 {
+
+
+struct UG_REGISTRY_ERROR_RegistrationFailed
+{
+		UG_REGISTRY_ERROR_RegistrationFailed(const char* name_)
+			: name(name_)
+		{}
+		std::string name;
+};
 
 class MethodPtrWrapper
 {
@@ -223,7 +233,15 @@ class ExportedClass_ : public IExportedClass
 						<< "' to class '" << name() << "', but another method with this name is already"
 						<< " registered for this class."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
+			}
+		// 	check that name is not empty
+			if(strlen(methodName) == 0)
+			{
+				std::cout << "### Registry ERROR: Trying to register empty method name at"
+						<< " class '" << name() << "'. This is not allowed."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
 			}
 
 
@@ -243,7 +261,7 @@ class ExportedClass_ : public IExportedClass
 				UG_LOG("###  Registering method '" << methodName << "' for class '");
 				UG_LOG( name() << "' requires argument of user-defined type,\n");
 				UG_LOG("###  that has not yet been registered to this Registry.\n");
-				exit(1);
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(name()));
 			}
 
 			if(func_traits<TMethod>::const_method)

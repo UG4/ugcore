@@ -179,7 +179,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 }
 
 
-void RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
+bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 {
 //	get group string
 	std::stringstream groupString; groupString << parentGroup << "/Algebra";
@@ -205,6 +205,7 @@ void RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 	// register martin algebra
 	RegisterAlgebraType<CPUAlgebra>(reg, grp.c_str());
 
+	return true;
 }
 
 } // end namespace bridge

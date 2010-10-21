@@ -96,6 +96,8 @@ class ExportedFunctionBase
 			CreateParameterStack<params_type>::create(m_paramsIn);
 			for(int i = (int)m_vParamValNames.size(); i < m_paramsIn.size(); ++i)
 				m_vParamValNames.push_back(std::string(""));
+			for(int i = (int)m_vParamValTypeInfos.size(); i < m_paramsIn.size(); ++i)
+				m_vParamValTypeInfos.push_back(std::string(""));
 
 			typedef typename func_traits<TFunc>::return_type return_type;
 			CreateParameterOutStack<return_type>::create(m_paramsOut);

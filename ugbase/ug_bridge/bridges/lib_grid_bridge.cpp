@@ -170,7 +170,7 @@ bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 
 
 ////////////////////////////////////////////////////////////////////////
-void RegisterLibGridInterface(Registry& reg, const char* parentGroup)
+bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 {
 //	get group string
 	std::stringstream groupString; groupString << parentGroup << "/Grid";
@@ -237,6 +237,8 @@ void RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
 		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str());
+
+	return true;
 }
 
 }//	end of namespace 
