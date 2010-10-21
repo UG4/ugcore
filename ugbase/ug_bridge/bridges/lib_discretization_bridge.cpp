@@ -267,11 +267,12 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 template <typename TDomain>
 void RegisterLibDiscretizationDomainDepended(Registry& reg, const char* parentGroup)
 {
-	const char * grp = parentGroup;
-
 //	typedef domain
 	typedef TDomain domain_type;
 	static const int dim = domain_type::dim;
+
+	stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	const char * grp = ss.str().c_str();
 
 //	todo: generalize
 	typedef P1ConformDoFDistribution dof_distribution_type;
