@@ -94,7 +94,8 @@ class UserNumberProvider : public IUserNumberProvider<dim>
 template <int dim>
 void RegisterUserNumber(Registry& reg, const char* parentGroup)
 {
-	const char* grp = parentGroup;
+	std::string grp = std::string(parentGroup);
+
 
 //	Functor
 	{
@@ -102,7 +103,7 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 		{
 			typedef ConstUserNumber<dim> T;
 			static stringstream ss; ss << "ConstUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp)
+			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set", &T::set)
 				.add_method("print", &T::print);
@@ -112,7 +113,7 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 		{
 			typedef LuaUserNumber<dim> T;
 			stringstream ss; ss << "LuaUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp)
+			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
@@ -123,14 +124,14 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 	//	Base class
 		{
 			stringstream ss; ss << "IUserNumberProvider" << dim << "d";
-			reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp);
+			reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
 		}
 
 	//	Const Number Provider
 		{
 			typedef UserNumberProvider<dim, ConstUserNumber<dim> > T;
 			stringstream ss; ss << "ConstUserNumberProvider" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp)
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
@@ -139,7 +140,7 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 		{
 			typedef UserNumberProvider<dim, LuaUserNumber<dim> > T;
 			stringstream ss; ss << "LuaUserNumberProvider" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp)
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}

@@ -121,7 +121,8 @@ class UserMatrixProvider : public IUserMatrixProvider<dim>
 template <int dim>
 void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 {
-	const char* grp = parentGroup;
+	std::string grp = std::string(parentGroup);
+
 
 //	Functor
 	{
@@ -129,7 +130,7 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 		{
 			typedef ConstUserMatrix<dim> T;
 			static stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp)
+			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_diag_tensor", &T::set_diag_tensor)
 				.add_method("set_all_entries", &T::set_all_entries)
@@ -141,7 +142,7 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 		{
 			typedef LuaUserMatrix<dim> T;
 			stringstream ss; ss << "LuaUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp)
+			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
@@ -152,14 +153,14 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 	//	Base class
 		{
 			stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
-			reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp);
+			reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str());
 		}
 
 	//	Const Matrix Provider
 		{
 			typedef UserMatrixProvider<dim, ConstUserMatrix<dim> > T;
 			stringstream ss; ss << "ConstUserMatrixProvider" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp)
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
@@ -168,7 +169,7 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 		{
 			typedef UserMatrixProvider<dim, LuaUserMatrix<dim> > T;
 			stringstream ss; ss << "LuaUserMatrixProvider" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp)
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}

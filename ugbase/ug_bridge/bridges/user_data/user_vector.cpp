@@ -103,7 +103,8 @@ class UserVectorProvider : public IUserVectorProvider<dim>
 template <int dim>
 void RegisterUserVector(Registry& reg, const char* parentGroup)
 {
-	const char* grp = parentGroup;
+	std::string grp = std::string(parentGroup);
+
 
 //	Functor
 	{
@@ -111,7 +112,7 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 		{
 			typedef ConstUserVector<dim> T;
 			static stringstream ss; ss << "ConstUserVector" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp)
+			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_all_entries", &T::set_all_entries)
 				.add_method("set_entry", &T::set_entry)
@@ -122,7 +123,7 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 		{
 			typedef LuaUserVector<dim> T;
 			stringstream ss; ss << "LuaUserVector" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp)
+			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
 		}
@@ -133,14 +134,14 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 	//	Base class
 		{
 			stringstream ss; ss << "IUserVectorProvider" << dim << "d";
-			reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str(), grp);
+			reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str());
 		}
 
 	//	Const Vector Provider
 		{
 			typedef UserVectorProvider<dim, ConstUserVector<dim> > T;
 			stringstream ss; ss << "ConstUserVectorProvider" << dim << "d";
-			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp)
+			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}
@@ -149,7 +150,7 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 		{
 			typedef UserVectorProvider<dim, LuaUserVector<dim> > T;
 			stringstream ss; ss << "LuaUserVectorProvider" << dim << "d";
-			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp)
+			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_functor", &T::set_functor);
 		}

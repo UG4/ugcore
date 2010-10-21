@@ -174,10 +174,10 @@ void RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 {
 //	get group string
 	std::stringstream groupString; groupString << parentGroup << "/Grid";
-	const char* grp = groupString.str().c_str();
+	std::string grp = groupString.str();
 
 //	Grid
-	reg.add_class_<Grid>("Grid", grp)
+	reg.add_class_<Grid>("Grid", grp.c_str())
 		.add_constructor()
 		.add_method("clear", &Grid::clear)
 		.add_method("num_vertices", &Grid::num_vertices)
@@ -186,57 +186,57 @@ void RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_method("num_volumes", &Grid::num_volumes);
 		
 //	MultiGrid
-	reg.add_class_<MultiGrid, Grid>("MultiGrid", grp)
+	reg.add_class_<MultiGrid, Grid>("MultiGrid", grp.c_str())
 		.add_constructor();
 
 //  ISubsetHandler
-	reg.add_class_<ISubsetHandler>("ISubsetHandler", grp)
+	reg.add_class_<ISubsetHandler>("ISubsetHandler", grp.c_str())
 		.add_method("num_subsets", &ISubsetHandler::num_subsets)
 		.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
 		.add_method("set_subset_name", &ISubsetHandler::set_subset_name);
 	
 //	SubsetHandler
-	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp)
+	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp.c_str())
 		.add_constructor()
 		.add_method("assign_grid", &SubsetHandler::assign_grid);
 
 //	MGSubsetHandler
-	reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp)
+	reg.add_class_<MGSubsetHandler, ISubsetHandler>("MGSubsetHandler", grp.c_str())
 		.add_constructor()
 		.add_method("assign_grid", &MGSubsetHandler::assign_grid);
 
 //	HangingNodeRefiner
-	reg.add_class_<HangingNodeRefiner_IR1>("HangingNodeRefiner", grp)
+	reg.add_class_<HangingNodeRefiner_IR1>("HangingNodeRefiner", grp.c_str())
 		.add_constructor()
 		.add_method("assign_grid", &HangingNodeRefiner_IR1::assign_grid);
 
 //	GlobalMultiGridRefiner
-	reg.add_class_<GlobalMultiGridRefiner>("GlobalMultiGridRefiner", grp)
+	reg.add_class_<GlobalMultiGridRefiner>("GlobalMultiGridRefiner", grp.c_str())
 		.add_constructor()
 		.add_method("refine", &GlobalMultiGridRefiner::refine)
 		.add_method("assign_grid", (void (GlobalMultiGridRefiner::*)(MultiGrid&)) &GlobalMultiGridRefiner::assign_grid);
 
 //	GridObject
-	reg.add_class_<GridObject, Grid>("GridObject", grp)
+	reg.add_class_<GridObject, Grid>("GridObject", grp.c_str())
 		.add_constructor()
 		.add_method("get_grid", &GridObject::get_grid)
 		.add_method("get_subset_handler", &GridObject::get_subset_handler);
 
 //	Grid functions
-	reg.add_function("CreateFractal", &CreateFractal, grp);
+	reg.add_function("CreateFractal", &CreateFractal, grp.c_str());
 	
 //  GridObject functions
-	reg.add_function("LoadGrid", &LoadGrid, grp)
-		.add_function("SaveGrid", &SaveGrid, grp)
-		.add_function("LoadGridObject", &LoadGridObject, grp)
-		.add_function("SaveGridObject", &SaveGridObject, grp)
-		.add_function("CreateGridObject", &CreateGridObject, grp);
+	reg.add_function("LoadGrid", &LoadGrid, grp.c_str())
+		.add_function("SaveGrid", &SaveGrid, grp.c_str())
+		.add_function("LoadGridObject", &LoadGridObject, grp.c_str())
+		.add_function("SaveGridObject", &SaveGridObject, grp.c_str())
+		.add_function("CreateGridObject", &CreateGridObject, grp.c_str());
 		
 //	refinement
 	reg.add_function("TestSubdivision", &TestSubdivision)
-		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp)
-		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp)
-		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp);
+		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
+		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
+		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str());
 }
 
 }//	end of namespace 

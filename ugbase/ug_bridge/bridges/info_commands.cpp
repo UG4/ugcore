@@ -485,10 +485,13 @@ bool PrintClassHierarchy(const char *classname)
 
 void RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
-	reg.add_function("TypeInfo", &UGTypeInfo);
-	reg.add_function("ClassUsage", &ClassUsage);
-	reg.add_function("ClassInstantiations" ,&ClassInstantiations);
-	reg.add_function("ClassHierarchy" ,&PrintClassHierarchy);
+	stringstream grpSS; grpSS << parentGroup << "/Info";
+	std::string grp = grpSS.str();
+
+	reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str());
+	reg.add_function("ClassUsage", &ClassUsage, grp.c_str());
+	reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str());
+	reg.add_function("ClassHierarchy" ,&PrintClassHierarchy, grp.c_str());
 }
 
 
