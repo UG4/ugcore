@@ -13,6 +13,7 @@ dofile("../scripts/ug_util.lua")
 -- constants
 dim = 2
 gridName = "unit_square_tri_neumann.ugx"
+numPreRefs = 2
 numRefs = 4
 
 -- name function (will be removed in the future, do not use them)
@@ -82,10 +83,25 @@ sh:set_subset_name("NeumannBoundary", 2)
 
 -- create Refiner
 print("Create Refiner")
+if numPreRefs > numRefs then
+	print("numPreRefs must be smaller/equal than numRefs");
+	exit();
+end
+
 refiner = GlobalMultiGridRefiner()
 refiner:assign_grid(dom:get_grid())
-for i=1,numRefs do
+for i=1,numPreRefs do
 	refiner:refine()
+end
+
+if DistributeDomain2d(dom) == false then
+	print("Error while Distributing Grid.")
+	exit()
+end
+
+print("Refine Parallel Grid")
+for i=numPreRefs+1,numRefs do
+	GlobalRefineParallelDomain2d(dom)
 end
 
 -- write grid to file for test purpose
@@ -105,6 +121,7 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -------------------------------------------
 --  Setup User Functions
 -------------------------------------------
+print ("Setting up Assembling")
 
 -- Diffusion Tensor setup
 	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor", dim)
@@ -167,6 +184,7 @@ domainDisc:add_post_process(dirichletBND)
 -------------------------------------------
 --  Algebra
 -------------------------------------------
+print ("Setting up Algebra Solver")
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
@@ -238,7 +256,7 @@ amg:set_nu2(2)
 amg:set_gamma(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
-amg:set_debug(u)
+--amg:set_debug(u)
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
