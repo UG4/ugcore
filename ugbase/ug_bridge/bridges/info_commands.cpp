@@ -485,13 +485,22 @@ bool PrintClassHierarchy(const char *classname)
 
 bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
-	stringstream grpSS; grpSS << parentGroup << "/Info";
-	std::string grp = grpSS.str();
+	try
+	{
+		stringstream grpSS; grpSS << parentGroup << "/Info";
+		std::string grp = grpSS.str();
 
-	reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str());
-	reg.add_function("ClassUsage", &ClassUsage, grp.c_str());
-	reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str());
-	reg.add_function("ClassHierarchy" ,&PrintClassHierarchy, grp.c_str());
+		reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str());
+		reg.add_function("ClassUsage", &ClassUsage, grp.c_str());
+		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str());
+		reg.add_function("ClassHierarchy" ,&PrintClassHierarchy, grp.c_str());
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterInfoCommands: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
 
 	return true;
 }

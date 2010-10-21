@@ -24,7 +24,7 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("ERROR in RegisterStandardInterfaces: "
+		UG_LOG("### ERROR in RegisterStandardInterfaces: "
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}

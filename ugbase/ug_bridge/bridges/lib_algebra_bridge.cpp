@@ -181,29 +181,38 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 {
-//	get group string
-	std::stringstream groupString; groupString << parentGroup << "/Algebra";
-	std::string grp = groupString.str();
-
-	UG_LOG("RegisterLibAlgebraInterface\n");
-	// StandardConvCheck
+	try
 	{
-		reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp.c_str());
+	//	get group string
+		std::stringstream groupString; groupString << parentGroup << "/Algebra";
+		std::string grp = groupString.str();
 
-		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp.c_str())
-			.add_constructor()
-			.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps,
-					"", "maximum_steps")
-			.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
-					"", "minimum_defect")
-			.add_method("set_reduction", &StandardConvCheck::set_reduction,
-					"", "reduction")
-			.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
-					"", "verbose_level");
-	}
+		UG_LOG("RegisterLibAlgebraInterface\n");
+		// StandardConvCheck
+		{
+			reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp.c_str());
+
+			reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp.c_str())
+				.add_constructor()
+				.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps,
+						"", "maximum_steps")
+				.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
+						"", "minimum_defect")
+				.add_method("set_reduction", &StandardConvCheck::set_reduction,
+						"", "reduction")
+				.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
+						"", "verbose_level");
+		}
 
 	// register martin algebra
-	RegisterAlgebraType<CPUAlgebra>(reg, grp.c_str());
+		RegisterAlgebraType<CPUAlgebra>(reg, grp.c_str());
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterLibAlgebraInterface: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
 
 	return true;
 }

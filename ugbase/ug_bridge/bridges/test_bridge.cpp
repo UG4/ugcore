@@ -131,42 +131,51 @@ std::string StdStringTest()
 
 bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 {
-//	get group string
-	std::stringstream groupString; groupString << parentGroup << "/Test";
-	const char* grp = groupString.str().c_str();
+	try
+	{
+	//	get group string
+		std::stringstream groupString; groupString << parentGroup << "/Test";
+		const char* grp = groupString.str().c_str();
 
-	reg.add_function("add", &Add, grp, "c", "a,b");
+		reg.add_function("add", &Add, grp, "c", "a,b");
 
-	reg.add_class_<Test>("Test", grp)
-		.add_constructor()
-		.add_method("add", &Test::add, "c", "a,b")
-		.add_method("print_name", &Test::print_name)
-		.add_method("print", (int(Test::*)()) &Test::print)
-		.add_method("print", (int(Test::*)() const) &Test::print);
+		reg.add_class_<Test>("Test", grp)
+			.add_constructor()
+			.add_method("add", &Test::add, "c", "a,b")
+			.add_method("print_name", &Test::print_name)
+			.add_method("print", (int(Test::*)()) &Test::print)
+			.add_method("print", (int(Test::*)() const) &Test::print);
 
-	reg.add_class_<Piece>("Piece", grp)
-		.add_constructor()
-		.add_method("size", &Piece::size);
+		reg.add_class_<Piece>("Piece", grp)
+			.add_constructor()
+			.add_method("size", &Piece::size);
 
-	reg.add_class_<Cake>("Cake", grp)
-		.add_constructor()
-		.add_method("take_pieces", &Cake::take_pieces)
-		.add_method("add_pieces", &Cake::add_pieces)
-		.add_method("pieces_left", &Cake::pieces_left);
+		reg.add_class_<Cake>("Cake", grp)
+			.add_constructor()
+			.add_method("take_pieces", &Cake::take_pieces)
+			.add_method("add_pieces", &Cake::add_pieces)
+			.add_method("pieces_left", &Cake::pieces_left);
 
-	reg.add_class_<Base>("Base", grp)
-		//.add_constructor()
-		.add_method("print", &Base::print);
-	reg.add_class_<Derived, Base>("Derived", grp)
-		.add_constructor()
-		.add_method("print", &Derived::print);
-	reg.add_function("PrintFunction", &PrintFunction);
+		reg.add_class_<Base>("Base", grp)
+			//.add_constructor()
+			.add_method("print", &Base::print);
+		reg.add_class_<Derived, Base>("Derived", grp)
+			.add_constructor()
+			.add_method("print", &Derived::print);
+		reg.add_function("PrintFunction", &PrintFunction);
 
-	reg.add_function("TestFunc", TestFunc, grp)
-		.add_function("ConstTestFunc", ConstTestFunc, grp)
-		.add_function("ToConst", ToConst, grp)
-		.add_function("StringTest", StringTest, grp)
-		.add_function("StdStringTest", StdStringTest, grp);
+		reg.add_function("TestFunc", TestFunc, grp)
+			.add_function("ConstTestFunc", ConstTestFunc, grp)
+			.add_function("ToConst", ToConst, grp)
+			.add_function("StringTest", StringTest, grp)
+			.add_function("StdStringTest", StdStringTest, grp);
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterTestInterface: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
 
 	return true;
 }

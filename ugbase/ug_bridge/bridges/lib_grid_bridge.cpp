@@ -172,6 +172,8 @@ bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 ////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 {
+	try
+	{
 //	get group string
 	std::stringstream groupString; groupString << parentGroup << "/Grid";
 	std::string grp = groupString.str();
@@ -237,6 +239,13 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
 		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str());
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterLibGridInterface: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
 
 	return true;
 }

@@ -486,6 +486,8 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg, const char* parentGr
 
 bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
+	try
+	{
 	//	get group string
 		std::stringstream groupString; groupString << parentGroup << "/Discretization/UserData";
 		std::string grp = groupString.str();
@@ -640,6 +642,14 @@ bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 
 	//	todo: remove when possible
 		RegisterElderUserFunctions(reg, grp.c_str());
+
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterLibDiscretizationInterface: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
 
 		return true;
 }
