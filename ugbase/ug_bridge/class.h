@@ -256,7 +256,7 @@ class ExportedClass_ : public IExportedClass
 		//  create parameter in list
 				nMethod->create_parameter_stack<TMethod>();
 			}
-			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry ex)
+			catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
 			{
 				UG_LOG("###  Registering method '" << methodName << "' for class '");
 				UG_LOG( name() << "' requires argument of user-defined type,\n");

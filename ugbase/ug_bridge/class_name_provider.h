@@ -12,10 +12,10 @@ namespace ug
 namespace bridge
 {
 
-struct UG_ERROR_ClassUnknownToRegistry {};
-struct UG_ERROR_ClassAlreadyNamed
+struct UG_REGISTRY_ERROR_ClassUnknownToRegistry {};
+struct UG_REGISTRY_ERROR_ClassAlreadyNamed
 {
-		UG_ERROR_ClassAlreadyNamed(const char* name_)
+		UG_REGISTRY_ERROR_ClassAlreadyNamed(const char* name_)
 			: name(name_)
 		{}
 		std::string name;
@@ -33,7 +33,7 @@ struct ClassNameProvider
 			if(newName == true && !m_ownName.empty())
 			{
 				if(strcmp(nameIn, name()) != 0)
-					throw(UG_ERROR_ClassAlreadyNamed(nameIn));
+					throw(UG_REGISTRY_ERROR_ClassAlreadyNamed(nameIn));
 			}
 
 		//	copy name into static string
@@ -90,7 +90,7 @@ struct ClassNameProvider
 		static const char* name()
 		{
 			if(m_ownName.empty())
-				throw(UG_ERROR_ClassUnknownToRegistry());
+				throw(UG_REGISTRY_ERROR_ClassUnknownToRegistry());
 			return m_ownName.c_str();
 		}
 
@@ -104,7 +104,7 @@ struct ClassNameProvider
 		static const std::vector<const char*>& names()	
 		{
 			if(m_names.empty())
-				throw(UG_ERROR_ClassUnknownToRegistry());
+				throw(UG_REGISTRY_ERROR_ClassUnknownToRegistry());
 
 			return m_names;
 		}

@@ -101,7 +101,7 @@ class Registry {
 			{
 				newClass = new ExportedClass_<TClass>(className, group);
 			}
-			catch(ug::bridge::UG_ERROR_ClassAlreadyNamed ex)
+			catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
 			{
 				std::cout << "### Registry ERROR: Trying to register class with name '" << className
 						<< "', that has already been named. This is not allowed. "
@@ -145,7 +145,7 @@ class Registry {
 			{
 				newClass = new ExportedClass_<TClass>(className, group);
 			}
-			catch(ug::bridge::UG_ERROR_ClassAlreadyNamed ex)
+			catch(ug::bridge::UG_REGISTRY_ERROR_ClassAlreadyNamed ex)
 			{
 				std::cout << "### Registry ERROR: Trying to register class with name '" << className
 						<< "', that has already been named. This is not allowed. "
@@ -158,7 +158,7 @@ class Registry {
 			{
 				ClassNameProvider<TClass>::template set_name<TBaseClass>(className, group);
 			}
-			catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry ex)
+			catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
 			{
 				std::cout <<"### Registry ERROR: Trying to register class with name '" << className
 						<< "', that derives from class, that has not yet been registered to this Registry."
