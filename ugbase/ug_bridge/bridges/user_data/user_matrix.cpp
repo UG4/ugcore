@@ -129,7 +129,7 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 	//	ConstUserMatrix
 		{
 			typedef ConstUserMatrix<dim> T;
-			static stringstream ss; ss << "ConstUserMatrix" << dim << "d";
+			stringstream ss; ss << "ConstUserMatrix" << dim << "d";
 			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_diag_tensor", &T::set_diag_tensor)

@@ -309,7 +309,7 @@ void RegisterLibDiscretizationDomainDepended(Registry& reg, const char* parentGr
 		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
 						"ReturnFlag", "Grid,Filename",
 						"Loads a domain", "No help",
-						"", "");
+						"", "#style=\"load-dialog\"");
 	}
 
 //	SaveDomain

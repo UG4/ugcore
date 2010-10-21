@@ -45,7 +45,7 @@ class ExportedFunctionBase
 		  m_tooltip(tooltip), m_help(help)
 		{
 			tokenize(m_paramValNames, m_vParamValNames, ",");
-			tokenize(m_paramValTypeInfos, m_vParamValTypeInfos, ",");
+			tokenize(m_paramValTypeInfos, m_vParamValTypeInfos, "#");
 		};
 
 	///	name of function

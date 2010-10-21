@@ -102,7 +102,7 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 	//	ConstUserNumber
 		{
 			typedef ConstUserNumber<dim> T;
-			static stringstream ss; ss << "ConstUserNumber" << dim << "d";
+			stringstream ss; ss << "ConstUserNumber" << dim << "d";
 			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set", &T::set)

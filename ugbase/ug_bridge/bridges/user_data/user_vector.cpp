@@ -111,7 +111,7 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 	//	ConstUserVector
 		{
 			typedef ConstUserVector<dim> T;
-			static stringstream ss; ss << "ConstUserVector" << dim << "d";
+			stringstream ss; ss << "ConstUserVector" << dim << "d";
 			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_all_entries", &T::set_all_entries)

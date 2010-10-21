@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstring>
 #include <string>
+#include <iostream>
 
 namespace ug
 {
@@ -26,16 +27,18 @@ template <typename TClass>
 struct ClassNameProvider
 {
 	/// set name of class and copy parent names
-		static void set_name(const char* name, const char* group = "", bool newName = false)
+		static void set_name(const char* nameIn, const char* group = "", bool newName = false)
 		{
 		//	if class already named throw error
-			if(newName == true)
-				if(!m_ownName.empty())
-					throw(UG_ERROR_ClassAlreadyNamed(name));
+			if(newName == true && !m_ownName.empty())
+			{
+				if(strcmp(nameIn, name()) != 0)
+					throw(UG_ERROR_ClassAlreadyNamed(nameIn));
+			}
 
 		//	copy name into static string
 		//	This is necessary, since char* could be to temporary memory
-			m_ownName = std::string(name);
+			m_ownName = std::string(nameIn);
 
 		//	remember const char* to own name in first position of names-list
 			m_names.clear();

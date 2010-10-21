@@ -140,8 +140,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-//		ug::bridge::RegisterStandardInterfaces(testReg);
-		ug::bridge::RegisterTestInterface(testReg);
+		ug::bridge::RegisterStandardInterfaces(testReg);
+//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());

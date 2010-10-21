@@ -105,7 +105,7 @@ void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 	//	ConstBoundaryNumber
 		{
 			typedef ConstBoundaryNumber<dim> T;
-			static stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
+			stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
 			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set", &T::set)

@@ -137,14 +137,14 @@ namespace ug {
 
 			result << "@ComponentInfo(name=\"" << func.name() << "\", category=\"" << group << "\")\n"
 
-					<< "public class UG4_" << func.name() << " {\n"
-					<< "private static final serialVersionUID=1L;\n";
+					<< "public class UG4_" << func.name() << " implements Serializable {\n"
+					<< "private static final long serialVersionUID=1L;\n";
 
 			generateMethodHeader(
 					result, func.name(), func.params_in(), func.params_out(), true);
 
 			result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction("
-					<< (jlong) & func << " as long, params)";
+					<< (jlong) & func << " as long, false, params)";
 
 			result << "\n}\n}";
 
@@ -158,7 +158,7 @@ namespace ug {
 			std::string group = clazz.group();
 
 
-			result << "@ComponentInfo(name=\"" << className << "\", category=\"" << group << "\")\n"
+			result << "@ComponentInfo(name=\"" << clazz.name() << "\", category=\"" << group << "\")\n"
 					<< "public class " << className << " extends edu.gcsc.vrl.ug4.UGObject {\n"
 					<< "private static final long serialVersionUID=1L;\n";
 
@@ -270,7 +270,7 @@ namespace ug {
 
 		std::string createParamInfo(const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::string customOptions) {
+				std::string customInfo, std::string customOptions) {
 			std::stringstream paramInfo;
 			std::stringstream classNameOptions;
 
@@ -313,10 +313,10 @@ namespace ug {
 			paramInfo
 					<< "@ParamInfo( name=\""
 					<< className << "\""
-					<< classNameOptions.str() << "\"";
+					<< classNameOptions.str() << "; " << customOptions << "\"";
 
-			if (customOptions.size() > 0) {
-				paramInfo << ", " << customOptions;
+			if (customInfo.size() > 0) {
+				paramInfo << ", " << customInfo;
 			}
 
 			paramInfo << ") ";
