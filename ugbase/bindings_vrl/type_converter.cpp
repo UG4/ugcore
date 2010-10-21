@@ -97,7 +97,7 @@ namespace ug {
 				paramsArray << " id";
 			}
 
-			const char* outType;
+			std::string outType;
 			if (paramStackOut.size() > 0) {
 				outType = paramType2String(
 						paramStackOut.get_type(0),
@@ -291,20 +291,15 @@ namespace ug {
 					<< "classNames=[";
 
 
-			//			for (unsigned int i = 0; i < classNames->size(); i++) {
-			//
-			//				if (i > 0) {
-			//					classNameOptions << ",";
-			//				}
-			//
-			//				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
-			//			}
-
 			for (unsigned int i = 0; i < classNames->size(); i++) {
 
-				std::cout << "ClassName = '" << i << ": " << (*classNames)[i]  << "'" << std::endl;
-//				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
+				if (i > 0) {
+					classNameOptions << ",";
+				}
+
+				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
 			}
+
 
 			classNameOptions << "]";
 
@@ -314,23 +309,15 @@ namespace ug {
 				classNameOptions << "; readOnly=false";
 			}
 
-			//			std::cout << "ClassNameOptions = '" << classNameOptions.str() << "'" << std::endl;
-			std::cout << "ClassName = '" << className << "'" << std::endl;
-
-			//			paramInfo
-			//					<< "@ParamInfo( name=\""
-			//					<< className << "\""
-			//					<< classNameOptions.str() << "\"";
 
 			paramInfo
 					<< "@ParamInfo( name=\""
-					<< "bla" << "\""
-					<< classNameOptions.str().c_str() << "\"";
+					<< className << "\""
+					<< classNameOptions.str() << "\"";
 
 			if (customOptions.size() > 0) {
 				paramInfo << ", " << customOptions;
 			}
-
 
 			paramInfo << ") ";
 
@@ -387,7 +374,7 @@ namespace ug {
 			return paramInfo.str();
 		}
 
-		const char* paramType2String(int paramType,
+		std::string paramType2String(int paramType,
 				const char* className,
 				const std::vector<const char*>* classNames, bool isOutput) {
 
@@ -407,6 +394,8 @@ namespace ug {
 								createParamInfo(className, classNames, false) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
+						std::cout << "RESULT: " << result << std::endl;
+
 						return result.c_str();
 					}
 				}
@@ -418,6 +407,9 @@ namespace ug {
 						std::string result =
 								createParamInfo(className, classNames, true) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
+
+						std::cout << "RESULT: " << result << std::endl;
+						
 						return result.c_str();
 					}
 				}

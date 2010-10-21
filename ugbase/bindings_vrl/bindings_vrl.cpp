@@ -140,8 +140,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-		ug::bridge::RegisterStandardInterfaces(testReg);
-	//	ug::bridge::RegisterLibGridInterface(testReg);
+//		ug::bridge::RegisterStandardInterfaces(testReg);
+		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
@@ -232,8 +232,6 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 	std::vector<std::string> result;
 
-	try {
-
 	VRL_DBG("CLASSES_DONE", 1);
 
 	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
@@ -247,9 +245,7 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 		ug::bridge::ExportedFunction& func = ug::vrl::vrlRegistry->get_function(i);
 		result.push_back(ug::vrl::exportedFunction2Groovy(func));
 	}
-	} catch(ug::bridge::UG_ERROR_ClassUnknownToRegistry* ex) {
-		VRL_DBG("ug::bridge::UG_ERROR_ClassUnknownToRegistry exception!",1);
-	}
+
 
 	VRL_DBG("FUNCTIONS_DONE", 1);
 

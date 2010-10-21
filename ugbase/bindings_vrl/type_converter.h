@@ -131,7 +131,7 @@ namespace ug {
 				std::string customOptions = "");
 
 
-		const char* paramType2String(int paramType,
+		std::string paramType2String(int paramType,
 				const char* className,
 				const std::vector<const char*>* classNames, bool isOutput = false);
 
