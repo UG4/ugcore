@@ -608,7 +608,7 @@ namespace ug {
 				std::stringstream paramcmp;
 
 				// allow non-const * to const *
-				if (paramType==ug::bridge::PT_POINTER &&
+				if (paramType == ug::bridge::PT_POINTER &&
 						paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
 					paramType = ug::bridge::PT_CONST_POINTER;
 				}
@@ -679,16 +679,16 @@ namespace ug {
 
 			for (unsigned int i = 0; i < reg->num_classes(); i++) {
 
-//				VRL_DBG(i, 1);
+				//				VRL_DBG(i, 1);
 
 				const ug::bridge::IExportedClass& clazz = reg->get_class(i);
 
-//				VRL_DBG("BEFORE_CMP", 1);
+				//				VRL_DBG("BEFORE_CMP", 1);
 
-//				VRL_DBG(className + std::string(" == ") + std::string(clazz.name()), 1);
+				//				VRL_DBG(className + std::string(" == ") + std::string(clazz.name()), 1);
 
 				if (strcmp(clazz.name(), className.c_str()) == 0) {
-//					VRL_DBG(std::string("CLASS ") + className + std::string(" found"), 1);
+					//					VRL_DBG(std::string("CLASS ") + className + std::string(" found"), 1);
 					return &clazz;
 				}
 			}
@@ -701,7 +701,7 @@ namespace ug {
 				jobjectArray const& array) {
 			using namespace ug::bridge;
 
-			std::vector<std::string> stringParams;
+			//			std::vector<std::string> stringParams;
 
 			//	iterate through the parameter list and copy the value in the associated
 			//	stack entry.
@@ -721,6 +721,7 @@ namespace ug {
 
 
 				jobject value = env->GetObjectArrayElement(array, i);
+
 
 				switch (type) {
 					case PT_BOOL:
@@ -752,7 +753,8 @@ namespace ug {
 						break;
 					case PT_CONST_POINTER:
 					{
-						paramsOut.push_pointer(jObject2Pointer(env, value), paramsTemplate.class_names(i));
+						paramsOut.push_const_pointer(
+								jObject2Pointer(env, value), paramsTemplate.class_names(i));
 					}
 						break;
 				}
