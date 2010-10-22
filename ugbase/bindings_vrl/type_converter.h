@@ -167,6 +167,9 @@ namespace ug {
 		void generateMethods(std::stringstream& result,
 				ug::bridge::IExportedClass* clazz);
 
+		void generateConstMethods(std::stringstream& result,
+				ug::bridge::IExportedClass* clazz);
+
 //		jobject messageTypeC2J(JNIEnv *env, MessageType type);
 
 	} // end vrl::

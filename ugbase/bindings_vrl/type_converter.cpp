@@ -246,6 +246,22 @@ namespace ug {
 			}
 		}
 
+		void generateConstMethods(std::stringstream& result,
+				const ug::bridge::IExportedClass* clazz) {
+			for (unsigned int i = 0; i < clazz->num_const_methods(); i++) {
+				const ug::bridge::ExportedMethod &method = clazz->get_const_method(i);
+
+				generateMethodHeader(result, method, false, "const");
+
+				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+						<< "getClassName(),"
+						<< " getPointer().getAddress(), true, \""
+						<< method.name() << "\", params)";
+
+				result << "\n}\n\n";
+			}
+		}
+
 		std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 				ug::bridge::IExportedClass const& clazz) {
 			std::stringstream result;
