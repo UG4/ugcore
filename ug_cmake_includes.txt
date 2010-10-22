@@ -229,8 +229,10 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
             if(MPI_FOUND)
                 link_libraries(${MPI_LIBS})
             endif(MPI_FOUND)
+ 			message(STATUS "INFO: Building dynamic library (To disable Dynamic Library define -DUG_SHARED=OFF)")
         else(UG_SHARED)
             link_libraries(${UG_LIBRARIES})
+ 			message(STATUS "INFO: Not building dynamic library (To enable Dynamic Library define -DUG_SHARED=ON)")
         endif(UG_SHARED)
 
 
