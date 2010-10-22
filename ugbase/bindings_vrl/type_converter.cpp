@@ -607,6 +607,12 @@ namespace ug {
 
 				std::stringstream paramcmp;
 
+				// allow non-const * to const *
+				if (paramType==ug::bridge::PT_POINTER &&
+						paramStack.get_type(i) == ug::bridge::PT_CONST_POINTER) {
+					paramType = ug::bridge::PT_CONST_POINTER;
+				}
+
 				paramcmp << "JType: " << paramType << " CType: " << paramStack.get_type(i);
 
 				VRL_DBG(paramcmp.str(), 1);
