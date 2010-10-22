@@ -215,7 +215,7 @@ distribute_dofs()
 	{
 		UG_LOG( " (" << si << ","<<1<<"," << std::setw(8) << m_vNumDoFs[si] << ") ");
 	}
-	UG_LOG("\n");
+	UG_LOG(std::endl);
 
 	return true;
 }
@@ -358,7 +358,7 @@ distribute_dofs()
 		size_t num_fct =  m_pFunctionPattern->num_fct(si);
 		UG_LOG( " (" << si << "," <<num_fct<<","<< std::setw(8) << m_vNumDoFs[si] << ") ");
 	}
-	UG_LOG("\n");
+	UG_LOG(std::endl);
 
 	return true;
 }
