@@ -123,17 +123,17 @@ namespace ug {
 
 		std::string createParamInfo(const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::string customOptions = "");
+				std::string customInfo = "", std::string customOptions = "");
 
 
 		std::string createMethodInfo(const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::string customOptions = "");
+				std::string customInfo = "", std::string customOptions = "");
 
 
 		std::string paramType2String(int paramType,
 				const char* className,
-				const std::vector<const char*>* classNames, bool isOutput = false);
+				const std::vector<const char*>* classNames, std::string paramOptions, bool isOutput = false);
 
 		int jobjectArray2ParamStack(JNIEnv *env, ug::bridge::ParameterStack& paramsOut,
 				const ug::bridge::ParameterStack& paramsTemplate,

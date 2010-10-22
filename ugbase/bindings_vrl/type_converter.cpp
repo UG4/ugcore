@@ -63,13 +63,85 @@ namespace ug {
 			return result;
 		}
 
+		//		void generateMethodHeader(
+		//				std::stringstream& result, std::string name,
+		//				ug::bridge::ParameterStack const& paramStackIn,
+		//				ug::bridge::ParameterStack const& paramStackOut,
+		//				bool isFunction = false, std::string prefix = "") {
+		//
+		//			std::stringstream params;
+		//			std::stringstream paramsArray;
+		//
+		//			size_t numParams = paramStackIn.size();
+		//
+		//			for (unsigned int i = 0; i < numParams; i++) {
+		//				if (i > 0) {
+		//					params << ", ";
+		//					paramsArray << ", ";
+		//				}
+		//				params << paramType2String(paramStackIn.get_type(i),
+		//						paramStackIn.class_name(i),
+		//						paramStackIn.class_names(i)) << " p" << i;
+		//
+		//				paramsArray << " p" << i;
+		//			}
+		//
+		//			if (!isFunction) {
+		//				// we always need the visual id to get a reference to the
+		//				// visualization that invokes this method
+		//				// that is why we add a visual id request to the param list
+		//				if (numParams > 0) {
+		//					params << ", ";
+		//					paramsArray << ", ";
+		//				}
+		//				params << " VisualIDRequest id ";
+		//				paramsArray << " id";
+		//			}
+		//
+		//			std::string outType;
+		//			if (paramStackOut.size() > 0) {
+		//				outType = paramType2String(
+		//						paramStackOut.get_type(0),
+		//						paramStackOut.class_name(0),
+		//						paramStackOut.class_names(0), true);
+		//
+		//				bool readOnly =
+		//						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
+		//
+		//				result << createMethodInfo(
+		//						paramStackOut.class_name(0),
+		//						paramStackOut.class_names(0), readOnly) << "\n";
+		//
+		//			} else {
+		//				outType = "void";
+		//			}
+		//
+		//
+		//
+		//			result << "public " << outType << " " << prefix << name << " ("
+		//					<< params.str() << ") {\n"
+		//					<< "Object[] params = [" << paramsArray.str() << "] \n";
+		//
+		//			if (!isFunction) {
+		//				result << "updatePointer(id.getID());\n";
+		//			}
+		//
+		//			if (paramStackOut.size() > 0) {
+		//				result << "return ";
+		//			}
+		//		}
+
 		void generateMethodHeader(
-				std::stringstream& result, std::string name,
-				ug::bridge::ParameterStack const& paramStackIn,
-				ug::bridge::ParameterStack const& paramStackOut, bool isFunction = false, std::string prefix = "") {
+				std::stringstream& result, ug::bridge::ExportedFunctionBase const& method,
+				bool isFunction = false, std::string prefix = "") {
 
 			std::stringstream params;
 			std::stringstream paramsArray;
+
+			std::string name = method.name();
+
+			const ug::bridge::ParameterStack& paramStackIn = method.params_in();
+			const ug::bridge::ParameterStack& paramStackOut = method.params_out();
 
 			size_t numParams = paramStackIn.size();
 
@@ -78,9 +150,14 @@ namespace ug {
 					params << ", ";
 					paramsArray << ", ";
 				}
+
+				VRL_DBG(std::string("name=") + name, 1);
+				VRL_DBG(i, 1);
+
 				params << paramType2String(paramStackIn.get_type(i),
 						paramStackIn.class_name(i),
-						paramStackIn.class_names(i)) << " p" << i;
+						paramStackIn.class_names(i),
+						method.parameter_type_info(i)) << " p" << i;
 
 				paramsArray << " p" << i;
 			}
@@ -102,14 +179,16 @@ namespace ug {
 				outType = paramType2String(
 						paramStackOut.get_type(0),
 						paramStackOut.class_name(0),
-						paramStackOut.class_names(0), true);
+						paramStackOut.class_names(0),
+						method.return_type_info(), true);
 
 				bool readOnly =
 						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
 
 				result << createMethodInfo(
 						paramStackOut.class_name(0),
-						paramStackOut.class_names(0), readOnly) << "\n";
+						paramStackOut.class_names(0),
+						readOnly, method.return_type_info()) << "\n";
 
 			} else {
 				outType = "void";
@@ -141,7 +220,7 @@ namespace ug {
 					<< "private static final long serialVersionUID=1L;\n";
 
 			generateMethodHeader(
-					result, func.name(), func.params_in(), func.params_out(), true);
+					result, func, true);
 
 			result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction("
 					<< (jlong) & func << " as long, false, params)";
@@ -170,8 +249,7 @@ namespace ug {
 			for (unsigned int i = 0; i < clazz.num_methods(); i++) {
 				const ug::bridge::ExportedMethod &method = clazz.get_method(i);
 
-				generateMethodHeader(result, method.name(),
-						method.params_in(), method.params_out());
+				generateMethodHeader(result, method);
 
 				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 						<< "getClassName(),"
@@ -278,12 +356,12 @@ namespace ug {
 
 				std::cout << "ERROR: ClassName is NULL" << std::endl;
 
-				return std::string("//ERROR PARAMINFO NAME");
+				return std::string("/*ERROR PARAMINFO NAME*/");
 			}
 
 			if (classNames == NULL) {
 				std::cout << "ERROR: ClassNames is NULL" << std::endl;
-				return std::string("//ERROR PARAMINFO NAMES");
+				return std::string("/*ERROR PARAMINFO NAMES*/");
 			}
 
 			classNameOptions
@@ -326,7 +404,7 @@ namespace ug {
 
 		std::string createMethodInfo(const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::string customOptions) {
+				std::string customInfo, std::string customOptions) {
 			std::stringstream paramInfo;
 			std::stringstream classNameOptions;
 
@@ -362,10 +440,10 @@ namespace ug {
 			paramInfo
 					<< "@MethodInfo( valueName=\""
 					<< className << "\""
-					<< classNameOptions.str() << "\"";
+					<< classNameOptions.str() << "; " << customOptions << "\"";
 
-			if (customOptions.size() > 0) {
-				paramInfo << ", " << customOptions;
+			if (customInfo.size() > 0) {
+				paramInfo << ", " << customInfo;
 			}
 
 
@@ -376,7 +454,8 @@ namespace ug {
 
 		std::string paramType2String(int paramType,
 				const char* className,
-				const std::vector<const char*>* classNames, bool isOutput) {
+				const std::vector<const char*>* classNames,
+				std::string paramInfo, bool isOutput) {
 
 
 
@@ -384,17 +463,31 @@ namespace ug {
 				case ug::bridge::PT_BOOL: return "boolean";
 				case ug::bridge::PT_INTEGER: return "int";
 				case ug::bridge::PT_NUMBER: return "double";
-				case ug::bridge::PT_STRING: return "String";
+				case ug::bridge::PT_STRING: {
+					if (isOutput) {
+						return "String";
+					} else {
+
+						std::string result =
+								createParamInfo("",
+								new std::vector<const char*>(), false, paramInfo) +
+								std::string("String");
+
+//						std::cout << "RESULT: " << result << std::endl;
+
+						return result.c_str();
+					}
+				}
 				case ug::bridge::PT_POINTER:
 				{
 					if (isOutput) {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(className, classNames, false) +
+								createParamInfo(className, classNames, false, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
-						std::cout << "RESULT: " << result << std::endl;
+//						std::cout << "RESULT: " << result << std::endl;
 
 						return result.c_str();
 					}
@@ -405,11 +498,11 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(className, classNames, true) +
+								createParamInfo(className, classNames, true, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
-						std::cout << "RESULT: " << result << std::endl;
-						
+//						std::cout << "RESULT: " << result << std::endl;
+
 						return result.c_str();
 					}
 				}

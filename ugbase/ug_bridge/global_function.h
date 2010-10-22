@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
@@ -44,8 +45,8 @@ class ExportedFunctionBase
 		  m_paramValNames(paramValNames), m_paramValTypeInfos(paramValInfoType),
 		  m_tooltip(tooltip), m_help(help)
 		{
-			tokenize(m_paramValNames, m_vParamValNames, ",");
-			tokenize(m_paramValTypeInfos, m_vParamValTypeInfos, "#");
+			tokenize(m_paramValNames, m_vParamValNames, ',');
+			tokenize(m_paramValTypeInfos, m_vParamValTypeInfos, '#');
 		};
 
 	///	name of function
@@ -103,25 +104,39 @@ class ExportedFunctionBase
 			CreateParameterOutStack<return_type>::create(m_paramsOut);
 		}
 		
-		// help function to tokenize the parameter string
-		void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters)
-		{
-			using namespace std;
-			tokens.clear();
-		    // Skip delimiters at beginning.
-		    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-		    // Find first "non-delimiter".
-		    string::size_type pos     = str.find_first_of(delimiters, lastPos);
+//		// help function to tokenize the parameter string
+//		void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters)
+//		{
+//			using namespace std;
+//			tokens.clear();
+//		    // Skip delimiters at beginning.
+//		    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+//		    // Find first "non-delimiter".
+//		    string::size_type pos     = str.find_first_of(delimiters, lastPos);
+//
+//		    while (string::npos != pos || string::npos != lastPos)
+//		    {
+//		        // Found a token, add it to the vector.
+//		        tokens.push_back(str.substr(lastPos, pos - lastPos));
+//		        // Skip delimiters.  Note the "not_of"
+//			    lastPos = str.find_first_not_of(delimiters, pos);
+//			    // Find next "non-delimiter"
+//			    pos = str.find_first_of(delimiters, lastPos);
+//		    }
+//		}
 
-		    while (string::npos != pos || string::npos != lastPos)
-		    {
-		        // Found a token, add it to the vector.
-		        tokens.push_back(str.substr(lastPos, pos - lastPos));
-		        // Skip delimiters.  Note the "not_of"
-			    lastPos = str.find_first_not_of(delimiters, pos);
-			    // Find next "non-delimiter"
-			    pos = str.find_first_of(delimiters, lastPos);
-		    }
+		// help function to tokenize the parameter string
+		void tokenize(const std::string& str, std::vector<std::string>& tokens, const char delimiter)
+		{
+
+			tokens.clear();
+			std::stringstream tokenstream;
+			tokenstream << str;
+			std::string token;
+
+			while ( std::getline (tokenstream, token, delimiter ) ) {
+					tokens.push_back(token);
+			}
 		}
 
 	protected:
