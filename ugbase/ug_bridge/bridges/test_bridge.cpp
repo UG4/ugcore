@@ -112,6 +112,10 @@ class Derived
 		{
 			UG_LOG("Derived::print() called\n");
 		}
+		std::string something()
+		{
+			return "Something";
+		}
 };
 
 void PrintFunction(Base& b)
@@ -161,7 +165,8 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_method("print", &Base::print);
 		reg.add_class_<Derived, Base>("Derived", grp.c_str())
 			.add_constructor()
-			.add_method("print", &Derived::print);
+			.add_method("something", &Derived::something);
+//			.add_method("print", &Derived::print);
 		reg.add_function("PrintFunction", &PrintFunction);
 
 		reg.add_function("TestFunc", TestFunc, grp.c_str())

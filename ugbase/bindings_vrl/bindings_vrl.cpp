@@ -104,27 +104,27 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	const char* grp = "/ug4/Grid";
 
-	VRL_DBG("INIT",1);
+	VRL_DBG("INIT", 1);
 
 
 
 	static ug::bridge::Registry testReg;
 	using namespace ug;
 
-//	testReg.add_class_<TestClass1 > ("TestClass", grp)
-//			.add_constructor()
-//			.add_method("hello", &TestClass1::hello);
-//
-//	testReg.add_class_<MGSubsetHandler, ISubsetHandler > ("MGSubsetHandler", grp)
-//			.add_constructor()
-//			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
-//
-//	testReg.add_class_<ISubsetHandler > ("ISubsetHandler", grp)
-//			.add_method("num_subsets", &ISubsetHandler::num_subsets)
-//			.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
-//			.add_method("set_subset_name", &ISubsetHandler::set_subset_name);
+	//	testReg.add_class_<TestClass1 > ("TestClass", grp)
+	//			.add_constructor()
+	//			.add_method("hello", &TestClass1::hello);
+	//
+	//	testReg.add_class_<MGSubsetHandler, ISubsetHandler > ("MGSubsetHandler", grp)
+	//			.add_constructor()
+	//			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
+	//
+	//	testReg.add_class_<ISubsetHandler > ("ISubsetHandler", grp)
+	//			.add_method("num_subsets", &ISubsetHandler::num_subsets)
+	//			.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
+	//			.add_method("set_subset_name", &ISubsetHandler::set_subset_name);
 
-	
+
 
 	//	testReg.add_function("UGAddInt", &TestAdd);
 	//	testReg.add_function("UGMultInt", &TestMult);
@@ -140,8 +140,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-		ug::bridge::RegisterStandardInterfaces(testReg);
-//		ug::bridge::RegisterTestInterface(testReg);
+	ug::bridge::RegisterStandardInterfaces(testReg);
+	//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
@@ -156,9 +156,9 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 		jstring methodName, jobjectArray params) {
 	//	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*) objPtr;
 
-	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*)
+	const ug::bridge::IExportedClass* clazz =
 			ug::vrl::getExportedClassPtrByName(
-			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, exportedClassName));
+			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, exportedClassName));
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -171,17 +171,20 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 	const ug::bridge::ExportedMethod* method =
 			ug::vrl::getMethodBySignature(
-			env, clazz, ug::vrl::boolJ2C(readOnly), name, params);
+			env, ug::vrl::vrlRegistry,
+			clazz, ug::vrl::boolJ2C(readOnly), name, params);
 
-	VRL_DBG("AFTER_GET_METHOD", 1);
 
-	VRL_DBG(method->name(), 1);
-
-	VRL_DBG("BEFORE_OBJECT_ARRAY_TO_STACK", 1);
+	if (method==NULL && readOnly==false) {
+		method = ug::vrl::getMethodBySignature(
+			env, ug::vrl::vrlRegistry,
+				clazz, ug::vrl::boolJ2C(true), name, params);
+	}
+	
+//	
 
 	ug::vrl::jobjectArray2ParamStack(env, paramsIn, method->params_in(), params);
 
-	VRL_DBG("AFTER_OBJECT_ARRAY_TO_STACK", 1);
 
 	//	ug::vrl::displayMessage("Test-Message",">> Hello from UG4",ug::vrl::INFO);
 
@@ -235,8 +238,12 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 	VRL_DBG("CLASSES_DONE", 1);
 
 	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
+
 		const ug::bridge::IExportedClass& clazz = ug::vrl::vrlRegistry->get_class(i);
-		result.push_back(ug::vrl::exportedClass2Groovy(clazz));
+
+		if (clazz.is_instantiable()) {
+			result.push_back(ug::vrl::exportedClass2Groovy(ug::vrl::vrlRegistry,clazz));
+		}
 	}
 
 	VRL_DBG("BEFORE_FUNCTIONS", 1);
@@ -249,7 +256,7 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 	VRL_DBG("FUNCTIONS_DONE", 1);
 
-	for (unsigned int i = 0; i < 7;i++) {
+	for (unsigned int i = 0; i < 7; i++) {
 		std::cout << "Index: " << i << std::endl;
 		std::cout << result[i] << "\n---------------\n";
 	}
@@ -260,7 +267,7 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 (JNIEnv *env, jobject obj, jstring name) {
 	return (long) ug::vrl::getExportedClassPtrByName(
-			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
+			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

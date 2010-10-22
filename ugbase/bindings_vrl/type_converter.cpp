@@ -230,15 +230,34 @@ namespace ug {
 			return result.str();
 		}
 
-		std::string exportedClass2Groovy(ug::bridge::IExportedClass const& clazz) {
+		void generateMethods(std::stringstream& result,
+				const ug::bridge::IExportedClass* clazz) {
+			for (unsigned int i = 0; i < clazz->num_methods(); i++) {
+				const ug::bridge::ExportedMethod &method = clazz->get_method(i);
+
+				generateMethodHeader(result, method);
+
+				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+						<< "getClassName(),"
+						<< " getPointer().getAddress(), false, \""
+						<< method.name() << "\", params)";
+
+				result << "\n}\n\n";
+			}
+		}
+
+		std::string exportedClass2Groovy(ug::bridge::Registry* reg,
+				ug::bridge::IExportedClass const& clazz) {
 			std::stringstream result;
 
 			std::string className = "UG4_" + std::string(clazz.name());
 			std::string group = clazz.group();
 
 
-			result << "@ComponentInfo(name=\"" << clazz.name() << "\", category=\"" << group << "\")\n"
-					<< "public class " << className << " extends edu.gcsc.vrl.ug4.UGObject {\n"
+			result << "@ComponentInfo(name=\"" << clazz.name()
+					<< "\", category=\"" << group << "\")\n"
+					<< "public class " << className
+					<< " extends edu.gcsc.vrl.ug4.UGObject {\n"
 					<< "private static final long serialVersionUID=1L;\n";
 
 			result << "public " << className << "() {\n"
@@ -246,17 +265,29 @@ namespace ug {
 
 			VRL_DBG(clazz.num_methods(), 1);
 
-			for (unsigned int i = 0; i < clazz.num_methods(); i++) {
-				const ug::bridge::ExportedMethod &method = clazz.get_method(i);
+			//			for (unsigned int i = 0; i < clazz.num_methods(); i++) {
+			//				const ug::bridge::ExportedMethod &method = clazz.get_method(i);
+			//
+			//				generateMethodHeader(result, method);
+			//
+			//				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+			//						<< "getClassName(),"
+			//						<< " getPointer().getAddress(), false, \""
+			//						<< method.name() << "\", params)";
+			//
+			//				result << "\n}\n\n";
+			//			}
 
-				generateMethodHeader(result, method);
+			//			generateMethods(result, &clazz);
 
-				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
-						<< "getClassName(),"
-						<< " getPointer().getAddress(), false, \"" << method.name() << "\", params)";
+			std::vector<const ug::bridge::IExportedClass*> baseClasses =
+					getParentClasses(reg, &clazz);
 
-				result << "\n}\n\n";
+			for (unsigned int i = 0; i < baseClasses.size(); i++) {
+				generateMethods(result, baseClasses[i]);
 			}
+
+			//			generateMethods(result,clazz);
 
 			//			for (unsigned int i = 0; i < clazz.num_const_methods(); i++) {
 			//				const ug::bridge::ExportedMethod &method = clazz.get_const_method(i);
@@ -282,6 +313,20 @@ namespace ug {
 			result << "\n}";
 
 			return result.str();
+		}
+
+		const std::vector<const ug::bridge::IExportedClass*> getParentClasses(
+				ug::bridge::Registry* reg, const ug::bridge::IExportedClass* clazz) {
+			std::vector<const ug::bridge::IExportedClass*> result;
+			for (unsigned int i = 0; i < clazz->class_names()->size(); i++) {
+				const ug::bridge::IExportedClass* baseCls =
+						getExportedClassPtrByName(reg, (*clazz->class_names())[i]);
+				if (baseCls != NULL) {
+					result.push_back(baseCls);
+				}
+			}
+
+			return result;
 		}
 
 		jobject int2JObject(JNIEnv *env, jint value) {
@@ -457,13 +502,12 @@ namespace ug {
 				const std::vector<const char*>* classNames,
 				std::string paramInfo, bool isOutput) {
 
-
-
 			switch (paramType) {
 				case ug::bridge::PT_BOOL: return "boolean";
 				case ug::bridge::PT_INTEGER: return "int";
 				case ug::bridge::PT_NUMBER: return "double";
-				case ug::bridge::PT_STRING: {
+				case ug::bridge::PT_STRING:
+				{
 					if (isOutput) {
 						return "String";
 					} else {
@@ -472,8 +516,6 @@ namespace ug {
 								createParamInfo("",
 								new std::vector<const char*>(), false, paramInfo) +
 								std::string("String");
-
-//						std::cout << "RESULT: " << result << std::endl;
 
 						return result.c_str();
 					}
@@ -487,8 +529,6 @@ namespace ug {
 								createParamInfo(className, classNames, false, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
-//						std::cout << "RESULT: " << result << std::endl;
-
 						return result.c_str();
 					}
 				}
@@ -500,8 +540,6 @@ namespace ug {
 						std::string result =
 								createParamInfo(className, classNames, true, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
-
-//						std::cout << "RESULT: " << result << std::endl;
 
 						return result.c_str();
 					}
@@ -583,72 +621,73 @@ namespace ug {
 
 		const ug::bridge::ExportedMethod* getMethodBySignature(
 				JNIEnv *env,
-				ug::bridge::IExportedClass* clazz, bool readOnly,
+				ug::bridge::Registry* reg,
+				const ug::bridge::IExportedClass* clazz, bool readOnly,
 				std::string methodName,
 				jobjectArray params) {
 
-			std::stringstream strstream;
-			strstream << (long) clazz;
 
-			VRL_DBG("BEFORE 1:" + strstream.str(), 1);
+			std::vector<const ug::bridge::IExportedClass*> classes =
+					getParentClasses(reg, clazz);
 
-			VRL_DBG(std::string("BEFORE 2:") + clazz->name(), 1);
+			for (unsigned i = 0; i < classes.size(); i++) {
 
-			unsigned int numMethods = 0;
+				clazz = classes[i];
 
-			if (readOnly) {
-				numMethods = clazz->num_const_methods();
-			} else {
-				numMethods = clazz->num_methods();
-			}
-
-			VRL_DBG("BEFORE 3:", 1);
-			VRL_DBG(numMethods, 1);
-
-			VRL_DBG(clazz->num_const_methods(), 1);
-
-			for (unsigned int i = 0; i < numMethods; i++) {
-				VRL_DBG("INSIDE", 1);
-				const ug::bridge::ExportedMethod* method = NULL;
+				unsigned int numMethods = 0;
 
 				if (readOnly) {
-					method = &clazz->get_const_method(i);
+					numMethods = clazz->num_const_methods();
 				} else {
-					method = &clazz->get_method(i);
+					numMethods = clazz->num_methods();
 				}
 
-				if (strcmp(method->name().c_str(), methodName.c_str()) == 0 &&
-						compareParamTypes(env, params, method->params_in())) {
-					VRL_DBG("METHOD_FOUND", 1);
-					return method;
+				VRL_DBG("BEFORE 3:", 1);
+				VRL_DBG(numMethods, 1);
+
+				VRL_DBG(clazz->num_const_methods(), 1);
+
+				for (unsigned int j = 0; j < numMethods; j++) {
+					VRL_DBG("INSIDE", 1);
+					const ug::bridge::ExportedMethod* method = NULL;
+
+					if (readOnly) {
+						method = &clazz->get_const_method(j);
+					} else {
+						method = &clazz->get_method(j);
+					}
+
+					if (strcmp(method->name().c_str(), methodName.c_str()) == 0 &&
+							compareParamTypes(env, params, method->params_in())) {
+						VRL_DBG("METHOD_FOUND", 1);
+						return method;
+					}
 				}
 			}
 
 			return NULL;
 		}
 
-		long getExportedClassPtrByName(
-				JNIEnv *env,
-				ug::bridge::Registry* reg,
+		const ug::bridge::IExportedClass* getExportedClassPtrByName(ug::bridge::Registry* reg,
 				std::string className) {
 
 			for (unsigned int i = 0; i < reg->num_classes(); i++) {
 
-				VRL_DBG(i, 1);
+//				VRL_DBG(i, 1);
 
 				const ug::bridge::IExportedClass& clazz = reg->get_class(i);
 
-				VRL_DBG("BEFORE_CMP", 1);
+//				VRL_DBG("BEFORE_CMP", 1);
 
-				VRL_DBG(className + std::string(" == ") + std::string(clazz.name()), 1);
+//				VRL_DBG(className + std::string(" == ") + std::string(clazz.name()), 1);
 
 				if (strcmp(clazz.name(), className.c_str()) == 0) {
-					VRL_DBG(std::string("CLASS ") + className + std::string(" found"), 1);
-					return (long) &clazz;
+//					VRL_DBG(std::string("CLASS ") + className + std::string(" found"), 1);
+					return &clazz;
 				}
 			}
 
-			return 0;
+			return NULL;
 		}
 
 		int jobjectArray2ParamStack(JNIEnv *env, ug::bridge::ParameterStack& paramsOut,

@@ -102,7 +102,7 @@ namespace ug {
 		std::string exportedFunction2Groovy(
 				ug::bridge::ExportedFunction const& func);
 
-		std::string exportedClass2Groovy(
+		std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 				ug::bridge::IExportedClass const& clazz);
 
 		jobject boolean2JObject(JNIEnv *env, jboolean value);
@@ -151,15 +151,21 @@ namespace ug {
 
 		const ug::bridge::ExportedMethod* getMethodBySignature(
 				JNIEnv *env,
-				ug::bridge::IExportedClass* clazz,
+				ug::bridge::Registry* reg,
+				const ug::bridge::IExportedClass* clazz,
 				bool readOnly,
 				std::string methodName,
 				jobjectArray params);
 
-		long getExportedClassPtrByName(
-				JNIEnv *env,
+		const ug::bridge::IExportedClass* getExportedClassPtrByName(
 				ug::bridge::Registry* reg,
 				std::string className);
+
+		const std::vector<const ug::bridge::IExportedClass*> getParentClasses(
+				ug::bridge::Registry* reg, const ug::bridge::IExportedClass* clazz);
+
+		void generateMethods(std::stringstream& result,
+				ug::bridge::IExportedClass* clazz);
 
 //		jobject messageTypeC2J(JNIEnv *env, MessageType type);
 
