@@ -12,14 +12,9 @@ dofile("../scripts/ug_util.lua")
 
 -- constants
 dim = 2
-gridName = "unit_square_tri_neumann.ugx"
+gridName = "unit_square_tri.ugx"
 numPreRefs = 2
 numRefs = 4
-
--- name function (will be removed in the future, do not use them)
-_INNER_ = 0
-_BND_ = 1
-_NEUMANN_BND_ = 2
 
 --------------------------------
 -- User Data Functions (begin)
@@ -39,9 +34,9 @@ function ourReaction(x, y, t)
 end
 
 function ourRhs(x, y, t)
-	--local s = 2*math.pi
-	--return	s*s*(math.sin(s*x) + math.sin(s*y))
-	return -2*y
+	local s = 2*math.pi
+	return	s*s*(math.sin(s*x) + math.sin(s*y))
+	--return -2*y
 end
 
 function ourNeumannBnd(x, y, t)
@@ -51,9 +46,9 @@ function ourNeumannBnd(x, y, t)
 end
 
 function ourDirichletBnd(x, y, t)
-	--local s = 2*math.pi
-	--return true, math.sin(s*x) + math.sin(s*y)
-	return true, x*x*y
+	local s = 2*math.pi
+	return true, math.sin(s*x) + math.sin(s*y)
+	--return true, x*x*y
 end
 
 --------------------------------
@@ -73,13 +68,13 @@ end
 
 -- get subset handler
 sh = dom:get_subset_handler()
-if sh:num_subsets() ~= 3 then 
-	print("Domain must have 3 Subsets for this problem.")
+if sh:num_subsets() ~= 2 then 
+	print("Domain must have 2 Subsets for this problem.")
 	exit()
 end
 sh:set_subset_name("Inner", 0)
 sh:set_subset_name("DirichletBoundary", 1)
-sh:set_subset_name("NeumannBoundary", 2)
+--sh:set_subset_name("NeumannBoundary", 2)
 
 -- create Refiner
 print("Create Refiner")
@@ -162,8 +157,8 @@ elemDisc:set_rhs(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
-neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
+--neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
+--neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -178,7 +173,7 @@ dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc)
-domainDisc:add_elem_disc(neumannDisc)
+--domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 
 -------------------------------------------
