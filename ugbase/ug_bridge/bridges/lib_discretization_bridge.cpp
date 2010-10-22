@@ -74,7 +74,8 @@ bool DistributeDomain(TDomain& domainOut)
 	}
 
 //	AdjustFunctions
-	FuncAdjustGrid funcAdjustGrid = DefaultAdjustGrid;
+//	FuncAdjustGrid funcAdjustGrid = DefaultAdjustGrid;
+	FuncAdjustGrid funcAdjustGrid = AdjustGrid_AutoAssignSubsetsAndRefine(0,1,0);
 	FuncPartitionGrid funcPartitionGrid = PartitionGrid_Bisection;
 
 //	process 0 loads and distributes the grid. The others receive it.
