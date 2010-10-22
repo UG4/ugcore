@@ -251,7 +251,7 @@ namespace ug {
 			for (unsigned int i = 0; i < clazz->num_const_methods(); i++) {
 				const ug::bridge::ExportedMethod &method = clazz->get_const_method(i);
 
-				generateMethodHeader(result, method, false, "const");
+				generateMethodHeader(result, method, false, "const_");
 
 				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 						<< "getClassName(),"
@@ -301,6 +301,7 @@ namespace ug {
 
 			for (unsigned int i = 0; i < baseClasses.size(); i++) {
 				generateMethods(result, baseClasses[i]);
+				generateConstMethods(result, baseClasses[i]);
 			}
 
 			//			generateMethods(result,clazz);
