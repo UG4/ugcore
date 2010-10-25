@@ -14,33 +14,6 @@ namespace bridge
 {
 
 template <int dim>
-class ConstUserVector
-{
-	public:
-		ConstUserVector() {set_all_entries(0.0);}
-
-		void set_all_entries(number val) { m_Vector = val;}
-
-		void set_entry(size_t i, number val)
-		{
-			m_Vector[i] = val;
-		}
-
-		void print() const
-		{
-			UG_LOG("ConstUserVector:" << m_Vector << "\n");
-		}
-
-		void operator() (MathVector<dim>& v, const MathVector<dim>& x, number time = 0.0)
-		{
-			v = m_Vector;
-		}
-
-	protected:
-		MathVector<dim> m_Vector;
-};
-
-template <int dim>
 class LuaUserVector
 {
 	public:
@@ -82,23 +55,6 @@ class LuaUserVector
 		lua_State*	m_L;
 };
 
-
-template <int dim, typename TUserVector>
-class UserVectorProvider : public IUserVectorProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IUserVectorProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_UserVector;}
-
-	//	set user Vector
-		void set_functor(const TUserVector& userVector) {m_UserVector = userVector;}
-
-	protected:
-		TUserVector	m_UserVector;
-};
 
 template <int dim>
 void RegisterUserVector(Registry& reg, const char* parentGroup)

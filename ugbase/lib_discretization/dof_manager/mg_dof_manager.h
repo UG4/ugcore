@@ -84,6 +84,9 @@ class MGDoFManager
 		// distribute dofs on all levels + surface level
 		bool distribute_dofs()
 		{
+			// no levels -> nothing to do
+			if(num_levels() == 0) return true;
+
 			// require distributions on all levels
 			if(!level_distribution_required(num_levels()-1))
 				{UG_LOG("Cannot access distribution of level.\n"); return false;}
@@ -116,19 +119,23 @@ class MGDoFManager
 			return true;
 		}
 
-		TDoFDistribution* get_surface_dof_distribution()
+		const TDoFDistribution* get_surface_dof_distribution() const
 		{
 			//return m_pSurfaceDoFDistribution;
 
-			if(!level_distribution_required(num_levels()-1)) return NULL;
-			return m_vLevelDoFDistribution[num_levels()-1];
+			if(num_levels() == m_vLevelDoFDistribution.size())
+				return m_vLevelDoFDistribution[num_levels()-1];
+			else
+				return NULL;
 		}
 
 
-		TDoFDistribution* get_level_dof_distribution(size_t level)
+		const TDoFDistribution* get_level_dof_distribution(size_t level) const
 		{
-			if(!level_distribution_required(level)) return NULL;
-			return m_vLevelDoFDistribution[level];
+			if(level < m_vLevelDoFDistribution.size())
+				return m_vLevelDoFDistribution[level];
+			else
+				return NULL;
 		}
 
 		virtual ~MGDoFManager()

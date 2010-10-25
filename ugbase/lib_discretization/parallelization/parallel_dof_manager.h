@@ -20,6 +20,10 @@ template <typename TMGDoFManager>
 class ParallelMGDoFManager : public TMGDoFManager
 {
 	public:
+		ParallelMGDoFManager()
+		: TMGDoFManager(), m_DistGridManager(NULL), m_pLayoutMap(NULL)
+		{}
+
 		ParallelMGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp)
 		: TMGDoFManager(mgsh, dp), m_DistGridManager(NULL), m_pLayoutMap(NULL)
 		{}
@@ -51,7 +55,7 @@ class ParallelMGDoFManager : public TMGDoFManager
 			bool no_cut = true;
 			for(size_t l = TMGDoFManager::num_levels() - 1; ; --l)
 			{
-				typename TMGDoFManager::dof_distribution_type& distr = *TMGDoFManager::get_level_dof_distribution(l);
+				typename TMGDoFManager::dof_distribution_type& distr = *const_cast<typename TMGDoFManager::dof_distribution_type*>(TMGDoFManager::get_level_dof_distribution(l));
 
 				bRetVal &= CreateIndexLayout(distr.get_master_layout(), distr, *m_pLayoutMap, INT_MASTER,l);
 				bRetVal &= CreateIndexLayout(distr.get_slave_layout(), distr, *m_pLayoutMap, INT_SLAVE,l);

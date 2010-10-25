@@ -118,6 +118,15 @@ class Derived
 		}
 };
 
+class ConstClass
+{
+	public:
+		std::string const_method() const
+		{
+			return "const_method_called";
+		}
+};
+
 void PrintFunction(Base& b)
 {
 	b.print();
@@ -142,6 +151,10 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		std::string grp = groupString.str();
 
 		reg.add_function("add", &Add, grp.c_str(), "c", "a,b");
+
+		reg.add_class_<ConstClass>("ConstClass", grp.c_str())
+			.add_constructor()
+			.add_method("const_method", &ConstClass::const_method);
 
 		reg.add_class_<Test>("Test", grp.c_str())
 			.add_constructor()

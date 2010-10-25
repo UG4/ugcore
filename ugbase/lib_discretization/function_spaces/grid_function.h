@@ -58,14 +58,16 @@ class GridFunction :	public TAlgebra::vector_type,
 	public:
 		// Default constructor
 		GridFunction() :
-			m_name(""), m_pApproxSpace(NULL), m_pDoFDistribution(NULL)
+			m_name(""), m_pApproxSpace(NULL), m_pDoFDistribution(NULL), m_pNonConstDoFDistribution(NULL)
 			{}
 
 		// Constructor
 		GridFunction(	std::string name, approximation_space_type& approxSpace,
-						dof_distribution_type& DoFDistr, bool allocate = true) :
-			m_name(name), m_pApproxSpace(&approxSpace), m_pDoFDistribution(&DoFDistr)
+						const dof_distribution_type& DoFDistr, bool allocate = true) :
+			m_name(name), m_pApproxSpace(&approxSpace)
 		{
+			assign_dof_distribution(DoFDistr);
+
 			if(allocate)
 				if(!create_storage())
 					UG_ASSERT(0, "Cannot create vector memory.\n");
@@ -186,6 +188,21 @@ class GridFunction :	public TAlgebra::vector_type,
 		// dimension
 		int get_dim() const {return domain_type::dim;}
 
+		void assign_dof_distribution(const dof_distribution_type& DoFDistr, bool allocate = true)
+		{
+			m_pDoFDistribution = &DoFDistr;
+			m_pNonConstDoFDistribution = const_cast<dof_distribution_type*>(&DoFDistr);
+			if(allocate)
+				create_storage();
+			else
+				release_storage();
+		}
+
+		void assign_approximation_space(approximation_space_type& ApproxSpace)
+		{
+			m_pApproxSpace = &ApproxSpace;
+		}
+
 		// get dof distribution
 		const dof_distribution_type& get_dof_distribution() const
 			{return *m_pDoFDistribution;}
@@ -233,12 +250,12 @@ class GridFunction :	public TAlgebra::vector_type,
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator begin() const
+		inline typename geometry_traits<TElem>::const_iterator begin() const
 			{return m_pDoFDistribution->template begin<TElem>();}
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator end() const
+		inline typename geometry_traits<TElem>::const_iterator end() const
 			{return m_pDoFDistribution->template end<TElem>();}
 
 		// number of elements of this type for a subset
@@ -248,12 +265,12 @@ class GridFunction :	public TAlgebra::vector_type,
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator begin(int si) const
+		inline typename geometry_traits<TElem>::const_iterator begin(int si) const
 			{return m_pDoFDistribution->template begin<TElem>(si);}
 
 		// iterator for elements where this grid function is defined
 		template <typename TElem>
-		inline typename geometry_traits<TElem>::iterator end(int si) const
+		inline typename geometry_traits<TElem>::const_iterator end(int si) const
 			{return m_pDoFDistribution->template end<TElem>(si);}
 
 		////////// Local Algebra ////////////
@@ -355,7 +372,10 @@ class GridFunction :	public TAlgebra::vector_type,
 		approximation_space_type* m_pApproxSpace;
 
 		// dof manager of this discrete function
-		dof_distribution_type* m_pDoFDistribution;
+		const dof_distribution_type* m_pDoFDistribution;
+
+		// Todo: remove this
+		dof_distribution_type* m_pNonConstDoFDistribution;
 };
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>

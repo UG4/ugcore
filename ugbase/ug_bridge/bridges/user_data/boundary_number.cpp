@@ -11,32 +11,6 @@ namespace bridge
 {
 
 template <int dim>
-class ConstBoundaryNumber
-{
-	public:
-		ConstBoundaryNumber() {m_Number = 0.0;}
-
-		void set(number val)
-		{
-			m_Number = val;
-		}
-
-		void print() const
-		{
-			UG_LOG("ConstBoundaryNumber:" << m_Number << "\n");
-		}
-
-		bool operator() (number& c, const MathVector<dim>& x, number time = 0.0)
-		{
-			c = m_Number;
-			return true;
-		}
-
-	protected:
-		number m_Number;
-};
-
-template <int dim>
 class LuaBoundaryNumber
 {
 	public:
@@ -74,24 +48,6 @@ class LuaBoundaryNumber
 	protected:
 		const char* m_callbackName;
 		lua_State*	m_L;
-};
-
-
-template <int dim, typename TBoundaryNumber>
-class BoundaryNumberProvider : public IBoundaryNumberProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IBoundaryNumberProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_BoundaryNumber;}
-
-	//	set Boundary Number
-		void set_functor(const TBoundaryNumber& BoundaryNumber) {m_BoundaryNumber = BoundaryNumber;}
-
-	protected:
-		TBoundaryNumber	m_BoundaryNumber;
 };
 
 template <int dim>

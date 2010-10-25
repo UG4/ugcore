@@ -119,13 +119,15 @@ class ParallelVector : public TVector
 		//double operator = (double d)
 		//	{return TVector::operator=(d);}
 
-/*		this_type &operator =(const this_type &v)
+		this_type &operator =(const this_type &v)
 		{
-			copy_storage_type(v);
+			TVector::operator=(*dynamic_cast<const TVector*>(&v));
 
-			(*(TVector*)this) = (TVector)v;
+			copy_storage_type(v);
+			copy_layouts(v);
+			return *this;
 		}
-*/
+
 		this_type &operator -=(const this_type &v)
 		{
 			ParallelStorageType mask = get_storage_mask() & v.get_storage_mask();
@@ -145,6 +147,18 @@ class ParallelVector : public TVector
 
 			TVector::operator+=(*dynamic_cast<const TVector*>(&v));
 			return *this;
+		}
+
+	protected:
+		void copy_layouts(const this_type &v)
+		{
+			m_pSlaveLayout = v.m_pSlaveLayout;
+			m_pMasterLayout = v.m_pMasterLayout;
+			m_pVerticalSlaveLayout = v.m_pVerticalSlaveLayout;
+			m_pVerticalMasterLayout = v.m_pVerticalMasterLayout;
+
+			m_pCommunicator = v.m_pCommunicator;
+			m_processCommunicator = v.m_processCommunicator;
 		}
 
 	private:

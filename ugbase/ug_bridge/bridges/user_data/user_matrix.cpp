@@ -11,50 +11,6 @@ namespace bridge
 {
 
 template <int dim>
-class ConstUserMatrix
-{
-	public:
-		ConstUserMatrix() {set_diag_tensor(1.0);}
-
-		void set_diag_tensor(number val)
-		{
-			for(size_t i = 0; i < dim; ++i){
-				for(size_t j = 0; j < dim; ++j){
-					m_Tensor[i][j] = 0;
-				}
-				m_Tensor[i][i] = val;
-			}
-		}
-
-		void set_all_entries(number val)
-		{
-			for(size_t i = 0; i < dim; ++i){
-				for(size_t j = 0; j < dim; ++j){
-					m_Tensor[i][j] = val;
-				}
-			}
-		}
-
-		void set_entry(size_t i, size_t j, number val)
-		{
-			m_Tensor[i][j] = val;
-		}
-
-		void print() const
-		{
-			UG_LOG("ConstUserMatrix:\n" << m_Tensor << "\n");
-		}
-
-		void operator() (MathMatrix<dim, dim>& D, const MathVector<dim>& x, number time = 0.0)
-		{
-			D = m_Tensor;
-		}
-
-	protected:
-		MathMatrix<dim, dim> m_Tensor;
-};
-
-template <int dim>
 class LuaUserMatrix
 {
 	public:
@@ -98,24 +54,6 @@ class LuaUserMatrix
 	protected:
 		const char* m_callbackName;
 		lua_State*	m_L;
-};
-
-
-template <int dim, typename TUserMatrix>
-class UserMatrixProvider : public IUserMatrixProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IUserMatrixProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_UserMatrix;}
-
-	//	set user matrix
-		void set_functor(const TUserMatrix& userMatrix) {m_UserMatrix = userMatrix;}
-
-	protected:
-		TUserMatrix	m_UserMatrix;
 };
 
 template <int dim>

@@ -11,31 +11,6 @@ namespace bridge
 {
 
 template <int dim>
-class ConstUserNumber
-{
-	public:
-		ConstUserNumber() {m_Number = 0.0;}
-
-		void set(number val)
-		{
-			m_Number = val;
-		}
-
-		void print() const
-		{
-			UG_LOG("ConstUserNumber:" << m_Number << "\n");
-		}
-
-		void operator() (number& c, const MathVector<dim>& x, number time = 0.0)
-		{
-			c = m_Number;
-		}
-
-	protected:
-		number m_Number;
-};
-
-template <int dim>
 class LuaUserNumber
 {
 	public:
@@ -71,24 +46,6 @@ class LuaUserNumber
 	protected:
 		const char* m_callbackName;
 		lua_State*	m_L;
-};
-
-
-template <int dim, typename TUserNumber>
-class UserNumberProvider : public IUserNumberProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IUserNumberProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_UserNumber;}
-
-	//	set user Number
-		void set_functor(const TUserNumber& userNumber) {m_UserNumber = userNumber;}
-
-	protected:
-		TUserNumber	m_UserNumber;
 };
 
 template <int dim>

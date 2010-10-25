@@ -77,6 +77,7 @@ function utilCreateApproximationSpace(domain, pattern)
 	end
 	approxSpace:assign_domain(domain)
 	approxSpace:assign_function_pattern(pattern)
+	approxSpace:init()
 	
 	return approxSpace, pattern
 end

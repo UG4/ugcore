@@ -127,6 +127,7 @@ print(const char* filename, discrete_function_type& u, size_t step, number time)
 			UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset "<< si << ".\n");
 			return false;
 		}
+		UG_LOG("done.\n");
 	}
 
 	if(!write_pvd(u, filename, step, time))
@@ -483,8 +484,8 @@ template <typename TElem>
 void
 VTKOutput<TDiscreteFunction>::
 count_elem_conn(discrete_function_type& u, int si,
-						typename geometry_traits<TElem>::iterator iterBegin,
-						typename geometry_traits<TElem>::iterator iterEnd)
+						typename geometry_traits<TElem>::const_iterator iterBegin,
+						typename geometry_traits<TElem>::const_iterator iterEnd)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	Numbers.noElements += u.template num<TElem>(si);
@@ -512,8 +513,8 @@ template <typename TElem>
 bool
 VTKOutput<TDiscreteFunction>::
 write_points_elementwise(FILE* File, discrete_function_type& u,
-							typename geometry_traits<TElem>::iterator iterBegin,
-							typename geometry_traits<TElem>::iterator iterEnd, int& n)
+							typename geometry_traits<TElem>::const_iterator iterBegin,
+							typename geometry_traits<TElem>::const_iterator iterEnd, int& n)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	typedef typename discrete_function_type::domain_type domain_type;
@@ -563,8 +564,8 @@ template <class TElem>
 bool
 VTKOutput<TDiscreteFunction>::
 write_elements_connectivity(FILE* File,
-							typename geometry_traits<TElem>::iterator iterBegin,
-							typename geometry_traits<TElem>::iterator iterEnd)
+							typename geometry_traits<TElem>::const_iterator iterBegin,
+							typename geometry_traits<TElem>::const_iterator iterEnd)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	static const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
@@ -609,8 +610,8 @@ template <class TElem>
 bool
 VTKOutput<TDiscreteFunction>::
 write_elements_offsets(	FILE* File,
-										typename geometry_traits<TElem>::iterator iterBegin,
-										typename geometry_traits<TElem>::iterator iterEnd,
+										typename geometry_traits<TElem>::const_iterator iterBegin,
+										typename geometry_traits<TElem>::const_iterator iterEnd,
 										int& n)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
@@ -634,8 +635,8 @@ template <class TElem>
 bool
 VTKOutput<TDiscreteFunction>::
 write_elements_types(FILE* File,
-					typename geometry_traits<TElem>::iterator iterBegin,
-					typename geometry_traits<TElem>::iterator iterEnd)
+					typename geometry_traits<TElem>::const_iterator iterBegin,
+					typename geometry_traits<TElem>::const_iterator iterEnd)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	static const ReferenceObjectID refID = ref_elem_type::REFERENCE_OBJECT_ID;
@@ -676,8 +677,8 @@ bool
 VTKOutput<TDiscreteFunction>::
 write_scalar_elementwise(FILE* File,
 						discrete_function_type& u, uint fct,
-						typename geometry_traits<TElem>::iterator iterBegin,
-						typename geometry_traits<TElem>::iterator iterEnd,
+						typename geometry_traits<TElem>::const_iterator iterBegin,
+						typename geometry_traits<TElem>::const_iterator iterEnd,
 						int si)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;

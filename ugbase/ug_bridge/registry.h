@@ -171,6 +171,41 @@ class Registry {
 			return *newClass;
 		}
 
+	/**
+	 * Get Reference to already registered class
+	 */
+		template <typename TClass>
+		ExportedClass_<TClass>& get_class_()
+		{
+			const char* name;
+		// get class names
+			try
+			{
+				name = ClassNameProvider<TClass>::name();
+			}
+			catch(ug::bridge::UG_REGISTRY_ERROR_ClassUnknownToRegistry ex)
+			{
+				std::cout <<"### Registry ERROR: Trying to get class "
+						<< "that has not yet been named."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(""));
+			}
+
+		//	look for class in this registry
+			for(size_t i = 0; i < m_vClass.size(); ++i)
+			{
+			//  compare strings
+				if(strcmp(name, m_vClass[i]->name()) == 0)
+					return *dynamic_cast<ExportedClass_<TClass>* >(m_vClass[i]);
+			}
+
+		//	not found
+			std::cout <<"### Registry ERROR: Trying to get class with name '" << name
+					<< "', that has not yet been registered to this Registry."
+					<< "\n### Please change register process. Aborting ..." << std::endl;
+			throw(UG_REGISTRY_ERROR_RegistrationFailed(name));
+		}
+
 	/// number of classes registered at the Registry
 		size_t num_classes() const						{return m_vClass.size();}
 

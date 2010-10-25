@@ -13,8 +13,8 @@ dofile("../scripts/ug_util.lua")
 -- constants
 dim = 2
 gridName = "unit_square_tri.ugx"
-numPreRefs = 2
-numRefs = 4
+numPreRefs = 1
+numRefs = 2
 
 --------------------------------
 -- User Data Functions (begin)
@@ -68,10 +68,10 @@ end
 
 -- get subset handler
 sh = dom:get_subset_handler()
-if sh:num_subsets() ~= 2 then 
-	print("Domain must have 2 Subsets for this problem.")
-	exit()
-end
+--if sh:num_subsets() ~= 2 then 
+--	print("Domain must have 2 Subsets for this problem.")
+--	exit()
+--end
 sh:set_subset_name("Inner", 0)
 sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
@@ -245,6 +245,7 @@ gmg:set_num_postsmooth(3)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
+if false then
 amg = AMGPreconditioner()
 amg:set_nu1(2)
 amg:set_nu2(2)
@@ -252,6 +253,7 @@ amg:set_gamma(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
 --amg:set_debug(u)
+end
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()

@@ -47,7 +47,7 @@ class ParallelGridFunction : public TGridFunction
 		ParallelGridFunction() : TGridFunction() {};
 
 		// Constructor
-		ParallelGridFunction(std::string name, approximation_space_type& approxSpace, dof_distribution_type& DoFDistr, bool allocate = true)
+		ParallelGridFunction(std::string name, approximation_space_type& approxSpace, const dof_distribution_type& DoFDistr, bool allocate = true)
 			: TGridFunction(name, approxSpace, DoFDistr, allocate)
 		{
 			if(allocate)
@@ -61,6 +61,12 @@ class ParallelGridFunction : public TGridFunction
 		///////////////////////////////
 		// overloaded functions
 		///////////////////////////////
+		void assign_dof_distribution(const dof_distribution_type& DoFDistr, bool allocate = true)
+		{
+			TGridFunction::assign_dof_distribution(DoFDistr, allocate);
+			set_layouts();
+			set_storage_type(PST_UNDEFINED);
+		}
 
 		virtual bool clone_pattern(const this_type& v)
 		{
@@ -163,13 +169,13 @@ class ParallelGridFunction : public TGridFunction
 		// index layouts
 		///////////////////////////////
 
-		inline IndexLayout& get_slave_layout()	{return TGridFunction::m_pDoFDistribution->get_slave_layout();}
-		inline IndexLayout& get_master_layout()	{return TGridFunction::m_pDoFDistribution->get_master_layout();}
-		inline IndexLayout& get_vertical_slave_layout()		{return TGridFunction::m_pDoFDistribution->get_vertical_slave_layout();}
-		inline IndexLayout& get_vertical_master_layout()	{return TGridFunction::m_pDoFDistribution->get_vertical_master_layout();}
+		inline IndexLayout& get_slave_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_slave_layout();}
+		inline IndexLayout& get_master_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_master_layout();}
+		inline IndexLayout& get_vertical_slave_layout()		{return TGridFunction::m_pNonConstDoFDistribution->get_vertical_slave_layout();}
+		inline IndexLayout& get_vertical_master_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_vertical_master_layout();}
 
-		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return TGridFunction::m_pDoFDistribution->get_communicator();;}
-		inline pcl::ProcessCommunicator& get_process_communicator()	{return TGridFunction::m_pDoFDistribution->get_process_communicator();}
+		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return TGridFunction::m_pNonConstDoFDistribution->get_communicator();;}
+		inline pcl::ProcessCommunicator& get_process_communicator()	{return TGridFunction::m_pNonConstDoFDistribution->get_process_communicator();}
 
 		///////////////////////////////
 		// help functions

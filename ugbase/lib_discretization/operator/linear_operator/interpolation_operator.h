@@ -49,7 +49,7 @@ bool InterpolateFunctionOnElem( bool (*InterpolFunction)(const MathVector<TGridF
 	ReferenceMapping<ref_elem_type, domain_type::dim> mapping;
 
 	// iterate over all elements
-	typename geometry_traits<TElem>::iterator iterBegin, iterEnd, iter;
+	typename geometry_traits<TElem>::const_iterator iterBegin, iterEnd, iter;
 	iterBegin = u.template begin<TElem>(si);
 	iterEnd = u.template end<TElem>(si);
 

@@ -61,34 +61,34 @@ class VTKOutput{
 
 		template <typename TElem>
 		void count_elem_conn(discrete_function_type& u, int si,
-								typename geometry_traits<TElem>::iterator iterBegin,
-								typename geometry_traits<TElem>::iterator iterEnd);
+								typename geometry_traits<TElem>::const_iterator iterBegin,
+								typename geometry_traits<TElem>::const_iterator iterEnd);
 
 		template <typename TElem>
 		bool write_points_elementwise(	FILE* File, discrete_function_type& u,
-											typename geometry_traits<TElem>::iterator iterBegin,
-											typename geometry_traits<TElem>::iterator iterEnd, int& n);
+											typename geometry_traits<TElem>::const_iterator iterBegin,
+											typename geometry_traits<TElem>::const_iterator iterEnd, int& n);
 
 		template <typename TElem>
 		bool write_elements_connectivity(	FILE* File,
-											typename geometry_traits<TElem>::iterator iterBegin,
-											typename geometry_traits<TElem>::iterator iterEnd);
+											typename geometry_traits<TElem>::const_iterator iterBegin,
+											typename geometry_traits<TElem>::const_iterator iterEnd);
 
 		template <typename TElem>
 		bool write_elements_offsets(	FILE* File,
-										typename geometry_traits<TElem>::iterator iterBegin,
-										typename geometry_traits<TElem>::iterator iterEnd, int& n);
+										typename geometry_traits<TElem>::const_iterator iterBegin,
+										typename geometry_traits<TElem>::const_iterator iterEnd, int& n);
 
 		template <typename TElem>
 		bool write_elements_types(	FILE* File,
-									typename geometry_traits<TElem>::iterator iterBegin,
-									typename geometry_traits<TElem>::iterator iterEnd);
+									typename geometry_traits<TElem>::const_iterator iterBegin,
+									typename geometry_traits<TElem>::const_iterator iterEnd);
 
 		template <typename TElem>
 		bool write_scalar_elementwise(	FILE* File,
 										discrete_function_type& u, uint fct,
-										typename geometry_traits<TElem>::iterator iterBegin,
-										typename geometry_traits<TElem>::iterator iterEnd, int si);
+										typename geometry_traits<TElem>::const_iterator iterBegin,
+										typename geometry_traits<TElem>::const_iterator iterEnd, int si);
 
 
 	private:
