@@ -73,17 +73,40 @@ int TestFuncPointer(void* func, int a, int b) {
 	return function(a, b);
 }
 
-class TestClass1 {
+class RefTestClass {
 public:
 
+	RefTestClass() {
+	};
+
+	const RefTestClass& getObject() const {
+		return *this;
+	}
+};
+
+class TestClass1 {
+public:
+	RefTestClass obj;
+
 	TestClass1() {
-		//
 	}
 
 	std::string hello(int a, int b) {
 		std::stringstream result;
 		result << "Hello, World! I'm a class!" << a << ", " << b;
 		return result.str();
+	}
+
+	const RefTestClass& getObject() {
+		return obj;
+	}
+
+//	void setObject(const RefTestClass& o) {
+//		obj = o;
+//	}
+
+	void setObject(RefTestClass& o) {
+		obj = o;
 	}
 };
 
@@ -102,14 +125,22 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
-	const char* grp = "/ug4/Grid";
+	//	std::string grp = "/ug4/vrl";
 
 	VRL_DBG("INIT", 1);
 
-
-
 	static ug::bridge::Registry testReg;
 	using namespace ug;
+
+	testReg.add_class_<RefTestClass > ("RefTestClass")
+			.add_constructor().
+			add_method("hello", &RefTestClass::getObject);
+
+	testReg.add_class_<TestClass1 > ("TestClass")
+			.add_constructor()
+			.add_method("hello", &TestClass1::hello)
+			.add_method("getObject", &TestClass1::getObject)
+			.add_method("setObject", &TestClass1::setObject);
 
 	//	testReg.add_class_<TestClass1 > ("TestClass", grp)
 	//			.add_constructor()
@@ -126,7 +157,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 
 
-	//	testReg.add_function("UGAddInt", &TestAdd);
+	//		testReg.add_function("UGAddInt", &TestAdd);
 	//	testReg.add_function("UGMultInt", &TestMult);
 	//	testReg.add_function("TestFuncPointer", &TestFuncPointer);
 	//	testReg.add_function("UGHello", &TestHello);
@@ -140,12 +171,14 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-	ug::bridge::RegisterStandardInterfaces(testReg);
+	//	ug::bridge::RegisterStandardInterfaces(testReg);
 	//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
 	ug::vrl::SetVRLRegistry(&testReg);
+
+	//	std::cout << "TEST:" << grp << std::endl;
 
 	return (jint) retVal;
 }
@@ -169,39 +202,54 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 	VRL_DBG("BEFORE_GET_METHOD 2", 1);
 
-	const ug::bridge::ExportedMethod* method =
-			ug::vrl::getMethodBySignature(
-			env, ug::vrl::vrlRegistry,
-			clazz, ug::vrl::boolJ2C(readOnly), name, params);
 
 
-	if (method==NULL && readOnly==false) {
-		method = ug::vrl::getMethodBySignature(
-			env, ug::vrl::vrlRegistry,
-				clazz, ug::vrl::boolJ2C(true), name, params);
-	}
-	
-//	
+	//
 
-	ug::vrl::jobjectArray2ParamStack(env, paramsIn, method->params_in(), params);
+
 
 
 	//	ug::vrl::displayMessage("Test-Message",">> Hello from UG4",ug::vrl::INFO);
 
+	jobject result = NULL;
 
 	try {
 
+		const ug::bridge::ExportedMethod* method =
+				ug::vrl::getMethodBySignature(
+				env, ug::vrl::vrlRegistry,
+				clazz, ug::vrl::boolJ2C(readOnly), name, params);
+
+
+		if (method == NULL && readOnly == false) {
+			method = ug::vrl::getMethodBySignature(
+					env, ug::vrl::vrlRegistry,
+					clazz, ug::vrl::boolJ2C(true), name, params);
+		}
+
+		VRL_DBG("AFTER_GET_METHOD", 1);
+
+		ug::vrl::jobjectArray2ParamStack(env, paramsIn, method->params_in(), params);
+
+		VRL_DBG("AFTER_PARAM", 1);
+
 		method->execute((void*) objPtr, paramsIn, paramsOut);
+
+		VRL_DBG("AFTER_EXECUTE", 1);
+
+		if (paramsOut.size() > 0) {
+			result = ug::vrl::param2JObject(env, paramsOut, 0);
+		}
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 		std::cout << "Incopatible Conversion from " << ex.m_from << " : " << ex.m_to << std::endl;
+	} catch (ug::bridge::ERROR_BadConversion ex) {
+		std::cout << "Incopatible Conversion from " << ex.m_from << " : " << ex.m_to << std::endl;
 	}
 
-	jobject result = NULL;
 
-	if (paramsOut.size() > 0) {
-		result = ug::vrl::param2JObject(env, paramsOut, 0);
-	}
+
+
 	return result;
 }
 
@@ -242,7 +290,7 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 		const ug::bridge::IExportedClass& clazz = ug::vrl::vrlRegistry->get_class(i);
 
 		if (clazz.is_instantiable()) {
-			result.push_back(ug::vrl::exportedClass2Groovy(ug::vrl::vrlRegistry,clazz));
+			result.push_back(ug::vrl::exportedClass2Groovy(ug::vrl::vrlRegistry, clazz));
 		}
 	}
 
@@ -256,10 +304,10 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 	VRL_DBG("FUNCTIONS_DONE", 1);
 
-	for (unsigned int i = 0; i < 7; i++) {
-		std::cout << "Index: " << i << std::endl;
-		std::cout << result[i] << "\n---------------\n";
-	}
+	//	for (unsigned int i = 0; i < 7; i++) {
+	//		std::cout << "Index: " << i << std::endl;
+	//		std::cout << result[i] << "\n---------------\n";
+	//	}
 
 	return ug::vrl::stringArrayC2J(env, result);
 }

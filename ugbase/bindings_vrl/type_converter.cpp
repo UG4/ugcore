@@ -815,7 +815,7 @@ namespace ug {
 					break;
 				case PT_CONST_POINTER:
 				{
-					return pointer2JObject(env, params.to_pointer(index));
+					return pointer2JObject(env, (void*)params.to_const_pointer(index));
 				}
 					break;
 			}
