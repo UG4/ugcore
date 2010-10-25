@@ -132,15 +132,15 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	static ug::bridge::Registry testReg;
 	using namespace ug;
 
-	testReg.add_class_<RefTestClass > ("RefTestClass")
-			.add_constructor().
-			add_method("hello", &RefTestClass::getObject);
-
-	testReg.add_class_<TestClass1 > ("TestClass")
-			.add_constructor()
-			.add_method("hello", &TestClass1::hello)
-			.add_method("getObject", &TestClass1::getObject)
-			.add_method("setObject", &TestClass1::setObject);
+//	testReg.add_class_<RefTestClass > ("RefTestClass")
+//			.add_constructor().
+//			add_method("hello", &RefTestClass::getObject);
+//
+//	testReg.add_class_<TestClass1 > ("TestClass")
+//			.add_constructor()
+//			.add_method("hello", &TestClass1::hello)
+//			.add_method("getObject", &TestClass1::getObject)
+//			.add_method("setObject", &TestClass1::setObject);
 
 	//	testReg.add_class_<TestClass1 > ("TestClass", grp)
 	//			.add_constructor()
@@ -171,7 +171,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-	//	ug::bridge::RegisterStandardInterfaces(testReg);
+		ug::bridge::RegisterStandardInterfaces(testReg);
 	//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
