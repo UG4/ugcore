@@ -147,12 +147,12 @@ namespace ug {
 
 			for (unsigned int i = 0; i < numParams; i++) {
 				if (i > 0) {
-					params << ", ";
-					paramsArray << ", ";
+					params << ",\n ";
+					paramsArray << ",\n ";
 				}
 
-				VRL_DBG(std::string("name=") + name, 1);
-				VRL_DBG(i, 1);
+//				VRL_DBG(std::string("name=") + name, 1);
+//				VRL_DBG(i, 1);
 
 				params << paramType2String(paramStackIn.get_type(i),
 						paramStackIn.class_name(i),
