@@ -110,7 +110,7 @@ class VTKOutput{
 		uint m_numberOfDOF;
 
 	protected:
-		static const size_t NAMESIZE = 64;
+		static const size_t NAMESIZE = 64*64;
 
 		char m_seriesname[NAMESIZE];
 		discrete_function_type* m_u;
