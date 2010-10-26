@@ -52,7 +52,8 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		P1DirichletBoundary() :
 			m_pDomain(NULL), m_pPattern(NULL) {	m_mBoundarySegment.clear();}
 
-		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, const char* function, const char* subsets)
+		bool add_boundary_value(typename IBoundaryNumberProvider<dim>::functor_type func,
+								const char* function, const char* subsets)
 		{
 		//	check that function pattern exists
 			if(m_pPattern == NULL)
@@ -84,11 +85,18 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 				return false;
 			}
 
-		//	forward request
-			return add_boundary_value(user, functionGroup.fct_id(0), subsetGroup);
+			return add_boundary_value(func, functionGroup.fct_id(0), subsetGroup);
 		}
 
-		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, size_t fct, SubsetGroup subsetGroup)
+		bool add_boundary_value(IBoundaryNumberProvider<dim>& user,
+								const char* function, const char* subsets)
+		{
+		//	forward request
+			return add_boundary_value(user.get_functor(), function, subsets);
+		}
+
+		bool add_boundary_value(typename IBoundaryNumberProvider<dim>::functor_type func,
+								size_t fct, SubsetGroup subsetGroup)
 		{
 		//	check that function pattern exists
 			if(m_pPattern == NULL)
@@ -134,11 +142,18 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 				std::vector<UserDataFunction>& vSegmentFunction = m_mBoundarySegment[subsetIndex];
 
 			//	remember functor and function
-				vSegmentFunction.push_back(UserDataFunction(fct, user.get_functor()));
+				vSegmentFunction.push_back(UserDataFunction(fct, func));
 			}
 
 		//	we're done
 			return true;
+		}
+
+		bool add_boundary_value(IBoundaryNumberProvider<dim>& user,
+								size_t fct, SubsetGroup subsetGroup)
+		{
+		//	forward request
+			return add_boundary_value(user.get_functor(), fct, subsetGroup);
 		}
 
 		bool add_constant_boundary_value(number value,  const char* function, const char* subsets)
