@@ -10,9 +10,8 @@
 #ifndef __H__UG__CPU_ALGEBRA__MATRIXROW_IMPL__
 #define __H__UG__CPU_ALGEBRA__MATRIXROW_IMPL__
 
-#ifndef FLEXAMG
+
 #include "algebra_misc.h"
-#endif
 
 namespace ug{
 

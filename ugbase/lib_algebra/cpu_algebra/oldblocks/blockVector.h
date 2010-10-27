@@ -1,0 +1,320 @@
+/*
+ *  blockVector.h
+ *  flexamg
+ *
+ *  Created by Martin Rupp on 06.01.10.
+ *  Copyright 2010 G-CSC, University of Frankfurt. All rights reserved.
+ *
+ */
+
+#ifndef __H__UG__CPU_ALGEBRA__BLOCK_VECTOR__
+#define __H__UG__CPU_ALGEBRA__BLOCK_VECTOR__
+
+#include "arrayStorage.h"
+#include "blockDenseMatrix.h"
+
+namespace ug{
+///////////////////////////////////////////////////////////////////////////////////////
+//!
+//! blockVector
+//! template parameters:
+//! 1. value_type: i.e. float, double or blockDenseMatrix (recursive)
+//! 2. storage_type: fixedStorage, arrayStorage
+//! 3. n: with storage_type=fixedStorage, size of the fixed matrix
+//! if storage_type=variableStorage, n is ignored
+template<typename value_type, typename storage_type, size_t n_=0>
+class blockVector
+{
+private:
+//	- storage -
+	typedef typename storage_traits<storage_type, double, n_, 0>::array_type array_type;
+	typedef blockVector<value_type, storage_type, n_> vector_type;
+	enum { fixed_n=n_};
+	array_type values;
+
+	friend class smallInverse<storage_type, n_, n_>;
+
+public:
+	inline void resize(size_t n, bool bZero=true)
+	{
+		values.resize(n, bZero);
+	}
+
+	inline size_t size() const
+	{
+		return values.size();
+	}
+
+
+public:
+// access functions
+	value_type &at(size_t i)
+	{
+		return values[i];
+	}
+	const value_type &at(size_t i) const
+	{
+		return values[i];
+	}
+
+	value_type &operator [](size_t i)
+	{
+		return values[i];
+	}
+	const value_type &operator [] (size_t i) const
+	{
+		return values[i];
+	}
+
+// creation
+	blockVector() : values()
+	{
+	}
+
+	blockVector(double d) : values(n_)
+	{
+		for(size_t i=0; i<n_; i++)
+			values[i] = d;
+	}
+
+	blockVector(size_t n) : values(n)
+	{
+	}
+
+	blockVector(const vector_type &other) : values(other.values)
+	{
+		//UG_ASSERT(0, "thou shall not use the copy constructor for it is slow");
+	}
+
+
+// algebra functions
+	double operator = (double d)
+	{
+		for(size_t i=0; i<size(); i++)
+			at(i) = d;
+		return d;
+	}
+
+	void operator = (const vector_type &other)
+	{
+		values = other.values; // use assignment operator of array class
+	}
+
+// add and substract
+	vector_type operator + (const vector_type &other ) const
+	{
+		if(other.size() == 0)
+			return *this;
+		else
+		{
+			UG_ASSERT(size() == other.size(), "");
+			vector_type erg(size());
+			for(size_t i=0; i<size(); i++)
+				erg.values[i] = values[i] + other.values[i];
+			return erg;
+		}
+	}
+
+	vector_type operator - (const vector_type &other ) const
+	{
+		if(other.size() == 0)
+			return *this;
+		else
+		{
+			UG_ASSERT(size() == other.size(), "");
+			vector_type erg(size());
+			for(size_t i=0; i<size(); i++)
+				erg.values[i] = values[i] - other.values[i];
+			return erg;
+		}
+	}
+
+	void operator += (const vector_type &other )
+	{
+		if(other.size() == 0) return;
+		UG_ASSERT(size() == other.size(), "");
+		for(size_t i=0; i<size(); i++)
+			values[i] += other.values[i];
+	}
+
+	void operator -= (const vector_type &other )
+	{
+		if(other.size() == 0) return;
+
+		UG_ASSERT(size() == other.size(), "");
+		for(size_t i=0; i<size(); i++)
+			values[i] -= other.values[i];
+	}
+
+	//! dot product
+	double operator * (const vector_type &other ) const
+	{
+		if(other.size() == 0) return 0.0;
+		UG_ASSERT(size() == other.size(), "");
+		double s=0;
+		for(size_t i=0; i<size(); i++)
+			s += values[i] * other.values[i];
+		return s;
+	}
+
+	//! scale vector by alpha
+	vector_type operator * (double alpha) const
+	{
+		vector_type erg(size());
+		for(size_t i=0; i<size(); i++)
+			erg[i] = at(i) * alpha;
+		return erg;
+	}
+
+	vector_type& operator *= (number alpha)
+	{
+		for(size_t i=0; i<this->size(); i++)
+			at(i) *= alpha;
+		return *this;
+	}
+
+	//! multiply with matrix, dont use (obviously wrong)
+	//template<typename array_type>
+	//vector_type operator * (const blockDenseMatrix<array_type> &mat )
+	//{
+	//return (mat * (*this));
+	//}
+
+	//! calc this = this/mat = mat^{-1} * this
+
+	inline void operator /= (const blockDenseMatrix<value_type, storage_type, n_, n_> &mat);
+
+	//! return mat^{-1} * this
+
+	vector_type operator / (const blockDenseMatrix<value_type, storage_type, n_, n_> &mat) const
+	{
+		vector_type erg = *this;
+		erg /= mat;
+		return erg;
+	}
+
+	//! return sum_i this[i]^2
+	double norm2() const
+	{
+		double s =0;
+		for(size_t i=0; i<size(); i++) s += at(i)*at(i);
+		return s;
+	}
+
+
+	//! this += alpha *vec . use this to prevent temporary variables
+	void add_mult(double alpha, const vector_type &vec)
+	{
+		for(size_t i=0; i<size(); i++)
+			//add_mult(at(i), alpha, vec(i));
+			AddMult(at(i), vec(i), alpha);
+	}
+
+	//! this -= alpha *vec . use this to prevent temporary variables
+	void sub_mult(const double alpha, const vector_type &vec)
+	{
+		for(size_t i=0; i<size(); i++)
+			AddMult(at(i), vec(i), alpha);
+	}
+
+	//! this = alpha *vec . use this to prevent temporary variables
+	void assign_mult(double alpha, const vector_type &vec)
+	{
+		for(size_t i=0; i<size(); i++)
+			AddMult(at(i), vec(i), alpha);
+	}
+
+
+// print functions
+	void p();
+	void print() { p(); }
+	friend std::ostream &operator << (std::ostream &out, const vector_type &v)
+	{
+		out << "( ";
+		for(size_t i=0; i < v.size(); i++)
+			out << v[i] << " ";
+		out << ") ";
+		return out;
+	}
+};
+
+template<typename value_type, typename storage_type, size_t n>
+inline blockVector<value_type, storage_type, n> operator * (double alpha, const blockVector<value_type, storage_type, n> &v)
+{
+	return v * alpha;
+}
+
+
+ template<typename value_type, typename storage_type, size_t rows_>
+ inline void blockVector<value_type, storage_type, rows_>::operator /= (const blockDenseMatrix<value_type, storage_type, rows_, rows_> &mat )
+ {
+	 smallInverse<storage_type, rows_, rows_> inv;
+	 inv.setAsInverseOf(mat);
+
+	 inv.apply(&values[0], *this);
+ }
+
+// TODO: do this with template specialisation
+// template<typename value_type, typename storage_type>
+// inline void blockVector<value_type, storage_type, 1>::operator /= (const blockDenseMatrix<value_type, storage_type, 1, 1> &mat )
+
+template<>
+inline void blockVector<double, fixedStorage, 1>::operator /= (const blockDenseMatrix<double, fixedStorage, 1, 1> &mat )
+{
+	at(0) = at(0) / mat(0, 0);
+}
+
+
+template<>
+inline void blockVector<double, fixedStorage, 2>::operator /= (const blockDenseMatrix<double, fixedStorage, 2, 2> &mat )
+{
+	double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
+	UG_ASSERT(invD != 0.0, "");
+	double a = invD*(at(0) * mat(1,1) - at(1) * mat(0,1));
+	double b = invD*(at(1) * mat(0,0) - at(0) * mat(1,0));
+	at(0) = a;
+	at(1) = b;
+}
+
+
+/*template<>
+ template<typename array_type>
+ inline void blockDenseMatrix<array_type, 2>::setAsInverseOf(const blockDenseMatrix<array_type, 2> &mat )
+ {
+ double invD = 1.0/(mat(0, 0)*mat(1, 1) - mat(0, 1)*mat(1, 0));
+ ASSERT(invD != 0.0);
+ at(0,0) = invD * mat(1,1);
+ at(0,1) = -invD * mat(0,1);
+ at(1,0) = -invD * mat(1,0);
+ at(1,1) = invD * mat(0,0);
+ }*/
+
+/*
+ a b   1 0
+ c d   0 1
+
+ c    bc/a  ,   c/a      0
+ c    d         0        1
+
+ c    bc/a  ,     c/a      0
+ 0    d-bc/a      -c/a     1
+
+
+ 1    b/a  ,     1/a         0
+ 0    1          -c/(ad-bc)  a/(ad-bc)
+
+ 1    0    ,     d/(ad-bc)      -b/(ad-bc)
+ 0    1          -c/(ad-bc)      a/(ad-bc)
+ */
+
+
+
+template<typename value_type, typename storage_type, size_t n>
+blockVector<value_type, storage_type, n> operator * (double alpha, blockVector<value_type, storage_type, n> &vec)
+{
+	return vec*alpha;
+}
+
+} // namespace ug
+
+#endif

@@ -11,13 +11,6 @@
 #ifndef __H__UG__CPU_ALGEBRA__MATRIXROW__
 #define __H__UG__CPU_ALGEBRA__MATRIXROW__
 
-#ifndef FLEXAMG
-#include "blocks/blocks.h"
-#else
-#include "blocks.h"
-#endif
-
-
 namespace ug{
 ///////////////////////////////////////////////////////////////////
 

@@ -11,7 +11,7 @@
 #ifndef __H__UG__CPU_ALGEBRA__LAPACK_LU_IMPL__
 #define __H__UG__CPU_ALGEBRA__LAPACK_LU_IMPL__
 
-#include "lapack/lapack.h"
+#include "../small_algebra/lapack/lapack.h"
 
 //using namespace std;
 namespace ug{
@@ -22,8 +22,9 @@ template<typename vec_type>
 bool LapackLU::apply(const vec_type &b, vec_type &x)
 {
 #ifndef NDEBUG
-    const size_t nrOfUnknowns = block_vector_traits<typename vec_type::entry_type>::nrOfUnknowns;
-	UG_ASSERT(size == b.size() * nrOfUnknowns && size == x.size() * nrOfUnknowns, " wrong size! has to be " << size << ", but is " << b << " and " << x);
+	const size_t static_size = block_vector_traits<typename vec_type::entry_type>::static_size;
+	UG_ASSERT(size == b.size() * static_size && size == x.size() * static_size,
+			" wrong size! has to be " << size << ", but is " << b << " and " << x);
 #endif
 
 	x = b;
@@ -36,7 +37,7 @@ bool LapackLU::apply(const vec_type &b, vec_type &x)
 		return false;
 	}
 
-	UNUSED_VARIABLE(info);
+	//UNUSED_VARIABLE(info);
 
 //	we're done
 	return true;
@@ -46,10 +47,22 @@ bool LapackLU::apply(const vec_type &b, vec_type &x)
 template<typename matrix_type>
 bool LapackLU::init(const matrix_type &A)
 {
-	// TODO: Use nrOfRows and nrOfCols here. I have changed this due to compile errors. Andreas Vogel
-	// before: const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfUnknowns;
-	const size_t nrOfUnknowns = block_matrix_traits<typename matrix_type::entry_type>::nrOfRows;
-	size = A.num_rows() * nrOfUnknowns;
+	UG_ASSERT(block_matrix_traits<typename matrix_type::entry_type>::is_static,
+			"non-static blockmatrices not fully implemented yet\n");
+	const size_t nrOfRows = block_matrix_traits<typename matrix_type::entry_type>::static_num_rows;
+	UG_ASSERT(nrOfRows == block_matrix_traits<typename matrix_type::entry_type>::static_num_cols, "only square matrices supported");
+	size = A.num_rows() * nrOfRows;
+
+	/*else
+	{
+		UG_ASSERT(0,
+		for(size_t r=0; r<A.num_rows(); r++)
+		{
+			typename matrix_type::cRowIterator it(A, r);
+			if(it.isEnd()) continue;
+			size += GetRows((*it).dValue);
+		}
+	}*/
 
 	if(densemat) delete[] densemat;
 	if(interchange) delete[] interchange;
@@ -67,10 +80,10 @@ bool LapackLU::init(const matrix_type &A)
 	for(size_t r=0; r<A.num_rows(); r++)
 		for(typename matrix_type::cRowIterator it(A, r); !it.isEnd(); ++it)
 		{
-			int rr = r*nrOfUnknowns;
-			int cc = (*it).iIndex*nrOfUnknowns;
-			for(size_t r2=0; r2<nrOfUnknowns; r2++)
-					for(size_t c2=0; c2<nrOfUnknowns; c2++)
+			int rr = r*nrOfRows;
+			int cc = (*it).iIndex*nrOfRows;
+			for(size_t r2=0; r2<nrOfRows; r2++)
+					for(size_t c2=0; c2<nrOfRows; c2++)
 					  densemat[ (rr + r2) + (cc+c2)*size ] = BlockRef((*it).dValue, r2, c2);
 		}
 

@@ -14,12 +14,6 @@
 #include "math.h"
 
 
-
-#include "blocks/blocks.h"
-#ifdef LAPACK_AVAILABLE
-#include "blocks/blockVector.h"
-#endif
-
 #include "template_operations/template_expressions.h"
 #include "vector.h"
 
