@@ -568,9 +568,11 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ugbase \
-                         docs/ug4/additional_pages \
-                         docs/lib_grid/additional_pages
+INPUT                  = docs/lib_grid/additional_pages \
+                         docs/lib_algebra/additional_pages \
+                         ugbase \
+                         docs/ug4/additional_pages
+                         
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -610,7 +612,8 @@ RECURSIVE              = YES
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
 EXCLUDE                =	docs/lib_grid/additional_pages/main_page.txt \
-						ugbase/lib_grid/externals \
+							docs/lib_algebra/additional_pages/main_page.txt \
+							ugbase/lib_grid/externals \
                          	ugbase/pcl/old_pcl \
                          	ug_script/externals \
                          	ug3layer
