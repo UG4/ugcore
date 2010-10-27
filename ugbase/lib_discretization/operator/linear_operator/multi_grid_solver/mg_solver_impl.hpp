@@ -165,10 +165,10 @@ lmgc(size_t lev)
 		UG_DLOG(LIB_DISC_MULTIGRID, 2, " Starting Base solver on level " << lev << ".... \n");
 #endif
 
-		PROFILE_BEGIN(baseSolver);
+		//PROFILE_BEGIN(baseSolver);
 		if(!m_pBaseSolver->apply(*m_c[lev], *m_d[lev]))
 			{UG_LOG("Error in base solver on level " << lev << ".\n"); return false;}
-		PROFILE_END();
+		//PROFILE_END();
 
 	//update defect
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_c[lev]))
