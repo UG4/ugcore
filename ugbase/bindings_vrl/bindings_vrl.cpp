@@ -25,93 +25,6 @@ namespace ug {
 	} // end vrl::
 }// end ug::
 
-
-typedef int (*FunctionPtr)(int, int);
-
-std::string TestHello() {
-	return "Hello, World!";
-}
-
-int TestAdd(int a, int b) {
-	return a + b;
-}
-
-int TestMult(int a, int b) {
-	return a*b;
-}
-
-void* GetTestMult() {
-	return (void*) TestMult;
-}
-
-void* GetTestAdd() {
-	return (void*) TestAdd;
-}
-
-bool TestBoolAnd(bool a, bool b) {
-	return a && b;
-}
-
-double TestDoubleAdd(double a, double b) {
-	return a + b;
-}
-
-std::string TestStringAdd1(std::string a, std::string b) {
-	return a;
-}
-
-std::string TestStringAdd2(std::string a, std::string b) {
-	return b;
-}
-
-std::string TestStringAdd3(std::string a, std::string b, std::string c) {
-	return a + b + c;
-}
-
-int TestFuncPointer(void* func, int a, int b) {
-	FunctionPtr function = (FunctionPtr) func;
-	return function(a, b);
-}
-
-class RefTestClass {
-public:
-
-	RefTestClass() {
-	};
-
-	const RefTestClass& getObject() const {
-		return *this;
-	}
-};
-
-class TestClass1 {
-public:
-	RefTestClass obj;
-
-	TestClass1() {
-	}
-
-	std::string hello(int a, int b) {
-		std::stringstream result;
-		result << "Hello, World! I'm a class!" << a << ", " << b;
-		return result.str();
-	}
-
-	const RefTestClass& getObject() {
-		return obj;
-	}
-
-//	void setObject(const RefTestClass& o) {
-//		obj = o;
-//	}
-
-	void setObject(RefTestClass& o) {
-		obj = o;
-	}
-};
-
-
-
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
@@ -125,60 +38,17 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
-	//	std::string grp = "/ug4/vrl";
-
-	VRL_DBG("INIT", 1);
-
 	static ug::bridge::Registry testReg;
 	using namespace ug;
 
-//	testReg.add_class_<RefTestClass > ("RefTestClass")
-//			.add_constructor().
-//			add_method("hello", &RefTestClass::getObject);
-//
-//	testReg.add_class_<TestClass1 > ("TestClass")
-//			.add_constructor()
-//			.add_method("hello", &TestClass1::hello)
-//			.add_method("getObject", &TestClass1::getObject)
-//			.add_method("setObject", &TestClass1::setObject);
-
-	//	testReg.add_class_<TestClass1 > ("TestClass", grp)
-	//			.add_constructor()
-	//			.add_method("hello", &TestClass1::hello);
-	//
-	//	testReg.add_class_<MGSubsetHandler, ISubsetHandler > ("MGSubsetHandler", grp)
-	//			.add_constructor()
-	//			.add_method("assign_grid", &MGSubsetHandler::assign_grid);
-	//
-	//	testReg.add_class_<ISubsetHandler > ("ISubsetHandler", grp)
-	//			.add_method("num_subsets", &ISubsetHandler::num_subsets)
-	//			.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
-	//			.add_method("set_subset_name", &ISubsetHandler::set_subset_name);
-
-
-
-	//		testReg.add_function("UGAddInt", &TestAdd);
-	//	testReg.add_function("UGMultInt", &TestMult);
-	//	testReg.add_function("TestFuncPointer", &TestFuncPointer);
-	//	testReg.add_function("UGHello", &TestHello);
-	//	testReg.add_function("GetUgAddInt", &GetTestAdd);
-	//	testReg.add_function("GetUgMultInt", &GetTestMult);
-	//	testReg.add_function("UGAndBool", &TestBoolAnd);
-	//	testReg.add_function("UGDouble", &TestDoubleAdd);
-	//testReg.add_function("UGAddString1", &TestStringAdd1);
-	//testReg.add_function("UGAddString2", &TestStringAdd2);
-	//	testReg.add_function("UGAddString3", &TestStringAdd3);
-
 	int retVal = ug::UGInit(arguments.size(), argv);
 
-		ug::bridge::RegisterStandardInterfaces(testReg);
+	ug::bridge::RegisterStandardInterfaces(testReg);
 	//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
 	ug::vrl::SetVRLRegistry(&testReg);
-
-	//	std::cout << "TEST:" << grp << std::endl;
 
 	return (jint) retVal;
 }
@@ -187,7 +57,6 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 (JNIEnv *env, jobject obj,
 		jstring exportedClassName, jlong objPtr, jboolean readOnly,
 		jstring methodName, jobjectArray params) {
-	//	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*) objPtr;
 
 	const ug::bridge::IExportedClass* clazz =
 			ug::vrl::getExportedClassPtrByName(
@@ -196,20 +65,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
 
-	VRL_DBG("BEFORE_GET_METHOD 1", 1);
-
 	std::string name = ug::vrl::stringJ2C(env, methodName);
-
-	VRL_DBG("BEFORE_GET_METHOD 2", 1);
-
-
-
-	//
-
-
-
-
-	//	ug::vrl::displayMessage("Test-Message",">> Hello from UG4",ug::vrl::INFO);
 
 	jobject result = NULL;
 
@@ -220,43 +76,59 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 				env, ug::vrl::vrlRegistry,
 				clazz, ug::vrl::boolJ2C(readOnly), name, params);
 
-
 		if (method == NULL && readOnly == false) {
 			method = ug::vrl::getMethodBySignature(
 					env, ug::vrl::vrlRegistry,
 					clazz, ug::vrl::boolJ2C(true), name, params);
 		}
 
-		VRL_DBG("AFTER_GET_METHOD", 1);
-
-		ug::vrl::jobjectArray2ParamStack(env, paramsIn, method->params_in(), params);
-
-		VRL_DBG("AFTER_PARAM", 1);
+		ug::vrl::jobjectArray2ParamStack(
+				env, paramsIn, method->params_in(), params);
 
 		method->execute((void*) objPtr, paramsIn, paramsOut);
 
-		VRL_DBG("AFTER_EXECUTE", 1);
 
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
-		std::cout << "Incopatible Conversion from " << ex.m_from << " : " << ex.m_to << std::endl;
+		UG_LOG("Incopatible Conversion from " <<
+				ex.m_from << " : " << ex.m_to << std::endl);
 	} catch (ug::bridge::ERROR_BadConversion ex) {
-		std::cout << "Incopatible Conversion from " << ex.m_from << " : " << ex.m_to << std::endl;
+		UG_LOG("Incopatible Conversion from " <<
+				ex.m_from << " : " << ex.m_to << std::endl);
+	} catch (...) {
+		UG_LOG("Unknown exception thrown while"
+				<< " trying to invoke method!" << std::endl);
 	}
-
-
-
 
 	return result;
 }
 
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
 (JNIEnv *env, jobject obj, jlong objPtr) {
-	ug::bridge::IExportedClass* clazz = (ug::bridge::IExportedClass*) objPtr;
-	return (long) clazz->create();
+
+	long result = NULL;
+
+	ug::bridge::IExportedClass* clazz = NULL;
+
+	try {
+		ug::bridge::IExportedClass* clazz =
+				(ug::bridge::IExportedClass*) objPtr;
+		result = (long) clazz->create();
+	} catch (...) {
+		std::string className = "Unknown class";
+		if (clazz != NULL) {
+			className = clazz->name();
+		}
+
+		UG_LOG("Unknown exception thrown while"
+				<< " trying to instanciate class \""
+				<< className << "\"!" << std::endl);
+	}
+
+	return result;
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
@@ -266,50 +138,68 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
 
-	ug::vrl::jobjectArray2ParamStack(env, paramsIn, func->params_in(), params);
-
-	func->execute(paramsIn, paramsOut);
-
 	jobject result = NULL;
 
-	if (paramsOut.size() > 0) {
-		result = ug::vrl::param2JObject(env, paramsOut, 0);
+	try {
+		ug::vrl::jobjectArray2ParamStack(
+				env, paramsIn, func->params_in(), params);
+
+		func->execute(paramsIn, paramsOut);
+
+		if (paramsOut.size() > 0) {
+			result = ug::vrl::param2JObject(env, paramsOut, 0);
+		}
+
+	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
+		std::cout << "Incopatible Conversion from " <<
+				ex.m_from << " : " << ex.m_to << std::endl;
+	} catch (ug::bridge::ERROR_BadConversion ex) {
+		std::cout << "Incopatible Conversion from " <<
+				ex.m_from << " : " << ex.m_to << std::endl;
+	} catch (...) {
+		std::cout << "Unknown exception thrown while"
+				<< " trying to invoke function!" << std::endl;
 	}
+
 	return result;
 }
 
 JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 (JNIEnv *env, jobject obj) {
 
-	std::vector<std::string> result;
+	std::vector<std::string> cResult;
+	jobjectArray jResult =
+			ug::vrl::createEmptyJavaArray(env, "java/lang/String");
 
-	VRL_DBG("CLASSES_DONE", 1);
+	try {
 
-	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
+		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
 
-		const ug::bridge::IExportedClass& clazz = ug::vrl::vrlRegistry->get_class(i);
+			const ug::bridge::IExportedClass& clazz =
+					ug::vrl::vrlRegistry->get_class(i);
 
-		if (clazz.is_instantiable()) {
-			result.push_back(ug::vrl::exportedClass2Groovy(ug::vrl::vrlRegistry, clazz));
+			if (clazz.is_instantiable()) {
+				cResult.push_back(
+						ug::vrl::exportedClass2Groovy(
+						ug::vrl::vrlRegistry, clazz));
+			}
 		}
+
+		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
+			ug::bridge::ExportedFunction& func =
+					ug::vrl::vrlRegistry->get_function(i);
+			cResult.push_back(ug::vrl::exportedFunction2Groovy(func));
+		}
+
+		jResult = ug::vrl::stringArrayC2J(env, cResult);
+
+	} catch (...) {
+		std::cout << "Unknown exception thrown while"
+				<< " trying to convert registered classes to Groovy code!"
+				<< std::endl;
 	}
 
-	VRL_DBG("BEFORE_FUNCTIONS", 1);
-
-	for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
-		ug::bridge::ExportedFunction& func = ug::vrl::vrlRegistry->get_function(i);
-		result.push_back(ug::vrl::exportedFunction2Groovy(func));
-	}
-
-
-	VRL_DBG("FUNCTIONS_DONE", 1);
-
-	//	for (unsigned int i = 0; i < 7; i++) {
-	//		std::cout << "Index: " << i << std::endl;
-	//		std::cout << result[i] << "\n---------------\n";
-	//	}
-
-	return ug::vrl::stringArrayC2J(env, result);
+	return jResult;
 }
 
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName

@@ -1,6 +1,6 @@
 ///*
 // * File:   canvas.h
-// * Author: miho
+// * Author: Michael Hoffer <info@michaelhoffer.de>
 // *
 // * Created on 15. Oktober 2010, 13:37
 // */

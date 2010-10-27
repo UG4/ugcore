@@ -1,6 +1,6 @@
 /*
  * File:   bindings_vrl.h
- * Author: miho
+ * Author: Michael Hoffer <info@michaelhoffer.de>
  *
  * Created on 5. Oktober 2010, 14:54
  */
@@ -13,9 +13,6 @@ namespace ug {
     } // end vrl::
 }// end ug::
 #endif	/*BINDINGS_VRL_H*/
-
-
-
 
 
 //************************************

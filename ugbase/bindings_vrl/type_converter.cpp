@@ -27,7 +27,8 @@ namespace ug {
 				const unsigned int array_length) {
 			jclass stringClass = env->FindClass("java/lang/String");
 
-			jobjectArray result = env->NewObjectArray(array_length, stringClass, 0);
+			jobjectArray result =
+					env->NewObjectArray(array_length, stringClass, 0);
 
 			// convert array elements
 			for (unsigned int i = 0; i < array_length; i++) {
@@ -39,104 +40,57 @@ namespace ug {
 			return result;
 		}
 
-		jobjectArray stringArrayC2J(JNIEnv *env, std::vector<std::string> const& strings) {
-			// it is safe to give a pointer to the first vector element as
-			// std::vector implementation uses contiguous memory
+		jobjectArray createEmptyJavaArray(
+				JNIEnv *env, std::string className) {
+			jclass elementClass = env->FindClass(className.c_str());
+
+			return createEmptyJavaArray(env, elementClass);
+		}
+
+		jobjectArray createEmptyJavaArray(
+				JNIEnv *env, jclass elementClass) {
+
+			return env->NewObjectArray(0, elementClass, 0);
+		}
+
+		jobjectArray stringArrayC2J(
+				JNIEnv *env, std::vector<std::string> const& strings) {
+
 			if (strings.size() > 0) {
+				// it is safe to give a pointer to the first vector element as
+				// std::vector implementation uses contiguous memory
 				return stringArrayC2J(env, &strings[0], strings.size());
 			} else {
-				jclass cls = env->FindClass("java/lang/Object");
+				// create an empty string array
+				jclass cls = env->FindClass("java/lang/String");
 				return env->NewObjectArray(0, cls, 0);
 			}
 		}
 
-		std::vector<std::string> stringArrayJ2C(JNIEnv *env, jobjectArray const& array) {
+		std::vector<std::string> stringArrayJ2C(
+				JNIEnv *env, jobjectArray const& array) {
 
 			std::vector<std::string> result;
 
 			unsigned int length = env->GetArrayLength(array);
 
+			// convert each element of the java object array to a std string
+			// and add it to the result vector
 			for (unsigned int i = 0; i < length; i++) {
-				result.push_back(stringJ2C(env, (jstring) env->GetObjectArrayElement(array, i)));
+				result.push_back(stringJ2C(env,
+						(jstring) env->GetObjectArrayElement(array, i)));
 			}
 
 			return result;
 		}
 
-		//		void generateMethodHeader(
-		//				std::stringstream& result, std::string name,
-		//				ug::bridge::ParameterStack const& paramStackIn,
-		//				ug::bridge::ParameterStack const& paramStackOut,
-		//				bool isFunction = false, std::string prefix = "") {
-		//
-		//			std::stringstream params;
-		//			std::stringstream paramsArray;
-		//
-		//			size_t numParams = paramStackIn.size();
-		//
-		//			for (unsigned int i = 0; i < numParams; i++) {
-		//				if (i > 0) {
-		//					params << ", ";
-		//					paramsArray << ", ";
-		//				}
-		//				params << paramType2String(paramStackIn.get_type(i),
-		//						paramStackIn.class_name(i),
-		//						paramStackIn.class_names(i)) << " p" << i;
-		//
-		//				paramsArray << " p" << i;
-		//			}
-		//
-		//			if (!isFunction) {
-		//				// we always need the visual id to get a reference to the
-		//				// visualization that invokes this method
-		//				// that is why we add a visual id request to the param list
-		//				if (numParams > 0) {
-		//					params << ", ";
-		//					paramsArray << ", ";
-		//				}
-		//				params << " VisualIDRequest id ";
-		//				paramsArray << " id";
-		//			}
-		//
-		//			std::string outType;
-		//			if (paramStackOut.size() > 0) {
-		//				outType = paramType2String(
-		//						paramStackOut.get_type(0),
-		//						paramStackOut.class_name(0),
-		//						paramStackOut.class_names(0), true);
-		//
-		//				bool readOnly =
-		//						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
-		//
-		//				result << createMethodInfo(
-		//						paramStackOut.class_name(0),
-		//						paramStackOut.class_names(0), readOnly) << "\n";
-		//
-		//			} else {
-		//				outType = "void";
-		//			}
-		//
-		//
-		//
-		//			result << "public " << outType << " " << prefix << name << " ("
-		//					<< params.str() << ") {\n"
-		//					<< "Object[] params = [" << paramsArray.str() << "] \n";
-		//
-		//			if (!isFunction) {
-		//				result << "updatePointer(id.getID());\n";
-		//			}
-		//
-		//			if (paramStackOut.size() > 0) {
-		//				result << "return ";
-		//			}
-		//		}
-
 		void generateMethodHeader(
-				std::stringstream& result, ug::bridge::ExportedFunctionBase const& method,
-				bool isFunction = false, std::string prefix = "") {
+				std::stringstream& result,
+				ug::bridge::ExportedFunctionBase const& method,
+				bool isFunction, std::string prefix) {
 
-			std::stringstream params;
-			std::stringstream paramsArray;
+			std::stringstream methodHeaderParams;
+			std::stringstream paramArrayForInvokation;
 
 			std::string name = method.name();
 
@@ -145,35 +99,35 @@ namespace ug {
 
 			size_t numParams = paramStackIn.size();
 
+			// generate method paramters for method header
+			// (including VRL param info) and for method invokation
 			for (unsigned int i = 0; i < numParams; i++) {
 				if (i > 0) {
-					params << ",\n ";
-					paramsArray << ",\n ";
+					methodHeaderParams << ",\n ";
+					paramArrayForInvokation << ", ";
 				}
 
-//				VRL_DBG(std::string("name=") + name, 1);
-//				VRL_DBG(i, 1);
-
-				params << paramType2String(paramStackIn.get_type(i),
+				methodHeaderParams << paramType2String(paramStackIn.get_type(i),
 						paramStackIn.class_name(i),
 						paramStackIn.class_names(i),
 						method.parameter_type_info(i)) << " p" << i;
 
-				paramsArray << " p" << i;
+				paramArrayForInvokation << " p" << i;
 			}
 
 			if (!isFunction) {
 				// we always need the visual id to get a reference to the
-				// visualization that invokes this method
+				// visualization that invokes this method,
 				// that is why we add a visual id request to the param list
 				if (numParams > 0) {
-					params << ", ";
-					paramsArray << ", ";
+					methodHeaderParams << ", ";
+					paramArrayForInvokation << ", ";
 				}
-				params << " VisualIDRequest id ";
-				paramsArray << " id";
+				methodHeaderParams << " VisualIDRequest id ";
+				paramArrayForInvokation << " id";
 			}
 
+			// return value generation
 			std::string outType;
 			if (paramStackOut.size() > 0) {
 				outType = paramType2String(
@@ -185,21 +139,26 @@ namespace ug {
 				bool readOnly =
 						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
 
+				// generate method info including return value info
+				// (equivalent to param info)
 				result << createMethodInfo(
 						paramStackOut.class_name(0),
 						paramStackOut.class_names(0),
 						readOnly, method.return_type_info()) << "\n";
-
 			} else {
 				outType = "void";
 			}
 
-
-
+			// putting it all together
 			result << "public " << outType << " " << prefix << name << " ("
-					<< params.str() << ") {\n"
-					<< "Object[] params = [" << paramsArray.str() << "] \n";
+					<< methodHeaderParams.str() << ") {\n"
+					<< "Object[] params = ["
+					<< paramArrayForInvokation.str() << "] \n";
 
+			// If we are not generating a function it is necessary to
+			// call the updatePointer method. Its purpose is to visually invoke
+			// the setPointer() and getPointer() method before this method is
+			// invoked. Otherwise we might operate on wrong instance
 			if (!isFunction) {
 				result << "updatePointer(id.getID());\n";
 			}
@@ -209,19 +168,24 @@ namespace ug {
 			}
 		}
 
-		std::string exportedFunction2Groovy(ug::bridge::ExportedFunction const& func) {
+		std::string exportedFunction2Groovy(
+				ug::bridge::ExportedFunction const& func) {
 			std::stringstream result;
 
 			std::string group = func.group();
 
-			result << "@ComponentInfo(name=\"" << func.name() << "\", category=\"" << group << "\")\n"
-
-					<< "public class UG4_" << func.name() << " implements Serializable {\n"
+			// create component info that specifies the menu group this
+			// function shall be added to
+			result << "@ComponentInfo(name=\"" << func.name()
+					<< "\", category=\"" << group << "\")\n"
+					<< "public class UG4_" << func.name()
+					<< " implements Serializable {\n"
 					<< "private static final long serialVersionUID=1L;\n";
 
+			// method generation
+			// (in contrast to methods we explicitly specify the function pointer)
 			generateMethodHeader(
 					result, func, true);
-
 			result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction("
 					<< (jlong) & func << " as long, false, params)";
 
@@ -269,7 +233,8 @@ namespace ug {
 			std::string className = "UG4_" + std::string(clazz.name());
 			std::string group = clazz.group();
 
-
+			// create component info that specifies the menu group this
+			// class shall be added to
 			result << "@ComponentInfo(name=\"" << clazz.name()
 					<< "\", category=\"" << group << "\")\n"
 					<< "public class " << className
@@ -279,52 +244,24 @@ namespace ug {
 			result << "public " << className << "() {\n"
 					<< "setClassName(\"" << clazz.name() << "\");\n}\n";
 
-			VRL_DBG(clazz.num_methods(), 1);
-
-			//			for (unsigned int i = 0; i < clazz.num_methods(); i++) {
-			//				const ug::bridge::ExportedMethod &method = clazz.get_method(i);
-			//
-			//				generateMethodHeader(result, method);
-			//
-			//				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
-			//						<< "getClassName(),"
-			//						<< " getPointer().getAddress(), false, \""
-			//						<< method.name() << "\", params)";
-			//
-			//				result << "\n}\n\n";
-			//			}
-
-			//			generateMethods(result, &clazz);
-
+			// gather inheritance information (necessary for type-safety)
 			std::vector<const ug::bridge::IExportedClass*> baseClasses =
 					getParentClasses(reg, &clazz);
-
+			// generate method implementations
 			for (unsigned int i = 0; i < baseClasses.size(); i++) {
 				generateMethods(result, baseClasses[i]);
 				generateConstMethods(result, baseClasses[i]);
 			}
-
-			//			generateMethods(result,clazz);
-
-			//			for (unsigned int i = 0; i < clazz.num_const_methods(); i++) {
-			//				const ug::bridge::ExportedMethod &method = clazz.get_const_method(i);
-			//
-			//				generateMethodHeader(result, method.name(),
-			//						method.params_in(), method.params_out(),false,"const_");
-			//
-			//				result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
-			//						<< "getClassName(),"
-			//						<< " getPointer().getAddress(), true, \"" << method.name() << "\", params)";
-			//
-			//				result << "\n}\n\n";
-			//			}
-
-			result << createMethodInfo(clazz.name(), clazz.class_names(), false, "interactive=false")
-					<< "\nedu.gcsc.vrl.ug4.Pointer getPointer() { super.getPointer()}\n";
+			// generate methods for this pointer handling
+			result << createMethodInfo(clazz.name(), clazz.class_names(),
+					false, "interactive=false")
+					<< "\nedu.gcsc.vrl.ug4.Pointer getPointer()"
+					<< " { super.getPointer()}\n";
 
 			result << "@MethodInfo(interactive=false)\n"
-					<< " void setPointer(" <<
-					createParamInfo(clazz.name(), clazz.class_names(), false, "nullIsValid=true")
+					<< " void setPointer("
+					<< createParamInfo(clazz.name(), clazz.class_names(),
+					false, "nullIsValid=true")
 					<< " edu.gcsc.vrl.ug4.Pointer p) { super.setPointer(p)}\n";
 
 			result << "\n}";
@@ -333,11 +270,15 @@ namespace ug {
 		}
 
 		const std::vector<const ug::bridge::IExportedClass*> getParentClasses(
-				ug::bridge::Registry* reg, const ug::bridge::IExportedClass* clazz) {
+				ug::bridge::Registry* reg,
+				const ug::bridge::IExportedClass* clazz) {
 			std::vector<const ug::bridge::IExportedClass*> result;
+			// search registered classes by name as specified in the
+			// class_names vector and add them to the result vector
 			for (unsigned int i = 0; i < clazz->class_names()->size(); i++) {
 				const ug::bridge::IExportedClass* baseCls =
-						getExportedClassPtrByName(reg, (*clazz->class_names())[i]);
+						getExportedClassPtrByName(
+						reg, (*clazz->class_names())[i]);
 				if (baseCls != NULL) {
 					result.push_back(baseCls);
 				}
@@ -383,20 +324,14 @@ namespace ug {
 		}
 
 		void* jObject2Pointer(JNIEnv *env, jobject obj) {
-			VRL_DBG("INIT", 1);
 			jclass argClass = env->GetObjectClass(obj);
-			VRL_DBG("AFTER GET_OBJECT", 1);
 			jmethodID ajf = env->GetMethodID(argClass, "getAddress", "()J");
-			VRL_DBG("AFTER METHOD", 1);
 			return (void*) env->CallLongMethod(obj, ajf);
 		}
 
 		jobject pointer2JObject(JNIEnv *env, void* value) {
-			VRL_DBG("INIT", 1);
 			jclass cls = env->FindClass("edu/gcsc/vrl/ug4/Pointer");
-			VRL_DBG("AFTER CLASS", 1);
 			jmethodID methodID = env->GetMethodID(cls, "<init>", "(J)V");
-			VRL_DBG("AFTER METHOD", 1);
 			return env->NewObject(cls, methodID, (jlong) value);
 		}
 
@@ -414,32 +349,26 @@ namespace ug {
 			std::stringstream paramInfo;
 			std::stringstream classNameOptions;
 
+			// if class name or class names strings are empty no param info can
+			// be generated, return error message as Groovy comment instead
 			if (className == NULL) {
-
-				std::cout << "ERROR: ClassName is NULL" << std::endl;
-
-				return std::string("/*ERROR PARAMINFO NAME*/");
+				return std::string("/*ERROR PARAMINFO CLASSNAME == NULL*/");
 			}
-
 			if (classNames == NULL) {
-				std::cout << "ERROR: ClassNames is NULL" << std::endl;
-				return std::string("/*ERROR PARAMINFO NAMES*/");
+				return std::string("/*ERROR PARAMINFO CLASSNAMES == NULL*/");
 			}
 
+			// creating VRL param options to ensure type-safety
 			classNameOptions
 					<< ", options=\"className=\\\"" << className << "\\\";"
 					<< "classNames=[";
 
-
 			for (unsigned int i = 0; i < classNames->size(); i++) {
-
 				if (i > 0) {
 					classNameOptions << ",";
 				}
-
 				classNameOptions << "\\\"" << (*classNames)[i] << "\\\"";
 			}
-
 
 			classNameOptions << "]";
 
@@ -449,7 +378,7 @@ namespace ug {
 				classNameOptions << "; readOnly=false";
 			}
 
-
+			// putting it all together
 			paramInfo
 					<< "@ParamInfo( name=\""
 					<< className << "\""
@@ -467,21 +396,24 @@ namespace ug {
 		std::string createMethodInfo(const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
 				std::string customInfo, std::string customOptions) {
-			std::stringstream paramInfo;
+			std::stringstream methodInfo;
 			std::stringstream classNameOptions;
 
+			// if class name or class names strings are empty no method info can
+			// be generated, return error message as Groovy comment instead
 			if (className == NULL) {
-				return std::string();
+				return std::string("/*ERROR METHODINFO CLASSNAME == NULL*/");
 			}
 
 			if (classNames == NULL) {
-				return std::string();
+				return std::string("/*ERROR METHODINFO CLASSNAMES == NULL*/");
 			}
 
+			// creating VRL param options to ensure type-safety for the return
+			// value
 			classNameOptions
 					<< ", valueOptions=\"className=\\\"" << className << "\\\";"
 					<< "classNames=[";
-
 
 			for (unsigned int i = 0; i < classNames->size(); i++) {
 				if (i > 0) {
@@ -499,19 +431,20 @@ namespace ug {
 				classNameOptions << "; readOnly=false";
 			}
 
-			paramInfo
+			// putting it all together
+			methodInfo
 					<< "@MethodInfo( valueName=\""
 					<< className << "\""
 					<< classNameOptions.str() << "; " << customOptions << "\"";
 
 			if (customInfo.size() > 0) {
-				paramInfo << ", " << customInfo;
+				methodInfo << ", " << customInfo;
 			}
 
 
-			paramInfo << ") ";
+			methodInfo << ") ";
 
-			return paramInfo.str();
+			return methodInfo.str();
 		}
 
 		std::string paramType2String(int paramType,
@@ -528,7 +461,6 @@ namespace ug {
 					if (isOutput) {
 						return "String";
 					} else {
-
 						std::string result =
 								createParamInfo("",
 								new std::vector<const char*>(), false, paramInfo) +
@@ -543,7 +475,8 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(className, classNames, false, paramInfo) +
+								createParamInfo(
+								className, classNames, false, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
 						return result.c_str();
@@ -555,7 +488,8 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(className, classNames, true, paramInfo) +
+								createParamInfo(
+								className, classNames, true, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
 						return result.c_str();
@@ -597,8 +531,6 @@ namespace ug {
 
 			std::string className = getClassName(env, obj);
 
-			VRL_DBG("ClassName: " + className, 1);
-
 			if (className.compare("java.lang.Boolean") == 0) {
 				result = ug::bridge::PT_BOOL;
 			} else if (className.compare("java.lang.Integer") == 0) {
@@ -609,20 +541,28 @@ namespace ug {
 				result = ug::bridge::PT_STRING;
 			} else if (className.compare("edu.gcsc.vrl.ug4.Pointer") == 0) {
 				result = ug::bridge::PT_POINTER;
-			} // what about const pointer?
+			}
+			if (className.compare("edu.gcsc.vrl.ug4.Pointer") == 0) {
+				result = ug::bridge::PT_POINTER;
+			}
+			// What about const pointer?
+			// Answer: compare param types allows
+			// non-const* to const* conversion
+			// That is why we do not check that. We also use the same class for
+			// const and non const pointer. Const checking is done via readOnly
+			// bit of the pointer instance (Java wrapper).
 
 			return result;
 		}
 
 		bool compareParamTypes(JNIEnv *env, jobjectArray params,
 				ug::bridge::ParameterStack const& paramStack) {
-			VRL_DBG("INSIDE:EQUAL", 1);
-			VRL_DBG(paramStack.size(), 1);
+
+			// iterate over all param stack elements and compare their type with
+			// the corresponding elements in the specified Java array
 			for (unsigned int i = 0; i < paramStack.size(); i++) {
 				jobject param = env->GetObjectArrayElement(params, i);
 				uint paramType = paramClass2ParamType(env, param);
-
-				std::stringstream paramcmp;
 
 				// allow non-const * to const *
 				if (paramType == ug::bridge::PT_POINTER &&
@@ -630,11 +570,7 @@ namespace ug {
 					paramType = ug::bridge::PT_CONST_POINTER;
 				}
 
-				paramcmp << "JType: " << paramType << " CType: " << paramStack.get_type(i);
-
-				VRL_DBG(paramcmp.str(), 1);
 				if (paramType != paramStack.get_type(i)) {
-					VRL_DBG("INSIDE:PARAMS_NEQ", 1);
 					return false;
 				}
 			}
@@ -649,40 +585,39 @@ namespace ug {
 				std::string methodName,
 				jobjectArray params) {
 
-
+			// we allow invokation of methods defined in parent classes
 			std::vector<const ug::bridge::IExportedClass*> classes =
 					getParentClasses(reg, clazz);
 
+			// iterate over all classes of the inheritance path
 			for (unsigned i = 0; i < classes.size(); i++) {
 
 				clazz = classes[i];
-
 				unsigned int numMethods = 0;
 
+				// check whether to search const or non-const methods
 				if (readOnly) {
 					numMethods = clazz->num_const_methods();
 				} else {
 					numMethods = clazz->num_methods();
 				}
 
-				VRL_DBG("BEFORE 3:", 1);
-				VRL_DBG(numMethods, 1);
-
-				VRL_DBG(clazz->num_const_methods(), 1);
-
 				for (unsigned int j = 0; j < numMethods; j++) {
-					VRL_DBG("INSIDE", 1);
 					const ug::bridge::ExportedMethod* method = NULL;
 
+					// check whether to search const or non-const methods
 					if (readOnly) {
 						method = &clazz->get_const_method(j);
 					} else {
 						method = &clazz->get_method(j);
 					}
 
-					if (strcmp(method->name().c_str(), methodName.c_str()) == 0 &&
-							compareParamTypes(env, params, method->params_in())) {
-						VRL_DBG("METHOD_FOUND", 1);
+					// if the method name and the parameter types are equal
+					// we found the correct method
+					if (strcmp(method->name().c_str(),
+							methodName.c_str()) == 0 &&
+							compareParamTypes(
+							env, params, method->params_in())) {
 						return method;
 					}
 				}
@@ -691,21 +626,15 @@ namespace ug {
 			return NULL;
 		}
 
-		const ug::bridge::IExportedClass* getExportedClassPtrByName(ug::bridge::Registry* reg,
+		const ug::bridge::IExportedClass* getExportedClassPtrByName(
+				ug::bridge::Registry* reg,
 				std::string className) {
 
 			for (unsigned int i = 0; i < reg->num_classes(); i++) {
 
-				//				VRL_DBG(i, 1);
-
 				const ug::bridge::IExportedClass& clazz = reg->get_class(i);
 
-				//				VRL_DBG("BEFORE_CMP", 1);
-
-				//				VRL_DBG(className + std::string(" == ") + std::string(clazz.name()), 1);
-
 				if (strcmp(clazz.name(), className.c_str()) == 0) {
-					//					VRL_DBG(std::string("CLASS ") + className + std::string(" found"), 1);
 					return &clazz;
 				}
 			}
@@ -713,32 +642,18 @@ namespace ug {
 			return NULL;
 		}
 
-		int jobjectArray2ParamStack(JNIEnv *env, ug::bridge::ParameterStack& paramsOut,
+		void jobjectArray2ParamStack(
+				JNIEnv *env, ug::bridge::ParameterStack& paramsOut,
 				const ug::bridge::ParameterStack& paramsTemplate,
 				jobjectArray const& array) {
 			using namespace ug::bridge;
 
-			//			std::vector<std::string> stringParams;
-
-			//	iterate through the parameter list and copy the value in the associated
-			//	stack entry.
+			//	iterate through the parameter list and copy the value in the
+			//  associated stack entry.
 			for (int i = 0; i < paramsTemplate.size(); ++i) {
 				int type = paramsTemplate.get_type(i);
-				//				const std::vector<const char*>* classNames = paramsTemplate.class_names(i);
-				//
-				//				std::stringstream paramMessage;
-				//
-				//				paramMessage << "CLASSNAMES for PARAM " << i << ": ";
-				//
-				//				for (unsigned int j = 0; j < classNames->size(); j++) {
-				//					paramMessage << "(" << j << "):" << (*classNames)[j] << ",";
-				//				}
-				//
-				//				VRL_DBG(paramMessage.str(), 1);
-
 
 				jobject value = env->GetObjectArrayElement(array, i);
-
 
 				switch (type) {
 					case PT_BOOL:
@@ -758,33 +673,39 @@ namespace ug {
 						break;
 					case PT_STRING:
 					{
-						paramsOut.push_string(jObject2String(env, value).c_str(), true);
+						paramsOut.push_string(
+								jObject2String(env, value).c_str(), true);
 					}
 						break;
 
 					case PT_POINTER:
 					{
 						paramsOut.push_pointer(jObject2Pointer(env, value),
-								paramsTemplate.class_names(i)); //DON'T USE paramsTemplate here!!! Use the original type string of value
+								paramsTemplate.class_names(i));
+						//DON'T USE paramsTemplate here!!!
+						// Use the original type string of value
+						// VRL now checks the type string and does not allow
+						// incompatible connections. Thus, this should not a
+						// problem anymore.
 					}
 						break;
 					case PT_CONST_POINTER:
 					{
 						paramsOut.push_const_pointer(
-								jObject2Pointer(env, value), paramsTemplate.class_names(i));
+								jObject2Pointer(env, value),
+								paramsTemplate.class_names(i));
 					}
 						break;
 				}
 
-			}
-
-			return 0;
+			} // end for
 		}
 
-		jobject param2JObject(JNIEnv *env, ug::bridge::ParameterStack& params, int index) {
+		jobject param2JObject(
+				JNIEnv *env, ug::bridge::ParameterStack& params, int index) {
 			using namespace ug::bridge;
-			//	iterate through the parameter list and copy the value in the associated
-			//	stack entry.
+			//	iterate through the parameter list and copy the value in the 
+			//	associated stack entry.
 			int type = params.get_type(index);
 
 			switch (type) {
@@ -815,55 +736,13 @@ namespace ug {
 					break;
 				case PT_CONST_POINTER:
 				{
-					return pointer2JObject(env, (void*)params.to_const_pointer(index));
+					return pointer2JObject(
+							env, (void*) params.to_const_pointer(index));
 				}
 					break;
 			}
 
 			return jobject();
 		}
-
-		//		jobject messageTypeC2J(JNIEnv *env, MessageType type) {
-		//			jclass enumCls = env->FindClass("eu/mihosoft/vrl/visual/MessageType");
-		//
-		//			jmethodID methodID = env->GetStaticMethodID(enumCls,
-		//					"values", "()[Leu/mihosoft/vrl/visual/MessageType;");
-		//
-		//			if (env->ExceptionCheck()) {
-		//				VRL_DBG("EXEPTION 0:", 1);
-		//				env->ExceptionDescribe();
-		//			}
-		//
-		//			jobjectArray values = (jobjectArray) env->CallObjectMethod(enumCls, methodID);
-		//
-		//			if (env->ExceptionCheck()) {
-		//				VRL_DBG("EXEPTION 1:", 1);
-		//				env->ExceptionDescribe();
-		//			}
-		//
-		//			jobject result = env->GetObjectArrayElement(values, type);
-		//
-		//
-		//			methodID = env->GetMethodID(
-		//					(jclass) getClass(env, result), "name", "()Ljava/lang/String;");
-		//
-		//			if (env->ExceptionCheck()) {
-		//				VRL_DBG("EXEPTION 2:", 1);
-		//				env->ExceptionDescribe();
-		//			}
-		//
-		//			jobject name = env->CallObjectMethod(result,
-		//					methodID);
-		//
-		//
-		//			VRL_DBG(jObject2String(env, name), 1);
-		//
-		//			if (env->ExceptionCheck()) {
-		//				VRL_DBG("EXEPTION 3:", 1);
-		//				env->ExceptionDescribe();
-		//			}
-		//
-		//			return result;
-		//		}
 	} // end vrl::
 }// end ug::
