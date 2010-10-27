@@ -14,7 +14,6 @@
 #include "common/common.h"
 
 
-#include "cpu_algebra/template_operations/template_expressions.h"
 // operator interface
 #include "operator/operator.h"
 
@@ -24,6 +23,18 @@
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 
+
+/////////////////////////////////////////////
+//   small_algebra
+/////////////////////////////////////////////
+
+#include "small_algebra/small_algebra.h"
+
+#ifdef LAPACK_AVAILABLE
+#ifdef BLAS_AVAILABLE
+#include "small_algebra/lapack/lapack.h"
+#endif
+#endif
 
 /** Define different algebra types.
  *  An Algebra should export the following typedef:
@@ -43,7 +54,6 @@
 
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
-#include "cpu_algebra/lapack/lapack.h"
 #include "cpu_algebra/lapack_lu.h"
 #endif
 #endif

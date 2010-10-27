@@ -28,12 +28,12 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 
 	public:
 		LinearSolver() :
-			m_pPrecond(NULL), m_pConvCheck(NULL)
+			m_A(NULL), m_pPrecond(NULL), m_pConvCheck(NULL)
 		{}
 
 		LinearSolver( 	ILinearIterator<vector_type,vector_type>* Precond,
 						IConvergenceCheck& ConvCheck) :
-							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
+							m_A(NULL), m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
 			{};
 
 		void set_convergence_check(IConvergenceCheck& convCheck) {m_pConvCheck = &convCheck;}
@@ -71,6 +71,12 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 
 		virtual bool apply_return_defect(vector_type& cNLOut, vector_type& dNLIn)
 		{
+			if(m_A == NULL)
+			{
+				UG_LOG("ERROR: In 'LinearSolver::apply': Matrix A not set.\n");
+				return false;
+			}
+
 			if(m_pConvCheck == NULL)
 			{
 				UG_LOG("ERROR: In 'LinearSolver::apply': Convergence check not set.\n");
@@ -119,7 +125,12 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 				m_pConvCheck->update(d);
 			}
 
-			return m_pConvCheck->post();
+			if(!m_pConvCheck->post())
+			{
+				UG_LOG("ERROR in 'LinearSolver::apply': post-convergence-check signaled failure. Aborting.\n");
+				return false;
+			}
+			return true;
 		}
 
 		virtual bool apply(vector_type& cNLOut, const vector_type& dNLIn)

@@ -73,7 +73,7 @@ struct amg_nodeinfo
 
 	inline size_t get_val() const
 	{
-		UG_ASSERT(rating > 0 && rating < 1000, "rating is " << rating << ", out of bounds [0, 1000]");
+		UG_ASSERT(rating >= 0 && rating < 1000, "rating is " << rating << ", out of bounds [0, 1000]");
 		return (int)rating;
 	}
 };

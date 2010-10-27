@@ -304,12 +304,17 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	if(unassigned > 0)
 		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, posInConnections, theta);
 
+/*#ifdef UG_PARALLEL
+	P.set_storage_type(PST_CONSISTENT);
+#endif*/
+
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_P
 	cout << endl << "Prolongation level " << level << endl;
 	P.print();
 #endif
+
 
 	// construct restriction R = I_{h->2h}
 	/////////////////////////////////////////
@@ -320,6 +325,10 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	// construct restriction R = I_{h -> 2h}
 	R.create_as_transpose_of(P);
 	// R is already finalized
+
+/*#ifdef UG_PARALLEL
+	R.set_storage_type(PST_CONSISTENT);
+#endif*/
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -430,15 +439,15 @@ bool amg<TAlgebra>::init_amg()
 	int i=0;
 	while(i< max_levels-1)
 	{
+		SMO[i].setmatrix(A[i]);
 		m_presmoothers[i] = m_presmoother->clone();
-		SparseMatrixOperator<matrix_type, vector_type> SMO(*A[i]);
-		m_presmoothers[i]->init(SMO);
+		m_presmoothers[i]->init(SMO[i]);
 		if(m_presmoother == m_postsmoother)
 			m_postsmoothers[i] = m_presmoothers[i];
 		else
 		{
 			m_postsmoothers[i] = m_postsmoother->clone();
-			m_postsmoothers[i]->init(SMO);
+			m_postsmoothers[i]->init(SMO[i]);
 		}
 
 		double L = A[i]->num_rows();
@@ -454,20 +463,25 @@ bool amg<TAlgebra>::init_amg()
 		//smoother[i].init(*A[i]);
 
 		A[i+1] = new matrix_type;
+#ifdef UG_PARALLEL
+		A[i+1]->set_storage_type(PST_ADDITIVE);
+#endif
 		create_AMG_level(*A[i+1], R[i], *A[i], P[i], i);
 
 		i++;
 	}
 
-	int nrOfUnknowns = block_vector_traits< typename vector_type::entry_type >::nrOfUnknowns;
+	UG_ASSERT(block_vector_traits< typename vector_type::entry_type >::is_static, "dynamic not yet implemented");
+	int static_nrUnknowns = block_vector_traits< typename vector_type::entry_type >::static_size;
 
 	UG_LOG("Creating level " << i << " (" << A[i]->num_rows() << " nodes, total "
-			<< A[i]->num_rows()*nrOfUnknowns << " unknowns)" << endl << "Using Direct Solver on Matrix "
-			<< A[i]->num_rows()*nrOfUnknowns << "x" << A[i]->num_rows()*nrOfUnknowns << ". ");
+			<< A[i]->num_rows()*static_nrUnknowns << " unknowns)" << endl << "Using Direct Solver on Matrix "
+			<< A[i]->num_rows()*static_nrUnknowns << "x" << A[i]->num_rows()*static_nrUnknowns << ". ");
 
 	stopwatch SW; SW.start();
-	SparseMatrixOperator<matrix_type, vector_type> SMO(*A[i]);
-	m_basesolver->init(SMO);
+	SMO[i].setmatrix(A[i]);
+	m_basesolver->init(SMO[i]);
+
 	UG_LOG("Coarse Solver Setup took " << SW.ms() << "ms." << endl);
 
 	used_levels = i+1;
@@ -577,7 +591,6 @@ bool amg<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type
 
 	if(level == used_levels-1)
 	{
-		UG_LOG("basesolver!\n");
 		m_basesolver->apply_return_defect(c, d);
 		return true;
 	}

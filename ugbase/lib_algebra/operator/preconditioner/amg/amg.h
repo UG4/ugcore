@@ -75,17 +75,19 @@ template <typename matrix_type, typename vector_type>
 class SparseMatrixOperator : public virtual IMatrixOperator<vector_type, vector_type, matrix_type >
 {
 	public:
-		SparseMatrixOperator(matrix_type &Matrix) : m_Matrix(Matrix) { }
+		SparseMatrixOperator() {}
+		SparseMatrixOperator(matrix_type *pMatrix) : m_pMatrix(pMatrix) { }
+		void setmatrix(matrix_type *pMatrix) { m_pMatrix = pMatrix; }
 		bool init(const vector_type &) { return true; }
 		bool init() { return true; }
 		bool apply(vector_type &c, const vector_type &d)
 		{
-			MatMult(c, 1.0, m_Matrix, d);
+			MatMult(c, 1.0, *m_pMatrix, d);
 			return true;
 		}
 		bool apply_sub(vector_type &c, const vector_type &d)
 		{
-			MatMultAdd(c, -1.0, m_Matrix, d, 1.0, c);
+			MatMultAdd(c, -1.0, *m_pMatrix, d, 1.0, c);
 			return true;
 		}
 
@@ -93,10 +95,10 @@ class SparseMatrixOperator : public virtual IMatrixOperator<vector_type, vector_
 
 	public:
 	// 	Access to matrix
-		virtual matrix_type& get_matrix() { return m_Matrix; };
+		virtual matrix_type& get_matrix() { return *m_pMatrix; };
 
 	private:
-		matrix_type &m_Matrix;
+		matrix_type *m_pMatrix;
 };
 
 // AMG
@@ -249,6 +251,7 @@ private:
 	SparseMatrix<double> R[AMG_MAX_LEVELS]; ///< R Restriction Matrices
 	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Prolongation Matrices
 	matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
+	SparseMatrixOperator<matrix_type, vector_type> SMO[AMG_MAX_LEVELS];
 
 	pcl::ParallelCommunicator<IndexLayout>
 		*com[AMG_MAX_LEVELS]; 				///< the communicator objects on the levels
