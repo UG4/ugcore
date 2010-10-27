@@ -64,16 +64,35 @@ void
 VariableArray1<T>::resize(size_t newN)
 {
 	if(newN == n) return;
-	if(values) delete[] values;
-	n = newN;
-	if(n <= 0)
+
+	if(newN <= 0)
 	{
+		if(values) delete[] values;
 		values = NULL;
 		n = 0;
 		return;
 	}
-	values = new T[n];
-	//memset(values, 0, sizeof(T)*n); // ?
+	value_type *new_values = new T[n];
+	memset(new_values, 0, sizeof(T)*n); // todo: think about that
+
+	/*
+	if(storage_traits<value_type>::is_static)
+	{
+		for(int i=0; i<n; i++)
+			new_values[i] = values[i];
+	}
+	else {
+	// we are using swap to avoid re-allocations
+	 */
+	size_t minN = min(n, newN);
+	for(int i=0; i<minN; i++)
+		swap(new_values[i], values[i]);
+
+	if(values) delete[] values;
+	values = new_values;
+	n = newN;
+
+
 }
 
 template<typename T>
@@ -186,16 +205,42 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 {
 	assert(newRows >= 0 && newCols >= 0);
 	if(newRows == rows && newCols == cols) return;
-	if(values) delete[] values;
-	rows = newRows;
-	cols = newCols;
-	if(rows == 0 && cols == 0)
+
+	if(newRows == 0 && newCols == 0)
 	{
+		rows = cols = 0;
+		if(values) delete[] values;
 		values = NULL;
 		return;
 	}
-	values = new T[rows*cols];
-	memset(values, 0, sizeof(T)*rows*cols);
+
+	value_type *new_values = new T[rows*cols];
+	memset(new_values, 0, sizeof(T)*rows*cols); // todo: think about that
+	/*
+	if(storage_traits<value_type>::is_static)
+	{
+		...
+	}
+	else {
+
+	 */
+	size_t minRows = min(rows, newRows);
+	size_t minCols = min(cols, newCols);
+
+	// we are using swap to avoid re-allocations
+	if(T_ordering==RowMajor)
+		for(size_t r=0; r<minRows; r++)
+			for(size_t c=0; c<minCols; c++)
+				swap(new_values[c+r*cols], values[c+r*cols]);
+	else
+		for(size_t r=0; r<minRows; r++)
+			for(size_t c=0; c<minCols; c++)
+				swap(new_values[r+c*rows], values[r+c*rows]);
+
+	if(values) delete[] values;
+	rows = newRows;
+	cols = newCols;
+	values = new_values;
 }
 
 
