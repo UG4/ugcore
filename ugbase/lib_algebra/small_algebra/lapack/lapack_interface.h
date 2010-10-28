@@ -6,6 +6,10 @@
  * \date 10.08.2010
  *
  * Goethe-Center for Scientific Computing 2010.
+ *
+ *
+ * This file provides sophisticated functions for using DenseMatrices with LAPACK.
+ *
  */
 
 #ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_INTERFACE_H__
@@ -20,6 +24,21 @@ namespace ug{
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// GeneralizedEigenvalueProblem
+//-------------------------------
+/**
+ *	solves the generalized eigenvalue problem
+ *	\f$ A x = \lambda B x\f$ with the LAPACK function \sa gegv.
+ *	Works for double, floats and complex values.
+ * \param	A					DenseMatrix A
+ * \param	X					DenseMatrix X of eigenvectors. Column X[., i] is eigenvector \f$ x_i: \; A x_i =\lambda_i b\f$.
+ * \param	lambda				\f$\lambda\f$-DenseVector
+ * \param	B					DenseMatrix B
+ * \param	bSortEigenvalues	sorts the eigenvalues (experimental)
+ *
+ */
 template<typename A_type, typename B_type>
 int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 		DenseVector<B_type> &lambda, DenseMatrix<A_type> &B, bool bSortEigenvalues=false)

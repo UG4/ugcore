@@ -6,6 +6,15 @@
  * \date 03.08.2010
  *
  * Goethe-Center for Scientific Computing 2010.
+ *
+ *
+ * General Lapack bridge functionality.
+ * - overloaded functions for all lapack functions like sgetrf/dgetrf/cgetrf -> getrf,
+ * - documentation of the lapack functions \sa getrf.
+ * - the functions dont use pointers for all values (for example, m and n).
+ * - enum eTransposeMode for transpose information.
+ * - if you are missing a lapack function, this is the place to put it in
+ *
  */
 
 #ifndef __H__UG__CPU_ALGEBRA__LAPACK_H__
