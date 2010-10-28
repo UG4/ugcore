@@ -89,4 +89,4 @@ public:
 
 
 
-#endif __H__UG__COMMON__DENSEMATRIX_H__
+#endif // __H__UG__COMMON__DENSEMATRIX_H__
