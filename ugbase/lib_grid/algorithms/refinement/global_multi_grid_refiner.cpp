@@ -9,7 +9,7 @@
 
 //define PROFILE_GLOBAL_MULTI_GRID_REFINER if you want to profile
 //the actions in GlobalMultiGridRefiner.
-#define PROFILE_GLOBAL_MULTI_GRID_REFINER
+//#define PROFILE_GLOBAL_MULTI_GRID_REFINER
 #ifdef PROFILE_GLOBAL_MULTI_GRID_REFINER
 	#define GMGR_PROFILE_FUNC()	PROFILE_FUNC()
 	#define GMGR_PROFILE(name)	PROFILE_BEGIN(name)
