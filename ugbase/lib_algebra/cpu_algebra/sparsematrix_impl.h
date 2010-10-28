@@ -106,6 +106,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 			if(get_connection_nr(r, newCols, nr, GREATER_EQUAL))
 				pRowEnd[r] = pRowStart[r]+nr;
 		}
+		cols = newCols;
 	}
 
 	if(newRows < rows)
@@ -137,6 +138,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 		memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t)*newRows);
 		delete[] iMaxNrOfConnections;
 		iMaxNrOfConnections = iNewMaxNrOfConnections;
+		rows = newRows;
 	}
 
 	return true;
