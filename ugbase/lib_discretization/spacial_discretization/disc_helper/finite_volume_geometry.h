@@ -109,7 +109,7 @@ class FV1Geometry {
 				inline const MathVector<world_dim>& normal() const {return Normal;} // includes area
 
 				/// Transposed Inverse of Jacobian in integration point
-				inline const MathMatrix<dim,world_dim>& JTInv(size_t ip) const
+				inline const MathMatrix<world_dim,dim>& JTInv(size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return JtInv;}
 
 				/// Determinante of Jacobian in integration point
@@ -123,13 +123,25 @@ class FV1Geometry {
 				inline number shape(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return vShape[i];}
 
+				/// vector of local gradients in ip point
+				inline const std::vector<number>& shape_vector(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return vShape;}
+
 				/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localGrad[i];}
 
+				/// vector of local gradients in ip point
+				inline const std::vector<MathVector<dim> >& local_grad_vector(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localGrad;}
+
 				/// value of global gradient of shape function i in integration point
 				inline const MathVector<world_dim>& global_grad(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalGrad[i];}
+
+				/// vector of gloabl gradients in ip point
+				inline const std::vector<MathVector<world_dim> >& global_grad_vector(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalGrad;}
 
 				/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return m_numCorners;}
@@ -277,13 +289,25 @@ class FV1Geometry {
 				inline number shape(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return vShape[i];}
 
+				/// vector of local gradients in ip point
+				inline const std::vector<number>& shape_vector(size_t ip) const
+					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return vShape;}
+
 				/// value of local gradient of shape function i in integration point
 				inline const MathVector<dim>& local_grad(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localGrad[i];}
 
+				/// vector of local gradients in ip point
+				inline const std::vector<MathVector<dim> >& local_grad_vector(size_t ip) const
+						{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return localGrad;}
+
 				/// value of global gradient of shape function i in integration point
 				inline const MathVector<world_dim>& global_grad(size_t i, size_t ip) const
 					{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalGrad[i];}
+
+				/// vector of global gradients in ip point
+				inline const std::vector<MathVector<world_dim> >& global_grad_vector(size_t ip) const
+						{UG_ASSERT(ip < num_ip(), "Invalid ip index"); return globalGrad;}
 
 				/// number of corners, that bound the scvf
 				inline size_t num_corners() const {return m_numCorners;}
