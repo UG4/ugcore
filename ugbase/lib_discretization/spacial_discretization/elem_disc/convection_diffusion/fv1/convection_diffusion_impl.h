@@ -20,7 +20,9 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -31,7 +33,8 @@ prepare_element_loop()
 	// Therefore it is not time critical.
 
 	// resize corner coordinates
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
 	m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 	// remember position attachement
@@ -41,13 +44,14 @@ prepare_element_loop()
 				" Domain not set.");
 		return false;
 	}
-
 	m_aaPos = m_pDomain->get_position_accessor();
 
 	return true;
 }
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -60,33 +64,41 @@ finish_element_loop()
 	return true;
 }
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
 FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
-prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
+prepare_element(TElem* elem, const local_vector_type& u,
+								const local_index_type& glob_ind)
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL
 
-	// load corners of this element
+// 	Load corners of this element
 	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
 	{
 		VertexBase* vert = elem->vertex(i);
 		m_vCornerCoords[i] = m_aaPos[vert];
 	}
 
-	// update Geometry for this element
+// 	Update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 	if(!geo.update(elem, m_pDomain->get_subset_handler(), &m_vCornerCoords[0]))
-		{UG_LOG("FVConvectionDiffusionElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
+	{
+		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
+				" Cannot update Finite Volume Geometry.\n"); return false;
+	}
 
+//	we're done
 	return true;
 }
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -211,7 +223,9 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -239,7 +253,9 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -361,7 +377,9 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -389,7 +407,9 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
