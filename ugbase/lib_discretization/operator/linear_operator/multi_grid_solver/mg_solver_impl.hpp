@@ -15,8 +15,18 @@
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
-namespace ug{
+//#define PROFILE_GMG
+#ifdef PROFILE_GMG
+	#define GMG_PROFILE_FUNC()		PROFILE_FUNC()
+	#define GMG_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define GMG_PROFILE_END()		PROFILE_END()
+#else
+	#define GMG_PROFILE_FUNC()
+	#define GMG_PROFILE_BEGIN(name)
+	#define GMG_PROFILE_END()
+#endif
 
+namespace ug{
 
 template <typename TApproximationSpace, typename TAlgebra>
 bool
@@ -53,11 +63,13 @@ lmgc(size_t lev)
 	if(lev > m_baseLevel)
 	{
 	// 	Presmooth
+		GMG_PROFILE_BEGIN(GMG_PreSmooth);
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_nu1))
 		{
 			UG_LOG("Error in premoothing on level " << lev << ".\n");
 			return false;
 		}
+		GMG_PROFILE_END();
 
 		#ifdef UG_PARALLEL
 			if(!m_d[lev-1]->get_vertical_master_layout().empty()){
@@ -143,11 +155,13 @@ lmgc(size_t lev)
 		}
 
 	// 	Postsmooth
+		GMG_PROFILE_BEGIN(GMG_PostSmooth);
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_nu2))
 		{
 			UG_LOG("Error in postsmoothing on level " << lev << ".\n");
 			return false;
 		}
+		GMG_PROFILE_END();
 
 		return true;
 	}
@@ -158,6 +172,7 @@ lmgc(size_t lev)
 		m_d[lev]->set_storage_type(PST_ADDITIVE);
 #endif
 
+		GMG_PROFILE_BEGIN(GMG_BaseSolver);
 		// solve on base level
 		m_c[lev]->set(0.0);
 
@@ -173,6 +188,7 @@ lmgc(size_t lev)
 	//update defect
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_c[lev]))
 			{UG_LOG("Error in updating defect on level " << lev << ".\n"); return false;}
+		GMG_PROFILE_END();
 
 #ifdef UG_PARALLEL
 		UG_DLOG(LIB_DISC_MULTIGRID, 2, " Base solver done.\n");
@@ -202,28 +218,35 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	}
 
 //	init common
+	GMG_PROFILE_BEGIN(GMG_InitCommon);
 	if(!init_common(true))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': Can init common part.\n");
 		return false;
 	}
+	GMG_PROFILE_END();
 
 //	Project current Solution from surface grid onto the level grids
+	GMG_PROFILE_BEGIN(GMG_ProjectSolutionFromSurface);
 	if(!ProjectionSurfaceLevel<dof_distribution_type, vector_type>::
 			surface_to_level(*m_u[m_surfaceLevel], m_pApproxSpace->get_level_dof_distribution(m_surfaceLevel),
 								u, m_pApproxSpace->get_surface_dof_distribution()))
 	{
 		UG_LOG("Projection of solution failed in AssembledMultiGridCycle::prepare\n"); return false;
 	}
+	GMG_PROFILE_END();
 
 // 	Project solution from surface grid to coarser grid levels
+	GMG_PROFILE_BEGIN(GMG_ProjectSolutionDown);
 	for(size_t lev = m_surfaceLevel; lev != m_baseLevel; --lev)
 	{
 		if(!m_vProjection[lev-1]->apply(*m_u[lev-1], *m_u[lev]))
 			{UG_LOG("ERROR while projecting solution to coarse grid function of level "<< lev -1 << ", aborting.\n");return false;}
 	}
+	GMG_PROFILE_END();
 
 // 	Create coarse level operators
+	GMG_PROFILE_BEGIN(GMG_AssembleCoarseGridMatrices);
 	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 	{
 		if(!m_A[lev]->set_dof_distribution(m_pApproxSpace->get_level_dof_distribution(lev)))
@@ -232,13 +255,16 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		if(!m_A[lev]->init(*m_u[lev]))
 			{UG_LOG("ERROR while constructing coarse grid matrices for level "<< lev << ", aborting.\n");return false;}
 	}
+	GMG_PROFILE_END();
 
 //	Init smoother and base solver for coarse grid operators
+	GMG_PROFILE_BEGIN(GMG_InitBaseAndSmoother);
 	if(!init_smoother_and_base_solver())
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': Can init Smoother and Base Solver.\n");
 		return false;
 	}
+	GMG_PROFILE_END();
 
 	return true;
 }
@@ -376,6 +402,7 @@ init_smoother_and_base_solver()
 // 	Init smoother
 //	Todo: maybe we should admit also smoothers depending explicitly on the current solution
 //	todo: since currently m_u may be uninitiallized here if linear operator was passed
+	GMG_PROFILE_BEGIN(GMG_InitSmoother);
 	for(size_t lev = m_baseLevel; lev < m_surfaceLevel; ++lev)
 	{
 		if(!m_vSmoother[lev]->init(*m_A[lev], *m_u[lev]))
@@ -386,10 +413,13 @@ init_smoother_and_base_solver()
 	m_A[m_surfaceLevel] = m_Op;
 	if(!m_vSmoother[m_surfaceLevel]->init(*m_A[m_surfaceLevel], *m_u[m_surfaceLevel]))
 		{UG_LOG("ERROR while initializing smoother for level "<< m_surfaceLevel << ", aborting.\n");return false;}
+	GMG_PROFILE_END();
 
 // 	Prepare base solver
+	GMG_PROFILE_BEGIN(GMG_BaseSolver);
 	if(!m_pBaseSolver->init(*m_A[m_baseLevel], *m_u[m_baseLevel]))
 		{UG_LOG("ERROR while initializing base solver on level "<< m_baseLevel << ", aborting.\n");return false;}
+	GMG_PROFILE_END();
 
 	return true;
 }

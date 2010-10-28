@@ -93,6 +93,9 @@ class AssembledMultiGridCycle :
 			m_vProjection[0] = NULL;
 		};
 
+	//	name
+		virtual const char* name() const {return "Geometric MultiGrid";}
+
 	// 	Setup
 		void set_discretization(IAssemble<dof_distribution_type, algebra_type>& ass) {m_pAss = &ass;}
 		void set_approximation_space(approximation_space_type& approxSpace) {m_pApproxSpace = &approxSpace;}
