@@ -175,6 +175,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				c[i] = s/uii;
 				if(i==0) break;
 			}
+
+#ifdef 	UG_PARALLEL
+		//	Correction is always consistent
+		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
+			c.set_storage_type(PST_CONSISTENT);
+#endif
 			return true;
 		}
 

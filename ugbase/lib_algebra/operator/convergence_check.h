@@ -84,6 +84,9 @@ class IConvergenceCheck
 		/// sets the number of spaces printed before output information
 		virtual void set_offset(int offset) = 0;
 
+		/// get the current offset
+		virtual int get_offset() const = 0;
+
 		/// sets the symbol used for output
 		virtual void set_symbol(char symbol) = 0;
 
@@ -218,6 +221,7 @@ class StandardConvCheck : public IConvergenceCheck
 		number defect() {return m_currentDefect;};
 		int step() {return m_currentStep;}
 
+		int get_offset() const {return m_offset;}
 		void set_offset(int offset){m_offset = offset;}
 		void set_symbol(char symbol){m_symbol = symbol;}
 		void set_name(std::string name) {m_name = name;}

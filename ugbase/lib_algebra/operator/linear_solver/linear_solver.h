@@ -33,11 +33,33 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 
 		LinearSolver( 	ILinearIterator<vector_type,vector_type>* Precond,
 						IConvergenceCheck& ConvCheck) :
-							m_A(NULL), m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
-			{};
+							m_A(NULL), m_pPrecond(Precond)
+			{
+				set_convergence_check(ConvCheck);
+			};
 
-		void set_convergence_check(IConvergenceCheck& convCheck) {m_pConvCheck = &convCheck;}
-		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond) {m_pPrecond = &precond;}
+		virtual const char* name() const {return "Iterative Linear Solver";}
+
+		void set_convergence_check(IConvergenceCheck& convCheck)
+		{
+			m_pConvCheck = &convCheck;
+			m_pConvCheck->set_offset(3);
+			m_pConvCheck->set_symbol('%');
+			stringstream ss; ss << "Iterative Linear Solver";
+			if(m_pPrecond != NULL) ss << " (Precond: " << m_pPrecond->name() << ")";
+
+			m_pConvCheck->set_name(ss.str());
+		}
+		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
+		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
+		{
+			m_pPrecond = &precond;
+			if(m_pConvCheck != NULL)
+			{
+				stringstream ss; ss << "Iterative Linear Solver" << " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_name(ss.str());
+			}
+		}
 
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		{
@@ -103,9 +125,6 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 			//			without initializing the values
 			vector_type c; c.create(cNLOut.size()); c = cNLOut;
 
-			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name("Iterative Linear Solver");
 			m_pConvCheck->start(d);
 
 			// Iteration loop

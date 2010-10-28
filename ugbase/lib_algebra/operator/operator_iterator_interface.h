@@ -28,6 +28,9 @@ class ILinearIterator
 		typedef Y codomain_function_type;
 
 	public:
+	//	Name of Iterator
+		virtual const char* name() const = 0;
+
 	// 	Prepare for Operator J(u) and linearization point u (current solution)
 		virtual bool init(ILinearOperator<Y,X>& J, const Y& u) = 0;
 

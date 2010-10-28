@@ -37,8 +37,28 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
 			{};
 
-		void set_convergence_check(IConvergenceCheck& convCheck) {m_pConvCheck = &convCheck;}
-		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond) {m_pPrecond = &precond;}
+		virtual const char* name() const {return "BiCGStabSolver";}
+
+		void set_convergence_check(IConvergenceCheck& convCheck)
+		{
+			m_pConvCheck = &convCheck;
+			m_pConvCheck->set_offset(3);
+			m_pConvCheck->set_symbol('%');
+			stringstream ss; ss << "CG Solver";
+			if(m_pPrecond != NULL) ss << " (Precond: " << m_pPrecond->name() << ")";
+
+			m_pConvCheck->set_name(ss.str());
+		}
+		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
+		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
+		{
+			m_pPrecond = &precond;
+			if(m_pConvCheck != NULL)
+			{
+				stringstream ss; ss << "CG Solver" << " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_name(ss.str());
+			}
+		}
 
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		{
@@ -120,9 +140,6 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
 			#endif
 
-			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name("CG Solver");
 			m_pConvCheck->start(r);
 
 			number rho, rho_new, beta, alpha, lambda;

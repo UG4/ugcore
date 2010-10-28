@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_INVERSE_INTERFACE__
 
 #include "operator_interface.h"
+#include "convergence_check.h"
 
 namespace ug{
 
@@ -23,6 +24,9 @@ class ILinearOperatorInverse
 		typedef Y codomain_function_type;
 
 	public:
+	//	Name of LinearOperatorInverse
+		virtual const char* name() const = 0;
+
 	// 	Init for Linear Operator L
 		virtual bool init(ILinearOperator<Y,X>& L) = 0;
 
@@ -36,6 +40,12 @@ class ILinearOperatorInverse
 	// 	This is done by iterating: u := u + B(f - A*u)
 	// 	In f the last defect f := f - A*u is returned
 		virtual bool apply_return_defect(Y& u, X& f) = 0;
+
+	//	set the convergence check
+		virtual void set_convergence_check(IConvergenceCheck& convCheck) = 0;
+
+	//	get the convergence check
+		virtual IConvergenceCheck* get_convergence_check() = 0;
 
 	// 	Destructor
 		virtual ~ILinearOperatorInverse() {};

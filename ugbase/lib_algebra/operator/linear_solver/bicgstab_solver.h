@@ -8,6 +8,9 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB_SOLVER__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__BICGSTAB_SOLVER__
 
+#include <iostream>
+#include <sstream>
+
 #include "lib_algebra/operator/operator_interface.h"
 #include "common/profiler/profiler.h"
 #ifdef UG_PARALLEL
@@ -37,8 +40,29 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
 						{};
 
-		void set_convergence_check(IConvergenceCheck& convCheck) {m_pConvCheck = &convCheck;}
-		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond) {m_pPrecond = &precond;}
+		virtual const char* name() const {return "BiCGStabSolver";}
+
+		void set_convergence_check(IConvergenceCheck& convCheck)
+		{
+			m_pConvCheck = &convCheck;
+			m_pConvCheck->set_offset(3);
+			m_pConvCheck->set_symbol('%');
+
+			stringstream ss; ss << "BiCGStab Solver";
+			if(m_pPrecond != NULL) ss << " (Precond: " << m_pPrecond->name() << ")";
+
+			m_pConvCheck->set_name(ss.str());
+		}
+		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
+		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
+		{
+			m_pPrecond = &precond;
+			if(m_pConvCheck != NULL)
+			{
+				stringstream ss; ss << "BiCGStab Solver" << " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_name(ss.str());
+			}
+		}
 
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		{
@@ -103,9 +127,6 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 			vector_type s; s.create(bIn.size()); s = bIn;
 			vector_type q; q.create(xOut.size()); q = xOut;
 
-			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name("BiCGStab Solver");
 			m_pConvCheck->start(bIn);
 
 			#ifdef UG_PARALLEL

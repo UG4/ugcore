@@ -33,8 +33,19 @@ class LapackLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_
 
 	public:
 		LapackLUSolver() :
-			m_pOperator(NULL), m_lapacklu()
+			m_pOperator(NULL), m_lapacklu(), m_pConvCheck(NULL)
 		{};
+
+		virtual const char* name() const {return "LapackLUSolver";}
+
+		void set_convergence_check(IConvergenceCheck& convCheck)
+		{
+			m_pConvCheck = &convCheck;
+			m_pConvCheck->set_offset(3);
+			m_pConvCheck->set_symbol('%');
+			m_pConvCheck->set_name("Lapack LU Solver");
+		}
+		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	//	set operator L, that will be inverted
 		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& Op)
@@ -113,6 +124,9 @@ class LapackLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_
 
 		// lapack inverse
 		LapackLU m_lapacklu;
+
+		// Convergence Check
+		IConvergenceCheck* m_pConvCheck;
 };
 
 } // end namespace ug

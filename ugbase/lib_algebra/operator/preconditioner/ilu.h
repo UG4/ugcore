@@ -116,7 +116,7 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			return new ILUPreconditioner<algebra_type>();
 		}
 
-	//	Destructur
+	//	Destructor
 		~ILUPreconditioner()
 		{
 			m_ILU.destroy();
@@ -131,19 +131,32 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		virtual bool preprocess(matrix_type& mat)
 		{
 		//	TODO: error handling / memory check
-		//	clean up
-			m_ILU.destroy();
-			m_h.destroy();
 
-		// 	Copy matrix
+		//  Rename Matrix for convenience
 
 #if 1
 			matrix_type& A = *this->m_pMatrix;
 			m_ILU = A;
+			m_h.resize(A.num_cols());
 #else
 			matrix_type& A = *this->m_pMatrix;
-			m_ILU.create(A.num_rows(), A.num_cols());
 
+		//	Resize Matrix
+			if(	m_ILU.num_rows() != mat.num_rows() ||
+				m_ILU.num_cols() != mat.num_cols())
+			{
+			//	destroy memory
+				m_ILU.destroy();
+				m_h.destroy();
+
+			//	create new memory
+				m_ILU.create(A.num_rows(), A.num_cols());
+
+			//	Create help vector
+				m_h.create(A.num_cols());
+			}
+
+		// 	Copy matrix
 			for(size_t i=0; i < A.num_rows(); i++)
 			{
 				for(typename matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd(); ++it_k)
@@ -155,9 +168,6 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 #endif
 		// 	Compute ILU Factorization
 			FactorizeILU(m_ILU);
-
-		//	Create help vector
-			m_h.create(A.num_cols());
 
 			return true;
 		}
