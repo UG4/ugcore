@@ -59,6 +59,9 @@ public:
 	operator= (const this_type &rhs);
 
 	this_type &
+	operator= (number rhs);
+
+	this_type &
 	operator+= (const this_type &rhs);
 
 	this_type &
@@ -75,7 +78,7 @@ public:
 	operator-= (const value_type& alpha);
 
 	this_type&
-	operator*= (const value_type& alpha);
+	operator*= (number alpha);
 
 	this_type&
 	operator/= (const value_type& alpha);

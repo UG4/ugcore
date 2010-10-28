@@ -38,6 +38,15 @@ DenseVector<TStorage>::operator = (const DenseVector<TStorage> &rhs)
 
 template<typename TStorage>
 DenseVector<TStorage> &
+DenseVector<TStorage>::operator = (number rhs)
+{
+	for(size_type i=0; i<size(); i++)
+		at(i) = rhs;
+	return *this;
+}
+
+template<typename TStorage>
+DenseVector<TStorage> &
 DenseVector<TStorage>::operator += (const DenseVector<TStorage> &rhs)
 {
 	for(size_type i=0; i<size(); i++)
@@ -86,12 +95,13 @@ DenseVector<TStorage>::operator-=(const typename DenseVector<TStorage>::value_ty
 
 template<typename TStorage>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator*=(const typename DenseVector<TStorage>::value_type &alpha)
+DenseVector<TStorage>::operator*=(number alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		at(i) *= alpha;
 	return *this;
 }
+
 
 template<typename TStorage>
 DenseVector<TStorage> &
