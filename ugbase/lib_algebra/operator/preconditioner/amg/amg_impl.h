@@ -773,10 +773,10 @@ void amg<TAlgebra>::tostring() const
 	if(aggressiveCoarsening)	{UG_LOG("Aggressive Coarsening is on, A" << aggressiveCoarseningNrOfPaths << "-mode." << endl);}
 	else						{UG_LOG("no Aggressive Coarsening" << endl);}
 
-	if(m_presmoother) 	{UG_LOG("presmoother set.\n");}
+	if(m_presmoother) 	{UG_LOG("presmoother is " << m_presmoother->name() << ".\n");}
 	else				{UG_LOG("no presmoother set!\n");}
 
-	if(m_postsmoother) 	{UG_LOG("postsmoother set.\n");}
+	if(m_postsmoother) 	{UG_LOG("postsmoother is " << m_postsmoother->name() << ".\n");}
 	else				{UG_LOG("no postsmoother set!\n");}
 
 	if(m_basesolver)	{UG_LOG("basesolver set\n");}
