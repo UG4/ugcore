@@ -12,6 +12,7 @@
 
 #include "./multi_index.h"
 #include "./function_group.h"
+#include "lib_algebra/lib_algebra.h"
 
 namespace ug{
 
@@ -42,7 +43,7 @@ class LocalIndices
 		typedef MultiIndex<2> multi_index_type;
 
 	public:
-		LocalIndices() : m_pFunctionGroup(NULL)
+		LocalIndices() : m_pFunctionGroup(NULL), m_bAccessAll(true), m_pSubFunctionMap(NULL)
 		{
 			m_vAlgIndices.clear();
 			m_vvDofIndices.clear();
@@ -67,21 +68,25 @@ class LocalIndices
 				m_identitySubFunctionMap.select(fct);
 			}
 
-			// access default function group
-			access_sub_function_group(m_identitySubFunctionMap);
+			// default function group
+			m_pSubFunctionMap = &m_identitySubFunctionMap;
 		}
 
 		/// access only part of the function group
 		bool access_sub_function_group(const SubFunctionMap& subFuncMap)
 		{
 			m_pSubFunctionMap = &subFuncMap;
+			m_bAccessAll = false;
 			return true;
 		}
 
 		/// access all functions in FunctionGroup
 		bool access_all()
 		{
-			return access_sub_function_group(m_identitySubFunctionMap);
+			m_pSubFunctionMap = NULL;
+			m_bAccessAll = true;
+			return true;
+//			return access_sub_function_group(m_identitySubFunctionMap);
 		}
 
 		/// get current sub function map
@@ -155,9 +160,17 @@ class LocalIndices
 		index_type local_index(size_t fct, size_t dof) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
+			if(m_bAccessAll)
+			{
+				UG_ASSERT(fct < m_vvDofIndices.size(), "fct index " << fct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
+				UG_ASSERT(dof < m_vvDofIndices[fct].size(), "local dof index not valid");
+				return  m_vvDofIndices[fct][dof][0];
+			}
+
 			const size_t accFct = (*m_pSubFunctionMap)[fct];
 			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index " << accFct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
 			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "local dof index not valid");
+
 			return m_vvDofIndices[accFct][dof][0];
 		}
 
@@ -172,10 +185,33 @@ class LocalIndices
 		comp_type comp(size_t fct, size_t dof) const
 		{
 			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
+			if(m_bAccessAll)
+			{
+				UG_ASSERT(fct < m_vvDofIndices.size(), "fct index " << fct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
+				UG_ASSERT(dof < m_vvDofIndices[fct].size(), "local dof index not valid");
+				return  m_vvDofIndices[fct][dof][1];
+			}
+
 			const size_t accFct = (*m_pSubFunctionMap)[fct];
 			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index " << accFct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
 			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "local dof index not valid");
 			return m_vvDofIndices[accFct][dof][1];
+		}
+
+		multi_index_type local_multi_index(size_t fct, size_t dof) const
+		{
+			UG_ASSERT(fct < num_fct(), "local fct index '"<< fct <<"' not valid. (num_fct = "<<num_fct()<<")");
+			if(m_bAccessAll)
+			{
+				UG_ASSERT(fct < m_vvDofIndices.size(), "fct index " << fct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
+				UG_ASSERT(dof < m_vvDofIndices[fct].size(), "local dof index not valid");
+				return  m_vvDofIndices[fct][dof];
+			}
+
+			const size_t accFct = (*m_pSubFunctionMap)[fct];
+			UG_ASSERT(accFct < m_vvDofIndices.size(), "accFct index " << accFct << " not valid. (Size = " << m_vvDofIndices.size() << ")\n");
+			UG_ASSERT(dof < m_vvDofIndices[accFct].size(), "local dof index not valid");
+			return m_vvDofIndices[accFct][dof];
 		}
 
 		///////////////////////////
@@ -207,17 +243,22 @@ class LocalIndices
 		// current function group
 		const FunctionGroup* m_pFunctionGroup;
 
-		// sub function group, that is accessed
-		const SubFunctionMap* m_pSubFunctionMap;
-
-		// default sub function group, i.e. all functions
-		SubFunctionMap m_identitySubFunctionMap;
+		// access all function (flag)
+		bool m_bAccessAll;
 
 		// Mapping (fct, dof) -> local index
 		std::vector<std::vector<multi_index_type> > m_vvDofIndices;
 
 		// algebra indices
 		std::vector<index_type> m_vAlgIndices;
+
+		// sub function group, that is accessed
+		const SubFunctionMap* m_pSubFunctionMap;
+
+		// default sub function group, i.e. all functions
+		SubFunctionMap m_identitySubFunctionMap;
+
+
 };
 
 template <typename TEntry>
@@ -435,7 +476,7 @@ class LocalMatrix : public LocalMatrixBase
 		{
 			for(size_t i = 0; i < num_rows(); ++i)
 				for(size_t j = 0; j < num_cols(); ++j)
-					m_entries[i][j] = mat(row_index(i), col_index(j));
+					m_entries(i,j) = mat(row_index(i), col_index(j));
 		}
 
 		///////////////////////////
@@ -443,13 +484,16 @@ class LocalMatrix : public LocalMatrixBase
 		///////////////////////////
 
 		/// number of rows
-		size_t num_rows() const {return m_entries.size();}
+		size_t num_rows() const
+		{
+			//return m_entries.size();
+			return m_entries.num_rows();
+		}
 
 		/// number of columns
 		size_t num_cols() const
 		{
-			UG_ASSERT(num_rows() > 0, "No row set. Thus, now col size present");
-			return m_entries[0].size();
+			return m_entries.num_cols();
 		}
 
 		/// access to entry
@@ -457,7 +501,7 @@ class LocalMatrix : public LocalMatrixBase
 		{
 			UG_ASSERT(i < num_rows(), "Row does not exist.");
 			UG_ASSERT(j < num_cols(), "Column does not exist.");
-			return m_entries[i][j];
+			return m_entries(i,j);
 		}
 
 		/// const access to entry
@@ -465,23 +509,19 @@ class LocalMatrix : public LocalMatrixBase
 		{
 			UG_ASSERT(i < num_rows(), "Row does not exist.");
 			UG_ASSERT(j < num_cols(), "Column does not exist.");
-			return m_entries[i][j];
+			return m_entries(i,j);
 		}
 
 		/// set all entries
 		void set(number val)
 		{
-			for(size_t i = 0; i < num_rows(); ++i)
-				for(size_t j = 0; j < num_cols(); ++j)
-					m_entries[i][j] = val;
+			m_entries = val;
 		}
 
 		/// multiply all entries
 		this_type& operator*(number val)
 		{
-			for(size_t i = 0; i < num_rows(); ++i)
-				for(size_t j = 0; j < num_cols(); ++j)
-					m_entries[i][j] *= val;
+			m_entries *= val;
 			return *this;
 		}
 
@@ -491,9 +531,7 @@ class LocalMatrix : public LocalMatrixBase
 			UG_ASSERT(num_rows() == rhs.num_rows(), "Row size does not match");
 			UG_ASSERT(num_cols() == rhs.num_cols(), "Column size does not match");
 
-			for(size_t i = 0; i < num_rows(); ++i)
-				for(size_t j = 0; j < num_cols(); ++j)
-					m_entries[i][j] += rhs(i,j);
+			m_entries += rhs.m_entries;
 			return *this;
 		}
 
@@ -503,9 +541,7 @@ class LocalMatrix : public LocalMatrixBase
 			UG_ASSERT(num_rows() == rhs.num_rows(), "Row size does not match");
 			UG_ASSERT(num_cols() == rhs.num_cols(), "Column size does not match");
 
-			for(size_t i = 0; i < num_rows(); ++i)
-				for(size_t j = 0; j < num_cols(); ++j)
-					m_entries[i][j] -= rhs(i,j);
+			m_entries -= rhs.m_entries;
 			return *this;
 		}
 
@@ -526,45 +562,36 @@ class LocalMatrix : public LocalMatrixBase
 
 		number& operator()(size_t rowFct, size_t rowDof, size_t colFct, size_t colDof)
 		{
-			const index_type row_index = m_pRowIndices->local_index(rowFct, rowDof);
-			const index_type col_index = m_pColIndices->local_index(colFct, colDof);
-			const comp_type row_comp = m_pRowIndices->comp(rowFct, rowDof);
-			const comp_type col_comp = m_pColIndices->comp(colFct, colDof);
+			const typename LocalIndices::multi_index_type rowInd = m_pRowIndices->local_multi_index(rowFct, rowDof);
+			const typename LocalIndices::multi_index_type colInd = m_pColIndices->local_multi_index(colFct, colDof);
+			UG_ASSERT(rowInd[0] < num_rows(), "Row does not exist.");
+			UG_ASSERT(colInd[0] < num_cols(), "Column does not exist.");
 
-			UG_ASSERT(row_index < num_rows(), "Row does not exist.");
-			UG_ASSERT(col_index < num_cols(), "Column does not exist.");
-			return BlockRef(m_entries[row_index][col_index], row_comp, col_comp);
+			return BlockRef(m_entries(rowInd[0],colInd[0]), rowInd[1], colInd[1]);
 		}
 
 		/// const access to dof of function fct
 		const number& operator()(size_t rowFct, size_t rowDof, size_t colFct, size_t colDof) const
 		{
-			const index_type row_index = m_pRowIndices->local_index(rowFct, rowDof);
-			const index_type col_index = m_pColIndices->local_index(colFct, colDof);
-			const comp_type row_comp = m_pRowIndices->comp(rowFct, rowDof);
-			const comp_type col_comp = m_pColIndices->comp(colFct, colDof);
+			const typename LocalIndices::multi_index_type rowInd = m_pRowIndices->local_multi_index(rowFct, rowDof);
+			const typename LocalIndices::multi_index_type colInd = m_pColIndices->local_multi_index(colFct, colDof);
+			UG_ASSERT(rowInd[0] < num_rows(), "Row does not exist.");
+			UG_ASSERT(colInd[0] < num_cols(), "Column does not exist.");
 
-			UG_ASSERT(row_index < num_rows(), "Row does not exist.");
-			UG_ASSERT(col_index < num_cols(), "Column does not exist.");
-			return BlockRef(m_entries[row_index][col_index], row_comp, col_comp);
+			return BlockRef(m_entries(rowInd[0],colInd[0]), rowInd[1], colInd[1]);
 		}
 
 	protected:
 		void resize()
 		{
-			for(size_t i = 0; i < m_entries.size(); ++i)
-			{
-				m_entries[i].clear();
-			}
-			m_entries.clear();
+			m_entries.resize(0,0);
 
 			if(m_pRowIndices == NULL || m_pColIndices == NULL) return;
 
-			m_entries.resize(m_pRowIndices->num_indices());
-			for(size_t i = 0; i < m_entries.size(); ++i)
-			{
-				m_entries[i].resize(m_pColIndices->num_indices());
-			}
+			const size_t num_rows = m_pRowIndices->num_indices();
+			const size_t num_cols = m_pColIndices->num_indices();
+
+			m_entries.resize(num_rows, num_cols);
 		}
 
 	protected:
@@ -575,7 +602,7 @@ class LocalMatrix : public LocalMatrixBase
 		const LocalIndices* m_pColIndices;
 
 		// entries
-		std::vector<std::vector<entry_type> > m_entries;
+		DenseMatrix<VariableArray2<entry_type> > m_entries;
 };
 
 template <typename Entry>
