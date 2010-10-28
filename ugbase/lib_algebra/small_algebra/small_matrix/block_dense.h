@@ -1,6 +1,6 @@
 
-#ifndef __H__UG__MARTIN_ALGEBRA__BLOCK_DENSE__
-#define __H__UG__MARTIN_ALGEBRA__BLOCK_DENSE__
+#ifndef __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
+#define __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
 
 namespace ug{
 
@@ -256,4 +256,4 @@ struct block_matrix_traits< DenseMatrix< FixedArray2<double, 3, 3> > >
 
 } // namespace ug
 
-#endif
+#endif // __H__UG__SMALL_ALGEBRA__BLOCK_DENSE__
