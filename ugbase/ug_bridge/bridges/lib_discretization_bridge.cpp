@@ -877,8 +877,13 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 
 class Block2x2Algebra{
 public:
-	typedef SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > matrix_type;
-	typedef ParallelVector<DenseVector<FixedArray1<double, 2> > > vector_type;
+#ifdef UG_PARALLEL
+	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > > matrix_type;
+	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, 2> > > > vector_type;
+#else
+	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > matrix_type;
+	typedef Vector<DenseVector<FixedArray1<double, 2> > > vector_type;
+#endif
 };
 
 
@@ -886,8 +891,8 @@ bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
 	bool bReturn = true;
 
-	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup);
-	//bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<Block2x2Algebra, GroupedP1ConformDoFDistribution>(reg, parentGroup);
+	//bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup);
+	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<Block2x2Algebra, GroupedP1ConformDoFDistribution>(reg, parentGroup);
 
 	return bReturn;
 }
