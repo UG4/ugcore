@@ -891,8 +891,8 @@ bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
 	bool bReturn = true;
 
-	//bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup);
-	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<Block2x2Algebra, GroupedP1ConformDoFDistribution>(reg, parentGroup);
+	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup);
+	//bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<Block2x2Algebra, GroupedP1ConformDoFDistribution>(reg, parentGroup);
 
 	return bReturn;
 }
