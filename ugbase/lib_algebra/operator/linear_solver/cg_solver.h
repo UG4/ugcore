@@ -7,6 +7,8 @@
 
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__CG_SOLVER__
+#include <iostream>
+#include <sstream>
 
 #include "lib_algebra/operator/operator_interface.h"
 #include "common/profiler/profiler.h"
@@ -44,10 +46,13 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			m_pConvCheck = &convCheck;
 			m_pConvCheck->set_offset(3);
 			m_pConvCheck->set_symbol('%');
-			stringstream ss; ss << "CG Solver";
-			if(m_pPrecond != NULL) ss << " (Precond: " << m_pPrecond->name() << ")";
+			m_pConvCheck->set_name(name());
 
-			m_pConvCheck->set_name(ss.str());
+			if(m_pPrecond != NULL)
+			{
+				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_info(ss.str());
+			}
 		}
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
@@ -55,8 +60,8 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 			m_pPrecond = &precond;
 			if(m_pConvCheck != NULL)
 			{
-				stringstream ss; ss << "CG Solver" << " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_name(ss.str());
+				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_info(ss.str());
 			}
 		}
 

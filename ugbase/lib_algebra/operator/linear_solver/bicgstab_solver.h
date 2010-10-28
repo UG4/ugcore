@@ -47,11 +47,13 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 			m_pConvCheck = &convCheck;
 			m_pConvCheck->set_offset(3);
 			m_pConvCheck->set_symbol('%');
+			m_pConvCheck->set_name(name());
 
-			stringstream ss; ss << "BiCGStab Solver";
-			if(m_pPrecond != NULL) ss << " (Precond: " << m_pPrecond->name() << ")";
-
-			m_pConvCheck->set_name(ss.str());
+			if(m_pPrecond != NULL)
+			{
+				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_info(ss.str());
+			}
 		}
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
@@ -59,8 +61,8 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 			m_pPrecond = &precond;
 			if(m_pConvCheck != NULL)
 			{
-				stringstream ss; ss << "BiCGStab Solver" << " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_name(ss.str());
+				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_info(ss.str());
 			}
 		}
 

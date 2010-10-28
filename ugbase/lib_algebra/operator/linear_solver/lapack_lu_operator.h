@@ -7,6 +7,8 @@
 
 #ifndef __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__
 #define __H__LIB_ALGEBRA__LAPACK_LU_OPERATOR__
+#include <iostream>
+#include <sstream>
 
 #include "lib_algebra/operator/operator_interface.h"
 #include "lib_algebra/cpu_algebra/lapack_lu.h"

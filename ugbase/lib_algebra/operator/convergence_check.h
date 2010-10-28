@@ -13,6 +13,7 @@
 #include <ostream>
 #include <string>
 #include <limits>
+#include <algorithm>
 
 #include "common/common.h"
 #include "lib_algebra/operator/operator_base_interface.h"
@@ -93,6 +94,8 @@ class IConvergenceCheck
 		/// sets the name of the iteration
 		virtual void set_name(std::string name) = 0;
 
+		/// sets info string
+		virtual void set_info(std::string name) = 0;
 
 		/// virtual destructor
 		virtual ~IConvergenceCheck() {};
@@ -117,13 +120,13 @@ class StandardConvCheck : public IConvergenceCheck
 		StandardConvCheck()
 		 :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
 			 m_maxSteps(200), m_minDefect(10e-8), m_relReduction(10e-10),
-			 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration")
+			 m_verbose(true), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
 			 {};
 
 		StandardConvCheck(int maxSteps, number minDefect, number relReduction, bool verbose)
 		 :	 m_initialDefect(0.0), m_currentDefect(0.0), m_lastDefect(0.0), m_currentStep(0),
 			 m_maxSteps(maxSteps), m_minDefect(minDefect), m_relReduction(relReduction),
-			 m_verbose(verbose), m_offset(0), m_symbol('%'), m_name("Iteration")
+			 m_verbose(verbose), m_offset(0), m_symbol('%'), m_name("Iteration"), m_info("")
 			 {};
 
 		void set_verbose_level(bool level) {m_verbose = level;}
@@ -140,9 +143,32 @@ class StandardConvCheck : public IConvergenceCheck
 			if(m_verbose)
 			{
 				UG_LOG("\n");
-				print_offset(); for(int i = 0; i < 10; ++i) UG_LOG(m_symbol);
+
+			//  number of symbols to print before name and info
+				int num_sym = 10;
+				int num_line_length = 60;
+
+				int max_length = std::max(m_name.length(), m_info.length());
+				int space_left = std::max(num_line_length - max_length - num_sym, 0);
+
+			//	print name line
+				print_offset();
+				for(int i = 0; i < num_sym; ++i) UG_LOG(m_symbol);
 				UG_LOG("  "<< m_name << "  ");
-				for(int i = 0; i < 10; ++i) UG_LOG(m_symbol); UG_LOG("\n");
+				for(int i = m_name.length(); i < max_length; ++i) UG_LOG(" ");
+				for(int i = 0; i < space_left; ++i) UG_LOG(m_symbol); UG_LOG("\n");
+
+			//	print info line
+				print_offset();
+				if(m_info.length() > 0)
+				{
+					for(int i = 0; i < num_sym; ++i) UG_LOG(m_symbol);
+					UG_LOG("  "<< m_info << "  ");
+					for(int i = m_info.length(); i < max_length; ++i) UG_LOG(" ");
+					for(int i = 0; i < space_left; ++i) UG_LOG(m_symbol); UG_LOG("\n");
+				}
+
+			//	start iteration output
 				print_offset(); UG_LOG("  Iter      Defect         Rate \n");
 				print_offset(); UG_LOG(std::setw(4) << step() << ":    " << std::scientific << defect() <<  "      -------\n");
 			}
@@ -225,6 +251,7 @@ class StandardConvCheck : public IConvergenceCheck
 		void set_offset(int offset){m_offset = offset;}
 		void set_symbol(char symbol){m_symbol = symbol;}
 		void set_name(std::string name) {m_name = name;}
+		void set_info(std::string info) {m_info = info;}
 
 	protected:
 		void print_offset()
@@ -282,6 +309,9 @@ class StandardConvCheck : public IConvergenceCheck
 
 		// name of iteration
 		std::string m_name;
+
+		// info for iteration (e.g. preconditioner type)
+		std::string m_info;
 };
 
 
