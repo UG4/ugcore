@@ -73,7 +73,7 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 		{
-			shape[i][sh] = scvf.shape(sh, 0);
+			CornerShape[i][sh] = scvf.shape(sh, 0);
 		}
 	}
 
