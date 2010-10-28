@@ -11,6 +11,19 @@
 #include "newton.h"
 #include "lib_discretization/io/vtkoutput.h"
 #include "lib_discretization/function_spaces/grid_function_util.h"
+#include <iostream>
+#include <sstream>
+
+//#define PROFILE_NEWTON
+#ifdef PROFILE_NEWTON
+	#define NEWTON_PROFILE_FUNC()		PROFILE_FUNC()
+	#define NEWTON_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define NEWTON_PROFILE_END()		PROFILE_END()
+#else
+	#define NEWTON_PROFILE_FUNC()
+	#define NEWTON_PROFILE_BEGIN(name)
+	#define NEWTON_PROFILE_END()
+#endif
 
 namespace ug{
 
@@ -125,10 +138,20 @@ apply(vector_type& u)
 		{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n"); return false;}
 
 	// start convergence check
-	m_pConvCheck->set_offset(3);
-	m_pConvCheck->set_symbol('#');
-	m_pConvCheck->set_name("Newton Solver");
 	m_pConvCheck->start(m_d);
+
+	// increase offset of output for linear solver
+	IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
+	int iLinSolverOffset = 0;
+	if(pLinConvCheck != NULL)
+	{
+		iLinSolverOffset = pLinConvCheck->get_offset();
+		pLinConvCheck->set_offset( m_pConvCheck->get_offset() + 3);
+	}
+
+	// set info string indicating the used linear solver
+	stringstream ss; ss << "(Linear Solver: " << m_pLinearSolver->name() << ")";
+	m_pConvCheck->set_info(ss.str());
 
 	// copy pattern
 	vector_type s; s.resize(u.size()); s = u;
@@ -137,22 +160,38 @@ apply(vector_type& u)
 	while(!m_pConvCheck->iteration_ended())
 	{
 		// set c = 0
+		NEWTON_PROFILE_BEGIN(NewtonSetCorretionZero);
+		UG_LOG("   ##########  Set Correction to zero ...");
 		if(!m_c.set(0.0))
 			{UG_LOG("NewtonSolver::apply: Cannot reset correction to zero.\n"); return false;}
+		UG_LOG(" done. ##########" << std::endl);
+		NEWTON_PROFILE_END();
 
 		// Compute Jacobian
+		NEWTON_PROFILE_BEGIN(NewtonComputeJacobian);
+		UG_LOG("   ##########  Compute new Jacobian ...");
 		if(!m_J->init(u))
 			{UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n"); return false;}
+		UG_LOG(" done. ##########" << std::endl);
+		NEWTON_PROFILE_END();
 
+		NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
+		UG_LOG("   ##########  Init Linear Solver ...");
 		// Init Jacobi Inverse
 		if(!m_pLinearSolver->init(*m_J, u))
 			{UG_LOG("NewtonSolver::apply: Cannot init Inverse Linear "
 					"Operator for Jacobi-Operator.\n"); return false;}
+		UG_LOG(" done. ##########" << std::endl);
+		NEWTON_PROFILE_END();
 
+		NEWTON_PROFILE_BEGIN(NewtonApplyLinSolver);
+		UG_LOG("   ##########  Apply Linear Solver ...");
 		// Solve Linearized System
 		if(!m_pLinearSolver->apply(m_c, m_d))
 			{UG_LOG("NewtonSolver::apply: Cannot apply Inverse Linear "
 					"Operator for Jacobi-Operator.\n"); return false;}
+		UG_LOG(" done. ##########" << std::endl);
+		NEWTON_PROFILE_END();
 
 		// Line Search
 		if(m_pLineSearch != NULL)
@@ -178,6 +217,12 @@ apply(vector_type& u)
 
 		// check convergence
 		m_pConvCheck->update(m_d);
+	}
+
+	// reset offset of output for linear solver to previous value
+	if(pLinConvCheck != NULL)
+	{
+		pLinConvCheck->set_offset(iLinSolverOffset);
 	}
 
 	return m_pConvCheck->post();

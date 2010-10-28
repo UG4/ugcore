@@ -46,7 +46,13 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 			{};
 
 		void set_linear_solver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver) {m_pLinearSolver = &LinearSolver;}
-		void set_convergence_check(IConvergenceCheck& ConvCheck) {m_pConvCheck = &ConvCheck;}
+		void set_convergence_check(IConvergenceCheck& ConvCheck)
+		{
+			m_pConvCheck = &ConvCheck;
+			m_pConvCheck->set_offset(3);
+			m_pConvCheck->set_symbol('#');
+			m_pConvCheck->set_name("Newton Solver");
+		}
 		void set_line_search(ILineSearch<vector_type>& LineSearch) {m_pLineSearch = &LineSearch;}
 
 		// init: This operator inverts the Operator N: Y -> X
