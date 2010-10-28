@@ -14,9 +14,11 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
+#include "lib_discretization/spacial_discretization/disc_helper/disc_helper.h"
 #include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
+#include "consistent_gravity.h"
 
 namespace ug{
 
@@ -25,7 +27,7 @@ class IDensityDrivenFlowUserFunction
 {
 	public:
 	//	Function Types
-		typedef void (*Pososity_fct)(number&);
+		typedef void (*Porosity_fct)(number&);
 		typedef void (*Viscosity_fct)(number&, number);
 		typedef void (*Density_fct)(number&, number);
 		typedef void (*D_Density_fct)(number&, number);
@@ -34,7 +36,7 @@ class IDensityDrivenFlowUserFunction
 		typedef void (*Gravity_fct)(MathVector<dim>&);
 
 	public:
-		virtual Pososity_fct get_porosity_function() const = 0;
+		virtual Porosity_fct get_porosity_function() const = 0;
 		virtual Viscosity_fct get_viscosity_function() const = 0;
 		virtual Density_fct get_density_function() const = 0;
 		virtual D_Density_fct get_d_density_function() const = 0;
@@ -45,7 +47,7 @@ class IDensityDrivenFlowUserFunction
 		virtual ~IDensityDrivenFlowUserFunction(){}
 };
 
-template<typename TDomain, typename TAlgebra>
+template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
 class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 	public:
 		// domain type
@@ -70,7 +72,7 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		typedef LocalIndices local_index_type;
 
 	protected:
-		typedef void (*Pososity_fct)(number&);
+		typedef void (*Porosity_fct)(number&);
 		typedef void (*Viscosity_fct)(number&, number);
 		typedef void (*Density_fct)(number&, number);
 		typedef void (*D_Density_fct)(number&, number);
@@ -80,27 +82,28 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 
 	public:
 		DensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
-									Pososity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
+									Porosity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
 									Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity);
 
 		DensityDrivenFlowElemDisc() :
-			m_pDomain(NULL), m_upwind_amount(0.0),
-			m_Porosity(NULL), m_Viscosity(NULL), m_Density(NULL), m_D_Density(NULL),
-			m_Mol_Diff_Tensor(NULL), m_Permeability_Tensor(NULL), m_Gravity(NULL)
+			m_pDomain(NULL), m_upwindAmount(0.0), m_UseConsistentGravity(true),
+			m_PorosityFct(NULL), m_ViscosityFct(NULL), m_DensityFct(NULL), m_DDensityFct(NULL),
+			m_MolDiffTensorFct(NULL), m_PermeabilityTensorFct(NULL), m_GravityFct(NULL)
 		{
-			register_assemble_functions();
+			register_assemble_functions(Int2Type<dim>());
 		}
 
-		void set_upwind_amount(number amount) {m_upwind_amount = amount;}
+		void set_consistent_gravity(bool bUse) {m_UseConsistentGravity = bUse;}
+		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 		void set_user_functions(IDensityDrivenFlowUserFunction<dim>& user) {
-			m_Porosity = user.get_porosity_function();
-			m_Viscosity = user.get_viscosity_function();
-			m_Density = user.get_density_function();
-			m_D_Density = user.get_d_density_function();
-			m_Mol_Diff_Tensor = user.get_mol_diff_tensor_function();
-			m_Permeability_Tensor = user.get_perm_tensor_function();
-			m_Gravity = user.get_gravity_function();
+			m_PorosityFct = user.get_porosity_function();
+			m_ViscosityFct = user.get_viscosity_function();
+			m_DensityFct = user.get_density_function();
+			m_DDensityFct = user.get_d_density_function();
+			m_MolDiffTensorFct = user.get_mol_diff_tensor_function();
+			m_PermeabilityTensorFct = user.get_perm_tensor_function();
+			m_GravityFct = user.get_gravity_function();
 		}
 
 		virtual size_t num_fct() {return 2;}
@@ -137,85 +140,92 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		TDomain* m_pDomain;
 
 		// position access
-		typename TDomain::position_type* m_corners;
 		typename TDomain::position_accessor_type m_aaPos;
 
-		template <typename TElem>
-		ReferenceMapping<typename reference_element_traits<TElem>::reference_element_type, dim>& get_mapping()
-		{
-			static ReferenceMapping<typename reference_element_traits<TElem>::reference_element_type, dim> mapping;
-			return mapping;
-		}
-
-		// Finite Volume Element Geometry
-		template <typename TElem>
-		inline FVElementGeometry<TElem, dim>& get_fvgeom()
-		{
-			static FVElementGeometry<TElem, dim> geo;
-			return geo;
-		}
-
 		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwind_amount;
+		number m_upwindAmount;
 
-		// User functions
-		Pososity_fct m_Porosity;
-		Viscosity_fct m_Viscosity;
-		Density_fct m_Density;
-		D_Density_fct m_D_Density;
-		Mol_Diff_Tensor_fct m_Mol_Diff_Tensor;
-		Permeability_Tensor_fct m_Permeability_Tensor;
-		Gravity_fct m_Gravity;
+		// max num of element Corners (this is to much in 3d)
+		static const size_t m_MaxNumCorners = dim*dim;
+
+		// positions
+		position_type m_vCornerCoords[m_MaxNumCorners];
 
 		// constant values, read in once
-		number m_porosity;
+		number m_Porosity;
+		MathMatrix<dim, dim> m_Diffusion;
+		MathVector<dim> m_Gravity;
+		MathMatrix<dim, dim> m_Permeability;
 
-	private:
-		// local constants for readability (local function 0 == _C_, local function 1 == _P_)
+		// density at corners
+		number m_vDensity[m_MaxNumCorners];
+		number m_vDDensity[m_MaxNumCorners];
+
+		// consistent gravity
+		MathVector<dim> m_vConsGravity[m_MaxNumCorners]; // Consistent Gravity at corners
+		MathVector<dim> m_vvDConsGravity[m_MaxNumCorners][m_MaxNumCorners]; //Derivative at corners
+		bool m_UseConsistentGravity;
+
+		// local constants for readability
+		// _C_ == local function 0 (concentration)
+		// _P_ == local function 1 (pressure)
 		static const size_t _C_ = 0;
 		static const size_t _P_ = 1;
 
-	protected:
-		bool compute_ip_Darcy_velocity(MathVector<dim>& Darcy_vel, number c_ip, const MathVector<dim>& grad_p_ip);
+	private:
+		// User functions
+		Porosity_fct m_PorosityFct;
+		Viscosity_fct m_ViscosityFct;
+		Density_fct m_DensityFct;
+		D_Density_fct m_DDensityFct;
+		Mol_Diff_Tensor_fct m_MolDiffTensorFct;
+		Permeability_Tensor_fct m_PermeabilityTensorFct;
+		Gravity_fct m_GravityFct;
 
-		template <typename TElem>
-		bool compute_D_ip_Darcy_velocity(	const SubControlVolumeFace<TElem, dim>& scvf,
-											MathVector<dim>& Darcy_vel, MathVector<dim> D_Darcy_vel_c[], MathVector<dim> D_Darcy_vel_p[],
-											number c_ip, const MathVector<dim>& grad_p_ip);
+	protected:
+		bool compute_ip_Darcy_velocity(
+				MathVector<dim>& DarcyVel,
+				number c,
+				const MathVector<dim>& grad_p,
+				const MathMatrix<dim, dim>& JTInv,
+				const std::vector<MathVector<dim> >& vLocalGrad);
+		bool compute_D_ip_Darcy_velocity(
+				MathVector<dim>& DarcyVel,
+				MathVector<dim> D_DarcyVel_c[],
+				MathVector<dim> D_DarcyVel_p[],
+				number c,
+				const MathVector<dim>& grad_p,
+				const MathMatrix<dim, dim>& JTInv,
+				const std::vector<number>& vShape,
+				const std::vector<MathVector<dim> >& vLocalGrad,
+				const std::vector<MathVector<dim> >& vLGlobalGrad);
 
 	private:
 		///////////////////////////////////////
 		// registering for reference elements
 		///////////////////////////////////////
-		template <int dim> class numType{};
-
-		void register_assemble_functions()
-		{
-			numType<TDomain::dim> dummy;
-			register_assemble_functions(dummy);
-		}
-
 		// register for 1D
-		void register_assemble_functions(numType<1> dummy)
+		void register_assemble_functions(Int2Type<1>)
 		{
 			register_all_assemble_functions<Edge>(ROID_EDGE);
 		}
 
 		// register for 2D
-		void register_assemble_functions(numType<2> dummy)
+		void register_assemble_functions(Int2Type<2>)
 		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
+			//register_assemble_functions(Int2Type<1>());
 			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
 			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
 		}
 
 		// register for 3D
-		void register_assemble_functions(numType<3> dummy)
+		void register_assemble_functions(Int2Type<3>)
 		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-			// TODO: Register 3D Ref-Elems
+			//register_assemble_functions(Int2Type<2>());
+			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
+			register_all_assemble_functions<Pyramid>(ROID_PYRAMID);
+			register_all_assemble_functions<Prism>(ROID_PRISM);
+			register_all_assemble_functions<Hexahedron>(ROID_HEXAHEDRON);
 		}
 
 		// help function
