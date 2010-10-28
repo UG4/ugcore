@@ -20,20 +20,6 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
-FVNavierStokesElemDisc(TDomain& domain, number upwind_amount,
-						KinematicViscosity_fct kinVisc, Rhs_fct rhs)
-	: 	m_domain(domain), m_upwindAmount(upwind_amount),
-		m_kinematicViscosity(kinVisc), m_Rhs(rhs)
-{
-	// register all Elements with reference dimension <= world dimension
-	register_assemble_functions(Int2Type<dim>());
-};
-
-
-
 template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
 template<typename TElem >
 inline
@@ -49,7 +35,14 @@ prepare_element_loop()
 	m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 	// remember position attachement
-	m_aaPos = m_domain.get_position_accessor();
+	if(m_pDomain == NULL)
+	{
+		UG_LOG("ERROR in 'FVConvectionDiffusionElemDisc::prepare_element_loop':"
+				" Domain not set.");
+		return false;
+	}
+
+	m_aaPos = m_pDomain->get_position_accessor();
 
 	return true;
 }
@@ -68,6 +61,7 @@ finish_element_loop()
 }
 
 template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+
 template<typename TElem >
 inline
 bool
@@ -86,7 +80,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-	if(!geo.update(elem, m_domain.get_subset_handler(), &m_vCornerCoords[0]))
+	if(!geo.update(elem, m_pDomain->get_subset_handler(), &m_vCornerCoords[0]))
 		{UG_LOG("FVNavierStokesElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
 
 	return true;
@@ -144,10 +138,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				////////////////////////////////////////////////////
 				// Pressure Term (Momentum Equation)
 				////////////////////////////////////////////////////
-				for(size_t vel = 0; vel < dim; ++vel)
+
+                                for(size_t vel = 0; vel < dim; ++vel)
 				{
-					J(vel, scvf.from(), _P_, co) += flux;
-					J(vel, scvf.to()  , _P_, co) -= flux;
+					J(vel, scvf.from(), _P_, co) += scvf.shape(co, ip) * scvf.normal()[vel];
+					J(vel, scvf.to()  , _P_, co) -= scvf.shape(co, ip) * scvf.normal()[vel];
 				}
 
 				////////////////////////////////////////////////////
@@ -157,9 +152,9 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// todo: implement convective term (momentum equation)
 
 				// todo: implement mass equations
-
+                        }
+                }
 	}
-
 
 	// we're done
 	return true;

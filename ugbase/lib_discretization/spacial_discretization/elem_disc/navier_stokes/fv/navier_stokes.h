@@ -17,9 +17,9 @@
 #include "lib_discretization/spacial_discretization/disc_helper/disc_helper.h"
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
+#include "lib_discretization/spacial_discretization/user_data.h"
 
 namespace ug{
-
 
 template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
 class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
@@ -48,12 +48,29 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		typedef LocalIndices local_index_type;
 
 	protected:
-		typedef void (*Rhs_fct)(position_type&, const position_type&, number);
-		typedef void (*KinematicViscosity_fct)(number&, const position_type&, number);
+		typedef typename IUserNumberProvider<dim>::functor_type NumberFunctor;
 
 	public:
+		FVNavierStokesElemDisc()
+		 : m_pDomain(NULL), m_upwindAmount(0.0),
+		  	m_kinematicViscosity(NULL), m_Rhs(NULL)
+			{
+				register_assemble_functions(Int2Type<dim>());
+			}
+
+		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
+		void set_domain(domain_type& domain) {m_pDomain = &domain;}
+
+		void set_rhs(IUserNumberProvider<dim>& user) {m_Rhs = user.get_functor();}
+
 		FVNavierStokesElemDisc(TDomain& domain, number upwind_amount,
-								KinematicViscosity_fct kinVisc, Rhs_fct rhs);
+								NumberFunctor kinVisc, NumberFunctor rhs)
+		: 	m_pDomain(&domain), m_upwindAmount(upwind_amount),
+			m_kinematicViscosity(kinVisc), m_Rhs(rhs)
+		{
+		// register all Elements with reference dimension <= world dimension
+			register_assemble_functions(Int2Type<dim>());
+		};
 
 		virtual size_t num_fct(){return 4;}
 
@@ -88,7 +105,7 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 
 	private:
 		// domain
-		TDomain& m_domain;
+		TDomain* m_pDomain;
 
 		// position access
 		std::vector<position_type> m_vCornerCoords;
@@ -97,9 +114,12 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		// abbreviation for pressure
 		static const size_t _P_ = dim+1;
 
+		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
+		number m_upwindAmount;
+
 		// User functions
-		KinematicViscosity_fct m_kinematicViscosity;
-		Rhs_fct m_Rhs;
+		NumberFunctor m_kinematicViscosity;
+		NumberFunctor m_Rhs;
 
 	private:
 		///////////////////////////////////////
