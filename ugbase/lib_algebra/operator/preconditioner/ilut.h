@@ -55,6 +55,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Preprocess routine
 		virtual bool preprocess(matrix_type& mat)
 		{
+			STATIC_ASSERT(matrix_type::rows_sorted, Matrix_has_to_have_sorted_rows);
+
 		//	Prepare Inverse Matrix
 			matrix_type* A = this->m_pMatrix;
 			m_L.destroy();	m_L.create(A->num_rows(), A->num_cols());

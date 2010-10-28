@@ -19,8 +19,6 @@ namespace ug{
 template<typename Matrix_type>
 bool FactorizeILU(Matrix_type &A)
 {
-
-
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
 		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
@@ -52,6 +50,50 @@ bool FactorizeILU(Matrix_type &A)
 
 	return true;
 }
+
+template<typename Matrix_type>
+bool FactorizeILUSorted(Matrix_type &A)
+{
+	// for all rows
+	for(size_t i=1; i < A.num_rows(); i++)
+	{
+
+		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
+		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
+		{
+			const size_t k = (*it_k).iIndex;
+			typename Matrix_type::entry_type &a_ik = (*it_k).dValue;
+			if(BlockNorm(a_ik) < 1e-7)	continue;
+			typename Matrix_type::entry_type &a_kk = A(k,k);
+
+			a_ik /= a_kk;
+
+			 // calc A(i, .) -= A(k,.)  A(i,k) / A(k,k)  (. = j)
+
+			typename Matrix_type::rowIterator it_ij = it_k; // of row i
+			++it_ij; // skip a_ik
+			typename Matrix_type::rowIterator it_kj = A.beginRow(k); // of row k
+
+			while(!it_ij.isEnd() && !it_kj.isEnd())
+			{
+				if((*it_ij).iIndex > (*it_kj).iIndex)
+					++it_kj;
+				else if((*it_ij).iIndex < (*it_kj).iIndex)
+					++it_ij;
+				else
+				{
+					typename Matrix_type::entry_type& a_ij = (*it_ij).dValue;
+					typename Matrix_type::entry_type& a_kj = (*it_kj).dValue;
+					a_ij -= a_ik*a_kj;
+					++it_kj; ++it_ij;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
 
 // solve x = L^-1 b
 template<typename Matrix_type, typename Vector_type>
@@ -167,6 +209,9 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			}
 #endif
 		// 	Compute ILU Factorization
+		if(matrix_type::rows_sorted)
+			FactorizeILUSorted(m_ILU);
+		else
 			FactorizeILU(m_ILU);
 
 			return true;

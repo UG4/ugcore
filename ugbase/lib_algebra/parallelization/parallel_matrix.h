@@ -30,6 +30,10 @@ namespace ug
 template <typename TMatrix>
 class ParallelMatrix : public TMatrix
 {
+	public:
+		enum {rows_sorted=TMatrix::rows_sorted};
+
+
 	private:
 	// 	disallow copy constructor
 	ParallelMatrix(const ParallelMatrix&);

@@ -43,9 +43,13 @@ class SparseMatrix : public TE_MAT_RowApplicable<SparseMatrix<T> >
 {
 public:
 	typedef T entry_type;
+	enum {rows_sorted=true};
+
 	typedef matrixrow<entry_type> row_type;
 	typedef matrixrow<entry_type> matrixrow_type;
 
+
+public:
 	struct connection
 	{
 		size_t iIndex;		// index to
