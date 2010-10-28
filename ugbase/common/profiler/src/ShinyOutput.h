@@ -36,10 +36,10 @@ namespace Shiny {
 //-----------------------------------------------------------------------------
 
 	enum OUTPUT_WIDTH {
-		OUTPUT_WIDTH_HIT = 6,
+		OUTPUT_WIDTH_HIT = 12,  // original 6
 		OUTPUT_WIDTH_TIME = 6,
 		OUTPUT_WIDTH_PERC = 4,
-		OUTPUT_WIDTH_SUM = 79,
+		OUTPUT_WIDTH_SUM = 89,  // original 79
 
 		OUTPUT_WIDTH_DATA = 1+OUTPUT_WIDTH_HIT + 1 + 2*(OUTPUT_WIDTH_TIME+4+OUTPUT_WIDTH_PERC+1) + 1,
 		OUTPUT_WIDTH_NAME = OUTPUT_WIDTH_SUM - OUTPUT_WIDTH_DATA
