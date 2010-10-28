@@ -325,7 +325,7 @@ template <class TLayout>
 bool ParallelCommunicator<TLayout>::
 communicate()
 {
-	PROFILE_FUNC();
+//	PROFILE_FUNC();
 //	prepare receive streams
 //TODO:	This should be done in a way so that the least possible amount
 //		of data has to be reallocated (very often the map won't change
@@ -424,7 +424,7 @@ communicate()
 	//	if the buffer size could not be determined, we have to communicate it.
 	if(!allBufferSizesFixed)
 	{
-		PROFILE_BEGIN(communicateBufferSizes);
+//		PROFILE_BEGIN(communicateBufferSizes);
 		int sizeTag = 189345;//	an arbitrary number
 		int counter;
 
@@ -454,12 +454,12 @@ communicate()
 	//		by waiting for the next one etc...
 		MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
 		MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
-		PROFILE_END();
+//		PROFILE_END();
 	}
 
 ////////////////////////////////////////////////
 //	communicate data.
-	PROFILE_BEGIN(communicateData);
+//	PROFILE_BEGIN(communicateData);
 	int dataTag = 749345;//	an arbitrary number
 
 //	first shedule receives
@@ -491,7 +491,7 @@ communicate()
 //		by waiting for the next one etc...
 	MPI_Waitall(numInStreams, &vReceiveRequests[0], &vReceiveStates[0]);
 	MPI_Waitall(numOutStreams, &vSendRequests[0], &vSendStates[0]);
-	PROFILE_END();
+//	PROFILE_END();
 	
 //	call the extractors with the received data
 	for(typename ExtractorInfoList::iterator iter = m_extractorInfos.begin();
