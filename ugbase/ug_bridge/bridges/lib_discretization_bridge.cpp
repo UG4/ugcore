@@ -874,13 +874,13 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 		return true;
 }
 
-/*
+
 class Block2x2Algebra{
 public:
-	typedef SparseMatrix<blockDenseMatrix<double, fixedStorage, 2, 2 > > matrix_type;
-	typedef ParallelVector<Vector< blockVector<double, fixedStorage, 2> > > vector_type;
+	typedef SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > matrix_type;
+	typedef ParallelVector<DenseVector<FixedArray1<double, 2> > > vector_type;
 };
-*/
+
 
 bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
