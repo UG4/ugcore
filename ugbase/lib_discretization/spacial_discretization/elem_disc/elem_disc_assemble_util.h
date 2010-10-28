@@ -22,6 +22,18 @@
 #include "./elem_disc_interface.h"
 #include "lib_discretization/common/common.h"
 
+//#define PROFILE_ELEM_LOOP
+#ifdef PROFILE_ELEM_LOOP
+	#define EL_PROFILE_FUNC()		PROFILE_FUNC()
+	#define EL_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define EL_PROFILE_END()		PROFILE_END()
+#else
+	#define EL_PROFILE_FUNC()
+	#define EL_PROFILE_BEGIN(name)
+	#define EL_PROFILE_END()
+#endif
+
+
 namespace ug {
 
 //////////////////////////////////
@@ -212,16 +224,19 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 					number time, number s_m, number s_a)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+	static const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
 
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
+	EL_PROFILE_BEGIN(AssembleJacobian);
+
+	EL_PROFILE_BEGIN(EL_Setup);
 	// get function group
 	const FunctionGroup& fcts = elemDisc.get_function_group();
 
-	// flag, wheather to use haning nodes as well
-	bool useHanging = elemDisc.use_hanging();
+	// flag, wheather to use hanging nodes as well
+	const bool useHanging = elemDisc.use_hanging();
 
 	// local indices and local algebra
 	LocalIndices ind;
@@ -251,6 +266,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 	// prepare loop
 	if(!elemDisc.prepare_element_loop())
 		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
+	EL_PROFILE_END();
 
 	// loop over all elements
 	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -259,6 +275,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 		TElem* elem = *iter;
 
 		// get global indices
+		EL_PROFILE_BEGIN(EL_ReadSolutionAndIndices);
 		dofDistr.update_indices(elem, ind, useHanging);
 
 		// adapt local algebra
@@ -271,33 +288,53 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 
 		// read local values of u
 		loc_u.read_values(u);
+		EL_PROFILE_END();
 
 		// reset local matrix and rhs
+		EL_PROFILE_BEGIN(EL_ResetJ);
 		loc_J.set(0.0);
+		EL_PROFILE_END();
 
 		// prepare element
+		EL_PROFILE_BEGIN(EL_PrepareElem);
 		if(!elemDisc.prepare_element(elem, loc_u, ind))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
+		EL_PROFILE_END();
 
 		// Assemble JA
+		EL_PROFILE_BEGIN(EL_ResetJtmp1);
 		loc_J_temp.set(0.0);
+		EL_PROFILE_END();
+		EL_PROFILE_BEGIN(EL_AssembleJA);
 		if(!elemDisc.assemble_JA(loc_J_temp, loc_u, time))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
+		EL_PROFILE_END();
+		EL_PROFILE_BEGIN(EL_AddLocalJLocalJ1);
 		loc_J += loc_J_temp * s_a;
+		EL_PROFILE_END();
 
 		// Assemble JM
+		EL_PROFILE_BEGIN(EL_ResetJtmp2);
 		loc_J_temp.set(0.0);
+		EL_PROFILE_END();
+		EL_PROFILE_BEGIN(EL_AssembleJM);
 		if(!elemDisc.assemble_JM(loc_J_temp, loc_u, time))
 			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Mass Matrix.\n"); return false;}
+		EL_PROFILE_END();
+		EL_PROFILE_BEGIN(EL_AddLocalJLocalJ2);
 		loc_J += loc_J_temp * s_m;
+		EL_PROFILE_END();
 
 		// send local to global matrix
+		EL_PROFILE_BEGIN(EL_AddLocalToGlobal);
 		J.add(loc_J);
+		EL_PROFILE_END();
 	}
 
 	// finish element loop
 	if(!elemDisc.finish_element_loop())
 		{UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n"); return false;}
+	EL_PROFILE_END();
 
 	return true;
 }
@@ -325,6 +362,9 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 	// check if at least on element exist, else return
 	if(iterBegin == iterEnd) return true;
 
+	EL_PROFILE_BEGIN(AssembleDefect);
+
+	EL_PROFILE_BEGIN(EL_Def_Setup);
 	// get function group
 	const FunctionGroup& fcts = elemDisc.get_function_group();
 
@@ -355,10 +395,13 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		loc_d.set_indices(ind);
 		loc_d_temp.set_indices(ind);
 	}
+	EL_PROFILE_END();
 
 	// prepare loop
+	EL_PROFILE_BEGIN(EL_Def_PrepLoop);
 	if(!elemDisc.prepare_element_loop())
 		{UG_LOG("ERROR in AssembleDefect: Cannot prepare element loop.\n"); return false;}
+	EL_PROFILE_END();
 
 	// loop over all elements
 	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -367,6 +410,7 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		TElem* elem = *iter;
 
 		// get global indices
+		EL_PROFILE_BEGIN(EL_Def_ReadIndSol);
 		dofDistr.update_indices(elem, ind, useHanging);
 
 		// adjust local algebra
@@ -382,21 +426,28 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 
 		// reset local matrix and rhs
 		loc_d.set(0.0);
+		EL_PROFILE_END();
 
 		// prepare element
+		EL_PROFILE_BEGIN(EL_Def_PrepElem);
 		if(!elemDisc.prepare_element(elem, loc_u, ind))
 			{UG_LOG("ERROR in AssembleDefect: Cannot prepare element.\n"); return false;}
+		EL_PROFILE_END();
 
 		// Assemble A
 		loc_d_temp.set(0.0);
+		EL_PROFILE_BEGIN(EL_Def_AssA);
 		if(!elemDisc.assemble_A(loc_d_temp, loc_u, time))
 			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Stiffness Defect.\n"); return false;}
+		EL_PROFILE_END();
 		loc_d += loc_d_temp * s_a;
 
 		// Assemble M
 		loc_d_temp.set(0.0);
+		EL_PROFILE_BEGIN(EL_Def_AssM);
 		if(!elemDisc.assemble_M(loc_d_temp, loc_u, time))
 			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Mass Defect.\n"); return false;}
+		EL_PROFILE_END();
 		loc_d += loc_d_temp * s_m;
 
 		// Assemble f
@@ -406,13 +457,16 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 		loc_d -= loc_d_temp * s_a;
 
 		// send local to global matrix
+		EL_PROFILE_BEGIN(EL_Def_AddLocToGlob);
 		d.add(loc_d);
+		EL_PROFILE_END();
 	}
 
 	// finish element loop
 	if(!elemDisc.finish_element_loop())
 		{UG_LOG("ERROR in AssembleDefect: Cannot finish element loop.\n"); return false;}
 
+	EL_PROFILE_END();
 	return true;
 }
 
