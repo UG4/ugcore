@@ -173,8 +173,9 @@ SparseMatrix<T>::destroy()
 //!
 //! write in a empty SparseMatrix the transpose SparseMatrix of B.
 template<typename T>
-void SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B)
+bool SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B, double scale)
 {
+	//destroy();
 	UG_ASSERT(rows == 0 && cols == 0, *this << " not empty.");
 
 	rows = B.cols;
@@ -230,25 +231,50 @@ void SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B)
 
 	bandwidth = 0;
 
-	for(size_t i=0; i < B.rows; i++)
-		for(cRowIterator conn = B.beginRow(i); !conn.isEnd(); ++conn)
-		{
-			if((*conn).dValue == 0) continue;
-			size_t ndx = (*conn).iIndex;
-			UG_ASSERT(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
+	if(scale == 1.0)
+	{
+		for(size_t i=0; i < B.rows; i++)
+			for(cRowIterator conn = B.beginRow(i); !conn.isEnd(); ++conn)
+			{
+				if((*conn).dValue == 0) continue;
+				size_t ndx = (*conn).iIndex;
+				UG_ASSERT(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
 
-			size_t k = nr[ndx];
+				size_t k = nr[ndx];
 
-			UG_ASSERT(k>=0 && k<num_connections(ndx), "k = " << k << ". precalculated nr of Connections " << num_connections(ndx) << " wrong?");
+				UG_ASSERT(k>=0 && k<num_connections(ndx), "k = " << k << ". precalculated nr of Connections " << num_connections(ndx) << " wrong?");
 
-			pRowStart[ndx][k].dValue = (*conn).dValue;
-			pRowStart[ndx][k].iIndex = i;
-			if(bandwidth < i-ndx) bandwidth = i-ndx;
-			nr[ndx]++;
-		}
+				pRowStart[ndx][k].dValue = (*conn).dValue;
+				pRowStart[ndx][k].iIndex = i;
+				if(bandwidth < i-ndx) bandwidth = i-ndx;
+				nr[ndx]++;
+			}
+	}
+	else
+	{
+		for(size_t i=0; i < B.rows; i++)
+			for(cRowIterator conn = B.beginRow(i); !conn.isEnd(); ++conn)
+			{
+				if((*conn).dValue == 0) continue;
+				size_t ndx = (*conn).iIndex;
+				UG_ASSERT(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
+
+				size_t k = nr[ndx];
+
+				UG_ASSERT(k>=0 && k<num_connections(ndx), "k = " << k << ". precalculated nr of Connections " << num_connections(ndx) << " wrong?");
+
+				pRowStart[ndx][k].dValue = (*conn).dValue;
+				pRowStart[ndx][k].dValue *= scale;
+				pRowStart[ndx][k].iIndex = i;
+				if(bandwidth < i-ndx) bandwidth = i-ndx;
+				nr[ndx]++;
+			}
+	}
+
 
 	// note that all connections are already sorted.
 	delete[] nr;
+	return true;
 }
 
 //======================================================================================================
@@ -1073,6 +1099,81 @@ inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::ent
 {
 	for(cRowIterator conn = beginRow(row); !conn.isEnd(); ++conn)
 		dest += alpha * (*conn).dValue * v[(*conn).iIndex];
+}
+
+
+template<typename T>
+bool SparseMatrix<T>::create_as_copy_of(const SparseMatrix<T> &B, double scale)
+{
+	size_t total=0;
+	for(size_t i=0; i<B.rows; i++)
+		total+= B.num_connections(i);
+
+	if(!is_finalized() || total != consmemsize)
+	{
+		destroy();
+		rows = B.rows;
+		cols = B.cols;
+
+		pRowStart = new connection*[rows+1];
+		iMaxNrOfConnections = new size_t[rows];
+		consmem = new connection[total];
+	}
+
+	rows = B.rows;
+	cols = B.cols;
+
+	connection *p = consmem;
+
+	if(scale == 1.0)
+	{
+		for(size_t i=0; i<rows; i++)
+		{
+			size_t nr=B.num_connections(i);
+			pRowStart[i] = p;
+			iMaxNrOfConnections[i] = nr;
+
+			for(size_t k=0; k < nr; k++, p++)
+				*p = B.pRowStart[i][k];
+
+		}
+	}
+	else
+	{
+		for(size_t i=0; i<rows; i++)
+		{
+			size_t nr=B.num_connections(i);
+			pRowStart[i] = p;
+			iMaxNrOfConnections[i] = nr;
+
+			for(size_t k=0; k < nr; k++, p++)
+			{
+				*p = B.pRowStart[i][k];
+				p->dValue *= scale;
+			}
+
+		}
+	}
+	assert(p == consmem+total);
+
+	pRowStart[rows] = p;
+	pRowEnd = pRowStart+1;
+
+	iFragmentedMem = 0;
+	iTotalNrOfConnections = total;
+	consmemsize = total;
+
+	return true;
+}
+
+template<typename T>
+bool SparseMatrix<T>::scale(double d)
+{
+	for(size_t i=0; i < rows; i++)
+		for(rowIterator it_k = beginRow(i); !it_k.isEnd(); ++it_k)
+			(*it_k).dValue *= d;
+
+	return true;
 }
 
 } // namespace ug

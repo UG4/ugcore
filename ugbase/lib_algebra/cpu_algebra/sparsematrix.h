@@ -87,9 +87,16 @@ public:
 	bool destroy();
 
 	//! create this as a transpose of SparseMatrix B
-	void create_as_transpose_of(const SparseMatrix &B);
+	bool create_as_transpose_of(const SparseMatrix &B, double scale=1.0);
 
-	void create_as_copy_of(const SparseMatrix &B);
+	//! create/recreate this as a copy of SparseMatrix B
+	bool create_as_copy_of(const SparseMatrix<T> &B, double scale=1.0);
+	SparseMatrix<T> &operator = (const SparseMatrix<T> &B)
+	{
+		create_as_copy_of(B);
+		return *this;
+	}
+
 
 public:
 	// finalizing functions
@@ -116,7 +123,6 @@ private:
 	// disallowed operations (not defined):
 	//---------------------------------------
 	SparseMatrix(SparseMatrix&); ///< disallow copy operator
-	void operator = (const SparseMatrix &v); ///< disallow assignment
 
 public:
 	// general functions
@@ -142,6 +148,8 @@ public:
 	//! isUnconnected: true if only A[i,i] != 0.0.
 	inline bool is_isolated(size_t i) const;
 
+	bool scale(double d);
+	SparseMatrix<T> &operator *= (double d) { scale(d); return *this; }
 
 public:
 	// submatrix set/get functions

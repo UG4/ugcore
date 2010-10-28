@@ -136,6 +136,11 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			m_h.destroy();
 
 		// 	Copy matrix
+
+#if 1
+			matrix_type& A = *this->m_pMatrix;
+			m_ILU = A;
+#else
 			matrix_type& A = *this->m_pMatrix;
 			m_ILU.create(A.num_rows(), A.num_cols());
 
@@ -147,7 +152,7 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 					m_ILU(i,k) = (*it_k).dValue;
 				}
 			}
-
+#endif
 		// 	Compute ILU Factorization
 			FactorizeILU(m_ILU);
 
