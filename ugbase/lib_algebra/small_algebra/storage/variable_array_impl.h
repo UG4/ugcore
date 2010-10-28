@@ -72,8 +72,8 @@ VariableArray1<T>::resize(size_t newN)
 		n = 0;
 		return;
 	}
-	value_type *new_values = new T[n];
-	memset(new_values, 0, sizeof(T)*n); // todo: think about that
+	value_type *new_values = new T[newN];
+	memset(new_values, 0, sizeof(T)*newN); // todo: think about that
 
 	/*
 	if(storage_traits<value_type>::is_static)
@@ -214,8 +214,8 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 		return;
 	}
 
-	value_type *new_values = new T[rows*cols];
-	memset(new_values, 0, sizeof(T)*rows*cols); // todo: think about that
+	value_type *new_values = new T[newRows*newCols];
+	memset(new_values, 0, sizeof(T)*newRows*newCols); // todo: think about that
 	/*
 	if(storage_traits<value_type>::is_static)
 	{
