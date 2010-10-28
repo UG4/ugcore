@@ -36,14 +36,6 @@ DenseVector<TStorage>::operator = (const DenseVector<TStorage> &rhs)
 	return *this;
 }
 
-template<typename TStorage>
-DenseVector<TStorage> &
-DenseVector<TStorage>::operator = (number rhs)
-{
-	for(size_type i=0; i<size(); i++)
-		at(i) = rhs;
-	return *this;
-}
 
 template<typename TStorage>
 DenseVector<TStorage> &
@@ -67,8 +59,9 @@ DenseVector<TStorage>::operator -= (const DenseVector<TStorage> &rhs)
 
 // operations with scalars
 template<typename TStorage>
+template<typename T>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator=(const typename DenseVector<TStorage>::value_type &alpha)
+DenseVector<TStorage>::operator=(const T &alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		at(i) = alpha;
@@ -94,8 +87,9 @@ DenseVector<TStorage>::operator-=(const typename DenseVector<TStorage>::value_ty
 }
 
 template<typename TStorage>
+template<typename T>
 DenseVector<TStorage> &
-DenseVector<TStorage>::operator*=(number alpha)
+DenseVector<TStorage>::operator*=(const T &alpha)
 {
 	for(size_t i=0; i<size(); i++)
 		at(i) *= alpha;

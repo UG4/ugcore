@@ -58,8 +58,6 @@ public:
 	this_type &
 	operator= (const this_type &rhs);
 
-	this_type &
-	operator= (number rhs);
 
 	this_type &
 	operator+= (const this_type &rhs);
@@ -68,8 +66,9 @@ public:
 	operator-= (const this_type &rhs);
 
 	// operations with scalars
+	template<typename T>
 	this_type&
-	operator=  (const value_type& alpha);
+	operator=  (const T& alpha);
 
 	this_type&
 	operator+= (const value_type& alpha);
@@ -77,8 +76,9 @@ public:
 	this_type&
 	operator-= (const value_type& alpha);
 
+	template<typename T>
 	this_type&
-	operator*= (number alpha);
+	operator *= (const T &alpha);
 
 	this_type&
 	operator/= (const value_type& alpha);
