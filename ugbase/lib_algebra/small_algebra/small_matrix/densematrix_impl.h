@@ -133,4 +133,4 @@ std::ostream &operator << (std::ostream &out, const DenseMatrix<TStorage> &mat)
 
 } // namespace ug
 
-#endif __H__UG__COMMON__DENSEMATRIX_IMPL_H__
+#endif // __H__UG__COMMON__DENSEMATRIX_IMPL_H__
