@@ -172,7 +172,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	// 	BiCGStab Solver
 		reg.add_class_<	LapackLUSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("LapackLUSolver", grp.c_str())
-			.add_constructor();
+			.add_constructor()
+			.add_method("set_convergence_check", &LapackLUSolver<algebra_type>::set_convergence_check, "", "check");
 	#endif
 	#endif
 	}
@@ -204,7 +205,7 @@ bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 						"", "verbose_level");
 		}
 
-	// register martin algebra
+	// register cpu algebra
 		RegisterAlgebraType<CPUAlgebra>(reg, grp.c_str());
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
