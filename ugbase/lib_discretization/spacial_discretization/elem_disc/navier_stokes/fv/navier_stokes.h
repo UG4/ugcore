@@ -51,27 +51,46 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		typedef typename IUserNumberProvider<dim>::functor_type NumberFunctor;
 
 	public:
+	//	Constructor (setting default values)
 		FVNavierStokesElemDisc()
-		 : m_pDomain(NULL), m_upwindAmount(0.0),
-		  	m_kinematicViscosity(NULL), m_Rhs(NULL)
+		 : m_Upwind(FULL_UPWIND), m_pDomain(NULL),
+		   m_Viscosity(1.0), m_Rhs(NULL)
 			{
 				register_assemble_functions(Int2Type<dim>());
 			}
 
-		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
-		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
+	public:
+	//	Setup
+		void set_domain(domain_type& domain) {m_pDomain = &domain;}
+		void set_kinematicViscosity(number nu) {m_Viscosity = nu;}
 		void set_rhs(IUserNumberProvider<dim>& user) {m_Rhs = user.get_functor();}
 
-		FVNavierStokesElemDisc(TDomain& domain, number upwind_amount,
-								NumberFunctor kinVisc, NumberFunctor rhs)
-		: 	m_pDomain(&domain), m_upwindAmount(upwind_amount),
-			m_kinematicViscosity(kinVisc), m_Rhs(rhs)
-		{
-		// register all Elements with reference dimension <= world dimension
-			register_assemble_functions(Int2Type<dim>());
-		};
 
+	private:
+		enum UPWIND_TYPES
+		{
+			FULL_UPWIND = 0,
+			LPS,
+			NUM_UPWIND
+		};
+		int m_Upwind;
+
+	public:
+		bool set_upwind(const std::string& upwind)
+		{
+			switch(upwind)
+			{
+				case "Full": m_Upwind = FULL_UPWIND; break;
+				case "LPS": m_Upwind = LPS; break;
+				default:	UG_LOG("Upwind Type not recognized.\n");
+							return false;
+			}
+			return true;
+		}
+
+	public:
+	//	Implement Interface
 		virtual size_t num_fct(){return 4;}
 
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) {return LSFS_LAGRANGEP1;}
@@ -114,11 +133,8 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		// abbreviation for pressure
 		static const size_t _P_ = dim+1;
 
-		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwindAmount;
-
 		// User functions
-		NumberFunctor m_kinematicViscosity;
+		number m_Viscosity;
 		NumberFunctor m_Rhs;
 
 	private:

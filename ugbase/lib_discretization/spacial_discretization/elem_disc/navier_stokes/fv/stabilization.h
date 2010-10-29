@@ -17,6 +17,8 @@ namespace ug{
  *
  *
  * \param[out] 	IPVelStab			Stabilized velocity at integration points (ip)
+ * \param[out] 	IPStabVelShape		Derivative of Stab Velocity with respect to Corner Velocities
+ * \param[out] 	IPStabPressureShape	Derivative of Stab Velocity with respect to Corner Pressure
  * \param[in]	geo					Finite Volume Geometry
  * \param[in]	CurrentIPVel		Velocity at ips from last iterate
  * \param[in]	IPVelOld			Velocity at ips from old timestep
@@ -28,19 +30,40 @@ namespace ug{
  * \param[in]	kinematicViscosity	kinematic Viscosity
  */
 template <typename TFVGeometry>
-bool GetFieldsStabilizedVelocities(	MathVector<TFVGeometry::world_dim> IPVelStab[],
-									const TFVGeometry& geo,
-									MathVector<TFVGeometry::world_dim> CurrentIPVel[],
-									MathVector<TFVGeometry::world_dim> IPVelOld[],
-									number dt,
-									MathVector<TFVGeometry::world_dim> IPVelUpwind[],
-									bool bUpwindDependOnIP,
-									number UpwindScalar[],
-									bool bTimeDependent,
-									MathVector<TFVGeometry::world_dim> CornerVel[],
-									MathVector<TFVGeometry::world_dim> IPPressureGrad[],
-									number kinematicViscosity)
+bool GetFieldsStabilizedVelocitiesDiagonal
+(
+		MathVector<TFVGeometry::world_dim> IPVelStab[],
+		number IPStabVelShape[][TFVGeometry::world_dim],
+		number IPStabPressureShape[][TFVGeometry::world_dim],
+		const TFVGeometry& geo,
+		MathVector<TFVGeometry::world_dim> CurrentIPVel[],
+		bool bTimeDependent,
+		MathVector<TFVGeometry::world_dim> IPVelOld[],
+		number dt,
+		MathVector<TFVGeometry::world_dim> IPVelUpwind[],
+		bool bUpwindDependOnIP,
+		number UpwindScalar[],
+		MathVector<TFVGeometry::world_dim> CornerVel[],
+		MathVector<TFVGeometry::world_dim> IPPressureGrad[],
+		number kinematicViscosity
+)
 {
+//	Check that upwind is diagonal (i.e. Upwind does only depend on corners)
+	if(bUpwindDependOnIP == true)
+	{
+		UG_LOG("ERROR in 'GetFieldsStabilizedVelocitiesDiagonal':"
+				"Using Diagonal computation for non diagonal upwind.\n");
+		return false;
+	}
+
+//	todo: Implement time-dependent part
+	if(bTimeDependent)
+	{
+		UG_LOG("ERROR in 'GetFieldsStabilizedVelocitiesDiagonal':"
+				"Time-dependent version not implemented.\n");
+		return false;
+	}
+
 //	Some constants
 	static const size_t numIp = TFVGeometry::m_numSCVF;
 	static const size_t dim = TFVGeometry::world_dim;
@@ -131,6 +154,52 @@ bool GetFieldsStabilizedVelocities(	MathVector<TFVGeometry::world_dim> IPVelStab
 	return true;
 }
 
+template <typename TFVGeometry>
+bool GetFieldsStabilizedVelocitiesFullMatrix(	MathVector<TFVGeometry::world_dim> IPVelStab[],
+									const TFVGeometry& geo,
+									MathVector<TFVGeometry::world_dim> CurrentIPVel[],
+									bool bTimeDependent,
+									MathVector<TFVGeometry::world_dim> IPVelOld[],
+									number dt,
+									MathVector<TFVGeometry::world_dim> IPVelUpwind[],
+									bool bUpwindDependOnIP,
+									number UpwindScalar[],
+									MathVector<TFVGeometry::world_dim> CornerVel[],
+									MathVector<TFVGeometry::world_dim> IPPressureGrad[],
+									number kinematicViscosity)
+{
+	return false;
+}
+
+template <typename TFVGeometry>
+bool GetFieldsStabilizedVelocities(	MathVector<TFVGeometry::world_dim> IPVelStab[],
+									const TFVGeometry& geo,
+									MathVector<TFVGeometry::world_dim> CurrentIPVel[],
+									bool bTimeDependent,
+									MathVector<TFVGeometry::world_dim> IPVelOld[],
+									number dt,
+									MathVector<TFVGeometry::world_dim> IPVelUpwind[],
+									bool bUpwindDependOnIP,
+									number UpwindScalar[],
+									MathVector<TFVGeometry::world_dim> CornerVel[],
+									MathVector<TFVGeometry::world_dim> IPPressureGrad[],
+									number kinematicViscosity)
+{
+	if(bUpwindDependOnIP)
+	return
+		GetFieldsStabilizedVelocitiesDiagonal(	IPVelStab, geo, CurrentIPVel,
+												bTimeDependent, IPVelOld, dt,
+												IPVelUpwind, bUpwindDependOnIP,
+												UpwindScalar, CornerVel,
+												IPPressureGrad, kinematicViscosity);
+	else
+	return
+		GetFieldsStabilizedVelocitiesFullMatrix(IPVelStab, geo, CurrentIPVel,
+												bTimeDependent, IPVelOld, dt,
+												IPVelUpwind, bUpwindDependOnIP,
+												UpwindScalar, CornerVel,
+												IPPressureGrad, kinematicViscosity);
+}
 
 
 

@@ -93,11 +93,58 @@ bool
 FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
-	// get finite volume geometry
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+//	number of corners == number of scv
+	static const size_t numCo = TFVGeom<TElem, dim>::m_numSCV;
 
-	// user data
-	number viscosity;
+//	number of SubControlVolumeFaces == num ips
+	static const size_t numSCVF = TFVGeom<TElem, dim>::m_numSCVF;
+
+	// get finite volume geometry
+	static const TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
+
+	// Only first order implemented
+	UG_ASSERT(TFVGeom<TElem, dim>::order == 1, "Only first order implemented.");
+
+	// Some Variables
+	MathVector<dim> vIPVelUpwind[numSCVF];
+	number vvCornerShape[numSCVF][numCo];
+	number vConvLength[numSCVF];
+	number vvIPShape[numSCVF][numCo];
+	bool bDependOnIP;
+	number vDiffLengthSqInv[numSCVF];
+	MathVector<dim> vIPVel[numSCVF];
+	MathVector<dim> vCurrentIPVel[numSCVF];
+	number vIPScaleNumber[numSCVF];
+	MathVector<dim> vCornerVel[numCo];
+	MathVector<dim> vIPPressureGrad[numSCVF];
+
+	// Compute Upwind Shapes at Ip's and ConvectionLength here
+	switch(m_Upwind)
+	{
+		case FULL_UPWIND: GetFullUpwindShapesDependingOnIP(	geo, vIPVelUpwind, vvCornerShape, vConvLenght,
+															vIPScaleNumber, bDependOnIP);
+		default: 	UG_LOG("Upwind Type not set.\n");
+					return false;
+	}
+
+	// todo: switch
+	//	Compute Diffusion Length
+	NSDiffLengthAnsatz1(vDiffLengthSqInv, geo);
+
+	// todo: Implement for timedependent
+	bool bTimeDependent = false;
+	MathVector<dim> vIPVelOld[numSCVF];
+	number dt = 0.0;
+
+	// todo: Compute IP Velocity of Current Velocity at ip
+	// todo: Compute vCornerVel
+	// todo: Compute vIPPressureGrad
+
+	// todo: switch
+	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
+	GetFieldsStabilizedVelocities(	vIPVelStab, geo, vCurrentIPVel, bTimeDependent, vIPVelOld,
+									dt, vIPVelUpwind, bDependOnIP, vIPScaleNumber, vCornerVel,
+									vIPPressureGrad, m_Viscosity);
 
 	// loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -108,9 +155,6 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 		// loop integration point of SCVF
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			// Read Data at IP
-			m_kinematicViscosity(viscosity, scvf.global_ip(ip), time);
-
 			// loop shape functions
 			for(size_t co = 0; co < scvf.num_sh(); ++co)
 			{
@@ -129,7 +173,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 					for(size_t vel2 = 0; vel2 < dim; ++vel2)
 					{
-						const number flux2 = viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
+						const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
 						J(vel1, scvf.from(), vel2, co) -= flux2;
 						J(vel1, scvf.to()  , vel2, co) += flux2;
 					}
@@ -139,7 +183,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// Pressure Term (Momentum Equation)
 				////////////////////////////////////////////////////
 
-                                for(size_t vel = 0; vel < dim; ++vel)
+                for(size_t vel = 0; vel < dim; ++vel)
 				{
 					J(vel, scvf.from(), _P_, co) += scvf.shape(co, ip) * scvf.normal()[vel];
 					J(vel, scvf.to()  , _P_, co) -= scvf.shape(co, ip) * scvf.normal()[vel];
@@ -149,11 +193,12 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// Convective Term (Momentum Equation)
 				////////////////////////////////////////////////////
 
-				// todo: implement convective term (momentum equation)
+				// todo: implement convective term (momentum equation) use vIPVelStab
 
-				// todo: implement mass equations
-                        }
+				// todo: implement mass equations use vIPVelStabMassEq
+                //J(_P_, ,vel1, ) +=
                 }
+          }
 	}
 
 	// we're done
@@ -223,9 +268,6 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 				VecScaleAppend(grad_u, u(_C_,j), scvf.global_grad(j, ip));
 				shape_u += u(_C_,j) * scvf.shape(j, ip);
 			}
-
-			// Read Data at IP
-			m_kinematicViscosity(viscosity, scvf.global_ip(ip), time);
 
 			// todo: implement defect
 		}
