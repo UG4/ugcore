@@ -36,7 +36,10 @@ class FV1Geometry {
 		// type of reference element
 		typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
-	private:
+	public:
+		// order
+		static const int order = 1;
+
 		// number of SubControlVolumes
 		static const size_t m_numSCV = ref_elem_type::num_corners;
 
