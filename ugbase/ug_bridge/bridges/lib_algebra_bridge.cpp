@@ -207,7 +207,7 @@ bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 
 	// register algebra
 		RegisterAlgebraType<CPUAlgebra>(reg, grp.c_str());
-	//	RegisterAlgebraType<Block2x2Algebra>(reg. grp.c_str());
+	//	RegisterAlgebraType<Block2x2Algebra>(reg, grp.c_str());
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
