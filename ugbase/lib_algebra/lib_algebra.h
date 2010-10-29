@@ -65,27 +65,42 @@
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
 
-
-
 namespace ug
 {
+
+/////////////////////////////////////////////
+//   CPU Algebra (Block 1x1 Algebra)
+/////////////////////////////////////////////
+
 class CPUAlgebra
-	{
-	public:
-		// matrix type
+{
+public:
 #ifdef UG_PARALLEL
 		typedef ParallelMatrix<SparseMatrix<double> > matrix_type;
-#else
-		typedef SparseMatrix<double> matrix_type;
-#endif
-		// vector type
-#ifdef UG_PARALLEL
 		typedef ParallelVector<Vector<double> > vector_type;
 #else
+		typedef SparseMatrix<double> matrix_type;
 		typedef Vector<double> vector_type;
 #endif
-	};
-}
+};
+
+/////////////////////////////////////////////
+//   Block 2x2 Algebra
+/////////////////////////////////////////////
+
+class Block2x2Algebra
+{
+public:
+#ifdef UG_PARALLEL
+	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > > matrix_type;
+	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, 2> > > > vector_type;
+#else
+	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > matrix_type;
+	typedef Vector<DenseVector<FixedArray1<double, 2> > > vector_type;
+#endif
+};
+
+} // end namespace ug
 
 
 /////////////////////////////////////////////
