@@ -274,10 +274,10 @@ class LocalVector
 		typedef size_t comp_type;
 
 		// entry type used by algebra
-		typedef TEntry entry_type;
+		typedef TEntry value_type;
 
 	protected:
-		typedef typename std::vector<entry_type>::iterator iterator;
+		typedef typename std::vector<value_type>::iterator iterator;
 
 	public:
 		///////////////////////////
@@ -315,14 +315,14 @@ class LocalVector
 		size_t size() const {return m_entries.size();}
 
 		/// access to entry
-		entry_type& operator[](size_t i)
+		value_type& operator[](size_t i)
 		{
 			UG_ASSERT(i < size(), "Index not valid");
 			return m_entries[i];
 		}
 
 		/// access to entry
-		const entry_type& operator[](size_t i) const
+		const value_type& operator[](size_t i) const
 		{
 			UG_ASSERT(i < size(), "Index not valid");
 			return m_entries[i];
@@ -409,7 +409,7 @@ class LocalVector
 		LocalIndices* m_pIndices;
 
 		// entries (size = m_indices.num_indices())
-		std::vector<entry_type> m_entries;
+		std::vector<value_type> m_entries;
 };
 
 class LocalMatrixBase{
@@ -430,11 +430,11 @@ class LocalMatrix : public LocalMatrixBase
 		typedef size_t comp_type;
 
 		// entry type used by algebra
-		typedef TEntry entry_type;
+		typedef TEntry value_type;
 
 	protected:
-		typedef typename std::vector<std::vector<entry_type> >::iterator   row_iterator;
-		typedef typename std::vector<entry_type>::iterator col_iterator;
+		typedef typename std::vector<std::vector<value_type> >::iterator   row_iterator;
+		typedef typename std::vector<value_type>::iterator col_iterator;
 
 	public:
 		///////////////////////////
@@ -497,7 +497,7 @@ class LocalMatrix : public LocalMatrixBase
 		}
 
 		/// access to entry
-		entry_type& operator() (size_t i, size_t j)
+		value_type& operator() (size_t i, size_t j)
 		{
 			UG_ASSERT(i < num_rows(), "Row does not exist.");
 			UG_ASSERT(j < num_cols(), "Column does not exist.");
@@ -505,7 +505,7 @@ class LocalMatrix : public LocalMatrixBase
 		}
 
 		/// const access to entry
-		const entry_type& operator() (size_t i, size_t j) const
+		const value_type& operator() (size_t i, size_t j) const
 		{
 			UG_ASSERT(i < num_rows(), "Row does not exist.");
 			UG_ASSERT(j < num_cols(), "Column does not exist.");
@@ -602,7 +602,7 @@ class LocalMatrix : public LocalMatrixBase
 		const LocalIndices* m_pColIndices;
 
 		// entries
-		DenseMatrix<VariableArray2<entry_type> > m_entries;
+		DenseMatrix<VariableArray2<value_type> > m_entries;
 };
 
 template <typename Entry>

@@ -24,9 +24,9 @@ bool FactorizeILU(Matrix_type &A)
 		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
 		{
 			const size_t k = (*it_k).iIndex;
-			typename Matrix_type::entry_type a_ik = (*it_k).dValue;
+			typename Matrix_type::value_type a_ik = (*it_k).dValue;
 			if(BlockNorm(a_ik) < 1e-7)	continue;
-			typename Matrix_type::entry_type a_kk = A(k,k);
+			typename Matrix_type::value_type a_kk = A(k,k);
 
 			a_ik /= a_kk;
 
@@ -36,12 +36,12 @@ bool FactorizeILU(Matrix_type &A)
 			for(++it_j; !it_j.isEnd(); ++it_j)
 			{
 				const size_t j = (*it_j).iIndex;
-				typename Matrix_type::entry_type& a_ij = (*it_j).dValue;
+				typename Matrix_type::value_type& a_ij = (*it_j).dValue;
 				bool bFound;
 				typename Matrix_type::rowIterator p = A.get_connection(k,j, bFound);
 				if(bFound)
 				{
-					const typename Matrix_type::entry_type a_kj = (*p).dValue;
+					const typename Matrix_type::value_type a_kj = (*p).dValue;
 					a_ij -= a_ik*a_kj;
 				}
 			}
@@ -62,9 +62,9 @@ bool FactorizeILUSorted(Matrix_type &A)
 		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
 		{
 			const size_t k = (*it_k).iIndex;
-			typename Matrix_type::entry_type &a_ik = (*it_k).dValue;
+			typename Matrix_type::value_type &a_ik = (*it_k).dValue;
 			if(BlockNorm(a_ik) < 1e-7)	continue;
-			typename Matrix_type::entry_type &a_kk = A(k,k);
+			typename Matrix_type::value_type &a_kk = A(k,k);
 
 			a_ik /= a_kk;
 
@@ -82,8 +82,8 @@ bool FactorizeILUSorted(Matrix_type &A)
 					++it_ij;
 				else
 				{
-					typename Matrix_type::entry_type& a_ij = (*it_ij).dValue;
-					typename Matrix_type::entry_type& a_kj = (*it_kj).dValue;
+					typename Matrix_type::value_type& a_ij = (*it_ij).dValue;
+					typename Matrix_type::value_type& a_kj = (*it_kj).dValue;
 					a_ij -= a_ik*a_kj;
 					++it_kj; ++it_ij;
 				}
@@ -99,7 +99,7 @@ bool FactorizeILUSorted(Matrix_type &A)
 template<typename Matrix_type, typename Vector_type>
 bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
-	typename Vector_type::entry_type s;
+	typename Vector_type::value_type s;
 	for(size_t i=0; i < x.size(); i++)
 	{
 		s = b[i];
@@ -118,7 +118,7 @@ bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 template<typename Matrix_type, typename Vector_type>
 bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
-	typename Vector_type::entry_type s;
+	typename Vector_type::value_type s;
 	for(size_t i = x.size()-1; ; --i)
 	{
 		s = b[i];

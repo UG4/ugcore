@@ -20,7 +20,7 @@ class IPDerivative
 		typedef IPDerivative<TEntry> this_type;
 
 		// entry type used by algebra
-		typedef TEntry entry_type;
+		typedef TEntry value_type;
 
 	public:
 		IPDerivative() {clear();}
@@ -74,7 +74,7 @@ class IPDerivative
 		}
 
 		/// access to derivative of function fct
-		entry_type& operator()(size_t fct, size_t dof)
+		value_type& operator()(size_t fct, size_t dof)
 		{
 			UG_ASSERT(fct < m_vvEntries.size(), "Index not valid.");
 			UG_ASSERT(dof < m_vvEntries[fct].size(), "Index not valid.");
@@ -82,7 +82,7 @@ class IPDerivative
 		}
 
 		/// const access to derivative of function fct
-		const entry_type& operator()(size_t fct, size_t dof) const
+		const value_type& operator()(size_t fct, size_t dof) const
 		{
 			UG_ASSERT(fct < m_vvEntries.size(), "Index not valid.");
 			UG_ASSERT(dof < m_vvEntries[fct].size(), "Index not valid.");
@@ -91,7 +91,7 @@ class IPDerivative
 
 	protected:
 		// entries
-		std::vector<std::vector<entry_type> > m_vvEntries;
+		std::vector<std::vector<value_type> > m_vvEntries;
 };
 
 

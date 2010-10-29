@@ -72,13 +72,15 @@ bool SparseMatrix<T>::create(size_t _rows, size_t _cols)
 	cols = _cols;
 
 	pRowStart = new connection*[rows+1];
+	UG_ASSERT(pRowStart != NULL, "out of memory, no more space for " << sizeof(connection*)*(rows+1));
 	memset(pRowStart, 0, sizeof(connection*)*(rows+1));
 
 	pRowEnd = new connection*[rows+1];
+	UG_ASSERT(pRowEnd != NULL, "out of memory, no more space for " << sizeof(connection*)*(rows+1));
 	memset(pRowEnd, 0, sizeof(connection*)*(rows+1));
 
-
 	iMaxNrOfConnections = new size_t[rows];
+	UG_ASSERT(iMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*rows);
 	memset(iMaxNrOfConnections, 0, sizeof(size_t)*rows);
 
 	iTotalNrOfConnections = 0;
@@ -120,6 +122,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 	{
 		// reallocate arrays
 		connection **pNewRowStart = new connection*[newRows+1];
+		UG_ASSERT(pNewRowStart != NULL, "out of memory, no more space for " << sizeof(connection*)*(newRows+1));
 		memcpy(pNewRowStart, pRowStart, sizeof(connection*)*(newRows+1));
 		delete[] pRowStart;
 		pRowStart = pNewRowStart;
@@ -129,12 +132,14 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 		else
 		{
 			connection **pNewRowEnd = new connection*[newRows+1];
+			UG_ASSERT(pNewRowEnd != NULL, "out of memory, no more space for " << sizeof(connection*)*(newRows+1));
 			memcpy(pNewRowEnd, pRowEnd, sizeof(connection*)*(newRows+1));
 			delete[] pRowEnd;
 			pRowEnd = pNewRowEnd;
 		}
 
 		size_t *iNewMaxNrOfConnections = new size_t[newRows];
+		UG_ASSERT(iNewMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*newRows);
 		memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t)*newRows);
 		delete[] iMaxNrOfConnections;
 		iMaxNrOfConnections = iNewMaxNrOfConnections;
@@ -188,14 +193,19 @@ bool SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B, double scale
 #endif
 
 	pRowStart = new connection*[rows+1];
+	UG_ASSERT(pRowStart != NULL, "out of memory, no more space for " << sizeof(connection*)*(rows+1));
+
 	pRowEnd= pRowStart+1;
 	iMaxNrOfConnections = new size_t[rows];
+	UG_ASSERT(iMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*rows);
+
 	iTotalNrOfConnections = 0;
 	bandwidth = 0;
 
 	//-----------------------------------
 
 	size_t *nr = new size_t[rows];
+	UG_ASSERT(nr != NULL, "out of memory, no more space for " << sizeof(size_t)*rows);
 	memset(nr, 0, sizeof(size_t)*rows);
 
 	// get length of each row
@@ -212,6 +222,7 @@ bool SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B, double scale
 
 	// allocate one big connection memory
 	consmem = new connection[newTotal];
+	UG_ASSERT(consmem != NULL, "out of memory, no more space for " << sizeof(connection)*newTotal);
 	consmemsize = newTotal;
 
 	// init pRowStart array
@@ -297,6 +308,7 @@ void SparseMatrix<T>::defrag()
 		iTotalNrOfConnections+= num_connections(i);
 
 	connection *consmemNew = new connection[iTotalNrOfConnections];
+	UG_ASSERT(consmemNew != NULL, "out of memory, no more space for " << sizeof(connection)*iTotalNrOfConnections);
 	connection *p = consmemNew;
 	for(size_t i=0; i<rows; i++)
 	{
@@ -329,6 +341,7 @@ void SparseMatrix<T>::definalize()
 	if(!is_finalized())
 		return; // already not finalized.
 	connection **pNewRowEnd = new connection*[rows];
+	UG_ASSERT(pNewRowEnd != NULL, "out of memory, no more space for " << sizeof(connection*)*rows);
 	memcpy(pNewRowEnd, pRowEnd, sizeof(connection*)*rows);
 	pRowEnd = pNewRowEnd;
 }
@@ -392,6 +405,7 @@ bool SparseMatrix<T>::set_dirichlet_rows(const size_t *pDirichletRows, size_t iN
 				iFragmentedMem += 1-num_connections(row);
 
 			connection *c = new connection[1];
+			UG_ASSERT(c != NULL, "out of memory, no more space for " << sizeof(connection));
 			definalize();
 			safe_set_connections(row, c);
 			iMaxNrOfConnections[row] = 1;
@@ -415,9 +429,12 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 
 	for(size_t i=0; i < rows; i++)
 	{
-		res[i] = 0.0;
-		for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
-			res[i] += (*conn).dValue * x[(*conn).iIndex];
+		cRowIterator conn = beginRow(i);
+		if(conn.isEnd()) continue;
+		MatMult(res[i], 1.0, (*conn).dValue, x[(*conn).iIndex]);
+		for(++conn; !conn.isEnd(); ++conn)
+			// res[i] += (*conn).dValue * x[(*conn).iIndex];
+			MatMultAdd(res[i], 1.0, res[i], 1.0, (*conn).dValue, x[(*conn).iIndex]);
 	}
 
 	return true;
@@ -440,7 +457,8 @@ bool SparseMatrix<T>::apply_transposed(Vector_type &res, const Vector_type &x) c
 		for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
 		{
 			if((*conn).dValue != 0.0)
-				res[(*conn).iIndex] += (*conn).dValue * x[i];
+				// res[(*conn).iIndex] += (*conn).dValue * x[i];
+				MatMultAdd(res[(*conn).iIndex], 1.0, res[(*conn).iIndex], 1.0, (*conn).dValue, x[i]);
 		}
 	}
 	return true;
@@ -459,9 +477,9 @@ bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
 	{
 		cRowIterator conn = beginRow(i);
 		for(; !conn.isEnd(); ++conn)
-			res[i] -= (*conn).dValue * x[(*conn).iIndex];
+			// res[i] -= (*conn).dValue * x[(*conn).iIndex];
+			MatMultAdd(res[i], 1.0, res[i], -1.0, (*conn).dValue, x[(*conn).iIndex]);
 	}
-
 
 	return true;
 }
@@ -478,6 +496,8 @@ template<typename M>
 void SparseMatrix<T>::add(const M &mat)
 {
 	connection *c = new connection[mat.num_cols()];
+	UG_ASSERT(c != NULL, "out of memory, no more space for " << sizeof(connection)*mat.num_cols());
+
 	size_t nc;
 	for(size_t i=0; i < mat.num_rows(); i++)
 	{
@@ -508,6 +528,8 @@ template<typename M>
 void SparseMatrix<T>::set(const M &mat)
 {
 	connection *c = new connection[mat.num_cols()];
+	UG_ASSERT(c != NULL, "out of memory, no more space for " << sizeof(connection)*mat.num_cols());
+
 	size_t nc;
 	for(size_t i=0; i < mat.num_rows(); i++)
 	{
@@ -681,7 +703,7 @@ inline size_t SparseMatrix<T>::num_connections(size_t row) const
 template<typename T>
 const matrixrow<T> SparseMatrix<T>::getrow(size_t i) const
 {
-	return matrixrow<entry_type> (*this, i);
+	return matrixrow<value_type> (*this, i);
 }
 
 //!
@@ -689,7 +711,7 @@ const matrixrow<T> SparseMatrix<T>::getrow(size_t i) const
 template<typename T>
 const matrixrow<T> SparseMatrix<T>::operator [] (size_t i) const
 {
-	return matrixrow<entry_type> (*this, i);
+	return matrixrow<value_type> (*this, i);
 }
 
 
@@ -706,6 +728,8 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 		iFragmentedMem += nr - num_connections(row);
 
 	connection *n = new connection[nr];
+	UG_ASSERT(n != NULL, "out of memory, no more space for " << sizeof(connection)*nr);
+
 	for(size_t i=0; i<nr; i++)
 		n[i] = c[i];
 
@@ -784,6 +808,7 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 
 	size_t iNewSize = oldNrOfConnections + skipped;
 	connection *n = new connection[iNewSize];
+	UG_ASSERT(n != NULL, "out of memory, no more space for " << sizeof(connection)*iNewSize);
 
 	if(in_consmem(row))
 		iFragmentedMem += iNewSize;
@@ -872,6 +897,8 @@ typename SparseMatrix<T>::rowIterator SparseMatrix<T>::get_connection(size_t r, 
 		if(bFound == false)
 			nr = numConnections;
 		connection *con = new connection[numConnections+1];
+		UG_ASSERT(con != NULL, "out of memory, no more space for " << sizeof(connection)*(numConnections+1));
+
 		if(pRowStart[r]) memcpy(con, pRowStart[r], nr*sizeof(connection));
 		con[nr].iIndex = c;
 		con[nr].dValue = 0.0;
@@ -1049,7 +1076,7 @@ bool SparseMatrix<T>::get_connection_nr(size_t r, size_t c, size_t &nr, get_conn
 
 
 template<typename T>
-const typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t r, size_t c, bool &bFound) const
+const typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c, bool &bFound) const
 {
 	size_t nr=0;
 	bFound = get_connection_nr(r, c, nr);
@@ -1064,7 +1091,7 @@ const typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t 
 }
 
 template<typename T>
-typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t r, size_t c, bool &bFound)
+typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c, bool &bFound)
 {
 	size_t nr=0;
 	bFound = get_connection_nr(r, c, nr);
@@ -1079,7 +1106,7 @@ typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t r, siz
 }
 
 template<typename T>
-const typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t r, size_t c) const
+const typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c) const
 {
 	size_t nr=0;
 	bool bConnectionFound = get_connection_nr(r, c, nr);
@@ -1089,7 +1116,7 @@ const typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t 
 }
 
 template<typename T>
-typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t r, size_t c)
+typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c)
 {
 	return (*get_connection(r, c)).dValue;
 }
@@ -1097,7 +1124,7 @@ typename SparseMatrix<T>::entry_type &SparseMatrix<T>::operator() (size_t r, siz
 
 template<typename T>
 template<typename vector_t>
-inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::entry_type &dest, double alpha, const vector_t &v) const
+inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::value_type &dest, double alpha, const vector_t &v) const
 {
 	for(cRowIterator conn = beginRow(row); !conn.isEnd(); ++conn)
 		dest += alpha * (*conn).dValue * v[(*conn).iIndex];
@@ -1118,8 +1145,13 @@ bool SparseMatrix<T>::create_as_copy_of(const SparseMatrix<T> &B, double scale)
 		cols = B.cols;
 
 		pRowStart = new connection*[rows+1];
+		UG_ASSERT(pRowStart != NULL, "out of memory, no more space for " << sizeof(connection*)*(rows+1));
+
 		iMaxNrOfConnections = new size_t[rows];
+		UG_ASSERT(iMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*rows);
+
 		consmem = new connection[total];
+		UG_ASSERT(consmem != NULL, "out of memory, no more space for " << sizeof(connection)*total);
 	}
 
 	rows = B.rows;

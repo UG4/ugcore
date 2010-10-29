@@ -16,15 +16,15 @@
 #define prefetchReadWrite(a)
 
 namespace ug{
-template<typename entry_type>
-inline entry_type &Vector<entry_type>::operator [] (size_t i)
+template<typename value_type>
+inline value_type &Vector<value_type>::operator [] (size_t i)
 {
 	UG_ASSERT(i >= 0 && i < length, *this << ": tried to access element " << i);
 	return values[i];
 }
 
-template<typename entry_type>
-inline const entry_type &Vector<entry_type>::operator [] (size_t i) const
+template<typename value_type>
+inline const value_type &Vector<value_type>::operator [] (size_t i) const
 {
 	UG_ASSERT(i >= 0 && i < length, *this << ": tried to access element " << i);
 	return values[i];
@@ -32,7 +32,7 @@ inline const entry_type &Vector<entry_type>::operator [] (size_t i) const
 
 
 // energynorm2 = x*(A*x)
-/*inline double Vector<entry_type>::energynorm2(const SparseMatrix &A) const
+/*inline double Vector<value_type>::energynorm2(const SparseMatrix &A) const
 {
 	double sum=0;
 	for(size_t i=0; i<length; i++)	sum += (A[i] * (*this)) * values[i];
@@ -41,8 +41,8 @@ inline const entry_type &Vector<entry_type>::operator [] (size_t i) const
 }*/
 
 // dotprod
-template<typename entry_type>
-inline double Vector<entry_type>::dotprod(const Vector &w) //const
+template<typename value_type>
+inline double Vector<value_type>::dotprod(const Vector &w) //const
 {
 	UG_ASSERT(length == w.length,  *this << " has not same length as " << w);
 
@@ -52,8 +52,8 @@ inline double Vector<entry_type>::dotprod(const Vector &w) //const
 }
 
 // assign double to whole Vector
-template<typename entry_type>
-inline double Vector<entry_type>::operator = (double d)
+template<typename value_type>
+inline double Vector<value_type>::operator = (double d)
 {
 	for(size_t i=0; i<length; i++)
 		values[i] = d;
@@ -63,19 +63,19 @@ inline double Vector<entry_type>::operator = (double d)
 
 
 // für Function Expression, sh. TemplateExpression.h
-template<typename entry_type>
-template<class Function> inline void Vector<entry_type>::operator = (Function &ex)
+template<typename value_type>
+template<class Function> inline void Vector<value_type>::operator = (Function &ex)
 {
 	ex.applyto(*this);
 }
 
-template<typename entry_type>
-inline void Vector<entry_type>::operator = (const Vector &v)
+template<typename value_type>
+inline void Vector<value_type>::operator = (const Vector &v)
 {
 	v.applyto(*this);
 }
-template<typename entry_type>
-inline void Vector<entry_type>::applyto(Vector &v) const
+template<typename value_type>
+inline void Vector<value_type>::applyto(Vector &v) const
 {
 	UG_ASSERT(v.length == length, *this << " has not same length as " << v);
 
@@ -84,8 +84,8 @@ inline void Vector<entry_type>::applyto(Vector &v) const
 }
 
 
-template<typename entry_type>
-template<typename Type> inline void Vector<entry_type>::operator = (const Type &t)
+template<typename value_type>
+template<typename Type> inline void Vector<value_type>::operator = (const Type &t)
 {
 	//IF_PRINTLEVEL(5) cout << *this << " = " << t << " (unspecialized) " << endl;
 	/*UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
@@ -100,8 +100,8 @@ template<typename Type> inline void Vector<entry_type>::operator = (const Type &
 }
 
 // v += exp
-template<typename entry_type>
-template<typename Type> inline void Vector<entry_type>::operator += (const Type &t)
+template<typename value_type>
+template<typename Type> inline void Vector<value_type>::operator += (const Type &t)
 {
 	/*UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
 
@@ -114,8 +114,8 @@ template<typename Type> inline void Vector<entry_type>::operator += (const Type 
 }
 
 // v -= exp
-template<typename entry_type>
-template<typename Type> inline void Vector<entry_type>::operator -= (const Type &t)
+template<typename value_type>
+template<typename Type> inline void Vector<value_type>::operator -= (const Type &t)
 {
 	/*UG_DLOG(LIB_ALG_VECTOR, 5, *this << " -= " << t << " (unspecialized) ");
 	UG_ASSERT(t.size() == length, *this << " has not same length as " << t);
@@ -132,16 +132,16 @@ template<typename Type> inline void Vector<entry_type>::operator -= (const Type 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-template<typename entry_type>
-Vector<entry_type>::Vector ()
+template<typename value_type>
+Vector<value_type>::Vector ()
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 
 	length = 0; values = NULL;
 }
 
-template<typename entry_type>
-Vector<entry_type>::Vector(size_t _length)
+template<typename value_type>
+Vector<value_type>::Vector(size_t _length)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 
@@ -149,14 +149,14 @@ Vector<entry_type>::Vector(size_t _length)
 	create(_length);
 }
 
-template<typename entry_type>
-Vector<entry_type>::~Vector()
+template<typename value_type>
+Vector<value_type>::~Vector()
 {
 	destroy();
 }
 
-template<typename entry_type>
-bool Vector<entry_type>::destroy()
+template<typename value_type>
+bool Vector<value_type>::destroy()
 {
 	if(values)
 	{
@@ -168,23 +168,23 @@ bool Vector<entry_type>::destroy()
 }
 
 
-template<typename entry_type>
-bool Vector<entry_type>::create(size_t _length)
+template<typename value_type>
+bool Vector<value_type>::create(size_t _length)
 {
 	UG_ASSERT(length == 0, *this << " already created");
 	length = _length;
-	values = new entry_type[length];
+	values = new value_type[length];
 
 	return true;
 }
 
 
-template<typename entry_type>
-bool Vector<entry_type>::create(const Vector &v)
+template<typename value_type>
+bool Vector<value_type>::create(const Vector &v)
 {
 	UG_ASSERT(length == 0, *this << " already created");
 	length = v.length;
-	values = new entry_type[length];
+	values = new value_type[length];
 
 	// we cannot use memcpy here bcs of variable blocks.
 	for(size_t i=0; i<length; i++)
@@ -195,8 +195,8 @@ bool Vector<entry_type>::create(const Vector &v)
 
 
 // print
-template<typename entry_type>
-void Vector<entry_type>::print(const char * const text) const
+template<typename value_type>
+void Vector<value_type>::print(const char * const text) const
 {
 
 	if(text) cout << " == " << text;
@@ -207,34 +207,34 @@ void Vector<entry_type>::print(const char * const text) const
 	cout << endl;
 }
 
-template<typename entry_type>
-void Vector<entry_type>::printtype() const
+template<typename value_type>
+void Vector<value_type>::printtype() const
 {
 	cout << *this;
 }
 
 
-template<typename entry_type>
+template<typename value_type>
 template<typename V>
-bool Vector<entry_type>::add(const V& u)
+bool Vector<value_type>::add(const V& u)
 {
 	for(size_t i=0; i < u.size(); i++)
 		values[u.index(i)] += u[i];
 	return true;
 }
 
-template<typename entry_type>
+template<typename value_type>
 template<typename V>
-bool Vector<entry_type>::set(const V& u)
+bool Vector<value_type>::set(const V& u)
 {
 	for(size_t i=0; i < u.size(); i++)
 		values[u.index(i)] = u[i];
 	return true;
 }
 
-template<typename entry_type>
+template<typename value_type>
 template<typename V>
-bool Vector<entry_type>::get(V& u) const
+bool Vector<value_type>::get(V& u) const
 {
 	for(size_t i=0; i < u.size(); i++)
 		u[i] = values[u.index(i)];
@@ -244,24 +244,24 @@ bool Vector<entry_type>::get(V& u) const
 
 
 
-template<typename entry_type>
-bool Vector<entry_type>::add(const entry_type *u, const size_t *indices, int nr)
+template<typename value_type>
+bool Vector<value_type>::add(const value_type *u, const size_t *indices, int nr)
 {
 	for(size_t i=0; i < nr; i++)
 		values[indices[i]] += u[i];
 	return true;
 }
 
-template<typename entry_type>
-bool Vector<entry_type>::set(const entry_type *u, const size_t *indices, int nr)
+template<typename value_type>
+bool Vector<value_type>::set(const value_type *u, const size_t *indices, int nr)
 {
 	for(size_t i=0; i < nr; i++)
 		values[indices[i]] = u[i];
 	return true;
 }
 
-template<typename entry_type>
-bool Vector<entry_type>::get(entry_type *u, const size_t *indices, int nr) const
+template<typename value_type>
+bool Vector<value_type>::get(value_type *u, const size_t *indices, int nr) const
 {
 	for(size_t i=0; i < nr; i++)
 		u[i] = values[indices[i]] ;
@@ -270,31 +270,31 @@ bool Vector<entry_type>::get(entry_type *u, const size_t *indices, int nr) const
 
 
 
-template<typename entry_type>
-void Vector<entry_type>::add(const entry_type &d, size_t i)
+template<typename value_type>
+void Vector<value_type>::add(const value_type &d, size_t i)
 {
 	values[i] += d;
 }
-template<typename entry_type>
-void Vector<entry_type>::set(const entry_type &d, size_t i)
+template<typename value_type>
+void Vector<value_type>::set(const value_type &d, size_t i)
 {
 	values[i] = d;
 }
-template<typename entry_type>
-void Vector<entry_type>::get(entry_type &d, size_t i) const
+template<typename value_type>
+void Vector<value_type>::get(value_type &d, size_t i) const
 {
 	d = values[i];
 }
 
 
-template<typename entry_type>
-double operator *(const TRANSPOSED<Vector<entry_type> > &x, const Vector<entry_type> &y)
+template<typename value_type>
+double operator *(const TRANSPOSED<Vector<value_type> > &x, const Vector<value_type> &y)
 {
 	return x.T().dotprod(y);
 }
 
-template<typename entry_type>
-inline double Vector<entry_type>::norm()
+template<typename value_type>
+inline double Vector<value_type>::norm()
 {
 	double d=0;
 	for(size_t i=0; i<size(); ++i)

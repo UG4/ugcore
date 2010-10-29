@@ -9,7 +9,7 @@ inline double dabs(double a) { return a > 0 ? a : -a; }
 
 template <typename t> struct block_matrix_traits;
 template <typename t> struct block_vector_traits;
-template<typename entry_type, typename vec_type> struct block_multiply_traits;
+template<typename value_type, typename vec_type> struct block_multiply_traits;
 
 template<typename M>
 inline void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m);
@@ -32,25 +32,25 @@ inline double BlockNorm(const TYPE &v)
 //////////////////////////////////////////////////////
 
 // get/set vector
-template<typename M> inline double &BlockRef(M &m, size_t i)
+template<typename T> inline double &BlockRef(T &vec, size_t i)
 {
-	return m(i);
+	return vec[i];
 }
 
-template<typename M> inline const double &BlockRef(const M &m, size_t i)
+template<typename T> inline const double &BlockRef(const T &vec, size_t i)
 {
-	return m(i);
+	return vec[i];
 }
 
 // get/set matrix
-template<typename M> inline double &BlockRef(M &m, size_t i, size_t j)
+template<typename T> inline double &BlockRef(T &mat, size_t i, size_t j)
 {
-	return m(i, j);
+	return mat(i, j);
 }
 
-template<typename M> inline const double &BlockRef(const M &m, size_t i, size_t j)
+template<typename T> inline const double &BlockRef(const T &mat, size_t i, size_t j)
 {
-	return m(i, j);
+	return mat(i, j);
 }
 
 //////////////////////////////////////////////////////

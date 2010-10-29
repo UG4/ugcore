@@ -55,10 +55,10 @@ public:
 	inline size_type
 	capacity() const;
 
-	inline void
+	inline bool
 	resize(size_type n);
 
-	inline void
+	inline bool
 	reserve(size_type n) const;
 
 	// Element access
@@ -136,7 +136,7 @@ public:
 	inline size_type
 	num_cols() const;
 
-	inline void
+	inline bool
 	resize(size_type newRows, size_type newCols);
 
 	inline size_type
@@ -145,7 +145,7 @@ public:
 	inline size_type
 	capacity_num_cols() const { return cols; };
 
-	inline void
+	inline bool
 	reserve(size_type nrRows, size_type nrCols) const 	{ return; }
 
 	// Element Access

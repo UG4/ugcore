@@ -48,9 +48,9 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	// types
 	vector<typename ABC_type::connection > con(255);
 
-	typename A_type::entry_type a;
-	typename block_multiply_traits<typename A_type::entry_type, typename B_type::entry_type>::ReturnType ab;
-	typename C_type::entry_type cvalue;
+	typename A_type::value_type a;
+	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
+	typename C_type::value_type cvalue;
 
 	typename ABC_type::connection c;
 
@@ -216,7 +216,7 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 	BlockRef(A(i,i), alpha, alpha) = 1.0;
 	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 	{
-		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
+		typename SparseMatrix<T>::value_type& block = (*conn).dValue;
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
 			if((*conn).iIndex != i) BlockRef(block, alpha, beta) = 0.0;
@@ -240,7 +240,7 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 	A(i,i) = 1.0;
 	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 	{
-		typename SparseMatrix<T>::entry_type& block = (*conn).dValue;
+		typename SparseMatrix<T>::value_type& block = (*conn).dValue;
 		if((*conn).iIndex != i) block = 0.0;
 	}
 }

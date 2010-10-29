@@ -23,7 +23,7 @@ class DataClassExportPossibility : public DataPossibilityItem
 	public:
 		typedef TDataType data_type;
 		typedef TAlgebra algebra_type;
-		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
 
 	public:
 		DataClassExportPossibility(std::string name, ICoupledElemDisc<TAlgebra>* Class, size_t nrExport) :
@@ -68,7 +68,7 @@ class DataClassExport : public DataExport<TDataType>{
 	public:
 		typedef TDataType data_type;
 		typedef TAlgebra algebra_type;
-		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
 
 	protected:
 		// Only Data Possibility can create an instance

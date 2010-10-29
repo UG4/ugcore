@@ -471,8 +471,8 @@ bool amg<TAlgebra>::init_amg()
 		i++;
 	}
 
-	UG_ASSERT(block_vector_traits< typename vector_type::entry_type >::is_static, "dynamic not yet implemented");
-	int static_nrUnknowns = block_vector_traits< typename vector_type::entry_type >::static_size;
+	UG_ASSERT(block_vector_traits< typename vector_type::value_type >::is_static, "dynamic not yet implemented");
+	int static_nrUnknowns = block_vector_traits< typename vector_type::value_type >::static_size;
 
 	UG_LOG("Creating level " << i << " (" << A[i]->num_rows() << " nodes, total "
 			<< A[i]->num_rows()*static_nrUnknowns << " unknowns)" << endl << "Using Direct Solver on Matrix "
@@ -635,7 +635,7 @@ bool amg<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type
 
 	//update defect
 	// d = d - Ah*corr
-	MatMultAdd(d, -1.0, Ah, corr, 1.0, d);
+	MatMultAdd(d, 1.0, d, -1.0, Ah, corr);
 
 	// postsmooth
 	for(int i=0; i < nu2; i++)

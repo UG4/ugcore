@@ -147,7 +147,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 #ifdef UG_PARALLEL
-		ParallelVector<Vector<typename matrix_type::entry_type> > m_diagInv;
+		ParallelVector<Vector<typename matrix_type::value_type> > m_diagInv;
 #endif
 		number m_damp;
 

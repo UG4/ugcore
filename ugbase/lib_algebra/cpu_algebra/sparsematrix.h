@@ -14,7 +14,7 @@
 #include "math.h"
 
 
-#include "template_operations/template_expressions.h"
+#include "../common/template_expressions.h"
 #include "vector.h"
 
 
@@ -23,7 +23,7 @@ namespace ug{
 /// \addtogroup lib_algebra
 ///	@{
 
-template<typename entry_type> class matrixrow;
+template<typename value_type> class matrixrow;
 template<typename vec_type> class Vector;
 
 /** SparseMatrix
@@ -42,18 +42,18 @@ template<typename T>
 class SparseMatrix : public TE_MAT_RowApplicable<SparseMatrix<T> >
 {
 public:
-	typedef T entry_type;
+	typedef T value_type;
 	enum {rows_sorted=true};
 
-	typedef matrixrow<entry_type> row_type;
-	typedef matrixrow<entry_type> matrixrow_type;
+	typedef matrixrow<value_type> row_type;
+	typedef matrixrow<value_type> matrixrow_type;
 
 
 public:
 	struct connection
 	{
 		size_t iIndex;		// index to
-		entry_type dValue; // smallmatrix value;
+		value_type dValue; // smallmatrix value;
 
 		void print(){cout << *this;}
 		friend ostream &operator<<(ostream &output, const connection &c)
@@ -146,8 +146,8 @@ public:
 	bool matmul_minus(Vector_type &res, const Vector_type &x) const;
 
 	//! get Diagonal A_[i,i] of matrix
-	inline const entry_type &get_diag(size_t i) const;
-	inline entry_type &get_diag(size_t i);
+	inline const value_type &get_diag(size_t i) const;
+	inline value_type &get_diag(size_t i);
 
 	//! isUnconnected: true if only A[i,i] != 0.0.
 	inline bool is_isolated(size_t i) const;
@@ -212,7 +212,7 @@ public:
 	 * use operator()(r,c,bConnectionFound) to check.
 	 * \return SparseMat(r, c)
 	 */
-	const entry_type &operator() (size_t r, size_t c) const;
+	const value_type &operator() (size_t r, size_t c) const;
 
 	/** operator() (size_t r, size_t c) const
 	 * access or create connection (r, c)
@@ -222,7 +222,7 @@ public:
 	 * use operator()(r,c,bConnectionFound) to prevent
 	 * \return SparseMat(r, c)=0.0 if connection created, otherwise SparseMat(r, c)
 	 */
-	entry_type &operator() (size_t r, size_t c);
+	value_type &operator() (size_t r, size_t c);
 
 	/** operator() (size_t r, size_t c, bool &bConnectionFound) const
 	 * access SparseMat(r, c) and check if connection is there
@@ -230,10 +230,10 @@ public:
 	 * \param c column
 	 * \param bConnectionFound false if connection couldnt be found
 	 * \note the connection (r, c) is not created if not already there.
-	 * \return entry_type(0.0) if not found, otherwise SparseMat(r, c)
+	 * \return value_type(0.0) if not found, otherwise SparseMat(r, c)
 	 */
-	const entry_type &operator() (size_t r, size_t c, bool &bConnectionFound) const;
-	entry_type &operator() (size_t r, size_t c, bool &bConnectionFound);
+	const value_type &operator() (size_t r, size_t c, bool &bConnectionFound) const;
+	value_type &operator() (size_t r, size_t c, bool &bConnectionFound);
 
 	// for other manipulation/accessor functions see matrixrow functions,
 	// that is A[i].matrixrowfunction(params).
@@ -296,7 +296,7 @@ public:
 	inline size_t num_connections(size_t row) const;
 
 	template<typename vector_t>
-	inline void mat_mult_add_row(size_t row, typename vector_t::entry_type &dest, double alpha, const vector_t &v) const;
+	inline void mat_mult_add_row(size_t row, typename vector_t::value_type &dest, double alpha, const vector_t &v) const;
 
 public:
 	// output functions
@@ -333,11 +333,11 @@ public:
 	class cRowIterator
 	{
 	public:
-		//const SparseMatrix<entry_type> &A;
+		//const SparseMatrix<value_type> &A;
 		const connection * pEnd;
 		const connection * p;
 	public:
-		inline cRowIterator(const SparseMatrix<entry_type> &A, size_t row)
+		inline cRowIterator(const SparseMatrix<value_type> &A, size_t row)
 			: pEnd(A.pRowEnd[row]), p(A.pRowStart[row])
 			  { }
 		inline cRowIterator(const cRowIterator &other)
@@ -347,7 +347,7 @@ public:
 		inline const connection &operator *() const {return *p;}
 
 		inline size_t index() const { return p->iIndex; }
-		inline const entry_type &value() const { return p->dValue; }
+		inline const value_type &value() const { return p->dValue; }
 
 		inline void operator ++() {	++p; }
 		inline void operator += (int nr) { p+=nr;}
@@ -364,7 +364,7 @@ public:
 		connection * pEnd;
 		connection * p;
 	public:
-		inline rowIterator(SparseMatrix<entry_type> &A, size_t row_)
+		inline rowIterator(SparseMatrix<value_type> &A, size_t row_)
 		: pEnd(A.pRowEnd[row_]), p(A.pRowStart[row_])
 		  { }
 		inline rowIterator(const cRowIterator &other)
@@ -374,7 +374,7 @@ public:
 		inline connection &operator *() const {return *p;}
 
 		inline size_t index() const { return p->iIndex; }
-		inline entry_type &value() const { return p->dValue; }
+		inline value_type &value() const { return p->dValue; }
 
 		inline void operator ++() {	++p; }
 		inline void operator += (int nr) { p+=nr;}
@@ -390,7 +390,7 @@ public:
 	private:
 		size_t row;
 	public:
-		cLowerLeftIterator(const SparseMatrix<entry_type> &A, size_t row_)
+		cLowerLeftIterator(const SparseMatrix<value_type> &A, size_t row_)
 		: cRowIterator(A, row_), row(row_)
 		  {	}
 
@@ -403,7 +403,7 @@ public:
 	class cUpperRightIterator : public cRowIterator
 	{
 	public:
-		cUpperRightIterator(const SparseMatrix<entry_type> &A, size_t row_) : cRowIterator(A, row_)
+		cUpperRightIterator(const SparseMatrix<value_type> &A, size_t row_) : cRowIterator(A, row_)
 		{
 			size_t nr=0;
 			if(A.get_connection_nr(row_, row_, nr, GREATER))
@@ -449,10 +449,10 @@ public:
 private:
 	size_t rows;						//!< nr of rows
 	size_t cols;						//!< nr of cols
-	connection **pRowStart;				//< pointers to array of connections of each row
-	connection **pRowEnd;				//< pointers to array of connections of each row
+	connection **pRowStart;				//< pointers to array of beginning of connections of each row
+	connection **pRowEnd;				//< pointers to array of ends of connections of each row
 
-	size_t iTotalNrOfConnections;		//!< number of non-zeros
+	size_t iTotalNrOfConnections;		//!< number of connections ("non-zeros")
 	size_t bandwidth;					//!< bandwidth (experimental)
 
 	size_t estimatedRowSize;			//!< estimated length of each row
@@ -463,7 +463,14 @@ private:
 	size_t consmemsize;					//!< size of the consecutive memory for connections
 	size_t iFragmentedMem;				//!< size of connections memory not in consmem
 
-	friend class matrixrow<entry_type>;
+	friend class matrixrow<value_type>;
+};
+
+
+template<typename T>
+struct matrix_algebra_type_traits<SparseMatrix<T> >
+{
+	static const matrix_algebra_type type = MATRIX_USE_ROW_FUNCTIONS;
 };
 
 ///	@}

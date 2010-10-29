@@ -26,7 +26,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::entry_type);
+			return interface.size() * sizeof(typename TVector::value_type);
 		}
 
 		virtual bool
@@ -38,8 +38,8 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::entry_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::entry_type));
+				typename TVector::value_type entry = v[index];
+				buff.write((char*)&entry, sizeof(typename TVector::value_type));
 			}
 			return true;
 		}
@@ -47,14 +47,14 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::entry_type entry;
+			typename TVector::value_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::entry_type));
+				buff.read((char*)&entry, sizeof(typename TVector::value_type));
 				v[index] = entry;
 			}
 			return true;
@@ -76,7 +76,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::entry_type);
+			return interface.size() * sizeof(typename TVector::value_type);
 		}
 
 		virtual bool
@@ -88,8 +88,8 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::entry_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::entry_type));
+				typename TVector::value_type entry = v[index];
+				buff.write((char*)&entry, sizeof(typename TVector::value_type));
 			}
 			return true;
 		}
@@ -97,14 +97,14 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::entry_type entry;
+			typename TVector::value_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::entry_type));
+				buff.read((char*)&entry, sizeof(typename TVector::value_type));
 				v[index] += entry;
 			}
 			return true;
@@ -126,7 +126,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::entry_type);
+			return interface.size() * sizeof(typename TVector::value_type);
 		}
 
 		virtual bool
@@ -138,8 +138,8 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::entry_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::entry_type));
+				typename TVector::value_type entry = v[index];
+				buff.write((char*)&entry, sizeof(typename TVector::value_type));
 				v[index] = 0.0;
 			}
 			return true;
@@ -148,14 +148,14 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::entry_type entry;
+			typename TVector::value_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::entry_type));
+				buff.read((char*)&entry, sizeof(typename TVector::value_type));
 				v[index] += entry;
 			}
 			return true;

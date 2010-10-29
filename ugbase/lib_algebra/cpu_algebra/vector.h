@@ -11,7 +11,8 @@
 
 #include "sparsematrix.h"
 
-#include "template_operations/template_expressions.h"
+#include "../common/template_expressions.h"
+#include "../common/operations.h"
 
 namespace ug{
 ///////////////////////////////////////////////////////////////////
@@ -25,14 +26,14 @@ namespace ug{
 //! "big" Vector class for use with the big SparseMatrix
 //! can = template expressions like x = 0.5*x - y + A*z
 //! see TemplateExpressions.h
-template <typename templ_entry_type>
-class Vector :  public TE_VEC<Vector<templ_entry_type> >,
+template <typename templ_value_type>
+class Vector :  public TE_VEC<Vector<templ_value_type> >,
 				public virtual IFunctionBase
 {
 public:
-	typedef templ_entry_type entry_type;
-	//typedef subvector<entry_type> subvector_type;
-	typedef Vector<templ_entry_type> vector_type;
+	typedef templ_value_type value_type;
+	//typedef subvector<value_type> subvector_type;
+	typedef Vector<templ_value_type> vector_type;
 
 	//! constructor
 	Vector();
@@ -63,8 +64,8 @@ public:
 
 
 	//! access element i of the vector
-	inline entry_type &operator [] (size_t i);
-	inline const entry_type &operator [] (size_t i) const;
+	inline value_type &operator [] (size_t i);
+	inline const value_type &operator [] (size_t i) const;
 
 
 
@@ -87,9 +88,9 @@ public:
 	bool set(double d) { operator = (d); return true; }
 
 
-	void add(const entry_type &d, size_t i);
-	void set(const entry_type &d, size_t i);
-	void get(entry_type &d, size_t i) const;
+	void add(const value_type &d, size_t i);
+	void set(const value_type &d, size_t i);
+	void get(value_type &d, size_t i) const;
 
 	/** add/set/get a local vector
 	 *
@@ -103,9 +104,9 @@ public:
 	template <typename V> bool get(V& u) const;
 
 
-	bool add(const entry_type *u, const size_t *indices, int nr);
-	bool set(const entry_type *u, const size_t *indices, int nr);
-	bool get(entry_type *u, const size_t *indices, int nr) const;
+	bool add(const value_type *u, const size_t *indices, int nr);
+	bool set(const value_type *u, const size_t *indices, int nr);
+	bool get(value_type *u, const size_t *indices, int nr) const;
 
 
 	//template<typename T> inline void apply(Operation_type op, const T &t);
@@ -140,17 +141,17 @@ public:
 
 	size_t size() const { return length; }
 
-	void addTo(entry_type &dest, size_t i) const
+	void addTo(value_type &dest, size_t i) const
 	{
 		dest += values[i];
 	}
 
-	void substractFrom(entry_type &dest, size_t i) const
+	void substractFrom(value_type &dest, size_t i) const
 	{
 		dest -= values[i];
 	}
 
-	void assign(entry_type &dest, size_t i) const
+	void assign(value_type &dest, size_t i) const
 	{
 		dest = values[i];
 	}
@@ -183,7 +184,7 @@ public:
 
 private:
 	size_t length;				///< length of the vector (vector is from 0..length-1)
-	entry_type *values;		///< array where the values are stored, size length
+	value_type *values;		///< array where the values are stored, size length
 
 	//mutable vector_mode dist_mode;
 };

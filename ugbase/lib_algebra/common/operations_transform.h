@@ -9,8 +9,8 @@
  */
 
 
-#ifndef __H__UG__CPU_ALGEBRA__OPERATIONS_TRANSFORM__
-#define __H__UG__CPU_ALGEBRA__OPERATIONS_TRANSFORM__
+#ifndef __H__UG__LIB_ALGEBRA__OPERATIONS_TRANSFORM__
+#define __H__UG__LIB_ALGEBRA__OPERATIONS_TRANSFORM__
 
 // here we transform a Template Expression x = X1 [+/- X2 [+/- X3]]  into
 // a function like VecScaleAdd (in operations_vec.h) or MatMultAdd (in operations_mat.h),
@@ -26,7 +26,7 @@ namespace ug
 
 //! v = Mv + Mv + v
 template<typename vector_t, typename matrix_t, typename vector_t2>
-inline void VectorAssign(vector_t &dest,	double alpha1, const MatVec_Expression<matrix_t, vector_t> &m1,
+inline void VectorAssign(vector_t &dest, double alpha1, const MatVec_Expression<matrix_t, vector_t> &m1,
 					   double alpha2, const MatVec_Expression<matrix_t, vector_t> &m2,
 					   double alpha3, const TE_SCALED_VEC<vector_t2> &v3)
 {
@@ -177,4 +177,4 @@ inline void VectorSub(vector_t &dest, const T1 &t1)
 
 } // namespace ug
 
-#endif /* __H__UG__CPU_ALGEBRA__OPERATIONS_TRANSFORM__ */
+#endif /* __H__UG__LIB_ALGEBRA__OPERATIONS_TRANSFORM__ */

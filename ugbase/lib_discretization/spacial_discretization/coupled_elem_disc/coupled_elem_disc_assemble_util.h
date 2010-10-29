@@ -92,9 +92,9 @@ AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
 	//ElemDataContainer.identify_exports();
 
 	// local algebra
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u(colInd);
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J(rowInd, colInd);
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J_temp(rowInd, colInd);
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u(colInd);
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J(rowInd, colInd);
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J_temp(rowInd, colInd);
 
 	// loop over all elements
 	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
@@ -229,9 +229,9 @@ AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
 		{UG_LOG("ERROR in AssembleDefect: Cannot prepare indices.\n"); return false;}
 
 	// local algebra
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u(ind);
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_d(ind);
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_d_temp(ind);
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u(ind);
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_d(ind);
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_d_temp(ind);
 
 	// prepare each systems
 	for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
@@ -396,9 +396,9 @@ AssembleLinear(	CoupledSystem<TAlgebra>& cplElemDisc,
 	//ElemDataContainer.identify_exports();
 
 	// local algebra
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u(colInd);
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_rhs(colInd);
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_mat(rowInd, colInd);
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u(colInd);
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_rhs(colInd);
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_mat(rowInd, colInd);
 
 	// loop over all elements of type TElem
 	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)

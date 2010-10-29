@@ -23,9 +23,9 @@ namespace ug{
 //! constructs temporary variable
 //! @param	x
 //! @return A[row] * x 
-template<typename entry_type>
+template<typename value_type>
 template<typename vec_type>
-inline vec_type matrixrow<entry_type>::operator *(const Vector<vec_type> &x) const
+inline vec_type matrixrow<value_type>::operator *(const Vector<vec_type> &x) const
 {
 	vec_type d=0;
 	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
@@ -41,9 +41,9 @@ inline vec_type matrixrow<entry_type>::operator *(const Vector<vec_type> &x) con
 //! @param	d	out: d = A[row] * x
 //! @param	x	in
 //! @return d = A[row] * x 
-template<typename entry_type>
+template<typename value_type>
 template<typename vec_type>
-inline void matrixrow<entry_type>::assign_mult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<value_type>::assign_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	d = 0.0;
 	add_mult(d, x);
@@ -53,9 +53,9 @@ inline void matrixrow<entry_type>::assign_mult(vec_type &d, const Vector<vec_typ
 //-------------
 //! @param	d	out: d -= A[row] * x
 //! @param	x	in
-template<typename entry_type>
+template<typename value_type>
 template<typename vec_type>
-inline void matrixrow<entry_type>::sub_mult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<value_type>::sub_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
 		SubMult(d, (*it).dValue, x[(*it).iIndex]);
@@ -66,9 +66,9 @@ inline void matrixrow<entry_type>::sub_mult(vec_type &d, const Vector<vec_type> 
 //-------------
 //! @param	d	out: d += A[row] * x
 //! @param	x	in
-template<typename entry_type>
+template<typename value_type>
 template<typename vec_type>
-inline void matrixrow<entry_type>::add_mult(vec_type &d, const Vector<vec_type> &x) const
+inline void matrixrow<value_type>::add_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
 		AddMult(d, (*it).dValue, x[(*it).iIndex]);
@@ -78,20 +78,20 @@ inline void matrixrow<entry_type>::add_mult(vec_type &d, const Vector<vec_type> 
 //#pragma mark -
 ////////////////////////////////////////////////////////////////////////////////
 
-template<typename entry_type, typename vec_type>
-inline void multiplyCopyTo(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
+template<typename value_type, typename vec_type>
+inline void multiplyCopyTo(vec_type &d, const matrixrow<value_type> &r, const Vector<vec_type> &x)
 {
 	r.assign_mult(d, x);
 }
 
-template<typename entry_type, typename vec_type>
-inline void multiplyAddTo(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
+template<typename value_type, typename vec_type>
+inline void multiplyAddTo(vec_type &d, const matrixrow<value_type> &r, const Vector<vec_type> &x)
 {
 	r.add_mult(d, x);
 }
 
-template<typename entry_type, typename vec_type>
-inline void multiplySubstractFrom(vec_type &d, const matrixrow<entry_type> &r, const Vector<vec_type> &x)
+template<typename value_type, typename vec_type>
+inline void multiplySubstractFrom(vec_type &d, const matrixrow<value_type> &r, const Vector<vec_type> &x)
 {
 	r.sub_mult(d, x);
 }

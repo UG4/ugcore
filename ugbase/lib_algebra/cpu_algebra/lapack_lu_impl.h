@@ -22,7 +22,7 @@ template<typename vec_type>
 bool LapackLU::apply(const vec_type &b, vec_type &x)
 {
 #ifndef NDEBUG
-	const size_t static_size = block_vector_traits<typename vec_type::entry_type>::static_size;
+	const size_t static_size = block_vector_traits<typename vec_type::value_type>::static_size;
 	UG_ASSERT(size == b.size() * static_size && size == x.size() * static_size,
 			" wrong size! has to be " << size << ", but is " << b << " and " << x);
 #endif
@@ -47,10 +47,10 @@ bool LapackLU::apply(const vec_type &b, vec_type &x)
 template<typename matrix_type>
 bool LapackLU::init(const matrix_type &A)
 {
-	UG_ASSERT(block_matrix_traits<typename matrix_type::entry_type>::is_static,
+	UG_ASSERT(block_matrix_traits<typename matrix_type::value_type>::is_static,
 			"non-static blockmatrices not fully implemented yet\n");
-	const size_t nrOfRows = block_matrix_traits<typename matrix_type::entry_type>::static_num_rows;
-	UG_ASSERT(nrOfRows == block_matrix_traits<typename matrix_type::entry_type>::static_num_cols, "only square matrices supported");
+	const size_t nrOfRows = block_matrix_traits<typename matrix_type::value_type>::static_num_rows;
+	UG_ASSERT(nrOfRows == block_matrix_traits<typename matrix_type::value_type>::static_num_cols, "only square matrices supported");
 	size = A.num_rows() * nrOfRows;
 
 	/*else

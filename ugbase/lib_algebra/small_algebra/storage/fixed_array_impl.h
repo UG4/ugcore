@@ -50,18 +50,20 @@ FixedArray1<T, n>::size() const
 
 
 template<typename T, size_t n>
-inline void
+inline bool
 FixedArray1<T, n>::resize(size_t newN)
 {
 	assert(newN == n);
+	return newN == n;
 }
 
 
 template<typename T, size_t n>
-inline void
+inline bool
 FixedArray1<T, n>::reserve(size_t newN) const
 {
 	assert(newN <= n);
+	return newN <= n;
 }
 
 
@@ -115,7 +117,7 @@ template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering>
 FixedArray2<T, rowsT, colsT, T_ordering>::FixedArray2(const FixedArray2<T, rowsT, colsT, T_ordering> &other)
 {
 	for(size_type i=0; i<rowsT*colsT; i++)
-		values[i] = other[i];
+		values[i] = other.values[i];
 }
 
 template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering>
@@ -141,10 +143,11 @@ FixedArray2<T, rowsT, colsT, T_ordering>::num_cols() const
 
 
 template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering>
-inline void
+inline bool
 FixedArray2<T, rowsT, colsT, T_ordering>::resize(size_t newRows, size_t newCols)
 {
 	assert(newCols == colsT && newRows == rowsT);
+	return newCols == colsT && newRows == rowsT;
 }
 
 

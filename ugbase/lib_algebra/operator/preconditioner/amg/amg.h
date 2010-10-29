@@ -87,7 +87,7 @@ class SparseMatrixOperator : public virtual IMatrixOperator<vector_type, vector_
 		}
 		bool apply_sub(vector_type &c, const vector_type &d)
 		{
-			MatMultAdd(c, -1.0, *m_pMatrix, d, 1.0, c);
+			MatMultAdd(c, 1.0, c, -1.0, *m_pMatrix, d);
 			return true;
 		}
 
@@ -120,7 +120,7 @@ public:
 //	Matrix type
 	typedef typename TAlgebra::matrix_type matrix_type;
 
-	typedef typename matrix_type::entry_type entry_type;
+	typedef typename matrix_type::value_type value_type;
 	
 //  functions
 	amg() ;

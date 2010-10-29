@@ -27,8 +27,8 @@ public:
 	inline size_type
 	size() const { return Size; }
 
-	inline void
-	resize(size_type newN) { assert(newN == Size); }
+	inline bool
+	resize(size_type newN) { assert(newN == Size); return true; }
 
 	// Element access
 	inline const T &
@@ -79,8 +79,8 @@ public:
 	inline size_type
 	size() const { return Size; }
 
-	inline void
-	resize(size_type newN) { assert(newN == Size); }
+	inline bool
+	resize(size_type newN) { assert(newN == Size); return true; }
 
 	// Element access
 	inline const T &
@@ -130,8 +130,8 @@ public:
 	inline size_type
 	size() const { return Size; }
 
-	inline void
-	resize(size_type newN) { assert(newN == Size); }
+	inline bool
+	resize(size_type newN) { assert(newN == Size); return true; }
 
 	// Element access
 	inline const T &
@@ -182,8 +182,8 @@ public:
 	inline size_type
 	size() const { return Size; }
 
-	inline void
-	resize(size_type newN) { assert(newN == Size); }
+	inline bool
+	resize(size_type newN) { assert(newN == Size); return true; }
 
 	// Element access
 	inline const T &

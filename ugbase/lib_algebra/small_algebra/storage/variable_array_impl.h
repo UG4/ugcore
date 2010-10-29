@@ -60,19 +60,21 @@ VariableArray1<T>::size() const
 }
 
 template<typename T>
-void
+bool
 VariableArray1<T>::resize(size_t newN)
 {
-	if(newN == n) return;
+	if(newN == n) return true;
 
 	if(newN <= 0)
 	{
 		if(values) delete[] values;
 		values = NULL;
 		n = 0;
-		return;
+		return true;
 	}
 	value_type *new_values = new T[newN];
+	UG_ASSERT(new_values != NULL, "out of memory");
+	if(new_values == NULL) return false;
 	memset(new_values, 0, sizeof(T)*newN); // todo: think about that
 
 	/*
@@ -91,8 +93,7 @@ VariableArray1<T>::resize(size_t newN)
 	if(values) delete[] values;
 	values = new_values;
 	n = newN;
-
-
+	return true;
 }
 
 template<typename T>
@@ -105,10 +106,10 @@ VariableArray1<T>::capacity() const
 
 // use stl::vector if you want to use reserve
 template<typename T>
-inline void
+inline bool
 VariableArray1<T>::reserve(size_t newCapacity) const
 {
-	return;
+	return true;
 }
 
 
@@ -200,22 +201,24 @@ VariableArray2<T, T_ordering>::num_cols() const
 
 
 template<typename T, eMatrixOrdering T_ordering>
-void
+bool
 VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 {
 	assert(newRows >= 0 && newCols >= 0);
-	if(newRows == rows && newCols == cols) return;
+	if(newRows == rows && newCols == cols) return true;
 
 	if(newRows == 0 && newCols == 0)
 	{
 		rows = cols = 0;
 		if(values) delete[] values;
 		values = NULL;
-		return;
+		return true;
 	}
 
 	value_type *new_values = new T[newRows*newCols];
 	memset(new_values, 0, sizeof(T)*newRows*newCols); // todo: think about that
+	UG_ASSERT(new_values != NULL, "out of memory");
+	if(new_values==NULL) return false;
 	/*
 	if(storage_traits<value_type>::is_static)
 	{
@@ -241,6 +244,7 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 	rows = newRows;
 	cols = newCols;
 	values = new_values;
+	return true;
 }
 
 

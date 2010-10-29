@@ -318,7 +318,7 @@ class AlgebraDataImport : public DataImport<TDataType> {
 	public:
 		typedef TDataType data_type;
 
-		typedef typename TAlgebra::matrix_type::entry_type entry_type;
+		typedef typename TAlgebra::matrix_type::value_type value_type;
 
 	public:
 		AlgebraDataImport(std::string name) : DataImport<TDataType>(name)
@@ -327,7 +327,7 @@ class AlgebraDataImport : public DataImport<TDataType> {
 		// add offdiagonal coupling to other system 's'
 		virtual bool add_offdiagonal(LocalMatrixBase& baseJ, size_t loc_sys, number s_a)
 		{
-			LocalMatrix<entry_type>* J = dynamic_cast<LocalMatrix<entry_type>*>(&baseJ);
+			LocalMatrix<value_type>* J = dynamic_cast<LocalMatrix<value_type>*>(&baseJ);
 			if(J == NULL)
 				{UG_LOG("DataImport::add_offdiagonal: Cannot convert Matrix to type based matrix.\n"); return false;}
 

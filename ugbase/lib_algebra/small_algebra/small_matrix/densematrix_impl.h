@@ -111,7 +111,35 @@ DenseMatrix<TStorage>::operator /= (const DenseMatrix<TStorage>::value_type &alp
 	return *this;
 }
 
+// compare operators
 
+template<typename TStorage>
+template<typename T>
+bool DenseMatrix<TStorage>::operator == (const T &t) const
+{
+	for(size_t r=0; r<num_rows(); ++r)
+		for(size_t c=0; c<num_cols(); ++c)
+			if(at(r,c) != t) return false;
+	return true;
+}
+
+template<typename TStorage>
+template<typename T>
+bool DenseMatrix<TStorage>::operator == (const DenseMatrix<T> &t) const
+{
+	for(size_t r=0; r<num_rows(); ++r)
+		for(size_t c=0; c<num_cols(); ++c)
+			if(at(r,c) != t(r,c)) return false;
+	return true;
+}
+
+
+template<typename TStorage>
+template<typename T>
+bool DenseMatrix<TStorage>::operator != (const T &t) const
+{
+	return !(operator == (t));
+}
 
 
 template<typename TStorage>
@@ -130,6 +158,8 @@ std::ostream &operator << (std::ostream &out, const DenseMatrix<TStorage> &mat)
 
 	return out;
 }
+
+
 
 } // namespace ug
 

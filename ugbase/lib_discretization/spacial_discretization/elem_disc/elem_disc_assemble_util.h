@@ -64,8 +64,8 @@ AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
 
 	// local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J;
 
 	// set functions
 	ind.set_function_group(fcts);
@@ -149,8 +149,8 @@ AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
 
 	// local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J;
 
 	// set functions
 	ind.set_function_group(fcts);
@@ -240,9 +240,9 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 
 	// local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J;
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_J_temp;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J_temp;
 
 	// set functions
 	ind.set_function_group(fcts);
@@ -373,9 +373,9 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 
 	// local indices
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_d;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_d_temp;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_d;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_d_temp;
 
 	// set functions
 	ind.set_function_group(fcts);
@@ -501,9 +501,9 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 
 	// local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_u;
-	LocalVector<typename TAlgebra::vector_type::entry_type> loc_rhs;
-	LocalMatrix<typename TAlgebra::matrix_type::entry_type> loc_mat;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
+	LocalVector<typename TAlgebra::vector_type::value_type> loc_rhs;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_mat;
 
 	// set functions
 	ind.set_function_group(fcts);

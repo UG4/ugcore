@@ -62,7 +62,6 @@ public:
 	this_type &
 	operator -= (const this_type &rhs);
 
-
 	// alpha operators
 	template<typename T>
 	this_type &
@@ -78,9 +77,18 @@ public:
 	this_type &
 	operator*=(const T &alpha);
 
-
 	this_type &
 	operator/=(const value_type &alpha);
+
+	// compare operators
+	template<typename T>
+	bool operator == (const T &t) const;
+
+	template<typename T>
+	bool operator == (const DenseMatrix<T> &t) const;
+
+	template<typename T>
+	bool operator != (const T &t) const;
 };
 
 }

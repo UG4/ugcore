@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef __H__UG__CPU_ALGEBRA__TEMPLATE_EXPRESSIONS__
-#define __H__UG__CPU_ALGEBRA__TEMPLATE_EXPRESSIONS__
+#ifndef __H__UG__LIB_ALGEBRA__TEMPLATE_EXPRESSIONS__
+#define __H__UG__LIB_ALGEBRA__TEMPLATE_EXPRESSIONS__
 
 //#include "blockMatrix.h"
 
@@ -267,7 +267,5 @@ AlphaMat_Expression <R > operator * (double d, const TE_MAT<R> &r)
 
 
 } // namespace ug
-
-#include "operations.h"
 
 #endif

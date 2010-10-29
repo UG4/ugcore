@@ -12,6 +12,7 @@
 #include "parallel_index_layout.h"
 #include "parallelization_util.h"
 #include "parallel_storage_type.h"
+#include "../common/operations.h"
 
 namespace ug
 {
@@ -127,6 +128,12 @@ class ParallelMatrix : public TMatrix
 
 		// process communicator (world by default)
 		pcl::ProcessCommunicator m_processCommunicator;
+};
+
+template<typename T>
+struct matrix_algebra_type_traits<ParallelMatrix<T> >
+{
+	static const matrix_algebra_type type = matrix_algebra_type_traits<T>::type;
 };
 
 } // end namespace ug

@@ -40,7 +40,7 @@ class GridFunction :	public TAlgebra::vector_type,
 		typedef typename algebra_type::vector_type vector_type;
 
 	// 	Local vector type
-		typedef LocalVector<typename vector_type::entry_type> local_vector_type;
+		typedef LocalVector<typename vector_type::value_type> local_vector_type;
 
 	// 	Local index type
 		typedef LocalIndices local_index_type;

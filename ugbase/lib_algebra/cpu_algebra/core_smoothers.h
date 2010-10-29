@@ -33,7 +33,7 @@ bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	// gs LL has preconditioning matrix
 	// (D-L)^{-1}
 
-	typename Vector_type::entry_type s;
+	typename Vector_type::value_type s;
 	for(size_t i=0; i < x.size(); i++)
 	{
 		s = b[i];
@@ -60,7 +60,7 @@ bool gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 {
 	// gs UR has preconditioning matrix
 	// (D-U)^{-1}
-	typename Vector_type::entry_type s;
+	typename Vector_type::value_type s;
 	if(x.size() == 0) return true;
 	for(size_t i = x.size()-1; ; --i )
 	{
