@@ -60,9 +60,7 @@ bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 template <typename TFVGeometry>
 bool GetNoUpwindShapes(	const TFVGeometry& geo,
 						const MathVector<TFVGeometry::world_dim> IPVel[],
-						const std::vector<std::vector<number> >& CornerShape,
-						const std::vector<std::vector<number> >& IPShape,
-						bool& bDependOnIP)
+						const std::vector<std::vector<number> >& CornerShape)
 {
 	// set shapes
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -76,9 +74,6 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 			CornerShape[i][sh] = scvf.shape(sh, 0);
 		}
 	}
-
-	// does not depend in IP Velocities
-	bDependOnIP = false;
 
 	return true;
 }
