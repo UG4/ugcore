@@ -31,6 +31,11 @@ template<typename TStorage>
 DenseMatrix<TStorage> &
 DenseMatrix<TStorage>::operator = (const DenseMatrix<TStorage> &rhs)
 {
+	if(this == &rhs) return *this;
+
+	if(num_rows() != rhs.num_rows() || num_cols() != rhs.num_cols())
+		resize(rhs.num_rows(), rhs.num_cols());
+
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
 			at(r, c) = rhs(r, c);

@@ -35,6 +35,7 @@ VariableArray1<T>::VariableArray1(size_t n_)
 template<typename T>
 VariableArray1<T>::VariableArray1(const VariableArray1<T> &other)
 {
+	if(this == &other) return;
 	n = 0;
 	if(values) { delete[] values; values = NULL; }
 	resize(other.size());
@@ -87,7 +88,7 @@ VariableArray1<T>::resize(size_t newN)
 	// we are using swap to avoid re-allocations
 	 */
 	size_t minN = min(n, newN);
-	for(int i=0; i<minN; i++)
+	for(size_t i=0; i<minN; i++)
 		swap(new_values[i], values[i]);
 
 	if(values) delete[] values;
@@ -168,6 +169,7 @@ VariableArray2<T, T_ordering>::VariableArray2(size_t rows, size_t cols)
 template<typename T, eMatrixOrdering T_ordering>
 VariableArray2<T, T_ordering>::VariableArray2(const VariableArray2<T, T_ordering> &other)
 {
+	if(this == &other) return;
 	if(values) { delete[] values; values = NULL; }
 	rows = 0;
 	cols = 0;

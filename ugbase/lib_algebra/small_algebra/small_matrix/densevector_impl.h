@@ -31,6 +31,9 @@ template<typename TStorage>
 DenseVector<TStorage> &
 DenseVector<TStorage>::operator = (const DenseVector<TStorage> &rhs)
 {
+	if(this == &rhs) return *this;
+	if(size() != rhs.size()) resize(rhs.size());
+
 	for(size_type i=0; i<size(); i++)
 		at(i) = rhs[i];
 	return *this;

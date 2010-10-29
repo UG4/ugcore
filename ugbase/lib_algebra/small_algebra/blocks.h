@@ -11,8 +11,6 @@ template <typename t> struct block_matrix_traits;
 template <typename t> struct block_vector_traits;
 template<typename value_type, typename vec_type> struct block_multiply_traits;
 
-template<typename M>
-inline void GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m);
 
 //////////////////////////////////////////////////////
 
@@ -92,12 +90,6 @@ inline size_t GetRows(const T &t);
 template<typename T>
 inline size_t GetCols(const T &t);
 
-
-template<typename M>
-inline bool GetInverse(typename block_matrix_traits<M>::inverse_type &inv, const M &m);
-
-template<typename M>
-inline bool Invert(M &m);
 
 
 } // namespace ug

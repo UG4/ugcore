@@ -8,11 +8,17 @@
  * Goethe-Center for Scientific Computing 2010.
  */
 
+#ifndef __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__
+#define __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__
+
 #include "densematrix.h"
 #include "densevector.h"
 
-#ifndef __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__
-#define __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__
+#include "../../common/operations.h"
+
+namespace ug{
+template<typename T>
+struct matrix_algebra_type_traits;
 
 template<typename T>
 struct matrix_algebra_type_traits<DenseMatrix<T> >
@@ -27,9 +33,9 @@ inline void MatMult(DenseVector<vector_t> &dest,
 {
 	for(size_t r = 0; r < dest.size(); ++r)
 	{
-		MatMult(dest[r], A1(r,0), v[r]);
-		for(size_type c = 1; c < v.size(); ++c)
-			MatMultAdd(dest[r], 1.0, dest[r], A1(r,c), w1[c]);
+		MatMult(dest[r], 1.0, A1(r,0), w1[0]);
+		for(size_t c = 1; c < w1.size(); ++c)
+			MatMultAdd(dest[r], 1.0, dest[r], 1.0, A1(r,c), w1[c]);
 	}
 }
 
@@ -41,13 +47,15 @@ inline void MatMultAdd(DenseVector<vector_t> &dest,
 {
 	for(size_t r = 0; r < dest.size(); ++r)
 	{
-		VecScale(dest[r], alpha1, v1);
-		for(size_type c = 0; c < v.size(); ++c)
-			MatMultAdd(dest[r], 1.0, dest[r], A1(r,c), w1[c]);
+		VecScaleAssign(dest[r], alpha1, v1[r]);
+		for(size_t c = 0; c < w1.size(); ++c)
+			MatMultAdd(dest[r], 1.0, dest[r], 1.0, A1(r,c), w1[c]);
 	}
 }
 
 
 
+
+}
 
 #endif // __H__UG__COMMON__DENSEMATRIX_OPERATIONS_H__

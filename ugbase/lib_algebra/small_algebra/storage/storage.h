@@ -39,6 +39,7 @@ struct static_type{};
 struct variable_type{};
 
 
+
 }
 
 #include "fixed_array.h"

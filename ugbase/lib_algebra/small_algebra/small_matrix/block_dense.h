@@ -253,6 +253,20 @@ struct block_matrix_traits< DenseMatrix< FixedArray2<double, 3, 3> > >
 	typedef DenseMatrix< FixedArray2<double, 3, 3> > inverse_type;
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T> class DenseMatrixInverse;
+
+template<typename T, eMatrixOrdering TOrdering>
+struct block_matrix_traits< DenseMatrix< VariableArray2<T, TOrdering> > >
+{
+	enum { ordering = TOrdering };
+	enum { is_static = false};
+	enum { static_num_rows = 0};
+	enum { static_num_cols = 0};
+
+	typedef DenseMatrixInverse< VariableArray2<double, TOrdering> > inverse_type;
+};
 
 } // namespace ug
 

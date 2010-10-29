@@ -34,13 +34,17 @@ bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	// (D-L)^{-1}
 
 	typename Vector_type::value_type s;
+
 	for(size_t i=0; i < x.size(); i++)
 	{
 		s = b[i];
+
 		for(typename Matrix_type::cLowerLeftIterator it = A.beginLowerLeftRow(i); !it.isEnd(); ++it)
-			s -= (*it).dValue * x[(*it).iIndex];
-		x[i] = s;
-		x[i]/=A(i,i);
+			// s -= (*it).dValue * x[(*it).iIndex];
+			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
+
+		// x[i] = s/A(i,i)
+		InverseMatMult(x[i], 1.0, A(i,i), s);
 	}
 
 	return true;
@@ -61,16 +65,19 @@ bool gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	// gs UR has preconditioning matrix
 	// (D-U)^{-1}
 	typename Vector_type::value_type s;
+
 	if(x.size() == 0) return true;
-	for(size_t i = x.size()-1; ; --i )
+	size_t i = x.size()-1;
+	do
 	{
 		s = b[i];
 		for(typename Matrix_type::cUpperRightIterator it = A.beginUpperRightRow(i); !it.isEnd(); ++it)
-			s -= (*it).dValue * x[(*it).iIndex];
-		x[i] = s;
-		x[i]/=A(i,i);
-		if(i==0) break;
-	}
+			// s -= (*it).dValue * x[(*it).iIndex];
+			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
+
+		// x[i] = s/A(i,i)
+		InverseMatMult(x[i], 1.0, A(i,i), s);
+	} while(i-- != 0);
 
 	return true;
 }
@@ -95,7 +102,7 @@ bool sgs_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 
 	// x2 = D x1
 	for(size_t i = 0; i<x.size(); i++)
-		x[i] *= A.get_diag(i);
+		MatMult(x[i], 1.0, A.get_diag(i), x[i]);
 
 	// x3 = (D-U)^{-1} x2
 	gs_step_UR(A, x, x);
@@ -117,11 +124,9 @@ bool diag_step(const Matrix_type& A, Vector_type& x, const Vector_type& b, numbe
 	//exit(3);
 	UG_ASSERT(x.size() == b.size() && x.size() == A.num_rows(), x << ", " << b << " and " << A << " need to have same size.");
 
-	for(size_t j=0; j < x.size(); j++)
-	{
-		x[j] = b[j];
-		x[j] /= A.get_diag(j);
-	}
+	for(size_t i=0; i < x.size(); i++)
+		// x[i] = damp * b[i]/A(i,i)
+		InverseMatMult(x[i], damp, A(i,i), b[i]);
 
 	return true;
 }

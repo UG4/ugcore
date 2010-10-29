@@ -19,6 +19,7 @@
 #include "../small_algebra.h"
 
 #include "lapack_invert.h"
+#include "densematrix_inverse.h"
 
 namespace ug{
 
