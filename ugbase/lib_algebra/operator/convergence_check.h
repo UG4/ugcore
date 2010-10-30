@@ -145,8 +145,8 @@ class StandardConvCheck : public IConvergenceCheck
 				UG_LOG("\n");
 
 			//  number of symbols to print before name and info
-				int num_sym = 10;
-				int num_line_length = 60;
+				int num_sym = 8;
+				int num_line_length = 50;
 
 				int max_length = std::max(m_name.length(), m_info.length());
 				int space_left = std::max(num_line_length - max_length - num_sym, 0);
@@ -154,8 +154,10 @@ class StandardConvCheck : public IConvergenceCheck
 			//	print name line
 				print_offset();
 				for(int i = 0; i < num_sym; ++i) UG_LOG(m_symbol);
+				int pre_space = (max_length -(int)m_name.length()) / 2.0;
+				for(int i = 0; i < pre_space; ++i) UG_LOG(" ");
 				UG_LOG("  "<< m_name << "  ");
-				for(int i = m_name.length(); i < max_length; ++i) UG_LOG(" ");
+				for(int i = m_name.length(); i < max_length - pre_space; ++i) UG_LOG(" ");
 				for(int i = 0; i < space_left; ++i) UG_LOG(m_symbol); UG_LOG("\n");
 
 			//	print info line
@@ -170,7 +172,8 @@ class StandardConvCheck : public IConvergenceCheck
 
 			//	start iteration output
 				print_offset(); UG_LOG("  Iter      Defect         Rate \n");
-				print_offset(); UG_LOG(std::setw(4) << step() << ":    " << std::scientific << defect() <<  "      -------\n");
+				print_offset(); UG_LOG(std::setw(4) << step() << ":    "
+										<< std::scientific << defect() <<  "      -------\n");
 			}
 		}
 
