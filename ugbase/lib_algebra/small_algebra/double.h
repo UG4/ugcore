@@ -118,7 +118,7 @@ inline size_t GetCols(const number &t)
 
 inline bool InverseMatMult(number &dest, const double &beta, const number &mat, const number &vec)
 {
-	dest = beta*vec/vec;
+	dest = beta*vec/mat;
 	return true;
 }
 
