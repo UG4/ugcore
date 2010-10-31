@@ -46,24 +46,11 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 		{
 			m_pConvCheck = &convCheck;
 			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
-
-			if(m_pPrecond != NULL)
-			{
-				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
 		}
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
 		{
 			m_pPrecond = &precond;
-			if(m_pConvCheck != NULL)
-			{
-				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
 		}
 
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
@@ -130,6 +117,7 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 			//			without initializing the values
 			vector_type c; c.create(cNLOut.size()); c = cNLOut;
 
+			prepare_conv_check();
 			m_pConvCheck->start(d);
 
 			// Iteration loop
@@ -169,6 +157,23 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 
 		// destructor
 		virtual ~LinearSolver() {};
+
+	protected:
+		void prepare_conv_check()
+		{
+			m_pConvCheck->set_name(name());
+			m_pConvCheck->set_symbol('%');
+			m_pConvCheck->set_name(name());
+			if(m_pPrecond != NULL)
+			{
+				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_info(ss.str());
+			}
+			else
+			{
+				m_pConvCheck->set_info(" (No Preconditioner) ");
+			}
+		}
 
 	protected:
 		// Operator that is inverted by this Inverse Operator

@@ -93,6 +93,12 @@ class LapackLUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_
 			if(!m_lapacklu.apply(f, u))
 				{UG_LOG("ERROR in LapackLUOperator::apply: Cannot init LapackLU.\n"); return false;}
 
+#ifdef UG_PARALLEL
+			// todo: we set solution to consistent here, but that is only true for
+			//			serial case. Handle parallel case.
+			u.set_storage_type(PST_CONSISTENT);
+#endif
+
 		//	we're done
 			return true;
 		}

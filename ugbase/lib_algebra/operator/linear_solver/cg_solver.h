@@ -39,30 +39,17 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 							m_pPrecond(Precond), m_pConvCheck(&ConvCheck)
 			{};
 
-		virtual const char* name() const {return "BiCGStabSolver";}
+		virtual const char* name() const {return "CGSolver";}
 
 		void set_convergence_check(IConvergenceCheck& convCheck)
 		{
 			m_pConvCheck = &convCheck;
 			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
-
-			if(m_pPrecond != NULL)
-			{
-				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
 		}
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
 		{
 			m_pPrecond = &precond;
-			if(m_pConvCheck != NULL)
-			{
-				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
 		}
 
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
@@ -145,6 +132,7 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 				{UG_LOG("Cannot convert z to consistent vector.\n"); return false;}
 			#endif
 
+			prepare_conv_check();
 			m_pConvCheck->start(r);
 
 			number rho, rho_new, beta, alpha, lambda;
@@ -212,7 +200,7 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		virtual bool apply(vector_type& cNLOut, const vector_type& dNLIn)
 		{
 		//	copy defect
-			vector_type d;
+			vector_type d; d.create(dNLIn.size());
 			d = dNLIn;
 
 		//	solve on copy of defect
@@ -222,6 +210,22 @@ class CGSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 		// destructor
 		virtual ~CGSolver() {};
 
+	protected:
+		void prepare_conv_check()
+		{
+			m_pConvCheck->set_name(name());
+			m_pConvCheck->set_symbol('%');
+			m_pConvCheck->set_name(name());
+			if(m_pPrecond != NULL)
+			{
+				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_info(ss.str());
+			}
+			else
+			{
+				m_pConvCheck->set_info(" (No Preconditioner) ");
+			}
+		}
 	protected:
 		number VecProd(vector_type& a, vector_type& b)
 		{

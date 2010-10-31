@@ -46,24 +46,11 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 		{
 			m_pConvCheck = &convCheck;
 			m_pConvCheck->set_offset(3);
-			m_pConvCheck->set_symbol('%');
-			m_pConvCheck->set_name(name());
-
-			if(m_pPrecond != NULL)
-			{
-				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
 		}
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 		void set_preconditioner(ILinearIterator<vector_type, vector_type>& precond)
 		{
 			m_pPrecond = &precond;
-			if(m_pConvCheck != NULL)
-			{
-				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
 		}
 
 		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
@@ -129,6 +116,7 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 			vector_type s; s.create(bIn.size()); s = bIn;
 			vector_type q; q.create(xOut.size()); q = xOut;
 
+			prepare_conv_check();
 			m_pConvCheck->start(bIn);
 
 			#ifdef UG_PARALLEL
@@ -241,13 +229,14 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 				VecScaleAppend(s, v, (-1)*alpha);
 
 				// check convergence
-				m_pConvCheck->update(s);
+				// todo: Should we check convergence here? (That is done in ug3.9)
+/*				m_pConvCheck->update(s);
 				if(m_pConvCheck->iteration_ended())
 				{
 					bIn = s;
 					break;
 				}
-
+*/
 				// if preconditioner given
 				if(m_pPrecond != NULL)
 				{
@@ -320,6 +309,22 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 		// destructor
 		virtual ~BiCGStabSolver() {};
 
+	protected:
+		void prepare_conv_check()
+		{
+			m_pConvCheck->set_name(name());
+			m_pConvCheck->set_symbol('%');
+			m_pConvCheck->set_name(name());
+			if(m_pPrecond != NULL)
+			{
+				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				m_pConvCheck->set_info(ss.str());
+			}
+			else
+			{
+				m_pConvCheck->set_info(" (No Preconditioner) ");
+			}
+		}
 	protected:
 		bool VecScaleAppend(vector_type& a, vector_type& b, number s)
 		{
