@@ -547,9 +547,11 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain", &T2::set_domain)
+			.add_method("set_upwind", &T2::set_upwind)
+			.add_method("set_boussinesq_transport", &T2::set_boussinesq_transport)
+			.add_method("set_boussinesq_flow", &T2::set_boussinesq_flow)
 			.add_method("set_user_functions", &T2::set_user_functions)
-			.add_method("set_consistent_gravity", &T2::set_consistent_gravity)
-			.add_method("set_upwind_amount", &T2::set_upwind_amount);
+			.add_method("set_consistent_gravity", &T2::set_consistent_gravity);
 	}
 
 //	ProlongationOperator
