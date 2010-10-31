@@ -19,6 +19,7 @@
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 #include "consistent_gravity.h"
+#include "convection_shape.h"
 
 namespace ug{
 
@@ -86,7 +87,8 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 									Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity);
 
 		DensityDrivenFlowElemDisc() :
-			m_pDomain(NULL), m_upwindAmount(0.0), m_UseConsistentGravity(true),
+			m_pDomain(NULL), m_Upwind(NO_UPWIND), m_UseConsistentGravity(true),
+			m_BoussinesqTransport(true), m_BoussinesqFlow(true),
 			m_PorosityFct(NULL), m_ViscosityFct(NULL), m_DensityFct(NULL), m_DDensityFct(NULL),
 			m_MolDiffTensorFct(NULL), m_PermeabilityTensorFct(NULL), m_GravityFct(NULL)
 		{
@@ -94,7 +96,20 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		}
 
 		void set_consistent_gravity(bool bUse) {m_UseConsistentGravity = bUse;}
-		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
+		void set_boussinesq_transport(bool bUse) {m_BoussinesqTransport = bUse;}
+		void set_boussinesq_flow(bool bUse) {m_BoussinesqFlow = bUse;}
+		bool set_upwind(std::string upwind)
+		{
+			if(upwind == "no")		   m_Upwind = NO_UPWIND;
+			else if(upwind == "full")  m_Upwind = FULL_UPWIND;
+			else if(upwind == "part")  m_Upwind = PART_UPWIND;
+			else
+			{
+				UG_LOG("Upwind type not found.\n");
+				return false;
+			}
+			return true;
+		}
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 		void set_user_functions(IDensityDrivenFlowUserFunction<dim>& user) {
 			m_PorosityFct = user.get_porosity_function();
@@ -143,7 +158,11 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		typename TDomain::position_accessor_type m_aaPos;
 
 		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwindAmount;
+		enum UpwindType{ NO_UPWIND = 0, FULL_UPWIND, PART_UPWIND};
+		int m_Upwind;
+		bool m_UseConsistentGravity;
+		bool m_BoussinesqTransport;
+		bool m_BoussinesqFlow;
 
 		// max num of element Corners (this is to much in 3d)
 		static const size_t m_MaxNumCorners = dim*dim;
@@ -164,7 +183,6 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		// consistent gravity
 		MathVector<dim> m_vConsGravity[m_MaxNumCorners]; // Consistent Gravity at corners
 		MathVector<dim> m_vvDConsGravity[m_MaxNumCorners][m_MaxNumCorners]; //Derivative at corners
-		bool m_UseConsistentGravity;
 
 		// local constants for readability
 		// _C_ == local function 0 (concentration)
