@@ -356,6 +356,9 @@ class FV1Geometry {
 		/// update data for given element
 		bool update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords);
 
+		/// get vector of corners for current element
+		const MathVector<world_dim>* corners() const {return m_gloMid[0];}
+
 		/// number of SubControlVolumeFaces
 		inline size_t num_scvf() const {return m_numSCVF;};
 
