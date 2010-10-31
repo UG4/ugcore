@@ -42,7 +42,7 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "GSPreconditioner";}
+		virtual const char* name() const {return "Gauss-Seidel";}
 
 	//	Preprocess routine
 		virtual bool preprocess(matrix_type& mat) {return true;}
@@ -87,7 +87,7 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "BGSPreconditioner";}
+		virtual const char* name() const {return "Backward Gauss-Seidel";}
 
 	//	Preprocess routine
 		virtual bool preprocess(matrix_type& mat) {return true;}
@@ -132,7 +132,7 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "SGSPreconditioner";}
+		virtual const char* name() const {return "Symmetric Gauss-Seidel";}
 
 	//	Preprocess routine
 		virtual bool preprocess(matrix_type& mat) {return true;}

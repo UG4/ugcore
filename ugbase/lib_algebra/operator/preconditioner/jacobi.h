@@ -55,7 +55,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 	//	Name of preconditioner
-		virtual const char* name() const {return "GSPreconditioner";}
+		virtual const char* name() const {return "Jacobi";}
 
 	//	Preprocess routine
 		virtual bool preprocess(matrix_type& mat)
