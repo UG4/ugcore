@@ -13,7 +13,8 @@ dofile("../scripts/ug_util.lua")
 -- constants
 dim = 2
 gridName = "elder_quads_8x2.ugx"
-numRefs = 4
+numRefs = 6
+NumTimeSteps = 100
 
 --------------------------------
 -- User Data Functions (begin)
@@ -114,12 +115,14 @@ dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 elderElemFct = ElderUserFunction2d()
 elemDisc = FV1DensityDrivenFlowElemDisc2d()
 elemDisc:set_domain(dom)
-elemDisc:set_upwind_amount(0.0)
-elemDisc:set_user_functions(elderElemFct)
-elemDisc:set_domain(dom)
 elemDisc:set_pattern(pattern)
 elemDisc:set_functions("c,p")
 elemDisc:set_subsets("Inner")
+elemDisc:set_upwind("no")
+elemDisc:set_consistent_gravity(false)
+elemDisc:set_boussinesq_transport(true)
+elemDisc:set_boussinesq_flow(true)
+elemDisc:set_user_functions(elderElemFct)
 
 -- add Element Discretization to discretization
 domainDisc:add_elem_disc(elemDisc)
@@ -145,10 +148,13 @@ bgs = BGSPreconditioner()
 ilu = ILUPreconditioner()
 ilut = ILUTPreconditioner()
 
+-- exact Soler
+exactSolver = LapackLUSolver()
+
 -- create GMG
 baseConvCheck = StandardConvergenceCheck()
 baseConvCheck:set_maximum_steps(500)
-baseConvCheck:set_minimum_defect(1e-8)
+baseConvCheck:set_minimum_defect(1e-10)
 baseConvCheck:set_reduction(1e-30)
 baseConvCheck:set_verbose_level(false)
 
@@ -156,6 +162,8 @@ baseConvCheck:set_verbose_level(false)
 base = BiCGStabSolver()
 base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
+
+baseLU = LapackLUSolver()
 
 transfer = P1ProlongationOperator2d()
 transfer:set_approximation_space(approxSpace)
@@ -168,20 +176,31 @@ gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
 gmg:set_surface_level(numRefs)
-gmg:set_base_level(0)
-gmg:set_base_solver(base)
+gmg:set_base_level(2)
+gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
 gmg:set_cycle_type(1)
-gmg:set_num_presmooth(5)
-gmg:set_num_postsmooth(5)
+gmg:set_num_presmooth(3)
+gmg:set_num_postsmooth(3)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
+
+if true then
+amg = AMGPreconditioner()
+amg:set_nu1(2)
+amg:set_nu2(2)
+amg:set_gamma(1)
+amg:set_presmoother(jac)
+amg:set_postsmoother(jac)
+amg:set_base_solver(base)
+--amg:set_debug(u)
+end
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(1000)
-convCheck:set_minimum_defect(1e-10)
-convCheck:set_reduction(1e-12)
+convCheck:set_minimum_defect(1e-8)
+convCheck:set_reduction(0.5e-10)
 
 -- create Linear Solver
 linSolver = LinearSolver()
@@ -201,7 +220,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()
 newtonConvCheck:set_maximum_steps(10)
-newtonConvCheck:set_minimum_defect(1e-6)
+newtonConvCheck:set_minimum_defect(5e-8)
 newtonConvCheck:set_reduction(1e-10)
 newtonConvCheck:set_verbose_level(true)
 
@@ -211,7 +230,7 @@ newtonLineSearch = StandardLineSearch()
 newtonSolver = NewtonSolver()
 newtonSolver:set_linear_solver(bicgstabSolver)
 newtonSolver:set_convergence_check(newtonConvCheck)
-newtonSolver:set_line_search(newtonLineSearch)
+--newtonSolver:set_line_search(newtonLineSearch)
 
 newtonSolver:init(op)
 
@@ -237,24 +256,24 @@ step = 1
 
 -- Perform Time Step
 do_steps = 5
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, dt/100, out, "Elder")
+do_dt = dt/100
+PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder")
 step = step + do_steps
-time = time + dt/100 * do_steps
-
-do_steps = 15
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, dt/10, out, "Elder")
-step = step + do_steps
-time = time + dt/10 * do_steps
+time = time + do_dt * do_steps
 
 do_steps = 10
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, dt/5, out, "Elder")
+do_dt = dt/10
+PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder")
 step = step + do_steps
-time = time + dt/5 * do_steps
+time = time + do_dt * do_steps
 
-do_steps = 100
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, dt, out, "Elder")
-step = step + do_steps
-time = time + dt * do_steps
+do_steps = NumTimeSteps - 10
+if do_steps > 0 then
+	do_dt = dt
+	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder")
+	step = step + do_steps
+	time = time + do_dt * do_steps
+end
 
 -- Output
 out:end_timeseries("Elder", u)
