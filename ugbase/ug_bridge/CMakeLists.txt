@@ -17,21 +17,21 @@ set(srcUGBridge    	class_name_provider.cpp
 					class_helper.cpp
 					ug_bridge.cpp
 					bridges/lib_grid_bridge.cpp
+					bridges/test_bridge.cpp)
+
+# if algebra is enabled, we have to add additional src-files and link with the
+# discretization module.
+if(NOT NO_ALGEBRA)
+	# add source files that depend on the algebra and discretization system here.
+	set(srcUGBridge ${srcUGBridge}
+					bridges/info_commands.cpp
 					bridges/lib_algebra_bridge.cpp
 					bridges/lib_discretization_bridge.cpp
-					bridges/info_commands.cpp
-					bridges/test_bridge.cpp
 					bridges/user_data/user_number.cpp
 					bridges/user_data/user_vector.cpp
 					bridges/user_data/user_matrix.cpp
 					bridges/user_data/boundary_number.cpp
 					bridges/user_data/elder.cpp)
-
-# if algebra is enabled, we have to add additional src-files and link with the
-# discretization module.
-if(NOT NO_ALGEBRA)
-	# add the source files
-	
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)

@@ -8,6 +8,7 @@
 #include "../ug_bridge.h"
 #include "lib_algebra/lib_algebra.h"
 #include "lib_discretization/lib_discretization.h"
+#include "lib_algebra/operator/preconditioner/amg/amg.h"
 #include <iostream>
 #include <sstream>
 
@@ -102,10 +103,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_constructor();
 */
 	//	AMG
-
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef CPUAlgebra algebra_type;
 
 	#ifdef UG_PARALLEL
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, TAlgebra> > function_type;

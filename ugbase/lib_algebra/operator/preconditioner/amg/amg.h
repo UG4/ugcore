@@ -159,13 +159,13 @@ protected:
 public:
 	bool get_correction_and_update_defect(vector_type &c, vector_type &d, int level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
-	
+/*	
 	int get_nr_of_coarse(int level)
 	{
 		assert(level+1 < used_levels);
 		return A[level+1]->length;
 	}
-	
+*/	
 	int get_nr_of_used_levels() { return used_levels; }
 
 //  data

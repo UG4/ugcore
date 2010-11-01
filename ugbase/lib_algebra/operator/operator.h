@@ -54,7 +54,7 @@
 
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
-#include "preconditioner/amg/amg2.h"
+#include "preconditioner/amg/amg.h"
 #endif
 #endif
 

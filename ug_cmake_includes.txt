@@ -81,6 +81,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(NO_LAPACK "Disable LAPACK")
 	OPTION(NO_BLAS "Disable BLAS")
     OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
+	OPTION(NO_SHELL "Disables building of the ugshell app.")
 
 	#######################
 	# include ug header and library path

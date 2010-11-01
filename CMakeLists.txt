@@ -13,10 +13,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# this file is only executed for library builds
-# The option triggers a different linking-method in
-# "ug_cmake_includes.txt"
-set(UG_LIBRARY_BUILD on)
 
 include("ug_cmake_includes.txt")
 
@@ -28,5 +24,7 @@ include("ug_cmake_includes.txt")
 add_subdirectory(ugbase)
 
 if(NOT UG_SHARED)
-    add_subdirectory(apps/ugshell)
+	if(NOT NO_SHELL)
+	    add_subdirectory(apps/ugshell)
+	endif(NOT NO_SHELL)
 endif(NOT UG_SHARED)
