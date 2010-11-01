@@ -53,42 +53,58 @@ public:
 
 public:
 	// matrix assignment operators
-	this_type &
+	inline this_type &
 	operator =  (const this_type &rhs);
 
-	this_type &
+	inline this_type &
 	operator += (const this_type &rhs);
 
-	this_type &
+	inline this_type &
 	operator -= (const this_type &rhs);
 
 	// alpha operators
 	template<typename T>
-	this_type &
+	inline this_type &
 	operator=(const T &alpha);
 
-	this_type &
+	inline this_type &
 	operator+=(const value_type &alpha);
 
-	this_type &
+	inline this_type &
 	operator-=(const value_type &alpha);
 
 	template<typename T>
-	this_type &
+	inline this_type &
 	operator*=(const T &alpha);
 
-	this_type &
+	inline this_type &
 	operator/=(const value_type &alpha);
 
 	// compare operators
 	template<typename T>
-	bool operator == (const T &t) const;
+	inline bool
+	operator == (const T &t) const;
 
 	template<typename T>
-	bool operator == (const DenseMatrix<T> &t) const;
+	inline bool
+	operator == (const DenseMatrix<T> &t) const;
 
 	template<typename T>
-	bool operator != (const T &t) const;
+	inline bool
+	operator != (const T &t) const;
+
+
+	inline const value_type &
+	entry(size_type r, size_type c) const
+	{
+		return operator()(r,c);
+	}
+
+	inline value_type &
+	entry(size_type r, size_type c)
+	{
+		return operator()(r,c);
+	}
 };
 
 }

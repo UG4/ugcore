@@ -18,7 +18,7 @@ template<typename TStorage>
 DenseVector<TStorage>::DenseVector()
 {
 	for(size_t i=0; i<size(); i++)
-		at(i) = 0.0;
+		entry(i) = 0.0;
 }
 
 template<typename TStorage>
@@ -35,7 +35,7 @@ DenseVector<TStorage>::operator = (const DenseVector<TStorage> &rhs)
 	if(size() != rhs.size()) resize(rhs.size());
 
 	for(size_type i=0; i<size(); i++)
-		at(i) = rhs[i];
+		entry(i) = rhs[i];
 	return *this;
 }
 
@@ -45,7 +45,7 @@ DenseVector<TStorage> &
 DenseVector<TStorage>::operator += (const DenseVector<TStorage> &rhs)
 {
 	for(size_type i=0; i<size(); i++)
-		at(i) += rhs[i];
+		entry(i) += rhs[i];
 	return *this;
 }
 
@@ -55,7 +55,7 @@ DenseVector<TStorage> &
 DenseVector<TStorage>::operator -= (const DenseVector<TStorage> &rhs)
 {
 	for(size_type i=0; i<size(); i++)
-		at(i) -= rhs[i];
+		entry(i) -= rhs[i];
 	return *this;
 }
 
@@ -67,7 +67,7 @@ DenseVector<TStorage> &
 DenseVector<TStorage>::operator=(const T &alpha)
 {
 	for(size_t i=0; i<size(); i++)
-		at(i) = alpha;
+		entry(i) = alpha;
 	return *this;
 }
 
@@ -76,7 +76,7 @@ DenseVector<TStorage> &
 DenseVector<TStorage>::operator+=(const typename DenseVector<TStorage>::value_type &alpha)
 {
 	for(size_t i=0; i<size(); i++)
-		at(i) += alpha;
+		entry(i) += alpha;
 	return *this;
 }
 
@@ -85,7 +85,7 @@ DenseVector<TStorage> &
 DenseVector<TStorage>::operator-=(const typename DenseVector<TStorage>::value_type &alpha)
 {
 	for(size_t i=0; i<size(); i++)
-		at(i) -= alpha;
+		entry(i) -= alpha;
 	return *this;
 }
 
@@ -95,7 +95,7 @@ DenseVector<TStorage> &
 DenseVector<TStorage>::operator*=(const T &alpha)
 {
 	for(size_t i=0; i<size(); i++)
-		at(i) *= alpha;
+		entry(i) *= alpha;
 	return *this;
 }
 
@@ -105,7 +105,7 @@ DenseVector<TStorage> &
 DenseVector<TStorage>::operator/=(const typename DenseVector<TStorage>::value_type &alpha)
 {
 	for(size_t i=0; i<size(); i++)
-		at(i) /= alpha;
+		entry(i) /= alpha;
 
 	return *this;
 }

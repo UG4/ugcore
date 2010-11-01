@@ -55,33 +55,43 @@ public:
 	// ~DenseVector(); // dont implement a destructor, since ~base may not be virtual
 
 	// operations with vectors
-	this_type &
+	inline this_type &
 	operator= (const this_type &rhs);
 
 
-	this_type &
+	inline this_type &
 	operator+= (const this_type &rhs);
 
-	this_type &
+	inline this_type &
 	operator-= (const this_type &rhs);
 
 	// operations with scalars
 	template<typename T>
-	this_type&
+	inline this_type&
 	operator=  (const T& alpha);
 
-	this_type&
+	inline this_type&
 	operator+= (const value_type& alpha);
 
-	this_type&
+	inline this_type&
 	operator-= (const value_type& alpha);
 
 	template<typename T>
-	this_type&
+	inline this_type&
 	operator *= (const T &alpha);
 
-	this_type&
+	inline this_type&
 	operator/= (const value_type& alpha);
+
+
+	value_type &entry(size_t i) const
+	{
+		return operator[] (i);
+	}
+	value_type &entry(size_t i)
+	{
+		return operator[] (i);
+	}
 
 };
 

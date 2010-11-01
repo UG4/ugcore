@@ -53,6 +53,20 @@ inline void MatMultAdd(DenseVector<vector_t> &dest,
 	}
 }
 
+//! calculates dest = alpha1*v1 + beta1 * A1^T *w1;
+template<typename vector_t, typename matrix_t>
+inline void MatMultTransposedAdd(DenseVector<vector_t> &dest,
+		const number &alpha1, const DenseVector<vector_t> &v1,
+		const number &beta1, const DenseMatrix<matrix_t> &A1, const DenseVector<vector_t> &w1)
+{
+	for(size_t r = 0; r < dest.size(); ++r)
+	{
+		VecScaleAssign(dest[r], alpha1, v1[r]);
+		for(size_t c = 0; c < w1.size(); ++c)
+			MatMultTransposedAdd(dest[r], 1.0, dest[r], 1.0, A1(c,r), w1[c]);
+	}
+}
+
 
 
 

@@ -38,7 +38,7 @@ DenseMatrix<TStorage>::operator = (const DenseMatrix<TStorage> &rhs)
 
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) = rhs(r, c);
+			entry(r, c) = rhs(r, c);
 	return *this;
 }
 
@@ -48,7 +48,7 @@ DenseMatrix<TStorage>::operator += (const DenseMatrix<TStorage> &rhs)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) += rhs(r, c);
+			entry(r, c) += rhs(r, c);
 	return *this;
 }
 
@@ -58,7 +58,7 @@ DenseMatrix<TStorage>::operator -= (const DenseMatrix<TStorage> &rhs)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) -= rhs(r, c);
+			entry(r, c) -= rhs(r, c);
 	return *this;
 }
 
@@ -71,7 +71,7 @@ DenseMatrix<TStorage>::operator = (const T &rhs)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) = (r==c ? rhs : 0.0);
+			entry(r, c) = (r==c ? rhs : 0.0);
 	return *this;
 }
 
@@ -81,7 +81,7 @@ DenseMatrix<TStorage>::operator += (const DenseMatrix<TStorage>::value_type &alp
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) += alpha;
+			entry(r, c) += alpha;
 	return *this;
 }
 
@@ -91,7 +91,7 @@ DenseMatrix<TStorage>::operator -= (const DenseMatrix<TStorage>::value_type &alp
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) -= alpha;
+			entry(r, c) -= alpha;
 	return *this;
 }
 
@@ -102,7 +102,7 @@ DenseMatrix<TStorage>::operator *= (const T &alpha)
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) *= alpha;
+			entry(r, c) *= alpha;
 	return *this;
 }
 
@@ -112,7 +112,7 @@ DenseMatrix<TStorage>::operator /= (const DenseMatrix<TStorage>::value_type &alp
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			at(r, c) /= alpha;
+			entry(r, c) /= alpha;
 	return *this;
 }
 
@@ -124,7 +124,7 @@ bool DenseMatrix<TStorage>::operator == (const T &t) const
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			if(at(r,c) != t) return false;
+			if(entry(r,c) != t) return false;
 	return true;
 }
 
@@ -134,7 +134,7 @@ bool DenseMatrix<TStorage>::operator == (const DenseMatrix<T> &t) const
 {
 	for(size_t r=0; r<num_rows(); ++r)
 		for(size_t c=0; c<num_cols(); ++c)
-			if(at(r,c) != t(r,c)) return false;
+			if(entry(r,c) != t(r,c)) return false;
 	return true;
 }
 
