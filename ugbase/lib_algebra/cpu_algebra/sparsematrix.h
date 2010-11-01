@@ -141,6 +141,18 @@ public:
 	template<typename Vector_type>
 	bool apply_transposed(Vector_type &res, const Vector_type &x) const;
 
+	//! calculate dest = alpha1*v1 + beta1*A*w1 (A = this matrix)
+	template<typename vector_t>
+	bool axpy(vector_t &dest,
+			const number &alpha1, const vector_t &v1,
+			const number &beta1, const vector_t &w1) const;
+
+	//! calculate dest = alpha1*v1 + beta1*A^T*w1 (A = this matrix)
+	template<typename vector_t>
+	bool axpy_transposed(vector_t &dest,
+			const number &alpha1, const vector_t &v1,
+			const number &beta1, const vector_t &w1) const;
+
 	//! calculate res -= A x
 	template<typename Vector_type>
 	bool matmul_minus(Vector_type &res, const Vector_type &x) const;
@@ -463,6 +475,8 @@ private:
 	size_t consmemsize;					//!< size of the consecutive memory for connections
 	size_t iFragmentedMem;				//!< size of connections memory not in consmem
 
+	bool m_bIgnoreZeroes;				//!< if set, add and set wont set connections which are zero
+
 	friend class matrixrow<value_type>;
 };
 
@@ -472,6 +486,15 @@ struct matrix_algebra_type_traits<SparseMatrix<T> >
 {
 	static const matrix_algebra_type type = MATRIX_USE_ROW_FUNCTIONS;
 };
+
+//! calculates dest = alpha1*v1 + beta1 * A1^T *w1;
+template<typename vector_t, typename matrix_t>
+inline void MatMultTransposedAdd(vector_t &dest,
+		const number &alpha1, const vector_t &v1,
+		const number &beta1, const SparseMatrix<matrix_t> &A1, const vector_t &w1)
+{
+	A1.axpy_transposed(dest, alpha1, v1, beta1, w1);
+}
 
 ///	@}
 } // namespace ug

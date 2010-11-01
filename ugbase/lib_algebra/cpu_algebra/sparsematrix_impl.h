@@ -32,6 +32,7 @@ namespace ug{
 template<typename T>
 SparseMatrix<T>::SparseMatrix()
 {
+	m_bIgnoreZeroes = false;
 	cols = rows = iTotalNrOfConnections = 0;
 	iFragmentedMem = 0;
 	pRowStart = pRowEnd = NULL;
@@ -333,7 +334,9 @@ void SparseMatrix<T>::defrag()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // definalize
-/** creates own pRowEnd array, so that rows dont have to be consecutive anymore
+/**
+ * \brief returns the matrix in a condition where you can change rowssizes (add connections).
+ * creates own pRowEnd array, so that rows dont have to be consecutive anymore
  */
 template<typename T>
 void SparseMatrix<T>::definalize()
@@ -344,8 +347,11 @@ void SparseMatrix<T>::definalize()
 	UG_ASSERT(pNewRowEnd != NULL, "out of memory, no more space for " << sizeof(connection*)*rows);
 	memcpy(pNewRowEnd, pRowEnd, sizeof(connection*)*rows);
 	pRowEnd = pNewRowEnd;
+	// no need to delete old pRowEnd, since it was pRowEnd = pRowStart+1.
 }
-
+/**
+ * \return true, if matrix is finalized
+ */
 template<typename T>
 bool SparseMatrix<T>::is_finalized() const
 {
@@ -355,8 +361,8 @@ bool SparseMatrix<T>::is_finalized() const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // safe_set_connections
-/** "safe" way to set a connection, since when cons[row] is
- * in the big consecutive consmem-array, you mustn'd delete it.
+/** "safe" way to set a connection, since when the row is
+ * in the big consecutive consmem-array, (that means pRowStart[row] is) you mustn'd delete it.
  * @param row row to set
  * @param connection pointer to connection to set
  */
@@ -368,15 +374,15 @@ void SparseMatrix<T>::safe_set_connections(size_t row, connection *mem) const
 	pRowStart[row] = mem;
 }
 
-
+/**
+ * \param row index of the row
+ * \return true if row row is in the big consecutive consmem-array (that means pRowStart[row] is)
+ */
 template<typename T>
 bool SparseMatrix<T>::in_consmem(size_t row) const
 {
 	return pRowStart[row] >= consmem && pRowEnd[row] < consmem + consmemsize;
 }
-
-
-
 
 
 //======================================================================================================
@@ -386,6 +392,7 @@ bool SparseMatrix<T>::in_consmem(size_t row) const
 //----------------------------
 //!
 //! sets the row to i,i = 1.0.
+//! todo: remove this function, it is replaced by a function in sparsematrix_util.
 template<typename T>
 bool SparseMatrix<T>::set_dirichlet_rows(const size_t *pDirichletRows, size_t iNr)
 {
@@ -419,7 +426,12 @@ bool SparseMatrix<T>::set_dirichlet_rows(const size_t *pDirichletRows, size_t iN
 	return true;
 }
 
-// res = A*x
+/**
+ * \param res gets res = A*x, where A is this matrix.
+ * \param x const vector x.
+ * \return true on success.
+ * \note uses MatMult and MatMultAdd for submatrices.
+ */
 template<typename T>
 template<typename Vector_type>
 bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
@@ -436,36 +448,32 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 			// res[i] += (*conn).dValue * x[(*conn).iIndex];
 			MatMultAdd(res[i], 1.0, res[i], 1.0, (*conn).dValue, x[(*conn).iIndex]);
 	}
-
+	// axpy(res, 0.0, res, 1.0, x);
 	return true;
 }
 
 
-
-// res = A.T() * x
+/**
+ * \param res gets res = A^T * x, where A is this matrix.
+ * \param x const vector x.
+ * \return true on success.
+ * \note uses MatMultTransposedAdd
+ */
 template<typename T>
 template<typename Vector_type>
 bool SparseMatrix<T>::apply_transposed(Vector_type &res, const Vector_type &x) const
 {
-	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
-	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
-
-	res.set(0.0);
-
-	for(size_t i=0; i<rows; i++)
-	{
-		for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
-		{
-			if((*conn).dValue != 0.0)
-				// res[(*conn).iIndex] += (*conn).dValue * x[i];
-				MatMultAdd(res[(*conn).iIndex], 1.0, res[(*conn).iIndex], 1.0, (*conn).dValue, x[i]);
-		}
-	}
+	axpy_transposed(res, 0.0, res, 1.0, x);
 	return true;
 }
 
 
-// res = res - A*x
+/**
+ * \param res res -= A*x, where A is this matrix.
+ * \param x const vector x.
+ * \return true on success.
+ * \note uses MatMultAdd for submatrices.
+ */
 template<typename T>
 template<typename Vector_type>
 bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
@@ -481,8 +489,91 @@ bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
 			MatMultAdd(res[i], 1.0, res[i], -1.0, (*conn).dValue, x[(*conn).iIndex]);
 	}
 
+	// axpy(res, 1.0, res, -1.0, x);
 	return true;
 }
+
+
+//! calculate dest = alpha1*v1 + beta1*A*w1 (A = this matrix)
+template<typename T>
+template<typename vector_t>
+bool SparseMatrix<T>::axpy(vector_t &dest,
+		const number &alpha1, const vector_t &v1,
+		const number &beta1, const vector_t &w1) const
+{
+	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
+	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
+
+
+	if(alpha1 == 0.0)
+	{
+		for(size_t i=0; i < rows; i++)
+		{
+			cRowIterator conn = beginRow(i);
+			if(conn.isEnd()) continue;
+			MatMult(dest[i], beta1, (*conn).dValue, w1[(*conn).iIndex]);
+			for(++conn; !conn.isEnd(); ++conn)
+				// res[i] += (*conn).dValue * x[(*conn).iIndex];
+				MatMultAdd(dest[i], 1.0, dest[i], beta1, (*conn).dValue, w1[(*conn).iIndex]);
+		}
+	}
+	else if(&dest == &v1)
+	{
+		if(alpha1 != 1.0)
+			for(size_t i=0; i < rows; i++)
+			{
+				dest[i] *= alpha1;
+				mat_mult_add_row(i, dest[i], beta1, w1);
+			}
+		else
+			for(size_t i=0; i < rows; i++)
+				mat_mult_add_row(i, dest[i], beta1, w1);
+
+	}
+	else
+	{
+		for(size_t i=0; i < rows; i++)
+		{
+			VecScaleAssign(dest[i], alpha1, v1[i]);;
+			mat_mult_add_row(i, dest[i], beta1, w1);
+		}
+	}
+
+	return true;
+}
+
+//! calculate dest = alpha1*v1 + beta1*A^T*w1 (A = this matrix)
+template<typename T>
+template<typename vector_t>
+bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
+		const number &alpha1, const vector_t &v1,
+		const number &beta1, const vector_t &w1) const
+{
+	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
+	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
+
+	if(&dest == &v1)
+	{
+		if(alpha1 != 1.0)
+			dest *= alpha1;
+	}
+	else if(alpha1 != 0.0)
+		VecScaleAssign(dest, alpha1, v1);
+	else
+		dest.set(0.0);
+
+	for(size_t i=0; i<rows; i++)
+	{
+		for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
+		{
+			if((*conn).dValue != 0.0)
+				// dest[(*conn).iIndex] += beta1 * (*conn).dValue * w1[i];
+				MatMultTransposedAdd(dest[(*conn).iIndex], 1.0, dest[(*conn).iIndex], beta1, (*conn).dValue, w1[i]);
+		}
+	}
+	return true;
+}
+
 
 //======================================================================================================
 // submatrix set/get
@@ -504,7 +595,7 @@ void SparseMatrix<T>::add(const M &mat)
 		nc = 0;
 		for(size_t j=0; j < mat.num_cols(); j++)
 		{
-			if(mat(i,j) != 0.0)
+			if(!m_bIgnoreZeroes || mat(i,j) != 0.0)
 			{
 				c[nc].iIndex = mat.col_index(j);
 				c[nc].dValue = mat(i, j);
@@ -536,7 +627,7 @@ void SparseMatrix<T>::set(const M &mat)
 		nc = 0;
 		for(size_t j=0; j < mat.num_cols(); j++)
 		{
-			if(mat(i,j) != 0.0)
+			if(!m_bIgnoreZeroes || mat(i,j) != 0.0)
 			{
 				c[nc].iIndex = mat.col_index(j);
 				c[nc].dValue = mat(i, j);
@@ -717,6 +808,13 @@ const matrixrow<T> SparseMatrix<T>::operator [] (size_t i) const
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // set_matrix_row
+/**
+ * \brief sets a whole row of a matrix, deletes previous content
+ * \note the matrix will be definalized in this step
+ * \param row 	the index of the row
+ * \param c 	the array with connections c[0]..c[nr-1]
+ * \param nr	number of connections in the array c
+ */
 template<typename T>
 void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
@@ -735,15 +833,15 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 
 	sort(n, n+nr);
 
+#ifdef DEBUG
 	for(size_t i=0; i<nr; i++)
 		UG_ASSERT(n[i].iIndex >= 0 && n[i].iIndex < num_cols(), "Matrix is " << num_rows() << "x" << num_cols() << ", row " << row << " cannot have connection " << n[i] << ".");
+#endif
 
-
+	// calc bandwidth
 	bandwidth = max(bandwidth, abs(n[0].iIndex, row));
 	bandwidth = max(bandwidth, abs(n[nr-1].iIndex, row));
 
-
-	definalize();
 	safe_set_connections(row, n);
 	pRowEnd[row] = pRowStart[row]+nr;
 
@@ -755,6 +853,17 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // add_matrix_row
+/**
+ * adds the connections c to the matrixrow row.
+ * if c has a connection con with con.iIndex=i, and the matrix already has a connection (row, i),
+ * the function will set A(row,i) += con.dValue. otherwise the connection A(row, i) is created
+ * and set to con.dValue.
+ * \param row row to add to
+ * \param c connections ("row") to be added the row.
+ * \param nr number of connections in array c.
+ * \return true on success.
+ * \note you may not use double connections in c.
+ */
 template<typename T>
 void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 {
@@ -763,19 +872,16 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 	//cout << "row: " << row << " nr: " << nr << endl;
 	connection *old = pRowStart[row];
 
-	if(old == NULL)
+	if(old == NULL || num_connections(row) == 0)
 	{
 		set_matrix_row(row, c, nr);
 		return;
 	}
 
-	UG_ASSERT(num_connections(row) != 0, "cons[row] != NULL but get_nr_of_connection(row) == 0 ???");
-
-	// the matrix row is not empty and we are adding more than one connection
-
+	// the matrix row is not empty and we are adding at least one connection
 	size_t oldNrOfConnections = num_connections(row);
 
-	// sort the connections: diagonal, then index1 < index2 < ...
+	// sort the connections: index1 < index2 < ...
 	sort(c, c+nr);
 
 	size_t ic=0, iold=0, skipped=0;
@@ -1209,6 +1315,7 @@ bool SparseMatrix<T>::scale(double d)
 
 	return true;
 }
+
 
 } // namespace ug
 
