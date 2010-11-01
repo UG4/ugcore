@@ -53,29 +53,33 @@ class ParallelMGDoFManager : public TMGDoFManager
 			bool bRetVal = true;
 			// if no cut level has appeared
 			bool no_cut = true;
-			for(size_t l = TMGDoFManager::num_levels() - 1; ; --l)
+
+			if(TMGDoFManager::num_levels() > 0)
 			{
-				typename TMGDoFManager::dof_distribution_type& distr = *const_cast<typename TMGDoFManager::dof_distribution_type*>(TMGDoFManager::get_level_dof_distribution(l));
+				for(size_t l = TMGDoFManager::num_levels() - 1; ; --l)
+				{
+					typename TMGDoFManager::dof_distribution_type& distr = *const_cast<typename TMGDoFManager::dof_distribution_type*>(TMGDoFManager::get_level_dof_distribution(l));
 
-				bRetVal &= CreateIndexLayout(distr.get_master_layout(), distr, *m_pLayoutMap, INT_MASTER,l);
-				bRetVal &= CreateIndexLayout(distr.get_slave_layout(), distr, *m_pLayoutMap, INT_SLAVE,l);
-				bRetVal &= CreateIndexLayout(distr.get_vertical_master_layout(), distr, *m_pLayoutMap, INT_VERTICAL_MASTER,l);
-				bRetVal &= CreateIndexLayout(distr.get_vertical_slave_layout(), distr, *m_pLayoutMap, INT_VERTICAL_SLAVE,l);
+					bRetVal &= CreateIndexLayout(distr.get_master_layout(), distr, *m_pLayoutMap, INT_MASTER,l);
+					bRetVal &= CreateIndexLayout(distr.get_slave_layout(), distr, *m_pLayoutMap, INT_SLAVE,l);
+					bRetVal &= CreateIndexLayout(distr.get_vertical_master_layout(), distr, *m_pLayoutMap, INT_VERTICAL_MASTER,l);
+					bRetVal &= CreateIndexLayout(distr.get_vertical_slave_layout(), distr, *m_pLayoutMap, INT_VERTICAL_SLAVE,l);
 
-			//	create local process communicator
-			//	if a process has only vertical slaves, it is not involved in process communication.
-			//TODO: perform a more precise check
-				if(!distr.get_vertical_slave_layout().empty()) no_cut = false;
-				bool participate = no_cut
-								   && !commWorld.empty()
-								   && (distr.num_dofs() > 0);
+				//	create local process communicator
+				//	if a process has only vertical slaves, it is not involved in process communication.
+				//TODO: perform a more precise check
+					if(!distr.get_vertical_slave_layout().empty()) no_cut = false;
+					bool participate = no_cut
+									   && !commWorld.empty()
+									   && (distr.num_dofs() > 0);
 
-				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, "  Says: Participate = "<< participate << " for level " << l << ""
-															" (num_dofs = " << distr.num_dofs() << ").\n");
+					UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, "  Says: Participate = "<< participate << " for level " << l << ""
+																" (num_dofs = " << distr.num_dofs() << ").\n");
 
-				distr.get_process_communicator() = commWorld.create_sub_communicator(participate);
+					distr.get_process_communicator() = commWorld.create_sub_communicator(participate);
 
-				if(l==0) break;
+					if(l==0) break;
+				}
 			}
 
 			return bRetVal;
