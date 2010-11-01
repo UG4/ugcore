@@ -15,6 +15,7 @@
 
 // library intern headers
 #include "lib_discretization/spacial_discretization/disc_helper/disc_helper.h"
+#include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
 #include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 #include "lib_discretization/spacial_discretization/user_data.h"
@@ -29,7 +30,7 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		typedef TDomain domain_type;
 
 		// world dimension
-		static const int dim = TDomain::dim;
+		static const size_t dim = TDomain::dim;
 
 		// position type
 		typedef typename TDomain::position_type position_type;
@@ -38,13 +39,12 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type> local_matrix_type;
 
 		// local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
 
 		// local index type
-		//typedef typename algebra_type::vector_type::local_index_type local_index_type;
 		typedef LocalIndices local_index_type;
 
 	protected:
@@ -70,8 +70,9 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 	private:
 		enum UPWIND_TYPES
 		{
-			FULL_UPWIND = 0,
-			LPS,
+            NO_UPWIND = 0,
+            FULL_UPWIND,
+			LPS_UPWIND,
 			NUM_UPWIND
 		};
 		int m_Upwind;
@@ -79,19 +80,15 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 	public:
 		bool set_upwind(const std::string& upwind)
 		{
-			switch(upwind)
-			{
-				case "Full": m_Upwind = FULL_UPWIND; break;
-				case "LPS": m_Upwind = LPS; break;
-				default:	UG_LOG("Upwind Type not recognized.\n");
-							return false;
-			}
-			return true;
+			if      (upwind == "NoUpwind")  m_Upwind = NO_UPWIND;
+            else if (upwind == "Full")      m_Upwind = FULL_UPWIND;
+            else if (upwind == "LPS")       m_Upwind = LPS_UPWIND;
+            else {UG_LOG("Upwind Type not recognized.\n"); return false;}
 		}
 
 	public:
 	//	Implement Interface
-		virtual size_t num_fct(){return 4;}
+		virtual size_t num_fct(){return dim+1;}
 
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) {return LSFS_LAGRANGEP1;}
 
@@ -131,7 +128,10 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		typename TDomain::position_accessor_type m_aaPos;
 
 		// abbreviation for pressure
-		static const size_t _P_ = dim+1;
+        static const size_t _U_ = 0;
+        static const size_t _V_ = 1;
+        static const size_t _W_ = 2;
+		static const size_t _P_ = dim;
 
 		// User functions
 		number m_Viscosity;
@@ -169,14 +169,14 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_prepare_element_loop_function(	id, &FVConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &FVConvectionDiffusionElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &FVConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &FVConvectionDiffusionElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &FVConvectionDiffusionElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &FVConvectionDiffusionElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &FVConvectionDiffusionElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &FVConvectionDiffusionElemDisc::template assemble_f<TElem>);
+			register_prepare_element_loop_function(	id, &FVNavierStokesElemDisc::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &FVNavierStokesElemDisc::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &FVNavierStokesElemDisc::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &FVNavierStokesElemDisc::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &FVNavierStokesElemDisc::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &FVNavierStokesElemDisc::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &FVNavierStokesElemDisc::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &FVNavierStokesElemDisc::template assemble_f<TElem>);
 		}
 
 };

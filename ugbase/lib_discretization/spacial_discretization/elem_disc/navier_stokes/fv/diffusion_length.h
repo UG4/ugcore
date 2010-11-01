@@ -22,10 +22,11 @@ template <typename TFVGeometry>
 bool NSDiffLengthAnsatz1(number DiffLengthSqInv[], const TFVGeometry& geo)
 {
 //	dimension of element
-	static const int dim = TFVGeometry::dim;
+	static const size_t dim = TFVGeometry::dim;
 
 //	get area of SubControlVolume
-	UG_LOG(scvf.num_ip() == 1, "Only implemented for first order.");
+
+	UG_ASSERT(geo.scvf.num_ip() == 1, "Only implemented for first order.");
 	const size_t ip = 0;
 
 	for(size_t i = 0; i < geo.num_scvf(); ++i)

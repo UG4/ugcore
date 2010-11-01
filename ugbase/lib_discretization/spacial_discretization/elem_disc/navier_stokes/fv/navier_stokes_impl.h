@@ -8,7 +8,9 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
 
-#include "navier_stokes.h"
+#include "upwind.h"
+#include "diffusion_length.h"
+#include "stabilization.h"
 
 namespace ug{
 
@@ -20,7 +22,9 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -31,23 +35,25 @@ prepare_element_loop()
 	// Therefore it is not time critical.
 
 	// resize corner coordinates
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
 	m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 	// remember position attachement
 	if(m_pDomain == NULL)
 	{
-		UG_LOG("ERROR in 'FVConvectionDiffusionElemDisc::prepare_element_loop':"
+		UG_LOG("ERROR in 'FVNavierStokesElemDisc::prepare_element_loop':"
 				" Domain not set.");
 		return false;
 	}
-
 	m_aaPos = m_pDomain->get_position_accessor();
 
 	return true;
 }
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -60,33 +66,41 @@ finish_element_loop()
 	return true;
 }
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
 FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
-prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
+prepare_element(TElem* elem, const local_vector_type& u,
+								const local_index_type& glob_ind)
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL
 
-	// load corners of this element
+// 	Load corners of this element
 	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
 	{
 		VertexBase* vert = elem->vertex(i);
 		m_vCornerCoords[i] = m_aaPos[vert];
 	}
 
-	// update Geometry for this element
+// 	Update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 	if(!geo.update(elem, m_pDomain->get_subset_handler(), &m_vCornerCoords[0]))
-		{UG_LOG("FVNavierStokesElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
+	{
+		UG_LOG("FVNavierStokesElemDisc::prepare_element:"
+				" Cannot update Finite Volume Geometry.\n"); return false;
+	}
 
+//	we're done
 	return true;
 }
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -103,16 +117,18 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	static const TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
 
 	// Only first order implemented
-	UG_ASSERT(TFVGeom<TElem, dim>::order == 1, "Only first order implemented.");
+	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
 	// Some Variables
 	MathVector<dim> vIPVelUpwind[numSCVF];
-	number vvCornerShape[numSCVF][numCo];
+	std::vector<std::vector<number> > vvCornerShape(numSCVF);
+    for(size_t i=0; i<numSCVF;++i) vvCornerShape[i].resize(numCo);
 	number vConvLength[numSCVF];
 	number vvIPShape[numSCVF][numCo];
 	bool bDependOnIP;
 	number vDiffLengthSqInv[numSCVF];
 	MathVector<dim> vIPVel[numSCVF];
+    MathVector<dim> vIPVelStab[numSCVF];
 	MathVector<dim> vCurrentIPVel[numSCVF];
 	number vIPScaleNumber[numSCVF];
 	MathVector<dim> vCornerVel[numCo];
@@ -121,30 +137,30 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	// Compute Upwind Shapes at Ip's and ConvectionLength here
 	switch(m_Upwind)
 	{
-		case FULL_UPWIND: GetFullUpwindShapesDependingOnIP(	geo, vIPVelUpwind, vvCornerShape, vConvLenght,
+		case FULL_UPWIND: GetFullUpwindShapesDependingOnIP(	geo, vIPVelUpwind, vvCornerShape, vConvLength,
 															vIPScaleNumber, bDependOnIP);
-		default: 	UG_LOG("Upwind Type not set.\n");
+        default: 	UG_LOG("Upwind Type not set.\n");
 					return false;
 	}
-
-	// todo: switch
-	//	Compute Diffusion Length
-	NSDiffLengthAnsatz1(vDiffLengthSqInv, geo);
-
-	// todo: Implement for timedependent
-	bool bTimeDependent = false;
-	MathVector<dim> vIPVelOld[numSCVF];
-	number dt = 0.0;
-
-	// todo: Compute IP Velocity of Current Velocity at ip
-	// todo: Compute vCornerVel
-	// todo: Compute vIPPressureGrad
-
-	// todo: switch
-	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-	GetFieldsStabilizedVelocities(	vIPVelStab, geo, vCurrentIPVel, bTimeDependent, vIPVelOld,
-									dt, vIPVelUpwind, bDependOnIP, vIPScaleNumber, vCornerVel,
-									vIPPressureGrad, m_Viscosity);
+//
+//	// todo: switch
+//	//	Compute Diffusion Length
+//	NSDiffLengthAnsatz1(vDiffLengthSqInv, geo);
+//
+//	// todo: Implement for timedependent
+//	bool bTimeDependent = false;
+//	MathVector<dim> vIPVelOld[numSCVF];
+//	number dt = 0.0;
+//
+//	// todo: Compute IP Velocity of Current Velocity at ip
+//	// todo: Compute vCornerVel
+//	// todo: Compute vIPPressureGrad
+//
+//	// todo: switch
+//	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
+//	GetFieldsStabilizedVelocities(	vIPVelStab, geo, vCurrentIPVel, bTimeDependent, vIPVelOld,
+//									dt, vIPVelUpwind, bDependOnIP, vIPScaleNumber, vCornerVel,
+//									vIPPressureGrad, m_Viscosity);
 
 	// loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -168,8 +184,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// Add flux term to local matrix
 				for(size_t vel1 = 0; vel1 < dim; ++vel1)
 				{
-					J(vel1, scvf.from(), vel1, co) -= viscosity * flux;
-					J(vel1, scvf.to()  , vel1, co) += viscosity * flux;
+					J(vel1, scvf.from(), vel1, co) -= m_Viscosity * flux;
+					J(vel1, scvf.to()  , vel1, co) += m_Viscosity * flux;
 
 					for(size_t vel2 = 0; vel2 < dim; ++vel2)
 					{
@@ -205,8 +221,9 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	return true;
 }
 
-
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -248,7 +265,12 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	// get finite volume geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
-	number flux;					// flux at ip
+    number flux;					// flux at ip
+	MathVector<dim> grad_u;			// gradient of solution at ip
+	number shape_u;					// solution at ip
+	MathMatrix<dim,dim> D;			// Diffusion Tensor
+	MathVector<dim> v;				// Velocity Field
+	MathVector<dim> Dgrad_u;		// Diff.Tensor times gradient of solution
 
 	// loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -265,8 +287,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			// compute gradient and shape at ip
 			for(size_t j = 0; j < scvf.num_sh(); ++j)
 			{
-				VecScaleAppend(grad_u, u(_C_,j), scvf.global_grad(j, ip));
-				shape_u += u(_C_,j) * scvf.shape(j, ip);
+				VecScaleAppend(grad_u, u(_P_,j), scvf.global_grad(j, ip));
+				shape_u += u(_P_,j) * scvf.shape(j, ip);
 			}
 
 			// todo: implement defect
@@ -277,8 +299,9 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	return true;
 }
 
-
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -310,7 +333,9 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
 template<typename TElem >
 inline
 bool
@@ -327,13 +352,13 @@ assemble_f(local_vector_type& d, number time)
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
 		// first value
-		position_type val;
+		number val = 0.0;
 		m_Rhs(val, scv.global_ip(0), time);
 
 		// other values
 		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
 		{
-			position_type ip_val;
+			number ip_val;
 			m_Rhs(ip_val, scv.global_ip(ip), time);
 
 			// TODO: add weights for integration
@@ -350,7 +375,7 @@ assemble_f(local_vector_type& d, number time)
 		for(size_t vel1 = 0; vel1 < dim; ++vel1)
 		{
 			// Add to local matrix
-			d(vel1, co) += val[vel1];
+			//d(vel1, co) += val;
 		}
 	}
 

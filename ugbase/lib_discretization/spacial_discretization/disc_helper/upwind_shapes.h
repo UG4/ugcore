@@ -60,7 +60,7 @@ bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 template <typename TFVGeometry>
 bool GetNoUpwindShapes(	const TFVGeometry& geo,
 						const MathVector<TFVGeometry::world_dim> IPVel[],
-						const std::vector<std::vector<number> >& CornerShape)
+						std::vector<std::vector<number> >& CornerShape)
 {
 	// set shapes
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -78,19 +78,29 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 	return true;
 }
 
-template <typename TSCVF>
-bool GetFullUpwindShapes(const TSCVF& scvf, const MathVector<TSCVF::world_dim>& IPVel, number* shape)
+template <typename TFVGeometry>
+bool GetFullUpwindShapes(	const TFVGeometry& geo,
+						const MathVector<TFVGeometry::world_dim> IPVel[],
+						std::vector<std::vector<number> >& CornerShape)
 {
-	// reset shapes to zero
-	for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-		shape[sh] = 0.0;
+	// set shapes
+	for(size_t i = 0; i < geo.num_scvf(); ++i)
+	{
+	//	get SubControlVolumeFace
+		const typename TFVGeometry::SCVF& scvf = geo.scvf(i);
+		UG_ASSERT(scvf.num_ip() == 1, "Only implemented for first order");
 
-	// switch upwind
-	const number sh = VecDot(scvf.normal(), IPVel);
-	if(sh > 0.0)
-		shape[scvf.from()] = 1.0;
-	else
-		shape[scvf.to()] = 1.0;
+        // reset shapes to zero
+        for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+            CornerShape[i][sh] = 0.0;
+
+        // switch upwind
+        const number flux = VecDot(scvf.normal(), IPVel[i]);
+        if(flux > 0.0)
+            CornerShape[i][scvf.from()] = 1.0;
+        else
+            CornerShape[i][scvf.to()] = 1.0;
+    }
 
 	return true;
 }

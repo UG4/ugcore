@@ -10,6 +10,7 @@
 
 // other ug4 modules
 #include "common/common.h"
+#include "lib_discretization/common/geometry_util.h"
 #include "lib_discretization/spacial_discretization/disc_helper/upwind_shapes.h"
 
 namespace ug{
@@ -26,10 +27,10 @@ namespace ug{
 template <typename TFVGeometry>
 bool GetFullUpwindShapesDependingOnIP(	const TFVGeometry& geo,
 										const MathVector<TFVGeometry::world_dim> IPVel[],
-										const std::vector<std::vector<number> >& CornerShape,
+										std::vector<std::vector<number> >& CornerShape,
 										number ConvectionLength[],
 										const number IPScaleNumber[],
-										bool& bDependOnIP)
+										bool &bDependOnIP)
 {
 	if(!GetFullUpwindShapes(geo, IPVel, CornerShape))
 		return false;
