@@ -175,11 +175,9 @@ elemDisc2:set_rhs(rhs)
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND1 = utilCreateDirichletBoundary(approxSpace)
-dirichletBND1:add_boundary_value(dirichlet, "c1", "DirichletBoundary")
-
-dirichletBND2 = utilCreateDirichletBoundary(approxSpace)
-dirichletBND2:add_boundary_value(dirichlet, "c2", "DirichletBoundary")
+dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND:add_boundary_value(dirichlet, "c1", "DirichletBoundary")
+dirichletBND:add_boundary_value(dirichlet, "c2", "DirichletBoundary")
 
 -------------------------------------------
 --  Setup Domain Discretization
@@ -189,8 +187,7 @@ domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc1)
 domainDisc:add_elem_disc(elemDisc2)
 --domainDisc:add_elem_disc(neumannDisc)
-domainDisc:add_post_process(dirichletBND1)
-domainDisc:add_post_process(dirichletBND2)
+domainDisc:add_post_process(dirichletBND)
 
 -------------------------------------------
 --  Algebra
@@ -233,8 +230,8 @@ ilu = ILUPreconditioner()
 
 -- create GMG
 baseConvCheck = StandardConvergenceCheck()
-baseConvCheck:set_maximum_steps(500)
-baseConvCheck:set_minimum_defect(1e-8)
+baseConvCheck:set_maximum_steps(40)
+baseConvCheck:set_minimum_defect(1e-12)
 baseConvCheck:set_reduction(1e-30)
 baseConvCheck:set_verbose_level(false)
 
@@ -262,7 +259,7 @@ gmg:set_num_postsmooth(3)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
-if true then
+if false then
 amg = AMGPreconditioner()
 amg:set_nu1(2)
 amg:set_nu2(2)
@@ -281,7 +278,7 @@ convCheck:set_reduction(1e-12)
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(gmg)
+linSolver:set_preconditioner(ilu)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver

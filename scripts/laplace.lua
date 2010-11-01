@@ -247,7 +247,7 @@ gmg:set_num_postsmooth(3)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
-if true then
+if false then
 amg = AMGPreconditioner()
 amg:set_nu1(2)
 amg:set_nu2(2)
@@ -266,7 +266,7 @@ convCheck:set_reduction(1e-12)
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(gmg)
+linSolver:set_preconditioner(jac)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
