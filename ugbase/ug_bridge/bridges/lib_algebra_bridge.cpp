@@ -98,10 +98,10 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_constructor();
 
 	//	ILU Threshold
-/*		reg.add_class_<	ILUTPreconditioner<algebra_type>,
+		reg.add_class_<	ILUTPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("ILUTPreconditioner", grp.c_str())
 			.add_constructor();
-*/
+
 	//	AMG
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 		typedef P1ConformDoFDistribution dof_distribution_type;
@@ -206,7 +206,7 @@ bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 
 	// register algebra
 		RegisterAlgebraType<CPUAlgebra>(reg, grp.c_str());
-	//	RegisterAlgebraType<Block2x2Algebra>(reg, grp.c_str());
+		//RegisterAlgebraType<Block2x2Algebra>(reg, grp.c_str());
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
