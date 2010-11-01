@@ -80,7 +80,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(NO_FORTRAN "Do not use Fortran (Fortran may be needed to find LAPACK)")
 	OPTION(NO_LAPACK "Disable LAPACK")
 	OPTION(NO_BLAS "Disable BLAS")
-    OPTION(NO_VRL "Disables vrl-bindings. Important if no java environment exists.")
+    OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
 
 	#######################
 	# include ug header and library path
@@ -373,9 +373,9 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     ####
     # External dependencies
     ####
-    if(UG_SHARED AND NOT NO_VRL)
+    if(UG_SHARED AND FOR_VRL)
         find_package(JNI REQUIRED)
         include_directories(${JNI_INCLUDE_DIRS})
-    endif(UG_SHARED AND NOT NO_VRL)
+    endif(UG_SHARED AND FOR_VRL)
 
 endif(NOT UG_CMAKE_INCLUDES_INCLUDED)
