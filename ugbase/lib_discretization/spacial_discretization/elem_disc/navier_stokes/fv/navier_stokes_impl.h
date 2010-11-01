@@ -124,10 +124,10 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	std::vector<std::vector<number> > vvCornerShape(numSCVF);
     for(size_t i=0; i<numSCVF;++i) vvCornerShape[i].resize(numCo);
 	number vConvLength[numSCVF];
-	number vvIPShape[numSCVF][numCo];
+	//number vvIPShape[numSCVF][numCo];
 	bool bDependOnIP;
 	number vDiffLengthSqInv[numSCVF];
-	MathVector<dim> vIPVel[numSCVF];
+	//MathVector<dim> vIPVel[numSCVF];
     MathVector<dim> vIPVelStab[numSCVF];
 	MathVector<dim> vCurrentIPVel[numSCVF];
 	number vIPScaleNumber[numSCVF];
@@ -137,30 +137,31 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	// Compute Upwind Shapes at Ip's and ConvectionLength here
 	switch(m_Upwind)
 	{
-		case FULL_UPWIND: GetFullUpwindShapesDependingOnIP(	geo, vIPVelUpwind, vvCornerShape, vConvLength,
+		case FULL_UPWIND:   GetFullUpwindShapesDependingOnIP(geo, vIPVelUpwind, vvCornerShape, vConvLength,
 															vIPScaleNumber, bDependOnIP);
+                            break;
         default: 	UG_LOG("Upwind Type not set.\n");
 					return false;
 	}
-//
-//	// todo: switch
-//	//	Compute Diffusion Length
-//	NSDiffLengthAnsatz1(vDiffLengthSqInv, geo);
-//
-//	// todo: Implement for timedependent
-//	bool bTimeDependent = false;
-//	MathVector<dim> vIPVelOld[numSCVF];
-//	number dt = 0.0;
-//
-//	// todo: Compute IP Velocity of Current Velocity at ip
-//	// todo: Compute vCornerVel
-//	// todo: Compute vIPPressureGrad
-//
-//	// todo: switch
-//	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-//	GetFieldsStabilizedVelocities(	vIPVelStab, geo, vCurrentIPVel, bTimeDependent, vIPVelOld,
-//									dt, vIPVelUpwind, bDependOnIP, vIPScaleNumber, vCornerVel,
-//									vIPPressureGrad, m_Viscosity);
+
+	// todo: switch
+	//	Compute Diffusion Length
+	NSDiffLengthMethod1(vDiffLengthSqInv, geo);
+
+	// todo: Implement for timedependent
+	bool bTimeDependent = false;
+	MathVector<dim> vIPVelOld[numSCVF];
+	number dt = 0.0;
+
+	// todo: Compute IP Velocity of Current Velocity at ip
+	// todo: Compute vCornerVel
+	// todo: Compute vIPPressureGrad
+
+	// todo: switch
+	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
+	GetFieldsStabilizedVelocities(	vIPVelStab, geo, vCurrentIPVel, bTimeDependent, vIPVelOld,
+									dt, vIPVelUpwind, bDependOnIP, vIPScaleNumber, vCornerVel,
+									vIPPressureGrad, m_Viscosity);
 
 	// loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -265,7 +266,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	// get finite volume geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
-    number flux;					// flux at ip
+    //number flux;					// flux at ip
 	MathVector<dim> grad_u;			// gradient of solution at ip
 	number shape_u;					// solution at ip
 	MathMatrix<dim,dim> D;			// Diffusion Tensor
@@ -369,7 +370,7 @@ assemble_f(local_vector_type& d, number time)
 		val *= scv.volume();
 
 		// get associated node
-		const int co = scv.node_id();
+		//const int co = scv.node_id();
 
 		// loop velocity components
 		for(size_t vel1 = 0; vel1 < dim; ++vel1)

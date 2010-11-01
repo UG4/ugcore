@@ -19,15 +19,17 @@ namespace ug{
  * \param[in]		geo					Finite Volume Geometry
  */
 template <typename TFVGeometry>
-bool NSDiffLengthAnsatz1(number DiffLengthSqInv[], const TFVGeometry& geo)
+bool NSDiffLengthMethod1(number DiffLengthSqInv[], const TFVGeometry& geo)
 {
-//	dimension of element
+    //	dimension of element
 	static const size_t dim = TFVGeometry::dim;
 
-//	get area of SubControlVolume
+    // Check the SCVF - number of IPs (order of elements)
+    const typename TFVGeometry::SCVF& scvf = geo.scvf(0);
+    UG_ASSERT(scvf.num_ip() == 1, "Only implemented for first order.");
 
-	UG_ASSERT(geo.scvf.num_ip() == 1, "Only implemented for first order.");
-	const size_t ip = 0;
+    //	get area of SubControlVolume
+	//const size_t ip = 0;
 
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
 	{
@@ -39,7 +41,7 @@ bool NSDiffLengthAnsatz1(number DiffLengthSqInv[], const TFVGeometry& geo)
 		const typename TFVGeometry::SCV& scvTo = geo.scv(scvf.to());
 
 	//	Norm of Normal to SCVF squared
-		const number normNormalSq = VecTwoNormSq(scvf.normal(ip));
+		const number normNormalSq = VecTwoNormSq(scvf.normal());
 
 	//	average squared size of associated SCV
 		number areaSCVSq = 0.5 * (scvFrom.volume() + scvTo.volume());
