@@ -19,7 +19,7 @@
 
 //	in order to support VRL logs, we're including bindings_vrl.h
 //  this is necessary to get access to the JVM environment
-#ifndef NO_VRL
+#ifdef FOR_VRL
 		#include <sstream>
 		#include "bindings_vrl/messaging.h"
 #endif
