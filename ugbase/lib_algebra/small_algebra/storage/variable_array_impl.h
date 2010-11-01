@@ -118,7 +118,7 @@ VariableArray1<T>::reserve(size_t newCapacity) const
 
 template<typename T>
 T &
-VariableArray1<T>::at(size_t i)
+VariableArray1<T>::operator[](size_t i)
 {
 	assert(values);
 	assert(i>=0 && i<n);
@@ -127,7 +127,7 @@ VariableArray1<T>::at(size_t i)
 
 template<typename T>
 const T &
-VariableArray1<T>::at(size_t i) const
+VariableArray1<T>::operator[](size_t i) const
 {
 	assert(values);
 	assert(i>=0 && i<n);
@@ -252,7 +252,7 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 
 template<typename T, eMatrixOrdering T_ordering>
 T &
-VariableArray2<T, T_ordering>::at(size_t r, size_t c)
+VariableArray2<T, T_ordering>::operator()(size_t r, size_t c)
 {
 	assert(r>=0 && r<rows);
 	assert(c>=0 && c<cols);
@@ -264,7 +264,7 @@ VariableArray2<T, T_ordering>::at(size_t r, size_t c)
 
 template<typename T, eMatrixOrdering T_ordering>
 const T &
-VariableArray2<T, T_ordering>::at(size_t r, size_t c) const
+VariableArray2<T, T_ordering>::operator()(size_t r, size_t c) const
 {
 	assert(r>=0 && r<rows);
 	assert(c>=0 && c<cols);

@@ -70,7 +70,7 @@ FixedArray1<T, n>::reserve(size_t newN) const
 // Element access
 template<typename T, size_t n>
 inline T &
-FixedArray1<T, n>::at(size_t i)
+FixedArray1<T, n>::operator[](size_t i)
 {
 	assert(i>=0 && i<n);
 	return values[i];
@@ -78,7 +78,7 @@ FixedArray1<T, n>::at(size_t i)
 
 template<typename T, size_t n>
 inline const T &
-FixedArray1<T, n>::at(size_t i) const
+FixedArray1<T, n>::operator[](size_t i) const
 {
 	assert(i>=0 && i<n);
 	return values[i];
@@ -156,7 +156,7 @@ FixedArray2<T, rowsT, colsT, T_ordering>::resize(size_t newRows, size_t newCols)
 
 template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering>
 inline T &
-FixedArray2<T, rowsT, colsT, T_ordering>::at(size_t r, size_t c)
+FixedArray2<T, rowsT, colsT, T_ordering>::operator()(size_t r, size_t c)
 {
 	assert(r>=0 && r<rowsT);
 	assert(c>=0 && c<colsT);
@@ -168,7 +168,7 @@ FixedArray2<T, rowsT, colsT, T_ordering>::at(size_t r, size_t c)
 
 template<typename T, size_t rowsT, size_t colsT, eMatrixOrdering T_ordering>
 inline const T &
-FixedArray2<T, rowsT, colsT, T_ordering>::at(size_t r, size_t c) const
+FixedArray2<T, rowsT, colsT, T_ordering>::operator()(size_t r, size_t c) const
 {
 	assert(r>=0 && r<rowsT);
 	assert(c>=0 && c<colsT);
@@ -181,7 +181,7 @@ FixedArray2<T, rowsT, colsT, T_ordering>::at(size_t r, size_t c) const
 /*
 template<typename T, size_t rowsT, size_t colsT>
 T &
-FixedArray2<T, rowsT, colsT, ColMajor>::at(size_t r, size_t c)
+FixedArray2<T, rowsT, colsT, ColMajor>::operator()(size_t r, size_t c)
 {
 	assert(r>=0 && r<rowsT);
 	assert(c>=0 && c<colsT);
@@ -190,7 +190,7 @@ FixedArray2<T, rowsT, colsT, ColMajor>::at(size_t r, size_t c)
 
 template<typename T, size_t rowsT, size_t colsT>
 T &
-FixedArray2<T, rowsT, colsT, RowMajor>::at(size_t r, size_t c)
+FixedArray2<T, rowsT, colsT, RowMajor>::operator()(size_t r, size_t c)
 {
 	assert(r>=0 && r<rowsT);
 	assert(c>=0 && c<colsT);
@@ -200,7 +200,7 @@ FixedArray2<T, rowsT, colsT, RowMajor>::at(size_t r, size_t c)
 
 template<typename T, size_t rowsT, size_t colsT>
 const T &
-FixedArray2<T, rowsT, colsT, ColMajor>::at(size_t r, size_t c) const
+FixedArray2<T, rowsT, colsT, ColMajor>::operator()(size_t r, size_t c) const
 {
 	assert(r>=0 && r<rowsT);
 	assert(c>=0 && c<colsT);
@@ -209,7 +209,7 @@ FixedArray2<T, rowsT, colsT, ColMajor>::at(size_t r, size_t c) const
 
 template<typename T, size_t rowsT, size_t colsT>
 const T &
-FixedArray2<T, rowsT, colsT, RowMajor>::at(size_t r, size_t c) const
+FixedArray2<T, rowsT, colsT, RowMajor>::operator()(size_t r, size_t c) const
 {
 	assert(r>=0 && r<rowsT);
 	assert(c>=0 && c<colsT);

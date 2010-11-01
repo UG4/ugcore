@@ -64,22 +64,24 @@ public:
 	// Element access
 
 	inline const T &
-	operator[] (size_type i) const
+	at (size_type i) const
 	{
-		return at(i);
+		// todo: throw if(i >= n)
+		return operator[](i);
 	}
 
 	inline T &
-	operator[] (size_type i)
+	at (size_type i)
 	{
-		return at(i);
+		// todo: throw if(i >= n)
+		return operator[](i);
 	}
 
 	inline const T &
-	at(size_type i) const ;
+	operator[](size_type i) const ;
 
 	inline T &
-	at(size_type i) ;
+	operator[](size_type i) ;
 
 	// output
 
@@ -151,22 +153,24 @@ public:
 	// Element Access
 
 	inline const T &
-	operator ()(size_type r, size_type c) const
+	at(size_type r, size_type c) const
 	{
-		return at(r, c);
+		// todo: if(r >= rows || c >= cols) throw
+		return operator()(r, c);
 	}
 
 	inline T &
-	operator ()(size_type r, size_type c)
+	at(size_type r, size_type c)
 	{
-		return at(r, c);
+		// todo: if(r >= rows || c >= cols) throw
+		return operator()(r, c);
 	}
 
 	inline const T &
-	at(size_type r, size_type c) const ;
+	operator()(size_type r, size_type c) const ;
 
 	inline T &
-	at(size_type r, size_type c) ;
+	operator()(size_type r, size_type c) ;
 
 	// output
 

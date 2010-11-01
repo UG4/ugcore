@@ -59,22 +59,22 @@ public:
 
 	// Element access
 	inline const T &
-	operator[] (size_type i) const
+	at(size_type i) const
 	{
-		return at(i);
+		return operator[](i);
 	}
 
 	inline T &
-	operator[] (size_type i)
+	at(size_type i)
 	{
-		return at(i);
+		return operator[](i);
 	}
 
 	inline const T &
-	at(size_type i) const ;
+	operator[](size_type i) const ;
 
 	inline T &
-	at(size_type i) ;
+	operator[](size_type i) ;
 
 	// output
 	template<typename _T, size_type _n>
@@ -152,22 +152,24 @@ public:
 
 	// Element access
 	inline const T &
-	operator ()(size_type r, size_type c) const
+	at(size_type r, size_type c) const
 	{
+		// todo: if(r >= rowsT || c >= colsT) throw
 		return at(r, c);
 	}
 
 	inline T &
-	operator ()(size_type r, size_type c)
+	at(size_type r, size_type c)
 	{
+		// todo: if(r >= rowsT || c >= colsT) throw
 		return at(r, c);
 	}
 
 	inline const T &
-	at(size_type r, size_type c) const ;
+	operator()(size_type r, size_type c) const ;
 
 	inline T &
-	at(size_type r, size_type c) ;
+	operator()(size_type r, size_type c) ;
 
 	// output
 	template<typename a, size_type b, size_type c, eMatrixOrdering d>
