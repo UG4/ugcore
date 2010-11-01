@@ -188,7 +188,7 @@ inline LogAssistant& GetLogAssistant();
  * If ug is compiled in a parallel environment (UG_PARALLEL is defined),
  * UG_LOG will use PCLLOG to output its data.
  */
-#ifndef NO_VRL
+#ifdef FOR_VRL
 	#define VRL_LOG(msg) {std::stringstream ss;ss << "<!--UG4-->" << msg;\
                           ug::vrl::MessageBuffer::addMessage(ss.str());}
 #else
