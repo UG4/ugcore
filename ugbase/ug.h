@@ -14,7 +14,6 @@
 #include "node_tree/node_tree.h"
 #include "ug_bridge/ug_bridge.h"
 #include "ug_script/ug_script.h"
-#include "bindings_vrl/bindings_vrl.h"
 
 #ifdef UG_PARALLEL
 	#include "pcl/pcl.h"
