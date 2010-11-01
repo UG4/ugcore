@@ -427,6 +427,9 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 		// number of distributed dofs on whole domain
 		size_t m_numDoFs;
 
+		// number offsetmap
+		std::vector<std::vector<size_t> > m_vvOffsets;
+
 		// number of distributed dofs on each subset
 		std::vector<size_t> m_vNumDoFs;
 };

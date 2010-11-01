@@ -207,7 +207,7 @@ distribute_dofs()
 		// remember number of functions
 		size_t num_fct =  m_pFunctionPattern->num_fct(si);
 
-		// loop Verices
+		// loop Vertices
 		i_per_subset = 0;
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
@@ -329,6 +329,20 @@ bool
 GroupedP1ConformDoFDistribution::
 distribute_dofs()
 {
+	if(m_pStorageManager == NULL)
+	{
+		UG_LOG("In 'P1ConformDoFDistribution::distribute_dofs:"
+				"Storage Manager not set. Aborting.\n");
+		return false;
+	}
+
+	if(m_pFunctionPattern == NULL)
+	{
+		UG_LOG("In 'P1ConformDoFDistribution::distribute_dofs:"
+				"Function Pattern not set. Aborting.\n");
+		return false;
+	}
+
 	// Attach indices
 	m_pStorageManager->update_attachments();
 
@@ -337,20 +351,32 @@ distribute_dofs()
 
 	// loop subsets
 	size_t i = 0;
+	size_t i_per_subset = 0;
 
 	// reset number of dofs
-	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets());
+	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
+	m_vvOffsets.clear(); m_vvOffsets.resize(num_subsets());
 
 	// loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
+		// create offsets
+		size_t count = 0;
+		m_vvOffsets[si].resize(m_pFunctionPattern->num_fct());
+		for(size_t fct = 0; fct < m_pFunctionPattern->num_fct(); ++fct)
+		{
+			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
+			else m_vvOffsets[si][fct] = count++;
+		}
+
 		// skip if no dofs to be distributed
 		if(!(m_pFunctionPattern->num_fct(si)>0)) continue;
 
 		iterBegin = m_goc.begin<VertexBase>(si);
 		iterEnd =  m_goc.end<VertexBase>(si);
 
-		// loop Verices
+		// loop Vertices
+		i_per_subset = 0;
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 			// get vertex
@@ -359,9 +385,9 @@ distribute_dofs()
 			// write index
 			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i;
 			i ++;
+			i_per_subset ++;
 		}
-		if(si==0) m_vNumDoFs[si] = i;
-		else m_vNumDoFs[si] = i - m_vNumDoFs[si-1];
+		m_vNumDoFs[si] = i_per_subset;
 	}
 	m_numDoFs = i;
 
