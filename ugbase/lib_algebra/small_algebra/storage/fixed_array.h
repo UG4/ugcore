@@ -155,14 +155,14 @@ public:
 	at(size_type r, size_type c) const
 	{
 		// todo: if(r >= rowsT || c >= colsT) throw
-		return at(r, c);
+		return operator()(r, c);
 	}
 
 	inline T &
 	at(size_type r, size_type c)
 	{
 		// todo: if(r >= rowsT || c >= colsT) throw
-		return at(r, c);
+		return operator()(r, c);
 	}
 
 	inline const T &
