@@ -266,12 +266,12 @@ convCheck:set_reduction(1e-12)
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(gs)
+linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
 cgSolver = CGSolver()
-cgSolver:set_preconditioner(ilut)
+cgSolver:set_preconditioner(ilu)
 cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
@@ -280,7 +280,7 @@ bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, cgSolver)
+ApplyLinearSolver(linOp, u, b, linSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")
