@@ -42,6 +42,7 @@ template<typename vector_t, typename matrix_t>
 inline bool InverseMatMult1(DenseVector<vector_t> &dest, double beta1,
 		const DenseMatrix<matrix_t> &A1, const DenseVector<vector_t> &w1)
 {
+	UG_ASSERT(&dest != &w1, "");
 	dest[0] = beta1*w1[0]/A1(0,0);
 	return true;
 }
@@ -115,6 +116,7 @@ inline bool InverseMatMult2(DenseVector<vector_t> &dest, double beta,
 {
 	number det = GetDet2(mat);
 	UG_ASSERT(det != 0, "Determinant zero, cannot invert matrix.");
+	UG_ASSERT(&dest != &vec, "");
 	if(det == 0.0) return false;
 	dest[0] = beta * (mat(1,1)*vec[0] - mat(0,1)*vec[1]) / det;
 	dest[1] = beta * (-mat(1,0)*vec[0] + mat(0,0)*vec[1]) / det;
@@ -194,6 +196,7 @@ inline bool InverseMatMult3(DenseVector<vector_t> &dest, double beta,
 {
 	number det = GetDet3(mat);
 	UG_ASSERT(det != 0, "Determinant zero, cannot invert matrix.");
+	UG_ASSERT(&dest != &vec, "");
 	if(det == 0.0) return false;
 	dest[0] = ( ( mat(1,1)*mat(2,2) - mat(1,2)*mat(2,1)) *vec[0] +
 				(-mat(0,1)*mat(2,2) + mat(0,2)*mat(2,1)) *vec[1] +

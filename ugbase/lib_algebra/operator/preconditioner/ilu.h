@@ -19,30 +19,33 @@ namespace ug{
 template<typename Matrix_type>
 bool FactorizeILU(Matrix_type &A)
 {
+	typedef typename Matrix_type::value_type block_type;
+	// for all rows
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
+		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
 		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
 		{
 			const size_t k = (*it_k).iIndex;
-			typename Matrix_type::value_type a_ik = (*it_k).dValue;
+			block_type &a_ik = (*it_k).dValue;
 			if(BlockNorm(a_ik) < 1e-7)	continue;
-			typename Matrix_type::value_type a_kk = A(k,k);
 
-			a_ik /= a_kk;
-
-			 (*it_k).dValue = a_ik;
+			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
+			// so that A(i,k) is zero.
+			// safe A(i,k)/A(k,k) in A(i,k)
+			a_ik /= A(k,k);
 
 			typename Matrix_type::rowIterator it_j = it_k;
 			for(++it_j; !it_j.isEnd(); ++it_j)
 			{
 				const size_t j = (*it_j).iIndex;
-				typename Matrix_type::value_type& a_ij = (*it_j).dValue;
+				block_type& a_ij = (*it_j).dValue;
 				bool bFound;
 				typename Matrix_type::rowIterator p = A.get_connection(k,j, bFound);
 				if(bFound)
 				{
-					const typename Matrix_type::value_type a_kj = (*p).dValue;
-					a_ij -= a_ik*a_kj;
+					const block_type a_kj = (*p).dValue;
+					a_ij -= a_kj * a_ik;
 				}
 			}
 		}
@@ -54,6 +57,8 @@ bool FactorizeILU(Matrix_type &A)
 template<typename Matrix_type>
 bool FactorizeILUSorted(Matrix_type &A)
 {
+	typedef typename Matrix_type::value_type block_type;
+
 	// for all rows
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
@@ -62,13 +67,14 @@ bool FactorizeILUSorted(Matrix_type &A)
 		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
 		{
 			const size_t k = (*it_k).iIndex;
-			typename Matrix_type::value_type &a_ik = (*it_k).dValue;
+			block_type &a_ik = (*it_k).dValue;
 			if(BlockNorm(a_ik) < 1e-7)	continue;
-			typename Matrix_type::value_type &a_kk = A(k,k);
+			block_type &a_kk = A(k,k);
 
+			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
+			// so that A(i,k) is zero.
+			// safe A(i,k)/A(k,k) in A(i,k)
 			a_ik /= a_kk;
-
-			 // calc A(i, .) -= A(k,.)  A(i,k) / A(k,k)  (. = j)
 
 			typename Matrix_type::rowIterator it_ij = it_k; // of row i
 			++it_ij; // skip a_ik
@@ -82,9 +88,9 @@ bool FactorizeILUSorted(Matrix_type &A)
 					++it_ij;
 				else
 				{
-					typename Matrix_type::value_type& a_ij = (*it_ij).dValue;
-					typename Matrix_type::value_type& a_kj = (*it_kj).dValue;
-					a_ij -= a_ik*a_kj;
+					block_type &a_ij = (*it_ij).dValue;
+					const block_type &a_kj = (*it_kj).dValue;
+					a_ij -= a_kj * a_ik;
 					++it_kj; ++it_ij;
 				}
 			}

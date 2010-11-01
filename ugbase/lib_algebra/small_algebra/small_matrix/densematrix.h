@@ -111,56 +111,64 @@ public:
 
 
 	this_type operator + (const this_type &other ) const
-		{
-			UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
-			this_type erg;
-			erg.resize(num_rows(), num_cols());
-			for(size_t r=0; r<num_rows(); r++)
-				for(size_t c=0; c<num_cols(); c++)
-					erg(r, c) = entry(r, c) + other(r,c);
-			return erg;
-		}
+	{
+		UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
+		this_type erg;
+		erg.resize(num_rows(), num_cols());
+		for(size_t r=0; r<num_rows(); r++)
+			for(size_t c=0; c<num_cols(); c++)
+				erg(r, c) = entry(r, c) + other(r,c);
+		return erg;
+	}
 
-		this_type operator - (const this_type &other ) const
-		{
-			UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
-			this_type erg;
-			erg.resize(num_rows(), num_cols());
+	this_type operator - (const this_type &other ) const
+	{
+		UG_ASSERT(num_rows() == other.num_rows() && num_cols() == other.num_cols(), "");
+		this_type erg;
+		erg.resize(num_rows(), num_cols());
 
-			for(size_t r=0; r<num_rows(); r++)
-				for(size_t c=0; c<num_cols(); c++)
-					erg(r, c) = entry(r, c) - other(r,c);
-			return erg;
-		}
+		for(size_t r=0; r<num_rows(); r++)
+			for(size_t c=0; c<num_cols(); c++)
+				erg(r, c) = entry(r, c) - other(r,c);
+		return erg;
+	}
 
-	// multiply
-		this_type operator * (const this_type &other ) const
-		{
-			// that aint 100% correct
-			UG_ASSERT(num_cols() == other.num_rows(), "");
+// multiply
+	this_type operator * (const this_type &other ) const
+	{
+		// that aint 100% correct
+		UG_ASSERT(num_cols() == other.num_rows(), "");
 
-			this_type erg;
-			erg.resize(num_rows(), other.num_cols());
+		this_type erg;
+		erg.resize(num_rows(), other.num_cols());
 
-			for(size_t r=0; r < num_rows(); r++)
-				for(size_t c=0; c < other.num_cols(); c++)
-				{
-					for(size_t i=0; i < num_cols(); i++)
-						AddMult(erg(r,c), at(r, i), other.at(i, c));
-				}
-			return erg;
-		}
+		for(size_t r=0; r < num_rows(); r++)
+			for(size_t c=0; c < other.num_cols(); c++)
+			{
+				for(size_t i=0; i < num_cols(); i++)
+					AddMult(erg(r,c), at(r, i), other.at(i, c));
+			}
+		return erg;
+	}
 
 
 
-		this_type &operator /= (this_type &other)
-		{
-			this_type tmp = other;
-			Invert(tmp);
+	this_type &operator /= (this_type &other)
+	{
+		this_type tmp = other;
+		Invert(tmp);
 
-			(*this) = (*this) * tmp;
-			return *this;
-		}
+		(*this) = (*this) * tmp;
+		return *this;
+	}
+
+	this_type operator / (this_type &other)
+	{
+		this_type tmp = other;
+		Invert(tmp);
+
+		return (*this) * tmp;
+	}
 };
 
 template<typename TStorage>

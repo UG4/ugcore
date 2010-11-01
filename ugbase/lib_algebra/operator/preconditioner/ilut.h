@@ -29,6 +29,9 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 	//	Matrix type
 		typedef typename TAlgebra::matrix_type matrix_type;
 
+	private:
+		typedef typename matrix_type::value_type block_type;
+
 	public:
 	//	Constructor
 		ILUTPreconditioner(double eps=1e-6) :
@@ -100,13 +103,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					}
 					if(con[i_it].dValue == 0.0) continue;
 					UG_ASSERT(!m_U.beginRow(k).isEnd() && (*m_U.beginRow(k)).iIndex == k, "");
-					double ukk = (*m_U.beginRow(k)).dValue;
-					double d = con[i_it].dValue / ukk;
+					block_type &ukk = (*m_U.beginRow(k)).dValue;
 
 					// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
 					// so that A(i,k) is zero.
 					// safe A(i,k)/U(k,k) in con, (later L(i,k) )
-					con[i_it].dValue = d;
+					block_type &d = con[i_it].dValue = con[i_it].dValue / ukk;
 
 					typename matrix_type::rowIterator k_it = m_U.beginRow(k); // upper row iterator
 					++k_it; // skip diag
@@ -127,7 +129,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 
 							typename matrix_type::connection c;
 							c.iIndex = (*k_it).iIndex;
-							c.dValue = - (*k_it).dValue * d;
+							c.dValue = (*k_it).dValue * d;
+							c.dValue *= -1.0;
 							if(BlockNorm(c.dValue) > dmax * m_eps)
 							{
 								// insert sorted
@@ -163,18 +166,32 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
 		{
 			// apply iterator: c = LU^{-1}*d (damp is not used)
+			// L
 			for(size_t i=0; i < m_L.num_rows(); i++)
-				c[i] = d[i] - m_L[i]*c;
+			{
+				// c[i] = d[i] - m_L[i]*c;
+				c[i] = d[i];
+				for(typename matrix_type::rowIterator it = m_L.beginRow(i); !it.isEnd(); ++it)
+					MatMultAdd(c[i], 1.0, c[i], -1.0, (*it).dValue, c[(*it).iIndex] );
+				// lii = 1.0.
+			}
+
+			// U
 			for(size_t i=m_U.num_rows()-1; ; i--)
 			{
 				typename matrix_type::rowIterator it = m_U.beginRow(i);
 				UG_ASSERT((*it).iIndex == i, "");
-				double uii = (*it).dValue;
-				double s = c[i];
-				++it;
+				block_type &uii = (*it).dValue;
+
+				typename vector_type::value_type s = c[i];
+				++it; // skip diag
 				for(; !it.isEnd(); ++it)
-					s -= (*it).dValue * c[(*it).iIndex];
-				c[i] = s/uii;
+					// s -= (*it).dValue * c[(*it).iIndex];
+					MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, c[(*it).iIndex] );
+
+				// c[i] = s/uii;
+				InverseMatMult(c[i], 1.0, uii, s);
+
 				if(i==0) break;
 			}
 

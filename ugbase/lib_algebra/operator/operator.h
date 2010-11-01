@@ -48,7 +48,7 @@
 
 // preconditioner
 #include "preconditioner/ilu.h"
-//#include "preconditioner/ilut.h"
+#include "preconditioner/ilut.h"
 #include "preconditioner/jacobi.h"
 #include "preconditioner/gauss_seidel.h"
 
