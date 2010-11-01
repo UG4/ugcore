@@ -19,7 +19,6 @@
 #include "stopwatch.h"
 
 
-using namespace std;
 namespace ug{
 
 //#define GRAPH_WITH_LOCAL_INVERSE
@@ -126,7 +125,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	amg_nodeinfo *nodes = new amg_nodeinfo[A.num_rows()];
 
 	bool bTiming=true;
-	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << endl << std::fixed);
+	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::endl << std::fixed);
 	stopwatch SW;
 	stopwatch SWwhole; SWwhole.start();
 
@@ -146,7 +145,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	for(size_t i=0; i<A.num_rows(); ++i) posInConnections[i] = -1;
 
 
-	cout << "A.totalNrOfConnections = " << A.total_num_connections() << endl;
+	std::cout << "A.totalNrOfConnections = " << A.total_num_connections() << std::endl;
 
 	cgraph graphS(A.num_rows());
 	cgraph graphST;
@@ -154,7 +153,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	// build graph
 	/////////////////////////////////////////
 
-	cout << "building graph... "; cout.flush();
+	std::cout << "building graph... "; std::cout.flush();
 	if(bTiming) SW.start();
 
 	CreateStrongConnectionGraph(A, graphS);
@@ -176,12 +175,12 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 #ifdef AMG_PRINT_COARSEN_RATINGS
 	 for(size_t i=0; i<A.num_rows(); i++)
-		 cout << i << " [" << GetOriginalIndex(level, i) << "] " << nodes[i] << endl;
+		 std::cout << i << " [" << GetOriginalIndex(level, i) << "] " << nodes[i] << std::endl;
 #endif
 
 	// Coarsen
 	/////////////////////////////////////////
-	cout << endl << "coarsening... "; cout.flush();
+	std::cout << std::endl << "coarsening... "; std::cout.flush();
 
 	SW.start();
 	int iNrOfCoarse = 0;
@@ -202,7 +201,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 		cgraph graph2(A.num_rows());
 
-		cout << endl << "building graph2... "; cout.flush();
+		std::cout << std::endl << "building graph2... "; std::cout.flush();
 		if(bTiming) SW.start();
 
 		for(size_t i=0; i < A.num_rows(); i++) newIndex[i] = -1;
@@ -216,11 +215,11 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 		if(unassigned == 0)
 		{
-			UG_LOG(endl << "skipping coarsening2: no unassigned nodes.");
+			UG_LOG(std::endl << "skipping coarsening2: no unassigned nodes.");
 		}
 		else
 		{
-			UG_LOG(endl << "coarsening2... ");
+			UG_LOG(std::endl << "coarsening2... ");
 
 			if(bTiming) SW.start();
 			Coarsen(graphAC, PQ, newIndex, unassigned, iNrOfCoarse, nodes);
@@ -268,7 +267,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 #endif
 
 
-	UG_LOG(endl << "created vec3 on level " << level << ", vec1 and vec2 on level" << level +1);
+	UG_LOG(std::endl << "created vec3 on level " << level << ", vec1 and vec2 on level" << level +1);
 
 	// todo: set size for variable sized blockvectors
 	/*for(size_t i=0; i<A.num_rows(); i++)
@@ -294,7 +293,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	// construct prolongation P = I_{2h->h}
 	/////////////////////////////////////////
 
-	UG_LOG(endl << "prolongation... ");
+	UG_LOG(std::endl << "prolongation... ");
 	unassigned = 0;
 
 	if(bTiming) SW.start();
@@ -311,7 +310,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_P
-	cout << endl << "Prolongation level " << level << endl;
+	std::cout << std::endl << "Prolongation level " << level << std::endl;
 	P.print();
 #endif
 
@@ -319,7 +318,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	// construct restriction R = I_{h->2h}
 	/////////////////////////////////////////
 
-	UG_LOG(endl << "restriction... ");
+	UG_LOG(std::endl << "restriction... ");
 	if(bTiming) SW.start();
 
 	// construct restriction R = I_{h -> 2h}
@@ -333,7 +332,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_R
-	cout << endl << "Restriction level " << level << endl;
+	std::cout << std::endl << "Restriction level " << level << std::endl;
 	R.print();
 #endif
 
@@ -351,10 +350,10 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	// finalize
 	if(bTiming) SW.start();
 	AH.finalize();
-	if(bTiming) UG_LOG(endl << "Finalizing... took " << SW.ms() << " ms");
+	if(bTiming) UG_LOG(std::endl << "Finalizing... took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_AH
-	cout << "AH level " << level << endl;
+	std::cout << "AH level " << level << std::endl;
 	AH.print();
 #endif
 
@@ -362,12 +361,12 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	/////////////////////////////////////////
 
 	int nnz = AH.total_num_connections();
-	UG_LOG(endl << "AH: nnz: " << nnz << " Density: " <<
-			double(nnz)/(double(AH.num_rows())*double(AH.num_rows()))*100.0 << "% nnz/n: " << nnz/(double)AH.num_rows() << endl);
+	UG_LOG(std::endl << "AH: nnz: " << nnz << " Density: " <<
+			double(nnz)/(double(AH.num_rows())*double(AH.num_rows()))*100.0 << "% nnz/n: " << nnz/(double)AH.num_rows() << std::endl);
 
-	UG_LOG("Coarsening rate: " << (100.0*AH.num_rows())/(A.num_rows()) << "%" << endl);
+	UG_LOG("Coarsening rate: " << (100.0*AH.num_rows())/(A.num_rows()) << "%" << std::endl);
 
-	UG_LOG(" level took " << SWwhole.ms() << " ms" << endl);
+	UG_LOG(" level took " << SWwhole.ms() << " ms" << std::endl);
 
 
 #ifdef AMG_WRITE_MATRICES_PATH
@@ -431,7 +430,7 @@ bool amg<TAlgebra>::init_amg()
 	amghelper.parentIndex = parentIndex;
 	amghelper.dimension = dbg_dimension;
 
-	UG_LOG("Starting AMG Setup." << endl << endl);
+	UG_LOG("Starting AMG Setup." << std::endl << std::endl);
 
 	stopwatch SWwhole;
 	SWwhole.start();
@@ -475,18 +474,18 @@ bool amg<TAlgebra>::init_amg()
 	int static_nrUnknowns = block_vector_traits< typename vector_type::value_type >::static_size;
 
 	UG_LOG("Creating level " << i << " (" << A[i]->num_rows() << " nodes, total "
-			<< A[i]->num_rows()*static_nrUnknowns << " unknowns)" << endl << "Using Direct Solver on Matrix "
+			<< A[i]->num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
 			<< A[i]->num_rows()*static_nrUnknowns << "x" << A[i]->num_rows()*static_nrUnknowns << ". ");
 
 	stopwatch SW; SW.start();
 	SMO[i].setmatrix(A[i]);
 	m_basesolver->init(SMO[i]);
 
-	UG_LOG("Coarse Solver Setup took " << SW.ms() << "ms." << endl);
+	UG_LOG("Coarse Solver Setup took " << SW.ms() << "ms." << std::endl);
 
 	used_levels = i+1;
 	UG_LOG("AMG Setup finished. Used Levels: " << used_levels << ". ");
-	UG_LOG("AMG Setup took " << SWwhole.ms() << " ms." << endl);
+	UG_LOG("AMG Setup took " << SWwhole.ms() << " ms." << std::endl);
 
 	// calc complexities
 	double nnzs=0;
@@ -498,7 +497,7 @@ bool amg<TAlgebra>::init_amg()
 	}
 
 	UG_LOG("Operator Complexity: " << nnzs/A[0]->total_num_connections() << " nodes complexity: "
-			<< totallength/A[0]->num_rows() << endl << endl);
+			<< totallength/A[0]->num_rows() << std::endl << std::endl);
 
 	return true;
 }
@@ -763,15 +762,15 @@ template<typename TAlgebra>
 void amg<TAlgebra>::tostring() const
 {
 	UG_LOG("AMGPreconditioner.\n");
-	UG_LOG("nu1 = " << nu1 << endl);
-	UG_LOG("nu2 = " << nu2 << endl);
-	UG_LOG("gamma = " << gamma << endl);
-	UG_LOG("theta = " << theta << endl);
-	UG_LOG("sigma = " << sigma << endl);
-	UG_LOG("max levels = " << max_levels << endl);
+	UG_LOG("nu1 = " << nu1 << std::endl);
+	UG_LOG("nu2 = " << nu2 << std::endl);
+	UG_LOG("gamma = " << gamma << std::endl);
+	UG_LOG("theta = " << theta << std::endl);
+	UG_LOG("sigma = " << sigma << std::endl);
+	UG_LOG("max levels = " << max_levels << std::endl);
 
-	if(aggressiveCoarsening)	{UG_LOG("Aggressive Coarsening is on, A" << aggressiveCoarseningNrOfPaths << "-mode." << endl);}
-	else						{UG_LOG("no Aggressive Coarsening" << endl);}
+	if(aggressiveCoarsening)	{UG_LOG("Aggressive Coarsening is on, A" << aggressiveCoarseningNrOfPaths << "-mode." << std::endl);}
+	else						{UG_LOG("no Aggressive Coarsening" << std::endl);}
 
 	if(m_presmoother) 	{UG_LOG("presmoother is " << m_presmoother->name() << ".\n");}
 	else				{UG_LOG("no presmoother set!\n");}
