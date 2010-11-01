@@ -207,14 +207,22 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 
 		const dof_distribution_type& get_surface_dof_distribution() const
 		{
+			if(!m_bInit)
+				throw(UG_ERROR_DoFDistributionMissing());
+
 			const dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+
 			if(dofDistr == NULL)
 				throw(UG_ERROR_DoFDistributionMissing());
+
 			return *dofDistr;
 		}
 
 		const dof_distribution_type& get_level_dof_distribution(size_t level) const
 		{
+			if(!m_bInit)
+				throw(UG_ERROR_DoFDistributionMissing());
+
 			return *(m_MGDoFManager.get_level_dof_distribution(level));
 		}
 

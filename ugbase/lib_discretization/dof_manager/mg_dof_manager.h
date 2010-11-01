@@ -79,11 +79,30 @@ class MGDoFManager
 		}
 
 		// number of levels
-		inline size_t num_levels() const {return m_pMGSubsetHandler->num_levels();}
+		inline size_t num_levels() const
+		{
+			if(m_pMGSubsetHandler == NULL)
+			{
+				UG_LOG("No Subset Handler set to MultiGrid DoF Manager.\n");
+				return 0;
+			}
+			return m_pMGSubsetHandler->num_levels();
+		}
 
 		// distribute dofs on all levels + surface level
 		bool distribute_dofs()
 		{
+			if(m_pMGSubsetHandler == NULL)
+			{
+				UG_LOG("No Subset Handler set to MultiGrid DoF Manager.\n");
+				return false;
+			}
+			if(m_pFunctionPattern == NULL)
+			{
+				UG_LOG("No Function Pattern set to MultiGrid DoF Manager.\n");
+				return false;
+			}
+
 			// no levels -> nothing to do
 			if(num_levels() == 0) return true;
 
@@ -106,6 +125,17 @@ class MGDoFManager
 
 		bool distribute_surface_dofs()
 		{
+			if(m_pMGSubsetHandler == NULL)
+			{
+				UG_LOG("No Subset Handler set to MultiGrid DoF Manager.\n");
+				return false;
+			}
+			if(m_pFunctionPattern == NULL)
+			{
+				UG_LOG("No Function Pattern set to MultiGrid DoF Manager.\n");
+				return false;
+			}
+
 			UG_LOG("               surf   |");
 
 			// update surface distribution

@@ -158,6 +158,20 @@ bool
 P1ConformDoFDistribution::
 distribute_dofs()
 {
+	if(m_pStorageManager == NULL)
+	{
+		UG_LOG("In 'P1ConformDoFDistribution::distribute_dofs:"
+				"Storage Manager not set. Aborting.\n");
+		return false;
+	}
+
+	if(m_pFunctionPattern == NULL)
+	{
+		UG_LOG("In 'P1ConformDoFDistribution::distribute_dofs:"
+				"Function Pattern not set. Aborting.\n");
+		return false;
+	}
+
 	// Attach indices
 	m_pStorageManager->update_attachments();
 
