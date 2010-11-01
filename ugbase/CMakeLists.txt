@@ -75,9 +75,9 @@ endif(MPI_FOUND)
 # lib_bindings_vrl
 
 if(UG_SHARED)
-    if(NOT NO_VRL)
+    if(FOR_VRL)
         add_subdirectory(bindings_vrl)
-    endif(NOT NO_VRL)
+    endif(FOR_VRL)
 
     ########################
     # ug4 library
