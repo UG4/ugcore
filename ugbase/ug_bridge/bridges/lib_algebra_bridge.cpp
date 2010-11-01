@@ -97,10 +97,10 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_constructor();
 
 	//	ILU Threshold
-		reg.add_class_<	ILUTPreconditioner<algebra_type>,
+/*		reg.add_class_<	ILUTPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("ILUTPreconditioner", grp.c_str())
 			.add_constructor();
-
+*/
 	//	AMG
 
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
