@@ -42,10 +42,10 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
  * Method:    invokeFunction
- * Signature: (JZ[Ljava/lang/Object;)Ljava/lang/Object;
+ * Signature: (Ljava/lang/String;Z[Ljava/lang/Object;)Ljava/lang/Object;
  */
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
-  (JNIEnv *, jobject, jlong, jboolean, jobjectArray);
+  (JNIEnv *, jobject, jstring, jboolean, jobjectArray);
 
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
@@ -55,6 +55,31 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
   (JNIEnv *, jobject, jobjectArray);
 
+/*
+ * Class:     edu_gcsc_vrl_ug4_UG4
+ * Method:    getMessages
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getMessages
+  (JNIEnv *, jobject);
+
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class edu_gcsc_vrl_ug4_UG4_MessageThread */
+
+#ifndef _Included_edu_gcsc_vrl_ug4_UG4_MessageThread
+#define _Included_edu_gcsc_vrl_ug4_UG4_MessageThread
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef edu_gcsc_vrl_ug4_UG4_MessageThread_MIN_PRIORITY
+#define edu_gcsc_vrl_ug4_UG4_MessageThread_MIN_PRIORITY 1L
+#undef edu_gcsc_vrl_ug4_UG4_MessageThread_NORM_PRIORITY
+#define edu_gcsc_vrl_ug4_UG4_MessageThread_NORM_PRIORITY 5L
+#undef edu_gcsc_vrl_ug4_UG4_MessageThread_MAX_PRIORITY
+#define edu_gcsc_vrl_ug4_UG4_MessageThread_MAX_PRIORITY 10L
 #ifdef __cplusplus
 }
 #endif

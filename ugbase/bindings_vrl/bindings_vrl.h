@@ -7,11 +7,23 @@
 
 #ifndef BINDINGS_VRL_H
 #define	BINDINGS_VRL_H
+
+#define VRL_ENABLED
+
+#include "ug_bridge/registry.h"
+#include <jni.h>
+
 namespace ug {
     namespace vrl {
         void SetVRLRegistry(ug::bridge::Registry* pReg);
+		void SetJNIEnv(JNIEnv* env);
+		JNIEnv* getJNIEnv();
     } // end vrl::
 }// end ug::
+
+
+//#define VRL_LOG(msg) {std::stringstream ss;ss << msg; ug::vrl::soutPrintln(ss.str())}
+
 #endif	/*BINDINGS_VRL_H*/
 
 

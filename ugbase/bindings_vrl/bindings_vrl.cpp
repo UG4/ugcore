@@ -18,9 +18,18 @@
 namespace ug {
 	namespace vrl {
 		static ug::bridge::Registry* vrlRegistry = NULL;
+		static JNIEnv* jniEnv = NULL;
 
 		void SetVRLRegistry(ug::bridge::Registry* pReg) {
 			vrlRegistry = pReg;
+		}
+
+		void SetJNIEnv(JNIEnv* env) {
+			jniEnv = env;
+		}
+
+		JNIEnv* getJNIEnv() {
+			return jniEnv;
 		}
 	} // end vrl::
 }// end ug::
@@ -31,6 +40,9 @@ namespace ug {
 
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 (JNIEnv *env, jobject obj, jobjectArray args) {
+
+	ug::vrl::SetJNIEnv(env);
+
 	std::vector<std::string> arguments = ug::vrl::stringArrayJ2C(env, args);
 
 	char* argv[arguments.size()];
@@ -132,8 +144,12 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
-(JNIEnv *env, jobject obj, jlong fPtr, jboolean readOnly, jobjectArray params) {
-	ug::bridge::ExportedFunction* func = (ug::bridge::ExportedFunction*) fPtr;
+(JNIEnv *env, jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
+
+
+
+	const ug::bridge::ExportedFunction* func = ug::vrl::getFunctionBySignature(
+			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, fName), params);
 
 	ug::bridge::ParameterStack paramsIn;
 	ug::bridge::ParameterStack paramsOut;
@@ -206,6 +222,11 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 (JNIEnv *env, jobject obj, jstring name) {
 	return (long) ug::vrl::getExportedClassPtrByName(
 			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
+}
+
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getMessages
+  (JNIEnv *env, jobject obj) {
+	return ug::vrl::stringC2J(env,ug::vrl::MessageBuffer::getMessages().c_str());
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

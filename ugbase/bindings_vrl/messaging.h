@@ -1,17 +1,40 @@
-///*
-// * File:   messaging.h
-// * Author: Michael Hoffer <info@michaelhoffer.de>
-// *
-// * Created on 15. Oktober 2010, 11:41
-// */
-//
-//
-//#include <string>
-//
-//#ifndef MESSAGING_H
-//#define	MESSAGING_H
-//
-//
+/*
+ * File:   messaging.h
+ * Author: Michael Hoffer <info@michaelhoffer.de>
+ *
+ * Created on 15. Oktober 2010, 11:41
+ */
+
+
+#include <string>
+#include <deque>
+
+#ifndef MESSAGING_H
+#define	MESSAGING_H
+
+
+namespace ug {
+    namespace vrl {
+		void soutPrintln(std::string msg);
+		void serrPrintln(std::string msg);
+
+
+		class MessageBuffer {
+		public:
+//			MessageBuffer();
+//			MessageBuffer* MessageBuffer::getInstance();
+			static void addMessage(std::string msg);
+			static std::string getMessages();
+			static std::string messageString;
+		private:
+			static std::deque<std::string> messages;
+			
+		};
+
+    } // end vrl::
+}// end ug::
+
+
 //namespace ug {
 //	namespace vrl {
 //
@@ -52,7 +75,8 @@
 //	} // vrl::
 //} // ug::
 //
-//
-//
-//#endif	/* MESSAGING_H */
-//
+
+
+
+#endif	/* MESSAGING_H */
+

@@ -6,9 +6,9 @@
 namespace ug {
 	namespace vrl {
 
-		jstring stringC2J(JNIEnv *env, std::string const& s) {
-			return stringC2J(env, s.c_str());
-		}
+//		jstring stringC2J(JNIEnv *env, std::string const& s) {
+//			return stringC2J(env, s.c_str());
+//		}
 
 		jstring stringC2J(JNIEnv *env, const char* s) {
 			return env->NewStringUTF(s);
@@ -182,12 +182,11 @@ namespace ug {
 					<< " implements Serializable {\n"
 					<< "private static final long serialVersionUID=1L;\n";
 
-			// method generation
-			// (in contrast to methods we explicitly specify the function pointer)
+			// function generation
 			generateMethodHeader(
 					result, func, true);
-			result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction("
-					<< (jlong) & func << " as long, false, params)";
+			result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction( \""
+					<< func.name() << "\", false, params)";
 
 			result << "\n}\n}";
 
@@ -620,6 +619,34 @@ namespace ug {
 							env, params, method->params_in())) {
 						return method;
 					}
+				}
+			}
+
+			return NULL;
+		}
+
+		const ug::bridge::ExportedFunction* getFunctionBySignature(
+				JNIEnv *env,
+				ug::bridge::Registry* reg,
+				std::string functionName,
+				jobjectArray params) {
+
+			unsigned int numFunctions = 0;
+
+			numFunctions = reg->num_functions();
+
+			for (unsigned int i = 0; i < numFunctions; i++) {
+				const ug::bridge::ExportedFunction* func = NULL;
+
+				func = &reg->get_function(i);
+
+				// if the function name and the parameter types are equal
+				// we found the correct function
+				if (strcmp(func->name().c_str(),
+						functionName.c_str()) == 0 &&
+						compareParamTypes(
+						env, params, func->params_in())) {
+					return func;
 				}
 			}
 

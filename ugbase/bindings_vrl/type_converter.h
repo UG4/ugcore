@@ -36,7 +36,9 @@ namespace ug {
 		 * @param s string to convert
 		 * @return a java string
 		 */
-		jstring stringC2J(JNIEnv *env, std::string const& s);
+		jstring stringC2J(JNIEnv *env, const char* s);
+		
+//		jstring stringC2J(JNIEnv *env, std::string const& s);
 
 		/**
 		 * <p>
@@ -350,6 +352,21 @@ namespace ug {
 				jobjectArray params);
 
 		/**
+		 * Returns an exported function by its signature.
+		 * @param env JVM environment to operate on
+		 * @param reg registry to search
+		 * @param methodName method name
+		 * @param params Java object array containing method parameter
+		 * @return pointer to requested method if such a method exists;
+		 *         <code>NULL</code> otherwise
+		 */
+		const ug::bridge::ExportedFunction* getFunctionBySignature(
+				JNIEnv *env,
+				ug::bridge::Registry* reg,
+				std::string functionName,
+				jobjectArray params);
+
+		/**
 		 * Returns an exported class by name.
 		 * @param reg registry to search
 		 * @param className class name
@@ -403,6 +420,8 @@ namespace ug {
 				std::stringstream& result,
 				ug::bridge::ExportedFunctionBase const& method,
 				bool isFunction = false, std::string prefix = "");
+
+		
 
 //		jobject messageTypeC2J(JNIEnv *env, MessageType type);
 
