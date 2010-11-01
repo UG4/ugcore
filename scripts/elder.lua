@@ -146,7 +146,7 @@ gs = GSPreconditioner()
 sgs = SGSPreconditioner()
 bgs = BGSPreconditioner()
 ilu = ILUPreconditioner()
-ilut = ILUTPreconditioner()
+-- ilut = ILUTPreconditioner()
 
 -- exact Soler
 exactSolver = LapackLUSolver()

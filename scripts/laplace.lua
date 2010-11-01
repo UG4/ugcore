@@ -13,8 +13,8 @@ dofile("../scripts/ug_util.lua")
 -- constants
 dim = 2
 gridName = "unit_square_tri.ugx"
-numPreRefs = 1
-numRefs = 2
+numPreRefs = 0
+numRefs = 4
 
 --------------------------------
 -- User Data Functions (begin)
@@ -195,7 +195,9 @@ b = approxSpace:create_surface_function("b", true)
 u:set(1.0)
 
 -- init Operator
+print ("Assemble Operator ... ")
 linOp:init()
+print ("done")
 
 -- set dirichlet values in start iterate
 linOp:set_dirichlet_values(u)
@@ -212,7 +214,7 @@ gs = GSPreconditioner()
 sgs = SGSPreconditioner()
 bgs = BGSPreconditioner()
 ilu = ILUPreconditioner()
-ilut = ILUTPreconditioner()
+-- ilut = ILUTPreconditioner()
 
 -- create GMG
 baseConvCheck = StandardConvergenceCheck()
@@ -245,34 +247,40 @@ gmg:set_num_postsmooth(3)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
-if false then
+if true then
 amg = AMGPreconditioner()
 amg:set_nu1(2)
 amg:set_nu2(2)
 amg:set_gamma(1)
 amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
+amg:set_base_solver(base)
 --amg:set_debug(u)
 end
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(1000)
-convCheck:set_minimum_defect(1e-12)
+convCheck:set_maximum_steps(100)
+convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(gmg)
+linSolver:set_preconditioner(gs)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
 cgSolver = CGSolver()
-cgSolver:set_preconditioner(ilu)
+cgSolver:set_preconditioner(ilut)
 cgSolver:set_convergence_check(convCheck)
 
+-- create BiCGStab Solver
+bicgstabSolver = BiCGStabSolver()
+bicgstabSolver:set_preconditioner(jac)
+bicgstabSolver:set_convergence_check(convCheck)
+
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, linSolver)
+ApplyLinearSolver(linOp, u, b, cgSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")
