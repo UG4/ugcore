@@ -151,7 +151,17 @@ template<> struct block_multiply_traits<number, number>
 	typedef number ReturnType;
 };
 
+template<typename T>
+struct block_multiply_traits<number, T>
+{
+	typedef T ReturnType;
+};
 
+template<typename T>
+struct block_multiply_traits<T, number>
+{
+	typedef T ReturnType;
+};
 
 inline bool GetInverse(number &inv, const number &m)
 {

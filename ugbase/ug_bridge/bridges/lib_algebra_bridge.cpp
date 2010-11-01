@@ -102,6 +102,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						IPreconditioner<algebra_type> >("ILUTPreconditioner", grp.c_str())
 			.add_constructor();
 
+		/*
 	//	AMG
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 		typedef P1ConformDoFDistribution dof_distribution_type;
@@ -138,6 +139,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 //					"sets the internal positions of each node");
 	#endif
 	#endif
+	*/
 
 	}
 

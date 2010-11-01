@@ -55,8 +55,8 @@ namespace ug{
 inline double amg_diag_value(const double &d) { return d; }
 inline double amg_offdiag_value(const double &d) { return d; }
 
-template<typename T> inline double amg_diag_value(const T &d) { return d.norm(); }
-template<typename T> inline double amg_offdiag_value(const T &d) { return -d.norm(); }
+template<typename T> inline double amg_diag_value(const T &d) { return BlockNorm(d); }
+template<typename T> inline double amg_offdiag_value(const T &d) { return -BlockNorm(d); }
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////

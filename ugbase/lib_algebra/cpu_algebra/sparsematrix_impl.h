@@ -574,6 +574,14 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 	return true;
 }
 
+template<typename T>
+template<typename vector_t>
+inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::value_type &dest, double alpha, const vector_t &v) const
+{
+	for(cRowIterator conn = beginRow(row); !conn.isEnd(); ++conn)
+		MatMultAdd(dest, 1.0, dest, alpha, (*conn).dValue, v[(*conn).iIndex]);
+}
+
 
 //======================================================================================================
 // submatrix set/get
@@ -1225,15 +1233,6 @@ template<typename T>
 typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c)
 {
 	return (*get_connection(r, c)).dValue;
-}
-
-
-template<typename T>
-template<typename vector_t>
-inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::value_type &dest, double alpha, const vector_t &v) const
-{
-	for(cRowIterator conn = beginRow(row); !conn.isEnd(); ++conn)
-		dest += alpha * (*conn).dValue * v[(*conn).iIndex];
 }
 
 
