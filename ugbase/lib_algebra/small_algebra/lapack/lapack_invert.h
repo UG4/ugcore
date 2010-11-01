@@ -66,24 +66,21 @@ inline double GetDet2(const DenseMatrix<T> &mat)
 template<typename T>
 inline bool GetInverse2(DenseMatrix<T> &inv, const DenseMatrix<T> &mat)
 {
-	cout << "GetInverse2" << endl;
 	UG_ASSERT(&inv != &mat, "inv and mat have to be different. Otherwise use Invert/Invert2");
 	double invdet = GetDet2(mat);
 	UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
 	if(invdet == 0.0) return false;
 	invdet = 1.0/invdet;
 	inv(0,0) = mat(1,1) * invdet;
-	inv(1,1) = mat(0,0) * -invdet;
+	inv(1,1) = mat(0,0) * invdet;
 	inv(0,1) = mat(0,1) * -invdet;
-	inv(1,0) = mat(1,0) * invdet;
+	inv(1,0) = mat(1,0) * -invdet;
 	return true;
 }
 
 template<typename T>
 bool Invert2(DenseMatrix<T> &mat)
 {
-	cout << "Inverse2" << endl;
-	cout << "mat: " << mat << endl;
 	double invdet = GetDet2(mat);
 	UG_ASSERT(invdet != 0, "Determinant zero, cannot invert matrix.");
 	if(invdet == 0.0) return false;
@@ -95,7 +92,6 @@ bool Invert2(DenseMatrix<T> &mat)
 	mat(0,1) *= -invdet;
 	mat(1,0) *= -invdet;
 	mat(1,1) *= invdet;
-	cout << "inverse: " << mat << endl;
 	return true;
 };
 
