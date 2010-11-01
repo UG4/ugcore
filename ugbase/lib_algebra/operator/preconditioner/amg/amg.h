@@ -17,7 +17,6 @@
 #include <vector>
 #include <iostream>
 
-using namespace std;
 
 template<typename T>
 std::string ToString(const T &t)

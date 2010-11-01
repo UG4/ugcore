@@ -3,7 +3,7 @@
 
 #include "../small_matrix/densematrix.h"
 #include "../small_matrix/densevector.h"
-
+#include "../small_matrix/block_dense.h"
 
 namespace ug{
 
@@ -282,7 +282,7 @@ template<typename vector_t, typename matrix_t>
 inline bool InverseMatMultN(DenseVector<vector_t> &dest, double beta,
 		const DenseMatrix<matrix_t> &mat, const DenseVector<vector_t> &vec)
 {
-	typename block_matrix_traits<matrix_t>::inverse_type inv;
+	typename block_matrix_traits<DenseMatrix<matrix_t> >::inverse_type inv;
 	if(!GetInverse(inv, mat)) return false;
 	MatMult(dest, beta, inv, vec);
 	return true;

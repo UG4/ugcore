@@ -82,41 +82,40 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 					return false;
 				}
 
-				if(m_diagInv.size() == size) m_diagInv.set(0.0);
-				else {
-					m_diagInv.destroy();
-					m_diagInv.create(size);
-				}
+				m_diagInv.resize(size);
+				m_diag.create(size);
 
-				m_diagInv.set_slave_layout(c.get_slave_layout());
-				m_diagInv.set_master_layout(c.get_master_layout());
-				m_diagInv.set_communicator(c.get_communicator());
+				m_diag.set_slave_layout(c.get_slave_layout());
+				m_diag.set_master_layout(c.get_master_layout());
+				m_diag.set_communicator(c.get_communicator());
 
 				// copy diagonal
-				for(size_t i = 0; i < m_diagInv.size(); ++i){
-					m_diagInv[i] = mat.get_diag(i);
+				for(size_t i = 0; i < m_diag.size(); ++i){
+					m_diag[i] = mat.get_diag(i);
 				}
 
 				//	make diagonal consistent
-				m_diagInv.set_storage_type(PST_ADDITIVE);
-				m_diagInv.change_storage_type(PST_CONSISTENT);
+				m_diag.set_storage_type(PST_ADDITIVE);
+				m_diag.change_storage_type(PST_CONSISTENT);
 
 				// invert diagonal and multiply by damping
-				for(size_t i = 0; i < m_diagInv.size(); ++i)
+				for(size_t i = 0; i < m_diag.size(); ++i)
 				{
-					m_diagInv[i] *= 1/m_damp;
-					Invert(m_diagInv[i]);
+					m_diag[i] *= 1/m_damp;
+					GetInverse(m_diagInv[i], m_diag[i]);
 				}
+				m_diag.destroy();
+
 				m_bOpChanged = false;
 			}
 #endif
 
 #ifdef UG_PARALLEL
 			// multiply defect with diagonal, c = damp * D^{-1} * d
-			// TODO: We should handle this by a VecEntrywiseMultiply
 			for(size_t i = 0; i < m_diagInv.size(); ++i)
 			{
-				c[i] = m_diagInv[i] * d[i];
+				// c[i] = m_diagInv[i] * d[i];
+				MatMult(c[i], 1.0, m_diagInv[i], d[i]);
 			}
 
 		// 	the computed correction is additive
@@ -133,10 +132,8 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 			// apply iterator: c = B*d (damp is not used)
 			for(size_t i = 0; i < c.size(); ++i)
 			{
-				c[i] = d[i];
-				c[i] /= mat.get_diag(i);
-				// damp correction
-				c[i] *= m_damp;
+				// c[i] = m_damp * d[i] / mat(i,i)
+				InverseMatMult(c[i], m_damp, mat(i,i), d[i]);
 			}
 #endif
 			return true;
@@ -147,7 +144,8 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 
 	protected:
 #ifdef UG_PARALLEL
-		ParallelVector<Vector<typename matrix_type::value_type> > m_diagInv;
+		ParallelVector<Vector< typename matrix_type::value_type > > m_diag;
+		std::vector< typename block_matrix_traits<typename matrix_type::value_type>::inverse_type > m_diagInv;
 #endif
 		number m_damp;
 

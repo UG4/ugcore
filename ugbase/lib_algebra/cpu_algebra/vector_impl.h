@@ -47,7 +47,7 @@ inline double Vector<value_type>::dotprod(const Vector &w) //const
 	UG_ASSERT(length == w.length,  *this << " has not same length as " << w);
 
 	double sum=0;
-	for(size_t i=0; i<length; i++)	sum += values[i] * w[i];
+	for(size_t i=0; i<length; i++)	sum += VecProd(values[i], w[i]);
 	return sum;
 }
 

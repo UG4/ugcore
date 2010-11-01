@@ -340,8 +340,11 @@ class BiCGStabSolver : public ILinearOperatorInverse< 	typename TAlgebra::vector
 			#endif
 
             for(size_t i = 0; i < a.size(); ++i)
-				a[i] += s*b[i];
-			return true;
+            {
+            	// todo: move VecScaleAppend to ParallelVector
+            	VecScaleAdd(a[i], 1.0, a[i], s, b[i]);
+            }
+            return true;
 		}
 
 		number VecProd(vector_type& a, vector_type& b)

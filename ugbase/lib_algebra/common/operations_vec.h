@@ -47,6 +47,14 @@ inline void VecProdAdd(const double &a, const double &b, double &s)
 	s += a*b;
 }
 
+template<typename vector_t>
+inline void VecProdAdd(const vector_t &a, const vector_t &b, double &s)
+{
+	for(size_t i=0; i<a.size(); i++)
+		VecProdAdd(a[i], b[i], s);
+}
+
+
 //! returns scal<a, b>
 inline double VecProd(const double &a, const double &b, double &s)
 {
@@ -120,7 +128,7 @@ inline void VecScaleAdd(vector_t &dest, double alpha1, const vector_t &v1, doubl
 
 //! calculates s += scal<a, b>
 template<typename vector_t>
-inline void VecProd(vector_t &a, vector_t &b, double &sum)
+inline void VecProd(const vector_t &a, const vector_t &b, double &sum)
 {
 	for(size_t i=0; i<a.size(); i++)
 		VecProdAdd(a[i], b[i], sum);
@@ -128,7 +136,7 @@ inline void VecProd(vector_t &a, vector_t &b, double &sum)
 
 //! returns scal<a, b>
 template<typename vector_t>
-inline double VecProd(vector_t &a, vector_t &b)
+inline double VecProd(const vector_t &a, const vector_t &b)
 {
 	double sum=0;
 	VecProdAdd(a, b, sum);
@@ -138,7 +146,7 @@ inline double VecProd(vector_t &a, vector_t &b)
 
 //! calculates s += norm_2^2(a)
 template<typename vector_t>
-inline void VecNormSquaredAdd(vector_t &a, vector_t &b, double &sum)
+inline void VecNormSquaredAdd(const vector_t &a, const vector_t &b, double &sum)
 {
 	for(int i=0; i<a.size(); i++)
 		VecNormSquaredAdd(a[i], sum);
@@ -146,7 +154,7 @@ inline void VecNormSquaredAdd(vector_t &a, vector_t &b, double &sum)
 
 //! returns norm_2^2(a)
 template<typename vector_t>
-inline double VecNormSquared(vector_t &a, vector_t &b)
+inline double VecNormSquared(const vector_t &a, const vector_t &b)
 {
 	double sum=0;
 	VecNormSquaredAdd(a, sum);

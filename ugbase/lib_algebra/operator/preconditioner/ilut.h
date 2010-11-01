@@ -84,8 +84,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				for(typename matrix_type::rowIterator i_it = A->beginRow(i); !i_it.isEnd(); ++i_it)
 				{
 					con.push_back(*i_it);
-					if(dmax < dabs((*i_it).dValue))
-						dmax = dabs((*i_it).dValue);
+					if(dmax < BlockNorm((*i_it).dValue))
+						dmax = BlockNorm((*i_it).dValue);
 				}
 
 				// eliminate all entries A(i, k) with k<i with rows U(k, .) and k<i
@@ -128,7 +128,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 							typename matrix_type::connection c;
 							c.iIndex = (*k_it).iIndex;
 							c.dValue = - (*k_it).dValue * d;
-							if(dabs(c.dValue) > dmax * m_eps)
+							if(BlockNorm(c.dValue) > dmax * m_eps)
 							{
 								// insert sorted
 								con.insert(con.begin()+j, c);

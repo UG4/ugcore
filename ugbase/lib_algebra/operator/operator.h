@@ -48,13 +48,13 @@
 
 // preconditioner
 #include "preconditioner/ilu.h"
-#include "preconditioner/ilut.h"
+//#include "preconditioner/ilut.h"
 #include "preconditioner/jacobi.h"
 #include "preconditioner/gauss_seidel.h"
 
 #ifdef LAPACK_AVAILABLE
 #ifdef BLAS_AVAILABLE
-#include "preconditioner/amg/amg.h"
+#include "preconditioner/amg/amg2.h"
 #endif
 #endif
 

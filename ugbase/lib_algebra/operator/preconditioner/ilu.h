@@ -106,7 +106,7 @@ bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		for(typename Matrix_type::cRowIterator it = A.beginRow(i); !it.isEnd(); ++it)
 		{
 			if((*it).iIndex >= i) continue;
-			s -= (*it).dValue * x[(*it).iIndex];
+			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
 		}
 		x[i] = s;
 	}
@@ -125,9 +125,12 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		for(typename Matrix_type::cRowIterator it = A.beginRow(i); !it.isEnd(); ++it)
 		{
 			if((*it).iIndex <= i) continue;
-			s -= (*it).dValue * x[(*it).iIndex];
+			// s -= (*it).dValue * x[(*it).iIndex];
+			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
+
 		}
-		x[i] = s/A(i,i);
+		// x[i] = s/A(i,i);
+		InverseMatMult(x[i], 1.0, A(i,i), s);
 		if(i == 0) break;
 	}
 
