@@ -100,6 +100,23 @@ public:
 #endif
 };
 
+/////////////////////////////////////////////
+//   Block 3x3 Algebra
+/////////////////////////////////////////////
+
+class Block3x3Algebra
+{
+public:
+#ifdef UG_PARALLEL
+	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, 3, 3> > > > matrix_type;
+	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, 3> > > > vector_type;
+#else
+	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, 3, 3> > > matrix_type;
+	typedef Vector<DenseVector<FixedArray1<double, 3> > > vector_type;
+#endif
+};
+
+
 } // end namespace ug
 
 
