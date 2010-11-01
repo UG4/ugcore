@@ -501,8 +501,8 @@ bool SparseMatrix<T>::axpy(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
-	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
-	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
+//	UG_ASSERT(cols == x.size(), "x: " << x << " has wrong length (should be " << cols << "). A: " << *this);
+//	UG_ASSERT(rows == res.size(), "res: " << x << " has wrong length (should be " << rows << "). A: " << *this);
 
 
 	if(alpha1 == 0.0)
@@ -549,8 +549,8 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 		const number &alpha1, const vector_t &v1,
 		const number &beta1, const vector_t &w1) const
 {
-	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
-	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
+//	UG_ASSERT(rows == x.size(), "x: " << x << " has wrong length (should be " << rows << "). A: " << *this);
+//	UG_ASSERT(cols == res.size(), "res: " << x << " has wrong length (should be " << cols << "). A: " << *this);
 
 	if(&dest == &v1)
 	{
