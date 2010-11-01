@@ -83,8 +83,6 @@ bool GetFieldsStabilizedVelocitiesDiagonal
 //	Loop integration points
 	for(size_t ip = 0; ip < numIp; ++ip)
 	{
-		const typename TFVGeometry::scvf& scvf = geo.scvf(ip);
-
 	// 	Loop components of velocity
 		for(size_t d = 0; d < dim; d++)
 		{
@@ -156,6 +154,8 @@ bool GetFieldsStabilizedVelocitiesDiagonal
 
 template <typename TFVGeometry>
 bool GetFieldsStabilizedVelocitiesFullMatrix(	MathVector<TFVGeometry::world_dim> IPVelStab[],
+									number IPStabVelShape[][TFVGeometry::world_dim],
+									number IPStabPressureShape[][TFVGeometry::world_dim],
 									const TFVGeometry& geo,
 									MathVector<TFVGeometry::world_dim> CurrentIPVel[],
 									bool bTimeDependent,
@@ -173,6 +173,8 @@ bool GetFieldsStabilizedVelocitiesFullMatrix(	MathVector<TFVGeometry::world_dim>
 
 template <typename TFVGeometry>
 bool GetFieldsStabilizedVelocities(	MathVector<TFVGeometry::world_dim> IPVelStab[],
+									number IPStabVelShape[][TFVGeometry::world_dim],
+									number IPStabPressureShape[][TFVGeometry::world_dim],
 									const TFVGeometry& geo,
 									MathVector<TFVGeometry::world_dim> CurrentIPVel[],
 									bool bTimeDependent,
@@ -187,14 +189,18 @@ bool GetFieldsStabilizedVelocities(	MathVector<TFVGeometry::world_dim> IPVelStab
 {
 	if(bUpwindDependOnIP)
 	return
-		GetFieldsStabilizedVelocitiesDiagonal(	IPVelStab, geo, CurrentIPVel,
+		GetFieldsStabilizedVelocitiesDiagonal(	IPVelStab,
+												IPStabVelShape, IPStabPressureShape,
+												geo, CurrentIPVel,
 												bTimeDependent, IPVelOld, dt,
 												IPVelUpwind, bUpwindDependOnIP,
 												UpwindScalar, CornerVel,
 												IPPressureGrad, kinematicViscosity);
 	else
 	return
-		GetFieldsStabilizedVelocitiesFullMatrix(IPVelStab, geo, CurrentIPVel,
+		GetFieldsStabilizedVelocitiesFullMatrix(IPVelStab,
+												IPStabVelShape, IPStabPressureShape,
+												geo, CurrentIPVel,
 												bTimeDependent, IPVelOld, dt,
 												IPVelUpwind, bUpwindDependOnIP,
 												UpwindScalar, CornerVel,

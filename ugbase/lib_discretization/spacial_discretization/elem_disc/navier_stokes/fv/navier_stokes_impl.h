@@ -126,6 +126,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	number vConvLength[numSCVF];
 	//number vvIPShape[numSCVF][numCo];
 	bool bDependOnIP;
+	number vvIPStabVelShape[numCo][dim];
+	number vvIPStabPressureShape[numCo][dim];
 	number vDiffLengthSqInv[numSCVF];
 	//MathVector<dim> vIPVel[numSCVF];
     MathVector<dim> vIPVelStab[numSCVF];
@@ -159,7 +161,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 	// todo: switch
 	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-	GetFieldsStabilizedVelocities(	vIPVelStab, geo, vCurrentIPVel, bTimeDependent, vIPVelOld,
+	GetFieldsStabilizedVelocities(	vIPVelStab, vvIPStabVelShape, vvIPStabPressureShape, geo,
+									vCurrentIPVel, bTimeDependent, vIPVelOld,
 									dt, vIPVelUpwind, bDependOnIP, vIPScaleNumber, vCornerVel,
 									vIPPressureGrad, m_Viscosity);
 
@@ -343,43 +346,6 @@ bool
 FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
-	// get finite volume geometry
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-
-	// loop Sub Control Volumes (SCV)
-	for(size_t i = 0; i < geo.num_scv(); ++i)
-	{
-		// get current SCV
-		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
-
-		// first value
-		number val = 0.0;
-		m_Rhs(val, scv.global_ip(0), time);
-
-		// other values
-		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
-		{
-			number ip_val;
-			m_Rhs(ip_val, scv.global_ip(ip), time);
-
-			// TODO: add weights for integration
-			val += ip_val;
-		}
-
-		// scale with volume of SCV
-		val *= scv.volume();
-
-		// get associated node
-		//const int co = scv.node_id();
-
-		// loop velocity components
-		for(size_t vel1 = 0; vel1 < dim; ++vel1)
-		{
-			// Add to local matrix
-			//d(vel1, co) += val;
-		}
-	}
-
 	// we're done
 	return true;
 }

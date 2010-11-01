@@ -47,15 +47,12 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		// local index type
 		typedef LocalIndices local_index_type;
 
-	protected:
-		typedef typename IUserNumberProvider<dim>::functor_type NumberFunctor;
-
 	public:
 	//	Constructor (setting default values)
 		FVNavierStokesElemDisc()
 		 : m_Upwind(FULL_UPWIND), m_pDomain(NULL),
-		   m_Viscosity(1.0), m_Rhs(NULL)
-			{
+		   m_Viscosity(1.0)
+		   {
 				register_assemble_functions(Int2Type<dim>());
 			}
 
@@ -64,8 +61,6 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 	//	Setup
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 		void set_kinematicViscosity(number nu) {m_Viscosity = nu;}
-		void set_rhs(IUserNumberProvider<dim>& user) {m_Rhs = user.get_functor();}
-
 
 	private:
 		enum UPWIND_TYPES
@@ -84,6 +79,7 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
             else if (upwind == "Full")      m_Upwind = FULL_UPWIND;
             else if (upwind == "LPS")       m_Upwind = LPS_UPWIND;
             else {UG_LOG("Upwind Type not recognized.\n"); return false;}
+			return true;
 		}
 
 	public:
@@ -135,7 +131,6 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 
 		// User functions
 		number m_Viscosity;
-		NumberFunctor m_Rhs;
 
 	private:
 		///////////////////////////////////////
