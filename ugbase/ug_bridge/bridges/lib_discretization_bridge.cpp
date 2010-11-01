@@ -273,12 +273,12 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 	return true;
 }
 
-template <typename TDomain>
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 class P1ConformApproximationSpace :
-	public ApproximationSpace<TDomain, P1ConformDoFDistribution, CPUAlgebra>
+	public ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>
 {
 	protected:
-		typedef ApproximationSpace<TDomain, P1ConformDoFDistribution, CPUAlgebra>
+		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra>
 				approximation_space_type;
 
 	public:
@@ -475,7 +475,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	P1ConformApproximationSpace
 	{
-		typedef P1ConformApproximationSpace<domain_type> T;
+		typedef P1ConformApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
 		stringstream ss; ss << "P1ApproximationSpace" << dim << "d";
 		reg.add_class_<T, ApproximationSpace<domain_type, dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
@@ -752,7 +752,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 
 	//	P1ConformDoFDistribution
 		{
-			typedef P1ConformDoFDistribution T;
+			typedef dof_distribution_type T;
 			reg.add_class_<T>("P1ConformDoFDistribution", grp.c_str());
 		}
 
@@ -860,10 +860,10 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
-		}
 
-	//	todo: remove when possible
-		RegisterElderUserFunctions(reg, grp.c_str());
+			//	todo: remove when possible
+			RegisterElderUserFunctions(reg, grp.c_str());
+		}
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)

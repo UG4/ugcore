@@ -112,9 +112,14 @@ class InterpolateElder
 	}
 };
 
-
 void RegisterElderUserFunctions(Registry& reg, const char* parentGroup)
 {
+	typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
+	//typedef GroupedP1ConformDoFDistribution dof_distribution_type;
+	//typedef Block2x2Algebra algebra_type;
+	typedef P1ConformDoFDistribution dof_distribution_type;
+	typedef CPUAlgebra algebra_type;
+
 	const char* grp = parentGroup;
 
 //	DensityDrivenUserFunction
@@ -125,10 +130,6 @@ void RegisterElderUserFunctions(Registry& reg, const char* parentGroup)
 
 //	Interpolation
 	{
-		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-		typedef P1ConformDoFDistribution dof_distribution_type;
-		typedef CPUAlgebra algebra_type;
-
 #ifdef UG_PARALLEL
 		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > T;
 #else
