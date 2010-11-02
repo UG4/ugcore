@@ -47,7 +47,7 @@ PerformTimeStep(IOperatorInverse<typename TGridFunction::vector_type, typename T
 				ITimeDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& timestep,
 				size_t timesteps, size_t step,
 				number time, number dt,
-				VTKOutput<TGridFunction>& out, const char* outName)
+				VTKOutput<TGridFunction>& out, const char* outName, bool bDoOutput)
 {
 //	declare Vector type
 	typedef typename TGridFunction::algebra_type::vector_type vector_type;
@@ -96,7 +96,7 @@ PerformTimeStep(IOperatorInverse<typename TGridFunction::vector_type, typename T
 		u_old.push_front(current_u);
 
 		// plot solution to file
-		out.print(outName, u, step, time);
+		if(bDoOutput) out.print(outName, u, step, time);
 		UG_LOG("++++++ TIMESTEP " << step << "  END ++++++\n");
 	}
 
