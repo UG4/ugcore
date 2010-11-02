@@ -57,6 +57,22 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
+ * Method:    getSvnRevision
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getSvnRevision
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_gcsc_vrl_ug4_UG4
+ * Method:    getCompileDate
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_gcsc_vrl_ug4_UG4
  * Method:    getMessages
  * Signature: ()Ljava/lang/String;
  */

@@ -14,6 +14,7 @@
 #include "bindings_vrl_native.h"
 
 #include "lib_grid/lib_grid.h"
+#include "compiledate.h"
 
 namespace ug {
 	namespace vrl {
@@ -69,12 +70,12 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	int retVal = ug::UGInit(arguments.size(), argv);
 
 
-	testReg.add_class_<TestClass>("TestClass","testing")
-	.add_constructor()
-	.add_method("svnRevision", &TestClass::getRev);
+//	testReg.add_class_<TestClass>("TestClass","testing")
+//	.add_constructor()
+//	.add_method("svnRevision", &TestClass::getRev);
 
 
-//	ug::bridge::RegisterStandardInterfaces(testReg);
+	ug::bridge::RegisterStandardInterfaces(testReg);
 	//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
@@ -246,6 +247,17 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getMessages
   (JNIEnv *env, jobject obj) {
 	return ug::vrl::stringC2J(env,ug::vrl::MessageBuffer::getMessages().c_str());
+}
+
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getSvnRevision
+  (JNIEnv *env, jobject obj) {
+	std::string revision = ug::vrl::svnRevision();
+	return ug::vrl::stringC2J(env,revision.c_str());
+}
+
+JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
+  (JNIEnv *env, jobject obj) {
+	return ug::vrl::stringC2J(env,COMPILE_DATE);
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

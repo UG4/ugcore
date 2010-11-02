@@ -57,3 +57,20 @@ ELSE(Subversion_FOUND)
         # write a file with the SVN_REVISION define
         file(WRITE svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
 ENDIF(Subversion_FOUND)
+
+####
+# make compile date stapm available as C++ makro
+####
+
+IF(UNIX)
+    MESSAGE(STATUS "On Unix: using date command to generate time stamp")
+    execute_process(COMMAND date
+        OUTPUT_VARIABLE compile_date OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # write a file with the COMPILE_DATE define
+    file(WRITE compiledate.h "#define COMPILE_DATE \"${compile_date}\"\n")
+ELSEIF(WIN32)
+    MESSAGE(STATUS "On Windows: time stamp generation unsupported!")
+    # write a file with the COMPILE_DATE define
+    file(WRITE compiledate.h "#define COMPILE_DATE \"unknown date\"\n")
+ENDIF(UNIX)
