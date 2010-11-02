@@ -141,6 +141,38 @@ struct func_traits <TRet (*) (T1, T2, T3, T4, T5, T6, T7, T8, T9)>
 	};
 };
 
+template <typename TRet, typename T1, typename T2, typename T3,
+		  typename T4, typename T5, typename T6, typename T7, typename T8, typename T9,
+		  typename T10>
+struct func_traits <TRet (*) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)>
+{
+	typedef TRet return_type;
+	typedef TypeList<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> params_type;
+	static TRet apply(TRet (*fp)(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10),  TypeValueList<params_type>& args)
+	{
+		return fp(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.tl.tl.tl.tl.tl.hd);
+	};
+};
+
+template <typename TRet, typename T1, typename T2, typename T3,
+		  typename T4, typename T5, typename T6, typename T7, typename T8, typename T9,
+		  typename T10, typename T11>
+struct func_traits <TRet (*) (T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11)>
+{
+	typedef TRet return_type;
+	typedef TypeList<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> params_type;
+	static TRet apply(TRet (*fp)(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11),  TypeValueList<params_type>& args)
+	{
+		return fp(args.hd, args.tl.hd, args.tl.tl.hd, args.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.tl.tl.hd,
+				 args.tl.tl.tl.tl.tl.tl.tl.tl.tl.hd, args.tl.tl.tl.tl.tl.tl.tl.tl.tl.tl.hd);
+	};
+};
+
 ////////////////////////////////
 // non-const method traits
 ////////////////////////////////
