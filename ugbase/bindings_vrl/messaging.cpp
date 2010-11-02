@@ -28,6 +28,22 @@ namespace ug {
 			return result;
 		}
 
+		std::vector<std::string> split(const std::string& str, const char delimiter)
+		{
+			std::vector<std::string> result;
+
+			result.clear();
+			std::stringstream tokenstream;
+			tokenstream << str;
+			std::string token;
+
+			while ( std::getline (tokenstream, token, delimiter ) ) {
+					result.push_back(token);
+			}
+
+			return result;
+		}
+
 		std::string replaceAll(
 				std::string target,
 				const std::string oldstr,

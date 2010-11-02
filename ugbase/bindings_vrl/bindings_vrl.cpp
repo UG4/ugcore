@@ -31,9 +31,21 @@ namespace ug {
 		JNIEnv* getJNIEnv() {
 			return jniEnv;
 		}
+
+
 	} // end vrl::
 }// end ug::
 
+class TestClass {
+public:
+	TestClass(){
+		//
+	}
+
+	std::string getRev() {
+		return ug::vrl::svnRevision();
+	}
+};
 
 //*********************************************************
 //* JNI METHODS
@@ -55,7 +67,14 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	using namespace ug;
 
 	int retVal = ug::UGInit(arguments.size(), argv);
-	ug::bridge::RegisterStandardInterfaces(testReg);
+
+
+	testReg.add_class_<TestClass>("TestClass","testing")
+	.add_constructor()
+	.add_method("svnRevision", &TestClass::getRev);
+
+
+//	ug::bridge::RegisterStandardInterfaces(testReg);
 	//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 

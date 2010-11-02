@@ -10,7 +10,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# This include directory is required by lib_grid.
 include_directories(${P_UGBASE_SOURCE_DIR})
 
 include("../../ug_cmake_includes.txt")
@@ -30,3 +29,31 @@ EXPORTSOURCES(bindings_vrl  ${Sources})
 if(NOT UG_SHARED)
 add_library(bindings_vrl  ${Sources})
 endif(NOT UG_SHARED)
+
+
+
+####
+# make global svn revision available as C++ makro
+####
+
+include(FindSubversion)
+
+IF(Subversion_FOUND)
+        MESSAGE(STATUS "Looking for Subversion - found")
+        Subversion_WC_INFO(${CMAKE_SOURCE_DIR} "svn")
+        EXECUTE_PROCESS(
+                COMMAND "svnversion" "--no-newline" ${CMAKE_SOURCE_DIR}
+                OUTPUT_VARIABLE svn_version
+                ERROR_VARIABLE svn_version
+        )
+        #message( ${svn_version} )
+        #add_definitions(-DSVN_REVISION=${svn_version})
+
+        # write a file with the SVN_REVISION define
+        file(WRITE svnrevision.h "#define SVN_REVISION \"${svn_version}\"\n")
+
+ELSE(Subversion_FOUND)
+        MESSAGE(STATUS "Looking for Subversion - not found")
+        # write a file with the SVN_REVISION define
+        file(WRITE svnrevision.h "#define SVN_REVISION \"unknown revision\"\n")
+ENDIF(Subversion_FOUND)

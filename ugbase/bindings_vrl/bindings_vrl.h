@@ -10,6 +10,8 @@
 
 #include "ug_bridge/registry.h"
 #include <jni.h>
+#include "messaging.h"
+#include "svnrevision.h"
 
 namespace ug {
     namespace vrl {
@@ -17,8 +19,8 @@ namespace ug {
 		void SetJNIEnv(JNIEnv* env);
 		JNIEnv* getJNIEnv();
 
-		inline const char* svnRevision() {
-			return "$Rev:$";
+		inline std::string svnRevision() {
+			return split(SVN_REVISION,':')[0];
 		}
     } // end vrl::
 }// end ug::
