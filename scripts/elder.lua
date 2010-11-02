@@ -119,10 +119,10 @@ elemDisc:set_domain(dom)
 elemDisc:set_pattern(pattern)
 elemDisc:set_functions("c,p")
 elemDisc:set_subsets("Inner")
-if elemDisc:set_upwind("full") == false then exit() end
+if elemDisc:set_upwind("no") == false then exit() end
 elemDisc:set_consistent_gravity(true)
-elemDisc:set_boussinesq_transport(false)
-elemDisc:set_boussinesq_flow(false)
+elemDisc:set_boussinesq_transport(true)
+elemDisc:set_boussinesq_flow(true)
 elemDisc:set_user_functions(elderElemFct)
 
 -- add Element Discretization to discretization
