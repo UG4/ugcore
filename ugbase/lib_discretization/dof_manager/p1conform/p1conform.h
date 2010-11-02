@@ -224,6 +224,9 @@ class P1ConformDoFDistribution : public DoFDistribution
 		/// distribute dofs for given goc
 		bool distribute_dofs();
 
+		/// ordering
+		bool order_cuthill_mckee(bool bReverse = false);
+
 	protected:
 		VertexBase* get_vertex(VertexBase* vrt, size_t i) const;
 		VertexBase* get_vertex(EdgeBase* edge, size_t i) const;
@@ -407,6 +410,9 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 
 		/// distribute dofs for given goc
 		bool distribute_dofs();
+
+		/// ordering
+		bool order_cuthill_mckee(bool bReverse = false);
 
 	protected:
 		VertexBase* get_vertex(VertexBase* vrt, size_t i) const;

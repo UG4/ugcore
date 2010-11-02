@@ -1,4 +1,7 @@
 #include "./p1conform.h"
+#include <vector>
+#include <queue>
+#include <algorithm>
 
 
 namespace ug{
@@ -231,9 +234,17 @@ distribute_dofs()
 	}
 	UG_LOG(std::endl);
 
+
+//	order
+	if(!order_cuthill_mckee())
+	{
+		UG_LOG("In 'P1ConformDoFDistribution::distribute_dofs':"
+				" Error while ordering dofs.\n");
+		return false;
+	}
+
 	return true;
 }
-
 ///////////// Help functions /////////////////
 VertexBase* P1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t i) const
 {
@@ -403,6 +414,7 @@ distribute_dofs()
 	return true;
 }
 
+
 ///////////// Help functions /////////////////
 VertexBase* GroupedP1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t i) const
 {
@@ -428,6 +440,397 @@ VertexBase* GroupedP1ConformDoFDistribution::get_vertex(Volume* vol, size_t i) c
 	return vol->vertex(i);
 }
 
+//////////////////////////////
+//////////////////////////////
+// Cuthill - McKee
+//////////////////////////////
+//////////////////////////////
+
+struct VertexInfo
+{
+	VertexInfo() : pVertex(NULL), si(-1) {}
+	VertexBase* pVertex;
+	int si;
+	size_t oldNr;
+	std::vector<size_t> vAdjacentVertex;
+	bool handled;
+
+	size_t degree() const {return vAdjacentVertex.size();}
+};
+
+struct SortClass {
+		SortClass(const std::vector<VertexInfo>& vInfo)
+		 	: m_vInfo(vInfo) {}
+		const std::vector<VertexInfo>& m_vInfo;
+
+		bool operator() (size_t i,size_t j) { return (m_vInfo[i].degree()<m_vInfo[j].degree());}
+};
+
+struct NewInfo{
+		NewInfo(VertexBase* vrt_, int si_)
+		: vrt(vrt_), si(si_) {}
+	VertexBase* vrt;
+	int si;
+};
+
+
+
+bool
+P1ConformDoFDistribution::
+order_cuthill_mckee(bool bReverse)
+{
+	if(num_subsets() == 0)
+	{
+		UG_LOG("Cuthill_McKee: No subsets. Done.\n");
+		return true;
+	}
+
+//	check that in all subsets same number of functions
+	size_t num_fct = m_pFunctionPattern->num_fct(0);
+	for(int si = 0; si < num_subsets(); ++si)
+	{
+		if(num_fct != m_pFunctionPattern->num_fct(si))
+		{
+			UG_LOG("Cuthill_McKee: Currently only implemented iff same"
+					" number of functions in all subsets.\n");
+			return true;
+		}
+	}
+
+//	check that numbering is correct
+	if(m_numDoFs % num_fct != 0)
+	{
+		UG_LOG("Cuthill_McKee: Cannot devide number of dofs / num fct. Done.\n");
+		return false;
+	}
+
+//	Adjacend Edges
+	std::vector<EdgeBase*> vEdges;
+
+// 	Grid
+	Grid* grid = m_pStorageManager->m_pSH->get_assigned_grid();
+
+// 	Iterators
+	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
+
+//	create list of current numbering
+	std::vector<VertexInfo> vOldIndex(m_numDoFs / num_fct);
+
+//	Loop vertices
+	size_t ind = 0;
+	for(int si = 0; si < num_subsets(); ++si)
+	{
+		iterBegin = m_goc.begin<VertexBase>(si);
+		iterEnd =  m_goc.end<VertexBase>(si);
+
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		// 	Get vertex
+			VertexBase* vrt = *iter;
+
+		//	Set infos
+			vOldIndex[ind].pVertex = vrt;
+			vOldIndex[ind].si = si;
+			vOldIndex[ind].oldNr = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] / num_fct;
+			vOldIndex[ind].vAdjacentVertex.clear();
+			vOldIndex[ind].handled = false;
+
+		//	Get Edges
+			CollectEdges(vEdges, *grid, vrt);
+
+		//	Get connected indices
+			for(size_t ed = 0; ed < vEdges.size(); ++ed)
+			{
+				for(size_t i = 0; i < vEdges[ed]->num_vertices(); ++i)
+				{
+				//	Get Vertices of adjacend edges
+					VertexBase* vrt1 = vEdges[ed]->vertex(i);
+
+				//	skip own vertex
+					if(vrt1 == vrt) continue;
+
+				//	get index
+					const int si1 = m_pISubsetHandler->get_subset_index(vrt1);
+					const size_t adjInd = m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1] / num_fct;
+
+				//	Add vertex to list of vertices
+					vOldIndex[ind].vAdjacentVertex.push_back(adjInd);
+				}
+			}
+			ind ++;
+		}
+	}
+	if(ind*num_fct != m_numDoFs)
+	{
+		UG_LOG("ERROR in order_cuthill_mckee: "
+				"Sorting #ind = "<< ind * num_fct<<", but we have " << m_numDoFs << " Indices.\n");
+		return false;
+	}
+
+//	Sort adjacent vertices by degree
+	SortClass mySortClass(vOldIndex);
+	for(size_t i = 0; i < vOldIndex.size(); ++i)
+	{
+		std::sort(	vOldIndex[i].vAdjacentVertex.begin(),
+					vOldIndex[i].vAdjacentVertex.end(), mySortClass);
+	}
+
+// 	Create list of mapping
+	std::vector<NewInfo> vNewIndex; vNewIndex.reserve(m_numDoFs / num_fct);
+
+	while(true)
+	{
+	//	find first unhandled vertex
+		size_t start = vOldIndex.size();
+		for(size_t i = 0; i < vOldIndex.size(); ++i)
+		{
+			if(vOldIndex[i].handled == false)
+			{
+				start = i; break;
+			}
+		}
+
+	//	check if one unhandled vertex left
+		if(start == vOldIndex.size())
+			break;
+
+	//	Find node with smallest degree
+		for(size_t i = 0; i < vOldIndex.size(); ++i)
+		{
+			if(vOldIndex[i].handled == false &&
+				vOldIndex[i].degree() < vOldIndex[start].degree())
+				start = i;
+		}
+
+	//	Add start vertex to mapping
+		vNewIndex.push_back(NewInfo(vOldIndex[start].pVertex, vOldIndex[start].si));
+		vOldIndex[start].handled = true;
+
+	//	Create queue of adjacent vertices
+		std::queue<size_t> qAdjacent;
+		for(size_t i = 0; i < vOldIndex[start].degree(); ++i)
+		{
+			qAdjacent.push(vOldIndex[start].vAdjacentVertex[i]);
+		}
+
+	//	add adjacent vertices to mapping
+		while(!qAdjacent.empty())
+		{
+		//	get next index
+			const size_t front = qAdjacent.front();
+
+		//	if not handled
+			if(vOldIndex[front].handled == false)
+			{
+			//	Add to mapping
+				vNewIndex.push_back(NewInfo(vOldIndex[front].pVertex, vOldIndex[front].si));
+				vOldIndex[front].handled = true;
+
+			//	add adjacent to queue
+				for(size_t i = 0; i < vOldIndex[front].degree(); ++i)
+				{
+					const size_t ind = vOldIndex[front].vAdjacentVertex[i];
+					if(vOldIndex[ind].handled == false)
+						qAdjacent.push(ind);
+				}
+			}
+
+		//	pop index
+			qAdjacent.pop();
+		}
+	}
+
+//	Check that all indices have been handled
+	if(vNewIndex.size() != vOldIndex.size())
+	{
+		UG_LOG("ERROR in order_cuthill_mckee:"
+				" Number of new Indices (" << vNewIndex.size() * num_fct << ") does not match number "
+				" of old Indices (" << vOldIndex.size() * num_fct << ").\n");
+		return false;
+	}
+
+//	substitute old new indices
+	for(size_t i = 0; i < vNewIndex.size(); ++i)
+	{
+		VertexBase* vrt = vNewIndex[i].vrt;
+		int si = vNewIndex[i].si;
+
+		if(bReverse)
+			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = (vNewIndex.size()-1-i) * num_fct;
+		else
+			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i * num_fct;
+	}
+
+//	we're done
+	return true;
+}
+
+
+bool
+GroupedP1ConformDoFDistribution::
+order_cuthill_mckee(bool bReverse)
+{
+//	Adjacend Edges
+	std::vector<EdgeBase*> vEdges;
+
+// 	Grid
+	Grid* grid = m_pStorageManager->m_pSH->get_assigned_grid();
+
+// 	Iterators
+	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
+
+//	create list of current numbering
+	std::vector<VertexInfo> vOldIndex(m_numDoFs);
+
+//	Loop vertices
+	size_t ind = 0;
+	for(int si = 0; si < num_subsets(); ++si)
+	{
+		iterBegin = m_goc.begin<VertexBase>(si);
+		iterEnd =  m_goc.end<VertexBase>(si);
+
+		for(iter = iterBegin; iter != iterEnd; ++iter)
+		{
+		// 	Get vertex
+			VertexBase* vrt = *iter;
+
+		//	Set infos
+			vOldIndex[ind].pVertex = vrt;
+			vOldIndex[ind].si = si;
+			vOldIndex[ind].oldNr = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			vOldIndex[ind].vAdjacentVertex.clear();
+			vOldIndex[ind].handled = false;
+
+		//	Get Edges
+			CollectEdges(vEdges, *grid, vrt);
+
+		//	Get connected indices
+			for(size_t ed = 0; ed < vEdges.size(); ++ed)
+			{
+				for(size_t i = 0; i < vEdges[ed]->num_vertices(); ++i)
+				{
+				//	Get Vertices of adjacend edges
+					VertexBase* vrt1 = vEdges[ed]->vertex(i);
+
+				//	skip own vertex
+					if(vrt1 == vrt) continue;
+
+				//	get index
+					const int si1 = m_pISubsetHandler->get_subset_index(vrt1);
+					const size_t adjInd = m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1];
+
+				//	Add vertex to list of vertices
+					vOldIndex[ind].vAdjacentVertex.push_back(adjInd);
+				}
+			}
+		}
+		ind++;
+	}
+//	Check
+	if(ind != m_numDoFs)
+	{
+		UG_LOG("ERROR in order_cuthill_mckee: "
+				"Sorting #ind = "<< ind <<", but we have " << m_numDoFs << " Indices.\n");
+		return false;
+	}
+
+//	Sort adjacent vertices by degree
+	SortClass mySortClass(vOldIndex);
+	for(size_t i = 0; i < vOldIndex.size(); ++i)
+	{
+		std::sort(	vOldIndex[i].vAdjacentVertex.begin(),
+					vOldIndex[i].vAdjacentVertex.end(), mySortClass);
+	}
+
+// 	Create list of mapping
+	std::vector<NewInfo> vNewIndex; vNewIndex.reserve(m_numDoFs);
+
+	while(true)
+	{
+	//	find first unhandled vertex
+		size_t start = vOldIndex.size();
+		for(size_t i = 0; i < vOldIndex.size(); ++i)
+		{
+			if(vOldIndex[i].handled == false)
+			{
+				start = i; break;
+			}
+		}
+
+	//	check if one unhandled vertex left
+		if(start == vOldIndex.size())
+			break;
+
+	//	Find node with smallest degree
+		for(size_t i = 0; i < vOldIndex.size(); ++i)
+		{
+			if(vOldIndex[i].handled == false &&
+				vOldIndex[i].degree() < vOldIndex[start].degree())
+				start = i;
+		}
+
+	//	Add start vertex to mapping
+		vNewIndex.push_back(NewInfo(vOldIndex[start].pVertex, vOldIndex[start].si));
+		vOldIndex[start].handled = true;
+
+	//	Create queue of adjacent vertices
+		std::queue<size_t> qAdjacent;
+		for(size_t i = 0; i < vOldIndex[start].degree(); ++i)
+		{
+			qAdjacent.push(vOldIndex[start].vAdjacentVertex[i]);
+		}
+
+	//	add adjacent vertices to mapping
+		while(!qAdjacent.empty())
+		{
+		//	get next index
+			const size_t front = qAdjacent.front();
+
+		//	if not handled
+			if(vOldIndex[front].handled == false)
+			{
+			//	Add to mapping
+				vNewIndex.push_back(NewInfo(vOldIndex[front].pVertex, vOldIndex[front].si));
+				vOldIndex[front].handled = true;
+
+			//	add adjacent to queue
+				for(size_t i = 0; i < vOldIndex[front].degree(); ++i)
+				{
+					const size_t ind = vOldIndex[front].vAdjacentVertex[i];
+					if(vOldIndex[ind].handled == false)
+						qAdjacent.push(ind);
+				}
+			}
+
+		//	pop index
+			qAdjacent.pop();
+		}
+	}
+
+//	Check that all indices have been handled
+	if(vNewIndex.size() != vOldIndex.size())
+	{
+		UG_LOG("ERROR in order_cuthill_mckee:"
+				" Number of new Indices (" << vNewIndex.size() << ") does not match number "
+				" of old Indices (" << vOldIndex.size() << ").\n");
+		return false;
+	}
+
+//	substitute old new indices
+	for(size_t i = 0; i < vNewIndex.size(); ++i)
+	{
+		VertexBase* vrt = vNewIndex[i].vrt;
+		int si = vNewIndex[i].si;
+
+		if(bReverse)
+			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = (vNewIndex.size()-1-i);
+		else
+			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i;
+	}
+
+//	we're done
+	return true;
+}
 
 
 
