@@ -18,7 +18,7 @@ namespace ug {
 		JNIEnv* getJNIEnv();
 
 		inline const char* svnRevision() {
-			return "$Revision$";
+			return "$Rev:$";
 		}
     } // end vrl::
 }// end ug::
