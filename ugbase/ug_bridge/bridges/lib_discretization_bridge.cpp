@@ -325,11 +325,6 @@ class ConstFV1ConvectionDiffusionElemDisc :
 		static const int dim = TDomain::dim;
 
 	protected:
-		UserMatrixProvider<dim, ConstUserMatrix<dim> > m_DiffusionProvider;
-		UserVectorProvider<dim, ConstUserVector<dim> > m_VelocityProvider;
-		UserNumberProvider<dim, ConstUserNumber<dim> > m_ReactionProvider;
-		UserNumberProvider<dim, ConstUserNumber<dim> > m_RhsProvider;
-
 		ConstUserMatrix<dim> m_Diffusion;
 		ConstUserVector<dim> m_Velocity;
 		ConstUserNumber<dim> m_Reaction;
@@ -338,15 +333,10 @@ class ConstFV1ConvectionDiffusionElemDisc :
 	public:
 		ConstFV1ConvectionDiffusionElemDisc()
 		{
-			m_DiffusionProvider.set_functor(m_Diffusion);
-			m_VelocityProvider.set_functor(m_Velocity);
-			m_ReactionProvider.set_functor(m_Reaction);
-			m_RhsProvider.set_functor(m_Rhs);
-
-			set_diffusion_tensor(m_DiffusionProvider);
-			set_velocity_field(m_VelocityProvider);
-			set_reaction(m_ReactionProvider);
-			set_rhs(m_RhsProvider);
+			set_diffusion_tensor(m_Diffusion);
+			set_velocity_field(m_Velocity);
+			set_reaction(m_Reaction);
+			set_rhs(m_Rhs);
 		}
 
 		void set_constants(approximation_space_type& approxSpace,

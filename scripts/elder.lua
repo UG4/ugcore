@@ -13,7 +13,8 @@ dofile("../scripts/ug_util.lua")
 -- constants
 dim = 2
 gridName = "elder_quads_8x2.ugx"
-numRefs = 6
+numRefs = 5
+NumPreTimeSteps = 1
 NumTimeSteps = 100
 
 --------------------------------
@@ -118,10 +119,10 @@ elemDisc:set_domain(dom)
 elemDisc:set_pattern(pattern)
 elemDisc:set_functions("c,p")
 elemDisc:set_subsets("Inner")
-elemDisc:set_upwind("no")
-elemDisc:set_consistent_gravity(false)
-elemDisc:set_boussinesq_transport(true)
-elemDisc:set_boussinesq_flow(true)
+if elemDisc:set_upwind("full") == false then exit() end
+elemDisc:set_consistent_gravity(true)
+elemDisc:set_boussinesq_transport(false)
+elemDisc:set_boussinesq_flow(false)
 elemDisc:set_user_functions(elderElemFct)
 
 -- add Element Discretization to discretization
@@ -180,8 +181,8 @@ gmg:set_base_level(2)
 gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
 gmg:set_cycle_type(1)
-gmg:set_num_presmooth(3)
-gmg:set_num_postsmooth(3)
+gmg:set_num_presmooth(2)
+gmg:set_num_postsmooth(2)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
@@ -199,8 +200,8 @@ end
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(1000)
-convCheck:set_minimum_defect(1e-8)
-convCheck:set_reduction(0.5e-10)
+convCheck:set_minimum_defect(0.5e-10)
+convCheck:set_reduction(1e-8)
 
 -- create Linear Solver
 linSolver = LinearSolver()
@@ -255,22 +256,16 @@ time = 0.0
 step = 1
 
 -- Perform Time Step
-do_steps = 5
+do_steps = NumPreTimeSteps
 do_dt = dt/100
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder")
+PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", false)
 step = step + do_steps
 time = time + do_dt * do_steps
 
-do_steps = 10
-do_dt = dt/10
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder")
-step = step + do_steps
-time = time + do_dt * do_steps
-
-do_steps = NumTimeSteps - 10
+do_steps = NumTimeSteps - NumPreTimeSteps
 if do_steps > 0 then
 	do_dt = dt
-	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder")
+	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", false)
 	step = step + do_steps
 	time = time + do_dt * do_steps
 end

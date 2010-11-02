@@ -74,79 +74,6 @@ class IBoundaryNumberProvider
 		virtual ~IBoundaryNumberProvider(){}
 };
 
-///////////////////////////////////////
-///////////////////////////////////////
-// Provider
-///////////////////////////////////////
-///////////////////////////////////////
-
-template <int dim, typename TUserNumber>
-class UserNumberProvider : public IUserNumberProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IUserNumberProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_UserNumber;}
-
-	//	set user Number
-		void set_functor(const TUserNumber& userNumber) {m_UserNumber = userNumber;}
-
-	protected:
-		TUserNumber	m_UserNumber;
-};
-
-template <int dim, typename TUserVector>
-class UserVectorProvider : public IUserVectorProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IUserVectorProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_UserVector;}
-
-	//	set user Vector
-		void set_functor(const TUserVector& userVector) {m_UserVector = userVector;}
-
-	protected:
-		TUserVector	m_UserVector;
-};
-
-template <int dim, typename TUserMatrix>
-class UserMatrixProvider : public IUserMatrixProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IUserMatrixProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_UserMatrix;}
-
-	//	set user matrix
-		void set_functor(const TUserMatrix& userMatrix) {m_UserMatrix = userMatrix;}
-
-	protected:
-		TUserMatrix	m_UserMatrix;
-};
-
-template <int dim, typename TBoundaryNumber>
-class BoundaryNumberProvider : public IBoundaryNumberProvider<dim>
-{
-	public:
-	//	Functor Type
-		typedef typename IBoundaryNumberProvider<dim>::functor_type functor_type;
-
-	//	return functor
-		virtual functor_type get_functor() const {return m_BoundaryNumber;}
-
-	//	set Boundary Number
-		void set_functor(const TBoundaryNumber& BoundaryNumber) {m_BoundaryNumber = BoundaryNumber;}
-
-	protected:
-		TBoundaryNumber	m_BoundaryNumber;
-};
 
 ///////////////////////////////////////
 ///////////////////////////////////////
@@ -155,8 +82,15 @@ class BoundaryNumberProvider : public IBoundaryNumberProvider<dim>
 ///////////////////////////////////////
 
 template <int dim>
-class ConstUserNumber
+class ConstUserNumber : public IUserNumberProvider<dim>
 {
+	public:
+	//	Functor Type
+		typedef typename IUserNumberProvider<dim>::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
 	public:
 		ConstUserNumber() {m_Number = 0.0;}
 
@@ -180,8 +114,15 @@ class ConstUserNumber
 };
 
 template <int dim>
-class ConstUserVector
+class ConstUserVector : public IUserVectorProvider<dim>
 {
+	public:
+	//	Functor Type
+		typedef typename IUserVectorProvider<dim>::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
 	public:
 		ConstUserVector() {set_all_entries(0.0);}
 
@@ -207,8 +148,15 @@ class ConstUserVector
 };
 
 template <int dim>
-class ConstUserMatrix
+class ConstUserMatrix : public IUserMatrixProvider<dim>
 {
+	public:
+	//	Functor Type
+		typedef typename IUserMatrixProvider<dim>::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
 	public:
 		ConstUserMatrix() {set_diag_tensor(1.0);}
 
@@ -251,8 +199,15 @@ class ConstUserMatrix
 };
 
 template <int dim>
-class ConstBoundaryNumber
+class ConstBoundaryNumber : public IBoundaryNumberProvider<dim>
 {
+	public:
+	//	Functor Type
+		typedef typename IBoundaryNumberProvider<dim>::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
 	public:
 		ConstBoundaryNumber() {m_Number = 0.0;}
 
@@ -275,7 +230,6 @@ class ConstBoundaryNumber
 	protected:
 		number m_Number;
 };
-
 
 }
 

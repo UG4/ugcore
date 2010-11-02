@@ -11,8 +11,15 @@ namespace bridge
 {
 
 template <int dim>
-class LuaUserMatrix
+class LuaUserMatrix : public IUserMatrixProvider<dim>
 {
+	public:
+	//	Functor Type
+		typedef typename IUserMatrixProvider<dim>::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
 	public:
 		LuaUserMatrix()
 		{
@@ -62,13 +69,19 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 	std::string grp = std::string(parentGroup);
 
 
+//	Base class
+	{
+		stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
+		reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str());
+	}
+
 //	Functor
 	{
 	//	ConstUserMatrix
 		{
 			typedef ConstUserMatrix<dim> T;
 			stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_diag_tensor", &T::set_diag_tensor)
 				.add_method("set_all_entries", &T::set_all_entries)
@@ -80,36 +93,9 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 		{
 			typedef LuaUserMatrix<dim> T;
 			stringstream ss; ss << "LuaUserMatrix" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
-		}
-	}
-
-//	UserMatrixProvider
-	{
-	//	Base class
-		{
-			stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
-			reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str());
-		}
-
-	//	Const Matrix Provider
-		{
-			typedef UserMatrixProvider<dim, ConstUserMatrix<dim> > T;
-			stringstream ss; ss << "ConstUserMatrixProvider" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_functor", &T::set_functor);
-		}
-
-	//	Lua Matrix
-		{
-			typedef UserMatrixProvider<dim, LuaUserMatrix<dim> > T;
-			stringstream ss; ss << "LuaUserMatrixProvider" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_functor", &T::set_functor);
 		}
 	}
 }

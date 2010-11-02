@@ -11,8 +11,15 @@ namespace bridge
 {
 
 template <int dim>
-class LuaUserNumber
+class LuaUserNumber : public IUserNumberProvider<dim>
 {
+	public:
+	//	Functor Type
+		typedef typename IUserNumberProvider<dim>::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
 	public:
 		LuaUserNumber()
 		{
@@ -53,6 +60,11 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 {
 	std::string grp = std::string(parentGroup);
 
+//	Base class
+	{
+		stringstream ss; ss << "IUserNumberProvider" << dim << "d";
+		reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
+	}
 
 //	Functor
 	{
@@ -60,7 +72,7 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 		{
 			typedef ConstUserNumber<dim> T;
 			stringstream ss; ss << "ConstUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set", &T::set)
 				.add_method("print", &T::print);
@@ -70,36 +82,9 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 		{
 			typedef LuaUserNumber<dim> T;
 			stringstream ss; ss << "LuaUserNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
-		}
-	}
-
-//	UserNumberProvider
-	{
-	//	Base class
-		{
-			stringstream ss; ss << "IUserNumberProvider" << dim << "d";
-			reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
-		}
-
-	//	Const Number Provider
-		{
-			typedef UserNumberProvider<dim, ConstUserNumber<dim> > T;
-			stringstream ss; ss << "ConstUserNumberProvider" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_functor", &T::set_functor);
-		}
-
-	//	Lua Number
-		{
-			typedef UserNumberProvider<dim, LuaUserNumber<dim> > T;
-			stringstream ss; ss << "LuaUserNumberProvider" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_functor", &T::set_functor);
 		}
 	}
 }

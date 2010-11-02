@@ -11,8 +11,15 @@ namespace bridge
 {
 
 template <int dim>
-class LuaBoundaryNumber
+class LuaBoundaryNumber : public IBoundaryNumberProvider<dim>
 {
+	public:
+	//	Functor Type
+		typedef typename IBoundaryNumberProvider<dim>::functor_type functor_type;
+
+	//	return functor
+		virtual functor_type get_functor() const {return *this;}
+
 	public:
 		LuaBoundaryNumber()
 		{
@@ -55,6 +62,11 @@ void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 {
 	std::string grp = std::string(parentGroup);
 
+	//	Base class
+		{
+			stringstream ss; ss << "IBoundaryNumberProvider" << dim << "d";
+			reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
+		}
 
 //	Functor
 	{
@@ -62,7 +74,7 @@ void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 		{
 			typedef ConstBoundaryNumber<dim> T;
 			stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set", &T::set)
 				.add_method("print", &T::print);
@@ -72,36 +84,9 @@ void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 		{
 			typedef LuaBoundaryNumber<dim> T;
 			stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
-			reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);
-		}
-	}
-
-//	BoundaryNumberProvider
-	{
-	//	Base class
-		{
-			stringstream ss; ss << "IBoundaryNumberProvider" << dim << "d";
-			reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
-		}
-
-	//	Const Number Provider
-		{
-			typedef BoundaryNumberProvider<dim, ConstBoundaryNumber<dim> > T;
-			stringstream ss; ss << "ConstBoundaryNumberProvider" << dim << "d";
-			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_functor", &T::set_functor);
-		}
-
-	//	Lua Number
-		{
-			typedef BoundaryNumberProvider<dim, LuaBoundaryNumber<dim> > T;
-			stringstream ss; ss << "LuaBoundaryNumberProvider" << dim << "d";
-			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_functor", &T::set_functor);
 		}
 	}
 }

@@ -37,6 +37,7 @@ function ourRhs(x, y, t)
 	local s = 2*math.pi
 	return	s*s*(math.sin(s*x) + math.sin(s*y))
 	--return -2*y
+	--return 0;
 end
 
 function ourNeumannBnd(x, y, t)
@@ -49,6 +50,7 @@ function ourDirichletBnd(x, y, t)
 	local s = 2*math.pi
 	return true, math.sin(s*x) + math.sin(s*y)
 	--return true, x*x*y
+	--return true, 2.5
 end
 
 --------------------------------
@@ -131,17 +133,17 @@ print ("Setting up Assembling")
 	--reaction = utilCreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-	rhs = utilCreateLuaUserNumber("ourRhs", dim)
-	--rhs = utilCreateConstUserNumber(0.0, dim)
+	--rhs = utilCreateLuaUserNumber("ourRhs", dim)
+	rhs = utilCreateConstUserNumber(0.0, dim)
 
 -- neumann setup
 	neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd", dim)
 	--neumann = utilCreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd", dim)
-	--dirichlet = utilCreateConstBoundaryNumber(0.0, dim)
-
+	--dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd", dim)
+	dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
+	
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
@@ -266,7 +268,7 @@ convCheck:set_reduction(1e-12)
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(jac)
+linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver

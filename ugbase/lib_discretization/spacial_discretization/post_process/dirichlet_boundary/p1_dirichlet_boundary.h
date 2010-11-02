@@ -158,11 +158,9 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 		bool add_constant_boundary_value(number value,  const char* function, const char* subsets)
 		{
-			ConstBoundaryNumber<dim> functor;
-			BoundaryNumberProvider<dim, ConstBoundaryNumber<dim> > provider;
-			functor.set(value);
-			provider.set_functor(functor);
-			return add_boundary_value(provider, function, subsets);
+			ConstBoundaryNumber<dim> valProvider;
+			valProvider.set(value);
+			return add_boundary_value(valProvider, function, subsets);
 		}
 
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)

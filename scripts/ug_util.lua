@@ -244,160 +244,120 @@ end
 -- creates a Lua User Matrix using a lua function and returns the Provider
 function utilCreateLuaUserMatrix(funcName, dim)
 	local mat = nil
-	local provider = nil
 	if dim == 1 then
 		mat = LuaUserMatrix1d()
-		provider = LuaUserMatrixProvider1d()
 	elseif dim == 2 then
 		mat = LuaUserMatrix2d()
-		provider = LuaUserMatrixProvider2d()
 	elseif dim == 3 then
 		mat = LuaUserMatrix3d()
-		provider = LuaUserMatrixProvider3d()
 	end
 		
 	mat:set_lua_callback(funcName)
-	provider:set_functor(mat)
-	return provider
+	return mat
 end
 
 -- creates a Const User Matrix using a lua function and returns the Provider
 function utilCreateConstDiagUserMatrix(diagVal, dim)
 	local mat = nil
-	local provider = nil
 	if dim == 1 then
 		mat = ConstUserMatrix1d()
-		provider = ConstUserMatrixProvider1d()
 	elseif dim == 2 then
 		mat = ConstUserMatrix2d()
-		provider = ConstUserMatrixProvider2d()
 	elseif dim == 3 then
 		mat = ConstUserMatrix3d()
-		provider = ConstUserMatrixProvider3d()
 	end
 
 	mat:set_diag_tensor(diagVal)
-	provider:set_functor(mat)
-	return provider
+	return mat
 end
 
 -- creates a Lua User Vector using a lua function and returns the Provider
 function utilCreateLuaUserVector(funcName, dim)
 	local vec = nil
-	local provider = nil
 	if dim == 1 then
 		vec = LuaUserVector1d()
-		provider = LuaUserVectorProvider1d()
 	elseif dim == 2 then
 		vec = LuaUserVector2d()
-		provider = LuaUserVectorProvider2d()
 	elseif dim == 3 then
 		vec = LuaUserVector3d()
-		provider = LuaUserVectorProvider3d()
 	end
 
 	vec:set_lua_callback(funcName)
-	provider:set_functor(vec)
-	return provider
+	return vec
 end
 
 -- creates a Const User Vector using a lua function and returns the Provider
 function utilCreateConstUserVector(val, dim)
 	local vec = nil
-	local provider = nil
 	if dim == 1 then
 		vec = ConstUserVector1d()
-		provider = ConstUserVectorProvider1d()
 	elseif dim == 2 then
 		vec = ConstUserVector2d()
-		provider = ConstUserVectorProvider2d()
 	elseif dim == 3 then
 		vec = ConstUserVector3d()
-		provider = ConstUserVectorProvider3d()
 	end
 	
 	vec:set_all_entries(val)
-	provider:set_functor(vec)
-	return provider
+	return vec
 end
 
 -- creates a Lua User Number using a lua function and returns the Provider
 function utilCreateLuaUserNumber(funcName, dim)
 	local number = nil
-	local provider = nil
 	if dim == 1 then
 		number = LuaUserNumber1d()
-		provider = LuaUserNumberProvider1d()
 	elseif dim == 2 then
 		number = LuaUserNumber2d()
-		provider = LuaUserNumberProvider2d()
 	elseif dim == 3 then
 		number = LuaUserNumber3d()
-		provider = LuaUserNumberProvider3d()
 	end
 	
 	number:set_lua_callback(funcName)
-	provider:set_functor(number)
-	return provider
+	return number
 end
 
 -- creates a Const User Number using a lua function and returns the Provider
 function utilCreateConstUserNumber(val, dim)
 	local number = nil
-	local provider = nil
 	if dim == 1 then
 		number = ConstUserNumber1d()
-		provider = ConstUserNumberProvider1d()
 	elseif dim == 2 then
 		number = ConstUserNumber2d()
-		provider = ConstUserNumberProvider2d()
 	elseif dim == 3 then
 		number = ConstUserNumber3d()
-		provider = ConstUserNumberProvider3d()
 	end
 	
 	number:set(val)
-	provider:set_functor(number)
-	return provider
+	return number
 end
 
 
 -- creates a Lua Boundary Numver using a lua function and returns the Provider
 function utilCreateLuaBoundaryNumber(funcName, dim)
 	local number = nil
-	local provider = nil
 	if dim == 1 then
 		number = LuaBoundaryNumber1d()
-		provider = LuaBoundaryNumberProvider1d()
 	elseif dim == 2 then
 		number = LuaBoundaryNumber2d()
-		provider = LuaBoundaryNumberProvider2d()
 	elseif dim == 3 then
 		number = LuaBoundaryNumber3d()
-		provider = LuaBoundaryNumberProvider3d()
 	end
 	
 	number:set_lua_callback(funcName)
-	provider:set_functor(number)
-	return provider
+	return number
 end
 
 -- creates a Const Boundary Number using a lua function and returns the Provider
 function utilCreateConstBoundaryNumber(val, dim)
 	local number = nil
-	local provider = nil
 	if dim == 1 then
 		number = ConstBoundaryNumber1d()
-		provider = ConstBoundaryNumberProvider1d()
 	elseif dim == 2 then
 		number = ConstBoundaryNumber2d()
-		provider = ConstBoundaryNumberProvider2d()
 	elseif dim == 3 then
 		number = ConstBoundaryNumber3d()
-		provider = ConstBoundaryNumberProvider3d()
 	end
 	
 	number:set(val)
-	provider:set_functor(number)
-	return provider
+	return number
 end
