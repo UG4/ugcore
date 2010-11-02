@@ -217,7 +217,8 @@ namespace ug {
 		 */
 		std::string createParamInfo(const char* paramName, const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::vector<std::string> const& paramInfo);
+				std::vector<std::string> const& paramInfo,
+				std::string const& customParamInfo="");
 
 
 		/**

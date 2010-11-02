@@ -107,7 +107,7 @@ namespace ug {
 					paramArrayForInvokation << ", ";
 				}
 
-				UG_LOG("BEFORE param2string:in loop: \n");
+//				UG_LOG("BEFORE param2string:in loop: \n");
 
 				methodHeaderParams << paramType2String(
 						paramStackIn.get_type(i),
@@ -131,7 +131,7 @@ namespace ug {
 				paramArrayForInvokation << " id";
 			}
 
-			UG_LOG("RETURN_VEC:" << method.return_info_vec().size() << std::endl);
+//			UG_LOG("RETURN_VEC:" << method.return_info_vec().size() << std::endl);
 
 			// return value generation
 			std::string outType;
@@ -268,14 +268,14 @@ namespace ug {
 
 			std::vector<std::string> paramInfo;
 
-			paramInfo.push_back("nullIsValid=true");
 			paramInfo.push_back("");
+			paramInfo.push_back(""); // pot nullIsValid in this option field
 			paramInfo.push_back("");
 
 			result << "@MethodInfo(interactive=false)\n"
 					<< " void setPointer("
 					<< createParamInfo(clazz.name(),clazz.name(), clazz.class_names(),
-					false, paramInfo)
+					false, paramInfo,"nullIsValid=true")
 					<< " edu.gcsc.vrl.ug4.Pointer p) { super.setPointer(p)}\n";
 
 			result << "\n}";
@@ -359,12 +359,10 @@ namespace ug {
 
 		std::string createParamInfo(const char* paramName, const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::vector<std::string> const& paramInfo) {
-
-			UG_LOG("BEFORE use paramINFO: " << paramInfo.size() << "\n");
+				std::vector<std::string> const& paramInfo, std::string const& customParamInfo) {
 
 			std::string customInfo = paramInfo.at(1);
-			std::string customOptions = paramInfo.at(2);
+			std::string customOptions = replaceAll(paramInfo.at(2),"\"","\\\"");
 
 			std::stringstream paramInfoStream;
 			std::stringstream classNameOptionsStream;
@@ -406,7 +404,15 @@ namespace ug {
 
 			if (customInfo.size() > 0) {
 				paramInfoStream << ", style=\"" << customInfo << "\"";
+
 			}
+			
+			if (customParamInfo.size() > 0) {
+				paramInfoStream << ", " << customParamInfo;
+				
+			}
+
+
 
 			paramInfoStream << ") ";
 

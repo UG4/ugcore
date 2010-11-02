@@ -209,8 +209,6 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 	try {
 
-		UG_LOG("NUM_CLASSES:" << ug::vrl::vrlRegistry->num_classes() << std::endl);
-
 		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
 
 			const ug::bridge::IExportedClass& clazz =
@@ -221,8 +219,6 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 						ug::vrl::exportedClass2Groovy(
 						ug::vrl::vrlRegistry, clazz));
 			}
-
-			UG_LOG("TEST:" << i << std::endl);
 		}
 
 		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {

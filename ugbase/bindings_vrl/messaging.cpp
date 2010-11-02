@@ -54,7 +54,7 @@ namespace ug {
 				return target;
 			}
 
-			for (size_t x = target.find(oldstr); x != std::string::npos; x = target.find(oldstr)) {
+			for (size_t x = target.find(oldstr); x != std::string::npos; x = target.find(oldstr,x+newstr.size())) {
 				target.erase(x, oldstr.length());
 				target.insert(x, newstr);
 			}
