@@ -13,84 +13,93 @@ namespace ug {
 
 		void MessageBuffer::addMessage(std::string msg) {
 			messages.push_front(msg);
-			messages.resize(30,std::string());
+			messages.resize(100, std::string());
 		}
 
 		std::string MessageBuffer::getMessages() {
-			std::string result="";
+			std::string result = "";
 
-			for (std::deque<std::string>::iterator i = messages.begin();i!=messages.end();i++) {
-				result+=*i+std::string("<br>");
+			for (std::deque<std::string>::iterator i = messages.begin(); i != messages.end(); i++) {
+				result += *i;
 			}
+
+			result = replaceAll(result,"\n","<br>");
 
 			return result;
 		}
 
-//		MessageBuffer::MessageBuffer() {
-//		}
-//
-//		MessageBuffer* MessageBuffer::getInstance() {
-//			static MessageBuffer messageBuffer;
-//			return &messageBuffer;
-//		}
+		std::string replaceAll(
+				std::string target,
+				const std::string oldstr,
+				const std::string newstr) {
 
+			// no substitution necessary
+			if (oldstr == newstr) {
+				return target;
+			}
 
-		static std::string msg;
+			for (size_t x = target.find(oldstr); x != std::string::npos; x = target.find(oldstr)) {
+				target.erase(x, oldstr.length());
+				target.insert(x, newstr);
+			}
+
+			return target;
+		}
 
 		void soutPrintln(std::string message) {
 
-//			msg = message;
-//
-//			JNIEnv* env = getJNIEnv();
-//
-//			if (env->ExceptionCheck()) {
-//				env->ExceptionDescribe();
-//
-//			}
-//
-//			jclass systemClass = env->FindClass("java/lang/System");
-//
-//			std::cout << "ERROR: 1" << msg << std::endl;
-//
-//			if (env->ExceptionCheck()) {
-//				env->ExceptionDescribe();
-//
-//			}
-//
-//			jfieldID fieldID = env->GetStaticFieldID(
-//					systemClass, "out", "Ljava/io/PrintStream;");
-//
-//			std::cout << "ERROR: 2" << msg << std::endl;
-//
-//			if (env->ExceptionCheck()) {
-//				env->ExceptionDescribe();
-//			}
-//
-//			jobject outStream = env->GetStaticObjectField(
-//					systemClass, fieldID);
-//
-//			std::cout << "ERROR: 3" << msg << std::endl;
-//
-//			if (env->ExceptionCheck()) {
-//				env->ExceptionDescribe();
-//
-//			}
-//
-//			jclass streamClass = env->GetObjectClass(outStream);
-//			jmethodID methodID = env->GetMethodID(
-//					streamClass, "println", "(Ljava/lang/String;)V");
-//
-//			std::cout << "ERROR: 4" << msg << std::endl;
-//
-//			if (env->ExceptionCheck()) {
-//				env->ExceptionDescribe();
-//
-//			}
-//
-//			env->CallVoidMethod(
-//					outStream, methodID, string2JObject(env, msg.c_str()));
-//
-//			std::cout << "ERROR: 5" << msg << std::endl;
+			//			std::string msg = message;
+			//
+			//			JNIEnv* env = getJNIEnv();
+			//
+			//			if (env->ExceptionCheck()) {
+			//				env->ExceptionDescribe();
+			//
+			//			}
+			//
+			//			jclass systemClass = env->FindClass("java/lang/System");
+			//
+			//			std::cout << "ERROR: 1" << msg << std::endl;
+			//
+			//			if (env->ExceptionCheck()) {
+			//				env->ExceptionDescribe();
+			//
+			//			}
+			//
+			//			jfieldID fieldID = env->GetStaticFieldID(
+			//					systemClass, "out", "Ljava/io/PrintStream;");
+			//
+			//			std::cout << "ERROR: 2" << msg << std::endl;
+			//
+			//			if (env->ExceptionCheck()) {
+			//				env->ExceptionDescribe();
+			//			}
+			//
+			//			jobject outStream = env->GetStaticObjectField(
+			//					systemClass, fieldID);
+			//
+			//			std::cout << "ERROR: 3" << msg << std::endl;
+			//
+			//			if (env->ExceptionCheck()) {
+			//				env->ExceptionDescribe();
+			//
+			//			}
+			//
+			//			jclass streamClass = env->GetObjectClass(outStream);
+			//			jmethodID methodID = env->GetMethodID(
+			//					streamClass, "println", "(Ljava/lang/String;)V");
+			//
+			//			std::cout << "ERROR: 4" << msg << std::endl;
+			//
+			//			if (env->ExceptionCheck()) {
+			//				env->ExceptionDescribe();
+			//
+			//			}
+			//
+			//			env->CallVoidMethod(
+			//					outStream, methodID, string2JObject(env, msg.c_str()));
+			//
+			//			std::cout << "ERROR: 5" << msg << std::endl;
 		}
 
 		void serrPrintln(std::string msg) {

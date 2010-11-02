@@ -34,6 +34,7 @@ namespace ug {
 	} // end vrl::
 }// end ug::
 
+
 //*********************************************************
 //* JNI METHODS
 //*********************************************************
@@ -54,7 +55,6 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	using namespace ug;
 
 	int retVal = ug::UGInit(arguments.size(), argv);
-
 	ug::bridge::RegisterStandardInterfaces(testReg);
 	//		ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);

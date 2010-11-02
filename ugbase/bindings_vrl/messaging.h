@@ -15,19 +15,52 @@
 
 namespace ug {
     namespace vrl {
+		/**
+		 * DO NOT USE THIS METHOD!
+		 * (totally broken)
+         * @param msg
+         */
 		void soutPrintln(std::string msg);
+		/**
+		 * DO NOT USE THIS METHOD!
+		 * (totally broken)
+         * @param msg
+         */
 		void serrPrintln(std::string msg);
+
+		/**
+		 * Replaces each substring of <code>target</code> string that is equal to
+		 * <code>oldstr</code> with <code>newstr</code>
+         * @param target string to modify
+         * @param oldstr string to raplace
+         * @param newstr replacement string
+         * @return a copy of the specified <code>target</code> string where
+		 *         all occurences of <code>oldstr</code> are replaced with
+		 *         <code>newstr</code
+         */
+		std::string replaceAll(
+				std::string target,
+				const std::string oldstr,
+				const std::string newstr);
 
 
 		class MessageBuffer {
 		public:
-//			MessageBuffer();
-//			MessageBuffer* MessageBuffer::getInstance();
+			/**
+			 * Adds a message to this message buffer.
+             * @param msg message to add
+             */
 			static void addMessage(std::string msg);
+			/**
+			 * Returns a string containing all messages. Occurences of
+			 * <code>\n</code> are replaced with <code><br></code>.
+             * @return all messages as HTML compatible string
+             */
 			static std::string getMessages();
-			static std::string messageString;
+			
 		private:
 			static std::deque<std::string> messages;
+			static std::string messageString;
 			
 		};
 

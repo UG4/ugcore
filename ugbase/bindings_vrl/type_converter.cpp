@@ -107,7 +107,9 @@ namespace ug {
 					paramArrayForInvokation << ", ";
 				}
 
-				methodHeaderParams << paramType2String(paramStackIn.get_type(i),
+				methodHeaderParams << paramType2String(
+						paramStackIn.get_type(i),
+						method.parameter_name(i).c_str(),
 						paramStackIn.class_name(i),
 						paramStackIn.class_names(i),
 						method.parameter_type_info(i)) << " p" << i;
@@ -132,6 +134,7 @@ namespace ug {
 			if (paramStackOut.size() > 0) {
 				outType = paramType2String(
 						paramStackOut.get_type(0),
+						paramStackOut.class_name(0), // param name
 						paramStackOut.class_name(0),
 						paramStackOut.class_names(0),
 						method.return_type_info(), true);
@@ -259,7 +262,7 @@ namespace ug {
 
 			result << "@MethodInfo(interactive=false)\n"
 					<< " void setPointer("
-					<< createParamInfo(clazz.name(), clazz.class_names(),
+					<< createParamInfo(clazz.name(),clazz.name(), clazz.class_names(),
 					false, "nullIsValid=true")
 					<< " edu.gcsc.vrl.ug4.Pointer p) { super.setPointer(p)}\n";
 
@@ -342,7 +345,7 @@ namespace ug {
 			return stringJ2C(env, (jstring) obj);
 		}
 
-		std::string createParamInfo(const char* className,
+		std::string createParamInfo(const char* paramName, const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
 				std::string customInfo, std::string customOptions) {
 			std::stringstream paramInfo;
@@ -380,7 +383,7 @@ namespace ug {
 			// putting it all together
 			paramInfo
 					<< "@ParamInfo( name=\""
-					<< className << "\""
+					<< paramName << "\""
 					<< classNameOptions.str() << "; " << customOptions << "\"";
 
 			if (customInfo.size() > 0) {
@@ -446,7 +449,7 @@ namespace ug {
 			return methodInfo.str();
 		}
 
-		std::string paramType2String(int paramType,
+		std::string paramType2String(int paramType, const char* paramName,
 				const char* className,
 				const std::vector<const char*>* classNames,
 				std::string paramInfo, bool isOutput) {
@@ -461,7 +464,7 @@ namespace ug {
 						return "String";
 					} else {
 						std::string result =
-								createParamInfo("",
+								createParamInfo(paramName, "",
 								new std::vector<const char*>(), false, paramInfo) +
 								std::string("String");
 
@@ -474,7 +477,7 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(
+								createParamInfo(paramName, 
 								className, classNames, false, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
@@ -487,7 +490,7 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(
+								createParamInfo(paramName, 
 								className, classNames, true, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 

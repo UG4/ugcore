@@ -206,6 +206,7 @@ namespace ug {
 		/**
 		 * Creates a VRL param info to customize type representation and to
 		 * ensure type-safe connections.
+//		 * @param paramName name of the parameter
 		 * @param className name of the param class
 		 * @param classNames own class name plus class names of all super
 		 *        classes
@@ -214,7 +215,7 @@ namespace ug {
 		 * @param customOptions additional value options
 		 * @return a string containing a VRL param info (Groovy source code)
 		 */
-		std::string createParamInfo(const char* className,
+		std::string createParamInfo(const char* paramName, const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
 				std::string customInfo = "", std::string customOptions = "");
 
@@ -237,6 +238,7 @@ namespace ug {
 		/**
 		 * Converts a ug::bridge::ParameterTypes value to the equivalent Java
 		 * type name.
+		 * @parem paramName name of the parameter
 		 * @param paramType param type to convert
 		 * @param className name of the value class
 		 * @param classNames value class name plus class names of all super
@@ -246,7 +248,7 @@ namespace ug {
 		 *                 (in this case no param info will be added)
 		 * @return a String containing the Java type name
 		 */
-		std::string paramType2String(int paramType,
+		std::string paramType2String(int paramType, const char* paramName,
 				const char* className,
 				const std::vector<const char*>* classNames,
 				std::string paramOptions, bool isOutput = false);
@@ -274,7 +276,7 @@ namespace ug {
 		jobjectArray createEmptyJavaArray(
 				JNIEnv *env, std::string className);
 
-/**
+        /**
 		 * Creates an empty Java array using the specified class as element
 		 * type.
          * @param env JVM environment to operate on
