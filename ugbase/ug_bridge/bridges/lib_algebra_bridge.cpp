@@ -189,7 +189,6 @@ bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 		std::stringstream groupString; groupString << parentGroup << "/Algebra";
 		std::string grp = groupString.str();
 
-		UG_LOG("RegisterLibAlgebraInterface\n");
 		// StandardConvCheck
 		{
 			reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp.c_str());
