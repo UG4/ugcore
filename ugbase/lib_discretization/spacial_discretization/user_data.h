@@ -89,7 +89,7 @@ class ConstUserNumber : public IUserNumberProvider<dim>
 		typedef typename IUserNumberProvider<dim>::functor_type functor_type;
 
 	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+		virtual functor_type get_functor() const {return boost::ref(*this);}
 
 	public:
 		ConstUserNumber() {m_Number = 0.0;}
@@ -104,7 +104,7 @@ class ConstUserNumber : public IUserNumberProvider<dim>
 			UG_LOG("ConstUserNumber:" << m_Number << "\n");
 		}
 
-		void operator() (number& c, const MathVector<dim>& x, number time = 0.0)
+		void operator() (number& c, const MathVector<dim>& x, number time = 0.0) const
 		{
 			c = m_Number;
 		}
