@@ -625,7 +625,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		{
 			stringstream ss; ss << "LoadDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
-							"Success", "Grid # Filename | load-dialog",
+							"Success", "Grid # Filename | load-dialog | endings=[\\\"*.ugx\\\"]",
 							"Loads a domain", "No help");
 		}
 

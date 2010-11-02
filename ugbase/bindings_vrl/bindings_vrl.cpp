@@ -76,7 +76,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 
 	ug::bridge::RegisterStandardInterfaces(testReg);
-	//		ug::bridge::RegisterTestInterface(testReg);
+//			ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
@@ -187,14 +187,14 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 		}
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
-		std::cout << "Incopatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl;
+		UG_LOG("Incopatible Conversion from " <<
+				ex.m_from << " : " << ex.m_to << std::endl);
 	} catch (ug::bridge::ERROR_BadConversion ex) {
-		std::cout << "Incopatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl;
+		UG_LOG("Incopatible Conversion from " <<
+				ex.m_from << " : " << ex.m_to << std::endl);
 	} catch (...) {
-		std::cout << "Unknown exception thrown while"
-				<< " trying to invoke function!" << std::endl;
+		UG_LOG("Unknown exception thrown while"
+				<< " trying to invoke function!" << std::endl);
 	}
 
 	return result;
@@ -209,6 +209,8 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 	try {
 
+		UG_LOG("NUM_CLASSES:" << ug::vrl::vrlRegistry->num_classes() << std::endl);
+
 		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
 
 			const ug::bridge::IExportedClass& clazz =
@@ -219,6 +221,8 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 						ug::vrl::exportedClass2Groovy(
 						ug::vrl::vrlRegistry, clazz));
 			}
+
+			UG_LOG("TEST:" << i << std::endl);
 		}
 
 		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
@@ -230,9 +234,9 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 		jResult = ug::vrl::stringArrayC2J(env, cResult);
 
 	} catch (...) {
-		std::cout << "Unknown exception thrown while"
+		UG_LOG("Unknown exception thrown while"
 				<< " trying to convert registered classes to Groovy code!"
-				<< std::endl;
+				<< std::endl);
 	}
 
 	return jResult;

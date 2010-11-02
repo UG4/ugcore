@@ -37,8 +37,8 @@ namespace ug {
 		 * @return a java string
 		 */
 		jstring stringC2J(JNIEnv *env, const char* s);
-		
-//		jstring stringC2J(JNIEnv *env, std::string const& s);
+
+		//		jstring stringC2J(JNIEnv *env, std::string const& s);
 
 		/**
 		 * <p>
@@ -217,7 +217,7 @@ namespace ug {
 		 */
 		std::string createParamInfo(const char* paramName, const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::string customInfo = "", std::string customOptions = "");
+				std::vector<std::string> const& paramInfo);
 
 
 		/**
@@ -251,7 +251,7 @@ namespace ug {
 		std::string paramType2String(int paramType, const char* paramName,
 				const char* className,
 				const std::vector<const char*>* classNames,
-				std::string paramOptions, bool isOutput = false);
+				std::vector<std::string> const& paramInfo, bool isOutput = false);
 
 		/**
 		 * Converts an array of Java objects to a parameter stack.
@@ -269,20 +269,20 @@ namespace ug {
 		/**
 		 * Creates an empty Java array using the specified class as element
 		 * type.
-         * @param env JVM environment to operate on
-         * @param className name of the element class
-         * @return emtpy Java array
-         */
+		 * @param env JVM environment to operate on
+		 * @param className name of the element class
+		 * @return emtpy Java array
+		 */
 		jobjectArray createEmptyJavaArray(
 				JNIEnv *env, std::string className);
 
-        /**
+		/**
 		 * Creates an empty Java array using the specified class as element
 		 * type.
-         * @param env JVM environment to operate on
-         * @param elementClass element class
-         * @return emtpy Java array
-         */
+		 * @param env JVM environment to operate on
+		 * @param elementClass element class
+		 * @return emtpy Java array
+		 */
 		jobjectArray createEmptyJavaArray(
 				JNIEnv *env, jclass elementClass);
 
@@ -423,9 +423,9 @@ namespace ug {
 				ug::bridge::ExportedFunctionBase const& method,
 				bool isFunction = false, std::string prefix = "");
 
-		
 
-//		jobject messageTypeC2J(JNIEnv *env, MessageType type);
+
+		//		jobject messageTypeC2J(JNIEnv *env, MessageType type);
 
 	} // end vrl::
 }// end ug::

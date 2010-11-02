@@ -67,6 +67,9 @@ class ExportedFunctionBase
 	///	type info of return type
 		const std::string& return_info(size_t i) const				{return m_vRetValInfo.at(i);}
 
+	/// type info of return value
+		const std::vector<std::string>& return_info_vec() const {return m_vRetValInfo;}
+
 	/// number of parameters.
 		size_t num_parameter() const 								{return m_vvParamInfo.size();}
 
@@ -78,6 +81,9 @@ class ExportedFunctionBase
 
 	///	type info of all parameters
 		const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
+
+	/// type info of i th parameters
+		const std::vector<std::string>& parameter_info_vec(size_t i) const {return m_vvParamInfo.at(i);}
 
 	///	whole string of all type infos for of all parameters
 		const std::string& parameter_info_string() const			{return m_paramInfos;}
@@ -107,7 +113,7 @@ class ExportedFunctionBase
 
 		//	arbitrary choosen minimum number of infos exported
 		//	(If values non given we set them to an empty string)
-			const size_t MinNumInfos = 2; // for "name | style"
+			const size_t MinNumInfos = 3; // for "name | style | options"
 
 		//	Fill missing Parameter
 			m_vvParamInfo.resize(m_paramsIn.size());
@@ -156,7 +162,7 @@ class ExportedFunctionBase
 		// string with Infos about parameter
 		std::string m_paramInfos;
 
-		// tokenized strings for each Parameter and each Info (name |Êstyle | options | ...)
+		// tokenized strings for each Parameter and each Info (name |ï¿½style | options | ...)
 		std::vector<std::vector<std::string> > m_vvParamInfo;
 
 		std::string m_tooltip;
