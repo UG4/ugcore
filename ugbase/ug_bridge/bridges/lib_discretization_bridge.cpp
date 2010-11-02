@@ -635,18 +635,16 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		{
 			stringstream ss; ss << "LoadDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
-							"ReturnFlag", "Grid,Filename",
-							"Loads a domain", "No help",
-							"", "#style=\"load-dialog\"");
+							"Success", "Grid # Filename | load-dialog",
+							"Loads a domain", "No help");
 		}
 
 	//	SaveDomain
 		{
 			stringstream ss; ss << "SaveDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
-							"ReturnFlag", "Grid,Filename",
-							"Saves a domain", "No help",
-							"", "#style=\"save-dialog\"");
+							"Success", "Grid#Filename|save-dialog",
+							"Saves a domain", "No help");
 		}
 
 	//	PerformTimeStep
@@ -677,9 +675,8 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		{
 			stringstream ss; ss << "WriteGridFunctionToVTK" << dim << "d";
 			reg.add_function(ss.str().c_str(), &WriteGridFunctionToVTK<function_type>, grp.c_str(),
-								"ReturnFlag", "GridFunction,Filename",
-								"Saves GridFunction to *.tvk file", "No help",
-								"", "#style=\"save-dialog\"");
+								"Success", "GridFunction#Filename|save-dialog",
+								"Saves GridFunction to *.tvk file", "No help");
 		}
 
 	//	SaveMatrixForConnectionViewer

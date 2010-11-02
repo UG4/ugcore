@@ -61,10 +61,9 @@ class ExportedMethod : public ExportedFunctionBase
 
 	public:
 		ExportedMethod(	const MethodPtrWrapper& m, ProxyFunc pf,
-						const char* name, const char* retValName, const char* paramValNames,
-						const char* tooltip, const char* help,
-						const char* retValInfoType, const char* paramValInfoType)
-		: ExportedFunctionBase(name , retValName, paramValNames, tooltip, help, retValInfoType, paramValInfoType),
+						const char* name, const char* retValInfos, const char* paramInfos,
+						const char* tooltip, const char* help)
+		: ExportedFunctionBase(name , retValInfos, paramInfos, tooltip, help),
 		  m_ptrWrapper(m), m_proxy_func(pf)
 		{}
 
@@ -217,9 +216,8 @@ class ExportedClass_ : public IExportedClass
 	/// Method registration
 		template <typename TMethod>
 		ExportedClass_<TClass>& add_method (	const char* methodName, TMethod func,
-												const char* retValName = "", const char* paramValNames = "",
-												const char* tooltip = "", const char* help = "",
-												const char* retValInfoType = "", const char* paramValInfoType = "")
+												const char* retValInfos = "", const char* paramInfos = "",
+												const char* tooltip = "", const char* help = "")
 		{
 		//	check that funcName is not already used
 			bool bUsed = false;
@@ -248,9 +246,8 @@ class ExportedClass_ : public IExportedClass
 		//  create new exported function
 			ExportedMethod* nMethod = NULL;
 			nMethod = new ExportedMethod(	MethodPtrWrapper(func), &MethodProxy<TClass, TMethod>::apply,
-													methodName, retValName, paramValNames,
-													tooltip, help,
-													retValInfoType, paramValInfoType);
+													methodName, retValInfos, paramInfos,
+													tooltip, help);
 			
 			try{
 		//  create parameter in list

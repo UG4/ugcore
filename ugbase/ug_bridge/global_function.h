@@ -8,7 +8,7 @@
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
-
+#include <iostream>
 namespace ug
 {
 namespace bridge
@@ -38,40 +38,49 @@ struct CreateParameterOutStack<void>
 class ExportedFunctionBase
 {
 	public:
-		ExportedFunctionBase(	const char* name, const char* retValName, const char* paramValNames,
-								const char* tooltip, const char* help,
-								const char* retValInfoType, const char* paramValInfoType)
-		: m_name(name), m_retValName(retValName), m_retValTypeInfo(retValInfoType),
-		  m_paramValNames(paramValNames), m_paramValTypeInfos(paramValInfoType),
+		ExportedFunctionBase(	const char* name, const char* retValInfos, const char* paramInfos,
+								const char* tooltip, const char* help)
+		: m_name(name), m_retValInfos(retValInfos), m_paramInfos(paramInfos),
 		  m_tooltip(tooltip), m_help(help)
 		{
-			tokenize(m_paramValNames, m_vParamValNames, ',');
-			tokenize(m_paramValTypeInfos, m_vParamValTypeInfos, '#');
+		//	Tokenize string for return value (separated by '|')
+			tokenize(m_retValInfos, m_vRetValInfo, '|');
+
+		//	Tokenize string for parameters into infos per one parameter (separated by '#')
+			std::vector<std::string> vParamInfoTmp;
+			tokenize(m_paramInfos, vParamInfoTmp, '#');
+			m_vvParamInfo.resize(vParamInfoTmp.size());
+
+		//	Tokenite each info-string of one parameter into single infos (separated by '|')
+			for(size_t i = 0; i < vParamInfoTmp.size(); ++i)
+			{
+				tokenize(vParamInfoTmp[i], m_vvParamInfo[i], '|');
+			}
 		};
 
 	///	name of function
 		const std::string& name() const 							{return m_name;}
 
 	/// name of return value
-		const std::string& return_name() const 						{return m_retValName;}
+		const std::string& return_name() const 						{return return_info(0);}
 
 	///	type info of return type
-		const std::string& return_type_info() const					{return m_retValTypeInfo;}
+		const std::string& return_info(size_t i) const				{return m_vRetValInfo.at(i);}
 
 	/// number of parameters.
-		size_t num_parameter() const 								{return m_vParamValNames.size();}
+		size_t num_parameter() const 								{return m_vvParamInfo.size();}
 
-	/// string of all parameters
-		const std::string& parameter_names_string() const 			{return m_paramValNames;}
+	///	number of info strings for one parameter
+		size_t num_infos(size_t i) const 							{return m_vvParamInfo.at(i).size();}
 
 	/// name of parameter i
-		const std::string& parameter_name(size_t i) const 			{return m_vParamValNames.at(i);}
+		const std::string& parameter_name(size_t i) const 			{return parameter_info(i, 0);}
 
 	///	type info of all parameters
-		const std::string& parameter_type_info_string() const		{return m_paramValTypeInfos;}
+		const std::string& parameter_info(size_t i, size_t j) const	{return m_vvParamInfo.at(i).at(j);}
 
-	///	type info of all parameters
-		const std::string& parameter_type_info(size_t i) const		{return m_vParamValTypeInfos.at(i);}
+	///	whole string of all type infos for of all parameters
+		const std::string& parameter_info_string() const			{return m_paramInfos;}
 
 	/// gives some information to the exported functions
 		const std::string& tooltip() const 							{return m_tooltip;}
@@ -95,60 +104,60 @@ class ExportedFunctionBase
 		{
 			typedef typename func_traits<TFunc>::params_type params_type;
 			CreateParameterStack<params_type>::create(m_paramsIn);
-			for(int i = (int)m_vParamValNames.size(); i < m_paramsIn.size(); ++i)
-				m_vParamValNames.push_back(std::string(""));
-			for(int i = (int)m_vParamValTypeInfos.size(); i < m_paramsIn.size(); ++i)
-				m_vParamValTypeInfos.push_back(std::string(""));
+
+		//	arbitrary choosen minimum number of infos exported
+		//	(If values non given we set them to an empty string)
+			const size_t MinNumInfos = 2; // for "name | style"
+
+		//	Fill missing Parameter
+			m_vvParamInfo.resize(m_paramsIn.size());
+
+		//	resize missing infos for each parameter
+			for(int i = 0; i < (int)m_vvParamInfo.size(); ++i)
+				for(size_t j = m_vvParamInfo.at(i).size(); j < MinNumInfos; ++j)
+					m_vvParamInfo.at(i).push_back(std::string(""));
 
 			typedef typename func_traits<TFunc>::return_type return_type;
 			CreateParameterOutStack<return_type>::create(m_paramsOut);
+
+		//	resize missing infos for return value
+			for(size_t j = m_vRetValInfo.size(); j < MinNumInfos; ++j)
+				m_vRetValInfo.push_back(std::string(""));
 		}
-		
-//		// help function to tokenize the parameter string
-//		void tokenize(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters)
-//		{
-//			using namespace std;
-//			tokens.clear();
-//		    // Skip delimiters at beginning.
-//		    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-//		    // Find first "non-delimiter".
-//		    string::size_type pos     = str.find_first_of(delimiters, lastPos);
-//
-//		    while (string::npos != pos || string::npos != lastPos)
-//		    {
-//		        // Found a token, add it to the vector.
-//		        tokens.push_back(str.substr(lastPos, pos - lastPos));
-//		        // Skip delimiters.  Note the "not_of"
-//			    lastPos = str.find_first_not_of(delimiters, pos);
-//			    // Find next "non-delimiter"
-//			    pos = str.find_first_of(delimiters, lastPos);
-//		    }
-//		}
 
 		// help function to tokenize the parameter string
 		void tokenize(const std::string& str, std::vector<std::string>& tokens, const char delimiter)
 		{
-
 			tokens.clear();
 			std::stringstream tokenstream;
 			tokenstream << str;
 			std::string token;
 
-			while ( std::getline (tokenstream, token, delimiter ) ) {
-					tokens.push_back(token);
+			while ( std::getline (tokenstream, token, delimiter ) )
+			{
+					tokens.push_back(remove_whitespace_front_and_back(token));
 			}
+		}
+
+		std::string remove_whitespace_front_and_back(const std::string& str)
+		{
+			const size_t start = str.find_first_not_of(" \t");
+			const size_t end = str.find_last_not_of(" \t");
+			if(start == std::string::npos || end == std::string::npos) return "";
+			return str.substr(start, end - start + 1);
 		}
 
 	protected:
 		std::string m_name;
 
-		std::string m_retValName;
-		std::string m_retValTypeInfo;
+		std::string m_retValInfos; // string with Infos about return type
+		std::vector<std::string> m_vRetValInfo; // tokenized Infos
 
-		std::string m_paramValNames;
-		std::vector<std::string> m_vParamValNames;
-		std::string m_paramValTypeInfos;
-		std::vector<std::string> m_vParamValTypeInfos;
+		// string with Infos about parameter
+		std::string m_paramInfos;
+
+		// tokenized strings for each Parameter and each Info (name |Êstyle | options | ...)
+		std::vector<std::vector<std::string> > m_vvParamInfo;
 
 		std::string m_tooltip;
 		std::string m_help;
@@ -169,11 +178,9 @@ class ExportedFunction : public ExportedFunctionBase
 		template <typename TFunc>
 		ExportedFunction(	TFunc f, ProxyFunc pf,
 							const char* name, const char* group,
-							const char* retValName, const char* paramValNames,
-							const char* tooltip, const char* help,
-							const char* retValInfoType, const char* paramValInfoType)
-			: ExportedFunctionBase( name , retValName, paramValNames, tooltip,
-									help, retValInfoType, paramValInfoType),
+							const char* retValInfos, const char* paramInfos,
+							const char* tooltip, const char* help)
+			: ExportedFunctionBase( name , retValInfos, paramInfos, tooltip, help),
 			  m_group(group), m_func((void*)f), m_proxy_func(pf)
 		{
 			create_parameter_stack<TFunc>();

@@ -112,7 +112,8 @@ namespace ug {
 						method.parameter_name(i).c_str(),
 						paramStackIn.class_name(i),
 						paramStackIn.class_names(i),
-						method.parameter_type_info(i)) << " p" << i;
+						// todo: (i,1) means ith parameter, second info-field. Generalize !
+						method.parameter_info(i, 1)) << " p" << i;
 
 				paramArrayForInvokation << " p" << i;
 			}
@@ -137,7 +138,8 @@ namespace ug {
 						paramStackOut.class_name(0), // param name
 						paramStackOut.class_name(0),
 						paramStackOut.class_names(0),
-						method.return_type_info(), true);
+						// todo: (1) means second info-field. Generalize !
+						method.return_info(1), true);
 
 				bool readOnly =
 						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
@@ -147,7 +149,8 @@ namespace ug {
 				result << createMethodInfo(
 						paramStackOut.class_name(0),
 						paramStackOut.class_names(0),
-						readOnly, method.return_type_info()) << "\n";
+						// todo: (1) means second info-field. Generalize !
+						readOnly, method.return_info(1)) << "\n";
 			} else {
 				outType = "void";
 			}
@@ -562,7 +565,7 @@ namespace ug {
 
 			// iterate over all param stack elements and compare their type with
 			// the corresponding elements in the specified Java array
-			for (unsigned int i = 0; i < paramStack.size(); i++) {
+			for (unsigned int i = 0; i < (unsigned int)paramStack.size(); i++) {
 				jobject param = env->GetObjectArrayElement(params, i);
 				uint paramType = paramClass2ParamType(env, param);
 

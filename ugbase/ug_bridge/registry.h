@@ -31,9 +31,8 @@ class Registry {
 	 */
 		template<class TFunc>
 		Registry& add_function(const char* funcName, TFunc func, const char* group = "",
-								const char* retValName = "", const char* paramValNames = "",
-								const char* tooltip = "", const char* help = "",
-								const char* retValInfoType = "", const char* paramValInfoType = "")
+								const char* retValInfos = "", const char* paramInfos = "",
+								const char* tooltip = "", const char* help = "")
 		{
 		//	check that funcName is not already used
 			if(functionname_registered(funcName))
@@ -54,9 +53,8 @@ class Registry {
 		//  create new exported function
 			m_vFunction.push_back(new ExportedFunction(	func, &FunctionProxy<TFunc>::apply,
 														funcName, group,
-														retValName, paramValNames,
-														tooltip, help,
-														retValInfoType, paramValInfoType));
+														retValInfos, paramInfos,
+														tooltip, help));
 	
 			return *this;
 		}
