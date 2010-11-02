@@ -29,7 +29,9 @@ template
   typename T6=EmptyType,
   typename T7=EmptyType,
   typename T8=EmptyType,
-  typename T9=EmptyType
+  typename T9=EmptyType,
+  typename T10=EmptyType,
+  typename T11=EmptyType
 > struct TypeList;
 
 // implementation of TypeList
@@ -43,19 +45,22 @@ template
   typename T6,
   typename T7,
   typename T8,
-  typename T9
+  typename T9,
+  typename T10,
+  typename T11
 >
 struct TypeList
 {
   typedef T1 head;
-  typedef TypeList< T2, T3, T4, T5, T6, T7, T8, T9 > tail;
+  typedef TypeList< T2, T3, T4, T5, T6, T7, T8, T9, T10, T11 > tail;
   enum{length = tail::length+1};
 };
 
 // empty typelist specialization
 template<>
 struct TypeList< EmptyType, EmptyType, EmptyType, EmptyType,
-				 EmptyType, EmptyType, EmptyType, EmptyType, EmptyType >
+				 EmptyType, EmptyType, EmptyType, EmptyType, EmptyType,
+				 EmptyType, EmptyType>
 {
   enum{length = 0};
 };
