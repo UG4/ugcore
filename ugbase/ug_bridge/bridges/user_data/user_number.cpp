@@ -55,6 +55,38 @@ class LuaUserNumber : public IUserNumberProvider<dim>
 		lua_State*	m_L;
 };
 
+class PrintUserNumber2d
+{
+	protected:
+		typedef IUserNumberProvider<2>::functor_type NumberFunctor;
+
+	public:
+		void set_user_number(IUserNumberProvider<2>& user)
+		{
+			m_Number = user.get_functor();
+		}
+
+		number print(number x, number y)
+		{
+			MathVector<2> v(x,y);
+			number time = 0.0;
+			number ret;
+
+			if(m_Number)
+				m_Number(ret, v, time);
+			else
+			{
+				UG_LOG("Functor not set. \n");
+				ret = -1;
+			}
+
+			return ret;
+		}
+
+	private:
+		NumberFunctor m_Number;
+};
+
 template <int dim>
 void RegisterUserNumber(Registry& reg, const char* parentGroup)
 {
@@ -66,26 +98,23 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 		reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
-//	Functor
+//	ConstUserNumber
 	{
-	//	ConstUserNumber
-		{
-			typedef ConstUserNumber<dim> T;
-			stringstream ss; ss << "ConstUserNumber" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set", &T::set)
-				.add_method("print", &T::print);
-		}
+		typedef ConstUserNumber<dim> T;
+		stringstream ss; ss << "ConstUserNumber" << dim << "d";
+		reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set", &T::set)
+			.add_method("print", &T::print);
+	}
 
-	//	LuaUserNumber
-		{
-			typedef LuaUserNumber<dim> T;
-			stringstream ss; ss << "LuaUserNumber" << dim << "d";
-			reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
-		}
+//	LuaUserNumber
+	{
+		typedef LuaUserNumber<dim> T;
+		stringstream ss; ss << "LuaUserNumber" << dim << "d";
+		reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
 	}
 }
 
@@ -94,6 +123,19 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 	RegisterUserNumber<1>(reg, parentGroup);
 	RegisterUserNumber<2>(reg, parentGroup);
 	RegisterUserNumber<3>(reg, parentGroup);
+
+//	PrintUserNumber2d
+	{
+		std::string grp = std::string(parentGroup);
+
+		typedef PrintUserNumber2d T;
+		stringstream ss; ss << "PrintUserNumber2d";
+		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_user_number", &T::set_user_number)
+			.add_method("print", &T::print);
+	}
+
 }
 
 } // end namespace
