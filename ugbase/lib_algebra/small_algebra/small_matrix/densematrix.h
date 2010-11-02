@@ -145,6 +145,7 @@ public:
 		for(size_t r=0; r < num_rows(); r++)
 			for(size_t c=0; c < other.num_cols(); c++)
 			{
+				erg(r,c) = 0.0;
 				for(size_t i=0; i < num_cols(); i++)
 					AddMult(erg(r,c), at(r, i), other.at(i, c));
 			}
