@@ -148,6 +148,18 @@ class FunctionPattern
 			return fct;
 		}
 
+		/// returns the function id if function with given name found in pattern, -1 else
+		size_t fct_id_by_name(const char* name) const
+		{
+			for(size_t i = 0; i < m_vFunction.size(); ++i)
+			{
+				if(m_vFunction[i].name == name)
+					return i;
+			}
+
+			return (size_t) -1;
+		}
+
 		/// returns the dimension in which solution lives
 		int dim(size_t fct) const
 		{
