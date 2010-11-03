@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <cstring>
+#include <boost/function.hpp>
 
 #include "global_function.h"
 #include "class.h"
@@ -15,17 +16,48 @@ namespace ug
 namespace bridge
 {
 
+///	declaration of registry callback function.
+/**	Allows to notify listeners if the registry changes.
+ * Since FuncRegistryChanged is a functor, you can either
+ * pass a normal function or a member function of a class
+ * (Have a look at boost::bind in the second case).
+ */
+typedef boost::function<void ()> FuncRegistryChanged;
+
 // Registry
 /** registers functions and classes that are exported to scripts and visualizations
+ * It also allows to register callbacks that are called if the
+ * registry changes.
  *
+ * Please note that once a class or method is registered at the
+ * registry, it will can not be removed (This is important for the
+ * implementation of callbacks).
  */
 class Registry {
 	public:
 		Registry()	{}
+		
+	////////////////////////
+	//	callbacks
+	////////////////////////
+	///	adds a callback which is triggered whenever Registry::registry_changed is called.
+		void add_callback(FuncRegistryChanged callback)
+		{
+			m_callbacksRegChanged.push_back(callback);
+		}
+		
+		void registry_changed()
+		{
+		//	iterate through all callbacks and call them
+			for(size_t i = 0; i < m_callbacksRegChanged.size(); ++i){
+				m_callbacksRegChanged[i]();
+			}
+		}
+
 	//////////////////////
 	// global functions
 	//////////////////////
-
+		
 	/**	References the template function proxy_function<TFunc> and stores
 	 * it with the FuntionWrapper.
 	 */
@@ -257,8 +289,8 @@ class Registry {
 		Registry(const Registry& reg)	{}
 		
 		std::vector<ExportedFunction*>	m_vFunction;
-
 		std::vector<IExportedClass*> m_vClass;
+		std::vector<FuncRegistryChanged> m_callbacksRegChanged;
 };
 
 } // end namespace registry

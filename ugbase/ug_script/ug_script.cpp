@@ -12,21 +12,23 @@ using namespace std;
 namespace ug
 {
 
-// get default registry
-ug::bridge::Registry& GetUGRegistry()
-{
-	static bridge::Registry ugReg;
-	return ugReg;
-}
-
 namespace script
 {
 
 static ug::bridge::Registry* g_pRegistry = NULL;
 
+static void UpdateScriptAfterRegistryChange()
+{
+//	this can be called since CreateBindings automatically avoids
+//	double registration
+	ug::bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
+										*g_pRegistry);
+}
+
 void SetScriptRegistry(ug::bridge::Registry* pReg)
 {
 	g_pRegistry = pReg;
+	pReg->add_callback(UpdateScriptAfterRegistryChange);
 }
 
 

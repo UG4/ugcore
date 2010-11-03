@@ -10,6 +10,12 @@ namespace ug
 namespace bridge
 {
 
+Registry & GetUGRegistry()
+{
+	static Registry ugReg;
+	return ugReg;
+}
+
 bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 {
 	bool bResult = true;

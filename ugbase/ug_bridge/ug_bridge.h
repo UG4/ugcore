@@ -12,6 +12,9 @@ namespace ug
 namespace bridge
 {
 
+///	returns the default registry used in ug
+Registry & GetUGRegistry();
+
 ///	registers all standard interfaces.
 /**	This method is called by the constructor of Registry automatically.
  *	You don't have to call it yourself!

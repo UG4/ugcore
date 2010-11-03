@@ -142,6 +142,18 @@ std::string StdStringTest()
 	return std::string("stdJooik");
 }
 
+void PostRegisteredFunction()
+{
+	UG_LOG("PostRegisteredFunction successfully executed.\n");
+}
+
+void PostRegisterTest()
+{
+	bridge::Registry& reg = bridge::GetUGRegistry();
+	reg.add_function("PostRegisteredFunction", &PostRegisteredFunction);
+	reg.registry_changed();
+}
+
 bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 {
 	try
@@ -187,6 +199,8 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_function("ToConst", ToConst, grp.c_str())
 			.add_function("StringTest", StringTest, grp.c_str())
 			.add_function("StdStringTest", StdStringTest, grp.c_str());
+			
+		reg.add_function("PostRegisterTest", &PostRegisterTest);
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

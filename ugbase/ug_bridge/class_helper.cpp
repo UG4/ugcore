@@ -12,7 +12,8 @@
 
 
 #include "class_helper.h"
-#include "ug_script/ug_script.h"
+#include "registry.h"
+//#include "ug_script/ug_script.h"
 
 namespace ug
 {
@@ -73,7 +74,7 @@ void GetClassHierarchy(ClassHierarchy &hierarchy, const bridge::Registry &reg)
 
 const IExportedClass *FindClass(const char* classname)
 {
-	bridge::Registry &reg = ug::GetUGRegistry();
+	bridge::Registry &reg = ug::bridge::GetUGRegistry();
 	for(size_t j=0; j<reg.num_classes(); ++j)
 		if(strcmp(classname, reg.get_class(j).name()) == 0)
 		{

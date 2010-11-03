@@ -476,6 +476,16 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 	for(size_t i = 0; i < numFuncs; ++i){
 		ExportedFunction* func = &reg.get_function(i);
 
+	//	check whether the function already exists
+		lua_getglobal(L, func->name().c_str());
+		if(!lua_isnil(L, -1)){
+		//	the method already exists. Don't recreate it.
+			lua_pop(L, 1);
+			continue;
+		}
+		lua_pop(L, 1);
+		
+	//	the function is new. Register it.
 		lua_pushlightuserdata(L, func);
 		lua_pushcclosure(L, LuaProxyFunction, 1);
 		lua_setglobal(L, func->name().c_str());
@@ -486,6 +496,16 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 	for(size_t i = 0; i < numClasses; ++i){
 		const IExportedClass* c = &reg.get_class(i);
 		
+	//	check whether the class already exists
+		lua_getglobal(L, c->name());
+		if(!lua_isnil(L, -1)){
+		//	the class already exists. Don't recreate it.
+			lua_pop(L, 1);
+			continue;
+		}
+		lua_pop(L, 1);
+		
+	//	The class is new. Register it.
 		if(c->is_instantiable())
 		{
 		//	set the constructor-function
