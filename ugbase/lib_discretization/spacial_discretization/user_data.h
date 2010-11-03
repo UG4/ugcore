@@ -121,7 +121,7 @@ class ConstUserVector : public IUserVectorProvider<dim>
 		typedef typename IUserVectorProvider<dim>::functor_type functor_type;
 
 	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+		virtual functor_type get_functor() const {return boost::ref(*this);}
 
 	public:
 		ConstUserVector() {set_all_entries(0.0);}
@@ -138,7 +138,7 @@ class ConstUserVector : public IUserVectorProvider<dim>
 			UG_LOG("ConstUserVector:" << m_Vector << "\n");
 		}
 
-		void operator() (MathVector<dim>& v, const MathVector<dim>& x, number time = 0.0)
+		void operator() (MathVector<dim>& v, const MathVector<dim>& x, number time = 0.0) const
 		{
 			v = m_Vector;
 		}
@@ -155,7 +155,7 @@ class ConstUserMatrix : public IUserMatrixProvider<dim>
 		typedef typename IUserMatrixProvider<dim>::functor_type functor_type;
 
 	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+		virtual functor_type get_functor() const {return boost::ref(*this);}
 
 	public:
 		ConstUserMatrix() {set_diag_tensor(1.0);}
@@ -189,7 +189,7 @@ class ConstUserMatrix : public IUserMatrixProvider<dim>
 			UG_LOG("ConstUserMatrix:\n" << m_Tensor << "\n");
 		}
 
-		void operator() (MathMatrix<dim, dim>& D, const MathVector<dim>& x, number time = 0.0)
+		void operator() (MathMatrix<dim, dim>& D, const MathVector<dim>& x, number time = 0.0) const
 		{
 			D = m_Tensor;
 		}
@@ -206,7 +206,7 @@ class ConstBoundaryNumber : public IBoundaryNumberProvider<dim>
 		typedef typename IBoundaryNumberProvider<dim>::functor_type functor_type;
 
 	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+		virtual functor_type get_functor() const {return boost::ref(*this);}
 
 	public:
 		ConstBoundaryNumber() {m_Number = 0.0;}
@@ -221,7 +221,7 @@ class ConstBoundaryNumber : public IBoundaryNumberProvider<dim>
 			UG_LOG("ConstBoundaryNumber:" << m_Number << "\n");
 		}
 
-		bool operator() (number& c, const MathVector<dim>& x, number time = 0.0)
+		bool operator() (number& c, const MathVector<dim>& x, number time = 0.0) const
 		{
 			c = m_Number;
 			return true;
