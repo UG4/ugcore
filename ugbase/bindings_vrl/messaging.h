@@ -13,6 +13,9 @@
 #ifndef MESSAGING_H
 #define	MESSAGING_H
 
+#define EMPHASIZE_BEGIN "\"<tt><b>"
+#define EMPHASIZE_END "</tt></b>\""
+
 
 namespace ug {
 	namespace vrl {

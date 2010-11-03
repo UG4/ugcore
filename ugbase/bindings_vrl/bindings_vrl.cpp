@@ -15,11 +15,13 @@
 
 #include "lib_grid/lib_grid.h"
 #include "compiledate.h"
+#include "vrl_user_number.h"
 
 namespace ug {
 	namespace vrl {
 		static ug::bridge::Registry* vrlRegistry = NULL;
 		static JNIEnv* jniEnv = NULL;
+		static JavaVM* javaVM = NULL;
 
 		void SetVRLRegistry(ug::bridge::Registry* pReg) {
 			vrlRegistry = pReg;
@@ -27,10 +29,15 @@ namespace ug {
 
 		void SetJNIEnv(JNIEnv* env) {
 			jniEnv = env;
+			env->GetJavaVM(&javaVM);
 		}
 
 		JNIEnv* getJNIEnv() {
 			return jniEnv;
+		}
+
+		JavaVM* getJavaVM() {
+			return javaVM;
 		}
 
 
@@ -76,6 +83,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 
 	ug::bridge::RegisterStandardInterfaces(testReg);
+	ug::vrl::RegisterVRLUserNumber(testReg,"testing");
 //			ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 

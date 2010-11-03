@@ -13,28 +13,36 @@
 #include "messaging.h"
 #include "svnrevision.h"
 
+#ifdef __GNUC__
+#define PRETTY_FUNCTION __PRETTY_FUNCTION__
+#else
+#define PRETTY_FUNCTION "function name not available (not using GCC)"
+#endif
+
 namespace ug {
-    namespace vrl {
+	namespace vrl {
 		/**
 		 * Defines the regisitry to use for VRL.
-         * @param pReg registry
-         */
-        void SetVRLRegistry(ug::bridge::Registry* pReg);
+		 * @param pReg registry
+		 */
+		void SetVRLRegistry(ug::bridge::Registry* pReg);
 		/**
 		 * Defines the JVM environment to operate on
-         * @param env JVM environment
-         */
+		 * @param env JVM environment
+		 */
 		void SetJNIEnv(JNIEnv* env);
 		JNIEnv* getJNIEnv();
 
+		JavaVM* getJavaVM();
+
 		/**
 		 * Returns the global SVN revision of this build.
-         * @return global SVN revision of this build
+		 * @return global SVN revision of this build
 		 */
 		inline std::string svnRevision() {
-			return split(SVN_REVISION,':')[0]; // 
+			return split(SVN_REVISION, ':')[0]; //
 		}
-    } // end vrl::
+	} // end vrl::
 }// end ug::
 
 #endif	/*BINDINGS_VRL_H*/

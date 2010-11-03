@@ -8,12 +8,6 @@
 #ifndef TYPE_CONVERTER_H
 #define	TYPE_CONVERTER_H
 
-#ifdef __GNUC__
-#define PRETTY_FUNCTION __PRETTY_FUNCTION__
-#else
-#define PRETTY_FUNCTION "function name not available (not using GCC)"
-#endif
-
 #include<jni.h>
 #include<string>
 #include<vector>

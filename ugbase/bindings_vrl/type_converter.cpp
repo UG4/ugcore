@@ -6,9 +6,9 @@
 namespace ug {
 	namespace vrl {
 
-//		jstring stringC2J(JNIEnv *env, std::string const& s) {
-//			return stringC2J(env, s.c_str());
-//		}
+		//		jstring stringC2J(JNIEnv *env, std::string const& s) {
+		//			return stringC2J(env, s.c_str());
+		//		}
 
 		jstring stringC2J(JNIEnv *env, const char* s) {
 			return env->NewStringUTF(s);
@@ -107,7 +107,7 @@ namespace ug {
 					paramArrayForInvokation << ", ";
 				}
 
-//				UG_LOG("BEFORE param2string:in loop: \n");
+				//				UG_LOG("BEFORE param2string:in loop: \n");
 
 				methodHeaderParams << paramType2String(
 						paramStackIn.get_type(i),
@@ -131,7 +131,12 @@ namespace ug {
 				paramArrayForInvokation << " id";
 			}
 
-//			UG_LOG("RETURN_VEC:" << method.return_info_vec().size() << std::endl);
+			//			UG_LOG("RETURN_VEC:" << method.return_info_vec().size() << std::endl);
+
+			bool readOnly = false;
+
+			std::string className = "";
+			const std::vector<const char*>* classNames = NULL;
 
 			// return value generation
 			std::string outType;
@@ -141,22 +146,23 @@ namespace ug {
 						paramStackOut.class_name(0), // param name
 						paramStackOut.class_name(0),
 						paramStackOut.class_names(0),
-						// todo: (1) means second info-field. Generalize !
 						method.return_info_vec(), true);
 
-				bool readOnly =
-						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
+				className = paramStackOut.class_name(0);
+				classNames = paramStackOut.class_names(0);
 
-				// generate method info including return value info
-				// (equivalent to param info)
-				result << createMethodInfo(
-						paramStackOut.class_name(0),
-						paramStackOut.class_names(0),
-						// todo: (1) means second info-field. Generalize !
-						readOnly, method.return_info(1)) << "\n";
+				readOnly =
+						paramStackOut.get_type(0) == ug::bridge::PT_CONST_POINTER;
 			} else {
 				outType = "void";
 			}
+
+			// generate method info including return value info
+			// (equivalent to param info)
+			result << createMethodInfo(
+					className.c_str(),
+					classNames,
+					readOnly, method.options()) << "\n";
 
 			// putting it all together
 			result << "public " << outType << " " << prefix << name << " ("
@@ -274,8 +280,8 @@ namespace ug {
 
 			result << "@MethodInfo(interactive=false)\n"
 					<< " void setPointer("
-					<< createParamInfo(clazz.name(),clazz.name(), clazz.class_names(),
-					false, paramInfo,"nullIsValid=true")
+					<< createParamInfo(clazz.name(), clazz.name(), clazz.class_names(),
+					false, paramInfo, "nullIsValid=true")
 					<< " edu.gcsc.vrl.ug4.Pointer p) { super.setPointer(p)}\n";
 
 			result << "\n}";
@@ -359,10 +365,11 @@ namespace ug {
 
 		std::string createParamInfo(const char* paramName, const char* className,
 				const std::vector<const char*>* classNames, bool isConst,
-				std::vector<std::string> const& paramInfo, std::string const& customParamInfo) {
+				std::vector<std::string> const& paramInfo,
+				std::string const& additionalParamInfo) {
 
 			std::string customInfo = paramInfo.at(1);
-			std::string customOptions = replaceAll(paramInfo.at(2),"\"","\\\"");
+			std::string customOptions = replaceAll(paramInfo.at(2), "\"", "\\\"");
 
 			std::stringstream paramInfoStream;
 			std::stringstream classNameOptionsStream;
@@ -370,10 +377,13 @@ namespace ug {
 			// if class name or class names strings are empty no param info can
 			// be generated, return error message as Groovy comment instead
 			if (className == NULL) {
-				return std::string("/*ERROR PARAMINFO CLASSNAME == NULL*/");
+				//return std::string("/*ERROR PARAMINFO CLASSNAME == NULL*/");
+				className = "";
 			}
+
 			if (classNames == NULL) {
-				return std::string("/*ERROR PARAMINFO CLASSNAMES == NULL*/");
+				//return std::string("/*ERROR PARAMINFO CLASSNAMES == NULL*/");
+				classNames = new std::vector<const char*>;
 			}
 
 			// creating VRL param options to ensure type-safety
@@ -400,19 +410,18 @@ namespace ug {
 			paramInfoStream
 					<< "@ParamInfo( name=\""
 					<< paramName << "\""
-					<< classNameOptionsStream.str() << "; " << customOptions << "\"";
+					<< classNameOptionsStream.str()
+					<< "; " << customOptions << "\"";
 
 			if (customInfo.size() > 0) {
 				paramInfoStream << ", style=\"" << customInfo << "\"";
 
 			}
-			
-			if (customParamInfo.size() > 0) {
-				paramInfoStream << ", " << customParamInfo;
-				
+
+			if (additionalParamInfo.size() > 0) {
+				paramInfoStream << ", " << additionalParamInfo;
+
 			}
-
-
 
 			paramInfoStream << ") ";
 
@@ -424,15 +433,15 @@ namespace ug {
 				std::string customInfo, std::string customOptions) {
 			std::stringstream methodInfo;
 			std::stringstream classNameOptions;
-
-			// if class name or class names strings are empty no method info can
-			// be generated, return error message as Groovy comment instead
+			//
 			if (className == NULL) {
-				return std::string("/*ERROR METHODINFO CLASSNAME == NULL*/");
+				//return std::string("/*ERROR METHODINFO CLASSNAME == NULL*/");
+				className = "";
 			}
 
 			if (classNames == NULL) {
-				return std::string("/*ERROR METHODINFO CLASSNAMES == NULL*/");
+				//return std::string("/*ERROR METHODINFO CLASSNAMES == NULL*/");
+				classNames = new std::vector<const char*>;
 			}
 
 			// creating VRL param options to ensure type-safety for the return
@@ -479,9 +488,45 @@ namespace ug {
 				std::vector<std::string> const& paramInfo, bool isOutput) {
 
 			switch (paramType) {
-				case ug::bridge::PT_BOOL: return "boolean";
-				case ug::bridge::PT_INTEGER: return "int";
-				case ug::bridge::PT_NUMBER: return "double";
+				case ug::bridge::PT_BOOL:
+				{
+					if (isOutput) {
+						return "boolean";
+					} else {
+						std::string result =
+								createParamInfo(paramName, className,
+								classNames, false, paramInfo) +
+								std::string("boolean");
+
+						return result.c_str();
+					}
+				}
+				case ug::bridge::PT_INTEGER:
+				{
+					if (isOutput) {
+						return "int";
+					} else {
+						std::string result =
+								createParamInfo(paramName, className,
+								classNames, false, paramInfo) +
+								std::string("int");
+
+						return result.c_str();
+					}
+				}
+				case ug::bridge::PT_NUMBER:
+				{
+					if (isOutput) {
+						return "double";
+					} else {
+						std::string result =
+								createParamInfo(paramName, className,
+								classNames, false, paramInfo) +
+								std::string("double");
+
+						return result.c_str();
+					}
+				}
 				case ug::bridge::PT_STRING:
 				{
 					if (isOutput) {
@@ -489,7 +534,8 @@ namespace ug {
 					} else {
 						std::string result =
 								createParamInfo(paramName, "",
-								new std::vector<const char*>(), false, paramInfo) +
+								new std::vector<const char*>(),
+								false, paramInfo) +
 								std::string("String");
 
 						return result.c_str();
@@ -501,7 +547,7 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(paramName, 
+								createParamInfo(paramName,
 								className, classNames, false, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
@@ -514,7 +560,7 @@ namespace ug {
 						return "edu.gcsc.vrl.ug4.Pointer";
 					} else {
 						std::string result =
-								createParamInfo(paramName, 
+								createParamInfo(paramName,
 								className, classNames, true, paramInfo) +
 								std::string("edu.gcsc.vrl.ug4.Pointer");
 
@@ -586,7 +632,7 @@ namespace ug {
 
 			// iterate over all param stack elements and compare their type with
 			// the corresponding elements in the specified Java array
-			for (unsigned int i = 0; i < (unsigned int)paramStack.size(); i++) {
+			for (unsigned int i = 0; i < (unsigned int) paramStack.size(); i++) {
 				jobject param = env->GetObjectArrayElement(params, i);
 				uint paramType = paramClass2ParamType(env, param);
 
