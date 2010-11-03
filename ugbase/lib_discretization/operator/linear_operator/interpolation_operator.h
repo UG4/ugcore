@@ -14,12 +14,17 @@
 #include "lib_discretization/function_spaces/function_spaces.h"
 #include "lib_discretization/operator/operator.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_factory.h"
+#include "lib_discretization/spacial_discretization/user_data.h"
+#include <boost/function.hpp>
 
 namespace ug{
 
 template <typename TElem, typename TGridFunction>
-bool InterpolateFunctionOnElem( bool (*InterpolFunction)(const MathVector<TGridFunction::domain_type::dim>&, number&),
-								TGridFunction& u, size_t fct, int si)
+bool InterpolateFunctionOnElem( boost::function<void (	number& res,
+														const MathVector<TGridFunction::domain_type::dim>& x,
+														number& time)>
+														InterpolFunction,
+								TGridFunction& u, size_t fct, int si, number time)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	const int dim = ref_elem_type::dim;
@@ -37,7 +42,8 @@ bool InterpolateFunctionOnElem( bool (*InterpolFunction)(const MathVector<TGridF
 	{
 		if(!trialSpace.position_of_dof(i, loc_pos[i]))
 		{
-			UG_LOG("Chosen Local Shape function Set does not provide senseful interpolation points. Can not use Lagrange interpolation.\n");
+			UG_LOG("Chosen Local Shape function Set does not provide "
+					"senseful interpolation points. Can not use Lagrange interpolation.\n");
 			return false;
 		}
 	}
@@ -77,13 +83,14 @@ bool InterpolateFunctionOnElem( bool (*InterpolFunction)(const MathVector<TGridF
 		for(size_t i = 0; i < num_sh; ++i)
 		{
 			typename domain_type::position_type glob_pos;
-			//refElem.template mapLocalToGlobal<domain_type::dim>(corners, loc_pos[i], glob_pos);
-			if(mapping.local_to_global(loc_pos[i], glob_pos) != true) return false;
-			if(!InterpolFunction(glob_pos, val))
-			{
-				UG_LOG("Error while evaluating function u. Aborting interpolation.\n");
+
+			if(!mapping.local_to_global(loc_pos[i], glob_pos))
 				return false;
-			}
+
+		//	evaluate functor
+			InterpolFunction(val, glob_pos, time);
+
+		//	set value
 			BlockRef(v_vec[ind[i][0]], ind[i][1]) = val;
 		}
 	}
@@ -92,15 +99,32 @@ bool InterpolateFunctionOnElem( bool (*InterpolFunction)(const MathVector<TGridF
 
 
 template <typename TGridFunction>
-bool InterpolateFunction(	bool (*InterpolFunction)(const MathVector<TGridFunction::domain_type::dim>&, number&),
-							TGridFunction& u, size_t fct)
+bool InterpolateFunction(	IUserNumberProvider<TGridFunction::domain_type::dim>& InterpolFunctionProvider,
+							TGridFunction& u, const char* name, number time)
 {
+//	get Function Pattern
+	const FunctionPattern& pattern = u.get_approximation_space().get_function_pattern();
+
+//	get function id of name
+	const size_t fct = pattern.fct_id_by_name(name);
+
+//	check that function found
+	if(fct == (size_t)-1)
+	{
+		UG_LOG("In InterpolateFunction: Name of function not found.\n");
+		return false;
+	}
+
 //	check that function exists
 	if(fct >= u.num_fct())
 	{
 		UG_LOG("Function space does not contain a function with index " << fct << ".\n");
 		return false;
 	}
+
+//	extract functor
+	typedef typename IUserNumberProvider<TGridFunction::domain_type::dim>::functor_type functor_type;
+	functor_type InterpolFunction = InterpolFunctionProvider.get_functor();
 
 //	loop for dimensions
 	switch(u.dim(fct))
@@ -110,8 +134,8 @@ bool InterpolateFunction(	bool (*InterpolFunction)(const MathVector<TGridFunctio
 		{
 			if(!u.is_def_in_subset(fct, si)) continue;
 
-			if(!InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si)) return false;
-			if(!InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si)) return false;
+			if(!InterpolateFunctionOnElem<Triangle, TGridFunction>(InterpolFunction, u, fct, si, time)) return false;
+			if(!InterpolateFunctionOnElem<Quadrilateral, TGridFunction>(InterpolFunction, u, fct, si, time)) return false;
 		}
 		break;
 	case 3:
@@ -120,8 +144,8 @@ bool InterpolateFunction(	bool (*InterpolFunction)(const MathVector<TGridFunctio
 			if(u.is_def_in_subset(fct, si) != true) continue;
 
 			// todo: more elements
-			if(!InterpolateFunctionOnElem<Tetrahedron, TGridFunction>(InterpolFunction, u, fct, si)) return false;
-			if(!InterpolateFunctionOnElem<Hexahedron, TGridFunction>(InterpolFunction, u, fct, si)) return false;
+			if(!InterpolateFunctionOnElem<Tetrahedron, TGridFunction>(InterpolFunction, u, fct, si, time)) return false;
+			if(!InterpolateFunctionOnElem<Hexahedron, TGridFunction>(InterpolFunction, u, fct, si, time)) return false;
 		}
 		break;
 	default: UG_LOG("InterpolateFunction: Dimension not implemented.\n"); return false;
