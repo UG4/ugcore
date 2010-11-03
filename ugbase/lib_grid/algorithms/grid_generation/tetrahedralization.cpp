@@ -67,7 +67,30 @@ static bool PerformTetrahedralization(Grid& grid,
 	}
 
 //	set up facets
-	{
+	{/*
+		if(pSH){
+		//	collect all edges that are assigned to subsets
+			vector<EdgeBase*> edges;
+			for(int si = 0; si < pSH->num_subsets(); ++si){
+				for(EdgeBaseIterator iter = pSH->begin<EdgeBase>(si);
+					iter != pSH->end<EdgeBase>(si); ++iter)
+				{
+					edges.push_back(*iter);
+				}
+			}
+			
+			in.numberofedges = (int)edges.size();
+			in.edgelist = new int[in.numberofedges*2];
+			in.edgemarkerlist = new int[in.numberofedges];
+			
+			for(size_t i = 0; i < edges.size(); ++i){
+				in.edgelist[i*2] = aaInd[edges[i]->vertex(0)];
+				in.edgelist[i*2 + 1] = aaInd[edges[i]->vertex(1)];
+				in.edgemarkerlist[i] = pSH->get_subset_index(edges[i]);
+			}
+			UG_LOG("number of edges in: " << in.numberofedges << endl);
+		}*/
+		
 		in.numberoffacets = grid.num_faces();
 		in.facetlist = new tetgenio::facet[in.numberoffacets];
 		in.facetmarkerlist = new int[in.numberoffacets];
@@ -138,31 +161,29 @@ static bool PerformTetrahedralization(Grid& grid,
 		}
 	}
 
-/*
-	if(out.numberoftrifaces > (int)grid.num<Triangle>()){
-		LOG("aborting tetrahedralization - bad nuber of triangle faces.\n");
-		return false;
+//	new elements only have to be created if they are assigned to a subset.
+	if(pSH){
+	/*
+		UG_LOG("number of edges out: " << out.numberofedges << endl);
+	//	add new edges
+		grid.erase(grid.edges_begin(), grid.edges_end());
+		for(int i = 0; i < out.numberofedges; ++i){
+			Edge* e = *grid.create<Edge>(EdgeDescriptor(vVrts[out.edgelist[i*2]],
+														vVrts[out.edgelist[i*2 + 1]]));
+			pSH->assign_subset(e, out.edgemarkerlist[i]);
+		}*/
+
+	//	add new faces
+		grid.erase(grid.faces_begin(), grid.faces_end());
+		for(int i = 0; i < out.numberoftrifaces; ++i)
+		{
+			Triangle* tri = *grid.create<Triangle>(TriangleDescriptor(vVrts[out.trifacelist[i*3]],
+													vVrts[out.trifacelist[i*3 + 1]],
+													vVrts[out.trifacelist[i*3 + 2]]));
+
+			pSH->assign_subset(tri, out.trifacemarkerlist[i]);
+		}
 	}
-*/
-
-/*
-	grid.erase(grid.faces_begin(), grid.faces_end());
-
-	LOG(out.numberoftrifaces << endl);
-	LOG(out.numberoffacets << endl);
-
-//	add new faces
-
-	for(int i = 0; i < out.numberoftrifaces; ++i)
-	{
-		Triangle* tri = *grid.create<Triangle>(TriangleDescriptor(vVrts[out.trifacelist[i*3]],
-												vVrts[out.trifacelist[i*3 + 1]],
-												vVrts[out.trifacelist[i*3 + 2]]));
-
-		if(pSH)
-			pSH->assign_subset(tri, 0);
-	}
-*/
 
 	if(out.numberoftetrahedra < 1)
 		return false;
