@@ -32,17 +32,32 @@ struct CreateParameterOutStack<void>
 	}
 };
 
+struct UG_REGISTRY_ERROR_FunctionOrMethodNameMissing {};
 
 /** Base class for function/method export
  */
 class ExportedFunctionBase
 {
 	public:
-		ExportedFunctionBase(	const char* name, const char* retValInfos, const char* paramInfos,
+		ExportedFunctionBase(	const char* funcInfos, const char* retValInfos, const char* paramInfos,
 								const char* tooltip, const char* help)
-		: m_name(name), m_retValInfos(retValInfos), m_paramInfos(paramInfos),
+		: m_funcInfos(funcInfos), m_retValInfos(retValInfos), m_paramInfos(paramInfos),
 		  m_tooltip(tooltip), m_help(help)
 		{
+		//	get name and visualization options of function
+			std::vector<std::string> vFuncInfoTmp;
+			tokenize(m_funcInfos, vFuncInfoTmp, '|');
+
+		//	set name
+			if(vFuncInfoTmp.size() >= 1) m_name = trim(vFuncInfoTmp[0]);
+			else throw(UG_REGISTRY_ERROR_FunctionOrMethodNameMissing());
+
+		//	set options if given
+			if(vFuncInfoTmp.size() >= 2) m_methodOptions = trim(vFuncInfoTmp[1]);
+			else m_methodOptions = "";
+
+		//	other fields are neglected
+
 		//	Tokenize string for return value (separated by '|')
 			tokenize(m_retValInfos, m_vRetValInfo, '|');
 
@@ -60,6 +75,9 @@ class ExportedFunctionBase
 
 	///	name of function
 		const std::string& name() const 							{return m_name;}
+
+	///	name of function
+		const std::string& options() const 							{return m_methodOptions;}
 
 	/// name of return value
 		const std::string& return_name() const 						{return return_info(0);}
@@ -141,11 +159,11 @@ class ExportedFunctionBase
 
 			while ( std::getline (tokenstream, token, delimiter ) )
 			{
-					tokens.push_back(remove_whitespace_front_and_back(token));
+					tokens.push_back(trim(token));
 			}
 		}
 
-		std::string remove_whitespace_front_and_back(const std::string& str)
+		std::string trim(const std::string& str)
 		{
 			const size_t start = str.find_first_not_of(" \t");
 			const size_t end = str.find_last_not_of(" \t");
@@ -154,7 +172,9 @@ class ExportedFunctionBase
 		}
 
 	protected:
+		std::string m_funcInfos;
 		std::string m_name;
+		std::string m_methodOptions;
 
 		std::string m_retValInfos; // string with Infos about return type
 		std::vector<std::string> m_vRetValInfo; // tokenized Infos
