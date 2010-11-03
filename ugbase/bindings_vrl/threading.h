@@ -1,0 +1,127 @@
+/*
+ * File:   threading.h
+ * Author: Michael Hoffer <info@michaelhoffer.de>
+ *
+ * Created on 3. November 2010, 15:37
+ */
+
+#include <jni.h>
+#include <stddef.h>
+#include "messaging.h"
+#include "bindings_vrl.h"
+
+#ifndef THREADING_H
+#define	THREADING_H
+namespace ug {
+	namespace vrl {
+		namespace threading {
+
+			enum ExceptionType {
+				ATTACH_FAILED,
+				DETACH_FAILED,
+				NOT_ATTACHED
+			};
+
+			/**
+			 * Exception
+			 */
+			class JNIThreadException {
+			public:
+
+				JNIThreadException(ExceptionType type) {
+					this->type = type;
+
+					switch (type) {
+						case ATTACH_FAILED:
+						{
+							UG_LOG("UG-VRL: Attaching thread failed in "
+									<< EMPHASIZE_BEGIN
+									<< PRETTY_FUNCTION
+									<< EMPHASIZE_END
+									<< " in line: " << __LINE__ << " !");
+						}
+						break;
+						case DETACH_FAILED:
+						{
+							UG_LOG("UG-VRL: Detaching thread failed in "
+									<< EMPHASIZE_BEGIN
+									<< PRETTY_FUNCTION
+									<< EMPHASIZE_END
+									<< " in line: " << __LINE__ << " !");
+						}
+						break;
+						case NOT_ATTACHED:
+						{
+							UG_LOG("UG-VRL: Thread not attached in "
+									<< EMPHASIZE_BEGIN
+									<< PRETTY_FUNCTION
+									<< EMPHASIZE_END
+									<< " in line: " << __LINE__ << " !");
+						}
+						break;
+					}
+				}
+				ExceptionType type;
+			};
+
+			/**
+			 * Attaches the current thread to the JVM. If the thread is already
+			 * attached this is equivalent to <code>getEnv()</code>.
+             * @param javaVM Java VM to operate on
+             * @return JVM environment of the current thread
+			 * @throws JNIThreadException
+             */
+			inline JNIEnv* attachThread(JavaVM* javaVM) {
+				JNIEnv* localEnv = NULL;
+
+				int result = javaVM->AttachCurrentThread(
+						(void **) (&localEnv), NULL);
+
+				if (result < 0) {
+					throw JNIThreadException(ATTACH_FAILED);
+				}
+
+				return localEnv;
+			}
+
+			/**
+			 * Detaches the current thread from the JVM.
+             * @param javaVM Java VM to operate on
+			 * @throws JNIThreadException
+             */
+			inline void detachThread(JavaVM* javaVM) {
+
+				int result = javaVM->DetachCurrentThread();
+
+				if (result < 0) {
+					throw JNIThreadException(DETACH_FAILED);
+				}
+			}
+
+			/**
+			 * Returns the JVM environment of the current thread.
+             * @param javaVM Java VM to operate on
+             * @return JVM environment of the current thread
+			 * @throws JNIThreadException
+             */
+			inline JNIEnv* getEnv(JavaVM* javaVM) {
+				JNIEnv* localEnv = NULL;
+
+				jint result = javaVM->GetEnv(
+						(void **) (&localEnv), JNI_VERSION_1_2);
+
+				if (result != JNI_OK) {
+					throw JNIThreadException(NOT_ATTACHED);
+				}
+
+				return localEnv;
+			}
+		}
+	}
+}
+
+
+
+
+#endif	/* THREADING_H */
+

@@ -7,6 +7,7 @@
 #include "../ug_script/ug_script.h"
 #include "bindings_vrl.h"
 #include "type_converter.h"
+#include "threading.h"
 
 namespace ug {
 	namespace vrl {
@@ -40,7 +41,7 @@ namespace ug {
 //				javaVM->DetachCurrentThread();
 			}
 
-			void operator() (number& c, const MathVector<dim>& x, number time = 0.0) {
+			void operator() (number& c, const MathVector<dim>& x, number time = 0.0) const {
 
 				//			for(size_t i = 0; i < /*dim*/ 2; ++i) {
 				//
@@ -55,50 +56,32 @@ namespace ug {
 					val_y = x[1];
 				}
 				
-
-				JNIEnv* localEnv = NULL;
-				javaVM->AttachCurrentThread((void **) (&localEnv), NULL);
-
-				UG_LOG("Error 1\n");
+				JNIEnv* localEnv = threading::getEnv(getJavaVM());
 
 				jclass cls = localEnv->FindClass(
 						"eu/mihosoft/vrl/types/GroovyFunction2D");
 
-				UG_LOG("Error 2\n");
-
 				if (localEnv->ExceptionCheck()) {
 					localEnv->ExceptionDescribe();
 				}
-
-				UG_LOG("Error 3\n");
 
 				jmethodID methodID = localEnv->GetMethodID(
 						cls, "<init>", "(Ljava/lang/String;)V");
 
-				UG_LOG("Error 4\n");
-
 				if (localEnv->ExceptionCheck()) {
 					localEnv->ExceptionDescribe();
 				}
 
-				UG_LOG("Error 5\n");
-
-				groovyFunction = localEnv->NewObject(
+				jobject groovyFunction = localEnv->NewObject(
 						cls, methodID, ug::vrl::stringC2J(localEnv, expression.c_str()));
 
-				UG_LOG("Error 6\n");
-
 				if (localEnv->ExceptionCheck()) {
 					localEnv->ExceptionDescribe();
 				}
 
-				UG_LOG("Error 7\n");
-
-				runMethod = localEnv->GetMethodID(
+				jmethodID runMethod = localEnv->GetMethodID(
 						cls, "run",
 						"(Ljava/lang/Double;Ljava/lang/Double;)Ljava/lang/Double;");
-
-				UG_LOG("Error 8\n");
 
 				if (localEnv->ExceptionCheck()) {
 					localEnv->ExceptionDescribe();
@@ -109,12 +92,7 @@ namespace ug {
 						double2JObject(localEnv,val_x),
 						double2JObject(localEnv,val_y));
 
-				UG_LOG("Error 2\n");
-
 				c = jObject2Double(localEnv,result);
-
-				UG_LOG("Error 3: a = " << c << std::endl);
-
 
 				//			lua_getglobal(m_L, m_callbackName);
 				//			for(size_t i = 0; i < dim; ++i)
@@ -130,17 +108,13 @@ namespace ug {
 				//
 				//			c = luaL_checknumber(m_L, -1);
 				//			lua_pop(m_L, 1);
-
-				javaVM->DetachCurrentThread();
-
-				UG_LOG("Error 4\n");
 			}
 
 		protected:
 			std::string expression;
 			JavaVM* javaVM;
-			jobject groovyFunction;
-			jmethodID runMethod;
+//			jobject groovyFunction;
+//			jmethodID runMethod;
 		};
 
 		template <int dim>
