@@ -15,10 +15,21 @@
 namespace ug {
 	namespace vrl {
 		namespace threading {
-
+			/**
+			 * Exception type
+			 */
 			enum ExceptionType {
+				/**
+				 * Attaching current thread to JVM failed.
+				 */
 				ATTACH_FAILED,
+				/**
+				 * Detaching current thread from JVM failed.
+				 */
 				DETACH_FAILED,
+				/**
+				 * Current thread not attached to JVM.
+				 */
 				NOT_ATTACHED
 			};
 
@@ -28,6 +39,10 @@ namespace ug {
 			class JNIThreadException {
 			public:
 
+				/**
+				 * Constructor.
+                 * @param type exception type
+                 */
 				JNIThreadException(ExceptionType type) {
 					this->type = type;
 
@@ -61,6 +76,7 @@ namespace ug {
 						break;
 					}
 				}
+				
 				ExceptionType type;
 			};
 
@@ -116,12 +132,9 @@ namespace ug {
 
 				return localEnv;
 			}
-		}
-	}
-}
-
-
-
+		} // threading::
+	} // vrl::
+} // ug::
 
 #endif	/* THREADING_H */
 
