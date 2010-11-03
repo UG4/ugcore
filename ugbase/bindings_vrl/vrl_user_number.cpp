@@ -21,7 +21,7 @@ namespace ug {
 			//	return functor
 
 			virtual functor_type get_functor() const {
-				return *this;
+				return boost::ref(*this);
 			}
 
 		public:
