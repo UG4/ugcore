@@ -43,8 +43,8 @@ class LuaUserMatrix : public IUserMatrixProvider<dim>
 
 			if(lua_pcall(m_L, dim + 1, matSize, 0) != 0)
 			{
-				UG_LOG("error running diffusion callback " << m_callbackName << ": "
-								<< lua_tostring(m_L, -1));
+				UG_LOG("error running lua matrix callback '" << m_callbackName << "': "
+								<< lua_tostring(m_L, -1) << "\n");
 				throw(int(0));
 			}
 

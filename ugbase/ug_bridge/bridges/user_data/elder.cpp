@@ -78,48 +78,8 @@ class ElderUserFunction : public IDensityDrivenFlowUserFunction<2>
 
 } // end unnamed namespace
 
-namespace {
-
-bool c_InitValues(const MathVector<2>& x, number& res)
-{
-	res = 0.0;
-
-	if(x[1] == 150)
-		if(x[0] > 150 && x[0] < 450)
-			res = 1.0;
-
-	return true;
-}
-
-bool p_InitValues(const MathVector<2>& x, number& res)
-{
-	res = 9810 * (150 - x[1]);
-	return true;
-}
-
-} // end unnamed namespace
-
-
-template <typename TGridFunction>
-class InterpolateElder
-{
-	public:
-	bool invoke(TGridFunction& u)
-	{
-		if(!ug::InterpolateFunction<TGridFunction>(&c_InitValues, u, 0)) return false;
-		if(!ug::InterpolateFunction<TGridFunction>(&p_InitValues, u, 1)) return false;
-		return true;
-	}
-};
-
 void RegisterElderUserFunctions(Registry& reg, const char* parentGroup)
 {
-	typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
-	//typedef GroupedP1ConformDoFDistribution dof_distribution_type;
-	//typedef Block2x2Algebra algebra_type;
-	typedef P1ConformDoFDistribution dof_distribution_type;
-	typedef CPUAlgebra algebra_type;
-
 	const char* grp = parentGroup;
 
 //	DensityDrivenUserFunction
@@ -127,21 +87,6 @@ void RegisterElderUserFunctions(Registry& reg, const char* parentGroup)
 		reg.add_class_<ElderUserFunction, IDensityDrivenFlowUserFunction<2> >("ElderUserFunction2d", grp)
 			.add_constructor();
 	}
-
-//	Interpolation
-	{
-#ifdef UG_PARALLEL
-		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > T;
-#else
-		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> T;
-#endif
-
-		reg.add_class_<InterpolateElder<T> >("InterpolateElder", grp)
-			.add_constructor()
-			.add_method("invoke", &InterpolateElder<T>::invoke);
-	}
-
-
 }
 
 } // end namespace

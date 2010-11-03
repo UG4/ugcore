@@ -44,8 +44,8 @@ class LuaUserVector : public IUserVectorProvider<dim>
 
 			if(lua_pcall(m_L, dim + 1, dim, 0) != 0)
 			{
-				UG_LOG("error running diffusion callback " << m_callbackName << ": "
-								<< lua_tostring(m_L, -1));
+				UG_LOG("error running lua vector callback '" << m_callbackName << "': "
+								<< lua_tostring(m_L, -1) << "\n");
 				throw(int(0));
 			}
 

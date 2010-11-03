@@ -354,15 +354,7 @@ class ConstFV1ConvectionDiffusionElemDisc :
 		}
 };
 
-	template <typename TDoFDistribution, typename TAlgebra>
-	bool SolveStationaryDiscretizationTmp(DomainDiscretization<TDoFDistribution, TAlgebra>& dd,
-										TDoFDistribution& dofDistr,
-										typename TAlgebra::vector_type& u,
-										typename TAlgebra::vector_type& b,
-										ILinearOperatorInverse<typename TAlgebra::vector_type, typename TAlgebra::vector_type>& solver)
-	{
-		return true;
-	}
+
 template <typename TGridFunction>
 bool SolveStationaryDiscretization(DomainDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& dd,
 									TGridFunction& u,
@@ -625,7 +617,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		{
 			stringstream ss; ss << "LoadDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
-							"Success", "Grid # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\"",
+							"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\"",
 							"Loads a domain", "No help");
 		}
 
@@ -633,7 +625,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		{
 			stringstream ss; ss << "SaveDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
-							"Success", "Grid#Filename|save-dialog",
+							"Success", "Domain # Filename | save-dialog",
 							"Saves a domain", "No help");
 		}
 
@@ -688,6 +680,15 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 								&SolveStationaryDiscretization<function_type>,
 								grp.c_str());
 		}
+
+	//	InterpolateFunction
+		{
+			stringstream ss; ss << "InterpolateFunction" << dim << "d";
+			reg.add_function(ss.str().c_str(),
+								&InterpolateFunction<function_type>,
+								grp.c_str());
+		}
+
 }
 
 template <typename TAlgebra, typename TDoFDistribution>

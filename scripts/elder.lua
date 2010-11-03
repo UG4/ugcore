@@ -21,6 +21,19 @@ NumTimeSteps = 100
 -- User Data Functions (begin)
 --------------------------------
 
+function ConcentrationStart(x, y, t)
+	if y == 150 then
+		if x > 150 and x < 450 then
+		return 1.0
+		end
+	end
+	return 0.0
+end
+
+function PressureStart(x, y, t)
+	return 9810 * (150 - y)
+end
+
 function ConcentrationDirichletBnd(x, y, t)
 	if y == 150 then
 		if x > 150 and x < 450 then
@@ -99,6 +112,10 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -- dirichlet setup
 ConcentrationDirichlet = utilCreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
 PressureDirichlet = utilCreateLuaBoundaryNumber("PressureDirichletBnd", dim)
+
+-- start setup
+ConcentrationStartValue = utilCreateLuaUserNumber("ConcentrationStart", dim)
+PressureStartValue = utilCreateLuaUserNumber("PressureStart", dim)
 
 -----------------------------------------------------------------
 --  Setup FV Element Discretization
@@ -235,25 +252,23 @@ newtonSolver:set_convergence_check(newtonConvCheck)
 
 newtonSolver:init(op)
 
-
-
 -- get grid function
 u = approxSpace:create_surface_function("u", true)
-
--- set initial value
-interpol = InterpolateElder()
-interpol:invoke(u)
-
--- Apply Solver
-out = VTKOutput2d()
-out:begin_timeseries("Elder", u)
-out:print("Elder", u, 0, 0.0)
 
 -- timestep in seconds: 3153600 sec = 0.1 year
 dt = 3.1536e6
 
 time = 0.0
 step = 1
+
+-- set initial value
+InterpolateFunction2d(PressureStartValue, u, "p", time)
+InterpolateFunction2d(ConcentrationStartValue, u, "c", time)
+
+-- Apply Solver
+out = VTKOutput2d()
+out:begin_timeseries("Elder", u)
+out:print("Elder", u, 0, 0.0)
 
 -- Perform Time Step
 do_steps = NumPreTimeSteps

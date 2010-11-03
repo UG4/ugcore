@@ -18,7 +18,7 @@ class LuaUserNumber : public IUserNumberProvider<dim>
 		typedef typename IUserNumberProvider<dim>::functor_type functor_type;
 
 	//	return functor
-		virtual functor_type get_functor() const {return *this;}
+		virtual functor_type get_functor() const {return boost::ref(*this);}
 
 	public:
 		LuaUserNumber()
@@ -32,7 +32,7 @@ class LuaUserNumber : public IUserNumberProvider<dim>
 			m_callbackName = luaCallback;
 		}
 
-		void operator() (number& c, const MathVector<dim>& x, number time = 0.0)
+		void operator() (number& c, const MathVector<dim>& x, number time = 0.0) const
 		{
 			lua_getglobal(m_L, m_callbackName);
 			for(size_t i = 0; i < dim; ++i)
@@ -41,8 +41,8 @@ class LuaUserNumber : public IUserNumberProvider<dim>
 
 			if(lua_pcall(m_L, dim + 1, 1, 0) != 0)
 			{
-				UG_LOG("error running diffusion callback " << m_callbackName << ": "
-								<< lua_tostring(m_L, -1));
+				UG_LOG("error running lua number callback '" << m_callbackName << "': "
+								<< lua_tostring(m_L, -1) << "\n");
 				throw(int(0));
 			}
 
