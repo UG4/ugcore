@@ -39,7 +39,7 @@ template<typename vec_type> class Vector;
  * \param T blocktype
  */
 template<typename T>
-class SparseMatrix : public TE_MAT_RowApplicable<SparseMatrix<T> >
+class SparseMatrix
 {
 public:
 	typedef T value_type;

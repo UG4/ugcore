@@ -129,6 +129,11 @@ inline bool GetInverse(DenseMatrixInverse<VariableArray2<T, TOrdering> > &inv, c
 	return inv.set_as_inverse_of(mat);
 }
 
+template<typename T, size_t TBlockSize, eMatrixOrdering TOrdering>
+inline bool GetInverse(DenseMatrixInverse<FixedArray2<T, TBlockSize, TBlockSize, TOrdering> > &inv, const DenseMatrix<FixedArray2<T, TBlockSize, TBlockSize, TOrdering> > &mat)
+{
+	return inv.set_as_inverse_of(mat);
+}
 
 }
 #endif

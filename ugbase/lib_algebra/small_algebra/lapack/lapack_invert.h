@@ -242,7 +242,7 @@ bool InvertNdyn(DenseMatrix<T> &mat)
 template<typename T, size_t TUnknowns>
 bool Invert(DenseMatrix<FixedArray2<T, TUnknowns, TUnknowns> > &mat)
 {
-	lapack_int interchange[T::static_row_size];
+	lapack_int interchange[TUnknowns];
 
 	int info = getrf(mat.num_rows(), mat.num_cols(), &mat(0,0), mat.num_rows(), interchange);
 	UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": Matrix singular in mat(i,i)" : ": i-th argument had an illegal value"));
@@ -258,7 +258,7 @@ bool Invert(DenseMatrix<FixedArray2<T, TUnknowns, TUnknowns> > &mat)
 	std::vector<double> work;
 	work.resize(iWorksize);
 
-	info = getri(mat.num_rows(), mat(0,0), mat.num_rows(), interchange, &work[0], iWorksize);
+	info = getri(mat.num_rows(), &mat(0,0), mat.num_rows(), interchange, &work[0], iWorksize);
 	UG_ASSERT(info == 0, "");
 	if(info == 0) return false;
 

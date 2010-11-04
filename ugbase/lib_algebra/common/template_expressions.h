@@ -74,56 +74,13 @@ public:
 };
 
 
-//! CRTP base class representing scaled and non-scaled vectors
-template<class A> class TE_SCALED_VEC : public TE_AMV_X<A>
-{
-public:
-	//! cast this class down to original class A.
-	const A& cast() const {return static_cast<const A&>(*this); }
-};
-
-//! CRTP base class representing scaled and non-scaled matrices
-template<class A> class TE_SCALED_MAT
-{
-public:
-	//! cast this class down to original class A.
-	const A& cast() const {return static_cast<const A&>(*this); }
-};
-
-////////////////////////////////////////////////////////////////////////////////
-
-//! CRTP base class representing a normal Matrix class
-template<class A> class TE_MAT : public TE_SCALED_MAT<A>
-{
-public:
-	//! cast this class down to original class A.
-	const A& cast() const {return static_cast<const A&>(*this); }
-};
-
-//! CRTP base class representing a matrix class which supports mat_mult_add_row
-template<class A> class TE_MAT_RowApplicable : public TE_MAT<A>
-{
-public:
-	//! cast this class down to original class A.
-	const A& cast() const {return static_cast<const A&>(*this); }
-};
-
-//! CRTP base class representing a normal vector
-template<class A> class TE_VEC : public TE_SCALED_VEC<A>
-{
-public:
-	//! cast this class down to original class A.
-	const A& cast() const {return static_cast<const A&>(*this); }
-};
-
-
 ////////////////////////////////////////////////////////////////////////////////
 //! AlphaVec_Expression
 //! class for Template Expressions of the form
 //! double * Vector.
 //! \attention to case x = alpha1*y + alpha1*x
 template<typename R>
-class AlphaVec_Expression : public TE_SCALED_VEC<AlphaVec_Expression<R> >
+class AlphaVec_Expression : public TE_AMV_X<AlphaVec_Expression<R> >
 { 
 public:
 	double alpha; 
@@ -141,22 +98,24 @@ double getScaling(const T &t)
 }
 
 template<typename T>
-const T &getVector(const TE_SCALED_VEC<T> &t)
+const T &getVector(const T &t)
 {
-	return t.cast();
+	return t;
+}
+
+
+template<typename T>
+double getScaling(const AlphaVec_Expression<T>  &t)
+{
+	return t.alpha;
 }
 
 template<typename T>
-double getScaling(const TE_SCALED_VEC<AlphaVec_Expression<T> > &t)
+const T &getVector(const AlphaVec_Expression<T> &t)
 {
-	return t.cast().alpha;
+	return t.r;
 }
 
-template<typename T>
-const T &getVector(const TE_SCALED_VEC< AlphaVec_Expression<T> > &t)
-{
-	return t.cast().r;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -236,33 +195,77 @@ AlphaMatVec_X_Expression<L, operation_sub, R> operator - (const TE_AMV_X<L> &l, 
 	return AlphaMatVec_X_Expression<L, operation_sub, R> (l.cast(), r.cast());
 }
 
-//! create a MatVec_Expression by TE_MAT * TE_VEC
-template<typename L, typename R>
-MatVec_Expression <L, R>  operator * (const TE_MAT<L> &l, const TE_SCALED_VEC<R> &r)
-{ 
-	return MatVec_Expression<L, R> (getScaling(r.cast()), l.cast(), getVector(r.cast()));
-}
 
-//! create a MatVec_Expression by (alpha*TE_MAT) * TE_VEC
+//! create a MatVec_Expression by (alpha*MATRIX) * VECTOR
 template<typename L, typename R>
-MatVec_Expression <L, R>  operator * (const AlphaMat_Expression<L> &l, const TE_SCALED_VEC<R> &r)
+MatVec_Expression <L, R>  operator * (const AlphaMat_Expression<L> &l, const R &r) \
 {
-	return MatVec_Expression<L, R> (l.alpha*getScaling(r.cast()), l.r, getVector(r.cast()));
+	return MatVec_Expression<L, R> (l.alpha*getScaling(r), l.r, getVector(r));
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// use like MAKE_TEMPLATE_OPERATORS_VECTOR(std::vector<double>)
+#define MAKE_TEMPLATE_OPERATORS_VECTOR(VECTOR_TYPE) \
+AlphaVec_Expression<VECTOR_TYPE>  operator * (double d, const VECTOR_TYPE &r) \
+{ \
+	return AlphaVec_Expression<VECTOR_TYPE> (d, r); \
+} \
+template<typename L> \
+AlphaMatVec_X_Expression<L, operation_add, VECTOR_TYPE> operator + (const L &l, const VECTOR_TYPE &r) \
+{ \
+	return AlphaMatVec_X_Expression<L, operation_add, VECTOR_TYPE > (l, r); \
+} \
+template<typename L> \
+AlphaMatVec_X_Expression<L, operation_sub, VECTOR_TYPE> operator - (const L &l, const VECTOR_TYPE &r) \
+{ \
+	return AlphaMatVec_X_Expression<L, operation_sub, VECTOR_TYPE > (l, r); \
+}
+
+// use like MAKE_TEMPLATE_OPERATORS_VECTOR2(typename TStorage, DenseVector<TStorage>)
+#define MAKE_TEMPLATE_OPERATORS_VECTOR2(TEMPLATE_DEFINITION, VECTOR_TYPE) \
+template<TEMPLATE_DEFINITION> \
+AlphaVec_Expression<VECTOR_TYPE>  operator * (double d, const VECTOR_TYPE &r) \
+{ \
+	return AlphaVec_Expression<VECTOR_TYPE> (d, r); \
+} \
+template<typename L, TEMPLATE_DEFINITION> \
+AlphaMatVec_X_Expression<L, operation_add, VECTOR_TYPE> operator + (const L &l, const VECTOR_TYPE &r) \
+{ \
+	return AlphaMatVec_X_Expression<L, operation_add, VECTOR_TYPE > (l, r); \
+} \
+template<typename L, TEMPLATE_DEFINITION> \
+AlphaMatVec_X_Expression<L, operation_sub, VECTOR_TYPE> operator - (const L &l, const VECTOR_TYPE &r) \
+{ \
+	return AlphaMatVec_X_Expression<L, operation_sub, VECTOR_TYPE > (l, r); \
 }
 
 
-//! create a AlphaVec_Expression by double * TE_VEC
-template<typename R>
-AlphaVec_Expression <R>  operator * (double d, const TE_VEC<R> &r)
-{ 
-	return AlphaVec_Expression<R> (d, r.cast()); 
+////////////////////////////////////////////////////////////////////////////////
+// use like MAKE_TEMPLATE_OPERATORS_MATRIX(SparseMatrix<double>)
+#define MAKE_TEMPLATE_OPERATORS_MATRIX(MATRIX_TYPE) \
+AlphaMat_Expression <MATRIX_TYPE> operator * (double d, const MATRIX_TYPE &r) \
+{ \
+	return AlphaMat_Expression <MATRIX_TYPE> (d, r.cast()); \
+} \
+template<typename R> \
+MatVec_Expression<MATRIX_TYPE, R> operator * (const MATRIX_TYPE &l, const R &r) \
+{ \
+	return MatVec_Expression<MATRIX_TYPE, R> (1.0, l, r); \
 }
 
-//! create a AlphaMat_Expression by double * TE_MAT
-template<typename R>
-AlphaMat_Expression <R > operator * (double d, const TE_MAT<R> &r)
-{ 
-	return AlphaMat_Expression <R> (d, r.cast());
+
+// use like MAKE_TEMPLATE_OPERATORS_MATRIX2(typename T, SparseMatrix<T>)
+#define MAKE_TEMPLATE_OPERATORS_MATRIX2(TEMPLATE_DEFINITION, MATRIX_TYPE) \
+template<TEMPLATE_DEFINITION> \
+AlphaMat_Expression <MATRIX_TYPE> operator * (double d, const MATRIX_TYPE &r) \
+{ \
+	return AlphaMat_Expression <MATRIX_TYPE> (d, r.cast()); \
+} \
+template<TEMPLATE_DEFINITION, typename R> \
+MatVec_Expression<MATRIX_TYPE, R> operator * (const MATRIX_TYPE &l, const R &r) \
+{ \
+	return MatVec_Expression<MATRIX_TYPE, R> (1.0, l, r); \
 }
 
 

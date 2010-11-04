@@ -27,7 +27,7 @@ namespace ug{
 //! can = template expressions like x = 0.5*x - y + A*z
 //! see TemplateExpressions.h
 template <typename templ_value_type>
-class Vector :  public TE_VEC<Vector<templ_value_type> >,
+class Vector :  //public TE_VEC<Vector<templ_value_type> >,
 				public virtual IFunctionBase
 {
 public:

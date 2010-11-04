@@ -15,29 +15,8 @@ if(NOT NO_ALGEBRA)
 	set(src_Algebra)
 
 	##########################
-	# ublas algebra
+	# cpu algebra
 	##########################
-	if(Boost_FOUND)
-		set(src_Algebra	 ublas_algebra/ublas_vector.cpp
-				 ublas_algebra/ublas_matrix.cpp
-				 ublas_algebra/ublas_linearsolver.cpp)
-	endif(Boost_FOUND)
-
-	##########################
-	# hypre algebra
-	##########################
-	if(HYPRELIB_DIR)
-		set(src_Algebra	 ${src_Algebra}
-				 hypre_algebra/hyprematrix.cpp
-		     		 hypre_algebra/hyprevector.cpp
-	       		 	 hypre_algebra/hyprelinearsolver.cpp)
-	endif(HYPRELIB_DIR)
-
-	##########################
-	# martin algebra
-	##########################
-#	set(src_Algebra	 ${src_Algebra}
-#			 martin_algebra/misc.cpp)
 
 
 	##########################

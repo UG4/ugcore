@@ -93,6 +93,10 @@ public:
 		return operator[] (i);
 	}
 
+	template<typename Type>
+	DenseVector<TStorage> &
+	assign(const Type &t);
+
 };
 
 }

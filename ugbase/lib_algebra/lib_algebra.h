@@ -19,6 +19,8 @@
 
 #include "common/operations.h"
 
+#include "algebra_chooser.h"
+
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 //   Algebra
@@ -85,92 +87,39 @@ public:
 };
 
 /////////////////////////////////////////////
-//   Block 2x2 Algebra
+//   CPU Fixed Block Algebra
 /////////////////////////////////////////////
-
-class Block2x2Algebra
+template<int TBlockSize>
+class CPUBlockAlgebra
 {
 public:
 #ifdef UG_PARALLEL
-	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > > matrix_type;
-	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, 2> > > > vector_type;
+	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > > matrix_type;
+	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, TBlockSize> > > > vector_type;
 #else
-	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, 2, 2> > > matrix_type;
-	typedef Vector<DenseVector<FixedArray1<double, 2> > > vector_type;
+	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, TBlockSize, TBlockSize> > > matrix_type;
+	typedef Vector<DenseVector<FixedArray1<double, TBlockSize> > > vector_type;
 #endif
 };
 
+
 /////////////////////////////////////////////
-//   Block 3x3 Algebra
+//   CPU Variable Block Algebra
 /////////////////////////////////////////////
 
-class Block3x3Algebra
+class CPUVariableBlockAlgebra
 {
 public:
 #ifdef UG_PARALLEL
-	typedef ParallelMatrix<SparseMatrix<DenseMatrix<FixedArray2<double, 3, 3> > > > matrix_type;
-	typedef ParallelVector<Vector<DenseVector<FixedArray1<double, 3> > > > vector_type;
+	typedef ParallelMatrix<SparseMatrix<DenseMatrix<VariableArray2<double> > > > matrix_type;
+	typedef ParallelVector<Vector<DenseVector<VariableArray1<double> > > > vector_type;
 #else
-	typedef  SparseMatrix<DenseMatrix<FixedArray2<double, 3, 3> > > matrix_type;
-	typedef Vector<DenseVector<FixedArray1<double, 3> > > vector_type;
+	typedef  SparseMatrix<DenseMatrix<VariableArray2<double> > > matrix_type;
+	typedef Vector<DenseVector<VariableArray1<double> > > vector_type;
 #endif
 };
-
 
 } // end namespace ug
-
-
-/////////////////////////////////////////////
-//   ublas algebra
-/////////////////////////////////////////////
-
-#include "ublas_algebra/ublas_matrix.h"
-#include "ublas_algebra/ublas_vector.h"
-#include "ublas_algebra/ublas_linearsolver.h"
-
-namespace ug {
-
-class UblasAlgebra{
-	public:
-		// matrix type
-		typedef UblasMatrix matrix_type;
-
-		// vector type
-#ifdef UG_PARALLEL
-		typedef ParallelVector<UblasVector> vector_type;
-#else
-		typedef UblasVector vector_type;
-#endif
-};
-
-} // namespace ug
-
-/////////////////////////////////////////////
-//   Hypre Algebra
-/////////////////////////////////////////////
-
-
-#if HYPRELIB_DIR
-
-#include "hypre_algebra/hyprematrix.h"
-#include "hypre_algebra/hyprevector.h"
-#include "hypre_algebra/hyprelinearsolver.h"
-
-namespace ug{
-class HypreAlgebra{
-	public:
-		// matrix type
-		typedef HypreMatrix matrix_type;
-
-		// vector type
-		typedef HypreVector vector_type;
-
-		typedef HYPREboomerAMG linear_solver_type;
-
-};
-}
-
-#endif
 
 
 #endif /* __H__LIB_ALGEBRA__LIB_ALGEBRA__ */

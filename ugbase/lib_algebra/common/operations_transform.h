@@ -28,7 +28,7 @@ namespace ug
 template<typename vector_t, typename matrix_t, typename vector_t2>
 inline void VectorAssign(vector_t &dest, double alpha1, const MatVec_Expression<matrix_t, vector_t> &m1,
 					   double alpha2, const MatVec_Expression<matrix_t, vector_t> &m2,
-					   double alpha3, const TE_SCALED_VEC<vector_t2> &v3)
+					   double alpha3, const vector_t2 &v3)
 {
 	MatMultAdd(dest, alpha1*m1.alpha, m1.l, m1.r, alpha2*m2.alpha, m2.l, m2.r, alpha3*getScaling(v3), getVector(v3));
 }
@@ -36,8 +36,8 @@ inline void VectorAssign(vector_t &dest, double alpha1, const MatVec_Expression<
 //! v = Mv + v + v
 template<typename vector_t, typename matrix_t, typename vector_t2, typename vector_t3>
 inline void VectorAssign(vector_t &dest, double alpha1, const MatVec_Expression<matrix_t, vector_t> &m1,
-					   double alpha2, const TE_SCALED_VEC<vector_t2> &v2,
-					   double alpha3, const TE_SCALED_VEC<vector_t3> &v3)
+					   double alpha2, const vector_t2 &v2,
+					   double alpha3, const vector_t3 &v3)
 {
 	MatMultAdd(dest, alpha1*m1.alpha, m1.l, m1.r, getScaling(v2)*alpha2, getVector(v2), getScaling(v3)*alpha3, getVector(v3));
 }
@@ -49,7 +49,7 @@ inline void VectorAssign(vector_t &dest, double alpha1, const MatVec_Expression<
 template<typename vector_t, typename T0, typename matrix_t, typename vector_t2>
 inline void VectorAssign(vector_t &dest,
 					   double alpha0, const T0 &t0,
-					   double alpha1, const TE_SCALED_VEC<vector_t2> &v1,
+					   double alpha1, const vector_t2 &v1,
 					   double alpha2, const MatVec_Expression<matrix_t, vector_t> &m2)
 {
 	VectorAssign(dest, alpha0, t0, alpha2, m2, alpha1, v1);
@@ -62,7 +62,7 @@ inline void VectorAssign(vector_t &dest,
 //! v = v + Mv + Mv
 template<typename vector_t, typename matrix_t, typename vector_t2, typename T3>
 inline void VectorAssign(vector_t &dest,
-					   double alpha1, const TE_SCALED_VEC<vector_t2> &v1,
+					   double alpha1, const vector_t2 &v1,
 					   double alpha2, const MatVec_Expression<matrix_t, vector_t> &m2,
 					   double alpha3, const T3 &t3)
 {
@@ -72,9 +72,9 @@ inline void VectorAssign(vector_t &dest,
 //! v = v + v + v
 template<typename vector_t, typename vector_t1, typename vector_t2, typename vector_t3>
 inline void VectorAssign(vector_t &dest,
-						double alpha1, const TE_SCALED_VEC<vector_t1> &v1,
-						double alpha2, const TE_SCALED_VEC<vector_t2> &v2,
-						double alpha3, const TE_SCALED_VEC<vector_t3> &v3)
+						double alpha1, const vector_t1 &v1,
+						double alpha2, const vector_t2 &v2,
+						double alpha3, const vector_t3 &v3)
 
 {
 	VecScaleAdd(dest, getScaling(v1)*alpha1, getVector(v1), getScaling(v2)*alpha2, getVector(v2), getScaling(v3)*alpha3, getVector(v3));
@@ -96,21 +96,21 @@ inline void VectorAssign(vector_t &dest,	double alpha1, const MatVec_Expression<
 
 //! v = Mv + v
 template<typename vector_t, typename matrix_t, typename vector_t2>
-inline void VectorAssign(vector_t &dest, double alpha1, const MatVec_Expression<matrix_t, vector_t> &m1, double alpha2, const TE_SCALED_VEC<vector_t2> &v2)
+inline void VectorAssign(vector_t &dest, double alpha1, const MatVec_Expression<matrix_t, vector_t> &m1, double alpha2, const vector_t2 &v2)
 {
 	MatMultAdd(dest, alpha1*m1.alpha, m1.l, m1.r, getScaling(v2)*alpha2, getVector(v2));
 }
 
 //! v = v + Mv
 template<typename vector_t, typename matrix_t>
-inline void VectorAssign(vector_t &dest, double alpha1, const TE_SCALED_VEC<vector_t> &v1, double alpha2, const MatVec_Expression<matrix_t, vector_t> &m2)
+inline void VectorAssign(vector_t &dest, double alpha1, const vector_t &v1, double alpha2, const MatVec_Expression<matrix_t, vector_t> &m2)
 {
 	VectorAssign(dest, alpha2, m2, alpha1, v1);
 }
 
 //! v = v + v
 template<typename vector_t, typename vector_t2, typename vector_t3>
-inline void VectorAssign(vector_t &dest, double alpha1, const TE_SCALED_VEC<vector_t2> &v1, double alpha2, const TE_SCALED_VEC<vector_t3> &v2)
+inline void VectorAssign(vector_t &dest, double alpha1, const vector_t2 &v1, double alpha2, const vector_t3 &v2)
 {
 	VecScaleAdd(dest, getScaling(v1)*alpha1, getVector(v1), getScaling(v2)*alpha2, getVector(v2));
 }
@@ -131,7 +131,7 @@ inline void VectorAssign(vector_t &dest, const MatVec_Expression<matrix_t, vecto
 
 //! v = v
 template<typename vector_t, typename vector_t2, typename vector_t3>
-inline void VectorAssign(vector_t &dest, const TE_SCALED_VEC<vector_t2> &v1)
+inline void VectorAssign(vector_t &dest, const vector_t2 &v1)
 {
 	VecScaleAssign(dest, getScaling(v1), getVector(v1));
 }

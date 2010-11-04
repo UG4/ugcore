@@ -124,6 +124,21 @@ std::ostream &operator << (std::ostream &out, const DenseVector<TStorage> &vec)
 	return out;
 }
 
+
+
+template<typename TStorage>
+template<typename Type>
+DenseVector<TStorage> &
+DenseVector<TStorage>::assign(const Type &t)
+{
+	VectorAssign(*this, t);
+	return *this;
+}
+
+
+
+//MAKE_TEMPLATE_OPERATORS_VECTOR2(typename TStorage, DenseVector<TStorage>);
+
 }
 
 #endif // __H__UG__COMMON__DENSEVECTOR_IMPL_H__

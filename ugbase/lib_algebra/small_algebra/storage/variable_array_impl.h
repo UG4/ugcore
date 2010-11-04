@@ -175,7 +175,7 @@ VariableArray2<T, T_ordering>::VariableArray2(const VariableArray2<T, T_ordering
 	cols = 0;
 	resize(other.num_rows(), other.num_cols());
 	for(size_type i=0; i<rows*cols; i++)
-		values[i] = other[i];
+		values[i] = other.values[i];
 }
 
 template<typename T, eMatrixOrdering T_ordering>

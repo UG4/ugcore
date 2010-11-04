@@ -69,6 +69,9 @@ class ILinearOperator
 	// 	Apply Operator, i.e. f = f - L*u;
 		virtual bool apply_sub(Y& f, const X& u) = 0;
 
+	//  apply_axpy(dest, alpha, v, beta, w) dest = alpha*v + beta*A*w
+	//	energy_prod(v, w) dest = v^T(Aw)
+
 	// 	Destructor
 		virtual ~ILinearOperator() {};
 };
