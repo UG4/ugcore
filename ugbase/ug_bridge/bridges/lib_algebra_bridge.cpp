@@ -14,6 +14,7 @@
 
 namespace ug
 {
+extern enum_AlgebraType g_AlgebraType;
 namespace bridge
 {
 
@@ -181,7 +182,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 }
 
 
-bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
+
+bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 {
 	try
 	{
@@ -189,25 +191,26 @@ bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 		std::stringstream groupString; groupString << parentGroup << "/Algebra";
 		std::string grp = groupString.str();
 
+		// Chooser Interface
+		reg.add_class_<	AlgebraTypeChooserInterface >("AlgebraTypeChooserInterface", grp.c_str());
+		reg.add_class_<	CPUAlgebraChooser,AlgebraTypeChooserInterface >("CPUAlgebraChooser", grp.c_str())
+			.add_constructor()
+			.add_method("set_fixed_blocksize", &CPUAlgebraChooser::set_fixed_blocksize)
+			.add_method("set_variable_blocksize", &CPUAlgebraChooser::set_variable_blocksize);
+
 		// StandardConvCheck
-		{
-			reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp.c_str());
+		reg.add_class_<IConvergenceCheck>("IConvergenceCheck", grp.c_str());
 
-			reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp.c_str())
-				.add_constructor()
-				.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps,
-						"", "maximum_steps")
-				.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
-						"", "minimum_defect")
-				.add_method("set_reduction", &StandardConvCheck::set_reduction,
-						"", "reduction")
-				.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
-						"", "verbose_level");
-		}
-
-	// register algebra
-		RegisterAlgebraType<CPUAlgebra>(reg, grp.c_str());
-		//RegisterAlgebraType<Block2x2Algebra>(reg, grp.c_str());
+		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp.c_str())
+			.add_constructor()
+			.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps,
+					"", "maximum_steps")
+			.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
+					"", "minimum_defect")
+			.add_method("set_reduction", &StandardConvCheck::set_reduction,
+					"", "reduction")
+			.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
+					"", "verbose_level");
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
@@ -219,6 +222,35 @@ bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup)
 
 	return true;
 }
+
+bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const char* parentGroup)
+{
+	try
+	{
+		//	get group string
+		std::stringstream groupString; groupString << parentGroup << "/Algebra";
+		std::string grp = groupString.str();
+
+		// register algebra
+		switch(algebra_type)
+		{
+		case eCPUAlgebra:		 		RegisterAlgebraType<CPUAlgebra >(reg, grp.c_str()); break;
+		case eCPUBlockAlgebra2x2: 		RegisterAlgebraType<CPUBlockAlgebra<2> >(reg, grp.c_str()); break;
+		case eCPUBlockAlgebra3x3: 		RegisterAlgebraType<CPUBlockAlgebra<3> >(reg, grp.c_str()); break;
+		case eCPUBlockAlgebra4x4: 		RegisterAlgebraType<CPUBlockAlgebra<4> >(reg, grp.c_str()); break;
+		case eCPUVariableBlockAlgebra: 	RegisterAlgebraType<CPUVariableBlockAlgebra>(reg, grp.c_str()); break;
+		default: UG_ASSERT(0, "In RegisterDynamicLibAlgebraInterface: " << algebra_type << " is unsupported algebra type");
+		}
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterLibAlgebraInterface: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
+	return true;
+}
+
 
 } // end namespace bridge
 } // end namespace ug

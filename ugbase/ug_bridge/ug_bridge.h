@@ -27,11 +27,13 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup = "/ug4");
 
 ///	registers lib-algebra interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-bool RegisterLibAlgebraInterface(Registry& reg, const char* parentGroup = "/ug4");
+bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup = "/ug4");
+bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
 ///	registers lib-discretization interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/
-bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup = "/ug4");
+bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup = "/ug4");
+bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
 ///	registers tests for the interface methods at the registry.
 /**	This method is automatically invoked during the creation of the Registry.*/

@@ -14,6 +14,8 @@
 
 namespace ug
 {
+extern enum_AlgebraType g_AlgebraType;
+
 namespace bridge
 {
 
@@ -702,50 +704,13 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 	try
 	{
 	//	get group string
-		std::stringstream groupString; groupString << parentGroup << "/Discretization/UserData";
-		std::string grp = groupString.str();
-
-	//	Register user functions
-		RegisterUserNumber(reg, grp.c_str());
-		RegisterUserVector(reg, grp.c_str());
-		RegisterUserMatrix(reg, grp.c_str());
-
-	//	Register Boundary functions
-		RegisterBoundaryNumber(reg, grp.c_str());
-
-	//	get group string
-		std::stringstream groupString2; groupString2 << parentGroup << "/Discretization";
-		grp = groupString2.str().c_str();
-
-	//	FunctionPattern (Abstract Base Class)
-		reg.add_class_<FunctionPattern>("FunctionPattern", grp.c_str());
-
-	//	P1ConformFunctionPattern
-		{
-		typedef P1ConformFunctionPattern T;
-		reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern", grp.c_str())
-			.add_constructor()
-			.add_method("set_subset_handler", &T::set_subset_handler)
-			.add_method("lock", &T::lock);
-		}
-
-	//	FunctionGroup
-		{
-			reg.add_class_<FunctionGroup>("FunctionGroup", grp.c_str())
-				.add_constructor()
-				.add_method("clear", &FunctionGroup::clear)
-				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
-				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
-		}
+		std::string grp = parentGroup; grp.append("/Discretization");
 
 	//	P1ConformDoFDistribution
 		{
 			typedef dof_distribution_type T;
 			reg.add_class_<T>("P1ConformDoFDistribution", grp.c_str());
 		}
-
-	//  Add discrete function to pattern
-		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
 
 	//	Base class
 		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess", grp.c_str());
@@ -848,9 +813,6 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
-
-			//	todo: remove when possible
-			RegisterElderUserFunctions(reg, grp.c_str());
 		}
 
 	}
@@ -861,15 +823,79 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 		return false;
 	}
 
-		return true;
+	return true;
 }
 
-bool RegisterLibDiscretizationInterface(Registry& reg, const char* parentGroup)
+bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup)
+{
+	try
+	{
+	//	get group string
+		std::string grp = parentGroup; grp.append("/Discretization/UserData");
+
+	//	Register user functions
+		RegisterUserNumber(reg, grp.c_str());
+		RegisterUserVector(reg, grp.c_str());
+		RegisterUserMatrix(reg, grp.c_str());
+
+	//	Register Boundary functions
+		RegisterBoundaryNumber(reg, grp.c_str());
+
+	//	get group string
+		grp = parentGroup; grp.append("/Discretization");
+
+	//	FunctionPattern (Abstract Base Class)
+		reg.add_class_<FunctionPattern>("FunctionPattern", grp.c_str());
+
+	//	P1ConformFunctionPattern
+		{
+		typedef P1ConformFunctionPattern T;
+		reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern", grp.c_str())
+			.add_constructor()
+			.add_method("set_subset_handler", &T::set_subset_handler)
+			.add_method("lock", &T::lock);
+		}
+
+	//	FunctionGroup
+		{
+			reg.add_class_<FunctionGroup>("FunctionGroup", grp.c_str())
+				.add_constructor()
+				.add_method("clear", &FunctionGroup::clear)
+				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
+				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
+		}
+
+	//  Add discrete function to pattern
+		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
+
+		//	todo: remove when possible
+		RegisterElderUserFunctions(reg, grp.c_str());
+	}
+	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
+	{
+		UG_LOG("### ERROR in RegisterLibDiscretizationInterface: "
+				"Registration failed (using name " << ex.name << ").\n");
+		return false;
+	}
+
+	return true;
+}
+
+
+bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup)
 {
 	bool bReturn = true;
 
-	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup);
-	//bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<Block2x2Algebra, GroupedP1ConformDoFDistribution>(reg, parentGroup);
+	switch(algebra_type)
+	{
+	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	default: UG_ASSERT(0, "Unsupported Algebra Type");
+	}
+	//
 
 	return bReturn;
 }
