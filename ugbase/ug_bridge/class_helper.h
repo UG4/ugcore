@@ -30,6 +30,7 @@ namespace bridge
 class ClassHierarchy
 {
 public:
+	ClassHierarchy() : name(), bGroup(false), subclasses() {}
 	/**
 	 * adds the class c to the class hierarchy by attaching it to its base hierarchy
 	 * (base hierarchy taken from c->class_names()). automatically creates nonexisting base hierarchy.
@@ -44,6 +45,7 @@ public:
 	ClassHierarchy *find_class(const char *name);
 
 	string name;
+	bool bGroup;
 	vector<ClassHierarchy> subclasses;
 };
 /**
