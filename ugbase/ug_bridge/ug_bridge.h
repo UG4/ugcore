@@ -39,9 +39,6 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 /**	This method is automatically invoked during the creation of the Registry.*/
 bool RegisterTestInterface(Registry& reg, const char* parentGroup = "/ug4");
 
-///	registers info commands TypeInfo and ClassUsage
-/**	This method is automatically invoked during the creation of the Registry.*/
-bool RegisterInfoCommands(Registry &reg, const char* parentGroup = "/ug4");
 
 }//	end of namespace 
 }//	end of namespace 

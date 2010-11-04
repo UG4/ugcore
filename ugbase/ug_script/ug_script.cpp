@@ -7,6 +7,7 @@
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
 #include "ug_bridge/ug_bridge.h"
+#include "info_commands.h"
 
 using namespace std;
 
@@ -47,6 +48,11 @@ lua_State* GetDefaultLuaState()
 		luaL_openlibs(L);
 	//	create lua bindings for registered functions and objects
 		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
+		
+	//	we use an extra registry to register some lua-only commands
+		static ug::bridge::Registry scriptRegistry;
+		RegisterInfoCommands(scriptRegistry);
+		ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
 	}
 	
 	return L;

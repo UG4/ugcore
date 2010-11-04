@@ -11,10 +11,10 @@
  * example: TypeInfo("
  */
 
-#include "ug.h"
-
+#include <iomanip>
 #include "ug_script/ug_script.h"
-#include "../class_helper.h"
+#include "ug_bridge/ug_bridge.h"
+#include "ug_bridge/class_helper.h"
 
 extern "C"
 {
@@ -505,6 +505,6 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 	return true;
 }
 
-
 } // namespace bridge
+
 } // namespace ug

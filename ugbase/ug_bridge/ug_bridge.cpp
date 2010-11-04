@@ -49,7 +49,6 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 		bResult &= RegisterStaticLibAlgebraInterface(reg, parentGroup);
 		bResult &= RegisterStaticLibDiscretizationInterface(reg, parentGroup);
 		bResult &= RegisterTestInterface(reg, parentGroup);
-		bResult &= RegisterInfoCommands(reg, parentGroup);
 
 		// InitAlgebra
 		reg.add_function("InitAlgebra", &InitAlgebra);

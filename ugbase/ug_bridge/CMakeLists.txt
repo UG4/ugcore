@@ -24,7 +24,6 @@ set(srcUGBridge    	class_name_provider.cpp
 if(NOT NO_ALGEBRA)
 	# add source files that depend on the algebra and discretization system here.
 	set(srcUGBridge ${srcUGBridge}
-					bridges/info_commands.cpp
 					bridges/lib_algebra_bridge.cpp
 					bridges/lib_discretization_bridge.cpp
 					bridges/user_data/user_number.cpp

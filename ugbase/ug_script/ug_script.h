@@ -13,7 +13,6 @@ extern "C" {
 }
 
 #include "common/common.h"
-#include "../ug_bridge/registry.h"
 
 namespace ug
 {

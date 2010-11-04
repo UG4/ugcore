@@ -78,7 +78,7 @@ set(srcUGScript		ug_script.cpp
 # discretization module.
 if(NOT NO_ALGEBRA)
 	# add the source files
-	
+	set(srcUGScript ${srcUGScript} info_commands.cpp)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)
