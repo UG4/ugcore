@@ -203,6 +203,16 @@ class GridFunction :	public TAlgebra::vector_type,
 			m_pApproxSpace = &ApproxSpace;
 		}
 
+		void assign_surface_approximation_space(approximation_space_type& ApproxSpace)
+		{
+		//	if already assigned, do nothing
+			if(m_pApproxSpace != NULL) return;
+
+		//	assign
+			assign_approximation_space(ApproxSpace);
+			assign_dof_distribution(ApproxSpace.get_surface_dof_distribution(), true);
+		}
+
 		// get dof distribution
 		const dof_distribution_type& get_dof_distribution() const
 			{return *m_pDoFDistribution;}

@@ -81,6 +81,11 @@ class DomainDiscretization :
 		 */
 		bool add_elem_disc(IElemDisc<TAlgebra>& elem)
 		{
+		//	check that not already registered
+			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+				if(m_vElemDisc[i] == &elem)
+					return true;
+
 			m_vElemDisc.push_back(&elem);
 			return true;
 		}
@@ -133,6 +138,12 @@ class DomainDiscretization :
 		bool add_post_process(IPostProcess<TDoFDistribution, TAlgebra>& pp)
 		{
 			const int type = pp.type();
+
+		//	check that not already registered
+			for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+				if(m_vvPostProcess[type][i] == &pp)
+					return true;
+
 			m_vvPostProcess[type].push_back(&pp);
 			return true;
 		}
