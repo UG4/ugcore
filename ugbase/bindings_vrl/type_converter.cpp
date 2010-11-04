@@ -176,7 +176,7 @@ void generateMethodHeader(
 	// the setPointer() and getPointer() method before this method is
 	// invoked. Otherwise we might operate on wrong instance
 	if (!isFunction) {
-		result << "updatePointer(id.getID());\n";
+		result << "updatePointer(id);\n";
 	}
 
 	if (paramStackOut.size() > 0) {
