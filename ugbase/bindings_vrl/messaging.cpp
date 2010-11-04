@@ -12,7 +12,7 @@ namespace ug {
 		std::deque<std::string> MessageBuffer::messages;
 
 		void MessageBuffer::addMessage(std::string msg) {
-			messages.push_front(msg);
+			messages.push_back(msg);
 			messages.resize(100, std::string());
 		}
 

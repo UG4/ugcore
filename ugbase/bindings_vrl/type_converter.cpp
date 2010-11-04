@@ -370,6 +370,7 @@ std::string createParamInfo(const char* paramName, const char* className,
 		std::string const& additionalParamInfo) {
 
 	std::string customInfo = paramInfo.at(1);
+	// add escape layer to simplify syntax
 	std::string customOptions = replaceAll(paramInfo.at(2), "\"", "\\\"");
 
 	std::stringstream paramInfoStream;
@@ -476,7 +477,6 @@ std::string createMethodInfo(const char* className,
 	if (customInfo.size() > 0) {
 		methodInfo << ", " << customInfo;
 	}
-
 
 	methodInfo << ") ";
 
