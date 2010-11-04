@@ -137,7 +137,7 @@ dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
 elderElemFct = ElderUserFunction2d()
-elemDisc = FV1DensityDrivenFlowElemDisc2d()
+elemDisc = DensityDrivenFlow2d()
 elemDisc:set_domain(dom)
 elemDisc:set_pattern(pattern)
 elemDisc:set_functions("c,p")

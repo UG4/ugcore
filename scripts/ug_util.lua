@@ -89,11 +89,11 @@ function utilCreateNeumannBoundary(approxSpace, subsets)
 	local dim = domain:get_dim()
 	local neumannDisc
 	if dim == 1 then
-		neumannDisc = FV1NeumannBoundaryElemDisc1d()
+		neumannDisc = FV1NeumannBoundary1d()
 	elseif dim == 2 then
-		neumannDisc = FV1NeumannBoundaryElemDisc2d()
+		neumannDisc = FV1NeumannBoundary2d()
 	elseif dim == 3 then
-		neumannDisc = FV1NeumannBoundaryElemDisc3d()
+		neumannDisc = FV1NeumannBoundary3d()
 	else
 		return nil
 	end
@@ -125,18 +125,18 @@ function utilCreateDirichletBoundary(approxSpace)
 	return dirichlet
 end
 
--- creates FV1ConvDiffElemDisc
-function utilCreateFV1ConvDiffElemDisc(approxSpace, functions, subsets)
+-- creates FV1ConvDiff
+function utilCreateFV1ConvDiff(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
 	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local elemDisc
 	if dim == 1 then
-		elemDisc = FV1ConvectionDiffusionElemDisc1d()
+		elemDisc = FV1ConvectionDiffusion1d()
 	elseif dim == 2 then
-		elemDisc = FV1ConvectionDiffusionElemDisc2d()
+		elemDisc = FV1ConvectionDiffusion2d()
 	elseif dim == 3 then
-		elemDisc = FV1ConvectionDiffusionElemDisc3d()
+		elemDisc = FV1ConvectionDiffusion3d()
 	else
 	return nil
 	end

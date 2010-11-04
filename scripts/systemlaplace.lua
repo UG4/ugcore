@@ -156,14 +156,14 @@ print ("Setting up Assembling")
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc1 = utilCreateFV1ConvDiffElemDisc(approxSpace, "c1", "Inner")
+elemDisc1 = utilCreateFV1ConvDiff(approxSpace, "c1", "Inner")
 elemDisc1:set_upwind_amount(0.0)
 elemDisc1:set_diffusion_tensor(diffusionMatrix)
 elemDisc1:set_velocity_field(velocityField)
 elemDisc1:set_reaction(reaction)
 elemDisc1:set_rhs(rhs)
 
-elemDisc2 = utilCreateFV1ConvDiffElemDisc(approxSpace, "c2", "Inner")
+elemDisc2 = utilCreateFV1ConvDiff(approxSpace, "c2", "Inner")
 elemDisc2:set_upwind_amount(0.0)
 elemDisc2:set_diffusion_tensor(diffusionMatrix)
 elemDisc2:set_velocity_field(velocityField)
