@@ -195,7 +195,7 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 		reg.add_class_<	AlgebraTypeChooserInterface >("AlgebraTypeChooserInterface", grp.c_str());
 		reg.add_class_<	CPUAlgebraChooser,AlgebraTypeChooserInterface >("CPUAlgebraChooser", grp.c_str())
 			.add_constructor()
-			.add_method("set_fixed_blocksize", &CPUAlgebraChooser::set_fixed_blocksize)
+			.add_method("set_fixed_blocksize", &CPUAlgebraChooser::set_fixed_blocksize, "", "blocksize")
 			.add_method("set_variable_blocksize", &CPUAlgebraChooser::set_variable_blocksize);
 
 		// StandardConvCheck
