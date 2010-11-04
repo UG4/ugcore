@@ -265,6 +265,22 @@ Grid::autoenable_option(uint option, const char* caller, const char* optionName)
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	marks
+template <class TIterator>
+void Grid::mark(TIterator begin, TIterator end)
+{
+	for(TIterator iter = begin; iter != end; ++iter)
+		mark(*iter);
+}
+
+template <class TIterator>
+void Grid::unmark(TIterator begin, TIterator end)
+{
+	for(TIterator iter = begin; iter != end; ++iter)
+		unmark(*iter);
+}
+
+////////////////////////////////////////////////////////////////////////
 //	neighbourhood access
 template <class TGeomObj>
 EdgeBase* Grid::find_edge_in_associated_edges(TGeomObj* obj,

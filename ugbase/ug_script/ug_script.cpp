@@ -6,6 +6,7 @@
 #include <cstring>
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
+#include "ug_bridge/ug_bridge.h"
 
 using namespace std;
 
@@ -17,20 +18,15 @@ namespace script
 
 static ug::bridge::Registry* g_pRegistry = NULL;
 
-static void UpdateScriptAfterRegistryChange()
+static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 {
+	assert((pReg == g_pRegistry) && "someone messed up the registries!");
+	
 //	this can be called since CreateBindings automatically avoids
 //	double registration
 	ug::bridge::lua::CreateBindings_LUA(GetDefaultLuaState(),
-										*g_pRegistry);
+										*pReg);
 }
-
-void SetScriptRegistry(ug::bridge::Registry* pReg)
-{
-	g_pRegistry = pReg;
-	pReg->add_callback(UpdateScriptAfterRegistryChange);
-}
-
 
 lua_State* GetDefaultLuaState()
 {
@@ -39,17 +35,18 @@ lua_State* GetDefaultLuaState()
 //	if the state has not already been opened then do it now.
 	if(!L)
 	{
-		if(g_pRegistry){
-		//	open a lua state
-			L = lua_open();
-		//	open standard libs
-			luaL_openlibs(L);
-		//	create lua bindings for registered functions and objects
-			ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
+		if(!g_pRegistry){
+		//	store a pointer to the registry and avoid multiple callback registration
+			g_pRegistry = &ug::bridge::GetUGRegistry();
+			g_pRegistry->add_callback(UpdateScriptAfterRegistryChange);
 		}
-		else{
-			UG_LOG("WARNING: Can't create lua-state due to missing registry.n");
-		}
+		
+	//	open a lua state
+		L = lua_open();
+	//	open standard libs
+		luaL_openlibs(L);
+	//	create lua bindings for registered functions and objects
+		ug::bridge::lua::CreateBindings_LUA(L, *g_pRegistry);
 	}
 	
 	return L;

@@ -18,17 +18,15 @@ extern "C" {
 namespace ug
 {
 
-///	Returns ugs default registry.
-ug::bridge::Registry& GetUGRegistry();
-
 namespace script
 {
 
-///	sets the registry from which methods and classes will be used
-/**	As long as the script uses this registry, it may not be deleted!.*/
-void SetScriptRegistry(ug::bridge::Registry* pReg);
-
 ///	returns the default lua state
+/**	When called for the first time, a new state is created and
+ *	the methods and classes in ugs default registry
+ *	(ug::bridge::GetUGRegistry) are registered. Furthermore a callback
+ *	is registered, which registers new methods whenever
+ *	Registry::registry_changed() is called on the default registry.*/
 lua_State* GetDefaultLuaState();
 
 ///	parses and executes a buffer

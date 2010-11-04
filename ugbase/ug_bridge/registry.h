@@ -16,13 +16,16 @@ namespace ug
 namespace bridge
 {
 
+//	PREDECLARATIONS
+class Registry;
+
 ///	declaration of registry callback function.
 /**	Allows to notify listeners if the registry changes.
  * Since FuncRegistryChanged is a functor, you can either
  * pass a normal function or a member function of a class
  * (Have a look at boost::bind in the second case).
  */
-typedef boost::function<void ()> FuncRegistryChanged;
+typedef boost::function<void (Registry* pReg)> FuncRegistryChanged;
 
 // Registry
 /** registers functions and classes that are exported to scripts and visualizations
@@ -50,7 +53,7 @@ class Registry {
 		{
 		//	iterate through all callbacks and call them
 			for(size_t i = 0; i < m_callbacksRegChanged.size(); ++i){
-				m_callbacksRegChanged[i]();
+				m_callbacksRegChanged[i](this);
 			}
 		}
 

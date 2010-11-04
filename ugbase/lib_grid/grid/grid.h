@@ -571,6 +571,12 @@ class Grid
 	/**	Only pass objects that are contained by the grid.*/
 		inline void mark(Volume* obj);
 
+	///	marks all objects between begin and end
+	/**	TIterator::value_type has to be either
+	 *	VertexBase*, EdgeBase*, Face* or Volume*.*/
+		template <class TIterator>
+		void mark(TIterator begin, TIterator end);
+		
 	///	unmarks the object. Calls are only valid between calls to Grid::begin_marking and Grid::end_marking.
 	/**	Only pass objects that are contained by the grid.*/
 		inline void unmark(VertexBase* obj);
@@ -584,6 +590,12 @@ class Grid
 	/**	Only pass objects that are contained by the grid.*/
 		inline void unmark(Volume* obj);
 
+	///	unmarks all objects between begin and end
+	/**	TIterator::value_type has to be either
+	 *	VertexBase*, EdgeBase*, Face* or Volume*.*/
+		template <class TIterator>
+		void unmark(TIterator begin, TIterator end);
+		
 	///	returns true if the object is marked, false if not.
 	/**	Only pass objects that are contained by the grid.*/
 		inline bool is_marked(VertexBase* obj);
