@@ -8,6 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__USER_DATA__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__USER_DATA__
 
+#include "common/common.h"
+#include "common/math/ugmath.h"
 #include <boost/function.hpp>
 
 namespace ug {

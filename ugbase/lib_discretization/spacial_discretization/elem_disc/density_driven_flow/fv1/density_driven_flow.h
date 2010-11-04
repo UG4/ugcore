@@ -110,6 +110,11 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 			}
 			return true;
 		}
+		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
+		{
+			m_pDomain = &approxSpace.get_domain();
+			set_pattern(approxSpace.get_function_pattern());
+		}
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 		void set_user_functions(IDensityDrivenFlowUserFunction<dim>& user) {
 			m_PorosityFct = user.get_porosity_function();
