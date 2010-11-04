@@ -2,9 +2,8 @@
 
 #include "../../ug_bridge.h"
 #include "common/common.h"
-#include "lib_discretization/lib_discretization.h"
+#include "lib_discretization/spacial_discretization/user_data.h"
 #include "../../../ug_script/ug_script.h"
-
 #include <sstream>
 #include <string>
 
@@ -70,7 +69,7 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 
 //	Base class
 	{
-		stringstream ss; ss << "IUserVectorProvider" << dim << "d";
+		std::stringstream ss; ss << "IUserVectorProvider" << dim << "d";
 		reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
@@ -79,7 +78,7 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 	//	ConstUserVector
 		{
 			typedef ConstUserVector<dim> T;
-			stringstream ss; ss << "ConstUserVector" << dim << "d";
+			std::stringstream ss; ss << "ConstUserVector" << dim << "d";
 			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_all_entries", &T::set_all_entries)
@@ -90,7 +89,7 @@ void RegisterUserVector(Registry& reg, const char* parentGroup)
 	//	LuaUserVector
 		{
 			typedef LuaUserVector<dim> T;
-			stringstream ss; ss << "LuaUserVector" << dim << "d";
+			std::stringstream ss; ss << "LuaUserVector" << dim << "d";
 			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);

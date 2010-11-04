@@ -2,8 +2,10 @@
 
 #include "../../ug_bridge.h"
 #include "common/common.h"
-#include "lib_discretization/lib_discretization.h"
+#include "lib_discretization/spacial_discretization/user_data.h"
 #include "../../../ug_script/ug_script.h"
+#include <iostream>
+#include <sstream>
 
 namespace ug
 {
@@ -71,7 +73,7 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 
 //	Base class
 	{
-		stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
+		std::stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
 		reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
@@ -80,7 +82,7 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 	//	ConstUserMatrix
 		{
 			typedef ConstUserMatrix<dim> T;
-			stringstream ss; ss << "ConstUserMatrix" << dim << "d";
+			std::stringstream ss; ss << "ConstUserMatrix" << dim << "d";
 			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_diag_tensor", &T::set_diag_tensor)
@@ -92,7 +94,7 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup)
 	//	LuaUserMatrix
 		{
 			typedef LuaUserMatrix<dim> T;
-			stringstream ss; ss << "LuaUserMatrix" << dim << "d";
+			std::stringstream ss; ss << "LuaUserMatrix" << dim << "d";
 			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);

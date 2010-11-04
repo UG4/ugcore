@@ -2,8 +2,10 @@
 
 #include "../../ug_bridge.h"
 #include "common/common.h"
-#include "lib_discretization/lib_discretization.h"
+#include "lib_discretization/spacial_discretization/user_data.h"
 #include "../../../ug_script/ug_script.h"
+#include <iostream>
+#include <sstream>
 
 namespace ug
 {
@@ -64,7 +66,7 @@ void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 
 	//	Base class
 		{
-			stringstream ss; ss << "IBoundaryNumberProvider" << dim << "d";
+			std::stringstream ss; ss << "IBoundaryNumberProvider" << dim << "d";
 			reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
 		}
 
@@ -73,7 +75,7 @@ void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 	//	ConstBoundaryNumber
 		{
 			typedef ConstBoundaryNumber<dim> T;
-			stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
+			std::stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
 			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set", &T::set)
@@ -83,7 +85,7 @@ void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
 	//	LuaBoundaryNumber
 		{
 			typedef LuaBoundaryNumber<dim> T;
-			stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
+			std::stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
 			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 				.add_constructor()
 				.add_method("set_lua_callback", &T::set_lua_callback);

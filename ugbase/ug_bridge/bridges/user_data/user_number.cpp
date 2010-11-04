@@ -2,8 +2,10 @@
 
 #include "../../ug_bridge.h"
 #include "common/common.h"
-#include "lib_discretization/lib_discretization.h"
+#include "lib_discretization/spacial_discretization/user_data.h"
 #include "../../../ug_script/ug_script.h"
+#include <iostream>
+#include <sstream>
 
 namespace ug
 {
@@ -94,14 +96,14 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 
 //	Base class
 	{
-		stringstream ss; ss << "IUserNumberProvider" << dim << "d";
+		std::stringstream ss; ss << "IUserNumberProvider" << dim << "d";
 		reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	ConstUserNumber
 	{
 		typedef ConstUserNumber<dim> T;
-		stringstream ss; ss << "ConstUserNumber" << dim << "d";
+		std::stringstream ss; ss << "ConstUserNumber" << dim << "d";
 		reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set | interactive=false", &T::set, "", "MyNumber || invokeOnChange=true")
@@ -111,7 +113,7 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 //	LuaUserNumber
 	{
 		typedef LuaUserNumber<dim> T;
-		stringstream ss; ss << "LuaUserNumber" << dim << "d";
+		std::stringstream ss; ss << "LuaUserNumber" << dim << "d";
 		reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback);
@@ -129,11 +131,11 @@ void RegisterUserNumber(Registry& reg, const char* parentGroup)
 		std::string grp = std::string(parentGroup);
 
 		typedef PrintUserNumber2d T;
-		stringstream ss; ss << "PrintUserNumber2d";
+		std::stringstream ss; ss << "PrintUserNumber2d";
 		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_user_number", &T::set_user_number)
-			.add_method("print", &T::print);
+			.add_method("set_user_number|interactive=false", &T::set_user_number, "", "NumberProvider||invokeOnChange=true")
+			.add_method("print", &T::print, "Result", "x#y");
 	}
 
 }
