@@ -8,7 +8,6 @@
 #include "../ug_bridge.h"
 #include "lib_algebra/lib_algebra.h"
 #include "lib_discretization/lib_discretization.h"
-#include "user_data/user_data.h"
 #include <iostream>
 #include <sstream>
 
