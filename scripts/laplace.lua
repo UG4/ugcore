@@ -10,6 +10,9 @@
 -- currently only the path in which you start your application is valid.
 dofile("../scripts/ug_util.lua")
 
+-- choose algebra
+InitAlgebra(CPUAlgebraChooser());
+
 -- constants
 dim = 2
 gridName = "unit_square_tri.ugx"

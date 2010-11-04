@@ -10,6 +10,12 @@
 -- currently only the path in which you start your application is valid.
 dofile("../scripts/ug_util.lua")
 
+-- choose algebra
+algebra = CPUAlgebraChooser()
+algebra:set_fixed_blocksize(2)
+InitAlgebra(algebra)
+-- InitAlgebra also loads all discretization functions and classes
+
 -- constants
 dim = 2
 gridName = "elder_quads_8x2.ugx"

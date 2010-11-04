@@ -12,6 +12,9 @@ for i = 1, ugargc do
 end
 print("")
 
+-- use the default Algebra
+InitAlgebra(CPUAlgebraChooser());
+
 -- create a new grid and a new subset handler
 g = Grid.new()
 sh = SubsetHandler.new()

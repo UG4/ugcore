@@ -13,6 +13,9 @@
 -- load it relative to the current path.
 ug_load_script("ug_util.lua")
 
+-- choose algebra
+InitAlgebra(CPUAlgebra())
+
 -- constants
 dim = 2
 gridName = "volgrid_b.ugx"
