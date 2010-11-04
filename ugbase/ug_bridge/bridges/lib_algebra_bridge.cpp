@@ -34,7 +34,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	{
 		reg.add_class_<vector_type>("Vector", grp.c_str())
 			.add_constructor()
-			.add_method("print", &vector_type::p);
+			.add_method("print|hide=true", &vector_type::p);
 
 		//reg.add_function("VecScaleAssign", , "",
 			//	"dest, alpha1, vec1", "dest = alpha1*vec1");
@@ -48,7 +48,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	{
 		reg.add_class_<matrix_type>("Matrix", grp.c_str())
 			.add_constructor()
-			.add_method("print", &matrix_type::p);
+			.add_method("print|hide=true", &matrix_type::p);
 	}
 
 	// Base Classes

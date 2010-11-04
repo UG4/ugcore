@@ -189,7 +189,7 @@ void GlobalRefineParallelDomain(TDomain& domain)
 }
 
 template <typename TDomain>
-bool LoadDomain(TDomain& domain, const char* filename)
+bool LoadDomain(TDomain& domain, const char* filename, int numRefs)
 {
 #ifdef UG_PARALLEL
 	if(pcl::GetProcRank() != 0)
@@ -203,7 +203,22 @@ bool LoadDomain(TDomain& domain, const char* filename)
 		return false;
 	}
 
-	return LoadGridFromUGX(domain.get_grid(), domain.get_subset_handler(), filename);
+	if(!LoadGridFromUGX(domain.get_grid(), domain.get_subset_handler(), filename))
+	{
+		UG_LOG("Cannot load grid.\n");
+		return false;
+	}
+
+	if(numRefs <= 0) return true;
+
+	GlobalMultiGridRefiner refiner;
+	refiner.assign_grid(domain.get_grid());
+	for(int i = 0; i < numRefs; ++i)
+	{
+		refiner.refine();
+	}
+
+	return true;
 }
 
 template <typename TDomain>
@@ -289,9 +304,20 @@ class P1ConformApproximationSpace :
 			m_fp.set_subset_handler(domain.get_subset_handler());
 		}
 
-		bool add_function(const char* name)
+		bool set_functions(const char* name)
 		{
-			return m_fp.add_discrete_function(name, LSFS_LAGRANGEP1, TDomain::dim);
+			std::string nameStr = name;
+			std::vector<std::string> vStringTmp;
+
+			TokenizeString(nameStr, vStringTmp, ',');
+
+			bool retVal = true;
+			for(size_t i = 0; i < vStringTmp.size(); ++i)
+			{
+				retVal &= m_fp.add_discrete_function(vStringTmp[i].c_str(), LSFS_LAGRANGEP1, TDomain::dim);
+			}
+
+			return retVal;
 		}
 
 		bool initialize()
@@ -355,6 +381,43 @@ class ConstFV1ConvectionDiffusionElemDisc :
 		}
 };
 
+template <typename TGridFunction>
+bool
+SolveTimeProblem(IOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& newton,
+				TGridFunction& u,
+				ITimeDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& time_disc,
+				size_t timesteps, size_t startsteps, number dt, const char* name)
+{
+	VTKOutput<TGridFunction> out;
+	out.begin_timeseries(name, u);
+	out.print(name, u, 0, 0.0);
+
+	number time = 0.0;
+	size_t step = 1;
+	size_t do_steps;
+
+// perform time stepping
+	do_steps = (timesteps - step + 1) >= startsteps ? startsteps : (timesteps - step + 1);
+	if(!PerformTimeStep(newton, u, time_disc, do_steps, step, time, dt/100, out, name, true))
+	{
+		UG_LOG("Cannot perform timestep.\n");
+		return 1;
+	}
+	step += do_steps; time += dt/100 * do_steps;
+
+// perform time stepping
+	do_steps = (timesteps - step + 1) >= 0 ?  (timesteps - step + 1) : 0;
+	if(!PerformTimeStep(newton, u, time_disc, do_steps, step, time, dt, out, name, true))
+	{
+		UG_LOG("Cannot perform timestep.\n");
+		return 1;
+	}
+	step += do_steps; time += dt/100 * do_steps;
+
+	out.end_timeseries(name, u);
+
+	return true;
+}
 
 template <typename TGridFunction>
 bool SolveStationaryDiscretization(DomainDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& dd,
@@ -411,9 +474,9 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		stringstream ss; ss << "Domain" << dim << "d";
 		reg.add_class_<domain_type>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("get_subset_handler", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
-			.add_method("get_grid", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
-			.add_method("get_dim", (int (domain_type::*)()) &domain_type::get_dim);
+			.add_method("get_subset_handler|hide=true", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
+			.add_method("get_grid|hide=true", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
+			.add_method("get_dim|hide=true", (int (domain_type::*)()) &domain_type::get_dim);
 	}
 
 //	IApproximationSpace
@@ -433,10 +496,12 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		stringstream ss; ss << "GridFunction" << dim << "d";
 		reg.add_class_<function_type, vector_type>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set", (bool (function_type::*)(number))&function_type::set)
-			.add_method("assign", (bool (function_type::*)(const vector_type&))&function_type::assign)
-			.add_method("assign_dof_distribution", &function_type::assign_dof_distribution)
-			.add_method("get_dim", &function_type::get_dim);
+			.add_method("set|hide=true", (bool (function_type::*)(number))&function_type::set,
+						"Success", "Number")
+			.add_method("assign|hide=true", (bool (function_type::*)(const vector_type&))&function_type::assign,
+						"Success", "Vector")
+			.add_method("assign_dof_distribution|hide=true", &function_type::assign_dof_distribution)
+			.add_method("get_dim|hide=true", &function_type::get_dim);
 	}
 
 //  ApproximationSpace
@@ -445,15 +510,17 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		stringstream ss; ss << "ApproximationSpace" << dim << "d";
 		reg.add_class_<T,  IApproximationSpace<domain_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("init", &T::init)
-			.add_method("get_surface_dof_distribution", &T::get_surface_dof_distribution)
-			.add_method("create_surface_function", &T::create_surface_function);
+			.add_method("init|hide=true", &T::init)
+			.add_method("get_surface_dof_distribution|hide=true", &T::get_surface_dof_distribution)
+			.add_method("create_surface_function|hide=true", &T::create_surface_function);
 	}
 
 //	GridFunction (2. part)
 	{
 		reg.get_class_<function_type>()
-			.add_method("assign_approximation_space", &function_type::assign_approximation_space);
+			.add_method("assign_approximation_space|hide=true", &function_type::assign_approximation_space)
+			.add_method("set_space|interactive=false", &function_type::assign_surface_approximation_space,
+						"", "Approximation Space||invokeOnChange=true");
 	}
 
 //	P1ConformApproximationSpace
@@ -462,9 +529,9 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		stringstream ss; ss << "P1ApproximationSpace" << dim << "d";
 		reg.add_class_<T, ApproximationSpace<domain_type, dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("initialize", &T::initialize)
+			.add_method("initialize", &T::initialize, "Success")
 			.add_method("set_domain|interactive=false", &T::set_domain, "", "Domain||invokeOnChange=true")
-			.add_method("add_function", &T::add_function);
+			.add_method("set_functions", &T::set_functions, "Success", "Functions");
 
 	}
 
@@ -478,8 +545,10 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_pattern|hide=true", &T::set_pattern)
 			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
 						"", "Approximation Space||invokeOnChange=true")
-			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value)
-			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value);
+			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value,
+						"Success", "Value#Function#Subsets")
+			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value,
+						"Success", "Constant Value#Function#Subsets");
 	}
 
 //	Neumann Boundary
@@ -636,7 +705,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		{
 			stringstream ss; ss << "LoadDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
-							"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\"",
+							"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 							"Loads a domain", "No help");
 		}
 
@@ -651,8 +720,18 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 	//	PerformTimeStep
 		{
 			stringstream ss; ss << "PerformTimeStep" << dim << "d";
-			reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>, grp.c_str());
+			reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>, grp.c_str(),
+							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Time#Timestep Size#Visualization Output#FileName#DoOutput");
 		}
+
+
+	//	SolveTimeProblem
+		{
+			stringstream ss; ss << "SolveTimeProblem" << dim << "d";
+			reg.add_function(ss.str().c_str(), &SolveTimeProblem<function_type>, grp.c_str(),
+							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Timestep Size#FileName");
+		}
+
 
 	//	DistributeDomain
 		{
@@ -752,8 +831,10 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 
 			reg.add_class_<T, IDomainDiscretization<dof_distribution_type, algebra_type> >("DomainDiscretization", grp.c_str())
 				.add_constructor()
-				.add_method("add_post_process", &T::add_post_process)
-				.add_method("add_elem_disc", (bool (T::*)(IElemDisc<algebra_type>&)) &T::add_elem_disc);
+				.add_method("add_post_process|interactive=false", &T::add_post_process,
+							"", "Post Process||invokeOnChange=true")
+				.add_method("add_elem_disc|interactive=false", (bool (T::*)(IElemDisc<algebra_type>&)) &T::add_elem_disc,
+							"", "Discretization||invokeOnChange=true");
 		}
 
 	//	Time Discretization
@@ -765,8 +846,10 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 
 			reg.add_class_<T, ITimeDiscretization<dof_distribution_type, algebra_type> >("ThetaTimeDiscretization", grp.c_str())
 					.add_constructor()
-					.add_method("set_domain_discretization", &T::set_domain_discretization)
-					.add_method("set_theta", &T::set_theta);
+					.add_method("set_domain_discretization|interactive=false", &T::set_domain_discretization,
+								"", "Domain Discretization||invokeOnChange=true")
+					.add_method("set_theta", &T::set_theta,
+								"", "Theta");
 		}
 
 	//	AssembledLinearOperator
@@ -848,10 +931,7 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 	try
 	{
 	//	get group string
-		std::string grp = parentGroup; grp.append("/Discretization/UserData");
-
-	//	get group string
-		grp = parentGroup; grp.append("/Discretization");
+		std::string grp = parentGroup; grp.append("/Discretization");
 
 	//	FunctionPattern (Abstract Base Class)
 		reg.add_class_<FunctionPattern>("FunctionPattern", grp.c_str());
@@ -897,9 +977,9 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 	{
 	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
 	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 	}
 	//

@@ -45,6 +45,7 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 
 	try
 	{
+		bResult &= RegisterUserData(reg, parentGroup);
 		bResult &= RegisterLibGridInterface(reg, parentGroup);
 		bResult &= RegisterStaticLibAlgebraInterface(reg, parentGroup);
 		bResult &= RegisterStaticLibDiscretizationInterface(reg, parentGroup);

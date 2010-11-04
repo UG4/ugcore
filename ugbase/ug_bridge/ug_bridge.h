@@ -35,6 +35,9 @@ bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const c
 bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup = "/ug4");
 bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
+/// registers user data
+bool RegisterUserData(Registry& reg, const char* parentGroup = "/ug4");
+
 ///	registers user functions for the elder problem.
 void RegisterElderUserFunctions(Registry& reg, const char* parentGroup);
 
