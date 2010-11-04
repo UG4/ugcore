@@ -44,7 +44,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
 //		return methods[signature.c_str()];
 //	}
 
-	// we allow invokation of methods defined in parent classes
+	// we allow invocation of methods defined in parent classes
 	std::vector<const ug::bridge::IExportedClass*> classes =
 			getParentClasses(reg, clazz);
 

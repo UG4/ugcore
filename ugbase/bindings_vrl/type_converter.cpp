@@ -276,10 +276,10 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 	std::vector<std::string> paramInfo;
 
 	paramInfo.push_back("");
-	paramInfo.push_back(""); // pot nullIsValid in this option field
+	paramInfo.push_back(""); // put nullIsValid in this option field
 	paramInfo.push_back("");
 
-	result << "@MethodInfo(interactive=false)\n"
+	result << "@MethodInfo(interactive=false,hide=true)\n"
 			<< " void setPointer("
 			<< createParamInfo(clazz.name(), clazz.name(), clazz.class_names(),
 			false, paramInfo, "nullIsValid=true")
