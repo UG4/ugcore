@@ -21,6 +21,7 @@ set(srcBindingsVRL
                     canvas.cpp
                     messaging.cpp
                     vrl_user_number.cpp
+                    invocation.cpp
 )
 
 

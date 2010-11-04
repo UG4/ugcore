@@ -16,37 +16,38 @@
 #include "lib_grid/lib_grid.h"
 #include "compiledate.h"
 #include "vrl_user_number.h"
+#include "invocation.h"
 
 namespace ug {
-	namespace vrl {
-		static ug::bridge::Registry* vrlRegistry = NULL;
-		static JNIEnv* jniEnv = NULL;
-		static JavaVM* javaVM = NULL;
+namespace vrl {
+static ug::bridge::Registry* vrlRegistry = NULL;
+static JNIEnv* jniEnv = NULL;
+static JavaVM* javaVM = NULL;
 
-		void SetVRLRegistry(ug::bridge::Registry* pReg) {
-			vrlRegistry = pReg;
-		}
+void SetVRLRegistry(ug::bridge::Registry* pReg) {
+	vrlRegistry = pReg;
+}
 
-		void SetJNIEnv(JNIEnv* env) {
-			jniEnv = env;
-			env->GetJavaVM(&javaVM);
-		}
+void SetJNIEnv(JNIEnv* env) {
+	jniEnv = env;
+	env->GetJavaVM(&javaVM);
+}
 
-		JNIEnv* getJNIEnv() {
-			return jniEnv;
-		}
+JNIEnv* getJNIEnv() {
+	return jniEnv;
+}
 
-		JavaVM* getJavaVM() {
-			return javaVM;
-		}
+JavaVM* getJavaVM() {
+	return javaVM;
+}
 
-
-	} // end vrl::
+} // end vrl::
 }// end ug::
 
 class TestClass {
 public:
-	TestClass(){
+
+	TestClass() {
 		//
 	}
 
@@ -71,24 +72,24 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
-	static ug::bridge::Registry testReg;
+	//	static ug::bridge::Registry testReg;
 	using namespace ug;
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
 
-//	testReg.add_class_<TestClass>("TestClass","testing")
-//	.add_constructor()
-//	.add_method("svnRevision", &TestClass::getRev);
+	//	testReg.add_class_<TestClass>("TestClass","testing")
+	//	.add_constructor()
+	//	.add_method("svnRevision", &TestClass::getRev);
 
 
-	ug::bridge::RegisterStandardInterfaces(testReg);
-	ug::vrl::RegisterVRLUserNumber(testReg,"testing");
-//			ug::bridge::RegisterTestInterface(testReg);
+	ug::bridge::RegisterStandardInterfaces(ug::bridge::GetUGRegistry());
+	ug::vrl::RegisterVRLUserNumber(ug::bridge::GetUGRegistry(), "testing");
+	//			ug::bridge::RegisterTestInterface(testReg);
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
-	ug::vrl::SetVRLRegistry(&testReg);
+	ug::vrl::SetVRLRegistry(&ug::bridge::GetUGRegistry());
 
 	return (jint) retVal;
 }
@@ -99,7 +100,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 		jstring methodName, jobjectArray params) {
 
 	const ug::bridge::IExportedClass* clazz =
-			ug::vrl::getExportedClassPtrByName(
+			ug::vrl::invocation::getExportedClassPtrByName(
 			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, exportedClassName));
 
 	ug::bridge::ParameterStack paramsIn;
@@ -112,12 +113,12 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 	try {
 
 		const ug::bridge::ExportedMethod* method =
-				ug::vrl::getMethodBySignature(
+				ug::vrl::invocation::getMethodBySignature(
 				env, ug::vrl::vrlRegistry,
 				clazz, ug::vrl::boolJ2C(readOnly), name, params);
 
 		if (method == NULL && readOnly == false) {
-			method = ug::vrl::getMethodBySignature(
+			method = ug::vrl::invocation::getMethodBySignature(
 					env, ug::vrl::vrlRegistry,
 					clazz, ug::vrl::boolJ2C(true), name, params);
 		}
@@ -176,7 +177,8 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 
 
 
-	const ug::bridge::ExportedFunction* func = ug::vrl::getFunctionBySignature(
+	const ug::bridge::ExportedFunction* func =
+			ug::vrl::invocation::getFunctionBySignature(
 			env, ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, fName), params);
 
 	ug::bridge::ParameterStack paramsIn;
@@ -248,24 +250,24 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 (JNIEnv *env, jobject obj, jstring name) {
-	return (long) ug::vrl::getExportedClassPtrByName(
+	return (long) ug::vrl::invocation::getExportedClassPtrByName(
 			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getMessages
-  (JNIEnv *env, jobject obj) {
-	return ug::vrl::stringC2J(env,ug::vrl::MessageBuffer::getMessages().c_str());
+(JNIEnv *env, jobject obj) {
+	return ug::vrl::stringC2J(env, ug::vrl::MessageBuffer::getMessages().c_str());
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getSvnRevision
-  (JNIEnv *env, jobject obj) {
+(JNIEnv *env, jobject obj) {
 	std::string revision = ug::vrl::svnRevision();
-	return ug::vrl::stringC2J(env,revision.c_str());
+	return ug::vrl::stringC2J(env, revision.c_str());
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
-  (JNIEnv *env, jobject obj) {
-	return ug::vrl::stringC2J(env,COMPILE_DATE);
+(JNIEnv *env, jobject obj) {
+	return ug::vrl::stringC2J(env, COMPILE_DATE);
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
