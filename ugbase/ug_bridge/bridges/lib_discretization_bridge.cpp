@@ -422,10 +422,10 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef IApproximationSpace<domain_type> T;
 		stringstream ss; ss << "IApproximationSpace" << dim << "d";
 		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
-			.add_method("assign_domain", &T::assign_domain)
-			.add_method("get_domain", (domain_type& (T::*)())&T::get_domain)
-			.add_method("assign_function_pattern", &T::assign_function_pattern)
-			.add_method("get_function_pattern", &T::get_function_pattern);
+			.add_method("assign_domain|hide=true", &T::assign_domain)
+			.add_method("get_domain|hide=true", (domain_type& (T::*)())&T::get_domain)
+			.add_method("assign_function_pattern|hide=true", &T::assign_function_pattern)
+			.add_method("get_function_pattern|hide=true", &T::get_function_pattern);
 	}
 
 
@@ -464,7 +464,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		reg.add_class_<T, ApproximationSpace<domain_type, dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("initialize", &T::initialize)
-			.add_method("set_domain", &T::set_domain)
+			.add_method("set_domain|interactive=false", &T::set_domain, "", "Domain||invokeOnChange=true")
 			.add_method("add_function", &T::add_function);
 
 	}
@@ -475,9 +475,10 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		stringstream ss; ss << "DirichletBND" << dim << "d";
 		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_domain", &T::set_domain)
-			.add_method("set_pattern", &T::set_pattern)
-			.add_method("set_approximation_space", &T::set_approximation_space)
+			.add_method("set_domain|hide=true", &T::set_domain)
+			.add_method("set_pattern|hide=true", &T::set_pattern)
+			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
+						"", "Approximation Space||invokeOnChange=true")
 			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value)
 			.add_method("add_constant_boundary_value", &T::add_constant_boundary_value);
 	}
@@ -485,7 +486,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Neumann Boundary
 	{
 		typedef FVNeumannBoundaryElemDisc<FV1Geometry, domain_type, algebra_type> T;
-		stringstream ss; ss << "FV1NeumannBoundaryElemDisc" << dim << "d";
+		stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
@@ -495,7 +496,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Convection Diffusion
 	{
 		typedef FVConvectionDiffusionElemDisc<FV1Geometry, domain_type, algebra_type> T;
-		stringstream ss; ss << "FV1ConvectionDiffusionElemDisc" << dim << "d";
+		stringstream ss; ss << "FV1ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
@@ -509,7 +510,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	ConstFV1ConvectionDiffusionElemDisc
 	{
 		typedef ConstFV1ConvectionDiffusionElemDisc<domain_type, dof_distribution_type, algebra_type> T;
-		stringstream ss; ss << "ConstFV1ConvectionDiffusionElemDisc" << dim << "d";
+		stringstream ss; ss << "ConstFV1ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_constants", &T::set_constants,
@@ -527,15 +528,22 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Density Driven Flow
 	{
 		typedef DensityDrivenFlowElemDisc<FV1Geometry, domain_type, algebra_type> T2;
-		stringstream ss; ss << "FV1DensityDrivenFlowElemDisc" << dim << "d";
+		stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
 		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_domain", &T2::set_domain)
-			.add_method("set_upwind", &T2::set_upwind)
-			.add_method("set_boussinesq_transport", &T2::set_boussinesq_transport)
-			.add_method("set_boussinesq_flow", &T2::set_boussinesq_flow)
-			.add_method("set_user_functions", &T2::set_user_functions)
-			.add_method("set_consistent_gravity", &T2::set_consistent_gravity);
+			.add_method("set_domain|hide=true", &T2::set_domain)
+			.add_method("set_approximation_space|interactive=false", &T2::set_approximation_space,
+						"", "Approximation Space||invokeOnChange=true")
+			.add_method("set_upwind|interactive=false", &T2::set_upwind,
+						"", "Upwind (no, part, full)||invokeOnChange=true")
+			.add_method("set_boussinesq_transport|interactive=false", &T2::set_boussinesq_transport,
+						"", "Boussinesq Transport||invokeOnChange=true")
+			.add_method("set_boussinesq_flow|interactive=false", &T2::set_boussinesq_flow,
+						"", "Boussinesq Flow||invokeOnChange=true")
+			.add_method("set_user_functions|interactive=false", &T2::set_user_functions,
+						"", "User Functions||invokeOnChange=true")
+			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
+						"", "Consistent Gravity||invokeOnChange=true");
 	}
 
 //	ProlongationOperator
@@ -570,17 +578,27 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		stringstream ss; ss << "GeometricMultiGridPreconditioner" << dim << "d";
 		reg.add_class_<T, ILinearIterator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set_discretization", &T::set_discretization)
-			.add_method("set_approximation_space", &T::set_approximation_space)
+			.add_method("set_discretization|interactive=false", &T::set_discretization,
+						"", "Discretization||invokeOnChange=true")
+			.add_method("set_approximation_space|interactive=false", &T::set_approximation_space,
+						"", "Approximation Space||invokeOnChange=true")
 			.add_method("set_surface_level", &T::set_surface_level)
-			.add_method("set_base_level", &T::set_base_level)
-			.add_method("set_base_solver", &T::set_base_solver)
-			.add_method("set_smoother", &T::set_smoother)
-			.add_method("set_cycle_type", &T::set_cycle_type)
-			.add_method("set_num_presmooth", &T::set_num_presmooth)
-			.add_method("set_num_postsmooth", &T::set_num_postsmooth)
-			.add_method("set_prolongation", &T::set_prolongation_operator)
-			.add_method("set_projection", &T::set_projection_operator);
+			.add_method("set_base_level|interactive=false", &T::set_base_level,
+						"", "Base Level||invokeOnChange=true")
+			.add_method("set_base_solver|interactive=false", &T::set_base_solver,
+						"","Base Solver||invokeOnChange=true")
+			.add_method("set_smoother|interactive=false", &T::set_smoother,
+						"", "Smoother||invokeOnChange=true")
+			.add_method("set_cycle_type|interactive=false", &T::set_cycle_type,
+						"", "Cycle Type||invokeOnChange=true")
+			.add_method("set_num_presmooth|interactive=false", &T::set_num_presmooth,
+						"", "Number PreSmooth Steps||invokeOnChange=true")
+			.add_method("set_num_postsmooth|interactive=false", &T::set_num_postsmooth,
+						"", "Number PostSmooth Steps||invokeOnChange=true")
+			.add_method("set_prolongation|interactive=false", &T::set_prolongation_operator,
+						"", "Prolongation||invokeOnChange=true")
+			.add_method("set_projection|interactive=false", &T::set_projection_operator,
+						"", "Projection||invokeOnChange=true");
 	}
 
 //	VTK Output
@@ -627,7 +645,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		{
 			stringstream ss; ss << "SaveDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
-							"Success", "Domain # Filename | save-dialog",
+							"Success", "Domain # Filename|save-dialog",
 							"Saves a domain", "No help");
 		}
 
@@ -720,7 +738,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 		//	Base class
 			typedef IElemDisc<algebra_type> T;
 			reg.add_class_<T>("IElemDisc", grp.c_str())
-				.add_method("set_pattern", &T::set_pattern)
+				.add_method("set_pattern|hide=true", &T::set_pattern)
 				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions)
 				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets);
 		}
@@ -868,8 +886,6 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 	//  Add discrete function to pattern
 		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
 
-		//	todo: remove when possible
-		RegisterElderUserFunctions(reg, grp.c_str());
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
@@ -896,6 +912,9 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 	}
 	//
+
+	//	todo: remove when possible
+	RegisterElderUserFunctions(reg, parentGroup);
 
 	return bReturn;
 }
