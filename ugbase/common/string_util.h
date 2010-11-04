@@ -10,10 +10,13 @@
 namespace ug{
 
 // help function to tokenize the parameter string
-void TokenizeString(const std::string& str, std::vector<std::string>& tokens, const std::string& delimiters);
+void TokenizeString(const std::string& str, std::vector<std::string>& tokens, const char delimiter);
 
 // help function to remove white space from string
 void RemoveWhitespaceFromString(std::string& string);
+
+// help function to remove whitespace from front and end of string
+std::string TrimString(const std::string& str);
 
 } // end namespace ug
 

@@ -11,7 +11,7 @@
 namespace ug{
 
 bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
-								const char* subsets, std::string separator)
+								const char* subsets, const char separator)
 {
 //	get strings
 	std::string subsetString = std::string(subsets);
@@ -40,7 +40,7 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern&
 
 
 bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionPattern& pattern,
-									const char* functions, std::string separator)
+									const char* functions, const char separator)
 {
 //	get strings
 	std::string fctString = std::string(functions);
@@ -50,7 +50,7 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionP
 
 //	tokenize strings and select functions
 	std::vector<std::string> tokens;
-	TokenizeString(fctString, tokens, ",");
+	TokenizeString(fctString, tokens, ',');
 
 	for(size_t i = 0; i < tokens.size(); ++i)
 	{

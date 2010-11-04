@@ -20,10 +20,10 @@ namespace ug{
 class FunctionPattern;
 
 bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
-								const char* subsets, std::string separator = ",");
+								const char* subsets, const char separator = ',');
 
 bool ConvertStringToFunctionGroup(	FunctionGroup&functionGroup, const FunctionPattern& pattern,
-									const char* functions, std::string separator = ",");
+									const char* functions, const char separator = ',');
 
 
 } // end namespace ug
