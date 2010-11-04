@@ -66,47 +66,25 @@ class LuaUserMatrix : public IUserMatrixProvider<dim>
 };
 
 template <int dim>
-void RegisterUserMatrix(Registry& reg, const char* parentGroup)
+void RegisterLuaUserMatrix(Registry& reg, const char* parentGroup)
 {
 	std::string grp = std::string(parentGroup);
 
-
-//	Base class
+//	LuaUserMatrix
 	{
-		std::stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
-		reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str());
-	}
-
-//	Functor
-	{
-	//	ConstUserMatrix
-		{
-			typedef ConstUserMatrix<dim> T;
-			std::stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_diag_tensor", &T::set_diag_tensor)
-				.add_method("set_all_entries", &T::set_all_entries)
-				.add_method("set_entry", &T::set_entry)
-				.add_method("print", &T::print);
-		}
-
-	//	LuaUserMatrix
-		{
-			typedef LuaUserMatrix<dim> T;
-			std::stringstream ss; ss << "LuaUserMatrix" << dim << "d";
-			reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
-		}
+		typedef LuaUserMatrix<dim> T;
+		std::stringstream ss; ss << "LuaUserMatrix" << dim << "d";
+		reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
 	}
 }
 
-void RegisterUserMatrix(Registry& reg, const char* parentGroup)
+void RegisterLuaUserMatrix(Registry& reg, const char* parentGroup)
 {
-	RegisterUserMatrix<1>(reg, parentGroup);
-	RegisterUserMatrix<2>(reg, parentGroup);
-	RegisterUserMatrix<3>(reg, parentGroup);
+	RegisterLuaUserMatrix<1>(reg, parentGroup);
+	RegisterLuaUserMatrix<2>(reg, parentGroup);
+	RegisterLuaUserMatrix<3>(reg, parentGroup);
 }
 
 

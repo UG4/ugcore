@@ -51,16 +51,20 @@ lua_State* GetDefaultLuaState()
 		
 	//	we use an extra registry to register some lua-only commands
 		static ug::bridge::Registry scriptRegistry;
+
+	//	Register info commands
 		RegisterInfoCommands(scriptRegistry);
-		ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
-		
+
 	//	Register user functions
-		RegisterUserNumber(scriptRegistry, "/ug4");
-		RegisterUserVector(scriptRegistry, "/ug4");
-		RegisterUserMatrix(scriptRegistry, "/ug4");
+		RegisterLuaUserNumber(scriptRegistry, "/ug4");
+		RegisterLuaUserVector(scriptRegistry, "/ug4");
+		RegisterLuaUserMatrix(scriptRegistry, "/ug4");
 
 	//	Register Boundary functions
-		RegisterBoundaryNumber(scriptRegistry, "/ug4");
+		RegisterLuaBoundaryNumber(scriptRegistry, "/ug4");
+
+		ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
+
 	}
 	
 	return L;

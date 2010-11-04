@@ -60,44 +60,25 @@ class LuaBoundaryNumber : public IBoundaryNumberProvider<dim>
 };
 
 template <int dim>
-void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
+void RegisterLuaBoundaryNumber(Registry& reg, const char* parentGroup)
 {
 	std::string grp = std::string(parentGroup);
 
-	//	Base class
-		{
-			std::stringstream ss; ss << "IBoundaryNumberProvider" << dim << "d";
-			reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
-		}
-
-//	Functor
+//	LuaBoundaryNumber
 	{
-	//	ConstBoundaryNumber
-		{
-			typedef ConstBoundaryNumber<dim> T;
-			std::stringstream ss; ss << "ConstBoundaryNumber" << dim << "d";
-			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set", &T::set)
-				.add_method("print", &T::print);
-		}
-
-	//	LuaBoundaryNumber
-		{
-			typedef LuaBoundaryNumber<dim> T;
-			std::stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
-			reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
-		}
+		typedef LuaBoundaryNumber<dim> T;
+		std::stringstream ss; ss << "LuaBoundaryNumber" << dim << "d";
+		reg.add_class_<T, IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
 	}
 }
 
-void RegisterBoundaryNumber(Registry& reg, const char* parentGroup)
+void RegisterLuaBoundaryNumber(Registry& reg, const char* parentGroup)
 {
-	RegisterBoundaryNumber<1>(reg, parentGroup);
-	RegisterBoundaryNumber<2>(reg, parentGroup);
-	RegisterBoundaryNumber<3>(reg, parentGroup);
+	RegisterLuaBoundaryNumber<1>(reg, parentGroup);
+	RegisterLuaBoundaryNumber<2>(reg, parentGroup);
+	RegisterLuaBoundaryNumber<3>(reg, parentGroup);
 }
 
 } // end namespace

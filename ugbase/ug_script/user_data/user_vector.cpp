@@ -63,45 +63,25 @@ class LuaUserVector : public IUserVectorProvider<dim>
 
 
 template <int dim>
-void RegisterUserVector(Registry& reg, const char* parentGroup)
+void RegisterLuaUserVector(Registry& reg, const char* parentGroup)
 {
 	std::string grp = std::string(parentGroup);
 
-//	Base class
-	{
-		std::stringstream ss; ss << "IUserVectorProvider" << dim << "d";
-		reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str());
-	}
-
-//	Functor
-	{
-	//	ConstUserVector
-		{
-			typedef ConstUserVector<dim> T;
-			std::stringstream ss; ss << "ConstUserVector" << dim << "d";
-			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_all_entries", &T::set_all_entries)
-				.add_method("set_entry", &T::set_entry)
-				.add_method("print", &T::print);
-		}
-
 	//	LuaUserVector
-		{
-			typedef LuaUserVector<dim> T;
-			std::stringstream ss; ss << "LuaUserVector" << dim << "d";
-			reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
-				.add_constructor()
-				.add_method("set_lua_callback", &T::set_lua_callback);
-		}
+	{
+		typedef LuaUserVector<dim> T;
+		std::stringstream ss; ss << "LuaUserVector" << dim << "d";
+		reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
 	}
 }
 
-void RegisterUserVector(Registry& reg, const char* parentGroup)
+void RegisterLuaUserVector(Registry& reg, const char* parentGroup)
 {
-	RegisterUserVector<1>(reg, parentGroup);
-	RegisterUserVector<2>(reg, parentGroup);
-	RegisterUserVector<3>(reg, parentGroup);
+	RegisterLuaUserVector<1>(reg, parentGroup);
+	RegisterLuaUserVector<2>(reg, parentGroup);
+	RegisterLuaUserVector<3>(reg, parentGroup);
 }
 
 } // end namespace
