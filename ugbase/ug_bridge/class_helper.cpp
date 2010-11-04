@@ -12,15 +12,10 @@
 
 #include <string>
 #include <vector>
-#include <sstream>
-#include "parameter_stack.h"
-#include "function_traits.h"
-#include "param_to_type_value_list.h"
-#include <iostream>
 
 #include "class_helper.h"
 #include "registry.h"
-//#include "ug_script/ug_script.h"
+#include "common/string_util.h"
 
 namespace ug
 {
@@ -28,37 +23,17 @@ namespace bridge
 {
 extern Registry& GetUGRegistry();
 
-static std::string trim(const std::string& str)
-{
-	const size_t start = str.find_first_not_of(" \t");
-	const size_t end = str.find_last_not_of(" \t");
-	if(start == std::string::npos || end == std::string::npos) return "";
-	return str.substr(start, end - start + 1);
-}
-
-static void tokenize(const std::string& str, std::vector<std::string>& tokens, const char delimiter)
-{
-	tokens.clear();
-	std::stringstream tokenstream;
-	tokenstream << str;
-	std::string token;
-
-	while ( std::getline (tokenstream, token, delimiter ) )
-	{
-		tokens.push_back(trim(token));
-	}
-}
 
 void ClassHierarchy::insert_class(const IExportedClass &c)
 {
 	//	get name and visualization options of function
 	std::vector<std::string> vGroups;
-	tokenize(c.group(), vGroups, '/');
+	TokenizeString(c.group(), vGroups, '/');
 
 	ClassHierarchy *base = this;
 	for(vector<std::string>::const_iterator it = vGroups.begin(); it != vGroups.end(); ++it)
 	{
-		const std::string &thename = (*it);
+		const std::string thename = TrimString(*it);
 		if(thename.length() <= 0) continue;
 		bool bFound = false;
 		for(size_t j=0; j<base->subclasses.size(); j++)
