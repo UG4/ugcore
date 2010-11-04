@@ -3,11 +3,13 @@
 #include "../ug_bridge/ug_bridge.h"
 #include "type_converter.h"
 #include "common/common.h"
-#include "../lib_discretization/lib_discretization.h"
+#include "../lib_discretization/spacial_discretization/user_data.h"
 #include "../ug_script/ug_script.h"
 #include "bindings_vrl.h"
 #include "type_converter.h"
 #include "threading.h"
+#include <iostream>
+#include <sstream>
 
 namespace ug {
 	namespace vrl {
@@ -142,7 +144,7 @@ namespace ug {
 			//	VRLUserNumber
 			{
 				typedef VRLUserNumber<dim> T;
-				stringstream ss;
+				std::stringstream ss;
 				ss << "VRLUserNumber" << dim << "d";
 				reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
 						.add_constructor()
