@@ -13,9 +13,6 @@ void RegisterUserMatrix(Registry& reg, const char* parentGroup);
 
 void RegisterBoundaryNumber(Registry& reg, const char* parentGroup);
 
-
-void RegisterElderUserFunctions(Registry& reg, const char* parentGroup);
-
 } // end namepace bridge
 } // end namespace ug
 

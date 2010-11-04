@@ -8,7 +8,7 @@
 #include "bindings/bindings_lua.h"
 #include "ug_bridge/ug_bridge.h"
 #include "info_commands.h"
-
+#include "user_data/user_data.h"
 using namespace std;
 
 namespace ug
@@ -53,6 +53,14 @@ lua_State* GetDefaultLuaState()
 		static ug::bridge::Registry scriptRegistry;
 		RegisterInfoCommands(scriptRegistry);
 		ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
+		
+	//	Register user functions
+		RegisterUserNumber(scriptRegistry, "/ug4");
+		RegisterUserVector(scriptRegistry, "/ug4");
+		RegisterUserMatrix(scriptRegistry, "/ug4");
+
+	//	Register Boundary functions
+		RegisterBoundaryNumber(scriptRegistry, "/ug4");
 	}
 	
 	return L;

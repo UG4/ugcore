@@ -1,6 +1,6 @@
 
 
-#include "../../ug_bridge.h"
+#include "ug_bridge/ug_bridge.h"
 #include "common/common.h"
 #include "lib_discretization/lib_discretization.h"
 

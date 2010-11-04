@@ -851,14 +851,6 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 	//	get group string
 		std::string grp = parentGroup; grp.append("/Discretization/UserData");
 
-	//	Register user functions
-		RegisterUserNumber(reg, grp.c_str());
-		RegisterUserVector(reg, grp.c_str());
-		RegisterUserMatrix(reg, grp.c_str());
-
-	//	Register Boundary functions
-		RegisterBoundaryNumber(reg, grp.c_str());
-
 	//	get group string
 		grp = parentGroup; grp.append("/Discretization");
 
