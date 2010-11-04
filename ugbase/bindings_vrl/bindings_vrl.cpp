@@ -72,7 +72,12 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
-	//	static ug::bridge::Registry testReg;
+	static ug::bridge::Registry testReg;
+
+//	Choose registry used.
+//	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
+	ug::bridge::Registry& reg = testReg;
+
 	using namespace ug;
 
 	int retVal = ug::UGInit(arguments.size(), argv);
@@ -82,14 +87,21 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	//	.add_constructor()
 	//	.add_method("svnRevision", &TestClass::getRev);
 
+//	Register Standard Interfaces (excluding algebra)
+	ug::bridge::RegisterStandardInterfaces(reg);
 
-	ug::bridge::RegisterStandardInterfaces(ug::bridge::GetUGRegistry());
-	ug::vrl::RegisterVRLUserNumber(ug::bridge::GetUGRegistry(), "testing");
+//	Register algebra
+	CPUAlgebraChooser chooser;
+	ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
+	ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
+
+	ug::vrl::RegisterVRLUserNumber(reg, "testing");
 	//			ug::bridge::RegisterTestInterface(testReg);
+
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
-	ug::vrl::SetVRLRegistry(&ug::bridge::GetUGRegistry());
+	ug::vrl::SetVRLRegistry(&reg);
 
 	return (jint) retVal;
 }
