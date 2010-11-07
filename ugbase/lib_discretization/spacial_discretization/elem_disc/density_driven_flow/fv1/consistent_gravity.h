@@ -325,7 +325,8 @@ bool ComputeConsistentGravity(	MathVector<dim>& ConsistentGravity,
 								const MathVector<dim>* vConsGravity)
 {
 //	Clear ConsistentGravity
-	MathVector<dim> LocalGravity(0.0, 0.0);
+	MathVector<dim> LocalGravity;
+	VecSet(LocalGravity, 0.0);
 
 //	Loop shape functions
 	for(size_t sh = 0; sh < coe; ++sh)
