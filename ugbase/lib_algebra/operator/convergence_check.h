@@ -154,7 +154,7 @@ class StandardConvCheck : public IConvergenceCheck
 			//	print name line
 				print_offset();
 				for(int i = 0; i < num_sym; ++i) UG_LOG(m_symbol);
-				int pre_space = (max_length -(int)m_name.length()) / 2.0;
+				int pre_space = (int)(max_length -(int)m_name.length()) / 2;
 				for(int i = 0; i < pre_space; ++i) UG_LOG(" ");
 				UG_LOG("  "<< m_name << "  ");
 				for(int i = m_name.length(); i < max_length - pre_space; ++i) UG_LOG(" ");
