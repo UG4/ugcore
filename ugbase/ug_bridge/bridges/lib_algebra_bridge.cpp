@@ -168,16 +168,11 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("set_preconditioner", &BiCGStabSolver<algebra_type>::set_preconditioner, "", "preconditioner")
 			.add_method("set_convergence_check", &BiCGStabSolver<algebra_type>::set_convergence_check, "", "check");
 
-//todo: existance of LapackLUSolver class should not depend on defines.
-	#ifdef LAPACK_AVAILABLE
-	#ifdef BLAS_AVAILABLE
-	// 	BiCGStab Solver
-		reg.add_class_<	LapackLUSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("LapackLUSolver", grp.c_str())
+		// 	LUSolver
+		reg.add_class_<	LUSolver<algebra_type>,
+						ILinearOperatorInverse<vector_type, vector_type> >("LUSolver", grp.c_str())
 			.add_constructor()
-			.add_method("set_convergence_check", &LapackLUSolver<algebra_type>::set_convergence_check, "", "check");
-	#endif
-	#endif
+			.add_method("set_convergence_check", &LUSolver<algebra_type>::set_convergence_check, "", "check");
 	}
 }
 
