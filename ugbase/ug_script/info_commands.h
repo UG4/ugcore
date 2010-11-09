@@ -13,6 +13,9 @@ namespace bridge
 bool RegisterInfoCommands(bridge::Registry &reg,
 						  const char* parentGroup = "/ug4");
 
+
+const std::vector<const char*> *GetClassNames(lua_State *L, int index);
+void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst, const char *classname=NULL, const char *highlightclassname=NULL);
 }
 }
 						  

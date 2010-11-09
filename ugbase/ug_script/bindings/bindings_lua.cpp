@@ -9,6 +9,7 @@
 #include "ug_script/ug_script.h"
 #include "ug_bridge/registry.h"
 #include "common/common.h"
+#include "../info_commands.h"
 
 using namespace std;
 
@@ -92,6 +93,7 @@ string GetLuaTypeString(lua_State* L, int index)
 			}
 		}
 	}
+	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
 
 	if(str.size() == 0)
 		return string("unknown type");
@@ -118,6 +120,12 @@ static int LuaStackToParams(ParameterStack& params,
 		int type = paramsTemplate.get_type(i);
 		int index = (int)i + offsetToFirstParam + 1;//stack-indices start with 1
 		
+		if(lua_type(L, index) == LUA_TNONE)
+		{
+			UG_LOG("ERROR: not enough parameters to function (got " << i << ", but needs " << paramsTemplate.size() << ")\n");
+			return (int)i + 1;
+		}
+
 		switch(type){
 			case PT_BOOL:{
 				if(lua_isboolean(L, index))
@@ -326,7 +334,9 @@ static int LuaProxyFunction(lua_State* L)
 	
 //	check whether the parameter was correct
 	if(badParam > 0){
-		UG_LOG("ERROR occured during call to " << func->name() << endl);
+		UG_LOG("ERROR occured during call to");
+		PrintFunctionInfo(*func, false);
+		UG_LOG(endl);
 		return 0;
 	}
 
@@ -374,8 +384,15 @@ static int LuaProxyMethod(lua_State* L)
 	int badParam = LuaStackToParams(paramsIn, m->params_in(), L, 1);
 	
 //	check whether the parameter was correct
-	if(badParam > 0){
-		UG_LOG("ERROR occured during call to " << m->name() << endl);
+	if(badParam > 0)
+	{
+		string classname = "(unknown class)";
+		const std::vector<const char*> *names = GetClassNames(L, 1);
+		if(names != NULL)
+			classname = names->at(0);
+		UG_LOG("ERROR occured during call to ");
+		PrintFunctionInfo(*m, false, classname.c_str());
+		UG_LOG(endl);
 		return 0;
 	}
 

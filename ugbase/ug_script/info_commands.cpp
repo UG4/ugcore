@@ -116,17 +116,17 @@ bool PrintParametersOut(const bridge::ExportedFunctionBase &thefunc)
  * Prints parameters of the function thefunc.
  * If highlightclassname != NULL, it highlights parameters which implement the highlightclassname class.
  */
-void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst, const char *highlightclassname=NULL)
+void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst, const char *classname=NULL, const char *highlightclassname=NULL)
 {
-	UG_LOG(" ");
 	PrintParametersOut(thefunc);
+	if(classname)
+		UG_LOG(classname << ":");
 
 	UG_LOG(thefunc.name() << " ");
 
 	PrintParametersIn(thefunc, highlightclassname);
 
 	if(isConst) { UG_LOG(" const"); }
-	UG_LOG(endl);
 }
 
 /**
@@ -156,9 +156,17 @@ void PrintClassInfo(const IExportedClass &c)
 	UG_LOG("class " << c.name() << ", " << c.num_methods() << " method(s), " <<
 		c.num_const_methods() << " const method(s):" << endl);
 	for(size_t k=0; k<c.num_methods(); ++k)
+	{
+		UG_LOG(" ");
 		PrintFunctionInfo(c.get_method(k), false);
+		UG_LOG(endl);
+	}
 	for(size_t k=0; k<c.num_const_methods(); ++k)
+	{
+		UG_LOG(" ");
 		PrintFunctionInfo(c.get_const_method(k), true);
+		UG_LOG(endl);
+	}
 }
 
 
@@ -177,6 +185,22 @@ bool PrintClassInfo(const char *classname)
 	}
 	else
 		return false;
+}
+
+const std::vector<const char*> *GetClassNames(lua_State *L, int index)
+{
+	if(lua_getmetatable(L, index) != 0)
+	{
+		// get names
+		lua_pushstring(L, "names");
+		lua_rawget(L, -2);
+		if(!lua_isnil(L, -1) && lua_isuserdata(L, -1))
+		{
+			return (const std::vector<const char*>*) lua_touserdata(L, -1);
+		}
+		lua_pop(L, 2); // pop userdata, metatable
+	}
+	return NULL;
 }
 
 
@@ -221,16 +245,19 @@ bool UGTypeInfo(const char *p)
 
 	if(lua_isfunction(L, -1))
 	{
-		UG_LOG(p << " is a function\n");
+		UG_LOG(p << " is a function\n ");
 		PrintFunctionInfo(p);
+		UG_LOG(endl);
 	}
 	else if(lua_iscfunction(L, -1))
 	{
-		UG_LOG(p << " is a cfunction\n");
+		UG_LOG(p << " is a cfunction\n ");
 		PrintFunctionInfo(p);
+		UG_LOG(endl);
 	}
 	else if(lua_isuserdata(L, -1))
 	{
+		// names = GetClassNames(L, -1))
 		if(lua_getmetatable(L, -1) == 0)
 		{
 			UG_LOG("global variable " << p << " has light user data, but no metatable." << endl);
@@ -298,7 +325,11 @@ bool ClassUsageExact(const char *classname, bool OutParameters)
 		const bridge::ExportedFunctionBase &thefunc = reg.get_function(i);
 		if((!OutParameters && IsClassInParameters(thefunc.params_in(), classname)) ||
 				(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
+		{
+			UG_LOG(" ");
 			PrintFunctionInfo(thefunc, false, classname);
+			UG_LOG(endl);
+		}
 	}
 
 	// check classes
@@ -311,8 +342,9 @@ bool ClassUsageExact(const char *classname, bool OutParameters)
 			if((!OutParameters && IsClassInParameters(thefunc.params_in(), classname)) ||
 					(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
 			{
-				UG_LOG(c.name() << " ::");
-				PrintFunctionInfo(thefunc, false, classname);
+				UG_LOG(" ");
+				PrintFunctionInfo(thefunc, false, c.name(), classname);
+				UG_LOG(endl);
 			}
 		}
 
@@ -322,8 +354,9 @@ bool ClassUsageExact(const char *classname, bool OutParameters)
 			if((!OutParameters && IsClassInParameters(thefunc.params_in(), classname)) ||
 					(OutParameters && IsClassInParameters(thefunc.params_out(), classname)))
 			{
-				UG_LOG(c.name() << " ::");
-				PrintFunctionInfo(thefunc, false, classname);
+				UG_LOG(" ");
+				PrintFunctionInfo(thefunc, false, c.name(), classname);
+				UG_LOG(endl);
 			}
 		}
 	}
