@@ -12,7 +12,7 @@
 
 #include "./multi_index.h"
 #include "./function_group.h"
-#include "lib_algebra/lib_algebra.h"
+#include "lib_algebra/small_algebra/small_algebra.h"
 
 namespace ug{
 
