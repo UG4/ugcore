@@ -5,19 +5,15 @@
 #include "../small_matrix/densevector.h"
 #include "../../common/operations.h"
 
-namespace ug{
-
-
+namespace ug
+{
 ///////////////////////////////////////////////////////////////////////////////////////
-//!
-//! smallInverse<size_t n>
-//! A class to hold a inverse of a smallMatrix<n>
-//! implemented with LAPACKs LU-Decomposition dgetrf
-//! (uses double[n*n] for LU and interchange[n] for pivoting
-//! functions:
-//! setAsInverseOf(const blockDenseMatrix<n> &mat) : init as inverse of mat
-//! blockVector<n> * smallInverse<n> = smallInverse<n> * blockVector<n>
-//! = A^{-1} b
+/**
+ * smallInverse<size_t n>
+ * A class to hold a inverse of a smallMatrix<n>
+ * implemented with LAPACKs LU-Decomposition dgetrf
+ * (uses double[n*n] for LU and interchange[n] for pivoting
+ */
 template<typename TStorage>
 class DenseMatrixInverse
 {
@@ -36,7 +32,21 @@ public:
 		return densemat.num_rows();
 	}
 
-///
+	inline void resize(size_t k)
+	{
+		densemat.resize(k,k);
+		densemat = 0.0;
+	}
+
+	double &operator()(int r, int c)
+	{
+		return densemat(r,c);
+	}
+	const double &operator()(int r, int c) const
+	{
+		return densemat(r,c);
+	}
+
 public:
 	//! initializes this object as inverse of mat
 	bool set_as_inverse_of(const DenseMatrix<TStorage> &mat)
@@ -44,9 +54,14 @@ public:
 		UG_ASSERT(mat.num_rows() == mat.num_cols(), "only for square matrices");
 
 		densemat = mat;
-		interchange.resize(mat.num_rows());
+		return invert();
+	}
 
-		int info = getrf(mat.num_rows(), mat.num_cols(), &densemat(0,0), mat.num_rows(), &interchange[0]);
+	bool invert()
+	{
+		interchange.resize(densemat.num_rows());
+		int info = getrf(densemat.num_rows(), densemat.num_cols(), &densemat(0,0),
+				densemat.num_rows(), &interchange[0]);
 		UG_ASSERT(info == 0, "info is " << info << ( info > 0 ? ": Matrix singular in U(i,i)" : ": i-th argument had had illegal value"));
 		return info == 0;
 	}
@@ -87,53 +102,6 @@ struct matrix_algebra_type_traits<DenseMatrixInverse<T> >
 {
 	static const matrix_algebra_type type = MATRIX_USE_GLOBAL_FUNCTIONS;
 };
-
-//! calculates dest = beta1 * A1;
-template<typename vector_t, typename matrix_t>
-inline void MatMult(DenseVector<vector_t> &dest,
-		const number &beta1, const DenseMatrixInverse<matrix_t> &A1, const DenseVector<vector_t> &w1)
-{
-	if(beta1 == 1.0)
-	{
-		dest = w1;
-		A1.apply(dest);
-	}
-	else
-	{
-		DenseVector<vector_t> tmp;
-		tmp = w1;
-		A1.apply(tmp);
-		VecScaleAssign(dest, beta1, dest);
-	}
-}
-
-
-//! calculates dest = alpha1*v1 + beta1 * A1 *w1;
-template<typename vector_t, typename matrix_t>
-inline void MatMultAdd(DenseVector<vector_t> &dest,
-		const number &alpha1, const DenseVector<vector_t> &v1,
-		const number &beta1, const DenseMatrixInverse<matrix_t> &A1, const DenseVector<vector_t> &w1)
-{
-	// todo: use dynamic stack here
-	DenseVector<vector_t> tmp;
-	tmp = w1;
-	A1.apply(tmp);
-	VecScaleAdd(dest, alpha1, v1, beta1, tmp);
-}
-
-
-
-template<typename T, eMatrixOrdering TOrdering>
-inline bool GetInverse(DenseMatrixInverse<VariableArray2<T, TOrdering> > &inv, const DenseMatrix<VariableArray2<T, TOrdering> > &mat)
-{
-	return inv.set_as_inverse_of(mat);
-}
-
-template<typename T, size_t TBlockSize, eMatrixOrdering TOrdering>
-inline bool GetInverse(DenseMatrixInverse<FixedArray2<T, TBlockSize, TBlockSize, TOrdering> > &inv, const DenseMatrix<FixedArray2<T, TBlockSize, TBlockSize, TOrdering> > &mat)
-{
-	return inv.set_as_inverse_of(mat);
-}
 
 }
 #endif

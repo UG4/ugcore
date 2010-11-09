@@ -13,11 +13,10 @@
 // other ug4 modules
 #include "common/common.h"
 
-
-// operator interface
-#include "operator/operator.h"
-
 #include "common/operations.h"
+
+// operator base interface
+#include "operator/operator_base_interface.h"
 
 #include "algebra_chooser.h"
 
@@ -34,11 +33,6 @@
 
 #include "small_algebra/small_algebra.h"
 
-#ifdef LAPACK_AVAILABLE
-#ifdef BLAS_AVAILABLE
-#include "small_algebra/lapack/lapack.h"
-#endif
-#endif
 
 /** Define different algebra types.
  *  An Algebra should export the following typedef:
@@ -55,12 +49,6 @@
 #include "cpu_algebra/vector.h"
 #include "cpu_algebra/sparsematrix.h"
 #include "cpu_algebra/core_smoothers.h"
-
-#ifdef LAPACK_AVAILABLE
-#ifdef BLAS_AVAILABLE
-#include "cpu_algebra/lapack_lu.h"
-#endif
-#endif
 
 // parallel support
 #ifdef UG_PARALLEL
@@ -119,7 +107,10 @@ public:
 #endif
 };
 
+
 } // end namespace ug
 
+// operator interface
+#include "operator/operator.h"
 
 #endif /* __H__LIB_ALGEBRA__LIB_ALGEBRA__ */

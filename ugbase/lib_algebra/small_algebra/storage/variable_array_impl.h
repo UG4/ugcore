@@ -11,7 +11,7 @@
 
 #include "storage.h"
 #include "variable_array.h"
-
+#include <algorithm> // for min
 
 namespace ug{
 
@@ -87,7 +87,7 @@ VariableArray1<T>::resize(size_t newN)
 	else {
 	// we are using swap to avoid re-allocations
 	 */
-	size_t minN = min(n, newN);
+	size_t minN = std::min(n, newN);
 	for(size_t i=0; i<minN; i++)
 		swap(new_values[i], values[i]);
 
@@ -229,8 +229,8 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 	else {
 
 	 */
-	size_t minRows = min(rows, newRows);
-	size_t minCols = min(cols, newCols);
+	size_t minRows = std::min(rows, newRows);
+	size_t minCols = std::min(cols, newCols);
 
 	// we are using swap to avoid re-allocations
 	if(T_ordering==RowMajor)

@@ -80,7 +80,7 @@ inline void SetSize(T &t, size_t a);
 
 // getSize
 template<typename T>
-inline size_t GetSize(T &t);
+inline size_t GetSize(const T &t);
 
 //getRows
 template<typename T>

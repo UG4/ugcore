@@ -15,11 +15,13 @@
 #ifndef __H__UG__MARTIN_ALGEBRA__LAPACK_INTERFACE_H__
 #define __H__UG__MARTIN_ALGEBRA__LAPACK_INTERFACE_H__
 
+#ifdef LAPACK_AVAILABLE
+
 #include "lapack.h"
 #include "../small_algebra.h"
 
 #include "lapack_invert.h"
-#include "densematrix_inverse.h"
+#include "lapack_densematrix_inverse.h"
 
 namespace ug{
 
@@ -99,8 +101,7 @@ int GeneralizedEigenvalueProblem(DenseMatrix<A_type> &A, DenseMatrix<A_type> &X,
 }
 
 
-
-
-
 }
+
+#endif // LAPACK_AVAILABLE
 #endif

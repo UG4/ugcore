@@ -173,7 +173,7 @@ inline void SetSize(DenseVector<T> &t, size_t a)
 
 // getSize
 template<typename T>
-inline size_t GetSize(DenseVector<T> &t)
+inline size_t GetSize(const DenseVector<T> &t)
 {
 	return t.size();
 }

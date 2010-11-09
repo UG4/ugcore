@@ -31,15 +31,9 @@
 // Implementations
 ///////////////////////////
 
-// TODO: ask martin to remove this includes
-#ifdef LAPACK_AVAILABLE
-#ifdef BLAS_AVAILABLE
 
-// lu solver based on LaPack library
-#include "linear_solver/lapack_lu_operator.h"
 
-#endif
-#endif
+#include "linear_solver/lu_operator.h"
 
 // solvers
 #include "linear_solver/cg_solver.h"
