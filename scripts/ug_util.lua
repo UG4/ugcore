@@ -25,11 +25,11 @@ function utilLoadDomain(domain, gridName)
 	end
 
 	if dim == 1 then
-		return LoadDomain1d(domain, tname)
+		return LoadDomain1d(domain, tname, 0)
 	elseif dim == 2 then
-		return LoadDomain2d(domain, tname)
+		return LoadDomain2d(domain, tname, 0)
 	elseif dim == 3 then
-		return LoadDomain3d(domain, tname)
+		return LoadDomain3d(domain, tname, 0)
 	end
 	return false
 end
