@@ -60,19 +60,19 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 		con.clear();
 		for(typename A_type::cRowIterator itA(A, i); !itA.isEnd(); ++itA)
 		{
-			if((*itA).dValue == 0.0) continue;
-			a = (*itA).dValue;
+			if(itA.value() == 0.0) continue;
+			a = itA.value();
 
-			for(typename B_type::cRowIterator itB(B, (*itA).iIndex); !itB.isEnd(); ++itB)
+			for(typename B_type::cRowIterator itB(B, itA.index()); !itB.isEnd(); ++itB)
 			{
-				if((*itB).dValue == 0.0) continue;
-				AssignMult(ab, a, (*itB).dValue);
+				if(itB.value() == 0.0) continue;
+				AssignMult(ab, a, itB.value());
 
-				for(typename C_type::cRowIterator itC(C, (*itB).iIndex); !itC.isEnd(); ++itC)
+				for(typename C_type::cRowIterator itC(C, itB.index()); !itC.isEnd(); ++itC)
 				{
-					cvalue = (*itC).dValue;
+					cvalue = itC.value();
 					if(cvalue == 0.0) continue;
-					size_t indexTo = (*itC).iIndex;
+					size_t indexTo = itC.index();
 
 					if(posInConnections[indexTo] == -1)
 					{
@@ -137,7 +137,7 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_
 			iterators.pop_back();
 		else
 		{
-			size_t index = (*iterators.back()).iIndex;
+			size_t index = iterators.back().index();
 			++iterators.back();
 			if(iterators.size() < depth)
 				iterators.push_back( A.beginRow(index) );
@@ -195,7 +195,7 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 	if(distance == 0) return A.isUnconnected(node);
 	bool bFound = false;
 	for(typename SparseMatrix<T>::cRowIterator itA = A.beginRow(node); !itA.isEnd() && !bFound; ++itA)
-		bFound = IsCloseToBoundary(A, (*itA).iIndex, distance-1);
+		bFound = IsCloseToBoundary(A, itA.index(), distance-1);
 
 	return bFound;
 }
@@ -216,10 +216,10 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 	BlockRef(A(i,i), alpha, alpha) = 1.0;
 	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 	{
-		typename SparseMatrix<T>::value_type& block = (*conn).dValue;
+		typename SparseMatrix<T>::value_type& block = conn.value();
 		for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
 		{
-			if((*conn).iIndex != i) BlockRef(block, alpha, beta) = 0.0;
+			if(conn.index() != i) BlockRef(block, alpha, beta) = 0.0;
 			else if(beta != alpha) BlockRef(block, alpha, beta) = 0.0;
 		}
 	}
@@ -240,8 +240,8 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 	A(i,i) = 1.0;
 	for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 	{
-		typename SparseMatrix<T>::value_type& block = (*conn).dValue;
-		if((*conn).iIndex != i) block = 0.0;
+		typename SparseMatrix<T>::value_type& block = conn.value();
+		if(conn.index() != i) block = 0.0;
 	}
 }
 

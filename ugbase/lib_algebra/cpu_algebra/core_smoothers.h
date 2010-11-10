@@ -40,8 +40,8 @@ bool gs_step_LL(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		s = b[i];
 
 		for(typename Matrix_type::cLowerLeftIterator it = A.beginLowerLeftRow(i); !it.isEnd(); ++it)
-			// s -= (*it).dValue * x[(*it).iIndex];
-			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
+			// s -= it.value() * x[it.index()];
+			MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
 
 		// x[i] = s/A(i,i)
 		InverseMatMult(x[i], 1.0, A(i,i), s);
@@ -72,8 +72,8 @@ bool gs_step_UR(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 	{
 		s = b[i];
 		for(typename Matrix_type::cUpperRightIterator it = A.beginUpperRightRow(i); !it.isEnd(); ++it)
-			// s -= (*it).dValue * x[(*it).iIndex];
-			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
+			// s -= it.value() * x[it.index()];
+			MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
 
 		// x[i] = s/A(i,i)
 		InverseMatMult(x[i], 1.0, A(i,i), s);

@@ -29,7 +29,7 @@ inline vec_type matrixrow<value_type>::operator *(const Vector<vec_type> &x) con
 {
 	vec_type d=0.0;
 	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
-		AddMult(d, (*it).dValue, x[(*it).iIndex]);
+		AddMult(d, it.value(), x[it.index()]);
 	return d;
 }
 
@@ -58,7 +58,7 @@ template<typename vec_type>
 inline void matrixrow<value_type>::sub_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
-		SubMult(d, (*it).dValue, x[(*it).iIndex]);
+		SubMult(d, it.value(), x[it.index()]);
 }
 
 
@@ -71,7 +71,7 @@ template<typename vec_type>
 inline void matrixrow<value_type>::add_mult(vec_type &d, const Vector<vec_type> &x) const
 {
 	for(cRowIterator it = beginRow(); !it.isEnd(); ++it)
-		AddMult(d, (*it).dValue, x[(*it).iIndex]);
+		AddMult(d, it.value(), x[it.index()]);
 }
 
 

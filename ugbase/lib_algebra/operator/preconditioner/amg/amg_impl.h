@@ -87,16 +87,16 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double the
 
 		for(typename matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 		{
-			if((*conn).iIndex == i) continue; // skip diag
-			if((*conn).dValue != 0.0 && amg_offdiag_value((*conn).dValue) < dmax)
-				dmax = amg_offdiag_value((*conn).dValue);
+			if(conn.index() == i) continue; // skip diag
+			if(conn.value() != 0.0 && amg_offdiag_value(conn.value()) < dmax)
+				dmax = amg_offdiag_value(conn.value());
 		}
 
 		for(typename matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 		{
-			if((*conn).iIndex == i) continue; // skip diag
-			if( amg_offdiag_value((*conn).dValue) < theta * dmax)
-				graph.set_connection(i, (*conn).iIndex);
+			if(conn.index() == i) continue; // skip diag
+			if( amg_offdiag_value(conn.value()) < theta * dmax)
+				graph.set_connection(i, conn.index());
 		}
 
 		UG_ASSERT(graph.num_connections(i) > 0, "");
@@ -273,7 +273,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	/*for(size_t i=0; i<A.num_rows(); i++)
 		if(nodes[i].isCoarse())
 		{
-			int rows = GetRows((*A.beginRow(i)).dValue);
+			int rows = GetRows(A.beginRow(i).value());
 			UG_ASSERT(newIndex[i] >= 0, "");
 			SetSize((*vec1[level+1])[newIndex[i]], rows);
 			SetSize((*vec2[level+1])[newIndex[i]], rows);

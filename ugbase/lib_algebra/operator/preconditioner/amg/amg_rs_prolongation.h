@@ -65,8 +65,8 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			{
-				if((*conn).iIndex == i) continue; // skip diag
-				connValue = amg_offdiag_value((*conn).dValue);
+				if(conn.index() == i) continue; // skip diag
+				connValue = amg_offdiag_value(conn.value());
 
 				if(connValue > 0)
 				{
@@ -78,7 +78,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 
 				if(dmax > connValue)
 					dmax = connValue;
-				if(nodes[(*conn).iIndex].isCoarse() && maxConnValue > connValue)
+				if(nodes[conn.index()].isCoarse() && maxConnValue > connValue)
 					maxConnValue = connValue;
 
 			}
@@ -93,13 +93,13 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 			// step 1: set w'_ij = a_ij/a_jj for suitable j
 			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			{
-				if((*conn).iIndex == i) continue; // skip diagonal
-				if(!nodes[(*conn).iIndex].isCoarse()) continue;
+				if(conn.index() == i) continue; // skip diagonal
+				if(!nodes[conn.index()].isCoarse()) continue;
 
-				connValue = amg_offdiag_value((*conn).dValue);
+				connValue = amg_offdiag_value(conn.value());
 				if(connValue > barrier)
 					continue;
-				c.iIndex = newIndex[(*conn).iIndex];   assert(c.iIndex >= 0);
+				c.iIndex = newIndex[conn.index()];   assert(c.iIndex >= 0);
 				c.dValue = connValue;
 
 				con.push_back(c);
@@ -189,8 +189,8 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 
 			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			{
-				if((*conn).iIndex == i) continue; // skip diagonal
-				double connValue = amg_offdiag_value((*conn).dValue);
+				if(conn.index() == i) continue; // skip diagonal
+				double connValue = amg_offdiag_value(conn.value());
 				if(connValue > 0)
 				{
 					diag += connValue;
@@ -208,10 +208,10 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 			// look at neighbors of node i, try to interpolate indirectly through them
 			for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			{
-				size_t indexN = (*conn).iIndex;
+				size_t indexN = conn.index();
 				if(indexN == i) continue; // skip diagonal
 
-				double connValue = amg_offdiag_value((*conn).dValue);
+				double connValue = amg_offdiag_value(conn.value());
 				sumNeighbors += connValue;
 				if(connValue > theta * dmax)
 					continue;
@@ -229,7 +229,7 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 				// and set w'(i,indexNN) += A(i,indexN) * P(indexN,indexNN)
 				for(typename SparseMatrix<double>::rowIterator conn2 = P.beginRow(indexN); !conn2.isEnd(); ++conn2)
 				{
-					size_t indexNN = (*conn2).iIndex;
+					size_t indexNN = conn2.index();
 					int pos = posInConnections[indexNN];
 
 					if(pos == -1)
@@ -237,11 +237,11 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 						pos = posInConnections[indexNN] = con.size();
 						c.iIndex = indexNN; assert(c.iIndex >= 0);
 
-						AssignMult(c.dValue, connValue, (*conn2).dValue);
+						AssignMult(c.dValue, connValue, conn2.value());
 						con.push_back(c);
 					}
 					else
-						AddMult(con[pos].dValue, connValue, (*conn2).dValue);
+						AddMult(con[pos].dValue, connValue, conn2.value());
 				}
 			}
 

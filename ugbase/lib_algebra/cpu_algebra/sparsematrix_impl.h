@@ -212,8 +212,8 @@ bool SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B, double scale
 	// get length of each row
 	for(size_t j=0; j < B.rows; j++)
 		for(cRowIterator conn = B.beginRow(j); !conn.isEnd(); ++conn)
-			if((*conn).dValue == 0) continue;
-			else nr[(*conn).iIndex]++;
+			if(conn.value() == 0) continue;
+			else nr[conn.index()]++;
 
 
 	size_t newTotal = 0;
@@ -250,15 +250,15 @@ bool SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B, double scale
 		for(size_t i=0; i < B.rows; i++)
 			for(cRowIterator conn = B.beginRow(i); !conn.isEnd(); ++conn)
 			{
-				if((*conn).dValue == 0) continue;
-				size_t ndx = (*conn).iIndex;
+				if(conn.value() == 0) continue;
+				size_t ndx = conn.index();
 				UG_ASSERT(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
 
 				size_t k = nr[ndx];
 
 				UG_ASSERT(k>=0 && k<num_connections(ndx), "k = " << k << ". precalculated nr of Connections " << num_connections(ndx) << " wrong?");
 
-				pRowStart[ndx][k].dValue = (*conn).dValue;
+				pRowStart[ndx][k].dValue = conn.value();
 				pRowStart[ndx][k].iIndex = i;
 				if(bandwidth < i-ndx) bandwidth = i-ndx;
 				nr[ndx]++;
@@ -269,15 +269,15 @@ bool SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B, double scale
 		for(size_t i=0; i < B.rows; i++)
 			for(cRowIterator conn = B.beginRow(i); !conn.isEnd(); ++conn)
 			{
-				if((*conn).dValue == 0) continue;
-				size_t ndx = (*conn).iIndex;
+				if(conn.value() == 0) continue;
+				size_t ndx = conn.index();
 				UG_ASSERT(ndx >= 0 && ndx < rows, "connection " << (*conn) << " of " << B << ", row " << i << " out of range 0.." << rows);
 
 				size_t k = nr[ndx];
 
 				UG_ASSERT(k>=0 && k<num_connections(ndx), "k = " << k << ". precalculated nr of Connections " << num_connections(ndx) << " wrong?");
 
-				pRowStart[ndx][k].dValue = (*conn).dValue;
+				pRowStart[ndx][k].dValue = conn.value();
 				pRowStart[ndx][k].dValue *= scale;
 				pRowStart[ndx][k].iIndex = i;
 				if(bandwidth < i-ndx) bandwidth = i-ndx;
@@ -443,10 +443,10 @@ bool SparseMatrix<T>::apply(Vector_type &res, const Vector_type &x) const
 	{
 		cRowIterator conn = beginRow(i);
 		if(conn.isEnd()) continue;
-		MatMult(res[i], 1.0, (*conn).dValue, x[(*conn).iIndex]);
+		MatMult(res[i], 1.0, conn.value(), x[conn.index()]);
 		for(++conn; !conn.isEnd(); ++conn)
-			// res[i] += (*conn).dValue * x[(*conn).iIndex];
-			MatMultAdd(res[i], 1.0, res[i], 1.0, (*conn).dValue, x[(*conn).iIndex]);
+			// res[i] += conn.value() * x[conn.index()];
+			MatMultAdd(res[i], 1.0, res[i], 1.0, conn.value(), x[conn.index()]);
 	}
 	// axpy(res, 0.0, res, 1.0, x);
 	return true;
@@ -485,8 +485,8 @@ bool SparseMatrix<T>::matmul_minus(Vector_type &res, const Vector_type &x) const
 	{
 		cRowIterator conn = beginRow(i);
 		for(; !conn.isEnd(); ++conn)
-			// res[i] -= (*conn).dValue * x[(*conn).iIndex];
-			MatMultAdd(res[i], 1.0, res[i], -1.0, (*conn).dValue, x[(*conn).iIndex]);
+			// res[i] -= conn.value() * x[conn.index()];
+			MatMultAdd(res[i], 1.0, res[i], -1.0, conn.value(), x[conn.index()]);
 	}
 
 	// axpy(res, 1.0, res, -1.0, x);
@@ -511,10 +511,10 @@ bool SparseMatrix<T>::axpy(vector_t &dest,
 		{
 			cRowIterator conn = beginRow(i);
 			if(conn.isEnd()) continue;
-			MatMult(dest[i], beta1, (*conn).dValue, w1[(*conn).iIndex]);
+			MatMult(dest[i], beta1, conn.value(), w1[conn.index()]);
 			for(++conn; !conn.isEnd(); ++conn)
-				// res[i] += (*conn).dValue * x[(*conn).iIndex];
-				MatMultAdd(dest[i], 1.0, dest[i], beta1, (*conn).dValue, w1[(*conn).iIndex]);
+				// res[i] += conn.value() * x[conn.index()];
+				MatMultAdd(dest[i], 1.0, dest[i], beta1, conn.value(), w1[conn.index()]);
 		}
 	}
 	else if(&dest == &v1)
@@ -566,9 +566,9 @@ bool SparseMatrix<T>::axpy_transposed(vector_t &dest,
 	{
 		for(cRowIterator conn = beginRow(i); !conn.isEnd(); ++conn)
 		{
-			if((*conn).dValue != 0.0)
-				// dest[(*conn).iIndex] += beta1 * (*conn).dValue * w1[i];
-				MatMultTransposedAdd(dest[(*conn).iIndex], 1.0, dest[(*conn).iIndex], beta1, (*conn).dValue, w1[i]);
+			if(conn.value() != 0.0)
+				// dest[conn.index()] += beta1 * conn.value() * w1[i];
+				MatMultTransposedAdd(dest[conn.index()], 1.0, dest[conn.index()], beta1, conn.value(), w1[i]);
 		}
 	}
 	return true;
@@ -579,7 +579,7 @@ template<typename vector_t>
 inline void SparseMatrix<T>::mat_mult_add_row(size_t row, typename vector_t::value_type &dest, double alpha, const vector_t &v) const
 {
 	for(cRowIterator conn = beginRow(row); !conn.isEnd(); ++conn)
-		MatMultAdd(dest, 1.0, dest, alpha, (*conn).dValue, v[(*conn).iIndex]);
+		MatMultAdd(dest, 1.0, dest, alpha, conn.value(), v[conn.index()]);
 }
 
 
@@ -679,7 +679,7 @@ void SparseMatrix<T>::get(M &mat) const
 			size_t jindex_global = sortedCols[j].sortValue;
 			size_t jindex_local = sortedCols[j].index;
 
-			size_t cindex_global = (*conn).iIndex;
+			size_t cindex_global = conn.index();
 
 			if(cindex_global < jindex_global)
 				++conn;
@@ -690,7 +690,7 @@ void SparseMatrix<T>::get(M &mat) const
 			}
 			else
 			{
-				mat(iindex_local, jindex_local) = (*conn).dValue;
+				mat(iindex_local, jindex_local) = conn.value();
 				++conn; ++j;
 			}
 		}
@@ -746,7 +746,7 @@ bool SparseMatrix<T>::set(double a)
 		UG_ASSERT(pRowStart != NULL, "");
 		for(size_t row=0; row<rows; row++)
 			for(rowIterator it = beginRow(row); !it.isEnd(); ++it)
-				(*it).dValue = 0.0;
+				it.value() = 0.0;
 	}
 	else
 	{
@@ -754,10 +754,10 @@ bool SparseMatrix<T>::set(double a)
 		for(size_t row=0; row<rows; row++)
 			for(rowIterator it = beginRow(row); !it.isEnd(); ++it)
 			{
-				if((*it).iIndex == row)
-					(*it).dValue = a;
+				if(it.index() == row)
+					it.value() = a;
 				else
-					(*it).dValue = 0.0;
+					it.value() = 0.0;
 			}
 	}
 	return true;

@@ -87,8 +87,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				for(typename matrix_type::rowIterator i_it = A->beginRow(i); !i_it.isEnd(); ++i_it)
 				{
 					con.push_back(*i_it);
-					if(dmax < BlockNorm((*i_it).dValue))
-						dmax = BlockNorm((*i_it).dValue);
+					if(dmax < BlockNorm(i_it.value()))
+						dmax = BlockNorm(i_it.value());
 				}
 
 				// eliminate all entries A(i, k) with k<i with rows U(k, .) and k<i
@@ -102,8 +102,8 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 						break;
 					}
 					if(con[i_it].dValue == 0.0) continue;
-					UG_ASSERT(!m_U.beginRow(k).isEnd() && (*m_U.beginRow(k)).iIndex == k, "");
-					block_type &ukk = (*m_U.beginRow(k)).dValue;
+					UG_ASSERT(!m_U.beginRow(k).isEnd() && m_U.beginRow(k).index() == k, "");
+					block_type &ukk = m_U.beginRow(k).value();
 
 					// add row k to row i by A(i, .) -= U(k,.)  A(i,k) / U(k,k)
 					// so that A(i,k) is zero.
@@ -116,20 +116,20 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 					while(!k_it.isEnd() && j < con.size())
 					{
 						// (since con and U[k] is sorted, we can do sth like a merge on the two lists)
-						if((*k_it).iIndex == con[j].iIndex)
+						if(k_it.index() == con[j].iIndex)
 						{
 							// match
-							con[j].dValue -= (*k_it).dValue * d;
+							con[j].dValue -= k_it.value() * d;
 							++k_it;	++j;
 						}
-						else if((*k_it).iIndex < con[j].iIndex)
+						else if(k_it.index() < con[j].iIndex)
 						{
 							// we have a value in U(k, (*k_it).iIndex), but not in A.
 							// check tolerance criteria
 
 							typename matrix_type::connection c;
-							c.iIndex = (*k_it).iIndex;
-							c.dValue = (*k_it).dValue * d;
+							c.iIndex = k_it.index();
+							c.dValue = k_it.value() * d;
 							c.dValue *= -1.0;
 							if(BlockNorm(c.dValue) > dmax * m_eps)
 							{
@@ -172,7 +172,7 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 				// c[i] = d[i] - m_L[i]*c;
 				c[i] = d[i];
 				for(typename matrix_type::rowIterator it = m_L.beginRow(i); !it.isEnd(); ++it)
-					MatMultAdd(c[i], 1.0, c[i], -1.0, (*it).dValue, c[(*it).iIndex] );
+					MatMultAdd(c[i], 1.0, c[i], -1.0, it.value(), c[it.index()] );
 				// lii = 1.0.
 			}
 
@@ -180,14 +180,14 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			for(size_t i=m_U.num_rows()-1; ; i--)
 			{
 				typename matrix_type::rowIterator it = m_U.beginRow(i);
-				UG_ASSERT((*it).iIndex == i, "");
-				block_type &uii = (*it).dValue;
+				UG_ASSERT(it.index() == i, "");
+				block_type &uii = it.value();
 
 				typename vector_type::value_type s = c[i];
 				++it; // skip diag
 				for(; !it.isEnd(); ++it)
-					// s -= (*it).dValue * c[(*it).iIndex];
-					MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, c[(*it).iIndex] );
+					// s -= it.value() * c[it.index()];
+					MatMultAdd(s, 1.0, s, -1.0, it.value(), c[it.index()] );
 
 				// c[i] = s/uii;
 				InverseMatMult(c[i], 1.0, uii, s);

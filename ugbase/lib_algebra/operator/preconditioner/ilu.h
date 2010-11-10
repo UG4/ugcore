@@ -24,10 +24,10 @@ bool FactorizeILU(Matrix_type &A)
 	for(size_t i=1; i < A.num_rows(); i++)
 	{
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
+		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && (it_k.index() < i); ++it_k)
 		{
-			const size_t k = (*it_k).iIndex;
-			block_type &a_ik = (*it_k).dValue;
+			const size_t k = it_k.index();
+			block_type &a_ik = it_k.value();
 			if(BlockNorm(a_ik) < 1e-7)	continue;
 
 			// add row k to row i by A(i, .) -= A(k,.)  A(i,k) / A(k,k)
@@ -38,13 +38,13 @@ bool FactorizeILU(Matrix_type &A)
 			typename Matrix_type::rowIterator it_j = it_k;
 			for(++it_j; !it_j.isEnd(); ++it_j)
 			{
-				const size_t j = (*it_j).iIndex;
-				block_type& a_ij = (*it_j).dValue;
+				const size_t j = it_j.index();
+				block_type& a_ij = it_j.value();
 				bool bFound;
 				typename Matrix_type::rowIterator p = A.get_connection(k,j, bFound);
 				if(bFound)
 				{
-					const block_type a_kj = (*p).dValue;
+					const block_type a_kj = p.value();
 					a_ij -= a_kj * a_ik;
 				}
 			}
@@ -64,10 +64,10 @@ bool FactorizeILUSorted(Matrix_type &A)
 	{
 
 		// eliminate all entries A(i, k) with k<i with rows A(k, .) and k<i
-		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && ((*it_k).iIndex < i); ++it_k)
+		for(typename Matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd() && (it_k.index() < i); ++it_k)
 		{
-			const size_t k = (*it_k).iIndex;
-			block_type &a_ik = (*it_k).dValue;
+			const size_t k = it_k.index();
+			block_type &a_ik = it_k.value();
 			if(BlockNorm(a_ik) < 1e-7)	continue;
 			block_type &a_kk = A(k,k);
 
@@ -82,14 +82,14 @@ bool FactorizeILUSorted(Matrix_type &A)
 
 			while(!it_ij.isEnd() && !it_kj.isEnd())
 			{
-				if((*it_ij).iIndex > (*it_kj).iIndex)
+				if(it_ij.index() > it_kj.index())
 					++it_kj;
-				else if((*it_ij).iIndex < (*it_kj).iIndex)
+				else if(it_ij.index() < it_kj.index())
 					++it_ij;
 				else
 				{
-					block_type &a_ij = (*it_ij).dValue;
-					const block_type &a_kj = (*it_kj).dValue;
+					block_type &a_ij = it_ij.value();
+					const block_type &a_kj = it_kj.value();
 					a_ij -= a_kj * a_ik;
 					++it_kj; ++it_ij;
 				}
@@ -111,8 +111,8 @@ bool invert_L(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		s = b[i];
 		for(typename Matrix_type::cRowIterator it = A.beginRow(i); !it.isEnd(); ++it)
 		{
-			if((*it).iIndex >= i) continue;
-			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
+			if(it.index() >= i) continue;
+			MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
 		}
 		x[i] = s;
 	}
@@ -130,9 +130,9 @@ bool invert_U(const Matrix_type &A, Vector_type &x, const Vector_type &b)
 		s = b[i];
 		for(typename Matrix_type::cRowIterator it = A.beginRow(i); !it.isEnd(); ++it)
 		{
-			if((*it).iIndex <= i) continue;
-			// s -= (*it).dValue * x[(*it).iIndex];
-			MatMultAdd(s, 1.0, s, -1.0, (*it).dValue, x[(*it).iIndex]);
+			if(it.index() <= i) continue;
+			// s -= it.value() * x[it.index()];
+			MatMultAdd(s, 1.0, s, -1.0, it.value(), x[it.index()]);
 
 		}
 		// x[i] = s/A(i,i);
@@ -212,8 +212,8 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			{
 				for(typename matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd(); ++it_k)
 				{
-					const size_t k = (*it_k).iIndex;
-					m_ILU(i,k) = (*it_k).dValue;
+					const size_t k = it_k.index();
+					m_ILU(i,k) = it_k.index();
 				}
 			}
 #endif

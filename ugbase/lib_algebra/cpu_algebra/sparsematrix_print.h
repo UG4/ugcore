@@ -36,12 +36,12 @@ void SparseMatrix<T>::printrow(size_t row) const
 #endif
 	for(cRowIterator it=beginRow(row); !it.isEnd(); ++it)
 	{
-		if((*it).dValue == 0.0) continue;
+		if(it.value() == 0.0) continue;
 		cout << " ";
 #ifdef FLEXAMG
-		cout << "(" << (*it).iIndex << " [" << GetOriginalIndex(fromlevel, (*it).iIndex) << "] -> " << (*it).dValue << ")";
+		cout << "(" << it.index() << " [" << GetOriginalIndex(fromlevel, it.index()) << "] -> " << it.value() << ")";
 #else
-		cout << "(" << (*it).iIndex << " -> " << (*it).dValue << ")";
+		cout << "(" << it.index() << " -> " << it.value() << ")";
 #endif
 	}
 	cout << endl;
@@ -87,8 +87,8 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 	for(int i=0; i < rows; i++)
 	{
 		for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
-			if((*conn).dValue != 0.0)
-				file << i << " " << (*conn).iIndex << " " << (*conn).dValue <<		endl;
+			if(conn.value() != 0.0)
+				file << i << " " << conn.index() << " " << conn.value() <<		endl;
 	}
 }
 
