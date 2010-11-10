@@ -1027,7 +1027,11 @@ VTKOutput<TDiscreteFunction>::
 write_pvd(discrete_function_type& u, const char* filename, size_t timestep, number time)
 {
 	FILE* file;
-	char sname[NAMESIZE], pname[NAMESIZE], procname[NAMESIZE];
+	char sname[NAMESIZE], pname[NAMESIZE];
+
+#ifdef UG_PARALLEL
+	char procname[NAMESIZE];
+#endif
 
 #ifdef UG_PARALLEL
 	if (pcl::IsOutputProc()) {

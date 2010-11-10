@@ -270,7 +270,12 @@ class P1ProlongationOperator :
 		//	Apply Matrix
 			if(!m_matrix.apply(uFineOut, uCoarseIn))
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::apply': Cannot apply matrix. (Type uCoarse = " <<uCoarseIn.get_storage_mask() <<".\n");
+				UG_LOG("ERROR in 'P1ProlongationOperator::apply': Cannot apply matrix. "
+#ifdef UG_PARALLEL
+						"(Type uCoarse = " <<uCoarseIn.get_storage_mask() <<".\n");
+#else
+				".\n");
+#endif
 				return false;
 			}
 

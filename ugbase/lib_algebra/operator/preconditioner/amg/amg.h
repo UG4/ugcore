@@ -252,9 +252,11 @@ private:
 	matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
 	SparseMatrixOperator<matrix_type, vector_type> SMO[AMG_MAX_LEVELS];
 
+#ifdef UG_PARALLEL
 	pcl::ParallelCommunicator<IndexLayout>
 		*com[AMG_MAX_LEVELS]; 				///< the communicator objects on the levels
 	IndexLayout pseudoLayout;				///< Pseudo-IndexLayout for the created ParallelVectors.
+#endif
 
 	int *parentIndex[AMG_MAX_LEVELS];		///< parentIndex[L][i] is the index of i on level L-1
 	cAMG_helper amghelper;					///< helper struct for viewing matrices (optional)

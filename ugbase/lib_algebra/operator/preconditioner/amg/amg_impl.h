@@ -608,11 +608,14 @@ bool amg<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type
 	vector_type &cH = *vec1[level+1];
 	vector_type &dH = *vec2[level+1];
 
+#ifdef UG_PARALLEL
 	cH.set_storage_type(PST_CONSISTENT);
 
 	// restrict defect
 	// dH = R[level]*d;
 	dH.set_storage_type(PST_ADDITIVE);
+#endif
+
 	MatMult(dH, 1.0, R[level], d);
 
 	// apply lmgc on coarser nodes
@@ -624,12 +627,17 @@ bool amg<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type
 
 	// interpolate correction
 	// corr = P[level]*cH
+#ifdef UG_PARALLEL
 	corr.set_storage_type(PST_ADDITIVE);
+#endif
+
 	MatMult(corr, 1.0, P[level], cH);
 
 	// add coarse grid correction to level correction
 	// c += corr;
+#ifdef UG_PARALLEL
 	corr.change_storage_type(PST_CONSISTENT);
+#endif
 	VecScaleAdd(c, 1.0, c, 1.0, corr);
 
 	//update defect

@@ -389,6 +389,13 @@ class GridFunction :	public TAlgebra::vector_type,
 };
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
+const typename TAlgebra::vector_type &getVector(const GridFunction<TDomain, TDoFDistribution, TAlgebra> &t)
+{
+	return t.get_vector();
+}
+
+
+template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDomain, TDoFDistribution, TAlgebra>& v)
 {
 	outStream << v.get_vector();

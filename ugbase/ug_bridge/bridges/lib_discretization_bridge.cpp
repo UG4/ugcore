@@ -180,7 +180,7 @@ void GlobalRefineParallelDomain(TDomain& domain)
 //	create Refiner
 	ParallelGlobalMultiGridRefiner refiner(distGridMgr);
 #else
-	GlobalMultiGridRefiner refiner();
+	GlobalMultiGridRefiner refiner;
 	refiner.assign_grid(domain.get_grid());
 #endif
 

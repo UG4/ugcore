@@ -55,8 +55,9 @@ class GSPreconditioner : public IPreconditioner<TAlgebra>
 		{
 			// 	set the computed correction to additive
 			//	todo: handle parallel case
+#ifdef UG_PARALLEL
 				c.set_storage_type(PST_ADDITIVE);
-
+#endif
 			return gs_step_LL(mat, c, d);
 		}
 };
@@ -100,8 +101,9 @@ class BGSPreconditioner : public IPreconditioner<TAlgebra>
 		{
 			// 	set the computed correction to additive
 			//	todo: handle parallel case
+#ifdef UG_PARALLEL
 				c.set_storage_type(PST_ADDITIVE);
-
+#endif
 			return gs_step_UR(mat, c, d);
 		}
 };
@@ -145,8 +147,9 @@ class SGSPreconditioner : public IPreconditioner<TAlgebra>
 		{
 			// 	set the computed correction to additive
 			//	todo: handle parallel case
+#ifdef UG_PARALLEL
 				c.set_storage_type(PST_ADDITIVE);
-
+#endif
 			return sgs_step(mat, c, d);
 		}
 };
