@@ -130,7 +130,7 @@ class StandardConvCheck : public IConvergenceCheck
 			 {};
 
 		void set_verbose_level(bool level) {m_verbose = level;}
-		void set_maxiumum_steps(int maxSteps) {m_maxSteps = maxSteps;}
+		void set_maximum_steps(int maxSteps) {m_maxSteps = maxSteps;}
 		void set_minimum_defect(number minDefect) {m_minDefect = minDefect;}
 		void set_reduction(number relReduction) {m_relReduction = relReduction;}
 
