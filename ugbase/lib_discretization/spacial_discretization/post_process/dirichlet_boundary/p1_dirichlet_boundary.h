@@ -52,6 +52,13 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		P1DirichletBoundary() :
 			m_pDomain(NULL), m_pPattern(NULL) {	m_mBoundarySegment.clear();}
 
+		~P1DirichletBoundary()
+		{
+			for(size_t i = 0; i < m_vConstBoundaryNumber.size(); ++i)
+				if(m_vConstBoundaryNumber[i] != NULL)
+					delete m_vConstBoundaryNumber[i];
+		}
+
 		bool add_boundary_value(typename IBoundaryNumberProvider<dim>::functor_type func,
 								const char* function, const char* subsets)
 		{
@@ -158,9 +165,10 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 		bool add_constant_boundary_value(number value,  const char* function, const char* subsets)
 		{
-			ConstBoundaryNumber<dim> valProvider;
-			valProvider.set(value);
-			return add_boundary_value(valProvider, function, subsets);
+			ConstBoundaryNumber<dim>* valProvider = new ConstBoundaryNumber<dim>;
+			valProvider->set(value);
+			m_vConstBoundaryNumber.push_back(valProvider);
+			return add_boundary_value(*valProvider, function, subsets);
 		}
 
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
@@ -223,6 +231,9 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 
 	protected:
 		domain_type* m_pDomain;
+
+		// remember created ConstNumbers
+		std::vector<ConstBoundaryNumber<dim>*> m_vConstBoundaryNumber;
 
 		const FunctionPattern* m_pPattern;
 
