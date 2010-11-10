@@ -152,6 +152,9 @@ class DomainDiscretization :
 		std::vector<IPostProcess<TDoFDistribution, TAlgebra>*> m_vvPostProcess[PPT_NUM_POST_PROCESS_TYPES];
 
 	protected:
+		virtual size_t num_post_process() const {return m_vvPostProcess[PPT_DIRICHLET].size();}
+		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i)  {return m_vvPostProcess[PPT_DIRICHLET].at(i);};
+
 		// todo: What is this function used for???? Do we have to include it
 		virtual size_t num_fct() const
 		{
