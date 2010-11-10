@@ -99,7 +99,10 @@ bool InterpolateFunctionOnElem( boost::function<void (	number& res,
 
 
 template <typename TGridFunction>
-bool InterpolateFunction(	IUserNumberProvider<TGridFunction::domain_type::dim>& InterpolFunctionProvider,
+bool InterpolateFunctionHelp(	boost::function<void (	number& res,
+									const MathVector<TGridFunction::domain_type::dim>& x,
+									number& time)>
+									InterpolFunction,
 							TGridFunction& u, const char* name, number time)
 {
 //	get Function Pattern
@@ -121,10 +124,6 @@ bool InterpolateFunction(	IUserNumberProvider<TGridFunction::domain_type::dim>& 
 		UG_LOG("Function space does not contain a function with index " << fct << ".\n");
 		return false;
 	}
-
-//	extract functor
-	typedef typename IUserNumberProvider<TGridFunction::domain_type::dim>::functor_type functor_type;
-	functor_type InterpolFunction = InterpolFunctionProvider.get_functor();
 
 //	loop for dimensions
 	switch(u.dim(fct))
@@ -159,7 +158,16 @@ bool InterpolateFunction(	IUserNumberProvider<TGridFunction::domain_type::dim>& 
 
 }
 
+template <typename TGridFunction>
+bool InterpolateFunction(	IUserNumberProvider<TGridFunction::domain_type::dim>& InterpolFunctionProvider,
+							TGridFunction& u, const char* name, number time)
+{
+//	extract functor
+	typedef typename IUserNumberProvider<TGridFunction::domain_type::dim>::functor_type functor_type;
+	functor_type InterpolFunction = InterpolFunctionProvider.get_functor();
 
+	return InterpolateFunctionHelp(InterpolFunction, u, name, time);
+}
 
 
 
