@@ -127,7 +127,6 @@ print(const char* filename, discrete_function_type& u, size_t step, number time)
 			UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Subset "<< si << ".\n");
 			return false;
 		}
-		UG_LOG("done.\n");
 	}
 
 	if(!write_pvd(u, filename, step, time))
