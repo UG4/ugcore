@@ -105,8 +105,10 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 			else if(upwind == "part")  m_Upwind = PART_UPWIND;
 			else
 			{
+#ifndef FOR_VRL
 				UG_LOG("Upwind type not found.\n");
 				return false;
+#endif
 			}
 			return true;
 		}
