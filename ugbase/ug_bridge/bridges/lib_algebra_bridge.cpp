@@ -213,7 +213,7 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 
 		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp.c_str())
 			.add_constructor()
-			.add_method("set_maximum_steps|interactive=false", &StandardConvCheck::set_maxiumum_steps,
+			.add_method("set_maximum_steps|interactive=false", &StandardConvCheck::set_maximum_steps,
 					"", "Maximum Steps||invokeOnChange=true")
 			.add_method("set_minimum_defect|interactive=false", &StandardConvCheck::set_minimum_defect,
 					"", "Minimum Defect||invokeOnChange=true")
