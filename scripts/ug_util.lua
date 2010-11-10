@@ -46,6 +46,19 @@ function utilSaveDomain(domain, gridName)
 	return false
 end
 
+function utilDistributeDomain(domain)
+	local dim = domain:get_dim()
+	if dim == 1 then
+		return DistributeDomain1d(domain)
+	elseif dim == 2 then
+		return DistributeDomain2d(domain)
+	elseif dim == 3 then
+		return DistributeDomain3d(domain)
+	end
+	return false
+end
+
+
 -- Creates anApproximationSpace of the dimension of the given domain.
 -- The associated P1ConformFunctionPattern is created and assigned on the fly.
 -- domain has to be either of type Domain1d, Domain2d or Domain3d
@@ -223,8 +236,8 @@ function ApplyLinearSolver(linOp, u, b, linSolver)
 	return true
 end
 
--- applies the linear solver
-function utilCreateGeometricMultiGridPreconditioner(approxSpace)
+-- create Geometric Multigrid
+function utilCreateGeometricMultiGrid(approxSpace)
 	local dim = approxSpace:get_domain():get_dim()
 	local gmg = nil;
 	if dim == 1 then
@@ -240,6 +253,43 @@ function utilCreateGeometricMultiGridPreconditioner(approxSpace)
 	gmg:set_approximation_space(approxSpace)
 	return gmg
 end
+
+-- create Prolongation / Restriction
+function utilCreateP1Prolongation(approxSpace)
+	local dim = approxSpace:get_domain():get_dim()
+	local transfer = nil;
+	if dim == 1 then
+		transfer = P1ProlongationOperator1d()
+	elseif dim == 2 then
+		transfer = P1ProlongationOperator2d()
+	elseif dim == 3 then
+		transfer = P1ProlongationOperator3d()
+	else
+	transfer = nil
+	end
+	
+	transfer:set_approximation_space(approxSpace)
+	return transfer
+end
+
+-- create Projection
+function utilCreateP1Projection(approxSpace)
+	local dim = approxSpace:get_domain():get_dim()
+	local project = nil;
+	if dim == 1 then
+		project = P1ProjectionOperator1d()
+	elseif dim == 2 then
+		project = P1ProjectionOperator2d()
+	elseif dim == 3 then
+		project = P1ProjectionOperator3d()
+	else
+	project = nil
+	end
+	
+	project:set_approximation_space(approxSpace)
+	return project
+end
+
 
 -- creates a Lua User Matrix using a lua function and returns the Provider
 function utilCreateLuaUserMatrix(funcName, dim)

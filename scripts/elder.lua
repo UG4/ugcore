@@ -189,14 +189,12 @@ base:set_preconditioner(jac)
 
 baseLU = LU()
 
-transfer = P1ProlongationOperator2d()
-transfer:set_approximation_space(approxSpace)
+-- Transfer and Projection
+transfer = utilCreateP1Prolongation(approxSpace)
 transfer:set_dirichlet_post_process(dirichletBND)
+projection = utilCreateP1Projection(approxSpace)
 
-projection = P1ProjectionOperator2d()
-projection:set_approximation_space(approxSpace)
-
-gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
+gmg = utilCreateGeometricMultiGrid(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
 gmg:set_surface_level(numRefs)

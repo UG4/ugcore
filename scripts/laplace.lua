@@ -94,7 +94,7 @@ for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if DistributeDomain2d(dom) == false then
+if utilDistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
@@ -111,7 +111,7 @@ utilSaveDomain(dom, "refined_grid.ugx")
 print("Create Function Pattern")
 pattern = P1ConformFunctionPattern()
 pattern:set_subset_handler(sh)
-AddP1Function(pattern, "c", 2)
+AddP1Function(pattern, "c", dim)
 pattern:lock()
 
 -- create Approximation Space
@@ -221,47 +221,51 @@ bgs = BackwardGaussSeidel()
 ilu = ILU()
 ilut = ILUT()
 
--- create GMG
-baseConvCheck = StandardConvergenceCheck()
-baseConvCheck:set_maximum_steps(500)
-baseConvCheck:set_minimum_defect(1e-8)
-baseConvCheck:set_reduction(1e-30)
-baseConvCheck:set_verbose_level(false)
+-- create GMG ---
+-----------------
 
--- base = LapackLUSolver()
-base = LinearSolver()
-base:set_convergence_check(baseConvCheck)
-base:set_preconditioner(jac)
+	-- Base Solver
+	baseConvCheck = StandardConvergenceCheck()
+	baseConvCheck:set_maximum_steps(500)
+	baseConvCheck:set_minimum_defect(1e-8)
+	baseConvCheck:set_reduction(1e-30)
+	baseConvCheck:set_verbose_level(false)
+	-- base = LapackLUSolver()
+	base = LinearSolver()
+	base:set_convergence_check(baseConvCheck)
+	base:set_preconditioner(jac)
+	
+	-- Transfer and Projection
+	transfer = utilCreateP1Prolongation(approxSpace)
+	transfer:set_dirichlet_post_process(dirichletBND)
+	projection = utilCreateP1Projection(approxSpace)
+	
+	-- Gemoetric Multi Grid
+	gmg = utilCreateGeometricMultiGrid(approxSpace)
+	gmg:set_discretization(domainDisc)
+	gmg:set_surface_level(numRefs)
+	gmg:set_base_level(0)
+	gmg:set_base_solver(base)
+	gmg:set_smoother(jac)
+	gmg:set_cycle_type(1)
+	gmg:set_num_presmooth(3)
+	gmg:set_num_postsmooth(3)
+	gmg:set_prolongation(transfer)
+	gmg:set_projection(projection)
 
-transfer = P1ProlongationOperator2d()
-transfer:set_approximation_space(approxSpace)
-transfer:set_dirichlet_post_process(dirichletBND)
+-- create AMG ---
+-----------------
 
-projection = P1ProjectionOperator2d()
-projection:set_approximation_space(approxSpace)
-
-gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
-gmg:set_discretization(domainDisc)
-gmg:set_surface_level(numRefs)
-gmg:set_base_level(0)
-gmg:set_base_solver(base)
-gmg:set_smoother(jac)
-gmg:set_cycle_type(1)
-gmg:set_num_presmooth(3)
-gmg:set_num_postsmooth(3)
-gmg:set_prolongation(transfer)
-gmg:set_projection(projection)
-
-if false then
-amg = AMGPreconditioner()
-amg:set_nu1(2)
-amg:set_nu2(2)
-amg:set_gamma(1)
-amg:set_presmoother(jac)
-amg:set_postsmoother(jac)
-amg:set_base_solver(base)
---amg:set_debug(u)
-end
+	if false then
+	amg = AMGPreconditioner()
+	amg:set_nu1(2)
+	amg:set_nu2(2)
+	amg:set_gamma(1)
+	amg:set_presmoother(jac)
+	amg:set_postsmoother(jac)
+	amg:set_base_solver(base)
+	--amg:set_debug(u)
+	end
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
