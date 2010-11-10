@@ -334,7 +334,7 @@ static int LuaProxyFunction(lua_State* L)
 	
 //	check whether the parameter was correct
 	if(badParam > 0){
-		UG_LOG("ERROR occured during call to");
+		UG_LOG("ERROR occured during call to ");
 		PrintFunctionInfo(*func, false);
 		UG_LOG(endl);
 		return 0;
