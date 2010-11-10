@@ -381,6 +381,134 @@ class ConstFV1ConvectionDiffusionElemDisc :
 		}
 };
 
+
+
+void ElderStartConcentration(number& res, const MathVector<2>& x, number time)
+{
+	res = 0.0;
+	if( x[1] == 150)
+		if(x[0] >= 150 && x[0] <= 450)
+			res = 1.0;
+}
+
+void ElderStartPressure(number& res, const MathVector<2>& x, number time)
+{
+	res = 9810 * (150 - x[2]);
+}
+
+
+template <typename TGridFunction>
+bool
+SolveElderTimeProblem(	typename TGridFunction::approximation_space_type& approxSpace,
+						ITimeDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& time_disc,
+						size_t timesteps, size_t startsteps, number dt, const char* name)
+{
+	typedef typename TGridFunction::algebra_type algebra_type;
+	typedef typename algebra_type::vector_type vector_type;
+	typedef typename TGridFunction::approximation_space_type approximation_space_type;
+	typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
+
+	//  create ilu preconditioner
+		JacobiPreconditioner<algebra_type> jacobi_pre(0.8);
+		ILUPreconditioner<algebra_type> ilu_pre;
+
+	//  Convergence check
+		StandardConvCheck convCheck(10, 5e-10, 1e-8, true);
+		StandardConvCheck baseConvCheck(500, 1e-10, 1e-30, false);
+
+	//  create Jacobi solver
+		BiCGStabSolver<algebra_type>  	base_bicgstab(&jacobi_pre, baseConvCheck);
+		LUSolver<algebra_type> lu;
+
+	//	create MultiGrid Precond
+		size_t finestLevel = approxSpace.get_domain().get_grid().num_levels() - 1;
+		uint baseLevel = (finestLevel >= 2) ? 2 : finestLevel;
+		AssembledMultiGridCycle<approximation_space_type, algebra_type>
+			lmgc;
+
+		P1ProlongationOperator<approximation_space_type, algebra_type> transfer;
+		transfer.set_approximation_space(approxSpace);
+		for(size_t i = 0; i < time_disc.get_domain_discretization()->num_post_process(); ++i)
+			transfer.set_dirichlet_post_process(*time_disc.get_domain_discretization()->get_post_process(i));
+
+		P1ProjectionOperator<approximation_space_type, algebra_type> projection;
+		projection.set_approximation_space(approxSpace);
+
+		lmgc.set_discretization(time_disc);
+		lmgc.set_approximation_space(approxSpace);
+		lmgc.set_surface_level(finestLevel);
+		lmgc.set_base_level(baseLevel);
+		lmgc.set_base_solver(lu);
+		lmgc.set_smoother(ilu_pre);
+		lmgc.set_cycle_type(1);
+		lmgc.set_num_presmooth(2);
+		lmgc.set_num_postsmooth(2);
+		lmgc.set_prolongation_operator(transfer);
+		lmgc.set_projection_operator(projection);
+
+
+	//  create a Multi Grid Solver
+		BiCGStabSolver<algebra_type> 	ls_bicgstab;
+		ls_bicgstab.set_preconditioner(lmgc);
+		ls_bicgstab.set_convergence_check(convCheck);
+
+	//  create a Nonlinear Operator
+		AssembledOperator<dof_distribution_type, algebra_type> nlass;
+		nlass.set_discretization(time_disc);
+		nlass.set_dof_distribution(approxSpace.get_surface_dof_distribution());
+		nlass.init();
+
+	//  create Newton Solver
+		StandardConvCheck				 	newtonConvCheck(10, 5e-8, 1e-10, true);
+		NewtonSolver<dof_distribution_type, algebra_type> 		newton;
+		newton.set_linear_solver(ls_bicgstab);
+		newton.set_convergence_check(newtonConvCheck);
+		newton.init(nlass);
+
+	//  create solution
+		TGridFunction& u = *(approxSpace.create_surface_function("u"));
+
+	//  interpolate start solution
+		InterpolateFunctionHelp<TGridFunction>(ElderStartConcentration, u, "c", 0.0);
+		InterpolateFunctionHelp<TGridFunction>(ElderStartPressure, u, "p", 0.0);
+
+
+
+	VTKOutput<TGridFunction> out;
+	out.begin_timeseries(name, u);
+	out.print(name, u, 0, 0.0);
+
+	number time = 0.0;
+	size_t step = 1;
+	size_t do_steps;
+
+	UG_LOG("Perform\n");
+// perform time stepping
+	do_steps = (timesteps - step + 1) >= startsteps ? startsteps : (timesteps - step + 1);
+	if(!PerformTimeStep(newton, u, time_disc, do_steps, step, time, dt/100, out, name, true))
+	{
+		UG_LOG("Cannot perform timestep.\n");
+		return 1;
+	}
+	step += do_steps; time += dt/100 * do_steps;
+
+// perform time stepping
+	do_steps = (timesteps - step + 1) >= 0 ?  (timesteps - step + 1) : 0;
+	if(!PerformTimeStep(newton, u, time_disc, do_steps, step, time, dt, out, name, true))
+	{
+		UG_LOG("Cannot perform timestep.\n");
+		return 1;
+	}
+	step += do_steps; time += dt * do_steps;
+
+	out.end_timeseries(name, u);
+
+	delete &u;
+
+	return true;
+}
+
+
 template <typename TGridFunction>
 bool
 SolveTimeProblem(IOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& newton,
@@ -727,11 +855,17 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	SolveTimeProblem
 		{
+			stringstream ss; ss << "SolveElderTimeProblem" << dim << "d";
+			reg.add_function(ss.str().c_str(), &SolveElderTimeProblem<function_type>, grp.c_str(),
+							"Success", "Approx Space#Discretization#Timesteps#StartTimestep#Timestep Size#FileName|save-dialog");
+		}
+
+	//	SolveTimeProblem
+		{
 			stringstream ss; ss << "SolveTimeProblem" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SolveTimeProblem<function_type>, grp.c_str(),
 							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Timestep Size#FileName");
 		}
-
 
 	//	DistributeDomain
 		{
@@ -817,8 +951,10 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 			typedef IElemDisc<algebra_type> T;
 			reg.add_class_<T>("IElemDisc", grp.c_str())
 				.add_method("set_pattern|hide=true", &T::set_pattern)
-				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions)
-				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets);
+				.add_method("set_functions", (bool (T::*)(const char*))&T::set_functions,+
+							"", "Functions (sep. by ',')")
+				.add_method("set_subsets",  (bool (T::*)(const char*))&T::set_subsets,
+							"", "Subsets (sep. by ',')");
 		}
 
 	//	DomainDiscretization
@@ -848,8 +984,8 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 					.add_constructor()
 					.add_method("set_domain_discretization|interactive=false", &T::set_domain_discretization,
 								"", "Domain Discretization||invokeOnChange=true")
-					.add_method("set_theta", &T::set_theta,
-								"", "Theta");
+					.add_method("set_theta|interactive=false", &T::set_theta,
+								"", "Theta (0.0 = Impl; 1.0 = Expl)||invokeOnChange=true");
 		}
 
 	//	AssembledLinearOperator

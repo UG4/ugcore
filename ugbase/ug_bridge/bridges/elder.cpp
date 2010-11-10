@@ -11,13 +11,17 @@ namespace bridge
 
 namespace {
 
+
+static number porosity = 0.1;
+static number viscosity = 1e-3;
+
 inline void Porosity(number& n)
 {
-	n = 0.1;
+	n = porosity;
 }
 inline void Viscosity(number& visco, number c)
 {
-	visco = 1e-3;
+	visco = viscosity;
 }
 inline void Density(number& density, number c)
 {
@@ -74,6 +78,12 @@ class ElderUserFunction : public IDensityDrivenFlowUserFunction<2>
 		virtual Mol_Diff_Tensor_fct get_mol_diff_tensor_function() const {return &Mol_Diff;}
 		virtual Permeability_Tensor_fct get_perm_tensor_function() const {return &Permeability;}
 		virtual Gravity_fct get_gravity_function() const {return Gravity;}
+
+		void set_values(number porosity_, number viscosity_)
+		{
+			porosity = porosity_;
+			viscosity = viscosity_;
+		}
 };
 
 } // end unnamed namespace
@@ -85,7 +95,9 @@ void RegisterElderUserFunctions(Registry& reg, const char* parentGroup)
 //	DensityDrivenUserFunction
 	{
 		reg.add_class_<ElderUserFunction, IDensityDrivenFlowUserFunction<2> >("ElderUserFunction2d", grp)
-			.add_constructor();
+			.add_constructor()
+			.add_method("set_values|interactive=false", &ElderUserFunction::set_values,
+						"", "Porosity||invokeOnChange=true#Viscosity||invokeOnChange=true");
 	}
 }
 
