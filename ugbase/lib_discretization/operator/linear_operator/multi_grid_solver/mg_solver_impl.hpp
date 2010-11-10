@@ -11,9 +11,14 @@
 #include "common/profiler/profiler.h"
 #include "lib_discretization/io/vtkoutput.h"
 #include "projection_surface_level.h"
+#include "lib_discretization/function_spaces/grid_function_util.h"
 #ifdef UG_PARALLEL
 	#include "lib_algebra/parallelization/parallelization.h"
 #endif
+
+#include <iostream>
+#include <sstream>
+
 
 //#define PROFILE_GMG
 #ifdef PROFILE_GMG
@@ -350,6 +355,12 @@ init_common(bool nonlinear)
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Projection not set, although problem nonlinear.\n");
 			return false;
 		}
+
+	if(m_baseLevel > m_surfaceLevel)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Base Level can not be greater than surface level.\n");
+		return false;
+	}
 
 // 	If grid may be changed, we reallocate all memory
 	if(m_grid_changes && m_allocated)
