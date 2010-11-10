@@ -117,18 +117,18 @@ class ISelector : public GridObserver
 		inline void deselect(TIterator iterBegin, TIterator iterEnd);
 
 	//	selection status
-		inline bool is_selected(GeometricObject* elem);
-		inline bool is_selected(VertexBase* vrt)	{if(!elements_are_supported(SE_VERTEX)) return false; return *m_aaIterVRT[vrt] != NULL;}
-		inline bool is_selected(EdgeBase* edge)		{if(!elements_are_supported(SE_EDGE)) return false; return *m_aaIterEDGE[edge] != NULL;}
-		inline bool is_selected(Face* face)			{if(!elements_are_supported(SE_FACE)) return false; return *m_aaIterFACE[face] != NULL;}
-		inline bool is_selected(Volume* vol)		{if(!elements_are_supported(SE_VOLUME)) return false; return *m_aaIterVOL[vol] != NULL;}
+		inline bool is_selected(GeometricObject* elem) const;
+		inline bool is_selected(VertexBase* vrt) const	{if(!elements_are_supported(SE_VERTEX)) return false; return *m_aaIterVRT[vrt] != NULL;}
+		inline bool is_selected(EdgeBase* edge) const	{if(!elements_are_supported(SE_EDGE)) return false; return *m_aaIterEDGE[edge] != NULL;}
+		inline bool is_selected(Face* face) const		{if(!elements_are_supported(SE_FACE)) return false; return *m_aaIterFACE[face] != NULL;}
+		inline bool is_selected(Volume* vol) const		{if(!elements_are_supported(SE_VOLUME)) return false; return *m_aaIterVOL[vol] != NULL;}
 
 	//	non-virtual methods.
 		inline Grid* get_assigned_grid() const		{return m_pGrid;}
 
 	///	returns true if the given element-types are supported.
 	/**	pass an or-combination of constants enumerated in SubsetHandlerElements.*/
-		inline bool elements_are_supported(uint shElements);
+		inline bool elements_are_supported(uint shElements) const;
 
 	//	if enabled, all new elements will be automatically enabled. Disabled by default.
 		void enable_autoselection(bool bEnable);

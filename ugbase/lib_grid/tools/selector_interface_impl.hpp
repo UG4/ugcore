@@ -8,7 +8,7 @@
 namespace ug
 {
 inline bool
-ISelector::elements_are_supported(uint shElements)
+ISelector::elements_are_supported(uint shElements) const
 {
 	return (m_supportedElements & shElements) == shElements;
 }
@@ -88,7 +88,7 @@ inline void ISelector::deselect(TIterator iterBegin, TIterator iterEnd)
 }
 
 
-bool ISelector::is_selected(GeometricObject* elem){
+bool ISelector::is_selected(GeometricObject* elem) const{
 	int elemID = elem->base_object_type_id();
 	switch(elemID){
 		case VERTEX:
