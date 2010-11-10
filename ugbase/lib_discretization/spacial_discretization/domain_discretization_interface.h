@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION_INTERFACE__
 
 #include "lib_discretization/assemble.h"
+#include "./post_process/post_process_interface.h"
 
 namespace ug {
 
@@ -105,6 +106,9 @@ class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
 
 		/// returns if the number of functions of this assembling
 		virtual size_t num_fct() const = 0;
+
+		virtual size_t num_post_process() const = 0;
+		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
 };
 
 }; // namespace ug
