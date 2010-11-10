@@ -12,7 +12,7 @@ dofile("../scripts/ug_util.lua")
 
 -- choose algebra
 algebra = CPUAlgebraChooser()
-algebra:set_fixed_blocksize(2)
+algebra:set_fixed_blocksize(1)
 InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
@@ -164,16 +164,16 @@ op:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 op:init()
 
 -- create algebraic Preconditioner
-jac = JacobiPreconditioner()
+jac = Jacobi()
 jac:set_damp(0.8)
-gs = GSPreconditioner()
-sgs = SGSPreconditioner()
-bgs = BGSPreconditioner()
-ilu = ILUPreconditioner()
--- ilut = ILUTPreconditioner()
+gs = GaussSeidel()
+sgs = SymmetricGaussSeidel()
+bgs = BackwardGaussSeidel()
+ilu = ILU()
+ilut = ILUT()
 
 -- exact Soler
-exactSolver = LapackLUSolver()
+exactSolver = LU()
 
 -- create GMG
 baseConvCheck = StandardConvergenceCheck()
@@ -183,11 +183,11 @@ baseConvCheck:set_reduction(1e-30)
 baseConvCheck:set_verbose_level(false)
 
 -- base = LapackLUSolver()
-base = BiCGStabSolver()
+base = BiCGStab()
 base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
 
-baseLU = LapackLUSolver()
+baseLU = LU()
 
 transfer = P1ProlongationOperator2d()
 transfer:set_approximation_space(approxSpace)
@@ -232,12 +232,12 @@ linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
-cgSolver = CGSolver()
+cgSolver = CG()
 cgSolver:set_preconditioner(gmg)
 cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
-bicgstabSolver = BiCGStabSolver()
+bicgstabSolver = BiCGStab()
 bicgstabSolver:set_preconditioner(gmg)
 bicgstabSolver:set_convergence_check(convCheck)
 

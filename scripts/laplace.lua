@@ -213,13 +213,13 @@ SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- create algebraic Preconditioner
-jac = JacobiPreconditioner()
+jac = Jacobi()
 jac:set_damp(0.8)
-gs = GSPreconditioner()
-sgs = SGSPreconditioner()
-bgs = BGSPreconditioner()
-ilu = ILUPreconditioner()
--- ilut = ILUTPreconditioner()
+gs = GaussSeidel()
+sgs = SymmetricGaussSeidel()
+bgs = BackwardGaussSeidel()
+ilu = ILU()
+ilut = ILUT()
 
 -- create GMG
 baseConvCheck = StandardConvergenceCheck()
@@ -275,12 +275,12 @@ linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
-cgSolver = CGSolver()
+cgSolver = CG()
 cgSolver:set_preconditioner(ilu)
 cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
-bicgstabSolver = BiCGStabSolver()
+bicgstabSolver = BiCGStab()
 bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
