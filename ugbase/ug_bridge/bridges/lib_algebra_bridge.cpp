@@ -72,35 +72,39 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 	// Preconditioner
 	{
+	//	get group string
+		std::stringstream grpSS2; grpSS2 << grp << "/Preconditioner";
+		std::string grp2 = grpSS2.str();
+
 	//	Jacobi
 		reg.add_class_<	JacobiPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("JacobiPreconditioner", grp.c_str())
+						IPreconditioner<algebra_type> >("Jacobi", grp2.c_str())
 			.add_constructor()
 			.add_method("set_damp", &JacobiPreconditioner<algebra_type>::set_damp, "", "damp");
 
 	//	GaussSeidel
 		reg.add_class_<	GSPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("GSPreconditioner", grp.c_str())
+						IPreconditioner<algebra_type> >("GaussSeidel", grp2.c_str())
 			.add_constructor();
 
 	//	Symmetric GaussSeidel
 		reg.add_class_<	SGSPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("SGSPreconditioner", grp.c_str())
+						IPreconditioner<algebra_type> >("SymmetricGaussSeidel", grp2.c_str())
 			.add_constructor();
 
 	//	Backward GaussSeidel
 		reg.add_class_<	BGSPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("BGSPreconditioner", grp.c_str())
+						IPreconditioner<algebra_type> >("BackwardGaussSeidel", grp2.c_str())
 			.add_constructor();
 
 	//	ILU
 		reg.add_class_<	ILUPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("ILUPreconditioner", grp.c_str())
+						IPreconditioner<algebra_type> >("ILU", grp2.c_str())
 			.add_constructor();
 
 	//	ILU Threshold
 		reg.add_class_<	ILUTPreconditioner<algebra_type>,
-						IPreconditioner<algebra_type> >("ILUTPreconditioner", grp.c_str())
+						IPreconditioner<algebra_type> >("ILUT", grp2.c_str())
 			.add_constructor();
 
 		/*
@@ -147,32 +151,43 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 	// todo: Solvers should be independent of type and placed in general section
 	{
+	//	get group string
+		std::stringstream grpSS3; grpSS3 << grp << "/Solver";
+		std::string grp3 = grpSS3.str();
+
 	// 	LinearSolver
 		reg.add_class_<	LinearSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("LinearSolver", grp.c_str())
+						ILinearOperatorInverse<vector_type, vector_type> >("LinearSolver", grp3.c_str())
 			.add_constructor()
-			.add_method("set_preconditioner", &LinearSolver<algebra_type>::set_preconditioner, "", "preconditioner")
-			.add_method("set_convergence_check", &LinearSolver<algebra_type>::set_convergence_check, "", "check");
+			.add_method("set_preconditioner|interactive=false", &LinearSolver<algebra_type>::set_preconditioner,
+						"", "Preconditioner||invokeOnChange=true")
+			.add_method("set_convergence_check|interactive=false", &LinearSolver<algebra_type>::set_convergence_check,
+						"", "Check||invokeOnChange=true");
 
 	// 	CG Solver
 		reg.add_class_<	CGSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("CGSolver", grp.c_str())
+						ILinearOperatorInverse<vector_type, vector_type> >("CG", grp3.c_str())
 			.add_constructor()
-			.add_method("set_preconditioner", &CGSolver<algebra_type>::set_preconditioner, "", "preconditioner")
-			.add_method("set_convergence_check", &CGSolver<algebra_type>::set_convergence_check, "", "check");
+			.add_method("set_preconditioner|interactive=false", &CGSolver<algebra_type>::set_preconditioner,
+						"", "Preconditioner||invokeOnChange=true")
+			.add_method("set_convergence_check|interactive=false", &CGSolver<algebra_type>::set_convergence_check,
+						"", "Check||invokeOnChange=true");
 
 	// 	BiCGStab Solver
 		reg.add_class_<	BiCGStabSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("BiCGStabSolver", grp.c_str())
+						ILinearOperatorInverse<vector_type, vector_type> >("BiCGStab", grp3.c_str())
 			.add_constructor()
-			.add_method("set_preconditioner", &BiCGStabSolver<algebra_type>::set_preconditioner, "", "preconditioner")
-			.add_method("set_convergence_check", &BiCGStabSolver<algebra_type>::set_convergence_check, "", "check");
+			.add_method("set_preconditioner|interactive=false", &BiCGStabSolver<algebra_type>::set_preconditioner,
+						"", "Preconditioner||invokeOnChange=true")
+			.add_method("set_convergence_check|interactive=false", &BiCGStabSolver<algebra_type>::set_convergence_check,
+						"", "Check||invokeOnChange=true");
 
-		// 	LUSolver
+	// 	LUSolver
 		reg.add_class_<	LUSolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("LUSolver", grp.c_str())
+						ILinearOperatorInverse<vector_type, vector_type> >("LU", grp3.c_str())
 			.add_constructor()
-			.add_method("set_convergence_check", &LUSolver<algebra_type>::set_convergence_check, "", "check");
+			.add_method("set_convergence_check|interactive=false", &LUSolver<algebra_type>::set_convergence_check,
+						"", "Check||invokeOnChange=true");
 	}
 }
 
@@ -198,14 +213,14 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 
 		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp.c_str())
 			.add_constructor()
-			.add_method("set_maximum_steps", &StandardConvCheck::set_maxiumum_steps,
-					"", "maximum_steps")
-			.add_method("set_minimum_defect", &StandardConvCheck::set_minimum_defect,
-					"", "minimum_defect")
-			.add_method("set_reduction", &StandardConvCheck::set_reduction,
-					"", "reduction")
-			.add_method("set_verbose_level", &StandardConvCheck::set_verbose_level,
-					"", "verbose_level");
+			.add_method("set_maximum_steps|interactive=false", &StandardConvCheck::set_maxiumum_steps,
+					"", "Maximum Steps||invokeOnChange=true")
+			.add_method("set_minimum_defect|interactive=false", &StandardConvCheck::set_minimum_defect,
+					"", "Minimum Defect||invokeOnChange=true")
+			.add_method("set_reduction|interactive=false", &StandardConvCheck::set_reduction,
+					"", "Reduction||invokeOnChange=true")
+			.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
+					"", "Verbose||invokeOnChange=true");
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
