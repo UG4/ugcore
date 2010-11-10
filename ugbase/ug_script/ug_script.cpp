@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <cstring>
+#include "ug.h"
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
 #include "ug_bridge/ug_bridge.h"
@@ -16,6 +17,45 @@ namespace ug
 
 namespace script
 {
+
+///	loads a file relative to APP_PATH../scripts
+bool LoadUGScript(const char* filename)
+{
+	string strFilename(UGGetApplicationPath());
+	strFilename.append("/").append(filename);
+
+//	check absolute path
+	if(FileExists(filename)){
+		return ug::script::ParseFile(filename);
+	}
+
+//	check script path
+	if(FileExists(strFilename.c_str())){
+		return ug::script::ParseFile(strFilename.c_str());
+	}
+
+//todo: check path relative to UG4_ROOT
+
+	return false;
+}
+
+/// checks if given file exists.
+bool FileExists(const char* filename)
+{
+//todo: this could be improved.
+	ifstream in(filename);
+	if(in) {
+		in.close();
+		return true;
+	}
+	return false;
+}
+
+/// checks if given file exists.
+bool FileExists(const std::string& filename) {
+	return FileExists(filename.c_str());
+}
+
 
 static ug::bridge::Registry* g_pRegistry = NULL;
 

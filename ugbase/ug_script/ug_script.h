@@ -5,6 +5,7 @@
 #ifndef __H__UG__UG_SCRIPT__
 #define __H__UG__UG_SCRIPT__
 #include <vector>
+#include <string>
 
 extern "C" {
 #include "externals/lua/lua.h"
@@ -19,6 +20,12 @@ namespace ug
 
 namespace script
 {
+
+///	loads a file relative to APP_PATH../scripts
+bool LoadUGScript(const char* filename);
+
+/// checks if given file exists.
+bool FileExists(const char* filename);
 
 ///	returns the default lua state
 /**	When called for the first time, a new state is created and
