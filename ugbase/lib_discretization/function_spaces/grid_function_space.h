@@ -181,11 +181,17 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			if(!m_bInit)
 			{
 				UG_LOG("Approximation Space not initialized.\n");
-				return false;
+				return NULL;
+			}
+
+			const TDoFDistribution* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
+			if(dofDistr == NULL)
+			{
+				throw(UG_ERROR_DoFDistributionMissing());
 			}
 
 			function_type* gridFct = new function_type(name, *this,
-														*m_MGDoFManager.get_level_dof_distribution(level),
+														*dofDistr,
 														allocate);
 			return gridFct;
 		}
@@ -196,11 +202,17 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			if(!m_bInit)
 			{
 				UG_LOG("Approximation Space not initialized.\n");
-				return false;
+				return NULL;
+			}
+
+			const TDoFDistribution* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+			if(dofDistr == NULL)
+			{
+				throw(UG_ERROR_DoFDistributionMissing());
 			}
 
 			function_type* gridFct = new function_type(name, *this,
-														*m_MGDoFManager.get_surface_dof_distribution(),
+														*dofDistr,
 														allocate);
 			return gridFct;
 		}
