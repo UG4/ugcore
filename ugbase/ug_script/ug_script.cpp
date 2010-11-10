@@ -21,8 +21,9 @@ namespace script
 ///	loads a file relative to APP_PATH../scripts
 bool LoadUGScript(const char* filename)
 {
-	string strFilename(UGGetApplicationPath());
+	string strFilename(UGGetScriptPath());
 	strFilename.append("/").append(filename);
+	LOG("file: "<<  strFilename << endl);
 
 //	check absolute path
 	if(FileExists(filename)){
