@@ -58,6 +58,8 @@ class ITimeDiscretization : public IAssemble<TDoFDistribution, TAlgebra> {
 
 		void set_domain_discretization(IDomainDiscretization<dof_distribution_type, algebra_type>& dd) {m_dd = &dd;}
 
+		IDomainDiscretization<dof_distribution_type, algebra_type>* get_domain_discretization() {return m_dd;}
+
 		/// prepares the assembling of Defect/Jacobian (resp. Jacobian/rhs) for a time - dependent and nonlinear (resp. linear) problem
 		/**
 		 *	This function supplies the TimeDiscretization with previous time steps and step size before the assembling routines
