@@ -13,7 +13,11 @@
 -- currently only the path in which you start your application is valid.
 dofile("../scripts/ug_util.lua")
 
-nSystems = 1
+if ugargv[1] ~= nil then
+	nSystems = ugargv[1]+0
+else
+	nSystems = 1
+end
 
 -- choose algebra
 algebra = CPUAlgebraChooser()
@@ -22,10 +26,20 @@ InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
 -- constants
-dim = 2
+if ugargv[2] ~= nil then
+	dim = ugargv[2]+0
+else
+	dim = 2
+end
 gridName = "unit_square_tri.ugx"
 numPreRefs = 0
-numRefs = 3
+if ugargv[3] ~= nil then
+	numRefs = ugargv[3]+0
+else
+	numRefs = 3
+end
+
+print("\nSYSTEMLAPLACE, nSystems = "..nSystems..", Dim = "..dim..", numRefs = "..numRefs.."\n\n")
 
 --------------------------------
 -- User Data Functions (begin)
