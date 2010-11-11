@@ -47,7 +47,7 @@ const std::string& UGGetDataPath();
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Finalize.
  */
-int UGFinalize(bool outputProfilerStats);
+int UGFinalize(bool outputProfilerStats = false);
 
 ////////////////////////////////////////////////////////////////////////
 /**	searches argv for the given parameter and returns its position in argv.

@@ -110,7 +110,7 @@ const std::string& UGGetDataPath() {
 /**	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Finalize.
  */
-int UGFinalize(bool outputProfilerStats = false) {
+int UGFinalize(bool outputProfilerStats) {
 	if (outputProfilerStats) {
 		//	output the profiled data.
 		PROFILER_UPDATE();
