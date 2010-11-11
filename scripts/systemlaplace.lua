@@ -13,9 +13,11 @@
 -- currently only the path in which you start your application is valid.
 dofile("../scripts/ug_util.lua")
 
+nSystems = 1
+
 -- choose algebra
 algebra = CPUAlgebraChooser()
-algebra:set_fixed_blocksize(2)
+algebra:set_fixed_blocksize(nSystems)
 InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
@@ -23,7 +25,7 @@ InitAlgebra(algebra)
 dim = 2
 gridName = "unit_square_tri.ugx"
 numPreRefs = 0
-numRefs = 4
+numRefs = 3
 
 --------------------------------
 -- User Data Functions (begin)
@@ -115,8 +117,10 @@ utilSaveDomain(dom, "refined_grid.ugx")
 print("Create Function Pattern")
 pattern = P1ConformFunctionPattern()
 pattern:set_subset_handler(sh)
-AddP1Function(pattern, "c1", 2)
-AddP1Function(pattern, "c2", 2)
+
+for i=1, nSystems do
+AddP1Function(pattern, "c"..i, 2)
+end
 pattern:lock()
 
 -- create Approximation Space
@@ -155,20 +159,15 @@ print ("Setting up Assembling")
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
-
-elemDisc1 = utilCreateFV1ConvDiff(approxSpace, "c1", "Inner")
-elemDisc1:set_upwind_amount(0.0)
-elemDisc1:set_diffusion_tensor(diffusionMatrix)
-elemDisc1:set_velocity_field(velocityField)
-elemDisc1:set_reaction(reaction)
-elemDisc1:set_rhs(rhs)
-
-elemDisc2 = utilCreateFV1ConvDiff(approxSpace, "c2", "Inner")
-elemDisc2:set_upwind_amount(0.0)
-elemDisc2:set_diffusion_tensor(diffusionMatrix)
-elemDisc2:set_velocity_field(velocityField)
-elemDisc2:set_reaction(reaction)
-elemDisc2:set_rhs(rhs)
+elemDisc = {}
+for i=1, nSystems do
+elemDisc[i] = utilCreateFV1ConvDiff(approxSpace, "c"..i, "Inner")
+elemDisc[i]:set_upwind_amount(0.0)
+elemDisc[i]:set_diffusion_tensor(diffusionMatrix)
+elemDisc[i]:set_velocity_field(velocityField)
+elemDisc[i]:set_reaction(reaction)
+elemDisc[i]:set_rhs(rhs)
+end
 
 -----------------------------------------------------------------
 --  Setup Neumann Boundary
@@ -182,16 +181,18 @@ elemDisc2:set_rhs(rhs)
 -----------------------------------------------------------------
 
 dirichletBND = utilCreateDirichletBoundary(approxSpace)
-dirichletBND:add_boundary_value(dirichlet, "c1", "DirichletBoundary")
-dirichletBND:add_boundary_value(dirichlet, "c2", "DirichletBoundary")
+for i=1, nSystems do
+dirichletBND:add_boundary_value(dirichlet, "c"..i, "DirichletBoundary")
+end
 
 -------------------------------------------
 --  Setup Domain Discretization
 -------------------------------------------
 
 domainDisc = DomainDiscretization()
-domainDisc:add_elem_disc(elemDisc1)
-domainDisc:add_elem_disc(elemDisc2)
+for i=1, nSystems do
+domainDisc:add_elem_disc(elemDisc[i])
+end
 --domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 
@@ -227,43 +228,48 @@ SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- create algebraic Preconditioner
-jac = JacobiPreconditioner()
+jac = Jacobi()
 jac:set_damp(0.8)
-gs = GSPreconditioner()
-sgs = SGSPreconditioner()
-bgs = BGSPreconditioner()
-ilu = ILUPreconditioner()
+gs = GaussSeidel()
+sgs = SymmetricGaussSeidel()
+bgs = BackwardGaussSeidel()
+ilu = ILU()
+ilut = ILUT()
 
--- create GMG
-baseConvCheck = StandardConvergenceCheck()
-baseConvCheck:set_maximum_steps(40)
-baseConvCheck:set_minimum_defect(1e-12)
-baseConvCheck:set_reduction(1e-30)
-baseConvCheck:set_verbose_level(false)
+-- create GMG ---
+-----------------
 
--- base = LapackLUSolver()
-base = LinearSolver()
-base:set_convergence_check(baseConvCheck)
-base:set_preconditioner(jac)
+	-- Base Solver
+	baseConvCheck = StandardConvergenceCheck()
+	baseConvCheck:set_maximum_steps(500)
+	baseConvCheck:set_minimum_defect(1e-8)
+	baseConvCheck:set_reduction(1e-30)
+	baseConvCheck:set_verbose_level(false)
+	base = LU()
+	--base = LinearSolver()
+	--base:set_convergence_check(baseConvCheck)
+	--base:set_preconditioner(jac)
+	
+	-- Transfer and Projection
+	transfer = utilCreateP1Prolongation(approxSpace)
+	transfer:set_dirichlet_post_process(dirichletBND)
+	projection = utilCreateP1Projection(approxSpace)
+	
+	-- Gemoetric Multi Grid
+	gmg = utilCreateGeometricMultiGrid(approxSpace)
+	gmg:set_discretization(domainDisc)
+	gmg:set_surface_level(numRefs)
+	gmg:set_base_level(0)
+	gmg:set_base_solver(base)
+	gmg:set_smoother(jac)
+	gmg:set_cycle_type(1)
+	gmg:set_num_presmooth(1)
+	gmg:set_num_postsmooth(1)
+	gmg:set_prolongation(transfer)
+	gmg:set_projection(projection)
 
-transfer = P1ProlongationOperator2d()
-transfer:set_approximation_space(approxSpace)
-transfer:set_dirichlet_post_process(dirichletBND)
-
-projection = P1ProjectionOperator2d()
-projection:set_approximation_space(approxSpace)
-
-gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
-gmg:set_discretization(domainDisc)
-gmg:set_surface_level(numRefs)
-gmg:set_base_level(0)
-gmg:set_base_solver(base)
-gmg:set_smoother(jac)
-gmg:set_cycle_type(1)
-gmg:set_num_presmooth(3)
-gmg:set_num_postsmooth(3)
-gmg:set_prolongation(transfer)
-gmg:set_projection(projection)
+-- create AMG ---
+-----------------
 
 if false then
 amg = AMGPreconditioner()
@@ -284,16 +290,16 @@ convCheck:set_reduction(1e-12)
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(ilu)
+linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
-cgSolver = CGSolver()
+cgSolver = CG()
 cgSolver:set_preconditioner(ilu)
 cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
-bicgstabSolver = BiCGStabSolver()
+bicgstabSolver = BiCGStab()
 bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
