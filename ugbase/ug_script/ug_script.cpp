@@ -23,7 +23,6 @@ bool LoadUGScript(const char* filename)
 {
 	string strFilename(UGGetScriptPath());
 	strFilename.append("/").append(filename);
-	LOG("file: "<<  strFilename << endl);
 
 //	check absolute path
 	if(FileExists(filename)){
