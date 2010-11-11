@@ -127,12 +127,12 @@ class ParallelGridFunction : public TGridFunction
 		}*/
 
 		// set all dofs on level 'level' to value 'w'
-		bool set(number w, ParallelStorageType type)
+		// removed this because it is the same in ParallelVector and Vector (MR)
+		/*bool set(number w, ParallelStorageType type)
 			{return TGridFunction::get_vector().set(w, type);}
 
 		bool set(number w)
-			{return TGridFunction::get_vector().set(w, PST_CONSISTENT);}
-
+			{return TGridFunction::get_vector().set(w, PST_CONSISTENT);}*/
 
 		////////////////////////////
 		// Storage type
