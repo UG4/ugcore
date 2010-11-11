@@ -31,7 +31,16 @@ if ugargv[2] ~= nil then
 else
 	dim = 2
 end
+
+if dim == 2 then
 gridName = "unit_square_tri.ugx"
+end
+if dim == 3 then
+gridName = "unit_cube_hex.ugx"
+--gridName = "unit_cube_tets_regular.ugx"
+end
+
+
 numPreRefs = 0
 if ugargv[3] ~= nil then
 	numRefs = ugargv[3]+0
@@ -44,36 +53,69 @@ print("\nSYSTEMLAPLACE, nSystems = "..nSystems..", Dim = "..dim..", numRefs = ".
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
-
-function ourDiffTensor(x, y, t)
-	return	1, 0, 
-			0, 1
+function ourDiffTensor2d(x, y, t)
+return	1, 0, 
+0, 1
 end
 
-function ourVelocityField(x, y, t)
-	return	0, 0
+function ourVelocityField2d(x, y, t)
+return	0, 0
 end
 
-function ourReaction(x, y, t)
-	return	0
+function ourReaction2d(x, y, t)
+return	0
 end
 
-function ourRhs(x, y, t)
-	local s = 2*math.pi
-	return	s*s*(math.sin(s*x) + math.sin(s*y))
-	--return -2*y
+function ourRhs2d(x, y, t)
+local s = 2*math.pi
+return	s*s*(math.sin(s*x) + math.sin(s*y))
+--return -2*y
+--return 0;
 end
 
-function ourNeumannBnd(x, y, t)
-	--local s = 2*math.pi
-	--return -s*math.cos(s*x)
-	return true, -2*x*y
+function ourNeumannBnd2d(x, y, t)
+--local s = 2*math.pi
+--return -s*math.cos(s*x)
+return true, -2*x*y
 end
 
-function ourDirichletBnd(x, y, t)
-	local s = 2*math.pi
-	return true, math.sin(s*x) + math.sin(s*y)
-	--return true, x*x*y
+function ourDirichletBnd2d(x, y, t)
+local s = 2*math.pi
+return true, math.sin(s*x) + math.sin(s*y)
+--return true, x*x*y
+--return true, 2.5
+end
+
+function ourDiffTensor3d(x, y, z, t)
+return	1, 0, 0,
+0, 1, 0,
+0, 0, 1
+end
+
+function ourVelocityField3d(x, y, z, t)
+return	0, 0, 0
+end
+
+function ourReaction3d(x, y, z, t)
+return	0
+end
+
+function ourRhs3d(x, y, z, t)
+--local s = 2*math.pi
+--return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
+return 0;
+end
+
+function ourNeumannBnd3d(x, y, t)
+--local s = 2*math.pi
+--return -s*math.cos(s*x)
+return true, -2*x*y*z
+end
+
+function ourDirichletBnd3d(x, y, z, t)
+--local s = 2*math.pi
+--return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
+return true, x
 end
 
 --------------------------------
@@ -114,14 +156,14 @@ for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if DistributeDomain2d(dom) == false then
+if utilDistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-	GlobalRefineParallelDomain2d(dom)
+utilGlobalRefineParallelDomain(dom)
 end
 
 -- write grid to file for test purpose
@@ -133,7 +175,7 @@ pattern = P1ConformFunctionPattern()
 pattern:set_subset_handler(sh)
 
 for i=1, nSystems do
-AddP1Function(pattern, "c"..i, 2)
+AddP1Function(pattern, "c"..i, dim)
 end
 pattern:lock()
 
@@ -146,29 +188,54 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -------------------------------------------
 print ("Setting up Assembling")
 
+
 -- Diffusion Tensor setup
-	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor", dim)
-	--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+if dim == 2 then
+	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
+elseif dim == 3 then
+	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor3d", dim)
+end
+diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-	velocityField = utilCreateLuaUserVector("ourVelocityField", dim)
-	--velocityField = utilCreateConstUserVector(0.0, dim)
+if dim == 2 then
+	velocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
+elseif dim == 3 then
+	velocityField = utilCreateLuaUserVector("ourVelocityField3d", dim)
+end 
+velocityField = utilCreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-	reaction = utilCreateLuaUserNumber("ourReaction", dim)
-	--reaction = utilCreateConstUserNumber(0.0, dim)
+if dim == 2 then
+	reaction = utilCreateLuaUserNumber("ourReaction2d", dim)
+elseif dim == 3 then
+	reaction = utilCreateLuaUserNumber("ourReaction3d", dim)
+end
+reaction = utilCreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-	rhs = utilCreateLuaUserNumber("ourRhs", dim)
-	--rhs = utilCreateConstUserNumber(0.0, dim)
+if dim == 2 then
+	rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
+elseif dim == 3 then
+	rhs = utilCreateLuaUserNumber("ourRhs3d", dim)
+end
+rhs = utilCreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-	neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd", dim)
-	--neumann = utilCreateConstUserNumber(0.0, dim)
+if dim == 2 then
+	neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
+elseif dim == 3 then
+	neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd3d", dim)
+end
+--neumann = utilCreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd", dim)
-	--dirichlet = utilCreateConstBoundaryNumber(0.0, dim)
+if dim == 2 then
+	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
+elseif dim == 3 then
+	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd3d", dim)
+end
+dirichlet = utilCreateConstBoundaryNumber(0.0, dim)
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
