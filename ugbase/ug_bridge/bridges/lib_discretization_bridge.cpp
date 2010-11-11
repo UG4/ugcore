@@ -656,8 +656,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		stringstream ss; ss << "GridFunction" << dim << "d";
 		reg.add_class_<function_type, vector_type>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
-			.add_method("set|hide=true", (bool (function_type::*)(number))&function_type::set,
-						"Success", "Number")
 			.add_method("assign|hide=true", (bool (function_type::*)(const vector_type&))&function_type::assign,
 						"Success", "Vector")
 			.add_method("assign_dof_distribution|hide=true", &function_type::assign_dof_distribution)
@@ -1165,7 +1163,7 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;

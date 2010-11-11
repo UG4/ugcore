@@ -34,6 +34,10 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	{
 		reg.add_class_<vector_type>("Vector", grp.c_str())
 			.add_constructor()
+			.add_method("set|hide=true", (bool (vector_type::*)(number))&vector_type::set,
+									"Success", "Number")
+			.add_method("set_random|hide=true", (bool (vector_type::*)(number))&vector_type::set_random,
+									"Success", "Number")
 			.add_method("print|hide=true", &vector_type::p);
 
 		//reg.add_function("VecScaleAssign", , "",
@@ -147,8 +151,29 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	*/
 
 	}
+/*
+	{
+#ifdef LAPACK_AVAILABLE
+		string subgroup = grp; // + string("/Preconditioner");
 
-
+		reg.add_class_<	PINVIT<algebra_type> >("EigenSolver", subgroup.c_str())
+			.add_constructor()
+			.add_method("add_vector", &PINVIT<algebra_type>::add_vector,
+						"", "vector")
+			.add_method("set_preconditioner|interactive=false", &PINVIT<algebra_type>::set_preconditioner,
+						"", "Preconditioner||invokeOnChange=true")
+			.add_method("set_linear_operator_A|interactive=false", &PINVIT<algebra_type>::set_linear_operator_A,
+						"", "LinearOperatorA|invokeOnChange=true")
+			.add_method("set_linear_operator_B|interactive=false", &PINVIT<algebra_type>::set_linear_operator_B,
+						"", "LinearOperatorB|invokeOnChange=true")
+			.add_method("set_max_iterations|interactive=false", &PINVIT<algebra_type>::set_max_iterations,
+							"", "precision|invokeOnChange=true")
+			.add_method("set_precision|interactive=false", &PINVIT<algebra_type>::set_precision,
+							"", "precision|invokeOnChange=true")
+			.add_method("apply", &PINVIT<algebra_type>::apply);
+#endif
+	}
+*/
 	// todo: Solvers should be independent of type and placed in general section
 	{
 	//	get group string
@@ -248,7 +273,7 @@ bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const c
 		case eCPUBlockAlgebra2x2: 		RegisterAlgebraType<CPUBlockAlgebra<2> >(reg, grp.c_str()); break;
 		case eCPUBlockAlgebra3x3: 		RegisterAlgebraType<CPUBlockAlgebra<3> >(reg, grp.c_str()); break;
 		case eCPUBlockAlgebra4x4: 		RegisterAlgebraType<CPUBlockAlgebra<4> >(reg, grp.c_str()); break;
-		case eCPUVariableBlockAlgebra: 	RegisterAlgebraType<CPUVariableBlockAlgebra>(reg, grp.c_str()); break;
+//		case eCPUVariableBlockAlgebra: 	RegisterAlgebraType<CPUVariableBlockAlgebra>(reg, grp.c_str()); break;
 		default: UG_ASSERT(0, "In RegisterDynamicLibAlgebraInterface: " << algebra_type << " is unsupported algebra type");
 					UG_LOG("In RegisterDynamicLibAlgebraInterface: " << algebra_type << " is unsupported algebra type");
 					return false;
