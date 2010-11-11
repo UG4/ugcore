@@ -399,9 +399,10 @@ void ElderStartPressure(number& res, const MathVector<2>& x, number time)
 
 template <typename TGridFunction>
 bool
-SolveElderTimeProblem(	typename TGridFunction::approximation_space_type& approxSpace,
-						ITimeDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& time_disc,
-						size_t timesteps, size_t startsteps, number dt, const char* name)
+SolveElderTimeProblem2d(	typename TGridFunction::approximation_space_type& approxSpace,
+							ITimeDiscretization<typename TGridFunction::dof_distribution_type,
+							typename TGridFunction::algebra_type>& time_disc,
+							size_t timesteps, size_t startsteps, number dt, const char* name)
 {
 	typedef typename TGridFunction::algebra_type algebra_type;
 	typedef typename algebra_type::vector_type vector_type;
@@ -855,13 +856,6 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	SolveTimeProblem
 		{
-			stringstream ss; ss << "SolveElderTimeProblem" << dim << "d";
-			reg.add_function(ss.str().c_str(), &SolveElderTimeProblem<function_type>, grp.c_str(),
-							"Success", "Approx Space#Discretization#Timesteps#StartTimestep#Timestep Size#FileName|save-dialog");
-		}
-
-	//	SolveTimeProblem
-		{
 			stringstream ss; ss << "SolveTimeProblem" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SolveTimeProblem<function_type>, grp.c_str(),
 							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Timestep Size#FileName");
@@ -1047,6 +1041,25 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 	//	Domain dependend part
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
+			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+
+#ifdef UG_PARALLEL
+		typedef ParallelGridFunction<GridFunction<domain_type, dof_distribution_type, algebra_type> > function_type;
+#else
+		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
+#endif
+		//	SolveElderTimeProblem
+			{
+				stringstream ss; ss << "SolveElderTimeProblem2d";
+				reg.add_function(ss.str().c_str(), &SolveElderTimeProblem2d<function_type>, grp.c_str(),
+								"Success", "Approx Space#Discretization#Timesteps#StartTimestep#Timestep Size#FileName|save-dialog");
+			}
+		}
+
+	//	Domain dependend part
+		{
+			typedef Domain<3, MultiGrid, MGSubsetHandler> domain_type;
 			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
 			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
 		}
