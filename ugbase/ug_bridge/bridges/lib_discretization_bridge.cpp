@@ -681,6 +681,12 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("assign_approximation_space|hide=true", &function_type::assign_approximation_space)
 			.add_method("set_space|interactive=false", &function_type::assign_surface_approximation_space,
 						"", "Approximation Space||invokeOnChange=true");
+#ifdef UG_PARALLEL
+		reg.get_class_<function_type>()
+			.add_method("change_storage_type_by_string|hide=true", &function_type::change_storage_type_by_string)
+			.add_method("set_storage_type_by_string|hide=true", &function_type::set_storage_type_by_string);
+
+#endif
 	}
 
 //	P1ConformApproximationSpace
