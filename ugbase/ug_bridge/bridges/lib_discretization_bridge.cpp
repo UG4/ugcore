@@ -253,6 +253,7 @@ bool SaveMatrixForConnectionViewer(	TGridFunction& u,
 													typename TGridFunction::algebra_type::matrix_type>& A,
 									const char* filename)
 {
+//	check that extension '.mat' is chosen
 	const char * p = strstr(filename, ".mat");
 	if(p == NULL)
 	{
@@ -260,12 +261,28 @@ bool SaveMatrixForConnectionViewer(	TGridFunction& u,
 		return false;
 	}
 
+	std::string name(filename);
+
+#ifdef UG_PARALLEL
+//	search for ending
+	size_t found = name.find_first_of(".");
+
+//	remove endings
+	name.resize(found);
+
+//	add new ending, containing process number
+	int rank = pcl::GetProcRank();
+	char ext[20];
+	sprintf(ext, "_p%04d.mat", rank);
+	name.append(ext);
+#endif
+
 	static const int dim = TGridFunction::domain_type::dim;
 
 	vector<MathVector<dim> > positions;
 	ExtractPositions(u, positions);
 
-	WriteMatrixToConnectionViewer(filename, A.get_matrix(), &positions[0], dim);
+	WriteMatrixToConnectionViewer(name.c_str(), A.get_matrix(), &positions[0], dim);
 	return true;
 }
 
@@ -282,10 +299,24 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 
 	static const int dim = TGridFunction::domain_type::dim;
 
+	std::string name(filename);
+
+#ifdef UG_PARALLEL
+	size_t found = name.find_first_of(".");
+	name.resize(found);
+
+	int rank = pcl::GetProcRank();
+	char ext[20];
+	sprintf(ext, "_p%04d.mat", rank);
+
+	name.append(ext);
+#endif
+
+
 	vector<MathVector<dim> > positions;
 	ExtractPositions(b, positions);
 
-	WriteVectorToConnectionViewer(filename, b.get_vector(), &positions[0], dim);
+	WriteVectorToConnectionViewer(name.c_str(), b.get_vector(), &positions[0], dim);
 	return true;
 }
 
