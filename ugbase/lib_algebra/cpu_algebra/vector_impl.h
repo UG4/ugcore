@@ -12,6 +12,7 @@
 
 #include <fstream>
 #include "algebra_misc.h"
+#include "common/math/ugmath.h" // for urand
 
 #define prefetchReadWrite(a)
 
@@ -60,6 +61,14 @@ inline double Vector<value_type>::operator = (double d)
 	return d;
 }
 
+template<typename value_type>
+inline bool Vector<value_type>::set_random(double from, double to)
+{
+	for(size_t i=0; i<size(); i++)
+		for(size_t j=0; j<GetSize(values[i]); j++)
+			BlockRef(values[i], j) = urand(from, to);
+	return true;
+}
 
 
 // für Function Expression, sh. TemplateExpression.h

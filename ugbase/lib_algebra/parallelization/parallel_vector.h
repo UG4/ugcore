@@ -107,6 +107,9 @@ class ParallelVector : public TVector
 		// set all dofs to value 'w' (overwrites TVector::set(number w))
 		bool set(number w, ParallelStorageType type = PST_CONSISTENT);
 
+		// set all dofs to a random number (overwrites TVector::set_random(number from, number to))
+		bool set_random(number from, number to, ParallelStorageType type=PST_CONSISTENT);
+
 		/////////////////////////
 		// forward hidden (due to overloading in base class) functions of sequential vector
 		/////////////////////////

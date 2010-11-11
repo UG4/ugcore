@@ -86,7 +86,7 @@ public:
 	double operator = (double d);
 	//! assign double d to whole Vector
 	bool set(double d) { operator = (d); return true; }
-
+	bool set_random(double from, double to);
 
 	void add(const value_type &d, size_t i);
 	void set(const value_type &d, size_t i);

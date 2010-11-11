@@ -105,6 +105,22 @@ set(number w, ParallelStorageType type)
 }
 
 template <typename TVector>
+bool
+ParallelVector<TVector>::
+set_random(number from, number to, ParallelStorageType type)
+{
+	// set all local vector to value. Therefore parallel vector is consistent
+	if(!TVector::set_random(from, to)) return false;
+	set_storage_type(PST_ADDITIVE);
+
+	// consistent required
+	if(type & PST_CONSISTENT) return true;
+
+	// additive or additive unique
+	return change_storage_type(type);
+}
+
+template <typename TVector>
 inline
 number
 ParallelVector<TVector>::

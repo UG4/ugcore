@@ -46,10 +46,10 @@
 #include "preconditioner/jacobi.h"
 #include "preconditioner/gauss_seidel.h"
 
-#ifdef LAPACK_AVAILABLE
-#ifdef BLAS_AVAILABLE
 //#include "preconditioner/amg/amg.h"
-#endif
+
+#ifdef LAPACK_AVAILABLE
+//#include "eigensolver/pinvit.h"
 #endif
 
 #endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR__ */

@@ -72,25 +72,130 @@ void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, p
 	file << CONNECTION_VIEWER_VERSION << endl;
 	file << dimensions << endl;
 
-	int rows = A.num_rows();
+	size_t rows = A.num_rows();
 	// write positions
 	file << rows << endl;
 	if(dimensions == 2)
-		for(int i=0; i < rows; i++)
+		for(size_t i=0; i < rows; i++)
 			file << positions[i][0] << " " << positions[i][1] << endl;
 	else
-		for(int i=0; i < rows; i++)
+		for(size_t i=0; i < rows; i++)
 		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
 
 	file << 1 << endl; // show all cons
 	// write connections
-	for(int i=0; i < rows; i++)
+	for(size_t i=0; i < rows; i++)
 	{
 		for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			if(conn.value() != 0.0)
 				file << i << " " << conn.index() << " " << conn.value() <<		endl;
 	}
 }
+
+// WriteMatrixToConnectionViewer
+//--------------------------------------------------
+/**
+ * this version can handle different from and to spaces
+ */
+template <typename Matrix_type, typename postype>
+bool WriteMatrixToConnectionViewer(	const char *filename,
+									const Matrix_type &A,
+									std::vector<postype> &positionsFrom, std::vector<postype> &positionsTo, size_t dimensions)
+{
+	const char * p = strstr(filename, ".mat");
+	if(p == NULL)
+	{
+		UG_LOG("Currently only '.mat' format supported for domains.\n");
+		return false;
+	}
+
+	if(positionsFrom.size() != A.num_cols())
+	{
+		UG_LOG("uFrom.size() != A.num_cols() !\n");
+		return false;
+	}
+	if(positionsTo.size() != A.num_rows())
+	{
+		UG_LOG("uTo.size() != A.num_rows() !\n");
+		return false;
+	}
+
+	vector<postype> positions;
+	vector<size_t> mapFrom, mapTo;
+	mapFrom.resize(positionsFrom.size());
+	mapTo.resize(positionsTo.size());
+
+	if(positionsFrom.size() > positionsTo.size())
+	{
+		positions.resize(positionsFrom.size());
+		for(size_t i=0; i<positionsFrom.size(); i++)
+		{
+			positions[i] = positionsFrom[i];
+			mapFrom[i] = i;
+		}
+
+
+		for(size_t i=0; i<positionsTo.size(); i++)
+		{
+			size_t j;
+			for(j=0; j<positionsFrom.size(); j++)
+			{
+				if(positionsTo[i] == positionsFrom[j])
+					break;
+			}
+			mapTo[i] = j;
+			if(j == positionsFrom.size())
+				positions.push_back(positionsTo[i]);
+		}
+	}
+	else
+	{
+		positions.resize(positionsTo.size());
+		for(size_t i=0; i<positionsTo.size(); i++)
+		{
+			positions[i] = positionsTo[i];
+			mapTo[i] = i;
+		}
+
+		for(size_t  i=0; i<positionsFrom.size(); i++)
+		{
+			size_t j;
+			for(j=0; j<positionsTo.size(); j++)
+			{
+				if(positionsFrom[i] == positionsTo[j])
+					break;
+			}
+			mapFrom[i] = j;
+			if(j == positionsTo.size())
+				positions.push_back(positionsFrom[i]);
+		}
+	}
+
+
+	fstream file(filename, ios::out);
+	file << CONNECTION_VIEWER_VERSION << endl;
+	file << dimensions << endl;
+
+	// write positions
+	file << positions.size() << endl;
+	if(dimensions == 2)
+		for(size_t i=0; i < positions.size(); i++)
+			file << positions[i][0] << " " << positions[i][1] << endl;
+	else
+		for(size_t i=0; i < positions.size(); i++)
+		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
+
+	file << 1 << endl; // show all cons
+	// write connections
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+			if(conn.value() != 0.0)
+				file << mapTo[i] << " " << mapFrom[conn.index()] << " " << conn.value() <<		endl;
+	}
+	return true;
+}
+
 
 // WriteMatrixToConnectionViewer
 //--------------------------------------------------
@@ -107,23 +212,24 @@ void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, p
 	file << CONNECTION_VIEWER_VERSION << endl;
 	file << dimensions << endl;
 
-	int rows = b.size();
+	size_t rows = b.size();
 	// write positions
 	file << rows << endl;
 	if(dimensions == 2)
-		for(int i=0; i < rows; i++)
+		for(size_t i=0; i < rows; i++)
 			file << positions[i][0] << " " << positions[i][1] << endl;
 	else
-		for(int i=0; i < rows; i++)
+		for(size_t i=0; i < rows; i++)
 		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
 
 	file << 1 << endl; // show all cons
 	// write connections
-	for(int i=0; i < rows; i++)
+	for(size_t i=0; i < rows; i++)
 	{
 		file << i << " " << i << " " << b[i] <<		endl;
 	}
 }
+
 
 }
 #endif // __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__
