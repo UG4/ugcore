@@ -15,7 +15,8 @@ bool RegisterInfoCommands(bridge::Registry &reg,
 
 
 const std::vector<const char*> *GetClassNames(lua_State *L, int index);
-void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst, const char *classname=NULL, const char *highlightclassname=NULL);
+void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst=false, const char *classname=NULL, const char *highlightclassname=NULL);
+void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc);
 }
 }
 						  

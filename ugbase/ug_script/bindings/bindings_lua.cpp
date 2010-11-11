@@ -26,6 +26,7 @@ struct UserDataWrapper
 	void*	obj;
 };
 
+
 ///	creates a new UserData_IObject and associates it with ptr in luas registry
 /**
  * Creates a new userdata in lua, which encapsulates the given pointer.
@@ -335,8 +336,8 @@ static int LuaProxyFunction(lua_State* L)
 //	check whether the parameter was correct
 	if(badParam > 0){
 		UG_LOG("ERROR occured during call to ");
-		PrintFunctionInfo(*func, false);
-		UG_LOG(endl);
+		PrintFunctionInfo(*func);
+		UG_LOG(".\n");
 		return 0;
 	}
 
@@ -344,15 +345,21 @@ static int LuaProxyFunction(lua_State* L)
 		func->execute(paramsIn, paramsOut);
 	}
 	catch(UGError err){
-		UG_LOG("UGError with code " << err.get_code() << ": ");
+		UG_LOG("UGError in ")
+		PrintFunctionInfo(*func);
+		UG_LOG(" with code " << err.get_code() << ": ");
 		UG_LOG(err.get_msg() << endl);
-		if(err.terminate()){
+		if(err.terminate())
+		{
 			UG_LOG("terminating..." << endl);
 			exit(err.get_code());
 		}
 	}
-	catch(...){
-		UG_LOG("unknown error occured. continuing execution...\n");
+	catch(...)
+	{
+		UG_LOG("unknown error occured in call to ")
+		PrintFunctionInfo(*func);
+		UG_LOG(". continuing execution...\n");
 	}
 
 	return ParamsToLuaStack(paramsOut, L);
@@ -371,8 +378,11 @@ static int LuaProxyMethod(lua_State* L)
 {
 	const ExportedMethod* m = (const ExportedMethod*)lua_touserdata(L, lua_upvalueindex(1));
 
-	if(!lua_isuserdata(L, 1)){
-		UG_LOG("ERROR in call to LuaProxyMethod: No object specified.\n");
+	if(!lua_isuserdata(L, 1))
+	{
+		UG_LOG("ERROR in call to LuaProxyMethod: No object specified in call to ");
+		PrintLuaClassMethodInfo(L, 1, *m);
+		UG_LOG(".\n");
 		return 0;
 	}
 	
@@ -386,30 +396,24 @@ static int LuaProxyMethod(lua_State* L)
 //	check whether the parameter was correct
 	if(badParam > 0)
 	{
-		string classname = "(unknown class)";
-		const std::vector<const char*> *names = GetClassNames(L, 1);
-		if(names != NULL)
-			classname = names->at(0);
 		UG_LOG("ERROR occured during call to ");
-		PrintFunctionInfo(*m, false, classname.c_str());
-		UG_LOG(endl);
+		PrintLuaClassMethodInfo(L, 1, *m);
+		UG_LOG(".\n");
 		return 0;
 	}
 
 	try{
 		m->execute(self->obj, paramsIn, paramsOut);
 	}
-	catch(UGError err){
-		UG_LOG("UGError with code " << err.get_code() << ": ");
-		UG_LOG(err.get_msg() << endl);
-		if(err.terminate()){
-			UG_LOG("terminating..." << endl);
-			exit(err.get_code());
-		}
+	catch(UGError err)
+	{}
+	catch(...)
+	{
+		UG_LOG("unknown error occured in call to ");
+		PrintLuaClassMethodInfo(L, 1, *m);
+		UG_LOG(". continuing execution...\n");
 	}
-	catch(...){
-		UG_LOG("unknown error occured. continuing execution...\n");
-	}
+
 
 	return ParamsToLuaStack(paramsOut, L);
 }

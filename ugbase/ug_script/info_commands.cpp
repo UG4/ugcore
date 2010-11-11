@@ -21,6 +21,8 @@ extern "C"
 #include "ug_script/externals/lua/lstate.h"
 }
 
+#include "info_commands.h"
+
 
 
 namespace ug
@@ -116,7 +118,7 @@ bool PrintParametersOut(const bridge::ExportedFunctionBase &thefunc)
  * Prints parameters of the function thefunc.
  * If highlightclassname != NULL, it highlights parameters which implement the highlightclassname class.
  */
-void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst, const char *classname=NULL, const char *highlightclassname=NULL)
+void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst, const char *classname, const char *highlightclassname)
 {
 	PrintParametersOut(thefunc);
 	if(classname)
@@ -127,6 +129,15 @@ void PrintFunctionInfo(const bridge::ExportedFunctionBase &thefunc, bool isConst
 	PrintParametersIn(thefunc, highlightclassname);
 
 	if(isConst) { UG_LOG(" const"); }
+}
+
+void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thefunc)
+{
+	const std::vector<const char*> *names = GetClassNames(L, index);
+	const char *classname = "(unknown class)";
+	if(names != NULL)
+		classname = names->at(0);
+	PrintFunctionInfo(thefunc, false, classname);
 }
 
 /**
