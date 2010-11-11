@@ -138,6 +138,36 @@ class ParallelGridFunction : public TGridFunction
 		// Storage type
 		////////////////////////////
 
+		bool change_storage_type_by_string(std::string type)
+		{
+			if(type == "consistent")
+				return change_storage_type(PST_CONSISTENT);
+			else if(type == "additive")
+				return change_storage_type(PST_ADDITIVE);
+			else if(type == "unique")
+				return change_storage_type(PST_UNIQUE);
+			else
+			{
+				UG_LOG("Could not change storage type by name.\n");
+			}
+			return false;
+		}
+
+		void set_storage_type_by_string(std::string type)
+		{
+			if(type == "consistent")
+				{set_storage_type(PST_CONSISTENT); return;}
+			else if(type == "additive")
+				{set_storage_type(PST_ADDITIVE); return;}
+			else if(type == "unique")
+				{set_storage_type(PST_UNIQUE); return;}
+			else
+			{
+				UG_LOG("Could not set storage type by name.\n");
+			}
+			return;
+		}
+
 		// changes to the requested storage type if possible
 		bool change_storage_type(ParallelStorageType type)
 			{return TGridFunction::get_vector().change_storage_type(type);}
