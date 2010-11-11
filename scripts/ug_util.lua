@@ -58,6 +58,17 @@ function utilDistributeDomain(domain)
 	return false
 end
 
+function utilGlobalRefineParallelDomain(domain)
+	local dim = domain:get_dim()
+	if dim == 1 then
+		return GlobalRefineParallelDomain1d(domain)
+	elseif dim == 2 then
+		return GlobalRefineParallelDomain2d(domain)
+	elseif dim == 3 then
+		return GlobalRefineParallelDomain3d(domain)
+	end
+	return false
+end
 
 -- Creates anApproximationSpace of the dimension of the given domain.
 -- The associated P1ConformFunctionPattern is created and assigned on the fly.
