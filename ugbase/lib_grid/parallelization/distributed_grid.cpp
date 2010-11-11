@@ -314,6 +314,9 @@ end_ordered_element_insertion()
 		perform_ordered_element_insertion(m_vrtMap);
 		perform_ordered_element_insertion(m_edgeMap);
 
+	//	testing
+		perform_ordered_element_insertion(m_faceMap);
+
 		clear_scheduled_elements();
 	}
 
@@ -402,6 +405,14 @@ handle_created_element(TElem* pElem,
 				UG_DLOG(LIB_GRID, 3, "scheduling element with edge-parent to interfaces ");
 				schedule_element_for_insertion(m_edgeMap, pElem,
 												(EdgeBase*)pParent);
+				UG_DLOG(LIB_GRID, 3, endl);
+				break;
+
+			// testing
+			case FACE:
+				UG_DLOG(LIB_GRID, 3, "scheduling element with face-parent to interfaces ");
+				schedule_element_for_insertion(m_faceMap, pElem,
+												(Face*)pParent);
 				UG_DLOG(LIB_GRID, 3, endl);
 				break;
 		}
