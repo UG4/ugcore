@@ -28,12 +28,10 @@ numPreRefs = 0
 numRefs = 1
 
 -- create Instance of a Domain
-print("Create Domain.")
 dom = utilCreateDomain(dim)
 sh = dom:get_subset_handler()
 
 -- load domain
-print("Load Domain from File.")
 if utilLoadDomain(dom, gridName) == false then
    print("Loading Domain failed.")
    exit()
@@ -57,41 +55,46 @@ if utilDistributeDomain(dom) == false then
 	exit()
 end
 
-print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
 	utilGlobalRefineParallelDomain(dom)
 end
 
 -- create function pattern
-print("Create Function Pattern")
 pattern = P1ConformFunctionPattern()
 pattern:set_subset_handler(sh)
 AddP1Function(pattern, "c", dim)
 pattern:lock()
 
 -- create Approximation Space
-print("Create ApproximationSpace")
 approxSpace = utilCreateApproximationSpace(dom, pattern)
 
 -- get grid function
 u = approxSpace:create_surface_function("u", true)
-b = approxSpace:create_surface_function("b", true)
 
+--------------------------
 -- some parallel testing
+--------------------------
+
+-- set to consistent and u == 1.0
 u:set(1.0)
 WriteGridFunctionToVTK(u, "Sol_Constistent_1");
 SaveVectorForConnectionViewer(u, "Sol_Constistent_1.mat")
 
+-- change to unique and write (should be zero in slaves now)
 u:change_storage_type_by_string("unique");
 WriteGridFunctionToVTK(u, "Sol_Unique_1");
 SaveVectorForConnectionViewer(u, "Sol_Unique_1.mat")
 
+-- reset vector to consistent and u == 2.0
 u:set(2.0)
 WriteGridFunctionToVTK(u, "Sol_Constistent_2");
 SaveVectorForConnectionViewer(u, "Sol_Constistent_2.mat")
 
+-- manually set type to additive __without__ changing values in vector
+-- this is a somehow forbidden action for real simulations but good for testing
 u:set_storage_type_by_string("additive");
-u:change_storage_type_by_string("unique");
 
+-- change type to unique (should be 2 * (num_slave_copies+1) now in interface nodes)
+u:change_storage_type_by_string("unique");
 WriteGridFunctionToVTK(u, "Sol_Unique_2");
 SaveVectorForConnectionViewer(u, "Sol_Unique_2.mat")
