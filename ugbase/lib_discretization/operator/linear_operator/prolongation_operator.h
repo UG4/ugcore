@@ -100,6 +100,10 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 
 					BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 								fineMultInd[0][1], coarseMultInd[0][1]) = 1.0;
+
+//					UG_LOG("Interpol NODE fct " << fct << ": ("<< fineMultInd[0][0]<< "," << fineMultInd[0][1] << ") <- ("
+//										<< coarseMultInd[0][0] << "," << coarseMultInd[0][1] << "): 1.0\n");
+
 					continue;
 				}
 
@@ -108,14 +112,17 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 				{
 					for(int i = 0; i < 2; ++i)
 					{
-						vert = edge->vertex(i);
+						VertexBase* v = edge->vertex(i);
 
 						// get global indices
-						if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
+						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.5;
+
+//						UG_LOG("Interpol EDGE fct " << fct << ": ("<< fineMultInd[0][0]<< "," << fineMultInd[0][1] << ") <- ("
+//											<< coarseMultInd[0][0] << "," << coarseMultInd[0][1] << "): 0.5\n");
 					}
 					continue;
 				}
@@ -125,14 +132,18 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 				{
 					for(int i = 0; i < 4; ++i)
 					{
-						vert = quad->vertex(i);
+						VertexBase* v = quad->vertex(i);
 
 						// get global indices
-						if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
+						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.25;
+
+//						UG_LOG("Interpol QUAD fct " << fct << ": ("<< fineMultInd[0][0]<< "," << fineMultInd[0][1] << ") <- ("
+//											<< coarseMultInd[0][0] << "," << coarseMultInd[0][1] << "): 0.25\n");
+
 					}
 					continue;
 				}
@@ -142,10 +153,10 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 				{
 					for(int i = 0; i < 8; ++i)
 					{
-						vert = hexaeder->vertex(i);
+						VertexBase* v = hexaeder->vertex(i);
 
 						// get global indices
-						if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
+						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
