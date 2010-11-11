@@ -25,12 +25,6 @@ namespace ug
 {
 
 
-/**
- *  init app and data paths
- *  @return wether paths initialized correctly?
- */
-static bool initPaths(const char* argv0);
-
 ////////////////////////////////////////////////////////////////////////
 ///	initializes ug
 /**	This method should be called at the beginning of main(...).

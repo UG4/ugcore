@@ -23,7 +23,7 @@ struct p PATHS;
  *  init app and data paths
  *  @return wether paths initialized correctly?
  */
-static bool initPaths(const char* argv0) {
+static bool InitPaths(const char* argv0) {
 	//TODO: on some systems argv0 does __not__ contain the absolute path to the process!
 	//some ugly macros are needed.
 
@@ -77,7 +77,7 @@ int UGInit(int argc, char* argv[], int parallelOutputProcRank) {
 		bridge::RegisterStandardInterfaces(bridge::GetUGRegistry());
 	}
 
-	bool pathsCorrect = initPaths(argv[0]);
+	bool pathsCorrect = InitPaths(argv[0]);
 	if (!pathsCorrect)
 		return -1;
 
@@ -90,11 +90,13 @@ const std::string& UGGetApplicationPath() {
 }
 
 /// returns the ug script path
-const std::string& UGGetScriptPath() {
-	if (PATHS.SCRIPTS.length() == 0) {
-		LOG("arschlooooooooooooooch");
+const std::string& UGGetScriptPath()
+{
+	if (PATHS.SCRIPTS.length() == 0)
+	{
+		LOG("PATHS.SCRIPTS.length() == 0?");
 	}
-	LOG("returning script path with value: " << PATHS.SCRIPTS << endl);
+	//LOG("returning script path with value: " << PATHS.SCRIPTS << endl);
 	return PATHS.SCRIPTS;
 }
 
