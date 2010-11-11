@@ -14,7 +14,7 @@ dofile("../scripts/ug_util.lua")
 InitAlgebra(CPUAlgebraChooser());
 
 -- constants
-dim = 2
+dim = 3
 
 if dim == 2 then
 	gridName = "unit_square_tri.ugx"
@@ -25,7 +25,7 @@ if dim == 3 then
 end
 
 numPreRefs = 0
-numRefs = 3
+numRefs = 1
 
 --------------------------------
 -- User Data Functions (begin)
@@ -78,10 +78,9 @@ numRefs = 3
 	end
 	
 	function ourRhs3d(x, y, z, t)
-		local s = 2*math.pi
-		return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
-		--return -2*y
-		--return 0;
+		--local s = 2*math.pi
+		--return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
+		return 0;
 	end
 	
 	function ourNeumannBnd3d(x, y, t)
@@ -91,10 +90,9 @@ numRefs = 3
 	end
 	
 	function ourDirichletBnd3d(x, y, z, t)
-		local s = 2*math.pi
-		return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
-		--return true, x*x*y
-		--return true, 2.5
+		--local s = 2*math.pi
+		--return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
+		return true, x
 	end
 --------------------------------
 -- User Data Functions (end)
@@ -261,7 +259,7 @@ u = approxSpace:create_surface_function("u", true)
 b = approxSpace:create_surface_function("b", true)
 
 -- set initial value
-u:set(1.0)
+u:set(0.0)
 
 -- init Operator
 print ("Assemble Operator ... ")
@@ -344,7 +342,7 @@ linSolver:set_convergence_check(convCheck)
 
 -- create CG Solver
 cgSolver = CG()
-cgSolver:set_preconditioner(ilu)
+cgSolver:set_preconditioner(jac)
 cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
@@ -353,7 +351,7 @@ bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, linSolver)
+ApplyLinearSolver(linOp, u, b, cgSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")
