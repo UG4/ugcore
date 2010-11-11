@@ -250,6 +250,8 @@ bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const c
 		case eCPUBlockAlgebra4x4: 		RegisterAlgebraType<CPUBlockAlgebra<4> >(reg, grp.c_str()); break;
 		case eCPUVariableBlockAlgebra: 	RegisterAlgebraType<CPUVariableBlockAlgebra>(reg, grp.c_str()); break;
 		default: UG_ASSERT(0, "In RegisterDynamicLibAlgebraInterface: " << algebra_type << " is unsupported algebra type");
+					UG_LOG("In RegisterDynamicLibAlgebraInterface: " << algebra_type << " is unsupported algebra type");
+					return false;
 		}
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
