@@ -105,7 +105,7 @@ class ParallelVector : public TVector
 		inline number dotprod(const this_type& v);
 
 		// set all dofs to value 'w' (overwrites TVector::set(number w))
-		bool set(number w, ParallelStorageType type = PST_CONSISTENT);
+		bool set(number w, ParallelStorageType type);
 		bool set(number w)
 		{
 			return set(w, PST_CONSISTENT);
