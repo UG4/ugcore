@@ -129,6 +129,9 @@ bool ParseBuffer(const char* buffer)
 bool ParseFile(const char* filename)
 {
 	lua_State* L = GetDefaultLuaState();
+
+	UG_LOG("Parsing file: " << filename << std::endl);
+
 	int error = luaL_loadfile(L, filename) || lua_pcall(L, 0, 0, 0);
 
 	if(error)
