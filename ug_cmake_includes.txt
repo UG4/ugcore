@@ -173,6 +173,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	#######################
 	# ALGEBRA
  	if (NOT NO_ALGEBRA)
+		add_definitions(-DUG_ALGEBRA)
 		if(NOT HYPRE)
 			message(STATUS "INFO: Not using HYPRE. (To enable HYPRE define -DHYPRE=ON)")
 		else(NOT HYPRE)

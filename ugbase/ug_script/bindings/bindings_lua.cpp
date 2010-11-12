@@ -396,6 +396,7 @@ static int LuaProxyMethod(lua_State* L)
 //	check whether the parameter was correct
 	if(badParam > 0)
 	{
+
 		UG_LOG("ERROR occured during call to ");
 		PrintLuaClassMethodInfo(L, 1, *m);
 		UG_LOG(".\n");
