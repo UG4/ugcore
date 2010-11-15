@@ -66,6 +66,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						ILinearIterator<vector_type, vector_type> >("IPreconditioner", grp.c_str());
 
 		reg.add_class_<ILinearOperatorInverse<vector_type, vector_type> >("ILinearOperatorInverse", grp.c_str());
+		reg.add_class_<IMatrixOperatorInverse<vector_type, vector_type,matrix_type>,
+						ILinearOperatorInverse<vector_type, vector_type> >("IMatrixOperatorInverse", grp.c_str());
 
 		reg.add_class_<IOperator<vector_type, vector_type> >("IOperator", grp.c_str());
 		reg.add_class_<IOperatorInverse<vector_type, vector_type> >("IOperatorInverse", grp.c_str());
@@ -213,6 +215,20 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set_convergence_check|interactive=false", &LUSolver<algebra_type>::set_convergence_check,
 						"", "Check||invokeOnChange=true");
+
+	// 	FETISolver
+		reg.add_class_<	FETISolver<algebra_type>,
+						ILinearOperatorInverse<vector_type, vector_type> >("FETI", grp3.c_str())
+			.add_constructor()
+			.add_method("set_convergence_check|interactive=false", &FETISolver<algebra_type>::set_convergence_check,
+						"", "Check||invokeOnChange=true")
+			.add_method("set_theta|interactive=false", &FETISolver<algebra_type>::set_theta,
+						"", "Theta||invokeOnChange=true")
+			.add_method("set_neumann_solver|interactive=false", &FETISolver<algebra_type>::set_neumann_solver,
+						"", "Neumann Solver||invokeOnChange=true")
+			.add_method("set_dirichlet_solver|interactive=false", &FETISolver<algebra_type>::set_dirichlet_solver,
+						"", "Dirichlet Solver||invokeOnChange=true");
+
 	}
 }
 
