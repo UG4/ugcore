@@ -52,4 +52,7 @@
 //#include "eigensolver/pinvit.h"
 #endif
 
+// feti solver
+#include "linear_solver/feti.h"
+
 #endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR__ */
