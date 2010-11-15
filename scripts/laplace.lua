@@ -14,7 +14,7 @@ dofile("../scripts/ug_util.lua")
 InitAlgebra(CPUAlgebraChooser());
 
 -- constants
-dim = 3
+dim = 2
 
 if dim == 2 then
 	gridName = "unit_square_tri.ugx"
@@ -25,7 +25,7 @@ if dim == 3 then
 end
 
 numPreRefs = 0
-numRefs = 1
+numRefs = 4
 
 --------------------------------
 -- User Data Functions (begin)
@@ -345,10 +345,27 @@ cgSolver = CG()
 cgSolver:set_preconditioner(jac)
 cgSolver:set_convergence_check(convCheck)
 
+cg2Solver = CG()
+cg2Solver:set_preconditioner(jac)
+cg2Solver:set_convergence_check(convCheck)
+
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
 bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
+
+-- create Convergence Check
+fetiConvCheck = StandardConvergenceCheck()
+fetiConvCheck:set_maximum_steps(100)
+fetiConvCheck:set_minimum_defect(1e-11)
+fetiConvCheck:set_reduction(1e-12)
+
+-- create FETI Solver
+fetiSolver = FETI()
+fetiSolver:set_theta(0.25)
+fetiSolver:set_convergence_check(fetiConvCheck)
+fetiSolver:set_neumann_solver(cgSolver)
+fetiSolver:set_dirichlet_solver(cg2Solver)
 
 -- Apply Solver
 ApplyLinearSolver(linOp, u, b, cgSolver)
