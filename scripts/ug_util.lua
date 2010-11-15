@@ -422,3 +422,27 @@ function utilCreateConstBoundaryNumber(val, dim)
 	number:set(val)
 	return number
 end
+
+-- returns parameter in ugargv after ugargv[i] == name
+-- use with CommandLine to get parameters, like -dim 3
+-- second parameter gets returned when parameter is not found
+-- remember that GetParam(name) is GetParam(name, nil)
+function GetParam(name, return_if_unavailable)
+	for i = 1, ugargc-1 do
+		if ugargv[i] == name then
+			return ugargv[i+1]
+		end
+	end
+	return return_if_unavailable; 
+end
+
+-- returns if ugargv contains an option name
+-- use with CommandLine to get option, like -useAMG
+function HasParamOption(name)
+	for i = 1, ugargc do
+		if ugargv[i] == name then
+			return true
+		end
+	end
+	return false 
+end

@@ -13,11 +13,8 @@
 -- currently only the path in which you start your application is valid.
 dofile("../scripts/ug_util.lua")
 
-if ugargv[1] ~= nil then
-	nSystems = ugargv[1]+0
-else
-	nSystems = 1
-end
+
+nSystems = GetParam("-block", 1)+0
 
 -- choose algebra
 algebra = CPUAlgebraChooser()
@@ -26,8 +23,8 @@ InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
 -- constants
-if ugargv[2] ~= nil then
-	dim = ugargv[2]+0
+if HasParamOption("-3d") == true then
+	dim = 3
 else
 	dim = 2
 end
@@ -40,15 +37,10 @@ gridName = "unit_cube_hex.ugx"
 --gridName = "unit_cube_tets_regular.ugx"
 end
 
+numPreRefs = GetParam("-numPreRefs", 2)+0
+numRefs = GetParam("-numRefs", 3)+0
 
-numPreRefs = 0
-if ugargv[3] ~= nil then
-	numRefs = ugargv[3]+0
-else
-	numRefs = 3
-end
-
-print("\nSYSTEMLAPLACE, nSystems = "..nSystems..", Dim = "..dim..", numRefs = "..numRefs.."\n\n")
+print("\nSYSTEMLAPLACE, nSystems = "..nSystems..", Dim = "..dim..", numRefs = "..numRefs.."\n")
 
 --------------------------------
 -- User Data Functions (begin)
