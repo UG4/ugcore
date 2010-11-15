@@ -98,6 +98,40 @@ class IMatrixOperator :	public virtual ILinearOperator<X,Y>
 		virtual M& get_matrix() = 0;
 };
 
+template <typename X, typename Y, typename M>
+class PureMatrixOperator :	public virtual IMatrixOperator<X,Y,M>
+{
+	public:
+	// 	Domain space
+		typedef X domain_function_type;
+
+	// 	Range space
+		typedef Y codomain_function_type;
+
+	// 	Matrix type
+		typedef M matrix_type;
+
+	public:
+	// 	Init Operator J(u)
+		virtual bool init(const X& u) {return true;}
+
+	// 	Init Operator L
+		virtual bool init() {return true;}
+
+	// 	Apply Operator f = L*u (e.g. d = J(u)*c in iterative scheme)
+		virtual bool apply(Y& f, const X& u) {return m_Matrix.apply(f,u);}
+
+	// 	Apply Operator, i.e. f = f - L*u;
+		virtual bool apply_sub(Y& f, const X& u) {return m_Matrix.matmul_minus(f,u);}
+
+	// 	Access to matrix
+		virtual M& get_matrix() {return m_Matrix;};
+
+	protected:
+	//	memory
+		M m_Matrix;
+};
+
 ///////////////////////////////////////////////////////////
 // Prolongation Operator
 ///////////////////////////////////////////////////////////
