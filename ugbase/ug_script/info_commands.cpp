@@ -140,22 +140,31 @@ void PrintLuaClassMethodInfo(lua_State *L, int index, const ExportedMethod &thef
 	PrintFunctionInfo(thefunc, false, classname);
 }
 
+const ExportedFunction *FindFunction(const char *functionname)
+{
+	bridge::Registry &reg = GetUGRegistry();
+	for(size_t i=0; i<reg.num_functions(); i++)
+	{
+		if(strcmp(functionname, reg.get_function(i).name().c_str()) == 0)
+			return &reg.get_function(i);
+	}
+	return NULL;
+}
+
 /**
  *
  * searches for a function named functionname in the registry and prints it
  */
 bool PrintFunctionInfo(const char *functionname)
 {
-	bridge::Registry &reg = GetUGRegistry();
-	for(size_t i=0; i<reg.num_functions(); i++)
+	const ExportedFunction *f = FindFunction(functionname);
+	if(f)
 	{
-		if(strcmp(functionname, reg.get_function(i).name().c_str()) == 0)
-		{
-			PrintFunctionInfo(reg.get_function(i), false);
-			return true;
-		}
+		PrintFunctionInfo(*f, false);
+		return true;
 	}
-	return false;
+	else
+		return false;
 }
 
 /**
@@ -527,6 +536,164 @@ bool PrintClassHierarchy(const char *classname)
 
 }
 
+
+void LuaPrintTable(lua_State *L)
+{
+	UG_LOG("{ ");
+	//lua_getglobal(L, "ugargv"); // -2
+	int len=0;
+	lua_pushnil( L ); // -1
+	while( lua_next( L, (-1-len)*2) )
+	{
+		// key -2
+		// val -1
+		lua_pushvalue(L, -2);
+		len++;
+	}
+
+	for(int i=0; i<len; i++)
+	{
+		if(i>0) UG_LOG(", ");
+		const char * key = lua_tostring(L, -2*len+2*i);
+		const char * value = lua_tostring(L, -2*len+2*i+1);
+		UG_LOG(key);
+		if(value) { UG_LOG(" = \"" << value << "\"") };
+	}
+	lua_pop(L, 2*len);
+	UG_LOG(" }");
+}
+
+bool IsLonger(const std::string &a, const std::string &b)
+{
+	return b.size() > a.size();
+}
+
+void PrintFileLineFunction(const char *source, int linedefined)
+{
+	char buf[512];
+	fstream file(source+1, ios::in);
+	for(int i=0; i<linedefined; i++)
+		file.getline(buf, 512);
+	char *s = buf+strspn(buf, " \t");
+	UG_LOG(s << " \t" << source << ":" << linedefined);
+
+}
+
+void LuaList()
+{
+	lua_State* L = script::GetDefaultLuaState();
+	std::vector<std::string> classes, functions, nonregistered, names, instantiations;
+	// iterate through all of lua's global string table
+	for(int i=0; i<G(L)->strt.size; i++)
+	{
+		GCObject *obj;
+		for (obj = G(L)->strt.hash[i]; obj != NULL; obj = obj->gch.next)
+		{
+			// get the string
+			TString *ts = rawgco2ts(obj);
+			if(ts == NULL) continue;
+
+			const char *luastr = getstr(ts);
+			// check is of a global variable
+			lua_getglobal(L, luastr);
+			if(lua_isnil(L, -1))
+			{
+				lua_pop(L, 1); // remove global from stack
+				continue; // nope
+			}
+			if(strcmp(luastr, "_G") == 0)
+				;
+			else if(FindClass(luastr))
+				classes.push_back(luastr);
+			else if(FindFunction(luastr))
+				functions.push_back(luastr);
+			else if(lua_isfunction(L, -1) || lua_iscfunction(L, -1))
+				nonregistered.push_back(luastr);
+			else if(lua_isuserdata(L, -1))
+				instantiations.push_back(luastr);
+			else
+				names.push_back(luastr);
+
+			lua_pop(L, 1); // remove global from stack
+		}
+	}
+	sort(classes.begin(), classes.end());
+	sort(functions.begin(), functions.end());
+	sort(names.begin(), names.end());
+	sort(nonregistered.begin(), nonregistered.end());
+	sort(instantiations.begin(), instantiations.end());
+
+	UG_LOG(endl << "--- Classes: --------------------" << endl)
+	for(size_t i=0; i<classes.size(); i++)
+		UG_LOG(classes[i] << endl);
+
+
+	UG_LOG(endl << "--- Functions: ------------------" << endl)
+	for(size_t i=0; i<functions.size(); i++)
+	{
+		if(PrintFunctionInfo(functions[i].c_str()) == false)
+			UG_LOG(functions[i]);
+		UG_LOG(endl);
+	}
+
+	UG_LOG(endl << "--- Not registered Functions: ---" << endl)
+
+	std::vector<std::string>::const_iterator m = max_element(nonregistered.begin(), nonregistered.end(), IsLonger);
+	for(size_t i=0; i<nonregistered.size(); i++)
+	{
+		lua_Debug ar;
+		lua_getglobal(L, nonregistered[i].c_str());  /* get global 'f' */
+		lua_getinfo(L, ">S", &ar);
+		if(ar.linedefined != -1)
+		{
+			UG_LOG(left << setw((*m).size()) << nonregistered[i] << ": ");
+			PrintFileLineFunction(ar.source, ar.linedefined);
+			UG_LOG(endl);
+		}
+		else
+		{ 	UG_LOG(nonregistered[i] << endl); }
+		lua_pop(L, 1);
+	}
+
+
+	UG_LOG(endl << "--- Lua Objects: ----------------" << endl)
+	m = max_element(names.begin(), names.end(), IsLonger);
+	for(size_t i=0; i<names.size(); i++)
+	{
+		lua_getglobal(L, names[i].c_str());
+		UG_LOG(left << setw((*m).size()) << names[i]);
+		if(lua_istable(L, -1))
+		{
+			UG_LOG(" = ");
+			LuaPrintTable(L);
+		}
+		const char *p = lua_tostring(L, -1);
+		if(p) UG_LOG(": " << p)
+		lua_pop(L, 1);
+		UG_LOG(endl);
+	}
+
+	UG_LOG(endl << "--- Class Instantiations: ---------" << endl)
+	m = max_element(instantiations.begin(), instantiations.end(), IsLonger);
+	for(size_t i=0; i<instantiations.size(); i++)
+	{
+		lua_getglobal(L, instantiations[i].c_str());
+		if(!lua_isuserdata(L, -1)) continue;
+		const std::vector<const char*> *n  = GetClassNames(L, -1);
+		if(n && n->size() > 0)
+		{
+			UG_LOG(left << setw((*m).size()) << instantiations[i] << ": class ");
+			for(size_t j = 0; j < n->size(); j++)
+			{
+				if(j > 0) UG_LOG(", ");
+				UG_LOG(n->at(j));
+			}
+			UG_LOG(endl);
+		}
+		lua_pop(L, 1);
+	}
+}
+
 bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 {
 	try
@@ -534,6 +701,7 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 		stringstream grpSS; grpSS << parentGroup << "/Info";
 		std::string grp = grpSS.str();
 
+		reg.add_function("ls", &LuaList, grp.c_str());
 		reg.add_function("TypeInfo", &UGTypeInfo, grp.c_str());
 		reg.add_function("ClassUsage", &ClassUsage, grp.c_str());
 		reg.add_function("ClassInstantiations" ,&ClassInstantiations, grp.c_str());
@@ -548,6 +716,7 @@ bool RegisterInfoCommands(Registry &reg, const char* parentGroup)
 
 	return true;
 }
+
 
 } // namespace bridge
 
