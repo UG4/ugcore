@@ -8,8 +8,6 @@
 #ifndef __H__LIB_ALGEBRA__OPERATOR__OPERATOR_BASE_INTERFACE__
 #define __H__LIB_ALGEBRA__OPERATOR__OPERATOR_BASE_INTERFACE__
 
-#include "operator_base_interface.h"
-
 namespace ug{
 
 
