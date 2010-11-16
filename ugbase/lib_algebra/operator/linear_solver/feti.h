@@ -8,14 +8,14 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
 
+namespace ug{
+
 #ifdef UG_PARALLEL
 
 #include <iostream>
 #include <sstream>
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/parallelization/parallelization.h"
-
-namespace ug{
 
 
 template <typename TAlgebra>
