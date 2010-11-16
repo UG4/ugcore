@@ -225,17 +225,17 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	endif(MPI_FOUND)
 
 
-        if(UG_SHARED)
-        #   if we're building a shared library, only mpi has to be linked.
-        #   this is important for the shared library
-            if(MPI_FOUND)
-                link_libraries(${MPI_LIBS})
-            endif(MPI_FOUND)
- 			message(STATUS "INFO: Building dynamic library (To disable Dynamic Library define -DUG_SHARED=OFF)")
-        else(UG_SHARED)
-            link_libraries(${UG_LIBRARIES})
- 			message(STATUS "INFO: Not building dynamic library (To enable Dynamic Library define -DUG_SHARED=ON)")
-        endif(UG_SHARED)
+    if(UG_SHARED)
+    #   if we're building a shared library, only mpi has to be linked.
+    #   this is important for the shared library
+        if(MPI_FOUND)
+            link_libraries(${MPI_LIBS})
+        endif(MPI_FOUND)
+		message(STATUS "INFO: Building dynamic library (To disable Dynamic Library define -DUG_SHARED=OFF)")
+    else(UG_SHARED)
+        link_libraries(${UG_LIBRARIES})
+		message(STATUS "INFO: Not building dynamic library (To enable Dynamic Library define -DUG_SHARED=ON)")
+    endif(UG_SHARED)
 
 
 	#######################
