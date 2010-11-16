@@ -142,8 +142,8 @@ void VecSubtractOnLayout(	TVector* pVec,
  *
  */
 template <typename TVector>
-void VecAddOnLayoutWithoutCommunication(	TVector* pVecDest, const TVector* pVecSrc,
-											IndexLayout& Layout)
+void VecScaleAddOnLayoutWithoutCommunication(	TVector* pVecDest, const TVector* pVecSrc,
+												number scale, IndexLayout& Layout)
 {
 	typename IndexLayout::iterator iter = Layout.begin();
 	typename IndexLayout::iterator end = Layout.end();
@@ -156,7 +156,9 @@ void VecAddOnLayoutWithoutCommunication(	TVector* pVecDest, const TVector* pVecS
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				(*pVecDest)[index] += (*pVecSrc)[index];
+				typename TVector::value_type entry = (*pVecSrc)[index];
+				entry *= scale;
+				(*pVecDest)[index] += entry;
 			}
 		}
 	}

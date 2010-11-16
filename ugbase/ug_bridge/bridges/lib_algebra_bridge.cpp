@@ -217,7 +217,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "Check||invokeOnChange=true");
 
 	// 	FETISolver
-		reg.add_class_<	FETISolver<algebra_type>,
+#ifdef UG_PARALLEL
+			reg.add_class_<	FETISolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("FETI", grp3.c_str())
 			.add_constructor()
 			.add_method("set_convergence_check|interactive=false", &FETISolver<algebra_type>::set_convergence_check,
@@ -228,7 +229,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "Neumann Solver||invokeOnChange=true")
 			.add_method("set_dirichlet_solver|interactive=false", &FETISolver<algebra_type>::set_dirichlet_solver,
 						"", "Dirichlet Solver||invokeOnChange=true");
-
+#endif
 	}
 }
 

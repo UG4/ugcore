@@ -8,16 +8,15 @@
 #ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
 #define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
 
+#ifdef UG_PARALLEL
+
 #include <iostream>
 #include <sstream>
 #include "lib_algebra/operator/operator_inverse_interface.h"
-#ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
-#endif
+#include "lib_algebra/parallelization/parallelization.h"
 
 namespace ug{
 
-//#ifdef UG_PARALLEL
 
 template <typename TAlgebra>
 class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
@@ -139,14 +138,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 		//	Check parallel storage type of vectors
-			#ifdef UG_PARALLEL
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 			{
 				UG_LOG("ERROR: In 'FETISolver::apply': "
 						"Inadequate storage format of Vectors.\n");
 				return false;
 			}
-			#endif
 
 		//	prepare layouts and communicators used for inner and intra Feti-Partition communication
 			prepare_layouts_and_communicators(x);
@@ -162,6 +159,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 		//	Modified right - hand side for neumann problem
 			vector_type ModRhs; ModRhs.create(b.size()); ModRhs = b;
+			vector_type ModRhsCopy; ModRhsCopy.create(b.size()); ModRhsCopy = b;
 
 		//  Prepare convergence check
 			prepare_conv_check();
@@ -198,23 +196,24 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				set_layouts_for_inter_feti_partition_communication(x);
 				set_layouts_for_inter_feti_partition_communication(ModRhs);
 
-			//	Compute difference of solution on Gamma
-				compute_difference_on_gamma(x);
-
 			//	Set dirichlet values for Rhs, zero else
-				set_dirichlet_values_and_zero(ModRhs, x);
+				copy_dirichlet_values_and_zero(ModRhs, x);
 
+			//	Compute difference of solution on Gamma
+				compute_difference_on_gamma(ModRhs);
+
+				ModRhsCopy = ModRhs;
 			//	Compute norm of difference on Gamma
 				if(first)
 				{
 				//	Compute first defect
-					m_pConvCheck->start(ModRhs);
+					m_pConvCheck->start(ModRhsCopy);
 					first = false;
 				}
 				else
 				{
 				// 	compute new defect (in parallel)
-					m_pConvCheck->update(ModRhs);
+					m_pConvCheck->update(ModRhsCopy);
 				}
 
 			//	check if iteration ended
@@ -246,7 +245,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				eta.change_storage_type(PST_CONSISTENT);
 
 			// 	Update lambda
-				VecScaleAdd(lambda, 1.0, lambda, -1*m_theta, eta);
+				VecScaleAdd(lambda, 1.0, lambda, -m_theta, eta);
 			}
 
 		//	Post Output
@@ -299,8 +298,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	add lambda on the Gamma Boundary
 		void add_flux_to_rhs(vector_type& ModRhs, const vector_type& lambda)
 		{
-			VecAddOnLayoutWithoutCommunication(&ModRhs, &lambda, m_InterSlaveIndexLayout);
-			VecAddOnLayoutWithoutCommunication(&ModRhs, &lambda, m_InterMasterIndexLayout);
+			number scale = 1.0;
+			if(pcl::GetProcRank() != 1)
+				scale = -1.0;
+
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterSlaveIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterMasterIndexLayout);
 		}
 
 	//	subtract solution on other processes from own value on gamma
@@ -310,13 +313,18 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 								m_InterMasterIndexLayout,
 								m_InterSlaveIndexLayout,
 								&m_InterCommunicator);
+			number scale = 1.0;
+			if(pcl::GetProcRank() != 1)
+				scale = -1.0;
+
+			x *= scale;
 		}
 
-		void set_dirichlet_values_and_zero(vector_type& ModRhs, const vector_type& r)
+		void copy_dirichlet_values_and_zero(vector_type& ModRhs, const vector_type& r)
 		{
 			ModRhs.set(0.0);
-			VecAddOnLayoutWithoutCommunication(&ModRhs, &r, m_InterSlaveIndexLayout);
-			VecAddOnLayoutWithoutCommunication(&ModRhs, &r, m_InterMasterIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterSlaveIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterMasterIndexLayout);
 		}
 
 		void set_dirichlet_rows_on_gamma(matrix_type& mat)
@@ -392,7 +400,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		IConvergenceCheck* m_pConvCheck;
 };
 
-//#endif
+#endif
 
 } // end namespace ug
 
