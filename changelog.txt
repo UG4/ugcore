@@ -1,5 +1,5 @@
 @rev 26: sreiter - y09 m11 d3
--	Added pcl (Parallel Communicaltion Layer) to ugbase.
+-	Added pcl (Parallel Communication Layer) to ugbase.
 -	Added libGrid-Documentation.
 -	Added ParallelToolchain files which are required to compile pcl.
 -	Removed grid_unit_test, which was unintentionally merged into the trunk.
