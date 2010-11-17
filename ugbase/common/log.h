@@ -199,9 +199,17 @@ inline LogAssistant& GetLogAssistant();
 	#define UG_LOG(msg) {if(pcl::IsOutputProc())\
 						{ug::GetLogAssistant().logger() << msg; VRL_LOG(msg);\
 						 ug::GetLogAssistant().logger().flush();}}
+	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc " << pcl::GetProcRank() << "]: "; \
+						           ug::GetLogAssistant().logger() << msg;\
+						           VRL_LOG(msg);\
+						           ug::GetLogAssistant().logger().flush();}
 #else
 	#define UG_LOG(msg) {ug::GetLogAssistant().logger() << msg; VRL_LOG(msg);\
 						 ug::GetLogAssistant().logger().flush();}
+	#define UG_LOG_ALL_PROCS(msg) {ug::GetLogAssistant().logger() << "[Proc 0]: "; \
+						           ug::GetLogAssistant().logger() << msg;\
+						           VRL_LOG(msg);\
+						           ug::GetLogAssistant().logger().flush();}
 #endif
 
 
