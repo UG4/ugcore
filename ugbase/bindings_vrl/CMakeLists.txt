@@ -61,7 +61,7 @@ ELSE(Subversion_FOUND)
 ENDIF(Subversion_FOUND)
 
 ####
-# make compile date stapm available as C++ makro
+# make compile date stamp available as C++ makro
 ####
 
 IF(UNIX)

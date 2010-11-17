@@ -54,6 +54,10 @@ public:
 	std::string getRev() {
 		return ug::vrl::svnRevision();
 	}
+
+	int add(int a, int b) {
+		return a + b;
+	}
 };
 
 //*********************************************************
@@ -74,8 +78,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	static ug::bridge::Registry testReg;
 
-//	Choose registry used.
-//	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
+	//	Choose registry used.
+	//	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
 	ug::bridge::Registry& reg = testReg;
 
 	using namespace ug;
@@ -83,14 +87,16 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	int retVal = ug::UGInit(arguments.size(), argv);
 
 
-	//	testReg.add_class_<TestClass>("TestClass","testing")
-	//	.add_constructor()
-	//	.add_method("svnRevision", &TestClass::getRev);
+	testReg.add_class_<TestClass > ("TestClass", "testing")
+			.add_constructor()
+			.add_method("svnRevision", &TestClass::getRev)
+			.add_method("add", &TestClass::add, "result",
+			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23");
 
-//	Register Standard Interfaces (excluding algebra)
+	//	Register Standard Interfaces (excluding algebra)
 	ug::bridge::RegisterStandardInterfaces(reg);
 
-//	Register algebra
+	//	Register algebra
 	CPUAlgebraChooser chooser;
 	ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
@@ -241,6 +247,7 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 						ug::vrl::exportedClass2Groovy(
 						ug::vrl::vrlRegistry, clazz));
 			}
+
 		}
 
 		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
