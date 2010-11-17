@@ -16,6 +16,15 @@ namespace ug
 //	selection util methods
 
 ////////////////////////////////////////////////////////////////////////
+//	CalculateCenter
+///	calculates the center of selected objects
+/**	This algorithm uses Grid::mark
+ */
+template <class TAAPosVRT>
+bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
+					 Selector& sel, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 //	EraseSelectedObjects
 ///	Erases selected objects from the associated grid
 /**

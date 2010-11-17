@@ -745,6 +745,16 @@ class Volume : public GeometricObject, public VolumeVertices
 
 		virtual EdgeBase* create_edge(int index)	{return NULL;}	///< create the edge with index i and return it.
 		virtual Face* create_face(int index)		{return NULL;}	///< create the face with index i and return it.
+		
+	///	returns the local indices of a face of the volume.
+	/**	Default implementation throws an instance of int.
+	 *	This should be changed by making the method pure virtual.*/
+		virtual void get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
+													  size_t side)
+		{
+		//	("Missing implementation of get_local_vertex_indices_of_face.")
+			throw(int(0));
+		};
 
 	/**
 	 * The refine method can be used to create new elements by inserting new vertices

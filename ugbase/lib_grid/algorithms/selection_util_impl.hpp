@@ -5,12 +5,78 @@
 #ifndef __H__LIB_GRID__SELECTION_UTIL_IMPL__
 #define __H__LIB_GRID__SELECTION_UTIL_IMPL__
 
+#include <vector>
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+
 namespace ug
 {
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	selection util methods
+
+////////////////////////////////////////////////////////////////////////
+//	CalculateCenter
+template <class TAAPosVRT>
+bool CalculateCenter(typename TAAPosVRT::ValueType& centerOut,
+					 Selector& sel, TAAPosVRT& aaPos)
+{
+	if(!sel.get_assigned_grid()){
+		throw(UGFatalError("No grid assigned to selector"));
+	}
+	
+	Grid& grid = *sel.get_assigned_grid();
+	
+//	collect all vertices that are adjacent to selected elements
+//	we have to make sure that each vertex is only counted once.
+//	we do this by using grid::mark.
+	grid.begin_marking();
+
+	std::vector<VertexBase*> vrts;
+	vrts.assign(sel.vertices_begin(), sel.vertices_end());
+	grid.mark(sel.vertices_begin(), sel.vertices_end());
+
+	for(EdgeBaseIterator iter = sel.edges_begin();
+		iter != sel.edges_end(); ++iter)
+	{
+		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+			if(!grid.is_marked((*iter)->vertex(i))){
+				grid.mark((*iter)->vertex(i));
+				vrts.push_back((*iter)->vertex(i));
+			}
+		}
+	}
+
+	for(FaceIterator iter = sel.faces_begin();
+		iter != sel.faces_end(); ++iter)
+	{
+		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+			if(!grid.is_marked((*iter)->vertex(i))){
+				grid.mark((*iter)->vertex(i));
+				vrts.push_back((*iter)->vertex(i));
+			}
+		}
+	}
+
+	for(VolumeIterator iter = sel.volumes_begin();
+		iter != sel.volumes_end(); ++iter)
+	{
+		for(size_t i = 0; i < (*iter)->num_vertices(); ++i){
+			if(!grid.is_marked((*iter)->vertex(i))){
+				grid.mark((*iter)->vertex(i));
+				vrts.push_back((*iter)->vertex(i));
+			}
+		}
+	}
+
+	grid.end_marking();
+
+	if(vrts.size() > 0){
+		centerOut = CalculateCenter(vrts.begin(), vrts.end(), aaPos);
+		return true;
+	}
+	return false;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	InvertSelection

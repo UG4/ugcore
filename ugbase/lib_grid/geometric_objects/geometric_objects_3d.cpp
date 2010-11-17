@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include "geometric_objects.h"
+#include "common/common.h"
 //#include "../algorithms/geom_obj_util/geom_obj_util.h"
 
 using namespace std;
@@ -166,6 +167,38 @@ Face* Tetrahedron::create_face(int index)
 	FaceDescriptor fd;
 	face(index, fd);
 	return new Triangle(fd.vertex(0), fd.vertex(1), fd.vertex(2));
+}
+
+void Tetrahedron::
+get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
+								 size_t side)
+{
+	indsOut.resize(3);
+	switch(side)
+	{
+		case 0:
+			indsOut[0] = 0;
+			indsOut[1] = 2;
+			indsOut[2] = 1;
+			return;
+		case 1:
+			indsOut[0] = 1;
+			indsOut[1] = 2;
+			indsOut[2] = 3;
+			return;
+		case 2:
+			indsOut[0] = 2;
+			indsOut[1] = 0;
+			indsOut[2] = 3;
+			return;
+		case 3:
+			indsOut[0] = 0;
+			indsOut[1] = 1;
+			indsOut[2] = 3;
+			return;
+		default:
+			throw(UGError("Bad side index"));
+	}
 }
 
 bool Tetrahedron::collapse_edge(std::vector<Volume*>& vNewVolumesOut,

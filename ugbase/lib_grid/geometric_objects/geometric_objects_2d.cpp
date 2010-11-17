@@ -167,7 +167,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 {
 //TODO: complete triangle refine
 
-	*newFaceVertexOut = NULL;
+	*newFaceVertexOut = newFaceVertex;
 	vNewFacesOut.clear();
 
 //	handle substitute vertices.
@@ -177,23 +177,31 @@ refine(std::vector<Face*>& vNewFacesOut,
 	else
 		vrts = BaseClass::m_vertices;
 
+//	get the number of new vertices.
+	uint numNewVrts = 0;
+	for(uint i = 0; i < 3; ++i)
+	{
+		if(newEdgeVertices[i] != NULL)
+			++numNewVrts;
+	}
+
 //	if newFaceVertex is specified, then create three sub-triangles and
 //	refine each. If not then refine the triangle depending
 	if(newFaceVertex)
 	{
-		assert(!"PROBLEM in Triangle::refine(...): refine with newFaceVertex not yet implemented.");
-		return false;
+		if(numNewVrts > 0){
+			assert(!"Problem in CustomTriangle::refine: refine with newFaceVertex and newEdgeVertices is not yet supported.");
+			return false;
+		}
+
+	//	create three new triangles
+		vNewFacesOut.push_back(new ConcreteTriangleType(vrts[0], vrts[1], newFaceVertex));
+		vNewFacesOut.push_back(new ConcreteTriangleType(vrts[1], vrts[2], newFaceVertex));
+		vNewFacesOut.push_back(new ConcreteTriangleType(vrts[2], vrts[0], newFaceVertex));
+		return true;
 	}
 	else
 	{
-	//	get the number of new vertices.
-		uint numNewVrts = 0;
-		for(uint i = 0; i < 3; ++i)
-		{
-			if(newEdgeVertices[i] != NULL)
-				++numNewVrts;
-		}
-
 		switch(numNewVrts)
 		{
 			case 1:
@@ -469,7 +477,7 @@ refine(std::vector<Face*>& vNewFacesOut,
 		VertexBase** pSubstituteVertices)
 {
 //TODO: complete quad refine
-	*newFaceVertexOut = NULL;
+	*newFaceVertexOut = newFaceVertex;
 	vNewFacesOut.clear();
 	
 //	handle substitute vertices.
@@ -490,8 +498,21 @@ refine(std::vector<Face*>& vNewFacesOut,
 
 	switch(numNewVrts)
 	{
+		case 0:
+		//	create four new triangles
+			vNewFacesOut.push_back(new Triangle(vrts[0], vrts[1], newFaceVertex));
+			vNewFacesOut.push_back(new Triangle(vrts[1], vrts[2], newFaceVertex));
+			vNewFacesOut.push_back(new Triangle(vrts[2], vrts[3], newFaceVertex));
+			vNewFacesOut.push_back(new Triangle(vrts[3], vrts[0], newFaceVertex));
+			return true;
+			
 		case 1:
 		{
+			if(newFaceVertex){
+				assert(!"Problem in CustomQuadrilateral::refine: refine with newFaceVertex and one newEdgeVertex is not yet supported.");
+				return false;
+			}
+			
 			int iNew = -1;
 			for(int i = 0; i < 4; ++i){
 				if(edgeVrts[i]){
@@ -514,6 +535,11 @@ refine(std::vector<Face*>& vNewFacesOut,
 
 		case 2:
 		{
+			if(newFaceVertex){
+				assert(!"Problem in CustomQuadrilateral::refine: refine with newFaceVertex and two newEdgeVertices is not yet supported.");
+				return false;
+			}
+
 		//	there are two cases (refined edges are adjacent or opposite to each other)
 			int iNew[2];
 			int counter = 0;
@@ -561,6 +587,11 @@ refine(std::vector<Face*>& vNewFacesOut,
 
 		case 3:
 		{
+			if(newFaceVertex){
+				assert(!"Problem in CustomQuadrilateral::refine: refine with newFaceVertex and three newEdgeVertices is not yet supported.");
+				return false;
+			}
+
 			int iFree = -1;
 			for(int i = 0; i < 4; ++i){
 				if(!edgeVrts[i]){

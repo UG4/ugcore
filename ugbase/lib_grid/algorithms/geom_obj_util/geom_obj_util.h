@@ -12,7 +12,8 @@
 #include "misc_util.h"
 #include "lib_grid/grid/grid_util.h"
 
-
+namespace ug
+{
 ///	calculates the center for a set of elements
 /**	TIterator::value_type has to be compatible with
  *  VertexBase*, EdgeBase*, Face* or Volume*.
@@ -32,5 +33,6 @@ CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos)
 		
 	return center;
 }
+}//	end of namespace
 
 #endif

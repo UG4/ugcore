@@ -1134,6 +1134,9 @@ class Tetrahedron : public Volume
 		virtual EdgeBase* create_edge(int index);	///< create the edge with index i and return it.
 		virtual Face* create_face(int index);		///< create the face with index i and return it.
 
+		virtual void get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
+													  size_t side);
+
 	///	Creates new volume elements through refinement.
 	/**	Make sure that newEdgeVertices contains 6 vertex pointers.
 	 *	newFaceVertices is ignored for Tetrahedrons.*/
