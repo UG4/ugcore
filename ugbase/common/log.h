@@ -189,7 +189,7 @@ inline LogAssistant& GetLogAssistant();
  * UG_LOG will use PCLLOG to output its data.
  */
 #ifdef FOR_VRL
-	#define VRL_LOG(msg) {std::stringstream ss;ss << "<!--UG4--> <blockquote>" << msg << "</blockquote>";\
+	#define VRL_LOG(msg) {std::stringstream ss;ss << "<!--UG4-->" << msg;\
                           ug::vrl::MessageBuffer::addMessage(ss.str());}
 #else
 	#define VRL_LOG(msg)

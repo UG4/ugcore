@@ -26,7 +26,10 @@ std::string MessageBuffer::getMessages() {
 		result += *i;
 	}
 
-	result = replaceAll(result, "\n", "<br>");
+	// we use blockquote now
+//	result = replaceAll(result, "\n", "<br>");
+
+	result = std::string("<pre>") + result + std::string("</pre>");
 
 	return result;
 }
