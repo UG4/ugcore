@@ -1,7 +1,7 @@
 /*
  * operations_mat.h
  *
- *  Created on: 29.09.2010
+ *  Created on: 17.11.2010
  *      Author: mrupp
  */
 
