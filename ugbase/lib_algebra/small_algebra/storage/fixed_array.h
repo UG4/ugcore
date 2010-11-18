@@ -184,6 +184,6 @@ protected:
 
 }
 #include "fixed_array_impl.h"
-#include "fixed_array_specialization.h"
+// #include "fixed_array_specialization.h"
 
 #endif // __H__UG__COMMON__FIXED_ARRAY_H__

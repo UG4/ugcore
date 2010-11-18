@@ -73,7 +73,7 @@ public:
 
 public:
 	FixedArray1() { values[0] = 0.0; values[1] = 0.0; }
-	FixedArray1(const FixedArray1<T, 2> &other) { values[0] = other.values[0]; values[0] = other.values[0]; }
+	FixedArray1(const FixedArray1<T, 2> &other) { values[0] = other.values[0]; values[1] = other.values[1]; }
 
 	// capacity
 	inline size_type
@@ -124,7 +124,7 @@ public:
 
 public:
 	FixedArray1() { for(int i=0; i<Size; i++) values[i]=0.0; }
-	FixedArray1(const FixedArray1<T, 3> &other) { for(int i=0; i<Size; i++) values[i]=other.values[i]; }
+	FixedArray1(const FixedArray1<T, 3> &other) { values[0] = other.values[0]; values[1] = other.values[1]; values[2] = other.values[2]; }
 
 	// capacity
 	inline size_type
