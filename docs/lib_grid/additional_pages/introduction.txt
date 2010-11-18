@@ -92,7 +92,8 @@ the executable in libGrid/bin.
 <hr>
 \section secLGUsage Usage
 An introduction to the most important ideas behind libGrid and a short overview of the coding-style
-can be found \ref pageLGOverview "here":
+can be found here:
+\ref pageLGOverview "Overview"
 
 More detailed samples will be available from the tutorial section soon.
 */

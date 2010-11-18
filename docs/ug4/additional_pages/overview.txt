@@ -24,7 +24,7 @@
 
 \section secGrid lib_grid
 <hr>
-You can find the documentation of lib_grid at \ref pageLGDocumentation "lib_grid_documentation"
+You can find the documentation of lib_grid at \ref pageLGIntroduction "lib_grid introduction"
 ...
 <br>
 <hr>
