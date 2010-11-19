@@ -2,6 +2,16 @@
 #ifndef __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
 #define __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
 
+
+/**
+ * \brief The discretization library.
+ *
+ * lib_discretization provides discretization tools.
+ *
+ * \defgroup lib_discretization lib_discretization
+ */
+
+
 /////////////////////
 // basics
 /////////////////////
@@ -28,7 +38,7 @@
 #include "./quadrature/quadrature.h"
 
 // local shape functions
-#include "./local_shape_function_set/local_shape_function_set_factory.h"
+#include "./local_shape_function_set/local_shape_function_set_provider.h"
 
 // assembling interface
 #include "./assemble.h"
