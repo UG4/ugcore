@@ -40,7 +40,7 @@ urand(TNumber lowerBound, TNumber upperBound)
 	if(t == RAND_MAX)
 		t -= 1;
 
-	return lowerBound + (TNumber)((upperBound - lowerBound) * ((float)t / (float)RAND_MAX));
+	return lowerBound + (TNumber)((upperBound - lowerBound) * ((double)t / (double)RAND_MAX));
 }
 
 ////////////////////////////////////////////////////////////////////////
