@@ -3,7 +3,7 @@
 --   Lua - Script to perform the several Laplace-Problems
 --
 --	 Description:	For a testing purpose we discretize
---					two completely decoupled laplace equations
+--					#<blocks> completely decoupled laplace equations
 --
 --   Author: Andreas Vogel
 --
@@ -21,6 +21,7 @@ algebra = CPUAlgebraChooser()
 algebra:set_fixed_blocksize(nSystems)
 InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
+
 
 -- constants
 if HasParamOption("-3d") == true then
@@ -159,7 +160,7 @@ utilGlobalRefineParallelDomain(dom)
 end
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+-- utilSaveDomain(dom, "refined_grid.ugx")
 
 -- create function pattern
 print("Create Function Pattern")
@@ -297,8 +298,8 @@ linOp:set_dirichlet_values(u)
 b:assign(linOp:get_rhs())
 
 -- write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+-- SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+-- SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- create algebraic Preconditioner
 jac = Jacobi()
@@ -380,4 +381,4 @@ bicgstabSolver:set_convergence_check(convCheck)
 ApplyLinearSolver(linOp, u, b, linSolver)
 
 -- Output
-WriteGridFunctionToVTK(u, "Solution")
+-- WriteGridFunctionToVTK(u, "Solution")
