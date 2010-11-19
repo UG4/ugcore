@@ -70,7 +70,7 @@ P1ConformFunctionPattern::
 add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
 {
 	// for a P1 dof manager only Lagrange P1 function space is permitted
-	if(id != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+	if(id != LSFS_LAGRANGEP1)
 	{
 		UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n");
 		return false;
@@ -84,7 +84,7 @@ P1ConformFunctionPattern::
 add_discrete_function(const char* name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim)
 {
 	// for a P1 dof manager only Lagrange P1 function space is permitted
-	if(id != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+	if(id != LSFS_LAGRANGEP1)
 	{
 		UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n");
 		return false;
