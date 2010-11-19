@@ -14,6 +14,9 @@
 
 namespace ug{
 
+/**
+ * A MultiIndex is just a vector of integers.
+ */
 template<int N, typename TSingleIndexType = size_t>
 class MultiIndex
 {
@@ -40,6 +43,131 @@ class MultiIndex
 
 	private:
 		single_index_type m_indices[N];
+};
+
+// specialization of 1
+template <>
+class MultiIndex<1, size_t>
+{
+	public:
+		typedef size_t single_index_type;
+
+	public:
+	///	Default constructor
+		MultiIndex(){};
+
+	///	Constructor with values
+		MultiIndex(single_index_type a)
+			: m_indices(a)
+		{};
+
+		/// number of indices in multi index
+		inline size_t size() const {return 1;}
+
+		/// access to index component
+		inline single_index_type& operator[] (size_t i)
+		{
+			UG_ASSERT(i == 0, "Index invalid");
+			return m_indices;
+		}
+
+		/// const access to index component
+		inline const single_index_type& operator[] (size_t i) const
+		{
+			UG_ASSERT(i == 0, "Index invalid");
+			return m_indices;
+		}
+
+	private:
+		single_index_type m_indices;
+};
+
+// specialization of 2
+template <>
+class MultiIndex<2, size_t>
+{
+	public:
+		typedef size_t single_index_type;
+
+	public:
+	///	Default constructor
+		MultiIndex(){};
+
+	///	Constructor with values
+		MultiIndex(single_index_type a, single_index_type b)
+			: i0(a), i1(b)
+		{}
+
+		/// number of indices in multi index
+		inline size_t size() const {return 2;}
+
+		/// access to index component
+		inline single_index_type& operator[] (size_t i)
+		{
+			UG_ASSERT(i < 2, "Index invalid");
+			return m_indices[i];
+		}
+
+		/// const access to index component
+		inline const single_index_type& operator[] (size_t i) const
+		{
+			UG_ASSERT(i < 2, "Index invalid");
+			return m_indices[i];
+		}
+
+	private:
+		union
+		{
+			struct
+			{
+				single_index_type i0, i1;
+			};
+			single_index_type m_indices[2];
+		};
+};
+
+// specialization of 3
+template <>
+class MultiIndex<3, size_t>
+{
+	public:
+		typedef size_t single_index_type;
+
+	public:
+	///	Default constructor
+		MultiIndex(){};
+
+	///	Constructor with values
+		MultiIndex(single_index_type a, single_index_type b, single_index_type c)
+			: i0(a), i1(b), i2(c)
+		{}
+
+		/// number of indices in multi index
+		inline size_t size() const {return 3;}
+
+		/// access to index component
+		inline single_index_type& operator[] (size_t i)
+		{
+			UG_ASSERT(i < 3, "Index invalid");
+			return m_indices[i];
+		}
+
+		/// const access to index component
+		inline const single_index_type& operator[] (size_t i) const
+		{
+			UG_ASSERT(i < 3, "Index invalid");
+			return m_indices[i];
+		}
+
+	private:
+		union
+		{
+			struct
+			{
+				single_index_type i0, i1, i2;
+			};
+			single_index_type m_indices[2];
+		};
 };
 
 template <int N>
