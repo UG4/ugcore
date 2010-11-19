@@ -193,7 +193,7 @@ inline size_t GetCols(const DenseMatrix<T> &t)
 
 
 template<typename T>
-struct block_matrix_traits< DenseMatrix<T> >
+struct block_traits< DenseMatrix<T> >
 {
 	enum { ordering = DenseMatrix<T>::ordering };
 	enum { is_static = DenseMatrix<T>::is_static};
@@ -205,7 +205,7 @@ struct block_matrix_traits< DenseMatrix<T> >
 };
 
 template<typename T>
-struct block_vector_traits< DenseVector<T> >
+struct block_traits< DenseVector<T> >
 {
 	enum { is_static = DenseVector<T>::is_static};
 	enum { static_size = DenseVector<T>::static_size};
@@ -219,14 +219,14 @@ struct block_multiply_traits<DenseMatrix<T1>, DenseVector<T2> >
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-// block_matrix_traits
+// block_traits
 
 template<typename T> class DenseMatrixInverse;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // variable matrix
 template<typename TValue, eMatrixOrdering TOrdering>
-struct block_matrix_traits< DenseMatrix< VariableArray2<TValue, TOrdering> > >
+struct block_traits< DenseMatrix< VariableArray2<TValue, TOrdering> > >
 {
 	enum { ordering = TOrdering };
 	enum { is_static = false};
@@ -238,7 +238,7 @@ struct block_matrix_traits< DenseMatrix< VariableArray2<TValue, TOrdering> > >
 //////////////////////////////////////////////////////////////////////////////////////////////
 // fixed matrix
 template<typename TValue, size_t TBlockSize, eMatrixOrdering TOrdering>
-struct block_matrix_traits< DenseMatrix< FixedArray2<TValue, TBlockSize, TBlockSize, TOrdering> > >
+struct block_traits< DenseMatrix< FixedArray2<TValue, TBlockSize, TBlockSize, TOrdering> > >
 {
 	enum { ordering = TOrdering };
 	enum { is_static = true};
@@ -252,7 +252,7 @@ struct block_matrix_traits< DenseMatrix< FixedArray2<TValue, TBlockSize, TBlockS
 //////////////////////////////////////////////////////////////////////////////////////////////
 // fixed 1x1 to 3x3 : inverse is matrix
 template<typename TValue, eMatrixOrdering TOrdering>
-struct block_matrix_traits< DenseMatrix< FixedArray2<TValue, 1, 1, TOrdering> > >
+struct block_traits< DenseMatrix< FixedArray2<TValue, 1, 1, TOrdering> > >
 {
 	enum { ordering = DenseMatrix< FixedArray2<TValue, 1, 1> >::ordering };
 	enum { is_static = true};
@@ -263,7 +263,7 @@ struct block_matrix_traits< DenseMatrix< FixedArray2<TValue, 1, 1, TOrdering> > 
 };
 
 template<typename TValue, eMatrixOrdering TOrdering>
-struct block_matrix_traits< DenseMatrix< FixedArray2<TValue, 2, 2, TOrdering> > >
+struct block_traits< DenseMatrix< FixedArray2<TValue, 2, 2, TOrdering> > >
 {
 	enum { ordering = DenseMatrix< FixedArray2<TValue, 2, 2> >::ordering };
 	enum { is_static = true};
@@ -274,7 +274,7 @@ struct block_matrix_traits< DenseMatrix< FixedArray2<TValue, 2, 2, TOrdering> > 
 };
 
 template<typename TValue, eMatrixOrdering TOrdering>
-struct block_matrix_traits< DenseMatrix< FixedArray2<TValue, 3, 3, TOrdering> > >
+struct block_traits< DenseMatrix< FixedArray2<TValue, 3, 3, TOrdering> > >
 {
 	enum { ordering = DenseMatrix< FixedArray2<TValue, 3, 3> >::ordering };
 	enum { is_static = true};

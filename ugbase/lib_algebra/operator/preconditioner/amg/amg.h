@@ -33,6 +33,8 @@ std::string ToString(const T &t)
 #include "amg_debug.h"
 #include "amg_nodeinfo.h"
 
+#include "amg_coarsening.h"
+#include "sparsematrix_operator.h"
 /// \defgroup AMG
 
 /**
@@ -52,53 +54,7 @@ namespace ug{
 
 #define AMG_MAX_LEVELS 32
 
-
-template<typename Matrix_type>
-void
-CreateStrongConnectionGraph(const Matrix_type &A, cgraph &graph, double theta=0.25);
-
-void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_type &PQ, int &unassigned, amg_nodeinfo *nodes);
-
-void CreateAggressiveCoarseningGraph(cgraph &graph, cgraph &graph2, amg_nodeinfo *nodes,
-		int nrOfPaths, int *posInConnections);
-
-
-void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_pq_type &PQ, int &unassigned, int &iNrOfCoarse, int *newIndex, amg_nodeinfo *nodes);
-
-int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes);
-
-void PreventFFConnections(cgraph &graphS, cgraph &graphST, amg_nodeinfo *nodes, int *newIndex, int &nrOfCoarse);
 	
-
-template <typename matrix_type, typename vector_type>
-class SparseMatrixOperator : public virtual IMatrixOperator<vector_type, vector_type, matrix_type >
-{
-	public:
-		SparseMatrixOperator() {}
-		SparseMatrixOperator(matrix_type *pMatrix) : m_pMatrix(pMatrix) { }
-		void setmatrix(matrix_type *pMatrix) { m_pMatrix = pMatrix; }
-		bool init(const vector_type &) { return true; }
-		bool init() { return true; }
-		bool apply(vector_type &c, const vector_type &d)
-		{
-			MatMult(c, 1.0, *m_pMatrix, d);
-			return true;
-		}
-		bool apply_sub(vector_type &c, const vector_type &d)
-		{
-			MatMultAdd(c, 1.0, c, -1.0, *m_pMatrix, d);
-			return true;
-		}
-
-		virtual ~SparseMatrixOperator(){}
-
-	public:
-	// 	Access to matrix
-		virtual matrix_type& get_matrix() { return *m_pMatrix; };
-
-	private:
-		matrix_type *m_pMatrix;
-};
 
 // AMG
 //---------------------------------

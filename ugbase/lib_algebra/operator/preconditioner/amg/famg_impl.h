@@ -477,7 +477,7 @@ void update_neighbors(size_t node, const std::vector<bool> &fine, const std::vec
 template<typename TAlgebra>
 void famg<TAlgebra>::create_FAMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 		SparseMatrix<double> &P, int level)
-{
+{"argv[
 	std::vector<std::vector<neighborstruct2> > possible_neighbors
 	std::vector<size_t> newIndex;
 	std::vector<int> rating;

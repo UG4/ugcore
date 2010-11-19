@@ -51,10 +51,10 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 
 		bool init_lu(const matrix_type &A)
 		{
-			if(block_vector_traits<typename vector_type::value_type>::is_static)
+			if(block_traits<typename vector_type::value_type>::is_static)
 			{
-				const size_t nrOfRows = block_matrix_traits<typename matrix_type::value_type>::static_num_rows;
-				UG_ASSERT(nrOfRows == block_matrix_traits<typename matrix_type::value_type>::static_num_cols, "only square matrices supported");
+				const size_t nrOfRows = block_traits<typename matrix_type::value_type>::static_num_rows;
+				UG_ASSERT(nrOfRows == block_traits<typename matrix_type::value_type>::static_num_cols, "only square matrices supported");
 				m_size = A.num_rows() * nrOfRows;
 
 				m_mat.resize(m_size);
@@ -110,9 +110,9 @@ class LUSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 		bool apply_lu(vector_type &x, const vector_type &b)
 		{
 #ifndef NDEBUG
-			if(block_vector_traits<typename vector_type::value_type>::is_static)
+			if(block_traits<typename vector_type::value_type>::is_static)
 			{
-				const size_t static_size = block_vector_traits<typename vector_type::value_type>::static_size;
+				const size_t static_size = block_traits<typename vector_type::value_type>::static_size;
 				UG_ASSERT(m_size == b.size() * static_size && m_size == x.size() * static_size,
 						" wrong size! has to be " << m_size << ", but is " << b << " and " << x);
 			}

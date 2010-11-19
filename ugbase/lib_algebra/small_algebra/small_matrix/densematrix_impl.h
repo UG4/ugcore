@@ -165,6 +165,43 @@ std::ostream &operator << (std::ostream &out, const DenseMatrix<TStorage> &mat)
 }
 
 
+template<size_t Tr, size_t Tc> inline bool BlockSerialize(const DenseMatrix<FixedArray2<number, Tr, Tc> > &mat, std::ostream &buff)
+{
+	buff.write((char*)&mat, sizeof(mat));
+	return true;
+}
+
+template<size_t Tr, size_t Tc> inline bool BlockDeserialize(std::istream &buff, const DenseMatrix<FixedArray2<number, Tr, Tc> > &mat)
+{
+	buff.read((char*)&mat, sizeof(mat));
+	return true;
+}
+
+
+template<typename T> inline bool BlockSerialize(const DenseMatrix<VariableArray2<T> > &mat, std::ostream &buff)
+{
+	size_t rows = mat.num_rows();
+	size_t cols = mat.num_cols();
+	buff.write((char*)&rows, sizeof(rows));
+	buff.write((char*)&cols, sizeof(cols));
+	for(size_t r=0; r<rows; r++)
+		for(size_t c=0; c<cols; c++)
+			BlockSerialize(mat(r, c), buff);
+	return true;
+}
+
+template<typename T> inline bool BlockDeserialize(std::istream &buff, const DenseMatrix<VariableArray2<T> > &mat)
+{
+	size_t rows, cols;
+	buff.read((char*)&rows, sizeof(rows));
+	buff.read((char*)&cols, sizeof(cols));
+	mat.resize(rows, cols);
+	for(size_t r=0; r<rows; r++)
+		for(size_t c=0; c<cols; c++)
+			BlockDeserialize(buff, mat(r, c));
+	return true;
+}
+
 
 } // namespace ug
 

@@ -123,13 +123,24 @@ inline bool InverseMatMult(number &dest, const double &beta, const number &mat, 
 }
 
 
+inline bool BlockSerialize(const double &d, std::ostream &buff)
+{
+	buff.write((char*)&d, sizeof(d));
+	return true;
+}
+
+inline bool BlockDeserialize(std::istream &buff, const double &d)
+{
+	buff.read((char*)&d, sizeof(d));
+	return true;
+}
+
 ///////////////////////////////////////////////////////////////////
 // traits: information for numbers
 
 
-
 template<>
-struct block_matrix_traits<number>
+struct block_traits<number>
 {
 	typedef number vec_type;
 	typedef number inverse_type;
@@ -137,12 +148,6 @@ struct block_matrix_traits<number>
 	enum { is_static = true};
 	enum { static_num_rows = 1};
 	enum { static_num_cols = 1};
-};
-
-template<>
-struct block_vector_traits<number>
-{
-	enum { is_static = true};
 	enum { static_size = 1 };
 };
 

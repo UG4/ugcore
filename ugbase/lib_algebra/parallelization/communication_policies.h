@@ -26,7 +26,10 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::value_type);
+			if(block_traits<typename TVector::value_type>::is_static)
+				return interface.size() * sizeof(typename TVector::value_type);
+			else
+				return -1;
 		}
 
 		virtual bool
@@ -38,8 +41,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::value_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::value_type));
+				BlockSerialize(v[index], buff);
 			}
 			return true;
 		}
@@ -47,15 +49,13 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::value_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::value_type));
-				v[index] = entry;
+				BlockDeserialize(buff, v[index]);
 			}
 			return true;
 		}
@@ -78,7 +78,10 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::value_type);
+			if(block_traits<typename TVector::value_type>::is_static)
+				return interface.size() * sizeof(typename TVector::value_type);
+			else
+				return -1;
 		}
 
 		virtual bool
@@ -90,8 +93,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::value_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::value_type));
+				BlockSerialize(v[index], buff);
 			}
 			return true;
 		}
@@ -99,16 +101,14 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual bool
 		extract(std::istream& buff, Interface& interface)
 		{
-			typename TVector::value_type entry;
 			TVector& v = *m_pVec;
 
 			for(typename Interface::iterator iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::value_type));
-				entry *= m_scale;
-				v[index] = entry;
+				BlockDeserialize(buff, v[index]);
+				v[index] *= m_scale;
 			}
 			return true;
 		}
@@ -132,7 +132,10 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::value_type);
+			if(block_traits<typename TVector::value_type>::is_static)
+				return interface.size() * sizeof(typename TVector::value_type);
+			else
+				return -1;
 		}
 
 		virtual bool
@@ -144,8 +147,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::value_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::value_type));
+				BlockSerialize(v[index], buff);
 			}
 			return true;
 		}
@@ -160,7 +162,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::value_type));
+				BlockDeserialize(buff, entry);
 				v[index] += entry;
 			}
 			return true;
@@ -182,7 +184,10 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::value_type);
+			if(block_traits<typename TVector::value_type>::is_static)
+				return interface.size() * sizeof(typename TVector::value_type);
+			else
+				return -1;
 		}
 
 		virtual bool
@@ -194,8 +199,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::value_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::value_type));
+				BlockSerialize(v[index], buff);
 				v[index] = 0.0;
 			}
 			return true;
@@ -211,7 +215,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::value_type));
+				BlockDeserialize(buff, entry);
 				v[index] += entry;
 			}
 			return true;
@@ -233,7 +237,10 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		virtual int
 		get_required_buffer_size(Interface& interface)
 		{
-			return interface.size() * sizeof(typename TVector::value_type);
+			if(block_traits<typename TVector::value_type>::is_static)
+				return interface.size() * sizeof(typename TVector::value_type);
+			else
+				return -1;
 		}
 
 		virtual bool
@@ -245,8 +252,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				typename TVector::value_type entry = v[index];
-				buff.write((char*)&entry, sizeof(typename TVector::value_type));
+				BlockSerialize(v[index], buff);
 			}
 			return true;
 		}
@@ -261,7 +267,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 				iter != interface.end(); ++iter)
 			{
 				const size_t index = interface.get_element(iter);
-				buff.read((char*)&entry, sizeof(typename TVector::value_type));
+				BlockDeserialize(buff, entry);
 				v[index] -= entry;
 			}
 			return true;

@@ -137,6 +137,38 @@ DenseVector<TStorage>::assign(const Type &t)
 
 
 
+template<size_t n> inline bool BlockSerialize(const DenseVector<FixedArray1<number, n> > &vec, std::ostream &buff)
+{
+	buff.write((char*)&vec, sizeof(vec));
+	return true;
+}
+
+template<size_t n> inline bool BlockDeserialize(std::istream &buff, DenseVector<FixedArray1<number, n> > &vec)
+{
+	buff.read((char*)&vec, sizeof(vec));
+	return true;
+}
+
+
+template<typename T> inline bool BlockSerialize(const DenseVector<VariableArray1<T> > &vec, std::ostream &buff)
+{
+	size_t s = vec.size();
+	buff.write((char*)&s, sizeof(s));
+	for(size_t i=0; i<s; i++)
+		BlockSerialize(vec[i], buff);
+	return true;
+}
+
+template<typename T> inline bool BlockDeserialize(std::istream &buff, DenseVector<VariableArray1<double> > &vec)
+{
+	size_t s;
+	buff.read((char*)&s, sizeof(s));
+	vec.resize(s);
+	for(size_t i=0; i<s; i++)
+		BlockDeserialize(buff, vec[i]);
+	return true;
+}
+
 //MAKE_TEMPLATE_OPERATORS_VECTOR2(typename TStorage, DenseVector<TStorage>);
 
 }

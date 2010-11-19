@@ -2,13 +2,14 @@
 #ifndef __H__UG__MARTIN_ALGEBRA__BLOCKS__
 #define __H__UG__MARTIN_ALGEBRA__BLOCKS__
 
+#include <ostream>
+
 namespace ug{
 	
 inline double dabs(double a) { return a > 0 ? a : -a; }
 
 
-template <typename t> struct block_matrix_traits;
-template <typename t> struct block_vector_traits;
+template <typename t> struct block_traits;
 template<typename value_type, typename vec_type> struct block_multiply_traits;
 
 
@@ -50,6 +51,30 @@ template<typename T> inline const double &BlockRef(const T &mat, size_t i, size_
 {
 	return mat(i, j);
 }
+
+
+//////////////////////////////////////////////////////
+
+/*template<typename T, size_t n> inline bool BlockSerialize(const DenseVector<FixedArray<T, n> > &t, std::ostream &buff)
+{
+	for(int i=0; i<n; i++)
+		BlockSerialize(v[i], buff);
+	return true;
+}
+
+
+template<typename T, size_t n> inline bool BlockDeserialize(const DenseVector<FixedArray<T, n> > &t, std::ostream &buff)
+{
+	for(int i=0; i<n; i++)
+		BlockDeserialize(v[i], buff);
+	return true;
+}
+*/
+//////////////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////
 // algebra stuff to avoid temporary variables 
