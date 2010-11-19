@@ -20,7 +20,7 @@
 // library intern includes
 #include "lib_discretization/common/common.h"
 #include "../../reference_element/reference_element.h"
-#include "../../local_shape_function_set/local_shape_function_set_factory.h"
+#include "../../local_shape_function_set/local_shape_function_set_provider.h"
 #include "./finite_volume_util.h"
 
 namespace ug{

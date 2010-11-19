@@ -167,7 +167,9 @@ bool GetLinearProfileSkewedUpwindShapes(const TSCVF& scvf, const MathVector<TSCV
 
 	// get linear trial space
 	const LocalShapeFunctionSet<typename TSCVF::ref_elem_type>& TrialSpace =
-			LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<typename TSCVF::ref_elem_type>(LSFS_LAGRANGEP1);
+			LocalShapeFunctionSetProvider::
+				get_local_shape_function_set<typename TSCVF::ref_elem_type>
+				(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 	// TODO: Replace by SingletonProvider
 	static typename TSCVF::ref_elem_type& rRefElem;

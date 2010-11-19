@@ -27,11 +27,13 @@ class FEGeometry
 
 	public:
 		FEGeometry(int order)
-			: m_rQuadRule(QuadratureRuleFactory<ref_elem_type>::get_quadrature_rule(order))
+			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_quadrature_rule(order))
 			{
 				UG_ASSERT(order == 1, " Currently only first order implemented.");
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-						LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+						LocalShapeFunctionSetProvider::
+							get_local_shape_function_set<ref_elem_type>
+								(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 				// number of ips
 				m_numIP = m_rQuadRule.num_points();

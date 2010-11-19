@@ -59,7 +59,10 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 	public:
 		virtual size_t num_fct(){return 1;}
 
-		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) {return LSFS_LAGRANGEP1;}
+		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct)
+		{
+			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
+		}
 
 	public:
 		virtual size_t num_imports() {return 1;}
@@ -168,7 +171,9 @@ class CplConvectionDiffusionElemDisc : public ICoupledElemDisc<TAlgebra> {
 		{
 			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+					LocalShapeFunctionSetProvider::
+						get_local_shape_function_set<ref_elem_type>
+							(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 			const size_t num_co = ref_elem_type::num_corners;
 
 			const int RefDim = reference_element_traits<TElem>::reference_element_type::dim;

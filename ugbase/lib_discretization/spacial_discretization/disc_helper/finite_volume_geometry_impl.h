@@ -123,19 +123,17 @@ FV1Geometry() : m_pElem(NULL)
 	for(size_t i = 0; i < num_scvf(); ++i)
 	{
 		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-				LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+				LocalShapeFunctionSetProvider::
+					get_local_shape_function_set<ref_elem_type>
+					(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 		const size_t num_sh = m_numSCV;
 		m_vSCVF[i].vShape.resize(num_sh);
 		m_vSCVF[i].localGrad.resize(num_sh);
 		m_vSCVF[i].globalGrad.resize(num_sh);
-		for(size_t sh = 0 ; sh < num_sh; ++sh)
-		{
-			if(!TrialSpace.evaluate(sh, m_vSCVF[i].localIP, (m_vSCVF[i].vShape)[sh]))
-				{UG_LOG("Cannot evaluate local shape.\n"); UG_ASSERT(0, "Error in Constructor.");}
-			if(!TrialSpace.evaluate_grad(sh, m_vSCVF[i].localIP, (m_vSCVF[i].localGrad)[sh]))
-				{UG_LOG("Cannot evaluate local grad.\n"); UG_ASSERT(0, "Error in Constructor.");}
-		}
+
+		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
+		TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
 	}
 }
 
@@ -336,19 +334,17 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 			// Shapes and Derivatives
 			/////////////////////////
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-						LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+						LocalShapeFunctionSetProvider::
+							get_local_shape_function_set<ref_elem_type>
+								(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 				const size_t num_sh = m_numSCV;
 				bf.vShape.resize(num_sh);
 				bf.localGrad.resize(num_sh);
 				bf.globalGrad.resize(num_sh);
-				for(size_t sh = 0 ; sh < num_sh; ++sh)
-				{
-					if(!TrialSpace.evaluate(sh, bf.localIP, (bf.vShape)[sh]))
-						{UG_LOG("Cannot evaluate local shape.\n"); UG_ASSERT(0, "Error in Constructor.");}
-					if(!TrialSpace.evaluate_grad(sh, bf.localIP, (bf.localGrad)[sh]))
-						{UG_LOG("Cannot evaluate local grad.\n"); UG_ASSERT(0, "Error in Constructor.");}
-				}
+
+				TrialSpace.shapes(&(bf.vShape[0]), bf.localIP);
+				TrialSpace.grads(&(bf.localGrad[0]), bf.localIP);
 
 				if(!m_rMapping.jacobian_transposed_inverse(bf.localIP, bf.JtInv))
 					{UG_LOG("Cannot compute jacobian transposed.\n"); return false;}

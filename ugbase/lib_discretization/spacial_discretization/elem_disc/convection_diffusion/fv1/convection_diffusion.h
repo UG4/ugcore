@@ -79,7 +79,10 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 
 		virtual size_t num_fct(){return 1;}
 
-		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct) {return LSFS_LAGRANGEP1;}
+		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct)
+		{
+			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
+		}
 
 		virtual bool use_hanging() const {return TFVGeom<Edge, dim>::usesHangingNodes;}
 

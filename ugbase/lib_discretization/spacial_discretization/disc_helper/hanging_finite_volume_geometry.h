@@ -18,7 +18,7 @@
 
 // library intern includes
 #include "../../reference_element/reference_element.h"
-#include "../../local_shape_function_set/local_shape_function_set_factory.h"
+#include "../../local_shape_function_set/local_shape_function_set_provider.h"
 #include "./finite_volume_util.h"
 
 namespace ug{
@@ -656,18 +656,20 @@ class HFV1Geometry {
 					{UG_LOG("Cannot compute jacobian determinate.\n"); return false;}
 
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-						LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+						LocalShapeFunctionSetProvider::
+							get_local_shape_function_set<ref_elem_type>
+								(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 				const size_t num_sh = ref_elem_type::num_corners;
 				m_vSCVF[i].vShape.resize(num_sh);
 				m_vSCVF[i].localGrad.resize(num_sh);
 				m_vSCVF[i].globalGrad.resize(num_sh);
+
+				TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
+				TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
+
 				for(size_t sh = 0 ; sh < num_sh; ++sh)
 				{
-					if(!TrialSpace.evaluate(sh, m_vSCVF[i].localIP, (m_vSCVF[i].vShape)[sh]))
-						{UG_LOG("Cannot evaluate local shape.\n"); return false;}
-					if(!TrialSpace.evaluate_grad(sh, m_vSCVF[i].localIP, (m_vSCVF[i].localGrad)[sh]))
-						{UG_LOG("Cannot evaluate local grad.\n"); return false;}
 					MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
 				}
 

@@ -18,7 +18,7 @@
 
 // library intern includes
 #include "../../reference_element/reference_element.h"
-#include "../../local_shape_function_set/local_shape_function_set_factory.h"
+#include "../../local_shape_function_set/local_shape_function_set_provider.h"
 
 namespace ug{
 
@@ -46,7 +46,9 @@ class SD_Values{
 		bool update_local(const MathVector<dim>& ip_local)
 		{
 			const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
-					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(LSFS_LAGRANGEP1);
+					LocalShapeFunctionSetProvider::
+						get_local_shape_function_set<ref_elem_type>
+							(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 			for(size_t i = 0; i < m_num_co; ++i)
 			{
