@@ -266,7 +266,7 @@ bool SaveDomain(TDomain& domain, const char* filename)
 
 bool AddP1Function(P1ConformFunctionPattern& pattern, const char* name, int dim)
 {
-	return pattern.add_discrete_function(name, LSFS_LAGRANGEP1, dim);
+	return pattern.add_discrete_function(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1), dim);
 }
 
 template <typename TGridFunction>
@@ -375,7 +375,8 @@ class P1ConformApproximationSpace :
 			bool retVal = true;
 			for(size_t i = 0; i < vStringTmp.size(); ++i)
 			{
-				retVal &= m_fp.add_discrete_function(vStringTmp[i].c_str(), LSFS_LAGRANGEP1, TDomain::dim);
+				retVal &= m_fp.add_discrete_function(vStringTmp[i].c_str(),
+								LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1), TDomain::dim);
 			}
 
 			return retVal;
@@ -1193,9 +1194,9 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 	switch(algebra_type)
 	{
 	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+//	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 //	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");
 				UG_LOG("Unsupported Algebra Type requested.\n");
