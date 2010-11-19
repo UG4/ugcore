@@ -570,6 +570,7 @@ WARN_LOGFILE           =
 
 INPUT                  = docs/lib_grid/additional_pages \
                          docs/lib_algebra/additional_pages \
+                         docs/lib_discretization/additional_pages \
                          ugbase \
                          docs/ug4/additional_pages
                          
