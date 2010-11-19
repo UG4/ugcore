@@ -12,7 +12,7 @@
 #include <string>
 
 #include "lib_discretization/common/subset_group.h"
-#include "lib_discretization/local_shape_function_set/local_shape_function_set_factory.h"
+#include "lib_discretization/local_shape_function_set/local_shape_function_set_id.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 
 namespace ug{
