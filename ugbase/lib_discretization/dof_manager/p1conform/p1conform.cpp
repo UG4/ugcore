@@ -864,4 +864,4 @@ order_cuthill_mckee(bool bReverse)
 
 
 } // end namespace ug
-t
+
