@@ -11,34 +11,32 @@ namespace ug {
 //	we store the path in which scripts are located in this variable
 //	we assume that scripts are located in ../scripts relative to ugshells path.
 
-struct p {
+struct UGPaths {
 	std::string APPS;
 	std::string SCRIPTS;
 	std::string DATA;
 };
 
-struct p PATHS;
+static struct UGPaths PATHS;
 
 /**
  *  init app and data paths
- *  @return wether paths initialized correctly?
+ *  @return whether paths initialized correctly?
  */
 static bool InitPaths(const char* argv0) {
 	//TODO: on some systems argv0 does __not__ contain the absolute path to the process!
 	//some ugly macros are needed.
 
 	//	extract the application path.
-	cout << "argv[0]: " << argv0 << endl;
+	// UG_LOG("argv[0]: " << argv0 << endl);
 	string tPath = argv0;
 	size_t pos = tPath.find_last_of("/");
-	if (pos == string::npos) {
+	if (pos == string::npos)
 		pos = tPath.find_last_of("\\\\");
-	}
-	if (pos != string::npos) { // todo: this could be simply else?
+	if (pos != string::npos)
 		PATHS.APPS = tPath.substr(0, pos);
-	} else {
+	else
 		PATHS.APPS = ".";
-	}
 
 	PATHS.SCRIPTS = PATHS.APPS + "/../scripts";
 
