@@ -509,11 +509,11 @@ order_cuthill_mckee(bool bReverse)
 //	check that numbering is correct
 	if(m_numDoFs % num_fct != 0)
 	{
-		UG_LOG("Cuthill_McKee: Cannot devide number of dofs / num fct. Done.\n");
+		UG_LOG("Cuthill_McKee: Cannot divide number of dofs / num fct. Done.\n");
 		return false;
 	}
 
-//	Adjacend Edges
+//	Adjacent Edges
 	std::vector<EdgeBase*> vEdges;
 
 // 	Grid
@@ -552,7 +552,7 @@ order_cuthill_mckee(bool bReverse)
 			{
 				for(size_t i = 0; i < vEdges[ed]->num_vertices(); ++i)
 				{
-				//	Get Vertices of adjacend edges
+				//	Get Vertices of adjacent edges
 					VertexBase* vrt1 = vEdges[ed]->vertex(i);
 
 				//	skip own vertex
@@ -560,10 +560,14 @@ order_cuthill_mckee(bool bReverse)
 
 				//	get index
 					const int si1 = m_pISubsetHandler->get_subset_index(vrt1);
-					UG_ASSERT(si1 < m_pStorageManager->m_vSubsetInfo.size(),
-					          "Subset Info Vec to small: si1 = " << si1 <<
-					          ", size = " << m_pStorageManager->m_vSubsetInfo.size() << "\n")
-					;
+
+				//	skip iff in no subset
+				//  This can happen, when no subset is set from the beginning or
+				//  even when a surface grid is considered with vertical
+				//	copy nodes.
+					if(si1 < 0) continue;
+
+				//	get adjacent index
 					const size_t adjInd = m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1] / num_fct;
 
 				//	Add vertex to list of vertices
@@ -725,7 +729,7 @@ order_cuthill_mckee(bool bReverse)
 			{
 				for(size_t i = 0; i < vEdges[ed]->num_vertices(); ++i)
 				{
-				//	Get Vertices of adjacend edges
+				//	Get Vertices of adjacent edges
 					VertexBase* vrt1 = vEdges[ed]->vertex(i);
 
 				//	skip own vertex
@@ -733,6 +737,14 @@ order_cuthill_mckee(bool bReverse)
 
 				//	get index
 					const int si1 = m_pISubsetHandler->get_subset_index(vrt1);
+
+				//	skip iff in no subset
+				//  This can happen, when no subset is set from the beginning or
+				//  even when a surface grid is considered with vertical
+				//	copy nodes.
+					if(si1 < 0) continue;
+
+				//	get adjacent index
 					const size_t adjInd = m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1];
 
 				//	Add vertex to list of vertices
@@ -852,3 +864,4 @@ order_cuthill_mckee(bool bReverse)
 
 
 } // end namespace ug
+t
