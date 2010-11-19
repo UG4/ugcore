@@ -13,7 +13,7 @@
 #include "lib_algebra/operator/operator_interface.h"
 #include "lib_discretization/function_spaces/function_spaces.h"
 #include "lib_discretization/operator/operator.h"
-#include "lib_discretization/local_shape_function_set/local_shape_function_set_factory.h"
+#include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
 #include "lib_discretization/spacial_discretization/user_data.h"
 #include <boost/function.hpp>
 
@@ -33,14 +33,14 @@ bool InterpolateFunctionOnElem( boost::function<void (	number& res,
 	LocalShapeFunctionSetID id = u.local_shape_function_set_id(fct);
 
 	const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
-			LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(id);
+			LocalShapeFunctionSetProvider::get_local_shape_function_set<ref_elem_type>(id);
 
 	// get local positions of interpolation points
 	const size_t num_sh = trialSpace.num_sh();
 	std::vector<MathVector<dim> > loc_pos(num_sh);
 	for(size_t i = 0; i < num_sh; ++i)
 	{
-		if(!trialSpace.position_of_dof(i, loc_pos[i]))
+		if(!trialSpace.position(i, loc_pos[i]))
 		{
 			UG_LOG("Chosen Local Shape function Set does not provide "
 					"senseful interpolation points. Can not use Lagrange interpolation.\n");
@@ -269,14 +269,14 @@ class LagrangeInterpolationOperator //: public IOperator<typename ContinuousFunc
 			LocalShapeFunctionSetID id = v.local_shape_function_set_id(m_fct);
 
 			const LocalShapeFunctionSet<ref_elem_type>& trialSpace =
-					LocalShapeFunctionSetFactory::inst().get_local_shape_function_set<ref_elem_type>(id);
+					LocalShapeFunctionSetProvider::get_local_shape_function_set<ref_elem_type>(id);
 
 			// get local positions of interpolation points
 			const size_t num_sh = trialSpace.num_sh();
 			std::vector<MathVector<dim> > loc_pos(num_sh);
 			for(size_t i = 0; i < num_sh; ++i)
 			{
-				if(trialSpace.position_of_dof(i, loc_pos[i]) != true)
+				if(trialSpace.position(i, loc_pos[i]) != true)
 				{
 					UG_LOG("Chosen Local Shape function Set does not provide senseful interpolation points. Can not use Lagrange interpolation.\n");
 					return false;

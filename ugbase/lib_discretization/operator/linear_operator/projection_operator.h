@@ -43,7 +43,7 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace, si
 
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_shape_function_set_id(fct) != LSFS_LAGRANGEP1)
+		if(fineDoFDistr.local_shape_function_set_id(fct) != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
 			{UG_LOG("Interpolation only implemented for Lagrange P1 functions.\n"); return false;}
 
 	// get MultiGrid

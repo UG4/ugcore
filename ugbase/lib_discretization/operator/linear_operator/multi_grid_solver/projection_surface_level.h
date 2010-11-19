@@ -16,10 +16,13 @@ namespace ug{
 template <typename TDoFDistribution, typename TVector>
 struct ProjectionSurfaceLevel
 {
-	static bool surface_to_level(	TVector& levelFunction, const TDoFDistribution& levelDoFDistribution,
-									const TVector& surfaceFunction, const TDoFDistribution& surfaceDoFDistribution)
+	static bool surface_to_level(	TVector& levelFunction,
+	                             	const TDoFDistribution& levelDoFDistribution,
+									const TVector& surfaceFunction,
+									const TDoFDistribution& surfaceDoFDistribution)
 	{
-	//  check if DoFDistributions are equal (i.e. full refinement and surfaceGrid == top of levelGrids)
+	//  check if DoFDistributions are equal
+	//	(i.e. full refinement and surfaceGrid == top of levelGrids)
 		if(&levelDoFDistribution != &surfaceDoFDistribution)
 		{
 			UG_LOG("ERROR in ProjectionSurfaceLevel::surface_to_level(): "
@@ -32,10 +35,13 @@ struct ProjectionSurfaceLevel
 		return true;
 	}
 
-	static bool level_to_surface(	TVector& surfaceFunction, const TDoFDistribution& surfaceDoFDistribution,
-									const TVector& levelFunction, const TDoFDistribution& levelDoFDistribution)
+	static bool level_to_surface(	TVector& surfaceFunction,
+	                             	const TDoFDistribution& surfaceDoFDistribution,
+									const TVector& levelFunction,
+									const TDoFDistribution& levelDoFDistribution)
 	{
-	//  check if DoFDistributions are equal (i.e. full refinement and surfaceGrid == top of levelGrids)
+	//  check if DoFDistributions are equal
+	//	(i.e. full refinement and surfaceGrid == top of levelGrids)
 		if(&levelDoFDistribution != &surfaceDoFDistribution)
 		{
 			UG_LOG("ERROR in ProjectionSurfaceLevel::surface_to_level(): "
