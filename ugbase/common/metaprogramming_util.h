@@ -88,6 +88,44 @@ template <>
 struct TypeValueList< TypeList<> > {};
 
 
+//////////////////////////////
+// Factorial
+//////////////////////////////
+
+/** returns the factorial of n
+ * The struct value is n!
+ */
+template <size_t n>
+struct Factorial
+{
+    enum{value = n*Factorial<n-1>::value};
+};
+
+template <>
+struct Factorial<1>
+{
+    enum {value = 1};
+};
+
+//////////////////////////////
+// BinomialCoefficient
+//////////////////////////////
+/** returns static value of binomial coefficient
+ * The struct value is:
+ *
+ * 	  n!
+ * ---------
+ * k! (n-k)!
+ */
+template <size_t k, size_t n>
+struct BinomialCoefficient
+{
+    enum { value = 	Factorial<n>::value/
+    				(Factorial<k>::value*Factorial<n-k>::value) };
+};
+
+
+
 }
 
 #endif /* __H__COMMON__METAPROGRAMMING_UTIL__ */
