@@ -549,7 +549,7 @@ GaussQuadrature<ReferenceQuadrilateral>::GaussQuadrature(int order)
 }
 
 template <>
-bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceQuadrilateral>& factory)
+bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceQuadrilateral>& factory)
 {
 	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_1(1);
 	static GaussQuadrature<ReferenceQuadrilateral> gaussQuadratureReferenceQuadrilateral_2(2);
@@ -585,8 +585,9 @@ bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceQuadrilateral>& facto
 namespace {
 using namespace ug;
 
+/*
 template <>
-std::vector<const QuadratureRule<ReferenceQuadrilateral>* > QuadratureRuleFactory<ReferenceQuadrilateral>::m_rules =
+std::vector<const QuadratureRule<ReferenceQuadrilateral>* > QuadratureRuleProvider<ReferenceQuadrilateral>::m_rules =
 	std::vector<const QuadratureRule<ReferenceQuadrilateral>* >();
-
+*/
 };

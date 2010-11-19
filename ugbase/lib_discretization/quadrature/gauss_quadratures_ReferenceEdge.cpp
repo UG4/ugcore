@@ -247,7 +247,7 @@ GaussQuadrature<ReferenceEdge>::GaussQuadrature(int order)
 
 
 template <>
-bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceEdge>& factory)
+bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceEdge>& factory)
 {
 	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_1(1);
 	static GaussQuadrature<ReferenceEdge> gaussQuadratureReferenceEdge_3(3);
@@ -278,11 +278,13 @@ bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceEdge>& factory)
 
 }; // namespace ug
 
- // register quadratures at factory
+/*
+// register quadratures at factory
 namespace {
 using namespace ug;
 
 template <>
-std::vector<const QuadratureRule<ReferenceEdge>* > QuadratureRuleFactory<ReferenceEdge>::m_rules =
+std::vector<const QuadratureRule<ReferenceEdge>* > QuadratureRuleProvider<ReferenceEdge>::m_rules =
 	std::vector<const QuadratureRule<ReferenceEdge>* >();
 };
+*/

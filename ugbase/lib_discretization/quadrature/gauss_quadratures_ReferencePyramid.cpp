@@ -59,7 +59,7 @@ GaussQuadrature<ReferencePyramid>::GaussQuadrature(int order)
 }
 
 template <>
-bool RegisterQuadratureRule(QuadratureRuleFactory<ReferencePyramid>& factory)
+bool RegisterQuadratureRule(QuadratureRuleProvider<ReferencePyramid>& factory)
 {
 	static GaussQuadrature<ReferencePyramid> gaussQuadratureReferencePyramid_2(2);
 
@@ -70,12 +70,14 @@ bool RegisterQuadratureRule(QuadratureRuleFactory<ReferencePyramid>& factory)
 
 }; // namespace ug
 
+/*
  // register quadratures at factory
 namespace {
 using namespace ug;
 
 template <>
-std::vector<const QuadratureRule<ReferencePyramid>* > QuadratureRuleFactory<ReferencePyramid>::m_rules =
+std::vector<const QuadratureRule<ReferencePyramid>* > QuadratureRuleProvider<ReferencePyramid>::m_rules =
 	std::vector<const QuadratureRule<ReferencePyramid>* >();
 
 };
+*/

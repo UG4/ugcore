@@ -10,8 +10,9 @@
 
 namespace ug{
 
+// Init static member
 template <typename TRefElem>
-std::vector<const QuadratureRule<TRefElem>*> QuadratureRuleFactory<TRefElem>::m_rules
+std::vector<const QuadratureRule<TRefElem>*> QuadratureRuleProvider<TRefElem>::m_vRule
 	= std::vector<const QuadratureRule<TRefElem>*>();
 
 

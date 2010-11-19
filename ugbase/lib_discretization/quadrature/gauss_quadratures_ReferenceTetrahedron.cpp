@@ -643,7 +643,7 @@ GaussQuadrature<ReferenceTetrahedron>::GaussQuadrature(int order)
 }
 
 template <>
-bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceTetrahedron>& factory)
+bool RegisterQuadratureRule(QuadratureRuleProvider<ReferenceTetrahedron>& factory)
 {
 	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_0(0);
 	static GaussQuadrature<ReferenceTetrahedron> gaussQuadratureReferenceTetrahedron_1(1);
@@ -668,12 +668,14 @@ bool RegisterQuadratureRule(QuadratureRuleFactory<ReferenceTetrahedron>& factory
 
 }; // namespace ug
 
+/*
  // register quadratures at factory
 namespace {
 using namespace ug;
 
 template <>
-std::vector<const QuadratureRule<ReferenceTetrahedron>* > QuadratureRuleFactory<ReferenceTetrahedron>::m_rules =
+std::vector<const QuadratureRule<ReferenceTetrahedron>* > QuadratureRuleProvider<ReferenceTetrahedron>::m_rules =
 	std::vector<const QuadratureRule<ReferenceTetrahedron>* >();
 
 };
+*/

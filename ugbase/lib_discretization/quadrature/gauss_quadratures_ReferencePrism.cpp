@@ -87,7 +87,7 @@ GaussQuadrature<ReferencePrism>::GaussQuadrature(int order)
 }
 
 template <>
-bool RegisterQuadratureRule(QuadratureRuleFactory<ReferencePrism>& factory)
+bool RegisterQuadratureRule(QuadratureRuleProvider<ReferencePrism>& factory)
 {
 	static GaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_0(0);
 	static GaussQuadrature<ReferencePrism> gaussQuadratureReferencePrism_2(2);
@@ -100,11 +100,13 @@ bool RegisterQuadratureRule(QuadratureRuleFactory<ReferencePrism>& factory)
 
 }; // namespace ug
 
+/*
  // register quadratures at factory
 namespace {
 using namespace ug;
 
 template <>
-std::vector<const QuadratureRule<ReferencePrism>* > QuadratureRuleFactory<ReferencePrism>::m_rules =
+std::vector<const QuadratureRule<ReferencePrism>* > QuadratureRuleProvider<ReferencePrism>::m_rules =
 	std::vector<const QuadratureRule<ReferencePrism>* >();
 };
+*/
