@@ -70,8 +70,11 @@ P1ConformFunctionPattern::
 add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
 {
 	// for a P1 dof manager only Lagrange P1 function space is permitted
-	if(id != LSFS_LAGRANGEP1)
-		{UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n"); return false;}
+	if(id != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+	{
+		UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n");
+		return false;
+	}
 
 	return FunctionPattern::add_discrete_function(name, id, dim);
 }
@@ -81,8 +84,11 @@ P1ConformFunctionPattern::
 add_discrete_function(const char* name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim)
 {
 	// for a P1 dof manager only Lagrange P1 function space is permitted
-	if(id != LSFS_LAGRANGEP1)
-		{UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n"); return false;}
+	if(id != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+	{
+		UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n");
+		return false;
+	}
 
 	return FunctionPattern::add_discrete_function(name, id, SubsetIndices, dim);
 }
@@ -479,6 +485,9 @@ bool
 P1ConformDoFDistribution::
 order_cuthill_mckee(bool bReverse)
 {
+	UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
+	UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
+
 	if(num_subsets() == 0)
 	{
 		UG_LOG("Cuthill_McKee: No subsets. Done.\n");
@@ -551,6 +560,10 @@ order_cuthill_mckee(bool bReverse)
 
 				//	get index
 					const int si1 = m_pISubsetHandler->get_subset_index(vrt1);
+					UG_ASSERT(si1 < m_pStorageManager->m_vSubsetInfo.size(),
+					          "Subset Info Vec to small: si1 = " << si1 <<
+					          ", size = " << m_pStorageManager->m_vSubsetInfo.size() << "\n")
+					;
 					const size_t adjInd = m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1] / num_fct;
 
 				//	Add vertex to list of vertices
@@ -670,6 +683,9 @@ bool
 GroupedP1ConformDoFDistribution::
 order_cuthill_mckee(bool bReverse)
 {
+	UG_ASSERT(m_pStorageManager != NULL, "No Storage Manager");
+	UG_ASSERT(m_pISubsetHandler != NULL, "No Subset Handler");
+
 //	Adjacend Edges
 	std::vector<EdgeBase*> vEdges;
 
