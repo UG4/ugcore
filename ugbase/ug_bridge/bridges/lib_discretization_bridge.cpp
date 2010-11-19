@@ -22,6 +22,20 @@ namespace bridge
 // Some global functions
 //////////////////////////////////
 
+void SetDebugLevel(const char* t, int level)
+{
+	std::string tag(t);
+
+	if(tag == "LIB_DISC_MULTIGRID")
+	{
+		UG_SET_DEBUG_LEVEL(LIB_DISC_MULTIGRID, level);
+	}
+	else
+	{
+		UG_LOG("In SetDebugLevel: Tag '" << tag << "'not found.\n");
+	}
+}
+
 template <typename TDomain>
 bool DistributeDomain(TDomain& domainOut)
 {
@@ -231,7 +245,23 @@ bool SaveDomain(TDomain& domain, const char* filename)
 		return false;
 	}
 
-	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), filename);
+	std::string name(filename);
+
+#ifdef UG_PARALLEL
+//	search for ending
+	size_t found = name.find_first_of(".");
+
+//	remove endings
+	name.resize(found);
+
+//	add new ending, containing process number
+	int rank = pcl::GetProcRank();
+	char ext[20];
+	sprintf(ext, "_p%04d.ugx", rank);
+	name.append(ext);
+#endif
+
+	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), name.c_str());
 }
 
 bool AddP1Function(P1ConformFunctionPattern& pattern, const char* name, int dim)
@@ -1140,6 +1170,9 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 
 	//  Add discrete function to pattern
 		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
+
+	//  Debug function
+		reg.add_function("SetDebugLevel", &SetDebugLevel, grp.c_str());
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
