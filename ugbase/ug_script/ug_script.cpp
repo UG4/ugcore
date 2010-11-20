@@ -51,12 +51,6 @@ bool FileExists(const char* filename)
 	return false;
 }
 
-/// checks if given file exists.
-bool FileExists(const std::string& filename) {
-	return FileExists(filename.c_str());
-}
-
-
 static ug::bridge::Registry* g_pRegistry = NULL;
 
 static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)

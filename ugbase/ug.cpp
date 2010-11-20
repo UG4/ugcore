@@ -47,9 +47,11 @@ static bool InitPaths(const char* argv0) {
 			endl << "script path set to: " << PATHS.SCRIPTS <<
 			endl << "data path set to: " << PATHS.DATA << endl);
 
-	//	if(!script::FileExists(PATHS.APPS) || !script::FileExists(PATHS.SCRIPTS) || !script::FileExists(PATHS.DATA) )  {
-	//		return false;
-	//	}
+	if(!script::FileExists(PATHS.APPS.c_str()) ||
+			!script::FileExists(PATHS.SCRIPTS.c_str()) ||
+			!script::FileExists(PATHS.DATA.c_str()))  {
+		return false;
+	}
 
 	return true;
 }
