@@ -279,6 +279,19 @@ template <class vector_t>
 bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 						const vector_t& boxMin, const vector_t& boxMax);
 
+
+////////////////////////////////////////////////////////////////////////
+//	TriangleTriangleIntersection
+///	checks whether two triangles intersect and returns the intervals, if they do.
+/**	Uses code by Tomas Moller.
+ * See article "A Fast Triangle-Triangle Intersection Test",
+ * Journal of Graphics Tools, 2(2), 1997
+ */
+bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
+								  const MathVector<3>& p2, const MathVector<3>& q0,
+								  const MathVector<3>& q1, const MathVector<3>& q2,
+								  vector2& intervalOut);
+
 ////////////////////////////////////////////////////////////////////////
 //	TriBoxIntersection
 //	opposed to most of the other methods here, TriBoxIntersection is not

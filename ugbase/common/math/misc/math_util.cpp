@@ -55,7 +55,7 @@ bool ConstructOrthonormalSystem(matrix33& matOut, const vector3& v,
 		return false;
 		
 //	calculate the last col
-	VecCross(newCols[1], newCols[0], n);
+	VecCross(newCols[1], n, newCols[0]);
 	
 //	copy cols to matOut
 	int nColCount = 0;
