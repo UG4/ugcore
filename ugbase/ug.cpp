@@ -48,8 +48,8 @@ static bool InitPaths(const char* argv0) {
 			endl << "data path set to: " << PATHS.DATA << endl);
 
 	if(!script::FileExists(PATHS.APPS.c_str()) ||
-			!script::FileExists(PATHS.SCRIPTS.c_str()) ||
-			!script::FileExists(PATHS.DATA.c_str()))  {
+	   !script::FileExists(PATHS.SCRIPTS.c_str()) ||
+	   !script::FileExists(PATHS.DATA.c_str())) {
 		return false;
 	}
 
@@ -92,11 +92,6 @@ const std::string& UGGetApplicationPath() {
 /// returns the ug script path
 const std::string& UGGetScriptPath()
 {
-	if (PATHS.SCRIPTS.length() == 0)
-	{
-		LOG("PATHS.SCRIPTS.length() == 0?");
-	}
-	//LOG("returning script path with value: " << PATHS.SCRIPTS << endl);
 	return PATHS.SCRIPTS;
 }
 
