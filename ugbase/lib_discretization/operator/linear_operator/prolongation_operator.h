@@ -15,7 +15,7 @@
 #include "common/common.h"
 #include "lib_grid/lg_base.h"
 #include "lib_algebra/operator/operator_interface.h"
-#include "lib_discretization/spacial_discretization/post_process/post_process_interface.h"
+#include "lib_discretization/spatial_discretization/post_process/post_process_interface.h"
 
 #ifdef UG_PARALLEL
 #include "lib_discretization/parallelization/parallelization_util.h"

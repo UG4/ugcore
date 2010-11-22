@@ -14,7 +14,7 @@
 #include "lib_discretization/function_spaces/function_spaces.h"
 #include "lib_discretization/operator/operator.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
-#include "lib_discretization/spacial_discretization/user_data.h"
+#include "lib_discretization/spatial_discretization/user_data.h"
 #include <boost/function.hpp>
 
 namespace ug{

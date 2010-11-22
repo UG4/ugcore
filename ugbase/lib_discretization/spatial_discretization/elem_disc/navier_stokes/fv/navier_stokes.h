@@ -14,11 +14,11 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/spacial_discretization/disc_helper/disc_helper.h"
-#include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
-#include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
+#include "lib_discretization/spatial_discretization/disc_helper/disc_helper.h"
+#include "lib_discretization/spatial_discretization/disc_helper/fvgeom.h"
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/spacial_discretization/user_data.h"
+#include "lib_discretization/spatial_discretization/user_data.h"
 
 namespace ug{
 

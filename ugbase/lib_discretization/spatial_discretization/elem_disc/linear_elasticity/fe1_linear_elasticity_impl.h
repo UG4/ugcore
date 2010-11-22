@@ -9,7 +9,7 @@
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__LINEAR_ELASTICITY__FE1_LINEAR_ELASTICITY_IMPL__
 
 #include "fe1_linear_elasticity.h"
-#include "lib_discretization/spacial_discretization/disc_helper/finite_element_geometry.h"
+#include "lib_discretization/spatial_discretization/disc_helper/finite_element_geometry.h"
 
 namespace ug{
 

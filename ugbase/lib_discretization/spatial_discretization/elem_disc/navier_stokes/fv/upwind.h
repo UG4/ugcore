@@ -11,7 +11,7 @@
 // other ug4 modules
 #include "common/common.h"
 #include "lib_discretization/common/geometry_util.h"
-#include "lib_discretization/spacial_discretization/disc_helper/upwind_shapes.h"
+#include "lib_discretization/spatial_discretization/disc_helper/upwind_shapes.h"
 
 namespace ug{
 

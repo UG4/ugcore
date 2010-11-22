@@ -8,7 +8,7 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
+#include "lib_discretization/spatial_discretization/disc_helper/fvgeom.h"
 
 #include "../coupled_elem_disc_interface.h"
 #include "../elem_data/element_data.h"

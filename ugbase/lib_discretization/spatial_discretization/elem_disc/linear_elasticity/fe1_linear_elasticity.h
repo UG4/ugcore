@@ -1,12 +1,12 @@
 /*
- * convection_diffusion.h
+ * linear_elasticity.h
  *
- *  Created on: 02.08.2010
+ *  Created on: 05.08.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__CONVECTION_DIFFUSION__FE1__CONVECTION_DIFFUSION__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__CONVECTION_DIFFUSION__FE1__CONVECTION_DIFFUSION__
+#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__LINEAR_ELASTICITY__FE1_LINEAR_ELASTICITY__
+#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__LINEAR_ELASTICITY__FE1_LINEAR_ELASTICITY__
 
 // other ug4 modules
 #include "common/common.h"
@@ -14,15 +14,15 @@
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers
-#include "lib_discretization/spacial_discretization/disc_helper/fvgeom.h"
-#include "lib_discretization/spacial_discretization/elem_disc/elem_disc_interface.h"
+#include "lib_discretization/spatial_discretization/disc_helper/fvgeom.h"
+#include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
 
 namespace ug{
 
 
 template<typename TDomain, typename TAlgebra>
-class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
+class FE1LinearElasticityElemDisc : public IElemDisc<TAlgebra>
 {
 	public:
 		// domain type
@@ -38,26 +38,22 @@ class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		typedef TAlgebra algebra_type;
 
 		// local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type> local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::entry_type> local_matrix_type;
 
 		// local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::entry_type> local_vector_type;
 
 		// local index type
 		//typedef typename algebra_type::vector_type::local_index_type local_index_type;
 		typedef LocalIndices local_index_type;
 
 	protected:
-		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
-		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
-		typedef void (*Reaction_fct)(number&, const position_type&, number);
-		typedef void (*Rhs_fct)(number&, const position_type&, number);
+		typedef void (*Elasticity_Tensor_fct)(MathTensor<4,dim>&);
 
 	public:
-		FE1ConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
-									Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs);
+		FE1LinearElasticityElemDisc(TDomain& domain, Elasticity_Tensor_fct elast);
 
-		virtual size_t num_fct(){return 1;}
+		virtual size_t num_fct(){return dim;}
 
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct)
 		{
@@ -97,17 +93,9 @@ class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		position_type* m_corners;
 		typename TDomain::position_accessor_type m_aaPos;
 
-		// to make it more readable
-		static const size_t _C_ = 0;
-
-		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwind_amount;
-
 		// User functions
-		Diff_Tensor_fct m_Diff_Tensor;
-		Conv_Vel_fct m_Conv_Vel;
-		Reaction_fct m_Reaction;
-		Rhs_fct m_Rhs;
+		Elasticity_Tensor_fct m_ElasticityTensorFct;
+		MathTensor<4, dim> m_ElasticityTensor;
 
 	private:
 		///////////////////////////////////////
@@ -151,20 +139,20 @@ class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_prepare_element_loop_function(	id, &FE1ConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &FE1ConvectionDiffusionElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &FE1ConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_f<TElem>);
+			register_prepare_element_loop_function(	id, &FE1LinearElasticityElemDisc::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &FE1LinearElasticityElemDisc::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &FE1LinearElasticityElemDisc::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &FE1LinearElasticityElemDisc::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &FE1LinearElasticityElemDisc::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &FE1LinearElasticityElemDisc::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &FE1LinearElasticityElemDisc::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &FE1LinearElasticityElemDisc::template assemble_f<TElem>);
 		}
 
 };
 
 }
 
-#include "fe1_convection_diffusion_impl.h"
+#include "fe1_linear_elasticity_impl.h"
 
-#endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__CONVECTION_DIFFUSION__FE1__CONVECTION_DIFFUSION__*/
+#endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__LINEAR_ELASTICITY__FE1_LINEAR_ELASTICITY__*/
