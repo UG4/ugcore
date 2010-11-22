@@ -43,7 +43,7 @@ static bool InitPaths(const char* argv0) {
 	PATHS.DATA = string(PATHS.APPS);
 	PATHS.DATA.append("/../data");
 
-	LOG("app path set to: " << PATHS.APPS <<
+	UG_DLOG(MAIN, 0, "app path set to: " << PATHS.APPS <<
 			endl << "script path set to: " << PATHS.SCRIPTS <<
 			endl << "data path set to: " << PATHS.DATA << endl);
 
