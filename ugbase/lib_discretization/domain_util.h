@@ -1,4 +1,4 @@
-//	created by Sebastian Reiter
+//	created by Sebastian Reiter, Andreas Vogel
 //	s.b.reiter@googlemail.com
 //	y10 m06 d30
 
@@ -16,9 +16,17 @@
 
 namespace ug{
 
+/// \ingroup lib_disc_domain
+/// @{
+
 ////////////////////////////////////////////////////////////////////////
 ///	creates a domain from a grid-file and distributes it over multiple processes.
 /** After the grid is loaded it will be distributed to the specified processes.
+ *
+ *	\param domainOut	prepared Domain
+ *	\param shTopViewOut	prepared Surface View
+ *	\param filename		File to reas Domain from
+ *	\param numProcs		number of processes
  *
  *	\param keepSrcGrid: If set to true a copy of the whole grid
  *		(including pre-refinement) will be kept on process 0.
@@ -29,6 +37,9 @@ namespace ug{
  *
  *	\param numPostRefinements: you may specify the amount of refinement
  *		performed after the grid was distributed.
+ *
+ *	\param writeProcessGrids: specify if distributed grids should be written
+ *		to file
  *
  *	\param autoAssignInnerObjectsToSubset, autoAssignBoundaryObjectsToSubset:
  *		if both are > -2, inner and boundary elements will automatically be
@@ -59,7 +70,7 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
  * \param[in]	si			Subset Index
  *
  * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessable
+ * 				-1 			if no Dimension accessible
  */
 inline int DimensionOfSubset(const SubsetHandler& sh, int si);
 
@@ -74,7 +85,7 @@ inline int DimensionOfSubset(const SubsetHandler& sh, int si);
  * \param[in]	si			Subset Index
  *
  * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessable
+ * 				-1 			if no Dimension accessible
  */
 inline int DimensionOfSubset(const MGSubsetHandler& sh, int si);
 
@@ -89,7 +100,7 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si);
  * \param[in]	si			Subset Index
  *
  * \return		dimension	Dimension of Subset
- * 				-1 			if no Dimension accessable
+ * 				-1 			if no Dimension accessible
  */
 template <typename TDomain>
 inline int DimensionOfSubset(const TDomain& domain, int si);
@@ -101,13 +112,15 @@ inline int DimensionOfSubset(const TDomain& domain, int si);
  * This function collects the corner coordinates for a given geometric object
  * in the order prescribed by the reference elements
  *
+ * \param[out]	vCornerCoordsOut	vector of corner coordinates
  * \param[in] 	elem				Geometric Object
  * \param[in] 	aaPos				AttachmentAccessor for Positions
- * \param[out]	vCornerCoordsOut	vector of corner coordinates
+ * \param[in]	clearContainer		empty container before filling
  */
 template <typename TElem, typename TAAPos>
 void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerCoordsOut,
-								const TElem& elem, const TAAPos& aaPos, bool clearContainer = true);
+								const TElem& elem, const TAAPos& aaPos,
+								bool clearContainer = true);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -117,13 +130,15 @@ void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerC
  * This function collects the corner coordinates for a given geometric object
  * in the order prescribed by the reference elements
  *
+ * \param[out]	vCornerCoordsOut	vector of corner coordinates
  * \param[in] 	elem				Geometric Object
  * \param[in] 	domain				Domain
- * \param[out]	vCornerCoordsOut	vector of corner coordinates
+ * \param[in]	clearContainer		empty container before filling
  */
 template <typename TElem, typename TDomain>
 void CollectCornerCoordinates(	std::vector<typename TDomain::position_type>& vCornerCoordsOut,
-								const TElem& elem, const TDomain& domain, bool clearContainer = true);
+								const TElem& elem, const TDomain& domain,
+								bool clearContainer = true);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the size of a geometric object
@@ -136,7 +151,8 @@ void CollectCornerCoordinates(	std::vector<typename TDomain::position_type>& vCo
  * \return 		number				Size of Element
  */
 template <typename TElem, typename TPosition>
-number ElementSize(const TElem& elem, const Grid::VertexAttachmentAccessor<Attachment<TPosition> >& aaPos);
+number ElementSize(const TElem& elem,
+                   const Grid::VertexAttachmentAccessor<Attachment<TPosition> >& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns the size of a geometric object
@@ -166,6 +182,8 @@ template <typename TDomain>
 bool WriteDomainToUGX(const char* filename, const TDomain& domain);
 
 } // end namespace ug
+
+/// @}
 
 ////////////////////////////////
 //	include implementation

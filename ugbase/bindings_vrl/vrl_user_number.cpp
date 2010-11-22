@@ -15,10 +15,10 @@ namespace ug {
 	namespace vrl {
 
 		template <int dim>
-		class VRLUserNumber : public IUserNumberProvider<dim> {
+		class VRLUserNumber : public IUserNumber<dim> {
 		public:
 			//	Functor Type
-			typedef typename IUserNumberProvider<dim>::functor_type functor_type;
+			typedef typename IUserNumber<dim>::functor_type functor_type;
 
 			//	return functor
 
@@ -146,7 +146,7 @@ namespace ug {
 				typedef VRLUserNumber<dim> T;
 				std::stringstream ss;
 				ss << "VRLUserNumber" << dim << "d";
-				reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
+				reg.add_class_<T, IUserNumber<dim> >(ss.str().c_str(), grp.c_str())
 						.add_constructor()
 						.add_method("set_vrl_callback", &T::set_vrl_callback);
 			}

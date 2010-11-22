@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__
+#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__
+#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__
 
 #include "domain_discretization_impl.h"
 #include "lib_discretization/common/groups_util.h"
@@ -25,7 +25,8 @@ namespace ug{
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr)
+assemble_jacobian(matrix_type& J, const vector_type& u,
+                  const dof_distribution_type& dofDistr)
 {
 //	assemble normal element discretizations
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -69,7 +70,8 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr) != IAssemble_OK)
+			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr)
+					!= IAssemble_OK)
 				return IAssemble_ERROR;
 		}
 	}
@@ -85,7 +87,8 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr)
+assemble_defect(vector_type& d, const vector_type& u,
+                const dof_distribution_type& dofDistr)
 {
 //	assemble normal element discretizations
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -128,7 +131,8 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr) != IAssemble_OK)
+			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr)
+					!= IAssemble_OK)
 				return IAssemble_ERROR;
 		}
 	}
@@ -143,7 +147,8 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr)
+assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
+                const dof_distribution_type& dofDistr)
 {
 //	assemble normal element discretizations
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -186,7 +191,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const 
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr) != IAssemble_OK)
+			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr)
+					!= IAssemble_OK)
 				return IAssemble_ERROR;
 		}
 	}
@@ -206,7 +212,8 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 //	post process dirichlet
 	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
 	{
-		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr) != IAssemble_OK)
+		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr)
+				!= IAssemble_OK)
 			return IAssemble_ERROR;
 	}
 
@@ -226,8 +233,9 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr,
-									number time, number s_m, number s_a)
+assemble_jacobian(matrix_type& J, const vector_type& u,
+                  const dof_distribution_type& dofDistr,
+                  number time, number s_m, number s_a)
 {
 //	assemble normal element discretizations
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -270,7 +278,8 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr, time) != IAssemble_OK)
+			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr, time)
+					!= IAssemble_OK)
 				return IAssemble_ERROR;
 		}
 	}
@@ -285,8 +294,9 @@ assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_t
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr,
-								number time, number s_m, number s_a)
+assemble_defect(vector_type& d, const vector_type& u,
+                const dof_distribution_type& dofDistr,
+                number time, number s_m, number s_a)
 {
 //	assemble normal element discretizations
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -329,7 +339,8 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr, time) != IAssemble_OK)
+			if(m_vvPostProcess[type][i]->post_process_defect(d, u, dofDistr, time)
+					!= IAssemble_OK)
 				return IAssemble_ERROR;
 		}
 	}
@@ -344,8 +355,9 @@ assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_typ
 template <typename TDoFDistribution, typename TAlgebra>
 IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr,
-								number time, number s_m, number s_a)
+assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
+                const dof_distribution_type& dofDistr,
+                number time, number s_m, number s_a)
 {
 //	assemble normal element discretizations
 	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
@@ -388,7 +400,8 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const 
 	{
 		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
 		{
-			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr, time) != IAssemble_OK)
+			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr, time)
+					!= IAssemble_OK)
 				return IAssemble_ERROR;
 		}
 	}
@@ -408,7 +421,8 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number 
 //	post process
 	for(size_t i = 0; i < m_vvPostProcess[PPT_DIRICHLET].size(); ++i)
 	{
-		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr, time) != IAssemble_OK)
+		if(m_vvPostProcess[PPT_DIRICHLET][i]->post_process_solution(u, dofDistr, time)
+				!= IAssemble_OK)
 			return IAssemble_ERROR;
 	}
 
@@ -428,13 +442,16 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number 
 template <typename TDoFDistribution, typename TAlgebra>
 bool
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionGroup& functionGroup, const SubsetGroup& subsetGroup)
+add(CoupledSystem<TAlgebra>& coupledSystem,
+    const FunctionGroup& functionGroup,
+    const SubsetGroup& subsetGroup)
 {
 // 	check if number of functions match
 	if(coupledSystem.num_fct() != functionGroup.num_fct())
 	{
-		UG_LOG("Wrong number of local functions given for Elemet Discretization.\n");
-		UG_LOG("Needed: " << coupledSystem.num_fct() << ", given: " << functionGroup.num_fct() << ".\n");
+		UG_LOG("Wrong number of local functions for Elemet Discretization.\n");
+		UG_LOG("Needed: " << coupledSystem.num_fct() << ", given: "
+		       	  << functionGroup.num_fct() << ".\n");
 		UG_LOG("Cannot add element discretization.\n");
 		return false;
 	}
@@ -445,7 +462,8 @@ add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionGroup& functionGroup, 
 		if(coupledSystem.local_shape_function_set_id(functionGroup[i]) !=
 				functionGroup.local_shape_function_set_id(i))
 		{
-			UG_LOG("Function " << functionGroup.get_function_name(i) << " has wrong Shape Function.\n");
+			UG_LOG("Function " << functionGroup.get_function_name(i)
+			       << " has wrong Shape Function.\n");
 			UG_LOG("Solution does not match requirements of discretization.\n");
 			return false;
 		}
@@ -472,7 +490,8 @@ add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionGroup& functionGroup, 
 //	check that dimension of subsets and dimension of function group is equal
 	if(dim != dim_functions)
 	{
-		UG_LOG("Dimension of Function Group and dimension of subset group does not match.\n");
+		UG_LOG("Dimension of Function Group and dimension "
+				"of subset group does not match.\n");
 		return false;
 	}
 
@@ -487,7 +506,8 @@ add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionGroup& functionGroup, 
 template <typename TDoFDistribution, typename TAlgebra>
 bool
 DomainDiscretization<TDoFDistribution, TAlgebra>::
-add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionPattern& pattern, const char* functions, const char* subsets)
+add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionPattern& pattern,
+    const char* functions, const char* subsets)
 {
 //	create Function Group and Subset Group
 	FunctionGroup functionGroup;
@@ -511,4 +531,4 @@ add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionPattern& pattern, cons
 
 }
 
-#endif /*__H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__*/
+#endif /*__H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DOMAIN_DISCRETIZATION__IMPL__*/

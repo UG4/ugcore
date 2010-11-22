@@ -1,12 +1,25 @@
 /*
- * spacial_discretization.h
+ * spatial_discretization.h
  *
  *  Created on: 29.06.2010
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
+#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
+#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
+
+///////////////////////////////////////////////////////////////
+// This file is intended to include all spatial discretizations
+///////////////////////////////////////////////////////////////
+
+/**
+ * \brief Domain Discretization.
+ *
+ *	Provides the domain discretization interface and special implementations.
+ *
+ * \defgroup lib_disc_domain_assemble Domain Assembling
+ * \ingroup lib_disc_assemble
+ */
 
 // user data
 #include "./user_data.h"
@@ -29,4 +42,4 @@
 // disc helper
 #include "./disc_helper/disc_helper.h"
 
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__ */

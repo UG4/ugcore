@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__TIME_DISRETIZATION__TIME_DISCRETIZATION_INTERFACE__
-#define __H__LIB_DISCRETIZATION__TIME_DISRETIZATION__TIME_DISCRETIZATION_INTERFACE__
+#ifndef __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__
+#define __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__
 
 // extern libraries
 #include <deque>
@@ -14,24 +14,31 @@
 // other ug libraries
 #include "common/common.h"
 
-// modul intern libraries
+// module intern libraries
+#include "lib_discretization/assemble.h"
 #include "lib_discretization/spacial_discretization/domain_discretization_interface.h"
 
 namespace ug{
 
+/// \ingroup lib_disc_time_assemble
+/// @{
 
 /// Time Discretization Interface
 /**
- * implements the time discretization.
+ * Defines the time discretization interface.
  *
- * This class uses a ISpacialDiscratization in order to implement the IAssemble interface.
+ * This class uses a ISpatialDiscratization in order to implement the
+ * IAssemble interface.
  *
  * After the method prepare step has been called, Jacobian/Defect can be computed.
- *
+ * \tparam 	TDoFDistribution	DoF Distribution Type
+ * \tparam	TAlgebra			Algebra Type
  */
 template <	typename TDoFDistribution,
 			typename TAlgebra>
-class ITimeDiscretization : public IAssemble<TDoFDistribution, TAlgebra> {
+class ITimeDiscretization
+	: public IAssemble<TDoFDistribution, TAlgebra>
+{
 	public:
 	//	DoF Distribution type
 		typedef TDoFDistribution dof_distribution_type;
@@ -42,46 +49,64 @@ class ITimeDiscretization : public IAssemble<TDoFDistribution, TAlgebra> {
 	//	Vector type
 		typedef typename algebra_type::vector_type vector_type;
 
-	public:
-		/// constructor
-		/**
-		 * \param[in] isd	SpacialDiscretization
-		 */
-		ITimeDiscretization() : m_dd(NULL)	{}
+	// 	Domain Discretization type
+		typedef IDomainDiscretization<dof_distribution_type, algebra_type>
+			domain_discretization_type;
 
-		/// constructor
-		/**
-		 * \param[in] isd	SpacialDiscretization
-		 */
-		ITimeDiscretization(IDomainDiscretization<dof_distribution_type, algebra_type>& dd) : m_dd(&dd)
+	public:
+	/// Default constructor
+	/**
+	 * Creates an empty Time Discretization. In order to use this class a
+	 * spatial Discretization has to be set.
+	 */
+		ITimeDiscretization()
+			: m_pDomDisc(NULL)	{}
+
+	/// create and set domain discretization
+	/**
+	 * \param[in] 	dd	Domain Discretization
+	 */
+		ITimeDiscretization(domain_discretization_type& dd)
+			: m_pDomDisc(&dd)
 		{}
 
-		void set_domain_discretization(IDomainDiscretization<dof_distribution_type, algebra_type>& dd) {m_dd = &dd;}
+	///	set the domain discretization
+		void set_domain_discretization(domain_discretization_type& dd)
+		{
+			m_pDomDisc = &dd;
+		}
 
-		IDomainDiscretization<dof_distribution_type, algebra_type>* get_domain_discretization() {return m_dd;}
+	///	get the domain discretization
+		domain_discretization_type* get_domain_discretization()
+		{
+			return m_pDomDisc;
+		}
 
-		/// prepares the assembling of Defect/Jacobian (resp. Jacobian/rhs) for a time - dependent and nonlinear (resp. linear) problem
-		/**
-		 *	This function supplies the TimeDiscretization with previous time steps and step size before the assembling routines
-		 *	can be called.
-		 *
-		 * \param[in] u_old 	a std::vector containing the solution at the previous time steps
-		 * \param[in] time_old	a std::vector containing the time at the previous time steps
-		 * \param[in] dt		size of time step
-		 */
-		virtual bool prepare_step(std::deque<vector_type*>& u_old, std::deque<number>& time_old, number dt) = 0;
+	/// prepares the assembling of Defect/Jacobian for a time step
+	/**
+	 *	This function supplies the TimeDiscretization with previous time
+	 *	steps and step size before the assembling routines can be called.
+	 *
+	 * \param[in] u_old 	the solution at the previous time steps
+	 * \param[in] time_old	the time at the previous time steps
+	 * \param[in] dt		size of time step
+	 */
+		virtual bool prepare_step(std::deque<vector_type*>& u_old,
+		                          std::deque<number>& time_old,
+		                          number dt) = 0;
 
-		// returns number of previous time steps needed (i.e. size of deque for time_old and u_old)
+	/// returns number of previous time steps needed
 		virtual size_t num_prev_steps() = 0;
 
-		// todo: remove these two functions
-		size_t num_fct() const{return m_dd->num_fct();}
+		// todo: Remove
+		size_t num_fct() const{return m_pDomDisc->num_fct();}
 
 	protected:
-		IDomainDiscretization<dof_distribution_type, algebra_type>* m_dd;
-
+		domain_discretization_type* m_pDomDisc; ///< Domain Discretization
 };
+
+/// @}
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__TIME_DISRETIZATION__TIME_DISCRETIZATION_INTERFACE__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__TIME_DISCRETIZATION_INTERFACE__ */

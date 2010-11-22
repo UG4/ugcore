@@ -13,11 +13,11 @@ namespace bridge
 {
 
 template <int dim>
-class LuaUserVector : public IUserVectorProvider<dim>
+class LuaUserVector : public IUserVector<dim>
 {
 	public:
 	//	Functor Type
-		typedef typename IUserVectorProvider<dim>::functor_type functor_type;
+		typedef typename IUserVector<dim>::functor_type functor_type;
 
 	//	return functor
 		virtual functor_type get_functor() const {return *this;}
@@ -71,7 +71,7 @@ void RegisterLuaUserVector(Registry& reg, const char* parentGroup)
 	{
 		typedef LuaUserVector<dim> T;
 		std::stringstream ss; ss << "LuaUserVector" << dim << "d";
-		reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserVector<dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback);
 	}

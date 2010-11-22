@@ -5,113 +5,149 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__DOMAIN__
-#define __H__LIBDISCRETIZATION__DOMAIN__
+#ifndef __H__UG__LIB_DISCRETIZATION__DOMAIN__
+#define __H__UG__LIB_DISCRETIZATION__DOMAIN__
 
 #include "lib_grid/lg_base.h"
 
 namespace ug{
 
-//	predeclarations
-class DistributedGridManager;
-
 /**
+ * Domain
  *
- * A Domain collects and exports relevant informations about the
- * physical domain, that will be discretized. It will be used as
- * a template Parameter in several classes to destinguish at compile-time
- * between needed types and parameters.
- *
- * An Implementation of the Domain interface has to fulfill the following requirements:
- *
- * const static int dim = ...
- * typedef ... position_type
- * typedef ... position_attachment_type
- * typedef ... position_accessor_type
- *
- * [ may be extended in future ]
- *
+ * \defgroup lib_disc_domain Domain
  */
 
+/// \ingroup lib_disc_domain
+/// @{
 
+//	predeclaration for parallel case
+class DistributedGridManager;
 
+/// describes physical domain
+/**
+ * A Domain collects and exports relevant informations about the
+ * physical domain, that is intended to be discretized. It will be used as
+ * a template Parameter in several classes to distinguish at compile-time
+ * between needed types and parameters. It mainly has a grid and a subset
+ * handler for the grid to define different physical subsets. In addition
+ * to a grid, that may only contain topological informations a domain always
+ * has a Position Attachment holding the physical coodinates.
+ * \tparam	d				World Dimension
+ * \tparam	TGrid			Grid type
+ * \tparam	TSubsetHandler	Subset Handler type
+ */
 template <int d, typename TGrid, typename TSubsetHandler>
 class Domain {
 	public:
-		// world dimension
+	// 	World dimension
 		static const int dim = d;
 
-		// type of position coordinates (e.g. MathVector<dim>)
+	// 	Type of position coordinates
 		typedef MathVector<dim> position_type;
 
-		// grid type
+	// 	Grid type
 		typedef TGrid grid_type;
 
-		// subset handler type
+	// 	Subset Handler type
 		typedef TSubsetHandler subset_handler_type;
 
-		// type of position attachement (since spacial positions of vertices are attached to the topological grid)
+	// 	Type of Position Attachment
 		typedef Attachment<position_type> position_attachment_type;
 
-		// type of accessor to the position data attachement
-		typedef Grid::VertexAttachmentAccessor<position_attachment_type> position_accessor_type;
+	// 	Type of Accessor to the Position Data Attachment
+		typedef Grid::VertexAttachmentAccessor<position_attachment_type>
+					position_accessor_type;
 
+	//	Distributed Grid Manager (for parallel case)
 		typedef DistributedGridManager distributed_grid_manager_type;
 
 	public:
+	///	Default constructor
+	/**
+	 * creates an empty domain. Grid and Subset Handler are set up. The
+	 * Distributed Grid Manager is set in the parallel case.
+	 * \param[in]	options		Grid Options (optinal)
+	 */
 		Domain(uint options = GRIDOPT_STANDARD_INTERCONNECTION) :
 			m_grid(options), m_sh(m_grid), m_distGridMgr(NULL)
 			{
+			//	get position attachment
 				m_aPos = GetDefaultPositionAttachment<position_attachment_type>();
 
-				// let position accessor access Vertex Coordinates
+			// 	let position accessor access Vertex Coordinates
 				if(!m_grid.template has_attachment<VertexBase>(m_aPos))
 					m_grid.template attach_to<VertexBase>(m_aPos);
-
 				m_aaPos.access(m_grid, m_aPos);
 
 #ifdef UG_PARALLEL
+			//	create Distributed Grid Manager
 				m_distGridMgr = new DistributedGridManager(m_grid);
 #endif
 			}
 
+	///	Destructor
 		~Domain()
 		{
 			if(m_distGridMgr)
 				delete m_distGridMgr;
 		}
 
-		inline int get_dim()	{return dim;}
+	///	World Dimension
+		inline int get_dim() const {return dim;}
 		
+	///	get grid
 		inline TGrid& get_grid() {return m_grid;};
+
+	///	const access to Grid
 		inline const TGrid& get_grid() const {return m_grid;};
 
+	///	get Subset Handler
 		inline TSubsetHandler& get_subset_handler() {return m_sh;};
+
+	///	const access to Subset Handler
 		inline const TSubsetHandler& get_subset_handler() const {return m_sh;};
 
-		inline int get_dim() const {return d;};
+	///	get Position Attachment
+		inline position_attachment_type& get_position_attachment()
+		{
+			return m_aPos;
+		}
 
-		inline position_attachment_type& get_position_attachment() {return m_aPos;};
-		inline const position_attachment_type& get_position_attachment() const {return m_aPos;};
+	///	const access to Position Attachment
+		inline const position_attachment_type& get_position_attachment() const
+		{
+			return m_aPos;
+		}
 
-		inline position_accessor_type& get_position_accessor() {return m_aaPos;};
-		inline const position_accessor_type& get_position_accessor() const {return m_aaPos;};
+	///	get Position Accessor
+		inline position_accessor_type& get_position_accessor() {return m_aaPos;}
 
-		inline DistributedGridManager* get_distributed_grid_manager()	{return m_distGridMgr;}
+	///	const access to Position Accessor
+		inline const position_accessor_type& get_position_accessor() const
+		{
+			return m_aaPos;
+		}
+
+	///	get Distributed Grid Manager
+		inline DistributedGridManager* get_distributed_grid_manager()
+		{
+			return m_distGridMgr;
+		}
 
 	protected:
-		TGrid m_grid;
+		TGrid m_grid;			///< Grid
+		TSubsetHandler m_sh;	///< Subset Handler
 
-		TSubsetHandler m_sh;
-
-		position_attachment_type m_aPos;
-		position_accessor_type m_aaPos;
+		position_attachment_type m_aPos;	///<Position Attachment
+		position_accessor_type m_aaPos;		///<Accessor
 
 	//	for parallelization only
-		DistributedGridManager*	m_distGridMgr;
+		DistributedGridManager*	m_distGridMgr;	///< Parallel Grid Manager
 };
 
 } // end namespace ug
 
+/// @}
 
 #endif /* __H__LIBDISCRETIZATION__DOMAIN__ */

@@ -61,8 +61,7 @@ inline int DimensionOfSubset(const TDomain& domain, int si)
 	return DimensionOfSubset(sh, si);
 }
 
-////////////////////////////////////////////////////////////////////////
-///	returns the corner coordinates of a geometric object
+//	returns the corner coordinates of a geometric object
 template <typename TElem, typename TAAPos>
 void CollectCornerCoordinates(	std::vector<typename TAAPos::ValueType>& vCornerCoordsOut,
 								const TElem& elem, const TAAPos& aaPos, bool clearContainer)
@@ -126,9 +125,7 @@ number ElementSize(const TElem& elem, const TDomain& domain)
 	return ElementSize(elem, aaPos);
 }
 
-
-////////////////////////////////////////////////////////////////////////
-/// writes domain to *.ugx file
+// writes domain to *.ugx file
 template <typename TDomain>
 bool WriteDomainToUGX(const char* filename, const TDomain& domain)
 {

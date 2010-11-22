@@ -159,11 +159,11 @@ bool InterpolateFunctionHelp(	boost::function<void (	number& res,
 }
 
 template <typename TGridFunction>
-bool InterpolateFunction(	IUserNumberProvider<TGridFunction::domain_type::dim>& InterpolFunctionProvider,
+bool InterpolateFunction(	IUserNumber<TGridFunction::domain_type::dim>& InterpolFunctionProvider,
 							TGridFunction& u, const char* name, number time)
 {
 //	extract functor
-	typedef typename IUserNumberProvider<TGridFunction::domain_type::dim>::functor_type functor_type;
+	typedef typename IUserNumber<TGridFunction::domain_type::dim>::functor_type functor_type;
 	functor_type InterpolFunction = InterpolFunctionProvider.get_functor();
 
 	return InterpolateFunctionHelp(InterpolFunction, u, name, time);

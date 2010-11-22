@@ -48,9 +48,9 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		typedef LocalIndices local_index_type;
 
 	protected:
-		typedef typename IUserMatrixProvider<dim>::functor_type DiffusionFunctor;
-		typedef typename IUserVectorProvider<dim>::functor_type VelocityFunctor;
-		typedef typename IUserNumberProvider<dim>::functor_type NumberFunctor;
+		typedef typename IUserMatrix<dim>::functor_type DiffusionFunctor;
+		typedef typename IUserVector<dim>::functor_type VelocityFunctor;
+		typedef typename IUserNumber<dim>::functor_type NumberFunctor;
 
 	public:
 		FVConvectionDiffusionElemDisc()
@@ -63,10 +63,10 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
-		void set_diffusion_tensor(IUserMatrixProvider<dim>& user) {m_Diff_Tensor = user.get_functor();}
-		void set_velocity_field(IUserVectorProvider<dim>& user) {m_Conv_Vel = user.get_functor();}
-		void set_reaction(IUserNumberProvider<dim>& user) {m_Reaction = user.get_functor();}
-		void set_rhs(IUserNumberProvider<dim>& user) {m_Rhs = user.get_functor();}
+		void set_diffusion_tensor(IUserMatrix<dim>& user) {m_Diff_Tensor = user.get_functor();}
+		void set_velocity_field(IUserVector<dim>& user) {m_Conv_Vel = user.get_functor();}
+		void set_reaction(IUserNumber<dim>& user) {m_Reaction = user.get_functor();}
+		void set_rhs(IUserNumber<dim>& user) {m_Rhs = user.get_functor();}
 
 		FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
 										DiffusionFunctor diff, VelocityFunctor vel, NumberFunctor reac, NumberFunctor rhs)

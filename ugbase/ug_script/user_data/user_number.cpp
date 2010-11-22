@@ -13,11 +13,11 @@ namespace bridge
 {
 
 template <int dim>
-class LuaUserNumber : public IUserNumberProvider<dim>
+class LuaUserNumber : public IUserNumber<dim>
 {
 	public:
 	//	Functor Type
-		typedef typename IUserNumberProvider<dim>::functor_type functor_type;
+		typedef typename IUserNumber<dim>::functor_type functor_type;
 
 	//	return functor
 		virtual functor_type get_functor() const {return boost::ref(*this);}
@@ -66,7 +66,7 @@ void RegisterLuaUserNumber(Registry& reg, const char* parentGroup)
 	{
 		typedef LuaUserNumber<dim> T;
 		std::stringstream ss; ss << "LuaUserNumber" << dim << "d";
-		reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserNumber<dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_lua_callback", &T::set_lua_callback);
 	}

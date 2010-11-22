@@ -15,10 +15,10 @@ namespace bridge
 class PrintUserNumber2d
 {
 	protected:
-		typedef IUserNumberProvider<2>::functor_type NumberFunctor;
+		typedef IUserNumber<2>::functor_type NumberFunctor;
 
 	public:
-		void set_user_number(IUserNumberProvider<2>& user)
+		void set_user_number(IUserNumber<2>& user)
 		{
 			m_Number = user.get_functor();
 		}
@@ -52,19 +52,19 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 //	Base class
 	{
 		std::stringstream ss; ss << "IUserNumberProvider" << dim << "d";
-		reg.add_class_<IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
+		reg.add_class_<IUserNumber<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	Base class
 	{
 		std::stringstream ss; ss << "IUserVectorProvider" << dim << "d";
-		reg.add_class_<IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str());
+		reg.add_class_<IUserVector<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	Base class
 	{
 		std::stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
-		reg.add_class_<IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str());
+		reg.add_class_<IUserMatrix<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	Base class
@@ -77,7 +77,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef ConstUserNumber<dim> T;
 		std::stringstream ss; ss << "ConstUserNumber" << dim << "d";
-		reg.add_class_<T, IUserNumberProvider<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserNumber<dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set | interactive=false", &T::set, "", "MyNumber || invokeOnChange=true")
 			.add_method("print", &T::print);
@@ -87,7 +87,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef ConstUserVector<dim> T;
 		std::stringstream ss; ss << "ConstUserVector" << dim << "d";
-		reg.add_class_<T, IUserVectorProvider<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserVector<dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
@@ -98,7 +98,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef ConstUserMatrix<dim> T;
 		std::stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-		reg.add_class_<T, IUserMatrixProvider<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserMatrix<dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_diag_tensor", &T::set_diag_tensor)
 			.add_method("set_all_entries", &T::set_all_entries)

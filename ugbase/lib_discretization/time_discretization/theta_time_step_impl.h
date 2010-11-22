@@ -5,121 +5,105 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__TIME_DISRETIZATION__THETA_TIME_STEP_IMPL__
-#define __H__LIB_DISCRETIZATION__TIME_DISRETIZATION__THETA_TIME_STEP_IMPL__
+#ifndef __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__
+#define __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__
 
 #include "theta_time_step.h"
 
 namespace ug{
 
 template <typename TDoFDistribution, typename TAlgebra >
-ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-ThetaTimeDiscretization(IDomainDiscretization<dof_distribution_type, algebra_type>& sd, number theta)
-	: ITimeDiscretization<TDoFDistribution, TAlgebra>(sd)
-{
-	set_theta(theta);
-}
-
-template <typename TDoFDistribution, typename TAlgebra >
 bool
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-prepare_step(std::deque<vector_type*>& u_old, std::deque<number>& time_old, number dt)
+prepare_step(std::deque<vector_type*>& u_old, std::deque<number>& time_old,
+             number dt)
 {
-	if(u_old.size() != m_previousSteps)
+//	perform checks
+	if(u_old.size() != m_prevSteps)
 	{
-		UG_LOG("ERROR in prepare_step: Number of previous solutions is not adequate for this time solver" << std::endl);
+		UG_LOG("ERROR in ThetaTimeDiscretization::prepare_step:"
+			" Number of previous solutions must be "<<m_prevSteps<<".\n");
 		return false;
 	}
-	if(time_old.size() != m_previousSteps)
+	if(time_old.size() != m_prevSteps)
 	{
-		UG_LOG("ERROR in prepare_step: Number of previous time steps is not adequate for this time solver" << std::endl);
+		UG_LOG("ERROR in ThetaTimeDiscretization::prepare_step: "
+			"Number of previous time steps must be "<< m_prevSteps <<".\n");
 		return false;
 	}
-	if(dt < 0.0)
+	if(this->m_pDomDisc == NULL)
 	{
-		UG_LOG("ERROR in prepare_step: Time step size can not be negative." << std::endl);
+		UG_LOG("ERROR in 'ThetaTimeDiscretization:prepare_step': "
+				"Domain Discretization not set.\n");
 		return false;
-	}
-	if(this->m_dd == NULL)
-	{
-		UG_LOG("ERROR in 'ThetaTimeDiscretization:prepare_step': Domain Discretization not set.\n");
-		return IAssemble_ERROR;
 	}
 
-	m_u_old = &u_old;
-	m_time_old = &time_old;
+//	remember old values
+	m_pSolOld = &u_old;
+	m_pTimeOld = &time_old;
+
+//	remember time step size
 	m_dt = dt;
-	m_time_future = m_dt + (*m_time_old)[0];
 
+//	compute future time
+	m_futureTime = m_dt + (*m_pTimeOld)[0];
+
+//	done
 	return true;
 }
 
 template <typename TDoFDistribution, typename TAlgebra >
 IAssembleReturn
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-assemble_jacobian_defect(matrix_type& J, vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr)
+assemble_jacobian(matrix_type& J, const vector_type& u,
+                  const dof_distribution_type& dofDistr)
 {
-	if(this->m_dd == NULL)
+//	check domain disc
+	if(this->m_pDomDisc == NULL)
 	{
-		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_jacobian_defect': Domain Discretization not set.\n");
+		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_jacobian':"
+				" Domain Discretization not set.\n");
 		return IAssemble_ERROR;
 	}
 
-	// future solution part
-	if(this->m_dd->assemble_defect(d, u, m_time_future, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
-		return IAssemble_ERROR;
-	if(this->m_dd->assemble_jacobian(J, u, m_time_future, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
+//	assemble jacobian using current iterate
+	if(this->m_pDomDisc->assemble_jacobian
+			(J, u, dofDistr, m_futureTime, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
 		return IAssemble_ERROR;
 
-	// previous time step part
-	for(size_t i=0; i < m_previousSteps; ++i)
-	{
-		if(this->m_dd->assemble_defect(d, *(*m_u_old)[i], (*m_time_old)[i], s_m[i+1], s_a[i+1]*m_dt) == IAssemble_OK)
-			return IAssemble_ERROR;
-	}
-
+//	we're done
 	return IAssemble_OK;
 }
 
 template <typename TDoFDistribution, typename TAlgebra >
 IAssembleReturn
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-assemble_jacobian(matrix_type& J, const vector_type& u, const dof_distribution_type& dofDistr)
+assemble_defect(vector_type& d, const vector_type& u,
+                const dof_distribution_type& dofDistr)
 {
-	if(this->m_dd == NULL)
+//	check domain disc
+	if(this->m_pDomDisc == NULL)
 	{
-		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_jacobian': Domain Discretization not set.\n");
+		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_defect':"
+				" Domain Discretization not set.\n");
 		return IAssemble_ERROR;
 	}
 
-	if(this->m_dd->assemble_jacobian(J, u, dofDistr, m_time_future, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
+// 	future solution part
+	if(this->m_pDomDisc->assemble_defect
+			(d, u, dofDistr, m_futureTime, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
 		return IAssemble_ERROR;
 
-	return IAssemble_OK;
-}
-
-template <typename TDoFDistribution, typename TAlgebra >
-IAssembleReturn
-ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-assemble_defect(vector_type& d, const vector_type& u, const dof_distribution_type& dofDistr)
-{
-	if(this->m_dd == NULL)
+// 	previous time step part
+	for(size_t i=0; i < m_prevSteps; ++i)
 	{
-		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_defect': Domain Discretization not set.\n");
-		return IAssemble_ERROR;
-	}
-
-	// future solution part
-	if(this->m_dd->assemble_defect(d, u, dofDistr, m_time_future, s_m[0], s_a[0]*m_dt) != IAssemble_OK)
-		return IAssemble_ERROR;
-
-	// previous time step part
-	for(size_t i=0; i < m_previousSteps; ++i)
-	{
-		if(this->m_dd->assemble_defect(d, *(*m_u_old)[i], dofDistr, (*m_time_old)[i], s_m[i+1], s_a[i+1]*m_dt) != IAssemble_OK)
+		if(this->m_pDomDisc->assemble_defect
+				(d, *(*m_pSolOld)[i], dofDistr, (*m_pTimeOld)[i],
+				 s_m[i+1], s_a[i+1]*m_dt) != IAssemble_OK)
 			return IAssemble_ERROR;
 	}
 
+//	we're done
 	return IAssemble_OK;
 }
 
@@ -128,42 +112,50 @@ IAssembleReturn
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
 assemble_solution(vector_type& u, const dof_distribution_type& dofDistr)
 {
-	if(this->m_dd == NULL)
+//	check domain disc
+	if(this->m_pDomDisc == NULL)
 	{
-		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_solution': Domain Discretization not set.\n");
+		UG_LOG("ERROR in 'ThetaTimeDiscretization:assemble_solution':"
+				" Domain Discretization not set.\n");
 		return IAssemble_ERROR;
 	}
 
+//	result
 	IAssembleReturn res;
 
-	res = this->m_dd->assemble_solution(u, dofDistr, m_time_future);
+//	assemble solution
+	res = this->m_pDomDisc->assemble_solution(u, dofDistr, m_futureTime);
 
+//	interprete result
 	switch(res)
 	{
 	case IAssemble_ERROR:
-			UG_LOG("ERROR in assemble_solution" << std::endl);
+			UG_LOG("ERROR in assemble_solution.\n");
 			return IAssemble_ERROR;
 	case IAssemble_NOT_IMPLEMENTED:
-			UG_LOG("ERROR in assemble_solution: function not implemented" << std::endl);
+			UG_LOG("ERROR in assemble_solution: function not implemented.\n");
 			return IAssemble_ERROR;
 	case IAssemble_TIME_INDEPENDENT:
-			UG_LOG("ERROR in assemble_solution: Problem time independent" << std::endl);
+			UG_LOG("ERROR in assemble_solution: Problem time independent.\n");
 			return IAssemble_ERROR;
 
 	case IAssemble_OK:
 	case IAssemble_NON_LINEAR:	return IAssemble_OK;
 	}
+
+//	we're done
 	return IAssemble_OK;
 }
 
 template <typename TDoFDistribution, typename TAlgebra >
 IAssembleReturn
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-assemble_linear(matrix_type& A, vector_type& b, const vector_type& u, const dof_distribution_type& dofDistr)
+assemble_linear(matrix_type& A, vector_type& b, const vector_type& u,
+                const dof_distribution_type& dofDistr)
 {
 	return IAssemble_NOT_IMPLEMENTED;
 }
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__TIME_DISRETIZATION__THETA_TIME_STEP_IMPL__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__TIME_DISCRETIZATION__THETA_TIME_STEP_IMPL__ */

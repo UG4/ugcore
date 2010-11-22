@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__
-#define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__
+#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__
+#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__
 
 // extern includes
 #include <iostream>
@@ -36,8 +36,15 @@ AssembleStiffnessMatrix(	TElemDisc& elemDisc,
 	switch(dim)
 	{
 		case 1:
-			if(!AssembleStiffnessMatrix<Edge>(elemDisc, dofDistr.template begin<Edge>(si), dofDistr.template end<Edge>(si), si, J, u, dofDistr))
-				{UG_LOG("Error in 'AssembleStiffnessMatrix' while calling 'assemble_jacobian<Edge>', aborting.\n");return IAssemble_ERROR;}
+			if(!AssembleStiffnessMatrix<Edge>
+				(elemDisc, dofDistr.template begin<Edge>(si),
+				 	 	 	 dofDistr.template end<Edge>(si),
+				 	 	 	 si, J, u, dofDistr))
+			{
+				UG_LOG("Error in 'AssembleStiffnessMatrix' while calling"
+						" 'assemble_jacobian<Edge>', aborting.\n");
+				return IAssemble_ERROR;
+			}
 			break;
 
 		case 2:
@@ -312,4 +319,4 @@ AssembleLinear(	TElemDisc& elemDisc,
 
 } // end namespace ug
 
-#endif /* __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SUBSET_ASSEMBLE_UTIL__ */

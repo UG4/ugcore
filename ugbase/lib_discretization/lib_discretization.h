@@ -1,8 +1,11 @@
 
-#ifndef __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
-#define __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
+#ifndef __H__UG__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
+#define __H__UG__LIB_DISCRETIZATION__LIB_DISCRETIZATION__
 
-
+///////////////////////////////////////////////////
+// This file is intended to include all parts of
+// lib_discretization.
+///////////////////////////////////////////////////
 /**
  * \brief The discretization library.
  *
@@ -10,7 +13,6 @@
  *
  * \defgroup lib_discretization lib_discretization
  */
-
 
 /////////////////////
 // basics
@@ -69,4 +71,4 @@
 
 #include "./io/vtkoutput.h"
 
-#endif /* __H__LIB_DISCRETIZATION__LIB_DISCRETIZATION__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__LIB_DISCRETIZATION__ */
