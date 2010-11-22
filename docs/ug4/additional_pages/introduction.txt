@@ -27,7 +27,7 @@ in c++, striving for a flexible, yet fast and robust environment.
 The following main modules are the base of ug4:
 	- common
 	- \ref pageLAOverview "lib_algebra"
-	- lib_discretization
+	- \ref pageLDOverview "lib_discretization"
 	- \ref pageLGIntroduction "lib_grid"
 	- parallel communication layer (pcl)
 
