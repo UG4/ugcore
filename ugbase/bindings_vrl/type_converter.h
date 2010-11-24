@@ -232,7 +232,7 @@ namespace ug {
 		/**
 		 * Converts a ug::bridge::ParameterTypes value to the equivalent Java
 		 * type name.
-		 * @parem paramName name of the parameter
+		 * @param paramName name of the parameter
 		 * @param paramType param type to convert
 		 * @param className name of the value class
 		 * @param classNames value class name plus class names of all super
