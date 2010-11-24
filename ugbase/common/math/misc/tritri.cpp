@@ -13,6 +13,7 @@
  */
 
 #include <cmath>
+#include <cstring>
 #include <cstdlib>
 #include "math_util.h"
 
