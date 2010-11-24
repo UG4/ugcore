@@ -91,7 +91,7 @@ struct DistributionNodeLayout
 	inline InterfaceMap& interface_map(size_t level = 0)		{if(level >= m_vInterfaceMaps.size()) m_vInterfaceMaps.resize(level + 1); return m_vInterfaceMaps[level];}
 	
 ///	sets the number of levels.
-	/**	Setting the number of levels is optional. Increases performance for #levels > 1.*/
+	/**	Setting the number of levels is optional. Increases performance for \#levels > 1.*/
 	void set_num_levels(size_t num)							{m_vInterfaceMaps.resize(num);}
 	
 ///	returns the number of levels.

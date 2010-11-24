@@ -19,12 +19,12 @@ namespace ug
  * a triangle is described be three coordinate-triples. Space is used as
  * seperator. a file could look like this:
  *
- * #start of .dump file
+ * # start of .dump file
  * # a single triangle
  *
  * 0 0 0 1 0 0 0 1 0
  *
- * #end of .dump file
+ * # end of .dump file
  *
  */
 bool LoadGridFromDUMP(Grid& grid, const char* filename,

@@ -40,7 +40,7 @@ namespace ug {
 		 * @param newstr replacement string
 		 * @return a copy of the specified <code>target</code> string where
 		 *         all occurences of <code>oldstr</code> are replaced with
-		 *         <code>newstr</code
+		 *         <code>newstr</code>
 		 */
 		std::string replaceAll(
 				std::string target,

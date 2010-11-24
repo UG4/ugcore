@@ -180,7 +180,7 @@ public:
 	 * - col_index(size_t j)
 	 * - operator()(size_t i, size_t j)
 	 * so that mat(i,j) will go to SparseMat(mat.row_index(i), mat.col_index(j))
-	 * \param M the whole local matrix type
+	 * \param mat the whole local matrix type
 	 */
 	template<typename M>
 	void add(const M &mat);
@@ -198,7 +198,7 @@ public:
 	 * - num_cols()
 	 * - operator()(size_t i, size_t j)
 	 * so that mat(i, j) will go to SparseMat(row[i], col[j])
-	 * \param M a small matrix type
+	 * \param mat a small matrix type
 	 * \param rows
 	 * \param cols
 	 */

@@ -167,7 +167,6 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_p
  * \param unassigned	nr of nodes to assign
  * \param bIndirect		if true, this is 2nd stage of Aggressive Coarsening, then fine nodes get marker "IndirectFine"
  *						instead of just "fine". Used later in CreateProlongation and CreateIndirectProlongation
- * \param A				matrix A (for debug)
  * \return				returns number of new coarse nodes.
  */
 int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes)

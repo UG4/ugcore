@@ -49,7 +49,7 @@ enum {MAX_SONS = 30};
 #define MAX_SIDE_NODES                  9
 /** \brief max number of son edges of edge  */  
 #define MAX_SON_EDGES                   2
-/** \brief max #fine sides touching a coarse*/
+/** \brief max \#fine sides touching a coarse*/
 #define MAX_SIDES_TOUCHING              10
 
 /** \todo Please doc me! */

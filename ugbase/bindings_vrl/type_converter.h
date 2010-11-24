@@ -222,7 +222,7 @@ namespace ug {
 		 * @param isConst defines whether the return value shall be const
 		 * @param customInfo additional method info options
 		 * @param customOptions additional return value options
-		 * @returnm a string containing a VRL method info (Groovy source code)
+		 * @return a string containing a VRL method info (Groovy source code)
 		 */
 		std::string createMethodInfo(const char* className,
 				const std::vector<const char*>* classNames, bool isConst,

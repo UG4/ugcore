@@ -203,11 +203,11 @@ void CollectEdges(std::vector<EdgeBase*>& vEdgesOut, Grid& grid, Volume* v, bool
 ////////////////////////////////////////////////////////////////////////
 //	EdgeContains
 ///	returns true if the given edge contains the given vertex
-/// \ingrouop lib_grid_algorithms_edge_util
+/// \ingroup lib_grid_algorithms_edge_util
 inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt);
 
 ///	returns true if the given edge contains the given vertices
-/// \ingrouop lib_grid_algorithms_edge_util
+/// \ingroup lib_grid_algorithms_edge_util
 inline bool EdgeContains(EdgeVertices* e, VertexBase* vrt1, VertexBase* vrt2);
 
 ////////////////////////////////////////////////////////////////////////
@@ -274,13 +274,13 @@ void CollectFaces(std::vector<Face*>& vFacesOut, Grid& grid, Volume* v, bool cle
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
 ///	returns true if the given face contains the given vertex
-/// \ingrouop lib_grid_algorithms_face_util
+/// \ingroup lib_grid_algorithms_face_util
 bool FaceContains(Face* f, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
 //	FaceContains
 ///	returns true if the given face contains the given edge
-/// \ingrouop lib_grid_algorithms_face_util
+/// \ingroup lib_grid_algorithms_face_util
 bool FaceContains(Face* f, EdgeVertices* ev);
 
 ////////////////////////////////////////////////////////////////////////

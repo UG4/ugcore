@@ -45,7 +45,7 @@ class ILineSearch
 		 * \param[in]		Op		Non-linear operator
 		 * \param[in]  		u 		current solution
 		 * \param[in]		p		search direction
-		 * \param[in/out]	d		defect
+		 * \param[in|out]	d		defect
 		 * \param[in]		defect	norm of current defect
 		 *
 		 * \return 	true 		if line search successful
