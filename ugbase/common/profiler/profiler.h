@@ -6,8 +6,11 @@
 
 //	To enable or disable the profiler the following define can be set.
 //	It is preferable to do this via cmake options or similar.
-#ifndef SHINY_PROFILER
-	#define SHINY_PROFILER TRUE	//	TRUE or FALSE
+//#define UG_PROFILER
+#ifdef UG_PROFILER
+	#define SHINY_PROFILER TRUE
+#else
+	#define SHINY_PROFILER FALSE
 #endif
 
 #include "src/Shiny.h"

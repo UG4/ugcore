@@ -9,6 +9,47 @@
 
 namespace ug
 {
+
+////////////////////////////////////////////////////////////////////////
+//	CalculateCenter
+template <class TIterator, class TAAPosVRT>
+typename TAAPosVRT::ValueType
+CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos)
+{
+	int counter = 0;
+	typename TAAPosVRT::ValueType center;
+	VecSet(center, 0);
+	for(TIterator iter = begin; iter != end; ++iter, ++counter)
+		VecAdd(center, center, CalculateCenter(*iter, aaPos));
+		
+	if(counter > 0)
+		VecScale(center, center, 1./(number)counter);
+		
+	return center;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	NumSharedVertices
+template <class TElemPtr1, class TElemPtr2>
+size_t NumSharedVertices(Grid& grid, TElemPtr1 elem1, TElemPtr2 elem2)
+{
+	grid.begin_marking();
+//	first mark all vertices of elem1
+	for(size_t i = 0; i < elem1->num_vertices(); ++i)
+		grid.mark(elem1->vertex(i));
+
+//	now count how many of vertex 2 are marked.
+	size_t counter = 0;
+	for(size_t i = 0; i < elem2->num_vertices(); ++i){
+		if(grid.is_marked(elem2->vertex(i)))
+			++counter;
+	}
+	
+	grid.end_marking();
+	
+	return counter;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	EraseElements
 template <class TElem>

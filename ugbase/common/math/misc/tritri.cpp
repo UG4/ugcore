@@ -13,6 +13,7 @@
  */
 
 #include <cmath>
+#include <cstdlib>
 #include "math_util.h"
 
 using namespace ug;
@@ -84,6 +85,47 @@ using namespace ug;
     return coplanar_tri_tri(N1,V0,V1,V2,U0,U1,U2);      \
   }
 
+//	VV0, VV1, VV2, isect0 and isect1 have to be arrays of 3 numbers.
+#define ISECT3(VV0,VV1,VV2,D0,D1,D2,isect0,isect1) \
+              isect0[0]=VV0[0]+(VV1[0]-VV0[0])*D0/(D0-D1);    \
+              isect0[1]=VV0[1]+(VV1[1]-VV0[1])*D0/(D0-D1);    \
+              isect0[2]=VV0[2]+(VV1[2]-VV0[2])*D0/(D0-D1);    \
+              isect1[0]=VV0[0]+(VV2[0]-VV0[0])*D0/(D0-D2);	  \
+              isect1[1]=VV0[1]+(VV2[1]-VV0[1])*D0/(D0-D2);	  \
+              isect1[2]=VV0[2]+(VV2[2]-VV0[2])*D0/(D0-D2);
+
+//	VV0, VV1, VV2, isect0 and isect1 have to be arrays of 3 numbers.
+#define COMPUTE_INTERVAL_POINTS(VV0,VV1,VV2,D0,D1,D2,D0D1,D0D2,isect0,isect1) \
+  if(D0D1>0.0f)                                         \
+  {                                                     \
+    /* here we know that D0D2<=0.0 */                   \
+    /* that is D0, D1 are on the same side, D2 on the other or on the plane */ \
+    ISECT3(VV2,VV0,VV1,D2,D0,D1,isect0,isect1);          \
+  }                                                     \
+  else if(D0D2>0.0f)                                    \
+  {                                                     \
+    /* here we know that d0d1<=0.0 */                   \
+    ISECT3(VV1,VV0,VV2,D1,D0,D2,isect0,isect1);          \
+  }                                                     \
+  else if(D1*D2>0.0f || D0!=0.0f)                       \
+  {                                                     \
+    /* here we know that d0d1<=0.0 or that D0!=0.0 */   \
+    ISECT3(VV0,VV1,VV2,D0,D1,D2,isect0,isect1);          \
+  }                                                     \
+  else if(D1!=0.0f)                                     \
+  {                                                     \
+    ISECT3(VV1,VV0,VV2,D1,D0,D2,isect0,isect1);          \
+  }                                                     \
+  else if(D2!=0.0f)                                     \
+  {                                                     \
+    ISECT3(VV2,VV0,VV1,D2,D0,D1,isect0,isect1);          \
+  }                                                     \
+  else                                                  \
+  {                                                     \
+    /* triangles are coplanar */                        \
+	/* we ignore this case since it we already returned.*/ \
+  }
+
 
 
 /* this edge to edge test is based on Franlin Antonio's gem:
@@ -101,11 +143,11 @@ using namespace ug;
     e=Ax*Cy-Ay*Cx;                                    \
     if(f>0)                                           \
     {                                                 \
-      if(e>=0 && e<=f) return 1;                      \
+      if(e>=0 && e<=f) return 2;                      \
     }                                                 \
     else                                              \
     {                                                 \
-      if(e<=0 && e>=f) return 1;                      \
+      if(e<=0 && e>=f) return 2;                      \
     }                                                 \
   }                                
 
@@ -143,7 +185,7 @@ using namespace ug;
   d2=a*V0[i0]+b*V0[i1]+c;                   \
   if(d0*d1>0.0)                             \
   {                                         \
-    if(d0*d2>0.0) return 1;                 \
+    if(d0*d2>0.0) return 2;                 \
   }                                         \
 }
 
@@ -201,7 +243,7 @@ int coplanar_tri_tri(number N[3],number V0[3],number V1[3],number V2[3],
 
 int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
                       number U0[3],number U1[3],number U2[3],
-					  number intervalOut[2])
+					  number* ip1Out, number* ip2Out)
 {
   number E1[3],E2[3];
   number N1[3],N2[3],d1,d2;
@@ -290,13 +332,56 @@ int tri_tri_intersect(number V0[3],number V1[3],number V2[3],
   /* compute interval for triangle 2 */
   COMPUTE_INTERVALS(up0,up1,up2,du0,du1,du2,du0du1,du0du2,isect2[0],isect2[1]);
 
-  SORT(isect1[0],isect1[1]);
-  SORT(isect2[0],isect2[1]);
+// those indices are used to find the maximum and minimum later on
+  int ind1 = 1;
+  int ind2 = 1;
+  if(isect1[0] > isect1[1]){
+  	std::swap(isect1[0], isect1[1]);
+	ind1 = 0;
+  }
+
+  if(isect2[0] > isect2[1]){
+  	std::swap(isect2[0], isect2[1]);
+	ind2 = 0;
+  }  
+ // SORT(isect1[0],isect1[1]);
+ // SORT(isect2[0],isect2[1]);
 
   if(isect1[1]<isect2[0] || isect2[1]<isect1[0]) return 0;
-  intervalOut[0] = std::max(isect1[0], isect2[0]);
-  intervalOut[1] = std::min(isect1[1], isect2[1]);
 
+  if(ip1Out && ip2Out){
+  	//	calculate the endpoints of the line segment that resembles the intersection.
+	number tpa1[3], tpa2[3], tpb1[3], tpb2[3];
+	
+	/* compute interval-points for triangle 1 */
+	COMPUTE_INTERVAL_POINTS(V0,V1,V2,dv0,dv1,dv2,dv0dv1,dv0dv2,tpa1,tpa2);
+
+	/* compute interval-points for triangle 2 */
+	COMPUTE_INTERVAL_POINTS(U0,U1,U2,du0,du1,du2,du0du1,du0du2,tpb1, tpb2);
+	
+	//choose the right ones and return
+	if(isect1[0] > isect2[0])
+		if(ind1 == 0)
+			memcpy((char*)ip1Out, tpa2, sizeof(number)*3);
+		else
+			memcpy((char*)ip1Out, tpa1, sizeof(number)*3);
+	else
+		if(ind2 == 0)
+			memcpy((char*)ip1Out, tpb2, sizeof(number)*3);
+		else
+			memcpy((char*)ip1Out, tpb1, sizeof(number)*3);
+	
+	if(isect1[1] < isect2[1])
+		if(ind1 == 0)
+			memcpy((char*)ip2Out, tpa1, sizeof(number)*3);
+		else
+			memcpy((char*)ip2Out, tpa2, sizeof(number)*3);
+	else
+		if(ind2 == 0)
+			memcpy((char*)ip2Out, tpb1, sizeof(number)*3);
+		else
+			memcpy((char*)ip2Out, tpb2, sizeof(number)*3);
+  }
   return 1;
 }
 
@@ -304,11 +389,11 @@ namespace ug{
 bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 								  const MathVector<3>& p2, const MathVector<3>& q0,
 								  const MathVector<3>& q1, const MathVector<3>& q2,
-								  vector2& intervalOut)
+								  MathVector<3>* ip1Out, MathVector<3>* ip2Out)
 {
 	return tri_tri_intersect((number*)&p0, (number*)&p1, (number*)&p2,
 							 (number*)&q0, (number*)&q1, (number*)&q2,
-							 (number*)&intervalOut) == 1;
+							 (number*)ip1Out, (number*)ip2Out) == 1;
 }
 
 }//	end of namespace

@@ -286,11 +286,17 @@ bool LineBoxIntersection(const vector_t& v1, const vector_t& v2,
 /**	Uses code by Tomas Moller.
  * See article "A Fast Triangle-Triangle Intersection Test",
  * Journal of Graphics Tools, 2(2), 1997
+ *
+ * returns true if the triangles intersect. If ip1Out and ip2Out are specified
+ * and if the triangles intersect, ip1Out and ip2Pit will contain the endpoints
+ * of the line segment which resembles the intersection. Please specify either both
+ * or none.
  */
 bool TriangleTriangleIntersection(const MathVector<3>& p0, const MathVector<3>& p1,
 								  const MathVector<3>& p2, const MathVector<3>& q0,
 								  const MathVector<3>& q1, const MathVector<3>& q2,
-								  vector2& intervalOut);
+								  MathVector<3>* ip1Out = NULL,
+								  MathVector<3>* ip2Out = NULL);
 
 ////////////////////////////////////////////////////////////////////////
 //	TriBoxIntersection

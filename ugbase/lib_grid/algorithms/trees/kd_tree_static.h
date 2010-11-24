@@ -73,7 +73,8 @@ class KDTreeStatic
 
 		void clear();
 
-		bool create_from_grid(Grid& grid, VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
+		template <class TVrtIterator>
+		bool create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 								TPositionAttachment& aPos, int maxTreeDepth, int splitThreshold,
 								KDSplitDimension splitDimension = KDSD_LARGEST);
 

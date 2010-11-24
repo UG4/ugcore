@@ -77,8 +77,11 @@ CalculateCenter(VertexBase* v, TVertexPositionAttachmentAccessor& aaPosVRT)
 
 ////////////////////////////////////////////////////////////////////////
 //TODO:	replace KDTreeStatic by a dynamic kd-tree.
-template <int dim>
-void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin, const VertexBaseIterator& iterEnd, Attachment<MathVector<dim> >& aPos, number threshold)
+//TODO: Better support for various iterators.
+template <int dim, class TVrtIterator>
+void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
+					const TVrtIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
+					number threshold)
 {
 	if(!grid.has_vertex_attachment(aPos))
 		return;
@@ -103,14 +106,14 @@ void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin, const Vertex
 	grid.attach_to_vertices(aInt);
 	Grid::VertexAttachmentAccessor<AInt> aaInt(grid, aInt);
 	{
-		for(VertexBaseIterator iter = iterBegin; iter != iterEnd; ++iter)
+		for(TVrtIterator iter = iterBegin; iter != iterEnd; ++iter)
 			aaInt[*iter] = 0;
 	}
 
 //	compare squares.
 	threshold *= threshold;
 //	iterate over all vertices and collect all that have aInt == 0 and are within range.
-	for(VertexBaseIterator iter = iterBegin; iter != iterEnd; ++iter)
+	for(TVrtIterator iter = iterBegin; iter != iterEnd; ++iter)
 	{
 		VertexBase* v = *iter;
 		if(aaInt[v] == 0)
@@ -155,8 +158,12 @@ void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin, const Vertex
 	}
 
 //	iterate over all vertices again and merge collected ones
+//	This iteration only works, if the iterators stem from a class
+//	like Selector or SubsetHandler or Grid etc, which automatically
+//	handle removed elements.
+//TODO:	This should be improved somehow!
 	{
-		VertexBaseIterator iter = iterBegin;
+		TVrtIterator iter = iterBegin;
 		while(iter != iterEnd)
 		{
 			VertexBase* v = *iter;

@@ -107,17 +107,17 @@ const std::string& UGGetDataPath() {
  */
 int UGFinalize(bool outputProfilerStats) {
 	if (outputProfilerStats) {
-		//	output the profiled data.
+	//	output the profiled data.
 		PROFILER_UPDATE();
-#ifdef UG_PARALLEL
-		if(pcl::IsOutputProc()) {
+		#ifdef UG_PARALLEL
+			if(pcl::IsOutputProc()) {
+				UG_LOG("\n");
+				PROFILER_OUTPUT();
+			}
+		#else
 			UG_LOG("\n");
 			PROFILER_OUTPUT();
-		}
-#else
-		UG_LOG("\n");
-		PROFILER_OUTPUT();
-#endif
+		#endif
 	}
 
 #ifdef UG_PARALLEL

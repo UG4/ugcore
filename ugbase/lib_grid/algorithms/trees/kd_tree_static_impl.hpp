@@ -41,9 +41,10 @@ clear()
 }
 
 template<class TPositionAttachment, int numDimensions, class TVector>
+template <class TVrtIterator>
 bool
 KDTreeStatic<TPositionAttachment, numDimensions, TVector>::
-create_from_grid(Grid& grid, VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
+create_from_grid(Grid& grid, TVrtIterator vrtsBegin, TVrtIterator vrtsEnd,
 					TPositionAttachment& aPos, int maxTreeDepth,
 					int splitThreshold, KDSplitDimension splitDimension)
 {

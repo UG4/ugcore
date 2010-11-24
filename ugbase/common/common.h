@@ -18,7 +18,7 @@
 	#define UG_ENABLE_WARNINGS
 	#define UG_ENABLE_DEBUG_LOGS
 #else /* NDEBUG */
-	#undef UG_LOG_TO_FILE
+	//#undef UG_LOG_TO_FILE
 	#undef UG_ENABLE_WARNINGS
 	#undef UG_ENABLE_DEBUG_LOGS
 #endif /* NDEBUG*/

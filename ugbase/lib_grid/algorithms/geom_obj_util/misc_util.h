@@ -18,6 +18,27 @@ namespace ug
  */
 
 ////////////////////////////////////////////////////////////////////////
+//	CalculateCenter
+///	calculates the center for a set of elements
+/**	TIterator::value_type has to be compatible with
+ *  VertexBase*, EdgeBase*, Face* or Volume*.
+ */
+template <class TIterator, class TAAPosVRT>
+typename TAAPosVRT::ValueType
+CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos);
+
+////////////////////////////////////////////////////////////////////////
+//	NumSharedVertices
+///	returns the number of vertices that are shared by two objects
+/**	This algorithm uses Grid::mark.
+ *
+ *	Valid types are EdgeBase*, Face*, Volume* and derivates of those.
+ *	You may combine different types in one query.
+ */
+template <class TElemPtr1, class TElemPtr2>
+size_t NumSharedVertices(Grid& grid, TElemPtr1 elem1, TElemPtr2 elem2);
+
+////////////////////////////////////////////////////////////////////////
 //	EraseConnectingElements
 ///	erases all elements that connect v1 and v2
 void EraseConnectingElements(Grid& grid, VertexBase* v1, VertexBase* v2);

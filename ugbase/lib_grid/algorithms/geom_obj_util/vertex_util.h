@@ -147,9 +147,17 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2);
 ////////////////////////////////////////////////////////////////////////
 //	RemoveDoubles
 ///	merges all vertices that are closer to each other than the specified threshold.
-template <int dim>
-void RemoveDoubles(Grid& grid, const VertexBaseIterator& iterBegin,
-					const VertexBaseIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
+/**	The current implementation sadly enforces some restrictions to the
+ *	container from which iterBegin and iterEnd stem. Only Grid, MultiGrid,
+ *	Selector, MGSelector, SubsetHandler, MGSubsetHandler and similar containers
+ *	are allowed. This is due to an implementation detail in the algorithm
+ *	that should be removed in future revisins.
+ *
+ *	\todo	remove container restrictions as described above.
+ */
+template <int dim, class TVrtIterator>
+void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
+					const TVrtIterator& iterEnd, Attachment<MathVector<dim> >& aPos,
 					number threshold);
 
 ////////////////////////////////////////////////////////////////////////
