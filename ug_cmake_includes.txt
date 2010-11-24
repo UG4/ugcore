@@ -359,8 +359,6 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 				message(STATUS "INFO: BLAS found. (lib = '${BLAS_LIBRARIES}', flags = '${BLAS_LINKER_FLAGS}'")
 			else(BLAS_INCLUDE_PATH)
 				message(STATUS "INFO: BLAS found. (lib = '${BLAS_LIBRARIES}), cblas.h NOT found ! (To disable BLAS define -DNO_BLAS=ON)")
-			endif(BLAS_INCLUDE_PATH)			
-			
 		   	endif(BLAS_INCLUDE_PATH)
 		else(BLAS_FOUND)
 		    message(STATUS "INFO: Did not find BLAS ! (To disable LAPACK define -DNO_LAPACK=ON)")

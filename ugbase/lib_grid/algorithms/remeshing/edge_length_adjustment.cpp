@@ -493,7 +493,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 template <class TAAPosVRT, class TAANormVRT, class TAAIntVRT>
 bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 					  number minEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
-					  TAAIntVRT& aaInt)
+					  TAAIntVRT& aaInt, bool adaptive = true)
 {	
 	PROFILE_FUNC();
 	LOG("  performing collapses\n");
@@ -508,7 +508,9 @@ bool PerformCollapses(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 		
 	//	the higher the curvature the smaller the maxEdgeLen.
 	//	minimal lenFac is 0.1
-		number lenFac = CalculateLengthFac(grid, shMarks, e, aaPos);
+		number lenFac = 1.0;
+		if(adaptive)
+			CalculateLengthFac(grid, shMarks, e, aaPos);
 
 	//	check whether the edge is short enough
 		if(VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]) < lenFac * minEdgeLen)
@@ -574,7 +576,8 @@ bool TrySplit(Grid& grid, EdgeBase* e, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
 ////////////////////////////////////////////////////////////////////////
 template <class TAAPosVRT, class TAANormVRT>
 bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
-					  number maxEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm)
+					  number maxEdgeLen, TAAPosVRT& aaPos, TAANormVRT& aaNorm,
+					  bool adaptive = true)
 {
 	PROFILE_FUNC();
 //	compare squares
@@ -591,7 +594,9 @@ bool PerformSplits(Grid& grid, SubsetHandler& shMarks, EdgeSelector& esel,
 		
 	//	the higher the curvature the smaller the maxEdgeLen.
 	//	minimal lenFac is 0.1
-		number lenFac = CalculateLengthFac(grid, shMarks, e, aaPos);
+		number lenFac = 1.0;
+		if(adaptive)
+			CalculateLengthFac(grid, shMarks, e, aaPos);
 
 	//	check whether the edge should be splitted
 		if(VecDistanceSq(aaPos[e->vertex(0)], aaPos[e->vertex(1)]) > lenFac * maxEdgeLen)
@@ -825,7 +830,7 @@ if(shMarks.get_subset_index(vrt) == RM_CREASE)
 bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMarksOut,
 					  Grid& gridIn, SubsetHandler& shIn, SubsetHandler& shMarksIn,
 					  number minEdgeLen, number maxEdgeLen, int numIterations,
-					  bool projectPoints)
+					  bool projectPoints, bool adaptive)
 {
 	PROFILE_FUNC();
 //TODO: check crease-marks and fixed marks.
@@ -942,12 +947,12 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 	{
 	//	perform splits
 		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
-		if(!PerformSplits(grid, shMarks, esel, maxEdgeLen, aaPos, aaNorm))
+		if(!PerformSplits(grid, shMarks, esel, maxEdgeLen, aaPos, aaNorm, adaptive))
 			return false;
 
 	//	perform collapses
 		esel.select(grid.begin<EdgeBase>(), grid.end<EdgeBase>());
-		if(!PerformCollapses(grid, shMarks, esel, minEdgeLen, aaPos, aaNorm, aaInt))
+		if(!PerformCollapses(grid, shMarks, esel, minEdgeLen, aaPos, aaNorm, aaInt, adaptive))
 			return false;
 
 	//	perform swaps
@@ -982,13 +987,15 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 //TODO:	project crease vertices onto creases only! Don't project fixed vertices
 
 				vector3 vNew;
-				if(pojectionTraverser.project(aaPos[*iter], octree, &aaNorm[*iter])){
+				if(pojectionTraverser.project(aaPos[*iter], octree/*, &aaNorm[*iter]*/)){
 					aaPos[*iter] = pojectionTraverser.get_closest_point();
 				}
 				else{
 					LOG("f");
 				}
+
 /*
+				vector3 vNew;
 				if(ProjectPointToSurface(vNew, aaPos[*iter], aaNorm[*iter],
 										pRefGrid->begin<Triangle>(),
 										pRefGrid->end<Triangle>(), aaPosRef, false))
