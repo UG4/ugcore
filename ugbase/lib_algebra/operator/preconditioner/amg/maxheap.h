@@ -105,8 +105,9 @@ public:
 		int j = m_heap[m_height-1];
 		myswap(i, j);
 		m_height--;
-		downheap(j);
 		m_posinheap[i] = -1;
+
+		downheap(j);
 	}
 	
 	// remove_max

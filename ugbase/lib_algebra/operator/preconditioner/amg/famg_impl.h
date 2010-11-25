@@ -182,7 +182,7 @@ void GetAggressiveCoarseningInterpolation(const matrix_type &A, size_t i,
 	// aggressive coarsening
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
-		if(fine[i] || coarse[i]) continue;
+		if(nodes[node].is_uninterpolateable() == false) continue;
 
 		// get Neighborhood N1 and N2
 
@@ -220,8 +220,9 @@ void GetAggressiveCoarseningInterpolation(const matrix_type &A, size_t i,
 
 }
 
+template<typename heap_type>
 void GetPossibleParentNodes(const matrix_type &A, std::vector<std::vector<neighborstruct2> > possible_neighbors,
-		std::vector<int> rating)
+		std::vector<famg_nodeinfo> &nodes)
 {
 	int *posInConnections = new int[A.num_rows()];
 	for(size_t i=0; i<A.num_rows(); i++) posInConnections[i] = -1;
@@ -233,13 +234,18 @@ void GetPossibleParentNodes(const matrix_type &A, std::vector<std::vector<neighb
 	std::vector<neighborstruct2> i_neighborpairs;
 
 	possible_neighbors.resize(A.num_rows());
-	rating.resize(A.num_rows());
 
 	for(size_t i=0; i<A.num_rows(); i++)
 	{
 		// get Neighborhood N1 and N2
 
 		GetNeighborhood(A, i, onlyN1, onlyN2, posInConnections);
+
+		if(onlyN1.size() == 0)
+		{
+			nodes[i].set_fine();
+			continue;
+		}
 		N2 = onlyN1;
 		N2.push_back(i);
 		N2.append(onlyN2);
@@ -322,7 +328,7 @@ void GetPossibleParentNodes(const matrix_type &A, std::vector<std::vector<neighb
 		possible_neighbors[i].clear();
 		if(i_min != -1)
 		{
-			rating[i] = 2;
+			// minimal element is always first in possible_neighbors[i] list.
 			swap(i_neighborpairs[0], i_neighborpairs[i_min]);
 
 			for(size_t j=0; j<i_neighborpairs.size(); j++)
@@ -330,132 +336,126 @@ void GetPossibleParentNodes(const matrix_type &A, std::vector<std::vector<neighb
 					possible_neighbors[i].push_back(i_neighborpairs[j]);
 		}
 		else
-			rating[i] = 1000000; // todo:
+		{
+			//UG_ASSERT(0, "node has no parents :'-(");
+			nodes[i].set_uninterpolateable();
+		}
 	}
 
 	delete[] posInConnections;
 }
 
 
-/*
-void UpdateNeighborGotFine(size_t node, int i_finenode)
+
+
+int GetRating(const FixedArray1<s_interpolation, 2> &M, const std::vector<famg_nodeinfo> &nodes)
 {
-	if(IsCoarse(node)) return;
-	std::vector<neighborstruct> &P = possible_neighbors[node];
+	if(nodes[M[0].from].is_fine() || rating[M[1]].from].is_fine())
+		return -1;
+	return 2 - (nodes[M[0].from].is_coarse() ? 0 : 1) - (nodes[M[1].from].is_coarse() ? 0 : 1);
+}
 
-	for(size_t i=1; i<P.size(); )
+template<typename vec_type>
+int GetRating(const vec_type &M, const std::vector<famg_nodeinfo> &nodes)
+{
+	size_t rating = 0;
+	for(size_t i=0; i<M.size(); ++i)
 	{
-		if(is_in(P[i].parents, i_finenode))
+		famg_nodeinfo &ninfo = nodes[M[i].from];
+		if(ninfo.is_fine()) return -1;
+		else if(ninfo.is_uninterpolateable())
+			rating += 1000;
+		else if(!ninfo.is_coarse()) rating++;
+	}
+	return rating;
+}
+
+template<typename heap_type>
+void GetRatings(std::vector<std::vector<neighborstruct2> > &possible_neighbors,
+		std::vector<famg_nodeinfo> &nodes, heap_type &heap)
+{
+	for(size_t i=0; i<nodes.size(); i++)
+	{
+		if(nodes[i].rating == 0)
 		{
-			swap(P[i], P.back());
-			P.resize(P.size()-1);
+			nodes[i].rating = UpdateRating(i, possible_neighbors[i], nodes);
+			heap.insert_item(i);
 		}
-		else i++;
 	}
+}
 
-	if(is_in(P[0].parents, i_finenode))
-	{
-		// best current pair affected, update cost
-		swap(P[0], P.back());
-		P.resize(P.size()-1);
-
-		UpdateCost(node);
-	}
-}*/
-
-// updates the cost of node <node>
+// updates the rating of node <node>
 // and writes it to rating
 // possible neighbors are always stored as follows:
 //	- possible_neighbors[i][0] is the best currently known pair for interpolating i
 //	- this can change
 //	a) if a parent node gets fine -> removal of this pair
 //	b) if a parent node gets coarse
+//	returns true if value has been updates, otherwise false
 template<typename neighborstruct>
-int GetUpdatedCost(size_t node, const std::vector<bool> &fine, const std::vector<bool> &coarse,
-		std::vector<neighborstruct> &P)
+bool UpdateRating(size_t node, std::vector<neighborstruct2> &PN, const std::vector<famg_nodeinfo> &nodes)
 {
-	if(IsCoarse(node)) return;
+	if(nodes[node].is_coarse()) return;
 
 	int mini = -1;
-	int mincost = 10000;
+	int minrating = 10000;
 	double minF = 1e12;
-	for(size_t i=0; i<P.size(); )
+	for(size_t i=0; i<PN.size(); )
 	{
-		int icost = 0;
+		int irating = GetRating(PN[i].parents, nodes);
 
-		//if(P[i].parents.size() == 2)
+		if(irating < 0)
 		{
-			if(fine[P[i].parents[0].from] || fine[P[i].parents[1]].from)
-			{
-				swap(P[i], P.back());
-				P.resize(P.size()-1);
-				continue;
-			}
-			else
-			{
-				icost = (coarse[P[i].parents[0].from] ? 0 : 1)
-						+ (coarse[P[i].parents[1].from] ? 0 : 1);
-			}
+			swap(PN[i], PN.back()); // remove this pair
+			P.resize(P.size()-1);
+			continue;
 		}
-		/*else
-		{
-			bool bRemove = false;
-			for(size_t j=0; j < P[i].parents.size(); j++)
-			{
-				if(IsFine(P[i].parents[j].from))
-				{
-					bRemove = true;
-					break;
-				}
-				if(IsCoarse(P[i].parents[j].from) == false)
-				{
-					icost ++;
-					if(icost > mincost) break;
-				}
-			}
-			if(bRemove)
-			{
-				swap(P[i], P.back());
-				P.resize(P.size()-1);
-				continue;
-			}
-		}*/
 
 		// choose the pairs with best minimization F.
-		if(icost <= mincost && P[i].F < minF)
+		if(irating <= minrating && PN[i].F < minF)
 		{
-			mincost = icost;
-			minF = P[i].F;
+			minrating = irating;
+			minF = PN[i].F;
 			mini = i;
 		}
-
 		i++;
 	}
 
 	if(mini != -1)
 	{
-		swap(P[0], P[mini]);
-		return mincost;
+		if(mini != 0) swap(PN[0], PN[mini]);
+		if(nodes[node].rating != minrating)
+		{
+			nodes[node].rating = minrating;
+			return true;
+		}
+		else return false;
 	}
 	else
-		return -1;
+	{
+		if(nodes[node].is_uninterpolateable())
+			return false;
+		else
+		{
+			nodes[node].set_uninterpolateable();
+			return true;
+		}
+	}
 }
 
-
-void update_neighbors(size_t node, const std::vector<bool> &fine, const std::vector<bool> &coarse,
-		std::vector<std::vector<neighborstruct2> > &possible_neighbors, std::vector<int> rating)
+template<typename heap_type>
+void UpdateNeighbors(size_t node, std::vector<std::vector<neighborstruct2> > &possible_neighbors,
+		std::vector<famg_nodeinfo> &nodes)
 {
 	for(typename matrix_type::cRowIterator conn = A.beginRow(node); !conn.isEnd(); ++conn)
 	{
 		size_t neigh = conn.index();
-		if(rating[neigh] == -1)
+		if(node == neigh) continue;
+		if(!nodes[neigh].is_valid_rating())
 			continue;
-		int oldrating = rating[neigh];
-		int newrating = GetUpdatedCost(neigh, fine, coarse, possible_neighbors[neigh]);
-		if(oldrating != newrating)
+		if(GetUpdatedRating(neigh, possible_neighbors[neigh], nodes))
 		{
-			rating[neigh] = newrating;
-			if(newrating == -1)
+			if(nodes[neigh].is_uninterpolateable())
 				heap.remove(neigh);
 			else
 				heap.update(neigh);
@@ -464,10 +464,10 @@ void update_neighbors(size_t node, const std::vector<bool> &fine, const std::vec
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// createAMGLevel:
+// createFAMGLevel:
 //-------------------------
 /**
- * create AMG matrix R, P, and AH = R A P
+ * create FAMG matrix R, P, and AH = R A P
  * \param AH
  * \param R
  * \param A
@@ -477,8 +477,8 @@ void update_neighbors(size_t node, const std::vector<bool> &fine, const std::vec
 template<typename TAlgebra>
 void famg<TAlgebra>::create_FAMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 		SparseMatrix<double> &P, int level)
-{"argv[
-	std::vector<std::vector<neighborstruct2> > possible_neighbors
+{
+	std::vector<std::vector<neighborstruct2> > possible_neighbors;
 	std::vector<size_t> newIndex;
 	std::vector<int> rating;
 	std::vector<bool> fine;
@@ -492,41 +492,56 @@ void famg<TAlgebra>::create_FAMG_level(matrix_type &AH, SparseMatrix<double> &R,
 		newIndex[i] = -1;
 	size_t nrOfCoarse=0;
 
-	GetPossibleParentNodes(A, possible_neighbors, rating, heap);
+	rating.resize(N);
+	maxheap heap(N, &rating[0]);
 
+	// get possible parent nodes
+	GetPossibleParentNodes(A, possible_neighbors, rating);
+
+	// calculate ratings (not precalculateable because of coarse/uninterpolateable)
+	GetRatings(possible_neighbors, rating, heap);
+
+	// do coarsening
 	size_t unassigned = N;
-	while(heap_not_empty())
+	while(heap.height() != 0)
 	{
-		size_t i = heap.get_min();
-		fine[i] = true;
+		size_t i = heap.remove_max();
+		// node i gets fine. update neighbors.
+		nodes[i].set_fine();
+		UpdateNeighbors(i, fine, coarse, possible_neighbors, rating, heap);
+
+		// get parent pair, set as coarse (if not already done), update neighbors.
 		neighborstruct2 &n = possible_neighbors[i][0];
-
-		size_t p1 = n.parents[0].from;
-		size_t p2 = n.parents[1].from;
-
-		if(!coarse[p1])
+		for(size_t j=0; j < n.size(); j++)
 		{
-			coarse[p1] = true;
-			rating[p1] = -1;
-			newIndex[p1] = nrOfCoarse++;
+			size_t node = n.parents[j].from;
+			if(!nodes[node].is_coarse())
+			{
+				nodes[node].set_coarse();
+				heap.remove(node);
+				newIndex[node] = nrOfCoarse++;
+				UpdateNeighbors(node, possible_neighbors, nodes, heap);
+			}
+			P(node, newIndex[node]) = 1.0;
+			P(i, newIndex[node]) = n.parents[j].value;
 		}
-		if(!coarse[p2])
-		{
-			coarse[p2] = true;
-			rating[p2] = -1;
-			newIndex[p2] = nrOfCoarse++;
-		}
-
-		UpdateNeighbors(p1, fine, coarse, possible_neighbors, rating, heap);
-		UpdateNeighbors(p2, fine, coarse, possible_neighbors, rating, heap);
-
-		P(i, newIndex[p1]) = n.parents[0].value;
-		P(i, newIndex[p2]) = n.parents[1].value;
-
 	}
 
-	AgressiveCoarsening(...);
+	// handle uninterpolateable nodes
+	// todo: add aggressive coarsening here.
+	for(size_t i=0; i<N; i++)
+	{
+		UG_ASSERT(nodes[i].is_valid_rating() == false, "?");
+		if(nodes[i].is_uninterpolateable())
+		{
+			// set as coarse
+			newIndex[i] = nrOfCoarse++;
+			P(i, newIndex[i]);
+			//nodes[i].set_coarse();
+		}
+	}
 }
+
 
 
 } // namespace ug
