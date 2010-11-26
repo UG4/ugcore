@@ -363,4 +363,54 @@ void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 	grid.end_marking();
 }
 
+void CollectNeighbourhood(std::vector<Face*>& facesOut, Grid& grid,
+						  VertexBase* vrt, size_t range,
+						  bool clearContainer)
+{
+	if(clearContainer)
+		facesOut.clear();
+	
+	vector<VertexBase*> candidates;
+	size_t rangeBegin = 0;
+	size_t rangeEnd = 1;
+	
+	candidates.push_back(vrt);
+	
+	grid.begin_marking();
+	grid.mark(vrt);
+	
+//	we iterate over the range
+	for(size_t i_range = 0; i_range < range; ++i_range){
+	//	iterate from candidatesStart to candidatesEnd
+	//	this is important, since we can make sure that only triangles
+	//	in the correct range are considered
+		for(size_t i_vrt = rangeBegin; i_vrt < rangeEnd; ++i_vrt)
+		{
+			VertexBase* v = candidates[i_vrt];
+		//	iterate over associated faces
+			for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
+				iter != grid.associated_faces_end(v); ++iter)
+			{
+				Face* f = *iter;
+				if(!grid.is_marked(f)){
+					grid.mark(f);
+					facesOut.push_back(f);
+					for(size_t i = 0; i < f->num_vertices(); ++i){
+						if(!grid.is_marked(f->vertex(i))){
+							grid.mark(f->vertex(i));
+							candidates.push_back(f->vertex(i));
+						}
+					}
+				}
+			}
+		}
+		
+	//	prepare next iteration
+		rangeBegin = rangeEnd;
+		rangeEnd = candidates.size();
+	}
+	
+	grid.end_marking();
+}
+
 }//	end of namespace

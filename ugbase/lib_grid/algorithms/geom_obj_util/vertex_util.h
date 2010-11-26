@@ -179,6 +179,17 @@ bool IsBoundaryVertex2D(Grid& grid, VertexBase* v);
 bool IsBoundaryVertex3D(Grid& grid, VertexBase* v);
 
 ////////////////////////////////////////////////////////////////////////
+//	IsRegularSurfaceVertex
+///	returns true if the vertex lies inside a regular surface
+/**
+ * This algorithm indirectly uses Grid::mark.
+ *	
+ * The vertex is regarded as a regular surface vertex, if all associated
+ * edges are connected to exactly 2 faces.
+ */
+bool IsRegularSurfaceVertex(Grid& grid, VertexBase* v);
+
+////////////////////////////////////////////////////////////////////////
 /**
  * Uses Grid::mark()
  *

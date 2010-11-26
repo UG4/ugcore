@@ -6,6 +6,8 @@
 #define __H__REMESHING__SIMPLE_GRID_IMPL__
 
 #include <queue>
+#include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/graph/graph.h"
 
 namespace ug
 {
@@ -130,6 +132,89 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 bail_out:
 	grid.end_marking();
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
+//	ObtainSimpleGrid
+template <class TPosAcc, class TIntAcc, class TNormAcc>
+bool ObtainSimpleGrid_CollapseEdge(SimpleGrid& sgOut, Grid& grid,
+						EdgeBase* e, size_t size,
+						TPosAcc& aaPos, TNormAcc& aaNorm,
+						TIntAcc& aaInt)
+{
+//	clear the simple-grid
+	sgOut.clear();
+
+//	collect triangles in the neighbourhood of e.
+//	Note that faces may (and most likely will) contain some faces twice			
+	std::vector<Face*> faces;
+	CollectNeighbourhood(faces, grid, e->vertex(0), size, false);
+	CollectNeighbourhood(faces, grid, e->vertex(1), size, false);
+
+//	the first vertex resembles the collapsed edge
+	typename TPosAcc::ValueType n;
+	VecAdd(n, aaNorm[e->vertex(0)], aaNorm[e->vertex(1)]);
+	VecNormalize(n, n);
+	sgOut.vertices.push_back(CalculateCenter(e, aaPos));
+	sgOut.vertexNormals.push_back(n);
+
+//	now iterate over all associated triangles in the neighbourhood
+//	of e and create associated triangles in sgOut.
+	grid.begin_marking();
+	for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+		Face* f = faces[i_face];
+	//	make sure that the face is a triangle
+		if(f->num_vertices() != 3){
+			grid.end_marking();
+			return false;
+		}
+		
+	//	avoid multiple insertion of the same face
+		if(!grid.is_marked(f)){
+			grid.mark(f);
+
+		//	get vertex indices
+		//	make sure that the triangles adjacent to e will
+		//	not be added to the grid
+			int ind[3];
+			int edgeVrts = 0;// increase for each vertex that lies on e
+			
+			for(size_t i = 0; i < 3; ++i){
+				VertexBase* v = f->vertex(i);
+				if((v == e->vertex(0)) || (v == e->vertex(1))){
+					ind[i] = 0;
+					edgeVrts++;
+				}
+				else{
+				//	get the index of v in sgOut.vertices.
+				//	If it hasn't got one, create one.
+					if(!grid.is_marked(v)){
+					//	NOTE that we add the position even though it is not clear
+					//	whether the triangle will be created at all.
+						sgOut.vertices.push_back(aaPos[v]);
+						sgOut.vertexNormals.push_back(aaNorm[v]);
+						aaInt[v] = (int)sgOut.vertices.size() - 1;
+						grid.mark(v);
+					}
+					ind[i] = aaInt[v];
+				}
+			}
+		
+		//	add the triangle
+			if(edgeVrts < 2){
+				sgOut.triangles.push_back(ind[0]);
+				sgOut.triangles.push_back(ind[1]);
+				sgOut.triangles.push_back(ind[2]);
+			}
+		}
+	}
+
+	grid.end_marking();
+	
+//	calculate triangle normals
+	CalculateTriangleNormals(sgOut);
+	
+	return true;	
 }
 
 }//	end of namespace

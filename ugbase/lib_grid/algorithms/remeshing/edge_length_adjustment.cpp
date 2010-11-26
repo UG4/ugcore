@@ -304,8 +304,8 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 	if(EdgeCollapseIsValid(grid, e))
 	{
 	//	test the collapse using a simple-grid
-		SimpleGrid sg;
-		if(!ObtainSimpleGrid(sg, grid, e->vertex(0), e->vertex(1), 1,
+		SimpleGrid sgSrc;
+		if(!ObtainSimpleGrid(sgSrc, grid, e->vertex(0), e->vertex(1), 1,
 							aaPos, aaNorm, aaInt))
 		{
 			LOG("ObtainSimpleGrid failed. ignoring edge...\n");
@@ -313,11 +313,13 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		}
 		
 	//	calculate geometric-approximation-degree and triangle quality
-		number approxDeg = GeometricApproximationDegree(sg);
-		number shapeDeg = ShapeQualityDegree(sg);
+		number approxDeg = GeometricApproximationDegree(sgSrc);
+		number shapeDeg = ShapeQualityDegree(sgSrc);
 
-	//	perform a swap on the simple grid
-		if(!CollapseEdge(sg))
+	//	perform a collapse on the simple grid
+		SimpleGrid sgDest;
+		if(!ObtainSimpleGrid_CollapseEdge(sgDest, grid, e,
+									1, aaPos, aaNorm, aaInt))
 		{
 			LOG("collapse edge failed...\n");
 			return false;
@@ -325,11 +327,11 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 
 	//	get the positions of the old endpoints
 		static const int numTestPositions = 3;
-		int newInd = sg.vertices.size() - 1;
+		int newInd = 0;
 		vector3 v[numTestPositions];
 		v[0] = aaPos[e->vertex(0)];
 		v[1] = aaPos[e->vertex(1)];
-		v[2] = sg.vertices[newInd];
+		v[2] = sgDest.vertices[newInd];
 		
 	//	we'll compare 3 approximation degrees and three shape degrees
 		number newApproxDeg[numTestPositions];
@@ -348,15 +350,15 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 
 			if((vrtSI[0] == RM_FIXED) || ((vrtSI[0] != RM_NONE) && (vrtSI[1] == RM_NONE))){
 				bestIndex = 0;
-				sg.vertices[newInd] = v[0];
-				newApproxDeg[0] = GeometricApproximationDegree(sg);
-				newShapeDeg[0] = ShapeQualityDegree(sg);
+				sgDest.vertices[newInd] = v[0];
+				newApproxDeg[0] = GeometricApproximationDegree(sgDest);
+				newShapeDeg[0] = ShapeQualityDegree(sgDest);
 			}
 			else if((vrtSI[1] == RM_FIXED) || ((vrtSI[1] != RM_NONE) && (vrtSI[0] == RM_NONE))){
 				bestIndex = 1;
-				sg.vertices[newInd] = v[1];
-				newApproxDeg[1] = GeometricApproximationDegree(sg);
-				newShapeDeg[1] = ShapeQualityDegree(sg);
+				sgDest.vertices[newInd] = v[1];
+				newApproxDeg[1] = GeometricApproximationDegree(sgDest);
+				newShapeDeg[1] = ShapeQualityDegree(sgDest);
 			}
 		}
 		
@@ -364,25 +366,36 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		//	check all three approximation degrees
 			for(int i = 0; i < numTestPositions; ++i){
 			//	we'll compute all qualities with the averaged normal
-				sg.vertices[newInd] = v[i];
-				CalculateTriangleNormals(sg);
-				newApproxDeg[i] = GeometricApproximationDegree(sg);
-				newShapeDeg[i] = ShapeQualityDegree(sg);
+				sgDest.vertices[newInd] = v[i];
+				CalculateTriangleNormals(sgDest);
+				newApproxDeg[i] = GeometricApproximationDegree(sgDest);
+				newShapeDeg[i] = ShapeQualityDegree(sgDest);
 			}
 		//	get the best one
 			bestIndex = 0;
+		/*
 			for(int i = 1; i < numTestPositions; ++i){
 				if(newApproxDeg[i] > newApproxDeg[bestIndex])
 					bestIndex = i;
 			}
+		*/
+			for(int i = 1; i < numTestPositions; ++i){
+				if(newShapeDeg[i] > newShapeDeg[bestIndex])
+					bestIndex = i;
+			}
 		}
-		
+					
 	//	if the shape-degree of the collapsed region is too bad, we'll skip the collapse
 		if(newShapeDeg[bestIndex] < 0.5 * shapeDeg)
 			return false;
 
+	//	the approximation degree is only interesting if both endpoints of the
+	//	edge are regular surface vertices
+		bool regularNeighbourhood = IsRegularSurfaceVertex(grid, e->vertex(0)) &&	
+									IsRegularSurfaceVertex(grid, e->vertex(1));
+		
 	//	if the best approximation degree is not too bad, we'll perform the collapse
-		if(newApproxDeg[bestIndex] > 0.8 * approxDeg)
+		if(!regularNeighbourhood || (newApproxDeg[bestIndex] > 0.8 * approxDeg))
 		{						
 		//	pick one of the endpoints to be the one that resides
 		//	This has to be done with care, since the residing vertex
@@ -473,7 +486,7 @@ bool TryCollapse(Grid& grid, EdgeBase* e,
 		//	assign best position
 			aaPos[vrt] = v[bestIndex];
 		//	assign the normal
-			aaNorm[vrt] = sg.vertexNormals[newInd];
+			aaNorm[vrt] = sgDest.vertexNormals[newInd];
 
 			if(pCandidates){
 //TODO: all edges that belong to associated faces are new candidates.						
@@ -826,6 +839,25 @@ if(shMarks.get_subset_index(vrt) == RM_CREASE)
 	}
 }
 
+/**	Make sure that elements in gridOut directly correspond to
+ *	elements in gridIn*/
+template <class TGeomObj>
+void CopySelectionStatus(Selector& selOut, Grid& gridOut,
+						 Selector& selIn, Grid& gridIn)
+{
+	typedef typename geometry_traits<TGeomObj>::iterator GeomObjIter;
+	GeomObjIter endOut = gridOut.end<TGeomObj>();
+	GeomObjIter endIn = gridIn.end<TGeomObj>();
+	GeomObjIter iterOut = gridOut.begin<TGeomObj>();
+	GeomObjIter iterIn = gridIn.begin<TGeomObj>();
+	
+	for(; (iterOut != endOut) && (iterIn != endIn); ++iterOut, ++iterIn)
+	{
+		if(selIn.is_selected(*iterIn))
+			selOut.select(*iterOut);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMarksOut,
 					  Grid& gridIn, SubsetHandler& shIn, SubsetHandler& shMarksIn,
@@ -921,11 +953,29 @@ bool AdjustEdgeLength(Grid& gridOut, SubsetHandler& shOut, SubsetHandler& shMark
 //	assign vertex marks
 	AssignFixedVertices(grid, shMarks);
 	AssignCreaseVertices(grid, shMarks);
-
-//	we need an selector that holds all edges that are candidates for a collapse
+/*
+//	we need one selector that holds candidates and automatically selects all new
+//	edges.
+	Selector candidates(grid);
+	candidates.enable_autoselection(true);
+	if(pCandidates){
+	//	make sure that pCandidates is registered at the correct grid
+		if(pCandidates->get_assigned_grid() != &gridIn){
+			throw(UG_ERROR("pCandidates has to be registered at gridIn")); 
+		}
+	//	copy candidates from pCandidates to candidates.
+	//	this is possible since elements in grid directly correspond to
+	//	elements in pCandidates.
+		CopySelectionStatus<EdgeBase>(candidates, grid, *pCandidates, gridIn);
+		CopySelectionStatus<EdgeBase>(candidates, grid, *pCandidates, gridIn);
+	}
+	else
+		candidates.select(grid.edges_begin(), grid.edges_end());
+*/
+//	we need an selector that holds all edges that are candidates for a operation
 	EdgeSelector esel(grid);
 	esel.enable_selection_inheritance(false);
-
+	
 //	sort the triangles of pRefGrid into a octree to speed-up projection performance
 	SPOctree octree;
 	node_tree::Traverser_ProjectPoint pojectionTraverser;

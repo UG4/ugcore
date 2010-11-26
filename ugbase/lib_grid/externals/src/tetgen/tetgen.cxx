@@ -27,8 +27,23 @@
 // The TetGen library and program.                                           //
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
-
+#include <iostream>
+#include <stdio.h>
+#include <stdarg.h>
 #include "tetgen.h"
+
+///////////////////////////////////////////////////////////////////////////////
+//	replaces printf with cout
+int print_to_cout(const char* format, ...)
+{
+	static char buff[1024];
+	va_list arg;
+	va_start(arg, format);
+	int retVal = vsprintf(buff, format, arg);
+	va_end(arg);
+	std::cout << buff;
+	return retVal;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 //                                                                           //
@@ -272,20 +287,20 @@ bool tetgenio::load_node_call(FILE* infile, int markers, char* infilename)
   // Initialize 'pointlist', 'pointattributelist', and 'pointmarkerlist'.
   pointlist = new REAL[numberofpoints * 3];
   if (pointlist == (REAL *) NULL) {
-    printf("Error:  Out of memory.\n");
+    print_to_cout("Error:  Out of memory.\n");
     terminatetetgen(1);
   }
   if (numberofpointattributes > 0) {
     pointattributelist = new REAL[numberofpoints * numberofpointattributes];
     if (pointattributelist == (REAL *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
   }
   if (markers) {
     pointmarkerlist = new int[numberofpoints];
     if (pointmarkerlist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
   }
@@ -305,20 +320,20 @@ bool tetgenio::load_node_call(FILE* infile, int markers, char* infilename)
       stringptr = findnextnumber(stringptr);
     } // if (useindex)
     if (*stringptr == '\0') {
-      printf("Error:  Point %d has no x coordinate.\n", firstnumber + i);
+      print_to_cout("Error:  Point %d has no x coordinate.\n", firstnumber + i);
       break;
     }
     x = (REAL) strtod(stringptr, &stringptr);
     stringptr = findnextnumber(stringptr);
     if (*stringptr == '\0') {
-      printf("Error:  Point %d has no y coordinate.\n", firstnumber + i);
+      print_to_cout("Error:  Point %d has no y coordinate.\n", firstnumber + i);
       break;
     }
     y = (REAL) strtod(stringptr, &stringptr);
     if (mesh_dim == 3) {
       stringptr = findnextnumber(stringptr);
       if (*stringptr == '\0') {
-        printf("Error:  Point %d has no z coordinate.\n", firstnumber + i);
+        print_to_cout("Error:  Point %d has no z coordinate.\n", firstnumber + i);
         break;
       }
       z = (REAL) strtod(stringptr, &stringptr);
@@ -391,10 +406,10 @@ bool tetgenio::load_node(char* filename)
   // Try to open a .node file.
   infile = fopen(innodefilename, "r");
   if (infile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot access file %s.\n", innodefilename);
+    print_to_cout("File I/O Error:  Cannot access file %s.\n", innodefilename);
     return false;
   }
-  printf("Opening %s.\n", innodefilename);  
+  print_to_cout("Opening %s.\n", innodefilename);  
   // Read the first line of the file.
   stringptr = readnumberline(inputline, infile, innodefilename);
   // Is this list of points generated from rbox?
@@ -435,12 +450,12 @@ bool tetgenio::load_node(char* filename)
   }
 
   // if ((mesh_dim != 3) && (mesh_dim != 2)) {
-  //   printf("Input error:  TetGen only works for 2D & 3D point sets.\n");
+  //   print_to_cout("Input error:  TetGen only works for 2D & 3D point sets.\n");
   //   fclose(infile);
   //   return false;
   // }
   if (numberofpoints < (mesh_dim + 1)) {
-    printf("Input error:  TetGen needs at least %d points.\n", mesh_dim + 1);
+    print_to_cout("Input error:  TetGen needs at least %d points.\n", mesh_dim + 1);
     fclose(infile);
     return false;
   }
@@ -480,7 +495,7 @@ bool tetgenio::load_pbc(char* filename)
   strcat(pbcfilename, ".pbc");
   infile = fopen(pbcfilename, "r");
   if (infile != (FILE *) NULL) {
-    printf("Opening %s.\n", pbcfilename);
+    print_to_cout("Opening %s.\n", pbcfilename);
   } else {
     // No such file. Return.
     return false;
@@ -582,7 +597,7 @@ bool tetgenio::load_var(char* filename)
   strcat(varfilename, ".var");
   infile = fopen(varfilename, "r");
   if (infile != (FILE *) NULL) {
-    printf("Opening %s.\n", varfilename);
+    print_to_cout("Opening %s.\n", varfilename);
   } else {
     // No such file. Return.
     return false;
@@ -603,7 +618,7 @@ bool tetgenio::load_var(char* filename)
       stringptr = readnumberline(inputline, infile, varfilename);
       stringptr = findnextnumber(stringptr);
       if (*stringptr == '\0') {
-        printf("Error:  facet constraint %d has no facet marker.\n",
+        print_to_cout("Error:  facet constraint %d has no facet marker.\n",
                firstnumber + i);
         break;
       } else {
@@ -611,7 +626,7 @@ bool tetgenio::load_var(char* filename)
       }
       stringptr = findnextnumber(stringptr);
       if (*stringptr == '\0') {
-        printf("Error:  facet constraint %d has no maximum area bound.\n",
+        print_to_cout("Error:  facet constraint %d has no maximum area bound.\n",
                firstnumber + i);
         break;
       } else {
@@ -640,7 +655,7 @@ bool tetgenio::load_var(char* filename)
       stringptr = readnumberline(inputline, infile, varfilename);
       stringptr = findnextnumber(stringptr);
       if (*stringptr == '\0') {
-        printf("Error:  segment constraint %d has no frist endpoint.\n",
+        print_to_cout("Error:  segment constraint %d has no frist endpoint.\n",
                firstnumber + i);
         break;
       } else {
@@ -648,7 +663,7 @@ bool tetgenio::load_var(char* filename)
       }
       stringptr = findnextnumber(stringptr);
       if (*stringptr == '\0') {
-        printf("Error:  segment constraint %d has no second endpoint.\n",
+        print_to_cout("Error:  segment constraint %d has no second endpoint.\n",
                firstnumber + i);
         break;
       } else {
@@ -656,7 +671,7 @@ bool tetgenio::load_var(char* filename)
       }
       stringptr = findnextnumber(stringptr);
       if (*stringptr == '\0') {
-        printf("Error:  segment constraint %d has no maximum length bound.\n",
+        print_to_cout("Error:  segment constraint %d has no maximum length bound.\n",
                firstnumber + i);
         break;
       } else {
@@ -697,7 +712,7 @@ bool tetgenio::load_mtr(char* filename)
   strcat(mtrfilename, ".mtr");
   infile = fopen(mtrfilename, "r");
   if (infile != (FILE *) NULL) {
-    printf("Opening %s.\n", mtrfilename);
+    print_to_cout("Opening %s.\n", mtrfilename);
   } else {
     // No such file. Return.
     return false;
@@ -717,7 +732,7 @@ bool tetgenio::load_mtr(char* filename)
   // Allocate space for pointmtrlist.
   pointmtrlist = new REAL[numberofpoints * numberofpointmtrs];
   if (pointmtrlist == (REAL *) NULL) {
-    printf("Error:  Out of memory.\n");
+    print_to_cout("Error:  Out of memory.\n");
     terminatetetgen(1);
   }
   mtrindex = 0;
@@ -726,7 +741,7 @@ bool tetgenio::load_mtr(char* filename)
     stringptr = readnumberline(inputline, infile, mtrfilename);
     for (j = 0; j < numberofpointmtrs; j++) {
       if (*stringptr == '\0') {
-        printf("Error:  Metric %d is missing value #%d in %s.\n",
+        print_to_cout("Error:  Metric %d is missing value #%d in %s.\n",
                i + firstnumber, j + 1, mtrfilename);
         terminatetetgen(1);
       }
@@ -778,15 +793,15 @@ bool tetgenio::load_poly(char* filename)
     // .poly doesn't exist! Try to open a .smesh file.
     polyfile = fopen(insmeshfilename, "r");
     if (polyfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot access file %s and %s.\n",
+      print_to_cout("File I/O Error:  Cannot access file %s and %s.\n",
              inpolyfilename, insmeshfilename);
       return false;
     } else {
-      printf("Opening %s.\n", insmeshfilename);
+      print_to_cout("Opening %s.\n", insmeshfilename);
     }
     smesh = 1;
   } else {
-    printf("Opening %s.\n", inpolyfilename);
+    print_to_cout("Opening %s.\n", inpolyfilename);
   }
   // Initialize the default values.
   mesh_dim = 3;  // Three-dimemsional accoordinates.
@@ -825,10 +840,10 @@ bool tetgenio::load_poly(char* filename)
 
   if (readnodefile) {
     // Read the points from the .node file.
-    printf("Opening %s.\n", innodefilename);
+    print_to_cout("Opening %s.\n", innodefilename);
     infile = fopen(innodefilename, "r");
     if (infile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot access file %s.\n", innodefilename);
+      print_to_cout("File I/O Error:  Cannot access file %s.\n", innodefilename);
       return false;
     }
     // Initialize the default values.
@@ -854,12 +869,12 @@ bool tetgenio::load_poly(char* filename)
   }
 
   if ((mesh_dim != 3) && (mesh_dim != 2)) {
-    printf("Input error:  TetGen only works for 2D & 3D point sets.\n");
+    print_to_cout("Input error:  TetGen only works for 2D & 3D point sets.\n");
     fclose(infile);
     return false;
   }
   if (numberofpoints < (mesh_dim + 1)) {
-    printf("Input error:  TetGen needs at least %d points.\n", mesh_dim + 1);
+    print_to_cout("Input error:  TetGen needs at least %d points.\n", mesh_dim + 1);
     fclose(infile);
     return false;
   }
@@ -927,7 +942,7 @@ bool tetgenio::load_poly(char* filename)
         }
         // Each facet should has at least one polygon.
         if (f->numberofpolygons <= 0) {
-          printf("Error:  Wrong number of polygon in %d facet.\n", i);
+          print_to_cout("Error:  Wrong number of polygon in %d facet.\n", i);
           break; 
         }
         // Initialize the 'f->polygonlist'.
@@ -940,7 +955,7 @@ bool tetgenio::load_poly(char* filename)
           stringptr = readnumberline(inputline, polyfile, inpolyfilename);
           p->numberofvertices = (int) strtol(stringptr, &stringptr, 0);
           if (p->numberofvertices < 1) {
-            printf("Error:  Wrong polygon %d in facet %d\n", j, i);
+            print_to_cout("Error:  Wrong polygon %d in facet %d\n", j, i);
             break;
           }
           // Initialize 'p->vertexlist'.
@@ -953,7 +968,7 @@ bool tetgenio::load_poly(char* filename)
               //   rest of vertices.
               stringptr = readnumberline(inputline, polyfile, inpolyfilename);
               if (*stringptr == '\0') {
-                printf("Error: Missing %d endpoints of polygon %d in facet %d",
+                print_to_cout("Error: Missing %d endpoints of polygon %d in facet %d",
                        p->numberofvertices - k, j, i);
                 break;
               }
@@ -984,7 +999,7 @@ bool tetgenio::load_poly(char* filename)
             for (k = 1; k <= 3; k++) {
               stringptr = findnextnumber(stringptr);
               if (*stringptr == '\0') {
-                printf("Error:  Hole %d in facet %d has no coordinates", j, i);
+                print_to_cout("Error:  Hole %d in facet %d has no coordinates", j, i);
                 break;
               }
               f->holelist[index++] = (REAL) strtod (stringptr, &stringptr);
@@ -1021,7 +1036,7 @@ bool tetgenio::load_poly(char* filename)
         stringptr = readnumberline(inputline, polyfile, insmeshfilename);
         p->numberofvertices = (int) strtol (stringptr, &stringptr, 0);
         if (p->numberofvertices < 1) {
-          printf("Error:  Wrong number of vertex in facet %d\n", i);
+          print_to_cout("Error:  Wrong number of vertex in facet %d\n", i);
           break;
         }
         // Initialize 'p->vertexlist'.
@@ -1033,7 +1048,7 @@ bool tetgenio::load_poly(char* filename)
             //   rest of vertices.
             stringptr = readnumberline(inputline, polyfile, inpolyfilename);
             if (*stringptr == '\0') {
-              printf("Error:  Missing %d endpoints in facet %d",
+              print_to_cout("Error:  Missing %d endpoints in facet %d",
                      p->numberofvertices - k, i);
               break;
             }
@@ -1077,21 +1092,21 @@ bool tetgenio::load_poly(char* filename)
         stringptr = readnumberline(inputline, polyfile, inpolyfilename);
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Hole %d has no x coord.\n", firstnumber + (i / 3));
+          print_to_cout("Error:  Hole %d has no x coord.\n", firstnumber + (i / 3));
           break;
         } else {
           holelist[i] = (REAL) strtod(stringptr, &stringptr);
         }
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Hole %d has no y coord.\n", firstnumber + (i / 3));
+          print_to_cout("Error:  Hole %d has no y coord.\n", firstnumber + (i / 3));
           break;
         } else {
           holelist[i + 1] = (REAL) strtod(stringptr, &stringptr);
         }
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Hole %d has no z coord.\n", firstnumber + (i / 3));
+          print_to_cout("Error:  Hole %d has no z coord.\n", firstnumber + (i / 3));
           break;
         } else {
           holelist[i + 2] = (REAL) strtod(stringptr, &stringptr);
@@ -1120,28 +1135,28 @@ bool tetgenio::load_poly(char* filename)
         stringptr = readnumberline(inputline, polyfile, inpolyfilename);
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Region %d has no x coordinate.\n", firstnumber + i);
+          print_to_cout("Error:  Region %d has no x coordinate.\n", firstnumber + i);
           break;
         } else {
           regionlist[index++] = (REAL) strtod(stringptr, &stringptr);
         }
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Region %d has no y coordinate.\n", firstnumber + i);
+          print_to_cout("Error:  Region %d has no y coordinate.\n", firstnumber + i);
           break;
         } else {
           regionlist[index++] = (REAL) strtod(stringptr, &stringptr);
         }
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Region %d has no z coordinate.\n", firstnumber + i);
+          print_to_cout("Error:  Region %d has no z coordinate.\n", firstnumber + i);
           break;
         } else {
           regionlist[index++] = (REAL) strtod(stringptr, &stringptr);
         }
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Region %d has no region attrib.\n", firstnumber + i);
+          print_to_cout("Error:  Region %d has no region attrib.\n", firstnumber + i);
           break;
         } else {
           regionlist[index++] = (REAL) strtod(stringptr, &stringptr);
@@ -1257,7 +1272,7 @@ bool tetgenio::load_off(char* filename)
   strncpy(infilename, filename, 1024 - 1);
   infilename[FILENAMESIZE - 1] = '\0';
   if (infilename[0] == '\0') {
-    printf("Error:  No filename.\n");
+    print_to_cout("Error:  No filename.\n");
     return false;
   }
   if (strcmp(&infilename[strlen(infilename) - 4], ".off") != 0) {
@@ -1265,10 +1280,10 @@ bool tetgenio::load_off(char* filename)
   }
 
   if (!(fp = fopen(infilename, "r"))) {
-    printf("File I/O Error:  Unable to open file %s\n", infilename);
+    print_to_cout("File I/O Error:  Unable to open file %s\n", infilename);
     return false;
   }
-  printf("Opening %s.\n", infilename);
+  print_to_cout("Opening %s.\n", infilename);
 
   // OFF requires the index starts from '0'.
   firstnumber = 0;
@@ -1287,7 +1302,7 @@ bool tetgenio::load_off(char* filename)
         }
         if ((sscanf(bufferp, "%d%d%d", &nverts, &nfaces, &nedges) != 3) 
             || (nverts == 0)) {
-          printf("Syntax error reading header on line %d in file %s\n",
+          print_to_cout("Syntax error reading header on line %d in file %s\n",
                  line_count, infilename);
           fclose(fp);
           return false;
@@ -1307,7 +1322,7 @@ bool tetgenio::load_off(char* filename)
       coord = &pointlist[iverts * 3];
       for (i = 0; i < 3; i++) {
         if (*bufferp == '\0') {
-          printf("Syntax error reading vertex coords on line %d in file %s\n",
+          print_to_cout("Syntax error reading vertex coords on line %d in file %s\n",
                  line_count, infilename);
           fclose(fp);
           return false;
@@ -1328,7 +1343,7 @@ bool tetgenio::load_off(char* filename)
       // Read the number of vertices, it should be greater than 0.
       p->numberofvertices = (int) strtol(bufferp, &bufferp, 0);
       if (p->numberofvertices == 0) {
-        printf("Syntax error reading polygon on line %d in file %s\n",
+        print_to_cout("Syntax error reading polygon on line %d in file %s\n",
                line_count, infilename);
         fclose(fp);
         return false;
@@ -1338,7 +1353,7 @@ bool tetgenio::load_off(char* filename)
       for (i = 0; i < p->numberofvertices; i++) {
         bufferp = findnextnumber(bufferp);
         if (*bufferp == '\0') {
-          printf("Syntax error reading polygon on line %d in file %s\n",
+          print_to_cout("Syntax error reading polygon on line %d in file %s\n",
                  line_count, infilename);
           fclose(fp);
           return false;
@@ -1348,7 +1363,7 @@ bool tetgenio::load_off(char* filename)
       ifaces++;
     } else {
       // Should never get here
-      printf("Found extra text starting at line %d in file %s\n", line_count,
+      print_to_cout("Found extra text starting at line %d in file %s\n", line_count,
              infilename);
       break;
     }
@@ -1359,14 +1374,14 @@ bool tetgenio::load_off(char* filename)
 
   // Check whether read all points
   if (iverts != nverts) {
-    printf("Expected %d vertices, but read only %d vertices in file %s\n",
+    print_to_cout("Expected %d vertices, but read only %d vertices in file %s\n",
            nverts, iverts, infilename);
     return false;
   }
 
   // Check whether read all faces
   if (ifaces != nfaces) {
-    printf("Expected %d faces, but read only %d faces in file %s\n",
+    print_to_cout("Expected %d faces, but read only %d faces in file %s\n",
            nfaces, ifaces, infilename);
     return false;
   }
@@ -1410,7 +1425,7 @@ bool tetgenio::load_ply(char* filename)
   strncpy(infilename, filename, FILENAMESIZE - 1);
   infilename[FILENAMESIZE - 1] = '\0';
   if (infilename[0] == '\0') {
-    printf("Error:  No filename.\n");
+    print_to_cout("Error:  No filename.\n");
     return false;
   }
   if (strcmp(&infilename[strlen(infilename) - 4], ".ply") != 0) {
@@ -1418,10 +1433,10 @@ bool tetgenio::load_ply(char* filename)
   }
 
   if (!(fp = fopen(infilename, "r"))) {
-    printf("Error:  Unable to open file %s\n", infilename);
+    print_to_cout("Error:  Unable to open file %s\n", infilename);
     return false;
   }
-  printf("Opening %s.\n", infilename);
+  print_to_cout("Opening %s.\n", infilename);
 
   // PLY requires the index starts from '0'.
   firstnumber = 0;
@@ -1446,7 +1461,7 @@ bool tetgenio::load_ply(char* filename)
         if (str) {
           bufferp = findnextfield(str);
           if (*bufferp == '\0') {
-            printf("Syntax error reading element type on line%d in file %s\n",
+            print_to_cout("Syntax error reading element type on line%d in file %s\n",
                    line_count, infilename);
             fclose(fp);
             return false;
@@ -1458,8 +1473,8 @@ bool tetgenio::load_ply(char* filename)
             if (str) {
               bufferp = findnextnumber(str);
               if (*bufferp == '\0') {
-                printf("Syntax error reading vertex number on line");
-                printf(" %d in file %s\n", line_count, infilename);
+                print_to_cout("Syntax error reading vertex number on line");
+                print_to_cout(" %d in file %s\n", line_count, infilename);
                 fclose(fp);
                 return false;
               }
@@ -1478,8 +1493,8 @@ bool tetgenio::load_ply(char* filename)
             if (str) {
               bufferp = findnextnumber(str);
               if (*bufferp == '\0') {
-                printf("Syntax error reading face number on line");
-                printf(" %d in file %s\n", line_count, infilename);
+                print_to_cout("Syntax error reading face number on line");
+                print_to_cout(" %d in file %s\n", line_count, infilename);
                 fclose(fp);
                 return false;
               }
@@ -1504,10 +1519,10 @@ bool tetgenio::load_ply(char* filename)
           str = strstr(bufferp, "ascii");
           if (!str) str = strstr(bufferp, "ASCII");
           if (!str) {
-            printf("This routine only reads ascii format of ply files.\n");
-            printf("Hint: You can convert the binary to ascii format by\n");
-            printf("  using the provided ply tools:\n");
-            printf("  ply2ascii < %s > ascii_%s\n", infilename, infilename);
+            print_to_cout("This routine only reads ascii format of ply files.\n");
+            print_to_cout("Hint: You can convert the binary to ascii format by\n");
+            print_to_cout("  using the provided ply tools:\n");
+            print_to_cout("  ply2ascii < %s > ascii_%s\n", infilename, infilename);
             fclose(fp);
             return false;
           }
@@ -1518,7 +1533,7 @@ bool tetgenio::load_ply(char* filename)
       coord = &pointlist[iverts * 3];
       for (i = 0; i < 3; i++) {
         if (*bufferp == '\0') {
-          printf("Syntax error reading vertex coords on line %d in file %s\n",
+          print_to_cout("Syntax error reading vertex coords on line %d in file %s\n",
                  line_count, infilename);
           fclose(fp);
           return false;
@@ -1539,7 +1554,7 @@ bool tetgenio::load_ply(char* filename)
       // Read the number of vertices, it should be greater than 0.
       p->numberofvertices = (int) strtol(bufferp, &bufferp, 0);
       if (p->numberofvertices == 0) {
-        printf("Syntax error reading polygon on line %d in file %s\n",
+        print_to_cout("Syntax error reading polygon on line %d in file %s\n",
                line_count, infilename);
         fclose(fp);
         return false;
@@ -1549,7 +1564,7 @@ bool tetgenio::load_ply(char* filename)
       for (i = 0; i < p->numberofvertices; i++) {
         bufferp = findnextnumber(bufferp);
         if (*bufferp == '\0') {
-          printf("Syntax error reading polygon on line %d in file %s\n",
+          print_to_cout("Syntax error reading polygon on line %d in file %s\n",
                  line_count, infilename);
           fclose(fp);
           return false;
@@ -1559,7 +1574,7 @@ bool tetgenio::load_ply(char* filename)
       ifaces++;
     } else {
       // Should never get here
-      printf("Found extra text starting at line %d in file %s\n", line_count,
+      print_to_cout("Found extra text starting at line %d in file %s\n", line_count,
              infilename);
       break;
     }
@@ -1570,14 +1585,14 @@ bool tetgenio::load_ply(char* filename)
 
   // Check whether read all points
   if (iverts != nverts) {
-    printf("Expected %d vertices, but read only %d vertices in file %s\n",
+    print_to_cout("Expected %d vertices, but read only %d vertices in file %s\n",
            nverts, iverts, infilename);
     return false;
   }
 
   // Check whether read all faces
   if (ifaces != nfaces) {
-    printf("Expected %d faces, but read only %d faces in file %s\n",
+    print_to_cout("Expected %d faces, but read only %d faces in file %s\n",
            nfaces, ifaces, infilename);
     return false;
   }
@@ -1621,7 +1636,7 @@ bool tetgenio::load_stl(char* filename)
   strncpy(infilename, filename, FILENAMESIZE - 1);
   infilename[FILENAMESIZE - 1] = '\0';
   if (infilename[0] == '\0') {
-    printf("Error:  No filename.\n");
+    print_to_cout("Error:  No filename.\n");
     return false;
   }
   if (strcmp(&infilename[strlen(infilename) - 4], ".stl") != 0) {
@@ -1629,10 +1644,10 @@ bool tetgenio::load_stl(char* filename)
   }
 
   if (!(fp = fopen(infilename, "r"))) {
-    printf("Error:  Unable to open file %s\n", infilename);
+    print_to_cout("Error:  Unable to open file %s\n", infilename);
     return false;
   }
-  printf("Opening %s.\n", infilename);
+  print_to_cout("Opening %s.\n", infilename);
 
   // STL file has no number of points available. Use a list to read points.
   plist = new tetgenmesh::list(sizeof(double) * 3, NULL, 1024); 
@@ -1662,7 +1677,7 @@ bool tetgenio::load_stl(char* filename)
           for (i = 0; i < 3; i++) {
             bufferp = findnextnumber(bufferp);
             if (*bufferp == '\0') {
-              printf("Syntax error reading vertex coords on line %d\n",
+              print_to_cout("Syntax error reading vertex coords on line %d\n",
                    line_count);
               delete plist;
               fclose(fp);
@@ -1679,7 +1694,7 @@ bool tetgenio::load_stl(char* filename)
   nverts = plist->len();
   // nverts should be an integer times 3 (every 3 vertices denote a face).
   if (nverts == 0 || (nverts % 3 != 0)) {
-    printf("Error:  Wrong number of vertices in file %s.\n", infilename);
+    print_to_cout("Error:  Wrong number of vertices in file %s.\n", infilename);
     delete plist;
     return false;
   }
@@ -1754,7 +1769,7 @@ bool tetgenio::load_medit(char* filename)
   strncpy(infilename, filename, FILENAMESIZE - 1);
   infilename[FILENAMESIZE - 1] = '\0';
   if (infilename[0] == '\0') {
-    printf("Error:  No filename.\n");
+    print_to_cout("Error:  No filename.\n");
     return false;
   }
   if (strcmp(&infilename[strlen(infilename) - 5], ".mesh") != 0) {
@@ -1762,10 +1777,10 @@ bool tetgenio::load_medit(char* filename)
   }
   
   if (!(fp = fopen(infilename, "r"))) {
-    printf("Error:  Unable to open file %s\n", infilename);
+    print_to_cout("Error:  Unable to open file %s\n", infilename);
     return false;
   }
-  printf("Opening %s.\n", infilename);
+  print_to_cout("Opening %s.\n", infilename);
 
   // Default uses the index starts from '1'.
   firstnumber = 1;
@@ -1786,7 +1801,7 @@ bool tetgenio::load_medit(char* filename)
         }
         dimension = (int) strtol(bufferp, &bufferp, 0);
         if (dimension != 2 && dimension != 3) {
-          printf("Unknown dimension in file on line %d in file %s\n",
+          print_to_cout("Unknown dimension in file on line %d in file %s\n",
                  line_count, infilename);
           fclose(fp);
           return false;
@@ -1816,7 +1831,7 @@ bool tetgenio::load_medit(char* filename)
         for (i = 0; i < nverts; i++) {
           bufferp = readline(buffer, fp, &line_count);
           if (bufferp == NULL) {
-            printf("Unexpected end of file on line %d in file %s\n",
+            print_to_cout("Unexpected end of file on line %d in file %s\n",
                    line_count, infilename);
             fclose(fp);
             return false;
@@ -1825,8 +1840,8 @@ bool tetgenio::load_medit(char* filename)
           coord = &pointlist[i * 3];
           for (j = 0; j < 3; j++) {
             if (*bufferp == '\0') {
-              printf("Syntax error reading vertex coords on line");
-              printf(" %d in file %s\n", line_count, infilename);
+              print_to_cout("Syntax error reading vertex coords on line");
+              print_to_cout(" %d in file %s\n", line_count, infilename);
               fclose(fp);
               return false;
             }
@@ -1895,7 +1910,7 @@ bool tetgenio::load_medit(char* filename)
         for (i = numberoffacets; i < numberoffacets + nfaces; i++) {
           bufferp = readline(buffer, fp, &line_count);
           if (bufferp == NULL) {
-            printf("Unexpected end of file on line %d in file %s\n",
+            print_to_cout("Unexpected end of file on line %d in file %s\n",
                    line_count, infilename);
             fclose(fp);
             return false;
@@ -1913,7 +1928,7 @@ bool tetgenio::load_medit(char* filename)
           // Read the vertices of the face.
           for (j = 0; j < corners; j++) {
             if (*bufferp == '\0') {
-              printf("Syntax error reading face on line %d in file %s\n",
+              print_to_cout("Syntax error reading face on line %d in file %s\n",
                      line_count, infilename);
               fclose(fp);
               return false;
@@ -2021,10 +2036,10 @@ bool tetgenio::load_tetmesh(char* filename)
 
   // Read the points from a .node file.
   infilename = innodefilename;
-  printf("Opening %s.\n", infilename);
+  print_to_cout("Opening %s.\n", infilename);
   infile = fopen(infilename, "r");
   if (infile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot access file %s.\n", infilename);
+    print_to_cout("File I/O Error:  Cannot access file %s.\n", infilename);
     return false;
   }
   // Read the first line of the file.
@@ -2078,7 +2093,7 @@ bool tetgenio::load_tetmesh(char* filename)
     infilename = inelefilename;
     infile = fopen(infilename, "r");
     if (infile != (FILE *) NULL) {
-      printf("Opening %s.\n", infilename);
+      print_to_cout("Opening %s.\n", infilename);
       // Read number of elements, number of corners (4 or 10), number of
       //   element attributes.
       stringptr = readnumberline(inputline, infile, infilename);
@@ -2096,7 +2111,7 @@ bool tetgenio::load_tetmesh(char* filename)
         numberoftetrahedronattributes = (int) strtol(stringptr, &stringptr, 0);
       }
       if (numberofcorners != 4 && numberofcorners != 10) {
-        printf("Error:  Wrong number of corners %d (should be 4 or 10).\n", 
+        print_to_cout("Error:  Wrong number of corners %d (should be 4 or 10).\n", 
                numberofcorners);
         fclose(infile);
         return false;
@@ -2105,7 +2120,7 @@ bool tetgenio::load_tetmesh(char* filename)
       if (numberoftetrahedra > 0) {
         tetrahedronlist = new int[numberoftetrahedra * numberofcorners]; 
         if (tetrahedronlist == (int *) NULL) {
-          printf("Error:  Out of memory.\n");
+          print_to_cout("Error:  Out of memory.\n");
           terminatetetgen(1);
         }
         // Allocate memory for output tetrahedron attributes if necessary.
@@ -2113,7 +2128,7 @@ bool tetgenio::load_tetmesh(char* filename)
           tetrahedronattributelist = new REAL[numberoftetrahedra *
                                           numberoftetrahedronattributes];
           if (tetrahedronattributelist == (REAL *) NULL) {
-            printf("Error:  Out of memory.\n");
+            print_to_cout("Error:  Out of memory.\n");
             terminatetetgen(1);
           }
         }
@@ -2127,13 +2142,13 @@ bool tetgenio::load_tetmesh(char* filename)
         for (j = 0; j < numberofcorners; j++) {
           stringptr = findnextnumber(stringptr);
           if (*stringptr == '\0') {
-            printf("Error:  Tetrahedron %d is missing vertex %d in %s.\n",
+            print_to_cout("Error:  Tetrahedron %d is missing vertex %d in %s.\n",
                    i + firstnumber, j + 1, infilename);
             terminatetetgen(1);
           }
           corner = (int) strtol(stringptr, &stringptr, 0);
           if (corner < firstnumber || corner >= numberofpoints + firstnumber) {
-            printf("Error:  Tetrahedron %d has an invalid vertex index.\n",
+            print_to_cout("Error:  Tetrahedron %d has an invalid vertex index.\n",
                    i + firstnumber);
             terminatetetgen(1);
           }
@@ -2162,7 +2177,7 @@ bool tetgenio::load_tetmesh(char* filename)
   }
   infile = fopen(infilename, "r");
   if (infile != (FILE *) NULL) {
-    printf("Opening %s.\n", infilename);
+    print_to_cout("Opening %s.\n", infilename);
     // Read number of faces, boundary markers.
     stringptr = readnumberline(inputline, infile, infilename);
     numberoftrifaces = (int) strtol (stringptr, &stringptr, 0);
@@ -2179,13 +2194,13 @@ bool tetgenio::load_tetmesh(char* filename)
     if (numberoftrifaces > 0) {
       trifacelist = new int[numberoftrifaces * 3];
       if (trifacelist == (int *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
       if (markers) {
         trifacemarkerlist = new int[numberoftrifaces * 3];
         if (trifacemarkerlist == (int *) NULL) {
-          printf("Error:  Out of memory.\n");
+          print_to_cout("Error:  Out of memory.\n");
           terminatetetgen(1);
         }
       }
@@ -2198,13 +2213,13 @@ bool tetgenio::load_tetmesh(char* filename)
       for (j = 0; j < 3; j++) {
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Face %d is missing vertex %d in %s.\n",
+          print_to_cout("Error:  Face %d is missing vertex %d in %s.\n",
                  i + firstnumber, j + 1, infilename);
           terminatetetgen(1);
         }
         corner = (int) strtol(stringptr, &stringptr, 0);
         if (corner < firstnumber || corner >= numberofpoints + firstnumber) {
-          printf("Error:  Face %d has an invalid vertex index.\n",
+          print_to_cout("Error:  Face %d has an invalid vertex index.\n",
                  i + firstnumber);
           terminatetetgen(1);
         }
@@ -2228,14 +2243,14 @@ bool tetgenio::load_tetmesh(char* filename)
   infilename = inedgefilename;
   infile = fopen(infilename, "r");
   if (infile != (FILE *) NULL) {
-    printf("Opening %s.\n", infilename);
+    print_to_cout("Opening %s.\n", infilename);
     // Read number of boundary edges.
     stringptr = readnumberline(inputline, infile, infilename);
     numberofedges = (int) strtol (stringptr, &stringptr, 0);
     if (numberofedges > 0) {
       edgelist = new int[numberofedges * 2];
       if (edgelist == (int *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -2247,13 +2262,13 @@ bool tetgenio::load_tetmesh(char* filename)
       for (j = 0; j < 2; j++) {
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Edge %d is missing vertex %d in %s.\n",
+          print_to_cout("Error:  Edge %d is missing vertex %d in %s.\n",
                  i + firstnumber, j + 1, infilename);
           terminatetetgen(1);
         }
         corner = (int) strtol(stringptr, &stringptr, 0);
         if (corner < firstnumber || corner >= numberofpoints + firstnumber) {
-          printf("Error:  Edge %d has an invalid vertex index.\n",
+          print_to_cout("Error:  Edge %d has an invalid vertex index.\n",
                  i + firstnumber);
           terminatetetgen(1);
         }
@@ -2267,19 +2282,19 @@ bool tetgenio::load_tetmesh(char* filename)
   infilename = involfilename;
   infile = fopen(infilename, "r");
   if (infile != (FILE *) NULL) {
-    printf("Opening %s.\n", infilename);
+    print_to_cout("Opening %s.\n", infilename);
     // Read number of tetrahedra.
     stringptr = readnumberline(inputline, infile, infilename);
     volelements = (int) strtol (stringptr, &stringptr, 0);
     if (volelements != numberoftetrahedra) {
-      printf("Warning:  %s and %s disagree on number of tetrahedra.\n",
+      print_to_cout("Warning:  %s and %s disagree on number of tetrahedra.\n",
              inelefilename, involfilename);
       volelements = 0;
     }
     if (volelements > 0) {
       tetrahedronvolumelist = new REAL[volelements];
       if (tetrahedronvolumelist == (REAL *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -2335,10 +2350,10 @@ bool tetgenio::load_voronoi(char* filename)
 
   // Read the points from a .v.node file.
   infilename = innodefilename;
-  printf("Opening %s.\n", infilename);
+  print_to_cout("Opening %s.\n", infilename);
   infile = fopen(infilename, "r");
   if (infile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot access file %s.\n", infilename);
+    print_to_cout("File I/O Error:  Cannot access file %s.\n", infilename);
     return false;
   }
   // Read the first line of the file.
@@ -2370,7 +2385,7 @@ bool tetgenio::load_voronoi(char* filename)
   // Initialize 'vpointlist'.
   vpointlist = new REAL[numberofvpoints * 3];
   if (vpointlist == (REAL *) NULL) {
-    printf("Error:  Out of memory.\n");
+    print_to_cout("Error:  Out of memory.\n");
     terminatetetgen(1);
   }
   // Read the point section.
@@ -2387,20 +2402,20 @@ bool tetgenio::load_voronoi(char* filename)
       stringptr = findnextnumber(stringptr);
     } // if (useindex)
     if (*stringptr == '\0') {
-      printf("Error:  Point %d has no x coordinate.\n", firstnumber + i);
+      print_to_cout("Error:  Point %d has no x coordinate.\n", firstnumber + i);
       terminatetetgen(1);
     }
     x = (REAL) strtod(stringptr, &stringptr);
     stringptr = findnextnumber(stringptr);
     if (*stringptr == '\0') {
-      printf("Error:  Point %d has no y coordinate.\n", firstnumber + i);
+      print_to_cout("Error:  Point %d has no y coordinate.\n", firstnumber + i);
       terminatetetgen(1);
     }
     y = (REAL) strtod(stringptr, &stringptr);
     if (mesh_dim == 3) {
       stringptr = findnextnumber(stringptr);
       if (*stringptr == '\0') {
-        printf("Error:  Point %d has no z coordinate.\n", firstnumber + i);
+        print_to_cout("Error:  Point %d has no z coordinate.\n", firstnumber + i);
         terminatetetgen(1);
       }
       z = (REAL) strtod(stringptr, &stringptr);
@@ -2417,7 +2432,7 @@ bool tetgenio::load_voronoi(char* filename)
   infilename = inedgefilename;
   infile = fopen(infilename, "r");
   if (infile != (FILE *) NULL) {
-    printf("Opening %s.\n", infilename);
+    print_to_cout("Opening %s.\n", infilename);
     // Read number of boundary edges.
     stringptr = readnumberline(inputline, infile, infilename);
     numberofvedges = (int) strtol (stringptr, &stringptr, 0);
@@ -2433,7 +2448,7 @@ bool tetgenio::load_voronoi(char* filename)
       for (j = 0; j < 2; j++) {
         stringptr = findnextnumber(stringptr);
         if (*stringptr == '\0') {
-          printf("Error:  Edge %d is missing vertex %d in %s.\n",
+          print_to_cout("Error:  Edge %d is missing vertex %d in %s.\n",
                  i + firstnumber, j + 1, infilename);
           terminatetetgen(1);
         }
@@ -2444,7 +2459,7 @@ bool tetgenio::load_voronoi(char* filename)
         for (j = 0; j < mesh_dim; j++) {
           stringptr = findnextnumber(stringptr);
           if (*stringptr == '\0') {
-            printf("Error:  Edge %d is missing normal in %s.\n",
+            print_to_cout("Error:  Edge %d is missing normal in %s.\n",
                    i + firstnumber, infilename);
             terminatetetgen(1);
           }
@@ -2481,7 +2496,7 @@ void tetgenio::save_nodes(char* filename)
   int i, j;
 
   sprintf(outnodefilename, "%s.node", filename);
-  printf("Saving nodes to %s\n", outnodefilename);
+  print_to_cout("Saving nodes to %s\n", outnodefilename);
   fout = fopen(outnodefilename, "w");
   fprintf(fout, "%d  %d  %d  %d\n", numberofpoints, mesh_dim,
           numberofpointattributes, pointmarkerlist != NULL ? 1 : 0);
@@ -2507,7 +2522,7 @@ void tetgenio::save_nodes(char* filename)
   // If the point metrics exist, output them to a .mtr file.
   if ((numberofpointmtrs > 0) && (pointmtrlist != (REAL *) NULL)) {
     sprintf(outmtrfilename, "%s.mtr", filename);
-    printf("Saving metrics to %s\n", outmtrfilename);
+    print_to_cout("Saving metrics to %s\n", outmtrfilename);
     fout = fopen(outmtrfilename, "w");
     fprintf(fout, "%d  %d\n", numberofpoints, numberofpointmtrs);
     for (i = 0; i < numberofpoints; i++) {
@@ -2535,7 +2550,7 @@ void tetgenio::save_elements(char* filename)
   int i, j;
 
   sprintf(outelefilename, "%s.ele", filename);
-  printf("Saving elements to %s\n", outelefilename);
+  print_to_cout("Saving elements to %s\n", outelefilename);
   fout = fopen(outelefilename, "w");
   fprintf(fout, "%d  %d  %d\n", numberoftetrahedra, numberofcorners,
           numberoftetrahedronattributes);
@@ -2569,7 +2584,7 @@ void tetgenio::save_faces(char* filename)
   int i;
 
   sprintf(outfacefilename, "%s.face", filename);
-  printf("Saving faces to %s\n", outfacefilename);
+  print_to_cout("Saving faces to %s\n", outfacefilename);
   fout = fopen(outfacefilename, "w");
   fprintf(fout, "%d  %d\n", numberoftrifaces, 
           trifacemarkerlist != NULL ? 1 : 0);
@@ -2600,7 +2615,7 @@ void tetgenio::save_edges(char* filename)
   int i;
 
   sprintf(outedgefilename, "%s.edge", filename);
-  printf("Saving edges to %s\n", outedgefilename);
+  print_to_cout("Saving edges to %s\n", outedgefilename);
   fout = fopen(outedgefilename, "w");
   fprintf(fout, "%d  %d\n", numberofedges, edgemarkerlist != NULL ? 1 : 0);
   for (i = 0; i < numberofedges; i++) {
@@ -2630,7 +2645,7 @@ void tetgenio::save_neighbors(char* filename)
   int i;
 
   sprintf(outneighborfilename, "%s.neigh", filename);
-  printf("Saving neighbors to %s\n", outneighborfilename);
+  print_to_cout("Saving neighbors to %s\n", outneighborfilename);
   fout = fopen(outneighborfilename, "w");
   fprintf(fout, "%d  %d\n", numberoftetrahedra, mesh_dim + 1);
   for (i = 0; i < numberoftetrahedra; i++) {
@@ -2667,7 +2682,7 @@ void tetgenio::save_poly(char* filename)
   int i, j, k;
 
   sprintf(outpolyfilename, "%s.poly", filename);
-  printf("Saving poly to %s\n", outpolyfilename);
+  print_to_cout("Saving poly to %s\n", outpolyfilename);
   fout = fopen(outpolyfilename, "w");
 
   // The zero indicates that the vertices are in a separate .node file.
@@ -2826,7 +2841,7 @@ char* tetgenio::readnumberline(char *string, FILE *infile, char *infilename)
     result = fgets(string, INPUTLINESIZE, infile);
     if (result == (char *) NULL) {
       if (infilename != (char *) NULL) {
-        printf("  Error:  Unexpected end of file in %s.\n", infilename);
+        print_to_cout("  Error:  Unexpected end of file in %s.\n", infilename);
         terminatetetgen(1);
       }
       return result;
@@ -2963,12 +2978,12 @@ tetgenbehavior::tetgenbehavior()
 
 void tetgenbehavior::versioninfo()
 {
-  printf("Version 1.4.2 (April 16, 2007).\n");
-  printf("\n");
-  printf("Copyright (C) 2002 - 2007\n");
-  printf("Hang Si\n");
-  printf("Mohrenstr. 39, 10117 Berlin, Germany\n");
-  printf("si@wias-berlin.de\n");
+  print_to_cout("Version 1.4.2 (April 16, 2007).\n");
+  print_to_cout("\n");
+  print_to_cout("Copyright (C) 2002 - 2007\n");
+  print_to_cout("Hang Si\n");
+  print_to_cout("Mohrenstr. 39, 10117 Berlin, Germany\n");
+  print_to_cout("si@wias-berlin.de\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2979,41 +2994,41 @@ void tetgenbehavior::versioninfo()
 
 void tetgenbehavior::syntax()
 {
-  printf("  tetgen [-prq_Ra_AiMYS_T_dzo_fenvgGOJBNEFICQVh] input_file\n");
-  printf("    -p  Tetrahedralizes a piecewise linear complex (PLC).\n");
-  printf("    -r  Reconstructs a previously generated mesh.\n");
-  printf("    -q  Quality mesh generation (adding new mesh points to ");
-  printf("improve mesh quality).\n");
-  printf("    -R  Mesh coarsening (deleting redundant mesh points).\n");
-  printf("    -a  Applies a maximum tetrahedron volume constraint.\n");
-  printf("    -A  Assigns attributes to identify tetrahedra in different ");
-  printf("regions.\n");
-  printf("    -i  Inserts a list of additional points into mesh.\n");
-  printf("    -M  Does not merge coplanar facets.\n");
-  printf("    -Y  Suppresses boundary facets/segments splitting.\n");
-  printf("    -S  Specifies maximum number of added points.\n");
-  printf("    -T  Sets a tolerance for coplanar test (default 1e-8).\n");
-  printf("    -d  Detects self-intersections of facets of the PLC.\n");
-  printf("    -z  Numbers all output items starting from zero.\n");
-  printf("    -o2 Generates second-order subparametric elements.\n");
-  printf("    -f  Outputs all faces to .face file.");
-  printf("file.\n");
-  printf("    -e  Outputs all edges to .edge file.\n");
-  printf("    -n  Outputs tetrahedra neighbors to .neigh file.\n");
-  printf("    -v  Outputs Voronoi diagram to files.\n");
-  printf("    -g  Outputs mesh to .mesh file for viewing by Medit.\n");
-  printf("    -G  Outputs mesh to .msh file for viewing by Gid.\n");
-  printf("    -O  Outputs mesh to .off file for viewing by Geomview.\n");
-  printf("    -J  No jettison of unused vertices from output .node file.\n");
-  printf("    -B  Suppresses output of boundary information.\n");
-  printf("    -N  Suppresses output of .node file.\n");
-  printf("    -E  Suppresses output of .ele file.\n");
-  printf("    -F  Suppresses output of .face file.\n");
-  printf("    -I  Suppresses mesh iteration numbers.\n");
-  printf("    -C  Checks the consistency of the final mesh.\n");
-  printf("    -Q  Quiet:  No terminal output except errors.\n");
-  printf("    -V  Verbose:  Detailed information, more terminal output.\n");
-  printf("    -h  Help:  A brief instruction for using TetGen.\n");
+  print_to_cout("  tetgen [-prq_Ra_AiMYS_T_dzo_fenvgGOJBNEFICQVh] input_file\n");
+  print_to_cout("    -p  Tetrahedralizes a piecewise linear complex (PLC).\n");
+  print_to_cout("    -r  Reconstructs a previously generated mesh.\n");
+  print_to_cout("    -q  Quality mesh generation (adding new mesh points to ");
+  print_to_cout("improve mesh quality).\n");
+  print_to_cout("    -R  Mesh coarsening (deleting redundant mesh points).\n");
+  print_to_cout("    -a  Applies a maximum tetrahedron volume constraint.\n");
+  print_to_cout("    -A  Assigns attributes to identify tetrahedra in different ");
+  print_to_cout("regions.\n");
+  print_to_cout("    -i  Inserts a list of additional points into mesh.\n");
+  print_to_cout("    -M  Does not merge coplanar facets.\n");
+  print_to_cout("    -Y  Suppresses boundary facets/segments splitting.\n");
+  print_to_cout("    -S  Specifies maximum number of added points.\n");
+  print_to_cout("    -T  Sets a tolerance for coplanar test (default 1e-8).\n");
+  print_to_cout("    -d  Detects self-intersections of facets of the PLC.\n");
+  print_to_cout("    -z  Numbers all output items starting from zero.\n");
+  print_to_cout("    -o2 Generates second-order subparametric elements.\n");
+  print_to_cout("    -f  Outputs all faces to .face file.");
+  print_to_cout("file.\n");
+  print_to_cout("    -e  Outputs all edges to .edge file.\n");
+  print_to_cout("    -n  Outputs tetrahedra neighbors to .neigh file.\n");
+  print_to_cout("    -v  Outputs Voronoi diagram to files.\n");
+  print_to_cout("    -g  Outputs mesh to .mesh file for viewing by Medit.\n");
+  print_to_cout("    -G  Outputs mesh to .msh file for viewing by Gid.\n");
+  print_to_cout("    -O  Outputs mesh to .off file for viewing by Geomview.\n");
+  print_to_cout("    -J  No jettison of unused vertices from output .node file.\n");
+  print_to_cout("    -B  Suppresses output of boundary information.\n");
+  print_to_cout("    -N  Suppresses output of .node file.\n");
+  print_to_cout("    -E  Suppresses output of .ele file.\n");
+  print_to_cout("    -F  Suppresses output of .face file.\n");
+  print_to_cout("    -I  Suppresses mesh iteration numbers.\n");
+  print_to_cout("    -C  Checks the consistency of the final mesh.\n");
+  print_to_cout("    -Q  Quiet:  No terminal output except errors.\n");
+  print_to_cout("    -V  Verbose:  Detailed information, more terminal output.\n");
+  print_to_cout("    -h  Help:  A brief instruction for using TetGen.\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3024,53 +3039,53 @@ void tetgenbehavior::syntax()
 
 void tetgenbehavior::usage()
 {
-  printf("TetGen\n");
-  printf("A Quality Tetrahedral Mesh Generator and 3D Delaunay ");
-  printf("Triangulator\n");
+  print_to_cout("TetGen\n");
+  print_to_cout("A Quality Tetrahedral Mesh Generator and 3D Delaunay ");
+  print_to_cout("Triangulator\n");
   versioninfo();
-  printf("\n");
-  printf("What Can TetGen Do?\n");
-  printf("\n");
-  printf("  TetGen generates exact Delaunay tetrahedralizations, exact\n");
-  printf("  constrained Delaunay tetrahedralizations, and quality ");
-  printf("tetrahedral\n  meshes. The latter are nicely graded and whose ");
-  printf("tetrahedra have\n  radius-edge ratio bounded, thus are suitable ");
-  printf("for finite element and\n  finite volume analysis.\n"); 
-  printf("\n");
-  printf("Command Line Syntax:\n");
-  printf("\n");
-  printf("  Below is the command line syntax of TetGen with a list of ");
-  printf("short\n");
-  printf("  descriptions. Underscores indicate that numbers may optionally\n");
-  printf("  follow certain switches.  Do not leave any space between a ");
-  printf("switch\n");
-  printf("  and its numeric parameter.  \'input_file\' contains input data\n");
-  printf("  depending on the switches you supplied which may be a ");
-  printf("  piecewise\n");
-  printf("  linear complex or a list of nodes.  File formats and detailed\n");
-  printf("  description of command line switches are found in user's ");
-  printf("manual.\n");
-  printf("\n");
+  print_to_cout("\n");
+  print_to_cout("What Can TetGen Do?\n");
+  print_to_cout("\n");
+  print_to_cout("  TetGen generates exact Delaunay tetrahedralizations, exact\n");
+  print_to_cout("  constrained Delaunay tetrahedralizations, and quality ");
+  print_to_cout("tetrahedral\n  meshes. The latter are nicely graded and whose ");
+  print_to_cout("tetrahedra have\n  radius-edge ratio bounded, thus are suitable ");
+  print_to_cout("for finite element and\n  finite volume analysis.\n"); 
+  print_to_cout("\n");
+  print_to_cout("Command Line Syntax:\n");
+  print_to_cout("\n");
+  print_to_cout("  Below is the command line syntax of TetGen with a list of ");
+  print_to_cout("short\n");
+  print_to_cout("  descriptions. Underscores indicate that numbers may optionally\n");
+  print_to_cout("  follow certain switches.  Do not leave any space between a ");
+  print_to_cout("switch\n");
+  print_to_cout("  and its numeric parameter.  \'input_file\' contains input data\n");
+  print_to_cout("  depending on the switches you supplied which may be a ");
+  print_to_cout("  piecewise\n");
+  print_to_cout("  linear complex or a list of nodes.  File formats and detailed\n");
+  print_to_cout("  description of command line switches are found in user's ");
+  print_to_cout("manual.\n");
+  print_to_cout("\n");
   syntax();
-  printf("\n");
-  printf("Examples of How to Use TetGen:\n");
-  printf("\n");
-  printf("  \'tetgen object\' reads vertices from object.node, and writes ");
-  printf("their\n  Delaunay tetrahedralization to object.1.node and ");
-  printf("object.1.ele.\n");
-  printf("\n");
-  printf("  \'tetgen -p object\' reads a PLC from object.poly or object.");
-  printf("smesh (and\n  possibly object.node) and writes its constrained ");
-  printf("Delaunay\n  tetrahedralization to object.1.node, object.1.ele and ");
-  printf("object.1.face.\n");
-  printf("\n");
-  printf("  \'tetgen -pq1.414a.1 object\' reads a PLC from object.poly or\n");
-  printf("  object.smesh (and possibly object.node), generates a mesh ");
-  printf("whose\n  tetrahedra have radius-edge ratio smaller than 1.414 and ");
-  printf("have volume\n  of 0.1 or less, and writes the mesh to ");
-  printf("object.1.node, object.1.ele\n  and object.1.face.\n");
-  printf("\n");
-  printf("Please send bugs/comments to Hang Si <si@wias-berlin.de>\n");
+  print_to_cout("\n");
+  print_to_cout("Examples of How to Use TetGen:\n");
+  print_to_cout("\n");
+  print_to_cout("  \'tetgen object\' reads vertices from object.node, and writes ");
+  print_to_cout("their\n  Delaunay tetrahedralization to object.1.node and ");
+  print_to_cout("object.1.ele.\n");
+  print_to_cout("\n");
+  print_to_cout("  \'tetgen -p object\' reads a PLC from object.poly or object.");
+  print_to_cout("smesh (and\n  possibly object.node) and writes its constrained ");
+  print_to_cout("Delaunay\n  tetrahedralization to object.1.node, object.1.ele and ");
+  print_to_cout("object.1.face.\n");
+  print_to_cout("\n");
+  print_to_cout("  \'tetgen -pq1.414a.1 object\' reads a PLC from object.poly or\n");
+  print_to_cout("  object.smesh (and possibly object.node), generates a mesh ");
+  print_to_cout("whose\n  tetrahedra have radius-edge ratio smaller than 1.414 and ");
+  print_to_cout("have volume\n  of 0.1 or less, and writes the mesh to ");
+  print_to_cout("object.1.node, object.1.ele\n  and object.1.face.\n");
+  print_to_cout("\n");
+  print_to_cout("Please send bugs/comments to Hang Si <si@wias-berlin.de>\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3308,7 +3323,7 @@ bool tetgenbehavior::parse_commandline(int argc, char **argv)
         usage();
         terminatetetgen(0);
       } else {
-        printf("Warning:  Unknown switch -%c.\n", argv[i][j]);
+        print_to_cout("Warning:  Unknown switch -%c.\n", argv[i][j]);
       }
     }
   }
@@ -3363,17 +3378,17 @@ bool tetgenbehavior::parse_commandline(int argc, char **argv)
 
   // Detect improper combinations of switches.
   if (plc && refine) {
-    printf("Error:  Switch -r cannot use together with -p.\n");
+    print_to_cout("Error:  Switch -r cannot use together with -p.\n");
     return false;
   }
   if (refine && (plc || noiterationnum)) {
-    printf("Error:  Switches %s cannot use together with -r.\n",
+    print_to_cout("Error:  Switches %s cannot use together with -r.\n",
            "-p, -d, and -I");
     return false;
   }
   if (diagnose && (quality || insertaddpoints || (order == 2) || neighout
       || docheck)) {
-    printf("Error:  Switches %s cannot use together with -d.\n",
+    print_to_cout("Error:  Switches %s cannot use together with -d.\n",
            "-q, -i, -o2, -n, and -C");
     return false;
   }
@@ -3526,7 +3541,7 @@ void tetgenmesh::set_compfunc(char* str, int* itbytes, compfunc* pcomp)
     *pcomp = &compare_2_unsignedlongs;
   } else {
     // It is an unknown type.
-    printf("Error in set_compfunc():  unknown type %s.\n", str);
+    print_to_cout("Error in set_compfunc():  unknown type %s.\n", str);
     terminatetetgen(1);
   }
 }
@@ -3553,7 +3568,7 @@ listinit(int itbytes, compfunc pcomp, int mitems,int exsize)
   expandsize = exsize;
   base = (char *) malloc(maxitems * itembytes); 
   if (base == (char *) NULL) {
-    printf("Error:  Out of memory.\n");
+    print_to_cout("Error:  Out of memory.\n");
     terminatetetgen(1);
   }
   items = 0;
@@ -3577,7 +3592,7 @@ void* tetgenmesh::list::append(void *appitem)
     char* newbase = (char *) realloc(base, (maxitems + expandsize) * 
                                      itembytes);
     if (newbase == (char *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     base = newbase;
@@ -3611,7 +3626,7 @@ void* tetgenmesh::list::insert(int pos, void* insitem)
     char* newbase = (char *) realloc(base, (maxitems + expandsize) *
                                      itembytes);
     if (newbase == (char *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     base = newbase;
@@ -3789,7 +3804,7 @@ poolinit(int bytecount, int itemcount, enum wordtype wtype, int alignment)
   firstblock = (void **) malloc(itemsperblock * itembytes + sizeof(void *)
                                 + alignbytes); 
   if (firstblock == (void **) NULL) {
-    printf("Error:  Out of memory.\n");
+    print_to_cout("Error:  Out of memory.\n");
     terminatetetgen(1);
   }
   // Set the next block pointer to NULL.
@@ -3854,7 +3869,7 @@ void* tetgenmesh::memorypool::alloc()
         newblock = (void **) malloc(itemsperblock * itembytes + sizeof(void *) 
                                     + alignbytes);
         if (newblock == (void **) NULL) {
-          printf("Error:  Out of memory.\n");
+          print_to_cout("Error:  Out of memory.\n");
           terminatetetgen(1);
         }
         *nowblock = (void *) newblock;
@@ -5294,7 +5309,7 @@ void tetgenmesh::findedge(triface* tface, point eorg, point edest)
     enextself(*tface);
   }
   // It should never be here.
-  printf("Internalerror in findedge():  Unable to find an edge in tet.\n");
+  print_to_cout("Internalerror in findedge():  Unable to find an edge in tet.\n");
   internalerror();
 }
 
@@ -5319,7 +5334,7 @@ void tetgenmesh::findedge(face* sface, point eorg, point edest)
     }
     senextself(*sface);
   }
-  printf("Internalerror in findedge():  Unable to find an edge in subface.\n");
+  print_to_cout("Internalerror in findedge():  Unable to find an edge in subface.\n");
   internalerror();
 }
 
@@ -5402,7 +5417,7 @@ void tetgenmesh::findface(triface *fface, point forg, point fdest, point fapex)
     //   for 'fface' contains the 'forg' and 'fdest'. Here a brute force
     //   search is performed.
     if (b->verbose > 1) {
-      printf("Warning in findface():  Perform a brute-force searching.\n");
+      print_to_cout("Warning in findface():  Perform a brute-force searching.\n");
     }
     enum verttype forgty, fdestty, fapexty;
     int share, i;
@@ -5440,7 +5455,7 @@ void tetgenmesh::findface(triface *fface, point forg, point fdest, point fapex)
     setpointtype(fapex, fapexty);
     if (fface->tet == (tetrahedron *) NULL) {
       // It is impossible to reach here.
-      printf("Internal error:  Fail to find the indicated face.\n");
+      print_to_cout("Internal error:  Fail to find the indicated face.\n");
       internalerror();
     }
   }
@@ -5529,7 +5544,7 @@ void tetgenmesh::getseghasorg(face* sseg, point dorg)
     return;
   }
   // Should never be here.
-  printf("Internalerror in getseghasorg():  Unable to find the subseg.\n");
+  print_to_cout("Internalerror in getseghasorg():  Unable to find the subseg.\n");
   internalerror();
 }
 
@@ -5598,12 +5613,12 @@ void tetgenmesh::printtet(triface* tface)
   face tmpsh;
   int facecount;
 
-  printf("Tetra x%lx with loc(%i) and ver(%i):",
+  print_to_cout("Tetra x%lx with loc(%i) and ver(%i):",
          (unsigned long)(tface->tet), tface->loc, tface->ver);
   if (infected(*tface)) {
-    printf(" (infected)");
+    print_to_cout(" (infected)");
   }
-  printf("\n");
+  print_to_cout("\n");
 
   tmpface = *tface;
   facecount = 0;
@@ -5611,47 +5626,47 @@ void tetgenmesh::printtet(triface* tface)
     tmpface.loc = facecount;
     sym(tmpface, prtface);
     if(prtface.tet == dummytet) {
-      printf("      [%i] Outer space.\n", facecount);
+      print_to_cout("      [%i] Outer space.\n", facecount);
     } else {
-      printf("      [%i] x%lx  loc(%i).", facecount,
+      print_to_cout("      [%i] x%lx  loc(%i).", facecount,
              (unsigned long)(prtface.tet), prtface.loc);
       if (infected(prtface)) {
-        printf(" (infected)");
+        print_to_cout(" (infected)");
       }
-      printf("\n");
+      print_to_cout("\n");
     }
     facecount ++;
   }
 
   tmppt = org(*tface);
   if(tmppt == (point) NULL) {
-    printf("      Org [%i] NULL\n", locver2org[tface->loc][tface->ver]);
+    print_to_cout("      Org [%i] NULL\n", locver2org[tface->loc][tface->ver]);
   } else {
-    printf("      Org [%i] x%lx (%.12g,%.12g,%.12g) %d\n",
+    print_to_cout("      Org [%i] x%lx (%.12g,%.12g,%.12g) %d\n",
            locver2org[tface->loc][tface->ver], (unsigned long)(tmppt),
            tmppt[0], tmppt[1], tmppt[2], pointmark(tmppt));
   }
   tmppt = dest(*tface);
   if(tmppt == (point) NULL) {
-    printf("      Dest[%i] NULL\n", locver2dest[tface->loc][tface->ver]);
+    print_to_cout("      Dest[%i] NULL\n", locver2dest[tface->loc][tface->ver]);
   } else {
-    printf("      Dest[%i] x%lx (%.12g,%.12g,%.12g) %d\n",
+    print_to_cout("      Dest[%i] x%lx (%.12g,%.12g,%.12g) %d\n",
            locver2dest[tface->loc][tface->ver], (unsigned long)(tmppt),
            tmppt[0], tmppt[1], tmppt[2], pointmark(tmppt));
   }
   tmppt = apex(*tface);
   if(tmppt == (point) NULL) {
-    printf("      Apex[%i] NULL\n", locver2apex[tface->loc][tface->ver]);
+    print_to_cout("      Apex[%i] NULL\n", locver2apex[tface->loc][tface->ver]);
   } else {
-    printf("      Apex[%i] x%lx (%.12g,%.12g,%.12g) %d\n",
+    print_to_cout("      Apex[%i] x%lx (%.12g,%.12g,%.12g) %d\n",
            locver2apex[tface->loc][tface->ver], (unsigned long)(tmppt),
            tmppt[0], tmppt[1], tmppt[2], pointmark(tmppt));
   }
   tmppt = oppo(*tface);
   if(tmppt == (point) NULL) {
-    printf("      Oppo[%i] NULL\n", loc2oppo[tface->loc]);
+    print_to_cout("      Oppo[%i] NULL\n", loc2oppo[tface->loc]);
   } else {
-    printf("      Oppo[%i] x%lx (%.12g,%.12g,%.12g) %d\n",
+    print_to_cout("      Oppo[%i] x%lx (%.12g,%.12g,%.12g) %d\n",
            loc2oppo[tface->loc], (unsigned long)(tmppt),
            tmppt[0], tmppt[1], tmppt[2], pointmark(tmppt));
   }
@@ -5663,12 +5678,12 @@ void tetgenmesh::printtet(triface* tface)
       tmpface.loc = facecount;
       tspivot(tmpface, tmpsh);
       if(tmpsh.sh != dummysh) {
-        printf("      [%i] x%lx  ID(%i) ", facecount,
+        print_to_cout("      [%i] x%lx  ID(%i) ", facecount,
                (unsigned long)(tmpsh.sh), shellmark(tmpsh));
         if (sorg(tmpsh) == (point) NULL) {
-          printf("(fake)");
+          print_to_cout("(fake)");
         }
-        printf("\n");
+        print_to_cout("\n");
       }
       facecount ++;
     }
@@ -5690,111 +5705,111 @@ void tetgenmesh::printsh(face* sface)
   point printpoint;
 
   if (sapex(*sface) != NULL) {
-    printf("subface x%lx, ver %d, mark %d:",
+    print_to_cout("subface x%lx, ver %d, mark %d:",
            (unsigned long)(sface->sh), sface->shver, shellmark(*sface));
   } else {
-    printf("Subsegment x%lx, ver %d, mark %d:",
+    print_to_cout("Subsegment x%lx, ver %d, mark %d:",
            (unsigned long)(sface->sh), sface->shver, shellmark(*sface));
   }
   if (sinfected(*sface)) {
-    printf(" (infected)");
+    print_to_cout(" (infected)");
   }
   if (shell2badface(*sface)) {
-    printf(" (queued)");
+    print_to_cout(" (queued)");
   }
   if (sapex(*sface) != NULL) {
     if (shelltype(*sface) == SHARP) {
-      printf(" (sharp)");
+      print_to_cout(" (sharp)");
     }
   } else {
     if (shelltype(*sface) == SHARP) {
-      printf(" (sharp)");
+      print_to_cout(" (sharp)");
     }
   }
   if (checkpbcs) {
     if (shellpbcgroup(*sface) >= 0) {
-      printf(" (pbc %d)", shellpbcgroup(*sface));
+      print_to_cout(" (pbc %d)", shellpbcgroup(*sface));
     }
   }
-  printf("\n");
+  print_to_cout("\n");
 
   sdecode(sface->sh[0], prtsh);
   if (prtsh.sh == dummysh) {
-    printf("      [0] = No shell\n");
+    print_to_cout("      [0] = No shell\n");
   } else {
-    printf("      [0] = x%lx  %d\n", (unsigned long)(prtsh.sh), prtsh.shver);
+    print_to_cout("      [0] = x%lx  %d\n", (unsigned long)(prtsh.sh), prtsh.shver);
   }
   sdecode(sface->sh[1], prtsh);
   if (prtsh.sh == dummysh) {
-    printf("      [1] = No shell\n");
+    print_to_cout("      [1] = No shell\n");
   } else {
-    printf("      [1] = x%lx  %d\n", (unsigned long)(prtsh.sh), prtsh.shver);
+    print_to_cout("      [1] = x%lx  %d\n", (unsigned long)(prtsh.sh), prtsh.shver);
   }
   sdecode(sface->sh[2], prtsh);
   if (prtsh.sh == dummysh) {
-    printf("      [2] = No shell\n");
+    print_to_cout("      [2] = No shell\n");
   } else {
-    printf("      [2] = x%lx  %d\n", (unsigned long)(prtsh.sh), prtsh.shver);
+    print_to_cout("      [2] = x%lx  %d\n", (unsigned long)(prtsh.sh), prtsh.shver);
   }
 
   printpoint = sorg(*sface);
   if (printpoint == (point) NULL)
-    printf("      Org [%d] = NULL\n", vo[sface->shver]);
+    print_to_cout("      Org [%d] = NULL\n", vo[sface->shver]);
   else
-    printf("      Org [%d] = x%lx  (%.12g,%.12g,%.12g) %d\n",
+    print_to_cout("      Org [%d] = x%lx  (%.12g,%.12g,%.12g) %d\n",
            vo[sface->shver], (unsigned long)(printpoint), printpoint[0],
            printpoint[1], printpoint[2], pointmark(printpoint));
   printpoint = sdest(*sface);
   if (printpoint == (point) NULL)
-    printf("      Dest[%d] = NULL\n", vd[sface->shver]);
+    print_to_cout("      Dest[%d] = NULL\n", vd[sface->shver]);
   else
-    printf("      Dest[%d] = x%lx  (%.12g,%.12g,%.12g) %d\n",
+    print_to_cout("      Dest[%d] = x%lx  (%.12g,%.12g,%.12g) %d\n",
             vd[sface->shver], (unsigned long)(printpoint), printpoint[0],
             printpoint[1], printpoint[2], pointmark(printpoint));
 
   if (sapex(*sface) != NULL) {
     printpoint = sapex(*sface);
     if (printpoint == (point) NULL)
-      printf("      Apex[%d] = NULL\n", va[sface->shver]);
+      print_to_cout("      Apex[%d] = NULL\n", va[sface->shver]);
     else
-      printf("      Apex[%d] = x%lx  (%.12g,%.12g,%.12g) %d\n",
+      print_to_cout("      Apex[%d] = x%lx  (%.12g,%.12g,%.12g) %d\n",
              va[sface->shver], (unsigned long)(printpoint), printpoint[0],
              printpoint[1], printpoint[2], pointmark(printpoint));
 
     decode(sface->sh[6], prttet);
     if (prttet.tet == dummytet) {
-      printf("      [6] = Outer space\n");
+      print_to_cout("      [6] = Outer space\n");
     } else {
-      printf("      [6] = x%lx  %d\n",
+      print_to_cout("      [6] = x%lx  %d\n",
              (unsigned long)(prttet.tet), prttet.loc);
     }
     decode(sface->sh[7], prttet);
     if (prttet.tet == dummytet) {
-      printf("      [7] = Outer space\n");
+      print_to_cout("      [7] = Outer space\n");
     } else {
-      printf("      [7] = x%lx  %d\n",
+      print_to_cout("      [7] = x%lx  %d\n",
              (unsigned long)(prttet.tet), prttet.loc);
     }
 
     sdecode(sface->sh[8], prtsh);
     if (prtsh.sh == dummysh) {
-      printf("      [8] = No subsegment\n");
+      print_to_cout("      [8] = No subsegment\n");
     } else {
-      printf("      [8] = x%lx  %d\n",
+      print_to_cout("      [8] = x%lx  %d\n",
              (unsigned long)(prtsh.sh), prtsh.shver);
     }
     sdecode(sface->sh[9], prtsh);
     if (prtsh.sh == dummysh) {
-      printf("      [9] = No subsegment\n");
+      print_to_cout("      [9] = No subsegment\n");
     } else {
-      printf("      [9] = x%lx  %d\n",
+      print_to_cout("      [9] = x%lx  %d\n",
              (unsigned long)(prtsh.sh), prtsh.shver);
     }
     sdecode(sface->sh[10], prtsh);
     if (prtsh.sh == dummysh) {
-      printf("      [10]= No subsegment\n");
+      print_to_cout("      [10]= No subsegment\n");
     } else {
-      printf("      [10]= x%lx  %d\n",
+      print_to_cout("      [10]= x%lx  %d\n",
              (unsigned long)(prtsh.sh), prtsh.shver);
     }
   } 
@@ -5829,7 +5844,7 @@ void tetgenmesh::makepoint2tetmap()
   point pointptr;
 
   if (b->verbose > 0) {
-    printf("  Constructing mapping from points to tetrahedra.\n");
+    print_to_cout("  Constructing mapping from points to tetrahedra.\n");
   }
 
   // Initialize the point2tet field of each point.
@@ -5875,7 +5890,7 @@ void tetgenmesh::makeindex2pointmap(point*& idx2verlist)
   int idx;
 
   if (b->verbose > 0) {
-    printf("  Constructing mapping from indices to points.\n");
+    print_to_cout("  Constructing mapping from indices to points.\n");
   }
 
   idx2verlist = new point[points->items];
@@ -5914,7 +5929,7 @@ void tetgenmesh::makesegmentmap(int*& idx2seglist, shellface**& segsperverlist)
   int i, j, k;
 
   if (b->verbose > 0) {
-    printf("  Constructing mapping from points to segments.\n");
+    print_to_cout("  Constructing mapping from points to segments.\n");
   }
 
   // Create and initialize 'idx2seglist'.
@@ -5987,7 +6002,7 @@ makesubfacemap(int*& idx2facelist, shellface**& facesperverlist)
   int i, j, k;
 
   if (b->verbose > 0) {
-    printf("  Constructing mapping from points to subfaces.\n");
+    print_to_cout("  Constructing mapping from points to subfaces.\n");
   }
 
   // Create and initialize 'idx2facelist'.
@@ -6060,7 +6075,7 @@ maketetrahedronmap(int*& idx2tetlist, tetrahedron**& tetsperverlist)
   int i, j, k;
 
   if (b->verbose > 0) {
-    printf("  Constructing mapping from points to tetrahedra.\n");
+    print_to_cout("  Constructing mapping from points to tetrahedra.\n");
   }
 
   // Create and initialize 'idx2tetlist'.
@@ -8644,7 +8659,7 @@ enum tetgenmesh::locateresult tetgenmesh::preciselocate(point searchpt,
   // assert(!isdead(searchtet) && (searchtet->tet != dummytet));
 #endif
   if (isdead(searchtet)) {
-    printf("Warning:  Point location failed.\n");
+    print_to_cout("Warning:  Point location failed.\n");
     return OUTSIDE;
   }
 
@@ -8754,7 +8769,7 @@ enum tetgenmesh::locateresult tetgenmesh::preciselocate(point searchpt,
   }
 
   // Should never be here.
-  // printf("Internal error in preciselocate(): Point location failed.\n");
+  // print_to_cout("Internal error in preciselocate(): Point location failed.\n");
   // internalerror();
   return OUTSIDE;
 }
@@ -8804,7 +8819,7 @@ enum tetgenmesh::locateresult tetgenmesh::locate(point searchpt,
   // assert(!isdead(searchtet));
 #endif
   if (isdead(searchtet)) {
-    printf("Warning:  Point location failed.\n");
+    print_to_cout("Warning:  Point location failed.\n");
     return OUTSIDE;
   }
   
@@ -9970,7 +9985,7 @@ enum tetgenmesh::fliptype tetgenmesh::categorizeface(triface& horiz)
       if (cassh1.sh != dummysh || cassh2.sh != dummysh) {
         if (!b->quiet) {
           // Unfortunately, they're subfaces. Corrections need be done here.
-          printf("Warning:  A tetrahedron spans two subfaces of a facet.\n");
+          print_to_cout("Warning:  A tetrahedron spans two subfaces of a facet.\n");
         }
         // Temporarily, let it be there.
         return N32;
@@ -10068,7 +10083,7 @@ void tetgenmesh::flip23(triface* flipface, queue* flipqueue)
   pe = oppo(bace);
 
   if (b->verbose > 2) {
-    printf("    Do T23 on face (%d, %d, %d) %d, %d.\n", pointmark(pa),
+    print_to_cout("    Do T23 on face (%d, %d, %d) %d, %d.\n", pointmark(pa),
            pointmark(pb), pointmark(pc), pointmark(pd), pointmark(pe));
   }
   flip23s++;
@@ -10260,11 +10275,11 @@ void tetgenmesh::flip23(triface* flipface, queue* flipqueue)
   edbc.loc = 0;
   edca.loc = 0;
   if (b->verbose > 3) {
-    printf("    Updating edab ");
+    print_to_cout("    Updating edab ");
     printtet(&edab);
-    printf("    Updating edbc ");
+    print_to_cout("    Updating edbc ");
     printtet(&edbc);
-    printf("    Creating edca ");
+    print_to_cout("    Creating edca ");
     printtet(&edca);
   }
 
@@ -10344,7 +10359,7 @@ void tetgenmesh::flip32(triface* flipface, queue* flipqueue)
   }
 
   if (b->verbose > 2) {
-    printf("    Do T32 on edge (%d, %d) %d, %d, %d.\n", pointmark(pe),
+    print_to_cout("    Do T32 on edge (%d, %d) %d, %d, %d.\n", pointmark(pe),
            pointmark(pd), pointmark(pa), pointmark(pb), pointmark(pc));
   }
   flip32s++;
@@ -10505,11 +10520,11 @@ void tetgenmesh::flip32(triface* flipface, queue* flipqueue)
   abcd.loc = 0;
   bace.loc = 0;
   if (b->verbose > 3) {
-    printf("    Updating abcd ");
+    print_to_cout("    Updating abcd ");
     printtet(&abcd);
-    printf("    Updating bace ");
+    print_to_cout("    Updating bace ");
     printtet(&bace);
-    printf("    Deleting edca ");
+    print_to_cout("    Deleting edca ");
     // printtet(&edca);
   }
 
@@ -10619,7 +10634,7 @@ void tetgenmesh::flip22(triface* flipface, queue* flipqueue)
   } 
 
   if (b->verbose > 2) {
-    printf("    Do %s on edge (%d, %d).\n", mirrorflag ? "T44" : "T22",
+    print_to_cout("    Do %s on edge (%d, %d).\n", mirrorflag ? "T44" : "T22",
            pointmark(pa), pointmark(pb));
   }
   mirrorflag ? flip44s++ : flip22s++;
@@ -10921,14 +10936,14 @@ void tetgenmesh::flip22(triface* flipface, queue* flipqueue)
   }
 
   if (b->verbose > 3) {
-    printf("    Updating abce ");
+    print_to_cout("    Updating abce ");
     printtet(&abce);
-    printf("    Updating bade ");
+    print_to_cout("    Updating bade ");
     printtet(&bade);
     if (mirrorflag) {
-      printf("    Updating bacf ");
+      print_to_cout("    Updating bacf ");
       printtet(&bacf);
-      printf("    Updating abdf ");
+      print_to_cout("    Updating abdf ");
       printtet(&abdf);
     }
   }
@@ -11013,7 +11028,7 @@ void tetgenmesh::flip22sub(face* flipedge, queue* flipqueue)
   pd = sapex(bad);
 
   if (b->verbose > 2) {
-    printf("    Flip sub edge (%d, %d).\n", pointmark(pa), pointmark(pb));
+    print_to_cout("    Flip sub edge (%d, %d).\n", pointmark(pa), pointmark(pb));
   }
 
   // Save the old configuration outside the quadrilateral.  
@@ -11200,7 +11215,7 @@ long tetgenmesh::flip(queue* flipqueue, badface **plastflip)
   int ia, ib, ic, id, ie;
 
   if (b->verbose > 1) {
-    printf("    Do flipface queue: %ld faces.\n", flipqueue->len());
+    print_to_cout("    Do flipface queue: %ld faces.\n", flipqueue->len());
   }
 
   flipcount = flip23s + flip32s + flip22s + flip44s;
@@ -11262,7 +11277,7 @@ long tetgenmesh::flip(queue* flipqueue, badface **plastflip)
         b->epsilon = bakepsilon;
         if (epscount >= 32) {
           if (b->verbose > 0) {
-            printf("Warning:  Can't flip a degenerate tetrahedron.\n");
+            print_to_cout("Warning:  Can't flip a degenerate tetrahedron.\n");
           }
           fc = N40;
         }
@@ -11314,7 +11329,7 @@ long tetgenmesh::flip(queue* flipqueue, badface **plastflip)
 
   flipcount = flip23s + flip32s + flip22s + flip44s - flipcount;
   if (b->verbose > 1) {
-    printf("    %ld flips.\n", flipcount);
+    print_to_cout("    %ld flips.\n", flipcount);
   }
 
   return flipcount;
@@ -11340,7 +11355,7 @@ long tetgenmesh::lawson(list *misseglist, queue* flipqueue)
   int hitbdry, i;
 
   if (b->verbose > 1) {
-    printf("    Do flipface queue: %ld faces.\n", flipqueue->len());
+    print_to_cout("    Do flipface queue: %ld faces.\n", flipqueue->len());
   }
   flipcount = flip23s + flip32s + flip22s + flip44s;
 
@@ -11411,7 +11426,7 @@ long tetgenmesh::lawson(list *misseglist, queue* flipqueue)
                 tsspivot1(flipface, checkseg);
                 if (checkseg.sh != dummysh) {
                   if (b->verbose > 2) {
-                    printf("    Queuing missing segment (%d, %d).\n",
+                    print_to_cout("    Queuing missing segment (%d, %d).\n",
                       pointmark(org(flipface)), pointmark(dest(flipface)));
                   }
                   misseg = (badface *) misseglist->append(NULL);
@@ -11457,7 +11472,7 @@ long tetgenmesh::lawson(list *misseglist, queue* flipqueue)
                   tsspivot1(flipface, checkseg);
                   if (checkseg.sh != dummysh) {
                     if (b->verbose > 2) {
-                      printf("    Queuing missing segment (%d, %d).\n",
+                      print_to_cout("    Queuing missing segment (%d, %d).\n",
                         pointmark(org(flipface)), pointmark(dest(flipface)));
                     }
                     misseg = (badface *) misseglist->append(NULL);
@@ -11503,7 +11518,7 @@ long tetgenmesh::lawson(list *misseglist, queue* flipqueue)
                   tsspivot1(flipface, checkseg);
                   if (checkseg.sh != dummysh) {
                     if (b->verbose > 2) {
-                      printf("    Queuing missing segment (%d, %d).\n",
+                      print_to_cout("    Queuing missing segment (%d, %d).\n",
                         pointmark(org(flipface)), pointmark(dest(flipface)));
                     }
                     misseg = (badface *) misseglist->append(NULL);
@@ -11542,7 +11557,7 @@ long tetgenmesh::lawson(list *misseglist, queue* flipqueue)
 
   flipcount = flip23s + flip32s + flip22s + flip44s - flipcount;
   if (b->verbose > 1) {
-    printf("    %ld flips.\n", flipcount);
+    print_to_cout("    %ld flips.\n", flipcount);
   }
   return flipcount;
 }
@@ -11610,7 +11625,7 @@ long tetgenmesh::flipsub(queue* flipqueue)
   int i;
 
   if (b->verbose > 1) {
-    printf("  Start do edge queue: %ld edges.\n", flipqueue->len());
+    print_to_cout("  Start do edge queue: %ld edges.\n", flipqueue->len());
   }
 
   edgeflips = 0;
@@ -11667,7 +11682,7 @@ long tetgenmesh::flipsub(queue* flipqueue)
   }
 
   if (b->verbose > 1) {
-    printf("  Total %d flips.\n", edgeflips);
+    print_to_cout("  Total %d flips.\n", edgeflips);
   }
 
   return edgeflips;
@@ -11734,7 +11749,7 @@ bool tetgenmesh::removetetbypeeloff(triface *striptet)
           ang = ang * 180.0 / PI;
           if ((ang + 9.0) > b->maxdihedral) {
             if (b->verbose > 1) {
-              printf("    Remove a segment during peeling.\n");
+              print_to_cout("    Remove a segment during peeling.\n");
             }
             face prevseg, nextseg;
             // It is only shared by abc and bad (abcd is a tet).
@@ -12528,7 +12543,7 @@ bool tetgenmesh::removeedgebycombNM(REAL *key, int n, triface *abtetlist,
             m = ((*n1) - 2) * 2;
           } else {
             if (b->verbose > 1) {
-              printf("  !! Unhandled case: n1 = %d.\n", *n1);
+              print_to_cout("  !! Unhandled case: n1 = %d.\n", *n1);
             }
           }
           if (success) {
@@ -12794,7 +12809,7 @@ void tetgenmesh::splittetrahedron(point newpoint, triface* splittet,
   pd = oppo(abcv);
 
   if (b->verbose > 1) {
-    printf("  Inserting point %d in tetrahedron (%d, %d, %d, %d).\n",
+    print_to_cout("  Inserting point %d in tetrahedron (%d, %d, %d, %d).\n",
            pointmark(newpoint), pointmark(pa), pointmark(pb), pointmark(pc),
            pointmark(pd));
   }
@@ -12929,13 +12944,13 @@ void tetgenmesh::splittetrahedron(point newpoint, triface* splittet,
   cbdv.loc = 0;
   acdv.loc = 0;
   if (b->verbose > 3) {
-    printf("    Updating abcv ");
+    print_to_cout("    Updating abcv ");
     printtet(&abcv);
-    printf("    Creating badv ");
+    print_to_cout("    Creating badv ");
     printtet(&badv);
-    printf("    Creating cbdv ");
+    print_to_cout("    Creating cbdv ");
     printtet(&cbdv);
-    printf("    Creating acdv ");
+    print_to_cout("    Creating acdv ");
     printtet(&acdv);
   }
 
@@ -12987,7 +13002,7 @@ void tetgenmesh::unsplittetrahedron(triface* splittet)
   esymself(acdv);
 
   if (b->verbose > 1) {
-    printf("  Removing point %d in tetrahedron (%d, %d, %d, %d).\n",
+    print_to_cout("  Removing point %d in tetrahedron (%d, %d, %d, %d).\n",
            pointmark(oppo(abcv)), pointmark(org(abcv)), pointmark(dest(abcv)),
            pointmark(apex(abcv)), pointmark(apex(badv)));
   }
@@ -13084,7 +13099,7 @@ void tetgenmesh::splittetface(point newpoint, triface* splittet,
   }
 
   if (b->verbose > 1) {
-    printf("  Inserting point %d on face (%d, %d, %d).\n", pointmark(newpoint),
+    print_to_cout("  Inserting point %d on face (%d, %d, %d).\n", pointmark(newpoint),
            pointmark(pa), pointmark(pb), pointmark(pc));
   }
 
@@ -13327,18 +13342,18 @@ void tetgenmesh::splittetface(point newpoint, triface* splittet,
     acve.loc = 0;
   }
   if (b->verbose > 3) {
-    printf("    Updating abvd ");
+    print_to_cout("    Updating abvd ");
     printtet(&abvd);
-    printf("    Creating bcvd ");
+    print_to_cout("    Creating bcvd ");
     printtet(&bcvd);
-    printf("    Creating cavd ");
+    print_to_cout("    Creating cavd ");
     printtet(&cavd);
     if (mirrorflag) {
-      printf("    Updating bave ");
+      print_to_cout("    Updating bave ");
       printtet(&bave);
-      printf("    Creating cbve ");
+      print_to_cout("    Creating cbve ");
       printtet(&cbve);
-      printf("    Creating acve ");
+      print_to_cout("    Creating acve ");
       printtet(&acve);
     }
   }
@@ -13424,7 +13439,7 @@ void tetgenmesh::unsplittetface(triface* splittet)
   }
 
   if (b->verbose > 1) {
-    printf("  Removing point %d on face (%d, %d, %d).\n",
+    print_to_cout("  Removing point %d on face (%d, %d, %d).\n",
            pointmark(apex(abvd)), pointmark(org(abvd)), pointmark(dest(abvd)),
            pointmark(dest(bcvd)));
   }
@@ -13522,7 +13537,7 @@ void tetgenmesh::splitsubface(point newpoint, face* splitface,
   pc = sapex(abc);
 
   if (b->verbose > 1) {
-    printf("  Inserting point %d on subface (%d, %d, %d).\n",
+    print_to_cout("  Inserting point %d on subface (%d, %d, %d).\n",
            pointmark(newpoint), pointmark(pa), pointmark(pb), pointmark(pc));
   }
 
@@ -13667,11 +13682,11 @@ void tetgenmesh::splitsubface(point newpoint, face* splitface,
   bcv.shver = 0;
   cav.shver = 0;
   if (b->verbose > 3) {
-    printf("    Updating abv ");
+    print_to_cout("    Updating abv ");
     printsh(&abv);
-    printf("    Creating bcv ");
+    print_to_cout("    Creating bcv ");
     printsh(&bcv);
-    printf("    Creating cav ");
+    print_to_cout("    Creating cav ");
     printsh(&cav);
   }
 
@@ -13721,7 +13736,7 @@ void tetgenmesh::unsplitsubface(face* splitsh)
   senext2self(cav);
 
   if (b->verbose > 1) {
-    printf("  Removing point %d on subface (%d, %d, %d).\n",
+    print_to_cout("  Removing point %d on subface (%d, %d, %d).\n",
            pointmark(sapex(abv)), pointmark(sorg(abv)), pointmark(sdest(abv)),
            pointmark(sdest(bcv)));
   }
@@ -13841,7 +13856,7 @@ void tetgenmesh::splittetedge(point newpoint, triface* splittet,
   pb = dest(spintet);
 
   if (b->verbose > 1) {
-    printf("  Inserting point %d on edge (%d, %d).\n", 
+    print_to_cout("  Inserting point %d on edge (%d, %d).\n", 
            pointmark(newpoint), pointmark(pa), pointmark(pb));
   }
 
@@ -13964,11 +13979,11 @@ void tetgenmesh::splittetedge(point newpoint, triface* splittet,
     // Make sure no inversed tetrahedron has been created.
     // volume = orient3d(pa, n1, n2, newpoint);
     // if (volume >= 0.0) {
-    //   printf("Internal error in splittetedge(): volume = %.12g.\n", volume);
+    //   print_to_cout("Internal error in splittetedge(): volume = %.12g.\n", volume);
     // }
     // volume = orient3d(pb, n2, n1, newpoint);
     // if (volume >= 0.0) {
-    //   printf("Internal error in splittetedge(): volume = %.12g.\n", volume);
+    //   print_to_cout("Internal error in splittetedge(): volume = %.12g.\n", volume);
     // }
 #endif
   }
@@ -14047,9 +14062,9 @@ void tetgenmesh::splittetedge(point newpoint, triface* splittet,
 
   if (b->verbose > 3) {
     for (i = 0; i < wrapcount; i++) {
-      printf("    Updating bots[%i] ", i);
+      print_to_cout("    Updating bots[%i] ", i);
       printtet(&(bots[i]));
-      printf("    Creating newtops[%i] ", i);
+      print_to_cout("    Creating newtops[%i] ", i);
       printtet(&(newtops[i]));
     }
   }
@@ -14211,7 +14226,7 @@ void tetgenmesh::unsplittetedge(triface* splittet)
   }
 
   if (b->verbose > 1) {
-    printf("  Removing point %d from edge (%d, %d).\n", 
+    print_to_cout("  Removing point %d from edge (%d, %d).\n", 
            pointmark(oppo(bots[0])), pointmark(org(bots[0])),
            pointmark(org(newtops[0])));
   }
@@ -14299,7 +14314,7 @@ void tetgenmesh::splitsubedge(point newpoint, face* splitsh, queue* flipqueue)
   pb = sdest(startabc);
   
   if (b->verbose > 1) {
-    printf("  Inserting point %d on subedge (%d, %d) %s.\n",
+    print_to_cout("  Inserting point %d on subedge (%d, %d) %s.\n",
            pointmark(newpoint), pointmark(pa), pointmark(pb),
            (ab.sh != dummysh ? "(seg)" : " "));
   }
@@ -14527,7 +14542,7 @@ void tetgenmesh::splitsubedge(point newpoint, face* splitsh, queue* flipqueue)
       if (sorg(spinabc) != pa) {
         sesymself(spinabc);
       }
-      printf("    Updating abc:\n");
+      print_to_cout("    Updating abc:\n");
       printsh(&spinabc);
       // Get new subface vbc above the updated subface avc (= spinabc).
       senext(spinabc, oldbc);
@@ -14536,7 +14551,7 @@ void tetgenmesh::splitsubedge(point newpoint, face* splitsh, queue* flipqueue)
         sesymself(vbc);
       }
       senextself(vbc);
-      printf("    Creating vbc:\n");
+      print_to_cout("    Creating vbc:\n");
       printsh(&vbc);
       // Go to the next.
       spivotself(spinabc);
@@ -14619,7 +14634,7 @@ void tetgenmesh::unsplitsubedge(face* splitsh)
   pb = sdest(vb);
 
   if (b->verbose > 1) {
-    printf("  Removing point %d from subedge (%d, %d).\n",
+    print_to_cout("  Removing point %d from subedge (%d, %d).\n",
            pointmark(pv), pointmark(pa), pointmark(pb));
   }
 
@@ -14724,7 +14739,7 @@ enum tetgenmesh::insertsiteresult tetgenmesh::insertsite(point newpoint,
   int count;
 
   if (b->verbose > 1) {
-    printf("  Insert point to mesh: (%.12g, %.12g, %.12g) %d.\n",
+    print_to_cout("  Insert point to mesh: (%.12g, %.12g, %.12g) %d.\n",
            newpoint[0], newpoint[1], newpoint[2], pointmark(newpoint));
   }
 
@@ -14764,13 +14779,13 @@ enum tetgenmesh::insertsiteresult tetgenmesh::insertsite(point newpoint,
     // There's already a vertex there. Return in 'searchtet' a tetrahedron
     //   whose origin is the existing vertex.
     if (b->verbose > 1) {
-      printf("  Not insert for duplicating point.\n");
+      print_to_cout("  Not insert for duplicating point.\n");
     }
     return DUPLICATEPOINT;
 
   case OUTSIDE:
     if (b->verbose > 1) {
-      printf("  Not insert for locating outside the mesh.\n");
+      print_to_cout("  Not insert for locating outside the mesh.\n");
     }
     return OUTSIDEPOINT;
 
@@ -15070,7 +15085,7 @@ void tetgenmesh::formbowatcavitysub(point bp, face* bpseg, list* sublist,
   }
 
   if (b->verbose > 2) {
-    printf("    Collect CBC(%d): %d subfaces, %d edges.\n", pointmark(bp),
+    print_to_cout("    Collect CBC(%d): %d subfaces, %d edges.\n", pointmark(bp),
            sublist->len(), subceillist->len());
   }
 }
@@ -15133,7 +15148,7 @@ void tetgenmesh::formbowatcavityquad(point bp, list* tetlist, list* ceillist)
   }
 
   if (b->verbose > 2) {
-    printf("    Collect BC_i(%d): %d tets, %d faces.\n", pointmark(bp),
+    print_to_cout("    Collect BC_i(%d): %d tets, %d faces.\n", pointmark(bp),
            tetlist->len(), ceillist->len());
   }
 }
@@ -15220,7 +15235,7 @@ void tetgenmesh::formbowatcavitysegquad(point bp, list* tetlist,list* ceillist)
   }
 
   if (b->verbose > 2) {
-    printf("    Collect BC_i(%d): %d tets, %d faces.\n", pointmark(bp),
+    print_to_cout("    Collect BC_i(%d): %d tets, %d faces.\n", pointmark(bp),
            tetlist->len(), ceillist->len());
   }
 }
@@ -15495,7 +15510,7 @@ void tetgenmesh::updatebowatcavityquad(list* tetlist, list* ceillist)
       }
     }
     if (b->verbose > 2) {
-      printf("    Update BC_i(p): %d tets, %d faces.\n", tetlist->len(),
+      print_to_cout("    Update BC_i(p): %d tets, %d faces.\n", tetlist->len(),
              ceillist->len());
     }
   }
@@ -15571,7 +15586,7 @@ void tetgenmesh::updatebowatcavitysub(list* sublist, list* subceillist,
   }
   if (remcount > 0) {
     if (b->verbose > 2) {
-      printf("    Removed %d subfaces from CBC(p).\n", remcount);
+      print_to_cout("    Removed %d subfaces from CBC(p).\n", remcount);
     }
     // Re-generate C(p).
     subceillist->clear();
@@ -15586,7 +15601,7 @@ void tetgenmesh::updatebowatcavitysub(list* sublist, list* subceillist,
       }
     }
     if (b->verbose > 2) {
-      printf("    Update CBC(p): %d subs, %d edges.\n", sublist->len(),
+      print_to_cout("    Update CBC(p): %d subs, %d edges.\n", sublist->len(),
              subceillist->len());
     }
   }
@@ -15814,23 +15829,23 @@ void tetgenmesh::bowatinsertsite(point bp,face* splitseg,int n,list** sublists,
   int idx, i, j, k;
 
   if (b->verbose > 1) {
-    printf("    Insert point %d (%.12g, %.12g, %.12g)", pointmark(bp), bp[0],
+    print_to_cout("    Insert point %d (%.12g, %.12g, %.12g)", pointmark(bp), bp[0],
            bp[1], bp[2]);
   }
   if (splitseg != (face *) NULL) {
     if (b->verbose > 1) {
-      printf(" on segment.\n");
+      print_to_cout(" on segment.\n");
     }
     bowatsegcount++;
   } else {
     if (subceillists != (list **) NULL) {
       if (b->verbose > 1) {
-        printf(" on facet.\n");
+        print_to_cout(" on facet.\n");
       }
       bowatsubcount++;
     } else {
       if (b->verbose > 1) {
-        printf(" in volume.\n");
+        print_to_cout(" in volume.\n");
       }
       bowatvolcount++;
     }
@@ -16447,7 +16462,7 @@ bool tetgenmesh::unifypoint(point testpt, triface *starttet, enum locateresult
   if (merged) {
     if (b->object != tetgenbehavior::STL) {
       if (!b->quiet) {
-        printf("Warning:  Point %d is unified to point %d.\n",
+        print_to_cout("Warning:  Point %d is unified to point %d.\n",
                pointmark(testpt), pointmark(checkpt));
       }
       // Count the number of duplicated points.
@@ -16492,7 +16507,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
   clock_t loc_start, loc_end;
 
   if (b->verbose > 0) {
-    printf("  Creating initial tetrahedralization.\n");
+    print_to_cout("  Creating initial tetrahedralization.\n");
   }
 
   // The initial tetrahedralization T only has one tet formed by 4 affinely
@@ -16505,7 +16520,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
     if (det > (longest * eps)) break;
   }
   if (i == arraysize) {
-    printf("\nAll points seem to be identical.\n");
+    print_to_cout("\nAll points seem to be identical.\n");
     return;
   } else {
     // Swap to move b from index i to index 1.
@@ -16519,7 +16534,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
       break;
   }
   if (i == arraysize) {
-    printf("\nAll points seem to be collinear.\n");
+    print_to_cout("\nAll points seem to be collinear.\n");
     return;
   } else {
     // Swap to move c from index i to index 2.
@@ -16553,7 +16568,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
       // The index of the next inserting point is 3.
       i = 3;
     } else {
-      printf("\nAll points seem to be coplanar.\n");
+      print_to_cout("\nAll points seem to be coplanar.\n");
       return;
     }
   } else {
@@ -16575,7 +16590,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
     insertarray[1] = swappt;
   }
   if (b->verbose > 2) {
-    printf("  Create the first tet (%d, %d, %d, %d).\n",
+    print_to_cout("  Create the first tet (%d, %d, %d, %d).\n",
            pointmark(insertarray[0]), pointmark(insertarray[1]),
            pointmark(insertarray[2]), pointmark(lastpt));
   }
@@ -16609,14 +16624,14 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
   // Bond to 'dummytet' for point location.
   dummytet[0] = encode(newtet);
   if (b->verbose > 3) {
-    printf("    Creating tetra ");
+    print_to_cout("    Creating tetra ");
     printtet(&newtet);
   }
   // At init, all faces of this tet are hull faces.
   hullsize = 4;
 
   if (b->verbose > 0) {
-    printf("  Incrementally inserting points.\n");
+    print_to_cout("  Incrementally inserting points.\n");
   }
 
   flip23s = flip32s = flip22s = flip44s = 0;
@@ -16642,7 +16657,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
     if (loc == ONVERTEX) {
       if (b->object != tetgenbehavior::STL) {
         if (!b->quiet) {
-          printf("Warning:  Point %d is identical with point %d.\n",
+          print_to_cout("Warning:  Point %d is identical with point %d.\n",
                  pointmark(insertarray[i]), pointmark(org(searchtet)));
         }
       }
@@ -16665,7 +16680,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
     // Insert p_i in T.
     if (loc != OUTSIDE) {
       if (b->verbose > 1) {
-        printf("  Insert point %d in tetrahedralization.\n",
+        print_to_cout("  Insert point %d in tetrahedralization.\n",
                pointmark(insertarray[i]));
       }
       if (loc == INTETRAHEDRON) {
@@ -16677,7 +16692,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
       }
     } else {
       if (b->verbose > 1) {
-        printf("  Insert point %d on convex hull.\n",
+        print_to_cout("  Insert point %d on convex hull.\n",
                pointmark(insertarray[i]));
       }
       inserthullsite(insertarray[i], &searchtet, flipque);
@@ -16704,7 +16719,7 @@ void tetgenmesh::incrflipdelaunay(triface* oldtet, point* insertarray,
   }
 
   if (b->verbose > 0) {
-    printf("  %ld Flips (T23 %ld, T32 %ld, T22 %ld, T44 %ld)\n",
+    print_to_cout("  %ld Flips (T23 %ld, T32 %ld, T22 %ld, T44 %ld)\n",
       flip23s+flip32s+flip22s+flip44s, flip23s, flip32s, flip22s, flip44s);
   }
 }
@@ -16728,9 +16743,9 @@ long tetgenmesh::delaunizevertices()
 
   if (!b->quiet) {
     if (!b->noflip) {
-      printf("Constructing Delaunay tetrahedralization.\n");
+      print_to_cout("Constructing Delaunay tetrahedralization.\n");
     } else {
-      printf("Constructing regular tetrahedralization.\n");
+      print_to_cout("Constructing regular tetrahedralization.\n");
     }
   }
 
@@ -17002,7 +17017,7 @@ void tetgenmesh::getfacetabovepoint(face* facetsh)
   if (largevol > 0.0) {
     abovepoint = * (point *)(* verlist)[largeidx];
     if (b->verbose > 1) {
-      printf("    Chosen abovepoint %d for facet %d.\n", pointmark(abovepoint),
+      print_to_cout("    Chosen abovepoint %d for facet %d.\n", pointmark(abovepoint),
              shellmark(*facetsh));
     }
   } else {
@@ -17017,7 +17032,7 @@ void tetgenmesh::getfacetabovepoint(face* facetsh)
     unuverts++;
     for (i = 0; i < 3; i++) abovepoint[i] = p1[i] + len * v1[i];
     if (b->verbose > 1) {
-      printf("    Calculated abovepoint %d for facet %d.\n",
+      print_to_cout("    Calculated abovepoint %d for facet %d.\n",
              pointmark(abovepoint), shellmark(*facetsh));
     }
   }
@@ -17292,13 +17307,13 @@ void tetgenmesh::incrflipdelaunaysub(int shmark, REAL eps, list* ptlist,
     //   a trivial triangulation can be formed (using 3 vertices). It may
     //   be corrected (or deleted) by mergefacet().
     if ((eps == 0.0) || (epscount > 16)) {
-      printf("Error:  Invalid PLC.\n");
-      printf("  Facet (%d, %d, %d", pointmark(insertarray[0]),
+      print_to_cout("Error:  Invalid PLC.\n");
+      print_to_cout("  Facet (%d, %d, %d", pointmark(insertarray[0]),
              pointmark(insertarray[1]), pointmark(insertarray[2]));
       if (ptlist->len() > 3) {
-        printf(", ...");
+        print_to_cout(", ...");
       }
-      printf(") (%d) is not a valid polygon.\n", shmark);
+      print_to_cout(") (%d) is not a valid polygon.\n", shmark);
       terminatetetgen(1);
     }
     // Decrease the eps, and continue to try.
@@ -17454,8 +17469,8 @@ enum tetgenmesh::finddirectionresult tetgenmesh::finddirectionsub(
     senext2self(*searchsh);
     spivotself(*searchsh);
     if (searchsh->sh == dummysh) {
-      printf("Internal error in finddirectionsub():  Unable to find a\n");
-      printf("  subface leading from %d to %d.\n", pointmark(startpoint),
+      print_to_cout("Internal error in finddirectionsub():  Unable to find a\n");
+      print_to_cout("  subface leading from %d to %d.\n", pointmark(startpoint),
              pointmark(tend));
       internalerror();
     }
@@ -17471,8 +17486,8 @@ enum tetgenmesh::finddirectionresult tetgenmesh::finddirectionsub(
     // Turn right until satisfied.
     spivotself(*searchsh);
     if (searchsh->sh == dummysh) {
-      printf("Internal error in finddirectionsub():  Unable to find a\n");
-      printf("  subface leading from %d to %d.\n", pointmark(startpoint),
+      print_to_cout("Internal error in finddirectionsub():  Unable to find a\n");
+      print_to_cout("  subface leading from %d to %d.\n", pointmark(startpoint),
              pointmark(tend));
       internalerror();
     }
@@ -17726,7 +17741,7 @@ void tetgenmesh::recoversegment(point tstart, point tend, queue* flipqueue)
   face searchsh;
 
   if (b->verbose > 2) {
-    printf("    Insert seg (%d, %d).\n", pointmark(tstart), pointmark(tend));
+    print_to_cout("    Insert seg (%d, %d).\n", pointmark(tstart), pointmark(tend));
   }
 
   // Find a triangle whose origin is the segment's first endpoint.
@@ -17750,7 +17765,7 @@ void tetgenmesh::recoversegment(point tstart, point tend, queue* flipqueue)
     }
     delete newshlist;
     if (sorg(searchsh) != tstart) {
-      printf("Internal error in recoversegment():  Vertex location failed.\n");
+      print_to_cout("Internal error in recoversegment():  Vertex location failed.\n");
       internalerror();
     }
   }
@@ -17984,11 +17999,11 @@ void tetgenmesh::triangulate(int shmark, REAL eps, list* ptlist, list* conlist,
   int i;
 
   if (b->verbose > 1) {
-    printf("    %d vertices, %d segments", ptlist->len(), conlist->len());
+    print_to_cout("    %d vertices, %d segments", ptlist->len(), conlist->len());
     if (holes > 0) {
-      printf(", %d holes", holes);
+      print_to_cout(", %d holes", holes);
     }
-    printf(", shmark: %d.\n", shmark);
+    print_to_cout(", shmark: %d.\n", shmark);
   }
 
   // Create the DT of V by the 2D incremental flip algorithm.
@@ -18113,7 +18128,7 @@ void tetgenmesh::unifysegments()
   int idx, k, m;
 
   if (b->verbose > 0) {
-    printf("  Unifying segments.\n");
+    print_to_cout("  Unifying segments.\n");
   }
 
   // Compute a mapping from indices of vertices to subfaces.
@@ -18158,7 +18173,7 @@ void tetgenmesh::unifysegments()
       }
     }
     if (b->verbose > 1) {
-      printf("    Identifying %d segments of (%d  %d).\n", sfacelist->len(),
+      print_to_cout("    Identifying %d segments of (%d  %d).\n", sfacelist->len(),
              pointmark(torg), pointmark(tdest));
     }
     // Set the connection between this segment and faces containing it,
@@ -18192,7 +18207,7 @@ void tetgenmesh::unifysegments()
       if ((sfacelist->len() > 1) && sapex(sface) == sapex(sface1)) {
         // They are duplicated faces.
         if (b->verbose > 0) {
-          printf("  A duplicated subface (%d, %d, %d) is removed.\n",
+          print_to_cout("  A duplicated subface (%d, %d, %d) is removed.\n",
                  pointmark(torg), pointmark(tdest), pointmark(sapex(sface)));
         }
         if (k == sfacelist->len()) {
@@ -18212,7 +18227,7 @@ void tetgenmesh::unifysegments()
       }
       */ 
       if (b->verbose > 2) {
-        printf("    Bond subfaces (%d, %d, %d) and (%d, %d, %d).\n",
+        print_to_cout("    Bond subfaces (%d, %d, %d) and (%d, %d, %d).\n",
                pointmark(torg), pointmark(tdest), pointmark(sapex(sface)),
                pointmark(torg), pointmark(tdest), pointmark(sapex(sface1)));
       }
@@ -18257,7 +18272,7 @@ void tetgenmesh::mergefacets(queue* flipqueue)
   int i, j;
 
   if (b->verbose > 0) {
-    printf("  Merging coplanar facets.\n");
+    print_to_cout("  Merging coplanar facets.\n");
   }
   // Create and initialize 'segspernodelist'.
   segspernodelist = new int[points->items + 1];
@@ -18309,7 +18324,7 @@ void tetgenmesh::mergefacets(queue* flipqueue)
           if (mergeflag) {
             // This segment becomes dead.
             if (b->verbose > 1) {
-              printf("  Removing segment (%d, %d).\n", pointmark(eorg),
+              print_to_cout("  Removing segment (%d, %d).\n", pointmark(eorg),
                      pointmark(edest));
             }
             ssdissolve(parentsh);
@@ -18376,7 +18391,7 @@ long tetgenmesh::meshsurface()
   int shmark, i, j;
 
   if (!b->quiet) {
-    printf("Creating surface mesh.\n");
+    print_to_cout("Creating surface mesh.\n");
   }
 
   // Compute a mapping from indices to points.
@@ -18439,8 +18454,8 @@ long tetgenmesh::meshsurface()
       if ((end1 < in->firstnumber) || 
           (end1 >= in->firstnumber + in->numberofpoints)) {
         if (!b->quiet) {
-          printf("Warning:  Invalid the 1st vertex %d of polygon", end1);
-          printf(" %d in facet %d.\n", i + 1, shmark);
+          print_to_cout("Warning:  Invalid the 1st vertex %d of polygon", end1);
+          print_to_cout(" %d in facet %d.\n", i + 1, shmark);
         }
         continue; // Skip this polygon.
       }
@@ -18461,8 +18476,8 @@ long tetgenmesh::meshsurface()
         if ((end2 < in->firstnumber) ||
             (end2 >= in->firstnumber + in->numberofpoints)) {
           if (!b->quiet) {
-            printf("Warning:  Invalid vertex %d in polygon %d", end2, i + 1);
-            printf(" in facet %d.\n", shmark);
+            print_to_cout("Warning:  Invalid vertex %d in polygon %d", end2, i + 1);
+            print_to_cout(" in facet %d.\n", shmark);
           }
         } else {
           if (end1 != end2) {
@@ -18486,8 +18501,8 @@ long tetgenmesh::meshsurface()
               // This may be an error in the input, anyway, we can continue
               //   by simply skipping this segment.
               if (!b->quiet) {
-                printf("Warning:  Polygon %d has two identical verts", i + 1);
-                printf(" in facet %d.\n", shmark);
+                print_to_cout("Warning:  Polygon %d has two identical verts", i + 1);
+                print_to_cout(" in facet %d.\n", shmark);
               }
             } 
             // Ignore this vertex.
@@ -18589,19 +18604,19 @@ interecursive(shellface** subfacearray, int arraysize, int axis, REAL bxmin,
   int i, j;
 
   if (b->verbose > 1) {
-    printf("  Recur %d faces. Bbox (%g, %g, %g),(%g, %g, %g). %s-axis\n",
+    print_to_cout("  Recur %d faces. Bbox (%g, %g, %g),(%g, %g, %g). %s-axis\n",
            arraysize, bxmin, bymin, bzmin, bxmax, bymax, bzmax,
            axis == 0 ? "x" : (axis == 1 ? "y" : "z"));
   }
     
   leftarray = new shellface*[arraysize];
   if (leftarray == NULL) {
-    printf("Error in interecursive():  Insufficient memory.\n");
+    print_to_cout("Error in interecursive():  Insufficient memory.\n");
     terminatetetgen(1);
   }
   rightarray = new shellface*[arraysize];
   if (rightarray == NULL) {
-    printf("Error in interecursive():  Insufficient memory.\n");
+    print_to_cout("Error in interecursive():  Insufficient memory.\n");
     terminatetetgen(1);
   }
   leftsize = rightsize = 0;
@@ -18677,7 +18692,7 @@ interecursive(shellface** subfacearray, int arraysize, int axis, REAL bxmin,
     }
   } else {
     if (b->verbose > 1) {
-      printf("  Checking intersecting faces.\n");
+      print_to_cout("  Checking intersecting faces.\n");
     }
     // Perform a brute-force compare on the set.
     for (i = 0; i < arraysize; i++) {
@@ -18694,15 +18709,15 @@ interecursive(shellface** subfacearray, int arraysize, int axis, REAL bxmin,
         if (intersect == INTERSECT || intersect == SHAREFACE) {
           if (!b->quiet) {
             if (intersect == INTERSECT) {
-              printf("  Facet #%d intersects facet #%d at triangles:\n",
+              print_to_cout("  Facet #%d intersects facet #%d at triangles:\n",
                      shellmark(sface1), shellmark(sface2));
-              printf("    (%4d, %4d, %4d) and (%4d, %4d, %4d)\n",
+              print_to_cout("    (%4d, %4d, %4d) and (%4d, %4d, %4d)\n",
                      pointmark(p1), pointmark(p2), pointmark(p3),
                      pointmark(p4), pointmark(p5), pointmark(p6));
             } else {
-              printf("  Facet #%d duplicates facet #%d at triangle:\n",
+              print_to_cout("  Facet #%d duplicates facet #%d at triangle:\n",
                      shellmark(sface1), shellmark(sface2));
-              printf("    (%4d, %4d, %4d)\n", pointmark(p1), pointmark(p2),
+              print_to_cout("    (%4d, %4d, %4d)\n", pointmark(p1), pointmark(p2),
                      pointmark(p3));
             }
           }
@@ -18754,7 +18769,7 @@ void tetgenmesh::detectinterfaces()
   int i;
 
   if (!b->quiet) {
-    printf("Detecting intersecting facets.\n");
+    print_to_cout("Detecting intersecting facets.\n");
   }
 
   // Construct a map from indices to subfaces;
@@ -18777,9 +18792,9 @@ void tetgenmesh::detectinterfaces()
 
   if (!b->quiet) {
     if (internum > 0) {
-      printf("\n!! Found %d pairs of faces are intersecting.\n\n", internum);
+      print_to_cout("\n!! Found %d pairs of faces are intersecting.\n\n", internum);
     } else {
-      printf("\nNo faces are intersecting.\n\n");
+      print_to_cout("\nNo faces are intersecting.\n\n");
     }
   }
 
@@ -19422,7 +19437,7 @@ bool tetgenmesh::checksub4cocir(face* testsub, REAL eps, bool once,
             setshell2badface(cocirsub->ss, cocirsub);
           }
           if (b->verbose > 1) {
-            printf("    Found set (%d, %d, %d, %d).\n", pointmark(pa),
+            print_to_cout("    Found set (%d, %d, %d, %d).\n", pointmark(pa),
                    pointmark(pb), pointmark(pc), pointmark(pd));
           }
           return true;
@@ -19586,7 +19601,7 @@ void tetgenmesh::perturbrepairencsegs(queue* flipqueue)
     pb = sdest(splitseg);
     if ((pa == encloop->forg) && (pb == encloop->fdest)) {
       if (b->verbose > 1) {
-        printf("  Get seg (%d, %d).\n", pointmark(pa), pointmark(pb));
+        print_to_cout("  Get seg (%d, %d).\n", pointmark(pa), pointmark(pb));
       }
       // Create the newpoint.
       makepoint(&newpoint);
@@ -19775,7 +19790,7 @@ void tetgenmesh::perturbrepairencsubs(list* cavsublist, queue* flipqueue)
       if ((pa == encloop->forg) && (pb == encloop->fdest) &&
           (pc == encloop->fapex)) {
         if (b->verbose > 1) {
-          printf("  Get subface (%d, %d, %d).\n", pointmark(pa),
+          print_to_cout("  Get subface (%d, %d, %d).\n", pointmark(pa),
                  pointmark(pb), pointmark(pc));
         }
         // Create the newpoint.
@@ -19818,7 +19833,7 @@ void tetgenmesh::perturbrepairencsubs(list* cavsublist, queue* flipqueue)
 #endif
           // Add this segment into list for splitting.
           if (b->verbose > 2) {
-            printf("    Queuing boundary segment (%d, %d).\n",
+            print_to_cout("    Queuing boundary segment (%d, %d).\n",
                    pointmark(sorg(checkseg)), pointmark(sdest(checkseg)));
           }
           encsubseg = (badface *) badsubsegs->alloc();
@@ -19998,7 +20013,7 @@ void tetgenmesh::incrperturbvertices(REAL eps)
   long vertcount;
 
   if (!b->quiet) {
-    printf("Perturbing vertices.\n");
+    print_to_cout("Perturbing vertices.\n");
   }
 
   vertcount = points->items;
@@ -20014,12 +20029,12 @@ void tetgenmesh::incrperturbvertices(REAL eps)
   // Find all pairs of co-circular subfaces.
   tallcocirsubs(eps, true);
   if (b->verbose && badsubfaces->items > 0) {
-    printf("  Removing degenerate subfaces.\n");
+    print_to_cout("  Removing degenerate subfaces.\n");
   }
   perturbrepairencsubs(cavsublist, flipqueue);
 
   if (b->verbose > 0) {
-    printf("  %ld break points.\n", points->items - vertcount);
+    print_to_cout("  %ld break points.\n", points->items - vertcount);
   }
   
   delete cavsublist;
@@ -20068,7 +20083,7 @@ void tetgenmesh::markacutevertices(REAL acuteangle)
   int idx, i, j, k;
 
   if (b->verbose > 0) {
-    printf("  Marking acute vertices.\n");
+    print_to_cout("  Marking acute vertices.\n");
   }
 
   anglearc = acuteangle * PI / 180.0;
@@ -20125,7 +20140,7 @@ void tetgenmesh::markacutevertices(REAL acuteangle)
   delete [] segsperverlist;
 
   if ((b->verbose > 0) && (acutecount > 0)) {
-    printf("  %d acute vertices.\n", acutecount);
+    print_to_cout("  %d acute vertices.\n", acutecount);
   }
 }
 
@@ -20388,7 +20403,7 @@ void tetgenmesh::getsearchtet(point p1, point p2, triface* searchtet,
 #endif
     }
     if (locate(p1, searchtet) != ONVERTEX) {
-      printf("Internal error in getsearchtet():  Failed to locate point\n");
+      print_to_cout("Internal error in getsearchtet():  Failed to locate point\n");
       internalerror();
     }
     // Remember this handle in 'p1' to enhance the search speed.
@@ -20452,7 +20467,7 @@ tetgenmesh::point tetgenmesh::scoutrefpoint(triface* searchtet, point tend)
   int sides;
 
   if (b->verbose > 2) {
-    printf("  Scout the reference point of segment (%d, %d).\n",
+    print_to_cout("  Scout the reference point of segment (%d, %d).\n",
            pointmark(org(*searchtet)), pointmark(tend));
   }
 
@@ -20691,7 +20706,7 @@ tetgenmesh::point tetgenmesh::getsplitpoint(face* splitseg, point refpoint)
   ej = sdest(*splitseg);
 
   if (b->verbose > 1) {
-    printf("  Splitting segment (%d, %d) type-%d with refpoint %d.\n",
+    print_to_cout("  Splitting segment (%d, %d) type-%d with refpoint %d.\n",
            pointmark(ei), pointmark(ej), stype, pointmark(refpoint));
   }
 
@@ -20728,8 +20743,8 @@ tetgenmesh::point tetgenmesh::getsplitpoint(face* splitseg, point refpoint)
     r = ekp;
     // Check the validity of the position.
     if (!(eki < r && r < ekj)) {
-      printf("Error:  Invalid PLC.\n");
-      printf("  Hint:  Use -d switch to check it.\n");
+      print_to_cout("Error:  Invalid PLC.\n");
+      print_to_cout("  Hint:  Use -d switch to check it.\n");
       terminatetetgen(1);
     }
     split = r / ekj;
@@ -20755,7 +20770,7 @@ tetgenmesh::point tetgenmesh::getsplitpoint(face* splitseg, point refpoint)
         v[i] = c[i] + split * (ej[i] - c[i]);
       }
       if (b->verbose > 1) {
-        printf("    Using rule-3.\n");
+        print_to_cout("    Using rule-3.\n");
       }
       rule = 3;
     }
@@ -20768,9 +20783,9 @@ tetgenmesh::point tetgenmesh::getsplitpoint(face* splitseg, point refpoint)
 
   if (b->verbose > 1) {
     if (stype == 2) {
-      printf("    Split = %.12g.\n", distance(ei, v) / distance(ei, ej));
+      print_to_cout("    Split = %.12g.\n", distance(ei, v) / distance(ei, ej));
     } else {
-      printf("    Split = %.12g.\n", distance(c, v) / distance(c, ej));
+      print_to_cout("    Split = %.12g.\n", distance(c, v) / distance(c, ej));
     }
   }
 
@@ -20865,7 +20880,7 @@ bool tetgenmesh::insertsegment(face *insseg, list *misseglist)
     // Segment is missing.
     if (misseglist != (list *) NULL) {
       if (b->verbose > 2) {
-        printf("    Queuing missing segment (%d, %d).\n", pointmark(p1),
+        print_to_cout("    Queuing missing segment (%d, %d).\n", pointmark(p1),
                pointmark(p2));
       }
       misseg = (badface *) misseglist->append(NULL);
@@ -20890,7 +20905,7 @@ void tetgenmesh::tallmissegs(list *misseglist)
   face segloop;
 
   if (b->verbose) {
-    printf("  Queuing missing segments.\n");
+    print_to_cout("  Queuing missing segments.\n");
   }
 
   subsegs->traversalinit();
@@ -20958,7 +20973,7 @@ void tetgenmesh::delaunizesegments()
   int i, j;
 
   if (!b->quiet) {
-    printf("Delaunizing segments.\n");
+    print_to_cout("Delaunizing segments.\n");
   }
 
   // Construct a map from points to tets for speeding point location.
@@ -20989,7 +21004,7 @@ void tetgenmesh::delaunizesegments()
       p1 = (point) segloop.sh[3];
       p2 = (point) segloop.sh[4];
       if (b->verbose > 1) {
-        printf("  Recover segment (%d, %d).\n", pointmark(p1), pointmark(p2));
+        print_to_cout("  Recover segment (%d, %d).\n", pointmark(p1), pointmark(p2));
       }
       getsearchtet(p1, p2, &searchtet, &tend);
       collinear = finddirection(&searchtet, tend, tetrahedrons->items);
@@ -21147,8 +21162,8 @@ void tetgenmesh::delaunizesegments()
   checksubsegs = 0;
 
   if (b->verbose > 0) {
-    printf("  %ld protect points.\n", points->items - vertcount);
-    printf("  R1: %ld,  R2: %ld,  R3: %ld.\n", r1count, r2count, r3count);
+    print_to_cout("  %ld protect points.\n", points->items - vertcount);
+    print_to_cout("  R1: %ld,  R2: %ld,  R3: %ld.\n", r1count, r2count, r3count);
   }
 
   delete flipqueue;
@@ -21215,11 +21230,11 @@ bool tetgenmesh::insertsubface(face* insertsh, triface* searchtet)
       } else {
         // Found a duplicated subface (due to the redundant input).
         if (!b->quiet) {
-          printf("Warning:  Two subfaces are found duplicated at ");
-          printf("(%d, %d, %d)\n", pointmark(sorg(testsh)),
+          print_to_cout("Warning:  Two subfaces are found duplicated at ");
+          print_to_cout("(%d, %d, %d)\n", pointmark(sorg(testsh)),
                  pointmark(sdest(testsh)), pointmark(sapex(testsh)));
-          printf("  Subface of facet #%d is deleted.\n", shellmark(*insertsh));
-          // printf("  Hint: -d switch can find all duplicated facets.\n");
+          print_to_cout("  Subface of facet #%d is deleted.\n", shellmark(*insertsh));
+          // print_to_cout("  Hint: -d switch can find all duplicated facets.\n");
         }
         shellfacedealloc(subfaces, insertsh->sh);
       }
@@ -21597,7 +21612,7 @@ bool tetgenmesh::scoutfront(triface* front, triface* idfront, list* newtetlist)
 
   // f is missing in D.
   if (b->verbose > 2) {
-    printf("    Front (%d, %d, %d) is missing.\n", pointmark(pa),
+    print_to_cout("    Front (%d, %d, %d) is missing.\n", pointmark(pa),
            pointmark(pb), pointmark(apex(*front)));
   }
   return false;
@@ -21833,7 +21848,7 @@ void tetgenmesh::expandcavity(list* frontlist, list* misfrontlist,
   int i, j, k;
 
   if (b->verbose > 1) {
-    printf("    Expand cavity (%d missing fronts).\n", misfrontlist->len());
+    print_to_cout("    Expand cavity (%d missing fronts).\n", misfrontlist->len());
   }
   // Increase the number of expanded times.
   expcavcount++;
@@ -21854,7 +21869,7 @@ void tetgenmesh::expandcavity(list* frontlist, list* misfrontlist,
     misfront = * (triface *)(* misfrontlist)[i];
     // C will be expanded at f.
     if (b->verbose > 1) {
-      printf("    Get misfront (%d, %d, %d).\n", pointmark(org(misfront)),
+      print_to_cout("    Get misfront (%d, %d, %d).\n", pointmark(org(misfront)),
              pointmark(dest(misfront)), pointmark(apex(misfront)));
     }
     // Is f has a subface s?
@@ -21871,7 +21886,7 @@ void tetgenmesh::expandcavity(list* frontlist, list* misfrontlist,
       }
       // Temporarily remove s. Queue and recover it later.
       if (b->verbose > 1) {
-        printf("    Queuing subface (%d, %d, %d).\n",
+        print_to_cout("    Queuing subface (%d, %d, %d).\n",
                pointmark(sorg(checksh)), pointmark(sdest(checksh)),
                pointmark(sapex(checksh)));
       }
@@ -21971,7 +21986,7 @@ void tetgenmesh::expandcavity(list* frontlist, list* misfrontlist,
         if (checksh.sh != dummysh) {
           // Temporarily remove checksh. Make it missing. recover it later.
           if (b->verbose > 2) {
-            printf("    Queuing subface (%d, %d, %d).\n",
+            print_to_cout("    Queuing subface (%d, %d, %d).\n",
                    pointmark(sorg(checksh)), pointmark(sdest(checksh)),
                    pointmark(sapex(checksh)));
           }
@@ -22207,7 +22222,7 @@ void tetgenmesh::delaunizecavity(list* floorlist, list* ceillist,
   vertnum = floorptlist->len();
   vertnum += (ceilptlist != (list *) NULL ? ceilptlist->len() : 0);
   if (b->verbose > 1) {
-    printf("    Delaunizing cavity (%d floors, %d ceilings, %d vertices).\n",
+    print_to_cout("    Delaunizing cavity (%d floors, %d ceilings, %d vertices).\n",
            floorlist->len(), ceillist->len(), vertnum);
   }
   // Save the size of the largest cavity.
@@ -22292,7 +22307,7 @@ void tetgenmesh::formmissingregion(face* missingsh, list* missingshlist,
             sesymself(neighsh);
           }
           if (b->verbose > 2) {
-            printf("    Add missing subface (%d, %d, %d).\n", 
+            print_to_cout("    Add missing subface (%d, %d, %d).\n", 
                    pointmark(sorg(neighsh)), pointmark(sdest(neighsh)),
                    pointmark(sapex(neighsh)));
           }
@@ -22506,11 +22521,11 @@ void tetgenmesh::rearrangesubfaces(list* missingshlist, list* boundedgelist,
     assert(matchflag == true);
     tspivot(spintet, neighsh);
     if (neighsh.sh != dummysh) {
-      printf("Error:  Invalid PLC.\n");
-      printf("  Facet #%d and facet #%d overlap each other.\n",
+      print_to_cout("Error:  Invalid PLC.\n");
+      print_to_cout("  Facet #%d and facet #%d overlap each other.\n",
              shellmark(neighsh), shellmark(shloop));
-      printf("  It might be caused by a facet is defined more than once.\n");
-      printf("  Hint:  Use -d switch to find all overlapping facets.\n");
+      print_to_cout("  It might be caused by a facet is defined more than once.\n");
+      print_to_cout("  Hint:  Use -d switch to find all overlapping facets.\n");
       exit(1);
     }
     // The side of 'spintet' is at which a new subface will be attached.
@@ -22821,7 +22836,7 @@ void tetgenmesh::formcavity(list* missingshlist, list* crossedgelist,
     starttet = * (triface *)(* crossedgelist)[i];
     adjustedgering(starttet, CCW);
     if (b->verbose > 2) {
-      printf("    Collect tets containing edge (%d, %d).\n",
+      print_to_cout("    Collect tets containing edge (%d, %d).\n",
              pointmark(org(starttet)), pointmark(dest(starttet)));
     }
     orgori = orient3d(torg, tdest, tapex, org(starttet));
@@ -22836,18 +22851,18 @@ void tetgenmesh::formcavity(list* missingshlist, list* crossedgelist,
       // Check the validity of the PLC.
       tspivot(spintet, worksh);
       if (worksh.sh != dummysh) {
-        printf("Error:  Invalid PLC.\n");
-        printf("  Two subfaces (%d, %d, %d) and (%d, %d, %d)\n",
+        print_to_cout("Error:  Invalid PLC.\n");
+        print_to_cout("  Two subfaces (%d, %d, %d) and (%d, %d, %d)\n",
                pointmark(torg), pointmark(tdest), pointmark(tapex),
                pointmark(sorg(worksh)), pointmark(sdest(worksh)),
                pointmark(sapex(worksh)));
-        printf("  are found intersecting each other.\n");
-        printf("  Hint:  Use -d switch to find all intersecting facets.\n");
+        print_to_cout("  are found intersecting each other.\n");
+        print_to_cout("  Hint:  Use -d switch to find all intersecting facets.\n");
         terminatetetgen(1);
       }
       if (!infected(spintet)) {
         if (b->verbose > 2) {
-          printf("      Add crossing tet (%d, %d, %d, %d).\n",
+          print_to_cout("      Add crossing tet (%d, %d, %d, %d).\n",
                  pointmark(org(spintet)), pointmark(dest(spintet)),
                  pointmark(apex(spintet)), pointmark(oppo(spintet)));
         }
@@ -23019,7 +23034,7 @@ void tetgenmesh::formcavity(list* missingshlist, list* crossedgelist,
         if (worksh.sh != dummysh) {
           // Temporarily remove worksh. Make it missing. recover it later.
           if (b->verbose > 2) {
-            printf("    Queuing subface (%d, %d, %d).\n",
+            print_to_cout("    Queuing subface (%d, %d, %d).\n",
                    pointmark(sorg(worksh)), pointmark(sdest(worksh)),
                    pointmark(sapex(worksh)));
           }
@@ -23084,7 +23099,7 @@ void tetgenmesh::insertallsubfaces(queue* missingshqueue)
   while (subloop.sh != (shellface *) NULL) {
     if (!insertsubface(&subloop, &searchtet)) {
       if (b->verbose > 1) {
-        printf("    Queuing subface (%d, %d, %d).\n", pointmark(sorg(subloop)),
+        print_to_cout("    Queuing subface (%d, %d, %d).\n", pointmark(sorg(subloop)),
                pointmark(sdest(subloop)), pointmark(sapex(subloop)));
       }
       sinfect(subloop);
@@ -23132,7 +23147,7 @@ void tetgenmesh::constrainedfacets()
   int i;
 
   if (!b->quiet) {
-    printf("Constraining facets.\n");
+    print_to_cout("Constraining facets.\n");
   }
 
   // Initialize queues.
@@ -23177,7 +23192,7 @@ void tetgenmesh::constrainedfacets()
       continue;
     }
     if (b->verbose > 1) {
-      printf("    Recover subface (%d, %d, %d).\n", pointmark(sorg(subloop)),
+      print_to_cout("    Recover subface (%d, %d, %d).\n", pointmark(sorg(subloop)),
              pointmark(sdest(subloop)), pointmark(sapex(subloop)));
     }
     // Form the missing region R containing s.
@@ -23240,9 +23255,9 @@ void tetgenmesh::constrainedfacets()
   checksubfaces = 1;
 
   if (b->verbose > 0) {
-    printf("  The biggest cavity: %d faces, %d vertices\n", maxcavfaces,
+    print_to_cout("  The biggest cavity: %d faces, %d vertices\n", maxcavfaces,
            maxcavverts);
-    printf("  Enlarged %d times\n", expcavcount);
+    print_to_cout("  Enlarged %d times\n", expcavcount);
   }
 
   delete missingshqueue;
@@ -23290,7 +23305,7 @@ void tetgenmesh::infecthull(memorypool *viri)
   // point horg, hdest, hapex;
 
   if (b->verbose > 0) {
-    printf("  Marking concavities for elimination.\n");
+    print_to_cout("  Marking concavities for elimination.\n");
   }
   tetrahedrons->traversalinit();
   tetloop.tet = tetrahedrontraverse();
@@ -23358,7 +23373,7 @@ void tetgenmesh::plague(memorypool *viri)
   int i;
 
   if (b->verbose > 0) {
-    printf("  Marking neighbors of marked tetrahedra.\n");
+    print_to_cout("  Marking neighbors of marked tetrahedra.\n");
   }
   firstdadsub = 0;
   // Loop through all the infected tetrahedra, spreading the virus to
@@ -23386,7 +23401,7 @@ void tetgenmesh::plague(memorypool *viri)
           if (!firstdadsub) {
             firstdadsub = 1; // Report the problem once.
             if (!b->quiet) {
-              printf("Warning:  Detecting an open face (%d, %d, %d).\n",
+              print_to_cout("Warning:  Detecting an open face (%d, %d, %d).\n",
                      pointmark(sorg(neighsh)), pointmark(sdest(neighsh)),
                      pointmark(sapex(neighsh)));
             }
@@ -23485,7 +23500,7 @@ regionplague(memorypool *regionviri, REAL attribute, REAL volume)
   face neighsh;
 
   if (b->verbose > 1) {
-    printf("  Marking neighbors of marked tetrahedra.\n");
+    print_to_cout("  Marking neighbors of marked tetrahedra.\n");
   }
   // Loop through all the infected tetrahedra, spreading the attribute
   //   and/or volume constraint to their neighbors, then to their neighbors'
@@ -23531,7 +23546,7 @@ regionplague(memorypool *regionviri, REAL attribute, REAL volume)
 
   // Uninfect all tetrahedra.
   if (b->verbose > 1) {
-    printf("  Unmarking marked tetrahedra.\n");
+    print_to_cout("  Unmarking marked tetrahedra.\n");
   }
   regionviri->traversalinit();
   virusloop = (tetrahedron **) regionviri->traverse();
@@ -23559,7 +23574,7 @@ void tetgenmesh::removeholetets(memorypool* viri)
   int i, j;
 
   if (b->verbose > 0) {
-    printf("  Deleting marked tetrahedra.\n");
+    print_to_cout("  Deleting marked tetrahedra.\n");
   }
 
   // Create and initialize 'tetspernodelist'.
@@ -23644,7 +23659,7 @@ void tetgenmesh::assignregionattribs()
   int i;
 
   if (b->verbose > 0) {
-    printf("  Assign region numbers.\n");
+    print_to_cout("  Assign region numbers.\n");
   }
 
   regionnumlist = new list(sizeof(int), NULL, 256);
@@ -23697,7 +23712,7 @@ void tetgenmesh::assignregionattribs()
   }
   
   if (b->verbose > 0) {
-    printf("  %d user-specified regions.\n", regionnumlist->len());
+    print_to_cout("  %d user-specified regions.\n", regionnumlist->len());
   }
 
   // Now loop the tets again. Assign region numbers to uninfected tets.
@@ -23760,7 +23775,7 @@ void tetgenmesh::assignregionattribs()
   }
   
   if (b->verbose > 0) {
-    printf("  %d regions are numbered.\n", count);
+    print_to_cout("  %d regions are numbered.\n", count);
   }
 
   delete regionnumlist;
@@ -23787,9 +23802,9 @@ void tetgenmesh::carveholes()
   int i;
 
   if (!b->quiet) {
-    printf("Removing unwanted tetrahedra.\n");
+    print_to_cout("Removing unwanted tetrahedra.\n");
     if (b->verbose && (in->numberofholes > 0)) {
-      printf("  Marking holes for elimination.\n");
+      print_to_cout("  Marking holes for elimination.\n");
     }
   }
 
@@ -23848,12 +23863,12 @@ void tetgenmesh::carveholes()
     if (!b->quiet) {
       if (b->regionattrib) {
         if (b->varvolume) {
-          printf("Spreading regional attributes and volume constraints.\n");
+          print_to_cout("Spreading regional attributes and volume constraints.\n");
         } else {
-          printf("Spreading regional attributes.\n");
+          print_to_cout("Spreading regional attributes.\n");
         }
       } else {
-        printf("Spreading regional volume constraints.\n");
+        print_to_cout("Spreading regional volume constraints.\n");
       }
     }
     // Allocate storage for the tetrahedra in which region points fall.
@@ -24211,7 +24226,7 @@ bool tetgenmesh::constrainedflip(triface* flipface, triface* front,
         if (sign < 0.0) {
           if (tritritest(&spintet, pa, pb, pc)) {
             if (b->verbose > 2) {
-              printf("    Next crossface (%d, %d, %d).\n",
+              print_to_cout("    Next crossface (%d, %d, %d).\n",
                      pointmark(org(spintet)), pointmark(dest(spintet)),
                      pointmark(apex(spintet)));
             }
@@ -24367,7 +24382,7 @@ bool tetgenmesh::recoverfront(triface* front, list* newtetlist, queue* flipque)
       adjustedgering(idfront, CCW);
       fnextself(idfront); // face ade or bce need a 4-to-4 flip.
       if (b->verbose > 2) {
-        printf("    Get crossface (%d, %d, %d).\n", pointmark(org(idfront)),
+        print_to_cout("    Get crossface (%d, %d, %d).\n", pointmark(org(idfront)),
                pointmark(dest(idfront)), pointmark(apex(idfront)));
       }
       if (constrainedflip(&idfront, front, flipque)) {
@@ -24422,7 +24437,7 @@ bool tetgenmesh::recoverfront(triface* front, list* newtetlist, queue* flipque)
       adjustedgering(spintet, CCW);
       fnextself(spintet); // face ade or bce need a 4-to-4 flip.
       if (b->verbose > 2) {
-        printf("    Get crossface (%d, %d, %d).\n", pointmark(org(spintet)),
+        print_to_cout("    Get crossface (%d, %d, %d).\n", pointmark(org(spintet)),
                pointmark(dest(spintet)), pointmark(apex(spintet)));
       }
       if (constrainedflip(&spintet, front, flipque)) {
@@ -24440,7 +24455,7 @@ bool tetgenmesh::recoverfront(triface* front, list* newtetlist, queue* flipque)
         fnext(spintet, starttet);
         if (tritritest(&starttet, pa, pb, pc)) {
           if (b->verbose > 2) {
-            printf("    Get crossface (%d, %d, %d).\n",
+            print_to_cout("    Get crossface (%d, %d, %d).\n",
                    pointmark(org(starttet)), pointmark(dest(starttet)),
                    pointmark(apex(starttet)));
           }
@@ -24480,7 +24495,7 @@ void tetgenmesh::repairflips(queue* flipque)
   int i;
 
   if (b->verbose > 1) {
-    printf("    Repair flip %ld faces.\n", flipque->len());
+    print_to_cout("    Repair flip %ld faces.\n", flipque->len());
   }
   flipcount = flip23s + flip32s + flip22s + flip44s;
   // Loop until the queue is empty.
@@ -24587,7 +24602,7 @@ void tetgenmesh::repairflips(queue* flipque)
   }
   flipcount = flip23s + flip32s + flip22s + flip44s - flipcount;
   if (b->verbose > 1) {
-    printf("    %ld flips.\n", flipcount);
+    print_to_cout("    %ld flips.\n", flipcount);
   }
 }
 
@@ -24609,7 +24624,7 @@ bool tetgenmesh::constrainedcavity(triface* oldtet, list* floorlist,
   int i;
 
   if (b->verbose > 1) {
-    printf("    Constrained cavity (%d floors, %d ceilings, %d vertices).\n",
+    print_to_cout("    Constrained cavity (%d floors, %d ceilings, %d vertices).\n",
            floorlist->len(), ceillist->len(), ptlist->len());
   }
 
@@ -24634,7 +24649,7 @@ bool tetgenmesh::constrainedcavity(triface* oldtet, list* floorlist,
         // Let f face toward the inside of C.
         adjustedgering(misfront, CW);
         if (b->verbose > 1) {
-          printf("    Recover face (%d, %d, %d).\n", pointmark(org(misfront)),
+          print_to_cout("    Recover face (%d, %d, %d).\n", pointmark(org(misfront)),
                  pointmark(dest(misfront)), pointmark(apex(misfront)));
         }
         if (recoverfront(&misfront, newtetlist, flipque)) {
@@ -24725,7 +24740,7 @@ void tetgenmesh::expandsteinercavity(point steinpt, REAL eps, list* frontlist,
         if (ori >= 0.0) {
           // f is either invisible or coplanar with p.
           if (b->verbose > 2) {
-            printf("    Remove front (%d, %d, %d).\n", pointmark(pa),
+            print_to_cout("    Remove front (%d, %d, %d).\n", pointmark(pa),
                    pointmark(pb), pointmark(pc));
           }
           frontlist->del(i, 1);
@@ -24754,7 +24769,7 @@ void tetgenmesh::expandsteinercavity(point steinpt, REAL eps, list* frontlist,
                   (oldfront.loc == symfront.loc)) {
                 // n is not a front anymore.
                 if (b->verbose > 2) {
-                  printf("    Remove front (%d, %d, %d).\n",
+                  print_to_cout("    Remove front (%d, %d, %d).\n",
                          pointmark(org(oldfront)), pointmark(dest(oldfront)),
                          pointmark(apex(oldfront)));
                 }
@@ -24782,7 +24797,7 @@ void tetgenmesh::expandsteinercavity(point steinpt, REAL eps, list* frontlist,
         }
         if (newflag) {
           if (b->verbose > 2) {
-            printf("    Add front (%d, %d, %d).\n", pointmark(org(newfront)),
+            print_to_cout("    Add front (%d, %d, %d).\n", pointmark(org(newfront)),
                    pointmark(dest(newfront)), pointmark(apex(newfront)));
           }
           frontlist->append(&newfront);
@@ -24817,7 +24832,7 @@ bool tetgenmesh::findrelocatepoint(point sp, point np, REAL* n,
   int i, j, k;
 
   if (b->verbose > 1) {
-    printf("    Find new location for point %d.\n", pointmark(sp));
+    print_to_cout("    Find new location for point %d.\n", pointmark(sp));
   }
 
   // Avoid compilation warnings.
@@ -24851,7 +24866,7 @@ bool tetgenmesh::findrelocatepoint(point sp, point np, REAL* n,
           expandsteinercavity(sp, eps, frontlist, oldtetlist);
           eps *= 10.0;
           if (eps > b->epsilon * 1000.0) {
-          // printf("Internal error: Fail to relocate pt %d.\n",pointmark(sp));
+          // print_to_cout("Internal error: Fail to relocate pt %d.\n",pointmark(sp));
             // internalerror();
             return false;
           }
@@ -24876,7 +24891,7 @@ bool tetgenmesh::findrelocatepoint(point sp, point np, REAL* n,
   } while (!visible);
   
   if (b->verbose > 1) {
-    printf("    %d iterations. minvol = %.12g.\n", j, mvol);
+    print_to_cout("    %d iterations. minvol = %.12g.\n", j, mvol);
   }
 
   // Continue to adjust np until the minimal volume of tets formed by
@@ -24934,7 +24949,7 @@ bool tetgenmesh::findrelocatepoint(point sp, point np, REAL* n,
   } while (k < 2);
 
   if (b->verbose > 1) {
-    printf("    %d adjust iterations. minvol = %.12g.\n", j, mvol);
+    print_to_cout("    %d adjust iterations. minvol = %.12g.\n", j, mvol);
   }
   return true;
 }
@@ -24960,7 +24975,7 @@ void tetgenmesh::relocatepoint(point steinpt, triface* oldtet, list* frontlist,
   int i, j, k, l;
 
   if (b->verbose > 1) {
-    printf("    Insert Steiner point (%.12g, %.12g, %.12g) %d.\n",
+    print_to_cout("    Insert Steiner point (%.12g, %.12g, %.12g) %d.\n",
            steinpt[0], steinpt[1], steinpt[2], pointmark(steinpt));
   }
   // Clear the list first.
@@ -24973,7 +24988,7 @@ void tetgenmesh::relocatepoint(point steinpt, triface* oldtet, list* frontlist,
     // Let f face inside C. (f is a face of tet adjacent to C).
     adjustedgering(front, CW);
     if (b->verbose > 2) {
-      printf("    Get front (%d, %d, %d).\n", pointmark(org(front)),
+      print_to_cout("    Get front (%d, %d, %d).\n", pointmark(org(front)),
              pointmark(dest(front)), pointmark(apex(front)));
     }
     maketetrahedron(&newtet);
@@ -25087,7 +25102,7 @@ bool tetgenmesh::findcollapseedge(point suppt, point *conpt, list* oldtetlist,
   int n, i, j;
 
   if (b->verbose > 2) {
-    printf("    Search an edge (in %d edges) for collapse %d.\n",
+    print_to_cout("    Search an edge (in %d edges) for collapse %d.\n",
            ptlist->len(), pointmark(suppt));
   }
 
@@ -25148,7 +25163,7 @@ bool tetgenmesh::findcollapseedge(point suppt, point *conpt, list* oldtetlist,
       }
     }
     if ((b->verbose > 2) && visflag) {
-      printf("    Got candidate %d vol(%g).\n", pointmark(pt), lenarray[i]);
+      print_to_cout("    Got candidate %d vol(%g).\n", pointmark(pt), lenarray[i]);
     }
   }
 
@@ -25194,7 +25209,7 @@ void tetgenmesh::collapseedge(point suppt, point conpt, list* oldtetlist,
   int i, j;
 
   if (b->verbose > 2) {
-    printf("    Collapse edge (%d,%d).\n", pointmark(suppt), pointmark(conpt));
+    print_to_cout("    Collapse edge (%d,%d).\n", pointmark(suppt), pointmark(conpt));
   }
 
   // Loop in B(p), replace p with np, queue dead tets, uninfect old tets.
@@ -25268,7 +25283,7 @@ void tetgenmesh::deallocfaketets(list* frontlist)
     tspivot(front, checksh);
     if (oppo(front) == (point) NULL) {
       if (b->verbose > 2) {
-        printf("    Get fake tet (%d, %d, %d).\n", pointmark(org(front)),
+        print_to_cout("    Get fake tet (%d, %d, %d).\n", pointmark(org(front)),
                pointmark(dest(front)), pointmark(apex(front)));
       }
       if (neightet.tet != dummytet) {
@@ -25382,7 +25397,7 @@ bool tetgenmesh::suppressfacetpoint(face* supsh, list* frontlist,
 
   suppt = sapex(*supsh);
   if (b->verbose > 1) {
-    printf("    Suppress point %d in facet.\n", pointmark(suppt));
+    print_to_cout("    Suppress point %d in facet.\n", pointmark(suppt));
   }
 
   // Initialize working lists, variables.
@@ -25619,7 +25634,7 @@ bool tetgenmesh::suppresssegpoint(face* supseg, list* spinshlist,
   pa = sorg(*supseg);
   pb = sdest(nsupseg);
   if (b->verbose > 1) {
-    printf("    Remove point %d on segment (%d, %d).\n",
+    print_to_cout("    Remove point %d on segment (%d, %d).\n",
            pointmark(suppt), pointmark(pa), pointmark(pb));
   }
 
@@ -25634,7 +25649,7 @@ bool tetgenmesh::suppresssegpoint(face* supseg, list* spinshlist,
   } while (spinsh.sh != startsh.sh);
   if (spinshlist->len() == 1) {
     // This case has not handled yet.
-    // printf("Unhandled case: segment only belongs to one facet.\n");
+    // print_to_cout("Unhandled case: segment only belongs to one facet.\n");
     spinshlist->clear();
     unsupverts++;
     return false;
@@ -26032,7 +26047,7 @@ bool tetgenmesh::suppressvolpoint(triface* suptet, list* frontlist,
   success = true; // Assume p can be suppressed.
 
   if (b->verbose > 1) {
-    printf("    Remove point %d in mesh.\n", pointmark(suppt));
+    print_to_cout("    Remove point %d in mesh.\n", pointmark(suppt));
   }
 
   // Form old B(p) in oldtetlist.
@@ -26171,9 +26186,9 @@ bool tetgenmesh::smoothpoint(point smthpt, point e1, point e2, list *starlist,
   iniTmax = aspTmax;
 
   if (b->verbose > 1) {
-    printf("    Smooth %s point %d (%g, %g, %g).\n", segflag ? "seg" : "vol",
+    print_to_cout("    Smooth %s point %d (%g, %g, %g).\n", segflag ? "seg" : "vol",
            pointmark(smthpt), smthpt[0], smthpt[1], smthpt[2]);
-    printf("    Initial max L/h = %g.\n", iniTmax);
+    print_to_cout("    Initial max L/h = %g.\n", iniTmax);
   }
   for (i = 0; i < 3; i++) {
     bestpt[i] = startpt[i] = smthpt[i];
@@ -26274,17 +26289,17 @@ bool tetgenmesh::smoothpoint(point smthpt, point e1, point e2, list *starlist,
     segflag ? smoothsegverts++ : smoothvolverts++;
     for (i = 0; i < 3; i++) smthpt[i] = startpt[i];
     if (b->verbose > 1) {
-      printf("    Move to new location (%g, %g, %g).\n", smthpt[0], smthpt[1],
+      print_to_cout("    Move to new location (%g, %g, %g).\n", smthpt[0], smthpt[1],
              smthpt[2]);
-      printf("    Final max L/h = %g. (%d iterations)\n", newTmax, iter);
+      print_to_cout("    Final max L/h = %g. (%d iterations)\n", newTmax, iter);
       if (key) {
-        printf("    Max. dihed = %g (degree).\n", acos(*key) / PI * 180.0);
+        print_to_cout("    Max. dihed = %g (degree).\n", acos(*key) / PI * 180.0);
       }
     }
     return true;
   } else {
     if (b->verbose > 1) {
-      printf("    Not smoothed.\n");
+      print_to_cout("    Not smoothed.\n");
     }
     return false;
   }
@@ -26315,9 +26330,9 @@ void tetgenmesh::removesteiners(bool coarseflag)
 
   if (!b->quiet) {
     if (!coarseflag) {
-      printf("Removing Steiner points.\n");
+      print_to_cout("Removing Steiner points.\n");
     } else {
-      printf("Coarsening mesh.\n");
+      print_to_cout("Coarsening mesh.\n");
     }
   }
 
@@ -26440,7 +26455,7 @@ void tetgenmesh::removesteiners(bool coarseflag)
             if (iscollinear(e1, pa, e2, b->epsilon)) {
               // Connect the two segments together.
               if (b->verbose > 1) {
-                printf("  Glue two insegs (%d, %d) at %d.\n", pointmark(e1),
+                print_to_cout("  Glue two insegs (%d, %d) at %d.\n", pointmark(e1),
                        pointmark(e2), pointmark(pa));
               }
               senext(segloop, seg1);
@@ -26609,7 +26624,7 @@ void tetgenmesh::removesteiners(bool coarseflag)
     // Smooth the unsuppressed points if it is not coarse mesh.
     if (!coarseflag && (relverts > suprelverts)) {
       if (b->verbose) {
-        printf("  Smoothing relocated points.\n");
+        print_to_cout("  Smoothing relocated points.\n");
       }
       for (i = 0; i < points->items + 1; i++) worklist[i] = 0;
       tetrahedrons->traversalinit();
@@ -26639,23 +26654,23 @@ void tetgenmesh::removesteiners(bool coarseflag)
 
   if (b->verbose > 0) {
     if (!coarseflag) {
-      printf("  %d points removed from boundary", unuverts - oldnum);
+      print_to_cout("  %d points removed from boundary", unuverts - oldnum);
       if (expcavcount > 0) {
-        printf(" (%d cavity corrections)", expcavcount);
+        print_to_cout(" (%d cavity corrections)", expcavcount);
       }
-      printf("\n");
+      print_to_cout("\n");
       if (relverts > 0) {
-        printf("  %d points relocated (%d suppressed, %d collapsed).\n",
+        print_to_cout("  %d points relocated (%d suppressed, %d collapsed).\n",
                relverts, suprelverts - collapverts, collapverts);
         if (smoothvolverts > 0) {
-          printf("  %d points are smoothed.\n", smoothvolverts);
+          print_to_cout("  %d points are smoothed.\n", smoothvolverts);
         }
       }
       if (unsupverts > 0) {
-        printf("  !! %d points are unsuppressed.\n", unsupverts);
+        print_to_cout("  !! %d points are unsuppressed.\n", unsupverts);
       }
     } else {
-      printf("  %d points are removed.\n", unuverts - oldnum);
+      print_to_cout("  %d points are removed.\n", unuverts - oldnum);
     }
   }
 
@@ -26734,7 +26749,7 @@ long tetgenmesh::reconstructmesh()
   int index, i, j;
 
   if (!b->quiet) {
-    printf("Reconstructing mesh.\n");
+    print_to_cout("Reconstructing mesh.\n");
   }
 
   // Create a map from index to points.
@@ -26760,7 +26775,7 @@ long tetgenmesh::reconstructmesh()
       norg = torg; torg = tdest; tdest = norg;
     } else if (sign == 0.0) {
       if (!b->quiet) {
-        printf("Warning:  Tet %d is degenerate.\n", i + in->firstnumber);
+        print_to_cout("Warning:  Tet %d is degenerate.\n", i + in->firstnumber);
       }
     }
     setorg(tetloop, torg);
@@ -26926,7 +26941,7 @@ long tetgenmesh::reconstructmesh()
         }
       } else {
         if (!b->quiet) {
-          printf("Warning:  Subface %d is discarded.\n", i + in->firstnumber);
+          print_to_cout("Warning:  Subface %d is discarded.\n", i + in->firstnumber);
         }
       }
       worklist[iorg] = 0;
@@ -27252,7 +27267,7 @@ void tetgenmesh::insertconstrainedpoints(tetgenio *addio)
   int i, j;
   
   if (!b->quiet) {
-    printf("Insert additional points into mesh.\n");
+    print_to_cout("Insert additional points into mesh.\n");
   }
   // Initialize 'flipqueue'.
   flipqueue = new queue(sizeof(badface));
@@ -27363,12 +27378,12 @@ void tetgenmesh::insertconstrainedpoints(tetgenio *addio)
 
   if (b->verbose) {
     if (covertices > 0) {
-      printf("  %d constrained points already exist.\n", covertices);
+      print_to_cout("  %d constrained points already exist.\n", covertices);
     }
     if (outvertices > 0) {
-      printf("  %d constrained points lie outside the mesh.\n", outvertices);
+      print_to_cout("  %d constrained points lie outside the mesh.\n", outvertices);
     }
-    printf("  %d constrained points have been inserted.\n", 
+    print_to_cout("  %d constrained points have been inserted.\n", 
            addio->numberofpoints - covertices - outvertices);
   }
 
@@ -27397,7 +27412,7 @@ bool tetgenmesh::p1interpolatebgm(point pt, triface* bgmtet, long *scount)
     if (loc == OUTSIDE) {
       // Perform a brute-force search.
       if (b->verbose) {
-        printf("Warning:  Global point location.\n");
+        print_to_cout("Warning:  Global point location.\n");
       }
       if (scount) (*scount)++;
       bgm->tetrahedrons->traversalinit(); // in bgm
@@ -27458,7 +27473,7 @@ void tetgenmesh::interpolatesizemap()
   int i;
 
   if (b->verbose) {
-    printf("  Interpolating size map.\n");
+    print_to_cout("  Interpolating size map.\n");
   }
 
   worklist = new int[points->items + 1];
@@ -27532,10 +27547,10 @@ void tetgenmesh::interpolatesizemap()
 
 #ifdef SELF_CHECK
   if (b->verbose && scount > 0l) {
-    printf("  %ld brute-force searches.\n", scount);
+    print_to_cout("  %ld brute-force searches.\n", scount);
   }
   if (b->verbose && sepcount > 0) {
-    printf("  %d separate domains.\n", sepcount);
+    print_to_cout("  %d separate domains.\n", sepcount);
   }
 #endif
 }
@@ -27559,7 +27574,7 @@ void tetgenmesh::duplicatebgmesh()
   int idx, i;
 
   if (!b->quiet) {
-    printf("Duplicating background mesh.\n");
+    print_to_cout("Duplicating background mesh.\n");
   }
 
   // The background mesh itself has no background mesh.
@@ -27583,7 +27598,7 @@ void tetgenmesh::duplicatebgmesh()
       bploop[bgm->pointmtrindex + i] = ploop[pointmtrindex + i];
       // Metric tensor should have a positive value.
       if (bploop[bgm->pointmtrindex + i] <= 0.0) {
-        printf("Error:  Point %d has non-positive size %g (-m option).\n",
+        print_to_cout("Error:  Point %d has non-positive size %g (-m option).\n",
                bgm->pointmark(bploop), bploop[bgm->pointmtrindex + i]);
         terminatetetgen(1);
       }
@@ -27714,7 +27729,7 @@ void tetgenmesh::marksharpsegments(REAL sharpangle)
   int sharpsegcount;
 
   if (b->verbose > 0) {
-    printf("  Marking sharp segments.\n");
+    print_to_cout("  Marking sharp segments.\n");
   }
 
   smallang = sharpangle * PI / 180.;
@@ -27877,7 +27892,7 @@ void tetgenmesh::marksharpsegments(REAL sharpangle)
   } 
 
   if ((b->verbose > 0) && (sharpsegcount > 0)) {
-    printf("  %d sharp segments.\n", sharpsegcount);
+    print_to_cout("  %d sharp segments.\n", sharpsegcount);
   }
 }
 
@@ -27916,7 +27931,7 @@ void tetgenmesh::decidefeaturepointsizes()
   int idx, i, j;
 
   if (b->verbose > 0) {
-    printf("  Deciding feature-point sizes.\n");
+    print_to_cout("  Deciding feature-point sizes.\n");
   }
 
   // Constructing a map from vertices to segments.
@@ -27947,7 +27962,7 @@ void tetgenmesh::decidefeaturepointsizes()
     }
 #ifdef SELF_CHECK
     if ((b->verbose > 0) && (featurecount > 0)) {
-      printf("  %d Steiner points correction.\n", featurecount);
+      print_to_cout("  %d Steiner points correction.\n", featurecount);
     }
 #endif
   }
@@ -28051,7 +28066,7 @@ void tetgenmesh::decidefeaturepointsizes()
   }
 
   if (b->verbose > 0) {
-    printf("  %d feature points.\n", featurecount);
+    print_to_cout("  %d feature points.\n", featurecount);
   }
 
   if (!b->refine) {
@@ -28106,7 +28121,7 @@ void tetgenmesh::decidefeaturepointsizes()
       ploop = pointtraverse();
     }
     if ((b->verbose > 0) && (featurecount > 0)) {
-      printf("  %d Steiner feature points.\n", featurecount);
+      print_to_cout("  %d Steiner feature points.\n", featurecount);
     }
   }
 
@@ -28205,7 +28220,7 @@ void tetgenmesh::enqueueencsub(face* testsub, point encpt, int quenumber,
   // Maintain a pointer to the NULL pointer at the end of the queue.
   subquetail[quenumber] = &encsub->nextitem;
   if (b->verbose > 2) {
-    printf("    Queuing subface (%d, %d, %d) [%d].\n", pointmark(encsub->forg),
+    print_to_cout("    Queuing subface (%d, %d, %d) [%d].\n", pointmark(encsub->forg),
            pointmark(encsub->fdest), pointmark(encsub->fapex), quenumber);
   }
 }
@@ -28304,7 +28319,7 @@ void tetgenmesh::enqueuebadtet(triface* testtet, REAL ratio2, REAL* cent)
   tetquetail[queuenumber] = newbadtet;
 
   if (b->verbose > 2) {
-    printf("    Queueing bad tet: (%d, %d, %d, %d), ratio %g, qnum %d.\n",
+    print_to_cout("    Queueing bad tet: (%d, %d, %d, %d), ratio %g, qnum %d.\n",
            pointmark(newbadtet->forg), pointmark(newbadtet->fdest),
            pointmark(newbadtet->fapex), pointmark(newbadtet->foppo),
            sqrt(ratio2), queuenumber);
@@ -28450,7 +28465,7 @@ bool tetgenmesh::checkseg4encroach(face* testseg, point testpt, point* prefpt,
 
   if (enq && enqflag) {
     if (b->verbose > 2) {
-      printf("    Queuing encroaching subsegment (%d, %d).\n",
+      print_to_cout("    Queuing encroaching subsegment (%d, %d).\n",
              pointmark(eorg), pointmark(edest));
     }
     encsubseg = (badface *) badsubsegs->alloc();
@@ -28982,17 +28997,17 @@ void tetgenmesh::getsplitpoint(point e1, point e2, point refpt, point newpt)
         }
         for (i = 0; i < 3; i++) newpt[i] = ei[i] + split * (ej[i] - ei[i]);
         if (b->verbose > 1) {
-          printf("    Found by rule-3:");
+          print_to_cout("    Found by rule-3:");
         }
         r3count++;
       } else {
         if (b->verbose > 1) {
-          printf("    Found by rule-2:");
+          print_to_cout("    Found by rule-2:");
         }
         r2count++;
       }
       if (b->verbose > 1) {
-        printf(" center %d, split = %.12g.\n", pointmark(ei), split);
+        print_to_cout(" center %d, split = %.12g.\n", pointmark(ei), split);
       }
       // Add a random perturbation on newpt.
       d1 = distance(ei, newpt);
@@ -29375,7 +29390,7 @@ void tetgenmesh::repairencsegs(bool chkencsub, bool chkbadtet)
       if ((sorg(splitseg) == encloop->forg) && 
           (sdest(splitseg) == encloop->fdest)) {
         if (b->verbose > 1) {
-          printf("  Get an enc-seg (%d, %d)\n", pointmark(encloop->forg),
+          print_to_cout("  Get an enc-seg (%d, %d)\n", pointmark(encloop->forg),
                  pointmark(encloop->fdest));
         }
         refpt = (point) NULL;
@@ -29550,7 +29565,7 @@ void tetgenmesh::repairencsubs(bool chkbadtet)
         && (sdest(splitsub) == encloop->fdest)
         && (sapex(splitsub) == encloop->fapex)) {
       if (b->verbose > 1) {
-        printf("    Dequeuing ensub (%d, %d, %d) [%d].\n",
+        print_to_cout("    Dequeuing ensub (%d, %d, %d) [%d].\n",
                pointmark(encloop->forg), pointmark(encloop->fdest),
                pointmark(encloop->fapex), quenumber);
       }
@@ -29698,11 +29713,11 @@ void tetgenmesh::repairencsubs(bool chkbadtet)
         //   there are encroached segs by v, but the routine tallencsegs()
         //   did not find them out.
         if (loc == ONVERTEX) {
-          printf("Internal error in repairencsubs():\n");
-          printf("  During repairing encroached subface (%d, %d, %d)\n",
+          print_to_cout("Internal error in repairencsubs():\n");
+          print_to_cout("  During repairing encroached subface (%d, %d, %d)\n",
                  pointmark(encloop->forg), pointmark(encloop->fdest),
                  pointmark(encloop->fapex));
-          printf("  New point %d is coincident with an existing vertex %d\n",
+          print_to_cout("  New point %d is coincident with an existing vertex %d\n",
                  pointmark(newpt), pointmark(sorg(splitsub)));
           internalerror();
         }
@@ -29765,7 +29780,7 @@ void tetgenmesh::repairbadtets()
          && apex(badtet->tt) == badtet->fapex
          && oppo(badtet->tt) == badtet->foppo) {
       if (b->verbose > 1) {
-        printf("    Dequeuing btet (%d, %d, %d, %d).\n",
+        print_to_cout("    Dequeuing btet (%d, %d, %d, %d).\n",
                pointmark(badtet->forg), pointmark(badtet->fdest),
                pointmark(badtet->fapex), pointmark(badtet->foppo));
       }
@@ -29857,11 +29872,11 @@ void tetgenmesh::repairbadtets()
         //   there are encroached segments or subfaces by v but the routines
         //   tallencsegs() or tallencsubs() did not find them out.
         if (loc == ONVERTEX) {
-          printf("Internal error in repairbadtets():\n");
-          printf("  During repairing bad tet (%d, %d, %d, %d)\n",
+          print_to_cout("Internal error in repairbadtets():\n");
+          print_to_cout("  During repairing bad tet (%d, %d, %d, %d)\n",
                  pointmark(badtet->forg), pointmark(badtet->fdest),
                  pointmark(badtet->fapex), pointmark(badtet->foppo));
-          printf("  New point %d is coincident with an existing vertex %d\n",
+          print_to_cout("  New point %d is coincident with an existing vertex %d\n",
                  pointmark(newpt), pointmark(org(starttet)));
           internalerror();
         }
@@ -29893,7 +29908,7 @@ void tetgenmesh::enforcequality()
   int i;
   
   if (!b->quiet) {
-    printf("Adding Steiner points to enforce quality.\n");
+    print_to_cout("Adding Steiner points to enforce quality.\n");
   } 
 
   total = vertcount = 0l;
@@ -29918,13 +29933,13 @@ void tetgenmesh::enforcequality()
   // Looking for encroached subsegments.
   tallencsegs(NULL, 0, NULL);
   if (b->verbose && badsubsegs->items > 0) {
-    printf("  Splitting encroached subsegments.\n");
+    print_to_cout("  Splitting encroached subsegments.\n");
   }
   vertcount = points->items;
   // Fix encroached segments without noting any enc subfaces.
   repairencsegs(false, false);
   if (b->verbose > 0) {
-    printf("  %ld split points.\n", points->items - vertcount);
+    print_to_cout("  %ld split points.\n", points->items - vertcount);
   }
   total += points->items - vertcount;
 
@@ -29936,13 +29951,13 @@ void tetgenmesh::enforcequality()
   // Looking for encroached subfaces.
   tallencsubs(NULL, 0, NULL);
   if (b->verbose && badsubfaces->items > 0) {
-    printf("  Splitting encroached subfaces.\n");
+    print_to_cout("  Splitting encroached subfaces.\n");
   }
   vertcount = points->items;
   // Fix encroached subfaces without noting bad tetrahedra.
   repairencsubs(false);
   if (b->verbose > 0) {
-    printf("  %ld split points.\n", points->items - vertcount);
+    print_to_cout("  %ld split points.\n", points->items - vertcount);
   }
   total += points->items - vertcount;
   // At this point, the mesh should be conforming Delaunay if no input
@@ -29961,19 +29976,19 @@ void tetgenmesh::enforcequality()
     cosmindihed = cos(b->mindihedral * PI / 180.0);
     tallbadtetrahedrons();
     if (b->verbose && badtetrahedrons->items > 0) {
-      printf("  Splitting bad tetrahedra.\n");
+      print_to_cout("  Splitting bad tetrahedra.\n");
     }
     vertcount = points->items;
     repairbadtets();
     if (b->verbose > 0) {
-      printf("  %ld refinement points.\n", points->items - vertcount);
+      print_to_cout("  %ld refinement points.\n", points->items - vertcount);
     }
     total += points->items - vertcount;
     delete badtetrahedrons;
   }
 
   if (b->verbose > 0) {
-    printf("  Totally added %ld points.\n", total);
+    print_to_cout("  Totally added %ld points.\n", total);
   }
 
   delete badsubfaces;
@@ -29994,7 +30009,7 @@ void tetgenmesh::dumpbadtets()
   badface *remtet;
 
   // Write out a file of remaining bad tets.
-  printf("  Writing bad tets to file bad-dump.lua.\n");
+  print_to_cout("  Writing bad tets to file bad-dump.lua.\n");
   fout = fopen("bad-dump.lua", "w");
   fprintf(fout, "-- %ld remaining bad tets (> %g degree).\n",
           badtetrahedrons->items, b->maxdihedral);
@@ -30076,7 +30091,7 @@ bool tetgenmesh::checktet4ill(triface* testtet, bool enqflag)
     newbadtet->foppo = oppo(*testtet);
     newbadtet->nextitem = (badface *) NULL;
     if (b->verbose > 2) {
-      printf("    Queueing illtet: (%d, %d, %d, %d).\n",
+      print_to_cout("    Queueing illtet: (%d, %d, %d, %d).\n",
              pointmark(newbadtet->forg), pointmark(newbadtet->fdest),
              pointmark(newbadtet->fapex), pointmark(newbadtet->foppo));
     }
@@ -30173,7 +30188,7 @@ bool tetgenmesh::checktet4opt(triface* testtet, bool enqflag)
         newbadtet->foppo = oppo(*testtet);
         newbadtet->nextitem = (badface *) NULL;
         if (b->verbose > 2) {
-          printf("    Queueing tet: (%d, %d, %d, %d), dihed %g (degree).\n",
+          print_to_cout("    Queueing tet: (%d, %d, %d, %d), dihed %g (degree).\n",
                  pointmark(newbadtet->forg), pointmark(newbadtet->fdest),
                  pointmark(newbadtet->fapex), pointmark(newbadtet->foppo),
                  acos(cosd) * 180.0 / PI);
@@ -30237,7 +30252,7 @@ bool tetgenmesh::removeedge(badface* remedge, bool optflag)
         // Strip the tet from the mesh -> ab is removed as well.
         if (removetetbypeeloff(&abcd)) {
           if (b->verbose > 1) {
-            printf("    Stripped tet from the mesh.\n");
+            print_to_cout("    Stripped tet from the mesh.\n");
           }
           optcount[0]++;
           return true;
@@ -30312,7 +30327,7 @@ bool tetgenmesh::removeedge(badface* remedge, bool optflag)
       // Has quality been improved?
       if (remflag) {
         if (b->verbose > 1) {
-          printf("  Done flip %d-to-%d. Qual: %g -> %g.\n", n, m,
+          print_to_cout("  Done flip %d-to-%d. Qual: %g -> %g.\n", n, m,
                  acos(remedge->key) / PI * 180.0, acos(key) / PI * 180.0);
         }
         // Delete the old tets. Note, flip22() does not create new tets.
@@ -30341,7 +30356,7 @@ bool tetgenmesh::removeedge(badface* remedge, bool optflag)
     remflag = removeedgebytranNM(&key,n,abtetlist,newtetlist,NULL,NULL,NULL);
   } else {
     if (b->verbose > 1) {
-      printf("  !! Unhandled case: n = %d.\n", n);
+      print_to_cout("  !! Unhandled case: n = %d.\n", n);
     }
   }
   if (remflag) {
@@ -30352,12 +30367,12 @@ bool tetgenmesh::removeedge(badface* remedge, bool optflag)
     }
     m = (n - 2) * 2; // The numebr of new tets.
     if (b->verbose > 1) {
-      printf("  Done flip %d-to-%d. ", n, m);
+      print_to_cout("  Done flip %d-to-%d. ", n, m);
       if (optflag) {
-        printf("Qual: %g -> %g.", acos(remedge->key) / PI * 180.0,
+        print_to_cout("Qual: %g -> %g.", acos(remedge->key) / PI * 180.0,
                acos(key) / PI * 180.0);
       }
-      printf("\n");
+      print_to_cout("\n");
     }
   } 
 
@@ -30379,12 +30394,12 @@ bool tetgenmesh::removeedge(badface* remedge, bool optflag)
       }
       m = ((n1 - 2) * 2 - 1) + (n - 3) * 2; // The number of new tets.
       if (b->verbose > 1) {
-        printf("  Done flip %d-to-%d (n-1=%d, n1=%d). ", n+n1-2, m, n-1,n1);
+        print_to_cout("  Done flip %d-to-%d (n-1=%d, n1=%d). ", n+n1-2, m, n-1,n1);
         if (optflag) {
-          printf("Qual: %g -> %g.", acos(remedge->key) / PI * 180.0,
+          print_to_cout("Qual: %g -> %g.", acos(remedge->key) / PI * 180.0,
                acos(key) / PI * 180.0);
         }
-        printf("\n");
+        print_to_cout("\n");
       }
     }
   }
@@ -30636,15 +30651,15 @@ void tetgenmesh::optimizemesh(bool optflag)
 
   if (!b->quiet) {
     if (optflag) {
-      printf("Optimizing mesh.\n");
+      print_to_cout("Optimizing mesh.\n");
     } else {
-      printf("Repairing mesh.\n");
+      print_to_cout("Repairing mesh.\n");
     }
   }
 
 #ifdef SELF_CHECK
   if (optflag && (b->verbose)) {
-    printf("  level = %d.\n", b->optlevel);
+    print_to_cout("  level = %d.\n", b->optlevel);
   }
 #endif
 
@@ -30682,7 +30697,7 @@ void tetgenmesh::optimizemesh(bool optflag)
           apex(remtet->tt) == remtet->fapex &&
           oppo(remtet->tt) == remtet->foppo) {
         if (b->verbose > 1) {
-          printf("    Repair tet (%d, %d, %d, %d) %g (degree).\n",
+          print_to_cout("    Repair tet (%d, %d, %d, %d) %g (degree).\n",
                  pointmark(remtet->forg), pointmark(remtet->fdest),
                  pointmark(remtet->fapex), pointmark(remtet->foppo),
                  acos(remtet->key) / PI * 180.0);
@@ -30713,18 +30728,18 @@ void tetgenmesh::optimizemesh(bool optflag)
 
   if (b->verbose) {
     if (optcount[0] > 0l) {
-      printf("  %ld tets are peeled off.\n", optcount[0]);
+      print_to_cout("  %ld tets are peeled off.\n", optcount[0]);
     }
     if (optcount[1] > 0l) {
-      printf("  %ld faces are flipped.\n", optcount[1]);
+      print_to_cout("  %ld faces are flipped.\n", optcount[1]);
     }
     if (optcount[3] + optcount[4] + optcount[5] + optcount[6] + 
         optcount[9] > 0l) {
-      printf("  %ld edges are flipped.\n", optcount[3] + optcount[4] +
+      print_to_cout("  %ld edges are flipped.\n", optcount[3] + optcount[4] +
              optcount[5] + optcount[6] + optcount[9]);
     }
     // if (badtetrahedrons->items > 0l) {
-    //   printf("  %ld edges remain.\n", badtetrahedrons->items);
+    //   print_to_cout("  %ld edges remain.\n", badtetrahedrons->items);
     // }
   }
 
@@ -30766,7 +30781,7 @@ void tetgenmesh::optimizemesh(bool optflag)
           if (curdihed > objdihed) {
             remtet->key = cos(curdihed);
             if (b->verbose > 1) {
-              printf("    Get sliver (%d, %d, %d, %d) %g (degree).\n",
+              print_to_cout("    Get sliver (%d, %d, %d, %d) %g (degree).\n",
                      pointmark(remtet->forg), pointmark(remtet->fdest),
                      pointmark(remtet->fapex), pointmark(remtet->foppo),
                      acos(remtet->key) / PI * 180.0);
@@ -30783,21 +30798,21 @@ void tetgenmesh::optimizemesh(bool optflag)
     } while ((badtetrahedrons->items > 0l) && (iter < b->optpasses));
     
     if (b->verbose) {
-      printf("  %d passes.\n", iter);
+      print_to_cout("  %d passes.\n", iter);
       if ((points->items - oldnum) > 0l) {
-        printf("  %ld points are inserted (%d on segment).\n",
+        print_to_cout("  %ld points are inserted (%d on segment).\n",
                points->items - oldnum, smoothsegverts);
       }
       if (optcount[1] > 0l) {
-        printf("  %ld faces are flipped.\n", optcount[1]);
+        print_to_cout("  %ld faces are flipped.\n", optcount[1]);
       }
       if (optcount[3] + optcount[4] + optcount[5] + optcount[6] + 
           optcount[9] > 0l) {
-        printf("  %ld edges are flipped.\n", optcount[3] + optcount[4] +
+        print_to_cout("  %ld edges are flipped.\n", optcount[3] + optcount[4] +
                optcount[5] + optcount[6] + optcount[9]);
       }
       // if (badtetrahedrons->items > 0l) {
-      //   printf("  %ld edges remain.\n", badtetrahedrons->items);
+      //   print_to_cout("  %ld edges remain.\n", badtetrahedrons->items);
       // }
     }
     delete tetlist;
@@ -30875,7 +30890,7 @@ void tetgenmesh::transfernodes()
   z = zmax - zmin;
   longest = sqrt(x * x + y * y + z * z);
   if (longest == 0.0) {
-    printf("Error:  The point set is trivial.\n");
+    print_to_cout("Error:  The point set is trivial.\n");
     terminatetetgen(1);
   }
   // Two identical points are distinguished by 'lengthlimit'.
@@ -30902,7 +30917,7 @@ void tetgenmesh::jettisonnodes()
   int remcount;
 
   if (!b->quiet) {
-    printf("Jettisoning redundants points.\n");
+    print_to_cout("Jettisoning redundants points.\n");
   }
 
   points->traversalinit();
@@ -30937,8 +30952,8 @@ void tetgenmesh::jettisonnodes()
     pointloop = pointtraverse();
   }
   if (b->verbose) {
-    printf("  %d duplicated vertices have been removed.\n", dupverts);
-    printf("  %d unused vertices have been removed.\n", unuverts);
+    print_to_cout("  %d duplicated vertices have been removed.\n", dupverts);
+    print_to_cout("  %d unused vertices have been removed.\n", unuverts);
   }
   dupverts = 0;
   unuverts = 0;
@@ -30970,13 +30985,13 @@ void tetgenmesh::highorder()
   int i, j;
 
   if (!b->quiet) {
-    printf("Adding vertices for second-order tetrahedra.\n");
+    print_to_cout("Adding vertices for second-order tetrahedra.\n");
   }
 
   // Initialize the 'highordertable'.
   highordertable = new point[tetrahedrons->items * 6];
   if (highordertable == (point *) NULL) {
-    printf("Error:  Out of memory.\n");
+    print_to_cout("Error:  Out of memory.\n");
     terminatetetgen(1);
   }
 
@@ -31092,9 +31107,9 @@ void tetgenmesh::outnodes(tetgenio* out)
   
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", outnodefilename);
+      print_to_cout("Writing %s.\n", outnodefilename);
     } else {
-      printf("Writing nodes.\n");
+      print_to_cout("Writing nodes.\n");
     }
   }
 
@@ -31108,7 +31123,7 @@ void tetgenmesh::outnodes(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(outnodefilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", outnodefilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", outnodefilename);
       terminatetetgen(1);
     }
     // Number of points, number of dimensions, number of point attributes,
@@ -31118,14 +31133,14 @@ void tetgenmesh::outnodes(tetgenio* out)
     // Allocate space for 'pointlist';
     out->pointlist = new REAL[points->items * 3];
     if (out->pointlist == (REAL *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     // Allocate space for 'pointattributelist' if necessary;
     if (nextras > 0) {
       out->pointattributelist = new REAL[points->items * nextras];
       if (out->pointattributelist == (REAL *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -31133,7 +31148,7 @@ void tetgenmesh::outnodes(tetgenio* out)
     if (bmark) {
       out->pointmarkerlist = new int[points->items];
       if (out->pointmarkerlist == (int *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -31296,9 +31311,9 @@ void tetgenmesh::outmetrics(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", outmtrfilename);
+      print_to_cout("Writing %s.\n", outmtrfilename);
     } else {
-      printf("Writing metrics.\n");
+      print_to_cout("Writing metrics.\n");
     }
   }
 
@@ -31309,7 +31324,7 @@ void tetgenmesh::outmetrics(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(outmtrfilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", outmtrfilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", outmtrfilename);
       terminatetetgen(1);
     }
     // Number of points, number of point metrices,
@@ -31320,7 +31335,7 @@ void tetgenmesh::outmetrics(tetgenio* out)
     // out->pointmtrlist = new REAL[points->items * (sizeoftensor + 3)];
     out->pointmtrlist = new REAL[points->items];
     if (out->pointmtrlist == (REAL *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     out->numberofpointmtrs = 1; // (sizeoftensor + 3);
@@ -31437,9 +31452,9 @@ void tetgenmesh::outelements(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", outelefilename);
+      print_to_cout("Writing %s.\n", outelefilename);
     } else {
-      printf("Writing elements.\n");
+      print_to_cout("Writing elements.\n");
     }
   }
 
@@ -31453,7 +31468,7 @@ void tetgenmesh::outelements(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(outelefilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", outelefilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", outelefilename);
       terminatetetgen(1);
     }
     // Number of tetras, points per tetra, attributes per tetra.
@@ -31464,14 +31479,14 @@ void tetgenmesh::outelements(tetgenio* out)
     out->tetrahedronlist = new int[tetrahedrons->items * 
                                    (b->order == 1 ? 4 : 10)];
     if (out->tetrahedronlist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     // Allocate memory for output tetrahedron attributes if necessary.
     if (eextras > 0) {
       out->tetrahedronattributelist = new REAL[tetrahedrons->items * eextras];
       if (out->tetrahedronattributelist == (REAL *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -31584,9 +31599,9 @@ void tetgenmesh::outfaces(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", facefilename);
+      print_to_cout("Writing %s.\n", facefilename);
     } else {
-      printf("Writing faces.\n");
+      print_to_cout("Writing faces.\n");
     }
   }
 
@@ -31602,7 +31617,7 @@ void tetgenmesh::outfaces(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(facefilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", facefilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", facefilename);
       terminatetetgen(1);
     }
     fprintf(outfile, "%ld  %d\n", faces, bmark);
@@ -31610,14 +31625,14 @@ void tetgenmesh::outfaces(tetgenio* out)
     // Allocate memory for 'trifacelist'.
     out->trifacelist = new int[faces * 3];
     if (out->trifacelist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     // Allocate memory for 'trifacemarkerlist' if necessary.
     if (bmark) {
       out->trifacemarkerlist = new int[faces];
       if (out->trifacemarkerlist == (int *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -31625,7 +31640,7 @@ void tetgenmesh::outfaces(tetgenio* out)
       // '-nn' switch.
       out->adjtetlist = new int[subfaces->items * 2];
       if (out->adjtetlist == (int *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -31752,9 +31767,9 @@ void tetgenmesh::outhullfaces(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", facefilename);
+      print_to_cout("Writing %s.\n", facefilename);
     } else {
-      printf("Writing faces.\n");
+      print_to_cout("Writing faces.\n");
     }
   }
 
@@ -31766,7 +31781,7 @@ void tetgenmesh::outhullfaces(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(facefilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", facefilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", facefilename);
       terminatetetgen(1);
     }
     fprintf(outfile, "%ld  0\n", hullsize);
@@ -31774,7 +31789,7 @@ void tetgenmesh::outhullfaces(tetgenio* out)
     // Allocate memory for 'trifacelist'.
     out->trifacelist = new int[hullsize * 3];
     if (out->trifacelist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     out->numberoftrifaces = hullsize;
@@ -31859,9 +31874,9 @@ void tetgenmesh::outsubfaces(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", facefilename);
+      print_to_cout("Writing %s.\n", facefilename);
     } else {
-      printf("Writing faces.\n");
+      print_to_cout("Writing faces.\n");
     }
   }
 
@@ -31878,7 +31893,7 @@ void tetgenmesh::outsubfaces(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(facefilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", facefilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", facefilename);
       terminatetetgen(1);
     }
     // Number of subfaces.
@@ -31887,14 +31902,14 @@ void tetgenmesh::outsubfaces(tetgenio* out)
     // Allocate memory for 'trifacelist'.
     out->trifacelist = new int[subfaces->items * 3];
     if (out->trifacelist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     if (bmark) {
       // Allocate memory for 'trifacemarkerlist'.
       out->trifacemarkerlist = new int[subfaces->items];
       if (out->trifacemarkerlist == (int *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -31902,7 +31917,7 @@ void tetgenmesh::outsubfaces(tetgenio* out)
       // '-nn' switch.
       out->adjtetlist = new int[subfaces->items * 2];
       if (out->adjtetlist == (int *) NULL) {
-        printf("Error:  Out of memory.\n");
+        print_to_cout("Error:  Out of memory.\n");
         terminatetetgen(1);
       }
     }
@@ -32020,9 +32035,9 @@ void tetgenmesh::outedges(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", edgefilename);
+      print_to_cout("Writing %s.\n", edgefilename);
     } else {
-      printf("Writing edges.\n");
+      print_to_cout("Writing edges.\n");
     }
   }
 
@@ -32040,7 +32055,7 @@ void tetgenmesh::outedges(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(edgefilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", edgefilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", edgefilename);
       terminatetetgen(1);
     }
     // Write the number of edges, boundary markers (0 or 1).
@@ -32049,7 +32064,7 @@ void tetgenmesh::outedges(tetgenio* out)
     // Allocate memory for 'edgelist'.
     out->edgelist = new int[edges * 2];
     if (out->edgelist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     if (!b->nobound) {
@@ -32165,9 +32180,9 @@ void tetgenmesh::outsubsegments(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", edgefilename);
+      print_to_cout("Writing %s.\n", edgefilename);
     } else {
-      printf("Writing edges.\n");
+      print_to_cout("Writing edges.\n");
     }
   }
 
@@ -32179,7 +32194,7 @@ void tetgenmesh::outsubsegments(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(edgefilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", edgefilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", edgefilename);
       terminatetetgen(1);
     }
     // Number of subsegments.
@@ -32188,7 +32203,7 @@ void tetgenmesh::outsubsegments(tetgenio* out)
     // Allocate memory for 'edgelist'.
     out->edgelist = new int[subsegs->items * 2];
     if (out->edgelist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     out->numberofedges = subsegs->items;
@@ -32250,9 +32265,9 @@ void tetgenmesh::outneighbors(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", neighborfilename);
+      print_to_cout("Writing %s.\n", neighborfilename);
     } else {
-      printf("Writing neighbors.\n");
+      print_to_cout("Writing neighbors.\n");
     }
   }
 
@@ -32264,7 +32279,7 @@ void tetgenmesh::outneighbors(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(neighborfilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", neighborfilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", neighborfilename);
       terminatetetgen(1);
     }
     // Number of tetrahedra, four faces per tetrahedron.
@@ -32273,7 +32288,7 @@ void tetgenmesh::outneighbors(tetgenio* out)
     // Allocate memory for 'neighborlist'.
     out->neighborlist = new int[tetrahedrons->items * 4];
     if (out->neighborlist == (int *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
     nlist = out->neighborlist;
@@ -32362,9 +32377,9 @@ void tetgenmesh::outvoronoi(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", outfilename);
+      print_to_cout("Writing %s.\n", outfilename);
     } else {
-      printf("Writing Voronoi vertices.\n");
+      print_to_cout("Writing Voronoi vertices.\n");
     }
   }
 
@@ -32379,7 +32394,7 @@ void tetgenmesh::outvoronoi(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(outfilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", outfilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", outfilename);
       terminatetetgen(1);
     }
     // Number of voronoi points, 3 dim, no attributes, no marker.
@@ -32389,7 +32404,7 @@ void tetgenmesh::outvoronoi(tetgenio* out)
     out->numberofvpoints = (int) tetrahedrons->items;
     out->vpointlist = new REAL[out->numberofvpoints * 3];
     if (out->vpointlist == (REAL *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
   }
@@ -32437,16 +32452,16 @@ void tetgenmesh::outvoronoi(tetgenio* out)
   
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", outfilename);
+      print_to_cout("Writing %s.\n", outfilename);
     } else {
-      printf("Writing Voronoi edges.\n");
+      print_to_cout("Writing Voronoi edges.\n");
     }
   }
 
   if (out == (tetgenio *) NULL) {
     outfile = fopen(outfilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", outfilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", outfilename);
       terminatetetgen(1);
     }
     // Number of Voronoi edges, no marker.
@@ -32541,16 +32556,16 @@ void tetgenmesh::outvoronoi(tetgenio* out)
   
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", outfilename);
+      print_to_cout("Writing %s.\n", outfilename);
     } else {
-      printf("Writing Voronoi faces.\n");
+      print_to_cout("Writing Voronoi faces.\n");
     }
   }
 
   if (out == (tetgenio *) NULL) {
     outfile = fopen(outfilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", outfilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", outfilename);
       terminatetetgen(1);
     }
     // Number of Voronoi faces.
@@ -32559,7 +32574,7 @@ void tetgenmesh::outvoronoi(tetgenio* out)
     out->numberofvfacets = edges;
     out->vfacetlist = new tetgenio::vorofacet[out->numberofvfacets];
     if (out->vfacetlist == (tetgenio::vorofacet *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
   }
@@ -32669,16 +32684,16 @@ void tetgenmesh::outvoronoi(tetgenio* out)
   
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", outfilename);
+      print_to_cout("Writing %s.\n", outfilename);
     } else {
-      printf("Writing Voronoi cells.\n");
+      print_to_cout("Writing Voronoi cells.\n");
     }
   }
 
   if (out == (tetgenio *) NULL) {
     outfile = fopen(outfilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", outfilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", outfilename);
       terminatetetgen(1);
     }
     // Number of Voronoi cells.
@@ -32687,7 +32702,7 @@ void tetgenmesh::outvoronoi(tetgenio* out)
     out->numberofvcells = points->items;
     out->vcelllist = new int*[out->numberofvcells];
     if (out->vcelllist == (int **) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
   }
@@ -32792,9 +32807,9 @@ void tetgenmesh::outpbcnodes(tetgenio* out)
 
   if (!b->quiet) {
     if (out == (tetgenio *) NULL) {
-      printf("Writing %s.\n", pbcfilename);
+      print_to_cout("Writing %s.\n", pbcfilename);
     } else {
-      printf("Writing pbc nodes.\n");
+      print_to_cout("Writing pbc nodes.\n");
     }
   }
 
@@ -32806,7 +32821,7 @@ void tetgenmesh::outpbcnodes(tetgenio* out)
   if (out == (tetgenio *) NULL) {
     outfile = fopen(pbcfilename, "w");
     if (outfile == (FILE *) NULL) {
-      printf("File I/O Error:  Cannot create file %s.\n", pbcfilename);
+      print_to_cout("File I/O Error:  Cannot create file %s.\n", pbcfilename);
       terminatetetgen(1);
     }
     // Number of pbc groups.
@@ -32818,7 +32833,7 @@ void tetgenmesh::outpbcnodes(tetgenio* out)
     out->pbcgrouplist = new tetgenio::pbcgroup[in->numberofpbcgroups];
     // (Next line was a bug, reported by Murry Nigel). 
     if (out->pbcgrouplist == (tetgenio::pbcgroup *) NULL) {
-      printf("Error:  Out of memory.\n");
+      print_to_cout("Error:  Out of memory.\n");
       terminatetetgen(1);
     }
   }
@@ -32997,11 +33012,11 @@ void tetgenmesh::outsmesh(char* smfilename)
   strcat(nodfilename, ".node");
 
   if (!b->quiet) {
-    printf("Writing %s.\n", smefilename);
+    print_to_cout("Writing %s.\n", smefilename);
   }
   outfile = fopen(smefilename, "w");
   if (outfile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot create file %s.\n", smefilename);
+    print_to_cout("File I/O Error:  Cannot create file %s.\n", smefilename);
     return;
   }
 
@@ -33102,11 +33117,11 @@ void tetgenmesh::outmesh2medit(char* mfilename)
   strcat(mefilename, ".mesh");
 
   if (!b->quiet) {
-    printf("Writing %s.\n", mefilename);
+    print_to_cout("Writing %s.\n", mefilename);
   }
   outfile = fopen(mefilename, "w");
   if (outfile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot create file %s.\n", mefilename);
+    print_to_cout("File I/O Error:  Cannot create file %s.\n", mefilename);
     return;
   }
 
@@ -33248,11 +33263,11 @@ void tetgenmesh::outmesh2gid(char* gfilename)
   strcat(gidfilename, ".ele.msh");
 
   if (!b->quiet) {
-    printf("Writing %s.\n", gidfilename);
+    print_to_cout("Writing %s.\n", gidfilename);
   }
   outfile = fopen(gidfilename, "w");
   if (outfile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot create file %s.\n", gidfilename);
+    print_to_cout("File I/O Error:  Cannot create file %s.\n", gidfilename);
     return;
   }
 
@@ -33310,11 +33325,11 @@ void tetgenmesh::outmesh2gid(char* gfilename)
   strcat(gidfilename, ".face.msh");
 
   if (!b->quiet) {
-    printf("Writing %s.\n", gidfilename);
+    print_to_cout("Writing %s.\n", gidfilename);
   }
   outfile = fopen(gidfilename, "w");
   if (outfile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot create file %s.\n", gidfilename);
+    print_to_cout("File I/O Error:  Cannot create file %s.\n", gidfilename);
     return;
   }
 
@@ -33402,11 +33417,11 @@ void tetgenmesh::outmesh2off(char* ofilename)
   strcat(offfilename, ".off");
 
   if (!b->quiet) {
-    printf("Writing %s.\n", offfilename);
+    print_to_cout("Writing %s.\n", offfilename);
   }
   outfile = fopen(offfilename, "w");
   if (outfile == (FILE *) NULL) {
-    printf("File I/O Error:  Cannot create file %s.\n", offfilename);
+    print_to_cout("File I/O Error:  Cannot create file %s.\n", offfilename);
     return;
   }
 
@@ -33470,9 +33485,9 @@ void tetgenmesh::outmesh2off(char* ofilename)
 
 void tetgenmesh::internalerror()
 {
-  printf("  Please report this bug to sihang@mail.berlios.de. Include the\n");
-  printf("    message above, your input data set, and the exact command\n");
-  printf("    line you used to run this program, thank you.\n");
+  print_to_cout("  Please report this bug to sihang@mail.berlios.de. Include the\n");
+  print_to_cout("    message above, your input data set, and the exact command\n");
+  print_to_cout("    line you used to run this program, thank you.\n");
   terminatetetgen(2);
 }
 
@@ -33491,7 +33506,7 @@ void tetgenmesh::checkmesh()
   int horrors;
 
   if (!b->quiet) {
-    printf("  Checking consistency of mesh...\n");
+    print_to_cout("  Checking consistency of mesh...\n");
   }
 
   horrors = 0;
@@ -33508,9 +33523,9 @@ void tetgenmesh::checkmesh()
       if (tetraloop.loc == 0) {             // Only test for inversion once.
         oritest = orient3d(tetorg, tetdest, tetapex, tetoppo);
         if (oritest >= 0.0) {
-          printf("  !! !! %s ", oritest > 0.0 ? "Inverted" : "Degenerated");
+          print_to_cout("  !! !! %s ", oritest > 0.0 ? "Inverted" : "Degenerated");
           printtet(&tetraloop);
-          printf("  orient3d = %.17g.\n", oritest);
+          print_to_cout("  orient3d = %.17g.\n", oritest);
           horrors++;
         }
       }
@@ -33521,13 +33536,13 @@ void tetgenmesh::checkmesh()
         sym(oppotet, oppooppotet);
         if ((tetraloop.tet != oppooppotet.tet)
             || (tetraloop.loc != oppooppotet.loc)) {
-          printf("  !! !! Asymmetric tetra-tetra bond:\n");
+          print_to_cout("  !! !! Asymmetric tetra-tetra bond:\n");
           if (tetraloop.tet == oppooppotet.tet) {
-            printf("   (Right tetrahedron, wrong orientation)\n");
+            print_to_cout("   (Right tetrahedron, wrong orientation)\n");
           }
-          printf("    First ");
+          print_to_cout("    First ");
           printtet(&tetraloop);
-          printf("    Second (nonreciprocating) ");
+          print_to_cout("    Second (nonreciprocating) ");
           printtet(&oppotet);
           horrors++;
         }
@@ -33537,12 +33552,12 @@ void tetgenmesh::checkmesh()
   }
   if (horrors == 0) {
     if (!b->quiet) {
-      printf("  In my studied opinion, the mesh appears to be consistent.\n");
+      print_to_cout("  In my studied opinion, the mesh appears to be consistent.\n");
     }
   } else if (horrors == 1) {
-    printf("  !! !! !! !! Precisely one festering wound discovered.\n");
+    print_to_cout("  !! !! !! !! Precisely one festering wound discovered.\n");
   } else {
-    printf("  !! !! !! !! %d abominations witnessed.\n", horrors);
+    print_to_cout("  !! !! !! !! %d abominations witnessed.\n", horrors);
   }
 }
 
@@ -33564,7 +33579,7 @@ void tetgenmesh::checkshells()
   int i;
 
   if (!b->quiet) {
-    printf("  Checking consistency of the mesh boundary...\n");
+    print_to_cout("  Checking consistency of the mesh boundary...\n");
   }
   horrors = 0;
 
@@ -33578,10 +33593,10 @@ void tetgenmesh::checkshells()
     if (oppotet.tet != dummytet) {
       tspivot(oppotet, testsh);
       if (testsh.sh != shloop.sh) {
-        printf("  !! !! Wrong tetra-subface connection.\n");
-        printf("    Tetra: ");
+        print_to_cout("  !! !! Wrong tetra-subface connection.\n");
+        print_to_cout("    Tetra: ");
         printtet(&oppotet);
-        printf("    Subface: ");
+        print_to_cout("    Subface: ");
         printsh(&shloop);
         horrors++;
       }
@@ -33590,8 +33605,8 @@ void tetgenmesh::checkshells()
         checksign = orient3d(sorg(shloop), sdest(shloop), sapex(shloop),
                              oppo(oppotet));
         if (checksign >= 0.0) {
-          printf("  !! !! Wrong subface orientation.\n");
-          printf("    Subface: ");
+          print_to_cout("  !! !! Wrong subface orientation.\n");
+          print_to_cout("    Subface: ");
           printsh(&shloop);
           horrors++;
         }
@@ -33602,22 +33617,22 @@ void tetgenmesh::checkshells()
     if (oppooppotet.tet != dummytet) {
       tspivot(oppooppotet, testsh);
       if (testsh.sh != shloop.sh) {
-        printf("  !! !! Wrong tetra-subface connection.\n");
-        printf("    Tetra: ");
+        print_to_cout("  !! !! Wrong tetra-subface connection.\n");
+        print_to_cout("    Tetra: ");
         printtet(&oppooppotet);
-        printf("    Subface: ");
+        print_to_cout("    Subface: ");
         printsh(&shloop);
         horrors++;
       }
       if (oppotet.tet != dummytet) {
         sym(oppotet, testtet);
         if (testtet.tet != oppooppotet.tet) {
-          printf("  !! !! Wrong tetra-subface-tetra connection.\n");
-          printf("    Tetra 1: ");
+          print_to_cout("  !! !! Wrong tetra-subface-tetra connection.\n");
+          print_to_cout("    Tetra 1: ");
           printtet(&oppotet);
-          printf("    Subface: ");
+          print_to_cout("    Subface: ");
           printsh(&shloop);
-          printf("    Tetra 2: ");
+          print_to_cout("    Tetra 2: ");
           printtet(&oppooppotet);
           horrors++;
         }
@@ -33627,8 +33642,8 @@ void tetgenmesh::checkshells()
         checksign = orient3d(sorg(shloop), sdest(shloop), sapex(shloop),
                              oppo(oppooppotet));
         if (checksign >= 0.0) {
-          printf("  !! !! Wrong subface orientation.\n");
-          printf("    Subface: ");
+          print_to_cout("  !! !! Wrong subface orientation.\n");
+          print_to_cout("    Subface: ");
           printsh(&shloop);
           horrors++;
         }
@@ -33646,10 +33661,10 @@ void tetgenmesh::checkshells()
         same = ((shorg == segorg) && (shdest == segdest)) 
 	    || ((shorg == segdest) && (shdest == segorg));
         if (!same) {
-          printf("  !! !! Wrong subface-subsegment connection.\n");
-          printf("    Subface: ");
+          print_to_cout("  !! !! Wrong subface-subsegment connection.\n");
+          print_to_cout("    Subface: ");
           printsh(&shloop);
-          printf("    Subsegment: ");
+          print_to_cout("    Subsegment: ");
           printsh(&testseg);
           horrors++;
         } 
@@ -33661,10 +33676,10 @@ void tetgenmesh::checkshells()
         same = ((shorg == segorg) && (shdest == segdest)) 
 	    || ((shorg == segdest) && (shdest == segorg));
         if (!same) {
-          printf("  !! !! Wrong subface-subface connection.\n");
-          printf("    Subface 1: ");
+          print_to_cout("  !! !! Wrong subface-subface connection.\n");
+          print_to_cout("    Subface 1: ");
           printsh(&shloop);
-          printf("    Subface 2: ");
+          print_to_cout("    Subface 2: ");
           printsh(&testsh);
           horrors++;
         }
@@ -33674,19 +33689,19 @@ void tetgenmesh::checkshells()
         same = ((shorg == segorg) && (shdest == segdest)) 
 	    || ((shorg == segdest) && (shdest == segorg));
         if (!same) {
-          printf("  !! !! Wrong subface-subface connection.\n");
-          printf("    Subface 1: ");
+          print_to_cout("  !! !! Wrong subface-subface connection.\n");
+          print_to_cout("    Subface 1: ");
           printsh(&testsh);
-          printf("    Subface 2: ");
+          print_to_cout("    Subface 2: ");
           printsh(&testshsh);
           horrors++;
         }
         if (testseg.sh == dummysh) {
           if (testshsh.sh != shloop.sh) {
-            printf("  !! !! Wrong subface-subface connection.\n");
-            printf("    Subface 1: ");
+            print_to_cout("  !! !! Wrong subface-subface connection.\n");
+            print_to_cout("    Subface 1: ");
             printsh(&shloop);
-            printf("    Subface 2: ");
+            print_to_cout("    Subface 2: ");
             printsh(&testsh);
             horrors++;
           }
@@ -33705,8 +33720,8 @@ void tetgenmesh::checkshells()
     segdest = sdest(segloop);
     spivot(segloop, testsh);
     if (testsh.sh == dummysh) {
-      printf("  !! !! Wrong subsegment-subface connection.\n");
-      printf("    Subsegment: ");
+      print_to_cout("  !! !! Wrong subsegment-subface connection.\n");
+      print_to_cout("    Subsegment: ");
       printsh(&segloop);
       horrors++;
       segloop.sh = shellfacetraverse(subsegs);
@@ -33717,10 +33732,10 @@ void tetgenmesh::checkshells()
     same = ((shorg == segorg) && (shdest == segdest)) 
         || ((shorg == segdest) && (shdest == segorg));
     if (!same) {
-      printf("  !! !! Wrong subsegment-subface connection.\n");
-      printf("    Subsegment : ");
+      print_to_cout("  !! !! Wrong subsegment-subface connection.\n");
+      print_to_cout("    Subsegment : ");
       printsh(&segloop);
-      printf("    Subface : ");
+      print_to_cout("    Subface : ");
       printsh(&testsh);
       horrors++;
       segloop.sh = shellfacetraverse(subsegs);
@@ -33736,10 +33751,10 @@ void tetgenmesh::checkshells()
       same = ((shorg == segorg) && (shdest == segdest)) 
           || ((shorg == segdest) && (shdest == segorg));
       if (!same) {
-        printf("  !! !! Wrong subsegment-subface connection.\n");
-        printf("    Subsegment : ");
+        print_to_cout("  !! !! Wrong subsegment-subface connection.\n");
+        print_to_cout("    Subsegment : ");
         printsh(&segloop);
-        printf("    Subface : ");
+        print_to_cout("    Subface : ");
         printsh(&testsh);
         horrors++;
         break;
@@ -33747,8 +33762,8 @@ void tetgenmesh::checkshells()
       i++;
     } while (spin.sh != testsh.sh && i < 1000);
     if (i >= 1000) {
-      printf("  !! !! Wrong subsegment-subface connection.\n");
-      printf("    Subsegment : ");
+      print_to_cout("  !! !! Wrong subsegment-subface connection.\n");
+      print_to_cout("    Subsegment : ");
       printsh(&segloop);
       horrors++;
     }
@@ -33756,10 +33771,10 @@ void tetgenmesh::checkshells()
   }
   if (horrors == 0) {
     if (!b->quiet) {
-      printf("  Mesh boundaries connected correctly.\n");
+      print_to_cout("  Mesh boundaries connected correctly.\n");
     }
   } else {
-    printf("  !! !! !! !! %d boundary connection viewed with horror.\n",
+    print_to_cout("  !! !! !! !! %d boundary connection viewed with horror.\n",
            horrors);
     return;
   }
@@ -33786,7 +33801,7 @@ void tetgenmesh::checkdelaunay(REAL eps, queue* flipqueue)
   int horrors;
 
   if (!b->quiet) {
-    printf("  Checking Delaunay property of the mesh...\n");
+    print_to_cout("  Checking Delaunay property of the mesh...\n");
   }
   horrors = 0;
   // Run through the list of triangles, checking each one.
@@ -33825,20 +33840,20 @@ void tetgenmesh::checkdelaunay(REAL eps, queue* flipqueue)
           if (flipqueue) {
             enqueueflipface(tetraloop, flipqueue);
           } else {
-            printf("  !! Non-locally Delaunay face (%d, %d, %d) ",
+            print_to_cout("  !! Non-locally Delaunay face (%d, %d, %d) ",
                    pointmark(tetorg), pointmark(tetdest), pointmark(tetapex));
             fc = categorizeface(tetraloop);
             switch (fc) {
-            case T23: printf("\"T23\""); break;
-            case T32: printf("\"T32\""); break;
-            case T22: printf("\"T22\""); break;
-            case T44: printf("\"T44\""); break;
-            case N32: printf("\"N32\""); break;
-            case N40: printf("\"N40\""); break;
-            case FORBIDDENFACE:printf("\"FORBIDDENFACE\""); break;
-            case FORBIDDENEDGE:printf("\"FORBIDDENEDGE\""); break;
+            case T23: print_to_cout("\"T23\""); break;
+            case T32: print_to_cout("\"T32\""); break;
+            case T22: print_to_cout("\"T22\""); break;
+            case T44: print_to_cout("\"T44\""); break;
+            case N32: print_to_cout("\"N32\""); break;
+            case N40: print_to_cout("\"N40\""); break;
+            case FORBIDDENFACE:print_to_cout("\"FORBIDDENFACE\""); break;
+            case FORBIDDENEDGE:print_to_cout("\"FORBIDDENEDGE\""); break;
             }
-            printf("\n");
+            print_to_cout("\n");
           }
           horrors++;
         }
@@ -33849,11 +33864,11 @@ void tetgenmesh::checkdelaunay(REAL eps, queue* flipqueue)
   if (flipqueue == (queue *) NULL) {
     if (horrors == 0) {
       if (!b->quiet) {
-        printf("  The mesh is %s.\n",
+        print_to_cout("  The mesh is %s.\n",
                checksubfaces ? "constrained Delaunay" : "Delaunay");
       }
     } else {
-      printf("  !! !! !! !! %d obscenities viewed with horror.\n", horrors);
+      print_to_cout("  !! !! !! !! %d obscenities viewed with horror.\n", horrors);
     }
   }
 }
@@ -33870,7 +33885,7 @@ void tetgenmesh::checkconforming()
   int encsubsegs, encsubfaces;
 
   if (!b->quiet) {
-    printf("  Checking conforming Delaunay property of mesh...\n");
+    print_to_cout("  Checking conforming Delaunay property of mesh...\n");
   }
   encsubsegs = encsubfaces = 0;
   // Run through the list of subsegments, check each one.
@@ -33878,7 +33893,7 @@ void tetgenmesh::checkconforming()
   segloop.sh = shellfacetraverse(subsegs);
   while (segloop.sh != (shellface *) NULL) {
     if (checkseg4encroach(&segloop, NULL, NULL, false)) {
-      printf("  !! !! Non-conforming subsegment: (%d, %d)\n",
+      print_to_cout("  !! !! Non-conforming subsegment: (%d, %d)\n",
              pointmark(sorg(segloop)), pointmark(sdest(segloop)));
       encsubsegs++;
     }
@@ -33889,7 +33904,7 @@ void tetgenmesh::checkconforming()
   shloop.sh = shellfacetraverse(subfaces);
   while (shloop.sh != (shellface *) NULL) {
     if (checksub4encroach(&shloop, NULL, false)) {
-      printf("  !! !! Non-conforming subface: (%d, %d, %d)\n",
+      print_to_cout("  !! !! Non-conforming subface: (%d, %d, %d)\n",
              pointmark(sorg(shloop)), pointmark(sdest(shloop)),
              pointmark(sapex(shloop)));
       encsubfaces++;
@@ -33898,14 +33913,14 @@ void tetgenmesh::checkconforming()
   }
   if (encsubsegs == 0 && encsubfaces == 0) {
     if (!b->quiet) {
-      printf("  The mesh is conforming Delaunay.\n");
+      print_to_cout("  The mesh is conforming Delaunay.\n");
     }
   } else {
     if (encsubsegs > 0) {
-      printf("  !! !! %d subsegments are non-conforming.\n", encsubsegs);
+      print_to_cout("  !! !! %d subsegments are non-conforming.\n", encsubsegs);
     }
     if (encsubfaces > 0) {
-      printf("  !! !! %d subfaces are non-conforming.\n", encsubfaces);
+      print_to_cout("  !! !! %d subfaces are non-conforming.\n", encsubfaces);
     }
   }
 }
@@ -33921,40 +33936,40 @@ void tetgenmesh::checkconforming()
 void tetgenmesh::algorithmicstatistics()
 {
   /*
-  printf("Algorithmic statistics:\n\n");
-  printf("  Point location millisecond:  %g\n", (REAL) tloctime * 1e+3);
-  printf("  Flip millisecond:  %g\n", (REAL) tfliptime * 1e+3);
+  print_to_cout("Algorithmic statistics:\n\n");
+  print_to_cout("  Point location millisecond:  %g\n", (REAL) tloctime * 1e+3);
+  print_to_cout("  Flip millisecond:  %g\n", (REAL) tfliptime * 1e+3);
   if (b->plc || b->refine) {
-    printf("  Number of facet above points calculations: %ld\n", abovecount);
+    print_to_cout("  Number of facet above points calculations: %ld\n", abovecount);
   }
   if (b->plc) {
-    printf("  Segment split rules: R1 %ld, R2 %ld, R3 %ld\n", r1count, r2count,
+    print_to_cout("  Segment split rules: R1 %ld, R2 %ld, R3 %ld\n", r1count, r2count,
            r3count);
   }
   if (b->quality) {
-    printf("  Bowyer-Watson insertions: seg %ld, sub %ld, vol %ld.\n",
+    print_to_cout("  Bowyer-Watson insertions: seg %ld, sub %ld, vol %ld.\n",
            bowatsegcount, bowatsubcount, bowatvolcount);
-    printf("  Bowyer-Watson corrections: seg %ld, sub %ld, vol %ld\n",
+    print_to_cout("  Bowyer-Watson corrections: seg %ld, sub %ld, vol %ld\n",
            updsegcount, updsubcount, updvolcount);
-    printf("  Bowyer-Watson failures: seg %ld, sub %ld, vol %ld\n",
+    print_to_cout("  Bowyer-Watson failures: seg %ld, sub %ld, vol %ld\n",
            failsegcount, failsubcount, failvolcount);
-    printf("  Number of repair flips: %ld.\n", repairflipcount);
-    printf("  Number of circumcenters outside Bowat-cav.: %ld.\n",
+    print_to_cout("  Number of repair flips: %ld.\n", repairflipcount);
+    print_to_cout("  Number of circumcenters outside Bowat-cav.: %ld.\n",
            outbowatcircumcount);
     if (b->conformdel) {
-      printf("  Segment split rules: R2 %ld, R3 %ld\n", r2count, r3count);
-      printf("  Number of CDT enforcement points: %ld.\n", cdtenforcesegpts);
+      print_to_cout("  Segment split rules: R2 %ld, R3 %ld\n", r2count, r3count);
+      print_to_cout("  Number of CDT enforcement points: %ld.\n", cdtenforcesegpts);
     }
-    printf("  Number of Rejections: seg %ld, sub %ld, tet %ld.\n", rejsegpts,
+    print_to_cout("  Number of Rejections: seg %ld, sub %ld, tet %ld.\n", rejsegpts,
            rejsubpts, rejtetpts);
     if (b->optlevel) {
-      printf(
+      print_to_cout(
       "  Optimization flips: f32 %ld, f44 %ld, f56 %ld, f68 %ld, fnm %ld.\n",
              optcount[3], optcount[4], optcount[5], optcount[6], optcount[9]);
-      printf("  Optimization segment deletions: %ld.\n", optcount[1]);
+      print_to_cout("  Optimization segment deletions: %ld.\n", optcount[1]);
     }
   }
-  printf("\n");
+  print_to_cout("\n");
   */
 }
 
@@ -33996,7 +34011,7 @@ void tetgenmesh::qualitystatistics()
   int tendegree;
   int i, j;
 
-  printf("Mesh quality statistics:\n\n");
+  print_to_cout("Mesh quality statistics:\n\n");
 
   // Avoid compile warnings.
   shortlen = longlen = 0.0;
@@ -34233,93 +34248,93 @@ void tetgenmesh::qualitystatistics()
   longest = sqrt(longest);
   minaltitude = sqrt(minaltitude);
 
-  printf("  Smallest volume: %16.5g   |  Largest volume: %16.5g\n",
+  print_to_cout("  Smallest volume: %16.5g   |  Largest volume: %16.5g\n",
          smallestvolume, biggestvolume);
-  printf("  Shortest edge:   %16.5g   |  Longest edge:   %16.5g\n",
+  print_to_cout("  Shortest edge:   %16.5g   |  Longest edge:   %16.5g\n",
          shortest, longest);
   sprintf(sbuf, "%.17g", biggestfaangle);
   if (strlen(sbuf) > 8) {
     sbuf[8] = '\0';
   }
-  printf("  Smallest facangle: %14.5g   |  Largest facangle:       %s\n",
+  print_to_cout("  Smallest facangle: %14.5g   |  Largest facangle:       %s\n",
          smallestfaangle, sbuf);
   sprintf(sbuf, "%.17g", biggestdiangle);
   if (strlen(sbuf) > 8) {
     sbuf[8] = '\0';
   }
-  printf("  Smallest dihedral: %14.5g   |  Largest dihedral:       %s\n\n",
+  print_to_cout("  Smallest dihedral: %14.5g   |  Largest dihedral:       %s\n\n",
          smallestdiangle, sbuf);
 
   /*
-  printf("  Radius-edge ratio histogram:\n");
-  printf("         < %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
+  print_to_cout("  Radius-edge ratio histogram:\n");
+  print_to_cout("         < %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
          radiusratiotable[0], radiustable[0], radiusratiotable[5],
          radiusratiotable[6], radiustable[6]);
   for (i = 1; i < 5; i++) {
-    printf("  %6.6g - %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
+    print_to_cout("  %6.6g - %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
            radiusratiotable[i - 1], radiusratiotable[i], radiustable[i],
            radiusratiotable[i + 5], radiusratiotable[i + 6],
            radiustable[i + 6]);
   }
-  printf("  %6.6g - %-6.6g    :  %8d      | %6.6g -            :  %8d\n",
+  print_to_cout("  %6.6g - %-6.6g    :  %8d      | %6.6g -            :  %8d\n",
          radiusratiotable[4], radiusratiotable[5], radiustable[5],
          radiusratiotable[10], radiustable[11]);
-  printf("  (A tetrahedron's radius-edge ratio is its radius of ");
-  printf("circumsphere divided\n");
-  printf("    by its shortest edge length)\n\n");
+  print_to_cout("  (A tetrahedron's radius-edge ratio is its radius of ");
+  print_to_cout("circumsphere divided\n");
+  print_to_cout("    by its shortest edge length)\n\n");
   */
 
-  printf("  Aspect ratio histogram:\n");
-  printf("         < %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
+  print_to_cout("  Aspect ratio histogram:\n");
+  print_to_cout("         < %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
          aspectratiotable[0], aspecttable[0], aspectratiotable[5],
          aspectratiotable[6], aspecttable[6]);
   for (i = 1; i < 5; i++) {
-    printf("  %6.6g - %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
+    print_to_cout("  %6.6g - %-6.6g    :  %8d      | %6.6g - %-6.6g     :  %8d\n",
            aspectratiotable[i - 1], aspectratiotable[i], aspecttable[i],
            aspectratiotable[i + 5], aspectratiotable[i + 6],
            aspecttable[i + 6]);
   }
-  printf("  %6.6g - %-6.6g    :  %8d      | %6.6g -            :  %8d\n",
+  print_to_cout("  %6.6g - %-6.6g    :  %8d      | %6.6g -            :  %8d\n",
          aspectratiotable[4], aspectratiotable[5], aspecttable[5],
          aspectratiotable[10], aspecttable[11]);
-  printf("  (A tetrahedron's aspect ratio is its longest edge length");
-  printf(" divided by its\n");
-  printf("    smallest side height)\n\n");
+  print_to_cout("  (A tetrahedron's aspect ratio is its longest edge length");
+  print_to_cout(" divided by its\n");
+  print_to_cout("    smallest side height)\n\n");
 
-  printf("  Face angle histogram:\n");
+  print_to_cout("  Face angle histogram:\n");
   for (i = 0; i < 9; i++) {
-    printf("    %3d - %3d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
+    print_to_cout("    %3d - %3d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
            i * 10, i * 10 + 10, faceangletable[i],
            i * 10 + 90, i * 10 + 100, faceangletable[i + 9]);
   }
   if (minfaceang != PI) {
-    printf("  Minimum input face angle is %g (degree).\n",
+    print_to_cout("  Minimum input face angle is %g (degree).\n",
            minfaceang / PI * 180.0);
   }
-  printf("\n");
+  print_to_cout("\n");
 
-  printf("  Dihedral angle histogram:\n");
+  print_to_cout("  Dihedral angle histogram:\n");
   // Print the three two rows:
-  printf("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
+  print_to_cout("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
          0, 5, dihedangletable[0], 80, 110, dihedangletable[9]);
-  printf("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
+  print_to_cout("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
          5, 10, dihedangletable[1], 110, 120, dihedangletable[10]);
   // Print the third to seventh rows.
   for (i = 2; i < 7; i++) {
-    printf("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
+    print_to_cout("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
            (i - 1) * 10, (i - 1) * 10 + 10, dihedangletable[i],
            (i - 1) * 10 + 110, (i - 1) * 10 + 120, dihedangletable[i + 9]);
   }
   // Print the last two rows.
-  printf("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
+  print_to_cout("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
          60, 70, dihedangletable[7], 170, 175, dihedangletable[16]);
-  printf("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
+  print_to_cout("     %3d - %2d degrees:  %8d      |    %3d - %3d degrees:  %8d\n",
          70, 80, dihedangletable[8], 175, 180, dihedangletable[17]);
   if (minfacetdihed != PI) {
-    printf("  Minimum input facet dihedral angle is %g (degree).\n",
+    print_to_cout("  Minimum input facet dihedral angle is %g (degree).\n",
            minfacetdihed / PI * 180.0);
   }
-  printf("\n");
+  print_to_cout("\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34330,46 +34345,46 @@ void tetgenmesh::qualitystatistics()
 
 void tetgenmesh::statistics()
 {
-  printf("\nStatistics:\n\n");
-  printf("  Input points: %d\n", in->numberofpoints + jettisoninverts);
+  print_to_cout("\nStatistics:\n\n");
+  print_to_cout("  Input points: %d\n", in->numberofpoints + jettisoninverts);
   if (b->refine) {
-    printf("  Input tetrahedra: %d\n", in->numberoftetrahedra);
+    print_to_cout("  Input tetrahedra: %d\n", in->numberoftetrahedra);
   }
   if (b->plc) {
-    printf("  Input facets: %d\n", in->numberoffacets);
-    printf("  Input segments: %ld\n", insegments);
-    printf("  Input holes: %d\n", in->numberofholes);
-    printf("  Input regions: %d\n", in->numberofregions);
+    print_to_cout("  Input facets: %d\n", in->numberoffacets);
+    print_to_cout("  Input segments: %ld\n", insegments);
+    print_to_cout("  Input holes: %d\n", in->numberofholes);
+    print_to_cout("  Input regions: %d\n", in->numberofregions);
   }
 
-  printf("\n  Mesh points: %ld\n", points->items);
-  printf("  Mesh tetrahedra: %ld\n", tetrahedrons->items);
+  print_to_cout("\n  Mesh points: %ld\n", points->items);
+  print_to_cout("  Mesh tetrahedra: %ld\n", tetrahedrons->items);
   if (b->plc || b->refine) {
-    printf("  Mesh triangles: %ld\n", (4l*tetrahedrons->items+hullsize)/2l);
+    print_to_cout("  Mesh triangles: %ld\n", (4l*tetrahedrons->items+hullsize)/2l);
   }
   if (b->plc || b->refine) {
-    printf("  Mesh subfaces: %ld\n", subfaces->items);
-    printf("  Mesh subsegments: %ld\n\n", subsegs->items);
+    print_to_cout("  Mesh subfaces: %ld\n", subfaces->items);
+    print_to_cout("  Mesh subsegments: %ld\n\n", subsegs->items);
   } else {
-    printf("  Convex hull triangles: %ld\n\n", hullsize);
+    print_to_cout("  Convex hull triangles: %ld\n\n", hullsize);
   }
   if (b->verbose > 0) {
     qualitystatistics();
     unsigned long totalmeshbytes;
-    printf("Memory allocation statistics:\n\n");
-    printf("  Maximum number of vertices: %ld\n", points->maxitems);
+    print_to_cout("Memory allocation statistics:\n\n");
+    print_to_cout("  Maximum number of vertices: %ld\n", points->maxitems);
     totalmeshbytes = points->maxitems * points->itembytes;
-    printf("  Maximum number of tetrahedra: %ld\n", tetrahedrons->maxitems);
+    print_to_cout("  Maximum number of tetrahedra: %ld\n", tetrahedrons->maxitems);
     totalmeshbytes += tetrahedrons->maxitems * tetrahedrons->itembytes;
     if (subfaces != (memorypool *) NULL) {
-      printf("  Maximum number of subfaces: %ld\n", subfaces->maxitems);
+      print_to_cout("  Maximum number of subfaces: %ld\n", subfaces->maxitems);
       totalmeshbytes += subfaces->maxitems * subfaces->itembytes;
     }
     if (subsegs != (memorypool *) NULL) {
-      printf("  Maximum number of segments: %ld\n", subsegs->maxitems);
+      print_to_cout("  Maximum number of segments: %ld\n", subsegs->maxitems);
       totalmeshbytes += subsegs->maxitems * subsegs->itembytes;
     }
-    printf("  Approximate heap memory used by the mesh (K bytes): %g\n\n",
+    print_to_cout("  Approximate heap memory used by the mesh (K bytes): %g\n\n",
            (double) totalmeshbytes / 1024.0);
 #ifdef SELF_CHECK
     algorithmicstatistics();
@@ -34576,11 +34591,11 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if (b->refine) {
-      printf("Mesh reconstruction seconds:");
+      print_to_cout("Mesh reconstruction seconds:");
     } else {
-      printf("Delaunay seconds:");
+      print_to_cout("Delaunay seconds:");
     }
-    printf("  %g\n", (tv[2] - tv[1]) / (REAL) CLOCKS_PER_SEC);
+    print_to_cout("  %g\n", (tv[2] - tv[1]) / (REAL) CLOCKS_PER_SEC);
   }
 
   if (b->metric) {
@@ -34599,7 +34614,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if (b->metric) {
-      printf("Background mesh reconstruct seconds:  %g\n",
+      print_to_cout("Background mesh reconstruct seconds:  %g\n",
              (tv[3] - tv[2]) / (REAL) CLOCKS_PER_SEC);
     }
   }
@@ -34632,11 +34647,11 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   if (!b->quiet) {
     if (b->useshelles && !b->refine) {
       if (b->diagnose != 1) {
-        printf("Segment and facet ");
+        print_to_cout("Segment and facet ");
       } else {
-        printf("Intersection "); 
+        print_to_cout("Intersection "); 
       }
-      printf("seconds:  %g\n", (tv[4] - tv[3]) / (REAL) CLOCKS_PER_SEC);
+      print_to_cout("seconds:  %g\n", (tv[4] - tv[3]) / (REAL) CLOCKS_PER_SEC);
     }
   }
 
@@ -34648,7 +34663,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if (b->plc && !(b->diagnose == 1)) {
-      printf("Hole seconds:  %g\n", (tv[5] - tv[4]) / (REAL) CLOCKS_PER_SEC);
+      print_to_cout("Hole seconds:  %g\n", (tv[5] - tv[4]) / (REAL) CLOCKS_PER_SEC);
     }
   }
 
@@ -34660,7 +34675,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if ((b->plc || b->refine) && !(b->diagnose == 1)) {
-      printf("Repair seconds:  %g\n", (tv[6] - tv[5]) / (REAL) CLOCKS_PER_SEC);
+      print_to_cout("Repair seconds:  %g\n", (tv[6] - tv[5]) / (REAL) CLOCKS_PER_SEC);
     }
   }
 
@@ -34672,7 +34687,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if ((b->plc && b->nobisect) && !(b->diagnose == 1)) {
-      printf("Steiner removal seconds:  %g\n",
+      print_to_cout("Steiner removal seconds:  %g\n",
              (tv[7] - tv[6]) / (REAL) CLOCKS_PER_SEC);
     }
   }
@@ -34687,7 +34702,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if ((b->plc || b->refine) && (b->insertaddpoints)) {
-      printf("Constrained points seconds:  %g\n", 
+      print_to_cout("Constrained points seconds:  %g\n", 
              (tv[8] - tv[7]) / (REAL) CLOCKS_PER_SEC);
     }
   }
@@ -34700,7 +34715,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if (b->metric) {
-      printf("Size interpolating seconds:  %g\n",
+      print_to_cout("Size interpolating seconds:  %g\n",
              (tv[9] - tv[8]) / (REAL) CLOCKS_PER_SEC);
     }
   }
@@ -34713,7 +34728,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if (b->coarse) {
-      printf("Mesh coarsening seconds:  %g\n",
+      print_to_cout("Mesh coarsening seconds:  %g\n",
              (tv[10] - tv[9]) / (REAL) CLOCKS_PER_SEC);
     }
   }
@@ -34726,7 +34741,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if (b->quality) {
-      printf("Quality seconds:  %g\n",
+      print_to_cout("Quality seconds:  %g\n",
              (tv[11] - tv[10]) / (REAL) CLOCKS_PER_SEC);
     }
   }
@@ -34739,7 +34754,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (!b->quiet) {
     if (b->quality && (b->optlevel > 0)) {
-      printf("Optimize seconds:  %g\n",
+      print_to_cout("Optimize seconds:  %g\n",
              (tv[12] - tv[11]) / (REAL) CLOCKS_PER_SEC);
     }
   }
@@ -34754,7 +34769,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if (!b->quiet) {
-    printf("\n");
+    print_to_cout("\n");
   }
 
   if (out != (tetgenio *) NULL) {
@@ -34764,7 +34779,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (b->nonodewritten || b->noiterationnum) {
     if (!b->quiet) {
-      printf("NOT writing a .node file.\n");
+      print_to_cout("NOT writing a .node file.\n");
     }
   } else {
     if (b->diagnose == 1) {
@@ -34781,7 +34796,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (b->noelewritten) {
     if (!b->quiet) {
-      printf("NOT writing an .ele file.\n");
+      print_to_cout("NOT writing an .ele file.\n");
     }
   } else {
     if (!(b->diagnose == 1)) {
@@ -34793,7 +34808,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (b->nofacewritten) {
     if (!b->quiet) {
-      printf("NOT writing an .face file.\n");
+      print_to_cout("NOT writing an .face file.\n");
     }
   } else {
     if (b->facesout) {
@@ -34859,9 +34874,9 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   tv[13] = clock();
 
   if (!b->quiet) {
-    printf("\nOutput seconds:  %g\n",
+    print_to_cout("\nOutput seconds:  %g\n",
            (tv[13] - tv[12]) / (REAL) CLOCKS_PER_SEC);
-    printf("Total running seconds:  %g\n",
+    print_to_cout("Total running seconds:  %g\n",
            (tv[13] - tv[0]) / (REAL) CLOCKS_PER_SEC);
   }
 

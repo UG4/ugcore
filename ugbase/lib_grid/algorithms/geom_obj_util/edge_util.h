@@ -59,6 +59,16 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 						EdgeBase* e, int maxNumFaces);
 
 ////////////////////////////////////////////////////////////////////////
+//	NumAssociatedFaces
+///	returns the number of associated faces of the given edge
+/**
+ * This method uses ug::Grid::mark.
+ *
+ * The method returns the number of total number of associated faces.
+ */
+int NumAssociatedFaces(Grid& grid, EdgeBase* e);
+						
+////////////////////////////////////////////////////////////////////////
 //	CalculateNormal
 ///	Calculates the normal of the given edge
 /**

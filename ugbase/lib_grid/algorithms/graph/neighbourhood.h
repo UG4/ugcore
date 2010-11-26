@@ -78,6 +78,14 @@ void CollectNeighbours(std::vector<Face*>& vNeighboursOut, Face* f,
 void CollectNeighbours(std::vector<Volume*>& vNeighboursOut, Volume* v,
 					   Grid& grid, NeighbourhoodType nbhType = NHT_FACE_NEIGHBOURS);
 
+////////////////////////////////////////////////////////////////////////
+///	Collects all neighbours in a given neighbourhood of a vertex
+/**	This algorithm uses Grid::mark
+ */				   
+void CollectNeighbourhood(std::vector<Face*>& facesOut, Grid& grid,
+						  VertexBase* vrt, size_t range,
+						  bool clearContainer = true);
+
 }//	end of namespace
 
 #endif

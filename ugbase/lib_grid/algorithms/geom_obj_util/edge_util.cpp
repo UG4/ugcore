@@ -128,6 +128,58 @@ int GetAssociatedFaces(Face** facesOut, Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	NumAssociatedFaces
+int NumAssociatedFaces(Grid& grid, EdgeBase* e)
+{
+	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	{
+		int counter = 0;
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(e);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
+			iter != grid.associated_faces_end(e); ++iter)
+		{
+			counter++;
+		}
+		return counter;
+	}
+	else
+	{
+	//	we're using grid::mark for maximal speed.
+		grid.begin_marking();
+	//	mark the end-points of the edge
+		grid.mark(e->vertex(0));
+		grid.mark(e->vertex(1));
+
+	//	we have to find the triangles 'by hand'
+	//	iterate over all associated faces of vertex 0
+		int counter = 0;
+		VertexBase* v = e->vertex(0);
+		Grid::AssociatedFaceIterator iterEnd = grid.associated_faces_end(v);
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(v);
+			iter != iterEnd; ++iter)
+		{
+			Face* tf = *iter;
+			uint numVrts = tf->num_vertices();
+			int numMarked = 0;
+			for(uint i = 0; i < numVrts; ++i){
+				if(grid.is_marked(tf->vertex(i)))
+					numMarked++;
+			}
+			
+			if(numMarked > 1)
+			{
+			//	the face is connected with the edge
+				counter++;
+			}
+		}
+	//	done with marking
+		grid.end_marking();
+
+		return counter;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
 int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
 					Grid::VertexAttachmentAccessor<APosition>& aaPos,
 					Grid::FaceAttachmentAccessor<ANormal>* paaNormFACE)

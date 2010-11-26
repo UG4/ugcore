@@ -527,6 +527,19 @@ bool IsBoundaryVertex3D(Grid& grid, VertexBase* v)
 
 	return false;
 }
+////////////////////////////////////////////////////////////////////////
+bool IsRegularSurfaceVertex(Grid& grid, VertexBase* v)
+{
+//	check how many faces each associated edge has
+	Grid::AssociatedEdgeIterator edgesEnd = grid.associated_edges_end(v);
+	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+		iter != edgesEnd; ++iter)
+	{
+		if(NumAssociatedFaces(grid, *iter) != 2)
+			return false;
+	}
+	return true;
+}
 
 ////////////////////////////////////////////////////////////////////////
 void MarkFixedCreaseVertices(Grid& grid, SubsetHandler& sh,

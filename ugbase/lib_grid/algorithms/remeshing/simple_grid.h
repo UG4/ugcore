@@ -55,6 +55,28 @@ bool ObtainSimpleGrid(SimpleGrid& sgOut, Grid& grid,
 						TPosAcc& aaPos, TNormAcc& aaNorm,
 						TIntAcc& aaInt);
 
+////////////////////////////////////////////////////////////////////////
+//	ObtainSimpleGrid
+///	returns a neighbourhood of the edge e after e has been collapsed.
+/**	
+ * This algorithm uses Grid::mark.
+ *
+ * The new vertex which corresponds to the collapsed edge can be found
+ * at sgOut.vertices[0].
+ *
+ * Please note that this method is capable of treating non-surface grids
+ * (i.e. grids where edges have more than two adjacent triangles).
+ *
+ * Make sure that the neighbourhood of e only contains triangles.
+ *
+ * Please note that the resulting grid is not suited for swap, split
+ * or collapse operations.
+ */
+template <class TPosAcc, class TIntAcc, class TNormAcc>
+bool ObtainSimpleGrid_CollapseEdge(SimpleGrid& sgOut, Grid& grid,
+						EdgeBase* e, size_t size,
+						TPosAcc& aaPos, TNormAcc& aaNorm,
+						TIntAcc& aaInt);
 
 ////////////////////////////////////////////////////////////////////////
 ///	caculates the normal of the given triangle and stores it in sg.triangleNormals[triIndex]
