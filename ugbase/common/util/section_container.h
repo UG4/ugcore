@@ -27,10 +27,13 @@ template <class TValue, class TContainer>
 class SectionContainer
 {
 	public:
+		typedef TValue								value_type;
 		typedef TContainer							Container;
 		typedef typename Container::iterator		iterator;
 		typedef typename Container::const_iterator	const_iterator;
-
+		typedef typename Container::reverse_iterator		reverse_iterator;
+		typedef typename Container::const_reverse_iterator	const_reverse_iterator;
+		
 	public:
 		SectionContainer();
 
@@ -58,6 +61,18 @@ class SectionContainer
 
 		const_iterator section_end(int sectionIndex) const;
 
+	///	returns the first entry in the given section.
+	/**	use index -1 to get the first entry of the complete chain.
+	 *	Make sure to only call this method if there are elements in the
+	 *	given section at all.*/
+		value_type& front(int secIndex = -1);
+
+	///	returns the last entry in the given section.
+	/**	use index -1 to get the last entry of the complete chain.
+	 *	Make sure to only call this method if there are elements in the
+	 *	given section at all.*/
+		value_type& back(int secIndex = -1);
+			
 		uint num_elements(int sectionIndex) const;
 		inline uint num_elements() const	{return m_numElements;}
 		inline int num_sections() const		{return m_vSections.size();}
@@ -69,12 +84,19 @@ class SectionContainer
 		struct Section
 		{
 			Section()	{}
-			Section(const iterator& elemsBegin, const iterator& elemsEnd, int numElems) :
-				m_elemsBegin(elemsBegin), m_elemsEnd(elemsEnd), m_numElements(numElems)
+			Section(const iterator& elemsBegin, const iterator& elemsEnd,
+					//const reverse_iterator& elemsRBegin,
+					//const reverse_iterator& elemsREnd,
+					int numElems) :
+				m_elemsBegin(elemsBegin), m_elemsEnd(elemsEnd),
+				//m_elemsRBegin(elemsRBegin), m_elemsREnd(elemsREnd),
+				m_numElements(numElems)
 				{}
 
 			iterator	m_elemsBegin;
 			iterator	m_elemsEnd;
+			//reverse_iterator 	m_elemsRBegin;
+			//reverse_iterator 	m_elemsREnd;
 			uint		m_numElements;
 		};
 

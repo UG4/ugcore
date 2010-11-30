@@ -115,10 +115,18 @@ class Selector : public ISelector
 		inline typename geometry_traits<TElem>::iterator
 		begin();
 
+		template <class TElem>
+		inline typename geometry_traits<TElem>::const_iterator
+		begin() const;
+		
 	//	end
 		template <class TElem>
 		inline typename geometry_traits<TElem>::iterator
 		end();
+		
+		template <class TElem>
+		inline typename geometry_traits<TElem>::const_iterator
+		end() const;
 
 	//	convenience begin and end
 		inline VertexBaseIterator vertices_begin()	{return begin<VertexBase>();}
@@ -129,6 +137,16 @@ class Selector : public ISelector
 		inline FaceIterator faces_end()				{return end<Face>();}
 		inline VolumeIterator volumes_begin()		{return begin<Volume>();}
 		inline VolumeIterator volumes_end()			{return end<Volume>();}
+
+	///	returns the first selected element of the given type.
+	/**	Make sure that elements of the given type exist!
+	 *	Behaviour is undefined, if not.*/
+		template <class TElem> TElem* front();
+		
+	///	returns the last selected element of the given type.
+	/**	Make sure that elements of the given type exist!
+	 *	Behaviour is undefined, if not.*/
+		template <class TElem> TElem* back();
 
 	//	geometric-object-collection
 		GeometricObjectCollection get_geometric_object_collection();
@@ -186,8 +204,11 @@ class Selector : public ISelector
 		inline SectionContainer& get_section_container();
 
 		template <class TElem>
-		inline int get_section_index();
-
+		inline const SectionContainer& get_section_container() const;
+		
+		template <class TElem>
+		inline int get_section_index() const;
+		
 	private:
 		Selector(const Selector& sel){};///<	Copy Constructor not yet implemented!
 

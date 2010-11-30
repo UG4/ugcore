@@ -27,8 +27,19 @@ Selector::get_section_container()
 }
 
 template <class TElem>
+inline const Selector::SectionContainer&
+Selector::get_section_container() const
+{
+	const int baseObjID = geometry_traits<TElem>::BASE_OBJECT_TYPE_ID;
+
+	assert((baseObjID >= 0) && (baseObjID < NUM_GEOMETRIC_BASE_OBJECTS) &&
+			"no section-container associated with TElem.");
+	return m_elements[baseObjID];
+}
+
+template <class TElem>
 inline int
-Selector::get_section_index()
+Selector::get_section_index() const
 {
 	return geometry_traits<TElem>::SHARED_PIPE_SECTION;
 }
@@ -97,6 +108,20 @@ Selector::begin()
 					get_section_container<TElem>().section_begin(sInd));
 }
 
+//	const begin
+template <class TElem>
+inline typename geometry_traits<TElem>::const_iterator
+Selector::begin() const
+{
+	const int sInd = get_section_index<TElem>();
+	if(sInd < 0)
+		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
+								get_section_container<TElem>().begin());
+	else
+		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
+					get_section_container<TElem>().section_begin(sInd));
+}
+
 //	end
 template <class TElem>
 inline typename geometry_traits<TElem>::iterator
@@ -109,6 +134,36 @@ Selector::end()
 	else
 		return iterator_cast<typename geometry_traits<TElem>::iterator>(
 								get_section_container<TElem>().section_end(sInd));
+}
+
+//	const end
+template <class TElem>
+inline typename geometry_traits<TElem>::const_iterator
+Selector::end() const
+{
+	const int sInd = get_section_index<TElem>();
+	if(sInd < 0)
+		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
+									get_section_container<TElem>().end());
+	else
+		return iterator_cast<typename geometry_traits<TElem>::const_iterator>(
+								get_section_container<TElem>().section_end(sInd));
+}
+
+template <class TElem>
+TElem*
+Selector::front()
+{
+	const int sInd = get_section_index<TElem>();
+	return static_cast<TElem*>(get_section_container<TElem>().front(sInd));
+}
+
+template <class TElem>
+TElem*
+Selector::back()
+{
+	const int sInd = get_section_index<TElem>();
+	return static_cast<TElem*>(get_section_container<TElem>().back(sInd));
 }
 
 ////////////////////////////////////////

@@ -138,7 +138,27 @@ Grid::end() const
 		(m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.section_end(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
 }
 
+template <class TGeomObj>
+TGeomObj*
+Grid::front()
+{
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+		invalid_GeomObj);
 
+	return static_cast<TGeomObj*>(*m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.
+										front(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+}
+
+template <class TGeomObj>
+TGeomObj*
+Grid::back()
+{
+	STATIC_ASSERT(geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID != -1,
+		invalid_GeomObj);
+
+	return static_cast<TGeomObj*>(*m_elementStorage[geometry_traits<TGeomObj>::BASE_OBJECT_TYPE_ID].m_sectionContainer.
+										back(geometry_traits<TGeomObj>::SHARED_PIPE_SECTION));
+}
 ////////////////////////////////////////////////////////////////////////
 //	element numbers
 template <class TGeomObj>

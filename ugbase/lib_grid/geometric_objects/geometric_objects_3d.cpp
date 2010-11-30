@@ -96,17 +96,17 @@ void Tetrahedron::edge(int index, EdgeDescriptor& edOut) const
 	switch(index)
 	{
 		case 0: edOut.set_vertices(m_vertices[0], m_vertices[1]);
-				break;
+				return;
 		case 1: edOut.set_vertices(m_vertices[1], m_vertices[2]);
-				break;
+				return;
 		case 2: edOut.set_vertices(m_vertices[2], m_vertices[0]);
-				break;
+				return;
 		case 3: edOut.set_vertices(m_vertices[3], m_vertices[0]);
-				break;
+				return;
 		case 4: edOut.set_vertices(m_vertices[3], m_vertices[1]);
-				break;
+				return;
 		case 5: edOut.set_vertices(m_vertices[3], m_vertices[2]);
-				break;
+				return;
 	}
 }
 
@@ -131,22 +131,22 @@ void Tetrahedron::face(int index, FaceDescriptor& fdOut) const
 				fdOut.set_vertex(0, m_vertices[0]);
 				fdOut.set_vertex(1, m_vertices[2]);
 				fdOut.set_vertex(2, m_vertices[1]);
-				break;
+				return;
 			case 1:
 				fdOut.set_vertex(0, m_vertices[1]);
 				fdOut.set_vertex(1, m_vertices[2]);
 				fdOut.set_vertex(2, m_vertices[3]);
-				break;
+				return;
 			case 2:
 				fdOut.set_vertex(0, m_vertices[2]);
 				fdOut.set_vertex(1, m_vertices[0]);
 				fdOut.set_vertex(2, m_vertices[3]);
-				break;
+				return;
 			case 3:
 				fdOut.set_vertex(0, m_vertices[0]);
 				fdOut.set_vertex(1, m_vertices[1]);
 				fdOut.set_vertex(2, m_vertices[3]);
-				break;
+				return;
 		}
 }
 
@@ -169,6 +169,28 @@ Face* Tetrahedron::create_face(int index)
 	return new Triangle(fd.vertex(0), fd.vertex(1), fd.vertex(2));
 }
 
+void Tetrahedron::
+get_local_vertex_indices_of_edge(size_t& ind1Out,
+								  size_t& ind2Out,
+								  size_t edgeInd)
+{
+	switch(edgeInd)
+	{
+		case 0: ind1Out = 0; ind2Out = 1;
+				return;
+		case 1: ind1Out = 1; ind2Out = 2;
+				return;
+		case 2: ind1Out = 2; ind2Out = 0;
+				return;
+		case 3: ind1Out = 3; ind2Out = 0;
+				return;
+		case 4: ind1Out = 3; ind2Out = 1;
+				return;
+		case 5: ind1Out = 3; ind2Out = 2;
+				return;
+	}
+}
+											  
 void Tetrahedron::
 get_local_vertex_indices_of_face(std::vector<size_t>& indsOut,
 								 size_t side)
@@ -238,22 +260,49 @@ bool Tetrahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 			if(newEdgeVertices[i] != NULL)
 				++numNewVrts;
 		}
-/*
-		uint numNewFaceVrts = 0;
-		for(uint i = 0; i < 4; ++i)
-		{
-			if(vNewFaceVertices[i] != NULL)
-				++numNewFaceVrts;
-		}
 
-		assert(numNewFaceVrts == 0 && "PROBLEM in Tetrahedron::refine(): new face vertices are not yet supported!");
-*/
+		int cornerStatus[4] = {0, 0, 0, 0};
+		vector<size_t> inds;
+		
 		switch(numNewVrts)
 		{
 			case 1:
 			{
-				assert(!"PROBLEM in Tetrahedron::refine(...): refine with 1 new edge vertex not yet implemented.");
-				return false;
+			//	get the index of the edge that is to be refined
+				size_t edgeInd = 999;
+				for(size_t i = 0; i < 6; ++i)
+				{
+					if(newEdgeVertices[i] != NULL){
+						edgeInd = i;
+						break;
+					}
+				}
+				
+				assert((edgeInd != 999) && "couldn't find marked edge");
+			
+			//	get the associated vertex indices and set their status to 1
+				size_t vi1, vi2;
+				get_local_vertex_indices_of_edge(vi1, vi2, edgeInd);
+				cornerStatus[vi1] = cornerStatus[vi2] = 1;
+				
+			//	find the two faces that are connected to only one marked corner
+			//	and create a new tetrahedron for each.
+				inds.reserve(3);
+				
+				for(size_t i_face = 0; i_face < 4; ++i_face){
+					size_t numMarked = 0;
+					get_local_vertex_indices_of_face(inds, i_face);
+					for(size_t i_ind = 0; i_ind < inds.size(); ++i_ind){
+						if(cornerStatus[inds[i_ind]] == 1)
+							++numMarked;
+					}
+					
+					if(numMarked == 1){
+						vNewVolumesOut.push_back(new Tetrahedron(vrts[inds[2]], vrts[inds[1]], vrts[inds[0]], newEdgeVertices[edgeInd]));
+					}
+				}
+				
+				return true;
 			}
 
 			case 2:
@@ -519,10 +568,12 @@ bool Hexahedron::refine(std::vector<Volume*>& vNewVolumesOut,
 		}
 
 		uint numNewFaceVrts = 0;
-		for(uint i = 0; i < 6; ++i)
-		{
-			if(newFaceVertices[i] != NULL)
-				++numNewFaceVrts;
+		if(newFaceVertices){
+			for(uint i = 0; i < 6; ++i)
+			{
+				if(newFaceVertices[i] != NULL)
+					++numNewFaceVrts;
+			}
 		}
 
 		switch(numNewEdgeVrts)
@@ -842,10 +893,12 @@ bool Prism::refine(std::vector<Volume*>& vNewVolumesOut,
 
 	//	ignore face 0 and face 4, since they are triangles. No inner point is needed here.
 		uint numNewFaceVrts = 0;
-		for(uint i = 1; i < 4; ++i)
-		{
-			if(newFaceVertices[i] != NULL)
-				++numNewFaceVrts;
+		if(newFaceVertices){
+			for(uint i = 1; i < 4; ++i)
+			{
+				if(newFaceVertices[i] != NULL)
+					++numNewFaceVrts;
+			}
 		}
 
 		switch(numNewEdgeVrts)
@@ -1122,7 +1175,14 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 //	check which edges have to be refined and perform the required operations.
 	{
 		VertexBase** evrts = newEdgeVertices;
-		VertexBase* fvrt = newFaceVertices[0];
+		
+//	ignore face 1, 2, 3, 4, since they are triangles. No inner point is needed here.
+		uint numNewFaceVrts = 0;
+		VertexBase* fvrt = NULL;
+		if(newFaceVertices){
+			numNewFaceVrts = 1;
+			fvrt = newFaceVertices[0];
+		}
 
 	//	get the number of new vertices.
 		uint numNewEdgeVrts = 0;
@@ -1131,11 +1191,6 @@ bool Pyramid::refine(std::vector<Volume*>& vNewVolumesOut,
 			if(newEdgeVertices[i] != NULL)
 				++numNewEdgeVrts;
 		}
-
-	//	ignore face 1, 2, 3, 4, since they are triangles. No inner point is needed here.
-		uint numNewFaceVrts = 0;
-		if(fvrt != NULL)
-			numNewFaceVrts = 1;
 
 		switch(numNewEdgeVrts)
 		{

@@ -139,10 +139,18 @@ class MGSelector : public ISelector
 		inline typename geometry_traits<TElem>::iterator
 		begin(int level);
 
+		template <class TElem>
+		inline typename geometry_traits<TElem>::const_iterator
+		begin(int level) const;
+		
 	//	end
 		template <class TElem>
 		inline typename geometry_traits<TElem>::iterator
 		end(int level);
+		
+		template <class TElem>
+		inline typename geometry_traits<TElem>::const_iterator
+		end(int level) const;
 
 	//	convenience begin and end
 		inline VertexBaseIterator vertices_begin(int level)	{return begin<VertexBase>(level);}
@@ -154,6 +162,16 @@ class MGSelector : public ISelector
 		inline VolumeIterator volumes_begin(int level)		{return begin<Volume>(level);}
 		inline VolumeIterator volumes_end(int level)		{return end<Volume>(level);}
 
+	///	returns the first selected element of the given type on the specified level.
+	/**	Make sure that elements of the given type exist!
+	 *	Behaviour is undefined, if not.*/
+		template <class TElem> TElem* front(int level);
+		
+	///	returns the last selected element of the given type on the specified level.
+	/**	Make sure that elements of the given type exist!
+	 *	Behaviour is undefined, if not.*/
+		template <class TElem> TElem* back(int level);
+		
 	//	geometric-object-collection
 		GeometricObjectCollection
 		get_geometric_object_collection();
@@ -190,7 +208,10 @@ class MGSelector : public ISelector
 		inline SectionContainer& get_section_container(int level);
 
 		template <class TElem>
-		inline int get_section_index();
+		inline const SectionContainer& get_section_container(int level) const;
+		
+		template <class TElem>
+		inline int get_section_index() const;
 
 		void level_required(int newSize);
 

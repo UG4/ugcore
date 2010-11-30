@@ -321,6 +321,16 @@ class Grid
 		typename geometry_traits<TGeomObj>::const_iterator
 		end() const;
 
+	///	returns the first element of the given type.
+	/**	Make sure that elements of the given type exist!
+	 *	Behaviour is undefined, if not.*/
+		template <class TGeomObj> TGeomObj* front();
+		
+	///	returns the last element of the given type.
+	/**	Make sure that elements of the given type exist!
+	 *	Behaviour is undefined, if not.*/
+		template <class TGeomObj> TGeomObj* back();
+		
 	//	element manipulation
 	/*
 		void set_vertices(EdgeBase* e, EdgeDesctiptor& ed);

@@ -522,6 +522,87 @@ bool CreateEdgeSplitGeometry(Grid& destGrid, Grid& srcGrid, EdgeBase* e,
 			}
 		}
 	}
+	
+//	split volumes
+	if(srcGrid.num<Volume>() > 0)
+	{
+	//	this vector will be used to specify on which edge a vertex has to be inserted
+		vector<VertexBase*> edgeVrts;
+
+	//	collect all volumes associated with the edge
+		vector<Volume*> vols, newVols;
+		CollectVolumes(vols, srcGrid, e);
+		
+		for(size_t i_vols = 0; i_vols < vols.size(); ++i_vols)
+		{
+			Volume* oldVol = vols[i_vols];
+			uint numVrts = oldVol->num_vertices();
+
+			newVols.clear();
+			
+		//	get the index of e in oldFace and fill the edgeVrts array
+			edgeVrts.clear();
+			for(size_t i_edge = 0; i_edge < oldVol->num_edges(); ++i_edge)
+			{
+				if(srcGrid.get_edge(oldVol, i_edge) == e)
+					edgeVrts.push_back(newVertex);
+				else
+					edgeVrts.push_back(NULL);
+			}
+		
+		//	if refine creates a new vertex in the center of the volume,
+		//	it will be stored in this var.
+			VertexBase* newVolVrt = NULL;
+			
+		//	get the substitute-vertices if they are required
+			if(paAssociatedVertices != NULL)
+			{
+				if(numVrts > vSubstituteVertices.size())
+					vSubstituteVertices.resize(numVrts);
+
+			//	check for each vertex in oldFace, if an associated vertex exists in destGrid.
+			//	if not create a new one by cloning the associated one in srcGrid.
+			//	store the vertices in vSubstituteVertices
+				{
+					for(uint i = 0; i < numVrts; ++i)
+					{
+						if(aaAssociatedVertices[oldVol->vertex(i)] == NULL)
+							aaAssociatedVertices[oldVol->vertex(i)] = *destGrid.create_by_cloning(oldVol->vertex(i));
+						vSubstituteVertices[i] = aaAssociatedVertices[oldVol->vertex(i)];
+					}
+				}
+
+			//	create the new faces by splitting the old face. use substitutes.
+				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), NULL, NULL,
+							   Vertex(), &vSubstituteVertices.front());
+			}
+			else
+			{
+			//	create the new faces by splitting the old face.
+			//	no substitutes required
+				oldVol->refine(newVols, &newVolVrt, &edgeVrts.front(), NULL, NULL,
+							   Vertex(), NULL);
+			}
+
+		//	register all new vertices and volumes at destGrid
+			{
+				Volume* pParent = NULL;
+				if(&srcGrid == &destGrid)
+					pParent = oldVol;
+				
+				if(newVolVrt)
+					destGrid.register_element(newVolVrt, pParent);
+					
+				for(vector<Volume*>::iterator iter = newVols.begin();
+					iter != newVols.end(); ++iter)
+				{
+					destGrid.register_element(*iter, pParent);
+					if(pParent)
+						destGrid.pass_on_values(pParent, *iter);
+				}
+			}
+		}
+	}
 	return true;
 }
 
