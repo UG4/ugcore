@@ -11,14 +11,19 @@
  */
 
 #include <string>
-#include "registry.h"
 
-using namespace std;
+#ifndef __H__UG_BRIDGE__CLASS_HELPER__
+#define __H__UG_BRIDGE__CLASS_HELPER__
 
 namespace ug
 {
 namespace bridge
 {
+
+class IExportedClass;
+class ExportedFunctionBase;
+class ExportedFunction;
+class Registry;
 
 // ClassHierarchy
 //--------------
@@ -44,19 +49,30 @@ public:
 	 */
 	ClassHierarchy *find_class(const char *name);
 
-	string name;
+	std::string name;
 	bool bGroup;
-	vector<ClassHierarchy> subclasses;
+	std::vector<ClassHierarchy> subclasses;
 };
 /**
  * inits hierarchy with all classes of UGBridge
  */
-void GetClassHierarchy(ClassHierarchy &hierarchy, const bridge::Registry &reg);
+void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
 
 /**
  * Finds the class classname in the default ug registry and returns IExportedClass pointer if found, otherwise NULL
  */
 const IExportedClass *FindClass(const char* classname);
+bool PrintFunctionInfo(Registry &reg, const char *functionname);
+void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false, const char *classname=NULL, const char *highlightclassname=NULL);
 
+const IExportedClass *FindClass(bridge::Registry &reg, const char* classname);
+bool PrintClassHierarchy(Registry &reg, const char *classname);
+void PrintClassInfo(const IExportedClass &c);
+bool PrintClassInfo(Registry &reg, const char *classname);
+bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters);
+const IExportedClass *FindClass(Registry &reg, const char* classname);
+const ExportedFunction *FindFunction(Registry &reg, const char *functionname);
 }
 }
+
+#endif

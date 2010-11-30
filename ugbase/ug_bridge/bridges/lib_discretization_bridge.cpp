@@ -682,7 +682,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	}
 
 
-//	GridFunction (1. part)
+//	GridFunction
 	{
 		stringstream ss; ss << "GridFunction" << dim << "d";
 		reg.add_class_<function_type, vector_type>(ss.str().c_str(), grp.c_str())
@@ -690,7 +690,16 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("assign|hide=true", (bool (function_type::*)(const vector_type&))&function_type::assign,
 						"Success", "Vector")
 			.add_method("assign_dof_distribution|hide=true", &function_type::assign_dof_distribution)
-			.add_method("get_dim|hide=true", &function_type::get_dim);
+			.add_method("get_dim|hide=true", &function_type::get_dim)
+			.add_method("assign_approximation_space|hide=true", &function_type::assign_approximation_space)
+			.add_method("set_space|interactive=false", &function_type::assign_surface_approximation_space,
+								"", "Approximation Space||invokeOnChange=true");
+#ifdef UG_PARALLEL
+		reg.get_class_<function_type>()
+			.add_method("change_storage_type_by_string|hide=true", &function_type::change_storage_type_by_string)
+			.add_method("set_storage_type_by_string|hide=true", &function_type::set_storage_type_by_string);
+
+#endif
 	}
 
 //  ApproximationSpace
@@ -706,16 +715,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	GridFunction (2. part)
 	{
-		reg.get_class_<function_type>()
-			.add_method("assign_approximation_space|hide=true", &function_type::assign_approximation_space)
-			.add_method("set_space|interactive=false", &function_type::assign_surface_approximation_space,
-						"", "Approximation Space||invokeOnChange=true");
-#ifdef UG_PARALLEL
-		reg.get_class_<function_type>()
-			.add_method("change_storage_type_by_string|hide=true", &function_type::change_storage_type_by_string)
-			.add_method("set_storage_type_by_string|hide=true", &function_type::set_storage_type_by_string);
 
-#endif
 	}
 
 //	P1ConformApproximationSpace

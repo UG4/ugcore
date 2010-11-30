@@ -8,7 +8,9 @@
 #include "parameter_stack.h"
 #include "function_traits.h"
 #include "param_to_type_value_list.h"
+#include "ug_bridge/class_helper.h"
 #include <iostream>
+
 namespace ug
 {
 namespace bridge
@@ -122,6 +124,51 @@ class ExportedFunctionBase
 	/// non-const export of param list
 		ParameterStack& params_in() 								{return m_paramsIn;}
 
+		// returns false if parameters of the function are undeclared (foreward-declared) classes
+		bool check_consistency(const char *classname=NULL) const
+		{
+			int function_found = 0;
+			for(int j=0; j<params_in().size(); j++)
+			{
+				if(params_in().is_parameter_undeclared(j))
+				{
+
+					if(function_found == 0)
+					{
+						function_found++;
+						UG_LOG("Function ");
+						PrintFunctionInfo(*this, false, classname);
+						UG_LOG(": parameter " << j);
+					}
+					else
+					{	UG_LOG(", " << j);	}
+				}
+			}
+			for(int j=0; j<params_out().size(); j++)
+			{
+				if(params_out().is_parameter_undeclared(j))
+				{
+
+					if(function_found == 0)
+					{
+						function_found++;
+						UG_LOG("Function ");
+						PrintFunctionInfo(*this, false, classname);
+						UG_LOG(": return value " << j);
+					}
+					else
+					{	UG_LOG(", return value " << j);	}
+				}
+			}
+
+			if(function_found)
+			{
+				UG_LOG(": undeclared class.\n");
+				return true;
+			}
+			else return false;
+		}
+
 	protected:
 		template <typename TFunc>
 		void create_parameter_stack()
@@ -159,7 +206,7 @@ class ExportedFunctionBase
 
 			while ( std::getline (tokenstream, token, delimiter ) )
 			{
-					tokens.push_back(trim(token));
+				tokens.push_back(trim(token));
 			}
 		}
 

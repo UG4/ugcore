@@ -41,7 +41,7 @@ class Registry {
 		Registry()	{}
 		
 	////////////////////////
-	//	callbacks
+	//	callbackst
 	////////////////////////
 	///	adds a callback which is triggered whenever Registry::registry_changed is called.
 		void add_callback(FuncRegistryChanged callback)
@@ -51,6 +51,7 @@ class Registry {
 		
 		void registry_changed()
 		{
+			check_consistency();
 		//	iterate through all callbacks and call them
 			for(size_t i = 0; i < m_callbacksRegChanged.size(); ++i){
 				m_callbacksRegChanged[i](this);
@@ -245,6 +246,26 @@ class Registry {
 	/// returns an exported function
 		const IExportedClass& get_class(size_t ind)	const {return *m_vClass.at(ind);}
 
+		bool check_consistency()
+		{
+			size_t found = 0;
+			for(size_t i=0; i<num_functions(); i++)
+				if(get_function(i).check_consistency()) found++;
+
+			// check classes
+			for(size_t i=0; i<num_classes(); i++)
+			{
+				const bridge::IExportedClass &c = get_class(i);
+				for(size_t j=0; j<c.num_methods(); j++)
+					if(c.get_method(j).check_consistency(c.name())) found++;
+				for(size_t j=0; j<c.num_const_methods(); j++)
+					if(c.get_const_method(j).check_consistency(c.name())) found++;
+			}
+
+			UG_ASSERT(found == 0, "ERROR: " << found << " functions are using undeclared classes\n");
+			if(found > 0) return false;
+			else return true;
+		}
 
 	/// destructor
 		~Registry()

@@ -113,7 +113,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						IPreconditioner<algebra_type> >("ILUT", grp2.c_str())
 			.add_constructor();
 
-		/*
+
+#if 0
 	//	AMG
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 		typedef P1ConformDoFDistribution dof_distribution_type;
@@ -125,8 +126,6 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	#endif
 
 //todo: existance of AMGPreconditioner class should not depend on defines.
-	#ifdef LAPACK_AVAILABLE
-	#ifdef BLAS_AVAILABLE
 		reg.add_class_<	amg<algebra_type>, IPreconditioner<algebra_type> > ("AMGPreconditioner", grp.c_str())
 			.add_constructor()
 
@@ -143,15 +142,15 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 			.add_method("set_presmoother", &amg<algebra_type>::set_presmoother, "", "presmoother")
 			.add_method("set_postsmoother", &amg<algebra_type>::set_postsmoother, "", "postsmoother")
-			.add_method("set_base_solver", &amg<algebra_type>::set_base_solver, "", "basesmoother");
+			.add_method("set_base_solver", &amg<algebra_type>::set_base_solver, "", "basesmoother")
+
 
 //			// todo: I comment this out, since grid function das not yet been registered to registery at this point.
-//			.add_method("set_debug", &amg<algebra_type>::set_debug<function_type>, "", "u",
-//					"sets the internal positions of each node");
-	#endif
-	#endif
-	*/
+		.add_method("set_debug",
+					(bool (amg<algebra_type>::*)(function_type&)) &amg<algebra_type>::set_debug,"", "u",
+					"sets the internal positions of each node");
 
+#endif
 	}
 /*
 	{

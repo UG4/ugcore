@@ -385,6 +385,13 @@ class ParameterStack
 				throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}
 		
+		bool is_parameter_undeclared(int index) const
+		{
+			if(class_name(index) == NULL || strlen(class_name(index)) == 0)
+				return false;
+			return class_name(index)[0] == '[';
+		}
+
 	private:
 		union Parameter{
 			bool m_bool;

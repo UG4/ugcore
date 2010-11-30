@@ -8,6 +8,7 @@
 #include "ug_script.h"
 #include "bindings/bindings_lua.h"
 #include "ug_bridge/ug_bridge.h"
+#include "ug_bridge/class_helper.h"
 #include "info_commands.h"
 #include "user_data/user_data.h"
 using namespace std;
@@ -55,7 +56,7 @@ static ug::bridge::Registry* g_pRegistry = NULL;
 
 static void UpdateScriptAfterRegistryChange(ug::bridge::Registry* pReg)
 {
-	assert((pReg == g_pRegistry) && "someone messed up the registries!");
+	UG_ASSERT(pReg == g_pRegistry, "static g_pRegistry does not match parameter pReg, someone messed up the registries!");
 	
 //	this can be called since CreateBindings automatically avoids
 //	double registration
@@ -102,6 +103,7 @@ lua_State* GetDefaultLuaState()
 
 			ug::bridge::lua::CreateBindings_LUA(L, scriptRegistry);
 		#endif
+			scriptRegistry.check_consistency();
 	}
 	
 	return L;

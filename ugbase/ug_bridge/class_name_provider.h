@@ -2,10 +2,12 @@
 #ifndef __H__UG_BRIDGE__CLASS_NAME_PROVIDER__
 #define __H__UG_BRIDGE__CLASS_NAME_PROVIDER__
 
+#include "common/assert.h"
 #include <vector>
 #include <cstring>
 #include <string>
 #include <iostream>
+#include <typeinfo>
 
 namespace ug
 {
@@ -21,6 +23,7 @@ struct UG_REGISTRY_ERROR_ClassAlreadyNamed
 		std::string name;
 };
 
+
 bool ClassNameVecContains(const std::vector<const char*>& names, const char* name);
 
 template <typename TClass>
@@ -30,7 +33,7 @@ struct ClassNameProvider
 		static void set_name(const char* nameIn, const char* group = "", bool newName = false)
 		{
 		//	if class already named throw error
-			if(newName == true && !m_ownName.empty())
+			if(newName == true && bForwardDeclared==false && !m_ownName.empty())
 			{
 				if(strcmp(nameIn, name()) != 0)
 					throw(UG_REGISTRY_ERROR_ClassAlreadyNamed(nameIn));
@@ -39,6 +42,7 @@ struct ClassNameProvider
 		//	copy name into static string
 		//	This is necessary, since char* could be to temporary memory
 			m_ownName = std::string(nameIn);
+			UG_ASSERT(m_ownName.size() > 0 && std::isalpha(m_ownName[0]), "name must be longer than 0");
 
 		//	remember const char* to own name in first position of names-list
 			m_names.clear();
@@ -70,6 +74,7 @@ struct ClassNameProvider
 		 */
 		static bool is_a(const char* parent, bool strict = false)
 		{
+			UG_ASSERT(!bForwardDeclared, "Class must not be foreward declared to use is_a");
 		//  strict comparison: must match this class name, parents are not allowed
 			if(strict)
 			{
@@ -90,9 +95,22 @@ struct ClassNameProvider
 		static const char* name()
 		{
 			if(m_ownName.empty())
-				throw(UG_REGISTRY_ERROR_ClassUnknownToRegistry());
+			{
+				//throw(UG_REGISTRY_ERROR_ClassUnknownToRegistry());
+				set_foreward_declared();
+			}
 			return m_ownName.c_str();
 		}
+
+		static void set_foreward_declared()
+		{
+			m_ownName = "[[";
+			m_ownName.append(typeid(TClass).name());
+			m_ownName.append(" (undeclared) ]]");
+			m_names.push_back(m_ownName.c_str());
+			bForwardDeclared = true;
+		}
+
 
 		/// groups
 		static const std::string& group()
@@ -104,7 +122,10 @@ struct ClassNameProvider
 		static const std::vector<const char*>& names()	
 		{
 			if(m_names.empty())
-				throw(UG_REGISTRY_ERROR_ClassUnknownToRegistry());
+			{
+				//throw(UG_REGISTRY_ERROR_ClassUnknownToRegistry());
+				set_foreward_declared();
+			}
 
 			return m_names;
 		}
@@ -113,6 +134,7 @@ struct ClassNameProvider
 		static std::string m_ownName;
 		static std::vector<const char*> m_names;
 		static std::string m_group;
+		static bool bForwardDeclared;
 };
 
 template <typename TClass>
@@ -123,6 +145,9 @@ std::string ClassNameProvider<TClass>::m_ownName = std::string("");
 
 template <typename TClass>
 std::string ClassNameProvider<TClass>::m_group = std::string("");
+
+template <typename TClass>
+bool ClassNameProvider<TClass>::bForwardDeclared = false;
 
 } // end namespace
 } // end namespace
