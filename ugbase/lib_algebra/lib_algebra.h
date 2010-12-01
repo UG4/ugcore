@@ -33,8 +33,15 @@
 
 #include "small_algebra/small_algebra.h"
 
+/**
+ * \brief Algebra Library
+ *
+ *
+ * \defgroup lib_algebra lib_algebra
+ */
 
-/** Define different algebra types.
+
+/*  Define different algebra types.
  *  An Algebra should export the following typedef:
  *  - matrix_type
  *  - vector_type
