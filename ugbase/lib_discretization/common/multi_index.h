@@ -175,7 +175,10 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MultiIndex<N>& v)
 {
 	outStream << "[" ;
 	for(size_t i = 0; i < N; ++i)
+	{
 		outStream << v[i];
+		if(i != N-1) outStream << ",";
+	}
 	outStream << "]";
 	return outStream;
 }

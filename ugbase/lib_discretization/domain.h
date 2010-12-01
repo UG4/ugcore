@@ -16,6 +16,7 @@ namespace ug{
  * Domain
  *
  * \defgroup lib_disc_domain Domain
+ * \ingroup lib_discretization
  */
 
 /// \ingroup lib_disc_domain

@@ -72,7 +72,7 @@ class Polynomial1D
 			Polynomial1D tmpPol(degree() - 1);
 
 		//	differentiate
-			for(size_t i = 0; i < tmpPol.degree(); ++i)
+			for(size_t i = 0; i <= tmpPol.degree(); ++i)
 				tmpPol.m_vCoeff[i] = (i+1) * m_vCoeff[i+1];
 
 		//	return derivative by copy
@@ -111,6 +111,9 @@ class Polynomial1D
 			return *this;
 		}
 
+	//	output
+		friend std::ostream& operator<< (std::ostream& outStream, Polynomial1D& v);
+
 	protected:
 		void set_coefficients(const std::vector<number>& a)
 		{
@@ -128,6 +131,16 @@ class Polynomial1D
 	//	else we have p(x) = sum_i m_vCoeff[i] *x^i
 		std::vector<number> m_vCoeff;
 };
+
+inline std::ostream& operator<< (std::ostream& outStream, Polynomial1D& v)
+{
+	for(size_t i = 0; i <= v.degree(); ++i)
+	{
+		outStream << v.m_vCoeff[i] << " *x^" << i;
+		if(i != v.degree()) outStream << " + ";
+	}
+	return outStream;
+}
 
 /// @}
 } // end namespace ug

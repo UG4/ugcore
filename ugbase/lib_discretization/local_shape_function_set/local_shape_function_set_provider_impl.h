@@ -30,6 +30,7 @@ init_standard_local_shape_function_sets()
 
 //	create static Sets
 	static LagrangeP1<TRefElem> sSetLagrangeP1;
+	static LocalShapeFunctionSetWrapper<LagrangeLSFS<TRefElem, 2> > sSetLagrangeP2;
 
 	if(!init)
 	{
@@ -41,11 +42,18 @@ init_standard_local_shape_function_sets()
 		Map& map = get_local_shape_function_set_map<TRefElem>();
 
 	//	insert into map: P1 Lagrange
-		LocalShapeFunctionSetID type(LocalShapeFunctionSetID::LAGRANGE, 1);
+		LocalShapeFunctionSetID type1(LocalShapeFunctionSetID::LAGRANGE, 1);
 		success &= map.insert(
 					std::pair<LocalShapeFunctionSetID,
 						  const LocalShapeFunctionSet<TRefElem>*>
-							(type, &sSetLagrangeP1)).second;
+							(type1, &sSetLagrangeP1)).second;
+
+	//	insert into map: P2 Lagrange
+		LocalShapeFunctionSetID type2(LocalShapeFunctionSetID::LAGRANGE, 2);
+		success &= map.insert(
+					std::pair<LocalShapeFunctionSetID,
+						  const LocalShapeFunctionSet<TRefElem>*>
+							(type2, &sSetLagrangeP2)).second;
 
 		init = true;
 	}
