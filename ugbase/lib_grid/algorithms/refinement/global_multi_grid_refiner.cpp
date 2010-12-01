@@ -240,7 +240,7 @@ GMGR_PROFILE_END();
 				mg.register_element(vFaces[j], f);
 		}
 		else{
-			LOG("  WARINING in Refine: could not refine face.\n");
+			LOG("  WARNING in Refine: could not refine face.\n");
 		}
 		GMGR_PROFILE_END();
 	}
@@ -285,7 +285,7 @@ GMGR_PROFILE_END();
 				mg.register_element(vVols[j], v);
 		}
 		else{
-			LOG("  WARINING in Refine: could not refine volume.\n");
+			LOG("  WARNING in Refine: could not refine volume.\n");
 		}
 	}
 

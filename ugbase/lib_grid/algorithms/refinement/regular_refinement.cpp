@@ -242,7 +242,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt)
 				grid.register_element(newFaces[j], f);
 		}
 		else{
-			LOG("  WARINING in Refine: could not refine face.\n");
+			LOG("  WARNING in Refine: could not refine face.\n");
 		}
 	}
 
@@ -451,7 +451,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 				grid.register_element(newFaces[j], f);
 		}
 		else{
-			LOG("  WARINING in Refine: could not refine face.\n");
+			LOG("  WARNING in Refine: could not refine face.\n");
 		}
 	}
 
@@ -520,7 +520,7 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 				grid.register_element(newVols[j], v);
 		}
 		else{
-			LOG("  WARINING in Refine: could not refine volume.\n");
+			LOG("  WARNING in Refine: could not refine volume.\n");
 		}
 	}
 

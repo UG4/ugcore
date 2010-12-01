@@ -284,7 +284,7 @@ void MultiGridRefiner::refine()
 					}
 				}
 				else{
-					LOG("  WARINING in Refine: could not refine face.\n");
+					LOG("  WARNING in Refine: could not refine face.\n");
 				}
 			}
 		}
