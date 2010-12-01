@@ -140,4 +140,21 @@ bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
 	return true;
 }
 
+//	Returns the BinomialCoefficient
+int BinomCoeff(int n, int k)
+{
+//	if n == 0, we define result to be always zero iff k != 0
+	if(!n&&k) return 0;
+
+//	if denominator is greater than nominator: flip
+	if(n-k>k) return BinomCoeff(n,n-k);
+
+//	if equal binomCoeff is always one
+	if(n==k) return 1;
+
+//	do recursion
+	return BinomCoeff(n-1,k)*n/(n-k);
+}
+
+
 }//	end of namespace

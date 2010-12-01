@@ -380,6 +380,17 @@ template <class vector_t>
 bool PointIsInsideTetrahedron(const vector_t& v, const vector_t& v0, const vector_t& v1,
 							  const vector_t& v2, const vector_t& v3);
 
+////////////////////////////////////////////////////////////////////////
+//	BinomialCoefficient
+///	Returns the BinomialCoefficient
+/**
+ * Returns:
+ * 	  n!
+ * ---------
+ * k! (n-k)!
+ */
+int BinomCoeff(int n, int k);
+
 }//	end of namespace
 
 ////////////////////////////////////////////////
