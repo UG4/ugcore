@@ -9,7 +9,7 @@
 #include <vector>
 #include <list>
 #include <map>
-#include "common/smart_pointer.h"
+#include "common/util/smart_pointer.h"
 
 namespace pcl
 {

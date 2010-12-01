@@ -11,7 +11,7 @@
 #define __H__LIB_GRID__COMMON_ATTACHMENTS__
 
 #include "common/types.h"
-#include "common/util/attachment_pipe.h"
+#include "lib_grid/attachments/attachment_pipe.h"
 #include "common/math/ugmath.h"
 #include "grid/geometric_base_objects.h"
 

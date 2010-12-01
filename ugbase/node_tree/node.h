@@ -6,7 +6,7 @@
 #define __H__UG__NODE_TREE__NODE__
 
 #include "object.h"
-#include "common/smart_pointer.h"
+#include "common/util/smart_pointer.h"
 
 
 ////////////////////////////////////////////////////////////////////////

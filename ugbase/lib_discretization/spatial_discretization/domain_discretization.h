@@ -10,7 +10,7 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "common/string_util.h"
+#include "common/util/string_util.h"
 #include "lib_algebra/lib_algebra.h"
 
 // library intern headers

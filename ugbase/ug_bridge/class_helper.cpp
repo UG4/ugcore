@@ -15,7 +15,7 @@
 
 #include "class_helper.h"
 #include "registry.h"
-#include "common/string_util.h"
+#include "common/util/string_util.h"
 
 using namespace std;
 

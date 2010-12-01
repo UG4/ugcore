@@ -8,10 +8,10 @@
 #include <list>
 #include <vector>
 #include <stack>
-#include "../static_assert.h"
-#include "../types.h"
-#include "uid.h"
-#include "hash.h"
+#include "common/static_assert.h"
+#include "common/types.h"
+#include "common/util/uid.h"
+#include "common/util/hash.h"
 
 namespace ug
 {

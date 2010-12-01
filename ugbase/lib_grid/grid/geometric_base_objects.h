@@ -8,7 +8,7 @@
 #include <list>
 #include <cassert>
 #include "common/types.h"
-#include "common/util/attachment_pipe.h"
+#include "lib_grid/attachments/attachment_pipe.h"
 #include "common/util/hash.h"
 
 namespace ug

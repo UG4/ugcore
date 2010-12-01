@@ -12,7 +12,7 @@
 #include "../local_shape_function_set.h"
 #include "../local_dof_pattern.h"
 #include "lib_discretization/common/multi_index.h"
-#include "common/metaprogramming_util.h"
+#include "common/util/metaprogramming_util.h"
 
 namespace ug{
 

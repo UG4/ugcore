@@ -6,7 +6,7 @@
  */
 
 #include "groups_util.h"
-#include "common/string_util.h"
+#include "common/util/string_util.h"
 
 namespace ug{
 

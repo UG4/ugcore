@@ -8,7 +8,7 @@
 #include <iostream>
 #include <map>
 #include "pcl_methods.h"
-#include "common/smart_pointer.h"
+#include "common/util/smart_pointer.h"
 
 namespace pcl
 {

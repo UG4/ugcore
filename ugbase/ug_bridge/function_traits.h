@@ -2,7 +2,7 @@
 #ifndef __H__UG_BRIDGE__FUNCTION_TRAITS__
 #define __H__UG_BRIDGE__FUNCTION_TRAITS__
 
-#include "common/metaprogramming_util.h"
+#include "common/util/metaprogramming_util.h"
 
 namespace ug
 {
