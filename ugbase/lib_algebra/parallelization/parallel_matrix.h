@@ -17,16 +17,21 @@
 namespace ug
 {
 
+///\ingroup lib_algebra_parallelization
+
+///\brief Wrapper for sequential matrices to handle them in parallel
 /**
- * A ParallelMatrix is a wrapper around a sequential vector to make it usable in parallel.
- * It has all the function a sequential matrix supports, since it is publically derived from it.
- * Furthermore the ParallelStorageType is remembered and can be switched.
- * In addition some functions of the sequential matrix are overwritten to adapted the functionality
+ * A ParallelMatrix is a wrapper around a sequential vector to make it usable
+ * in parallel. It has all the function a sequential matrix supports, since it
+ * is derived from it. Furthermore the ParallelStorageType is remembered.
+ * Currently only additive storage type is implemented. In addition some
+ * functions of the sequential matrix are overwritten to adapted the functionality
  * to parallel (e.g. set)
  *
  * Please Note:
- * The Implementation is not yet finished. Currently only two types of matrices can be used.
+ * The Implementation is not yet finished.
  *
+ *\tparam		TMatrix		Sequential Matrix Type
  */
 template <typename TMatrix>
 class ParallelMatrix : public TMatrix
@@ -37,18 +42,21 @@ class ParallelMatrix : public TMatrix
 
 	private:
 	// 	disallow copy constructor
-	ParallelMatrix(const ParallelMatrix&);
+		ParallelMatrix(const ParallelMatrix&);
 
 	public:
+	///	own type
 		typedef ParallelMatrix<TMatrix> this_type;
 
 	public:
+	///	Default Constructor
 		ParallelMatrix()
 		: TMatrix(), m_type(PST_UNDEFINED),
 			m_pSlaveLayout(NULL), m_pMasterLayout(NULL),
 			m_pCommunicator(NULL)
 		{}
 
+	///	Constructor setting the layouts
 		ParallelMatrix(	IndexLayout& slaveLayout, IndexLayout masterLayout)
 		: TMatrix(), m_type(PST_UNDEFINED),
 			m_pSlaveLayout(&slaveLayout), m_pMasterLayout(&masterLayout),
@@ -59,74 +67,86 @@ class ParallelMatrix : public TMatrix
 		// Layouts and communicator
 		//////////////////////////////
 
-		inline void set_slave_layout(IndexLayout& layout)	{m_pSlaveLayout = &layout;}
-		inline void set_master_layout(IndexLayout& layout)	{m_pMasterLayout = &layout;}
+	///	sets slave layout
+		void set_slave_layout(IndexLayout& layout)	{m_pSlaveLayout = &layout;}
 
-		inline IndexLayout& get_slave_layout()	{return *m_pSlaveLayout;}
-		inline IndexLayout& get_master_layout()	{return *m_pMasterLayout;}
+	///	sets master layout
+		void set_master_layout(IndexLayout& layout)	{m_pMasterLayout = &layout;}
 
-		inline void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc) {m_pCommunicator = &pc;}
-		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return *m_pCommunicator;}
+	///	returns slave layout
+		IndexLayout& get_slave_layout()	{return *m_pSlaveLayout;}
 
-		inline void set_process_communicator(const pcl::ProcessCommunicator& pc)	{m_processCommunicator = pc;}
-		inline pcl::ProcessCommunicator& get_process_communicator()					{return m_processCommunicator;}
+	///	returns master layout
+		IndexLayout& get_master_layout()	{return *m_pMasterLayout;}
+
+	///	sets communicator
+		void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc) {m_pCommunicator = &pc;}
+
+	///	returns communicator
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return *m_pCommunicator;}
+
+	///	sets process communicator
+		void set_process_communicator(const pcl::ProcessCommunicator& pc)	{m_processCommunicator = pc;}
+
+	///	returns process communicator
+		pcl::ProcessCommunicator& get_process_communicator() {return m_processCommunicator;}
 
 		/////////////////////////
 		// Storage type handling
 		/////////////////////////
 
-		// sets the storage type
+	/// sets the storage type
 		void set_storage_type(ParallelStorageType type) {m_type = type;}
 
-		// adds a storage type
+	/// adds a storage type
 		void add_storage_type(ParallelStorageType type) {m_type |= type;}
 
-		// removes a storage type
+	/// removes a storage type
 		void remove_storage_type(ParallelStorageType type) {m_type &= ~type;}
 
-		// changes to the requested storage type if possible
+	/// changes to the requested storage type if possible
 		bool change_storage_type(ParallelStorageType type);
 
-		// returns if the current storage type has a given representation
+	/// returns if the current storage type has a given representation
 		bool has_storage_type(ParallelStorageType type) const {return (bool)(m_type & type);}
 
-		// returns storage type mask
+	/// returns storage type mask
 		ParallelStorageType get_storage_mask() const { return (ParallelStorageType) m_type; }
 
-		// copies the storage type from another vector
+	/// copies the storage type from another vector
 		void copy_storage_type(const this_type& v) {m_type = v.m_type;}
 
 		/////////////////////////
 		// OverWritten functions
 		/////////////////////////
 
-		// calculate res = A x
+	/// calculate res = A x
 		template<typename TPVector>
 		bool apply(TPVector &res, const TPVector &x) const;
 
-		// calculate res = A.T x
+	/// calculate res = A.T x
 		template<typename TPVector>
 		bool apply_transposed(TPVector &res, const TPVector &x) const;
 
-		// calculate res -= A x
+	/// calculate res -= A x
 		template<typename TPVector>
 		bool matmul_minus(TPVector &res, const TPVector &x) const;
 
 
 	private:
-		// type of storage  (i.e. consistent, additiv, additiv unique)
+	//  type of storage  (i.e. consistent, additiv, additiv unique)
 		int m_type;
 
-		// index layout for slave dofs
+	//  index layout for slave dofs
 		IndexLayout* m_pSlaveLayout;
 
-		// index layout for master dofs
+	//  index layout for master dofs
 		IndexLayout* m_pMasterLayout;
 
-		// communicator for direct neighbor communication
+	//  communicator for direct neighbor communication
 		pcl::ParallelCommunicator<IndexLayout>* m_pCommunicator;
 
-		// process communicator (world by default)
+	//  process communicator (world by default)
 		pcl::ProcessCommunicator m_processCommunicator;
 };
 

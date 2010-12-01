@@ -14,6 +14,8 @@
 namespace ug
 {
 
+///\ingroup lib_algebra_parallelization
+
 ///	Allows communication between distributed vectors and matrices.
 /**	Note that indices are stored in an std::vector in the moment.
  *	This allows fast iteration and memory allocation, if dynamic

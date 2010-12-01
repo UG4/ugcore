@@ -21,7 +21,10 @@ change_storage_type(ParallelStorageType type)
 {
 	// check that communicator exists
 	if(m_pCommunicator == NULL)
-		{UG_LOG("No communicator set. Cannot change storage type.\n"); return false;}
+	{
+		UG_LOG("No communicator set. Cannot change storage type.\n");
+		return false;
+	}
 
 	// can only change if current state is defined
 	if(has_storage_type(PST_UNDEFINED)) return false;
@@ -34,14 +37,18 @@ change_storage_type(ParallelStorageType type)
 	{
 	case PST_CONSISTENT:
 			 if(has_storage_type(PST_UNIQUE)){
-				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, m_pCommunicator);
+				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
+					return false;
+				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
+				                    m_pCommunicator);
 				 set_storage_type(PST_CONSISTENT);
 				 break;
 			 }
 			 else if(has_storage_type(PST_ADDITIVE)){
-				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout, m_pCommunicator);
+				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
+					return false;
+				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
+				                     m_pCommunicator);
 				set_storage_type(PST_CONSISTENT);
 				break;
 			}
@@ -61,8 +68,10 @@ change_storage_type(ParallelStorageType type)
 			else return false;
 	case PST_UNIQUE:
 			if(has_storage_type(PST_ADDITIVE)){
-				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL) return false;
-				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout, m_pCommunicator);
+				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
+					return false;
+				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout,
+				                 m_pCommunicator);
 				add_storage_type(PST_UNIQUE);
 				break;
 			}
@@ -165,20 +174,26 @@ dotprod(const this_type& v)
 	// step 1: Check if good storage type are given (no communication needed)
 	//         - additive (unique) <-> consistent is ok
 	//         - unique <-> unique is ok
-	if(this->has_storage_type(PST_ADDITIVE) && v.has_storage_type(PST_CONSISTENT)) check = true;
-	if(this->has_storage_type(PST_CONSISTENT) && v.has_storage_type(PST_ADDITIVE)) check = true;
-	if(this->has_storage_type(PST_UNIQUE)   && v.has_storage_type(PST_UNIQUE))     check = true;
+	if(this->has_storage_type(PST_ADDITIVE)
+			&& v.has_storage_type(PST_CONSISTENT)) check = true;
+	if(this->has_storage_type(PST_CONSISTENT)
+			&& v.has_storage_type(PST_ADDITIVE)) check = true;
+	if(this->has_storage_type(PST_UNIQUE)
+			&& v.has_storage_type(PST_UNIQUE))     check = true;
 
 	// step 2: fall back
-	//         if storage type not as in the upper cases, communicate to correct solution
-	//         a user of this function should ideally avoid such a change and do it outside of this function
+	//         	if storage type not as in the upper cases, communicate to
+	//			correct solution a user of this function should ideally avoid
+	//			such a change and do it outside of this function
 	if(!check)
 	{
 		// unique <-> additive => consistent <-> additive
-		if(this->has_storage_type(PST_UNIQUE) && v.has_storage_type(PST_ADDITIVE))
+		if(this->has_storage_type(PST_UNIQUE)
+				&& v.has_storage_type(PST_ADDITIVE))
 			{this->change_storage_type(PST_CONSISTENT);}
 		// additive <-> unique => unique <-> unique
-		else if(this->has_storage_type(PST_ADDITIVE) && v.has_storage_type(PST_UNIQUE))
+		else if(this->has_storage_type(PST_ADDITIVE)
+				&& v.has_storage_type(PST_UNIQUE))
 			{this->change_storage_type(PST_UNIQUE);}
 		// consistent <-> consistent => unique <-> consistent
 		else {this->change_storage_type(PST_UNIQUE);}
@@ -206,7 +221,7 @@ inline void VecScaleAssign(ParallelVector<T> &dest,
 		double alpha1, const ParallelVector<T> &v1)
 {
 	dest.copy_storage_type(v1);
-	VecScaleAssign(*dynamic_cast<T*>(&dest), 	alpha1, *dynamic_cast<const T*>(&v1));
+	VecScaleAssign(*dynamic_cast<T*>(&dest), alpha1, *dynamic_cast<const T*>(&v1));
 }
 
 
@@ -231,7 +246,9 @@ inline void VecScaleAdd(ParallelVector<T> &dest,
 		double alpha2, const ParallelVector<T> &v2,
 		double alpha3, const ParallelVector<T> &v3)
 {
-	ParallelStorageType mask = v1.get_storage_mask() & v2.get_storage_mask() & v3.get_storage_mask();
+	ParallelStorageType mask = 	v1.get_storage_mask() &
+								v2.get_storage_mask() &
+								v3.get_storage_mask();
 	UG_ASSERT(mask != 0, "VecScaleAdd: cannot add vectors v1 and v2");
 	dest.set_storage_type(mask);
 

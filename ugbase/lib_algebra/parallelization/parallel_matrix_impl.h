@@ -28,7 +28,8 @@ change_storage_type(ParallelStorageType type)
 	// can only change if current state is defined
 	if(has_storage_type(PST_UNDEFINED))
 	{
-		UG_LOG("Current Storage Type is undefined. Cannot change storage type.\n");
+		UG_LOG("Current Storage Type is undefined. "
+				"Cannot change storage type.\n");
 		return false;
 	}
 
@@ -36,8 +37,9 @@ change_storage_type(ParallelStorageType type)
 	if(has_storage_type(type))
 		return true;
 
-//	todo: Implement more.
-	UG_LOG("ERROR in 'ParallelMatrix::change_storage_type': Currently no storage conversion supported.");
+//	todo: Implement more types.
+	UG_LOG("ERROR in 'ParallelMatrix::change_storage_type':"
+			" Currently no storage conversion supported.");
 	return false;
 }
 
@@ -50,14 +52,18 @@ apply(TPVector &res, const TPVector &x) const
 {
 //	check types combinations
 	int type = -1;
-	if(this->has_storage_type(PST_ADDITIVE)   && x.has_storage_type(PST_CONSISTENT)) type = 0;
-	if(this->has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_ADDITIVE)) type = 1;
-	if(this->has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_CONSISTENT)) type = 2;
+	if(this->has_storage_type(PST_ADDITIVE)
+			&& x.has_storage_type(PST_CONSISTENT)) type = 0;
+	if(this->has_storage_type(PST_CONSISTENT)
+			&& x.has_storage_type(PST_ADDITIVE)) type = 1;
+	if(this->has_storage_type(PST_CONSISTENT)
+			&& x.has_storage_type(PST_CONSISTENT)) type = 2;
 
 //	if no admissible type is found, return error
 	if(type == -1)
 	{
-		UG_LOG("ERROR in 'ParallelMatrix::apply' (b = A*x): Wrong storage type of Matrix/Vector: Possibilities are:\n"
+		UG_LOG("ERROR in 'ParallelMatrix::apply' (b = A*x): "
+				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
 				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n");
 		return false;
@@ -88,14 +94,18 @@ apply_transposed(TPVector &res, const TPVector &x) const
 {
 //	check types combinations
 	int type = -1;
-	if(this->has_storage_type(PST_ADDITIVE)   && x.has_storage_type(PST_CONSISTENT)) type = 0;
-	if(this->has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_ADDITIVE)) type = 1;
-	if(this->has_storage_type(PST_CONSISTENT) && x.has_storage_type(PST_CONSISTENT)) type = 2;
+	if(this->has_storage_type(PST_ADDITIVE)
+			&& x.has_storage_type(PST_CONSISTENT)) type = 0;
+	if(this->has_storage_type(PST_CONSISTENT)
+			&& x.has_storage_type(PST_ADDITIVE)) type = 1;
+	if(this->has_storage_type(PST_CONSISTENT)
+			&& x.has_storage_type(PST_CONSISTENT)) type = 2;
 
 //	if no admissible type is found, return error
 	if(type == -1)
 	{
-		UG_LOG("ERROR in 'ParallelMatrix::apply_transposed' (b = A^T*x): Wrong storage type of Matrix/Vector: Possibilities are:\n"
+		UG_LOG("ERROR in 'ParallelMatrix::apply_transposed' (b = A^T*x): "
+				"Wrong storage type of Matrix/Vector: Possibilities are:\n"
 				"    - A is PST_ADDITIVE and x is PST_CONSISTENT\n"
 				"    - A is PST_CONSISTENT and x is PST_ADDITIVE\n");
 		return false;
@@ -126,13 +136,17 @@ matmul_minus(TPVector &res, const TPVector &x) const
 {
 //	check types combinations
 	int type = -1;
-	if(this->has_storage_type(PST_ADDITIVE) && x.has_storage_type(PST_CONSISTENT) && res.has_storage_type(PST_ADDITIVE)) type = 0;
+	if(this->has_storage_type(PST_ADDITIVE)
+			&& x.has_storage_type(PST_CONSISTENT)
+			&& res.has_storage_type(PST_ADDITIVE)) type = 0;
 
 //	if no admissible type is found, return error
 	if(type == -1)
 	{
-		UG_LOG("ERROR in 'ParallelMatrix::matmul_minus' (b -= A*x): Wrong storage type of Matrix/Vector: Possibilities are:\n"
-				"    - A is PST_ADDITIVE and x is PST_CONSISTENT and b is PST_ADDITIVE\n");
+		UG_LOG("ERROR in 'ParallelMatrix::matmul_minus' (b -= A*x):"
+				" Wrong storage type of Matrix/Vector: Possibilities are:\n"
+				"    - A is PST_ADDITIVE and x is PST_CONSISTENT "
+				"and b is PST_ADDITIVE\n");
 		return false;
 	}
 
@@ -140,7 +154,8 @@ matmul_minus(TPVector &res, const TPVector &x) const
 	if(!TMatrix::matmul_minus(res, x))
 		return false;
 
-//	set outgoing vector to additive storage (it could have been PST_UNIQUE before)
+//	set outgoing vector to additive storage
+//	(it could have been PST_UNIQUE before)
 	switch(type)
 	{
 		case 0: res.set_storage_type(PST_ADDITIVE); break;
@@ -149,9 +164,6 @@ matmul_minus(TPVector &res, const TPVector &x) const
 //	we're done.
 	return true;
 }
-
-
-
 
 } // end namespace ug
 
