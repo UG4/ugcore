@@ -36,7 +36,6 @@ std::string ToString(const T &t)
 #include "amg_coarsening.h"
 #include "sparsematrix_operator.h"
 
-/// \defgroup FAMG
 
 /**
  * \brief Filtering Algebraic Multigrid Functions.
