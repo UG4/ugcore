@@ -70,7 +70,6 @@ class LocalShapeFunctionSetProvider {
 	 * type and the corresponding local shape function set id from this Provider.
 	 *
 	 * \param[in]		id 		Identifier for local shape function set
-	 * \param[in]		set		Local Shape Function Set to unregister
 	 * \return			bool	true iff removal successful
 	 */
 		template <typename TRefElem>

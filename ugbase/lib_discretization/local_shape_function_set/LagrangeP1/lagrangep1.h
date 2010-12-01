@@ -55,7 +55,7 @@ class LagrangeP1
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
 		virtual size_t num_sh() const { return nsh;}
 
-	///	\copydoc ug::LocalShapeFunctionSet::position_of_dof()
+	///	\copydoc ug::LocalShapeFunctionSet::position()
 		virtual bool position(size_t i, position_type& value) const;
 
 	///	\copydoc ug::LocalShapeFunctionSet::shape()
