@@ -24,18 +24,18 @@
 namespace ug{
 
 // TODO: This function should be put to an util file
-/** AssembleVertexProjection
- *
+/**
  * This functions assembles the interpolation matrix between to
  * grid levels using only the Vertex degrees of freedom.
  *
- * \param[in] 	uCoarse			Grid function on coarse level
- * \param[in] 	uFine 			Grid function on fine level
  * \param[out]	mat 			Assembled interpolation matrix that interpolates u -> v
- *
+ * \param[in] 	approxSpace		Approximation Space
+ * \param[in]	coarseLevel		Coarse Level index
+ * \param[in]	fineLevel		Fine Level index
  */
 template <typename TApproximationSpace, typename TMatrix>
-bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace, size_t coarseLevel, size_t fineLevel)
+bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
+                              size_t coarseLevel, size_t fineLevel)
 {
 //	get DoFDistributions
 	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr = approxSpace.get_level_dof_distribution(coarseLevel);

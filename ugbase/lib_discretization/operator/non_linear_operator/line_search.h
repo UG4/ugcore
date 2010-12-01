@@ -38,20 +38,21 @@ class ILineSearch
 		/// set string to be printed before each output of line search
 		virtual void set_offset(std::string offset) = 0;
 
-		/** search
-		 *
+		/**
 		 *	Performs a line search to a given direction.
 		 *
 		 * \param[in]		Op		Non-linear operator
 		 * \param[in]  		u 		current solution
 		 * \param[in]		p		search direction
-		 * \param[in|out]	d		defect
+		 * \param[in,out]	d		defect
 		 * \param[in]		defect	norm of current defect
 		 *
 		 * \return 	true 		if line search successful
 		 * 			false 		if line search failed
 		 */
-		virtual bool search(IOperator<function_type, function_type>& Op, function_type& u, function_type& p, function_type& d, number defect) = 0;
+		virtual bool search(IOperator<function_type, function_type>& Op,
+		                    function_type& u, function_type& p,
+		                    function_type& d, number defect) = 0;
 
 		/// virtual destructor
 		virtual ~ILineSearch() {}
@@ -64,8 +65,10 @@ class StandardLineSearch : public ILineSearch<TFunction>
 		typedef TFunction function_type;
 
 	public:
-		StandardLineSearch(int maxSteps, number lambdaStart, number lambdaReduce, bool verbose)
-		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart), m_lambdaReduce(lambdaReduce),
+		StandardLineSearch(int maxSteps, number lambdaStart,
+		                   number lambdaReduce, bool verbose)
+		 :	 m_maxSteps(maxSteps), m_lambdaStart(lambdaStart),
+		  	 m_lambdaReduce(lambdaReduce),
 			 m_verbose(verbose), m_offset("")
 			 {};
 
@@ -80,7 +83,9 @@ class StandardLineSearch : public ILineSearch<TFunction>
 		void set_verbose_level(bool level) {m_verbose = level;}
 		void set_offset(std::string offset) {m_offset = offset;};
 
-		bool search(IOperator<function_type, function_type>& Op, function_type& u, function_type& p, function_type& d, number defect)
+		bool search(IOperator<function_type, function_type>& Op,
+		            function_type& u, function_type& p,
+		            function_type& d, number defect)
 		{
 			// clone pattern for s
 			s.resize(u.size());
