@@ -1013,9 +1013,6 @@ class LagrangeLSFS<ReferencePyramid, TOrder>
 					m_vvDPolynom[i2][i] = m_vvPolynom[i2][i].derivative();
 				}
 			}
-			UG_LOG("Pol (0,0) = " << m_vvPolynom[0][0] << "\n");
-			UG_LOG("Pol (0,1) = " << m_vvPolynom[0][1] << "\n");
-			UG_LOG("Pol (1,0) = " << m_vvPolynom[1][0] << "\n");
 		}
 
 	///	\copydoc ug::LocalShapeFunctionSet::num_sh()
