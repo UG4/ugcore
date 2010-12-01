@@ -24,7 +24,7 @@ namespace ug{
  * the discretization. It is also possible to select only a SubGroup of the Function Group.
  * This is done by adding a SubFunctionMap. By default, the SubFunctionMap is identity.
  * The access form discretization side is thus by a pair (fct, dof) representing the selected
- * function (0 <= fct <= # Selected Functions - 1) and local dof indices (0 <= dof <= #DoFs -1).
+ * function (0 <= fct <= # Selected Functions - 1) and local dof indices (0 <= dof <= # DoFs -1).
  * The access from algebra side is only an access to the algebra i-index. Using
  *  - local_index(size_t fct, size_t dof)
  *  - comp(size_t fct, size_t dof)
