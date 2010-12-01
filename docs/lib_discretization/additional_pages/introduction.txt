@@ -7,7 +7,7 @@
 	- \ref secLDAbout "About"
 	
 <hr>
-\section secLGAbout About
+\section secLDAbout About
 libDiscretization is a library to provide Disretization tools that work
 on grids and algebras provided by libGrid and libAlgebra and is the third part
 of ug. libDiscretization depends on both libraries, while the other two 

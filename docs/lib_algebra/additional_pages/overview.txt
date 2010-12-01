@@ -7,7 +7,7 @@
 	- \ref secSmallAlgebra "Small Algebra"
 	- \ref secCPUAlgebra "(Sparse) CPU Algebra"
 	- \ref secOperators "Operators"
-	- \ref secParallelization "Parallization"	
+	- \ref secParallelization "Algebra Parallelization"	
 	- \ref secLAPACKIntegration "LAPACK Integration"
 	
 <br>
@@ -66,6 +66,32 @@ or DenseVector as template. Some functions are also using SparseMatrix:
 	- ug::MatMultAdd (x = alpha1 A y + alpha2 z , ...)
 <br>
 
+<hr>
+\section secOperators Operators
+<hr>
+
+Operators are mappings from between spaces. Thus, the Operator interfaces
+are designed in this way. You can find the following operator interfaces:
+	- ug::IOperator
+	- ug::ILinearOperator
+	- ug::IMatrixOperator
+<br>
+	
+In order to invert this operators one may use a specialization of the 
+following interfaces:
+	- ug::IOperatorInverse
+	- ug::ILinearOperatorInverse
+	- ug::IMatrixOperatorInverse
+<br>
+
+<hr>
+\section secParallelization Parallelization of Algebra
+<hr>
+
+The algebra is parallelized using the Parallel Communication Layer (PCL). 
+The main idea is to build interfaces between processes. These interfaces 
+describe with index on the each process represent the same vector entry.
+<br>
 
 <hr>
 \section secLAPACKIntegration Lapack Integration
