@@ -117,7 +117,7 @@ struct Factorial<1>
  * ---------
  * k! (n-k)!
  */
-template <size_t k, size_t n>
+template <size_t n, size_t k>
 struct BinomialCoefficient
 {
     enum { value = 	Factorial<n>::value/
