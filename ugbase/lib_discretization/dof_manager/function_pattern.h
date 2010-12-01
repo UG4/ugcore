@@ -35,13 +35,19 @@ class FunctionPattern
 
 		/// add a single solution of LocalShapeFunctionSetID to the entire domain (i.e. all elements of the (Multi-)grid)
 		/**
-		 * \param[in] name			Name of this Single Solution
-		 * \param[in] TrialSpace	Trial Space for this function
+		 * \param[in] 	name		Name of this Single Solution
+		 * \param[in] 	id			Shape Function set id
+		 * \param[in]	dim			Dimension
 		 */
-		virtual bool add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
+		virtual bool add_discrete_function(const char* name,
+		                                   LocalShapeFunctionSetID id, int dim)
 		{
 		// 	if already fixed, return false
-			if(m_bLocked) {UG_LOG("Already fixed. Cannot change Distributor.\n"); return false;}
+			if(m_bLocked)
+			{
+				UG_LOG("Already fixed. Cannot change Distributor.\n");
+				return false;
+			}
 
 		//	check that subset handler exists
 			if(m_pSH == NULL)
@@ -65,10 +71,14 @@ class FunctionPattern
 		/// add a single solution of LocalShapeFunctionSetID to selected subsets
 		/**
 		 * \param[in] name			Name of this Single Solution
-		 * \param[in] TrialSpace	Trial Space for this function
+		 * \param[in] id			Shape Function set id
 		 * \param[in] SubsetIndices	SubsetGroup of subset indices, where this solution lives
+		 * \param[in] dim			Dimension
 		 */
-		virtual bool add_discrete_function(const char* name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim)
+		virtual bool add_discrete_function(const char* name,
+		                                   LocalShapeFunctionSetID id,
+		                                   const SubsetGroup& SubsetIndices,
+		                                   int dim)
 		{
 		// 	if already fixed, return false
 			if(m_bLocked) {UG_LOG("Already fixed. Cannot change Distributor.\n"); return false;}
