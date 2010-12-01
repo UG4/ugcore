@@ -282,6 +282,7 @@ std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<N>& v)
 	return outStream;
 }
 
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1>& v);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<3>& v);
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<4>& v);

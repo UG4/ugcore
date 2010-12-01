@@ -10,6 +10,12 @@
 
 namespace ug{
 
+std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<1>& v)
+{
+	outStream << "(" << v.coord(0) << ")";
+	return outStream;
+}
+
 std::ostream& operator<< (std::ostream& outStream, const ug::MathVector<2>& v)
 {
 	outStream << "(" << v.coord(0) << ", " << v.coord(1) << ")";
