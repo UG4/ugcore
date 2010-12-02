@@ -16,7 +16,18 @@ namespace ug{
 
 // predeclaration of block_traits
 template <typename t> struct block_traits;
+/*
+// declaration of BlockSerialize and BlockDeserialize
+template <typename t> void BlockSerialize(t& block, std::ostream& buff)
+{
+	buff.write((char*)&block, sizeof(t));
+}
 
+template <typename t> void BlockDeserialize(std::istream& buff, t& block)
+{
+	buff.read((char*)&block, sizeof(t));
+}
+*/
 /**
  * \brief Communication Policies for parallel Algebra
  *

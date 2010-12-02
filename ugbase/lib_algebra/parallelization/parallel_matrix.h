@@ -12,7 +12,6 @@
 #include "parallel_index_layout.h"
 #include "parallelization_util.h"
 #include "parallel_storage_type.h"
-#include "../common/operations.h"
 
 namespace ug
 {
