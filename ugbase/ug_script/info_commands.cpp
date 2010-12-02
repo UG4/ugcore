@@ -1,5 +1,5 @@
 /**
- * \file typeinfo.cpp
+ * \file info_commands.cpp
  *
  * \author Martin Rupp
  *
