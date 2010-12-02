@@ -8,26 +8,16 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__COMMUNICATION_POLICIES__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__COMMUNICATION_POLICIES__
 
-#include "parallel_index_layout.h"
 #include "pcl/pcl.h"
+#include "common/serialization.h"
+#include "parallel_index_layout.h"
 
 
 namespace ug{
 
 // predeclaration of block_traits
 template <typename t> struct block_traits;
-/*
-// declaration of BlockSerialize and BlockDeserialize
-template <typename t> void BlockSerialize(t& block, std::ostream& buff)
-{
-	buff.write((char*)&block, sizeof(t));
-}
 
-template <typename t> void BlockDeserialize(std::istream& buff, t& block)
-{
-	buff.read((char*)&block, sizeof(t));
-}
-*/
 /**
  * \brief Communication Policies for parallel Algebra
  *
@@ -107,7 +97,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	write entry into buffer
-				BlockSerialize(v[index], buff);
+				Serialize(buff, v[index]);
 			}
 			return true;
 		}
@@ -136,7 +126,7 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	write entry into vector
-				BlockDeserialize(buff, v[index]);
+				Deserialize(buff, v[index]);
 			}
 			return true;
 		}
@@ -216,7 +206,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	copy value into buffer
-				BlockSerialize(v[index], buff);
+				Serialize(buff, v[index]);
 			}
 			return true;
 		}
@@ -245,7 +235,7 @@ class ComPol_VecScaleCopy : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	copy value from buffer
-				BlockDeserialize(buff, v[index]);
+				Deserialize(buff, v[index]);
 
 			//	scale value
 				v[index] *= m_scale;
@@ -325,7 +315,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			// copy entry
-				BlockSerialize(v[index], buff);
+				Serialize(buff, v[index]);
 			}
 			return true;
 		}
@@ -357,7 +347,7 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	copy entry
-				BlockDeserialize(buff, entry);
+				Deserialize(buff, entry);
 
 			//	add entry
 				v[index] += entry;
@@ -438,7 +428,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			// copy entry
-				BlockSerialize(v[index], buff);
+				Serialize(buff, v[index]);
 			}
 			return true;
 		}
@@ -470,7 +460,7 @@ class ComPol_VecScaleAdd : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	copy entry
-				BlockDeserialize(buff, entry);
+				Deserialize(buff, entry);
 
 			//	add entry
 				v[index] += entry * m_scale;
@@ -554,7 +544,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			// copy values
-				BlockSerialize(v[index], buff);
+				Serialize(buff, v[index]);
 
 			// set to zero on this process
 				v[index] = 0.0;
@@ -589,7 +579,7 @@ class ComPol_VecAddSetZero : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	copy values
-				BlockDeserialize(buff, entry);
+				Deserialize(buff, entry);
 
 			//	add entry
 				v[index] += entry;
@@ -667,7 +657,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			// copy value
-				BlockSerialize(v[index], buff);
+				Serialize(buff, v[index]);
 			}
 			return true;
 		}
@@ -699,7 +689,7 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 				const size_t index = interface.get_element(iter);
 
 			//	copy vector
-				BlockDeserialize(buff, entry);
+				Deserialize(buff, entry);
 
 			//	subtract entry
 				v[index] -= entry;

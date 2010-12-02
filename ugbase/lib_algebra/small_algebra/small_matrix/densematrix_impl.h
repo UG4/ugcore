@@ -178,7 +178,7 @@ template<size_t Tr, size_t Tc> inline bool BlockDeserialize(std::istream &buff, 
 }
 
 
-template<typename T> inline bool BlockSerialize(const DenseMatrix<VariableArray2<T> > &mat, std::ostream &buff)
+template<typename T> inline void Serialize(std::ostream &buff, const DenseMatrix<VariableArray2<T> > &mat)
 {
 	size_t rows = mat.num_rows();
 	size_t cols = mat.num_cols();
@@ -187,10 +187,9 @@ template<typename T> inline bool BlockSerialize(const DenseMatrix<VariableArray2
 	for(size_t r=0; r<rows; r++)
 		for(size_t c=0; c<cols; c++)
 			BlockSerialize(mat(r, c), buff);
-	return true;
 }
 
-template<typename T> inline bool BlockDeserialize(std::istream &buff, const DenseMatrix<VariableArray2<T> > &mat)
+template<typename T> inline void Deserialize(std::istream &buff, const DenseMatrix<VariableArray2<T> > &mat)
 {
 	size_t rows, cols;
 	buff.read((char*)&rows, sizeof(rows));
@@ -199,7 +198,6 @@ template<typename T> inline bool BlockDeserialize(std::istream &buff, const Dens
 	for(size_t r=0; r<rows; r++)
 		for(size_t c=0; c<cols; c++)
 			BlockDeserialize(buff, mat(r, c));
-	return true;
 }
 
 

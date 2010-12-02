@@ -122,19 +122,6 @@ inline bool InverseMatMult(number &dest, const double &beta, const number &mat, 
 	return true;
 }
 
-
-inline bool BlockSerialize(const double &d, std::ostream &buff)
-{
-	buff.write((char*)&d, sizeof(d));
-	return true;
-}
-
-inline bool BlockDeserialize(std::istream &buff, const double &d)
-{
-	buff.read((char*)&d, sizeof(d));
-	return true;
-}
-
 ///////////////////////////////////////////////////////////////////
 // traits: information for numbers
 

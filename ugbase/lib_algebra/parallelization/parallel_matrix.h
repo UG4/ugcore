@@ -149,10 +149,15 @@ class ParallelMatrix : public TMatrix
 		pcl::ProcessCommunicator m_processCommunicator;
 };
 
+//	predaclaration.
+//	this type may already be declared somewhere else, which shouldn't hurt.
+template<typename T>
+struct matrix_algebra_type_traits;
+
 template<typename T>
 struct matrix_algebra_type_traits<ParallelMatrix<T> >
 {
-	static const matrix_algebra_type type = matrix_algebra_type_traits<T>::type;
+	static const int type = matrix_algebra_type_traits<T>::type;
 };
 
 } // end namespace ug
