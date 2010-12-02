@@ -189,8 +189,12 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		
 //	MultiGrid
 	reg.add_class_<MultiGrid, Grid>("MultiGrid", grp.c_str())
-		.add_constructor();
-
+		.add_constructor()
+		.add_method("num_vertices_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<VertexBase>)
+		.add_method("num_edges_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
+		.add_method("num_faces_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Face>)
+		.add_method("num_volumes_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Volume>);
+		
 //  ISubsetHandler
 	reg.add_class_<ISubsetHandler>("ISubsetHandler", grp.c_str())
 		.add_method("num_subsets", &ISubsetHandler::num_subsets)

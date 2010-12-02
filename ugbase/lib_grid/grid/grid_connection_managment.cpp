@@ -848,11 +848,9 @@ void Grid::register_face(Face* f, GeometricObject* pParent)
 			{
 				if(option_is_enabled(FACEOPT_AUTOGENERATE_EDGES))
 				{
-				//	create the edge
-				//	we do not regard the parent of the face as the parent of the edge,
-				//	since this may lead to undesired sideeffects.
+				//	create the edge - regard the parent of f as the parent of the new edge, too.
 					e = f->create_edge(i);
-					register_edge(e);
+					register_edge(e, pParent);
 				}
 			}
 			else
@@ -1293,10 +1291,8 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 				if(option_is_enabled(VOLOPT_AUTOGENERATE_EDGES))
 				{
 				//	create the edge
-				//	we do not regard the parent of the volume as the parent of the edge,
-				//	since this may lead to undesired sideeffects.
 					e = v->create_edge(i);
-					register_edge(e);
+					register_edge(e, pParent);
 				}
 			}
 			else
@@ -1327,10 +1323,8 @@ void Grid::register_volume(Volume* v, GeometricObject* pParent)
 			{
 				if(option_is_enabled(VOLOPT_AUTOGENERATE_FACES))
 				{
-				//	we do not regard the parent of the volume as the parent of the face,
-				//	since this may lead to undesired sideeffects.
 					f = v->create_face(i);
-					register_face(f);
+					register_face(f, pParent);
 				}
 			}
 			else

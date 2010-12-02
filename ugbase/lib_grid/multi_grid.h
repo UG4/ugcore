@@ -229,7 +229,7 @@ class MultiGrid : public Grid, public GridObserver
 		inline uint num_levels() const	{return m_hierarchy.num_subsets();}
 
 		template <class TElem> inline
-		uint num(int level) const		{return m_hierarchy.num<TElem>(level);}
+		size_t num(int level) const		{return m_hierarchy.num<TElem>(level);}
 
 		template <class TElem> inline
 		typename geometry_traits<TElem>::iterator

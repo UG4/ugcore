@@ -9,9 +9,7 @@
 --
 ----------------------------------------------------------
 
--- make sure that ug_util is in the right path.
--- currently only the path in which you start your application is valid.
-dofile("../scripts/ug_util.lua")
+ug_load_script("ug_util.lua")
 
 
 nSystems = GetParam("-block", 1)+0
