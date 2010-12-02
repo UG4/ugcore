@@ -122,13 +122,28 @@ allreduce(void* sendBuf, void* recBuf, int count,
 
 void
 ProcessCommunicator::
+gather(void* sendBuf, int sendCount, DataType sendType,
+	   void* recBuf, int recCount, DataType recType, int root) const
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::gather: empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::gather: empty communicator.\n");
+	}
+	
+	MPI_Gather(sendBuf, sendCount, sendType, recBuf,
+			   recCount, recType, root, m_comm->m_mpiComm);
+}
+
+void
+ProcessCommunicator::
 allgather(void* sendBuf, int sendCount, DataType sendType,
 		  void* recBuf, int recCount, DataType recType) const
 {
 	assert(!empty() &&
-			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
+			"ERROR in ProcessCommunicator::allgather: empty communicator.");
 	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
+		UG_LOG("ERROR in ProcessCommunicator::allgather: empty communicator.\n");
 	}
 	
 	MPI_Allgather(sendBuf, sendCount, sendType, recBuf,
@@ -142,9 +157,9 @@ allgatherv(void* sendBuf, int sendCount, DataType sendType,
 			DataType recType) const
 {
 	assert(!empty() &&
-			"ERROR in ProcessCommunicator::allreduce: empty communicator.");
+			"ERROR in ProcessCommunicator::allgatherv: empty communicator.");
 	if(empty()){
-		UG_LOG("ERROR in ProcessCommunicator::allreduce: empty communicator.\n");
+		UG_LOG("ERROR in ProcessCommunicator::allgatherv: empty communicator.\n");
 	}
 	
 	MPI_Allgatherv(sendBuf, sendCount, sendType, recBuf,

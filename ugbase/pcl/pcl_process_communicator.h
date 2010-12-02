@@ -55,6 +55,19 @@ class ProcessCommunicator
 		void allreduce(void* sendBuf, void* recBuf, int count,
 					   DataType type, ReduceOperation op) const;
 		
+	///	performs MPI_Gather on the processes of the communicator.
+	/**	This method synchronises involved processes.
+	 * \param sendBuf starting address of send buffer (choice)
+	 * \param sendCount number of elements in send buffer (integer)
+	 * \param sendType data type of send buffer elements (handle)
+	 * \param recBuf only significant for root process. All gathered data is written here.
+	 * \param recCount number of elements received from any process (integer)
+	 * \param recType data type of receive buffer elements (handle)
+	 * \param root The rank of the process that receives all the data.
+	 */
+		void gather(void* sendBuf, int sendCount, DataType sendType,
+					void* recBuf, int recCount, DataType recType, int root) const;
+					   
 	///	performs MPI_Allgather on the processes of the communicator.
 	/**	This method synchronises involved processes.
 	 * \param sendBuf starting address of send buffer (choice)
