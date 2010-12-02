@@ -16,6 +16,9 @@
 namespace ug{
 
 // predeclaration of block_traits
+/**	The block-traits are required by communication policies to determine whether buffers
+ *	have a fixed size or whether they have to be treated in a more flexible way.
+ */
 template <typename t> struct block_traits;
 
 /**
