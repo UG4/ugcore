@@ -10,6 +10,7 @@
 #include "common/types.h"
 #include "lib_grid/attachments/attachment_pipe.h"
 #include "common/util/hash.h"
+#include "common/allocators/small_object_allocator.h"
 
 namespace ug
 {
@@ -207,7 +208,7 @@ iterator_cast(const TIterSrc& iter)
  *
  * \ingroup lib_grid_geometric_objects
  */
-class GeometricObject
+class GeometricObject/* : public SmallObject<>*/
 {
 	friend class Grid;
 	friend class attachment_traits<GeometricObject*, Grid>;
