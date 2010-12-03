@@ -109,16 +109,6 @@ if utilLoadDomain(dom, gridName) == false then
    exit()
 end
 
--- get subset handler
-sh = dom:get_subset_handler()
---if sh:num_subsets() ~= 2 then 
---	print("Domain must have 2 Subsets for this problem.")
---	exit()
---end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("DirichletBoundary", 1)
---sh:set_subset_name("NeumannBoundary", 2)
-
 -- create Refiner
 print("Create Refiner")
 if numPreRefs > numRefs then
@@ -141,6 +131,16 @@ print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
 	utilGlobalRefineParallelDomain(dom)
 end
+
+-- get subset handler
+sh = dom:get_subset_handler()
+if sh:num_subsets() ~= 2 then 
+	print("Domain must have 2 Subsets for this problem.")
+	exit()
+end
+sh:set_subset_name("Inner", 0)
+sh:set_subset_name("DirichletBoundary", 1)
+--sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
 utilSaveDomain(dom, "refined_grid.ugx")
