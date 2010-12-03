@@ -63,7 +63,7 @@ class ParallelMGDoFManager : public TMGDoFManager
 			bool no_cut = true;
 
 		//	if no levels given, we're done
-			if(TMGDoFManager::num_levels() > 0) return true;
+			if(TMGDoFManager::num_levels() == 0) return true;
 
 			for(size_t l = TMGDoFManager::num_levels() - 1; ; --l)
 			{
