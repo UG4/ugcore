@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 
+#include "common/common.h"
 #include "lib_discretization/common/subset_group.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_id.h"
 #include "lib_grid/tools/subset_handler_interface.h"
@@ -21,105 +22,71 @@ namespace ug{
 //	ERROR_FunctionPatternLocked
 struct ERROR_FunctionPatternLocked{};
 
-
+/// Describes the setup of discrete functions on a SubsetHandler
+/**
+ * A Function Pattern is used to describe the setup for discrete functions on
+ * a domain. Therefore, it has the underlying SubsetHandler of the Domain.
+ * The functions (sometimes also called grid functions) are defined with respect
+ * to the subsets: A function can 'live' on parts of the subsets as well as on
+ * the whole domain.
+ */
 class FunctionPattern
 {
 	public:
-		FunctionPattern() : m_bLocked(false), m_pSH(NULL) {clear();}
+	///	Default Constructor
+		FunctionPattern() :
+			m_bLocked(false), m_pSH(NULL)
+		{clear();}
 
-		/// set an underlying subset handler
+	/// set an underlying subset handler
 		void set_subset_handler(const ISubsetHandler& sh) {m_pSH = &sh; clear();}
 
-		/// get underlying subset handler
+	/// get underlying subset handler
 		const ISubsetHandler* get_subset_handler() const {return m_pSH;}
 
-		/// add a single solution of LocalShapeFunctionSetID to the entire domain (i.e. all elements of the (Multi-)grid)
-		/**
-		 * \param[in] 	name		Name of this Single Solution
-		 * \param[in] 	id			Shape Function set id
-		 * \param[in]	dim			Dimension
-		 */
+	/// add a single solution of LocalShapeFunctionSetID to the entire domain
+	/**
+	 * \param[in] 	name		Name of this Single Solution
+	 * \param[in] 	id			Shape Function set id
+	 * \param[in]	dim			Dimension (optional)
+	 */
 		virtual bool add_discrete_function(const char* name,
-		                                   LocalShapeFunctionSetID id, int dim)
-		{
-		// 	if already fixed, return false
-			if(m_bLocked)
-			{
-				UG_LOG("Already fixed. Cannot change Distributor.\n");
-				return false;
-			}
+		                                   LocalShapeFunctionSetID id,
+		                                   int dim = -1);
 
-		//	check that subset handler exists
-			if(m_pSH == NULL)
-			{
-				UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
-						"SubsetHandler not set.\n");
-				return false;
-			}
-
-		//	create temporary subset group
-			SubsetGroup tmpSubsetGroup;
-			tmpSubsetGroup.set_subset_handler(*m_pSH);
-			tmpSubsetGroup.add_all_subsets();
-
-		// 	add to function list, everywhere = true, copy SubsetGroup
-			m_vFunction.push_back(Function(name, dim, id, true, tmpSubsetGroup));
-
-			return true;
-		}
-
-		/// add a single solution of LocalShapeFunctionSetID to selected subsets
-		/**
-		 * \param[in] name			Name of this Single Solution
-		 * \param[in] id			Shape Function set id
-		 * \param[in] SubsetIndices	SubsetGroup of subset indices, where this solution lives
-		 * \param[in] dim			Dimension
-		 */
+	/// add a single solution of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			Name of this Single Solution
+	 * \param[in] id			Shape Function set id
+	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
+	 * \param[in] dim			Dimension
+	 */
 		virtual bool add_discrete_function(const char* name,
 		                                   LocalShapeFunctionSetID id,
 		                                   const SubsetGroup& SubsetIndices,
-		                                   int dim)
-		{
-		// 	if already fixed, return false
-			if(m_bLocked) {UG_LOG("Already fixed. Cannot change Distributor.\n"); return false;}
+		                                   int dim = -1);
 
-		//	check that subset handler exists
-			if(m_pSH == NULL)
-			{
-				UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
-						"SubsetHandler not set.\n");
-				return false;
-			}
-
-		//	check that subset handler are equal
-			if(m_pSH != SubsetIndices.get_subset_handler())
-			{
-				UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
-						"SubsetHandler of SubsetGroup does not match SubsetHandler of FunctionPattern.\n");
-				return false;
-			}
-
-		// 	add to function list, everywhere = false, copy SubsetGroup as given
-			m_vFunction.push_back(Function(name, dim, id, false, SubsetIndices));
-
-			return true;
-		}
-
+	///	lock pattern (i.e. can not be changed then)
 		inline void lock()	{m_bLocked = true;}
 
+	///	returns if pattern is locked
 		inline bool is_locked() const {return m_bLocked;}
 
-		/// clear all functions
-		void clear() {if(is_locked()) throw(ERROR_FunctionPatternLocked()); m_vFunction.clear();}
+	/// clear all functions
+		void clear()
+		{
+			if(is_locked()) throw(ERROR_FunctionPatternLocked());
+			m_vFunction.clear();
+		}
 
-		/// number of discrete functions this dof distributor handles
+	/// number of discrete functions this dof distributor handles
 		size_t num_fct() const
 		{
 			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
 			return m_vFunction.size();
 		}
 
-		/// number of discrete functions this dof distributor handles an subset si
+	/// number of discrete functions on a subset
 		size_t num_fct(int si) const
 		{
 			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
@@ -131,7 +98,7 @@ class FunctionPattern
 			return num;
 		}
 
-		/// returns the trial space of the discrete function fct
+	/// returns the trial space of a discrete function
 		LocalShapeFunctionSetID local_shape_function_set_id(size_t fct) const
 		{
 			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
@@ -139,7 +106,7 @@ class FunctionPattern
 			return m_vFunction[fct].id;
 		}
 
-		/// returns the name of the discrete function nr_fct
+	/// returns the name of a discrete function
 		const char* name(size_t fct) const
 		{
 			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
@@ -147,7 +114,7 @@ class FunctionPattern
 			return m_vFunction[fct].name.c_str();
 		}
 
-		/// returns fct_id of the loc_fct on subset si
+	/// returns function id of the loc_fct's function on subset si
 		size_t fct_id(size_t loc_fct, int si) const
 		{
 			size_t fct = 0;
@@ -158,7 +125,7 @@ class FunctionPattern
 			return fct;
 		}
 
-		/// returns the function id if function with given name found in pattern, -1 else
+	/// returns the function id if function with given name found in pattern, -1 else
 		size_t fct_id_by_name(const char* name) const
 		{
 			for(size_t i = 0; i < m_vFunction.size(); ++i)
@@ -170,7 +137,7 @@ class FunctionPattern
 			return (size_t) -1;
 		}
 
-		/// returns the dimension in which solution lives
+	/// returns the dimension in which solution lives
 		int dim(size_t fct) const
 		{
 			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
@@ -178,7 +145,7 @@ class FunctionPattern
 			return m_vFunction[fct].dim;
 		}
 
-		/// returns true if the discrete function nr_fct is defined on subset s
+	/// returns true if the discrete function nr_fct is defined on subset si
 		bool is_def_in_subset(size_t fct, int si) const
 		{
 			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
@@ -186,14 +153,18 @@ class FunctionPattern
 			return m_vFunction[fct].is_def_in_subset(si);
 		}
 
-		// virtual destructor
+	/// virtual destructor
 		virtual ~FunctionPattern() {}
 
 	protected:
+	///	internal structure to hold all functions
 		struct Function
 		{
-			Function(const char* name_, int dim_, LocalShapeFunctionSetID id_, bool everywhere_, const SubsetGroup& subsetIndices_)
-				: name(name_), dim(dim_), id(id_), everywhere(everywhere_), subsetIndices(subsetIndices_){};
+			Function(const char* name_, int dim_,
+			         LocalShapeFunctionSetID id_, bool everywhere_,
+			         const SubsetGroup& subsetIndices_)
+				: name(name_), dim(dim_), id(id_),
+				  everywhere(everywhere_), subsetIndices(subsetIndices_){};
 
 			std::string name;
 			int dim;
@@ -210,13 +181,13 @@ class FunctionPattern
 		};
 
 	protected:
-		// bool if pattern is fixed
+	// 	flag if pattern is fixed
 		bool m_bLocked;
 
-		// underlying subset handler
+	// 	underlying subset handler
 		const ISubsetHandler* m_pSH;
 
-		// informations about Functions
+	// 	informations about Functions
 		std::vector<Function> m_vFunction;
 };
 
