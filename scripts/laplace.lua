@@ -16,6 +16,7 @@ dim = 2
 
 if dim == 2 then
 	gridName = "unit_square_tri.ugx"
+	--gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = "unit_cube_hex.ugx"
@@ -107,16 +108,6 @@ if utilLoadDomain(dom, gridName) == false then
    exit()
 end
 
--- get subset handler
-sh = dom:get_subset_handler()
---if sh:num_subsets() ~= 2 then 
---	print("Domain must have 2 Subsets for this problem.")
---	exit()
---end
-sh:set_subset_name("Inner", 0)
-sh:set_subset_name("DirichletBoundary", 1)
---sh:set_subset_name("NeumannBoundary", 2)
-
 -- create Refiner
 print("Create Refiner")
 if numPreRefs > numRefs then
@@ -139,6 +130,16 @@ print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
 	utilGlobalRefineParallelDomain(dom)
 end
+
+-- get subset handler
+sh = dom:get_subset_handler()
+if sh:num_subsets() ~= 2 then 
+print("Domain must have 2 Subsets for this problem.")
+exit()
+end
+sh:set_subset_name("Inner", 0)
+sh:set_subset_name("DirichletBoundary", 1)
+--sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
 utilSaveDomain(dom, "refined_grid.ugx")
@@ -349,7 +350,7 @@ bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, cgSolver)
+ApplyLinearSolver(linOp, u, b, linSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")
