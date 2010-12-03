@@ -6,6 +6,7 @@
 #define __H__PCL__PCL_COMMUNICATOR_IMPL__
 
 #include <iostream>
+#include <cassert>
 #include "mpi.h"
 #include "pcl_methods.h"
 #include "pcl_communication_structs.h"
