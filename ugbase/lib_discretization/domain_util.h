@@ -63,8 +63,9 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 ///	returns the current dimension of the subset
 /** Returns the dimension of geometric objects, that are contained in the subset
  *
- * This function returns the dimension of the subset. The dimension is simply defined
- * to be the highest reference dimension of all geometric objects contained in the subset
+ * This function returns the dimension of the subset. The dimension is simply
+ * defined to be the highest reference dimension of all geometric objects
+ * contained in the subset
  *
  * \param[in]	sh			SubsetHandler
  * \param[in]	si			Subset Index
@@ -78,8 +79,9 @@ inline int DimensionOfSubset(const SubsetHandler& sh, int si);
 ///	returns the current dimension of the subset
 /** Returns the dimension of geometric objects, that are contained in the subset
  *
- * This function returns the dimension of the subset. The dimension is simply defined
- * to be the highest reference dimension of all geometric objects contained in the subset
+ * This function returns the dimension of the subset. The dimension is simply
+ * defined to be the highest reference dimension of all geometric objects
+ * contained in the subset
  *
  * \param[in]	sh			MultiGridSubsetHandler
  * \param[in]	si			Subset Index
@@ -93,8 +95,40 @@ inline int DimensionOfSubset(const MGSubsetHandler& sh, int si);
 ///	returns the current dimension of the subset
 /** Returns the dimension of geometric objects, that are contained in the subset
  *
- * This function returns the dimension of the subset. The dimension is simply defined
- * to be the highest reference dimension of all geometric objects contained in the subset
+ * This function returns the dimension of the subset. The dimension is simply
+ * defined to be the highest reference dimension of all geometric objects
+ * contained in the subset
+ *
+ * \param[in]	sh			ISubsetHandler
+ * \param[in]	si			Subset Index
+ *
+ * \return		dimension	Dimension of Subset
+ * 				-1 			if no Dimension accessible
+ */
+inline int DimensionOfSubset(const ISubsetHandler& sh, int si);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the current dimension for all subset
+/** Returns the dimension of geometric objects, that are contained in the subset handler
+ *
+ * This function returns the dimension of the subsets. The dimension is simply
+ * defined to be the highest reference dimension of all geometric objects
+ * contained the union of all subset
+ *
+ * \param[in]	sh			ISubsetHandler
+ *
+ * \return		dimension	Dimension of Subset
+ * 				-1 			if no Dimension accessible
+ */
+inline int DimensionOfSubsets(const ISubsetHandler& sh);
+
+////////////////////////////////////////////////////////////////////////
+///	returns the current dimension of the subset
+/** Returns the dimension of geometric objects, that are contained in the subset
+ *
+ * This function returns the dimension of the subset. The dimension is simply
+ * defined to be the highest reference dimension of all geometric objects
+ * contained in the subset
  *
  * \param[in]	domain		Domain
  * \param[in]	si			Subset Index

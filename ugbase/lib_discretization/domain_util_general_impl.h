@@ -51,6 +51,27 @@ inline int DimensionOfSubset(const ISubsetHandler& ish, int si)
 	return -1;
 }
 
+inline int DimensionOfSubsets(const ISubsetHandler& sh)
+{
+//	dimension to be computed
+	int dim = -1;
+
+//	loop subsets
+	for(int si = 0; si < sh.num_subsets(); ++si)
+	{
+	//	get dimension of subset
+		int siDim = DimensionOfSubset(sh, si);
+
+	//	if no dimension available, return -1
+		if(siDim == -1) return -1;
+
+	//	check if dimension is higher than already checked subsets
+		if(dim < siDim)
+			dim = siDim;
+	}
+	return dim;
+}
+
 ///	returns the current dimension of the subset
 template <typename TDomain>
 inline int DimensionOfSubset(const TDomain& domain, int si)
