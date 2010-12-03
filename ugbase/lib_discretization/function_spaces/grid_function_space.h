@@ -175,6 +175,11 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			return true;
 		}
 
+		void print_statistic() const
+		{
+			m_MGDoFManager.print_statistic();
+		}
+
 		// create a new grid function of this approximation space
 		function_type* create_level_function(std::string name, size_t level, bool allocate = true)
 		{

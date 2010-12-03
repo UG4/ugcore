@@ -58,13 +58,28 @@ class DoFDistribution
 
 #ifdef UG_PARALLEL
 	public:
-		inline IndexLayout& get_slave_layout()	{return m_slaveLayout;}
-		inline IndexLayout& get_master_layout()	{return m_masterLayout;}
-		inline IndexLayout& get_vertical_slave_layout()		{return m_verticalSlaveLayout;}
-		inline IndexLayout& get_vertical_master_layout()	{return m_verticalMasterLayout;}
+		IndexLayout& get_slave_layout()	{return m_slaveLayout;}
+		IndexLayout& get_master_layout()	{return m_masterLayout;}
+		IndexLayout& get_vertical_slave_layout()		{return m_verticalSlaveLayout;}
+		IndexLayout& get_vertical_master_layout()	{return m_verticalMasterLayout;}
 
-		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
-		inline pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
+		pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
+
+		size_t num_master_dofs() {return num_dofs(m_masterLayout);}
+		size_t num_slave_dofs() {return num_dofs(m_slaveLayout);}
+		size_t num_vertical_master_dofs() {return num_dofs(m_verticalMasterLayout);}
+		size_t num_vertical_slave_dofs() {return num_dofs(m_verticalSlaveLayout);}
+
+	protected:
+		size_t num_dofs(IndexLayout& Layout) const
+		{
+			size_t sum = 0;
+			for(IndexLayout::iterator iter = Layout.begin();
+					iter != Layout.end(); ++iter)
+				sum += Layout.interface(iter).size();
+			return sum;
+		}
 
 	protected:
 		// index layout for each grid level

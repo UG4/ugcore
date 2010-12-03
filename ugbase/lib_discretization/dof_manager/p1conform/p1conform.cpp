@@ -232,15 +232,6 @@ distribute_dofs()
 	}
 	m_numDoFs = i;
 
-	UG_LOG(std::setw(8) << m_numDoFs <<" |     " << 1 << "     | " );
-
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-		UG_LOG( " (" << si << ","<<1<<"," << std::setw(8) << m_vNumDoFs[si] << ") ");
-	}
-	UG_LOG(std::endl);
-
-
 //	order
 	if(!order_cuthill_mckee())
 	{
@@ -251,6 +242,7 @@ distribute_dofs()
 
 	return true;
 }
+
 ///////////// Help functions /////////////////
 VertexBase* P1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t i) const
 {
@@ -408,18 +400,8 @@ distribute_dofs()
 	}
 	m_numDoFs = i;
 
-	UG_LOG(std::setw(8) << m_numDoFs <<" | " << "variable" << "  | " );
-
-	for(int si = 0; si < num_subsets(); ++si)
-	{
-		size_t num_fct =  m_pFunctionPattern->num_fct(si);
-		UG_LOG( " (" << si << "," <<num_fct<<","<< std::setw(8) << m_vNumDoFs[si] << ") ");
-	}
-	UG_LOG(std::endl);
-
 	return true;
 }
-
 
 ///////////// Help functions /////////////////
 VertexBase* GroupedP1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t i) const
@@ -681,7 +663,6 @@ order_cuthill_mckee(bool bReverse)
 //	we're done
 	return true;
 }
-
 
 bool
 GroupedP1ConformDoFDistribution::

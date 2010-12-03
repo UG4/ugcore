@@ -102,6 +102,12 @@ class P1ConformDoFDistribution : public DoFDistribution
 		/// return the number of dofs distributed on subset si
 		inline size_t num_dofs(int si) const {return m_vNumDoFs[si];}
 
+	///	Size algebra block on all subset
+		inline int blocksize() const {return 1;}
+
+	///	Size algebra block on subset
+		inline int blocksize(int si) const {return 1;}
+
 		///////////////////////////////////////
 		// Elements where dofs are distributed
 		///////////////////////////////////////
@@ -221,10 +227,10 @@ class P1ConformDoFDistribution : public DoFDistribution
 		// Creation
 		///////////////////////////
 
-		/// distribute dofs for given goc
+	/// distribute dofs for given goc
 		bool distribute_dofs();
 
-		/// ordering
+	/// ordering
 		bool order_cuthill_mckee(bool bReverse = false);
 
 	protected:
@@ -286,6 +292,24 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 
 		/// return the number of dofs distributed on subset si
 		inline size_t num_dofs(int si) const {return m_vNumDoFs[si];}
+
+	///	Size algebra block on all subset
+		inline int blocksize() const
+		{
+			if(num_subsets()==0) return -1;
+			int blockSize = m_pFunctionPattern->num_fct(0);
+
+			for(int si = 1; si < num_subsets(); ++si)
+			{
+				const int tmpBlockSize = m_pFunctionPattern->num_fct(si);
+				if(tmpBlockSize != blockSize)
+					return -1;
+			}
+			return blockSize;
+		}
+
+	///	Size algebra block on subset
+		inline int blocksize(int si) const {return m_pFunctionPattern->num_fct(si);}
 
 		///////////////////////////////////////
 		// Elements where dofs are distributed

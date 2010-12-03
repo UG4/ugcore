@@ -102,6 +102,7 @@ function utilCreateApproximationSpace(domain, pattern)
 	approxSpace:assign_domain(domain)
 	approxSpace:assign_function_pattern(pattern)
 	approxSpace:init()
+	approxSpace:print_statistic()
 	
 	return approxSpace, pattern
 end
