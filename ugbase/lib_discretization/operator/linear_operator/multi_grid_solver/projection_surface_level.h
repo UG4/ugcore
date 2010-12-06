@@ -17,9 +17,9 @@ template <typename TDoFDistribution, typename TVector>
 struct ProjectionSurfaceLevel
 {
 	static bool surface_to_level(	TVector& levelFunction,
-	                             	const TDoFDistribution& levelDoFDistribution,
+	                             	const IDoFDistribution<TDoFDistribution>& levelDoFDistribution,
 									const TVector& surfaceFunction,
-									const TDoFDistribution& surfaceDoFDistribution)
+									const IDoFDistribution<TDoFDistribution>& surfaceDoFDistribution)
 	{
 	//  check if DoFDistributions are equal
 	//	(i.e. full refinement and surfaceGrid == top of levelGrids)
@@ -36,9 +36,9 @@ struct ProjectionSurfaceLevel
 	}
 
 	static bool level_to_surface(	TVector& surfaceFunction,
-	                             	const TDoFDistribution& surfaceDoFDistribution,
+	                             	const IDoFDistribution<TDoFDistribution>& surfaceDoFDistribution,
 									const TVector& levelFunction,
-									const TDoFDistribution& levelDoFDistribution)
+									const IDoFDistribution<TDoFDistribution>& levelDoFDistribution)
 	{
 	//  check if DoFDistributions are equal
 	//	(i.e. full refinement and surfaceGrid == top of levelGrids)

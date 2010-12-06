@@ -28,31 +28,28 @@ class AssembledLinearOperator :
 	//	Type of Vector
 		typedef typename TAlgebra::matrix_type matrix_type;
 
-	//	Type of DoFDistribution
-		typedef TDoFDistribution dof_distribution_type;
-
 	public:
 		AssembledLinearOperator() :
 			m_bInit(false), m_bAssembleRhs(false),
 			m_pAss(NULL), m_pDoFDistribution(NULL)
 			{};
 
-		AssembledLinearOperator(IAssemble<dof_distribution_type, algebra_type>& ass, bool assemble_rhs = false) :
+		AssembledLinearOperator(IAssemble<TDoFDistribution, algebra_type>& ass, bool assemble_rhs = false) :
 			m_bInit(false), m_bAssembleRhs(assemble_rhs),
 			m_pAss(&ass), m_pDoFDistribution(NULL)
 		{};
 
 
-		void set_discretization(IAssemble<dof_distribution_type, algebra_type>& ass) {m_pAss = &ass;}
+		void set_discretization(IAssemble<TDoFDistribution, algebra_type>& ass) {m_pAss = &ass;}
 		void export_rhs(bool assemble_rhs) {m_bAssembleRhs = assemble_rhs;}
 
-		bool set_dof_distribution(const TDoFDistribution& dofDistr)
+		bool set_dof_distribution(const IDoFDistribution<TDoFDistribution>& dofDistr)
 		{
 			m_pDoFDistribution = &dofDistr;
 			return true;
 		}
 
-		const TDoFDistribution* get_dof_distribution()
+		const IDoFDistribution<TDoFDistribution>* get_dof_distribution()
 		{
 			return m_pDoFDistribution;
 		}
@@ -95,7 +92,7 @@ class AssembledLinearOperator :
 		//	Remember parallel storage type
 			#ifdef UG_PARALLEL
 				m_J.set_storage_type(PST_ADDITIVE);
-				TDoFDistribution* dist = const_cast<TDoFDistribution*>(m_pDoFDistribution);
+				IDoFDistribution<TDoFDistribution>* dist = const_cast<IDoFDistribution<TDoFDistribution>*>(m_pDoFDistribution);
 				CopyLayoutsAndCommunicatorIntoMatrix(m_J, *dist);
 			#endif
 
@@ -152,7 +149,11 @@ class AssembledLinearOperator :
 			{
 				m_rhs.set(0.0);
 				if(m_pAss->assemble_linear(m_J, m_rhs, m_rhs, *m_pDoFDistribution) != IAssemble_OK)
-					{UG_LOG("Error while assembling Matrix and rhs.\n"); return false;}
+				{
+					UG_LOG("ERROR in AssembledLinearOperator::init:"
+							" Cannot assemble Matrix and Rhs.\n");
+					return false;
+				}
 				#ifdef UG_PARALLEL
 				m_rhs.set_storage_type(PST_ADDITIVE);
 				#endif
@@ -160,12 +161,16 @@ class AssembledLinearOperator :
 			else
 			{
 				if(m_pAss->assemble_jacobian(m_J, m_rhs, *m_pDoFDistribution) != IAssemble_OK)
-					{UG_LOG("Error while assembling Matrix.\n"); return false;}
+				{
+					UG_LOG("ERROR in AssembledLinearOperator::init:"
+							" Cannot assemble Matrix.\n");
+					return false;
+				}
 			}
 
 			#ifdef UG_PARALLEL
 			m_J.set_storage_type(PST_ADDITIVE);
-			TDoFDistribution* dist = const_cast<TDoFDistribution*>(m_pDoFDistribution);
+			IDoFDistribution<TDoFDistribution>* dist = const_cast<IDoFDistribution<TDoFDistribution>*>(m_pDoFDistribution);
 			CopyLayoutsAndCommunicatorIntoMatrix(m_J, *dist);
 			#endif
 
@@ -252,7 +257,11 @@ class AssembledLinearOperator :
 			}
 
 			if(m_pAss->assemble_solution(u, *m_pDoFDistribution) != IAssemble_OK)
-				{UG_LOG("Error while assembling solution.\n"); return false;}
+			{
+				UG_LOG("ERROR in AssembledLinearOperator::init:"
+						" Cannot assemble solution.\n");
+				return false;
+			}
 			return true;
 		}
 
@@ -271,10 +280,10 @@ class AssembledLinearOperator :
 		bool m_bAssembleRhs;
 
 		// assembling procedure
-		IAssemble<dof_distribution_type, algebra_type>* m_pAss;
+		IAssemble<TDoFDistribution, algebra_type>* m_pAss;
 
 		// DoF Distribution used
-		const TDoFDistribution* m_pDoFDistribution;
+		const IDoFDistribution<TDoFDistribution>* m_pDoFDistribution;
 
 		// matrix storage
 		matrix_type m_J;

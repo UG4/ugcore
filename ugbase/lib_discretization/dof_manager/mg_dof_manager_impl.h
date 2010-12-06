@@ -151,7 +151,7 @@ distribute_surface_dofs()
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-print_statistic(const TDoFDistribution& dd) const
+print_statistic(const dof_distribution_type& dd) const
 {
 //	Total number of DoFs
 	UG_LOG(std::setw(10) << dd.num_dofs() <<" | ");

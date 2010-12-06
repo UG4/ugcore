@@ -96,7 +96,7 @@ class IAssemble {
 		typedef typename TAlgebra::vector_type vector_type;
 
 	// 	Type of DoF Distribution
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	public:
 		/// assembles Jacobian (or Approximation of Jacobian)

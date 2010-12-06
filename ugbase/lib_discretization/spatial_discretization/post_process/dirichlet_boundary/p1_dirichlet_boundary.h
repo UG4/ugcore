@@ -23,7 +23,7 @@ template <	typename TDomain,
 class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 	public:
 	// 	Type of discrete function
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	// 	Type of domain
 		typedef TDomain domain_type;

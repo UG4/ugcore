@@ -51,7 +51,7 @@ AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
 						int si,
 						typename TAlgebra::matrix_type& J,
 						const typename TAlgebra::vector_type& u,
-						const TDoFDistribution& dofDistr)
+						const IDoFDistribution<TDoFDistribution>& dofDistr)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
@@ -136,7 +136,7 @@ AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
 						int si,
 						typename TAlgebra::matrix_type& J,
 						const typename TAlgebra::vector_type& u,
-						const TDoFDistribution& dofDistr)
+						const IDoFDistribution<TDoFDistribution>& dofDistr)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
@@ -220,7 +220,7 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 					int si,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					const TDoFDistribution& dofDistr,
+					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					number time, number s_m, number s_a)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
@@ -353,7 +353,7 @@ AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
 				int si,
 				typename TAlgebra::vector_type& d,
 				const typename TAlgebra::vector_type& u,
-				const TDoFDistribution& dofDistr,
+				const IDoFDistribution<TDoFDistribution>& dofDistr,
 				number time, number s_m, number s_a)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
@@ -485,7 +485,7 @@ AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const typename TAlgebra::vector_type& u,
-				const TDoFDistribution& dofDistr)
+				const IDoFDistribution<TDoFDistribution>& dofDistr)
 {
 	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
 	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;

@@ -17,7 +17,7 @@ template <	typename TDoFDistribution,
 class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgebra> {
 	public:
 	// 	DoF Distribution Type
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	// 	Algebra type
 		typedef TAlgebra algebra_type;
@@ -151,7 +151,7 @@ template <	typename TDoFDistribution,
 class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgebra> {
 	public:
 	// 	DoF Distribution Type
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	// 	Algebra type
 		typedef TAlgebra algebra_type;

@@ -44,7 +44,7 @@ template <typename TGridFunction>
 bool
 PerformTimeStep(IOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& newton,
 				TGridFunction& u,
-				ITimeDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& timestep,
+				ITimeDiscretization<typename TGridFunction::dof_distribution_type::implementation_type, typename TGridFunction::algebra_type>& timestep,
 				size_t timesteps, size_t step,
 				number time, number dt,
 				VTKOutput<TGridFunction>& out, const char* outName, bool bDoOutput)

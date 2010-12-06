@@ -30,7 +30,7 @@ bool
 AssembleStiffnessMatrix(	TElemDisc& elemDisc,
 							typename TAlgebra::matrix_type& J,
 							const typename TAlgebra::vector_type& u,
-							const TDoFDistribution& dofDistr, int si, int dim)
+							const IDoFDistribution<TDoFDistribution>& dofDistr, int si, int dim)
 {
 
 	switch(dim)
@@ -83,7 +83,7 @@ bool
 AssembleMassMatrix(	TElemDisc& elemDisc,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					const TDoFDistribution& dofDistr,
+					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					int si, int dim)
 {
 
@@ -129,7 +129,7 @@ bool
 AssembleJacobian(	TElemDisc& elemDisc,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					const TDoFDistribution& dofDistr,
+					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					int si, int dim,
 					number time, number s_m, number s_a)
 {
@@ -172,7 +172,7 @@ bool
 AssembleJacobian(	TElemDisc& elemDisc,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					const TDoFDistribution& dofDistr,
+					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					int si, int dim)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
@@ -190,7 +190,7 @@ bool
 AssembleDefect(	TElemDisc& elemDisc,
 				typename TAlgebra::vector_type& d,
 				const typename TAlgebra::vector_type& u,
-				const TDoFDistribution& dofDistr,
+				const IDoFDistribution<TDoFDistribution>& dofDistr,
 				int si, int dim,
 				number time, number s_m, number s_a)
 {
@@ -232,7 +232,7 @@ bool
 AssembleDefect(	TElemDisc& elemDisc,
 				typename TAlgebra::vector_type& d,
 				const typename TAlgebra::vector_type& u,
-				const TDoFDistribution& dofDistr,
+				const IDoFDistribution<TDoFDistribution>& dofDistr,
 				int si, int dim)
 {
 	// TODO: This is a costly quick hack, compute matrices directly (without time assembling) !
@@ -253,7 +253,7 @@ AssembleLinear(	TElemDisc& elemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const typename TAlgebra::vector_type& u,
-				const TDoFDistribution& dofDistr,
+				const IDoFDistribution<TDoFDistribution>& dofDistr,
 				int si, int dim,
 				number time, number s_m, number s_a)
 {
@@ -275,7 +275,7 @@ AssembleLinear(	TElemDisc& elemDisc,
 				typename TAlgebra::matrix_type& mat,
 				typename TAlgebra::vector_type& rhs,
 				const typename TAlgebra::vector_type& u,
-				const TDoFDistribution& dofDistr,
+				const IDoFDistribution<TDoFDistribution>& dofDistr,
 				int si, int dim)
 {
 	switch(dim)

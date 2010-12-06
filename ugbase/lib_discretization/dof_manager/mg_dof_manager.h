@@ -12,6 +12,7 @@
 
 #include "lib_grid/lib_grid.h"
 #include "./function_pattern.h"
+#include "lib_discretization/dof_manager/dof_distribution.h"
 
 namespace ug{
 
@@ -27,7 +28,7 @@ class MGDoFManager
 {
 	public:
 	///	DoF Distribution type
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	public:
 	///	Default Constructor
@@ -74,7 +75,7 @@ class MGDoFManager
 		bool distribute_surface_dofs();
 
 	///	returns Surface DoF Distribution
-		const TDoFDistribution* get_surface_dof_distribution() const
+		const dof_distribution_type* get_surface_dof_distribution() const
 		{
 			//return m_pSurfaceDoFDistribution;
 
@@ -88,7 +89,7 @@ class MGDoFManager
 		void print_statistic() const;
 
 	///	returns Level DoF Distribution
-		const TDoFDistribution* get_level_dof_distribution(size_t level) const
+		const dof_distribution_type* get_level_dof_distribution(size_t level) const
 		{
 			if(level < m_vLevelDoFDistribution.size())
 				return m_vLevelDoFDistribution[level];
@@ -119,7 +120,7 @@ class MGDoFManager
 		void delete_distributions();
 
 	/// print statistic for a DoFDistribution
-		void print_statistic(const TDoFDistribution& dd) const;
+		void print_statistic(const dof_distribution_type& dd) const;
 
 	protected:
 	// 	MultiGridSubsetHandler this DofManager works on
@@ -135,14 +136,14 @@ class MGDoFManager
 		FunctionPattern* m_pFunctionPattern;
 
 	// 	Level DoF Distributors
-		std::vector<TDoFDistribution*> m_vLevelDoFDistribution;
+		std::vector<dof_distribution_type*> m_vLevelDoFDistribution;
 
 	// 	Surface Grid DoF Distributor
-		TDoFDistribution* m_pSurfaceDoFDistribution;
+		dof_distribution_type* m_pSurfaceDoFDistribution;
 
 	// 	Storage manager
-		typename TDoFDistribution::StorageManager	m_levelStorageManager;
-		typename TDoFDistribution::StorageManager	m_surfaceStorageManager;
+		typename TDoFDistribution::storage_manager_type	m_levelStorageManager;
+		typename TDoFDistribution::storage_manager_type	m_surfaceStorageManager;
 };
 
 } // end namespace ug

@@ -26,7 +26,8 @@ P1ConformDoFDistribution::
 update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 {
 	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+	const ReferenceElement& refElem =
+			ReferenceElementFactory::get_reference_element(refID);
 
 	if(!withHanging)
 	{
@@ -41,7 +42,8 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 			{
 				if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
-				ind.set_index(i + numFct*refElem.num_obj(0), index + m_vvOffsets[si][ind.fct_id(fct)]);
+				ind.set_index(i + numFct*refElem.num_obj(0),
+				              index + m_vvOffsets[si][ind.fct_id(fct)]);
 				numFct++;
 			}
 		}
@@ -79,19 +81,32 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 		// get natural edges
 		{
 			std::vector<EdgeBase*> vEdges;
-			EdgeBase* ed = dynamic_cast<EdgeBase*>(elem); if(ed != NULL) CollectEdgesSorted(vEdges, *(m_pISubsetHandler->get_assigned_grid()), ed);
-			Face* face = dynamic_cast<Face*>(elem); if(face != NULL) CollectEdgesSorted(vEdges, *(m_pISubsetHandler->get_assigned_grid()), face);
-			Volume* vol = dynamic_cast<Volume*>(elem); if(vol != NULL) CollectEdgesSorted(vEdges, *(m_pISubsetHandler->get_assigned_grid()), vol);
+			EdgeBase* ed = dynamic_cast<EdgeBase*>(elem);
+			if(ed != NULL)
+				CollectEdgesSorted(vEdges,
+				                   *(m_pISubsetHandler->get_assigned_grid()), ed);
+
+			Face* face = dynamic_cast<Face*>(elem);
+			if(face != NULL)
+				CollectEdgesSorted(vEdges,
+				                   *(m_pISubsetHandler->get_assigned_grid()), face);
+
+			Volume* vol = dynamic_cast<Volume*>(elem);
+			if(vol != NULL)
+				CollectEdgesSorted(vEdges,
+				                   *(m_pISubsetHandler->get_assigned_grid()), vol);
 
 			for(size_t i = 0; i < vEdges.size(); ++i)
 			{
 				ConstrainingEdge* edge = dynamic_cast<ConstrainingEdge*>(vEdges[i]);
 				if(edge == NULL) continue;
-				for(VertexBaseIterator iter = edge->constrained_vertices_begin(); iter != edge->constrained_vertices_end(); ++iter)
+				for(VertexBaseIterator iter = edge->constrained_vertices_begin();
+						iter != edge->constrained_vertices_end(); ++iter)
 				{
 					VertexBase* vrt = *iter;
 					int si = m_pISubsetHandler->get_subset_index(vrt);
-					const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+					const size_t index =
+							m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
@@ -113,18 +128,27 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 		// get natural faces
 		{
 			std::vector<Face*> vFaces; vFaces.clear();
-			Face* face = dynamic_cast<Face*>(elem); if(face != NULL) CollectFacesSorted(vFaces, *(m_pISubsetHandler->get_assigned_grid()), face);
-			Volume* vol = dynamic_cast<Volume*>(elem); if(vol != NULL) CollectFacesSorted(vFaces, *(m_pISubsetHandler->get_assigned_grid()), vol);
+			Face* face = dynamic_cast<Face*>(elem);
+			if(face != NULL)
+				CollectFacesSorted(vFaces,
+				                   *(m_pISubsetHandler->get_assigned_grid()), face);
+			Volume* vol = dynamic_cast<Volume*>(elem);
+			if(vol != NULL)
+				CollectFacesSorted(vFaces,
+				                   *(m_pISubsetHandler->get_assigned_grid()), vol);
 
 			for(size_t i = 0; i < vFaces.size(); ++i)
 			{
-				ConstrainingQuadrilateral* quad = dynamic_cast<ConstrainingQuadrilateral*>(vFaces[i]);
+				ConstrainingQuadrilateral* quad =
+						dynamic_cast<ConstrainingQuadrilateral*>(vFaces[i]);
 				if(quad == NULL) continue;
-				for(VertexBaseIterator iter = quad->constrained_vertices_begin(); iter != quad->constrained_vertices_end(); ++iter)
+				for(VertexBaseIterator iter = quad->constrained_vertices_begin();
+						iter != quad->constrained_vertices_end(); ++iter)
 				{
 					VertexBase* vrt = *iter;
 					int si = m_pISubsetHandler->get_subset_index(vrt);
-					const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+					const size_t index =
+							m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
@@ -191,7 +215,8 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 		VertexBase* vrt = GetVertex(elem, i);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
-		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
+		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt]
+		                                              + m_vvOffsets[si][fct];
 		ind[i][1] = 0;
 	}
 	return numDofs;
@@ -207,7 +232,8 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 		VertexBase* vrt = GetVertex(elem, 0);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 		ind.resize(1);
-		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
+		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt]
+		                                                + m_vvOffsets[si][fct];
 		ind[0][1] = 0;
 		return 1;
 	}
@@ -221,7 +247,8 @@ size_t
 P1ConformDoFDistribution::
 num_algebra_indices(TElem* elem, size_t fct) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 	return ref_elem_type::num_corners;
 }
 
@@ -239,7 +266,8 @@ void
 P1ConformDoFDistribution::
 get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
 	ind.clear();
 
@@ -251,7 +279,9 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 			if(!is_def_in_subset(fct, si)) continue;
-			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
+			const size_t index =
+					m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt]
+					                            + m_vvOffsets[si][fct];
 			ind.push_back(index);
 		}
 	}
@@ -291,7 +321,10 @@ GroupedP1ConformDoFDistribution::
 update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 {
 	const ReferenceObjectID refID = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+	const ReferenceElement& refElem =
+			ReferenceElementFactory::get_reference_element(refID);
+
+	if(withHanging) throw(UGError("Not implemented"));
 
 	for(size_t i = 0; i <  refElem.num_obj(0); ++i)
 	{
@@ -321,7 +354,8 @@ size_t
 GroupedP1ConformDoFDistribution::
 num_multi_indices(TElem* obj, size_t fct) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 	return ref_elem_type::num_corners;
 }
 
@@ -339,7 +373,8 @@ size_t
 GroupedP1ConformDoFDistribution::
 get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
 	const size_t numDofs = ref_elem_type::num_corners;
 	ind.resize(numDofs);
@@ -384,7 +419,8 @@ size_t
 GroupedP1ConformDoFDistribution::
 num_algebra_indices(TElem* elem, size_t fct) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 	return ref_elem_type::num_corners;
 }
 
@@ -403,7 +439,8 @@ void
 GroupedP1ConformDoFDistribution::
 get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			ref_elem_type;
 
 	ind.clear();
 
@@ -426,7 +463,8 @@ GroupedP1ConformDoFDistribution::
 get_inner_algebra_indices(TElem* obj, algebra_index_vector_type& ind) const
 {
 	ind.clear();
-	if((GeometricBaseObject)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID == (GeometricBaseObject)VERTEX)
+	if((GeometricBaseObject)geometry_traits<TElem>::BASE_OBJECT_TYPE_ID
+			== (GeometricBaseObject)VERTEX)
 	{
 		VertexBase* vrt = (VertexBase*)obj;
 		int si = m_pISubsetHandler->get_subset_index(vrt);

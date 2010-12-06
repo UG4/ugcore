@@ -165,7 +165,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 
 			if(!AssembleLinear<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
 			(*m_vElemDisc[i], mat, rhs, u, dofDistr, subsetIndex, dim))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						" Cannot assemble linear for Elem Disc.\n");
 				return IAssemble_ERROR;
+			}
 		}
 	}
 
@@ -182,7 +186,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 			//	assemble
 			if(!AssembleLinear<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
 				(*m_vCoupledDisc[i].disc, mat, rhs, u, dofDistr, subsetIndex, dim))
-					return IAssemble_ERROR;
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						" Cannot assemble linear for Cpl Elem Disc.\n");
+				return IAssemble_ERROR;
+			}
 		}
 	}
 
@@ -193,7 +201,11 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 		{
 			if(m_vvPostProcess[type][i]->post_process_linear(mat, rhs, u, dofDistr)
 					!= IAssemble_OK)
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						" Cannot post process.\n");
 				return IAssemble_ERROR;
+			}
 		}
 	}
 

@@ -111,7 +111,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		typedef TAlgebra algebra_type;
 
 		// Type of DoF Distribution
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 		// dof manager used
 		#ifdef UG_PARALLEL
@@ -189,7 +189,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 				return NULL;
 			}
 
-			const TDoFDistribution* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
+			const dof_distribution_type* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
 			if(dofDistr == NULL)
 			{
 				throw(UG_ERROR_DoFDistributionMissing());
@@ -210,7 +210,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 				return NULL;
 			}
 
-			const TDoFDistribution* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+			const dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
 			if(dofDistr == NULL)
 			{
 				throw(UG_ERROR_DoFDistributionMissing());

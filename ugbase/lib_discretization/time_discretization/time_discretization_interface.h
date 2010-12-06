@@ -41,7 +41,7 @@ class ITimeDiscretization
 {
 	public:
 	//	DoF Distribution type
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	//	Algebra type
 		typedef TAlgebra algebra_type;
@@ -50,7 +50,7 @@ class ITimeDiscretization
 		typedef typename algebra_type::vector_type vector_type;
 
 	// 	Domain Discretization type
-		typedef IDomainDiscretization<dof_distribution_type, algebra_type>
+		typedef IDomainDiscretization<TDoFDistribution, algebra_type>
 			domain_discretization_type;
 
 	public:

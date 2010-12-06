@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
-#define __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
+#ifndef __H__UG__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
+#define __H__UG__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__
 
 #include "./mg_dof_manager.h"
 #include "./dof_distribution.h"
@@ -15,15 +15,4 @@
 
 #include "./p1conform/p1conform.h"
 
-namespace ug{
-
-enum DoFManagerGroupStrategy {
-	DMGS_INVALID = -1,
-	DMGS_NO_GROUPING = 0,
-	DMGS_GROUP_ALL,
-	DMGS_NUM_STRATEGIES
-};
-
-}
-
-#endif /* __H__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__DOF_MANAGER__DOF_MANAGER__ */

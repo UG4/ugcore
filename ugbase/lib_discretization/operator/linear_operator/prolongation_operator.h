@@ -205,7 +205,7 @@ class P1ProlongationOperator :
 
 	//	set dirichlet values
 		// todo: This should be a IPostProcess, indicating dirichlet value, only
-		void set_dirichlet_post_process(IPostProcess<dof_distribution_type, algebra_type>& pp)
+		void set_dirichlet_post_process(IPostProcess<typename dof_distribution_type::implementation_type, algebra_type>& pp)
 		{
 			m_vPostProcess.push_back(&pp);
 		}
@@ -371,7 +371,7 @@ class P1ProlongationOperator :
 	protected:
 		matrix_type m_matrix;
 
-		std::vector<IPostProcess<dof_distribution_type, algebra_type>*> m_vPostProcess;
+		std::vector<IPostProcess<typename dof_distribution_type::implementation_type, algebra_type>*> m_vPostProcess;
 		TApproximationSpace* m_pApproximationSpace;
 		size_t m_fineLevel;
 		size_t m_coarseLevel;

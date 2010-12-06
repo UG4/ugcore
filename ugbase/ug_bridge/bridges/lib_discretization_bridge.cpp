@@ -756,14 +756,14 @@ void ElderStartPressure(number& res, const MathVector<2>& x, number time)
 template <typename TGridFunction>
 bool
 SolveElderTimeProblem2d(	typename TGridFunction::approximation_space_type& approxSpace,
-							ITimeDiscretization<typename TGridFunction::dof_distribution_type,
+							ITimeDiscretization<typename TGridFunction::dof_distribution_type::implementation_type,
 							typename TGridFunction::algebra_type>& time_disc,
 							size_t timesteps, size_t startsteps, number dt, const char* name)
 {
 	typedef typename TGridFunction::algebra_type algebra_type;
 	typedef typename algebra_type::vector_type vector_type;
 	typedef typename TGridFunction::approximation_space_type approximation_space_type;
-	typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
+	typedef typename TGridFunction::dof_distribution_type::implementation_type dof_distribution_type;
 
 	//  create ilu preconditioner
 		JacobiPreconditioner<algebra_type> jacobi_pre(0.8);
@@ -870,7 +870,7 @@ template <typename TGridFunction>
 bool
 SolveTimeProblem(IOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& newton,
 				TGridFunction& u,
-				ITimeDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& time_disc,
+				ITimeDiscretization<typename TGridFunction::dof_distribution_type::implementation_type, typename TGridFunction::algebra_type>& time_disc,
 				size_t timesteps, size_t startsteps, number dt, const char* name)
 {
 	VTKOutput<TGridFunction> out;
@@ -905,13 +905,13 @@ SolveTimeProblem(IOperatorInverse<typename TGridFunction::vector_type, typename 
 }
 
 template <typename TGridFunction>
-bool SolveStationaryDiscretization(DomainDiscretization<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type>& dd,
+bool SolveStationaryDiscretization(DomainDiscretization<typename TGridFunction::dof_distribution_type::implementation_type, typename TGridFunction::algebra_type>& dd,
 									TGridFunction& u,
 									TGridFunction& b,
 									ILinearOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& solver)
 {
 	//	create surface Operator
-		AssembledLinearOperator<typename TGridFunction::dof_distribution_type, typename TGridFunction::algebra_type> A(dd, true);
+		AssembledLinearOperator<typename TGridFunction::dof_distribution_type::implementation_type, typename TGridFunction::algebra_type> A(dd, true);
 		A.set_dof_distribution(u.get_dof_distribution());
 
 	//	init operator and rhs
@@ -1293,7 +1293,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 
 	//	P1ConformDoFDistribution
 		{
-			typedef dof_distribution_type T;
+			typedef IDoFDistribution<TDoFDistribution> T;
 			reg.add_class_<T>("P1ConformDoFDistribution", grp.c_str());
 		}
 

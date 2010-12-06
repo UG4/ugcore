@@ -45,15 +45,15 @@ class GridFunction :	public TAlgebra::vector_type,
 	// 	Local index type
 		typedef LocalIndices local_index_type;
 
+	// 	dof manager used for this approximation space
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
+
 	//	Multi index
-		typedef typename TDoFDistribution::multi_index_vector_type multi_index_vector_type;
+		typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
 
 	// 	Algebra index
-		typedef typename TDoFDistribution::algebra_index_vector_type algebra_index_vector_type;
+		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
 
-		// DOF DISTRIBUTION
-		// dof manager used for this approximation space
-		typedef TDoFDistribution dof_distribution_type;
 
 	public:
 		// Default constructor

@@ -88,8 +88,8 @@ bool CreateIndexLayout(	IndexLayout& layoutOut,
 	return bRetVal;
 }
 
-template <typename TMatrix>
-void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, DoFDistribution& dofDistr)
+template <typename TMatrix, typename TDoFDistr>
+void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, IDoFDistribution<TDoFDistr>& dofDistr)
 {
 	mat.set_slave_layout(dofDistr.get_slave_layout());
 	mat.set_master_layout(dofDistr.get_master_layout());

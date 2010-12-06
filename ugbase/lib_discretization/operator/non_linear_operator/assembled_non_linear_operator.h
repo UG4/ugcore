@@ -31,15 +31,15 @@ public:
 			m_bInit(false), m_pAss(&ass), m_pDoFDistribution(NULL)
 		{};
 
-		void set_discretization(IAssemble<dof_distribution_type, algebra_type>& ass) {m_pAss = &ass;}
+		void set_discretization(IAssemble<TDoFDistribution, algebra_type>& ass) {m_pAss = &ass;}
 
-		bool set_dof_distribution(const TDoFDistribution& dofDistr)
+		bool set_dof_distribution(const IDoFDistribution<TDoFDistribution>& dofDistr)
 		{
 			m_pDoFDistribution = &dofDistr;
 			return true;
 		}
 
-		const TDoFDistribution* get_dof_distribution()
+		const IDoFDistribution<TDoFDistribution>* get_dof_distribution()
 		{
 			return m_pDoFDistribution;
 		}
@@ -105,7 +105,7 @@ public:
 			return true;
 		}
 
-		IAssemble<dof_distribution_type, algebra_type>* get_assemble()
+		IAssemble<TDoFDistribution, algebra_type>* get_assemble()
 		{
 			return m_pAss;
 		}
@@ -118,7 +118,7 @@ public:
 		IAssemble<dof_distribution_type, algebra_type>* m_pAss;
 
 		// DoF Distribution used
-		const TDoFDistribution* m_pDoFDistribution;
+		const IDoFDistribution<TDoFDistribution>* m_pDoFDistribution;
 };
 
 } // end namepace ug

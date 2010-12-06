@@ -43,7 +43,7 @@ class ThetaTimeDiscretization
 {
 	public:
 	//	DoF Distribution Type
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	// 	Type of algebra
 		typedef TAlgebra algebra_type;
@@ -55,7 +55,7 @@ class ThetaTimeDiscretization
 		typedef typename algebra_type::vector_type vector_type;
 
 	// 	Domain Discretization type
-		typedef IDomainDiscretization<dof_distribution_type, algebra_type>
+		typedef IDomainDiscretization<TDoFDistribution, algebra_type>
 			domain_discretization_type;
 
 	public:

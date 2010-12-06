@@ -72,7 +72,8 @@ add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
 	// for a P1 dof manager only Lagrange P1 function space is permitted
 	if(id != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
 	{
-		UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n");
+		UG_LOG("P1ConformDoFDistributor:"
+				" Only LSFS_LAGRANGEP1 functions are supported.\n");
 		return false;
 	}
 
@@ -81,12 +82,14 @@ add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
 
 bool
 P1ConformFunctionPattern::
-add_discrete_function(const char* name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim)
+add_discrete_function(const char* name, LocalShapeFunctionSetID id,
+                      const SubsetGroup& SubsetIndices, int dim)
 {
 	// for a P1 dof manager only Lagrange P1 function space is permitted
 	if(id != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
 	{
-		UG_LOG("P1ConformDoFDistributor: Only LSFS_LAGRANGEP1 functions are supported.\n");
+		UG_LOG("P1ConformDoFDistributor:"
+				" Only LSFS_LAGRANGEP1 functions are supported.\n");
 		return false;
 	}
 
@@ -102,7 +105,8 @@ size_t
 P1ConformDoFDistribution::
 num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
 {
-	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+	const ReferenceElement& refElem =
+			ReferenceElementFactory::get_reference_element(refID);
 
 	size_t numFct = 0;
 	for(size_t fct = 0; fct < funcGroup.num_fct(); ++fct)
@@ -116,9 +120,11 @@ num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) con
 
 bool
 P1ConformDoFDistribution::
-prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool withHanging) const
+prepare_indices(ReferenceObjectID refID, int si,
+                LocalIndices& ind, bool withHanging) const
 {
-	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+	const ReferenceElement& refElem =
+			ReferenceElementFactory::get_reference_element(refID);
 
 	if(!withHanging)
 	{
@@ -146,7 +152,8 @@ prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool withHan
 
 size_t
 P1ConformDoFDistribution::
-num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
+num_inner_indices(ReferenceObjectID refID, int si,
+                  const FunctionGroup& funcGroup) const
 {
 	if(refID != ROID_VERTEX) return 0;
 	else return num_indices(refID, si, funcGroup);
@@ -181,55 +188,59 @@ distribute_dofs()
 		return false;
 	}
 
-	// Attach indices
+// 	Attach indices
 	m_pStorageManager->update_attachments();
 
-	// iterators
+// 	iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
 
-	// loop subsets
+// 	counters
 	size_t i = 0;
 	size_t i_per_subset = 0;
 
-	// reset number of dofs
+// 	reset number of dofs
 	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
 	m_vvOffsets.clear(); m_vvOffsets.resize(num_subsets());
 
-	// loop subsets
+// 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-		// create offsets
+	// 	create offsets
 		size_t count = 0;
-		m_vvOffsets[si].resize(m_pFunctionPattern->num_fct());
-		for(size_t fct = 0; fct < m_pFunctionPattern->num_fct(); ++fct)
+		m_vvOffsets[si].resize(num_fct());
+		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
 			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
 			else m_vvOffsets[si][fct] = count++;
 		}
 
-		// skip if no dofs to be distributed
+	// 	skip if no dofs to be distributed
 		if(!(m_pFunctionPattern->num_fct(si)>0)) continue;
 
-		iterBegin = m_goc.begin<VertexBase>(si);
-		iterEnd =  m_goc.end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
-		// remember number of functions
-		size_t num_fct =  m_pFunctionPattern->num_fct(si);
+	// 	remember number of functions
+		size_t numFct = num_fct(si);
 
-		// loop Vertices
+	// 	loop Vertices
 		i_per_subset = 0;
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
-			// get vertex
+		// 	get vertex
 			VertexBase* vrt = *iter;
 
-			// write index
+		// 	write index
 			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i;
-			i += num_fct;
-			i_per_subset += num_fct;
+			i += numFct;
+			i_per_subset += numFct;
 		}
+
+	//	remember number of dofs on subset
 		m_vNumDoFs[si] = i_per_subset;
 	}
+
+//	remember total number of dofs
 	m_numDoFs = i;
 
 //	order
@@ -240,6 +251,7 @@ distribute_dofs()
 		return false;
 	}
 
+//	we're done
 	return true;
 }
 
@@ -252,7 +264,8 @@ size_t
 GroupedP1ConformDoFDistribution::
 num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
 {
-	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+	const ReferenceElement& refElem =
+			ReferenceElementFactory::get_reference_element(refID);
 
 	for(size_t fct = 0; fct < funcGroup.num_fct(); ++fct)
 	{
@@ -274,9 +287,13 @@ num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGrou
 
 bool
 GroupedP1ConformDoFDistribution::
-prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool withHanging) const
+prepare_indices(ReferenceObjectID refID, int si,
+                LocalIndices& ind, bool withHanging) const
 {
-	const ReferenceElement& refElem = ReferenceElementFactory::get_reference_element(refID);
+	const ReferenceElement& refElem =
+			ReferenceElementFactory::get_reference_element(refID);
+
+	if(withHanging) throw(UGError("Not implemented"));
 
 	ind.clear();
 	size_t numInd = 0;
@@ -326,54 +343,59 @@ distribute_dofs()
 		return false;
 	}
 
-	// Attach indices
+// 	Attach indices
 	m_pStorageManager->update_attachments();
 
-	// iterators
+// 	iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
 
-	// loop subsets
+//	counters
 	size_t i = 0;
 	size_t i_per_subset = 0;
 
-	// reset number of dofs
+// 	reset number of dofs
 	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
 	m_vvOffsets.clear(); m_vvOffsets.resize(num_subsets());
 
-	// loop subsets
+// 	loop subsets
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-		// create offsets
+	// 	create offsets
 		size_t count = 0;
-		m_vvOffsets[si].resize(m_pFunctionPattern->num_fct());
-		for(size_t fct = 0; fct < m_pFunctionPattern->num_fct(); ++fct)
+		m_vvOffsets[si].resize(num_fct());
+		for(size_t fct = 0; fct < num_fct(); ++fct)
 		{
 			if(!is_def_in_subset(fct, si)) m_vvOffsets[si][fct] = (size_t) -1;
 			else m_vvOffsets[si][fct] = count++;
 		}
 
-		// skip if no dofs to be distributed
-		if(!(m_pFunctionPattern->num_fct(si)>0)) continue;
+	// 	skip if no dofs to be distributed
+		if(!(num_fct(si)>0)) continue;
 
-		iterBegin = m_goc.begin<VertexBase>(si);
-		iterEnd =  m_goc.end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
-		// loop Vertices
+	// 	loop Vertices
 		i_per_subset = 0;
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
-			// get vertex
+		// 	get vertex
 			VertexBase* vrt = *iter;
 
-			// write index
+		// 	write index
 			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i;
 			i ++;
 			i_per_subset ++;
 		}
+
+	//	remember number of dofs on subset
 		m_vNumDoFs[si] = i_per_subset;
 	}
+
+//	remember total number of dofs
 	m_numDoFs = i;
 
+//	we're done
 	return true;
 }
 
@@ -400,7 +422,8 @@ struct SortClass {
 		 	: m_vInfo(vInfo) {}
 		const std::vector<VertexInfo>& m_vInfo;
 
-		bool operator() (size_t i,size_t j) { return (m_vInfo[i].degree()<m_vInfo[j].degree());}
+		bool operator() (size_t i,size_t j)
+		{ return (m_vInfo[i].degree()<m_vInfo[j].degree());}
 };
 
 struct NewInfo{
@@ -426,10 +449,10 @@ order_cuthill_mckee(bool bReverse)
 	}
 
 //	check that in all subsets same number of functions
-	size_t num_fct = m_pFunctionPattern->num_fct(0);
+	size_t numFct = num_fct(0);
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-		if(num_fct != m_pFunctionPattern->num_fct(si))
+		if(numFct != num_fct(si))
 		{
 			UG_LOG("Cuthill_McKee: Currently only implemented iff same"
 					" number of functions in all subsets.\n");
@@ -438,7 +461,7 @@ order_cuthill_mckee(bool bReverse)
 	}
 
 //	check that numbering is correct
-	if(m_numDoFs % num_fct != 0)
+	if(m_numDoFs % numFct != 0)
 	{
 		UG_LOG("Cuthill_McKee: Cannot divide number of dofs / num fct. Done.\n");
 		return false;
@@ -454,14 +477,14 @@ order_cuthill_mckee(bool bReverse)
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
 
 //	create list of current numbering
-	std::vector<VertexInfo> vOldIndex(m_numDoFs / num_fct);
+	std::vector<VertexInfo> vOldIndex(m_numDoFs / numFct);
 
 //	Loop vertices
 	size_t ind = 0;
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-		iterBegin = m_goc.begin<VertexBase>(si);
-		iterEnd =  m_goc.end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
@@ -471,7 +494,8 @@ order_cuthill_mckee(bool bReverse)
 		//	Set infos
 			vOldIndex[ind].pVertex = vrt;
 			vOldIndex[ind].si = si;
-			vOldIndex[ind].oldNr = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] / num_fct;
+			vOldIndex[ind].oldNr =
+					m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] / numFct;
 			vOldIndex[ind].vAdjacentVertex.clear();
 			vOldIndex[ind].handled = false;
 
@@ -499,7 +523,8 @@ order_cuthill_mckee(bool bReverse)
 					if(si1 < 0) continue;
 
 				//	get adjacent index
-					const size_t adjInd = m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1] / num_fct;
+					const size_t adjInd =
+							m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1] / numFct;
 
 				//	Add vertex to list of vertices
 					vOldIndex[ind].vAdjacentVertex.push_back(adjInd);
@@ -508,10 +533,11 @@ order_cuthill_mckee(bool bReverse)
 			ind ++;
 		}
 	}
-	if(ind*num_fct != m_numDoFs)
+	if(ind*numFct != m_numDoFs)
 	{
 		UG_LOG("ERROR in order_cuthill_mckee: "
-				"Sorting #ind = "<< ind * num_fct<<", but we have " << m_numDoFs << " Indices.\n");
+				"Sorting #ind = "<< ind * numFct<<
+				", but we have " << m_numDoFs << " Indices.\n");
 		return false;
 	}
 
@@ -524,7 +550,7 @@ order_cuthill_mckee(bool bReverse)
 	}
 
 // 	Create list of mapping
-	std::vector<NewInfo> vNewIndex; vNewIndex.reserve(m_numDoFs / num_fct);
+	std::vector<NewInfo> vNewIndex; vNewIndex.reserve(m_numDoFs / numFct);
 
 	while(true)
 	{
@@ -571,7 +597,8 @@ order_cuthill_mckee(bool bReverse)
 			if(vOldIndex[front].handled == false)
 			{
 			//	Add to mapping
-				vNewIndex.push_back(NewInfo(vOldIndex[front].pVertex, vOldIndex[front].si));
+				vNewIndex.push_back(NewInfo(vOldIndex[front].pVertex,
+				                            vOldIndex[front].si));
 				vOldIndex[front].handled = true;
 
 			//	add adjacent to queue
@@ -592,8 +619,9 @@ order_cuthill_mckee(bool bReverse)
 	if(vNewIndex.size() != vOldIndex.size())
 	{
 		UG_LOG("ERROR in order_cuthill_mckee:"
-				" Number of new Indices (" << vNewIndex.size() * num_fct << ") does not match number "
-				" of old Indices (" << vOldIndex.size() * num_fct << ").\n");
+				" Number of new Indices (" << vNewIndex.size() * numFct <<
+				") does not match number of old Indices (" <<
+				vOldIndex.size() * numFct << ").\n");
 		return false;
 	}
 
@@ -604,9 +632,10 @@ order_cuthill_mckee(bool bReverse)
 		int si = vNewIndex[i].si;
 
 		if(bReverse)
-			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = (vNewIndex.size()-1-i) * num_fct;
+			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] =
+					(vNewIndex.size()-1-i) * numFct;
 		else
-			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i * num_fct;
+			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i * numFct;
 	}
 
 //	we're done
@@ -636,8 +665,8 @@ order_cuthill_mckee(bool bReverse)
 	size_t ind = 0;
 	for(int si = 0; si < num_subsets(); ++si)
 	{
-		iterBegin = m_goc.begin<VertexBase>(si);
-		iterEnd =  m_goc.end<VertexBase>(si);
+		iterBegin = this->begin<VertexBase>(si);
+		iterEnd =  this->end<VertexBase>(si);
 
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
@@ -647,7 +676,8 @@ order_cuthill_mckee(bool bReverse)
 		//	Set infos
 			vOldIndex[ind].pVertex = vrt;
 			vOldIndex[ind].si = si;
-			vOldIndex[ind].oldNr = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
+			vOldIndex[ind].oldNr =
+					m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 			vOldIndex[ind].vAdjacentVertex.clear();
 			vOldIndex[ind].handled = false;
 
@@ -675,7 +705,8 @@ order_cuthill_mckee(bool bReverse)
 					if(si1 < 0) continue;
 
 				//	get adjacent index
-					const size_t adjInd = m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1];
+					const size_t adjInd =
+							m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1];
 
 				//	Add vertex to list of vertices
 					vOldIndex[ind].vAdjacentVertex.push_back(adjInd);
@@ -688,7 +719,8 @@ order_cuthill_mckee(bool bReverse)
 	if(ind != m_numDoFs)
 	{
 		UG_LOG("ERROR in order_cuthill_mckee: "
-				"Sorting #ind = "<< ind <<", but we have " << m_numDoFs << " Indices.\n");
+				"Sorting #ind = "<< ind <<
+				", but we have " << m_numDoFs << " Indices.\n");
 		return false;
 	}
 
@@ -748,7 +780,8 @@ order_cuthill_mckee(bool bReverse)
 			if(vOldIndex[front].handled == false)
 			{
 			//	Add to mapping
-				vNewIndex.push_back(NewInfo(vOldIndex[front].pVertex, vOldIndex[front].si));
+				vNewIndex.push_back(NewInfo(vOldIndex[front].pVertex,
+				                            vOldIndex[front].si));
 				vOldIndex[front].handled = true;
 
 			//	add adjacent to queue
@@ -769,8 +802,9 @@ order_cuthill_mckee(bool bReverse)
 	if(vNewIndex.size() != vOldIndex.size())
 	{
 		UG_LOG("ERROR in order_cuthill_mckee:"
-				" Number of new Indices (" << vNewIndex.size() << ") does not match number "
-				" of old Indices (" << vOldIndex.size() << ").\n");
+				" Number of new Indices (" << vNewIndex.size() <<
+				") does not match number of old Indices (" <<
+				vOldIndex.size() << ").\n");
 		return false;
 	}
 

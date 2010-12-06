@@ -39,7 +39,7 @@ class DomainDiscretization :
 {
 	protected:
 	///	Type of DoF Distribution
-		typedef TDoFDistribution dof_distribution_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
 	///	Type of algebra
 		typedef TAlgebra algebra_type;

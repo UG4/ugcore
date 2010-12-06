@@ -35,7 +35,7 @@ class AssembledMultiGridCycle :
 		typedef typename TApproximationSpace::function_type function_type;
 
 	//	DoFDistribution Type
-		typedef typename TApproximationSpace::dof_distribution_type dof_distribution_type;
+		typedef typename TApproximationSpace::dof_distribution_type::implementation_type dof_distribution_type;
 
 	//	Algebra type
 		typedef TAlgebra algebra_type;
