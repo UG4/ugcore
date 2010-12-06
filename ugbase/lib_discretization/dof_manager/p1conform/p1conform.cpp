@@ -243,32 +243,6 @@ distribute_dofs()
 	return true;
 }
 
-///////////// Help functions /////////////////
-VertexBase* P1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t i) const
-{
-	UG_ASSERT(i < 1, "A Vertex has only one vertex");
-	return vrt;
-}
-
-VertexBase* P1ConformDoFDistribution::get_vertex(EdgeBase* edge, size_t i) const
-{
-	UG_ASSERT(i < edge->num_vertices(), "Wrong number of vertex");
-	return edge->vertex(i);
-}
-
-VertexBase* P1ConformDoFDistribution::get_vertex(Face* face, size_t i) const
-{
-	UG_ASSERT(i < face->num_vertices(), "Wrong number of vertex");
-	return face->vertex(i);
-}
-
-VertexBase* P1ConformDoFDistribution::get_vertex(Volume* vol, size_t i) const
-{
-	UG_ASSERT(i < vol->num_vertices(), "Wrong number of vertex");
-	return vol->vertex(i);
-}
-
-
 ///////////////////////////////////////
 // GroupedP1ConformDoFDistribution
 ///////////////////////////////////////
@@ -401,31 +375,6 @@ distribute_dofs()
 	m_numDoFs = i;
 
 	return true;
-}
-
-///////////// Help functions /////////////////
-VertexBase* GroupedP1ConformDoFDistribution::get_vertex(VertexBase* vrt, size_t i) const
-{
-	UG_ASSERT(i < 1, "A Vertex has only one vertex");
-	return vrt;
-}
-
-VertexBase* GroupedP1ConformDoFDistribution::get_vertex(EdgeBase* edge, size_t i) const
-{
-	UG_ASSERT(i < edge->num_vertices(), "Wrong number of vertex");
-	return edge->vertex(i);
-}
-
-VertexBase* GroupedP1ConformDoFDistribution::get_vertex(Face* face, size_t i) const
-{
-	UG_ASSERT(i < face->num_vertices(), "Wrong number of vertex");
-	return face->vertex(i);
-}
-
-VertexBase* GroupedP1ConformDoFDistribution::get_vertex(Volume* vol, size_t i) const
-{
-	UG_ASSERT(i < vol->num_vertices(), "Wrong number of vertex");
-	return vol->vertex(i);
 }
 
 //////////////////////////////

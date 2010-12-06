@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "grid_util.h"
+#include "common/assert.h"
 
 namespace ug
 {
@@ -54,6 +55,32 @@ bool CompareVertexContainer(const TVrtContainer1& con1,
 	return true;
 }
 
+
+////////////////////////////////////////////////////////////////////////
+//	GetVertex
+inline VertexBase* GetVertex(VertexBase* vrt, size_t i)
+{
+	UG_ASSERT(i < 1, "A Vertex has only one vertex");
+	return vrt;
+}
+
+inline VertexBase* GetVertex(EdgeBase* edge, size_t i)
+{
+	UG_ASSERT(i < edge->num_vertices(), "Wrong number of vertex");
+	return edge->vertex(i);
+}
+
+inline VertexBase* GetVertex(Face* face, size_t i)
+{
+	UG_ASSERT(i < face->num_vertices(), "Wrong number of vertex");
+	return face->vertex(i);
+}
+
+inline VertexBase* GetVertex(Volume* vol, size_t i)
+{
+	UG_ASSERT(i < vol->num_vertices(), "Wrong number of vertex");
+	return vol->vertex(i);
+}
 
 }//	end of namespace libGrid
 

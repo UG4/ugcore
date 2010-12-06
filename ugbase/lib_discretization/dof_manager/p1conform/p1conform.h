@@ -234,12 +234,6 @@ class P1ConformDoFDistribution : public DoFDistribution
 		bool order_cuthill_mckee(bool bReverse = false);
 
 	protected:
-		VertexBase* get_vertex(VertexBase* vrt, size_t i) const;
-		VertexBase* get_vertex(EdgeBase* edge, size_t i) const;
-		VertexBase* get_vertex(Face* face, size_t i) const;
-		VertexBase* get_vertex(Volume* vol, size_t i) const;
-
-	protected:
 		// geometric object collection for this Distributor
 		GeometricObjectCollection m_goc;
 
@@ -437,12 +431,6 @@ class GroupedP1ConformDoFDistribution : public DoFDistribution
 
 		/// ordering
 		bool order_cuthill_mckee(bool bReverse = false);
-
-	protected:
-		VertexBase* get_vertex(VertexBase* vrt, size_t i) const;
-		VertexBase* get_vertex(EdgeBase* edge, size_t i) const;
-		VertexBase* get_vertex(Face* face, size_t i) const;
-		VertexBase* get_vertex(Volume* vol, size_t i) const;
 
 	protected:
 		// geometric object collection for this Distributor

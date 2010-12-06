@@ -126,6 +126,41 @@ void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Face* f, 
 void CollectVertices(std::vector<VertexBase*>& vVertexOut, Grid& grid, Volume* v, bool clearContainer = true);
 
 ////////////////////////////////////////////////////////////////////////
+//	GetVertex
+///	returns the i'th vertex of a vertex
+/**
+ * \ingroup lib_grid_algorithms_vertex_util
+ *
+ * This function simply returns the vertex itself. It is added for completeness,
+ * such that the function can be used in template code.
+ */
+inline VertexBase* GetVertex(VertexBase* v, size_t i);
+
+///	returns the i'th vertex of an edge
+/**
+ * \ingroup lib_grid_algorithms_edge_util
+ *
+ * This function simply returns the i'th vertex of an edge
+ */
+inline VertexBase* GetVertex(EdgeBase* e, size_t i);
+
+///	returns the i'th vertex of a face
+/**
+ * \ingroup lib_grid_algorithms_face_util
+ *
+ * This function simply returns the i'th vertex of a face
+ */
+inline VertexBase* GetVertex(Face* f, size_t i);
+
+///	returns the i'th vertex of a volume
+/**
+ * \ingroup lib_grid_algorithms_volume_util
+ *
+ * This function simply returns the i'th vertex of a volume
+ */
+inline VertexBase* GetVertex(Volume* v, size_t i);
+
+////////////////////////////////////////////////////////////////////////
 //	CollectEdgesSorted
 ///	Collects all edges that exist in the given grid are part of the given edge in the order defined by the reference elements.
 /**

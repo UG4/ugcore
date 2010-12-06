@@ -32,7 +32,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 	{
 		for(size_t i = 0; i <  refElem.num_obj(0); ++i)
 		{
-			VertexBase* vrt = get_vertex(elem, i);
+			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 
 			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
@@ -54,7 +54,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 		// natural dofs
 		for(size_t i = 0; i < refElem.num_obj(0); ++i)
 		{
-			VertexBase* vrt = get_vertex(elem, i);
+			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 
@@ -188,7 +188,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 	ind.resize(numDofs);
 	for(size_t i = 0; i < numDofs; ++i)
 	{
-		VertexBase* vrt = get_vertex(elem, i);
+		VertexBase* vrt = GetVertex(elem, i);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
 		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
@@ -204,7 +204,7 @@ get_inner_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) c
 {
 	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX)
 	{
-		VertexBase* vrt = get_vertex(elem, 0);
+		VertexBase* vrt = GetVertex(elem, 0);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 		ind.resize(1);
 		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
@@ -248,7 +248,7 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	{
 		for(size_t i = 0; i < ref_elem_type::num_corners; ++i)
 		{
-			VertexBase* vrt = get_vertex(elem, i);
+			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 			if(!is_def_in_subset(fct, si)) continue;
 			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] + m_vvOffsets[si][fct];
@@ -265,7 +265,7 @@ get_inner_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	ind.clear();
 	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX)
 	{
-		VertexBase* vrt = get_vertex(elem, 0);
+		VertexBase* vrt = GetVertex(elem, 0);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
 		const size_t index =  m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
@@ -345,7 +345,7 @@ get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
 	ind.resize(numDofs);
 	for(size_t i = 0; i < numDofs; ++i)
 	{
-		VertexBase* vrt = get_vertex(elem, i);
+		VertexBase* vrt = GetVertex(elem, i);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
 		ind[i][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
@@ -361,7 +361,7 @@ get_inner_multi_indices(TElem* obj, size_t fct, multi_index_vector_type& ind) co
 {
 	if(geometry_traits<TElem>::REFERENCE_OBJECT_ID == ROID_VERTEX)
 	{
-		VertexBase* vrt = get_vertex(obj, 0);
+		VertexBase* vrt = GetVertex(obj, 0);
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 		ind.resize(1);
 		ind[0][0] = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
