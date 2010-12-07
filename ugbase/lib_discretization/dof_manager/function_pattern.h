@@ -66,6 +66,18 @@ class FunctionPattern
 		                                   const SubsetGroup& SubsetIndices,
 		                                   int dim = -1);
 
+	/// add a single solution of LocalShapeFunctionSetID to selected subsets
+	/**
+	 * \param[in] name			Name of this Single Solution
+	 * \param[in] id			Shape Function set id
+	 * \param[in] SubsetIndices	Subsets separated by ','
+	 * \param[in] dim			Dimension
+	 */
+		virtual bool add_discrete_function(const char* name,
+										   LocalShapeFunctionSetID id,
+										   const char* subsets,
+										   int dim = -1);
+
 	///	lock pattern (i.e. can not be changed then)
 		inline void lock()	{m_bLocked = true;}
 

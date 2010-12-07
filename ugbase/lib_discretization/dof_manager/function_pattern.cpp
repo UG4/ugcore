@@ -7,6 +7,7 @@
 
 #include "function_pattern.h"
 #include "lib_discretization/domain_util.h"
+#include "lib_discretization/common/groups_util.h"
 
 namespace ug{
 
@@ -104,5 +105,42 @@ add_discrete_function(const char* name,
 
 	return true;
 }
+
+bool
+FunctionPattern::
+add_discrete_function(const char* name,
+                      LocalShapeFunctionSetID id,
+                      const char* subsets,
+                      int dim)
+{
+// 	if already locked, return false
+	if(m_bLocked)
+	{
+		UG_LOG("Already fixed. Cannot change Distributor.\n");
+		return false;
+	}
+
+//	check that subset handler exists
+	if(m_pSH == NULL)
+	{
+		UG_LOG("ERROR in 'FunctionPattern::add_discrete_function': "
+				"SubsetHandler not set.\n");
+		return false;
+	}
+
+//	create Function Group
+	SubsetGroup subsetGroup;
+
+//	convert string
+	if(!ConvertStringToSubsetGroup(subsetGroup, *m_pSH, subsets))
+	{
+		UG_LOG("ERROR while parsing Subsets.\n");
+		return false;
+	}
+
+//	forward request
+	return add_discrete_function(name, id, subsetGroup, dim);
+}
+
 
 } // end namespace ug

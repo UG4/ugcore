@@ -65,7 +65,9 @@ template <> struct finite_volume_traits<ReferenceEdge, 2>
 	const static size_t MaxNumCornersOfSCV = 2;
 
 	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
-		{UG_ASSERT(0, "Not implemented");}
+	{
+		VecSubtract(outNormal, vCornerCoords[1], vCornerCoords[0]);
+	}
 
 	typedef ReferenceEdge scv_type;
 };

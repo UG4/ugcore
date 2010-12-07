@@ -563,6 +563,11 @@ bool AddP1Function(P1ConformFunctionPattern& pattern, const char* name, int dim)
 	return pattern.add_discrete_function(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1), dim);
 }
 
+bool AddP1FunctionOnSubsets(FunctionPattern& pattern, const char* name, const char* subsets, int dim)
+{
+	return pattern.add_discrete_function(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1), subsets, dim);
+}
+
 template <typename TGridFunction>
 bool WriteGridFunctionToVTK(TGridFunction& u, const char* filename)
 {
@@ -1466,6 +1471,7 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 
 	//  Add discrete function to pattern
 		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
+		reg.add_function("AddP1FunctionOnSubsets", &AddP1FunctionOnSubsets, grp.c_str());
 
 	//  Debug function
 		reg.add_function("SetDebugLevel", &SetDebugLevel, grp.c_str());

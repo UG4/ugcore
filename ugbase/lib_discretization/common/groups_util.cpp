@@ -13,11 +13,20 @@ namespace ug{
 bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
 								const char* subsets, const char separator)
 {
+//	forward request
+	return ConvertStringToSubsetGroup(subsetGroup,
+	                                  *(pattern.get_subset_handler()),
+	                                  subsets, separator);
+}
+
+bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& sh,
+								const char* subsets, const char separator)
+{
 //	get strings
 	std::string subsetString = std::string(subsets);
 
 //	set underlying subsethandler Subset Group
-	subsetGroup.set_subset_handler(*(pattern.get_subset_handler()));
+	subsetGroup.set_subset_handler(sh);
 
 //	tokenize strings and select subsets
 	std::vector<std::string> tokens;

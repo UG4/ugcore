@@ -19,11 +19,29 @@ namespace ug{
 // predeclaration
 class FunctionPattern;
 
-bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
-								const char* subsets, const char separator = ',');
+/**
+ * Passing a string of subset names separated by ',' this function returns
+ * a subset group containing the subsets.
+ */
+bool
+ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& sh,
+                           const char* subsets, const char separator = ',');
 
-bool ConvertStringToFunctionGroup(	FunctionGroup&functionGroup, const FunctionPattern& pattern,
-									const char* functions, const char separator = ',');
+/**
+ * Passing a string of subset names separated by ',' this function returns
+ * a subset group containing the subsets.
+ */
+bool
+ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const FunctionPattern& pattern,
+                           const char* subsets, const char separator = ',');
+
+/**
+ * Passing a string of function names separated by ',' this function returns
+ * a function group containing the subsets.
+ */
+bool
+ConvertStringToFunctionGroup(FunctionGroup&functionGroup, const FunctionPattern& pattern,
+                             const char* functions, const char separator = ',');
 
 
 } // end namespace ug
