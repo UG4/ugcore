@@ -50,7 +50,7 @@ template <typename TRefElem, int TWorldDim> struct finite_volume_traits;
 
 template <> struct finite_volume_traits<ReferenceEdge, 1>
 {
-	const static size_t NumCornersOfSCVF = 1;
+	const static size_t NumCornersOfSCVF = 2;
 	const static size_t MaxNumCornersOfSCV = 2;
 
 	static void NormalOnSCVF(MathVector<1>& outNormal, const MathVector<1>* vCornerCoords)
@@ -61,7 +61,7 @@ template <> struct finite_volume_traits<ReferenceEdge, 1>
 
 template <> struct finite_volume_traits<ReferenceEdge, 2>
 {
-	const static size_t NumCornersOfSCVF = 1;
+	const static size_t NumCornersOfSCVF = 2;
 	const static size_t MaxNumCornersOfSCV = 2;
 
 	static void NormalOnSCVF(MathVector<2>& outNormal, const MathVector<2>* vCornerCoords)
@@ -74,7 +74,7 @@ template <> struct finite_volume_traits<ReferenceEdge, 2>
 
 template <> struct finite_volume_traits<ReferenceEdge, 3>
 {
-	const static size_t NumCornersOfSCVF = 1;
+	const static size_t NumCornersOfSCVF = 2;
 	const static size_t MaxNumCornersOfSCV = 2;
 
 	static void NormalOnSCVF(MathVector<3>& outNormal, const MathVector<3>* vCornerCoords)

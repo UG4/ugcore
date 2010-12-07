@@ -184,7 +184,17 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 		AveragePositions(m_vSCVF[i].globalIP, m_vSCVF[i].m_vGloPos, SCVF::m_numCorners);
 
 	// 	normal on scvf
-		NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
+		if(ref_elem_type::dim == world_dim)
+		{
+			NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, m_vSCVF[i].m_vGloPos);
+		}
+		else
+		{
+			if(ref_elem_type::dim == 1)
+				NormalOnSCVF<ref_elem_type, world_dim>(m_vSCVF[i].Normal, vCornerCoords);
+			else
+				throw(UGError("Not Implemented"));
+		}
 	}
 
 // 	compute size of scv
