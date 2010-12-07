@@ -21,7 +21,7 @@ gridName = "unit_square_with_membrane.ugx"
 numPreRefs = 0
 
 -- Total refinements
-numRefs = 4
+numRefs = 3
 
 --------------------------------
 -- User Data Functions (begin)
@@ -45,13 +45,14 @@ numRefs = 4
 		--return -2*y
 		return 0;
 	end
-	
-	function ourNeumannBnd2d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
-		--return true, -2*x*y
+
+	function membraneRhs2d(x, y, t)
+	local s = 2*math.pi
+	return	s*s*(math.sin(s*x) + math.sin(s*y))
+	--return -2*y
+	--return 0;
 	end
-	
+		
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
 		--return true, math.sin(s*x) + math.sin(s*y)
@@ -61,10 +62,10 @@ numRefs = 4
 
 	function membraneDirichletBnd2d(x, y, t)
 	local s = 2*math.pi
-	--return true, math.sin(s*x) + math.sin(s*y)
+	return true, math.sin(s*x) + math.sin(s*y)
 	--return true, x*x*y
-	return true, 2.5
-end
+	--return true, 2.5
+	end
 	
 --------------------------------
 -- User Data Functions (end)
@@ -157,6 +158,7 @@ print ("Setting up Assembling")
 	
 -- dirichlet setup
 	membraneDirichlet = utilCreateLuaBoundaryNumber("membraneDirichletBnd2d", dim)
+	membraneRhs = utilCreateLuaUserNumber("membraneRhs2d", dim)
 
 
 -----------------------------------------------------------------
@@ -175,14 +177,7 @@ membraneElemDisc:set_upwind_amount(0.0)
 membraneElemDisc:set_diffusion_tensor(diffusionMatrix)
 membraneElemDisc:set_velocity_field(velocityField)
 membraneElemDisc:set_reaction(reaction)
-membraneElemDisc:set_rhs(rhs)
-
------------------------------------------------------------------
---  Setup Neumann Boundary
------------------------------------------------------------------
-
---neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
---neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
+membraneElemDisc:set_rhs(membraneRhs)
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -201,7 +196,6 @@ membraneDirichletBND:add_boundary_value(membraneDirichlet, "c_membrane", "Membra
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc)
 domainDisc:add_elem_disc(membraneElemDisc)
---domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
 domainDisc:add_post_process(membraneDirichletBND)
 
@@ -261,7 +255,7 @@ ilut = ILUT()
 	
 	-- Transfer and Projection
 	transfer = utilCreateP1Prolongation(approxSpace)
-	transfer:set_dirichlet_post_process(dirichletBND)
+	transfer:set_dirichlet_post_process(membraneDirichletBND)
 	projection = utilCreateP1Projection(approxSpace)
 	
 	-- Gemoetric Multi Grid
@@ -270,7 +264,7 @@ ilut = ILUT()
 	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
-	gmg:set_smoother(jac)
+	gmg:set_smoother(gs)
 	gmg:set_cycle_type(1)
 	gmg:set_num_presmooth(3)
 	gmg:set_num_postsmooth(3)
