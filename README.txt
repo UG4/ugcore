@@ -4,12 +4,10 @@ How to compile ugbase:
 
 - a recent version of boost should be located somewhere on your machine.
   At least boost 1.34 is required.
-  UG only uses boost headers. The boost library thus doesn't have to be build.
-  Consider setting an environment-variable BOOST_ROOT to the path that contains boost or
-  to add the boost path to your PATH environment variable.
-  (this could look like this: export PATH=$PATH:$HOME/libs/boost_1_41_0)
+  UG only uses boost headers. The boost library thus doesn't has to be build.
+  Consider setting an environment-variable BOOST_ROOT to the path that contains boost.
 
-- start in the root folder of UG4 (.../ug4/)
+- start in the root folder of UG4 (.../ug4/trunk)
 
 - create a new folder and call it build (mkdir build)
 
@@ -19,7 +17,7 @@ How to compile ugbase:
 
 - execute make (make)
 
-- you now should find all libs of ug4 in ug4/lib
+- you now should find all libs of ug4 in trunk/lib and the executable ugshell in trunk/bin
 
 - if you want to recompile the libs later on, you wont have to
   execute cmake again. make will automatically recognise changes
