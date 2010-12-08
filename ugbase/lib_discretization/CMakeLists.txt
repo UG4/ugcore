@@ -41,5 +41,5 @@ EXPORTSOURCES(lib_discretization ${srcDiscretization})
 
 if(NOT UG_SHARED)
 add_library(discretization STATIC ${srcDiscretization})
-add_dependencies(discretization algebra grid common)
+#add_dependencies(discretization algebra grid common)
 endif(NOT UG_SHARED)

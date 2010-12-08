@@ -30,7 +30,7 @@ if(NOT NO_ALGEBRA)
 
 if(NOT UG_SHARED)
 	add_library(algebra ${src_Algebra} )
-	add_dependencies(algebra common lib_algebra.h)
+	#add_dependencies(algebra common lib_algebra.h)
 endif(NOT UG_SHARED)
 
 endif(NOT NO_ALGEBRA)
