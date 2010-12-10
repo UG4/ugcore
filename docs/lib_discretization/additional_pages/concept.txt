@@ -1,0 +1,40 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y10 m12 d10
+
+/**	\page pageLDConcept libDiscretization - Concept
+
+	- \ref secDiscretization "Discretization"
+	- \ref secDomainDiscretization "Domain Discretizaion"
+	- \ref secTimeDiscretization "Time Discretization"
+
+<br>
+
+For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
+
+<hr>
+\section secDiscretization Discretization
+
+The partial differential equations that can be discretized in libDiscretization 
+have the form:
+\f[
+	\mathcal{M}(\mathbf{u}) + \mathcal{A}(\mathbf{u}) = f, x\in\Omega,\\
+	\mathcal{B}(\mathbf{u}) = 0, x\in\partial \Omega
+\f] 
+
+<br>
+
+<hr>
+\section secDomainDiscretization Domain Discretization
+
+Domain Discretizations are an important part of all simulations performed using
+<br>
+
+<hr>
+\section secTimeDiscretization Time Discretization
+<hr>
+
+Something about Time Discretization ...
+<br>
+
+*/

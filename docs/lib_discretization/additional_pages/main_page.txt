@@ -1,0 +1,13 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y10 m12 d10
+
+/** \mainpage libDiscretization - Documentation
+
+\author Andreas Vogel
+
+<hr>
+\section secUserManual User Manual:
+	- \ref pageLDIntroduction "Introduction"
+	- \ref pageLDConcept "Concept"
+ */
