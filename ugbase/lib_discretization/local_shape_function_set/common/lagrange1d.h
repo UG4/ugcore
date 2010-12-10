@@ -207,7 +207,7 @@ class TruncatedEquidistantLagrange1D
  *
  * Creates for given order <tt>p</tt>, interpolation point <tt>i</tt> and upper
  * bound <tt>0 <= b <= p</tt> the polynomial
- * \f[ \prod_{\substack{j=0\\j\neq i}}^{b} \frac{x - \frac{j}{p}}{\frac{i}{p} -
+ * \f[ \prod_{{j=0\\j\neq i}}^{b} \frac{x - \frac{j}{p}}{\frac{i}{p} -
  * \frac{j}{p}} \f]
  * Thus, it is a polynomial of order b.
  */
