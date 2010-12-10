@@ -1,0 +1,53 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y10 m12 d10
+
+/**	\page pageLDAssembleInterface libDiscretization - Assemble Interfaces
+
+The categorization of the PDE problems presented in 
+\ref pageLDCategorization "Categorization of Problems" 
+are realized by Interface classes in libDiscretization.
+
+	- \ref secIAssemble "IAssemble Interface"
+
+<br>
+
+<hr>
+\section secIAssemble IAssemble Interface
+<hr>
+
+The class ug::IAssemble implements the interface for 
+assembling, that can be used in a newton solver.
+
+\code
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class IAssemble {
+	public:
+		typedef TAlgebra algebra_type;
+		typedef typename TAlgebra::matrix_type matrix_type;
+		typedef typename TAlgebra::vector_type vector_type;
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
+
+	public:
+		virtual IAssembleReturn assemble_jacobian(matrix_type& J,
+		                                          const vector_type& u,
+		                                          const dof_distribution_type& dofDistr)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual IAssembleReturn assemble_defect(vector_type& d,
+		                                        const vector_type& u,
+		                                        const dof_distribution_type& dofDistr)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual IAssembleReturn assemble_linear(matrix_type& A,
+		                                        vector_type& b,
+		                                        const vector_type& u,
+		                                        const dof_distribution_type& dofDistr)
+		{return IAssemble_NOT_IMPLEMENTED;}
+		virtual IAssembleReturn assemble_solution(vector_type& u,
+		                                          const dof_distribution_type& dofDistr)
+		{return IAssemble_NOT_IMPLEMENTED;}
+}
+\endcode
+ */

@@ -1,0 +1,329 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y10 m12 d10
+
+/**	\page pageLDCategorization libDiscretization - Categorization of Problems
+
+In order to discretize a problem as presented in \ref secGeneralProblemDescribtion
+the different problems can be categorized into several classes. All classes of
+problems can be implemented in a general framework.
+
+	- \ref secDomainDiscretization "Domain Discretizaion"
+	- \ref secStationaryLinearDiscretization "Linear Stationary Problems"
+	- \ref secStationaryNonLinearDiscretization "Non-Linear Stationary Problems"
+	- \ref secTimeDiscretization "Time Discretization"
+	- \ref secTimeDependentLinearDiscretization "Time-Dependent Linear Problems"
+	- \ref secTimeDependentNonLinearDiscretization "Time-Dependent Non-Linear Problems"
+
+<br>
+
+<hr>
+\section secDomainDiscretization Domain Discretization
+<hr>
+
+Let the Domain \f$\Omega\f$ be covered by a grid \f$\Omega_h\f$. By choosing an
+appropriate trial space, each unknown continuous function \f$u_i(\vec{x},t)\f$
+is now approximated by an finite-dimensional numerical function
+\f$u_{h,i}(\vec{x},t)\f$. For each function \f$u_{h,i}\f$ a certain number of
+degrees of freedoms (DoF) has to distrubuted on the grid, being associated with
+the geometric objects. For example, one can think of piecewise linear 
+functions on each grid elements, requiring one DoF per vertex of the element and
+no DoFs on the other Geometric Objects like edges or faces. Let \f$N_{h,i}\f$ be
+the number of DoFs needed to represent the unknowns of the i'th function and let
+\f$N_h = \sum_{i=1}^n\f$ be the number DoFs needed for the whole problem. Each
+discrete function \f$u_{h,i}\f$ is isomorphic to a representation in 
+\f$\mathbb{R}^{N_{h,i}}\f$, thus it can be represented by an algebraic vector
+\f$\vec{u}_{h,i} \in \mathbb{R}^{N_{h,i}}\f$ and the entries of the vector 
+\f$(\vec{u}_{h,i})_j \in \mathbb{R}\f$ are the DoFs of the function. By the
+same construction a representation for the system solution can be found.
+
+To facilitate notations for the remainder of this page, let \f$\vec{u} = \vec{u}_1\f$,
+i.e. it is a scalar problem. For systems of unknowns the ideas are straight 
+forward.
+<br>
+
+For the discretization of the PDE there are several possibilities:
+<ul>
+<li> finite difference method (FD)
+<li> finite element method (FE)
+<li> finite volume method (FV)
+<li> discontinuous galerkin method (DG)
+</ul>
+
+This gives rise to an discretized operators \f$\mathcal{M}_h(\cdot)\f$ and \f$\mathcal{A}_h(\cdot)\f$
+and a discrete right-hand side \f$\vec{f_h}\f$, with \f$	\mathcal{M}_h, \mathcal{A}_h:
+ \mathbb{R}^{N_h} \mapsto \mathbb{R}^{N_h} \f$ and \f$\vec{f_h} \in \mathbb{R}^{N_h}\f$.
+
+The discrete problem can be written as
+\f{align*}
+	\partial_t \mathcal{M}_h(\vec{u}_h) + \mathcal{A}_h(\vec{u}_h) = \vec{f_h}
+\f}
+Note, that the boundary conditions are taken into account in the operators and
+the right-hand side.
+
+<hr>
+\section secStationaryLinearDiscretization Linear Stationary Problems - the easiest case
+
+The easiest case are time-independent (stationary) and linear problems. This 
+means
+<ul>
+<li> stationary: \f$ \mathcal{M}_h(\cdot) = 0 \f$
+<li> linear: \f$ \mathcal{A}_h(\vec{u}_h) \equiv A_h \cdot \vec{u}_h \f$, 
+		i.e. \f$A_h \in \mathbb{R}^{N_h \times N_h}\f$ is a matrix
+</ul>
+
+In this case the "Stiffness-Matrix" \f$A_h\f$ and the right-hand side vector
+\f$\vec{f}_h \in \mathbb{R}^{N_h}\f$ has to be assembled. Then, it remains to 
+use an adequate matrix solver to solve the linear system
+\f{align*}
+	A_h \vec{u}_h = \vec{f}_h.
+\f}
+
+In order to specify a problem, the user has to supply:
+<ul>
+<li> the computation of the matrix \f$A_h\f$
+<li> the computation of the rhs \f$\vec{f}_h\f$
+</ul>
+
+The solution of the algebraic problem (inverting \f$A_h\f$) can be 
+implemented independently from the actual problem and/or discretization. 
+
+<hr>
+\section secStationaryNonLinearDiscretization Non-Linear Stationary Problems
+
+Stationary, non-linear problems are described by
+<ul>
+<li> stationary: \f$ \mathcal{M}_h(\cdot) = 0 \f$
+<li> non-linear: \f$ \mathcal{A}_h(\vec{u}_h): \mathbb{R}^{N_h} \mapsto \mathbb{R}^{N_h}\f$ 
+					can not be represented as matrix
+</ul>
+Thus, in order to solve this problem typically a newton-method is used. This
+means to reformulate the problem using the "defect":
+\f{align*}
+	d_h: \mathbb{R}^{N_h} &\mapsto \mathbb{R}^{N_h}\\
+		 \vec{u}_h &\mapsto \vec{d}_h(\vec{u}_h) := \mathcal{A}_h(\vec{u}_h)-\vec{f}_h.
+\f}
+The aim is to find a root \f$\vec{d}_h(u_h) = 0\f$ of the defect. This is
+usually solved by the Newton method or some kind of fixed-point iteration.
+Starting with an initial guess \f$u_h^0\f$ the following interation is performed
+\f{align*}
+	\vec{c}_{h,k} &:= (J_h(\vec{u}_{h_k}))^{-1} d_h(\vec{u}_{h,k}),\\
+	\vec{u}_{h,k+1} &:= \vec{u}_{h,k} - \alpha_k \vec{c}_{h,k}
+\f}
+with
+<ul>
+<li> \f$\vec{u}_{h,k}\f$ is the k'th iterate of the solution
+<li> \f$\vec{c}_{h,k}\f$ is the k'th correction
+<li> \f$J_h(\vec{u}_{h_k})\f$ is a preconditioner matrix for the linearization
+	 of the defect w.r.t. the DoFs, evaluated at the solution of 
+	 the current iterate
+<li> \f$ \alpha_k\f$ is a damping factor
+</ul>
+
+There are several choises of \f$J_h(\vec{u}_{h_k})\f$:
+<ul>
+<li> Jacobian
+\f{align*}
+	J_h(\vec{u}_{h_k}) = \frac{\partial \vec{d}_h(u_h)}{\partial \vec{u}_h}
+					   = \frac{\partial \mathcal{A}_h(u_h)}{\partial \vec{u}_h}
+\f}
+	The Jacobian is the linearization of the defect with respect to the 
+	unknown DoFs, i.e.
+\f{align*}
+	(J_h(\vec{u}_{h_k}))_{ij} = \frac{\partial (\vec{d}_h(u_h))_i}{\partial (\vec{u}_h)_j}
+\f}
+	
+<li> Identity
+\f{align*}
+	J_h(\vec{u}_{h_k}) = \mathbb{I}
+\f}
+	This gives rise to a very simple fixed-point iteration.
+</ul>
+
+Between these two methods, a lot of different approaches by neglecting terms of
+the exact jacobian. Choosing the Jacobian as a preconditioner will result in 
+a quadratic convergence rate of the iteration. The other schemes give only
+a linear convergence rate.
+
+One mayor part of the non-linear iteration is the solution of the linear 
+problem
+\f{align*}
+	J_h(\vec{u}_{h_k}) \vec{c}_{h,k} = \vec{d}_h(\vec{u}_{h_k}).
+\f}
+This problem has exactly the same structure as the linear, stationary problem
+and therefore all linear matrix solvers can also be used here. It is worthwhile
+to notice the analogy between solution and correction on the one hand and between
+right-hand side and defect on the other hand. The preconditioner has usually
+a similar sparse pattern as the matrix of the linear problem.
+Note, that every linear problem can be viewed as a linear one. In this case, 
+the preconditioner is just the linear matrix itself \f$J_h \equiv A_h\f$ and
+the newton scheme must and will converge in one single step.
+
+In order to specify a problem, the user has to specify:
+<ul>
+<li> the computation of the preconditioner \f$J_h(\vec{u}_h)\f$ for any \f$\vec{u}_h\f$
+<li> the computation of the defect \f$\vec{d}_h(\vec{u}_h)\f$ for any \f$\vec{u}_h\f$
+</ul>
+
+All the other steps can be implemented independently from the actual problem
+and/or discretization. 
+
+<hr>
+\section secTimeDiscretization Time Discretization
+<hr>
+
+The discretization of time-dependent part of a PDE is closely related to the
+solution of ordinary differential equations (ODE). Those have the form
+\f{align*}
+	\partial_t u(t) &= f(t, u(t)) \\
+		u(t_{start}) &= u_0
+\f}
+where the unknown function is \f$u: \mathbb{R} \mapsto \mathbb{R}^N\f$ and the 
+right-hand side is \f$: \mathbb{R} \times \mathbb{R}^N \mapsto \mathbb{R}^N\f$.
+
+In order to discretize such an ODE introduce a time grid 
+\f$\{t_0 = t_{start}, t_1, t_2, \ldots \}\f$ and define the time step size
+\f$\Delta t := t_{k+1} - t_k\f$. Let \f$u^{(k)} \approx u(t_k)\f$ be the 
+approximation of \f$u\f$ at time step k. 
+A general L-step discretization scheme for ODEs takes the form
+\f{align*}
+	\sum_{l=0}^{L-1} \left[ s_{m,l} u^{(k-l)} + s_{a,l} f(u^{(k-l)}) \right] = 0.
+\f}
+where
+<ul>
+<li> \f$L \geq 2\f$ is the number of previous time steps needed
+<li> \f$s_{m,l}, s_{a,l} \in \mathbb{R}\f$ are scheme specific scaling factors
+<li> \f$u^{(k)}\f$ is the unknown solution at timestep \f$t_k\f$
+<li> \f$u^{(k-l)} (l \geq 1)\f$ are the known solutions at previous timesteps
+</ul>
+
+Donote by \f$\vec{s} := (s_0, s_1, \ldots, s_{L-1})\f$ the specific scaling 
+factors. 
+
+Some common schemes are
+<ul>
+<li> implicit Euler with \f$L = 2\f$ and 
+\f{align*}
+	\vec{s}_a &= (\Delta t, 0)\\
+	\vec{s}_m &= (-1, 1)
+\f}
+<li> explicit Euler with \f$L = 2\f$ and 
+\f{align*}
+	\vec{s}_a &= (0, \Delta t)\\
+	\vec{s}_m &= (-1, 1)
+\f}
+<li> Crank-Nicolson with \f$L = 2\f$ and 
+\f{align*}
+	\vec{s}_a &= (\frac{1}{2} \Delta t, \frac{1}{2} \Delta t)\\
+	\vec{s}_m &= (-1, 1)
+\f}
+<li> \f$\theta\f$-scheme with \f$L = 2\f$ and 
+\f{align*}
+	\vec{s}_a &= (\theta \Delta t, (1- \theta)\Delta t)\\
+	\vec{s}_m &= (-1, 1)
+\f}
+with implements the three forementined scheme by specifing \f$ \theta\f$.
+<li> Runge-Kutta schemes
+<li> Linear multi-step schemes like Adams-Bashforth or Adams-Moulton
+</ul> 
+<br>
+
+Now assume \f$\mathcal{M}(u)\f$ to have the form \f$\frac{\partial}{\partial t} u\f$.
+One can rearrange the problem to
+\f{align*}
+	\mathcal{M}(u) = \frac{\partial}{\partial t} u = - \mathcal{A}(u) + f
+\f}
+and finds the setup for an ODE problem in time.
+
+Discretize the time-dependent PDE problem first in space. This gives
+\f{align*}
+	\frac{\partial}{\partial t} M_h \vec{u}_h(t) = - \mathcal{A}_h(\vec{u}_h(t)) + f_h(t).
+\f}
+Supposing that the Mass-matrix is independent of time one can apply the ODE
+time stepping scheme and gets the next time step by solving
+ 
+\f{align*}
+	\vec{d}_h(\vec{u}_h^{(k)}) := \sum_{l=0}^{L-1} 
+	\left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
+		   + s_{a,l} \left( \mathcal{A}_h(\vec{u}^{(k-l)}) - \vec{f}_h^{(k-l)} 
+		   \right) \right] = 0.
+\f}
+
+The defect \f$\vec{d}(u_h^{(k)})\f$ can be split up into
+\f{align*}
+	\vec{d}_h(\vec{u}_h^{(k)}) := \sum_{l=0}^{L-1} 
+		\hat{\vec{d}}_h(\vec{u}_h^{(k-l)}, s_{m,l}, s_{a,l})
+\f}
+where
+\f{align*}
+	\hat{\vec{d}}_h(\vec{u}_h, s_m, s_a) := 
+			s_m M_h \vec{u}_h 
+		   + s_a \mathcal{A}_h(\vec{u})
+\f}
+
+For the Jacobian one finds
+\f{align*}
+	J_h(\vec{u}_h^{(k)}, s_{m,0}, s_{a,0})
+	= \frac{\partial \vec{d}_h(\vec{u}_h)}{\partial \vec{u}_h}
+		\left( \vec{u}_h^{(k)} \right)	
+	= 	\frac{\partial \hat{\vec{d}}_h(\vec{u}_h, s_{m,0}, s_{a,0})}
+			 {\partial \vec{u}_h} \left( \vec{u}_h^{(k)} \right)
+	= s_{m,0} M_h
+		   + s_{a,0} \frac{\partial \mathcal{A}_h(\vec{u}_h)}{\partial \vec{u}_h}
+		   	\left( \vec{u}_h^{(k)} \right)	
+\f}
+
+Thus, in order to specify a problem, the user has to specify:
+<ul>
+<li> the computation of the preconditioner \f$J_h(\vec{u}_h, s_m, s_a)\f$ 
+	for any \f$\vec{u}_h, s_m, s_a\f$
+<li> the computation of the defect \f$\hat{\vec{d}}_h(\vec{u}_h, s_m, s_a)\f$ 
+	for any \f$\vec{u}_h, s_m, s_a\f$
+</ul>
+<br>
+
+<hr>
+\section secTimeDependentLinearDiscretization Time-Dependent Linear Problems
+
+If the time-dependent problem is linear if \f$\mathcal{M}(\cdot)\f$ and 
+\f$\mathcal{A}(\cdot)\f$ are linear. In this case one finds 
+\f$\mathcal{A}(\vec{u}_h) \equiv A_h \vec{u}_h\f$.
+
+The defect equation can now be written in the form
+\f{align*}
+	  s_{m,0} M_h \vec{u}_h^{(k)} 
+	+ s_{a,0} A_h \vec{u}_h^{(k)}
+	= \vec{f}_h^{(k)}
+	- \sum_{l=1}^{L-1} \left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
+		   + s_{a,l} \left( A_h \vec{u}^{(k-l)} - \vec{f}_h^{(k-l)} 
+		   \right) \right]
+\f}
+This system of equations has the form
+\f{align*}
+	B_h  \vec{u}_h^{(k)} = b_h
+\f}
+where
+<ul>
+<li> \f$B_h:=s_{m,0} M_h+ s_{a,0} A_h \f$ is a matrix
+<li> \f$b_h:= \vec{f}_h^{(k)}
+	- \sum_{l=1}^{L-1} \left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
+		   + s_{a,l} \left( A_h \vec{u}^{(k-l)} - \vec{f}_h^{(k-l)} 
+		   \right) \right]\f$ is a known vector right-hand side 
+</ul>
+The problem can thus be solved using the same matrix solvers used for the
+stationary linear problems.
+
+<hr>
+\section secTimeDependentNonLinearDiscretization Time-Dependent Non-Linear Problems
+
+In this case the defect equation
+\f{align*}
+	\vec{d}_h(\vec{u}_h^{(k)}) := \sum_{l=0}^{L-1} 
+	\left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
+		   + s_{a,l} \left( \mathcal{A}_h(\vec{u}^{(k-l)}) - \vec{f}_h^{(k-l)} 
+		   \right) \right] = 0
+\f}
+has to be solved using a newton scheme. Fixing the time step \f$k\f$ this
+problem has the same structure as the stationary non-linear problems. Thus, the
+solver framework can be reused.
+*/
