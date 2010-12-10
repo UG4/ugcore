@@ -4,8 +4,9 @@
 
 /**	\page pageLDConcept libDiscretization - Concept
 
-	- \ref secDiscretization "Discretization"
+	- \ref secGeneralProblemDescribtion "General Problem Description"
 	- \ref secDomainDiscretization "Domain Discretizaion"
+	- \ref secStationaryLinearDiscretization "Linear Stationary Problems"
 	- \ref secTimeDiscretization "Time Discretization"
 
 <br>
@@ -13,28 +14,257 @@
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 <hr>
-\section secDiscretization Discretization
+\section secGeneralProblemDescribtion General Problem Description
 
-The partial differential equations that can be discretized in libDiscretization 
-have the form:
-\f[
-	\mathcal{M}(\mathbf{u}) + \mathcal{A}(\mathbf{u}) = f, x\in\Omega,\\
-	\mathcal{B}(\mathbf{u}) = 0, x\in\partial \Omega
-\f] 
+This section explains what kind of partial differential equations (PDE) can be 
+discretized using libDiscretization.
 
+The starting point for any discretization is a physical domain, \f$ \Omega 
+\subset \mathbb{R}^d \f$. In Ug currently 1d, 2, and 3d domains are 
+supported. Furthermore, for time dependent problems on has a finite time 
+interval \f$ I := [t_{start}, t_{end}] \f$ where to solution is searched.
+
+The PDE model the behaviour of a set of \f$n\f$ functions on the domain:
+\f{align*}
+	u_i : \Omega \times I &\mapsto \mathbb{R}\\
+	  (\vec{x}, t) &\mapsto u_i(\vec{x}, t).
+\f}
+The support for each function may not be the whole domain, but be only a subset
+of the given domain. This case will be documented (hopefully) soon ....
+
+To simplify notations, one can group all functions to one single function
+\f{align*}
+	\vec{u}(\vec{x},t) := 	\begin{pmatrix} u_1(\vec{x}, t) \\
+										 \vdots \\ u_n(\vec{x}, t)
+						 	\end{pmatrix}.
+\f}
+
+Now, a sytem of PDEs for the unknown functions is given by
+
+\f{align*}
+	\mathcal{M}(\vec{u}) + \mathcal{A}(\vec{u}) &= f, &x\in\Omega,\\
+	\mathcal{B}(\vec{u}) &= 0, &x\in\partial \Omega.
+\f} 
+
+Here, we have the following notation:
+\f{align*}
+	f(\vec{x}, t) &\text{ is a given right - hand side independent of } \vec{u},\\
+	\mathcal{M} &\text{ is a time-dependent operator acting on }Ê\vec{u},\\
+	\mathcal{A} &\text{ is a time-independent operator acting in } \vec{u},\\
+	\mathcal{B} &\text{ are boundary conditions for } \vec{u}.
+\f}
+
+Note, that this gives a well-defined separation of the problem. Usually, the
+term \f$\mathcal{M}\f$ is called Mass-part while \f$\mathcal{A}\f$ is called
+Stiffness-part (for historic reasons). Some examples:
+<ul>
+<li> Convection-Diffusion-Reaction Equation
+
+\f{align*}
+	\partial_t c - \nabla \left( D \nabla c - \vec{v} c \right) 
+									+ r(c) &= f, &\text{ in } \Omega,\\
+	c &= g, &\text{ on } \partial\Omega_D,\\
+	\frac{\partial c}{\partial \vec{n}} &= h &\text{ on } \partial\Omega_N,
+\f}
+
+with the notation
+<ul>
+<li> \f$c(\vec{x},t)\f$ is an unknown concentration,
+<li> \f$D(\vec{x},t)\f$ is the diffusion tensor,
+<li> \f$v(\vec{x},t)\f$ is the convective velocity,
+<li> \f$r(c, \vec{x},t)\f$ is the reaction term,
+<li> \f$f(\vec{x},t)\f$ is a source term independent of \f$\vec{c}\f$.
+</ul>
+
+Interpreting this problem in the above terms one finds:
+
+<ul>
+<li> \f$\vec{u} = c\f$,
+<li> \f$\mathcal{M}(c) := \partial_t c\f$,
+<li> \f$\mathcal{A}(c) := - \nabla \left( D \nabla c - \vec{v} c \right) + r(c)\f$,
+<li> \f$ f = f\f$,
+<li> \f$ \mathcal{B}(c) := \begin{cases}
+		c(\vec{x}, t) - g(\vec{x}, t), &x \in \partial\Omega_D,\\
+ 		\frac{\partial c}{\partial \vec{n}} - h(\vec{x}, t) &x \in \partial\Omega_N.
+ 		\end{cases}.
+ 	\f$
+</ul>
+
+For the stationary problem (i.e. time-independent), one finds \f$\partial_t c = 0\f$ 
+and omits the dependency of \f$t\f$ in for all functions. This problem can be
+written as above, with \f$\mathcal{M}(c) = 0\f$.
+
+<li> Density-Driven Flow
+[... to be added ...]
+</ul>
+
+libDiscretization uses this splitting of the problem into different operators
+to implement the problem in a modular way.
 <br>
 
 <hr>
 \section secDomainDiscretization Domain Discretization
+<hr>
 
-Domain Discretizations are an important part of all simulations performed using
+Let the Domain \f$\Omega\f$ be covered by a grid \f$\Omega_h\f$. By choosing an
+appropriate trial space, each unknown continuous function \f$u_i(\vec{x},t)\f$
+is now approximated by an finite-dimensional numerical function
+\f$u_{h,i}(\vec{x},t)\f$. For each function \f$u_{h,i}\f$ a certain number of
+degrees of freedoms (DoF) has to distrubuted on the grid, being associated with
+the geometric objects. For example, one can think of piecewise linear 
+functions on each grid elements, requiring one DoF per vertex of the element and
+no DoFs on the other Geometric Objects like edges or faces. Let \f$N_{h,i}\f$ be
+the number of DoFs needed to represent the unknowns of the i'th function and let
+\f$N_h = \sum_{i=1}^n\f$ be the number DoFs needed for the whole problem. Each
+discrete function \f$u_{h,i}\f$ is isomorphic to a representation in 
+\f$\mathbb{R}^{N_{h,i}}\f$, thus it can be represented by an algebraic vector
+\f$\vec{u}_{h,i} \in \mathbb{R}^{N_{h,i}}\f$ and the entries of the vector 
+\f$(\vec{u}_{h,i})_j \in \mathbb{R}\f$ are the DoFs of the function. By the
+same construction a representation for the system solution can be found.
+
+To facilitate notations for the remainder of this page, let \f$\vec{u} = \vec{u}_1\f$,
+i.e. it is a scalar problem. For systems of unknowns the ideas are straight 
+forward.
 <br>
+
+For the discretization of the PDE there are several possibilities:
+<ul>
+<li> finite difference method (FD)
+<li> finite element method (FE)
+<li> finite volume method (FV)
+<li> discontinuous galerkin method (DG)
+</ul>
+
+This gives rise to an discretized operators \f$M_h(\cdot)\f$ and \f$A_h(\cdot)\f$
+and a discrete right-hand side \f$\vec{f_h}\f$, with \f$	M_h, A_h:
+ \mathbb{R}^{N_h} \mapsto \mathbb{R}^{N_h} \f$ and \f$\vec{f_h} \in \mathbb{R}^{N_h}\f$.
+
+The discrete problem can be written as
+\f{align*}
+	\partial_t M_h(\vec{u}_h) + A_h(\vec{u}_h) = \vec{f_h}
+\f}
+Note, that the boundary conditions are taken into account in the operators and
+the right-hand side.
+
+<hr>
+\section secStationaryLinearDiscretization Linear Stationary Problems - the easiest case
+
+The easiest case are time-independent (stationary) and linear problems. This 
+means
+<ul>
+<li> stationary: \f$ M_h(\cdot) = 0 \f$
+<li> linear: \f$ A_h(\vec{u}_h) \equiv A_h \cdot \vec{u}_h \f$, 
+		i.e. \f$A_h \in \mathbb{R}^{N_h \times N_h}\f$ is a matrix
+</ul>
+
+In this case the "Stiffness-Matrix" \f$A_h\f$ and the right-hand side vector
+\f$\vec{f}_h \in \mathbb{R}^{N_h}\f$ has to be assembled. Then, it remains to 
+use an adequate matrix solver to solve the linear system
+\f{align*}
+	A_h \vec{u}_h = \vec{f}_h.
+\f}
+
+In order to specify a problem, the user has to supply:
+<ul>
+<li> the computation of the matrix \f$A_h\f$
+<li> the computation of the rhs \f$\vec{f}_h\f$
+</ul>
+
+The solution of the algebraic problem (inverting \f$A_h\f$) can be 
+implemented independently from the actual problem and/or discretization. 
+
+<hr>
+\section secStationaryNonLinearDiscretization Non-Linear Stationary Problems
+
+Stationary, non-linear problems are described by
+<ul>
+<li> stationary: \f$ M_h(\cdot) = 0 \f$
+<li> non-linear: \f$ A_h(\vec{u}_h): \mathbb{R}^{N_h} \mapsto \mathbb{R}^{N_h}\f$ 
+					can not be represented as matrix
+</ul>
+Thus, in order to solve this problem typically a newton-method is used. This
+means to reformulate the problem using the "defect":
+\f{align*}
+	d_h: \mathbb{R}^{N_h} &\mapsto \mathbb{R}^{N_h}\\
+		 \vec{u}_h &\mapsto \vec{d}_h(\vec{u}_h) := A_h(\vec{u}_h)-\vec{f}_h.
+\f}
+The aim is to find a root \f$\vec{d}_h(u_h) = 0\f$ of the defect. This is
+usually solved by the Newton method or some kind of fixed-point iteration.
+Starting with an initial guess \f$u_h^0\f$ the following interation is performed
+\f{align*}
+	\vec{c}_{h,k} &:= (J_h(\vec{u}_{h_k}))^{-1} d_h(\vec{u}_{h,k}),\\
+	\vec{u}_{h,k+1} &:= \vec{u}_{h,k} - \alpha_k \vec{c}_{h,k}
+\f}
+with
+<ul>
+<li> \f$\vec{u}_{h,k}\f$ is the k'th iterate of the solution
+<li> \f$\vec{c}_{h,k}\f$ is the k'th correction
+<li> \f$J_h(\vec{u}_{h_k})\f$ is a preconditioner matrix for the linearization
+	 of the defect w.r.t. the DoFs, evaluated at the solution of 
+	 the current iterate
+<li> \f$ \alpha_k\f$ is a damping factor
+</ul>
+
+There are several choises of \f$J_h(\vec{u}_{h_k})\f$:
+<ul>
+<li> Jacobian
+\f{align*}
+	J_h(\vec{u}_{h_k}) = \frac{\partial \vec{d}_h(u_h)}{\partial \vec{u}_h}
+					   = \frac{\partial A_h(u_h)}{\partial \vec{u}_h}
+\f}
+	The Jacobian is the linearization of the defect with respect to the 
+	unknown DoFs, i.e.
+\f{align*}
+	(J_h(\vec{u}_{h_k}))_{ij} = \frac{\partial (\vec{d}_h(u_h))_i}{\partial (\vec{u}_h)_j}
+\f}
+	
+<li> Identity
+\f{align*}
+	J_h(\vec{u}_{h_k}) = \mathbb{I}
+\f}
+	This gives rise to a very simple fixed-point iteration.
+</ul>
+
+Between these two methods, a lot of different approaches by neglecting terms of
+the exact jacobian. Choosing the Jacobian as a preconditioner will result in 
+a quadratic convergence rate of the iteration. The other schemes give only
+a linear convergence rate.
+
+One mayor part of the non-linear iteration is the solution of the linear 
+problem
+\f{align*}
+	J_h(\vec{u}_{h_k}) \vec{c}_{h,k} = \vec{d}_h(\vec{u}_{h_k}).
+\f}
+This problem has exactly the same structure as the linear, stationary problem
+and therefore all linear matrix solvers can also be used here. It is worthwhile
+to notice the analogy between solution and correction on the one hand and between
+right-hand side and defect on the other hand. The preconditioner has usually
+a similar sparse pattern as the matrix of the linear problem.
+Note, that every linear problem can be viewed as a linear one. In this case, 
+the preconditioner is just the linear matrix itself \f$J_h \equiv A_h\f$ and
+the newton scheme must and will converge in one single step.
+
+In order to specify a problem, the user has to specify:
+<ul>
+<li> the computation of the preconditioner \f$J_h(\vec{u}_h)\f$ for any \f$\vec{u}_h\f$
+<li> the computation of the defect \f$\vec{d}_h(\vec{u}_h)\f$ for any \f$\vec{u}_h\f$
+</ul>
+
+All the other steps can be implemented independently from the actual problem
+and/or discretization. 
 
 <hr>
 \section secTimeDiscretization Time Discretization
 <hr>
 
-Something about Time Discretization ...
+The discretization of time-dependent part of a PDE is closely related to the
+solution of ordinary differential equations (ODE). Those have the form
+\f{align*}
+	\partial_t u(t) &= f(t, u(t)) \\
+		u(t_{start}) &= u_0
+\f}
+where the unknown function is \f$u: \mathbb{R} \mapsto \mathbb{R}^N\f$ and the 
+right-hand side is \f$: \mathbb{R} \times \mathbb{R}^N \mapsto \mathbb{R}^N\f$.
 <br>
 
 */
