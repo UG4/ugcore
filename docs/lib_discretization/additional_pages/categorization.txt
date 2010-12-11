@@ -44,10 +44,10 @@ forward.
 
 For the discretization of the PDE there are several possibilities:
 <ul>
-<li> finite difference method (FD)
-<li> finite element method (FE)
-<li> finite volume method (FV)
-<li> discontinuous galerkin method (DG)
+	<li> finite difference method (FD)
+	<li> finite element method (FE)
+	<li> finite volume method (FV)
+	<li> discontinuous galerkin method (DG)
 </ul>
 
 This gives rise to an discretized operators \f$\mathcal{M}_h(\cdot)\f$ and \f$\mathcal{A}_h(\cdot)\f$
