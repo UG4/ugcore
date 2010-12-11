@@ -43,6 +43,7 @@ forward.
 <br>
 
 For the discretization of the PDE there are several possibilities:
+
 <ul>
 	<li> finite difference method (FD)
 	<li> finite element method (FE)
@@ -67,9 +68,9 @@ the right-hand side.
 The easiest case are time-independent (stationary) and linear problems. This 
 means
 <ul>
-<li> stationary: \f$ \mathcal{M}_h(\cdot) = 0 \f$
-<li> linear: \f$ \mathcal{A}_h(\vec{u}_h) \equiv A_h \cdot \vec{u}_h \f$, 
-		i.e. \f$A_h \in \mathbb{R}^{N_h \times N_h}\f$ is a matrix
+	<li> stationary: \f$ \mathcal{M}_h(\cdot) = 0 \f$
+	<li> linear: \f$ \mathcal{A}_h(\vec{u}_h) \equiv A_h \cdot \vec{u}_h \f$, 
+			i.e. \f$A_h \in \mathbb{R}^{N_h \times N_h}\f$ is a matrix
 </ul>
 
 In this case the "Stiffness-Matrix" \f$A_h\f$ and the right-hand side vector
@@ -81,8 +82,8 @@ use an adequate matrix solver to solve the linear system
 
 In order to specify a problem, the user has to supply:
 <ul>
-<li> the computation of the matrix \f$A_h\f$
-<li> the computation of the rhs \f$\vec{f}_h\f$
+	<li> the computation of the matrix \f$A_h\f$
+	<li> the computation of the rhs \f$\vec{f}_h\f$
 </ul>
 
 The solution of the algebraic problem (inverting \f$A_h\f$) can be 
@@ -93,9 +94,9 @@ implemented independently from the actual problem and/or discretization.
 
 Stationary, non-linear problems are described by
 <ul>
-<li> stationary: \f$ \mathcal{M}_h(\cdot) = 0 \f$
-<li> non-linear: \f$ \mathcal{A}_h(\vec{u}_h): \mathbb{R}^{N_h} \mapsto \mathbb{R}^{N_h}\f$ 
-					can not be represented as matrix
+	<li> stationary: \f$ \mathcal{M}_h(\cdot) = 0 \f$
+	<li> non-linear: \f$ \mathcal{A}_h(\vec{u}_h): \mathbb{R}^{N_h} \mapsto \mathbb{R}^{N_h}\f$ 
+						can not be represented as matrix
 </ul>
 Thus, in order to solve this problem typically a newton-method is used. This
 means to reformulate the problem using the "defect":
@@ -112,12 +113,12 @@ Starting with an initial guess \f$u_h^0\f$ the following interation is performed
 \f}
 with
 <ul>
-<li> \f$\vec{u}_{h,k}\f$ is the k'th iterate of the solution
-<li> \f$\vec{c}_{h,k}\f$ is the k'th correction
-<li> \f$J_h(\vec{u}_{h_k})\f$ is a preconditioner matrix for the linearization
-	 of the defect w.r.t. the DoFs, evaluated at the solution of 
-	 the current iterate
-<li> \f$ \alpha_k\f$ is a damping factor
+	<li> \f$\vec{u}_{h,k}\f$ is the k'th iterate of the solution
+	<li> \f$\vec{c}_{h,k}\f$ is the k'th correction
+	<li> \f$J_h(\vec{u}_{h_k})\f$ is a preconditioner matrix for the linearization
+		 of the defect w.r.t. the DoFs, evaluated at the solution of 
+		 the current iterate
+	<li> \f$ \alpha_k\f$ is a damping factor
 </ul>
 
 There are several choises of \f$J_h(\vec{u}_{h_k})\f$:
