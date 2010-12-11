@@ -42,7 +42,7 @@ i.e. it is a scalar problem. For systems of unknowns the ideas are straight
 forward.
 <br>
 
-For the discretization of the PDE there are several possibilities:
+For the discretization of the PDE there are several possibilities.
 
 <ul>
 	<li> finite difference method (FD)
