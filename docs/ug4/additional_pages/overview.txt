@@ -18,6 +18,7 @@
 
 \section secDiscretization lib_discretization
 <hr>
+You can find the documentation of lib_discretization at \ref pageLDIntroduction "lib_discretization introduction"
 ...
 <br>
 <hr>

@@ -11,6 +11,7 @@
 	- \ref pageCopyrights "Copyrights and Licenses"
 	- \ref pageUG4Introduction "Introduction"
 	- \ref pageUG4Overview "Overview"
+	- \ref pageUG4CodingStyle "Coding Style"
 	- \ref pageSamples "Samples"
 	- \ref pageImportantClasses "Important Classes"
  */
