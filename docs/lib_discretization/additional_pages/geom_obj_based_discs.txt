@@ -80,8 +80,26 @@ Thus, the building blocks of every of the three needs are the following parts:
 		 \left( \vec{u}_h \right) \f$
 	</ul>
 </ul>
+
+A discrization can therefore be split up in this smaller parts.
+
 <hr>
 \section secElemDisc Element Discretization
 <hr>
+
+Many discretizations like Finite Elements and Finite Volumes base on an
+element by element assembling of the needed Stiffness- and Mass-matrix.
+This can be used to implement the forementioned building blocks on an
+element by element basis.
+
+Specially those element assemblings does only need element-local 
+information. These informations are:
+<ul>
+<li> the element itself
+<li> the local degrees of freedom of the element
+<li> the local defect/jacobian/rhs
+</ul>
+
+
 
  */

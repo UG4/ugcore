@@ -9,6 +9,8 @@ The categorization of the PDE problems presented in
 are realized by Interface classes in libDiscretization.
 
 	- \ref secIAssemble "IAssemble Interface"
+	- \ref secITimeDiscretization "ITimeDiscretization Interface"
+	- \ref secIDomainDiscretization "IDomainDiscretization Interface"
 
 <br>
 
@@ -50,4 +52,85 @@ class IAssemble {
 		{return IAssemble_NOT_IMPLEMENTED;}
 }
 \endcode
+
+<hr>
+\section secITimeDiscretization ITimeDiscretization Interface
+<hr>
+
+\code
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class ITimeDiscretization
+	: public IAssemble<TDoFDistribution, TAlgebra>
+{
+	public:
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
+		typedef TAlgebra algebra_type;
+		typedef typename algebra_type::vector_type vector_type;
+		typedef IDomainDiscretization<TDoFDistribution, algebra_type>
+			domain_discretization_type;
+
+	public:
+		void set_domain_discretization(domain_discretization_type& dd);
+		domain_discretization_type* get_domain_discretization();
+
+		virtual bool prepare_step(std::deque<vector_type*>& u_old,
+		                          std::deque<number>& time_old,
+		                          number dt) = 0;
+
+	/// returns number of previous time steps needed
+		virtual size_t num_prev_steps() = 0;
+};
+
+\endcode
+
+<hr>
+\section secIDomainDiscretization IDomainDiscretization Interface
+<hr>
+
+\code
+template <	typename TDoFDistribution,
+			typename TAlgebra>
+class IDomainDiscretization : public IAssemble<TDoFDistribution, TAlgebra>{
+	public:
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
+		typedef TAlgebra algebra_type;
+		typedef typename algebra_type::matrix_type matrix_type;
+		typedef typename algebra_type::vector_type vector_type;
+
+	public:
+		virtual
+		IAssembleReturn assemble_jacobian(matrix_type& J,
+		                                  const vector_type& u,
+		                                  const dof_distribution_type& dofDistr,
+		                                  number time, number s_m, number s_a)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual
+		IAssembleReturn assemble_defect(vector_type& d,
+		                                const vector_type& u,
+		                                const dof_distribution_type& dofDistr,
+		                                number time, number s_m, number s_a)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual
+		IAssembleReturn assemble_linear(matrix_type& A,
+		                                vector_type& b,
+		                                const vector_type& u,
+		                                const dof_distribution_type& dofDistr,
+		                                number time, number s_m, number s_a)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual
+		IAssembleReturn assemble_solution(vector_type& u,
+		                                  const dof_distribution_type& dofDistr,
+		                                  number time)
+		{return IAssemble_NOT_IMPLEMENTED;}
+
+		virtual size_t num_post_process() const = 0;
+		virtual IPostProcess<TDoFDistribution, TAlgebra>* get_post_process(size_t i) = 0;
+};
+
+\endcode
+
  */

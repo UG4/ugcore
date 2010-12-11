@@ -326,4 +326,11 @@ In this case the defect equation
 has to be solved using a newton scheme. Fixing the time step \f$k\f$ this
 problem has the same structure as the stationary non-linear problems. Thus, the
 solver framework can be reused.
+
+<hr>
+\section secCategorizationAcknowledgment Acknowledgment
+This spliting concept is strongly influenced by a short but very
+illuminative paper by Dmitry Logashenko. Special thanks to him for
+sharing his insight.
+
 */
