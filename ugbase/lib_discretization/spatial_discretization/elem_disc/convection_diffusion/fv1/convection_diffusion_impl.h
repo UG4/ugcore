@@ -131,7 +131,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			for(size_t j = 0; j < scvf.num_sh(); ++j)
 			{
 				////////////////////////////////////////////////////
-				// Diffusiv Term
+				// Diffusive Term
 				// (central discretization)
 				////////////////////////////////////////////////////
 

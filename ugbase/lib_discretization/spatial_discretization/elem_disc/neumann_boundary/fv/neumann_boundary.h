@@ -21,8 +21,11 @@
 
 namespace ug{
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-class FVNeumannBoundaryElemDisc : public IElemDisc<TAlgebra>
+template<template <	class TElem, int TWorldDim> class TFVGeom,
+					typename TDomain,
+					typename TAlgebra>
+class FVNeumannBoundaryElemDisc
+	: public IElemDisc<TAlgebra>
 {
 	public:
 		// domain type

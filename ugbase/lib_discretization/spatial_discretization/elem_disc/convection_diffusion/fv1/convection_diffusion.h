@@ -21,38 +21,46 @@
 
 namespace ug{
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
+template<	template <class TElem, int TWorldDim> class TFVGeom,
+			typename TDomain,
+			typename TAlgebra>
+class FVConvectionDiffusionElemDisc
+	: public IElemDisc<TAlgebra>
 {
 	public:
-		// domain type
+	// 	Domain type
 		typedef TDomain domain_type;
 
-		// world dimension
+	// 	World dimension
 		static const int dim = TDomain::dim;
 
-		// position type
+	// 	Position type
 		typedef typename TDomain::position_type position_type;
 
-		// algebra type
+	// 	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// local matrix type
+	// 	Local matrix type
 		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type> local_matrix_type;
 
-		// local vector type
+	// 	Local vector type
 		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
 
-		// local index type
-		//typedef typename algebra_type::vector_type::local_index_type local_index_type;
+	// 	Local index type
 		typedef LocalIndices local_index_type;
 
 	protected:
+	//	Functor type for Diffusion
 		typedef typename IUserMatrix<dim>::functor_type DiffusionFunctor;
+
+	//	Functor type for Convection Velocity
 		typedef typename IUserVector<dim>::functor_type VelocityFunctor;
+
+	//	Functor type for Scalar user Data
 		typedef typename IUserNumber<dim>::functor_type NumberFunctor;
 
 	public:
+	//	Constructor
 		FVConvectionDiffusionElemDisc()
 		 : m_pDomain(NULL), m_upwindAmount(0.0),
 		  	m_Diff_Tensor(NULL), m_Conv_Vel(NULL), m_Reaction(NULL), m_Rhs(NULL)
@@ -163,14 +171,16 @@ class FVConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_prepare_element_loop_function(	id, &FVConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &FVConvectionDiffusionElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &FVConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &FVConvectionDiffusionElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &FVConvectionDiffusionElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &FVConvectionDiffusionElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &FVConvectionDiffusionElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &FVConvectionDiffusionElemDisc::template assemble_f<TElem>);
+			typedef FVConvectionDiffusionElemDisc T;
+
+			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &T::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &T::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
 		}
 
 };
