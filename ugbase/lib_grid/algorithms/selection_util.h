@@ -185,10 +185,12 @@ void SelectAssociatedGenealogy(MGSelector& msel, bool selectAssociatedElements);
 //	SelectSmoothEdgePath
 ///	selects for each selected edge all edges that can be reached by a smooth path.
 /**
+ * \param sel: Selector
  * \param thresholdDegree defines the maximal degree at which the angle
  *			between two edges is regarded as smooth. Between 0 and 180.
  * \param stopAtSelVrts: If set to true, the edge-path will stop at selected
  *						vertices.
+ * \param aPos: Position attachment
  * \todo: replace aPos by an template AttachmentAccessor TAAPosVrt.*/ 
 void SelectSmoothEdgePath(Selector& sel, number thresholdDegree,
 							bool stopAtSelVrts = true,
@@ -270,7 +272,9 @@ void DeselectBoundarySelectionFaces(TSelector& sel);
 //	SelectLinkedFlatFaces
 ///	Extends the selection of faces to all neighbouring faces that have a similar normal.
 /**
+ * \param sel: Selector
  * \param maxDeviationAngle: in degree. Maximal angle between normals of faces considered as flat.
+ * \param aPos: Position attachment
  */
 void SelectLinkedFlatFaces(Selector& sel, number maxDeviationAngle,
 						   APosition& aPos = aPosition);

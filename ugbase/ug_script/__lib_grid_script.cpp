@@ -627,7 +627,7 @@ bool fracture_to_subset(Grid* pGrid, SubsetHandler* pSH,
 //	frac_extrude
 ///	extrudes a 2d geometry. Suited for fractured geometries.
 /**	Extrudes a geometry along the given direction (dirX, dirY, dirZ).
- *	\param numSecs: defines how many extrusion steps are performed.
+ *	numSecs: defines how many extrusion steps are performed.
  *	\sa fracture to subset.*/
 bool frac_extrude(Grid* pGrid, SubsetHandler* pSH, int numSecs,
 					number dirX, number dirY, number dirZ)

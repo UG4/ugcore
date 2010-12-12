@@ -133,6 +133,9 @@ class MathVector<2, T>
 
 };
 
+/**
+ * A 3d Vector using scalar entries
+ */
 template <typename T>
 class MathVector<3, T>
 {

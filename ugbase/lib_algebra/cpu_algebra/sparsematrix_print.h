@@ -64,6 +64,7 @@ void SparseMatrix<T>::printtype() const
  * \param filename Filename to write matrix to
  * \param A SparseMatrix A.
  * \param positions Positions, there has to be one position for each i in (0, ..., max(A.num_rows(), A.num_cols())).
+ * \param dimensions Dimension of positions
  */
 template<typename Matrix_type, typename postype>
 void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, postype *positions, int dimensions)
@@ -202,8 +203,9 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 /**
  * \brief writes to a file in somewhat SparseMatrix-market format (for connection viewer)
  * \param filename Filename to write matrix to
- * \param A SparseMatrix A.
+ * \param b Vector
  * \param positions Positions, there has to be one position for each i in (0, ..., max(A.num_rows(), A.num_cols())).
+ * \param dimensions	Dimensions of Positions
  */
 template<typename Vector_type, typename postype>
 void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, postype *positions, int dimensions)

@@ -16,7 +16,7 @@ namespace ug
 template <class TIterator>
 bool RepeatedVertexExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const vector3& stepDir)
+							int numSteps, const ug::vector3& stepDir)
 {
 	std::vector<VertexBase*> vElems;
 	vElems.assign(iterBegin, iterEnd);
@@ -31,7 +31,7 @@ bool RepeatedVertexExtrusion(Grid& grid,
 template <class TIterator>
 bool RepeatedEdgeExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const vector3& stepDir)
+							int numSteps, const ug::vector3& stepDir)
 {
 	std::vector<EdgeBase*> vElems;
 	vElems.assign(iterBegin, iterEnd);
@@ -46,7 +46,7 @@ bool RepeatedEdgeExtrusion(Grid& grid,
 template <class TIterator>
 bool RepeatedFaceExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const vector3& stepDir)
+							int numSteps, const ug::vector3& stepDir)
 {
 	std::vector<Face*> vElems;
 	vElems.assign(iterBegin, iterEnd);

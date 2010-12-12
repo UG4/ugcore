@@ -14,19 +14,19 @@ namespace ug
 template <class TIterator>
 bool RepeatedVertexExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const vector3& stepDir);
+							int numSteps, const ug::vector3& stepDir);
 
 ////////////////////////////////////////////////////////////////////////
 template <class TIterator>
 bool RepeatedEdgeExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const vector3& stepDir);
+							int numSteps, const ug::vector3& stepDir);
 
 ////////////////////////////////////////////////////////////////////////
 template <class TIterator>
 bool RepeatedFaceExtrusion(Grid& grid,
 							TIterator iterBegin, TIterator iterEnd,
-							int numSteps, const vector3& stepDir);					
+							int numSteps, const ug::vector3& stepDir);
 					
 }//	end of namespace
 

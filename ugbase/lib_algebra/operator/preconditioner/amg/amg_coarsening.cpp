@@ -30,6 +30,7 @@ namespace ug
  * \brief Creates the "measure of importance" (=rating) priority queue.
  * calculate ratings in nodes[i].rating, build up priority queue PQ.
  * rating = unassigned neighbors + 2 * fine neighbors ( neighbors in strongT)
+ * \param 	strong
  * \param 	strongT 	transpose of the strong connectivity graph
  * \param	PQ			maxheap priority queue for sorting of the nodes wrt the rating
  * \param 	unassigned	nr of nodes which are now to be assigned coarse or fine
@@ -163,10 +164,14 @@ void CreateMeasureOfImportanceAggressiveCoarseningPQ(cgraph &graphAC, nodeinfo_p
 //-------------------------
 /**
  * \brief Coarsens the graph with ratings of nodes in nodes[i].rating, set up in a priority queue PQ
+ * \param graph			Graph
+ * \param PQ
  * \param newIndex		store in newIndex[i] new index of node i in coarse nodes (>0, if fine < 0)
  * \param unassigned	nr of nodes to assign
- * \param bIndirect		if true, this is 2nd stage of Aggressive Coarsening, then fine nodes get marker "IndirectFine"
+ * \param iNrOfCoarse
+ *  bIndirect		if true, this is 2nd stage of Aggressive Coarsening, then fine nodes get marker "IndirectFine"
  *						instead of just "fine". Used later in CreateProlongation and CreateIndirectProlongation
+ * \param nodes
  * \return				returns number of new coarse nodes.
  */
 int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, int *newIndex, int unassigned, int &iNrOfCoarse, amg_nodeinfo *nodes)
@@ -244,8 +249,11 @@ int Coarsen(cgraph &graph, nodeinfo_pq_type &PQ, int *newIndex, int unassigned, 
 /**
  * \brief When two fine nodes are strong connected, they need to have a common interpolating
  * node. Otherwise, we set
+ * \param graphS
+ * \param graphST
+ * \param nodes
  * \param newIndex		store in newIndex[i] new index of node i in coarse nodes (>0, if fine < 0)
- * \param unassigned	nr of nodes to assign
+ * \param iNrOfCoarse
 
  * \return				returns number of new coarse nodes.
  */

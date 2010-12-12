@@ -153,7 +153,6 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
  * \param 	P					Matrix P: here goes the calculated prolongation
  * \param	A					Matrix A: matrix for which to calculate prolongation on next level
  * \param	newIndex			newIndex of coarse Node i on next coarser level
- * \param	iNrOfCoarse			nr of coarse nodes on this level
  * \param	unassigned
  * \param	nodes
  * \param 	posInConnections	array of size A.num_rows() for speedup of neighbor-neighbor-calculation inited with -1.

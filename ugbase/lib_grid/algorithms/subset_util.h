@@ -192,6 +192,9 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh);
  * Faces with similar normals which are contained in different
  * subsets are assigned to different subsets.
  *
+ * \param grid 	Grid
+ * \param sh	Subset Handler
+ * \param aPos	Position Attachment
  * \param paNorm pointer to the normal attachment. NULL indicates
  * 				that normals shall be calculated on the fly (default).
  */
@@ -208,11 +211,15 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
  * Faces with similar normals which are contained in different
  * subsets are assigned to different subsets.
  *
+ * \param grid 		Grid
+ * \param sh		Subset Handler
+ * \param vNormals 	normals
+ * \param aPos		Position Attachment
  * \param paNorm pointer to the normal attachment. NULL indicates
  * 				that normals shall be calculated on the fly (default).
  */
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
-								std::vector<vector3> vNormals,
+								std::vector<ug::vector3> vNormals,
 								APosition aPos = aPosition,
 								ANormal* paNorm = NULL);
 

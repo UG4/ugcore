@@ -117,6 +117,7 @@ bool sgs_step(const Matrix_type &A, Vector_type &x, const Vector_type &b)
  * \param A Matrix \f$A = D - L - R\f$
  * \param x will be \f$x = D^{-1} b \f$
  * \param b the vector b.
+ * \param damp the damping factor
   */
 template<typename Matrix_type, typename Vector_type>
 bool diag_step(const Matrix_type& A, Vector_type& x, const Vector_type& b, number damp)

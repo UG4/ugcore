@@ -78,7 +78,11 @@ int NumAssociatedFaces(Grid& grid, EdgeBase* e);
  * If there are no associated faces, it is assumed, that the edge lies
  * in the xy plane. Its normal will be calculated to the right.
  *
- * \param paaNormFACE: An optional parameter that allows to specify an
+ * \param vNormOut		normal
+ * \param grid			Grid
+ * \param e				Edge
+ * \param aaPos			vertec attachment accessor
+ * \param paaNormFACE 	An optional parameter that allows to specify an
  *						accessor for precalculated face normals.
  *
  * \returns the number of faces that are associated with the edge.
@@ -97,6 +101,10 @@ int CalculateNormal(vector3& vNormOut, Grid& grid, EdgeBase* e,
  * If there are no associated faces, it is assumed, that the edge lies
  * in the xy plane. Its normal will be calculated to the right.
  *
+ * \param vNormOut		normal
+ * \param grid			Grid
+ * \param e				Edge
+ * \param aaPos			vertec attachment accessor
  * \param paaNormFACE: An optional parameter that allows to specify an
  *						accessor for precalculated face normals.
  *

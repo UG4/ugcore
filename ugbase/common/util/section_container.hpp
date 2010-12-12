@@ -6,7 +6,7 @@
 #define __UTIL__SECTION_CONTAINER__IMPL__
 
 #include <cassert>
-
+#include "section_container.h"
 
 /*
 I began work on reverse iterators. All associated code is in comments.
@@ -265,7 +265,7 @@ insert(const TValue& val, int sectionIndex)
 template <class TValue, class TContainer>
 void
 SectionContainer<TValue, TContainer>::
-erase(const typename SectionContainer<TValue, TContainer>::iterator& elemHandle, int sectionIndex)
+erase(const typename ug::SectionContainer<TValue, TContainer>::iterator& elemHandle, int sectionIndex)
 {
 	assert((sectionIndex >= 0) && (sectionIndex < num_sections()) &&
 			"ERROR in SectionContainer::erase(): bad sectionIndex");

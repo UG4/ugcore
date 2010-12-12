@@ -21,8 +21,8 @@ namespace ug{
  * \param[in]		IPVel				Velocity at Integration points (ip)
  * \param[out]		CornerShape			Shape functions to compute Upwind Velocity
  * \param[out]		ConvectionLength	Distance from IP to Upwind point
- * \param[out]		IPShape				factor how much Upwind velocity depend on other IPVel
- * \param[out]		bDependOnOIP		true if and only if IPShape is non-zero
+ * \param[out]		IPScaleNumber		factor how much Upwind velocity depend on other IPVel
+ * \param[out]		bDependOnIP			true if and only if IPShape is non-zero
  */
 template <typename TFVGeometry>
 bool GetFullUpwindShapesDependingOnIP(	const TFVGeometry& geo,

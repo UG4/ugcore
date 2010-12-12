@@ -32,7 +32,10 @@
  * The algorithm simply divides the grid by repeated orthogonal cuts along
  * the main axes. The leafs of the resulting kd-tree are then assigned to
  * the different subsets.
+ * \param shOut 	Subset Handler
+ * \param grid		Grid
  * \param numSubsets has to be chosen as a power of 2.
+ * \param aVrtPos	position attachment
  *
  * This algorithm may possibly fail. However, if the grid is somehow aligned
  * to the main axes and there is a similar amount of elements in each direction

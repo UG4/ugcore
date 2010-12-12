@@ -21,7 +21,7 @@ namespace ug{
 /**
  * \param[in]		fvg				Finite Volume Geometry
  * \param[in]		scvf			SubControlVolumeFace to consider (ip)
- * \param[in]		vel				Convection Velocity at ip
+ * \param[in]		Vel				Convection Velocity at ip
  * \param[in]		Diffusion		Diffusion Tensor at ip
  * \param[out]		shape			Convection shape for each dof
  * \param[out]		D_shape_vel		Derivative of the shape w.r.t. the Velocity for each dof
@@ -74,7 +74,7 @@ bool ConvectionShapes_NoUpwind
 /**
  * \param[in]		fvg				Finite Volume Geometry
  * \param[in]		scvf			SubControlVolumeFace to consider (ip)
- * \param[in]		vel				Convection Velocity at ip
+ * \param[in]		Vel				Convection Velocity at ip
  * \param[in]		Diffusion		Diffusion Tensor at ip
  * \param[out]		shape			Convection shape for each dof
  * \param[out]		D_shape_vel		Derivative of the shape w.r.t. the Velocity for each dof
@@ -181,7 +181,7 @@ bool GetEffDiffusion
 /**
  * \param[in]		fvg				Finite Volume Geometry
  * \param[in]		scvf			SubControlVolumeFace to consider (ip)
- * \param[in]		vel				Convection Velocity at ip
+ * \param[in]		Vel				Convection Velocity at ip
  * \param[in]		Diffusion		Diffusion Tensor at ip
  * \param[out]		shape			Convection shape for each dof
  * \param[out]		D_shape_vel		Derivative of the shape w.r.t. the Velocity for each dof

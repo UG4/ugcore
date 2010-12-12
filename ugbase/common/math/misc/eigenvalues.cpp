@@ -1,6 +1,13 @@
+/**
+ * \file eigenvalues.cpp
+ *
+ * Implementation Eigenvalues.
+ */
+
 //	created by Daniel Jungblut, converted to ugmath by Sebastian Reiter
 
 #include <cmath>
+#include "../ugmath_types.h"
 #include "eigenvalues.h"
 
 namespace ug

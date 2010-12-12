@@ -681,7 +681,7 @@ void CommunicateInvolvedProcesses(vector<int>& vReceiveFromRanksOut,
  * Where the entries have the following meaning:
  * 	- int proc: The connected proc id.
  *	- int type: The interface type on the connected proc.
- *	- int size: The number of entries in the following index list.
+ *	- int size: The number of entries in the following indexlist.
  *  - int level: The level on which the interface lies.
  *	- int-array indices: Indices refer to the interface that connects the
  *						 local process with the process from which data was received.
@@ -775,7 +775,7 @@ void PrepareNewInterfaces(StreamPack& streamPackSendOut,
 ////////////////////////////////////////////////////////////////////////
 ///	communicates with other processes and removes interface entries as requested.
 /**
- * \param glm: The GridLayoutMap of the local process.
+ * \param distGridMgr: The distributed grid manager
  * \param sel: A Selector that holds all elements that stay on the process.
  * \param distLayoutVec: a vector that contains the distribution layouts,
  *						 that are to be sent to other processes.

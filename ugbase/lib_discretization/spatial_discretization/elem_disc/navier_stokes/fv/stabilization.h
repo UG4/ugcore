@@ -21,10 +21,12 @@ namespace ug{
  * \param[out] 	IPStabPressureShape	Derivative of Stab Velocity with respect to Corner Pressure
  * \param[in]	geo					Finite Volume Geometry
  * \param[in]	CurrentIPVel		Velocity at ips from last iterate
- * \param[in]	IPVelOld			Velocity at ips from old timestep
- * \param[in]	IPVelUpwind			upwind Velocity at ips
- * \param[in]	dt					time step size
  * \param[in]	bTimeDependent		flag indicating transient model
+ * \param[in]	IPVelOld			Velocity at ips from old timestep
+ * \param[in]	dt					time step size
+ * \param[in]	IPVelUpwind			upwind Velocity at ips
+ * \param[in]	bUpwindDependOnIP	flag indicating iff upwind depends in ip values
+ * \param[in]	UpwindScalar		upwind scaling factors
  * \param[in]	CornerVel			Velocity at corners from last iterate
  * \param[in]	IPPressureGrad		Derivative of Pressure at ips from last iterate
  * \param[in]	kinematicViscosity	kinematic Viscosity

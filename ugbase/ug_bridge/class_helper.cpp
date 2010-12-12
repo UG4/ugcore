@@ -363,7 +363,9 @@ bool IsClassInParameters(const ParameterStack &par, const char *classname)
 
 /**
  *
- * \param classname the class (and only this class) to print usage in functions/member functions of.
+ * \param reg			Registry
+ * \param classname 	the class (and only this class) to print usage in functions/member functions of.
+ * \param OutParameters
  */
 bool ClassUsageExact(Registry &reg, const char *classname, bool OutParameters)
 {

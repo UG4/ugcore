@@ -38,7 +38,7 @@ namespace ug {
 		 * Converts a Java string to a native string.
 		 * </p>
 		 * <p>
-		 * <b>Note:</p> this function must not be used to convert large amounts
+		 * <b>Note:</b> this function must not be used to convert large amounts
 		 * of strings because of inefficient memory handling.
 		 * </p>
 		 * @param env JVM environment to operate on
@@ -70,7 +70,7 @@ namespace ug {
 		 * Converts a Java string array to a native string array.
 		 * </p>
 		 * <p>
-		 * <b>Note:</p> this function must not be used to convert large amounts
+		 * <b>Note:</b> this function must not be used to convert large amounts
 		 * of strings because of inefficient memory handling.
 		 * </p>
 		 * @param env JVM environment to operate on
@@ -204,8 +204,8 @@ namespace ug {
 		 * @param classNames own class name plus class names of all super
 		 *        classes
 		 * @param isConst defines whether this parameter shall be const
-		 * @param customInfo additional param info options
-		 * @param customOptions additional value options
+		 * @param paramInfo additional param info options
+		 * @param customParamInfo additional value options
 		 * @return a string containing a VRL param info (Groovy source code)
 		 */
 		std::string createParamInfo(const char* paramName, const char* className,
@@ -237,7 +237,7 @@ namespace ug {
 		 * @param className name of the value class
 		 * @param classNames value class name plus class names of all super
 		 *        classes
-		 * @param paramOptions param info
+		 * @param paramInfo param info
 		 * @param isOutput defines whether this value is a return value
 		 *                 (in this case no param info will be added)
 		 * @return a String containing the Java type name
@@ -341,7 +341,7 @@ namespace ug {
 		/**
 		 * Generates Groovy source code for all non const methods of the
 		 * specified class.
-		 * @param string stream to use (appends return value)
+		 * @param result stream to use (appends return value)
 		 * @param clazz exported class
 		 */
 		void generateMethods(std::stringstream& result,

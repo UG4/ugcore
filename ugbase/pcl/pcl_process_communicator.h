@@ -73,6 +73,7 @@ class ProcessCommunicator
 	 * \param sendBuf starting address of send buffer (choice)
 	 * \param sendCount number of elements in send buffer (integer)
 	 * \param sendType data type of send buffer elements (handle)
+	 * \param recBuf starting address of receive buffer (choice)
 	 * \param recCount number of elements received from any process (integer)
 	 * \param recType data type of receive buffer elements (handle)
 	 */
@@ -85,6 +86,7 @@ class ProcessCommunicator
 	 * \param sendCount 	number of elements in send buffer (integer)
 	 * \param sendType 	data type of send buffer elements (handle)
 	 * \param recCounts 	integer array (of length group size) containing the number of elements that are received from each process
+	 * \param recBuf starting address of receive buffer (choice)
 	 * \param displs 	integer array (of length group size). Entry i specifies the displacement (relative to recvbuf ) at which to place the incoming data from process i
 	 * \param recType 	data type of receive buffer elements (handle)
 	 */

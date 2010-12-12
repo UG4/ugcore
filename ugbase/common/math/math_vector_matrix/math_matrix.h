@@ -1,5 +1,5 @@
 /**
- * \file matrix.h
+ * \file math_matrix.h
  *
  * \author Andreas Vogel
  *
@@ -17,15 +17,16 @@
 namespace ug
 {
 
+//template <std::size_t N, std::size_t M, typename T = number> class MathMatrix;
+
 /**
  * \class MathMatrix
  *
  * \brief A class for fixed size, dense matrices.
  *
+ *	A static memory NxM matrix
  */
-template <std::size_t N, std::size_t M, typename T = number> class MathMatrix;
-
-template <std::size_t N, std::size_t M, typename T>
+template <std::size_t N, std::size_t M, typename T = number>
 class MathMatrix
 {
 	public:

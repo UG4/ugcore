@@ -29,6 +29,11 @@ enum NeighbourhoodType
 /**
  * This method uses Grid::mark.
  *
+ * \param vNeighboursOut 	neighbour vertices
+ * \param grid 				Grid
+ * \param sh				Subset Handler
+ * \param vrt				vertex
+ * \param subsetIndex		subset index
  * \param nbhType: Accepts or-combinations of any NeighbourhoodType
  *					enumerated constants.
  */

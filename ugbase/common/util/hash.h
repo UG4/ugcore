@@ -182,7 +182,7 @@ template <class TVal, class TKey> class Hash
 		}
 */
 	/**	the number at an index in vDist corresponds to the number of
-	 *	lists in the hash that contain #index elements.
+	 *	lists in the hash that contain \#index elements.
 	 *	vDist.size() equals to the max-size of all lists.
 	 */
 		void get_distribution(std::vector<int>& vDist)

@@ -70,7 +70,7 @@ class FunctionPattern
 	/**
 	 * \param[in] name			Name of this Single Solution
 	 * \param[in] id			Shape Function set id
-	 * \param[in] SubsetIndices	Subsets separated by ','
+	 * \param[in] subsets		Subsets separated by ','
 	 * \param[in] dim			Dimension
 	 */
 		virtual bool add_discrete_function(const char* name,

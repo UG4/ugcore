@@ -1,3 +1,6 @@
+/**
+ * \file ug.h
+ */
 // created by Sebastian Reiter
 // s.b.reiter@googlemail.com
 // y10 m05 d31
@@ -20,7 +23,11 @@
 	#include "pcl/pcl.h"
 #endif
 
-
+/**
+ * 	\brief the ug namespace
+ *
+ * Namespace for ug
+ */
 namespace ug
 {
 

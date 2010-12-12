@@ -43,7 +43,7 @@ const ug::bridge::ExportedMethod* getMethodBySignature(
  * Returns an exported function by its signature.
  * @param env JVM environment to operate on
  * @param reg registry to search
- * @param methodName method name
+ * @param functionName method name
  * @param params Java object array containing method parameter
  * @return pointer to requested method if such a method exists;
  *         <code>NULL</code> otherwise

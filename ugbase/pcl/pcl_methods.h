@@ -91,6 +91,10 @@ void DistributeData(ProcID thisProcID, int* pRecProcMap, int numRecProcs,
 ///	reduces the data to a single buffer using the specified ReduceOperation and distributes the result to all processes.
 /**
  * Both, sendBuf and recBuf have to hold count elements of the specified type.
+ * \param sendBuf	Sending buffer
+ * \param recBuf	Recieve buffer
+ * \param count
+ * \param type		Data type
  * \param op has to be one of the
  */
 void AllReduce(void* sendBuf, void* recBuf, int count, DataType type,

@@ -33,7 +33,10 @@ struct OBJMaterial
  * paTex, pSubsetHandler and pvMaterials may be specified optionally.
  * aPos and paTex are used as vertex-attachments.
  *
- * \param paTex: vertex attachment. If specified texture coords will be stored in the
+ * \param grid: Grid
+ * \param filename: Filename
+ * \param aPos: position attachment
+ * \param paTexCoord: vertex attachment. If specified texture coords will be stored in the
  * 		grids vertices.
  *
  * \param pSubsetHandler: if specified then faces are assigned to subsets depending

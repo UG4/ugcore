@@ -21,9 +21,17 @@ namespace ug
  * \todo: 	Add a parameter that allows to specify whether the
  *	 		source-faces of the extrusion shall be erased.
  *
+ * \param grid: The Grid
+ * \param sh: 	The SubsetHandler
+ * \param vrt: 	The Vertex
+ * \param direction: the direction
+ *
  * \param height: 	The actual extrude-amount is determined by scaling direction
  *					with height. Note that if height is negative, the orientation
  *					of the extruded geometrie will be inverted.
+ *
+ * \param radius: radius
+ * \param aaPos: position attachment accessor
  *
  * \param bottomSubInd: default value is -1. Defines the subset into which
  *						the bottom-faces of the cylinder will go
@@ -53,6 +61,12 @@ bool ExtrudeCylinder(Grid& grid, SubsetHandler& sh, VertexBase* vrt,
  *
  * \todo: 	Add a parameter that allows to specify whether the
  *	 		source-faces of the extrusion shall be erased.
+ *
+ * \param grid: The Grid
+ * \param vrt: 	The Vertex
+ * \param direction: the direction
+ * \param radius: radius
+ * \param aaPos: position attachment accessor
  *
  * \param height: 	The actual extrude-amount is determined by scaling direction
  *					with height. Note that if height is negative, the orientation

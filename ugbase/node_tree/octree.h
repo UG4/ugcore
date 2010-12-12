@@ -46,6 +46,8 @@ namespace node_tree
  *
  * \param elemThreshold: The minimal number of elements that leads to an
  *					additional refinement of a node.
+ *
+ * \param bLoose:
  */
 SPCollisionTreeRootNode 
 CreateOctree(vector3* points, size_t numPoints,

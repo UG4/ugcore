@@ -99,8 +99,8 @@ class ILinearizedIteratorOperatorBase
 		 * This function computes a new correction c = B(u)*d by applying the Operator.
 		 * The defect is updated, if updateDefect is true
 		 *
-		 * \param[in] 	d 				Defect
-		 * \param[out]	c				Correction, c = B(u)*d
+		 * \param[in] 	dIn				Defect
+		 * \param[out]	cOut			Correction, c = B(u)*d
 		 * \param[in]	updateDefect	if true, the defect is updated, d:= d - J(u)*c
 		 */
 		virtual bool apply(IFunctionBase& cOut, IFunctionBase& dIn, bool updateDefect) = 0;

@@ -209,7 +209,8 @@ bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
  * set Dirichlet row for entry (i,alpha).
  * \param A (in) Matrix A
  * \param i (in) row to set dirichlet, that is A(i,i)(alpha, alpha) = 1.0, A(i,k)(alpha, beta) = 0.0 for all (k, beta) != (i, alpha)$.
-   */
+ * \param alpha the alpha index
+ */
 template <typename T>
 void SetDirichletRow(SparseMatrix<T>& A, size_t i, size_t alpha)
 {

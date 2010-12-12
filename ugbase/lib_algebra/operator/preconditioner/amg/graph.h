@@ -1,5 +1,5 @@
 /**
- * \file graph.h
+ * \file amg/graph.h
  *
  * \author Martin Rupp
  *

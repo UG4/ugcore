@@ -395,7 +395,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 // amg<matrix_type, vector_type>::init
 //----------------
 //! creates MG Hierachy for with matrix_type A and temporary vectors for higher levels
-//! @param A	matrix A.
+//! @param mat	matrix
 template<typename TAlgebra>
 bool amg<TAlgebra>::preprocess(matrix_type& mat)
 {

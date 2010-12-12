@@ -706,7 +706,6 @@ namespace rapidxml
         // Node modification
     
         //! Sets name of node to a non zero-terminated string.
-        //! See \ref ownership_of_strings.
         //! <br><br>
         //! Note that node does not own its name or value, it only stores a pointer to it. 
         //! It will not delete or otherwise free the pointer on destruction.
@@ -725,7 +724,6 @@ namespace rapidxml
         }
 
         //! Sets name of node to a zero-terminated string.
-        //! See also \ref ownership_of_strings and xml_node::name(const Ch *, std::size_t).
         //! \param name Name of node to set. Must be zero terminated.
         void name(const Ch *name)
         {
@@ -733,7 +731,6 @@ namespace rapidxml
         }
 
         //! Sets value of node to a non zero-terminated string.
-        //! See \ref ownership_of_strings.
         //! <br><br>
         //! Note that node does not own its name or value, it only stores a pointer to it. 
         //! It will not delete or otherwise free the pointer on destruction.
@@ -755,7 +752,6 @@ namespace rapidxml
         }
 
         //! Sets value of node to a zero-terminated string.
-        //! See also \ref ownership_of_strings and xml_node::value(const Ch *, std::size_t).
         //! \param value Vame of node to set. Must be zero terminated.
         void value(const Ch *value)
         {
