@@ -1,0 +1,8 @@
+
+
+
+/**	\page pageCopyrights ug - Copyrights
+
+ [ ... copyrights are to be placed here ... ]
+
+*/
