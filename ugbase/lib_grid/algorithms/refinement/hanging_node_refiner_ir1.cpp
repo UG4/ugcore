@@ -432,25 +432,33 @@ void HangingNodeRefiner_IR1::collect_objects_for_refine()
 			iter != m_selMarkedElements.end<ConstrainedEdge>(); ++iter)
 		{
 			if(ConstrainingEdge* cge = dynamic_cast<ConstrainingEdge*>((*iter)->get_constraining_object()))
+			{
 				if(!is_marked(cge))
 					qEdges.push(cge);
+			}
 			else if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
+			{
 				if(!is_marked(cgf))
 					qFaces.push(cgf);
+			}
 		}
 		for(ConstrainedTriangleIterator iter = m_selMarkedElements.begin<ConstrainedTriangle>();
 			iter != m_selMarkedElements.end<ConstrainedTriangle>(); ++iter)
 		{
 			if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
+			{
 				if(!is_marked(cgf))
 					qFaces.push(cgf);
+			}
 		}
 		for(ConstrainedQuadrilateralIterator iter = m_selMarkedElements.begin<ConstrainedQuadrilateral>();
 			iter != m_selMarkedElements.end<ConstrainedQuadrilateral>(); ++iter)
 		{
 			if(ConstrainingFace* cgf = dynamic_cast<ConstrainingFace*>((*iter)->get_constraining_object()))
+			{
 				if(!is_marked(cgf))
 					qFaces.push(cgf);
+			}
 		}
 	}
 
@@ -533,9 +541,10 @@ void HangingNodeRefiner_IR1::collect_objects_for_refine()
 			
 		//	we have to make sure that all associated edges are marked.
 			CollectEdges(vEdges, grid, f);
-			for(size_t i = 0; i < vEdges.size(); ++i)
+			for(size_t i = 0; i < vEdges.size(); ++i){
 				if(!is_marked(vEdges[i]))
 					qEdges.push(vEdges[i]);
+			}
 			
 		//	constrained and constraining faces require special treatment
 			if(ConstrainedFace* cdf = dynamic_cast<ConstrainedFace*>(f)){
@@ -578,14 +587,16 @@ void HangingNodeRefiner_IR1::collect_objects_for_refine()
 			
 		//	we have to make sure that all associated edges and faces are marked.
 			CollectEdges(vEdges, grid, v);
-			for(size_t i = 0; i < vEdges.size(); ++i)
+			for(size_t i = 0; i < vEdges.size(); ++i){
 				if(!is_marked(vEdges[i]))
 					qEdges.push(vEdges[i]);
+			}
 
 			CollectFaces(vFaces, grid, v);
-			for(size_t i = 0; i < vFaces.size(); ++i)
+			for(size_t i = 0; i < vFaces.size(); ++i){
 				if(!is_marked(vFaces[i]))
 					qFaces.push(vFaces[i]);
+			}
 		}
 	}
 }
@@ -598,9 +609,10 @@ collect_associated_unmarked_edges(std::queue<EdgeBase*>& qEdgesOut, Grid& grid,
 	vector<EdgeBase*> vEdges;
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
 		CollectEdges(vEdges, grid, *iter);
-		for(size_t i = 0; i < vEdges.size(); ++i)
+		for(size_t i = 0; i < vEdges.size(); ++i){
 			if(!is_marked(vEdges[i]))
 				qEdgesOut.push(vEdges[i]);
+		}
 	}
 }
 
@@ -612,9 +624,10 @@ collect_associated_unmarked_faces(std::queue<Face*>& qFacesOut, Grid& grid,
 	vector<Face*> vFaces;
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
 		CollectFaces(vFaces, grid, *iter);
-		for(size_t i = 0; i < vFaces.size(); ++i)
+		for(size_t i = 0; i < vFaces.size(); ++i){
 			if(!is_marked(vFaces[i]))
 				qFacesOut.push(vFaces[i]);
+		}
 	}
 }
 
@@ -626,9 +639,10 @@ collect_associated_unmarked_volumes(std::queue<Volume*>& qVolsOut, Grid& grid,
 	vector<Volume*> vVols;
 	for(TIterator iter = elemsBegin; iter != elemsEnd; ++iter){
 		CollectVolumes(vVols, grid, *iter);
-		for(size_t i = 0; i < vVols.size(); ++i)
+		for(size_t i = 0; i < vVols.size(); ++i){
 			if(!is_marked(vVols[i]))
 				qVolsOut.push(vVols[i]);
+		}
 	}
 }
 

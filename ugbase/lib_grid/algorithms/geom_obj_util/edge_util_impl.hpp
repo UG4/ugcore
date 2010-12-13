@@ -8,7 +8,7 @@
 //#include "edge_util.h"
 #include <stack>
 #include "lib_grid/grid/grid_util.h"
-
+#include "vertex_util.h"
 namespace ug
 {
 ////////////////////////////////////////////////////////////////////////
