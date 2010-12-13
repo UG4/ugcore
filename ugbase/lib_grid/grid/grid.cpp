@@ -359,6 +359,11 @@ GeometricObjectCollection Grid::get_geometric_object_collection()
 									 &m_elementStorage[VOLUME].m_sectionContainer);
 }
 
+void Grid::flip_orientation(EdgeBase* e)
+{
+	swap(e->m_vertices[0], e->m_vertices[1]);
+}
+
 void Grid::flip_orientation(Face* f)
 {
 //	inverts the order of vertices.

@@ -197,7 +197,8 @@ bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f);
 ////////////////////////////////////////////////////////////////////////
 //	FixOrientation
 ///	creates uniform orientation of neighboured faces.
-/**
+/** This algorithm uses Grid::mark
+ *
  * swaps orientation of faces so that all neighboured
  * faces share the same.
  *
@@ -207,8 +208,8 @@ bool EdgeOrientationMatches(EdgeDescriptor& ed, Face* f);
  * of the specified grid.
  */
 template <class TFaceIterator>
-void FixOrientation(Grid& grid, TFaceIterator facesBegin,
-					TFaceIterator facesEnd);
+void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
+						TFaceIterator facesEnd);
 
 ////////////////////////////////////////////////////////////////////////
 //	InvertOrientation

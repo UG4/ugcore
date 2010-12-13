@@ -43,10 +43,10 @@ inline void Triangulate(Grid& grid,
 }
 
 ////////////////////////////////////////////////////////////////////////
-//	FixOrientation
+//	FixFaceOrientation
 template <class TFaceIterator>
-void FixOrientation(Grid& grid, TFaceIterator facesBegin,
-					TFaceIterator facesEnd)
+void FixFaceOrientation(Grid& grid, TFaceIterator facesBegin,
+						TFaceIterator facesEnd)
 {
 	using namespace std;
 //	we use marks to differentiate between processed and unprocessed faces

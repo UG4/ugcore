@@ -6,7 +6,7 @@
 #include <stack>
 #include "subset_util.h"
 #include "geom_obj_util/geom_obj_util.h"
-
+#include "polychain_util.h"
 using namespace std;
 
 namespace ug
@@ -222,8 +222,8 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 
 	//	fix orientation of all face subsets
 		for(int i = 0; i < sh.num_subsets(); ++i){
-			if(sh.num<Face>(i) == 0){
-				FixOrientation(grid, sh.begin<Face>(i), sh.end<Face>(i));
+			if(sh.num<Face>(i) != 0){
+				FixFaceOrientation(grid, sh.begin<Face>(i), sh.end<Face>(i));
 			}
 		}
 
@@ -311,6 +311,20 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 
 	//	now we have to assign the interface edges to subsets.
 		AssignFaceInterfaceEdgesToSubsets(grid, sh);
+		
+	//	make sure that all edge-subsets are regular poly-chains	
+		for(int i = 0; i < sh.num_subsets(); ++i){
+			int firstFree = GetMaxSubsetIndex<EdgeBase>(sh) + 1;
+			SplitPolyChain(sh, i, firstFree);
+		}
+		
+	//	fix orientation
+		for(int i = 0; i < sh.num_subsets(); ++i){
+			if(sh.num<EdgeBase>(i) != 0){
+				FixEdgeOrientation(grid, sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
+			}
+		}
+
 	}
 }
 

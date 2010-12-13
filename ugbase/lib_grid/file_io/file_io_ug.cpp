@@ -12,6 +12,8 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
 #include "lib_grid/algorithms/attachment_util.h"
+#include "lib_grid/algorithms/callbacks/callbacks.h"
+#include "lib_grid/algorithms/polychain_util.h"
 
 using namespace std;
 
@@ -77,7 +79,7 @@ bool ExportGridToUG(const Grid& g, const SubsetHandler& shFace, const SubsetHand
 
 //	fix orientation of faces
 	for(int i = 0; i < shFaces.num_subsets(); ++i)
-		FixOrientation(grid, shFaces.begin<Face>(i), shFaces.end<Face>(i));
+		FixFaceOrientation(grid, shFaces.begin<Face>(i), shFaces.end<Face>(i));
 
 //	make sure that all face-subsets are in consecutive order
 	{
@@ -838,9 +840,95 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 
 	int numLines = 0;
 	{
-	//	each edge wich is connected to two different subsets or wich is a boundary edge has to be written as a line
+	//	each edge which is connected to two different subsets or wich is a boundary edge has to be written as a line
 		if(bUnitsSupplied)
 		{
+
+		//	write the edge-subsets as lines
+			for(int i = 0; i < psh->num_subsets(); ++i)
+			{
+			//	at this point we assume that lines are oriented
+				if(!psh->empty<EdgeBase>(i)){
+				//	find left and right unit
+					EdgeBase* firstEdge = *psh->begin<EdgeBase>(i);
+					CollectFaces(vFaces, grid, firstEdge);
+					
+					if(vFaces.size() < 1)
+						continue;
+					
+					int subLeft = psh->get_subset_index(vFaces[0]) + 1;
+					int subRight = 0;
+					if(vFaces.size() > 1)
+						subRight = psh->get_subset_index(vFaces[1]) + 1;
+					
+					if(!FaceIsOnRightSide(vFaces[0], firstEdge))
+						swap(subLeft, subRight);
+							
+					out << "line " << numLines << ": left="<< subLeft
+						<< "; right=" << subRight << "; points:";
+							
+				//	now we have to follow the polygonal chain in subset i.
+				//	We assume that the chain is regular
+				//	create a callback for this subset, since we use it several times
+					IsInSubset cbIsInSubset(*psh, i);
+					std::pair<VertexBase*, EdgeBase*> curSec =
+						GetFirstSectionOfPolyChain(grid, psh->begin<EdgeBase>(i),
+													psh->end<EdgeBase>(i),
+													cbIsInSubset);
+
+					size_t numEdgesInLine = 0;
+					while(curSec.first)
+					{
+						VertexBase* curVrt = curSec.first;
+						EdgeBase* curEdge = curSec.second;
+						
+					//	write the vertex index
+						if(aaInt[curVrt] == -1){
+							throw(UGError("Edge subsets have not been assigned correctly."));
+						}
+						
+						if(aaLineInt[curEdge] != -1){
+							throw(UGError("Implementation error: One edge is in different lines."));
+						}
+						
+						aaLineInt[curEdge] = numLines;
+						++numEdgesInLine;
+						
+						out << " " << aaInt[curVrt];
+						
+						std::pair<VertexBase*, EdgeBase*> nextSec =
+							GetNextSectionOfPolyChain(grid, curSec, cbIsInSubset);
+
+					//	check whether the next section is still valid.
+					//	if not, write the last vertex and exit.
+						if(!nextSec.first){
+							out << " " << aaInt[GetConnectedVertex(curEdge, curVrt)];
+							break;
+						}
+						else if(aaLineInt[nextSec.second] != -1){
+						//	the edge has already been considered
+							out << " " << aaInt[nextSec.first];
+							break;
+						}
+						
+						curSec = nextSec;
+					}
+					out << endl;
+					++numLines;
+					
+				//	make sure that all edges in the subset have been written to the line
+					if(numEdgesInLine != psh->num<EdgeBase>(i)){
+						stringstream ss;
+						ss  << "Couldn't write all edges of subset " << i << " to a line. "
+							<< "This can happen if the subset is not a regular polychain. "
+							<< "It is either separated into different parts or irregular (contains junctions).";
+									  
+						throw(UGError(ss.str().c_str()));
+					}
+				}
+			}
+
+/*
 			for(EdgeBaseIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
 			{
 				EdgeBase* e = *iter;
@@ -873,9 +961,10 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 					}
 				}
 			}
+*/
 		}
-	//	check for boundary lines
-		{
+		else{
+		//	check for boundary lines
 			for(EdgeBaseIterator iter = grid.edges_begin(); iter != grid.edges_end(); iter++)
 			{
 				EdgeBase* e = *iter;

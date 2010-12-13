@@ -8,6 +8,7 @@
 #include <vector>
 #include "lib_grid/lg_base.h"
 #include "common/math/ugmath.h"
+#include "lib_grid/algorithms/callbacks/callback_definitions.h"
 
 namespace ug
 {
@@ -161,6 +162,15 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
 					number threshold);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns whether a vertex lies on the boundary of a polygonal chain.
+/** The polygonal chain may be part of a bigger grid containing faces
+ *	and volume elements. To distinguish which edges should be part of
+ *	the polygonal chain, you may specify a callback to identify them.
+ */
+bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
+						Callback_ConsiderEdge cbConsiderEdge = ConsiderAllEdges);
+
+////////////////////////////////////////////////////////////////////////
 ///	returns whether a vertex lies on the boundary of a 2D grid.
 /** A vertex is regarded as a 2d boundary vertex if it lies on a
  * 2d boundary edge.
@@ -224,7 +234,6 @@ void TransformVertex(VertexBase* vrt, matrix33& m, TAAPos& aaPos);
 template<class TIterator, class TAAPos> inline
 void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 					   matrix33& m, TAAPos& aaPos);
-
 
 /// @} // end of doxygen defgroup command
 

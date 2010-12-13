@@ -1,0 +1,94 @@
+// created by Sebastian Reiter
+// y10 m12 d13
+// s.b.reiter@googlemail.com
+
+#ifndef __H__LIB_GRID__POLYCHAIN_UTIL__
+#define __H__LIB_GRID__POLYCHAIN_UTIL__
+
+#include <utility>
+#include "lib_grid/lg_base.h"
+#include "lib_grid/algorithms/callbacks/callback_definitions.h"
+
+namespace ug
+{
+
+enum PolyChainTypes
+{
+	PCT_UNKNOWN = 0,
+	PCT_CLOSED = 1,
+	PCT_OPEN = 1 << 1,
+	PCT_SEPARATED = 1 << 2,
+	PCT_IRREGULAR = 1 << 3
+};
+
+////////////////////////////////////////////////////////////////////////
+///	returns an or combination of constants enumerated in PolyChainTypes.
+template <class TEdgeIterator>
+size_t
+GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
+				  TEdgeIterator edgesEnd,
+				  Callback_ConsiderEdge cbEdgeIsInPolyChain);
+				  
+////////////////////////////////////////////////////////////////////////
+///	Returns the start-vertex and start-edge of a polygonal chain.
+/**	The edges between iteratorBegin and iteratorEnd are considered to be
+ *	edges of a polygonal chain. The algorithm then searches for a vertex that
+ *	lies on the boundary of that chain. If a boundary vertex is found which
+ *	is the first vertex in its associated chain-edge, it is preferred to
+ *	a vertex, which is the second vertex of its associated chain-edge.
+ *	
+ *	Returned is an std::pair. The first component points to the vertex
+ *	and the second to its associated edge.
+ *
+ *	If the polygonal chain is closed, the the edge at edgesBegin and its
+ *	first vertex is returned.
+ *
+ *	The given callback cbConsiderEdge has to return true for all edges between
+ *	edgesBegin and edgesEnd and false for all other edges.
+ *
+ *	If there are no edges between the given iterators, std::pair(NULL, NULL) is returned.
+ */
+template <class TEdgeIterator>
+std::pair<VertexBase*, EdgeBase*>
+GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
+						  TEdgeIterator edgesEnd,
+						  Callback_ConsiderEdge cbEdgeIsInPolyChain);
+						  
+////////////////////////////////////////////////////////////////////////
+///	returns the next section in a polygonal chain.
+/**	lastSection has to contain a vertex and an associated edge, which is
+ *	part of the polygonal chain. You can retrieve such a section by a call
+ *	to ug::GetFirstVertexOfPolyChain or to ug::GetNextSectionInPolyChain.
+ *
+ *	If no more sections can be found, std::pair(NULL, NULL) is returned.
+ *
+ *	Be careful with closed polychains! The algorithm will always find a
+ *	next section in this case.
+ *
+ *	If the polychain is irregular (more than 2 chain-edges meet at one vertex)
+ *	the algorithm still terminates. However assumtions on the outcome should not
+ *	be made.
+ */
+std::pair<VertexBase*, EdgeBase*>
+GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSection,
+						  Callback_ConsiderEdge cbEdgeIsInPolyChain);
+
+////////////////////////////////////////////////////////////////////////
+///	Makes sure that the polychain at srcIndex is regular and not separated.
+/**	This algorithm uses Grid::mark
+ *
+ * Makes sure that the polychain at srcIndex is regular and not separated.
+ * This is achieved by assigning all problematic edges to targetIndex.
+ *
+ * Returns true if the chain was splitted and false if not.
+ */
+bool SplitPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex);
+
+}//	end of namespace
+
+
+////////////////////////////////
+//	include implementation
+#include "polychain_util_impl.hpp"
+
+#endif

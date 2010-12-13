@@ -204,7 +204,7 @@ void TransformVertices(TIterator vrtsBegin, TIterator vrtsEnd,
 	for(TIterator iter = vrtsBegin; iter != vrtsEnd; ++iter)
 		TransformVertex(*iter, m, aaPos);
 }
-					   
+
 }//	end of namespace
 
 #endif

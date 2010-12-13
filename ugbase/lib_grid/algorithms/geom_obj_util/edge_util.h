@@ -229,6 +229,26 @@ CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT);
 bool CutEdgesWithPlane(Selector& sel, const vector3& p, const vector3& n,
 						APosition& aPos = aPosition);
 
+////////////////////////////////////////////////////////////////////////
+//	FixOrientation
+///	creates uniform orientation of neighboured edges.
+/** This algorithm uses Grid::mark
+ *
+ * swaps orientation of edges so that all neighboured
+ * edges share the same.
+ *
+ * Value type of TEdgeIterator has to be compatible with EdgeBase*.
+ *
+ * Note that all edges between edgesBegin and edgesEnd have to be members
+ * of the specified grid.
+ *
+ * The orientation can only be successfully fixed, if vertices between
+ * the given edges share at most 2 edges between edgesBegin and edgesEnd.
+ */
+template <class TEdgeIterator>
+void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
+						TEdgeIterator edgesEnd);
+					
 /// @} // end of doxygen defgroup command
 
 }//	end of namespace

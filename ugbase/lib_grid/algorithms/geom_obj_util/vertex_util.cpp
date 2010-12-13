@@ -474,6 +474,33 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 }
 
 ////////////////////////////////////////////////////////////////////////
+bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
+						Callback_ConsiderEdge cbConsiderEdge)
+{
+	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
+	{
+	//	we have to enable this option, since nothing works without it in reasonable time.
+		LOG("WARNING in IsBoundaryVertex1D(...): auto-enabling VRTOPT_STORE_ASSOCIATED_EDGES.\n");
+		grid.enable_options(VRTOPT_STORE_ASSOCIATED_EDGES);
+	}
+
+//	iterate over associated edges and return true if only one of them
+//	should be considered for the polygonal chain
+	size_t counter = 0;
+	for(Grid::AssociatedEdgeIterator iter = grid.associated_edges_begin(v);
+		iter != grid.associated_edges_end(v); ++iter)
+	{
+		if(cbConsiderEdge(*iter)){
+			++counter;
+			if(counter > 1)
+				return false;
+		}
+	}
+	
+	return true;
+}
+						
+////////////////////////////////////////////////////////////////////////
 bool IsBoundaryVertex2D(Grid& grid, VertexBase* v)
 {
 //	check whether one of the associated edges is a boundary edge.

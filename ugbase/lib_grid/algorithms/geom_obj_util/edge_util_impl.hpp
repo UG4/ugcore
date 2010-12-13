@@ -6,6 +6,7 @@
 #define __H__LIB_GRID__EDGE_UTIL_IMPL__
 
 //#include "edge_util.h"
+#include <stack>
 #include "lib_grid/grid/grid_util.h"
 
 namespace ug
@@ -144,6 +145,61 @@ CalculateCenter(EdgeBase* e, TVertexPositionAttachmentAccessor& aaPosVRT)
 	return v;
 }
 
+template <class TEdgeIterator>
+void FixEdgeOrientation(Grid& grid, TEdgeIterator edgesBegin,
+						TEdgeIterator edgesEnd)
+{
+	using namespace std;
+	grid.begin_marking();
+	
+//	we'll mark all edges.
+	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
+		grid.mark(*iter);
+		
+	stack<EdgeBase*> candidates;
+	
+//	iterate through the edges
+	for(TEdgeIterator iter = edgesBegin; iter != edgesEnd; ++iter)
+	{
+	//	only marked edges have to be considered
+		if(grid.is_marked(*iter)){
+			grid.unmark(*iter);
+			candidates.push(*iter);
+			
+			while(!candidates.empty()){
+				EdgeBase* e = candidates.top();
+				candidates.pop();
+				
+			//	iterate through all associated edges
+				for(size_t i = 0; i < 2; ++i){
+					for(Grid::AssociatedEdgeIterator assIter =
+						grid.associated_edges_begin(e->vertex(i));
+						assIter != grid.associated_edges_end(e->vertex(i)); ++assIter)
+					{
+						EdgeBase* ae = *assIter;
+					//	fix orientation of marked associated edges.
+					//	those edges are new candidates afterwards
+						if(grid.is_marked(ae)){
+						//	the local index of the vertex over which ae is connected to e has
+						//	to be different from the local index of the vertex in e.
+							if(GetVertexIndex(ae, e->vertex(i)) == (int)i){
+							//	we have to flip the orientation
+								grid.flip_orientation(ae);
+							}
+							
+						//	prepare the new candidate
+							grid.unmark(ae);
+							candidates.push(ae);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	grid.end_marking();
+}
+					
 }//	end of namespace
 
 #endif

@@ -287,6 +287,10 @@ class Grid
 		virtual GeometricObjectCollection get_geometric_object_collection();
 
 	////////////////////////////////////////////////
+	///	flips the orientation of an edge.
+		void flip_orientation(EdgeBase* e);
+		
+	////////////////////////////////////////////////
 	///	flips the orientation of a face.
 		void flip_orientation(Face* f);
 
