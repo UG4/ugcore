@@ -1,3 +1,6 @@
+/**
+ * \file math_util.h
+ */
 //	created by Sebastian Reiter
 //	s.b.reiter@googlemail.com
 //	y08 m10 d14
@@ -8,6 +11,7 @@
 #include <cstdlib>
 #include "../math_vector_matrix/math_vector.h"
 #include "../math_vector_matrix/math_vector_functions.h"
+#include "../ugmath_types.h"
 #include "eigenvalues.h"
 
 namespace ug

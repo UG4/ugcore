@@ -1,3 +1,7 @@
+/**
+ * \file math_util.cpp
+ */
+
 //	created by Sebastian Reiter
 //	s.b.reiter@googlemail.com
 //	y10 m05 d18
@@ -5,6 +9,8 @@
 #include <vector>
 #include "math_util.h"
 #include "../ugmath.h"
+#include "../ugmath_types.h"
+
 
 using namespace std;
 

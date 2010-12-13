@@ -24,11 +24,11 @@ static void rot(number A[3][3], const number s, const number tau,
   A[k][l] = h + s * (g - h * tau);												
 }
 
-// FŸr symmetrische Matrizen:
-bool CalculateEigenvalues(const matrix33& mat, number& lambdaMinOut,
+// For symmetrische Matrizen:
+bool CalculateEigenvalues(const ug::matrix33& mat, number& lambdaMinOut,
 						number& lambdaMedOut, number& lambdaMaxOut,
-						vector3& evMinOut, vector3& evMedOut,
-						vector3& evMaxOut)
+						ug::vector3& evMinOut, ug::vector3& evMedOut,
+						ug::vector3& evMaxOut)
 {	
   
   number A[3][3];

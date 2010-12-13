@@ -1,3 +1,7 @@
+/**
+ * \file math_vector.h
+ */
+
 //	created by Sebastian Reiter
 //	s.b.reiter@googlemail.com
 //	y08 m11 d13
@@ -23,9 +27,11 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 //	MathMathVector
 ///	a mathematical Vector with N entries.
-
 template <std::size_t N, typename T = number> class MathVector;
 
+/**
+ * A mathematical Vector with N entries and static storage
+ */
 template <std::size_t N, typename T>
 class MathVector
 {
@@ -76,6 +82,10 @@ class MathVector
 
 };
 
+/**
+ * A mathematical Vector with 2 entries and static storage
+ */
+template <>
 template <typename T>
 class MathVector<2, T>
 {
@@ -134,8 +144,9 @@ class MathVector<2, T>
 };
 
 /**
- * A 3d Vector using scalar entries
+ * A mathematical Vector with 3 entries and static storage
  */
+template <>
 template <typename T>
 class MathVector<3, T>
 {
@@ -196,7 +207,10 @@ class MathVector<3, T>
 
 };
 
-
+/**
+ * A mathematical Vector with 4 entries and static storage
+ */
+template <>
 template <typename T>
 class MathVector<4, T>
 {

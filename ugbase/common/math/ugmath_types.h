@@ -36,29 +36,25 @@ namespace ug
 ///@{
 
 /// a 1d vector
-typedef MathVector<1> vector1;
+typedef MathVector<1, number> vector1;
 
 /// a 2d vector
-typedef MathVector<2> vector2;
+typedef MathVector<2, number> vector2;
 
-/**
- * A 3d vector
- */
-typedef MathVector<3> vector3;
+/// a 3d vector
+typedef MathVector<3, number> vector3;
 
 /// a 4d vector
-typedef MathVector<4> vector4;
+typedef MathVector<4, number> vector4;
 
 /// a 2x2 matrix
-typedef MathMatrix<2,2> matrix22;
+typedef MathMatrix<2,2, number> matrix22;
 
-/**
- * A 3x3 matrix
- */
-typedef MathMatrix<3,3> matrix33;
+/// a 3x3 matrix
+typedef MathMatrix<3,3, number> matrix33;
 
 /// a 4x4 matrix
-typedef MathMatrix<4,4> matrix44;
+typedef MathMatrix<4,4, number> matrix44;
 
 ///@}
 
