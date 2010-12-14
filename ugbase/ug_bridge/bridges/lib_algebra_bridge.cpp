@@ -8,7 +8,6 @@
 #include "../ug_bridge.h"
 #include "lib_algebra/lib_algebra.h"
 #include "lib_discretization/lib_discretization.h"
-#include "lib_algebra/operator/preconditioner/amg/amg.h"
 #include <iostream>
 #include <sstream>
 
