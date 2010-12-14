@@ -23,7 +23,7 @@ struct matrix_algebra_type_traits;
 template<typename T>
 struct matrix_algebra_type_traits<DenseMatrix<T> >
 {
-	static const matrix_algebra_type type = MATRIX_USE_GLOBAL_FUNCTIONS;
+	static const int type = MATRIX_USE_GLOBAL_FUNCTIONS;
 };
 
 //! calculates dest = beta1 * A1 * w1;

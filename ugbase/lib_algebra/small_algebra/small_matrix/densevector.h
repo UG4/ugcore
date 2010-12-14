@@ -97,6 +97,8 @@ public:
 	DenseVector<TStorage> &
 	assign(const Type &t);
 
+	void maple_print(const char *name);
+
 };
 
 }

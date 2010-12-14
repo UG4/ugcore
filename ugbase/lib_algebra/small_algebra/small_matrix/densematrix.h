@@ -170,6 +170,9 @@ public:
 
 		return (*this) * tmp;
 	}
+
+	///
+	void maple_print(const char *name);
 };
 
 template<typename TStorage>

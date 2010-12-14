@@ -484,7 +484,7 @@ private:
 template<typename T>
 struct matrix_algebra_type_traits<SparseMatrix<T> >
 {
-	static const matrix_algebra_type type = MATRIX_USE_ROW_FUNCTIONS;
+	static const int type = MATRIX_USE_ROW_FUNCTIONS;
 };
 
 //! calculates dest = alpha1*v1 + beta1 * A1^T *w1;

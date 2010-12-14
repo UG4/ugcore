@@ -112,6 +112,18 @@ DenseVector<TStorage>::operator/=(const typename DenseVector<TStorage>::value_ty
 	return *this;
 }
 
+template<typename TStorage>
+void DenseVector<TStorage>::maple_print(const char *name)
+{
+	UG_LOG(name << " = vector([");
+	for(size_t i=0; i<size(); ++i)
+	{
+		if(i > 0) UG_LOG(", ");
+		UG_LOG(entry(i));
+	}
+	UG_LOG("]);\n");
+}
+
 // views
 // methods
 

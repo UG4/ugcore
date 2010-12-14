@@ -146,6 +146,24 @@ bool DenseMatrix<TStorage>::operator != (const T &t) const
 	return !(operator == (t));
 }
 
+template<typename TStorage>
+void DenseMatrix<TStorage>::maple_print(const char *name)
+{
+	UG_LOG(name << " = matrix([");
+	for(size_t r=0; r<num_rows(); ++r)
+	{
+		if(r > 0) UG_LOG(", ");
+		UG_LOG("[");
+		for(size_t c=0; c<num_cols(); ++c)
+		{
+			if(c > 0) UG_LOG(", ");
+			UG_LOG(entry(r, c));
+		}
+		UG_LOG("]");
+	}
+	UG_LOG("]);\n");
+}
+
 
 template<typename TStorage>
 std::ostream &operator << (std::ostream &out, const DenseMatrix<TStorage> &mat)

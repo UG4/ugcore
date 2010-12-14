@@ -53,13 +53,13 @@ enum matrix_algebra_type
 	MATRIX_USE_MEMBER_FUNCTIONS
 };
 
-template<typename vector_t, typename matrix_t, matrix_algebra_type type>
+template<typename vector_t, typename matrix_t, int type>
 class mat_operations_class;
 
 template<typename T>
 struct matrix_algebra_type_traits
 {
-	static const matrix_algebra_type type = MATRIX_USE_OPERATORS;
+	static const int type = MATRIX_USE_OPERATORS;
 };
 
 // MATRIX_USE_OPERATORS: elementary types like double, float, or template operatored classes: use operators

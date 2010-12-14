@@ -237,11 +237,11 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 	if(T_ordering==RowMajor)
 		for(size_t r=0; r<minRows; r++)
 			for(size_t c=0; c<minCols; c++)
-				swap(new_values[c+r*cols], values[c+r*cols]);
+				swap(new_values[c+r*newCols], values[c+r*cols]);
 	else
 		for(size_t r=0; r<minRows; r++)
 			for(size_t c=0; c<minCols; c++)
-				swap(new_values[r+c*rows], values[r+c*rows]);
+				swap(new_values[r+c*newRows], values[r+c*rows]);
 
 	if(values) delete[] values;
 	rows = newRows;

@@ -43,7 +43,7 @@ public:
 	VariableArray1(size_type n_);
 	VariableArray1(const VariableArray1<T> &other);
 
-protected:
+//protected:
 	// see Alexandrescu: non-virtual destructors should be protected
 	~VariableArray1();
 
@@ -126,7 +126,7 @@ public:
 	VariableArray2(size_type rows_, size_type cols_);
 	VariableArray2(const VariableArray2<T, T_ordering> &other);
 
-protected:
+//protected:
 	// see Alexandrescu: non-virtual destructors should be protected
 	~VariableArray2();
 

@@ -39,7 +39,7 @@ public:
 	FixedArray1(size_type n_);
 	FixedArray1(const FixedArray1<T, n> &other);
 
-protected:
+//protected:
 	// see Alexandrescu: non-virtual destructors should be protected
 	~FixedArray1();
 
@@ -122,7 +122,7 @@ public:
 	FixedArray2(size_type rows, size_type cols);
 	FixedArray2(const FixedArray2<T, rowsT, colsT, T_ordering> &other);
 
-protected:
+//protected:
 	// see Alexandrescu: non-virtual destructors should be protected
 	~FixedArray2();
 
