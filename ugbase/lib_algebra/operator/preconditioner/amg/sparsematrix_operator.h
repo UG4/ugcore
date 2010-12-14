@@ -1,4 +1,7 @@
 
+#ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__SPARSEMATRIX_OPERATOR_H__
+#define __H__LIB_DISCRETIZATION__AMG_SOLVER__SPARSEMATRIX_OPERATOR_H__
+
 namespace ug
 {
 
@@ -34,3 +37,5 @@ class SparseMatrixOperator : public virtual IMatrixOperator<vector_type, vector_
 
 
 }
+
+#endif  // __H__LIB_DISCRETIZATION__AMG_SOLVER__SPARSEMATRIX_OPERATOR_H__

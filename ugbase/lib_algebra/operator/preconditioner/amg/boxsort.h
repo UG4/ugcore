@@ -190,7 +190,7 @@ public:
 private:
 	T *arr;				//< pointer to array with elements of type T
 
-	vector<vector<size_t> > box;
+	std::vector<std::vector<size_t> > box;
 
 	int *posInBox;	//< item is at box[values[i]]
 	size_t *values;		//< values[i] is the value used for sorting of element i

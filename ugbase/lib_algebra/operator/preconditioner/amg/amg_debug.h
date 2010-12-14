@@ -16,6 +16,7 @@
 #include "amg_nodeinfo.h"
 #include "amg_debug_helper.h"
 #include "postscript.h"
+#include "graph.h"
 
 namespace ug {
 	

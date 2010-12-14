@@ -15,7 +15,15 @@
 
 //#include "sparsematrix_util.h"
 
+#include "amg.h"
+#include "graph.h"
+
+#include "amg_rs_prolongation.h"
+#include "amg_debug.h"
 #include "amg_nodeinfo.h"
+
+#include "amg_coarsening.h"
+
 #include "stopwatch.h"
 
 
@@ -29,7 +37,6 @@ namespace ug{
 
 #define AMG_WRITE_GRAPH
 
-#define LATE_COARSE_SOLVER // do coarsening down to 10 nodes.
 
 
 #if 0
@@ -122,12 +129,12 @@ template<typename TAlgebra>
 void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 		SparseMatrix<double> &P, int level)
 {
-	amg_nodeinfo *nodes = new amg_nodeinfo[A.num_rows()];
+	size_t N = A.num_rows();
+	std::vector<amg_nodeinfo> nodes; nodes.resize(N);
 
 	bool bTiming=true;
-	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::endl << std::fixed);
+	UG_LOG("Creating level " << level << ". (" << N << " nodes)" << std::endl << std::fixed);
 	stopwatch SW;
-	stopwatch SWwhole; SWwhole.start();
 
 	// amg_nodeinfo: infos zu den einzelnen knoten von A, verwaltung der ratings etc
 
@@ -135,25 +142,22 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 	nodeinfo_pq_type PQ;
 
-	//std::vector<bool coarse(A.num_rows());
-	int unassigned = A.num_rows();
+	//std::vector<bool coarse(N);
+	int unassigned = N;
 
-	int *newIndex = new int[A.num_rows()];
-	for(size_t i=0; i<A.num_rows(); ++i) newIndex[i] = -1;
-
-	int *posInConnections = new int[A.num_rows()];
-	for(size_t i=0; i<A.num_rows(); ++i) posInConnections[i] = -1;
+	std::vector<int> newIndex; newIndex.resize(N, -1);
+	std::vector<int> posInConnections; posInConnections.resize(N, -1);
 
 
-	std::cout << "A.totalNrOfConnections = " << A.total_num_connections() << std::endl;
+	UG_LOG("A.totalNrOfConnections = " << A.total_num_connections() << std::endl);
 
-	cgraph graphS(A.num_rows());
+	cgraph graphS(N);
 	cgraph graphST;
 
 	// build graph
 	/////////////////////////////////////////
 
-	std::cout << "building graph... "; std::cout.flush();
+	UG_LOG("building graph... ");
 	if(bTiming) SW.start();
 
 	CreateStrongConnectionGraph(A, graphS);
@@ -169,25 +173,25 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	WriteAMGGraphToFile(graphST, (string(AMG_WRITE_MATRICES_PATH) + "GT" + ToString(level) + ".mat").c_str(), amghelper, level);
 #endif
 
-	CreateMeasureOfImportancePQ(graphS, graphST, PQ, unassigned, nodes);
+	CreateMeasureOfImportancePQ(graphS, graphST, PQ, unassigned, &nodes[0]);
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_COARSEN_RATINGS
-	 for(size_t i=0; i<A.num_rows(); i++)
-		 std::cout << i << " [" << GetOriginalIndex(level, i) << "] " << nodes[i] << std::endl;
+	 for(size_t i=0; i<N; i++)
+		 UG_LOG(i << " [" << GetOriginalIndex(level, i) << "] " << nodes[i] << std::endl);
 #endif
 
 	// Coarsen
 	/////////////////////////////////////////
-	std::cout << std::endl << "coarsening... "; std::cout.flush();
+	UG_LOG(std::endl << "coarsening... ");
 
 	SW.start();
 	int iNrOfCoarse = 0;
 
-	Coarsen(graphST, PQ, newIndex, unassigned, iNrOfCoarse, nodes);
+	Coarsen(graphST, PQ, &newIndex[0], unassigned, iNrOfCoarse, &nodes[0]);
 
-	PreventFFConnections(graphS, graphST, nodes, newIndex, iNrOfCoarse);
+	PreventFFConnections(graphS, graphST, &nodes[0], &newIndex[0], iNrOfCoarse);
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -199,16 +203,16 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 		// build graph 2
 		//------------------
 
-		cgraph graph2(A.num_rows());
+		cgraph graph2(N);
 
-		std::cout << std::endl << "building graph2... "; std::cout.flush();
+		UG_LOG(std::endl << "building graph2... ");
 		if(bTiming) SW.start();
 
-		for(size_t i=0; i < A.num_rows(); i++) newIndex[i] = -1;
+		for(size_t i=0; i < N; i++) newIndex[i] = -1;
 
 		cgraph graphAC;
-		CreateAggressiveCoarseningGraph(graphST, graphAC, nodes, aggressiveCoarseningNrOfPaths, posInConnections);
-		CreateMeasureOfImportanceAggressiveCoarseningPQ(graphAC, PQ, unassigned, iNrOfCoarse, newIndex, nodes);
+		CreateAggressiveCoarseningGraph(graphST, graphAC, &nodes[0], aggressiveCoarseningNrOfPaths, &posInConnections[0]);
+		CreateMeasureOfImportanceAggressiveCoarseningPQ(graphAC, PQ, unassigned, iNrOfCoarse, &newIndex[0], &nodes[0]);
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 		// coarsen 2
 		//------------------
@@ -222,66 +226,16 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 			UG_LOG(std::endl << "coarsening2... ");
 
 			if(bTiming) SW.start();
-			Coarsen(graphAC, PQ, newIndex, unassigned, iNrOfCoarse, nodes);
-			//PreventFFConnections(graphS, graphST, nodes, newIndex, iNrOfCoarse);
+			Coarsen(graphAC, PQ, &newIndex[0], unassigned, iNrOfCoarse, &nodes[0]);
+			//PreventFFConnections(graphS, graphST, &nodes[0], newIndex, iNrOfCoarse);
 			if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 		}
 	}
 
-	// create vectors for AMG multigrid
-	/////////////////////////////////////////
-
-	vec3[level] = new vector_type;
-	vec3[level]->create(A.num_rows());
-
-	vec1[level+1] = new vector_type;
-	vec1[level+1]->create(iNrOfCoarse);
-	vec2[level+1] = new vector_type;
-	vec2[level+1]->create(iNrOfCoarse);
-
-#ifdef UG_PARALLEL
-	// todo: change this for later "right" parallel implementation
-	UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-
-	//typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> > IndexLayout
-
-	vec3[level]->set_communicator(*com[level]);
-	// todo: implement "real" ParallelCommunicator
-	com[level+1] = new pcl::ParallelCommunicator<IndexLayout>;
-	vec1[level+1]->set_communicator(*com[level+1]);
-	vec2[level+1]->set_communicator(*com[level+1]);
-
-	vec3[level]->set_storage_type(PST_ADDITIVE);
-	vec1[level+1]->set_storage_type(PST_ADDITIVE);
-	vec2[level+1]->set_storage_type(PST_ADDITIVE);
-
-
-	vec3[level]->set_master_layout(pseudoLayout);
-	vec3[level]->set_slave_layout(pseudoLayout);
-	vec1[level+1]->set_master_layout(pseudoLayout);
-	vec1[level+1]->set_slave_layout(pseudoLayout);
-	vec2[level+1]->set_master_layout(pseudoLayout);
-	vec2[level+1]->set_slave_layout(pseudoLayout);
-
-#endif
-
-
-	UG_LOG(std::endl << "created vec3 on level " << level << ", vec1 and vec2 on level" << level +1);
-
-	// todo: set size for variable sized blockvectors
-	/*for(size_t i=0; i<A.num_rows(); i++)
-		if(nodes[i].isCoarse())
-		{
-			int rows = GetRows(A.beginRow(i).value());
-			UG_ASSERT(newIndex[i] >= 0, "");
-			SetSize((*vec1[level+1])[newIndex[i]], rows);
-			SetSize((*vec2[level+1])[newIndex[i]], rows);
-		}*/
-
 	// set parentindex for debugging
 	parentIndex[level+1] = new int[iNrOfCoarse];
-	for(size_t i=0; i<A.num_rows(); i++)
+	for(size_t i=0; i<N; i++)
 		if(nodes[i].isCoarse())
 			parentIndex[level+1][ newIndex[i] ] = i;
 
@@ -297,11 +251,11 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	unassigned = 0;
 
 	if(bTiming) SW.start();
-	CreateRugeStuebenProlongation(P, A, newIndex, iNrOfCoarse, unassigned, nodes, theta);
+	CreateRugeStuebenProlongation(P, A, &newIndex[0], iNrOfCoarse, unassigned, &nodes[0], theta);
 	//UG_ASSERT(unassigned == 0 || (aggressiveCoarsening && level == 0),
 		//	"no aggressive coarsening, but indirect interpolation of " << unassigned " nodes ?");
 	if(unassigned > 0)
-		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, posInConnections, theta);
+		CreateIndirectProlongation(P, A, &newIndex[0], unassigned, &nodes[0], &posInConnections[0], theta);
 
 /*#ifdef UG_PARALLEL
 	P.set_storage_type(PST_CONSISTENT);
@@ -310,7 +264,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_P
-	std::cout << std::endl << "Prolongation level " << level << std::endl;
+	UG_LOG(std::endl << "Prolongation level " << level << std::endl);
 	P.print();
 #endif
 
@@ -332,7 +286,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_R
-	std::cout << std::endl << "Restriction level " << level << std::endl;
+	UG_LOG(std::endl << "Restriction level " << level << std::endl);
 	R.print();
 #endif
 
@@ -353,38 +307,11 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	if(bTiming) UG_LOG(std::endl << "Finalizing... took " << SW.ms() << " ms");
 
 #ifdef AMG_PRINT_AH
-	std::cout << "AH level " << level << std::endl;
+	UG_LOG("AH level " << level << std::endl);
 	AH.print();
 #endif
 
-	// finish
-	/////////////////////////////////////////
-
-	int nnz = AH.total_num_connections();
-	UG_LOG(std::endl << "AH: nnz: " << nnz << " Density: " <<
-			double(nnz)/(double(AH.num_rows())*double(AH.num_rows()))*100.0 << "% nnz/n: " << nnz/(double)AH.num_rows() << std::endl);
-
-	UG_LOG("Coarsening rate: " << (100.0*AH.num_rows())/(A.num_rows()) << "%" << std::endl);
-
-	UG_LOG(" level took " << SWwhole.ms() << " ms" << std::endl);
-
-
-#ifdef AMG_WRITE_MATRICES_PATH
-	if(this->A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
-	{
-		UG_LOG("write matrices");
-		AMGWriteToFile(P, level+1, level, (string(AMG_WRITE_MATRICES_PATH) + "P" + ToString(level) + ".mat").c_str(), amghelper);
-		UG_LOG(".");
-		AMGWriteToFile(R, level, level+1, (string(AMG_WRITE_MATRICES_PATH) + "R" + ToString(level) + ".mat").c_str(), amghelper);
-		UG_LOG(".");
-		AMGWriteToFile(AH, level+1, level+1, (string(AMG_WRITE_MATRICES_PATH) + "A" + ToString(level+1) + ".mat").c_str(), amghelper);
-		UG_LOG(". done.\n");
-	}
-#endif
-
 	UG_LOG("\n");
-
-
 
 	delete[] posInConnections;
 	delete[] newIndex;
@@ -500,6 +427,7 @@ bool amg<TAlgebra>::init_amg()
 			<< totallength/A[0]->num_rows() << std::endl << std::endl);
 
 	return true;
+>>>>>>> .r1641
 }
 
 
@@ -507,287 +435,28 @@ bool amg<TAlgebra>::init_amg()
 //! amg constructor
 template<typename TAlgebra>
 amg<TAlgebra>::amg() :
-	nu1(2),
-	nu2(2),
-	gamma(1),
-
+	amg_base<TAlgebra>(),
 	eps_truncation_of_interpolation(0.3),
 	theta(0.3),
 	sigma(0.3),
-
-	max_levels(10),
-	used_levels(0),
 	aggressiveCoarsening(0),
-	aggressiveCoarseningNrOfPaths(2),
-
-	m_presmoother(NULL),
-	m_postsmoother(NULL),
-	m_basesolver(NULL)
+	aggressiveCoarseningNrOfPaths(2)
 {
-	vec4 = NULL;
-	m_bInited = false;
-
-
-#ifdef UG_PARALLEL
-	UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-#endif
-
-	//FORCE_CREATION { printCoarsening(0,0); }
 }
 
 
-template<typename TAlgebra>
-void amg<TAlgebra>::cleanup()
-{
-	for(int i=1; i<used_levels-1; i++)
-	{
-		if(A[i]) delete A[i]; A[i] = NULL;
-		if(vec1[i]) delete vec1[i]; vec1[i] = NULL;
-		if(vec2[i]) delete vec2[i]; vec2[i] = NULL;
-		if(parentIndex[i]) delete [] parentIndex[i]; parentIndex[i] = NULL;
-	}
-
-	for(int i=0; i<used_levels; i++)
-	{
-		if(m_presmoothers[i]) delete m_presmoothers[i]; m_presmoothers[i] = NULL;
-		if(m_postsmoothers[i]) delete m_postsmoothers[i]; m_postsmoothers[i] = NULL;
-		if(vec3[i]) delete vec3[i]; vec3[i] = NULL;
-	}
-	if(vec4) { delete[] vec4; vec4 = NULL; }
-	A[0] = NULL;
-	used_levels = 0;
-	m_bInited=false;
-}
-//!
-//! amg destructor
-template<typename TAlgebra>
-amg<TAlgebra>::~amg()
-{
-	cleanup();
-}
-
-template<typename matrix_type, typename vector_type>
-void amg_jacobi_step(const matrix_type &Ah, vector_type &d, vector_type &c, vector_type &corr, number damp)
-{
-	for(size_t i=0; i<c.size(); i++)
-	{
-		c[i] = damp*(d[i] / Ah.get_diag(i));
-	}
-	d -= Ah*c;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// get_correction_and_update_defect:
-//------------------------------------
-
-template<typename TAlgebra>
-bool amg<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type &d, int level)
-{
-	UG_ASSERT(c.size() == d.size() && c.size() == A[level]->num_rows(),
-			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << A[level]->num_rows() << ": not matching");
-
-	const matrix_type &Ah = *(A[level]);
-
-	if(level == used_levels-1)
-	{
-		m_basesolver->apply_return_defect(c, d);
-		return true;
-	}
-
-	vector_type &corr = *vec3[level];
-
-	// presmooth
-	// same as setting c.set(0.0).
-	m_presmoothers[level]->apply_update_defect(c, d);
-	for(int i=1; i < nu1; i++)
-	{
-		m_presmoothers[level]->apply_update_defect(corr, d);
-		c += corr;
-	}
-
-	vector_type &cH = *vec1[level+1];
-	vector_type &dH = *vec2[level+1];
-
-#ifdef UG_PARALLEL
-	cH.set_storage_type(PST_CONSISTENT);
-
-	// restrict defect
-	// dH = R[level]*d;
-	dH.set_storage_type(PST_ADDITIVE);
-#endif
-
-	MatMult(dH, 1.0, R[level], d);
-
-	// apply lmgc on coarser nodes
-	if(level+1 == used_levels-1)
-		get_correction_and_update_defect(cH, dH, level+1);
-	else
-		for(int i=0; i<gamma; i++)
-			get_correction_and_update_defect(cH, dH, level+1);
-
-	// interpolate correction
-	// corr = P[level]*cH
-#ifdef UG_PARALLEL
-	corr.set_storage_type(PST_ADDITIVE);
-#endif
-
-	MatMult(corr, 1.0, P[level], cH);
-
-	// add coarse grid correction to level correction
-	// c += corr;
-#ifdef UG_PARALLEL
-	corr.change_storage_type(PST_CONSISTENT);
-#endif
-	VecScaleAdd(c, 1.0, c, 1.0, corr);
-
-	//update defect
-	// d = d - Ah*corr
-	MatMultAdd(d, 1.0, d, -1.0, Ah, corr);
-
-	// postsmooth
-	for(int i=0; i < nu2; i++)
-	{
-		m_postsmoothers[level]->apply_update_defect(corr, d);
-		c += corr;
-	}
-
-	return true;
-}
-
-
-
-template<typename TAlgebra>
-bool amg<TAlgebra>::get_correction(vector_type &c, const vector_type &const_d)
-{
-
-	UG_ASSERT(c.size() == const_d.size() && c.size() == A[0]->num_rows(),
-				"c.size = " << c.size() << ", d.size = " << const_d.size() << ", A.size = " << A[0]->num_rows() << ": not matching");
-
-	//int level = 0;
-	//const matrix_type &Ah = *(A[level]);
-
-
-	//////////////////
-	{
-		if(vec4 == NULL)
-		{
-			vec4 = new vector_type;
-			vec4->create(c.size());
-
-		#ifdef UG_PARALLEL
-				// todo: change this for later "right" parallel implementation
-				UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-				vec4->set_storage_type(PST_ADDITIVE);
-		#endif
-		}
-
-		vector_type &d = *vec4;
-
-		d = const_d;
-		return get_correction_and_update_defect(c, d);
-	}
-	//////////////////
-
-/*
-	if(level == used_levels-1)
-	{
-		m_basesolver.apply_return_defect(c, d);
-		return true;
-	}
-
-	vector_type &corr = *vec3[level];
-
-	// presmooth
-	m_presmoothers[level]->apply(c, const_d);
-
-	if(vec4 == NULL)
-	{
-		vec4 = new vector_type;
-		vec4->create(c.size());
-
-#ifdef UG_PARALLEL
-		// todo: change this for later "right" parallel implementation
-		UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-		vec4->set_storage_type(PST_ADDITIVE);
-#endif
-	}
-	else if(vec4->size() != c.size())
-		vec4->resize(c.size());
-
-	vector_type &d = *vec4;
-#ifdef UG_PARALLEL
-	d.set_storage_type(PST_ADDITIVE);
-#endif
-	// d = const_d - Ah*c
-	MatMultAdd(d, -1.0, Ah, c, 1.0, const_d);
-	for(int i=1; i < nu1; i++)
-	{
-		// calc c = B^{-1} b
-		m_presmoothers[level]->apply_update_defect(c, d);
-	}
-
-	vector_type &cH = *vec1[level+1];
-	cH.set_storage_type(PST_CONSISTENT);
-
-	vector_type &dH = *vec2[level+1];
-
-	// restrict defect
-	// dH = R[level]*d;
-	dH.set_storage_type(PST_ADDITIVE);
-	MatMult(dH, 1.0, R[level], d);
-
-	// apply lmgc on coarser nodes
-	if(level+1 == used_levels-1)
-		get_correction_and_update_defect(cH, dH, level+1);
-	else
-		for(int i=0; i<gamma; i++)
-			get_correction_and_update_defect(cH, dH, level+1);
-
-	// interpolate correction
-	// corr = P[level]*cH
-	corr.set_storage_type(PST_ADDITIVE);
-	MatMult(corr, 1.0, P[level], cH);
-
-	// add coarse grid correction to level correction
-	// c += corr;
-	corr.change_storage_type(PST_CONSISTENT);
-	VecScaleAdd(c, 1.0, c, 1.0, corr);
-
-	//update defect
-	// d = d - Ah*corr
-	MatMultAdd(d, -1.0, Ah, corr, 1.0, d);
-
-		// postsmooth
-	for(int i=0; i < nu2-1; i++)
-		m_postsmoothers[level]->apply_update_defect(c, d);
-
-	m_postsmoothers[level]->apply(c, d);
-*/
-	return true;
-}
 
 template<typename TAlgebra>
 void amg<TAlgebra>::tostring() const
 {
-	UG_LOG("AMGPreconditioner.\n");
-	UG_LOG("nu1 = " << nu1 << std::endl);
-	UG_LOG("nu2 = " << nu2 << std::endl);
-	UG_LOG("gamma = " << gamma << std::endl);
+	amg_base<TAlgebra>::tostring();
+
+	UG_LOG("Ruge/Stueben AMG Preconditioner:\n");
 	UG_LOG("theta = " << theta << std::endl);
 	UG_LOG("sigma = " << sigma << std::endl);
-	UG_LOG("max levels = " << max_levels << std::endl);
 
 	if(aggressiveCoarsening)	{UG_LOG("Aggressive Coarsening is on, A" << aggressiveCoarseningNrOfPaths << "-mode." << std::endl);}
 	else						{UG_LOG("no Aggressive Coarsening" << std::endl);}
-
-	if(m_presmoother) 	{UG_LOG("presmoother is " << m_presmoother->name() << ".\n");}
-	else				{UG_LOG("no presmoother set!\n");}
-
-	if(m_postsmoother) 	{UG_LOG("postsmoother is " << m_postsmoother->name() << ".\n");}
-	else				{UG_LOG("no postsmoother set!\n");}
-
-	if(m_basesolver)	{UG_LOG("basesolver set\n");}
-	else				{UG_LOG("no basesolver set!\n");}
 }
 
 } // namespace ug

@@ -145,15 +145,16 @@ public:
 
 	//!
 	//! debug print output
-	/*void print() const
+	void print() const
 	{
+		std::cout << "maxheap, size = " << m_size << ", height = " << m_height << std::endl;
 		for(int i=0; i<m_height; i++)
 		{
-			cout << i << ": pos: " << m_heap[i] << " parent: " << parent(m_heap[i]) << " element: " << m_arr[m_heap[i]] <<
-					(m_arr[m_heap[i]] > m_arr[parent(m_heap[i])] ? " ERR " : "") << endl;
+			std::cout << i << ": pos: " << m_heap[i] << " parent: " << parent(m_heap[i]) << " element: " << m_arr[m_heap[i]] <<
+					(m_arr[m_heap[i]] > m_arr[parent(m_heap[i])] ? " ERR " : "") << std::endl;
 
 		}
-	}*/
+	}
 
 	//! returns size of external array
 	int arr_size() const
@@ -205,7 +206,7 @@ private:
 	//! all indices in m_arr, NOT in m_heap
 	//! \param index index in m_arr of element
 	//! \return returns index in m_arr of the parent
-	int parent(int index)
+	int parent(int index) const
 	{
 		int p = m_posinheap[index];
 		int parentpos = (p == 0 ? 0 : (p+1)/2 -1);
@@ -218,7 +219,7 @@ private:
 	//! all indices in m_arr, NOT in m_heap
 	//! \param index index in m_arr of element
 	//! \return returns index in m_arr of the left child
-	int leftchild(int index)
+	int leftchild(int index) const
 	{
 		int p = m_posinheap[index];
 		p = (p+1)*2 -1;
@@ -232,7 +233,7 @@ private:
 	//! all indices in m_arr, NOT in m_heap
 	//! \param index index in m_arr of element
 	//! \return returns index in m_arr of the right child
-	int rightchild(int index)
+	int rightchild(int index) const
 	{
 		int p = m_posinheap[index];
 		p = (p+1)*2 -1 +1;
