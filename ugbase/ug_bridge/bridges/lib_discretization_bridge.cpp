@@ -1242,7 +1242,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 	//	ApplyLinearSolver
 		{
 			stringstream ss; ss << "ApplyLinearSolver" << dim << "d";
-			reg.add_function(ss.str().c_str(), &ApplyLinearSolver<function_type>, grp.c_str());
+			reg.add_function(ss.str().c_str(), &ApplyLinearSolver<vector_type>, grp.c_str());
 		}
 
 	//	WriteGridToVTK

@@ -47,6 +47,7 @@
 #include "preconditioner/gauss_seidel.h"
 
 //#include "preconditioner/amg/amg.h"
+//#include "preconditioner/amg/famg.h"
 
 #ifdef LAPACK_AVAILABLE
 //#include "eigensolver/pinvit.h"
@@ -54,5 +55,7 @@
 
 // feti solver
 #include "linear_solver/feti.h"
+
+#include "operator_util.h"
 
 #endif /* __H__LIB_ALGEBRA__OPERATOR__OPERATOR__ */

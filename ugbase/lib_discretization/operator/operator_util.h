@@ -14,31 +14,6 @@
 
 namespace ug{
 
-template <typename TGridFunction>
-bool ApplyLinearSolver(	ILinearOperator<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& A,
-						TGridFunction& u, TGridFunction& b,
-						ILinearOperatorInverse<typename TGridFunction::vector_type, typename TGridFunction::vector_type>& solver)
-{
-// step 1: Prepare: Assemble matrix
-	PROFILE_BEGIN(assembleLinearMatrix);
-	if(!A.init())
-		{UG_LOG("ApplyLinearSolver: Cannot init Operator.\n"); return false;}
-	PROFILE_END();
-
-// step 2: Init Linear Inverse Operator
-	PROFILE_BEGIN(initLinearSolver);
-	if(!solver.init(A))
-		{UG_LOG("ApplyLinearSolver: Cannot init Inverse operator.\n"); return false;}
-	PROFILE_END();
-
-// step 4: Apply Operator
-	PROFILE_BEGIN(applyLinearSolver);
-	if(!solver.apply_return_defect(u,b))
-		{UG_LOG("ApplyLinearSolver: Cannot apply Inverse operator.\n"); return false;}
-	PROFILE_END();
-
-	return true;
-}
 
 template <typename TGridFunction>
 bool
