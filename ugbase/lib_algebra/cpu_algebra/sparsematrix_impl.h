@@ -15,7 +15,7 @@
 #include <cstring>
 
 #include "algebra_misc.h"
-//#include "local_helper.h"
+#include "local_helper.h"
 
 template<typename T> T abs(const T &a, const T &b)
 {
@@ -697,24 +697,28 @@ void SparseMatrix<T>::get(M &mat) const
 	}
 }
 
-/*
+
+template<typename T>
 template<typename M>
 void SparseMatrix<T>::add(const M &mat, size_t *rows, size_t *cols)
 {
 	add(c_localMatrix_from_mat_and_array<M> (mat, rows, cols));
 }
 
+template<typename T>
 template<typename M>
-void set(const M &mat, size_t *rows, size_t *cols)
+void SparseMatrix<T>::set(const M &mat, size_t *rows, size_t *cols)
 {
 	set(c_localMatrix_from_mat_and_array<M> (mat, rows, cols));
 }
 
+template<typename T>
 template<typename M>
-void get(M &mat, size_t *rows, size_t *cols) const
+void SparseMatrix<T>::get(M &mat, size_t *rows, size_t *cols) const
 {
-	get(localMatrix_from_mat_and_array<M> (mat, rows, cols));
-}*/
+	localMatrix_from_mat_and_array<M> g(mat, rows, cols);
+	get(g);
+}
 
 // getDiag
 //-------------
