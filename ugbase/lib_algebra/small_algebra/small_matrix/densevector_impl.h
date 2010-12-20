@@ -154,13 +154,11 @@ DenseVector<TStorage>::assign(const Type &t)
 template<size_t n> inline void Serialize(std::ostream &buff, const DenseVector<FixedArray1<number, n> > &vec)
 {
 	buff.write((char*)&vec, sizeof(vec));
-	return true;
 }
 
 template<size_t n> inline void Deserialize(std::istream &buff, DenseVector<FixedArray1<number, n> > &vec)
 {
 	buff.read((char*)&vec, sizeof(vec));
-	return true;
 }
 
 
