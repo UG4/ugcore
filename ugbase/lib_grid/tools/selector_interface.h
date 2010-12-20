@@ -138,7 +138,13 @@ class ISelector : public GridObserver
 		void enable_selection_inheritance(bool bEnable);
 		inline bool selection_inheritance_enabled()		{return m_bSelectionInheritanceEnabled;}
 
-
+	/**	restricts subset inheritance so that new elements derive their
+	 * 	selection status only from parents with the same base-type.
+	 * 	Disabled by default.
+	 * 	NOTE: strict inheritance only has an effect if
+	 * 	selection inheritance is enabled.*/
+		void enable_strict_inheritance(bool bEnable);
+		inline bool strict_inheritance_enabled()	{return m_bStrictInheritanceEnabled;}
 	//	grid callbacks
 	/*
 		virtual void registered_at_grid(Grid* grid);
@@ -223,6 +229,7 @@ class ISelector : public GridObserver
 		uint	m_supportedElements;
 		bool	m_bAutoselectionEnabled;
 		bool	m_bSelectionInheritanceEnabled;
+		bool	m_bStrictInheritanceEnabled;
 		
 		AIterator 	m_aIterator;	/// this attachment will be used to store an iterator into m_selectedElements
 		Grid::AttachmentAccessor<VertexBase, AIterator>	m_aaIterVRT;

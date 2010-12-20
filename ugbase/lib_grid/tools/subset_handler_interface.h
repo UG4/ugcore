@@ -254,6 +254,14 @@ class ISubsetHandler : public GridObserver
 		void enable_subset_inheritance(bool bEnable);
 		inline bool subset_inheritance_enabled()	{return m_bSubsetInheritanceEnabled;}
 
+	/**	restricts subset inheritance so that new elements derive their
+	 * 	subset index only from parents with the same base-type.
+	 * 	Disabled by default.
+	 * 	NOTE: strict inheritance only has an effect if
+	 * 	subset inheritance is enabled.*/
+		void enable_strict_inheritance(bool bEnable);
+		inline bool strict_inheritance_enabled()	{return m_bStrictInheritanceEnabled;}
+
 	///	if the subset with the given index does not yet exist, it will be created.
 	/**	All subsets in between num_subsets and index will be created, too.*/
 		inline void subset_info_required(int index);
@@ -463,7 +471,7 @@ class ISubsetHandler : public GridObserver
 
 	///	set the grid on which the subset-handler shall work.
 	/**	The subset-handler can only work on one grid at a time.
-	 *	It is cruicial that assign_grid methods of derived classes call
+	 *	It is crucial that assign_grid methods of derived classes call
 	 *	this method.
 	 *
 	 *	Please note: sine set_grid calls virtual methods it shouldn't
@@ -517,7 +525,7 @@ class ISubsetHandler : public GridObserver
 		virtual void change_subset_indices(int indOld, int indNew) = 0;
 
 
-	///	add a subset if requiered - so that the subset with maxIndex exists.
+	///	add a subset if required - so that the subset with maxIndex exists.
 		virtual void add_required_subset_lists(int maxIndex) = 0;
 
 	///	erase the subset-lists but do not touch the subset-indices.
@@ -551,30 +559,30 @@ class ISubsetHandler : public GridObserver
 	/**	derived classes have to implement this method.
 	 *	during this method they have to call register_at_pipe for all elements
 	 *	that are contained in one of the subsets.
-	 *	WARNING: This method is cruical for the attachment system.
+	 *	WARNING: This method is crucial for the attachment system.
 	 *	You should never call it yourself.*/
 		virtual void register_subset_elements_at_pipe() = 0;
 
 	///	this method should be called during \sa register_subset_elements_at_pipe.
-	/**	WARNING: This method is cruical for the attachment system.
+	/**	WARNING: This method is crucial for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
 		inline void register_at_pipe(VertexBase* elem)	{m_vertexAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
 
 	///	this method should be called x \sa register_subset_elements_at_pipe.
-	/**	WARNING: This method is cruical for the attachment system.
+	/**	WARNING: This method is crucial for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
 		inline void register_at_pipe(EdgeBase* elem)	{m_edgeAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
 
 	///	this method should be called during \sa register_subset_elements_at_pipe.
-	/**	WARNING: This method is cruical for the attachment system.
+	/**	WARNING: This method is crucial for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
 		inline void register_at_pipe(Face* elem)		{m_faceAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
 
 	///	this method should be called during \sa register_subset_elements_at_pipe.
-	/**	WARNING: This method is cruical for the attachment system.
+	/**	WARNING: This method is crucial for the attachment system.
 	 *	You should only call it during \sa register_subset_elements_at_pipe
 	 *	Only call this method for elements that are contained in a subset.*/
 		inline void register_at_pipe(Volume* elem)		{m_volumeAttachmentPipes[get_subset_index(elem)]->register_element(elem);}
@@ -640,6 +648,7 @@ class ISubsetHandler : public GridObserver
 
 		int				m_defaultSubsetIndex;
 		bool			m_bSubsetInheritanceEnabled;
+		bool			m_bStrictInheritanceEnabled;
 		bool			m_bSubsetAttachmentsEnabled;
 
 		Grid::VertexAttachmentAccessor<ASubsetIndex>	m_aaSubsetIndexVRT;

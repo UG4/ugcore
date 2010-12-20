@@ -15,6 +15,7 @@ ISelector::ISelector(uint supportedElements) :
 	m_supportedElements = supportedElements;
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
+	m_bStrictInheritanceEnabled = false;
 	m_invalidContainer.push_back(NULL);
 	m_invalidIterator = m_invalidContainer.begin();
 }
@@ -26,6 +27,7 @@ ISelector::ISelector(Grid& grid, uint supportedElements) :
 	m_supportedElements = SE_NONE;
 	m_bAutoselectionEnabled = false;
 	m_bSelectionInheritanceEnabled = true;
+	m_bStrictInheritanceEnabled = false;
 	m_invalidContainer.push_back(NULL);
 	m_invalidIterator = m_invalidContainer.begin();
 
@@ -163,6 +165,10 @@ void ISelector::enable_selection_inheritance(bool bEnable)
 	m_bSelectionInheritanceEnabled = bEnable;
 }
 
+void ISelector::enable_strict_inheritance(bool bEnable)
+{
+	m_bStrictInheritanceEnabled = bEnable;
+}
 
 
 void ISelector::set_grid(Grid* grid)
@@ -261,7 +267,13 @@ void ISelector::vertex_created(Grid* grid, VertexBase* vrt,
 		if(autoselection_enabled())
 			select(vrt);
 		else if((pParent != NULL) && selection_inheritance_enabled()){
-			if(is_selected(pParent))
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == VERTEX){
+					if(is_selected(static_cast<VertexBase*>(pParent)))
+						select(vrt);
+				}
+			}
+			else if(is_selected(pParent))
 				select(vrt);
 		}
 	}
@@ -294,7 +306,13 @@ void ISelector::edge_created(Grid* grid, EdgeBase* edge,
 		if(autoselection_enabled())
 			select(edge);
 		else if((pParent != NULL) && selection_inheritance_enabled()){
-			if(is_selected(pParent))
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == EDGE){
+					if(is_selected(static_cast<EdgeBase*>(pParent)))
+						select(edge);
+				}
+			}
+			else if(is_selected(pParent))
 				select(edge);
 		}
 	}
@@ -327,7 +345,13 @@ void ISelector::face_created(Grid* grid, Face* face,
 		if(autoselection_enabled())
 			select(face);
 		else if((pParent != NULL) && selection_inheritance_enabled()){
-			if(is_selected(pParent))
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == FACE){
+					if(is_selected(static_cast<Face*>(pParent)))
+						select(face);
+				}
+			}
+			else if(is_selected(pParent))
 				select(face);
 		}
 	}
@@ -360,7 +384,13 @@ void ISelector::volume_created(Grid* grid, Volume* vol,
 		if(autoselection_enabled())
 			select(vol);
 		else if((pParent != NULL) && selection_inheritance_enabled()){
-			if(is_selected(pParent))
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == VOLUME){
+					if(is_selected(static_cast<Volume*>(pParent)))
+						select(vol);
+				}
+			}
+			else if(is_selected(pParent))
 				select(vol);
 		}
 	}

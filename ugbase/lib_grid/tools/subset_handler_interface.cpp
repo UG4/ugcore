@@ -28,6 +28,7 @@ ISubsetHandler(uint supportedElements) : m_aSubsetIndex(false), m_aIterator(fals
 	m_supportedElements = supportedElements;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
+	m_bStrictInheritanceEnabled = false;
 	m_bSubsetAttachmentsEnabled = false;
 	m_defaultSubsetInfo.name = "defSub";
 	m_defaultSubsetInfo.materialIndex = 0;
@@ -43,6 +44,7 @@ ISubsetHandler(Grid& grid, uint supportedElements) :
 	m_supportedElements = SHE_NONE;
 	m_defaultSubsetIndex = -1;
 	m_bSubsetInheritanceEnabled = true;
+	m_bStrictInheritanceEnabled = false;
 	m_bSubsetAttachmentsEnabled = false;
 	m_defaultSubsetInfo.name = "defSub";
 	m_defaultSubsetInfo.materialIndex = 0;
@@ -360,6 +362,12 @@ void ISubsetHandler::
 enable_subset_inheritance(bool bEnable)
 {
 	m_bSubsetInheritanceEnabled = bEnable;
+}
+
+void ISubsetHandler::
+enable_strict_inheritance(bool bEnable)
+{
+	m_bStrictInheritanceEnabled = bEnable;
 }
 
 const char* ISubsetHandler::
@@ -852,8 +860,18 @@ vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
 	//LOG("new vertex...\n");
 		m_aaSubsetIndexVRT[vrt] = -1;
 	//LOG("si_before assignement: " << get_subset_index(vrt) << endl);
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-			assign_subset(vrt, get_subset_index(pParent));
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == VERTEX){
+					assign_subset(vrt, get_subset_index(
+										reinterpret_cast<VertexBase*>(pParent)));
+				}
+				else if(m_defaultSubsetIndex != -1)
+					assign_subset(vrt, m_defaultSubsetIndex);
+			}
+			else
+				assign_subset(vrt, get_subset_index(pParent));
+		}
 		else if(m_defaultSubsetIndex != -1)
 			assign_subset(vrt, m_defaultSubsetIndex);
 	//LOG("vertex creation done\n");
@@ -882,8 +900,18 @@ edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent)
 	if(elements_are_supported(SHE_EDGE)){
 		m_aaSubsetIndexEDGE[edge] = -1;
 
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-			assign_subset(edge, get_subset_index(pParent));
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == EDGE){
+					assign_subset(edge, get_subset_index(
+										reinterpret_cast<EdgeBase*>(pParent)));
+				}
+				else if(m_defaultSubsetIndex != -1)
+					assign_subset(edge, m_defaultSubsetIndex);
+			}
+			else
+				assign_subset(edge, get_subset_index(pParent));
+		}
 		else if(m_defaultSubsetIndex != -1)
 			assign_subset(edge, m_defaultSubsetIndex);
 	}
@@ -912,8 +940,18 @@ face_created(Grid* grid, Face* face, GeometricObject* pParent)
 	if(elements_are_supported(SHE_FACE)){
 		m_aaSubsetIndexFACE[face] = -1;
 
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-			assign_subset(face, get_subset_index(pParent));
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == FACE){
+					assign_subset(face, get_subset_index(
+										reinterpret_cast<Face*>(pParent)));
+				}
+				else if(m_defaultSubsetIndex != -1)
+					assign_subset(face, m_defaultSubsetIndex);
+			}
+			else
+				assign_subset(face, get_subset_index(pParent));
+		}
 		else if(m_defaultSubsetIndex != -1)
 			assign_subset(face, m_defaultSubsetIndex);
 	}
@@ -941,8 +979,18 @@ volume_created(Grid* grid, Volume* vol, GeometricObject* pParent)
 	if(elements_are_supported(SHE_VOLUME)){
 		m_aaSubsetIndexVOL[vol] = -1;
 
-		if((pParent != NULL) && m_bSubsetInheritanceEnabled)
-			assign_subset(vol, get_subset_index(pParent));
+		if((pParent != NULL) && m_bSubsetInheritanceEnabled){
+			if(m_bStrictInheritanceEnabled){
+				if(pParent->base_object_type_id() == VOLUME){
+					assign_subset(vol, get_subset_index(
+										reinterpret_cast<Volume*>(pParent)));
+				}
+				else if(m_defaultSubsetIndex != -1)
+					assign_subset(vol, m_defaultSubsetIndex);
+			}
+			else
+				assign_subset(vol, get_subset_index(pParent));
+		}
 		else if(m_defaultSubsetIndex != -1)
 			assign_subset(vol, m_defaultSubsetIndex);
 	}
