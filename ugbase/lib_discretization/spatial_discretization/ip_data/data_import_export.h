@@ -114,6 +114,7 @@ template <typename TData, int dim, typename TAlgebra>
 class DataExport : 	public IPData<TData, dim>,
 					public IDataExport<TAlgebra>
 {
+	public:
 	using IPData<TData, dim>::num_series;
 	using IPData<TData, dim>::num_ip;
 	using IPData<TData, dim>::local_ips;
