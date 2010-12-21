@@ -294,7 +294,7 @@ The defect equation can now be written in the form
 \f{align*}
 	  s_{m,0} M_h \vec{u}_h^{(k)} 
 	+ s_{a,0} A_h \vec{u}_h^{(k)}
-	= \vec{f}_h^{(k)}
+	= s_{a,0} \vec{f}_h^{(k)}
 	- \sum_{l=1}^{L-1} \left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
 		   + s_{a,l} \left( A_h \vec{u}^{(k-l)} - \vec{f}_h^{(k-l)} 
 		   \right) \right]
@@ -306,7 +306,7 @@ This system of equations has the form
 where
 <ul>
 <li> \f$B_h:=s_{m,0} M_h+ s_{a,0} A_h \f$ is a matrix
-<li> \f$b_h:= \vec{f}_h^{(k)}
+<li> \f$b_h:= s_{a,0} \vec{f}_h^{(k)}
 	- \sum_{l=1}^{L-1} \left[   s_{m,l} M_h \vec{u}_h^{(k-l)} 
 		   + s_{a,l} \left( A_h \vec{u}^{(k-l)} - \vec{f}_h^{(k-l)} 
 		   \right) \right]\f$ is a known vector right-hand side 

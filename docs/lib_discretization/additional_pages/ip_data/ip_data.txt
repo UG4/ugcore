@@ -1,0 +1,71 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y16 m12 d10
+
+/**	\page pageLDIPData libDiscretization - IP Data
+
+An IElemDisc object can assemble the local stiffness/mass matrix and/or the local
+defect/rhs. In order to accomplish this task a, often user defined data is needed
+for several integration points on the element. On this page, we describe the
+idea of the IPData import, that is used in ug. 
+
+	- \ref secIPData "IPData"
+<br>
+
+<hr>
+\section secDataImport Data Import
+<hr>
+Each IElemDisc may have several data imports, describing some user defined 
+functions. To give an idea, this may be a Diffusion Tensor, a Velocity field,
+ some reaction constants, etc. 
+ 
+The IElemDisc tells the DataImport, at which integration points it wants to 
+evaluate the data. Then, after a computation phase (SPECIFY WHEN THIS HAPPENS), 
+the data can be accessed at the integration points. 
+
+<hr>
+\section secIPData IP Data
+<hr>
+
+In ug, we distinguish four kinds of IP Data:
+
+<ul>
+<li> zero data
+<li> constant data
+<li> data depending on \f$ (\vec{x}, t) \f$, i.e. on the global space coordinate and
+	the time.
+<li> data produced by other IElemDiscs.
+</ul>
+
+The base class for the last three data, is the class 
+\code 
+template <typename TData>
+class IPData
+\endcode.
+
+This class can provide the data for the templated type. It knowns:
+
+<ul>
+<li> The number of integration points
+<li> The Data at the integration points
+</ul>
+
+Note, that we have to serve a varity of possible setting. This ranges between
+to extrems:
+
+<ul>
+<li> data is used several times at exactly the same points. Thus, we want to
+	 compute the data only once.
+<li> data is needed at different points. Thus, several data sets must be 
+	 produced using the same evaluation function, but at different points.
+</ul>
+
+<hr>
+\section secIPDataOffer	IP Data Offer
+<hr>
+To provide this flexibility, the IPDataOffer is introduced. This object can
+create new IPData. This is needed, when more then one pointlist is used.
+
+
+
+*/

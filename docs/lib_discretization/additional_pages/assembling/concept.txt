@@ -2,7 +2,7 @@
 //	andreas.vogel@gcsc.uni-frankfurt.de
 //	y10 m12 d10
 
-/**	\page pageLDConcept libDiscretization - Concept
+/**	\page pageLDAssemblingConcept libDiscretization - Assembling Concept
 
 libDiscretization provides two interface types to facilitate the implementation
 and reusability of discretization. These concepts are described in the following.

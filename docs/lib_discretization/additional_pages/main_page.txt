@@ -9,5 +9,7 @@
 <hr>
 \section secUserManual User Manual:
 	- \ref pageLDIntroduction "Introduction"
-	- \ref pageLDConcept "Concept"
+	- \ref pageLDAssemblingConcept "Assembling Concept"
+	- \ref pageLDDiscreteFunctionHandling "Discrete Function Handling"
+	- \ref pageLDIPData "Integration Point Data"
  */
