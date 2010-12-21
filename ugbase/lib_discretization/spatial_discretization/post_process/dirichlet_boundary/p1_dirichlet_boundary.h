@@ -92,7 +92,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 				return false;
 			}
 
-			return add_boundary_value(func, functionGroup.fct_id(0), subsetGroup);
+			return add_boundary_value(func, functionGroup.unique_id(0), subsetGroup);
 		}
 
 		bool add_boundary_value(IBoundaryNumberProvider<dim>& user,

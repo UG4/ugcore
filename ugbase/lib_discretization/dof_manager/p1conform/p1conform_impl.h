@@ -41,9 +41,9 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 			size_t numFct = 0;
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 			{
-				if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+				if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 				ind.set_index(i + numFct*refElem.num_obj(0),
-				              index + m_vvOffsets[si][ind.fct_id(fct)]);
+				              index + m_vvOffsets[si][ind.unique_id(fct)]);
 				numFct++;
 			}
 		}
@@ -62,10 +62,10 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 			{
-				if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+				if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
 				ind.set_num_indices(algDof+1);
-				ind.set_index(algDof, index + m_vvOffsets[si][ind.fct_id(fct)]);
+				ind.set_index(algDof, index + m_vvOffsets[si][ind.unique_id(fct)]);
 
 				LocalIndices::multi_index_type dof_ind;
 				dof_ind[0] = algDof;
@@ -110,10 +110,10 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
-						if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+						if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
 						ind.set_num_indices(algDof+1);
-						ind.set_index(algDof, index + m_vvOffsets[si][ind.fct_id(fct)]);
+						ind.set_index(algDof, index + m_vvOffsets[si][ind.unique_id(fct)]);
 
 						LocalIndices::multi_index_type dof_ind;
 						dof_ind[0] = algDof;
@@ -152,10 +152,10 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 					{
-						if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+						if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
 						ind.set_num_indices(algDof+1);
-						ind.set_index(algDof, index + m_vvOffsets[si][ind.fct_id(fct)]);
+						ind.set_index(algDof, index + m_vvOffsets[si][ind.unique_id(fct)]);
 
 						LocalIndices::multi_index_type dof_ind;
 						dof_ind[0] = algDof;

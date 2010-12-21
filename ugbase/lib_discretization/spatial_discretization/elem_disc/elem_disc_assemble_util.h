@@ -40,83 +40,145 @@ namespace ug {
 // Assemble Stiffness Matrix
 //////////////////////////////////
 
-// assemble elements of type TElem in d dimensions
+/**
+ * This function adds to the Stiffness matrix the entries of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	A				Stiffness matrix
+ * \param[in]		u				solution
+ */
 template <	typename TElem,
 			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
-						typename geometry_traits<TElem>::const_iterator iterBegin,
-						typename geometry_traits<TElem>::const_iterator iterEnd,
-						int si,
-						typename TAlgebra::matrix_type& J,
-						const typename TAlgebra::vector_type& u,
-						const IDoFDistribution<TDoFDistribution>& dofDistr)
+AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+                        	const IDoFDistribution<TDoFDistribution>& dofDistr,
+                        	int si,
+                        	typename TAlgebra::matrix_type& A,
+                        	const typename TAlgebra::vector_type& u)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
 
-	// get function group
-	const FunctionGroup& fcts = elemDisc.get_function_group();
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
 
-	// check if at least on element exist, else return
-	if(iterBegin == iterEnd) return true;
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
 
-	// local indices and local algebra
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
+
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
+
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
-	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> locA;
 
-	// set functions
-	ind.set_function_group(fcts);
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
 
-	// prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind))
-		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
-
-	// set elem type in elem disc
-	if(!elemDisc.set_geometric_object_type(refID, IEDN_STIFFNESS))
-		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
-
-	// adjust local algebra
-	loc_u.set_indices(ind);
-	loc_J.set_indices(ind, ind);
-
-	// prepare loop
-	if(!elemDisc.prepare_element_loop())
-		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
-
-	// loop over all elements
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
+// 	prepare local indices for elem type
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 	{
-		// get Element
-		TElem* elem = *iter;
-
-		// get global indices
-		dofDistr.update_indices(elem, ind);
-
-		// read local values of u
-		loc_u.read_values(u);
-
-		// prepare element
-		if(!elemDisc.prepare_element(elem, loc_u, ind))
-			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
-
-		// reset local matrix and rhs
-		loc_J.set(0.0);
-
-		// Assemble JA
-		if(!elemDisc.assemble_JA(loc_J, loc_u))
-			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
-
-		// send local to global matrix
-		J.add(loc_J);
+		UG_LOG("ERROR in 'AssembleStiffnessMatrix': Cannot prepare indices.\n");
+		return false;
 	}
 
-	// finish element loop
-	if(!elemDisc.finish_element_loop())
-		{UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n"); return false;}
+// 	adjust local algebra
+	if(!useHanging)
+	{
+		locU.set_indices(ind);
+		locA.set_indices(ind, ind);
+	}
 
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_JACOBIAN))
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	// 	get global indices
+		dofDistr.update_indices(elem, ind, useHanging);
+
+	// 	adapt local algebra
+		if(useHanging)
+		{
+			locU.set_indices(ind);
+			locA.set_indices(ind, ind);
+		}
+
+	// 	read local values of u
+		locU.read_values(u);
+
+	// 	reset local matrix and rhs
+		locA.set(0.0);
+
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleStiffnessMatrix': Cannot prepare element.\n");
+				return false;
+			}
+		}
+
+	// 	Assemble JA
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_JM(locA, locU))
+			{
+				UG_LOG("ERROR in 'AssembleStiffnessMatrix': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+
+	// 	send local to global matrix
+		A.add(locA);
+	}
+
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleStiffnessMatrix: Cannot finish element loop.\n");
+			return false;
+		}
+
+//	we're done
 	return true;
 }
 
@@ -124,84 +186,145 @@ AssembleStiffnessMatrix(	IElemDisc<TAlgebra>& elemDisc,
 //////////////////////////////////
 // Assemble Mass Matrix
 //////////////////////////////////
-
-// assemble elements of type TElem in d dimensions
+/**
+ * This function adds to the Mass matrix the entries of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	M				Mass matrix
+ * \param[in]		u				solution
+ */
 template <	typename TElem,
 			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
-						typename geometry_traits<TElem>::const_iterator iterBegin,
-						typename geometry_traits<TElem>::const_iterator iterEnd,
-						int si,
-						typename TAlgebra::matrix_type& J,
-						const typename TAlgebra::vector_type& u,
-						const IDoFDistribution<TDoFDistribution>& dofDistr)
+AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+					const IDoFDistribution<TDoFDistribution>& dofDistr,
+					int si,
+					typename TAlgebra::matrix_type& M,
+					const typename TAlgebra::vector_type& u)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
 
-	// check if at least on element exist, else return
-	if(iterBegin == iterEnd) return true;
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
 
-	// get function group
-	const FunctionGroup& fcts = elemDisc.get_function_group();
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
 
-	// local indices and local algebra
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
+
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
+
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
-	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> locM;
 
-	// set functions
-	ind.set_function_group(fcts);
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
 
-	// prepare local indices for elem type
-	if(!dofDistr.prepare_indices(refID, si, ind))
-		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
-
-	// set elem type in elem disc
-	if(!elemDisc.set_geometric_object_type(refID, IEDN_MASS))
-		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
-
-	// adjust local algebra
-	loc_u.set_indices(ind);
-	loc_J.set_indices(ind, ind);
-
-	// prepare loop
-	if(!elemDisc.prepare_element_loop())
-		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
-
-	// loop over all elements
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
+// 	prepare local indices for elem type
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
 	{
-		// get Element
-		TElem* elem = *iter;
-
-		// get global indices
-		dofDistr.update_indices(elem, ind);
-
-		// read local values of u
-		loc_u.read_values(u);
-
-		// prepare element
-		if(!elemDisc.prepare_element(elem, loc_u, ind))
-			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
-
-		// reset local matrix and rhs
-		loc_J.set(0.0);
-
-		// Assemble JA
-		if(!elemDisc.assemble_JM(loc_J, loc_u))
-			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
-
-		// send local to global matrix
-		J.add(loc_J);
+		UG_LOG("ERROR in 'AssembleMassMatrix': Cannot prepare indices.\n");
+		return false;
 	}
 
-	// finish element loop
-	if(!elemDisc.finish_element_loop())
-		{UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n"); return false;}
+// 	adjust local algebra
+	if(!useHanging)
+	{
+		locU.set_indices(ind);
+		locM.set_indices(ind, ind);
+	}
 
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_JACOBIAN))
+	{
+		UG_LOG("ERROR in 'AssembleMassMatrix': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	// 	get global indices
+		dofDistr.update_indices(elem, ind, useHanging);
+
+	// 	adapt local algebra
+		if(useHanging)
+		{
+			locU.set_indices(ind);
+			locM.set_indices(ind, ind);
+		}
+
+	// 	read local values of u
+		locU.read_values(u);
+
+	// 	reset local matrix and rhs
+		locM.set(0.0);
+
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleMassMatrix': Cannot prepare element.\n");
+				return false;
+			}
+		}
+
+	// 	Assemble JM
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JM
+			if(!vElemDisc[i]->assemble_JM(locM, locU))
+			{
+				UG_LOG("ERROR in 'AssembleMassMatrix': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+
+	// 	send local to global matrix
+		M.add(locM);
+	}
+
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleMassMatrix: Cannot finish element loop.\n");
+			return false;
+		}
+
+//	we're done
 	return true;
 }
 
@@ -209,133 +332,320 @@ AssembleMassMatrix(		IElemDisc<TAlgebra>& elemDisc,
 // Assemble Jacobian
 //////////////////////////////////
 
-// assemble elements of type TElem in d dimensions
+/**
+ * This function adds to the jacobian the entries of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	J				jacobian
+ * \param[in]		u				solution
+ */
 template <	typename TElem,
 			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
-					typename geometry_traits<TElem>::const_iterator iterBegin,
-					typename geometry_traits<TElem>::const_iterator iterEnd,
+AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+					const IDoFDistribution<TDoFDistribution>& dofDistr,
+					int si,
+					typename TAlgebra::matrix_type& J,
+					const typename TAlgebra::vector_type& u)
+{
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
+
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
+
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
+
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
+
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
+
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> locJ;
+
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
+
+// 	prepare local indices for elem type
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare indices.\n");
+		return false;
+	}
+
+// 	adjust local algebra
+	if(!useHanging)
+	{
+		locU.set_indices(ind);
+		locJ.set_indices(ind, ind);
+	}
+
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_JACOBIAN))
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	// 	get global indices
+		ind.access_all();
+		dofDistr.update_indices(elem, ind, useHanging);
+
+	// 	adapt local algebra
+		if(useHanging)
+		{
+			locU.set_indices(ind);
+			locJ.set_indices(ind, ind);
+		}
+
+	// 	read local values of u
+		locU.read_values(u);
+
+	// 	reset local matrix and rhs
+		locJ.set(0.0);
+
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare element.\n");
+				return false;
+			}
+		}
+
+	//	Compute element data
+		Eval.compute_elem_data(locU, ind, true);
+
+	// 	Assemble JA
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_JA(locJ, locU))
+			{
+				UG_LOG("ERROR in 'AssembleJacobian': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+
+	// 	send local to global matrix
+		J.add(locJ);
+	}
+
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n");
+			return false;
+		}
+
+//	we're done
+	return true;
+}
+
+/**
+ * This function adds to the jacobian the entries of one subset for all passed
+ * element discretizations.
+ * Note, that it is assumed	to have s_m0 == 1
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	J				jacobian
+ * \param[in]		u				solution
+ * \param[in]		s_a0			scaling factor for stiffness part
+ * \param[in]		time			current time
+ */
+template <	typename TElem,
+			typename TDoFDistribution,
+			typename TAlgebra>
+bool
+AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+					const IDoFDistribution<TDoFDistribution>& dofDistr,
 					int si,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
-					const IDoFDistribution<TDoFDistribution>& dofDistr,
-					number time, number s_m, number s_a)
+					number s_a0, number time)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	static const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
 
-	// check if at least on element exist, else return
-	if(iterBegin == iterEnd) return true;
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
 
-	EL_PROFILE_BEGIN(AssembleJacobian);
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
 
-	EL_PROFILE_BEGIN(EL_Setup);
-	// get function group
-	const FunctionGroup& fcts = elemDisc.get_function_group();
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
 
-	// flag, wheather to use hanging nodes as well
-	const bool useHanging = elemDisc.use_hanging();
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
 
-	// local indices and local algebra
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
-	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J;
-	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_J_temp;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> locJ;
 
-	// set functions
-	ind.set_function_group(fcts);
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
 
-	// prepare local indices for elem type
+// 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
-		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare indices.\n"); return false;}
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare indices.\n");
+		return false;
+	}
 
-	// set elem type in elem disc
-	if(!elemDisc.set_geometric_object_type(refID, IEDN_JACOBIAN))
-		{UG_LOG("ERROR in AssembleJacobian: Cannot set geometric object type.\n"); return false;}
-
-	// adjust local algebra
+// 	adjust local algebra
 	if(!useHanging)
 	{
-		loc_u.set_indices(ind);
-		loc_J.set_indices(ind, ind);
-		loc_J_temp.set_indices(ind, ind);
+		locU.set_indices(ind);
+		locJ.set_indices(ind, ind);
 	}
 
-	// prepare loop
-	if(!elemDisc.prepare_element_loop())
-		{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element loop.\n"); return false;}
-	EL_PROFILE_END();
-
-	// loop over all elements
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_JACOBIAN, time))
 	{
-		// get Element
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
 		TElem* elem = *iter;
 
-		// get global indices
-		EL_PROFILE_BEGIN(EL_ReadSolutionAndIndices);
+	// 	get global indices
+		ind.access_all();
 		dofDistr.update_indices(elem, ind, useHanging);
 
-		// adapt local algebra
+	// 	adapt local algebra
 		if(useHanging)
 		{
-			loc_u.set_indices(ind);
-			loc_J.set_indices(ind, ind);
-			loc_J_temp.set_indices(ind, ind);
+			locU.set_indices(ind);
+			locJ.set_indices(ind, ind);
 		}
 
-		// read local values of u
-		loc_u.read_values(u);
-		EL_PROFILE_END();
+	// 	read local values of u
+		locU.read_values(u);
 
-		// reset local matrix and rhs
-		EL_PROFILE_BEGIN(EL_ResetJ);
-		loc_J.set(0.0);
-		EL_PROFILE_END();
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
 
-		// prepare element
-		EL_PROFILE_BEGIN(EL_PrepareElem);
-		if(!elemDisc.prepare_element(elem, loc_u, ind))
-			{UG_LOG("ERROR in AssembleJacobian: Cannot prepare element.\n"); return false;}
-		EL_PROFILE_END();
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleJacobian': Cannot prepare element.\n");
+				return false;
+			}
+		}
 
-		// Assemble JA
-		EL_PROFILE_BEGIN(EL_ResetJtmp1);
-		loc_J_temp.set(0.0);
-		EL_PROFILE_END();
-		EL_PROFILE_BEGIN(EL_AssembleJA);
-		if(!elemDisc.assemble_JA(loc_J_temp, loc_u, time))
-			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix.\n"); return false;}
-		EL_PROFILE_END();
-		EL_PROFILE_BEGIN(EL_AddLocalJLocalJ1);
-		loc_J += loc_J_temp * s_a;
-		EL_PROFILE_END();
+	//	Compute element data
+		Eval.compute_elem_data(locU, ind, true);
 
-		// Assemble JM
-		EL_PROFILE_BEGIN(EL_ResetJtmp2);
-		loc_J_temp.set(0.0);
-		EL_PROFILE_END();
-		EL_PROFILE_BEGIN(EL_AssembleJM);
-		if(!elemDisc.assemble_JM(loc_J_temp, loc_u, time))
-			{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Mass Matrix.\n"); return false;}
-		EL_PROFILE_END();
-		EL_PROFILE_BEGIN(EL_AddLocalJLocalJ2);
-		loc_J += loc_J_temp * s_m;
-		EL_PROFILE_END();
+	// 	reset local matrix
+		locJ.set(0.0);
 
-		// send local to global matrix
-		EL_PROFILE_BEGIN(EL_AddLocalToGlobal);
-		J.add(loc_J);
-		EL_PROFILE_END();
+	// 	Assemble JA
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_JA(locJ, locU))
+			{
+				UG_LOG("ERROR in 'AssembleJacobian': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+
+	//	Compute element data
+		Eval.add_coupl_JA(locJ, ind);
+
+	//	scale stiffness part
+		locJ *= s_a0;
+
+	// 	Assemble JM
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JM
+			if(!vElemDisc[i]->assemble_JM(locJ, locU))
+			{
+				UG_LOG("ERROR in 'AssembleJacobian': Cannot assemble local "
+						"Mass Matrix.\n");
+				return false;
+			}
+		}
+
+	// 	send local to global matrix
+		J.add(locJ);
 	}
 
-	// finish element loop
-	if(!elemDisc.finish_element_loop())
-		{UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n"); return false;}
-	EL_PROFILE_END();
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleJacobian: Cannot finish element loop.\n");
+			return false;
+		}
 
+//	we're done
 	return true;
 }
 
@@ -343,238 +653,735 @@ AssembleJacobian(	IElemDisc<TAlgebra>& elemDisc,
 // Assemble Defect
 //////////////////////////////////
 
+/**
+ * This function adds to the defect the entries of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	d				defect
+ * \param[in]		u				solution
+ */
 template <	typename TElem,
 			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleDefect(	IElemDisc<TAlgebra>& elemDisc,
-				typename geometry_traits<TElem>::const_iterator iterBegin,
-				typename geometry_traits<TElem>::const_iterator iterEnd,
-				int si,
-				typename TAlgebra::vector_type& d,
-				const typename TAlgebra::vector_type& u,
-				const IDoFDistribution<TDoFDistribution>& dofDistr,
-				number time, number s_m, number s_a)
+AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	int si,
+               	typename TAlgebra::vector_type& d,
+               	const typename TAlgebra::vector_type& u)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
 
-	// check if at least on element exist, else return
-	if(iterBegin == iterEnd) return true;
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
 
-	EL_PROFILE_BEGIN(AssembleDefect);
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
 
-	EL_PROFILE_BEGIN(EL_Def_Setup);
-	// get function group
-	const FunctionGroup& fcts = elemDisc.get_function_group();
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
 
-	// flag, wheather to use haning nodes as well
-	bool useHanging = elemDisc.use_hanging();
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
 
-	// local indices
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_d;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_d_temp;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalVector<typename TAlgebra::vector_type::value_type> locD;
+	LocalVector<typename TAlgebra::vector_type::value_type> locRhs;
 
-	// set functions
-	ind.set_function_group(fcts);
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
 
-	// prepare local indices for elem type
+// 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
-		{UG_LOG("ERROR in AssembleDefect: Cannot prepare indices.\n"); return false;}
+	{
+		UG_LOG("ERROR in 'AssembleDefect': Cannot prepare indices.\n");
+		return false;
+	}
 
-	// set elem type in elem disc
-	if(!elemDisc.set_geometric_object_type(refID, IEDN_DEFECT))
-		{UG_LOG("ERROR in AssembleDefect: Cannot set geometric object type.\n"); return false;}
-
-	// adjust local algebra
+// 	adjust local algebra
 	if(!useHanging)
 	{
-		loc_u.set_indices(ind);
-		loc_d.set_indices(ind);
-		loc_d_temp.set_indices(ind);
+		locU.set_indices(ind);
+		locD.set_indices(ind);
+		locRhs.set_indices(ind);
 	}
-	EL_PROFILE_END();
 
-	// prepare loop
-	EL_PROFILE_BEGIN(EL_Def_PrepLoop);
-	if(!elemDisc.prepare_element_loop())
-		{UG_LOG("ERROR in AssembleDefect: Cannot prepare element loop.\n"); return false;}
-	EL_PROFILE_END();
-
-	// loop over all elements
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_DEFECT))
 	{
-		// get Element
+		UG_LOG("ERROR in 'AssembleDefect': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
 		TElem* elem = *iter;
 
-		// get global indices
-		EL_PROFILE_BEGIN(EL_Def_ReadIndSol);
+	// 	get global indices
+		ind.access_all();
 		dofDistr.update_indices(elem, ind, useHanging);
 
-		// adjust local algebra
+	// 	adapt local algebra
 		if(useHanging)
 		{
-			loc_u.set_indices(ind);
-			loc_d.set_indices(ind);
-			loc_d_temp.set_indices(ind);
+			locU.set_indices(ind);
+			locD.set_indices(ind);
+			locRhs.set_indices(ind);
 		}
 
-		// read values
-		loc_u.read_values(u);
+	// 	read local values of u
+		locU.read_values(u);
 
-		// reset local matrix and rhs
-		loc_d.set(0.0);
-		EL_PROFILE_END();
+	// 	reset local defect and rhs
+		locD.set(0.0);
+		locRhs.set(0.0);
 
-		// prepare element
-		EL_PROFILE_BEGIN(EL_Def_PrepElem);
-		if(!elemDisc.prepare_element(elem, loc_u, ind))
-			{UG_LOG("ERROR in AssembleDefect: Cannot prepare element.\n"); return false;}
-		EL_PROFILE_END();
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
 
-		// Assemble A
-		loc_d_temp.set(0.0);
-		EL_PROFILE_BEGIN(EL_Def_AssA);
-		if(!elemDisc.assemble_A(loc_d_temp, loc_u, time))
-			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Stiffness Defect.\n"); return false;}
-		EL_PROFILE_END();
-		loc_d += loc_d_temp * s_a;
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleDefect': Cannot prepare element.\n");
+				return false;
+			}
+		}
 
-		// Assemble M
-		loc_d_temp.set(0.0);
-		EL_PROFILE_BEGIN(EL_Def_AssM);
-		if(!elemDisc.assemble_M(loc_d_temp, loc_u, time))
-			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Mass Defect.\n"); return false;}
-		EL_PROFILE_END();
-		loc_d += loc_d_temp * s_m;
+	//	Compute element data
+		Eval.compute_elem_data(locU, ind, false);
 
-		// Assemble f
-		loc_d_temp.set(0.0);
-		if(!elemDisc.assemble_f(loc_d_temp, time))
-			{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Right-Hand Side.\n"); return false;}
-		loc_d -= loc_d_temp * s_a;
 
-		// send local to global matrix
-		EL_PROFILE_BEGIN(EL_Def_AddLocToGlob);
-		d.add(loc_d);
-		EL_PROFILE_END();
+	// 	Assemble defect A
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_A(locD, locU))
+			{
+				UG_LOG("ERROR in 'AssembleDefect': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+
+
+	// 	Assemble rhs
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_f(locRhs))
+			{
+				UG_LOG("ERROR in 'AssembleDefect': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+		locD -= locRhs;
+
+	// 	send local to global matrix
+		d.add(locD);
 	}
 
-	// finish element loop
-	if(!elemDisc.finish_element_loop())
-		{UG_LOG("ERROR in AssembleDefect: Cannot finish element loop.\n"); return false;}
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleDefect: Cannot finish element loop.\n");
+			return false;
+		}
 
-	EL_PROFILE_END();
+//	we're done
 	return true;
 }
 
-//////////////////////////////////
-// Assemble linear
-//////////////////////////////////
 
+/**
+ * This function adds to the defect the entries of one subset for all passed
+ * element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	d				defect
+ * \param[in]		u				solution
+ * \param[in]		s_m				scaling factor for mass part
+ * \param[in]		s_a				scaling factor for stiffness part
+ * \param[in]		time			current time
+ */
 template <	typename TElem,
 			typename TDoFDistribution,
 			typename TAlgebra>
 bool
-AssembleLinear(	IElemDisc<TAlgebra>& elemDisc,
-				typename geometry_traits<TElem>::const_iterator iterBegin,
-				typename geometry_traits<TElem>::const_iterator iterEnd,
-				int si,
-				typename TAlgebra::matrix_type& mat,
-				typename TAlgebra::vector_type& rhs,
-				const typename TAlgebra::vector_type& u,
-				const IDoFDistribution<TDoFDistribution>& dofDistr)
+AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	int si,
+               	typename TAlgebra::vector_type& d,
+               	const typename TAlgebra::vector_type& u,
+               	number s_m, number s_a, number time)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	const ReferenceObjectID refID = reference_element_type::REFERENCE_OBJECT_ID;
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
 
-	// check if at least on element exist, else return
-	if(iterBegin == iterEnd) return true;
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
 
-	// get function group
-	const FunctionGroup& fcts = elemDisc.get_function_group();
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
 
-	// flag, wheather to use haning nodes as well
-	bool useHanging = elemDisc.use_hanging();
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
 
-	// local indices and local algebra
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
+
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
 	LocalIndices ind;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_u;
-	LocalVector<typename TAlgebra::vector_type::value_type> loc_rhs;
-	LocalMatrix<typename TAlgebra::matrix_type::value_type> loc_mat;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalVector<typename TAlgebra::vector_type::value_type> locD;
+	LocalVector<typename TAlgebra::vector_type::value_type> tmpLocD;
 
-	// set functions
-	ind.set_function_group(fcts);
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
 
-	// prepare local indices for elem type
+// 	prepare local indices for elem type
 	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
-		{UG_LOG("ERROR in AssembleLinear: Cannot prepare indices.\n"); return false;}
+	{
+		UG_LOG("ERROR in 'AssembleDefect': Cannot prepare indices.\n");
+		return false;
+	}
 
-	// set elem type in elem disc
-	if(!elemDisc.set_geometric_object_type(refID, IEDN_LINEAR))
-		{UG_LOG("ERROR in AssembleLinear: Cannot set geometric object type.\n"); return false;}
-
-	// adjust local algebra
+// 	adjust local algebra
 	if(!useHanging)
 	{
-		loc_u.set_indices(ind);
-		loc_rhs.set_indices(ind);
-		loc_mat.set_indices(ind, ind);
+		locU.set_indices(ind);
+		locD.set_indices(ind);
+		tmpLocD.set_indices(ind);
 	}
 
-	// prepare loop
-	if(!elemDisc.prepare_element_loop())
-		{UG_LOG("ERROR in AssembleLinear: Cannot prepare element loop.\n"); return false;}
-
-	// loop over all elements of type TElem
-	for(typename geometry_traits<TElem>::const_iterator iter = iterBegin; iter != iterEnd; ++iter)
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_DEFECT, time))
 	{
-		// get Element
+		UG_LOG("ERROR in 'AssembleDefect': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
 		TElem* elem = *iter;
 
-		// get global indices
+	// 	get global indices
+		ind.access_all();
 		dofDistr.update_indices(elem, ind, useHanging);
 
-		// adjust local algebra
+	// 	adapt local algebra
 		if(useHanging)
 		{
-			loc_u.set_indices(ind);
-			loc_rhs.set_indices(ind);
-			loc_mat.set_indices(ind, ind);
+			locU.set_indices(ind);
+			locD.set_indices(ind);
+			tmpLocD.set_indices(ind);
 		}
 
-		// read local values of u
-		loc_u.read_values(u);
+	// 	read local values of u
+		locU.read_values(u);
 
-		// reset local matrix and rhs
-		loc_mat.set(0.0);
-		loc_rhs.set(0.0);
+	// 	reset local matrix and rhs
+		locD.set(0.0);
 
-		// prepare element data
-		if(!elemDisc.prepare_element(elem, loc_u, ind))
-			{UG_LOG("ERROR in AssembleLinear: Cannot prepare element.\n"); return false;}
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
 
-		// assemble stiffness matrix for inner elements
-		if(!elemDisc.assemble_JA(loc_mat, loc_u))
-			{UG_LOG("ERROR in AssembleLinear: Cannot assemble local Stiffness Matrix.\n"); return false;}
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleDefect': Cannot prepare element.\n");
+				return false;
+			}
+		}
 
-		// assemble rhs for inner elements
-		if(!elemDisc.assemble_f(loc_rhs))
-			{UG_LOG("ERROR in AssembleLinear: Cannot assemble local Right-Hand Side.\n"); return false;}
+	//	Compute element data
+		Eval.compute_elem_data(locU, ind, false);
 
-		// send local to global (matrix and rhs)
-		mat.add(loc_mat);
-		rhs.add(loc_rhs);
+	// 	Assemble defect M
+		tmpLocD.set(0.0);
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_M(tmpLocD, locU))
+			{
+				UG_LOG("ERROR in 'AssembleDefect': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+		locD += tmpLocD * s_m;
+
+	// 	Assemble defect A
+		tmpLocD.set(0.0);
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_A(tmpLocD, locU))
+			{
+				UG_LOG("ERROR in 'AssembleDefect': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+		locD += tmpLocD * s_a;
+
+	// 	Assemble defect rhs
+		tmpLocD.set(0.0);
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_f(tmpLocD))
+			{
+				UG_LOG("ERROR in 'AssembleDefect': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+		locD -= tmpLocD * s_a;
+
+	// 	send local to global matrix
+		d.add(locD);
 	}
 
-	// finish element loop
-	if(!elemDisc.finish_element_loop())
-		{UG_LOG("ERROR in AssembleLinear: Cannot finish element loop.\n"); return false;}
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleDefect: Cannot finish element loop.\n");
+			return false;
+		}
 
+//	we're done
 	return true;
-};
+}
+
+
+//////////////////////////////////
+// Assemble Linear
+//////////////////////////////////
+
+/**
+ * This function adds to the Matrix and to the Rhs the entries of one subset
+ * for all passed element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	A				Matrix
+ * \param[in,out]	rhs				Right-hand side
+ * \param[in]		u				solution
+ */
+template <	typename TElem,
+			typename TDoFDistribution,
+			typename TAlgebra>
+bool
+AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	int si,
+               	typename TAlgebra::matrix_type& A,
+               	typename TAlgebra::vector_type& rhs,
+               	const typename TAlgebra::vector_type& u)
+{
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
+
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
+
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
+
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
+
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
+
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalVector<typename TAlgebra::vector_type::value_type> locRhs;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> locA;
+
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
+
+// 	prepare local indices for elem type
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	{
+		UG_LOG("ERROR in 'AssembleLinear': Cannot prepare indices.\n");
+		return false;
+	}
+
+// 	adjust local algebra
+	if(!useHanging)
+	{
+		locU.set_indices(ind);
+		locRhs.set_indices(ind);
+		locA.set_indices(ind,ind);
+	}
+
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_JACOBIAN))
+	{
+		UG_LOG("ERROR in 'AssembleLinear': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	// 	get global indices
+		ind.access_all();
+		dofDistr.update_indices(elem, ind, useHanging);
+
+	// 	adapt local algebra
+		if(useHanging)
+		{
+			locU.set_indices(ind);
+			locRhs.set_indices(ind);
+			locA.set_indices(ind,ind);
+		}
+
+	// 	read local values of u
+		locU.read_values(u);
+
+	// 	reset local matrix and rhs
+		locRhs.set(0.0);
+		locA.set(0.0);
+
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleLinear': Cannot prepare element.\n");
+				return false;
+			}
+		}
+
+	//	Compute element data
+		Eval.compute_elem_data(locU, ind, false);
+
+	// 	Assemble JA
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_JA(locA, locU))
+			{
+				UG_LOG("ERROR in 'AssembleLinear': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+
+	// 	Assemble rhs
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble rhs
+			if(!vElemDisc[i]->assemble_f(locRhs))
+			{
+				UG_LOG("ERROR in 'AssembleLinear': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+
+	// 	send local to global matrix
+		A.add(locA);
+
+	// 	send local to global rhs
+		rhs.add(locRhs);
+	}
+
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleLinear: Cannot finish element loop.\n");
+			return false;
+		}
+
+//	we're done
+	return true;
+}
+
+/**
+ * This function adds to the Matrix and to the Rhs the entries of one subset
+ * for all passed element discretizations.
+ *
+ * \param[in]		vElemDisc		element discretizations
+ * \param[in]		dofDistr		DoF Distribution
+ * \param[in]		si				subset index
+ * \param[in,out]	A				Matrix
+ * \param[in,out]	rhs				Right-hand side
+ * \param[in]		u				solution
+ * \param[in]		s_m				scaling factor for mass part
+ * \param[in]		s_a				scaling factor for stiffness part
+ * \param[in]		time			current time
+ */
+template <	typename TElem,
+			typename TDoFDistribution,
+			typename TAlgebra>
+bool
+AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
+               	const IDoFDistribution<TDoFDistribution>& dofDistr,
+               	int si,
+               	typename TAlgebra::matrix_type& A,
+               	typename TAlgebra::vector_type& rhs,
+               	const typename TAlgebra::vector_type& u,
+               	number s_m, number s_a, number time)
+{
+//	type of reference element
+	typedef typename reference_element_traits<TElem>::reference_element_type
+			reference_element_type;
+
+//	reference object id
+	static const ReferenceObjectID refID =
+				reference_element_type::REFERENCE_OBJECT_ID;
+
+// 	check if at least on element exist, else return
+	if(dofDistr.template num<TElem>(si) == 0) return true;
+
+//	get element iterator
+	typename geometry_traits<TElem>::const_iterator iter, iterBegin, iterEnd;
+	iterBegin = dofDistr.template begin<TElem>(si);
+	iterEnd = dofDistr.template end<TElem>(si);
+
+//	create data evaluator
+	DataEvaluator<TAlgebra> Eval(vElemDisc);
+
+// 	flag, iff use hanging nodes as well
+	bool useHanging = false;
+
+//	check if hanging nodes are needed
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		useHanging |= vElemDisc[i]->use_hanging();
+
+// 	local indices and local algebra
+	LocalIndices ind;
+	LocalVector<typename TAlgebra::vector_type::value_type> locU;
+	LocalVector<typename TAlgebra::vector_type::value_type> locRhs;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> locA;
+	LocalMatrix<typename TAlgebra::matrix_type::value_type> tmpLocA;
+
+// 	set common functions
+	ind.set_function_group(Eval.fct_group());
+
+// 	prepare local indices for elem type
+	if(!dofDistr.prepare_indices(refID, si, ind, useHanging))
+	{
+		UG_LOG("ERROR in 'AssembleLinear': Cannot prepare indices.\n");
+		return false;
+	}
+
+// 	adjust local algebra
+	if(!useHanging)
+	{
+		locU.set_indices(ind);
+		locRhs.set_indices(ind);
+		locA.set_indices(ind,ind);
+		tmpLocA.set_indices(ind,ind);
+	}
+
+//	prepare element discs
+	if(!Eval.prepare_elem_loop(refID, ind, IEDN_JACOBIAN, time))
+	{
+		UG_LOG("ERROR in 'AssembleLinear': Cannot prepare Elem Discs.\n");
+		return false;
+	}
+
+// 	Loop over all elements
+	for(iter = iterBegin; iter != iterEnd; ++iter)
+	{
+	// 	get Element
+		TElem* elem = *iter;
+
+	// 	get global indices
+		ind.access_all();
+		dofDistr.update_indices(elem, ind, useHanging);
+
+	// 	adapt local algebra
+		if(useHanging)
+		{
+			locU.set_indices(ind);
+			locRhs.set_indices(ind);
+			locA.set_indices(ind,ind);
+			tmpLocA.set_indices(ind,ind);
+		}
+
+	// 	read local values of u
+		locU.read_values(u);
+
+	// 	reset local matrix and rhs
+		locRhs.set(0.0);
+		locA.set(0.0);
+
+	// 	prepare element
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	prepare for elem disc
+			if(!vElemDisc[i]->prepare_element(elem, locU, ind))
+			{
+				UG_LOG("ERROR in 'AssembleLinear': Cannot prepare element.\n");
+				return false;
+			}
+		}
+
+	//	Compute element data
+		Eval.compute_elem_data(locU, ind, false);
+
+	// 	Assemble JM
+		tmpLocA.set(0.0);
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JM
+			if(!vElemDisc[i]->assemble_JM(tmpLocA, locU))
+			{
+				UG_LOG("ERROR in 'AssembleLinear': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+		locA += tmpLocA * s_m;
+
+	// 	Assemble JA
+		tmpLocA.set(0.0);
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble JA
+			if(!vElemDisc[i]->assemble_JA(tmpLocA, locU))
+			{
+				UG_LOG("ERROR in 'AssembleLinear': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+		locA += tmpLocA * s_a;
+
+	// 	Assemble rhs
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//	access disc functions
+			ind.access_by_map(Eval.map(i));
+
+		//	assemble rhs
+			if(!vElemDisc[i]->assemble_f(locRhs))
+			{
+				UG_LOG("ERROR in 'AssembleLinear': Cannot assemble local "
+						"Stiffness Matrix.\n");
+				return false;
+			}
+		}
+		locRhs *= s_a;
+
+	// 	send local to global matrix
+		A.add(locA);
+
+	// 	send local to global rhs
+		rhs.add(locRhs);
+	}
+
+// finish element loop
+	for(size_t i = 0; i < vElemDisc.size(); ++i)
+		if(!vElemDisc[i]->finish_element_loop())
+		{
+			UG_LOG("ERROR in AssembleLinear: Cannot finish element loop.\n");
+			return false;
+		}
+
+//	we're done
+	return true;
+}
 
 } // end namespace ug
 

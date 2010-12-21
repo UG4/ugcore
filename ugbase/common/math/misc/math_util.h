@@ -49,7 +49,7 @@ clip(TNumber val, TNumber lowerBound, TNumber upperBound);
 
 ////////////////////////////////////////////////////////////////////////
 ///	finds a normal to the given vector in 3d.
-bool FindNormal(ug::vector3& normOut, const ug::vector3& v);
+bool FindNormal(vector3& normOut, const vector3& v);
 
 ////////////////////////////////////////////////////////////////////////
 ///	constructs a orthonormal matrix given a vector in 3d.
@@ -66,7 +66,7 @@ bool FindNormal(ug::vector3& normOut, const ug::vector3& v);
  * \param v: vector
  * \param vColInd: specifies in which column to put v.
  */
-bool ConstructOrthonormalSystem(ug::matrix33& matOut, const ug::vector3& v,
+bool ConstructOrthonormalSystem(matrix33& matOut, const vector3& v,
 								size_t vColInd);
 
 ////////////////////////////////////////////////////////////////////////
@@ -81,8 +81,8 @@ void CalculateCenter(vector_t& centerOut, const vector_t* pointSet,
  * Please note that you have to specify the point-set together with
  * its center-point.
  */
-void CalculateCovarianceMatrix(matrix33& matOut, const ug::vector3* pointSet,
-							  const ug::vector3& center, size_t numPoints);
+void CalculateCovarianceMatrix(matrix33& matOut, const vector3* pointSet,
+							  const vector3& center, size_t numPoints);
 
 ////////////////////////////////////////////////////////////////////////
 ///	transforms points from 3d space to 2d space.
@@ -97,7 +97,7 @@ void CalculateCovarianceMatrix(matrix33& matOut, const ug::vector3* pointSet,
  * \param pointSet: An array of 3d-points of size numPoints.
  * \param numPoints: Specifies the size of the point sets.
  */
-bool TransformPointSetTo2D(ug::vector2* pointSetOut, const ug::vector3* pointSet,
+bool TransformPointSetTo2D(vector2* pointSetOut, const vector3* pointSet,
 						  size_t numPoints);
 
 ////////////////////////////////////////////////////////////////////////

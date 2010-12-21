@@ -177,6 +177,25 @@ class MathMatrix
 			return *this;
 		}
 
+		/**
+		 * \brief Multiplies the matrix element-wise with another matrix and sums up the entries.
+		 *
+		 * \param v The Matrix.
+		 * \return A scalar value of the element-wise summed up products
+		 */
+		value_type operator* (const MathMatrix& v) const
+		{
+			value_type res = 0.0;
+			for(std::size_t i = 0; i < N; ++i)
+			{
+				for(std::size_t j = 0; j < M; ++j)
+				{
+					res += m_data[i][j] * v.m_data[i][j];
+				}
+			}
+			return res;
+		}
+
 		//inline std::size_t row_size() const {return N;}
 		//inline std::size_t col_size() const {return M;}
 	

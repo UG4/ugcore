@@ -133,7 +133,7 @@ prepare_indices(ReferenceObjectID refID, int si,
 		size_t numFct = 0;
 		for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 		{
-			if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+			if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 			for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
 			{
 				LocalIndices::multi_index_type dof_ind;
@@ -299,13 +299,13 @@ prepare_indices(ReferenceObjectID refID, int si,
 	size_t numInd = 0;
 	for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 	{
-		if(!is_def_in_subset(ind.fct_id(fct), si)) continue;
+		if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
 		for(size_t dof = 0; dof < refElem.num_obj(0); ++dof)
 		{
 			LocalIndices::multi_index_type dof_ind;
 			dof_ind[0] = dof;
-			dof_ind[1] = ind.fct_id(fct);
+			dof_ind[1] = ind.unique_id(fct);
 			ind.add_dof(fct, dof_ind);
 		}
 		numInd = refElem.num_obj(0);

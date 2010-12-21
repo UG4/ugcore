@@ -45,7 +45,7 @@ add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
 //	create temporary subset group
 	SubsetGroup tmpSubsetGroup;
 	tmpSubsetGroup.set_subset_handler(*m_pSH);
-	tmpSubsetGroup.add_all_subsets();
+	tmpSubsetGroup.add_all();
 
 // 	add to function list, everywhere = true, copy SubsetGroup
 	m_vFunction.push_back(Function(name, dim, id, true, tmpSubsetGroup));

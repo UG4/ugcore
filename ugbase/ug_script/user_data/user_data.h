@@ -7,9 +7,7 @@ namespace ug
 namespace bridge
 {
 
-void RegisterLuaUserNumber(Registry& reg, const char* parentGroup);
-void RegisterLuaUserVector(Registry& reg, const char* parentGroup);
-void RegisterLuaUserMatrix(Registry& reg, const char* parentGroup);
+void RegisterLuaUserData(Registry& reg, const char* parentGroup);
 
 void RegisterLuaBoundaryNumber(Registry& reg, const char* parentGroup);
 

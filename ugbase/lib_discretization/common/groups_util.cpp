@@ -36,7 +36,7 @@ bool ConvertStringToSubsetGroup(SubsetGroup& subsetGroup, const ISubsetHandler& 
 	{
 		RemoveWhitespaceFromString(tokens[i]);
 
-		if(!subsetGroup.add_subset(tokens[i].c_str()))
+		if(!subsetGroup.add(tokens[i].c_str()))
 		{
 			UG_LOG("Name of subset ('" << tokens[i] << "') not found in Subset Handler.\n");
 			return false;
@@ -65,7 +65,7 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionP
 	{
 		RemoveWhitespaceFromString(tokens[i]);
 
-		if(!functionGroup.add_function(tokens[i].c_str()))
+		if(!functionGroup.add(tokens[i].c_str()))
 		{
 			UG_LOG("Name of function ('" << tokens[i] << "') not found in Function Pattern.\n");
 			return false;
@@ -74,5 +74,32 @@ bool ConvertStringToFunctionGroup(	FunctionGroup& functionGroup, const FunctionP
 
 	return true;
 }
+
+
+bool
+CreateFunctionIndexMapping(FunctionIndexMapping& map,
+                           const FunctionGroup& grpFrom,
+                           const FunctionGroup& grpTo)
+{
+//	check that from group is contained in to group
+	if(!grpTo.contains(grpFrom)) return false;
+
+//	loop all functions on grpFrom
+	for(size_t from = 0; from < grpFrom.num_fct(); ++from)
+	{
+	//	get unique id of function
+		const size_t uniqueID = grpFrom[from];
+
+	//	find unique id of function in grpTo
+		const size_t locIndex = grpTo.local_index(uniqueID);
+
+	//	set mapping
+		map.add(from, locIndex);
+	}
+
+//	we're done
+	return true;
+}
+
 
 } // end namespace ug

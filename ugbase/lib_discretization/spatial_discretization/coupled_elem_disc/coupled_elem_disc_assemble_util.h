@@ -113,8 +113,8 @@ AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
-			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_by_map(cplElemDisc.sub_function_map(sys));
+			colInd.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			// prepare export
 			// Exports: set_local_solution(elem, local_vector_type& u, local_index_type& glob_ind)
@@ -132,8 +132,8 @@ AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
-			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_by_map(cplElemDisc.sub_function_map(sys));
+			colInd.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).assemble_JA(loc_J_temp, loc_u, time))
 				{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Stiffness Matrix for system " << sys << ".\n"); return false;}
@@ -145,8 +145,8 @@ AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
-			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_by_map(cplElemDisc.sub_function_map(sys));
+			colInd.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).assemble_JM(loc_J_temp, loc_u, time))
 				{UG_LOG("ERROR in AssembleJacobian: Cannot assemble local Mass Matrix for system " << sys << ".\n"); return false;}
@@ -162,8 +162,8 @@ AssembleJacobian(	CoupledSystem<TAlgebra>& cplElemDisc,
 
 				for(size_t r = 0; r < Imp->num_sys(); ++r)
 				{
-					rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
-					colInd.access_sub_function_group(cplElemDisc.sub_function_map(r));
+					rowInd.access_by_map(cplElemDisc.sub_function_map(sys));
+					colInd.access_by_map(cplElemDisc.sub_function_map(r));
 
 					// TODO: currently we assume, that imports are only in the stiffness part
 					if(!Imp->add_offdiagonal(loc_J, r, s_a))
@@ -267,7 +267,7 @@ AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			ind.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).prepare_element(elem, loc_u, ind))
 				{UG_LOG("ERROR in AssembleDefect: Cannot prepare element for system " << sys << ".\n"); return false;}
@@ -283,7 +283,7 @@ AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			ind.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).assemble_A(loc_d_temp, loc_u, time))
 				{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Stiffness Matrix for system " << sys << ".\n"); return false;}
@@ -295,7 +295,7 @@ AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			ind.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).assemble_M(loc_d_temp, loc_u, time))
 				{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Mass Matrix for system " << sys << ".\n"); return false;}
@@ -307,7 +307,7 @@ AssembleDefect(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			ind.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			ind.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			if(!cplElemDisc.system(sys).assemble_f(loc_d_temp, time))
 				{UG_LOG("ERROR in AssembleDefect: Cannot assemble local Right-Hand Side for system " << sys << ".\n"); return false;}
@@ -417,8 +417,8 @@ AssembleLinear(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
-			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_by_map(cplElemDisc.sub_function_map(sys));
+			colInd.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			// prepare export
 			// Exports: set_local_solution(elem, local_vector_type& u, local_index_type& glob_ind)
@@ -436,8 +436,8 @@ AssembleLinear(	CoupledSystem<TAlgebra>& cplElemDisc,
 		for(size_t sys = 0; sys < cplElemDisc.num_system(); ++sys)
 		{
 			//set SubFunctionMap
-			rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
-			colInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
+			rowInd.access_by_map(cplElemDisc.sub_function_map(sys));
+			colInd.access_by_map(cplElemDisc.sub_function_map(sys));
 
 			// assemble stiffness matrix
 			if(!cplElemDisc.system(sys).assemble_JA(loc_mat, loc_u))
@@ -457,8 +457,8 @@ AssembleLinear(	CoupledSystem<TAlgebra>& cplElemDisc,
 
 				for(size_t r = 0; r < Imp->num_sys(); ++r)
 				{
-					rowInd.access_sub_function_group(cplElemDisc.sub_function_map(sys));
-					colInd.access_sub_function_group(cplElemDisc.sub_function_map(r));
+					rowInd.access_by_map(cplElemDisc.sub_function_map(sys));
+					colInd.access_by_map(cplElemDisc.sub_function_map(r));
 
 					if(!Imp->add_offdiagonal(loc_mat, r, 1.0))
 						{UG_LOG("Offdiagonal coupling went wrong.\n"); return false;}

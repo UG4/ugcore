@@ -13,7 +13,7 @@
 
 namespace ug{
 
-bool SubsetGroup::add_subset(int si)
+bool SubsetGroup::add(int si)
 {
 	if(!is_init())
 	{
@@ -27,15 +27,14 @@ bool SubsetGroup::add_subset(int si)
 
 	std::vector<int>::iterator iter;
 	iter = find(m_vSubset.begin(), m_vSubset.end(), si);
-	if(iter != m_vSubset.end())
-		 {UG_LOG("Index already contained in SubsetGroup.\n");return false;}
+	if(iter != m_vSubset.end()) return true;
 
 	m_vSubset.push_back(si);
 	sort(m_vSubset.begin(), m_vSubset.end());
 	return true;
 }
 
-bool SubsetGroup::add_subset(const char* name)
+bool SubsetGroup::add(const char* name)
 {
 	if(!is_init())
 	{
@@ -52,7 +51,7 @@ bool SubsetGroup::add_subset(const char* name)
 		if(strcmp (name, m_pSH->get_subset_name(si)) == 0)
 		{
 			found++;
-			add_subset(si);
+			add(si);
 		}
 	}
 
@@ -61,15 +60,50 @@ bool SubsetGroup::add_subset(const char* name)
 	return true;
 }
 
-void SubsetGroup::add_all_subsets()
+bool SubsetGroup::add(const SubsetGroup& ssGroup)
 {
-	for(int si = 0; si < m_pSH->num_subsets(); ++si)
+	if(!is_init())
 	{
-		add_subset(si);
+		UG_LOG("No SubsetHandler set. "
+				"Cannot use SubsetGroup without SubsetHandler.\n");
+		return false;
 	}
+
+//	check that underlying subset handlers are equal
+	if(m_pSH != ssGroup.get_subset_handler())
+	{
+		UG_LOG("Underlying subset handler does not match. Cannot add"
+				" subsets to subset group.\n");
+		return false;
+	}
+
+//	add all subsets
+	for(size_t i = 0; i < ssGroup.num_subsets(); ++i)
+		add(ssGroup[i]);
+
+//	we're done
+	return true;
 }
 
-bool SubsetGroup::remove_subset(int si)
+
+bool SubsetGroup::add_all()
+{
+	if(!is_init())
+	{
+		UG_LOG("No SubsetHandler set. "
+				"Cannot use SubsetGroup without SubsetHandler.\n");
+		return false;
+	}
+
+	for(int si = 0; si < m_pSH->num_subsets(); ++si)
+	{
+		add(si);
+	}
+
+	return true;
+}
+
+bool SubsetGroup::remove(int si)
 {
 	if(!is_init())
 	{
@@ -90,7 +124,7 @@ bool SubsetGroup::remove_subset(int si)
 	return true;
 }
 
-bool SubsetGroup::remove_subset(const char* name)
+bool SubsetGroup::remove(const char* name)
 {
 	if(!is_init())
 	{
@@ -107,7 +141,7 @@ bool SubsetGroup::remove_subset(const char* name)
 		if(strcmp (name, m_pSH->get_subset_name(si)) == 0)
 		{
 			found++;
-			remove_subset(si);
+			remove(si);
 		}
 	}
 
@@ -117,7 +151,7 @@ bool SubsetGroup::remove_subset(const char* name)
 }
 
 ///	name of subset
-const char* SubsetGroup::get_subset_name(size_t i) const
+const char* SubsetGroup::name(size_t i) const
 {
 	if(!is_init())
 	{
@@ -133,7 +167,7 @@ const char* SubsetGroup::get_subset_name(size_t i) const
 	return m_pSH->get_subset_name(m_vSubset[i]);
 }
 
-int SubsetGroup::get_subset_dimension(size_t i) const
+int SubsetGroup::dim(size_t i) const
 {
 	if(!is_init())
 	{
@@ -149,7 +183,7 @@ int SubsetGroup::get_subset_dimension(size_t i) const
 	return DimensionOfSubset(*m_pSH, m_vSubset[i]);
 }
 
-int SubsetGroup::get_subset_dimension() const
+int SubsetGroup::dim() const
 {
 	if(!is_init())
 	{
@@ -161,16 +195,16 @@ int SubsetGroup::get_subset_dimension() const
 //	without subsets no dimension
 	if(num_subsets() == 0) return -1;
 
-	int dim = get_subset_dimension(0);
+	int d = dim(0);
 
 	for(size_t i = 0; i < num_subsets(); ++i)
 	{
-		int test_dim = get_subset_dimension(i);
-		if(dim != test_dim)
+		int test_dim = dim(i);
+		if(d != test_dim)
 			return -1;
 	}
 
-	return dim;
+	return d;
 }
 
 int SubsetGroup::get_highest_subset_dimension() const
@@ -186,21 +220,21 @@ int SubsetGroup::get_highest_subset_dimension() const
 	if(num_subsets() == 0) return -1;
 
 //	get first dimension
-	int dim = get_subset_dimension(0);
+	int d = dim(0);
 
 //	loop other dimensions and compare
 	for(size_t i = 0; i < num_subsets(); ++i)
 	{
-		int test_dim = get_subset_dimension(i);
-		if(dim < test_dim)
-			dim = test_dim;
+		int test_dim = dim(i);
+		if(d < test_dim)
+			d = test_dim;
 	}
 
 //	returnn dimension
-	return dim;
+	return d;
 }
 
-bool SubsetGroup::containes_subset(int si) const
+bool SubsetGroup::contains(int si) const
 {
 	if(!is_init())
 	{
@@ -216,7 +250,7 @@ bool SubsetGroup::containes_subset(int si) const
 	return true;
 }
 
-bool SubsetGroup::containes_subset(const char* name) const
+bool SubsetGroup::contains(const char* name) const
 {
 	if(!is_init())
 	{

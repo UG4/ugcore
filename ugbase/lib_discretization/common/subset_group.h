@@ -28,8 +28,10 @@ struct ERROR_SubsetGroupHasNoSubsetHandler{};
 /// Group of subsets
 /**
  * A SubsetGroup is used to describe a group of Subsets. Therefore, it has an
- * underlying SubsetHandler from which the subsets can be choosen. Internally,
- * it is just a vector of the subset indices.
+ * underlying SubsetHandler from which the subsets can be chosen. It is very
+ * light-weight, since internally it is just a vector of the subset indices. But
+ * it provides several comfort functions. Note, that the subset indices are
+ * always sorted by increasing index in this subset group.
  */
 class SubsetGroup
 {
@@ -44,31 +46,36 @@ class SubsetGroup
 		const ISubsetHandler* get_subset_handler() const {return m_pSH;}
 
 	/// adds a subset by number to this group
-		bool add_subset(int si);
+		bool add(int si);
 
-	/// adds all subset with a given name to this group
-	/** adds all subset with a given name to this group
+	/// adds all subset with by name to this group
+	/**
+	 * This function adds all subset with by name to this group.
 	 *
 	 * \param[in]	name	Name of Subset(s) to be added
 	 * \return 		true	if at least one subset added
 	 * 				false	if no subset found with this name
 	 */
-		bool add_subset(const char* name);
+		bool add(const char* name);
+
+	/// adds all subsets of another subset to the group
+		bool add(const SubsetGroup& ssGroup);
+
+	/// select all subsets of underlying subset
+		bool add_all();
 
 	/// removes a subset from this group
-		bool remove_subset(int si);
+		bool remove(int si);
 
 	/// removes all subset with a given name from this group
-	/** removes all subset with a given name to this group
+	/**
+	 * This function removes all subsets by name from this group
 	 *
 	 * \param[in]	name	Name of Subset(s) to be removed
 	 * \return 		true	if at least one subset removed
 	 * 				false	if no subset found with this name
 	 */
-		bool remove_subset(const char* name);
-
-	/// select all subsets of underlying subset
-		void add_all_subsets();
+		bool remove(const char* name);
 
 	/// clear all subsets
 		void clear() {m_vSubset.clear();}
@@ -92,22 +99,33 @@ class SubsetGroup
 		}
 
 	///	name of subset
-		const char* get_subset_name(size_t i) const;
+		const char* name(size_t i) const;
 
-	/// dimension of subset (i.e. highest dimension of grid entity in the subset)
-		int get_subset_dimension(size_t i) const;
+	/// dimension of subset
+	/**
+	 * Returns the dimension of the subset. The dimension of the subset
+	 * is defined as the highest dimension of geometric objects contained in
+	 * the subset.
+	 */
+		int dim(size_t i) const;
 
 	/// common dimension of all subset
-	/** common dimension of all subset
+	/**
+	 * Returns the common dimension of all subset. The dimension of a subset
+	 * is defined as the highest dimension of geometric objects contained in
+	 * the subset. If the dimension is not equal for all subsets, no common
+	 * domain is available and a -1 is returned.
 	 *
 	 * \return 		-1			if no common dimension available
 	 * 				dim	>= 0	common dimension of all subsets in this group
 	 */
-		int get_subset_dimension() const;
+		int dim() const;
 
 	/// highest dimension of all subset
 	/**
-	 * highest dimension of all subset
+	 * Returns the highest dimension of all subset. The dimension of a subset
+	 * is defined as the highest dimension of geometric objects contained in
+	 * the subset.
 	 *
 	 * \return 		-1			if no dimension available
 	 * 				dim	>= 0	highest dimension of all subsets in this group
@@ -115,10 +133,10 @@ class SubsetGroup
 		int get_highest_subset_dimension() const;
 
 	/// returns true if subset is contained in this group
-		bool containes_subset(int si) const;
+		bool contains(int si) const;
 
 	/// returns true if at least one subset of a name is contained in this group
-		bool containes_subset(const char* name) const;
+		bool contains(const char* name) const;
 
 	protected:
 	// returns if SubsetGroup is ready for use

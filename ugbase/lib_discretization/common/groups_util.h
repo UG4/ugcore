@@ -43,6 +43,16 @@ bool
 ConvertStringToFunctionGroup(FunctionGroup&functionGroup, const FunctionPattern& pattern,
                              const char* functions, const char separator = ',');
 
+/**
+ * Creates a function index mapping that maps all local indices from the one
+ * Function Group to the other. This is of coarse only possible if the first
+ * Function Group is contained in the second.
+ */
+bool
+CreateFunctionIndexMapping(FunctionIndexMapping& map,
+                           const FunctionGroup& grpFrom,
+                           const FunctionGroup& grpTo);
+
 
 } // end namespace ug
 

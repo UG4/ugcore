@@ -46,6 +46,17 @@ prepare_element_loop()
 	}
 	m_aaPos = m_pDomain->get_position_accessor();
 
+//	set global positions for rhs
+	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	m_Diff.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
+	                                                 geo.num_scvf_local_ips());
+	m_ConvVel.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
+	                                                 geo.num_scvf_local_ips());
+	m_Rhs.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
+	                                                 geo.num_scv_local_ips());
+	m_Reaction.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
+	                                                 geo.num_scv_local_ips());
+
 	return true;
 }
 
@@ -92,6 +103,12 @@ prepare_element(TElem* elem, const local_vector_type& u,
 				" Cannot update Finite Volume Geometry.\n"); return false;
 	}
 
+//	set global positions for rhs
+	m_Diff.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
+	m_ConvVel.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
+	m_Rhs.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_Reaction.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+
 //	we're done
 	return true;
 }
@@ -109,103 +126,103 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
 	// Some variables
-	number flux;						// Flux at integration points
-	MathMatrix<dim,dim> D;				// Diffusion Tensor
-	MathVector<dim> v;					// Velocity Field
 	MathVector<dim> Dgrad;				// Diff. Tensor times Gradient
 
 	// loop Sub Control Volume Faces (SCVF)
-	for(size_t i = 0; i < geo.num_scvf(); ++i)
+	size_t ip = 0;
+	if(!m_Diff.zero_data() || !m_ConvVel.zero_data())
 	{
-		// get current SCVF
-		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
-
-		// loop integration point of SCVF
-		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t i = 0; i < geo.num_scvf(); ++i)
 		{
-			// Read Data at IP
-			m_Diff_Tensor(D, scvf.global_ip(ip), time);
-			m_Conv_Vel(v, scvf.global_ip(ip), time);
+			// get current SCVF
+			const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
 
-			// loop shape functions
-			for(size_t j = 0; j < scvf.num_sh(); ++j)
+			// loop integration point of SCVF
+			for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
 			{
-				////////////////////////////////////////////////////
-				// Diffusive Term
-				// (central discretization)
-				////////////////////////////////////////////////////
-
-				// Compute Diffusion Tensor times Gradient
-				MatVecMult(Dgrad, D, scvf.global_grad(j, ip));
-
-				// Compute flux at IP
-				flux = VecDot(Dgrad, scvf.normal());
-
-				// Add flux term to local matrix
-				J(_C_, scvf.from(), _C_, j) -= flux;
-				J(_C_, scvf.to()  , _C_, j) += flux;
-
-				////////////////////////////////////////////////////
-				// Convective Term
-				// (upwinding_amount == 1.0 -> full upwind;
-				//  upwinding_amount == 0.0 -> full central disc)
-				////////////////////////////////////////////////////
-
-				// central part convection
-				if(m_upwindAmount != 1.0)
+				// loop shape functions
+				for(size_t j = 0; j < scvf.num_sh(); ++j)
 				{
-					// Compute flux
-					flux = (1.- m_upwindAmount) * scvf.shape(j, ip) * VecDot(v, scvf.normal());
+					////////////////////////////////////////////////////
+					// Diffusive Term
+					// (central discretization)
+					////////////////////////////////////////////////////
+					if(!m_Diff.zero_data())
+					{
+						// Compute Diffusion Tensor times Gradient
+						MatVecMult(Dgrad, m_Diff[ip], scvf.global_grad(j, i));
 
-					// Add flux to local matrix
-					J(_C_, scvf.from(), _C_, j) += flux;
-					J(_C_, scvf.to()  , _C_, j) -= flux;
+						// Compute flux at IP
+						const number flux = VecDot(Dgrad, scvf.normal());
 
+						// Add flux term to local matrix
+						J(_C_, scvf.from(), _C_, j) -= flux;
+						J(_C_, scvf.to()  , _C_, j) += flux;
+					}
+
+					////////////////////////////////////////////////////
+					// Convective Term
+					// (upwinding_amount == 1.0 -> full upwind;
+					//  upwinding_amount == 0.0 -> full central disc)
+					////////////////////////////////////////////////////
+
+					// central part convection
+					if(m_upwindAmount != 1.0)
+					{
+						if(!m_ConvVel.zero_data())
+						{
+							// Compute flux
+							const number flux = (1.- m_upwindAmount) * scvf.shape(j, i)
+												* VecDot(m_ConvVel[ip], scvf.normal());
+
+							// Add flux to local matrix
+							J(_C_, scvf.from(), _C_, j) += flux;
+							J(_C_, scvf.to()  , _C_, j) -= flux;
+						}
+					}
 				}
-			}
 
-			// upwind part convection (does only depend on one shape function)
-			if(m_upwindAmount != 0.0)
-			{
-				// corner for upwind switch
-				int up;
+				// upwind part convection (does only depend on one shape function)
+				if(m_upwindAmount != 0.0)
+				{
+					if(!m_ConvVel.zero_data())
+					{
+						// corner for upwind switch
+						int up;
 
-				// Compute flux
-				flux = m_upwindAmount * VecDot(v, scvf.normal());
+						// Compute flux
+						const number flux = m_upwindAmount * VecDot(m_ConvVel[ip], scvf.normal());
 
-				// switch upwind direction
-				if(flux >= 0.0) up = scvf.from(); else up = scvf.to();
+						// switch upwind direction
+						if(flux >= 0.0) up = scvf.from(); else up = scvf.to();
 
-				// Add flux to local matrix
-				J(_C_, scvf.from(), _C_, up) += flux;
-				J(_C_, scvf.to()  , _C_, up) -= flux;
+						// Add flux to local matrix
+						J(_C_, scvf.from(), _C_, up) += flux;
+						J(_C_, scvf.to()  , _C_, up) -= flux;
+					}
+				}
 			}
 		}
 	}
-
 	////////////////////////////////////////////////////
 	// Reaction Term
 	// (using lumping)
 	////////////////////////////////////////////////////
 	// loop Sub Control Volume (SCV)
+	if(m_Reaction.zero_data()) return true;
+	ip = 0;
 	for(size_t i = 0; i < geo.num_scv(); ++i)
 	{
 		// get current SCV
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
-		number val;
-
-		// get first value
-		m_Reaction(val, scv.global_ip(0), time);
+		number val = m_Reaction[ip++];
 
 		// loop other ip positions
 		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
 		{
-			number ip_val;
-			m_Reaction(ip_val, scv.global_ip(ip), time);
-
 			// TODO: Add here scaling factor for ip point
-			val += ip_val;
+			val += m_Reaction[ip++];
 		}
 
 		// scale with volume of SCV
@@ -265,101 +282,106 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	// get finite volume geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
-	number flux;					// flux at ip
 	MathVector<dim> grad_u;			// gradient of solution at ip
 	number shape_u;					// solution at ip
-	MathMatrix<dim,dim> D;			// Diffusion Tensor
-	MathVector<dim> v;				// Velocity Field
 	MathVector<dim> Dgrad_u;		// Diff.Tensor times gradient of solution
 
 	// loop Sub Control Volume Faces (SCVF)
-	for(size_t i = 0; i < geo.num_scvf(); ++i)
+	size_t ip = 0;
+	if(!m_Diff.zero_data() || !m_ConvVel.zero_data())
 	{
-		// get current SCVF
-		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
-
-		// loop integration points
-		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t i = 0; i < geo.num_scvf(); ++i)
 		{
-			// reset values
-			VecSet(grad_u, 0.0); shape_u = 0.0;
+			// get current SCVF
+			const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
 
-			// compute gradient and shape at ip
-			for(size_t j = 0; j < scvf.num_sh(); ++j)
+			// loop integration points
+			for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
 			{
-				VecScaleAppend(grad_u, u(_C_,j), scvf.global_grad(j, ip));
-				shape_u += u(_C_,j) * scvf.shape(j, ip);
+				// reset values
+				VecSet(grad_u, 0.0); shape_u = 0.0;
+
+				// compute gradient and shape at ip
+				for(size_t j = 0; j < scvf.num_sh(); ++j)
+				{
+					VecScaleAppend(grad_u, u(_C_,j), scvf.global_grad(j, i));
+					shape_u += u(_C_,j) * scvf.shape(j, i);
+				}
+
+				/////////////////////////////////////////////////////
+				// Diffusive Term
+				// (central discretization)
+				/////////////////////////////////////////////////////
+				if(!m_Diff.zero_data())
+				{
+					MatVecMult(Dgrad_u, m_Diff[ip], grad_u);
+
+					// Compute flux
+					const number flux = VecDot(Dgrad_u, scvf.normal());
+
+					// Add to local matrix
+					d(_C_, scvf.from()) -= flux;
+					d(_C_, scvf.to()  ) += flux;
+				}
+
+				/////////////////////////////////////////////////////
+				// Convective Term
+				// (upwinding_amount == 1.0 -> full upwind;
+				//  upwinding_amount == 0.0 -> full central disc)
+				/////////////////////////////////////////////////////
+				if(!m_ConvVel.zero_data())
+				{
+					// central part convection
+					if(m_upwindAmount != 1.0)
+					{
+						// Compute flux at ip
+						const number flux = (1.- m_upwindAmount) * shape_u
+											* VecDot(m_ConvVel[ip], scvf.normal());
+
+						// Add to local matrix
+						d(_C_, scvf.from()) += flux;
+						d(_C_, scvf.to()  ) -= flux;
+					}
+
+					// upwind part convection
+					if(m_upwindAmount != 0.0)
+					{
+						// compute flux at ip
+						number flux = m_upwindAmount * VecDot(m_ConvVel[ip], scvf.normal());
+
+						//UG_LOG("Conv Vel is " << m_ConvVel[ip] << " at ip " << m_ConvVel.position(ip)<<"\n");
+
+						// Upwind switch
+						if(flux >= 0.0) flux *= u(_C_, scvf.from());
+						else flux *= u(_C_, scvf.to());
+
+						// Add to local matrix
+						d(_C_, scvf.from()) += flux;
+						d(_C_, scvf.to()  ) -= flux;
+					}
+				}
 			}
-
-			// Evaluate user data
-			m_Diff_Tensor(D, scvf.global_ip(ip), time);
-			m_Conv_Vel(v, scvf.global_ip(ip), time);
-
-			/////////////////////////////////////////////////////
-			// Diffusive Term
-			// (central discretization)
-			/////////////////////////////////////////////////////
-			MatVecMult(Dgrad_u, D, grad_u);
-
-			// Compute flux
-			flux = VecDot(Dgrad_u, scvf.normal());
-
-			// Add to local matrix
-			d(_C_, scvf.from()) -= flux;
-			d(_C_, scvf.to()  ) += flux;
-
-			/////////////////////////////////////////////////////
-			// Convective Term
-			// (upwinding_amount == 1.0 -> full upwind;
-			//  upwinding_amount == 0.0 -> full central disc)
-			/////////////////////////////////////////////////////
-
-			// central part convection
-			if(m_upwindAmount != 1.0)
-			{
-				// Compute flux at ip
-				flux = (1.- m_upwindAmount) * shape_u * VecDot(v, scvf.normal());
-
-				// Add to local matrix
-				d(_C_, scvf.from()) += flux;
-				d(_C_, scvf.to()  ) -= flux;
-			}
-
-			// upwind part convection
-			if(m_upwindAmount != 0.0)
-			{
-				// compute flux at ip
-				flux = m_upwindAmount * VecDot(v, scvf.normal());
-
-				// Upwind switch
-				if(flux >= 0.0) flux *= u(_C_, scvf.from()); else flux *= u(_C_, scvf.to());
-
-				// Add to local matrix
-				d(_C_, scvf.from()) += flux;
-				d(_C_, scvf.to()  ) -= flux;
-			}
-
 		}
 	}
 
+//	if no reaction data given, return
+	if(m_Reaction.zero_data()) return true;
+
 	// loop Sub Control Volumes (SCV)
+	ip = 0;
 	for(size_t i = 0; i < geo.num_scv(); ++i)
 	{
 		// get current SCV
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
 		// first ip
-		number val;
-		m_Reaction(val, scv.global_ip(0), time);
+		number val = m_Reaction[ip++];
 
 		// loop other ip
 		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
 		{
-			number ip_val;
-			m_Reaction(ip_val, scv.global_ip(ip), time);
-
 			// TODO: Add weight for integration
-			val += ip_val;
+			val += m_Reaction[ip++];
 		}
 
 		// scale with volume of SCV
@@ -416,24 +438,27 @@ bool
 FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
+//	if zero data given, return
+	if(m_Rhs.zero_data()) return true;
+
 	// get finite volume geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
 	// loop Sub Control Volumes (SCV)
+	size_t ip = 0;
 	for(size_t i = 0; i < geo.num_scv(); ++i)
 	{
 		// get current SCV
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
 		// first value
-		number val = 0.0;
-		m_Rhs(val, scv.global_ip(0), time);
+		number val = m_Rhs[ip++];
 
 		// other values
-		for(size_t ip = 1; ip < scv.num_ip(); ++ip)
+		for(size_t i = 1; i < scv.num_ip(); ++i)
 		{
 			number ip_val;
-			m_Rhs(ip_val, scv.global_ip(ip), time);
+			ip_val = m_Rhs[ip++];
 
 			// TODO: add weights for integration
 			val += ip_val;

@@ -17,7 +17,7 @@
 #include "lib_discretization/spatial_discretization/disc_helper/disc_helper.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/spatial_discretization/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
 
 namespace ug{
 
@@ -51,39 +51,33 @@ class FVConvectionDiffusionElemDisc
 
 	protected:
 	//	Functor type for Diffusion
-		typedef typename IUserMatrix<dim>::functor_type DiffusionFunctor;
+	//	typedef typename  IUserData<MathMatrix<dim, dim>, dim>::functor_type DiffusionFunctor;
 
 	//	Functor type for Convection Velocity
-		typedef typename IUserVector<dim>::functor_type VelocityFunctor;
-
-	//	Functor type for Scalar user Data
-		typedef typename IUserNumber<dim>::functor_type NumberFunctor;
+	//	typedef typename  IUserData<MathVector<dim>, dim>::functor_type VelocityFunctor;
 
 	public:
 	//	Constructor
 		FVConvectionDiffusionElemDisc()
-		 : m_pDomain(NULL), m_upwindAmount(0.0),
-		  	m_Diff_Tensor(NULL), m_Conv_Vel(NULL), m_Reaction(NULL), m_Rhs(NULL)
+		 : m_pDomain(NULL), m_upwindAmount(0.0)
 			{
+			//	register assemling functions
 				register_assemble_functions(Int2Type<dim>());
+
+			//	register imports
+				register_import(m_Diff);
+				register_import(m_ConvVel);
+				register_import(m_Reaction);
+				register_import(m_Rhs);
 			}
 
 		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
-		void set_diffusion_tensor(IUserMatrix<dim>& user) {m_Diff_Tensor = user.get_functor();}
-		void set_velocity_field(IUserVector<dim>& user) {m_Conv_Vel = user.get_functor();}
-		void set_reaction(IUserNumber<dim>& user) {m_Reaction = user.get_functor();}
-		void set_rhs(IUserNumber<dim>& user) {m_Rhs = user.get_functor();}
-
-		FVConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
-										DiffusionFunctor diff, VelocityFunctor vel, NumberFunctor reac, NumberFunctor rhs)
-		: 	m_pDomain(&domain), m_upwindAmount(upwind_amount),
-			m_Diff_Tensor(diff), m_Conv_Vel(vel), m_Reaction(reac), m_Rhs(rhs)
-		{
-		// register all Elements with reference dimension <= world dimension
-			register_assemble_functions(Int2Type<dim>());
-		};
+		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_Diff.set_data(user);}
+		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_ConvVel.set_data(user);}
+		void set_reaction(IPData<number, dim>& user) {m_Reaction.set_data(user);}
+		void set_rhs(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
 
 		virtual size_t num_fct(){return 1;}
 
@@ -119,6 +113,56 @@ class FVConvectionDiffusionElemDisc
 		template <typename TElem>
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
+		template <typename TElem>
+		bool lin_defect_velocity(const local_vector_type& u)
+		{
+		// get finite volume geometry
+			TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+
+		// loop Sub Control Volume Faces (SCVF)
+			size_t ip = 0;
+			for(size_t i = 0; i < geo.num_scvf(); ++i)
+			{
+			// get current SCVF
+				const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
+
+			// loop integration point of SCVF
+				for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
+				{
+				// loop shape functions
+					for(size_t j = 0; j < scvf.num_sh(); ++j)
+					{
+						m_ConvVel.lin_defect(ip, _C_, j) = 0.0;
+					}
+
+				// central part convection
+					number scale = (1.- m_upwindAmount);
+
+					number shape_u = 0.0;
+					for(size_t j = 0; j < scvf.num_sh(); ++j)
+						shape_u += u(_C_,j) * scvf.shape(j, i);
+
+					scale *= shape_u;
+
+				// upwind part convection
+					const number flux = m_upwindAmount
+										* VecDot(m_ConvVel[ip], scvf.normal());
+
+					if(flux >= 0.0) scale += m_upwindAmount* u(_C_, scvf.from());
+					else scale += m_upwindAmount * u(_C_, scvf.to());
+
+					MathVector<dim> linDefect = scvf.normal();
+					linDefect *= scale;
+
+					m_ConvVel.lin_defect(ip, _C_, scvf.from()) += linDefect;
+					m_ConvVel.lin_defect(ip, _C_, scvf.to()) -= linDefect;
+				}
+			}
+
+		//	we're done
+			return true;
+		}
+
 	private:
 		// domain
 		TDomain* m_pDomain;
@@ -134,10 +178,10 @@ class FVConvectionDiffusionElemDisc
 		number m_upwindAmount;
 
 		// User functions
-		DiffusionFunctor m_Diff_Tensor;
-		VelocityFunctor m_Conv_Vel;
-		NumberFunctor m_Reaction;
-		NumberFunctor m_Rhs;
+		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_Diff;
+		DataImport<MathVector<dim>, dim, algebra_type > m_ConvVel;
+		DataImport<number, dim, algebra_type> m_Reaction;
+		DataImport<number, dim, algebra_type> m_Rhs;
 
 	private:
 		///////////////////////////////////////
@@ -181,6 +225,8 @@ class FVConvectionDiffusionElemDisc
 			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
 			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
 			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
+
+			m_ConvVel.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem>);
 		}
 
 };

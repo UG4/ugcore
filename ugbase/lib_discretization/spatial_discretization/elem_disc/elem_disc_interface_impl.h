@@ -85,7 +85,7 @@ set_functions(const FunctionGroup& funcGroup)
 	}
 
 //	get Dimension of subset
-	int dim = funcGroup.get_function_dimension();
+	int dim = funcGroup.dim();
 
 	if(dim == -1)
 	{
@@ -96,7 +96,7 @@ set_functions(const FunctionGroup& funcGroup)
 	if(!m_SubsetGroup.empty())
 	{
 	//	check Dimension of function group
-		int dim_subsets = m_SubsetGroup.get_subset_dimension();
+		int dim_subsets = m_SubsetGroup.dim();
 		if(dim != dim_subsets)
 		{
 			UG_LOG("IElemDisc::set_functions: Dimension of already set subset "
@@ -174,7 +174,7 @@ set_subsets(const SubsetGroup& subsetGroup)
 	}
 
 //	get Dimension of subset
-	int dim = subsetGroup.get_subset_dimension();
+	int dim = subsetGroup.dim();
 
 	if(dim == -1)
 	{
@@ -185,7 +185,7 @@ set_subsets(const SubsetGroup& subsetGroup)
 	if(!m_FunctionGroup.empty())
 	{
 		//	check Dimension of function group
-		int dim_functions = m_FunctionGroup.get_function_dimension();
+		int dim_functions = m_FunctionGroup.dim();
 		if(dim != dim_functions)
 		{
 			UG_LOG("IElemDisc::set_subsets: Dimension of already set function group"
@@ -356,10 +356,10 @@ IElemDisc<TAlgebra>::
 register_prepare_element_loop_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vPrepareElementLoopFunc.size())
-		m_vPrepareElementLoopFunc.resize(id+1, 0);
+	if((size_t)id >= m_vPrepareElemLoopFunc.size())
+		m_vPrepareElemLoopFunc.resize(id+1, 0);
 
-	m_vPrepareElementLoopFunc[id] = (PrepareElementLoopFunc)func;
+	m_vPrepareElemLoopFunc[id] = (PrepareElementLoopFunc)func;
 };
 
 template<typename TAlgebra>
@@ -367,9 +367,9 @@ bool
 IElemDisc<TAlgebra>::
 prepare_element_loop_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vPrepareElementLoopFunc.size())
+	if(id >= 0 && (size_t)id < m_vPrepareElemLoopFunc.size())
 	{
-		if(m_vPrepareElementLoopFunc[id] != 0)
+		if(m_vPrepareElemLoopFunc[id] != 0)
 			return true;
 	}
 	return false;
@@ -387,10 +387,10 @@ IElemDisc<TAlgebra>::
 register_prepare_element_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vPrepareElementFunc.size())
-		m_vPrepareElementFunc.resize(id+1, 0);
+	if((size_t)id >= m_vPrepareElemFunc.size())
+		m_vPrepareElemFunc.resize(id+1, 0);
 
-	m_vPrepareElementFunc[id] = (PrepareElementFunc)func;
+	m_vPrepareElemFunc[id] = (PrepareElementFunc)func;
 };
 
 template<typename TAlgebra>
@@ -398,9 +398,9 @@ bool
 IElemDisc<TAlgebra>::
 prepare_element_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vPrepareElementFunc.size())
+	if(id >= 0 && (size_t)id < m_vPrepareElemFunc.size())
 	{
-		if(m_vPrepareElementFunc[id] != 0)
+		if(m_vPrepareElemFunc[id] != 0)
 			return true;
 	}
 	return false;
@@ -418,10 +418,10 @@ IElemDisc<TAlgebra>::
 register_finish_element_loop_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vFinishElementLoopFunc.size())
-		m_vFinishElementLoopFunc.resize(id+1, 0);
+	if((size_t)id >= m_vFinishElemLoopFunc.size())
+		m_vFinishElemLoopFunc.resize(id+1, 0);
 
-	m_vFinishElementLoopFunc[id] = (FinishElementLoopFunc)func;
+	m_vFinishElemLoopFunc[id] = (FinishElementLoopFunc)func;
 };
 
 template<typename TAlgebra>
@@ -429,9 +429,9 @@ bool
 IElemDisc<TAlgebra>::
 finish_element_loop_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vFinishElementLoopFunc.size())
+	if(id >= 0 && (size_t)id < m_vFinishElemLoopFunc.size())
 	{
-		if(m_vFinishElementLoopFunc[id] != 0)
+		if(m_vFinishElemLoopFunc[id] != 0)
 			return true;
 	}
 	return false;
@@ -449,10 +449,10 @@ IElemDisc<TAlgebra>::
 register_assemble_JA_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssembleJAFunc.size())
-		m_vAssembleJAFunc.resize(id+1, 0);
+	if((size_t)id >= m_vAssJAFunc.size())
+		m_vAssJAFunc.resize(id+1, 0);
 
-	m_vAssembleJAFunc[id] = (AssembleJAFunc)func;
+	m_vAssJAFunc[id] = (AssembleJAFunc)func;
 };
 
 template<typename TAlgebra>
@@ -460,9 +460,9 @@ bool
 IElemDisc<TAlgebra>::
 assemble_JA_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssembleJAFunc.size())
+	if(id >= 0 && (size_t)id < m_vAssJAFunc.size())
 	{
-		if(m_vAssembleJAFunc[id] != 0)
+		if(m_vAssJAFunc[id] != 0)
 			return true;
 	}
 	return false;
@@ -476,10 +476,10 @@ IElemDisc<TAlgebra>::
 register_assemble_JM_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssembleJMFunc.size())
-		m_vAssembleJMFunc.resize(id+1, 0);
+	if((size_t)id >= m_vAssJMFunc.size())
+		m_vAssJMFunc.resize(id+1, 0);
 
-	m_vAssembleJMFunc[id] = (AssembleJMFunc)func;
+	m_vAssJMFunc[id] = (AssembleJMFunc)func;
 };
 
 template<typename TAlgebra>
@@ -487,9 +487,9 @@ bool
 IElemDisc<TAlgebra>::
 assemble_JM_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssembleJMFunc.size())
+	if(id >= 0 && (size_t)id < m_vAssJMFunc.size())
 	{
-		if(m_vAssembleJMFunc[id] != 0)
+		if(m_vAssJMFunc[id] != 0)
 			return true;
 	}
 	return false;
@@ -507,10 +507,10 @@ IElemDisc<TAlgebra>::
 register_assemble_A_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssembleAFunc.size())
-		m_vAssembleAFunc.resize(id+1, 0);
+	if((size_t)id >= m_vAssAFunc.size())
+		m_vAssAFunc.resize(id+1, 0);
 
-	m_vAssembleAFunc[id] = (AssembleAFunc)func;
+	m_vAssAFunc[id] = (AssembleAFunc)func;
 };
 
 template<typename TAlgebra>
@@ -518,9 +518,9 @@ bool
 IElemDisc<TAlgebra>::
 assemble_A_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssembleAFunc.size())
+	if(id >= 0 && (size_t)id < m_vAssAFunc.size())
 	{
-		if(m_vAssembleAFunc[id] != 0)
+		if(m_vAssAFunc[id] != 0)
 			return true;
 	}
 	return false;
@@ -534,10 +534,10 @@ IElemDisc<TAlgebra>::
 register_assemble_M_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssembleMFunc.size())
-		m_vAssembleMFunc.resize(id+1, 0);
+	if((size_t)id >= m_vAssMFunc.size())
+		m_vAssMFunc.resize(id+1, 0);
 
-	m_vAssembleMFunc[id] = (AssembleMFunc)func;
+	m_vAssMFunc[id] = (AssembleMFunc)func;
 };
 
 template<typename TAlgebra>
@@ -545,9 +545,9 @@ bool
 IElemDisc<TAlgebra>::
 assemble_M_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssembleMFunc.size())
+	if(id >= 0 && (size_t)id < m_vAssMFunc.size())
 	{
-		if(m_vAssembleMFunc[id] != 0)
+		if(m_vAssMFunc[id] != 0)
 			return true;
 	}
 	return false;
@@ -565,10 +565,10 @@ IElemDisc<TAlgebra>::
 register_assemble_f_function(int id, TAssFunc func)
 {
 //	make sure that there is enough space
-	if((size_t)id >= m_vAssembleFFunc.size())
-		m_vAssembleFFunc.resize(id+1, 0);
+	if((size_t)id >= m_vAssFFunc.size())
+		m_vAssFFunc.resize(id+1, 0);
 
-	m_vAssembleFFunc[id] = (AssembleFFunc)func;
+	m_vAssFFunc[id] = (AssembleFFunc)func;
 };
 
 template<typename TAlgebra>
@@ -576,9 +576,9 @@ bool
 IElemDisc<TAlgebra>::
 assemble_f_function_registered(int id)
 {
-	if(id >= 0 && (size_t)id < m_vAssembleFFunc.size())
+	if(id >= 0 && (size_t)id < m_vAssFFunc.size())
 	{
-		if(m_vAssembleFFunc[id] != 0)
+		if(m_vAssFFunc[id] != 0)
 			return true;
 	}
 	return false;

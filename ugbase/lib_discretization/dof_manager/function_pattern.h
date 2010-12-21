@@ -187,7 +187,7 @@ class FunctionPattern
 			bool is_def_in_subset(int si) const
 			{
 				if(everywhere) return true;
-				if(subsetIndices.containes_subset(si)) return true;
+				if(subsetIndices.contains(si)) return true;
 				return false;
 			}
 		};

@@ -5,12 +5,14 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__USER_DATA__
-#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__USER_DATA__
+#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__USER_DATA__
+#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__USER_DATA__
 
 #include "common/common.h"
 #include "common/math/ugmath.h"
 #include <boost/function.hpp>
+
+#include "ip_data.h"
 
 namespace ug {
 
@@ -26,71 +28,27 @@ namespace ug {
 /// \addtogroup lib_disc_user_data
 /// @{
 
-/// scalar user data
+/// User Data Interface
 /**
- * Provides a functor to evaluate scalar user data.
- * \tparam 	dim		World dimension
+ * Specifies and provides the User Data Functor
+ * \tparam		TData	provided data type
+ * \tparam		TPos	Position type of world position
  */
-template <int dim>
-class IUserNumber
+template<typename TData, int dim>
+class IUserData
+	: public IPData<TData, dim>
 {
 	public:
-	///	Functor Type for evaluation function
-		typedef boost::function<void (number& value,
+	///	Functor type for evaluation function
+		typedef boost::function<void (TData& value,
 		                              const MathVector<dim>& x,
 		                              number& time)>
 		functor_type;
 
 	/// provides the functor
 		virtual functor_type get_functor() const = 0;
-
-	///	virtual destructor
-		virtual ~IUserNumber(){}
 };
 
-/// vector user data
-/**
- * Provides a functor to evaluate vector user data.
- * \tparam 	dim		World dimension
- */
-template <int dim>
-class IUserVector
-{
-	public:
-	///	Functor Type
-		typedef boost::function<void (MathVector<dim>& v,
-		                              const MathVector<dim>& x,
-		                              number& time)>
-		functor_type;
-
-	/// provides the functor
-		virtual functor_type get_functor() const = 0;
-
-	///	virtual destructor
-		virtual ~IUserVector(){}
-};
-
-/// matrix user data
-/**
- * Provides a functor to evaluate matrix user data.
- * \tparam 	dim		World dimension
- */
-template <int dim>
-class IUserMatrix
-{
-	public:
-	///	Functor Type
-		typedef boost::function<void (MathMatrix<dim,dim>& D,
-		                              const MathVector<dim>& x,
-		                              number& time)>
-		functor_type;
-
-	/// provides the functor
-		virtual functor_type get_functor() const = 0;
-
-	///	virtual destructor
-		virtual ~IUserMatrix(){}
-};
 
 /// scalar boundary user data
 /**
@@ -127,11 +85,20 @@ class IBoundaryNumberProvider
 /// constant scalar user data
 template <int dim>
 class ConstUserNumber
-	: public IUserNumber<dim>
+	: public IUserData<number, dim>
 {
+	///	Base class type
+		typedef IUserData<number, dim> base_type;
+
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::ip;
+		using base_type::time;
+		using base_type::value;
+
 	public:
 	///	Functor Type
-		typedef typename IUserNumber<dim>::functor_type functor_type;
+		typedef typename base_type::functor_type functor_type;
 
 	///	return functor
 		virtual functor_type get_functor() const {return boost::ref(*this);}
@@ -159,6 +126,17 @@ class ConstUserNumber
 			c = m_Number;
 		}
 
+	///	implement as a IPData
+		virtual void compute(bool computeDeriv = false)
+		{
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t i = 0; i < num_ip(s); ++i)
+					value(s,i) = m_Number;
+		}
+
+	///	returns if data is constant
+		virtual bool constant_data() const {return true;}
+
 	protected:
 		number m_Number;
 };
@@ -166,11 +144,20 @@ class ConstUserNumber
 /// constant vector user data
 template <int dim>
 class ConstUserVector
-	: public IUserVector<dim>
+	: public IUserData<MathVector<dim>, dim>
 {
+	/// Base class type
+		typedef IUserData<MathVector<dim>, dim> base_type;
+
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::ip;
+		using base_type::time;
+		using base_type::value;
+
 	public:
 	///	Functor Type
-		typedef typename IUserVector<dim>::functor_type functor_type;
+		typedef typename base_type::functor_type functor_type;
 
 	///	return functor
 		virtual functor_type get_functor() const {return boost::ref(*this);}
@@ -201,6 +188,17 @@ class ConstUserVector
 			v = m_Vector;
 		}
 
+	///	returns if data is constant
+		virtual bool constant_data() const {return true;}
+
+	///	implement as a IPData
+		virtual void compute(bool computeDeriv = false)
+		{
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t i = 0; i < num_ip(s); ++i)
+					value(s,i) = m_Vector;
+		}
+
 	protected:
 		MathVector<dim> m_Vector;
 };
@@ -208,11 +206,20 @@ class ConstUserVector
 /// constant matrix user data
 template <int dim>
 class ConstUserMatrix
-	: public IUserMatrix<dim>
+	: public IUserData<MathMatrix<dim, dim>, dim>
 {
+	/// Base class type
+		typedef IUserData<MathMatrix<dim, dim>, dim> base_type;
+
+		using base_type::num_series;
+		using base_type::num_ip;
+		using base_type::ip;
+		using base_type::time;
+		using base_type::value;
+
 	public:
 	///	Functor Type
-		typedef typename IUserMatrix<dim>::functor_type functor_type;
+		typedef typename base_type::functor_type functor_type;
 
 	///	return functor
 		virtual functor_type get_functor() const {return boost::ref(*this);}
@@ -259,6 +266,17 @@ class ConstUserMatrix
 		                 number time = 0.0) const
 		{
 			D = m_Tensor;
+		}
+
+	///	returns if data is constant
+		virtual bool constant_data() const {return true;}
+
+	///	implement as a IPData
+		virtual void compute(bool computeDeriv = false)
+		{
+			for(size_t s = 0; s < num_series(); ++s)
+				for(size_t i = 0; i < num_ip(s); ++i)
+					value(s,i) = m_Tensor;
 		}
 
 	protected:
@@ -308,4 +326,4 @@ class ConstBoundaryNumber : public IBoundaryNumberProvider<dim>
 
 } /// end namespace ug
 
-#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__USER_DATA__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__USER_DATA__ */

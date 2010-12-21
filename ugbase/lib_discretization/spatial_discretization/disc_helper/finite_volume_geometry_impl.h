@@ -135,6 +135,38 @@ FV1Geometry() : m_pElem(NULL)
 		TrialSpace.shapes(&(m_vSCVF[i].vShape[0]), m_vSCVF[i].localIP);
 		TrialSpace.grads(&(m_vSCVF[i].localGrad[0]), m_vSCVF[i].localIP);
 	}
+
+	///////////////////////////
+	// Copy ip pos in list
+	///////////////////////////
+
+// 	loop Sub Control Volumes (SCV)
+	m_vLocSCVIP.clear();
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+	//	get current SCV
+		const SCV& rSCV = scv(i);
+
+	// 	loop ips
+		for(size_t ip = 0; ip < rSCV.num_ip(); ++ip)
+		{
+			m_vLocSCVIP.push_back(rSCV.local_ip(ip));
+		}
+	}
+
+// 	loop Sub Control Volumes Faces (SCVF)
+	m_vLocSCVFIP.clear();
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+	//	get current SCVF
+		const SCVF& rSCVF = scvf(i);
+
+	// 	loop ips
+		for(size_t ip = 0; ip < rSCVF.num_ip(); ++ip)
+		{
+			m_vLocSCVFIP.push_back(rSCVF.local_ip(ip));
+		}
+	}
 }
 
 
@@ -232,6 +264,37 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 			MatVecMult((m_vSCVF[i].globalGrad)[sh], m_vSCVF[i].JtInv, (m_vSCVF[i].localGrad)[sh]);
 	}
 
+	///////////////////////////
+	// Copy ip pos in list
+	///////////////////////////
+
+// 	loop Sub Control Volumes (SCV)
+	m_vGlobSCVIP.clear();
+	for(size_t i = 0; i < num_scv(); ++i)
+	{
+	//	get current SCV
+		const SCV& rSCV = scv(i);
+
+	// 	loop ips
+		for(size_t ip = 0; ip < rSCV.num_ip(); ++ip)
+		{
+			m_vGlobSCVIP.push_back(rSCV.global_ip(ip));
+		}
+	}
+
+// 	loop Sub Control Volumes Faces (SCVF)
+	m_vGlobSCVFIP.clear();
+	for(size_t i = 0; i < num_scvf(); ++i)
+	{
+	//	get current SCVF
+		const SCVF& rSCVF = scvf(i);
+
+	// 	loop ips
+		for(size_t ip = 0; ip < rSCVF.num_ip(); ++ip)
+		{
+			m_vGlobSCVFIP.push_back(rSCVF.global_ip(ip));
+		}
+	}
 
 	/////////////////////////
 	// Boundary Faces

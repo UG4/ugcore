@@ -22,7 +22,10 @@
  */
 
 // user data
-#include "./user_data.h"
+#include "./ip_data/user_data.h"
+
+// import / export
+#include "./ip_data/data_import_export.h"
 
 // interface
 #include "./domain_discretization_interface.h"
@@ -37,7 +40,7 @@
 #include "./elem_disc/elem_disc.h"
 
 // coupled element discs
-#include "./coupled_elem_disc/coupled_elem_disc.h"
+//#include "./coupled_elem_disc/coupled_elem_disc.h"
 
 // disc helper
 #include "./disc_helper/disc_helper.h"

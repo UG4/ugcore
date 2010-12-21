@@ -16,7 +16,7 @@
 // library intern headers
 #include "./domain_discretization_interface.h"
 #include "./elem_disc/elem_disc_assemble_util.h"
-#include "./coupled_elem_disc/coupled_elem_disc_assemble_util.h"
+//#include "./coupled_elem_disc/coupled_elem_disc_assemble_util.h"
 #include "./post_process/post_process_interface.h"
 #include "./subset_assemble_util.h"
 #include "lib_discretization/common/function_group.h"
@@ -105,6 +105,18 @@ class DomainDiscretization :
 	                                  const dof_distribution_type& dofDistr,
 	                                  number time);
 
+	///////////////////////////
+	// Mass and Stiffness Matrix
+	///////////////////////////
+
+	/// assembles the mass matrix
+	IAssembleReturn assemble_mass_matrix(matrix_type& M, const vector_type& u,
+	                                     const dof_distribution_type& dofDistr);
+
+	/// assembles the stiffness matrix
+	IAssembleReturn assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+	                                          const dof_distribution_type& dofDistr);
+
 	public:
 	/// adds an element discretization to the assembling process
 	/**
@@ -131,52 +143,6 @@ class DomainDiscretization :
 	protected:
 	///	vector holding all registered elem discs
 		std::vector<IElemDisc<TAlgebra>*> m_vElemDisc;
-
-	public:
-	/// adds a Coupled Element Discretization that will be performed on given subsets
-	/**
-	 * This function adds a Coupled Element Discretization for a given group
-	 * of functions. The Functions must match the requiries of the
-	 * Discretization and must be defined for the Subsets.
-	 *
-	 * \param[in] 	coupledSystem	coupled element discretization
-	 * \param[in]	functionGroup	Function used in discretization
-	 * \param[in]	subsetGroup		Subsets, where discretization should be performed
-	 */
-		bool add(CoupledSystem<TAlgebra>& coupledSystem,
-		         const FunctionGroup& functionGroup,
-		         const SubsetGroup& subsetGroup);
-
-	/// adds a Coupled Element Discretization that will be performed on given subsets
-	/**
-	 * This function adds a Coupled Element Discretization for a given group of
-	 * functions. The Functions must match the requiries of the Discretization
-	 * and must be defined for the Subsets.
-	 *
-	 * \param[in] 	coupledSystem	coupled element discretization
-	 * \param[in]	pattern			underlying function pattern to be used
-	 * \param[in]	functions		Function Names
-	 * \param[in]	subsets			Subset Names
-	 */
-		bool add(CoupledSystem<TAlgebra>& coupledSystem,
-		         const FunctionPattern& pattern,
-		         const char* functions,
-		         const char* subsets);
-
-	protected:
-		struct CoupledDisc
-		{
-			CoupledDisc(CoupledSystem<TAlgebra>& disc_,
-			            const FunctionGroup& fcts_,
-			            const SubsetGroup& subsetGroup_) :
-				disc(&disc_), functionGroup(fcts_), subsetGroup(subsetGroup_)
-			{};
-
-			CoupledSystem<TAlgebra>* disc;
-			FunctionGroup functionGroup;
-			SubsetGroup subsetGroup;
-		};
-		std::vector<CoupledDisc> m_vCoupledDisc;
 
 	public:
 	/// adds a post process to the assembling process

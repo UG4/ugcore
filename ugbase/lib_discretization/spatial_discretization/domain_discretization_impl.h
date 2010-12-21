@@ -13,11 +13,236 @@
 
 namespace ug{
 
+//////////////////////////
+// assemble Mass Matrix
+//////////////////////////
+template <typename TDoFDistribution, typename TAlgebra>
+IAssembleReturn
+DomainDiscretization<TDoFDistribution, TAlgebra>::
+assemble_mass_matrix(matrix_type& M, const vector_type& u,
+                     const dof_distribution_type& dofDistr)
+{
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
+	{
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
+	}
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleMassMatrix<Edge>(vSubsetElemDisc, dofDistr, si,
+									     M, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleMassMatrix<Triangle>(vSubsetElemDisc, dofDistr, si,
+									     M, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleMassMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+									     M, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleMassMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+									     M, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleMassMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si,
+									     M, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleMassMatrix<Prism>(vSubsetElemDisc, dofDistr, si,
+									     M, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleMassMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+									     M, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
+		}
+	}
+
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_jacobian(M, u, dofDistr)
+					!= IAssemble_OK)
+				return IAssemble_ERROR;
+		}
+	}
+
+//	done
+	return IAssemble_OK;
+}
+
+template <typename TDoFDistribution, typename TAlgebra>
+IAssembleReturn
+DomainDiscretization<TDoFDistribution, TAlgebra>::
+assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
+                          const dof_distribution_type& dofDistr)
+{
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
+	{
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
+	}
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleStiffnessMatrix<Edge>(vSubsetElemDisc, dofDistr, si,
+										         A, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleStiffnessMatrix<Triangle>(vSubsetElemDisc, dofDistr, si,
+										         A, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleStiffnessMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+										         A, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleStiffnessMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+										         A, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleStiffnessMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si,
+										         A, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleStiffnessMatrix<Prism>(vSubsetElemDisc, dofDistr, si,
+										         A, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleStiffnessMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+										         A, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
+		}
+	}
+
+//	post process
+	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
+	{
+		for(size_t i = 0; i < m_vvPostProcess[type].size(); ++i)
+		{
+			if(m_vvPostProcess[type][i]->post_process_jacobian(A, u, dofDistr)
+					!= IAssemble_OK)
+				return IAssemble_ERROR;
+		}
+	}
+
+//	done
+	return IAssemble_OK;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 //  Time Independent
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+
+
 
 //////////////////////////
 // assemble Jacobian
@@ -28,40 +253,92 @@ DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J, const vector_type& u,
                   const dof_distribution_type& dofDistr)
 {
-//	assemble normal element discretizations
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
-	//	get subset group
-		const SubsetGroup& subsetGroup = m_vElemDisc[i]->get_subset_group();
-
-	//	loop subsets
-		for(size_t j = 0; j < subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = subsetGroup[j];
-			const int dim = subsetGroup.get_subset_dimension(j);
-
-		//	assemble
-			if(!AssembleJacobian<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
-			(*m_vElemDisc[i], J, u, dofDistr, subsetIndex, dim))
-				return IAssemble_ERROR;
-		}
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
 	}
 
-//	assemble coupled element discretizations
-	for(size_t i = 0; i < m_vCoupledDisc.size(); ++i)
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
 	{
-	//	loop subsets
-		for(size_t j = 0; j < m_vCoupledDisc[i].subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = m_vCoupledDisc[i].subsetGroup[j];
-			const int dim = m_vCoupledDisc[i].subsetGroup.get_subset_dimension(j);
+	//	get subset
+		const int si = unionSubsets[i];
 
-			//	assemble
-			if(!AssembleJacobian<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vCoupledDisc[i].disc, J, u, dofDistr, subsetIndex, dim))
-					return IAssemble_ERROR;
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si,
+			                           J, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si,
+			                           J, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			                           J, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			                           J, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			                           J, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si,
+			                           J, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			                           J, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
 		}
 	}
 
@@ -90,39 +367,92 @@ DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_defect(vector_type& d, const vector_type& u,
                 const dof_distribution_type& dofDistr)
 {
-//	assemble normal element discretizations
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
-	//	get subset group
-		const SubsetGroup& subsetGroup = m_vElemDisc[i]->get_subset_group();
-
-	//	loop subsets
-		for(size_t j = 0; j < subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = subsetGroup[j];
-			const int dim = subsetGroup.get_subset_dimension(j);
-
-			if(!AssembleDefect<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vElemDisc[i], d, u, dofDistr, subsetIndex, dim))
-					return IAssemble_ERROR;
-		}
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
 	}
 
-//	assemble coupled element discretizations
-	for(size_t i = 0; i < m_vCoupledDisc.size(); ++i)
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
 	{
-	//	loop subsets
-		for(size_t j = 0; j < m_vCoupledDisc[i].subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = m_vCoupledDisc[i].subsetGroup[j];
-			const int dim = m_vCoupledDisc[i].subsetGroup.get_subset_dimension(j);
+	//	get subset
+		const int si = unionSubsets[i];
 
-			//	assemble
-			if(!AssembleDefect<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vCoupledDisc[i].disc, d, u, dofDistr, subsetIndex, dim))
-					return IAssemble_ERROR;
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si,
+									   d, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si,
+									   d, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+									   d, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+									   d, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si,
+									   d, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si,
+									   d, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+									   d, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
 		}
 	}
 
@@ -150,47 +480,92 @@ DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
                 const dof_distribution_type& dofDistr)
 {
-//	assemble normal element discretizations
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
-	//	get subset group
-		const SubsetGroup& subsetGroup = m_vElemDisc[i]->get_subset_group();
-
-	//	loop subsets
-		for(size_t j = 0; j < subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = subsetGroup[j];
-			const int dim = subsetGroup.get_subset_dimension(j);
-
-			if(!AssembleLinear<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
-			(*m_vElemDisc[i], mat, rhs, u, dofDistr, subsetIndex, dim))
-			{
-				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
-						" Cannot assemble linear for Elem Disc.\n");
-				return IAssemble_ERROR;
-			}
-		}
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
 	}
 
-//	assemble coupled element discretizations
-	for(size_t i = 0; i < m_vCoupledDisc.size(); ++i)
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
 	{
-	//	loop subsets
-		for(size_t j = 0; j < m_vCoupledDisc[i].subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = m_vCoupledDisc[i].subsetGroup[j];
-			const int dim = m_vCoupledDisc[i].subsetGroup.get_subset_dimension(j);
+	//	get subset
+		const int si = unionSubsets[i];
 
-			//	assemble
-			if(!AssembleLinear<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vCoupledDisc[i].disc, mat, rhs, u, dofDistr, subsetIndex, dim))
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
-						" Cannot assemble linear for Cpl Elem Disc.\n");
+						"Cannot assemble Edges.\n");
 				return IAssemble_ERROR;
 			}
+			break;
+		case 2:
+			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
 		}
 	}
 
@@ -247,41 +622,101 @@ IAssembleReturn
 DomainDiscretization<TDoFDistribution, TAlgebra>::
 assemble_jacobian(matrix_type& J, const vector_type& u,
                   const dof_distribution_type& dofDistr,
-                  number time, number s_m, number s_a)
+                  number time, number s_m0, number s_a0)
 {
-//	assemble normal element discretizations
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+//	check that s_m is 1.0
+	if(s_m0 != 1.0)
 	{
-	//	get subset group
-		const SubsetGroup& subsetGroup = m_vElemDisc[i]->get_subset_group();
-
-	//	loop subsets
-		for(size_t j = 0; j < subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = subsetGroup[j];
-			const int dim = subsetGroup.get_subset_dimension(j);
-
-			if(!AssembleJacobian<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vElemDisc[i], J, u, dofDistr, subsetIndex, dim, time, s_m, s_a))
-					return IAssemble_ERROR;
-		}
+		UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+				" It is assumed to have s_m == 1\n");
 	}
 
-//	assemble coupled element discretizations
-	for(size_t i = 0; i < m_vCoupledDisc.size(); ++i)
-	{
-	//	loop subsets
-		for(size_t j = 0; j < m_vCoupledDisc[i].subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = m_vCoupledDisc[i].subsetGroup[j];
-			const int dim = m_vCoupledDisc[i].subsetGroup.get_subset_dimension(j);
+//	Union of Subsets
+	SubsetGroup unionSubsets;
 
-			//	assemble
-			if(!AssembleJacobian<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vCoupledDisc[i].disc, J, u, dofDistr, subsetIndex, dim, time, s_m, s_a))
-					return IAssemble_ERROR;
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
+	{
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
+	}
+
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si,
+									   J, u, s_a0, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si,
+									   J, u, s_a0, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+									   J, u, s_a0, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+									   J, u, s_a0, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si,
+									   J, u, s_a0, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si,
+									   J, u, s_a0, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+									   J, u, s_a0, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
 		}
 	}
 
@@ -310,39 +745,92 @@ assemble_defect(vector_type& d, const vector_type& u,
                 const dof_distribution_type& dofDistr,
                 number time, number s_m, number s_a)
 {
-//	assemble normal element discretizations
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
-	//	get subset group
-		const SubsetGroup& subsetGroup = m_vElemDisc[i]->get_subset_group();
-
-	//	loop subsets
-		for(size_t j = 0; j < subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = subsetGroup[j];
-			const int dim = subsetGroup.get_subset_dimension(j);
-
-			if(!AssembleDefect<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vElemDisc[i], d, u, dofDistr, subsetIndex, dim, time, s_m, s_a))
-					return IAssemble_ERROR;
-		}
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
 	}
 
-//	assemble coupled element discretizations
-	for(size_t i = 0; i < m_vCoupledDisc.size(); ++i)
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
 	{
-	//	loop subsets
-		for(size_t j = 0; j < m_vCoupledDisc[i].subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = m_vCoupledDisc[i].subsetGroup[j];
-			const int dim = m_vCoupledDisc[i].subsetGroup.get_subset_dimension(j);
+	//	get subset
+		const int si = unionSubsets[i];
 
-			//	assemble
-			if(!AssembleDefect<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vCoupledDisc[i].disc, d, u, dofDistr, subsetIndex, dim, time, s_m, s_a))
-					return IAssemble_ERROR;
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
+		{
+		case 1:
+			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si,
+									   d, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si,
+									   d, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+									   d, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+									   d, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si,
+									   d, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si,
+									   d, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+									   d, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
 		}
 	}
 
@@ -371,41 +859,95 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
                 const dof_distribution_type& dofDistr,
                 number time, number s_m, number s_a)
 {
-//	assemble normal element discretizations
-	for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+//	Union of Subsets
+	SubsetGroup unionSubsets;
+
+//	create list of all subsets
+	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
-	//	get subset group
-		const SubsetGroup& subsetGroup = m_vElemDisc[i]->get_subset_group();
+		UG_LOG("ERROR: Can not create union of subsets.\n");
+		return IAssemble_ERROR;
+	}
 
-	//	loop subsets
-		for(size_t j = 0; j < subsetGroup.num_subsets(); ++j)
+//	loop subsets
+	for(size_t i = 0; i < unionSubsets.num_subsets(); ++i)
+	{
+	//	get subset
+		const int si = unionSubsets[i];
+
+	//	get dimension of the subset
+		const int dim = unionSubsets.dim(i);
+
+	//	Elem Disc on the subset
+		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
+
+	//	get all element discretizations that work on the subset
+		GetElemDiscOnSubset(vSubsetElemDisc, m_vElemDisc, si);
+
+	//	assemble on suitable elements
+		switch(dim)
 		{
-		//	get subset index and dimesion
-			const int subsetIndex = subsetGroup[j];
-			const int dim = subsetGroup.get_subset_dimension(j);
-
-			if(!AssembleLinear<IElemDisc<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vElemDisc[i], mat, rhs, u, dofDistr, subsetIndex, dim, time, s_m, s_a))
-					return IAssemble_ERROR;
+		case 1:
+			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si,
+			                         mat, rhs, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Edges.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 2:
+			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Triangles.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Quadrilaterals.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		case 3:
+			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Tetrahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Pyramids.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Prisms.\n");
+				return IAssemble_ERROR;
+			}
+			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+									   mat, rhs, u, s_m, s_a, time))
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+						"Cannot assemble Hexahedrons.\n");
+				return IAssemble_ERROR;
+			}
+			break;
+		default:UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
+				"Dimension " << dim << " not supported.\n");
+				return IAssemble_ERROR;
 		}
 	}
 
-//	assemble coupled element discretizations
-	for(size_t i = 0; i < m_vCoupledDisc.size(); ++i)
-	{
-	//	loop subsets
-		for(size_t j = 0; j < m_vCoupledDisc[i].subsetGroup.num_subsets(); ++j)
-		{
-		//	get subset index and dimesion
-			const int subsetIndex = m_vCoupledDisc[i].subsetGroup[j];
-			const int dim = m_vCoupledDisc[i].subsetGroup.get_subset_dimension(j);
-
-			//	assemble
-			if(!AssembleLinear<CoupledSystem<TAlgebra>, TDoFDistribution, TAlgebra>
-				(*m_vCoupledDisc[i].disc, mat, rhs, u, dofDistr, subsetIndex, dim, time, s_m, s_a))
-					return IAssemble_ERROR;
-		}
-	}
 
 //	post process
 	for(size_t type = 0; type < PPT_NUM_POST_PROCESS_TYPES; ++type)
@@ -440,105 +982,6 @@ assemble_solution(vector_type& u, const dof_distribution_type& dofDistr, number 
 
 //	done
 	return IAssemble_OK;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-//  Infrastructure
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////
-// addcoupled system
-//////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-DomainDiscretization<TDoFDistribution, TAlgebra>::
-add(CoupledSystem<TAlgebra>& coupledSystem,
-    const FunctionGroup& functionGroup,
-    const SubsetGroup& subsetGroup)
-{
-// 	check if number of functions match
-	if(coupledSystem.num_fct() != functionGroup.num_fct())
-	{
-		UG_LOG("Wrong number of local functions for Elemet Discretization.\n");
-		UG_LOG("Needed: " << coupledSystem.num_fct() << ", given: "
-		       	  << functionGroup.num_fct() << ".\n");
-		UG_LOG("Cannot add element discretization.\n");
-		return false;
-	}
-
-//	check that type of function match
-	for(size_t i = 0; i < coupledSystem.num_fct(); ++i)
-	{
-		if(coupledSystem.local_shape_function_set_id(functionGroup[i]) !=
-				functionGroup.local_shape_function_set_id(i))
-		{
-			UG_LOG("Function " << functionGroup.get_function_name(i)
-			       << " has wrong Shape Function.\n");
-			UG_LOG("Solution does not match requirements of discretization.\n");
-			return false;
-		}
-	}
-
-//	get Dimension of subset
-	int dim = subsetGroup.get_subset_dimension();
-
-	if(dim == -1)
-	{
-		UG_LOG("Given subset group does not have a unique dimension.\n");
-		return false;
-	}
-
-//	get Dimension of function group
-	int dim_functions = functionGroup.get_function_dimension();
-
-	if(dim_functions == -1)
-	{
-		UG_LOG("Given function group does not have a unique dimension.\n");
-		return false;
-	}
-
-//	check that dimension of subsets and dimension of function group is equal
-	if(dim != dim_functions)
-	{
-		UG_LOG("Dimension of Function Group and dimension "
-				"of subset group does not match.\n");
-		return false;
-	}
-
-//	remember (copy)
-	m_vCoupledDisc.push_back(CoupledDisc(coupledSystem, functionGroup, subsetGroup));
-	return true;
-}
-
-//////////////////////////////////
-// add coupled system (by string)
-//////////////////////////////////
-template <typename TDoFDistribution, typename TAlgebra>
-bool
-DomainDiscretization<TDoFDistribution, TAlgebra>::
-add(CoupledSystem<TAlgebra>& coupledSystem, const FunctionPattern& pattern,
-    const char* functions, const char* subsets)
-{
-//	create Function Group and Subset Group
-	FunctionGroup functionGroup;
-	SubsetGroup subsetGroup;
-
-//	convert strings
-	if(!ConvertStringToSubsetGroup(subsetGroup, pattern, subsets))
-	{
-		UG_LOG("ERROR while parsing Subsets.\n");
-		return false;
-	}
-	if(!ConvertStringToFunctionGroup(functionGroup, pattern, functions))
-	{
-		UG_LOG("ERROR while parsing Functions.\n");
-		return false;
-	}
-
-//	forward request
-	return add(coupledSystem, functionGroup, subsetGroup);
 }
 
 }

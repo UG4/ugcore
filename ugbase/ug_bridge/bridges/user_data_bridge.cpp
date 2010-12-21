@@ -2,7 +2,7 @@
 
 #include "ug_bridge/ug_bridge.h"
 #include "common/common.h"
-#include "lib_discretization/spatial_discretization/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
 #include "ug_script/ug_script.h"
 #include <iostream>
 #include <sstream>
@@ -15,10 +15,10 @@ namespace bridge
 class PrintUserNumber2d
 {
 	protected:
-		typedef IUserNumber<2>::functor_type NumberFunctor;
+		typedef IUserData<number, 2>::functor_type NumberFunctor;
 
 	public:
-		void set_user_number(IUserNumber<2>& user)
+		void set_user_number(IUserData<number, 2>& user)
 		{
 			m_Number = user.get_functor();
 		}
@@ -51,25 +51,43 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 
 //	Base class
 	{
-		std::stringstream ss; ss << "IUserNumberProvider" << dim << "d";
-		reg.add_class_<IUserNumber<dim> >(ss.str().c_str(), grp.c_str());
+		std::stringstream ss; ss << "NumberIPData" << dim << "d";
+		reg.add_class_<IPData<number, dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	Base class
 	{
-		std::stringstream ss; ss << "IUserVectorProvider" << dim << "d";
-		reg.add_class_<IUserVector<dim> >(ss.str().c_str(), grp.c_str());
+		std::stringstream ss; ss << "VectorIPData" << dim << "d";
+		reg.add_class_<IPData<MathVector<dim>, dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	Base class
 	{
-		std::stringstream ss; ss << "IUserMatrixProvider" << dim << "d";
-		reg.add_class_<IUserMatrix<dim> >(ss.str().c_str(), grp.c_str());
+		std::stringstream ss; ss << "MatrixIPData" << dim << "d";
+		reg.add_class_<IPData<MathMatrix<dim,dim>, dim> >(ss.str().c_str(), grp.c_str());
 	}
 
 //	Base class
 	{
-		std::stringstream ss; ss << "IBoundaryNumberProvider" << dim << "d";
+		std::stringstream ss; ss << "IUserNumber" << dim << "d";
+		reg.add_class_<IUserData<number, dim>, IPData<number, dim> >(ss.str().c_str(), grp.c_str());
+	}
+
+//	Base class
+	{
+		std::stringstream ss; ss << "IUserVector" << dim << "d";
+		reg.add_class_<IUserData<MathVector<dim>, dim>, IPData<MathVector<dim>, dim> >(ss.str().c_str(), grp.c_str());
+	}
+
+//	Base class
+	{
+		std::stringstream ss; ss << "IUserMatrix" << dim << "d";
+		reg.add_class_<IUserData<MathMatrix<dim, dim>, dim>, IPData<MathMatrix<dim, dim>, dim> >(ss.str().c_str(), grp.c_str());
+	}
+
+//	Base class
+	{
+		std::stringstream ss; ss << "IBoundaryNumber" << dim << "d";
 		reg.add_class_<IBoundaryNumberProvider<dim> >(ss.str().c_str(), grp.c_str());
 	}
 
@@ -77,7 +95,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef ConstUserNumber<dim> T;
 		std::stringstream ss; ss << "ConstUserNumber" << dim << "d";
-		reg.add_class_<T, IUserNumber<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IPData<number, dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set | interactive=false", &T::set, "", "MyNumber || invokeOnChange=true")
 			.add_method("print", &T::print);
@@ -87,7 +105,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef ConstUserVector<dim> T;
 		std::stringstream ss; ss << "ConstUserVector" << dim << "d";
-		reg.add_class_<T, IUserVector<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserData<MathVector<dim>, dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_all_entries", &T::set_all_entries)
 			.add_method("set_entry", &T::set_entry)
@@ -98,7 +116,7 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 	{
 		typedef ConstUserMatrix<dim> T;
 		std::stringstream ss; ss << "ConstUserMatrix" << dim << "d";
-		reg.add_class_<T, IUserMatrix<dim> >(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, IUserData<MathMatrix<dim, dim>, dim> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_diag_tensor", &T::set_diag_tensor)
 			.add_method("set_all_entries", &T::set_all_entries)

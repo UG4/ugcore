@@ -93,6 +93,7 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 			m_MolDiffTensorFct(NULL), m_PermeabilityTensorFct(NULL), m_GravityFct(NULL)
 		{
 			register_assemble_functions(Int2Type<dim>());
+			register_export(m_DarcyVelExport);
 		}
 
 		void set_consistent_gravity(bool bUse) {m_UseConsistentGravity = bUse;}
@@ -228,6 +229,128 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 				const std::vector<MathVector<dim> >& vLocalGrad,
 				const std::vector<MathVector<dim> >& vLGlobalGrad);
 
+	protected:
+		template <typename TElem>
+		bool compute_darcy_export(const local_vector_type& u)
+		{
+		// 	Get finite volume geometry
+			static const TFVGeom<TElem, dim>& geo =
+						FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+
+		//	Number of Corners
+			typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+			static const size_t num_co = ref_elem_type::num_corners;
+
+		//	Prepare Consistent Gravity if needed
+			if(m_UseConsistentGravity)
+			{
+			// 	Prepare Density in Corners
+				if(!PrepareConsistentGravity<dim>(	&m_vConsGravity[0],
+													num_co,
+													&m_vCornerCoords[0],
+													&m_vDensity[0],
+													m_Gravity))
+				{
+					UG_LOG("ERROR in assemble_JA: Cannot "
+							"prepare Consistent Gravity.\n");
+					return false;
+				}
+
+			// 	Prepare DensityDerivative in Corners
+				number DCoVal[num_co];
+				memset(DCoVal, 0, sizeof(number)*num_co);
+
+				for(size_t sh = 0; sh < num_co; sh++)
+				{
+					DCoVal[sh] = m_vDDensity[sh];
+					if(!PrepareConsistentGravity<dim>(	&m_vvDConsGravity[sh][0],
+														num_co,
+														&m_vCornerCoords[0],
+														&DCoVal[0],
+														m_Gravity))
+					{
+						UG_LOG("ERROR in assemble_JA: Cannot "
+								"prepare Consistent Gravity.\n");
+						return false;
+					}
+					DCoVal[sh] = 0.0;
+				}
+			}
+
+			static const int refDim =
+					reference_element_traits<TElem>::reference_element_type::dim;
+
+			number c_ip;
+			MathVector<dim> grad_p_ip, grad_c_ip;	// Gradients
+
+			for(size_t s = 0; s < m_DarcyVelExport.num_series(); ++s)
+			{
+			//	currently only for FV1 elem dofs implemented
+				if(m_DarcyVelExport.template local_ips<refDim>(s) != geo.scvf_local_ips())
+				{
+					UG_LOG("ERROR in 'compute_darcy_export': Currently export"
+							" of Darcy Velocity only implemented for FV1 and"
+							"SCVF integration points.\n");
+					return false;
+				}
+
+		//	Loop Sub Control Volume Faces (SCVF)
+			size_t ip = 0;
+			for(size_t i = 0; i < geo.num_scvf(); ++i)
+			{
+			// 	Get current SCVF
+				const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
+
+			// 	Loop integration point of SCVF
+				for(size_t j = 0; j < scvf.num_ip(); ++j, ++ip)
+				{
+					///////////////////////////////////////////
+					// IP Values
+					///////////////////////////////////////////
+
+				//	Compute Gradients and concentration at ip
+					VecSet(grad_p_ip, 0.0); VecSet(grad_c_ip, 0.0); c_ip = 0.0;
+					for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+					{
+						VecScaleAppend(grad_p_ip, u(_P_,sh), scvf.global_grad(sh, j));
+						VecScaleAppend(grad_c_ip, u(_C_,sh), scvf.global_grad(sh, j));
+						c_ip += u(_C_, sh) * scvf.shape(sh, j);
+					}
+
+				//	Compute density and its derivative at ip
+					number rho_ip, DRho_ip;
+					if(!m_BoussinesqTransport || !m_BoussinesqFlow)
+					{
+						m_DensityFct(rho_ip, c_ip);
+						m_DDensityFct(DRho_ip, c_ip);
+					}
+
+					///////////////////////////////////////////
+					// Darcy Velocity at ip
+					///////////////////////////////////////////
+
+				//	Compute Darcy Velocity
+					compute_D_ip_Darcy_velocity(	m_DarcyVelExport.value(s, ip),
+					                            	m_DarcyVelExport.deriv(s, ip, _C_),
+					                            	m_DarcyVelExport.deriv(s, ip, _P_),
+													c_ip, grad_p_ip,
+													scvf.JTInv(j),
+													scvf.shape_vector(j),
+													scvf.local_grad_vector(j),
+													scvf.global_grad_vector(j));
+				}
+			}
+
+			}
+		//	we're done
+			return true;
+		}
+
+		DataExport<MathVector<dim>, dim, algebra_type> m_DarcyVelExport;
+
+	public:
+		IPData<MathVector<dim>, dim>& get_darcy_velocity() {return m_DarcyVelExport;}
+
 	private:
 		///////////////////////////////////////
 		// registering for reference elements
@@ -260,14 +383,19 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
-			register_prepare_element_loop_function(	id, &DensityDrivenFlowElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &DensityDrivenFlowElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &DensityDrivenFlowElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &DensityDrivenFlowElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &DensityDrivenFlowElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &DensityDrivenFlowElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &DensityDrivenFlowElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &DensityDrivenFlowElemDisc::template assemble_f<TElem>);
+			typedef DensityDrivenFlowElemDisc T;
+
+			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &T::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &T::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
+
+			m_DarcyVelExport.register_export_func(id, this, &T::template compute_darcy_export<TElem>);
+
 		}
 };
 

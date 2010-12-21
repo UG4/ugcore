@@ -721,8 +721,8 @@ class ConstFV1ConvectionDiffusionElemDisc :
 	public:
 		ConstFV1ConvectionDiffusionElemDisc()
 		{
-			set_diffusion_tensor(m_Diffusion);
-			set_velocity_field(m_Velocity);
+			set_diffusion(m_Diffusion);
+			set_velocity(m_Velocity);
 			set_reaction(m_Reaction);
 			set_rhs(m_Rhs);
 		}
@@ -1063,8 +1063,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
-			.add_method("set_diffusion_tensor", &T::set_diffusion_tensor)
-			.add_method("set_velocity_field", &T::set_velocity_field)
+			.add_method("set_diffusion_tensor", &T::set_diffusion)
+			.add_method("set_velocity_field", &T::set_velocity)
 			.add_method("set_reaction", &T::set_reaction)
 			.add_method("set_rhs", &T::set_rhs)
 			.add_method("set_upwind_amount", &T::set_upwind_amount);
@@ -1106,7 +1106,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_user_functions|interactive=false", &T2::set_user_functions,
 						"", "User Functions||invokeOnChange=true")
 			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
-						"", "Consistent Gravity||invokeOnChange=true");
+						"", "Consistent Gravity||invokeOnChange=true")
+			.add_method("get_darcy_velocity", &T2::get_darcy_velocity);
 	}
 
 //	ProlongationOperator
@@ -1466,7 +1467,7 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 				.add_constructor()
 				.add_method("clear", &FunctionGroup::clear)
 				.add_method("set_function_pattern", &FunctionGroup::set_function_pattern)
-				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add_function);
+				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add);
 		}
 
 	//  Add discrete function to pattern
@@ -1499,7 +1500,7 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 	{
 	case eCPUAlgebra:		 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUAlgebra, P1ConformDoFDistribution>(reg, parentGroup); break;
 //	case eCPUBlockAlgebra2x2: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<2>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
-//	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
+	case eCPUBlockAlgebra3x3: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<3>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 //	case eCPUBlockAlgebra4x4: 		bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUBlockAlgebra<4>, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 //	case eCPUVariableBlockAlgebra: 	bReturn &= RegisterLibDiscretizationInterfaceForAlgebra<CPUVariableBlockAlgebra, GroupedP1ConformDoFDistribution>(reg, parentGroup); break;
 	default: UG_ASSERT(0, "Unsupported Algebra Type");

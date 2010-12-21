@@ -18,7 +18,7 @@
 #include "lib_discretization/spatial_discretization/disc_helper/fvgeom.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/spatial_discretization/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
 
 namespace ug{
 

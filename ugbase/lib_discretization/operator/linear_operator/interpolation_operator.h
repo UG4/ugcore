@@ -14,7 +14,7 @@
 #include "lib_discretization/function_spaces/function_spaces.h"
 #include "lib_discretization/operator/operator.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_provider.h"
-#include "lib_discretization/spatial_discretization/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
 #include <boost/function.hpp>
 
 namespace ug{
@@ -159,11 +159,12 @@ bool InterpolateFunctionHelp(	boost::function<void (	number& res,
 }
 
 template <typename TGridFunction>
-bool InterpolateFunction(	IUserNumber<TGridFunction::domain_type::dim>& InterpolFunctionProvider,
+bool InterpolateFunction(	IUserData<number, TGridFunction::domain_type::dim>& InterpolFunctionProvider,
 							TGridFunction& u, const char* name, number time)
 {
 //	extract functor
-	typedef typename IUserNumber<TGridFunction::domain_type::dim>::functor_type functor_type;
+	static const int dim = TGridFunction::domain_type::dim;
+	typedef typename IUserData<number, dim>::functor_type functor_type;
 	functor_type InterpolFunction = InterpolFunctionProvider.get_functor();
 
 	return InterpolateFunctionHelp(InterpolFunction, u, name, time);

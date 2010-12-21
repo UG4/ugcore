@@ -12,7 +12,7 @@
 
 namespace ug{
 
-bool FunctionGroup::add_function(size_t fct)
+bool FunctionGroup::add(size_t fct)
 {
 	if(!is_init())
 	{
@@ -21,16 +21,23 @@ bool FunctionGroup::add_function(size_t fct)
 		return false;
 	}
 
+	if(fct >= m_pFunctionPattern->num_fct())
+	{
+		UG_LOG("Unique function ID " <<fct << " not conatined in underlying"
+		       " function pattern (with num_fct=" <<
+		       m_pFunctionPattern->num_fct() << ".\n");
+		return false;
+	}
+
 	std::vector<size_t>::iterator iter;
 	iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
-	if(iter != m_vFunction.end())
-		 {UG_LOG("Function already contained in FunctionGroup.\n");return false;}
+	if(iter != m_vFunction.end()) return true;
 
 	m_vFunction.push_back(fct);
 	return true;
 }
 
-bool FunctionGroup::add_function(const char* name)
+bool FunctionGroup::add(const char* name)
 {
 	if(!is_init())
 	{
@@ -47,16 +54,63 @@ bool FunctionGroup::add_function(const char* name)
 		if(strcmp (name, m_pFunctionPattern->name(fct)) == 0)
 		{
 			found++;
-			add_function(fct);
+			add(fct);
 		}
 	}
 
 // 	if not found, return false
-	if(found == 0) return false;
+	if(found == 0)
+	{
+		UG_LOG("No function with name found in underlying Function Pattern.\n");
+		return false;
+	}
 	return true;
 }
 
-bool FunctionGroup::remove_function(size_t fct)
+bool FunctionGroup::add(const FunctionGroup& fctGroup)
+{
+	if(!is_init())
+	{
+		UG_LOG("No FunctionPattern set. Cannot use "
+				"FunctionGroup without FunctionPattern.\n");
+		return false;
+	}
+
+	if(m_pFunctionPattern != fctGroup.get_function_pattern())
+	{
+		UG_LOG("Underlying function pattern does not match. Cannot"
+				" add function group. \n");
+		return false;
+	}
+
+	for(size_t i = 0; i < fctGroup.num_fct(); ++i)
+	{
+		add(fctGroup[i]);
+	}
+	return true;
+}
+
+bool FunctionGroup::add_all()
+{
+	if(!is_init())
+	{
+		UG_LOG("No FunctionPattern set. Cannot use "
+				"FunctionGroup without FunctionPattern.\n");
+		return false;
+	}
+
+	for(size_t i = 0; i < m_pFunctionPattern->num_fct(); ++i)
+		add(i);
+
+	return true;
+}
+
+void FunctionGroup::sort()
+{
+	std::sort(m_vFunction.begin(), m_vFunction.end());
+}
+
+bool FunctionGroup::remove(size_t fct)
 {
 	std::vector<size_t>::iterator iter;
 	iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
@@ -67,7 +121,7 @@ bool FunctionGroup::remove_function(size_t fct)
 	return true;
 }
 
-bool FunctionGroup::remove_function(const char* name)
+bool FunctionGroup::remove(const char* name)
 {
 	if(!is_init())
 	{
@@ -84,7 +138,7 @@ bool FunctionGroup::remove_function(const char* name)
 		if(strcmp (name, m_pFunctionPattern->name(fct)) == 0)
 		{
 			found++;
-			remove_function(fct);
+			remove(fct);
 		}
 	}
 
@@ -94,7 +148,7 @@ bool FunctionGroup::remove_function(const char* name)
 }
 
 ///	name of function
-const char* FunctionGroup::get_function_name(size_t i) const
+const char* FunctionGroup::name(size_t i) const
 {
 	if(!is_init())
 	{
@@ -129,7 +183,7 @@ LocalShapeFunctionSetID FunctionGroup::local_shape_function_set_id(size_t i) con
 }
 
 ///	dimension of function
-int FunctionGroup::get_function_dimension(size_t i) const
+int FunctionGroup::dim(size_t i) const
 {
 	if(!is_init())
 	{
@@ -146,7 +200,7 @@ int FunctionGroup::get_function_dimension(size_t i) const
 }
 
 ///	dimension of all functions in this group
-int FunctionGroup::get_function_dimension() const
+int FunctionGroup::dim() const
 {
 	if(!is_init())
 	{
@@ -158,25 +212,40 @@ int FunctionGroup::get_function_dimension() const
 //	without functions no dimension
 	if(num_fct() == 0) return -1;
 
-	int dim = get_function_dimension(0);
+	int d = dim(0);
 
 	for(size_t i = 0; i < num_fct(); ++i)
 	{
-		int test_dim = get_function_dimension(i);
-		if(dim != test_dim)
+		int test_dim = dim(i);
+		if(d != test_dim)
 			return -1;
 	}
 
-	return dim;
+	return d;
 }
 
-bool FunctionGroup::containes_function(size_t fct) const
+bool FunctionGroup::contains(size_t fct) const
 {
 	std::vector<size_t>::const_iterator iter;
 	iter = find(m_vFunction.begin(), m_vFunction.end(), fct);
 	if(iter == m_vFunction.end()) return false;
 	return true;
 }
+
+bool FunctionGroup::contains(const FunctionGroup& fctGroup) const
+{
+// 	loop all functions
+	for(size_t i = 0; i < fctGroup.num_fct(); ++i)
+	{
+	//	if one function is not contained, return false
+		if(!contains(fctGroup[i]))
+			return false;
+	}
+
+// 	all functions contained
+	return true;
+}
+
 
 size_t FunctionGroup::local_index(size_t fct) const
 {

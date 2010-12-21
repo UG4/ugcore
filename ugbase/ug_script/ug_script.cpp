@@ -94,9 +94,7 @@ lua_State* GetDefaultLuaState()
 			RegisterInfoCommands(scriptRegistry);
 
 		//	Register user functions
-			RegisterLuaUserNumber(scriptRegistry, "/ug4");
-			RegisterLuaUserVector(scriptRegistry, "/ug4");
-			RegisterLuaUserMatrix(scriptRegistry, "/ug4");
+			RegisterLuaUserData(scriptRegistry, "/ug4");
 
 		//	Register Boundary functions
 			RegisterLuaBoundaryNumber(scriptRegistry, "/ug4");

@@ -17,7 +17,7 @@
 #include "lib_discretization/spatial_discretization/disc_helper/disc_helper.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/spatial_discretization/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
 
 namespace ug{
 
@@ -96,7 +96,7 @@ class FVNeumannBoundaryElemDisc
 			}
 
 		//	forward request
-			return add_boundary_value(user, functionGroup.fct_id(0), subsetGroup);
+			return add_boundary_value(user, functionGroup.unique_id(0), subsetGroup);
 		}
 
 		bool add_boundary_value(IBoundaryNumberProvider<dim>& user, size_t fct, SubsetGroup bndSubsetGroup)
@@ -123,9 +123,9 @@ class FVNeumannBoundaryElemDisc
 		//	this will force, that the local vector contains the function
 		//	note: 	The local indices for allready contained functions are not changed.
 		//			Therefore an update in the UserDataFunctions is not necessary
-			if(!this->m_FunctionGroup.containes_function(fct))
+			if(!this->m_FunctionGroup.contains(fct))
 			{
-				this->m_FunctionGroup.add_function(fct);
+				this->m_FunctionGroup.add(fct);
 				m_numFct = this->m_FunctionGroup.num_fct();
 			}
 

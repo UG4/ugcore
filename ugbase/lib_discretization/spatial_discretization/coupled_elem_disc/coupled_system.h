@@ -161,7 +161,7 @@ class CoupledSystem {
 				for(size_t loc_fct = 0; loc_fct < sysFunctionGroup.num_fct(); ++loc_fct)
 				{
 					// todo: check that each function only once added (Does it make sense otherwise?)
-					m_FunctionGroup.add_function(sysFunctionGroup[loc_fct]);
+					m_FunctionGroup.add(sysFunctionGroup[loc_fct]);
 				}
 			}
 		}
