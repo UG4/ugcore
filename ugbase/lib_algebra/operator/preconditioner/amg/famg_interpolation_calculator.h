@@ -72,6 +72,9 @@ void GetNeighborhood(matrix_type &A, size_t node, vector<size_t> &onlyN1, vector
 template<typename matrix_type>
 class FAMGInterpolationCalculator
 {
+private:
+	FAMGInterpolationCalculator(const FAMGInterpolationCalculator<matrix_type> &other);
+
 public:
 	FAMGInterpolationCalculator(const matrix_type &A_) : A(A_)
 	{
@@ -79,13 +82,20 @@ public:
 	}
 
 
-	void GetPossibleParentPairs(size_t i, std::vector<neighborstruct2> &possible_neighbors, famg_nodeinfo &nodeinfo)
+	// get_possible_parent_pairs:
+	//---------------------------------------
+	/** calculates of an index i a list of interpolating parent pairs.
+	 * \param i						node index for which to calculate possible parent pairs
+	 * \param possible_neighbors	list of possible parent pairs
+	 * \param nodeinfo				info of the node. possibly set to coarse or fine.
+	 */
+	void get_possible_parent_pairs(size_t i, std::vector<neighborstruct2> &possible_neighbors, famg_nodeinfo &nodeinfo)
 	{
 		FAMG_LOG(2, "\n\n\n\n============================\n\n\n");
 		FAMG_LOG(2, "node " << i << "\n");
 
 
-		if(CalculateH(i))
+		if(get_H(i) == false)
 		{
 			FAMG_LOG(2, "node has no connections, set as fine\n");
 			nodeinfo.set_fine();
@@ -175,24 +185,24 @@ public:
 			swap(i_neighborpairs[0], i_neighborpairs[i_min]);
 
 			for(size_t j=0; j<i_neighborpairs.size(); j++)
-				//if(omega*i_neighborpairs[j].F <= f_min)
+				if(omega*i_neighborpairs[j].F <= f_min)
 					possible_neighbors.push_back(i_neighborpairs[j]);
 
-	#ifdef FAMG_PRINT_POSSIBLE_PARENTS
+	//#ifdef FAMG_PRINT_POSSIBLE_PARENTS
 			IF_FAMG_LOG(2)
 			{
 				UG_LOG(std::endl << i << ": onlyN1.size = " << onlyN1.size() << " f_min = " << f_min << std::endl);
 				UG_LOG(possible_neighbors.size() << " accepted pairs:" << std::endl);
 				for(size_t j=0; j<i_neighborpairs.size(); j++)
-		//				if(omega*i_neighborpairs[j].F <= f_min)
+					if(omega*i_neighborpairs[j].F <= f_min)
 						i_neighborpairs[j].print();
-		/*		FAMG_LOG(2, "not accepted pairs: " << std::endl);
+				FAMG_LOG(2, "not accepted pairs: " << std::endl);
 				for(size_t j=0; j<i_neighborpairs.size(); j++)
 					if(omega*i_neighborpairs[j].F > f_min)
-						i_neighborpairs[j].print();*/
+						i_neighborpairs[j].print();
 				UG_LOG(std::endl);
 			}
-	#endif
+	//#endif
 		}
 		else
 		{
@@ -202,27 +212,38 @@ public:
 		}
 	}
 
-	void GetAllNeighborsInterpolation(size_t i, matrix_type &P,	famg_nodes &rating, std::vector<int> &newIndex,
+	// get_all_neighbors_interpolation:
+	//---------------------------------------
+	/** calculates an interpolation of the node i, when i is interpolating by all his neighbors
+	 * if neighbors are fine, their interpolation form coarse nodes is used (indirect)
+	 * \param i		node index for which to calculate possible parent pairs
+	 * \param P		matrix for the interpolation
+	 * \
+	 */
+	void get_all_neighbors_interpolation(size_t i, matrix_type &P,	famg_nodes &rating, std::vector<int> &newIndex,
 					size_t &iNrOfCoarse, size_t &unassigned)
 	{
-		CalculateH(i);
+		get_H(i);
 
 		size_t i_index = onlyN1.size();
 		// get testvector
 		testvector.resize(onlyN1.size()+1);
 		get_testvector_constant(testvector, onlyN1, testvector[i_index], i);
 
-		DenseMatrix<VariableArray2<double> > &KKT = H;
+		vKKT.resize(onlyN1.size()+1, onlyN1.size()+1);
+		for(size_t r=0; r<onlyN1.size(); r++)
+			for(size_t c=0; c<onlyN1.size(); c++)
+				vKKT(r, c) = H(r,c);
 
 		 /*  KKT = 	( H     t ) ( q_i,nm )    ( -H e_i )
 		  *			( t^T   0 ) ( lambda )  = ( t[i]  ) */
 
 		for(size_t j=0; j < onlyN1.size(); j++)
 		{
-			KKT(i_index, j) = testvector[j];
-			KKT(j, i_index) = testvector[j];
+			vKKT(i_index, j) = testvector[j];
+			vKKT(j, i_index) = testvector[j];
 		}
-		KKT(i_index, i_index) = 0;
+		vKKT(i_index, i_index) = 0;
 
 		rhs.resize(onlyN1.size()+1);
 		for(size_t j=0; j < onlyN1.size(); j++)
@@ -231,16 +252,17 @@ public:
 
 
 		FAMG_LOG(3, "aggressive coarsening on node " << i << "\n")
-		IF_FAMG_LOG(3) KKT.maple_print("KKT");
+		IF_FAMG_LOG(3) vKKT.maple_print("KKT");
 		IF_FAMG_LOG(3) rhs.maple_print("rhs");
 
-		InverseMatMult(q, 1.0, KKT, rhs);
+		InverseMatMult(q, 1.0, vKKT, rhs);
 
 		IF_FAMG_LOG(3) q.maple_print("q");
 
 		t.resize(q.size());
-		MatMult(t, 1.0, H, q);
-		double F = VecDot(q, t);
+		// todo: calc F
+		//MatMult(t, 1.0, H, q);
+		double F = 0; //VecDot(q, t);
 
 		if(F > delta)
 		{
@@ -248,6 +270,7 @@ public:
 			newIndex[i] = iNrOfCoarse++;
 			P(i, newIndex[i]) = 1.0;
 			rating[i].set_coarse();
+			unassigned --;
 		}
 		else
 		{
@@ -262,6 +285,8 @@ public:
 						P(i, it.index()) += -q[j] * it.value();
 				}
 			}
+			rating[i].set_fine();
+			unassigned--;
 
 
 		}
@@ -269,7 +294,7 @@ public:
 
 
 private:
-	void GetH()
+	void calculate_H_from_S()
 	{
 		size_t i_index = onlyN1.size();
 		UG_ASSERT(S.num_cols() == S.num_rows(), "");
@@ -283,9 +308,9 @@ private:
 
 		// get SF = 1-wDF^{-1} A  (F-smoothing)
 		SF.resize(N);
-		double omegadiaginv = omega/S(i_index, i_index);
+		double diaginv = damping/S(i_index, i_index);
 		for(size_t j=0; j < N; j++)
-			SF[j] = - omegadiaginv * S(i_index, j);
+			SF[j] = - diaginv * S(i_index, j);
 		SF[i_index] += 1.0;
 
 		IF_FAMG_LOG(3) print_vector(SF, "SF");
@@ -295,7 +320,7 @@ private:
 		{
 			for(size_t c=0; c < N; c++)
 			{
-				S(r, c) = -omega*Dinv[r]*S(r,c);
+				S(r, c) = -damping*Dinv[r]*S(r,c);
 				if(r==c) S(r, c) += 1.0;
 			}
 		}
@@ -343,6 +368,8 @@ private:
 				H(r, c) = s;
 			}
 
+		IF_FAMG_LOG(3)	H.maple_print("H");
+
 		// get Hi[.] = H(i_index, .)
 		Hi.resize(onlyN1.size()+1);
 		for(size_t r=0; r < onlyN1.size()+1; r++)
@@ -355,7 +382,7 @@ private:
 
 		IF_FAMG_LOG(3) print_vector(Hi, "Hi");
 	}
-	bool CalculateH(size_t i)
+	bool get_H(size_t i)
 	{
 
 		GetNeighborhood(A, i, onlyN1, onlyN2, bvisited);
@@ -380,7 +407,7 @@ private:
 
 		//IF_FAMG_LOG(3) S.maple_print("\nsubA");
 
-		GetH();
+		calculate_H_from_S();
 
 		//IF_FAMG_LOG(3) H.maple_print("\nsubH");
 
@@ -410,6 +437,7 @@ private:
 	std::vector<size_t> onlyN1;
 	std::vector<size_t> onlyN2, N2;
 
+	DenseMatrix<VariableArray2<double> > vKKT;
 
 	const matrix_type &A;
 

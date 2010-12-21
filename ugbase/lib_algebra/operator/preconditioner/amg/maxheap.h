@@ -26,6 +26,9 @@ namespace ug{
 template<typename T>
 class maxheap
 {
+private:
+	maxheap(const maxheap<T> *other);
+
 public:
 	maxheap()
 	{
@@ -35,18 +38,18 @@ public:
 		m_posinheap = NULL;
 		m_size = 0;
 	}
+
+
 	/** constructor
 	 * \param	n		maximal number of elements
 	 * \param	arr_	array with elements which are to compare. note that non of these are in the heap in the beginning
 	 */
 	maxheap(int n, T *arr_)
 	{
-		m_arr = arr_;
-		m_height = 0;
-		m_heap = new int[n];
-		m_posinheap = new int[n];
-		for(int i=0; i<n; i++) m_posinheap[i] = -1;
-		m_size = n;
+		m_size = 0;
+		m_heap = NULL;
+		m_posinheap = NULL;
+		create(n, arr_);
 	}
 	//! deconstructor
 	~maxheap()
@@ -63,8 +66,8 @@ public:
 	{
 		if(m_size != n)
 		{
-			delete[] m_heap;
-			delete [] m_posinheap;
+			if(m_heap) delete [] m_heap; m_heap = NULL;
+			if(m_posinheap) delete [] m_posinheap; m_posinheap = NULL;
 			m_heap = new int[n];
 			m_posinheap = new int[n];
 		}
@@ -74,6 +77,7 @@ public:
 		m_arr = arr_;
 		m_height = 0;
 		for(int i=0; i<n; i++) m_posinheap[i] = -1;
+		for(int i=0; i<n; i++) m_heap[i] = -1;
 		m_size = n;
 		
 	}
@@ -90,10 +94,13 @@ public:
 	//! \param i index of item in m_arr
 	void insert_item(int i)
 	{
-		UG_ASSERT(m_height < m_size, "more elements added than there are in the external array. double adds?");
-		m_posinheap[i] = m_height;
-		m_heap[m_height] = i;
-		m_height++;
+		if(!is_in(i))
+		{
+			UG_ASSERT(m_height < m_size, "more elements added than there are in the external array. double adds?");
+			m_posinheap[i] = m_height;
+			m_heap[m_height] = i;
+			m_height++;
+		}
 		upheap(i);
 	}
 
@@ -101,11 +108,13 @@ public:
 	//! removes index i in m_arr
 	void remove(int i)
 	{
-		if(m_posinheap[i] == -1) return;
+		if(!is_in(i)) return;
 		int j = m_heap[m_height-1];
 		myswap(i, j);
+		m_heap[m_height-1] = -1;
 		m_height--;
 		m_posinheap[i] = -1;
+
 
 		downheap(j);
 	}
@@ -135,13 +144,18 @@ public:
 	 */
 	void update(int i)
 	{
-		if(m_posinheap[i] == -1) return;
+		if(!is_in(i)) return;
 		if(m_arr[i] > m_arr[parent(i)])
 			upheap(i);
 		else
 			downheap(i);
 	}
 	
+	bool is_in(size_t i)
+	{
+		return m_posinheap[i] != -1;
+	}
+
 
 	//!
 	//! debug print output

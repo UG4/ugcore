@@ -24,6 +24,9 @@ namespace ug{
 template<typename T>
 class BoxSort
 {
+private:
+	BoxSort(const BoxSort<T> &other);
+
 public:
 	BoxSort() : arr(NULL), box(), posInBox(NULL), values(NULL), m_size(0), m_height(0)
 	{

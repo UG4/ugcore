@@ -146,7 +146,7 @@ bool amg_base<TAlgebra>::init()
 		if(L < 1000)	break; // abbruch falls density > 50%
 #else
 		UG_LOG("Late Coarse Solver\n");
-		if(L < 10)	break;
+		if(L < 100)	break;
 #endif
 		//smoother[level].init(*A[level]);
 
@@ -165,15 +165,15 @@ bool amg_base<TAlgebra>::init()
 		int nnzCoarse = A[level+1]->total_num_connections();
 		double nrOfFine = A[level]->num_rows();
 		double nrOfCoarse = A[level+1]->num_rows();
-		UG_LOG(std::endl << "AH: nnz: " << nnzCoarse << " Density: " <<
+		UG_LOG("AH: nnz: " << nnzCoarse << " Density: " <<
 				nnzCoarse/(nrOfCoarse*nrOfCoarse)*100.0 << "%, avg. nnz pre row: " << nnzCoarse/nrOfCoarse << std::endl);
 
-		UG_LOG("Coarsening rate: " << (100.0*nnzCoarse)/nrOfFine << "%" << std::endl);
+		UG_LOG("Coarsening rate: " << (100.0*nrOfCoarse)/nrOfFine << "%" << std::endl);
 
-		UG_LOG(" level took " << SWwhole.ms() << " ms" << std::endl);
+		UG_LOG(" level took " << SWwhole.ms() << " ms" << std::endl << std::endl);
 
 	#ifdef AMG_WRITE_MATRICES_PATH
-		if(this->A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
+	/*	if(this->A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
 		{
 			UG_LOG("write matrices");
 			AMGWriteToFile(P[level], level+1, level, (string(AMG_WRITE_MATRICES_PATH) + "P" + ToString(level) + ".mat").c_str(), amghelper);
@@ -182,7 +182,7 @@ bool amg_base<TAlgebra>::init()
 			UG_LOG(".");
 			AMGWriteToFile(*A[level+1], level+1, level+1, (string(AMG_WRITE_MATRICES_PATH) + "A" + ToString(level+1) + ".mat").c_str(), amghelper);
 			UG_LOG(". done.\n");
-		}
+		}*/
 	#endif
 
 		create_level_vectors(level);
