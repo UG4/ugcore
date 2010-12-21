@@ -21,6 +21,28 @@
 
 namespace ug{
 
+/// Finite Volume Element Discretization for the Convection-Diffusion Equation
+/**
+ * This class implements the IElemDisc interface to provide element local
+ * assemblings for the convection diffusion equation.
+ * The Equation has the form
+ * \f[
+ * 	\partial_t c - \nable \left( D \nabla c - \vec{v} c \right) + r \cdot c
+ * 		= f
+ * \f]
+ * with
+ * <ul>
+ * <li>	\f$ c \f$ is the unknown solution
+ * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
+ * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
+ * <li>	\f$ r \equiv r(\vec{x},t) \f$ is the Reaction Term
+ * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
+ * </ul>
+ *
+ * \tparam	TFVGeom		Finite Volume Geometry used
+ * \tparam	TDomain		Domain
+ * \tparam	TAlgebra	Algebra
+ */
 template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
@@ -28,36 +50,29 @@ class FVConvectionDiffusionElemDisc
 	: public IElemDisc<TAlgebra>
 {
 	public:
-	// 	Domain type
+	///	Domain type
 		typedef TDomain domain_type;
 
-	// 	World dimension
+	///	World dimension
 		static const int dim = TDomain::dim;
 
-	// 	Position type
+	///	Position type
 		typedef typename TDomain::position_type position_type;
 
-	// 	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	// 	Local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type> local_matrix_type;
+	///	Local matrix type
+		typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
 
-	// 	Local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
+	///	Local vector type
+		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
 
-	// 	Local index type
-		typedef LocalIndices local_index_type;
-
-	protected:
-	//	Functor type for Diffusion
-	//	typedef typename  IUserData<MathMatrix<dim, dim>, dim>::functor_type DiffusionFunctor;
-
-	//	Functor type for Convection Velocity
-	//	typedef typename  IUserData<MathVector<dim>, dim>::functor_type VelocityFunctor;
+	///	Local index type
+		typedef typename IElemDisc<TAlgebra>::local_index_type local_index_type;
 
 	public:
-	//	Constructor
+	///	Constructor
 		FVConvectionDiffusionElemDisc()
 		 : m_pDomain(NULL), m_upwindAmount(0.0)
 			{
@@ -71,48 +86,110 @@ class FVConvectionDiffusionElemDisc
 				register_import(m_Rhs);
 			}
 
+	///	set the amount of upwind
+	/**
+	 * This method sets the amount of upwind to use for the velocity
+	 * discretization. A value of 0.0 gives a central scheme, while
+	 * 1.0 corresponds to full upwinding.
+	 *
+	 * \param	amount		Amount of upwind
+	 */
 		void set_upwind_amount(number amount) {m_upwindAmount = amount;}
+
+	///	sets the domain
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
+	///	sets the diffusion tensor
+	/**
+	 * This method sets the Diffusion tensor used in computations. If no
+	 * Tensor is set, a zero value is assumed.
+	 */
 		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_Diff.set_data(user);}
+
+	///	sets the velocity field
+	/**
+	 * This method sets the Velocity field. If no field is provided a zero
+	 * value is assumed.
+	 */
 		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_ConvVel.set_data(user);}
+
+	///	sets the reaction
+	/**
+	 * This method sets the Reaction. A zero value is assumed as default.
+	 */
 		void set_reaction(IPData<number, dim>& user) {m_Reaction.set_data(user);}
+
+	///	sets the right-hand side
+	/**
+	 * This method sets the right hand side value. A zero value is assumed as
+	 * default.
+	 */
 		void set_rhs(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
 
+	public:
+	///	number of functions used
 		virtual size_t num_fct(){return 1;}
 
+	///	type of trial space for each function used
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct)
 		{
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
+	///	returns if hanging nodes are used
 		virtual bool use_hanging() const {return TFVGeom<Edge, dim>::usesHangingNodes;}
 
 	private:
+	///	prepares the loop over all elements
+	/**
+	 * This method prepares the loop over all elements. It resizes the Position
+	 * array for the corner coordinates and schedules the local ip positions
+	 * at the data imports.
+	 */
 		template <typename TElem>
 		inline bool prepare_element_loop();
 
+	///	prepares the element for assembling
+	/**
+	 * This methods prepares an element for the assembling. The Positions of
+	 * the Element Corners are read and the Finite Volume Geometry is updated.
+	 * The global ip positions are scheduled at the data imports.
+	 */
 		template <typename TElem>
-		inline bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
+		inline bool prepare_element(TElem* elem,
+		                            const local_vector_type& u,
+		                            const local_index_type& glob_ind);
 
+	///	finishes the loop over all elements
 		template <typename TElem>
 		inline bool finish_element_loop();
 
+	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem>
-		inline bool assemble_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0);
+		inline bool assemble_JA(local_matrix_type& J,
+		                        const local_vector_type& u, number time=0.0);
 
+	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem>
-		inline bool assemble_JM(local_matrix_type& J, const local_vector_type& u, number time=0.0);
+		inline bool assemble_JM(local_matrix_type& J,
+		                        const local_vector_type& u, number time=0.0);
 
+	///	assembles the stiffness part of the local defect
 		template <typename TElem>
-		inline bool assemble_A(local_vector_type& d, const local_vector_type& u, number time=0.0);
+		inline bool assemble_A(local_vector_type& d,
+		                       const local_vector_type& u, number time=0.0);
 
+	///	assembles the mass part of the local defect
 		template <typename TElem>
-		inline bool assemble_M(local_vector_type& d, const local_vector_type& u, number time=0.0);
+		inline bool assemble_M(local_vector_type& d,
+		                       const local_vector_type& u, number time=0.0);
 
+	///	assembles the local right hand side
 		template <typename TElem>
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
+	protected:
+	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem>
 		bool lin_defect_velocity(const local_vector_type& u)
 		{
@@ -164,36 +241,41 @@ class FVConvectionDiffusionElemDisc
 		}
 
 	private:
-		// domain
+	///	Domain
 		TDomain* m_pDomain;
 
-		// position access
+	///	Corner Coordinates
 		std::vector<position_type> m_vCornerCoords;
+
+	///	position accessor
 		typename TDomain::position_accessor_type m_aaPos;
 
-		// to make it more readable
+	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
 
-		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
+	/// Amount of upwind (1.0 == full upwind, 0.0 == no upwind)
 		number m_upwindAmount;
 
-		// User functions
+	///	Data import for Diffusion
 		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_Diff;
+
+	///	Data import for the Velocity field
 		DataImport<MathVector<dim>, dim, algebra_type > m_ConvVel;
+
+	///	Data import for the reaction term
 		DataImport<number, dim, algebra_type> m_Reaction;
+
+	///	Data import for the right-hand side
 		DataImport<number, dim, algebra_type> m_Rhs;
 
 	private:
-		///////////////////////////////////////
-		// registering for reference elements
-		///////////////////////////////////////
-		// register for 1D
+	/// register for 1D
 		void register_assemble_functions(Int2Type<1>)
 		{
 			register_all_assemble_functions<Edge>(ROID_EDGE);
 		}
 
-		// register for 2D
+	/// register for 2D
 		void register_assemble_functions(Int2Type<2>)
 		{
 			register_assemble_functions(Int2Type<1>());
@@ -201,7 +283,7 @@ class FVConvectionDiffusionElemDisc
 			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
 		}
 
-		// register for 3D
+	/// register for 3D
 		void register_assemble_functions(Int2Type<3>)
 		{
 			register_assemble_functions(Int2Type<2>());
@@ -211,7 +293,7 @@ class FVConvectionDiffusionElemDisc
 			register_all_assemble_functions<Hexahedron>(ROID_HEXAHEDRON);
 		}
 
-		// help function
+	///	register all functions for on element type
 		template <typename TElem>
 		void register_all_assemble_functions(int id)
 		{
@@ -226,9 +308,9 @@ class FVConvectionDiffusionElemDisc
 			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
 			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
 
+		//	set computation of linearized defect w.r.t velocity
 			m_ConvVel.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem>);
 		}
-
 };
 
 }
