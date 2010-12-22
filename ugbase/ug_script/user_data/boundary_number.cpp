@@ -26,17 +26,24 @@ class LuaBoundaryNumber : public IBoundaryNumberProvider<dim>
 		LuaBoundaryNumber()
 		{
 			m_L = ug::script::GetDefaultLuaState();
+			m_callbackRef = LUA_NOREF;
 		}
+
+		virtual ~LuaBoundaryNumber()	{}
 
 		void set_lua_callback(const char* luaCallback)
 		{
-		//	Todo: Work on function pointer directly
 			m_callbackName = luaCallback;
+		//	store the callback function in the registry and obtain a reference.
+			lua_getglobal(m_L, m_callbackName);
+			m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
 		}
 
 		bool operator() (number& c, const MathVector<dim>& x, number time = 0.0)
 		{
-			lua_getglobal(m_L, m_callbackName);
+		//	push the callback function on the stack
+			lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
+
 			for(size_t i = 0; i < dim; ++i)
 				lua_pushnumber(m_L, x[i]);
 			lua_pushnumber(m_L, time);
@@ -56,6 +63,7 @@ class LuaBoundaryNumber : public IBoundaryNumberProvider<dim>
 
 	protected:
 		const char* m_callbackName;
+		int m_callbackRef;
 		lua_State*	m_L;
 };
 

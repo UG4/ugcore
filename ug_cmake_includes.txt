@@ -37,7 +37,7 @@
 # - NO_LAPACK: Disable LAPACK libraries
 # - NO_BLAS: Disable BLAS libraries
 # - LOG_TO_FILE: Redirects all output to file
-# - UG_PROFILE: Enables the ug-profiler.
+# - UG_PROFILER: Enables the ug-profiler.
 #
 # To enable or disable options during the cmake call, call cmake like this:
 # cmake -DUG_DEBUG=ON -DNO_MPI=OFF SomePath
@@ -84,7 +84,7 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
     OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
 	OPTION(NO_SHELL "Disables building of the ugshell app.")
 	OPTION(LOG_TO_FILE "redirects all output to a file")
-	OPTION(UG_PROFILE "enables the ug-profiler")
+	OPTION(UG_PROFILER "enables the ug-profiler")
 
 	#######################
 	# include ug header and library path
@@ -134,12 +134,16 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	if(LOG_TO_FILE)
 		message(STATUS "INFO: Logging to file (Disable by defining -DLOG_TO_FILE=OFF)")
 		add_definitions(-DUG_LOG_TO_FILE)
+	else(LOG_TO_FILE)
+		message(STATUS "INFO: Logging to terminal (Disable by defining -DLOG_TO_FILE=ON)")
 	endif(LOG_TO_FILE)
 
 	# Check whether the profiler is activated.
 	if(UG_PROFILER)
 		message(STATUS "INFO: Using profiler (Disable by defining -DUG_PROFILER=OFF)")
 		add_definitions(-DUG_PROFILER)
+	else(UG_PROFILER)
+		message(STATUS "INFO: Not using profiler (Enable by defining -DUG_PROFILER=ON)")
 	endif(UG_PROFILER)
 
 	#######################
