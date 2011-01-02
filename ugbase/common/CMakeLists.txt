@@ -10,9 +10,10 @@ include_directories(${P_UGBASE_SOURCE_DIR})
 
 set(srcCommon	log.cpp
 				allocators/small_object_allocator.cpp
-                	util/string_util.cpp
+                util/string_util.cpp
 				util/loader/loader_util.cpp
 				util/loader/loader_obj.cpp
+				util/ostream_util.cpp
 				util/stream_pack.cpp
 				math/math_vector_matrix/math_matrix.cpp
 				math/math_vector_matrix/math_vector.cpp

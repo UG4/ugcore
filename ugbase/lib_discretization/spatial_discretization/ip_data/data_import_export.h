@@ -23,6 +23,7 @@ class IDataExport
 	public:
 	///	Constructor
 		IDataExport() : m_id(-1), m_pObj(NULL) {}
+		~IDataExport()	{}
 
 	/// clear ips
 		virtual void clear_ips_virt() = 0;
@@ -217,6 +218,7 @@ class IDataImport
 	public:
 	/// Constructor
 		IDataImport() : m_pIDataExport(NULL), m_id(-1) {}
+		virtual ~IDataImport()	{}
 
 	/// returns if data is set
 		virtual bool data_set() const = 0;

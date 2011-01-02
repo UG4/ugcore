@@ -148,16 +148,22 @@ bool FindParam(const char* param, int argc, char* argv[]) {
 }
 
 ////////////////////////////////////////////////////////////////////////
-/**	searches argv for the given parameter, and converts the
- *	associated value to an integer. Returns true if the parameter was
- *	found, false if not.
- */
 bool ParamToInt(int& iOut, const char* param, int argc, char* argv[]) {
 	int i = GetParamIndex(param, argc, argv);
 	if (i == -1 || i + 1 >= argc) {
 		return false;
 	}
 	iOut = atoi(argv[i + 1]);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
+bool ParamToString(char** strOut, const char* param, int argc, char* argv[]) {
+	int i = GetParamIndex(param, argc, argv);
+	if (i == -1 || i + 1 >= argc) {
+		return false;
+	}
+	*strOut = argv[i + 1];
 	return true;
 }
 

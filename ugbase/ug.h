@@ -74,6 +74,16 @@ bool FindParam(const char* param, int argc, char* argv[]);
  */
 bool ParamToInt(int& iOut, const char* param, int argc, char* argv[]);
 
+////////////////////////////////////////////////////////////////////////
+/**	searches argv for the given parameter, and returns the
+ *	associated string (the argv directly following param).
+ *	associated Returns true if the parameter was found, false if not.
+ *
+ *	Please note that spaces may not be contained in the associated string.
+ */
+bool ParamToString(char** strOut, const char* param, int argc, char* argv[]);
+
+
 }//	end of namespace
 
 #endif

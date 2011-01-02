@@ -2,12 +2,13 @@
  * log_impl.h
  *
  *  Created on: 10.03.2010
- *      Author: andreasvogel
+ *      Author: andreasvogel, sebastianreiter
  */
 
 #ifndef __H__COMMON__LOG_IMPL__
 #define __H__COMMON__LOG_IMPL__
 
+#include <iostream>
 
 namespace ug{
 
@@ -16,11 +17,7 @@ std::ostream&
 LogAssistant::
 debug_logger()
 {
-	#ifdef UG_LOG_TO_FILE
-	return file_logger();
-	#else
-	return std::cout;
-	#endif
+	return std::clog;
 }
 
 inline
@@ -28,11 +25,7 @@ std::ostream&
 LogAssistant::
 logger()
 {
-	#ifdef UG_LOG_TO_FILE
-	return file_logger();
-	#else
-	return std::cout;
-	#endif
+	return std::clog;
 }
 
 inline
@@ -48,8 +41,7 @@ inline
 LogAssistant&
 GetLogAssistant()
 {
-	static LogAssistant log;
-	return log;
+	return LogAssistant::instance();
 }
 
 } // end namespace ug

@@ -2,7 +2,7 @@
  * log.h
  *
  *  Created on: 10.03.2010
- *      Author: andreasvogel
+ *      Author: andreasvogel, sebastianreiter
  */
 
 #ifndef __H__COMMON__LOG__
@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <fstream>
+#include "util/ostream_util.h"
 
 //	in order to support parallel logs, we're including pcl.h
 //	you can set the output process using pcl::SetOutputProcRank(int rank).
@@ -25,9 +26,8 @@
 #endif
 
 namespace ug{
-
-/* LogAssistant
- *
+// LogAssistant
+/**
  * This class provides infrastructure for logging. It separates the log messages in different levels:
  *
  * logger() returns the output stream for normal User information output.
@@ -35,6 +35,9 @@ namespace ug{
  *
  * Debug messages are grouped by tags and debug levels. It is intended, that only messages are printed,
  * when the current level is equal or greater than the debug level chosen in the code.
+ *
+ * Please note that this class operates on std::clog. Thus, if output-options are changed
+ * (e.g. file-logging enabled) the stream buffer on which clog operates will change too.
  */
 class LogAssistant
 {
@@ -65,30 +68,64 @@ class LogAssistant
 		};
 
 	public:
-		// Constructor, resets all debug levels to -1
-		LogAssistant();
+	///	returns a reference to the single instance of LogAssistant
+		static LogAssistant& instance();
 
-		// returns the debug output stream
+	/// enables or disables file output.
+	/** a filename can be specified. Default is 'uglog.log'.
+	 *	Please note that only the filename given at the first call is considered.
+	 *	Filelogging is disabled by default.
+	 */
+		bool enable_file_output(bool bEnable, const char* filename = "uglog.log");
+
+	///	enables or disables terminal output.
+	/**	terminal output is enbled by default.*/
+		bool enable_terminal_output(bool bEnable);
+
+	/// returns the debug output stream
 		inline std::ostream& debug_logger();
 
-		// returns the normal output stream
+	/// returns the normal output stream
 		inline std::ostream& logger();
 
-		// sets the debug level of all tags to 'lev'
+	/// sets the debug level of all tags to 'lev'
 		bool set_debug_levels(int lev);
 
-		// sets the debug level of Tag 'tag' to level 'lev'
+	/// sets the debug level of Tag 'tag' to level 'lev'
 		bool set_debug_level(Tags tags, int lev);
 
-		// returns the debug level of Tag 'tag'
+	/// returns the debug level of Tag 'tag'
 		inline int get_debug_level(Tags tag);
 
 	protected:
-		// returns a file output stream for file logging (is used by logger(), debug_logger())
-		std::ostream& file_logger();
+	///	updates and sets stream buffers based on current options.
+	/**	Note that this method changes the buffer on which clog works.*/
+		void update_ostream();
 
-	protected:
-		// debug levels of tags
+	private:
+	/// Constructor, resets all debug levels to -1
+	/**	Constructor is private since only one instance of LogAssistant may exist.*/
+		LogAssistant();
+
+	///	Prevent copying through private copy constructor.
+		LogAssistant(const LogAssistant& la)	{}
+
+	private:
+	//	streams
+		std::streambuf*	m_emptyBuf;
+		std::streambuf*	m_logBuf;
+		std::streambuf*	m_fileBuf;
+		std::streambuf*	m_splitBuf;
+
+		OStreamBufferEmpty		m_emptyBufInst;
+		OStreamBufferSplitter	m_splitBufInst;
+
+		std::ofstream			m_fileStream;
+
+		bool m_terminalOutputEnabled;
+		bool m_fileOutputEnabled;
+
+	/// debug levels of tags
 		int m_TagLevel[NUM_TAGS];
 };
 

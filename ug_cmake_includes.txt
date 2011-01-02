@@ -36,7 +36,6 @@
 # - NO_FORTRAN: Disables Fortran (Fortran may be needed to find LAPACK)
 # - NO_LAPACK: Disable LAPACK libraries
 # - NO_BLAS: Disable BLAS libraries
-# - LOG_TO_FILE: Redirects all output to file
 # - UG_PROFILER: Enables the ug-profiler.
 #
 # To enable or disable options during the cmake call, call cmake like this:
@@ -83,7 +82,6 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 	OPTION(NO_BLAS "Disable BLAS")
     OPTION(FOR_VRL "Disables vrl-bindings. Important if no java environment exists.")
 	OPTION(NO_SHELL "Disables building of the ugshell app.")
-	OPTION(LOG_TO_FILE "redirects all output to a file")
 	OPTION(UG_PROFILER "enables the ug-profiler")
 
 	#######################
@@ -129,14 +127,6 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
 		# otherwise it gets compiled as 64bit on Snow Leopard Systems
 	endif(FORCE_32)
-
-	# Check whether log to file is activated.
-	if(LOG_TO_FILE)
-		message(STATUS "INFO: Logging to file (Disable by defining -DLOG_TO_FILE=OFF)")
-		add_definitions(-DUG_LOG_TO_FILE)
-	else(LOG_TO_FILE)
-		message(STATUS "INFO: Logging to terminal (Disable by defining -DLOG_TO_FILE=ON)")
-	endif(LOG_TO_FILE)
 
 	# Check whether the profiler is activated.
 	if(UG_PROFILER)

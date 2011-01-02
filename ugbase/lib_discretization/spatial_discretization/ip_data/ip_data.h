@@ -119,7 +119,7 @@ class IIPData
 		virtual void compute(bool compDeriv = false) = 0;
 
 	///	virtual desctructor
-		~IIPData() {};
+		virtual ~IIPData() {};
 
 	protected:
 	///	callback to adjust global ips and data
