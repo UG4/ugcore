@@ -198,7 +198,7 @@ AlphaMatVec_X_Expression<L, operation_sub, R> operator - (const TE_AMV_X<L> &l, 
 
 //! create a MatVec_Expression by (alpha*MATRIX) * VECTOR
 template<typename L, typename R>
-MatVec_Expression <L, R>  operator * (const AlphaMat_Expression<L> &l, const R &r) \
+MatVec_Expression <L, R>  operator * (const AlphaMat_Expression<L> &l, const R &r)
 {
 	return MatVec_Expression<L, R> (l.alpha*getScaling(r), l.r, getVector(r));
 }
