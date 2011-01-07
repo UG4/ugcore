@@ -85,7 +85,7 @@ public:
 			const famg_nodeinfo &ninfo = nodes[M[i].from];
 			if(ninfo.is_fine())
 			{
-				FAMG_LOG(2, " pair " << M[0].from << ", " << M[1].from << " is invalid, since " << M[i].from << " is fine. ");
+				FAMG_LOG(2, " pair " << GetOriginalIndex(M[0].from) << ", " << GetOriginalIndex(M[1].from) << " is invalid, since " << GetOriginalIndex(M[i].from) << " is fine. ");
 				return -1;
 			}
 			/*else if(ninfo.is_uninterpolateable())
@@ -207,7 +207,7 @@ void GetRatings(std::vector<std::vector<neighborstruct> > &possible_neighbors,
 	FAMG_LOG(2, "\nGetRatings...\n\n");
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		FAMG_LOG(2, "node " << i << ": ");
+		FAMG_LOG(2, "node " << GetOriginalIndex(i) << ": ");
 		if(nodes[i].rating == 0)
 		{
 			nodes.update_rating(i, possible_neighbors[i]);

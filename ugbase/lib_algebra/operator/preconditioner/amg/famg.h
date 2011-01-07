@@ -52,6 +52,9 @@ public:
 	typedef amg_base<TAlgebra> super;
 	using super::amghelper;
 	using super::parentIndex;
+	using super::m_writeMatrices;
+	using super::m_writeMatrixPath;
+
 public:
 //	Algebra type
 	typedef TAlgebra algebra_type;
@@ -78,14 +81,29 @@ public:
 	virtual const char* name() const {return "FAMGPreconditioner";}
 	void tostring() const;
 
+	void set_aggressive_coarsening(bool bAggressiveCoarsening) { m_bAggressiveCoarsening = bAggressiveCoarsening; }
+	void set_damping_for_smoother_in_interpolation_calculation(double dDampingForSmootherInInterpolationCalculation)
+	{
+		m_dDampingForSmootherInInterpolationCalculation = dDampingForSmootherInInterpolationCalculation;
+	}
+
+	void set_delta(double delta) { m_delta = delta; }
+	void set_theta(double theta) { m_theta = theta; }
+
 private:
 //  functions
 	virtual void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 							SparseMatrix<double> &P, int level);
 
+	void c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix<double> &R, const SparseMatrix<double> &A,
+			SparseMatrix<double> &P, int level);
+
 private:
 // data
-	double eps_truncation_of_interpolation;		///< parameter used for truncation of interpolation
+	bool m_bAggressiveCoarsening;
+	double m_dDampingForSmootherInInterpolationCalculation;
+	double m_delta;								///< "Interpolation quality" F may not be worse than this (F < m_delta)
+	double m_theta;								///< clip all interpolations with m_theta * F > min F.
 
 };
 

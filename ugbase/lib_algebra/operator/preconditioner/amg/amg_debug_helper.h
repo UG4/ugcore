@@ -31,7 +31,7 @@ struct cAMG_helper
 	int GetOriginalIndex(int level, int i) const
 	{
 		while(level > 0)
-			i = parentIndex[level--][i];
+			i = (*parentIndex)[level--][i];
 		return i;
 	}
 
@@ -65,7 +65,7 @@ struct cAMG_helper
 	const MathVector<3> *positions; ///< positions on the AMG grid 0
 	int size;						///< nr of positions
 	int dimension;					///< dimension (2 or 3)
-	int **parentIndex;				///< parentIndex[L][i] is the index of i on level L-1
+	std::vector< std::vector<int> > *parentIndex;				///< (*parentIndex)[L][i] is the index of i on level L-1
 };
 
 } // namespace ug

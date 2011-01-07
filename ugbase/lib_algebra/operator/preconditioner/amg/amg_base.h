@@ -31,8 +31,6 @@ std::string ToString(const T &t)
 
 namespace ug{
 
-#define AMG_MAX_LEVELS 32
-
 
 template <typename TAlgebra>
 class amg_base:
@@ -94,20 +92,38 @@ public:
 */
 	int get_nr_of_used_levels() { return used_levels; }
 
+	bool check_level(vector_type &c, vector_type &d, size_t level);
+	bool check(const vector_type &const_c, const vector_type &const_d);
 //  data
 
 	void set_num_presmooth(int new_presmooth) { m_numPreSmooth = new_presmooth; } // nu1
 	void set_num_postsmooth(int new_postsmooth) { m_numPostSmooth = new_postsmooth; } // nu2
-	void set_cycle_type(int new_cycletype) { m_cycleType = new_cycletype; UG_ASSERT(m_cycleType == 1, "only cycle type 1 supported"); } // gamma
+	void set_cycle_type(int new_cycletype) { m_cycleType = new_cycletype; } // gamma
 
 	void set_max_levels(int new_max_levels)
 	{
 		max_levels = new_max_levels;
-		UG_ASSERT(max_levels <= AMG_MAX_LEVELS, "Currently only " << AMG_MAX_LEVELS << " level supported.\n");
 	}
 	void set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
 	void set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
 	void set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
+
+	void set_fsmoothing(double fdamping) { m_fDamp = fdamping; }
+
+	void set_max_nodes_for_exact(int newMaxNodesForExact)
+	{
+		m_maxNodesForExact = newMaxNodesForExact;
+	}
+	void set_max_fill_before_exact(double newMaxFillBeforeExact)
+	{
+		m_maxFillBeforeExact = newMaxFillBeforeExact;
+	}
+
+	void set_matrix_write_path(const char *path)
+	{
+		m_writeMatrixPath = path;
+		m_writeMatrices = true;
+	}
 
 	void set_debug_positions(const MathVector<2> *pos, size_t size)
 	{
@@ -147,6 +163,7 @@ protected:
 	virtual void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 								SparseMatrix<double> &P, int level) = 0;
 	virtual bool init();
+	bool do_f_smoothing(vector_type &corr, vector_type &d, int level);
 
 // data
 	int	m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
@@ -156,23 +173,30 @@ protected:
 	int max_levels;							///< max. nr of levels used for FAMG
 	int used_levels;						///< nr of FAMG levels used
 
-	vector_type *vec1[AMG_MAX_LEVELS]; 	///< temporary Vector for storing r = Ax -b
-	vector_type *vec2[AMG_MAX_LEVELS]; 	///< temporary Vector for storing rH
-	vector_type *vec3[AMG_MAX_LEVELS]; 	///< temporary Vector for storing eH
+	int m_maxNodesForExact;					///< max nr of coarse nodes before exact solver is used
+	double m_maxFillBeforeExact;			///< max fill rate before exact solver is used
+	std::string m_writeMatrixPath;
+	bool m_writeMatrices;
+
+	double m_fDamp;
+
+	std::vector<vector_type*> vec1; 	///< temporary Vector for storing r = Ax -b
+	std::vector<vector_type*> vec2; 	///< temporary Vector for storing rH
+	std::vector<vector_type*> vec3; 	///< temporary Vector for storing eH
 	vector_type *vec4;						///< temporary Vector for defect (in get_correction)
 
-	SparseMatrix<double> R[AMG_MAX_LEVELS]; ///< R Restriction Matrices
-	SparseMatrix<double> P[AMG_MAX_LEVELS]; ///< P Prolongation Matrices
-	matrix_type *A[AMG_MAX_LEVELS+1];		///< A Matrices
-	SparseMatrixOperator<matrix_type, vector_type> SMO[AMG_MAX_LEVELS];
+	std::vector<std::vector<bool> > is_fine;
+	std::vector<SparseMatrix<double> *> R; 	///< R Restriction Matrices
+	std::vector<SparseMatrix<double> *> P; 	///< P Prolongation Matrices
+	std::vector<matrix_type *> A;			///< A Matrices
+	std::vector< SparseMatrixOperator<matrix_type, vector_type> > SMO;
 
 #ifdef UG_PARALLEL
-	pcl::ParallelCommunicator<IndexLayout>
-		*com[AMG_MAX_LEVELS]; 				///< the communicator objects on the levels
-	IndexLayout pseudoLayout;				///< Pseudo-IndexLayout for the created ParallelVectors.
+	std::vector< pcl::ParallelCommunicator<IndexLayout> *> com;  ///< the communicator objects on the levels
+	IndexLayout pseudoLayout;									///< Pseudo-IndexLayout for the created ParallelVectors.
 #endif
 
-	int *parentIndex[AMG_MAX_LEVELS];		///< parentIndex[L][i] is the index of i on level L-1
+	std::vector< std::vector<int> > parentIndex;		///< parentIndex[L][i] is the index of i on level L-1
 	cAMG_helper amghelper;					///< helper struct for viewing matrices (optional)
 	vector<MathVector<3> > dbg_positions;	///< positions of geometric grid (optional)
 	int dbg_dimension;						///< dimension of geometric grid (optional)
@@ -181,8 +205,8 @@ protected:
 	ILinearIterator<vector_type, vector_type> *m_presmoother;	///< presmoother template
 	ILinearIterator<vector_type, vector_type> *m_postsmoother;	///< postsmoother template \note: may be pre=post, is optimized away.
 
-	ILinearIterator<vector_type, vector_type> *m_presmoothers[AMG_MAX_LEVELS];	///< presmoothers for each level
-	ILinearIterator<vector_type, vector_type> *m_postsmoothers[AMG_MAX_LEVELS];	///< postsmoothers for each level
+	std::vector<ILinearIterator<vector_type, vector_type> *> m_presmoothers;	///< presmoothers for each level
+	std::vector<ILinearIterator<vector_type, vector_type> *> m_postsmoothers;	///< postsmoothers for each level
 
 	ILinearOperatorInverse<vector_type, vector_type> *m_basesolver; ///< the base solver
 

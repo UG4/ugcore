@@ -22,9 +22,6 @@
 
 namespace ug{
 
-void c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix<double> &R, const SparseMatrix<double> &A,
-		SparseMatrix<double> &P, cAMG_helper &amghelper, int level);
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // createFAMGLevel:
 //-------------------------
@@ -41,12 +38,15 @@ void famg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, 
 		SparseMatrix<double> &P, int level)
 {
 	c_create_AMG_level(AH, R, A, P, amghelper, level);
-
 }
 
 template<typename TAlgebra>
 famg<TAlgebra>::famg() : amg_base<TAlgebra>()
 {
+	m_theta = 0.95;
+	m_delta = 0.5;
+	m_dDampingForSmootherInInterpolationCalculation = 0.8;
+	m_bAggressiveCoarsening = false;
 }
 
 template<typename TAlgebra>

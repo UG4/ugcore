@@ -76,10 +76,26 @@ private:
 	FAMGInterpolationCalculator(const FAMGInterpolationCalculator<matrix_type> &other);
 
 public:
-	FAMGInterpolationCalculator(const matrix_type &A_) : A(A_)
+	FAMGInterpolationCalculator(const matrix_type &A_, double delta, double theta, double damping) : A(A_)
 	{
+		m_delta = delta;
+		m_theta = theta;
+		m_damping = damping;
 		bvisited.resize(A.num_rows(), false);
 	}
+
+
+	void calculate_testvector(size_t i)
+	{
+		testvector.resize(onlyN1.size()+1);
+		//get_testvector_constant(testvector, onlyN1, testvector[onlyN1.size()], i);
+		for(size_t j=0; j<onlyN1.size(); j++)
+			testvector[j] = big_testvector[onlyN1[j]];
+		testvector[onlyN1.size()] = big_testvector[i];
+
+	}
+
+
 
 
 	// get_possible_parent_pairs:
@@ -92,7 +108,7 @@ public:
 	void get_possible_parent_pairs(size_t i, std::vector<neighborstruct2> &possible_neighbors, famg_nodeinfo &nodeinfo)
 	{
 		FAMG_LOG(2, "\n\n\n\n============================\n\n\n");
-		FAMG_LOG(2, "node " << i << "\n");
+		FAMG_LOG(2, "node " << GetOriginalIndex(i) << "\n");
 
 
 		if(get_H(i) == false)
@@ -104,9 +120,8 @@ public:
 
 		size_t i_index = onlyN1.size();
 
-		// get testvector
-		testvector.resize(onlyN1.size()+1);
-		get_testvector_constant(testvector, onlyN1, testvector[onlyN1.size()], i);
+		// calculate testvector
+		calculate_testvector(i);
 
 		DenseMatrix<FixedArray2<double, 3, 3> > KKT;
 		DenseVector<FixedArray1<double, 3> > rhs;
@@ -119,8 +134,12 @@ public:
 		double f_min = 1e12;
 		for(size_t n=0; n < onlyN1.size(); n++)
 		{
+			if(A.is_isolated(onlyN1[n]))
+				continue;
 			for(size_t m=n+1; m < onlyN1.size(); m++)
 			{
+				if(A.is_isolated(onlyN1[m]))
+					continue;
 				// set KKT matrix
 				/*
 				 *  KKT = 	( H     t ) ( q_i,nm )    ( -H e_i )
@@ -142,7 +161,7 @@ public:
 				rhs[0] = - Hi[n];
 				rhs[1] = - Hi[m];
 
-				FAMG_LOG(2, "checking parents " << n << " (" << onlyN1[n] << ") and " << m << " (" << onlyN1[m] << ")\n");
+				FAMG_LOG(2, "checking parents " << n << " (" << GetOriginalIndex(onlyN1[n]) << ") and " << m << " (" << GetOriginalIndex(onlyN1[m]) << ")\n");
 				IF_FAMG_LOG(3) KKT.maple_print("KKT");
 				IF_FAMG_LOG(3) rhs.maple_print("rhs");
 
@@ -163,7 +182,7 @@ public:
 
 				FAMG_LOG(2, "F: " << s.F << "\n");
 
-				if(s.F > delta) continue;
+				if(s.F > m_delta) continue;
 				if(s.F < f_min)
 				{
 					f_min = s.F;
@@ -185,7 +204,7 @@ public:
 			swap(i_neighborpairs[0], i_neighborpairs[i_min]);
 
 			for(size_t j=0; j<i_neighborpairs.size(); j++)
-				if(omega*i_neighborpairs[j].F <= f_min)
+				if(m_theta*i_neighborpairs[j].F <= f_min)
 					possible_neighbors.push_back(i_neighborpairs[j]);
 
 	//#ifdef FAMG_PRINT_POSSIBLE_PARENTS
@@ -194,11 +213,11 @@ public:
 				UG_LOG(std::endl << i << ": onlyN1.size = " << onlyN1.size() << " f_min = " << f_min << std::endl);
 				UG_LOG(possible_neighbors.size() << " accepted pairs:" << std::endl);
 				for(size_t j=0; j<i_neighborpairs.size(); j++)
-					if(omega*i_neighborpairs[j].F <= f_min)
+					if(m_theta*i_neighborpairs[j].F <= f_min)
 						i_neighborpairs[j].print();
-				FAMG_LOG(2, "not accepted pairs: " << std::endl);
+				UG_LOG("not accepted pairs: " << std::endl);
 				for(size_t j=0; j<i_neighborpairs.size(); j++)
-					if(omega*i_neighborpairs[j].F > f_min)
+					if(m_theta*i_neighborpairs[j].F > f_min)
 						i_neighborpairs[j].print();
 				UG_LOG(std::endl);
 			}
@@ -206,7 +225,7 @@ public:
 		}
 		else
 		{
-			FAMG_LOG(2, std::endl << i << ": UNINTERPOLATEABLE" << std::endl);
+			FAMG_LOG(2, std::endl << GetOriginalIndex(i) << ": UNINTERPOLATEABLE" << std::endl);
 			//UG_ASSERT(0, "node has no parents :'-(");
 			nodeinfo.set_uninterpolateable();
 		}
@@ -223,73 +242,130 @@ public:
 	void get_all_neighbors_interpolation(size_t i, matrix_type &P,	famg_nodes &rating, std::vector<int> &newIndex,
 					size_t &iNrOfCoarse, size_t &unassigned)
 	{
+		FAMG_LOG(3, "aggressive coarsening on node " << GetOriginalIndex(i) << "\n")
+
 		get_H(i);
 
 		size_t i_index = onlyN1.size();
 		// get testvector
-		testvector.resize(onlyN1.size()+1);
-		get_testvector_constant(testvector, onlyN1, testvector[i_index], i);
+		calculate_testvector(i);
 
-		vKKT.resize(onlyN1.size()+1, onlyN1.size()+1);
-		for(size_t r=0; r<onlyN1.size(); r++)
-			for(size_t c=0; c<onlyN1.size(); c++)
-				vKKT(r, c) = H(r,c);
+		vector<size_t> coarse_neighbors;
+		for(size_t j=0; j<onlyN1.size(); j++)
+			if(rating[j].is_coarse())
+				coarse_neighbors.push_back(j);
 
-		 /*  KKT = 	( H     t ) ( q_i,nm )    ( -H e_i )
-		  *			( t^T   0 ) ( lambda )  = ( t[i]  ) */
-
-		for(size_t j=0; j < onlyN1.size(); j++)
+		if(coarse_neighbors.size() >= 1)
 		{
-			vKKT(i_index, j) = testvector[j];
-			vKKT(j, i_index) = testvector[j];
-		}
-		vKKT(i_index, i_index) = 0;
+			size_t N = coarse_neighbors.size();
+			vKKT.resize(N+1, N+1);
 
-		rhs.resize(onlyN1.size()+1);
-		for(size_t j=0; j < onlyN1.size(); j++)
-			rhs[j] = -Hi[j];
-		rhs[i_index] = -testvector[i_index];
+			for(size_t r=0; r<N; r++)
+				for(size_t c=0; c<N; c++)
+					vKKT(r, c) = H(coarse_neighbors[r], coarse_neighbors[c]);
 
+			for(size_t j=0; j < N; j++)
+				vKKT(j, N) = vKKT(N, j) = testvector[coarse_neighbors[j]];
 
-		FAMG_LOG(3, "aggressive coarsening on node " << i << "\n")
-		IF_FAMG_LOG(3) vKKT.maple_print("KKT");
-		IF_FAMG_LOG(3) rhs.maple_print("rhs");
+			vKKT(N, N) = 0;
 
-		InverseMatMult(q, 1.0, vKKT, rhs);
+			rhs.resize(N+1);
+			for(size_t j=0; j < N; j++)
+				rhs[j] = -Hi[coarse_neighbors[j]];
+			rhs[N] = -testvector[i_index];
 
-		IF_FAMG_LOG(3) q.maple_print("q");
+			IF_FAMG_LOG(3) vKKT.maple_print("KKT");
+			IF_FAMG_LOG(3) rhs.maple_print("rhs");
 
-		t.resize(q.size());
-		// todo: calc F
-		//MatMult(t, 1.0, H, q);
-		double F = 0; //VecDot(q, t);
+			InverseMatMult(q, 1.0, vKKT, rhs);
 
-		if(F > delta)
-		{
-			// set as coarse
-			newIndex[i] = iNrOfCoarse++;
-			P(i, newIndex[i]) = 1.0;
-			rating[i].set_coarse();
-			unassigned --;
+			IF_FAMG_LOG(3) q.maple_print("q");
+
+			t.resize(q.size());
+			// todo: calc F
+			//MatMult(t, 1.0, H, q);
+			double F = 0; //VecDot(q, t);
+
+			if(F > m_delta)
+			{
+				// set as coarse
+				newIndex[i] = iNrOfCoarse++;
+				P(i, newIndex[i]) = 1.0;
+				rating[i].set_coarse();
+				unassigned --;
+			}
+			else
+			{
+				for(size_t j=0; j<N; j++)
+				{
+					size_t node = onlyN1[coarse_neighbors[j]];
+					P(i, newIndex[node]) = -q[j];
+				}
+				rating[i].set_fine();
+				unassigned--;
+			}
 		}
 		else
 		{
-			for(size_t j=0; j<onlyN1.size(); j++)
+
+			vKKT.resize(onlyN1.size()+1, onlyN1.size()+1);
+			for(size_t r=0; r<onlyN1.size(); r++)
+				for(size_t c=0; c<onlyN1.size(); c++)
+					vKKT(r, c) = H(r,c);
+
+			 /*  KKT = 	( H     t ) ( q_i,nm )    ( -H e_i )
+			  *			( t^T   0 ) ( lambda )  = ( t[i]  ) */
+
+			for(size_t j=0; j < onlyN1.size(); j++)
+				vKKT(j, i_index) = vKKT(i_index, j) = testvector[j];
+			vKKT(i_index, i_index) = 0;
+
+			rhs.resize(onlyN1.size()+1);
+			for(size_t j=0; j < onlyN1.size(); j++)
+				rhs[j] = -Hi[j];
+			rhs[i_index] = -testvector[i_index];
+
+			IF_FAMG_LOG(3) vKKT.maple_print("KKT");
+			IF_FAMG_LOG(3) rhs.maple_print("rhs");
+
+
+			InverseMatMult(q, 1.0, vKKT, rhs);
+
+			IF_FAMG_LOG(3) q.maple_print("q");
+
+			t.resize(q.size());
+			// todo: calc F
+			//MatMult(t, 1.0, H, q);
+			double F = 0; //VecDot(q, t);
+
+			if(F > m_delta)
 			{
-				size_t node = onlyN1[j];
-				if(rating[node].is_coarse())
-					P(i, newIndex[node]) = -q[j];
-				else
+				// set as coarse
+				newIndex[i] = iNrOfCoarse++;
+				P(i, newIndex[i]) = 1.0;
+				rating[i].set_coarse();
+				unassigned --;
+			}
+			else
+			{
+				for(size_t j=0; j<onlyN1.size(); j++)
 				{
+					size_t node = onlyN1[j];
 					for(typename matrix_type::rowIterator it=P.beginRow(node); !it.isEnd(); ++it)
 						P(i, it.index()) += -q[j] * it.value();
 				}
+				rating[i].set_fine();
+				unassigned--;
+
+
 			}
-			rating[i].set_fine();
-			unassigned--;
-
-
 		}
+
+
+
+
+
+
 	}
 
 
@@ -308,7 +384,7 @@ private:
 
 		// get SF = 1-wDF^{-1} A  (F-smoothing)
 		SF.resize(N);
-		double diaginv = damping/S(i_index, i_index);
+		double diaginv = m_damping/S(i_index, i_index);
 		for(size_t j=0; j < N; j++)
 			SF[j] = - diaginv * S(i_index, j);
 		SF[i_index] += 1.0;
@@ -320,7 +396,7 @@ private:
 		{
 			for(size_t c=0; c < N; c++)
 			{
-				S(r, c) = -damping*Dinv[r]*S(r,c);
+				S(r, c) = -m_damping*Dinv[r]*S(r,c);
 				if(r==c) S(r, c) += 1.0;
 			}
 		}
@@ -368,7 +444,7 @@ private:
 				H(r, c) = s;
 			}
 
-		IF_FAMG_LOG(3)	H.maple_print("H");
+		IF_FAMG_LOG(2)	H.maple_print("H");
 
 		// get Hi[.] = H(i_index, .)
 		Hi.resize(onlyN1.size()+1);
@@ -380,7 +456,7 @@ private:
 			Hi[r] = s;
 		}
 
-		IF_FAMG_LOG(3) print_vector(Hi, "Hi");
+		IF_FAMG_LOG(2) print_vector(Hi, "Hi");
 	}
 	bool get_H(size_t i)
 	{
@@ -397,7 +473,17 @@ private:
 		N2.push_back(i);
 		N2.insert(N2.end(), onlyN2.begin(), onlyN2.end());
 
-		IF_FAMG_LOG(2) print_vector(onlyN2, "\nN2");
+		IF_FAMG_LOG(2)
+		{
+			UG_LOG("\nN1 ");
+			for(int i=0; i<onlyN1.size(); i++)
+			{
+				if(i>0) UG_LOG(", ");
+				UG_LOG(GetOriginalIndex(onlyN1[i]));
+			}
+			UG_LOG("\n");
+			//print_vector(onlyN2, "\nN2");
+		}
 
 		// get submatrix A on N2
 
@@ -439,7 +525,11 @@ private:
 
 	DenseMatrix<VariableArray2<double> > vKKT;
 
+private:
 	const matrix_type &A;
+	double m_delta;
+	double m_theta;
+	double m_damping;
 
 };
 

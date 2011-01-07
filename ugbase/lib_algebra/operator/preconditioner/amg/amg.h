@@ -46,6 +46,8 @@ public:
 	typedef amg_base<TAlgebra> super;
 	using super::amghelper;
 	using super::parentIndex;
+	using super::m_writeMatrices;
+	using super::m_writeMatrixPath;
 
 public:
 //	Algebra type
@@ -73,8 +75,9 @@ public:
 	void set_theta(double new_theta) { theta = new_theta; }
 	void set_sigma(double new_sigma) { sigma = new_sigma; }
 
-	void set_aggressive_coarsening_A_2() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 2;}
-	void set_aggressive_coarsening_A_1() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 1;}
+	void enable_aggressive_coarsening_A_2() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 2;}
+	void enable_aggressive_coarsening_A_1() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 1;}
+	void disable_aggressive_coarsening() { aggressiveCoarsening = false; }
 
 	void tostring() const;
 

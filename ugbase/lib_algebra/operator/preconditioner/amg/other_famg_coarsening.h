@@ -93,8 +93,9 @@ template<typename matrix_type, typename neighborstruct>
 void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type &P,
 		std::vector<std::vector<neighborstruct> > &possible_parents,
 		famg_nodes &rating, maxheap<famg_nodeinfo> &heap, std::vector<int> &newIndex,
-		size_t &iNrOfCoarse, size_t &unassigned)
+		size_t &iNrOfCoarse, size_t &unassigned, FAMGInterpolationCalculator<matrix_type> &calculator)
 {
+
 	size_t N = A.num_rows();
 
 	possible_parents.clear();
@@ -105,6 +106,8 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 		if(A.is_isolated(j))
 		{
 			rating[j].set_fine();
+			/*newIndex[j] = iNrOfCoarse++;
+			P(j, newIndex[j]) = 1.0;*/
 			unassigned--;
 		}
 	}
@@ -116,7 +119,7 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 			break;
 	}
 
-	FAMG_LOG(2, "\nStarting with node " << i << "\n");
+	FAMG_LOG(2, "\nStarting with node " << GetOriginalIndex(i) << "\n");
 
 	std::vector<bool> prolongation_calculated;
 	prolongation_calculated.resize(N, false);
@@ -125,7 +128,7 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 	bvisited.resize(N, false);
 	std::vector<size_t> neighborsToUpdate;
 
-	FAMGInterpolationCalculator<matrix_type> calculator(A);
+
 
 	calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
 	prolongation_calculated[i] = true;
@@ -137,9 +140,9 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 
 		FAMG_LOG(2, "\n\n\nSelect next node...\n");
 		FAMG_LOG(2, "======================================\n");
-		FAMG_LOG(2, "node " << i << " has rating " << rating[i] << ". now gets fine. parents: ");
+		FAMG_LOG(2, "node " << GetOriginalIndex(i) << " has rating " << rating[i] << ". now gets fine. parents: ");
 		for(size_t j=0; j < n.parents.size(); j++)
-			FAMG_LOG(2, n.parents[j].from << " ");
+			FAMG_LOG(2, GetOriginalIndex(n.parents[j].from) << " ");
 
 		// node i gets fine. update neighbors.
 		rating[i].set_fine();
@@ -158,8 +161,8 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 		{
 			size_t node = n.parents[j].from;
 
-			if(rating[node].is_coarse()) { FAMG_LOG(2, "\nnode " << node << " is already coarse\n"); }
-			else { FAMG_LOG(2, "\nnode " << node << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
+			if(rating[node].is_coarse()) { FAMG_LOG(2, "\nnode " << GetOriginalIndex(node) << " is already coarse\n"); }
+			else { FAMG_LOG(2, "\nnode " << GetOriginalIndex(node) << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
 
 			if(!rating[node].is_coarse())
 			{
@@ -188,16 +191,26 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 		FAMG_LOG(2, "\n\nSearching for next node...\n");
 		if(heap.height() == 0)
 		{
-
-			FAMG_LOG(2, "heap is empty!\n");
-			break;
 			for(i=0; i<N; i++)
 			{
-				if(A.num_connections(i) > 2 && rating[i].is_valid_rating())
-					break;
+				FAMG_LOG(2, "rating " << i << " is " << rating[i] << "\n");
+				if(A.is_isolated(i) == false && rating[i].is_valid_rating())
+				{
+					if(prolongation_calculated[i] == false)
+					{
+						//UG_LOG(" calculating prologation...");
+						calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
+						prolongation_calculated[i] = true;
+					}
+					rating.update_rating(i, possible_parents[i]);
+
+					FAMG_LOG(2, " new rating is " << rating[i] << "\n");
+					if(rating[i].is_valid_rating()) break;
+				}
 			}
-			if(i == N) break;
-			FAMG_LOG(2, "\n\nRESTARTING WITH NODE " << i << "!!!\n\n");
+			if(i == N) { FAMG_LOG(2, "\nno more new start nodes found\n"); break; }
+
+			FAMG_LOG(2, "\n\nRESTARTING WITH NODE " << GetOriginalIndex(i) << "!!!\n\n");
 
 			calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
 			prolongation_calculated[i] = true;
@@ -230,4 +243,5 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 		if(rating[i].rating == 0.0)
 			rating[i].set_uninterpolateable();
 	}
+
 }

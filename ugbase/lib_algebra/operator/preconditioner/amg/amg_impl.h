@@ -234,7 +234,8 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	}
 
 	// set parentindex for debugging
-	parentIndex[level+1] = new int[iNrOfCoarse];
+	parentIndex.resize(level+2);
+	parentIndex[level+1].resize(iNrOfCoarse);
 	for(size_t i=0; i<N; i++)
 		if(nodes[i].isCoarse())
 			parentIndex[level+1][ newIndex[i] ] = i;
@@ -312,6 +313,51 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 #endif
 
 	UG_LOG("\n");
+
+
+	if(m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
+	{
+		fstream ffine((string(m_writeMatrixPath) + "AMG_fine" + ToString(level) + ".marks").c_str(), std::ios::out);
+		fstream fcoarse((string(m_writeMatrixPath) + "AMG_coarse" + ToString(level) + ".marks").c_str(), std::ios::out);
+		fstream fother((string(m_writeMatrixPath) + "AMG_other" + ToString(level) + ".marks").c_str(), std::ios::out);
+		fstream fdirichlet((string(m_writeMatrixPath) + "AMG_dirichlet" + ToString(level) + ".marks").c_str(), std::ios::out);
+		for(size_t i=0; i<N; i++)
+		{
+			int o = amghelper.GetOriginalIndex(level, i);
+			if(nodes[i].isFineDirect()) ffine << o << "\n";
+			else if(nodes[i].isCoarse()) fcoarse << o << "\n";
+			else fother << o << "\n";
+		}
+
+		UG_LOG("write matrices");
+		AMGWriteToFile(A, level, level, (string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), amghelper);
+		fstream f((string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
+		f << "c " << string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
+		f << "c " << string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
+		f << "c " << string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
+		f << "c " << string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+		f << "v " << string(m_writeMatrixPath) << "AMG_d" << level << ".values\n";
+		UG_LOG(".");
+
+		AMGWriteToFile(P, level+1, level, (string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), amghelper);
+		fstream f2((string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
+		f2 << "c " << string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
+		f2 << "c " << string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
+		f2 << "c " << string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
+		f2 << "c " << string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+		UG_LOG(".");
+
+		AMGWriteToFile(R, level, level+1, (string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), amghelper);
+		fstream f3((string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
+		f3 << "c " << string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
+		f3 << "c " << string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
+		f3 << "c " << string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
+		f3 << "c " << string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+		UG_LOG(".");
+
+		AMGWriteToFile(AH, level+1, level+1, (string(m_writeMatrixPath) + "AMG_A" + ToString(level+1) + ".mat").c_str(), amghelper);
+		UG_LOG(". done.\n");
+	}
 }
 
 
