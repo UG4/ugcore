@@ -132,10 +132,12 @@ apply(vector_type& u)
 	}
 
 	// Compute first Defect
+	NEWTON_PROFILE_BEGIN(NewtonComputeDefect1);
 	if(m_N->prepare(m_d, u) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear Operator.\n"); return false;}
 	if(m_N->apply(m_d, u) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n"); return false;}
+	NEWTON_PROFILE_END();
 
 	// increase offset of output for linear solver
 	IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
@@ -199,12 +201,14 @@ apply(vector_type& u)
 			u -= m_c;
 
 			// compute new Defect
+			NEWTON_PROFILE_BEGIN(NewtonComputeDefect);
 			if(!m_N->prepare(m_d, u))
 				{UG_LOG("NewtonSolver::apply: Cannot prepare Non-linear"
 						" Operator for defect computation.\n"); return false;}
 			if(!m_N->apply(m_d, u))
 				{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator "
 						"to compute defect.\n"); return false;}
+			NEWTON_PROFILE_END();
 		}
 
 		// check convergence
