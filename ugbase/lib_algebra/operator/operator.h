@@ -46,8 +46,10 @@
 #include "preconditioner/jacobi.h"
 #include "preconditioner/gauss_seidel.h"
 
-//#include "preconditioner/amg/amg.h"
-//#include "preconditioner/amg/famg.h"
+#ifdef UG_USE_AMG
+#include "preconditioner/amg/amg.h"
+#include "preconditioner/amg/famg.h"
+#endif
 
 #ifdef LAPACK_AVAILABLE
 //#include "eigensolver/pinvit.h"
