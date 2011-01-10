@@ -52,13 +52,9 @@ public:
 	bool create(size_t _length);
 	//! create as a copy of other vector
 	bool create(const Vector &v);
+
 	//! resize vector
-	bool resize(size_t new_size)
-	{
-		if(size() == new_size) return true;
-		destroy();
-		return create(new_size);
-	}
+	bool resize(size_t new_size);
 
 	bool destroy();
 

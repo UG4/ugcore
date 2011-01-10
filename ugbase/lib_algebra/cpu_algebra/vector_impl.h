@@ -142,15 +142,13 @@ template<typename Type> inline void Vector<value_type>::operator -= (const Type 
 
 
 template<typename value_type>
-Vector<value_type>::Vector ()
+Vector<value_type>::Vector () : length(0), values(NULL)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
-
-	length = 0; values = NULL;
 }
 
 template<typename value_type>
-Vector<value_type>::Vector(size_t _length)
+Vector<value_type>::Vector(size_t _length) : length(0), values(NULL)
 {
 	FORCE_CREATION { p(); } // force creation of this rountines for gdb.
 
@@ -180,12 +178,20 @@ bool Vector<value_type>::destroy()
 template<typename value_type>
 bool Vector<value_type>::create(size_t _length)
 {
-	UG_ASSERT(length == 0, *this << " already created");
+	if(length == _length) return true;
+	destroy();
 	length = _length;
 	values = new value_type[length];
 
 	return true;
 }
+
+template<typename value_type>
+bool Vector<value_type>::resize(size_t new_size)
+{
+	return create(new_size);
+}
+
 
 
 template<typename value_type>
