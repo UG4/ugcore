@@ -66,6 +66,16 @@ bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
 					Grid& destGrid, TAttachment& aDest);
 
 ////////////////////////////////////////////////////////////////////////
+///	copies attachments for the specified elements
+/**
+ * If aSrc is not attached to srcGrid, false is returned.
+ * If aDest is not attached to destGrid, it is attached automatically.
+ */
+template <class TElemIter, class TAttachment>
+bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
+					 TAttachment& aSrc, TAttachment& aDest);
+
+////////////////////////////////////////////////////////////////////////
 ///	assigns indices to the elements between begin and end.
 /**	Indices are stored in the given attachment. Make sure that the
  *	given attachment-accessor operates on an attachment-pipe at which

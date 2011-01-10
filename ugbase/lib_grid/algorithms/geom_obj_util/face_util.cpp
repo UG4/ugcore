@@ -178,21 +178,32 @@ number FaceQuality(Face* f,
 	uint numVrts = f->num_vertices();
 
 	vector3 v1, v2;
+	number len1, len2;
+
 //	calculate the direction from first to last vertex.
 	VecSubtract(v1, aaPos[f->vertex(numVrts-1)], aaPos[f->vertex(0)]);
-	VecNormalize(v1, v1);
+	len1 = VecLength(v1);
+
+	//VecNormalize(v1, v1);
 
 	for(uint i = 0; i < numVrts; ++i)
 	{
 		VecSubtract(v2, aaPos[f->vertex((i+1)%numVrts)], aaPos[f->vertex(i)]);
-		VecNormalize(v2, v2);
-		number nQual = 1.f - fabs(VecDot(v1, v2));
+		len2 = VecLength(v2);
+		//VecNormalize(v2, v2);
+
+		number nQual = 1. - fabs(VecDot(v1, v2) / (len1 * len2));
 		if(nQual < quality)
 			quality = nQual;
 	//	v1 of the next iteration equals -v2 of this iteration
 		VecScale(v1, v2, -1);
+		len1 = len2;
 	}
 
+	if(numVrts == 3){
+	//	since at least one angle is <= 60¡, we have to normalize the return value
+		return quality * 2.;
+	}
 	return quality;
 }
 
@@ -223,7 +234,8 @@ number TriangleQuality(vector3& v1, vector3& v2, vector3& v3)
 		VecScale(d1, d2, -1);
 	}
 
-	return quality;
+//	since at least one angle is <= 60¡, we have to normalize the return value
+	return quality * 2.;
 }
 
 ////////////////////////////////////////////////////////////////////////

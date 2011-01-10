@@ -115,6 +115,37 @@ bool CopyAttachments(Grid& srcGrid, TAttachment& aSrc,
 }
 
 ////////////////////////////////////////////////////////////////////////
+template <class TElemIter, class TAttachment>
+bool CopyAttachments(Grid& grid, TElemIter elemsBegin, TElemIter elemsEnd,
+					 TAttachment& aSrc, TAttachment& aDest)
+{
+	typedef typename PtrTypeToGeomObjBaseType<
+			typename TElemIter::value_type>::base_type TElem;
+
+//	make sure the attachments are properly attached.
+	if(!grid.has_attachment<TElem>(aSrc))
+		return false;
+
+	if(!grid.has_attachment<TElem>(aDest))
+		grid.attach_to<TElem>(aDest);
+
+//	access the attachments
+	Grid::AttachmentAccessor<TElem, TAttachment> aaSrc(grid, aSrc);
+	Grid::AttachmentAccessor<TElem, TAttachment> aaDest(grid, aDest);
+
+//	iterate over the elements
+	TElemIter iter = elemsBegin;
+	while(iter != elemsEnd)
+	{
+		aaDest[*iter] = aaSrc[*iter];
+		++iter;
+	}
+
+//	done
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////
 template <class TIterator, class TAAInt>
 void AssignIndices(TIterator begin, TIterator end,
 					TAAInt& aaInt, int baseIndex)

@@ -83,7 +83,7 @@ void TestSubdivision(const char* fileIn, const char* fileOut, int numRefs)
 //		even if they were initialized before the attachment was attached to the grid.
 	MultiGrid mg;
 	SubsetHandler sh(mg);
-	RefinementCallbackSubdivisionLoop<APosition> refCallback(mg, aPosition);
+	RefinementCallbackSubdivisionLoop<APosition> refCallback(mg, aPosition, aPosition);
 	GlobalMultiGridRefiner ref(mg, &refCallback);
 	
 	if(LoadGridFromFile(mg, fileIn, sh)){
@@ -106,11 +106,11 @@ bool CreateSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
 	if(mg.has_vertex_attachment(aPosition1))
-		refCallback = new RefinementCallbackSubdivisionLoop<APosition1>(mg, aPosition1);
+		refCallback = new RefinementCallbackSubdivisionLoop<APosition1>(mg, aPosition1, aPosition1);
 	else if(mg.has_vertex_attachment(aPosition2))
-		refCallback = new RefinementCallbackSubdivisionLoop<APosition2>(mg, aPosition2);
+		refCallback = new RefinementCallbackSubdivisionLoop<APosition2>(mg, aPosition2, aPosition2);
 	else if(mg.has_vertex_attachment(aPosition))
-		refCallback = new RefinementCallbackSubdivisionLoop<APosition>(mg, aPosition);
+		refCallback = new RefinementCallbackSubdivisionLoop<APosition>(mg, aPosition, aPosition);
 		
 	if(!refCallback){
 		UG_LOG("No standard position attachment found. Aborting.\n");
@@ -140,11 +140,11 @@ bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 //	we're only checking for the main attachments here.
 //todo: improve this - add a domain-based hierarchy creator.
 	if(mg.has_vertex_attachment(aPosition1))
-		refCallback = new RefinementCallbackSubdivBoundary<APosition1>(mg, aPosition1);
+		refCallback = new RefinementCallbackSubdivBoundary<APosition1>(mg, aPosition1, aPosition1);
 	else if(mg.has_vertex_attachment(aPosition2))
-		refCallback = new RefinementCallbackSubdivBoundary<APosition2>(mg, aPosition2);
+		refCallback = new RefinementCallbackSubdivBoundary<APosition2>(mg, aPosition2, aPosition2);
 	else if(mg.has_vertex_attachment(aPosition))
-		refCallback = new RefinementCallbackSubdivBoundary<APosition>(mg, aPosition);
+		refCallback = new RefinementCallbackSubdivBoundary<APosition>(mg, aPosition, aPosition);
 		
 	if(!refCallback){
 		UG_LOG("No standard position attachment found. Aborting.\n");

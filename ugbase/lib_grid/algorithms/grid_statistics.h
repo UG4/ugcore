@@ -32,13 +32,11 @@ bool AssignTetrahedronAttributesByAspectRatio(Grid& grid,
  *					an element goes. Numbers have to be sorted, starting at
  *					0 and ending at 1 (0 and 1 should be contained in intervals).
  */
-/*
 template <class TIterator>
-bool AssignSubsetByQuality(Grid& grid, SubsetHandler& sh,
+bool AssignSubsetsByQuality(Grid& grid, SubsetHandler& sh,
 						   TIterator elemsBegin, TIterator elemsEnd,
 						   std::vector<number> intervals)
 {
-	sh.clear();
 	if(intervals.empty()){
 		sh.assign_subset(elemsBegin, elemsEnd, 0);
 		return true;
@@ -52,10 +50,20 @@ bool AssignSubsetByQuality(Grid& grid, SubsetHandler& sh,
 	{
 		typename TIterator::value_type elem = *iter;
 		number quality = FaceQuality(elem, aaPos);
-		//...
+
+		size_t newInd = -1;
+		for(size_t i = 0; i < intervals.size(); ++i){
+			if(intervals[i] < quality)
+				newInd = i;
+			else
+				break;
+		}
+
+		sh.assign_subset(elem, newInd);
 	}
+	return true;
 }
-*/
+
 }//	end of namespace
 
 #endif

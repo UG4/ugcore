@@ -5,6 +5,7 @@
 #include <vector>
 #include "regular_refinement.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
+#include "lib_grid/algorithms/selection_util.h"
 
 using namespace std;
 
@@ -328,6 +329,13 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 	
 //	adjust selection
 	AdjustSelection(grid, sel);
+
+//	we will select associated vertices, too, since we have to
+//	notify the refinement-callback, that they are involved in refinement.
+	sel.clear<VertexBase>();
+	SelectAssociatedVertices(sel, sel.begin<EdgeBase>(), sel.end<EdgeBase>());
+	SelectAssociatedVertices(sel, sel.begin<Face>(), sel.end<Face>());
+	SelectAssociatedVertices(sel, sel.begin<Volume>(), sel.end<Volume>());
 	
 //	number of edges, faces and volumes that will be refined
 	const size_t numRefEdges = sel.num<EdgeBase>();
@@ -360,6 +368,13 @@ bool Refine(Grid& grid, Selector& sel, AInt& aInt,
 //	access the position-attachment
 	Grid::VertexAttachmentAccessor<APosition> aaPos(grid, aPosition);
 	
+//	notify refinement callbacks about encountered vertices
+	for(VertexBaseIterator iter = sel.begin<VertexBase>();
+		iter != sel.end<VertexBase>(); ++iter)
+	{
+		refCallback->flat_grid_vertex_encountered(*iter);
+	}
+
 ////////////////////////////////
 //	fill the edges- and edgeVrts-array and assign indices to selected edges
 	{

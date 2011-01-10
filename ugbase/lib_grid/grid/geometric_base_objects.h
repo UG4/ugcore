@@ -954,6 +954,33 @@ class attachment_traits<GeometricObject*, Grid>
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
+/**	template helpers that return the geometric base object type
+ *	given a pointer to a derived class of VertexBase, EdgeBase, Face or Volume.
+ *
+ *	e.g. PtrTypeToGeomObjBaseType<Vertex*>::base_type = VertexBase.
+ */
+template <class TGeomObjPtrType>
+struct PtrTypeToGeomObjBaseType
+{typedef void base_type;};
+
+template <>
+struct PtrTypeToGeomObjBaseType<VertexBase*>
+{typedef VertexBase base_type;};
+
+template <>
+struct PtrTypeToGeomObjBaseType<EdgeBase*>
+{typedef EdgeBase base_type;};
+
+template <>
+struct PtrTypeToGeomObjBaseType<Face*>
+{typedef Face base_type;};
+
+template <>
+struct PtrTypeToGeomObjBaseType<Volume*>
+{typedef Volume base_type;};
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 //	hash-funtions for vertices
 ///	returns the hash-value of the vertex.
 template <>

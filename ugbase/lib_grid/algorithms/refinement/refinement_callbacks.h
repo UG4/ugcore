@@ -20,10 +20,22 @@ class IRefinementCallback
 {
 	public:
 		virtual ~IRefinementCallback()	{}
+	///	called when a new vertex was created from an old vertex.
 		virtual void new_vertex(VertexBase* vrt, VertexBase* parent) = 0;
+	///	called when a new vertex was created from an old edge.
 		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent) = 0;
+	///	called when a new vertex was created from an old face.
 		virtual void new_vertex(VertexBase* vrt, Face* parent) = 0;
+	///	called when a new vertex was created from an old volume.
 		virtual void new_vertex(VertexBase* vrt, Volume* parent) = 0;
+
+	///	callback for vertices in flat grids.
+	/**	called for old vertices in flat grids which are used during refinement,
+	 *	since no new vertices will be created here.
+	 *	Calls new_vertex(vrt, vrt) by default.
+	 *
+	 *	Please note that this method won't be called during multigrid refinement.*/
+		virtual void flat_grid_vertex_encountered(VertexBase* vrt)	{new_vertex(vrt, vrt);}
 };
 
 
@@ -130,6 +142,16 @@ class RefinementCallbackFractal : public RefinementCallbackLinear<APosition>
 		number m_scaleFac;
 };
 
+///	Applies smooth subdivision rules on boundary elements.
+/**	Inner vertices are positioned using the standard linear scheme,
+ *  boundary vertices are positioned using b-spline weights.
+ *
+ *  Please note that the refiner works on different position attachments:
+ *  A source and a target position attachment. If you use the refiner in the
+ *  context of multigrid refinement, you can use the same attachment for both.
+ *  However, if the callback is used to refine a flat grid, then it's crucial
+ *  to use different attachments..
+ */
 template <class TAPosition>
 class RefinementCallbackSubdivBoundary : public RefinementCallbackLinear<TAPosition>
 {
@@ -143,24 +165,39 @@ class RefinementCallbackSubdivBoundary : public RefinementCallbackLinear<TAPosit
 	public:
 		RefinementCallbackSubdivBoundary();
 		
-	///	make sure that aPos is attached to the vertices of the grid.
-		RefinementCallbackSubdivBoundary(MultiGrid& mg,
-										TAPosition& aPos);
+	///	make sure that aPos and aTargetPos are attached to the vertices of the grid.
+	/**	For flat grids it is crucial that aPos and aTargetPos differ.
+	 *  If g is a multigrid, that aPos and aTargetPos can safely be the same.*/
+		RefinementCallbackSubdivBoundary(Grid& g,
+										 TAPosition& aPos,
+										 TAPosition& aTargetPos);
 	
 		virtual ~RefinementCallbackSubdivBoundary();
 		
 		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
 		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
+		virtual void new_vertex(VertexBase* vrt, Face* parent);
+		virtual void new_vertex(VertexBase* vrt, Volume* parent);
 		
 	protected:
 		virtual bool is_crease_vertex(VertexBase* vrt);
 		virtual bool is_crease_edge(EdgeBase* edge);
 
 	protected:
-		MultiGrid* m_pMG;
+		Grid::VertexAttachmentAccessor<TAPosition>	m_aaTargetPos;
 };
 
 
+///	Refines grids with an extended loop scheme.
+/**	Inner vertices are positioned using the loop scheme, boundary vertices
+ *  are positioned using b-spline weights.
+ *
+ *  Please note that the refiner works on different position attachments:
+ *  A source and a target position attachment. If you use the refiner in the
+ *  context of multigrid refinement, you can use the same attachment for both.
+ *  However, if the callback is used to refine a flat grid, then it's crucial
+ *  to use different attachments.
+ */
 template <class TAPosition>
 class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<TAPosition>
 {
@@ -174,22 +211,26 @@ class RefinementCallbackSubdivisionLoop : public RefinementCallbackLinear<TAPosi
 	public:
 		RefinementCallbackSubdivisionLoop();
 		
-	///	make sure that aPos is attached to the vertices of the grid.
-		RefinementCallbackSubdivisionLoop(MultiGrid& mg,
-										  TAPosition& aPos);
+	///	make sure that aPos and aTargetPos are attached to the vertices of the grid.
+	/**	For flat grids it is crucial that aPos and aTargetPos differ.
+	 *  If g is a multigrid, that aPos and aTargetPos can safely be the same.*/
+		RefinementCallbackSubdivisionLoop(Grid& g,
+										  TAPosition& aPos,
+										  TAPosition& aTargetPos);
 	
 		virtual ~RefinementCallbackSubdivisionLoop();
 		
 		virtual void new_vertex(VertexBase* vrt, VertexBase* parent);
 		virtual void new_vertex(VertexBase* vrt, EdgeBase* parent);
 		virtual void new_vertex(VertexBase* vrt, Face* parent);
+		virtual void new_vertex(VertexBase* vrt, Volume* parent);
 		
 	protected:
 		virtual bool is_crease_vertex(VertexBase* vrt);
 		virtual bool is_crease_edge(EdgeBase* edge);
 
 	protected:
-		MultiGrid* m_pMG;
+		Grid::VertexAttachmentAccessor<TAPosition>	m_aaTargetPos;
 };
 
 

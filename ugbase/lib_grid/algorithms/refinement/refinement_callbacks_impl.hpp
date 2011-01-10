@@ -91,11 +91,17 @@ RefinementCallbackSubdivBoundary()
 
 template <class TAPosition>
 RefinementCallbackSubdivBoundary<TAPosition>::
-RefinementCallbackSubdivBoundary(MultiGrid& mg,
-								  TAPosition& aPos) :
-	BaseClass(mg, aPos),
-	m_pMG(&mg)
+RefinementCallbackSubdivBoundary(Grid& g,
+								  TAPosition& aPos,
+								  TAPosition& aTargetPos) :
+	BaseClass(g, aPos)
 {
+//	we have to make sure that aTargetPos is attached at the grid.
+//	This is important to avoid crashes later on.
+	if(!g.has_vertex_attachment(aTargetPos))
+		g.attach_to_vertices(aTargetPos);
+
+	m_aaTargetPos.access(g, aTargetPos);
 }
 
 template <class TAPosition>
@@ -113,12 +119,15 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 	
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
 	if(is_crease_vertex(parent)){
 	//	get the neighboured crease edges
 		EdgeBase* nbrs[2];
 		size_t numNbrs = 0;
-		for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(parent);
-			iter != m_pMG->associated_edges_end(parent); ++iter)
+		for(Grid::AssociatedEdgeIterator iter =
+			BaseClass::m_pGrid->associated_edges_begin(parent);
+			iter != BaseClass::m_pGrid->associated_edges_end(parent); ++iter)
 		{
 			if(is_crease_edge(*iter)){
 				nbrs[numNbrs] = *iter;
@@ -133,15 +142,15 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 			pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], parent)];
 			vector3 w = subdiv.ref_even_crease_weights();
 			
-			VecScaleAdd(aaPos[vrt], w.x, aaPos[parent],
+			VecScaleAdd(m_aaTargetPos[vrt], w.x, aaPos[parent],
 						w.y, p0, w.z, p1);
 		}
 		else{
-			BaseClass::new_vertex(vrt, parent);
+			m_aaTargetPos[vrt] = aaPos[vrt];
 		}
 	}
 	else{
-		BaseClass::new_vertex(vrt, parent);
+		m_aaTargetPos[vrt] = aaPos[vrt];
 	}
 }
 
@@ -155,29 +164,54 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 	
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	
 	if(is_crease_edge(parent)){
 		vector2 wghts = subdiv.ref_odd_crease_weights();
-		VecScaleAdd(aaPos[vrt], wghts.x, aaPos[parent->vertex(0)],
+		VecScaleAdd(m_aaTargetPos[vrt], wghts.x, aaPos[parent->vertex(0)],
 					wghts.y, aaPos[parent->vertex(1)]);
 	}
 	else{
-		BaseClass::new_vertex(vrt, parent);
+		m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
 	}
+}
+
+template <class TAPosition>
+void RefinementCallbackSubdivBoundary<TAPosition>::
+new_vertex(VertexBase* vrt, Face* parent)
+{
+	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
+
+	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
+	m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
+}
+
+template <class TAPosition>
+void RefinementCallbackSubdivBoundary<TAPosition>::
+new_vertex(VertexBase* vrt, Volume* parent)
+{
+	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
+
+	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
+	m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
 }
 
 template <class TAPosition>
 bool RefinementCallbackSubdivBoundary<TAPosition>::
 is_crease_vertex(VertexBase* vrt)
 {
-	return IsBoundaryVertex2D(*m_pMG, vrt);
+	return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
 }
 
 template <class TAPosition>
 bool RefinementCallbackSubdivBoundary<TAPosition>::
 is_crease_edge(EdgeBase* edge)
 {
-	return IsBoundaryEdge2D(*m_pMG, edge);
+	return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
 }
 
 
@@ -191,11 +225,17 @@ RefinementCallbackSubdivisionLoop()
 
 template <class TAPosition>
 RefinementCallbackSubdivisionLoop<TAPosition>::
-RefinementCallbackSubdivisionLoop(MultiGrid& mg,
-								  TAPosition& aPos) :
-	BaseClass(mg, aPos),
-	m_pMG(&mg)
+RefinementCallbackSubdivisionLoop(Grid& g,
+								  TAPosition& aPos,
+								  TAPosition& aTargetPos) :
+	BaseClass(g, aPos)
 {
+//	we have to make sure that aTargetPos is attached at the grid.
+//	This is important to avoid crashes later on.
+	if(!g.has_vertex_attachment(aTargetPos))
+		g.attach_to_vertices(aTargetPos);
+
+	m_aaTargetPos.access(g, aTargetPos);
 }
 
 template <class TAPosition>
@@ -213,12 +253,14 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 	
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
+	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
 	if(is_crease_vertex(parent)){
 	//	get the neighboured crease edges
 		EdgeBase* nbrs[2];
 		size_t numNbrs = 0;
-		for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(parent);
-			iter != m_pMG->associated_edges_end(parent); ++iter)
+		for(Grid::AssociatedEdgeIterator iter =
+			BaseClass::m_pGrid->associated_edges_begin(parent);
+			iter != BaseClass::m_pGrid->associated_edges_end(parent); ++iter)
 		{
 			if(is_crease_edge(*iter)){
 				nbrs[numNbrs] = *iter;
@@ -233,11 +275,11 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 			pos_type& p1 = aaPos[GetConnectedVertex(nbrs[1], parent)];
 			vector3 w = subdiv.ref_even_crease_weights();
 			
-			VecScaleAdd(aaPos[vrt], w.x, aaPos[parent],
+			VecScaleAdd(m_aaTargetPos[vrt], w.x, aaPos[parent],
 						w.y, p0, w.z, p1);
 		}
 		else{
-			BaseClass::new_vertex(vrt, parent);
+			m_aaTargetPos[vrt] = aaPos[vrt];
 		}
 	}
 	else{
@@ -248,8 +290,9 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 		pos_type p;
 		VecSet(p, 0);
 
-		for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(parent);
-			iter != m_pMG->associated_edges_end(parent); ++iter)
+		for(Grid::AssociatedEdgeIterator iter =
+			BaseClass::m_pGrid->associated_edges_begin(parent);
+			iter != BaseClass::m_pGrid->associated_edges_end(parent); ++iter)
 		{
 			VecAdd(p, p, aaPos[GetConnectedVertex(*iter, parent)]);
 			++valence;
@@ -258,7 +301,7 @@ new_vertex(VertexBase* vrt, VertexBase* parent)
 		number centerWgt = subdiv.ref_even_inner_center_weight(valence);
 		number nbrWgt = subdiv.ref_even_inner_nbr_weight(valence);
 		
-		VecScaleAdd(aaPos[vrt],
+		VecScaleAdd(m_aaTargetPos[vrt],
 					centerWgt, aaPos[parent],
 					nbrWgt, p);
 /*		
@@ -281,17 +324,18 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 	Grid::VertexAttachmentAccessor<TAPosition>& aaPos = BaseClass::m_aaPos;
 	
 	assert(aaPos.valid() && "make sure to initialise the refiner-callback correctly.");
-	
+	assert(m_aaTargetPos.valid() && "make sure to initialise the refiner-callback correctly.");
+
 	if(is_crease_edge(parent)){
 		vector2 wghts = subdiv.ref_odd_crease_weights();
-		VecScaleAdd(aaPos[vrt], wghts.x, aaPos[parent->vertex(0)],
+		VecScaleAdd(m_aaTargetPos[vrt], wghts.x, aaPos[parent->vertex(0)],
 					wghts.y, aaPos[parent->vertex(1)]);
 	}
 	else{
 	//	apply loop-subdivision on inner elements
 	//	get the neighboured triangles
 		Face* f[2];
-		if(GetAssociatedFaces(f, *m_pMG, parent, 2) == 2){
+		if(GetAssociatedFaces(f, *BaseClass::m_pGrid, parent, 2) == 2){
 			if(f[0]->num_vertices() == 3 && f[1]->num_vertices() == 3){
 			//	the 4 vertices that are important for the calculation
 				VertexBase* v[4];
@@ -316,8 +360,9 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 				//	get the number of edges that are connected to v[0]
 				//	todo: only check edges that are on the correct side of the crease.
 					size_t valence = 0;
-					for(Grid::AssociatedEdgeIterator iter = m_pMG->associated_edges_begin(v[0]);
-						iter != m_pMG->associated_edges_end(v[0]); ++iter)
+					for(Grid::AssociatedEdgeIterator iter =
+						BaseClass::m_pGrid->associated_edges_begin(v[0]);
+						iter != BaseClass::m_pGrid->associated_edges_end(v[0]); ++iter)
 					{
 						++valence;
 					}
@@ -328,16 +373,16 @@ new_vertex(VertexBase* vrt, EdgeBase* parent)
 					wghts = subdiv.ref_odd_inner_weights();
 				}
 				
-				VecScaleAdd(aaPos[vrt],
+				VecScaleAdd(m_aaTargetPos[vrt],
 							wghts.x, aaPos[v[0]], wghts.y, aaPos[v[1]],
 							wghts.z, aaPos[v[2]], wghts.w, aaPos[v[3]]);
 				
 			}
 			else
-				BaseClass::new_vertex(vrt, parent);				
+				m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
 		}
 		else
-			BaseClass::new_vertex(vrt, parent);
+			m_aaTargetPos[vrt] = CalculateCenter(parent, aaPos);
 	}
 }
 
@@ -346,21 +391,29 @@ void RefinementCallbackSubdivisionLoop<TAPosition>::
 new_vertex(VertexBase* vrt, Face* parent)
 {
 //	this woul'd only be interesting for quad subdivision.
-	BaseClass::new_vertex(vrt, parent);
+	m_aaTargetPos[vrt] = CalculateCenter(parent, BaseClass::m_aaPos);
+}
+
+template <class TAPosition>
+void RefinementCallbackSubdivisionLoop<TAPosition>::
+new_vertex(VertexBase* vrt, Volume* parent)
+{
+//	here a more elaborate scheme would be nice.
+	m_aaTargetPos[vrt] = CalculateCenter(parent, BaseClass::m_aaPos);
 }
 
 template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
 is_crease_vertex(VertexBase* vrt)
 {
-	return IsBoundaryVertex2D(*m_pMG, vrt);
+	return IsBoundaryVertex2D(*BaseClass::m_pGrid, vrt);
 }
 
 template <class TAPosition>
 bool RefinementCallbackSubdivisionLoop<TAPosition>::
 is_crease_edge(EdgeBase* edge)
 {
-	return IsBoundaryEdge2D(*m_pMG, edge);
+	return IsBoundaryEdge2D(*BaseClass::m_pGrid, edge);
 }
 
 }// end of namespace

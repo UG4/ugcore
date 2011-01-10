@@ -31,7 +31,8 @@ namespace ug
  * values. You have to pass it to the algorithm to allow
  * maximal speed for repeated small refinements.
  * 
- * Newly created vertices will be selected in the selector.
+ * All involved geometric objects will be selected after the method
+ * terminated (This includes vertices adjacent to selected edges and faces).
  *
  * aInt has to be attached to the edges of the grid.
  *
