@@ -58,7 +58,8 @@ class IDataExport
 		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
 
 	///	type of evaluation function
-		typedef bool (IElemDisc<TAlgebra>::*ExportFunc)(const local_vector_type& u);
+		typedef bool (IElemDisc<TAlgebra>::*ExportFunc)(const local_vector_type& u,
+														bool compDeriv);
 
 	///	function pointers for all elem types
 		std::vector<ExportFunc>	m_vExportFunc;
@@ -98,12 +99,12 @@ class IDataExport
 		}
 
 	///	compute lin defect
-		bool compute_export(const local_vector_type& u)
+		bool compute_export(const local_vector_type& u, bool compDeriv)
 		{
 			UG_ASSERT(m_id >=0, "ElemType id is not set correctly.");
 			UG_ASSERT((size_t)m_id < m_vExportFunc.size(), "id "<<m_id<<" not registered");
 			UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
-			return (m_pObj->*(m_vExportFunc[m_id]))(u);
+			return (m_pObj->*(m_vExportFunc[m_id]))(u, compDeriv);
 		}
 };
 
@@ -116,9 +117,9 @@ class DataExport : 	public IPData<TData, dim>,
 					public IDataExport<TAlgebra>
 {
 	public:
-	using IPData<TData, dim>::num_series;
-	using IPData<TData, dim>::num_ip;
-	using IPData<TData, dim>::local_ips;
+		using IPData<TData, dim>::num_series;
+		using IPData<TData, dim>::num_ip;
+		using IPData<TData, dim>::local_ips;
 
 	public:
 	/// Constructor
@@ -368,7 +369,7 @@ class DataImport : public IDataImport<TAlgebra>
 		bool zero_data() const
 			{return m_pIPData == NULL;}
 
-	/// \copydoc IDataImport::non_constant_data()
+	/// \copydoc IDataImport::constant_data()
 		virtual bool constant_data() const
 		{
 			if(m_pIPData == NULL) return true;
@@ -749,7 +750,7 @@ class DataEvaluator
 			for(size_t i = 0; i < m_vIDataExport.size(); ++i)
 			{
 				ind.access_by_map(m_vMapExp[i]);
-				m_vIDataExport[i]->compute_export(u);
+				m_vIDataExport[i]->compute_export(u, computeDeriv);
 			}
 
 		//	if no derivatives needed, we're done
