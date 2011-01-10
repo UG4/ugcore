@@ -30,6 +30,16 @@ enum IElemDiscNeed {
 template <typename TAlgebra> class IDataExport;
 template <typename TAlgebra> class IDataImport;
 
+/**
+ * Element Discretizations
+ *
+ * \defgroup lib_disc_elem_disc Elem Disc
+ * \ingroup lib_discretization
+ */
+
+/// \ingroup lib_disc_elem_disc
+/// @{
+
 
 template <typename TAlgebra>
 class IElemDisc{
@@ -38,10 +48,12 @@ class IElemDisc{
 		typedef TAlgebra algebra_type;
 
 	///	Local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type> local_matrix_type;
+		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type>
+				local_matrix_type;
 
 	/// Local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
+		typedef LocalVector<typename TAlgebra::vector_type::value_type>
+				local_vector_type;
 
 	/// Local index type
 		typedef LocalIndices local_index_type;
@@ -144,6 +156,7 @@ class IElemDisc{
 			UG_ASSERT(i < num_exports(), "Invalid index");
 			return m_vIExport[i];
 		}
+
 protected:
 	/// data imports
 		std::vector<IDataImport<TAlgebra>*> m_vIImport;
@@ -340,6 +353,8 @@ protected:
 		// current Geometric Object
 		int m_id;
 };
+
+/// @}
 
 } // end namespace ug
 
