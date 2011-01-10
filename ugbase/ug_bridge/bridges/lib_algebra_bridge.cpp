@@ -114,7 +114,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_constructor();
 
 
-#if UG_USE_AMG
+#ifdef UG_USE_AMG
 	//	AMG
 		typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
 		typedef P1ConformDoFDistribution dof_distribution_type;
