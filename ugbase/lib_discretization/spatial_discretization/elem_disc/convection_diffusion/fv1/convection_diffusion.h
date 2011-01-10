@@ -21,13 +21,16 @@
 
 namespace ug{
 
+/// \ingroup lib_disc_elem_disc
+/// @{
+
 /// Finite Volume Element Discretization for the Convection-Diffusion Equation
 /**
  * This class implements the IElemDisc interface to provide element local
  * assemblings for the convection diffusion equation.
  * The Equation has the form
  * \f[
- * 	\partial_t c - \nable \left( D \nabla c - \vec{v} c \right) + r \cdot c
+ * 	\partial_t c - \nabla \left( D \nabla c - \vec{v} c \right) + r \cdot c
  * 		= f
  * \f]
  * with
@@ -84,6 +87,7 @@ class FVConvectionDiffusionElemDisc
 				register_import(m_ConvVel);
 				register_import(m_Reaction);
 				register_import(m_Rhs);
+				register_import(m_MassScale);
 			}
 
 	///	set the amount of upwind
@@ -125,6 +129,14 @@ class FVConvectionDiffusionElemDisc
 	 * default.
 	 */
 		void set_rhs(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
+
+
+	///	sets mass scale
+	/**
+	 * This method sets the mass scale value. A value of 1.0 is assumed as
+	 * default.
+	 */
+		void set_mass_scale(IPData<number, dim>& user)	{m_MassScale.set_data(user);}
 
 	public:
 	///	number of functions used
@@ -268,6 +280,9 @@ class FVConvectionDiffusionElemDisc
 	///	Data import for the right-hand side
 		DataImport<number, dim, algebra_type> m_Rhs;
 
+	///	Data import for the right-hand side
+		DataImport<number, dim, algebra_type> m_MassScale;
+
 	private:
 	/// register for 1D
 		void register_assemble_functions(Int2Type<1>)
@@ -313,7 +328,9 @@ class FVConvectionDiffusionElemDisc
 		}
 };
 
-}
+/// @}
+
+} // end namespace ug
 
 #include "convection_diffusion_impl.h"
 

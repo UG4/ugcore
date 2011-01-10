@@ -56,6 +56,8 @@ prepare_element_loop()
 	                                                 geo.num_scv_local_ips());
 	m_Reaction.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
 	                                                 geo.num_scv_local_ips());
+	m_MassScale.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
+	                                                 geo.num_scv_local_ips());
 
 	return true;
 }
@@ -108,6 +110,7 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	m_ConvVel.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
 	m_Rhs.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
 	m_Reaction.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_MassScale.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
 
 //	we're done
 	return true;
@@ -260,6 +263,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
 // 	loop Sub Control Volumes (SCV)
+	size_t ip = 0;
 	for(size_t i = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
@@ -268,8 +272,15 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 	// 	get associated node
 		const int co = scv.node_id();
 
+	//	get value
+		number val = scv.volume();
+
+	//	multiply by scaling
+		if(m_MassScale.data_set())
+			val *= m_MassScale[ip++];
+
 	// 	Add to local matrix
-		J(_C_, co, _C_, co) += scv.volume();
+		J(_C_, co, _C_, co) += val;
 	}
 
 //	 we're done
@@ -419,6 +430,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		= FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
 // 	loop Sub Control Volumes (SCV)
+	size_t ip = 0;
 	for(size_t i = 0; i < geo.num_scv(); ++i)
 	{
 	// 	get current SCV
@@ -427,8 +439,15 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 	// 	get associated node
 		const int co = scv.node_id();
 
+	//	mass value
+		number val = u(_C_, co) * scv.volume();
+
+	//	multiply by scaling
+		if(m_MassScale.data_set())
+			val *= m_MassScale[ip++];
+
 	// 	Add to local defect
-		d(_C_, co) += u(_C_, co) * scv.volume();
+		d(_C_, co) += val;
 	}
 
 // 	we're done
