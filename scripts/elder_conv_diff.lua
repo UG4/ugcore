@@ -17,7 +17,7 @@ InitAlgebra(algebra)
 -- constants
 dim = 2
 gridName = "elder_quads_8x2.ugx"
-numRefs = 4
+numRefs = 5
 NumPreTimeSteps = 1
 NumTimeSteps = 100
 
@@ -39,12 +39,29 @@ function PressureStart(x, y, t)
 end
 
 function TemperatureStart(x, y, t)
-	if y > 120 and y < 140 then
-		if x > 420 and x < 440 then
+	if y > 30 and y < 60 then
+		if x > 0 and x < 600 then
 			return 1.0
 		end
 	end
+
 	return 0.0
+end
+
+function TemperatureStartBak(x, y, t)
+if y > 80 and y < 100 then
+if x > 420 and x < 440 then
+return 1.0
+end
+end
+
+if y > 100 and y < 140 then
+if x > 230 and x < 250 then
+return 1.0
+end
+end
+
+return 0.0
 end
 
 function ConcentrationDirichletBnd(x, y, t)
@@ -147,6 +164,8 @@ luaVelocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
 constVelocityField = utilCreateConstUserVector(0.0, dim)
 constVelocityField:set_entry(1, -0.000001)
 
+porosity = utilCreateConstUserNumber(0.1, dim)
+
 -----------------------------------------------------------------
 --  Setup FV Element Discretization
 -----------------------------------------------------------------
@@ -181,6 +200,7 @@ CDelemDisc:set_diffusion_tensor(diffusionMatrix)
 --CDelemDisc:set_velocity_field(constVelocityField)
 --CDelemDisc:set_velocity_field(luaVelocityField)
 CDelemDisc:set_velocity_field(darcyVelocityField)
+CDelemDisc:set_mass_scale(porosity)
 
 -- add Element Discretization to discretization
 domainDisc:add_elem_disc(elemDisc)
