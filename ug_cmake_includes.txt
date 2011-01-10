@@ -99,6 +99,9 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		message(STATUS "INFO: Debug mode. (Enable release-mode by defining -DUG_DEBUG=OFF)")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall")
 		
+		# these will enable strict bounds checking for STL objects like in vector::operator []. 
+		# however, GLIBCXX_DEBUG and strstream don't work together on mac (bug: http://bit.ly/cH78bC ). 
+		# when this bug is fixed, i'd like to add an option to set those flags
 		# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1")
 		
 		add_definitions(-DUG_DEBUG)
