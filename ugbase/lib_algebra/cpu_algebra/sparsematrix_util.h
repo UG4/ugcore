@@ -192,7 +192,7 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_
 template<typename T>
 bool IsCloseToBoundary(const SparseMatrix<T> &A, size_t node, size_t distance)
 {
-	if(distance == 0) return A.isUnconnected(node);
+	if(distance == 0) return A.is_isolated(node);
 	bool bFound = false;
 	for(typename SparseMatrix<T>::cRowIterator itA = A.beginRow(node); !itA.isEnd() && !bFound; ++itA)
 		bFound = IsCloseToBoundary(A, itA.index(), distance-1);
