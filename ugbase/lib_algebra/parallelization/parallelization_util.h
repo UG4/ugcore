@@ -8,6 +8,9 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__
 
+#include <utility>
+#include "common/assert.h"
+#include "communication_policies.h"
 
 namespace ug{
 
@@ -23,6 +26,44 @@ namespace ug{
 
 /// \ingroup lib_algebra_parallelization_util
 /// @{
+
+///	this type is used to identify distributed objects.
+typedef std::pair<int, size_t> AlgebraID;
+
+///	algebra blocks are static.
+template <> struct block_traits<AlgebraID>
+{
+	enum{
+		is_static = 1
+	};
+};
+
+///	Generates a set of global algebra ids.
+/**	Make sure that masterLayout and slaveLayout do not reference
+ * indices >= numIDs.
+ */
+template <class TLayout>
+void GenerateGlobalAlgebraIDs(std::vector<AlgebraID>& idsOut,
+							  size_t numIDs,
+							  TLayout& masterLayout,
+							  TLayout& slaveLayout)
+{
+//	generate an id for each entry.
+	idsOut.resize(numIDs);
+	int localProc = pcl::GetProcRank();
+	for(size_t i = 0; i < numIDs; ++i)
+		idsOut[i] = make_pair(localProc, i);
+
+//	copy all ids from master to slave interfaces
+	ComPol_VecCopy<std::vector<AlgebraID> >	copyPol(&idsOut);
+
+	pcl::ParallelCommunicator<TLayout> communicator;
+	communicator.send_data(masterLayout, copyPol);
+	communicator.receive_data(slaveLayout, copyPol);
+	communicator.communicate();
+
+//	a set of global ids has now been generated.
+}
 
 /// changes parallel storage type from additive to consistent
 /**

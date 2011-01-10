@@ -15,6 +15,46 @@
 
 namespace pcl
 {
+
+////////////////////////////////////////////////////////////////////////
+///	holds an id
+/**	Default constructor creates an invalid id.*/
+/*
+template <class TLocalID>
+struct ID
+{
+	ID(int procID = -1, TLocalID localID = 0)
+		:m_procID(procID), m_localID(localID)	{}
+
+///	returns true if m_procID >= 0.
+	bool is_valid()		{return m_procID >= 0;}
+
+///	sets m_procID to -1.
+	void invalidate()	{m_procID = -1;}
+
+
+	int m_procID;
+	TLocalID m_localID;
+};
+
+
+////////////////////////////////////////////////////////////////////////
+///	generates global ids for the elements in the given layout.
+template <class TLayout, class TLocalID>
+void DistributeGlobalIDs(TLayout& masterLayout, TLayout& slaveLayout,
+						boost::function<void (typename TLayout::Element elem,
+							ID<TLocalID>)> cbSetID,
+						boost::function<ID<TLocalID>
+							(typename TLayout::Element elem)> cbGetID)
+{
+	typedef ID<TLocalID> TID;
+	TID invalidID;
+
+//	iterate over all elements in the layouts and invalidate their ids.
+
+}
+*/
+
 ////////////////////////////////////////////////////////////////////////
 ///	collects the ids of all processes to which interfaces exist.
 /**
