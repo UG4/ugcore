@@ -90,6 +90,9 @@ public:
 	void set_delta(double delta) { m_delta = delta; }
 	void set_theta(double theta) { m_theta = theta; }
 
+	void set_testvector_zero_at_dirichlet(bool bZeroAtDirichlet) { m_bTestvectorZeroAtDirichlet = bZeroAtDirichlet; }
+	void set_testvector_damps(int testvectordamps) { m_iTestvectorDamps = testvectordamps; }
+
 private:
 //  functions
 	virtual void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
@@ -104,6 +107,9 @@ private:
 	double m_dDampingForSmootherInInterpolationCalculation;
 	double m_delta;								///< "Interpolation quality" F may not be worse than this (F < m_delta)
 	double m_theta;								///< clip all interpolations with m_theta * F > min F.
+
+	int m_iTestvectorDamps;
+	bool m_bTestvectorZeroAtDirichlet;
 
 };
 

@@ -37,7 +37,7 @@ template<typename TAlgebra>
 void famg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 		SparseMatrix<double> &P, int level)
 {
-	c_create_AMG_level(AH, R, A, P, amghelper, level);
+	c_create_AMG_level(AH, R, A, P, level);
 }
 
 template<typename TAlgebra>
@@ -60,6 +60,18 @@ void famg<TAlgebra>::tostring() const
 {
 	amg_base<TAlgebra>::tostring();
 	UG_LOG("FAMG Preconditioner:\n");
+
+	UG_LOG(" Delta: " << m_delta << " (forces interpolation quality measure F < delta.) " << std::endl);
+	UG_LOG(" Theta: " << m_theta << " (forces theta * F < minimimum F in this node) " << std::endl);
+	UG_LOG(" Damping for Smoother in interpolation calculation: " << m_dDampingForSmootherInInterpolationCalculation << std::endl);
+	UG_LOG(" Aggressive Coarsening is " << (m_bAggressiveCoarsening ? "[ON]\n" : "OFF\n"));
+	UG_LOG(" \n");
+	UG_LOG(" testvector is " << (m_bTestvectorZeroAtDirichlet ? "0" : "1") << " at dirichlet nodes" << std::endl);
+	UG_LOG(" Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);
+	UG_LOG(" \n");
+
+	int m_iTestvectorDamps;
+	bool m_bTestvectorZeroAtDirichlet;
 }
 
 

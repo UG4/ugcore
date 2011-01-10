@@ -252,11 +252,30 @@ public:
 
 		vector<size_t> coarse_neighbors;
 		for(size_t j=0; j<onlyN1.size(); j++)
-			if(rating[j].is_coarse())
+			if(rating[onlyN1[j]].is_coarse())
 				coarse_neighbors.push_back(j);
 
 		if(coarse_neighbors.size() >= 1)
 		{
+			if(coarse_neighbors.size() == 1)
+			{
+				/*UG_LOG("only 1 coarse neighbor (" << GetOriginalIndex(onlyN1[coarse_neighbors[0]]) << " for " << GetOriginalIndex(i) << "?\n")
+				UG_LOG("coarse neighbors: ")
+				for(int j=0; j<onlyN1.size(); j++)
+				{
+					if(j>0) UG_LOG(", ");
+					UG_LOG(GetOriginalIndex(onlyN1[j]));
+				}
+				UG_LOG("\n");*/
+
+				newIndex[i] = iNrOfCoarse++;
+				P(i, newIndex[i]) = 1.0;
+				rating[i].set_coarse();
+				unassigned --;
+				return;
+
+			}
+
 			size_t N = coarse_neighbors.size();
 			vKKT.resize(N+1, N+1);
 
@@ -277,6 +296,7 @@ public:
 			IF_FAMG_LOG(3) vKKT.maple_print("KKT");
 			IF_FAMG_LOG(3) rhs.maple_print("rhs");
 
+			q.resize(N+1);
 			InverseMatMult(q, 1.0, vKKT, rhs);
 
 			IF_FAMG_LOG(3) q.maple_print("q");
@@ -328,7 +348,7 @@ public:
 			IF_FAMG_LOG(3) vKKT.maple_print("KKT");
 			IF_FAMG_LOG(3) rhs.maple_print("rhs");
 
-
+			q.resize(onlyN1.size()+1);
 			InverseMatMult(q, 1.0, vKKT, rhs);
 
 			IF_FAMG_LOG(3) q.maple_print("q");

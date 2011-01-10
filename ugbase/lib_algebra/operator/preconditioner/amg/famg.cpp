@@ -299,7 +299,7 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 	{
 		big_testvector.resize(A.num_rows());
 		for(size_t i=0; i<A.num_rows(); i++)
-			if(A.is_isolated(i))
+			if(A.is_isolated(i) && m_bTestvectorZeroAtDirichlet)
 				big_testvector[i] = 0.0;
 			else
 				big_testvector[i] = 1.0;
@@ -309,7 +309,7 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 
 	{
 		Vector<double> d; d.resize(A.num_rows());
-		for(int jj=0; jj<5; jj++)
+		for(int jj=0; jj < m_iTestvectorDamps; jj++)
 		{
 			MatMult(d, 1.0, A, big_testvector);
 			for(size_t i=0; i<A.num_rows(); i++)
@@ -317,7 +317,6 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 		}
 	}
 
-	//big_testvector = 1.0;
 
 	pAmghelper = &amghelper;
 	currentlevel = level;
