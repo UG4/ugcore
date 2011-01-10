@@ -831,11 +831,11 @@ template<typename T>
 void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 {
 	definalize();
-
+	size_t oldNumConnections = num_connections(row);
 	if(in_consmem(row))
 		iFragmentedMem += nr;
 	else
-		iFragmentedMem += nr - num_connections(row);
+		iFragmentedMem += nr - oldNumConnections;
 
 	connection *n = new connection[nr];
 	UG_ASSERT(n != NULL, "out of memory, no more space for " << sizeof(connection)*nr);
@@ -857,9 +857,7 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 	safe_set_connections(row, n);
 	pRowEnd[row] = pRowStart[row]+nr;
 
-	iTotalNrOfConnections += nr - num_connections(row);
-
-
+	iTotalNrOfConnections += nr - oldNumConnections;
 	iMaxNrOfConnections[row] = nr;
 }
 
