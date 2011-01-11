@@ -16,9 +16,19 @@ namespace ug
 ///	@{
 
 ////////////////////////////////////////////////////////////////////////
-//	HangingNodeRefiner
+//	HangingNodeRefiner2D_IRN
 ///	Performs adaptive grid refinement with hanging nodes.
 /**
+ * IRN stands for "irregularity rule n", which intends to say that
+ * an arbitrary number of hanging nodes may exist on each edge.
+ *
+ * Refines flat 2d grids (no multigrids) using hanging node refinement
+ * with an arbitrary number of hanging nodes per edge.
+ *
+ * Most commonly you won't use this refiner, but the HangingNodeRefiner_Grid
+ * or HanginNodeRefiner_MultiGrid, which only support one hanging node per
+ * edge, but which are more robust and work in 3d as well.
+ *
  * Initialize the Refiner with a grid or manually assign one later on.
  * by marking elements of the grid using mark_for_refinement,
  * you can define where the grid shall be refined.
@@ -38,13 +48,13 @@ namespace ug
  * standard position attachment (ug::aPosition or ug::aPosition2).
  */
 
-class HangingNodeRefiner : public GridObserver
+class HangingNodeRefiner2D_IRN : public GridObserver
 {
 	public:
-		HangingNodeRefiner(IRefinementCallback* refCallback = NULL);
-		HangingNodeRefiner(Grid& grid, IRefinementCallback* refCallback = NULL);
+		HangingNodeRefiner2D_IRN(IRefinementCallback* refCallback = NULL);
+		HangingNodeRefiner2D_IRN(Grid& grid, IRefinementCallback* refCallback = NULL);
 	//todo: make copy-constructor public
-		virtual ~HangingNodeRefiner();
+		virtual ~HangingNodeRefiner2D_IRN();
 
 		virtual void grid_to_be_destroyed(Grid* grid);
 
@@ -165,7 +175,7 @@ class HangingNodeRefiner : public GridObserver
 		inline void mark(Volume* v)									{m_selMarkedElements.select(v);}
 
 	private:
-		HangingNodeRefiner(const HangingNodeRefiner& hnr);
+		HangingNodeRefiner2D_IRN(const HangingNodeRefiner2D_IRN& hnr);
 		
 	protected:
 	///	RefinementMarks are used throughout the refinement-process to indicate how an element shall be processed.
@@ -225,7 +235,7 @@ class HangingNodeRefiner : public GridObserver
 ////////////////////////////////////////////////////////////////////////
 //	implementation of template methods.
 template <class TIterator>
-void HangingNodeRefiner::mark_for_refinement(const TIterator& iterBegin,
+void HangingNodeRefiner2D_IRN::mark_for_refinement(const TIterator& iterBegin,
 											const TIterator& iterEnd)
 {
 	TIterator iter = iterBegin;

@@ -722,8 +722,6 @@ refine_edge_with_hanging_vertex(EdgeBase* e)
 	assert(!ConstrainingEdge::type_match(e) && "invalid operation. e is a constraining edge.");
 	//assert(!ConstrainedEdge::type_match(e) && "invalid operation. e is a constrained edge.");
 
-//	note that e is marked as processed. ce however must not be marked as processed,
-//	since it will possibly be refined throgh delayed refinement later on.
 	ConstrainingEdge* ce = *grid.create_and_replace<ConstrainingEdge>(e);
 
 	HangingVertex* hv = *grid.create<HangingVertex>(ce);

@@ -101,8 +101,8 @@ static void CalculateCenter(vector3& vOut, const vector3& v1, const vector3& v2)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	implementation of HangingNodeRefiner
-HangingNodeRefiner::
-HangingNodeRefiner(IRefinementCallback* refCallback) :
+HangingNodeRefiner2D_IRN::
+HangingNodeRefiner2D_IRN(IRefinementCallback* refCallback) :
 	m_pGrid(NULL),
 	m_aVertex(false),
 	m_irregularityRule(1),
@@ -110,8 +110,8 @@ HangingNodeRefiner(IRefinementCallback* refCallback) :
 {
 }
 
-HangingNodeRefiner::
-HangingNodeRefiner(Grid& grid, IRefinementCallback* refCallback) :
+HangingNodeRefiner2D_IRN::
+HangingNodeRefiner2D_IRN(Grid& grid, IRefinementCallback* refCallback) :
 	m_pGrid(NULL),
 	m_aVertex(false),
 	m_irregularityRule(1),
@@ -120,14 +120,14 @@ HangingNodeRefiner(Grid& grid, IRefinementCallback* refCallback) :
 	assign_grid(grid);
 }
 
-HangingNodeRefiner::HangingNodeRefiner(const HangingNodeRefiner& hnr) : m_aVertex(false),
+HangingNodeRefiner2D_IRN::HangingNodeRefiner2D_IRN(const HangingNodeRefiner2D_IRN& hnr) : m_aVertex(false),
 										m_irregularityRule(1)
 {
 	assert(!"WARNING in HangingNodeRefiner: Copy-Constructor not yet implemented. Please use references!");
 	throw(int(0));
 }
 
-HangingNodeRefiner::~HangingNodeRefiner()
+HangingNodeRefiner2D_IRN::~HangingNodeRefiner2D_IRN()
 {
 	if(m_pGrid)
 	{
@@ -137,18 +137,18 @@ HangingNodeRefiner::~HangingNodeRefiner()
 	}
 }
 
-void HangingNodeRefiner::assign_grid(Grid& grid)
+void HangingNodeRefiner2D_IRN::assign_grid(Grid& grid)
 {
 	set_grid(&grid);
 }
 
-void HangingNodeRefiner::
+void HangingNodeRefiner2D_IRN::
 set_refinement_callback(IRefinementCallback* refCallback)
 {
 	m_refCallback = refCallback;
 }
 
-void HangingNodeRefiner::
+void HangingNodeRefiner2D_IRN::
 set_grid(Grid* grid)
 {
 	if(m_pGrid)
@@ -180,39 +180,39 @@ set_grid(Grid* grid)
 	}
 }
 
-void HangingNodeRefiner::grid_to_be_destroyed(Grid* grid)
+void HangingNodeRefiner2D_IRN::grid_to_be_destroyed(Grid* grid)
 {
 	if(m_pGrid)
 		set_grid(NULL);
 }
 
-void HangingNodeRefiner::clear_marks()
+void HangingNodeRefiner2D_IRN::clear_marks()
 {
 	m_selMarkedElements.clear();
 }
 
-void HangingNodeRefiner::mark_for_refinement(EdgeBase* e)
+void HangingNodeRefiner2D_IRN::mark_for_refinement(EdgeBase* e)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefiner::mark_for_refinement(...): No grid assigned.");
 
 	mark(e);
 }
 
-void HangingNodeRefiner::mark_for_refinement(Face* f)
+void HangingNodeRefiner2D_IRN::mark_for_refinement(Face* f)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefiner::mark_for_refinement(...): No grid assigned.");
 
 	mark(f);
 }
 
-void HangingNodeRefiner::mark_for_refinement(Volume* v)
+void HangingNodeRefiner2D_IRN::mark_for_refinement(Volume* v)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefiner::mark_for_refinement(...): No grid assigned.");
 
 	mark(v);
 }
 
-bool HangingNodeRefiner::
+bool HangingNodeRefiner2D_IRN::
 set_irregularity_rule(uint irregularityRule)
 {
 	if(irregularityRule == 0)
@@ -221,13 +221,13 @@ set_irregularity_rule(uint irregularityRule)
 	return true;
 }
 
-uint HangingNodeRefiner::
+uint HangingNodeRefiner2D_IRN::
 get_irregularity_rule()
 {
 	return m_irregularityRule;
 }
 		
-void HangingNodeRefiner::refine()
+void HangingNodeRefiner2D_IRN::refine()
 {
 	uint irregularityRule = m_irregularityRule;
 	
@@ -629,7 +629,7 @@ void HangingNodeRefiner::refine()
 	}
 }
 
-void HangingNodeRefiner::collect_objects_for_refine()
+void HangingNodeRefiner2D_IRN::collect_objects_for_refine()
 {
 //	Algorithm Layout:
 //		The marks have to be adjusted. All edges on which a vertex has to be generated
@@ -818,7 +818,7 @@ void HangingNodeRefiner::collect_objects_for_refine()
 
 ////////////////////////////////////////////////////////////////////////
 //	implementation of refine-methods.
-void HangingNodeRefiner::refine_constrained_edge(ConstrainedEdge* constrainedEdge)
+void HangingNodeRefiner2D_IRN::refine_constrained_edge(ConstrainedEdge* constrainedEdge)
 {
 	Grid& grid = *m_pGrid;
 
@@ -880,7 +880,7 @@ void HangingNodeRefiner::refine_constrained_edge(ConstrainedEdge* constrainedEdg
 	}
 }
 
-void HangingNodeRefiner::refine_constraining_edge(ConstrainingEdge* constrainingEdge,
+void HangingNodeRefiner2D_IRN::refine_constraining_edge(ConstrainingEdge* constrainingEdge,
 												EdgeBase** ppEdge1Out, EdgeBase** ppEdge2Out,
 												bool& scheduledEdgeReplaced1Out, bool& scheduledEdgeReplaced2Out)
 {
@@ -1146,7 +1146,7 @@ void HangingNodeRefiner::refine_constraining_edge(ConstrainingEdge* constraining
 	}
 }
 
-void HangingNodeRefiner::refine_edge_with_normal_vertex(EdgeBase* e)
+void HangingNodeRefiner2D_IRN::refine_edge_with_normal_vertex(EdgeBase* e)
 {
 	Grid& grid = *m_pGrid;
 
@@ -1167,7 +1167,7 @@ void HangingNodeRefiner::refine_edge_with_normal_vertex(EdgeBase* e)
 //	e may not be deleted at this point, since its associated triangles are still needed.
 }
 
-void HangingNodeRefiner::refine_edge_with_hanging_vertex(EdgeBase* e)
+void HangingNodeRefiner2D_IRN::refine_edge_with_hanging_vertex(EdgeBase* e)
 {
 	Grid& grid = *m_pGrid;
 //	we have to insert a hanging node.
@@ -1201,7 +1201,7 @@ void HangingNodeRefiner::refine_edge_with_hanging_vertex(EdgeBase* e)
 	}
 }
 
-void HangingNodeRefiner::refine_face_with_normal_vertex(Face* f)
+void HangingNodeRefiner2D_IRN::refine_face_with_normal_vertex(Face* f)
 {
 //LOG("refining face with normal vertex\n");
 	Grid& grid = *m_pGrid;
@@ -1251,7 +1251,7 @@ void HangingNodeRefiner::refine_face_with_normal_vertex(Face* f)
 		grid.erase(f);
 }
 
-void HangingNodeRefiner::refine_face_with_hanging_vertex(Face* f)
+void HangingNodeRefiner2D_IRN::refine_face_with_hanging_vertex(Face* f)
 {
 //LOG("refining face with hanging vertex\n");
 	Grid& grid = *m_pGrid;
@@ -1369,7 +1369,7 @@ void HangingNodeRefiner::refine_face_with_hanging_vertex(Face* f)
 	}
 }
 
-void HangingNodeRefiner::refine_constraining_face(std::vector<Face*>& vNewFacesOut,
+void HangingNodeRefiner2D_IRN::refine_constraining_face(std::vector<Face*>& vNewFacesOut,
 												ConstrainingFace* constrainingFace)
 {
 //	associated edges of a constraining face are always constraining edges.
@@ -1385,7 +1385,7 @@ void HangingNodeRefiner::refine_constraining_face(std::vector<Face*>& vNewFacesO
 //	other ways to compute the distribution: ???
 }
 
-void HangingNodeRefiner::refine_volume_with_normal_vertex(Volume* v)
+void HangingNodeRefiner2D_IRN::refine_volume_with_normal_vertex(Volume* v)
 {
 	Grid& grid = *m_pGrid;
 
