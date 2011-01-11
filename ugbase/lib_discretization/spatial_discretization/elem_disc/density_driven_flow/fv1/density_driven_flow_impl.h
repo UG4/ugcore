@@ -29,25 +29,6 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
-DensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
-							Porosity_fct Porosity, Viscosity_fct Viscosity,
-							Density_fct Density, D_Density_fct D_Density,
-							Mol_Diff_Tensor_fct Mol_Diff,
-							Permeability_Tensor_fct Permeability_Tensor,
-							Gravity_fct Gravity)
-: 	m_pDomain(&domain), m_Upwind(FULL_UPWIND),
-	m_BoussinesqTransport(true), m_BoussinesqFlow(true),
-	m_PorosityFct(Porosity), m_ViscosityFct(Viscosity),
-	m_DensityFct(Density), m_DDensityFct(D_Density),
-	m_MolDiffTensorFct(Mol_Diff), m_PermeabilityTensorFct(Permeability_Tensor),
-	m_GravityFct(Gravity)
-{
-	register_assemble_functions(Int2Type<dim>());
-};
 
 
 template<	template <class TElem, int TWorldDim> class TFVGeom,
@@ -60,7 +41,8 @@ compute_ip_Darcy_velocity(	MathVector<dim>& DarcyVel,
 							number c,
 							const MathVector<dim>& grad_p,
 							const MathMatrix<dim, dim>& JTInv,
-							const std::vector<MathVector<dim> >& vLocalGrad)
+							const std::vector<MathVector<dim> >& vLocalGrad,
+							size_t scvfIP)
 {
 //	Number of shapes
 	const size_t num_sh = vLocalGrad.size();
@@ -95,7 +77,7 @@ compute_ip_Darcy_velocity(	MathVector<dim>& DarcyVel,
 
 // 	Compute Darcy velocity
 	VecSubtract(Vel, Vel, grad_p);	// Vel := Rho*Gravity - Grad_p
-	MatVecMult(DarcyVel, m_Permeability, Vel);
+	MatVecMult(DarcyVel, m_scvfPermeability[scvfIP], Vel);
 	VecScale(DarcyVel, DarcyVel, 1./Viscosity);
 
 //	we're done
@@ -116,7 +98,8 @@ compute_D_ip_Darcy_velocity(	MathVector<dim>& DarcyVel,
 								const MathMatrix<dim, dim>& JTInv,
 								const std::vector<number>& vShape,
 								const std::vector<MathVector<dim> >& vLocalGrad,
-								const std::vector<MathVector<dim> >& vGlobalGrad)
+								const std::vector<MathVector<dim> >& vGlobalGrad,
+								size_t scvfIP)
 {
 //	Number of shapes
 	const size_t num_sh = vShape.size();
@@ -182,7 +165,7 @@ compute_D_ip_Darcy_velocity(	MathVector<dim>& DarcyVel,
 
 // 	Compute Darcy velocity
 	VecSubtract(Vel, Vel, grad_p);
-	MatVecMult(DarcyVel, m_Permeability, Vel);
+	MatVecMult(DarcyVel, m_scvfPermeability[scvfIP], Vel);
 	VecScale(DarcyVel, DarcyVel, 1./Viscosity);
 
 // 	Compute derivative of Darcy Velocity with respect to _C_ and _P_
@@ -190,8 +173,8 @@ compute_D_ip_Darcy_velocity(	MathVector<dim>& DarcyVel,
 	for(size_t sh = 0; sh < num_sh; ++sh)
 	{
 		VecScale(D_vel_p[sh], vGlobalGrad[sh], -1.);
-		MatVecMult(D_DarcyVel_c[sh], m_Permeability, D_vel_c[sh]);
-		MatVecMult(D_DarcyVel_p[sh], m_Permeability, D_vel_p[sh]);
+		MatVecMult(D_DarcyVel_c[sh], m_scvfPermeability[scvfIP], D_vel_c[sh]);
+		MatVecMult(D_DarcyVel_p[sh], m_scvfPermeability[scvfIP], D_vel_p[sh]);
 
 		VecScale(D_DarcyVel_c[sh],D_DarcyVel_c[sh],1./Viscosity);
 		VecScale(D_DarcyVel_p[sh],D_DarcyVel_p[sh],1./Viscosity);
@@ -214,7 +197,9 @@ DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
 prepare_element_loop()
 {
 // 	Resizes
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	typedef typename reference_element_traits<TElem>::reference_element_type
+					ref_elem_type;
+	m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 // 	Remember position attachement
 	if(m_pDomain == NULL)
@@ -225,14 +210,40 @@ prepare_element_loop()
 	}
 	m_aaPos = m_pDomain->get_position_accessor();
 
-// 	User function (constant in whole domain)
-	m_PorosityFct(m_Porosity);
-	m_GravityFct(m_Gravity);
+//	set local positions for user data
+	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	m_scvPorosity.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
+	                                                 geo.num_scv_local_ips());
+	m_scvfPorosity.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
+	                                                 geo.num_scvf_local_ips());
+	m_scvfPermeability.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
+	                                                 geo.num_scvf_local_ips());
+	m_scvfMolDiffusion.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
+	                                                 geo.num_scvf_local_ips());
 
-	// todo: move this to prepare elem and evaluate at midpoint.
-	m_PermeabilityTensorFct(m_Permeability);
-	m_MolDiffTensorFct(m_Diffusion);
-	MatScale(m_Diffusion, m_Porosity, m_Diffusion);
+// 	User function (constant in whole domain)
+	if(m_constGravity.constant_data())
+	{
+	//	cast gravity export
+		ConstUserVector<dim>* pGrav
+			= dynamic_cast<ConstUserVector<dim>*>(m_constGravity.get_data());
+
+	//	check success
+		if(pGrav == NULL)
+		{
+			UG_LOG("ERROR in prepare_element_loop: Cannot cast constant gravity.\n");
+			return false;
+		}
+
+	//	evaluate constant data
+		MathVector<dim> dummy;
+		pGrav->operator ()(m_Gravity, dummy, 0.0);
+	}
+	else
+	{
+		UG_LOG("ERROR in prepare_element_loop: Gravity must be constant.\n");
+		return false;
+	}
 
 //	we're done
 	return true;
@@ -265,7 +276,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	static const size_t num_co = ref_elem_type::num_corners;
 
 	// load corners of this element
-	for(size_t i = 0; i < num_co; ++i)
+	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
 	{
 		VertexBase* vert = elem->vertex(i);
 		m_vCornerCoords[i] = m_aaPos[vert];
@@ -280,6 +291,12 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
 				" Cannot update Finite Volume Geometry.\n"); return false;
 	}
+
+//	set global positions for user data
+	m_scvPorosity.set_global_ips(geo.scv_global_ips(), geo.num_scv_global_ips());
+	m_scvfPorosity.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
+	m_scvfPermeability.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
+	m_scvfMolDiffusion.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_global_ips());
 
 //	Compute density in corners
 	for(size_t sh = 0; sh < num_co; sh++)
@@ -314,7 +331,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	{
 	// 	Prepare Density in Corners
 		if(!PrepareConsistentGravity<dim>(	&m_vConsGravity[0],
-											num_co,
+		                                  	m_vCornerCoords.size(),
 											&m_vCornerCoords[0],
 											&m_vDensity[0],
 											m_Gravity))
@@ -332,7 +349,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 		{
 			DCoVal[sh] = m_vDDensity[sh];
 			if(!PrepareConsistentGravity<dim>(	&m_vvDConsGravity[sh][0],
-												num_co,
+			                                  	m_vCornerCoords.size(),
 												&m_vCornerCoords[0],
 												&DCoVal[0],
 												m_Gravity))
@@ -360,13 +377,14 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	number vDFlux_p[num_co];
 
 //	Loop Sub Control Volume Faces (SCVF)
+	size_t scvfIP = 0;
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
 	{
 	// 	Get current SCVF
 		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
 
 	// 	Loop integration point of SCVF
-		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf.num_ip(); ++ip, scvfIP++)
 		{
 			///////////////////////////////////////////
 			// IP Values
@@ -400,10 +418,14 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 											scvf.JTInv(ip),
 											scvf.shape_vector(ip),
 											scvf.local_grad_vector(ip),
-											scvf.global_grad_vector(ip));
+											scvf.global_grad_vector(ip),
+											scvfIP);
 
 			// todo: Compute DarcyVelocity for Dispersion
 			// todo: Compute Dispersion
+
+			MatScale(m_Diffusion, m_scvfPorosity[scvfIP],
+			         	 	 	  m_scvfMolDiffusion[scvfIP]);
 
 			////////////////////////
 			// Transport Equation
@@ -544,7 +566,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	{
 	// 	Prepare Density in Corners
 		if(!PrepareConsistentGravity<dim>(	&m_vConsGravity[0],
-											num_co,
+		                                  	m_vCornerCoords.size(),
 											&m_vCornerCoords[0],
 											&m_vDensity[0],
 											m_Gravity))
@@ -564,13 +586,14 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	number vConvShape[num_co];
 
 // 	Loop Sub Control Volume Faces (SCVF)
+	size_t scvfIP = 0;
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
 	{
 	// 	Get current SCVF
 		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
 
 	// 	Loop integration points
-		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
+		for(size_t ip = 0; ip < scvf.num_ip(); ++ip, ++scvfIP)
 		{
 			///////////////////////////////
 			// Values at Integration Point
@@ -598,11 +621,15 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			compute_ip_Darcy_velocity(	DarcyVel,
 										c_ip, grad_p_ip,
 										scvf.JTInv(ip),
-										scvf.local_grad_vector(ip));
+										scvf.local_grad_vector(ip),
+										scvfIP);
 
 			// todo: Compute Darcy velocity for Dispersion
 			// todo: Compute Dispersion
 			// todo: Use DiffDisp = m_Diffusion + Dispersion
+
+			MatScale(m_Diffusion, m_scvfPorosity[scvfIP],
+			         	 	 	  m_scvfMolDiffusion[scvfIP]);
 
 			////////////////////////
 			// Transport Equation
@@ -670,28 +697,29 @@ bool
 DensityDrivenFlowElemDisc<TFVGeom, TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
-	// get finite volume geometry
+// 	get finite volume geometry
 	static const TFVGeom<TElem, dim>& geo =
 				FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
-	// loop Sub Control Volumes (SCV)
-	for(size_t i = 0; i < geo.num_scv(); ++i)
+// 	loop Sub Control Volumes (SCV)
+	size_t ip = 0;
+	for(size_t i = 0; i < geo.num_scv(); ++i, ++ip)
 	{
-		// get current SCV
+	// 	get current SCV
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
 
-		// get associated node
+	// 	get associated node
 		const int co = scv.node_id();
 
-		// Add to local matrix
+	// 	Add to local matrix
 		if(m_BoussinesqTransport)
-			J(_C_, co, _C_, co) += m_Porosity * scv.volume();
+			J(_C_, co, _C_, co) += m_scvPorosity[ip] * scv.volume();
 		else
-			J(_C_, co, _C_, co) += m_Porosity * scv.volume() *
+			J(_C_, co, _C_, co) += m_scvPorosity[ip] * scv.volume() *
 									(m_vDensity[co] + m_vDDensity[co] * u(_C_, co));
 
 		if(!m_BoussinesqFlow)
-			J(_P_, co, _C_, co) += m_Porosity * m_vDDensity[co] * scv.volume();
+			J(_P_, co, _C_, co) += m_scvPorosity[ip] * m_vDDensity[co] * scv.volume();
 		//else
 			//J(_P_, co, _C_, co) += 0;
 
@@ -700,7 +728,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		//J(_P_, co, _P_, co) += 0;
 	}
 
-	// we're done
+// 	we're done
 	return true;
 }
 
@@ -719,7 +747,8 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 				FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
 // 	Loop Sub Control Volumes (SCV)
-	for(size_t i = 0; i < geo.num_scv(); ++i)
+	size_t ip = 0;
+	for(size_t i = 0; i < geo.num_scv(); ++i, ++ip)
 	{
 	// 	Get current SCV
 		const typename TFVGeom<TElem, dim>::SCV& scv = geo.scv(i);
@@ -729,14 +758,14 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 
 	// 	Add to local matrix
 		if(m_BoussinesqTransport)
-			d(_C_,co) += m_Porosity * u(_C_,co) * scv.volume();
+			d(_C_,co) += m_scvPorosity[ip] * u(_C_,co) * scv.volume();
 		else
-			d(_C_,co) += m_Porosity * m_vDensity[co] * u(_C_,co) * scv.volume();
+			d(_C_,co) += m_scvPorosity[ip] * m_vDensity[co] * u(_C_,co) * scv.volume();
 
 		if(m_BoussinesqFlow)
-			d(_P_,co) += m_Porosity * scv.volume();
+			d(_P_,co) += m_scvPorosity[ip] * scv.volume();
 		else
-			d(_P_,co) += m_Porosity * m_vDensity[co] * scv.volume();
+			d(_P_,co) += m_scvPorosity[ip] * m_vDensity[co] * scv.volume();
 	}
 
 // 	we're done

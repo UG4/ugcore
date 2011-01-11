@@ -28,22 +28,14 @@ class IDensityDrivenFlowUserFunction
 {
 	public:
 	//	Function Types
-		typedef void (*Porosity_fct)(number&);
 		typedef void (*Viscosity_fct)(number&, number);
 		typedef void (*Density_fct)(number&, number);
 		typedef void (*D_Density_fct)(number&, number);
-		typedef void (*Mol_Diff_Tensor_fct)(MathMatrix<dim,dim>&);
-		typedef void (*Permeability_Tensor_fct)(MathMatrix<dim,dim>&);
-		typedef void (*Gravity_fct)(MathVector<dim>&);
 
 	public:
-		virtual Porosity_fct get_porosity_function() const = 0;
 		virtual Viscosity_fct get_viscosity_function() const = 0;
 		virtual Density_fct get_density_function() const = 0;
 		virtual D_Density_fct get_d_density_function() const = 0;
-		virtual Mol_Diff_Tensor_fct get_mol_diff_tensor_function() const = 0;
-		virtual Permeability_Tensor_fct get_perm_tensor_function() const = 0;
-		virtual Gravity_fct get_gravity_function() const = 0;
 
 		virtual ~IDensityDrivenFlowUserFunction(){}
 };
@@ -64,16 +56,25 @@ class IDensityDrivenFlowUserFunction
  * <ul>
  * <li> \f$ c \f$		unknown brine mass fraction
  * <li>	\f$ p \f$ 		unknown pressure
- * <li>	\f$ \phi \f$	porosity
- * <li>	\f$ \rho(c)\f$	density
- * <li>	\f$ D \f$		diffusion-dispersion tensor
- * <li>	\f$ K \f$		permeability tensor
- * <li>	\f$ \mu \f$		viscosity
- * <li>	\f$ \vec{g} \f$	gravity field
+ * </ul>
+ * and given data
+ * <ul>
+ * <li>	\f$ \phi(\vec{x}, t) \f$	Porosity
+ * <li>	\f$ K(\vec{x}, t) \f$		Permeability tensor
+ * <li>	\f$ \vec{g} \f$	constant Gravity field
+ * <li>	\f$ D(\vec{q}, \vec{x}, t) := \phi(\vec{x}, t) D_d(\vec{x}, t) + D_m(\vec{q})  \f$
+ * 			Diffusion-Dispersion tensor
+ * <li>	\f$ D_m(\vec{q})  \f$	mechanical Dispersion tensor
+ * <li>	\f$ D_d(\vec{x}, t) \f$	molecular Diffusion tensor (prop. to Tortuosity)
+ * <li>	\f$ \mu(c) \f$		Viscosity
+ * <li>	\f$ \rho(c)\f$	Density
+ * </ul>
+ * as well as the abbreviation
+ * <ul>
  * <li>	\f$ \vec{q} \f$	Darcy velocity
  * </ul>
  *
- * The first equation is usually refered to as the flow equation. The second
+ * The first equation is usually referred to as the flow equation. The second
  * equation is known as the transport equation.
  *
  * \tparam	TFVGeom		Finite Volume Geometry
@@ -107,33 +108,29 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		typedef typename IElemDisc<TAlgebra>::local_index_type local_index_type;
 
 	protected:
-		typedef void (*Porosity_fct)(number&);
 		typedef void (*Viscosity_fct)(number&, number);
 		typedef void (*Density_fct)(number&, number);
 		typedef void (*D_Density_fct)(number&, number);
-		typedef void (*Mol_Diff_Tensor_fct)(MathMatrix<dim,dim>&);
-		typedef void (*Permeability_Tensor_fct)(MathMatrix<dim,dim>&);
-		typedef void (*Gravity_fct)(MathVector<dim>&);
 
 	public:
-		DensityDrivenFlowElemDisc(	TDomain& domain, number upwind_amount,
-									Porosity_fct Porosity, Viscosity_fct Viscosity, Density_fct Density, D_Density_fct D_Density,
-									Mol_Diff_Tensor_fct Mol_Diff, Permeability_Tensor_fct Permeability_Tensor, Gravity_fct Gravity);
-
 	///	Constructor
 		DensityDrivenFlowElemDisc() :
 			m_pDomain(NULL), m_Upwind(NO_UPWIND), m_UseConsistentGravity(true),
 			m_BoussinesqTransport(true), m_BoussinesqFlow(true),
-			m_PorosityFct(NULL), m_ViscosityFct(NULL),
-			m_DensityFct(NULL), m_DDensityFct(NULL),
-			m_MolDiffTensorFct(NULL), m_PermeabilityTensorFct(NULL),
-			m_GravityFct(NULL)
+			m_ViscosityFct(NULL),
+			m_DensityFct(NULL), m_DDensityFct(NULL)
 		{
 		//	register assemble functions
 			register_assemble_functions(Int2Type<dim>());
 
 		//	register export
 			register_export(m_DarcyVelExport);
+
+		//	register import
+			register_import(m_scvfPorosity);
+			register_import(m_scvPorosity);
+			register_import(m_scvfPermeability);
+			register_import(m_scvfMolDiffusion);
 		}
 
 	///	sets usage of consistent gravity
@@ -182,13 +179,46 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 
 	///	sets the user functions
 		void set_user_functions(IDensityDrivenFlowUserFunction<dim>& user) {
-			m_PorosityFct = user.get_porosity_function();
 			m_ViscosityFct = user.get_viscosity_function();
 			m_DensityFct = user.get_density_function();
 			m_DDensityFct = user.get_d_density_function();
-			m_MolDiffTensorFct = user.get_mol_diff_tensor_function();
-			m_PermeabilityTensorFct = user.get_perm_tensor_function();
-			m_GravityFct = user.get_gravity_function();
+		}
+
+	///	sets the porosity
+	/**
+	 * This method sets the Porosity. (Dimensionless)
+	 */
+		void set_porosity(IPData<number, dim>& user)
+		{
+			m_scvPorosity.set_data(user);
+			m_scvfPorosity.set_data(user);
+		}
+
+	///	sets the gravity vector
+	/**
+	 * This method sets the Gravity. (Unit is \f$ \frac{m}{s^2} \f$)
+	 */
+		void set_gravity(IPData<MathVector<dim>, dim>& user)
+		{
+			m_constGravity.set_data(user);
+		}
+
+	///	sets the molecular diffusion tensor
+	/**
+	 * This method sets the molecular Diffusion tensor.
+	 */
+		void set_molecular_diffusion(IPData<MathMatrix<dim, dim>, dim>& user)
+		{
+			m_scvfMolDiffusion.set_data(user);
+		}
+
+	///	sets the permeability tensor
+	/**
+	 * This method sets the Permeability tensor.
+	 */
+		void set_permeability(IPData<MathMatrix<dim, dim>, dim>& user)
+		{
+			m_scvfPermeability.set_data(user);
 		}
 
 	public:
@@ -254,14 +284,14 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 	///	max num of element Corners (this is to much in 3d)
 		static const size_t m_MaxNumCorners = dim*dim;
 
-	//	Positions
-		position_type m_vCornerCoords[m_MaxNumCorners];
+	///	Corner Coordinates
+		std::vector<position_type> m_vCornerCoords;
 
-		// constant values, read in once
-		number m_Porosity;
-		MathMatrix<dim, dim> m_Diffusion;
+	/// constant Gravity, read in once
 		MathVector<dim> m_Gravity;
-		MathMatrix<dim, dim> m_Permeability;
+
+	///	help Matrix for Diffusion
+		MathMatrix<dim, dim> m_Diffusion;
 
 		// density at corners
 		number m_vDensity[m_MaxNumCorners];
@@ -278,14 +308,24 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		static const size_t _P_ = 1;
 
 	private:
+	///	Data import for the reaction term
+		DataImport<number, dim, algebra_type> m_scvPorosity;
+		DataImport<number, dim, algebra_type> m_scvfPorosity;
+
+	///	Data import for gravity (must be constant in current implementation)
+		DataImport<MathVector<dim>, dim, algebra_type> m_constGravity;
+
+	///	Data import for permeability tensor
+		DataImport<MathMatrix<dim, dim>, dim, algebra_type> m_scvfPermeability;
+
+	///	Data import for molecular diffusion tensor
+		DataImport<MathMatrix<dim, dim>, dim, algebra_type> m_scvfMolDiffusion;
+
+	private:
 		// User functions
-		Porosity_fct m_PorosityFct;
 		Viscosity_fct m_ViscosityFct;
 		Density_fct m_DensityFct;
 		D_Density_fct m_DDensityFct;
-		Mol_Diff_Tensor_fct m_MolDiffTensorFct;
-		Permeability_Tensor_fct m_PermeabilityTensorFct;
-		Gravity_fct m_GravityFct;
 
 	protected:
 	///	computes the darcy velocity
@@ -294,7 +334,8 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 				number c,
 				const MathVector<dim>& grad_p,
 				const MathMatrix<dim, dim>& JTInv,
-				const std::vector<MathVector<dim> >& vLocalGrad);
+				const std::vector<MathVector<dim> >& vLocalGrad,
+				size_t scvfIP);
 
 	///	computes the darcy velocity and its derivative w.r.t to c,p
 		bool compute_D_ip_Darcy_velocity(
@@ -306,7 +347,8 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 				const MathMatrix<dim, dim>& JTInv,
 				const std::vector<number>& vShape,
 				const std::vector<MathVector<dim> >& vLocalGrad,
-				const std::vector<MathVector<dim> >& vLGlobalGrad);
+				const std::vector<MathVector<dim> >& vLGlobalGrad,
+				size_t scvfIP);
 
 	protected:
 	///	computes the export
@@ -417,7 +459,8 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 													scvf.JTInv(j),
 													scvf.shape_vector(j),
 													scvf.local_grad_vector(j),
-													scvf.global_grad_vector(j));
+													scvf.global_grad_vector(j),
+													ip);
 				}
 			}
 
