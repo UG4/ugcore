@@ -13,6 +13,10 @@ idea of the IPData import, that is used in ug.
 	- \ref secIPData "IPData"
 	- \ref secDataExport "Data Export"
 	- \ref secEvaluationOrder "Evaluation Order"
+	
+While this page is concentrated on the technical usage, a more detailed and 
+mathematical introduction to the import/export strategy can be found on
+\ref pageLDImportExport "Import/Export Concept". 
 <br>
 
 <hr>
