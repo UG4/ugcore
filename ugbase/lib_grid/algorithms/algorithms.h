@@ -9,7 +9,7 @@
 #include "trees/octree.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "grid_generation/grid_generation.h"
-#include "refinement/hanging_node_refiner.h"
+#include "refinement/hanging_node_refiner_2d_irn.h"
 #include "refinement/hanging_node_refiner_ir1.h"
 #include "refinement/regular_refinement.h"
 #include "refinement/multi_grid_refiner.h"
