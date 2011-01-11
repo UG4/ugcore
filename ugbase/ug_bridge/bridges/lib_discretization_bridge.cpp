@@ -1106,6 +1106,14 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 						"", "Boussinesq Flow||invokeOnChange=true")
 			.add_method("set_user_functions|interactive=false", &T2::set_user_functions,
 						"", "User Functions||invokeOnChange=true")
+			.add_method("set_porosity|interactive=false", &T2::set_porosity,
+						"", "Porosity||invokeOnChange=true")
+			.add_method("set_gravity|interactive=false", &T2::set_gravity,
+						"", "Gravity||invokeOnChange=true")
+			.add_method("set_permeability|interactive=false", &T2::set_permeability,
+						"", "Permeability||invokeOnChange=true")
+			.add_method("set_molecular_diffusion|interactive=false", &T2::set_molecular_diffusion,
+						"", "Molecular Diffusion||invokeOnChange=true")
 			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
 						"", "Consistent Gravity||invokeOnChange=true")
 			.add_method("get_darcy_velocity", &T2::get_darcy_velocity);
