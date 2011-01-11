@@ -61,6 +61,10 @@ function PressureDirichletBnd(x, y, t)
 	return false, 0.0
 end
 
+function Porosity(x,y,t)
+	return 0.1
+end
+
 --------------------------------
 -- User Data Functions (end)
 --------------------------------
@@ -121,6 +125,20 @@ PressureDirichlet = utilCreateLuaBoundaryNumber("PressureDirichletBnd", dim)
 ConcentrationStartValue = utilCreateLuaUserNumber("ConcentrationStart", dim)
 PressureStartValue = utilCreateLuaUserNumber("PressureStart", dim)
 
+-- Porosity
+--porosityValue = utilCreateLuaUserNumber("Porosity", dim)
+porosityValue = utilCreateConstUserNumber(0.1, dim)
+
+-- Gravity
+gravityValue = utilCreateConstUserVector(0.0, dim)
+gravityValue:set_entry(dim-1, -9.81)
+
+-- molecular Diffusion
+molDiffusionValue = utilCreateConstDiagUserMatrix( 3.565e-6, dim)
+
+-- Permeability
+permeabilityValue = utilCreateConstDiagUserMatrix( 4.845e-13, dim)
+
 -----------------------------------------------------------------
 --  Setup FV Element Discretization
 -----------------------------------------------------------------
@@ -144,7 +162,12 @@ if elemDisc:set_upwind("no") == false then exit() end
 elemDisc:set_consistent_gravity(true)
 elemDisc:set_boussinesq_transport(true)
 elemDisc:set_boussinesq_flow(true)
+
 elemDisc:set_user_functions(elderElemFct)
+elemDisc:set_porosity(porosityValue)
+elemDisc:set_gravity(gravityValue)
+elemDisc:set_permeability(permeabilityValue)
+elemDisc:set_molecular_diffusion(molDiffusionValue)
 
 -- add Element Discretization to discretization
 domainDisc:add_elem_disc(elemDisc)
@@ -275,14 +298,14 @@ out:print("Elder", u, 0, 0.0)
 -- Perform Time Step
 do_steps = NumPreTimeSteps
 do_dt = dt/100
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", false)
+PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
 step = step + do_steps
 time = time + do_dt * do_steps
 
 do_steps = NumTimeSteps - NumPreTimeSteps
 if do_steps > 0 then
 	do_dt = dt
-	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", false)
+	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
 	step = step + do_steps
 	time = time + do_dt * do_steps
 end
