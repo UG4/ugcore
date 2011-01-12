@@ -76,7 +76,9 @@ public:
 	//! @param i index of item in arr
 	void insert_item(size_t i)
 	{
+		size_check(i);
 		size_t val = arr[i].get_val();
+		UG_ASSERT(val < 5000, "boxsort is not meant for big values");
 		if(box.size() < val+1)
 		{
 			//size_t s = box.size();
@@ -96,6 +98,10 @@ public:
 	//! removes index i in arr
 	void remove(size_t i)
 	{
+		size_check(i);
+
+		UG_ASSERT(posInBox[i] != -1, "item " << i << " cannot be removed from queue, since it is not in the queue.");
+
 		size_t val = values[i];
 
 		// swap last of this box and i
@@ -121,6 +127,8 @@ public:
 	//! returns the index in arr of maximal element of the heap
 	size_t remove_max()
 	{
+		UG_ASSERT(m_height > 0 && box.size() > 0, "queue empty! (height = " << m_height << ", boxsize = " << box.size() << ").");
+
 		size_t val = box.size()-1;
 		size_t i = box[val].back();
 		box[val].pop_back();
@@ -135,7 +143,8 @@ public:
 	//! returns the index in m_arr of maximal element of the heap
 	size_t get_max() const
 	{
-		UG_ASSERT(height > 0, "queue empty!");
+		UG_ASSERT(m_height > 0 || box.size() <= 0, "queue empty! (height = " << m_height << ", boxsize = " << box.size() << ").");
+
 		size_t val = box.size()-1;
 		return box[val].back();
 	}
@@ -191,9 +200,13 @@ public:
 	}*/
 
 private:
+	inline void size_check(size_t i)
+	{
+		UG_ASSERT(i < arr_size(), "accessing element " << i << ", but size of the array is only " << arr_size());
+	}
 	T *arr;				//< pointer to array with elements of type T
 
-	std::vector<std::vector<size_t> > box;
+	stdvector<stdvector<size_t> > box;
 
 	int *posInBox;	//< item is at box[values[i]]
 	size_t *values;		//< values[i] is the value used for sorting of element i

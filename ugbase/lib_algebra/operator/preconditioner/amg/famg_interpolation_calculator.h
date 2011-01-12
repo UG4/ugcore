@@ -105,15 +105,15 @@ public:
 	 * \param possible_neighbors	list of possible parent pairs
 	 * \param nodeinfo				info of the node. possibly set to coarse or fine.
 	 */
-	void get_possible_parent_pairs(size_t i, std::vector<neighborstruct2> &possible_neighbors, famg_nodeinfo &nodeinfo)
+	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors, famg_nodeinfo &nodeinfo)
 	{
-		FAMG_LOG(2, "\n\n\n\n============================\n\n\n");
-		FAMG_LOG(2, "node " << GetOriginalIndex(i) << "\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << GetOriginalIndex(i) << "\n");
 
 
 		if(get_H(i) == false)
 		{
-			FAMG_LOG(2, "node has no connections, set as fine\n");
+			UG_DLOG(LIB_ALG_AMG, 2, "node has no connections, set as fine\n");
 			nodeinfo.set_fine();
 			return;
 		}
@@ -161,18 +161,18 @@ public:
 				rhs[0] = - Hi[n];
 				rhs[1] = - Hi[m];
 
-				FAMG_LOG(2, "checking parents " << n << " (" << GetOriginalIndex(onlyN1[n]) << ") and " << m << " (" << GetOriginalIndex(onlyN1[m]) << ")\n");
-				IF_FAMG_LOG(3) KKT.maple_print("KKT");
-				IF_FAMG_LOG(3) rhs.maple_print("rhs");
+				UG_DLOG(LIB_ALG_AMG, 2, "checking parents " << n << " (" << GetOriginalIndex(onlyN1[n]) << ") and " << m << " (" << GetOriginalIndex(onlyN1[m]) << ")\n");
+				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
+				IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
 				InverseMatMult(q, 1.0, KKT, rhs);
 
-				IF_FAMG_LOG(3) q.maple_print("q");
+				IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
 
 				neighborstruct2 s;
 
-				IF_FAMG_LOG(3) KKT.maple_print("KKT");
-				FAMG_LOG(3, "Hi[n] = " << Hi[n] << ", " << " Hi[m] = " << Hi[m] << " Hi[i_index] = " << Hi[i_index] << "\n");
+				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
+				UG_DLOG(LIB_ALG_AMG, 3, "Hi[n] = " << Hi[n] << ", " << " Hi[m] = " << Hi[m] << " Hi[i_index] = " << Hi[i_index] << "\n");
 
 				// calc q^T H q
 
@@ -180,7 +180,7 @@ public:
 						q[1] * (KKT(1,0) * q[0] + KKT(1,1) * q[1] + /* 1.0 */ Hi[m]) +
 						/*1 */ (Hi[n] * q[0] + Hi[m] * q[1] + Hi[i_index]);
 
-				FAMG_LOG(2, "F: " << s.F << "\n");
+				UG_DLOG(LIB_ALG_AMG, 2, "F: " << s.F << "\n");
 
 				if(s.F > m_delta) continue;
 				if(s.F < f_min)
@@ -208,7 +208,7 @@ public:
 					possible_neighbors.push_back(i_neighborpairs[j]);
 
 	//#ifdef FAMG_PRINT_POSSIBLE_PARENTS
-			IF_FAMG_LOG(2)
+			IF_DEBUG(LIB_ALG_AMG, 2)
 			{
 				UG_LOG(std::endl << i << ": onlyN1.size = " << onlyN1.size() << " f_min = " << f_min << std::endl);
 				UG_LOG(possible_neighbors.size() << " accepted pairs:" << std::endl);
@@ -225,7 +225,7 @@ public:
 		}
 		else
 		{
-			FAMG_LOG(2, std::endl << GetOriginalIndex(i) << ": UNINTERPOLATEABLE" << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 2, std::endl << GetOriginalIndex(i) << ": UNINTERPOLATEABLE" << std::endl);
 			//UG_ASSERT(0, "node has no parents :'-(");
 			nodeinfo.set_uninterpolateable();
 		}
@@ -239,10 +239,10 @@ public:
 	 * \param P		matrix for the interpolation
 	 * \
 	 */
-	void get_all_neighbors_interpolation(size_t i, matrix_type &P,	famg_nodes &rating, std::vector<int> &newIndex,
+	void get_all_neighbors_interpolation(size_t i, matrix_type &P,	famg_nodes &rating, stdvector<int> &newIndex,
 					size_t &iNrOfCoarse, size_t &unassigned)
 	{
-		FAMG_LOG(3, "aggressive coarsening on node " << GetOriginalIndex(i) << "\n")
+		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << GetOriginalIndex(i) << "\n")
 
 		get_H(i);
 
@@ -293,13 +293,13 @@ public:
 				rhs[j] = -Hi[coarse_neighbors[j]];
 			rhs[N] = -testvector[i_index];
 
-			IF_FAMG_LOG(3) vKKT.maple_print("KKT");
-			IF_FAMG_LOG(3) rhs.maple_print("rhs");
+			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
+			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
 			q.resize(N+1);
 			InverseMatMult(q, 1.0, vKKT, rhs);
 
-			IF_FAMG_LOG(3) q.maple_print("q");
+			IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
 
 			t.resize(q.size());
 			// todo: calc F
@@ -345,13 +345,13 @@ public:
 				rhs[j] = -Hi[j];
 			rhs[i_index] = -testvector[i_index];
 
-			IF_FAMG_LOG(3) vKKT.maple_print("KKT");
-			IF_FAMG_LOG(3) rhs.maple_print("rhs");
+			IF_DEBUG(LIB_ALG_AMG, 3) vKKT.maple_print("KKT");
+			IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
 			q.resize(onlyN1.size()+1);
 			InverseMatMult(q, 1.0, vKKT, rhs);
 
-			IF_FAMG_LOG(3) q.maple_print("q");
+			IF_DEBUG(LIB_ALG_AMG, 3) q.maple_print("q");
 
 			t.resize(q.size());
 			// todo: calc F
@@ -409,7 +409,7 @@ private:
 			SF[j] = - diaginv * S(i_index, j);
 		SF[i_index] += 1.0;
 
-		IF_FAMG_LOG(3) print_vector(SF, "SF");
+		IF_DEBUG(LIB_ALG_AMG, 3) print_vector(SF, "SF");
 
 		// get S = 1-w D^{-1} A
 		for(size_t r=0; r < N; r++)
@@ -421,7 +421,7 @@ private:
 			}
 		}
 
-		IF_FAMG_LOG(3) S.maple_print("Sjac");
+		IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("Sjac");
 
 		// get S = SF S
 		// (possible without temporary since SF is mostly Id,
@@ -450,21 +450,22 @@ private:
 				S(r, c) = s;
 			}*/
 
-		IF_FAMG_LOG(3)	S.maple_print("S_SF");
+		IF_DEBUG(LIB_ALG_AMG, 3)	S.maple_print("S_SF");
 
 		H.resize(onlyN1.size(),onlyN1.size());
 		// get H = S Y S^T
 		// todo: use symmetric H.
 		for(size_t r=0; r < onlyN1.size(); r++)
-			for(size_t c=0; c < onlyN1.size(); c++)
+			for(size_t c=r; c < onlyN1.size(); c++)
 			{
 				double s=0;
 				for(size_t j=0; j<N; j++)
 					s += S(r, j) * Dinv[j] * S(c, j);
 				H(r, c) = s;
+				H(c, r) = s;
 			}
 
-		IF_FAMG_LOG(2)	H.maple_print("H");
+		IF_DEBUG(LIB_ALG_AMG, 2)	H.maple_print("H");
 
 		// get Hi[.] = H(i_index, .)
 		Hi.resize(onlyN1.size()+1);
@@ -476,15 +477,15 @@ private:
 			Hi[r] = s;
 		}
 
-		IF_FAMG_LOG(2) print_vector(Hi, "Hi");
+		IF_DEBUG(LIB_ALG_AMG, 2) print_vector(Hi, "Hi");
 	}
 	bool get_H(size_t i)
 	{
 
 		GetNeighborhood(A, i, onlyN1, onlyN2, bvisited);
 
-		//IF_FAMG_LOG(2) print_vector(onlyN1, "\nn1-neighbors");
-		//IF_FAMG_LOG(2) print_vector(onlyN2, "n2-neighbors");
+		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN1, "\nn1-neighbors");
+		//IF_DEBUG(LIB_ALG_AMG, 2) print_vector(onlyN2, "n2-neighbors");
 
 		if(onlyN1.size() == 0)
 			return false;
@@ -493,7 +494,7 @@ private:
 		N2.push_back(i);
 		N2.insert(N2.end(), onlyN2.begin(), onlyN2.end());
 
-		IF_FAMG_LOG(2)
+		IF_DEBUG(LIB_ALG_AMG, 2)
 		{
 			UG_LOG("\nN1 ");
 			for(int i=0; i<onlyN1.size(); i++)
@@ -511,11 +512,11 @@ private:
 		S = 0.0;
 		A.get(S, &N2[0], &N2[0]);
 
-		//IF_FAMG_LOG(3) S.maple_print("\nsubA");
+		//IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("\nsubA");
 
 		calculate_H_from_S();
 
-		//IF_FAMG_LOG(3) H.maple_print("\nsubH");
+		//IF_DEBUG(LIB_ALG_AMG, 3) H.maple_print("\nsubH");
 
 		return true;
 	}
@@ -523,25 +524,25 @@ private:
 private:
 	// for speedup purposes, we don't want these arrays to be re-allocated all the time,
 	// thats why they are stored here.
-	std::vector<bool> bvisited;					// used for N2-neighborhood calculation
+	stdvector<bool> bvisited;					// used for N2-neighborhood calculation
 
 	DenseMatrix<VariableArray2<double> > S;		// local matrix S = 1 - wD^{-1}A on {N1, i_index, N2}
-	std::vector<double> SF;						// SF = 1 -wD^{-1} A(i_index,.)
-	std::vector<double> D;						// diagonal
-	std::vector<double> Dinv;						// diagonal
+	stdvector<double> SF;						// SF = 1 -wD^{-1} A(i_index,.)
+	stdvector<double> D;						// diagonal
+	stdvector<double> Dinv;						// diagonal
 	DenseMatrix<VariableArray2<double> > H;		// matrix H = S Y S^T  on {N1}
-	std::vector<double> Hi;						// H(i_index, N1)
+	stdvector<double> Hi;						// H(i_index, N1)
 
 	// for the KKT system
-	std::vector<double> testvector;
-	DenseVector<std::vector<double> > rhs;
-	DenseVector<std::vector<double> > q;
-	DenseVector<std::vector<double> > t;
+	stdvector<double> testvector;
+	DenseVector<stdvector<double> > rhs;
+	DenseVector<stdvector<double> > q;
+	DenseVector<stdvector<double> > t;
 
-	std::vector<neighborstruct2> i_neighborpairs;
+	stdvector<neighborstruct2> i_neighborpairs;
 
-	std::vector<size_t> onlyN1;
-	std::vector<size_t> onlyN2, N2;
+	stdvector<size_t> onlyN1;
+	stdvector<size_t> onlyN2, N2;
 
 	DenseMatrix<VariableArray2<double> > vKKT;
 

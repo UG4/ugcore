@@ -1,7 +1,7 @@
 
 template<typename neighborstruct, typename matrix_type>
-bool other_UpdateRating(size_t node, std::vector<neighborstruct> &PN, famg_nodes &nodes,
-		std::vector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,	FAMGInterpolationCalculator<matrix_type> &calculator)
+bool other_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &nodes,
+		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,	FAMGInterpolationCalculator<matrix_type> &calculator)
 {
 	if(prolongation_calculated[node])
 		return nodes.update_rating(node, PN);
@@ -35,7 +35,7 @@ bool other_UpdateRating(size_t node, std::vector<neighborstruct> &PN, famg_nodes
 			return false;
 
 #endif
-		FAMG_LOG(2, "node " << node << " has coarse neighbors, but rating is not calculated yet. calculating rating now\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << node << " has coarse neighbors, but rating is not calculated yet. calculating rating now\n");
 		calculator.get_possible_parent_pairs(node, PN, nodes[node]);
 		prolongation_calculated[node] = true;
 		nodes.update_rating(node, PN);
@@ -46,9 +46,9 @@ bool other_UpdateRating(size_t node, std::vector<neighborstruct> &PN, famg_nodes
 }
 
 template<typename neighborstruct, typename matrix_type>
-void other_Update(size_t node, std::vector<std::vector<neighborstruct> > &possible_parents, famg_nodes &nodes,
+void other_Update(size_t node, stdvector<stdvector<neighborstruct> > &possible_parents, famg_nodes &nodes,
 		maxheap<famg_nodeinfo> &heap,
-		std::vector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type> &calculator)
+		stdvector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type> &calculator)
 {
 	if(!nodes[node].is_valid_rating())
 		return;
@@ -58,11 +58,11 @@ void other_Update(size_t node, std::vector<std::vector<neighborstruct> > &possib
 		{
 			if(heap.is_in(node))
 			{
-				FAMG_LOG(2, " remove node " << node << " from heap! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " remove node " << node << " from heap! ");
 				heap.remove(node);
 			}
 			else
-				FAMG_LOG(2, " node " << node << " uninterpolateable, but not in heap anyway! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " node " << node << " uninterpolateable, but not in heap anyway! ");
 		}
 		else
 		{
@@ -70,18 +70,18 @@ void other_Update(size_t node, std::vector<std::vector<neighborstruct> > &possib
 			if(heap.is_in(node))
 			{
 				heap.update(node);
-				FAMG_LOG(2, " updated node " << node << " in heap! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " updated node " << node << " in heap! ");
 			}
 			else
 			{
 				heap.insert_item(node);
-				FAMG_LOG(2, " inserted node " << node << " into heap!");
+				UG_DLOG(LIB_ALG_AMG, 2, " inserted node " << node << " into heap!");
 			}
 		}
 	}
 }
 
-void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, std::vector<bool> &mark, std::vector<size_t> &list)
+void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mark, stdvector<size_t> &list)
 {
 	for(cgraph::cRowIterator conn = SymmNeighGraph.begin_row(i); conn != SymmNeighGraph.end_row(i); ++conn)
 		if(mark[(*conn)] == false) list.push_back((*conn));
@@ -91,8 +91,8 @@ void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, std::vector<bool> &m
 
 template<typename matrix_type, typename neighborstruct>
 void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type &P,
-		std::vector<std::vector<neighborstruct> > &possible_parents,
-		famg_nodes &rating, maxheap<famg_nodeinfo> &heap, std::vector<int> &newIndex,
+		stdvector<stdvector<neighborstruct> > &possible_parents,
+		famg_nodes &rating, maxheap<famg_nodeinfo> &heap, stdvector<int> &newIndex,
 		size_t &iNrOfCoarse, size_t &unassigned, FAMGInterpolationCalculator<matrix_type> &calculator)
 {
 
@@ -119,14 +119,14 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 			break;
 	}
 
-	FAMG_LOG(2, "\nStarting with node " << GetOriginalIndex(i) << "\n");
+	UG_DLOG(LIB_ALG_AMG, 2, "\nStarting with node " << GetOriginalIndex(i) << "\n");
 
-	std::vector<bool> prolongation_calculated;
+	stdvector<bool> prolongation_calculated;
 	prolongation_calculated.resize(N, false);
 
-	std::vector<bool> bvisited;
+	stdvector<bool> bvisited;
 	bvisited.resize(N, false);
-	std::vector<size_t> neighborsToUpdate;
+	stdvector<size_t> neighborsToUpdate;
 
 
 
@@ -138,11 +138,11 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 	{
 		neighborstruct2 &n = possible_parents[i][0];
 
-		FAMG_LOG(2, "\n\n\nSelect next node...\n");
-		FAMG_LOG(2, "======================================\n");
-		FAMG_LOG(2, "node " << GetOriginalIndex(i) << " has rating " << rating[i] << ". now gets fine. parents: ");
+		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\nSelect next node...\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "======================================\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << GetOriginalIndex(i) << " has rating " << rating[i] << ". now gets fine. parents: ");
 		for(size_t j=0; j < n.parents.size(); j++)
-			FAMG_LOG(2, GetOriginalIndex(n.parents[j].from) << " ");
+			UG_DLOG(LIB_ALG_AMG, 2, GetOriginalIndex(n.parents[j].from) << " ");
 
 		// node i gets fine. update neighbors.
 		rating[i].set_fine();
@@ -154,15 +154,15 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 
 		AddUnmarkedNeighbors(SymmNeighGraph, i, bvisited, neighborsToUpdate);
 
-		FAMG_LOG(2, "Set coarse parents:\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "Set coarse parents:\n");
 		// get parent pair, set as coarse (if not already done), update neighbors.
 
 		for(size_t j=0; j < n.parents.size(); j++)
 		{
 			size_t node = n.parents[j].from;
 
-			if(rating[node].is_coarse()) { FAMG_LOG(2, "\nnode " << GetOriginalIndex(node) << " is already coarse\n"); }
-			else { FAMG_LOG(2, "\nnode " << GetOriginalIndex(node) << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
+			if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << GetOriginalIndex(node) << " is already coarse\n"); }
+			else { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << GetOriginalIndex(node) << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
 
 			if(!rating[node].is_coarse())
 			{
@@ -176,7 +176,7 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 			P(i, newIndex[node]) = n.parents[j].value;
 		}
 
-		IF_FAMG_LOG(4) print_vector(neighborsToUpdate, "neighborsToUpdate");
+		IF_DEBUG(LIB_ALG_AMG,4) print_vector(neighborsToUpdate, "neighborsToUpdate");
 
 		// update neighbors
 		for(size_t j=0; j<neighborsToUpdate.size(); j++)
@@ -188,12 +188,12 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 		neighborsToUpdate.clear();
 
 
-		FAMG_LOG(2, "\n\nSearching for next node...\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "\n\nSearching for next node...\n");
 		if(heap.height() == 0)
 		{
 			for(i=0; i<N; i++)
 			{
-				FAMG_LOG(2, "rating " << i << " is " << rating[i] << "\n");
+				UG_DLOG(LIB_ALG_AMG, 2, "rating " << i << " is " << rating[i] << "\n");
 				if(A.is_isolated(i) == false && rating[i].is_valid_rating())
 				{
 					if(prolongation_calculated[i] == false)
@@ -204,13 +204,13 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 					}
 					rating.update_rating(i, possible_parents[i]);
 
-					FAMG_LOG(2, " new rating is " << rating[i] << "\n");
+					UG_DLOG(LIB_ALG_AMG, 2, " new rating is " << rating[i] << "\n");
 					if(rating[i].is_valid_rating()) break;
 				}
 			}
-			if(i == N) { FAMG_LOG(2, "\nno more new start nodes found\n"); break; }
+			if(i == N) { UG_DLOG(LIB_ALG_AMG, 2, "\nno more new start nodes found\n"); break; }
 
-			FAMG_LOG(2, "\n\nRESTARTING WITH NODE " << GetOriginalIndex(i) << "!!!\n\n");
+			UG_DLOG(LIB_ALG_AMG, 2, "\n\nRESTARTING WITH NODE " << GetOriginalIndex(i) << "!!!\n\n");
 
 			calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
 			prolongation_calculated[i] = true;
@@ -220,10 +220,10 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 			while(1)
 			{
 				i = heap.get_max();
-				FAMG_LOG(2, "node " << i << " has best rating");
+				UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " has best rating");
 				if(prolongation_calculated[i] == false)
 				{
-					FAMG_LOG(2, ", but prolongation not calculated. update.\n");
+					UG_DLOG(LIB_ALG_AMG, 2, ", but prolongation not calculated. update.\n");
 					calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
 					prolongation_calculated[i] = true;
 					rating.update_rating(i, possible_parents[i]);
@@ -231,7 +231,7 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 				}
 				else
 				{
-					FAMG_LOG(2, ", and prolongation calculated, take this node.\n");
+					UG_DLOG(LIB_ALG_AMG, 2, ", and prolongation calculated, take this node.\n");
 					i = heap.remove_max();
 					break;
 				}

@@ -85,7 +85,7 @@ public:
 			const famg_nodeinfo &ninfo = nodes[M[i].from];
 			if(ninfo.is_fine())
 			{
-				FAMG_LOG(2, " pair " << GetOriginalIndex(M[0].from) << ", " << GetOriginalIndex(M[1].from) << " is invalid, since " << GetOriginalIndex(M[i].from) << " is fine. ");
+				UG_DLOG(LIB_ALG_AMG, 2, " pair " << GetOriginalIndex(M[0].from) << ", " << GetOriginalIndex(M[1].from) << " is invalid, since " << GetOriginalIndex(M[i].from) << " is fine. ");
 				return -1;
 			}
 			/*else if(ninfo.is_uninterpolateable())
@@ -105,18 +105,18 @@ public:
 	//	b) if a parent node gets coarse
 	//	returns true if value has been updated, otherwise false
 	template<typename neighborstruct>
-	bool update_rating(size_t node, std::vector<neighborstruct> &PN)
+	bool update_rating(size_t node, stdvector<neighborstruct> &PN)
 	{
-		FAMG_LOG(2, " update rating of node " << node << "... ");
+		UG_DLOG(LIB_ALG_AMG, 2, " update rating of node " << node << "... ");
 		if(nodes[node].is_valid_rating() == false)
 		{
-			FAMG_LOG(2, nodes[node].rating << " is not a valid rating."); return false;
+			UG_DLOG(LIB_ALG_AMG, 2, nodes[node].rating << " is not a valid rating."); return false;
 		}
 
 		int mini = -1;
 		double minrating = 10000;
 		double minF = 1e12;
-		FAMG_LOG(2, "has " << PN.size() << " possible parent nodes. ");
+		UG_DLOG(LIB_ALG_AMG, 2, "has " << PN.size() << " possible parent nodes. ");
 		for(size_t i=0; i<PN.size(); )
 		{
 			double irating = get_rating(PN[i].parents) + PN[i].F/1000;
@@ -125,7 +125,7 @@ public:
 			{
 				swap(PN[i], PN.back()); // remove this pair
 				PN.resize(PN.size()-1);
-				FAMG_LOG(2, " removed pair " << i << " ");
+				UG_DLOG(LIB_ALG_AMG, 2, " removed pair " << i << " ");
 				continue;
 			}
 
@@ -138,17 +138,17 @@ public:
 			}
 			i++;
 		}
-		FAMG_LOG(2, "now has " << PN.size() << " possible parent nodes. ");
+		UG_DLOG(LIB_ALG_AMG, 2, "now has " << PN.size() << " possible parent nodes. ");
 		for(size_t i=0; i<PN.size(); i++)
-			FAMG_LOG(2, PN[i].parents[0].from << "-" << PN[i].parents[1].from << " ");
+			UG_DLOG(LIB_ALG_AMG, 2, PN[i].parents[0].from << "-" << PN[i].parents[1].from << " ");
 
 		if(mini != -1)
 		{
-			FAMG_LOG(2, " has rating " << minrating << "\n");
+			UG_DLOG(LIB_ALG_AMG, 2, " has rating " << minrating << "\n");
 			if(mini != 0) swap(PN[0], PN[mini]);
 			if(nodes[node].rating != minrating)
 			{
-				FAMG_LOG(2, " new rating! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " new rating! ");
 				nodes[node].rating = minrating;
 				return true;
 			}
@@ -156,7 +156,7 @@ public:
 		}
 		else
 		{
-			FAMG_LOG(2, " is uninterpolateable! ");
+			UG_DLOG(LIB_ALG_AMG, 2, " is uninterpolateable! ");
 			if(nodes[node].is_uninterpolateable())
 				return false;
 			else
@@ -169,12 +169,12 @@ public:
 
 	size_t size() const { return nodes.size(); }
 private:
-	std::vector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array
+	stdvector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array
 };
 
 
 template<typename neighborstruct>
-void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, std::vector<std::vector<neighborstruct> > &possible_neighbors,
+void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, stdvector<stdvector<neighborstruct> > &possible_neighbors,
 		famg_nodes &nodes, maxheap<famg_nodeinfo> &heap)
 {
 	for(cgraph::cRowIterator conn = SymmNeighGraph.begin_row(node); conn != SymmNeighGraph.end_row(node); ++conn)
@@ -188,12 +188,12 @@ void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, std::vector<std:
 		{
 			if(nodes[neigh].is_uninterpolateable())
 			{
-				FAMG_LOG(2, " remove from heap! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " remove from heap! ");
 				heap.remove(neigh);
 			}
 			else
 			{
-				FAMG_LOG(2, " update in heap! ");
+				UG_DLOG(LIB_ALG_AMG, 2, " update in heap! ");
 				heap.update(neigh);
 			}
 		}
@@ -201,20 +201,20 @@ void UpdateNeighbors(const cgraph &SymmNeighGraph, size_t node, std::vector<std:
 }
 
 template<typename neighborstruct, typename heap_type>
-void GetRatings(std::vector<std::vector<neighborstruct> > &possible_neighbors,
+void GetRatings(stdvector<stdvector<neighborstruct> > &possible_neighbors,
 		famg_nodes &nodes, heap_type &heap)
 {
-	FAMG_LOG(2, "\nGetRatings...\n\n");
+	UG_DLOG(LIB_ALG_AMG, 2, "\nGetRatings...\n\n");
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		FAMG_LOG(2, "node " << GetOriginalIndex(i) << ": ");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << GetOriginalIndex(i) << ": ");
 		if(nodes[i].rating == 0)
 		{
 			nodes.update_rating(i, possible_neighbors[i]);
 			if(nodes[i].is_valid_rating())
 				heap.insert_item(i);
 		}
-		FAMG_LOG(2, "rating = " << nodes[i].rating << "\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "rating = " << nodes[i].rating << "\n");
 	}
 
 }

@@ -253,6 +253,7 @@ amg_base<TAlgebra>::amg_base() :
 	m_postsmoother(NULL),
 	m_basesolver(NULL)
 {
+	vec4 = NULL;
 	m_bInited = false;
 
 	m_maxNodesForExact = 100;
@@ -411,8 +412,8 @@ bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const
 
 
 	if(vec4 == NULL)
-		vec4 = new vector_type;
-	if(vec4->size() != const_d.size())
+		vec4 = new vector_type(const_d.size());
+	else if(vec4->size() != const_d.size())
 		vec4->resize(const_d.size());
 
 #ifdef UG_PARALLEL
@@ -602,14 +603,14 @@ void amg_base<TAlgebra>::tostring() const
 
 	UG_LOG(" max levels = " << max_levels << std::endl);
 
-	if(m_presmoother) 	{UG_LOG("presmoother is " << m_presmoother->name() << ".\n");}
-	else				{UG_LOG("no presmoother set!\n");}
+	if(m_presmoother) 	{UG_LOG(" presmoother is " << m_presmoother->name() << ".\n");}
+	else				{UG_LOG(" no presmoother set!\n");}
 
-	if(m_postsmoother) 	{UG_LOG("postsmoother is " << m_postsmoother->name() << ".\n");}
-	else				{UG_LOG("no postsmoother set!\n");}
+	if(m_postsmoother) 	{UG_LOG(" postsmoother is " << m_postsmoother->name() << ".\n");}
+	else				{UG_LOG(" no postsmoother set!\n");}
 
-	if(m_basesolver)	{UG_LOG("basesolver set\n");}
-	else				{UG_LOG("no basesolver set!\n");}
+	if(m_basesolver)	{UG_LOG(" basesolver set\n");}
+	else				{UG_LOG(" no basesolver set!\n");}
 }
 
 } // namespace ug

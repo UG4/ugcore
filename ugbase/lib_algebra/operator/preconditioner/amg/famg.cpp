@@ -71,9 +71,6 @@ void print_vector(const vector_type &vec, const char *p)
 #define FAMG_PRINT_POSSIBLE_PARENTS
 #endif
 
-#define IF_FAMG_LOG(level) if(level <= famg_log_level)
-#define FAMG_LOG(level, msg) { if(level <= famg_log_level) { UG_LOG(msg); } }
-
 namespace ug{
 
 int famg_log_level = 0;
@@ -108,7 +105,7 @@ struct neighborstruct_var
 			UG_LOG((i>0 ? "," : "") << "p" << i << ": [" << GetOriginalIndex(parents[i].from) << "] -> " << parents[i].value);
 		UG_LOG(std::endl);
 	}
-	std::vector<s_interpolation<double> > parents;
+	stdvector<s_interpolation<double> > parents;
 	double F;
 };
 
@@ -137,7 +134,7 @@ struct neighborstruct_var
  */
 template<typename matrix_type>
 void GetAggressiveCoarseningInterpolation(const matrix_type &A, matrix_type &P,
-		famg_nodes &rating, std::vector<int> &newIndex,
+		famg_nodes &rating, stdvector<int> &newIndex,
 				size_t &iNrOfCoarse, size_t &unassigned,
 				FAMGInterpolationCalculator<matrix_type> &calculator)
 {
@@ -159,7 +156,7 @@ void GetAggressiveCoarseningInterpolation(const matrix_type &A, matrix_type &P,
  * \param rating				where the coarsening-ratings for the nodes are stored
  */
 template<typename matrix_type>
-void GetPossibleParentPairs(const matrix_type &A, std::vector<std::vector<neighborstruct2> > &possible_parents,
+void GetPossibleParentPairs(const matrix_type &A, stdvector<stdvector<neighborstruct2> > &possible_parents,
 		famg_nodes &rating, FAMGInterpolationCalculator<matrix_type> &calculator)
 {
 	possible_parents.clear();
@@ -189,7 +186,8 @@ void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
 		}
 
 #ifdef FAMG_PRINT_GRAPH
-	IF_FAMG_LOG(3)
+
+	IF_DEBUG(LIB_ALG_AMG, 3)
 	{
 		UG_LOG("\nSymmNeighGraph:\n");
 		SymmNeighGraph.print();
@@ -212,8 +210,8 @@ void CreateSymmConnectivityGraph(const matrix_type &A, cgraph &SymmNeighGraph)
  * \param unassigned			for each node assigned coarse or fine, this get decreased
  */
 template<typename matrix_type, typename neighborstruct>
-void FAMGCoarsen(cgraph &SymmNeighGraph, matrix_type &P, std::vector<std::vector<neighborstruct> > &possible_parents,
-		famg_nodes &rating, maxheap<famg_nodeinfo> heap, std::vector<int> &newIndex,
+void FAMGCoarsen(cgraph &SymmNeighGraph, matrix_type &P, stdvector<stdvector<neighborstruct> > &possible_parents,
+		famg_nodes &rating, maxheap<famg_nodeinfo> heap, stdvector<int> &newIndex,
 		size_t &iNrOfCoarse, size_t &unassigned)
 {
 
@@ -223,10 +221,10 @@ void FAMGCoarsen(cgraph &SymmNeighGraph, matrix_type &P, std::vector<std::vector
 		size_t i = heap.remove_max();
 		neighborstruct2 &n = possible_parents[i][0];
 
-		FAMG_LOG(2, "\n\n\nSelect next node...\n");
-		FAMG_LOG(2, "node " << i << " has rating " << rating[i] << ". now gets fine. parents: ");
-		for(size_t j=0; j < n.parents.size(); j++)	FAMG_LOG(2, n.parents[j].from << " ");
-		FAMG_LOG(2, "\nUpdate Neighbors of " << i << "\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\nSelect next node...\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " has rating " << rating[i] << ". now gets fine. parents: ");
+		for(size_t j=0; j < n.parents.size(); j++)	UG_DLOG(LIB_ALG_AMG, 2, n.parents[j].from << " ");
+		UG_DLOG(LIB_ALG_AMG, 2, "\nUpdate Neighbors of " << i << "\n");
 
 		// node i then gets fine, parent nodes get coarse, and neighbors of those updated.
 
@@ -235,15 +233,15 @@ void FAMGCoarsen(cgraph &SymmNeighGraph, matrix_type &P, std::vector<std::vector
 		unassigned--;
 		UpdateNeighbors(SymmNeighGraph, i, possible_parents, rating, heap);
 
-		FAMG_LOG(2, "Set coarse parents:\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "Set coarse parents:\n");
 		// get parent pair, set as coarse (if not already done), update neighbors.
 
 		for(size_t j=0; j < n.parents.size(); j++)
 		{
 			size_t node = n.parents[j].from;
 
-			if(rating[node].is_coarse()) { FAMG_LOG(2, "\nnode " << node << " is already coarse\n"); }
-			else { FAMG_LOG(2, "\nnode " << node << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
+			if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << node << " is already coarse\n"); }
+			else { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << node << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
 
 			if(!rating[node].is_coarse())
 			{
@@ -261,7 +259,7 @@ void FAMGCoarsen(cgraph &SymmNeighGraph, matrix_type &P, std::vector<std::vector
 }
 
 template<typename matrix_type>
-void SetUninterpolateableAsCoarse(famg_nodes &rating, matrix_type &P, std::vector<int> &newIndex, size_t &iNrOfCoarse)
+void SetUninterpolateableAsCoarse(famg_nodes &rating, matrix_type &P, stdvector<int> &newIndex, size_t &iNrOfCoarse)
 {
 	for(size_t i=0; i<rating.size(); i++)
 	{
@@ -293,8 +291,14 @@ template<>
 void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix<double> &R, const SparseMatrix<double> &A,
 		SparseMatrix<double> &P, int level)
 {
+	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::endl << std::fixed);
+	bool bTiming=true;
+	stopwatch SW, SWwhole; SWwhole.start();
+
 	FAMGInterpolationCalculator<matrix_type> calculator(A, m_delta, m_theta, m_dDampingForSmootherInInterpolationCalculation);
 
+	UG_LOG("calculating testvector... ");
+	if(bTiming) SW.start();
 	if(big_testvector.size() == 0)
 	{
 		big_testvector.resize(A.num_rows());
@@ -317,18 +321,15 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 		}
 	}
 
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 	pAmghelper = &amghelper;
 	currentlevel = level;
 
-	bool bTiming=true;
-	stopwatch SW, SWwhole; SWwhole.start();
-
 	size_t N = A.num_rows();
-	FAMG_LOG(0, "Creating level " << level << ". (" << N << " nodes)" << std::endl << std::fixed);
 
-	std::vector<std::vector<neighborstruct2> > possible_parents;
-	std::vector<int> newIndex;
+	stdvector<stdvector<neighborstruct2> > possible_parents;
+	stdvector<int> newIndex;
 
 	famg_nodes rating(N);
 
@@ -337,33 +338,33 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 
 	maxheap<famg_nodeinfo> heap(N, &rating[0]);
 
-	IF_FAMG_LOG(4)
+	IF_DEBUG(LIB_ALG_AMG, 3)
 	{
 		UG_LOG("\bThe Matrix A:\n\n");
 		A.print();
 		UG_LOG("\n\n");
 	}
 
-	FAMG_LOG(1, "Create P, SymmNeighGraph... "); if(bTiming) SW.start();
+	UG_LOG("\nCreate P, SymmNeighGraph... "); if(bTiming) SW.start();
 	P.create(N,N);
 	// get neighboring information
 	cgraph SymmNeighGraph(N);
 	CreateSymmConnectivityGraph(A, SymmNeighGraph);
-	if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms");
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 	size_t unassigned = N;
 	if(0)
 	{
 		// get possible parent nodes
-		FAMG_LOG(1, "creating possible parent list... "); if(bTiming) SW.start();
+		UG_LOG("\ncreating possible parent list... "); if(bTiming) SW.start();
 		GetPossibleParentPairs(A, possible_parents, rating, calculator);
-		if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms");
+		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 
 		// calculate ratings (not precalculateable because of coarse/uninterpolateable)
-		FAMG_LOG(2, std::endl << "calculate ratings... "); if(bTiming) SW.start();
+		UG_LOG(std::endl << "calculate ratings... "); if(bTiming) SW.start();
 		GetRatings(possible_parents, rating, heap);
-		if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms");
+		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 		//rating[40].rating = 1;
 		//heap.update(40);
@@ -371,19 +372,19 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 		unassigned = heap.height();
 
 		// do coarsening
-		FAMG_LOG(1, std::endl << "coarsening... "); if(bTiming) SW.start();
+		UG_LOG(std::endl << "coarsening... "); if(bTiming) SW.start();
 		FAMGCoarsen(SymmNeighGraph, P, possible_parents, rating, heap, newIndex, iNrOfCoarse, unassigned);
-		if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms.");
+		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 	}
 	else
 	{
-		FAMG_LOG(1, std::endl << "other coarsening... "); if(bTiming) SW.start();
+		UG_LOG(std::endl << "other coarsening... "); if(bTiming) SW.start();
 		other_coarsening(A, SymmNeighGraph, P, possible_parents, rating, heap, newIndex, iNrOfCoarse, unassigned, calculator);
-		if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms.");
+		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 	}
 
 
-	IF_FAMG_LOG(4)
+	IF_DEBUG(LIB_ALG_AMG, 4)
 	{
 		UG_LOG("Coarse nodes:\n");
 		for(size_t i=0; i<N; i++)
@@ -414,10 +415,10 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 	}
 
 
-	FAMG_LOG(1, std::endl << N - unassigned << " nodes assigned, " << iNrOfCoarse << " coarse, "
+	UG_LOG(std::endl << N - unassigned << " nodes assigned, " << iNrOfCoarse << " coarse, "
 			<< N - unassigned - iNrOfCoarse << " fine, " << unassigned << " unassigned.");
 
-	FAMG_LOG(1, std::endl << "second coarsening... "); if(bTiming) SW.start();
+	UG_LOG(std::endl << "second coarsening... "); if(bTiming) SW.start();
 
 
 	if(m_bAggressiveCoarsening)
@@ -425,51 +426,57 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 	else
 		SetUninterpolateableAsCoarse(rating, P, newIndex, iNrOfCoarse);
 
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
 	P.resize(N, iNrOfCoarse);
+	P.finalize();
 
 	// create parentIndex
-	std::vector<std::vector<int> > &parentIndex = *amghelper.parentIndex;
+	UG_LOG(std::endl << "create parentIndex... "); if(bTiming) SW.start();
+	stdvector<stdvector<int> > &parentIndex = *amghelper.parentIndex;
 	parentIndex.resize(level+2);
 	parentIndex[level+1].resize(iNrOfCoarse);
 	for(size_t i=0; i<iNrOfCoarse; i++) parentIndex[level+1][i] = -1;
 	for(size_t i=0; i<N; i++) {
 		if(newIndex[i] != -1) parentIndex[level+1][ newIndex[i] ] = i;
-
 	}
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
+
 	//UG_LOG("parentIndex level " << level << "\n")
 	//for(size_t i=0; i<iNrOfCoarse; i++) { UG_ASSERT(amghelper.parentIndex[level+1][i] != -1, i << " == -1???"); UG_LOG(i << " = " << amghelper.parentIndex[level+1][i] << "\n"); }
 
 
-	IF_FAMG_LOG(4)
+	IF_DEBUG(LIB_ALG_AMG, 4)
 	{
-		FAMG_LOG(4, "\n\nP:\n")
+		UG_LOG("\n\nP:\n");
 		P.p();
-		FAMG_LOG(4, "\n\n");
+		UG_LOG("\n\n");
 	}
 
 
 
-	if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms");
-	FAMG_LOG(1, std::endl << iNrOfCoarse << " coarse, " << N - unassigned - iNrOfCoarse << " fine.");
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
+	UG_DLOG(LIB_ALG_AMG, 1, std::endl << iNrOfCoarse << " coarse, " << N - unassigned - iNrOfCoarse << " fine.");
 
 	// construct restriction R = I_{h->2h}
 	/////////////////////////////////////////
 
-	FAMG_LOG(1, std::endl << "restriction... ");	if(bTiming) SW.start();
+	UG_DLOG(LIB_ALG_AMG, 1, std::endl << "restriction... ");	if(bTiming) SW.start();
 
+	UG_LOG(std::endl << "restriction... "); if(bTiming) SW.start();
 	// construct restriction R = I_{h -> 2h}
 	R.create_as_transpose_of(P);
 	// R is already finalized
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
 /*#ifdef UG_PARALLEL
 	R.set_storage_type(PST_CONSISTENT);
 #endif*/
 
-	if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms");
+	if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
 #ifdef FAMG_PRINT_R
-	IF_FAMG_LOG(3)
+	IF_DEBUG(LIB_ALG_AMG, 4)
 	{
 		UG_LOG(std::endl << "Restriction level " << level << std::endl);
 		R.print();
@@ -479,20 +486,20 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 	// create Galerkin product
 	/////////////////////////////////////////
 
-	FAMG_LOG(1, "\ngalerkin product... "); if(bTiming) SW.start();
+	UG_LOG("\ngalerkin product... "); if(bTiming) SW.start();
 
 	// AH = R A P
 	CreateAsMultiplyOf(AH, R, A, P);
 
-	if(bTiming) FAMG_LOG(1, "took " << SW.ms() << " ms");
+	if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 	// finalize
-	if(bTiming) { FAMG_LOG(1, std::endl << "Finalizing.."); SW.start(); }
-	//AH.finalize();
-	if(bTiming) FAMG_LOG(1, " took " << SW.ms() << " ms");
+	if(bTiming) { UG_LOG(std::endl << "Finalizing.."); SW.start(); }
+	AH.finalize();
+	if(bTiming) UG_LOG(" took " << SW.ms() << " ms\n");
 
 #ifdef FAMG_PRINT_AH
-	IF_FAMG_LOG(3)
+	IF_DEBUG(LIB_ALG_AMG, 3)
 	{
 		UG_LOG("AH level " << level << std::endl);
 		AH.print();
@@ -502,12 +509,9 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 	// finish
 	/////////////////////////////////////////
 
-	FAMG_LOG(1, " level took " << SWwhole.ms() << " ms" << std::endl);
-
-
 	if(m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
-		FAMG_LOG(1, "write matrices");
+		UG_DLOG(LIB_ALG_AMG, 1, "write matrices");
 		AMGWriteToFile(A, level, level, (m_writeMatrixPath + "AMG_A" + ToString(level) + ".mat").c_str(), amghelper);
 		fstream f((m_writeMatrixPath + "AMG_A" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
 		f << "c " << m_writeMatrixPath << "AMG_fine" << level << ".marks\n";
@@ -515,7 +519,7 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 		f << "c " << m_writeMatrixPath << "AMG_other" << level << ".marks\n";
 		f << "c " << m_writeMatrixPath << "AMG_dirichlet" << level << ".marks\n";
 		f << "v " << m_writeMatrixPath << "AMG_d" << level << ".values\n";
-		FAMG_LOG(1, ".");
+		UG_DLOG(LIB_ALG_AMG, 1, ".");
 
 		AMGWriteToFile(P, level+1, level, (m_writeMatrixPath + "AMG_Pp" + ToString(level) + ".mat").c_str(), amghelper);
 		fstream f2((m_writeMatrixPath + "AMG_Pp" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
@@ -523,7 +527,7 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 		f2 << "c " << m_writeMatrixPath << "AMG_coarse" << level << ".marks\n";
 		f2 << "c " << m_writeMatrixPath << "AMG_other" << level << ".marks\n";
 		f2 << "c " << m_writeMatrixPath << "AMG_dirichlet" << level << ".marks\n";
-		FAMG_LOG(1, ".");
+		UG_DLOG(LIB_ALG_AMG, 1, ".");
 
 		AMGWriteToFile(R, level, level+1, (m_writeMatrixPath + "AMG_Rr" + ToString(level) + ".mat").c_str(), amghelper);
 		fstream f3((m_writeMatrixPath + "AMG_Rr" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
@@ -531,10 +535,10 @@ void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix
 		f3 << "c " << m_writeMatrixPath << "AMG_coarse" << level << ".marks\n";
 		f3 << "c " << m_writeMatrixPath << "AMG_other" << level << ".marks\n";
 		f3 << "c " << m_writeMatrixPath << "AMG_dirichlet" << level << ".marks\n";
-		FAMG_LOG(1, ".");
+		UG_DLOG(LIB_ALG_AMG, 1, ".");
 
 		AMGWriteToFile(AH, level+1, level+1, (m_writeMatrixPath + "AMG_A" + ToString(level+1) + ".mat").c_str(), amghelper);
-		FAMG_LOG(1, ". done.\n");
+		UG_DLOG(LIB_ALG_AMG, 1, ". done.\n");
 	}
 
 

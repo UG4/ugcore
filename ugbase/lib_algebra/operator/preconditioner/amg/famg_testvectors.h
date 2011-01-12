@@ -15,7 +15,7 @@
 namespace ug {
 
 
-static void get_testvector_constant(std::vector<double> &testvector, std::vector<size_t> &N, double &i_value, size_t i)
+static void get_testvector_constant(stdvector<double> &testvector, stdvector<size_t> &N, double &i_value, size_t i)
 {
 	for(size_t j=0; j<N.size(); j++)
 		testvector[j] = 1.0;
@@ -31,11 +31,11 @@ void get_testvector_value_special(value_type &value, const pos_type &myPos, cons
 }
 
 
-inline void get_testvector_xx(DenseVector<VariableArray1<double> > &testvector, std::vector<size_t> &N2, int i_index)
+inline void get_testvector_xx(DenseVector<VariableArray1<double> > &testvector, stdvector<size_t> &N2, int i_index)
 {
 	return get_testvector_special<0, 0>(testvector, N2, i_index);
 }
-inline void get_testvector_xy(DenseVector<VariableArray1<double> > &testvector, std::vector<size_t> &N2, int i_index)
+inline void get_testvector_xy(DenseVector<VariableArray1<double> > &testvector, stdvector<size_t> &N2, int i_index)
 {
 	return get_testvector_special<0, 1>(testvector, N2, i_index);
 }

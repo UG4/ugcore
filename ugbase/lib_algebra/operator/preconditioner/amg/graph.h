@@ -16,8 +16,12 @@
 #include <fstream>
 #include <algorithm> // for lower_bound
 #include <vector>
+#include "lib_algebra/common/stl_debug.h"
+
 #include "common/assert.h"
 #include "common/log.h"
+
+
 
 namespace ug{
 //!
@@ -25,7 +29,8 @@ namespace ug{
 class cgraph
 {
 public:
-	typedef std::vector<size_t>::const_iterator cRowIterator;
+	typedef stdvector<size_t>::const_iterator cRowIterator;
+	typedef stdvector<size_t>::iterator rowIterator;
 public:
 	/** constructor
 	 */
@@ -60,11 +65,13 @@ public:
 	//! returns nr of nodes the node "node" is connected to.
 	size_t num_connections(size_t node) const
 	{
+		size_check(node);
 		return m_data[node].size() ;
 	}
 
 	bool is_isolated(size_t i)
 	{
+		size_check(i);
 		return num_connections(i)==0 ||
 				(num_connections(i)==1 && m_data[i][0] == i);
 	}
@@ -72,26 +79,42 @@ public:
 	//! returns true if graph has connection from "from" to "to", otherwise false
 	bool has_connection(size_t from, size_t to)
 	{
-		return binary_search(m_data[from].begin(), m_data[from].end(), to);
+		size_check(from, to);
+		return binary_search(begin_row(from), end_row(to), to);
 	}
 
 	//! set a connection from "from" to "to" if not already there
 	void set_connection(size_t from, size_t to)
 	{
-		std::vector<size_t>::iterator it = std::lower_bound(m_data[from].begin(), m_data[from].end(), to);
+		size_check(from, to);
+		stdvector<size_t>::iterator it = std::lower_bound(begin_row(from), end_row(from), to);
 		if(it == m_data[from].end())
 			m_data[from].push_back(to);
 		else if((*it) != to)
 			m_data[from].insert(it, to);
 	}
 
+	rowIterator begin_row(size_t row)
+	{
+		size_check(row);
+		return m_data[row].begin();
+	}
+
+	rowIterator end_row(size_t row)
+	{
+		size_check(row);
+		return m_data[row].end();
+	}
+
 	cRowIterator begin_row(size_t row) const
 	{
+		size_check(row);
 		return m_data[row].begin();
 	}
 
 	cRowIterator end_row(size_t row) const
 	{
+		size_check(row);
 		return m_data[row].end();
 	}
 
@@ -106,7 +129,7 @@ public:
 	//! creates this graph as the transpose of other
 	void create_as_transpose_of(const cgraph &other)
 	{
-		std::vector<size_t> rowSize(other.size());
+		stdvector<size_t> rowSize(other.size());
 		for(size_t i=0; i<other.size(); i++) rowSize[i] = 0;
 
 		for(size_t i=0; i<other.size(); i++)
@@ -130,7 +153,6 @@ public:
 				m_data[from].push_back(to);
 			}
 	}
-	
 		
 	
 	size_t size() const { return m_data.size(); }
@@ -167,8 +189,17 @@ public:
 		return out;
 	}
 
+	inline void size_check(size_t i) const
+	{
+		UG_ASSERT(i < m_data.size(), "graph contains " << m_data.size() << " nodes, but trying to access node " << i);
+	}
+	inline void size_check(size_t a, size_t b) const
+	{
+		UG_ASSERT(a < m_data.size() || b < m_data.size(), "graph contains " << m_data.size() << " nodes, but trying to access nodes " << a << " and " << b);
+	}
+
 protected:
-	std::vector<std::vector<size_t> > m_data;
+	stdvector<stdvector<size_t> > m_data;
 };
 
 

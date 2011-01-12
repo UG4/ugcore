@@ -31,8 +31,8 @@ namespace ug {
  * \param	theta			\f$\epsilon_{str}\f$.
  */
 template<typename Matrix_type>
-void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, int *newIndex,
-		int iNrOfCoarse, int &unassigned, amg_nodeinfo *nodes, double theta)
+void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A, stdvector<int> &newIndex,
+		int iNrOfCoarse, int &unassigned, stdvector<amg_nodeinfo> &nodes, double theta)
 {
 	P.create(A.num_rows(), iNrOfCoarse);
 
@@ -133,7 +133,6 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 		}
 	}
 
-	P.finalize();
 	if(unassigned)
 		cout << "Pass 1: " << unassigned << " left. ";
 }
@@ -160,7 +159,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
  */
 template<typename Matrix_type>
 void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
-		int *newIndex, int unassigned, amg_nodeinfo *nodes, int *posInConnections, double theta)
+		stdvector<int> &newIndex, int unassigned, stdvector<amg_nodeinfo> &nodes, int *posInConnections, double theta)
 {
 	vector<SparseMatrix<double>::connection > con, con2;
 	vector<int> nrOfPaths;

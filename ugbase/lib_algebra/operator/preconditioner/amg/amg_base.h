@@ -180,23 +180,23 @@ protected:
 
 	double m_fDamp;
 
-	std::vector<vector_type*> vec1; 	///< temporary Vector for storing r = Ax -b
-	std::vector<vector_type*> vec2; 	///< temporary Vector for storing rH
-	std::vector<vector_type*> vec3; 	///< temporary Vector for storing eH
+	stdvector<vector_type*> vec1; 	///< temporary Vector for storing r = Ax -b
+	stdvector<vector_type*> vec2; 	///< temporary Vector for storing rH
+	stdvector<vector_type*> vec3; 	///< temporary Vector for storing eH
 	vector_type *vec4;						///< temporary Vector for defect (in get_correction)
 
-	std::vector<std::vector<bool> > is_fine;
-	std::vector<SparseMatrix<double> *> R; 	///< R Restriction Matrices
-	std::vector<SparseMatrix<double> *> P; 	///< P Prolongation Matrices
-	std::vector<matrix_type *> A;			///< A Matrices
-	std::vector< SparseMatrixOperator<matrix_type, vector_type> > SMO;
+	stdvector<stdvector<bool> > is_fine;
+	stdvector<SparseMatrix<double> *> R; 	///< R Restriction Matrices
+	stdvector<SparseMatrix<double> *> P; 	///< P Prolongation Matrices
+	stdvector<matrix_type *> A;			///< A Matrices
+	stdvector< SparseMatrixOperator<matrix_type, vector_type> > SMO;
 
 #ifdef UG_PARALLEL
-	std::vector< pcl::ParallelCommunicator<IndexLayout> *> com;  ///< the communicator objects on the levels
+	stdvector< pcl::ParallelCommunicator<IndexLayout> *> com;  ///< the communicator objects on the levels
 	IndexLayout pseudoLayout;									///< Pseudo-IndexLayout for the created ParallelVectors.
 #endif
 
-	std::vector< std::vector<int> > parentIndex;		///< parentIndex[L][i] is the index of i on level L-1
+	stdvector< stdvector<int> > parentIndex;		///< parentIndex[L][i] is the index of i on level L-1
 	cAMG_helper amghelper;					///< helper struct for viewing matrices (optional)
 	vector<MathVector<3> > dbg_positions;	///< positions of geometric grid (optional)
 	int dbg_dimension;						///< dimension of geometric grid (optional)
@@ -205,8 +205,8 @@ protected:
 	ILinearIterator<vector_type, vector_type> *m_presmoother;	///< presmoother template
 	ILinearIterator<vector_type, vector_type> *m_postsmoother;	///< postsmoother template \note: may be pre=post, is optimized away.
 
-	std::vector<ILinearIterator<vector_type, vector_type> *> m_presmoothers;	///< presmoothers for each level
-	std::vector<ILinearIterator<vector_type, vector_type> *> m_postsmoothers;	///< postsmoothers for each level
+	stdvector<ILinearIterator<vector_type, vector_type> *> m_presmoothers;	///< presmoothers for each level
+	stdvector<ILinearIterator<vector_type, vector_type> *> m_postsmoothers;	///< postsmoothers for each level
 
 	ILinearOperatorInverse<vector_type, vector_type> *m_basesolver; ///< the base solver
 

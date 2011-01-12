@@ -65,7 +65,7 @@ struct cAMG_helper
 	const MathVector<3> *positions; ///< positions on the AMG grid 0
 	int size;						///< nr of positions
 	int dimension;					///< dimension (2 or 3)
-	std::vector< std::vector<int> > *parentIndex;				///< (*parentIndex)[L][i] is the index of i on level L-1
+	stdvector< stdvector<int> > *parentIndex;				///< (*parentIndex)[L][i] is the index of i on level L-1
 };
 
 } // namespace ug
