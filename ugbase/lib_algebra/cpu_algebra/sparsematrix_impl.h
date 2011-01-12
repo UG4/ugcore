@@ -304,11 +304,13 @@ bool SparseMatrix<T>::create_as_transpose_of(const SparseMatrix &B, double scale
 template<typename T>
 void SparseMatrix<T>::defrag()
 {
+	if(is_finalized()) return;
+
 	iTotalNrOfConnections=0;
 	for(size_t i=0; i<rows; i++)
-		iTotalNrOfConnections+= num_connections(i);
+		iTotalNrOfConnections += num_connections(i);
 
-	connection *consmemNew = new connection[iTotalNrOfConnections];
+	connection *consmemNew = new connection[iTotalNrOfConnections+1];
 	UG_ASSERT(consmemNew != NULL, "out of memory, no more space for " << sizeof(connection)*iTotalNrOfConnections);
 	connection *p = consmemNew;
 	for(size_t i=0; i<rows; i++)
@@ -381,7 +383,7 @@ void SparseMatrix<T>::safe_set_connections(size_t row, connection *mem) const
 template<typename T>
 bool SparseMatrix<T>::in_consmem(size_t row) const
 {
-	return pRowStart[row] >= consmem && pRowEnd[row] < consmem + consmemsize;
+	return pRowStart[row] >= consmem && pRowEnd[row] <= consmem + consmemsize;
 }
 
 
