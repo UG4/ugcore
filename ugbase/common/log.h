@@ -64,6 +64,7 @@ class LogAssistant
 			LIB_ALG_LINEAR_SOLVER,
 			LIB_ALG_VECTOR,
 			LIB_ALG_MATRIX,
+			LIB_ALG_AMG,
 			NUM_TAGS
 		};
 
@@ -167,6 +168,7 @@ inline LogAssistant& GetLogAssistant();
 	#define UG_SET_DEBUG_LEVELS(level)			{ug::GetLogAssistant().set_debug_levels(level);}
 	#define UG_DEBUG_BEGIN(tag, level)			{ if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level) {
 	#define UG_DEBUG_END(tag, level)			}; }
+	#define IF_DEBUG(tag, level) 				if(ug::GetLogAssistant().get_debug_level(ug::LogAssistant::tag) >= level)
 
 	#ifdef UG_PARALLEL
 		#define UG_DLOG(tag, level, msg)			{if(pcl::IsOutputProc()){\
@@ -190,6 +192,7 @@ inline LogAssistant& GetLogAssistant();
 	#define UG_DLOG_ALL_PROCS(tag, level, msg)	{}
 	#define UG_DEBUG_BEGIN(tag, level)			{ if(1==0) {
 	#define UG_DEBUG_END(tag, level)			}; }
+	#define IF_DEBUG(tag, level)				if(1==0)
 #endif
 
 /////////////////////////////////////////////////////////////////
