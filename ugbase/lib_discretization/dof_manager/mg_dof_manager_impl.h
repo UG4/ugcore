@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER_IMPL__
 
 #include "mg_dof_manager.h"
+#include "lib_grid/algorithms/subset_util.h"
 
 namespace ug{
 
