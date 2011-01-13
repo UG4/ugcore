@@ -176,6 +176,7 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 void MultiGrid::vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew)
 {
 //	child and parent connections are handled by create and erase.
+
 }
 
 //	edges

@@ -15,7 +15,7 @@
 
 // other ug4 modules
 #include "common/common.h"
-#include "lib_grid/lib_grid.h"
+#include "lib_grid/lg_base.h"
 
 // library intern includes
 #include "lib_discretization/common/common.h"

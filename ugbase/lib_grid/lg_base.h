@@ -19,5 +19,6 @@
 #include "selector.h"
 #include "subset_handler.h"
 #include "tools/marker_points.h"
+#include "tools/surface_view.h"
 
 #endif

@@ -1,14 +1,17 @@
 -- created by Sebastian Reiter
 -- s.b.reiter@googlemail.com
 
-gridInName = "unit_square_quads_16x16.obj"
+ug_load_script("ug_util.lua")
+
+gridInName = utilGetGridPath() .. "unit_square_quads_8x8.ugx"
 
 go = GridObject()
+
 if LoadGridObject(go, gridInName) == false then
-	printf("grid " .. gridInName .. " not found.")
+	print("grid " .. gridInName .. " not found.")
 end
 
-hr = HangingNodeRefiner()
+hr = HangingNodeRefiner_Grid()
 hr:assign_grid(go:get_grid())
 CreateFractal(go:get_grid(), hr, 0.6, 4)
 SaveGridObject(go, "tmp.ugx")

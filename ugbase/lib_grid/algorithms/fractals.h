@@ -11,7 +11,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 ///	Repeatedly refines a grid and moves new vertices along the normal by a given factor.
 template <class TAPosition>
-bool CreateFractal_NormalScale(Grid& grid, HangingNodeRefiner_IR1& href,
+bool CreateFractal_NormalScale(Grid& grid, HangingNodeRefiner_Grid& href,
 							   number scaleFac, size_t numIterations,
 							   TAPosition& aPosVRT)
 {
@@ -67,7 +67,7 @@ bool CreateFractal_NormalScale(Grid& grid, HangingNodeRefiner_IR1& href,
 }
 
 inline bool CreateFractal_NormalScale(Grid& grid,
-									   HangingNodeRefiner_IR1& href,
+									   HangingNodeRefiner_Grid& href,
 									   number scaleFac, size_t numIterations)
 {
 	return CreateFractal_NormalScale(grid, href, scaleFac,

@@ -10,6 +10,11 @@ function utilCreateDomain(dim)
 	return nil
 end
 
+-- returns the standard path at which grids are stored
+function utilGetGridPath()
+	return ug_get_data_path().."/grids/"
+end
+
 -- loads a domain. Automatically chooses right methods depending on the
 -- domains dimension.
 -- If the file can not be found, the method tries to find it in ugs data path.

@@ -9,6 +9,8 @@
 #include <iostream>
 #include <sstream>
 
+using namespace std;
+
 namespace ug
 {
 namespace bridge
@@ -46,7 +48,7 @@ GridObject* CreateGridObject(const char* filename)
 	return go;
 }
 
-bool CreateFractal(Grid& grid, HangingNodeRefiner_IR1& href,
+bool CreateFractal(Grid& grid, HangingNodeRefiner_Grid& href,
 					number scaleFac, size_t numIterations)
 {
 	PROFILE_FUNC();
@@ -168,6 +170,62 @@ bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 	return true;
 }
 
+template <class TElem>
+void MarkForRefinement(MultiGrid& mg,
+					  HangingNodeRefiner_MultiGrid& refiner,
+					  float percentage)
+{
+/*
+	typedef typename geometry_traits<TElem>::iterator iterator;
+	for(iterator iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter)
+	{
+		if(urand<float>(0, 99) < percentage){
+			refiner.mark_for_refinement(*iter);
+		}
+	}
+*/
+
+	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
+	Face* f = FindFaceByCoordinate(vector3(0, 0, 0),
+									mg.begin<Face>(mg.num_levels()-1),
+									mg.end<Face>(mg.num_levels()-1),
+									aaPos);
+	refiner.mark_for_refinement(f);
+
+}
+
+bool TestHangingNodeRefiner_MultiGrid(const char* filename,
+									  const char* outFilename,
+									  int numIterations,
+									  float percentage)
+{
+	MultiGrid mg;
+	SubsetHandler sh(mg);
+	HangingNodeRefiner_MultiGrid refiner(mg);
+
+	if(!LoadGridFromFile(mg, filename, sh)){
+		UG_LOG("  could not load " << filename << endl);
+		return false;
+	}
+
+	for(int i = 0; i < numIterations; ++i){
+		UG_LOG("refinement step " << i+1 << endl);
+
+		if(mg.num<Volume>() > 0)
+			MarkForRefinement<Volume>(mg, refiner, percentage);
+		else if(mg.num<Face>() > 0)
+			MarkForRefinement<Face>(mg, refiner, percentage);
+		else
+			MarkForRefinement<EdgeBase>(mg, refiner, percentage);
+
+		refiner.refine();
+	}
+
+	UG_LOG("saving to " << outFilename << endl;)
+	SaveGridHierarchy(mg, outFilename);
+
+	return true;
+}
 
 ////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
@@ -212,9 +270,9 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_method("assign_grid", &MGSubsetHandler::assign_grid);
 
 //	HangingNodeRefiner
-	reg.add_class_<HangingNodeRefiner_IR1>("HangingNodeRefiner", grp.c_str())
+	reg.add_class_<HangingNodeRefiner_Grid>("HangingNodeRefiner_Grid", grp.c_str())
 		.add_constructor()
-		.add_method("assign_grid", &HangingNodeRefiner_IR1::assign_grid);
+		.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid);
 
 //	GlobalMultiGridRefiner
 	reg.add_class_<GlobalMultiGridRefiner>("GlobalMultiGridRefiner", grp.c_str())
@@ -240,6 +298,7 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		
 //	refinement
 	reg.add_function("TestSubdivision", &TestSubdivision)
+		.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid)
 		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
 		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str());
