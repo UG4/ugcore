@@ -186,8 +186,9 @@ protected:
 	vector_type *vec4;						///< temporary Vector for defect (in get_correction)
 
 	stdvector<stdvector<bool> > is_fine;
-	stdvector<SparseMatrix<double> *> R; 	///< R Restriction Matrices
-	stdvector<SparseMatrix<double> *> P; 	///< P Prolongation Matrices
+
+	stdvector<matrix_type *> R; 	///< R Restriction Matrices
+	stdvector<matrix_type *> P; 	///< P Prolongation Matrices
 	stdvector<matrix_type *> A;			///< A Matrices
 	stdvector< SparseMatrixOperator<matrix_type, vector_type> > SMO;
 

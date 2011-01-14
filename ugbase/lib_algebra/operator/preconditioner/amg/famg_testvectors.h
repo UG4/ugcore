@@ -14,13 +14,14 @@
 
 namespace ug {
 
-
+#if 0
 static void get_testvector_constant(stdvector<double> &testvector, stdvector<size_t> &N, double &i_value, size_t i)
 {
 	for(size_t j=0; j<N.size(); j++)
 		testvector[j] = 1.0;
 	i_value = 1.0;
 }
+#endif
 
 
 /*

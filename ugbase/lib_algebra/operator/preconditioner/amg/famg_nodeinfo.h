@@ -115,7 +115,7 @@ public:
 
 		int mini = -1;
 		double minrating = 10000;
-		double minF = 1e12;
+		//double minF = 1e12;
 		UG_DLOG(LIB_ALG_AMG, 2, "has " << PN.size() << " possible parent nodes. ");
 		for(size_t i=0; i<PN.size(); )
 		{

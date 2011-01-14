@@ -497,7 +497,7 @@ private:
 		IF_DEBUG(LIB_ALG_AMG, 2)
 		{
 			UG_LOG("\nN1 ");
-			for(int i=0; i<onlyN1.size(); i++)
+			for(size_t i=0; i<onlyN1.size(); i++)
 			{
 				if(i>0) UG_LOG(", ");
 				UG_LOG(GetOriginalIndex(onlyN1[i]));

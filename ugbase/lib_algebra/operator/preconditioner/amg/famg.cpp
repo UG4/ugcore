@@ -17,6 +17,12 @@
 
 //#include "sparsematrix_util.h"
 
+#ifdef UG_PARALLEL
+typedef matrix_type ParallelMatrix<matrix_type >
+#else
+typedef matrix_type matrix_type
+#endif
+
 #include "ug.h"
 #include "amg_debug_helper.h"
 
@@ -26,6 +32,7 @@
 #include "famg.h"
 
 ug::Vector<double> big_testvector;
+
 
 
 ug::cAMG_helper *pAmghelper;
@@ -288,8 +295,8 @@ void SetUninterpolateableAsCoarse(famg_nodes &rating, matrix_type &P, stdvector<
  */
 
 template<>
-void famg<CPUAlgebra>::c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix<double> &R, const SparseMatrix<double> &A,
-		SparseMatrix<double> &P, int level)
+void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, matrix_type &R, const matrix_type &A,
+		matrix_type &P, int level)
 {
 	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::endl << std::fixed);
 	bool bTiming=true;

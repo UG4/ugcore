@@ -22,7 +22,14 @@
 
 #include "lib_algebra/common/stl_debug.h"
 
-
+// consecutive memory version
+// first tests with amg (1025x1025 9pt): 1138ms graph creation with old code, 333ms with new => 3x speed improvement
+// old_graph is build with std::vector<std::vector< > >, new_graph uses consecutive memory,
+// drawbacks at the moment:
+// - construction only from 0 to n, so when you set row 3, you may not change item 1
+//		amg can work with that, but perhaps we will use some pRowStart/pRowEnd mechanism like in ug::SparseMatrix
+// - fixed amout of connections
+//		i will change that, memory will be copied like in std::vector/reserve
 namespace ug{
 //!
 //! cgraph graph class
@@ -117,11 +124,13 @@ public:
 			init(from);
 		UG_ASSERT(cons[from+1]!=NULL, "??? (from = " << from << ", size = " << size());
 
+		if(iTotalNrOfConnections+1 >= iMaxTotalNrOfConnections)
+			increase_maxtotalnrofconnections();
 		iTotalNrOfConnections++;
-		UG_ASSERT(iTotalNrOfConnections < iMaxTotalNrOfConnections, "too many connections, increase nnz!");
 		cons[from+1][0] = to;
 		cons[from+1]++;
 	}
+
 
 
 	rowIterator begin_row(size_t row)
@@ -245,7 +254,23 @@ public:
 	
 	size_t size() const { return cons.size()-1; }
 	
-public:
+private:
+	void increase_maxtotalnrofconnections()
+	{
+		size_t *pOld = &consmem[0];
+		consmem.resize((consmem.size()+1)*2);
+		size_t *pNew = &consmem[0];
+		if(pOld != pNew)
+		{
+			for(size_t i=0; i<consmem; i++)
+			{
+				if(cons[i] == NULL) continue;
+				cons[i] -= pOld;
+				cons[i] += pNew;
+			}
+		}
+	}
+
 	inline void size_check(size_t i) const
 	{
 		UG_ASSERT(i < size(), "graph contains " << size() << " nodes, but trying to access node " << i);
@@ -255,7 +280,7 @@ public:
 		UG_ASSERT(i < size() && j<size(),
 				"graph contains " << size() << " nodes, but trying to access nodes " << i << " and " << j);
 	}
-
+public:
 	void print()
 	{
 		cout << "============= graph ================ " << endl;
