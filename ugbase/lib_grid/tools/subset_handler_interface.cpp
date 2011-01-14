@@ -849,7 +849,8 @@ elements_to_be_cleared(Grid* grid)
 
 //	vertex callbacks
 void ISubsetHandler::
-vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
+vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
+				bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_created(...): Grids do not match.");
 
@@ -879,7 +880,7 @@ vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
 }
 
 void ISubsetHandler::
-vertex_to_be_erased(Grid* grid, VertexBase* vrt)
+vertex_to_be_erased(Grid* grid, VertexBase* vrt, VertexBase* replacedBy)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::vertex_to_be_erased(...): Grids do not match.");
 
@@ -892,7 +893,8 @@ vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 
 //	edge callbacks
 void ISubsetHandler::
-edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent)
+edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent,
+			 bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::edge_created(...): Grids do not match.");
 
@@ -918,7 +920,7 @@ edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent)
 }
 
 void ISubsetHandler::
-edge_to_be_erased(Grid* grid, EdgeBase* edge)
+edge_to_be_erased(Grid* grid, EdgeBase* edge, EdgeBase* replacedBy)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::edge_to_be_erased(...): Grids do not match.");
 
@@ -932,7 +934,8 @@ edge_to_be_erased(Grid* grid, EdgeBase* edge)
 
 //	face callbacks
 void ISubsetHandler::
-face_created(Grid* grid, Face* face, GeometricObject* pParent)
+face_created(Grid* grid, Face* face, GeometricObject* pParent,
+			 bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_created(...): Grids do not match.");
 
@@ -958,7 +961,7 @@ face_created(Grid* grid, Face* face, GeometricObject* pParent)
 }
 
 void ISubsetHandler::
-face_to_be_erased(Grid* grid, Face* face)
+face_to_be_erased(Grid* grid, Face* face, Face* replacedBy)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::face_to_be_erased(...): Grids do not match.");
 
@@ -971,7 +974,8 @@ face_to_be_erased(Grid* grid, Face* face)
 
 //	volume callbacks
 void ISubsetHandler::
-volume_created(Grid* grid, Volume* vol, GeometricObject* pParent)
+volume_created(Grid* grid, Volume* vol, GeometricObject* pParent,
+			   bool replacesParent)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::volume_created(...): Grids do not match.");
 
@@ -997,7 +1001,7 @@ volume_created(Grid* grid, Volume* vol, GeometricObject* pParent)
 }
 
 void ISubsetHandler::
-volume_to_be_erased(Grid* grid, Volume* vol)
+volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 {
 	assert((m_pGrid == grid) && "ERROR in SubsetHandler::volume_to_be_erased(...): Grids do not match.");
 

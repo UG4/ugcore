@@ -27,19 +27,22 @@ class ParallelMGDoFManager : public TMGDoFManager
 	public:
 	///	Default Constructor
 		ParallelMGDoFManager()
-		: TMGDoFManager(), m_pDistGridManager(NULL), m_pLayoutMap(NULL)
+		: TMGDoFManager(), m_pDistGridManager(NULL), m_pLayoutMap(NULL),
+		  m_bDomainDecompositionEnabled(false)
 		{}
 
 	///	Constructor setting MultiGrid and FunctionPattern
 		ParallelMGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp)
-		: TMGDoFManager(mgsh, dp), m_pDistGridManager(NULL), m_pLayoutMap(NULL)
+		: TMGDoFManager(mgsh, dp), m_pDistGridManager(NULL), m_pLayoutMap(NULL),
+		  m_bDomainDecompositionEnabled(false)
 		{}
 
 	///	Constructor setting MultiGrid, FunctionPattern and DistributedGridManager
 		ParallelMGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp,
 		                     DistributedGridManager& distGridManager)
 		: TMGDoFManager(mgsh, dp), m_pDistGridManager(&distGridManager),
-		  m_pLayoutMap(&distGridManager.grid_layout_map())
+		  m_pLayoutMap(&distGridManager.grid_layout_map()),
+		  m_bDomainDecompositionEnabled(false)
 		{}
 
 	///	assign Distributed Grid Manager
@@ -61,6 +64,15 @@ class ParallelMGDoFManager : public TMGDoFManager
 	///	print a statistic on dof distribution
 		void print_statistic() const;
 
+	///	if enabled parallel interfaces are build with domain decomposition in mind.
+		void enable_domain_decomposition(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+		{
+			m_bDomainDecompositionEnabled = true;
+			m_cbProcIDToSubdomID = cb_ProcIDToSubdomID;
+		}
+
+		bool domain_decomposition_enabled()				{return m_bDomainDecompositionEnabled;}
+
 	protected:
 	///	creates the surface view iff needed
 		virtual bool surface_view_required();
@@ -74,6 +86,9 @@ class ParallelMGDoFManager : public TMGDoFManager
 
 	/// Layout map of grid
 		GridLayoutMap* m_pLayoutMap;
+
+		Callback_ProcessIDToSubdomainID m_cbProcIDToSubdomID;
+		bool m_bDomainDecompositionEnabled;
 };
 
 } // end namespace ug

@@ -186,11 +186,17 @@ void MarkForRefinement(MultiGrid& mg,
 */
 
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
-	Face* f = FindFaceByCoordinate(vector3(0, 0, 0),
-									mg.begin<Face>(mg.num_levels()-1),
-									mg.end<Face>(mg.num_levels()-1),
+	TElem* elem = FindByCoordinate<TElem>(vector3(-0.00001, -0.00001, -0.00001),
+									mg.begin<TElem>(mg.num_levels()-1),
+									mg.end<TElem>(mg.num_levels()-1),
 									aaPos);
-	refiner.mark_for_refinement(f);
+
+	if(elem)
+		refiner.mark_for_refinement(elem);
+	else{
+		UG_LOG("No element found for refinement.\n");
+	}
+
 
 }
 
@@ -200,7 +206,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 									  float percentage)
 {
 	MultiGrid mg;
-	SubsetHandler sh(mg);
+	MGSubsetHandler sh(mg);
 	HangingNodeRefiner_MultiGrid refiner(mg);
 
 	if(!LoadGridFromFile(mg, filename, sh)){
@@ -224,6 +230,24 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 	UG_LOG("saving to " << outFilename << endl;)
 	SaveGridHierarchy(mg, outFilename);
 
+	UG_LOG("grid element numbers:\n");
+	PrintGridElementNumbers(mg);
+/*
+//	create a surface view
+	SurfaceView surfView(mg);
+
+	if(mg.num<Volume>() > 0)
+		CreateSurfaceView<Volume>(surfView, mg, sh);
+	else if(mg.num<Face>() > 0)
+		CreateSurfaceView<Face>(surfView, mg, sh);
+	else
+		CreateSurfaceView<EdgeBase>(surfView, mg, sh);
+
+	SaveGridToFile(mg, "surface_view.ugx", surfView);
+
+	UG_LOG("surface view element numbers:\n");
+	PrintGridElementNumbers(mg);
+*/
 	return true;
 }
 

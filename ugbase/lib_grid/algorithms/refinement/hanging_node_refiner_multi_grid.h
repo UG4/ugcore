@@ -83,8 +83,10 @@ class HangingNodeRefiner_MultiGrid : public HangingNodeRefinerBase
 		void collect_child_corners(std::vector<VertexBase*>& cornersOut, TElem* elem)
 		{
 			cornersOut.resize(elem->num_vertices());
-			for(size_t i = 0; i < elem->num_vertices(); ++i)
+			for(size_t i = 0; i < elem->num_vertices(); ++i){
+				//UG_ASSERT(m_pMG->get_child_vertex(elem->vertex(i)), "A child vertex has to exists!");
 				cornersOut[i] = m_pMG->get_child_vertex(elem->vertex(i));
+			}
 		}
 
 	private:

@@ -38,6 +38,29 @@ int ArrayEraseEntry(TType* array, const TType& entry, uint size)
 	return size - 1;
 }
 
+///	replaces the first occurance of oldEntry with newEntry
+/**
+ * Runs in O(size).
+ * Be sure that TType supports operator= and operator==
+ * \return true if oldEntry was found, false if not.
+ */
+template <class TType>
+int ArrayReplaceEntry(TType* array, const TType& newEntry,
+					  const TType& oldEntry, uint size)
+{
+//	find the entry
+	uint i;
+	for(i = 0; i < size; ++i)
+	{
+		if(array[i] == oldEntry){
+			array[i] = newEntry;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 }//	end of namespace
 
 #endif

@@ -5,6 +5,7 @@
 #ifndef __H__LIB_GRID__ALGORITHMS__
 #define __H__LIB_GRID__ALGORITHMS__
 
+#include "debug_util.h"
 #include "trees/kd_tree_static.h"
 #include "trees/octree.h"
 #include "geom_obj_util/geom_obj_util.h"

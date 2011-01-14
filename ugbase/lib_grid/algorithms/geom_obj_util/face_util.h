@@ -248,7 +248,7 @@ CalculateCenter(FaceVertices* f, TVertexPositionAttachmentAccessor& aaPosVRT);
 ///	returns the face whose center is closest to coord.
 /**
  * This method does not necessarily return the face that contains the given coordinate.
- * Instrad it will simply search for the face whose center is closest to the specified
+ * Instead it will simply search for the face whose center is closest to the specified
  * coordinate.
  * TVertexPositionAttachmentAccessor has to be an AttachmentAccessor,
  * where AttachmentAccessor::ValueType is a vector-type compatible to

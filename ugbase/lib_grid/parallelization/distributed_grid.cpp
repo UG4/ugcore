@@ -478,14 +478,16 @@ handle_replaced_element(TElem* eOld, TElem* eNew, TCommGrp& commGrp)
 }
 */
 void DistributedGridManager::
-vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
+vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
+				bool replacesParent)
 {
 	handle_created_element(vrt, pParent);
 }
 
 
 void DistributedGridManager::
-edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent)
+edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
+			 bool replacesParent)
 {
 	handle_created_element(e, pParent);
 }

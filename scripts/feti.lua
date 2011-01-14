@@ -24,8 +24,13 @@ if dim == 3 then
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = 0
-numRefs = 4
+numPreRefs = 1
+numRefs = 3
+
+--ugargc -> anzahl an ugargvs
+if ugargv[1] ~= nil then
+	print(ugargv[1])
+end
 
 --------------------------------
 -- User Data Functions (begin)
@@ -155,6 +160,10 @@ pattern:lock()
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = utilCreateApproximationSpace(dom, pattern)
+
+--please make sure that numProcs / numSubdomains is a power of 2.
+EnableDomainDecomposition(approxSpace, 2) -- second argument: number of subdomains
+
 
 -------------------------------------------
 --  Setup User Functions

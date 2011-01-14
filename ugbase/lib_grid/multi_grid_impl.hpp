@@ -91,6 +91,46 @@ void MultiGrid::element_created(TElem* elem, TParent* pParent)
 	m_hierarchy.assign_subset(elem, level);
 }
 
+template <class TElem, class TParent>
+void MultiGrid::element_created(TElem* elem, TParent* pParent,
+								TElem* pReplaceMe)
+{
+//	if hierarchical_insertion is enabled, the element will be put
+//	into the next higher level of pParents level.
+
+	int level = 0;
+	if(pParent)
+	{
+	//	the element is inserted into a new layer.
+		level = get_level(pParent) + 1;
+	}
+
+//	register parent and child
+	typename mginfo_traits<TElem>::info_type& info = get_info(elem);
+	info.m_pParent = pParent;
+
+	if(pParent)
+	{
+	//	add the element to the parents children list
+		typename mginfo_traits<TParent>::info_type& parentInfo = get_info(pParent);
+		parentInfo.replace_child(elem, pReplaceMe);
+
+	//	set the new status
+		switch(parentInfo.m_state)
+		{
+			case MGES_FIXED:		set_state(elem, MGES_FIXED); break;
+			case MGES_CONSTRAINED:	set_state(elem, MGES_CONSTRAINED); break;
+			case MGES_CONSTRAINING:	set_state(elem, MGES_CONSTRAINED); break;
+		}
+	}
+	else {
+		set_state(elem, MGES_NORMAL);
+	}
+
+//	put the element into the hierarchy
+	m_hierarchy.assign_subset(elem, level);
+}
+
 template <class TElem>
 void MultiGrid::element_to_be_erased(TElem* elem)
 {

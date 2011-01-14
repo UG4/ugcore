@@ -370,7 +370,7 @@ class SingleLevelLayout
 	///	returns the interface to the given iterator.
 		inline Interface& interface(iterator iter)		{return iter->second;}
 
-	///	returns the interface to the given iterator.
+	///	returns the target process of the interface given in iterator
 		inline int proc_id(iterator iter)				{return iter->first;}
 
 	///	erases the interface at the given iterator.

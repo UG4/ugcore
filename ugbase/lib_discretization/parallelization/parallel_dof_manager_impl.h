@@ -61,11 +61,27 @@ distribute_level_dofs()
 			*const_cast<typename TMGDoFManager::dof_distribution_type*>
 				(TMGDoFManager::get_level_dof_distribution(l));
 
-	//	create index layouts
-		bRet &= CreateIndexLayout(distr.get_master_layout(),
-								  distr, *m_pLayoutMap, INT_MASTER,l);
-		bRet &= CreateIndexLayout(distr.get_slave_layout(),
-								  distr, *m_pLayoutMap, INT_SLAVE,l);
+		if(domain_decomposition_enabled()){
+		//	create process and subdomain layouts
+			bRet &= CreateIndexLayouts_DomainDecomposition(
+									  distr.get_master_layout(),
+									  distr.get_master_layout_domain_decomp(),
+									  distr, *m_pLayoutMap, INT_MASTER,l,
+									  m_cbProcIDToSubdomID);
+			bRet &= CreateIndexLayouts_DomainDecomposition(
+									distr.get_slave_layout(),
+									distr.get_slave_layout_domain_decomp(),
+									distr, *m_pLayoutMap, INT_SLAVE,l,
+									m_cbProcIDToSubdomID);
+		}
+		else{
+		//	create index layouts
+			bRet &= CreateIndexLayout(distr.get_master_layout(),
+									  distr, *m_pLayoutMap, INT_MASTER,l);
+			bRet &= CreateIndexLayout(distr.get_slave_layout(),
+									  distr, *m_pLayoutMap, INT_SLAVE,l);
+		}
+
 		bRet &= CreateIndexLayout(distr.get_vertical_master_layout(),
 								  distr, *m_pLayoutMap, INT_VERTICAL_MASTER,l);
 		bRet &= CreateIndexLayout(distr.get_vertical_slave_layout(),

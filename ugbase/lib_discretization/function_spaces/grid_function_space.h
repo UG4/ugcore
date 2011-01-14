@@ -34,6 +34,8 @@ class IApproximationSpace
 			: m_pDomain(NULL), m_pMGSubsetHandler(NULL), m_pFunctionPattern(NULL)
 		{};
 
+		virtual ~IApproximationSpace()	{}
+
 	//	Assign domain
 		void assign_domain(domain_type& domain)
 		{
@@ -63,6 +65,8 @@ class IApproximationSpace
 	// 	Return the domain
 		domain_type& get_domain() {return *m_pDomain;}
 
+		virtual void enable_domain_decomposition(Callback_ProcessIDToSubdomainID)	{}
+		virtual bool domain_decomposition_enabled()						{return false;}
 
 	protected:
 	// 	Domain, where solution lives
@@ -131,6 +135,8 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		ApproximationSpace() :
 			m_bInit(false)
 		{};
+
+		~ApproximationSpace(){}
 
 		bool init()
 		{
@@ -243,8 +249,23 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			return *(m_MGDoFManager.get_level_dof_distribution(level));
 		}
 
-		~ApproximationSpace(){}
+	///	Influences the way in which parallel interfaces are created from the grids interfaces.
+	/**	If enabled, process and subdomain layouts are generated.*/
+		virtual void enable_domain_decomposition(
+						Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+		{
+			#ifdef UG_PARALLEL
+				m_MGDoFManager.enable_domain_decomposition(cb_ProcIDToSubdomID);
+			#endif
+		}
 
+		virtual bool domain_decomposition_enabled()
+		{
+			#ifdef UG_PARALLEL
+				return m_MGDoFManager.domain_decomposition_enabled();
+			#endif
+			return false;
+		}
 	protected:
 	//	Init flag
 		bool m_bInit;

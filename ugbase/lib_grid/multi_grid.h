@@ -67,6 +67,7 @@ struct MGVertexInfo
 	inline bool has_children()	{return m_pVrtChild != NULL;}
 	inline void add_child(VertexBase* elem)	{assert(!m_pVrtChild); m_pVrtChild = elem;}
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
+	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
 	void erase_all_children(Grid& grid);
 	byte				m_state;
 	GeometricObject* 	m_pParent;
@@ -90,6 +91,8 @@ struct MGEdgeInfo
 	inline void add_child(EdgeBase* elem)	{assert(m_numEdgeChildren < MG_EDGE_MAX_EDGE_CHILDREN); m_pEdgeChild[m_numEdgeChildren++] = elem;}
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
+	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
+	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
 	void erase_all_children(Grid& grid);
 	byte				m_state;
 	GeometricObject* 	m_pParent;
@@ -110,6 +113,9 @@ struct MGFaceInfo
 	inline void remove_child(VertexBase* elem)	{m_pVrtChild = NULL;}
 	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
+	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
+	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
+	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
 	void erase_all_children(Grid& grid);
 	byte				m_state;
 	GeometricObject* 	m_pParent;
@@ -134,6 +140,11 @@ struct MGVolumeInfo
 	inline void remove_child(EdgeBase* elem)	{m_numEdgeChildren = ArrayEraseEntry(m_pEdgeChild, elem, m_numEdgeChildren);}
 	inline void remove_child(Face* elem)		{m_numFaceChildren = ArrayEraseEntry(m_pFaceChild, elem, m_numFaceChildren);}
 	inline void remove_child(Volume* elem)		{m_numVolChildren = ArrayEraseEntry(m_pVolChild, elem, m_numVolChildren);}
+	inline void replace_child(VertexBase* elem, VertexBase* child)	{assert(child == m_pVrtChild); m_pVrtChild = elem;}
+	inline void replace_child(EdgeBase* elem, EdgeBase* child)		{ArrayReplaceEntry(m_pEdgeChild, elem, child, m_numEdgeChildren);}
+	inline void replace_child(Face* elem, Face* child)				{ArrayReplaceEntry(m_pFaceChild, elem, child, m_numFaceChildren);}
+	inline void replace_child(Volume* elem, Volume* child)			{ArrayReplaceEntry(m_pVolChild, elem, child, m_numVolChildren);}
+
 	void erase_all_children(Grid& grid);
 	byte				m_state;
 	GeometricObject* 	m_pParent;
@@ -317,25 +328,53 @@ class MultiGrid : public Grid, public GridObserver
 	//	grid callbacks
 		virtual void elements_to_be_cleared(Grid* grid);
 
-	//	vertex callbacks
-		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL);
-		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt);
-		virtual void vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew);
+	 /**  In order to correctly register vrt in the hierarchy, we have to
+	 *  replace pParent with vrt in the list of children of pParents parent.
+	 *  This means that if a grid-observer registered after the multi-grid itself,
+	 *  iterates over the list of children of pParents parent in its
+	 *  vertex_created method, it won't find pParent.*/
+		virtual void vertex_created(Grid* grid, VertexBase* vrt,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-	//	edge callbacks
-		virtual void edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent = NULL);
-		virtual void edge_to_be_erased(Grid* grid, EdgeBase* edge);
-		virtual void edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld, EdgeBase* edgeNew);
+	 /**  In order to correctly register e in the hierarchy, we have to
+	 *  replace pParent with e in the list of children of pParents parent.
+	 *  This means that if a grid-observer registered after the multi-grid itself,
+	 *  iterates over the list of children of pParents parent in its
+	 *  edge_created method, it won't find pParent.*/
+		virtual void edge_created(Grid* grid, EdgeBase* e,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-	//	face callbacks
-		virtual void face_created(Grid* grid, Face* face, GeometricObject* pParent = NULL);
-		virtual void face_to_be_erased(Grid* grid, Face* face);
-		virtual void face_to_be_replaced(Grid* grid, Face* faceOld, Face* faceNew);
+	 /**  In order to correctly register f in the hierarchy, we have to
+	 *  replace pParent with f in the list of children of pParents parent.
+	 *  This means that if a grid-observer registered after the multi-grid itself,
+	 *  iterates over the list of children of pParents parent in its
+	 *  face_created method, it won't find pParent.*/
+		virtual void face_created(Grid* grid, Face* f,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-	//	volume callbacks
-		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL);
-		virtual void volume_to_be_erased(Grid* grid, Volume* vol);
-		virtual void volume_to_be_replaced(Grid* grid, Volume* volOld, Volume* volNew);
+	 /**  In order to correctly register vol in the hierarchy, we have to
+	 *  replace pParent with vol in the list of children of pParents parent.
+	 *  This means that if a grid-observer registered after the multi-grid itself,
+	 *  iterates over the list of children of pParents parent in its
+	 *  volume_created method, it won't find pParent.*/
+		virtual void volume_created(Grid* grid, Volume* vol,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
+
+		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
+										 VertexBase* replacedBy = NULL);
+
+		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
+										 EdgeBase* replacedBy = NULL);
+
+		virtual void face_to_be_erased(Grid* grid, Face* f,
+										 Face* replacedBy = NULL);
+
+		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
+										 Volume* replacedBy = NULL);
 
 	protected:
 
@@ -360,6 +399,10 @@ class MultiGrid : public Grid, public GridObserver
 
 		template <class TElem, class TParent>
 		void element_created(TElem* elem, TParent* pParent);
+
+	///	called if a newly created element shall replace an old one
+		template <class TElem, class TParent>
+		void element_created(TElem* elem, TParent* pParent, TElem* pReplaceMe);
 
 	///	this method is called for elements that havn't got any parent.
 		template <class TElem>

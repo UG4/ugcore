@@ -128,34 +128,75 @@ void MultiGrid::elements_to_be_cleared(Grid* grid)
 }
 
 //	vertices
-void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent)
+void MultiGrid::vertex_created(Grid* grid, VertexBase* vrt,
+								GeometricObject* pParent,
+								bool replacesParent)
 {
 //	if hierarchical_insertion is disabled, the elemenet is inserted
 //	into the same level as its parent.
 //	From the standpoint of a multigrid-hierarchy it thus makes sense
 //	to make pParents parent the parent of elem!!!
 
-	if(!hierarchical_insertion_enabled() && pParent)
-		pParent = get_parent(pParent);
+	if(replacesParent){
+	//	the object given in parent will be replaced be the newly created one.
+	//	The parent of pParent is thus the real parent of the new object.
+		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
+		UG_ASSERT(pParent->base_object_type_id() == VERTEX,
+				  "only objects of the same base type can be replaced.");
+		VertexBase* pReplaceMe = reinterpret_cast<VertexBase*>(pParent);
+		GeometricObject* realParent = get_parent(pReplaceMe);
 
-	if(pParent)
-	{
-		int baseType = pParent->base_object_type_id();
+	//	we call a version of element_created, which allows a replace
+		if(realParent){
+			int baseType = realParent->base_object_type_id();
+			switch(baseType)
+			{
+			case VERTEX:	element_created(vrt, (VertexBase*)realParent, pReplaceMe); break;
+			case EDGE:		element_created(vrt, (EdgeBase*)realParent, pReplaceMe); break;
+			case FACE:		element_created(vrt, (Face*)realParent, pReplaceMe); break;
+			case VOLUME:	element_created(vrt, (Volume*)realParent, pReplaceMe); break;
+			}
+		}
+		else
+			element_created<VertexBase, VertexBase>(vrt, NULL, pReplaceMe);
 
-		switch(baseType)
-		{
-		case VERTEX:	element_created(vrt, (VertexBase*)pParent); break;
-		case EDGE:		element_created(vrt, (EdgeBase*)pParent); break;
-		case FACE:		element_created(vrt, (Face*)pParent); break;
-		case VOLUME:	element_created(vrt, (Volume*)pParent); break;
+	//	copy pReplaceMes children and replace parent of children
+		MGVertexInfo& myInfo = get_info(vrt);
+		MGVertexInfo& replaceInfo = get_info(pReplaceMe);
+
+		if(replaceInfo.m_pVrtChild){
+			myInfo.add_child(replaceInfo.m_pVrtChild);
+			get_info(replaceInfo.m_pVrtChild).m_pParent = vrt;
 		}
 	}
-	else
-		element_created(vrt);
+	else{
+		if(!hierarchical_insertion_enabled() && pParent)
+			pParent = get_parent(pParent);
+
+		if(pParent)
+		{
+			int baseType = pParent->base_object_type_id();
+			switch(baseType)
+			{
+			case VERTEX:	element_created(vrt, (VertexBase*)pParent); break;
+			case EDGE:		element_created(vrt, (EdgeBase*)pParent); break;
+			case FACE:		element_created(vrt, (Face*)pParent); break;
+			case VOLUME:	element_created(vrt, (Volume*)pParent); break;
+			}
+		}
+		else
+			element_created(vrt);
+	}
 }
 
-void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt)
+void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt,
+									 VertexBase* replacedBy)
 {
+//	if replacedBy != NULL, then vertex_created already handled the
+//	deregistration at the parent.
+	if(replacedBy)
+		return;
+
 	VertexInfo& info = get_info(vrt);
 	GeometricObject* pParent = info.m_pParent;
 	if(pParent)
@@ -173,34 +214,71 @@ void MultiGrid::vertex_to_be_erased(Grid* grid, VertexBase* vrt)
 		element_to_be_erased(vrt);
 }
 
-void MultiGrid::vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew)
-{
-//	child and parent connections are handled by create and erase.
-
-}
-
 //	edges
-void MultiGrid::edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent)
+void MultiGrid::edge_created(Grid* grid, EdgeBase* edge,
+							GeometricObject* pParent,
+							bool replacesParent)
 {
-	if(!hierarchical_insertion_enabled() && pParent)
-		pParent = get_parent(pParent);
+	if(replacesParent){
+	//	the object given in parent will be replaced be the newly created one.
+	//	The parent of pParent is thus the real parent of the new object.
+		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
+		UG_ASSERT(pParent->base_object_type_id() == EDGE,
+				  "only objects of the same base type can be replaced.");
+		EdgeBase* pReplaceMe = reinterpret_cast<EdgeBase*>(pParent);
+		GeometricObject* realParent = get_parent(pReplaceMe);
+		if(realParent){
+		//	we call a version of element_created, which allows a replace
+			int baseType = realParent->base_object_type_id();
+			switch(baseType)
+			{
+			case EDGE:		element_created(edge, (EdgeBase*)realParent, pReplaceMe); break;
+			case FACE:		element_created(edge, (Face*)realParent, pReplaceMe); break;
+			case VOLUME:	element_created(edge, (Volume*)realParent, pReplaceMe); break;
+			}
+		}
+		else
+			element_created<EdgeBase, EdgeBase>(edge, NULL, pReplaceMe);
 
-	if(pParent)
-	{
-		int baseType = pParent->base_object_type_id();
-		switch(baseType)
-		{
-		case EDGE:		element_created(edge, (EdgeBase*)pParent); break;
-		case FACE:		element_created(edge, (Face*)pParent); break;
-		case VOLUME:	element_created(edge, (Volume*)pParent); break;
+	//	copy pReplaceMes children and replace parent of children
+		MGEdgeInfo& myInfo = get_info(edge);
+		MGEdgeInfo& replaceInfo = get_info(pReplaceMe);
+
+		if(replaceInfo.m_pVrtChild){
+			myInfo.add_child(replaceInfo.m_pVrtChild);
+			get_info(replaceInfo.m_pVrtChild).m_pParent = edge;
+		}
+
+		for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
+			myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
+			get_info(replaceInfo.m_pEdgeChild[i]).m_pParent = edge;
 		}
 	}
-	else
-		element_created(edge);
+	else{
+		if(!hierarchical_insertion_enabled() && pParent)
+			pParent = get_parent(pParent);
+
+		if(pParent)
+		{
+			int baseType = pParent->base_object_type_id();
+			switch(baseType)
+			{
+			case EDGE:		element_created(edge, (EdgeBase*)pParent); break;
+			case FACE:		element_created(edge, (Face*)pParent); break;
+			case VOLUME:	element_created(edge, (Volume*)pParent); break;
+			}
+		}
+		else
+			element_created(edge);
+	}
 }
 
-void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge)
+void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge,
+									EdgeBase* replacedBy)
 {
+	if(replacedBy)
+		return;
+
 	EdgeInfo& info = get_info(edge);
 	GeometricObject* pParent = info.m_pParent;
 	if(pParent)
@@ -217,32 +295,75 @@ void MultiGrid::edge_to_be_erased(Grid* grid, EdgeBase* edge)
 		element_to_be_erased(edge);
 }
 
-void MultiGrid::edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld, EdgeBase* edgeNew)
-{
-//	child and parent connections are handled by create and erase.
-}
-
 //	faces
-void MultiGrid::face_created(Grid* grid, Face* face, GeometricObject* pParent)
+void MultiGrid::face_created(Grid* grid, Face* face,
+							GeometricObject* pParent,
+							bool replacesParent)
 {
-	if(!hierarchical_insertion_enabled() && pParent)
-		pParent = get_parent(pParent);
+	if(replacesParent){
+	//	the object given in parent will be replaced be the newly created one.
+	//	The parent of pParent is thus the real parent of the new object.
+		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
+		UG_ASSERT(pParent->base_object_type_id() == FACE,
+				  "only objects of the same base type can be replaced.");
+		Face* pReplaceMe = reinterpret_cast<Face*>(pParent);
+		GeometricObject* realParent = get_parent(pReplaceMe);
 
-	if(pParent)
-	{
-		int baseType = pParent->base_object_type_id();
-		switch(baseType)
-		{
-		case FACE:		element_created(face, (Face*)pParent); break;
-		case VOLUME:	element_created(face, (Volume*)pParent); break;
+	//	we call a version of element_created, which allows a replace
+		if(realParent){
+			int baseType = realParent->base_object_type_id();
+			switch(baseType)
+			{
+			case FACE:		element_created(face, (Face*)realParent, pReplaceMe); break;
+			case VOLUME:	element_created(face, (Volume*)realParent, pReplaceMe); break;
+			}
+		}
+		else
+			element_created<Face, Face>(face, NULL, pReplaceMe);
+
+	//	copy pReplaceMes children and replace parent of children
+		MGFaceInfo& myInfo = get_info(face);
+		MGFaceInfo& replaceInfo = get_info(pReplaceMe);
+
+		if(replaceInfo.m_pVrtChild){
+			myInfo.add_child(replaceInfo.m_pVrtChild);
+			get_info(replaceInfo.m_pVrtChild).m_pParent = face;
+		}
+
+		for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
+			myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
+			get_info(replaceInfo.m_pEdgeChild[i]).m_pParent = face;
+		}
+
+		for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
+			myInfo.add_child(replaceInfo.m_pFaceChild[i]);
+			get_info(replaceInfo.m_pFaceChild[i]).m_pParent = face;
 		}
 	}
-	else
-		element_created(face);
+	else{
+		if(!hierarchical_insertion_enabled() && pParent)
+			pParent = get_parent(pParent);
+
+		if(pParent)
+		{
+			int baseType = pParent->base_object_type_id();
+			switch(baseType)
+			{
+			case FACE:		element_created(face, (Face*)pParent); break;
+			case VOLUME:	element_created(face, (Volume*)pParent); break;
+			}
+		}
+		else
+			element_created(face);
+	}
 }
 
-void MultiGrid::face_to_be_erased(Grid* grid, Face* face)
+void MultiGrid::face_to_be_erased(Grid* grid, Face* face,
+								 Face* replacedBy)
 {
+	if(replacedBy)
+		return;
+
 	FaceInfo& info = get_info(face);
 	GeometricObject* pParent = info.m_pParent;
 	if(pParent)
@@ -258,49 +379,80 @@ void MultiGrid::face_to_be_erased(Grid* grid, Face* face)
 		element_to_be_erased(face);
 }
 
-void MultiGrid::face_to_be_replaced(Grid* grid, Face* faceOld, Face* faceNew)
-{
-//	child and parent connections are handled by create and erase.
-}
-
 //	volumes
-void MultiGrid::volume_created(Grid* grid, Volume* vol, GeometricObject* pParent)
+void MultiGrid::volume_created(Grid* grid, Volume* vol,
+								GeometricObject* pParent,
+								bool replacesParent)
 {
-	if(!hierarchical_insertion_enabled() && pParent)
-		pParent = get_parent(pParent);
+	if(replacesParent){
+	//	the object given in parent will be replaced be the newly created one.
+	//	The parent of pParent is thus the real parent of the new object.
+		UG_ASSERT(pParent, "A parent has to exist if it shall be replaced.");
+		UG_ASSERT(pParent->base_object_type_id() == VOLUME,
+				  "only objects of the same base type can be replaced.");
+		Volume* pReplaceMe = reinterpret_cast<Volume*>(pParent);
+		GeometricObject* realParent = get_parent(pReplaceMe);
 
-	if(pParent)
-	{
-		int baseType = pParent->base_object_type_id();
-		switch(baseType)
-		{
-		case VOLUME:	element_created(vol, (Volume*)pParent); break;
+	//	we call a version of element_created, which allows a replace
+		element_created(vol, (Volume*)realParent, pReplaceMe);
+
+	//	copy pReplaceMes children and replace parent of children
+		MGVolumeInfo& myInfo = get_info(vol);
+		MGVolumeInfo& replaceInfo = get_info(pReplaceMe);
+
+		if(replaceInfo.m_pVrtChild){
+			myInfo.add_child(replaceInfo.m_pVrtChild);
+			get_info(replaceInfo.m_pVrtChild).m_pParent = vol;
+		}
+
+		for(size_t i = 0; i < replaceInfo.m_numEdgeChildren; ++i){
+			myInfo.add_child(replaceInfo.m_pEdgeChild[i]);
+			get_info(replaceInfo.m_pEdgeChild[i]).m_pParent = vol;
+		}
+
+		for(size_t i = 0; i < replaceInfo.m_numFaceChildren; ++i){
+			myInfo.add_child(replaceInfo.m_pFaceChild[i]);
+			get_info(replaceInfo.m_pFaceChild[i]).m_pParent = vol;
+		}
+
+		for(size_t i = 0; i < replaceInfo.m_numVolChildren; ++i){
+			myInfo.add_child(replaceInfo.m_pVolChild[i]);
+			get_info(replaceInfo.m_pVolChild[i]).m_pParent = vol;
 		}
 	}
-	else
-		element_created(vol);
+	else{
+		if(!hierarchical_insertion_enabled() && pParent)
+			pParent = get_parent(pParent);
+
+		if(pParent)
+		{
+			UG_ASSERT(pParent->base_object_type_id() == VOLUME,
+				  "Only volumes can be parents to volumes.");
+			element_created(vol, (Volume*)pParent);
+		}
+		else
+			element_created(vol);
+	}
 }
 
-void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol)
+void MultiGrid::volume_to_be_erased(Grid* grid, Volume* vol,
+									 Volume* replacedBy)
 {
+	if(replacedBy)
+		return;
+
 	VolumeInfo& info = get_info(vol);
 	GeometricObject* pParent = info.m_pParent;
 	if(pParent)
 	{
-		int baseType = pParent->base_object_type_id();
-		switch(baseType)
-		{
-		case VOLUME:	element_to_be_erased(vol, (Volume*)pParent); break;
-		}
+		UG_ASSERT(pParent->base_object_type_id() == VOLUME,
+				  "Only volumes can be parents to volumes.");
+		element_to_be_erased(vol, (Volume*)pParent);
 	}
 	else
 		element_to_be_erased(vol);
 }
 
-void MultiGrid::volume_to_be_replaced(Grid* grid, Volume* volOld, Volume* volNew)
-{
-//	child and parent connections are handled by create and erase.
-}
 
 void MultiGrid::check_edge_elem_infos(int level)
 {

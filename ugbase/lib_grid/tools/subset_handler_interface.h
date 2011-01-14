@@ -319,21 +319,34 @@ class ISubsetHandler : public GridObserver
 		virtual void grid_to_be_destroyed(Grid* grid);
 		virtual void elements_to_be_cleared(Grid* grid);
 
-	//	vertex callbacks
-		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL);
-		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt);
+	//	element callbacks
+		virtual void vertex_created(Grid* grid, VertexBase* vrt,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-	//	edge callbacks
-		virtual void edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent = NULL);
-		virtual void edge_to_be_erased(Grid* grid, EdgeBase* edge);
+		virtual void edge_created(Grid* grid, EdgeBase* e,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-	//	face callbacks
-		virtual void face_created(Grid* grid, Face* face, GeometricObject* pParent = NULL);
-		virtual void face_to_be_erased(Grid* grid, Face* face);
+		virtual void face_created(Grid* grid, Face* f,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
 
-	//	volume callbacks
-		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL);
-		virtual void volume_to_be_erased(Grid* grid, Volume* vol);
+		virtual void volume_created(Grid* grid, Volume* vol,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false);
+
+		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
+										 VertexBase* replacedBy = NULL);
+
+		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
+										 EdgeBase* replacedBy = NULL);
+
+		virtual void face_to_be_erased(Grid* grid, Face* f,
+										 Face* replacedBy = NULL);
+
+		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
+										 Volume* replacedBy = NULL);
 
 	//	Virtual methods for derived classes
 	/**	The implementation in a derived class should store the element in a list

@@ -44,6 +44,36 @@ MathVector<dim> Dfunc1(const MathVector<dim>& x)
 }
 
 
+class ProcIDToSubdomainID_FromBisection
+{
+	public:
+		ProcIDToSubdomainID_FromBisection(int numProcsPerSubdomain) :
+			m_numProcsPerSubdomain(numProcsPerSubdomain)
+		{}
+
+		int operator()(int procID)
+		{
+			return procID / m_numProcsPerSubdomain;
+		}
+	private:
+		int m_numProcsPerSubdomain;
+};
+
+template <class domain_type>
+void EnableDomainDecomposition(IApproximationSpace<domain_type>& approxSpace,
+								int numSubdomains)
+{
+	int numProcsPerSubdomain = 1;
+	#ifdef UG_PARALLEL
+		if(numSubdomains > 0)
+			numProcsPerSubdomain = pcl::GetNumProcesses() / numSubdomains;
+	#endif
+
+//	todo: Make sure that numProcs and numSubdomains are valid.
+	approxSpace.enable_domain_decomposition(ProcIDToSubdomainID_FromBisection(
+												numProcsPerSubdomain));
+}
+
 template <typename TRefElem, int p>
 bool TestLagrangeSpacesElem(number& maxDiff)
 {
@@ -980,6 +1010,11 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("get_function_pattern|hide=true", &T::get_function_pattern);
 	}
 
+//	todo: This is not at its final position
+	{
+		reg.add_function("EnableDomainDecomposition",
+						&EnableDomainDecomposition<domain_type>);
+	}
 
 //	GridFunction
 	{

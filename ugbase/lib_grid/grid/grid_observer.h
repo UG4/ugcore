@@ -56,32 +56,67 @@ class GridObserver
 		virtual ~GridObserver()	{}
 
 	//	grid callbacks
-/*
-		virtual void registered_at_grid(Grid* grid)			{}
-		virtual void unregistered_from_grid(Grid* grid)		{}
-*/
 		virtual void grid_to_be_destroyed(Grid* grid)		{}
 		virtual void elements_to_be_cleared(Grid* grid)		{}
 
-	//	vertex callbacks
-		virtual void vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent = NULL)	{}
-		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt)	{}
-		virtual void vertex_to_be_replaced(Grid* grid, VertexBase* vrtOld, VertexBase* vrtNew)	{}
+	//	creation callbacks
+	/**
+	 *	\brief	Notified whenever a new element of the given type is created
+	 *			in the given grid.
+	 *
+	 *	Creation callbacks are called in the order in which the GridObservers
+	 * 	were registered at the given grid.
+	 *
+	 * 	if replacesParent is true, then pParent is of the same type as the
+	 * 	created object.
+	 * 	The method is called with replacesParent == true by
+	 * 	Grid::create_and_replace methods.
+	 *
+	 *	Please note: If replacesParent == true, then a call to
+	 * 	OBJECT_to_be_erased(grid, pParent, obj) will follow (OBJECT
+	 *  and obj are pseudonyms for the concrete type).*/
+	/// \{
+		virtual void vertex_created(Grid* grid, VertexBase* vrt,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false)			{}
 
-	//	edge callbacks
-		virtual void edge_created(Grid* grid, EdgeBase* edge, GeometricObject* pParent = NULL)		{}
-		virtual void edge_to_be_erased(Grid* grid, EdgeBase* edge)		{}
-		virtual void edge_to_be_replaced(Grid* grid, EdgeBase* edgeOld, EdgeBase* edgeNew)	{}
+		virtual void edge_created(Grid* grid, EdgeBase* e,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false)			{}
 
-	//	face callbacks
-		virtual void face_created(Grid* grid, Face* face, GeometricObject* pParent = NULL)				{}
-		virtual void face_to_be_erased(Grid* grid, Face* face)			{}
-		virtual void face_to_be_replaced(Grid* grid, Face* faceOld, Face* faceNew)	{}
+		virtual void face_created(Grid* grid, Face* f,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false)			{}
 
-	//	volume callbacks
-		virtual void volume_created(Grid* grid, Volume* vol, GeometricObject* pParent = NULL)			{}
-		virtual void volume_to_be_erased(Grid* grid, Volume* vol)		{}
-		virtual void volume_to_be_replaced(Grid* grid, Volume* volOld, Volume* volNew)	{}
+		virtual void volume_created(Grid* grid, Volume* vol,
+									GeometricObject* pParent = NULL,
+									bool replacesParent = false)			{}
+	///	\}
+
+
+	//	erase callbacks
+	///	Notified whenever an element of the given type is erased from the given grid.
+	/**	Erase callbacks are called in reverse order in which the GridObservers
+	 * 	were registered at the given grid.
+	 *
+	 * 	if replacedBy != NULL is true, then pParent is of the same type as the
+	 * 	created object.
+	 * 	The method is called with replacesParent == true by
+	 * 	Grid::create_and_replace methods.
+	 * \{ */
+		virtual void vertex_to_be_erased(Grid* grid, VertexBase* vrt,
+										 VertexBase* replacedBy = NULL)	{}
+
+		virtual void edge_to_be_erased(Grid* grid, EdgeBase* e,
+										 EdgeBase* replacedBy = NULL)	{}
+
+		virtual void face_to_be_erased(Grid* grid, Face* f,
+										 Face* replacedBy = NULL)	{}
+
+		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
+										 Volume* replacedBy = NULL)	{}
+
+	/**	\}	*/
 };
 
 /// @}

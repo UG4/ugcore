@@ -8,6 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 
+#include <boost/function.hpp>
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid/parallelization/parallelization.h"
@@ -15,6 +16,12 @@
 
 namespace ug
 {
+
+/**	A callback that associates a subdomain id
+ *  (as used in domain decomposition) with a process id
+ */
+typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
+
 
 ///	Adds dof-indices of elements in elemLayout to the specified IndexLayout.
 /**	Make sure that TLayout holds elements of type VertexBase*, EdgeBase*,
@@ -95,6 +102,115 @@ void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, IDoFDistribution<TDoFDis
 	mat.set_master_layout(dofDistr.get_master_layout());
 	mat.set_communicator(dofDistr.get_communicator());
 	mat.set_process_communicator(dofDistr.get_process_communicator());
+}
+
+
+/**
+ *
+ */
+template <class TDoFDistr, class TLayout>
+bool AddEntriesToIndexLayout_DomainDecomposition(
+							IndexLayout& processLayoutOut,
+							IndexLayout& subdomainLayoutOut,
+							TDoFDistr& dofDistr,
+							TLayout& elemLayout,
+							Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+{
+	typedef typename TLayout::iterator InterfaceIterator;
+	typedef typename TLayout::Interface ElemInterface;
+	typedef typename ElemInterface::iterator ElemIterator;
+
+	typedef IndexLayout::Interface IndexInterface;
+
+	int localProc = pcl::GetProcRank();
+	int localSubdom = cb_ProcIDToSubdomID(localProc);
+
+//	iterate over all interfaces
+	for(InterfaceIterator iIter = elemLayout.begin();
+		iIter != elemLayout.end(); ++iIter)
+	{
+		ElemInterface& elemInterface = elemLayout.interface(iIter);
+		int targetProc = elemLayout.proc_id(iIter);
+		int targetSubdom = cb_ProcIDToSubdomID(targetProc);
+
+		if(targetSubdom == localSubdom){
+		//	create a process interface
+			IndexInterface& indexInterface = processLayoutOut.
+											interface(elemLayout.proc_id(iIter));
+
+		//	iterate over entries in the elemInterface and add associated
+		//	dofs to the indexInterface
+			for(ElemIterator eIter = elemInterface.begin();
+				eIter != elemInterface.end(); ++eIter)
+			{
+				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
+				typename TDoFDistr::algebra_index_vector_type indices;
+				dofDistr.get_inner_algebra_indices(elem, indices);
+				for(size_t i = 0; i < indices.size(); ++i)
+				{
+					indexInterface.push_back(indices[i]);
+				}
+			}
+		}
+		else{
+		//	create a subdomain interface
+			IndexInterface& indexInterface = subdomainLayoutOut.interface(
+												elemLayout.proc_id(iIter));
+
+		//	iterate over entries in the elemInterface and add associated
+		//	dofs to the indexInterface
+			for(ElemIterator eIter = elemInterface.begin();
+				eIter != elemInterface.end(); ++eIter)
+			{
+				typename ElemInterface::Element elem = elemInterface.get_element(eIter);
+				typename TDoFDistr::algebra_index_vector_type indices;
+				dofDistr.get_inner_algebra_indices(elem, indices);
+				for(size_t i = 0; i < indices.size(); ++i)
+				{
+					indexInterface.push_back(indices[i]);
+				}
+			}
+		}
+	}
+	return true;
+}
+
+
+template <class TDoFDistribution>
+bool CreateIndexLayouts_DomainDecomposition(
+						IndexLayout& processLayoutOut,
+						IndexLayout& subdomainLayoutOut,
+						TDoFDistribution& dofDistr,
+						GridLayoutMap& layoutMap,
+						int keyType, int level,
+						Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+{
+//TODO: clear the layout!
+	bool bRetVal = true;
+	if(layoutMap.has_layout<VertexBase>(keyType)){
+		bRetVal &= AddEntriesToIndexLayout_DomainDecomposition(
+								processLayoutOut,
+								subdomainLayoutOut,
+								dofDistr,
+								layoutMap.get_layout<VertexBase>(keyType).
+									layout_on_level(level),
+								cb_ProcIDToSubdomID);
+	}
+/*
+	if(layoutMap.has_layout<EdgeBase>(keyType)){
+		bRetVal &= AddEntriesToIndexLayout(layoutOut, dofManager,
+								layoutMap.get_layout<EdgeBase>(keyType).layout_on_level(level));
+	}
+	if(layoutMap.has_layout<Face>(keyType)){
+		bRetVal &= AddEntriesToIndexLayout(layoutOut, dofManager,
+								layoutMap.get_layout<Face>(keyType).layout_on_level(level));
+	}
+	if(layoutMap.has_layout<Volume>(keyType)){
+		bRetVal &= AddEntriesToIndexLayout(layoutOut, dofManager,
+								layoutMap.get_layout<Volume>(keyType).layout_on_level(level));
+	}
+*/
+	return bRetVal;
 }
 
 }//	end of namespace

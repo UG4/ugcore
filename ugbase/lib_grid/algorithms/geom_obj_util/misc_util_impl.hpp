@@ -29,6 +29,37 @@ CalculateCenter(TIterator begin, TIterator end, TAAPosVRT& aaPos)
 }
 
 ////////////////////////////////////////////////////////////////////////
+//	FindByCoordinate
+template<class TElem, class TVertexPositionAttachmentAccessor>
+TElem* FindByCoordinate(const typename TVertexPositionAttachmentAccessor::ValueType& coord,
+						typename geometry_traits<TElem>::iterator iterBegin,
+						typename geometry_traits<TElem>::iterator iterEnd,
+						TVertexPositionAttachmentAccessor& aaPosVRT)
+{
+	if(iterBegin == iterEnd)
+		return NULL;
+
+	typename geometry_traits<TElem>::iterator iter = iterBegin;
+	TElem* bestElem = *iter;
+	number bestDistSq = VecDistanceSq(coord, CalculateCenter(bestElem, aaPosVRT));
+	iter++;
+
+	while(iter != iterEnd)
+	{
+		number distSq = VecDistanceSq(coord, CalculateCenter(*iter, aaPosVRT));
+		if(distSq < bestDistSq)
+		{
+			bestDistSq = distSq;
+			bestElem = *iter;
+		}
+
+		++iter;
+	}
+
+	return bestElem;
+}
+
+////////////////////////////////////////////////////////////////////////
 //	NumSharedVertices
 template <class TElemPtr1, class TElemPtr2>
 size_t NumSharedVertices(Grid& grid, TElemPtr1 elem1, TElemPtr2 elem2)

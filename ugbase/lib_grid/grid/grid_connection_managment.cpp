@@ -75,11 +75,10 @@ void Grid::register_and_replace_element(VertexBase* v, VertexBase* pReplaceMe)
 	pass_on_values(pReplaceMe, v);
 
 //	inform observers about the creation
-	NOTIFY_OBSERVERS(m_vertexObservers, vertex_created(this, v, pReplaceMe));
-//	inform observers about the replace
-	NOTIFY_OBSERVERS(m_vertexObservers, vertex_to_be_replaced(this, pReplaceMe, v));
+	NOTIFY_OBSERVERS(m_vertexObservers, vertex_created(this, v, pReplaceMe, true));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS_REVERSE(m_vertexObservers, vertex_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_vertexObservers,
+							 vertex_to_be_erased(this, pReplaceMe, v));
 
 //TODO:	auto-enabling of some options should be optimized (and avoided).
 //	all edges, faces and volumes associated with pReplaceMe have to be updated.
@@ -519,11 +518,9 @@ void Grid::register_and_replace_element(EdgeBase* e, EdgeBase* pReplaceMe)
 	e->set_vertex(1, pReplaceMe->vertex(1));
 
 //	inform observers about the creation
-	NOTIFY_OBSERVERS(m_edgeObservers, edge_created(this, e, pReplaceMe));
-//	inform observers about the replace
-	NOTIFY_OBSERVERS(m_edgeObservers, edge_to_be_replaced(this, pReplaceMe, e));
+	NOTIFY_OBSERVERS(m_edgeObservers, edge_created(this, e, pReplaceMe, true));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS_REVERSE(m_edgeObservers, edge_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_edgeObservers, edge_to_be_erased(this, pReplaceMe, e));
 
 //	check if vertices, faces and volumes reference pReplaceMe.
 //	if so, correct those references.
@@ -927,11 +924,9 @@ void Grid::register_and_replace_element(Face* f, Face* pReplaceMe)
 	}
 
 //	inform observers about the creation
-	NOTIFY_OBSERVERS(m_faceObservers, face_created(this, f, pReplaceMe));
-//	inform observers about the replace
-	NOTIFY_OBSERVERS(m_faceObservers, face_to_be_replaced(this, pReplaceMe, f));
+	NOTIFY_OBSERVERS(m_faceObservers, face_created(this, f, pReplaceMe, true));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS_REVERSE(m_faceObservers, face_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_faceObservers, face_to_be_erased(this, pReplaceMe, f));
 
 //	check if vertices, edges and volumes reference pReplaceMe.
 //	if so, correct those references.
@@ -1366,11 +1361,9 @@ void Grid::register_and_replace_element(Volume* v, Volume* pReplaceMe)
 	}
 
 //	inform observers about the creation
-	NOTIFY_OBSERVERS(m_volumeObservers, volume_created(this, v, pReplaceMe));
-//	inform observers about the replace
-	NOTIFY_OBSERVERS(m_volumeObservers, volume_to_be_replaced(this, pReplaceMe, v));
+	NOTIFY_OBSERVERS(m_volumeObservers, volume_created(this, v, pReplaceMe, true));
 //	inform observers about the deletion
-	NOTIFY_OBSERVERS_REVERSE(m_volumeObservers, volume_to_be_erased(this, pReplaceMe));
+	NOTIFY_OBSERVERS_REVERSE(m_volumeObservers, volume_to_be_erased(this, pReplaceMe, v));
 
 //	check if vertices, edges and faces reference pReplaceMe.
 //	if so, correct those references.

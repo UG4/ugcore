@@ -270,6 +270,8 @@ class IDoFDistribution
 		IndexLayout& get_master_layout()	{return m_masterLayout;}
 		IndexLayout& get_vertical_slave_layout()		{return m_verticalSlaveLayout;}
 		IndexLayout& get_vertical_master_layout()	{return m_verticalMasterLayout;}
+		IndexLayout& get_slave_layout_domain_decomp()	{return m_slaveLayoutDomainDecomp;}
+		IndexLayout& get_master_layout_domain_decomp()	{return m_masterLayoutDomainDecomp;}
 
 		pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
 		pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
@@ -301,6 +303,12 @@ class IDoFDistribution
 
 		// index layout for each grid level
 		IndexLayout m_verticalSlaveLayout;
+
+		// index layout for each grid level for domain decomposition
+		IndexLayout m_slaveLayoutDomainDecomp;
+
+		// index layout for each grid level
+		IndexLayout m_masterLayoutDomainDecomp;
 
 		// process communicator
 		pcl::ProcessCommunicator m_processCommunicator;

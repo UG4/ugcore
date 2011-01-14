@@ -47,7 +47,7 @@ bool PartitionElementsByRepeatedIntersectionKD(ug::SubsetHandler& shOut,
 										int numSubsets,
 										ug::APosition& aVrtPos)
 {
-//	TODO: move implementation to seperate ..._impl.hpp file.
+//	TODO: move implementation to separate ..._impl.hpp file.
 	using namespace ug;
 	using namespace std;
 	
@@ -250,7 +250,7 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										ug::APosition& aVrtPos,
 										int startDim = 0)
 {
-//	TODO: move implementation to seperate ..._impl.hpp file.
+//	TODO: move implementation to separate ..._impl.hpp file.
 	using namespace ug;
 	using namespace std;
 	
@@ -295,7 +295,7 @@ bool PartitionElementsByRepeatedIntersection(ug::SubsetHandler& shOut,
 										ug::APosition& aVrtPos,
 										int startDim = 0)
 {
-//	TODO: move implementation to seperate ..._impl.hpp file.
+//	TODO: move implementation to separate ..._impl.hpp file.
 	using namespace ug;
 	using namespace std;
 	

@@ -17,7 +17,8 @@ set(srcGrid		grid/grid.cpp
 				grid/geometric_object_collection.cpp
 				grid/grid_util.cpp)
 				
-set(srcAlgorithms	algorithms/subset_util.cpp
+set(srcAlgorithms	algorithms/debug_util.cpp
+					algorithms/subset_util.cpp
 					algorithms/selection_util.cpp
 					algorithms/serialization.cpp
 					algorithms/grid_statistics.cpp
