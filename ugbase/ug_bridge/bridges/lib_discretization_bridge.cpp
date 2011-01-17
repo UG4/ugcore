@@ -1120,12 +1120,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	Density Driven Flow
 	{
-		stringstream ss; ss << "IDensityDrivenFlowUserFunction" << dim << "d";
-		reg.add_class_<IDensityDrivenFlowUserFunction<dim> >(ss.str().c_str(), grp.c_str());
-	}
-
-//	Density Driven Flow
-	{
 		typedef DensityDrivenFlowElemDisc<FV1Geometry, domain_type, algebra_type> T2;
 		stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
 		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
@@ -1139,16 +1133,18 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 						"", "Boussinesq Transport||invokeOnChange=true")
 			.add_method("set_boussinesq_flow|interactive=false", &T2::set_boussinesq_flow,
 						"", "Boussinesq Flow||invokeOnChange=true")
-			.add_method("set_user_functions|interactive=false", &T2::set_user_functions,
-						"", "User Functions||invokeOnChange=true")
 			.add_method("set_porosity|interactive=false", &T2::set_porosity,
 						"", "Porosity||invokeOnChange=true")
 			.add_method("set_gravity|interactive=false", &T2::set_gravity,
 						"", "Gravity||invokeOnChange=true")
 			.add_method("set_permeability|interactive=false", &T2::set_permeability,
 						"", "Permeability||invokeOnChange=true")
+			.add_method("set_viscosity|interactive=false", &T2::set_viscosity,
+						"", "Viscosity||invokeOnChange=true")
 			.add_method("set_molecular_diffusion|interactive=false", &T2::set_molecular_diffusion,
 						"", "Molecular Diffusion||invokeOnChange=true")
+			.add_method("set_density|interactive=false", &T2::set_density,
+						"", "Density||invokeOnChange=true")
 			.add_method("set_consistent_gravity|interactive=false", &T2::set_consistent_gravity,
 						"", "Consistent Gravity||invokeOnChange=true")
 			.add_method("get_darcy_velocity", &T2::get_darcy_velocity);
@@ -1551,10 +1547,6 @@ bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, 
 				UG_LOG("Unsupported Algebra Type requested.\n");
 				return false;
 	}
-	//
-
-	//	todo: remove when possible
-	RegisterElderUserFunctions(reg, parentGroup);
 
 	return bReturn;
 }

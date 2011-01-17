@@ -139,6 +139,12 @@ molDiffusionValue = utilCreateConstDiagUserMatrix( 3.565e-6, dim)
 -- Permeability
 permeabilityValue = utilCreateConstDiagUserMatrix( 4.845e-13, dim)
 
+-- Density
+densityValue = NumberLinker2d();
+
+-- Viscosity
+viscosityValue = utilCreateConstUserNumber(1e-3, dim);
+
 -----------------------------------------------------------------
 --  Setup FV Element Discretization
 -----------------------------------------------------------------
@@ -152,7 +158,6 @@ dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
 dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
-elderElemFct = ElderUserFunction2d()
 elemDisc = DensityDrivenFlow2d()
 elemDisc:set_domain(dom)
 elemDisc:set_pattern(pattern)
@@ -163,11 +168,12 @@ elemDisc:set_consistent_gravity(true)
 elemDisc:set_boussinesq_transport(true)
 elemDisc:set_boussinesq_flow(true)
 
-elemDisc:set_user_functions(elderElemFct)
 elemDisc:set_porosity(porosityValue)
 elemDisc:set_gravity(gravityValue)
 elemDisc:set_permeability(permeabilityValue)
 elemDisc:set_molecular_diffusion(molDiffusionValue)
+elemDisc:set_density(densityValue)
+elemDisc:set_viscosity(viscosityValue)
 
 -- add Element Discretization to discretization
 domainDisc:add_elem_disc(elemDisc)

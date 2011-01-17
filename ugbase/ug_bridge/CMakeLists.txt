@@ -26,7 +26,6 @@ if(NOT NO_ALGEBRA)
 	set(srcUGBridge ${srcUGBridge}
 					bridges/lib_algebra_bridge.cpp
 					bridges/lib_discretization_bridge.cpp
-					bridges/elder.cpp
 					bridges/user_data_bridge.cpp)
 else(NOT NO_ALGEBRA)
 

@@ -124,6 +124,10 @@ set_functions(const FunctionGroup& funcGroup)
 
 //	remember group (copy)
 	m_FunctionGroup = funcGroup;
+
+//	update function group in Import/Exports
+	set_function_group_for_ipdata(m_FunctionGroup);
+
 	return true;
 }
 

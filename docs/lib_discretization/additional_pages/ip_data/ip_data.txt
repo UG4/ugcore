@@ -251,18 +251,23 @@ The order of evaluation is as follows.
 <ol>
 <li> Setup (before loop over all elements)
 	<ol>
-	<li> Get Imports from every IElemDisc and sort them by the connected data:
-		constant, user-defined and data-export data.
-	<li> Make a corresponding list of export, that are now scheduled for computation
-		on each element
+	<li> Get Imports from every IElemDisc.
+	<li> Sort the connected data by its behaviour: constant, user-defined 
+		and data-export data. Each type is scheduled for computation at a 
+		certain point.
+	<li> Remember imports that are connected to a non-zero-derivative data. This
+		imports are scheduled for the evaluation of the linearized defect.
 	<li> TODO: Skip Exports, that are already scheduled.
-	<li> <b>set_geometric_object_type(...)</b>: Set Geometric object type for each IElemDisc
+	<li> <b>set_geometric_object_type(...)</b>: Set geometric object type for 
+		each IElemDisc to indicate which evaluation function must be used
 	<li> <b>prepare_element_loop(...)</b>: Call preparation of element loop for 
 		each IElemDisc. Local positions are set for DataImports here.
+	<li> For all DataImports: Set the geometric object type to indicate which
+		evaluation function must be used
+	<li> For all DataExports: Set the geometric object type to indicate which
+		evaluation function must be used
 	<li> Compute <b> Constant User Data </b>, since they only depend on number
 		of integration points
-	<li> For all DataImports: Set the geometric object type (WHY???)
-	<li> For all DataExports: Set the geometric object type
 	</ol> 
 <li> Loop all elements. For each element do:
 	<ol>

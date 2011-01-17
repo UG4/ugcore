@@ -8,11 +8,14 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__IP_DATA__IP_DATA__
 
+#include "lib_discretization/common/local_algebra.h"
+
 namespace ug{
 
 /// Base class for IP Data
 /**
- * Base class for all ip data
+ * This is the base class for all coupled data at integration point. It handles
+ * the set of local integration points and stores the current time.
  */
 class IIPData
 {
@@ -53,7 +56,7 @@ class IIPData
 	///	set local positions
 	/**
 	 *
-	 * \return number of series
+	 * \return returns the series id, that is needed for access
 	 */
 		template <int ldim>
 		size_t register_local_ip_series(const MathVector<ldim>* vPos, size_t numIP)
@@ -80,9 +83,12 @@ class IIPData
 		//	resize global ips and data
 			adjust_global_ips_and_data(m_vNumIP);
 
-		//	return new seris id
+		//	return new series id
 			return m_vNumIP.size() - 1;
 		}
+
+	///	returns current local ip dimension
+		int dim_local_ips() const {return m_locPosDim;}
 
 	///	returns local ips
 		template <int ldim>
@@ -115,6 +121,15 @@ class IIPData
 	///	returns if data is constant
 		virtual bool constant_data() const {return false;}
 
+	///	returns if data depends on solution
+		virtual bool zero_derivative() const {return true;}
+
+	///	number of other Data this data depends on
+		virtual size_t num_needed_data() const {return 0;}
+
+	///	return needed data
+		virtual IIPData* needed_data(size_t i) {return NULL;}
+
 	/// compute values (and derivatives iff compDeriv == true)
 		virtual void compute(bool compDeriv = false) = 0;
 
@@ -146,7 +161,12 @@ class IIPData
 		number m_time;
 };
 
+/// Type based IP Data
 /**
+ * This class is the base class for all integration point data for a templated
+ * type. It provides the access to the data and handles the global integration
+ * points.
+ *
  * \tparam	TData	Data
  * \tparam	dim		world dimension
  */
@@ -237,9 +257,148 @@ class IPData : public IIPData
 		/// global ips
 		std::vector<const MathVector<dim>*> m_vvGlobPos;
 
-		/// data at ip
+		/// data at ip (size: (0,...num_series-1) x (0,...,num_ip-1))
 		std::vector<std::vector<TData> > m_vvValue;
 };
+
+
+
+/// Base class for solution dependent Data
+/**
+ * All classes that derive from this class may depend on the unknwon numerical
+ * solution, when computing the data.
+ */
+class IDependentIPData
+{
+	public:
+	///	resize arrays
+		virtual void resize(const LocalIndices& ind) = 0;
+
+	/// set	Function Group of functions (by copy)
+		void set_function_group(const FunctionGroup& fctGrp)
+			{m_fctGrp = fctGrp;}
+
+	///	Function Group of functions
+		const FunctionGroup& get_function_group() const {return m_fctGrp;}
+
+	///	number of fuctions this export depends on
+		size_t num_fct() const {return m_fctGrp.num_fct();}
+
+	protected:
+	/// functions the data depends on
+		FunctionGroup m_fctGrp;
+
+};
+
+/// Dependent IP Data
+/**
+ * This class extends the IPData by the derivatives of the data w.r.t. to
+ * unknown solutions.
+ */
+template <typename TData, int dim>
+class DependentIPData : public IPData<TData, dim>,
+						virtual public IDependentIPData
+{
+	public:
+		using IPData<TData, dim>::num_series;
+		using IPData<TData, dim>::num_ip;
+		using IPData<TData, dim>::local_ips;
+
+	public:
+	/// number of shapes for local function
+		size_t num_sh(size_t s, size_t fct) const
+		{
+			const size_t ip = 0;
+			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
+			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
+			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			return m_vvvDeriv[s][ip][fct].size();
+		}
+
+	///	returns the derivative of the local function, at ip and for a dof
+		const TData& deriv(size_t s, size_t ip, size_t fct, size_t dof) const
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
+			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
+			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
+			return m_vvvDeriv[s][ip][fct][dof];
+		}
+
+	///	returns the derivative of the local function, at ip and for a dof
+		TData& deriv(size_t s, size_t ip, size_t fct, size_t dof)
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
+			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
+			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
+			return m_vvvDeriv[s][ip][fct][dof];
+		}
+
+	///	returns the derivatives of the local function, at ip
+		TData* deriv(size_t s, size_t ip, size_t fct)
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
+			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
+			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			return &(m_vvvDeriv[s][ip][fct][0]);
+		}
+
+	///	returns the derivatives of the local function, at ip
+		const TData* deriv(size_t s, size_t ip, size_t fct) const
+		{
+			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
+			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
+			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
+			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
+			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
+			return &(m_vvvDeriv[s][ip][fct][0]);
+		}
+
+	///	resize lin defect arrays
+		virtual void resize(const LocalIndices& ind)
+		{
+		//	resize num fct
+			for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
+				for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
+				{
+				//	resize num fct
+					m_vvvDeriv[s][ip].resize(ind.num_fct());
+
+				//	resize dofs
+					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
+						m_vvvDeriv[s][ip][fct].resize(ind.num_dofs(fct));
+				}
+		}
+
+	protected:
+		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
+		{
+		//	adjust data arrays
+			m_vvvDeriv.resize(vNumIP.size());
+			for(size_t s = 0; s < vNumIP.size(); ++s)
+				m_vvvDeriv[s].resize(vNumIP[s]);
+
+		//	resize values
+			IPData<TData, dim>::adjust_global_ips_and_data(vNumIP);
+		}
+
+	protected:
+
+	///	Derivatives
+	// Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
+		std::vector<std::vector<std::vector<std::vector<TData> > > > m_vvvDeriv;
+};
+
+
 
 } // end namespace ug
 

@@ -25,7 +25,9 @@ class IDataImport
 
 	public:
 	/// Constructor
-		IDataImport() : m_pIDataExport(NULL), m_id(-1) {}
+		IDataImport(bool compLinDefect = true)
+			: m_pIDataExport(NULL), m_id(-1), m_bCompLinDefect(compLinDefect)
+		{}
 		virtual ~IDataImport()	{}
 
 	/// returns if data is set
@@ -44,7 +46,7 @@ class IDataImport
 		bool non_zero_derivative() const
 		{
 			if(m_pIDataExport == NULL) return false;
-			else return true;
+			else return m_bCompLinDefect;
 		}
 
 	/// returns the connected ip data
@@ -96,14 +98,21 @@ class IDataImport
 	///	elem disc
 		IElemDisc<TAlgebra>* m_pObj;
 
+	///	indicates iff lin defect should be computed
+		bool m_bCompLinDefect;
+
 	public:
 	///	sets the geometric object type
 		bool set_geometric_object_type(int id)
 		{
-			if(m_vLinDefectFunc[id] != NULL){m_id = id;	return true;}
+			if(id < (int)m_vLinDefectFunc.size() && m_vLinDefectFunc[id] != NULL)
+			{
+				m_id = id;
+				return true;
+			}
 			else
 			{
-				UG_LOG("No or not all functions registered "
+				UG_LOG("No or not all lin defect functions registered "
 						"for object with reference object id " << id << ".\n");
 				m_id = -1; return false;
 			}
@@ -142,7 +151,8 @@ class DataImport : public IDataImport<TAlgebra>
 
 	public:
 	/// Constructor
-		DataImport() :
+		DataImport(bool compLinDefect = true) :
+			IDataImport<TAlgebra>(compLinDefect),
 			m_seriesID(-1), m_pIPData(NULL), m_pDataExport(NULL)
 		{}
 
@@ -190,6 +200,30 @@ class DataImport : public IDataImport<TAlgebra>
 			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
 			UG_ASSERT(ip < num_ip(), "Invalid index");
 			return const_cast<const IPData<TData, dim>*>(m_pIPData)->value(m_seriesID, ip);
+		}
+
+	///	returns the data value at ip
+		const TData* values() const
+		{
+			UG_ASSERT(m_pIPData != NULL, "No Data set");
+			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
+			return const_cast<const IPData<TData, dim>*>(m_pIPData)->values(m_seriesID);
+		}
+
+	///	return the derivative w.r.t to local function at ip
+		const TData* deriv(size_t ip, size_t fct) const
+		{
+			UG_ASSERT((dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)) != NULL, "No Data set");
+			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
+			return dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)->deriv(m_seriesID, ip, fct);
+		}
+
+	///	return the derivative w.r.t to local function and dof at ip
+		const TData& deriv(size_t ip, size_t fct, size_t dof) const
+		{
+			UG_ASSERT((dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)) != NULL, "No Data set");
+			UG_ASSERT(m_seriesID >= 0, "No series ticket set");
+			return dynamic_cast<const DependentIPData<TData, dim>*>(m_pIPData)->deriv(m_seriesID, ip, fct, dof);
 		}
 
 	/////////////////////////////////////////
@@ -260,12 +294,6 @@ class DataImport : public IDataImport<TAlgebra>
 	/////////////////////////////////////////
 	// Linearization of Defect
 	/////////////////////////////////////////
-
-	///	returns if import depends on other solutions
-		bool non_zero_derivative() const
-		{
-			return m_pDataExport != NULL;
-		}
 
 	/// number of shapes for local function
 		size_t num_sh(size_t fct) const
@@ -356,33 +384,38 @@ class DataEvaluator
 	typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
 
 	public:
-		DataEvaluator(const std::vector<IElemDisc<TAlgebra>*>& vElemDisc)
-			: m_vElemDisc(vElemDisc)
+	///	sets the elem discs to evaluate
+		bool set_elem_discs(const std::vector<IElemDisc<TAlgebra>*>& vElemDisc)
 		{
+		//	remember current elem discs
+			m_pvElemDisc = &vElemDisc;
+
 		//	create list of all needed functions
-			if(!CreateUnionOfFunctions(m_commonFctGroup, m_vElemDisc))
+			if(!CreateUnionOfFunctions(m_commonFctGroup, *m_pvElemDisc))
 			{
-				UG_LOG("Cannot create union of all needed functions.\n");
-				throw(UGFatalError("List of function not created."));
+				UG_LOG("ERROR in 'DataEvaluator::set_elem_discs':"
+						"Cannot create union of all needed functions.\n");
+				return false;
 			}
 
 		//	create FunctionIndexMapping for each Disc
-			m_vMap.resize(m_vElemDisc.size());
-			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
+			m_vMap.resize(m_pvElemDisc->size());
+			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
 			{
 				if(!CreateFunctionIndexMapping(m_vMap[i],
-				                               m_vElemDisc[i]->get_function_group(),
-				                               m_commonFctGroup))
+											   (*m_pvElemDisc)[i]->get_function_group(),
+											   m_commonFctGroup))
 				{
-					UG_LOG("Cannot create Function Index Mapping for disc.\n");
-					throw(UGFatalError("Function Mapping not created."));
+					UG_LOG("ERROR in 'DataEvaluator::set_elem_discs':"
+							"Cannot create Function Index Mapping for disc.\n");
+					return false;
 				}
 			}
 
-			extract_imports();
-			extract_exports();
+			return extract_imports_and_ipdata();
 		}
 
+	///	Mapping between local functions of ElemDisc i and common FunctionGroup
 		const FunctionIndexMapping& map(size_t i) const
 		{
 			UG_ASSERT(i < m_vMap.size(), "Wrong index");
@@ -395,100 +428,200 @@ class DataEvaluator
 	///	Function group for a disc
 		const FunctionGroup& fct_group(size_t i) const
 		{
-			UG_ASSERT(i < m_vElemDisc.size(), "Invalid index");
-			return m_vElemDisc[i]->get_function_group();
+			UG_ASSERT(i < m_pvElemDisc->size(), "Invalid index");
+			return (*m_pvElemDisc)[i]->get_function_group();
 		}
 
-		void clear_imports()
+	///	clears imports and ip data
+		void clear()
 		{
-				m_vConstImport.clear();
-				m_vPosImport.clear();
-				m_vIDataImport.clear();
+		//	remove imports scheduled for evaluation of lin defect
+			m_vMapImp.clear();
+			m_vIDataImport.clear();
+
+		// 	remove data scheduled for evaluation
+			m_vConstData.clear();
+			m_vPosData.clear();
+
+			m_vDependData.clear();
+			m_vMapDepend.clear();
+
+			m_vMapExp.clear();
+			m_vIDataExport.clear();
+
+			m_vMapLinker.clear();
+			m_vLinkerDepend.clear();
+			m_vLinkerData.clear();
 		}
 
-		void clear_exports()
+	//	this function tries to add the last entry of vTryingToAdd to the eval
+	//	data
+		bool add_data_to_eval_data(std::vector<IIPData*>& vEvalData,
+		                           std::vector<IIPData*>& vTryingToAdd)
 		{
-				m_vConstData.clear();
-				m_vPosData.clear();
-				m_vIDataExport.clear();
+		//	if empty, we're done
+			if(vTryingToAdd.empty()) return true;
+
+		//	search for element in already scheduled data
+			std::vector<IIPData*>::iterator it, itEnd;
+			it = find(vEvalData.begin(), vEvalData.end(), vTryingToAdd.back());
+
+		//	if found, skip this data
+			if(it != vEvalData.end())
+			{
+				vTryingToAdd.pop_back();
+				return true;
+			}
+
+		//	search if element already contained in list. Then, the element
+		//	did start the adding procedure before and a circle dependency
+		//	is found
+			itEnd = vTryingToAdd.end(); itEnd--;
+			it = find(vTryingToAdd.begin(), itEnd, *itEnd);
+
+		//	if found, return error of circle dependency
+			if(it != itEnd)
+			{
+				UG_LOG("ERROR in add_data_to_eval_data:"
+						" Circle dependency of data detected for IP Data.\n");
+				return false;
+			}
+
+		//	add all dependent datas
+			IIPData* data = vTryingToAdd.back();
+			for(size_t i = 0; i < data->num_needed_data(); ++i)
+			{
+			//	add each data separately
+				vTryingToAdd.push_back(data->needed_data(i));
+				if(!add_data_to_eval_data(vEvalData, vTryingToAdd))
+					return false;
+			}
+
+		//	add this data to the evaluation list
+			vEvalData.push_back(data);
+
+		//	pop last one, since now added to eval list
+			vTryingToAdd.pop_back();
+
+		//	we're done
+			return true;
 		}
 
-		void extract_imports()
+		bool extract_imports_and_ipdata()
 		{
-		//	clear imports
-			clear_imports();
+		//	clear imports and ipdata
+			clear();
+
+		//	queue for all ip data needed
+			std::vector<IIPData*> vEvalData;
+			std::vector<IIPData*> vTryingToAdd;
 
 		//	loop elem discs
-			for(size_t d = 0; d < m_vElemDisc.size(); ++d)
+			for(size_t d = 0; d < m_pvElemDisc->size(); ++d)
 			{
 			//	loop imports
-				for(size_t i = 0; i < m_vElemDisc[d]->num_imports(); ++i)
+				for(size_t i = 0; i < (*m_pvElemDisc)[d]->num_imports(); ++i)
 				{
 				//	get import
-					IDataImport<TAlgebra>* iimp = m_vElemDisc[d]->import(i);
+					IDataImport<TAlgebra>* iimp = (*m_pvElemDisc)[d]->import(i);
 
 				//	skip zero data
 					if(!iimp->data_set()) continue;
 
-				//	detect constant import
-					if(iimp->constant_data())
-					{
-						m_vConstImport.push_back(iimp);
-						continue;
-					}
+				//	push export on stack of needed data
+					vTryingToAdd.push_back(iimp->get_data());
 
-				//	detect position dependent import
-					if(!iimp->non_zero_derivative())
+				//	add data and all dependency to evaluation list
+					if(!add_data_to_eval_data(vEvalData, vTryingToAdd))
 					{
-						m_vPosImport.push_back(iimp);
-						continue;
+						UG_LOG("ERROR in extract_imports_and_ipdata:"
+								" Circle dependency of data detected for IP Data.\n");
+						return false;
 					}
+					UG_ASSERT(vTryingToAdd.empty(), "All must have been added.");
 
-				//	detect data export dependent import
+				//	done iff zero-derivative
+					if(!iimp->non_zero_derivative()) continue;
+
+				//	schedule import for computation of lin defect:
 					m_vIDataImport.push_back(iimp);
 
-				//	remember func map (the same map as for elem disc)
+				//	Remember FuncMap for lin defect (the same map as for elem disc)
 					m_vMapImp.push_back(m_vMap[d]);
 				}
 			}
-		}
 
-		void extract_exports()
-		{
-		//	clear exports
-			clear_exports();
-
-		//	get connected const ipdata
-			for(size_t i = 0; i < m_vConstImport.size(); ++i)
-				m_vConstData.push_back(m_vConstImport[i]->get_data());
-
-		//	get connected position dependend ipdata
-			for(size_t i = 0; i < m_vPosImport.size(); ++i)
-				m_vPosData.push_back(m_vPosImport[i]->get_data());
-
-		//	get connected DataExport
-			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
+		//	loop all needed ip data and sort it
+			for(size_t i = 0; i < vEvalData.size(); ++i)
 			{
-				IDataExport<TAlgebra>* exp =
-						dynamic_cast<IDataExport<TAlgebra>*>(m_vIDataImport[i]->get_data());
+				IIPData* ipData = vEvalData[i];
 
-				if(exp == NULL)
-					throw(UGFatalError("Something wrong in extract_exports"));
-
-				m_vIDataExport.push_back(exp);
-
-			//	remember func map
-				FunctionIndexMapping map;
-				if(!CreateFunctionIndexMapping(map,
-				                               m_vIDataExport.back()->get_function_group(),
-				                               m_commonFctGroup))
+			//	detect constant import
+				if(ipData->constant_data())
 				{
-					UG_LOG("Cannot create Function Index Mapping for disc.\n");
-					throw(UGFatalError("Function Mapping not created."));
+				//	schedule for evaluation of constant data
+					m_vConstData.push_back(ipData);
+					continue;
 				}
 
-				m_vMapExp.push_back(map);
+			//	detect position dependent import
+				if(ipData->zero_derivative())
+				{
+				//	schedule for evaluation of position dependent data
+					m_vPosData.push_back(ipData);
+					continue;
+				}
+
+			//	cast to dependent data
+				IDependentIPData* dependData =
+						dynamic_cast<IDependentIPData*>(ipData);
+
+			//	check success
+				if(dependData == NULL)
+					{return false;}
+
+			//	create FuncMap
+				FunctionIndexMapping map;
+				if(!CreateFunctionIndexMapping(map,
+				                               dependData->get_function_group(),
+											   m_commonFctGroup))
+				{
+					UG_LOG("Cannot create Function Index Mapping for disc.\n");
+					return false;
+				}
+
+
+			//	save as dependent data
+				m_vDependData.push_back(ipData);
+				m_vMapDepend.push_back(map);
+
+			//	cast to data export
+				IDataExport<TAlgebra>* exp =
+						dynamic_cast<IDataExport<TAlgebra>*>(ipData);
+
+			//	Data Export case
+				if(exp != NULL)
+				{
+				//	schedule for evaluation of IDataExports
+					m_vIDataExport.push_back(exp);
+
+				// 	remember function map
+					m_vMapExp.push_back(map);
+				}
+				else
+			//	Linker case
+				{
+					//	schedule for evaluation of linker
+						m_vLinkerData.push_back(ipData);
+						m_vLinkerDepend.push_back(dependData);
+
+					// 	remember function map
+						m_vMapLinker.push_back(map);
+				}
 			}
+
+		//	we're done
+			return true;
 		}
 
 		bool prepare_elem_loop(int id, LocalIndices& ind, IElemDiscNeed need, number time = 0.0)
@@ -499,28 +632,29 @@ class DataEvaluator
 			for(size_t i = 0; i < m_vPosData.size(); ++i)
 				m_vPosData[i]->clear_ips();
 			for(size_t i = 0; i < m_vIDataExport.size(); ++i)
-				m_vIDataExport[i]->clear_ips_virt();
+				m_vIDataExport[i]->clear_export_ips();
+			for(size_t i = 0; i < m_vLinkerData.size(); ++i)
+				m_vLinkerData[i]->clear_ips();
 
 		// 	set elem type in elem disc
-			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!m_vElemDisc[i]->set_geometric_object_type(id, need))
+			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
+				if(!(*m_pvElemDisc)[i]->set_geometric_object_type(id, need))
 				{
-					UG_LOG("Cannot set geometric object type for Disc " << i <<".\n");
+					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+							"Cannot set geometric object type for Disc " << i <<".\n");
 					return false;
 				}
 
 		// 	prepare loop (elem disc set local ip series here)
-			for(size_t i = 0; i < m_vElemDisc.size(); ++i)
-				if(!m_vElemDisc[i]->prepare_element_loop())
+			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
+				if(!(*m_pvElemDisc)[i]->prepare_element_loop())
 				{
-					UG_LOG("Cannot prepare element loop.\n");
+					UG_LOG("In 'DataEvaluator::prepare_elem_loop':"
+							"Cannot prepare element loop.\n");
 					return false;
 				}
 
-		//	evaluate constant data
-			for(size_t i = 0; i < m_vConstData.size(); ++i)
-				m_vConstData[i]->compute();
-
+		//	prepare data imports
 			for(size_t i = 0; i < m_vIDataImport.size(); ++i)
 			{
 			//	set id for imports
@@ -531,6 +665,7 @@ class DataEvaluator
 				m_vIDataImport[i]->resize(ind);
 			}
 
+		//	prepare data exports
 			for(size_t i = 0; i < m_vIDataExport.size(); ++i)
 			{
 			//	set id for imports
@@ -540,6 +675,18 @@ class DataEvaluator
 				ind.access_by_map(m_vMapExp[i]);
 				m_vIDataExport[i]->resize(ind);
 			}
+
+		//	prepare data linker
+			for(size_t i = 0; i < m_vLinkerDepend.size(); ++i)
+			{
+			//	adjust derivative array
+				ind.access_by_map(m_vMapLinker[i]);
+				m_vLinkerDepend[i]->resize(ind);
+			}
+
+		//	evaluate constant data
+			for(size_t i = 0; i < m_vConstData.size(); ++i)
+				m_vConstData[i]->compute();
 
 		//	we're done
 			return true;
@@ -553,11 +700,24 @@ class DataEvaluator
 			for(size_t i = 0; i < m_vPosData.size(); ++i)
 				m_vPosData[i]->compute();
 
-		//	evaluate export data
-			for(size_t i = 0; i < m_vIDataExport.size(); ++i)
+		// 	process dependent data
+			for(size_t i = 0; i < m_vDependData.size(); ++i)
 			{
-				ind.access_by_map(m_vMapExp[i]);
-				m_vIDataExport[i]->compute_export(u, computeDeriv);
+			//	cast to data export
+				IDataExport<TAlgebra>* exp =
+						dynamic_cast<IDataExport<TAlgebra>*>(m_vDependData[i]);
+
+			//	linker case
+				if(exp == NULL)
+				{
+					m_vDependData[i]->compute(computeDeriv);
+				}
+			//	export case
+				else
+				{
+					ind.access_by_map(m_vMapDepend[i]);
+					exp->compute_export(u, computeDeriv);
+				}
 			}
 
 		//	if no derivatives needed, we're done
@@ -611,15 +771,9 @@ class DataEvaluator
 		std::vector<FunctionIndexMapping> m_vMap;
 
 	//	current elem discs
-		const std::vector<IElemDisc<TAlgebra>*>& m_vElemDisc;
+		const std::vector<IElemDisc<TAlgebra>*>* m_pvElemDisc;
 
-	//	constant imports
-		std::vector<IDataImport<TAlgebra>*> m_vConstImport;
-
-	//	position imports
-		std::vector<IDataImport<TAlgebra>*> m_vPosImport;
-
-	//	export data imports
+	//	data imports which are connected to non-zero derivative ip data
 		std::vector<IDataImport<TAlgebra>*> m_vIDataImport;
 
 	//	Function mapping for import
@@ -631,11 +785,22 @@ class DataEvaluator
 	//	position dependend data
 		std::vector<IIPData*> m_vPosData;
 
+	//	all dependent data
+		std::vector<IIPData*> m_vDependData;
+		std::vector<FunctionIndexMapping> m_vMapDepend;
+
+	//	data linker
+		std::vector<IIPData*> m_vLinkerData;
+		std::vector<IDependentIPData*> m_vLinkerDepend;
+
 	//	exports
 		std::vector<IDataExport<TAlgebra>*> m_vIDataExport;
 
 	//	Function mapping for exports
 		std::vector<FunctionIndexMapping> m_vMapExp;
+
+	//	Function mapping for exports
+		std::vector<FunctionIndexMapping> m_vMapLinker;
 
 };
 

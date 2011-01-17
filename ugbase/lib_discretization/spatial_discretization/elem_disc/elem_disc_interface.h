@@ -158,6 +158,16 @@ class IElemDisc{
 		}
 
 protected:
+	///	sets the function group in all registered import/exports
+		void set_function_group_for_ipdata(const FunctionGroup& fctGrp)
+		{
+			for(size_t i = 0; i < m_vIImport.size(); ++i)
+				m_vIImport[i]->set_function_group(fctGrp);
+
+			for(size_t i = 0; i < m_vIExport.size(); ++i)
+				m_vIExport[i]->set_function_group(fctGrp);
+		}
+
 	/// data imports
 		std::vector<IDataImport<TAlgebra>*> m_vIImport;
 

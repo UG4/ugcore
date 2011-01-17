@@ -164,7 +164,25 @@ luaVelocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
 constVelocityField = utilCreateConstUserVector(0.0, dim)
 constVelocityField:set_entry(1, -0.000001)
 
-porosity = utilCreateConstUserNumber(0.1, dim)
+-- Porosity
+--porosityValue = utilCreateLuaUserNumber("Porosity", dim)
+porosityValue = utilCreateConstUserNumber(0.1, dim)
+
+-- Gravity
+gravityValue = utilCreateConstUserVector(0.0, dim)
+gravityValue:set_entry(dim-1, -9.81)
+
+-- molecular Diffusion
+molDiffusionValue = utilCreateConstDiagUserMatrix( 3.565e-6, dim)
+
+-- Permeability
+permeabilityValue = utilCreateConstDiagUserMatrix( 4.845e-13, dim)
+
+-- Density
+densityValue = NumberLinker2d();
+
+-- Viscosity
+viscosityValue = utilCreateConstUserNumber(1e-3, dim);
 
 -----------------------------------------------------------------
 --  Setup FV Element Discretization
@@ -179,7 +197,6 @@ dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
 dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
-elderElemFct = ElderUserFunction2d()
 elemDisc = DensityDrivenFlow2d()
 elemDisc:set_domain(dom)
 elemDisc:set_pattern(pattern)
@@ -189,7 +206,13 @@ if elemDisc:set_upwind("part") == false then exit() end
 elemDisc:set_consistent_gravity(true)
 elemDisc:set_boussinesq_transport(true)
 elemDisc:set_boussinesq_flow(true)
-elemDisc:set_user_functions(elderElemFct)
+
+elemDisc:set_porosity(porosityValue)
+elemDisc:set_gravity(gravityValue)
+elemDisc:set_permeability(permeabilityValue)
+elemDisc:set_molecular_diffusion(molDiffusionValue)
+elemDisc:set_density(densityValue)
+elemDisc:set_viscosity(viscosityValue)
 
 darcyVelocityField = elemDisc:get_darcy_velocity()
 
@@ -200,7 +223,7 @@ CDelemDisc:set_diffusion_tensor(diffusionMatrix)
 --CDelemDisc:set_velocity_field(constVelocityField)
 --CDelemDisc:set_velocity_field(luaVelocityField)
 CDelemDisc:set_velocity_field(darcyVelocityField)
-CDelemDisc:set_mass_scale(porosity)
+CDelemDisc:set_mass_scale(porosityValue)
 
 -- add Element Discretization to discretization
 domainDisc:add_elem_disc(elemDisc)

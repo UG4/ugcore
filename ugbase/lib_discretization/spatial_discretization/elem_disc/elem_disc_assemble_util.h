@@ -77,7 +77,15 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -223,7 +231,15 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -369,7 +385,15 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -445,7 +469,11 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		}
 
 	//	Compute element data
-		Eval.compute_elem_data(locU, ind, true);
+		if(!Eval.compute_elem_data(locU, ind, true))
+		{
+			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute elem data.\n");
+			return false;
+		}
 
 	// 	Assemble JA
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
@@ -519,7 +547,15 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleJacobian': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -592,7 +628,11 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		}
 
 	//	Compute element data
-		Eval.compute_elem_data(locU, ind, true);
+		if(!Eval.compute_elem_data(locU, ind, true))
+		{
+			UG_LOG("ERROR in 'AssembleJacobian': Cannot compute elem data.\n");
+			return false;
+		}
 
 	// 	reset local matrix
 		locJ.set(0.0);
@@ -690,7 +730,15 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleDefect': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -770,8 +818,11 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		}
 
 	//	Compute element data
-		Eval.compute_elem_data(locU, ind, false);
-
+		if(!Eval.compute_elem_data(locU, ind, false))
+		{
+			UG_LOG("ERROR in 'AssembleDefect': Cannot compute elem data.\n");
+			return false;
+		}
 
 	// 	Assemble defect A
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
@@ -863,7 +914,15 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleDefect': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -942,7 +1001,11 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		}
 
 	//	Compute element data
-		Eval.compute_elem_data(locU, ind, false);
+		if(!Eval.compute_elem_data(locU, ind, false))
+		{
+			UG_LOG("ERROR in 'AssembleDefect': Cannot compute elem data.\n");
+			return false;
+		}
 
 	// 	Assemble defect M
 		tmpLocD.set(0.0);
@@ -1055,7 +1118,15 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleLinear': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -1135,7 +1206,11 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		}
 
 	//	Compute element data
-		Eval.compute_elem_data(locU, ind, false);
+		if(!Eval.compute_elem_data(locU, ind, false))
+		{
+			UG_LOG("ERROR in 'AssembleLinear': Cannot compute elem data.\n");
+			return false;
+		}
 
 	// 	Assemble JA
 		for(size_t i = 0; i < vElemDisc.size(); ++i)
@@ -1229,7 +1304,15 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	iterEnd = dofDistr.template end<TElem>(si);
 
 //	create data evaluator
-	DataEvaluator<TAlgebra> Eval(vElemDisc);
+	DataEvaluator<TAlgebra> Eval;
+
+//	prepare for given elem discs
+	if(!Eval.set_elem_discs(vElemDisc))
+	{
+		UG_LOG("ERROR in 'AssembleLinear': Cannot init Evaluation of "
+				"Elem Discs. Aborting\n");
+		return false;
+	}
 
 // 	flag, iff use hanging nodes as well
 	bool useHanging = false;
@@ -1312,7 +1395,11 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 		}
 
 	//	Compute element data
-		Eval.compute_elem_data(locU, ind, false);
+		if(!Eval.compute_elem_data(locU, ind, false))
+		{
+			UG_LOG("ERROR in 'AssembleLinear': Cannot compute elem data.\n");
+			return false;
+		}
 
 	// 	Assemble JM
 		tmpLocA.set(0.0);

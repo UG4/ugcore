@@ -8,7 +8,7 @@
 #ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_EXPORT__
 #define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DATA_EXPORT__
 
-#include "user_data.h"
+#include "ip_data.h"
 #include "../elem_disc/elem_disc_interface.h"
 
 namespace ug{
@@ -18,41 +18,8 @@ namespace ug{
  * An base class for all data exports
  */
 template <typename TAlgebra>
-class IDataExport
+class IDataExport : virtual public IDependentIPData
 {
-	public:
-	///	Constructor
-		IDataExport() : m_id(-1), m_pObj(NULL) {}
-		~IDataExport()	{}
-
-	/// clear ips
-		virtual void clear_ips_virt() = 0;
-
-	/// set	Function Group of functions
-		void set_function_group(const FunctionGroup& fctGrp)
-			{m_pFctGrp = &fctGrp;}
-
-	///	Function Group of functions
-		const FunctionGroup& get_function_group() const
-		{
-			UG_ASSERT(m_pFctGrp != NULL, "No func group set.");
-			return *m_pFctGrp;
-		}
-
-	///	number of fuctions this export depends on
-		size_t num_fct() const
-		{
-			UG_ASSERT(m_pFctGrp != NULL, "No func group set.");
-			return m_pFctGrp->num_fct();
-		}
-
-	///	resize arrays
-		virtual void resize(const LocalIndices& ind) = 0;
-
-	protected:
-	/// number of functions the data depends on
-		const FunctionGroup* m_pFctGrp;
-
 	protected:
 	///	type of local vector
 		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
@@ -61,16 +28,14 @@ class IDataExport
 		typedef bool (IElemDisc<TAlgebra>::*ExportFunc)(const local_vector_type& u,
 														bool compDeriv);
 
-	///	function pointers for all elem types
-		std::vector<ExportFunc>	m_vExportFunc;
-
-	/// current Geom Object
-		int m_id;
-
-	///	elem disc
-		IElemDisc<TAlgebra>* m_pObj;
-
 	public:
+	///	Constructor
+		IDataExport() : m_id(-1), m_pObj(NULL) {}
+		~IDataExport()	{}
+
+	/// clear ips
+		virtual void clear_export_ips() = 0;
+
 	///	sets the geometric object type
 		bool set_geometric_object_type(int id)
 		{
@@ -98,7 +63,7 @@ class IDataExport
 				throw(UGFatalError("Exports assume to be used by on object for all functions."));
 		}
 
-	///	compute lin defect
+	///	compute export
 		bool compute_export(const local_vector_type& u, bool compDeriv)
 		{
 			UG_ASSERT(m_id >=0, "ElemType id is not set correctly.");
@@ -106,6 +71,16 @@ class IDataExport
 			UG_ASSERT(m_vExportFunc[m_id] != NULL, "Func pointer is NULL");
 			return (m_pObj->*(m_vExportFunc[m_id]))(u, compDeriv);
 		}
+
+	protected:
+	///	function pointers for all elem types
+		std::vector<ExportFunc>	m_vExportFunc;
+
+	/// current Geom Object
+		int m_id;
+
+	///	elem disc
+		IElemDisc<TAlgebra>* m_pObj;
 };
 
 /// Data export
@@ -113,98 +88,41 @@ class IDataExport
  * A DataExport is user data produced by an element discretization.
  */
 template <typename TData, int dim, typename TAlgebra>
-class DataExport : 	public IPData<TData, dim>,
+class DataExport : 	public DependentIPData<TData, dim>,
 					public IDataExport<TAlgebra>
 {
 	public:
-		using IPData<TData, dim>::num_series;
-		using IPData<TData, dim>::num_ip;
-		using IPData<TData, dim>::local_ips;
+		virtual void compute(bool computeDeriv)
+			{throw(UGFatalError("Should not be called."));}
 
-	public:
-	/// Constructor
-		DataExport()
-		{}
+	///	returns if data depends on solution
+		virtual bool zero_derivative() const {return false;}
 
-	///	clear ips
-		virtual void clear_ips_virt(){this->clear_ips();}
-
-	/// compute values (and derivatives iff compDeriv == true)
-		virtual void compute(bool compDeriv = false)
-			{throw(UGFatalError("Not Implemented."));}
-
-	////////////////////////////////
-	// Derivatives
-	////////////////////////////////
-
-	/// number of shapes for local function
-		size_t num_sh(size_t s, size_t fct) const
+	/// clear ips
+		virtual void clear_export_ips()
 		{
-			const size_t ip = 0;
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
-			return m_vvvDeriv[s][ip][fct].size();
+			this->clear_ips();
 		}
 
-	///	returns the derivative of the local function, at ip and for a dof
-		const TData& deriv(size_t s, size_t ip, size_t fct, size_t dof) const
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
-			UG_ASSERT(dof < m_vvvDeriv[s][ip][fct].size(), "Invalid index.");
-			return m_vvvDeriv[s][ip][fct][dof];
-		}
+	///	clear dependent data
+		void clear() {m_vDependData.clear();}
 
-	///	returns the derivatives of the local function, at ip
-		TData* deriv(size_t s, size_t ip, size_t fct)
-		{
-			UG_ASSERT(s < num_series(), "Wrong series id"<<s);
-			UG_ASSERT(s < m_vvvDeriv.size(), "Invalid index "<<s);
-			UG_ASSERT(ip < num_ip(s), "Invalid index "<<ip);
-			UG_ASSERT(ip < m_vvvDeriv[s].size(), "Invalid index "<<ip);
-			UG_ASSERT(fct < m_vvvDeriv[s][ip].size(), "Invalid index.");
-			return &(m_vvvDeriv[s][ip][fct][0]);
-		}
+	///	add data dependency
+		void add_needed_data(IIPData& data) {m_vDependData.push_back(&data);}
 
-	///	resize lin defect arrays
-		virtual void resize(const LocalIndices& ind)
-		{
-		//	resize num fct
-			for(size_t s = 0; s < m_vvvDeriv.size(); ++s)
-				for(size_t ip = 0; ip < m_vvvDeriv[s].size(); ++ip)
-				{
-				//	resize num fct
-					m_vvvDeriv[s][ip].resize(ind.num_fct());
+	///	remove needed data
+		void remove_needed_data(IIPData& data) {remove(m_vDependData.begin(),
+		                                               m_vDependData.end(),
+		                                               &data);}
 
-				//	resize dofs
-					for(size_t fct = 0; fct < ind.num_fct(); ++fct)
-						m_vvvDeriv[s][ip][fct].resize(ind.num_dofs(fct));
-				}
-		}
+	///	number of other Data this data depends on
+		virtual size_t num_needed_data() const {return m_vDependData.size();}
+
+	///	return needed data
+		virtual IIPData* needed_data(size_t i) {return m_vDependData.at(i);}
 
 	protected:
-		virtual void adjust_global_ips_and_data(const std::vector<size_t>& vNumIP)
-		{
-		//	adjust data arrays
-			m_vvvDeriv.resize(vNumIP.size());
-			for(size_t s = 0; s < vNumIP.size(); ++s)
-				m_vvvDeriv[s].resize(vNumIP[s]);
-
-		//	resize values
-			IPData<TData, dim>::adjust_global_ips_and_data(vNumIP);
-		}
-
-	protected:
-
-	///	Derivatives
-	// Data (size: (0,...,num_series-1) x (0,...,num_ip-1) x (0,...,num_fct-1) x (0,...,num_sh(fct) )
-		std::vector<std::vector<std::vector<std::vector<TData> > > > m_vvvDeriv;
+		std::vector<IIPData*> m_vDependData;
 };
 
 } // end namespace ug

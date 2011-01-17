@@ -3,6 +3,7 @@
 #include "ug_bridge/ug_bridge.h"
 #include "common/common.h"
 #include "lib_discretization/spatial_discretization/ip_data/user_data.h"
+#include "lib_discretization/spatial_discretization/ip_data/data_linker.h"
 #include "ug_script/ug_script.h"
 #include <iostream>
 #include <sstream>
@@ -132,6 +133,14 @@ bool RegisterUserData(Registry& reg, const char* parentGroup)
 			.add_constructor()
 			.add_method("set", &T::set)
 			.add_method("print", &T::print);
+	}
+
+//	ScalarLinker
+	{
+		typedef ScalarLinker<number, dim> T;
+		std::stringstream ss; ss << "NumberLinker" << dim << "d";
+		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+			.add_constructor();
 	}
 
 	return true;
