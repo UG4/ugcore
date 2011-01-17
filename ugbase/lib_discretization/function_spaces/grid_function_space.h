@@ -18,6 +18,12 @@
 
 namespace ug{
 
+// \todo: Remove
+// typedef for non-parallel case (to make it compileable in serial)
+#ifndef UG_PARALLEL
+	typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
+#endif
+
 template <typename TDomain>
 class IApproximationSpace
 {
