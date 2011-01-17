@@ -15,6 +15,7 @@
 
 #include "lib_discretization/dof_manager/mg_dof_manager.h"
 #include "./grid_function.h"
+#include <boost/function.hpp>
 
 namespace ug{
 
