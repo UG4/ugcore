@@ -111,6 +111,14 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 							"Sequential Dirichlet Solver for Operator A.\n");return false;
 				}
 
+		//	check that solvers are different
+			if(m_pNeumannSolver == m_pDirichletSolver)
+			{
+				UG_LOG("ERROR in 'FETISolver:prepare': Solver for dirichlet"
+						" and neumann problem must be different instances.\n");
+				return false;
+			}
+
 		//	we're done
 			return true;
 		}
