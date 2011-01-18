@@ -184,6 +184,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//	Copy right-hand side
 				ModRhs = b;
 
+			//	write debug
+				write_debug(x, "FetiLambdaOnGamma");
+
 			//	Compute new rhs for neumann problem using lambda on Gamma
 				add_flux_to_rhs(ModRhs, lambda);
 
@@ -201,10 +204,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				// todo: Check that all processes solved the problem
 
 			//	write debug
-				std::string neumannName("AfterNeumann");
-				char neumannCnt[20]; sprintf(neumannCnt, "_p%03d", m_pConvCheck->step());
-				neumannName.append(neumannCnt);
-				write_debug(x, neumannName.c_str());
+				write_debug(x, "FetiNeumann");
 
 			//	set global communication
 				set_layouts_for_inter_feti_partition_communication(x);
@@ -215,6 +215,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 			//	Compute difference of solution on Gamma
 				compute_difference_on_gamma(ModRhs);
+
+			//	write debug
+				write_debug(x, "FetiDiffSolOnGamma");
 
 				ModRhsCopy = ModRhs;
 			//	Compute norm of difference on Gamma
@@ -242,10 +245,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				if(!m_pDirichletSolver->apply_return_defect(x, ModRhs))
 				{
 					UG_LOG("ERROR in 'FETI-Solver::apply': "
-							"Could not solve neumann problem on proc " << pcl::GetProcRank() << ".\n");
+							"Could not solve dirichlet problem on proc " << pcl::GetProcRank() << ".\n");
 					return false;
 				}
 				// todo: Check that all processes solved the problem
+
+			//	write debug
+				write_debug(x, "FetiDirichlet");
 
 			//	set global communication
 				set_layouts_for_inter_feti_partition_communication(x);
@@ -392,13 +398,18 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		pcl::ParallelCommunicator<IndexLayout> m_InterCommunicator;
 
 	protected:
-		bool write_debug(const vector_type& vec, const char* name)
+		bool write_debug(const vector_type& vec, const char* filename)
 		{
+		//	add iter count to name
+			std::string name(filename);
+			char ext[20]; sprintf(ext, "_iter%03d", m_pConvCheck->step());
+			name.append(ext);
+
 		//	if no debug writer set, we're done
 			if(m_pDebugWriter == NULL) return true;
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, name);
+			return m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
 	protected:
