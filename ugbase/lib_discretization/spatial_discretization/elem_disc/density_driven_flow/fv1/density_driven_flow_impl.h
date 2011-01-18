@@ -256,7 +256,6 @@ compute_darcy_export_cons_grav(const local_vector_type& u, bool compDeriv)
 	return true;
 }
 
-///	computes the export
 template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
@@ -344,7 +343,6 @@ compute_brine_export(const local_vector_type& u, bool compDeriv)
 	return true;
 }
 
-///	computes the export
 template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
@@ -408,7 +406,6 @@ compute_brine_grad_export(const local_vector_type& u, bool compDeriv)
 	return true;
 }
 
-///	computes the export
 template<	template <class TElem, int TWorldDim> class TFVGeom,
 			typename TDomain,
 			typename TAlgebra>
