@@ -27,6 +27,9 @@
 // convergence check
 #include "convergence_check.h"
 
+// debug writer
+#include "debug_writer.h"
+
 ///////////////////////////
 // Implementations
 ///////////////////////////

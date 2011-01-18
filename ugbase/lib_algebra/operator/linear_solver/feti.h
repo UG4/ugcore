@@ -14,9 +14,10 @@ namespace ug{
 
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/parallelization/parallelization.h"
-
+#include "lib_algebra/operator/debug_writer.h"
 
 template <typename TAlgebra>
 class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
@@ -37,7 +38,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	///	constructor
 		FETISolver() :
 			m_theta(1.0), m_A(NULL), m_pNeumannSolver(NULL),
-			m_pDirichletSolver(NULL), m_pConvCheck(NULL)
+			m_pDirichletSolver(NULL), m_pConvCheck(NULL),
+			m_pDebugWriter(NULL)
 		{}
 
 	///	name of solver
@@ -69,6 +71,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void set_theta(number theta)
 		{
 			m_theta = theta;
+		}
+
+	//	set debug output
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
 		}
 
 	///	initializes the solver for operator A
@@ -191,6 +199,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 					return false;
 				}
 				// todo: Check that all processes solved the problem
+
+			//	write debug
+				std::string neumannName("AfterNeumann");
+				char neumannCnt[20]; sprintf(neumannCnt, "_p%03d", m_pConvCheck->step());
+				neumannName.append(neumannCnt);
+				write_debug(x, neumannName.c_str());
 
 			//	set global communication
 				set_layouts_for_inter_feti_partition_communication(x);
@@ -378,6 +392,16 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		pcl::ParallelCommunicator<IndexLayout> m_InterCommunicator;
 
 	protected:
+		bool write_debug(const vector_type& vec, const char* name)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	write
+			return m_pDebugWriter->write_vector(vec, name);
+		}
+
+	protected:
 	//	scaling of correction of flux
 		number m_theta;
 
@@ -398,6 +422,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
+
+	//	Debug Writer
+		IDebugWriter<algebra_type>* m_pDebugWriter;
 };
 
 #endif

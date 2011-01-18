@@ -1010,12 +1010,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("get_function_pattern|hide=true", &T::get_function_pattern);
 	}
 
-//	todo: This is not at its final position
-	{
-		reg.add_function("EnableDomainDecomposition",
-						&EnableDomainDecomposition<domain_type>);
-	}
-
 //	GridFunction
 	{
 		stringstream ss; ss << "GridFunction" << dim << "d";
@@ -1214,6 +1208,19 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("end_timeseries", &VTKOutput<function_type>::end_timeseries)
 			.add_method("print", &VTKOutput<function_type>::print);
 	}
+
+//	GridFunctionDebugWriter
+	{
+		typedef GridFunctionDebugWriter<function_type> T;
+		typedef IDebugWriter<typename function_type::algebra_type> TBase;
+		stringstream ss; ss << "GridFunctionDebugWriter" << dim << "d";
+		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_reference_grid_function", &T::set_reference_grid_function)
+			.add_method("set_vtk_output", &T::set_vtk_output)
+			.add_method("set_conn_viewer_output", &T::set_conn_viewer_output);
+
+	}
 }
 
 template <typename TDomain, typename TAlgebra, typename TDoFDistribution>
@@ -1251,6 +1258,13 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 			reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
 							"Success", "Domain # Filename|save-dialog",
 							"Saves a domain", "No help");
+		}
+
+	//	todo: This is not at its final position
+		{
+			stringstream ss; ss << "EnableDomainDecomposition" << dim << "d";
+			reg.add_function(ss.str().c_str(),
+							&EnableDomainDecomposition<domain_type>);
 		}
 
 	//	PerformTimeStep

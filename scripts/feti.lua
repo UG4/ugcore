@@ -162,8 +162,11 @@ print("Create ApproximationSpace")
 approxSpace = utilCreateApproximationSpace(dom, pattern)
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-EnableDomainDecomposition(approxSpace, 2) -- second argument: number of subdomains
-
+if dim == 2 then
+	EnableDomainDecomposition2d(approxSpace, 2) -- second argument: number of subdomains
+elseif dim == 3 then
+	EnableDomainDecomposition3d(approxSpace, 2) -- second argument: number of subdomains
+end
 
 -------------------------------------------
 --  Setup User Functions
@@ -283,6 +286,10 @@ b:assign(linOp:get_rhs())
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 SaveVectorForConnectionViewer(b, "Rhs.mat")
 
+-- debug writer
+dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter:set_reference_grid_function(u)
+
 -- create algebraic Preconditioner
 jac = Jacobi()
 jac:set_damp(0.8)
@@ -376,6 +383,7 @@ fetiSolver:set_theta(0.05)
 fetiSolver:set_convergence_check(fetiConvCheck)
 fetiSolver:set_neumann_solver(cgSolver)
 fetiSolver:set_dirichlet_solver(cg2Solver)
+fetiSolver:set_debug(dbgWriter)
 
 -- Apply Solver
 ApplyLinearSolver(linOp, u, b, fetiSolver)

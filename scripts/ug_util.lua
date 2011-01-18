@@ -452,3 +452,17 @@ function HasParamOption(name)
 	end
 	return false 
 end
+
+-- creates a GridFunctionDebugWriter
+function utilCreateGridFunctionDebugWriter(dim)
+	local writer = nil
+	if dim == 1 then
+		writer = GridFunctionDebugWriter1d()
+	elseif dim == 2 then
+		writer = GridFunctionDebugWriter2d()
+	elseif dim == 3 then
+		writer = GridFunctionDebugWriter3d()
+	end
+
+	return writer
+end

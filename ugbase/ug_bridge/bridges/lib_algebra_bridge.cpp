@@ -55,6 +55,12 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("print|hide=true", &matrix_type::p);
 	}
 
+	// Debug Writer (abstract base class)
+	{
+		typedef IDebugWriter<algebra_type> T;
+		reg.add_class_<T>("DebugWriter", grp.c_str());
+	}
+
 	// Base Classes
 	{
 		reg.add_class_<ILinearOperator<vector_type, vector_type> >("ILinearOperator", grp.c_str());
@@ -238,9 +244,11 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("set_neumann_solver|interactive=false", &FETISolver<algebra_type>::set_neumann_solver,
 						"", "Neumann Solver||invokeOnChange=true")
 			.add_method("set_dirichlet_solver|interactive=false", &FETISolver<algebra_type>::set_dirichlet_solver,
-						"", "Dirichlet Solver||invokeOnChange=true");
+						"", "Dirichlet Solver||invokeOnChange=true")
+			.add_method("set_debug", &FETISolver<algebra_type>::set_debug);
 #endif
 	}
+
 }
 
 
