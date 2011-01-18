@@ -297,6 +297,7 @@ gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
 ilu = ILU()
+ilu2 = ILU()
 ilut = ILUT()
 
 -- create GMG ---
@@ -345,12 +346,22 @@ ilut = ILUT()
 	--amg:set_debug(u)
 	end
 
+-- exact Soler
+exactSolver = LU()
+
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(100)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
 convCheck:set_verbose_level(false)
+
+-- create Convergence Check
+convCheck2 = StandardConvergenceCheck()
+convCheck2:set_maximum_steps(100)
+convCheck2:set_minimum_defect(1e-11)
+convCheck2:set_reduction(1e-12)
+convCheck2:set_verbose_level(false)
 
 -- create Linear Solver
 linSolver = LinearSolver()
@@ -363,8 +374,8 @@ cgSolver:set_preconditioner(ilu)
 cgSolver:set_convergence_check(convCheck)
 
 cg2Solver = CG()
-cg2Solver:set_preconditioner(ilu)
-cg2Solver:set_convergence_check(convCheck)
+cg2Solver:set_preconditioner(ilu2)
+cg2Solver:set_convergence_check(convCheck2)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
@@ -373,13 +384,13 @@ bicgstabSolver:set_convergence_check(convCheck)
 
 -- create Convergence Check
 fetiConvCheck = StandardConvergenceCheck()
-fetiConvCheck:set_maximum_steps(500)
+fetiConvCheck:set_maximum_steps(50)
 fetiConvCheck:set_minimum_defect(1e-9)
 fetiConvCheck:set_reduction(1e-12)
 
 -- create FETI Solver
 fetiSolver = FETI()
-fetiSolver:set_theta(0.05)
+fetiSolver:set_theta(0.22)
 fetiSolver:set_convergence_check(fetiConvCheck)
 fetiSolver:set_neumann_solver(cgSolver)
 fetiSolver:set_dirichlet_solver(cg2Solver)

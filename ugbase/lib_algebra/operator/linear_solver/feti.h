@@ -156,6 +156,27 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	prepare layouts and communicators used for inner and intra Feti-Partition communication
 			prepare_layouts_and_communicators(x);
 
+		//	Set unity rows in dirichlet matrix
+			matrix_type& dirMat = m_DirichletOperator.get_matrix();
+			set_dirichlet_rows_on_gamma(dirMat);
+
+		//	init sequential solver
+			if(m_pDirichletSolver != NULL)
+				if(!m_pDirichletSolver->init(m_DirichletOperator))
+				{
+					UG_LOG("ERROR in 'FETISolver::prepare': Cannot init "
+							"Sequential Dirichlet Solver for Operator A.\n");return false;
+				}
+
+			if(m_pDebugWriter != NULL)
+			{
+				m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
+				                             "FetiDirichletMatrix");
+				m_pDebugWriter->write_matrix(m_A->get_matrix(),
+				                             "FetiNeumannMatrix");
+
+			}
+
 		// 	todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
 		//			without initializing the values
 
@@ -179,13 +200,16 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			lambda.set(0.0);
 
 		// 	Iteration loop
+			m_iterCnt = 0;
 			while(true)
 			{
+				m_iterCnt++;
+
 			//	Copy right-hand side
 				ModRhs = b;
 
 			//	write debug
-				write_debug(x, "FetiLambdaOnGamma");
+				write_debug(lambda, "FetiLambdaOnGamma");
 
 			//	Compute new rhs for neumann problem using lambda on Gamma
 				add_flux_to_rhs(ModRhs, lambda);
@@ -217,7 +241,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				compute_difference_on_gamma(ModRhs);
 
 			//	write debug
-				write_debug(x, "FetiDiffSolOnGamma");
+				write_debug(ModRhs, "FetiDiffSolOnGamma");
 
 				ModRhsCopy = ModRhs;
 			//	Compute norm of difference on Gamma
@@ -255,7 +279,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 			//	set global communication
 				set_layouts_for_inter_feti_partition_communication(x);
-				set_layouts_for_inter_feti_partition_communication(ModRhs);
+				set_layouts_for_inter_feti_partition_communication(eta);
 
 			//	Compute update for lambda: eta = A*x
 				m_pMatrix->apply(eta, x);
@@ -402,7 +426,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		{
 		//	add iter count to name
 			std::string name(filename);
-			char ext[20]; sprintf(ext, "_iter%03d", m_pConvCheck->step());
+			char ext[20]; sprintf(ext, "_iter%03d", m_iterCnt);
 			name.append(ext);
 
 		//	if no debug writer set, we're done
@@ -411,6 +435,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	write
 			return m_pDebugWriter->write_vector(vec, name.c_str());
 		}
+
+		int m_iterCnt;
 
 	protected:
 	//	scaling of correction of flux

@@ -161,7 +161,7 @@ class GridFunctionDebugWriter
 			name.append(".mat");
 
 		//	write to file
-			WriteMatrixToConnectionViewer(filename, mat, *m_pGridFunc);
+			WriteMatrixToConnectionViewer(name.c_str(), mat, *m_pGridFunc);
 
 		//  we're done
 			return true;
