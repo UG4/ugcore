@@ -92,6 +92,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			matrix_type& dirMat = m_DirichletOperator.get_matrix();
 			dirMat = *m_pMatrix;
 
+		//	extract layouts and communicators
+			prepare_layouts_and_communicators(dirMat);
+
 		//	Set dirichlet values
 			set_dirichlet_rows_on_gamma(dirMat);
 
@@ -117,6 +120,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				UG_LOG("ERROR in 'FETISolver:prepare': Solver for dirichlet"
 						" and neumann problem must be different instances.\n");
 				return false;
+			}
+
+		//	Debug output of matrices
+			if(m_pDebugWriter != NULL)
+			{
+				m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
+				                             "FetiDirichletMatrix");
+				m_pDebugWriter->write_matrix(m_A->get_matrix(),
+				                             "FetiNeumannMatrix");
 			}
 
 		//	we're done
@@ -159,30 +171,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				UG_LOG("ERROR: In 'FETISolver::apply': "
 						"Inadequate storage format of Vectors.\n");
 				return false;
-			}
-
-		//	prepare layouts and communicators used for inner and intra Feti-Partition communication
-			prepare_layouts_and_communicators(x);
-
-		//	Set unity rows in dirichlet matrix
-			matrix_type& dirMat = m_DirichletOperator.get_matrix();
-			set_dirichlet_rows_on_gamma(dirMat);
-
-		//	init sequential solver
-			if(m_pDirichletSolver != NULL)
-				if(!m_pDirichletSolver->init(m_DirichletOperator))
-				{
-					UG_LOG("ERROR in 'FETISolver::prepare': Cannot init "
-							"Sequential Dirichlet Solver for Operator A.\n");return false;
-				}
-
-			if(m_pDebugWriter != NULL)
-			{
-				m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
-				                             "FetiDirichletMatrix");
-				m_pDebugWriter->write_matrix(m_A->get_matrix(),
-				                             "FetiNeumannMatrix");
-
 			}
 
 		// 	todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
@@ -413,6 +401,16 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_InterMasterIndexLayout = u.get_master_layout();
 			m_InterCommunicator = u.get_communicator();
 			m_InterProcessCommunicator = u.get_process_communicator();
+			// todo: generalize to more than one process per feti-partition
+		}
+
+	//	prepare local and inter feti-partition interfaces
+		void prepare_layouts_and_communicators(matrix_type& mat)
+		{
+			m_InterSlaveIndexLayout = mat.get_slave_layout();
+			m_InterMasterIndexLayout = mat.get_master_layout();
+			m_InterCommunicator = mat.get_communicator();
+			m_InterProcessCommunicator = mat.get_process_communicator();
 			// todo: generalize to more than one process per feti-partition
 		}
 
