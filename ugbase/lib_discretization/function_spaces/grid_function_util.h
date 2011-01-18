@@ -215,9 +215,9 @@ class GridFunctionDebugWriter
 						" No reference grid function set.\n");
 				return false;
 			}
-			return true;
-/*
+
 		//	assign all patterns and sizes
+			m_vtkFunc.clone_pattern((*m_pGridFunc));
 			m_vtkFunc = (*m_pGridFunc);
 
 		//	overwrite values with vector
@@ -228,7 +228,6 @@ class GridFunctionDebugWriter
 
 		//	write
 			return out.print(filename, m_vtkFunc);
-			*/
 		}
 
 	protected:

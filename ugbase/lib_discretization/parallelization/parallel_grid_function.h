@@ -193,7 +193,7 @@ class ParallelGridFunction : public TGridFunction
 
 		// copies the storage type from another vector
 		void copy_storage_type(const this_type& v)
-			{TGridFunction::get_vector().copy_storage_type(v.get_vector());}
+			{TGridFunction::get_vector().copy_storage_type((v.get_vector()));}
 
 		///////////////////////////////
 		// index layouts

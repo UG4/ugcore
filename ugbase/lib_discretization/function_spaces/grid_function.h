@@ -114,7 +114,7 @@ class GridFunction :	public TAlgebra::vector_type,
 		// 	copy informations
 			m_name = v.m_name;
 			m_pApproxSpace = v.m_pApproxSpace;
-			m_pDoFDistribution = v.m_pDoFDistribution;
+			assign_dof_distribution(*v.m_pDoFDistribution, false);
 
 		// 	create new vector
 			if(!create_storage())
