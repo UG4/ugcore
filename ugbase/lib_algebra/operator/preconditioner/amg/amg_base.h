@@ -81,26 +81,26 @@ protected:
 	}
 
 public:
-	bool get_correction_and_update_defect(vector_type &c, vector_type &d, int level=0);
+	bool get_correction_and_update_defect(vector_type &c, vector_type &d, size_t level=0);
 	bool get_correction(vector_type &c, const vector_type &d);
 /*
-	int get_nr_of_coarse(int level)
+	size_t get_nr_of_coarse(size_t level)
 	{
 		assert(level+1 < used_levels);
 		return A[level+1]->length;
 	}
 */
-	int get_nr_of_used_levels() { return used_levels; }
+	size_t get_nr_of_used_levels() { return used_levels; }
 
 	bool check_level(vector_type &c, vector_type &d, size_t level);
 	bool check(const vector_type &const_c, const vector_type &const_d);
 //  data
 
-	void set_num_presmooth(int new_presmooth) { m_numPreSmooth = new_presmooth; } // nu1
-	void set_num_postsmooth(int new_postsmooth) { m_numPostSmooth = new_postsmooth; } // nu2
-	void set_cycle_type(int new_cycletype) { m_cycleType = new_cycletype; } // gamma
+	void set_num_presmooth(size_t new_presmooth) { m_numPreSmooth = new_presmooth; } // nu1
+	void set_num_postsmooth(size_t new_postsmooth) { m_numPostSmooth = new_postsmooth; } // nu2
+	void set_cycle_type(size_t new_cycletype) { m_cycleType = new_cycletype; } // gamma
 
-	void set_max_levels(int new_max_levels)
+	void set_max_levels(size_t new_max_levels)
 	{
 		max_levels = new_max_levels;
 	}
@@ -110,7 +110,7 @@ public:
 
 	void set_fsmoothing(double fdamping) { m_fDamp = fdamping; }
 
-	void set_max_nodes_for_exact(int newMaxNodesForExact)
+	void set_max_nodes_for_exact(size_t newMaxNodesForExact)
 	{
 		m_maxNodesForExact = newMaxNodesForExact;
 	}
@@ -159,21 +159,21 @@ public:
 	void tostring() const;
 
 protected:
-	bool create_level_vectors(int level);
+	bool create_level_vectors(size_t level);
 	virtual void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-								SparseMatrix<double> &P, int level) = 0;
+								SparseMatrix<double> &P, size_t level) = 0;
 	virtual bool init();
-	bool do_f_smoothing(vector_type &corr, vector_type &d, int level);
+	bool do_f_smoothing(vector_type &corr, vector_type &d, size_t level);
 
 // data
-	int	m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
-	int m_numPostSmooth;					///< nu_2: nr. of post-smoothing steps
+	size_t m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
+	size_t m_numPostSmooth;					///< nu_2: nr. of post-smoothing steps
 	int m_cycleType;						///< gamma: cycle type (1 = V-Cycle, 2 = W-Cycle)
 
-	int max_levels;							///< max. nr of levels used for FAMG
-	int used_levels;						///< nr of FAMG levels used
+	size_t max_levels;							///< max. nr of levels used for FAMG
+	size_t used_levels;						///< nr of FAMG levels used
 
-	int m_maxNodesForExact;					///< max nr of coarse nodes before exact solver is used
+	size_t m_maxNodesForExact;					///< max nr of coarse nodes before exact solver is used
 	double m_maxFillBeforeExact;			///< max fill rate before exact solver is used
 	std::string m_writeMatrixPath;
 	bool m_writeMatrices;

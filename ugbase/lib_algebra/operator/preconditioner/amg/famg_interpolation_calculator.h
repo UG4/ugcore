@@ -481,6 +481,12 @@ private:
 	}
 	bool get_H(size_t i)
 	{
+		// replace this with
+		// stdvector<stdvector<size_t> > neighbors(3);
+		/// stdvector<size_t> &onlyN1 = neighbors[1];
+		/// stdvector<size_t> &onlyN2 = neighbors[2];
+		// GetNeighborhoodHierachy(A, i, neighbors, bvisited);
+
 
 		GetNeighborhood(A, i, onlyN1, onlyN2, bvisited);
 

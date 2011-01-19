@@ -35,7 +35,7 @@ namespace ug{
  */
 template<typename TAlgebra>
 void famg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-		SparseMatrix<double> &P, int level)
+		SparseMatrix<double> &P, size_t level)
 {
 	c_create_AMG_level(AH, R, A, P, level);
 }
@@ -69,9 +69,6 @@ void famg<TAlgebra>::tostring() const
 	UG_LOG(" testvector is " << (m_bTestvectorZeroAtDirichlet ? "0" : "1") << " at dirichlet nodes" << std::endl);
 	UG_LOG(" Nr. of testvector damps: " << m_iTestvectorDamps << std::endl);
 	UG_LOG(" \n");
-
-	int m_iTestvectorDamps;
-	bool m_bTestvectorZeroAtDirichlet;
 }
 
 

@@ -129,7 +129,7 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double the
  */
 template<typename TAlgebra>
 void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-		SparseMatrix<double> &P, int level)
+		SparseMatrix<double> &P, size_t level)
 {
 	size_t N = A.num_rows();
 	stdvector<amg_nodeinfo> nodes; nodes.resize(N);

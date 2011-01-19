@@ -309,16 +309,19 @@ template <> struct block_traits<MathVector<3> >
 
 template<>
 void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-		SparseMatrix<double> &P, int level)
+		SparseMatrix<double> &P, size_t level)
 {
+	UG_SET_DEBUG_LEVELS(3);
 	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::endl << std::fixed);
-	bool bTiming=true;
+//	bool bTiming=true;
 	stopwatch SW, SWwhole; SWwhole.start();
 
 	if(level == 0)
 	{
 		matrix_type A_OL2;
-		GenerateOverlap(A, A_OL2);
+		IndexLayout masterOLLayout, slaveOLLayout;
+
+		GenerateOverlap(A, A_OL2, masterOLLayout, slaveOLLayout, 1);
 
 		std::vector<MathVector<3> > vec2(&amghelper.positions[0], &amghelper.positions[amghelper.size]);
 		vec2.resize(A_OL2.num_rows());
@@ -331,9 +334,9 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> 
 	//	copy all ids from master to slave interfaces
 		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
 
-		pcl::ParallelCommunicator<IndexLayout> communicator;
-		communicator.send_data(A_OL2.get_master_layout(), copyPol);
-		communicator.receive_data(A_OL2.get_slave_layout(), copyPol);
+		pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
+		communicator.send_data(masterOLLayout, copyPol);
+		communicator.receive_data(slaveOLLayout, copyPol);
 		communicator.communicate();
 
 		UG_DLOG(LIB_ALG_AMG, 0, "positions after copy:\n");
@@ -362,7 +365,7 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> 
 
 	{
 		Vector<double> d; d.resize(A.num_rows());
-		for(int jj=0; jj < m_iTestvectorDamps; jj++)
+		for(size_t jj=0; jj < m_iTestvectorDamps; jj++)
 		{
 			MatMult(d, 1.0, A, big_testvector);
 			for(size_t i=0; i<A.num_rows(); i++)

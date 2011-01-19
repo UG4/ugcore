@@ -34,7 +34,7 @@ bool amg_base<TAlgebra>::preprocess(matrix_type& mat)
 }
 
 template<typename TAlgebra>
-bool amg_base<TAlgebra>::create_level_vectors(int level)
+bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 {
 	size_t N = A[level]->num_rows();
 	size_t iNrOfCoarse = A[level+1]->num_rows();
@@ -121,7 +121,9 @@ bool amg_base<TAlgebra>::init()
 	stopwatch SWwhole;
 	SWwhole.start();
 
-	int level=0;
+	UG_ASSERT(max_levels > 0, "max levels is " << max_levels << ", but has to be > 0");
+
+	size_t level=0;
 	for(; level< max_levels-1; level++)
 	{
 		SMO.resize(level+1);
@@ -173,7 +175,7 @@ bool amg_base<TAlgebra>::init()
 		// finish
 		/////////////////////////////////////////
 
-		int nnzCoarse = A[level+1]->total_num_connections();
+		size_t nnzCoarse = A[level+1]->total_num_connections();
 		double nrOfFine = A[level]->num_rows();
 		double nrOfCoarse = A[level+1]->num_rows();
 		UG_LOG("AH: nnz: " << nnzCoarse << " Density: " <<
@@ -200,7 +202,7 @@ bool amg_base<TAlgebra>::init()
 	}
 
 	UG_ASSERT(block_traits< typename vector_type::value_type >::is_static, "dynamic not yet implemented");
-	int static_nrUnknowns = block_traits< typename vector_type::value_type >::static_size;
+	size_t static_nrUnknowns = block_traits< typename vector_type::value_type >::static_size;
 
 	UG_LOG("Creating level " << level << " (" << A[level]->num_rows() << " nodes, total "
 			<< A[level]->num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
@@ -221,7 +223,7 @@ bool amg_base<TAlgebra>::init()
 	// calc complexities
 	double nnzs=0;
 	double totallength=0;
-	for(int i=0; i<used_levels; i++)
+	for(size_t i=0; i<used_levels; i++)
 	{
 		nnzs += A[i]->total_num_connections();
 		totallength += A[i]->num_rows();
@@ -297,7 +299,7 @@ amg_base<TAlgebra>::~amg_base()
 
 
 template<typename TAlgebra>
-bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, int level)
+bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, size_t level)
 {
 	matrix_type &M = *A[level];
 	for(size_t i=0; i<M.num_rows(); i++)
@@ -317,7 +319,7 @@ bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, int l
 //------------------------------------
 
 template<typename TAlgebra>
-bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type &d, int level)
+bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type &d, size_t level)
 {
 	UG_ASSERT(c.size() == d.size() && c.size() == A[level]->num_rows(),
 			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << A[level]->num_rows() << ": not matching");
@@ -336,7 +338,7 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 	// same as setting c.set(0.0).
 	m_presmoothers[level]->apply_update_defect(c, d);
 	if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
-	for(int i=1; i < m_numPreSmooth; i++)
+	for(size_t i=1; i < m_numPreSmooth; i++)
 	{
 		m_presmoothers[level]->apply_update_defect(corr, d);
 		c += corr;
@@ -383,7 +385,7 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 	MatMultAdd(d, 1.0, d, -1.0, Ah, corr);
 
 	// postsmooth
-	for(int i=0; i < m_numPostSmooth; i++)
+	for(size_t i=0; i < m_numPostSmooth; i++)
 	{
 		if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 		m_postsmoothers[level]->apply_update_defect(corr, d);
@@ -430,7 +432,7 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 	d = const_d;
 	vector_type d_copy;
 
-	for(int i=0; i<used_levels-1; i++)
+	for(size_t i=0; i<used_levels-1; i++)
 	{
 		UG_LOG("\nLEVEL " << i << "\n\n");
 		vector_type c;
@@ -441,7 +443,7 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 
 #if 0
 		d = 0.0;
-		for(int j=0; j<c.size(); j++)
+		for(size_t j=0; j<c.size(); j++)
 		{
 			if(A[i]->is_isolated(i))
 				c[j] = 0.0;
@@ -461,7 +463,7 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 }
 
 template<typename vector_type>
-void writevec(cAMG_helper &amghelper, const char *filename, const vector_type &d, int level)
+void writevec(cAMG_helper &amghelper, const char *filename, const vector_type &d, size_t level)
 {
 	fstream file(filename, ios::out);
 	for(size_t i=0; i<d.size(); i++)
@@ -491,7 +493,7 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	m_presmoothers[level]->apply_update_defect(c, d);
 	if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 	n2 = d.two_norm();	UG_LOG("presmoothing 1 " << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
-	for(int i=1; i < m_numPreSmooth; i++)
+	for(size_t i=1; i < m_numPreSmooth; i++)
 	{
 		m_presmoothers[level]->apply_update_defect(corr, d);
 		c += corr;
@@ -567,7 +569,7 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	if(m_writeMatrices) writevec(amghelper, (m_writeMatrixPath + "AMG_dc" + ToString(level) + ".values").c_str(), d, level);
 
 	// postsmooth
-	for(int i=0; i < m_numPostSmooth; i++)
+	for(size_t i=0; i < m_numPostSmooth; i++)
 	{
 		if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 		m_postsmoothers[level]->apply_update_defect(corr, d);
