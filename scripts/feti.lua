@@ -349,7 +349,7 @@ ilut = ILUT()
 	--amg:set_debug(u)
 	end
 
--- exact Soler
+-- exact Solver
 exactSolver = LU()
 
 -- create Convergence Check
