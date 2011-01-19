@@ -62,6 +62,14 @@ distribute_level_dofs()
 				(TMGDoFManager::get_level_dof_distribution(l));
 
 		if(domain_decomposition_enabled()){
+		//	check that Partition callback has been set
+			if(!m_cbProcIDToSubdomID)
+			{
+				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
+						" No Callback has been set for domain decomposition.\n");
+				return false;
+			}
+
 		//	create process and subdomain layouts
 			bRet &= CreateIndexLayouts_DomainDecomposition(
 									  distr.get_master_layout(0),
@@ -109,9 +117,40 @@ distribute_level_dofs()
 						  distr.num_dofs() << ",no_cut=" << no_cut
 						  << ",!empty=" << !commWorld.empty() << ").\n");
 
-	//	create process communicator
-		distr.get_process_communicator()
+	//	create process communicator for interprocess layouts
+		distr.get_process_communicator(0)
 				= commWorld.create_sub_communicator(participate);
+
+	//	create process communicator for inter-feti block layouts
+		if(domain_decomposition_enabled()){
+		//	check that Partition callback has been set
+			if(!m_cbProcIDToSubdomID)
+			{
+				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
+						" No Callback has been set for domain decomposition.\n");
+				return false;
+			}
+
+			UG_LOG_ALL_PROCS("Before Proc Rank.\n");
+			int localProc = pcl::GetProcRank();
+			UG_LOG_ALL_PROCS("Proc Rank is " << localProc << ".\n");
+
+			UG_LOG_ALL_PROCS("Before local Subdomain.\n");
+			int localSubdom = m_cbProcIDToSubdomID(localProc);
+			UG_LOG_ALL_PROCS("Local Subdomain is " << localSubdom << ".\n");
+
+			UG_LOG_ALL_PROCS("Before Creation of Process Communciators.\n");
+		// \todo: This loop is to long, shorten please
+			for(int subdom = 0; subdom < pcl::GetNumProcesses(); ++subdom)
+			{
+				UG_LOG_ALL_PROCS("ProcessCommunciator ...  Trying subdom: " <<subdom << "\n");
+				if(localSubdom == subdom)
+					distr.get_process_communicator(1)
+							= commWorld.create_sub_communicator(true);
+				else
+					 commWorld.create_sub_communicator(false);
+			}
+		}
 
 		if(l==0) break;
 	}

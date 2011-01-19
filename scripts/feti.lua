@@ -163,9 +163,9 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 
 --please make sure that numProcs / numSubdomains is a power of 2.
 if dim == 2 then
-	--EnableDomainDecomposition2d(approxSpace, 2) -- second argument: number of subdomains
+	EnableDomainDecomposition2d(approxSpace, 2) -- second argument: number of subdomains
 elseif dim == 3 then
-	--EnableDomainDecomposition3d(approxSpace, 2) -- second argument: number of subdomains
+	EnableDomainDecomposition3d(approxSpace, 2) -- second argument: number of subdomains
 end
 
 approxSpace:init()

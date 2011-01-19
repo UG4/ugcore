@@ -68,17 +68,37 @@ class ParallelVector : public TVector
 		// Layouts and communicator
 		/////////////////////////////////
 
+	///	returns the number of domain decomposition level
+		size_t num_domain_decomposition_level() const
+		{
+		//	check that level exists
+			if(m_vpSlaveLayout.size() != m_vpMasterLayout.size())
+			{
+				UG_LOG("ERROR in 'set_domain_decomposition_level':"
+						" Different numbers of Master and Slave Layouts.\n");
+				throw(UGFatalError("Cannot determine number of Domain Decomp"));
+			}
+			return m_vpSlaveLayout.size();
+		}
+
 	///	sets the domain decomposition level to be used
 		bool set_domain_decomposition_level(size_t ddlev)
 		{
 		//	check that level exists
-			if(m_vpSlaveLayout.size() <= ddlev || m_vpMasterLayout.size() <= ddlev)
-				if(m_vpSlaveLayout.at(ddlev) == NULL || m_vpMasterLayout.at(ddlev) == NULL)
-				{
-					UG_LOG("ERROR in 'set_domain_decomposition_level':"
-							" accessing level, that does not exist.\n");
-					return false;
-				}
+			if(!(ddlev < num_domain_decomposition_level()))
+			{
+				UG_LOG("ERROR in 'set_domain_decomposition_level':"
+						" accessing level, that does not exist.\n");
+				return false;
+			}
+
+		//	check that layouts are really set
+			if(m_vpSlaveLayout.at(ddlev) == NULL || m_vpMasterLayout.at(ddlev) == NULL)
+			{
+				UG_LOG("ERROR in 'set_domain_decomposition_level':"
+						" Although level exist, layouts are not set.\n");
+				return false;
+			}
 
 		//	set new level
 			m_ddlev = ddlev;

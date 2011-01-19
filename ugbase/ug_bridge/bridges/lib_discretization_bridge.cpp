@@ -65,7 +65,7 @@ void EnableDomainDecomposition(IApproximationSpace<domain_type>& approxSpace,
 {
 	int numProcsPerSubdomain = 1;
 	#ifdef UG_PARALLEL
-		if(numSubdomains > 0)
+		if(numSubdomains > 0 && pcl::GetNumProcesses() > 1)
 			numProcsPerSubdomain = pcl::GetNumProcesses() / numSubdomains;
 	#endif
 

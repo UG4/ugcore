@@ -397,20 +397,30 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	prepare local and inter feti-partition interfaces
 		void prepare_layouts_and_communicators(vector_type& u)
 		{
-			m_InterSlaveIndexLayout = u.get_slave_layout();
-			m_InterMasterIndexLayout = u.get_master_layout();
-			m_InterCommunicator = u.get_communicator();
-			m_InterProcessCommunicator = u.get_process_communicator();
+			UG_ASSERT(u.num_domain_decomposition_level() > 0, "No domain decomp set.");
+
+		//	get feti level of domain decomposition
+			size_t ddlev = u.num_domain_decomposition_level() - 1;
+
+			m_InterSlaveIndexLayout = u.get_slave_layout(ddlev);
+			m_InterMasterIndexLayout = u.get_master_layout(ddlev);
+			m_InterCommunicator = u.get_communicator(ddlev);
+			m_InterProcessCommunicator = u.get_process_communicator(ddlev);
 			// todo: generalize to more than one process per feti-partition
 		}
 
 	//	prepare local and inter feti-partition interfaces
 		void prepare_layouts_and_communicators(matrix_type& mat)
 		{
-			m_InterSlaveIndexLayout = mat.get_slave_layout();
-			m_InterMasterIndexLayout = mat.get_master_layout();
-			m_InterCommunicator = mat.get_communicator();
-			m_InterProcessCommunicator = mat.get_process_communicator();
+			UG_ASSERT(mat.num_domain_decomposition_level() > 0, "No domain decomp set.");
+
+		//	get feti level of domain decomposition
+			size_t ddlev = mat.num_domain_decomposition_level() - 1;
+
+			m_InterSlaveIndexLayout = mat.get_slave_layout(ddlev);
+			m_InterMasterIndexLayout = mat.get_master_layout(ddlev);
+			m_InterCommunicator = mat.get_communicator(ddlev);
+			m_InterProcessCommunicator = mat.get_process_communicator(ddlev);
 			// todo: generalize to more than one process per feti-partition
 		}
 
