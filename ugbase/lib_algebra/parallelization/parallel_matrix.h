@@ -50,45 +50,153 @@ class ParallelMatrix : public TMatrix
 	public:
 	///	Default Constructor
 		ParallelMatrix()
-		: TMatrix(), m_type(PST_UNDEFINED),
-			m_pSlaveLayout(NULL), m_pMasterLayout(NULL),
-			m_pCommunicator(NULL)
-		{}
+		: TMatrix(), m_type(PST_UNDEFINED), m_ddlev(0)
+		{
+			m_vpSlaveLayout.clear();
+			m_vpMasterLayout.clear();
+			m_vCommunicator.clear();
+			m_vProcessCommunicator.clear();
+		}
 
 	///	Constructor setting the layouts
 		ParallelMatrix(	IndexLayout& slaveLayout, IndexLayout masterLayout)
-		: TMatrix(), m_type(PST_UNDEFINED),
-			m_pSlaveLayout(&slaveLayout), m_pMasterLayout(&masterLayout),
-			m_pCommunicator(NULL)
-		{}
+		: TMatrix(), m_type(PST_UNDEFINED), m_ddlev(0)
+		{
+			set_slave_layout(slaveLayout);
+			set_master_layout(masterLayout);
+			m_vCommunicator.clear();
+			m_vProcessCommunicator.clear();
+		}
 
 		//////////////////////////////
 		// Layouts and communicator
 		//////////////////////////////
 
-	///	sets slave layout
-		void set_slave_layout(IndexLayout& layout)	{m_pSlaveLayout = &layout;}
+	///	sets the domain decomposition level to be used
+		bool set_domain_decomposition_level(size_t ddlev)
+		{
+		//	check that level exists
+			if(m_vpSlaveLayout.size() <= ddlev || m_vpMasterLayout.size() <= ddlev)
+				if(m_vpSlaveLayout.at(ddlev) == NULL || m_vpMasterLayout.at(ddlev) == NULL)
+				{
+					UG_LOG("ERROR in 'set_domain_decomposition_level':"
+							" accessing level, that does not exist.\n");
+					return false;
+				}
 
-	///	sets master layout
-		void set_master_layout(IndexLayout& layout)	{m_pMasterLayout = &layout;}
+		//	set new level
+			m_ddlev = ddlev;
 
-	///	returns slave layout
-		IndexLayout& get_slave_layout()	{return *m_pSlaveLayout;}
+		//	we're done
+			return true;
+		}
 
-	///	returns master layout
-		IndexLayout& get_master_layout()	{return *m_pMasterLayout;}
+	///	sets the slave layout
+		void set_slave_layout(IndexLayout& layout, size_t ddlev = 0)
+		{
+		//	resize if needed
+			if(m_vpSlaveLayout.size() <= ddlev)
+				m_vpSlaveLayout.resize(ddlev+1, NULL);
 
-	///	sets communicator
-		void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc) {m_pCommunicator = &pc;}
+		//	remember layout
+			m_vpSlaveLayout[ddlev] = &layout;
+		}
 
-	///	returns communicator
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return *m_pCommunicator;}
+	///	sets the slave layouts
+		void set_slave_layouts(std::vector<IndexLayout>& layouts)
+		{
+		//	clear old
+			m_vpSlaveLayout.clear();
 
-	///	sets process communicator
-		void set_process_communicator(const pcl::ProcessCommunicator& pc)	{m_processCommunicator = pc;}
+		//	set new
+			for(size_t i = 0; i < layouts.size(); ++i)
+			{
+				m_vpSlaveLayout.push_back(&layouts[i]);
+			}
+		}
 
-	///	returns process communicator
-		pcl::ProcessCommunicator& get_process_communicator() {return m_processCommunicator;}
+	///	sets the master layout
+		void set_master_layout(IndexLayout& layout, size_t ddlev = 0)
+		{
+		//	resize if needed
+			if(m_vpMasterLayout.size() <= ddlev)
+				m_vpMasterLayout.resize(ddlev+1, NULL);
+
+		//	remember layout
+			m_vpMasterLayout[ddlev] = &layout;
+		}
+
+	///	sets the master layouts
+		void set_master_layouts(std::vector<IndexLayout>& layouts)
+		{
+		//	clear old
+			m_vpMasterLayout.clear();
+
+		//	set new
+			for(size_t i = 0; i < layouts.size(); ++i)
+			{
+				m_vpMasterLayout.push_back(&layouts[i]);
+			}
+		}
+
+	///	returns the slave layout
+		IndexLayout& get_slave_layout(size_t ddlev = 0)	{return *(m_vpSlaveLayout.at(ddlev));}
+
+	///	returns the master layout
+		IndexLayout& get_master_layout(size_t ddlev = 0) {return *(m_vpMasterLayout.at(ddlev));}
+
+	///	sets a communicator
+		void set_communicator(pcl::ParallelCommunicator<IndexLayout>& pc, size_t ddlev = 0)
+		{
+		//	resize if needed
+			if(m_vCommunicator.size() <= ddlev)
+				m_vCommunicator.resize(ddlev+1, NULL);
+
+		//	remember layout
+			m_vCommunicator[ddlev] = &pc;
+		}
+
+	///	sets all communicators
+		void set_communicators(std::vector<pcl::ParallelCommunicator<IndexLayout> >& pc)
+		{
+		//	clear old
+			m_vCommunicator.clear();
+
+		//	set new
+			for(size_t i = 0; i < pc.size(); ++i)
+			{
+				m_vCommunicator.push_back(&pc[i]);
+			}
+		}
+
+	///	returns the communicator
+		pcl::ParallelCommunicator<IndexLayout>&
+		get_communicator(size_t ddlev = 0) {return *(m_vCommunicator.at(ddlev));}
+
+	///	sets a process communicator
+		void set_process_communicator(const pcl::ProcessCommunicator& pc, size_t ddlev = 0)
+		{
+		//	resize if needed
+		if(m_vProcessCommunicator.size() <= ddlev)
+			m_vProcessCommunicator.resize(ddlev+1);
+
+		//	remember layout
+			m_vProcessCommunicator[ddlev] = pc;
+		}
+
+	///	sets all process communicators
+		void set_process_communicators(std::vector<pcl::ProcessCommunicator>& pc)
+		{
+		//	clear old
+			m_vProcessCommunicator.clear();
+
+		//	set new
+			m_vProcessCommunicator = pc;
+		}
+
+	///	returns the process communicator
+		pcl::ProcessCommunicator&
+		get_process_communicator(size_t ddlev = 0) {return m_vProcessCommunicator.at(ddlev);}
 
 		/////////////////////////
 		// Storage type handling
@@ -136,17 +244,20 @@ class ParallelMatrix : public TMatrix
 	//  type of storage  (i.e. consistent, additiv, additiv unique)
 		int m_type;
 
+	//	current domain decomposition level
+		int m_ddlev;
+
 	//  index layout for slave dofs
-		IndexLayout* m_pSlaveLayout;
+		std::vector<IndexLayout*> m_vpSlaveLayout;
 
 	//  index layout for master dofs
-		IndexLayout* m_pMasterLayout;
+		std::vector<IndexLayout*> m_vpMasterLayout;
 
 	//  communicator for direct neighbor communication
-		pcl::ParallelCommunicator<IndexLayout>* m_pCommunicator;
+		std::vector<pcl::ParallelCommunicator<IndexLayout>*> m_vCommunicator;
 
 	//  process communicator (world by default)
-		pcl::ProcessCommunicator m_processCommunicator;
+		std::vector<pcl::ProcessCommunicator> m_vProcessCommunicator;
 };
 
 //	predaclaration.

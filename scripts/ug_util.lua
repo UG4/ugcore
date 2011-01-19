@@ -112,6 +112,22 @@ function utilCreateApproximationSpace(domain, pattern)
 	return approxSpace, pattern
 end
 
+-- Creates an Approxmiation space of correct dimesion and assigns the pattern
+function utilCreateApproximationSpaceWithoutInit(domain, pattern)
+	local approxSpace = nil
+	if dim == 1 then
+	approxSpace = ApproximationSpace1d()
+	elseif dim == 2 then
+	approxSpace = ApproximationSpace2d()
+	elseif dim == 3 then
+	approxSpace = ApproximationSpace3d()
+	end
+	approxSpace:assign_domain(domain)
+	approxSpace:assign_function_pattern(pattern)
+	
+	return approxSpace, pattern
+end
+
 -- creates Neumann Boundary
 function utilCreateNeumannBoundary(approxSpace, subsets)
 	local domain = approxSpace:get_domain()

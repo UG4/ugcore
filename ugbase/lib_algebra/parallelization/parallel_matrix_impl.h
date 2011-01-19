@@ -19,7 +19,7 @@ ParallelMatrix<TMatrix>::
 change_storage_type(ParallelStorageType type)
 {
 	// check that communicator exists
-	if(m_pCommunicator == NULL)
+	if(m_vCommunicator[m_ddlev] == NULL)
 	{
 		UG_LOG("No communicator set. Cannot change storage type.\n");
 		return false;

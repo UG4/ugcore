@@ -64,21 +64,21 @@ distribute_level_dofs()
 		if(domain_decomposition_enabled()){
 		//	create process and subdomain layouts
 			bRet &= CreateIndexLayouts_DomainDecomposition(
-									  distr.get_master_layout(),
-									  distr.get_master_layout_domain_decomp(),
+									  distr.get_master_layout(0),
+									  distr.get_master_layout(1),
 									  distr, *m_pLayoutMap, INT_MASTER,l,
 									  m_cbProcIDToSubdomID);
 			bRet &= CreateIndexLayouts_DomainDecomposition(
-									distr.get_slave_layout(),
-									distr.get_slave_layout_domain_decomp(),
+									distr.get_slave_layout(0),
+									distr.get_slave_layout(1),
 									distr, *m_pLayoutMap, INT_SLAVE,l,
 									m_cbProcIDToSubdomID);
 		}
 		else{
 		//	create index layouts
-			bRet &= CreateIndexLayout(distr.get_master_layout(),
+			bRet &= CreateIndexLayout(distr.get_master_layout(0),
 									  distr, *m_pLayoutMap, INT_MASTER,l);
-			bRet &= CreateIndexLayout(distr.get_slave_layout(),
+			bRet &= CreateIndexLayout(distr.get_slave_layout(0),
 									  distr, *m_pLayoutMap, INT_SLAVE,l);
 		}
 

@@ -20,7 +20,7 @@ ParallelVector<TVector>::
 change_storage_type(ParallelStorageType type)
 {
 	// check that communicator exists
-	if(m_pCommunicator == NULL)
+	if(m_vCommunicator[m_ddlev] == NULL)
 	{
 		UG_LOG("No communicator set. Cannot change storage type.\n");
 		return false;
@@ -37,18 +37,18 @@ change_storage_type(ParallelStorageType type)
 	{
 	case PST_CONSISTENT:
 			 if(has_storage_type(PST_UNIQUE)){
-				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
+				if(m_vpMasterLayout[m_ddlev] == NULL || m_vpSlaveLayout[m_ddlev] == NULL)
 					return false;
-				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
-				                    m_pCommunicator);
+				 UniqueToConsistent(this, *m_vpMasterLayout[m_ddlev], *m_vpSlaveLayout[m_ddlev],
+				                    m_vCommunicator[m_ddlev]);
 				 set_storage_type(PST_CONSISTENT);
 				 break;
 			 }
 			 else if(has_storage_type(PST_ADDITIVE)){
-				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
+				if(m_vpMasterLayout[m_ddlev] == NULL || m_vpSlaveLayout[m_ddlev] == NULL)
 					return false;
-				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
-				                     m_pCommunicator);
+				AdditiveToConsistent(this, *m_vpMasterLayout[m_ddlev], *m_vpSlaveLayout[m_ddlev],
+				                     m_vCommunicator[m_ddlev]);
 				set_storage_type(PST_CONSISTENT);
 				break;
 			}
@@ -59,8 +59,8 @@ change_storage_type(ParallelStorageType type)
 				break;
 			}
 			else if(has_storage_type(PST_CONSISTENT)){
-				if(m_pMasterLayout == NULL) return false;
-				ConsistentToUnique(this, *m_pSlaveLayout);
+				if(m_vpMasterLayout[m_ddlev] == NULL) return false;
+				ConsistentToUnique(this, *m_vpSlaveLayout[m_ddlev]);
 				set_storage_type(PST_ADDITIVE);
 				add_storage_type(PST_UNIQUE);
 				break;
@@ -68,16 +68,16 @@ change_storage_type(ParallelStorageType type)
 			else return false;
 	case PST_UNIQUE:
 			if(has_storage_type(PST_ADDITIVE)){
-				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
+				if(m_vpMasterLayout[m_ddlev] == NULL || m_vpSlaveLayout[m_ddlev] == NULL)
 					return false;
-				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout,
-				                 m_pCommunicator);
+				AdditiveToUnique(this, *m_vpMasterLayout[m_ddlev], *m_vpSlaveLayout[m_ddlev],
+				                 m_vCommunicator[m_ddlev]);
 				add_storage_type(PST_UNIQUE);
 				break;
 			}
 			else if(has_storage_type(PST_CONSISTENT)){
-				if(m_pSlaveLayout == NULL) return false;
-				ConsistentToUnique(this, *m_pSlaveLayout);
+				if(m_vpSlaveLayout[m_ddlev] == NULL) return false;
+				ConsistentToUnique(this, *m_vpSlaveLayout[m_ddlev]);
 				set_storage_type(PST_ADDITIVE);
 				add_storage_type(PST_UNIQUE);
 				break;
@@ -149,7 +149,7 @@ two_norm()
 	// step 3: sum local norms
 	double tNormGlobal;
 
-	m_processCommunicator.allreduce(&tNormLocal, &tNormGlobal, 1,
+	m_vProcessCommunicator[m_ddlev].allreduce(&tNormLocal, &tNormGlobal, 1,
 									PCL_DT_DOUBLE, PCL_RO_SUM);
 
 	// step 4: return global norm
@@ -204,7 +204,7 @@ dotprod(const this_type& v)
 	double tSumGlobal;
 
 	// step 4: sum global contributions
-	m_processCommunicator.allreduce(&tSumLocal, &tSumGlobal, 1,
+	m_vProcessCommunicator[m_ddlev].allreduce(&tSumLocal, &tSumGlobal, 1,
 									PCL_DT_DOUBLE, PCL_RO_SUM);
 
 	// step 5: return result

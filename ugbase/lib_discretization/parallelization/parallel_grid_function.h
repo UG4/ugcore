@@ -201,26 +201,38 @@ class ParallelGridFunction : public TGridFunction
 
 		inline IndexLayout& get_slave_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_slave_layout();}
 		inline IndexLayout& get_master_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_master_layout();}
+
+		inline std::vector<IndexLayout>& get_slave_layouts()	{return TGridFunction::m_pNonConstDoFDistribution->get_slave_layouts();}
+		inline std::vector<IndexLayout>& get_master_layouts()	{return TGridFunction::m_pNonConstDoFDistribution->get_master_layouts();}
+
 		inline IndexLayout& get_vertical_slave_layout()		{return TGridFunction::m_pNonConstDoFDistribution->get_vertical_slave_layout();}
 		inline IndexLayout& get_vertical_master_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_vertical_master_layout();}
 
 		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return TGridFunction::m_pNonConstDoFDistribution->get_communicator();;}
 		inline pcl::ProcessCommunicator& get_process_communicator()	{return TGridFunction::m_pNonConstDoFDistribution->get_process_communicator();}
 
+		inline std::vector<pcl::ParallelCommunicator<IndexLayout> >& get_communicators() {return TGridFunction::m_pNonConstDoFDistribution->get_communicators();;}
+		inline std::vector<pcl::ProcessCommunicator>& get_process_communicators()	{return TGridFunction::m_pNonConstDoFDistribution->get_process_communicators();}
+
 		///////////////////////////////
 		// help functions
 		///////////////////////////////
 
 	protected:
+	///	copies references of the layouts from the underlying dof distribution into the vector
 		void set_layouts()
 		{
-			TGridFunction::get_vector().set_slave_layout(get_slave_layout());
-			TGridFunction::get_vector().set_master_layout(get_master_layout());
+		//	copy all horizontal layouts (for all domain decomps)
+			TGridFunction::get_vector().set_slave_layouts(get_slave_layouts());
+			TGridFunction::get_vector().set_master_layouts(get_master_layouts());
+
+		//	copy vertical layouts
 			TGridFunction::get_vector().set_vertical_slave_layout(get_vertical_slave_layout());
 			TGridFunction::get_vector().set_vertical_master_layout(get_vertical_master_layout());
 
-			TGridFunction::get_vector().set_communicator(get_communicator());
-			TGridFunction::get_vector().set_process_communicator(get_process_communicator());
+		//	copy communicator
+			TGridFunction::get_vector().set_communicators(get_communicators());
+			TGridFunction::get_vector().set_process_communicators(get_process_communicators());
 		}
 
 
