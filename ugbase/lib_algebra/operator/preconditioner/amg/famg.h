@@ -98,7 +98,7 @@ private:
 	virtual void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 							SparseMatrix<double> &P, int level);
 
-	void c_create_AMG_level(SparseMatrix<double> &AH, SparseMatrix<double> &R, const SparseMatrix<double> &A,
+	void c_create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 			SparseMatrix<double> &P, int level);
 
 private:

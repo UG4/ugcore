@@ -55,17 +55,13 @@ bool amg_base<TAlgebra>::create_level_vectors(int level)
 
 	#ifdef UG_PARALLEL
 	// todo: change this for later "right" parallel implementation
-	UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-
 	//typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> > IndexLayout
 
 
 	// todo: implement "real" ParallelCommunicator
-	com.resize(level+1);
-
-	vec3[level]->set_communicator(*com[level]);
-	vec1[level+1]->set_communicator(*com[level]);
-	vec2[level+1]->set_communicator(*com[level]);
+	vec3[level]->set_communicator(*com);
+	vec1[level+1]->set_communicator(*com);
+	vec2[level+1]->set_communicator(*com);
 
 	vec3[level]->set_storage_type(PST_ADDITIVE);
 	vec1[level+1]->set_storage_type(PST_ADDITIVE);
@@ -154,9 +150,9 @@ bool amg_base<TAlgebra>::init()
 		A[level+1] = new matrix_type;
 
 		P.resize(level+1);
-		P[level] = new SparseMatrix<double>;
+		P[level] = new matrix_type;
 		R.resize(level+1);
-		R[level] = new SparseMatrix<double>;
+		R[level] = new matrix_type;
 
 #ifdef UG_PARALLEL
 		A[level+1]->set_storage_type(PST_ADDITIVE);
@@ -261,10 +257,6 @@ amg_base<TAlgebra>::amg_base() :
 
 	m_writeMatrices = false;
 	m_fDamp = 0.0;
-
-#ifdef UG_PARALLEL
-	UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-#endif
 }
 
 
@@ -412,14 +404,17 @@ bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const
 
 
 	if(vec4 == NULL)
-		vec4 = new vector_type(const_d.size());
+	{
+		vec4 = new vector_type;
+		vec4->resize(const_d.size());
+	}
 	else if(vec4->size() != const_d.size())
 		vec4->resize(const_d.size());
 
 #ifdef UG_PARALLEL
 	// todo: change this for later "right" parallel implementation
 	UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-	vec4.set_storage_type(PST_ADDITIVE);
+	vec4->set_storage_type(PST_ADDITIVE);
 #endif
 	vector_type &d = *vec4;
 
@@ -430,14 +425,16 @@ bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &const_d)
 {
-	vector_type d(const_d.size());
+	vector_type d;
+	d.resize(const_d.size());
 	d = const_d;
 	vector_type d_copy;
 
 	for(int i=0; i<used_levels-1; i++)
 	{
 		UG_LOG("\nLEVEL " << i << "\n\n");
-		vector_type c(A[i]->num_rows());
+		vector_type c;
+		c.resize(A[i]->num_rows());
 
 		d_copy.resize(d.size());
 		d_copy = d;
@@ -476,7 +473,7 @@ template<typename TAlgebra>
 bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level)
 {
 	const matrix_type &Ah = *(A[level]);
-	vector_type corr(c.size());
+	vector_type corr; corr.resize(c.size());
 
 
 	//UG_LOG("preprenorm: " << d.two_norm() << std::endl);
@@ -518,8 +515,8 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 
 	MatMult(dH, 1.0, *R[level], d);
 
-	vector_type tc(cH.size());
-	cH = 0.0;
+	vector_type tc; tc.resize(cH.size());
+	cH.set( 0.0);
 
 	double nH1 = dH.norm();
 	double preHnorm=nH1;

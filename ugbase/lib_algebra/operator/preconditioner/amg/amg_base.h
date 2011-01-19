@@ -72,7 +72,7 @@ protected:
 		{
 #ifdef UG_PARALLEL
 			// set level 0 communicator
-			com[0] = &c.get_communicator();
+			com = &c.get_communicator();
 #endif
 			init();
 			m_bInited = true;
@@ -193,7 +193,7 @@ protected:
 	stdvector< SparseMatrixOperator<matrix_type, vector_type> > SMO;
 
 #ifdef UG_PARALLEL
-	stdvector< pcl::ParallelCommunicator<IndexLayout> *> com;  ///< the communicator objects on the levels
+	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
 	IndexLayout pseudoLayout;									///< Pseudo-IndexLayout for the created ParallelVectors.
 #endif
 

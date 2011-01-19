@@ -12,16 +12,11 @@
  * for test purposes, functions are here in a cpp file.
  */
 
+
 #ifndef __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 #define __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
 
 //#include "sparsematrix_util.h"
-
-#ifdef UG_PARALLEL
-typedef matrix_type ParallelMatrix<matrix_type >
-#else
-typedef matrix_type matrix_type
-#endif
 
 #include "ug.h"
 #include "amg_debug_helper.h"
@@ -30,6 +25,8 @@ typedef matrix_type matrix_type
 #include "common/assert.h"
 #include "maxheap.h"
 #include "famg.h"
+
+
 
 ug::Vector<double> big_testvector;
 
@@ -79,6 +76,13 @@ void print_vector(const vector_type &vec, const char *p)
 #endif
 
 namespace ug{
+
+/*#ifdef UG_PARALLEL
+typedef ParallelMatrix<SparseMatrix<double> > matrix_type;
+#else
+typedef SparseMatrix<double> matrix_type;
+#endif*/
+
 
 int famg_log_level = 0;
 
@@ -294,13 +298,51 @@ void SetUninterpolateableAsCoarse(famg_nodes &rating, matrix_type &P, stdvector<
  * \param level
  */
 
+///	algebra blocks are static.
+template <> struct block_traits<MathVector<3> >
+{
+	enum{
+		is_static = 1
+	};
+};
+
+
 template<>
-void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, matrix_type &R, const matrix_type &A,
-		matrix_type &P, int level)
+void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
+		SparseMatrix<double> &P, int level)
 {
 	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::endl << std::fixed);
 	bool bTiming=true;
 	stopwatch SW, SWwhole; SWwhole.start();
+
+	if(level == 0)
+	{
+		matrix_type A_OL2;
+		GenerateOverlap(A, A_OL2);
+
+		std::vector<MathVector<3> > vec2(&amghelper.positions[0], &amghelper.positions[amghelper.size]);
+		vec2.resize(A_OL2.num_rows());
+
+		UG_DLOG(LIB_ALG_AMG, 0, "positions:\n");
+		for(size_t i=0; i<vec2.size(); ++i)
+			UG_DLOG(LIB_ALG_MATRIX, 0, i << " = " << vec2[i] << "\n");
+
+
+	//	copy all ids from master to slave interfaces
+		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
+
+		pcl::ParallelCommunicator<IndexLayout> communicator;
+		communicator.send_data(A_OL2.get_master_layout(), copyPol);
+		communicator.receive_data(A_OL2.get_slave_layout(), copyPol);
+		communicator.communicate();
+
+		UG_DLOG(LIB_ALG_AMG, 0, "positions after copy:\n");
+		for(size_t i=0; i<vec2.size(); ++i)
+			UG_DLOG(LIB_ALG_MATRIX, 0, i << " = " << vec2[i] << "\n");
+	}
+
+}
+#if 0
 
 	FAMGInterpolationCalculator<matrix_type> calculator(A, m_delta, m_theta, m_dDampingForSmootherInInterpolationCalculation);
 
@@ -556,8 +598,10 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, matrix_type &R, const
 	big_testvector.resize(R.num_rows());
 	big_testvector = t;
 }
-
+#endif
 
 } // namespace ug
 
 #endif //  __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
+
+
