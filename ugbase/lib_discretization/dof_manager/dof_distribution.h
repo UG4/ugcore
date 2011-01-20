@@ -266,6 +266,9 @@ class IDoFDistribution
 
 #ifdef UG_PARALLEL
 	public:
+	///	returns the number of domain decomposition level
+		size_t num_domain_decomposition_level() const {return m_vSlaveLayout.size();}
+
 	/// returns the slave index layout for domain decompostion level
 		IndexLayout& get_slave_layout(size_t ddlev = 0)	{require_ddlev(ddlev); return m_vSlaveLayout.at(ddlev);}
 
@@ -287,11 +290,11 @@ class IDoFDistribution
 		std::vector<pcl::ParallelCommunicator<IndexLayout> >& get_communicators()	{return m_vCommunicator;}
 		std::vector<pcl::ProcessCommunicator>& get_process_communicators()	{return m_vProcessCommunicator;}
 
-		size_t num_master_dofs(size_t ddlev = 0) {return num_dofs(m_vMasterLayout.at(ddlev));}
-		size_t num_slave_dofs(size_t ddlev = 0) {return num_dofs(m_vSlaveLayout.at(ddlev));}
+		size_t num_master_dofs(size_t ddlev = 0) const {return num_dofs(*const_cast<IndexLayout*>(&m_vMasterLayout.at(ddlev)));}
+		size_t num_slave_dofs(size_t ddlev = 0) const {return num_dofs(*const_cast<IndexLayout*>(&m_vSlaveLayout.at(ddlev)));}
 
-		size_t num_vertical_master_dofs() {return num_dofs(m_verticalMasterLayout);}
-		size_t num_vertical_slave_dofs() {return num_dofs(m_verticalSlaveLayout);}
+		size_t num_vertical_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalMasterLayout));}
+		size_t num_vertical_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalSlaveLayout));}
 
 	protected:
 		size_t num_dofs(IndexLayout& Layout) const

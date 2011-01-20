@@ -170,6 +170,7 @@ end
 
 approxSpace:init()
 approxSpace:print_statistic()
+approxSpace:print_layout_statistic()
 
 -------------------------------------------
 --  Setup User Functions

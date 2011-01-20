@@ -92,9 +92,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			matrix_type& dirMat = m_DirichletOperator.get_matrix();
 			dirMat = *m_pMatrix;
 
-		//	extract layouts and communicators
-			prepare_layouts_and_communicators(dirMat);
-
 		//	Set dirichlet values
 			set_dirichlet_rows_on_gamma(dirMat);
 
@@ -211,8 +208,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				add_flux_to_rhs(ModRhs, lambda);
 
 			//	set local communication
-				set_layouts_for_local_feti_partition_communication(x);
-				set_layouts_for_local_feti_partition_communication(ModRhs);
+				x.set_domain_decomposition_level(0);
+				ModRhs.set_domain_decomposition_level(0);
 
 			//	Solve neumann problem on feti-partition
 				if(!m_pNeumannSolver->apply_return_defect(x, ModRhs))
@@ -227,8 +224,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				write_debug(x, "FetiNeumann");
 
 			//	set global communication
-				set_layouts_for_inter_feti_partition_communication(x);
-				set_layouts_for_inter_feti_partition_communication(ModRhs);
+				x.set_domain_decomposition_level(1);
+				ModRhs.set_domain_decomposition_level(1);
 
 			//	Set dirichlet values for Rhs, zero else
 				copy_dirichlet_values_and_zero(ModRhs, x);
@@ -258,8 +255,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 					break;
 
 			//	set local communication
-				set_layouts_for_local_feti_partition_communication(x);
-				set_layouts_for_local_feti_partition_communication(ModRhs);
+				x.set_domain_decomposition_level(0);
+				ModRhs.set_domain_decomposition_level(0);
 
 			//	Solve dirichlet problem on feti-partition
 				if(!m_pDirichletSolver->apply_return_defect(x, ModRhs))
@@ -274,8 +271,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				write_debug(x, "FetiDirichlet");
 
 			//	set global communication
-				set_layouts_for_inter_feti_partition_communication(x);
-				set_layouts_for_inter_feti_partition_communication(eta);
+				x.set_domain_decomposition_level(1);
+				eta.set_domain_decomposition_level(1);
 
 			//	Compute update for lambda: eta = A*x
 				m_pMatrix->apply(eta, x);
@@ -342,17 +339,17 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			if(pcl::GetProcRank() != 1)
 				scale = -1.0;
 
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterSlaveIndexLayout);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterMasterIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
 		}
 
 	//	subtract solution on other processes from own value on gamma
 		void compute_difference_on_gamma(vector_type& x)
 		{
 			VecSubtractOnLayout(&x,
-								m_InterMasterIndexLayout,
-								m_InterSlaveIndexLayout,
-								&m_InterCommunicator);
+								x.get_master_layout(1),
+								x.get_slave_layout(1),
+								&x.get_communicator(1));
 			number scale = 1.0;
 			if(pcl::GetProcRank() != 1)
 				scale = -1.0;
@@ -363,79 +360,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void copy_dirichlet_values_and_zero(vector_type& ModRhs, const vector_type& r)
 		{
 			ModRhs.set(0.0);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterSlaveIndexLayout);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterMasterIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
 		}
 
 		void set_dirichlet_rows_on_gamma(matrix_type& mat)
 		{
-			MatSetDirichletWithoutCommunication(&mat, m_InterSlaveIndexLayout);
-			MatSetDirichletWithoutCommunication(&mat, m_InterMasterIndexLayout);
+			MatSetDirichletWithoutCommunication(&mat, mat.get_slave_layout(1));
+			MatSetDirichletWithoutCommunication(&mat, mat.get_master_layout(1));
 		}
-
-	protected:
-	//	set layouts to feti - partition local interchange
-		void set_layouts_for_local_feti_partition_communication(vector_type& u)
-		{
-			u.set_slave_layout(m_LocalSlaveIndexLayout);
-			u.set_master_layout(m_LocalMasterIndexLayout);
-			u.set_communicator(m_LocalCommunicator);
-			u.set_process_communicator(m_LocalProcessCommunicator);
-			// todo: set vertical layouts iff gmg used
-		}
-
-	//	set layouts to inter-feti-partition interchange
-		void set_layouts_for_inter_feti_partition_communication(vector_type& u)
-		{
-			u.set_slave_layout(m_InterSlaveIndexLayout);
-			u.set_master_layout(m_InterMasterIndexLayout);
-			u.set_communicator(m_InterCommunicator);
-			u.set_process_communicator(m_InterProcessCommunicator);
-			// todo: set vertical layouts iff gmg used
-		}
-
-	//	prepare local and inter feti-partition interfaces
-		void prepare_layouts_and_communicators(vector_type& u)
-		{
-			UG_ASSERT(u.num_domain_decomposition_level() > 0, "No domain decomp set.");
-
-		//	get feti level of domain decomposition
-			size_t ddlev = u.num_domain_decomposition_level() - 1;
-
-			m_InterSlaveIndexLayout = u.get_slave_layout(ddlev);
-			m_InterMasterIndexLayout = u.get_master_layout(ddlev);
-			m_InterCommunicator = u.get_communicator(ddlev);
-			m_InterProcessCommunicator = u.get_process_communicator(ddlev);
-			// todo: generalize to more than one process per feti-partition
-		}
-
-	//	prepare local and inter feti-partition interfaces
-		void prepare_layouts_and_communicators(matrix_type& mat)
-		{
-			UG_ASSERT(mat.num_domain_decomposition_level() > 0, "No domain decomp set.");
-
-		//	get feti level of domain decomposition
-			size_t ddlev = mat.num_domain_decomposition_level() - 1;
-
-			m_InterSlaveIndexLayout = mat.get_slave_layout(ddlev);
-			m_InterMasterIndexLayout = mat.get_master_layout(ddlev);
-			m_InterCommunicator = mat.get_communicator(ddlev);
-			m_InterProcessCommunicator = mat.get_process_communicator(ddlev);
-			// todo: generalize to more than one process per feti-partition
-		}
-
-	protected:
-	//	Feti-Partition-Local Interfaces and Communicators (i.e. non-gamma boundaries)
-		IndexLayout m_LocalSlaveIndexLayout;
-		IndexLayout m_LocalMasterIndexLayout;
-		pcl::ProcessCommunicator m_LocalProcessCommunicator;
-		pcl::ParallelCommunicator<IndexLayout> m_LocalCommunicator;
-
-	//	Inter-Feti-Partition Interfaces and Communicators (i.e. for Gamma Boundary)
-		IndexLayout m_InterMasterIndexLayout;
-		IndexLayout m_InterSlaveIndexLayout;
-		pcl::ProcessCommunicator m_InterProcessCommunicator;
-		pcl::ParallelCommunicator<IndexLayout> m_InterCommunicator;
 
 	protected:
 		bool write_debug(const vector_type& vec, const char* filename)

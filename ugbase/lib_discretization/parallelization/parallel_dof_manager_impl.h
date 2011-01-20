@@ -131,19 +131,12 @@ distribute_level_dofs()
 				return false;
 			}
 
-			UG_LOG_ALL_PROCS("Before Proc Rank.\n");
 			int localProc = pcl::GetProcRank();
-			UG_LOG_ALL_PROCS("Proc Rank is " << localProc << ".\n");
-
-			UG_LOG_ALL_PROCS("Before local Subdomain.\n");
 			int localSubdom = m_cbProcIDToSubdomID(localProc);
-			UG_LOG_ALL_PROCS("Local Subdomain is " << localSubdom << ".\n");
 
-			UG_LOG_ALL_PROCS("Before Creation of Process Communciators.\n");
 		// \todo: This loop is to long, shorten please
 			for(int subdom = 0; subdom < pcl::GetNumProcesses(); ++subdom)
 			{
-				UG_LOG_ALL_PROCS("ProcessCommunciator ...  Trying subdom: " <<subdom << "\n");
 				if(localSubdom == subdom)
 					distr.get_process_communicator(1)
 							= commWorld.create_sub_communicator(true);
@@ -170,6 +163,17 @@ distribute_surface_dofs()
 	}
 
 	TMGDoFManager::distribute_surface_dofs();
+
+//	get dof distribution
+	typename TMGDoFManager::dof_distribution_type& distr =
+		*const_cast<typename TMGDoFManager::dof_distribution_type*>
+			(TMGDoFManager::get_surface_dof_distribution());
+
+//	touch each layout to create it
+	distr.get_slave_layout(0);
+	distr.get_master_layout(0);
+	distr.get_communicator(0);
+	distr.get_process_communicator(0);
 
 	// TODO: Implement surface layouts
 
@@ -304,13 +308,14 @@ print_statistic() const
 	}
 
 //	Write Infos for Surface Grid
+	/*
 	if(this->m_pSurfaceDoFDistribution != NULL)
 	{
 		UG_LOG("  surf   |");
 		print_statistic(*this->m_pSurfaceDoFDistribution);
 		UG_LOG(std::endl);
 	}
-
+*/
 	TMGDoFManager::print_statistic();
 }
 

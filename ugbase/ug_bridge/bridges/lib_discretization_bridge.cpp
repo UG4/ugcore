@@ -1038,6 +1038,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_constructor()
 			.add_method("init|hide=true", &T::init)
 			.add_method("print_statistic|hide=true", &T::print_statistic)
+			.add_method("print_layout_statistic|hide=true", &T::print_layout_statistic)
 			.add_method("get_surface_dof_distribution|hide=true", &T::get_surface_dof_distribution)
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
 	}

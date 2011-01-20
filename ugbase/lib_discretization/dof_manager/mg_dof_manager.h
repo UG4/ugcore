@@ -88,6 +88,9 @@ class MGDoFManager
 	///	print a statistic on dof distribution
 		void print_statistic() const;
 
+	///	print a statistic on layout informations
+		void print_layout_statistic() const;
+
 	///	returns Level DoF Distribution
 		const dof_distribution_type* get_level_dof_distribution(size_t level) const
 		{
@@ -121,6 +124,9 @@ class MGDoFManager
 
 	/// print statistic for a DoFDistribution
 		void print_statistic(const dof_distribution_type& dd) const;
+
+	/// print statistic on layouts for a DoFDistribution
+		void print_layout_statistic(const dof_distribution_type& dd, size_t ddlev) const;
 
 	protected:
 	// 	MultiGridSubsetHandler this DofManager works on
