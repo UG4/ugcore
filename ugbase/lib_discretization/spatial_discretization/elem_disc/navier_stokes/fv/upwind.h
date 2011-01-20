@@ -14,30 +14,47 @@
 #include "lib_discretization/spatial_discretization/disc_helper/upwind_shapes.h"
 
 namespace ug{
+		enum UPWIND_TYPES
+		{
+            NO_UPWIND = 0,
+            FULL_UPWIND,
+			LPS_UPWIND,
+			NUM_UPWIND
+		};
 
 /**
  *
- * \param[in]		geo					Finite Volume Geometry
- * \param[in]		IPVel				Velocity at Integration points (ip)
- * \param[out]		CornerShape			Shape functions to compute Upwind Velocity
- * \param[out]		ConvectionLength	Distance from IP to Upwind point
- * \param[out]		IPScaleNumber		factor how much Upwind velocity depend on other IPVel
- * \param[out]		bDependOnIP			true if and only if IPShape is non-zero
+ * \param[in]		geo                     Finite Volume Geometry
+ * \param[in]		CornerValues            Velocity at element corners
+ * \param[out]		vvvIPVelUpwindShapes    Shape functions to compute Upwind Velocity
+ * \param[out]		ConvectionLength        Distance from IP to Upwind point
+ * \param[out]		IPShape                 factor how much Upwind velocity depend on other IPVel
+ * \param[out]		bDependOnOIP            true if and only if IPShape is non-zero
  */
 template <typename TFVGeometry>
-bool GetFullUpwindShapesDependingOnIP(	const TFVGeometry& geo,
-										const MathVector<TFVGeometry::world_dim> IPVel[],
-										std::vector<std::vector<number> >& CornerShape,
-										number ConvectionLength[],
-										const number IPScaleNumber[],
-										bool &bDependOnIP)
+bool GetUpwindShapes(	const TFVGeometry& geo,
+                                        const MathVector<TFVGeometry::world_dim> vCornerValues[TFVGeometry::m_numSCV],
+                                        const int UpwindMethod,
+                                        MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
+                                        number ConvectionLength[TFVGeometry::m_numSCV])
 {
-	if(!GetFullUpwindShapes(geo, IPVel, CornerShape))
-		return false;
+// todo: implement the case whe upwind vels in the ips are mutually dependent
+//    MathVector<TFVGeometry::world_dim> vIPVelUpwindCornerShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV];
+//    MathVector<TFVGeometry::world_dim> vIPVelUpwindIPShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV];
 
-	// does not depend in IP Velocities
-	bDependOnIP = false;
 
+
+    // Compute Upwind Shapes at Ip's and ConvectionLength here
+	switch(UpwindMethod)
+	{
+		case FULL_UPWIND:   if(!GetFullUpwindShapes(geo, vCornerValues, vIPVelUpwindShapes, ConvectionLength))
+                                return false;
+                            break;
+        default: 	UG_LOG("Upwind Type defined incorrecrly.\n");
+					return false;
+	}
+
+    // Values of Velocities in IPs do not depend in other IPs
 	return true;
 }
 

@@ -8,7 +8,6 @@
 #ifndef __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
 #define __H__LIB_DISCRETIZATION__SPACIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
 
-#include "upwind.h"
 #include "diffusion_length.h"
 #include "stabilization.h"
 
@@ -120,51 +119,32 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
 	// Some Variables
-	MathVector<dim> vIPVelUpwind[numSCVF];
-	std::vector<std::vector<number> > vvCornerShape(numSCVF);
-    for(size_t i=0; i<numSCVF;++i) vvCornerShape[i].resize(numCo);
-	number vConvLength[numSCVF];
-	//number vvIPShape[numSCVF][numCo];
-	bool bDependOnIP;
-	number vvIPStabVelShape[numCo][dim];
-	number vvIPStabPressureShape[numCo][dim];
-	number vDiffLengthSqInv[numSCVF];
-	//MathVector<dim> vIPVel[numSCVF];
-    MathVector<dim> vIPVelStab[numSCVF];
-	MathVector<dim> vCurrentIPVel[numSCVF];
-	number vIPScaleNumber[numSCVF];
-	MathVector<dim> vCornerVel[numCo];
-	MathVector<dim> vIPPressureGrad[numSCVF];
+	MathVector<dim> vCornerValues[numSCVF];
+	MathVector<dim> vIPVelCurrent[numSCVF];
+	MathVector<dim> vIPVelOld[numSCVF];
+    number vConvLength[numSCVF];
+//    MathVector<dim> vIPVelUpwindShapesMomEq[numSCVF][numCo][dim];
+    MathVector<dim> vIPVelUpwindShapesContiEq[numSCVF][numCo][dim];
+    MathVector<dim> vIPStabVelShapesContiEq[numSCVF][numCo][dim+1];
 
-	// Compute Upwind Shapes at Ip's and ConvectionLength here
-	switch(m_Upwind)
-	{
-		case FULL_UPWIND:   GetFullUpwindShapesDependingOnIP(geo, vIPVelUpwind, vvCornerShape, vConvLength,
-															vIPScaleNumber, bDependOnIP);
-                            break;
-        default: 	UG_LOG("Upwind Type not set.\n");
-					return false;
-	}
+    // compute velocities at ips
 
-	// todo: switch
-	//	Compute Diffusion Length
-	NSDiffLengthMethod1(vDiffLengthSqInv, geo);
+   	// todo: Compute IP Velocity of Current Velocity at ip
+    // MathVector<dim> vCurrentIPVel[numSCVF]=...
+
+	// Compute Upwind Shapes at Ip's and ConvectionLength here fot the Momentum Equation
+    GetUpwindShapes(geo, vCornerValues, m_UpwindMethod, vIPVelUpwindShapesContiEq, vConvLength);
 
 	// todo: Implement for timedependent
 	bool bTimeDependent = false;
-	MathVector<dim> vIPVelOld[numSCVF];
 	number dt = 0.0;
-
-	// todo: Compute IP Velocity of Current Velocity at ip
-	// todo: Compute vCornerVel
-	// todo: Compute vIPPressureGrad
 
 	// todo: switch
 	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-	GetFieldsStabilizedVelocities(	vIPVelStab, vvIPStabVelShape, vvIPStabPressureShape, geo,
-									vCurrentIPVel, bTimeDependent, vIPVelOld,
-									dt, vIPVelUpwind, bDependOnIP, vIPScaleNumber, vCornerVel,
-									vIPPressureGrad, m_Viscosity);
+	GetStabilizedShapes(	geo, vCornerValues, vIPVelCurrent, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+									dt, bTimeDependent, vIPVelOld,
+									m_Viscosity,
+                                    vIPStabVelShapesContiEq);
 
 	// loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -212,6 +192,23 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				////////////////////////////////////////////////////
 				// Convective Term (Momentum Equation)
 				////////////////////////////////////////////////////
+
+				// Compute flux at IP
+				flux = VecDot(scvf.global_grad(co, ip), scvf.normal());
+
+                // Add flux term to local matrix
+				for(size_t vel1 = 0; vel1 < dim; ++vel1)
+				{
+					J(vel1, scvf.from(), vel1, co) += m_Viscosity * flux;
+					J(vel1, scvf.to()  , vel1, co) -= m_Viscosity * flux;
+
+					for(size_t vel2 = 0; vel2 < dim; ++vel2)
+					{
+						const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
+						J(vel1, scvf.from(), vel2, co) += flux2;
+						J(vel1, scvf.to()  , vel2, co) -= flux2;
+					}
+				}
 
 				// todo: implement convective term (momentum equation) use vIPVelStab
 

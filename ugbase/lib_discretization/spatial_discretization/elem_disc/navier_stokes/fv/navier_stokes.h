@@ -18,7 +18,9 @@
 #include "lib_discretization/spatial_discretization/disc_helper/fvgeom.h"
 #include "lib_discretization/spatial_discretization/elem_disc/elem_disc_interface.h"
 #include "lib_discretization/common/local_algebra.h"
-#include "lib_discretization/spatial_discretization/ip_data/user_data.h"
+#include "lib_discretization/spatial_discretization/user_data.h"
+#include "upwind.h"
+#include "stabilization.h"
 
 namespace ug{
 
@@ -50,7 +52,7 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 	public:
 	//	Constructor (setting default values)
 		FVNavierStokesElemDisc()
-		 : m_Upwind(FULL_UPWIND), m_pDomain(NULL),
+		 : m_UpwindMethod(FULL_UPWIND),m_StabMethod(FIELDS), m_pDomain(NULL),
 		   m_Viscosity(1.0)
 		   {
 				register_assemble_functions(Int2Type<dim>());
@@ -63,22 +65,25 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 		void set_kinematicViscosity(number nu) {m_Viscosity = nu;}
 
 	private:
-		enum UPWIND_TYPES
-		{
-            NO_UPWIND = 0,
-            FULL_UPWIND,
-			LPS_UPWIND,
-			NUM_UPWIND
-		};
-		int m_Upwind;
+		int m_UpwindMethod;
+        int m_StabMethod;
 
 	public:
 		bool set_upwind(const std::string& upwind)
 		{
-			if      (upwind == "NoUpwind")  m_Upwind = NO_UPWIND;
-            else if (upwind == "Full")      m_Upwind = FULL_UPWIND;
-            else if (upwind == "LPS")       m_Upwind = LPS_UPWIND;
+			if      (upwind == "NoUpwind")  m_UpwindMethod = NO_UPWIND;
+            else if (upwind == "Full")      m_UpwindMethod = FULL_UPWIND;
+            else if (upwind == "LPS")       m_UpwindMethod = LPS_UPWIND;
+            else if (upwind == "NUM")       m_UpwindMethod = NUM_UPWIND;
             else {UG_LOG("Upwind Type not recognized.\n"); return false;}
+			return true;
+		}
+
+		bool set_stabilization(const std::string& stabilization)
+		{
+			if      (stabilization == "FIELDS")  m_StabMethod = FIELDS;
+            else if (stabilization == "FLOW")    m_StabMethod = FLOW;
+            else {UG_LOG("Stabilization Type not recognized.\n"); return false;}
 			return true;
 		}
 
