@@ -57,7 +57,7 @@
 // spacial discretizations
 ////////////////////////
 
-#include "./spatial_discretization/spacial_discretization.h"
+#include "./spatial_discretization/spatial_discretization.h"
 
 ////////////////////////
 // time discretizations

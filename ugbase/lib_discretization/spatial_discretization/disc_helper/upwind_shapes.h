@@ -81,7 +81,8 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 template <typename TFVGeometry>
 bool GetFullUpwindShapes(	const TFVGeometry& geo,
 						const MathVector<TFVGeometry::world_dim> IPVel[],
-						std::vector<std::vector<number> >& CornerShape)
+						std::vector<std::vector<number> >& CornerShape,
+                        number ConvectionLength[TFVGeometry::m_numSCV])
 {
 	// set shapes
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
