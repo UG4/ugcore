@@ -35,6 +35,9 @@ class IDebugWriter
 	///	write matrix
 		virtual bool write_matrix(const matrix_type& mat,
 		                          const char* name) = 0;
+
+	/// virtual destructor
+		virtual ~IDebugWriter(){}
 };
 
 } // end namespace ug
