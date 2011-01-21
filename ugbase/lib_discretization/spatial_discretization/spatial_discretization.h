@@ -5,8 +5,8 @@
  *      Author: andreasvogel
  */
 
-#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
-#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__
+#ifndef __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPATIAL_DISCRETIZATION__
+#define __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPATIAL_DISCRETIZATION__
 
 ///////////////////////////////////////////////////////////////
 // This file is intended to include all spatial discretizations
@@ -47,4 +47,4 @@
 // disc helper
 #include "./disc_helper/disc_helper.h"
 
-#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPACIAL_DISCRETIZATION__ */
+#endif /* __H__UG__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__SPATIAL_DISCRETIZATION__ */

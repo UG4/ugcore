@@ -54,7 +54,7 @@
 #include "./operator/operator.h"
 
 ////////////////////////
-// spacial discretizations
+// spatial discretizations
 ////////////////////////
 
 #include "./spatial_discretization/spatial_discretization.h"

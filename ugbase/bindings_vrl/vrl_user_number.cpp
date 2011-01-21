@@ -3,7 +3,7 @@
 #include "../ug_bridge/ug_bridge.h"
 #include "type_converter.h"
 #include "common/common.h"
-#include "../lib_discretization/spacial_discretization/user_data.h"
+#include "../lib_discretization/spatial_discretization/user_data.h"
 #include "../ug_script/ug_script.h"
 #include "bindings_vrl.h"
 #include "type_converter.h"
