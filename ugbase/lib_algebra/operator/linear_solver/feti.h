@@ -19,6 +19,29 @@ namespace ug{
 #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_algebra/operator/debug_writer.h"
 
+/// FETISolver implements (to be honest only) a Dirichlet-Dirichlet-solver.
+/**
+ * FETISolver implements a Dirichlet-Dirichlet-solver for a partitioning
+ * into two nonoverlapping subdomains (e.g. "FETI subdomains"). See e.g.
+ * "Domain Decomposition Methods -- Algorithms and Theory",
+ * A. Toselli, O. Widlund, Springer 2004, sec. 1.3.5, p. 12ff.
+ *
+ * REMARKS:
+ * We have to consider two types of interfaces/layouts, resp. communication
+ * over these interfaces here:
+ *
+ *    + between "FETI subdomains", in general sub-partitioned into several
+ *      "processor partitions" (i.e.: number of procs per FETI subdomain > 1),
+ *      over the "FETI-Gamma"
+ *      ==> "inter" (subdomain) communication (formerly also called "global" communication),
+ *
+ *      and
+ *    + between "processor partitions" inside an FETI subdomain,
+ *      over the non "FETI-Gamma"
+ *      ==> "intra" subdomain communication (formerly also called "local", "inner" communication).
+ *
+ * \TAlgebra	type of algebra (template parameter), e.g. CPUAlgebra.
+ */
 template <typename TAlgebra>
 class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 													typename TAlgebra::vector_type,
@@ -55,13 +78,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	/// returns the convergence check
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
-	///	sets a sequential neumann solver
+	///	sets a sequential Neumann solver
 		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
 		{
 			m_pNeumannSolver = &neumannSolver;
 		}
 
-	///	sets a sequential dirichlet solver
+	///	sets a sequential Dirichlet solver
 		void set_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dirichletSolver)
 		{
 			m_pDirichletSolver = &dirichletSolver;
@@ -92,22 +115,25 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			matrix_type& dirMat = m_DirichletOperator.get_matrix();
 			dirMat = *m_pMatrix;
 
-		//	Set dirichlet values
+		//	extract layouts and communicators
+			prepare_layouts_and_communicators(dirMat); /* set member variables for layouts from matrix */
+
+		//	Set Dirichlet values
 			set_dirichlet_rows_on_gamma(dirMat);
 
-		//	init sequential solver
+		//	init sequential solver for Neumann problem
 			if(m_pNeumannSolver != NULL)
 				if(!m_pNeumannSolver->init(*m_A))
 				{
-					UG_LOG("ERROR in 'FETISolver::prepare': Cannot init "
+					UG_LOG("ERROR in 'FETISolver::init': Cannot init "
 							"Sequential Neumann Solver for Operator A.\n");return false;
 				}
 
-		//	init sequential solver
+		//	init sequential solver for Dirichlet problem
 			if(m_pDirichletSolver != NULL)
 				if(!m_pDirichletSolver->init(m_DirichletOperator))
 				{
-					UG_LOG("ERROR in 'FETISolver::prepare': Cannot init "
+					UG_LOG("ERROR in 'FETISolver::init': Cannot init "
 							"Sequential Dirichlet Solver for Operator A.\n");return false;
 				}
 
@@ -135,29 +161,31 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	///	solves the system and returns the last defect of iteration in rhs
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
+			UG_LOG("INFO: parameter 'theta' used in 'FETISolver::apply_return_defect' is '" << m_theta << "' (TMP)\n");
+
 		//	check that matrix has been set
 			if(m_A == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply': Matrix A not set.\n");
+				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': Matrix A not set.\n");
 				return false;
 			}
 
 		//	check that sequential solver has been set
 			if(m_pNeumannSolver == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply': No Sequential Neumann Solver set.\n");
+				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': No sequential Neumann Solver set.\n");
 				return false;
 			}
 			if(m_pDirichletSolver == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply': No Sequential Dirichlet Solver set.\n");
+				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': No sequential Dirichlet Solver set.\n");
 				return false;
 			}
 
 		//	check that convergence check is set
 			if(m_pConvCheck == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply':"
+				UG_LOG("ERROR: In 'FETISolver::apply_return_defect':"
 						" Convergence check not set.\n");
 				return false;
 			}
@@ -165,7 +193,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	Check parallel storage type of vectors
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply': "
+				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': "
 						"Inadequate storage format of Vectors.\n");
 				return false;
 			}
@@ -173,14 +201,14 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		// 	todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
 		//			without initializing the values
 
-		//	Normal Flux at Gamma - Boundary (i.e. inner boundary of feti method)
+		//	Normal Flux at FETI-Gamma (i.e. inner boundary of feti method)
 			vector_type lambda; lambda.create(x.size()); lambda = x;
 
 		//	Flux Correction at Gamma - Boundary
 			vector_type eta; eta.create(x.size()); eta = x;
 
-		//	Modified right - hand side for neumann problem
-			vector_type ModRhs; ModRhs.create(b.size()); ModRhs = b;
+		//	Modified right - hand side for Neumann problem
+			vector_type ModRhs;         ModRhs.create(b.size()); ModRhs     = b;
 			vector_type ModRhsCopy; ModRhsCopy.create(b.size()); ModRhsCopy = b;
 
 		//  Prepare convergence check
@@ -189,7 +217,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	flag iff first iterate
 			bool first = true;
 
-		//	set lambda to zero
+		//	set initial lambda (flux over \Gamma) to zero vector
 			lambda.set(0.0);
 
 		// 	Iteration loop
@@ -199,23 +227,29 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				m_iterCnt++;
 
 			//	Copy right-hand side
-				ModRhs = b;
+				ModRhs = b; // we always add the new flux iterate to the *original* rhs!
+
+			//	set inter subdomain communication (added 07122010ih) - always before "FETI operations"
+			// (hier und nicht erst am Schluss der Schleife, evt. wichtig fuer andere Startwerte von lambda!)
+				//set_layouts_for_inter_subdomain_communication(x);
+				//set_layouts_for_inter_subdomain_communication(ModRhs);
+
 
 			//	write debug
 				write_debug(lambda, "FetiLambdaOnGamma");
 
-			//	Compute new rhs for neumann problem using lambda on Gamma
+			//	Compute new rhs for Neumann problem using lambda on ("FETI-") Gamma
 				add_flux_to_rhs(ModRhs, lambda);
 
-			//	set local communication
-				x.set_domain_decomposition_level(0);
-				ModRhs.set_domain_decomposition_level(0);
+			//	set intra subdomain communication - always before solution step
+				set_layouts_for_intra_subdomain_communication(x);
+				set_layouts_for_intra_subdomain_communication(ModRhs);
 
-			//	Solve neumann problem on feti-partition
+			//	Solve Neumann problem on FETI subdomain
 				if(!m_pNeumannSolver->apply_return_defect(x, ModRhs))
 				{
-					UG_LOG("ERROR in 'FETI-Solver::apply': "
-							"Could not solve neumann problem on proc " << pcl::GetProcRank() << ".\n");
+					UG_LOG_ALL_PROCS("ERROR in 'FETISolver::apply_return_defect': "
+									 "Could not solve Neumann problem on proc " << pcl::GetProcRank() << ".\n");
 					return false;
 				}
 				// todo: Check that all processes solved the problem
@@ -223,11 +257,11 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//	write debug
 				write_debug(x, "FetiNeumann");
 
-			//	set global communication
-				x.set_domain_decomposition_level(1);
-				ModRhs.set_domain_decomposition_level(1);
+			//	set inter subdomain communication
+				set_layouts_for_inter_subdomain_communication(x);
+				set_layouts_for_inter_subdomain_communication(ModRhs);
 
-			//	Set dirichlet values for Rhs, zero else
+			//	Set Dirichlet values for Rhs, zero else
 				copy_dirichlet_values_and_zero(ModRhs, x);
 
 			//	Compute difference of solution on Gamma
@@ -236,7 +270,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//	write debug
 				write_debug(ModRhs, "FetiDiffSolOnGamma");
 
-				ModRhsCopy = ModRhs;
+				ModRhsCopy = ModRhs; /* 'ModRhsCopy' gets also layouts of 'ModRhs's (22122010ih) */
+
 			//	Compute norm of difference on Gamma
 				if(first)
 				{
@@ -254,15 +289,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				if(m_pConvCheck->iteration_ended())
 					break;
 
-			//	set local communication
-				x.set_domain_decomposition_level(0);
-				ModRhs.set_domain_decomposition_level(0);
+			//	set intra subdomain communication
+				set_layouts_for_intra_subdomain_communication(x);
+				set_layouts_for_intra_subdomain_communication(ModRhs);
 
-			//	Solve dirichlet problem on feti-partition
+			//	Solve Dirichlet problem on FETI subdomain
 				if(!m_pDirichletSolver->apply_return_defect(x, ModRhs))
 				{
-					UG_LOG("ERROR in 'FETI-Solver::apply': "
-							"Could not solve dirichlet problem on proc " << pcl::GetProcRank() << ".\n");
+					UG_LOG_ALL_PROCS("ERROR in 'FETISolver::apply_return_defect': "
+									 "Could not solve Dirichlet problem on proc " << pcl::GetProcRank() << ".\n");
 					return false;
 				}
 				// todo: Check that all processes solved the problem
@@ -270,11 +305,11 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//	write debug
 				write_debug(x, "FetiDirichlet");
 
-			//	set global communication
-				x.set_domain_decomposition_level(1);
-				eta.set_domain_decomposition_level(1);
+			//	set inter subdomain communication
+				set_layouts_for_inter_subdomain_communication(x);
+				set_layouts_for_inter_subdomain_communication(eta);
 
-			//	Compute update for lambda: eta = A*x
+			//	Compute update for lambda: eta = A*x (to be more specific: \eta_i^{n+1} = A_{\Gamma I}^{(i)} w_i^{n+1} + A_{\Gamma \Gamma}^{(i)} r_{\Gamma})
 				m_pMatrix->apply(eta, x);
 
 			//	sum up over all processes
@@ -283,12 +318,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 			// 	Update lambda
 				VecScaleAdd(lambda, 1.0, lambda, -m_theta, eta);
-			}
+
+			} /* end of iteration loop */
 
 		//	Post Output
 			if(!m_pConvCheck->post())
 			{
-				UG_LOG("ERROR in 'FETI-Solver::apply': "
+				UG_LOG("ERROR in 'FETISolver::apply_return_defect': "
 						"post-convergence-check signaled failure. Aborting.\n");
 				return false;
 			}
@@ -336,22 +372,22 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void add_flux_to_rhs(vector_type& ModRhs, const vector_type& lambda)
 		{
 			number scale = 1.0;
-			if(pcl::GetProcRank() != 1)
+			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain 
 				scale = -1.0;
 
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterSDSlaveIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterSDMasterIndexLayout);
 		}
 
 	//	subtract solution on other processes from own value on gamma
 		void compute_difference_on_gamma(vector_type& x)
 		{
 			VecSubtractOnLayout(&x,
-								x.get_master_layout(1),
-								x.get_slave_layout(1),
-								&x.get_communicator(1));
+								m_InterSDMasterIndexLayout,
+								m_InterSDSlaveIndexLayout,
+								&m_InterSDCommunicator);
 			number scale = 1.0;
-			if(pcl::GetProcRank() != 1)
+			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain
 				scale = -1.0;
 
 			x *= scale;
@@ -360,15 +396,86 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void copy_dirichlet_values_and_zero(vector_type& ModRhs, const vector_type& r)
 		{
 			ModRhs.set(0.0);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterSDSlaveIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterSDMasterIndexLayout);
 		}
 
 		void set_dirichlet_rows_on_gamma(matrix_type& mat)
 		{
-			MatSetDirichletWithoutCommunication(&mat, mat.get_slave_layout(1));
-			MatSetDirichletWithoutCommunication(&mat, mat.get_master_layout(1));
+			MatSetDirichletWithoutCommunication(&mat, m_InterSDSlaveIndexLayout);
+			MatSetDirichletWithoutCommunication(&mat, m_InterSDMasterIndexLayout);
 		}
+
+	protected:
+	//	set layouts to intra FETI subdomain interchange
+		void set_layouts_for_intra_subdomain_communication(vector_type& u)
+		{
+			u.set_slave_layout(m_IntraSDSlaveIndexLayout);
+			u.set_master_layout(m_IntraSDMasterIndexLayout);
+			u.set_communicator(m_IntraSDCommunicator);
+			u.set_process_communicator(m_IntraSDProcessCommunicator);
+			// todo: set vertical layouts iff gmg used
+		}
+
+	//	set layouts to inter FETI subdomain interchange
+		void set_layouts_for_inter_subdomain_communication(vector_type& u)
+		{
+			u.set_slave_layout(m_InterSDSlaveIndexLayout);
+			u.set_master_layout(m_InterSDMasterIndexLayout);
+			u.set_communicator(m_InterSDCommunicator);
+			u.set_process_communicator(m_InterSDProcessCommunicator);
+			// todo: set vertical layouts iff gmg used
+		}
+
+	//	prepare intra subdomain (pure processor) and inter subdomain interfaces
+		void prepare_layouts_and_communicators(vector_type& u) // no longer used!
+		{
+			m_InterSDSlaveIndexLayout    = u.get_slave_layout();
+			m_InterSDMasterIndexLayout   = u.get_master_layout();
+			m_InterSDCommunicator        = u.get_communicator();
+			m_InterSDProcessCommunicator = u.get_process_communicator();
+			// todo: generalize to more than one process per FETI subdomain
+		}
+
+		void prepare_layouts_and_communicators(matrix_type& mat)
+		{
+			/* 
+			m_InterSDSlaveIndexLayout    = mat.get_slave_layout(0);
+			m_InterSDMasterIndexLayout   = mat.get_master_layout(0);
+			m_InterSDCommunicator        = mat.get_communicator(0);
+			m_InterSDProcessCommunicator = mat.get_process_communicator(0);
+			*/
+			//  TODO: "InterSD"-Layouts aus den DD-Layouts (DD-Level 1), "IntraSD"-Layouts aus den (bisherigen) "Standard-Layouts" (DD-Level 0) aufbauen!
+			// todo: generalize to more than one process per FETI subdomain
+			/* TEST (20012011ih): */
+			size_t ddlev = 0; // should be 1 sometimes ...
+			// TODO: check if layout for dd-level exists! if (ddlev >= layout.size()) {error}
+			m_InterSDSlaveIndexLayout    = mat.get_slave_layout(ddlev);
+			m_InterSDMasterIndexLayout   = mat.get_master_layout(ddlev);
+			m_InterSDCommunicator        = mat.get_communicator(ddlev);
+			m_InterSDProcessCommunicator = mat.get_process_communicator(ddlev);
+
+			// "pure" processor layouts & communicators are always at level 0 -- duerfen momentan noch nicht gesetzt sein!:
+			/* 
+			m_IntraSDSlaveIndexLayout    = mat.get_slave_layout(0);
+			m_IntraSDMasterIndexLayout   = mat.get_master_layout(0);
+			m_IntraSDCommunicator        = mat.get_communicator(0);
+			m_IntraSDProcessCommunicator = mat.get_process_communicator(0);
+ */
+		}
+
+	protected:
+	//	Interfaces and Communicators of intra subdomain communication (i.e. over non "FETI-Gamma" boundaries)
+		IndexLayout m_IntraSDSlaveIndexLayout;
+		IndexLayout m_IntraSDMasterIndexLayout;
+		pcl::ProcessCommunicator m_IntraSDProcessCommunicator;
+		pcl::ParallelCommunicator<IndexLayout> m_IntraSDCommunicator;
+
+	//	Interfaces and Communicators of inter subdomain communication (i.e. over "FETI-Gamma" boundaries)
+		IndexLayout m_InterSDMasterIndexLayout;
+		IndexLayout m_InterSDSlaveIndexLayout;
+		pcl::ProcessCommunicator m_InterSDProcessCommunicator;
+		pcl::ParallelCommunicator<IndexLayout> m_InterSDCommunicator;
 
 	protected:
 		bool write_debug(const vector_type& vec, const char* filename)
@@ -400,10 +507,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
 
-	// 	Linear Solver to invert the local neumann problems
+	// 	Linear Solver to invert the local Neumann problems
 		ILinearOperatorInverse<vector_type,vector_type>* m_pNeumannSolver;
 
-	// 	Linear Solver to invert the local dirichlet problems
+	// 	Linear Solver to invert the local Dirichlet problems
 		ILinearOperatorInverse<vector_type,vector_type>* m_pDirichletSolver;
 
 	// 	Convergence Check
