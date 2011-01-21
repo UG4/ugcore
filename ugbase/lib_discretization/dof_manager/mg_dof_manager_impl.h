@@ -237,6 +237,7 @@ print_layout_statistic() const
 
 //	Write header line
 	UG_LOG(" Level | DD Level |  Master  |  Slave   | vert. Master | vert. Slave\n");
+	UG_LOG("---------------------------------------------------------------------\n");
 
 //	Write Infos for Levels
 	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
@@ -249,8 +250,9 @@ print_layout_statistic() const
 
 			UG_LOG(std::setw(9) << ddlev << " | ");
 			print_layout_statistic(*m_vLevelDoFDistribution[l], ddlev);
-			UG_LOG(std::endl);
+			UG_LOG("\n");
 		}
+		UG_LOG("---------------------------------------------------------------------\n");
 	}
 
 //	Write Infos for Surface Grid
