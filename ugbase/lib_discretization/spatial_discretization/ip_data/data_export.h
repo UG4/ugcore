@@ -72,6 +72,9 @@ class IDataExport : virtual public IDependentIPData
 			return (m_pObj->*(m_vExportFunc[m_id]))(u, compDeriv);
 		}
 
+	///	virtual destructor
+		virtual ~IDataExport() {}
+
 	protected:
 	///	function pointers for all elem types
 		std::vector<ExportFunc>	m_vExportFunc;

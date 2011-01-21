@@ -284,6 +284,9 @@ class IDependentIPData
 	///	number of fuctions this export depends on
 		size_t num_fct() const {return m_fctGrp.num_fct();}
 
+	///	virtual destructor
+		virtual ~IDependentIPData() {}
+
 	protected:
 	/// functions the data depends on
 		FunctionGroup m_fctGrp;
