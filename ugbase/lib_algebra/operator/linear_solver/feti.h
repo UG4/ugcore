@@ -115,9 +115,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			matrix_type& dirMat = m_DirichletOperator.get_matrix();
 			dirMat = *m_pMatrix;
 
-		//	extract layouts and communicators
-			prepare_layouts_and_communicators(dirMat); /* set member variables for layouts from matrix */
-
 		//	Set Dirichlet values
 			set_dirichlet_rows_on_gamma(dirMat);
 
@@ -231,8 +228,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 			//	set inter subdomain communication (added 07122010ih) - always before "FETI operations"
 			// (hier und nicht erst am Schluss der Schleife, evt. wichtig fuer andere Startwerte von lambda!)
-				//set_layouts_for_inter_subdomain_communication(x);
-				//set_layouts_for_inter_subdomain_communication(ModRhs);
+				//x.set_domain_decomposition_level(1);
+				//ModRhs.set_domain_decomposition_level(1);
 
 
 			//	write debug
@@ -242,8 +239,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				add_flux_to_rhs(ModRhs, lambda);
 
 			//	set intra subdomain communication - always before solution step
-				set_layouts_for_intra_subdomain_communication(x);
-				set_layouts_for_intra_subdomain_communication(ModRhs);
+				x.set_domain_decomposition_level(0);
+				ModRhs.set_domain_decomposition_level(0);
 
 			//	Solve Neumann problem on FETI subdomain
 				if(!m_pNeumannSolver->apply_return_defect(x, ModRhs))
@@ -258,8 +255,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				write_debug(x, "FetiNeumann");
 
 			//	set inter subdomain communication
-				set_layouts_for_inter_subdomain_communication(x);
-				set_layouts_for_inter_subdomain_communication(ModRhs);
+				x.set_domain_decomposition_level(1);
+				ModRhs.set_domain_decomposition_level(1);
 
 			//	Set Dirichlet values for Rhs, zero else
 				copy_dirichlet_values_and_zero(ModRhs, x);
@@ -290,8 +287,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 					break;
 
 			//	set intra subdomain communication
-				set_layouts_for_intra_subdomain_communication(x);
-				set_layouts_for_intra_subdomain_communication(ModRhs);
+				x.set_domain_decomposition_level(0);
+				ModRhs.set_domain_decomposition_level(0);
 
 			//	Solve Dirichlet problem on FETI subdomain
 				if(!m_pDirichletSolver->apply_return_defect(x, ModRhs))
@@ -306,8 +303,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				write_debug(x, "FetiDirichlet");
 
 			//	set inter subdomain communication
-				set_layouts_for_inter_subdomain_communication(x);
-				set_layouts_for_inter_subdomain_communication(eta);
+				x.set_domain_decomposition_level(1);
+				eta.set_domain_decomposition_level(1);
 
 			//	Compute update for lambda: eta = A*x (to be more specific: \eta_i^{n+1} = A_{\Gamma I}^{(i)} w_i^{n+1} + A_{\Gamma \Gamma}^{(i)} r_{\Gamma})
 				m_pMatrix->apply(eta, x);
@@ -375,17 +372,17 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain 
 				scale = -1.0;
 
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterSDSlaveIndexLayout);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, m_InterSDMasterIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
 		}
 
 	//	subtract solution on other processes from own value on gamma
 		void compute_difference_on_gamma(vector_type& x)
 		{
 			VecSubtractOnLayout(&x,
-								m_InterSDMasterIndexLayout,
-								m_InterSDSlaveIndexLayout,
-								&m_InterSDCommunicator);
+								x.get_master_layout(1),
+								x.get_slave_layout(1),
+								&x.get_communicator(1));
 			number scale = 1.0;
 			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain
 				scale = -1.0;
@@ -396,86 +393,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void copy_dirichlet_values_and_zero(vector_type& ModRhs, const vector_type& r)
 		{
 			ModRhs.set(0.0);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterSDSlaveIndexLayout);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, m_InterSDMasterIndexLayout);
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
+			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
 		}
 
 		void set_dirichlet_rows_on_gamma(matrix_type& mat)
 		{
-			MatSetDirichletWithoutCommunication(&mat, m_InterSDSlaveIndexLayout);
-			MatSetDirichletWithoutCommunication(&mat, m_InterSDMasterIndexLayout);
+			MatSetDirichletWithoutCommunication(&mat, mat.get_slave_layout(1));
+			MatSetDirichletWithoutCommunication(&mat, mat.get_master_layout(1));
 		}
-
-	protected:
-	//	set layouts to intra FETI subdomain interchange
-		void set_layouts_for_intra_subdomain_communication(vector_type& u)
-		{
-			u.set_slave_layout(m_IntraSDSlaveIndexLayout);
-			u.set_master_layout(m_IntraSDMasterIndexLayout);
-			u.set_communicator(m_IntraSDCommunicator);
-			u.set_process_communicator(m_IntraSDProcessCommunicator);
-			// todo: set vertical layouts iff gmg used
-		}
-
-	//	set layouts to inter FETI subdomain interchange
-		void set_layouts_for_inter_subdomain_communication(vector_type& u)
-		{
-			u.set_slave_layout(m_InterSDSlaveIndexLayout);
-			u.set_master_layout(m_InterSDMasterIndexLayout);
-			u.set_communicator(m_InterSDCommunicator);
-			u.set_process_communicator(m_InterSDProcessCommunicator);
-			// todo: set vertical layouts iff gmg used
-		}
-
-	//	prepare intra subdomain (pure processor) and inter subdomain interfaces
-		void prepare_layouts_and_communicators(vector_type& u) // no longer used!
-		{
-			m_InterSDSlaveIndexLayout    = u.get_slave_layout();
-			m_InterSDMasterIndexLayout   = u.get_master_layout();
-			m_InterSDCommunicator        = u.get_communicator();
-			m_InterSDProcessCommunicator = u.get_process_communicator();
-			// todo: generalize to more than one process per FETI subdomain
-		}
-
-		void prepare_layouts_and_communicators(matrix_type& mat)
-		{
-			/* 
-			m_InterSDSlaveIndexLayout    = mat.get_slave_layout(0);
-			m_InterSDMasterIndexLayout   = mat.get_master_layout(0);
-			m_InterSDCommunicator        = mat.get_communicator(0);
-			m_InterSDProcessCommunicator = mat.get_process_communicator(0);
-			*/
-			//  TODO: "InterSD"-Layouts aus den DD-Layouts (DD-Level 1), "IntraSD"-Layouts aus den (bisherigen) "Standard-Layouts" (DD-Level 0) aufbauen!
-			// todo: generalize to more than one process per FETI subdomain
-			/* TEST (20012011ih): */
-			size_t ddlev = 0; // should be 1 sometimes ...
-			// TODO: check if layout for dd-level exists! if (ddlev >= layout.size()) {error}
-			m_InterSDSlaveIndexLayout    = mat.get_slave_layout(ddlev);
-			m_InterSDMasterIndexLayout   = mat.get_master_layout(ddlev);
-			m_InterSDCommunicator        = mat.get_communicator(ddlev);
-			m_InterSDProcessCommunicator = mat.get_process_communicator(ddlev);
-
-			// "pure" processor layouts & communicators are always at level 0 -- duerfen momentan noch nicht gesetzt sein!:
-			/* 
-			m_IntraSDSlaveIndexLayout    = mat.get_slave_layout(0);
-			m_IntraSDMasterIndexLayout   = mat.get_master_layout(0);
-			m_IntraSDCommunicator        = mat.get_communicator(0);
-			m_IntraSDProcessCommunicator = mat.get_process_communicator(0);
- */
-		}
-
-	protected:
-	//	Interfaces and Communicators of intra subdomain communication (i.e. over non "FETI-Gamma" boundaries)
-		IndexLayout m_IntraSDSlaveIndexLayout;
-		IndexLayout m_IntraSDMasterIndexLayout;
-		pcl::ProcessCommunicator m_IntraSDProcessCommunicator;
-		pcl::ParallelCommunicator<IndexLayout> m_IntraSDCommunicator;
-
-	//	Interfaces and Communicators of inter subdomain communication (i.e. over "FETI-Gamma" boundaries)
-		IndexLayout m_InterSDMasterIndexLayout;
-		IndexLayout m_InterSDSlaveIndexLayout;
-		pcl::ProcessCommunicator m_InterSDProcessCommunicator;
-		pcl::ParallelCommunicator<IndexLayout> m_InterSDCommunicator;
 
 	protected:
 		bool write_debug(const vector_type& vec, const char* filename)
