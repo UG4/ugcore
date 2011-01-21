@@ -166,7 +166,7 @@ class MultiIndex<3, size_t>
 			{
 				single_index_type i0, i1, i2;
 			};
-			single_index_type m_indices[2];
+			single_index_type m_indices[3];
 		};
 };
 
