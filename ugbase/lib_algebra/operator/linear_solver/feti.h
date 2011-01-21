@@ -235,7 +235,7 @@ class LocalSchurComplement
 			VecScaleAddOnLayout(&uTmp, &u, 1.0, u.get_master_layout(2));
 
 			// c) Multiply with full matrix
-			if(!m_pOperator.apply(f, uTmp))
+			if(!m_pOperator->apply(f, uTmp))
 			{
 				UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 								 "Could not apply full matrix on "

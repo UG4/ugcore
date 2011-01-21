@@ -164,10 +164,10 @@ class ParallelVector : public TVector
 			{m_pVerticalMasterLayout = &layout;}
 
 	///	returns the slave layout
-		IndexLayout& get_slave_layout(size_t ddlev = 0)	{return *(m_vpSlaveLayout.at(ddlev));}
+		IndexLayout& get_slave_layout(size_t ddlev = 0) const {return *(const_cast<this_type*>(this)->m_vpSlaveLayout.at(ddlev));}
 
 	///	returns the master layout
-		IndexLayout& get_master_layout(size_t ddlev = 0) {return *(m_vpMasterLayout.at(ddlev));}
+		IndexLayout& get_master_layout(size_t ddlev = 0) const {return *(const_cast<this_type*>(this)->m_vpMasterLayout.at(ddlev));}
 
 	///	returns the vertical slave layout
 		IndexLayout& get_vertical_slave_layout()	{return *m_pVerticalSlaveLayout;}
