@@ -267,7 +267,7 @@ class IDoFDistribution
 #ifdef UG_PARALLEL
 	public:
 	///	returns the number of domain decomposition level
-		size_t num_domain_decomposition_level() const {return m_vSlaveLayout.size();}
+		size_t num_layouts() const {return m_vSlaveLayout.size();}
 
 	/// returns the slave index layout for domain decompostion level
 		IndexLayout& get_slave_layout(size_t ddlev = 0)	{require_ddlev(ddlev); return m_vSlaveLayout.at(ddlev);}

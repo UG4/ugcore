@@ -247,6 +247,19 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "Dirichlet Solver||invokeOnChange=true")
 			.add_method("set_debug", &DirichletDirichletSolver<algebra_type>::set_debug);
 #endif
+	// 	LocalSchurComplement
+#ifdef UG_PARALLEL
+		{
+			typedef LocalSchurComplement<algebra_type> T;
+			reg.add_class_<	T, ILinearOperator<vector_type, vector_type> >("LocalSchurComplement", grp3.c_str())
+			.add_constructor()
+			.add_method("set_matrix|interactive=false", &T::set_matrix,
+						"", "Matrix||invokeOnChange=true")
+			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
+						"", "Dirichlet Solver||invokeOnChange=true")
+			.add_method("set_debug", &T::set_debug);
+		}
+#endif
 	}
 
 }

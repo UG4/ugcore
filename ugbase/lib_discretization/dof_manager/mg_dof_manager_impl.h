@@ -243,7 +243,7 @@ print_layout_statistic() const
 	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
 	{
 		for(size_t ddlev = 0; ddlev <
-			m_vLevelDoFDistribution[l]->num_domain_decomposition_level(); ++ddlev)
+			m_vLevelDoFDistribution[l]->num_layouts(); ++ddlev)
 		{
 			if(ddlev == 0) {UG_LOG("   " << l << "   |");}
 			else {UG_LOG("       |");}
@@ -259,7 +259,7 @@ print_layout_statistic() const
 	if(m_pSurfaceDoFDistribution != NULL)
 	{
 		for(size_t ddlev = 0; ddlev <
-			m_pSurfaceDoFDistribution->num_domain_decomposition_level(); ++ddlev)
+			m_pSurfaceDoFDistribution->num_layouts(); ++ddlev)
 		{
 			UG_LOG("  " << ddlev << "  | ");
 			print_layout_statistic(*m_pSurfaceDoFDistribution, ddlev);

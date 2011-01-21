@@ -228,8 +228,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 
 			//	set inter subdomain communication (added 07122010ih) - always before "FETI operations"
 			// (hier und nicht erst am Schluss der Schleife, evt. wichtig fuer andere Startwerte von lambda!)
-				//x.set_domain_decomposition_level(1);
-				//ModRhs.set_domain_decomposition_level(1);
+				//x.use_layout(1);
+				//ModRhs.use_layout(1);
 
 
 			//	write debug
@@ -239,8 +239,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				add_flux_to_rhs(ModRhs, lambda);
 
 			//	set intra subdomain communication - always before solution step
-				x.set_domain_decomposition_level(0);
-				ModRhs.set_domain_decomposition_level(0);
+				x.use_layout(0);
+				ModRhs.use_layout(0);
 
 			//	Solve Neumann problem on FETI subdomain
 				if(!m_pNeumannSolver->apply_return_defect(x, ModRhs))
@@ -255,8 +255,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				write_debug(x, "FetiNeumann");
 
 			//	set inter subdomain communication
-				x.set_domain_decomposition_level(1);
-				ModRhs.set_domain_decomposition_level(1);
+				x.use_layout(1);
+				ModRhs.use_layout(1);
 
 			//	Set Dirichlet values for Rhs, zero else
 				copy_dirichlet_values_and_zero(ModRhs, x);
@@ -287,8 +287,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 					break;
 
 			//	set intra subdomain communication
-				x.set_domain_decomposition_level(0);
-				ModRhs.set_domain_decomposition_level(0);
+				x.use_layout(0);
+				ModRhs.use_layout(0);
 
 			//	Solve Dirichlet problem on FETI subdomain
 				if(!m_pDirichletSolver->apply_return_defect(x, ModRhs))
@@ -303,8 +303,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				write_debug(x, "FetiDirichlet");
 
 			//	set inter subdomain communication
-				x.set_domain_decomposition_level(1);
-				eta.set_domain_decomposition_level(1);
+				x.use_layout(1);
+				eta.use_layout(1);
 
 			//	Compute update for lambda: eta = A*x (to be more specific: \eta_i^{n+1} = A_{\Gamma I}^{(i)} w_i^{n+1} + A_{\Gamma \Gamma}^{(i)} r_{\Gamma})
 				m_pMatrix->apply(eta, x);
@@ -372,8 +372,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain 
 				scale = -1.0;
 
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
+			VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
+			VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
 		}
 
 	//	subtract solution on other processes from own value on gamma
@@ -393,14 +393,14 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		void copy_dirichlet_values_and_zero(vector_type& ModRhs, const vector_type& r)
 		{
 			ModRhs.set(0.0);
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
-			VecScaleAddOnLayoutWithoutCommunication(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
+			VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
+			VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
 		}
 
 		void set_dirichlet_rows_on_gamma(matrix_type& mat)
 		{
-			MatSetDirichletWithoutCommunication(&mat, mat.get_slave_layout(1));
-			MatSetDirichletWithoutCommunication(&mat, mat.get_master_layout(1));
+			MatSetDirichletOnLayout(&mat, mat.get_slave_layout(1));
+			MatSetDirichletOnLayout(&mat, mat.get_master_layout(1));
 		}
 
 	protected:

@@ -73,12 +73,12 @@ class ParallelMatrix : public TMatrix
 		//////////////////////////////
 
 	///	returns the number of domain decomposition level
-		size_t num_domain_decomposition_level() const
+		size_t num_layouts() const
 		{
 		//	check that level exists
 			if(m_vpSlaveLayout.size() != m_vpMasterLayout.size())
 			{
-				UG_LOG("ERROR in 'set_domain_decomposition_level':"
+				UG_LOG("ERROR in 'use_layout':"
 						" Different numbers of Master and Slave Layouts.\n");
 				throw(UGFatalError("Cannot determine number of Domain Decomp"));
 			}
@@ -86,12 +86,12 @@ class ParallelMatrix : public TMatrix
 		}
 
 	///	sets the domain decomposition level to be used
-		bool set_domain_decomposition_level(size_t ddlev)
+		bool use_layout(size_t ddlev)
 		{
 		//	check that level exists
-			if(!(ddlev < num_domain_decomposition_level()))
+			if(!(ddlev < num_layouts()))
 			{
-				UG_LOG("ERROR in 'set_domain_decomposition_level':"
+				UG_LOG("ERROR in 'use_layout':"
 						" accessing level, that does not exist.\n");
 				return false;
 			}
@@ -99,7 +99,7 @@ class ParallelMatrix : public TMatrix
 		//	check that layouts are really set
 			if(m_vpSlaveLayout.at(ddlev) == NULL || m_vpMasterLayout.at(ddlev) == NULL)
 			{
-				UG_LOG("ERROR in 'set_domain_decomposition_level':"
+				UG_LOG("ERROR in 'use_layout':"
 						" Although level exist, layouts are not set.\n");
 				return false;
 			}

@@ -253,7 +253,7 @@ void VecSubtractOnLayout(	TVector* pVec,
  * \param[in]		Layout			Index Layout
  */
 template <typename TVector>
-void VecScaleAddOnLayoutWithoutCommunication(	TVector* pVecDest, const TVector* pVecSrc,
+void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
 												number scale, IndexLayout& Layout)
 {
 //	interface iterators
@@ -293,7 +293,7 @@ void VecScaleAddOnLayoutWithoutCommunication(	TVector* pVecDest, const TVector* 
  * \param[in]		Layout		Index Layout
  */
 template <typename TMatrix>
-void MatSetDirichletWithoutCommunication(	TMatrix* pMatrix,
+void MatSetDirichletOnLayout(	TMatrix* pMatrix,
 											IndexLayout& Layout)
 {
 //	interface iterator

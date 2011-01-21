@@ -60,6 +60,7 @@
 
 // feti solver
 #include "linear_solver/dirichletdirichlet.h"
+#include "linear_solver/feti.h"
 
 #include "operator_util.h"
 
