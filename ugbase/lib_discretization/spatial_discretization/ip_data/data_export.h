@@ -31,7 +31,6 @@ class IDataExport : virtual public IDependentIPData
 	public:
 	///	Constructor
 		IDataExport() : m_id(-1), m_pObj(NULL) {}
-		~IDataExport()	{}
 
 	/// clear ips
 		virtual void clear_export_ips() = 0;
