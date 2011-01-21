@@ -232,20 +232,20 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("set_convergence_check|interactive=false", &LUSolver<algebra_type>::set_convergence_check,
 						"", "Check||invokeOnChange=true");
 
-	// 	FETISolver
+	// 	DirichletDirichletSolver
 #ifdef UG_PARALLEL
-			reg.add_class_<	FETISolver<algebra_type>,
-						ILinearOperatorInverse<vector_type, vector_type> >("FETI", grp3.c_str())
+			reg.add_class_<	DirichletDirichletSolver<algebra_type>,
+						ILinearOperatorInverse<vector_type, vector_type> >("DirichletDirichlet", grp3.c_str())
 			.add_constructor()
-			.add_method("set_convergence_check|interactive=false", &FETISolver<algebra_type>::set_convergence_check,
+			.add_method("set_convergence_check|interactive=false", &DirichletDirichletSolver<algebra_type>::set_convergence_check,
 						"", "Check||invokeOnChange=true")
-			.add_method("set_theta|interactive=false", &FETISolver<algebra_type>::set_theta,
+			.add_method("set_theta|interactive=false", &DirichletDirichletSolver<algebra_type>::set_theta,
 						"", "Theta||invokeOnChange=true")
-			.add_method("set_neumann_solver|interactive=false", &FETISolver<algebra_type>::set_neumann_solver,
+			.add_method("set_neumann_solver|interactive=false", &DirichletDirichletSolver<algebra_type>::set_neumann_solver,
 						"", "Neumann Solver||invokeOnChange=true")
-			.add_method("set_dirichlet_solver|interactive=false", &FETISolver<algebra_type>::set_dirichlet_solver,
+			.add_method("set_dirichlet_solver|interactive=false", &DirichletDirichletSolver<algebra_type>::set_dirichlet_solver,
 						"", "Dirichlet Solver||invokeOnChange=true")
-			.add_method("set_debug", &FETISolver<algebra_type>::set_debug);
+			.add_method("set_debug", &DirichletDirichletSolver<algebra_type>::set_debug);
 #endif
 	}
 

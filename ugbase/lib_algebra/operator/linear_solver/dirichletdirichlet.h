@@ -1,12 +1,12 @@
 /*
- * feti.h
+ * dirichletdirichlet.h
  *
  *  Created on: 11.11.2010
  *      Author: iheppner, avogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__
+#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__DIRICHLETDIRICHLET__
+#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__DIRICHLETDIRICHLET__
 
 namespace ug{
 
@@ -19,9 +19,9 @@ namespace ug{
 #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_algebra/operator/debug_writer.h"
 
-/// FETISolver implements (to be honest only) a Dirichlet-Dirichlet-solver.
+/// DirichletDirichletSolver implements (to be honest only) a Dirichlet-Dirichlet-solver.
 /**
- * FETISolver implements a Dirichlet-Dirichlet-solver for a partitioning
+ * DirichletDirichletSolver implements a Dirichlet-Dirichlet-solver for a partitioning
  * into two nonoverlapping subdomains (e.g. "FETI subdomains"). See e.g.
  * "Domain Decomposition Methods -- Algorithms and Theory",
  * A. Toselli, O. Widlund, Springer 2004, sec. 1.3.5, p. 12ff.
@@ -43,7 +43,7 @@ namespace ug{
  * \TAlgebra	type of algebra (template parameter), e.g. CPUAlgebra.
  */
 template <typename TAlgebra>
-class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
+class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 													typename TAlgebra::vector_type,
 													typename TAlgebra::matrix_type>
 {
@@ -59,7 +59,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	public:
 	///	constructor
-		FETISolver() :
+		DirichletDirichletSolver() :
 			m_theta(1.0), m_A(NULL), m_pNeumannSolver(NULL),
 			m_pDirichletSolver(NULL), m_pConvCheck(NULL),
 			m_pDebugWriter(NULL)
@@ -122,7 +122,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			if(m_pNeumannSolver != NULL)
 				if(!m_pNeumannSolver->init(*m_A))
 				{
-					UG_LOG("ERROR in 'FETISolver::init': Cannot init "
+					UG_LOG("ERROR in 'DirichletDirichletSolver::init': Cannot init "
 							"Sequential Neumann Solver for Operator A.\n");return false;
 				}
 
@@ -130,14 +130,14 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			if(m_pDirichletSolver != NULL)
 				if(!m_pDirichletSolver->init(m_DirichletOperator))
 				{
-					UG_LOG("ERROR in 'FETISolver::init': Cannot init "
+					UG_LOG("ERROR in 'DirichletDirichletSolver::init': Cannot init "
 							"Sequential Dirichlet Solver for Operator A.\n");return false;
 				}
 
 		//	check that solvers are different
 			if(m_pNeumannSolver == m_pDirichletSolver)
 			{
-				UG_LOG("ERROR in 'FETISolver:prepare': Solver for dirichlet"
+				UG_LOG("ERROR in 'DirichletDirichletSolver:prepare': Solver for dirichlet"
 						" and neumann problem must be different instances.\n");
 				return false;
 			}
@@ -158,31 +158,31 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	///	solves the system and returns the last defect of iteration in rhs
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
-			UG_LOG("INFO: parameter 'theta' used in 'FETISolver::apply_return_defect' is '" << m_theta << "' (TMP)\n");
+			UG_LOG("INFO: parameter 'theta' used in 'DirichletDirichletSolver::apply_return_defect' is '" << m_theta << "' (TMP)\n");
 
 		//	check that matrix has been set
 			if(m_A == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': Matrix A not set.\n");
+				UG_LOG("ERROR: In 'DirichletDirichletSolver::apply_return_defect': Matrix A not set.\n");
 				return false;
 			}
 
 		//	check that sequential solver has been set
 			if(m_pNeumannSolver == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': No sequential Neumann Solver set.\n");
+				UG_LOG("ERROR: In 'DirichletDirichletSolver::apply_return_defect': No sequential Neumann Solver set.\n");
 				return false;
 			}
 			if(m_pDirichletSolver == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': No sequential Dirichlet Solver set.\n");
+				UG_LOG("ERROR: In 'DirichletDirichletSolver::apply_return_defect': No sequential Dirichlet Solver set.\n");
 				return false;
 			}
 
 		//	check that convergence check is set
 			if(m_pConvCheck == NULL)
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply_return_defect':"
+				UG_LOG("ERROR: In 'DirichletDirichletSolver::apply_return_defect':"
 						" Convergence check not set.\n");
 				return false;
 			}
@@ -190,7 +190,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	Check parallel storage type of vectors
 			if(!b.has_storage_type(PST_ADDITIVE) || !x.has_storage_type(PST_CONSISTENT))
 			{
-				UG_LOG("ERROR: In 'FETISolver::apply_return_defect': "
+				UG_LOG("ERROR: In 'DirichletDirichletSolver::apply_return_defect': "
 						"Inadequate storage format of Vectors.\n");
 				return false;
 			}
@@ -245,7 +245,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//	Solve Neumann problem on FETI subdomain
 				if(!m_pNeumannSolver->apply_return_defect(x, ModRhs))
 				{
-					UG_LOG_ALL_PROCS("ERROR in 'FETISolver::apply_return_defect': "
+					UG_LOG_ALL_PROCS("ERROR in 'DirichletDirichletSolver::apply_return_defect': "
 									 "Could not solve Neumann problem on proc " << pcl::GetProcRank() << ".\n");
 					return false;
 				}
@@ -293,7 +293,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//	Solve Dirichlet problem on FETI subdomain
 				if(!m_pDirichletSolver->apply_return_defect(x, ModRhs))
 				{
-					UG_LOG_ALL_PROCS("ERROR in 'FETISolver::apply_return_defect': "
+					UG_LOG_ALL_PROCS("ERROR in 'DirichletDirichletSolver::apply_return_defect': "
 									 "Could not solve Dirichlet problem on proc " << pcl::GetProcRank() << ".\n");
 					return false;
 				}
@@ -321,7 +321,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	Post Output
 			if(!m_pConvCheck->post())
 			{
-				UG_LOG("ERROR in 'FETISolver::apply_return_defect': "
+				UG_LOG("ERROR in 'DirichletDirichletSolver::apply_return_defect': "
 						"post-convergence-check signaled failure. Aborting.\n");
 				return false;
 			}
@@ -342,7 +342,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		}
 
 		// destructor
-		virtual ~FETISolver() {};
+		virtual ~DirichletDirichletSolver() {};
 
 	protected:
 	//	Prepare the convergence check
@@ -450,4 +450,4 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 } // end namespace ug
 
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__FETI__ */
+#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__DIRICHLETDIRICHLET__ */

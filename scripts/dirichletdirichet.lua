@@ -397,16 +397,16 @@ fetiConvCheck:set_maximum_steps(50)
 fetiConvCheck:set_minimum_defect(1e-9)
 fetiConvCheck:set_reduction(1e-12)
 
--- create FETI Solver
-fetiSolver = FETI()
-fetiSolver:set_theta(0.22)
-fetiSolver:set_convergence_check(fetiConvCheck)
-fetiSolver:set_neumann_solver(cgSolver)
-fetiSolver:set_dirichlet_solver(cg2Solver)
-fetiSolver:set_debug(dbgWriter)
+-- create DirichletDirichlet Solver
+dirichletdirichletSolver = DirichletDirichlet()
+dirichletdirichletSolver:set_theta(0.22)
+dirichletdirichletSolver:set_convergence_check(fetiConvCheck)
+dirichletdirichletSolver:set_neumann_solver(cgSolver)
+dirichletdirichletSolver:set_dirichlet_solver(cg2Solver)
+dirichletdirichletSolver:set_debug(dbgWriter)
 
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, fetiSolver)
+ApplyLinearSolver(linOp, u, b, dirichletdirichletSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")
