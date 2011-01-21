@@ -33,7 +33,7 @@ namespace ug{
  */
 template <typename TFVGeometry>
 bool GetUpwindShapes(	const TFVGeometry& geo,
-                                        const MathVector<TFVGeometry::world_dim> vCornerValues[TFVGeometry::m_numSCV],
+                                        const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
                                         const int UpwindMethod,
                                         MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
                                         number ConvectionLength[TFVGeometry::m_numSCV])
@@ -47,7 +47,7 @@ bool GetUpwindShapes(	const TFVGeometry& geo,
     // Compute Upwind Shapes at Ip's and ConvectionLength here
 	switch(UpwindMethod)
 	{
-		case FULL_UPWIND:   if(!GetFullUpwindShapes(geo, vCornerValues, vIPVelUpwindShapes, ConvectionLength))
+		case FULL_UPWIND:   if(!GetFullUpwindShapes(geo, vCornerVels, vIPVelUpwindShapes, ConvectionLength))
                                 return false;
                             break;
         default: 	UG_LOG("Upwind Type defined incorrecrly.\n");

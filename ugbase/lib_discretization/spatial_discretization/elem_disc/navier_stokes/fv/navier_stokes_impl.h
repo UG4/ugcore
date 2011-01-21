@@ -119,21 +119,22 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
 
 	// Some Variables
-	MathVector<dim> vCornerValues[numSCVF];
-	MathVector<dim> vIPVelCurrent[numSCVF];
-	MathVector<dim> vIPVelOld[numSCVF];
-    number vConvLength[numSCVF];
+
+    MathVector<dim> vCornerVels[numSCVF];
+	MathVector<dim> vCornerVelsOld[numSCVF];
+    number          vCornerPress[numCo];
+    number          vConvLength[numSCVF];
 //    MathVector<dim> vIPVelUpwindShapesMomEq[numSCVF][numCo][dim];
     MathVector<dim> vIPVelUpwindShapesContiEq[numSCVF][numCo][dim];
     MathVector<dim> vIPStabVelShapesContiEq[numSCVF][numCo][dim+1];
 
-    // compute velocities at ips
-
-   	// todo: Compute IP Velocity of Current Velocity at ip
-    // MathVector<dim> vCurrentIPVel[numSCVF]=...
+   	// Store Corner values in vCornerVels variable
+    for(size_t co = 0; co < numCo; ++co)
+        for (size_t component = 0; component < dim; ++component)
+            vCornerVels[co][component]=u(component,co);
 
 	// Compute Upwind Shapes at Ip's and ConvectionLength here fot the Momentum Equation
-    GetUpwindShapes(geo, vCornerValues, m_UpwindMethod, vIPVelUpwindShapesContiEq, vConvLength);
+    GetUpwindShapes(geo, vCornerVels, m_UpwindMethod, vIPVelUpwindShapesContiEq, vConvLength);
 
 	// todo: Implement for timedependent
 	bool bTimeDependent = false;
@@ -141,8 +142,8 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 	// todo: switch
 	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-	GetStabilizedShapes(	geo, vCornerValues, vIPVelCurrent, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
-									dt, bTimeDependent, vIPVelOld,
+	GetStabilizedShapes(	geo, vCornerVels, vCornerPress, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+									dt, bTimeDependent, vCornerVelsOld,
 									m_Viscosity,
                                     vIPStabVelShapesContiEq);
 

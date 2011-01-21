@@ -80,7 +80,7 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 
 template <typename TFVGeometry>
 bool GetFullUpwindShapes(	const TFVGeometry& geo,
-                                        const MathVector<TFVGeometry::world_dim> vCornerValues[TFVGeometry::m_numSCV],
+                                        const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
                                         MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
                                         number ConvectionLength[TFVGeometry::m_numSCV])
 {
@@ -96,7 +96,7 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
             vIPVelUpwindShapes[i][sh][0][0] = 0.0;
 
         // switch upwind
-        const number flux = VecDot(scvf.normal(), vCornerValues[i]);
+        const number flux = VecDot(scvf.normal(), vCornerVels[i]);
         if(flux > 0.0)
             vIPVelUpwindShapes[i][scvf.from()][0][0] = 1.0;
         else
