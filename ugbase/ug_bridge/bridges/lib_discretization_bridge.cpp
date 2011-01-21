@@ -59,6 +59,16 @@ class ProcIDToSubdomainID_FromBisection
 		int m_numProcsPerSubdomain;
 };
 
+int NumProcesses()
+{
+	int numProcs = 1;
+#ifdef UG_PARALLEL
+	numProcs = pcl::GetNumProcesses();
+#endif
+
+	return numProcs;
+}
+
 template <class domain_type>
 void EnableDomainDecomposition(IApproximationSpace<domain_type>& approxSpace,
 								int numSubdomains)
@@ -1528,6 +1538,9 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 	//  Add discrete function to pattern
 		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
 		reg.add_function("AddP1FunctionOnSubsets", &AddP1FunctionOnSubsets, grp.c_str());
+
+	//	Number of Processes
+		reg.add_function("NumProcesses", &NumProcesses, grp.c_str());
 
 	//  Debug function
 		reg.add_function("SetDebugLevel", &SetDebugLevel, grp.c_str());
