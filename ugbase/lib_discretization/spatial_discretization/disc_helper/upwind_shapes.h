@@ -80,9 +80,9 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 
 template <typename TFVGeometry>
 bool GetFullUpwindShapes(	const TFVGeometry& geo,
-						const MathVector<TFVGeometry::world_dim> IPVel[],
-						std::vector<std::vector<number> >& CornerShape,
-                        number ConvectionLength[TFVGeometry::m_numSCV])
+                                        const MathVector<TFVGeometry::world_dim> vCornerValues[TFVGeometry::m_numSCV],
+                                        MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
+                                        number ConvectionLength[TFVGeometry::m_numSCV])
 {
 	// set shapes
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -93,14 +93,14 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
 
         // reset shapes to zero
         for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-            CornerShape[i][sh] = 0.0;
+            vIPVelUpwindShapes[i][sh][0][0] = 0.0;
 
         // switch upwind
-        const number flux = VecDot(scvf.normal(), IPVel[i]);
+        const number flux = VecDot(scvf.normal(), vCornerValues[i]);
         if(flux > 0.0)
-            CornerShape[i][scvf.from()] = 1.0;
+            vIPVelUpwindShapes[i][scvf.from()][0][0] = 1.0;
         else
-            CornerShape[i][scvf.to()] = 1.0;
+            vIPVelUpwindShapes[i][scvf.to()][0][0] = 1.0;
     }
 
 	return true;
