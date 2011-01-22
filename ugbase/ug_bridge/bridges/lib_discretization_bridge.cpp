@@ -1499,7 +1499,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
-		UG_LOG("### ERROR in RegisterLibDiscretizationInterface: "
+		UG_LOG("### ERROR in RegisterLibDiscretizationInterfaceForAlgebra: "
 				"Registration failed (using name " << ex.name << ").\n");
 		return false;
 	}
