@@ -47,7 +47,7 @@ void TestLayout(pcl::ParallelCommunicator<IndexLayout> &com, TLayout &masterLayo
 	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 	{
 		Interface &interface = slaveLayout.interface(iter);
-		size_t pid = slaveLayout.proc_id(iter);
+		int pid = slaveLayout.proc_id(iter);
 		BinaryStream &stream = *sendpack.get_stream(pid);
 		if(bPrint) UG_LOG(pid << " ");
 
@@ -63,7 +63,7 @@ void TestLayout(pcl::ParallelCommunicator<IndexLayout> &com, TLayout &masterLayo
 
 	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
-		size_t pid = masterLayout.proc_id(iter);
+		int pid = masterLayout.proc_id(iter);
 		UG_LOG(pid << " ");
 		com.receive_raw(pid, *receivepack.get_stream(pid));
 	}
@@ -75,7 +75,7 @@ void TestLayout(pcl::ParallelCommunicator<IndexLayout> &com, TLayout &masterLayo
 	bool layout_broken=false;
 	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
-		size_t pid = masterLayout.proc_id(iter);
+		int pid = masterLayout.proc_id(iter);
 		BinaryStream &stream = *receivepack.get_stream(pid);
 		bool broken=false;
 		if(bPrint) UG_LOG("Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n");
@@ -169,7 +169,7 @@ void GenerateOverlap_CollectData(pcl::ParallelCommunicator<IndexLayout> &com, ma
 	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
 	{
 		Interface &interface = layout.interface(iter);
-		size_t pid = layout.proc_id(iter);
+		int pid = layout.proc_id(iter);
 
 		// create interface in overlapLayout with same destination pid
 		Interface &overlapInterface = overlapLayout.interface(pid);
@@ -258,7 +258,7 @@ void GenerateOverlap_GetNewIndices(StreamPack &receivepack, IndexLayout &overlap
 
 	for(StreamPack::iterator iter = receivepack.begin(); iter != receivepack.end(); ++iter)
 	{
-		size_t pid = iter->first;
+		int pid = iter->first;
 		// copy stream (bug in BinaryStream, otherwise I would use stream.seekg(ios::begin)
 		BinaryStream &stream2 = *iter->second;
 		BinaryStream stream; stream.write((const char*)stream2.buffer(), stream2.size());
@@ -324,7 +324,7 @@ void GenerateOverlap_AddMatrixRows(StreamPack &receivepack, matrix_type &newMat,
 	size_t j;
 	for(StreamPack::iterator iter = receivepack.begin(); iter != receivepack.end(); ++iter)
 	{
-		size_t pid = iter->first;
+		int pid = iter->first;
 		BinaryStream &stream = *iter->second;
 
 		UG_DLOG(LIB_ALG_MATRIX, 4, "processing data for master interface with processor " << pid << ". size is " << stream.size() << "\n");
@@ -437,7 +437,7 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 	//-----------------
 	for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 	{
-		size_t pid = masterLayout.proc_id(iter);
+		int pid = masterLayout.proc_id(iter);
 		com.receive_raw(pid, *receivepack.get_stream(pid));
 	}
 
