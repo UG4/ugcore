@@ -223,35 +223,35 @@ VTKOutput<TDiscreteFunction>::
 write_subset(FILE* File, discrete_function_type& u, int si, int dim)
 {
 	// Read sizes
-	UG_DLOG(LIB_DISC_OUTPUT, 1, " Initiallizing subset.\n");
+	UG_DLOG(LIB_DISC_OUTPUT, 1, "***** Initiallizing subset. *****\n");
 	if(init_subset(u, si, dim) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not init subset" << std::endl);
 		return false;
 	}
 
-	UG_DLOG(LIB_DISC_OUTPUT, 1, " Writing prolog.\n");
+	UG_DLOG(LIB_DISC_OUTPUT, 1, "***** Writing prolog. *****\n");
 	if(write_piece_prolog(File) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Prolog" << std::endl);
 		return false;
 	}
 
-	UG_DLOG(LIB_DISC_OUTPUT, 1, " Writing points.\n");
+	UG_DLOG(LIB_DISC_OUTPUT, 1, "***** Writing points. *****\n");
 	if(write_points(File, u, si, dim) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Points" << std::endl);
 		return false;
 	}
 
-	UG_DLOG(LIB_DISC_OUTPUT, 1, " Writing elements.\n");
+	UG_DLOG(LIB_DISC_OUTPUT, 1, "***** Writing elements. *****\n");
 	if(write_elements(File, u, si, dim) != true)
 	{
 		UG_LOG("ERROR (in VTKOutput::print(...)): Can not write Elements" << std::endl);
 		return false;
 	}
 
-	UG_DLOG(LIB_DISC_OUTPUT, 1, " Writing nodal values of " << u.num_fct() << " solutions.\n");
+	UG_DLOG(LIB_DISC_OUTPUT, 1, "***** Writing nodal values of " << u.num_fct() << " solutions. *****\n");
 	fprintf(File, "      <PointData>\n");
 	for(uint fct = 0; fct < u.num_fct(); ++fct)
 	{
@@ -330,11 +330,31 @@ write_points(FILE* File, discrete_function_type& u, int si, int dim)
 	switch(dim)
 	{
 		case 1:
-			write_points_elementwise<Edge>(File, u, u.template begin<Edge>(si), u.template end<Edge>(si), n);
+			UG_DLOG(LIB_DISC_OUTPUT, 3, "\n -------- Writing Edge Points of " << u.template num<Edge>(si) << " Edge -------\n");
+			if(!this->write_points_elementwise<Edge>(File, u, u.template begin<Edge>(si), u.template end<Edge>(si), n))
+			{
+				UG_LOG("ERROR in write_points: Something wrong with Edge points.\n");
+				return false;
+			}
+			else
+			{
+				UG_LOG("NO ERROR in write_points: Edge points are ok.\n");
+			}
 			break;
 		case 2:
-			write_points_elementwise<Triangle>(File, u, u.template begin<Triangle>(si), u.template end<Triangle>(si), n);
-			write_points_elementwise<Quadrilateral>(File, u, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), n);
+			UG_DLOG(LIB_DISC_OUTPUT, 3, "\n -------- Writing Triangle Points of " << u.template num<Triangle>(si) << " Triangles -------\n");
+			if(!this->write_points_elementwise<Triangle>(File, u, u.template begin<Triangle>(si), u.template end<Triangle>(si), n))
+			{
+				UG_LOG("ERROR in write_points: Something wrong with Triangle points.\n");
+				return false;
+			}
+			UG_DLOG(LIB_DISC_OUTPUT, 3, "\n -------- Writing Quadrilateral Points of " << u.template num<Quadrilateral>(si) << " Quads -------\n");
+			if(!this->write_points_elementwise<Quadrilateral>(File, u, u.template begin<Quadrilateral>(si), u.template end<Quadrilateral>(si), n))
+			{
+				UG_LOG("ERROR in write_points: Something wrong with Quadrilateral points.\n");
+				return false;
+			}
+			UG_DLOG(LIB_DISC_OUTPUT, 3, "\n -------- Writing Quads processed -------\n");
 			break;
 		case 3:
 			write_points_elementwise<Tetrahedron>(File, u, u.template begin<Tetrahedron>(si), u.template end<Tetrahedron>(si), n);
@@ -515,15 +535,17 @@ write_points_elementwise(FILE* File, discrete_function_type& u,
 							typename geometry_traits<TElem>::const_iterator iterBegin,
 							typename geometry_traits<TElem>::const_iterator iterEnd, int& n)
 {
+	UG_DLOG(LIB_DISC_OUTPUT, 3, "Entering function write_points_elementwise....\n");
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 	typedef typename discrete_function_type::domain_type domain_type;
 	typename domain_type::position_accessor_type& aaPos = u.get_approximation_space().get_domain().get_position_accessor();
 
 	// write points and remember numbering
-	assert(m_aaDOFIndexVRT.valid());
+	UG_ASSERT(m_aaDOFIndexVRT.valid(), "Missing attachment");
 	typename domain_type::position_type Pos;
 	float co;
 	m_grid->begin_marking();
+	UG_DLOG(LIB_DISC_OUTPUT, 3, "Looping elements ....\n");
 	for( ; iterBegin != iterEnd; ++iterBegin)
 	{
 		TElem *elem = *iterBegin;
@@ -537,7 +559,7 @@ write_points_elementwise(FILE* File, discrete_function_type& u,
 			m_aaDOFIndexVRT[v] = n++;
 			Pos = aaPos[v];
 
-			UG_DLOG(LIB_DISC_OUTPUT, 3, "Writing Vertex Nr. " << n-1 << " with position " << ".\n");
+			UG_DLOG(LIB_DISC_OUTPUT, 3, "Writing Vertex Nr. " << n-1 << " with position " << Pos <<".\n");
 
 			for(int i = 0; i < domain_type::dim; ++i)
 			{
@@ -551,12 +573,18 @@ write_points_elementwise(FILE* File, discrete_function_type& u,
 			}
 		}
 	}
-	UG_DLOG(LIB_DISC_OUTPUT, 3, " ---- " << n << " Vertices (Nr. 0 - " << (n-1) << ") written to file ----\n");
+	if(n > 0){
+		UG_DLOG(LIB_DISC_OUTPUT, 3, " ---- " << n << " Vertices (Nr. 0 - " << (n-1) << ") written to file ----\n");}
+	else{
+		UG_DLOG(LIB_DISC_OUTPUT, 3, " ---- " << n << " Vertices written to file ----\n");}
+
 	BStreamFlush(File);
 	m_grid->end_marking();
 
+	UG_DLOG(LIB_DISC_OUTPUT, 3, "Leaving function write_points_elementwise....\n");
 	return true;
 }
+
 
 template <typename TDiscreteFunction>
 template <class TElem>
