@@ -440,6 +440,7 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 
 }
 
+/*
 void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh)
 {
 //	first we'll assign all volumes to subset -1.
@@ -511,7 +512,7 @@ void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh)
 		subsetIndex++;
 	}
 }
-
+*/
 void AssignRegionToSubset(Grid& grid, ISubsetHandler& shVolsOut,
 						  const ISubsetHandler& shFaces,
 						  Volume* proxyVol, int newSubsetIndex)

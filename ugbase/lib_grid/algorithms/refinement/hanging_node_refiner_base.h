@@ -8,12 +8,16 @@
 #include <queue>
 #include "lib_grid/lg_base.h"
 #include "refinement_callbacks.h"
+#include "refiner_interface.h"
 
 namespace ug
 {
 
-class HangingNodeRefinerBase : public GridObserver
+class HangingNodeRefinerBase : public GridObserver, public IRefiner
 {
+	public:
+		using IRefiner::mark_for_refinement;
+
 	public:
 		HangingNodeRefinerBase(IRefinementCallback* refCallback = NULL);
 		virtual ~HangingNodeRefinerBase();
@@ -23,14 +27,15 @@ class HangingNodeRefinerBase : public GridObserver
 		void set_refinement_callback(IRefinementCallback* refCallback);
 		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
 
-		void clear_marks();
-		void mark_for_refinement(EdgeBase* e);
-		void mark_for_refinement(Face* f);
-		void mark_for_refinement(Volume* v);
+		virtual void clear_marks();
+	///	Marks an edge for refinement.
+		virtual void mark_for_refinement(EdgeBase* e);
 
-	///	the value-type of TIterator has to be a pointer to a type derived from either EdgeBase, Face or Volume.
-		template <class TIterator>
-		void mark_for_refinement(const TIterator& iterBegin, const TIterator& iterEnd);
+	///	Marks a face for refinement.
+		virtual void mark_for_refinement(Face* f);
+
+	///	Marks a volume for refinement.
+		virtual void mark_for_refinement(Volume* v);
 
 	///	performs refinement on the marked elements.
 	/**
@@ -108,7 +113,7 @@ class HangingNodeRefinerBase : public GridObserver
 	//	before calling these methods.
 	//	you should use this methods instead of directly marking elements.
 		inline bool is_marked(EdgeBase* e)					{return m_selMarkedElements.is_selected(e);}
-		virtual void mark(EdgeBase* e)						{m_selMarkedElements.select(e);}
+		inline void mark(EdgeBase* e)						{mark_for_refinement(e);}
 
 	///	Returns the vertex associated with the edge
 	/**	pure virtual method.
@@ -120,7 +125,7 @@ class HangingNodeRefinerBase : public GridObserver
 		virtual void set_center_vertex(EdgeBase* e, VertexBase* v) = 0;
 
 		inline bool is_marked(Face* f)						{return m_selMarkedElements.is_selected(f);}
-		virtual void mark(Face* f)							{m_selMarkedElements.select(f);}
+		inline void mark(Face* f)							{mark_for_refinement(f);}
 
 	///	Returns the vertex associated with the face
 	/**	pure virtual method.
@@ -131,8 +136,8 @@ class HangingNodeRefinerBase : public GridObserver
 	///	Associates a vertex with the face (pure virtual).
 		virtual void set_center_vertex(Face* f, VertexBase* v) = 0;
 
-		inline bool is_marked(Volume* v)							{return m_selMarkedElements.is_selected(v);}
-		virtual void mark(Volume* v)								{m_selMarkedElements.select(v);}
+		inline bool is_marked(Volume* v)					{return m_selMarkedElements.is_selected(v);}
+		inline void mark(Volume* v)						{mark_for_refinement(v);}
 
 	/**	used during collect_objects_for_refine.
 	 *	unmarked associated elements of the elements between elemsBegin and
@@ -161,27 +166,11 @@ class HangingNodeRefinerBase : public GridObserver
 
 	protected:
 		Selector	m_selMarkedElements;
-		IRefinementCallback*	m_refCallback;
 
 	private:
 		Grid*		m_pGrid;
 };
 
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-//	implementation of template methods.
-template <class TIterator>
-void HangingNodeRefinerBase::mark_for_refinement(const TIterator& iterBegin,
-												const TIterator& iterEnd)
-{
-	TIterator iter = iterBegin;
-	while(iter != iterEnd)
-	{
-		mark_for_refinement(*iter);
-		++iter;
-	}
-}
 
 }//	end of namespace
 

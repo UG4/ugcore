@@ -211,6 +211,75 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
 	}
 }
 
+template <class TElem>
+void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh)
+{
+	using namespace std;
+
+//	the element type of separating elements
+	typedef typename TElem::lower_dim_base_object	TSide;
+
+//	assign all elements to subset -1
+	sh.assign_subset(grid.begin<TElem>(), grid.end<TElem>(), -1);
+
+//	we'll keep all unassigned volumes in a selector.
+	Selector sel(grid);
+	sel.select(grid.begin<TElem>(), grid.end<TElem>());
+
+//	those vectors will be used to gather element neighbours.
+	vector<TSide*> vSides;
+	vector<TElem*> vElems;
+
+//	this stack contains all volumes that we still have to check for neighbours.
+	stack<TElem*> stkElems;
+
+//	now - while there are unassigned elements.
+	int subsetIndex = 0;
+	while(!sel.empty())
+	{
+	//	choose the element with which we want to start
+	//	TODO: if material-points are supplied, this should be the
+	//		the element that contains the i-th material point.
+		stkElems.push(*sel.begin<TElem>());
+		while(!stkElems.empty())
+		{
+			TElem* elem = stkElems.top();
+			stkElems.pop();
+		//	if the volume is unselected it has already been processed.
+			if(!sel.is_selected(elem))
+				continue;
+			sel.deselect(elem);
+
+		//	assign elem to its new subset
+			sh.assign_subset(elem, subsetIndex);
+
+		//	check neighbour-elements, whether they belong to the same subset.
+		//	iterate through the sides of the element
+			for(uint i = 0; i < elem->num_sides(); ++i)
+			{
+			//	get the i-th side
+				TSide* side = grid.get_side(elem, i);
+
+			//	if it belongs to a subset other that -1, it is a separator.
+			//	if fd is not corresponding to a separator, we'll add all connected volumes
+				if(sh.get_subset_index(side) == -1)
+				{
+					CollectAssociated(vElems, grid, side);
+
+				//	add all elements that are still selected (elem is not selected anymore).
+					for(uint j = 0; j < vElems.size(); ++j)
+					{
+						if(sel.is_selected(vElems[j]))
+							stkElems.push(vElems[j]);
+					}
+				}
+			}
+		}
+	//	the stack is empty. increase subset index.
+		subsetIndex++;
+	}
+}
+
 }//	end of namespace
 
 #endif

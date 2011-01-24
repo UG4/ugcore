@@ -767,27 +767,35 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 	bool bUnitsSupplied;
 	out << "#Unit-Info" << endl;
 
-//>TRI-ATTACHMENT OR QUAD-ATTACHMENT
-
 	if(psh)
 	{
 	//	there are units
 		bUnitsSupplied = true;
 
 	//	write the units
+		bool bGotEmpty = false;// helps us to print a warning if required.
+		for(int i = 0; i < psh->num_subsets(); i++)
 		{
-			for(int i = 0; i < psh->num_subsets(); i++)
-			{
-				SubsetInfo& sh = psh->subset_info(i);
-				string unitName = sh.name;
-				size_t k = sh.name.find(".");
-				if(k != string::npos)
-					unitName.erase(k, unitName.size() - k);
-				if(unitName.size() > 0)
-					out << "unit " << i+1 << " " << unitName.c_str() << endl;
-				else
-					out << "unit " << i+1 << " unit_" << i+1 << endl;
+		//	units that do not contain faces are ignored.
+			if(psh->num<Face>(i) == 0){
+				bGotEmpty = true;
+				continue;
 			}
+
+			if(bGotEmpty){
+			//	schedule a warning
+				UG_LOG("WARNING in ExportGridToUG_2D: Empty units between filled ones.\n");
+			}
+
+			SubsetInfo& sh = psh->subset_info(i);
+			string unitName = sh.name;
+			size_t k = sh.name.find(".");
+			if(k != string::npos)
+				unitName.erase(k, unitName.size() - k);
+			if(unitName.size() > 0)
+				out << "unit " << i+1 << " " << unitName.c_str() << endl;
+			else
+				out << "unit " << i+1 << " unit_" << i+1 << endl;
 		}
 	}
 	else
@@ -840,7 +848,8 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 
 	int numLines = 0;
 	{
-	//	each edge which is connected to two different subsets or wich is a boundary edge has to be written as a line
+	//	each edge which is connected to two different subsets or which is
+	//	a boundary edge has to be written as a line
 		if(bUnitsSupplied)
 		{
 

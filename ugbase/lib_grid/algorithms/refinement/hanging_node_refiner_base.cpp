@@ -12,7 +12,7 @@ namespace ug{
 
 HangingNodeRefinerBase::
 HangingNodeRefinerBase(IRefinementCallback* refCallback) :
-	m_refCallback(refCallback),
+	IRefiner(refCallback),
 	m_pGrid(NULL)
 {
 }
@@ -70,22 +70,19 @@ void HangingNodeRefinerBase::clear_marks()
 void HangingNodeRefinerBase::mark_for_refinement(EdgeBase* e)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-
-	mark(e);
+	m_selMarkedElements.select(e);
 }
 
 void HangingNodeRefinerBase::mark_for_refinement(Face* f)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-
-	mark(f);
+	m_selMarkedElements.select(f);
 }
 
 void HangingNodeRefinerBase::mark_for_refinement(Volume* v)
 {
 	assert(m_pGrid && "ERROR in HangingNodeRefinerBase::mark_for_refinement(...): No grid assigned.");
-
-	mark(v);
+	m_selMarkedElements.select(v);
 }
 
 void HangingNodeRefinerBase::refine()

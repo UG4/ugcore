@@ -263,13 +263,15 @@ bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
 					 int firstSubsetIndex);
 
 ////////////////////////////////////////////////////////////////////////
-//	SeparateVolumesByFaceSubsets
-///	groups volumes by separating face-subsets.
-/**
- * all volumes that are surrounded by the same face-subsets are
- * assigned to a common subset.
+//	SeparateSubsetsByLowerDimSubsets
+///	Assigns all elements of the given type to subsets.
+/**	Different subsets are created for different regions. A region
+ * is a set of elements of the given type, which are surrounded by
+ * a closed set of lower dimensional elements, which are all assigned to
+ * a subset.
  */
-void SeparateVolumesByFaceSubsets(Grid& grid, SubsetHandler& sh);
+template <class TElem>
+void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh);
 
 ////////////////////////////////////////////////////////////////////////
 //	AssignInnerAndBoundarySubsets

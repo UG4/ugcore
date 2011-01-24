@@ -82,6 +82,101 @@ inline VertexBase* GetVertex(Volume* vol, size_t i)
 	return vol->vertex(i);
 }
 
+////////////////////////////////////////////////////////////////////////
+inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+					  Grid& grid, VertexBase* v, bool clearContainer)
+{
+	CollectVertices(vVertexOut, grid, v, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+					   Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	CollectVertices(vVertexOut, grid, e, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+					   Grid& grid, Face* f, bool clearContainer)
+{
+	CollectVertices(vVertexOut, grid, f, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<VertexBase*>& vVertexOut,
+					   Grid& grid, Volume* v, bool clearContainer)
+{
+	CollectVertices(vVertexOut, grid, v, clearContainer);
+}
+
+////////////////////////////////////////////////////////////////////////
+inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
+					Grid& grid, VertexBase* vrt, bool clearContainer)
+{
+	CollectEdges(vEdgesOut, grid, vrt, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
+					Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	CollectEdges(vEdgesOut, grid, e, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
+					Grid& grid, Face* f, bool clearContainer)
+{
+	CollectEdges(vEdgesOut, grid, f, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<EdgeBase*>& vEdgesOut,
+					Grid& grid, Volume* v, bool clearContainer)
+{
+	CollectEdges(vEdgesOut, grid, v, clearContainer);
+}
+
+////////////////////////////////////////////////////////////////////////
+inline void CollectAssociated(std::vector<Face*>& vFacesOut,
+					Grid& grid, VertexBase* vrt, bool clearContainer)
+{
+	CollectFaces(vFacesOut, grid, vrt, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<Face*>& vFacesOut,
+					Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	CollectFaces(vFacesOut, grid, e, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<Face*>& vFacesOut,
+					Grid& grid, Volume* v, bool clearContainer)
+{
+	CollectFaces(vFacesOut, grid, v, clearContainer);
+}
+
+////////////////////////////////////////////////////////////////////////
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+					Grid& grid, VertexBase* vrt, bool clearContainer)
+{
+	CollectVolumes(vVolumesOut, grid, vrt, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+					Grid& grid, EdgeBase* e, bool clearContainer)
+{
+	CollectVolumes(vVolumesOut, grid, e, clearContainer);
+}
+
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+					Grid& grid, Face* f, bool clearContainer,
+					bool ignoreAssociatedVolumes)
+{
+	CollectVolumes(vVolumesOut, grid, f, clearContainer, ignoreAssociatedVolumes);
+}
+
+inline void CollectAssociated(std::vector<Volume*>& vVolumesOut,
+					Grid& grid, FaceDescriptor& fd, bool clearContainer)
+{
+	CollectVolumes(vVolumesOut, grid, fd, clearContainer);
+}
+
 }//	end of namespace libGrid
 
 #endif
