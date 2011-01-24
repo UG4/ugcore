@@ -117,7 +117,9 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	//	ILU Threshold
 		reg.add_class_<	ILUTPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("ILUT", grp2.c_str())
-			.add_constructor();
+			.add_constructor()
+			.add_method("set_threshold", &ILUTPreconditioner<algebra_type>::set_threshold,
+						"", "threshold", "sets threshold of incomplete LU factorisation"); // added 01122010ih
 
 
 #ifdef UG_USE_AMG
