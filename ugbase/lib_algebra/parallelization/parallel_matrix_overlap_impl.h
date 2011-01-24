@@ -36,8 +36,39 @@ namespace ug
 // o A | (A) B | (B) C
 
 
+// GenerateOverlap_CollectData
+//--------------------------------------------------
+/**
+ * \brief Subfunction for GenerateOverlap. Collects matrix rows and sends them via a ParallelCommunicator
+ * \param com 				used ParallelCommunicator
+ * \param mat				Matrix of which to send matrix rows
+ * \param layout			we collect data for all interfaces of this layout
+ * \param overlapLayout		where overlap nodes are saved
+ * \param sendpack			used StreamPack for putting data stream to
+ * \param overlap_depth		depth of overlap
+ * \param global_ids		global algebra ids
+ *
+ * For all Interfaces I in layout:
+ *   create interface I2 in overlapLayout with same destination pid as interface I
+ *   For all nodes i, which have a nodal distance of at most overlap_depth from a node in the interface I
+ *     put the complete matrix row via sendpack.get_stream(pid)
+ *     is this node on this processor, its local index is added to interface I2 (these become overlap nodes)
+ *    send data via com.
+ *
+ * format for sending matrix rows:
+ * size_t global_row_id;
+ * size_t num_connections;
+ * {
+ *  size_t global_col_id;
+ *  matrix_type::value_type value;
+ * } con[num_connections];
+ *
+ * always use Serialize/Deserialize for all this values, since matrix_type::value_type may not be of fixed size.
+ *
+ * \sa GenerateOverlap
+ */
 template<typename matrix_type>
-void CollectData(pcl::ParallelCommunicator<IndexLayout> &com, matrix_type &mat, IndexLayout &layout,
+void GenerateOverlap_CollectData(pcl::ParallelCommunicator<IndexLayout> &com, matrix_type &mat, IndexLayout &layout,
 		IndexLayout &overlapLayout, StreamPack &sendpack, size_t overlap_depth, std::vector<AlgebraID> &global_ids)
 {
 	typedef IndexLayout::Interface Interface;
@@ -45,27 +76,28 @@ void CollectData(pcl::ParallelCommunicator<IndexLayout> &com, matrix_type &mat, 
 	std::vector<size_t> N1;
 	std::vector<bool> bVisited(mat.num_rows(), false);
 
+	// For all Interfaces in layout:
 	for(IndexLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
 	{
 		Interface &interface = layout.interface(iter);
 		size_t pid = layout.proc_id(iter);
 
+		// create interface in overlapLayout with same destination pid
 		Interface &overlapInterface = overlapLayout.interface(pid);
 
 		UG_DLOG(LIB_ALG_MATRIX, 4, "collecting data for slave interface with processor " << pid << "\n");
 
+		// get a stream to put data to process pid to
 		BinaryStream &stream = *sendpack.get_stream(pid);
 
 		vector<bool> node_done(mat.num_rows(), false);
 
 		for(Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 		{
-			// mark 1-neighbors, which are not slaves.
-			// put in stream << globID << numCons << connection1 ... connection[numCons] << ..
-
 			size_t slave_local_index = interface.get_element(iter2);
 
 			GetNeighborhood(mat, slave_local_index, overlap_depth, N1);
+
 			UG_DLOG(LIB_ALG_MATRIX, 4, "node " << slave_local_index << ".\n");
 			UG_DLOG(LIB_ALG_MATRIX, 4, "neighbors: ")
 			for(size_t i=0; i<N1.size(); i++)
@@ -83,18 +115,15 @@ void CollectData(pcl::ParallelCommunicator<IndexLayout> &com, matrix_type &mat, 
 					if(node_done[local_index]) UG_DLOG(LIB_ALG_MATRIX, 4, "already done.\n");
 				}
 				if(node_done[local_index]) continue;
-
-				// hier muss man nochmal überprüfen, welche verbindungen wir schicken müssen.
-				// hier stand mal if(slave[local_index]) continue;, aber dann hätte zB. der master nicht seine volle zeile erhalten
-				// allerdings müssen wir natürlich verhindern, dass wir verbindungen schicken, die schon da sind, zumindest bei der rückrichtung müssen wir aufpassen
-				// /!\ matrix ist in dirichlet-knoten nicht additiv ?!?
-
 				node_done[local_index] = true;
 
+				// if the node is on this processor, its local index is added to overlapInterface
 				AlgebraID &global_index = global_ids[local_index];
 				if(global_index.first == pcl::GetProcRank())
 					overlapInterface.push_back(local_index);
 
+
+				// serialize matrix row
 				Serialize(stream, global_index);
 				Serialize(stream, mat.num_connections(local_index));
 
@@ -108,12 +137,27 @@ void CollectData(pcl::ParallelCommunicator<IndexLayout> &com, matrix_type &mat, 
 			}
 		}
 
+		// use communicator to send data
 		com.send_raw(pid, stream.buffer(), stream.size(), false);
 	}
 }
 
+// GenerateOverlap_GetNewIndices
+//--------------------------------------------------
+/**
+ * \brief Subfunction for GenerateOverlap. Extracts new indices from received data
+ * \param receivepack		StreamPack where to extract new indices of
+ * \param overlapLayout		node which are master on another processor are added here
+ * \param nodeNummerator	handles creation of new indices on this processor
+ *
+ * when this function is finished, all global row indices send through receivepack / GenerateOverlap_CollectData
+ * to this processor have unique indices available through nodeNummerator, and all corresponding interfaces for
+ * the overlap nodes are set.
+ * \sa GenerateOverlap
+ * \sa GenerateOverlap_CollectData
+ */
 template<typename matrix_type>
-void GetNewIndices(IndexLayout &overlapLayout, StreamPack &receivepack, NewNodeNummerator &nodeNummerator)
+void GenerateOverlap_GetNewIndices(StreamPack &receivepack, IndexLayout &overlapLayout, NewNodeNummerator &nodeNummerator)
 {
 	typedef IndexLayout::Interface Interface;
 	UG_DLOG(LIB_ALG_MATRIX, 4, "get all new nodes and their indices\n");
@@ -164,9 +208,21 @@ void GetNewIndices(IndexLayout &overlapLayout, StreamPack &receivepack, NewNodeN
 
 }
 
-
+// GenerateOverlap_AddMatrixRows
+//--------------------------------------------------
+/**
+ * \brief Subfunction for GenerateOverlap. Extracts matrix rows from received data, and adds them a matrix
+ * \param receivepack		StreamPack where to extract data from
+ * \param newMat			matrix to add new rows to
+ * \param nodeNummerator	maps global indices to local indices
+ *
+ *
+ * \sa GenerateOverlap_CollectData
+ * \sa GenerateOverlap
+ * \sa GenerateOverlap_GetNewIndices
+ */
 template<typename matrix_type>
-void AddMatrixRows(matrix_type &newMat, StreamPack &receivepack, NewNodeNummerator &nodeNummerator)
+void GenerateOverlap_AddMatrixRows(StreamPack &receivepack, matrix_type &newMat, NewNodeNummerator &nodeNummerator)
 {
 	UG_DLOG(LIB_ALG_MATRIX, 4, "iterate again over all streams to get the matrix lines\n");
 
@@ -224,13 +280,29 @@ void AddMatrixRows(matrix_type &newMat, StreamPack &receivepack, NewNodeNummerat
 	}
 }
 
+
+// GenerateOverlap
+//--------------------------------------------------
+/**
+ * \brief Generates a new matrix with overlap from another matrix
+ * \param _mat				matrix to create overlap from
+ * \param newMat			matrix to store overlap matrix in
+ * \param masterOLLayout
+ * \param masterOLLayout
+ * \param overlap_depth
+ *
+ * \sa GenerateOverlap_CollectData
+ * \sa GenerateOverlap_GetNewIndices
+ * \sa GenerateOverlap_AddMatrixRows
+ */
 template<typename matrix_type>
-void GenerateOverlap(const ParallelMatrix<matrix_type> &mat2, ParallelMatrix<matrix_type> &newMat, IndexLayout &masterOLLayout, IndexLayout &slaveOLLayout, size_t overlap_depth=1)
+void GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat, IndexLayout &masterOLLayout, IndexLayout &slaveOLLayout, size_t overlap_depth=1)
 {
 	typedef IndexLayout::Interface Interface;
 
+	// pcl does not use const much
 	UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
-	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (mat2);
+	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
 
 	pcl::ParallelCommunicator<IndexLayout> &com = mat.get_communicator();
 	UG_DLOG(LIB_ALG_MATRIX, 4, "GENERATE OVERLAP START\n");
@@ -265,7 +337,7 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &mat2, ParallelMatrix<mat
 	// collect data
 	//-----------------
 
-	CollectData(com, mat, slaveLayout, masterOLLayout, sendpack, overlap_depth, global_ids);
+	GenerateOverlap_CollectData(com, mat, slaveLayout, masterOLLayout, sendpack, overlap_depth, global_ids);
 	//CollectData(com, mat, masterLayout, masterOLLayout, sendpack_master, overlap_depth-1, global_ids);
 
 	// receive data
@@ -283,7 +355,7 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &mat2, ParallelMatrix<mat
 	NewNodeNummerator nodeNummerator(mat.num_rows());
 
 	// get all new nodes and their indices
-	GetNewIndices<matrix_type>(slaveOLLayout, receivepack, nodeNummerator);
+	GenerateOverlap_GetNewIndices<matrix_type>(receivepack, slaveOLLayout, nodeNummerator);
 
 	// create as copy & resize matrix to be now new_indices_size x new_indices_size.
 	size_t new_indices_size = nodeNummerator.get_new_indices_size();
@@ -293,7 +365,7 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &mat2, ParallelMatrix<mat
 
 	// iterate again over all streams to get the matrix lines
 
-	AddMatrixRows(newMat, receivepack, nodeNummerator);
+	GenerateOverlap_AddMatrixRows(newMat, receivepack, nodeNummerator);
 
 	// done!
 
