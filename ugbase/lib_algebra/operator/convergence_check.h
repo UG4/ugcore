@@ -207,7 +207,7 @@ class StandardConvCheck : public IConvergenceCheck
 			{
 				if(m_verbose)
 				{
-					print_offset(); UG_LOG("Absolute reduction " << m_minDefect << " reached after " << step() << " steps.\n");
+					print_offset(); UG_LOG("Absolute defect norm " << m_minDefect << " reached after " << step() << " steps.\n");
 				}
 				success = true;
 			};
