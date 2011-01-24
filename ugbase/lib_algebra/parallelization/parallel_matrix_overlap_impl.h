@@ -8,7 +8,7 @@
 #ifndef __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_OVERLAP_IMPL__
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_MATRIX_OVERLAP_IMPL__
 
-#include "new_node_nummerator.h"
+#include "new_nodes_nummerator.h"
 #include "parallelization_util.h"
 
 namespace ug
@@ -34,6 +34,95 @@ namespace ug
 // (5-punkt stern)
 // frage: kann sich ein Ÿberlapp Ÿber mehrere Prozessoren erstrecken?
 // o A | (A) B | (B) C
+
+
+template<typename TLayout>
+void TestLayout(pcl::ParallelCommunicator<IndexLayout> &com, TLayout &masterLayout, TLayout &slaveLayout, bool bPrint=false)
+{
+	typedef typename TLayout::Interface Interface;
+	StreamPack sendpack, receivepack;
+
+	if(bPrint) UG_LOG("MasterLayout is to processes ");
+	IndexLayout::iterator iter = masterLayout.begin();
+	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
+	{
+		Interface &interface = slaveLayout.interface(iter);
+		size_t pid = slaveLayout.proc_id(iter);
+		BinaryStream &stream = *sendpack.get_stream(pid);
+		if(bPrint) UG_LOG(pid << " ");
+
+		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		{
+			typename Interface::Element &element = interface.get_element(iter2);
+			Serialize(stream, element);
+		}
+		com.send_raw(pid, stream.buffer(), stream.size(), false);
+	}
+
+	if(bPrint) UG_LOG("\nSlave Layout is to processes ");
+
+	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	{
+		size_t pid = masterLayout.proc_id(iter);
+		UG_LOG(pid << " ");
+		com.receive_raw(pid, *receivepack.get_stream(pid));
+	}
+	if(bPrint) UG_LOG("\n");
+
+
+	com.communicate();
+
+	bool layout_broken=false;
+	for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
+	{
+		size_t pid = masterLayout.proc_id(iter);
+		BinaryStream &stream = *receivepack.get_stream(pid);
+		bool broken=false;
+		if(bPrint) UG_LOG("Interface processor " << pcl::GetProcRank() << " <-> processor " << pid << " (Master <-> Slave):\n");
+		typename TLayout::Interface &interface = masterLayout.interface(iter);
+		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+		{
+			if(stream.can_read_more() == false)
+			{
+				broken =true;
+				if(bPrint) UG_LOG(" " << interface.get_element(iter2) << " <-> BROKEN!\n");
+			}
+			else
+			{
+				typename Interface::Element element; Deserialize(stream, element);
+				if(bPrint) UG_LOG(" " << interface.get_element(iter2) << " <-> " << element << "\n");
+			}
+		}
+		while(stream.can_read_more())
+		{
+			broken = true;
+			if(!bPrint) break;
+			typename Interface::Element element; Deserialize(stream, element);
+			UG_LOG(" BROKEN! -> " << element << "\n");
+		}
+
+		if(broken)
+		{
+			if(!bPrint) break;
+			UG_LOG("Interface from processor " << pcl::GetProcRank() << " to processor " << pid << " is BROKEN!\n");
+			layout_broken=true;
+		}
+	}
+
+	if(!bPrint && layout_broken)
+		TestLayout(com, masterLayout, slaveLayout, true);
+	else
+	{
+		UG_ASSERT(layout_broken == false, "One or more interfaces are broken");
+	}
+}
+
+
+template<typename TLayout>
+void PrintLayout(pcl::ParallelCommunicator<IndexLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
+{
+	TestLayout(com, masterLayout, slaveLayout, true);
+}
 
 
 // GenerateOverlap_CollectData
@@ -153,11 +242,12 @@ void GenerateOverlap_CollectData(pcl::ParallelCommunicator<IndexLayout> &com, ma
  * when this function is finished, all global row indices send through receivepack / GenerateOverlap_CollectData
  * to this processor have unique indices available through nodeNummerator, and all corresponding interfaces for
  * the overlap nodes are set.
+ *
  * \sa GenerateOverlap
  * \sa GenerateOverlap_CollectData
  */
 template<typename matrix_type>
-void GenerateOverlap_GetNewIndices(StreamPack &receivepack, IndexLayout &overlapLayout, NewNodeNummerator &nodeNummerator)
+void GenerateOverlap_GetNewIndices(StreamPack &receivepack, IndexLayout &overlapLayout, NewNodesNummerator &nodeNummerator)
 {
 	typedef IndexLayout::Interface Interface;
 	UG_DLOG(LIB_ALG_MATRIX, 4, "get all new nodes and their indices\n");
@@ -183,7 +273,8 @@ void GenerateOverlap_GetNewIndices(StreamPack &receivepack, IndexLayout &overlap
 			if(global_row_index.first != pcl::GetProcRank())
 			{
 				size_t local_index = nodeNummerator.get_index_or_create_new(global_row_index);
-				interface2.push_back(local_index);
+				if(global_row_index.first == pid)
+					interface2.push_back(local_index);
 				UG_DLOG(LIB_ALG_MATRIX, 4, " global id " << global_row_index.first << " | " << global_row_index.second << ". local index is " << local_index << ".\n");
 			}
 			else
@@ -222,7 +313,7 @@ void GenerateOverlap_GetNewIndices(StreamPack &receivepack, IndexLayout &overlap
  * \sa GenerateOverlap_GetNewIndices
  */
 template<typename matrix_type>
-void GenerateOverlap_AddMatrixRows(StreamPack &receivepack, matrix_type &newMat, NewNodeNummerator &nodeNummerator)
+void GenerateOverlap_AddMatrixRows(StreamPack &receivepack, matrix_type &newMat, NewNodesNummerator &nodeNummerator)
 {
 	UG_DLOG(LIB_ALG_MATRIX, 4, "iterate again over all streams to get the matrix lines\n");
 
@@ -287,7 +378,7 @@ void GenerateOverlap_AddMatrixRows(StreamPack &receivepack, matrix_type &newMat,
  * \brief Generates a new matrix with overlap from another matrix
  * \param _mat				matrix to create overlap from
  * \param newMat			matrix to store overlap matrix in
- * \param masterOLLayout
+ * \param masterOLLayout	Layout
  * \param masterOLLayout
  * \param overlap_depth
  *
@@ -316,6 +407,8 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 
 	IndexLayout &masterLayout = mat.get_master_layout();
 	IndexLayout &slaveLayout = mat.get_slave_layout();
+
+	TestLayout(com, masterLayout, slaveLayout);
 
 	// generate global algebra indices
 	UG_DLOG(LIB_ALG_MATRIX, 4, "generate " << mat.num_rows() << " global_ids\n");
@@ -352,7 +445,8 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 
 	// process data
 	//-----------------
-	NewNodeNummerator nodeNummerator(mat.num_rows());
+
+	NewNodesNummerator nodeNummerator(mat.num_rows(), global_ids);
 
 	// get all new nodes and their indices
 	GenerateOverlap_GetNewIndices<matrix_type>(receivepack, slaveOLLayout, nodeNummerator);
@@ -365,7 +459,7 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 
 	// iterate again over all streams to get the matrix lines
 
-	GenerateOverlap_AddMatrixRows(newMat, receivepack, nodeNummerator);
+	GenerateOverlap_AddMatrixRows(receivepack, newMat, nodeNummerator);
 
 	// done!
 
@@ -384,11 +478,13 @@ void GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 	{
 		newMat.print();
 
-		UG_DLOG(LIB_ALG_MATRIX, 4, "master Layout:\n");
+		UG_LOG("master OL Layout:\n");
 		PrintLayout(masterOLLayout);
-
-		UG_DLOG(LIB_ALG_MATRIX, 4, "slave:\n");
+		UG_LOG("slave OL Layout:\n");
 		PrintLayout(slaveOLLayout);
+
+		UG_LOG("OL Layout:\n");
+		PrintLayout(com, masterOLLayout, slaveOLLayout);
 	}
 
 
