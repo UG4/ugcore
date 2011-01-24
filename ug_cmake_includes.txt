@@ -105,6 +105,15 @@ if(NOT UG_CMAKE_INCLUDES_INCLUDED)
 		# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_DEBUG=1 -D_GLIBCXX_DEBUG_PEDANTIC=1")
 		
 		add_definitions(-DUG_DEBUG)
+		
+		# Check whether debug output is activated.
+			if(UG_ENABLE_DEBUG_LOGS)
+				# Enable debugging output
+				message(STATUS "INFO: Debug logs enabled. (Disable debug logs by defining -DUG_ENABLE_DEBUG_LOGS=OFF)")
+				add_definitions(-DUG_ENABLE_DEBUG_LOGS)
+			else(UG_ENABLE_DEBUG_LOGS)
+				message(STATUS "INFO: Debug logs disabled.(Enable debug logs by defining -DUG_ENABLE_DEBUG_LOGS=ON)")
+			endif(UG_ENABLE_DEBUG_LOGS)
 	else(UG_DEBUG)
 		message(STATUS "INFO: Release mode. (Enable debug-mode by defining -DUG_DEBUG=ON)")
 		# Enable these flags for a fast ublas algebra
