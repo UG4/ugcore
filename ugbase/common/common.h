@@ -19,7 +19,7 @@
 #else /* NDEBUG */
 	//#undef UG_LOG_TO_FILE
 	#undef UG_ENABLE_WARNINGS
-endif /* NDEBUG*/
+#endif /* NDEBUG*/
 
 /////////////////////////////////////////////////////////////////
 // includes
