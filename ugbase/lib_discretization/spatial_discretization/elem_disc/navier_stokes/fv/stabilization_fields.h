@@ -67,7 +67,7 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 	number DiffLengthSq = 1.0;
 
 //	Compute convection length
-	number ConvLength = 1.0;
+//	number ConvLength = 1.0;
 
 
 //	Loop integration points
