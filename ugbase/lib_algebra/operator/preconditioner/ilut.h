@@ -51,6 +51,12 @@ class ILUTPreconditioner : public IPreconditioner<TAlgebra>
 			m_U.destroy();
 		};
 
+	///	sets threshold for incomplete LU factorisation (added 01122010ih)
+		void set_threshold(number thresh)
+		{
+			m_eps = thresh;
+		}
+
 	protected:
 	//	Name of preconditioner
 		virtual const char* name() const {return "ILUTPreconditioner";}
