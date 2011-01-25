@@ -189,6 +189,7 @@ bool Vector<value_type>::create(size_t _length)
 template<typename value_type>
 bool Vector<value_type>::resize(size_t new_length, bool bCopyValues)
 {
+	if(new_length == length) return true;
 	value_type *new_values = new value_type[new_length];
 	// we cannot use memcpy here bcs of variable blocks.
 	if(values != NULL && bCopyValues)
