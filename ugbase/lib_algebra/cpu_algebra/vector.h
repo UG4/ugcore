@@ -54,7 +54,7 @@ public:
 	bool create(const Vector &v);
 
 	//! resize vector
-	bool resize(size_t new_size);
+	bool resize(size_t new_length, bool bCopyValues=true);
 
 	bool destroy();
 
