@@ -13,7 +13,7 @@
 namespace ug
 {
 
-class HangingNodeRefinerBase : public GridObserver, public IRefiner
+class HangingNodeRefinerBase : public IRefiner, public GridObserver
 {
 	public:
 		using IRefiner::mark_for_refinement;

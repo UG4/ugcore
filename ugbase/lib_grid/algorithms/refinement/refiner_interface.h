@@ -23,6 +23,9 @@ class IRefiner
 		IRefinementCallback* get_refinement_callback()
 			{return m_refCallback;}
 
+	///	has to return the associated grid. Pure virtual
+		virtual Grid* get_associated_grid() = 0;
+
 	///	clears all marks. Default implementation is empty
 		virtual void clear_marks()	{}
 

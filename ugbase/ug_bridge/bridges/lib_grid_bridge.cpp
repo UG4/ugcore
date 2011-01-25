@@ -232,7 +232,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 
 	UG_LOG("grid element numbers:\n");
 	PrintGridElementNumbers(mg);
-/*
+
 //	create a surface view
 	SurfaceView surfView(mg);
 
@@ -246,10 +246,81 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 	SaveGridToFile(mg, "surface_view.ugx", surfView);
 
 	UG_LOG("surface view element numbers:\n");
-	PrintGridElementNumbers(mg);
-*/
+	PrintGridElementNumbers(surfView);
+
 	return true;
 }
+
+
+template <class TAPos, class vector_t>
+void MarkForRefinement_VerticesInSphere(Grid& grid, IRefiner& refiner,
+										const vector_t& center,
+										number radius, TAPos& aPos)
+{
+	if(!grid.has_vertex_attachment(aPos)){
+		UG_LOG("WARNING in MarkForRefinement_VerticesInSphere: position attachment missing.\n");
+		return;
+	}
+
+	Grid::VertexAttachmentAccessor<TAPos> aaPos(grid, aPos);
+
+//	we'll compare against the square radius.
+	number radiusSq = radius * radius;
+
+//	we'll store associated edges, faces and volumes in those containers
+	vector<EdgeBase*> vEdges;
+	vector<Face*> vFaces;
+	vector<Volume*> vVols;
+
+//	iterate over all vertices of the grid. If a vertex is inside the given sphere,
+//	then we'll mark all associated elements.
+	for(VertexBaseIterator iter = grid.begin<VertexBase>();
+		iter != grid.end<VertexBase>(); ++iter)
+	{
+		if(VecDistanceSq(center, aaPos[*iter]) <= radiusSq){
+			CollectAssociated(vEdges, grid, *iter);
+			CollectAssociated(vFaces, grid, *iter);
+			CollectAssociated(vVols, grid, *iter);
+
+			refiner.mark_for_refinement(vEdges.begin(), vEdges.end());
+			refiner.mark_for_refinement(vFaces.begin(), vFaces.end());
+			refiner.mark_for_refinement(vVols.begin(), vVols.end());
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+void MarkForRefinement_VerticesInSphere(IRefiner& refiner, number centerX,
+							number centerY, number centerZ, number radius)
+{
+//	get the associated grid of the refiner.
+	Grid* pGrid = refiner.get_associated_grid();
+	if(!pGrid){
+		UG_LOG("WARNING: Circular refinement failed: no grid assigned.\n");
+		return;
+	}
+
+//	depending on the position attachment, we'll call different versions of
+//	MarkForRefinement_VerticesInSphere.
+	if(pGrid->has_vertex_attachment(aPosition1)){
+		MarkForRefinement_VerticesInSphere(*pGrid, refiner, vector1(centerX),
+											radius, aPosition1);
+	}
+	else if(pGrid->has_vertex_attachment(aPosition2)){
+		MarkForRefinement_VerticesInSphere(*pGrid, refiner,
+											vector2(centerX, centerY),
+											radius, aPosition2);
+	}
+	else if(pGrid->has_vertex_attachment(aPosition)){
+		MarkForRefinement_VerticesInSphere(*pGrid, refiner,
+											vector3(centerX, centerY, centerZ),
+											radius, aPosition);
+	}
+	else{
+		UG_LOG("WARNING in MarkForRefinement_VerticesInSphere: No Position attachment found. Aborting.\n");
+	}
+}
+
 
 ////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
@@ -276,7 +347,11 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_method("num_edges_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<EdgeBase>)
 		.add_method("num_faces_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Face>)
 		.add_method("num_volumes_on_level", (size_t (MultiGrid::*)(int) const) &MultiGrid::num<Volume>);
-		
+
+
+////////////////////////
+//	SUBSET HANDLERS
+
 //  ISubsetHandler
 	reg.add_class_<ISubsetHandler>("ISubsetHandler", grp.c_str())
 		.add_method("num_subsets", &ISubsetHandler::num_subsets)
@@ -293,15 +368,29 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_constructor()
 		.add_method("assign_grid", &MGSubsetHandler::assign_grid);
 
-//	HangingNodeRefiner
-	reg.add_class_<HangingNodeRefiner_Grid>("HangingNodeRefiner_Grid", grp.c_str())
+//	SurfaceView
+	reg.add_class_<SurfaceView, SubsetHandler>("SurfaceView", grp.c_str())
+		.add_constructor()
+		.add_method("assign_grid", (void (SurfaceView::*)(MultiGrid&)) &SurfaceView::assign_grid);
+
+////////////////////////
+//	REFINEMENT
+
+//	IRefiner
+	reg.add_class_<IRefiner>("IRefiner", grp.c_str())
+		.add_method("refine", &IRefiner::refine);
+
+	reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp.c_str())
 		.add_constructor()
 		.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid);
 
-//	GlobalMultiGridRefiner
-	reg.add_class_<GlobalMultiGridRefiner>("GlobalMultiGridRefiner", grp.c_str())
+	reg.add_class_<HangingNodeRefiner_MultiGrid, IRefiner>("HangingNodeRefiner_MultiGrid", grp.c_str())
 		.add_constructor()
-		.add_method("refine", &GlobalMultiGridRefiner::refine)
+		.add_method("assign_grid", &HangingNodeRefiner_MultiGrid::assign_grid);
+
+//	GlobalMultiGridRefiner
+	reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp.c_str())
+		.add_constructor()
 		.add_method("assign_grid", (void (GlobalMultiGridRefiner::*)(MultiGrid&)) &GlobalMultiGridRefiner::assign_grid);
 
 //	GridObject
@@ -325,7 +414,9 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_function("TestHangingNodeRefiner_MultiGrid", &TestHangingNodeRefiner_MultiGrid)
 		.add_function("CreateSmoothHierarchy", &CreateSmoothHierarchy, grp.c_str())
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
-		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str());
+		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str())
+		.add_function("MarkForRefinement_VerticesInSphere", (void (*)(IRefiner&, number, number, number, number))
+															&MarkForRefinement_VerticesInSphere, grp.c_str());
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{

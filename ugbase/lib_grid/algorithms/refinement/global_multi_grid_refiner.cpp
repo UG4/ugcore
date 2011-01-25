@@ -27,14 +27,14 @@ namespace ug
 
 GlobalMultiGridRefiner::
 GlobalMultiGridRefiner(IRefinementCallback* refCallback) :
-	m_pMG(NULL),
-	m_refCallback(refCallback)
+	IRefiner(refCallback),
+	m_pMG(NULL)
 {
 }
 
 GlobalMultiGridRefiner::
 GlobalMultiGridRefiner(MultiGrid& mg, IRefinementCallback* refCallback) :
-	m_refCallback(refCallback)
+	IRefiner(refCallback)
 {
 	m_pMG = NULL;
 	assign_grid(mg);
@@ -68,12 +68,6 @@ void GlobalMultiGridRefiner::assign_grid(MultiGrid* mg)
 		m_pMG = mg;
 		m_pMG->register_observer(this, OT_GRID_OBSERVER);
 	}
-}
-
-void GlobalMultiGridRefiner::
-set_refinement_callback(IRefinementCallback* refCallback)
-{
-	m_refCallback = refCallback;
 }
 
 ////////////////////////////////////////////////////////////////////////

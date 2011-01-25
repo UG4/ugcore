@@ -8,6 +8,7 @@
 #include <queue>
 #include "lib_grid/lg_base.h"
 #include "refinement_callbacks.h"
+#include "refiner_interface.h"
 
 namespace ug
 {
@@ -48,8 +49,11 @@ namespace ug
  * standard position attachment (ug::aPosition or ug::aPosition2).
  */
 
-class HangingNodeRefiner2D_IRN : public GridObserver
+class HangingNodeRefiner2D_IRN : public IRefiner, public GridObserver
 {
+	public:
+		using IRefiner::mark_for_refinement;
+
 	public:
 		HangingNodeRefiner2D_IRN(IRefinementCallback* refCallback = NULL);
 		HangingNodeRefiner2D_IRN(Grid& grid, IRefinementCallback* refCallback = NULL);
@@ -59,16 +63,12 @@ class HangingNodeRefiner2D_IRN : public GridObserver
 		virtual void grid_to_be_destroyed(Grid* grid);
 
 		void assign_grid(Grid& grid);
-		void set_refinement_callback(IRefinementCallback* refCallback);
+		virtual Grid* get_associated_grid()		{return m_pGrid;}
 		
-		void clear_marks();
-		void mark_for_refinement(EdgeBase* e);
-		void mark_for_refinement(Face* f);
-		void mark_for_refinement(Volume* v);
-
-	///	the value-type of TIterator has to be a pointer to a type derived from either EdgeBase, Face or Volume.
-		template <class TIterator>
-		void mark_for_refinement(const TIterator& iterBegin, const TIterator& iterEnd);
+		virtual void clear_marks();
+		virtual void mark_for_refinement(EdgeBase* e);
+		virtual void mark_for_refinement(Face* f);
+		virtual void mark_for_refinement(Volume* v);
 
 		bool set_irregularity_rule(uint irregularityRule);
 		uint get_irregularity_rule();
@@ -78,7 +78,7 @@ class HangingNodeRefiner2D_IRN : public GridObserver
 	 * irregularityRule specified the number of hanging nodes that may coexist
 	 * on one edge. If there are more, then the edge will be refined.
 	 */
-		void refine();
+		virtual void refine();
 
 	protected:
 		typedef Attachment<int> ARefinementMark;
@@ -217,7 +217,6 @@ class HangingNodeRefiner2D_IRN : public GridObserver
 		Selector	m_selMarkedElements;
 		Selector	m_selScheduledElements;
 
-		IRefinementCallback*	m_refCallback;
 		//ARefinementInfo m_aRefinementInfo;
 
 		//Grid::VertexAttachmentAccessor<APosition>		m_aaPos;
@@ -230,21 +229,6 @@ class HangingNodeRefiner2D_IRN : public GridObserver
 
 
 /// @}
-
-////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-//	implementation of template methods.
-template <class TIterator>
-void HangingNodeRefiner2D_IRN::mark_for_refinement(const TIterator& iterBegin,
-											const TIterator& iterEnd)
-{
-	TIterator iter = iterBegin;
-	while(iter != iterEnd)
-	{
-		mark_for_refinement(*iter);
-		++iter;
-	}
-}
 
 }// end of namespace
 

@@ -14,7 +14,19 @@ namespace ug
 
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
-
+/**	This class is only a prototype for an adaptive multigrid refiner
+ *  with regular closure and copy elements.
+ *
+ *  It is currently not used in the simulation system.
+ *  Instead on can use e.g. the HangingNodeRefiner_MultiGrid.
+ *
+ *  Before this class should be used in simulations, one should
+ *  derive it from IRefiner and adjust the mark methods as well
+ *  as the refinement-callbacks.
+ *
+ *  Please note that the functionality of this class is limited.
+ *  Only elements in the highest grid hierarchy may be refined.
+ */
 class MultiGridRefiner : public GridObserver
 {
 	public:

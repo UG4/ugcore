@@ -14,7 +14,7 @@
 ug_load_script("ug_util.lua")
 
 -- choose algebra
-InitAlgebra(CPUAlgebra())
+InitAlgebra(CPUAlgebraChooser());
 
 -- constants
 dim = 2

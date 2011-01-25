@@ -77,9 +77,9 @@ template <class TElem, class TSubsetHandler>
 void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	typedef typename geometry_traits<TElem>::const_iterator iterator;
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
-		for(size_t si = 0; si < sh.num_subsets(); ++si){
+		for(int si = 0; si < sh.num_subsets(); ++si){
 			for(iterator iter = sh.template begin<TElem>(si, l);
 				iter != sh.template end<TElem>(si, l); ++iter)
 			{
@@ -99,11 +99,11 @@ template <class TElem, class TSubsetHandler>
 void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	typedef typename geometry_traits<TElem>::const_iterator iterator;
 	std::vector<EdgeBase*> vEdges;
 
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
-		for(size_t si = 0; si < sh.num_subsets(); ++si){
+		for(int si = 0; si < sh.num_subsets(); ++si){
 			for(iterator iter = sh.template begin<TElem>(si, l);
 				iter != sh.template end<TElem>(si, l); ++iter)
 			{
@@ -125,11 +125,11 @@ template <class TElem, class TSubsetHandler>
 void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler)
 {
-	typedef typename geometry_traits<TElem>::iterator iterator;
+	typedef typename geometry_traits<TElem>::const_iterator iterator;
 	std::vector<Face*> vFaces;
 
 	for(size_t l  = 0; l < sh.num_levels(); ++l){
-		for(size_t si = 0; si < sh.num_subsets(); ++si){
+		for(int si = 0; si < sh.num_subsets(); ++si){
 			for(iterator iter = sh.template begin<TElem>(si, l);
 				iter != sh.template end<TElem>(si, l); ++iter)
 			{

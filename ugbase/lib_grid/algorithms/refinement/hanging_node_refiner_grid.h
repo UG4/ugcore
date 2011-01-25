@@ -22,6 +22,7 @@ class HangingNodeRefiner_Grid : public HangingNodeRefinerBase
 		virtual void grid_to_be_destroyed(Grid* grid);
 
 		void assign_grid(Grid& grid);
+		virtual Grid* get_associated_grid()		{return m_pGrid;}
 
 	protected:
 	///	performs registration and deregistration at a grid.

@@ -103,19 +103,19 @@ static void CalculateCenter(vector3& vOut, const vector3& v1, const vector3& v2)
 //	implementation of HangingNodeRefiner
 HangingNodeRefiner2D_IRN::
 HangingNodeRefiner2D_IRN(IRefinementCallback* refCallback) :
+	IRefiner(refCallback),
 	m_pGrid(NULL),
 	m_aVertex(false),
-	m_irregularityRule(1),
-	m_refCallback(refCallback)
+	m_irregularityRule(1)
 {
 }
 
 HangingNodeRefiner2D_IRN::
 HangingNodeRefiner2D_IRN(Grid& grid, IRefinementCallback* refCallback) :
+	IRefiner(refCallback),
 	m_pGrid(NULL),
 	m_aVertex(false),
-	m_irregularityRule(1),
-	m_refCallback(refCallback)
+	m_irregularityRule(1)
 {
 	assign_grid(grid);
 }
@@ -140,12 +140,6 @@ HangingNodeRefiner2D_IRN::~HangingNodeRefiner2D_IRN()
 void HangingNodeRefiner2D_IRN::assign_grid(Grid& grid)
 {
 	set_grid(&grid);
-}
-
-void HangingNodeRefiner2D_IRN::
-set_refinement_callback(IRefinementCallback* refCallback)
-{
-	m_refCallback = refCallback;
 }
 
 void HangingNodeRefiner2D_IRN::

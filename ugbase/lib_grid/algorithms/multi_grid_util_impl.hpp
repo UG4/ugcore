@@ -24,7 +24,7 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 //	iterate through all levels of the mgsh
 	for(size_t level = 0; level < mgsh.num_levels(); ++level){
 //	iterate through all subsets on that level
-		for(size_t si = 0; si < mgsh.num_subsets(); ++si){
+		for(int si = 0; si < mgsh.num_subsets(); ++si){
 		//	iterate through all elelements in the subset on that level
 			for(ElemIter iter = mgsh.begin<TElem>(si, level);
 				iter != mgsh.end<TElem>(si, level); ++iter)

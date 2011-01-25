@@ -9,6 +9,7 @@
 #include "lib_grid/lg_base.h"
 #include "lib_grid/multi_grid.h"
 #include "refinement_callbacks.h"
+#include "refiner_interface.h"
 
 namespace ug
 {
@@ -16,7 +17,7 @@ namespace ug
 ///	\addtogroup lib_grid_algorithms_refinement
 ///	@{
 
-class GlobalMultiGridRefiner : public GridObserver
+class GlobalMultiGridRefiner : public IRefiner, public GridObserver
 {
 	public:
 		GlobalMultiGridRefiner(IRefinementCallback* refCallback = NULL);
@@ -30,13 +31,12 @@ class GlobalMultiGridRefiner : public GridObserver
 		void assign_grid(MultiGrid& mg);
 		void assign_grid(MultiGrid* mg);
 
-		void set_refinement_callback(IRefinementCallback* refCallback);
-		IRefinementCallback* get_refinement_callback()	{return m_refCallback;}
+		virtual Grid* get_associated_grid()		{return m_pMG;}
 
 	////////////////////////////////
 	//	refine
 	///	performs refinement on the marked elements.
-		void refine();
+		virtual void refine();
 
 	protected:
 	///	a callback that allows to deny refinement of special vertices
@@ -64,7 +64,6 @@ class GlobalMultiGridRefiner : public GridObserver
 		
 	protected:
 		MultiGrid*	m_pMG;
-		IRefinementCallback*	m_refCallback;
 };
 
 /// @}

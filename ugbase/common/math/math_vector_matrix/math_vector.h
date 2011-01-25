@@ -83,6 +83,65 @@ class MathVector
 };
 
 /**
+ * A mathematical Vector with 1 entry and static storage
+ */
+template <>
+template <typename T>
+class MathVector<1, T>
+{
+	public:
+		typedef std::size_t size_type;
+		typedef T value_type;
+		static const std::size_t Size = 1;
+
+	public:
+		MathVector()	{}
+		MathVector(value_type x)
+		{
+			m_data = x;
+		}
+		MathVector(const MathVector<1>& v)	{assign(v);}
+
+		// operations with other vectors
+		MathVector& operator=  (const MathVector& v) {assign(v); return *this;}
+		MathVector& operator+= (const MathVector& v) {m_data += v.x; return *this;}
+		MathVector& operator-= (const MathVector& v) {m_data -= v.x; return *this;}
+
+		// operations with scalar
+		MathVector& operator=  (const value_type& val) {m_data =  val;return *this;}
+		MathVector& operator+= (const value_type& val) {m_data += val;return *this;}
+		MathVector& operator-= (const value_type& val) {m_data -= val;return *this;}
+		MathVector& operator*= (const value_type& val) {m_data *= val;return *this;}
+		MathVector& operator/= (const value_type& val) {m_data /= val;return *this;}
+
+		// scalar product
+		value_type operator* (const MathVector& v) const {return m_data * v.x;}
+
+		inline std::size_t size() const								{return 1;}
+
+		inline value_type& coord(std::size_t index)					{return m_data;}
+		inline const value_type& coord(std::size_t index) const		{return m_data;}
+
+		inline value_type& operator[](std::size_t index)				{return m_data;}
+		inline const value_type& operator[](std::size_t index) const	{return m_data;}
+
+	public:
+		union
+		{
+			struct
+			{
+				value_type x;
+			};
+
+			value_type m_data;
+		};
+
+	protected:
+		inline void assign(const MathVector<1>& v)	{m_data = v.x;}
+
+};
+
+/**
  * A mathematical Vector with 2 entries and static storage
  */
 template <>
