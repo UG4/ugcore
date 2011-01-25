@@ -299,7 +299,7 @@ class LocalSchurComplement
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 };
 
-#endif
+#endif /* UG_PARALLEL */
 
 } // end namespace ug
 

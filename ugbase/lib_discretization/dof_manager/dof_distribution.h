@@ -21,6 +21,11 @@
 
 namespace ug{
 
+
+// predeclaration
+template <typename TDoFDistribution>
+class IGridFunction;
+
 /// Base class for dof distributions
 /**
  * A DoF Distribution handles the distribution of Degrees of Freedom (dofs) on
@@ -246,6 +251,23 @@ class IDoFDistribution
 		///////////////////////////
 		// Creation
 		///////////////////////////
+
+	///	compress indices
+	//	bool compress(std::vector<size_t>& ...)
+
+	///	schedule grid function for adaption
+		void manage_grid_function(IGridFunction<TImpl>& gf){}
+
+	///	unschedule grid function for adaption
+		void unmanage_grid_function(IGridFunction<TImpl>& gf){}
+
+	///	add indices to elements
+		template <typename TElem>
+		bool add(std::vector<TElem*>& vElem);
+
+	///	remove indices from elements
+		template <typename TElem>
+		bool to_be_removed(std::vector<TElem*>& vElem);
 
 	/// distribute dofs
 		bool distribute_dofs() {return getImpl().distribute_dofs();}

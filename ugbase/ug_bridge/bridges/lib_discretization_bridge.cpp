@@ -685,7 +685,7 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 	vector<MathVector<dim> > positions;
 	ExtractPositions(b, positions);
 
-	WriteVectorToConnectionViewer(name.c_str(), b.get_vector(), &positions[0], dim);
+	WriteVectorToConnectionViewer(name.c_str(), b, &positions[0], dim);
 	return true;
 }
 
@@ -868,7 +868,7 @@ SolveElderTimeProblem2d(	typename TGridFunction::approximation_space_type& appro
 		newton.init(nlass);
 
 	//  create solution
-		TGridFunction& u = *(approxSpace.create_surface_function("u"));
+		TGridFunction& u = *(approxSpace.create_surface_function());
 
 	//  interpolate start solution
 		InterpolateFunctionHelp<TGridFunction>(ElderStartConcentration, u, "c", 0.0);

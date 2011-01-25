@@ -69,7 +69,7 @@ pattern:lock()
 approxSpace = utilCreateApproximationSpace(dom, pattern)
 
 -- get grid function
-u = approxSpace:create_surface_function("u", true)
+u = approxSpace:create_surface_function()
 
 --------------------------
 -- some parallel testing

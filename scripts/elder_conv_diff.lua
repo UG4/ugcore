@@ -344,7 +344,7 @@ newtonSolver:set_convergence_check(newtonConvCheck)
 newtonSolver:init(op)
 
 -- get grid function
-u = approxSpace:create_surface_function("u", true)
+u = approxSpace:create_surface_function()
 
 -- timestep in seconds: 3153600 sec = 0.1 year
 dt = 3.1536e6

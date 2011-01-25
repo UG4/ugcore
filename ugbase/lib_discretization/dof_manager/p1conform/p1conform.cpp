@@ -194,9 +194,8 @@ distribute_dofs()
 // 	iterators
 	geometry_traits<VertexBase>::iterator iter, iterBegin, iterEnd;
 
-// 	counters
-	size_t i = 0;
-	size_t i_per_subset = 0;
+// 	reset counter for all dofs
+	m_numDoFs = 0;
 
 // 	reset number of dofs
 	m_vNumDoFs.clear(); m_vNumDoFs.resize(num_subsets(), 0);
@@ -215,33 +214,31 @@ distribute_dofs()
 		}
 
 	// 	skip if no dofs to be distributed
-		if(!(m_pFunctionPattern->num_fct(si)>0)) continue;
+		if(!(num_fct(si)>0)) continue;
 
 		iterBegin = this->begin<VertexBase>(si);
 		iterEnd =  this->end<VertexBase>(si);
 
 	// 	remember number of functions
-		size_t numFct = num_fct(si);
+		const size_t numFct = num_fct(si);
 
 	// 	loop Vertices
-		i_per_subset = 0;
+		m_vNumDoFs[si] = 0;
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
 		// 	get vertex
 			VertexBase* vrt = *iter;
 
 		// 	write index
-			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i;
-			i += numFct;
-			i_per_subset += numFct;
+			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = m_numDoFs;
+
+		//	increase number of DoFs
+			m_numDoFs += numFct;
+
+		//	increase number of dofs on subset
+			m_vNumDoFs[si] += numFct;
 		}
-
-	//	remember number of dofs on subset
-		m_vNumDoFs[si] = i_per_subset;
 	}
-
-//	remember total number of dofs
-	m_numDoFs = i;
 
 //	order
 	if(!order_cuthill_mckee())

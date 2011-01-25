@@ -16,188 +16,355 @@ namespace ug{
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 class ApproximationSpace;
 
+/// Base class for all Grid Functions
+/**
+ * This class is the base class for all grid functions. It basically only
+ * stores the Dof distribution and registers itself at the DoFDistribution on
+ * creation, such that the Grid function is adapted when the Distribution is
+ * changed.
+ */
+template <typename TDoFDistribution>
+class IGridFunction
+{
+	public:
+	///	DoF Distribution used
+		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
+
+	///	Multi index
+		typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
+
+	/// Algebra index
+		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
+
+	public:
+	///	default Constructor
+		IGridFunction() : m_pDoFDist(NULL) {};
+
+	///	assigns the dof distribution
+		void assign_dof_distribution(dof_distribution_type& DoFDistr, bool adapt = true)
+		{
+		//	unregister from dof distribution iff already dd set
+			if(m_pDoFDist != NULL)
+				m_pDoFDist->unmanage_grid_function(*this);
+
+		//	remember new dof distribution
+			m_pDoFDist = &DoFDistr;
+
+		//	schedule for adaption
+			if(adapt)
+				m_pDoFDist->manage_grid_function(*this);
+
+		//	resize the vector
+			resize_values(num_dofs());
+		}
+
+	/// get assigned dof distribution
+		const dof_distribution_type& get_dof_distribution() const
+		{
+			check(); return *m_pDoFDist;
+		}
+
+	/// get assigned dof distribution
+		dof_distribution_type& get_dof_distribution() {check(); return *m_pDoFDist;}
+
+	///	adapts the vector to new values
+		virtual bool swap_values(std::vector<size_t> vOldIndex, std::vector<size_t> vNewIndex) = 0;
+
+	///	resize
+		virtual void resize_values(size_t s) = 0;
+
+	///	Destructor
+		virtual ~IGridFunction()
+		{
+			check(); m_pDoFDist->unmanage_grid_function(*this);
+		}
+
+		/////////////////////////////////
+		// DoF Distribution
+		/////////////////////////////////
+
+	/// number of discrete functions
+		size_t num_fct() const {check(); return m_pDoFDist->num_fct();}
+
+	/// number of discrete functions on subset si
+		size_t num_fct(int si) const {check(); return m_pDoFDist->num_fct(si);}
+
+	/// returns the trial space of the discrete function fct
+		LocalShapeFunctionSetID local_shape_function_set_id(size_t fct) const
+			{check(); return m_pDoFDist->local_shape_function_set_id(fct);}
+
+	/// returns the name of the discrete function nr_fct
+		std::string name(size_t fct) const {check(); return m_pDoFDist->name(fct);}
+
+	/// returns the dimension in which solution lives
+		int dim(size_t fct) const {check(); return m_pDoFDist->dim(fct);}
+
+	/// returns true if the discrete function nr_fct is defined on subset s
+		bool is_def_in_subset(size_t fct, int si) const {check(); return m_pDoFDist->is_def_in_subset(fct, si);}
+
+	/// number of subsets
+		int num_subsets() const {check(); return m_pDoFDist->num_subsets();}
+
+	/// return the number of dofs distributed
+		size_t num_dofs() const {check(); return m_pDoFDist->num_dofs();}
+
+	/// return the number of dofs distributed on subset si
+		size_t num_dofs(int si) const {check(); return m_pDoFDist->num_dofs(si);}
+
+	/// number of elements for a subset
+		template <typename TElem>
+		size_t num() const
+			{check(); return m_pDoFDist->template num<TElem>();}
+
+	/// iterator for elements where this grid function is defined
+		template <typename TElem>
+		typename geometry_traits<TElem>::const_iterator begin() const
+			{check(); return const_cast<const dof_distribution_type*>(m_pDoFDist)->template begin<TElem>();}
+
+	/// iterator for elements where this grid function is defined
+		template <typename TElem>
+		typename geometry_traits<TElem>::const_iterator end() const
+			{check(); return const_cast<const dof_distribution_type*>(m_pDoFDist)->template end<TElem>();}
+
+	/// number of elements of this type for a subset
+		template <typename TElem>
+		size_t num(int si) const
+			{check(); return m_pDoFDist->template num<TElem>(si);}
+
+	/// iterator for elements where this grid function is defined
+		template <typename TElem>
+		typename geometry_traits<TElem>::const_iterator begin(int si) const
+			{check(); return const_cast<const dof_distribution_type*>(m_pDoFDist)->template begin<TElem>(si);}
+
+	/// iterator for elements where this grid function is defined
+		template <typename TElem>
+		typename geometry_traits<TElem>::const_iterator end(int si) const
+			{check(); return const_cast<const dof_distribution_type*>(m_pDoFDist)->template end<TElem>(si);}
+
+		////////// Local Algebra ////////////
+
+	/// number of algebra indices on an element
+		size_t num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
+			{check(); return m_pDoFDist->num_indices(refID, si, funcGroup);}
+
+	/// number of algebra indices on an element
+		size_t num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
+			{check(); return m_pDoFDist->num_inner_indices(refID, si, funcGroup);}
+
+	/// fill local informations in LocalIndex
+		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool useHanging = false) const
+			{check(); return m_pDoFDist->prepare_indices(refID, si, ind, useHanging);}
+
+	/// fill local informations in LocalIndex
+		bool prepare_inner_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
+			{check(); return m_pDoFDist->prepare_inner_indices(refID, si, ind);}
+
+	/// fill the global algebra indices in LocalIndex
+		template<typename TElem>
+		void update_indices(TElem* elem, LocalIndices& ind, bool useHanging = false) const
+			{check(); return m_pDoFDist->update_indices(elem, ind, useHanging);}
+
+	/// fill the global algebra indices in LocalIndex
+		template<typename TElem>
+		void update_inner_indices(TElem* elem, LocalIndices& ind) const
+			{check(); return m_pDoFDist->update_inner_indices(elem, ind);}
+
+		////////// Multi indices ////////////
+
+	/// number of multi indices on an finite element in canonical order
+		template <typename TElem>
+		size_t num_multi_indices(TElem* elem, size_t fct) const
+			{check(); return m_pDoFDist->num_multi_indices(elem, fct);}
+
+	/// number of multi indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		size_t num_inner_multi_indices(TGeomObj* elem, size_t fct) const
+			{check(); return m_pDoFDist->num_inner_multi_indices(elem, fct);}
+
+	/// get multi indices on an finite element in canonical order
+		template <typename TElem>
+		size_t get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
+			{check(); return m_pDoFDist->get_multi_indices(elem, fct, ind);}
+
+	/// get multi indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		size_t get_inner_multi_indices(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
+			{check(); return m_pDoFDist->get_inner_multi_indices(elem, fct, ind);}
+
+		////////// Algebra indices ////////////
+
+	/// number of algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		size_t num_algebra_indices(TGeomObj* elem, size_t fct) const
+			{check(); return m_pDoFDist->num_algebra_indices(elem, fct);}
+
+	/// number of algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		size_t num_inner_algebra_indices(TGeomObj* elem, size_t fct) const
+			{check(); return m_pDoFDist->num_inner_algebra_indices(elem, fct);}
+
+	/// get algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		void get_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{check(); m_pDoFDist->get_algebra_indices(elem, ind);}
+
+	/// get algebra indices on an geometric object in canonical order
+		template <typename TGeomObj>
+		void get_inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
+			{check(); m_pDoFDist->get_inner_algebra_indices(elem, ind);}
+
+	protected:
+	//	check that object can be used
+		void check() const {UG_ASSERT(m_pDoFDist != NULL, "DoF Distribution not set.\n");}
+
+	protected:
+	//	DoF Distribution this GridFunction relies on
+		dof_distribution_type* m_pDoFDist;
+};
+
 
 // A grid function brings approximation space and algebra together. For a given DoFManager and level, a grid function
 // represents the solutions on the level 'level'
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
-class GridFunction :	public TAlgebra::vector_type,
-						public virtual IFunctionBase
+class GridFunction
+	: 	public TAlgebra::vector_type,
+	  	public IGridFunction<TDoFDistribution>
+
 {
 	public:
-	// 	This type
+	///	This type
 		typedef GridFunction<TDomain, TDoFDistribution, TAlgebra> this_type;
 
-	// 	Type of Approximation space
+	///	Type of Approximation space
 		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> approximation_space_type;
 
-	// 	Domain
+	///	Domain
 		typedef TDomain domain_type;
 
-	// 	Algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-	// 	Vector type used to store dof values
+	///	Vector type used to store dof values
 		typedef typename algebra_type::vector_type vector_type;
 
-	// 	Local vector type
+	///	Local vector type
 		typedef LocalVector<typename vector_type::value_type> local_vector_type;
 
-	// 	Local index type
+	///	Local index type
 		typedef LocalIndices local_index_type;
 
-	// 	dof manager used for this approximation space
-		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
-
-	//	Multi index
-		typedef typename dof_distribution_type::multi_index_vector_type multi_index_vector_type;
-
-	// 	Algebra index
-		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
-
+	/// DoF Distribution type
+		typedef typename IGridFunction<TDoFDistribution>::dof_distribution_type
+				dof_distribution_type;
 
 	public:
-		// Default constructor
-		GridFunction() :
-			m_name(""), m_pApproxSpace(NULL), m_pDoFDistribution(NULL), m_pNonConstDoFDistribution(NULL)
-			{}
+	/// Default constructor
+		GridFunction() : m_pApproxSpace(NULL){}
 
-		// Constructor
-		GridFunction(	std::string name, approximation_space_type& approxSpace,
-						const dof_distribution_type& DoFDistr, bool allocate = true) :
-			m_name(name), m_pApproxSpace(&approxSpace)
+	/// Initializing Constructor
+		GridFunction(	approximation_space_type& approxSpace,
+						dof_distribution_type& DoFDistr)
+			: m_pApproxSpace(&approxSpace)
 		{
-			assign_dof_distribution(DoFDistr);
-
-			if(allocate)
-				if(!create_storage())
-					UG_ASSERT(0, "Cannot create vector memory.\n");
+			IGridFunction<TDoFDistribution>::assign_dof_distribution(DoFDistr);
 		};
 
-		// copy constructor
-		GridFunction(const this_type& v) :
-			m_name(v.m_name), m_pApproxSpace(v.m_pApproxSpace),
-			m_pDoFDistribution(v.m_pDoFDistribution)
-		{
-			assign(v);
-		};
+	/// Copy constructor
+		GridFunction(const this_type& v) {assign(v);}
 
-		// sets grid function
+	///	assigns another grid function
 		this_type& operator=(const this_type& v)
-			{assign(v); return *this;}
+		{
+		//	copy all values
+			assign(v);
 
-		//	set a vector
+		//	return own reference
+			return *this;
+		}
+
+	/// clone
+		this_type& clone(){return *(new this_type(*this));}
+
+	/// copies the GridFunction v, except that the values are copied.
+		virtual void clone_pattern(const this_type& v)
+		{
+		// 	copy approximation space
+			assign_approximation_space(*v.m_pApproxSpace);
+
+		//	assign dof distribution (resizes vector)
+			assign_dof_distribution(*v.m_pDoFDist);
+		};
+
+	/// creates adequate storage
+		virtual void resize_values(size_t s) {vector_type::resize(s);}
+
+	///	adapts the vector to new values
+		virtual bool swap_values(std::vector<size_t> vOldIndex, std::vector<size_t> vNewIndex)
+		{
+		//	check sizes
+			if(vOldIndex.size() != vNewIndex.size())
+			{
+				UG_LOG("ERROR in GridFunction::swap_values:"
+						" Index sets must have same cardinality.\n");
+				return false;
+			}
+
+		//	loop indices and copy values
+			for(size_t i = 0; i < vOldIndex.size(); ++i)
+			{
+				this->operator[](vNewIndex[i]) = this->operator[](vOldIndex[i]);
+			}
+
+		//	we're done
+			return true;
+		}
+
+	///	assigns the values of a vector
 		bool assign(const vector_type& v)
 		{
-			if(v.size() != get_vector().size()) return false;
-			get_vector() = v;
-			return true;
-		}
-
-		// destructor
-		virtual ~GridFunction()
-		{
-			release_storage();
-		}
-
-		// clone
-		this_type& clone()
-		{
-			return *(new this_type(*this));
-		}
-
-		// copies the GridFunction v, except that the values are copied.
-		virtual bool clone_pattern(const this_type& v)
-		{
-		// 	delete memory if vector storage exists already
-			release_storage();
-
-		// 	copy informations
-			m_name = v.m_name;
-			m_pApproxSpace = v.m_pApproxSpace;
-			assign_dof_distribution(*v.m_pDoFDistribution, false);
-
-		// 	create new vector
-			if(!create_storage())
-				{UG_LOG("Cannot create pattern.\n"); return false;}
-
-			return true;
-		};
-
-	/////////////////////////////////
-	// help functions
-	/////////////////////////////////
-	protected:
-		// create storage vector. DoFDistrution must be set.
-		bool create_storage()
-		{
-		//	DoFDistribution is mandatory
-			if(m_pDoFDistribution == NULL)
-				{UG_LOG("Cannot create vector without DoFDistribution.\n"); return false;}
-
-		//	read number of algebra dofs
-			size_t num_dofs = m_pDoFDistribution->num_dofs();
-
-		//	check if vector has correct size. Otherwise resize
-			if(get_vector().size() != num_dofs)
+		//	check size
+			if(v.size() != vector_type::size())
 			{
-				if(!get_vector().destroy()) return false;
-				if(!get_vector().create(num_dofs)) return false;
+				UG_LOG("ERROR in GridFunction::assign:"
+						"Assigned vector has incorrect size.\n");
+				return false;
 			}
+
+		//	assign vector
+			*(dynamic_cast<vector_type*>(this)) = v;
+
+		//	we're done
 			return true;
 		}
 
-		// deletes the memory
-		bool release_storage()
-		{
-		//	delete vector
-			get_vector().destroy();
-			return true;
-		}
+	/// Destructor
+		virtual ~GridFunction() {release_storage();}
 
-		// sets the values of GridFunction 'v' to this GridFunction
-		// DofManager and level must be the same
+	protected:
+	/// deletes the memory
+		void release_storage(){vector_type::destroy();}
+
+	///	assigns another GridFunction
 		bool assign(const this_type& v)
 		{
-			// check that approximation space is equal
-			if(m_pApproxSpace != v.m_pApproxSpace)
-				return false;
+		// 	copy approximation space
+			assign_approximation_space(*v.m_pApproxSpace);
 
-			// check that Grid functions are of same type
-			if(	m_pDoFDistribution != v.m_pDoFDistribution)
-				return false;
+		//	assign dof distribution (resizes vector)
+			assign_dof_distribution(*v.m_pDoFDist);
 
-			if(!create_storage())
-			{UG_LOG("Cannot create storage for assignment.\n"); return false;}
+		//  copy values
+			*(dynamic_cast<vector_type*>(this)) = *dynamic_cast<const vector_type*>(&v);
 
-			if (v.get_vector().size() != get_vector().size())
-				{UG_LOG("Size of discrete function does not match."); return false;}
-
-			// copy values
-			get_vector() = v.get_vector();
+		//	we're done
 			return true;
 		}
 
-		/////////////////////////////////
-		// General informations
-		/////////////////////////////////
 	public:
-		// name of grid function
-		std::string name()
-			{return m_name;}
-
-		// dimension
+	/// returns world dimension
 		int get_dim() const {return domain_type::dim;}
 
-		void assign_dof_distribution(const dof_distribution_type& DoFDistr, bool allocate = true)
-		{
-			m_pDoFDistribution = &DoFDistr;
-			m_pNonConstDoFDistribution = const_cast<dof_distribution_type*>(&DoFDistr);
-			if(allocate)
-				create_storage();
-			else
-				release_storage();
-		}
-
+	///	assign approximation space
 		void assign_approximation_space(approximation_space_type& ApproxSpace)
 		{
 			m_pApproxSpace = &ApproxSpace;
@@ -210,195 +377,43 @@ class GridFunction :	public TAlgebra::vector_type,
 
 		//	assign
 			assign_approximation_space(ApproxSpace);
-			assign_dof_distribution(ApproxSpace.get_surface_dof_distribution(), true);
+			assign_dof_distribution(ApproxSpace.get_surface_dof_distribution());
 		}
 
-		// get dof distribution
-		const dof_distribution_type& get_dof_distribution() const
-			{return *m_pDoFDistribution;}
+	/// returns approximation space
+		const approximation_space_type& get_approximation_space() const
+			{return *m_pApproxSpace;}
 
-		// get approximation space
-		const approximation_space_type& get_approximation_space() const {return *m_pApproxSpace;}
-		approximation_space_type& get_approximation_space() {return *m_pApproxSpace;}
+	///	returns approximation space
+		approximation_space_type& get_approximation_space()
+			{return *m_pApproxSpace;}
 
-		/////////////////////////////////
-		// DoF Distribution requirements
-		/////////////////////////////////
+	///	returns domain
+		domain_type& get_domain() {return m_pApproxSpace->get_domain();}
 
-		/// number of discrete functions
-		size_t num_fct() const {return m_pDoFDistribution->num_fct();}
+	///	returns const domain
+		const domain_type& get_domain() const {return m_pApproxSpace->get_domain();}
 
-		/// number of discrete functions on subset si
-		size_t num_fct(int si) const {return m_pDoFDistribution->num_fct(si);}
-
-		/// returns the trial space of the discrete function fct
-		LocalShapeFunctionSetID local_shape_function_set_id(size_t fct) const  {return m_pDoFDistribution->local_shape_function_set_id(fct);}
-
-		/// returns the name of the discrete function nr_fct
-		std::string name(size_t fct) const {return m_pDoFDistribution->name(fct);}
-
-		/// returns the dimension in which solution lives
-		int dim(size_t fct) const {return m_pDoFDistribution->dim(fct);}
-
-		/// returns true if the discrete function nr_fct is defined on subset s
-		bool is_def_in_subset(size_t fct, int si) const {return m_pDoFDistribution->is_def_in_subset(fct, si);}
-
-
-		/// number of subsets
-		inline int num_subsets() const {return m_pDoFDistribution->num_subsets();}
-
-		/// return the number of dofs distributed
-		inline size_t num_dofs() const {return m_pDoFDistribution->num_dofs();}
-
-		/// return the number of dofs distributed on subset si
-		inline size_t num_dofs(int si) const {return m_pDoFDistribution->num_dofs(si);}
-
-		// number of elements of this type for a subset
-		template <typename TElem>
-		inline size_t num() const
-			{return m_pDoFDistribution->template num<TElem>();}
-
-		// iterator for elements where this grid function is defined
-		template <typename TElem>
-		inline typename geometry_traits<TElem>::const_iterator begin() const
-			{return m_pDoFDistribution->template begin<TElem>();}
-
-		// iterator for elements where this grid function is defined
-		template <typename TElem>
-		inline typename geometry_traits<TElem>::const_iterator end() const
-			{return m_pDoFDistribution->template end<TElem>();}
-
-		// number of elements of this type for a subset
-		template <typename TElem>
-		inline size_t num(int si) const
-			{return m_pDoFDistribution->template num<TElem>(si);}
-
-		// iterator for elements where this grid function is defined
-		template <typename TElem>
-		inline typename geometry_traits<TElem>::const_iterator begin(int si) const
-			{return m_pDoFDistribution->template begin<TElem>(si);}
-
-		// iterator for elements where this grid function is defined
-		template <typename TElem>
-		inline typename geometry_traits<TElem>::const_iterator end(int si) const
-			{return m_pDoFDistribution->template end<TElem>(si);}
-
-		////////// Local Algebra ////////////
-
-		/// number of algebra indices on an element
-		size_t num_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
-			{return m_pDoFDistribution->num_indices(refID, si, funcGroup);}
-
-		/// number of algebra indices on an element
-		size_t num_inner_indices(ReferenceObjectID refID, int si, const FunctionGroup& funcGroup) const
-			{return m_pDoFDistribution->num_inner_indices(refID, si, funcGroup);}
-
-		/// fill local informations in LocalIndex
-		bool prepare_indices(ReferenceObjectID refID, int si, LocalIndices& ind, bool useHanging = false) const
-			{return m_pDoFDistribution->prepare_indices(refID, si, ind, useHanging);}
-
-		/// fill local informations in LocalIndex
-		bool prepare_inner_indices(ReferenceObjectID refID, int si, LocalIndices& ind) const
-			{return m_pDoFDistribution->prepare_inner_indices(refID, si, ind);}
-
-		/// fill the global algebra indices in LocalIndex
-		template<typename TElem>
-		void update_indices(TElem* elem, LocalIndices& ind, bool useHanging = false) const
-			{return m_pDoFDistribution->update_indices(elem, ind, useHanging);}
-
-		/// fill the global algebra indices in LocalIndex
-		template<typename TElem>
-		void update_inner_indices(TElem* elem, LocalIndices& ind) const
-			{return m_pDoFDistribution->update_inner_indices(elem, ind);}
-
-		////////// Multi indices ////////////
-
-		// number of multi indices on an finite element in canonical order
-		template <typename TElem>
-		inline size_t num_multi_indices(TElem* elem, size_t fct) const
-			{return m_pDoFDistribution->num_multi_indices(elem, fct);}
-
-		// number of multi indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline size_t num_inner_multi_indices(TGeomObj* elem, size_t fct) const
-			{return m_pDoFDistribution->num_inner_multi_indices(elem, fct);}
-
-		// get multi indices on an finite element in canonical order
-		template <typename TElem>
-		inline size_t get_multi_indices(TElem* elem, size_t fct, multi_index_vector_type& ind) const
-			{return m_pDoFDistribution->get_multi_indices(elem, fct, ind);}
-
-		// get multi indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline size_t get_inner_multi_indices(TGeomObj* elem, size_t fct,	multi_index_vector_type& ind) const
-			{return m_pDoFDistribution->get_inner_multi_indices(elem, fct, ind);}
-
-		////////// Algebra indices ////////////
-
-		// number of algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline size_t num_algebra_indices(TGeomObj* elem, size_t fct) const
-			{return m_pDoFDistribution->num_algebra_indices(elem, fct);}
-
-		// number of algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline size_t num_inner_algebra_indices(TGeomObj* elem, size_t fct) const
-			{return m_pDoFDistribution->num_inner_algebra_indices(elem, fct);}
-
-		// get algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline void get_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
-			{m_pDoFDistribution->get_algebra_indices(elem, ind);}
-
-		// get algebra indices on an geometric object in canonical order
-		template <typename TGeomObj>
-		inline void get_inner_algebra_indices(TGeomObj* elem, algebra_index_vector_type& ind) const
-			{m_pDoFDistribution->get_inner_algebra_indices(elem, ind);}
-
-		////////// DoF Values ////////////
-
-		// get dof values
+	/// access dof values
 		inline number get_dof_value(size_t i, size_t comp) const
-			{return BlockRef(((get_vector())[i]), comp);}
-
-		////////////////////////////
-		// Algebra requirements
-		////////////////////////////
-		// TODO: Since a GridFunction is a Vector now, we can replace get_vector everywhere
-		// 			and use GridFunction directly
-		// export the dof storage of this vector
-		vector_type& get_vector()
-			{return *(dynamic_cast<vector_type*>(this));}
-
-		// export the dof storage of this vector
-		const vector_type& get_vector() const
-			{return *(dynamic_cast<const vector_type*>(this));}
+			{return BlockRef( (vector_type::operator[](i)), comp);}
 
 	protected:
-		// name
-		std::string m_name;
-
-		// Approximation Space
+	/// Approximation Space
 		approximation_space_type* m_pApproxSpace;
-
-		// dof manager of this discrete function
-		const dof_distribution_type* m_pDoFDistribution;
-
-		// Todo: remove this
-		dof_distribution_type* m_pNonConstDoFDistribution;
 };
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 const typename TAlgebra::vector_type &getVector(const GridFunction<TDomain, TDoFDistribution, TAlgebra> &t)
 {
-	return t.get_vector();
+	return *dynamic_cast<const GridFunction<TDomain, TDoFDistribution, TAlgebra>*>(&t);
 }
 
 
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 inline std::ostream& operator<< (std::ostream& outStream, const GridFunction<TDomain, TDoFDistribution, TAlgebra>& v)
 {
-	outStream << v.get_vector();
+	outStream << *dynamic_cast<const GridFunction<TDomain, TDoFDistribution, TAlgebra>*>(&v);
 	return outStream;
 }
 

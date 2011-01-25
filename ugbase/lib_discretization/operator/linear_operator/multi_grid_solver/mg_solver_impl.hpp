@@ -80,7 +80,7 @@ lmgc(size_t lev)
 			if(!m_d[lev-1]->get_vertical_master_layout().empty()){
 			//	set all dofs to 0. This is important since we will add vertical slave values
 			//	after restriction.
-				ConsistentToUnique( &m_d[lev-1]->get_vector(),
+				ConsistentToUnique(m_d[lev-1],
 						m_d[lev-1]->get_vertical_master_layout());
 			}
 		#endif
@@ -97,7 +97,7 @@ lmgc(size_t lev)
 		#ifdef UG_PARALLEL
 		//	send vertical-slaves -> vertical-masters
 		//	one proc may not have both, a vertical-slave- and vertical-master-layout.
-			ComPol_VecAdd<typename function_type::vector_type> cpVecAdd(&m_d[lev-1]->get_vector());
+			ComPol_VecAdd<typename function_type::vector_type> cpVecAdd(m_d[lev-1]);
 			if(!m_d[lev-1]->get_vertical_slave_layout().empty()){
 				resume = false;
 				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going down: SENDS vertical dofs on level " << lev -1 << ".\n");
@@ -127,7 +127,7 @@ lmgc(size_t lev)
 		#ifdef UG_PARALLEL
 			//	send vertical-masters -> vertical-slaves
 			//	one proc may not have both, a vertical-slave- and vertical-master-layout.
-			ComPol_VecCopy<typename function_type::vector_type> cpVecCopy(&m_c[lev-1]->get_vector());
+			ComPol_VecCopy<typename function_type::vector_type> cpVecCopy(m_c[lev-1]);
 			if(!m_c[lev-1]->get_vertical_slave_layout().empty()){
 				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going up: WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
 				m_Com.receive_data(m_c[lev-1]->get_vertical_slave_layout(),	cpVecCopy);
@@ -531,25 +531,25 @@ allocate_memory()
 	m_d.resize(m_surfaceLevel+1);
 
 	// top level matrix and vectors
-	m_u[m_surfaceLevel] = m_pApproxSpace->create_level_function("u", m_surfaceLevel);
-	m_c[m_surfaceLevel] = m_pApproxSpace->create_level_function("c", m_surfaceLevel);
-	m_t[m_surfaceLevel] = m_pApproxSpace->create_level_function("t", m_surfaceLevel);
-	m_d[m_surfaceLevel] = m_pApproxSpace->create_level_function("d", m_surfaceLevel);
+	m_u[m_surfaceLevel] = m_pApproxSpace->create_level_function(m_surfaceLevel);
+	m_c[m_surfaceLevel] = m_pApproxSpace->create_level_function(m_surfaceLevel);
+	m_t[m_surfaceLevel] = m_pApproxSpace->create_level_function(m_surfaceLevel);
+	m_d[m_surfaceLevel] = m_pApproxSpace->create_level_function(m_surfaceLevel);
 
 	// create coarse level vectors
 	for(size_t lev = m_baseLevel; lev != m_surfaceLevel; ++lev)
 	{
 		// create solution
-		m_u[lev] = m_pApproxSpace->create_level_function("u", lev);
+		m_u[lev] = m_pApproxSpace->create_level_function(lev);
 
 		// create correction
-		m_c[lev] = m_pApproxSpace->create_level_function("c", lev);
+		m_c[lev] = m_pApproxSpace->create_level_function(lev);
 
 		// create help vector
-		m_t[lev] = m_pApproxSpace->create_level_function("t", lev);
+		m_t[lev] = m_pApproxSpace->create_level_function(lev);
 
 		// create defect
-		m_d[lev] = m_pApproxSpace->create_level_function("d", lev);
+		m_d[lev] = m_pApproxSpace->create_level_function(lev);
 	}
 
 	//	dynamically created pointer for Coarse Operators

@@ -56,7 +56,7 @@ class MGDoFManager
 		bool assign_function_pattern(FunctionPattern& dp);
 
 	/// number of levels
-		inline size_t num_levels() const
+		size_t num_levels() const
 		{
 		//	without SubsetHandler, we have no level information
 			if(m_pMGSubsetHandler == NULL) return 0;
@@ -75,7 +75,7 @@ class MGDoFManager
 		bool distribute_surface_dofs();
 
 	///	returns Surface DoF Distribution
-		const dof_distribution_type* get_surface_dof_distribution() const
+		dof_distribution_type* get_surface_dof_distribution()
 		{
 			//return m_pSurfaceDoFDistribution;
 
@@ -85,20 +85,20 @@ class MGDoFManager
 				return NULL;
 		}
 
-	///	print a statistic on dof distribution
-		void print_statistic() const;
-
-	///	print a statistic on layout informations
-		void print_layout_statistic() const;
-
 	///	returns Level DoF Distribution
-		const dof_distribution_type* get_level_dof_distribution(size_t level) const
+		dof_distribution_type* get_level_dof_distribution(size_t level)
 		{
 			if(level < m_vLevelDoFDistribution.size())
 				return m_vLevelDoFDistribution[level];
 			else
 				return NULL;
 		}
+
+	///	print a statistic on dof distribution
+		void print_statistic() const;
+
+	///	print a statistic on layout informations
+		void print_layout_statistic() const;
 
 	///	Destructor
 		virtual ~MGDoFManager()

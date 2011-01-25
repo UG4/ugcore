@@ -33,7 +33,8 @@ void ExtractPositions(const TFunction &u, std::vector<MathVector<TFunction::doma
 
 	for(int si = 0; si < u.num_subsets(); ++si)
 	{
-		for(geometry_traits<VertexBase>::const_iterator iter = u.template begin<VertexBase>(si); iter != u.template end<VertexBase>(si); ++iter)
+		for(geometry_traits<VertexBase>::const_iterator iter = u.template begin<VertexBase>(si);
+				iter != u.template end<VertexBase>(si); ++iter)
 		{
 			VertexBase* v = *iter;
 

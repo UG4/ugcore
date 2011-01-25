@@ -336,10 +336,6 @@ write_points(FILE* File, discrete_function_type& u, int si, int dim)
 				UG_LOG("ERROR in write_points: Something wrong with Edge points.\n");
 				return false;
 			}
-			else
-			{
-				UG_LOG("NO ERROR in write_points: Edge points are ok.\n");
-			}
 			break;
 		case 2:
 			UG_DLOG(LIB_DISC_OUTPUT, 3, "\n -------- Writing Triangle Points of " << u.template num<Triangle>(si) << " Triangles -------\n");
@@ -715,7 +711,7 @@ write_scalar_elementwise(FILE* File,
 	UG_DLOG(LIB_DISC_OUTPUT, 3, "\n ---- Start: Writing nodal values to file for function " << u.name(fct) << " ----\n");
 
 	typename TDiscreteFunction::multi_index_vector_type multInd;
-	typename TDiscreteFunction::vector_type& u_vec = u.get_vector();
+	typename TDiscreteFunction::vector_type& u_vec = *dynamic_cast<typename TDiscreteFunction::vector_type*>(&u);
 
 	m_grid->begin_marking();
 	for( ; iterBegin != iterEnd; ++iterBegin)

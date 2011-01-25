@@ -199,7 +199,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		}
 
 		// create a new grid function of this approximation space
-		function_type* create_level_function(std::string name, size_t level, bool allocate = true)
+		function_type* create_level_function(size_t level)
 		{
 			if(!m_bInit)
 			{
@@ -207,20 +207,19 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 				return NULL;
 			}
 
-			const dof_distribution_type* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
+			dof_distribution_type* dofDistr = m_MGDoFManager.get_level_dof_distribution(level);
 			if(dofDistr == NULL)
 			{
 				throw(UG_ERROR_DoFDistributionMissing());
 			}
 
-			function_type* gridFct = new function_type(name, *this,
-														*dofDistr,
-														allocate);
+			function_type* gridFct = new function_type(*this, *dofDistr);
 			return gridFct;
 		}
+
 
 		// create a new grid function of this approximation space
-		function_type* create_surface_function(std::string name, bool allocate = true)
+		function_type* create_surface_function()
 		{
 			if(!m_bInit)
 			{
@@ -228,24 +227,23 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 				return NULL;
 			}
 
-			const dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+			dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
 			if(dofDistr == NULL)
 			{
 				throw(UG_ERROR_DoFDistributionMissing());
 			}
 
-			function_type* gridFct = new function_type(name, *this,
-														*dofDistr,
-														allocate);
+			function_type* gridFct = new function_type(*this, *dofDistr);
+
 			return gridFct;
 		}
 
-		const dof_distribution_type& get_surface_dof_distribution() const
+		dof_distribution_type& get_surface_dof_distribution()
 		{
 			if(!m_bInit)
 				throw(UG_ERROR_DoFDistributionMissing());
 
-			const dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+			dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
 
 			if(dofDistr == NULL)
 				throw(UG_ERROR_DoFDistributionMissing());
@@ -253,7 +251,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			return *dofDistr;
 		}
 
-		const dof_distribution_type& get_level_dof_distribution(size_t level) const
+		dof_distribution_type& get_level_dof_distribution(size_t level)
 		{
 			if(!m_bInit)
 				throw(UG_ERROR_DoFDistributionMissing());

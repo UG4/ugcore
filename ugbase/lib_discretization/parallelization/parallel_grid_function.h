@@ -43,62 +43,82 @@ class ParallelGridFunction : public TGridFunction
 		typedef typename TGridFunction::dof_distribution_type dof_distribution_type;
 
 	public:
-		// Constructor
+	/// Default Constructor
 		ParallelGridFunction() : TGridFunction() {};
 
-		// Constructor
-		ParallelGridFunction(std::string name, approximation_space_type& approxSpace, const dof_distribution_type& DoFDistr, bool allocate = true)
-			: TGridFunction(name, approxSpace, DoFDistr, allocate)
+	/// Initializing Constructor
+		ParallelGridFunction(approximation_space_type& approxSpace, dof_distribution_type& DoFDistr)
+			: TGridFunction(approxSpace, DoFDistr)
 		{
-			if(allocate)
-			{
-				set_layouts();
-				set_storage_type(PST_UNDEFINED);
-			}
+			copy_layouts_into_vector();
+			set_storage_type(PST_UNDEFINED);
 		};
 
 
 		///////////////////////////////
 		// overloaded functions
 		///////////////////////////////
-		void assign_dof_distribution(const dof_distribution_type& DoFDistr, bool allocate = true)
+
+	///	assign dof distribution
+		void assign_dof_distribution(dof_distribution_type& DoFDistr)
 		{
-			TGridFunction::assign_dof_distribution(DoFDistr, allocate);
-			set_layouts();
+		//	assign distribution
+			TGridFunction::assign_dof_distribution(DoFDistr);
+
+		//	copy layouts into vector
+			copy_layouts_into_vector();
+
+		//	set storage type to undefined
 			set_storage_type(PST_UNDEFINED);
 		}
 
-		virtual bool clone_pattern(const this_type& v)
+		virtual void clone_pattern(const this_type& v)
 		{
-			if(!TGridFunction::clone_pattern(v)) return false;
-			set_layouts();
+		//	clone process local grid function
+			TGridFunction::clone_pattern(v);
+
+		//	copy layouts
+			copy_layouts_into_vector();
+
+		//	set storage type to undefined
 			set_storage_type(PST_UNDEFINED);
-			return true;
 		}
 
-		// clone
-		this_type& clone()
-		{return *(new this_type(*this));}
+	/// clone
+		this_type& clone() {return *(new this_type(*this));}
 
-		//	set a vector
+	///	assigns a vector
 		bool assign(const vector_type& v)
 		{
-			if(v.size() != TGridFunction::get_vector().size()) return false;
-			TGridFunction::get_vector() = v;
-			set_layouts();
-			TGridFunction::get_vector().copy_storage_type(v);
+		//	assign values on own process
+			TGridFunction::assign(v);
+
+		//	set layouts
+			copy_layouts_into_vector();
+
+		//	copy storage type
+			get_vector().copy_storage_type(v);
+
+		//	we're done
 			return true;
 		}
 
 		bool assign(const this_type& v)
 		{
+		//	assign own grid function
 			if(!TGridFunction::assign(v))
 			{
 				UG_ASSERT(0, "Assigning failed.");
 				return false;
 			}
-			set_layouts();
+
+		//	copy layouts
+			copy_layouts_into_vector();
+
+		//	copy storage type
 			copy_storage_type(v);
+
+		//	we're done
 			return true;
 		}
 
@@ -106,38 +126,11 @@ class ParallelGridFunction : public TGridFunction
 		this_type& operator=(const this_type& v)
 			{assign(v); return *this;}
 
-		// for Template Expressions
-		/*template<typename T>
-		this_type& operator =(const T &t)
-		{
-			VectorAssign(*this, t);
-			return *this;
-		}
-		template<typename T>
-		this_type& operator -=(const T &t)
-		{
-			VectorSub(*this, t);
-			return *this;
-		}
-		template<typename T>
-		this_type& operator +=(const T &t)
-		{
-			VectorAdd(*this, t);
-			return *this;
-		}*/
-
-		// set all dofs on level 'level' to value 'w'
-		// removed this because it is the same in ParallelVector and Vector (MR)
-		/*bool set(number w, ParallelStorageType type)
-			{return TGridFunction::get_vector().set(w, type);}
-
-		bool set(number w)
-			{return TGridFunction::get_vector().set(w, PST_CONSISTENT);}*/
-
 		////////////////////////////
 		// Storage type
 		////////////////////////////
 
+	///	changes storage type
 		bool change_storage_type_by_string(std::string type)
 		{
 			if(type == "consistent")
@@ -153,6 +146,7 @@ class ParallelGridFunction : public TGridFunction
 			return false;
 		}
 
+	///	sets the storage type
 		void set_storage_type_by_string(std::string type)
 		{
 			if(type == "consistent")
@@ -168,74 +162,75 @@ class ParallelGridFunction : public TGridFunction
 			return;
 		}
 
-		// changes to the requested storage type if possible
+	/// changes to the requested storage type if possible
 		bool change_storage_type(ParallelStorageType type)
-			{return TGridFunction::get_vector().change_storage_type(type);}
+			{return get_vector().change_storage_type(type);}
 
-		// returns if the current storage type has a given representation
+	/// returns if the current storage type has a given representation
 		bool has_storage_type(ParallelStorageType type) const
-			{return TGridFunction::get_vector().has_storage_type(type);}
+			{return get_vector().has_storage_type(type);}
 
-		// returns storage type mask
-		ParallelStorageType get_storage_mask() const { return TGridFunction::get_vector().get_storage_mask(); }
+	/// returns storage type mask
+		ParallelStorageType get_storage_mask() const
+			{return get_vector().get_storage_mask(); }
 
-		// sets the storage type
+	/// sets the storage type
 		void set_storage_type(ParallelStorageType type)
-			{TGridFunction::get_vector().set_storage_type(type);}
+			{get_vector().set_storage_type(type);}
 
-		// adds the storage type
+	/// adds the storage type
 		void add_storage_type(ParallelStorageType type)
-			{TGridFunction::get_vector().add_storage_type(type);}
+			{get_vector().add_storage_type(type);}
 
-		// removes the storage type
+	/// removes the storage type
 		void remove_storage_type(ParallelStorageType type)
-			{TGridFunction::get_vector().remove_storage_type(type);}
+			{get_vector().remove_storage_type(type);}
 
-		// copies the storage type from another vector
+	/// copies the storage type from another vector
 		void copy_storage_type(const this_type& v)
-			{TGridFunction::get_vector().copy_storage_type((v.get_vector()));}
+			{get_vector().copy_storage_type((v.get_vector()));}
 
 		///////////////////////////////
 		// index layouts
 		///////////////////////////////
 
-		inline IndexLayout& get_slave_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_slave_layout();}
-		inline IndexLayout& get_master_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_master_layout();}
+		IndexLayout& get_slave_layout()	{return this->get_dof_distribution().get_slave_layout();}
+		IndexLayout& get_master_layout()	{return this->get_dof_distribution().get_master_layout();}
 
-		inline std::vector<IndexLayout>& get_slave_layouts()	{return TGridFunction::m_pNonConstDoFDistribution->get_slave_layouts();}
-		inline std::vector<IndexLayout>& get_master_layouts()	{return TGridFunction::m_pNonConstDoFDistribution->get_master_layouts();}
+		std::vector<IndexLayout>& get_slave_layouts()	{return this->get_dof_distribution().get_slave_layouts();}
+		std::vector<IndexLayout>& get_master_layouts()	{return this->get_dof_distribution().get_master_layouts();}
 
-		inline IndexLayout& get_vertical_slave_layout()		{return TGridFunction::m_pNonConstDoFDistribution->get_vertical_slave_layout();}
-		inline IndexLayout& get_vertical_master_layout()	{return TGridFunction::m_pNonConstDoFDistribution->get_vertical_master_layout();}
+		IndexLayout& get_vertical_slave_layout()		{return this->get_dof_distribution().get_vertical_slave_layout();}
+		IndexLayout& get_vertical_master_layout()	{return this->get_dof_distribution().get_vertical_master_layout();}
 
-		inline pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return TGridFunction::m_pNonConstDoFDistribution->get_communicator();;}
-		inline pcl::ProcessCommunicator& get_process_communicator()	{return TGridFunction::m_pNonConstDoFDistribution->get_process_communicator();}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return this->get_dof_distribution().get_communicator();;}
+		pcl::ProcessCommunicator& get_process_communicator()	{return this->get_dof_distribution().get_process_communicator();}
 
-		inline std::vector<pcl::ParallelCommunicator<IndexLayout> >& get_communicators() {return TGridFunction::m_pNonConstDoFDistribution->get_communicators();;}
-		inline std::vector<pcl::ProcessCommunicator>& get_process_communicators()	{return TGridFunction::m_pNonConstDoFDistribution->get_process_communicators();}
-
-		///////////////////////////////
-		// help functions
-		///////////////////////////////
+		std::vector<pcl::ParallelCommunicator<IndexLayout> >& get_communicators() {return this->get_dof_distribution().get_communicators();;}
+		std::vector<pcl::ProcessCommunicator>& get_process_communicators()	{return this->get_dof_distribution().get_process_communicators();}
 
 	protected:
 	///	copies references of the layouts from the underlying dof distribution into the vector
-		void set_layouts()
+		void copy_layouts_into_vector()
 		{
 		//	copy all horizontal layouts (for all domain decomps)
-			TGridFunction::get_vector().set_slave_layouts(get_slave_layouts());
-			TGridFunction::get_vector().set_master_layouts(get_master_layouts());
+			get_vector().set_slave_layouts(get_slave_layouts());
+			get_vector().set_master_layouts(get_master_layouts());
 
 		//	copy vertical layouts
-			TGridFunction::get_vector().set_vertical_slave_layout(get_vertical_slave_layout());
-			TGridFunction::get_vector().set_vertical_master_layout(get_vertical_master_layout());
+			get_vector().set_vertical_slave_layout(get_vertical_slave_layout());
+			get_vector().set_vertical_master_layout(get_vertical_master_layout());
 
 		//	copy communicator
-			TGridFunction::get_vector().set_communicators(get_communicators());
-			TGridFunction::get_vector().set_process_communicators(get_process_communicators());
+			get_vector().set_communicators(get_communicators());
+			get_vector().set_process_communicators(get_process_communicators());
 		}
 
+	/// get own vector
+		vector_type& get_vector() {return *(dynamic_cast<vector_type*>(this));}
 
+	///	get own const vector
+		const vector_type& get_vector() const {return *(dynamic_cast<const vector_type*>(this));}
 };
 
 // for template expressions

@@ -73,7 +73,7 @@ bool InterpolateFunctionOnElem( boost::function<void (	number& res,
 
 		mapping.update(corners);
 
-		typename TGridFunction::vector_type& v_vec = u.get_vector();
+		typename TGridFunction::vector_type& v_vec = *dynamic_cast<typename TGridFunction::vector_type*>(&u);
 		typename TGridFunction::multi_index_vector_type ind;
 		u.get_multi_indices(elem, fct, ind);
 		if(ind.size() != num_sh)

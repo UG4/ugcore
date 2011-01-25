@@ -334,7 +334,7 @@ newtonSolver:init(op)
 -------------------------------------------
 
 -- get grid function
-u = approxSpace:create_surface_function("u", true)
+u = approxSpace:create_surface_function()
 
 -- set initial value
 u:set(0.0)
