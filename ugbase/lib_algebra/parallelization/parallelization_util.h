@@ -283,6 +283,37 @@ void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
 	}
 }
 
+/// sets entries of one vector to a given value only at the interface
+/**
+ * This function sets the entries of a vector only on a layout. No communication is performed.
+ *
+ * \param[in,out]	pVec			vector to set
+ * \param[in]		value			value for entries to be set
+ * \param[in]		Layout			Index Layout
+ */
+template <typename TVector>
+void VecSetOnLayout(	TVector* pVec, number value, IndexLayout& Layout)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = Layout.interface(iter);
+
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+		{
+		//	get index
+			const size_t index = interface.get_element(iter);
+
+		//	add value
+			(*pVec)[index] = value;
+		}
+	}
+}
 
 /// sets dirichlet rows for interface indices
 /**
