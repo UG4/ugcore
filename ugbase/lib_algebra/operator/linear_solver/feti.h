@@ -9,6 +9,8 @@
    + init fuer "sequential solver"
 
    * eigentlicher FETISolver - abgeleitet von 'IMatrixOperatorInverse' oder von 'CGSolver'?
+
+ * Scaling operators \f$D_{\Delta}^{i}\f$ - at present we use identity
  */
 /*
  * feti.h
@@ -39,11 +41,19 @@ template <> struct block_traits<int>
 	};
 };
 
-///	Generates a set of global algebra ids.
-/**	Make sure that masterLayout and slaveLayout do not reference
- * indices >= numIDs.
+///	Extracts cross points from Delta-Layout
+/**
+ * This function extracts the cross points from a "Delta layout" and creates a new "Pi layout"
+ * containing only these cross points which on the other hand are eliminated from the "Delta layout"
+ * so that both index sets are disjunct.
+ *
+ * \param[in]		numIDs			number of dof's of actual processor
+ * \param[in]		masterLayoutIn	master layout to extract
+ * \param[in]		slaveLayoutIn	slave layout to extract
+ * \param[out]		masterLayoutOut	master layout created
+ * \param[out]		slaveLayoutOut	slave layout created
  */
-inline void ExtractCrossPointLayouts(size_t numIDs,// number of dof's of actual processor
+inline void ExtractCrossPointLayouts(size_t numIDs,
 									 IndexLayout& masterLayoutIn,
 									 IndexLayout& slaveLayoutIn,
 									 IndexLayout& masterCPLayoutOut, // CP: "Cross Point"
@@ -139,6 +149,68 @@ inline void ExtractCrossPointLayouts(size_t numIDs,// number of dof's of actual 
 	return;
 }
 
+///	Application of the "jump operator" \f$B_{\Delta}\f$:
+/// 'ComputeDifferenceOnDelta()': Apply \f$B_{\Delta}\f$ to \f$u_{\Delta}\f$
+/**
+ * \f$B_{\Delta}\f$ computes the difference between the double-valued unknowns \f$u_{\Delta}\f$.
+ * This computation is only unique up to the sign of the difference. Thus, we can
+ * freely decide it, but have then to stay with the choice.
+ *
+ * \param[out]		diff			destination vector for computed differences on "Delta layout"
+ * \param[in]		u				vector \f$u_{\Delta}\f$
+ * \param[in]		masterLayoutIn	master layout to operate on (caller has to provided a "Delta layout")
+ * \param[in]		slaveLayoutIn	slave  layout to operate on (caller has to provided a "Delta layout")
+ */
+template <typename TVector>
+void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
+							  IndexLayout& masterLayoutIn,
+							  IndexLayout& slaveLayoutIn)
+{
+	// copy u
+	diff = u;
+
+	// All masters subtract the values of the slave, all slaves subtract the values of the master ...
+	VecSubtractOnLayout(&diff, masterLayoutIn, slaveLayoutIn);
+
+	// ... and slaves multiplies the result by '-1'
+	VecSetOnLayout(&diff, -1.0, slaveLayoutIn);
+
+	return;
+};
+
+/// 'ComputeDifferenceOnDeltaTransposed()': Apply \f$B_{\Delta}^T\f$ to \f$\lambda\f$
+/**
+ * \f$B_{\Delta}\f$ computes the difference between the double-valued unknowns \f$u_{\Delta}\f$.
+ * This computation is only unique up to the sign of the difference. Thus, we can
+ * freely decide it, but have then to stay with the choice.
+ *
+ * \param[out]		lambda			vector of Lagrange multipliers
+ * \param[in]		f				vector \f$f_{\Delta}\f$ living on "Delta layout"
+ * \param[in]		masterLayoutIn	master layout to operate on (caller has to provided a "Delta layout")
+ * \param[in]		slaveLayoutIn	slave  layout to operate on (caller has to provided a "Delta layout")
+ */
+template <typename TVector>
+void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,
+							  IndexLayout& masterLayoutIn,
+							  IndexLayout& slaveLayoutIn)
+{
+	
+	// 1. All masters set their values equal to $\lambda$
+	// 2. All slaves set their values equal to $-\lambda$
+
+	// (a) Reset all values
+	//f.set(0.0);
+	VecSetOnLayout(&f, 0.0, masterLayoutIn);
+	VecSetOnLayout(&f, 0.0, slaveLayoutIn);
+
+	// (b) Copy values on \Delta
+	VecScaleAddOnLayout(&f, &lambda, 1.0, masterLayoutIn);
+	VecScaleAddOnLayout(&f, &lambda, -1.0, slaveLayoutIn);
+
+	return;
+
+};
+
 /// operator implementation of the local Schur complement
 /**
  * This operator is the application of the local Schur complement \f$S_{\Delta}^{i}\f$.
@@ -146,7 +218,7 @@ inline void ExtractCrossPointLayouts(size_t numIDs,// number of dof's of actual 
  * will be used to describe subdomain *internal* interfaces (i.e. "pure" processor interfaces),
  * all other layouts are used to identify the boundary,
  * layout level 1: \Delta (edges of subdomains),
- * layout level 2: \Pi (vertices of subdomains, a.k.a. "cross points"),
+ * layout level 2: \Pi (vertices of subdomains, a.k.a. "cross points") - will be constructed here,
  * and the Schur complement is build w.r.t. to these variables.
  */
 template <typename TAlgebra>
@@ -453,9 +525,14 @@ class LocalSchurComplement
 };
 
 /* 1.7 Application of \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$ */ 
+/// operator implementation of the inverse of the Schur complement w.r.t. the "Delta unknowns"
+/**
+ * This operator is the application of the inverse of the Schur complement w.r.t. the "Delta unknowns",
+ * \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$.
+ */
 template <typename TAlgebra>
 class LocalSchurComplementInverse
-	: public ILinearOperatorInverse<	typename TAlgebra::vector_type, // oder: IMatrixOperatorInverse?
+	: public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 	  	  	  	  	  	  	  			typename TAlgebra::vector_type>
 {
 	public:
@@ -516,49 +593,14 @@ class LocalSchurComplementInverse
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 };
 
-/* 1.5 Application of "Jump-Operator":  */
-/* 'ComputeDifferenceOnDelta()': Apply \f$B_{\Delta}\f$ to \f$u_{\Delta}\f$ */
-template <typename TVector>
-void ComputeDifferenceOnDelta(TVector& lambda, const TVector& u,
-							  IndexLayout& masterLayoutIn,
-							  IndexLayout& slaveLayoutIn)
-{
-	// copy u
-	lambda = u;
-
-	// All masters subtract the values of the slave, all slaves subtract the values of the master
-	VecSubtractOnLayout(&lambda, masterLayoutIn, slaveLayoutIn);
-
-	// and slave multiplies the result by '-1' - TODO!
-
-	return;
-};
-
-/* 'ComputeDifferenceOnDeltaTransposed()': Apply \f$B_{\Delta}^T\f$ to \f$\lambda\f$ */
-template <typename TVector>
-void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,
-							  IndexLayout& masterLayoutIn,
-							  IndexLayout& slaveLayoutIn)
-{
-	
-	// 1. All masters set their values equal to $\lambda$
-	// 2. All slaves set their values equal to $-\lambda$
-
-	// (a) Reset all values
-	//f.set(0.0);
-	VecSetOnLayout(&f, 0.0, f.get_master_layout(1));
-	VecSetOnLayout(&f, 0.0, f.get_slave_layout(1));
-
-	// (b) Copy values on \Delta
-	VecScaleAddOnLayout(&f, &lambda, 1.0, f.get_master_layout(1));
-	VecScaleAddOnLayout(&f, &lambda, -1.0, f.get_slave_layout(1));
-
-	return;
-
-};
-
 /// TODO: Preliminary: the actual 'FETISolver' - if not derived from 'CGSolver'!
 // In the moment more or less only stuff copied from 'DirichletDirichletSolver'!
+/// operator implementation of the local Schur complement
+/**
+ * This operator implements a FETI-DP solver, see e.g.
+ * "Domain Decomposition Methods -- Algorithms and Theory",
+ * A. Toselli, O. Widlund, Springer 2004, sec. 1.3.5, p. 12ff.
+ */
 template <typename TAlgebra>
 class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type,
 													typename TAlgebra::vector_type,
@@ -701,6 +743,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	// 	Linear Solver to invert the local Dirichlet problems
 //		ILinearOperatorInverse<vector_type,vector_type>* m_pDirichletSolver;
+
+	// 	vector of Lagrange multipliers
+		std::vector<int> m_vLambda;
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
