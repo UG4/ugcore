@@ -243,7 +243,7 @@ void VecSubtractOnLayout(	TVector* pVec,
 }
 
 
-/// adds one vector to another only on the interface
+/// adds one vector to another only at a layout
 /**
  * This function adds to vectors only on a layout. No communication is performed.
  *
@@ -254,7 +254,7 @@ void VecSubtractOnLayout(	TVector* pVec,
  */
 template <typename TVector>
 void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
-												number scale, IndexLayout& Layout)
+							number scale, IndexLayout& Layout)
 {
 //	interface iterators
 	typename IndexLayout::iterator iter = Layout.begin();
@@ -283,9 +283,9 @@ void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
 	}
 }
 
-/// sets entries of one vector to a given value only at the interface
+/// sets entries of one vector to a given value only at a layout
 /**
- * This function sets the entries of a vector only on a layout. No communication is performed.
+ * This function sets the entries of a vector to a given value only at a layout. No communication is performed.
  *
  * \param[in,out]	pVec			vector to set
  * \param[in]		value			value for entries to be set
@@ -303,14 +303,143 @@ void VecSetOnLayout(	TVector* pVec, number value, IndexLayout& Layout)
 	//	get interface
 		typename IndexLayout::Interface& interface = Layout.interface(iter);
 
+	//	loop over indices
 		for(typename IndexLayout::Interface::iterator iter = interface.begin();
 			iter != interface.end(); ++iter)
 		{
 		//	get index
 			const size_t index = interface.get_element(iter);
 
-		//	add value
+		//	set value
 			(*pVec)[index] = value;
+		}
+	}
+}
+
+/// sets entries of one vector to a given value *except* at the interface
+/**
+ * This function sets the entries of a vector to a given value *except* on a layout. No communication is performed.
+ *
+ * \param[in,out]	pVec			vector to set
+ * \param[in]		value			value for entries to be set
+ * \param[in]		Layout			Index Layout to exclude
+ */
+template <typename TVector>
+void VecSetExcludingLayout(	TVector* pVec, number value,
+							IndexLayout& Layout)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+
+	for(size_t i=0; i < pVec->size(); i++)
+	{
+		if (iter == end)
+		{
+		//	set value
+			(*pVec)[i] = value;
+		} else
+		{
+			for(; iter != end; ++iter)
+			{
+			//	get interface
+				typename IndexLayout::Interface& interface = Layout.interface(iter);
+	
+			//	loop over indices
+				for(typename IndexLayout::Interface::iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	get index
+					const size_t index = interface.get_element(iter);
+	
+					if (index == i) continue;
+	
+				//	set value
+					(*pVec)[i] = value;
+				}
+			}
+		}
+	}
+}
+
+/// scale entries of one vector by a given value only at a layout
+/**
+ * This function scales the entries of a vector to a given value only at a layout. No communication is performed.
+ *
+ * \param[in,out]	pVec			vector to set
+ * \param[in]		scale			Scaling factor
+ * \param[in]		Layout			Index Layout
+ */
+template <typename TVector>
+void VecScaleOnLayout(	TVector* pVec, number scale,
+						IndexLayout& Layout)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = Layout.interface(iter);
+
+	//	loop over indices
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+		{
+		//	get index
+			const size_t index = interface.get_element(iter);
+
+		//	set value
+			(*pVec)[index] *= scale;
+		}
+	}
+}
+
+/// scale entries of one vector by a given value *except* at the interface
+/**
+ * This function scales the entries of a vector to a given value *except* on a layout. No communication is performed.
+ *
+ * \param[in,out]	pVec			vector to set
+ * \param[in]		scale			Scaling factor
+ * \param[in]		Layout			Index Layout
+ */
+template <typename TVector>
+void VecScaleExcludingLayout(	TVector* pVec, number scale,
+								IndexLayout& Layout)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+
+	for(size_t i=0; i < pVec->size(); i++)
+	{
+		if (iter == end)
+		{
+		//	set value
+			(*pVec)[i] *= scale;
+		} else
+		{
+			for(; iter != end; ++iter)
+			{
+			//	get interface
+				typename IndexLayout::Interface& interface = Layout.interface(iter);
+	
+			//	loop over indices
+				for(typename IndexLayout::Interface::iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	get index
+					const size_t index = interface.get_element(iter);
+	
+					if (index == i) continue;
+	
+				//	set value
+					(*pVec)[i] *= scale;
+				}
+			}
 		}
 	}
 }
