@@ -261,7 +261,11 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "Matrix||invokeOnChange=true")
 			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
 						"", "Dirichlet Solver||invokeOnChange=true")
-			.add_method("set_debug", &T::set_debug);
+			.add_method("set_debug", &T::set_debug)
+			// the following functions would normally not be executed from script
+			.add_method("init", (bool (T::*)())&T::init)
+			.add_method("apply", &T::apply,
+						"Success", "local SC times Vector", "Vector");
 		}
 #endif
 	}
