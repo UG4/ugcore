@@ -97,7 +97,8 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	communicator.communicate();
 
 //	Select cross points for all master layouts an index is contained in
-	for(IndexLayout::iterator interface_iter = masterLayoutIn.begin(); interface_iter !=  masterLayoutIn.end(); ++interface_iter)
+	for(IndexLayout::iterator interface_iter = masterLayoutIn.begin();
+			interface_iter !=  masterLayoutIn.end(); ++interface_iter)
 	{
 	//	get neighbour proc id
 		int targetProc = masterLayoutIn.proc_id(interface_iter);
@@ -105,26 +106,31 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	//	get interface
 		IndexLayout::Interface& interface = masterLayoutIn.interface(interface_iter);
 
-	//	create a cross point interface
-		IndexLayout::Interface& indexInterface = masterCPLayoutOut.interface(targetProc);
-
 	//	loop over indices
 		for(IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+				iter != interface.end(); )
 		{
 		//  get index
 			const size_t index = interface.get_element(iter);
 
 			if(vMultiplicity[index] > 1)
 			{
+			//	create a cross point interface
+				IndexLayout::Interface& indexInterface = masterCPLayoutOut.interface(targetProc);
+
 				indexInterface.push_back(index);
-				interface.erase(iter);
+				iter = interface.erase(iter);
+			}
+			else
+			{
+				++iter;
 			}
 		}
 	}
 
 //	Select cross points for all slave layouts an index is contained in
-	for(IndexLayout::iterator interface_iter = slaveLayoutIn.begin(); interface_iter !=  slaveLayoutIn.end(); ++interface_iter)
+	for(IndexLayout::iterator interface_iter = slaveLayoutIn.begin();
+			interface_iter !=  slaveLayoutIn.end(); ++interface_iter)
 	{
 	//	get neighbour proc id
 		int targetProc = slaveLayoutIn.proc_id(interface_iter);
@@ -132,20 +138,24 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	//	get interface
 		IndexLayout::Interface& interface = slaveLayoutIn.interface(interface_iter);
 
-	//	create a cross point interface
-		IndexLayout::Interface& indexInterface = slaveCPLayoutOut.interface(targetProc);
-
 	//	loop over indices
 		for(IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
+				iter != interface.end(); )
 		{
 		//  get index
 			const size_t index = interface.get_element(iter);
 
 			if(vMultiplicity[index] > 1)
 			{
+			//	create a cross point interface
+				IndexLayout::Interface& indexInterface = slaveCPLayoutOut.interface(targetProc);
+
 				indexInterface.push_back(index);
-				interface.erase(iter);
+				iter = interface.erase(iter);
+			}
+			else
+			{
+				++iter;
 			}
 		}
 	}
