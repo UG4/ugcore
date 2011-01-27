@@ -56,4 +56,10 @@ void SetOutputProcRank(int rank)
 	OUTPUT_PROC_RANK = rank;
 }
 
+////////////////////////////////////////////////////////////////////////
+void SynchronizeProccesses()
+{
+	MPI_Barrier(MPI_COMM_WORLD);
+}
+
 }//	end of namespace

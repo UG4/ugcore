@@ -35,5 +35,8 @@ inline bool IsOutputProc()
 	return (GetProcRank() == opr) || (opr == -1);
 }
 
+/// synchronizes all processes
+void SynchronizeProccesses();
+
 }//	end of namespace
 #endif
