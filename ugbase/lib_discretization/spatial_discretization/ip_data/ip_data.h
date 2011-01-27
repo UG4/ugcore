@@ -73,7 +73,7 @@ class IIPData
 			for(size_t s = 0; s < vvIP.size(); ++s)
 			{
 			//	return series number iff exists
-				if(vvIP[s] == vPos) return s;
+				if(vvIP[s] == vPos && m_vNumIP[s] == numIP) return s;
 			}
 
 		//	if series not yet registered, add it
@@ -217,7 +217,12 @@ class IPData : public IIPData
 
 		//	check number of ips (must match local ip number)
 			if(numIP != num_ip(s))
+			{
+				UG_LOG("ERROR in 'IPData::set_global_ips':"
+						" Num Local IPs is " << num_ip(s)  << ", but trying to set"
+						" Num Global IPs: " << numIP << " for series "<< s<< ".\n");
 				throw(UGFatalError("Num ip does not match."));
+			}
 
 		//	remember global positions
 			m_vvGlobPos[s] = vPos;

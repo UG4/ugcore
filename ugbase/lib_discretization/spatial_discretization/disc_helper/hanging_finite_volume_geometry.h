@@ -674,6 +674,45 @@ class HFV1Geometry {
 				}
 
 			}
+
+
+			///////////////////////////
+			// Copy ip pos in list
+			///////////////////////////
+
+		// 	loop Sub Control Volumes (SCV)
+			m_vGlobSCVIP.clear();
+			m_vLocSCVIP.clear();
+			for(size_t i = 0; i < num_scv(); ++i)
+			{
+			//	get current SCV
+				const SCV& rSCV = scv(i);
+
+			// 	loop ips
+				for(size_t ip = 0; ip < rSCV.num_ip(); ++ip)
+				{
+					m_vGlobSCVIP.push_back(rSCV.global_ip(ip));
+					m_vLocSCVIP.push_back(rSCV.local_ip(ip));
+				}
+			}
+
+		// 	loop Sub Control Volumes Faces (SCVF)
+			m_vGlobSCVFIP.clear();
+			m_vLocSCVFIP.clear();
+			for(size_t i = 0; i < num_scvf(); ++i)
+			{
+			//	get current SCVF
+				const SCVF& rSCVF = scvf(i);
+
+			// 	loop ips
+				for(size_t ip = 0; ip < rSCVF.num_ip(); ++ip)
+				{
+					m_vGlobSCVFIP.push_back(rSCVF.global_ip(ip));
+					m_vLocSCVFIP.push_back(rSCVF.local_ip(ip));
+				}
+			}
+
+
 			//print();
 			return true;
 		}
@@ -735,6 +774,37 @@ class HFV1Geometry {
 		/// const access to SubControlVolume number i
 		inline const SCV& scv(size_t i) const
 			{UG_ASSERT(i < num_scv(), "Invalid Index."); return m_vSCV[i];}
+
+	public:
+		/// returns all ips of scv as they appear in scv loop
+		const MathVector<world_dim>* scvf_global_ips() const {return &m_vGlobSCVFIP[0];}
+
+		/// returns number of all scv ips
+		size_t num_scvf_global_ips() const {return m_vGlobSCVFIP.size();}
+
+		/// returns all ips of scv as they appear in scv loop
+		const MathVector<dim>* scvf_local_ips() const {return &m_vLocSCVFIP[0];}
+
+		/// returns number of all scv ips
+		size_t num_scvf_local_ips() const {return m_vLocSCVFIP.size();}
+
+		/// returns all ips of scv as they appear in scv loop
+		const MathVector<world_dim>* scv_global_ips() const {return &m_vGlobSCVIP[0];}
+
+		/// returns number of all scv ips
+		size_t num_scv_global_ips() const {return m_vGlobSCVIP.size();}
+
+		/// returns all ips of scv as they appear in scv loop
+		const MathVector<dim>* scv_local_ips() const {return &m_vLocSCVIP[0];}
+
+		/// returns number of all scv ips
+		size_t num_scv_local_ips() const {return m_vLocSCVIP.size();}
+
+	protected:
+		std::vector<MathVector<world_dim> > m_vGlobSCVFIP;
+		std::vector<MathVector<dim> > m_vLocSCVFIP;
+		std::vector<MathVector<world_dim> > m_vGlobSCVIP;
+		std::vector<MathVector<dim> > m_vLocSCVIP;
 
 	protected:
 		void copy_local_corners(SCVF& scvf)

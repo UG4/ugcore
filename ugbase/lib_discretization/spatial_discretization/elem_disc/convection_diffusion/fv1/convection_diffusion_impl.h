@@ -32,9 +32,11 @@ prepare_element_loop()
 	// all this will be performed outside of the loop over the elements.
 	// Therefore it is not time critical.
 
-	// resize corner coordinates
 	typedef typename reference_element_traits<TElem>::reference_element_type
 																ref_elem_type;
+	static const int refDim = ref_elem_type::dim;
+
+	// resize corner coordinates
 	m_vCornerCoords.resize(ref_elem_type::num_corners);
 
 	// remember position attachement
@@ -46,18 +48,21 @@ prepare_element_loop()
 	}
 	m_aaPos = m_pDomain->get_position_accessor();
 
-//	set global positions for rhs
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-	m_Diff.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
-	                                                 geo.num_scvf_local_ips());
-	m_ConvVel.template set_local_ips<ref_elem_type::dim>(geo.scvf_local_ips(),
-	                                                 geo.num_scvf_local_ips());
-	m_Rhs.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
-	                                                 geo.num_scv_local_ips());
-	m_Reaction.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
-	                                                 geo.num_scv_local_ips());
-	m_MassScale.template set_local_ips<ref_elem_type::dim>(geo.scv_local_ips(),
-	                                                 geo.num_scv_local_ips());
+//	set local positions for rhs
+	if(!TFVGeom<TElem, dim>::usesHangingNodes)
+	{
+		TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+		m_Diff.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		                	                      geo.num_scvf_local_ips());
+		m_ConvVel.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		                   	                      geo.num_scvf_local_ips());
+		m_Rhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
+		               		                      geo.num_scv_local_ips());
+		m_Reaction.template set_local_ips<refDim>(geo.scv_local_ips(),
+		                                          geo.num_scv_local_ips());
+		m_MassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
+		                                           geo.num_scv_local_ips());
+	}
 
 	return true;
 }
@@ -89,6 +94,9 @@ prepare_element(TElem* elem, const local_vector_type& u,
 {
 	// this loop will be performed inside the loop over the elements.
 	// Therefore, it is TIME CRITICAL
+	typedef typename reference_element_traits<TElem>::reference_element_type
+																ref_elem_type;
+	static const int refDim = ref_elem_type::dim;
 
 // 	Load corners of this element
 	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
@@ -103,6 +111,21 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	{
 		UG_LOG("FVConvectionDiffusionElemDisc::prepare_element:"
 				" Cannot update Finite Volume Geometry.\n"); return false;
+	}
+
+//	set local positions for rhs
+	if(TFVGeom<TElem, dim>::usesHangingNodes)
+	{
+		m_Diff.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+												  geo.num_scvf_local_ips());
+		m_ConvVel.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+												  geo.num_scvf_local_ips());
+		m_Rhs.template 		set_local_ips<refDim>(geo.scv_local_ips(),
+												  geo.num_scv_local_ips());
+		m_Reaction.template set_local_ips<refDim>(geo.scv_local_ips(),
+												  geo.num_scv_local_ips());
+		m_MassScale.template set_local_ips<refDim>(geo.scv_local_ips(),
+												   geo.num_scv_local_ips());
 	}
 
 //	set global positions for rhs

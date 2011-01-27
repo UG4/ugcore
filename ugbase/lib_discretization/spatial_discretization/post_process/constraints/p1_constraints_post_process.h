@@ -32,7 +32,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 		virtual int type() {return PPT_CONSTRAINTS;}
 		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
 		{
-			typename geometry_traits<ConstrainingEdge>::iterator iter, iterBegin, iterEnd;
+			typename geometry_traits<ConstrainingEdge>::const_iterator iter, iterBegin, iterEnd;
 
 			iterBegin = dofDistr.template begin<ConstrainingEdge>();
 			iterEnd = dofDistr.template end<ConstrainingEdge>();
@@ -97,7 +97,7 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 			{
 				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(ind3[i]); !conn.isEnd(); ++conn)
 				{
-					typename SparseMatrix<T>::entry_type block = (*conn).dValue;
+					typename SparseMatrix<T>::value_type block = (*conn).dValue;
 					block *= 1./2.;
 					const size_t j = (*conn).iIndex;
 
@@ -132,11 +132,11 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 
 			for(size_t i = 0; i < ind1.size(); ++i)
 			{
-				typename Vector<T>::entry_type& val = rhs[ind3[i]];
+				typename Vector<T>::value_type& val = rhs[ind3[i]];
+				val *= 1./2.;
 
-				rhs[ind1[i]] += val * 1./2.;
-				rhs[ind2[i]] += val * 1./2.;
-				val = 0.0;
+				rhs[ind1[i]] += val;
+				rhs[ind2[i]] += val;
 			}
 			return true;
 		}
@@ -281,7 +281,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 			{
 				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(constrainedIndex[i]); !conn.isEnd(); ++conn)
 				{
-					typename SparseMatrix<T>::entry_type block = (*conn).dValue;
+					typename SparseMatrix<T>::value_type block = (*conn).dValue;
 					const size_t j = (*conn).iIndex;
 
 					// choose randomly the first dof to add whole row
@@ -324,7 +324,7 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				typename Vector<T>::entry_type& val = rhs[constrainedIndex[i]];
+				typename Vector<T>::value_type& val = rhs[constrainedIndex[i]];
 
 				// choose randomly the first dof to add whole rhs (must be the same as for row)
 				rhs[vConstrainingIndices[0][i]] += val;
