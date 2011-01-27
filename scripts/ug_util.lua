@@ -194,6 +194,30 @@ function utilCreateFV1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
+-- creates FV1ConvDiff
+function utilCreateHFV1ConvDiff(approxSpace, functions, subsets)
+	local domain = approxSpace:get_domain()
+	local pattern = approxSpace:get_function_pattern()
+	local dim = domain:get_dim()
+	local elemDisc
+	if dim == 1 then
+		elemDisc = HFV1ConvectionDiffusion1d()
+	elseif dim == 2 then
+		elemDisc = HFV1ConvectionDiffusion2d()
+	elseif dim == 3 then
+		elemDisc = HFV1ConvectionDiffusion3d()
+	else
+	return nil
+	end
+	
+	elemDisc:set_domain(domain)
+	elemDisc:set_pattern(pattern)
+	elemDisc:set_subsets(subsets)
+	elemDisc:set_functions(functions)
+	return elemDisc
+end
+
+
 function utilCreateFV1ConvDiffElemDiscInit(approxSpace, functions, subsets, diffusion, velocity, reaction, rhs, upwindAmount)
 	local elemDisc = utilCreateFV1ConvDiffElemDisc(approxSpace, functions, subsets)
 

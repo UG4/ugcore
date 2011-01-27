@@ -206,7 +206,7 @@ print ("Setting up Assembling")
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = utilCreateHFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
@@ -256,7 +256,11 @@ u:set(0.0)
 
 -- init Operator
 print ("Assemble Operator ... ")
-linOp:init()
+
+if linOp:init() ~= true then 
+	print(" Error while initializing operator")
+	exit() 
+end
 print ("done")
 
 -- set dirichlet values in start iterate
@@ -344,7 +348,7 @@ bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
 -- Apply Solver
-ApplyLinearSolver(linOp, u, b, linSolver)
+ApplyLinearSolver(linOp, u, b, cgSolver)
 
 -- Output
 WriteGridFunctionToVTK(u, "Solution")
