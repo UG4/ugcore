@@ -110,7 +110,7 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 
 			// build defect:  d := d_nl - J(u)*c_nl
 			if(!m_A->apply_sub(d, cNLOut))
-				{UG_LOG("ERROR in 'LinearOperatorInverse::apply': Unable to build defect. Aborting.\n"); return false;}
+				{UG_LOG("ERROR in 'LinearSolver::apply': Unable to build defect. Aborting.\n"); return false;}
 
 			// create correction
 			// todo: 	it would be sufficient to only copy the pattern (and parallel constructor)
@@ -133,7 +133,7 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 				// add correction to solution
 				cNLOut += c;
 
-				// check convergence
+				// compute new defect (in parallel)
 				m_pConvCheck->update(d);
 			}
 
