@@ -77,7 +77,14 @@ class MGDoFManager
 	///	returns Surface DoF Distribution
 		dof_distribution_type* get_surface_dof_distribution()
 		{
-			//return m_pSurfaceDoFDistribution;
+		// 	update surface distribution
+			if(!surface_distribution_required())
+			{
+				UG_LOG("Cannot update surface distribution.\n");
+				throw(UGFatalError("Surface DoF Distribution missing but requested."));
+			}
+
+//			return m_pSurfaceDoFDistribution;
 
 			if(num_levels() == m_vLevelDoFDistribution.size())
 				return m_vLevelDoFDistribution[num_levels()-1];
