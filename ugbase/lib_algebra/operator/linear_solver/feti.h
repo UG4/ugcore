@@ -334,6 +334,7 @@ class LocalSchurComplement
 									 m_masterCPLayout,
 									 m_slaveCPLayout);
 
+			m_num_layouts = 3;
 
 		//	get matrix from dirichlet operator
 			m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
@@ -513,7 +514,7 @@ class LocalSchurComplement
 		matrix_type* m_pMatrix;
 
 	//	temporary layouts for "PI layouts"
-		size_t m_num_layouts = 3;
+		size_t m_num_layouts;
 		IndexLayout m_masterCPLayout;
 		IndexLayout m_slaveCPLayout;
 
