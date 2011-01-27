@@ -96,7 +96,7 @@ distribute_level_dofs()
 								  distr, *m_pLayoutMap, INT_VERTICAL_SLAVE,l);
 
 	//	create local process communicator
-	//	The idea  of local processes is to exclude processes form
+	//	The idea  of local processes is to exclude processes from
 	//	e.g. norm computation that does not have a grid on a given
 	//	level. If a grid exist, but all dofs are vertical slaces
 	//	this process is also reguarded as empty for norm computations.
