@@ -304,6 +304,13 @@ class LocalSchurComplement
 			m_pOperator = &A;
 		}
 
+	///	sets the cross point layouts
+		void set_crosspoint_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		{
+			m_pSlaveCPLayout = &slaveLayout;
+			m_pMasterCPLayout = &masterLayout;
+		}
+
 	/// implementation of the operator for the solution dependent initialization.
 		bool init(const vector_type& u) {return init();}
 
@@ -325,26 +332,25 @@ class LocalSchurComplement
 				return false;
 			}
 
+		//	check that Pi layouts have been set
+			if(m_pSlaveCPLayout == NULL || m_pMasterCPLayout == NULL)
+			{
+				UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
+						" layout for cross points not set.\n");
+				return false;
+			}
+
 		//	save matrix from which we build the Schur complement
 			m_pMatrix = &m_pOperator->get_matrix();
 
 		//	check that matrix has enough decomposition levels
-			if(m_pMatrix->num_layouts() < 2)
+			if(m_pMatrix->num_layouts() != 2)
 			{
 				UG_LOG("ERROR in 'LocalSchurComplement::init': The Operator must"
-						" have at least two layouts, but the current Operator has"
+						" have at two layouts, but the current Operator has"
 						" only " << m_pMatrix->num_layouts() << "\n");
 				return false;
 			}
-
-		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
-			ExtractCrossPointLayouts(m_pMatrix->num_rows(),       // number of dof's of actual processor
-									 m_pMatrix->get_master_layout(1),
-									 m_pMatrix->get_slave_layout(1),
-									 m_masterCPLayout,
-									 m_slaveCPLayout);
-
-			m_num_layouts = 3;
 
 		//	get matrix from dirichlet operator
 			m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
@@ -352,12 +358,13 @@ class LocalSchurComplement
 		//	Copy Matrix for Dirichlet Problem
 			*m_pDirichletMatrix = *m_pMatrix;
 
-		//	Set Dirichlet values on Delta and Pi
-			for(size_t i = 1; i < m_num_layouts; ++i)
-			{
-				MatSetDirichletOnLayout(m_pDirichletMatrix, m_slaveCPLayout);
-				MatSetDirichletOnLayout(m_pDirichletMatrix, m_masterCPLayout);
-			}
+		//	Set Dirichlet values on Pi
+			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pSlaveCPLayout);
+			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pMasterCPLayout);
+
+		//	Set Dirichlet values on Delta
+			MatSetDirichletOnLayout(m_pDirichletMatrix, m_pDirichletMatrix->get_slave_layout(1));
+			MatSetDirichletOnLayout(m_pDirichletMatrix, m_pDirichletMatrix->get_master_layout(1));
 
 		//	init sequential solver for Dirichlet problem
 			if(m_pDirichletSolver != NULL)
@@ -373,7 +380,7 @@ class LocalSchurComplement
 				m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
 				                             "FetiDirichletMatrix");
 				m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
-				                             "FetiNeumannMatrix");
+				                             "FetiOriginalMatrix");
 			}
 
 		//	we're done
@@ -480,8 +487,8 @@ class LocalSchurComplement
 		//	5. Reset all values for I, \Pi
 			VecSetExcludingLayout(&f, 0.0, u.get_slave_layout(1));
 
-			VecSetOnLayout(&f, 0.0, m_slaveCPLayout);
-			VecSetOnLayout(&f, 0.0, m_masterCPLayout);
+			VecSetOnLayout(&f, 0.0, *m_pSlaveCPLayout);
+			VecSetOnLayout(&f, 0.0, *m_pMasterCPLayout);
 
 		//	we're done
 			return true;
@@ -523,10 +530,9 @@ class LocalSchurComplement
 	// 	Parallel Matrix
 		matrix_type* m_pMatrix;
 
-	//	temporary layouts for "PI layouts"
-		size_t m_num_layouts;
-		IndexLayout m_masterCPLayout;
-		IndexLayout m_slaveCPLayout;
+	//	Layouts for Pi
+		IndexLayout* m_pMasterCPLayout;
+		IndexLayout* m_pSlaveCPLayout;
 
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
@@ -548,7 +554,7 @@ class LocalSchurComplement
  * \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$.
  */
 template <typename TAlgebra>
-class LocalSchurComplementInverse
+class SchurComplementInverse
 	: public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 	  	  	  	  	  	  	  			typename TAlgebra::vector_type>
 {
@@ -564,37 +570,123 @@ class LocalSchurComplementInverse
 
 	public:
 	///	constructor
-		LocalSchurComplementInverse()
+		SchurComplementInverse()
 		{}
 
 	///	name of class
-		virtual const char* name() const {return "Local Schur Complement Inverse";}
+		virtual const char* name() const {return "Schur Complement Inverse";}
 
-/// TODO, TODO, TODO ... implementation!
-		/* Especially the pure virtual methods of the interface 'ILinearOperatorInverse':
+	///	sets the Neumann solver
+		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
+		{
+		//	remember the Dirichlet Solver
+			m_pNeumannSolver = &neumannSolver;
+		}
+
+	///	sets the cross point layouts
+		void set_crosspoint_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		{
+			m_pSlaveCPLayout = &slaveLayout;
+			m_pMasterCPLayout = &masterLayout;
+		}
+
 	// 	Init for Linear Operator L
-		virtual bool init(ILinearOperator<Y,X>& L) = 0;
+		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
+		{
+		//	remember operator
+			m_A = dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
+
+		//	check, that operator is correct
+			if(m_A == NULL)
+			{
+				UG_LOG("ERROR in SchurComplementInverse::init:"
+						" Wrong type of operator passed for init.\n");
+				return false;
+			}
+
+		//	check that Pi layouts have been set
+			if(m_pSlaveCPLayout == NULL || m_pMasterCPLayout == NULL)
+			{
+				UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
+						" layout for cross points not set.\n");
+				return false;
+			}
+
+		//	save matrix from which we build the Schur complement
+			m_pMatrix = &m_A->get_matrix();
+
+		//	check that matrix has enough decomposition levels
+			if(m_pMatrix->num_layouts() != 2)
+			{
+				UG_LOG("ERROR in 'LocalSchurComplement::init': The Operator must"
+						" have at two layouts, but the current Operator has"
+						" only " << m_pMatrix->num_layouts() << "\n");
+				return false;
+			}
+
+		//	get matrix from Neumann operator
+			m_pNeumannMatrix = &m_NeumannOperator.get_matrix();
+
+		//	Copy Matrix for Neumann Problem
+			*m_pNeumannMatrix = *m_pMatrix;
+
+		//	Set Dirichlet values on Pi
+			MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pSlaveCPLayout);
+			MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pMasterCPLayout);
+
+		//	init sequential solver for Dirichlet problem
+			if(m_pNeumannSolver != NULL)
+				if(!m_pNeumannSolver->init(m_NeumannOperator))
+				{
+					UG_LOG("ERROR in 'SchurComplementInverse::init': Cannot init "
+							"Sequential Neumann Solver for Operator A.\n");
+					return false;
+				}
+
+		//	Debug output of matrices
+			if(m_pDebugWriter != NULL)
+			{
+				m_pDebugWriter->write_matrix(m_NeumannOperator.get_matrix(),
+				                             "FetiNeumannMatrix");
+			}
+
+		//	we're done
+			return true;
+		}
+
 
 	// 	Init for Linear Operator J and Linearization point (current solution)
-		virtual bool init(ILinearOperator<Y,X>& J, const Y& u) = 0;
+		virtual bool init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
+		{
+			return init(J);
+		}
 
 	// 	Solve A*u = f, such that u = A^{-1} f
-		virtual bool apply(Y& u, const X& f) = 0;
+		virtual bool apply(vector_type& u, const vector_type& f)
+		{
+			return false;
+		}
 
 	// 	Solve A*u = f, such that u = A^{-1} f
 	// 	This is done by iterating: u := u + B(f - A*u)
 	// 	In f the last defect f := f - A*u is returned
-		virtual bool apply_return_defect(Y& u, X& f) = 0;
+		virtual bool apply_return_defect(vector_type& u, vector_type& f)
+		{
+			return false;
+		}
 
-	//	set the convergence check
-		virtual void set_convergence_check(IConvergenceCheck& convCheck) = 0;
+	///	sets a convergence check
+		void set_convergence_check(IConvergenceCheck& convCheck)
+		{
+			m_pConvCheck = &convCheck;
+			m_pConvCheck->set_offset(3);
+		}
 
-	//	get the convergence check
-		virtual IConvergenceCheck* get_convergence_check() = 0;
- */
+	/// returns the convergence check
+		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
-		// destructor
-		virtual ~LocalSchurComplementInverse() {};
+	//  destructor
+		virtual ~SchurComplementInverse() {};
 
 	protected:
 		bool write_debug(const vector_type& vec, const char* filename)
@@ -605,6 +697,29 @@ class LocalSchurComplementInverse
 		//	write
 			return m_pDebugWriter->write_vector(vec, filename);
 		}
+
+	protected:
+	// 	Operator that is inverted by this Inverse Operator
+		IMatrixOperator<vector_type,vector_type,matrix_type>* m_A;
+
+	// 	Parallel Matrix to invert
+		matrix_type* m_pMatrix;
+
+	//	Copy of matrix
+		PureMatrixOperator<vector_type, vector_type, matrix_type> m_NeumannOperator;
+
+	// 	Parallel Neumann Matrix
+		matrix_type* m_pNeumannMatrix;
+
+	//	Neumann Solver
+		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
+
+	//	Layouts for Pi
+		IndexLayout* m_pMasterCPLayout;
+		IndexLayout* m_pSlaveCPLayout;
+
+	// 	Convergence Check
+		IConvergenceCheck* m_pConvCheck;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
@@ -654,11 +769,18 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	/// returns the convergence check
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
-/// TODO, TODO, TODO ... implementation
-	///	sets a sequential Dirichlet solver
+	///	sets the Dirichlet solver
 		void set_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dirichletSolver)
 		{
-//			m_pDirichletSolver = &dirichletSolver;
+		//	remember the Dirichlet Solver
+			m_pDirichletSolver = &dirichletSolver;
+		}
+
+	///	sets the Neumann solver
+		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
+		{
+		//	remember the Dirichlet Solver
+			m_pNeumannSolver = &neumannSolver;
 		}
 
 	//	set debug output
@@ -670,7 +792,62 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	///	initializes the solver for operator A
 		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		{
-// TODO
+		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
+			ExtractCrossPointLayouts(m_pMatrix->num_rows(),       // number of dof's of actual processor
+									 m_pMatrix->get_master_layout(1),
+									 m_pMatrix->get_slave_layout(1),
+									 m_masterCPLayout,
+									 m_slaveCPLayout);
+
+
+		//  ----- INIT DIRICHLET SOLVER  ----- //
+
+		//	check that dirichlet solver has been set
+			if(m_pDirichletSolver == NULL)
+			{
+				UG_LOG("ERROR in FETISolver::init: No dirichlet solver set "
+						" for inversion of A_{II} in Local Schur complement.\n");
+				return false;
+			}
+
+		//	set cross point layouts
+			m_LocalSchurCompliment.set_crosspoint_layouts(m_slaveCPLayout, m_masterCPLayout);
+
+		//	set dirichlet solver for local schur complement
+			m_LocalSchurCompliment.set_dirichlet_solver(*m_pDirichletSolver);
+
+		//	init local Schur complement
+			if(m_LocalSchurCompliment.init() != true)
+			{
+				UG_LOG("ERROR in FETISolver::init: Can not init local Schur "
+						"complement.\n");
+				return false;
+			}
+
+		//  ----- INIT NEUMANN SOLVER  ----- //
+
+		//	check that neumann solver has been set
+			if(m_pNeumannSolver == NULL)
+			{
+				UG_LOG("ERROR in FETISolver::init: No neumann solver set "
+						" for inversion of A_{I,Delta}{I,Delta} in Local Schur complement.\n");
+				return false;
+			}
+
+		//	set cross point layouts
+			m_SchurComplementInverse.set_crosspoint_layouts(m_slaveCPLayout, m_masterCPLayout);
+
+		//	set neumann solver in SchurComplementInverse
+			m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
+
+		//	init Schur complement inverse
+			if(m_SchurComplementInverse.init(*m_A) != true)
+			{
+				UG_LOG("ERROR in FETISolver::init: Can not init Schur "
+						"complement inverse.\n");
+				return false;
+			}
+
 		//	we're done
 			return true;
 		}
@@ -678,20 +855,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	///	solves the system and returns the last defect of iteration in rhs
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
-/// TODO:
-// ...
-		//	Debug output of matrices
-			if(m_pDebugWriter != NULL)
-			{
-//				m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
-//				                             "FetiDirichletMatrix");
-//				m_pDebugWriter->write_matrix(m_A->get_matrix(),
-//				                             "FetiNeumannMatrix");
-			}
+		//	TODO: Implement
 
 		//	we're done
 			return true;
 		}
+
 	///	solves the system
 		virtual bool apply(vector_type& x, const vector_type& b)
 		{
@@ -713,20 +882,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_pConvCheck->set_name(name());
 			m_pConvCheck->set_symbol('%');
 			m_pConvCheck->set_name(name());
-
-			/* 
-			if(m_pNeumannSolver != NULL && m_pDirichletSolver != NULL)
-			{
-				stringstream ss; ss <<  " (Seq. Solver: " << m_pNeumannSolver->name() << ","
-									<< m_pDirichletSolver->name() << ")";
-				m_pConvCheck->set_info(ss.str());
-			}
-			else
-			{
-				m_pConvCheck->set_info(" (No Seq. Solver) ");
-			}
-			*/
-		}
+	}
 
 	protected:
 		bool write_debug(const vector_type& vec, const char* filename)
@@ -752,17 +908,22 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
 
-	//	Copy of matrix
-		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
+	//	Layouts for Pi
+		IndexLayout m_masterCPLayout;
+		IndexLayout m_slaveCPLayout;
 
-	// 	Linear Solver to invert the local Neumann problems
-//		ILinearOperatorInverse<vector_type,vector_type>* m_pNeumannSolver;
+	//	Local Schur complement for each feti subdomain
+		LocalSchurComplement<algebra_type> m_LocalSchurCompliment;
 
-	// 	Linear Solver to invert the local Dirichlet problems
-//		ILinearOperatorInverse<vector_type,vector_type>* m_pDirichletSolver;
+	//	Dirichlet solver for inverse of A_{II} in local schur complement
+		ILinearOperatorInverse<vector_type, vector_type>* m_pDirichletSolver;
 
-	// 	vector of Lagrange multipliers
-		std::vector<int> m_vLambda;
+	//	SchurComplementInverse
+		SchurComplementInverse<algebra_type> m_SchurComplementInverse;
+
+	//	Neumann solver for inverse of A_{\{I,\Delta\}, \{I,\Delta\}} in the
+	//	creation of the S_{\Pi \Pi} schur complement
+		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
