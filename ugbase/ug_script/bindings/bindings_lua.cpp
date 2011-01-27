@@ -407,7 +407,17 @@ static int LuaProxyMethod(lua_State* L)
 		m->execute(self->obj, paramsIn, paramsOut);
 	}
 	catch(UGError err)
-	{}
+	{
+		UG_LOG("UGError in ")
+		PrintLuaClassMethodInfo(L, 1, *m);
+		UG_LOG(" with code " << err.get_code() << ": ");
+		UG_LOG(err.get_msg() << endl);
+		if(err.terminate())
+		{
+			UG_LOG("terminating..." << endl);
+			exit(err.get_code());
+		}
+	}
 	catch(...)
 	{
 		UG_LOG("unknown error occured in call to ");
