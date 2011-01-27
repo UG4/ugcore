@@ -60,13 +60,13 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 	public:
 	///	constructor
 		DirichletDirichletSolver() :
-			m_theta(1.0), m_A(NULL), m_pNeumannSolver(NULL),
+			m_theta(1.0), m_pOperator(NULL), m_pNeumannSolver(NULL),
 			m_pDirichletSolver(NULL), m_pConvCheck(NULL),
 			m_pDebugWriter(NULL)
 		{}
 
 	///	name of solver
-		virtual const char* name() const {return "FETI Solver";}
+		virtual const char* name() const {return "Dirichlet-Dirichlet Solver";}
 
 	///	sets a convergence check
 		void set_convergence_check(IConvergenceCheck& convCheck)
@@ -106,10 +106,10 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		{
 		//	save current operator
-			m_A = &A;
+			m_pOperator = &A;
 
 		//	save matrix to invert
-			m_pMatrix = &m_A->get_matrix();
+			m_pMatrix = &m_pOperator->get_matrix();
 
 		//	Copy Matrix for Dirichlet Problem
 			matrix_type& dirMat = m_DirichletOperator.get_matrix();
@@ -120,7 +120,7 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 
 		//	init sequential solver for Neumann problem
 			if(m_pNeumannSolver != NULL)
-				if(!m_pNeumannSolver->init(*m_A))
+				if(!m_pNeumannSolver->init(*m_pOperator))
 				{
 					UG_LOG("ERROR in 'DirichletDirichletSolver::init': Cannot init "
 							"Sequential Neumann Solver for Operator A.\n");return false;
@@ -147,7 +147,7 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 			{
 				m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
 				                             "FetiDirichletMatrix");
-				m_pDebugWriter->write_matrix(m_A->get_matrix(),
+				m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
 				                             "FetiNeumannMatrix");
 			}
 
@@ -161,7 +161,7 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 			UG_LOG("INFO: parameter 'theta' used in 'DirichletDirichletSolver::apply_return_defect' is '" << m_theta << "' (TMP)\n");
 
 		//	check that matrix has been set
-			if(m_A == NULL)
+			if(m_pOperator == NULL)
 			{
 				UG_LOG("ERROR: In 'DirichletDirichletSolver::apply_return_defect': Matrix A not set.\n");
 				return false;
@@ -425,7 +425,7 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		number m_theta;
 
 	// 	Operator that is inverted by this Inverse Operator
-		IMatrixOperator<vector_type,vector_type,matrix_type>* m_A;
+		IMatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
 
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
