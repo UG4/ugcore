@@ -95,6 +95,8 @@ inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 			LogIndexLayout(layout, depth);
 		}
 	}
+	pcl::SynchronizeProccesses();
+	UG_LOG(std::flush);
 
 //	reset output proc
 	pcl::SetOutputProcRank(outproc);
