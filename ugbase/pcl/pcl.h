@@ -12,5 +12,6 @@
 #include "pcl_process_communicator.h"
 #include "pcl_util.h"
 #include "pcl_debug.h"
+#include "pcl_distributed_domain_info.h"
 
 #endif
