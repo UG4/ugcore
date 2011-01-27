@@ -61,10 +61,10 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	)
 {
 
-	std::vector<int> idsOut;
+	std::vector<int> vMultiplicity;
 //	generate an id for each entry.
-	idsOut.clear();
-	idsOut.resize(numIDs, 0);
+	vMultiplicity.clear();
+	vMultiplicity.resize(numIDs, 0);
 
 //	interface iterators
 	IndexLayout::iterator iter = masterLayoutIn.begin();
@@ -84,12 +84,12 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 			const size_t index = interface.get_element(iter);
 
 		//	set value of vector to zero
-			idsOut[index] += 1;
+			vMultiplicity[index] += 1;
 		}
 	}
 
 //	copy all ids from master to slave interfaces
-	ComPol_VecCopy<std::vector<int> >	copyPol(&idsOut);
+	ComPol_VecCopy<std::vector<int> >	copyPol(&vMultiplicity);
 
 	pcl::ParallelCommunicator<IndexLayout> communicator;
 	communicator.send_data(masterLayoutIn, copyPol);
@@ -115,7 +115,7 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 		//  get index
 			const size_t index = interface.get_element(iter);
 
-			if(idsOut[index] > 1)
+			if(vMultiplicity[index] > 1)
 			{
 				indexInterface.push_back(index);
 				interface.erase(iter);
@@ -142,7 +142,7 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 		//  get index
 			const size_t index = interface.get_element(iter);
 
-			if(idsOut[index] > 1)
+			if(vMultiplicity[index] > 1)
 			{
 				indexInterface.push_back(index);
 				interface.erase(iter);
