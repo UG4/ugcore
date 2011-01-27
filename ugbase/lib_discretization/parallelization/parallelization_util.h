@@ -133,10 +133,12 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 		int targetProc = elemLayout.proc_id(iIter);
 		int targetSubdom = cb_ProcIDToSubdomID(targetProc);
 
+//UG_LOG_ALL_PROCS("'AddEntriesToIndexLayout_DomainDecomposition()': local  proc: " << localProc  << ", local  subdom: " << localSubdom  << " (TMP).\n"); // 18012011ih
+//UG_LOG_ALL_PROCS("'AddEntriesToIndexLayout_DomainDecomposition()': target proc: " << targetProc << ", target subdom: " << targetSubdom << " (TMP).\n"); // 18012011ih
+
 		if(targetSubdom == localSubdom){
 		//	create a process interface
-			IndexInterface& indexInterface = processLayoutOut.
-											interface(elemLayout.proc_id(iIter));
+			IndexInterface& indexInterface = processLayoutOut.interface(targetProc);
 
 		//	iterate over entries in the elemInterface and add associated
 		//	dofs to the indexInterface
@@ -154,8 +156,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 		}
 		else{
 		//	create a subdomain interface
-			IndexInterface& indexInterface = subdomainLayoutOut.interface(
-												elemLayout.proc_id(iIter));
+			IndexInterface& indexInterface = subdomainLayoutOut.interface(targetProc);
 
 		//	iterate over entries in the elemInterface and add associated
 		//	dofs to the indexInterface
