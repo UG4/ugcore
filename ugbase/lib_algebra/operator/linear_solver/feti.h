@@ -50,31 +50,42 @@ template <> struct block_traits<int>
  * \param[in]		numIDs			number of dof's of actual processor
  * \param[in]		masterLayoutIn	master layout to extract
  * \param[in]		slaveLayoutIn	slave layout to extract
+ * \param[in]		ddInfo			domain decomposition info
  * \param[out]		masterLayoutOut	master layout created
  * \param[out]		slaveLayoutOut	slave layout created
  */
 inline void ExtractCrossPointLayouts(size_t numIDs,
 									 IndexLayout& masterLayoutIn,
 									 IndexLayout& slaveLayoutIn,
+									 pcl::IDomainDecompositionInfo* ddInfoIn,
 									 IndexLayout& masterCPLayoutOut, // CP: "Cross Point"
 									 IndexLayout& slaveCPLayoutOut
 	)
 {
+	int num_pi_dofs = 0;
+	int num_pi_interfaces = 0;
 
 	std::vector<int> vMultiplicity;
 //	generate an id for each entry.
 	vMultiplicity.clear();
-	vMultiplicity.resize(numIDs, 0);
+	vMultiplicity.resize(numIDs, -1);
+
+	//int localProc   = pcl::GetProcRank();
+	//int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
 
 //	interface iterators
-	IndexLayout::iterator iter = masterLayoutIn.begin();
+	IndexLayout::iterator interface_iter = masterLayoutIn.begin();
 	IndexLayout::iterator end  = masterLayoutIn.end();
 
+
 //	Add 1 for all master layouts an index is contained in
-	for(; iter != end; ++iter)
+	for(; interface_iter != end; ++interface_iter)
 	{
+		int targetProc   = masterLayoutIn.proc_id(interface_iter);
+		int targetSubdom = ddInfoIn->map_proc_id_to_subdomain_id(targetProc);
+
 	//	get interface
-		IndexLayout::Interface& interface = masterLayoutIn.interface(iter);
+		IndexLayout::Interface& interface = masterLayoutIn.interface(interface_iter);
 		
 	//	loop over indices
 		for( IndexLayout::Interface::iterator iter = interface.begin();
@@ -84,7 +95,10 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 			const size_t index = interface.get_element(iter);
 
 		//	set value of vector to zero
-			vMultiplicity[index] += 1;
+			if(vMultiplicity[index] == -1)
+				vMultiplicity[index] = targetSubdom;
+			else if(vMultiplicity[index] != targetSubdom)
+				vMultiplicity[index] = -2;
 		}
 	}
 
@@ -113,13 +127,15 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 		//  get index
 			const size_t index = interface.get_element(iter);
 
-			if(vMultiplicity[index] > 1)
+			if(vMultiplicity[index] == -2)
 			{
 			//	create a cross point interface
 				IndexLayout::Interface& indexInterface = masterCPLayoutOut.interface(targetProc);
 
 				indexInterface.push_back(index);
 				iter = interface.erase(iter);
+				num_pi_dofs++;
+				num_pi_interfaces++;
 			}
 			else
 			{
@@ -127,6 +143,8 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 			}
 		}
 	}
+
+//UG_LOG_ALL_PROCS("'ExtractCrossPointLayouts()': Proc " << pcl::GetProcRank() <<  " has " << num_pi_dofs << " in layout 2, contained in " << num_pi_interfaces << " interfaces!\n");
 
 //	Select cross points for all slave layouts an index is contained in
 	for(IndexLayout::iterator interface_iter = slaveLayoutIn.begin();
@@ -145,7 +163,7 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 		//  get index
 			const size_t index = interface.get_element(iter);
 
-			if(vMultiplicity[index] > 1)
+			if(vMultiplicity[index] == -2)
 			{
 			//	create a cross point interface
 				IndexLayout::Interface& indexInterface = slaveCPLayoutOut.interface(targetProc);
@@ -352,6 +370,9 @@ class LocalSchurComplement
 				return false;
 			}
 
+		//	count dofs in Pi layout per processor - todo (maybe)
+
+
 		//	get matrix from dirichlet operator
 			m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
 
@@ -545,7 +566,8 @@ class LocalSchurComplement
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
-};
+
+}; /* end class LocalSchurComplement */
 
 /* 1.7 Application of \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$ */ 
 /// operator implementation of the inverse of the Schur complement w.r.t. the "Delta unknowns"
@@ -796,6 +818,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			ExtractCrossPointLayouts(m_pMatrix->num_rows(),       // number of dof's of actual processor
 									 m_pMatrix->get_master_layout(1),
 									 m_pMatrix->get_slave_layout(1),
+									 m_pDDInfo,
 									 m_masterCPLayout,
 									 m_slaveCPLayout);
 
@@ -811,13 +834,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 		//	set cross point layouts
-			m_LocalSchurCompliment.set_crosspoint_layouts(m_slaveCPLayout, m_masterCPLayout);
+			m_LocalSchurComplement.set_crosspoint_layouts(m_slaveCPLayout, m_masterCPLayout);
 
 		//	set dirichlet solver for local schur complement
-			m_LocalSchurCompliment.set_dirichlet_solver(*m_pDirichletSolver);
+			m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
 
 		//	init local Schur complement
-			if(m_LocalSchurCompliment.init() != true)
+			if(m_LocalSchurComplement.init() != true)
 			{
 				UG_LOG("ERROR in FETISolver::init: Can not init local Schur "
 						"complement.\n");
@@ -913,7 +936,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		IndexLayout m_slaveCPLayout;
 
 	//	Local Schur complement for each feti subdomain
-		LocalSchurComplement<algebra_type> m_LocalSchurCompliment;
+		LocalSchurComplement<algebra_type> m_LocalSchurComplement;
 
 	//	Dirichlet solver for inverse of A_{II} in local schur complement
 		ILinearOperatorInverse<vector_type, vector_type>* m_pDirichletSolver;
@@ -930,7 +953,18 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
-};
+
+	public:
+		void set_subdomain_info(pcl::IDomainDecompositionInfo& ddInfo)
+		{
+			m_pDDInfo = &ddInfo;
+		}
+
+	private:
+	//	pointer to Domain decomposition info object
+		pcl::IDomainDecompositionInfo* m_pDDInfo;
+
+}; /* end class FETISolver */
 #endif /* UG_PARALLEL */
 
 } // end namespace ug
