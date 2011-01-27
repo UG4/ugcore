@@ -361,7 +361,7 @@ namespace ug {
 		 * source code. The header contains the return value, the method name
 		 * and the parameter list.
 		 * Parameters are stored as array of java objects
-		 * (variable name is <code> params</code>).
+		 * (variable name is <code>params</code>).
 		 * @param result string stream to use (appends return value)
 		 * @param method method to generate
 		 * @param isFunction defines whether to generate a function header
@@ -371,10 +371,6 @@ namespace ug {
 				std::stringstream& result,
 				ug::bridge::ExportedFunctionBase const& method,
 				bool isFunction = false, std::string prefix = "");
-
-
-
-		//		jobject messageTypeC2J(JNIEnv *env, MessageType type);
 
 	} // end vrl::
 }// end ug::

@@ -108,8 +108,6 @@ void generateMethodHeader(
 			paramArrayForInvokation << ", ";
 		}
 
-		//				UG_LOG("BEFORE param2string:in loop: \n");
-
 		methodHeaderParams << paramType2String(
 				paramStackIn.get_type(i),
 				method.parameter_name(i).c_str(),
@@ -131,8 +129,6 @@ void generateMethodHeader(
 		methodHeaderParams << " VisualIDRequest id ";
 		paramArrayForInvokation << " id";
 	}
-
-	//			UG_LOG("RETURN_VEC:" << method.return_info_vec().size() << std::endl);
 
 	bool readOnly = false;
 
@@ -262,6 +258,7 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 	// gather inheritance information (necessary for type-safety)
 	std::vector<const ug::bridge::IExportedClass*> baseClasses =
 			getParentClasses(reg, &clazz);
+	
 	// generate method implementations
 	for (unsigned int i = 0; i < baseClasses.size(); i++) {
 		generateMethods(result, baseClasses[i]);
@@ -370,6 +367,7 @@ std::string createParamInfo(const char* paramName, const char* className,
 		std::string const& additionalParamInfo) {
 
 	std::string customInfo = paramInfo.at(1);
+	
 	// add escape layer to simplify syntax
 	std::string customOptions = replaceAll(paramInfo.at(2), "\"", "\\\"");
 
@@ -693,6 +691,7 @@ void jobjectArray2ParamStack(
 						paramsTemplate.class_names(i));
 				//DON'T USE paramsTemplate here!!!
 				// Use the original type string of value
+				//
 				// VRL now checks the type string and does not allow
 				// incompatible connections. Thus, this should not a
 				// problem anymore.

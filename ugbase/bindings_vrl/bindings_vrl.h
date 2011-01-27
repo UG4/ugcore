@@ -22,7 +22,7 @@
 namespace ug {
 	namespace vrl {
 		/**
-		 * Defines the regisitry to use for VRL.
+		 * Defines the registry to use for VRL.
 		 * @param pReg registry
 		 */
 		void SetVRLRegistry(ug::bridge::Registry* pReg);
