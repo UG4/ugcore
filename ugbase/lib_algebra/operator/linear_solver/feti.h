@@ -1,6 +1,6 @@
 /* TODO:
  * allgemein:
-   + Konstruktion des "Pi-Layouts" (Level 2) - wie vertices detektieren, und wo einbauen? -- DONE!
+   + Konstruktion des "Pi-Layouts" (Level 2) ueberpruefen - Martin Rupp soll dafuer etwas eingebaut haben!
 
    + Wie \f$S_{\Pi}\f$ auf einen Prozessor bringen? --> Donnerstag!
 
@@ -68,9 +68,9 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 
 //	interface iterators
 	IndexLayout::iterator iter = masterLayoutIn.begin();
-	IndexLayout::iterator end = masterLayoutIn.end();
+	IndexLayout::iterator end  = masterLayoutIn.end();
 
-//	Add 1 for all master layouts an index is conatined in
+//	Add 1 for all master layouts an index is contained in
 	for(; iter != end; ++iter)
 	{
 	//	get interface
@@ -97,13 +97,16 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	communicator.communicate();
 
 //	Select cross points for all master layouts an index is contained in
-	for(IndexLayout::iterator layout_iter = masterLayoutIn.begin(); layout_iter !=  masterLayoutIn.end(); ++layout_iter)
+	for(IndexLayout::iterator interface_iter = masterLayoutIn.begin(); interface_iter !=  masterLayoutIn.end(); ++interface_iter)
 	{
 	//	get neighbour proc id
-		int targetProc = masterLayoutIn.proc_id(layout_iter);
+		int targetProc = masterLayoutIn.proc_id(interface_iter);
 
 	//	get interface
-		IndexLayout::Interface& interface = masterLayoutIn.interface(layout_iter);
+		IndexLayout::Interface& interface = masterLayoutIn.interface(interface_iter);
+
+	//	create a cross point interface
+		IndexLayout::Interface& indexInterface = masterCPLayoutOut.interface(targetProc);
 
 	//	loop over indices
 		for(IndexLayout::Interface::iterator iter = interface.begin();
@@ -114,7 +117,6 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 
 			if(idsOut[index] > 1)
 			{
-				IndexLayout::Interface& indexInterface = masterCPLayoutOut.interface(targetProc);
 				indexInterface.push_back(index);
 				interface.erase(iter);
 			}
@@ -122,13 +124,16 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	}
 
 //	Select cross points for all slave layouts an index is contained in
-	for(IndexLayout::iterator layout_iter = slaveLayoutIn.begin(); layout_iter !=  slaveLayoutIn.end(); ++layout_iter)
+	for(IndexLayout::iterator interface_iter = slaveLayoutIn.begin(); interface_iter !=  slaveLayoutIn.end(); ++interface_iter)
 	{
 	//	get neighbour proc id
-		int targetProc = slaveLayoutIn.proc_id(layout_iter);
+		int targetProc = slaveLayoutIn.proc_id(interface_iter);
 
 	//	get interface
-		IndexLayout::Interface& interface = slaveLayoutIn.interface(layout_iter);
+		IndexLayout::Interface& interface = slaveLayoutIn.interface(interface_iter);
+
+	//	create a cross point interface
+		IndexLayout::Interface& indexInterface = slaveCPLayoutOut.interface(targetProc);
 
 	//	loop over indices
 		for(IndexLayout::Interface::iterator iter = interface.begin();
@@ -139,7 +144,6 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 
 			if(idsOut[index] > 1)
 			{
-				IndexLayout::Interface& indexInterface = slaveCPLayoutOut.interface(targetProc);
 				indexInterface.push_back(index);
 				interface.erase(iter);
 			}
@@ -311,7 +315,7 @@ class LocalSchurComplement
 				return false;
 			}
 
-		//	save matrix to invert
+		//	save matrix from which we build the Schur complement
 			m_pMatrix = &m_pOperator->get_matrix();
 
 		//	check that matrix has enough decomposition levels
@@ -323,12 +327,13 @@ class LocalSchurComplement
 				return false;
 			}
 
-		//	create "PI layout"
+		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
 			ExtractCrossPointLayouts(m_pMatrix->num_rows(),       // number of dof's of actual processor
 									 m_pMatrix->get_master_layout(1),
 									 m_pMatrix->get_slave_layout(1),
 									 m_masterCPLayout,
 									 m_slaveCPLayout);
+
 
 		//	get matrix from dirichlet operator
 			m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
@@ -337,10 +342,10 @@ class LocalSchurComplement
 			*m_pDirichletMatrix = *m_pMatrix;
 
 		//	Set Dirichlet values on Delta and Pi
-			for(size_t i = 1; i < m_pDirichletMatrix->num_layouts(); ++i)
+			for(size_t i = 1; i < m_num_layouts; ++i)
 			{
-				MatSetDirichletOnLayout(m_pDirichletMatrix, m_pDirichletMatrix->get_slave_layout(i));
-				MatSetDirichletOnLayout(m_pDirichletMatrix, m_pDirichletMatrix->get_master_layout(i));
+				MatSetDirichletOnLayout(m_pDirichletMatrix, m_slaveCPLayout);
+				MatSetDirichletOnLayout(m_pDirichletMatrix, m_masterCPLayout);
 			}
 
 		//	init sequential solver for Dirichlet problem
@@ -508,6 +513,7 @@ class LocalSchurComplement
 		matrix_type* m_pMatrix;
 
 	//	temporary layouts for "PI layouts"
+		size_t m_num_layouts = 3;
 		IndexLayout m_masterCPLayout;
 		IndexLayout m_slaveCPLayout;
 
