@@ -25,6 +25,80 @@ namespace ug
 typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> >
 		IndexLayout;
 
+///	Logs the internals of an index layout.
+/**
+ * Writes information about an index interface. If depth >= 1 is passed, then
+ * also the current indices in the interfaces are printed.
+ */
+inline void LogIndexLayout(IndexLayout& layout, int depth = 0)
+{
+	using namespace std;
+
+	typedef IndexLayout::Interface Interface;
+	typedef IndexLayout::iterator  InterfaceIter;
+
+	UG_LOG("-- IndexLayout: Informations --\n");
+
+	UG_LOG(" interface | taret proc id |   size    ");
+	if(depth >= 1) UG_LOG(" | indices ")
+	UG_LOG("\n");
+
+	int i = 0;
+	for(InterfaceIter iiter = layout.begin();
+		iiter != layout.end(); ++iiter, ++i)
+	{
+		Interface& interface = layout.interface(iiter);
+		UG_LOG(" " << std::setw(9) << i << " | " << std::setw(9) <<
+		       layout.proc_id(iiter) << " | " << interface.size() << " ");
+		if(depth >= 1)
+		{
+			UG_LOG("(");
+			for(Interface::iterator indexIter = interface.begin();
+					indexIter != interface.end(); ++indexIter)
+			{
+			//  get index
+				const size_t index = interface.get_element(indexIter);
+
+			//	add comma
+				if(indexIter != interface.begin())
+					UG_LOG(" ,");
+
+			//	log index
+				UG_LOG(index);
+			}
+			UG_LOG(")");
+		}
+		UG_LOG("\n");
+	}
+	UG_LOG(endl);
+}
+
+/// logs index infos for all procs successively
+inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
+{
+//	remember current outproc
+	int outproc = pcl::GetOutputProcRank();
+
+//	loop all procs
+	for(int p = 0; p < pcl::GetNumProcesses(); ++p)
+	{
+	//	synchronize, to prevent other procs to write before this one has finished.
+		pcl::SynchronizeProccesses();
+
+	//	write process p
+		if(p == pcl::GetProcRank())
+		{
+		//	set output proc to proc p
+			pcl::SetOutputProcRank(p);
+
+		//	write
+			LogIndexLayout(layout, depth);
+		}
+	}
+
+//	reset output proc
+	pcl::SetOutputProcRank(outproc);
+}
 
 } // end namespace ug
 
