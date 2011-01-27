@@ -42,6 +42,14 @@ size() const
 	return 0;
 }
 
+int ProcessCommunicator::
+get_proc_id(size_t index)
+{
+	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
+		return (int)index;
+	return m_comm->m_procs[index];
+}
+
 ProcessCommunicator
 ProcessCommunicator::
 create_sub_communicator(bool participate)
@@ -103,6 +111,7 @@ create_sub_communicator(bool participate)
 //	the process participates - create the ProcessCommunicator
 	ProcessCommunicator newProcComm;
 	newProcComm.m_comm = SPCommWrapper(new CommWrapper(commNew, true));
+	newProcComm.m_comm->m_procs = newProcs;
 	return newProcComm;
 }
 

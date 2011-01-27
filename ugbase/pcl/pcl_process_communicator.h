@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 #include "pcl_methods.h"
 #include "common/util/smart_pointer.h"
 
@@ -44,6 +45,9 @@ class ProcessCommunicator
 	///	returns the size of the communicator
 		size_t size() const;
 		
+	///	returns the i-th process in the communicator
+		int get_proc_id(size_t index);
+
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current
 	 *	communicator - even if they don't want to participate in the new one.*/
@@ -155,8 +159,11 @@ class ProcessCommunicator
 						bool bReleaseComm);
 			~CommWrapper();
 			
-			MPI_Comm	m_mpiComm;
-			bool		m_bReleaseCommunicator;
+			MPI_Comm			m_mpiComm;
+			bool				m_bReleaseCommunicator;
+
+		///	only contains data if m_mpiComm != MPI_COMM_WORLD
+			std::vector<int>	m_procs;
 		};
 		
 	///	Smart-pointer that encapsulates a CommWrapper.
