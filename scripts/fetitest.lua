@@ -165,7 +165,15 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 numProcs = NumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs
+numSubdomains = numProcs/4
+
+print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
+
+-- create subdomain info
+print("Create subdomain info")
+subdomainInfo = StandardDomainDecompositionInfo()
+subdomainInfo:set_num_subdomains(numSubdomains)
+
 
 if dim == 2 then
 	EnableDomainDecomposition2d(approxSpace, numSubdomains) -- second argument: number of subdomains
@@ -398,14 +406,28 @@ fetiConvCheck:set_minimum_defect(1e-9)
 fetiConvCheck:set_reduction(1e-12)
 
 -- create FETI Solver
---fetiSolver = FETI()
-localSchurComplement = LocalSchurComplement()
-localSchurComplement:set_matrix(linOp)
-localSchurComplement:set_dirichlet_solver(cgSolver)
-localSchurComplement:set_debug(dbgWriter)
-localSchurComplement:init()
+fetiSolver = FETI()
+fetiSolver:set_convergence_check(fetiConvCheck)
+fetiSolver:set_neumann_solver(cgSolver)
+fetiSolver:set_dirichlet_solver(cg2Solver)
+fetiSolver:set_subdomain_info(subdomainInfo)
 
-WriteGridFunctionToVTK(b, "b_ass")
+-- Apply Solver
+ApplyLinearSolver(linOp, u, b, fetiSolver)
+
+-- Output
+WriteGridFunctionToVTK(u, "Solution")
+
+
+
+
+--localSchurComplement = LocalSchurComplement()
+--localSchurComplement:set_matrix(linOp)
+--localSchurComplement:set_dirichlet_solver(cgSolver)
+--localSchurComplement:set_debug(dbgWriter)
+--localSchurComplement:init()
+
+--WriteGridFunctionToVTK(b, "b_ass")
 
 -- Apply Solver
 --ApplyLinearSolver(linOp, u, b, fetiSolver)
@@ -418,13 +440,13 @@ WriteGridFunctionToVTK(b, "b_ass")
 -- this is a somehow forbidden action for real simulations but good for testing
 --b:set_storage_type_by_string("consistent");
 
-b:change_storage_type_by_string("consistent");
+--b:change_storage_type_by_string("consistent");
 
-WriteGridFunctionToVTK(b, "b_consistent")
+--WriteGridFunctionToVTK(b, "b_consistent")
 
 -- applies the Schur complement built from matrix operator 'linOp' to 'b' and returns the result 'S times b' in 'u'
-localSchurComplement:apply(u, b)
+--localSchurComplement:apply(u, b)
 
 -- Output
-WriteGridFunctionToVTK(b, "b")
-WriteGridFunctionToVTK(u, "S_times_b")
+--WriteGridFunctionToVTK(b, "b")
+--WriteGridFunctionToVTK(u, "S_times_b")
