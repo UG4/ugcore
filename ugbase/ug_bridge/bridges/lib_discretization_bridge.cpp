@@ -10,6 +10,9 @@
 #include "common/math/misc/math_util.h"
 #include "lib_algebra/lib_algebra.h"
 #include "lib_discretization/lib_discretization.h"
+#ifdef UG_PARALLEL
+#include "pcl/pcl.h"
+#endif
 #include <iostream>
 #include <sstream>
 
@@ -77,6 +80,9 @@ void EnableDomainDecomposition(IApproximationSpace<domain_type>& approxSpace,
 	#ifdef UG_PARALLEL
 		if(numSubdomains > 0 && pcl::GetNumProcesses() > 1)
 			numProcsPerSubdomain = pcl::GetNumProcesses() / numSubdomains;
+
+		UG_LOG("'EnableDomainDecomposition()': number of procs: " << pcl::GetNumProcesses()  << ", numSubdomains: " << numSubdomains
+			   << ", numProcsPerSubdomain: " << numProcsPerSubdomain  << " (TMP).\n"); // 18012011ih
 	#endif
 
 //	todo: Make sure that numProcs and numSubdomains are valid.
@@ -1578,6 +1584,21 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 
 	//	TestLagrangeSpaces
 		reg.add_function("TestLagrangeSpaces", &TestLagrangeSpaces, grp.c_str());
+
+#ifdef UG_PARALLEL
+	//	IDomainDecompositionInfo, StandardDomainDecompositionInfo
+		{
+		typedef pcl::IDomainDecompositionInfo Tbase;
+		reg.add_class_<Tbase>("IDomainDecompositionInfo", grp.c_str());
+		typedef pcl::StandardDomainDecompositionInfo T;
+		reg.add_class_<T, Tbase>("StandardDomainDecompositionInfo", grp.c_str())
+			.add_constructor()
+			.add_method("map_proc_id_to_subdomain_id", &T::map_proc_id_to_subdomain_id)
+			.add_method("set_num_subdomains",          &T::set_num_subdomains)
+			.add_method("get_num_subdomains",          &T::get_num_subdomains)
+			.add_method("get_num_procs_per_subdomain", &T::get_num_procs_per_subdomain);
+		}
+#endif
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
