@@ -122,7 +122,7 @@ class BasicInterface
 		BasicInterface(int targetProc = -1)	: m_size(0), m_targetProc(targetProc)	{};
 
 		inline iterator push_back(const Element& elem)	{++m_size; return m_elements.insert(m_elements.end(), elem);}
-		inline void erase(iterator iter)				{--m_size; m_elements.erase(iter);}
+		inline iterator erase(iterator iter)				{--m_size; return m_elements.erase(iter);}
 
 		inline iterator begin()		{return m_elements.begin();}
 		inline iterator end()		{return m_elements.end();}
@@ -195,10 +195,10 @@ class OrderedInterface
 									(InterfaceEntry(elem, get_free_id())));
 		}
 
-		inline void erase(iterator iter)
+		inline iterator erase(iterator iter)
 		{
 			--m_size;
-			m_elements.erase(iter);
+			return m_elements.erase(iter);
 		}
 
 		inline iterator begin()		{return m_elements.begin();}
