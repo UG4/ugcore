@@ -58,13 +58,15 @@ class AssembledLinearOperator :
 		{
 			if(m_pDoFDistribution == NULL)
 			{
-				UG_LOG("ERROR in AssembledLinearizedOperator::init: DoF Distribution not set.\n");
+				UG_LOG("ERROR in AssembledLinearizedOperator::init: "
+						"DoF Distribution not set.\n");
 				return false;
 			}
 
 			if(m_pAss == NULL)
 			{
-				UG_LOG("ERROR in AssembledLinearizedOperator::init: Assembling rountine not set.\n");
+				UG_LOG("ERROR in AssembledLinearizedOperator::init:"
+						" Assembling rountine not set.\n");
 				return false;
 			}
 
@@ -85,7 +87,8 @@ class AssembledLinearOperator :
 		//	assemble matrix (depending on u, i.e. J(u))
 			if(m_pAss->assemble_jacobian(m_J, uIn, *m_pDoFDistribution) != IAssemble_OK)
 			{
-				UG_LOG("ERROR in AssembledLinearizedOperator::init: Cannot assemble Jacobi matrix.\n");
+				UG_LOG("ERROR in AssembledLinearizedOperator::init:"
+						" Cannot assemble Jacobi matrix.\n");
 				return false;
 			}
 
@@ -109,7 +112,8 @@ class AssembledLinearOperator :
 		//	check if DoF Distribution is set
 			if(m_pDoFDistribution == NULL)
 			{
-				UG_LOG("ERROR in AssembledLinearOperator::prepare: DoF Distribution not set.\n");
+				UG_LOG("ERROR in AssembledLinearOperator::prepare:"
+						" DoF Distribution not set.\n");
 				return false;
 			}
 
@@ -121,7 +125,8 @@ class AssembledLinearOperator :
 			{
 				if(!m_J.set(0.0))
 				{
-					UG_LOG("ERROR in AssembledLinearOperator::init: Cannot set matrix to zero.\n");
+					UG_LOG("ERROR in AssembledLinearOperator::init: "
+							"Cannot set matrix to zero.\n");
 					return false;
 				}
 			}
@@ -129,7 +134,8 @@ class AssembledLinearOperator :
 			{
 				if(!m_J.resize(numDoFs, numDoFs))
 				{
-					UG_LOG("ERROR in AssembledLinearOperator::prepare: Cannot resize matrix.\n");
+					UG_LOG("ERROR in AssembledLinearOperator::prepare:"
+							" Cannot resize matrix.\n");
 					return false;
 				}
 			}
@@ -139,7 +145,8 @@ class AssembledLinearOperator :
 			{
 				if(!m_rhs.resize(numDoFs))
 				{
-					UG_LOG("ERROR in AssembledLinearOperator::init: Cannot resize rhs.\n");
+					UG_LOG("ERROR in AssembledLinearOperator::init:"
+							" Cannot resize rhs.\n");
 					return false;
 				}
 			}
@@ -252,13 +259,14 @@ class AssembledLinearOperator :
 		{
 			if(!m_bInit)
 			{
-				UG_LOG("ERROR in AssembledLinearizedOperator::set_dirichlet_values: Operator not initialized.\n");
+				UG_LOG("ERROR in AssembledLinearizedOperator::set_dirichlet_values:"
+						" Operator not initialized.\n");
 				return false;
 			}
 
 			if(m_pAss->assemble_solution(u, *m_pDoFDistribution) != IAssemble_OK)
 			{
-				UG_LOG("ERROR in AssembledLinearOperator::init:"
+				UG_LOG("ERROR in AssembledLinearOperator::set_dirichlet_values:"
 						" Cannot assemble solution.\n");
 				return false;
 			}
