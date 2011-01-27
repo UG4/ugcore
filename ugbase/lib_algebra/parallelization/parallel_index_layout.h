@@ -37,9 +37,9 @@ inline void LogIndexLayout(IndexLayout& layout, int depth = 0)
 	typedef IndexLayout::Interface Interface;
 	typedef IndexLayout::iterator  InterfaceIter;
 
-	UG_LOG("-- IndexLayout: Informations --\n");
+	UG_LOG("-- IndexLayout Informations: Proc "<< pcl::GetOutputProcRank() << " --\n");
 
-	UG_LOG(" interface | taret proc id |   size    ");
+	UG_LOG(" interface | target proc id |   size    ");
 	if(depth >= 1) UG_LOG(" | indices ")
 	UG_LOG("\n");
 
@@ -48,11 +48,11 @@ inline void LogIndexLayout(IndexLayout& layout, int depth = 0)
 		iiter != layout.end(); ++iiter, ++i)
 	{
 		Interface& interface = layout.interface(iiter);
-		UG_LOG(" " << std::setw(9) << i << " | " << std::setw(9) <<
-		       layout.proc_id(iiter) << " | " << interface.size() << " ");
+		UG_LOG(" " << std::setw(9) << i << " | " << std::setw(14) <<
+		       layout.proc_id(iiter) << " | " << std::setw(9) << interface.size() << " ");
 		if(depth >= 1)
 		{
-			UG_LOG("(");
+			UG_LOG(" | (");
 			for(Interface::iterator indexIter = interface.begin();
 					indexIter != interface.end(); ++indexIter)
 			{
@@ -61,7 +61,7 @@ inline void LogIndexLayout(IndexLayout& layout, int depth = 0)
 
 			//	add comma
 				if(indexIter != interface.begin())
-					UG_LOG(" ,");
+					UG_LOG(", ");
 
 			//	log index
 				UG_LOG(index);

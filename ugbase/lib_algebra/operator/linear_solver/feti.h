@@ -814,6 +814,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	///	initializes the solver for operator A
 		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		{
+		//	remember A
+			m_A = &A;
+
+		//	get matrix
+			m_pMatrix = &m_A->get_matrix();
+
 		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
 			ExtractCrossPointLayouts(m_pMatrix->num_rows(),       // number of dof's of actual processor
 									 m_pMatrix->get_master_layout(1),
@@ -822,6 +828,20 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 									 m_masterCPLayout,
 									 m_slaveCPLayout);
 
+		//	write layouts
+			pcl::SynchronizeProccesses();
+			UG_LOG("------------- DELTA MASTER ------------\n")
+			LogIndexLayoutOnAllProcs(m_pMatrix->get_master_layout(1), 1);
+			pcl::SynchronizeProccesses();
+			UG_LOG("------------- DELTA SLAVE  ------------\n")
+			LogIndexLayoutOnAllProcs(m_pMatrix->get_slave_layout(1), 1);
+
+			pcl::SynchronizeProccesses();
+			UG_LOG("------------- PI MASTER ------------\n")
+			LogIndexLayoutOnAllProcs(m_masterCPLayout, 1);
+			pcl::SynchronizeProccesses();
+			UG_LOG("------------- PI SLAVE  ------------\n")
+			LogIndexLayoutOnAllProcs(m_slaveCPLayout, 1);
 
 		//  ----- INIT DIRICHLET SOLVER  ----- //
 
@@ -838,6 +858,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 		//	set dirichlet solver for local schur complement
 			m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
+
+		//	set operator in local schur complement
+			m_LocalSchurComplement.set_matrix(*m_A);
 
 		//	init local Schur complement
 			if(m_LocalSchurComplement.init() != true)
