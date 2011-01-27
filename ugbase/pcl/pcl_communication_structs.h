@@ -43,7 +43,7 @@ namespace interface_tags
  *
  *	Additionally you may receive the local_src_id. This id represents the
  *	sender during local communication (communication on one process only).
- *	Vaues < 0 mark the sender as invalid (during local communication).
+ *	Values < 0 mark the sender as invalid (during local communication).
  *	The src-id is ignored during parallel communication. Instead pcl::GetProcRank
  *	is used.
  *
@@ -315,7 +315,7 @@ class multi_level_layout_tag	{};
  * Additionally it features methods that allow to add new interfaces
  *
  * In order to allow one method to operate both on a SingleLevelLayout
- * and a MultiLevelLayout, the (size_t level = 0) conveniance parameter
+ * and a MultiLevelLayout, the (size_t level = 0) convenience parameter
  * has been added to some methods. Those parameters are ignored throughout
  * the whole implementation.
  */
@@ -573,7 +573,7 @@ class ICommunicationPolicy
 	 *	If the buffer-size can be calculated on both sides, it makes sense to do so,
 	 *	since this leads to less communication and overall improved performance.
 	 *	The buffer-size has to exactly match the size of required memory. Make sure that you
-	 *	completly fill the buffer during collect(...) and that you read all data during
+	 *	completely fill the buffer during collect(...) and that you read all data during
 	 *	extract(...).
 	 *	The default implementation returns -1.
 	 */	
