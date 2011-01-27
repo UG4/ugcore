@@ -31,11 +31,17 @@ class IDomainDecompositionInfo
 		// destructor
 		virtual ~IDomainDecompositionInfo() {};
 
-}; /* end class 'StandardDomainDecompositionInfo' */
+}; /* end class 'IDomainDecompositionInfo' */
 
 class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 {
-	///	constructor
+	///	constructors
+    public:
+		StandardDomainDecompositionInfo() :
+			m_num_subdomains(1),
+			m_num_procs_per_subdomain(1)
+			{}
+
 		StandardDomainDecompositionInfo(int numSubdomains) :
 			m_num_subdomains(numSubdomains),
 			m_num_procs_per_subdomain(1)
@@ -56,6 +62,8 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
         {
 			return procID / m_num_procs_per_subdomain; 
         }
+
+		void set_num_subdomains(int numSubdomains) {m_num_subdomains = numSubdomains;}
 
 		int get_num_subdomains() const {return m_num_subdomains;}
 
