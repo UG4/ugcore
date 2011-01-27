@@ -1111,6 +1111,21 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_upwind_amount", &T::set_upwind_amount);
 	}
 
+//	Convection Diffusion
+	{
+		typedef FVConvectionDiffusionElemDisc<HFV1Geometry, domain_type, algebra_type> T;
+		stringstream ss; ss << "HFV1ConvectionDiffusion" << dim << "d";
+		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_domain", &T::set_domain)
+			.add_method("set_diffusion_tensor", &T::set_diffusion)
+			.add_method("set_velocity_field", &T::set_velocity)
+			.add_method("set_reaction", &T::set_reaction)
+			.add_method("set_rhs", &T::set_rhs)
+			.add_method("set_mass_scale", &T::set_mass_scale)
+			.add_method("set_upwind_amount", &T::set_upwind_amount);
+	}
+
 //	ConstFV1ConvectionDiffusionElemDisc
 	{
 		typedef ConstFV1ConvectionDiffusionElemDisc<domain_type, dof_distribution_type, algebra_type> T;
@@ -1370,6 +1385,22 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 
 	//	Base class
 		reg.add_class_<IPostProcess<dof_distribution_type, algebra_type> >("IPostProcess", grp.c_str());
+
+	//	OneSideP1ConstraintsPostProcess
+		{
+			typedef OneSideP1ConstraintsPostProcess<dof_distribution_type, algebra_type> T;
+			typedef IPostProcess<dof_distribution_type, algebra_type> baseT;
+			reg.add_class_<T, baseT>("OneSideP1Constraints", grp.c_str())
+				.add_constructor();
+		}
+
+	//	SymP1ConstraintsPostProcess
+		{
+			typedef SymP1ConstraintsPostProcess<dof_distribution_type, algebra_type> T;
+			typedef IPostProcess<dof_distribution_type, algebra_type> baseT;
+			reg.add_class_<T, baseT>("SymP1Constraints", grp.c_str())
+				.add_constructor();
+		}
 
 	//	Elem Discs
 		{
