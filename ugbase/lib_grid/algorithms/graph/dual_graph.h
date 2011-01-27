@@ -24,7 +24,7 @@ namespace ug
  *
  * Let n be the number of nodes in the graph, m be the number of edges.
  * Then adjacencyMapStructureOut will contain n+1 entries (the last one
- * is a conveniance entry), and adjacencyMapOut will contain 2m entries
+ * is a convenience entry), and adjacencyMapOut will contain 2m entries
  * (edges are always bidirectional).
  *
  * please note that you'll find all entries belonging to node i in the entries
