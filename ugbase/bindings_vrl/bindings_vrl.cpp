@@ -60,7 +60,7 @@ public:
 	}
 
 	std::string getString() {
-		UG_LOG("Test123"<< std::endl);
+		UG_LOG("Test123" << std::endl);
 		return "Test123";
 	}
 };
@@ -81,33 +81,33 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
-	static ug::bridge::Registry testReg;
+	//	static ug::bridge::Registry testReg;
 
 	//	Choose registry used.
-	//	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
-	ug::bridge::Registry& reg = testReg;
+	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
+	//	ug::bridge::Registry& reg = testReg;
 
 	using namespace ug;
 
 	int retVal = ug::UGInit(arguments.size(), argv);
 
 
-	testReg.add_class_<TestClass > ("TestClass", "testing")
-			.add_constructor()
-			.add_method("svnRevision", &TestClass::getRev)
-			.add_method("add", &TestClass::add, "result",
-			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
-			.add_method("getString", &TestClass::getString);
+//	testReg.add_class_<TestClass > ("TestClass", "testing")
+//			.add_constructor()
+//			.add_method("svnRevision", &TestClass::getRev)
+//			.add_method("add", &TestClass::add, "result",
+//			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
+//			.add_method("getString", &TestClass::getString);
 
 	//	Register Standard Interfaces (excluding algebra)
-//	ug::bridge::RegisterStandardInterfaces(reg);
+//		ug::bridge::RegisterStandardInterfaces(reg);
 
 	//	Register algebra
-//	CPUAlgebraChooser chooser;
-//	ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
-//	ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
+		CPUAlgebraChooser chooser;
+		ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
+		ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
 
-//	ug::vrl::RegisterVRLUserNumber(reg, "testing");
+	//	ug::vrl::RegisterVRLUserNumber(reg, "testing");
 	//			ug::bridge::RegisterTestInterface(testReg);
 
 	//	ug::bridge::RegisterLibGridInterface(testReg);

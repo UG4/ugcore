@@ -264,6 +264,7 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 		generateMethods(result, baseClasses[i]);
 		generateConstMethods(result, baseClasses[i]);
 	}
+
 	// generate methods for this pointer handling
 	result << createMethodInfo(clazz.name(), clazz.class_names(),
 			false, "interactive=false")
