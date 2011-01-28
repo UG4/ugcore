@@ -5,6 +5,7 @@
  *      Author: andreasvogel
  */
 
+// TODO: remove 'Callback_ProcessIDToSubdomainID' stuff ... (27012011)
 
 #ifndef __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_SPACE__
 #define __H__LIBDISCRETIZATION__FUNCTION_SPACE__GRID_FUNCTION_SPACE__
@@ -15,15 +16,15 @@
 
 #include "lib_discretization/dof_manager/mg_dof_manager.h"
 #include "./grid_function.h"
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 
 namespace ug{
 
 // \todo: Remove
 // typedef for non-parallel case (to make it compileable in serial)
-#ifndef UG_PARALLEL
-	typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
-#endif
+//#ifndef UG_PARALLEL
+//	typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
+//#endif
 
 template <typename TDomain>
 class IApproximationSpace
@@ -72,7 +73,7 @@ class IApproximationSpace
 	// 	Return the domain
 		domain_type& get_domain() {return *m_pDomain;}
 
-		virtual void enable_domain_decomposition(Callback_ProcessIDToSubdomainID)	{}
+		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo/*Callback_ProcessIDToSubdomainID*/)	{}
 		virtual bool domain_decomposition_enabled()						{return false;}
 
 	protected:
@@ -217,7 +218,6 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			return gridFct;
 		}
 
-
 		// create a new grid function of this approximation space
 		function_type* create_surface_function()
 		{
@@ -261,11 +261,11 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 
 	///	Influences the way in which parallel interfaces are created from the grids interfaces.
 	/**	If enabled, process and subdomain layouts are generated.*/
-		virtual void enable_domain_decomposition(
-						Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo)
+			/*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
 		{
 			#ifdef UG_PARALLEL
-				m_MGDoFManager.enable_domain_decomposition(cb_ProcIDToSubdomID);
+				m_MGDoFManager.enable_domain_decomposition(ddInfo); /*(cb_ProcIDToSubdomID)*/
 			#endif
 		}
 
