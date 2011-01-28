@@ -165,20 +165,20 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 numProcs = NumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs/4
+numSubdomains = numProcs/1 --4
 
 print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
 
 -- create subdomain info
-print("Create subdomain info")
-subdomainInfo = StandardDomainDecompositionInfo()
-subdomainInfo:set_num_subdomains(numSubdomains)
+print("Create domainDecompInfo")
+domainDecompInfo = StandardDomainDecompositionInfo()
+domainDecompInfo:set_num_subdomains(numSubdomains)
 
 
 if dim == 2 then
-	EnableDomainDecomposition2d(approxSpace, numSubdomains) -- second argument: number of subdomains
+	EnableDomainDecomposition2d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
 elseif dim == 3 then
-	EnableDomainDecomposition3d(approxSpace, numSubdomains) -- second argument: number of subdomains
+	EnableDomainDecomposition3d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
 end
 
 approxSpace:init()
@@ -410,7 +410,7 @@ fetiSolver = FETI()
 fetiSolver:set_convergence_check(fetiConvCheck)
 fetiSolver:set_neumann_solver(cgSolver)
 fetiSolver:set_dirichlet_solver(cg2Solver)
-fetiSolver:set_subdomain_info(subdomainInfo)
+fetiSolver:set_domain_decomp_info(domainDecompInfo)
 
 -- Apply Solver
 ApplyLinearSolver(linOp, u, b, fetiSolver)
@@ -418,8 +418,9 @@ ApplyLinearSolver(linOp, u, b, fetiSolver)
 -- Output
 WriteGridFunctionToVTK(u, "Solution")
 
-
-
+-- check
+print( "domainDecompInfo:get_num_subdomains(): " .. domainDecompInfo:get_num_subdomains())
+print( "domainDecompInfo:get_num_procs_per_subdomain(): " .. domainDecompInfo:get_num_procs_per_subdomain())
 
 --localSchurComplement = LocalSchurComplement()
 --localSchurComplement:set_matrix(linOp)
