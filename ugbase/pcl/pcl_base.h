@@ -10,7 +10,8 @@ namespace pcl
 
 ////////////////////////////////////////////////////////////////////////
 ///	call this method before any other pcl-operations.
-void Init(int argc, char* argv[]);
+//void Init(int argc, char* argv[]);
+void Init(int *argcp, char ***argvp);
 
 ///	call this method right before quitting your application
 void Finalize();
@@ -36,7 +37,7 @@ inline bool IsOutputProc()
 }
 
 /// synchronizes all processes
-void SynchronizeProccesses();
+void SynchronizeProcesses();
 
 }//	end of namespace
 #endif

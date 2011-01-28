@@ -12,10 +12,12 @@ namespace pcl
 static int OUTPUT_PROC_RANK = 0;
 
 ////////////////////////////////////////////////////////////////////////
-void Init(int argc, char* argv[])
+//void Init(int argc, char* argv[])
+void Init(int *argcp, char ***argvp)
 {
 //	init mpi
-	MPI_Init(&argc, &argv);
+//	MPI_Init(&argc, &argv);
+	MPI_Init(argcp, argvp);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -57,7 +59,7 @@ void SetOutputProcRank(int rank)
 }
 
 ////////////////////////////////////////////////////////////////////////
-void SynchronizeProccesses()
+void SynchronizeProcesses()
 {
 	MPI_Barrier(MPI_COMM_WORLD);
 }
