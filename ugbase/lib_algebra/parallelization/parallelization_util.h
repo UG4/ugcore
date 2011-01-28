@@ -9,6 +9,8 @@
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLELIZATION_UTIL__
 
 #include <utility>
+#include <vector>
+#include <map>
 #include "common/assert.h"
 #include "communication_policies.h"
 
@@ -52,7 +54,7 @@ void GenerateGlobalAlgebraIDs(std::vector<AlgebraID>& idsOut,
 	idsOut.resize(numIDs);
 	int localProc = pcl::GetProcRank();
 	for(size_t i = 0; i < numIDs; ++i)
-		idsOut[i] = make_pair(localProc, i);
+		idsOut[i] = std::make_pair(localProc, i);
 
 //	copy all ids from master to slave interfaces
 	ComPol_VecCopy<std::vector<AlgebraID> >	copyPol(&idsOut);
@@ -477,6 +479,17 @@ void MatSetDirichletOnLayout(	TMatrix* pMatrix,
 	}
 }
 
+
+/**	given a layout which defines relations between neighbours, this method
+ * creates a layouts which connect the elements in the given layout with
+ * newly created elements on a source process and establishes a OneToMany connection.
+ */
+void BuildOneToManyLayout(IndexLayout& masterLayoutOut,
+						  IndexLayout& slaveLayoutOut,
+						  int rootProcID,
+						  IndexLayout& masterLayout,
+						  IndexLayout& slaveLayout,
+						  pcl::ProcessCommunicator procComm);
 /// @}
 
 }//	end of namespace

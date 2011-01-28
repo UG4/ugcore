@@ -9,6 +9,7 @@
 #define __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__
 
 #include <vector>
+#include <iomanip>
 #include "pcl/pcl.h"
 
 namespace ug

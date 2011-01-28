@@ -398,6 +398,14 @@ class SingleLevelLayout
 		inline bool interface_exists(int procID, size_t level = 0)
 			{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
 
+	///	returns the sum of the interface sizes
+		inline size_t num_interface_elements(){
+			size_t sum = 0;
+			for(iterator iter = begin(); iter != end(); ++iter)
+				sum += interface(iter).size();
+			return sum;
+		}
+
 	private:
 /*
 	///	copy-constructor is not yet implemented
@@ -527,6 +535,16 @@ class MultiLevelLayout
 	/**	If level >= num_levels() then the layouts in between
 		will be automatically created.*/
 		inline LevelLayout& layout_on_level(int level)			{require_level(level); return *m_vLayouts[level];}
+
+	///	returns the sum of the interface sizes
+		inline size_t num_interface_elements(){
+			size_t sum = 0;
+			for(size_t lvl = 0; lvl < num_levels(); ++lvl){
+				for(iterator iter = begin(lvl); iter != end(lvl); ++iter)
+					sum += interface(iter).size();
+			}
+			return sum;
+		}
 
 	protected:
 	///	adds num new levels.

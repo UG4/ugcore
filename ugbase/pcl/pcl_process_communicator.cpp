@@ -43,12 +43,30 @@ size() const
 }
 
 int ProcessCommunicator::
-get_proc_id(size_t index)
+get_proc_id(size_t index) const
 {
 	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
 		return (int)index;
 	return m_comm->m_procs[index];
 }
+
+int ProcessCommunicator::
+get_local_proc_id() const
+{
+	int globalProcID = pcl::GetProcRank();
+	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
+		return globalProcID;
+
+	vector<int>& procs = m_comm->m_procs;
+	for(size_t i = 0; i < procs.size(); ++i){
+		if(globalProcID == procs[i])
+			return (int)i;
+	}
+
+	UG_LOG("  ERROR in ProcessCommunicator::get_local_proc_id(): given id not contained in local proc list.\n");
+	return -1;
+}
+
 
 ProcessCommunicator
 ProcessCommunicator::

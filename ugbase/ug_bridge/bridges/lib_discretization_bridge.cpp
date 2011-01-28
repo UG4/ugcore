@@ -90,6 +90,23 @@ void EnableDomainDecomposition(IApproximationSpace<domain_type>& approxSpace,
 												numProcsPerSubdomain));
 }
 
+template <class grid_function_type>
+void OneToManyTests(grid_function_type& func)
+{
+#ifdef UG_PARALLEL
+	IndexLayout oneToManyMasterLayout;
+	IndexLayout oneToManySlaveLayout;
+
+	BuildOneToManyLayout(oneToManyMasterLayout,
+						 oneToManySlaveLayout,
+						 0,
+						 func.get_master_layout(),
+						 func.get_slave_layout(),
+						 pcl::ProcessCommunicator(pcl::PCD_WORLD));
+
+#endif
+}
+
 template <typename TRefElem, int p>
 bool TestLagrangeSpacesElem(number& maxDiff)
 {
@@ -1297,6 +1314,14 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 			stringstream ss; ss << "EnableDomainDecomposition" << dim << "d";
 			reg.add_function(ss.str().c_str(),
 							&EnableDomainDecomposition<domain_type>);
+		}
+
+	//	todo: only temporary
+		{
+			stringstream ss; ss << "OneToManyTests" << dim << "d";
+
+			reg.add_function(ss.str().c_str(),
+							&OneToManyTests<function_type>);
 		}
 
 	//	PerformTimeStep

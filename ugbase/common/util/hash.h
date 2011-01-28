@@ -17,11 +17,16 @@ namespace ug
  * the returned value does not have to be unique.
  * The more diverse, the better the hashing result will be.
  */
-template <typename TKey> unsigned long hash_key(const TKey& key);
+template <typename TKey> unsigned long hash_key(const TKey& key)
+{
+	return (unsigned long)key;
+}
 
+/*
 template <> inline unsigned long
 hash_key<unsigned int>(const unsigned int& key)
 {return (unsigned long)key;}
+*/
 
 ///	a generic Hash class
 template <class TVal, class TKey> class Hash

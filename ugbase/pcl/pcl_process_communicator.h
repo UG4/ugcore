@@ -46,7 +46,11 @@ class ProcessCommunicator
 		size_t size() const;
 		
 	///	returns the i-th process in the communicator
-		int get_proc_id(size_t index);
+		int get_proc_id(size_t index) const;
+
+	///	returns the proc-id relative to this communicator
+	/**	This method has a worst time complexity of O(n)*/
+		int get_local_proc_id() const;
 
 	///	creates a new communicator containing a subset of the current communicator
 	/**	Note that this method has to be called by all processes in the current

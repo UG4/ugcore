@@ -24,6 +24,12 @@ if(NOT NO_ALGEBRA)
 	set(src_Algebra	 ${src_Algebra}
 		operator/preconditioner/amg/amg_coarsening.cpp )
 
+if(NOT NO_PCL)
+	# add parallelization
+	set(src_Algebra	 ${src_Algebra}
+						parallelization/parallelization_util.cpp)
+endif(NOT NO_PCL)
+
 	##########################
 	# setup library
         EXPORTSOURCES(lib_algebra ${src_Algebra})

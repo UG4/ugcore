@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "common/util/hash.h"
 #include "pcl_base.h"
 #include "pcl_communication_structs.h"
 #include "pcl_communicator.h"
@@ -95,6 +96,41 @@ size_t CollectAssociatedProcesses(std::vector<int>& procIDsOut,
 	}
 	
 	return procIDsOut.size();
+}
+
+///	writes all elements in the interfaces into the resulting vector. avoids doubles.
+template <class TLayout>
+void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
+							TLayout& layout)
+{
+	typedef typename TLayout::Interface Interface;
+	typedef typename TLayout::Element TElem;
+
+//	clear the return value
+	elemsOut.clear();
+
+//	we'll use a hash to make sure that each element only exists once
+	ug::Hash<int, TElem> hash(layout.num_interface_elements());
+
+//	iterate over all interfaces
+	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
+		for(typename TLayout::iterator interfaceIter = layout.begin(lvl);
+			interfaceIter != layout.end(lvl); ++interfaceIter)
+		{
+		//	iterate over the entries of the interface
+			Interface& interface = layout.interface(interfaceIter);
+			for(typename Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	check whether the entry already exists in the hash
+				if(!hash.has_entries(interface.get_element(iter))){
+				//	we don't care about the value
+					hash.add(0, interface.get_element(iter));
+					elemsOut.push_back(interface.get_element(iter));
+				}
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
