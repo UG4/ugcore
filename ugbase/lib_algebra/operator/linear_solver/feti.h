@@ -370,9 +370,6 @@ class LocalSchurComplement
 				return false;
 			}
 
-		//	count dofs in Pi layout per processor - todo (maybe)
-
-
 		//	get matrix from dirichlet operator
 			m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
 
@@ -621,7 +618,7 @@ class SchurComplementInverse
 		//	check, that operator is correct
 			if(m_A == NULL)
 			{
-				UG_LOG("ERROR in SchurComplementInverse::init:"
+				UG_LOG("ERROR in 'SchurComplementInverse::init':"
 						" Wrong type of operator passed for init.\n");
 				return false;
 			}
@@ -629,7 +626,7 @@ class SchurComplementInverse
 		//	check that Pi layouts have been set
 			if(m_pSlaveCPLayout == NULL || m_pMasterCPLayout == NULL)
 			{
-				UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
+				UG_LOG("ERROR in 'SchurComplementInverse::init': Master or Slave"
 						" layout for cross points not set.\n");
 				return false;
 			}
@@ -640,9 +637,9 @@ class SchurComplementInverse
 		//	check that matrix has enough decomposition levels
 			if(m_pMatrix->num_layouts() != 2)
 			{
-				UG_LOG("ERROR in 'LocalSchurComplement::init': The Operator must"
-						" have at two layouts, but the current Operator has"
-						" only " << m_pMatrix->num_layouts() << "\n");
+				UG_LOG("ERROR in 'SchurComplementInverse::init': The Operator must"
+					   " have two layouts, but the current Operator has only "
+					   << m_pMatrix->num_layouts() << "\n");
 				return false;
 			}
 
@@ -674,7 +671,7 @@ class SchurComplementInverse
 
 		//	we're done
 			return true;
-		}
+		} /* end 'SchurComplementInverse::init()' */
 
 
 	// 	Init for Linear Operator J and Linearization point (current solution)
@@ -821,25 +818,25 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_pMatrix = &m_A->get_matrix();
 
 		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
-			ExtractCrossPointLayouts(m_pMatrix->num_rows(),       // number of dof's of actual processor
+			ExtractCrossPointLayouts(m_pMatrix->num_rows(), // number of dof's of current processor
 									 m_pMatrix->get_master_layout(1),
 									 m_pMatrix->get_slave_layout(1),
-									 m_pDDInfo,
+									 m_pDDInfo, // contains mapping "proc id" ==> "subdom id"
 									 m_masterCPLayout,
 									 m_slaveCPLayout);
 
 		//	write layouts
-			pcl::SynchronizeProccesses();
+			pcl::SynchronizeProcesses();
 			UG_LOG("------------- DELTA MASTER ------------\n")
 			LogIndexLayoutOnAllProcs(m_pMatrix->get_master_layout(1), 1);
-			pcl::SynchronizeProccesses();
+			pcl::SynchronizeProcesses();
 			UG_LOG("------------- DELTA SLAVE  ------------\n")
 			LogIndexLayoutOnAllProcs(m_pMatrix->get_slave_layout(1), 1);
 
-			pcl::SynchronizeProccesses();
+			pcl::SynchronizeProcesses();
 			UG_LOG("------------- PI MASTER ------------\n")
 			LogIndexLayoutOnAllProcs(m_masterCPLayout, 1);
-			pcl::SynchronizeProccesses();
+			pcl::SynchronizeProcesses();
 			UG_LOG("------------- PI SLAVE  ------------\n")
 			LogIndexLayoutOnAllProcs(m_slaveCPLayout, 1);
 
@@ -896,12 +893,16 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 		//	we're done
 			return true;
-		}
+		} /* end 'FETISolver::init()' */
 
 	///	solves the system and returns the last defect of iteration in rhs
 		virtual bool apply_return_defect(vector_type& x, vector_type& b)
 		{
-		//	TODO: Implement
+			//	TODO:
+			// 1. Implement preconditioned cg method for reduced system \f$F \lambda = d\f$ - therefore provide method for application of \f$F\f$ and \f$M^{-1}\f$
+			// 2. With \f$\lambda\f$ found, back solve for \f$u_{\Delta}\f$:
+			//    \f$u_{\Delta} = {\tilde{S}_{\Delta \Delta}}^{-1} ({\tilde{f}_{\Delta}} - B_{\Delta}^T \lambda).\f$
+			// 3. Assemble this and the solutions for \f$u_{I}\f$ and \f$u_{\Pi}\f$ to the global solution vector
 
 		//	we're done
 			return true;
@@ -978,7 +979,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 
 	public:
-		void set_subdomain_info(pcl::IDomainDecompositionInfo& ddInfo)
+		void set_domain_decomp_info(pcl::IDomainDecompositionInfo& ddInfo)
 		{
 			m_pDDInfo = &ddInfo;
 		}
