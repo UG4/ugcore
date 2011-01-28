@@ -38,7 +38,8 @@ namespace ug
  *	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Init.
  */
-int UGInit(int argc, char* argv[], int parallelOutputProcRank = -1);
+//int UGInit(int argc, char* argv[], int parallelOutputProcRank = -1);
+int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank);
 
 /// returns the ug app path
 const std::string& UGGetApplicationPath();

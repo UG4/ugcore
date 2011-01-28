@@ -62,14 +62,16 @@ static bool InitPaths(const char* argv0) {
  *	If ug has been compiled for parallel use (UG_PARALLEL is defined)
  *	then this method will internally call pcl::Init.
  */
-int UGInit(int argc, char* argv[], int parallelOutputProcRank) {
+//int UGInit(int argc, char* argv[], int parallelOutputProcRank)
+int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank) {
 	//	make sure that things are only initialized once
 	// todo: afaik static in d methods is per-cpp-file
 	static bool firstCall = true;
 	if (firstCall) {
 		firstCall = false;
 #ifdef UG_PARALLEL
-		pcl::Init(argc, argv);
+//		pcl::Init(argc, argv);
+		pcl::Init(argcp, argvp);
 		pcl::SetOutputProcRank(parallelOutputProcRank);
 #endif
 
@@ -77,7 +79,8 @@ int UGInit(int argc, char* argv[], int parallelOutputProcRank) {
 		bridge::RegisterStandardInterfaces(bridge::GetUGRegistry());
 	}
 
-	bool pathsCorrect = InitPaths(argv[0]);
+//	bool pathsCorrect = InitPaths(argv[0]);
+	bool pathsCorrect = InitPaths((*argvp)[0]);
 	if (!pathsCorrect)
 		return -1;
 
