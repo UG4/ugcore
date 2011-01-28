@@ -165,7 +165,7 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 numProcs = NumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs/1 --4
+numSubdomains = numProcs/4 --4
 
 print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
 
