@@ -249,7 +249,7 @@ inline bool AddExtraProcessEntriesToSubdomainLayout(
 	vMultiplicity.clear();
 	vMultiplicity.resize(numIDs, 0);
 
-	UG_LOG_ALL_PROCS("STARTING AddExtraProcessEntriesToSubdomainLayout\n");
+	int localProc = pcl::GetProcRank();
 
 	for(IndexLayout::iterator interface_iter = processMasterLayoutIn.begin();
 			interface_iter != processMasterLayoutIn.end(); ++interface_iter)
@@ -282,12 +282,13 @@ inline bool AddExtraProcessEntriesToSubdomainLayout(
 		}
 	}
 
-	UG_LOG_ALL_PROCS("COMMUNICATING\n");
-
 //	Communicate flagged vector to slaves
-	AdditiveToConsistent(&vMultiplicity, processMasterLayoutIn, processSlaveLayoutIn);
+	ComPol_VecCopy<std::vector<int> >	copyPol(&vMultiplicity);
 
-	UG_LOG_ALL_PROCS("AFTER COMMUNICATING\n");
+	pcl::ParallelCommunicator<IndexLayout> communicator;
+	communicator.send_data(processMasterLayoutIn, copyPol);
+	communicator.receive_data(processSlaveLayoutIn, copyPol);
+	communicator.communicate();
 
 //	add slaves
 	for(IndexLayout::iterator interface_iter = processSlaveLayoutIn.begin();
@@ -311,12 +312,12 @@ inline bool AddExtraProcessEntriesToSubdomainLayout(
 			//	get interface
 				IndexLayout::Interface& subdomInterface = subdomainSlaveLayoutInOut.interface(targetProc);
 
+				UG_LOG_ALL_PROCS("Adding index " << index << " on Proc "<< localProc<<" to target Proc interface "<<targetProc << "\n");
+
 				subdomInterface.push_back(index);
 			}
 		}
 	}
-
-	UG_LOG_ALL_PROCS("FINISHING AddExtraProcessEntriesToSubdomainLayout\n");
 
 	return true;
 }

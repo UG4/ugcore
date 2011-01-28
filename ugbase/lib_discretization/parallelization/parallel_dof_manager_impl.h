@@ -84,12 +84,12 @@ distribute_level_dofs()
 									m_pDDInfo);
 
 		//	correct delta layouts
-		/*	bRet &= AddExtraProcessEntriesToSubdomainLayout(
+			bRet &= AddExtraProcessEntriesToSubdomainLayout(
 					distr.num_dofs(),
 					distr.get_master_layout(0),
 					distr.get_slave_layout(0),
 					distr.get_master_layout(1),
-					distr.get_slave_layout(1));*/
+					distr.get_slave_layout(1));
 		}
 		else{
 		//	create index layouts
@@ -133,7 +133,7 @@ distribute_level_dofs()
 	//	create process communicator for inter-feti block layouts
 		if(domain_decomposition_enabled()){
 		//	check that Partition callback has been set
-			if(m_pDDInfo == NULL) /*(!m_cbProcIDToSubdomID)*/
+			if(m_pDDInfo == NULL)
 			{
 				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
 						" domain decomposition info was not given.\n");
@@ -141,10 +141,10 @@ distribute_level_dofs()
 			}
 
 			int localProc = pcl::GetProcRank();
-			int localSubdom = m_pDDInfo->map_proc_id_to_subdomain_id(localProc); /*m_cbProcIDToSubdomID(localProc)*/
+			int localSubdom = m_pDDInfo->map_proc_id_to_subdomain_id(localProc);
 
 		// create sub communicators
-			for(int subdom = 0; subdom < m_pDDInfo->get_num_subdomains(); ++subdom)	/* This loop *was* to long, shorten please: < pcl::GetNumProcesses() */
+			for(int subdom = 0; subdom < m_pDDInfo->get_num_subdomains(); ++subdom)
 			{
 				if(localSubdom == subdom)
 					distr.get_process_communicator(1)
