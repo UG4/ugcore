@@ -213,7 +213,7 @@ bool CreateIndexLayouts_DomainDecomposition(
 }
 
 /// returns in a vector all appearencies of an index in a layout
-inline void FindPositionInInterfaces(std::vector<std::pair<int, size_t> > vIndexInterface,
+inline void FindPositionInInterfaces(std::vector<std::pair<int, size_t> >& vIndexInterface,
                                      IndexLayout& layout, size_t index)
 {
 	for(IndexLayout::iterator interface_iter = layout.begin();
@@ -265,6 +265,8 @@ inline bool AddExtraProcessEntriesToSubdomainLayout(
 		//  get index
 			const size_t index = interface.get_element(iter);
 
+			UG_LOG("Checking index " << index << std::endl);
+
 			std::vector<std::pair<int, size_t> > vIndexAppear;
 			FindPositionInInterfaces(vIndexAppear, subdomainMasterLayoutInOut, index);
 
@@ -272,6 +274,8 @@ inline bool AddExtraProcessEntriesToSubdomainLayout(
 			{
 			//	 flag
 				vMultiplicity[index] = 1;
+
+				UG_LOG("Flagging index=" << index << " on Proc " << localProc << " to target proc "<< targetProc<<std::endl);
 
 			//	add to subdomain interface
 			//	get interface
@@ -312,7 +316,7 @@ inline bool AddExtraProcessEntriesToSubdomainLayout(
 			//	get interface
 				IndexLayout::Interface& subdomInterface = subdomainSlaveLayoutInOut.interface(targetProc);
 
-				UG_LOG_ALL_PROCS("Adding index " << index << " on Proc "<< localProc<<" to target Proc interface "<<targetProc << "\n");
+				UG_LOG("Adding index " << index << " on Proc "<< localProc<<" to target Proc interface "<<targetProc << "\n");
 
 				subdomInterface.push_back(index);
 			}
