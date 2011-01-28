@@ -8,7 +8,7 @@
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 
-#include <boost/function.hpp>
+//#include <boost/function.hpp>
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid/parallelization/parallelization.h"
@@ -17,10 +17,11 @@
 namespace ug
 {
 
+// TODO: remove 'Callback_ProcessIDToSubdomainID' stuff ... (27012011)
 /**	A callback that associates a subdomain id
  *  (as used in domain decomposition) with a process id
  */
-typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
+//typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
 
 
 ///	Adds dof-indices of elements in elemLayout to the specified IndexLayout.
@@ -114,7 +115,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 							IndexLayout& subdomainLayoutOut,
 							TDoFDistr& dofDistr,
 							TLayout& elemLayout,
-							Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+							pcl::IDomainDecompositionInfo* ddInfoIn) /*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
 {
 	typedef typename TLayout::iterator InterfaceIterator;
 	typedef typename TLayout::Interface ElemInterface;
@@ -123,7 +124,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 	typedef IndexLayout::Interface IndexInterface;
 
 	int localProc = pcl::GetProcRank();
-	int localSubdom = cb_ProcIDToSubdomID(localProc);
+	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc); //int localSubdom = cb_ProcIDToSubdomID(localProc);
 
 //	iterate over all interfaces
 	for(InterfaceIterator iIter = elemLayout.begin();
@@ -131,7 +132,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 	{
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
 		int targetProc = elemLayout.proc_id(iIter);
-		int targetSubdom = cb_ProcIDToSubdomID(targetProc);
+		int targetSubdom = ddInfoIn->map_proc_id_to_subdomain_id(targetProc); //int targetSubdom = cb_ProcIDToSubdomID(targetProc);
 
 //UG_LOG_ALL_PROCS("'AddEntriesToIndexLayout_DomainDecomposition()': local  proc: " << localProc  << ", local  subdom: " << localSubdom  << " (TMP).\n"); // 18012011ih
 //UG_LOG_ALL_PROCS("'AddEntriesToIndexLayout_DomainDecomposition()': target proc: " << targetProc << ", target subdom: " << targetSubdom << " (TMP).\n"); // 18012011ih
@@ -184,7 +185,7 @@ bool CreateIndexLayouts_DomainDecomposition(
 						TDoFDistribution& dofDistr,
 						GridLayoutMap& layoutMap,
 						int keyType, int level,
-						Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+						pcl::IDomainDecompositionInfo* ddInfoIn) /*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
 {
 //TODO: clear the layout!
 	bool bRetVal = true;
@@ -194,8 +195,8 @@ bool CreateIndexLayouts_DomainDecomposition(
 								subdomainLayoutOut,
 								dofDistr,
 								layoutMap.get_layout<VertexBase>(keyType).
-									layout_on_level(level),
-								cb_ProcIDToSubdomID);
+								layout_on_level(level),
+								ddInfoIn); /*(cb_ProcIDToSubdomID)*/
 	}
 /*
 	if(layoutMap.has_layout<EdgeBase>(keyType)){
