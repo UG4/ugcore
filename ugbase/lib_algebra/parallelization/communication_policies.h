@@ -18,7 +18,7 @@ namespace ug{
 // predeclaration of block_traits
 /**	The block-traits are required by communication policies to determine whether buffers
  *	have a fixed size or whether they have to be treated in a more flexible way.
- *	such traits could look like this:
+ *	such traits could look like this (default implementation):
  *	\begincode
  *	template <> struct block_traits<double>
  *	{
@@ -28,7 +28,12 @@ namespace ug{
  *	};
  *	\endcode
  */
-template <typename t> struct block_traits;
+template <typename t> struct block_traits
+{
+	enum{
+		is_static = 1
+	};
+};
 
 /**
  * \brief Communication Policies for parallel Algebra

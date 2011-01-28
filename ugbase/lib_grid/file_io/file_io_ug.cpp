@@ -8,6 +8,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cstring>
+#include <set>
 #include "file_io_ug.h"
 #include "lib_grid/lg_base.h"
 #include "lib_grid/algorithms/geom_obj_util/geom_obj_util.h"
@@ -847,6 +848,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 	SetAttachmentValues(aaLineInt, grid.edges_begin(), grid.edges_end(), -1);
 
 	int numLines = 0;
+	vector<vector<VertexBase*> > lines;
 	{
 	//	each edge which is connected to two different subsets or which is
 	//	a boundary edge has to be written as a line
@@ -886,6 +888,9 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 													cbIsInSubset);
 
 					size_t numEdgesInLine = 0;
+					lines.push_back(vector<VertexBase*>());
+					vector<VertexBase*>& curLine = lines.back();
+
 					while(curSec.first)
 					{
 						VertexBase* curVrt = curSec.first;
@@ -904,6 +909,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 						++numEdgesInLine;
 						
 						out << " " << aaInt[curVrt];
+						curLine.push_back(curVrt);
 						
 						std::pair<VertexBase*, EdgeBase*> nextSec =
 							GetNextSectionOfPolyChain(grid, curSec, cbIsInSubset);
@@ -912,11 +918,13 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 					//	if not, write the last vertex and exit.
 						if(!nextSec.first){
 							out << " " << aaInt[GetConnectedVertex(curEdge, curVrt)];
+							curLine.push_back(GetConnectedVertex(curEdge, curVrt));
 							break;
 						}
 						else if(aaLineInt[nextSec.second] != -1){
 						//	the edge has already been considered
 							out << " " << aaInt[nextSec.first];
+							curLine.push_back(nextSec.first);
 							break;
 						}
 						
@@ -1054,11 +1062,34 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 				//	position:
 					out << aaPos[p].x << " " << aaPos[p].y;
 				//	connected lines
+				//	make sure that each is only used once
+					set<int> encounteredLines;
 					for(Grid::AssociatedEdgeIterator eIter = grid.associated_edges_begin(p);
 						eIter != grid.associated_edges_end(p); ++eIter)
 					{
-						if(aaLineInt[(*eIter)] != -1)
-							out << " L " << aaLineInt[*eIter] << " " << GetVertexIndex(*eIter, p);
+						if(aaLineInt[(*eIter)] != -1){
+						//	get the local coordinate of the vertex on its associated line
+							int lineIndex = aaLineInt[(*eIter)];
+							if(encounteredLines.count(lineIndex) > 0)
+								continue;// the line was already encountered.
+
+							vector<VertexBase*>& curLine = lines.at(lineIndex);
+							assert(curLine.size() > 1 && "A line has to contain at least 2 vertices.");
+							int localCoord = -1;
+							for(size_t i = 0; i < curLine.size(); ++i){
+								if(curLine[i] == p)
+									localCoord = i;
+							}
+							if(localCoord >= 0){
+								out << " L " << lineIndex << " " << localCoord;
+								encounteredLines.insert(lineIndex);
+							}
+							else{
+								UG_LOG("WARNING in ExportGridToUG_2D: "
+										<< "Couldn't find local coordinate of boundary vertex at"
+										<< aaPos[p] << endl);
+							}
+						}
 					}
 				//	done
 					out << ";" << endl;

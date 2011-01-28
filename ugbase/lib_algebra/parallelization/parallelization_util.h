@@ -481,15 +481,30 @@ void MatSetDirichletOnLayout(	TMatrix* pMatrix,
 
 
 /**	given a layout which defines relations between neighbours, this method
- * creates a layouts which connect the elements in the given layout with
- * newly created elements on a source process and establishes a OneToMany connection.
+ * creates a layout which connect the elements in the given layouts with
+ * newly created elements on a root process and establishes a OneToMany connection.
+ *
+ * All newly created elements will be contained in the masterInterfaceOut on rootProc.
+ * The associated vector-indices are assigned so that the work with a mxm matrix,
+ * where m is the returned number of newly created elements.
+ *
+ * \param 	highestReferencedIndex The highest index which is referenced by
+ * 			masterLayout or by slaveLayout. -1 if there is none.
+ * \param	pNewMasterIDsOut (out)an optional vector to whichthe
+ * 			associated new element ids for each
+ * 			element in the given masterLayout and slaveLayout will be written.
+ * 			It will be resized to highestReferencedIndex+1 and will contain
+ * 			-1 in each entry which is not referenced by masterLayout or slaveLayout.
+ * \return	the number of newly created elements (!= 0 only on rootProc).
  */
-void BuildOneToManyLayout(IndexLayout& masterLayoutOut,
+int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  IndexLayout& slaveLayoutOut,
 						  int rootProcID,
 						  IndexLayout& masterLayout,
 						  IndexLayout& slaveLayout,
-						  pcl::ProcessCommunicator procComm);
+						  int highestReferencedIndex,
+						  pcl::ProcessCommunicator procComm,
+						  std::vector<int>* pNewMasterIDsOut = NULL);
 /// @}
 
 }//	end of namespace

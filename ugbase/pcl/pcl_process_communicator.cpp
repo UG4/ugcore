@@ -164,6 +164,22 @@ gather(void* sendBuf, int sendCount, DataType sendType,
 
 void
 ProcessCommunicator::
+gatherv(void* sendBuf, int sendCount, DataType sendType,
+		void* recBuf, int* recCounts, int* displs,
+		DataType recType, int root) const
+{
+	assert(!empty() &&
+			"ERROR in ProcessCommunicator::gather: empty communicator.");
+	if(empty()){
+		UG_LOG("ERROR in ProcessCommunicator::gather: empty communicator.\n");
+	}
+
+	MPI_Gatherv(sendBuf, sendCount, sendType, recBuf,
+				recCounts, displs, recType, root, m_comm->m_mpiComm);
+}
+
+void
+ProcessCommunicator::
 allgather(void* sendBuf, int sendCount, DataType sendType,
 		  void* recBuf, int recCount, DataType recType) const
 {
