@@ -5,7 +5,6 @@
  *      Author: andreasvogel
  */
 
-// TODO: remove 'm_cbProcIDToSubdomID' stuff ... (27012011)
 
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
@@ -65,7 +64,7 @@ distribute_level_dofs()
 
 		if(domain_decomposition_enabled()){
 		//	check that Partition callback has been set
-			if(m_pDDInfo == NULL) /*(!m_cbProcIDToSubdomID)*/
+			if(m_pDDInfo == NULL)
 			{
 				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
 						" No info has been set for domain decomposition.\n");
@@ -77,12 +76,20 @@ distribute_level_dofs()
 									  distr.get_master_layout(0),
 									  distr.get_master_layout(1),
 									  distr, *m_pLayoutMap, INT_MASTER,l,
-									  m_pDDInfo);/*(m_cbProcIDToSubdomID)*/
+									  m_pDDInfo);
 			bRet &= CreateIndexLayouts_DomainDecomposition(
 									distr.get_slave_layout(0),
 									distr.get_slave_layout(1),
 									distr, *m_pLayoutMap, INT_SLAVE,l,
-									m_pDDInfo);/*(m_cbProcIDToSubdomID)*/
+									m_pDDInfo);
+
+		//	correct delta layouts
+		/*	bRet &= AddExtraProcessEntriesToSubdomainLayout(
+					distr.num_dofs(),
+					distr.get_master_layout(0),
+					distr.get_slave_layout(0),
+					distr.get_master_layout(1),
+					distr.get_slave_layout(1));*/
 		}
 		else{
 		//	create index layouts

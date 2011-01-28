@@ -115,7 +115,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 							IndexLayout& subdomainLayoutOut,
 							TDoFDistr& dofDistr,
 							TLayout& elemLayout,
-							pcl::IDomainDecompositionInfo* ddInfoIn) /*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
+							pcl::IDomainDecompositionInfo* ddInfoIn)
 {
 	typedef typename TLayout::iterator InterfaceIterator;
 	typedef typename TLayout::Interface ElemInterface;
@@ -124,7 +124,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 	typedef IndexLayout::Interface IndexInterface;
 
 	int localProc = pcl::GetProcRank();
-	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc); //int localSubdom = cb_ProcIDToSubdomID(localProc);
+	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
 
 //	iterate over all interfaces
 	for(InterfaceIterator iIter = elemLayout.begin();
@@ -132,10 +132,7 @@ bool AddEntriesToIndexLayout_DomainDecomposition(
 	{
 		ElemInterface& elemInterface = elemLayout.interface(iIter);
 		int targetProc = elemLayout.proc_id(iIter);
-		int targetSubdom = ddInfoIn->map_proc_id_to_subdomain_id(targetProc); //int targetSubdom = cb_ProcIDToSubdomID(targetProc);
-
-//UG_LOG_ALL_PROCS("'AddEntriesToIndexLayout_DomainDecomposition()': local  proc: " << localProc  << ", local  subdom: " << localSubdom  << " (TMP).\n"); // 18012011ih
-//UG_LOG_ALL_PROCS("'AddEntriesToIndexLayout_DomainDecomposition()': target proc: " << targetProc << ", target subdom: " << targetSubdom << " (TMP).\n"); // 18012011ih
+		int targetSubdom = ddInfoIn->map_proc_id_to_subdomain_id(targetProc);
 
 		if(targetSubdom == localSubdom){
 		//	create a process interface
@@ -185,7 +182,7 @@ bool CreateIndexLayouts_DomainDecomposition(
 						TDoFDistribution& dofDistr,
 						GridLayoutMap& layoutMap,
 						int keyType, int level,
-						pcl::IDomainDecompositionInfo* ddInfoIn) /*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
+						pcl::IDomainDecompositionInfo* ddInfoIn)
 {
 //TODO: clear the layout!
 	bool bRetVal = true;
@@ -213,6 +210,115 @@ bool CreateIndexLayouts_DomainDecomposition(
 	}
 */
 	return bRetVal;
+}
+
+/// returns in a vector all appearencies of an index in a layout
+inline void FindPositionInInterfaces(std::vector<std::pair<int, size_t> > vIndexInterface,
+                                     IndexLayout& layout, size_t index)
+{
+	for(IndexLayout::iterator interface_iter = layout.begin();
+				interface_iter != layout.end(); ++interface_iter)
+	{
+	//	get interface
+		IndexLayout::Interface& interface = layout.interface(interface_iter);
+
+		int targetProc   = layout.proc_id(interface_iter);
+
+	//	loop over indices
+		int i = 0;
+		for( IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter, ++i)
+		{
+			size_t currIndex = interface.get_element(iter);
+
+			if(currIndex == index)
+				vIndexInterface.push_back(std::pair<int, size_t>(targetProc, i));
+		}
+	}
+}
+
+inline bool AddExtraProcessEntriesToSubdomainLayout(
+								size_t numIDs,
+								IndexLayout& processMasterLayoutIn,
+								IndexLayout& processSlaveLayoutIn,
+								IndexLayout& subdomainMasterLayoutInOut,
+								IndexLayout& subdomainSlaveLayoutInOut)
+{
+	std::vector<int> vMultiplicity;
+//	generate an id for each entry.
+	vMultiplicity.clear();
+	vMultiplicity.resize(numIDs, 0);
+
+	UG_LOG_ALL_PROCS("STARTING AddExtraProcessEntriesToSubdomainLayout\n");
+
+	for(IndexLayout::iterator interface_iter = processMasterLayoutIn.begin();
+			interface_iter != processMasterLayoutIn.end(); ++interface_iter)
+	{
+	//	get interface
+		IndexLayout::Interface& interface = processMasterLayoutIn.interface(interface_iter);
+		int targetProc = processMasterLayoutIn.proc_id(interface_iter);
+
+	//	loop over indices
+		for( IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		//  get index
+			const size_t index = interface.get_element(iter);
+
+			std::vector<std::pair<int, size_t> > vIndexAppear;
+			FindPositionInInterfaces(vIndexAppear, subdomainMasterLayoutInOut, index);
+
+			if(vIndexAppear.size() > 0)
+			{
+			//	 flag
+				vMultiplicity[index] = 1;
+
+			//	add to subdomain interface
+			//	get interface
+				IndexLayout::Interface& subdomInterface = subdomainMasterLayoutInOut.interface(targetProc);
+
+				subdomInterface.push_back(index);
+			}
+		}
+	}
+
+	UG_LOG_ALL_PROCS("COMMUNICATING\n");
+
+//	Communicate flagged vector to slaves
+	AdditiveToConsistent(&vMultiplicity, processMasterLayoutIn, processSlaveLayoutIn);
+
+	UG_LOG_ALL_PROCS("AFTER COMMUNICATING\n");
+
+//	add slaves
+	for(IndexLayout::iterator interface_iter = processSlaveLayoutIn.begin();
+			interface_iter != processSlaveLayoutIn.end(); ++interface_iter)
+	{
+	//	get interface
+		IndexLayout::Interface& interface = processSlaveLayoutIn.interface(interface_iter);
+		int targetProc = processSlaveLayoutIn.proc_id(interface_iter);
+
+	//	loop over indices
+		for( IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		//  get index
+			const size_t index = interface.get_element(iter);
+
+		//	is flagged?
+			if(vMultiplicity[index] > 0)
+			{
+			//	add to subdomain interface
+			//	get interface
+				IndexLayout::Interface& subdomInterface = subdomainSlaveLayoutInOut.interface(targetProc);
+
+				subdomInterface.push_back(index);
+			}
+		}
+	}
+
+	UG_LOG_ALL_PROCS("FINISHING AddExtraProcessEntriesToSubdomainLayout\n");
+
+	return true;
 }
 
 }//	end of namespace
