@@ -73,7 +73,10 @@ class IApproximationSpace
 	// 	Return the domain
 		domain_type& get_domain() {return *m_pDomain;}
 
+#ifdef UG_PARALLEL
 		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo/*Callback_ProcessIDToSubdomainID*/)	{}
+#else
+#endif
 		virtual bool domain_decomposition_enabled()						{return false;}
 
 	protected:
@@ -261,13 +264,13 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 
 	///	Influences the way in which parallel interfaces are created from the grids interfaces.
 	/**	If enabled, process and subdomain layouts are generated.*/
+#ifdef UG_PARALLEL
 		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo)
 			/*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
 		{
-			#ifdef UG_PARALLEL
 				m_MGDoFManager.enable_domain_decomposition(ddInfo); /*(cb_ProcIDToSubdomID)*/
-			#endif
 		}
+#endif
 
 		virtual bool domain_decomposition_enabled()
 		{
