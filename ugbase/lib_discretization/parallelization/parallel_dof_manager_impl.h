@@ -5,6 +5,8 @@
  *      Author: andreasvogel
  */
 
+// TODO: remove 'm_cbProcIDToSubdomID' stuff ... (27012011)
+
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
 
@@ -63,10 +65,10 @@ distribute_level_dofs()
 
 		if(domain_decomposition_enabled()){
 		//	check that Partition callback has been set
-			if(!m_cbProcIDToSubdomID)
+			if(m_pDDInfo == NULL) /*(!m_cbProcIDToSubdomID)*/
 			{
 				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
-						" No Callback has been set for domain decomposition.\n");
+						" No info has been set for domain decomposition.\n");
 				return false;
 			}
 
@@ -75,12 +77,12 @@ distribute_level_dofs()
 									  distr.get_master_layout(0),
 									  distr.get_master_layout(1),
 									  distr, *m_pLayoutMap, INT_MASTER,l,
-									  m_cbProcIDToSubdomID);
+									  m_pDDInfo);/*(m_cbProcIDToSubdomID)*/
 			bRet &= CreateIndexLayouts_DomainDecomposition(
 									distr.get_slave_layout(0),
 									distr.get_slave_layout(1),
 									distr, *m_pLayoutMap, INT_SLAVE,l,
-									m_cbProcIDToSubdomID);
+									m_pDDInfo);/*(m_cbProcIDToSubdomID)*/
 		}
 		else{
 		//	create index layouts
@@ -124,18 +126,18 @@ distribute_level_dofs()
 	//	create process communicator for inter-feti block layouts
 		if(domain_decomposition_enabled()){
 		//	check that Partition callback has been set
-			if(!m_cbProcIDToSubdomID)
+			if(m_pDDInfo == NULL) /*(!m_cbProcIDToSubdomID)*/
 			{
 				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
-						" No Callback has been set for domain decomposition.\n");
+						" domain decomposition info was not given.\n");
 				return false;
 			}
 
 			int localProc = pcl::GetProcRank();
-			int localSubdom = m_cbProcIDToSubdomID(localProc);
+			int localSubdom = m_pDDInfo->map_proc_id_to_subdomain_id(localProc); /*m_cbProcIDToSubdomID(localProc)*/
 
-		// \todo: This loop is to long, shorten please
-			for(int subdom = 0; subdom < pcl::GetNumProcesses(); ++subdom)
+		// create sub communicators
+			for(int subdom = 0; subdom < m_pDDInfo->get_num_subdomains(); ++subdom)	/* This loop *was* to long, shorten please: < pcl::GetNumProcesses() */
 			{
 				if(localSubdom == subdom)
 					distr.get_process_communicator(1)

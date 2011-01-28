@@ -5,6 +5,8 @@
  *      Author: A. Vogel
  */
 
+// TODO: remove 'Callback_ProcessIDToSubdomainID' stuff ... (27012011)
+
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER__
 
@@ -65,10 +67,11 @@ class ParallelMGDoFManager : public TMGDoFManager
 		void print_statistic() const;
 
 	///	if enabled parallel interfaces are build with domain decomposition in mind.
-		void enable_domain_decomposition(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)
+		void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo) /*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
 		{
 			m_bDomainDecompositionEnabled = true;
-			m_cbProcIDToSubdomID = cb_ProcIDToSubdomID;
+			//m_cbProcIDToSubdomID = cb_ProcIDToSubdomID;
+			m_pDDInfo = &ddInfo;
 		}
 
 		bool domain_decomposition_enabled()				{return m_bDomainDecompositionEnabled;}
@@ -87,7 +90,8 @@ class ParallelMGDoFManager : public TMGDoFManager
 	/// Layout map of grid
 		GridLayoutMap* m_pLayoutMap;
 
-		Callback_ProcessIDToSubdomainID m_cbProcIDToSubdomID;
+		// pointer to Domain decomposition info object
+		pcl::IDomainDecompositionInfo* m_pDDInfo; // instead of: Callback_ProcessIDToSubdomainID m_cbProcIDToSubdomID;
 		bool m_bDomainDecompositionEnabled;
 };
 
