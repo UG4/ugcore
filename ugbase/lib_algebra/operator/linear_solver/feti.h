@@ -70,19 +70,18 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	vMultiplicity.clear();
 	vMultiplicity.resize(numIDs, -1);
 
-	//int localProc   = pcl::GetProcRank();
-	//int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
-
-//	interface iterators
-	IndexLayout::iterator interface_iter = masterLayoutIn.begin();
-	IndexLayout::iterator end  = masterLayoutIn.end();
-
+	int localProc   = pcl::GetProcRank();
+	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
 
 //	Add 1 for all master layouts an index is contained in
-	for(; interface_iter != end; ++interface_iter)
+	for(IndexLayout::iterator interface_iter = masterLayoutIn.begin();
+			interface_iter != masterLayoutIn.end(); ++interface_iter)
 	{
 		int targetProc   = masterLayoutIn.proc_id(interface_iter);
 		int targetSubdom = ddInfoIn->map_proc_id_to_subdomain_id(targetProc);
+
+	//	skip interface to own subdomain
+		if(localSubdom == targetSubdom) continue;
 
 	//	get interface
 		IndexLayout::Interface& interface = masterLayoutIn.interface(interface_iter);
@@ -817,6 +816,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	get matrix
 			m_pMatrix = &m_A->get_matrix();
 
+		//	write layouts
+			pcl::SynchronizeProcesses();
+			UG_LOG("------------- BEFORE ------------\n")
+			UG_LOG("------------- DELTA MASTER ------------\n")
+			LogIndexLayoutOnAllProcs(m_pMatrix->get_master_layout(1), 1);
+			pcl::SynchronizeProcesses();
+			UG_LOG("------------- DELTA SLAVE  ------------\n")
+			LogIndexLayoutOnAllProcs(m_pMatrix->get_slave_layout(1), 1);
+
 		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
 			ExtractCrossPointLayouts(m_pMatrix->num_rows(), // number of dof's of current processor
 									 m_pMatrix->get_master_layout(1),
@@ -827,6 +835,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 		//	write layouts
 			pcl::SynchronizeProcesses();
+			UG_LOG("------------- AFTER ------------\n")
 			UG_LOG("------------- DELTA MASTER ------------\n")
 			LogIndexLayoutOnAllProcs(m_pMatrix->get_master_layout(1), 1);
 			pcl::SynchronizeProcesses();
