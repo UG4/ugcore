@@ -284,7 +284,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "Neumann Solver||invokeOnChange=true")
 			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
 						"", "Dirichlet Solver||invokeOnChange=true")
-			.add_method("set_subdomain_info", &T::set_subdomain_info)
+			.add_method("set_domain_decomp_info", &T::set_domain_decomp_info)
 			.add_method("set_debug", &T::set_debug);
 		}
 #endif
