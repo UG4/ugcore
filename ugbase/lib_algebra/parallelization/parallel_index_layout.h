@@ -84,7 +84,7 @@ inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 	for(int p = 0; p < pcl::GetNumProcesses(); ++p)
 	{
 	//	synchronize, to prevent other procs to write before this one has finished.
-		pcl::SynchronizeProccesses();
+		pcl::SynchronizeProcesses();
 
 	//	write process p
 		if(p == pcl::GetProcRank())
@@ -96,7 +96,7 @@ inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 			LogIndexLayout(layout, depth);
 		}
 	}
-	pcl::SynchronizeProccesses();
+	pcl::SynchronizeProcesses();
 	UG_LOG(std::flush);
 
 //	reset output proc
