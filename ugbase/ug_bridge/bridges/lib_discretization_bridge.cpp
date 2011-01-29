@@ -96,10 +96,10 @@ void EnableDomainDecomposition(IApproximationSpace<domain_type>& approxSpace,
 }
 #endif
 
+#ifdef UG_PARALLEL
 template <class grid_function_type>
 void OneToManyTests(grid_function_type& func)
 {
-#ifdef UG_PARALLEL
 	IndexLayout oneToManyMasterLayout;
 	IndexLayout oneToManySlaveLayout;
 	UG_LOG("executing OneToManyTests...\n");
