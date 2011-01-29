@@ -32,14 +32,6 @@ namespace ug{
 ///	this type is used to identify distributed objects.
 typedef std::pair<int, size_t> AlgebraID;
 
-///	algebra blocks are static.
-template <> struct block_traits<AlgebraID>
-{
-	enum{
-		is_static = 1
-	};
-};
-
 ///	Generates a set of global algebra ids.
 /**	Make sure that masterLayout and slaveLayout do not reference
  * indices >= numIDs.
@@ -505,6 +497,25 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  int highestReferencedIndex,
 						  pcl::ProcessCommunicator procComm,
 						  std::vector<int>* pNewMasterIDsOut = NULL);
+
+
+
+/**	Given standard master and slave index layouts (as created e.g. by
+ * ug::CreateIndexLayout), this method constructs layouts as required
+ * by domain decomposition methods such as the Feti solver.
+ *
+ * Note that the created layouts are horizontal layouts which allow
+ * to communicate between neighbours of the same subdomain (process-layouts),
+ * between neighbours in different subdomains (subdom-layouts) and
+ * between neighbours in the same subdomain, which lie in a subdomain layout
+ * (deltaNbr-layouts).
+ */
+void BuildDomainDecompositionLayouts(
+		IndexLayout& subdomMastersOut, IndexLayout& subdomSlavesOut,
+		IndexLayout& processMastersOut, IndexLayout& processSlavesOut,
+		IndexLayout& deltaNbrMastersOut, IndexLayout& deltaNbrSlavesOut,
+		IndexLayout& standardMasters, IndexLayout& standardSlaves,
+		int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo);
 /// @}
 
 }//	end of namespace

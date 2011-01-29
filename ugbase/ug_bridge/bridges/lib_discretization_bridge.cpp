@@ -111,9 +111,48 @@ void OneToManyTests(grid_function_type& func)
 						 func.get_slave_layout(),
 						 (int)func.num_dofs() - 1,
 						 pcl::ProcessCommunicator(pcl::PCD_WORLD));
-
-#endif
 }
+
+template <class grid_function_type>
+void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
+										pcl::IDomainDecompositionInfo& ddinfo)
+{
+	IndexLayout subdomMasters;
+	IndexLayout subdomSlaves;
+	IndexLayout processMasters;
+	IndexLayout processSlaves;
+	IndexLayout deltaNbrMasters;
+	IndexLayout deltaNbrSlaves;
+
+	UG_LOG("executing BuildDomainDecompositionLayoutsTest...\n");
+	UG_LOG("standard master layout: ");
+	LogIndexLayout(func.get_master_layout());
+	UG_LOG("standard slave layout: ");
+	LogIndexLayout(func.get_slave_layout());
+
+	BuildDomainDecompositionLayouts(subdomMasters, subdomSlaves,
+					processMasters, processSlaves, deltaNbrMasters,
+					deltaNbrSlaves, func.get_master_layout(),
+					func.get_slave_layout(), (int)func.num_dofs() - 1,
+					ddinfo);
+
+	UG_LOG("done\n");
+	UG_LOG("subdomMasters: ");
+	LogIndexLayout(subdomMasters);
+	UG_LOG("subdomSlaves: ");
+	LogIndexLayout(subdomSlaves);
+
+	UG_LOG("processMasters: ");
+	LogIndexLayout(processMasters);
+	UG_LOG("processSlaves: ");
+	LogIndexLayout(processSlaves);
+
+	UG_LOG("deltaNbrMasters: ");
+	LogIndexLayout(deltaNbrMasters);
+	UG_LOG("deltaNbrSlaves: ");
+	LogIndexLayout(deltaNbrSlaves);
+}
+#endif
 
 template <typename TRefElem, int p>
 bool TestLagrangeSpacesElem(number& maxDiff)
@@ -1324,7 +1363,6 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 			reg.add_function(ss.str().c_str(),
 							&EnableDomainDecomposition<domain_type>);
 		}
-#endif
 
 	//	todo: only temporary
 		{
@@ -1333,6 +1371,16 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 			reg.add_function(ss.str().c_str(),
 							&OneToManyTests<function_type>);
 		}
+
+	//	todo: only temporary
+		{
+			stringstream ss; ss << "BuildDomainDecompositionLayoutsTest"
+								<< dim << "d";
+
+			reg.add_function(ss.str().c_str(),
+							&BuildDomainDecompositionLayoutsTest<function_type>);
+		}
+#endif
 
 	//	PerformTimeStep
 		{
