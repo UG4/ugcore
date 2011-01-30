@@ -123,6 +123,8 @@ void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
 	IndexLayout processSlaves;
 	IndexLayout deltaNbrMasters;
 	IndexLayout deltaNbrSlaves;
+	IndexLayout crossPointMasters;
+	IndexLayout crossPointSlaves;
 
 	UG_LOG("executing BuildDomainDecompositionLayoutsTest...\n");
 	UG_LOG("standard master layout: ");
@@ -132,9 +134,9 @@ void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
 
 	BuildDomainDecompositionLayouts(subdomMasters, subdomSlaves,
 					processMasters, processSlaves, deltaNbrMasters,
-					deltaNbrSlaves, func.get_master_layout(),
-					func.get_slave_layout(), (int)func.num_dofs() - 1,
-					ddinfo);
+					deltaNbrSlaves, crossPointMasters, crossPointSlaves,
+					func.get_master_layout(), func.get_slave_layout(),
+					(int)func.num_dofs() - 1, ddinfo);
 
 	UG_LOG("done\n");
 	UG_LOG("subdomMasters: ");
@@ -151,6 +153,11 @@ void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
 	LogIndexLayout(deltaNbrMasters);
 	UG_LOG("deltaNbrSlaves: ");
 	LogIndexLayout(deltaNbrSlaves);
+
+	UG_LOG("crossPointMasters: ");
+	LogIndexLayout(crossPointMasters);
+	UG_LOG("crossPointSlaves: ");
+	LogIndexLayout(crossPointSlaves);
 }
 #endif
 

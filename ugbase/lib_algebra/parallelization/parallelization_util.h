@@ -514,6 +514,7 @@ void BuildDomainDecompositionLayouts(
 		IndexLayout& subdomMastersOut, IndexLayout& subdomSlavesOut,
 		IndexLayout& processMastersOut, IndexLayout& processSlavesOut,
 		IndexLayout& deltaNbrMastersOut, IndexLayout& deltaNbrSlavesOut,
+		IndexLayout& crossPointMastersOut, IndexLayout& crossPointSlavesOut,
 		IndexLayout& standardMasters, IndexLayout& standardSlaves,
 		int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo);
 /// @}

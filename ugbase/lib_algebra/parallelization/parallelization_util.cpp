@@ -228,11 +228,13 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 
 static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		IndexLayout& subdomLayoutOut, IndexLayout& processLayoutOut,
-		IndexLayout& deltaNbrLayoutOut, IndexLayout& standardLayout,
-		vector<int>& flags, IDomainDecompositionInfo& ddinfo)
+		IndexLayout& deltaNbrLayoutOut, IndexLayout& crossPointLayoutOut,
+		IndexLayout& standardLayout, vector<int>& flags,
+		IDomainDecompositionInfo& ddinfo)
 {
 	typedef IndexLayout::Interface	Interface;
 	typedef IndexLayout::iterator	InterfaceIter;
+	typedef Interface::Element		Element;
 	typedef Interface::iterator		ElemIter;
 
 //	the local process and subdomain id
@@ -247,45 +249,88 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		int connSubdomID = ddinfo.map_proc_id_to_subdomain_id(connProc);
 		Interface& stdInterface = standardLayout.interface(iiter);
 
-		if(localSubdomID != connSubdomID){
-		//	the interface connects two subdomains. all entries have to be
-		//	copied to subdomLayoutOut.
-			Interface& subdomInterface = subdomLayoutOut.interface(connProc);
-			for(ElemIter eiter = stdInterface.begin();
-				eiter != stdInterface.end(); ++eiter)
-			{
-				subdomInterface.push_back(stdInterface.get_element(eiter));
+	//	in order to avoid creation of unrequired interfaces, we first count
+	//	how many entries of each flag-type (-2, -1, >= 0) exist in the current
+	//	standard interface.
+		int numMult = 0;	// flag: -2
+		int numOne = 0;		// flag: >= 0
+		int numNone = 0;	// flag: -1
+		for(ElemIter eiter = stdInterface.begin();
+			eiter != stdInterface.end(); ++eiter)
+		{
+			int flag = flags[stdInterface.get_element(eiter)];
+			if(flag == -2)
+				++numMult;
+			else if(flag == -1)
+				++numNone;
+			else
+				++numOne;
+		}
+
+		if(numOne){
+		//	we have to take care of entries which are connected to exactly
+		//	one other subdomain. Those can either be entries lying in
+		//	an interface to another subdomain, or entries which
+		//	lie in an interface to a process in the same subdomain, which
+		//	also have neighbours in another subdomain.
+			if(localSubdomID != connSubdomID){
+			//	the interface connects two subdomains. all entries which are
+			//	connected to exactly one other subdomain have to be copied
+			//	to subdomLayoutOut.
+				Interface& subdomInterface = subdomLayoutOut.interface(connProc);
+				for(ElemIter eiter = stdInterface.begin();
+					eiter != stdInterface.end(); ++eiter)
+				{
+					Element elem = stdInterface.get_element(eiter);
+					if(flags[elem] >= 0)
+						subdomInterface.push_back(elem);
+				}
+			}
+			else{
+			//	delta-neighbours lie in two interfaces - the processInterface
+			//	and the deltaNbrInterface
+				Interface& deltaNbrInterface = deltaNbrLayoutOut.interface(connProc);
+				Interface& processInterface = processLayoutOut.interface(connProc);
+				for(ElemIter eiter = stdInterface.begin();
+					eiter != stdInterface.end(); ++eiter)
+				{
+					Element elem = stdInterface.get_element(eiter);
+					if(flags[elem] >= 0){
+						deltaNbrInterface.push_back(elem);
+						processInterface.push_back(elem);
+					}
+				}
 			}
 		}
-		else{
-		//	the interface connects two processes of the same subdomain.
-		//	Depending on whether the entry is a delta entry (flagged with 1)
-		//	or not, we have to push it to different layouts.
 
-		//	First we'll count the 1 flags of elements of this interface.
-		//	This helps to avoid creating empty interfaces.
-			size_t num_1 = 0;
-			for(ElemIter eiter = stdInterface.begin();
-				eiter != stdInterface.end(); ++eiter)
-			{
-				if(flags[stdInterface.get_element(eiter)] == 1)
-					++num_1;
-			}
-
-		//	only query the interface if it is indeed required.
-			Interface& processInterface = processLayoutOut.interface(connProc);
-			Interface* pDeltaInterface = NULL;
-			if(num_1)
-				pDeltaInterface = & deltaNbrLayoutOut.interface(connProc);
+		if(numMult){
+		//	There are elements in the interface which are connected to
+		//	multiple subdomains. Those elements are thus regarded as
+		//	cross points.
+			Interface& crossInterface = crossPointLayoutOut.interface(connProc);
 
 		//	iterate over the elements again and assign them to their interfaces.
 			for(ElemIter eiter = stdInterface.begin();
 				eiter != stdInterface.end(); ++eiter)
 			{
-				IndexLayout::Element elem = stdInterface.get_element(eiter);
-				processInterface.push_back(elem);
-				if(flags[elem] == 1)
-					pDeltaInterface->push_back(elem);
+				Element elem = stdInterface.get_element(eiter);
+				if(flags[elem] == -2)
+					crossInterface.push_back(elem);
+			}
+		}
+
+		if(numNone){
+		//	now we copy all entries which are only connected to a process in the
+		//	same subdomain into the processInterfaces.
+			Interface& processInterface = processLayoutOut.interface(connProc);
+
+		//	iterate over the elements again and assign them to their interfaces.
+			for(ElemIter eiter = stdInterface.begin();
+				eiter != stdInterface.end(); ++eiter)
+			{
+				Element elem = stdInterface.get_element(eiter);
+				if(flags[elem] == -1)
+					processInterface.push_back(elem);
 			}
 		}
 	}
@@ -295,6 +340,7 @@ void BuildDomainDecompositionLayouts(
 		IndexLayout& subdomMastersOut, IndexLayout& subdomSlavesOut,
 		IndexLayout& processMastersOut, IndexLayout& processSlavesOut,
 		IndexLayout& deltaNbrMastersOut, IndexLayout& deltaNbrSlavesOut,
+		IndexLayout& crossPointMastersOut, IndexLayout& crossPointSlavesOut,
 		IndexLayout& standardMasters, IndexLayout& standardSlaves,
 		int highestReferencedIndex, IDomainDecompositionInfo& ddinfo)
 {
@@ -315,13 +361,16 @@ void BuildDomainDecompositionLayouts(
 	pcl::ParallelCommunicator<IndexLayout> interfaceComm;
 
 ////////////////////////
-//	this vector will contain a 1 for each element which lies in a
-//	delta interface and 0 for all others.
-	vector<int> flags(flagVecSize, 0);
+//	this vector will contain an integer
+//	* >= 0 for each element which has a copy in exactly one other subdomain,
+//	* -2 for each element which has a copy in more than one other subdomain,
+//	* -1 if the element is not connected to another subdomain.
 
-//	iterate over all standard master interfaces and write a 1 to
-//	the entries of flags, which correspond to its elements if the
-//	interface points to another subdomain.
+//	delta interface and 0 for all others.
+	vector<int> flags(flagVecSize, -1);
+
+//	iterate over all standard master interfaces and fill the vector as
+//	described above for master elements
 	for(InterfaceIter iiter = standardMasters.begin();
 		iiter != standardMasters.end(); ++iiter)
 	{
@@ -329,13 +378,16 @@ void BuildDomainDecompositionLayouts(
 		int connProc = standardMasters.proc_id(iiter);
 		int connSubdomID = ddinfo.map_proc_id_to_subdomain_id(connProc);
 		if(localSubdomID != connSubdomID){
-		//	the interface connects two subdomains. All elements have thus to
-		//	be flagged with 1
+		//	the interface connects two subdomains.
 			Interface& interface = standardMasters.interface(iiter);
 			for(ElemIter eiter = interface.begin();
 				eiter != interface.end(); ++eiter)
 			{
-				flags[interface.get_element(eiter)] = 1;
+				Interface::Element ind = interface.get_element(eiter);
+				if(flags[ind] == -1)	// not connection was yet known.
+					flags[ind] = connSubdomID;
+				else if(flags[ind] != connSubdomID)
+					flags[ind] = -2;	//	at least one other connection is known.
 			}
 		}
 	}
@@ -350,11 +402,11 @@ void BuildDomainDecompositionLayouts(
 //	we can now build the master and slave interfaces
 	CopyInterfaceEntrysToDomainDecompositionLayouts(
 			subdomMastersOut, processMastersOut, deltaNbrMastersOut,
-			standardMasters, flags, ddinfo);
+			crossPointMastersOut, standardMasters, flags, ddinfo);
 
 	CopyInterfaceEntrysToDomainDecompositionLayouts(
 			subdomSlavesOut, processSlavesOut, deltaNbrSlavesOut,
-			standardSlaves, flags, ddinfo);
+			crossPointSlavesOut, standardSlaves, flags, ddinfo);
 
 //	done.
 //DEBUG ONLY
