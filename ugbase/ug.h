@@ -39,7 +39,7 @@ namespace ug
  *	then this method will internally call pcl::Init.
  */
 //int UGInit(int argc, char* argv[], int parallelOutputProcRank = -1);
-int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank);
+int UGInit(int *argcp, char ***argvp, int parallelOutputProcRank = -1);
 
 /// returns the ug app path
 const std::string& UGGetApplicationPath();
