@@ -165,7 +165,7 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 numProcs = NumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs/4 --4
+numSubdomains = numProcs/4
 
 print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
 
@@ -174,12 +174,13 @@ print("Create domainDecompInfo")
 domainDecompInfo = StandardDomainDecompositionInfo()
 domainDecompInfo:set_num_subdomains(numSubdomains)
 
-
-if dim == 2 then
-	EnableDomainDecomposition2d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
-elseif dim == 3 then
-	EnableDomainDecomposition3d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
-end
+-- The following is outdated (since 30012011): No subdomains and layouts are built
+--calling 'BuildDomainDecompositionLayoutsTest2d', see below (after creation of grid functions)!
+--if dim == 2 then
+--	EnableDomainDecomposition2d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
+--elseif dim == 3 then
+--	EnableDomainDecomposition3d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
+--end
 
 approxSpace:init()
 approxSpace:print_statistic()
@@ -286,6 +287,16 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 -- get grid function
 u = approxSpace:create_surface_function("u", true)
 b = approxSpace:create_surface_function("b", true)
+
+-- New creation of subdomains and layouts (since 30012011):
+-- test one to many interface creation
+for i=0,NumProcesses()-1 do
+	print("subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
+end
+
+BuildDomainDecompositionLayoutsTest2d(u, domainDecompInfo);
+-- OneToManyTests2d(u)
+
 
 -- set initial value
 u:set(0.0)
