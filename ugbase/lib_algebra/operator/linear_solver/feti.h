@@ -1,16 +1,6 @@
 /* TODO:
- * allgemein:
-   + Konstruktion des "Pi-Layouts" (Level 2) ueberpruefen - Martin Rupp soll dafuer etwas eingebaut haben!
-
-   + Wie \f$S_{\Pi}\f$ auf einen Prozessor bringen? --> Donnerstag!
-
- * LocalSchurComplementInverse:
-   + set_matrix(), init() fuer A
-   + init fuer "sequential solver"
-
-   * eigentlicher FETISolver - abgeleitet von 'IMatrixOperatorInverse' oder von 'CGSolver'?
-
- * Scaling operators \f$D_{\Delta}^{i}\f$ - at present we use identity
+ * Solve Schur complement w.r.t. "Pi system"
+ * If finished: Check for unnecessary "set zero" operations!
  */
 /*
  * feti.h
@@ -197,13 +187,14 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 							  IndexLayout& masterLayoutIn,
 							  IndexLayout& slaveLayoutIn)
 {
-	// copy u
-	diff = u;
+	// Reset all values
+	diff.set(0.0);
 
-	// All masters subtract the values of the slave, all slaves subtract the values of the master ...
+	// All masters subtract the values of the slave, all slaves subtract the values
+	// of the master (communication is performed) ...
 	VecSubtractOnLayout(&diff, masterLayoutIn, slaveLayoutIn);
 
-	// ... and slaves multiplies the result by '-1'
+	// ... and slaves multiplies the result by '-1' (no communication is performed)
 	VecSetOnLayout(&diff, -1.0, slaveLayoutIn);
 
 	return;
@@ -213,7 +204,7 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 /**
  * \f$B_{\Delta}\f$ computes the difference between the double-valued unknowns \f$u_{\Delta}\f$.
  * This computation is only unique up to the sign of the difference. Thus, we can
- * freely decide it, but have then to stay with the choice.
+ * freely decide it, but have then to stay with the choice (no communication is performed).
  *
  * \param[out]		lambda			vector of Lagrange multipliers
  * \param[in]		f				vector \f$f_{\Delta}\f$ living on "Delta layout"
@@ -230,9 +221,9 @@ void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,
 	// 2. All slaves set their values equal to $-\lambda$
 
 	// (a) Reset all values
-	//f.set(0.0);
-	VecSetOnLayout(&f, 0.0, masterLayoutIn);
-	VecSetOnLayout(&f, 0.0, slaveLayoutIn);
+	f.set(0.0);
+	//VecSetOnLayout(&f, 0.0, masterLayoutIn);
+	//VecSetOnLayout(&f, 0.0, slaveLayoutIn);
 
 	// (b) Copy values on \Delta
 	VecScaleAddOnLayout(&f, &lambda, 1.0, masterLayoutIn);
@@ -360,6 +351,8 @@ class LocalSchurComplement
 		//	save matrix from which we build the Schur complement
 			m_pMatrix = &m_pOperator->get_matrix();
 
+			/* no longer necessary to check here - we have already pointers to "Pi layouts"
+			   (set via 'set_crosspoint_layouts()')!:
 		//	check that matrix has enough decomposition levels
 			if(m_pMatrix->num_layouts() != 2)
 			{
@@ -368,6 +361,7 @@ class LocalSchurComplement
 						" only " << m_pMatrix->num_layouts() << "\n");
 				return false;
 			}
+			*/
 
 		//	get matrix from dirichlet operator
 			m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
@@ -402,9 +396,10 @@ class LocalSchurComplement
 
 		//	we're done
 			return true;
-		}
+		} /* end 'LocalSchurComplement::init()' */
 
-	///	applies the Schur complement built from matrix operator to 'u' and returns the result 'f := S times u'
+	///	applies the Schur complement built from matrix operator set via 'set_matrix()'
+	/// to 'u' and returns the result 'f := S times u'
 		virtual bool apply(vector_type& f, const vector_type& u)
 		{
 		//	check that matrix has been set
@@ -509,7 +504,7 @@ class LocalSchurComplement
 
 		//	we're done
 			return true;
-		}
+		} /* end 'LocalSchurComplement::apply()' */
 
 	///	solves the system
 		virtual bool apply_sub(vector_type& f, const vector_type& u)
@@ -568,7 +563,7 @@ class LocalSchurComplement
 /* 1.7 Application of \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$ */ 
 /// operator implementation of the inverse of the Schur complement w.r.t. the "Delta unknowns"
 /**
- * This operator is the application of the inverse of the Schur complement w.r.t. the "Delta unknowns",
+ * This operator provides the application of the inverse of the Schur complement w.r.t. the "Delta unknowns",
  * \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$.
  */
 template <typename TAlgebra>
@@ -633,6 +628,8 @@ class SchurComplementInverse
 		//	save matrix from which we build the Schur complement
 			m_pMatrix = &m_A->get_matrix();
 
+			/* no longer necessary to check here - we have already pointers to "Pi layouts"!:
+			   (set via 'set_crosspoint_layouts()')!:
 		//	check that matrix has enough decomposition levels
 			if(m_pMatrix->num_layouts() != 2)
 			{
@@ -641,6 +638,7 @@ class SchurComplementInverse
 					   << m_pMatrix->num_layouts() << "\n");
 				return false;
 			}
+			*/
 
 		//	get matrix from Neumann operator
 			m_pNeumannMatrix = &m_NeumannOperator.get_matrix();
@@ -743,7 +741,11 @@ class SchurComplementInverse
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 };
 
-/// TODO: Preliminary: the actual 'FETISolver' - if not derived from 'CGSolver'!
+/// TODO:
+// * Use members for delta layouts in LogIndexLayoutOnAllProcs() etc.
+// * members for pi layouts will become pointers if no longer built here by ExtractCrossPointLayouts()!
+
+//*  Preliminary: the actual 'FETISolver' - if not derived from 'CGSolver'!
 // In the moment more or less only stuff copied from 'DirichletDirichletSolver'!
 /// operator implementation of the local Schur complement
 /**
@@ -816,38 +818,55 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	get matrix
 			m_pMatrix = &m_A->get_matrix();
 
+		//	get layouts
+		//	check that matrix has enough decomposition levels - have to be already
+		//  created on script level (via 'BuildDomainDecompositionLayoutsTest2d')
+			if(m_pMatrix->num_layouts() != 3)
+			{
+				UG_LOG("ERROR in 'FETISolver::init': The Operator must"
+					   " have three layouts, but the current Operator has only "
+					   << m_pMatrix->num_layouts() << "\n");
+				return false;
+			}
+			m_pMasterDeltaLayout = &m_pMatrix->get_master_layout(1);
+			m_pSlaveDeltaLayout  = &m_pMatrix->get_slave_layout(1);
+			m_pMasterCPLayout    = &m_pMatrix->get_master_layout(2);
+			m_pSlaveCPLayout     = &m_pMatrix->get_slave_layout(2);
+
 		//	write layouts
 			pcl::SynchronizeProcesses();
 			UG_LOG("------------- BEFORE ------------\n")
 			UG_LOG("------------- DELTA MASTER ------------\n")
-			LogIndexLayoutOnAllProcs(m_pMatrix->get_master_layout(1), 1);
+			LogIndexLayoutOnAllProcs(*m_pMasterDeltaLayout, 1);
 			pcl::SynchronizeProcesses();
 			UG_LOG("------------- DELTA SLAVE  ------------\n")
-			LogIndexLayoutOnAllProcs(m_pMatrix->get_slave_layout(1), 1);
+			LogIndexLayoutOnAllProcs(*m_pSlaveDeltaLayout, 1);
 
+			/* 
 		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
 			ExtractCrossPointLayouts(m_pMatrix->num_rows(), // number of dof's of current processor
-									 m_pMatrix->get_master_layout(1),
-									 m_pMatrix->get_slave_layout(1),
-									 m_pDDInfo, // contains mapping "proc id" ==> "subdom id"
-									 m_masterCPLayout,
-									 m_slaveCPLayout);
+									 m_pMasterDeltaLayout,   //m_pMatrix->get_master_layout(1),
+									 m_pSlaveDeltaLayout,    //m_pMatrix->get_slave_layout(1),
+									 m_pDDInfo,              // contains mapping "proc id" ==> "subdom id"
+									 m_pMasterCPLayout,      //m_masterCPLayout,
+									 m_pSlaveCPLayout);      //m_slaveCPLayout
+			*/
 
 		//	write layouts
 			pcl::SynchronizeProcesses();
 			UG_LOG("------------- AFTER ------------\n")
 			UG_LOG("------------- DELTA MASTER ------------\n")
-			LogIndexLayoutOnAllProcs(m_pMatrix->get_master_layout(1), 1);
+			LogIndexLayoutOnAllProcs(*m_pMasterDeltaLayout, 1);
 			pcl::SynchronizeProcesses();
 			UG_LOG("------------- DELTA SLAVE  ------------\n")
-			LogIndexLayoutOnAllProcs(m_pMatrix->get_slave_layout(1), 1);
+			LogIndexLayoutOnAllProcs(*m_pSlaveDeltaLayout, 1);
 
 			pcl::SynchronizeProcesses();
 			UG_LOG("------------- PI MASTER ------------\n")
-			LogIndexLayoutOnAllProcs(m_masterCPLayout, 1);
+			LogIndexLayoutOnAllProcs(*m_pMasterCPLayout, 1);
 			pcl::SynchronizeProcesses();
 			UG_LOG("------------- PI SLAVE  ------------\n")
-			LogIndexLayoutOnAllProcs(m_slaveCPLayout, 1);
+			LogIndexLayoutOnAllProcs(*m_pSlaveCPLayout, 1);
 
 		//  ----- INIT DIRICHLET SOLVER  ----- //
 
@@ -860,7 +879,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 		//	set cross point layouts
-			m_LocalSchurComplement.set_crosspoint_layouts(m_slaveCPLayout, m_masterCPLayout);
+			m_LocalSchurComplement.set_crosspoint_layouts(*m_pSlaveCPLayout, *m_pMasterCPLayout);
 
 		//	set dirichlet solver for local schur complement
 			m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
@@ -887,7 +906,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 		//	set cross point layouts
-			m_SchurComplementInverse.set_crosspoint_layouts(m_slaveCPLayout, m_masterCPLayout);
+			m_SchurComplementInverse.set_crosspoint_layouts(*m_pSlaveCPLayout, *m_pMasterCPLayout);
 
 		//	set neumann solver in SchurComplementInverse
 			m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
@@ -904,18 +923,268 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			return true;
 		} /* end 'FETISolver::init()' */
 
-	///	solves the system and returns the last defect of iteration in rhs
-		virtual bool apply_return_defect(vector_type& x, vector_type& b)
+	///	function which applies matrix \f$F\f$ of the reduced system ("Delta system") to a vector \f$v\f$
+	/**
+	 * This function applies matrix \f$F := B_{\Delta} \tilde{S}^{-1} B_{\Delta}^T\f$
+	 * to a vector \f$v\f$. \f$v\f$ can be:
+	 * (a) unknown vector of Lagrange multipliers, lambda, and
+	 * (b) search direction 'p' in cg method.
+	 *
+	 * \param[in]		v				vector \f$v\f$ living on "Delta layout"
+	 * \param[out]		f				result of application of \f$F\f$
+	 */
+		template <typename TVector>
+		bool apply_F(TVector& f, const TVector& v)
 		{
-			//	TODO:
-			// 1. Implement preconditioned cg method for reduced system \f$F \lambda = d\f$ - therefore provide method for application of \f$F\f$ and \f$M^{-1}\f$
-			// 2. With \f$\lambda\f$ found, back solve for \f$u_{\Delta}\f$:
-			//    \f$u_{\Delta} = {\tilde{S}_{\Delta \Delta}}^{-1} ({\tilde{f}_{\Delta}} - B_{\Delta}^T \lambda).\f$
-			// 3. Assemble this and the solutions for \f$u_{I}\f$ and \f$u_{\Pi}\f$ to the global solution vector
+			//	Help vector
+			TVector fTmp; fTmp.create(v.size());
 
-		//	we're done
+			//	0. Reset values of f, fTmp
+			f.set(0.0); fTmp.set(0.0);
+
+			//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
+			ComputeDifferenceOnDeltaTransposed(f, v, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(v.get_master_layout(1), v.get_slave_layout(1));
+
+			//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
+			m_SchurComplementInverse.apply(fTmp, f);
+
+			//	3. Apply jump operator to get the final 'f'
+			ComputeDifferenceOnDelta(f, fTmp, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(v.get_master_layout(1), v.get_slave_layout(1));
+
+			//	we're done
 			return true;
 		}
+
+	///	function which computes right hand side vector 'd' of the reduced system ("Delta system")
+	/**
+	 * This function computes \f$d := B_{\Delta} \tilde{S}^{-1} \tilde{f}_{\Delta}\f$
+	 * to a vector \f$v\f$. \f$v\f$ can be:
+	 * (a) unknown vector of Lagrange multipliers, lambda, and
+	 * (b) search direction 'p' in cg method.
+	 *
+	 * \param[in]		f				vector \f$\tilde{f}_{\Delta}\f$
+	 * \param[out]		d				right hand side vector \f$d\f$ of reduced system
+	 */
+		template <typename TVector>
+		bool compute_d(TVector& d, const TVector& f)
+		{
+			//	Help vector
+			TVector dTmp; dTmp.create(f.size());
+
+			//	0. Reset values of f, fTmp
+			d.set(0.0); dTmp.set(0.0);
+
+			//  1. Apply SchurComplementInverse to 'f' - TODO: implement 'm_SchurComplementInverse.apply()'!
+			m_SchurComplementInverse.apply(dTmp, f);
+
+			//	2. Apply jump operator to get the final 'd'
+			ComputeDifferenceOnDelta(d, dTmp, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(f.get_master_layout(1), f.get_slave_layout(1));
+
+			//	we're done
+			return true;
+		}
+
+
+	///	function which applies diagonal scaling matrix \f$D_{\Delta}^{(i)}\f$ to a vector \f$v\f$
+		template <typename TVector>
+		bool Apply_ScalingMatrix(TVector& s, const TVector& v) // maybe restrict to layout
+		{
+			// scaling operator is identity
+			s = v;
+			// more general: m_Ddelta.apply(s,v), with additional member 'matrix_type m_Ddelta;'
+
+			//	we're done
+			return true;
+		}
+
+	///	function which applies matrix \f$M^{-1}^{(i)}\f$ to a vector \f$r
+	/**
+	 * This function applies matrix \f$M^{-1}^{(i)} := D_{\Delta}^{(i)} B_{\Delta}^{(i)} S_{\Delta}^{(i)} {B_{\Delta}^{(i)}}^T D_{\Delta}^{(i)}\f$
+	 * to a vector \f$r\f$.
+	 *
+	 * \param[in]		r				vector \f$r\f$ living on "Delta layout"
+	 * \param[out]		z				result of application of \f$$M^{-1}\f$
+	 */
+		template <typename TVector>
+		bool apply_M_inverse(TVector& z, const TVector& r)
+		{
+			//	Help vector
+			TVector zTmp; zTmp.create(r.size());
+
+			//	0. Reset values of z, zTmp
+			z.set(0.0); zTmp.set(0.0);
+
+			//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
+			Apply_ScalingMatrix(z, r); // maybe restrict to layout
+
+			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
+			ComputeDifferenceOnDeltaTransposed(zTmp, z, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+
+			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
+			m_LocalSchurComplement.apply(z, zTmp);
+
+			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
+			ComputeDifferenceOnDelta(zTmp, z, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+
+			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
+			Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
+
+			//	we're done
+			return true;
+		}
+
+		template <typename TVector>
+		bool apply_M_inverse_with_identity_scaling(TVector& z, const TVector& r)
+		{
+			//	Help vector
+			TVector zTmp; zTmp.create(r.size());
+
+			//	0. Reset values of z, zTmp
+			z.set(0.0); zTmp.set(0.0);
+
+			//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
+			//Apply_ScalingMatrix(z, r); // maybe restrict to layout
+
+			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
+			ComputeDifferenceOnDeltaTransposed(z, r, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+
+			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
+			m_LocalSchurComplement.apply(zTmp, z);
+
+			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
+			ComputeDifferenceOnDelta(z, zTmp, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+
+			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
+			//Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
+
+			//	we're done
+			return true;
+		}
+
+	//	TODO:
+	// 1. x = lambda; Compute 'd' before calling apply_return_defect()! Note: 'ApplyLinearSolver()' calls 'apply(), not 'apply_return_defect()'!
+	// 2. With \f$\lambda\f$ found, back solve for \f$u_{\Delta}\f$:
+	//    \f$u_{\Delta} = {\tilde{S}_{\Delta \Delta}}^{-1} ({\tilde{f}_{\Delta}} - B_{\Delta}^T \lambda).\f$
+	// 3. Assemble this and the solutions for \f$u_{I}\f$ and \f$u_{\Pi}\f$ to the global solution vector
+
+	///	solves the reduced system \f$F \lambda = d\f$ with preconditioned cg method
+	///	and returns the last defect of iteration in rhs
+	/// (derived from 'CGSolver::apply_return_defect()')
+		virtual bool apply_return_defect(vector_type& lambda, vector_type& d)
+		{
+			if(m_pConvCheck == NULL)
+			{
+				UG_LOG("ERROR: In 'FETISolver::apply': Convergence check not set.\n");
+				return false;
+			}
+
+			#ifdef UG_PARALLEL
+			if(!d.has_storage_type(PST_ADDITIVE) || !lambda.has_storage_type(PST_CONSISTENT))
+				{
+					UG_LOG("ERROR: In 'FETISolver::apply':Inadequate storage format of Vectors 'd' and 'lambda'.\n");
+					return false;
+				}
+			#endif
+
+		// 	rename r as d (for convenience)
+			vector_type& r = d;
+
+		// 	Build residuum:  r := d - F*lambda - TODO: mit apply_F(TVector& f, const TVector& v) machen!
+			/*
+ 			if(!m_A->apply_sub(r, lambda)) 
+				{UG_LOG("ERROR in 'FETISolver::apply': "
+						"Unable to build defect. Aborting.\n");return false;}
+			*/
+
+		// 	create help vector (h will be consistent r)
+		//	todo: 	It would be sufficient to copy only the pattern and
+		//			without initializing, but in parallel we have to copy communicators
+			vector_type t; t.create(r.size()); t = r;
+			vector_type z; z.create(lambda.size()); z = lambda;
+			vector_type p; p.create(lambda.size()); p = lambda;
+
+		// 	Preconditioning: apply z = M^-1 * r
+			if (!apply_M_inverse_with_identity_scaling(z, r))
+			{
+				UG_LOG("ERROR in 'FETISolver::apply': "
+					   "Cannot apply preconditioner. Aborting.\n"); return false;
+			}
+			else z = r;
+
+			// make z consistent
+			if(!z.change_storage_type(PST_CONSISTENT))
+			{
+				UG_LOG("ERROR in 'FETISolver::apply': "
+					   "Cannot convert z to consistent vector.\n"); return false;
+			}
+
+			prepare_conv_check();
+			m_pConvCheck->start(r);
+
+			number rho, rho_new, beta, alpha, alpha_denominator;
+			rho = rho_new = beta = alpha = alpha_denominator = 0.0;
+
+			// start search direction
+			p = z;
+
+			// start rho
+			rho = VecProd(z, r);
+
+			m_iterCnt = 0;
+		// 	Iteration loop
+			while(!m_pConvCheck->iteration_ended())
+			{
+				m_iterCnt++;
+			// 	Build t = F*p (t is additive afterwards)
+				if(!apply_F(t, p))
+				{
+					UG_LOG("ERROR in 'FETISolver::apply': Unable "
+								"to build t = F*p. Aborting.\n"); return false;
+				}
+
+			// 	Compute alpha
+				alpha_denominator = VecProd(t, p);
+				alpha = rho/alpha_denominator;
+
+			// 	Update lambda := lambda + alpha*p
+				VecScaleAdd(lambda, 1.0, lambda, alpha, p);
+
+			// 	Update r := r - alpha*t
+				VecScaleAdd(r, 1.0, r, -alpha, t);
+
+			// 	Check convergence
+				m_pConvCheck->update(r);
+
+			// 	Preconditioning: apply z = M^-1 * r
+				if (!apply_M_inverse_with_identity_scaling(z, r))
+				{
+					UG_LOG("ERROR in 'FETISolver::apply': "
+						   "Cannot apply preconditioner. Aborting.\n"); return false;
+				}
+				else z = r;
+
+			// 	make z consistent
+				if(!z.change_storage_type(PST_CONSISTENT))
+				{
+					UG_LOG("ERROR in 'FETISolver::apply': "
+						   "Cannot convert z to consistent vector.\n"); return false;
+				}
+
+			// 	new rho
+				rho_new = VecProd(z, r);
+
+			// 	new beta
+				beta = rho_new/rho;
+
+			// 	new direction p:= beta*p + z
+				VecScaleAdd(p, beta, p, 1.0, z);
+
+			// 	update rho
+				rho = rho_new;
+			}
+
+			return m_pConvCheck->post();
+		} /* end 'FETISolver::apply_return_defect()' */
 
 	///	solves the system
 		virtual bool apply(vector_type& x, const vector_type& b)
@@ -964,9 +1233,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
 
+	//	Layouts for Delta
+		IndexLayout* m_pMasterDeltaLayout;
+		IndexLayout* m_pSlaveDeltaLayout;
+
 	//	Layouts for Pi
-		IndexLayout m_masterCPLayout;
-		IndexLayout m_slaveCPLayout;
+		IndexLayout* m_pMasterCPLayout;
+		IndexLayout* m_pSlaveCPLayout;
+		//IndexLayout m_masterCPLayout;
+		//IndexLayout m_slaveCPLayout;
 
 	//	Local Schur complement for each feti subdomain
 		LocalSchurComplement<algebra_type> m_LocalSchurComplement;
