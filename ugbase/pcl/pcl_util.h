@@ -318,6 +318,27 @@ class SelectionCommPol : public ICommunicationPolicy<TLayout>
 		TSelectorOut&	m_selOut;
 };
 
+/// performs an allreduce and returns true if and only if all procs called the
+/// function with bFlag = true
+inline bool AllProcsTrue(bool bFlag)
+{
+//	create communicator
+	pcl::ProcessCommunicator comm;
+
+//	local int bool flag
+	int boolFlag = (bFlag) ? 1 : 0;
+
+// 	local return flag
+	int retBoolFlag;
+
+//	all reduce
+	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LAND);
+
+//	return global flag
+	if(retBoolFlag == 0) return true;
+	else return false;
+}
+
 }//	end of namespace
 
 #endif

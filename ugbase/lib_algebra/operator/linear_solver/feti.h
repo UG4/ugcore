@@ -43,6 +43,7 @@ namespace ug{
 #include "lib_algebra/operator/operator_inverse_interface.h"
 #include "lib_algebra/parallelization/parallelization.h"
 #include "lib_algebra/operator/debug_writer.h"
+#include "pcl/pcl.h"
 
 ///	algebra blocks are static.
 template <> struct block_traits<int>
@@ -676,8 +677,9 @@ class SchurComplementInverse
 		//	check that Pi layouts have been set
 			if(m_pSlavePrimalLayout == NULL || m_pMasterPrimalLayout == NULL)
 			{
-				UG_LOG("ERROR in 'SchurComplementInverse::init': Master or Slave"
-						" layout for cross points not set.\n");
+				UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
+						" Master or Slave layout for cross points not set "
+						"on Proc " << pcl::GetProcRank() << ".\n");
 				return false;
 			}
 
@@ -909,6 +911,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	///	initializes the solver for operator A
 		virtual bool init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		{
+		//	bool flag
+			bool bSuccess;
+
 		//	remember A
 			m_A = &A;
 
@@ -966,6 +971,14 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			{
 				UG_LOG("ERROR in FETISolver::init: Can not init local Schur "
 						"complement.\n");
+				bSuccess = false;
+			}
+
+		//	check all procs
+			if(!pcl::AllProcsTrue(bSuccess))
+			{
+				UG_LOG("ERROR in FETISolver::init: Some process could not init"
+						" local Schur complement.\n");
 				return false;
 			}
 
@@ -997,6 +1010,14 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			{
 				UG_LOG("ERROR in FETISolver::init: Can not init Schur "
 						"complement inverse.\n");
+				bSuccess = false;
+			}
+
+		//	check all procs
+			if(!pcl::AllProcsTrue(bSuccess))
+			{
+				UG_LOG("ERROR in FETISolver::init: Some process could not init"
+						" Schur complement inverse.\n");
 				return false;
 			}
 
