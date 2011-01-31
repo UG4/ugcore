@@ -1,6 +1,27 @@
 /* TODO:
  * Solve Schur complement w.r.t. "Pi system"
+ * Fuer 'apply_F()' eigene Klasse einfuehren, mit 'apply_sub()' und so? - Laenge von Vector 'lambda'?
  * If finished: Check for unnecessary "set zero" operations!
+ * Man koennte, statt einzelner Layout levels, gleich immer den ganzen vector von layouts holen (so alle benoetigten dort drin sind)!
+ *
+ * Outline of the algorithm (after Klawonn, A., Widlund, O., Dryja, M.:
+ * "Dual-Primal FETI methods for three-dimensional elliptic problems with
+ * heterogeneous coefficients", SIAM J. Numer. Anal., 40/2002a, 159--179.):
+ * 1. eliminate the primal variables associated with the interior nodes,
+ *    the vertex nodes designated as primal (as well as the Lagrange multipliers related to the optional constraints - if any)
+ *    ==> reduced system with Schur complement \tilde{S} related to the subspace \tilde{W}_{\Delta},
+ *        and a reduced right hand side \tilde{f}_{\Delta}
+ * 2. Reformulate as a variational problem, with a vector of Lagrange multipliers
+ *    ==> saddle point problem
+ * 3. Eliminate subvectors u_{\Delta}
+ *    ==> system for the dual variables: F \lambda = d
+ * 4. Instead of solving ... action of the inverse of the Schur complement can be obtained
+ *    by solving the entire linear system from which it originates after augmenting the given right hand side with zeros.
+ *    Group all the interior and dual variables of each subdomain together
+ *    and factor the resulting blocks in paralle across the subdomains using a good ordering algorithm.
+ *
+ *    The contributions of the remaining Schur complement, of the primal variables,
+ *    can also be computed locally prior to subassembly and factorization of ths final, global part of the linear system of equations.
  */
 /*
  * feti.h
@@ -1089,19 +1110,24 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		// 	rename r as d (for convenience)
 			vector_type& r = d;
 
-		// 	Build residuum:  r := d - F*lambda - TODO: mit apply_F(TVector& f, const TVector& v) machen!
-			/*
- 			if(!m_A->apply_sub(r, lambda)) 
-				{UG_LOG("ERROR in 'FETISolver::apply': "
-						"Unable to build defect. Aborting.\n");return false;}
-			*/
-
-		// 	create help vector (h will be consistent r)
+		// 	create help vectors (h will be consistent r) -- 'h'???? Wieso unten sizes unterschiedlicher vectors im 'create()'? Die sollten doch alle gleich lang sein ...
 		//	todo: 	It would be sufficient to copy only the pattern and
 		//			without initializing, but in parallel we have to copy communicators
 			vector_type t; t.create(r.size()); t = r;
 			vector_type z; z.create(lambda.size()); z = lambda;
 			vector_type p; p.create(lambda.size()); p = lambda;
+
+		// 	Build residuum:  r := d - F*lambda
+ 			//if(!m_A->apply_sub(r, lambda)) 
+		// 	(a) Build t = F*lambda (t is additive afterwards)
+			if(!apply_F(t, lambda))
+			{
+				UG_LOG("ERROR in 'FETISolver::apply': Unable "
+					   "to build t = F*p. Aborting.\n"); return false;
+			}
+		// (b) Copy values on \Delta
+			VecScaleAddOnLayout(&r, &d, -1.0, *m_pMasterDeltaLayout);
+			VecScaleAddOnLayout(&r, &d, -1.0, *m_pSlaveDeltaLayout);
 
 		// 	Preconditioning: apply z = M^-1 * r
 			if (!apply_M_inverse_with_identity_scaling(z, r))
