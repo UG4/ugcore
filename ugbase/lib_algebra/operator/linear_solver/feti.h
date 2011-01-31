@@ -663,6 +663,9 @@ class SchurComplementInverse
 	// 	Init for Linear Operator L
 		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
 		{
+			pcl::SynchronizeProcesses();
+			UG_LOG_ALL_PROCS("Initializing SchurComplementnverse.\n");
+
 		//	remember operator
 			m_A = dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
 
@@ -675,7 +678,7 @@ class SchurComplementInverse
 			}
 
 		//	check that Pi layouts have been set
-			if(m_pSlaveCPLayout == NULL || m_pMasterCPLayout == NULL)
+			if(m_pSlavePrimalLayout == NULL || m_pMasterPrimalLayout == NULL)
 			{
 				UG_LOG("ERROR in 'SchurComplementInverse::init': Master or Slave"
 						" layout for cross points not set.\n");
@@ -685,18 +688,6 @@ class SchurComplementInverse
 		//	save matrix from which we build the Schur complement
 			m_pMatrix = &m_A->get_matrix();
 
-			/* no longer necessary to check here - we have already pointers to "Pi layouts"!:
-			   (set via 'set_primal_layouts()')!:
-		//	check that matrix has enough decomposition levels
-			if(m_pMatrix->num_layouts() != 2)
-			{
-				UG_LOG("ERROR in 'SchurComplementInverse::init': The Operator must"
-					   " have two layouts, but the current Operator has only "
-					   << m_pMatrix->num_layouts() << "\n");
-				return false;
-			}
-			*/
-
 		//	get matrix from Neumann operator
 			m_pNeumannMatrix = &m_NeumannOperator.get_matrix();
 
@@ -704,8 +695,8 @@ class SchurComplementInverse
 			*m_pNeumannMatrix = *m_pMatrix;
 
 		//	Set Dirichlet values on Pi
-			MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pSlaveCPLayout);
-			MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pMasterCPLayout);
+			MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pSlavePrimalLayout);
+			MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pMasterPrimalLayout);
 
 		//	init sequential solver for Dirichlet problem
 			if(m_pNeumannSolver != NULL)
@@ -721,6 +712,37 @@ class SchurComplementInverse
 			{
 				m_pDebugWriter->write_matrix(m_NeumannOperator.get_matrix(),
 				                             "FetiNeumannMatrix");
+			}
+
+		//	Choose root process, where SchurCompliment w.r.t. Primal unknowns
+		//	is gathered.
+			m_primalRootProc = pcl::GetOutputProcRank();
+
+		//	vector to store newly created root ids
+			std::vector<int> newMasterIDsOut;
+
+		//	integer to store highest index
+			int highestIndex;
+
+		//	Build layouts such that all processes can communicated their unknowns
+		//	to the primal Root Process
+			BuildOneToManyLayout(m_masterAllToOneLayout, m_slaveAllToOneLayout,
+			                     m_primalRootProc,
+			                     *m_pMasterPrimalLayout, *m_pSlavePrimalLayout,
+			                     highestIndex, m_allToOneProcessComm,
+			                     &newMasterIDsOut);
+
+		//	build matrix on primalRoot
+			if(pcl::GetProcRank() == m_primalRootProc)
+			{
+			//	get matrix
+				m_pOneProcSchurCompMatrix = &m_OneProcSchurCompOp.get_matrix();
+
+			//	create matrix of correct size
+				m_pOneProcSchurCompMatrix->create(highestIndex+1, highestIndex+1);
+
+				std::cout << "On PrimalRoot: Creating proc local Schur Complement"
+							" of size " << highestIndex+1 <<"^2." << std::endl;
 			}
 
 		//	we're done
@@ -799,9 +821,19 @@ class SchurComplementInverse
 	//	Neumann Solver
 		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
 
-	//	Layouts for Pi
-		IndexLayout* m_pMasterCPLayout;
-		IndexLayout* m_pSlaveCPLayout;
+	//	Process gathering the Schur Complement w.r.t. Primal unknowns
+		int m_primalRootProc;
+
+	//	Layouts for all to one communication
+		IndexLayout m_masterAllToOneLayout;
+		IndexLayout m_slaveAllToOneLayout;
+		pcl::ProcessCommunicator m_allToOneProcessComm;
+
+	//	Schur Complement operator for gathered matrix
+		PureMatrixOperator<vector_type, vector_type, matrix_type> m_OneProcSchurCompOp;
+
+	//	Matrix for one proc schur complement
+		matrix_type* m_pOneProcSchurCompMatrix;
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
