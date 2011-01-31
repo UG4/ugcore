@@ -66,6 +66,7 @@ template <> struct block_traits<int>
  * \param[out]		masterLayoutOut	master layout created
  * \param[out]		slaveLayoutOut	slave layout created
  */
+/*DELETE ME!!!
 inline void ExtractCrossPointLayouts(size_t numIDs,
 									 IndexLayout& masterLayoutIn,
 									 IndexLayout& slaveLayoutIn,
@@ -191,7 +192,7 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	
 	return;
 }
-
+*/
 ///	Application of the "jump operator" \f$B_{\Delta}\f$:
 /// 'ComputeDifferenceOnDelta()': Apply \f$B_{\Delta}\f$ to \f$u_{\Delta}\f$
 /**
@@ -629,6 +630,12 @@ class SchurComplementInverse
 	///	name of class
 		virtual const char* name() const {return "Schur Complement Inverse";}
 
+	///	sets the local feti block communicator
+		void set_local_feti_block_communicator(const pcl::ProcessCommunicator& procComm)
+		{
+			m_localFetiBlockComm = procComm;
+		}
+
 	///	sets the Neumann solver
 		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
 		{
@@ -741,6 +748,11 @@ class SchurComplementInverse
 			                     highestIndex, m_allToOneProcessComm,
 			                     &newMasterIDsOut);
 
+		//	We have to gather the quantities of primal nodes on each process
+		//	of the feti-block in one array.
+			//m_localFetiBlockComm
+			//m_primalQuantities
+
 		//	build matrix on primalRoot
 			if(pcl::GetProcRank() == m_primalRootProc)
 			{
@@ -809,6 +821,9 @@ class SchurComplementInverse
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
 
+	//	ProcessCommunicator for local feti-block
+		pcl::ProcessCommunicator m_localFetiBlockComm;
+
 	//	Layouts for Primal variables
 		IndexLayout* m_pMasterPrimalLayout;
 		IndexLayout* m_pSlavePrimalLayout;
@@ -820,6 +835,10 @@ class SchurComplementInverse
 	// Layouts for Dual neighbour variables
 		IndexLayout* m_pSlaveDualNbrLayout;
 		IndexLayout* m_pMasterDualNbrLayout;
+
+	//	vector that holds quantities of primal variables on each process
+	//	of the local feti block.
+		std::vector<size_t>	m_primalQuantities;
 
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_NeumannOperator;
@@ -939,6 +958,16 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 							m_pMatrix->get_master_layout(), m_pMatrix->get_slave_layout(),
 							(int)(m_pMatrix->num_rows() - 1), *m_pDDInfo);
 
+		//	create local feti block communicator
+			int localSubdomID = m_pDDInfo->map_proc_id_to_subdomain_id(pcl::GetProcRank());
+			pcl::ProcessCommunicator worldComm;
+			for(int i = 0; i < m_pDDInfo->get_num_subdomains(); ++i){
+				if(localSubdomID == i)
+					m_localFetiBlockComm = worldComm.create_sub_communicator(true);
+				else
+					worldComm.create_sub_communicator(false);
+			}
+
 		//	write layouts
 			pcl::SynchronizeProcesses();
 			UG_LOG("------------- DUAL MASTER ------------\n")
@@ -1005,6 +1034,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 						" for inversion of A_{I,Delta}{I,Delta} in Local Schur complement.\n");
 				return false;
 			}
+
+		//	set the local feti block communicator
+			m_SchurComplementInverse.set_local_feti_block_communicator(m_localFetiBlockComm);
 
 		//	set layouts
 			m_SchurComplementInverse.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
@@ -1353,6 +1385,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
+
+	//	Process communicator for local feti-block
+		pcl::ProcessCommunicator	m_localFetiBlockComm;
 
 	//	Layouts for Inner variables
 		IndexLayout m_masterInnerLayout;

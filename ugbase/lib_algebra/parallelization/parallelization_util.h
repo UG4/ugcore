@@ -266,7 +266,7 @@ void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
 			const size_t index = interface.get_element(iter);
 
 		// 	get entry
-			const typename TVector::value_type& entry = (*pVecSrc)[index];
+			typename TVector::value_type entry = (*pVecSrc)[index];
 
 		//	scale entry
 			entry *= scale;
@@ -312,8 +312,8 @@ void VecScaleAddOnLayout(	TVector* pVecDest,
 			const size_t index = interface.get_element(iter);
 
 		// 	get entries
-			const typename TVector::value_type& entry1 = (*pVecSrc1)[index];
-			const typename TVector::value_type& entry2 = (*pVecSrc2)[index];
+			typename TVector::value_type entry1 = (*pVecSrc1)[index];
+			typename TVector::value_type entry2 = (*pVecSrc2)[index];
 
 		//	scale entries
 			entry1 *= alpha1;
