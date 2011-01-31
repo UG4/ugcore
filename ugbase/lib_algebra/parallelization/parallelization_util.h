@@ -266,7 +266,7 @@ void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
 			const size_t index = interface.get_element(iter);
 
 		// 	get entry
-			typename TVector::value_type entry = (*pVecSrc)[index];
+			const typename TVector::value_type& entry = (*pVecSrc)[index];
 
 		//	scale entry
 			entry *= scale;
@@ -277,9 +277,101 @@ void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
 	}
 }
 
+/// computes linear combination of two vectors.
+/**
+ * This function computes linear combination of two vectors (cf. 'VecScaleAdd()'
+ * of parallel vector): dest = alpha1*v1 + alpha2*v2
+ * (overloaded version of 'VecScaleAddOnLayout()' above)
+ *
+ * \param[in,out]	pVecDest		Destination vector of sum
+ * \param[in]		pVecSrc1		first vector to be combined
+ * \param[in]		pVecSrc2		second vector to be combined
+ * \param[in]		alpha1			Scaling factor of src vec 1
+ * \param[in]		alpha2			Scaling factor of src vec 2
+ * \param[in]		Layout			Index Layout
+ */
+template <typename TVector>
+void VecScaleAddOnLayout(	TVector* pVecDest,
+							number alpha1, const TVector* pVecSrc1,
+							number alpha2, const TVector* pVecSrc2,
+							IndexLayout& Layout)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = Layout.interface(iter);
+
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+		{
+		//	get index
+			const size_t index = interface.get_element(iter);
+
+		// 	get entries
+			const typename TVector::value_type& entry1 = (*pVecSrc1)[index];
+			const typename TVector::value_type& entry2 = (*pVecSrc2)[index];
+
+		//	scale entries
+			entry1 *= alpha1;
+			entry2 *= alpha2;
+
+		//	add value
+			entry1 += entry2;
+			(*pVecDest)[index] = entry1; //alpha1*entry1 + alpha2*entry2;
+		}
+	}
+}
+
+/// computes the scalar product of two vectors only at a layout.
+/**
+ * This function the scalar product of two vectors only at a layout 
+ * (cf. 'VecProd()' of parallel vector).
+ * No communication is performed.
+ *
+ * \param[out]		result			scalar product computed
+ * \param[in]		pVecSrc1		first vector
+ * \param[in]		pVecSrc2		second vector
+ * \param[in]		Layout			Index Layout
+ */
+template <typename TVector>
+void VecProdOnLayout(	number& result, const TVector* pVecSrc1,
+						const TVector* pVecSrc2,
+						IndexLayout& Layout)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+	result = 0.0;
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = Layout.interface(iter);
+
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+		{
+		//	get index
+			const size_t index = interface.get_element(iter);
+
+		// 	get entries
+			const typename TVector::value_type& entry1 = (*pVecSrc1)[index];
+			const typename TVector::value_type& entry2 = (*pVecSrc2)[index];
+
+		//	add value
+			result += VecProd(entry1,entry2);
+		}
+	}
+}
+
 /// sets entries of one vector to a given value only at a layout
 /**
- * This function sets the entries of a vector to a given value only at a layout. No communication is performed.
+ * This function sets the entries of a vector to a given value only at a layout.
+ * No communication is performed.
  *
  * \param[in,out]	pVec			vector to set
  * \param[in]		value			value for entries to be set
@@ -312,7 +404,8 @@ void VecSetOnLayout(	TVector* pVec, number value, IndexLayout& Layout)
 
 /// sets entries of one vector to a given value *except* at the interface
 /**
- * This function sets the entries of a vector to a given value *except* on a layout. No communication is performed.
+ * This function sets the entries of a vector to a given value *except* on a layout.
+ * No communication is performed.
  *
  * \param[in,out]	pVec			vector to set
  * \param[in]		value			value for entries to be set
@@ -359,7 +452,8 @@ void VecSetExcludingLayout(	TVector* pVec, number value,
 
 /// scale entries of one vector by a given value only at a layout
 /**
- * This function scales the entries of a vector to a given value only at a layout. No communication is performed.
+ * This function scales the entries of a vector to a given value only at a layout.
+ * No communication is performed.
  *
  * \param[in,out]	pVec			vector to set
  * \param[in]		scale			Scaling factor
@@ -393,7 +487,8 @@ void VecScaleOnLayout(	TVector* pVec, number scale,
 
 /// scale entries of one vector by a given value *except* at the interface
 /**
- * This function scales the entries of a vector to a given value *except* on a layout. No communication is performed.
+ * This function scales the entries of a vector to a given value *except* on a layout.
+ * No communication is performed.
  *
  * \param[in,out]	pVec			vector to set
  * \param[in]		scale			Scaling factor
@@ -437,6 +532,38 @@ void VecScaleExcludingLayout(	TVector* pVec, number scale,
 		}
 	}
 }
+
+/// copy a vector only at a layout
+/**
+ * This function copies a vector only on a layout. Communication is performed
+ * (this function is basically 'UniqueToConsistent').
+ *
+ * \param[in,out]		pVec			Parallel Vector
+ * \param[in]			masterLayout	Master Layout
+ * \param[in]			slaveLayout		Slave Layout
+ * \param[in]			pCom			Parallel Communicator
+ */
+template <typename TVector>
+void VecCopyOnLayout(	TVector* pVec,
+						IndexLayout& masterLayout, IndexLayout& slaveLayout,
+						pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+{
+	//	create a new communicator if required.
+		pcl::ParallelCommunicator<IndexLayout> tCom;
+		if(!pCom)
+			pCom = &tCom;
+		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+
+	//	step 1: copy master values to slaves
+	//	create the required communication policies
+		ComPol_VecCopy<TVector> cpVecCopy(pVec);
+
+	//	perform communication
+		com.send_data(masterLayout, cpVecCopy);
+		com.receive_data(slaveLayout, cpVecCopy);
+		com.communicate();
+}
+
 
 /// sets dirichlet rows for interface indices
 /**
