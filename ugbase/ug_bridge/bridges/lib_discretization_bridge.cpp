@@ -46,24 +46,6 @@ MathVector<dim> Dfunc1(const MathVector<dim>& x)
 	return res;
 }
 
-
-// TODO: remove this sometimes ... (27012011)
-/*
-class ProcIDToSubdomainID_FromBisection
-{
-	public:
-		ProcIDToSubdomainID_FromBisection(int numProcsPerSubdomain) :
-			m_numProcsPerSubdomain(numProcsPerSubdomain)
-		{}
-
-		int operator()(int procID)
-		{
-			return procID / m_numProcsPerSubdomain;
-		}
-	private:
-		int m_numProcsPerSubdomain;
-};
-*/
 int NumProcesses()
 {
 	int numProcs = 1;
@@ -73,28 +55,6 @@ int NumProcesses()
 
 	return numProcs;
 }
-
-#ifdef UG_PARALLEL
-template <class domain_type>
-void EnableDomainDecomposition(IApproximationSpace<domain_type>& approxSpace,
-							   pcl::IDomainDecompositionInfo& ddInfo)
-{
-	// TODO: remove this sometimes ... (27012011)
-	/*
-	int numProcsPerSubdomain = 1;
-	#ifdef UG_PARALLEL
-		if(numSubdomains > 0 && pcl::GetNumProcesses() > 1)
-			numProcsPerSubdomain = pcl::GetNumProcesses() / numSubdomains;
-
-		UG_LOG("'EnableDomainDecomposition()': number of procs: " << pcl::GetNumProcesses()  << ", numSubdomains: " << numSubdomains
-			   << ", numProcsPerSubdomain: " << numProcsPerSubdomain  << " (TMP).\n"); // 18012011ih
-	#endif
-//	todo: Make sure that numProcs and numSubdomains are valid.
-	*/ 
-
-	approxSpace.enable_domain_decomposition(ddInfo); /*(ProcIDToSubdomainID_FromBisection(numProcsPerSubdomain));*/
-}
-#endif
 
 #ifdef UG_PARALLEL
 template <class grid_function_type>
@@ -1364,13 +1324,6 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		}
 
 #ifdef UG_PARALLEL
-	//	todo: This is not at its final position
-		{
-			stringstream ss; ss << "EnableDomainDecomposition" << dim << "d";
-			reg.add_function(ss.str().c_str(),
-							&EnableDomainDecomposition<domain_type>);
-		}
-
 	//	todo: only temporary
 		{
 			stringstream ss; ss << "OneToManyTests" << dim << "d";

@@ -333,11 +333,25 @@ class LocalSchurComplement
 			m_pOperator = &A;
 		}
 
-	///	sets the cross point layouts
-		void set_crosspoint_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+	///	sets the primal layouts
+		void set_primal_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
 		{
-			m_pSlaveCPLayout = &slaveLayout;
-			m_pMasterCPLayout = &masterLayout;
+			m_pSlavePrimalLayout = &slaveLayout;
+			m_pMasterPrimalLayout = &masterLayout;
+		}
+
+	///	sets the dual layouts
+		void set_dual_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		{
+			m_pSlaveDualLayout = &slaveLayout;
+			m_pMasterDualLayout = &masterLayout;
+		}
+
+	///	sets the dual neighbour layouts
+		void set_dual_nbr_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		{
+			m_pSlaveDualNbrLayout = &slaveLayout;
+			m_pMasterDualNbrLayout = &masterLayout;
 		}
 
 	/// implementation of the operator for the solution dependent initialization.
@@ -362,7 +376,7 @@ class LocalSchurComplement
 			}
 
 		//	check that Pi layouts have been set
-			if(m_pSlaveCPLayout == NULL || m_pMasterCPLayout == NULL)
+			if(m_pSlavePrimalLayout == NULL || m_pMasterPrimalLayout == NULL)
 			{
 				UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
 						" layout for cross points not set.\n");
@@ -373,7 +387,7 @@ class LocalSchurComplement
 			m_pMatrix = &m_pOperator->get_matrix();
 
 			/* no longer necessary to check here - we have already pointers to "Pi layouts"
-			   (set via 'set_crosspoint_layouts()')!:
+			   (set via 'set_primal_layouts()')!:
 		//	check that matrix has enough decomposition levels
 			if(m_pMatrix->num_layouts() != 2)
 			{
@@ -391,12 +405,12 @@ class LocalSchurComplement
 			*m_pDirichletMatrix = *m_pMatrix;
 
 		//	Set Dirichlet values on Pi
-			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pSlaveCPLayout);
-			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pMasterCPLayout);
+			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pSlavePrimalLayout);
+			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pMasterPrimalLayout);
 
 		//	Set Dirichlet values on Delta
-			MatSetDirichletOnLayout(m_pDirichletMatrix, m_pDirichletMatrix->get_slave_layout(1));
-			MatSetDirichletOnLayout(m_pDirichletMatrix, m_pDirichletMatrix->get_master_layout(1));
+			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pSlaveDualLayout);
+			MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pMasterDualLayout);
 
 		//	init sequential solver for Dirichlet problem
 			if(m_pDirichletSolver != NULL)
@@ -470,8 +484,8 @@ class LocalSchurComplement
 			uTmp.set(0.0);
 
 			// (b) Copy values on \Delta
-			VecScaleAddOnLayout(&uTmp, &u, 1.0, u.get_slave_layout(1));
-			VecScaleAddOnLayout(&uTmp, &u, 1.0, u.get_master_layout(1));
+			VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
+			VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
 
 		//	2. Compute rhs f_{I} = A_{I \Delta} u_{\Delta}
 			if(!m_DirichletOperator.apply(f, uTmp))
@@ -482,14 +496,14 @@ class LocalSchurComplement
 				return false;
 			}
 			// set values to zero on \Delta
-			VecSetOnLayout(&f, 0.0, u.get_slave_layout(1));
-			VecSetOnLayout(&f, 0.0, u.get_master_layout(1));
+			VecSetOnLayout(&f, 0.0, *m_pSlaveDualLayout);
+			VecSetOnLayout(&f, 0.0, *m_pMasterDualLayout);
 
 		//	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
 			// (a) use the inner-FETI-block layouts
-			uTmp.use_layout(0);
-			f.use_layout(0);
-			m_pDirichletMatrix->use_layout(0);
+			//uTmp.use_layout(0);
+			//f.use_layout(0);
+			//m_pDirichletMatrix->use_layout(0);
 
 			// (b) invoke Dirichlet solver
 			if(!m_pDirichletSolver->apply_return_defect(uTmp, f))
@@ -505,8 +519,8 @@ class LocalSchurComplement
 			uTmp *= -1.0;
 
 			// (b) Add u_{\Delta} on \Delta
-			VecScaleAddOnLayout(&uTmp, &u, 1.0, u.get_slave_layout(1));
-			VecScaleAddOnLayout(&uTmp, &u, 1.0, u.get_master_layout(1));
+			VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
+			VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
 
 			// (c) Multiply with full matrix
 			if(!m_pOperator->apply(f, uTmp))
@@ -518,10 +532,10 @@ class LocalSchurComplement
 			}
 
 		//	5. Reset all values for I, \Pi
-			VecSetExcludingLayout(&f, 0.0, u.get_slave_layout(1));
+			VecSetExcludingLayout(&f, 0.0, *m_pSlaveDualLayout);
 
-			VecSetOnLayout(&f, 0.0, *m_pSlaveCPLayout);
-			VecSetOnLayout(&f, 0.0, *m_pMasterCPLayout);
+			VecSetOnLayout(&f, 0.0, *m_pSlavePrimalLayout);
+			VecSetOnLayout(&f, 0.0, *m_pMasterPrimalLayout);
 
 		//	we're done
 			return true;
@@ -563,9 +577,17 @@ class LocalSchurComplement
 	// 	Parallel Matrix
 		matrix_type* m_pMatrix;
 
-	//	Layouts for Pi
-		IndexLayout* m_pMasterCPLayout;
-		IndexLayout* m_pSlaveCPLayout;
+	//	Layouts for Primal variables
+		IndexLayout* m_pMasterPrimalLayout;
+		IndexLayout* m_pSlavePrimalLayout;
+
+	// Layouts for Dual variables
+		IndexLayout* m_pSlaveDualLayout;
+		IndexLayout* m_pMasterDualLayout;
+
+	// Layouts for Dual neighbour variables
+		IndexLayout* m_pSlaveDualNbrLayout;
+		IndexLayout* m_pMasterDualNbrLayout;
 
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
@@ -617,11 +639,25 @@ class SchurComplementInverse
 			m_pNeumannSolver = &neumannSolver;
 		}
 
-	///	sets the cross point layouts
-		void set_crosspoint_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+	///	sets the primal layouts
+		void set_primal_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
 		{
-			m_pSlaveCPLayout = &slaveLayout;
-			m_pMasterCPLayout = &masterLayout;
+			m_pSlavePrimalLayout = &slaveLayout;
+			m_pMasterPrimalLayout = &masterLayout;
+		}
+
+	///	sets the dual layouts
+		void set_dual_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		{
+			m_pSlaveDualLayout = &slaveLayout;
+			m_pMasterDualLayout = &masterLayout;
+		}
+
+	///	sets the dual layouts
+		void set_dual_nbr_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		{
+			m_pSlaveDualNbrLayout = &slaveLayout;
+			m_pMasterDualNbrLayout = &masterLayout;
 		}
 
 	// 	Init for Linear Operator L
@@ -650,7 +686,7 @@ class SchurComplementInverse
 			m_pMatrix = &m_A->get_matrix();
 
 			/* no longer necessary to check here - we have already pointers to "Pi layouts"!:
-			   (set via 'set_crosspoint_layouts()')!:
+			   (set via 'set_primal_layouts()')!:
 		//	check that matrix has enough decomposition levels
 			if(m_pMatrix->num_layouts() != 2)
 			{
@@ -741,6 +777,18 @@ class SchurComplementInverse
 
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
+
+	//	Layouts for Primal variables
+		IndexLayout* m_pMasterPrimalLayout;
+		IndexLayout* m_pSlavePrimalLayout;
+
+	// Layouts for Dual variables
+		IndexLayout* m_pSlaveDualLayout;
+		IndexLayout* m_pMasterDualLayout;
+
+	// Layouts for Dual neighbour variables
+		IndexLayout* m_pSlaveDualNbrLayout;
+		IndexLayout* m_pMasterDualNbrLayout;
 
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_NeumannOperator;
@@ -839,55 +887,28 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		//	get matrix
 			m_pMatrix = &m_A->get_matrix();
 
-		//	get layouts
-		//	check that matrix has enough decomposition levels - have to be already
-		//  created on script level (via 'BuildDomainDecompositionLayoutsTest2d')
-			if(m_pMatrix->num_layouts() != 3)
-			{
-				UG_LOG("ERROR in 'FETISolver::init': The Operator must"
-					   " have three layouts, but the current Operator has only "
-					   << m_pMatrix->num_layouts() << "\n");
-				return false;
-			}
-			m_pMasterDeltaLayout = &m_pMatrix->get_master_layout(1);
-			m_pSlaveDeltaLayout  = &m_pMatrix->get_slave_layout(1);
-			m_pMasterCPLayout    = &m_pMatrix->get_master_layout(2);
-			m_pSlaveCPLayout     = &m_pMatrix->get_slave_layout(2);
+		//	create FETI Layouts:
+		// 	\todo: @Ingo, Doc Me please
+			BuildDomainDecompositionLayouts(m_masterDualLayout, m_slaveDualLayout,
+							m_masterInnerLayout, m_slaveInnerLayout, m_masterDualNbrLayout,
+							m_slaveDualNbrLayout, m_masterPrimalLayout, m_slavePrimalLayout,
+							m_pMatrix->get_master_layout(), m_pMatrix->get_slave_layout(),
+							(int)(m_pMatrix->num_rows() - 1), *m_pDDInfo);
 
 		//	write layouts
 			pcl::SynchronizeProcesses();
-			UG_LOG("------------- BEFORE ------------\n")
-			UG_LOG("------------- DELTA MASTER ------------\n")
-			LogIndexLayoutOnAllProcs(*m_pMasterDeltaLayout, 1);
+			UG_LOG("------------- DUAL MASTER ------------\n")
+			LogIndexLayoutOnAllProcs(m_masterDualLayout, 1);
 			pcl::SynchronizeProcesses();
-			UG_LOG("------------- DELTA SLAVE  ------------\n")
-			LogIndexLayoutOnAllProcs(*m_pSlaveDeltaLayout, 1);
-
-			/* 
-		//	create "PI layout" containing cross points by extracting them from "Delta layout" ...
-			ExtractCrossPointLayouts(m_pMatrix->num_rows(), // number of dof's of current processor
-									 m_pMasterDeltaLayout,   //m_pMatrix->get_master_layout(1),
-									 m_pSlaveDeltaLayout,    //m_pMatrix->get_slave_layout(1),
-									 m_pDDInfo,              // contains mapping "proc id" ==> "subdom id"
-									 m_pMasterCPLayout,      //m_masterCPLayout,
-									 m_pSlaveCPLayout);      //m_slaveCPLayout
-			*/
-
-		//	write layouts
-			pcl::SynchronizeProcesses();
-			UG_LOG("------------- AFTER ------------\n")
-			UG_LOG("------------- DELTA MASTER ------------\n")
-			LogIndexLayoutOnAllProcs(*m_pMasterDeltaLayout, 1);
-			pcl::SynchronizeProcesses();
-			UG_LOG("------------- DELTA SLAVE  ------------\n")
-			LogIndexLayoutOnAllProcs(*m_pSlaveDeltaLayout, 1);
+			UG_LOG("------------- DUAL SLAVE  ------------\n")
+			LogIndexLayoutOnAllProcs(m_slaveDualLayout, 1);
 
 			pcl::SynchronizeProcesses();
-			UG_LOG("------------- PI MASTER ------------\n")
-			LogIndexLayoutOnAllProcs(*m_pMasterCPLayout, 1);
+			UG_LOG("------------- PRIMAL MASTER ------------\n")
+			LogIndexLayoutOnAllProcs(m_masterPrimalLayout, 1);
 			pcl::SynchronizeProcesses();
-			UG_LOG("------------- PI SLAVE  ------------\n")
-			LogIndexLayoutOnAllProcs(*m_pSlaveCPLayout, 1);
+			UG_LOG("------------- PRIMAL SLAVE  ------------\n")
+			LogIndexLayoutOnAllProcs(m_slavePrimalLayout, 1);
 
 		//  ----- INIT DIRICHLET SOLVER  ----- //
 
@@ -900,7 +921,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 		//	set cross point layouts
-			m_LocalSchurComplement.set_crosspoint_layouts(*m_pSlaveCPLayout, *m_pMasterCPLayout);
+			m_LocalSchurComplement.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
 
 		//	set dirichlet solver for local schur complement
 			m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
@@ -927,7 +948,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 		//	set cross point layouts
-			m_SchurComplementInverse.set_crosspoint_layouts(*m_pSlaveCPLayout, *m_pMasterCPLayout);
+			m_SchurComplementInverse.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
 
 		//	set neumann solver in SchurComplementInverse
 			m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
@@ -964,13 +985,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			f.set(0.0); fTmp.set(0.0);
 
 			//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
-			ComputeDifferenceOnDeltaTransposed(f, v, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(v.get_master_layout(1), v.get_slave_layout(1));
+			ComputeDifferenceOnDeltaTransposed(f, v, m_masterDualLayout, m_slaveDualLayout);
 
 			//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
 			m_SchurComplementInverse.apply(fTmp, f);
 
 			//	3. Apply jump operator to get the final 'f'
-			ComputeDifferenceOnDelta(f, fTmp, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(v.get_master_layout(1), v.get_slave_layout(1));
+			ComputeDifferenceOnDelta(f, fTmp, m_masterDualLayout, m_slaveDualLayout);
 
 			//	we're done
 			return true;
@@ -999,7 +1020,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_SchurComplementInverse.apply(dTmp, f);
 
 			//	2. Apply jump operator to get the final 'd'
-			ComputeDifferenceOnDelta(d, dTmp, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(f.get_master_layout(1), f.get_slave_layout(1));
+			ComputeDifferenceOnDelta(d, dTmp, m_masterDualLayout, m_slaveDualLayout);
 
 			//	we're done
 			return true;
@@ -1039,13 +1060,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			Apply_ScalingMatrix(z, r); // maybe restrict to layout
 
 			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(zTmp, z, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+			ComputeDifferenceOnDeltaTransposed(zTmp, z, m_masterDualLayout, m_slaveDualLayout);
 
 			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 			m_LocalSchurComplement.apply(z, zTmp);
 
 			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(zTmp, z, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+			ComputeDifferenceOnDelta(zTmp, z, m_masterDualLayout, m_slaveDualLayout);
 
 			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
 			Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
@@ -1067,13 +1088,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//Apply_ScalingMatrix(z, r); // maybe restrict to layout
 
 			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(z, r, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+			ComputeDifferenceOnDeltaTransposed(z, r, m_masterDualLayout, m_slaveDualLayout);
 
 			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 			m_LocalSchurComplement.apply(zTmp, z);
 
 			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(z, zTmp, *m_pMasterDeltaLayout, *m_pSlaveDeltaLayout); //(r.get_master_layout(1), r.get_slave_layout(1));
+			ComputeDifferenceOnDelta(z, zTmp, m_masterDualLayout, m_slaveDualLayout);
 
 			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
 			//Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
@@ -1259,15 +1280,21 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
 
-	//	Layouts for Delta
-		IndexLayout* m_pMasterDeltaLayout;
-		IndexLayout* m_pSlaveDeltaLayout;
+	//	Layouts for Inner variables
+		IndexLayout m_masterInnerLayout;
+		IndexLayout m_slaveInnerLayout;
 
-	//	Layouts for Pi
-		IndexLayout* m_pMasterCPLayout;
-		IndexLayout* m_pSlaveCPLayout;
-		//IndexLayout m_masterCPLayout;
-		//IndexLayout m_slaveCPLayout;
+	//	Layouts for Dual variables
+		IndexLayout m_masterDualLayout;
+		IndexLayout m_slaveDualLayout;
+
+	//	Layouts for Dual Neighbour variables
+		IndexLayout m_masterDualNbrLayout;
+		IndexLayout m_slaveDualNbrLayout;
+
+	//	Layouts for Primal variables
+		IndexLayout m_masterPrimalLayout;
+		IndexLayout m_slavePrimalLayout;
 
 	//	Local Schur complement for each feti subdomain
 		LocalSchurComplement<algebra_type> m_LocalSchurComplement;

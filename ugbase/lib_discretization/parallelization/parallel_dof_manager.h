@@ -29,22 +29,19 @@ class ParallelMGDoFManager : public TMGDoFManager
 	public:
 	///	Default Constructor
 		ParallelMGDoFManager()
-		: TMGDoFManager(), m_pDistGridManager(NULL), m_pLayoutMap(NULL),
-		  m_bDomainDecompositionEnabled(false)
+		: TMGDoFManager(), m_pDistGridManager(NULL), m_pLayoutMap(NULL)
 		{}
 
 	///	Constructor setting MultiGrid and FunctionPattern
 		ParallelMGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp)
-		: TMGDoFManager(mgsh, dp), m_pDistGridManager(NULL), m_pLayoutMap(NULL),
-		  m_bDomainDecompositionEnabled(false)
+		: TMGDoFManager(mgsh, dp), m_pDistGridManager(NULL), m_pLayoutMap(NULL)
 		{}
 
 	///	Constructor setting MultiGrid, FunctionPattern and DistributedGridManager
 		ParallelMGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp,
 		                     DistributedGridManager& distGridManager)
 		: TMGDoFManager(mgsh, dp), m_pDistGridManager(&distGridManager),
-		  m_pLayoutMap(&distGridManager.grid_layout_map()),
-		  m_bDomainDecompositionEnabled(false)
+		  m_pLayoutMap(&distGridManager.grid_layout_map())
 		{}
 
 	///	assign Distributed Grid Manager
@@ -66,16 +63,6 @@ class ParallelMGDoFManager : public TMGDoFManager
 	///	print a statistic on dof distribution
 		void print_statistic() const;
 
-	///	if enabled parallel interfaces are build with domain decomposition in mind.
-		void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo) /*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
-		{
-			m_bDomainDecompositionEnabled = true;
-			//m_cbProcIDToSubdomID = cb_ProcIDToSubdomID;
-			m_pDDInfo = &ddInfo;
-		}
-
-		bool domain_decomposition_enabled()				{return m_bDomainDecompositionEnabled;}
-
 	protected:
 	///	creates the surface view iff needed
 		virtual bool surface_view_required();
@@ -89,10 +76,6 @@ class ParallelMGDoFManager : public TMGDoFManager
 
 	/// Layout map of grid
 		GridLayoutMap* m_pLayoutMap;
-
-		// pointer to Domain decomposition info object
-		pcl::IDomainDecompositionInfo* m_pDDInfo; // instead of: Callback_ProcessIDToSubdomainID m_cbProcIDToSubdomID;
-		bool m_bDomainDecompositionEnabled;
 };
 
 } // end namespace ug

@@ -197,33 +197,26 @@ class ParallelGridFunction : public TGridFunction
 		IndexLayout& get_slave_layout()	{return this->get_dof_distribution().get_slave_layout();}
 		IndexLayout& get_master_layout()	{return this->get_dof_distribution().get_master_layout();}
 
-		std::vector<IndexLayout>& get_slave_layouts()	{return this->get_dof_distribution().get_slave_layouts();}
-		std::vector<IndexLayout>& get_master_layouts()	{return this->get_dof_distribution().get_master_layouts();}
-
 		IndexLayout& get_vertical_slave_layout()		{return this->get_dof_distribution().get_vertical_slave_layout();}
 		IndexLayout& get_vertical_master_layout()	{return this->get_dof_distribution().get_vertical_master_layout();}
 
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return this->get_dof_distribution().get_communicator();;}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator() {return this->get_dof_distribution().get_communicator();}
 		pcl::ProcessCommunicator& get_process_communicator()	{return this->get_dof_distribution().get_process_communicator();}
-
-		std::vector<pcl::ParallelCommunicator<IndexLayout> >& get_communicators() {return this->get_dof_distribution().get_communicators();;}
-		std::vector<pcl::ProcessCommunicator>& get_process_communicators()	{return this->get_dof_distribution().get_process_communicators();}
 
 	protected:
 	///	copies references of the layouts from the underlying dof distribution into the vector
 		void copy_layouts_into_vector()
 		{
 		//	copy all horizontal layouts (for all domain decomps)
-			get_vector().set_slave_layouts(get_slave_layouts());
-			get_vector().set_master_layouts(get_master_layouts());
+			get_vector().set_layouts(get_master_layout(), get_slave_layout());
 
 		//	copy vertical layouts
-			get_vector().set_vertical_slave_layout(get_vertical_slave_layout());
-			get_vector().set_vertical_master_layout(get_vertical_master_layout());
+			get_vector().set_vertical_layouts(get_vertical_master_layout(),
+			                                 get_vertical_slave_layout());
 
 		//	copy communicator
-			get_vector().set_communicators(get_communicators());
-			get_vector().set_process_communicators(get_process_communicators());
+			get_vector().set_communicator(get_communicator());
+			get_vector().set_process_communicator(get_process_communicator());
 		}
 
 	/// get own vector

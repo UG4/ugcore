@@ -8,7 +8,6 @@
 #ifndef __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLELIZATION_UTIL__
 
-//#include <boost/function.hpp>
 #include "lib_algebra/parallelization/parallel_index_layout.h"
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid/parallelization/parallelization.h"
@@ -16,13 +15,6 @@
 
 namespace ug
 {
-
-// TODO: remove 'Callback_ProcessIDToSubdomainID' stuff ... (27012011)
-/**	A callback that associates a subdomain id
- *  (as used in domain decomposition) with a process id
- */
-//typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
-
 
 ///	Adds dof-indices of elements in elemLayout to the specified IndexLayout.
 /**	Make sure that TLayout holds elements of type VertexBase*, EdgeBase*,
@@ -99,10 +91,10 @@ bool CreateIndexLayout(	IndexLayout& layoutOut,
 template <typename TMatrix, typename TDoFDistr>
 void CopyLayoutsAndCommunicatorIntoMatrix(TMatrix& mat, IDoFDistribution<TDoFDistr>& dofDistr)
 {
-	mat.set_slave_layouts(dofDistr.get_slave_layouts());
-	mat.set_master_layouts(dofDistr.get_master_layouts());
-	mat.set_communicators(dofDistr.get_communicators());
-	mat.set_process_communicators(dofDistr.get_process_communicators());
+	mat.set_layouts(dofDistr.get_master_layout(), dofDistr.get_slave_layout());
+
+	mat.set_communicator(dofDistr.get_communicator());
+	mat.set_process_communicator(dofDistr.get_process_communicator());
 }
 
 

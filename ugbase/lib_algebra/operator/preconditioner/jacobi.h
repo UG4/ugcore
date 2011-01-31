@@ -85,8 +85,7 @@ class JacobiPreconditioner : public IPreconditioner<TAlgebra>
 				m_diagInv.resize(size);
 				m_diag.create(size);
 
-				m_diag.set_slave_layout(c.get_slave_layout());
-				m_diag.set_master_layout(c.get_master_layout());
+				m_diag.set_layouts(c.get_master_layout(), c.get_slave_layout());
 				m_diag.set_communicator(c.get_communicator());
 
 				// copy diagonal

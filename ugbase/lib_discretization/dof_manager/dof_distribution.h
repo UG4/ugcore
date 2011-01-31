@@ -292,13 +292,13 @@ class IDoFDistribution
 		size_t num_layouts() const {return m_vSlaveLayout.size();}
 
 	/// returns the slave index layout for domain decompostion level
-		IndexLayout& get_slave_layout(size_t ddlev = 0)	{require_ddlev(ddlev); return m_vSlaveLayout.at(ddlev);}
+		IndexLayout& get_slave_layout()	{require_ddlev(0); return m_vSlaveLayout.at(0);}
 
 	/// returns all slave indey layouts in a std::vector (all dd level)
 		std::vector<IndexLayout>& get_slave_layouts()	{return m_vSlaveLayout;}
 
 	/// returns the master index layout for domain decompostion level
-		IndexLayout& get_master_layout(size_t ddlev = 0){require_ddlev(ddlev); return m_vMasterLayout.at(ddlev);}
+		IndexLayout& get_master_layout(){require_ddlev(0); return m_vMasterLayout.at(0);}
 
 	/// returns all master indey layouts in a std::vector (all dd level)
 		std::vector<IndexLayout>& get_master_layouts()	{return m_vMasterLayout;}
@@ -306,14 +306,14 @@ class IDoFDistribution
 		IndexLayout& get_vertical_slave_layout()		{return m_verticalSlaveLayout;}
 		IndexLayout& get_vertical_master_layout()	{return m_verticalMasterLayout;}
 
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator(size_t ddlev = 0)	{return m_vCommunicator.at(ddlev);}
-		pcl::ProcessCommunicator& get_process_communicator(size_t ddlev = 0)	{return m_vProcessCommunicator.at(ddlev);}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_vCommunicator.at(0);}
+		pcl::ProcessCommunicator& get_process_communicator()	{return m_vProcessCommunicator.at(0);}
 
 		std::vector<pcl::ParallelCommunicator<IndexLayout> >& get_communicators()	{return m_vCommunicator;}
 		std::vector<pcl::ProcessCommunicator>& get_process_communicators()	{return m_vProcessCommunicator;}
 
-		size_t num_master_dofs(size_t ddlev = 0) const {return num_dofs(*const_cast<IndexLayout*>(&m_vMasterLayout.at(ddlev)));}
-		size_t num_slave_dofs(size_t ddlev = 0) const {return num_dofs(*const_cast<IndexLayout*>(&m_vSlaveLayout.at(ddlev)));}
+		size_t num_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_vMasterLayout.at(0)));}
+		size_t num_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_vSlaveLayout.at(0)));}
 
 		size_t num_vertical_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalMasterLayout));}
 		size_t num_vertical_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalSlaveLayout));}

@@ -16,7 +16,6 @@
 
 #include "lib_discretization/dof_manager/mg_dof_manager.h"
 #include "./grid_function.h"
-//#include <boost/function.hpp>
 
 namespace ug{
 
@@ -66,12 +65,6 @@ class IApproximationSpace
 
 	// 	Return the domain
 		domain_type& get_domain() {return *m_pDomain;}
-
-#ifdef UG_PARALLEL
-		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo)	{}
-#else
-#endif
-		virtual bool domain_decomposition_enabled()						{return false;}
 
 	protected:
 	// 	Domain, where solution lives
@@ -256,23 +249,6 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			return *(m_MGDoFManager.get_level_dof_distribution(level));
 		}
 
-	///	Influences the way in which parallel interfaces are created from the grids interfaces.
-	/**	If enabled, process and subdomain layouts are generated.*/
-#ifdef UG_PARALLEL
-		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo)
-			/*(Callback_ProcessIDToSubdomainID cb_ProcIDToSubdomID)*/
-		{
-				m_MGDoFManager.enable_domain_decomposition(ddInfo); /*(cb_ProcIDToSubdomID)*/
-		}
-#endif
-
-		virtual bool domain_decomposition_enabled()
-		{
-			#ifdef UG_PARALLEL
-				return m_MGDoFManager.domain_decomposition_enabled();
-			#endif
-			return false;
-		}
 	protected:
 	//	Init flag
 		bool m_bInit;

@@ -62,43 +62,13 @@ distribute_level_dofs()
 			*const_cast<typename TMGDoFManager::dof_distribution_type*>
 				(TMGDoFManager::get_level_dof_distribution(l));
 
-		if(domain_decomposition_enabled()){
-		//	check that Partition callback has been set
-			if(m_pDDInfo == NULL)
-			{
-				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
-						" No info has been set for domain decomposition.\n");
-				return false;
-			}
+	//	create index layouts
+		bRet &= CreateIndexLayout(distr.get_master_layout(),
+								  distr, *m_pLayoutMap, INT_MASTER,l);
+		bRet &= CreateIndexLayout(distr.get_slave_layout(),
+								  distr, *m_pLayoutMap, INT_SLAVE,l);
 
-		//	create process and subdomain layouts
-			bRet &= CreateIndexLayouts_DomainDecomposition(
-									  distr.get_master_layout(0),
-									  distr.get_master_layout(1),
-									  distr, *m_pLayoutMap, INT_MASTER,l,
-									  m_pDDInfo);
-			bRet &= CreateIndexLayouts_DomainDecomposition(
-									distr.get_slave_layout(0),
-									distr.get_slave_layout(1),
-									distr, *m_pLayoutMap, INT_SLAVE,l,
-									m_pDDInfo);
-
-		//	correct delta layouts
-			bRet &= AddExtraProcessEntriesToSubdomainLayout(
-					distr.num_dofs(),
-					distr.get_master_layout(0),
-					distr.get_slave_layout(0),
-					distr.get_master_layout(1),
-					distr.get_slave_layout(1));
-		}
-		else{
-		//	create index layouts
-			bRet &= CreateIndexLayout(distr.get_master_layout(0),
-									  distr, *m_pLayoutMap, INT_MASTER,l);
-			bRet &= CreateIndexLayout(distr.get_slave_layout(0),
-									  distr, *m_pLayoutMap, INT_SLAVE,l);
-		}
-
+	//	create vertical layouts
 		bRet &= CreateIndexLayout(distr.get_vertical_master_layout(),
 								  distr, *m_pLayoutMap, INT_VERTICAL_MASTER,l);
 		bRet &= CreateIndexLayout(distr.get_vertical_slave_layout(),
@@ -127,32 +97,8 @@ distribute_level_dofs()
 						  << ",!empty=" << !commWorld.empty() << ").\n");
 
 	//	create process communicator for interprocess layouts
-		distr.get_process_communicator(0)
+		distr.get_process_communicator()
 				= commWorld.create_sub_communicator(participate);
-
-	//	create process communicator for inter-feti block layouts
-		if(domain_decomposition_enabled()){
-		//	check that Partition callback has been set
-			if(m_pDDInfo == NULL)
-			{
-				UG_LOG("In 'ParallelMGDoFManager::distribute_level_dofs':"
-						" domain decomposition info was not given.\n");
-				return false;
-			}
-
-			int localProc = pcl::GetProcRank();
-			int localSubdom = m_pDDInfo->map_proc_id_to_subdomain_id(localProc);
-
-		// create sub communicators
-			for(int subdom = 0; subdom < m_pDDInfo->get_num_subdomains(); ++subdom)
-			{
-				if(localSubdom == subdom)
-					distr.get_process_communicator(1)
-							= commWorld.create_sub_communicator(true);
-				else
-					 commWorld.create_sub_communicator(false);
-			}
-		}
 
 		if(l==0) break;
 	}
@@ -179,10 +125,10 @@ distribute_surface_dofs()
 			(TMGDoFManager::get_surface_dof_distribution());
 
 //	touch each layout to create it
-	distr.get_slave_layout(0);
-	distr.get_master_layout(0);
-	distr.get_communicator(0);
-	distr.get_process_communicator(0);
+	distr.get_slave_layout();
+	distr.get_master_layout();
+	distr.get_communicator();
+	distr.get_process_communicator();
 
 	// TODO: Implement surface layouts
 

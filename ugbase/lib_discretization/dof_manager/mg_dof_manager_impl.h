@@ -210,13 +210,13 @@ print_statistic() const
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-print_layout_statistic(const dof_distribution_type& dd, size_t ddlev) const
+print_layout_statistic(const dof_distribution_type& dd) const
 {
 #ifdef UG_PARALLEL
 //	Total number of DoFs
-	UG_LOG(std::setw(8) << dd.num_master_dofs(ddlev) <<" | ");
+	UG_LOG(std::setw(8) << dd.num_master_dofs() <<" | ");
 
-	UG_LOG(std::setw(8) << dd.num_slave_dofs(ddlev) <<" | ");
+	UG_LOG(std::setw(8) << dd.num_slave_dofs() <<" | ");
 
 	UG_LOG(std::setw(12) << dd.num_vertical_master_dofs() <<" | ");
 
@@ -236,35 +236,22 @@ print_layout_statistic() const
 	UG_LOG("Layouts on Process " << 0 << ":\n");
 
 //	Write header line
-	UG_LOG(" Level | DD Level |  Master  |  Slave   | vert. Master | vert. Slave\n");
+	UG_LOG(" Level |  Master  |  Slave   | vert. Master | vert. Slave\n");
 	UG_LOG("---------------------------------------------------------------------\n");
 
 //	Write Infos for Levels
 	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
 	{
-		for(size_t ddlev = 0; ddlev <
-			m_vLevelDoFDistribution[l]->num_layouts(); ++ddlev)
-		{
-			if(ddlev == 0) {UG_LOG("   " << l << "   |");}
-			else {UG_LOG("       |");}
-
-			UG_LOG(std::setw(9) << ddlev << " | ");
-			print_layout_statistic(*m_vLevelDoFDistribution[l], ddlev);
-			UG_LOG("\n");
-		}
+		print_layout_statistic(*m_vLevelDoFDistribution[l]);
+		UG_LOG("\n");
 		UG_LOG("---------------------------------------------------------------------\n");
 	}
 
 //	Write Infos for Surface Grid
 	if(m_pSurfaceDoFDistribution != NULL)
 	{
-		for(size_t ddlev = 0; ddlev <
-			m_pSurfaceDoFDistribution->num_layouts(); ++ddlev)
-		{
-			UG_LOG("  " << ddlev << "  | ");
-			print_layout_statistic(*m_pSurfaceDoFDistribution, ddlev);
-			UG_LOG(std::endl);
-		}
+		print_layout_statistic(*m_pSurfaceDoFDistribution);
+		UG_LOG(std::endl);
 	}
 #endif
 }

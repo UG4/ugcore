@@ -238,9 +238,10 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 			//	Compute new rhs for Neumann problem using lambda on ("FETI-") Gamma
 				add_flux_to_rhs(ModRhs, lambda);
 
+			//	todo: Here and in the following, adapt to Bnd-Layout
 			//	set intra subdomain communication - always before solution step
-				x.use_layout(0);
-				ModRhs.use_layout(0);
+				//x.use_layout(0);
+				//ModRhs.use_layout(0);
 
 			//	Solve Neumann problem on FETI subdomain
 				if(!m_pNeumannSolver->apply_return_defect(x, ModRhs))
@@ -255,8 +256,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				write_debug(x, "FetiNeumann");
 
 			//	set inter subdomain communication
-				x.use_layout(1);
-				ModRhs.use_layout(1);
+				//x.use_layout(1);
+				//ModRhs.use_layout(1);
 
 			//	Set Dirichlet values for Rhs, zero else
 				copy_dirichlet_values_and_zero(ModRhs, x);
@@ -287,8 +288,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 					break;
 
 			//	set intra subdomain communication
-				x.use_layout(0);
-				ModRhs.use_layout(0);
+				//x.use_layout(0);
+				//ModRhs.use_layout(0);
 
 			//	Solve Dirichlet problem on FETI subdomain
 				if(!m_pDirichletSolver->apply_return_defect(x, ModRhs))
@@ -303,8 +304,8 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 				write_debug(x, "FetiDirichlet");
 
 			//	set inter subdomain communication
-				x.use_layout(1);
-				eta.use_layout(1);
+				//x.use_layout(1);
+				//eta.use_layout(1);
 
 			//	Compute update for lambda: eta = A*x (to be more specific: \eta_i^{n+1} = A_{\Gamma I}^{(i)} w_i^{n+1} + A_{\Gamma \Gamma}^{(i)} r_{\Gamma})
 				m_pMatrix->apply(eta, x);
@@ -372,17 +373,19 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain 
 				scale = -1.0;
 
-			VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
-			VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
+		// TODO: Implement Bnd-Layout
+		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_slave_layout(1));
+		//	VecScaleAddOnLayout(&ModRhs, &lambda, scale, ModRhs.get_master_layout(1));
 		}
 
 	//	subtract solution on other processes from own value on gamma
 		void compute_difference_on_gamma(vector_type& x)
 		{
-			VecSubtractOnLayout(&x,
+		// TODO: Implement Bnd-Layout
+		/* VecSubtractOnLayout(&x,
 								x.get_master_layout(1),
 								x.get_slave_layout(1),
-								&x.get_communicator(1));
+								&x.get_communicator(1));*/
 			number scale = 1.0;
 			if(pcl::GetProcRank() != 0) // TODO: generalize to more than one process per FETI subdomain
 				scale = -1.0;
@@ -393,14 +396,16 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 		void copy_dirichlet_values_and_zero(vector_type& ModRhs, const vector_type& r)
 		{
 			ModRhs.set(0.0);
-			VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
-			VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
+		//	todo: implement Bnd-Layout
+		//	VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_slave_layout(1));
+		//	VecScaleAddOnLayout(&ModRhs, &r, 1.0, ModRhs.get_master_layout(1));
 		}
 
 		void set_dirichlet_rows_on_gamma(matrix_type& mat)
 		{
-			MatSetDirichletOnLayout(&mat, mat.get_slave_layout(1));
-			MatSetDirichletOnLayout(&mat, mat.get_master_layout(1));
+		//	todo: implement Bnd-Layout
+		//	MatSetDirichletOnLayout(&mat, mat.get_slave_layout(1));
+		//	MatSetDirichletOnLayout(&mat, mat.get_master_layout(1));
 		}
 
 	protected:
