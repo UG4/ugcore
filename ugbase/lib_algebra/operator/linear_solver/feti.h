@@ -996,8 +996,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 		//	set layouts
-			m_LocalSchurComplement.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
-			m_LocalSchurComplement.set_dual_layouts(m_slaveDualLayout, m_masterDualLayout);
+			m_SchurComplementInverse.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
+			m_SchurComplementInverse.set_dual_layouts(m_slaveDualLayout, m_masterDualLayout);
 
 		//	set neumann solver in SchurComplementInverse
 			m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
