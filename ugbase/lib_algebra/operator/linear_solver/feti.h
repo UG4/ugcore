@@ -664,7 +664,7 @@ class SchurComplementInverse
 			bool bSuccess = true;
 
 			pcl::SynchronizeProcesses();
-			UG_LOG_ALL_PROCS("Initializing SchurComplementnverse.\n");
+			UG_LOG_ALL_PROCS("Initializing SchurComplementInverse.\n");
 
 		//	remember operator
 			m_A = dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
@@ -672,7 +672,7 @@ class SchurComplementInverse
 		//	check, that operator is correct
 			if(m_A == NULL)
 			{
-				UG_LOG("ERROR in 'SchurComplementInverse::init':"
+				UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
 						" Wrong type of operator passed for init.\n");
 				bSuccess = false;
 			}
@@ -689,7 +689,7 @@ class SchurComplementInverse
 		//	Check all procs
 			if(!pcl::AllProcsTrue(bSuccess))
 			{
-				UG_LOG("ERROR in 'SchurComplementInverse::init':"
+				UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
 						" Some proc could not init Schur Complement inverse.\n");
 				return false;
 			}
