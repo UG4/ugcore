@@ -14,46 +14,38 @@
 
 #include "new_nodes_nummerator.h"
 #include "parallelization_util.h"
-#include "test_layout.h"
+//#include "test_layout.h"
+#include "common/util/sort_util.h"
+
+
 namespace ug
 {
 
-template<typename TIndex, typename TValue>
-struct SortStruct
+
+template<typename TLayout>
+void AddLayout(TLayout &destLayout, TLayout &sourceLayout)
 {
-	TIndex index;
-	TValue value;
-
-	void set_value(TValue &val)
+	for(typename TLayout::iterator iter = sourceLayout.begin(); iter != sourceLayout.end(); ++iter)
 	{
-		value = val;
+		typename TLayout::Interface &source_interface = sourceLayout.interface(iter);
+		typename TLayout::Interface &dest_interface = destLayout.interface(sourceLayout.proc_id(iter));
+		for(typename TLayout::Interface::iterator iter2 = source_interface.begin(); iter2 != source_interface.end(); ++iter2)
+			dest_interface.push_back(source_interface.get_element(iter2));
 	}
+}
 
-	bool operator < (const SortStruct<TIndex, TValue> &other) const
-	{
-		return value < other.value;
-	}
-};
-
-template<typename TIterator, typename TPivot>
-void SortToPivot(const TIterator &vBegin, const TIterator &vEnd, std::vector<TPivot> &vPivot)
+template<typename TLayout>
+void PrintLayout(TLayout &layout)
 {
-	std::vector<SortStruct<typename TIterator::value_type, TPivot> > vSort;
-	size_t N = vEnd-vBegin;
-	vSort.resize(N);
-
-	size_t i=0;
-	for(TIterator it = vBegin; it != vEnd; ++it, ++i)
+	for(typename TLayout::iterator iter = layout.begin(); iter != layout.end(); ++iter)
 	{
-		size_t index = *it;
-		UG_ASSERT(index >= 0 && index < vPivot.size(), "");
-		vSort[i].set_value(vPivot[index]);
-		vSort[i].index = index;
+		size_t pid = layout.proc_id(iter);
+		UG_LOG("to processor " << pid << ": ");
+		typename TLayout::Interface &interface = layout.interface(iter);
+		for(typename TLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+			UG_LOG(interface.get_element(iter2) << "  ");
+		UG_LOG("\n");
 	}
-	sort(vSort.begin(), vSort.end());
-	i=0;
-	for(TIterator it = vBegin; it != vEnd; ++it, ++i)
-		*it = vSort[i].index;
 }
 
 
@@ -85,17 +77,11 @@ private:
 	// 1. slave-knoten verschicken ihre Zeile an den Master.
 	//    /!\ werden verknŸpfungen zu anderen prozessoren verschickt, werden die prozessoren informiert
 	//    /!\ unter umstŠnden wird so ein prozessor "von 2 seiten" informiert. dann muss es eine
-	//        definierte reihenfolge geben. zB. kleinere pid zuerst.
-	// 2. Master nimmt diese entgegen, und erzeugt u.U. neue Knoten. Diese werden als "neu" markiert
-	// 3. die neuen knoten mšchten jetzt wieder ihre Zeile haben. Schicke ihre ID an den Prozessor,
-	//    dem sie angehšren
-	// 4. jeder prozessor nimmt so eine liste entgegen
+	// 2. verschicke die matrixzeilen und benachrichtungen
+	// 3. nehme matrixzeilen und benachrichtungen entgegen
+	// 4. verarbeite benachrichtungen: erzeuge u.U. neue Master Knoten
+	// 5. verarbeite matrixzeilen und erzeugt u.U. neue Knoten (Slave). Diese werden als "neu" markiert
 	//
-	// sortieren ist erforderlich. angenommen, p0 hat slave-knoten auf prozessor 1 (0|14 und 0|15),
-	// und slave-knoten auf prozessor 2 (0|11, 0|24). p1 und p2 informieren jetzt prozessor 0 darŸber,
-	// dass p3 eine kopie dieses knoten besitzt. dann muss p0 die 4 indices in der GLEICHEN
-	// reihenfolge einsortieren, wie das p3 tut.
-
 	// \param mat matrix to take values from
 	// \param layout : for all interfaces I in layout, send matrix rows of nodes in I with com
 	// \param create_new_nodes : if true, do not add nodes to masterOLLayout
@@ -461,7 +447,7 @@ private:
 			std::vector<size_t> &v = iter->second;
 			for(size_t i=0; i<v.size(); i++)
 
-			SortToPivot(v.begin(), v.end(), m_globalIDs);
+			IndicesSort(v.begin(), v.end(), m_globalIDs);
 			Interface &interface = layout.interface(pid);
 			for(size_t i=0; i<v.size(); i++)
 				interface.push_back(v[i]);
@@ -680,7 +666,7 @@ public:
 			else
 				backward_receive_layout = &backward_slaveOLLayouts[current_overlap-1];
 
-			do_stuff(*backward_send_layout, *backward_receive_layout, bCreateNewNodes,
+			communicate(*backward_send_layout, *backward_receive_layout, bCreateNewNodes,
 					backward_slaveOLLayouts[current_overlap], backward_masterOLLayouts[current_overlap], pids,
 								nodeNummerator, true);
 
@@ -688,8 +674,7 @@ public:
 		}
 
 
-		m_newMat.set_slave_layout(m_slaveOLLayout);
-		m_newMat.set_master_layout(m_masterOLLayout);
+		m_newMat.set_layouts(m_masterOLLayout, m_slaveOLLayout);
 		m_newMat.set_communicator(m_mat.get_communicator());
 		m_newMat.set_process_communicator(m_mat.get_process_communicator());
 		m_newMat.copy_storage_type(m_mat);
