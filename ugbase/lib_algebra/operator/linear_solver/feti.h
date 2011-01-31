@@ -660,6 +660,9 @@ class SchurComplementInverse
 	// 	Init for Linear Operator L
 		virtual bool init(ILinearOperator<vector_type, vector_type>& L)
 		{
+		//	success flag
+			bool bSuccess = true;
+
 			pcl::SynchronizeProcesses();
 			UG_LOG_ALL_PROCS("Initializing SchurComplementnverse.\n");
 
@@ -671,7 +674,7 @@ class SchurComplementInverse
 			{
 				UG_LOG("ERROR in 'SchurComplementInverse::init':"
 						" Wrong type of operator passed for init.\n");
-				return false;
+				bSuccess = false;
 			}
 
 		//	check that Pi layouts have been set
@@ -680,6 +683,14 @@ class SchurComplementInverse
 				UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
 						" Master or Slave layout for cross points not set "
 						"on Proc " << pcl::GetProcRank() << ".\n");
+				bSuccess = false;
+			}
+
+		//	Check all procs
+			if(!pcl::AllProcsTrue(bSuccess))
+			{
+				UG_LOG("ERROR in 'SchurComplementInverse::init':"
+						" Some proc could not init Schur Complement inverse.\n");
 				return false;
 			}
 
