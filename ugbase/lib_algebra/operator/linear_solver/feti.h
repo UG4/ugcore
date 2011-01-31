@@ -207,8 +207,9 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
  */
 template <typename TVector>
 void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
-							  IndexLayout& masterLayoutIn,
-							  IndexLayout& slaveLayoutIn)
+							  IndexLayout&   masterLayoutIn,
+							  IndexLayout&    slaveLayoutIn,
+							  IndexLayout& slaveNbrLayoutIn)
 {
 	// Reset all values
 	diff.set(0.0);
@@ -218,7 +219,10 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 	VecSubtractOnLayout(&diff, masterLayoutIn, slaveLayoutIn);
 
 	// ... and slaves multiplies the result by '-1' (no communication is performed)
-	VecSetOnLayout(&diff, -1.0, slaveLayoutIn);
+	VecScaleOnLayout(&diff, -1.0, slaveLayoutIn);
+
+	// ... and copy master values to additional slaves living in "Dual neighbour layout" (communication is performed)
+	VecCopyOnLayout(&diff, masterLayoutIn, slaveNbrLayoutIn);
 
 	return;
 };
@@ -236,12 +240,11 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
  */
 template <typename TVector>
 void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,
-							  IndexLayout& masterLayoutIn,
-							  IndexLayout& slaveLayoutIn)
+										IndexLayout& masterLayoutIn,
+										IndexLayout& slaveLayoutIn,
+										IndexLayout& slaveNbrLayoutIn)
 {
 	
-	// 1. All masters set their values equal to $\lambda$
-	// 2. All slaves set their values equal to $-\lambda$
 
 	// (a) Reset all values
 	f.set(0.0);
@@ -249,8 +252,11 @@ void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,
 	//VecSetOnLayout(&f, 0.0, slaveLayoutIn);
 
 	// (b) Copy values on \Delta
-	VecScaleAddOnLayout(&f, &lambda, 1.0, masterLayoutIn);
-	VecScaleAddOnLayout(&f, &lambda, -1.0, slaveLayoutIn);
+	// 1. All masters set their values equal to $\lambda$
+	VecScaleAddOnLayout(&f, &lambda,  1.0,   masterLayoutIn);
+	// 2. All slaves set their values equal to $-\lambda$
+	VecScaleAddOnLayout(&f, &lambda, -1.0,    slaveLayoutIn);
+	VecScaleAddOnLayout(&f, &lambda, -1.0, slaveNbrLayoutIn);
 
 	return;
 
@@ -426,6 +432,9 @@ class LocalSchurComplement
 				m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
 				                             "FetiOriginalMatrix");
 			}
+
+ UG_LOG_ALL_PROCS("'LocalSchurComplement::init': "
+				  "********** After MatSetDirichletOnLayout on Proc " << pcl::GetProcRank() << ".(TMP)\n");
 
 		//	we're done
 			return true;
@@ -730,7 +739,7 @@ class SchurComplementInverse
 				                             "FetiNeumannMatrix");
 			}
 
-		//	Choose root process, where SchurCompliment w.r.t. Primal unknowns
+		//	Choose root process, where Schur complement w.r.t. Primal unknowns
 		//	is gathered.
 			m_primalRootProc = pcl::GetOutputProcRank();
 
@@ -873,7 +882,7 @@ class SchurComplementInverse
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
-};
+}; /* end class 'SchurComplementInverse' */
 
 /// TODO:
 // * Use members for delta layouts in LogIndexLayoutOnAllProcs() etc.
@@ -1096,13 +1105,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			f.set(0.0); fTmp.set(0.0);
 
 			//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
-			ComputeDifferenceOnDeltaTransposed(f, v, m_masterDualLayout, m_slaveDualLayout);
+			ComputeDifferenceOnDeltaTransposed(f, v, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
 			m_SchurComplementInverse.apply(fTmp, f);
 
 			//	3. Apply jump operator to get the final 'f'
-			ComputeDifferenceOnDelta(f, fTmp, m_masterDualLayout, m_slaveDualLayout);
+			ComputeDifferenceOnDelta(f, fTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//	we're done
 			return true;
@@ -1131,7 +1140,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_SchurComplementInverse.apply(dTmp, f);
 
 			//	2. Apply jump operator to get the final 'd'
-			ComputeDifferenceOnDelta(d, dTmp, m_masterDualLayout, m_slaveDualLayout);
+			ComputeDifferenceOnDelta(d, dTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//	we're done
 			return true;
@@ -1171,13 +1180,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			Apply_ScalingMatrix(z, r); // maybe restrict to layout
 
 			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(zTmp, z, m_masterDualLayout, m_slaveDualLayout);
+			ComputeDifferenceOnDeltaTransposed(zTmp, z, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 			m_LocalSchurComplement.apply(z, zTmp);
 
 			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(zTmp, z, m_masterDualLayout, m_slaveDualLayout);
+			ComputeDifferenceOnDelta(zTmp, z, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
 			Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
@@ -1199,13 +1208,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//Apply_ScalingMatrix(z, r); // maybe restrict to layout
 
 			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(z, r, m_masterDualLayout, m_slaveDualLayout);
+			ComputeDifferenceOnDeltaTransposed(z, r, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 			m_LocalSchurComplement.apply(zTmp, z);
 
 			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(z, zTmp, m_masterDualLayout, m_slaveDualLayout);
+			ComputeDifferenceOnDelta(z, zTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
 			//Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
@@ -1245,7 +1254,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		// 	create help vectors (h will be consistent r) -- 'h'???? Wieso unten sizes unterschiedlicher vectors im 'create()'? Die sollten doch alle gleich lang sein ...
 		//	todo: 	It would be sufficient to copy only the pattern and
 		//			without initializing, but in parallel we have to copy communicators
-			vector_type t; t.create(r.size()); t = r;
+			vector_type t; t.create(r.size());      t = r;
 			vector_type z; z.create(lambda.size()); z = lambda;
 			vector_type p; p.create(lambda.size()); p = lambda;
 
@@ -1286,7 +1295,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			p = z;
 
 			// start rho
-			rho = VecProd(z, r);
+			//rho = VecProd(z, r);
+			VecProdOnLayout(rho, &z, &r, m_masterDualLayout);
 
 			m_iterCnt = 0;
 		// 	Iteration loop
@@ -1301,14 +1311,20 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				}
 
 			// 	Compute alpha
-				alpha_denominator = VecProd(t, p);
+				//alpha_denominator = VecProd(t, p);
+				VecProdOnLayout(alpha_denominator, &t, &p, m_masterDualLayout);
+
 				alpha = rho/alpha_denominator;
 
 			// 	Update lambda := lambda + alpha*p
-				VecScaleAdd(lambda, 1.0, lambda, alpha, p);
+				//VecScaleAdd(lambda, 1.0, lambda, alpha, p);
+				VecScaleAddOnLayout(&lambda, 1.0, &lambda, alpha, &p, m_slaveDualLayout);
+				VecScaleAddOnLayout(&lambda, 1.0, &lambda, alpha, &p, m_masterDualLayout);
 
 			// 	Update r := r - alpha*t
-				VecScaleAdd(r, 1.0, r, -alpha, t);
+				//VecScaleAdd(r, 1.0, r, -alpha, t);
+				VecScaleAddOnLayout(&r, 1.0, &r, -alpha, &t, m_slaveDualLayout);
+				VecScaleAddOnLayout(&r, 1.0, &r, -alpha, &t, m_masterDualLayout);
 
 			// 	Check convergence
 				m_pConvCheck->update(r);
@@ -1329,17 +1345,20 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				}
 
 			// 	new rho
-				rho_new = VecProd(z, r);
+				//rho_new = VecProd(z, r);
+				VecProdOnLayout(rho_new, &z, &r, m_masterDualLayout);
 
 			// 	new beta
 				beta = rho_new/rho;
 
 			// 	new direction p:= beta*p + z
-				VecScaleAdd(p, beta, p, 1.0, z);
+				//VecScaleAdd(p, beta, p, 1.0, z);
+				VecScaleAddOnLayout(&p, beta, &p, 1.0, &z, m_slaveDualLayout);
+				VecScaleAddOnLayout(&p, beta, &p, 1.0, &z, m_masterDualLayout);
 
 			// 	update rho
 				rho = rho_new;
-			}
+			} /* end iteration loop */
 
 			return m_pConvCheck->post();
 		} /* end 'FETISolver::apply_return_defect()' */
