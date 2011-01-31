@@ -122,11 +122,7 @@ private:
 
 			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pid << "\n");
 
-			if(mark.size() == 0)
-			{
-				UG_LOG("resizing marks...");
-				mark.resize(m_mat.num_rows(), false);
-			}
+			if(mark.size() == 0) mark.resize(m_mat.num_rows(), false);
 
 
 			for(Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
@@ -158,7 +154,7 @@ private:
 
 					if(create_new_nodes == false)
 					{
-						UG_LOG("not adding node to masterOLInterface because create_new_node = false\n");
+						UG_DLOG(LIB_ALG_MATRIX, 4, "not adding node to masterOLInterface because create_new_node = false\n");
 					}
 					else
 					{
@@ -177,38 +173,37 @@ private:
 								p_masterOLInterface->push_back(local_col_index);
 							}
 							else
-								UG_LOG("  not adding node to masterOLInterface because it is already\n");
+								UG_DLOG(LIB_ALG_MATRIX, 4, "  not adding node to masterOLInterface because it is already\n");
 							//node_marked[local_col_index] = true;
 						}
 						else
 							// wir informieren hiermit den "Besitzer" des Knotens darüber,
 							// dass eine kopie des knotens nun auf dem Prozessor mit prozessor id pid liegt.
 						{
-							UG_LOG("  not adding node to masterOLInterface because it is on another processor\n");
+							UG_DLOG(LIB_ALG_MATRIX, 4, "  not adding node to masterOLInterface because it is on another processor\n");
 							if(global_col_index.first != pid) // obviously the owner knows that his node is on his processor
 							{
 								UG_DLOG(LIB_ALG_MATRIX, 4, " processor " << global_col_index.first << " gets informed that his local node "
 																		<< global_col_index.second << " has a copy on processor " << pid << "\n");
 								// for slave nodes: mark[pid][i]=true means we already send notification to the owner that local index i has a copy on processor pid.
-								/*if(m_mapMark[global_col_index.first].size() == 0)
+								// commented out because we would need to resize m_mapMark[global_col_index.first]
+								std::vector<bool> &otherMark = m_mapMark[pid];
+								otherMark.resize(m_globalIDs.size(), false);
+
+								if(otherMark[local_col_index] == false)
 								{
-									UG_LOG("resizing marks...");
-									m_mapMark[global_col_index.first].resize(m_mat.num_rows(), false);
-								}
-								if(m_mapMark[global_col_index.first][local_col_index] == false)*/
-								{
-									m_mapMark[global_col_index.first][local_col_index] = true;
+									otherMark[local_col_index] = true;
 									BinaryStream &notifications_stream = *notifications_pack.get_stream(global_col_index.first);
 
 									Serialize(notifications_stream, global_col_index.second);
 									Serialize(notifications_stream, pid);
 									//UG_ASSERT(find(pids.begin(), pids.end(), global_col_index.first) != pids.end(), "sending notification to a processor " << global_col_index.first << ", not in pid list???");
 								}
-								/*else
-									UG_LOG("  not sending notification because already send one\n");*/
+								else
+									UG_DLOG(LIB_ALG_MATRIX, 4, " not sending notification because already send one\n");
 							}
 							else
-								UG_LOG("  not sending notification because owner knows that his node is on his\n");
+								UG_DLOG(LIB_ALG_MATRIX, 4, "  not sending notification because owner knows that his node is on his\n");
 
 						}
 					}
@@ -266,15 +261,10 @@ private:
 				UG_ASSERT(m_globalIDs[local_index].first == pcl::GetProcRank() && m_globalIDs[local_index].second == local_index, "got notification about a node not master on this proc?");
 				UG_ASSERT(local_index < m_mat.num_rows(), "");
 
-				if(mark.size() == 0)
-				{
-					UG_LOG("resizing marks...");
-					mark.resize(m_mat.num_rows(), false);
-				}
-
+				mark.resize(m_globalIDs.size(), false);
 				if(mark[local_index] == false)
 				{
-					UG_ASSERT(mark.size() == m_mat.num_rows(), "");
+					UG_ASSERT(mark.size() == m_globalIDs.size(), "");
 					mark[local_index]=true;
 
 					// this is a notification that local_index is now slave on processor pid2.
@@ -311,7 +301,7 @@ private:
 			for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
 			{
 				size_t local_index = interface.get_element(iter2);
-				UG_LOG(local_index << " ");
+				UG_DLOG(LIB_ALG_MATRIX, 4, local_index << " ");
 				mark[local_index] = true;
 			}
 		}
@@ -438,7 +428,10 @@ private:
 				if(bSet)
 					m_newMat.set_matrix_row(local_row_index, &cons[0], j);
 				else
+				{
 					m_newMat.add_matrix_row(local_row_index, &cons[0], j);
+				}
+
 			}
 		}
 	}
@@ -474,7 +467,7 @@ private:
 				interface.push_back(v[i]);
 		}
 	}
-	void do_stuff(IndexLayout &sendingNodesLayout, IndexLayout &receivingNodesLayout,
+	void communicate(IndexLayout &sendingNodesLayout, IndexLayout &receivingNodesLayout,
 			bool bCreateNewNodes,
 			IndexLayout &newSlavesLayout, IndexLayout &newMastersLayout,
 			std::set<int> &pids, NewNodesNummerator &nodeNummerator, bool bSet)
@@ -518,18 +511,21 @@ private:
 			UG_ASSERT(0, "unknown error here");
 		}
 
-		for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
-				++iter)
+		IF_DEBUG(LIB_ALG_MATRIX, 4)
 		{
-			int pid = receivingNodesLayout.proc_id(iter);
-			UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrow_pack.get_stream(pid)->size() << " bytes of matrixrow data from proc " << pid << "\n");
-		}
+			for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
+					++iter)
+			{
+				int pid = receivingNodesLayout.proc_id(iter);
+				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrow_pack.get_stream(pid)->size() << " bytes of matrixrow data from proc " << pid << "\n");
+			}
 
-		for(std::set<int>::iterator iter = pids.begin(); iter != pids.end(); ++iter)
-		{
-			size_t pid = *iter;
-			UG_ASSERT(notifications_pack.has_stream(pid), "pid = " << pid);
-			UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notifications_pack.get_stream(pid)->size() << " bytes of notifications data from proc " << pid << "\n");
+			for(std::set<int>::iterator iter = pids.begin(); iter != pids.end(); ++iter)
+			{
+				size_t pid = *iter;
+				UG_ASSERT(notifications_pack.has_stream(pid), "pid = " << pid);
+				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notifications_pack.get_stream(pid)->size() << " bytes of notifications data from proc " << pid << "\n");
+			}
 		}
 		// process data
 		//-----------------
@@ -565,15 +561,16 @@ private:
 		add_matrix_rows(matrixrow_pack, nodeNummerator, bSet);
 
 		// send master rows to slaves
-		if(bCreateNewNodes)
-		{
-			UG_LOG("master OL Layout:\n");
-			PrintLayout(newMastersLayout);
-			UG_LOG("slave OL Layout:\n");
-			PrintLayout(newSlavesLayout);
-			UG_LOG("OL Layout:\n");
-			PrintLayout(m_com, newMastersLayout, newSlavesLayout);
-		}
+		IF_DEBUG(LIB_ALG_MATRIX, 4)
+			if(bCreateNewNodes)
+			{
+				UG_DLOG(LIB_ALG_MATRIX, 4, "master OL Layout:\n");
+				PrintLayout(newMastersLayout);
+				UG_DLOG(LIB_ALG_MATRIX, 4, "slave OL Layout:\n");
+				PrintLayout(newSlavesLayout);
+				UG_DLOG(LIB_ALG_MATRIX, 4, "OL Layout:\n");
+				PrintLayout(m_com, newMastersLayout, newSlavesLayout);
+			}
 	}
 public:
 	GenerateOverlapClass(matrix_type &mat, matrix_type &newMat, IndexLayout &masterOLLayout, IndexLayout &slaveOLLayout, size_t overlapDepth=1) :
@@ -584,14 +581,14 @@ public:
 
 	bool calculate()
 	{
-		UG_DLOG(LIB_ALG_MATRIX, 4, "GENERATE OVERLAP START\n");
-
-		UG_DLOG(LIB_ALG_MATRIX, 4, "matrix is " << m_mat.num_rows() << " x " << m_mat.num_cols() << "\n");
-		UG_ASSERT(m_mat.num_rows() == m_mat.num_cols(), "atm only for square matrices");
-
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
-			m_mat.print();
+		{
+			UG_DLOG(LIB_ALG_MATRIX, 4, "GENERATE OVERLAP START\n");
 
+			UG_DLOG(LIB_ALG_MATRIX, 4, "matrix is " << m_mat.num_rows() << " x " << m_mat.num_cols() << "\n");
+			m_mat.print();
+		}
+		UG_ASSERT(m_mat.num_rows() == m_mat.num_cols(), "atm only for square matrices");
 
 		IndexLayout &masterLayout = m_mat.get_master_layout();
 		IndexLayout &slaveLayout = m_mat.get_slave_layout();
@@ -601,6 +598,12 @@ public:
 		// generate global algebra indices
 		UG_DLOG(LIB_ALG_MATRIX, 4, "generate " << m_mat.num_rows() << " m_globalIDs\n");
 		GenerateGlobalAlgebraIDs(m_globalIDs, m_mat.num_rows(), masterLayout, slaveLayout);
+
+		IF_DEBUG(LIB_ALG_MATRIX, 4)
+		{
+			for(size_t i=0; i<m_globalIDs.size(); i++)
+				UG_DLOG(LIB_ALG_MATRIX, 4, "  " << i << ": global id " << m_globalIDs[i].first << " | " << m_globalIDs[i].second << "\n")
+		}
 
 		m_newMat.create_as_copy_of(m_mat);
 
@@ -622,6 +625,8 @@ public:
 		backward_slaveOLLayouts.clear();
 		backward_slaveOLLayouts.resize(m_overlapDepth+1);
 
+		// TODO: try to remove these pid numbers or reduce them by introducing receivePIDs, sendPIDs
+		// these are necessary because notifications can occur to a processor not in the current layout
 		std::set<int> pids;
 		for(IndexLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
 			pids.insert(iter->first);
@@ -636,10 +641,13 @@ public:
 		{
 			bool bCreateNewNodes = (current_overlap == m_overlapDepth ? false : true);
 
-			UG_DLOG(LIB_ALG_MATRIX, 4, "\n---------------------\ncurrentOL: " << current_overlap << "\n");
-			if(bCreateNewNodes)
-				UG_DLOG(LIB_ALG_MATRIX, 4, "(creating New Nodes)\n");
-			UG_DLOG(LIB_ALG_MATRIX, 4, "---------------------\n\n");
+			IF_DEBUG(LIB_ALG_MATRIX, 4)
+			{
+				UG_DLOG(LIB_ALG_MATRIX, 4, "\n---------------------\ncurrentOL: " << current_overlap << "\n");
+				if(bCreateNewNodes)
+					UG_DLOG(LIB_ALG_MATRIX, 4, "(creating New Nodes)\n");
+				UG_DLOG(LIB_ALG_MATRIX, 4, "---------------------\n\n");
+			}
 
 			IndexLayout *send_layout;
 			if(current_overlap == 0)
@@ -654,7 +662,7 @@ public:
 				receive_layout = &slaveOLLayouts[current_overlap-1];
 
 
-			do_stuff(*send_layout, *receive_layout, bCreateNewNodes,
+			communicate(*send_layout, *receive_layout, bCreateNewNodes,
 					slaveOLLayouts[current_overlap], masterOLLayouts[current_overlap], pids,
 					nodeNummerator, false);
 
@@ -687,17 +695,18 @@ public:
 		m_newMat.copy_storage_type(m_mat);
 
 
-		UG_DLOG(LIB_ALG_MATRIX, 4, "new matrix\n\n");
+
 		IF_DEBUG(LIB_ALG_MATRIX, 4)
 		{
+			UG_DLOG(LIB_ALG_MATRIX, 4, "new matrix\n\n");
 			m_newMat.print();
 
-			UG_LOG("master OL Layout:\n");
+			UG_DLOG(LIB_ALG_MATRIX, 4, "master OL Layout:\n");
 			PrintLayout(m_masterOLLayout);
-			UG_LOG("slave OL Layout:\n");
+			UG_DLOG(LIB_ALG_MATRIX, 4, "slave OL Layout:\n");
 			PrintLayout(m_slaveOLLayout);
 
-			UG_LOG("OL Layout:\n");
+			UG_DLOG(LIB_ALG_MATRIX, 4, "OL Layout:\n");
 			PrintLayout(m_com, m_masterOLLayout, m_slaveOLLayout);
 		}
 
@@ -706,7 +715,7 @@ public:
 	}
 };
 
-
+// TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
 template<typename matrix_type>
 bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat, IndexLayout &masterOLLayout, IndexLayout &slaveOLLayout, size_t overlapDepth=1)
 {
