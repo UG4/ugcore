@@ -2,6 +2,7 @@
 // s.b.reiter@googlemail.com
 // 27.01.2011 (m,d,y)
  
+#include <algorithm>
 #include <vector>
 #include "parallelization_util.h"
 #include "communication_policies.h"
@@ -68,12 +69,33 @@ void CommunicateConnections(vector<vector<int> >& connectionsOut,
 	interfaceComm.communicate();
 }
 
+int GetHighestReferencedIndex(IndexLayout& layout)
+{
+//	we have to find the highest referenced index.
+//	In order to do so, we will iterate over all entries of the
+//	given layouts and check each.
+	int highestReferencedIndex = -1;
+	for(IndexLayout::iterator iiter = layout.begin();
+		iiter != layout.end(); ++iiter)
+	{
+		IndexLayout::Interface& interface = layout.interface(iiter);
+		for(IndexLayout::Interface::iterator eiter = interface.begin();
+			eiter != interface.end(); ++eiter)
+		{
+			IndexLayout::Interface::Element elem = interface.get_element(eiter);
+			if(elem > highestReferencedIndex)
+				highestReferencedIndex = elem;
+		}
+	}
+
+	return highestReferencedIndex;
+}
+
 int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  IndexLayout& slaveLayoutOut,
 						  int rootProcID,
 						  IndexLayout& masterLayout,
 						  IndexLayout& slaveLayout,
-						  int highestReferencedIndex,
 						  pcl::ProcessCommunicator procComm,
 						  std::vector<int>* pNewMasterIDsOut)
 {
@@ -83,6 +105,10 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 	vector<IndexLayout::Element> oldMasterNodes;
 	vector<IndexLayout::Element> oldSlaveNodes;
 	pcl::ParallelCommunicator<IndexLayout> interfaceComm;
+
+	int highestReferencedIndex = max(GetHighestReferencedIndex(masterLayout),
+									 GetHighestReferencedIndex(slaveLayout));
+
 	int algVecSize = highestReferencedIndex + 1;
 	if(algVecSize < 0) algVecSize = 0;
 
@@ -278,8 +304,12 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 
 //	nodeCounter != 0 only on rootProc
 //todo - instead of copying, the algorithm could directly work on pNewMasterIDsOut.
-	if(pNewMasterIDsOut)
+	if(pNewMasterIDsOut){
+		size_t oldSize = pNewMasterIDsOut->size();
 		*pNewMasterIDsOut = masterIDs;
+		if(oldSize > pNewMasterIDsOut->size())
+			pNewMasterIDsOut->resize(oldSize, -1);
+	}
 	return nodeCounter;
 }
 

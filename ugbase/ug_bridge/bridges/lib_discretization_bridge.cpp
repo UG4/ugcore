@@ -69,7 +69,6 @@ void OneToManyTests(grid_function_type& func)
 						 0,
 						 func.get_master_layout(),
 						 func.get_slave_layout(),
-						 (int)func.num_dofs() - 1,
 						 pcl::ProcessCommunicator(pcl::PCD_WORLD));
 }
 

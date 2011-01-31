@@ -737,21 +737,26 @@ class SchurComplementInverse
 		//	vector to store newly created root ids
 			std::vector<int> newMasterIDsOut;
 
-		//	integer to store highest index
-			int highestIndex;
-
 		//	Build layouts such that all processes can communicated their unknowns
 		//	to the primal Root Process
-			BuildOneToManyLayout(m_masterAllToOneLayout, m_slaveAllToOneLayout,
-			                     m_primalRootProc,
+			int newVecSize = BuildOneToManyLayout(m_masterAllToOneLayout,
+			                     m_slaveAllToOneLayout, m_primalRootProc,
 			                     *m_pMasterPrimalLayout, *m_pSlavePrimalLayout,
-			                     highestIndex, m_allToOneProcessComm,
-			                     &newMasterIDsOut);
+			                     m_allToOneProcessComm, &newMasterIDsOut);
 
 		//	We have to gather the quantities of primal nodes on each process
 		//	of the feti-block in one array.
-			//m_localFetiBlockComm
-			//m_primalQuantities
+			int numLocalPrimals = m_slaveAllToOneLayout.num_interface_elements();
+			m_primalQuantities.resize(m_localFetiBlockComm.size());
+			m_localFetiBlockComm.allgather(&numLocalPrimals, 1, PCL_DT_INT,
+									&m_primalQuantities.front(), 1, PCL_DT_INT);
+
+		//	log num primal quantities
+			UG_LOG("primal quantities: ");
+			for(size_t i = 0; i < m_primalQuantities.size(); ++i){
+				UG_LOG(m_primalQuantities[i] << " ");
+			}
+			UG_LOG(endl);
 
 		//	build matrix on primalRoot
 			if(pcl::GetProcRank() == m_primalRootProc)
@@ -760,10 +765,10 @@ class SchurComplementInverse
 				m_pOneProcSchurCompMatrix = &m_OneProcSchurCompOp.get_matrix();
 
 			//	create matrix of correct size
-				m_pOneProcSchurCompMatrix->create(highestIndex+1, highestIndex+1);
+				m_pOneProcSchurCompMatrix->create(newVecSize, newVecSize);
 
 				std::cout << "On PrimalRoot: Creating proc local Schur Complement"
-							" of size " << highestIndex+1 <<"^2." << std::endl;
+							" of size " << newVecSize <<"^2." << std::endl;
 			}
 
 		//	we're done

@@ -599,6 +599,9 @@ void MatSetDirichletOnLayout(	TMatrix* pMatrix,
 }
 
 
+//	returns the highest referenced index of the elements in the layout.
+int GetHighestReferencedIndex(IndexLayout& layout);
+
 ////////////////////////////////////////////////////////////////////////
 ///	fills a connection list, which gives the connected processes to each entry.
 /**	the first entry for each connection is the process on which the
@@ -617,13 +620,12 @@ void CommunicateConnections(std::vector<std::vector<int> >& connectionsOut,
  * The associated vector-indices are assigned so that the work with a mxm matrix,
  * where m is the returned number of newly created elements.
  *
- * \param 	highestReferencedIndex The highest index which is referenced by
- * 			masterLayout or by slaveLayout. -1 if there is none.
- * \param	pNewMasterIDsOut (out)an optional vector to whichthe
+ * \param	pNewMasterIDsOut (out)an optional vector to which the
  * 			associated new element ids for each
  * 			element in the given masterLayout and slaveLayout will be written.
- * 			It will be resized to highestReferencedIndex+1 and will contain
- * 			-1 in each entry which is not referenced by masterLayout or slaveLayout.
+ * 			If not large enough it will be resized to the highest
+ * 			referenced index and will contain -1 in each entry which
+ * 			is not referenced by masterLayout or slaveLayout.
  * \return	the number of newly created elements (!= 0 only on rootProc).
  */
 int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
@@ -631,7 +633,6 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  int rootProcID,
 						  IndexLayout& masterLayout,
 						  IndexLayout& slaveLayout,
-						  int highestReferencedIndex,
 						  pcl::ProcessCommunicator procComm,
 						  std::vector<int>* pNewMasterIDsOut = NULL);
 
