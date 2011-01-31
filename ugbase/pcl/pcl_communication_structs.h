@@ -204,13 +204,20 @@ class OrderedInterface
 		inline iterator begin()		{return m_elements.begin();}
 		inline iterator end()		{return m_elements.end();}
 
+		inline const_iterator begin() const {return m_elements.begin();}
+		inline const_iterator end() const {return m_elements.end();}
+
 		inline Element& get_element(iterator iter)	{return (*iter).elem;}
 		inline size_t get_local_id(iterator iter)	{return (*iter).localID;}
 
-	///	returns the number of elements that are stored in the interface.
-		inline size_t size()						{return m_size;}
+		inline const Element& get_element(const_iterator iter) const {return (*iter).elem;}
+		inline size_t get_local_id(const_iterator iter)	const {return (*iter).localID;}
 
-		int get_target_proc()						{return m_targetProc;}
+
+	///	returns the number of elements that are stored in the interface.
+		inline size_t size() const					{return m_size;}
+
+		int get_target_proc() const					{return m_targetProc;}
 
 	///	returns true if iter1 < iter2.
 		static inline bool cmp(iterator iter1, iterator iter2,
@@ -345,7 +352,8 @@ class SingleLevelLayout
 		typedef typename Interface::Element		Element;
 
 	///	An iterator that allows to iterate over the interfaces stored in the layout.
-		typedef typename InterfaceMap::iterator		iterator;
+		typedef typename InterfaceMap::iterator			iterator;
+		typedef typename InterfaceMap::const_iterator	const_iterator;
 
 	public:
 	////////////////////////////////////////////////
@@ -354,24 +362,28 @@ class SingleLevelLayout
 	///	returns the iterator to the first interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
-		inline iterator begin(size_t level = 0)			{return m_interfaceMap.begin();}
+		inline iterator begin(size_t level = 0)					{return m_interfaceMap.begin();}
+		inline const_iterator begin(size_t level = 0) const		{return m_interfaceMap.begin();}
 
 	///	returns the iterator to the last interface of the layout.
 	/**	You should access the values of this iterator using the methods
 		Layout::interface and Layout::proc_id.*/
-		inline iterator end(size_t level = 0)			{return m_interfaceMap.end();}
+		inline iterator end(size_t level = 0)					{return m_interfaceMap.end();}
+		inline const_iterator end(size_t level = 0)	const		{return m_interfaceMap.end();}
 
 	///	returns true if the layout has no interfaces.
-		inline bool empty(size_t level = 0)				{return begin() == end();}
+		inline bool empty(size_t level = 0)	const 				{return begin() == end();}
 		
 	///	returns 1
-		inline size_t num_levels()						{return 1;}
+		inline size_t num_levels() const						{return 1;}
 		
 	///	returns the interface to the given iterator.
-		inline Interface& interface(iterator iter)		{return iter->second;}
+		inline Interface& interface(iterator iter)						{return iter->second;}
+		inline const Interface& interface(const_iterator iter) const	{return iter->second;}
 
 	///	returns the target process of the interface given in iterator
-		inline int proc_id(iterator iter)				{return iter->first;}
+		inline int proc_id(iterator iter) const 				{return iter->first;}
+		inline int proc_id(const_iterator iter) const			{return iter->first;}
 
 	///	erases the interface at the given iterator.
 	/**	returns an iterator to the next interface.*/
@@ -387,15 +399,22 @@ class SingleLevelLayout
 	 *	If not it will be created.
 	 *	The new interfaces localSrcID will be set to the localSrcID of this layout.*/
 		inline Interface& interface(int procID, size_t level = 0)
-			{
-				typename InterfaceMap::iterator iter = m_interfaceMap.find(procID);
-				if(iter != m_interfaceMap.end())
-					return iter->second;
-				return m_interfaceMap.insert(make_pair(procID, Interface(procID))).first->second;
-			}
+		{
+			iterator iter = m_interfaceMap.find(procID);
+			if(iter != m_interfaceMap.end())
+				return iter->second;
+			return m_interfaceMap.insert(make_pair(procID, Interface(procID))).first->second;
+		}
+
+		inline const Interface& interface(int procID, size_t level = 0) const
+		{
+			const_iterator iter = m_interfaceMap.find(procID);
+			UG_ASSERT(iter != m_interfaceMap.end(), "trying to access an non-existing interface ( to pid " << procID << ") in a constant layout");
+			return iter->second;
+		}
 
 	///	returns true if an interface to the given procID already exists.
-		inline bool interface_exists(int procID, size_t level = 0)
+		inline bool interface_exists(int procID, size_t level = 0) const
 			{return m_interfaceMap.find(procID) != m_interfaceMap.end();}
 
 	///	returns the sum of the interface sizes
