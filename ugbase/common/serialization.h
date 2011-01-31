@@ -6,7 +6,8 @@
 #define __H__UG__SERIALIZATION__
 
 #include <iostream>
-
+#include <vector>
+#include "log.h"
 namespace ug
 {
 
@@ -34,6 +35,39 @@ template <class T>
 void Deserialize(std::istream& buf, T& valOut)
 {
 	buf.read((char*)&valOut, sizeof(T));
+}
+
+///	writes data in a vector to a binary stream
+/**	This template method is used in ug when it comes to writing data
+ * from a vector into a binary stream.
+ * In its default implementation, it first writes the size of the vector
+ * and then serializes the entries.
+ */
+template <class T>
+void Serialize(std::ostream& buf, const std::vector<T>& vec)
+{
+	size_t size = vec.size();
+	buf.write((char*)&size, sizeof(size_t));
+	for(size_t i = 0; i < size; ++i){
+		Serialize(buf, vec[i]);
+	}
+}
+
+///	writes data in a vector to a binary stream
+/**	This template method is used in ug when it comes to writing data
+ * from a vector into a binary stream.
+ * In its default implementation, it first writes the size of the vector
+ * and then serializes the entries.
+ */
+template <class T>
+void Deserialize(std::istream& buf, std::vector<T>& vec)
+{
+	size_t size = 0;
+	buf.read((char*)&size, sizeof(size_t));
+	vec.resize(size);
+	for(size_t i = 0; i < size; ++i){
+		Deserialize(buf, vec[i]);
+	}
 }
 
 }//	end of namespace

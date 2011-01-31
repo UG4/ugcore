@@ -11,6 +11,63 @@ using namespace pcl;
 
 namespace ug{
 
+///	vector<int> has a variable size
+template <> struct block_traits<vector<int> >
+{
+	enum{
+		is_static = 0
+	};
+};
+
+void CommunicateConnections(vector<vector<int> >& connectionsOut,
+							IndexLayout& masterLayout,
+							IndexLayout& slaveLayout,
+							int highestReferencedIndex)
+{
+	typedef IndexLayout::Interface 	Interface;
+	typedef IndexLayout::iterator 	InterfaceIter;
+	typedef Interface::iterator		ElemIter;
+	typedef Interface::Element		Element;
+
+	int connectionVecSize = highestReferencedIndex + 1;
+	if(connectionVecSize < 0) connectionVecSize = 0;
+
+	connectionsOut.clear();
+	connectionsOut.resize(connectionVecSize);
+
+	int localProc = pcl::GetProcRank();
+
+//	iterte over all master interfaces
+	for(InterfaceIter iiter = masterLayout.begin();
+		iiter != masterLayout.end(); ++iiter)
+	{
+		Interface& interface = masterLayout.interface(iiter);
+		int targetProc = interface.get_target_proc();
+
+	//	iterate over all elements
+		for(ElemIter eiter = interface.begin();
+			eiter != interface.end(); ++eiter)
+		{
+			Element elem = interface.get_element(eiter);
+			vector<int>& cons = connectionsOut[elem];
+
+		//	the first entry in each connection is the master elements process
+			if(cons.size() == 0)
+				cons.push_back(localProc);
+
+		//	now push the slave
+			cons.push_back(targetProc);
+		}
+	}
+
+//	now communicate the connections to the slaves
+	pcl::ParallelCommunicator<IndexLayout> interfaceComm;
+	ComPol_VecCopy<vector<vector<int> > > compolCopy(&connectionsOut);
+	interfaceComm.send_data(masterLayout, compolCopy);
+	interfaceComm.receive_data(slaveLayout, compolCopy);
+	interfaceComm.communicate();
+}
+
 int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 						  IndexLayout& slaveLayoutOut,
 						  int rootProcID,
@@ -226,6 +283,7 @@ int BuildOneToManyLayout(IndexLayout& masterLayoutOut,
 	return nodeCounter;
 }
 
+/**	Please note that this method only handles elements with flags >=0, -1 and -2.*/
 static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 		IndexLayout& subdomLayoutOut, IndexLayout& processLayoutOut,
 		IndexLayout& deltaNbrLayoutOut, IndexLayout& crossPointLayoutOut,
@@ -252,9 +310,9 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 	//	in order to avoid creation of unrequired interfaces, we first count
 	//	how many entries of each flag-type (-2, -1, >= 0) exist in the current
 	//	standard interface.
-		int numMult = 0;	// flag: -2
-		int numOne = 0;		// flag: >= 0
-		int numNone = 0;	// flag: -1
+		int numMult = 0;		// flag: -2
+		int numOne = 0;			// flag: >= 0
+		int numNone = 0;		// flag: -1
 		for(ElemIter eiter = stdInterface.begin();
 			eiter != stdInterface.end(); ++eiter)
 		{
@@ -353,6 +411,162 @@ void BuildDomainDecompositionLayouts(
 	int localProcID = pcl::GetProcRank();
 	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
 
+
+//	first we communicate the conenctions of each entry to all processes
+	vector<vector<int> > connections;
+	CommunicateConnections(connections, standardMasters, standardSlaves,
+							highestReferencedIndex);
+/*
+	for(size_t i = 0; i < connections.size(); ++i){
+		UG_LOG("con_" << i << ": ");
+		for(size_t j = 0; j < connections[i].size(); ++j){
+			UG_LOG(connections[i][j] << " ");
+		}
+		UG_LOG(endl);
+	}
+*/
+////////////////////////
+//	this vector will contain an integer
+//	* -1 if the element is not connected to another subdomain.
+//	* >= 0 for each element which has a copy in exactly one other subdomain,
+//	* -2 for each element which has a copy in more than one other subdomain,
+	vector<int> flags(connections.size(), -1);
+
+//	iterate over all standard master interfaces and fill the vector as
+//	described above for master elements
+	for(InterfaceIter iiter = standardMasters.begin();
+		iiter != standardMasters.end(); ++iiter)
+	{
+	//	connected proc and subdomain ids
+		int connProc = standardMasters.proc_id(iiter);
+		int connSubdomID = ddinfo.map_proc_id_to_subdomain_id(connProc);
+		if(localSubdomID != connSubdomID){
+		//	the interface connects two subdomains.
+			Interface& interface = standardMasters.interface(iiter);
+			for(ElemIter eiter = interface.begin();
+				eiter != interface.end(); ++eiter)
+			{
+				Interface::Element ind = interface.get_element(eiter);
+				if(flags[ind] == -1) // not connection was yet known.
+					flags[ind] = connSubdomID;
+				else if(flags[ind] != connSubdomID)	//	at least one other connection is known.
+					flags[ind] = -2;//	and now at least two connections are known.
+			}
+		}
+	}
+
+//	now fill the flags vector for slave entries.
+//	here we'll use the connections, since we otherwise wouldn't know all connections.
+	for(InterfaceIter iiter = standardSlaves.begin();
+		iiter != standardSlaves.end(); ++iiter)
+	{
+	//	connected proc and subdomain ids
+		int connProc = standardSlaves.proc_id(iiter);
+		int connSubdomID = ddinfo.map_proc_id_to_subdomain_id(connProc);
+		if(localSubdomID != connSubdomID){
+		//	the interface connects two subdomains.
+			Interface& interface = standardSlaves.interface(iiter);
+			for(ElemIter eiter = interface.begin();
+				eiter != interface.end(); ++eiter)
+			{
+				Interface::Element elem = interface.get_element(eiter);
+				if(flags[elem] == -1){
+				//	check whether the element is connected to one or to more other subdomains
+					vector<int>& cons = connections[elem];
+					int tmpFlag = -1;
+					for(size_t i = 0; i < cons.size(); ++i){
+						int tmpSubdomID = ddinfo.map_proc_id_to_subdomain_id(cons[i]);
+						if(tmpSubdomID != localSubdomID){
+							if(tmpFlag == -1)
+								tmpFlag = tmpSubdomID;
+							else if(tmpFlag != tmpSubdomID){
+								tmpFlag = -2;
+								break;
+							}
+						}
+					}
+
+					flags[elem] = tmpFlag;
+
+					if((tmpFlag >= 0)){
+					//	check whether the associated master is in another subdomain
+					//	and whether another slave in the same subdomain exists.
+						if(ddinfo.map_proc_id_to_subdomain_id(cons[0]) != localSubdomID){
+							bool encounteredSelf = false;
+							for(size_t i = 1; i < cons.size(); ++i){
+								if(cons[i] == localProcID)
+									encounteredSelf = true;
+								else if(ddinfo.map_proc_id_to_subdomain_id(cons[i])
+									== localSubdomID)
+								{
+								//	at this point we will take care of interface insertion right here.
+									//flags[elem] = -3;
+
+									if(encounteredSelf){
+									//	the elem will be master (note that this if can be encountered
+									//	multiple times).
+										Interface& interface = processMastersOut.interface(cons[i]);
+										interface.push_back(elem);
+									}
+									else{
+									//	the elem will be slave to cons[i], since this is the first
+									//	occurence of a process in this subdomain.
+										Interface& interface = processSlavesOut.interface(cons[i]);
+										interface.push_back(elem);
+										break;
+									}
+								}
+							}
+						}
+					}
+
+				}
+			}
+		}
+	}
+
+////////////////////////
+//	we can now build the master and slave interfaces
+	CopyInterfaceEntrysToDomainDecompositionLayouts(
+			subdomMastersOut, processMastersOut, deltaNbrMastersOut,
+			crossPointMastersOut, standardMasters, flags, ddinfo);
+
+	CopyInterfaceEntrysToDomainDecompositionLayouts(
+			subdomSlavesOut, processSlavesOut, deltaNbrSlavesOut,
+			crossPointSlavesOut, standardSlaves, flags, ddinfo);
+
+//	done.
+//DEBUG ONLY
+/*
+//	perform a test - communicate flags between all processes over the new layouts
+	interfaceComm.send_data(subdomMastersOut, compolCopy);
+	interfaceComm.send_data(processMastersOut, compolCopy);
+	interfaceComm.send_data(deltaNbrMastersOut, compolCopy);
+	interfaceComm.receive_data(subdomSlavesOut, compolCopy);
+	interfaceComm.receive_data(processSlavesOut, compolCopy);
+	interfaceComm.receive_data(deltaNbrSlavesOut, compolCopy);
+	interfaceComm.communicate();
+*/
+}
+
+/* This is an old implementation which does not create comlplete process layouts
+void BuildDomainDecompositionLayouts(
+		IndexLayout& subdomMastersOut, IndexLayout& subdomSlavesOut,
+		IndexLayout& processMastersOut, IndexLayout& processSlavesOut,
+		IndexLayout& deltaNbrMastersOut, IndexLayout& deltaNbrSlavesOut,
+		IndexLayout& crossPointMastersOut, IndexLayout& crossPointSlavesOut,
+		IndexLayout& standardMasters, IndexLayout& standardSlaves,
+		int highestReferencedIndex, IDomainDecompositionInfo& ddinfo)
+{
+//	some typedefs
+	typedef IndexLayout::Interface	Interface;
+	typedef IndexLayout::iterator	InterfaceIter;
+	typedef Interface::iterator		ElemIter;
+
+//	the local process and subdomain id
+	int localProcID = pcl::GetProcRank();
+	int localSubdomID = ddinfo.map_proc_id_to_subdomain_id(localProcID);
+
 //	the size which the flags vector has to have
 	int flagVecSize = highestReferencedIndex + 1;
 	if(flagVecSize < 0)
@@ -409,17 +623,7 @@ void BuildDomainDecompositionLayouts(
 			crossPointSlavesOut, standardSlaves, flags, ddinfo);
 
 //	done.
-//DEBUG ONLY
-/*
-//	perform a test - communicate flags between all processes over the new layouts
-	interfaceComm.send_data(subdomMastersOut, compolCopy);
-	interfaceComm.send_data(processMastersOut, compolCopy);
-	interfaceComm.send_data(deltaNbrMastersOut, compolCopy);
-	interfaceComm.receive_data(subdomSlavesOut, compolCopy);
-	interfaceComm.receive_data(processSlavesOut, compolCopy);
-	interfaceComm.receive_data(deltaNbrSlavesOut, compolCopy);
-	interfaceComm.communicate();
-*/
 }
+*/
 
 }// end of namespace

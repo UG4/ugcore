@@ -472,6 +472,16 @@ void MatSetDirichletOnLayout(	TMatrix* pMatrix,
 }
 
 
+////////////////////////////////////////////////////////////////////////
+///	fills a connection list, which gives the connected processes to each entry.
+/**	the first entry for each connection is the process on which the
+ * master-element lies, followed by the processes where associated slaves lie.
+ */
+void CommunicateConnections(std::vector<std::vector<int> >& connectionsOut,
+							IndexLayout& masterLayout,
+							IndexLayout& slaveLayout,
+							int highestReferencedIndexs);
+
 /**	given a layout which defines relations between neighbours, this method
  * creates a layout which connect the elements in the given layouts with
  * newly created elements on a root process and establishes a OneToMany connection.

@@ -99,6 +99,7 @@ void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
 					(int)func.num_dofs() - 1, ddinfo);
 
 	UG_LOG("done\n");
+
 	UG_LOG("subdomMasters: ");
 	LogIndexLayout(subdomMasters);
 	UG_LOG("subdomSlaves: ");
@@ -118,6 +119,7 @@ void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
 	LogIndexLayout(crossPointMasters);
 	UG_LOG("crossPointSlaves: ");
 	LogIndexLayout(crossPointSlaves);
+
 }
 #endif
 
