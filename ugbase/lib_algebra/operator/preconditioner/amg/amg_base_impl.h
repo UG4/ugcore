@@ -67,12 +67,9 @@ bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 	vec1[level+1]->set_storage_type(PST_ADDITIVE);
 	vec2[level+1]->set_storage_type(PST_ADDITIVE);
 
-	vec3[level]->set_master_layout(pseudoLayout);
-	vec3[level]->set_slave_layout(pseudoLayout);
-	vec1[level+1]->set_master_layout(pseudoLayout);
-	vec1[level+1]->set_slave_layout(pseudoLayout);
-	vec2[level+1]->set_master_layout(pseudoLayout);
-	vec2[level+1]->set_slave_layout(pseudoLayout);
+	vec3[level]->set_layouts(pseudoLayout, pseudoLayout);
+	vec1[level+1]->set_layouts(pseudoLayout, pseudoLayout);
+	vec2[level+1]->set_layouts(pseudoLayout, pseudoLayout);
 
 	#endif
 
@@ -165,6 +162,7 @@ bool amg_base<TAlgebra>::init()
 
 		stopwatch SWwhole; SWwhole.start();
 		create_AMG_level(*A[level+1], *R[level], *A[level], *P[level], level);
+		return true;
 		SWwhole.stop();
 
 		is_fine.resize(level+1);
@@ -321,6 +319,7 @@ bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, size_
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type &d, size_t level)
 {
+	return true;
 	UG_ASSERT(c.size() == d.size() && c.size() == A[level]->num_rows(),
 			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << A[level]->num_rows() << ": not matching");
 
@@ -400,7 +399,7 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const_d)
 {
-
+	return true;
 	UG_ASSERT(c.size() == const_d.size() && c.size() == A[0]->num_rows(),
 				"c.size = " << c.size() << ", d.size = " << const_d.size() << ", A.size = " << A[0]->num_rows() << ": not matching");
 
