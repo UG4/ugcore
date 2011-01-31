@@ -247,7 +247,10 @@ class ParallelCommunicator
 						void* buffer, ug::BinaryStream* stream, int rawSize) :
 				m_srcProc(srcProc), m_extractor(pExtractor),
 				m_interface(pInterface), m_layout(pLayout),
-				m_buffer(buffer), m_stream(stream), m_rawSize(rawSize)	{}
+				m_buffer(buffer), m_stream(stream), m_rawSize(rawSize)
+			{
+				assert(srcProc == -1 || srcProc >= 0 && srcProc < pcl::GetNumProcesses());
+			}
 
 			int					m_srcProc;
 			CommPol*			m_extractor;			

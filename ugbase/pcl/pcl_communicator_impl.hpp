@@ -29,6 +29,8 @@ void ParallelCommunicator<TLayout>::
 send_raw(int targetProc, void* pBuff, int bufferSize,
 	     bool bSizeKnownAtTarget)
 {
+	assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
+
 	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
 	if(!bSizeKnownAtTarget)
 		stream.write((char*)&bufferSize, sizeof(int));
@@ -44,6 +46,8 @@ void ParallelCommunicator<TLayout>::
 send_data(int targetProc, Interface& interface,
 			  ICommunicationPolicy<TLayout>& commPol)
 {
+	assert(targetProc == -1 || targetProc >= 0 && targetProc < pcl::GetNumProcesses());
+
 	ug::BinaryStream& stream = *m_streamPackOut.get_stream(targetProc);
 	commPol.collect(stream, interface);
 	m_bSendBuffersFixed = m_bSendBuffersFixed
