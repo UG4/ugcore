@@ -76,7 +76,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	std::vector<std::string> arguments = ug::vrl::stringArrayJ2C(env, args);
 
-	char* argv[arguments.size()];
+	std::vector<char*> argv(arguments.size());
 	for (unsigned int i = 0; i < arguments.size(); i++) {
 		argv[i] = (char*) arguments[i].c_str();
 	}
@@ -89,7 +89,9 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 
 	using namespace ug;
 
-	int retVal = ug::UGInit(arguments.size(), argv);
+	int argc = arguments.size();
+	char** pargv = &argv[0];
+	int retVal = ug::UGInit(&argc, &pargv);
 
 
 //	testReg.add_class_<TestClass > ("TestClass", "testing")
