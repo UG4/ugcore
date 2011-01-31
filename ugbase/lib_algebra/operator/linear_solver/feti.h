@@ -375,28 +375,24 @@ class LocalSchurComplement
 				return false;
 			}
 
-		//	check that Pi layouts have been set
+		//	check that Primal layouts have been set
 			if(m_pSlavePrimalLayout == NULL || m_pMasterPrimalLayout == NULL)
 			{
 				UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
-						" layout for cross points not set.\n");
+						" layout for primal unknowns not set.\n");
+				return false;
+			}
+
+		//	check that Primal layouts have been set
+			if(m_pSlaveDualLayout == NULL || m_pMasterDualLayout == NULL)
+			{
+				UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
+						" layout for dual unknowns not set.\n");
 				return false;
 			}
 
 		//	save matrix from which we build the Schur complement
 			m_pMatrix = &m_pOperator->get_matrix();
-
-			/* no longer necessary to check here - we have already pointers to "Pi layouts"
-			   (set via 'set_primal_layouts()')!:
-		//	check that matrix has enough decomposition levels
-			if(m_pMatrix->num_layouts() != 2)
-			{
-				UG_LOG("ERROR in 'LocalSchurComplement::init': The Operator must"
-						" have at two layouts, but the current Operator has"
-						" only " << m_pMatrix->num_layouts() << "\n");
-				return false;
-			}
-			*/
 
 		//	get matrix from dirichlet operator
 			m_pDirichletMatrix = &m_DirichletOperator.get_matrix();
@@ -952,14 +948,18 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				return false;
 			}
 
-		//	set cross point layouts
+		//	set layouts
 			m_LocalSchurComplement.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
+			m_LocalSchurComplement.set_dual_layouts(m_slaveDualLayout, m_masterDualLayout);
 
 		//	set dirichlet solver for local schur complement
 			m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
 
 		//	set operator in local schur complement
 			m_LocalSchurComplement.set_matrix(*m_A);
+
+			pcl::SynchronizeProcesses();
+			UG_LOG(" ********** INIT LOCAL SCHUR COMPLEMENT ********** ... \n")
 
 		//	init local Schur complement
 			if(m_LocalSchurComplement.init() != true)
@@ -968,6 +968,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 						"complement.\n");
 				return false;
 			}
+
+			pcl::SynchronizeProcesses();
+			UG_LOG(" ********** INIT LOCAL SCHUR COMPLEMENT DONE ********** \n")
 
 		//  ----- INIT NEUMANN SOLVER  ----- //
 
@@ -979,11 +982,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 				return false;
 			}
 
-		//	set cross point layouts
-			m_SchurComplementInverse.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
+		//	set layouts
+			m_LocalSchurComplement.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
+			m_LocalSchurComplement.set_dual_layouts(m_slaveDualLayout, m_masterDualLayout);
 
 		//	set neumann solver in SchurComplementInverse
 			m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
+
+			pcl::SynchronizeProcesses();
+			UG_LOG(" ********** INIT SCHUR COMPLEMENT INVERSE ********** ... \n")
 
 		//	init Schur complement inverse
 			if(m_SchurComplementInverse.init(*m_A) != true)
@@ -992,6 +999,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 						"complement inverse.\n");
 				return false;
 			}
+
+			pcl::SynchronizeProcesses();
+			UG_LOG(" ********** INIT SCHUR COMPLEMENT INVERSE DONE ********** \n")
 
 		//	we're done
 			return true;
