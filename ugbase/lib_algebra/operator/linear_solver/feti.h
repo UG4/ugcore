@@ -1147,8 +1147,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 					   "to build t = F*p. Aborting.\n"); return false;
 			}
 		// (b) Copy values on \Delta
-			VecScaleAddOnLayout(&r, &d, -1.0, *m_pMasterDeltaLayout);
-			VecScaleAddOnLayout(&r, &d, -1.0, *m_pSlaveDeltaLayout);
+			VecScaleAddOnLayout(&r, &d, -1.0, m_masterDualLayout);
+			VecScaleAddOnLayout(&r, &d, -1.0, m_slaveDualLayout);
 
 		// 	Preconditioning: apply z = M^-1 * r
 			if (!apply_M_inverse_with_identity_scaling(z, r))
