@@ -189,7 +189,7 @@ std::string exportedFunction2Groovy(
 	// create component info that specifies the menu group this
 	// function shall be added to
 	result << "@ComponentInfo(name=\"" << func.name()
-			<< "\", category=\"" << group << "\")\n"
+			<< "\", category=\"" << group << "\", allowRemoval=false)\n"
 			<< "public class UG4_" << func.name()
 			<< " implements Serializable {\n"
 			<< "private static final long serialVersionUID=1L;\n";
@@ -247,7 +247,7 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 	// create component info that specifies the menu group this
 	// class shall be added to
 	result << "@ComponentInfo(name=\"" << clazz.name()
-			<< "\", category=\"" << group << "\")\n"
+			<< "\", category=\"" << group << "\", allowRemoval=false)\n"
 			<< "public class " << className
 			<< " extends edu.gcsc.vrl.ug4.UGObject {\n"
 			<< "private static final long serialVersionUID=1L;\n";
