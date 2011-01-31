@@ -20,12 +20,6 @@
 
 namespace ug{
 
-// \todo: Remove
-// typedef for non-parallel case (to make it compileable in serial)
-//#ifndef UG_PARALLEL
-//	typedef boost::function<int (int)>		Callback_ProcessIDToSubdomainID;
-//#endif
-
 template <typename TDomain>
 class IApproximationSpace
 {
@@ -74,7 +68,7 @@ class IApproximationSpace
 		domain_type& get_domain() {return *m_pDomain;}
 
 #ifdef UG_PARALLEL
-		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo/*Callback_ProcessIDToSubdomainID*/)	{}
+		virtual void enable_domain_decomposition(pcl::IDomainDecompositionInfo& ddInfo)	{}
 #else
 #endif
 		virtual bool domain_decomposition_enabled()						{return false;}
