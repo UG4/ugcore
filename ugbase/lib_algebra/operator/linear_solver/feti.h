@@ -253,10 +253,10 @@ void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,
 
 	// (b) Copy values on \Delta
 	// 1. All masters set their values equal to $\lambda$
-	VecScaleAddOnLayout(&f, &lambda,  1.0,   masterLayoutIn);
+	VecScaleAppendOnLayout(&f, &lambda,  1.0,   masterLayoutIn);
 	// 2. All slaves set their values equal to $-\lambda$
-	VecScaleAddOnLayout(&f, &lambda, -1.0,    slaveLayoutIn);
-	VecScaleAddOnLayout(&f, &lambda, -1.0, slaveNbrLayoutIn);
+	VecScaleAppendOnLayout(&f, &lambda, -1.0,    slaveLayoutIn);
+	VecScaleAppendOnLayout(&f, &lambda, -1.0, slaveNbrLayoutIn);
 
 	return;
 
@@ -669,11 +669,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[in]		v				vector \f$v\f$ living on "Delta layout"
 	 * \param[out]		f				result of application of \f$F\f$
 	 */
-		template <typename TVector>
-		bool apply_F(TVector& f, const TVector& v)
+		bool apply_F(vector_type& f, const vector_type& v)
 		{
 			//	Help vector
-			TVector fTmp; fTmp.create(v.size());
+			vector_type fTmp; fTmp.create(v.size());
 
 			//	0. Reset values of f, fTmp
 			f.set(0.0); fTmp.set(0.0);
@@ -701,11 +700,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[in]		f				vector \f$\tilde{f}_{\Delta}\f$
 	 * \param[out]		d				right hand side vector \f$d\f$ of reduced system
 	 */
-		template <typename TVector>
-		bool compute_d(TVector& d, const TVector& f)
+		bool compute_d(vector_type& d, const vector_type& f)
 		{
 			//	Help vector
-			TVector dTmp; dTmp.create(f.size());
+			vector_type dTmp; dTmp.create(f.size());
 
 			//	0. Reset values of f, fTmp
 			d.set(0.0); dTmp.set(0.0);
@@ -722,8 +720,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 
 	///	function which applies diagonal scaling matrix \f$D_{\Delta}^{(i)}\f$ to a vector \f$v\f$
-		template <typename TVector>
-		bool Apply_ScalingMatrix(TVector& s, const TVector& v) // maybe restrict to layout
+		bool Apply_ScalingMatrix(vector_type& s, const vector_type& v) // maybe restrict to layout
 		{
 			// scaling operator is identity
 			s = v;
@@ -741,11 +738,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[in]		r				vector \f$r\f$ living on "Delta layout"
 	 * \param[out]		z				result of application of \f$$M^{-1}\f$
 	 */
-		template <typename TVector>
-		bool apply_M_inverse(TVector& z, const TVector& r)
+		bool apply_M_inverse(vector_type& z, const vector_type& r)
 		{
 			//	Help vector
-			TVector zTmp; zTmp.create(r.size()); zTmp = z;
+			vector_type zTmp; zTmp.create(r.size()); zTmp = z;
 
 			//	0. Reset values of z, zTmp
 			z.set(0.0); zTmp.set(0.0);
@@ -769,11 +765,10 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			return true;
 		}
 
-		template <typename TVector>
-		bool apply_M_inverse_with_identity_scaling(TVector& z, const TVector& r)
+		bool apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r)
 		{
 			//	Help vector
-			TVector zTmp; zTmp.create(r.size());
+			vector_type zTmp; zTmp.create(r.size());
 
 			//	0. Reset values of z, zTmp
 			z.set(0.0); zTmp.set(0.0);
@@ -846,7 +841,21 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			return m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
+	///	computes norm on dual unknowns
 		number VecNormOnDual(vector_type& vec);
+
+	///	vecInOut += alpha1 * vecSrc1 on Dual unknowns
+		void VecScaleAppendOnDual(vector_type& vecInOut,
+							   const vector_type& vecSrc1, number alpha1);
+
+	///	vecDest += alpha1 * vecSrc1 + alpha2 * vecSrc2 on Dual unknowns
+		void VecScaleAddOnDual(vector_type& vecDest,
+									number alpha1, const vector_type& vecSrc1,
+									number alpha2, const vector_type& vecSrc2);
+
+	///	computes vector product on dual unknowns
+		number VecProdOnDual(const vector_type& vecSrc1,
+		                       const vector_type& vecSrc2);
 
 		int m_iterCnt;
 

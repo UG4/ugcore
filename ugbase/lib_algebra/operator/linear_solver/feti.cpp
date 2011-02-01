@@ -151,8 +151,8 @@ apply(vector_type& f, const vector_type& u)
 	uTmp.set(0.0);
 
 	// (b) Copy values on \Delta
-	VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
-	VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
 
 //	2. Compute rhs f_{I} = A_{I \Delta} u_{\Delta}
 	if(!m_DirichletOperator.apply(f, uTmp))
@@ -186,8 +186,8 @@ apply(vector_type& f, const vector_type& u)
 	uTmp *= -1.0;
 
 	// (b) Add u_{\Delta} on \Delta
-	VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
-	VecScaleAddOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
 
 	// (c) Multiply with full matrix
 	if(!m_pOperator->apply(f, uTmp))
@@ -499,81 +499,118 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 
 template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
-apply_return_defect(vector_type& lambda, vector_type& d)
+apply_return_defect(vector_type& u, vector_type& f)
 {
-//	\todo: Stop here, otherwise we get an error. But of coarse, we have to
-//			fix it...
-	return false;
+//	This function is used to solve the system Au=f. While the matrix A has
+//	already been passed in additive storage in the function init(), here are
+//	passed the (unknown, to be computed) solution u, that must be returned in
+//	consistent storage, and the right-hand side, that is given in additive
+//	storage. Note, that the right-hand side is overwritten, such that it can
+//	be used for the computation of the defect (Once the defect is computed the
+//	right-hand side is not needed anymore).
 
+//	check, that convergence check has been set
 	if(m_pConvCheck == NULL)
 	{
 		UG_LOG("ERROR: In 'FETISolver::apply': Convergence check not set.\n");
 		return false;
 	}
 
-	#ifdef UG_PARALLEL
-	if(!d.has_storage_type(PST_ADDITIVE) || !lambda.has_storage_type(PST_CONSISTENT))
-		{
-			UG_LOG("ERROR: In 'FETISolver::apply':Inadequate storage format of Vectors 'd' and 'lambda'.\n");
-			return false;
-		}
-	#endif
+//	check storage type
+	if(!f.has_storage_type(PST_ADDITIVE) || !u.has_storage_type(PST_CONSISTENT))
+	{
+		UG_LOG("ERROR: In 'FETISolver::apply':Inadequate storage format of "
+				"Vectors 'u' and 'f'.\n");
+		return false;
+	}
 
-// 	rename r as d (for convenience)
-	vector_type& r = d;
+//	Construct some vectors, that are all needed on the Dual unknowns.
+//	These vectors are used exclusively on the Dual unknowns, but for facility we
+//	use storage for a whole vector and only use it Dual entries.
 
-// 	create help vectors (h will be consistent r) -- 'h'???? Wieso unten sizes unterschiedlicher vectors im 'create()'? Die sollten doch alle gleich lang sein ...
-//	todo: 	It would be sufficient to copy only the pattern and
-//			without initializing, but in parallel we have to copy communicators
-	vector_type t; t.create(r.size());      t = r;
-	vector_type z; z.create(lambda.size()); z = lambda;
-	vector_type p; p.create(lambda.size()); p = lambda;
+//	lagrange muliplier
+	vector_type lambda; lambda.create(u.size());
 
-// 	Build residuum:  r := d - F*lambda
-	//if(!m_A->apply_sub(r, lambda))
-// 	(a) Build t = F*lambda (t is additive afterwards)
+//	residuum
+	vector_type r; r.create(u.size());
+
+//	search direction
+	vector_type p; p.create(u.size());
+
+//	preconditioned residuum
+	vector_type z; z.create(u.size());
+
+//	help vector to compute t = F*p
+	vector_type t; t.create(u.size());
+
+//	The idea of the Feti solver is to perform a cg-method on the Dual unknowns.
+//	Therefore, the right-hand side has to be adapted, such that f_Dual fits to
+//	the Schur complement system on the Dual unknowns. i.e.
+//	\tilde{f}_{\Delta} = f_{\Delta}
+//						 - A_{\Delta \{I \Pi\}} (A_{\{I \Pi\} \{I \Pi\}})^{-1} f_{\{I \Pi\}}
+//
+//	Please note: To compute this, we have to make the matrix consistent in the
+//				 Primal unknowns. Then, the rhs can be computed on each process
+//				 individually.
+
+//	\todo: Implement !!!
+
+	lambda.set(0.0);
+
+//	\todo: Stop here, otherwise we get an error. But of coarse, we have to
+//			fix it...
+	return false;
+
+// 	Build start residuum:  r = r0 := d - F*lambda.
+//	This is done in two steps.
+
+//	(a) Compute d:= B S_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}
+//		and set r0 = d
+	//\todo: Implement !!!
+
+// 	(b) Build t = F*lambda (t is additive afterwards)
 	if(!apply_F(t, lambda))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': Unable "
 			   "to build t = F*p. Aborting.\n"); return false;
 	}
-// (b) Copy values on \Delta
-	VecScaleAddOnLayout(&r, &d, -1.0, m_masterDualLayout);
-	VecScaleAddOnLayout(&r, &d, -1.0, m_slaveDualLayout);
 
-// 	Preconditioning: apply z = M^-1 * r
+// (b) Subtract values on \Delta, r0 = r0 - t
+	VecScaleAppendOnDual(r, t, -1.0);
+
+// 	Precondition the start defect: apply z = M^-1 * r
 	if (!apply_M_inverse_with_identity_scaling(z, r))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
-			   "Cannot apply preconditioner. Aborting.\n"); return false;
-	}
-	else z = r;
-
-	// make z consistent
-	if(!z.change_storage_type(PST_CONSISTENT))
-	{
-		UG_LOG("ERROR in 'FETISolver::apply': "
-			   "Cannot convert z to consistent vector.\n"); return false;
+			   "Cannot apply preconditioner. Aborting.\n");
+		return false;
 	}
 
+//	prepare appearance of conv check
 	prepare_conv_check();
+
+//	compute and set start defect
 	m_pConvCheck->start_defect(VecNormOnDual(r));
 
+//	start values
 	number rho, rho_new, beta, alpha, alpha_denominator;
 	rho = rho_new = beta = alpha = alpha_denominator = 0.0;
 
-	// start search direction
+// 	start search direction
 	p = z;
 
-	// start rho
-	//rho = VecProd(z, r);
-	VecProdOnLayout(rho, &z, &r, m_masterDualLayout);
+// 	start rho
+	rho = VecProdOnDual(z, r);
 
+//	reset iteration count
 	m_iterCnt = 0;
+
 // 	Iteration loop
 	while(!m_pConvCheck->iteration_ended())
 	{
+	//	increase iteration count
 		m_iterCnt++;
+
 	// 	Build t = F*p (t is additive afterwards)
 		if(!apply_F(t, p))
 		{
@@ -582,22 +619,17 @@ apply_return_defect(vector_type& lambda, vector_type& d)
 		}
 
 	// 	Compute alpha
-		//alpha_denominator = VecProd(t, p);
-		VecProdOnLayout(alpha_denominator, &t, &p, m_masterDualLayout);
+		alpha_denominator = VecProdOnDual(t, p);
 
 		alpha = rho/alpha_denominator;
 
 	// 	Update lambda := lambda + alpha*p
-		//VecScaleAdd(lambda, 1.0, lambda, alpha, p);
-		VecScaleAddOnLayout(&lambda, 1.0, &lambda, alpha, &p, m_slaveDualLayout);
-		VecScaleAddOnLayout(&lambda, 1.0, &lambda, alpha, &p, m_masterDualLayout);
+		VecScaleAddOnDual(lambda, 1.0, lambda, alpha, p);
 
 	// 	Update r := r - alpha*t
-		//VecScaleAdd(r, 1.0, r, -alpha, t);
-		VecScaleAddOnLayout(&r, 1.0, &r, -alpha, &t, m_slaveDualLayout);
-		VecScaleAddOnLayout(&r, 1.0, &r, -alpha, &t, m_masterDualLayout);
+		VecScaleAddOnDual(r, 1.0, r, -alpha, t);
 
-	// 	Check convergence
+	// 	Compute new defect
 		m_pConvCheck->update_defect(VecNormOnDual(r));
 
 	// 	Preconditioning: apply z = M^-1 * r
@@ -606,26 +638,15 @@ apply_return_defect(vector_type& lambda, vector_type& d)
 			UG_LOG("ERROR in 'FETISolver::apply': "
 				   "Cannot apply preconditioner. Aborting.\n"); return false;
 		}
-		else z = r;
-
-	// 	make z consistent
-		if(!z.change_storage_type(PST_CONSISTENT))
-		{
-			UG_LOG("ERROR in 'FETISolver::apply': "
-				   "Cannot convert z to consistent vector.\n"); return false;
-		}
 
 	// 	new rho
-		//rho_new = VecProd(z, r);
-		VecProdOnLayout(rho_new, &z, &r, m_masterDualLayout);
+		rho_new = VecProdOnDual(z, r);
 
 	// 	new beta
 		beta = rho_new/rho;
 
 	// 	new direction p:= beta*p + z
-		//VecScaleAdd(p, beta, p, 1.0, z);
-		VecScaleAddOnLayout(&p, beta, &p, 1.0, &z, m_slaveDualLayout);
-		VecScaleAddOnLayout(&p, beta, &p, 1.0, &z, m_masterDualLayout);
+		VecScaleAddOnDual(p, beta, p, 1.0, z);
 
 	// 	update rho
 		rho = rho_new;
@@ -638,19 +659,46 @@ template <typename TAlgebra>
 number FETISolver<TAlgebra>::
 VecNormOnDual(vector_type& vec)
 {
-//	reset norm
-	number norm = 0.0, normTmp = 0.0;
+//	forward to VecProc
+	return sqrt(VecProdOnDual(vec, vec));
+}
 
-//	add norm on masters on dual
-	VecProdOnLayout(normTmp, &vec, &vec, m_masterDualLayout);
-	norm += normTmp;
+template <typename TAlgebra>
+void FETISolver<TAlgebra>::
+VecScaleAddOnDual(vector_type& vecDest,
+                  number alpha1, const vector_type& vecSrc1,
+                  number alpha2, const vector_type& vecSrc2)
+{
+	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_slaveDualLayout);
+	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_masterDualLayout);
+}
 
-//	add norm on slaves on dual
-	VecProdOnLayout(normTmp, &vec, &vec, m_slaveDualLayout);
-	norm += normTmp;
+template <typename TAlgebra>
+void FETISolver<TAlgebra>::
+VecScaleAppendOnDual(vector_type& vecInOut,
+                     const vector_type& vecSrc1, number alpha1)
+{
+	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slaveDualLayout);
+	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterDualLayout);
+}
+
+template <typename TAlgebra>
+number FETISolver<TAlgebra>::
+VecProdOnDual(const vector_type& vecSrc1, const vector_type& vecSrc2)
+{
+//	reset result
+	number prod = 0.0, prodTmp = 0.0;
+
+//	add prod on master
+	VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_masterDualLayout);
+	prod += prodTmp;
+
+//	add prod on slave
+	VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_slaveDualLayout);
+	prod += prodTmp;
 
 //	return result
-	return sqrt(norm);
+	return prod;
 }
 
 
