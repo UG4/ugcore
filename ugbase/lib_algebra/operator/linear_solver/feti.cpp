@@ -597,10 +597,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	make f consistent on Pi
 	AdditiveToConsistent(&f, m_masterPrimalLayout, m_slavePrimalLayout);
 
-	pcl::SynchronizeProcesses();
-	UG_LOG("F IS CONSISTENT\n");
-	pcl::SynchronizeProcesses();
-
 //	set inner layouts
 	t.set_slave_layout(m_slaveInnerLayout);
 	t.set_master_layout(m_masterInnerLayout);
@@ -610,16 +606,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	f.set_master_layout(m_masterInnerLayout);
 	f.set_process_communicator(m_localFetiBlockComm);
 
-	pcl::SynchronizeProcesses();
-	UG_LOG("COMPUTING F TILDE\n");
-	pcl::SynchronizeProcesses();
-
 //	compute \tilde{f}_{\Delta}
 	if(!compute_tilde_f(t, f)) return false;
-
-	pcl::SynchronizeProcesses();
-	UG_LOG("COMPUTING D\n");
-	pcl::SynchronizeProcesses();
 
 // 	Build start residuum:  r = r0 := d - F*lambda.
 //	This is done in three steps.
