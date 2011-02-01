@@ -231,6 +231,26 @@ apply_sub(vector_type& f, const vector_type& u)
 ////////////////////////////////////////////////////////////////////////
 //	SchurComplementInverse implementation
 template <typename TAlgebra>
+SchurComplementInverse<TAlgebra>::
+SchurComplementInverse() :
+	m_A(NULL),
+	m_pMatrix(NULL),
+	m_pMasterPrimalLayout(NULL),
+	m_pSlavePrimalLayout(NULL),
+	m_pSlaveDualLayout(NULL),
+	m_pMasterDualLayout(NULL),
+	m_pSlaveDualNbrLayout(NULL),
+	m_pMasterDualNbrLayout(NULL),
+	m_pNeumannMatrix(NULL),
+	m_pNeumannSolver(NULL),
+	m_primalRootProc(-1),
+	m_pOneProcSchurCompMatrix(NULL),
+	m_pConvCheck(NULL),
+	m_pDebugWriter(NULL)
+{
+}
+
+template <typename TAlgebra>
 bool SchurComplementInverse<TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& L)
 {
@@ -347,6 +367,19 @@ init(ILinearOperator<vector_type, vector_type>& L)
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	FETISolver implementation
+template <typename TAlgebra>
+FETISolver<TAlgebra>::
+FETISolver() :
+	m_A(NULL),
+	m_pMatrix(NULL),
+	m_pDirichletSolver(NULL),
+	m_pNeumannSolver(NULL),
+	m_pConvCheck(NULL),
+	m_pDebugWriter(NULL)
+{
+
+}
+
 template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)

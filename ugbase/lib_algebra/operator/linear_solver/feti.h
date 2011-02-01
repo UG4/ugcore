@@ -450,8 +450,7 @@ class SchurComplementInverse
 
 	public:
 	///	constructor
-		SchurComplementInverse()
-		{}
+		SchurComplementInverse();
 
 	///	name of class
 		virtual const char* name() const {return "Schur Complement Inverse";}
@@ -622,11 +621,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	public:
 	///	constructor
-		FETISolver() :
-			m_A(NULL),
-			m_pConvCheck(NULL),
-			m_pDebugWriter(NULL)
-		{}
+		FETISolver();
 
 	///	name of solver
 		virtual const char* name() const {return "FETI Solver";}
