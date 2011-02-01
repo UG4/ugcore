@@ -348,6 +348,18 @@ class ISubsetHandler : public GridObserver
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
 										 Volume* replacedBy = NULL);
 
+		virtual void vertices_to_be_merged(Grid* grid, VertexBase* target,
+										 VertexBase* elem1, VertexBase* elem2);
+
+		virtual void edges_to_be_merged(Grid* grid, EdgeBase* target,
+										 EdgeBase* elem1, EdgeBase* elem2);
+
+		virtual void faces_to_be_merged(Grid* grid, Face* target,
+										 Face* elem1, Face* elem2);
+
+		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
+										 Volume* elem1, Volume* elem2);
+
 	//	Virtual methods for derived classes
 	/**	The implementation in a derived class should store the element in a list
 	 *	and call subset_assigned with the iterators position and the subset-index.
@@ -550,6 +562,10 @@ class ISubsetHandler : public GridObserver
 	///	move the subset-lists but do not touch the subset-indices.
 		virtual void move_subset_lists(int indexFrom, int indexTo) = 0;
 
+	///	helper for GridObserver callbacks.
+		template <class TElem>
+		void elems_to_be_merged(Grid* grid, TElem* target,
+								TElem* elem1, TElem* elem2);
 
 	////////////////////////////////
 	//	attachments

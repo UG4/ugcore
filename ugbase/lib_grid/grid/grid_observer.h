@@ -117,6 +117,34 @@ class GridObserver
 										 Volume* replacedBy = NULL)	{}
 
 	/**	\}	*/
+
+	//	merge callbacks
+	///	Notified when two elements of the same type are going to be merged.
+	/**	Note that this method is invoked by Grid::objects_will_be_merged, which
+	 * is called from outside the grid class. Implementors of algorithms in
+	 * which objects are merged are thus responsible to call
+	 * Grid::objects_will_be_merged.
+	 *
+	 * This callback is called in addition to ..._created and ..._to_be_erased
+	 * callbacks and should thus only be used if small adjustments have to be
+	 * made during a merge.
+	 *
+	 * Note that target may be identical to elem1 or elem2.
+	 *
+	 * \{ */
+		virtual void vertices_to_be_merged(Grid* grid, VertexBase* target,
+										 VertexBase* elem1, VertexBase* elem2)	{}
+
+		virtual void edges_to_be_merged(Grid* grid, EdgeBase* target,
+										 EdgeBase* elem1, EdgeBase* elem2)	{}
+
+		virtual void faces_to_be_merged(Grid* grid, Face* target,
+										 Face* elem1, Face* elem2)	{}
+
+		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
+										 Volume* elem1, Volume* elem2)	{}
+
+	/**	\}	*/
 };
 
 /// @}

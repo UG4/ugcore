@@ -1012,5 +1012,48 @@ volume_to_be_erased(Grid* grid, Volume* vol, Volume* replacedBy)
 	}
 }
 
+template <class TElem>
+void ISubsetHandler::
+elems_to_be_merged(Grid* grid, TElem* target,
+					TElem* elem1, TElem* elem2)
+{
+	int si1 = get_subset_index(elem1);
+	int si2 = get_subset_index(elem2);
+
+//	if both subsets are -1, we'll leave everything as it was.
+	if(si1 == -1 && si2 != -1)
+		assign_subset(target, si2);
+	else if(si2 == -1 && si1 != -1)
+		assign_subset(target, si1);
+}
+
+void ISubsetHandler::
+vertices_to_be_merged(Grid* grid, VertexBase* target,
+					 VertexBase* elem1, VertexBase* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
+void ISubsetHandler::
+edges_to_be_merged(Grid* grid, EdgeBase* target,
+				  EdgeBase* elem1, EdgeBase* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
+void ISubsetHandler::
+faces_to_be_merged(Grid* grid, Face* target,
+					Face* elem1, Face* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
+void ISubsetHandler::
+volumes_to_be_merged(Grid* grid, Volume* target,
+					Volume* elem1, Volume* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
 }//	end of namespace
 

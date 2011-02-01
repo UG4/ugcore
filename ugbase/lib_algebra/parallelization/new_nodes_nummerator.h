@@ -39,7 +39,7 @@ public:
 		for(size_t i=0; i<global_ids.size(); ++i)
 		{
 			if(global_ids[i].first != pcl::GetProcRank() || global_ids[i].second != i)
-				m_indicesMap.insert(pair<AlgebraID, size_t> (global_ids[i], i));
+				m_indicesMap.insert(std::pair<AlgebraID, size_t> (global_ids[i], i));
 		}
 	}
 
@@ -56,7 +56,7 @@ public:
 		}
 		else
 		{
-			std::pair<iterator, bool> ret = m_indicesMap.insert(pair<AlgebraID, size_t> (global_index, m_globalIDs.size()));
+			std::pair<iterator, bool> ret = m_indicesMap.insert(std::pair<AlgebraID, size_t> (global_index, m_globalIDs.size()));
 			if(ret.second)
 			{
 				// UG_LOG("created new index " << m_globalIDs.size() << "\n");

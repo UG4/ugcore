@@ -275,6 +275,19 @@ class Grid
 	 */
 		bool replace_vertex_is_valid(VertexBase* vrtOld, VertexBase* vrtNew);
 
+	///	notifies the grid that two objects will be merged.
+	/**	The grid forwards this notification to its GridObservers.
+	 * The notification is not relevant for the grid itself.
+	 * \{ */
+		void objects_will_be_merged(VertexBase* target, VertexBase* elem1,
+									VertexBase* elem2);
+		void objects_will_be_merged(EdgeBase* target, EdgeBase* elem1,
+									EdgeBase* elem2);
+		void objects_will_be_merged(Face* target, Face* elem1,
+									Face* elem2);
+		void objects_will_be_merged(Volume* target, Volume* elem1,
+									Volume* elem2);
+	/**	\} */
 	/*
 	///	VrtPairIterator has to be an iterator with value-type std::pair<VertexBase*, VertexBase*>
 		template <class VrtPairIter>

@@ -363,7 +363,7 @@ private:
 
 		size_t num_connections;
 		AlgebraID global_row_index, global_col_index;
-		vector<typename matrix_type::connection> cons;
+		std::vector<typename matrix_type::connection> cons;
 		bool has_index;
 
 		for(StreamPack::iterator iter = matrixrow_pack.begin(); iter != matrixrow_pack.end(); ++iter)

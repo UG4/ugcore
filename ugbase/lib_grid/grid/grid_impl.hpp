@@ -176,6 +176,50 @@ size_t Grid::num() const
 	return m_elementStorage[objType].m_sectionContainer.num_elements(secIndex);
 }
 
+inline void Grid::
+objects_will_be_merged(VertexBase* target, VertexBase* elem1,
+						VertexBase* elem2)
+{
+	for(Grid::ObserverContainer::iterator iter = m_vertexObservers.begin();
+		iter != m_vertexObservers.end(); iter++)
+	{
+		(*iter)->vertices_to_be_merged(this, target, elem1, elem2);
+	}
+}
+
+inline void Grid::
+objects_will_be_merged(EdgeBase* target, EdgeBase* elem1,
+						EdgeBase* elem2)
+{
+	for(Grid::ObserverContainer::iterator iter = m_edgeObservers.begin();
+		iter != m_edgeObservers.end(); iter++)
+	{
+		(*iter)->edges_to_be_merged(this, target, elem1, elem2);
+	}
+}
+
+inline void Grid::
+objects_will_be_merged(Face* target, Face* elem1,
+						Face* elem2)
+{
+	for(Grid::ObserverContainer::iterator iter = m_faceObservers.begin();
+		iter != m_faceObservers.end(); iter++)
+	{
+		(*iter)->faces_to_be_merged(this, target, elem1, elem2);
+	}
+}
+
+inline void Grid::
+objects_will_be_merged(Volume* target, Volume* elem1,
+						Volume* elem2)
+{
+	for(Grid::ObserverContainer::iterator iter = m_volumeObservers.begin();
+		iter != m_volumeObservers.end(); iter++)
+	{
+		(*iter)->volumes_to_be_merged(this, target, elem1, elem2);
+	}
+}
+
 template <class TGeomObj>
 size_t Grid::attachment_container_size() const
 {

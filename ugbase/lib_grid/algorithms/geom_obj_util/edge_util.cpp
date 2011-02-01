@@ -6,6 +6,7 @@
 #include "edge_util.h"
 #include "lib_grid/grid/grid_util.h"
 #include "vertex_util.h"
+#include "face_util.h"
 #include "lib_grid/algorithms/refinement/regular_refinement.h"
 
 using namespace std;
@@ -284,14 +285,35 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt)
 		for(uint i = 0; i < vFaces.size(); ++i)
 		{
 			Face* f = vFaces[i];
-		//	create the collapse-geometry
 			int eInd = GetEdgeIndex(f, e);
+
+		//	create the collapse-geometry
 			f->collapse_edge(vNewFaces, eInd, newVrt);
 
 		//	register the new faces
 			for(uint j = 0; j < vNewFaces.size(); ++j)
 				grid.register_element(vNewFaces[j], f);
 
+		//	before we erase the face, we first have to notify whether
+		//	edges were merged
+			if(f->num_edges() == 3){
+			//	two edges will be merged. we have to inform the grid.
+				VertexBase* conVrt = GetConnectedVertex(e, f);
+			//	now get the edge between conVrt and newVrt
+				EdgeBase* target = grid.get_edge(conVrt, newVrt);
+			//	now get the two old edges
+				EdgeBase* e1 = NULL;
+				EdgeBase* e2 = NULL;
+				for(size_t j = 0; j < 3; ++j){
+					if((int)j != eInd){
+						if(!e1)
+							e1 = grid.get_edge(f, j);
+						else
+							e2 = grid.get_edge(f, j);
+					}
+				}
+				grid.objects_will_be_merged(target, e1, e2);
+			}
 		//	erase f
 			grid.erase(f);
 		}
@@ -325,6 +347,9 @@ bool CollapseEdge(Grid& grid, EdgeBase* e, VertexBase* newVrt)
 	VertexBase* v[2];
 	v[0] = e->vertex(0);
 	v[1] = e->vertex(1);
+
+//	notify the grid that the endpoints will be merged
+	grid.objects_will_be_merged(newVrt, v[0], v[1]);
 
 //	erase e
 	grid.erase(e);

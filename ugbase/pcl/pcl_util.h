@@ -333,7 +333,7 @@ inline bool AllProcsTrue(bool bFlag,
 	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LAND);
 
 //	return global flag
-	if(retBoolFlag == 1)
+	if(retBoolFlag != 0)
 		return true;
 	return false;
 }

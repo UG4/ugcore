@@ -409,7 +409,7 @@ class SingleLevelLayout
 		inline const Interface& interface(int procID, size_t level = 0) const
 		{
 			const_iterator iter = m_interfaceMap.find(procID);
-			UG_ASSERT(iter != m_interfaceMap.end(), "trying to access an non-existing interface ( to pid " << procID << ") in a constant layout");
+			UG_ASSERT(iter != m_interfaceMap.end(), "trying to access an non-existing interface in a constant layout");
 			return iter->second;
 		}
 
