@@ -11,6 +11,7 @@
 //	do not include feti.h itself or your will be sent to compile-error-hell
 //#include "feti.h"
 #include "lib_algebra/lib_algebra.h"
+#include <cmath>
 
 namespace ug{
 
@@ -556,7 +557,7 @@ apply_return_defect(vector_type& lambda, vector_type& d)
 	}
 
 	prepare_conv_check();
-	m_pConvCheck->start(r);
+	m_pConvCheck->start_defect(VecNormOnDual(r));
 
 	number rho, rho_new, beta, alpha, alpha_denominator;
 	rho = rho_new = beta = alpha = alpha_denominator = 0.0;
@@ -597,7 +598,7 @@ apply_return_defect(vector_type& lambda, vector_type& d)
 		VecScaleAddOnLayout(&r, 1.0, &r, -alpha, &t, m_masterDualLayout);
 
 	// 	Check convergence
-		m_pConvCheck->update(r);
+		m_pConvCheck->update_defect(VecNormOnDual(r));
 
 	// 	Preconditioning: apply z = M^-1 * r
 		if (!apply_M_inverse_with_identity_scaling(z, r))
@@ -633,6 +634,24 @@ apply_return_defect(vector_type& lambda, vector_type& d)
 	return m_pConvCheck->post();
 } /* end 'FETISolver::apply_return_defect()' */
 
+template <typename TAlgebra>
+number FETISolver<TAlgebra>::
+VecNormOnDual(vector_type& vec)
+{
+//	reset norm
+	number norm = 0.0, normTmp = 0.0;
+
+//	add norm on masters on dual
+	VecProdOnLayout(normTmp, &vec, &vec, m_masterDualLayout);
+	norm += normTmp;
+
+//	add norm on slaves on dual
+	VecProdOnLayout(normTmp, &vec, &vec, m_slaveDualLayout);
+	norm += normTmp;
+
+//	return result
+	return sqrt(norm);
+}
 
 
 

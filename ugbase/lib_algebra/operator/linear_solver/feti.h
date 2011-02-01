@@ -846,6 +846,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			return m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
+		number VecNormOnDual(vector_type& vec);
+
 		int m_iterCnt;
 
 	protected:
