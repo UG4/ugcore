@@ -39,10 +39,16 @@ class IConvergenceCheck
 		// defect control
 		///////////////////
 
-		/// starts iteration with the given defect
+		/// sets the given start defect
+		virtual void start_defect(number defect) = 0;
+
+		/// computes the start defect and set it
 		virtual void start(IFunctionBase& d) = 0;
 
-		/// update for the current defect
+		/// sets the update for the current defect
+		virtual void update_defect(number defect) = 0;
+
+		/// computes the defect and sets it a the next defect value
 		virtual void update(IFunctionBase& d) = 0;
 
 		/** iteration_ended
@@ -134,9 +140,9 @@ class StandardConvCheck : public IConvergenceCheck
 		void set_minimum_defect(number minDefect) {m_minDefect = minDefect;}
 		void set_reduction(number relReduction) {m_relReduction = relReduction;}
 
-		void start(IFunctionBase& d)
+		void start_defect(number initialDefect)
 		{
-			m_initialDefect = d.two_norm();
+			m_initialDefect = initialDefect;
 			m_currentDefect = m_initialDefect;
 			m_currentStep = 0;
 
@@ -177,10 +183,15 @@ class StandardConvCheck : public IConvergenceCheck
 			}
 		}
 
-		void update(IFunctionBase& d)
+		void start(IFunctionBase& d)
+		{
+			start_defect(d.two_norm());
+		}
+
+		void update_defect(number newDefect)
 		{
 			m_lastDefect = m_currentDefect;
-			m_currentDefect = d.two_norm();
+			m_currentDefect = newDefect;
 			m_currentStep++;
 
 			if(m_verbose)
@@ -188,6 +199,11 @@ class StandardConvCheck : public IConvergenceCheck
 				print_offset(); UG_LOG(std::setw(4) << step() << ":    " << std::scientific << defect() <<
 									"    " << defect()/m_lastDefect << "\n");
 			}
+		}
+
+		void update(IFunctionBase& d)
+		{
+			update_defect(d.two_norm());
 		}
 
 		bool iteration_ended()
