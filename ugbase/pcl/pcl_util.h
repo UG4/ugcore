@@ -320,11 +320,9 @@ class SelectionCommPol : public ICommunicationPolicy<TLayout>
 
 /// performs an allreduce and returns true if and only if all procs called the
 /// function with bFlag = true
-inline bool AllProcsTrue(bool bFlag)
+inline bool AllProcsTrue(bool bFlag,
+						ProcessCommunicator comm = ProcessCommunicator())
 {
-//	create communicator
-	pcl::ProcessCommunicator comm;
-
 //	local int bool flag
 	int boolFlag = (bFlag) ? 1 : 0;
 
@@ -335,8 +333,9 @@ inline bool AllProcsTrue(bool bFlag)
 	comm.allreduce(&boolFlag, &retBoolFlag, 1, PCL_DT_INT, PCL_RO_LAND);
 
 //	return global flag
-	if(retBoolFlag == 0) return true;
-	else return false;
+	if(retBoolFlag == 1)
+		return true;
+	return false;
 }
 
 }//	end of namespace

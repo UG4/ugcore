@@ -336,7 +336,7 @@ bool FETISolver<TAlgebra>::
 init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 {
 //	bool flag
-	bool bSuccess;
+	bool bSuccess = true;
 
 //	remember A
 	m_A = &A;
@@ -361,7 +361,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		else
 			worldComm.create_sub_communicator(false);
 	}
-
+/*
 //	write layouts
 	pcl::SynchronizeProcesses();
 	UG_LOG("------------- DUAL MASTER ------------\n")
@@ -376,7 +376,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	pcl::SynchronizeProcesses();
 	UG_LOG("------------- PRIMAL SLAVE  ------------\n")
 	LogIndexLayoutOnAllProcs(m_slavePrimalLayout, 1);
-
+*/
 //  ----- INIT DIRICHLET SOLVER  ----- //
 
 //	check that dirichlet solver has been set
@@ -398,7 +398,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	m_LocalSchurComplement.set_matrix(*m_A);
 
 	pcl::SynchronizeProcesses();
-	UG_LOG(" ********** INIT LOCAL SCHUR COMPLEMENT ********** ... \n")
+	UG_LOG(" ********** INIT LOCAL SCHUR COMPLEMENT ********** ... \n");
 
 //	init local Schur complement
 	if(m_LocalSchurComplement.init() != true)
@@ -408,6 +408,11 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		bSuccess = false;
 	}
 
+	UG_LOG("###### REACHED ######\n");
+
+	if(!bSuccess){
+		UG_LOG("###### bSuccess is FALSE! ######\n");
+	}
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
 	{
@@ -415,6 +420,8 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 				" local Schur complement.\n");
 		return false;
 	}
+
+//return false; //only to debug
 
 	pcl::SynchronizeProcesses();
 	UG_LOG(" ********** INIT LOCAL SCHUR COMPLEMENT DONE ********** \n")
