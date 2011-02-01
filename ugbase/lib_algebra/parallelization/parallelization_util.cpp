@@ -83,8 +83,8 @@ int GetHighestReferencedIndex(IndexLayout& layout)
 			eiter != interface.end(); ++eiter)
 		{
 			IndexLayout::Interface::Element elem = interface.get_element(eiter);
-			if(elem > highestReferencedIndex)
-				highestReferencedIndex = elem;
+			if((int)elem > highestReferencedIndex)
+				highestReferencedIndex = (int)elem;
 		}
 	}
 
