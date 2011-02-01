@@ -231,25 +231,27 @@ print_layout_statistic() const
 {
 //	Write info
 #ifndef UG_PARALLEL
-	UG_LOG(" No Layouts in sequentiel code.\n");
+	UG_LOG(" No Layouts in sequential code.\n");
 #else
-	UG_LOG("Layouts on Process " << 0 << ":\n");
+	UG_LOG("Layouts on Process " <<  pcl::GetOutputProcRank() << ":\n");
 
 //	Write header line
 	UG_LOG(" Level |  Master  |  Slave   | vert. Master | vert. Slave\n");
-	UG_LOG("---------------------------------------------------------------------\n");
+	UG_LOG("----------------------------------------------------------\n");
 
 //	Write Infos for Levels
 	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
 	{
+		UG_LOG(" " << std::setw(5)<< l << " | ");
 		print_layout_statistic(*m_vLevelDoFDistribution[l]);
 		UG_LOG("\n");
-		UG_LOG("---------------------------------------------------------------------\n");
+		UG_LOG("----------------------------------------------------------\n");
 	}
 
 //	Write Infos for Surface Grid
 	if(m_pSurfaceDoFDistribution != NULL)
 	{
+		UG_LOG("  surf | ");
 		print_layout_statistic(*m_pSurfaceDoFDistribution);
 		UG_LOG(std::endl);
 	}

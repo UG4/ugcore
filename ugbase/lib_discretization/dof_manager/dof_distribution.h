@@ -288,32 +288,20 @@ class IDoFDistribution
 
 #ifdef UG_PARALLEL
 	public:
-	///	returns the number of domain decomposition level
-		size_t num_layouts() const {return m_vSlaveLayout.size();}
-
 	/// returns the slave index layout for domain decompostion level
-		IndexLayout& get_slave_layout()	{require_ddlev(0); return m_vSlaveLayout.at(0);}
-
-	/// returns all slave indey layouts in a std::vector (all dd level)
-		std::vector<IndexLayout>& get_slave_layouts()	{return m_vSlaveLayout;}
+		IndexLayout& get_slave_layout()	{return m_slaveLayout;}
 
 	/// returns the master index layout for domain decompostion level
-		IndexLayout& get_master_layout(){require_ddlev(0); return m_vMasterLayout.at(0);}
+		IndexLayout& get_master_layout(){return m_masterLayout;}
 
-	/// returns all master indey layouts in a std::vector (all dd level)
-		std::vector<IndexLayout>& get_master_layouts()	{return m_vMasterLayout;}
+		IndexLayout& get_vertical_slave_layout()  {return m_verticalSlaveLayout;}
+		IndexLayout& get_vertical_master_layout() {return m_verticalMasterLayout;}
 
-		IndexLayout& get_vertical_slave_layout()		{return m_verticalSlaveLayout;}
-		IndexLayout& get_vertical_master_layout()	{return m_verticalMasterLayout;}
+		pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_communicator;}
+		pcl::ProcessCommunicator& get_process_communicator()	{return m_processCommunicator;}
 
-		pcl::ParallelCommunicator<IndexLayout>& get_communicator()	{return m_vCommunicator.at(0);}
-		pcl::ProcessCommunicator& get_process_communicator()	{return m_vProcessCommunicator.at(0);}
-
-		std::vector<pcl::ParallelCommunicator<IndexLayout> >& get_communicators()	{return m_vCommunicator;}
-		std::vector<pcl::ProcessCommunicator>& get_process_communicators()	{return m_vProcessCommunicator;}
-
-		size_t num_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_vMasterLayout.at(0)));}
-		size_t num_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_vSlaveLayout.at(0)));}
+		size_t num_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_masterLayout));}
+		size_t num_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_slaveLayout));}
 
 		size_t num_vertical_master_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalMasterLayout));}
 		size_t num_vertical_slave_dofs() const {return num_dofs(*const_cast<IndexLayout*>(&m_verticalSlaveLayout));}
@@ -328,20 +316,12 @@ class IDoFDistribution
 			return sum;
 		}
 
-		void require_ddlev(size_t ddlev)
-		{
-			if(m_vSlaveLayout.size() <= ddlev) m_vSlaveLayout.resize(ddlev+1);
-			if(m_vMasterLayout.size() <= ddlev) m_vMasterLayout.resize(ddlev+1);
-			if(m_vProcessCommunicator.size() <= ddlev) m_vProcessCommunicator.resize(ddlev+1);
-			if(m_vCommunicator.size() <= ddlev) m_vCommunicator.resize(ddlev+1);
-		}
-
 	protected:
 		// index layout for this grid level (an each domain decomposition)
-		std::vector<IndexLayout> m_vSlaveLayout;
+		IndexLayout m_slaveLayout;
 
 		// index layout for this grid level (an each domain decomposition)
-		std::vector<IndexLayout> m_vMasterLayout;
+		IndexLayout m_masterLayout;
 
 		// index layout for each grid level
 		IndexLayout m_verticalMasterLayout;
@@ -350,10 +330,10 @@ class IDoFDistribution
 		IndexLayout m_verticalSlaveLayout;
 
 		// process communicator
-		std::vector<pcl::ProcessCommunicator> m_vProcessCommunicator;
+		pcl::ProcessCommunicator m_processCommunicator;
 
 		// communicator
-		std::vector<pcl::ParallelCommunicator<IndexLayout> > m_vCommunicator;
+		pcl::ParallelCommunicator<IndexLayout> m_communicator;
 #endif
 };
 
