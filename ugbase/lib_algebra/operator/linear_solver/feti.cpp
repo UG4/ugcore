@@ -416,7 +416,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	fTmp.set(0.0);
 
 	// (b) Copy values on \Delta
-	VecScaleAppendOnDual(&fTmp, &f, 1.0);
+	VecScaleAppendOnDual(fTmp, f, 1.0);
 
 //	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
 
@@ -440,7 +440,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// (c) Scale result by -1
 	fTmp *= -1.0;
 	// (d) Set values to zero on I and Delta - excluding Pi
-	VecSetExcludingPrimal(&fTmp, 0.0);
+	VecSetExcludingPrimal(fTmp, 0.0);
 
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
@@ -466,7 +466,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
-	VecScaleAddOnDual(&fTmp, 1.0, &f, -1.0, &hTmp);
+	VecScaleAddOnDual(fTmp, 1.0, f, -1.0, hTmp);
  
 //	7. Solve for \f$u_{\{I \Delta\}}^{(p)}\f$
 	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // Destination?? Neumann?
@@ -478,7 +478,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 
 //	8. Set values to zero on I and Pi - by excluding Delta
-	VecSetExcludingDual(&u, 0.0);
+	VecSetExcludingDual(u, 0.0);
 
 //	we're done
 	return true;
@@ -503,8 +503,8 @@ VecScaleAddOnDual(vector_type& vecDest,
                   number alpha1, const vector_type& vecSrc1,
                   number alpha2, const vector_type& vecSrc2)
 {
-	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_pSlaveDualLayout);
-	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_pMasterDualLayout);
+	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, *m_pSlaveDualLayout);
+	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, *m_pMasterDualLayout);
 }
 
 template <typename TAlgebra>
@@ -512,24 +512,24 @@ void SchurComplementInverse<TAlgebra>::
 VecScaleAppendOnDual(vector_type& vecInOut,
                      const vector_type& vecSrc1, number alpha1)
 {
-	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_pSlaveDualLayout);
-	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_pMasterDualLayout);
+	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, *m_pSlaveDualLayout);
+	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, *m_pMasterDualLayout);
 }
 
 template <typename TAlgebra>
 void SchurComplementInverse<TAlgebra>::
 VecSetExcludingPrimal(vector_type& vecInOut, number value)
 {
-	VecSetExcludingLayout(&vecInOut, value, m_pSlavePrimalLayout);
-	VecSetExcludingLayout(&vecInOut, value, m_pMasterPrimalLayout);
+	VecSetExcludingLayout(&vecInOut, value, *m_pSlavePrimalLayout);
+	VecSetExcludingLayout(&vecInOut, value, *m_pMasterPrimalLayout);
 }
 
 template <typename TAlgebra>
 void SchurComplementInverse<TAlgebra>::
 VecSetExcludingDual(vector_type& vecInOut,number value)
 {
-	VecSetExcludingLayout(&vecInOut, value, m_pSlaveDualLayout);
-	VecSetExcludingLayout(&vecInOut, value, m_pMasterDualLayout);
+	VecSetExcludingLayout(&vecInOut, value, *m_pSlaveDualLayout);
+	VecSetExcludingLayout(&vecInOut, value, *m_pMasterDualLayout);
 }
 
 ////////////////////////////////////////////////////////////////////////

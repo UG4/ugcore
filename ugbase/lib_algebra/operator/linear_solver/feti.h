@@ -193,6 +193,7 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 	return;
 }
 */
+
 ///	Application of the "jump operator" \f$B_{\Delta}\f$:
 /// 'ComputeDifferenceOnDelta()': Apply \f$B_{\Delta}\f$ to \f$u_{\Delta}\f$
 /**
@@ -529,6 +530,32 @@ class SchurComplementInverse
 		//	write
 			return m_pDebugWriter->write_vector(vec, filename);
 		}
+
+	///	computes norm on dual unknowns
+		number VecNormOnDual(vector_type& vec);
+
+	///	vecInOut += alpha1 * vecSrc1 on Dual unknowns
+		void VecScaleAppendOnDual(vector_type& vecInOut,
+							   const vector_type& vecSrc1, number alpha1);
+
+	///	vecSrc = alpha
+		void VecSetOnDual(vector_type& vecSrc, number alpha);
+
+	///	vecDest += alpha1 * vecSrc1 + alpha2 * vecSrc2 on Dual unknowns
+		void VecScaleAddOnDual(vector_type& vecDest,
+									number alpha1, const vector_type& vecSrc1,
+									number alpha2, const vector_type& vecSrc2);
+
+	///	computes vector product on dual unknowns
+		number VecProdOnDual(const vector_type& vecSrc1,
+							   const vector_type& vecSrc2);
+
+		void
+		VecSetExcludingPrimal(vector_type& vecInOut, number value);
+
+		void
+		VecSetExcludingDual(vector_type& vecInOut,number value);
+
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
