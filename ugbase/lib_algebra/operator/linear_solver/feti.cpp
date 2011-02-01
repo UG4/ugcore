@@ -405,6 +405,9 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		else
 			worldComm.create_sub_communicator(false);
 	}
+
+	pcl::ParallelCommunicator<IndexLayout> comTmp;
+	PrintLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout);
 /*
 //	write layouts
 	pcl::SynchronizeProcesses();
