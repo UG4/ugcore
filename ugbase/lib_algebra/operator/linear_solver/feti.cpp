@@ -18,6 +18,22 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////
 //	LocalSchurComplement implementation
 template <typename TAlgebra>
+LocalSchurComplement<TAlgebra>::
+LocalSchurComplement() :
+	m_pMatrix(NULL),
+	m_pMasterPrimalLayout(NULL),
+	m_pSlavePrimalLayout(NULL),
+	m_pSlaveDualLayout(NULL),
+	m_pMasterDualLayout(NULL),
+	m_pSlaveDualNbrLayout(NULL),
+	m_pMasterDualNbrLayout(NULL),
+	m_pDirichletMatrix(NULL),
+	m_pDirichletSolver(NULL),
+	m_pDebugWriter(NULL)
+{
+}
+
+template <typename TAlgebra>
 bool LocalSchurComplement<TAlgebra>::
 init()
 {
@@ -73,10 +89,10 @@ init()
 //	Debug output of matrices
 	if(m_pDebugWriter != NULL)
 	{
-		m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
+		/*m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
 									 "FetiDirichletMatrix");
 		m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
-									 "FetiOriginalMatrix");
+									 "FetiOriginalMatrix");*/
 	}
 
 UG_LOG_ALL_PROCS("'LocalSchurComplement::init': "
@@ -408,11 +424,6 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		bSuccess = false;
 	}
 
-	UG_LOG("###### REACHED ######\n");
-
-	if(!bSuccess){
-		UG_LOG("###### bSuccess is FALSE! ######\n");
-	}
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
 	{

@@ -289,8 +289,7 @@ class LocalSchurComplement
 
 	public:
 	///	constructor
-		LocalSchurComplement()
-		{}
+		LocalSchurComplement();
 
 	///	name of solver
 		virtual const char* name() const {return "Local Schur Complement Solver";}
