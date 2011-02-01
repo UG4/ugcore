@@ -560,7 +560,7 @@ class SchurComplementInverse
 
 	//	vector that holds quantities of primal variables on each process
 	//	of the local feti block.
-		std::vector<size_t>	m_primalQuantities;
+		std::vector<int>	m_primalQuantities;
 
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_NeumannOperator;

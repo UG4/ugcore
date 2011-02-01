@@ -329,11 +329,17 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	We have to gather the quantities of primal nodes on each process
 //	of the feti-block in one array.
 	int numLocalPrimals = m_slaveAllToOneLayout.num_interface_elements();
+	UG_LOG("num local primals: " << numLocalPrimals << endl);
 	m_primalQuantities.resize(m_localFetiBlockComm.size());
 	m_localFetiBlockComm.allgather(&numLocalPrimals, 1, PCL_DT_INT,
 							&m_primalQuantities.front(), 1, PCL_DT_INT);
 
 //	log num primal quantities
+	UG_LOG("proc ids: ");
+	for(size_t i = 0; i < m_primalQuantities.size(); ++i){
+		UG_LOG(m_localFetiBlockComm.get_proc_id(i) << " ");
+	}
+	UG_LOG(endl);
 	UG_LOG("primal quantities: ");
 	for(size_t i = 0; i < m_primalQuantities.size(); ++i){
 		UG_LOG(m_primalQuantities[i] << " ");
