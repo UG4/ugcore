@@ -93,7 +93,7 @@ public:
 		{
 			// UG_LOG("index not found\n");
 			has_index = false;
-			return -1;
+			return 0;
 		}
 		else
 		{
