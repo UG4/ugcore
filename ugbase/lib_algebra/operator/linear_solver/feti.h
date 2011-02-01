@@ -500,18 +500,12 @@ class SchurComplementInverse
 		}
 
 	// 	Solve A*u = f, such that u = A^{-1} f
-		virtual bool apply(vector_type& u, const vector_type& f)
-		{
-			return false;
-		}
+		virtual bool apply(vector_type& u, const vector_type& f);
 
 	// 	Solve A*u = f, such that u = A^{-1} f
 	// 	This is done by iterating: u := u + B(f - A*u)
 	// 	In f the last defect f := f - A*u is returned
-		virtual bool apply_return_defect(vector_type& u, vector_type& f)
-		{
-			return false;
-		}
+		virtual bool apply_return_defect(vector_type& u, vector_type& f);
 
 	///	sets a convergence check
 		void set_convergence_check(IConvergenceCheck& convCheck)

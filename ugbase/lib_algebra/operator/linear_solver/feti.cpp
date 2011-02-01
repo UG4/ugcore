@@ -105,14 +105,14 @@ bool LocalSchurComplement<TAlgebra>::
 apply(vector_type& f, const vector_type& u)
 {
 //	check that matrix has been set
-	if(m_pOperator == NULL)
+	if(m_pOperator == NULL) // muesste man hier nicht pruefen, ob m_pDirichletMatrix gesetzt ist?
 	{
 		UG_LOG("ERROR: In 'LocalSchurComplement::apply': "
 						"Matrix A not set.\n");
 		return false;
 	}
 
-//	check dirichlet solver
+//	check Dirichlet solver
 	if(m_pDirichletSolver == NULL)
 	{
 		UG_LOG("ERROR: In 'LocalSchurComplement::apply':"
@@ -363,7 +363,174 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	return true;
 } /* end 'SchurComplementInverse::init()' */
 
+template <typename TAlgebra>
+bool SchurComplementInverse<TAlgebra>::
+apply_return_defect(vector_type& u, vector_type& f)
+{
+//	check that matrix has been set
+	if(m_pNeumannMatrix == NULL)
+	{
+		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+						"Matrix A not set.\n");
+		return false;
+	}
 
+//	check Neumann solver
+	if(m_pNeumannSolver == NULL)
+	{
+		UG_LOG("ERROR: In 'SchurComplementInverse::apply':"
+						" No sequential Neumann Solver set.\n");
+		return false;
+	}
+
+//	Check parallel storage type of matrix
+	if(!m_pNeumannMatrix->has_storage_type(PST_ADDITIVE))
+	{
+		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+						"Inadequate storage format of matrix.\n");
+		return false;
+	}
+
+//	Check parallel storage type of vectors
+	if (!u.has_storage_type(PST_CONSISTENT))
+	{
+		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+						"Inadequate storage format of Vector 'u' (should be consistent).\n");
+		return false;
+	}
+	if(!f.has_storage_type(PST_ADDITIVE))
+	{
+		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+						"Inadequate storage format of Vector 'f' (should be additive).\n");
+		return false;
+	}
+
+//	Help vector
+//	\todo: it would be sufficient to copy only the layouts without copying the values
+	vector_type fTmp; fTmp.create(f.size()); //fTmp = f;
+	vector_type hTmp; hTmp.create(u.size()); //hTmp = u;
+
+
+//	1. Set values of rhs to zero on I and Pi
+	// (a) Reset all values - but not of original f, we need it later!
+	fTmp.set(0.0);
+
+	// (b) Copy values on \Delta
+	VecScaleAppendOnDual(&fTmp, &f, 1.0);
+
+//	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
+
+	// (a) invoke Neumann solver to get \f$h_{\{I \Delta\}}^{(p)}\f$
+	if(!m_pNeumannSolver->apply_return_defect(hTmp, fTmp))
+	{
+		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+						 "Could not solve Dirichlet problem on Proc "
+							<< pcl::GetProcRank() << ".\n");
+		return false;
+	}
+	// (b) apply matrix to \f$[h_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
+	if(!m_A->apply(fTmp, hTmp))
+	{
+		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+						 "Could not apply full matrix on "
+						 "Proc " << pcl::GetProcRank() << ".\n");
+		return false;
+	}
+
+	// (c) Scale result by -1
+	fTmp *= -1.0;
+	// (d) Set values to zero on I and Delta - excluding Pi
+	VecSetExcludingPrimal(&fTmp, 0.0);
+
+//	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
+//     where it is then consistent.
+	// TODO: Gather \f$\tilde{f}_{\Pi}\f$!
+
+//	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
+	// TODO: Solve! Hinweis von Andreas: Für das Loesen der Matrix auf root beliebigen Loeser verwenden.
+	// Dazu Objekt von ILinearOperatorInverse von aussen aufsetzen, im Skript z.B. LU (in Zukunft z.B. HLib ...)
+
+//	5. Broadcast \f$u_{\Pi}\f$ to all Procs. \f$u_{\Pi}\f$ is consistently saved.
+	// TODO: Broadcast solution!
+
+	// Assumption: uTmp contains [0, 0, u_{\Pi}]^T
+	vector_type uTmp; uTmp.create(f.size()); // den Hilfsvektor kann man sich vermutlich sparen ...
+	// TODO: uTmp = ...
+
+//	6. Compute (via backward substitution)
+	// \f$\hat{f}_{\{I \Delta\}}\f$ = *urspruengliches* f_{\{I \Delta\}} - Matrix * [0, u_{\Pi}]^T
+	if(!m_A->apply(hTmp, uTmp))
+	{
+		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+						 "Could not apply full matrix on "
+						 "Proc " << pcl::GetProcRank() << ".\n");
+		return false;
+	}
+	VecScaleAddOnDual(&fTmp, 1.0, &f, -1.0, &hTmp);
+ 
+//	7. Solve for \f$u_{\{I \Delta\}}^{(p)}\f$
+	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // Destination?? Neumann?
+	{
+		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+						 "Could not solve Dirichlet problem on Proc "
+							<< pcl::GetProcRank() << ".\n");
+		return false;
+	}
+
+//	8. Set values to zero on I and Pi - by excluding Delta
+	VecSetExcludingDual(&u, 0.0);
+
+//	we're done
+	return true;
+} /* end 'SchurComplementInverse::apply_return_defect()' */
+
+template <typename TAlgebra>
+bool SchurComplementInverse<TAlgebra>::
+apply(vector_type& x, const vector_type& b)
+{
+	
+//	copy defect
+	vector_type d; d.resize(b.size());
+	d = b;
+
+//	solve on copy of defect
+	return apply_return_defect(x, d);
+} /* end 'SchurComplementInverse::apply()' */
+
+template <typename TAlgebra>
+void SchurComplementInverse<TAlgebra>::
+VecScaleAddOnDual(vector_type& vecDest,
+                  number alpha1, const vector_type& vecSrc1,
+                  number alpha2, const vector_type& vecSrc2)
+{
+	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_pSlaveDualLayout);
+	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_pMasterDualLayout);
+}
+
+template <typename TAlgebra>
+void SchurComplementInverse<TAlgebra>::
+VecScaleAppendOnDual(vector_type& vecInOut,
+                     const vector_type& vecSrc1, number alpha1)
+{
+	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_pSlaveDualLayout);
+	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_pMasterDualLayout);
+}
+
+template <typename TAlgebra>
+void SchurComplementInverse<TAlgebra>::
+VecSetExcludingPrimal(vector_type& vecInOut, number value)
+{
+	VecSetExcludingLayout(&vecInOut, value, m_pSlavePrimalLayout);
+	VecSetExcludingLayout(&vecInOut, value, m_pMasterPrimalLayout);
+}
+
+template <typename TAlgebra>
+void SchurComplementInverse<TAlgebra>::
+VecSetExcludingDual(vector_type& vecInOut,number value)
+{
+	VecSetExcludingLayout(&vecInOut, value, m_pSlaveDualLayout);
+	VecSetExcludingLayout(&vecInOut, value, m_pMasterDualLayout);
+}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -619,10 +786,16 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	This is done in three steps.
 
 //	(a) Compute d:= B S_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}
-//		and set r0 = d
-	if(!compute_d(r, t)) return false;
+//		and set r0 = d -- only if lambda^0 = 0!
+	if(!compute_d(r, f))
+	{
+		UG_LOG("ERROR in 'FETISolver::apply': "
+			   "Cannot compute rhs 'd'. Aborting.\n");
+		return false;
+	}
 
 // 	(b) Build t = F*lambda (t is additive afterwards)
+	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_F()' ********** \n")
 	if(!apply_F(t, lambda))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': Unable "
@@ -633,6 +806,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	VecScaleAppendOnDual(r, t, -1.0);
 
 // 	Precondition the start defect: apply z = M^-1 * r
+	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_M_inverse_with_identity_scaling()' ********** \n")
 	if (!apply_M_inverse_with_identity_scaling(z, r))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
@@ -664,6 +838,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	{
 	//	increase iteration count
 		m_iterCnt++;
+		UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': iter " << m_iterCnt << " ********** \n")
 
 	// 	Build t = F*p (t is additive afterwards)
 		if(!apply_F(t, p))
@@ -685,6 +860,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	// 	Compute new defect
 		m_pConvCheck->update_defect(VecNormOnDual(r));
+		UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': iter " << m_iterCnt << ": After m_pConvCheck->update(r) ********** \n")
 
 	// 	Preconditioning: apply z = M^-1 * r
 		if (!apply_M_inverse_with_identity_scaling(z, r))
@@ -707,6 +883,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	} /* end iteration loop */
 
 	return m_pConvCheck->post();
+	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': DONE after " << m_iterCnt << " iterations! ********** \n")
+
 } /* end 'FETISolver::apply_return_defect()' */
 
 template <typename TAlgebra>
