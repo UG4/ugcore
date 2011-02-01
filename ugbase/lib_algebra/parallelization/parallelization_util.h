@@ -247,7 +247,7 @@ void VecSubtractOnLayout(	TVector* pVec,
  * \param[in]		Layout			Index Layout
  */
 template <typename TVector>
-void VecScaleAddOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
+void VecScaleAppendOnLayout(	TVector* pVecDest, const TVector* pVecSrc,
 							number scale, IndexLayout& Layout)
 {
 //	interface iterators
