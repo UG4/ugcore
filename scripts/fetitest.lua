@@ -17,14 +17,15 @@ InitAlgebra(CPUAlgebraChooser());
 dim = 2
 
 if dim == 2 then
-	gridName = "unit_square_tri.ugx"
+	--gridName = "unit_square_tri.ugx"
+	gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = "unit_cube_hex.ugx"
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = 1
+numPreRefs = 0
 numRefs = 3
 
 --ugargc -> anzahl an ugargvs -- TODO: Check, ob ugshell mit genau (mindestens) 2 Prozessen gestartet wurde!
