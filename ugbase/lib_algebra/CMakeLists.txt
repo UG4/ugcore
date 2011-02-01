@@ -27,6 +27,7 @@ if(NOT NO_ALGEBRA)
 if(NOT NO_PCL)
 	# add parallelization
 	set(src_Algebra	 ${src_Algebra}
+						operator/linear_solver/feti.cpp
 						parallelization/parallelization_util.cpp)
 endif(NOT NO_PCL)
 
