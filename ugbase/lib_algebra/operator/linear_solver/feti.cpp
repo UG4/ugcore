@@ -95,9 +95,6 @@ init()
 									 "FetiOriginalMatrix");*/
 	}
 
-UG_LOG_ALL_PROCS("'LocalSchurComplement::init': "
-		  "********** After MatSetDirichletOnLayout on Proc " << pcl::GetProcRank() << ".(TMP)\n");
-
 //	we're done
 	return true;
 } /* end 'LocalSchurComplement::init()' */
@@ -257,9 +254,6 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	success flag
 	bool bSuccess = true;
 
-	pcl::SynchronizeProcesses();
-	UG_LOG_ALL_PROCS("Initializing SchurComplementInverse.\n");
-
 //	remember operator
 	m_A = dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
 
@@ -355,7 +349,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		m_pOneProcSchurCompMatrix->create(newVecSize, newVecSize);
 
 		std::cout << "On PrimalRoot: Creating proc local Schur Complement"
-					" of size " << newVecSize <<"^2." << std::endl;
+					" of size " << newVecSize <<"x"<<newVecSize << std::endl;
 	}
 
 //	we're done
@@ -446,9 +440,6 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 //	set operator in local schur complement
 	m_LocalSchurComplement.set_matrix(*m_A);
 
-	pcl::SynchronizeProcesses();
-	UG_LOG(" ********** INIT LOCAL SCHUR COMPLEMENT ********** ... \n");
-
 //	init local Schur complement
 	if(m_LocalSchurComplement.init() != true)
 	{
@@ -464,11 +455,6 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 				" local Schur complement.\n");
 		return false;
 	}
-
-//return false; //only to debug
-
-	pcl::SynchronizeProcesses();
-	UG_LOG(" ********** INIT LOCAL SCHUR COMPLEMENT DONE ********** \n")
 
 //  ----- INIT NEUMANN SOLVER  ----- //
 
@@ -490,9 +476,6 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 //	set neumann solver in SchurComplementInverse
 	m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
 
-	pcl::SynchronizeProcesses();
-	UG_LOG(" ********** INIT SCHUR COMPLEMENT INVERSE ********** ... \n")
-
 //	init Schur complement inverse
 	if(m_SchurComplementInverse.init(*m_A) != true)
 	{
@@ -508,9 +491,6 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 				" Schur complement inverse.\n");
 		return false;
 	}
-
-	pcl::SynchronizeProcesses();
-	UG_LOG(" ********** INIT SCHUR COMPLEMENT INVERSE DONE ********** \n")
 
 //	we're done
 	return true;
