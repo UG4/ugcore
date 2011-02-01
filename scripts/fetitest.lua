@@ -326,6 +326,7 @@ sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
 ilu = ILU()
 ilu2 = ILU()
+ilu3 = ILU()
 ilut = ILUT()
 
 -- create GMG ---
@@ -391,6 +392,13 @@ convCheck2:set_minimum_defect(1e-11)
 convCheck2:set_reduction(1e-12)
 convCheck2:set_verbose_level(false)
 
+-- create Convergence Check
+convCheck3 = StandardConvergenceCheck()
+convCheck3:set_maximum_steps(100)
+convCheck3:set_minimum_defect(1e-11)
+convCheck3:set_reduction(1e-12)
+convCheck3:set_verbose_level(false)
+
 -- create Linear Solver
 linSolver = LinearSolver()
 linSolver:set_preconditioner(gmg)
@@ -404,6 +412,10 @@ cgSolver:set_convergence_check(convCheck)
 cg2Solver = CG()
 cg2Solver:set_preconditioner(ilu2)
 cg2Solver:set_convergence_check(convCheck2)
+
+cg3Solver = CG()
+cg3Solver:set_preconditioner(ilu3)
+cg3Solver:set_convergence_check(convCheck3)
 
 -- create BiCGStab Solver
 bicgstabSolver = BiCGStab()
@@ -419,6 +431,7 @@ fetiConvCheck:set_reduction(1e-12)
 -- create FETI Solver
 fetiSolver = FETI()
 fetiSolver:set_convergence_check(fetiConvCheck)
+fetiSolver:set_dual_dirichlet_solver(cg3Solver)
 fetiSolver:set_neumann_solver(cgSolver)
 fetiSolver:set_dirichlet_solver(cg2Solver)
 fetiSolver:set_domain_decomp_info(domainDecompInfo)
