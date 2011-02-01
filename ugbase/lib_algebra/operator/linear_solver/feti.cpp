@@ -493,6 +493,39 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
+//  ----- INIT DUAL DIRICHLET SOLVER  ----- //
+
+//	check that dual dirichlet solver has been set
+	if(m_pDualDirichletSolver == NULL)
+	{
+		UG_LOG("ERROR in FETISolver::init: No dual dirichlet solver set "
+				" for computation of tilde{f}_Delta.\n");
+		return false;
+	}
+
+//	get matrix from dual dirichlet operator
+	m_pDualDirichletMatrix = &m_DualDirichletOperator.get_matrix();
+
+//	Copy Matrix
+	*m_pDualDirichletMatrix = *m_pMatrix;
+
+//	Set Dirichlet values on Dual
+	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_slaveDualLayout);
+	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_masterDualLayout);
+
+//	make diagonal of matrix consistent on Pi
+	MatAdditiveToConsistentOnDiag<algebra_type>(m_pDualDirichletMatrix, m_masterDualLayout,
+	                              m_slaveDualLayout);
+
+//	init sequential solver for Dirichlet problem
+	if(m_pDualDirichletSolver != NULL)
+		if(!m_pDualDirichletSolver->init(m_DualDirichletOperator))
+		{
+			UG_LOG("ERROR in 'SchurComplementInverse::init': Cannot init "
+					"Dual Dirichlet Solver for Operator A.\n");
+			return false;
+		}
+
 //	we're done
 	return true;
 } /* end 'FETISolver::init()' */
@@ -528,7 +561,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	These vectors are used exclusively on the Dual unknowns, but for facility we
 //	use storage for a whole vector and only use it Dual entries.
 
-//	lagrange muliplier
+//	lagrange multiplier
 	vector_type lambda; lambda.create(u.size());
 
 //	residuum
@@ -543,6 +576,11 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	help vector to compute t = F*p
 	vector_type t; t.create(u.size());
 
+
+//	reset start value of lagrange multiplier
+	lambda.set(0.0);
+
+
 //	The idea of the Feti solver is to perform a cg-method on the Dual unknowns.
 //	Therefore, the right-hand side has to be adapted, such that f_Dual fits to
 //	the Schur complement system on the Dual unknowns. i.e.
@@ -553,20 +591,39 @@ apply_return_defect(vector_type& u, vector_type& f)
 //				 Primal unknowns. Then, the rhs can be computed on each process
 //				 individually.
 
-//	\todo: Implement !!!
+//	make f consistent on Pi
+	AdditiveToConsistent(&f, m_masterPrimalLayout, m_slavePrimalLayout);
 
-	lambda.set(0.0);
+	pcl::SynchronizeProcesses();
+	UG_LOG("F IS CONSISTENT\n");
+	pcl::SynchronizeProcesses();
 
-//	\todo: Stop here, otherwise we get an error. But of coarse, we have to
-//			fix it...
-	return false;
+//	set inner layouts
+	t.set_slave_layout(m_slaveInnerLayout);
+	t.set_master_layout(m_masterInnerLayout);
+	t.set_process_communicator(m_localFetiBlockComm);
+
+	f.set_slave_layout(m_slaveInnerLayout);
+	f.set_master_layout(m_masterInnerLayout);
+	f.set_process_communicator(m_localFetiBlockComm);
+
+	pcl::SynchronizeProcesses();
+	UG_LOG("COMPUTING F TILDE\n");
+	pcl::SynchronizeProcesses();
+
+//	compute \tilde{f}_{\Delta}
+	if(!compute_tilde_f(t, f)) return false;
+
+	pcl::SynchronizeProcesses();
+	UG_LOG("COMPUTING D\n");
+	pcl::SynchronizeProcesses();
 
 // 	Build start residuum:  r = r0 := d - F*lambda.
-//	This is done in two steps.
+//	This is done in three steps.
 
 //	(a) Compute d:= B S_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}
 //		and set r0 = d
-	//\todo: Implement !!!
+	if(!compute_d(r, t)) return false;
 
 // 	(b) Build t = F*lambda (t is additive afterwards)
 	if(!apply_F(t, lambda))
@@ -575,7 +632,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 			   "to build t = F*p. Aborting.\n"); return false;
 	}
 
-// (b) Subtract values on \Delta, r0 = r0 - t
+// (c) Subtract values on \Delta, r0 = r0 - t
 	VecScaleAppendOnDual(r, t, -1.0);
 
 // 	Precondition the start defect: apply z = M^-1 * r
@@ -680,6 +737,14 @@ VecScaleAppendOnDual(vector_type& vecInOut,
 {
 	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slaveDualLayout);
 	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterDualLayout);
+}
+
+template <typename TAlgebra>
+void FETISolver<TAlgebra>::
+VecSetOnDual(vector_type& vecSrc, number alpha)
+{
+	VecSetOnLayout(&vecSrc, alpha, m_slaveDualLayout);
+	VecSetOnLayout(&vecSrc, alpha, m_masterDualLayout);
 }
 
 template <typename TAlgebra>

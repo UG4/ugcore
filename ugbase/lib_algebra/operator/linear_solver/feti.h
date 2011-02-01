@@ -650,6 +650,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_pNeumannSolver = &neumannSolver;
 		}
 
+	///	sets the Dual Dirichlet solver
+		void set_dual_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dualDirichletSolver)
+		{
+		//	remember the Dirichlet Solver
+			m_pDualDirichletSolver = &dualDirichletSolver;
+		}
+
 	//	set debug output
 		void set_debug(IDebugWriter<algebra_type>* debugWriter)
 		{
@@ -709,7 +716,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			d.set(0.0); dTmp.set(0.0);
 
 			//  1. Apply SchurComplementInverse to 'f' - TODO: implement 'm_SchurComplementInverse.apply()'!
-			m_SchurComplementInverse.apply(dTmp, f);
+			if(!m_SchurComplementInverse.apply(dTmp, f))
+			{
+				UG_LOG("In 'FETISolver::compute_d': Could not apply Schur"
+						" complement inverse.\n");
+				return false;
+			}
 
 			//	2. Apply jump operator to get the final 'd'
 			ComputeDifferenceOnDelta(d, dTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
@@ -717,6 +729,44 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//	we're done
 			return true;
 		}
+
+	///	function which computes the adapted right hand side vector '\tilde{f}_{\Delta}' of the reduced system ("Delta system")
+	/**
+	 * This function computes \f$ \tilde{f}_{\Delta} := f_{\Delta}
+	 *				 - A_{\Delta \{I \Pi\}} (A_{\{I \Pi\} \{I \Pi\}})^{-1} f_{\{I \Pi\}}\f$
+	 * to a vector \f$f\f$.
+	 *
+	 * \param[in]		f				vector \f$f\f$
+	 * \param[Out]		tildeF			vector \f$\tilde{f}_{\Delta}\f$
+	 */
+		bool compute_tilde_f(vector_type& tildeF, const vector_type& f)
+		{
+			//	Help vector
+			vector_type fTmp; fTmp.create(f.size());
+			fTmp.set_slave_layout(f.get_slave_layout());
+			fTmp.set_master_layout(f.get_master_layout());
+			fTmp.set_process_communicator(f.get_process_communicator());
+
+			// set dirichlet zero values on f_Delta
+			VecSetOnDual(fTmp, 0.0);
+
+			//	solve system
+			fTmp.set_storage_type(PST_ADDITIVE);
+			tildeF.set_storage_type(PST_CONSISTENT);
+			if(!m_pDualDirichletSolver->apply_return_defect(tildeF, fTmp))
+			{
+				UG_LOG("In 'FETISolver::compute_tilde_f': Could not apply inverse"
+						" of Dual Dirichlet Matrix.\n");
+				return false;
+			}
+
+			//	build f := f - A*f on dual
+			VecScaleAddOnDual(tildeF, 1.0, tildeF, -1.0, f);
+
+			//	we're done
+			return true;
+		}
+
 
 
 	///	function which applies diagonal scaling matrix \f$D_{\Delta}^{(i)}\f$ to a vector \f$v\f$
@@ -848,6 +898,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void VecScaleAppendOnDual(vector_type& vecInOut,
 							   const vector_type& vecSrc1, number alpha1);
 
+	///	vecSrc = alpha
+		void VecSetOnDual(vector_type& vecSrc, number alpha);
+
 	///	vecDest += alpha1 * vecSrc1 + alpha2 * vecSrc2 on Dual unknowns
 		void VecScaleAddOnDual(vector_type& vecDest,
 									number alpha1, const vector_type& vecSrc1,
@@ -897,6 +950,15 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Neumann solver for inverse of A_{\{I,\Delta\}, \{I,\Delta\}} in the
 	//	creation of the S_{\Pi \Pi} schur complement
 		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
+
+	//	Copy of matrix
+		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DualDirichletOperator;
+
+	// 	Parallel Neumann Matrix
+		matrix_type* m_pDualDirichletMatrix;
+
+	//	Neumann Solver
+		ILinearOperatorInverse<vector_type, vector_type>* m_pDualDirichletSolver;
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
