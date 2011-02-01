@@ -520,6 +520,10 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_return_defect(vector_type& lambda, vector_type& d)
 {
+//	\todo: Stop here, otherwise we get an error. But of coarse, we have to
+//			fix it...
+	return false;
+
 	if(m_pConvCheck == NULL)
 	{
 		UG_LOG("ERROR: In 'FETISolver::apply': Convergence check not set.\n");

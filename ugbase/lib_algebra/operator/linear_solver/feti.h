@@ -745,7 +745,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		bool apply_M_inverse(TVector& z, const TVector& r)
 		{
 			//	Help vector
-			TVector zTmp; zTmp.create(r.size());
+			TVector zTmp; zTmp.create(r.size()); zTmp = z;
 
 			//	0. Reset values of z, zTmp
 			z.set(0.0); zTmp.set(0.0);
@@ -785,7 +785,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			ComputeDifferenceOnDeltaTransposed(z, r, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
 
 			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
-			m_LocalSchurComplement.apply(zTmp, z);
+			//m_LocalSchurComplement.apply(zTmp, z);
 
 			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 			ComputeDifferenceOnDelta(z, zTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
