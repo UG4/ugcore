@@ -19,12 +19,12 @@ bool
 ParallelVector<TVector>::
 change_storage_type(ParallelStorageType type)
 {
-	// check that communicator exists
+//	choose communicator to use
+	pcl::ParallelCommunicator<IndexLayout>* pCommunicator;
 	if(m_pCommunicator == NULL)
-	{
-		UG_LOG("No communicator set. Cannot change storage type.\n");
-		return false;
-	}
+		pCommunicator = m_pCommunicator;
+	else
+		pCommunicator = NULL;
 
 	// can only change if current state is defined
 	if(has_storage_type(PST_UNDEFINED)) return false;
@@ -40,7 +40,7 @@ change_storage_type(ParallelStorageType type)
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
 					return false;
 				 UniqueToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
-				                    m_pCommunicator);
+				                    pCommunicator);
 				 set_storage_type(PST_CONSISTENT);
 				 break;
 			 }
@@ -48,7 +48,7 @@ change_storage_type(ParallelStorageType type)
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
 					return false;
 				AdditiveToConsistent(this, *m_pMasterLayout, *m_pSlaveLayout,
-				                     m_pCommunicator);
+				                     pCommunicator);
 				set_storage_type(PST_CONSISTENT);
 				break;
 			}
@@ -71,7 +71,7 @@ change_storage_type(ParallelStorageType type)
 				if(m_pMasterLayout == NULL || m_pSlaveLayout == NULL)
 					return false;
 				AdditiveToUnique(this, *m_pMasterLayout, *m_pSlaveLayout,
-				                 m_pCommunicator);
+				                 pCommunicator);
 				add_storage_type(PST_UNIQUE);
 				break;
 			}

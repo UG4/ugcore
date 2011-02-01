@@ -66,12 +66,24 @@ class ParallelVector : public TVector
 		// Layouts and communicator
 		/////////////////////////////////
 
-	///	sets the domain decomposition level to be used
+	///	sets layouts
 		void set_layouts(IndexLayout& masterLayout, IndexLayout& slaveLayout)
 		{
 		//	set layout
 			m_pMasterLayout = &masterLayout;
 			m_pSlaveLayout = &slaveLayout;
+		}
+
+	///	sets slave layout
+		void set_slave_layout(IndexLayout& slaveLayout)
+		{
+			m_pSlaveLayout = &slaveLayout;
+		}
+
+	///	sets slave layout
+		void set_master_layout(IndexLayout& masterLayout)
+		{
+			m_pMasterLayout = &masterLayout;
 		}
 
 	///	sets the vertical slave layout
@@ -112,6 +124,10 @@ class ParallelVector : public TVector
 	///	returns the process communicator
 		pcl::ProcessCommunicator&
 		get_process_communicator() {return m_processCommunicator;}
+
+	///	returns the process communicator
+		const pcl::ProcessCommunicator&
+		get_process_communicator() const {return m_processCommunicator;}
 
 		/////////////////////////
 		// Storage type handling
