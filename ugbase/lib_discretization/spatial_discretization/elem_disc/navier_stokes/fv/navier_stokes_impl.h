@@ -264,15 +264,46 @@ bool
 FVNavierStokesElemDisc<TFVGeom, TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
-	// get finite volume geometry
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+//	number of corners == number of scv
+	static const size_t numCo = TFVGeom<TElem, dim>::m_numSCV;
 
-    //number flux;					// flux at ip
-	MathVector<dim> grad_u;			// gradient of solution at ip
-	number shape_u;					// solution at ip
-	MathMatrix<dim,dim> D;			// Diffusion Tensor
-	MathVector<dim> v;				// Velocity Field
-	MathVector<dim> Dgrad_u;		// Diff.Tensor times gradient of solution
+//	number of SubControlVolumeFaces == num ips
+	static const size_t numSCVF = TFVGeom<TElem, dim>::m_numSCVF;
+
+	// get finite volume geometry
+	static const TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
+
+	// Only first order implemented
+	UG_ASSERT((TFVGeom<TElem, dim>::order == 1), "Only first order implemented.");
+
+	// Some Variables
+
+    MathVector<dim> vCornerVels[numSCVF];
+	MathVector<dim> vCornerVelsOld[numSCVF];
+    number          vCornerPress[numCo];
+    number          vConvLength[numSCVF];
+//    MathVector<dim> vIPVelUpwindShapesMomEq[numSCVF][numCo][dim];
+    MathVector<dim> vIPVelUpwindShapesContiEq[numSCVF][numCo][dim];
+    MathVector<dim> vIPStabVelShapesContiEq[numSCVF][numCo][dim+1];
+
+   	// Store Corner values in vCornerVels variable
+    for(size_t co = 0; co < numCo; ++co)
+        for (size_t component = 0; component < dim; ++component)
+            vCornerVels[co][component]=u(component,co);
+
+	// Compute Upwind Shapes at Ip's and ConvectionLength here fot the Momentum Equation
+    GetUpwindShapes(geo, vCornerVels, m_UpwindMethod, vIPVelUpwindShapesContiEq, vConvLength);
+
+	// todo: Implement for timedependent
+	bool bTimeDependent = false;
+	number dt = 0.0;
+
+	// todo: switch
+	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
+	GetStabilizedShapes(	geo, vCornerVels, vCornerPress, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+									dt, bTimeDependent, vCornerVelsOld,
+									m_Viscosity,
+                                    vIPStabVelShapesContiEq);
 
 	// loop Sub Control Volume Faces (SCVF)
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -280,21 +311,70 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 		// get current SCVF
 		const typename TFVGeom<TElem, dim>::SCVF& scvf = geo.scvf(i);
 
-		// loop integration points
+		// loop integration point of SCVF
 		for(size_t ip = 0; ip < scvf.num_ip(); ++ip)
 		{
-			// reset values
-			VecSet(grad_u, 0.0); shape_u = 0.0;
-
-			// compute gradient and shape at ip
-			for(size_t j = 0; j < scvf.num_sh(); ++j)
+			// loop shape functions
+			for(size_t co = 0; co < scvf.num_sh(); ++co)
 			{
-				VecScaleAppend(grad_u, u(_P_,j), scvf.global_grad(j, ip));
-				shape_u += u(_P_,j) * scvf.shape(j, ip);
-			}
+				////////////////////////////////////////////////////
+				// Diffusiv Term (Momentum Equation)
+				////////////////////////////////////////////////////
 
-			// todo: implement defect
-		}
+				// Compute flux at IP
+				number flux = VecDot(scvf.global_grad(co, ip), scvf.normal());
+
+				// Add flux term to local matrix
+				for(size_t vel1 = 0; vel1 < dim; ++vel1)
+				{
+					//d(vel1, scvf.from(), vel1, co) -= m_Viscosity * flux;
+					//d(vel1, scvf.to()  , vel1, co) += m_Viscosity * flux;
+
+					for(size_t vel2 = 0; vel2 < dim; ++vel2)
+					{
+						//const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
+						//d(vel1, scvf.from(), vel2, co) -= flux2;
+						//d(vel1, scvf.to()  , vel2, co) += flux2;
+					}
+				}
+
+				////////////////////////////////////////////////////
+				// Pressure Term (Momentum Equation)
+				////////////////////////////////////////////////////
+
+                for(size_t vel = 0; vel < dim; ++vel)
+				{
+					//d(vel, scvf.from(), _P_, co) += scvf.shape(co, ip) * scvf.normal()[vel];
+					//d(vel, scvf.to()  , _P_, co) -= scvf.shape(co, ip) * scvf.normal()[vel];
+				}
+
+				////////////////////////////////////////////////////
+				// Convective Term (Momentum Equation)
+				////////////////////////////////////////////////////
+
+				// Compute flux at IP
+				flux = VecDot(scvf.global_grad(co, ip), scvf.normal());
+
+                // Add flux term to local matrix
+				for(size_t vel1 = 0; vel1 < dim; ++vel1)
+				{
+					//d(vel1, scvf.from(), vel1, co) += m_Viscosity * flux;
+					//d(vel1, scvf.to()  , vel1, co) -= m_Viscosity * flux;
+
+					for(size_t vel2 = 0; vel2 < dim; ++vel2)
+					{
+						//const number flux2 = m_Viscosity * scvf.global_grad(co, ip)[vel1] * scvf.normal()[vel2];
+						//d(vel1, scvf.from(), vel2, co) += flux2;
+						//d(vel1, scvf.to()  , vel2, co) -= flux2;
+					}
+				}
+
+				// todo: implement convective term (momentum equation) use vIPVelStab
+
+				// todo: implement mass equations use vIPVelStabMassEq
+                //J(_P_, ,vel1, ) +=
+                }
+          }
 	}
 
 	// we're done
