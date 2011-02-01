@@ -657,6 +657,121 @@ void BuildDomainDecompositionLayouts(
 		int highestReferencedIndex, pcl::IDomainDecompositionInfo& ddinfo);
 /// @}
 
+/// extracts diagonal of a matrix for interface indices
+/**
+ * This function extracts diagonal values of a matrix for all interface indices.
+ * No communication is performed.
+ *
+ * \param[out]		pDiagVector	Vector with diagonal entries
+ * \param[in]		pMatrix		Matrix
+ * \param[in]		Layout		Index Layout
+ */
+template <typename TMatrix, typename TVector>
+void MatExtractDiagOnLayout(	TVector* pDiagVector,
+								const TMatrix* pMatrix,
+                            	IndexLayout& Layout)
+{
+//	interface iterator
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = Layout.interface(iter);
+
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		// 	get index
+			const size_t index = interface.get_element(iter);
+
+		//	copy values
+			const typename TMatrix::value_type& block = (*pMatrix)(index, index);
+			for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+			{
+				BlockRef((*pDiagVector)[index], beta) = BlockRef(block, beta, beta);
+			}
+		}
+	}
+}
+
+/// writes diagonal of a matrix for interface indices
+/**
+ * This function writes diagonal values of a matrix for all interface indices.
+ * No communication is performed.
+ *
+ * \param[out]		pMatrix		Matrix
+ * \param[in]		pDiagVector	Vector with diagonal entries
+ * \param[in]		Layout		Index Layout
+ */
+template <typename TMatrix, typename TVector>
+void MatWriteDiagOnLayout(	TMatrix* pMatrix,
+                          	const TVector* pDiagVector,
+                          	IndexLayout& Layout)
+{
+//	interface iterator
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = Layout.interface(iter);
+
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+		{
+		// 	get index
+			const size_t index = interface.get_element(iter);
+
+		//	copy values
+			typename TMatrix::value_type& block = (*pMatrix)(index, index);
+			for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+			{
+				BlockRef(block, beta, beta) = BlockRef((*pDiagVector)[index], beta);
+			}
+		}
+	}
+}
+
+
+/// changes parallel storage type from additive to consistent on diagonal of a matrix
+/**
+ * This function changes the storage type of a matrix from additive
+ * to consistent on the diagonal. A ParallelCommunicator is created iff no communicator passed.
+ *
+ * \param[in,out]		pVec			Parallel Vector
+ * \param[in]			masterLayout	Master Layout
+ * \param[in]			slaveLayout		Slave Layout
+ * \param[in]			pCom			Parallel Communicator
+ */
+template <typename TAlgebra>
+void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
+                                   	IndexLayout& masterLayout, IndexLayout& slaveLayout,
+                                   	pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+{
+//	\todo: We could work on the matrix directly here, without temporary vector
+
+//	create a vector of length of the diagonal
+	typename TAlgebra::vector_type vecDiag;
+
+//	resize the vector to correct size
+	vecDiag.resize(pMat->num_rows());
+
+//	copy diag values
+	MatExtractDiagOnLayout(&vecDiag, pMat, masterLayout);
+	MatExtractDiagOnLayout(&vecDiag, pMat, slaveLayout);
+
+//	change vector to consistent
+	AdditiveToConsistent(&vecDiag, masterLayout, slaveLayout, pCom);
+
+//	write consistent values back
+	MatWriteDiagOnLayout(pMat, &vecDiag, masterLayout);
+	MatWriteDiagOnLayout(pMat, &vecDiag, slaveLayout);
+}
+
+
 }//	end of namespace
 
 
