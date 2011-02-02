@@ -166,7 +166,7 @@ class LinearSolver : public ILinearOperatorInverse<	typename TAlgebra::vector_ty
 			m_pConvCheck->set_name(name());
 			if(m_pPrecond != NULL)
 			{
-				stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
+				std::stringstream ss; ss <<  " (Precond: " << m_pPrecond->name() << ")";
 				m_pConvCheck->set_info(ss.str());
 			}
 			else

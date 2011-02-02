@@ -355,7 +355,7 @@ class DirichletDirichletSolver : public IMatrixOperatorInverse<	typename TAlgebr
 
 			if(m_pNeumannSolver != NULL && m_pDirichletSolver != NULL)
 			{
-				stringstream ss; ss <<  " (Seq. Solver: " << m_pNeumannSolver->name() << ","
+				std::stringstream ss; ss <<  " (Seq. Solver: " << m_pNeumannSolver->name() << ","
 									<< m_pDirichletSolver->name() << ")";
 				m_pConvCheck->set_info(ss.str());
 			}
