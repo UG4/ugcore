@@ -6,6 +6,7 @@
  */
 #include "ug.h"
 
+
 namespace ug {
 
 //	we store the path in which scripts are located in this variable
@@ -29,23 +30,23 @@ static bool InitPaths(const char* argv0) {
 
 	//	extract the application path.
 	// UG_LOG("argv[0]: " << argv0 << endl);
-	string tPath = argv0;
+	std::string tPath = argv0;
 	size_t pos = tPath.find_last_of("/");
-	if (pos == string::npos)
+	if (pos == std::string::npos)
 		pos = tPath.find_last_of("\\\\");
-	if (pos != string::npos)
+	if (pos != std::string::npos)
 		PATHS.APPS = tPath.substr(0, pos);
 	else
 		PATHS.APPS = ".";
 
 	PATHS.SCRIPTS = PATHS.APPS + "/../scripts";
 
-	PATHS.DATA = string(PATHS.APPS);
+	PATHS.DATA = std::string(PATHS.APPS);
 	PATHS.DATA.append("/../data");
 
 	UG_DLOG(MAIN, 0, "app path set to: " << PATHS.APPS <<
-			endl << "script path set to: " << PATHS.SCRIPTS <<
-			endl << "data path set to: " << PATHS.DATA << endl);
+			std::endl << "script path set to: " << PATHS.SCRIPTS <<
+			std::endl << "data path set to: " << PATHS.DATA << std::endl);
 
 	if(!script::FileExists(PATHS.APPS.c_str()) ||
 	   !script::FileExists(PATHS.SCRIPTS.c_str()) ||
