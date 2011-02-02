@@ -194,6 +194,165 @@ inline void ExtractCrossPointLayouts(size_t numIDs,
 }
 */
 
+
+template <typename TAlgebra>
+class FetiLayouts
+{
+	public:
+	// 	Algebra type
+		typedef TAlgebra algebra_type;
+
+	// 	Vector type
+		typedef typename TAlgebra::vector_type vector_type;
+
+	// 	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
+	public:
+		FetiLayouts() : m_pMasterStdLayout(NULL), m_pSlaveStdLayout(NULL) {}
+
+	//	assigns standard layouts, creates the feti layouts
+		void create_layouts(IndexLayout& masterLayout,
+		                    IndexLayout& slaveLayout,
+		                    size_t numIndices,
+		                    pcl::IDomainDecompositionInfo& DDInfo)
+		{
+		//	if no indices, nothing to do
+			if(numIndices == 0) return;
+
+		//	remember std layouts
+			m_pMasterStdLayout = & masterLayout;
+			m_pSlaveStdLayout = &slaveLayout;
+
+		//	create FETI Layouts:
+			BuildDomainDecompositionLayouts(m_masterDualLayout, m_slaveDualLayout,
+							m_masterInnerLayout, m_slaveInnerLayout, m_masterDualNbrLayout,
+							m_slaveDualNbrLayout, m_masterPrimalLayout, m_slavePrimalLayout,
+							*m_pMasterStdLayout, *m_pSlaveStdLayout,
+							(int)(numIndices - 1), DDInfo);
+
+		//	create local feti block communicator
+			int localSubdomID = DDInfo.map_proc_id_to_subdomain_id(pcl::GetProcRank());
+			pcl::ProcessCommunicator worldComm;
+			for(int i = 0; i < DDInfo.get_num_subdomains(); ++i){
+				if(localSubdomID == i)
+					m_localFetiBlockComm = worldComm.create_sub_communicator(true);
+				else
+					worldComm.create_sub_communicator(false);
+			}
+
+		//	test output
+			pcl::ParallelCommunicator<IndexLayout> comTmp;
+			PrintLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout);
+		}
+
+	//	inner layouts
+		IndexLayout& get_inner_master_layout() {return m_masterInnerLayout;}
+		IndexLayout& get_inner_slave_layout() {return m_slaveInnerLayout;}
+		pcl::ProcessCommunicator& get_inner_process_communicator() {return m_localFetiBlockComm;}
+
+	//	dual layouts
+		IndexLayout& get_dual_master_layout() {return m_masterDualLayout;}
+		IndexLayout& get_dual_slave_layout() {return m_slaveDualLayout;}
+
+	//	dual nbr layouts
+		IndexLayout& get_dual_nbr_master_layout() {return m_masterDualNbrLayout;}
+		IndexLayout& get_dual_nbr_slave_layout() {return m_slaveDualNbrLayout;}
+
+	//	primal layouts
+		IndexLayout& get_primal_master_layout() {return m_masterPrimalLayout;}
+		IndexLayout& get_primal_slave_layout() {return m_slavePrimalLayout;}
+
+	public:
+	//	sets inner communication layouts and communicators
+		void vec_use_inner_communication(vector_type& vec)
+		{
+			vec.set_slave_layout(get_inner_slave_layout());
+			vec.set_master_layout(get_inner_master_layout());
+			vec.set_process_communicator(get_inner_process_communicator());
+		}
+
+	public:
+		number vec_norm_on_dual(vector_type& vec)
+		{
+		//	forward to VecProc
+			return sqrt(vec_prod_on_dual(vec, vec));
+		}
+
+		void vec_scale_add_on_dual(vector_type& vecDest,
+		                           number alpha1, const vector_type& vecSrc1,
+		                           number alpha2, const vector_type& vecSrc2)
+		{
+			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_slaveDualLayout);
+			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_masterDualLayout);
+		}
+
+		void vec_scale_append_on_dual(vector_type& vecInOut,
+		                              const vector_type& vecSrc1, number alpha1)
+		{
+			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slaveDualLayout);
+			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterDualLayout);
+		}
+
+		void vec_set_on_dual(vector_type& vecSrc, number alpha)
+		{
+			VecSetOnLayout(&vecSrc, alpha, m_slaveDualLayout);
+			VecSetOnLayout(&vecSrc, alpha, m_masterDualLayout);
+		}
+
+		number vec_prod_on_dual(const vector_type& vecSrc1, const vector_type& vecSrc2)
+		{
+		//	reset result
+			number prod = 0.0, prodTmp = 0.0;
+
+		//	add prod on master
+			VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_masterDualLayout);
+			prod += prodTmp;
+
+		//	add prod on slave
+			VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_slaveDualLayout);
+			prod += prodTmp;
+
+		//	return result
+			return prod;
+		}
+
+		void vec_set_excl_primal(vector_type& vecInOut, number value)
+		{
+			VecSetExcludingLayout(&vecInOut, value, m_slavePrimalLayout);
+			VecSetExcludingLayout(&vecInOut, value, m_masterPrimalLayout);
+		}
+
+		void vec_set_excl_dual(vector_type& vecInOut,number value)
+		{
+			VecSetExcludingLayout(&vecInOut, value, m_slaveDualLayout);
+			VecSetExcludingLayout(&vecInOut, value, m_masterDualLayout);
+		}
+
+
+	protected:
+	//	Standard Layouts
+		IndexLayout* m_pMasterStdLayout;
+		IndexLayout* m_pSlaveStdLayout;
+
+	//	Layouts and Communicator for Inner variables
+		IndexLayout m_masterInnerLayout;
+		IndexLayout m_slaveInnerLayout;
+		pcl::ProcessCommunicator	m_localFetiBlockComm;
+
+	//	Layouts for Dual variables
+		IndexLayout m_masterDualLayout;
+		IndexLayout m_slaveDualLayout;
+
+	//	Layouts for Dual Neighbour variables
+		IndexLayout m_masterDualNbrLayout;
+		IndexLayout m_slaveDualNbrLayout;
+
+	//	Layouts for Primal variables
+		IndexLayout m_masterPrimalLayout;
+		IndexLayout m_slavePrimalLayout;
+};
+
 ///	Application of the "jump operator" \f$B_{\Delta}\f$:
 /// 'ComputeDifferenceOnDelta()': Apply \f$B_{\Delta}\f$ to \f$u_{\Delta}\f$
 /**
@@ -342,24 +501,9 @@ class LocalSchurComplement
 		}
 
 	///	sets the primal layouts
-		void set_primal_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		void set_feti_layouts(FetiLayouts<algebra_type>& fetiLayouts)
 		{
-			m_pSlavePrimalLayout = &slaveLayout;
-			m_pMasterPrimalLayout = &masterLayout;
-		}
-
-	///	sets the dual layouts
-		void set_dual_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
-		{
-			m_pSlaveDualLayout = &slaveLayout;
-			m_pMasterDualLayout = &masterLayout;
-		}
-
-	///	sets the dual neighbour layouts
-		void set_dual_nbr_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
-		{
-			m_pSlaveDualNbrLayout = &slaveLayout;
-			m_pMasterDualNbrLayout = &masterLayout;
+			m_pFetiLayouts = &fetiLayouts;
 		}
 
 	/// implementation of the operator for the solution dependent initialization.
@@ -402,17 +546,8 @@ class LocalSchurComplement
 	// 	Parallel Matrix
 		matrix_type* m_pMatrix;
 
-	//	Layouts for Primal variables
-		IndexLayout* m_pMasterPrimalLayout;
-		IndexLayout* m_pSlavePrimalLayout;
-
-	// Layouts for Dual variables
-		IndexLayout* m_pSlaveDualLayout;
-		IndexLayout* m_pMasterDualLayout;
-
-	// Layouts for Dual neighbour variables
-		IndexLayout* m_pSlaveDualNbrLayout;
-		IndexLayout* m_pMasterDualNbrLayout;
+	//	Feti Layouts
+		FetiLayouts<algebra_type>* m_pFetiLayouts;
 
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DirichletOperator;
@@ -456,12 +591,6 @@ class SchurComplementInverse
 	///	name of class
 		virtual const char* name() const {return "Schur Complement Inverse";}
 
-	///	sets the local feti block communicator
-		void set_local_feti_block_communicator(const pcl::ProcessCommunicator& procComm)
-		{
-			m_localFetiBlockComm = procComm;
-		}
-
 	///	sets the Neumann solver
 		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
 		{
@@ -470,24 +599,9 @@ class SchurComplementInverse
 		}
 
 	///	sets the primal layouts
-		void set_primal_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
+		void set_feti_layouts(FetiLayouts<algebra_type>& fetiLayouts)
 		{
-			m_pSlavePrimalLayout = &slaveLayout;
-			m_pMasterPrimalLayout = &masterLayout;
-		}
-
-	///	sets the dual layouts
-		void set_dual_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
-		{
-			m_pSlaveDualLayout = &slaveLayout;
-			m_pMasterDualLayout = &masterLayout;
-		}
-
-	///	sets the dual layouts
-		void set_dual_nbr_layouts(IndexLayout& slaveLayout, IndexLayout& masterLayout)
-		{
-			m_pSlaveDualNbrLayout = &slaveLayout;
-			m_pMasterDualNbrLayout = &masterLayout;
+			m_pFetiLayouts = &fetiLayouts;
 		}
 
 	// 	Init for Linear Operator L
@@ -531,32 +645,6 @@ class SchurComplementInverse
 			return m_pDebugWriter->write_vector(vec, filename);
 		}
 
-	///	computes norm on dual unknowns
-		number VecNormOnDual(vector_type& vec);
-
-	///	vecInOut += alpha1 * vecSrc1 on Dual unknowns
-		void VecScaleAppendOnDual(vector_type& vecInOut,
-							   const vector_type& vecSrc1, number alpha1);
-
-	///	vecSrc = alpha
-		void VecSetOnDual(vector_type& vecSrc, number alpha);
-
-	///	vecDest += alpha1 * vecSrc1 + alpha2 * vecSrc2 on Dual unknowns
-		void VecScaleAddOnDual(vector_type& vecDest,
-									number alpha1, const vector_type& vecSrc1,
-									number alpha2, const vector_type& vecSrc2);
-
-	///	computes vector product on dual unknowns
-		number VecProdOnDual(const vector_type& vecSrc1,
-							   const vector_type& vecSrc2);
-
-		void
-		VecSetExcludingPrimal(vector_type& vecInOut, number value);
-
-		void
-		VecSetExcludingDual(vector_type& vecInOut,number value);
-
-
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
 		IMatrixOperator<vector_type,vector_type,matrix_type>* m_A;
@@ -564,20 +652,8 @@ class SchurComplementInverse
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
 
-	//	ProcessCommunicator for local feti-block
-		pcl::ProcessCommunicator m_localFetiBlockComm;
-
-	//	Layouts for Primal variables
-		IndexLayout* m_pMasterPrimalLayout;
-		IndexLayout* m_pSlavePrimalLayout;
-
-	// Layouts for Dual variables
-		IndexLayout* m_pSlaveDualLayout;
-		IndexLayout* m_pMasterDualLayout;
-
-	// Layouts for Dual neighbour variables
-		IndexLayout* m_pSlaveDualNbrLayout;
-		IndexLayout* m_pMasterDualNbrLayout;
+	//	Feti Layouts
+		FetiLayouts<algebra_type>* m_pFetiLayouts;
 
 	//	vector that holds quantities of primal variables on each process
 	//	of the local feti block.
@@ -711,13 +787,17 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 
 			//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
-			ComputeDifferenceOnDeltaTransposed(f, v, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
+			ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
+			                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
+			                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
 			//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
 			m_SchurComplementInverse.apply(fTmp, f);
 
 			//	3. Apply jump operator to get the final 'f'
-			ComputeDifferenceOnDelta(f, fTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
+			ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
+			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 			//	we're done
 			return true;
@@ -754,7 +834,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 			//	2. Apply jump operator to get the final 'd'
-			ComputeDifferenceOnDelta(d, dTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
+			ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
+			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 			//	we're done
 			return true;
@@ -778,7 +860,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			fTmp.set_process_communicator(f.get_process_communicator());
 
 			// set dirichlet zero values on f_Delta
-			VecSetOnDual(fTmp, 0.0);
+			m_fetiLayouts.vec_set_on_dual(fTmp, 0.0);
 
 			//	solve system
 			fTmp.set_storage_type(PST_ADDITIVE);
@@ -791,7 +873,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			}
 
 			//	build f := f - A*f on dual
-			VecScaleAddOnDual(tildeF, 1.0, tildeF, -1.0, f);
+			m_fetiLayouts.vec_scale_add_on_dual(tildeF, 1.0, tildeF, -1.0, f);
 
 			//	we're done
 			return true;
@@ -830,13 +912,17 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			Apply_ScalingMatrix(z, r); // maybe restrict to layout
 
 			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(zTmp, z, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
+			ComputeDifferenceOnDeltaTransposed(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
+			                                   	   	    m_fetiLayouts.get_dual_slave_layout(),
+			                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
 
 			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 			m_LocalSchurComplement.apply(z, zTmp);
 
 			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(zTmp, z, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
+			ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
+			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
 			Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
@@ -857,13 +943,17 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			//Apply_ScalingMatrix(z, r); // maybe restrict to layout
 
 			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(z, r, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
+			ComputeDifferenceOnDeltaTransposed(z, r, m_fetiLayouts.get_dual_master_layout(),
+			                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
+			                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
 			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 			//m_LocalSchurComplement.apply(zTmp, z);
 
 			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(z, zTmp, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
+			ComputeDifferenceOnDelta(z, zTmp, m_fetiLayouts.get_dual_master_layout(),
+			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
 			//Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
@@ -921,25 +1011,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			return m_pDebugWriter->write_vector(vec, name.c_str());
 		}
 
-	///	computes norm on dual unknowns
-		number VecNormOnDual(vector_type& vec);
-
-	///	vecInOut += alpha1 * vecSrc1 on Dual unknowns
-		void VecScaleAppendOnDual(vector_type& vecInOut,
-							   const vector_type& vecSrc1, number alpha1);
-
-	///	vecSrc = alpha
-		void VecSetOnDual(vector_type& vecSrc, number alpha);
-
-	///	vecDest += alpha1 * vecSrc1 + alpha2 * vecSrc2 on Dual unknowns
-		void VecScaleAddOnDual(vector_type& vecDest,
-									number alpha1, const vector_type& vecSrc1,
-									number alpha2, const vector_type& vecSrc2);
-
-	///	computes vector product on dual unknowns
-		number VecProdOnDual(const vector_type& vecSrc1,
-		                       const vector_type& vecSrc2);
-
 		int m_iterCnt;
 
 	protected:
@@ -949,24 +1020,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;
 
-	//	Process communicator for local feti-block
-		pcl::ProcessCommunicator	m_localFetiBlockComm;
-
-	//	Layouts for Inner variables
-		IndexLayout m_masterInnerLayout;
-		IndexLayout m_slaveInnerLayout;
-
-	//	Layouts for Dual variables
-		IndexLayout m_masterDualLayout;
-		IndexLayout m_slaveDualLayout;
-
-	//	Layouts for Dual Neighbour variables
-		IndexLayout m_masterDualNbrLayout;
-		IndexLayout m_slaveDualNbrLayout;
-
-	//	Layouts for Primal variables
-		IndexLayout m_masterPrimalLayout;
-		IndexLayout m_slavePrimalLayout;
+	//	Feti Layouts
+		FetiLayouts<algebra_type> m_fetiLayouts;
 
 	//	Local Schur complement for each feti subdomain
 		LocalSchurComplement<algebra_type> m_LocalSchurComplement;

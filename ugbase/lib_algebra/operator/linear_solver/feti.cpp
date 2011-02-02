@@ -22,12 +22,7 @@ template <typename TAlgebra>
 LocalSchurComplement<TAlgebra>::
 LocalSchurComplement() :
 	m_pMatrix(NULL),
-	m_pMasterPrimalLayout(NULL),
-	m_pSlavePrimalLayout(NULL),
-	m_pSlaveDualLayout(NULL),
-	m_pMasterDualLayout(NULL),
-	m_pSlaveDualNbrLayout(NULL),
-	m_pMasterDualNbrLayout(NULL),
+	m_pFetiLayouts(NULL),
 	m_pDirichletMatrix(NULL),
 	m_pDirichletSolver(NULL),
 	m_pDebugWriter(NULL)
@@ -46,19 +41,11 @@ init()
 		return false;
 	}
 
-//	check that Primal layouts have been set
-	if(m_pSlavePrimalLayout == NULL || m_pMasterPrimalLayout == NULL)
+//	check Feti layouts have been set
+	if(m_pFetiLayouts == NULL)
 	{
-		UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
-				" layout for primal unknowns not set.\n");
-		return false;
-	}
-
-//	check that Primal layouts have been set
-	if(m_pSlaveDualLayout == NULL || m_pMasterDualLayout == NULL)
-	{
-		UG_LOG("ERROR in 'LocalSchurComplement::init': Master or Slave"
-				" layout for dual unknowns not set.\n");
+		UG_LOG("ERROR in 'LocalSchurComplement::init': FETI "
+				" layouts not set.\n");
 		return false;
 	}
 
@@ -72,12 +59,12 @@ init()
 	*m_pDirichletMatrix = *m_pMatrix;
 
 //	Set Dirichlet values on Pi
-	MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pSlavePrimalLayout);
-	MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pMasterPrimalLayout);
+	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_primal_slave_layout());
+	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_primal_master_layout());
 
 //	Set Dirichlet values on Delta
-	MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pSlaveDualLayout);
-	MatSetDirichletOnLayout(m_pDirichletMatrix, *m_pMasterDualLayout);
+	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_dual_slave_layout());
+	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_dual_master_layout());
 
 //	init sequential solver for Dirichlet problem
 	if(m_pDirichletSolver != NULL)
@@ -151,8 +138,8 @@ apply(vector_type& f, const vector_type& u)
 	uTmp.set(0.0);
 
 	// (b) Copy values on \Delta
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_slave_layout());
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_master_layout());
 
 //	2. Compute rhs f_{I} = A_{I \Delta} u_{\Delta}
 	if(!m_DirichletOperator.apply(f, uTmp))
@@ -163,8 +150,8 @@ apply(vector_type& f, const vector_type& u)
 		return false;
 	}
 	// set values to zero on \Delta
-	VecSetOnLayout(&f, 0.0, *m_pSlaveDualLayout);
-	VecSetOnLayout(&f, 0.0, *m_pMasterDualLayout);
+	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
+	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_master_layout());
 
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
 	// (a) use the inner-FETI-block layouts
@@ -186,8 +173,8 @@ apply(vector_type& f, const vector_type& u)
 	uTmp *= -1.0;
 
 	// (b) Add u_{\Delta} on \Delta
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pSlaveDualLayout);
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, *m_pMasterDualLayout);
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_slave_layout());
+	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_master_layout());
 
 	// (c) Multiply with full matrix
 	if(!m_pOperator->apply(f, uTmp))
@@ -199,10 +186,10 @@ apply(vector_type& f, const vector_type& u)
 	}
 
 //	5. Reset all values for I, \Pi
-	VecSetExcludingLayout(&f, 0.0, *m_pSlaveDualLayout);
+	VecSetExcludingLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
 
-	VecSetOnLayout(&f, 0.0, *m_pSlavePrimalLayout);
-	VecSetOnLayout(&f, 0.0, *m_pMasterPrimalLayout);
+	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
+	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_master_layout());
 
 //	we're done
 	return true;
@@ -233,12 +220,7 @@ SchurComplementInverse<TAlgebra>::
 SchurComplementInverse() :
 	m_A(NULL),
 	m_pMatrix(NULL),
-	m_pMasterPrimalLayout(NULL),
-	m_pSlavePrimalLayout(NULL),
-	m_pSlaveDualLayout(NULL),
-	m_pMasterDualLayout(NULL),
-	m_pSlaveDualNbrLayout(NULL),
-	m_pMasterDualNbrLayout(NULL),
+	m_pFetiLayouts(NULL),
 	m_pNeumannMatrix(NULL),
 	m_pNeumannSolver(NULL),
 	m_primalRootProc(-1),
@@ -267,10 +249,10 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	}
 
 //	check that Pi layouts have been set
-	if(m_pSlavePrimalLayout == NULL || m_pMasterPrimalLayout == NULL)
+	if(m_pFetiLayouts == NULL)
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
-				" Master or Slave layout for cross points not set "
+				" Feti Layouts not set "
 				"on Proc " << pcl::GetProcRank() << ".\n");
 		bSuccess = false;
 	}
@@ -293,8 +275,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	*m_pNeumannMatrix = *m_pMatrix;
 
 //	Set Dirichlet values on Pi
-	MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pSlavePrimalLayout);
-	MatSetDirichletOnLayout(m_pNeumannMatrix, *m_pMasterPrimalLayout);
+	MatSetDirichletOnLayout(m_pNeumannMatrix, m_pFetiLayouts->get_primal_slave_layout());
+	MatSetDirichletOnLayout(m_pNeumannMatrix, m_pFetiLayouts->get_primal_master_layout());
 
 //	init sequential solver for Dirichlet problem
 	if(m_pNeumannSolver != NULL)
@@ -323,21 +305,23 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	to the primal Root Process
 	int newVecSize = BuildOneToManyLayout(m_masterAllToOneLayout,
 						 m_slaveAllToOneLayout, m_primalRootProc,
-						 *m_pMasterPrimalLayout, *m_pSlavePrimalLayout,
+						 m_pFetiLayouts->get_primal_master_layout(),
+						 m_pFetiLayouts->get_primal_slave_layout(),
 						 m_allToOneProcessComm, &newMasterIDsOut);
 
 //	We have to gather the quantities of primal nodes on each process
 //	of the feti-block in one array.
 	int numLocalPrimals = m_slaveAllToOneLayout.num_interface_elements();
+	pcl::ProcessCommunicator& localFetiBlockComm = m_pFetiLayouts->get_inner_process_communicator();
 	UG_LOG("num local primals: " << numLocalPrimals << endl);
-	m_primalQuantities.resize(m_localFetiBlockComm.size());
-	m_localFetiBlockComm.allgather(&numLocalPrimals, 1, PCL_DT_INT,
+	m_primalQuantities.resize(localFetiBlockComm.size());
+	localFetiBlockComm.allgather(&numLocalPrimals, 1, PCL_DT_INT,
 							&m_primalQuantities.front(), 1, PCL_DT_INT);
 
 //	log num primal quantities
 	UG_LOG("proc ids: ");
 	for(size_t i = 0; i < m_primalQuantities.size(); ++i){
-		UG_LOG(m_localFetiBlockComm.get_proc_id(i) << " ");
+		UG_LOG(localFetiBlockComm.get_proc_id(i) << " ");
 	}
 	UG_LOG(endl);
 	UG_LOG("primal quantities: ");
@@ -416,7 +400,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	fTmp.set(0.0);
 
 	// (b) Copy values on \Delta
-	VecScaleAppendOnDual(fTmp, f, 1.0);
+	m_pFetiLayouts->vec_scale_append_on_dual(fTmp, f, 1.0);
 
 //	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
 
@@ -440,7 +424,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// (c) Scale result by -1
 	fTmp *= -1.0;
 	// (d) Set values to zero on I and Delta - excluding Pi
-	VecSetExcludingPrimal(fTmp, 0.0);
+	m_pFetiLayouts->vec_set_excl_primal(fTmp, 0.0);
 
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
@@ -466,7 +450,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
-	VecScaleAddOnDual(fTmp, 1.0, f, -1.0, hTmp);
+	m_pFetiLayouts->vec_scale_add_on_dual(fTmp, 1.0, f, -1.0, hTmp);
  
 //	7. Solve for \f$u_{\{I \Delta\}}^{(p)}\f$
 	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // Destination?? Neumann?
@@ -478,7 +462,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 
 //	8. Set values to zero on I and Pi - by excluding Delta
-	VecSetExcludingDual(u, 0.0);
+	m_pFetiLayouts->vec_set_excl_dual(u, 0.0);
 
 //	we're done
 	return true;
@@ -497,40 +481,6 @@ apply(vector_type& x, const vector_type& b)
 	return apply_return_defect(x, d);
 } /* end 'SchurComplementInverse::apply()' */
 
-template <typename TAlgebra>
-void SchurComplementInverse<TAlgebra>::
-VecScaleAddOnDual(vector_type& vecDest,
-                  number alpha1, const vector_type& vecSrc1,
-                  number alpha2, const vector_type& vecSrc2)
-{
-	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, *m_pSlaveDualLayout);
-	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, *m_pMasterDualLayout);
-}
-
-template <typename TAlgebra>
-void SchurComplementInverse<TAlgebra>::
-VecScaleAppendOnDual(vector_type& vecInOut,
-                     const vector_type& vecSrc1, number alpha1)
-{
-	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, *m_pSlaveDualLayout);
-	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, *m_pMasterDualLayout);
-}
-
-template <typename TAlgebra>
-void SchurComplementInverse<TAlgebra>::
-VecSetExcludingPrimal(vector_type& vecInOut, number value)
-{
-	VecSetExcludingLayout(&vecInOut, value, *m_pSlavePrimalLayout);
-	VecSetExcludingLayout(&vecInOut, value, *m_pMasterPrimalLayout);
-}
-
-template <typename TAlgebra>
-void SchurComplementInverse<TAlgebra>::
-VecSetExcludingDual(vector_type& vecInOut,number value)
-{
-	VecSetExcludingLayout(&vecInOut, value, *m_pSlaveDualLayout);
-	VecSetExcludingLayout(&vecInOut, value, *m_pMasterDualLayout);
-}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -561,42 +511,19 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 //	get matrix
 	m_pMatrix = &m_A->get_matrix();
 
-//	create FETI Layouts:
-// 	\todo: @Ingo, Doc Me please
-	BuildDomainDecompositionLayouts(m_masterDualLayout, m_slaveDualLayout,
-					m_masterInnerLayout, m_slaveInnerLayout, m_masterDualNbrLayout,
-					m_slaveDualNbrLayout, m_masterPrimalLayout, m_slavePrimalLayout,
-					m_pMatrix->get_master_layout(), m_pMatrix->get_slave_layout(),
-					(int)(m_pMatrix->num_rows() - 1), *m_pDDInfo);
-
-//	create local feti block communicator
-	int localSubdomID = m_pDDInfo->map_proc_id_to_subdomain_id(pcl::GetProcRank());
-	pcl::ProcessCommunicator worldComm;
-	for(int i = 0; i < m_pDDInfo->get_num_subdomains(); ++i){
-		if(localSubdomID == i)
-			m_localFetiBlockComm = worldComm.create_sub_communicator(true);
-		else
-			worldComm.create_sub_communicator(false);
+//	check that DDInfo has been set
+	if(m_pDDInfo == NULL)
+	{
+		UG_LOG("ERROR in FETISolver::init: DDInfo not set.\n");
+		return false;
 	}
 
-	pcl::ParallelCommunicator<IndexLayout> comTmp;
-	PrintLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout);
-/*
-//	write layouts
-	pcl::SynchronizeProcesses();
-	UG_LOG("------------- DUAL MASTER ------------\n")
-	LogIndexLayoutOnAllProcs(m_masterDualLayout, 1);
-	pcl::SynchronizeProcesses();
-	UG_LOG("------------- DUAL SLAVE  ------------\n")
-	LogIndexLayoutOnAllProcs(m_slaveDualLayout, 1);
+//	create FETI Layouts
+	m_fetiLayouts.create_layouts(m_pMatrix->get_master_layout(),
+	                             m_pMatrix->get_slave_layout(),
+	                             m_pMatrix->num_rows(),
+	                             *m_pDDInfo);
 
-	pcl::SynchronizeProcesses();
-	UG_LOG("------------- PRIMAL MASTER ------------\n")
-	LogIndexLayoutOnAllProcs(m_masterPrimalLayout, 1);
-	pcl::SynchronizeProcesses();
-	UG_LOG("------------- PRIMAL SLAVE  ------------\n")
-	LogIndexLayoutOnAllProcs(m_slavePrimalLayout, 1);
-*/
 //  ----- INIT DIRICHLET SOLVER  ----- //
 
 //	check that dirichlet solver has been set
@@ -608,8 +535,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	}
 
 //	set layouts
-	m_LocalSchurComplement.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
-	m_LocalSchurComplement.set_dual_layouts(m_slaveDualLayout, m_masterDualLayout);
+	m_LocalSchurComplement.set_feti_layouts(m_fetiLayouts);
 
 //	set dirichlet solver for local schur complement
 	m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
@@ -643,12 +569,8 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
-//	set the local feti block communicator
-	m_SchurComplementInverse.set_local_feti_block_communicator(m_localFetiBlockComm);
-
 //	set layouts
-	m_SchurComplementInverse.set_primal_layouts(m_slavePrimalLayout, m_masterPrimalLayout);
-	m_SchurComplementInverse.set_dual_layouts(m_slaveDualLayout, m_masterDualLayout);
+	m_SchurComplementInverse.set_feti_layouts(m_fetiLayouts);
 
 //	set neumann solver in SchurComplementInverse
 	m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
@@ -686,12 +608,13 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	*m_pDualDirichletMatrix = *m_pMatrix;
 
 //	Set Dirichlet values on Dual
-	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_slaveDualLayout);
-	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_masterDualLayout);
+	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_fetiLayouts.get_dual_slave_layout());
+	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_fetiLayouts.get_dual_master_layout());
 
 //	make diagonal of matrix consistent on Pi
-	MatAdditiveToConsistentOnDiag<algebra_type>(m_pDualDirichletMatrix, m_masterDualLayout,
-	                              m_slaveDualLayout);
+	MatAdditiveToConsistentOnDiag<algebra_type>(m_pDualDirichletMatrix,
+	                                            m_fetiLayouts.get_dual_master_layout(),
+	                                            m_fetiLayouts.get_dual_slave_layout());
 
 //	init sequential solver for Dirichlet problem
 	if(m_pDualDirichletSolver != NULL)
@@ -780,16 +703,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 //				 individually.
 
 //	make f consistent on Pi
-	AdditiveToConsistent(&f, m_masterPrimalLayout, m_slavePrimalLayout);
+	AdditiveToConsistent(&f, m_fetiLayouts.get_primal_master_layout(),
+	                     	 m_fetiLayouts.get_primal_slave_layout());
 
 //	set inner layouts
-	t.set_slave_layout(m_slaveInnerLayout);
-	t.set_master_layout(m_masterInnerLayout);
-	t.set_process_communicator(m_localFetiBlockComm);
-
-	f.set_slave_layout(m_slaveInnerLayout);
-	f.set_master_layout(m_masterInnerLayout);
-	f.set_process_communicator(m_localFetiBlockComm);
+	m_fetiLayouts.vec_use_inner_communication(t);
+	m_fetiLayouts.vec_use_inner_communication(f);
 
 //	compute \tilde{f}_{\Delta}
 	if(!compute_tilde_f(t, f)) return false;
@@ -815,7 +734,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 
 // (c) Subtract values on \Delta, r0 = r0 - t
-	VecScaleAppendOnDual(r, t, -1.0);
+	m_fetiLayouts.vec_scale_append_on_dual(r, t, -1.0);
 
 // 	Precondition the start defect: apply z = M^-1 * r
 	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_M_inverse_with_identity_scaling()' ********** \n")
@@ -830,7 +749,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	prepare_conv_check();
 
 //	compute and set start defect
-	m_pConvCheck->start_defect(VecNormOnDual(r));
+	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_dual(r));
 
 //	start values
 	number rho, rho_new, beta, alpha, alpha_denominator;
@@ -840,7 +759,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	p = z;
 
 // 	start rho
-	rho = VecProdOnDual(z, r);
+	rho = m_fetiLayouts.vec_prod_on_dual(z, r);
 
 //	reset iteration count
 	m_iterCnt = 0;
@@ -860,18 +779,18 @@ apply_return_defect(vector_type& u, vector_type& f)
 		}
 
 	// 	Compute alpha
-		alpha_denominator = VecProdOnDual(t, p);
+		alpha_denominator = m_fetiLayouts.vec_prod_on_dual(t, p);
 
 		alpha = rho/alpha_denominator;
 
 	// 	Update lambda := lambda + alpha*p
-		VecScaleAddOnDual(lambda, 1.0, lambda, alpha, p);
+		m_fetiLayouts.vec_scale_add_on_dual(lambda, 1.0, lambda, alpha, p);
 
 	// 	Update r := r - alpha*t
-		VecScaleAddOnDual(r, 1.0, r, -alpha, t);
+		m_fetiLayouts.vec_scale_add_on_dual(r, 1.0, r, -alpha, t);
 
 	// 	Compute new defect
-		m_pConvCheck->update_defect(VecNormOnDual(r));
+		m_pConvCheck->update_defect(m_fetiLayouts.vec_norm_on_dual(r));
 		UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': iter " << m_iterCnt << ": After m_pConvCheck->update(r) ********** \n")
 
 	// 	Preconditioning: apply z = M^-1 * r
@@ -882,78 +801,20 @@ apply_return_defect(vector_type& u, vector_type& f)
 		}
 
 	// 	new rho
-		rho_new = VecProdOnDual(z, r);
+		rho_new = m_fetiLayouts.vec_prod_on_dual(z, r);
 
 	// 	new beta
 		beta = rho_new/rho;
 
 	// 	new direction p:= beta*p + z
-		VecScaleAddOnDual(p, beta, p, 1.0, z);
+		m_fetiLayouts.vec_scale_add_on_dual(p, beta, p, 1.0, z);
 
 	// 	update rho
 		rho = rho_new;
 	} /* end iteration loop */
 
-	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': DONE after " << m_iterCnt << " iterations! ********** \n")
-
 	return m_pConvCheck->post();
 } /* end 'FETISolver::apply_return_defect()' */
-
-template <typename TAlgebra>
-number FETISolver<TAlgebra>::
-VecNormOnDual(vector_type& vec)
-{
-//	forward to VecProc
-	return sqrt(VecProdOnDual(vec, vec));
-}
-
-template <typename TAlgebra>
-void FETISolver<TAlgebra>::
-VecScaleAddOnDual(vector_type& vecDest,
-                  number alpha1, const vector_type& vecSrc1,
-                  number alpha2, const vector_type& vecSrc2)
-{
-	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_slaveDualLayout);
-	VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_masterDualLayout);
-}
-
-template <typename TAlgebra>
-void FETISolver<TAlgebra>::
-VecScaleAppendOnDual(vector_type& vecInOut,
-                     const vector_type& vecSrc1, number alpha1)
-{
-	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slaveDualLayout);
-	VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterDualLayout);
-}
-
-template <typename TAlgebra>
-void FETISolver<TAlgebra>::
-VecSetOnDual(vector_type& vecSrc, number alpha)
-{
-	VecSetOnLayout(&vecSrc, alpha, m_slaveDualLayout);
-	VecSetOnLayout(&vecSrc, alpha, m_masterDualLayout);
-}
-
-template <typename TAlgebra>
-number FETISolver<TAlgebra>::
-VecProdOnDual(const vector_type& vecSrc1, const vector_type& vecSrc2)
-{
-//	reset result
-	number prod = 0.0, prodTmp = 0.0;
-
-//	add prod on master
-	VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_masterDualLayout);
-	prod += prodTmp;
-
-//	add prod on slave
-	VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_slaveDualLayout);
-	prod += prodTmp;
-
-//	return result
-	return prod;
-}
-
-
 
 
 ////////////////////////////////////////////////////////////////////////
