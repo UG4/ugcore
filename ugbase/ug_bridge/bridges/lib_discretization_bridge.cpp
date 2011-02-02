@@ -490,22 +490,22 @@ bool DistributeDomain(TDomain& domainOut)
 		if(mg.num<Volume>() > 0){
 			minElems = mg.num<Volume>();
 			for(int i = 0; i < shPartition.num_subsets(); ++i){
-				minElems = min(minElems, (int)shPartition.num<Volume>(i));
-				maxElems = max(maxElems, (int)shPartition.num<Volume>(i));
+				minElems = std::min(minElems, (int)shPartition.num<Volume>(i));
+				maxElems = std::max(maxElems, (int)shPartition.num<Volume>(i));
 			}
 		}
 		else if(mg.num<Face>() > 0){
 			minElems = mg.num<Face>();
 			for(int i = 0; i < shPartition.num_subsets(); ++i){
-				minElems = min(minElems, (int)shPartition.num<Face>(i));
-				maxElems = max(maxElems, (int)shPartition.num<Face>(i));
+				minElems = std::min(minElems, (int)shPartition.num<Face>(i));
+				maxElems = std::max(maxElems, (int)shPartition.num<Face>(i));
 			}
 		}
 
-		LOG("  Element Distribution - min: " << minElems << ", max: " << maxElems << endl);
+		LOG("  Element Distribution - min: " << minElems << ", max: " << maxElems << std::endl);
 
 		const char* partitionMapFileName = "partitionMap.obj";
-		LOG("saving partition map to " << partitionMapFileName << endl);
+		LOG("saving partition map to " << partitionMapFileName << std::endl);
 		SaveGridToFile(mg, partitionMapFileName, shPartition);
 
 		//	distribute the grid.
@@ -686,7 +686,7 @@ bool SaveMatrixForConnectionViewer(	TGridFunction& u,
 
 	static const int dim = TGridFunction::domain_type::dim;
 
-	vector<MathVector<dim> > positions;
+	std::vector<MathVector<dim> > positions;
 	ExtractPositions(u, positions);
 
 	WriteMatrixToConnectionViewer(name.c_str(), A.get_matrix(), &positions[0], dim);
@@ -720,7 +720,7 @@ bool SaveVectorForConnectionViewer(	TGridFunction& b,
 #endif
 
 
-	vector<MathVector<dim> > positions;
+	std::vector<MathVector<dim> > positions;
 	ExtractPositions(b, positions);
 
 	WriteVectorToConnectionViewer(name.c_str(), b, &positions[0], dim);
@@ -1028,7 +1028,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	typedef typename algebra_type::matrix_type matrix_type;
 	static const int dim = domain_type::dim;
 
-	stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
 	std::string grp = grpSS.str();
 
 #ifdef UG_PARALLEL
@@ -1039,7 +1039,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	Domain
 	{
-		stringstream ss; ss << "Domain" << dim << "d";
+		std::stringstream ss; ss << "Domain" << dim << "d";
 		reg.add_class_<domain_type>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("get_subset_handler|hide=true", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
@@ -1050,7 +1050,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	IApproximationSpace
 	{
 		typedef IApproximationSpace<domain_type> T;
-		stringstream ss; ss << "IApproximationSpace" << dim << "d";
+		std::stringstream ss; ss << "IApproximationSpace" << dim << "d";
 		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
 			.add_method("assign_domain|hide=true", &T::assign_domain)
 			.add_method("get_domain|hide=true", (domain_type& (T::*)())&T::get_domain)
@@ -1060,7 +1060,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	GridFunction
 	{
-		stringstream ss; ss << "GridFunction" << dim << "d";
+		std::stringstream ss; ss << "GridFunction" << dim << "d";
 		reg.add_class_<function_type, vector_type>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("assign|hide=true", (bool (function_type::*)(const vector_type&))&function_type::assign,
@@ -1081,7 +1081,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //  ApproximationSpace
 	{
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
-		stringstream ss; ss << "ApproximationSpace" << dim << "d";
+		std::stringstream ss; ss << "ApproximationSpace" << dim << "d";
 		reg.add_class_<T,  IApproximationSpace<domain_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("init|hide=true", &T::init)
@@ -1099,7 +1099,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	P1ConformApproximationSpace
 	{
 		typedef P1ConformApproximationSpace<domain_type, dof_distribution_type, algebra_type> T;
-		stringstream ss; ss << "P1ApproximationSpace" << dim << "d";
+		std::stringstream ss; ss << "P1ApproximationSpace" << dim << "d";
 		reg.add_class_<T, ApproximationSpace<domain_type, dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("initialize", &T::initialize, "Success")
@@ -1111,7 +1111,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	DirichletBNDValues
 	{
 		typedef P1DirichletBoundary<domain_type, dof_distribution_type, algebra_type> T;
-		stringstream ss; ss << "DirichletBND" << dim << "d";
+		std::stringstream ss; ss << "DirichletBND" << dim << "d";
 		reg.add_class_<T, IPostProcess<dof_distribution_type, algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain|hide=true", &T::set_domain)
@@ -1127,7 +1127,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Neumann Boundary
 	{
 		typedef FVNeumannBoundaryElemDisc<FV1Geometry, domain_type, algebra_type> T;
-		stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
+		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
@@ -1137,7 +1137,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Convection Diffusion
 	{
 		typedef FVConvectionDiffusionElemDisc<FV1Geometry, domain_type, algebra_type> T;
-		stringstream ss; ss << "FV1ConvectionDiffusion" << dim << "d";
+		std::stringstream ss; ss << "FV1ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
@@ -1152,7 +1152,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Convection Diffusion
 	{
 		typedef FVConvectionDiffusionElemDisc<HFV1Geometry, domain_type, algebra_type> T;
-		stringstream ss; ss << "HFV1ConvectionDiffusion" << dim << "d";
+		std::stringstream ss; ss << "HFV1ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain", &T::set_domain)
@@ -1167,7 +1167,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	ConstFV1ConvectionDiffusionElemDisc
 	{
 		typedef ConstFV1ConvectionDiffusionElemDisc<domain_type, dof_distribution_type, algebra_type> T;
-		stringstream ss; ss << "ConstFV1ConvectionDiffusion" << dim << "d";
+		std::stringstream ss; ss << "ConstFV1ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_constants", &T::set_constants,
@@ -1179,7 +1179,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 //	Density Driven Flow
 	{
 		typedef DensityDrivenFlowElemDisc<FV1Geometry, domain_type, algebra_type> T2;
-		stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
+		std::stringstream ss; ss << "DensityDrivenFlow" << dim << "d";
 		reg.add_class_<T2, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_domain|hide=true", &T2::set_domain)
@@ -1213,7 +1213,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 		typedef P1ProlongationOperator<approximation_space_type, algebra_type> T;
 
-		stringstream ss; ss << "P1ProlongationOperator" << dim << "d";
+		std::stringstream ss; ss << "P1ProlongationOperator" << dim << "d";
 		reg.add_class_<T, IProlongationOperator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space)
@@ -1226,7 +1226,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 		typedef P1ProjectionOperator<approximation_space_type, algebra_type> T;
 
-		stringstream ss; ss << "P1ProjectionOperator" << dim << "d";
+		std::stringstream ss; ss << "P1ProjectionOperator" << dim << "d";
 		reg.add_class_<T, IProjectionOperator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_approximation_space", &T::set_approximation_space);
@@ -1237,7 +1237,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef ApproximationSpace<domain_type, dof_distribution_type, algebra_type> approximation_space_type;
 		typedef AssembledMultiGridCycle<approximation_space_type, algebra_type> T;
 
-		stringstream ss; ss << "GeometricMultiGridPreconditioner" << dim << "d";
+		std::stringstream ss; ss << "GeometricMultiGridPreconditioner" << dim << "d";
 		reg.add_class_<T, ILinearIterator<vector_type, vector_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_discretization|interactive=false", &T::set_discretization,
@@ -1265,7 +1265,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	VTK Output
 	{
-		stringstream ss; ss << "VTKOutput" << dim << "d";
+		std::stringstream ss; ss << "VTKOutput" << dim << "d";
 		reg.add_class_<VTKOutput<function_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("begin_timeseries", &VTKOutput<function_type>::begin_timeseries)
@@ -1277,7 +1277,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	{
 		typedef GridFunctionDebugWriter<function_type> T;
 		typedef IDebugWriter<typename function_type::algebra_type> TBase;
-		stringstream ss; ss << "GridFunctionDebugWriter" << dim << "d";
+		std::stringstream ss; ss << "GridFunctionDebugWriter" << dim << "d";
 		reg.add_class_<T, TBase>(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_reference_grid_function", &T::set_reference_grid_function)
@@ -1298,7 +1298,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 	typedef typename algebra_type::matrix_type matrix_type;
 	static const int dim = domain_type::dim;
 
-	stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
+	std::stringstream grpSS; grpSS << parentGroup << "/" << dim << "d";
 	std::string grp = grpSS.str();
 
 #ifdef UG_PARALLEL
@@ -1310,7 +1310,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	// 	LoadDomain
 		{
-			stringstream ss; ss << "LoadDomain" << dim << "d";
+			std::stringstream ss; ss << "LoadDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
 							"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
 							"Loads a domain", "No help");
@@ -1318,7 +1318,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	SaveDomain
 		{
-			stringstream ss; ss << "SaveDomain" << dim << "d";
+			std::stringstream ss; ss << "SaveDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
 							"Success", "Domain # Filename|save-dialog",
 							"Saves a domain", "No help");
@@ -1327,7 +1327,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 #ifdef UG_PARALLEL
 	//	todo: only temporary
 		{
-			stringstream ss; ss << "OneToManyTests" << dim << "d";
+			std::stringstream ss; ss << "OneToManyTests" << dim << "d";
 
 			reg.add_function(ss.str().c_str(),
 							&OneToManyTests<function_type>);
@@ -1335,7 +1335,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	todo: only temporary
 		{
-			stringstream ss; ss << "BuildDomainDecompositionLayoutsTest"
+			std::stringstream ss; ss << "BuildDomainDecompositionLayoutsTest"
 								<< dim << "d";
 
 			reg.add_function(ss.str().c_str(),
@@ -1345,7 +1345,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	PerformTimeStep
 		{
-			stringstream ss; ss << "PerformTimeStep" << dim << "d";
+			std::stringstream ss; ss << "PerformTimeStep" << dim << "d";
 			reg.add_function(ss.str().c_str(), &PerformTimeStep<function_type>, grp.c_str(),
 							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Time#Timestep Size#Visualization Output#FileName#DoOutput");
 		}
@@ -1353,32 +1353,32 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	SolveTimeProblem
 		{
-			stringstream ss; ss << "SolveTimeProblem" << dim << "d";
+			std::stringstream ss; ss << "SolveTimeProblem" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SolveTimeProblem<function_type>, grp.c_str(),
 							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Timestep Size#FileName");
 		}
 
 	//	DistributeDomain
 		{
-			stringstream ss; ss << "DistributeDomain" << dim << "d";
+			std::stringstream ss; ss << "DistributeDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>, grp.c_str());
 		}
 
 	//	GlobalRefineParallelDomain
 		{
-			stringstream ss; ss << "GlobalRefineParallelDomain" << dim << "d";
+			std::stringstream ss; ss << "GlobalRefineParallelDomain" << dim << "d";
 			reg.add_function(ss.str().c_str(), &GlobalRefineParallelDomain<domain_type>, grp.c_str());
 		}
 
 	//	ApplyLinearSolver
 		{
-			stringstream ss; ss << "ApplyLinearSolver" << dim << "d";
+			std::stringstream ss; ss << "ApplyLinearSolver" << dim << "d";
 			reg.add_function(ss.str().c_str(), &ApplyLinearSolver<vector_type>, grp.c_str());
 		}
 
 	//	WriteGridToVTK
 		{
-			stringstream ss; ss << "WriteGridFunctionToVTK" << dim << "d";
+			std::stringstream ss; ss << "WriteGridFunctionToVTK" << dim << "d";
 			reg.add_function(ss.str().c_str(), &WriteGridFunctionToVTK<function_type>, grp.c_str(),
 								"Success", "GridFunction#Filename|save-dialog",
 								"Saves GridFunction to *.tvk file", "No help");
@@ -1386,19 +1386,19 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	SaveMatrixForConnectionViewer
 		{
-			stringstream ss; ss << "SaveMatrixForConnectionViewer" << dim << "d";
+			std::stringstream ss; ss << "SaveMatrixForConnectionViewer" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SaveMatrixForConnectionViewer<function_type>, grp.c_str());
 		}
 
 	//	SaveVectorForConnectionViewer
 		{
-			stringstream ss; ss << "SaveVectorForConnectionViewer" << dim << "d";
+			std::stringstream ss; ss << "SaveVectorForConnectionViewer" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SaveVectorForConnectionViewer<function_type>, grp.c_str());
 		}
 
 	//	SolveStationaryDiscretization
 		{
-			stringstream ss; ss << "SolveStationaryDiscretization" << dim << "d";
+			std::stringstream ss; ss << "SolveStationaryDiscretization" << dim << "d";
 			reg.add_function(ss.str().c_str(),
 								&SolveStationaryDiscretization<function_type>,
 								grp.c_str());
@@ -1406,7 +1406,7 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 	//	InterpolateFunction
 		{
-			stringstream ss; ss << "InterpolateFunction" << dim << "d";
+			std::stringstream ss; ss << "InterpolateFunction" << dim << "d";
 			reg.add_function(ss.str().c_str(),
 								&InterpolateFunction<function_type>,
 								grp.c_str());
@@ -1564,7 +1564,7 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 #endif
 		//	SolveElderTimeProblem
 			{
-				stringstream ss; ss << "SolveElderTimeProblem2d";
+				std::stringstream ss; ss << "SolveElderTimeProblem2d";
 				reg.add_function(ss.str().c_str(), &SolveElderTimeProblem2d<function_type>, grp.c_str(),
 								"Success", "Approx Space#Discretization#Timesteps#StartTimestep#Timestep Size#FileName|save-dialog");
 			}
