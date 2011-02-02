@@ -363,6 +363,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			{
 				for(size_t j = 0; j < SizeOfIndexLayout(m_slaveAllToOneLayout); ++j)
 				{
+//	da stimmt doch was nicht!?! weshalb die Schleife, wenn doch sowieso
+//	nur für j == pqi was geschrieben wird?
 					if(j == pqi)
 					{
 						e[GetEntryOfIndexLayout(m_slaveAllToOneLayout, j)] = 1.0;
@@ -426,6 +428,13 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		// 	at this point, we have the contribution of S_ij^{p} in all primal
 		//	unknowns i. Thus, we have to read it and send it to the root process
 
+//	hier senden wir besser noch nicht. Hier sollte man erstmal in eine struktur
+//	struct PrimalConnections{
+//		int masterID1, masterID2;
+//		number val; - oder Matrix::entry_type oder so
+//	};
+//	und das in einen lokalen Vektor pushen. Gesendet wird am besten erst,
+//	wenn die äußere Schleife beendet ist.
 
 			for(size_t procInFetiBlock2 = 0; procInFetiBlock2 < localFetiBlockComm.size();
 					procInFetiBlock2++)
@@ -445,6 +454,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		}
 	}
 
+//	ich denke hier sollte man senden... oder verstehe ich da was falsch?
+//	...
 
 //	we're done
 	return true;
@@ -931,3 +942,50 @@ template class SchurComplementInverse<CPUBlockAlgebra<3> >;
 template class FETISolver<CPUAlgebra>;
 template class FETISolver<CPUBlockAlgebra<3> >;
 }// end of namespace
+
+
+
+/*	Temporärer code, der in SchurComplementInverse eingebaut werden muss.
+struct PrimalConnection{
+	int ind1;
+	int ind2;
+	number value;
+};
+
+void tmp()
+{
+std::vector<PrimalConnection> localConns;
+
+//...
+
+//	communicate sizes first
+ProcessCommunicator comm;
+std::vector<int> allConnSizes(comm.size(), 0);
+
+int localSize = (int) localConns.size();
+comm.gather(&localSize, 1, PCL_DT_INT, &allConnSizes.front(),
+			1, MPI_DT_INT, rootProc);
+
+int totalNumConns = 0;
+std::vector<int> offsets(comm.size(), 0);
+//	since we're sending the data as byte, we have to adjust
+//	sizes and offsets.
+for(size_t i = 0; i < allConnSizes.size(); ++i){
+	offsets[i] = totalNumConns * sizeof(PrimalConnection);
+	totalNumConns += allConnSizes[i];
+	allConnSizes[i] *= sizeof(PrimalConnection);
+}
+
+//	root now knows all sizes. We can now gather the connections on root.
+std::vector<PrimalConnection> allConns(totalNumConns);
+comm.gatherv(&localConns.front(),
+			 sizeof(PrimalConnection) * localConns.size(),
+			 PCL_DT_BYTE,
+			 &allConns.front(),
+			 &allConnSizes.front(),
+			 &offsets.front(),
+			 MPI_DT_INT,
+			 rootProc);
+
+}
+*/
