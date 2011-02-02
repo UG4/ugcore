@@ -347,6 +347,11 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	vector_type e5; e5.resize(m_pMatrix->num_rows());
 	vector_type e6; e6.resize(m_pMatrix->num_rows());
 
+	std::vector<IndexLayout::Element> vRootIndex;
+
+//	Collect all Primal indices on proc
+	CollectUniqueElements(vRootIndex, m_slaveAllToOneLayout);
+
 	for(size_t procInFetiBlock = 0; procInFetiBlock < localFetiBlockComm.size();
 			procInFetiBlock++)
 	{
@@ -361,16 +366,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		//	set value of unity vector to one iff on process and quantity, else 0
 			if(pcl::GetProcRank() == localFetiBlockComm.get_proc_id(procInFetiBlock))
 			{
-				for(size_t j = 0; j < SizeOfIndexLayout(m_slaveAllToOneLayout); ++j)
-				{
-//	da stimmt doch was nicht!?! weshalb die Schleife, wenn doch sowieso
-//	nur fŸr j == pqi was geschrieben wird?
-					if(j == pqi)
-					{
-						e[GetEntryOfIndexLayout(m_slaveAllToOneLayout, j)] = 1.0;
-						break;
-					}
-				}
+				const size_t primalIndex = vRootIndex[pqi];
+
+				e[primalIndex] = 1.0;
 			}
 
 		//	at this point the vector e has been set to an identity vector
