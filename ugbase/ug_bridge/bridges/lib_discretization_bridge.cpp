@@ -1171,7 +1171,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
 			.add_method("set_constants", &T::set_constants,
-						"", "ApproximationSpace,Function,Subsets,Diffusion,Velocity,Reaction,Rhs",
+						"", "ApproximationSpace # Function # Subsets # Diffusion # Velocity # Reaction # Rhs",
 						"Setup for constant user data", "No help");
 
 	}
