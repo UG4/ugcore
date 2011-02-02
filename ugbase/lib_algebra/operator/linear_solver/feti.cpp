@@ -317,6 +317,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	todo: communicate newMasterIDs to all feti-block processes.
 //		-> primalRootIDs (holds all root ids of primal variables of this
 //		feti process.
+	std::vector<int> vPrimalRootIDs;
 
 //	log num primal quantities
 	UG_LOG("proc ids: ");
@@ -375,11 +376,14 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			e.set(0.0);
 
 		//	set value of unity vector to one if on process and quantity, else 0
-			const IndexLayout::Element localPrimalIndex = vlocalPrimalIndex[pqi];
 			if(pcl::GetProcRank() == localFetiBlockComm.get_proc_id(procInFetiBlock))
 			{
+				const IndexLayout::Element localPrimalIndex = vlocalPrimalIndex[pqi];
+
 				e[localPrimalIndex] = 1.0;
 			}
+
+
 
 		//	at this point the vector e has been set to an identity vector
 
@@ -436,27 +440,28 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		// 	at this point, we have the contribution of S_ij^{p} in all primal
 		//	unknowns i. Thus, we have to read it and send it to the root process
 
-//	hier senden wir besser noch nicht. Hier sollte man erstmal in eine struktur
-//	struct PrimalConnections{
-//		int masterID1, masterID2;
-//		number val; - oder Matrix::entry_type oder so
-//	};
-//	und das in einen lokalen Vektor pushen. Gesendet wird am besten erst,
-//	wenn die Šu§ere Schleife beendet ist.
 
-			int primalRootID = rootIDs[localPrimalIndex];
+			// \todo: compute connectedRootID, i.e. root id of primal variable
+			//			that has been set to one above
+			int connectedRootID;
 
-//			int connectedRootID
-/*
-
-			for(primalRootIDs...)
+		//	loop process local primal unknowns
+			for(size_t pqj = 0; pqj < vlocalPrimalIndex.size(); ++pqj)
 			{
-			//	get entry
-				typename vector_type::value_type& entry =
-						e[GetEntryOfIndexLayout(m_slaveAllToOneLayout, pqj)];
-				//\todo: continue implementation
+				const IndexLayout::Element localPrimalIndex = vlocalPrimalIndex[pqj];
+
+				typename vector_type::value_type& entry = e[localPrimalIndex];
+
+			//	\todo: compute root id of this primal unknown
+				int primalRootID = rootIDs[localPrimalIndex]; // ???
+
+				PrimalConnection conn;
+				conn.ind1 = connectedRootID;
+				conn.ind2 = primalRootID;
+				// conn.value = (number) entry; // etwa so ...
+
+				// ... push_back to some std::vector<PrimalConnection> ...
 			}
-*/
 
 		}
 	}
