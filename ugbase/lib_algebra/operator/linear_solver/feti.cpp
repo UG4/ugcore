@@ -407,8 +407,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	Help vector
 //	\todo: it would be sufficient to copy only the layouts without copying the values
-	vector_type fTmp; fTmp.create(f.size()); //fTmp = f;
-	vector_type hTmp; hTmp.create(u.size()); //hTmp = u;
+	vector_type fTmp; fTmp.create(f.size()); fTmp = f;
+	vector_type hTmp; hTmp.create(u.size()); hTmp = u;
 
 
 //	1. Set values of rhs to zero on I and Pi
@@ -739,18 +739,30 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	lagrange multiplier
 	vector_type lambda; lambda.create(u.size());
+	lambda.set_slave_layout(u.get_slave_layout());
+	lambda.set_master_layout(u.get_master_layout());
+	lambda.set_process_communicator(u.get_process_communicator());
 
 //	residuum
 	vector_type r; r.create(u.size());
+	r.set_slave_layout(u.get_slave_layout());
+	r.set_master_layout(u.get_master_layout());
+	r.set_process_communicator(u.get_process_communicator());
 
 //	search direction
 	vector_type p; p.create(u.size());
+	p.set_slave_layout(u.get_slave_layout());
+	p.set_master_layout(u.get_master_layout());
+	p.set_process_communicator(u.get_process_communicator());
 
 //	preconditioned residuum
 	vector_type z; z.create(u.size());
 
 //	help vector to compute t = F*p
 	vector_type t; t.create(u.size());
+	t.set_slave_layout(u.get_slave_layout());
+	t.set_master_layout(u.get_master_layout());
+	t.set_process_communicator(u.get_process_communicator());
 
 
 //	reset start value of lagrange multiplier
@@ -882,9 +894,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 		rho = rho_new;
 	} /* end iteration loop */
 
-	return m_pConvCheck->post();
 	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': DONE after " << m_iterCnt << " iterations! ********** \n")
 
+	return m_pConvCheck->post();
 } /* end 'FETISolver::apply_return_defect()' */
 
 template <typename TAlgebra>

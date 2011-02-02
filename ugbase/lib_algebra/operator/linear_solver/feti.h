@@ -701,9 +701,14 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		{
 			//	Help vector
 			vector_type fTmp; fTmp.create(v.size());
-
 			//	0. Reset values of f, fTmp
-			f.set(0.0); fTmp.set(0.0);
+			f.set(0.0); //fTmp.set(0.0);
+			fTmp = f;
+			// not nec. if tmp vector is copied:
+			//fTmp.set_slave_layout(f.get_slave_layout());
+			//fTmp.set_master_layout(f.get_master_layout());
+			//fTmp.set_process_communicator(f.get_process_communicator());
+
 
 			//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
 			ComputeDifferenceOnDeltaTransposed(f, v, m_masterDualLayout, m_slaveDualLayout, m_slaveDualNbrLayout);
@@ -732,9 +737,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		{
 			//	Help vector
 			vector_type dTmp; dTmp.create(f.size());
-
-			//	0. Reset values of f, fTmp
-			d.set(0.0); dTmp.set(0.0);
+			//	0. Reset values of d, dTmp
+			d.set(0.0); //dTmp.set(0.0);
+			dTmp = d;
+			// not nec. if tmp vector is copied:
+			//dTmp.set_slave_layout(d.get_slave_layout());
+			//dTmp.set_master_layout(d.get_master_layout());
+			//dTmp.set_process_communicator(d.get_process_communicator());
 
 			//  1. Apply SchurComplementInverse to 'f' - TODO: implement 'm_SchurComplementInverse.apply()'!
 			if(!m_SchurComplementInverse.apply(dTmp, f))
