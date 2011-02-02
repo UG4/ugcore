@@ -308,7 +308,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	of the feti-block in one array.
 	int numLocalPrimals = m_slaveAllToOneLayout.num_interface_elements();
 	pcl::ProcessCommunicator& localFetiBlockComm = m_pFetiLayouts->get_inner_process_communicator();
-	UG_LOG("num local primals: " << numLocalPrimals << endl);
+	UG_LOG("num local primals: " << numLocalPrimals << std::endl);
 	m_primalQuantities.resize(localFetiBlockComm.size());
 	localFetiBlockComm.allgather(&numLocalPrimals, 1, PCL_DT_INT,
 							&m_primalQuantities.front(), 1, PCL_DT_INT);
@@ -318,12 +318,12 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	for(size_t i = 0; i < m_primalQuantities.size(); ++i){
 		UG_LOG(localFetiBlockComm.get_proc_id(i) << " ");
 	}
-	UG_LOG(endl);
+	UG_LOG(std::endl);
 	UG_LOG("primal quantities: ");
 	for(size_t i = 0; i < m_primalQuantities.size(); ++i){
 		UG_LOG(m_primalQuantities[i] << " ");
 	}
-	UG_LOG(endl);
+	UG_LOG(std::endl);
 
 //	build matrix on primalRoot
 	if(pcl::GetProcRank() == m_primalRootProc)
