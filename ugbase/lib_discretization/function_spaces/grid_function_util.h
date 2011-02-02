@@ -148,7 +148,7 @@ class GridFunctionDebugWriter
 
 		//	search for ending and remove
 			size_t found = name.find_first_of(".");
-			if(found!=string::npos)	name.resize(found);
+			if(found != std::string::npos) name.resize(found);
 
 		#ifdef UG_PARALLEL
 		//	add process number
@@ -186,7 +186,7 @@ class GridFunctionDebugWriter
 
 		//	search for ending and remove
 			size_t found = name.find_first_of(".");
-			if(found!=string::npos)	name.resize(found);
+			if(found != std::string::npos) name.resize(found);
 
 		#ifdef UG_PARALLEL
 		//	add process number
