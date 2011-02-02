@@ -59,12 +59,10 @@ init()
 	*m_pDirichletMatrix = *m_pMatrix;
 
 //	Set Dirichlet values on Pi
-	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_primal_slave_layout());
-	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_primal_master_layout());
+	m_pFetiLayouts->mat_set_dirichlet_on_primal(*m_pDirichletMatrix);
 
 //	Set Dirichlet values on Delta
-	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_dual_slave_layout());
-	MatSetDirichletOnLayout(m_pDirichletMatrix, m_pFetiLayouts->get_dual_master_layout());
+	m_pFetiLayouts->mat_set_dirichlet_on_dual(*m_pDirichletMatrix);
 
 //	init sequential solver for Dirichlet problem
 	if(m_pDirichletSolver != NULL)
@@ -138,8 +136,7 @@ apply(vector_type& f, const vector_type& u)
 	uTmp.set(0.0);
 
 	// (b) Copy values on \Delta
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_slave_layout());
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_master_layout());
+	m_pFetiLayouts->vec_scale_append_on_dual(uTmp, u, 1.0);
 
 //	2. Compute rhs f_{I} = A_{I \Delta} u_{\Delta}
 	if(!m_DirichletOperator.apply(f, uTmp))
@@ -150,8 +147,7 @@ apply(vector_type& f, const vector_type& u)
 		return false;
 	}
 	// set values to zero on \Delta
-	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
-	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_master_layout());
+	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
 
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
 	// (a) use the inner-FETI-block layouts
@@ -173,8 +169,7 @@ apply(vector_type& f, const vector_type& u)
 	uTmp *= -1.0;
 
 	// (b) Add u_{\Delta} on \Delta
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_slave_layout());
-	VecScaleAppendOnLayout(&uTmp, &u, 1.0, m_pFetiLayouts->get_dual_master_layout());
+	m_pFetiLayouts->vec_scale_append_on_dual(uTmp, u, 1.0);
 
 	// (c) Multiply with full matrix
 	if(!m_pOperator->apply(f, uTmp))
@@ -186,10 +181,11 @@ apply(vector_type& f, const vector_type& u)
 	}
 
 //	5. Reset all values for I, \Pi
-	VecSetExcludingLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
+	m_pFetiLayouts->vec_set_excl_dual(f, 0.0);
 
-	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
-	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_master_layout());
+	// todo: this was written here in addition. IS IT NECESSARY/SENSEFUL
+//	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
+//	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_master_layout());
 
 //	we're done
 	return true;
@@ -275,8 +271,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	*m_pNeumannMatrix = *m_pMatrix;
 
 //	Set Dirichlet values on Pi
-	MatSetDirichletOnLayout(m_pNeumannMatrix, m_pFetiLayouts->get_primal_slave_layout());
-	MatSetDirichletOnLayout(m_pNeumannMatrix, m_pFetiLayouts->get_primal_master_layout());
+	m_pFetiLayouts->mat_set_dirichlet_on_primal(*m_pNeumannMatrix);
 
 //	init sequential solver for Dirichlet problem
 	if(m_pNeumannSolver != NULL)
@@ -608,8 +603,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	*m_pDualDirichletMatrix = *m_pMatrix;
 
 //	Set Dirichlet values on Dual
-	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_fetiLayouts.get_dual_slave_layout());
-	MatSetDirichletOnLayout(m_pDualDirichletMatrix, m_fetiLayouts.get_dual_master_layout());
+	m_fetiLayouts.mat_set_dirichlet_on_dual(*m_pDualDirichletMatrix);
 
 //	make diagonal of matrix consistent on Pi
 	MatAdditiveToConsistentOnDiag<algebra_type>(m_pDualDirichletMatrix,

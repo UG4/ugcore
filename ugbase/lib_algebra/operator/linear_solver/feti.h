@@ -329,6 +329,18 @@ class FetiLayouts
 			VecSetExcludingLayout(&vecInOut, value, m_masterDualLayout);
 		}
 
+	public:
+		void mat_set_dirichlet_on_dual(matrix_type& mat)
+		{
+			MatSetDirichletOnLayout(&mat, m_slaveDualLayout);
+			MatSetDirichletOnLayout(&mat, m_masterDualLayout);
+		}
+
+		void mat_set_dirichlet_on_primal(matrix_type& mat)
+		{
+			MatSetDirichletOnLayout(&mat, m_slavePrimalLayout);
+			MatSetDirichletOnLayout(&mat, m_masterPrimalLayout);
+		}
 
 	protected:
 	//	Standard Layouts
