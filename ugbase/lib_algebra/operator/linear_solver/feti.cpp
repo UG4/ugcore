@@ -364,6 +364,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	Collect all Primal indices on proc
 	CollectUniqueElements(vlocalPrimalIndex, m_slaveAllToOneLayout);
 
+	size_t primalCounter = 0;
 	for(size_t procInFetiBlock = 0; procInFetiBlock < localFetiBlockComm.size();
 			procInFetiBlock++)
 	{
@@ -371,6 +372,8 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		{
 		// 	1. Create unity vector
 		//////////////////////////
+
+			int connectedRootID = vPrimalRootIDs[primalCounter++];
 
 		//	reset identity vector to zero for all Primal unknowns
 			e.set(0.0);
@@ -450,7 +453,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			{
 				const IndexLayout::Element localPrimalIndex = vlocalPrimalIndex[pqj];
 
-				typename vector_type::value_type& entry = e[localPrimalIndex];
+				typename vector_type::value_type& entry = e6[localPrimalIndex];
 
 			//	\todo: compute root id of this primal unknown
 				int primalRootID = rootIDs[localPrimalIndex]; // ???
