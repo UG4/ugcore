@@ -446,7 +446,6 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 			// \todo: compute connectedRootID, i.e. root id of primal variable
 			//			that has been set to one above
-			int connectedRootID;
 
 		//	loop process local primal unknowns
 			for(size_t pqj = 0; pqj < vlocalPrimalIndex.size(); ++pqj)
