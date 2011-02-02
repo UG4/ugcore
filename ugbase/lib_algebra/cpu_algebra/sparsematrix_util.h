@@ -42,11 +42,10 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 	// tried this also with std::map, but took 1511.53 ms instead of 393.972 ms
 	// searching in the connections is also slower
 
-	int *posInConnections = new int[C.num_cols()];
-	for(size_t i=0; i<C.num_cols(); i++) posInConnections[i] = -1;
+	std::vector<int> posInConnections(C.num_cols(), -1);
 
 	// types
-	vector<typename ABC_type::connection > con(255);
+	std::vector<typename ABC_type::connection > con; con.reserve(255);
 
 	typename A_type::value_type a;
 	typename block_multiply_traits<typename A_type::value_type, typename B_type::value_type>::ReturnType ab;
@@ -102,10 +101,118 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 		M.set_matrix_row(i, &con[0], con.size());
 	}
 
-	delete[] posInConnections;
 }
 
 
+template<typename T>
+void GetNeighborhood_worker(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
+{
+	if(depth==0) return;
+	size_t iSizeBefore = indices.size();
+	for(typename SparseMatrix<T>::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	{
+		if(it.value() == 0) continue;
+		if(bVisited[it.index()] == false)
+		{
+
+			bVisited[it.index()] = true;
+			indices.push_back(it.index());
+		}
+	}
+
+	if(depth==1) return;
+	size_t iSizeAfter = indices.size();
+	for(size_t i=iSizeBefore; i<iSizeAfter; i++)
+		GetNeighborhood_worker(A, indices[i], depth-1, indices, bVisited);
+}
+
+template<typename T>
+void GetNeighborhood(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited, bool bResetVisitedFlags=true)
+{
+
+	indices.clear();
+
+	if(bVisited[node] == false)
+	{
+		bVisited[node] = true;
+		indices.push_back(node);
+	}
+	GetNeighborhood_worker(A, node, depth, indices, bVisited);
+
+	if(bResetVisitedFlags)
+		for(size_t i=0; i<indices.size(); i++)
+			bVisited[i] = false;
+}
+
+template<typename T>
+void GetNeighborhood(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices)
+{
+	std::vector<bool> bVisited(max(A.num_cols(), A.num_rows()), false);
+	GetNeighborhood(A, node, depth, indices, bVisited, false);
+}
+
+
+template<typename T>
+void MarkNeighbors(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<bool> &bVisited)
+{
+	for(typename SparseMatrix<T>::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	{
+		if(it.value() == 0) continue;
+		bVisited[it.index()] = true;
+		MarkNeighbors(A, it.index(), depth, bVisited);
+	}
+}
+
+template<typename T>
+void GetNeighborhoodHierachy_worker(const SparseMatrix<T> &A, size_t node, size_t depth, size_t maxdepth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited)
+{
+	size_t iSizeBefore = indices[depth].size();
+	for(typename SparseMatrix<T>::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
+	{
+		if(it.value() == 0) continue;
+		if(bVisited[it.index()] == false)
+		{
+			bVisited[it.index()] = true;
+			indices[depth].push_back(it.index());
+		}
+	}
+
+	if(depth==maxdepth) return;
+	size_t iSizeAfter = indices[depth].size();
+	for(size_t i=iSizeBefore; i<iSizeAfter; i++)
+		GetNeighborhood(A, indices[i], depth+1, maxdepth, indices, bVisited);
+}
+
+template<typename T>
+void GetNeighborhoodHierachy(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices, std::vector<bool> &bVisited,
+		bool bResetVisitedFlags=true)
+{
+	if(indices.size() != depth+1)
+		indices.resize(depth+1);
+	for(size_t i=0; i < depth+1; i++)
+		indices[i].clear();
+
+	if(bVisited[node] == false)
+	{
+		bVisited[node] = true;
+		indices[0].push_back(node);
+	}
+	if(depth==0) return;
+	GetNeighborhood_worker(A, node, 1, depth, indices, bVisited);
+
+	if(bResetVisitedFlags)
+		for(size_t i=0; i < depth+1; i++)
+			for(size_t j=0; i<indices[j].size(); j++)
+				bVisited[j] = false;
+}
+
+
+template<typename T>
+void GetNeighborhoodHierachy(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector< std::vector<size_t> > &indices)
+{
+	std::vector<bool> bVisited(max(A.num_cols(), A.num_rows()), false);
+	GetNeighborhoodHierachy(A, node, depth, indices, bVisited, false);
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,11 +227,14 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
  * \param posInConnections array to speed up computation. Has to be posInConnections[i] = 0 for all i=0..A.num_rows(). Can be NULL.
  * \note the node itself is only included if there is a connection from node to node.
   */
+#if 0
 template<typename T>
-void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_t> &indices, int *posInConnections=NULL)
+void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, int *posInConnections=NULL)
 {
 	// perhaps this is better with recursion
 	indices.clear();
+
+
 
 	vector<typename SparseMatrix<T>::cRowIterator> iterators;
 	iterators.reserve(depth);
@@ -176,6 +286,7 @@ void GetNeighborhood(SparseMatrix<T> &A, size_t node, size_t depth, vector<size_
 	// sort indices
 	sort(indices.begin(), indices.end());
 }
+#endif
 
 
 

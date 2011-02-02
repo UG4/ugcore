@@ -18,7 +18,7 @@ namespace ug {
 template<typename T>
 void SparseMatrix<T>::print(const char * const text) const
 {
-	cout << "================= SparseMatrix " << rows << "x" << cols << " =================" << endl;
+	UG_LOG("================= SparseMatrix " << rows << "x" << cols << " =================\n");
 	for(size_t i=0; i < rows; i++)
 		getrow(i).print();
 }
@@ -30,27 +30,32 @@ template<typename T>
 void SparseMatrix<T>::printrow(size_t row) const
 {
 #ifdef FLEXAMG
-	cout << "row " << row << " [" << GetOriginalIndex(tolevel, row) << "] : ";
+	std::cout << "row " << row << " [" << GetOriginalIndex(tolevel, row) << "] : ";
 #else
-	cout << "row " << row << ": ";
+	UG_LOG("row " << row << ": ");
 #endif
 	for(cRowIterator it=beginRow(row); !it.isEnd(); ++it)
 	{
 		if(it.value() == 0.0) continue;
-		cout << " ";
+		UG_LOG(" ");
 #ifdef FLEXAMG
-		cout << "(" << it.index() << " [" << GetOriginalIndex(fromlevel, it.index()) << "] -> " << it.value() << ")";
+		std::cout << "(" << it.index() << " [" << GetOriginalIndex(fromlevel, it.index()) << "] -> " << it.value() << ")";
 #else
-		cout << "(" << it.index() << " -> " << it.value() << ")";
+		UG_LOG("(" << it.index() << " -> " << it.value() << ")");
 #endif
 	}
-	cout << endl;
+
+#ifdef FLEXAMG
+	std::cout << std::endl;
+#else
+	UG_LOG("\n");
+#endif
 }
 
 template<typename T>
 void SparseMatrix<T>::printtype() const
 {
-	cout << *this;
+	std::cout << *this;
 }
 
 
@@ -69,27 +74,27 @@ void SparseMatrix<T>::printtype() const
 template<typename Matrix_type, typename postype>
 void WriteMatrixToConnectionViewer(const char *filename, const Matrix_type &A, postype *positions, int dimensions)
 {
-	fstream file(filename, ios::out);
-	file << CONNECTION_VIEWER_VERSION << endl;
-	file << dimensions << endl;
+	std::fstream file(filename, std::ios::out);
+	file << CONNECTION_VIEWER_VERSION << std::endl;
+	file << dimensions << std::endl;
 
 	size_t rows = A.num_rows();
 	// write positions
-	file << rows << endl;
+	file << rows << std::endl;
 	if(dimensions == 2)
 		for(size_t i=0; i < rows; i++)
-			file << positions[i][0] << " " << positions[i][1] << endl;
+			file << positions[i][0] << " " << positions[i][1] << std::endl;
 	else
 		for(size_t i=0; i < rows; i++)
-		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
+		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
 
-	file << 1 << endl; // show all cons
+	file << 1 << std::endl; // show all cons
 	// write connections
 	for(size_t i=0; i < rows; i++)
 	{
 		for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			if(conn.value() != 0.0)
-				file << i << " " << conn.index() << " " << conn.value() <<		endl;
+				file << i << " " << conn.index() << " " << conn.value() <<		std::endl;
 	}
 }
 
@@ -121,8 +126,8 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 		return false;
 	}
 
-	vector<postype> positions;
-	vector<size_t> mapFrom, mapTo;
+	std::vector<postype> positions;
+	std::vector<size_t> mapFrom, mapTo;
 	mapFrom.resize(positionsFrom.size());
 	mapTo.resize(positionsTo.size());
 
@@ -173,26 +178,26 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 	}
 
 
-	fstream file(filename, ios::out);
-	file << CONNECTION_VIEWER_VERSION << endl;
-	file << dimensions << endl;
+	std::fstream file(filename, std::ios::out);
+	file << CONNECTION_VIEWER_VERSION << std::endl;
+	file << dimensions << std::endl;
 
 	// write positions
-	file << positions.size() << endl;
+	file << positions.size() << std::endl;
 	if(dimensions == 2)
 		for(size_t i=0; i < positions.size(); i++)
-			file << positions[i][0] << " " << positions[i][1] << endl;
+			file << positions[i][0] << " " << positions[i][1] << std::endl;
 	else
 		for(size_t i=0; i < positions.size(); i++)
-		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
+		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
 
-	file << 1 << endl; // show all cons
+	file << 1 << std::endl; // show all cons
 	// write connections
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		for(typename Matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			if(conn.value() != 0.0)
-				file << mapTo[i] << " " << mapFrom[conn.index()] << " " << conn.value() <<		endl;
+				file << mapTo[i] << " " << mapFrom[conn.index()] << " " << conn.value() <<		std::endl;
 	}
 	return true;
 }
@@ -210,28 +215,61 @@ bool WriteMatrixToConnectionViewer(	const char *filename,
 template<typename Vector_type, typename postype>
 void WriteVectorToConnectionViewer(const char *filename, const Vector_type &b, postype *positions, int dimensions)
 {
-	fstream file(filename, ios::out);
-	file << CONNECTION_VIEWER_VERSION << endl;
-	file << dimensions << endl;
+	std::fstream file(filename, std::ios::out);
+	file << CONNECTION_VIEWER_VERSION << std::endl;
+	file << dimensions << std::endl;
 
 	size_t rows = b.size();
 	// write positions
-	file << rows << endl;
+	file << rows << std::endl;
 	if(dimensions == 2)
 		for(size_t i=0; i < rows; i++)
-			file << positions[i][0] << " " << positions[i][1] << endl;
+			file << positions[i][0] << " " << positions[i][1] << std::endl;
 	else
 		for(size_t i=0; i < rows; i++)
-		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << endl;
+		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
 
-	file << 1 << endl; // show all cons
+	file << 1 << std::endl; // show all cons
 	// write connections
 	for(size_t i=0; i < rows; i++)
 	{
-		file << i << " " << i << " " << b[i] <<		endl;
+		file << i << " " << i << " " << b[i] <<		std::endl;
 	}
 }
 
+
+#if 0
+template<typename Vector_type, typename postype>
+void WriteVectorToConnectionViewerNEW(const char *filename, const Vector_type &b, postype *positions, int dimensions)
+{
+	std::fstream file(filename, std::ios::out);
+	file << CONNECTION_VIEWER_VERSION << std::endl;
+	file << 3 << std::endl;
+
+	double nmax=0;
+	for(size_t i=0; i<b.size(); i++)
+		if(nmax < BlockNorm(b[i])) nmax = BlockNorm(b[i]);
+
+	nmax*=4;
+	double scale = 1.0/nmax;
+	size_t rows = b.size();
+	// write positions
+	file << rows << std::endl;
+	if(dimensions == 2)
+		for(size_t i=0; i < rows; i++)
+			file << positions[i][0] << " " << positions[i][1] << " " << b[i] * scale << std::endl;
+	else
+		for(size_t i=0; i < rows; i++)
+		  file << positions[i][0] << " " << positions[i][1] << " " << positions[i][2] << std::endl;
+
+	file << 1 << std::endl; // show all cons
+	// write connections
+	for(size_t i=0; i < rows; i++)
+	{
+		file << i << " " << i << " " << b[i] <<		std::endl;
+	}
+}
+#endif
 
 }
 #endif // __H__UG__CPU_ALGEBRA__SPARSEMATRIX_PRINT__

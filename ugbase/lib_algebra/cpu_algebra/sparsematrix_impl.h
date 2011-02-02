@@ -111,6 +111,8 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 		}
 		cols = newCols;
 	}
+	else
+		cols = newCols;
 
 	if(newRows < rows)
 	{
@@ -121,6 +123,7 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 
 	if(newRows != rows)
 	{
+		bool bWasFinalized = is_finalized();
 		// reallocate arrays
 		connection **pNewRowStart = new connection*[newRows+1];
 		UG_ASSERT(pNewRowStart != NULL, "out of memory, no more space for " << sizeof(connection*)*(newRows+1));
@@ -128,22 +131,34 @@ bool SparseMatrix<T>::resize(size_t newRows, size_t newCols)
 		delete[] pRowStart;
 		pRowStart = pNewRowStart;
 
-		if(is_finalized())
+		if(bWasFinalized)
+		{
 			pRowEnd = pRowStart+1;
+			for(size_t i=rows+1; i<newRows+1; i++)
+				pRowStart[i] = pRowStart[rows];
+		}
 		else
 		{
 			connection **pNewRowEnd = new connection*[newRows+1];
 			UG_ASSERT(pNewRowEnd != NULL, "out of memory, no more space for " << sizeof(connection*)*(newRows+1));
-			memcpy(pNewRowEnd, pRowEnd, sizeof(connection*)*(newRows+1));
+			memcpy(pNewRowEnd, pRowEnd, sizeof(connection*) * std::min(rows, newRows));
 			delete[] pRowEnd;
 			pRowEnd = pNewRowEnd;
+
+			for(size_t i=rows; i<newRows; i++)
+			{
+				pRowStart[i] = NULL;
+				pRowEnd[i] = NULL;
+			}
+			pRowStart[newRows] = NULL;
 		}
 
 		size_t *iNewMaxNrOfConnections = new size_t[newRows];
 		UG_ASSERT(iNewMaxNrOfConnections != NULL, "out of memory, no more space for " << sizeof(size_t)*newRows);
-		memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t)*newRows);
+		memcpy(iNewMaxNrOfConnections, iMaxNrOfConnections, sizeof(size_t) * std::min(rows, newRows));
 		delete[] iMaxNrOfConnections;
 		iMaxNrOfConnections = iNewMaxNrOfConnections;
+		for(size_t i=rows; i<newRows; i++) iMaxNrOfConnections[i] = 0;
 		rows = newRows;
 	}
 
@@ -317,7 +332,7 @@ void SparseMatrix<T>::defrag()
 	{
 		size_t nr=num_connections(i);
 		for(size_t k=0; k < nr; k++)
-			swap(p[k], pRowStart[i][k]);
+			std::swap(p[k], pRowStart[i][k]);
 		safe_set_connections(i, p);
 		p += nr;
 		iMaxNrOfConnections[i] = nr;
@@ -658,14 +673,14 @@ template<typename T>
 template<typename M>
 void SparseMatrix<T>::get(M &mat) const
 {
-	vector<sortStruct<size_t> > sortedCols(mat.num_cols());
+	std::vector<sortStruct<size_t> > sortedCols(mat.num_cols());
 
 	for(size_t i=0; i<mat.num_cols(); i++)
 	{
 		sortedCols[i].index = i;
 		sortedCols[i].sortValue = mat.col_index(i);
 	}
-	sort(sortedCols.begin(), sortedCols.end());
+	std::sort(sortedCols.begin(), sortedCols.end());
 
 	for(size_t i=0; i < mat.num_rows(); i++)
 	{
@@ -845,7 +860,7 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 	for(size_t i=0; i<nr; i++)
 		n[i] = c[i];
 
-	sort(n, n+nr);
+	std::sort(n, n+nr);
 
 #ifdef DEBUG
 	for(size_t i=0; i<nr; i++)
@@ -853,8 +868,8 @@ void SparseMatrix<T>::set_matrix_row(size_t row, connection *c, size_t nr)
 #endif
 
 	// calc bandwidth
-	bandwidth = max(bandwidth, abs(n[0].iIndex, row));
-	bandwidth = max(bandwidth, abs(n[nr-1].iIndex, row));
+	bandwidth = std::max(bandwidth, abs(n[0].iIndex, row));
+	bandwidth = std::max(bandwidth, abs(n[nr-1].iIndex, row));
 
 	safe_set_connections(row, n);
 	pRowEnd[row] = pRowStart[row]+nr;
@@ -894,7 +909,7 @@ void SparseMatrix<T>::add_matrix_row(size_t row, connection *c, size_t nr)
 	size_t oldNrOfConnections = num_connections(row);
 
 	// sort the connections: index1 < index2 < ...
-	sort(c, c+nr);
+	std::sort(c, c+nr);
 
 	size_t ic=0, iold=0, skipped=0;
 	// - add connections which are there
@@ -1305,6 +1320,7 @@ bool SparseMatrix<T>::create_as_copy_of(const SparseMatrix<T> &B, double scale)
 	iFragmentedMem = 0;
 	iTotalNrOfConnections = total;
 	consmemsize = total;
+
 
 	return true;
 }

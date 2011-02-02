@@ -164,7 +164,7 @@ public: // output functions
 	void p() {print(); } ///< gdb shortcut for print
 
 	//! ostream << operator
-	friend ostream &operator<<(ostream &output, const Vector &v)
+	friend std::ostream &operator<<(std::ostream &output, const Vector &v)
 	{
 		output << "Vector " <<  "[" << v.length << "]";
 		return output;

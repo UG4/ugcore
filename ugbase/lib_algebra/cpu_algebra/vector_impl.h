@@ -11,6 +11,7 @@
 #define __H__UG__CPU_ALGEBRA__VECTOR_IMPL__
 
 #include <fstream>
+#include <algorithm>
 #include "algebra_misc.h"
 #include "common/math/ugmath.h" // for urand
 
@@ -194,9 +195,9 @@ bool Vector<value_type>::resize(size_t new_length, bool bCopyValues)
 	// we cannot use memcpy here bcs of variable blocks.
 	if(values != NULL && bCopyValues)
 	{
-		size_t minlen = min(new_length, length);
+		size_t minlen = std::min(new_length, length);
 		for(size_t i=0; i<minlen; i++)
-			swap(new_values[i], values[i]);
+			std::swap(new_values[i], values[i]);
 	}
 	destroy();
 	values = new_values;
@@ -227,18 +228,18 @@ template<typename value_type>
 void Vector<value_type>::print(const char * const text) const
 {
 
-	if(text) cout << " == " << text;
-	cout << " length: " << length << " =================" << endl;
+	if(text) std::cout << " == " << text;
+	std::cout << " length: " << length << " =================" << std::endl;
 	for(size_t i=0; i<length; i++)
 		//cout << values[i] << " ";
-		cout << i << ": " << values[i] << endl;
-	cout << endl;
+		std::cout << i << ": " << values[i] << std::endl;
+	std::cout << std::endl;
 }
 
 template<typename value_type>
 void Vector<value_type>::printtype() const
 {
-	cout << *this;
+	std::cout << *this;
 }
 
 

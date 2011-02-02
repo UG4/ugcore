@@ -55,12 +55,12 @@ public:
 		size_t iIndex;		// index to
 		value_type dValue; // smallmatrix value;
 
-		void print(){cout << *this;}
-		friend ostream &operator<<(ostream &output, const connection &c)
+		void print(){std::cout << *this;}
+		friend std::ostream &operator<<(std::ostream &output, const connection &c)
 		{
 			output << "(" << c.iIndex << "-> ";
-			cout << c.dValue;
-			cout << ")";
+			output << c.dValue;
+			output << ")";
 			return output;
 		}
 
@@ -320,7 +320,7 @@ public:
 	void print_to_file(const char *filename) const;
 	void printrow(size_t row) const;
 
-	friend ostream &operator<<(ostream &out, const SparseMatrix &m)
+	friend std::ostream &operator<<(std::ostream &out, const SparseMatrix &m)
 	{
 		out << "SparseMatrix " //<< m.name
 		<< " [ " << m.rows << " x " << m.cols << " ]";

@@ -65,7 +65,7 @@ public:
 	inline void sub_mult(vec_type &d, const Vector<vec_type> &x) const;
 	
 	
-	friend ostream &operator<<(ostream &output, const matrixrow &r)
+	friend std::ostream &operator<<(std::ostream &output, const matrixrow &r)
 	{
 		output << "matrixrow[row = " << r.row << "] of " << r.A << ". ";
 		return output;
@@ -80,7 +80,7 @@ public:
 		return A.is_isolated(row);
 	}
 	
-	void printtype() const { cout << *this; }	
+	void printtype() const { std::cout << *this; }
 	void print() const { A.printrow(row); }
 	void p() const { A.printrow(row); } //gdb
 	
