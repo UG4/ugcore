@@ -149,7 +149,7 @@ apply(vector_type& u)
 	}
 
 	// set info string indicating the used linear solver
-	stringstream ss; ss << "(Linear Solver: " << m_pLinearSolver->name() << ")";
+	std::stringstream ss; ss << "(Linear Solver: " << m_pLinearSolver->name() << ")";
 	m_pConvCheck->set_info(ss.str());
 
 	// copy pattern
