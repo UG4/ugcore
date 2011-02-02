@@ -225,6 +225,8 @@ class FetiLayouts
 			m_pSlaveStdLayout = &slaveLayout;
 
 		//	create FETI Layouts:
+ // 	\todo: For some documentation info see mail by S. Reiter, 30. Januar 2011 16:10:52 MEZ
+//             (if the information therein is not already outdated ...)
 			BuildDomainDecompositionLayouts(m_masterDualLayout, m_slaveDualLayout,
 							m_masterInnerLayout, m_slaveInnerLayout, m_masterDualNbrLayout,
 							m_slaveDualNbrLayout, m_masterPrimalLayout, m_slavePrimalLayout,
@@ -315,6 +317,12 @@ class FetiLayouts
 
 		//	return result
 			return prod;
+		}
+
+		void vec_set_on_primal(vector_type& vecSrc, number alpha)
+		{
+			VecSetOnLayout(&vecSrc, alpha, m_slavePrimalLayout);
+			VecSetOnLayout(&vecSrc, alpha, m_masterPrimalLayout);
 		}
 
 		void vec_set_excl_primal(vector_type& vecInOut, number value)

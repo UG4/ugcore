@@ -142,7 +142,7 @@ apply(vector_type& f, const vector_type& u)
 	if(!m_DirichletOperator.apply(f, uTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
-						 "Could not compute Rhs for Dirichlet problem on "
+						 "Could not compute Rhs for Dirichlet problem (step 2) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
@@ -159,7 +159,7 @@ apply(vector_type& f, const vector_type& u)
 	if(!m_pDirichletSolver->apply_return_defect(uTmp, f))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
-						 "Could not solve Dirichlet problem on Proc "
+						 "Could not solve Dirichlet problem (step 3.b) on Proc "
 							<< pcl::GetProcRank() << ".\n");
 		return false;
 	}
@@ -175,7 +175,7 @@ apply(vector_type& f, const vector_type& u)
 	if(!m_pOperator->apply(f, uTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
-						 "Could not apply full matrix on "
+						 "Could not apply full matrix (step 4.c) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
@@ -183,7 +183,7 @@ apply(vector_type& f, const vector_type& u)
 //	5. Reset all values for I, \Pi
 	m_pFetiLayouts->vec_set_excl_dual(f, 0.0);
 
-	// todo: this was written here in addition. IS IT NECESSARY/SENSEFUL
+	// todo: this was written here in addition. IS IT NECESSARY/SENSEFUL -latuernich nicht! (Wer macht denn sowas??? ;-) ==> CAN BE DELETED!
 //	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
 //	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_master_layout());
 
@@ -403,15 +403,15 @@ apply_return_defect(vector_type& u, vector_type& f)
 	if(!m_pNeumannSolver->apply_return_defect(hTmp, fTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
-						 "Could not solve Dirichlet problem on Proc "
+						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << ".\n");
 		return false;
 	}
 	// (b) apply matrix to \f$[h_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
-	if(!m_A->apply(fTmp, hTmp))
+	if(!m_pMatrix->apply(fTmp, hTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
-						 "Could not apply full matrix on "
+						 "Could not apply full matrix (step 2.b) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
@@ -437,21 +437,24 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// TODO: uTmp = ...
 
 //	6. Compute (via backward substitution)
-	// \f$\hat{f}_{\{I \Delta\}}\f$ = *urspruengliches* f_{\{I \Delta\}} - Matrix * [0, u_{\Pi}]^T
-	if(!m_A->apply(hTmp, uTmp))
+	// \f$\hat{f}_{\{I \Delta\}}\f$ = *urspruengliches* f_{\{I \Delta\}} - Neumann-Matrix * [0, u_{\Pi}]^T
+	if(!m_pNeumannMatrix->apply(hTmp, uTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
-						 "Could not apply full matrix on "
+						 "Could not apply full matrix (step 6) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
-	m_pFetiLayouts->vec_scale_add_on_dual(fTmp, 1.0, f, -1.0, hTmp);
+	// war total falsch: m_pFetiLayouts->vec_scale_add_on_dual(fTmp, 1.0, f, -1.0, hTmp);
+	VecScaleAdd(fTmp, 1.0, f, -1, hTmp);
+	m_pFetiLayouts->vec_set_on_primal(fTmp, 0.0);
+
  
 //	7. Solve for \f$u_{\{I \Delta\}}^{(p)}\f$
-	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // Destination?? Neumann?
+	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // solve with Neumann matrix!
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
-						 "Could not solve Dirichlet problem on Proc "
+						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << ".\n");
 		return false;
 	}
