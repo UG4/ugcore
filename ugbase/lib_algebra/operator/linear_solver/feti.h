@@ -289,6 +289,14 @@ class FetiLayouts
 			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_masterDualLayout);
 		}
 
+		void vec_scale_add_on_primal(vector_type& vecDest,
+		                           number alpha1, const vector_type& vecSrc1,
+		                           number alpha2, const vector_type& vecSrc2)
+		{
+			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_slavePrimalLayout);
+			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_masterPrimalLayout);
+		}
+
 		void vec_scale_append_on_dual(vector_type& vecInOut,
 		                              const vector_type& vecSrc1, number alpha1)
 		{
@@ -697,10 +705,10 @@ class SchurComplementInverse
 		pcl::ProcessCommunicator m_allToOneProcessComm;
 
 	//	Schur Complement operator for gathered matrix
-		PureMatrixOperator<vector_type, vector_type, matrix_type> m_OneProcSchurCompOp;
+		PureMatrixOperator<vector_type, vector_type, matrix_type> m_RootSchurComplementOp;
 
 	//	Matrix for one proc schur complement
-		matrix_type* m_pOneProcSchurCompMatrix;
+		matrix_type* m_pRootSchurComplementMatrix;
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;

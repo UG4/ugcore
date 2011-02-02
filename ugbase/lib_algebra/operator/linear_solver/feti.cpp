@@ -220,7 +220,7 @@ SchurComplementInverse() :
 	m_pNeumannMatrix(NULL),
 	m_pNeumannSolver(NULL),
 	m_primalRootProc(-1),
-	m_pOneProcSchurCompMatrix(NULL),
+	m_pRootSchurComplementMatrix(NULL),
 	m_pConvCheck(NULL),
 	m_pDebugWriter(NULL)
 {
@@ -329,14 +329,122 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	if(pcl::GetProcRank() == m_primalRootProc)
 	{
 	//	get matrix
-		m_pOneProcSchurCompMatrix = &m_OneProcSchurCompOp.get_matrix();
+		m_pRootSchurComplementMatrix = &m_RootSchurComplementOp.get_matrix();
 
 	//	create matrix of correct size
-		m_pOneProcSchurCompMatrix->create(newVecSize, newVecSize);
+		m_pRootSchurComplementMatrix->create(newVecSize, newVecSize);
 
 		std::cout << "On PrimalRoot: Creating proc local Schur Complement"
 					" of size " << newVecSize <<"x"<<newVecSize << std::endl;
 	}
+
+//	\todo: Compute matrix
+
+	vector_type e; e.resize(m_pMatrix->num_rows());
+	vector_type e2; e2.resize(m_pMatrix->num_rows());
+	vector_type e3; e3.resize(m_pMatrix->num_rows());
+	vector_type e4; e4.resize(m_pMatrix->num_rows());
+	vector_type e5; e5.resize(m_pMatrix->num_rows());
+	vector_type e6; e6.resize(m_pMatrix->num_rows());
+
+	for(size_t procInFetiBlock = 0; procInFetiBlock < localFetiBlockComm.size();
+			procInFetiBlock++)
+	{
+		for(size_t pqi = 0; pqi < (size_t)m_primalQuantities[procInFetiBlock]; ++pqi)
+		{
+		// 	1. Create unity vector
+		//////////////////////////
+
+		//	reset identity vector to zero for all Primal unknowns
+			e.set(0.0);
+
+		//	set value of unity vector to one iff on process and quantity, else 0
+			if(pcl::GetProcRank() == localFetiBlockComm.get_proc_id(procInFetiBlock))
+			{
+				for(size_t j = 0; j < SizeOfIndexLayout(m_slaveAllToOneLayout); ++j)
+				{
+					if(j == pqi)
+					{
+						e[GetEntryOfIndexLayout(m_slaveAllToOneLayout, j)] = 1.0;
+						break;
+					}
+				}
+			}
+
+		//	at this point the vector e has been set to an identity vector
+
+		// 	2. Apply first matrix
+		//////////////////////////
+		//	build e2 = A_{\{I \Delta\} \Pi} e
+			m_A->apply(e2, e);
+
+
+		//	3. solve I,\Delta subsystem problem by:
+		//////////////////////////
+		//	Solve: A_{\{I \Delta\}  \{I \Delta\} } e3 = e2
+
+		//	(a1) Set zero dirichlet bnd conds for e_2_{\Pi}
+			m_pFetiLayouts->vec_set_on_primal(e2, 0.0);
+
+		//	(a2) Start with zero iterate (not obligatory)
+			e3.set(0.0);
+
+		//	(b) Solve dirichlet problem
+			if(!m_pNeumannSolver->apply(e3, e2))
+			{
+				UG_LOG("ERROR in SchurComplementInverse::init: Could not solve"
+						" local neumann problem to compute Schur complement"
+						" w.r.t. primal unknowns.\n");
+				return false;
+			}
+
+		// 	4. Apply third matrix
+		//////////////////////////
+
+		//	(a) Set e3 zero on \Pi. This is enforced by neumann solver
+
+		//	(b) apply matrix: e4 = A e3
+			m_A->apply(e4, e3);
+
+		//	(c) set entries to zero on I, \Delta (not needed, therefore skipped)
+
+		// 	5. Compute first term
+		///////////////////////////
+
+		//	(a) multiply unity vector with matrix
+			m_A->apply(e5, e);
+
+		//	(b) reset values to zero on I, \Delta (not needed, therefore skipped)
+
+		// 	6. Add values
+		///////////////////////////
+
+		//	e6 = e5 - e4
+			m_pFetiLayouts->vec_scale_add_on_primal(e6, 1.0, e5, -1.0, e4);
+
+
+		// 	at this point, we have the contribution of S_ij^{p} in all primal
+		//	unknowns i. Thus, we have to read it and send it to the root process
+
+
+			for(size_t procInFetiBlock2 = 0; procInFetiBlock2 < localFetiBlockComm.size();
+					procInFetiBlock2++)
+			{
+				for(size_t pqj = 0; pqj < (size_t) m_primalQuantities[procInFetiBlock2]; ++pqj)
+				{
+				//	get entry
+		/*			typename vector_type::value_type& entry =
+							e[GetEntryOfIndexLayout(m_slaveAllToOneLayout, pqj)];
+*/
+					//\todo: continue implementation
+
+				}
+			}
+
+
+		}
+	}
+
 
 //	we're done
 	return true;

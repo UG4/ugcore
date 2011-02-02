@@ -103,6 +103,37 @@ inline void LogIndexLayoutOnAllProcs(IndexLayout& layout, int depth = 0)
 	pcl::SetOutputProcRank(outproc);
 }
 
+/// return the total number of indices in the layout
+inline size_t SizeOfIndexLayout(IndexLayout& Layout)
+{
+	size_t sum = 0;
+	for(IndexLayout::iterator iter = Layout.begin();
+			iter != Layout.end(); ++iter)
+		sum += Layout.interface(iter).size();
+	return sum;
+}
+
+/// return the i'th index in the layout, when looping interface after interface
+inline size_t GetEntryOfIndexLayout(IndexLayout& Layout, size_t index)
+{
+	size_t cnt = 0;
+	for(IndexLayout::iterator iter = Layout.begin();
+			iter != Layout.end(); ++iter)
+	{
+		IndexLayout::Interface& interface = Layout.interface(iter);
+
+		for(IndexLayout::Interface::iterator indexIter = interface.begin();
+				indexIter != interface.end(); ++indexIter)
+		{
+			if(interface.get_element(indexIter) == index)
+				return cnt;
+			cnt++;
+		}
+	}
+	return (size_t)-1;
+}
+
+
 } // end namespace ug
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_INDEX_LAYOUT__ */
