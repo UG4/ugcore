@@ -43,7 +43,7 @@ struct amg_nodeinfo
 	
 	inline bool isAssigned() const {return (rating <= ASSIGNED_RATING);}
 	
-	friend ostream &operator << (ostream &out, const amg_nodeinfo &n)
+	friend std::ostream &operator << (std::ostream &out, const amg_nodeinfo &n)
 	{
 		out << "Rating: " << n.rating;
 		if(n.rating < 0)
@@ -60,7 +60,7 @@ struct amg_nodeinfo
 	}
 	void print() const
 	{
-		cout << *this << endl;
+		std::cout << *this << std::endl;
 	} // << " newindex: " << newIndex << endl;
 	
 	inline bool operator > (const amg_nodeinfo &other) const

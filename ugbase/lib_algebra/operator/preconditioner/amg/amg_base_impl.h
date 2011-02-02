@@ -13,6 +13,7 @@
 #ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_BASE_IMPL_H__
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_BASE_IMPL_H__
 
+#include <fstream>
 #include "stopwatch.h"
 #include "amg_debug.h"
 
@@ -464,7 +465,7 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 template<typename vector_type>
 void writevec(cAMG_helper &amghelper, const char *filename, const vector_type &d, size_t level)
 {
-	fstream file(filename, ios::out);
+	std::fstream file(filename, std::ios::out);
 	for(size_t i=0; i<d.size(); i++)
 		file << amghelper.GetOriginalIndex(level, i) << " " << (d[i]) << std::endl;
 }

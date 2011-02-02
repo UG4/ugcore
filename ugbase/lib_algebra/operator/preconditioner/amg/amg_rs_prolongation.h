@@ -12,6 +12,7 @@
 #ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_RS_PROLONGATION_H__
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_RS_PROLONGATION_H__
 
+#include <vector>
 #include "amg_nodeinfo.h"
 
 namespace ug {
@@ -36,7 +37,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 {
 	P.create(A.num_rows(), iNrOfCoarse);
 
-	vector<SparseMatrix<double>::connection> con(255);
+	std::vector<SparseMatrix<double>::connection> con(255);
 	SparseMatrix<double>::connection c;
 	// DIRECT INTERPOLATION
 	unassigned=0;
@@ -134,7 +135,7 @@ void CreateRugeStuebenProlongation(SparseMatrix<double> &P, const Matrix_type &A
 	}
 
 	if(unassigned)
-		cout << "Pass 1: " << unassigned << " left. ";
+		UG_LOG("Pass 1: " << unassigned << " left. ")
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,8 +162,8 @@ template<typename Matrix_type>
 void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 		stdvector<int> &newIndex, int unassigned, stdvector<amg_nodeinfo> &nodes, int *posInConnections, double theta)
 {
-	vector<SparseMatrix<double>::connection > con, con2;
-	vector<int> nrOfPaths;
+	std::vector<SparseMatrix<double>::connection > con, con2;
+	std::vector<int> nrOfPaths;
 	con.reserve(255); con2.reserve(255); nrOfPaths.reserve(255);
 	SparseMatrix<double>::connection c;
 	//P.print();
@@ -173,9 +174,9 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 	while(unassigned)
 	{
 #ifdef AMG_PRINT_INDIRECT
-		cout << endl;
+		UG_LOG(std::endl);
 #endif
-		cout << "Pass " << pass << ": ";
+		UG_LOG("Pass " << pass << ": ");
 		for(size_t i=0; i<A.num_rows() && unassigned > 0; i++)
 		{
 			if(!nodes[i].isUnassignedFineIndirect() || A[i].is_isolated())
@@ -276,20 +277,21 @@ void CreateIndirectProlongation(SparseMatrix<double> &P, const Matrix_type &A,
 
 		if(unassigned == oldUnassigned)
 		{
-			cout << endl << "unassigned nodes left: " << endl;
+			UG_LOG(std::endl << "unassigned nodes left: " << std::endl);
 			for(size_t i=0; i<A.num_rows(); i++)
 			{
 				if(nodes[i].isUnassignedFineIndirect())
-				   cout << i << " ";
+				 UG_LOG(i << " ");
 			}
+			UG_LOG("\n");
 		}
 		UG_ASSERT(unassigned != oldUnassigned, "Pass " << pass <<
 				": Indirect Interpolation hangs at " << unassigned << " unassigned nodes.");
 
 #ifdef AMG_PRINT_INDIRECT
-		cout << "calculated, ";
+		UG_LOG("calculated, ");
 #endif
-		cout << unassigned << " left. ";
+		UG_LOG(unassigned << " left. ");
 		pass++;
 		oldUnassigned = unassigned;
 		//break;

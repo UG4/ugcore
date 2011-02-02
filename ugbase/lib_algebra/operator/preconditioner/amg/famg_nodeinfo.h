@@ -55,7 +55,7 @@ public:
 		return rating;
 	}
 
-	friend ostream &operator << (ostream &out, const famg_nodeinfo &n)
+	friend std::ostream &operator << (std::ostream &out, const famg_nodeinfo &n)
 	{
 		out << "Rating: " << n.rating;
 		if(n.is_fine()) out << " (fine)";
@@ -71,6 +71,9 @@ public:
 	famg_nodes(size_t size)
 	{
 		nodes.resize(size);
+#ifdef UG_PARALLEL
+		bmaster.resize(size, true);
+#endif
 	}
 
 	famg_nodeinfo &operator [] (size_t i) { return nodes[i]; }
@@ -167,7 +170,29 @@ public:
 		}
 	}
 
+#ifdef UG_PARALLEL
+public:
+	bool is_master(size_t i) const
+	{
+		return bmaster[i];
+	}
+
+	void set_master(size_t i, bool b)
+	{
+		bmaster[i] = b;
+	}
+private:
+	stdvector<bool> bmaster;
+
+#else
+public:
+	bool is_master(size_t i) const { return true; }
+	void set_master(size_t i, bool b) { }
+
+#endif
+
 	size_t size() const { return nodes.size(); }
+
 private:
 	stdvector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array
 };

@@ -46,14 +46,14 @@ struct cAMG_helper
 	void writePosToStream(std::ostream &out) const
 	{
 		UG_ASSERT(has_positions(), "cAMG_helper needs positions to write them to a stream.")
-		out << dimension << endl;
-		out << size << endl;
+		out << dimension << std::endl;
+		out << size << std::endl;
 		for(int i=0; i< size ; i++)
 		{
 			out << positions[i][0] << " " << positions[i][1];
 			if(dimension == 3)
 				out << " " << positions[i][2];
-			out << endl;
+			out << std::endl;
 		}
 	}
 

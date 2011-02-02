@@ -163,21 +163,21 @@ public:
 	//! print row i
 	void pr(size_t i)
 	{
-		cout << "graph row " << i << ", length " << num_connections(i) << ":" << endl;
+		std::cout << "graph row " << i << ", length " << num_connections(i) << ":" << std::endl;
 		for(cRowIterator it = begin_row(i); it != end_row(i); ++it)
-			cout << (*it) << " ";
-		cout << endl;
-		cout.flush();
+			std::cout << (*it) << " ";
+		std::cout << std::endl;
+		std::cout.flush();
 	}
 	//! print whole graph to cout
 	void print()
 	{
-		cout << *this << endl;
+		std::cout << *this << std::endl;
 	}
 
 	friend std::ostream &operator << (std::ostream &out, const cgraph &g)
 	{
-		cout << "============= graph ================ " << std::endl;
+		std::cout << "============= graph ================ " << std::endl;
 		for(size_t i=0; i<g.size(); ++i)
 		{
 			out << "[" << i << "]:  ";

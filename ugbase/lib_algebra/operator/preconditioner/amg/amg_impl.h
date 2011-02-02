@@ -171,8 +171,8 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	graphST.create_as_transpose_of(graphS);
 
 #ifdef AMG_WRITE_GRAPH
-	WriteAMGGraphToFile(graphS, (string(AMG_WRITE_MATRICES_PATH) + "G" + ToString(level) + ".mat").c_str(), amghelper, level);
-	WriteAMGGraphToFile(graphST, (string(AMG_WRITE_MATRICES_PATH) + "GT" + ToString(level) + ".mat").c_str(), amghelper, level);
+	WriteAMGGraphToFile(graphS, (std::string(AMG_WRITE_MATRICES_PATH) + "G" + ToString(level) + ".mat").c_str(), amghelper, level);
+	WriteAMGGraphToFile(graphST, (std::string(AMG_WRITE_MATRICES_PATH) + "GT" + ToString(level) + ".mat").c_str(), amghelper, level);
 #endif
 
 	CreateMeasureOfImportancePQ(graphS, graphST, PQ, unassigned, nodes);
@@ -321,10 +321,10 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 	if(m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
-		fstream ffine((string(m_writeMatrixPath) + "AMG_fine" + ToString(level) + ".marks").c_str(), std::ios::out);
-		fstream fcoarse((string(m_writeMatrixPath) + "AMG_coarse" + ToString(level) + ".marks").c_str(), std::ios::out);
-		fstream fother((string(m_writeMatrixPath) + "AMG_other" + ToString(level) + ".marks").c_str(), std::ios::out);
-		fstream fdirichlet((string(m_writeMatrixPath) + "AMG_dirichlet" + ToString(level) + ".marks").c_str(), std::ios::out);
+		std::fstream ffine((std::string(m_writeMatrixPath) + "AMG_fine" + ToString(level) + ".marks").c_str(), std::ios::out);
+		std::fstream fcoarse((std::string(m_writeMatrixPath) + "AMG_coarse" + ToString(level) + ".marks").c_str(), std::ios::out);
+		std::fstream fother((std::string(m_writeMatrixPath) + "AMG_other" + ToString(level) + ".marks").c_str(), std::ios::out);
+		std::fstream fdirichlet((std::string(m_writeMatrixPath) + "AMG_dirichlet" + ToString(level) + ".marks").c_str(), std::ios::out);
 		for(size_t i=0; i<N; i++)
 		{
 			int o = amghelper.GetOriginalIndex(level, i);
@@ -334,32 +334,32 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 		}
 
 		UG_LOG("write matrices");
-		AMGWriteToFile(A, level, level, (string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), amghelper);
-		fstream f((string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
-		f << "c " << string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
-		f << "c " << string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
-		f << "c " << string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
-		f << "c " << string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
-		f << "v " << string(m_writeMatrixPath) << "AMG_d" << level << ".values\n";
+		AMGWriteToFile(A, level, level, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), amghelper);
+		std::fstream f((std::string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
+		f << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
+		f << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
+		f << "c " << std::string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
+		f << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+		f << "v " << std::string(m_writeMatrixPath) << "AMG_d" << level << ".values\n";
 		UG_LOG(".");
 
-		AMGWriteToFile(P, level+1, level, (string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), amghelper);
-		fstream f2((string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
-		f2 << "c " << string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
-		f2 << "c " << string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
-		f2 << "c " << string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
-		f2 << "c " << string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+		AMGWriteToFile(P, level+1, level, (std::string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), amghelper);
+		std::fstream f2((std::string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
+		f2 << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
+		f2 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
+		f2 << "c " << std::string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
+		f2 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
 		UG_LOG(".");
 
-		AMGWriteToFile(R, level, level+1, (string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), amghelper);
-		fstream f3((string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), ios::out | ios::app);
-		f3 << "c " << string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
-		f3 << "c " << string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
-		f3 << "c " << string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
-		f3 << "c " << string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
+		AMGWriteToFile(R, level, level+1, (std::string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), amghelper);
+		std::fstream f3((std::string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
+		f3 << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
+		f3 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
+		f3 << "c " << std::string(m_writeMatrixPath) << "AMG_other" << level << ".marks\n";
+		f3 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
 		UG_LOG(".");
 
-		AMGWriteToFile(AH, level+1, level+1, (string(m_writeMatrixPath) + "AMG_A" + ToString(level+1) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(AH, level+1, level+1, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level+1) + ".mat").c_str(), amghelper);
 		UG_LOG(". done.\n");
 	}
 }

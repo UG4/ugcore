@@ -149,7 +149,7 @@ public:
 	{
 		static const int dim = TGridFunction::domain_type::dim;
 
-		vector<MathVector<dim> > positions;
+		stdvector<MathVector<dim> > positions;
 		ExtractPositions(u, positions);
 		set_debug_positions(&positions[0], positions.size());
 		UG_LOG("successfully set " << positions.size() << " positions.\n");
@@ -199,7 +199,7 @@ protected:
 
 	stdvector< stdvector<int> > parentIndex;		///< parentIndex[L][i] is the index of i on level L-1
 	cAMG_helper amghelper;					///< helper struct for viewing matrices (optional)
-	vector<MathVector<3> > dbg_positions;	///< positions of geometric grid (optional)
+	stdvector<MathVector<3> > dbg_positions;	///< positions of geometric grid (optional)
 	int dbg_dimension;						///< dimension of geometric grid (optional)
 
 

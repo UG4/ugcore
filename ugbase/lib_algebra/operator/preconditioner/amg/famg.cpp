@@ -27,9 +27,9 @@
 #include "famg.h"
 
 
+#include "lib_algebra/parallelization/parallel_matrix_overlap_impl.h"
 
 ug::Vector<double> big_testvector;
-
 
 
 ug::cAMG_helper *pAmghelper;
@@ -307,41 +307,180 @@ template <> struct block_traits<MathVector<3> >
 };
 
 
+int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<int> &pids)
+{
+	// 1. send all neighbors our number of neighbors
+	size_t myDegree = pids.size();
+	typedef std::set<int>::iterator setiterator;
+	std::map<int, size_t> othersDegree;
+
+	UG_DLOG(LIB_ALG_AMG, 2, "sending degree data to ");
+	for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+	{
+		int pid = *iter;
+		com.send_raw(pid, &myDegree, sizeof(size_t), true);
+		com.receive_raw(pid, &othersDegree[pid], sizeof(size_t));
+		UG_DLOG(LIB_ALG_AMG, 2, pid << " ");
+	}
+	UG_DLOG(LIB_ALG_AMG, 2, "\n");
+
+	com.communicate();
+
+	int myPID = pcl::GetProcRank();
+	UG_DLOG(LIB_ALG_AMG, 2, "process " <<  myPID << " here. I have degree " << myDegree << ".\n");
+	for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+	{
+		int pid = *iter;
+		UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid << " has degree " << othersDegree[pid] << ".\n");
+	}
+
+	stdvector<int> colors(myDegree, -1);
+
+	size_t processesWithHigherWeight=0, processesWithLowerWeight=0;
+
+	// 2. for all neighbors which have a higher weight than this process, issue a color receive
+	UG_DLOG(LIB_ALG_AMG, 2, "issue receive from... ");
+	for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+	{
+		int pid2 = *iter; size_t degree2 = othersDegree[pid2];
+		if(myDegree < degree2 || (myDegree == degree2 && myPID < pid2))
+		{
+			com.receive_raw(pid2, &colors[processesWithHigherWeight], sizeof(int));
+			processesWithHigherWeight++;
+			UG_DLOG(LIB_ALG_AMG, 2, pid2 << " ");
+		}
+		else
+			processesWithLowerWeight++;
+	}
+	UG_DLOG(LIB_ALG_AMG, 2, "\n");
+
+	int myColor = 0;
+
+	// 3. communicate & get a free color (only if actually got color from neighbors)
+	if(processesWithHigherWeight > 0)
+	{
+		UG_DLOG(LIB_ALG_AMG, 2, "communicate...");
+		com.communicate();
+		UG_DLOG(LIB_ALG_AMG, 2, "done.\n");
+
+		UG_DLOG(LIB_ALG_AMG, 2, "received colors from " << processesWithHigherWeight << " processes!\n");
+		size_t i=0;
+		for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+		{
+			int pid2 = *iter; size_t degree2 = othersDegree[pid2];
+			if(myDegree < degree2 || (myDegree == degree2 && myPID < pid2))
+			{
+				if(colors[i] == -1)
+				UG_DLOG(LIB_ALG_AMG, 2, "pid " << pid2 << " did not send color?");
+				UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid2 << " has color " << colors[i] << ".\n");
+				i++;
+			}
+		}
+		colors.resize(processesWithHigherWeight);
+
+		sort(colors.begin(), colors.end());
+		for(; myColor < (int)colors.size(); myColor++)
+		{
+			if(myColor != colors[myColor])
+				break;
+		}
+	}
+
+	UG_DLOG(LIB_ALG_AMG, 2, "GOT COLOR! My color is " << myColor << "\n");
+
+	// 4. for all neighbors which have a lower weight than this process, issue a color send
+
+	if(processesWithLowerWeight > 0)
+	{
+		UG_DLOG(LIB_ALG_AMG, 2, "Sending color to " << processesWithLowerWeight << " processes: ")
+		for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+		{
+			int pid2 = *iter; size_t degree2 = othersDegree[pid2];
+			if(myDegree > degree2 || (myDegree == degree2 && myPID > pid2 ))
+			{
+				// bug when fixedsize=false???
+				com.send_raw(pid2, &myColor, sizeof(int), true);
+				UG_DLOG(LIB_ALG_AMG, 2, pid2 << " ");
+			}
+		}
+		UG_DLOG(LIB_ALG_AMG, 2, "communicate...");
+		com.communicate();
+		UG_DLOG(LIB_ALG_AMG, 2, "done.\n");
+	}
+
+	UG_DLOG(LIB_ALG_AMG, 2, "coloring done.\n");
+
+	return myColor;
+}
+
 template<>
 void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
 		SparseMatrix<double> &P, size_t level)
 {
-	UG_SET_DEBUG_LEVELS(3);
+	//UG_SET_DEBUG_LEVELS(4);
 	UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::endl << std::fixed);
 //	bool bTiming=true;
 	stopwatch SW, SWwhole; SWwhole.start();
 
+
+
 	if(level == 0)
 	{
 		matrix_type A_OL2;
-		IndexLayout masterOLLayout, slaveOLLayout;
+		std::vector<IndexLayout> masterLayouts, slaveLayouts;
+		IndexLayout totalMasterLayout, totalSlaveLayout;
 
-		GenerateOverlap(A, A_OL2, masterOLLayout, slaveOLLayout, 1);
+		GenerateOverlap(A, A_OL2, totalMasterLayout, totalSlaveLayout, masterLayouts, slaveLayouts, 2);
 
 		std::vector<MathVector<3> > vec2(&amghelper.positions[0], &amghelper.positions[amghelper.size]);
 		vec2.resize(A_OL2.num_rows());
 
-		UG_DLOG(LIB_ALG_AMG, 0, "positions:\n");
+		/*UG_DLOG(LIB_ALG_AMG, 0, "positions:\n");
 		for(size_t i=0; i<vec2.size(); ++i)
-			UG_DLOG(LIB_ALG_MATRIX, 0, i << " = " << vec2[i] << "\n");
+			UG_DLOG(LIB_ALG_MATRIX, 0, i << " = " << vec2[i] << "\n");*/
 
 
 	//	copy all ids from master to slave interfaces
 		ComPol_VecCopy<std::vector<MathVector<3> > >	copyPol(&vec2);
 
 		pcl::ParallelCommunicator<IndexLayout> &communicator = A_OL2.get_communicator();
-		communicator.send_data(masterOLLayout, copyPol);
-		communicator.receive_data(slaveOLLayout, copyPol);
+		communicator.send_data(totalMasterLayout, copyPol);
+		communicator.receive_data(totalSlaveLayout, copyPol);
 		communicator.communicate();
 
 		UG_DLOG(LIB_ALG_AMG, 0, "positions after copy:\n");
 		for(size_t i=0; i<vec2.size(); ++i)
 			UG_DLOG(LIB_ALG_MATRIX, 0, i << " = " << vec2[i] << "\n");
+
+		std::stringstream ss; ss << "A_OL2_" << pcl::GetProcRank() << ".mat";
+		WriteMatrixToConnectionViewer(ss.str().c_str(), A_OL2, &vec2[0], 2);
+
+
+		for(size_t i=0; i<slaveLayouts.size(); i++)
+		{
+			std::set<int> s;
+			for(IndexLayout::iterator iter = slaveLayouts[i].begin(); iter != slaveLayouts[i].end(); ++iter)
+			{
+				IndexLayout::Interface &interface = slaveLayouts[i].interface(iter);
+				for(IndexLayout::Interface::iterator iter2 = interface.begin(); iter2 != interface.end(); ++iter2)
+					s.insert(interface.get_element(iter2));
+			}
+
+			UG_LOG("OL Level " << i << ": ");
+			for(std::set<int>::iterator iter = s.begin(); iter != s.end(); ++iter)
+			{
+				UG_LOG(*iter << " ");
+			}
+			UG_LOG("\n");
+		}
+
+		std::set<int> pids;
+		for(IndexLayout::iterator iter = totalMasterLayout.begin(); iter != totalMasterLayout.end(); ++iter)
+			pids.insert(totalMasterLayout.proc_id(iter));
+		for(IndexLayout::iterator iter = totalSlaveLayout.begin(); iter != totalSlaveLayout.end(); ++iter)
+			pids.insert(totalSlaveLayout.proc_id(iter));
+
+		int myColor = ColorProcessorGraph(communicator, pids);
 	}
 
 }
@@ -384,6 +523,13 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> 
 	stdvector<int> newIndex;
 
 	famg_nodes rating(N);
+
+#ifdef UG_PARALLEL
+	// mark slaves
+
+
+#endif
+
 
 	newIndex.resize(N);	for(size_t i=0; i<N; i++)	newIndex[i] = -1;
 	size_t iNrOfCoarse=0;

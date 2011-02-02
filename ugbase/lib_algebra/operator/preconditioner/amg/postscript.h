@@ -12,6 +12,9 @@
 #ifndef __H__LIB_DISCRETIZATION__POSTSCRIPT_H__
 #define __H__LIB_DISCRETIZATION__POSTSCRIPT_H__
 
+#include <fstream>
+#include <string>
+
 namespace ug{
 
 class postscript
@@ -29,7 +32,7 @@ public:
 	~postscript()
 	{
 		double scale = 1;
-		scale = max( 400/(bounds_right-bounds_left), 400/(bounds_top-bounds_bottom) );
+		scale = std::max( 400/(bounds_right-bounds_left), 400/(bounds_top-bounds_bottom) );
 		file <<		"%%BoundingBox: " << bounds_left*scale*1.05 << " " << bounds_top*scale*1.05 << " " << bounds_right*scale*1.05 << " " << bounds_bottom*scale*1.05 << "\n"
 					"%%Pages: 1\n"
 					"%%DocumentsFonts: Monaco\n"
@@ -65,7 +68,7 @@ public:
 
 	bool create(const char *filename)
 	{
-		file.open((string(filename) + ".ps").c_str(), ios::out);
+		file.open((std::string(filename) + ".ps").c_str(), std::ios::out);
 		file << 	"%!PS-Adobe-2.0 EPSF-1.2\n"
 					"%%Title: " << filename << "\n"
 					"%%Creator: ug postscript output\n"
@@ -117,7 +120,7 @@ public:
 		out << "(" << text << ") show\n";
 	}
 
-	void print_text(const string &text)
+	void print_text(const std::string &text)
 	{
 		out << "(" << text << ") show\n";
 	}
@@ -131,7 +134,7 @@ private:
 	double bounds_left, bounds_right, bounds_top, bounds_bottom;
 	std::ostringstream out;
 
-	fstream file;
+	std::fstream file;
 };
 
 }

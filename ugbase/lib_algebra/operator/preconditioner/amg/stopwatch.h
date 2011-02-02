@@ -25,7 +25,7 @@ public:
 	}
 	void start()
 	{
-		cout.flush();
+		std::cout.flush();
 		beg = clock();
 		bRunning = true;
 	}
@@ -34,7 +34,7 @@ public:
 		end = clock();
 		bRunning = false;
 	}
-	friend ostream &operator << (ostream &out, stopwatch &s)
+	friend std::ostream &operator << (std::ostream &out, stopwatch &s)
 	{
 		out << s.ms() << " ms";
 		return out;

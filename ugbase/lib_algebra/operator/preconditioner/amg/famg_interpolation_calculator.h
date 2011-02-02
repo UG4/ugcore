@@ -17,7 +17,7 @@ namespace ug {
 
 
 template<typename matrix_type>
-void GetNeighborhood(matrix_type &A, size_t node, vector<size_t> &onlyN1)
+void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1)
 {
 	onlyN1.clear();
 	for(typename matrix_type::cRowIterator it = A.beginRow(node); !it.isEnd(); ++it)
@@ -30,7 +30,7 @@ void GetNeighborhood(matrix_type &A, size_t node, vector<size_t> &onlyN1)
 // adds the indices of the neighbors of a node to the vector onlyN1, if they have visited flag 0.
 // node: neither onlyN1 nor bvisited get reset
 template<typename matrix_type>
-void GetNeighborhoodRec(matrix_type &A, size_t node, vector<size_t> &onlyN1, vector<bool> &bvisited)
+void GetNeighborhoodRec(matrix_type &A, size_t node, std::vector<size_t> &onlyN1, std::vector<bool> &bvisited)
 {
 	bvisited[node] = true;
 
@@ -44,7 +44,7 @@ void GetNeighborhoodRec(matrix_type &A, size_t node, vector<size_t> &onlyN1, vec
 	}
 }
 template<typename matrix_type>
-void GetNeighborhoodRec(matrix_type &A, size_t node, vector<size_t> &onlyN1, vector<size_t> &onlyN2, vector<bool> &bvisited)
+void GetNeighborhoodRec(matrix_type &A, size_t node, std::vector<size_t> &onlyN1, std::vector<size_t> &onlyN2, std::vector<bool> &bvisited)
 {
 	bvisited[node] = true;
 
@@ -54,7 +54,7 @@ void GetNeighborhoodRec(matrix_type &A, size_t node, vector<size_t> &onlyN1, vec
 }
 
 template<typename matrix_type>
-void GetNeighborhood(matrix_type &A, size_t node, vector<size_t> &onlyN1, vector<size_t> &onlyN2, vector<bool> &bvisited)
+void GetNeighborhood(matrix_type &A, size_t node, std::vector<size_t> &onlyN1, std::vector<size_t> &onlyN2, std::vector<bool> &bvisited)
 {
 	onlyN1.clear();
 	onlyN2.clear();
@@ -201,7 +201,7 @@ public:
 		if(i_min != -1)
 		{
 			// minimal element is always first in possible_neighbors[i] list.
-			swap(i_neighborpairs[0], i_neighborpairs[i_min]);
+			std::swap(i_neighborpairs[0], i_neighborpairs[i_min]);
 
 			for(size_t j=0; j<i_neighborpairs.size(); j++)
 				if(m_theta*i_neighborpairs[j].F <= f_min)
@@ -250,7 +250,7 @@ public:
 		// get testvector
 		calculate_testvector(i);
 
-		vector<size_t> coarse_neighbors;
+		std::vector<size_t> coarse_neighbors;
 		for(size_t j=0; j<onlyN1.size(); j++)
 			if(rating[onlyN1[j]].is_coarse())
 				coarse_neighbors.push_back(j);

@@ -13,6 +13,7 @@
 #ifndef __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_H__
 #define __H__LIB_DISCRETIZATION__AMG_SOLVER__AMG_DEBUG_H__
 
+#include <fstream>
 #include "amg_nodeinfo.h"
 #include "amg_debug_helper.h"
 #include "postscript.h"
@@ -280,16 +281,16 @@ void AMGWriteToFile(const SparseMatrix<T> &A, int fromlevel, int tolevel, const 
 		return;
 	}
 
-	fstream file(filename, ios::out);
-	file << 1 << endl; // connection viewer version
+	std::fstream file(filename, std::ios::out);
+	file << 1 << std::endl; // connection viewer version
 
 	h.writePosToStream(file);
-	file << 1 << endl;
+	file << 1 << std::endl;
 	for(size_t i=0; i < A.num_rows(); i++)
 	{
 		for(typename SparseMatrix<T>::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 			if((*conn).dValue != 0.0)
-				file << h.GetOriginalIndex(tolevel, i) << " " << h.GetOriginalIndex(fromlevel, (*conn).iIndex) << " " << ((*conn).dValue) << endl;
+				file << h.GetOriginalIndex(tolevel, i) << " " << h.GetOriginalIndex(fromlevel, (*conn).iIndex) << " " << ((*conn).dValue) << std::endl;
 	}
 }
 
@@ -312,7 +313,7 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 	{
 		int from = h.GetOriginalIndex(tolevel, i);
 		ps.move_to(h.positions[from].x, h.positions[from].y);
-		ps.print_text( string("0") + ToString(i));
+		ps.print_text( std::string("0") + ToString(i));
 
 		for(typename SparseMatrix<T>::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 		{
@@ -329,7 +330,7 @@ void AMGWriteToFilePS(const SparseMatrix<T> &A, int fromlevel, int tolevel, cons
 		}
 	}
 
-	cout << endl;
+	std::cout << std::endl;
 }
 
 // could be in cpp
@@ -341,15 +342,15 @@ inline void WriteAMGGraphToFile(cgraph &G, const char *filename, const cAMG_help
 		return;
 	}
 
-	fstream file(filename, ios::out);
-	file << /*CONNECTION_VIEWER_VERSION*/ 1 << endl;
+	std::fstream file(filename, std::ios::out);
+	file << /*CONNECTION_VIEWER_VERSION*/ 1 << std::endl;
 
 	h.writePosToStream(file);
-	file << 1 << endl;
+	file << 1 << std::endl;
 	for(size_t i=0; i < G.size(); i++)
 	{
 		for(cgraph::cRowIterator it = G.begin_row(i); it != G.end_row(i); ++it)
-			file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, (*it)) << "  " << endl;
+			file << h.GetOriginalIndex(level, i) << " " << h.GetOriginalIndex(level, (*it)) << "  " << std::endl;
 	}
 }
 }
