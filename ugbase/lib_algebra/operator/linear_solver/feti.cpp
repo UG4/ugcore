@@ -1038,7 +1038,6 @@ apply_F(vector_type& f, const vector_type& v)
 	//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
 	ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
-	                                   	   	 m_fetiLayouts.get_dual_nbr_master_layout()
 	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
 	//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
@@ -1047,6 +1046,7 @@ apply_F(vector_type& f, const vector_type& v)
 	//	3. Apply jump operator to get the final 'f'
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 	//	we're done
@@ -1082,6 +1082,7 @@ compute_d(vector_type& d, const vector_type& f)
 //	2. Apply jump operator to get the final 'd'
 	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 	write_debug(d, "ComputeD_d");
@@ -1144,6 +1145,7 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 	//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
@@ -1178,6 +1180,7 @@ apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r)
 	//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 	ComputeDifferenceOnDelta(z, zTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
 	//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
