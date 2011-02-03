@@ -491,6 +491,12 @@ class SchurComplementInverse
 	///	name of class
 		virtual const char* name() const {return "Schur Complement Inverse";}
 
+	//	set debug output
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
+		}
+
 	///	sets the Neumann solver
 		void set_neumann_solver(ILinearOperatorInverse<vector_type, vector_type>& neumannSolver)
 		{
@@ -654,6 +660,8 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		void set_debug(IDebugWriter<algebra_type>* debugWriter)
 		{
 			m_pDebugWriter = debugWriter;
+			m_LocalSchurComplement.set_debug(m_pDebugWriter);
+			m_SchurComplementInverse.set_debug(m_pDebugWriter);
 		}
 
 	///	initializes the solver for operator A

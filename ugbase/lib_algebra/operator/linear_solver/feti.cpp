@@ -100,7 +100,7 @@ bool LocalSchurComplement<TAlgebra>::
 apply(vector_type& f, const vector_type& u)
 {
 //	check that matrix has been set
-	if(m_pOperator == NULL) // muesste man hier nicht pruefen, ob m_pDirichletMatrix gesetzt ist?
+	if(m_pOperator == NULL) // muesste man hier nicht pruefen, ob m_pDirichletMatrix gesetzt ist? -> @Ingo: Falsche Stelle:m_pDirichletMatrix ist die Matrix von m_DirichletOperator.
 	{
 		UG_LOG("ERROR: In 'LocalSchurComplement::apply': "
 						"Matrix A not set.\n");
@@ -192,10 +192,6 @@ apply(vector_type& f, const vector_type& u)
 
 //	5. Reset all values for I, \Pi
 	m_pFetiLayouts->vec_set_excl_dual(f, 0.0);
-
-	// todo: this was written here in addition. IS IT NECESSARY/SENSEFUL -latuernich nicht! (Wer macht denn sowas??? ;-) ==> CAN BE DELETED!
-//	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_slave_layout());
-//	VecSetOnLayout(&f, 0.0, m_pFetiLayouts->get_dual_master_layout());
 
 //	we're done
 	return true;
@@ -545,19 +541,28 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 
 //	Help vector
-//	\todo: it would be sufficient to copy only the layouts without copying the values
-	vector_type fTmp; fTmp.create(f.size()); fTmp = f;
-	vector_type hTmp; hTmp.create(u.size()); hTmp = u;
-
+	vector_type fTmp; fTmp.create(f.size());
+	vector_type hTmp; hTmp.create(u.size());
 
 //	1. Set values of rhs to zero on I and Pi
 	// (a) Reset all values - but not of original f, we need it later!
 	fTmp.set(0.0);
 
+	write_debug(f, "SCI_f_1BeforeNeumann");
+
 	// (b) Copy values on \Delta
 	m_pFetiLayouts->vec_scale_append_on_dual(fTmp, f, 1.0);
 
 //	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
+	write_debug(f, "SCI_f_2aBeforeNeumann");
+	write_debug(fTmp, "SCI_fTmp_2aBeforeNeumann");
+	write_debug(hTmp, "SCI_hTmp_2aBeforeNeumann");
+
+	// use inner interfaces for solving
+	m_pFetiLayouts->vec_use_inner_communication(fTmp);
+	fTmp.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(hTmp);
+	hTmp.set_storage_type(PST_CONSISTENT);
 
 	// (a) invoke Neumann solver to get \f$h_{\{I \Delta\}}^{(p)}\f$
 	if(!m_pNeumannSolver->apply_return_defect(hTmp, fTmp))
@@ -567,6 +572,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 							<< pcl::GetProcRank() << ".\n");
 		return false;
 	}
+
+	write_debug(hTmp, "SCI_hTmp_2a");
+
 	// (b) apply matrix to \f$[h_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
 	if(!m_pMatrix->apply(fTmp, hTmp))
 	{
@@ -576,10 +584,14 @@ apply_return_defect(vector_type& u, vector_type& f)
 		return false;
 	}
 
+	write_debug(fTmp, "SCI_fTmp_2aAfterNeumann");
+
 	// (c) Scale result by -1
 	fTmp *= -1.0;
 	// (d) Set values to zero on I and Delta - excluding Pi
 	m_pFetiLayouts->vec_set_excl_primal(fTmp, 0.0);
+
+	write_debug(fTmp, "SCI_fTmp_2d");
 
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
@@ -595,23 +607,37 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// Assumption: uTmp contains [0, 0, u_{\Pi}]^T
 	vector_type uTmp; uTmp.create(f.size()); // den Hilfsvektor kann man sich vermutlich sparen ...
 	// TODO: uTmp = ...
+	// TODO: handle correctly
+	uTmp.set(0.0);
 
 //	6. Compute (via backward substitution)
 	// \f$\hat{f}_{\{I \Delta\}}\f$ = *urspruengliches* f_{\{I \Delta\}} - Neumann-Matrix * [0, u_{\Pi}]^T
-	if(!m_pNeumannMatrix->apply(hTmp, uTmp))
+	m_pFetiLayouts->vec_use_inner_communication(hTmp);
+	hTmp.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(uTmp);
+	uTmp.set_storage_type(PST_CONSISTENT);
+	if(!m_NeumannOperator.apply(hTmp, uTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
 						 "Could not apply full matrix (step 6) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
+
+	write_debug(hTmp, "SCI_hTmp_6");
+
 	// war total falsch: m_pFetiLayouts->vec_scale_add_on_dual(fTmp, 1.0, f, -1.0, hTmp);
 	VecScaleAdd(fTmp, 1.0, f, -1, hTmp);
 	m_pFetiLayouts->vec_set_on_primal(fTmp, 0.0);
 
+	write_debug(fTmp, "SCI_fTmp_6");
  
 //	7. Solve for \f$u_{\{I \Delta\}}^{(p)}\f$
-	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // solve with Neumann matrix!
+	m_pFetiLayouts->vec_use_inner_communication(fTmp);
+	fTmp.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(uTmp);
+	uTmp.set_storage_type(PST_CONSISTENT);
+	if(!m_pNeumannSolver->apply_return_defect(uTmp, fTmp)) // solve with Neumann matrix!
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
@@ -619,8 +645,13 @@ apply_return_defect(vector_type& u, vector_type& f)
 		return false;
 	}
 
+	write_debug(uTmp, "SCI_uTmp_7");
+
 //	8. Set values to zero on I and Pi - by excluding Delta
-	m_pFetiLayouts->vec_set_excl_dual(u, 0.0);
+	u.set(0.0);
+	m_pFetiLayouts->vec_scale_append_on_dual(u, uTmp, 1.0);
+
+	write_debug(u, "SCI_u_8");
 
 //	we're done
 	return true;
@@ -630,10 +661,13 @@ template <typename TAlgebra>
 bool SchurComplementInverse<TAlgebra>::
 apply(vector_type& x, const vector_type& b)
 {
-	
+	write_debug(b, "SCI_apply_b");
+
 //	copy defect
 	vector_type d; d.resize(b.size());
 	d = b;
+
+	write_debug(d, "SCI_apply_d");
 
 //	solve on copy of defect
 	return apply_return_defect(x, d);
@@ -844,6 +878,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	reset start value of lagrange multiplier
 	lambda.set(0.0);
 
+//	reset iteration count
+	m_iterCnt = 0;
 
 //	The idea of the Feti solver is to perform a cg-method on the Dual unknowns.
 //	Therefore, the right-hand side has to be adapted, such that f_Dual fits to
@@ -863,6 +899,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_fetiLayouts.vec_use_inner_communication(t);
 	m_fetiLayouts.vec_use_inner_communication(f);
 
+	write_debug(f, "ResiduumF");
+
 //	compute \tilde{f}_{\Delta}
 	if(!compute_tilde_f(t, f))
 	{
@@ -870,17 +908,22 @@ apply_return_defect(vector_type& u, vector_type& f)
 			   "to build tilde f. Aborting.\n"); return false;
 	}
 
+	write_debug(t, "ResiduumTildeF");
+
 // 	Build start residuum:  r = r0 := d - F*lambda.
 //	This is done in three steps.
 
 //	(a) Compute d:= B S_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}
-//		and set r0 = d -- only if lambda^0 = 0!
-	if(!compute_d(r, f))
+//		and set r0 = d (prelimilarly, -F \lambda added later)
+	t.set_storage_type(PST_ADDITIVE);
+	if(!compute_d(r, t))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
 			   "Cannot compute rhs 'd'. Aborting.\n");
 		return false;
 	}
+
+	write_debug(r, "ResiduumD");
 
 // 	(b) Build t = F*lambda (t is additive afterwards)
 	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_F()' ********** \n")
@@ -893,6 +936,14 @@ apply_return_defect(vector_type& u, vector_type& f)
 // (c) Subtract values on \Delta, r0 = r0 - t
 	m_fetiLayouts.vec_scale_append_on_dual(r, t, -1.0);
 
+//	prepare appearance of conv check
+	prepare_conv_check();
+
+	write_debug(r, "Residuum");
+
+//	compute and set start defect
+	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_dual(r));
+
 // 	Precondition the start defect: apply z = M^-1 * r
 	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_M_inverse_with_identity_scaling()' ********** \n")
 	if (!apply_M_inverse_with_identity_scaling(z, r))
@@ -901,12 +952,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 			   "Cannot apply preconditioner. Aborting.\n");
 		return false;
 	}
-
-//	prepare appearance of conv check
-	prepare_conv_check();
-
-//	compute and set start defect
-	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_dual(r));
 
 //	start values
 	number rho, rho_new, beta, alpha, alpha_denominator;
@@ -917,9 +962,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 // 	start rho
 	rho = m_fetiLayouts.vec_prod_on_dual(z, r);
-
-//	reset iteration count
-	m_iterCnt = 0;
 
 // 	Iteration loop
 	while(!m_pConvCheck->iteration_ended())
@@ -1010,17 +1052,18 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 compute_d(vector_type& d, const vector_type& f)
 {
-	//	Help vector
-	vector_type dTmp; dTmp.create(f.size());
-	//	0. Reset values of d, dTmp
-	d.set(0.0); //dTmp.set(0.0);
-	dTmp = d;
-	// not nec. if tmp vector is copied:
-	//dTmp.set_slave_layout(d.get_slave_layout());
-	//dTmp.set_master_layout(d.get_master_layout());
-	//dTmp.set_process_communicator(d.get_process_communicator());
+//	On entry, the vector f is filled with values for the dual unknowns. We make
+//	no assumption on the values in the others (neglected unknowns).
 
-	//  1. Apply SchurComplementInverse to 'f' - TODO: implement 'm_SchurComplementInverse.apply()'!
+//	create a help vector
+	vector_type dTmp; dTmp.create(f.size());
+
+//	0. Reset values of d, dTmp
+	d.set(0.0); dTmp = d;
+
+	write_debug(f, "ComputeD_f");
+
+//  1. Apply SchurComplementInverse to 'f'
 	if(!m_SchurComplementInverse.apply(dTmp, f))
 	{
 		UG_LOG("In 'FETISolver::compute_d': Could not apply Schur"
@@ -1028,12 +1071,16 @@ compute_d(vector_type& d, const vector_type& f)
 		return false;
 	}
 
-	//	2. Apply jump operator to get the final 'd'
+	write_debug(dTmp, "ComputeD_dTmp");
+
+//	2. Apply jump operator to get the final 'd'
 	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
-	//	we're done
+	write_debug(d, "ComputeD_d");
+
+//	we're done
 	return true;
 }
 
