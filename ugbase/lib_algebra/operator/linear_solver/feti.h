@@ -45,156 +45,7 @@ namespace ug{
 #include "lib_algebra/operator/debug_writer.h"
 #include "pcl/pcl.h"
 
-///	algebra blocks are static.
-template <> struct block_traits<int>
-{
-	enum{
-		is_static = 1
-	};
-};
-
-///	Extracts cross points from Delta-Layout
-/**
- * This function extracts the cross points from a "Delta layout" and creates a new "Pi layout"
- * containing only these cross points which on the other hand are eliminated from the "Delta layout"
- * so that both index sets are disjunct.
- *
- * \param[in]		numIDs			number of dof's of actual processor
- * \param[in]		masterLayoutIn	master layout to extract
- * \param[in]		slaveLayoutIn	slave layout to extract
- * \param[in]		ddInfo			domain decomposition info
- * \param[out]		masterLayoutOut	master layout created
- * \param[out]		slaveLayoutOut	slave layout created
- */
-/*DELETE ME!!!
-inline void ExtractCrossPointLayouts(size_t numIDs,
-									 IndexLayout& masterLayoutIn,
-									 IndexLayout& slaveLayoutIn,
-									 pcl::IDomainDecompositionInfo* ddInfoIn,
-									 IndexLayout& masterCPLayoutOut, // CP: "Cross Point"
-									 IndexLayout& slaveCPLayoutOut
-	)
-{
-	int num_pi_dofs = 0;
-	int num_pi_interfaces = 0;
-
-	std::vector<int> vMultiplicity;
-//	generate an id for each entry.
-	vMultiplicity.clear();
-	vMultiplicity.resize(numIDs, -1);
-
-	int localProc   = pcl::GetProcRank();
-	int localSubdom = ddInfoIn->map_proc_id_to_subdomain_id(localProc);
-
-//	Add 1 for all master layouts an index is contained in
-	for(IndexLayout::iterator interface_iter = masterLayoutIn.begin();
-			interface_iter != masterLayoutIn.end(); ++interface_iter)
-	{
-		int targetProc   = masterLayoutIn.proc_id(interface_iter);
-		int targetSubdom = ddInfoIn->map_proc_id_to_subdomain_id(targetProc);
-
-	//	skip interface to own subdomain
-		if(localSubdom == targetSubdom) continue;
-
-	//	get interface
-		IndexLayout::Interface& interface = masterLayoutIn.interface(interface_iter);
-		
-	//	loop over indices
-		for( IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); ++iter)
-		{
-		//  get index
-			const size_t index = interface.get_element(iter);
-
-		//	set value of vector to zero
-			if(vMultiplicity[index] == -1)
-				vMultiplicity[index] = targetSubdom;
-			else if(vMultiplicity[index] != targetSubdom)
-				vMultiplicity[index] = -2;
-		}
-	}
-
-//	copy all ids from master to slave interfaces
-	ComPol_VecCopy<std::vector<int> >	copyPol(&vMultiplicity);
-
-	pcl::ParallelCommunicator<IndexLayout> communicator;
-	communicator.send_data(masterLayoutIn, copyPol);
-	communicator.receive_data(slaveLayoutIn, copyPol);
-	communicator.communicate();
-
-//	Select cross points for all master layouts an index is contained in
-	for(IndexLayout::iterator interface_iter = masterLayoutIn.begin();
-			interface_iter !=  masterLayoutIn.end(); ++interface_iter)
-	{
-	//	get neighbour proc id
-		int targetProc = masterLayoutIn.proc_id(interface_iter);
-
-	//	get interface
-		IndexLayout::Interface& interface = masterLayoutIn.interface(interface_iter);
-
-	//	loop over indices
-		for(IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); )
-		{
-		//  get index
-			const size_t index = interface.get_element(iter);
-
-			if(vMultiplicity[index] == -2)
-			{
-			//	create a cross point interface
-				IndexLayout::Interface& indexInterface = masterCPLayoutOut.interface(targetProc);
-
-				indexInterface.push_back(index);
-				iter = interface.erase(iter);
-				num_pi_dofs++;
-				num_pi_interfaces++;
-			}
-			else
-			{
-				++iter;
-			}
-		}
-	}
-
-//UG_LOG_ALL_PROCS("'ExtractCrossPointLayouts()': Proc " << pcl::GetProcRank() <<  " has " << num_pi_dofs << " in layout 2, contained in " << num_pi_interfaces << " interfaces!\n");
-
-//	Select cross points for all slave layouts an index is contained in
-	for(IndexLayout::iterator interface_iter = slaveLayoutIn.begin();
-			interface_iter !=  slaveLayoutIn.end(); ++interface_iter)
-	{
-	//	get neighbour proc id
-		int targetProc = slaveLayoutIn.proc_id(interface_iter);
-
-	//	get interface
-		IndexLayout::Interface& interface = slaveLayoutIn.interface(interface_iter);
-
-	//	loop over indices
-		for(IndexLayout::Interface::iterator iter = interface.begin();
-				iter != interface.end(); )
-		{
-		//  get index
-			const size_t index = interface.get_element(iter);
-
-			if(vMultiplicity[index] == -2)
-			{
-			//	create a cross point interface
-				IndexLayout::Interface& indexInterface = slaveCPLayoutOut.interface(targetProc);
-
-				indexInterface.push_back(index);
-				iter = interface.erase(iter);
-			}
-			else
-			{
-				++iter;
-			}
-		}
-	}
-	
-	return;
-}
-*/
-
-
+/// Groups all Feti Layouts together and provides useful funktions on those
 template <typename TAlgebra>
 class FetiLayouts
 {
@@ -212,17 +63,20 @@ class FetiLayouts
 		FetiLayouts() : m_pMasterStdLayout(NULL), m_pSlaveStdLayout(NULL) {}
 
 	//	assigns standard layouts, creates the feti layouts
-		void create_layouts(IndexLayout& masterLayout,
-		                    IndexLayout& slaveLayout,
+		void create_layouts(IndexLayout& stdMasterLayout,
+		                    IndexLayout& stdSlaveLayout,
+		                    pcl::ProcessCommunicator& stdProcessCom,
 		                    size_t numIndices,
-		                    pcl::IDomainDecompositionInfo& DDInfo)
+		                    pcl::IDomainDecompositionInfo& DDInfo,
+		                    bool bDebug = false)
 		{
 		//	if no indices, nothing to do
 			if(numIndices == 0) return;
 
 		//	remember std layouts
-			m_pMasterStdLayout = & masterLayout;
-			m_pSlaveStdLayout = &slaveLayout;
+			m_pMasterStdLayout = &stdMasterLayout;
+			m_pSlaveStdLayout = &stdSlaveLayout;
+			m_stdProcessCom = stdProcessCom;
 
 		//	create FETI Layouts:
  // 	\todo: For some documentation info see mail by S. Reiter, 30. Januar 2011 16:10:52 MEZ
@@ -244,9 +98,17 @@ class FetiLayouts
 			}
 
 		//	test output
-			pcl::ParallelCommunicator<IndexLayout> comTmp;
-			PrintLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout);
+			if(bDebug)
+			{
+				pcl::ParallelCommunicator<IndexLayout> comTmp;
+				PrintLayout(comTmp, m_masterInnerLayout, m_slaveInnerLayout);
+			}
 		}
+
+	//	standard layouts
+		IndexLayout& get_std_master_layout() {return *m_pMasterStdLayout;}
+		IndexLayout& get_std_slave_layout() {return *m_pSlaveStdLayout;}
+		pcl::ProcessCommunicator& get_std_process_communicator() {return m_stdProcessCom;}
 
 	//	inner layouts
 		IndexLayout& get_inner_master_layout() {return m_masterInnerLayout;}
@@ -266,6 +128,15 @@ class FetiLayouts
 		IndexLayout& get_primal_slave_layout() {return m_slavePrimalLayout;}
 
 	public:
+
+	//	sets standard communication layouts and communicators
+		void vec_use_std_communication(vector_type& vec)
+		{
+			vec.set_slave_layout(get_std_slave_layout());
+			vec.set_master_layout(get_std_master_layout());
+			vec.set_process_communicator(get_std_process_communicator());
+		}
+
 	//	sets inner communication layouts and communicators
 		void vec_use_inner_communication(vector_type& vec)
 		{
@@ -362,6 +233,7 @@ class FetiLayouts
 	//	Standard Layouts
 		IndexLayout* m_pMasterStdLayout;
 		IndexLayout* m_pSlaveStdLayout;
+		pcl::ProcessCommunicator	m_stdProcessCom;
 
 	//	Layouts and Communicator for Inner variables
 		IndexLayout m_masterInnerLayout;
@@ -801,39 +673,11 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[in]		v				vector \f$v\f$ living on "Delta layout"
 	 * \param[out]		f				result of application of \f$F\f$
 	 */
-		bool apply_F(vector_type& f, const vector_type& v)
-		{
-			//	Help vector
-			vector_type fTmp; fTmp.create(v.size());
-			//	0. Reset values of f, fTmp
-			f.set(0.0); //fTmp.set(0.0);
-			fTmp = f;
-			// not nec. if tmp vector is copied:
-			//fTmp.set_slave_layout(f.get_slave_layout());
-			//fTmp.set_master_layout(f.get_master_layout());
-			//fTmp.set_process_communicator(f.get_process_communicator());
+		bool apply_F(vector_type& f, const vector_type& v);
 
-
-			//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
-			ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
-			                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
-			                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
-
-			//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
-			m_SchurComplementInverse.apply(fTmp, f);
-
-			//	3. Apply jump operator to get the final 'f'
-			ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
-			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
-			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
-
-			//	we're done
-			return true;
-		}
-
-	///	function which computes right hand side vector 'd' of the reduced system ("Delta system")
+	///	function which computes right hand side vector 'd' of the dual unknowns
 	/**
-	 * This function computes \f$d := B_{\Delta} \tilde{S}^{-1} \tilde{f}_{\Delta}\f$
+	 * This function computes \f$d := B_{\Delta} \tilde{S}_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}\f$
 	 * to a vector \f$v\f$. \f$v\f$ can be:
 	 * (a) unknown vector of Lagrange multipliers, lambda, and
 	 * (b) search direction 'p' in cg method.
@@ -841,34 +685,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[in]		f				vector \f$\tilde{f}_{\Delta}\f$
 	 * \param[out]		d				right hand side vector \f$d\f$ of reduced system
 	 */
-		bool compute_d(vector_type& d, const vector_type& f)
-		{
-			//	Help vector
-			vector_type dTmp; dTmp.create(f.size());
-			//	0. Reset values of d, dTmp
-			d.set(0.0); //dTmp.set(0.0);
-			dTmp = d;
-			// not nec. if tmp vector is copied:
-			//dTmp.set_slave_layout(d.get_slave_layout());
-			//dTmp.set_master_layout(d.get_master_layout());
-			//dTmp.set_process_communicator(d.get_process_communicator());
-
-			//  1. Apply SchurComplementInverse to 'f' - TODO: implement 'm_SchurComplementInverse.apply()'!
-			if(!m_SchurComplementInverse.apply(dTmp, f))
-			{
-				UG_LOG("In 'FETISolver::compute_d': Could not apply Schur"
-						" complement inverse.\n");
-				return false;
-			}
-
-			//	2. Apply jump operator to get the final 'd'
-			ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
-			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
-			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
-
-			//	we're done
-			return true;
-		}
+		bool compute_d(vector_type& d, const vector_type& f);
 
 	///	function which computes the adapted right hand side vector '\tilde{f}_{\Delta}' of the reduced system ("Delta system")
 	/**
@@ -879,35 +696,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[in]		f				vector \f$f\f$
 	 * \param[Out]		tildeF			vector \f$\tilde{f}_{\Delta}\f$
 	 */
-		bool compute_tilde_f(vector_type& tildeF, const vector_type& f)
-		{
-			//	Help vector
-			vector_type fTmp; fTmp.create(f.size());
-			fTmp.set_slave_layout(f.get_slave_layout());
-			fTmp.set_master_layout(f.get_master_layout());
-			fTmp.set_process_communicator(f.get_process_communicator());
-
-			// set dirichlet zero values on f_Delta
-			m_fetiLayouts.vec_set_on_dual(fTmp, 0.0);
-
-			//	solve system
-			fTmp.set_storage_type(PST_ADDITIVE);
-			tildeF.set_storage_type(PST_CONSISTENT);
-			if(!m_pDualDirichletSolver->apply_return_defect(tildeF, fTmp))
-			{
-				UG_LOG("In 'FETISolver::compute_tilde_f': Could not apply inverse"
-						" of Dual Dirichlet Matrix.\n");
-				return false;
-			}
-
-			//	build f := f - A*f on dual
-			m_fetiLayouts.vec_scale_add_on_dual(tildeF, 1.0, tildeF, -1.0, f);
-
-			//	we're done
-			return true;
-		}
-
-
+		bool compute_tilde_f(vector_type& tildeF, const vector_type& f);
 
 	///	function which applies diagonal scaling matrix \f$D_{\Delta}^{(i)}\f$ to a vector \f$v\f$
 		bool Apply_ScalingMatrix(vector_type& s, const vector_type& v) // maybe restrict to layout
@@ -928,67 +717,9 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[in]		r				vector \f$r\f$ living on "Delta layout"
 	 * \param[out]		z				result of application of \f$$M^{-1}\f$
 	 */
-		bool apply_M_inverse(vector_type& z, const vector_type& r)
-		{
-			//	Help vector
-			vector_type zTmp; zTmp.create(r.size()); zTmp = z;
+		bool apply_M_inverse(vector_type& z, const vector_type& r);
 
-			//	0. Reset values of z, zTmp
-			z.set(0.0); zTmp.set(0.0);
-
-			//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
-			Apply_ScalingMatrix(z, r); // maybe restrict to layout
-
-			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
-			                                   	   	    m_fetiLayouts.get_dual_slave_layout(),
-			                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
-
-			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
-			m_LocalSchurComplement.apply(z, zTmp);
-
-			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
-			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
-			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
-
-			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
-			Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
-
-			//	we're done
-			return true;
-		}
-
-		bool apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r)
-		{
-			//	Help vector
-			vector_type zTmp; zTmp.create(r.size());
-
-			//	0. Reset values of z, zTmp
-			z.set(0.0); zTmp.set(0.0);
-
-			//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
-			//Apply_ScalingMatrix(z, r); // maybe restrict to layout
-
-			//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-			ComputeDifferenceOnDeltaTransposed(z, r, m_fetiLayouts.get_dual_master_layout(),
-			                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
-			                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
-
-			//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
-			//m_LocalSchurComplement.apply(zTmp, z);
-
-			//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-			ComputeDifferenceOnDelta(z, zTmp, m_fetiLayouts.get_dual_master_layout(),
-			                         	 	  m_fetiLayouts.get_dual_slave_layout(),
-			                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
-
-			//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
-			//Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
-
-			//	we're done
-			return true;
-		}
+		bool apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r);
 
 	//	TODO:
 	// 1. x = lambda; Compute 'd' before calling apply_return_defect()! Note: 'ApplyLinearSolver()' calls 'apply(), not 'apply_return_defect()'!

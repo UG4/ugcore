@@ -649,11 +649,15 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
+	bool debugLayouts = (m_pDebugWriter==NULL) ? false : true;
+
 //	create FETI Layouts
 	m_fetiLayouts.create_layouts(m_pMatrix->get_master_layout(),
 	                             m_pMatrix->get_slave_layout(),
+	                             m_pMatrix->get_process_communicator(),
 	                             m_pMatrix->num_rows(),
-	                             *m_pDDInfo);
+	                             *m_pDDInfo,
+	                             debugLayouts);
 
 //  ----- INIT DIRICHLET SOLVER  ----- //
 
@@ -792,30 +796,22 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	lagrange multiplier
 	vector_type lambda; lambda.create(u.size());
-	lambda.set_slave_layout(u.get_slave_layout());
-	lambda.set_master_layout(u.get_master_layout());
-	lambda.set_process_communicator(u.get_process_communicator());
+	m_fetiLayouts.vec_use_std_communication(lambda);
 
 //	residuum
 	vector_type r; r.create(u.size());
-	r.set_slave_layout(u.get_slave_layout());
-	r.set_master_layout(u.get_master_layout());
-	r.set_process_communicator(u.get_process_communicator());
+	m_fetiLayouts.vec_use_std_communication(r);
 
 //	search direction
 	vector_type p; p.create(u.size());
-	p.set_slave_layout(u.get_slave_layout());
-	p.set_master_layout(u.get_master_layout());
-	p.set_process_communicator(u.get_process_communicator());
+	m_fetiLayouts.vec_use_std_communication(p);
 
 //	preconditioned residuum
 	vector_type z; z.create(u.size());
 
 //	help vector to compute t = F*p
 	vector_type t; t.create(u.size());
-	t.set_slave_layout(u.get_slave_layout());
-	t.set_master_layout(u.get_master_layout());
-	t.set_process_communicator(u.get_process_communicator());
+	m_fetiLayouts.vec_use_std_communication(t);
 
 
 //	reset start value of lagrange multiplier
@@ -841,7 +837,11 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_fetiLayouts.vec_use_inner_communication(f);
 
 //	compute \tilde{f}_{\Delta}
-	if(!compute_tilde_f(t, f)) return false;
+	if(!compute_tilde_f(t, f))
+	{
+		UG_LOG("ERROR in 'FETISolver::apply': Unable "
+			   "to build tilde f. Aborting.\n"); return false;
+	}
 
 // 	Build start residuum:  r = r0 := d - F*lambda.
 //	This is done in three steps.
@@ -946,6 +946,166 @@ apply_return_defect(vector_type& u, vector_type& f)
 	return m_pConvCheck->post();
 } /* end 'FETISolver::apply_return_defect()' */
 
+template <typename TAlgebra>
+bool FETISolver<TAlgebra>::
+apply_F(vector_type& f, const vector_type& v)
+{
+	//	Help vector
+	vector_type fTmp; fTmp.create(v.size());
+	//	0. Reset values of f, fTmp
+	f.set(0.0); //fTmp.set(0.0);
+	fTmp = f;
+	// not nec. if tmp vector is copied:
+	//fTmp.set_slave_layout(f.get_slave_layout());
+	//fTmp.set_master_layout(f.get_master_layout());
+	//fTmp.set_process_communicator(f.get_process_communicator());
+
+
+	//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
+	ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
+	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
+	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
+	m_SchurComplementInverse.apply(fTmp, f);
+
+	//	3. Apply jump operator to get the final 'f'
+	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
+	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	//	we're done
+	return true;
+}
+
+
+template <typename TAlgebra>
+bool FETISolver<TAlgebra>::
+compute_d(vector_type& d, const vector_type& f)
+{
+	//	Help vector
+	vector_type dTmp; dTmp.create(f.size());
+	//	0. Reset values of d, dTmp
+	d.set(0.0); //dTmp.set(0.0);
+	dTmp = d;
+	// not nec. if tmp vector is copied:
+	//dTmp.set_slave_layout(d.get_slave_layout());
+	//dTmp.set_master_layout(d.get_master_layout());
+	//dTmp.set_process_communicator(d.get_process_communicator());
+
+	//  1. Apply SchurComplementInverse to 'f' - TODO: implement 'm_SchurComplementInverse.apply()'!
+	if(!m_SchurComplementInverse.apply(dTmp, f))
+	{
+		UG_LOG("In 'FETISolver::compute_d': Could not apply Schur"
+				" complement inverse.\n");
+		return false;
+	}
+
+	//	2. Apply jump operator to get the final 'd'
+	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
+	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	//	we're done
+	return true;
+}
+
+template <typename TAlgebra>
+bool FETISolver<TAlgebra>::
+compute_tilde_f(vector_type& tildeF, const vector_type& f)
+{
+	//	Help vector
+	vector_type fTmp; fTmp.create(f.size());
+	fTmp.set_slave_layout(f.get_slave_layout());
+	fTmp.set_master_layout(f.get_master_layout());
+	fTmp.set_process_communicator(f.get_process_communicator());
+
+	// set dirichlet zero values on f_Delta
+	m_fetiLayouts.vec_set_on_dual(fTmp, 0.0);
+
+	//	solve system
+	fTmp.set_storage_type(PST_ADDITIVE);
+	tildeF.set_storage_type(PST_CONSISTENT);
+	if(!m_pDualDirichletSolver->apply_return_defect(tildeF, fTmp))
+	{
+		UG_LOG("In 'FETISolver::compute_tilde_f': Could not apply inverse"
+				" of Dual Dirichlet Matrix.\n");
+		return false;
+	}
+
+	//	build f := f - A*f on dual
+	m_fetiLayouts.vec_scale_add_on_dual(tildeF, 1.0, tildeF, -1.0, f);
+
+	//	we're done
+	return true;
+}
+
+template <typename TAlgebra>
+bool FETISolver<TAlgebra>::
+apply_M_inverse(vector_type& z, const vector_type& r)
+{
+	//	Help vector
+	vector_type zTmp; zTmp.create(r.size()); zTmp = z;
+
+	//	0. Reset values of z, zTmp
+	z.set(0.0); zTmp.set(0.0);
+
+	//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
+	Apply_ScalingMatrix(z, r); // maybe restrict to layout
+
+	//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
+	ComputeDifferenceOnDeltaTransposed(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
+	                                   	   	    m_fetiLayouts.get_dual_slave_layout(),
+	                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
+	m_LocalSchurComplement.apply(z, zTmp);
+
+	//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
+	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
+	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
+	Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
+
+	//	we're done
+	return true;
+}
+
+
+template <typename TAlgebra>
+bool FETISolver<TAlgebra>::
+apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r)
+{
+	//	Help vector
+	vector_type zTmp; zTmp.create(r.size());
+
+	//	0. Reset values of z, zTmp
+	z.set(0.0); zTmp.set(0.0);
+
+	//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
+	//Apply_ScalingMatrix(z, r); // maybe restrict to layout
+
+	//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
+	ComputeDifferenceOnDeltaTransposed(z, r, m_fetiLayouts.get_dual_master_layout(),
+	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
+	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
+	//m_LocalSchurComplement.apply(zTmp, z);
+
+	//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
+	ComputeDifferenceOnDelta(z, zTmp, m_fetiLayouts.get_dual_master_layout(),
+	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
+	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
+	//Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
+
+	//	we're done
+	return true;
+}
 
 ////////////////////////////////////////////////////////////////////////
 //	template instantiations for all current algebra types.
