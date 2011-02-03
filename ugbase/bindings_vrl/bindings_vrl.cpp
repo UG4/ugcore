@@ -272,6 +272,12 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 				<< std::endl);
 	}
 
+	// print groovy code
+//	for(unsigned int i = 0; i < cResult.size();i++) {
+//		std::cout << "\n\n***********************************************\n\n";
+//		std::cout << cResult[i];
+//	}
+
 	return jResult;
 }
 

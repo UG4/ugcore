@@ -88,7 +88,7 @@ std::vector<std::string> stringArrayJ2C(
 void generateMethodHeader(
 		std::stringstream& result,
 		ug::bridge::ExportedFunctionBase const& method,
-		bool isFunction, std::string prefix) {
+		bool isFunction, bool isVisual, std::string prefix) {
 
 	std::stringstream methodHeaderParams;
 	std::stringstream paramArrayForInvokation;
@@ -118,7 +118,7 @@ void generateMethodHeader(
 		paramArrayForInvokation << " p" << i;
 	}
 
-	if (!isFunction) {
+	if (!isFunction && isVisual) {
 		// we always need the visual id to get a reference to the
 		// visualization that invokes this method,
 		// that is why we add a visual id request to the param list
@@ -156,10 +156,14 @@ void generateMethodHeader(
 
 	// generate method info including return value info
 	// (equivalent to param info)
-	result << createMethodInfo(
-			className.c_str(),
-			classNames,
-			readOnly, method.options()) << "\n";
+	if (isVisual) {
+		result << createMethodInfo(
+				className.c_str(),
+				classNames,
+				readOnly, method.options()) << "\n";
+	} else {
+		result << "@MethodInfo(noGUI=true)\n";
+	}
 
 	// putting it all together
 	result << "public " << outType << " " << prefix << name << " ("
@@ -171,7 +175,7 @@ void generateMethodHeader(
 	// call the updatePointer method. Its purpose is to visually invoke
 	// the setPointer() and getPointer() method before this method is
 	// invoked. Otherwise we might operate on wrong instance
-	if (!isFunction) {
+	if (!isFunction && isVisual) {
 		result << "updatePointer(id);\n";
 	}
 
@@ -190,17 +194,17 @@ std::string exportedFunction2Groovy(
 	// function shall be added to
 	result << "@ComponentInfo(name=\"" << func.name()
 			<< "\", category=\"" << group << "\", allowRemoval=false)\n"
-			<< "public class UG4_" << func.name()
+			<< "public class F" << func.name()
 			<< " implements Serializable {\n"
 			<< "private static final long serialVersionUID=1L;\n";
 
-	// function generation
+	// visual function generation
 	generateMethodHeader(
-			result, func, true);
+			result, func, true, true);
 	result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction( \""
 			<< func.name() << "\", false, params)";
 
-	result << "\n}\n}";
+	result << "\n}\n}\n";
 
 	return result.str();
 }
@@ -210,7 +214,18 @@ void generateMethods(std::stringstream& result,
 	for (unsigned int i = 0; i < clazz->num_methods(); i++) {
 		const ug::bridge::ExportedMethod &method = clazz->get_method(i);
 
-		generateMethodHeader(result, method);
+		// non-visual method generation
+		generateMethodHeader(result, method, false, false);
+
+		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+				<< "getClassName(),"
+				<< " getPointer().getAddress(), false, \""
+				<< method.name() << "\", params)";
+
+		result << "\n}\n\n";
+
+		// visual method generation
+		generateMethodHeader(result, method, false, true);
 
 		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 				<< "getClassName(),"
@@ -226,7 +241,18 @@ void generateConstMethods(std::stringstream& result,
 	for (unsigned int i = 0; i < clazz->num_const_methods(); i++) {
 		const ug::bridge::ExportedMethod &method = clazz->get_const_method(i);
 
-		generateMethodHeader(result, method, false, "const_");
+		// non-visual method generation
+		generateMethodHeader(result, method, false, false, "const_");
+
+		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+				<< "getClassName(),"
+				<< " getPointer().getAddress(), true, \""
+				<< method.name() << "\", params)";
+
+		result << "\n}\n\n";
+
+		// visual method generation
+		generateMethodHeader(result, method, false, true, "const_");
 
 		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 				<< "getClassName(),"
@@ -241,7 +267,7 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 		ug::bridge::IExportedClass const& clazz) {
 	std::stringstream result;
 
-	std::string className = "UG4_" + std::string(clazz.name());
+	std::string className = /*"UG4_" + */ std::string(clazz.name());
 	std::string group = clazz.group();
 
 	// create component info that specifies the menu group this
@@ -258,7 +284,7 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 	// gather inheritance information (necessary for type-safety)
 	std::vector<const ug::bridge::IExportedClass*> baseClasses =
 			getParentClasses(reg, &clazz);
-	
+
 	// generate method implementations
 	for (unsigned int i = 0; i < baseClasses.size(); i++) {
 		generateMethods(result, baseClasses[i]);
@@ -368,7 +394,7 @@ std::string createParamInfo(const char* paramName, const char* className,
 		std::string const& additionalParamInfo) {
 
 	std::string customInfo = paramInfo.at(1);
-	
+
 	// add escape layer to simplify syntax
 	std::string customOptions = replaceAll(paramInfo.at(2), "\"", "\\\"");
 

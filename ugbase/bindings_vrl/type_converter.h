@@ -365,12 +365,13 @@ namespace ug {
 		 * @param result string stream to use (appends return value)
 		 * @param method method to generate
 		 * @param isFunction defines whether to generate a function header
+		 * @param isVisual defines whether the method shall be visualized
 		 * @param prefix method prefix (optional)
 		 */
 		void generateMethodHeader(
 				std::stringstream& result,
 				ug::bridge::ExportedFunctionBase const& method,
-				bool isFunction = false, std::string prefix = "");
+				bool isFunction = false, bool isVisual = true, std::string prefix = "");
 
 	} // end vrl::
 }// end ug::
