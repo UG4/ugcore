@@ -14,7 +14,7 @@
 #include "common/log.h"
 #include "common/assert.h"
 #include "common/serialization.h"
-
+#include <iomanip> // for 'std::setw()' etc.
 
 namespace pcl
 {
@@ -28,6 +28,8 @@ namespace pcl
 template<typename TLayout>
 void TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout)
 {
+	//using namespace std;
+
 	// check if connections are double-ended
 	std::vector<char> bMasterToProcess; bMasterToProcess.resize(pcl::GetNumProcesses(), 0x00);
 	std::vector<char> bSlaveToProcess; bSlaveToProcess.resize(pcl::GetNumProcesses(), 0x00);
@@ -59,18 +61,20 @@ void TestLayoutIsDoubleEnded(pcl::ParallelCommunicator<TLayout> &com, TLayout &m
 		ug::Deserialize(*slaveToThisProcessPack.get_stream(i), bSlaveToThisProcess);
 
 		UG_ASSERT(bMasterToThisProcess == bSlaveToProcess[i],
-			"Process " << i << " has " << (bMasterToThisProcess ? "a" : "no") << " master connection to this process (" << pcl::GetProcRank()
-			<< "), but we have " << (bSlaveToProcess[i] ? "a" : "no") << " slave connection to " << i);
+			"Process " << std::setw(4) << i << " has " << (bMasterToThisProcess ? "a" : "no") << " master connection to this process (" << std::setw(4) << pcl::GetProcRank()
+			<< "), but we have " << (bSlaveToProcess[i] ? "a" : "no") << " slave connection to " << std::setw(4) << i);
 		UG_ASSERT(bSlaveToThisProcess == bMasterToProcess[i],
-			"Process " << i << " has " << (bSlaveToThisProcess ? "a" : "no") << " slave connection to this process (" << pcl::GetProcRank()
-			<< "), but we have " << (bMasterToProcess[i] ? "a" : "no") << " master connection to " << i);
+			"Process " << std::setw(4) << i << " has " << (bSlaveToThisProcess ? "a" : "no") << " slave connection to this process (" << pcl::GetProcRank()
+			<< "), but we have " << (bMasterToProcess[i] ? "a" : "no") << " master connection to " << std::setw(4) << i);
 	}
 }
 
-/// if processor P1 has a interface to P2, then then size of the interface P1->P2 has to be the same as the size of interface P2->P1
+/// if processor P1 has a interface to P2, then the size of the interface P1->P2 has to be the same as the size of interface P2->P1
 template<typename TLayout>
 void TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, TLayout &slaveLayout, bool bPrint=false)
 {
+	//using namespace std;
+
 	typedef typename TLayout::Interface Interface;
 	ug::StreamPack sendpack, receivepack;
 	for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter)
@@ -109,12 +113,12 @@ void TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
 			if(stream.can_read_more() == false)
 			{
 				broken =true;
-				if(bPrint) UG_LOG(" " << interface.get_element(iter2) << " <-> BROKEN!\n");
+				if(bPrint) UG_LOG(" " << std::setw(9) << interface.get_element(iter2) << " <-> BROKEN!\n");
 			}
 			else
 			{
 				typename Interface::Element element; Deserialize(stream, element);
-				if(bPrint) UG_LOG(" " << interface.get_element(iter2) << " <-> " << element << "\n");
+				if(bPrint) UG_LOG(" " << std::setw(9) << interface.get_element(iter2) << " <-> " << std::setw(9) << element << "\n");
 			}
 		}
 		while(stream.can_read_more())
@@ -128,7 +132,7 @@ void TestSizeOfInterfacesInLayoutsMatch(pcl::ParallelCommunicator<TLayout> &com,
 		if(broken)
 		{
 			if(!bPrint) break;
-			UG_LOG("Interface from processor " << pcl::GetProcRank() << " to processor " << pid << " is BROKEN!\n");
+			UG_LOG("Interface from processor " << std::setw(4) << pcl::GetProcRank() << " to processor " << std::setw(4) << pid << " is BROKEN!\n");
 			layout_broken=true;
 		}
 	}
@@ -149,16 +153,17 @@ void TestLayout(pcl::ParallelCommunicator<TLayout> &com, TLayout &masterLayout, 
 {
 	TestLayoutIsDoubleEnded(com, masterLayout, slaveLayout);
 
+	//using namespace std;
 
 	if(bPrint)
 	{
 		UG_LOG("MasterLayout is to processes ");
 		for(typename TLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)	{
-			UG_LOG(masterLayout.proc_id(iter) << " ");
+			UG_LOG(" " << std::setw(4) << masterLayout.proc_id(iter) << " ");
 		}
 		UG_LOG("\nSlave Layout is to processes ");
 		for(typename TLayout::iterator iter = slaveLayout.begin(); iter != slaveLayout.end(); ++iter) {
-			UG_LOG(slaveLayout.proc_id(iter) << " ");
+			UG_LOG(" " << std::setw(4) << slaveLayout.proc_id(iter) << " ");
 		}
 		UG_LOG("\n");
 	}
