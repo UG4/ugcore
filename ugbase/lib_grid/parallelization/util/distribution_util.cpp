@@ -444,4 +444,35 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 //	done. Please note that no attachments have been serialized in this method.
 }
 
+//todo: copy implementation to ..._impl.hpp
+template <class TDistLayout>
+bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts)
+{
+//	first check whether corresponding interfaces exist
+	typedef typename TDistLayout::InterfaceMap 	InterfaceMap;
+	typedef typename TDistLayout::Interface		Interface;
+
+	for(size_t curProcID = 0; curProcID != distLayouts.size(); ++curProcID){
+		TDistLayout& curLayout = distLayouts[curProcID];
+
+		for(size_t lvl = 0; lvl < curLayout.num_levels(); ++lvl){
+			InterfaceMap& curMap = curLayout.interface_map(lvl);
+			for(typename InterfaceMap::iterator mapIter = curMap.begin();
+				mapIter != curMap.end(); ++mapIter)
+			{
+				int conProcID = mapIter->first;
+				Interface& curInterface = mapIter->second;
+			}
+		}
+	}
+
+	return true;
+}
+
+
+template bool TestDistributionLayouts<DistributionVertexLayout>(std::vector<DistributionVertexLayout>&);
+template bool TestDistributionLayouts<DistributionEdgeLayout>(std::vector<DistributionEdgeLayout>&);
+template bool TestDistributionLayouts<DistributionFaceLayout>(std::vector<DistributionFaceLayout>&);
+template bool TestDistributionLayouts<DistributionVolumeLayout>(std::vector<DistributionVolumeLayout>&);
+
 }//	end of namespace

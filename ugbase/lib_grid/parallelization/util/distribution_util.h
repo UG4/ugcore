@@ -242,6 +242,10 @@ void SelectNodesInLayout(TSelector& sel, TDistributionLayout& layout)
 		sel.select(nodes[i]);
 }
 
+///	checks whether the interconnections between the layouts are consistent.
+template <class TDistLayout>
+bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts);
+
 /// @}
 }//	end of namespace
 

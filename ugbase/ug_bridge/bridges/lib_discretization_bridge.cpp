@@ -120,6 +120,15 @@ void BuildDomainDecompositionLayoutsTest(grid_function_type& func,
 	LogIndexLayout(crossPointSlaves);
 
 }
+
+template <class grid_function_type>
+void TestGridFunctionLayout(grid_function_type& func)
+{
+	pcl::ParallelCommunicator<IndexLayout> com;
+	pcl::TestLayout(com, func.get_master_layout(),
+					func.get_slave_layout(), true);
+}
+
 #endif
 
 template <typename TRefElem, int p>
@@ -466,6 +475,10 @@ bool DistributeDomain(TDomain& domainOut)
 	FuncAdjustGrid funcAdjustGrid = AdjustGrid_AutoAssignSubsetsAndRefine(0,1,0);
 	FuncPartitionGrid funcPartitionGrid = PartitionGrid_Bisection;
 
+//	perform distribution
+	AdjustAndDistributeGrid(distGridMgrOut, sh, mg, sh, numProcs, true,
+							funcAdjustGrid, funcPartitionGrid);
+/*
 //	process 0 loads and distributes the grid. The others receive it.
 	if(pcl::GetProcRank() == 0)
 	{
@@ -530,6 +543,10 @@ bool DistributeDomain(TDomain& domainOut)
 		}
 	}
 
+
+//	tell the distGridMgr that the associated layout changed.
+	distGridMgrOut.grid_layouts_changed(true);
+*/
 	if(tmpPosAttachment)
 	{
 	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
@@ -539,8 +556,6 @@ bool DistributeDomain(TDomain& domainOut)
        UG_LOG("DistributeDomain: removing temporary Position Attachment.\n");
  	}
 
-//	tell the distGridMgr that the associated layout changed.
-	distGridMgrOut.grid_layouts_changed(true);
 #endif
 
 //	in serial case: do nothing
@@ -1340,6 +1355,15 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 
 			reg.add_function(ss.str().c_str(),
 							&BuildDomainDecompositionLayoutsTest<function_type>);
+		}
+
+	//	todo: only temporary
+		{
+			std::stringstream ss; ss << "TestGridFunctionLayout"
+								<< dim << "d";
+
+			reg.add_function(ss.str().c_str(),
+							&TestGridFunctionLayout<function_type>);
 		}
 #endif
 

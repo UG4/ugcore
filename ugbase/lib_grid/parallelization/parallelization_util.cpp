@@ -230,8 +230,157 @@ bool LoadAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
+						    ISubsetHandler& shOut,
+							MultiGrid& srcGrid,
+							ISubsetHandler& srcSh,
+							int numProcs,
+							bool keepSrcGrid,
+							FuncAdjustGrid funcAdjustGrid,
+							FuncPartitionGrid funcPartitionGrid,
+							int rootProc)
+{
 
-///	assigns unassigned elements to subsets suitable for discretization.
+	UG_ASSERT(dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid()),
+				"Error during LoadAndDistributeGrid: DistributedGridManager has to operate "
+				"on a MultiGrid in the current implementation.");
 
+	MultiGrid& mgOut = *dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid());
+	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
+
+	if(keepSrcGrid){
+		if(&srcGrid != &mgOut){
+			throw(UGError("if keepSrcGrid is enabled, srcGrid and the grid in distGridMgrOut have to be identical instances."));
+		}
+	}
+	else{
+		if(&srcGrid == &mgOut){
+			throw(UGError("if keepSrcGrid is disabled, srcGrid and the grid in distGridMgrOut have to be different instances."));
+		}
+	}
+
+	if(shOut.get_assigned_grid() != &mgOut){
+		throw(UGError("shOut has to operate on the grid in distGridMgrOut."));
+	}
+
+//	make sure that each grid has a position attachment - even if no data
+//	will be received.
+	if(!mgOut.has_vertex_attachment(aPosition))
+		mgOut.attach_to_vertices(aPosition);
+
+//	process 0 adjusts and distributes the grid. The others receive it.
+	if(pcl::GetProcRank() == rootProc)
+	{
+	//	adjust and distribute the grid
+		{
+		//	adjust the grid
+			funcAdjustGrid(srcGrid, srcSh);
+
+			LOG("  performing load balancing\n");
+
+		//	perform load-balancing
+		//TODO: if grid partitioning fails, the whole process should be aborted.
+		//		this has to be communicated to the other processes.
+			SubsetHandler shPartition(srcGrid);
+			if(!funcPartitionGrid(shPartition, srcGrid, srcSh, numProcs)){
+				UG_LOG("  grid partitioning failed. proceeding anyway...\n");
+			}
+
+		//	get min and max num elements
+			int maxElems = 0;
+			int minElems = 0;
+			if(srcGrid.num<Volume>() > 0){
+				minElems = srcGrid.num<Volume>();
+				for(int i = 0; i < shPartition.num_subsets(); ++i){
+					minElems = min(minElems, (int)shPartition.num<Volume>(i));
+					maxElems = max(maxElems, (int)shPartition.num<Volume>(i));
+				}
+			}
+			else if(srcGrid.num<Face>() > 0){
+				minElems = srcGrid.num<Face>();
+				for(int i = 0; i < shPartition.num_subsets(); ++i){
+					minElems = min(minElems, (int)shPartition.num<Face>(i));
+					maxElems = max(maxElems, (int)shPartition.num<Face>(i));
+				}
+			}
+
+            LOG("  Element Distribution - min: " << minElems << ", max: " << maxElems << endl);
+
+			const char* partitionMapFileName = "partitionMap.ugx";
+			LOG("saving partition map to " << partitionMapFileName << endl);
+			SaveGridToFile(srcGrid, partitionMapFileName, shPartition);
+
+			//	distribute the grid.
+			LOG("  distributing grid... ");
+			bool bSuccess = false;
+			if(keepSrcGrid)
+				bSuccess = DistributeGrid_KeepSrcGrid(mgOut, shOut, glmOut, shPartition, rootProc);
+			else
+				bSuccess = DistributeGrid(srcGrid, srcSh, shPartition, rootProc,
+										   &mgOut, &shOut, &glmOut);
+			if(!bSuccess)
+			{
+				UG_LOG("failed!\n");
+			}
+			else{
+				UG_LOG("done\n");
+			}
+		}
+	}
+	else
+	{
+	//	a grid will only be received, if the process-rank is smaller than numProcs
+		if(pcl::GetProcRank() < numProcs){
+			if(!ReceiveGrid(mgOut, shOut, glmOut, rootProc, keepSrcGrid)){
+				UG_LOG("  ReceiveGrid failed on process " << pcl::GetProcRank() <<
+				". Aborting...\n");
+				return false;
+			}
+		}
+	}
+
+//	tell the distGridMgr that the associated layout changed.
+	distGridMgrOut.grid_layouts_changed(true);
+/*
+//	check the interfaces
+	pcl::ParallelCommunicator<VertexLayout::LevelLayout> com;
+
+	UG_LOG("\nTesting horizontal layouts...\n");
+	{
+		VertexLayout& masterLayout = glmOut.get_layout<VertexBase>(INT_MASTER);
+		VertexLayout& slaveLayout = glmOut.get_layout<VertexBase>(INT_SLAVE);
+		for(size_t i = 0; i < mgOut.num_levels(); ++i){
+			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			pcl::TestLayout(com, masterLayout.layout_on_level(i),
+					slaveLayout.layout_on_level(i), true);
+		}
+	}
+
+	UG_LOG("\nTesting vertical layouts...\n");
+	{
+		VertexLayout& masterLayout = glmOut.get_layout<VertexBase>(INT_VERTICAL_MASTER);
+		VertexLayout& slaveLayout = glmOut.get_layout<VertexBase>(INT_VERTICAL_SLAVE);
+		for(size_t i = 0; i < mgOut.num_levels(); ++i){
+			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			pcl::TestLayout(com, masterLayout.layout_on_level(i),
+					slaveLayout.layout_on_level(i), true);
+		}
+	}
+
+	UG_LOG("\nTesting virtual layouts...\n");
+	{
+		VertexLayout& masterLayout = glmOut.get_layout<VertexBase>(INT_VIRTUAL_MASTER);
+		VertexLayout& slaveLayout = glmOut.get_layout<VertexBase>(INT_VIRTUAL_SLAVE);
+		for(size_t i = 0; i < mgOut.num_levels(); ++i){
+			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			pcl::TestLayout(com, masterLayout.layout_on_level(i),
+					slaveLayout.layout_on_level(i), true);
+		}
+	}
+*/
+	return true;
+}
 }//	end of namespace
 
