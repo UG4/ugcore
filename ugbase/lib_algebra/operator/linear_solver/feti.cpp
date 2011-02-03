@@ -14,6 +14,16 @@
 #include <cmath>
 
 namespace ug{
+//	used to inform root over primal connections.
+template <class TValue>
+struct PrimalConnection{
+	PrimalConnection() {}
+	PrimalConnection(int i1, int i2, TValue val) :
+		ind1(i1), ind2(i2), value(val) {}
+	int ind1;
+	int ind2;
+	TValue value;
+};
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -337,10 +347,6 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	localFetiBlockComm.allgatherv(vPrimalRootIDs, vlocalPrimalRootIDs,
 								 &vPrimalQuantities);
 
-//	todo: communicate newMasterIDs to all feti-block processes.
-//		-> primalRootIDs (holds all root ids of primal variables of this
-//		feti process.
-
 
 //	log num primal quantities
 	UG_LOG("primal root ids: ");
@@ -368,12 +374,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	}
 
 //	\todo: Compute matrix
-
-	struct PrimalConnection{
-		int ind1;
-		int ind2;
-		number value;
-	};
+//	processes will collect their local primal connections here.
+	typedef PrimalConnection<typename vector_type::value_type> PrimalConnection;
+	vector<PrimalConnection> localPrimalConnections;
 
 	vector_type e; e.resize(m_pMatrix->num_rows());
 	vector_type e2; e2.resize(m_pMatrix->num_rows());
@@ -423,7 +426,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 		//	(a2) Start with zero iterate (not obligatory)
 			e3.set(0.0);
-
+/*
 		//	(b) Solve dirichlet problem
 			if(!m_pNeumannSolver->apply(e3, e2))
 			{
@@ -432,7 +435,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						" w.r.t. primal unknowns.\n");
 				return false;
 			}
-
+*/
 		// 	4. Apply third matrix
 		//////////////////////////
 
@@ -472,22 +475,28 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 				typename vector_type::value_type& entry = e6[localPrimalIndex];
 
-			//	\todo: compute root id of this primal unknown
-				int primalRootID = rootIDs[localPrimalIndex]; // ???
+				int primalRootID = rootIDs[localPrimalIndex];
 
-				PrimalConnection conn;
-				conn.ind1 = connectedRootID;
-				conn.ind2 = primalRootID;
-				// conn.value = (number) entry; // etwa so ...
-
-				// ... push_back to some std::vector<PrimalConnection> ...
+				localPrimalConnections.push_back(PrimalConnection(connectedRootID,
+															primalRootID, entry));
 			}
-
 		}
 	}
 
-//	ich denke hier sollte man senden... oder verstehe ich da was falsch?
-//	...
+//	all processes send their connections to root
+//todo: This could be improved, so that only processes which contain
+//		a primal node are involved.
+	vector<PrimalConnection> vPrimalConnections;//	only filled on root
+	pcl::ProcessCommunicator commWorld;
+	commWorld.gatherv(vPrimalConnections, localPrimalConnections, m_primalRootProc);
+
+//	log vPrimalConnections
+	UG_LOG("primal connections:\n");
+	for(size_t i = 0; i < vPrimalConnections.size(); ++i){
+		PrimalConnection& pc = vPrimalConnections[i];
+		UG_LOG("  ind1: " << pc.ind1 << "    ind2: " << pc.ind2 << "    value: " << pc.value << endl)
+	}
+	UG_LOG("endl");
 
 //	we're done
 	return true;
