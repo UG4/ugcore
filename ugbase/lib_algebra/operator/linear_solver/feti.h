@@ -262,13 +262,16 @@ class FetiLayouts
  *
  * \param[out]		diff			destination vector for computed differences on "Delta layout"
  * \param[in]		u				vector \f$u_{\Delta}\f$
- * \param[in]		masterLayoutIn	master layout to operate on (caller has to provided a "Delta layout")
- * \param[in]		slaveLayoutIn	slave  layout to operate on (caller has to provided a "Delta layout")
+ * \param[in]		masterLayoutIn	master layout to operate on (caller has to provide a "Delta layout")
+ * \param[in]		slaveLayoutIn	slave  layout to operate on (caller has to provide a "Delta layout")
+ * \param[in]		masterNbrLayoutIn	master layout to operate on (caller has to provide a "Delta Nbr layout")
+ * \param[in]		slaveNbrLayoutIn	slave  layout to operate on (caller has to provide a "Delta Nbr layout")
  */
 template <typename TVector>
 void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
-							  IndexLayout&   masterLayoutIn,
-							  IndexLayout&    slaveLayoutIn,
+							  IndexLayout&    masterLayoutIn,
+							  IndexLayout&     slaveLayoutIn,
+							  IndexLayout& masterNbrLayoutIn)
 							  IndexLayout& slaveNbrLayoutIn)
 {
 	// Reset all values
@@ -282,7 +285,7 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 	VecScaleOnLayout(&diff, -1.0, slaveLayoutIn);
 
 	// ... and copy master values to additional slaves living in "Dual neighbour layout" (communication is performed)
-	VecCopyOnLayout(&diff, masterLayoutIn, slaveNbrLayoutIn);
+	VecCopyOnLayout(&diff, masterNbrLayoutIn, slaveNbrLayoutIn);
 
 	return;
 };
@@ -295,8 +298,8 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
  *
  * \param[out]		lambda			vector of Lagrange multipliers
  * \param[in]		f				vector \f$f_{\Delta}\f$ living on "Delta layout"
- * \param[in]		masterLayoutIn	master layout to operate on (caller has to provided a "Delta layout")
- * \param[in]		slaveLayoutIn	slave  layout to operate on (caller has to provided a "Delta layout")
+ * \param[in]		masterLayoutIn	master layout to operate on (caller has to provide a "Delta layout")
+ * \param[in]		slaveLayoutIn	slave  layout to operate on (caller has to provide a "Delta layout")
  */
 template <typename TVector>
 void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,

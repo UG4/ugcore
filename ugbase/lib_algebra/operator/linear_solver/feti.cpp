@@ -374,12 +374,17 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	typedef PrimalConnection<typename vector_type::value_type> PrimalConnection;
 	vector<PrimalConnection> localPrimalConnections;
 
-	vector_type e; e.resize(m_pMatrix->num_rows());
-	vector_type e2; e2.resize(m_pMatrix->num_rows());
-	vector_type e3; e3.resize(m_pMatrix->num_rows());
-	vector_type e4; e4.resize(m_pMatrix->num_rows());
-	vector_type e5; e5.resize(m_pMatrix->num_rows());
-	vector_type e6; e6.resize(m_pMatrix->num_rows());
+	vector_type e;  e.resize(m_pMatrix->num_rows());
+	// set layouts and communicators for first help vectors (and duplicate this
+	// by copying, instead of setting it over and over again for the other help vectors)
+	m_pFetiLayouts->vec_use_std_communication(e); // TODO: correct communication??
+	e.set(0.0);
+
+	vector_type e2; e2.resize(m_pMatrix->num_rows()); e2 = e;
+	vector_type e3; e3.resize(m_pMatrix->num_rows()); e3 = e;
+	vector_type e4; e4.resize(m_pMatrix->num_rows()); e4 = e;
+	vector_type e5; e5.resize(m_pMatrix->num_rows()); e5 = e;
+	vector_type e6; e6.resize(m_pMatrix->num_rows()); e6 = e;
 
 	size_t primalCounter = 0;
 	for(size_t procInFetiBlock = 0; procInFetiBlock < localFetiBlockComm.size();
@@ -422,7 +427,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 		//	(a2) Start with zero iterate (not obligatory)
 			e3.set(0.0);
-/*
+
 		//	(b) Solve dirichlet problem
 			if(!m_pNeumannSolver->apply(e3, e2))
 			{
@@ -431,7 +436,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						" w.r.t. primal unknowns.\n");
 				return false;
 			}
-*/
+
 		// 	4. Apply third matrix
 		//////////////////////////
 
@@ -598,7 +603,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// TODO: Gather \f$\tilde{f}_{\Pi}\f$!
 
 //	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
-	// TODO: Solve! Hinweis von Andreas: Für das Loesen der Matrix auf root beliebigen Loeser verwenden.
+	// TODO: Solve! Hinweis von Andreas: Fuer das Loesen der Matrix auf root beliebigen Loeser verwenden.
 	// Dazu Objekt von ILinearOperatorInverse von aussen aufsetzen, im Skript z.B. LU (in Zukunft z.B. HLib ...)
 
 //	5. Broadcast \f$u_{\Pi}\f$ to all Procs. \f$u_{\Pi}\f$ is consistently saved.
@@ -1033,6 +1038,7 @@ apply_F(vector_type& f, const vector_type& v)
 	//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
 	ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
+	                                   	   	 m_fetiLayouts.get_dual_nbr_master_layout()
 	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
 	//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
@@ -1193,7 +1199,7 @@ template class FETISolver<CPUBlockAlgebra<3> >;
 
 
 
-/*	TemporŠrer code, der in SchurComplementInverse eingebaut werden muss.
+/*	Temporaerer code, der in SchurComplementInverse eingebaut werden muss.
 struct PrimalConnection{
 	int ind1;
 	int ind2;
