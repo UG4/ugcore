@@ -555,10 +555,6 @@ class SchurComplementInverse
 	//	Feti Layouts
 		FetiLayouts<algebra_type>* m_pFetiLayouts;
 
-	//	vector that holds quantities of primal variables on each process
-	//	of the local feti block.
-		std::vector<int>	m_primalQuantities;
-
 	//	Copy of matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_NeumannOperator;
 

@@ -291,10 +291,12 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	Choose root process, where Schur complement w.r.t. Primal unknowns
 //	is gathered.
-	m_primalRootProc = pcl::GetOutputProcRank();
+	m_primalRootProc = 0;//pcl::GetOutputProcRank();
 
 //	vector to store newly created root ids
-	std::vector<int> rootIDs;//	-1 for all but for primal entries.
+//	please note that rootIDs may only be indexed with the agebra-index
+//	of primal nodes. Content is not defined for other entries.
+	std::vector<int> rootIDs;
 
 //	Build layouts such that all processes can communicated their unknowns
 //	to the primal Root Process
@@ -303,31 +305,52 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						 m_pFetiLayouts->get_primal_master_layout(),
 						 m_pFetiLayouts->get_primal_slave_layout(),
 						 m_allToOneProcessComm, &rootIDs);
+/*
+	UG_LOG("received root ids:");
+	for(size_t i = 0; i < rootIDs.size(); ++i){
+		UG_LOG(rootIDs[i] << " ");
+	}
+	UG_LOG(endl);
+*/
+//	We have to gather the rootIDs and the quantities of primal nodes
+//	on each process of the feti-block in one array.
+//	first we collect all local primal variables in one array
+//	Collect all Primal indices on proc
+	std::vector<IndexLayout::Element> vlocalPrimalIndex;
+	CollectUniqueElements(vlocalPrimalIndex, m_slaveAllToOneLayout);
 
-//	We have to gather the quantities of primal nodes on each process
-//	of the feti-block in one array.
-//todo: collect unique elements (remove below)
-	int numLocalPrimals = m_slaveAllToOneLayout.num_interface_elements();
-	pcl::ProcessCommunicator& localFetiBlockComm = m_pFetiLayouts->get_inner_process_communicator();
-	UG_LOG("num local primals: " << numLocalPrimals << std::endl);
-	m_primalQuantities.resize(localFetiBlockComm.size());
-	localFetiBlockComm.allgather(&numLocalPrimals, 1, PCL_DT_INT,
-							&m_primalQuantities.front(), 1, PCL_DT_INT);
+
+//	now build an array of local primal root ids
+	std::vector<int> vlocalPrimalRootIDs(vlocalPrimalIndex.size());
+	for(size_t i = 0; i < vlocalPrimalIndex.size(); ++i)
+		vlocalPrimalRootIDs[i] = rootIDs[vlocalPrimalIndex[i]];
+
+	pcl::ProcessCommunicator& localFetiBlockComm =
+						m_pFetiLayouts->get_inner_process_communicator();
+
+//	rootIDs of primal variables in the local feti block
+	std::vector<int>	vPrimalQuantities;
+//	vector that holds quantities of primal variables on each process
+//	of the local feti block.
+	std::vector<int> vPrimalRootIDs;
+
+	localFetiBlockComm.allgatherv(vPrimalRootIDs, vlocalPrimalRootIDs,
+								 &vPrimalQuantities);
 
 //	todo: communicate newMasterIDs to all feti-block processes.
 //		-> primalRootIDs (holds all root ids of primal variables of this
 //		feti process.
-	std::vector<int> vPrimalRootIDs;
+
 
 //	log num primal quantities
-	UG_LOG("proc ids: ");
-	for(size_t i = 0; i < m_primalQuantities.size(); ++i){
-		UG_LOG(localFetiBlockComm.get_proc_id(i) << " ");
+	UG_LOG("primal root ids: ");
+	for(size_t i = 0; i < vPrimalRootIDs.size(); ++i){
+		UG_LOG(vPrimalRootIDs[i] << " ");
 	}
 	UG_LOG(std::endl);
 	UG_LOG("primal quantities: ");
-	for(size_t i = 0; i < m_primalQuantities.size(); ++i){
-		UG_LOG(m_primalQuantities[i] << " ");
+	for(size_t i = 0; i < vPrimalQuantities.size(); ++i){
+		UG_LOG(vPrimalQuantities[i] << " ");
 	}
 	UG_LOG(std::endl);
 
@@ -359,16 +382,11 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	vector_type e5; e5.resize(m_pMatrix->num_rows());
 	vector_type e6; e6.resize(m_pMatrix->num_rows());
 
-	std::vector<IndexLayout::Element> vlocalPrimalIndex;
-
-//	Collect all Primal indices on proc
-	CollectUniqueElements(vlocalPrimalIndex, m_slaveAllToOneLayout);
-
 	size_t primalCounter = 0;
 	for(size_t procInFetiBlock = 0; procInFetiBlock < localFetiBlockComm.size();
 			procInFetiBlock++)
 	{
-		for(size_t pqi = 0; pqi < (size_t)m_primalQuantities[procInFetiBlock]; ++pqi)
+		for(size_t pqi = 0; pqi < (size_t)vPrimalQuantities[procInFetiBlock]; ++pqi)
 		{
 		// 	1. Create unity vector
 		//////////////////////////

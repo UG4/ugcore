@@ -14,6 +14,6 @@
 #include "pcl_debug.h"
 #include "pcl_domain_decomposition.h"
 
-#include "pcl_test_layouts.h"
+#include "pcl_layout_tests.h"
 
 #endif

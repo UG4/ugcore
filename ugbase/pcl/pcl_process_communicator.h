@@ -98,6 +98,28 @@ class ProcessCommunicator
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType, int root) const;
 
+	///	gathers variable arrays on one process.
+	/**	The arrays specified in sendBuf will be copied to recBufOut
+	 * on root. recBufOut is thus only important on root. The order
+	 * of the arrays is the same as the order of the sending processes
+	 * in this ProcessCommnicator.
+	 * You can optionally specify an array pSizesOut, which will be
+	 * filled with the size of the array that was received from each
+	 * process (only relevant on root) and an array in which the
+	 * offsets of each array are stored - that means the first index
+	 * of each array - again in the order of processes in this ProcessCommunicator
+	 * (only relevant on root, too).
+	 *
+	 * Note that recBufOut, pSizesOut and pOffsetsOut will be resized as required.
+	 *
+	 * Please note that this method communicates twice.
+	 */
+		template<class TValue>
+		void gatherv(std::vector<TValue>& recBufOut,
+					 std::vector<TValue>& sendBuf, int root,
+					 std::vector<int>* pSizesOut = NULL,
+					 std::vector<int>* pOffsetsOut = NULL);
+
 	///	performs MPI_Allgather on the processes of the communicator.
 	/**	This method synchronises involved processes.
 	 * \param sendBuf starting address of send buffer (choice)
@@ -123,6 +145,27 @@ class ProcessCommunicator
 		void allgatherv(void* sendBuf, int sendCount, DataType sendType,
 						void* recBuf, int* recCounts, int* displs,
 						DataType recType) const;
+
+	///	gathers variable arrays on all processes.
+	/**	The arrays specified in sendBuf will be copied to all processes
+	 * in the ProcessCommunicator. The order of the arrays in recBufOut
+	 * is the same as the order of the sending processes in this
+	 * ProcessCommnicator.
+	 * You can optionally specify an array pSizesOut, which will be
+	 * filled with the size of the array that was received from each
+	 * process and an array in which the offsets of each array are stored -
+	 * that means the first index of each array - again in the order of
+	 * processes in this ProcessCommunicator.
+	 *
+	 * Note that recBufOut, pSizesOut and pOffsetsOut will be resized as required.
+	 *
+	 * Please note that this method communicates twice.
+	 */
+		template<class TValue>
+		void allgatherv(std::vector<TValue>& recBufOut,
+						std::vector<TValue>& sendBuf,
+						std::vector<int>* pSizesOut = NULL,
+						std::vector<int>* pOffsetsOut = NULL);
 
 	///	sends data with the given tag to the specified process.
 	/**	This method waits until the data has been sent.*/
@@ -202,5 +245,8 @@ class ProcessCommunicator
 
 }//	end of namespace pcl
 
+////////////////////////////////
+//	include implementation
+#include "pcl_process_communicator_impl.hpp"
 
 #endif
