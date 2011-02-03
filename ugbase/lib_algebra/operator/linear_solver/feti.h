@@ -1043,7 +1043,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator
-		IMatrixOperator<vector_type,vector_type,matrix_type>* m_A;
+		IMatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
 
 	// 	Parallel Matrix to invert
 		matrix_type* m_pMatrix;

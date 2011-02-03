@@ -619,7 +619,7 @@ apply(vector_type& x, const vector_type& b)
 template <typename TAlgebra>
 FETISolver<TAlgebra>::
 FETISolver() :
-	m_A(NULL),
+	m_pOperator(NULL),
 	m_pMatrix(NULL),
 	m_pDirichletSolver(NULL),
 	m_pNeumannSolver(NULL),
@@ -637,10 +637,10 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	bool bSuccess = true;
 
 //	remember A
-	m_A = &A;
+	m_pOperator = &A;
 
 //	get matrix
-	m_pMatrix = &m_A->get_matrix();
+	m_pMatrix = &m_pOperator->get_matrix();
 
 //	check that DDInfo has been set
 	if(m_pDDInfo == NULL)
@@ -672,7 +672,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
 
 //	set operator in local schur complement
-	m_LocalSchurComplement.set_matrix(*m_A);
+	m_LocalSchurComplement.set_matrix(*m_pOperator);
 
 //	init local Schur complement
 	if(m_LocalSchurComplement.init() != true)
@@ -707,7 +707,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
 
 //	init Schur complement inverse
-	if(m_SchurComplementInverse.init(*m_A) != true)
+	if(m_SchurComplementInverse.init(*m_pOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
 				"complement inverse.\n");
