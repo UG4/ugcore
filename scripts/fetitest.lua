@@ -26,7 +26,7 @@ if dim == 3 then
 end
 
 numPreRefs = 0
-numRefs = 3
+numRefs = 1
 
 --ugargc -> anzahl an ugargvs -- TODO: Check, ob ugshell mit genau (mindestens) 2 Prozessen gestartet wurde!
 if ugargv[1] ~= nil then
@@ -166,7 +166,7 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 numProcs = NumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs/4
+numSubdomains = numProcs -- /4
 
 print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
 
@@ -292,10 +292,10 @@ b = approxSpace:create_surface_function("b", true)
 -- New creation of subdomains and layouts (since 30012011):
 -- test one to many interface creation
 for i=0,NumProcesses()-1 do
-	print("subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
+--	print("subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
 end
 
-BuildDomainDecompositionLayoutsTest2d(u, domainDecompInfo);
+-- BuildDomainDecompositionLayoutsTest2d(u, domainDecompInfo);
 -- OneToManyTests2d(u)
 
 
@@ -318,6 +318,7 @@ SaveVectorForConnectionViewer(b, "Rhs.mat")
 -- debug writer
 dbgWriter = utilCreateGridFunctionDebugWriter(dim)
 dbgWriter:set_reference_grid_function(u)
+dbgWriter:set_vtk_output(false)
 
 -- create algebraic Preconditioner
 jac = Jacobi()
@@ -381,9 +382,9 @@ exactSolver = LU()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(100)
-convCheck:set_minimum_defect(1e-11)
-convCheck:set_reduction(1e-12)
+convCheck:set_maximum_steps(200)
+convCheck:set_minimum_defect(1e-10)
+convCheck:set_reduction(1e-10)
 convCheck:set_verbose_level(false)
 
 -- create Convergence Check
@@ -431,6 +432,7 @@ fetiConvCheck:set_reduction(1e-12)
 
 -- create FETI Solver
 fetiSolver = FETI()
+fetiSolver:set_debug(dbgWriter)
 fetiSolver:set_convergence_check(fetiConvCheck)
 fetiSolver:set_dual_dirichlet_solver(cg3Solver)
 fetiSolver:set_neumann_solver(cgSolver)
