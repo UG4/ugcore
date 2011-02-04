@@ -98,12 +98,12 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	int retVal = ug::UGInit(&argc, &pargv);
 
 
-//	reg.add_class_<TestClass > ("TestClass", "testing")
-//			.add_constructor()
-//			.add_method("svnRevision", &TestClass::getRev)
-//			.add_method("add", &TestClass::add, "result",
-//			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
-//			.add_method("getString", &TestClass::getString);
+	reg.add_class_<TestClass > ("TestClass", "testing")
+			.add_constructor()
+			.add_method("svnRevision", &TestClass::getRev)
+			.add_method("add", &TestClass::add, "result",
+			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
+			.add_method("getString", &TestClass::getString);
 
 	//	Register Standard Interfaces (excluding algebra)
 	//		ug::bridge::RegisterStandardInterfaces(reg);
@@ -310,12 +310,14 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
-//	if (((void*)objPtr) != NULL && ((void*)exportedClsPtr) != NULL) {
-//
-//		ug::bridge::IExportedClass* clazz =
-//				(ug::bridge::IExportedClass*) exportedClsPtr;
-//		clazz->destroy((void*) objPtr);
-//	}
+	std::cout << "DELETING\n";
+
+	if (((void*)objPtr) != NULL && ((void*)exportedClsPtr) != NULL) {
+		ug::bridge::IExportedClass* clazz =
+				(ug::bridge::IExportedClass*) exportedClsPtr;
+		clazz->destroy((void*) objPtr);
+
+	}
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
