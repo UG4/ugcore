@@ -91,7 +91,7 @@ void generateMethodHeader(
 		bool isFunction, bool isVisual, std::string prefix) {
 
 	std::stringstream methodHeaderParams;
-	std::stringstream paramArrayForInvokation;
+	std::stringstream paramArrayForInvocation;
 
 	std::string name = method.name();
 
@@ -105,7 +105,7 @@ void generateMethodHeader(
 	for (unsigned int i = 0; i < numParams; i++) {
 		if (i > 0) {
 			methodHeaderParams << ",\n ";
-			paramArrayForInvokation << ", ";
+			paramArrayForInvocation << ", ";
 		}
 
 		methodHeaderParams << paramType2String(
@@ -115,7 +115,7 @@ void generateMethodHeader(
 				paramStackIn.class_names(i),
 				method.parameter_info_vec(i)) << " p" << i;
 
-		paramArrayForInvokation << " p" << i;
+		paramArrayForInvocation << " p" << i;
 	}
 
 	if (!isFunction && isVisual) {
@@ -124,10 +124,10 @@ void generateMethodHeader(
 		// that is why we add a visual id request to the param list
 		if (numParams > 0) {
 			methodHeaderParams << ", ";
-			paramArrayForInvokation << ", ";
+			paramArrayForInvocation << ", ";
 		}
 		methodHeaderParams << " VisualIDRequest id ";
-		paramArrayForInvokation << " id";
+		paramArrayForInvocation << " id";
 	}
 
 	bool readOnly = false;
@@ -169,7 +169,7 @@ void generateMethodHeader(
 	result << "public " << outType << " " << prefix << name << " ("
 			<< methodHeaderParams.str() << ") {\n"
 			<< "Object[] params = ["
-			<< paramArrayForInvokation.str() << "] \n";
+			<< paramArrayForInvocation.str() << "] \n";
 
 	// If we are not generating a function it is necessary to
 	// call the updatePointer method. Its purpose is to visually invoke
