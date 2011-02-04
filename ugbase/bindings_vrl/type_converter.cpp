@@ -214,15 +214,15 @@ void generateMethods(std::stringstream& result,
 	for (unsigned int i = 0; i < clazz->num_methods(); i++) {
 		const ug::bridge::ExportedMethod &method = clazz->get_method(i);
 
-		// non-visual method generation
-		generateMethodHeader(result, method, false, false);
-
-		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
-				<< "getClassName(),"
-				<< " getPointer().getAddress(), false, \""
-				<< method.name() << "\", params)";
-
-		result << "\n}\n\n";
+//		// non-visual method generation
+//		generateMethodHeader(result, method, false, false);
+//
+//		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+//				<< "getClassName(),"
+//				<< " getPointer().getAddress(), false, \""
+//				<< method.name() << "\", params)";
+//
+//		result << "\n}\n\n";
 
 		// visual method generation
 		generateMethodHeader(result, method, false, true);
