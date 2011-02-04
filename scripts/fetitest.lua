@@ -51,9 +51,11 @@ end
 	
 	function ourRhs2d(x, y, t)
 		local s = 2*math.pi
-		return	s*s*(math.sin(s*x) + math.sin(s*y))
+		--return	s*s*(math.sin(s*x) + math.sin(s*y))
 		--return -2*y
 		--return 0;
+		--return -2*((x*x - 1)+(y*y - 1))
+		return	2*s*s*(math.sin(s*x) * math.sin(s*y))
 	end
 	
 	function ourNeumannBnd2d(x, y, t)
@@ -64,9 +66,11 @@ end
 	
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
-		return true, math.sin(s*x) + math.sin(s*y)
+		--return true, math.sin(s*x) + math.sin(s*y)
 		--return true, x
-		--return true, 2.5
+		--return true, 0
+		--return true, (x*x - 1)*(y*y - 1)
+	 	return true, math.sin(s*x)*math.sin(s*y)
 	end
 
 	function ourDiffTensor3d(x, y, z, t)
