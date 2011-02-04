@@ -191,7 +191,9 @@ apply(vector_type& f, const vector_type& u)
 	}
 
 //	5. Reset all values for I, \Pi
-	m_pFetiLayouts->vec_set_excl_dual(f, 0.0);
+	uTmp = f;
+	f.set(0.0);
+	m_pFetiLayouts->vec_scale_append_on_dual(f, uTmp, 1.0);
 
 //	we're done
 	return true;
@@ -592,9 +594,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 	write_debug(fTmp, "SCI_fTmp_2aAfterNeumann");
 
 	// (c) Scale result by -1
-	fTmp *= -1.0;
 	// (d) Set values to zero on I and Delta - excluding Pi
-	m_pFetiLayouts->vec_set_excl_primal(fTmp, 0.0);
+	hTmp = fTmp;
+	fTmp.set(0.0);
+	m_pFetiLayouts->vec_scale_append_on_primal(fTmp, hTmp, -1);
 
 	write_debug(fTmp, "SCI_fTmp_2d");
 
@@ -651,9 +654,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	write_debug(uTmp, "SCI_uTmp_7");
 
+//	ATTENTION: we skip this here, callers of this method must cancel values
+//				if they need it. Otherwise we could not "backsolve"
 //	8. Set values to zero on I and Pi - by excluding Delta
-	u.set(0.0);
-	m_pFetiLayouts->vec_scale_append_on_dual(u, uTmp, 1.0);
+//	u.set(0.0);
+//	m_pFetiLayouts->vec_scale_append_on_dual(u, uTmp, 1.0);
+	u = uTmp;
 
 	write_debug(u, "SCI_u_8");
 
@@ -812,8 +818,8 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 
 //	make diagonal of matrix consistent on Pi
 	MatAdditiveToConsistentOnDiag<algebra_type>(m_pDualDirichletMatrix,
-	                                            m_fetiLayouts.get_dual_master_layout(),
-	                                            m_fetiLayouts.get_dual_slave_layout());
+	                                            m_fetiLayouts.get_primal_master_layout(),
+	                                            m_fetiLayouts.get_primal_slave_layout());
 
 //	init sequential solver for Dirichlet problem
 	if(m_pDualDirichletSolver != NULL)
@@ -823,6 +829,15 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 					"Dual Dirichlet Solver for Operator A.\n");
 			return false;
 		}
+
+//	Debug output of matrices
+	if(m_pDebugWriter != NULL)
+	{
+		m_pDebugWriter->write_matrix(m_DualDirichletOperator.get_matrix(),
+									 "FetiDualDirichletMatrix");
+
+	}
+
 
 //	we're done
 	return true;
@@ -878,6 +893,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 	vector_type t; t.create(u.size());
 	m_fetiLayouts.vec_use_std_communication(t);
 
+//	help vector to compute \tilde{f}_\Delta
+	vector_type tildeF; tildeF.create(u.size());
+	m_fetiLayouts.vec_use_std_communication(tildeF);
+
 
 //	reset start value of lagrange multiplier
 	lambda.set(0.0);
@@ -900,27 +919,27 @@ apply_return_defect(vector_type& u, vector_type& f)
 	                     	 m_fetiLayouts.get_primal_slave_layout());
 
 //	set inner layouts
-	m_fetiLayouts.vec_use_inner_communication(t);
+	m_fetiLayouts.vec_use_inner_communication(tildeF);
 	m_fetiLayouts.vec_use_inner_communication(f);
 
 	write_debug(f, "ResiduumF");
 
 //	compute \tilde{f}_{\Delta}
-	if(!compute_tilde_f(t, f))
+	if(!compute_tilde_f(tildeF, f))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': Unable "
 			   "to build tilde f. Aborting.\n"); return false;
 	}
 
-	write_debug(t, "ResiduumTildeF");
+	write_debug(tildeF, "ResiduumTildeF");
 
 // 	Build start residuum:  r = r0 := d - F*lambda.
 //	This is done in three steps.
 
 //	(a) Compute d:= B S_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}
 //		and set r0 = d (prelimilarly, -F \lambda added later)
-	t.set_storage_type(PST_ADDITIVE);
-	if(!compute_d(r, t))
+	tildeF.set_storage_type(PST_ADDITIVE);
+	if(!compute_d(r, tildeF))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
 			   "Cannot compute rhs 'd'. Aborting.\n");
@@ -1022,6 +1041,33 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 3. Make sure that all parts of the solution (\f$u_{I}, u_{\Delta}, $u_{\Pi}\f$)
 	//    is assembled into the global solution vector
 
+
+	//	"back solve" (cf. A. Toselli, O. Widlund: "Domain Decomposition Methods -
+	//	Algorithms and Theory", cap. 6.4, p.164, l. 2) (03022011av)
+
+//	reset t = 0.0
+	t.set(0.0);
+
+// compute t = B^T * lambda
+	ComputeDifferenceOnDeltaTransposed(t, lambda,
+	                                   m_fetiLayouts.get_dual_master_layout(),
+	                                   m_fetiLayouts.get_dual_slave_layout(),
+	                                   m_fetiLayouts.get_dual_nbr_slave_layout());
+
+//	compute t = tilde{f} - B * lambda
+	m_fetiLayouts.vec_scale_add_on_dual(t, 1.0, tildeF, -1.0, t);
+
+	write_debug(t, "FETI_t_Before_Sol");
+
+//	Solve: A u = (0, 0, t)
+	if(!m_SchurComplementInverse.apply(u, t))
+	{
+		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
+		return false;
+	}
+
+	write_debug(u, "FETI_Sol");
+
 	return m_pConvCheck->post();
 } /* end 'FETISolver::apply_return_defect()' */
 
@@ -1100,29 +1146,45 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 compute_tilde_f(vector_type& tildeF, const vector_type& f)
 {
-	//	Help vector
+//	Help vector
 	vector_type fTmp; fTmp.create(f.size());
-	fTmp.set_slave_layout(f.get_slave_layout());
-	fTmp.set_master_layout(f.get_master_layout());
-	fTmp.set_process_communicator(f.get_process_communicator());
+	vector_type hTmp; hTmp.create(f.size());
+	fTmp = f;
 
-	// set dirichlet zero values on f_Delta
+	write_debug(fTmp, "ComputeTilde_fTmp");
+
+//  set dirichlet zero values on f_Delta
 	m_fetiLayouts.vec_set_on_dual(fTmp, 0.0);
 
-	//	solve system
+//	solve system A_{I \PI}
 	fTmp.set_storage_type(PST_ADDITIVE);
-	tildeF.set_storage_type(PST_CONSISTENT);
-	if(!m_pDualDirichletSolver->apply_return_defect(tildeF, fTmp))
+	hTmp.set_storage_type(PST_CONSISTENT);
+	m_fetiLayouts.vec_use_inner_communication(hTmp);
+	m_fetiLayouts.vec_use_inner_communication(fTmp);
+	if(!m_pDualDirichletSolver->apply_return_defect(hTmp, fTmp))
 	{
 		UG_LOG("In 'FETISolver::compute_tilde_f': Could not apply inverse"
 				" of Dual Dirichlet Matrix.\n");
 		return false;
 	}
 
-	//	build f := f - A*f on dual
-	m_fetiLayouts.vec_scale_add_on_dual(tildeF, 1.0, tildeF, -1.0, f);
+	write_debug(hTmp, "ComputeTilde_hTmp");
 
-	//	we're done
+//	multiply by A{\Delta {I \Pi}}
+	if(!m_pOperator->apply(fTmp, hTmp))
+	{
+		UG_LOG("In 'FETISolver::compute_tilde_f': Could not apply Matrix.\n");
+		return false;
+	}
+
+	write_debug(fTmp, "ComputeTilde_fTmpEnd");
+
+//	build f := f - A*A^{-1}*f on dual
+	m_fetiLayouts.vec_scale_add_on_dual(tildeF, 1.0, f, -1.0, fTmp);
+
+	write_debug(tildeF, "ComputeTilde_tildeF");
+
+//	we're done
 	return true;
 }
 

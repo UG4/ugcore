@@ -187,10 +187,23 @@ class FetiLayouts
 			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterDualLayout);
 		}
 
+		void vec_scale_append_on_primal(vector_type& vecInOut,
+		                              const vector_type& vecSrc1, number alpha1)
+		{
+			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slavePrimalLayout);
+			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterPrimalLayout);
+		}
+
 		void vec_set_on_dual(vector_type& vecSrc, number alpha)
 		{
 			VecSetOnLayout(&vecSrc, alpha, m_slaveDualLayout);
 			VecSetOnLayout(&vecSrc, alpha, m_masterDualLayout);
+		}
+
+		void vec_set_on_primal(vector_type& vecSrc, number alpha)
+		{
+			VecSetOnLayout(&vecSrc, alpha, m_slavePrimalLayout);
+			VecSetOnLayout(&vecSrc, alpha, m_masterPrimalLayout);
 		}
 
 		number vec_prod_on_dual(const vector_type& vecSrc1, const vector_type& vecSrc2)
@@ -208,24 +221,6 @@ class FetiLayouts
 
 		//	return result
 			return prod;
-		}
-
-		void vec_set_on_primal(vector_type& vecSrc, number alpha)
-		{
-			VecSetOnLayout(&vecSrc, alpha, m_slavePrimalLayout);
-			VecSetOnLayout(&vecSrc, alpha, m_masterPrimalLayout);
-		}
-
-		void vec_set_excl_primal(vector_type& vecInOut, number value)
-		{
-			VecSetExcludingLayout(&vecInOut, value, m_slavePrimalLayout);
-			VecSetExcludingLayout(&vecInOut, value, m_masterPrimalLayout);
-		}
-
-		void vec_set_excl_dual(vector_type& vecInOut,number value)
-		{
-			VecSetExcludingLayout(&vecInOut, value, m_slaveDualLayout);
-			VecSetExcludingLayout(&vecInOut, value, m_masterDualLayout);
 		}
 
 	public:
