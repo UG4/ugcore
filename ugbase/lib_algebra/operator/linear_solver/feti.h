@@ -1,27 +1,6 @@
 /* TODO:
- * Solve Schur complement w.r.t. "Pi system"
- * Fuer 'apply_F()' eigene Klasse einfuehren, mit 'apply_sub()' und so? - Laenge von Vector 'lambda'?
  * If finished: Check for unnecessary "set zero" operations!
- * Man koennte, statt einzelner Layout levels, gleich immer den ganzen vector von layouts holen (so alle benoetigten dort drin sind)!
  *
- * Outline of the algorithm (after Klawonn, A., Widlund, O., Dryja, M.:
- * "Dual-Primal FETI methods for three-dimensional elliptic problems with
- * heterogeneous coefficients", SIAM J. Numer. Anal., 40/2002a, 159--179.):
- * 1. eliminate the primal variables associated with the interior nodes,
- *    the vertex nodes designated as primal (as well as the Lagrange multipliers related to the optional constraints - if any)
- *    ==> reduced system with Schur complement \tilde{S} related to the subspace \tilde{W}_{\Delta},
- *        and a reduced right hand side \tilde{f}_{\Delta}
- * 2. Reformulate as a variational problem, with a vector of Lagrange multipliers
- *    ==> saddle point problem
- * 3. Eliminate subvectors u_{\Delta}
- *    ==> system for the dual variables: F \lambda = d
- * 4. Instead of solving ... action of the inverse of the Schur complement can be obtained
- *    by solving the entire linear system from which it originates after augmenting the given right hand side with zeros.
- *    Group all the interior and dual variables of each subdomain together
- *    and factor the resulting blocks in paralle across the subdomains using a good ordering algorithm.
- *
- *    The contributions of the remaining Schur complement, of the primal variables,
- *    can also be computed locally prior to subassembly and factorization of ths final, global part of the linear system of equations.
  */
 /*
  * feti.h
@@ -35,6 +14,35 @@
 
 namespace ug{
 
+/* 
+ * Outline of FETI-DP algorithm (after Klawonn, A., Widlund, O., Dryja, M.:
+ * "Dual-Primal FETI methods for three-dimensional elliptic problems with
+ * heterogeneous coefficients", SIAM J. Numer. Anal., 40/2002a, 159--179.):
+ *
+ * 1. eliminate the primal variables associated with the interior nodes,
+ *    the vertex nodes designated as primal (as well as the Lagrange
+ *    multipliers related to the optional constraints - if any)
+ *    ==> reduced system with Schur complement \tilde{S} related to the subspace
+ *        \tilde{W}_{\Delta}, and a reduced right hand side \tilde{f}_{\Delta}.
+ *        
+ * 2. Reformulate as a variational problem, with a vector of Lagrange multipliers
+ *    ==> saddle point problem.
+ *
+ * 3. Eliminate subvectors u_{\Delta}
+ *    ==> system for the dual variables: F \lambda = d
+ *
+ * 4. Instead of solving ... action of the inverse of the Schur complement can be
+ *    obtained by solving the entire linear system from which it originates after
+ *    augmenting the given right hand side with zeros.
+ *    Group all the interior and dual variables of each subdomain together
+ *    and factor the resulting blocks in paralle across the subdomains using a
+ *     good ordering algorithm.
+ *
+ *    The contributions of the remaining Schur complement, of the primal variables,
+ *    can also be computed locally prior to subassembly and factorization of this
+ *    final, global part of the linear system of equations.
+ */
+
 #ifdef UG_PARALLEL
 
 #include <iostream>
@@ -45,7 +53,11 @@ namespace ug{
 #include "lib_algebra/operator/debug_writer.h"
 #include "pcl/pcl.h"
 
-/// Groups all Feti Layouts together and provides useful funktions on those
+/// Auxiliary class for handling of "FETI layouts"
+/**
+ * This class groups all layouts used in FETI method together and provides useful
+ * functions on those.
+ */
 template <typename TAlgebra>
 class FetiLayouts
 {
@@ -594,12 +606,6 @@ class SchurComplementInverse
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 }; /* end class 'SchurComplementInverse' */
 
-/// TODO:
-// * Use members for delta layouts in LogIndexLayoutOnAllProcs() etc.
-// * members for pi layouts will become pointers if no longer built here by ExtractCrossPointLayouts()!
-
-//*  Preliminary: the actual 'FETISolver' - if not derived from 'CGSolver'!
-// In the moment more or less only stuff copied from 'DirichletDirichletSolver'!
 /// operator implementation of the local Schur complement
 /**
  * This operator implements a FETI-DP solver, see e.g.
@@ -727,12 +733,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		bool apply_M_inverse(vector_type& z, const vector_type& r);
 
 		bool apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r);
-
-	//	TODO:
-	// 1. x = lambda; Compute 'd' before calling apply_return_defect()! Note: 'ApplyLinearSolver()' calls 'apply(), not 'apply_return_defect()'!
-	// 2. With \f$\lambda\f$ found, back solve for \f$u_{\Delta}\f$:
-	//    \f$u_{\Delta} = {\tilde{S}_{\Delta \Delta}}^{-1} ({\tilde{f}_{\Delta}} - B_{\Delta}^T \lambda).\f$
-	// 3. Assemble this and the solutions for \f$u_{I}\f$ and \f$u_{\Pi}\f$ to the global solution vector
 
 	///	solves the reduced system \f$F \lambda = d\f$ with preconditioned cg method
 	///	and returns the last defect of iteration in rhs

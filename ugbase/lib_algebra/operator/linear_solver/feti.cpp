@@ -304,7 +304,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	of primal nodes. Content is not defined for other entries.
 	std::vector<int> rootIDs;
 
-//	Build layouts such that all processes can communicated their unknowns
+//	Build layouts such that all processes can communicate their unknowns
 //	to the primal Root Process
 	int newVecSize = BuildOneToManyLayout(m_masterAllToOneLayout,
 						 m_slaveAllToOneLayout, m_primalRootProc,
@@ -559,7 +559,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_pFetiLayouts->vec_scale_append_on_dual(fTmp, f, 1.0);
 
 //	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
-	write_debug(f, "SCI_f_2aBeforeNeumann");
+	write_debug(f,    "SCI_f_2aBeforeNeumann");
 	write_debug(fTmp, "SCI_fTmp_2aBeforeNeumann");
 	write_debug(hTmp, "SCI_hTmp_2aBeforeNeumann");
 
@@ -631,7 +631,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	write_debug(hTmp, "SCI_hTmp_6");
 
-	// war total falsch: m_pFetiLayouts->vec_scale_add_on_dual(fTmp, 1.0, f, -1.0, hTmp);
 	VecScaleAdd(fTmp, 1.0, f, -1, hTmp);
 	m_pFetiLayouts->vec_set_on_primal(fTmp, 0.0);
 
@@ -755,7 +754,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
 	{
-		UG_LOG("ERROR in FETISolver::init: Some process could not init"
+		UG_LOG("ERROR in FETISolver::init: Some processes could not init"
 				" local Schur complement.\n");
 		return false;
 	}
@@ -858,7 +857,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	Construct some vectors, that are all needed on the Dual unknowns.
 //	These vectors are used exclusively on the Dual unknowns, but for facility we
-//	use storage for a whole vector and only use it Dual entries.
+//	use storage for a whole vector and only use its Dual entries.
 
 //	lagrange multiplier
 	vector_type lambda; lambda.create(u.size());
@@ -890,7 +889,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	Therefore, the right-hand side has to be adapted, such that f_Dual fits to
 //	the Schur complement system on the Dual unknowns. i.e.
 //	\tilde{f}_{\Delta} = f_{\Delta}
-//						 - A_{\Delta \{I \Pi\}} (A_{\{I \Pi\} \{I \Pi\}})^{-1} f_{\{I \Pi\}}
+//					   - A_{\Delta \{I \Pi\}} (A_{\{I \Pi\} \{I \Pi\}})^{-1} f_{\{I \Pi\}}
 //
 //	Please note: To compute this, we have to make the matrix consistent in the
 //				 Primal unknowns. Then, the rhs can be computed on each process
@@ -1017,6 +1016,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 		rho = rho_new;
 	} /* end iteration loop */
 
+	//	TODO:
+	// 2. With \f$\lambda\f$ found, back solve for \f$u_{\Delta}\f$:
+	//    \f$u_{\Delta} = {\tilde{S}_{\Delta \Delta}}^{-1} ({\tilde{f}_{\Delta}} - B_{\Delta}^T \lambda).\f$
+	// 3. Make sure that all parts of the solution (\f$u_{I}, u_{\Delta}, $u_{\Pi}\f$)
+	//    is assembled into the global solution vector
+
 	return m_pConvCheck->post();
 } /* end 'FETISolver::apply_return_defect()' */
 
@@ -1040,7 +1045,7 @@ apply_F(vector_type& f, const vector_type& v)
 	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
-	//  2. Apply SchurComplementInverse to f - TODO: implement 'm_SchurComplementInverse.apply()'!
+	//  2. Apply SchurComplementInverse to f
 	m_SchurComplementInverse.apply(fTmp, f);
 
 	//	3. Apply jump operator to get the final 'f'
