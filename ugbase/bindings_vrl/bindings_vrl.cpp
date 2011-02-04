@@ -63,6 +63,10 @@ public:
 		UG_LOG("Test123" << std::endl);
 		return "Test123";
 	}
+
+	~TestClass() {
+		UG_LOG("Destructor called:" << (long)this << std::endl);
+	}
 };
 
 //*********************************************************
@@ -301,6 +305,15 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getSvnRevision
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
 (JNIEnv *env, jobject obj) {
 	return ug::vrl::stringC2J(env, COMPILE_DATE);
+}
+
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
+  (JNIEnv * env, jclass cls, jlong objPtr) {
+	
+	// TODO provide type info (void* is bad)
+	// void* p = (void*)objPtr;
+    // delete p;
+	UG_LOG("MemoryManager[native]: delete called on pointer " << objPtr << std::endl);
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

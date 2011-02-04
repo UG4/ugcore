@@ -570,14 +570,12 @@ std::string paramType2String(int paramType, const char* paramName,
 		case ug::bridge::PT_POINTER:
 		{
 			if (isOutput) {
-//				return "edu.gcsc.vrl.ug4.Pointer";
-				return std::string("edu.gcsc.ug4.") + std::string(className);
+				return "edu.gcsc.vrl.ug4.Pointer";
 			} else {
 				std::string result =
 						createParamInfo(paramName,
 						className, classNames, false, paramInfo) +
-						std::string("edu.gcsc.ug4.") + std::string(className);
-//						std::string("edu.gcsc.vrl.ug4.Pointer");
+						std::string("edu.gcsc.vrl.ug4.Pointer");
 
 				return result.c_str();
 			}
@@ -585,14 +583,12 @@ std::string paramType2String(int paramType, const char* paramName,
 		case ug::bridge::PT_CONST_POINTER:
 		{
 			if (isOutput) {
-//				return "edu.gcsc.vrl.ug4.Pointer";
-				return std::string("edu.gcsc.ug4.") + std::string(className);
+				return "edu.gcsc.vrl.ug4.Pointer";
 			} else {
 				std::string result =
 						createParamInfo(paramName,
 						className, classNames, true, paramInfo) +
-						std::string("edu.gcsc.ug4.") + std::string(className);
-//						std::string("edu.gcsc.vrl.ug4.Pointer");
+						std::string("edu.gcsc.vrl.ug4.Pointer");
 
 				return result.c_str();
 			}

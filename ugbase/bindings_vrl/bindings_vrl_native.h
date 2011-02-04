@@ -100,3 +100,22 @@ extern "C" {
 }
 #endif
 #endif
+/* Header for class edu_gcsc_vrl_ug4_MemoryManager */
+
+#ifndef _Included_edu_gcsc_vrl_ug4_MemoryManager
+#define _Included_edu_gcsc_vrl_ug4_MemoryManager
+#ifdef __cplusplus
+extern "C" {
+#endif
+/*
+ * Class:     edu_gcsc_vrl_ug4_MemoryManager
+ * Method:    delete
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
+  (JNIEnv *, jclass, jlong);
+
+#ifdef __cplusplus
+}
+#endif
+#endif
