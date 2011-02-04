@@ -136,6 +136,13 @@ struct MethodProxy<TClass, TMethod, void>
 template <typename TClass>
 TClass* ConstructorProxy() {return new TClass();}
 
+template <typename TClass>
+void DestructorProxy(void* obj)
+{
+	TClass* pObj = (TClass*)obj;
+	delete pObj;
+}
+
 /** Base class for exported Classes
  *
  */
@@ -171,6 +178,9 @@ class IExportedClass
 	 *  returns NULL id we cannot create instances of this type*/
 		virtual void* create() const = 0;
 
+	///	destructur for object
+		virtual void destroy(void* obj) const = 0;
+
 	///  virtual destructor
 		virtual ~IExportedClass() {};
 };
@@ -186,7 +196,8 @@ class ExportedClass_ : public IExportedClass
 
 	public:
 	//  contructor
-		ExportedClass_(const char* name, const char* group = "") : m_constructor(NULL)
+		ExportedClass_(const char* name, const char* group = "") 
+				: m_constructor(NULL), m_destructor(NULL)
 		{
 			ClassNameProvider<TClass>::set_name(name, group, true);
 			ClassNameProvider<const TClass>::set_name(name, group, true);
@@ -277,6 +288,9 @@ class ExportedClass_ : public IExportedClass
 		//  remember constructor proxy
 			m_constructor = &ConstructorProxy<TClass>;
 
+			//  remember constructor proxy
+			m_destructor = &DestructorProxy<TClass>;
+
 			return *this;
 		}
 
@@ -290,6 +304,13 @@ class ExportedClass_ : public IExportedClass
 				return (*m_constructor)();
 			else
 				return NULL;
+		}
+
+	///	destructur for object
+		virtual void destroy(void* obj) const
+		{
+			if(m_destructor != NULL)
+				(*m_destructor)(obj);
 		}
 
 	/// destructor
@@ -331,6 +352,9 @@ class ExportedClass_ : public IExportedClass
 	private:
 		typedef TClass* (*ConstructorFunc)();
 		ConstructorFunc m_constructor;
+
+		typedef void (*DestructorFunc)(void*);
+		DestructorFunc m_destructor;
 
 		std::vector<ExportedMethod*> m_vMethod;
 		std::vector<ExportedMethod*> m_vConstMethod;

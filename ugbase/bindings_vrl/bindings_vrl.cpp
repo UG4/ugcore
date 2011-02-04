@@ -98,12 +98,12 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	int retVal = ug::UGInit(&argc, &pargv);
 
 
-//	testReg.add_class_<TestClass > ("TestClass", "testing")
-//			.add_constructor()
-//			.add_method("svnRevision", &TestClass::getRev)
-//			.add_method("add", &TestClass::add, "result",
-//			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
-//			.add_method("getString", &TestClass::getString);
+	reg.add_class_<TestClass > ("TestClass", "testing")
+			.add_constructor()
+			.add_method("svnRevision", &TestClass::getRev)
+			.add_method("add", &TestClass::add, "result",
+			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
+			.add_method("getString", &TestClass::getString);
 
 	//	Register Standard Interfaces (excluding algebra)
 //		ug::bridge::RegisterStandardInterfaces(reg);
@@ -113,8 +113,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
 		ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
 
-	//	ug::vrl::RegisterVRLUserNumber(reg, "testing");
-	//			ug::bridge::RegisterTestInterface(testReg);
+		ug::vrl::RegisterVRLUserNumber(reg, "testing");
+//				ug::bridge::RegisterTestInterface(reg);
 
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
@@ -308,12 +308,15 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
 }
 
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
-  (JNIEnv * env, jclass cls, jlong objPtr) {
+  (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 	
 	// TODO provide type info (void* is bad)
 	// void* p = (void*)objPtr;
     // delete p;
-	UG_LOG("MemoryManager[native]: delete called on pointer " << objPtr << std::endl);
+
+	ug::bridge::IExportedClass* clazz =
+			(ug::bridge::IExportedClass*) exportedClsPtr;
+	clazz->destroy((void*)objPtr);
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
