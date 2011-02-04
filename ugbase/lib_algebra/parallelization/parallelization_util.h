@@ -428,7 +428,7 @@ void VecSetExcludingLayout(	TVector* pVec, number value,
 			(*pVec)[i] = value;
 		} else
 		{
-			for(; iter != end; ++iter)
+			for(iter = Layout.begin(); iter != end; ++iter)
 			{
 			//	get interface
 				typename IndexLayout::Interface& interface = Layout.interface(iter);
