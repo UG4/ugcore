@@ -65,7 +65,7 @@ public:
 	}
 
 	~TestClass() {
-		UG_LOG("Destructor called:" << (long)this << std::endl);
+		UG_LOG("Destructor called:" << (long) this << std::endl);
 	}
 };
 
@@ -106,15 +106,15 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 			.add_method("getString", &TestClass::getString);
 
 	//	Register Standard Interfaces (excluding algebra)
-//		ug::bridge::RegisterStandardInterfaces(reg);
+	//		ug::bridge::RegisterStandardInterfaces(reg);
 
 	//	Register algebra
-		CPUAlgebraChooser chooser;
-		ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
-		ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
+	CPUAlgebraChooser chooser;
+	ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
+	ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
 
-		ug::vrl::RegisterVRLUserNumber(reg, "testing");
-//				ug::bridge::RegisterTestInterface(reg);
+	ug::vrl::RegisterVRLUserNumber(reg, "testing");
+	//				ug::bridge::RegisterTestInterface(reg);
 
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
@@ -277,10 +277,10 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 	}
 
 	// print groovy code
-//	for(unsigned int i = 0; i < cResult.size();i++) {
-//		std::cout << "\n\n***********************************************\n\n";
-//		std::cout << cResult[i];
-//	}
+	//	for(unsigned int i = 0; i < cResult.size();i++) {
+	//		std::cout << "\n\n***********************************************\n\n";
+	//		std::cout << cResult[i];
+	//	}
 
 	return jResult;
 }
@@ -308,15 +308,14 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
 }
 
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
-  (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
-	
-	// TODO provide type info (void* is bad)
-	// void* p = (void*)objPtr;
-    // delete p;
+(JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
-	ug::bridge::IExportedClass* clazz =
-			(ug::bridge::IExportedClass*) exportedClsPtr;
-	clazz->destroy((void*)objPtr);
+	if (((void*)objPtr) != NULL && ((void*)exportedClsPtr) != NULL) {
+
+		ug::bridge::IExportedClass* clazz =
+				(ug::bridge::IExportedClass*) exportedClsPtr;
+		clazz->destroy((void*) objPtr);
+	}
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

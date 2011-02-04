@@ -452,7 +452,14 @@ std::string createParamInfo(const char* paramName, const char* className,
 
 	paramInfoStream << ") ";
 
-	return paramInfoStream.str();
+	std::string paramInfoString = paramInfoStream.str();
+
+	// We do not support invokeOnChange anymore!
+	paramInfoString = replaceAll(paramInfoString,"invokeOnChange=true","");
+	paramInfoString = replaceAll(paramInfoString,";invokeOnChange=true","");
+	paramInfoString = replaceAll(paramInfoString,"invokeOnChange=true;","");
+
+	return paramInfoString;
 }
 
 std::string createMethodInfo(const char* className,
