@@ -286,6 +286,8 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						"", "Dirichlet Solver||invokeOnChange=true")
 			.add_method("set_dual_dirichlet_solver|interactive=false", &T::set_dual_dirichlet_solver,
 						"", "Dual Dirichlet Solver||invokeOnChange=true")
+			.add_method("set_coarse_problem_solver|interactive=false", &T::set_coarse_problem_solver,
+						"", "Coarse Problem Solver||invokeOnChange=true")
 			.add_method("set_domain_decomp_info", &T::set_domain_decomp_info)
 			.add_method("set_debug", &T::set_debug);
 		}
