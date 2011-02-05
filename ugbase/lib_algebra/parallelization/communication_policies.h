@@ -718,6 +718,136 @@ class ComPol_VecSubtract : public pcl::ICommunicationPolicy<IndexLayout>
 		TVector* m_pVec;
 };
 
+/// Communication Policy to subtract only one slave value per master of a vector
+/**
+ * This class is used as a policy to subtract values on the interfaces of a
+ * parallel vector. The collecting interfaces - supposed to consist of slave
+ * dofs - pack the values on the interface into a stream. 
+ * The extracting interfaces - supposed to consist of master dofs - receive
+ * the stream and subtracts only one slave value (the first) per master.
+ *
+ * \tparam	TVector		Vector type
+ */
+template <class TVector>
+class ComPol_VecSubtractOnlyOneSlave : public pcl::ICommunicationPolicy<IndexLayout>
+{
+	public:
+	///	Default constructor
+		ComPol_VecSubtractOnlyOneSlave() : m_pVec(NULL)	{}
+
+	///	Constructor setting the values
+		ComPol_VecSubtractOnlyOneSlave(TVector* pVec) 
+	  	{
+			set_vector(pVec);
+		}
+
+	///	sets the vector used in communication
+		void set_vector(TVector* pVec) 
+		{
+			m_pVec = pVec;
+			m_vProcessed.resize(m_pVec->size(), false);
+		}
+
+	/// clear processed flag
+		void clear()
+		{
+			m_vProcessed.clear();
+			m_vProcessed.resize(m_pVec->size(), false);
+		}
+
+	/// returns the buffer size
+	/**
+	 * This function returns the size of the buffer needed for the communication
+	 * of passed interface. If the vector has fixed size entries this is just
+	 * the number of interface entries times the size of the entry. In case
+	 * of a variable size entry type a negative value is returned to indicate
+	 * that no buffer size can be determined in advanced.
+	 *
+	 * \param[in]	interface	Interface that will communicate
+	 */
+		virtual int
+		get_required_buffer_size(Interface& interface)
+		{
+			if(block_traits<typename TVector::value_type>::is_static)
+				return interface.size() * sizeof(typename TVector::value_type);
+			else
+				return -1;
+		}
+
+	///	writes the interface values into a buffer that will be sent
+	/**
+	 * This function collects all entries of the vector into a buffer that
+	 * are part of the interface.
+	 *
+	 * \param[out]		buff		Buffer
+	 * \param[in]		interface	Interface that will communicate
+	 */
+		virtual bool
+		collect(std::ostream& buff, Interface& interface)
+		{
+		//	check that vector has been set
+			if(m_pVec == NULL) return false;
+
+		//	rename for convenience
+			TVector& v = *m_pVec;
+
+		//	loop interface
+			for(typename Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			// get index
+				const size_t index = interface.get_element(iter);
+
+			// copy value
+				Serialize(buff, v[index]);
+			}
+			return true;
+		}
+
+	///	subtracts values of a buffer to the interface values
+	/**
+	 * This function subtracts the buffer values to the vector values.
+	 *
+	 * \param[out]		buff		Buffer
+	 * \param[in]		interface	Interface that communicates
+	 */
+		virtual bool
+		extract(std::istream& buff, Interface& interface)
+		{
+		//	check that vector has been set
+			if(m_pVec == NULL) return false;
+
+		//	rename for convenience
+			TVector& v = *m_pVec;
+
+		// entry
+			typename TVector::value_type entry;
+
+		//	loop interface
+			for(typename Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	get index
+				const size_t index = interface.get_element(iter);
+
+			//	copy vector
+				Deserialize(buff, entry);
+
+			//	subtract entry
+				if(m_vProcessed[index] == false)
+				{
+					v[index] -= entry;
+					m_vProcessed[index] = true;
+				}
+			}
+			return true;
+		}
+
+	private:
+		TVector* m_pVec;
+		std::vector<bool> m_vProcessed;
+};
+
 /// @}
 
 }//	end of namespace
