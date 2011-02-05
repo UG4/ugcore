@@ -236,6 +236,38 @@ void VecSubtractOnLayout(	TVector* pVec,
 		com.communicate();
 }
 
+/// subtracts values of only one slave dof per master on layout
+/**
+ * This function subtracts one slave value dof per master dof. Communication is performed.
+ * Information flow is from slaves to masters but not vice versa.
+ *
+ * \param[in,out]		pVec			Parallel Vector
+ * \param[in]			masterLayout	Master Layout
+ * \param[in]			slaveLayout		Slave Layout
+ * \param[in]			pCom			Parallel Communicator
+ */
+template <typename TVector>
+void VecSubtractOneSlaveFromMasterOnLayout(	TVector* pVec,
+											IndexLayout& masterLayout,
+											IndexLayout& slaveLayout,
+											pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+{
+	//	create a new communicator if required.
+		pcl::ParallelCommunicator<IndexLayout> tCom;
+		if(!pCom)
+			pCom = &tCom;
+		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+
+	//	create the required communication policies
+		ComPol_VecSubtractOnlyOneSlave<TVector> cpVecSubtractOOS(pVec);
+
+	//	sending: slaves, receiving: masters; masters subtract the value of only
+	//	one slave on reception (according to the policy used)
+		com.send_data(slaveLayout, cpVecSubtractOOS);
+		com.receive_data(masterLayout, cpVecSubtractOOS);
+		com.communicate();
+
+}
 
 /// adds one vector to another only at a layout
 /**
@@ -305,6 +337,7 @@ void VecScaleAddOnLayout(	TVector* pVecDest,
 	//	get interface
 		typename IndexLayout::Interface& interface = Layout.interface(iter);
 
+	//	loop over indices
 		for(typename IndexLayout::Interface::iterator iter = interface.begin();
 			iter != interface.end(); ++iter)
 		{
@@ -535,8 +568,10 @@ void VecScaleExcludingLayout(	TVector* pVec, number scale,
 
 /// copy a vector only at a layout
 /**
- * This function copies a vector only on a layout. Communication is performed
- * (this function is basically 'UniqueToConsistent').
+ * This function copies a vector only at a layout. Communication is performed.
+ * Information flow is from masters to slaves but not vice versa.
+ * Note: This function is basically 'UniqueToConsistent()', so "sender" and
+ * "receiver" in this function are the same as in 'UniqueToConsistent()').
  *
  * \param[in,out]		pVec			Parallel Vector
  * \param[in]			masterLayout	Master Layout
@@ -554,7 +589,7 @@ void VecCopyOnLayout(	TVector* pVec,
 			pCom = &tCom;
 		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
 
-	//	step 1: copy master values to slaves
+	//	copy master values to slaves
 	//	create the required communication policies
 		ComPol_VecCopy<TVector> cpVecCopy(pVec);
 
@@ -564,6 +599,48 @@ void VecCopyOnLayout(	TVector* pVec,
 		com.communicate();
 }
 
+/// scale a vector and copy the result to another vector only at a layout
+/**
+ * This function scales the values of one vector and copies it to another
+ * only at a layout. No communication is performed.
+ *
+ * \param[in,out]	pVecDest		Destination vector of scaled copy
+ * \param[in]		pVecSrc			source vector
+ * \param[in]		scale			Scaling factor
+ * \param[in]		Layout			Index Layout
+ */
+template <typename TVector>
+void VecScaledCopyOnLayout(	TVector* pVecDest,
+							const TVector* pVecSrc, number scale,
+							IndexLayout& Layout)
+{
+//	interface iterators
+	typename IndexLayout::iterator iter = Layout.begin();
+	typename IndexLayout::iterator end = Layout.end();
+
+	for(; iter != end; ++iter)
+	{
+	//	get interface
+		typename IndexLayout::Interface& interface = Layout.interface(iter);
+
+	//	loop over indices
+		for(typename IndexLayout::Interface::iterator iter = interface.begin();
+			iter != interface.end(); ++iter)
+		{
+		//	get index
+			const size_t index = interface.get_element(iter);
+
+		// 	get entry
+			typename TVector::value_type entry = (*pVecSrc)[index];
+
+		//	scale entry
+			entry *= scale;
+
+		//	set/copy value
+			(*pVecDest)[index] = entry;
+		}
+	}
+}
 
 /// sets dirichlet rows for interface indices
 /**
