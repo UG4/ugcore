@@ -260,74 +260,80 @@ class FetiLayouts
 		IndexLayout m_slavePrimalLayout;
 };
 
-///	Application of the "jump operator" \f$B_{\Delta}\f$:
-/// 'ComputeDifferenceOnDelta()': Apply \f$B_{\Delta}\f$ to \f$u_{\Delta}\f$
+///	Application of the "jump operator" \f$B_{\Delta}\f$
 /**
- * \f$B_{\Delta}\f$ computes the difference between the double-valued unknowns \f$u_{\Delta}\f$.
- * This computation is only unique up to the sign of the difference. Thus, we can
- * freely decide it, but have then to stay with the choice.
+ * This function applies \f$B_{\Delta}\f$ to \f$u_{\Delta}\f$. It computes the
+ * difference (the "jump") between the double-valued unknowns \f$u_{\Delta}\f$
+ * and communicate the results so that the difference vector is stored consistently
+ * afterwards.
  *
- * \param[out]		diff				destination vector for computed differences on "Delta layout"
- * \param[in]		u					vector \f$u_{\Delta}\f$
- * \param[in]		masterLayoutIn		master layout to operate on (caller has to provide a "Delta layout")
- * \param[in]		slaveLayoutIn		slave  layout to operate on (caller has to provide a "Delta layout")
- * \param[in]		masterNbrLayoutIn	master layout to operate on (caller has to provide a "Delta Nbr layout")
- * \param[in]		slaveNbrLayoutIn	slave  layout to operate on (caller has to provide a "Delta Nbr layout")
+ * Note: This computation is only unique up to the sign of the difference.
+ * Thus, we can freely decide it, but have then to stay with the choice.
+ *
+ * \param[out]		diff					destination vector for differences
+											computed on "Dual layout"
+ * \param[in]		u						vector \f$u_{\Delta}\f$
+ * \param[in]		dualMasterLayoutIn		dual master layout to operate on
+ * \param[in]		dualSlaveLayoutIn		dual slave  layout to operate on
+ * \param[in]		dualMasterNbrLayoutIn	dual master layout to operate on
+ * \param[in]		dualSlaveNbrLayoutIn	dual slave  layout to operate on
  */
 template <typename TVector>
 void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
-							  IndexLayout&    masterLayoutIn,
-							  IndexLayout&     slaveLayoutIn,
-							  IndexLayout& masterNbrLayoutIn,
-							  IndexLayout& slaveNbrLayoutIn)
+							  IndexLayout&    dualMasterLayoutIn,
+							  IndexLayout&     dualSlaveLayoutIn,
+							  IndexLayout& dualMasterNbrLayoutIn,
+							  IndexLayout&  dualSlaveNbrLayoutIn)
 {
 	// Reset all values
 	diff.set(0.0);
 
-	// All masters subtract the values of the slave, all slaves subtract the values
-	// of the master (communication is performed) ...
-	VecSubtractOnLayout(&diff, masterLayoutIn, slaveLayoutIn);
+	// Communicate values:
+	// (a) Slaves send their u values, every master subtracts the value of only
+	//     one of his slaves ...
+	VecSubtractOneSlaveFromMasterOnLayout(&diff, dualMasterLayoutIn, dualSlaveLayoutIn);
 
-	// ... and slaves multiplies the result by '-1' (no communication is performed)
-	VecScaleOnLayout(&diff, -1.0, slaveLayoutIn);
+	// (b) masters send their diff values to all slaves (but not vice versa)
+	VecCopyOnLayout(&diff, dualMasterLayoutIn, dualSlaveLayoutIn);
 
-	// ... and copy master values to additional slaves living in "Dual neighbour layout" (communication is performed)
-	VecCopyOnLayout(&diff, masterNbrLayoutIn, slaveNbrLayoutIn);
+	// (c) and also to the additional slaves living in "Dual neighbour layout"
+	VecCopyOnLayout(&diff, dualMasterNbrLayoutIn, dualSlaveNbrLayoutIn);
 
+	// now the vector 'diff' should be consistent!
 	return;
 };
 
-/// 'ComputeDifferenceOnDeltaTransposed()': Apply \f$B_{\Delta}^T\f$ to \f$\lambda\f$
+/// 'ComputeDifferenceOnDeltaTransposed()': Apply \f$B_{\Delta}^T\f$
 /**
- * \f$B_{\Delta}\f$ computes the difference between the double-valued unknowns \f$u_{\Delta}\f$.
- * This computation is only unique up to the sign of the difference. Thus, we can
- * freely decide it, but have then to stay with the choice (no communication is performed).
+ * This function applies \f$B_{\Delta}^T\f$ to a difference vector \f$d\f$,
+ * (lying in the same space as $\lambda$).
+ * \f$d\f$ is supposed to be stored consistently.
  *
- * \param[out]		lambda			vector of Lagrange multipliers
- * \param[in]		f				vector \f$f_{\Delta}\f$ living on "Delta layout"
- * \param[in]		masterLayoutIn	master layout to operate on (caller has to provide a "Delta layout")
- * \param[in]		slaveLayoutIn	slave  layout to operate on (caller has to provide a "Delta layout")
+ * For the application of \f$B_{\Delta}\f$ and the chosen scaling factors see
+ * the documentation of 'ComputeDifferenceOnDelta()'.
+ *
+ * \param[out]		f						vector \f$f_{\Delta}\f$ living on "Dual layout"
+ * \param[in]		diff					difference vector on "Dual layout"
+ * \param[in]		dualMasterLayoutIn		master layout to operate on
+ * \param[in]		dualSlaveLayoutIn		slave  layout to operate on
+ * \param[in]		dualSlaveNbrLayoutIn	dual slave  layout to operate on
  */
 template <typename TVector>
-void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& lambda,
-										IndexLayout& masterLayoutIn,
-										IndexLayout& slaveLayoutIn,
-										IndexLayout& slaveNbrLayoutIn)
+void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& diff,
+										IndexLayout& dualMasterLayoutIn,
+										IndexLayout& dualSlaveLayoutIn,
+										IndexLayout& dualSlaveNbrLayoutIn)
 {
-	
+	// Copy values (no communication is performed):
+	// (a) set f = +1 * d on masters ...
+	VecScaledCopyOnLayout(&f, &diff,  1.0,   dualMasterLayoutIn);
 
-	// (a) Reset all values
-	f.set(0.0);
-	//VecSetOnLayout(&f, 0.0, masterLayoutIn);
-	//VecSetOnLayout(&f, 0.0, slaveLayoutIn);
+	// (b) set f = -1 * d on slaves
+	VecScaledCopyOnLayout(&f, &diff, -1.0,    dualSlaveLayoutIn);
 
-	// (b) Copy values on \Delta
-	// 1. All masters set their values equal to $\lambda$
-	VecScaleAppendOnLayout(&f, &lambda,  1.0,   masterLayoutIn);
-	// 2. All slaves set their values equal to $-\lambda$
-	VecScaleAppendOnLayout(&f, &lambda, -1.0,    slaveLayoutIn);
-	VecScaleAppendOnLayout(&f, &lambda, -1.0, slaveNbrLayoutIn);
-
+	// (c) set f = +1 * d on slaves living in "Dual neighbour layout"
+	//     ("+1" since in this context these dofs play the role of masters!)
+	VecScaledCopyOnLayout(&f, &diff, +1.0, dualSlaveNbrLayoutIn);
 	return;
 
 };
@@ -678,7 +684,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * (a) unknown vector of Lagrange multipliers, lambda, and
 	 * (b) search direction 'p' in cg method.
 	 *
-	 * \param[in]		v				vector \f$v\f$ living on "Delta layout"
+	 * \param[in]		v				vector \f$v\f$ living on "Dual layout"
 	 * \param[out]		f				result of application of \f$F\f$
 	 */
 		bool apply_F(vector_type& f, const vector_type& v);
@@ -722,7 +728,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * This function applies matrix \f$M^{-1}^{(i)} := D_{\Delta}^{(i)} B_{\Delta}^{(i)} S_{\Delta}^{(i)} {B_{\Delta}^{(i)}}^T D_{\Delta}^{(i)}\f$
 	 * to a vector \f$r\f$.
 	 *
-	 * \param[in]		r				vector \f$r\f$ living on "Delta layout"
+	 * \param[in]		r				vector \f$r\f$ living on "Dual layout"
 	 * \param[out]		z				result of application of \f$$M^{-1}\f$
 	 */
 		bool apply_M_inverse(vector_type& z, const vector_type& r);
