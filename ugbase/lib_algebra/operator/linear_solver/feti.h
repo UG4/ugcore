@@ -258,7 +258,7 @@ class FetiLayouts
 	//	Layouts for Primal variables
 		IndexLayout m_masterPrimalLayout;
 		IndexLayout m_slavePrimalLayout;
-};
+}; /* end class 'FetiLayouts' */
 
 ///	Application of the "jump operator" \f$B_{\Delta}\f$
 /**
@@ -477,7 +477,7 @@ class LocalSchurComplement
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 
-}; /* end class LocalSchurComplement */
+}; /* end class 'LocalSchurComplement' */
 
 /* 1.7 Application of \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$ */ 
 /// operator implementation of the inverse of the Schur complement w.r.t. the "Delta unknowns"
@@ -518,6 +518,13 @@ class SchurComplementInverse
 		{
 		//	remember the Dirichlet Solver
 			m_pNeumannSolver = &neumannSolver;
+		}
+
+	///	sets the coarse problem solver
+		void set_coarse_problem_solver(ILinearOperatorInverse<vector_type, vector_type>& coarseProblemSolver)
+		{
+		//	remember the coarse problem Solver
+			m_pCoarseProblemSolver = &coarseProblemSolver;
 		}
 
 	///	sets the primal layouts
@@ -568,10 +575,10 @@ class SchurComplementInverse
 		}
 
 	protected:
-	// 	Operator that is inverted by this Inverse Operator
+	// 	Operator that is inverted by this Inverse Operator ==> from which SC is built (05022011)
 		IMatrixOperator<vector_type,vector_type,matrix_type>* m_A;
 
-	// 	Parallel Matrix to invert
+	// 	Parallel Matrix to invert ==> from which SC is built (05022011)
 		matrix_type* m_pMatrix;
 
 	//	Feti Layouts
@@ -586,6 +593,9 @@ class SchurComplementInverse
 	//	Neumann Solver
 		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
 
+	//	Coarse problem Solver on root.
+		ILinearOperatorInverse<vector_type, vector_type>* m_pCoarseProblemSolver;
+
 	//	Process gathering the Schur Complement w.r.t. Primal unknowns
 		int m_primalRootProc;
 
@@ -597,7 +607,7 @@ class SchurComplementInverse
 	//	Schur Complement operator for gathered matrix
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_RootSchurComplementOp;
 
-	//	Matrix for one proc schur complement
+	//	Matrix for one proc Schur complement
 		matrix_type* m_pRootSchurComplementMatrix;
 
 	// 	Convergence Check
@@ -607,7 +617,7 @@ class SchurComplementInverse
 		IDebugWriter<algebra_type>* m_pDebugWriter;
 }; /* end class 'SchurComplementInverse' */
 
-/// operator implementation of the local Schur complement
+/// operator implementation of the FETI-DP solver
 /**
  * This operator implements a FETI-DP solver, see e.g.
  * "Domain Decomposition Methods -- Algorithms and Theory",
@@ -666,6 +676,13 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_pDualDirichletSolver = &dualDirichletSolver;
 		}
 
+	///	sets the coarse problem solver
+		void set_coarse_problem_solver(ILinearOperatorInverse<vector_type, vector_type>& coarseProblemSolver)
+		{
+		//	remember the coarse problem Solver
+			m_pCoarseProblemSolver = &coarseProblemSolver;
+		}
+
 	//	set debug output
 		void set_debug(IDebugWriter<algebra_type>* debugWriter)
 		{
@@ -703,7 +720,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 	///	function which computes the adapted right hand side vector '\tilde{f}_{\Delta}' of the reduced system ("Delta system")
 	/**
-	 * This function computes \f$ \tilde{f}_{\Delta} := f_{\Delta}
+	 * This function computes \f$\tilde{f}_{\Delta} := f_{\Delta}
 	 *				 - A_{\Delta \{I \Pi\}} (A_{\{I \Pi\} \{I \Pi\}})^{-1} f_{\{I \Pi\}}\f$
 	 * to a vector \f$f\f$.
 	 *
@@ -793,24 +810,29 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Local Schur complement for each feti subdomain
 		LocalSchurComplement<algebra_type> m_LocalSchurComplement;
 
-	//	Dirichlet solver for inverse of A_{II} in local schur complement
+	//	Dirichlet solver for inverse of \f$A_{II}\f$ in local Schur complement
 		ILinearOperatorInverse<vector_type, vector_type>* m_pDirichletSolver;
 
 	//	SchurComplementInverse
 		SchurComplementInverse<algebra_type> m_SchurComplementInverse;
 
-	//	Neumann solver for inverse of A_{\{I,\Delta\}, \{I,\Delta\}} in the
-	//	creation of the S_{\Pi \Pi} schur complement
+	//	Neumann solver for inverse of \f$A_{\{I,\Delta\}, \{I,\Delta\}}\f$ in the
+	//	creation of the S_{\Pi \Pi} Schur complement in SchurComplementInverse
 		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
 
-	//	Copy of matrix
+	//	Copy of matrix used in computation of \f$\tilde{f}_{\Delta}\f$
 		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DualDirichletOperator;
 
-	// 	Parallel Neumann Matrix
+	// 	Parallel (Dual) Dirichlet matrix used in computation of \f$ \tilde{f}_{\Delta}\f$
 		matrix_type* m_pDualDirichletMatrix;
 
-	//	Neumann Solver
+	//	(Dual) Dirichlet solver used in computation of \f$\tilde{f}_{\Delta}\f$.
+	// 	It inverts \f$A_{\{I \Pi\} \{I \Pi\}}\f$
 		ILinearOperatorInverse<vector_type, vector_type>* m_pDualDirichletSolver;
+
+	//	Solver used in solving coarse problem on root.
+	// 	It solves \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ 
+		ILinearOperatorInverse<vector_type, vector_type>* m_pCoarseProblemSolver;
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
@@ -828,7 +850,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	pointer to Domain decomposition info object
 		pcl::IDomainDecompositionInfo* m_pDDInfo;
 
-}; /* end class FETISolver */
+}; /* end class 'FETISolver' */
 #endif /* UG_PARALLEL */
 
 } // end namespace ug

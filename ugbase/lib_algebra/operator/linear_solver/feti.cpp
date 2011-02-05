@@ -434,7 +434,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			if(!m_pNeumannSolver->apply(e3, e2))
 			{
 				UG_LOG("ERROR in SchurComplementInverse::init: Could not solve"
-						" local neumann problem to compute Schur complement"
+						" local problem to compute Schur complement"
 						" w.r.t. primal unknowns.\n");
 				return false;
 			}
@@ -500,6 +500,18 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		UG_LOG("  ind1: " << pc.ind1 << "    ind2: " << pc.ind2 << "    value: " << pc.value << endl)
 	}
 	UG_LOG("endl");
+
+// TODO: Hier muss die Schurkomplement-Matrix - m_pRootSchurComplementMatrix _ noch befuellt werden!?
+
+//	init sequential solver for coarse problem
+	if(m_pCoarseProblemSolver != NULL)
+		if(!m_pCoarseProblemSolver->init(m_RootSchurComplementOp))
+		{
+			UG_LOG("ERROR in 'SchurComplementInverse::init': Cannot init "
+					"coarse problem Solver for Operator S_{Pi Pi}.\n");
+			return false;
+		}
+
 
 //	we're done
 	return true;
@@ -606,8 +618,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// TODO: Gather \f$\tilde{f}_{\Pi}\f$!
 
 //	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
-	// TODO: Solve! Hinweis von Andreas: Fuer das Loesen der Matrix auf root beliebigen Loeser verwenden.
-	// Dazu Objekt von ILinearOperatorInverse von aussen aufsetzen, im Skript z.B. LU (in Zukunft z.B. HLib ...)
+//     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd cnds''
+
+	// TODO: Solve with 'SchurComplementInverse::m_pCoarseProblemSolver'!
 
 //	5. Broadcast \f$u_{\Pi}\f$ to all Procs. \f$u_{\Pi}\f$ is consistently saved.
 	// TODO: Broadcast solution!
@@ -710,7 +723,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 //	remember A
 	m_pOperator = &A;
 
-//	get matrix
+//	0. get matrix
 	m_pMatrix = &m_pOperator->get_matrix();
 
 //	check that DDInfo has been set
@@ -722,7 +735,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 
 	bool debugLayouts = (m_pDebugWriter==NULL) ? false : true;
 
-//	create FETI Layouts
+//	1. create FETI Layouts
 	m_fetiLayouts.create_layouts(m_pMatrix->get_master_layout(),
 	                             m_pMatrix->get_slave_layout(),
 	                             m_pMatrix->get_process_communicator(),
@@ -730,9 +743,13 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	                             *m_pDDInfo,
 	                             debugLayouts);
 
-//  ----- INIT DIRICHLET SOLVER  ----- //
+//  ----- 2. CONFIGURE LOCAL SCHUR COMPLEMENT  ----- //
 
-//	check that dirichlet solver has been set
+//	2.1 set layouts in LocalSchurComplement
+	m_LocalSchurComplement.set_feti_layouts(m_fetiLayouts);
+
+//	2.2 init Dirichlet system and solver
+//  check that dirichlet solver has been set
 	if(m_pDirichletSolver == NULL)
 	{
 		UG_LOG("ERROR in FETISolver::init: No dirichlet solver set "
@@ -740,16 +757,13 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
-//	set layouts
-	m_LocalSchurComplement.set_feti_layouts(m_fetiLayouts);
-
-//	set dirichlet solver for local schur complement
+//	set dirichlet solver for local Schur complement
 	m_LocalSchurComplement.set_dirichlet_solver(*m_pDirichletSolver);
 
-//	set operator in local schur complement
+//	set operator in local Schur complement
 	m_LocalSchurComplement.set_matrix(*m_pOperator);
 
-//	init local Schur complement
+//	2.3 init local Schur complement
 	if(m_LocalSchurComplement.init() != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init local Schur "
@@ -757,7 +771,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		bSuccess = false;
 	}
 
-//	check all procs
+//	2.4 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
 	{
 		UG_LOG("ERROR in FETISolver::init: Some processes could not init"
@@ -765,23 +779,36 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
-//  ----- INIT NEUMANN SOLVER  ----- //
+//  ----- 3. CONFIGURE SCHUR COMPLEMENT INVERSE  ----- //
 
+//	3.1 set layouts in SchurComplementInverse
+	m_SchurComplementInverse.set_feti_layouts(m_fetiLayouts);
+
+//	3.2 init Neumann system and solver
 //	check that neumann solver has been set
 	if(m_pNeumannSolver == NULL)
 	{
 		UG_LOG("ERROR in FETISolver::init: No neumann solver set "
-				" for inversion of A_{I,Delta}{I,Delta} in Local Schur complement.\n");
+				" for inversion of A_{I,Delta}{I,Delta} in SchurComplementInverse.\n");
 		return false;
 	}
-
-//	set layouts
-	m_SchurComplementInverse.set_feti_layouts(m_fetiLayouts);
 
 //	set neumann solver in SchurComplementInverse
 	m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
 
-//	init Schur complement inverse
+//  3.3 init coarse problem solver used in SchurComplementInverse
+//	check that coarse problem solver has been set
+	if(m_pCoarseProblemSolver == NULL)
+	{
+		UG_LOG("ERROR in FETISolver::init: No coarse problem solver set "
+				" for solving S_{Pi Pi} u_{Pi} = tilde{f}_{Pi}.\n");
+		return false;
+	}
+
+//	set coarse problem solver in SchurComplementInverse
+	m_SchurComplementInverse.set_coarse_problem_solver(*m_pCoarseProblemSolver);
+
+//	3.4 init SchurComplementInverse (operator - given as parameter here - is also set thereby)
 	if(m_SchurComplementInverse.init(*m_pOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
@@ -789,7 +816,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		bSuccess = false;
 	}
 
-//	check all procs
+//	3.5 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
 	{
 		UG_LOG("ERROR in FETISolver::init: Some process could not init"
@@ -797,7 +824,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
-//  ----- INIT DUAL DIRICHLET SOLVER  ----- //
+//  ----- 4. INIT DUAL DIRICHLET SOLVER  ----- //
 
 //	check that dual dirichlet solver has been set
 	if(m_pDualDirichletSolver == NULL)
@@ -825,7 +852,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	if(m_pDualDirichletSolver != NULL)
 		if(!m_pDualDirichletSolver->init(m_DualDirichletOperator))
 		{
-			UG_LOG("ERROR in 'SchurComplementInverse::init': Cannot init "
+			UG_LOG("ERROR in 'FETISolver::init': Cannot init "
 					"Dual Dirichlet Solver for Operator A.\n");
 			return false;
 		}
@@ -1156,7 +1183,7 @@ compute_tilde_f(vector_type& tildeF, const vector_type& f)
 //  set dirichlet zero values on f_Delta
 	m_fetiLayouts.vec_set_on_dual(fTmp, 0.0);
 
-//	solve system A_{I \PI}
+//	solve system A_{\{I \PI\}\{I \PI\}}
 	fTmp.set_storage_type(PST_ADDITIVE);
 	hTmp.set_storage_type(PST_CONSISTENT);
 	m_fetiLayouts.vec_use_inner_communication(hTmp);
