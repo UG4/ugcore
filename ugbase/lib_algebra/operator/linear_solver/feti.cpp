@@ -1054,13 +1054,13 @@ apply_return_defect(vector_type& u, vector_type& f)
 	                                   m_fetiLayouts.get_dual_slave_layout(),
 	                                   m_fetiLayouts.get_dual_nbr_slave_layout());
 
-//	compute t = tilde{f} - B * lambda
-	m_fetiLayouts.vec_scale_add_on_dual(t, 1.0, tildeF, -1.0, t);
+//	compute f = f - B^T * lambda
+	m_fetiLayouts.vec_scale_append_on_dual(f, t, -1.0);
 
 	write_debug(t, "FETI_t_Before_Sol");
 
-//	Solve: A u = (0, 0, t)
-	if(!m_SchurComplementInverse.apply(u, t))
+//	Solve: A u = f
+	if(!m_SchurComplementInverse.apply(u, f))
 	{
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
 		return false;
