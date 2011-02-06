@@ -1229,8 +1229,6 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 //	0. Reset values of z, zTmp
 	z.set(0.0); zTmp.set(0.0);
 
-	UG_LOG_ALL_PROCS("apply_scaling_matrix");
-
 //	1. Apply scaling: z := D_{\Delta}^{(i)} * r
 	apply_scaling_matrix(z, r); // maybe restrict to layout
 
@@ -1238,8 +1236,6 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	ComputeDifferenceOnDeltaTransposed(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
 	                                   	   	    m_fetiLayouts.get_dual_slave_layout(),
 	                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
-
-	UG_LOG_ALL_PROCS("m_LocalSchurComplement");
 
 //	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 	if(!m_LocalSchurComplement.apply(z, zTmp))
