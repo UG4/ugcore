@@ -730,13 +730,17 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		bool compute_tilde_f(vector_type& tildeF, const vector_type& f);
 
 	///	function which applies diagonal scaling matrix \f$D_{\Delta}^{(i)}\f$ to a vector \f$v\f$
-		bool Apply_ScalingMatrix(vector_type& s, const vector_type& v) // maybe restrict to layout
+		bool apply_scaling_matrix(vector_type& s, const vector_type& v) // maybe restrict to layout
 		{
-			// scaling operator is identity
+		// 	copy values
 			s = v;
+
+		// 	scale by 1/2
+			s *= 1./2.;
+
 			// more general: m_Ddelta.apply(s,v), with additional member 'matrix_type m_Ddelta;'
 
-			//	we're done
+		//	we're done
 			return true;
 		}
 
@@ -749,8 +753,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[out]		z				result of application of \f$$M^{-1}\f$
 	 */
 		bool apply_M_inverse(vector_type& z, const vector_type& r);
-
-		bool apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r);
 
 	///	solves the reduced system \f$F \lambda = d\f$ with preconditioned cg method
 	///	and returns the last defect of iteration in rhs

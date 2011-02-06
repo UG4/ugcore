@@ -26,7 +26,7 @@ if dim == 3 then
 end
 
 numPreRefs = 0
-numRefs = 1
+numRefs = 3
 
 --ugargc -> anzahl an ugargvs -- TODO: Check, ob ugshell mit genau (mindestens) 2 Prozessen gestartet wurde!
 if ugargv[1] ~= nil then
@@ -53,9 +53,9 @@ end
 		local s = 2*math.pi
 		--return	s*s*(math.sin(s*x) + math.sin(s*y))
 		--return -2*y
-		--return 0;
+		return 0;
 		--return -2*((x*x - 1)+(y*y - 1))
-		return	2*s*s*(math.sin(s*x) * math.sin(s*y))
+		--return	2*s*s*(math.sin(s*x) * math.sin(s*y))
 	end
 	
 	function ourNeumannBnd2d(x, y, t)
@@ -67,10 +67,10 @@ end
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
 		--return true, math.sin(s*x) + math.sin(s*y)
-		--return true, x
-		--return true, 0
+		return true, x
+		--return true, 2.5
 		--return true, (x*x - 1)*(y*y - 1)
-	 	return true, math.sin(s*x)*math.sin(s*y)
+	 	--return true, math.sin(s*x)*math.sin(s*y)
 	end
 
 	function ourDiffTensor3d(x, y, z, t)
@@ -386,21 +386,21 @@ exactSolver = LU()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(200)
+convCheck:set_maximum_steps(500)
 convCheck:set_minimum_defect(1e-10)
 convCheck:set_reduction(1e-10)
 convCheck:set_verbose_level(false)
 
 -- create Convergence Check
 convCheck2 = StandardConvergenceCheck()
-convCheck2:set_maximum_steps(100)
+convCheck2:set_maximum_steps(500)
 convCheck2:set_minimum_defect(1e-11)
 convCheck2:set_reduction(1e-12)
 convCheck2:set_verbose_level(false)
 
 -- create Convergence Check
 convCheck3 = StandardConvergenceCheck()
-convCheck3:set_maximum_steps(100)
+convCheck3:set_maximum_steps(500)
 convCheck3:set_minimum_defect(1e-11)
 convCheck3:set_reduction(1e-12)
 convCheck3:set_verbose_level(false)

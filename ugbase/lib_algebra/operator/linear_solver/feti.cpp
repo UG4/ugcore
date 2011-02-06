@@ -227,6 +227,7 @@ SchurComplementInverse() :
 	m_pFetiLayouts(NULL),
 	m_pNeumannMatrix(NULL),
 	m_pNeumannSolver(NULL),
+	m_pCoarseProblemSolver(NULL),
 	m_primalRootProc(-1),
 	m_pRootSchurComplementMatrix(NULL),
 	m_pConvCheck(NULL),
@@ -995,8 +996,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_dual(r));
 
 // 	Precondition the start defect: apply z = M^-1 * r
-	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_M_inverse_with_identity_scaling()' ********** \n")
-	if (!apply_M_inverse_with_identity_scaling(z, r))
+	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_M_inverse()' ********** \n")
+	if (!apply_M_inverse(z, r))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
 			   "Cannot apply preconditioner. Aborting.\n");
@@ -1043,7 +1044,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': iter " << m_iterCnt << ": After m_pConvCheck->update(r) ********** \n")
 
 	// 	Preconditioning: apply z = M^-1 * r
-		if (!apply_M_inverse_with_identity_scaling(z, r))
+		if (!apply_M_inverse(z, r))
 		{
 			UG_LOG("ERROR in 'FETISolver::apply': "
 				   "Cannot apply preconditioner. Aborting.\n"); return false;
@@ -1178,10 +1179,10 @@ compute_tilde_f(vector_type& tildeF, const vector_type& f)
 	vector_type hTmp; hTmp.create(f.size());
 	fTmp = f;
 
-	write_debug(fTmp, "ComputeTilde_fTmp");
-
 //  set dirichlet zero values on f_Delta
 	m_fetiLayouts.vec_set_on_dual(fTmp, 0.0);
+
+	write_debug(fTmp, "ComputeTilde_fTmp");
 
 //	solve system A_{\{I \PI\}\{I \PI\}}
 	fTmp.set_storage_type(PST_ADDITIVE);
@@ -1219,68 +1220,42 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_M_inverse(vector_type& z, const vector_type& r)
 {
-	//	Help vector
+//	Help vector
 	vector_type zTmp; zTmp.create(r.size()); zTmp = z;
 
-	//	0. Reset values of z, zTmp
+//	0. Reset values of z, zTmp
 	z.set(0.0); zTmp.set(0.0);
 
-	//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
-	Apply_ScalingMatrix(z, r); // maybe restrict to layout
+	UG_LOG_ALL_PROCS("apply_scaling_matrix");
 
-	//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
+//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
+	apply_scaling_matrix(z, r); // maybe restrict to layout
+
+//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
 	ComputeDifferenceOnDeltaTransposed(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
 	                                   	   	    m_fetiLayouts.get_dual_slave_layout(),
 	                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
 
-	//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
-	m_LocalSchurComplement.apply(z, zTmp);
+	UG_LOG_ALL_PROCS("m_LocalSchurComplement");
 
-	//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
+//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
+	if(!m_LocalSchurComplement.apply(z, zTmp))
+	{
+		UG_LOG("ERROR in FETISolver::apply_M_inverse: Could not apply"
+				" local Schur complement. \n");
+		return false;
+	}
+
+//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
-	//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
-	Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
+//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
+	apply_scaling_matrix(z, zTmp); // maybe restrict to layout
 
-	//	we're done
-	return true;
-}
-
-
-template <typename TAlgebra>
-bool FETISolver<TAlgebra>::
-apply_M_inverse_with_identity_scaling(vector_type& z, const vector_type& r)
-{
-	//	Help vector
-	vector_type zTmp; zTmp.create(r.size());
-
-	//	0. Reset values of z, zTmp
-	z.set(0.0); zTmp.set(0.0);
-
-	//	1. Apply scaling: z := D_{\Delta}^{(i)} * r
-	//Apply_ScalingMatrix(z, r); // maybe restrict to layout
-
-	//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
-	ComputeDifferenceOnDeltaTransposed(z, r, m_fetiLayouts.get_dual_master_layout(),
-	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
-	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
-
-	//	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
-	//m_LocalSchurComplement.apply(zTmp, z);
-
-	//  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
-	ComputeDifferenceOnDelta(z, zTmp, m_fetiLayouts.get_dual_master_layout(),
-	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
-	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
-	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
-
-	//	5. Apply scaling: z := D_{\Delta}^{(i)} * zTmp to get the final 'z'
-	//Apply_ScalingMatrix(z, zTmp); // maybe restrict to layout
-
-	//	we're done
+//	we're done
 	return true;
 }
 
