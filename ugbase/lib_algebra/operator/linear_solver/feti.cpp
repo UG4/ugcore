@@ -505,7 +505,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 // TODO: Hier muss die Schurkomplement-Matrix - m_pRootSchurComplementMatrix _ noch befuellt werden!?
 
 // \todo: Remove, but currently here until invert is fully implemented
-	if(m_pRootSchurComplementMatrix->num_rows() == 0) return true;
+	return true;
 
 //	init sequential solver for coarse problem
 	if(m_pCoarseProblemSolver != NULL)
