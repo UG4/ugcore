@@ -285,8 +285,8 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 							  IndexLayout& dualMasterNbrLayoutIn,
 							  IndexLayout&  dualSlaveNbrLayoutIn)
 {
-	// Reset all values
-	diff.set(0.0);
+	// Copy all values
+	diff = u;
 
 	// Communicate values:
 	// (a) Slaves send their u values, every master subtracts the value of only
