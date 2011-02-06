@@ -26,7 +26,7 @@ if dim == 3 then
 end
 
 numPreRefs = 0
-numRefs = 3
+numRefs = 1
 
 --ugargc -> anzahl an ugargvs -- TODO: Check, ob ugshell mit genau (mindestens) 2 Prozessen gestartet wurde!
 if ugargv[1] ~= nil then
@@ -51,9 +51,9 @@ end
 	
 	function ourRhs2d(x, y, t)
 		local s = 2*math.pi
-		--return	s*s*(math.sin(s*x) + math.sin(s*y))
+		return	s*s*(math.sin(s*x) + math.sin(s*y))
 		--return -2*y
-		return 0;
+		--return 0;
 		--return -2*((x*x - 1)+(y*y - 1))
 		--return	2*s*s*(math.sin(s*x) * math.sin(s*y))
 	end
@@ -66,8 +66,8 @@ end
 	
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
-		--return true, math.sin(s*x) + math.sin(s*y)
-		return true, x
+		return true, math.sin(s*x) + math.sin(s*y)
+		--return true, x
 		--return true, 2.5
 		--return true, (x*x - 1)*(y*y - 1)
 	 	--return true, math.sin(s*x)*math.sin(s*y)

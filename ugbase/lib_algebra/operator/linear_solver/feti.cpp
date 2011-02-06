@@ -1238,6 +1238,13 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
 
 //	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
+//	3.1. let vectors use communication within feti subdomain
+	m_fetiLayouts.vec_use_inner_communication(z);
+	m_fetiLayouts.vec_use_inner_communication(zTmp);
+//	3.2. set correct parallel storage type
+	z.set_storage_type(PST_ADDITIVE);
+	zTmp.set_storage_type(PST_CONSISTENT);
+//	3.3. solve
 	if(!m_LocalSchurComplement.apply(z, zTmp))
 	{
 		UG_LOG("ERROR in FETISolver::apply_M_inverse: Could not apply"
