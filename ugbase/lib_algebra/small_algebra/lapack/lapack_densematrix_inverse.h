@@ -59,6 +59,8 @@ public:
 
 	bool invert()
 	{
+		if(densemat.num_rows() == 0) return false;
+
 		interchange.resize(densemat.num_rows());
 		int info = getrf(densemat.num_rows(), densemat.num_cols(), &densemat(0,0),
 				densemat.num_rows(), &interchange[0]);
