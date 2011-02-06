@@ -453,7 +453,7 @@ bool DistributeDomain(TDomain& domainOut)
 	MultiGrid& mg = *pMG;
 
 //	get Grid Layout
-	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
+//	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
 
 //	make sure that each grid has a position attachment - even if no data
 //	will be received.
