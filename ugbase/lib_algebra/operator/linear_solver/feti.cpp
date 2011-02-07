@@ -560,16 +560,18 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 		//	vector of positions
 			std::vector<MathVector<2> > pos(newVecSize);
-			pos[0] = MathVector<2>(-0.5, -0.5);
-			pos[1] = MathVector<2>(-0.0, -0.5);
-			pos[2] = MathVector<2>(-0.5, -0.0);
-			pos[3] = MathVector<2>(0.0, 0.0);
-			pos[4] = MathVector<2>(0.5, -0.5);
-			pos[5] = MathVector<2>(0.5, 0.0);
-			pos[6] = MathVector<2>(-0.5, 0.5);
-			pos[7] = MathVector<2>(0.0, 0.5);
-			pos[8] = MathVector<2>(0.5, 0.5);
-
+			if(newVecSize == 9)
+			{
+				pos[0] = MathVector<2>(-0.5, -0.5);
+				pos[1] = MathVector<2>(-0.0, -0.5);
+				pos[2] = MathVector<2>(-0.5, -0.0);
+				pos[3] = MathVector<2>(0.0, 0.0);
+				pos[4] = MathVector<2>(0.5, -0.5);
+				pos[5] = MathVector<2>(0.5, 0.0);
+				pos[6] = MathVector<2>(-0.5, 0.5);
+				pos[7] = MathVector<2>(0.0, 0.5);
+				pos[8] = MathVector<2>(0.5, 0.5);
+			}
 		//	set positions
 			debugWriter.set_positions(&pos[0], newVecSize);
 
@@ -722,16 +724,18 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 		//	vector of positions
 			std::vector<MathVector<2> > pos(m_pRootSchurComplementMatrix->num_rows());
-			pos[0] = MathVector<2>(-0.5, -0.5);
-			pos[1] = MathVector<2>(-0.0, -0.5);
-			pos[2] = MathVector<2>(-0.5, -0.0);
-			pos[3] = MathVector<2>(0.0, 0.0);
-			pos[4] = MathVector<2>(0.5, -0.5);
-			pos[5] = MathVector<2>(0.5, 0.0);
-			pos[6] = MathVector<2>(-0.5, 0.5);
-			pos[7] = MathVector<2>(0.0, 0.5);
-			pos[8] = MathVector<2>(0.5, 0.5);
-
+			if(pos.size()==9)
+			{
+				pos[0] = MathVector<2>(-0.5, -0.5);
+				pos[1] = MathVector<2>(-0.0, -0.5);
+				pos[2] = MathVector<2>(-0.5, -0.0);
+				pos[3] = MathVector<2>(0.0, 0.0);
+				pos[4] = MathVector<2>(0.5, -0.5);
+				pos[5] = MathVector<2>(0.5, 0.0);
+				pos[6] = MathVector<2>(-0.5, 0.5);
+				pos[7] = MathVector<2>(0.0, 0.5);
+				pos[8] = MathVector<2>(0.5, 0.5);
+			}
 		//	set positions
 			debugWriter.set_positions(&pos[0], pos.size());
 
