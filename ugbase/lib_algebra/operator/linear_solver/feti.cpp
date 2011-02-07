@@ -607,32 +607,30 @@ apply_return_defect(vector_type& u, vector_type& f)
 		return false;
 	}
 
-//	Help vector
-	vector_type fTmp; fTmp.create(f.size());
-	vector_type hTmp; hTmp.create(u.size());
+//	0. create help vector
+	vector_type h; h.create(u.size());
 
 //	1. Set values of rhs to zero on Pi
 	// (a) Copy values
-	hTmp = f;
+	h = f;
 
 	// (b) Reset values on Pi
-	m_pFetiLayouts->vec_set_on_primal(hTmp, 0.0);
+	m_pFetiLayouts->vec_set_on_primal(h, 0.0);
 
 //	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
-	write_debug(f,    "SCI_f_2aBeforeNeumann");
-	write_debug(hTmp, "SCI_hTmp_2aBeforeNeumann");
+	write_debug(h, "PSMI_h_2_BeforeNeumann");
 
 	// use inner interfaces for solving
-	m_pFetiLayouts->vec_use_inner_communication(hTmp);
-	hTmp.set_storage_type(PST_ADDITIVE);
-	m_pFetiLayouts->vec_use_inner_communication(fTmp);
-	fTmp.set_storage_type(PST_CONSISTENT);
+	m_pFetiLayouts->vec_use_inner_communication(h);
+	h.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(u);
+	u.set_storage_type(PST_CONSISTENT);
 
 	// start value
-	fTmp.set(0.0);
+	u.set(0.0);
 
 	// (a) invoke Neumann solver to get \f$h_{\{I \Delta\}}^{(p)}\f$
-	if(!m_pNeumannSolver->apply_return_defect(fTmp, hTmp))
+	if(!m_pNeumannSolver->apply_return_defect(u, h))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
@@ -640,10 +638,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 		return false;
 	}
 
-	write_debug(fTmp, "SCI_fTmp_2a");
+	write_debug(u, "PSMI_u_2");
 
 	// (b) apply matrix to \f$[h_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
-	if(!m_pMatrix->apply(hTmp, fTmp))
+	if(!m_pMatrix->apply(h, u))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not apply full matrix (step 2.b) on "
@@ -651,12 +649,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 		return false;
 	}
 
-	write_debug(hTmp, "SCI_hTmp_2aAfterNeumann");
+	write_debug(h, "PSMI_h_2_AfterNeumann");
 
-	// (c) compute fTmp = f - hTmp on primal.
-	m_pFetiLayouts->vec_scale_add_on_primal(fTmp, 1.0, f, -1.0, hTmp);
+	// (c) compute h = f - h on primal.
+	m_pFetiLayouts->vec_scale_add_on_primal(h, 1.0, f, -1.0, h);
 
-	write_debug(fTmp, "SCI_fTmp_2d");
+	write_debug(h, "PSMI_h_2_Added");
 
 //	2.9 Create storage for u,f on primal root
 	vector_type rootF;
@@ -672,7 +670,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
 	rootF.set(0.0);
-	VecGather(&rootF, &fTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout);
+	VecGather(&rootF, &h, m_masterAllToOneLayout, m_slaveAllToOneLayout);
 
 //	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
 //     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd vrts''
@@ -702,18 +700,17 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	6. Compute other values of solution, keeping values in Primal fixed
 
-	// (a) copy rhs and set dirichlet values on primal
-	fTmp = f;
-	m_pFetiLayouts->vec_scaled_copy_on_primal(fTmp, u, 1.0);
+	// (a) set dirichlet values on primal unknowns of rhs
+	m_pFetiLayouts->vec_scaled_copy_on_primal(f, u, 1.0);
 
-	write_debug(fTmp, "SCI_fTmp_6");
+	write_debug(f, "PSMI_fTmp_6");
  
 	// (b) invert neumann problem, with dirichlet values on primal
-	m_pFetiLayouts->vec_use_inner_communication(fTmp);
-	fTmp.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(f);
+	f.set_storage_type(PST_ADDITIVE);
 	m_pFetiLayouts->vec_use_inner_communication(u);
 	u.set_storage_type(PST_CONSISTENT);
-	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // solve with Neumann matrix!
+	if(!m_pNeumannSolver->apply_return_defect(u, f)) // solve with Neumann matrix!
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
@@ -721,7 +718,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		return false;
 	}
 
-	write_debug(u, "SCI_u_8");
+	write_debug(u, "PSMI_u_8");
 
 //	we're done
 	return true;
@@ -731,13 +728,13 @@ template <typename TAlgebra>
 bool PrimalSubassembledMatrixInverse<TAlgebra>::
 apply(vector_type& x, const vector_type& b)
 {
-	write_debug(b, "SCI_apply_b");
+	write_debug(b, "PSMI_apply_b");
 
 //	copy defect
 	vector_type d; d.resize(b.size());
 	d = b;
 
-	write_debug(d, "SCI_apply_d");
+	write_debug(d, "PSMI_apply_d");
 
 //	solve on copy of defect
 	return apply_return_defect(x, d);
