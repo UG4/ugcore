@@ -51,9 +51,9 @@ end
 	
 	function ourRhs2d(x, y, t)
 		local s = 2*math.pi
-		return	s*s*(math.sin(s*x) + math.sin(s*y))
+		--return	s*s*(math.sin(s*x) + math.sin(s*y))
 		--return -2*y
-		--return 0;
+		return 0;
 		--return -2*((x*x - 1)+(y*y - 1))
 		--return	2*s*s*(math.sin(s*x) * math.sin(s*y))
 	end
@@ -66,8 +66,8 @@ end
 	
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
-		return true, math.sin(s*x) + math.sin(s*y)
-		--return true, x
+		--return true, math.sin(s*x) + math.sin(s*y)
+		return true, x +1
 		--return true, 2.5
 		--return true, (x*x - 1)*(y*y - 1)
 	 	--return true, math.sin(s*x)*math.sin(s*y)
@@ -170,7 +170,7 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 numProcs = NumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs -- /4
+numSubdomains = numProcs 
 
 print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
 
@@ -327,6 +327,10 @@ dbgWriter:set_vtk_output(false)
 -- create algebraic Preconditioner
 jac = Jacobi()
 jac:set_damp(0.8)
+jac2 = Jacobi()
+jac2:set_damp(0.8)
+jac3 = Jacobi()
+jac3:set_damp(0.8)
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
@@ -386,23 +390,23 @@ exactSolver = LU()
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(500)
-convCheck:set_minimum_defect(1e-10)
+convCheck:set_maximum_steps(1000)
+convCheck:set_minimum_defect(1e-9)
 convCheck:set_reduction(1e-10)
 convCheck:set_verbose_level(false)
 
 -- create Convergence Check
 convCheck2 = StandardConvergenceCheck()
 convCheck2:set_maximum_steps(500)
-convCheck2:set_minimum_defect(1e-11)
-convCheck2:set_reduction(1e-12)
+convCheck2:set_minimum_defect(1e-9)
+convCheck2:set_reduction(1e-10)
 convCheck2:set_verbose_level(false)
 
 -- create Convergence Check
 convCheck3 = StandardConvergenceCheck()
 convCheck3:set_maximum_steps(500)
-convCheck3:set_minimum_defect(1e-11)
-convCheck3:set_reduction(1e-12)
+convCheck3:set_minimum_defect(1e-9)
+convCheck3:set_reduction(1e-10)
 convCheck3:set_verbose_level(false)
 
 -- create Linear Solver
@@ -431,7 +435,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- create Convergence Check
 fetiConvCheck = StandardConvergenceCheck()
 fetiConvCheck:set_maximum_steps(50)
-fetiConvCheck:set_minimum_defect(1e-9)
+fetiConvCheck:set_minimum_defect(1e-8)
 fetiConvCheck:set_reduction(1e-12)
 
 -- create FETI Solver
