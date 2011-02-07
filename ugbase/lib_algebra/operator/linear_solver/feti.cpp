@@ -660,29 +660,48 @@ apply_return_defect(vector_type& u, vector_type& f)
 	vector_type rootU;
 	if(m_primalRootProc == pcl::GetProcRank())
 	{
+		UG_LOG("Creating coarse vector f of size: " << m_pRootSchurComplementMatrix->num_rows()<<"\n");
 		rootF.resize(m_pRootSchurComplementMatrix->num_rows());
+		UG_LOG("Creating coarse vector u of size: " << m_pRootSchurComplementMatrix->num_cols()<<"\n");
 		rootU.resize(m_pRootSchurComplementMatrix->num_cols());
 	}
 
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
-
-
-	// TODO: Gather \f$\tilde{f}_{\Pi}\f$!
+	rootF.set(0.0);
+	VecGather(&rootF, &fTmp, m_masterAllToOneLayout, m_slaveAllToOneLayout);
 
 //	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
-//     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd cnds''
+//     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd vrts''
 
-	// TODO: Solve with 'PrimalSubassembledMatrixInverse::m_pCoarseProblemSolver'!
+//	only on root proc
+	if(m_primalRootProc == pcl::GetProcRank())
+	{
+	//	only if matrix if non-zero
+		if(m_RootSchurComplementOp.get_matrix().num_cols() != 0)
+		{
+		//	invert matrix
+			rootF.set_storage_type(PST_ADDITIVE);
+			rootU.set_storage_type(PST_CONSISTENT);
+			if(!m_pCoarseProblemSolver->apply(rootU, rootF))
+			{
+				std::cout << "ERROR in 'PrimalSubassembledMatrixInverse::apply': "
+								 "Could not invert Schur complement on root proc."
+						<< std::endl;
+				return false;
+			}
+		}
+	}
 
 //	5. Broadcast \f$u_{\Pi}\f$ to all Procs. \f$u_{\Pi}\f$ is consistently saved.
-	// TODO: Broadcast solution!
+	vector_type uTmp; uTmp.create(f.size());
+	VecBroadcast(&uTmp, &rootU, m_slaveAllToOneLayout, m_masterAllToOneLayout);
 
 	// Assumption: uTmp contains [0, 0, u_{\Pi}]^T
-	vector_type uTmp; uTmp.create(f.size()); // den Hilfsvektor kann man sich vermutlich sparen ...
+	//vector_type uTmp; uTmp.create(f.size()); // den Hilfsvektor kann man sich vermutlich sparen ...
 	// TODO: uTmp = ...
 	// TODO: handle correctly
-	uTmp.set(0.0);
+	//uTmp.set(0.0);
 
 //	6. Compute (via backward substitution)
 	// \f$\hat{f}_{\{I \Delta\}}\f$ = *urspruengliches* f_{\{I \Delta\}} - Neumann-Matrix * [0, u_{\Pi}]^T
