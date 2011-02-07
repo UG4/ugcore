@@ -552,10 +552,28 @@ init(ILinearOperator<vector_type, vector_type>& L)
 				return false;
 			}
 
-	//	Debug output of matrix
+	//	Debug output of matrix (only used to flag if debug is wanted)
 		if(m_pDebugWriter != NULL)
 		{
-			m_pDebugWriter->write_matrix(m_RootSchurComplementOp.get_matrix(),
+		//	use own debug writer
+			AlgebraDebugWriter<algebra_type, 2> debugWriter;
+
+		//	vector of positions
+			std::vector<MathVector<2> > pos(newVecSize);
+			pos[0] = MathVector<2>(-0.5, -0.5);
+			pos[1] = MathVector<2>(-0.0, -0.5);
+			pos[2] = MathVector<2>(-0.5, -0.0);
+			pos[3] = MathVector<2>(0.0, 0.0);
+			pos[4] = MathVector<2>(0.5, -0.5);
+			pos[5] = MathVector<2>(0.5, 0.0);
+			pos[6] = MathVector<2>(-0.5, 0.5);
+			pos[7] = MathVector<2>(0.0, 0.5);
+			pos[8] = MathVector<2>(0.5, 0.5);
+
+		//	set positions
+			debugWriter.set_positions(&pos[0], newVecSize);
+
+			debugWriter.write_matrix(m_RootSchurComplementOp.get_matrix(),
 										 "RootSchurComplementMatrix");
 		}
 	}
@@ -607,6 +625,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 		return false;
 	}
 
+//	success flag
+	bool bSuccess = true;
+
 //	0. create help vector
 	vector_type h; h.create(u.size());
 
@@ -635,7 +656,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << ".\n");
-		return false;
+		bSuccess = false;
 	}
 
 	write_debug(u, "PSMI_u_2");
@@ -646,7 +667,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not apply full matrix (step 2.b) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
-		return false;
+		bSuccess = false;
 	}
 
 	write_debug(h, "PSMI_h_2_AfterNeumann");
@@ -689,8 +710,33 @@ apply_return_defect(vector_type& u, vector_type& f)
 				std::cout << "ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 								 "Could not invert Schur complement on root proc."
 						<< std::endl;
-				return false;
+				bSuccess = false;
 			}
+		}
+
+	//	Debug output of matrix (only used to flag if debug is wanted)
+		if(m_pDebugWriter != NULL)
+		{
+		//	use own debug writer
+			AlgebraDebugWriter<algebra_type, 2> debugWriter;
+
+		//	vector of positions
+			std::vector<MathVector<2> > pos(m_pRootSchurComplementMatrix->num_rows());
+			pos[0] = MathVector<2>(-0.5, -0.5);
+			pos[1] = MathVector<2>(-0.0, -0.5);
+			pos[2] = MathVector<2>(-0.5, -0.0);
+			pos[3] = MathVector<2>(0.0, 0.0);
+			pos[4] = MathVector<2>(0.5, -0.5);
+			pos[5] = MathVector<2>(0.5, 0.0);
+			pos[6] = MathVector<2>(-0.5, 0.5);
+			pos[7] = MathVector<2>(0.0, 0.5);
+			pos[8] = MathVector<2>(0.5, 0.5);
+
+		//	set positions
+			debugWriter.set_positions(&pos[0], pos.size());
+
+			debugWriter.write_vector(rootU,
+										 "RootU");
 		}
 	}
 
@@ -699,6 +745,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	VecBroadcast(&u, &rootU, m_slaveAllToOneLayout, m_masterAllToOneLayout);
 
 //	6. Compute other values of solution, keeping values in Primal fixed
+
+	write_debug(u, "PSMI_u_6");
 
 	// (a) set dirichlet values on primal unknowns of rhs
 	m_pFetiLayouts->vec_scaled_copy_on_primal(f, u, 1.0);
@@ -715,10 +763,17 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << ".\n");
-		return false;
+		bSuccess = false;
 	}
 
 	write_debug(u, "PSMI_u_8");
+
+//	check all procs
+	if(!pcl::AllProcsTrue(bSuccess))
+	{
+		UG_LOG("ERROR in PrimalSubassembledMatrixInverse::apply: Some process could not back solve.\n");
+		return false;
+	}
 
 //	we're done
 	return true;
@@ -1130,14 +1185,23 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	write_debug(t, "FETI_t_Before_Sol");
 
+	bool bSuccess = true;
+
 //	Solve: A u = f
 	if(!m_PrimalSubassembledMatrixInverse.apply(u, f))
 	{
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
-		return false;
+		bSuccess = false;
 	}
 
-	write_debug(u, "FETI_Sol");
+	write_debug(u, "FETI_Sol_Final");
+
+//	check all procs
+	if(!pcl::AllProcsTrue(bSuccess))
+	{
+		UG_LOG("ERROR in FETISolver::apply: Some process could not back solve.\n");
+		return false;
+	}
 
 	return m_pConvCheck->post();
 } /* end 'FETISolver::apply_return_defect()' */
