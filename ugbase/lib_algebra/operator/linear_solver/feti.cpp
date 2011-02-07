@@ -1149,32 +1149,28 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_F(vector_type& f, const vector_type& v)
 {
-	//	Help vector
+//	Help vector
 	vector_type fTmp; fTmp.create(v.size());
-	//	0. Reset values of f, fTmp
-	f.set(0.0); //fTmp.set(0.0);
-	fTmp = f;
-	// not nec. if tmp vector is copied:
-	//fTmp.set_slave_layout(f.get_slave_layout());
-	//fTmp.set_master_layout(f.get_master_layout());
-	//fTmp.set_process_communicator(f.get_process_communicator());
+	fTmp.set_storage_type(PST_CONSISTENT);
 
+//	0. Reset values of f
+	f.set(0.0);
 
-	//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
+//	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
 	ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
-	//  2. Apply PrimalSubassembledMatrixInverse to f
+//  2. Apply PrimalSubassembledMatrixInverse to f
 	m_PrimalSubassembledMatrixInverse.apply(fTmp, f);
 
-	//	3. Apply jump operator to get the final 'f'
+//	3. Apply jump operator to get the final 'f'
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
 
-	//	we're done
+//	we're done
 	return true;
 }
 
