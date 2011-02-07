@@ -18,6 +18,10 @@ namespace ug
 
 ////////////////////////////////////////////////////////////////////////
 ///	The interface entry holds a local id and the type of the entry.
+/** Note that the type is restricted to 4 bytes currently.
+ *
+ *  Note that this is pointed out in the documentation for InterfaceNodeTypes,
+ *  too.*/
 struct DistributionInterfaceEntry
 {
 	DistributionInterfaceEntry() :
@@ -241,6 +245,11 @@ void SelectNodesInLayout(TSelector& sel, TDistributionLayout& layout)
 	for(size_t i = 0; i < nodes.size(); ++i)
 		sel.select(nodes[i]);
 }
+
+
+///	Counts how many entries with the given type are contained in the given interface.
+size_t NumEntriesOfTypeInDistributionInterface(int type,
+			std::vector<DistributionInterfaceEntry>& interface);
 
 ///	checks whether the interconnections between the layouts are consistent.
 template <class TDistLayout>

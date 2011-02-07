@@ -38,7 +38,8 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 						TIterator nodesBegin, TIterator nodesEnd,
 						TAIntAccessor& aaFirstLayout,
 						TAIntAccessor& aaFirstProcLocalInd,
-						int level = 0)
+						int level = 0,
+						int interfacesOnLevelOnly = -1)
 {
 	TNodeLayout& layout = layouts[layoutIndex];
 
@@ -70,10 +71,14 @@ void AddNodesToLayout(std::vector<TNodeLayout>& layouts,
 			layout.node_vec().push_back(node);
 
 		//	access the interfaces
-			typename TNodeLayout::Interface& masterInterface = masterLayout.interface(layoutIndex, level);
-			typename TNodeLayout::Interface& slaveInterface = layout.interface(masterLayoutIndex, level);
-			masterInterface.push_back(typename TNodeLayout::InterfaceEntry(localMasterID, INT_MASTER));
-			slaveInterface.push_back(typename TNodeLayout::InterfaceEntry(localID, INT_SLAVE));
+			if((interfacesOnLevelOnly == -1) ||
+				(interfacesOnLevelOnly == level))
+			{
+				typename TNodeLayout::Interface& masterInterface = masterLayout.interface(layoutIndex, level);
+				typename TNodeLayout::Interface& slaveInterface = layout.interface(masterLayoutIndex, level);
+				masterInterface.push_back(typename TNodeLayout::InterfaceEntry(localMasterID, INT_MASTER));
+				slaveInterface.push_back(typename TNodeLayout::InterfaceEntry(localID, INT_SLAVE));
+			}
 		}
 	}
 }
@@ -183,6 +188,11 @@ void CreateDistributionLayouts(
 		else
 			SelectAssociatedGeometricObjects(msel);
 	*/
+
+		int interfacesOnLevelOnly = -1;
+		if(!distributeGenealogy)
+			interfacesOnLevelOnly = mg.num_levels() - 1;
+
 	//	make sure that we won't add elements twice.
 		msel.deselect(sh.begin<VertexBase>(i), sh.end<VertexBase>(i));
 		msel.deselect(sh.begin<EdgeBase>(i), sh.end<EdgeBase>(i));
@@ -196,16 +206,20 @@ void CreateDistributionLayouts(
 		{
 			AddNodesToLayout(vertexLayoutsOut, i,
 								msel.begin<VertexBase>(level), msel.end<VertexBase>(level),
-								aaFirstProcVRT, aaFirstProcLocalIndVRT, level);
+								aaFirstProcVRT, aaFirstProcLocalIndVRT, level,
+								interfacesOnLevelOnly);
 			AddNodesToLayout(edgeLayoutsOut, i,
 								msel.begin<EdgeBase>(level), msel.end<EdgeBase>(level),
-								aaFirstProcEDGE, aaFirstProcLocalIndEDGE, level);
+								aaFirstProcEDGE, aaFirstProcLocalIndEDGE, level,
+								interfacesOnLevelOnly);
 			AddNodesToLayout(faceLayoutsOut, i,
 								msel.begin<Face>(level), msel.end<Face>(level),
-								aaFirstProcFACE, aaFirstProcLocalIndFACE, level);
+								aaFirstProcFACE, aaFirstProcLocalIndFACE, level,
+								interfacesOnLevelOnly);
 			AddNodesToLayout(volumeLayoutsOut, i,
 								msel.begin<Volume>(level), msel.end<Volume>(level),
-								aaFirstProcVOL, aaFirstProcLocalIndVOL, level);
+								aaFirstProcVOL, aaFirstProcLocalIndVOL, level,
+								interfacesOnLevelOnly);
 		}
 	}
 
@@ -444,29 +458,100 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 //	done. Please note that no attachments have been serialized in this method.
 }
 
+
+size_t NumEntriesOfTypeInDistributionInterface(int type,
+			std::vector<DistributionInterfaceEntry>& interface)
+{
+	size_t counter = 0;
+	for(size_t i = 0; i < interface.size(); ++i){
+		if(interface[i].type == type)
+			++counter;
+	}
+	return counter;
+}
+
 //todo: copy implementation to ..._impl.hpp
 template <class TDistLayout>
 bool TestDistributionLayouts(std::vector<TDistLayout>& distLayouts)
 {
+	bool bSuccess = true;
+
+	UG_LOG("Performing DistributionLayout Tests: ...\n")
 //	first check whether corresponding interfaces exist
 	typedef typename TDistLayout::InterfaceMap 	InterfaceMap;
 	typedef typename TDistLayout::Interface		Interface;
 
-	for(size_t curProcID = 0; curProcID != distLayouts.size(); ++curProcID){
+	for(int curProcID = 0; curProcID < (int)distLayouts.size(); ++curProcID){
 		TDistLayout& curLayout = distLayouts[curProcID];
-
 		for(size_t lvl = 0; lvl < curLayout.num_levels(); ++lvl){
 			InterfaceMap& curMap = curLayout.interface_map(lvl);
 			for(typename InterfaceMap::iterator mapIter = curMap.begin();
 				mapIter != curMap.end(); ++mapIter)
 			{
+			//	we'll only compare with connected processes with a higher rank.
+			//	All others have already been checked.
 				int conProcID = mapIter->first;
-				Interface& curInterface = mapIter->second;
+				if(conProcID < curProcID)
+					continue;
+
+				Interface& curIntf = mapIter->second;
+				TDistLayout& conLayout = distLayouts[conProcID];
+				Interface& conIntf = conLayout.interface(curProcID, lvl);
+
+			//	make sure that both interfaces have the same number of entries.
+				if(curIntf.size() != conIntf.size()){
+					bSuccess = false;
+					UG_LOG("  WARNING: Sizes do not match between interfaces of procs "
+							<< curProcID << " and " << conProcID << "on level " << lvl << endl);
+				}
+
+			//	make sure that the different interfaces match each other in size
+				size_t numCurMasters = NumEntriesOfTypeInDistributionInterface(
+															INT_MASTER, curIntf);
+				size_t numCurSlaves = NumEntriesOfTypeInDistributionInterface(
+															INT_SLAVE, curIntf);
+				size_t numConMasters = NumEntriesOfTypeInDistributionInterface(
+															INT_MASTER, conIntf);
+				size_t numConSlaves = NumEntriesOfTypeInDistributionInterface(
+															INT_SLAVE, conIntf);
+
+				size_t numCurVrtMasters = NumEntriesOfTypeInDistributionInterface(
+													INT_VERTICAL_MASTER, curIntf);
+				size_t numCurVrtSlaves = NumEntriesOfTypeInDistributionInterface(
+													INT_VERTICAL_SLAVE, curIntf);
+				size_t numConVrtMasters = NumEntriesOfTypeInDistributionInterface(
+													INT_VERTICAL_MASTER, conIntf);
+				size_t numConVrtSlaves = NumEntriesOfTypeInDistributionInterface(
+													INT_VERTICAL_SLAVE, conIntf);
+
+				if(numCurMasters != numConSlaves){
+					UG_LOG("  Master -> Slave Interface mismatch on level " << lvl << ":\n");
+					UG_LOG("\t" << numCurMasters << " masters on process " << curProcID << endl);
+					UG_LOG("\t" << numConSlaves << " slaves on process " << conProcID << endl);
+				}
+
+				if(numCurSlaves != numConMasters){
+					UG_LOG("  Slave -> Master Interface mismatch on level " << lvl << ":\n");
+					UG_LOG("\t" << numCurSlaves << " slaves on process " << curProcID << endl);
+					UG_LOG("\t" << numConMasters << " masters on process " << conProcID << endl);
+				}
+
+				if(numCurVrtMasters != numConVrtSlaves){
+					UG_LOG("  VerticalMaster -> VerticalSlave Interface mismatch on level " << lvl << ":\n");
+					UG_LOG("\t" << numCurVrtMasters << " vertical masters on process " << curProcID << endl);
+					UG_LOG("\t" << numConVrtSlaves << " vertical slaves on process " << conProcID << endl);
+				}
+
+				if(numCurVrtSlaves != numConVrtMasters){
+					UG_LOG("  VerticalSlave -> VerticalMaster Interface mismatch on level " << lvl << ":\n");
+					UG_LOG("\t" << numCurVrtSlaves << " vertical slaves on process " << curProcID << endl);
+					UG_LOG("\t" << numConVrtMasters << " vertical masters on process " << conProcID << endl);
+				}
 			}
 		}
 	}
-
-	return true;
+	UG_LOG("  ... done\n");
+	return bSuccess;
 }
 
 

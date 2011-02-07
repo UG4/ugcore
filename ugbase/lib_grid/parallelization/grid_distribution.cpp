@@ -205,6 +205,20 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
 							  false, &msel);
+/*
+	UG_LOG("Testing Vertex Distribution Layouts:\n");
+	if(!TestDistributionLayouts(vVertexLayouts))
+		return false;
+	UG_LOG("Testing Edge Distribution Layouts:\n");
+	if(!TestDistributionLayouts(vEdgeLayouts))
+		return false;
+	UG_LOG("Testing Face Distribution Layouts:\n");
+	if(!TestDistributionLayouts(vFaceLayouts))
+		return false;
+	UG_LOG("Testing Volume Distribution Layouts:\n");
+	if(!TestDistributionLayouts(vVolumeLayouts))
+		return false;
+*/
 
 //	we will now fill a binary stream with all the grids.
 //	this stream will receive all the data that is to be sent to other processes.

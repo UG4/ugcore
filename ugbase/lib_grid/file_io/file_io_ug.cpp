@@ -867,18 +867,7 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 					if(vFaces.size() < 1)
 						continue;
 					
-					int subLeft = psh->get_subset_index(vFaces[0]) + 1;
-					int subRight = 0;
-					if(vFaces.size() > 1)
-						subRight = psh->get_subset_index(vFaces[1]) + 1;
-					
-					if(!FaceIsOnRightSide(vFaces[0], firstEdge))
-						swap(subLeft, subRight);
-							
-					out << "line " << numLines << ": left="<< subLeft
-						<< "; right=" << subRight << "; points:";
-							
-				//	now we have to follow the polygonal chain in subset i.
+				//	we have to follow the polygonal chain in subset i.
 				//	We assume that the chain is regular
 				//	create a callback for this subset, since we use it several times
 					IsInSubset cbIsInSubset(*psh, i);
@@ -887,6 +876,23 @@ bool ExportGridToUG_2D(Grid& grid, const char* fileName, const char* lgmName,
 													psh->end<EdgeBase>(i),
 													cbIsInSubset);
 
+				//	we now have to check which subset lies on which side of the line
+					int subLeft = psh->get_subset_index(vFaces[0]) + 1;
+					int subRight = 0;
+					if(vFaces.size() > 1)
+						subRight = psh->get_subset_index(vFaces[1]) + 1;
+					
+					if(!FaceIsOnRightSide(vFaces[0], firstEdge))
+						swap(subLeft, subRight);
+
+				//	since the edge and the first line segment can be flipped,
+				//	we eventually have to swap again
+					if(curSec.first != firstEdge->vertex(0))
+						swap(subLeft, subRight);
+
+					out << "line " << numLines << ": left="<< subLeft
+						<< "; right=" << subRight << "; points:";
+							
 					size_t numEdgesInLine = 0;
 					lines.push_back(vector<VertexBase*>());
 					vector<VertexBase*>& curLine = lines.back();

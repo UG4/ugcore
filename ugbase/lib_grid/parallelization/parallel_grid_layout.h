@@ -60,6 +60,9 @@ namespace ug
  *	between nodes on different levels of a grid. They are used to
  *	communicate data between parents and children. They are only used
  *	for multigrids.
+ *
+ *	Note that the type parameter in DistributionInterfaceEntry is currently
+ *	restricted to 4 bytes only!
  */
 enum InterfaceNodeTypes
 {
