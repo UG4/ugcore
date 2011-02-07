@@ -694,57 +694,29 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 
 //	5. Broadcast \f$u_{\Pi}\f$ to all Procs. \f$u_{\Pi}\f$ is consistently saved.
-	vector_type uTmp; uTmp.create(f.size());
-	VecBroadcast(&uTmp, &rootU, m_slaveAllToOneLayout, m_masterAllToOneLayout);
+	u.set(0.0);
+	VecBroadcast(&u, &rootU, m_slaveAllToOneLayout, m_masterAllToOneLayout);
 
-	// Assumption: uTmp contains [0, 0, u_{\Pi}]^T
-	//vector_type uTmp; uTmp.create(f.size()); // den Hilfsvektor kann man sich vermutlich sparen ...
-	// TODO: uTmp = ...
-	// TODO: handle correctly
-	//uTmp.set(0.0);
+//	6. Compute other values of solution, keeping values in Primal fixed
 
-//	6. Compute (via backward substitution)
-	// \f$\hat{f}_{\{I \Delta\}}\f$ = *urspruengliches* f_{\{I \Delta\}} - Neumann-Matrix * [0, u_{\Pi}]^T
-	m_pFetiLayouts->vec_use_inner_communication(hTmp);
-	hTmp.set_storage_type(PST_ADDITIVE);
-	m_pFetiLayouts->vec_use_inner_communication(uTmp);
-	uTmp.set_storage_type(PST_CONSISTENT);
-	if(!m_NeumannOperator.apply(hTmp, uTmp))
-	{
-		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
-						 "Could not apply full matrix (step 6) on "
-						 "Proc " << pcl::GetProcRank() << ".\n");
-		return false;
-	}
-
-	write_debug(hTmp, "SCI_hTmp_6");
-
-	VecScaleAdd(fTmp, 1.0, f, -1, hTmp);
-	m_pFetiLayouts->vec_set_on_primal(fTmp, 0.0);
+	// (a) copy rhs and set dirichlet values on primal
+	fTmp = f;
+	m_pFetiLayouts->vec_scaled_copy_on_primal(fTmp, u, 1.0);
 
 	write_debug(fTmp, "SCI_fTmp_6");
  
-//	7. Solve for \f$u_{\{I \Delta\}}^{(p)}\f$
+	// (b) invert neumann problem, with dirichlet values on primal
 	m_pFetiLayouts->vec_use_inner_communication(fTmp);
 	fTmp.set_storage_type(PST_ADDITIVE);
-	m_pFetiLayouts->vec_use_inner_communication(uTmp);
-	uTmp.set_storage_type(PST_CONSISTENT);
-	if(!m_pNeumannSolver->apply_return_defect(uTmp, fTmp)) // solve with Neumann matrix!
+	m_pFetiLayouts->vec_use_inner_communication(u);
+	u.set_storage_type(PST_CONSISTENT);
+	if(!m_pNeumannSolver->apply_return_defect(u, fTmp)) // solve with Neumann matrix!
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << ".\n");
 		return false;
 	}
-
-	write_debug(uTmp, "SCI_uTmp_7");
-
-//	ATTENTION: we skip this here, callers of this method must cancel values
-//				if they need it. Otherwise we could not "backsolve"
-//	8. Set values to zero on I and Pi - by excluding Delta
-//	u.set(0.0);
-//	m_pFetiLayouts->vec_scale_append_on_dual(u, uTmp, 1.0);
-	u = uTmp;
 
 	write_debug(u, "SCI_u_8");
 

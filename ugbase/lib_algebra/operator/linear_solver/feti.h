@@ -194,16 +194,28 @@ class FetiLayouts
 			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterPrimalLayout);
 		}
 
-		void vec_set_on_dual(vector_type& vecSrc, number alpha)
+		void vec_set_on_dual(vector_type& vecDest, number alpha)
 		{
-			VecSetOnLayout(&vecSrc, alpha, m_slaveDualLayout);
-			VecSetOnLayout(&vecSrc, alpha, m_masterDualLayout);
+			VecSetOnLayout(&vecDest, alpha, m_slaveDualLayout);
+			VecSetOnLayout(&vecDest, alpha, m_masterDualLayout);
 		}
 
-		void vec_set_on_primal(vector_type& vecSrc, number alpha)
+		void vec_set_on_primal(vector_type& vecDest, number alpha)
 		{
-			VecSetOnLayout(&vecSrc, alpha, m_slavePrimalLayout);
-			VecSetOnLayout(&vecSrc, alpha, m_masterPrimalLayout);
+			VecSetOnLayout(&vecDest, alpha, m_slavePrimalLayout);
+			VecSetOnLayout(&vecDest, alpha, m_masterPrimalLayout);
+		}
+
+		void vec_scaled_copy_on_dual(vector_type& vecDest, const vector_type& vecSrc, number alpha)
+		{
+			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_slaveDualLayout);
+			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_masterDualLayout);
+		}
+
+		void vec_scaled_copy_on_primal(vector_type& vecDest, const vector_type& vecSrc, number alpha)
+		{
+			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_slavePrimalLayout);
+			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_masterPrimalLayout);
 		}
 
 		number vec_prod_on_dual(const vector_type& vecSrc1, const vector_type& vecSrc2)
