@@ -616,7 +616,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	hTmp = f;
 
 	// (b) Reset values on Pi
-	m_pFetiLayouts->vec_set_on_primal(fTmp, 0.0);
+	m_pFetiLayouts->vec_set_on_primal(hTmp, 0.0);
 
 //	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
 	write_debug(f,    "SCI_f_2aBeforeNeumann");
@@ -627,6 +627,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 	hTmp.set_storage_type(PST_ADDITIVE);
 	m_pFetiLayouts->vec_use_inner_communication(fTmp);
 	fTmp.set_storage_type(PST_CONSISTENT);
+
+	// start value
+	fTmp.set(0.0);
 
 	// (a) invoke Neumann solver to get \f$h_{\{I \Delta\}}^{(p)}\f$
 	if(!m_pNeumannSolver->apply_return_defect(fTmp, hTmp))
