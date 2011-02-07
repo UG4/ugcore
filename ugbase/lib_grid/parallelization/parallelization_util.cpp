@@ -374,7 +374,7 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 		VertexLayout& masterLayout = glmOut.get_layout<VertexBase>(INT_VIRTUAL_MASTER);
 		VertexLayout& slaveLayout = glmOut.get_layout<VertexBase>(INT_VIRTUAL_SLAVE);
 		for(size_t i = 0; i < mgOut.num_levels(); ++i){
-			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			UG_LOG("Testing VerticalVertexLayout on level " << i << ":" << endl);
 			pcl::TestLayout(com, masterLayout.layout_on_level(i),
 					slaveLayout.layout_on_level(i), true);
 		}

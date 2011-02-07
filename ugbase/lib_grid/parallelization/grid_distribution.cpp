@@ -499,7 +499,9 @@ bailout_false:
  *	It is absolutly crucial, that all elements have been created
  *	in the same order as they were received through the in-stream
  *	in ReceiveInitialGrid. Especially auto-create options can be
- *	problematic here. Make sure to avoid auto-element-creation.*/
+ *	problematic here. Make sure to avoid auto-element-creation.
+ *	This method currently requires a non-adaptive grid (Only as long
+ *	as there are dummy-parents).*/
 template <class TGeomObj>
 static void AddVerticalSlaveInterfaces(GridLayoutMap& layoutMapOut,
 									   MultiGrid& mg,
@@ -511,8 +513,14 @@ static void AddVerticalSlaveInterfaces(GridLayoutMap& layoutMapOut,
 	typedef typename TLayout::Interface					TInterface;
 	typedef typename geometry_traits<TGeomObj>::iterator	ObjIter;
 
-//	iterate over the levels of the multi-grid
-	for(size_t level = 0; level < mg.num_levels(); ++level){
+//todo:	iterate over all levels of the multi-grid
+//	iterate over the toplevel of the multigrid only.
+//	This is required since we're using dummy-parents (THROW THEM OUT!).
+	if(mg.num_levels() == 0)
+		return;
+
+	//for(size_t level = 0; level < mg.num_levels(); ++level){
+	for(size_t level = mg.num_levels() - 1; level < mg.num_levels(); ++level){
 	//	if there are no nodes in this level, we can return immediatly
 		if(mg.num<TGeomObj>(level) == 0)
 			break;
@@ -587,7 +595,11 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 											binaryStream))
 			return false;
 	}
-
+/*
+	if(pcl::IsOutputProc())
+		SaveGridToFile(mgOut, "tmpOutProcHierarchy.ugx",
+						mgOut.get_hierarchy_handler());
+*/
 //TODO:	allow the user to read his data.
 
 	return true;
