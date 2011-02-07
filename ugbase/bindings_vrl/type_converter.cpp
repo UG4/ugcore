@@ -127,7 +127,7 @@ void generateMethodHeader(
 			paramArrayForInvocation << ", ";
 		}
 		methodHeaderParams << " VisualIDRequest id ";
-//		paramArrayForInvocation << " id";
+		//		paramArrayForInvocation << " id";
 	}
 
 	bool readOnly = false;
@@ -165,8 +165,13 @@ void generateMethodHeader(
 		result << "@MethodInfo(noGUI=true)\n";
 	}
 
+	// Methods start with lowercase. For functions we need to ensure that.
+	// Otherwise we get name conflicts with constructors.
+	std::string methodName = std::string(name);
+	methodName[0] = tolower(methodName[0]);
+
 	// putting it all together
-	result << "public " << outType << " " << prefix << name << " ("
+	result << "public " << outType << " " << prefix << methodName << " ("
 			<< methodHeaderParams.str() << ") {\n"
 			<< "Object[] params = ["
 			<< paramArrayForInvocation.str() << "] \n";
@@ -190,11 +195,16 @@ std::string exportedFunction2Groovy(
 
 	std::string group = func.group();
 
+	// Class names start with uppercase. For functions we need to ensure that.
+	// Otherwise we get name conflicts with methods.
+	std::string className = std::string(func.name());
+	className[0] = toupper(className[0]);
+
 	// create component info that specifies the menu group this
 	// function shall be added to
 	result << "@ComponentInfo(name=\"" << func.name()
 			<< "\", category=\"" << group << "\", allowRemoval=false)\n"
-			<< "public class F" << func.name()
+			<< "public class " << className
 			<< " implements Serializable {\n"
 			<< "private static final long serialVersionUID=1L;\n";
 
@@ -267,8 +277,12 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 		ug::bridge::IExportedClass const& clazz) {
 	std::stringstream result;
 
-	std::string className = /*"UG4_" + */ std::string(clazz.name());
 	std::string group = clazz.group();
+
+	// Class names start with uppercase. For functions we need to ensure that.
+	// Otherwise we get name conflicts with methods.
+	std::string className = /*"UG4_" + */ std::string(clazz.name());
+	className[0] = toupper(className[0]);
 
 	// create component info that specifies the menu group this
 	// class shall be added to
@@ -455,9 +469,9 @@ std::string createParamInfo(const char* paramName, const char* className,
 	std::string paramInfoString = paramInfoStream.str();
 
 	// We do not support invokeOnChange anymore!
-	paramInfoString = replaceAll(paramInfoString,"invokeOnChange=true","");
-	paramInfoString = replaceAll(paramInfoString,";invokeOnChange=true","");
-	paramInfoString = replaceAll(paramInfoString,"invokeOnChange=true;","");
+	paramInfoString = replaceAll(paramInfoString, "invokeOnChange=true", "");
+	paramInfoString = replaceAll(paramInfoString, ";invokeOnChange=true", "");
+	paramInfoString = replaceAll(paramInfoString, "invokeOnChange=true;", "");
 
 	return paramInfoString;
 }
