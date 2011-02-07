@@ -486,7 +486,7 @@ class LocalSchurComplement
  * \f${\tilde{S}_{\Delta \Delta}}^{-1}\f$.
  */
 template <typename TAlgebra>
-class SchurComplementInverse
+class PrimalSubassembledMatrixInverse
 	: public ILinearOperatorInverse<	typename TAlgebra::vector_type,
 	  	  	  	  	  	  	  			typename TAlgebra::vector_type>
 {
@@ -502,7 +502,7 @@ class SchurComplementInverse
 
 	public:
 	///	constructor
-		SchurComplementInverse();
+		PrimalSubassembledMatrixInverse();
 
 	///	name of class
 		virtual const char* name() const {return "Schur Complement Inverse";}
@@ -562,7 +562,7 @@ class SchurComplementInverse
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	//  destructor
-		virtual ~SchurComplementInverse() {};
+		virtual ~PrimalSubassembledMatrixInverse() {};
 
 	protected:
 		bool write_debug(const vector_type& vec, const char* filename)
@@ -576,7 +576,7 @@ class SchurComplementInverse
 
 	protected:
 	// 	Operator that is inverted by this Inverse Operator ==> from which SC is built (05022011)
-		IMatrixOperator<vector_type,vector_type,matrix_type>* m_A;
+		IMatrixOperator<vector_type,vector_type,matrix_type>* m_pOperator;
 
 	// 	Parallel Matrix to invert ==> from which SC is built (05022011)
 		matrix_type* m_pMatrix;
@@ -615,7 +615,7 @@ class SchurComplementInverse
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
-}; /* end class 'SchurComplementInverse' */
+}; /* end class 'PrimalSubassembledMatrixInverse' */
 
 /// operator implementation of the FETI-DP solver
 /**
@@ -688,7 +688,7 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 		{
 			m_pDebugWriter = debugWriter;
 			m_LocalSchurComplement.set_debug(m_pDebugWriter);
-			m_SchurComplementInverse.set_debug(m_pDebugWriter);
+			m_PrimalSubassembledMatrixInverse.set_debug(m_pDebugWriter);
 		}
 
 	///	initializes the solver for operator A
@@ -815,11 +815,11 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Dirichlet solver for inverse of \f$A_{II}\f$ in local Schur complement
 		ILinearOperatorInverse<vector_type, vector_type>* m_pDirichletSolver;
 
-	//	SchurComplementInverse
-		SchurComplementInverse<algebra_type> m_SchurComplementInverse;
+	//	PrimalSubassembledMatrixInverse
+		PrimalSubassembledMatrixInverse<algebra_type> m_PrimalSubassembledMatrixInverse;
 
 	//	Neumann solver for inverse of \f$A_{\{I,\Delta\}, \{I,\Delta\}}\f$ in the
-	//	creation of the S_{\Pi \Pi} Schur complement in SchurComplementInverse
+	//	creation of the S_{\Pi \Pi} Schur complement in PrimalSubassembledMatrixInverse
 		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
 
 	//	Copy of matrix used in computation of \f$\tilde{f}_{\Delta}\f$

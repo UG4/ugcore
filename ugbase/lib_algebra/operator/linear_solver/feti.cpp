@@ -161,9 +161,10 @@ apply(vector_type& f, const vector_type& u)
 
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
 	// (a) use the inner-FETI-block layouts
-	//uTmp.use_layout(0);
-	//f.use_layout(0);
-	//m_pDirichletMatrix->use_layout(0);
+	m_pFetiLayouts->vec_use_inner_communication(f);
+	f.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(uTmp);
+	uTmp.set_storage_type(PST_CONSISTENT);
 
 	// (b) invoke Dirichlet solver
 	if(!m_pDirichletSolver->apply_return_defect(uTmp, f))
@@ -218,11 +219,11 @@ apply_sub(vector_type& f, const vector_type& u)
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-//	SchurComplementInverse implementation
+//	PrimalSubassembledMatrixInverse implementation
 template <typename TAlgebra>
-SchurComplementInverse<TAlgebra>::
-SchurComplementInverse() :
-	m_A(NULL),
+PrimalSubassembledMatrixInverse<TAlgebra>::
+PrimalSubassembledMatrixInverse() :
+	m_pOperator(NULL),
 	m_pMatrix(NULL),
 	m_pFetiLayouts(NULL),
 	m_pNeumannMatrix(NULL),
@@ -236,19 +237,19 @@ SchurComplementInverse() :
 }
 
 template <typename TAlgebra>
-bool SchurComplementInverse<TAlgebra>::
+bool PrimalSubassembledMatrixInverse<TAlgebra>::
 init(ILinearOperator<vector_type, vector_type>& L)
 {
 //	success flag
 	bool bSuccess = true;
 
 //	remember operator
-	m_A = dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
+	m_pOperator = dynamic_cast<IMatrixOperator<vector_type, vector_type, matrix_type>*>(&L);
 
 //	check, that operator is correct
-	if(m_A == NULL)
+	if(m_pOperator == NULL)
 	{
-		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 				" Wrong type of operator passed for init.\n");
 		bSuccess = false;
 	}
@@ -256,7 +257,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	check that Pi layouts have been set
 	if(m_pFetiLayouts == NULL)
 	{
-		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 				" Feti Layouts not set "
 				"on Proc " << pcl::GetProcRank() << ".\n");
 		bSuccess = false;
@@ -265,13 +266,13 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	Check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
 	{
-		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::init':"
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 				" Some proc could not init Schur Complement inverse.\n");
 		return false;
 	}
 
 //	save matrix from which we build the Schur complement
-	m_pMatrix = &m_A->get_matrix();
+	m_pMatrix = &m_pOperator->get_matrix();
 
 //	get matrix from Neumann operator
 	m_pNeumannMatrix = &m_NeumannOperator.get_matrix();
@@ -286,7 +287,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	if(m_pNeumannSolver != NULL)
 		if(!m_pNeumannSolver->init(m_NeumannOperator))
 		{
-			UG_LOG("ERROR in 'SchurComplementInverse::init': Cannot init "
+			UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': Cannot init "
 					"Sequential Neumann Solver for Operator A.\n");
 			return false;
 		}
@@ -303,7 +304,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_primalRootProc = 0;//pcl::GetOutputProcRank();
 
 //	vector to store newly created root ids
-//	please note that rootIDs may only be indexed with the agebra-index
+//	please note that rootIDs may only be indexed with the algebra-index
 //	of primal nodes. Content is not defined for other entries.
 	std::vector<int> rootIDs;
 
@@ -359,46 +360,43 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	}
 	UG_LOG(std::endl);
 
-//	build matrix on primalRoot
-	if(pcl::GetProcRank() == m_primalRootProc)
-	{
-	//	get matrix
-		m_pRootSchurComplementMatrix = &m_RootSchurComplementOp.get_matrix();
-
-	//	create matrix of correct size
-		m_pRootSchurComplementMatrix->create(newVecSize, newVecSize);
-
-		std::cout << "On PrimalRoot: Creating proc local Schur Complement"
-					" of size " << newVecSize <<"x"<<newVecSize << std::endl;
-	}
-
-//	\todo: Compute matrix
 //	processes will collect their local primal connections here.
 	typedef PrimalConnection<typename vector_type::value_type> PrimalConnection;
 	vector<PrimalConnection> localPrimalConnections;
 
-	vector_type e;  e.resize(m_pMatrix->num_rows());
-	// set layouts and communicators for first help vectors (and duplicate this
-	// by copying, instead of setting it over and over again for the other help vectors)
-	m_pFetiLayouts->vec_use_std_communication(e); // TODO: correct communication??
-	e.set(0.0);
+//	create help vectors
+	vector_type e; e.resize(m_pMatrix->num_rows());
+	vector_type h1; h1.resize(m_pMatrix->num_rows());
+	vector_type h2; h2.resize(m_pMatrix->num_rows());
 
-	vector_type e2; e2.resize(m_pMatrix->num_rows()); e2 = e;
-	vector_type e3; e3.resize(m_pMatrix->num_rows()); e3 = e;
-	vector_type e4; e4.resize(m_pMatrix->num_rows()); e4 = e;
-	vector_type e5; e5.resize(m_pMatrix->num_rows()); e5 = e;
-	vector_type e6; e6.resize(m_pMatrix->num_rows()); e6 = e;
+//	set communication to inner subdomain comm.
+	m_pFetiLayouts->vec_use_inner_communication(e);
+	m_pFetiLayouts->vec_use_inner_communication(h1);
+	m_pFetiLayouts->vec_use_inner_communication(h2);
 
+//	Now within each feti subdomain, the primal unknowns are loop one after the
+//	other. This is done like the following: Each process loops the number of
+//	procs of the feti subdomain, and then for each subdomain the number of
+//	primal unknowns (as stored in vPrimalQuantities) on this subdomain. That way
+//	for every primal unknown on the feti subdomain, we can set its value to 1
+//	while all the other values are zero. This gives us the unity vector. For
+//	this unity vector an application of S_{Pi Pi} is computed such that we can
+//	read then the values of (S_{Pi Pi})_{ij} in the i-th component of the result
+//	vector. All those couplings are stored in the vector of connections called
+//	localPrimalConnections and sent to the primalRootProc at the end of the
+//	loop.
 	size_t primalCounter = 0;
 	for(size_t procInFetiBlock = 0; procInFetiBlock < localFetiBlockComm.size();
 			procInFetiBlock++)
 	{
 		for(size_t pqi = 0; pqi < (size_t)vPrimalQuantities[procInFetiBlock]; ++pqi)
 		{
+		////////////////////////////
 		// 	1. Create unity vector
-		//////////////////////////
+		////////////////////////////
 
-			int connectedRootID = vPrimalRootIDs[primalCounter++];
+		//	remember the matrix id on root, of the primal unknown, that is set to one
+			int unityRootID = vPrimalRootIDs[primalCounter++];
 
 		//	reset identity vector to zero for all Primal unknowns
 			e.set(0.0);
@@ -411,78 +409,77 @@ init(ILinearOperator<vector_type, vector_type>& L)
 				e[localPrimalIndex] = 1.0;
 			}
 
-
-
-		//	at this point the vector e has been set to an identity vector
-
+		//////////////////////////
 		// 	2. Apply first matrix
 		//////////////////////////
-		//	build e2 = A_{\{I \Delta\} \Pi} e
-			m_A->apply(e2, e);
+		//	build h1 = A_{\{I \Delta\} \Pi} e
+			m_pOperator->apply(h1, e);
 
-
+		////////////////////////////////////////////
 		//	3. solve I,\Delta subsystem problem by:
-		//////////////////////////
-		//	Solve: A_{\{I \Delta\}  \{I \Delta\} } e3 = e2
+		////////////////////////////////////////////
+		//	Solve: A_{\{I \Delta\}  \{I \Delta\} } h2 = h1
 
 		//	(a1) Set zero dirichlet bnd conds for e_2_{\Pi}
-			m_pFetiLayouts->vec_set_on_primal(e2, 0.0);
+			m_pFetiLayouts->vec_set_on_primal(h1, 0.0);
 
 		//	(a2) Start with zero iterate (not obligatory)
-			e3.set(0.0);
+			h2.set(0.0);
 
 		//	(b) Solve dirichlet problem
-			if(!m_pNeumannSolver->apply(e3, e2))
+			if(!m_pNeumannSolver->apply(h2, h1))
 			{
-				UG_LOG("ERROR in SchurComplementInverse::init: Could not solve"
+				UG_LOG("ERROR in PrimalSubassembledMatrixInverse::init: Could not solve"
 						" local problem to compute Schur complement"
 						" w.r.t. primal unknowns.\n");
 				return false;
 			}
 
+		//////////////////////////
 		// 	4. Apply third matrix
 		//////////////////////////
 
-		//	(a) Set e3 zero on \Pi. This is enforced by neumann solver
+		//	(a) Set h2 zero on \Pi. This is enforced by neumann solver
 
-		//	(b) apply matrix: e4 = A e3
-			m_A->apply(e4, e3);
+		//	(b) apply matrix: h1 = A h2
+			m_pOperator->apply(h1, h2);
 
 		//	(c) set entries to zero on I, \Delta (not needed, therefore skipped)
 
+		///////////////////////////
 		// 	5. Compute first term
 		///////////////////////////
 
 		//	(a) multiply unity vector with matrix
-			m_A->apply(e5, e);
+			m_pOperator->apply(h2, e);
 
 		//	(b) reset values to zero on I, \Delta (not needed, therefore skipped)
 
+		///////////////////////////
 		// 	6. Add values
 		///////////////////////////
 
-		//	e6 = e5 - e4
-			m_pFetiLayouts->vec_scale_add_on_primal(e6, 1.0, e5, -1.0, e4);
+		//	e = h2 - h1
+			m_pFetiLayouts->vec_scale_add_on_primal(e, 1.0, h2, -1.0, h1);
 
 
 		// 	at this point, we have the contribution of S_ij^{p} in all primal
 		//	unknowns i. Thus, we have to read it and send it to the root process
-
-
-			// \todo: compute connectedRootID, i.e. root id of primal variable
-			//			that has been set to one above
 
 		//	loop process local primal unknowns
 			for(size_t pqj = 0; pqj < vlocalPrimalIndex.size(); ++pqj)
 			{
 				const IndexLayout::Element localPrimalIndex = vlocalPrimalIndex[pqj];
 
-				typename vector_type::value_type& entry = e6[localPrimalIndex];
+			//	read coupling
+				typename vector_type::value_type& entry = e[localPrimalIndex];
 
+			//	read root index
 				int primalRootID = rootIDs[localPrimalIndex];
 
-				localPrimalConnections.push_back(PrimalConnection(connectedRootID,
-															primalRootID, entry));
+			//  remember coupling
+				localPrimalConnections.push_back(PrimalConnection(primalRootID,
+				                                                  unityRootID, entry));
 			}
 		}
 	}
@@ -494,41 +491,88 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	pcl::ProcessCommunicator commWorld;
 	commWorld.gatherv(vPrimalConnections, localPrimalConnections, m_primalRootProc);
 
-//	log vPrimalConnections
-	UG_LOG("primal connections:\n");
-	for(size_t i = 0; i < vPrimalConnections.size(); ++i){
-		PrimalConnection& pc = vPrimalConnections[i];
-		UG_LOG("  ind1: " << pc.ind1 << "    ind2: " << pc.ind2 << "    value: " << pc.value << endl)
-	}
-	UG_LOG("endl");
+//	build matrix on primalRoot
+	if(pcl::GetProcRank() == m_primalRootProc)
+	{
+	//	get matrix
+		m_pRootSchurComplementMatrix = &m_RootSchurComplementOp.get_matrix();
 
-// TODO: Hier muss die Schurkomplement-Matrix - m_pRootSchurComplementMatrix _ noch befuellt werden!?
-
-// \todo: Remove, but currently here until invert is fully implemented
-	return true;
-
-//	init sequential solver for coarse problem
-	if(m_pCoarseProblemSolver != NULL)
-		if(!m_pCoarseProblemSolver->init(m_RootSchurComplementOp))
+	//	check matrix
+		if(m_pRootSchurComplementMatrix == NULL)
 		{
-			UG_LOG("ERROR in 'SchurComplementInverse::init': Cannot init "
-					"coarse problem Solver for Operator S_{Pi Pi}.\n");
+			UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': No matrix in"
+					"Root Schur Complement Operator.\n");
 			return false;
 		}
 
+	//	reference for convinience
+		matrix_type& mat = *m_pRootSchurComplementMatrix;
+
+	//	create matrix of correct size
+		mat.resize(newVecSize, newVecSize);
+
+	//	info output
+		std::cout << "On PrimalRoot: Creating proc local Schur Complement"
+					" of size " << newVecSize <<"x"<<newVecSize << std::endl;
+
+	//	copy received values into matrix
+		mat.set(0.0);
+		std::cout << "Writing primal connections:" << std::endl;
+		for(size_t i = 0; i < vPrimalConnections.size(); ++i)
+		{
+		//	get sent connection
+			PrimalConnection& pc = vPrimalConnections[i];
+			std::cout << "  ind1: " << pc.ind1 << "    ind2: " << pc.ind2 << "    value: " << pc.value << std::endl;
+
+		//	get corresponding block
+			typename matrix_type::value_type& block = mat(pc.ind1, pc.ind2);
+
+		//	loop block components
+			for(size_t beta = 0; beta < (size_t) GetCols(block); ++beta)
+			{
+				BlockRef(block, beta, beta) += BlockRef(pc.value, beta);
+			}
+		}
+
+	//	init sequential solver for coarse problem
+		if(newVecSize > 0)
+			if(m_pCoarseProblemSolver != NULL)
+			{
+				if(!m_pCoarseProblemSolver->init(m_RootSchurComplementOp))
+				{
+					UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': Cannot init "
+							"coarse problem Solver for Operator S_{Pi Pi}.\n");
+					return false;
+				}
+			}
+			else
+			{
+				UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': S_{Pi Pi is} "
+						" needs to be inverted, but no CoarseSolver given.\n");
+				return false;
+			}
+
+	//	Debug output of matrix
+		if(m_pDebugWriter != NULL)
+		{
+			m_pDebugWriter->write_matrix(m_RootSchurComplementOp.get_matrix(),
+										 "RootSchurComplementMatrix");
+		}
+	}
 
 //	we're done
 	return true;
-} /* end 'SchurComplementInverse::init()' */
+}
+/* end 'PrimalSubassembledMatrixInverse::init()' */
 
 template <typename TAlgebra>
-bool SchurComplementInverse<TAlgebra>::
+bool PrimalSubassembledMatrixInverse<TAlgebra>::
 apply_return_defect(vector_type& u, vector_type& f)
 {
 //	check that matrix has been set
 	if(m_pNeumannMatrix == NULL)
 	{
-		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+		UG_LOG("ERROR: In 'PrimalSubassembledMatrixInverse::apply': "
 						"Matrix A not set.\n");
 		return false;
 	}
@@ -536,7 +580,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	check Neumann solver
 	if(m_pNeumannSolver == NULL)
 	{
-		UG_LOG("ERROR: In 'SchurComplementInverse::apply':"
+		UG_LOG("ERROR: In 'PrimalSubassembledMatrixInverse::apply':"
 						" No sequential Neumann Solver set.\n");
 		return false;
 	}
@@ -544,7 +588,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	Check parallel storage type of matrix
 	if(!m_pNeumannMatrix->has_storage_type(PST_ADDITIVE))
 	{
-		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+		UG_LOG("ERROR: In 'PrimalSubassembledMatrixInverse::apply': "
 						"Inadequate storage format of matrix.\n");
 		return false;
 	}
@@ -552,13 +596,13 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	Check parallel storage type of vectors
 	if (!u.has_storage_type(PST_CONSISTENT))
 	{
-		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+		UG_LOG("ERROR: In 'PrimalSubassembledMatrixInverse::apply': "
 						"Inadequate storage format of Vector 'u' (should be consistent).\n");
 		return false;
 	}
 	if(!f.has_storage_type(PST_ADDITIVE))
 	{
-		UG_LOG("ERROR: In 'SchurComplementInverse::apply': "
+		UG_LOG("ERROR: In 'PrimalSubassembledMatrixInverse::apply': "
 						"Inadequate storage format of Vector 'f' (should be additive).\n");
 		return false;
 	}
@@ -567,64 +611,69 @@ apply_return_defect(vector_type& u, vector_type& f)
 	vector_type fTmp; fTmp.create(f.size());
 	vector_type hTmp; hTmp.create(u.size());
 
-//	1. Set values of rhs to zero on I and Pi
-	// (a) Reset all values - but not of original f, we need it later!
-	fTmp.set(0.0);
+//	1. Set values of rhs to zero on Pi
+	// (a) Copy values
+	hTmp = f;
 
-	write_debug(f, "SCI_f_1BeforeNeumann");
-
-	// (b) Copy values on \Delta
-	m_pFetiLayouts->vec_scale_append_on_dual(fTmp, f, 1.0);
+	// (b) Reset values on Pi
+	m_pFetiLayouts->vec_set_on_primal(fTmp, 0.0);
 
 //	2. Compute \f$\tilde{f}_{\Pi}^{(p)}\f$ by computing \f$h_{\{I \Delta\}}^{(p)}\f$:
 	write_debug(f,    "SCI_f_2aBeforeNeumann");
-	write_debug(fTmp, "SCI_fTmp_2aBeforeNeumann");
 	write_debug(hTmp, "SCI_hTmp_2aBeforeNeumann");
 
 	// use inner interfaces for solving
-	m_pFetiLayouts->vec_use_inner_communication(fTmp);
-	fTmp.set_storage_type(PST_ADDITIVE);
 	m_pFetiLayouts->vec_use_inner_communication(hTmp);
-	hTmp.set_storage_type(PST_CONSISTENT);
+	hTmp.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(fTmp);
+	fTmp.set_storage_type(PST_CONSISTENT);
 
 	// (a) invoke Neumann solver to get \f$h_{\{I \Delta\}}^{(p)}\f$
-	if(!m_pNeumannSolver->apply_return_defect(hTmp, fTmp))
+	if(!m_pNeumannSolver->apply_return_defect(fTmp, hTmp))
 	{
-		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << ".\n");
 		return false;
 	}
 
-	write_debug(hTmp, "SCI_hTmp_2a");
+	write_debug(fTmp, "SCI_fTmp_2a");
 
 	// (b) apply matrix to \f$[h_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
-	if(!m_pMatrix->apply(fTmp, hTmp))
+	if(!m_pMatrix->apply(hTmp, fTmp))
 	{
-		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not apply full matrix (step 2.b) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
 
-	write_debug(fTmp, "SCI_fTmp_2aAfterNeumann");
+	write_debug(hTmp, "SCI_hTmp_2aAfterNeumann");
 
-	// (c) Scale result by -1
-	// (d) Set values to zero on I and Delta - excluding Pi
-	hTmp = fTmp;
-	fTmp.set(0.0);
-	m_pFetiLayouts->vec_scale_append_on_primal(fTmp, hTmp, -1);
+	// (c) compute fTmp = f - hTmp on primal.
+	m_pFetiLayouts->vec_scale_add_on_primal(fTmp, 1.0, f, -1.0, hTmp);
 
 	write_debug(fTmp, "SCI_fTmp_2d");
 
+//	2.9 Create storage for u,f on primal root
+	vector_type rootF;
+	vector_type rootU;
+	if(m_primalRootProc == pcl::GetProcRank())
+	{
+		rootF.resize(m_pRootSchurComplementMatrix->num_rows());
+		rootU.resize(m_pRootSchurComplementMatrix->num_cols());
+	}
+
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
+
+
 	// TODO: Gather \f$\tilde{f}_{\Pi}\f$!
 
 //	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
 //     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd cnds''
 
-	// TODO: Solve with 'SchurComplementInverse::m_pCoarseProblemSolver'!
+	// TODO: Solve with 'PrimalSubassembledMatrixInverse::m_pCoarseProblemSolver'!
 
 //	5. Broadcast \f$u_{\Pi}\f$ to all Procs. \f$u_{\Pi}\f$ is consistently saved.
 	// TODO: Broadcast solution!
@@ -643,7 +692,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	uTmp.set_storage_type(PST_CONSISTENT);
 	if(!m_NeumannOperator.apply(hTmp, uTmp))
 	{
-		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not apply full matrix (step 6) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
@@ -663,7 +712,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	uTmp.set_storage_type(PST_CONSISTENT);
 	if(!m_pNeumannSolver->apply_return_defect(uTmp, fTmp)) // solve with Neumann matrix!
 	{
-		UG_LOG_ALL_PROCS("ERROR in 'SchurComplementInverse::apply': "
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << ".\n");
 		return false;
@@ -682,10 +731,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	we're done
 	return true;
-} /* end 'SchurComplementInverse::apply_return_defect()' */
+} /* end 'PrimalSubassembledMatrixInverse::apply_return_defect()' */
 
 template <typename TAlgebra>
-bool SchurComplementInverse<TAlgebra>::
+bool PrimalSubassembledMatrixInverse<TAlgebra>::
 apply(vector_type& x, const vector_type& b)
 {
 	write_debug(b, "SCI_apply_b");
@@ -698,7 +747,7 @@ apply(vector_type& x, const vector_type& b)
 
 //	solve on copy of defect
 	return apply_return_defect(x, d);
-} /* end 'SchurComplementInverse::apply()' */
+} /* end 'PrimalSubassembledMatrixInverse::apply()' */
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -785,22 +834,22 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 
 //  ----- 3. CONFIGURE SCHUR COMPLEMENT INVERSE  ----- //
 
-//	3.1 set layouts in SchurComplementInverse
-	m_SchurComplementInverse.set_feti_layouts(m_fetiLayouts);
+//	3.1 set layouts in PrimalSubassembledMatrixInverse
+	m_PrimalSubassembledMatrixInverse.set_feti_layouts(m_fetiLayouts);
 
 //	3.2 init Neumann system and solver
 //	check that neumann solver has been set
 	if(m_pNeumannSolver == NULL)
 	{
 		UG_LOG("ERROR in FETISolver::init: No neumann solver set "
-				" for inversion of A_{I,Delta}{I,Delta} in SchurComplementInverse.\n");
+				" for inversion of A_{I,Delta}{I,Delta} in PrimalSubassembledMatrixInverse.\n");
 		return false;
 	}
 
-//	set neumann solver in SchurComplementInverse
-	m_SchurComplementInverse.set_neumann_solver(*m_pNeumannSolver);
+//	set neumann solver in PrimalSubassembledMatrixInverse
+	m_PrimalSubassembledMatrixInverse.set_neumann_solver(*m_pNeumannSolver);
 
-//  3.3 init coarse problem solver used in SchurComplementInverse
+//  3.3 init coarse problem solver used in PrimalSubassembledMatrixInverse
 //	check that coarse problem solver has been set
 	if(m_pCoarseProblemSolver == NULL)
 	{
@@ -809,11 +858,11 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 		return false;
 	}
 
-//	set coarse problem solver in SchurComplementInverse
-	m_SchurComplementInverse.set_coarse_problem_solver(*m_pCoarseProblemSolver);
+//	set coarse problem solver in PrimalSubassembledMatrixInverse
+	m_PrimalSubassembledMatrixInverse.set_coarse_problem_solver(*m_pCoarseProblemSolver);
 
-//	3.4 init SchurComplementInverse (operator - given as parameter here - is also set thereby)
-	if(m_SchurComplementInverse.init(*m_pOperator) != true)
+//	3.4 init PrimalSubassembledMatrixInverse (operator - given as parameter here - is also set thereby)
+	if(m_PrimalSubassembledMatrixInverse.init(*m_pOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
 				"complement inverse.\n");
@@ -1091,7 +1140,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	write_debug(t, "FETI_t_Before_Sol");
 
 //	Solve: A u = f
-	if(!m_SchurComplementInverse.apply(u, f))
+	if(!m_PrimalSubassembledMatrixInverse.apply(u, f))
 	{
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
 		return false;
@@ -1122,8 +1171,8 @@ apply_F(vector_type& f, const vector_type& v)
 	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
-	//  2. Apply SchurComplementInverse to f
-	m_SchurComplementInverse.apply(fTmp, f);
+	//  2. Apply PrimalSubassembledMatrixInverse to f
+	m_PrimalSubassembledMatrixInverse.apply(fTmp, f);
 
 	//	3. Apply jump operator to get the final 'f'
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
@@ -1151,8 +1200,8 @@ compute_d(vector_type& d, const vector_type& f)
 
 	write_debug(f, "ComputeD_f");
 
-//  1. Apply SchurComplementInverse to 'f'
-	if(!m_SchurComplementInverse.apply(dTmp, f))
+//  1. Apply PrimalSubassembledMatrixInverse to 'f'
+	if(!m_PrimalSubassembledMatrixInverse.apply(dTmp, f))
 	{
 		UG_LOG("In 'FETISolver::compute_d': Could not apply Schur"
 				" complement inverse.\n");
@@ -1269,15 +1318,15 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 //	template instantiations for all current algebra types.
 template class LocalSchurComplement<CPUAlgebra>;
 template class LocalSchurComplement<CPUBlockAlgebra<3> >;
-template class SchurComplementInverse<CPUAlgebra>;
-template class SchurComplementInverse<CPUBlockAlgebra<3> >;
+template class PrimalSubassembledMatrixInverse<CPUAlgebra>;
+template class PrimalSubassembledMatrixInverse<CPUBlockAlgebra<3> >;
 template class FETISolver<CPUAlgebra>;
 template class FETISolver<CPUBlockAlgebra<3> >;
 }// end of namespace
 
 
 
-/*	Temporaerer code, der in SchurComplementInverse eingebaut werden muss.
+/*	Temporaerer code, der in PrimalSubassembledMatrixInverse eingebaut werden muss.
 struct PrimalConnection{
 	int ind1;
 	int ind2;
