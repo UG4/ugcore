@@ -848,6 +848,72 @@ void MatAdditiveToConsistentOnDiag(	typename TAlgebra::matrix_type* pMat,
 	MatWriteDiagOnLayout(pMat, &vecDiag, slaveLayout);
 }
 
+/// gathers all values in master indices of a second vector
+/**
+ * This function gathers the slave values from a source vector in the master
+ * values of a second vector. Slave values are added to the current master values.
+ * A ParallelCommunicator is created iff no communicator passed.
+ *
+ * \param[out]			pVecDest		destination Parallel Vector
+ * \param[in]			pVecSrc			source Parallel Vector
+ * \param[in]			masterLayouDest Master Layout
+ * \param[in]			slaveLayoutSrc	Slave Layout
+ * \param[in]			pCom			Parallel Communicator
+ */
+template <typename TVector>
+void VecGather(	TVector* pVecDest, const TVector* pVecSrc,
+				IndexLayout& masterLayoutDest, IndexLayout& slaveLayoutSrc,
+				pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+{
+	//	create a new communicator if required.
+		pcl::ParallelCommunicator<IndexLayout> tCom;
+		if(!pCom)
+			pCom = &tCom;
+		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+
+	//	step 1: add slave values to master
+	//	create the required communication policies
+		ComPol_VecAdd<TVector> cpVecAdd(pVecDest, pVecSrc);
+
+	//	perform communication
+		com.send_data(slaveLayoutSrc, cpVecAdd);
+		com.receive_data(masterLayoutDest, cpVecAdd);
+		com.communicate();
+}
+
+/// broadcasts all values from master indices to slave values in a second vector
+/**
+ * This function broadcasts the master values from a source vector to the slave
+ * values of a second vector. Slave values are overwritten.
+ * A ParallelCommunicator is created iff no communicator passed.
+ *
+ * \param[out]			pVecDest		destination Parallel Vector
+ * \param[in]			pVecSrc			source Parallel Vector
+ * \param[in]			masterLayouDest Master Layout
+ * \param[in]			slaveLayoutSrc	Slave Layout
+ * \param[in]			pCom			Parallel Communicator
+ */
+template <typename TVector>
+void VecBroadcast(	TVector* pVecDest, const TVector* pVecSrc,
+                  	IndexLayout& slaveLayoutDest, IndexLayout& masterLayoutSrc,
+                  	pcl::ParallelCommunicator<IndexLayout>* pCom = NULL)
+{
+	//	create a new communicator if required.
+		pcl::ParallelCommunicator<IndexLayout> tCom;
+		if(!pCom)
+			pCom = &tCom;
+		pcl::ParallelCommunicator<IndexLayout>& com = *pCom;
+
+	//	step 1: copy master values to slaves
+	//	create the required communication policies
+		ComPol_VecCopy<TVector> cpVecCopy(pVecDest, pVecSrc);
+
+	//	perform communication
+		com.send_data(masterLayoutSrc, cpVecCopy);
+		com.receive_data(slaveLayoutDest, cpVecCopy);
+		com.communicate();
+}
+
 
 }//	end of namespace
 

@@ -62,13 +62,21 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default constructor
-		ComPol_VecCopy() : m_pVec(NULL)	{}
+		ComPol_VecCopy() : m_pVecDest(NULL), m_pVecSrc(NULL) {}
 
 	///	Constructor setting the vector
-		ComPol_VecCopy(TVector* pVec) : m_pVec(pVec)	{}
+		ComPol_VecCopy(TVector* pVec): m_pVecDest(pVec), m_pVecSrc(pVec)	{}
+
+	///	Constructor setting the vector
+		ComPol_VecCopy(TVector* pVecDest, const TVector* pVecSrc)
+			: m_pVecDest(pVecDest), m_pVecSrc(pVecSrc)	{}
 
 	///	set the vector to work on
-		void set_vector(TVector* pVec)	{m_pVec = pVec;}
+		void set_vector(TVector* pVec)	{m_pVecDest = pVec; m_pVecSrc = pVec;}
+
+	///	set the vector to work on
+		void set_vector(TVector* pVecDest, const TVector* pVecSrc)
+			{m_pVecDest = pVecDest; m_pVecSrc = pVecSrc;}
 
 	/// returns the buffer size
 	/**
@@ -101,10 +109,10 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		collect(std::ostream& buff, Interface& interface)
 		{
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVecSrc == NULL) return false;
 
 		//	rename for convenience
-			TVector& v = *m_pVec;
+			const TVector& v = *m_pVecSrc;
 
 		//	loop interface
 			for(typename Interface::iterator iter = interface.begin();
@@ -130,10 +138,10 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 		extract(std::istream& buff, Interface& interface)
 		{
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVecDest == NULL) return false;
 
 		//	rename for convenience
-			TVector& v = *m_pVec;
+			TVector& v = *m_pVecDest;
 
 		//	loop interface
 			for(typename Interface::iterator iter = interface.begin();
@@ -150,7 +158,8 @@ class ComPol_VecCopy : public pcl::ICommunicationPolicy<IndexLayout>
 
 	private:
 	//	pointer to current vector
-		TVector* m_pVec;
+		TVector* m_pVecDest;
+		const TVector* m_pVecSrc;
 };
 
 /// Communication Policy to copy scaled values of a vector
@@ -280,13 +289,21 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 {
 	public:
 	///	Default constructor
-		ComPol_VecAdd() : m_pVec(NULL)	{}
+		ComPol_VecAdd() : m_pVecDest(NULL), m_pVecSrc(NULL)	{}
 
 	///	Constructor setting the values
-		ComPol_VecAdd(TVector* pVec) : m_pVec(pVec)	{}
+		ComPol_VecAdd(TVector* pVec) : m_pVecDest(pVec),  m_pVecSrc(pVec)	{}
+
+	///	Constructor setting the values
+		ComPol_VecAdd(TVector* pVecDest, const TVector* pVecSrc)
+			: m_pVecDest(pVecDest),  m_pVecSrc(pVecSrc)	{}
 
 	///	sets the vector used in communication
-		void set_vector(TVector* pVec)	{m_pVec = pVec;}
+		void set_vector(TVector* pVec)	{m_pVecDest = pVec; m_pVecSrc = pVec;}
+
+	///	sets the vector used in communication
+		void set_vector(TVector* pVecDest, const TVector* pVecSrc)
+			{m_pVecDest = pVecDest; m_pVecSrc = pVecSrc;}
 
 	/// returns the buffer size
 	/**
@@ -319,10 +336,10 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		collect(std::ostream& buff, Interface& interface)
 		{
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVecSrc == NULL) return false;
 
 		//	rename for convenience
-			TVector& v = *m_pVec;
+			const TVector& v = *m_pVecSrc;
 
 		//	loop interface
 			for(typename Interface::iterator iter = interface.begin();
@@ -348,10 +365,10 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		extract(std::istream& buff, Interface& interface)
 		{
 		//	check that vector has been set
-			if(m_pVec == NULL) return false;
+			if(m_pVecDest == NULL) return false;
 
 		//	rename for convenience
-			TVector& v = *m_pVec;
+			TVector& v = *m_pVecDest;
 
 		//	entry
 			typename TVector::value_type entry;
@@ -373,7 +390,8 @@ class ComPol_VecAdd : public pcl::ICommunicationPolicy<IndexLayout>
 		}
 
 	private:
-		TVector* m_pVec;
+		TVector* m_pVecDest;
+		const TVector* m_pVecSrc;
 };
 
 /// Communication Policy to add values of a vector
