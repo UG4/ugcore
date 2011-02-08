@@ -310,14 +310,17 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
-	std::cout << "DELETING\n";
-
 	if (((void*)objPtr) != NULL && ((void*)exportedClsPtr) != NULL) {
 		ug::bridge::IExportedClass* clazz =
 				(ug::bridge::IExportedClass*) exportedClsPtr;
 		clazz->destroy((void*) objPtr);
 
 	}
+}
+
+JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
+  (JNIEnv * env, jobject obj) {
+	return ug::vrl::classes2NativeClasses(env, ug::vrl::vrlRegistry);
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

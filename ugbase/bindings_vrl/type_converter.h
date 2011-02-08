@@ -371,7 +371,20 @@ namespace ug {
 		void generateMethodHeader(
 				std::stringstream& result,
 				ug::bridge::ExportedFunctionBase const& method,
-				bool isFunction = false, bool isVisual = true, std::string prefix = "");
+				bool isFunction = false, bool isVisual = true,
+				std::string prefix = "");
+
+		/**
+		 * Indicates whether the specified method/function returns a pointer.
+         * @param func function/method to check
+         * @return <code>true</code> if the specified method returns a pointer
+		 *         <code>false</code> otherwise
+         */
+		bool returnsPointer(ug::bridge::ExportedFunctionBase const& func);
+
+
+
+		jobjectArray classes2NativeClasses(JNIEnv *env, const ug::bridge::Registry* reg);
 
 	} // end vrl::
 }// end ug::

@@ -85,6 +85,166 @@ std::vector<std::string> stringArrayJ2C(
 	return result;
 }
 
+std::string name2ClassName(std::string className) {
+	// Class names start with uppercase. For functions we need to ensure that.
+	// Otherwise we get name conflicts with methods.
+	std::string result = std::string(className);
+	result[0] = toupper(result[0]);
+
+	return result;
+}
+
+std::string name2InterfaceName(std::string className) {
+	return name2ClassName(className) + "Interface";
+}
+
+std::string name2MethodName(std::string methodName) {
+	// Class names start with uppercase. For functions we need to ensure that.
+	// Otherwise we get name conflicts with methods.
+	std::string result = std::string(methodName);
+	result[0] = tolower(result[0]);
+
+	return result;
+}
+
+std::vector<std::string> getInterfaceNames(ug::bridge::Registry* reg,
+		ug::bridge::IExportedClass const& clazz) {
+	const std::vector<const ug::bridge::IExportedClass*> baseClasses =
+			getParentClasses(reg, &clazz);
+
+	std::vector<std::string> result;
+
+	for (unsigned int i = 0; i < baseClasses.size(); i++) {
+		result.push_back(name2InterfaceName(baseClasses[i]->name()));
+	}
+
+	return result;
+}
+
+
+
+
+//std::string getReturnValueType(const ug::bridge::ExportedMethod &method) {
+//	return " java.lang.Object ";
+//}
+//
+//void createMethodSignature(std::stringstream& result,
+//		const ug::bridge::ExportedMethod &method) {
+//	std::string methodName = name2MethodName(method.name());
+//
+//	const ug::bridge::ParameterStack& paramStackIn = method.params_in();
+//
+//	size_t numParams = paramStackIn.size();
+//
+//	std::stringstream methodHeaderParams;
+//
+//	// generate method paramters for method header
+//	// (including VRL param info) and for method invokation
+//	for (unsigned int i = 0; i < numParams; i++) {
+//
+//		if (i > 0) {
+//			methodHeaderParams << ",\n ";
+//		}
+//
+//		methodHeaderParams << paramType2String(
+//				paramStackIn.get_type(i),
+//				method.parameter_name(i).c_str(),
+//				paramStackIn.class_name(i),
+//				paramStackIn.class_names(i),
+//				method.parameter_info_vec(i)) << " p" << i;
+//	}
+//
+//	result << "public " << getReturnValueType(method) << methodName
+//			<< "(" << methodHeaderParams.str() << ")";
+//}
+//
+//void createMethodBody(std::stringstream& result,
+//		const ug::bridge::ExportedMethod &method) {
+//	std::string methodName = name2MethodName(method.name());
+//
+//	const ug::bridge::ParameterStack& paramStackIn = method.params_in();
+//
+//	size_t numParams = paramStackIn.size();
+//
+//	std::stringstream paramArrayForInvocation;
+//
+//	// generate method paramters for method header
+//	// (including VRL param info) and for method invokation
+//	for (unsigned int i = 0; i < numParams; i++) {
+//
+//		if (i > 0) {
+//			paramArrayForInvocation << ",\n ";
+//		}
+//
+//		paramArrayForInvocation << " p" << i;
+//	}
+//
+//	result << " {\n"
+//			<< "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+//			<< "getClassName(),"
+//			<< " this, false, \""
+//			<< methodName << "\", params);\n";
+//}
+//
+//void createMethods(std::stringstream& result,
+//		ug::bridge::IExportedClass const& clazz, bool isInterface) {
+//
+//	for (unsigned int i = 0; i < clazz->num_methods(); i++) {
+//		const ug::bridge::ExportedMethod &method = clazz->get_method(i);
+//
+//		createMethodSignature(result, method);
+//
+//		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
+//				<< "getClassName(),"
+//				<< " getPointer().getAddress(), false, \""
+//				<< method.name() << "\", params);\n";
+//	}
+//
+//}
+//
+//std::string createClass(ug::bridge::Registry* reg,
+//		ug::bridge::IExportedClass const& clazz) {
+//	std::stringstream result;
+//
+//	std::string group = clazz.group();
+//	std::string className = name2ClassName(clazz.name());
+//
+//	// create component info that specifies the menu group this
+//	// class shall be added to
+//	result << "@ComponentInfo(name=\"" << className
+//			<< "\", category=\"" << group << "\", allowRemoval=false)\n"
+//			<< "public class " << className
+//			<< " extends edu.gcsc.vrl.ug4.UGObject"
+//			<< " implements ";
+//
+//	std::vector<std::string> interfaces = getInterfaceNames(reg, clazz);
+//
+//	for (unsigned int i = 0; i < interfaces.size(); i++) {
+//		if (i > 0) {
+//			result << ", ";
+//		}
+//		result << interfaces[i];
+//	}
+//
+//	result << " {\n private static final long serialVersionUID=1L;\n"
+//			// create constructor
+//			<< "public " << className << "() {\n"
+//			<< "setClassName(\"" << className << "\");\n}\n";
+//
+//	// gather inheritance information (necessary for type-safety)
+//	std::vector<const ug::bridge::IExportedClass*> baseClasses =
+//			getParentClasses(reg, &clazz);
+//
+//	// adding methods
+//	for (unsigned int i = 0; i < baseClasses.size(); i++) {
+//		createMethods(result, baseClasses[i]);
+//		//		generateConstMethods(result, baseClasses[i]);
+//	}
+//
+//
+//	return result.str();
+//}
+
 void generateMethodHeader(
 		std::stringstream& result,
 		ug::bridge::ExportedFunctionBase const& method,
@@ -92,6 +252,7 @@ void generateMethodHeader(
 
 	std::stringstream methodHeaderParams;
 	std::stringstream paramArrayForInvocation;
+	std::stringstream pointerListCode;
 
 	std::string name = method.name();
 
@@ -103,6 +264,12 @@ void generateMethodHeader(
 	// generate method paramters for method header
 	// (including VRL param info) and for method invokation
 	for (unsigned int i = 0; i < numParams; i++) {
+
+		if (paramStackIn.get_type(i) == ug::bridge::PT_CONST_POINTER
+				|| paramStackIn.get_type(i) == ug::bridge::PT_POINTER) {
+			pointerListCode << "addPointer(params[" << i << "]);\n";
+		}
+
 		if (i > 0) {
 			methodHeaderParams << ",\n ";
 			paramArrayForInvocation << ", ";
@@ -124,7 +291,7 @@ void generateMethodHeader(
 		// that is why we add a visual id request to the param list
 		if (numParams > 0) {
 			methodHeaderParams << ", ";
-			paramArrayForInvocation << ", ";
+			//			paramArrayForInvocation << ", ";
 		}
 		methodHeaderParams << " VisualIDRequest id ";
 		//		paramArrayForInvocation << " id";
@@ -177,16 +344,29 @@ void generateMethodHeader(
 			<< paramArrayForInvocation.str() << "] \n";
 
 	// If we are not generating a function it is necessary to
-	// call the updatePointer method. Its purpose is to visually invoke
+	// call the updatePointer method with the current visual id.
+	// Its purpose is to visually invoke
 	// the setPointer() and getPointer() method before this method is
 	// invoked. Otherwise we might operate on wrong instance
 	if (!isFunction && isVisual) {
 		result << "updatePointer(id);\n";
+	} else {
+		result << "updatePointer(null);\n";
 	}
 
-	if (paramStackOut.size() > 0) {
+	result << pointerListCode.str() << "\n";
+
+	if (returnsPointer(method)) {
+		result << "edu.gcsc.vrl.ug4.Pointer result = ";
+	} else if (paramStackOut.size() > 0) {
 		result << "return ";
 	}
+}
+
+bool returnsPointer(ug::bridge::ExportedFunctionBase const& func) {
+	return func.params_out().size() > 0 &&
+			(func.params_out().get_type(0) == ug::bridge::PT_CONST_POINTER
+			|| func.params_out().get_type(0) == ug::bridge::PT_POINTER);
 }
 
 std::string exportedFunction2Groovy(
@@ -205,16 +385,25 @@ std::string exportedFunction2Groovy(
 	result << "@ComponentInfo(name=\"" << func.name()
 			<< "\", category=\"" << group << "\", allowRemoval=false)\n"
 			<< "public class " << className
-			<< " implements Serializable {\n"
-			<< "private static final long serialVersionUID=1L;\n";
+			<< " extends edu.gcsc.vrl.ug4.UGObject {\n"
+			<< "private static final long serialVersionUID=1L;\n"
+			<< "public " << className << "() {\n"
+			<< "setClassName(\"" << className << "\");\n}\n";
 
 	// visual function generation
 	generateMethodHeader(
 			result, func, true, true);
 	result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeFunction( \""
-			<< func.name() << "\", false, params)";
+			<< func.name() << "\", false, params);\n";
 
-	result << "\n}\n}\n";
+	if (returnsPointer(func)) {
+		result << "result.setClassName(\""
+				<< func.params_out().class_name(0) << "\");\n"
+				<< "addPointer(result);\n"
+				<< "return result;\n";
+	}
+
+	result << "}\n}\n";
 
 	return result.str();
 }
@@ -230,9 +419,16 @@ void generateMethods(std::stringstream& result,
 		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 				<< "getClassName(),"
 				<< " getPointer().getAddress(), false, \""
-				<< method.name() << "\", params)";
+				<< method.name() << "\", params);\n";
 
-		result << "\n}\n\n";
+		if (returnsPointer(method)) {
+			result << "result.setClassName(\""
+					<< method.params_out().class_name(0) << "\");\n"
+					<< "addPointer(result);\n"
+					<< "return result;\n";
+		}
+
+		result << "}\n\n";
 
 		// visual method generation
 		generateMethodHeader(result, method, false, true);
@@ -240,9 +436,16 @@ void generateMethods(std::stringstream& result,
 		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 				<< "getClassName(),"
 				<< " getPointer().getAddress(), false, \""
-				<< method.name() << "\", params)";
+				<< method.name() << "\", params);\n";
 
-		result << "\n}\n\n";
+		if (returnsPointer(method)) {
+			result << "result.setClassName(\""
+					<< method.params_out().class_name(0) << "\");\n"
+					<< "addPointer(result);\n"
+					<< "return result;\n";
+		}
+
+		result << "}\n\n";
 	}
 }
 
@@ -257,9 +460,16 @@ void generateConstMethods(std::stringstream& result,
 		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 				<< "getClassName(),"
 				<< " getPointer().getAddress(), true, \""
-				<< method.name() << "\", params)";
+				<< method.name() << "\", params);\n";
 
-		result << "\n}\n\n";
+		if (returnsPointer(method)) {
+			result << "result.setClassName(\""
+					<< method.params_out().class_name(0) << "\");\n"
+					<< "addPointer(result);\n"
+					<< "return result;\n";
+		}
+
+		result << "}\n\n";
 
 		// visual method generation
 		generateMethodHeader(result, method, false, true, "const_");
@@ -267,9 +477,16 @@ void generateConstMethods(std::stringstream& result,
 		result << "edu.gcsc.vrl.ug4.UG4.getUG4().invokeMethod("
 				<< "getClassName(),"
 				<< " getPointer().getAddress(), true, \""
-				<< method.name() << "\", params)";
+				<< method.name() << "\", params);\n";
 
-		result << "\n}\n\n";
+		if (returnsPointer(method)) {
+			result << "result.setClassName(\""
+					<< method.params_out().class_name(0) << "\");\n"
+					<< "addPointer(result);\n"
+					<< "return result;\n";
+		}
+
+		result << "}\n\n";
 	}
 }
 
@@ -289,11 +506,24 @@ std::string exportedClass2Groovy(ug::bridge::Registry* reg,
 	result << "@ComponentInfo(name=\"" << clazz.name()
 			<< "\", category=\"" << group << "\", allowRemoval=false)\n"
 			<< "public class " << className
-			<< " extends edu.gcsc.vrl.ug4.UGObject {\n"
-			<< "private static final long serialVersionUID=1L;\n";
+			<< " extends edu.gcsc.vrl.ug4.UGObject ";
 
-	result << "public " << className << "() {\n"
-			<< "setClassName(\"" << clazz.name() << "\");\n}\n";
+	// inheritance
+	std::vector<std::string> interfaces = getInterfaceNames(reg, clazz);
+	for (unsigned int i = 0; i < interfaces.size(); i++) {
+		if (i > 0) {
+			result << ", ";
+		} else {
+			result << " implements ";
+		}
+		result << interfaces[i];
+	}
+
+	result << "{\n"
+			<< "private static final long serialVersionUID=1L;\n"
+
+			<< "public " << className << "() {\n"
+			<< "setClassName(\"" << className << "\");\n}\n";
 
 	// gather inheritance information (necessary for type-safety)
 	std::vector<const ug::bridge::IExportedClass*> baseClasses =
@@ -591,12 +821,14 @@ std::string paramType2String(int paramType, const char* paramName,
 		case ug::bridge::PT_POINTER:
 		{
 			if (isOutput) {
-				return "edu.gcsc.vrl.ug4.Pointer";
+				//				return "edu.gcsc.vrl.ug4.Pointer";
+				return name2ClassName(className);
 			} else {
 				std::string result =
 						createParamInfo(paramName,
 						className, classNames, false, paramInfo) +
-						std::string("edu.gcsc.vrl.ug4.Pointer");
+						name2ClassName(className);
+				//				std::string("edu.gcsc.vrl.ug4.Pointer");
 
 				return result.c_str();
 			}
@@ -604,12 +836,14 @@ std::string paramType2String(int paramType, const char* paramName,
 		case ug::bridge::PT_CONST_POINTER:
 		{
 			if (isOutput) {
-				return "edu.gcsc.vrl.ug4.Pointer";
+				//				return "edu.gcsc.vrl.ug4.Pointer";
+				return name2ClassName(className);
 			} else {
 				std::string result =
 						createParamInfo(paramName,
 						className, classNames, true, paramInfo) +
-						std::string("edu.gcsc.vrl.ug4.Pointer");
+						name2ClassName(className);
+				//						std::string("edu.gcsc.vrl.ug4.Pointer");
 
 				return result.c_str();
 			}
@@ -800,5 +1034,244 @@ jobject param2JObject(
 
 	return jobject();
 }
+
+
+jobjectArray params2NativeParams(JNIEnv *env,
+		const ug::bridge::ExportedFunctionBase& func) {
+
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeParamInfo");
+
+	jobjectArray result =
+			env->NewObjectArray(func.num_parameter(), cls, 0);
+
+	for (unsigned int i = 0; i < func.num_parameter(); i++) {
+
+//		std::cout << "P->P: " << i << std::endl;
+
+		const ug::bridge::ParameterStack& params = func.params_in();
+
+		// create instance
+		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+		jobject obj = env->NewObject(cls, methodID);
+
+		//assign values
+
+		jmethodID setType = env->GetMethodID(cls, "setType", "(I)V");
+		jmethodID setID = env->GetMethodID(cls, "setId", "(I)V");
+		//	jmethodID setHelp = env->GetMethodID(cls,
+//		"setHelp", "(Ljava/lang/String;)V");
+		//	jmethodID setToolTip = env->GetMethodID(cls,
+//		"setTooltip", "(Ljava/lang/String;)V");
+		jmethodID setParamInfo = env->GetMethodID(cls,
+				"setParamInfo", "([Ljava/lang/String;)V");
+
+		using namespace ug::bridge;
+		int type = params.get_type(i);
+
+		env->CallVoidMethod(obj, setType, type);
+		env->CallVoidMethod(obj, setID, i);
+		env->CallVoidMethod(obj, setParamInfo,
+				stringArrayC2J(env, func.parameter_info_vec(i)));
+
+		// set array element
+		env->SetObjectArrayElement(result, i, obj);
+	}
+
+	return result;
+}
+
+jobject retVal2NativeParam(JNIEnv *env,
+		const ug::bridge::ExportedFunctionBase& func) {
+
+//	std::cout << "***R->HERE0***" << std::endl;
+
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeParamInfo");
+
+	unsigned int i = 0; // C/C++/Java only allow one return value
+
+	const ug::bridge::ParameterStack& params = func.params_out();
+
+	// create instance
+	jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+	jobject obj = env->NewObject(cls, methodID);
+
+	//assign values
+
+//	std::cout << "***R->HERE1***" << std::endl;
+
+	jmethodID setType = env->GetMethodID(cls, "setType", "(I)V");
+	jmethodID setID = env->GetMethodID(cls, "setId", "(I)V");
+	//	jmethodID setHelp = env->GetMethodID(cls,
+//	"setHelp", "(Ljava/lang/String;)V");
+	//	jmethodID setToolTip = env->GetMethodID(cls,
+//	"setTooltip", "(Ljava/lang/String;)V");
+	jmethodID setParamInfo = env->GetMethodID(cls,
+			"setParamInfo", "([Ljava/lang/String;)V");
+
+
+	bool returnsVoid = func.params_out().size() == 0;
+
+	int type = -1;
+
+	if (returnsVoid) {
+//		std::cout << "***R->VOID" << std::endl;
+	} else {
+		type = params.get_type(i);
+	}
+
+	env->CallVoidMethod(obj, setType, type);
+	env->CallVoidMethod(obj, setID, i);
+
+
+	if (!returnsVoid) {
+		env->CallVoidMethod(obj, setParamInfo,
+				stringArrayC2J(env, func.return_info_vec()));
+	}
+
+//	std::cout << "***R->HERE2***" << std::endl;
+
+	return obj;
+}
+
+jobjectArray methods2NativeMethods(JNIEnv *env,
+		const ug::bridge::IExportedClass& eCls, bool constMethods) {
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodInfo");
+
+//	std::cout << "***M->HERE0***" << std::endl;
+
+	unsigned int numMethods = 0;
+
+	if (constMethods) {
+		numMethods = eCls.num_const_methods();
+	} else {
+		numMethods = eCls.num_methods();
+	}
+
+	jobjectArray result =
+			env->NewObjectArray(numMethods, cls, 0);
+
+
+	for (unsigned int i = 0; i < numMethods; i++) {
+		const ug::bridge::ExportedMethod* method;
+
+		std::cout << "M->Method: " << i << std::endl;
+
+		if (constMethods) {
+			method = &eCls.get_const_method(i);
+		} else {
+			method = &eCls.get_method(i);
+		}
+
+		// create instance
+
+		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+		jobject obj = env->NewObject(cls, methodID);
+
+		//assign values
+
+		jmethodID setName = env->GetMethodID(cls,
+				"setName", "(Ljava/lang/String;)V");
+		jmethodID setHelp = env->GetMethodID(cls,
+				"setHelp", "(Ljava/lang/String;)V");
+		jmethodID setToolTip = env->GetMethodID(cls,
+				"setToolTip", "(Ljava/lang/String;)V");
+		jmethodID setOptions = env->GetMethodID(cls,
+				"setOptions", "(Ljava/lang/String;)V");
+		jmethodID setRetValue = env->GetMethodID(cls,
+				"setReturnValue", "(Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+		jmethodID setParameters = env->GetMethodID(cls,
+				"setParameters", "([Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+
+		using namespace ug::bridge;
+		std::string name = method->name(); // TODO pre-rpocessing necessary
+		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
+		env->CallVoidMethod(obj, setHelp, stringC2J(env, method->help().c_str()));
+		env->CallVoidMethod(obj, setToolTip, stringC2J(env, name.c_str()));
+		env->CallVoidMethod(obj, setOptions, stringC2J(env, method->options().c_str()));
+		env->CallVoidMethod(obj, setRetValue,
+				retVal2NativeParam(env, *method));
+
+//		std::cout << "***M->2***" << std::endl;
+
+		env->CallVoidMethod(obj, setParameters,
+				params2NativeParams(env, *method));
+
+//		std::cout << "***M->3***" << std::endl;
+
+		// set array element
+		env->SetObjectArrayElement(result, i, obj);
+
+//		std::cout << "***M->4***" << std::endl;
+	}
+
+	return result;
+}
+
+jobjectArray classes2NativeClasses(JNIEnv *env, const ug::bridge::Registry* reg) {
+	
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeClassInfo");
+
+	jobjectArray result =
+			env->NewObjectArray(reg->num_classes(), cls, 0);
+
+	for (unsigned int i = 0; i < reg->num_classes(); i++) {
+
+		std::cout << "----- CLASS: " << i << " -----"<< std::endl;
+
+		const ug::bridge::IExportedClass& eCls = reg->get_class(i);
+
+		// create instance
+
+		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+		jobject obj = env->NewObject(cls, methodID);
+
+		//assign values
+
+		jmethodID setName = env->GetMethodID(cls,
+				"setName", "(Ljava/lang/String;)V");
+		jmethodID setCategoryGroup = env->GetMethodID(cls,
+				"setCategoryGroup", "(Ljava/lang/String;)V");
+		jmethodID setInstantiable = env->GetMethodID(cls,
+				"setInstantiable", "(Z)V");
+		jmethodID setMethods = env->GetMethodID(cls,
+				"setMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodInfo;)V");
+		jmethodID setConstMethods = env->GetMethodID(cls,
+				"setConstMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodInfo;)V");
+
+//		std::cout << "***C->HERE-3***" << std::endl;
+
+		//		using namespace ug::bridge;
+		std::string name = eCls.name(); // TODO pre-rpocessing necessary
+		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
+
+//		std::cout << "***C->HERE-2***" << std::endl;
+
+		env->CallVoidMethod(obj, setCategoryGroup, stringC2J(env, eCls.group().c_str()));
+
+//		std::cout << "***C->HERE-1***" << std::endl;
+
+		env->CallVoidMethod(obj, setInstantiable, boolC2J(eCls.is_instantiable()));
+		//
+
+//		std::cout << "***C->HERE0***" << std::endl;
+
+		env->CallVoidMethod(obj, setMethods, methods2NativeMethods(env, eCls, false));
+
+//		std::cout << "***C->HERE1***" << std::endl;
+
+		env->CallVoidMethod(obj, setConstMethods, methods2NativeMethods(env, eCls, true));
+
+//		std::cout << "***C->HERE2***" << std::endl;
+
+		// set array element
+		env->SetObjectArrayElement(result, i, obj);
+
+//		std::cout << "***C->HERE3***" << std::endl;
+	}
+
+	return result;
+}
+
+
 } // end vrl::
 }// end ug::
