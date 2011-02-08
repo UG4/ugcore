@@ -283,6 +283,10 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	Set Dirichlet values on Pi
 	m_pFetiLayouts->mat_set_dirichlet_on_primal(*m_pNeumannMatrix);
 
+/*	MatAdditiveToConsistentOnDiag<algebra_type>(m_pNeumannMatrix,
+	                                            m_pFetiLayouts->get_primal_master_layout(),
+	                                            m_pFetiLayouts->get_primal_slave_layout());
+*/
 //	init sequential solver for Dirichlet problem
 	if(m_pNeumannSolver != NULL)
 		if(!m_pNeumannSolver->init(m_NeumannOperator))
@@ -684,9 +688,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 	vector_type rootU;
 	if(m_primalRootProc == pcl::GetProcRank())
 	{
-		UG_LOG("Creating coarse vector f of size: " << m_pRootSchurComplementMatrix->num_rows()<<"\n");
+//		UG_LOG("Creating coarse vector f of size: " << m_pRootSchurComplementMatrix->num_rows()<<"\n");
 		rootF.resize(m_pRootSchurComplementMatrix->num_rows());
-		UG_LOG("Creating coarse vector u of size: " << m_pRootSchurComplementMatrix->num_cols()<<"\n");
+//		UG_LOG("Creating coarse vector u of size: " << m_pRootSchurComplementMatrix->num_cols()<<"\n");
 		rootU.resize(m_pRootSchurComplementMatrix->num_cols());
 	}
 
@@ -1044,14 +1048,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 //				 Primal unknowns. Then, the rhs can be computed on each process
 //				 individually.
 
-//	make f consistent on Pi
-	AdditiveToConsistent(&f, m_fetiLayouts.get_primal_master_layout(),
-	                     	 m_fetiLayouts.get_primal_slave_layout());
-
-//	set inner layouts
-	m_fetiLayouts.vec_use_inner_communication(tildeF);
-	m_fetiLayouts.vec_use_inner_communication(f);
-
 	write_debug(f, "ResiduumF");
 
 //	compute \tilde{f}_{\Delta}
@@ -1079,12 +1075,13 @@ apply_return_defect(vector_type& u, vector_type& f)
 	write_debug(r, "ResiduumD");
 
 // 	(b) Build t = F*lambda (t is additive afterwards)
-	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_F()' ********** \n")
 	if(!apply_F(t, lambda))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': Unable "
 			   "to build t = F*p. Aborting.\n"); return false;
 	}
+
+	write_debug(t, "ResiduumT");
 
 // (c) Subtract values on \Delta, r0 = r0 - t
 	m_fetiLayouts.vec_scale_append_on_dual(r, t, -1.0);
@@ -1098,7 +1095,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_dual(r));
 
 // 	Precondition the start defect: apply z = M^-1 * r
-	UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': Before 'apply_M_inverse()' ********** \n")
 	if (!apply_M_inverse(z, r))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
@@ -1116,12 +1112,14 @@ apply_return_defect(vector_type& u, vector_type& f)
 // 	start rho
 	rho = m_fetiLayouts.vec_prod_on_dual(z, r);
 
+//	very small number to check denominator
+	number small = 1e-15;
+
 // 	Iteration loop
 	while(!m_pConvCheck->iteration_ended())
 	{
 	//	increase iteration count
 		m_iterCnt++;
-		UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': iter " << m_iterCnt << " ********** \n")
 
 	// 	Build t = F*p (t is additive afterwards)
 		if(!apply_F(t, p))
@@ -1133,6 +1131,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 	Compute alpha
 		alpha_denominator = m_fetiLayouts.vec_prod_on_dual(t, p);
 
+		if(fabs(alpha_denominator) < small)
+		{
+			UG_LOG("ERROR in 'FETISolver::apply': "
+				   "VecProd(t, p) < small. Aborting.\n"); return false;
+		}
+
 		alpha = rho/alpha_denominator;
 
 	// 	Update lambda := lambda + alpha*p
@@ -1143,7 +1147,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	// 	Compute new defect
 		m_pConvCheck->update_defect(m_fetiLayouts.vec_norm_on_dual(r));
-		UG_LOG(" ********** 'FETISOLVER::apply_return_defect()': iter " << m_iterCnt << ": After m_pConvCheck->update(r) ********** \n")
+		if(m_pConvCheck->iteration_ended())
+		{
+			break;
+		}
 
 	// 	Preconditioning: apply z = M^-1 * r
 		if (!apply_M_inverse(z, r))
@@ -1165,18 +1172,13 @@ apply_return_defect(vector_type& u, vector_type& f)
 		rho = rho_new;
 	} /* end iteration loop */
 
-	//	TODO:
-	// 2. With \f$\lambda\f$ found, back solve for \f$u_{\Delta}\f$:
-	//    \f$u_{\Delta} = {\tilde{S}_{\Delta \Delta}}^{-1} ({\tilde{f}_{\Delta}} - B_{\Delta}^T \lambda).\f$
-	// 3. Make sure that all parts of the solution (\f$u_{I}, u_{\Delta}, $u_{\Pi}\f$)
-	//    is assembled into the global solution vector
-
-
 	//	"back solve" (cf. A. Toselli, O. Widlund: "Domain Decomposition Methods -
 	//	Algorithms and Theory", cap. 6.4, p.164, l. 2) (03022011av)
 
 //	reset t = 0.0
 	t.set(0.0);
+
+	write_debug(lambda, "FETI_lambda_sol");
 
 // compute t = B^T * lambda
 	ComputeDifferenceOnDeltaTransposed(t, lambda,
@@ -1253,10 +1255,12 @@ compute_d(vector_type& d, const vector_type& f)
 //	0. Reset values of d, dTmp
 	d.set(0.0); dTmp = d;
 
+	m_fetiLayouts.vec_scaled_copy_on_dual(d, f, 1.0);
+
 	write_debug(f, "ComputeD_f");
 
 //  1. Apply PrimalSubassembledMatrixInverse to 'f'
-	if(!m_PrimalSubassembledMatrixInverse.apply(dTmp, f))
+	if(!m_PrimalSubassembledMatrixInverse.apply(dTmp, d))
 	{
 		UG_LOG("In 'FETISolver::compute_d': Could not apply Schur"
 				" complement inverse.\n");
@@ -1286,6 +1290,10 @@ compute_tilde_f(vector_type& tildeF, const vector_type& f)
 	vector_type hTmp; hTmp.create(f.size());
 	fTmp = f;
 
+//	make f consistent on Pi
+	AdditiveToConsistent(&fTmp, m_fetiLayouts.get_primal_master_layout(),
+							 	 m_fetiLayouts.get_primal_slave_layout());
+
 //  set dirichlet zero values on f_Delta
 	m_fetiLayouts.vec_set_on_dual(fTmp, 0.0);
 
@@ -1304,6 +1312,10 @@ compute_tilde_f(vector_type& tildeF, const vector_type& f)
 	}
 
 	write_debug(hTmp, "ComputeTilde_hTmp");
+
+/*	AdditiveToConsistent(&hTmp, m_fetiLayouts.get_primal_master_layout(),
+		                     	 m_fetiLayouts.get_primal_slave_layout());
+*/
 
 //	multiply by A{\Delta {I \Pi}}
 	if(!m_pOperator->apply(fTmp, hTmp))
