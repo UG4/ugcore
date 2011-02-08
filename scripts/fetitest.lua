@@ -67,8 +67,8 @@ end
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
 		--return true, math.sin(s*x) + math.sin(s*y)
-		return true, x +1
-		--return true, 2.5
+		--return true, x +1
+		return true, 2.5
 		--return true, (x*x - 1)*(y*y - 1)
 	 	--return true, math.sin(s*x)*math.sin(s*y)
 	end
@@ -385,68 +385,64 @@ ilut = ILUT()
 	--amg:set_debug(u)
 	end
 
--- exact Solver
-exactSolver = LU()
-
--- create Convergence Check
-convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(1000)
-convCheck:set_minimum_defect(1e-9)
-convCheck:set_reduction(1e-10)
-convCheck:set_verbose_level(false)
-
--- create Convergence Check
-convCheck2 = StandardConvergenceCheck()
-convCheck2:set_maximum_steps(500)
-convCheck2:set_minimum_defect(1e-9)
-convCheck2:set_reduction(1e-10)
-convCheck2:set_verbose_level(false)
-
--- create Convergence Check
-convCheck3 = StandardConvergenceCheck()
-convCheck3:set_maximum_steps(500)
-convCheck3:set_minimum_defect(1e-9)
-convCheck3:set_reduction(1e-10)
-convCheck3:set_verbose_level(false)
+-- create BiCGStab Solver
+bicgstabSolver = BiCGStab()
 
 -- create Linear Solver
 linSolver = LinearSolver()
-linSolver:set_preconditioner(gmg)
-linSolver:set_convergence_check(convCheck)
 
--- create CG Solver
-cgSolver = CG()
-cgSolver:set_preconditioner(ilu)
-cgSolver:set_convergence_check(convCheck)
+-- exact Solver
+exactSolver = LU()
 
-cg2Solver = CG()
-cg2Solver:set_preconditioner(ilu2)
-cg2Solver:set_convergence_check(convCheck2)
+-- create Neumann CG Solver
+neumannConvCheck = StandardConvergenceCheck()
+neumannConvCheck:set_maximum_steps(500)
+neumannConvCheck:set_minimum_defect(1e-14)
+neumannConvCheck:set_reduction(1e-16)
+neumannConvCheck:set_verbose_level(false)
+neumannCGSolver = CG()
+neumannCGSolver:set_preconditioner(ilu)
+neumannCGSolver:set_convergence_check(neumannConvCheck)
 
-cg3Solver = CG()
-cg3Solver:set_preconditioner(ilu3)
-cg3Solver:set_convergence_check(convCheck3)
+-- create Dirichlet CG Solver
+dirichletConvCheck = StandardConvergenceCheck()
+dirichletConvCheck:set_maximum_steps(10000)
+dirichletConvCheck:set_minimum_defect(1e-14)
+dirichletConvCheck:set_reduction(1e-16)
+dirichletConvCheck:set_verbose_level(false)
+dirichletCGSolver = CG()
+dirichletCGSolver:set_preconditioner(ilu2)
+dirichletCGSolver:set_convergence_check(dirichletConvCheck)
 
--- create BiCGStab Solver
-bicgstabSolver = BiCGStab()
-bicgstabSolver:set_preconditioner(jac)
-bicgstabSolver:set_convergence_check(convCheck)
+
+-- create DualDirichlet CG Solver
+dualdirichletConvCheck = StandardConvergenceCheck()
+dualdirichletConvCheck:set_maximum_steps(500)
+dualdirichletConvCheck:set_minimum_defect(1e-14)
+dualdirichletConvCheck:set_reduction(1e-16)
+dualdirichletConvCheck:set_verbose_level(false)
+dualdirichletCGSolver = CG()
+dualdirichletCGSolver:set_preconditioner(ilu3)
+dualdirichletCGSolver:set_convergence_check(dualdirichletConvCheck)
 
 -- create Convergence Check
-fetiConvCheck = StandardConvergenceCheck()
-fetiConvCheck:set_maximum_steps(50)
-fetiConvCheck:set_minimum_defect(1e-8)
-fetiConvCheck:set_reduction(1e-12)
 
 -- create FETI Solver
 fetiSolver = FETI()
+
+fetiConvCheck = StandardConvergenceCheck()
+fetiConvCheck:set_maximum_steps(50)
+fetiConvCheck:set_minimum_defect(1e-7)
+fetiConvCheck:set_reduction(1e-16)
+
 fetiSolver:set_debug(dbgWriter)
 fetiSolver:set_convergence_check(fetiConvCheck)
-fetiSolver:set_dual_dirichlet_solver(cg3Solver)
-fetiSolver:set_coarse_problem_solver(exactSolver)
-fetiSolver:set_neumann_solver(cgSolver)
-fetiSolver:set_dirichlet_solver(cg2Solver)
 fetiSolver:set_domain_decomp_info(domainDecompInfo)
+
+fetiSolver:set_neumann_solver(neumannCGSolver)
+fetiSolver:set_dirichlet_solver(dirichletCGSolver)
+fetiSolver:set_dual_dirichlet_solver(dualdirichletCGSolver)
+fetiSolver:set_coarse_problem_solver(exactSolver)
 
 -- Apply Solver
 ApplyLinearSolver(linOp, u, b, fetiSolver)
@@ -460,7 +456,7 @@ print( "domainDecompInfo:get_num_procs_per_subdomain(): " .. domainDecompInfo:ge
 
 --localSchurComplement = LocalSchurComplement()
 --localSchurComplement:set_matrix(linOp)
---localSchurComplement:set_dirichlet_solver(cgSolver)
+--localSchurComplement:set_dirichlet_solver(neumannCGSolver)
 --localSchurComplement:set_debug(dbgWriter)
 --localSchurComplement:init()
 
