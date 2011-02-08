@@ -13,6 +13,21 @@
 #include "lib_algebra/lib_algebra.h"
 #include <cmath>
 
+// additions for profiling
+#include "common/profiler/profiler.h"
+
+#define PROFILE_FETI
+#ifdef PROFILE_FETI
+	#define FETI_PROFILE_FUNC()			PROFILE_FUNC()
+	#define FETI_PROFILE_BEGIN(name)	PROFILE_BEGIN(name)
+	#define FETI_PROFILE_END()			PROFILE_END()
+#else
+	#define FETI_PROFILE_FUNC()
+	#define FETI_PROFILE_BEGIN(name)
+	#define FETI_PROFILE_END()
+#endif
+// additions for profiling - end
+
 namespace ug{
 //	used to inform root over primal connections.
 template <class TValue>
@@ -156,7 +171,7 @@ apply(vector_type& f, const vector_type& u)
 						 "Proc " << pcl::GetProcRank() << ".\n");
 		return false;
 	}
-	// set values to zero on \Delta
+	// set values to zero on \Delta (values are already zero on primal!)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
 
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
@@ -314,11 +329,13 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	Build layouts such that all processes can communicate their unknowns
 //	to the primal Root Process
+	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout)
 	int newVecSize = BuildOneToManyLayout(m_masterAllToOneLayout,
 						 m_slaveAllToOneLayout, m_primalRootProc,
 						 m_pFetiLayouts->get_primal_master_layout(),
 						 m_pFetiLayouts->get_primal_slave_layout(),
 						 m_allToOneProcessComm, &rootIDs);
+	FETI_PROFILE_END();
 /*
 	UG_LOG("received root ids:");
 	for(size_t i = 0; i < rootIDs.size(); ++i){
@@ -378,6 +395,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_pFetiLayouts->vec_use_inner_communication(h1);
 	m_pFetiLayouts->vec_use_inner_communication(h2);
 
+	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi);
 //	Now within each feti subdomain, the primal unknowns are loop one after the
 //	other. This is done like the following: Each process loops the number of
 //	procs of the feti subdomain, and then for each subdomain the number of
@@ -494,6 +512,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	vector<PrimalConnection> vPrimalConnections;//	only filled on root
 	pcl::ProcessCommunicator commWorld;
 	commWorld.gatherv(vPrimalConnections, localPrimalConnections, m_primalRootProc);
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi)'
 
 //	build matrix on primalRoot
 	if(pcl::GetProcRank() == m_primalRootProc)
@@ -509,7 +528,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			return false;
 		}
 
-	//	reference for convinience
+	//	reference for convenience
 		matrix_type& mat = *m_pRootSchurComplementMatrix;
 
 	//	create matrix of correct size
@@ -656,7 +675,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// start value
 	u.set(0.0);
 
-	// (a) invoke Neumann solver to get \f$h_{\{I \Delta\}}^{(p)}\f$
+	// (a) invoke Neumann solver to get \f$u_{\{I \Delta\}}^{(p)}\f$
 	if(!m_pNeumannSolver->apply_return_defect(u, h))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
@@ -667,7 +686,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	write_debug(u, "PSMI_u_2");
 
-	// (b) apply matrix to \f$[h_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
+	// (b) apply matrix to \f$[u_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
 	if(!m_pMatrix->apply(h, u))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
@@ -683,7 +702,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	write_debug(h, "PSMI_h_2_Added");
 
-//	2.9 Create storage for u,f on primal root
+//	Create storage for u,f on primal root
 	vector_type rootF;
 	vector_type rootU;
 	if(m_primalRootProc == pcl::GetProcRank())
@@ -711,6 +730,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		//	invert matrix
 			rootF.set_storage_type(PST_ADDITIVE);
 			rootU.set_storage_type(PST_CONSISTENT);
+			FETI_PROFILE_BEGIN(PrimalSubassMatInvApply_SolveCoarseProblem);
 			if(!m_pCoarseProblemSolver->apply(rootU, rootF))
 			{
 				std::cout << "ERROR in 'PrimalSubassembledMatrixInverse::apply': "
@@ -718,6 +738,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						<< std::endl;
 				bSuccess = false;
 			}
+			FETI_PROFILE_END();
 		}
 
 	//	Debug output of matrix (only used to flag if debug is wanted)
@@ -843,12 +864,14 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	bool debugLayouts = (m_pDebugWriter==NULL) ? false : true;
 
 //	1. create FETI Layouts
+	FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts);
 	m_fetiLayouts.create_layouts(m_pMatrix->get_master_layout(),
 	                             m_pMatrix->get_slave_layout(),
 	                             m_pMatrix->get_process_communicator(),
 	                             m_pMatrix->num_rows(),
 	                             *m_pDDInfo,
 	                             debugLayouts);
+	FETI_PROFILE_END();
 
 //  ----- 2. CONFIGURE LOCAL SCHUR COMPLEMENT  ----- //
 
@@ -871,12 +894,14 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	m_LocalSchurComplement.set_matrix(*m_pOperator);
 
 //	2.3 init local Schur complement
+	FETI_PROFILE_BEGIN(FETISolverInit_InitLocalSchurComplement);
 	if(m_LocalSchurComplement.init() != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init local Schur "
 				"complement.\n");
 		bSuccess = false;
 	}
+	FETI_PROFILE_END();
 
 //	2.4 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -916,12 +941,14 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	m_PrimalSubassembledMatrixInverse.set_coarse_problem_solver(*m_pCoarseProblemSolver);
 
 //	3.4 init PrimalSubassembledMatrixInverse (operator - given as parameter here - is also set thereby)
+	FETI_PROFILE_BEGIN(FETISolverInit_InitPrimalSubassMatInv);
 	if(m_PrimalSubassembledMatrixInverse.init(*m_pOperator) != true)
 	{
 		UG_LOG("ERROR in FETISolver::init: Can not init Schur "
 				"complement inverse.\n");
 		bSuccess = false;
 	}
+	FETI_PROFILE_END();
 
 //	3.5 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -939,6 +966,7 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_return_defect(vector_type& u, vector_type& f)
 {
+//	FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect);
 //	This function is used to solve the system Au=f. While the matrix A has
 //	already been passed in additive storage in the function init(), here are
 //	passed the (unknown, to be computed) solution u, that must be returned in
@@ -1008,21 +1036,25 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	(a) Compute d:= B S_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}
 //		and set r0 = d (prelimilarly, -F \lambda added later)
+	FETI_PROFILE_BEGIN(FETISolverApply_Compute_D);
 	if(!compute_d(r, f))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
 			   "Cannot compute rhs 'd'. Aborting.\n");
 		return false;
 	}
+	FETI_PROFILE_END();
 
 	write_debug(r, "ResiduumD");
 
 // 	(b) Build t = F*lambda (t is additive afterwards)
+	FETI_PROFILE_BEGIN(FETISolverApply_Apply_F);
 	if(!apply_F(t, lambda))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': Unable "
 			   "to build t = F*p. Aborting.\n"); return false;
 	}
+	FETI_PROFILE_END();
 
 	write_debug(t, "ResiduumT");
 
@@ -1038,12 +1070,14 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_dual(r));
 
 // 	Precondition the start defect: apply z = M^-1 * r
+	FETI_PROFILE_BEGIN(FETISolverApply_Apply_M_inverse);
 	if (!apply_M_inverse(z, r))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
 			   "Cannot apply preconditioner. Aborting.\n");
 		return false;
 	}
+	FETI_PROFILE_END();
 
 //	start values
 	number rho, rho_new, beta, alpha, alpha_denominator;
@@ -1059,6 +1093,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	number small = 1e-15;
 
 // 	Iteration loop
+	FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop);
 	while(!m_pConvCheck->iteration_ended())
 	{
 	//	increase iteration count
@@ -1114,9 +1149,11 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 	update rho
 		rho = rho_new;
 	} /* end iteration loop */
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop)'
 
-	//	"back solve" (cf. A. Toselli, O. Widlund: "Domain Decomposition Methods -
-	//	Algorithms and Theory", cap. 6.4, p.164, l. 2) (03022011av)
+//	"back solve" (cf. A. Toselli, O. Widlund: "Domain Decomposition Methods -
+//	Algorithms and Theory", cap. 6.4, p.164, l. 2) (03022011av)
+	FETI_PROFILE_BEGIN(FETISolverApply_Backsolve);
 
 //	reset t = 0.0
 	t.set(0.0);
@@ -1137,13 +1174,17 @@ apply_return_defect(vector_type& u, vector_type& f)
 	bool bSuccess = true;
 
 //	Solve: A u = f
+	FETI_PROFILE_BEGIN(FETISolverApply_ApplyPrimalSubassMatInv);
 	if(!m_PrimalSubassembledMatrixInverse.apply(u, f))
 	{
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
 		bSuccess = false;
 	}
+	FETI_PROFILE_END();
 
 	write_debug(u, "FETI_Sol_Final");
+
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolver_Backsolve)'
 
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -1153,6 +1194,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 
 	return m_pConvCheck->post();
+
+	//FETI_PROFILE_END();			// end profiling complete method
+
+//	call this for output.
+//	PROFILER_UPDATE();
+//	PROFILER_OUTPUT("feti_profiling.rtf");
 } /* end 'FETISolver::apply_return_defect()' */
 
 template <typename TAlgebra>
@@ -1172,7 +1219,9 @@ apply_F(vector_type& f, const vector_type& v)
 	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
 //  2. Apply PrimalSubassembledMatrixInverse to f
+	FETI_PROFILE_BEGIN(FETISolverApply_F_ApplyPrimalSubassMatInv);
 	m_PrimalSubassembledMatrixInverse.apply(fTmp, f);
+	FETI_PROFILE_END();
 
 //	3. Apply jump operator to get the final 'f'
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
@@ -1200,12 +1249,14 @@ compute_d(vector_type& d, const vector_type& f)
 
 //  1. Apply PrimalSubassembledMatrixInverse to 'f'
 	dTmp.set_storage_type(PST_CONSISTENT);
+	FETI_PROFILE_BEGIN(FETISolverCompute_d_ApplyPrimalSubassMatInv);
 	if(!m_PrimalSubassembledMatrixInverse.apply(dTmp, f))
 	{
 		UG_LOG("In 'FETISolver::compute_d': Could not apply Schur"
 				" complement inverse.\n");
 		return false;
 	}
+	FETI_PROFILE_END();
 
 //	2. Apply jump operator to get the final 'd'
 	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
@@ -1245,12 +1296,14 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	z.set_storage_type(PST_ADDITIVE);
 	zTmp.set_storage_type(PST_CONSISTENT);
 //	3.3. solve
+	FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement);
 	if(!m_LocalSchurComplement.apply(z, zTmp))
 	{
 		UG_LOG("ERROR in FETISolver::apply_M_inverse: Could not apply"
 				" local Schur complement. \n");
 		return false;
 	}
+	FETI_PROFILE_END();
 
 //  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
