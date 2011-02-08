@@ -688,13 +688,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 			m_pNeumannSolver = &neumannSolver;
 		}
 
-	///	sets the Dual Dirichlet solver
-		void set_dual_dirichlet_solver(ILinearOperatorInverse<vector_type, vector_type>& dualDirichletSolver)
-		{
-		//	remember the Dirichlet Solver
-			m_pDualDirichletSolver = &dualDirichletSolver;
-		}
-
 	///	sets the coarse problem solver
 		void set_coarse_problem_solver(ILinearOperatorInverse<vector_type, vector_type>& coarseProblemSolver)
 		{
@@ -736,17 +729,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	 * \param[out]		d				right hand side vector \f$d\f$ of reduced system
 	 */
 		bool compute_d(vector_type& d, const vector_type& f);
-
-	///	function which computes the adapted right hand side vector '\tilde{f}_{\Delta}' of the reduced system ("Delta system")
-	/**
-	 * This function computes \f$\tilde{f}_{\Delta} := f_{\Delta}
-	 *				 - A_{\Delta \{I \Pi\}} (A_{\{I \Pi\} \{I \Pi\}})^{-1} f_{\{I \Pi\}}\f$
-	 * to a vector \f$f\f$.
-	 *
-	 * \param[in]		f				vector \f$f\f$
-	 * \param[Out]		tildeF			vector \f$\tilde{f}_{\Delta}\f$
-	 */
-		bool compute_tilde_f(vector_type& tildeF, const vector_type& f);
 
 	///	function which applies diagonal scaling matrix \f$D_{\Delta}^{(i)}\f$ to a vector \f$v\f$
 		bool apply_scaling_matrix(vector_type& s, const vector_type& v) // maybe restrict to layout
@@ -840,16 +822,6 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 	//	Neumann solver for inverse of \f$A_{\{I,\Delta\}, \{I,\Delta\}}\f$ in the
 	//	creation of the S_{\Pi \Pi} Schur complement in PrimalSubassembledMatrixInverse
 		ILinearOperatorInverse<vector_type, vector_type>* m_pNeumannSolver;
-
-	//	Copy of matrix used in computation of \f$\tilde{f}_{\Delta}\f$
-		PureMatrixOperator<vector_type, vector_type, matrix_type> m_DualDirichletOperator;
-
-	// 	Parallel (Dual) Dirichlet matrix used in computation of \f$ \tilde{f}_{\Delta}\f$
-		matrix_type* m_pDualDirichletMatrix;
-
-	//	(Dual) Dirichlet solver used in computation of \f$\tilde{f}_{\Delta}\f$.
-	// 	It inverts \f$A_{\{I \Pi\} \{I \Pi\}}\f$
-		ILinearOperatorInverse<vector_type, vector_type>* m_pDualDirichletSolver;
 
 	//	Solver used in solving coarse problem on root.
 	// 	It solves \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ 

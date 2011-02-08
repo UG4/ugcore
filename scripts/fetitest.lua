@@ -26,7 +26,7 @@ if dim == 3 then
 end
 
 numPreRefs = 0
-numRefs = 1
+numRefs = 3
 
 --ugargc -> anzahl an ugargvs -- TODO: Check, ob ugshell mit genau (mindestens) 2 Prozessen gestartet wurde!
 if ugargv[1] ~= nil then
@@ -51,9 +51,9 @@ end
 	
 	function ourRhs2d(x, y, t)
 		local s = 2*math.pi
-		--return	s*s*(math.sin(s*x) + math.sin(s*y))
+		return	s*s*(math.sin(s*x) + math.sin(s*y))
 		--return -2*y
-		return 0;
+		--return 0;
 		--return -2*((x*x - 1)+(y*y - 1))
 		--return	2*s*s*(math.sin(s*x) * math.sin(s*y))
 	end
@@ -66,9 +66,9 @@ end
 	
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
-		--return true, math.sin(s*x) + math.sin(s*y)
+		return true, math.sin(s*x) + math.sin(s*y)
 		--return true, x +1
-		return true, 2.5
+		--return true, 2.5
 		--return true, (x*x - 1)*(y*y - 1)
 	 	--return true, math.sin(s*x)*math.sin(s*y)
 	end
@@ -414,19 +414,6 @@ dirichletCGSolver = CG()
 dirichletCGSolver:set_preconditioner(ilu2)
 dirichletCGSolver:set_convergence_check(dirichletConvCheck)
 
-
--- create DualDirichlet CG Solver
-dualdirichletConvCheck = StandardConvergenceCheck()
-dualdirichletConvCheck:set_maximum_steps(500)
-dualdirichletConvCheck:set_minimum_defect(1e-14)
-dualdirichletConvCheck:set_reduction(1e-16)
-dualdirichletConvCheck:set_verbose_level(false)
-dualdirichletCGSolver = CG()
-dualdirichletCGSolver:set_preconditioner(ilu3)
-dualdirichletCGSolver:set_convergence_check(dualdirichletConvCheck)
-
--- create Convergence Check
-
 -- create FETI Solver
 fetiSolver = FETI()
 
@@ -441,7 +428,6 @@ fetiSolver:set_domain_decomp_info(domainDecompInfo)
 
 fetiSolver:set_neumann_solver(neumannCGSolver)
 fetiSolver:set_dirichlet_solver(dirichletCGSolver)
-fetiSolver:set_dual_dirichlet_solver(dualdirichletCGSolver)
 fetiSolver:set_coarse_problem_solver(exactSolver)
 
 -- Apply Solver
