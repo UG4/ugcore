@@ -23,7 +23,7 @@ if dim == 3 then
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = 0
+numPreRefs = 1
 numRefs = 4
 
 --------------------------------
