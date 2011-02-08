@@ -221,18 +221,25 @@ class FetiLayouts
 		number vec_prod_on_dual(const vector_type& vecSrc1, const vector_type& vecSrc2)
 		{
 		//	reset result
-			number prod = 0.0, prodTmp = 0.0;
+			double tProdLocal = 0.0, tProdTmp = 0.0;
 
 		//	add prod on master
-			VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_masterDualLayout);
-			prod += prodTmp;
+			VecProdOnLayout(tProdTmp, &vecSrc1, &vecSrc2, m_masterDualLayout);
+			tProdLocal += tProdTmp;
 
 		//	add prod on slave
-			VecProdOnLayout(prodTmp, &vecSrc1, &vecSrc2, m_slaveDualLayout);
-			prod += prodTmp;
+			VecProdOnLayout(tProdTmp, &vecSrc1, &vecSrc2, m_slaveDualLayout);
+			tProdLocal += tProdTmp;
+
+		//	global value
+			double tProdGlobal;
+
+		//	sum up values
+			m_stdProcessCom.allreduce(&tProdLocal, &tProdGlobal, 1,
+											PCL_DT_DOUBLE, PCL_RO_SUM);
 
 		//	return result
-			return prod;
+			return tProdGlobal;
 		}
 
 	public:
