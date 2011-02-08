@@ -848,7 +848,7 @@ bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matr
 	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
 	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
 
-	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, overlapDepth);
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, 0);
 	bool b = c.calculate();
 	newMat.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
 	return b;
