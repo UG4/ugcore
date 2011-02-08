@@ -27,7 +27,7 @@ template <class TEdgeIterator>
 size_t
 GetPolyChainType(Grid& grid, TEdgeIterator edgesBegin,
 				  TEdgeIterator edgesEnd,
-				  Callback_ConsiderEdge cbEdgeIsInPolyChain);
+				  CB_ConsiderEdge cbEdgeIsInPolyChain);
 				  
 ////////////////////////////////////////////////////////////////////////
 ///	Returns the start-vertex and start-edge of a polygonal chain.
@@ -52,7 +52,7 @@ template <class TEdgeIterator>
 std::pair<VertexBase*, EdgeBase*>
 GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
 						  TEdgeIterator edgesEnd,
-						  Callback_ConsiderEdge cbEdgeIsInPolyChain);
+						  CB_ConsiderEdge cbEdgeIsInPolyChain);
 						  
 ////////////////////////////////////////////////////////////////////////
 ///	returns the next section in a polygonal chain.
@@ -71,7 +71,7 @@ GetFirstSectionOfPolyChain(Grid& grid, TEdgeIterator edgesBegin,
  */
 std::pair<VertexBase*, EdgeBase*>
 GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSection,
-						  Callback_ConsiderEdge cbEdgeIsInPolyChain);
+						  CB_ConsiderEdge cbEdgeIsInPolyChain);
 
 ////////////////////////////////////////////////////////////////////////
 ///	Makes sure that the polychain at srcIndex is regular and not separated.

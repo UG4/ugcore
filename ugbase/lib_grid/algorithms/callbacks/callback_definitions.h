@@ -28,10 +28,10 @@ namespace ug
  *	You may implement your own callbacks, which have to return true
  *	if the given geometric object should be considered in the algorithm.
  */
-typedef boost::function<bool (VertexBase*)> Callback_ConsiderVertex;
-typedef boost::function<bool (EdgeBase*)>	Callback_ConsiderEdge;
-typedef boost::function<bool (Face*)>		Callback_ConsiderFace;
-typedef boost::function<bool (Volume*)>		Callback_ConsiderVolume;
+typedef boost::function<bool (VertexBase*)> CB_ConsiderVertex;
+typedef boost::function<bool (EdgeBase*)>	CB_ConsiderEdge;
+typedef boost::function<bool (Face*)>		CB_ConsiderFace;
+typedef boost::function<bool (Volume*)>		CB_ConsiderVolume;
 
 /** \} */
 

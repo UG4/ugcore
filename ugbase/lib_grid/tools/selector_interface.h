@@ -182,6 +182,18 @@ class ISelector : public GridObserver
 		virtual void volume_to_be_erased(Grid* grid, Volume* vol,
 										 Volume* replacedBy = NULL);
 
+		virtual void vertices_to_be_merged(Grid* grid, VertexBase* target,
+										 VertexBase* elem1, VertexBase* elem2);
+
+		virtual void edges_to_be_merged(Grid* grid, EdgeBase* target,
+										 EdgeBase* elem1, EdgeBase* elem2);
+
+		virtual void faces_to_be_merged(Grid* grid, Face* target,
+										 Face* elem1, Face* elem2);
+
+		virtual void volumes_to_be_merged(Grid* grid, Volume* target,
+										 Volume* elem1, Volume* elem2);
+
 	protected:
 		typedef ug::SectionContainer<GeometricObject*, std::list<GeometricObject*> >	SectionContainer;
 		typedef SectionContainer::iterator iterator;
@@ -233,6 +245,11 @@ class ISelector : public GridObserver
 		inline iterator get_iterator(EdgeBase* elem)	{assert(elements_are_supported(SE_EDGE)); return m_aaIterEDGE[elem];}
 		inline iterator get_iterator(Face* elem)		{assert(elements_are_supported(SE_FACE)); return m_aaIterFACE[elem];}
 		inline iterator get_iterator(Volume* elem)		{assert(elements_are_supported(SE_VOLUME)); return m_aaIterVOL[elem];}
+
+	///	helper for GridObserver callbacks.
+		template <class TElem>
+		void elems_to_be_merged(Grid* grid, TElem* target,
+								TElem* elem1, TElem* elem2);
 
 	private:
 		ISelector(const ISelector& sel){};///<	Copy Constructor not yet implemented!

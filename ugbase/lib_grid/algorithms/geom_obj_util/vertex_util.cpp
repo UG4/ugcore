@@ -475,7 +475,7 @@ void MergeVertices(Grid& grid, VertexBase* v1, VertexBase* v2)
 
 ////////////////////////////////////////////////////////////////////////
 bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
-						Callback_ConsiderEdge cbConsiderEdge)
+						CB_ConsiderEdge cbConsiderEdge)
 {
 	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 	{

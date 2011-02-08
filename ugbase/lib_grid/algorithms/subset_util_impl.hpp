@@ -214,6 +214,22 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
 template <class TElem>
 void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh)
 {
+	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, IsNotInSubset(sh, -1));
+}
+
+template <class TElem>
+void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
+										Selector& sel)
+{
+	SeparateSubsetsByLowerDimSeparators<TElem>(grid, sh, IsSelected(sel));
+}
+
+template <class TElem>
+void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
+					boost::function<bool (typename TElem::lower_dim_base_object*)>
+						cbIsSeparator)
+
+{
 	using namespace std;
 
 //	the element type of separating elements
@@ -260,9 +276,9 @@ void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh)
 			//	get the i-th side
 				TSide* side = grid.get_side(elem, i);
 
-			//	if it belongs to a subset other that -1, it is a separator.
-			//	if fd is not corresponding to a separator, we'll add all connected volumes
-				if(sh.get_subset_index(side) == -1)
+			//	check whether the side is regarded as a separator.
+			//	If not, we'll add all associated elements.
+				if(!cbIsSeparator(side))
 				{
 					CollectAssociated(vElems, grid, side);
 

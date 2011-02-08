@@ -13,7 +13,7 @@ namespace ug
 ////////////////////////////////////////////////////////////////////////
 std::pair<VertexBase*, EdgeBase*>
 GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSection,
-						  Callback_ConsiderEdge cbEdgeIsInPolyChain)
+						  CB_ConsiderEdge cbEdgeIsInPolyChain)
 {
 	if(!grid.option_is_enabled(VRTOPT_STORE_ASSOCIATED_EDGES))
 	{

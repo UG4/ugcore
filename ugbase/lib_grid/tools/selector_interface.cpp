@@ -416,4 +416,43 @@ void ISelector::volume_to_be_erased(Grid* grid, Volume* vol,
 	}
 }
 
+
+template <class TElem>
+void ISelector::
+elems_to_be_merged(Grid* grid, TElem* target,
+					TElem* elem1, TElem* elem2)
+{
+//	if at least one was selected, we'll select the new one too.
+	if(is_selected(elem1) || is_selected(elem2))
+		select(target);
+}
+
+void ISelector::
+vertices_to_be_merged(Grid* grid, VertexBase* target,
+					 VertexBase* elem1, VertexBase* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
+void ISelector::
+edges_to_be_merged(Grid* grid, EdgeBase* target,
+				  EdgeBase* elem1, EdgeBase* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
+void ISelector::
+faces_to_be_merged(Grid* grid, Face* target,
+					Face* elem1, Face* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
+void ISelector::
+volumes_to_be_merged(Grid* grid, Volume* target,
+					Volume* elem1, Volume* elem2)
+{
+	elems_to_be_merged(grid, target, elem1, elem2);
+}
+
 }//	end of namespace

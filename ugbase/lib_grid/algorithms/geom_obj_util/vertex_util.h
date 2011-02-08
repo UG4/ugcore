@@ -168,7 +168,7 @@ void RemoveDoubles(Grid& grid, const TVrtIterator& iterBegin,
  *	the polygonal chain, you may specify a callback to identify them.
  */
 bool IsBoundaryVertex1D(Grid& grid, VertexBase* v,
-						Callback_ConsiderEdge cbConsiderEdge = ConsiderAllEdges);
+						CB_ConsiderEdge cbConsiderEdge = ConsiderAllEdges);
 
 ////////////////////////////////////////////////////////////////////////
 ///	returns whether a vertex lies on the boundary of a 2D grid.

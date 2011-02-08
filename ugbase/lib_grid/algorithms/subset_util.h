@@ -7,6 +7,7 @@
 
 #include <vector>
 #include "lib_grid/lg_base.h"
+#include "callbacks/callbacks.h"
 
 namespace ug
 {
@@ -272,6 +273,38 @@ bool SeparateRegions(Grid& grid, ISubsetHandler& shVolsOut,
  */
 template <class TElem>
 void SeparateSubsetsByLowerDimSubsets(Grid& grid, SubsetHandler& sh);
+
+////////////////////////////////////////////////////////////////////////
+//	SeparateSubsetsByLowerDimSelection
+///	Assigns all elements of the given type to subsets.
+/**	Different subsets are created for different regions. A region
+ * is a set of elements of the given type, which are surrounded by
+ * a closed set of lower dimensional elements, which are all assigned to
+ * a subset.
+ */
+template <class TElem>
+void SeparateSubsetsByLowerDimSelection(Grid& grid, SubsetHandler& sh,
+										Selector& sel);
+
+////////////////////////////////////////////////////////////////////////
+// 	SeparateSubsetsByLowerDimSeparators
+///	Assigns all elements of the given type to subsets.
+/**	Different subsets are created for different regions. A region
+ * is a set of elements of the given type, which are surrounded by
+ * a closed set of lower dimensional elements, which are all separators.
+ *
+ * Through a callback one can specify the elements which separate subsets.
+ * If the callback returns true for an element, the element is regarded as
+ * a separator.
+ *
+ * Note that the callback operates on elements which have one dimension less
+ * than TElem. The callback is compatible with the CB_ConsiderVertex,
+ * CB_ConsiderEdge and CB_ConsiderFace callbacks.
+ */
+template <class TElem>
+void SeparateSubsetsByLowerDimSeparators(Grid& grid, SubsetHandler& sh,
+					boost::function<bool (typename TElem::lower_dim_base_object*)>
+						cbIsSeparator);
 
 ////////////////////////////////////////////////////////////////////////
 //	AssignInnerAndBoundarySubsets

@@ -11,6 +11,9 @@
 namespace ug
 {
 
+/**	A wrapper that returns whether an object is selected. Instances can
+ * be used as callbacks CB_ConsiderVertex, ..., CB_ConsiderVolume.
+ */
 class IsSelected
 {
 	public:
@@ -21,6 +24,24 @@ class IsSelected
 		bool operator() (EdgeBase* e)	{return m_sel.is_selected(e);}
 		bool operator() (Face* f)		{return m_sel.is_selected(f);}
 		bool operator() (Volume* v)		{return m_sel.is_selected(v);}
+
+	private:
+		const Selector&		m_sel;
+};
+
+/**	A wrapper that returns whether an object is not selected. Instances can
+ * be used as callbacks CB_ConsiderVertex, ..., CB_ConsiderVolume.
+ */
+class IsNotSelected
+{
+	public:
+		IsNotSelected(const Selector& sel) :
+			m_sel(sel)	{}
+
+		bool operator() (VertexBase* v)	{return !m_sel.is_selected(v);}
+		bool operator() (EdgeBase* e)	{return !m_sel.is_selected(e);}
+		bool operator() (Face* f)		{return !m_sel.is_selected(f);}
+		bool operator() (Volume* v)		{return !m_sel.is_selected(v);}
 
 	private:
 		const Selector&		m_sel;
