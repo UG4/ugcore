@@ -355,7 +355,7 @@ private:
 	 */
 	void create_mark_map(IndexLayout &masterLayout)
 	{
-		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlap_CreateMarks\n");
+		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::CreateMarks\n");
 
 		for(IndexLayout::iterator iter = masterLayout.begin(); iter != masterLayout.end(); ++iter)
 		{
@@ -387,7 +387,7 @@ private:
 	void get_new_indices(StreamPack &matrixrow_pack, std::map<int, std::vector<size_t> > &overlapLayout,
 			NewNodesNummerator &nodeNummerator)
 	{
-		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlap_GetNewIndices\n");
+		UG_DLOG(LIB_ALG_MATRIX, 4, "\n\nGenerateOverlapClass::GetNewIndices\n");
 		typedef IndexLayout::Interface Interface;
 
 		size_t num_connections;
@@ -510,23 +510,7 @@ private:
 	}
 
 
-	// GenerateOverlap
-	//--------------------------------------------------
-	/**
-	 * \brief Generates a new matrix with overlap from another matrix
-	 * \param _mat				matrix to create overlap from
-	 * \param newMat			matrix to store overlap matrix in
-	 * \param masterOLLayout	Layout
-	 * \param masterOLLayout
-	 * \param overlap_depth
-	 *
-	 * \sa GenerateOverlap_CollectData
-	 * \sa GenerateOverlap_GetNewIndices
-	 * \sa GenerateOverlap_AddMatrixRows
-
-	 */
-
-	/// insert_map_into_layout_sorted
+		/// insert_map_into_layout_sorted
 	/**
 	 * \param m the map mapping a processor id to a std::vector<size_t>
 	 * \param layout the layout where to add to
@@ -678,8 +662,19 @@ private:
 	}
 
 public:
+	// GenerateOverlap
+		//--------------------------------------------------
+		/**
+		 * \brief Generates a new matrix with overlap from another matrix
+		 * \param _mat				matrix to create overlap from
+		 * \param newMat			matrix to store overlap matrix in
+		 * \param masterOLLayout	Layout
+		 * \param masterOLLayout
+		 * \param overlap_depth
+		 *
+		 */
 	GenerateOverlapClass(matrix_type &mat, matrix_type &newMat, IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout,
-			std::vector<IndexLayout> vMasterLayouts, std::vector<IndexLayout> vSlaveLayouts, size_t overlapDepth=1) :
+			std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts, size_t overlapDepth=1) :
 		m_com(mat.get_communicator()), m_mat(mat), m_newMat(newMat), m_totalMasterLayout(totalMasterLayout), m_totalSlaveLayout(totalSlaveLayout),
 		m_vMasterLayouts(vMasterLayouts), m_vSlaveLayouts(vSlaveLayouts), m_overlapDepth(overlapDepth)
 	{
@@ -831,7 +826,7 @@ public:
 // TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
 template<typename matrix_type>
 bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat,
-		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> vMasterLayouts, std::vector<IndexLayout> vSlaveLayouts,
+		IndexLayout &totalMasterLayout, IndexLayout &totalSlaveLayout, std::vector<IndexLayout> &vMasterLayouts, std::vector<IndexLayout> &vSlaveLayouts,
 		size_t overlapDepth=1)
 {
 	// pcl does not use const much
@@ -841,6 +836,24 @@ bool GenerateOverlap(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<mat
 	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, overlapDepth);
 	return c.calculate();
 }
+
+// TODO: one "bug" remains: dirichlet nodes, which have only connection to themselfs = 1.0, get afterwards 2.0 (because rows are not additive there)
+template<typename matrix_type>
+bool MakeConsistent(const ParallelMatrix<matrix_type> &_mat, ParallelMatrix<matrix_type> &newMat)
+{
+	IndexLayout totalMasterLayout, totalSlaveLayout;
+	std::vector<IndexLayout> vMasterLayouts;
+	std::vector<IndexLayout> vSlaveLayouts;
+	// pcl does not use const much
+	//UG_ASSERT(overlap_depth > 0, "overlap_depth has to be > 0");
+	ParallelMatrix<matrix_type> &mat = const_cast<ParallelMatrix<matrix_type> &> (_mat);
+
+	GenerateOverlapClass<ParallelMatrix<matrix_type> > c(mat, newMat, totalMasterLayout, totalSlaveLayout, vMasterLayouts, vSlaveLayouts, overlapDepth);
+	bool b = c.calculate();
+	newMat.set_layouts(mat.get_master_layout(), mat.get_slave_layout());
+	return b;
+}
+
 
 }
 #endif
