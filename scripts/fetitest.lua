@@ -25,8 +25,10 @@ if dim == 3 then
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = 0
+numPreRefs = 2
 numRefs = 3
+
+numRefs = GetParam("-numRefs", 3)+0
 
 --ugargc -> anzahl an ugargvs -- TODO: Check, ob ugshell mit genau (mindestens) 2 Prozessen gestartet wurde!
 if ugargv[1] ~= nil then
@@ -431,6 +433,8 @@ fetiSolver:set_dirichlet_solver(dirichletCGSolver)
 fetiSolver:set_coarse_problem_solver(exactSolver)
 
 -- Apply Solver
+print( "   numPreRefs is " .. numPreRefs .. ",  numRefs is " .. numRefs)
+print( "   numProcs   is " .. numProcs   .. ",  NumSubDomains is " .. numSubdomains )
 ApplyLinearSolver(linOp, u, b, fetiSolver)
 
 -- Output
