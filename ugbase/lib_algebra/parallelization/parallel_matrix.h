@@ -75,6 +75,18 @@ class ParallelMatrix : public TMatrix
 			m_pSlaveLayout = &slaveLayout;
 		}
 
+	///	sets slave layout
+		void set_slave_layout(IndexLayout& slaveLayout)
+		{
+			m_pSlaveLayout = &slaveLayout;
+		}
+
+	///	sets slave layout
+		void set_master_layout(IndexLayout& masterLayout)
+		{
+			m_pMasterLayout = &masterLayout;
+		}
+
 	///	returns the slave layout
 		IndexLayout& get_slave_layout() const {return *m_pSlaveLayout;}
 
