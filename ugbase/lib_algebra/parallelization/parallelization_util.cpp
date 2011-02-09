@@ -375,6 +375,7 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 				}
 			}
 			else{
+				UG_LOG("Adding entries to dual-nbrs.\n");
 			//	delta-neighbours lie in two interfaces - the processInterface
 			//	and the deltaNbrInterface
 				Interface& deltaNbrInterface = deltaNbrLayoutOut.interface(connProc);
@@ -485,40 +486,36 @@ void BuildDomainDecompositionLayouts(
 		}
 	}
 
+//todo: instead of communicating the master flags, one could use the
+//		connections array to check whether a slave lies on a boundary
+//		between different subdomains.
+	vector<int> masterFlags(connections.size(), -1);
+	ComPol_VecCopy<vector<int> > compolCopy(&masterFlags, &flags);
+	ParallelCommunicator<IndexLayout> com;
+	com.send_data(standardMasters, compolCopy);
+	com.receive_data(standardSlaves, compolCopy);
+	com.communicate();
+
 //	now fill the flags vector for slave entries.
 //	here we'll use the connections, since we otherwise wouldn't know all connections.
 	for(InterfaceIter iiter = standardSlaves.begin();
 		iiter != standardSlaves.end(); ++iiter)
 	{
-	//	connected proc and subdomain ids
-		int connProc = standardSlaves.proc_id(iiter);
-		int connSubdomID = ddinfo.map_proc_id_to_subdomain_id(connProc);
-		if(localSubdomID != connSubdomID){
-		//	the interface connects two subdomains.
-			Interface& interface = standardSlaves.interface(iiter);
-			for(ElemIter eiter = interface.begin();
-				eiter != interface.end(); ++eiter)
+		Interface& interface = standardSlaves.interface(iiter);
+		for(ElemIter eiter = interface.begin();
+			eiter != interface.end(); ++eiter)
+		{
+			Interface::Element elem = interface.get_element(eiter);
+			if(masterFlags[elem] != -1)
 			{
-				Interface::Element elem = interface.get_element(eiter);
+			//	the master connects multiple subdomains.
 				if(flags[elem] == -1){
 				//	check whether the element is connected to one or to more other subdomains
 					vector<int>& cons = connections[elem];
-					int tmpFlag = -1;
-					for(size_t i = 0; i < cons.size(); ++i){
-						int tmpSubdomID = ddinfo.map_proc_id_to_subdomain_id(cons[i]);
-						if(tmpSubdomID != localSubdomID){
-							if(tmpFlag == -1)
-								tmpFlag = tmpSubdomID;
-							else if(tmpFlag != tmpSubdomID){
-								tmpFlag = -2;
-								break;
-							}
-						}
-					}
 
-					flags[elem] = tmpFlag;
+					flags[elem] = masterFlags[elem];
 
-					if((tmpFlag >= 0)){
+					if((flags[elem] >= 0)){
 					//	check whether the associated master is in another subdomain
 					//	and whether another slave in the same subdomain exists.
 						if(ddinfo.map_proc_id_to_subdomain_id(cons[0]) != localSubdomID){
@@ -557,10 +554,12 @@ void BuildDomainDecompositionLayouts(
 
 ////////////////////////
 //	we can now build the master and slave interfaces
+	UG_LOG("Copying master entries.\n");
 	CopyInterfaceEntrysToDomainDecompositionLayouts(
 			subdomMastersOut, processMastersOut, deltaNbrMastersOut,
 			crossPointMastersOut, standardMasters, flags, ddinfo);
 
+	UG_LOG("Copying slave entries.\n");
 	CopyInterfaceEntrysToDomainDecompositionLayouts(
 			subdomSlavesOut, processSlavesOut, deltaNbrSlavesOut,
 			crossPointSlavesOut, standardSlaves, flags, ddinfo);
