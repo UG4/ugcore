@@ -184,27 +184,45 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		//	TODO: error handling / memory check
 
 		//  Rename Matrix for convenience
+
+#if 1
+			matrix_type& A = *this->m_pMatrix;
+			m_ILU = A;
+			m_h.resize(A.num_cols());
+#else
 			matrix_type& A = *this->m_pMatrix;
 
-		//	copy original matrix
-			m_ILU = A;
+		//	Resize Matrix
+			if(	m_ILU.num_rows() != mat.num_rows() ||
+				m_ILU.num_cols() != mat.num_cols())
+			{
+			//	destroy memory
+				m_ILU.destroy();
+				m_h.destroy();
 
-#ifdef 	UG_PARALLEL
-		//	make diag of matrix consistent
-			MatAdditiveToConsistentOnDiag<algebra_type>(&m_ILU,
-			                              m_ILU.get_master_layout(),
-			                              m_ILU.get_slave_layout());
+			//	create new memory
+				m_ILU.create(A.num_rows(), A.num_cols());
+
+			//	Create help vector
+				m_h.create(A.num_cols());
+			}
+
+		// 	Copy matrix
+			for(size_t i=0; i < A.num_rows(); i++)
+			{
+				for(typename matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd(); ++it_k)
+				{
+					const size_t k = it_k.index();
+					m_ILU(i,k) = it_k.index();
+				}
+			}
 #endif
-		//	resize help vector
-			m_h.resize(A.num_cols());
-
 		// 	Compute ILU Factorization
 		if(matrix_type::rows_sorted)
 			FactorizeILUSorted(m_ILU);
 		else
 			FactorizeILU(m_ILU);
 
-		//	we're done
 			return true;
 		}
 
@@ -218,8 +236,7 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 #ifdef 	UG_PARALLEL
 		//	Correction is always consistent
 		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
-			c.set_storage_type(PST_ADDITIVE);
-			c.change_storage_type(PST_CONSISTENT);
+			c.set_storage_type(PST_CONSISTENT);
 #endif
 
 			return true;
