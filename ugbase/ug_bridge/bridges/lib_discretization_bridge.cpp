@@ -478,75 +478,7 @@ bool DistributeDomain(TDomain& domainOut)
 //	perform distribution
 	AdjustAndDistributeGrid(distGridMgrOut, sh, mg, sh, numProcs, true,
 							funcAdjustGrid, funcPartitionGrid);
-/*
-//	process 0 loads and distributes the grid. The others receive it.
-	if(pcl::GetProcRank() == 0)
-	{
-	//	adjust the grid
-		funcAdjustGrid(mg, sh);
 
-		UG_LOG("  Performing load balancing ... \n");
-
-	//	perform load-balancing
-	//TODO: if grid partitioning fails, the whole process should be aborted.
-	//		this has to be communicated to the other processes.
-		SubsetHandler shPartition(mg);
-		if(!funcPartitionGrid(shPartition, mg, sh, numProcs)){
-			UG_LOG("  grid partitioning failed. proceeding anyway...\n");
-		}
-
-		UG_LOG("Num Subsets is =" << sh.num_subsets()<<"\n");
-
-	//	get min and max num elements
-		int maxElems = 0;
-		int minElems = 0;
-		if(mg.num<Volume>() > 0){
-			minElems = mg.num<Volume>();
-			for(int i = 0; i < shPartition.num_subsets(); ++i){
-				minElems = std::min(minElems, (int)shPartition.num<Volume>(i));
-				maxElems = std::max(maxElems, (int)shPartition.num<Volume>(i));
-			}
-		}
-		else if(mg.num<Face>() > 0){
-			minElems = mg.num<Face>();
-			for(int i = 0; i < shPartition.num_subsets(); ++i){
-				minElems = std::min(minElems, (int)shPartition.num<Face>(i));
-				maxElems = std::max(maxElems, (int)shPartition.num<Face>(i));
-			}
-		}
-
-		LOG("  Element Distribution - min: " << minElems << ", max: " << maxElems << std::endl);
-
-		const char* partitionMapFileName = "partitionMap.obj";
-		LOG("saving partition map to " << partitionMapFileName << std::endl);
-		SaveGridToFile(mg, partitionMapFileName, shPartition);
-
-		//	distribute the grid.
-		LOG("  Distributing grid... ");
-		if(DistributeGrid_KeepSrcGrid(mg, sh, glmOut, shPartition, 0))
-		{
-			UG_LOG("done!\n");
-		}
-		else{
-			UG_LOG("failed\n");
-		}
-	}
-	else
-	{
-	//	a grid will only be received, if the process-rank is smaller than numProcs
-		if(pcl::GetProcRank() < numProcs){
-			if(!ReceiveGrid(mg, sh, glmOut, 0, true)){
-				UG_LOG("  ReceiveGrid failed on process " << pcl::GetProcRank() <<
-				". Aborting...\n");
-				return false;
-			}
-		}
-	}
-
-
-//	tell the distGridMgr that the associated layout changed.
-	distGridMgrOut.grid_layouts_changed(true);
-*/
 	if(tmpPosAttachment)
 	{
 	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
@@ -1663,8 +1595,7 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 			.add_constructor()
 			.add_method("map_proc_id_to_subdomain_id", &T::map_proc_id_to_subdomain_id)
 			.add_method("set_num_subdomains",          &T::set_num_subdomains)
-			.add_method("get_num_subdomains",          &T::get_num_subdomains)
-			.add_method("get_num_procs_per_subdomain", &T::get_num_procs_per_subdomain);
+			.add_method("get_num_subdomains",          &T::get_num_subdomains);
 		}
 #endif
 

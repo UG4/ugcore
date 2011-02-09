@@ -25,8 +25,10 @@ class IDomainDecompositionInfo
 
 		virtual int get_num_subdomains() const = 0;
 
-		virtual int get_num_procs_per_subdomain() const = 0;
+		//virtual int get_num_procs_per_subdomain() const = 0;
 
+		virtual void get_subdomain_procs(std::vector<int>& procsOut,
+										int subdomIndex) = 0;
 	public:
 		// destructor
 		virtual ~IDomainDecompositionInfo() {};
@@ -76,7 +78,16 @@ class StandardDomainDecompositionInfo : public IDomainDecompositionInfo
 
 		int get_num_subdomains() const {return m_num_subdomains;}
 
-		int get_num_procs_per_subdomain() const {return m_num_procs_per_subdomain;}
+		//int get_num_procs_per_subdomain() const {return m_num_procs_per_subdomain;}
+
+		virtual void get_subdomain_procs(std::vector<int>& procsOut,
+										int subdomIndex)
+		{
+			procsOut.resize(m_num_procs_per_subdomain);
+			int first = subdomIndex * m_num_procs_per_subdomain;
+			for(int i = 0; i < m_num_procs_per_subdomain; ++i)
+				procsOut[i] = first + i;
+		}
 
 	///	set debug output - needed?
 		/*

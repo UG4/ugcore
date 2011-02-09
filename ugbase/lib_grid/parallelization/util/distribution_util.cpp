@@ -236,7 +236,45 @@ void CreateDistributionLayouts(
 	mg.detach_from_faces(aFirstProcLocalInd);
 	mg.detach_from_volumes(aFirstProcLocalInd);
 }
+/*
+////////////////////////////////////////////////////////////////////////
+void CreateDistributionLayouts_SplitBaseGrid(
+						std::vector<DistributionVertexLayout>& vertexLayoutsOut,
+						std::vector<DistributionEdgeLayout>& edgeLayoutsOut,
+						std::vector<DistributionFaceLayout>& faceLayoutsOut,
+						std::vector<DistributionVolumeLayout>& volumeLayoutsOut,
+						MultiGrid& mg, SubsetHandler& sh,
+						IDomainDecompositionInfo& ddinfo,
+						MGSelector* pSel)
+{
+//	initialize a selector.
+	MGSelector tmpSel;
+	if(!pSel){
+		tmpSel.assign_grid(mg);
+		pSel = &tmpSel;
+	}
+	MGSelector& msel = *pSel;
 
+//	call normal CreateDistributionLayouts first.
+	CreateDistributionLayouts(vertexLayoutsOut, edgeLayoutsOut,
+							  faceLayoutsOut, volumeLayoutsOut,
+							  mg, sh, false, &msel);
+
+//	now we have to create a base grid for each domain partition
+//	to do so we'll iterate over all subdomains in ddinfo and
+//	collect the base grid of each. On the fly we'll create the
+//	horizontal interfaces.
+
+	std::vector<int> subdomProcs;
+	for(int i_subdom = 0; i_subdom < ddinfo.num_subdomains(); ++i_subdom)
+	{
+		ddinfo.get_subdomain_procs(subdomProcs, i_subdom);
+	//	the first proc in each subdomain will hold the base grid.
+
+	}
+
+}
+*/
 ////////////////////////////////////////////////////////////////////////
 template <class TDistLayout>
 void AddExistingInterfacesForRedistribution(

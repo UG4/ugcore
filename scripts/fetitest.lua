@@ -438,7 +438,6 @@ WriteGridFunctionToVTK(u, "Solution")
 
 -- check
 print( "domainDecompInfo:get_num_subdomains(): " .. domainDecompInfo:get_num_subdomains())
-print( "domainDecompInfo:get_num_procs_per_subdomain(): " .. domainDecompInfo:get_num_procs_per_subdomain())
 
 --localSchurComplement = LocalSchurComplement()
 --localSchurComplement:set_matrix(linOp)
