@@ -71,7 +71,7 @@ lmgc(size_t lev)
 		GMG_PROFILE_BEGIN(GMG_PreSmooth);
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_nu1))
 		{
-			UG_LOG("Error in premoothing on level " << lev << ".\n");
+			UG_LOG("Error in presmoothing on level " << lev << ".\n");
 			return false;
 		}
 		GMG_PROFILE_END();
