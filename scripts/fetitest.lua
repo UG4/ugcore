@@ -424,8 +424,8 @@ fetiConvCheck:set_maximum_steps(20)
 fetiConvCheck:set_minimum_defect(1e-9)
 fetiConvCheck:set_reduction(1e-16)
 
-fetiSolver:set_debug(dbgWriter)
---fetiSolver:set_convergence_check(fetiConvCheck)
+--fetiSolver:set_debug(dbgWriter)
+fetiSolver:set_convergence_check(fetiConvCheck)
 fetiSolver:set_domain_decomp_info(domainDecompInfo)
 
 fetiSolver:set_neumann_solver(neumannCGSolver)
