@@ -188,18 +188,14 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 #ifdef 	UG_PARALLEL
 		//	copy original matrix
-//			UG_LOG("Making ILU Matrix Copy consistent...");
 			MakeConsistent(A, m_ILU);
-//			UG_LOG("done" << std::endl);
 
 		//	set zero on slaves
-//			UG_LOG("Setting dirichlet rows in slaves ...");
 			MatSetDirichletOnLayout(&m_ILU,  m_ILU.get_slave_layout());
-//			UG_LOG("done" << std::endl);
 
 #else
 		//	copy original matrix
-			m_ILU = A
+			m_ILU = A;
 #endif
 
 		//	resize help vector
@@ -208,15 +204,11 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		// 	Compute ILU Factorization
 		if(matrix_type::rows_sorted)
 		{
-//			UG_LOG("FactorizeILUSorted ...");
 			FactorizeILUSorted(m_ILU);
-//			UG_LOG("done" << std::endl);
 		}
 		else
 		{
-//			UG_LOG("FactorizeILUSorted ...");
 			FactorizeILU(m_ILU);
-//			UG_LOG("done" << std::endl);
 		}
 
 		//	we're done
@@ -232,23 +224,15 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		//	make defect unique
 			vector_type h;
 			h.resize(d.size()); h = d;
-//			UG_LOG("Make h consistent ...");
 			h.change_storage_type(PST_UNIQUE);
-//			UG_LOG("done" << std::endl);
 
 		// 	apply iterator: c = LU^{-1}*d (damp is not used)
-//			UG_LOG("Inverting L ...");
 			invert_L(m_ILU, m_h, h); // h := L^-1 d
-//			UG_LOG("done" << std::endl);
-//			UG_LOG("Inverting U ...");
 			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
-//			UG_LOG("done" << std::endl);
 
 		//	Correction is always consistent
 			c.set_storage_type(PST_ADDITIVE);
-//			UG_LOG("Make c consistent ...");
 			c.change_storage_type(PST_CONSISTENT);
-//			UG_LOG("done" << std::endl);
 
 #else
 		// 	apply iterator: c = LU^{-1}*d (damp is not used)
