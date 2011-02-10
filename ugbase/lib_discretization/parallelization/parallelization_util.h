@@ -12,6 +12,7 @@
 #include "lib_discretization/lib_discretization.h"
 #include "lib_grid/parallelization/parallelization.h"
 #include "lib_discretization/dof_manager/dof_distribution.h"
+#include "lib_algebra/parallelization/communication_policies.h"
 
 namespace ug
 {
