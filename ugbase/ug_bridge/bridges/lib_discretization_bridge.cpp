@@ -417,171 +417,11 @@ void SetDebugLevel(const char* t, int level)
 	}
 }
 
-template <typename TDomain>
-bool DistributeDomain(TDomain& domainOut)
-{
-#ifdef UG_PARALLEL
-//	typedefs
-	typedef typename TDomain::subset_handler_type subset_handler_type;
-	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
 
-//	get distributed grid manager
-	distributed_grid_manager_type* pDistGridMgr = domainOut.get_distributed_grid_manager();
 
-//	check that manager exists
-	if(!pDistGridMgr)
-	{
-		UG_LOG("DistibuteDomain: Cannot find Distributed Grid Manager.\n");
-		return false;
-	}
-	distributed_grid_manager_type& distGridMgrOut = *pDistGridMgr;
 
-//	get subset handler
-	subset_handler_type& sh = domainOut.get_subset_handler();
 
-//	get number of processes
-	const int numProcs = pcl::GetNumProcesses();
-	if(numProcs == 1) return true;
 
-//	check, that grid is a multigrid
-	MultiGrid* pMG = dynamic_cast<MultiGrid*>(distGridMgrOut.get_assigned_grid());
-	if(pMG == NULL)
-	{
-		UG_LOG("DistibuteDomain: MultiGrid-Domain required in current implementation.\n");
-		return false;
-	}
-	MultiGrid& mg = *pMG;
-
-//	get Grid Layout
-//	GridLayoutMap& glmOut = distGridMgrOut.grid_layout_map();
-
-//	make sure that each grid has a position attachment - even if no data
-//	will be received.
-	typedef typename TDomain::position_attachment_type position_attachment_type;
-	position_attachment_type& domPosition = domainOut.get_position_attachment();
-	bool tmpPosAttachment = false;
-	if(!mg.has_vertex_attachment(aPosition))
-	{
-	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
-       mg.attach_to_vertices(aPosition);
-       ConvertMathVectorAttachmentValues<VertexBase>(mg, domPosition, aPosition);
-
-       UG_LOG("DistributeDomain: temporarily adding Position Attachment.\n");
-       tmpPosAttachment = true;
-	}
-
-//	AdjustFunctions
-//	FuncAdjustGrid funcAdjustGrid = DefaultAdjustGrid;
-	FuncAdjustGrid funcAdjustGrid = AdjustGrid_AutoAssignSubsetsAndRefine(0,1,0);
-	FuncPartitionGrid funcPartitionGrid = PartitionGrid_Bisection;
-
-//	perform distribution
-	AdjustAndDistributeGrid(distGridMgrOut, sh, mg, sh, numProcs, true,
-							funcAdjustGrid, funcPartitionGrid);
-
-	if(tmpPosAttachment)
-	{
-	// convert to 3d positions (FVGeometry depends on PositionCoordinates)
-       ConvertMathVectorAttachmentValues<VertexBase>(mg, aPosition, domPosition);
-       mg.detach_from_vertices(aPosition);
-
-       UG_LOG("DistributeDomain: removing temporary Position Attachment.\n");
- 	}
-
-#endif
-
-//	in serial case: do nothing
-	return true;
-}
-
-template <typename TDomain>
-void GlobalRefineParallelDomain(TDomain& domain)
-{
-#ifdef UG_PARALLEL
-//	get distributed grid manager
-	typedef typename TDomain::distributed_grid_manager_type distributed_grid_manager_type;
-	distributed_grid_manager_type* pDistGridMgr = domain.get_distributed_grid_manager();
-
-//	check that manager exists
-	if(!pDistGridMgr)
-	{
-		UG_LOG("GlobalRefineParallelDomain: Cannot find Distributed Grid Manager.\n");
-		throw(int(1));
-	}
-	distributed_grid_manager_type& distGridMgr = *pDistGridMgr;
-
-//	create Refiner
-	ParallelGlobalMultiGridRefiner refiner(distGridMgr);
-#else
-	GlobalMultiGridRefiner refiner;
-	refiner.assign_grid(domain.get_grid());
-#endif
-
-//	perform refinement.
-	refiner.refine();
-}
-
-template <typename TDomain>
-bool LoadDomain(TDomain& domain, const char* filename, int numRefs)
-{
-#ifdef UG_PARALLEL
-	if(pcl::GetProcRank() != 0)
-		return true;
-#endif
-
-	const char * p = strstr(filename, ".ugx");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.ugx' format supported for domains.\n");
-		return false;
-	}
-
-	if(!LoadGridFromUGX(domain.get_grid(), domain.get_subset_handler(), filename))
-	{
-		UG_LOG("Cannot load grid.\n");
-		return false;
-	}
-
-	if(numRefs <= 0) return true;
-
-	GlobalMultiGridRefiner refiner;
-	refiner.assign_grid(domain.get_grid());
-	for(int i = 0; i < numRefs; ++i)
-	{
-		refiner.refine();
-	}
-
-	return true;
-}
-
-template <typename TDomain>
-bool SaveDomain(TDomain& domain, const char* filename)
-{
-	const char * p = strstr(filename, ".ugx");
-	if(p == NULL)
-	{
-		UG_LOG("Currently only '.ugx' format supported for domains.\n");
-		return false;
-	}
-
-	std::string name(filename);
-
-#ifdef UG_PARALLEL
-//	search for ending
-	size_t found = name.find_first_of(".");
-
-//	remove endings
-	name.resize(found);
-
-//	add new ending, containing process number
-	int rank = pcl::GetProcRank();
-	char ext[20];
-	sprintf(ext, "_p%04d.ugx", rank);
-	name.append(ext);
-#endif
-
-	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), name.c_str());
-}
 
 bool AddP1Function(P1ConformFunctionPattern& pattern, const char* name, int dim)
 {
@@ -984,16 +824,6 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
 #endif
 
-//	Domain
-	{
-		std::stringstream ss; ss << "Domain" << dim << "d";
-		reg.add_class_<domain_type>(ss.str().c_str(), grp.c_str())
-			.add_constructor()
-			.add_method("get_subset_handler|hide=true", (MGSubsetHandler& (domain_type::*)()) &domain_type::get_subset_handler)
-			.add_method("get_grid|hide=true", (MultiGrid& (domain_type::*)()) &domain_type::get_grid)
-			.add_method("get_dim|hide=true", (int (domain_type::*)()) &domain_type::get_dim);
-	}
-
 //	IApproximationSpace
 	{
 		typedef IApproximationSpace<domain_type> T;
@@ -1254,23 +1084,6 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 		typedef GridFunction<domain_type, dof_distribution_type, algebra_type> function_type;
 #endif
 
-
-	// 	LoadDomain
-		{
-			std::stringstream ss; ss << "LoadDomain" << dim << "d";
-			reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
-							"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
-							"Loads a domain", "No help");
-		}
-
-	//	SaveDomain
-		{
-			std::stringstream ss; ss << "SaveDomain" << dim << "d";
-			reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
-							"Success", "Domain # Filename|save-dialog",
-							"Saves a domain", "No help");
-		}
-
 #ifdef UG_PARALLEL
 	//	todo: only temporary
 		{
@@ -1312,18 +1125,6 @@ void RegisterLibDiscretizationDomainFunctions(Registry& reg, const char* parentG
 			std::stringstream ss; ss << "SolveTimeProblem" << dim << "d";
 			reg.add_function(ss.str().c_str(), &SolveTimeProblem<function_type>, grp.c_str(),
 							"Success", "Solver#GridFunction#Discretization#Timesteps#StartTimestep#Timestep Size#FileName");
-		}
-
-	//	DistributeDomain
-		{
-			std::stringstream ss; ss << "DistributeDomain" << dim << "d";
-			reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>, grp.c_str());
-		}
-
-	//	GlobalRefineParallelDomain
-		{
-			std::stringstream ss; ss << "GlobalRefineParallelDomain" << dim << "d";
-			reg.add_function(ss.str().c_str(), &GlobalRefineParallelDomain<domain_type>, grp.c_str());
 		}
 
 	//	ApplyLinearSolver

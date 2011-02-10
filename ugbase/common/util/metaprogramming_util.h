@@ -124,7 +124,31 @@ struct BinomialCoefficient
     				(Factorial<k>::value*Factorial<n-k>::value) };
 };
 
+//////////////////////////////
+// UniqueTypeID
+//////////////////////////////
+///	a singleton class that returns a new id for each type
+class UniqueTypeIDProvider{
+	public:
+		static UniqueTypeIDProvider& inst(){
+			static UniqueTypeIDProvider utid;
+			return utid;
+		}
 
+		size_t new_id()	{return ++m_id;}
+
+	private:
+		UniqueTypeIDProvider() : m_id(0)	{}
+		size_t m_id;
+};
+
+///	This method associated a unique unsigned integer value with each type.
+template <class TType>
+size_t GetUniqueTypeID()
+{
+	static size_t typeID = UniqueTypeIDProvider::inst().new_id();
+	return typeID;
+}
 
 }
 

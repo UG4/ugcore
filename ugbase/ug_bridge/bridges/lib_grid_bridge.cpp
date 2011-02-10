@@ -385,6 +385,7 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 	reg.add_class_<IRefiner>("IRefiner", grp.c_str())
 		.add_method("refine", &IRefiner::refine);
 
+//	HangingNodeRefiner
 	reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp.c_str())
 		.add_constructor()
 		.add_method("assign_grid", &HangingNodeRefiner_Grid::assign_grid);
@@ -397,6 +398,13 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 	reg.add_class_<GlobalMultiGridRefiner, IRefiner>("GlobalMultiGridRefiner", grp.c_str())
 		.add_constructor()
 		.add_method("assign_grid", (void (GlobalMultiGridRefiner::*)(MultiGrid&)) &GlobalMultiGridRefiner::assign_grid);
+
+//	parallel refinement
+#ifdef UG_PARALLEL
+	reg.add_class_<ParallelHangingNodeRefiner_MultiGrid, HangingNodeRefiner_MultiGrid>
+		("ParallelHangingNodeRefiner_MultiGrid", grp.c_str())
+		.add_constructor();
+#endif
 
 //	GridObject
 	reg.add_class_<GridObject, Grid>("GridObject", grp.c_str())

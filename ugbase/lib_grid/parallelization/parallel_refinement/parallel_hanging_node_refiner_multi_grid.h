@@ -14,14 +14,26 @@
 namespace ug
 {
 
+/**	The parallel hanging node refiner allows parallel refinement
+ * with hanging nodes. Make sure that you initialize it with
+ * a valid DistributedGridManager.
+ */
 class ParallelHangingNodeRefiner_MultiGrid :
 	public HangingNodeRefiner_MultiGrid
 {
+	typedef class HangingNodeRefiner_MultiGrid BaseClass;
+	using BaseClass::mark_for_refinement;
+
 	public:
+		ParallelHangingNodeRefiner_MultiGrid(IRefinementCallback* refCallback = NULL);
+
 		ParallelHangingNodeRefiner_MultiGrid(
-				DistributedGridManager& distGridMgr);
+				DistributedGridManager& distGridMgr,
+				IRefinementCallback* refCallback = NULL);
 
 		virtual ~ParallelHangingNodeRefiner_MultiGrid();
+
+		void set_distributed_grid_manager(DistributedGridManager& distGridMgr);
 
 	///	all marks are cleared and flags are resetted.
 		virtual void clear_marks();
@@ -43,6 +55,14 @@ class ParallelHangingNodeRefiner_MultiGrid :
 	 *	all processes are involved.*/
 		void set_involved_processes(pcl::ProcessCommunicator com);
 
+	///	performs parallel refinement
+	/**	Checks that everything was initialized correctly and calls the
+	 * base implementation.
+	 * Throws an instance of UGError if something went wrong.
+	 *
+	 * Parallelization is mainly performed in collect_objects_for_refine.*/
+		virtual void refine();
+
 	protected:
 	///	prepares selection and calls the base implementation
 	/**	Makes sure that no elements with children are selected,
@@ -63,7 +83,7 @@ class ParallelHangingNodeRefiner_MultiGrid :
 		virtual void post_refine();
 
 	private:
-		DistributedGridManager& m_distGridMgr;
+		DistributedGridManager* m_pDistGridMgr;
 		pcl::ProcessCommunicator m_procCom;
 		pcl::ParallelCommunicator<EdgeLayout> m_intfComEDGE;
 		pcl::ParallelCommunicator<FaceLayout> m_intfComFACE;

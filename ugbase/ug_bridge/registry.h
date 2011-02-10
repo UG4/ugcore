@@ -70,14 +70,6 @@ class Registry {
 								const char* retValInfos = "", const char* paramInfos = "",
 								const char* tooltip = "", const char* help = "")
 		{
-		//	check that funcName is not already used
-			if(functionname_registered(funcName))
-			{
-				std::cout << "### Registry ERROR: Trying to register function name '" << funcName
-						<< "', that is already used by another function in this registry."
-						<< "\n### Please change register process. Aborting ..." << std::endl;
-				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
-			}
 		// 	check that name is not empty
 			if(strlen(funcName) == 0)
 			{
@@ -86,11 +78,23 @@ class Registry {
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
 			}
 
-		//  create new exported function
-			m_vFunction.push_back(new ExportedFunction(	func, &FunctionProxy<TFunc>::apply,
-														funcName, group,
-														retValInfos, paramInfos,
-														tooltip, help));
+		//	if the function is already in use, we have to add an overload
+			ExportedFunction* existingFunc = get_exported_function(funcName);
+			if(existingFunc)
+			{
+				//std::cout << "Problem type ID: " << GetUniqueTypeID<TFunc>() << "..." << typeid(func).name() << std::endl;
+				std::cout << "### Registry ERROR: Trying to register function name '" << funcName
+						<< "', that is already used by another function in this registry."
+						<< "\n### Please change register process. Aborting ..." << std::endl;
+				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
+			}
+			else{
+			//  create new exported function
+				m_vFunction.push_back(new ExportedFunction(	func, &FunctionProxy<TFunc>::apply,
+															funcName, group,
+															retValInfos, paramInfos,
+															tooltip, help));
+			}
 	
 			return *this;
 		}
@@ -307,6 +311,17 @@ class Registry {
 					return true;
 			}
 			return false;
+		}
+
+		ExportedFunction* get_exported_function(const char* name)
+		{
+			for(size_t i = 0; i < m_vFunction.size(); ++i)
+			{
+			//  compare strings
+				if(strcmp(name, (m_vFunction[i]->name()).c_str()) == 0)
+					return m_vFunction[i];
+			}
+			return NULL;
 		}
 
 	private:
