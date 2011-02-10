@@ -17,8 +17,8 @@ InitAlgebra(CPUAlgebraChooser());
 dim = 2
 
 if dim == 2 then
-	--gridName = "unit_square_tri.ugx"
-	gridName = "unit_square_quads_8x8.ugx"
+	gridName = "unit_square_tri.ugx"
+	--gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = "unit_cube_hex.ugx"
@@ -26,7 +26,7 @@ if dim == 3 then
 end
 
 numPreRefs = 2
-numRefs = 3
+numRefs = 4
 
 numRefs = GetParam("-numRefs", 3)+0
 
@@ -172,7 +172,7 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 numProcs = NumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs 
+numSubdomains = numProcs  / 4
 
 print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
 
@@ -398,8 +398,8 @@ exactSolver = LU()
 
 -- create Neumann CG Solver
 neumannConvCheck = StandardConvergenceCheck()
-neumannConvCheck:set_maximum_steps(500)
-neumannConvCheck:set_minimum_defect(1e-14)
+neumannConvCheck:set_maximum_steps(400)
+neumannConvCheck:set_minimum_defect(1e-12)
 neumannConvCheck:set_reduction(1e-16)
 neumannConvCheck:set_verbose_level(false)
 neumannCGSolver = CG()
@@ -408,8 +408,8 @@ neumannCGSolver:set_convergence_check(neumannConvCheck)
 
 -- create Dirichlet CG Solver
 dirichletConvCheck = StandardConvergenceCheck()
-dirichletConvCheck:set_maximum_steps(10000)
-dirichletConvCheck:set_minimum_defect(1e-14)
+dirichletConvCheck:set_maximum_steps(400)
+dirichletConvCheck:set_minimum_defect(1e-12)
 dirichletConvCheck:set_reduction(1e-16)
 dirichletConvCheck:set_verbose_level(false)
 dirichletCGSolver = CG()
@@ -420,8 +420,8 @@ dirichletCGSolver:set_convergence_check(dirichletConvCheck)
 fetiSolver = FETI()
 
 fetiConvCheck = StandardConvergenceCheck()
-fetiConvCheck:set_maximum_steps(50)
-fetiConvCheck:set_minimum_defect(1e-7)
+fetiConvCheck:set_maximum_steps(20)
+fetiConvCheck:set_minimum_defect(1e-10)
 fetiConvCheck:set_reduction(1e-16)
 
 fetiSolver:set_debug(dbgWriter)
