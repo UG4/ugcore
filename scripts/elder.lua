@@ -31,7 +31,7 @@ numPreRefs = 1
 numRefs = 2
 
 -- choose number of time steps
-NumPreTimeSteps = 3
+NumPreTimeSteps = 10
 NumTimeSteps = 100
 
 --------------------------------
@@ -89,25 +89,29 @@ else
 --------------------------------
 	
 function ConcentrationStart(x, y, z, t)
-	if y == 150 then
-		if x > 150 and x < 450 then
-		return 1.0
+	if z == 150 then
+		if y > 150 and y < 450 then
+			if x > 150 and x < 450 then
+				return 1.0
+			end
 		end
 	end
 	return 0.0
 end
 
 function PressureStart(x, y, z, t)
-	return 9810 * (150 - y)
+	return 9810 * (150 - z)
 end
 
 function ConcentrationDirichletBnd(x, y, z, t)
-	if y == 150 then
-		if x > 150 and x < 450 then
-			return true, 1.0
+	if z == 150 then
+		if y > 150 and y < 450 then
+			if x > 150 and x < 450 then
+				return true, 1.0
+			end
 		end
 	end
-	if y == 0.0 then
+	if z == 0.0 then
 		return true, 0.0
 	end
 	
@@ -115,9 +119,11 @@ function ConcentrationDirichletBnd(x, y, z, t)
 end
 
 function PressureDirichletBnd(x, y, z, t)
-	if y == 150 then
-		if x == 0.0 or x == 600 then
-			return true, 9810 * (150 - y)
+	if z == 150 then
+		if y == 0.0 or y == 600 then
+			if x == 0.0 or x == 600 then
+				return true, 9810 * (150 - y)
+			end
 		end
 	end
 	
@@ -320,9 +326,9 @@ gmg:set_surface_level(numRefs)
 gmg:set_base_level(0)
 gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
-gmg:set_cycle_type(1)
-gmg:set_num_presmooth(5)
-gmg:set_num_postsmooth(5)
+gmg:set_cycle_type(2)
+gmg:set_num_presmooth(3)
+gmg:set_num_postsmooth(3)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
@@ -402,7 +408,7 @@ out:begin_timeseries("Elder", u)
 out:print("Elder", u, 0, 0.0)
 
 -- Perform Time Step
-print("Staring time loop")
+print("Staring time loop with " .. NumPreTimeSteps .. " steps of 1/100 of original size")
 do_steps = NumPreTimeSteps
 do_dt = dt/100
 if dim == 2 then
@@ -413,7 +419,18 @@ end
 step = step + do_steps
 time = time + do_dt * do_steps
 
-do_steps = NumTimeSteps - NumPreTimeSteps
+print("Staring time loop with " .. NumPreTimeSteps .. " steps of 1/10 of original size")
+do_steps = NumPreTimeSteps
+do_dt = dt/10
+if dim == 2 then
+PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+else 
+PerformTimeStep3d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+end
+step = step + do_steps
+time = time + do_dt * do_steps
+
+do_steps = do_steps - 2*NumPreTimeSteps
 if do_steps > 0 then
 	do_dt = dt
 	if dim == 2 then
