@@ -25,13 +25,13 @@ else
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = 1
+numPreRefs = GetParam("-numPreRefs", 1)+0
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = 2
+numRefs = GetParam("-numRefs", 2)+0
 
 -- choose number of time steps
-NumPreTimeSteps = 10
+NumPreTimeSteps = GetParam("-numPreTimeSteps", 10)+0
 NumTimeSteps = 100
 
 --------------------------------
@@ -407,6 +407,9 @@ out = utilCreateVTKWriter(dim)
 out:begin_timeseries("Elder", u)
 out:print("Elder", u, 0, 0.0)
 
+print( "   numPreRefs is        " .. numPreRefs ..        ",  numRefs is         " .. numRefs)
+print( "   NumPreTimeSteps   is " .. NumPreTimeSteps   .. ",  NumPreTimeSteps is " .. NumPreTimeSteps )
+
 -- Perform Time Step
 print("Staring time loop with " .. NumPreTimeSteps .. " steps of 1/100 of original size")
 do_steps = NumPreTimeSteps
@@ -430,7 +433,7 @@ end
 step = step + do_steps
 time = time + do_dt * do_steps
 
-do_steps = do_steps - 2*NumPreTimeSteps
+do_steps = NumPreTimeSteps - 2*NumPreTimeSteps
 if do_steps > 0 then
 	do_dt = dt
 	if dim == 2 then
