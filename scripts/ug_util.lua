@@ -506,3 +506,18 @@ function utilCreateGridFunctionDebugWriter(dim)
 
 	return writer
 end
+
+
+-- creates a VTKWriter
+function utilCreateVTKWriter(dim)
+	local writer = nil
+	if dim == 1 then
+		writer = VTKOutput1d()
+	elseif dim == 2 then
+		writer = VTKOutput2d()
+	elseif dim == 3 then
+		writer = VTKOutput3d()
+	end
+	
+	return writer
+end
