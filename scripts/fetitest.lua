@@ -421,7 +421,7 @@ fetiSolver = FETI()
 
 fetiConvCheck = StandardConvergenceCheck()
 fetiConvCheck:set_maximum_steps(20)
-fetiConvCheck:set_minimum_defect(1e-9)
+fetiConvCheck:set_minimum_defect(1e-8)
 fetiConvCheck:set_reduction(1e-16)
 
 --fetiSolver:set_debug(dbgWriter)
