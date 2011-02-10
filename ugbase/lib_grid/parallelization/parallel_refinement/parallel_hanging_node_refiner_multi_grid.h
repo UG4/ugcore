@@ -9,6 +9,7 @@
 #include "lib_grid/multi_grid.h"
 #include "lib_grid/algorithms/refinement/hanging_node_refiner_multi_grid.h"
 #include "../distributed_grid.h"
+#include "pcl/pcl_communicator.h"
 
 namespace ug
 {
@@ -64,6 +65,8 @@ class ParallelHangingNodeRefiner_MultiGrid :
 	private:
 		DistributedGridManager& m_distGridMgr;
 		pcl::ProcessCommunicator m_procCom;
+		pcl::ParallelCommunicator<EdgeLayout> m_intfComEDGE;
+		pcl::ParallelCommunicator<FaceLayout> m_intfComFACE;
 
 		bool m_bNewInterfaceEdgesMarked;
 		bool m_bNewInterfaceFacesMarked;

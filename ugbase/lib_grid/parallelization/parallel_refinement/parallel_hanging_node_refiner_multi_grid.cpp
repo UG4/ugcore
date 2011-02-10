@@ -3,6 +3,7 @@
 // 09.02.2011 (m,d,y)
  
 #include "parallel_hanging_node_refiner_multi_grid.h"
+#include "../util/compol_selection.h"
 
 namespace ug{
 
@@ -62,8 +63,14 @@ collect_objects_for_refine()
 //		In its current implementation a little too much
 //		serial work is done.
 
+//	the layoutmap is used for communication
+	GridLayoutMap& layoutMap = m_distGridMgr.grid_layout_map();
+
 //	first we'll call the base implementation
 	while(1){
+	//	we call collect_objects_for_refine in each iteration.
+	//	This might be a bit of an overkill, since only a few normally
+	//	have changed...
 		HangingNodeRefiner_MultiGrid::collect_objects_for_refine();
 
 	//	we now have to inform all processes whether interface elements
@@ -77,11 +84,37 @@ collect_objects_for_refine()
 		}
 
 		int exchangeFlag;
-		m_procCom.allreduce(&newlyMaredElems, &exchangeFlag, 1,
+		m_procCom.allreduce(&newlyMarkedElems, &exchangeFlag, 1,
 							PCL_DT_INT, PCL_RO_LOR);
 
 		if(exchangeFlag){
-		//	we have to communicate the marks
+		//	we have to communicate the marks.
+		//	do this by first gather selection at master nodes
+		//	and then distribute them to slaves.
+			ComPol_Selection<EdgeLayout> compolSelEDGE(m_selMarkedElements);
+			ComPol_Selection<FaceLayout> compolSelFACE(m_selMarkedElements);
+
+
+
+		//	send data SLAVE -> MASTER
+			m_intfComEDGE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
+										compolSelEDGE);
+
+			m_intfComFACE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
+										compolSelFACE);
+
+			m_intfComEDGE.communicate();
+			m_intfComFACE.communicate();
+
+		//	and now MASTER -> SLAVE (the selection has been adjusted on the fly)
+			m_intfComEDGE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
+										compolSelEDGE);
+
+			m_intfComFACE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
+										compolSelFACE);
+
+			m_intfComEDGE.communicate();
+			m_intfComFACE.communicate();
 		}
 		else
 			break;
