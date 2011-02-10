@@ -89,6 +89,9 @@ init()
 //	Set Dirichlet values on Delta
 	m_pFetiLayouts->mat_set_dirichlet_on_dual(*m_pDirichletMatrix);
 
+//	Let Dirichlet Matrix use inner layouts
+	m_pFetiLayouts->mat_use_inner_communication(*m_pDirichletMatrix);
+
 //	init sequential solver for Dirichlet problem
 	if(m_pDirichletSolver != NULL)
 		if(!m_pDirichletSolver->init(m_DirichletOperator))
@@ -100,10 +103,10 @@ init()
 //	Debug output of matrices
 	if(m_pDebugWriter != NULL)
 	{
-		/*m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
+		m_pDebugWriter->write_matrix(m_DirichletOperator.get_matrix(),
 									 "FetiDirichletMatrix");
 		m_pDebugWriter->write_matrix(m_pOperator->get_matrix(),
-									 "FetiOriginalMatrix");*/
+									 "FetiOriginalMatrix");
 	}
 
 //	we're done
@@ -163,7 +166,10 @@ apply(vector_type& f, const vector_type& u)
 	// (b) Copy values on \Delta
 	m_pFetiLayouts->vec_scale_append_on_dual(uTmp, u, 1.0);
 
+	write_debug(uTmp, "LSC_uTmp");
+
 //	2. Compute rhs f_{I} = A_{I \Delta} u_{\Delta}
+//	f is additive afterwards
 	if(!m_DirichletOperator.apply(f, uTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
@@ -174,6 +180,8 @@ apply(vector_type& f, const vector_type& u)
 	// set values to zero on \Delta (values are already zero on primal!)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
 
+	write_debug(f, "LSC_f");
+
 //	3. Invert on inner unknowns u_{I} = A_{II}^{-1} f_{I}
 	// (a) use the inner-FETI-block layouts
 	m_pFetiLayouts->vec_use_inner_communication(f);
@@ -182,6 +190,7 @@ apply(vector_type& f, const vector_type& u)
 	uTmp.set_storage_type(PST_CONSISTENT);
 
 	// (b) invoke Dirichlet solver
+	//	uTmp is consistent afterwards
 	if(!m_pDirichletSolver->apply_return_defect(uTmp, f))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
@@ -197,7 +206,10 @@ apply(vector_type& f, const vector_type& u)
 	// (b) Add u_{\Delta} on \Delta
 	m_pFetiLayouts->vec_scale_append_on_dual(uTmp, u, 1.0);
 
+	write_debug(uTmp, "LSC_uTmp2");
+
 	// (c) Multiply with full matrix
+	//	f is additive afterwards
 	if(!m_pOperator->apply(f, uTmp))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
@@ -206,10 +218,17 @@ apply(vector_type& f, const vector_type& u)
 		return false;
 	}
 
+	write_debug(f, "LSC_f2");
+
+	// make f consistent (on delta is sufficient)
+	f.change_storage_type(PST_CONSISTENT);
+
 //	5. Reset all values for I, \Pi
 	uTmp = f;
 	f.set(0.0);
 	m_pFetiLayouts->vec_scale_append_on_dual(f, uTmp, 1.0);
+
+	write_debug(uTmp, "LSC_uTmp3");
 
 //	we're done
 	return true;
@@ -298,10 +317,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	Set Dirichlet values on Pi
 	m_pFetiLayouts->mat_set_dirichlet_on_primal(*m_pNeumannMatrix);
 
-/*	MatAdditiveToConsistentOnDiag<algebra_type>(m_pNeumannMatrix,
-	                                            m_pFetiLayouts->get_primal_master_layout(),
-	                                            m_pFetiLayouts->get_primal_slave_layout());
-*/
+//	Let Neumann Matrix use inner layouts
+	m_pFetiLayouts->mat_use_inner_communication(*m_pNeumannMatrix);
+
 //	init sequential solver for Dirichlet problem
 	if(m_pNeumannSolver != NULL)
 		if(!m_pNeumannSolver->init(m_NeumannOperator))
@@ -449,6 +467,11 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			h2.set(0.0);
 
 		//	(b) Solve dirichlet problem
+			m_pFetiLayouts->vec_use_inner_communication(h1);
+			h1.set_storage_type(PST_ADDITIVE);
+			m_pFetiLayouts->vec_use_inner_communication(h2);
+			h2.set_storage_type(PST_CONSISTENT);
+
 			if(!m_pNeumannSolver->apply(h2, h1))
 			{
 				UG_LOG("ERROR in PrimalSubassembledMatrixInverse::init: Could not solve"
@@ -540,12 +563,12 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 	//	copy received values into matrix
 		mat.set(0.0);
-		std::cout << "Writing primal connections:" << std::endl;
+//		std::cout << "Writing primal connections:" << std::endl;
 		for(size_t i = 0; i < vPrimalConnections.size(); ++i)
 		{
 		//	get sent connection
 			PrimalConnection& pc = vPrimalConnections[i];
-			std::cout << "  ind1: " << pc.ind1 << "    ind2: " << pc.ind2 << "    value: " << pc.value << std::endl;
+//			std::cout << "  ind1: " << pc.ind1 << "    ind2: " << pc.ind2 << "    value: " << pc.value << std::endl;
 
 		//	get corresponding block
 			typename matrix_type::value_type& block = mat(pc.ind1, pc.ind2);
@@ -675,6 +698,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// start value
 	u.set(0.0);
 
+	write_debug(h, "ApplyF_h");
+
 	// (a) invoke Neumann solver to get \f$u_{\{I \Delta\}}^{(p)}\f$
 	if(!m_pNeumannSolver->apply_return_defect(u, h))
 	{
@@ -787,6 +812,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 	f.set_storage_type(PST_ADDITIVE);
 	m_pFetiLayouts->vec_use_inner_communication(u);
 	u.set_storage_type(PST_CONSISTENT);
+
+	write_debug(h, "ApplyF_f");
+
 	if(!m_pNeumannSolver->apply_return_defect(u, f)) // solve with Neumann matrix!
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
@@ -1067,7 +1095,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	write_debug(r, "Residuum");
 
 //	compute and set start defect
-	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_dual(r));
+	m_pConvCheck->start_defect(m_fetiLayouts.vec_norm_on_identified_dual(r));
 
 // 	Precondition the start defect: apply z = M^-1 * r
 	FETI_PROFILE_BEGIN(FETISolverApply_Apply_M_inverse);
@@ -1087,10 +1115,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 	p = z;
 
 // 	start rho
-	rho = m_fetiLayouts.vec_prod_on_dual(z, r);
+	rho = m_fetiLayouts.vec_prod_on_identified_dual(z, r);
 
 //	very small number to check denominator
-	number small = 1e-15;
+	number small = 1e-20;
 
 // 	Iteration loop
 	FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop);
@@ -1099,15 +1127,21 @@ apply_return_defect(vector_type& u, vector_type& f)
 	//	increase iteration count
 		m_iterCnt++;
 
-	// 	Build t = F*p (t is additive afterwards)
+		write_debug(p, "CG_p");
+
+	// 	Build t = F*p
+		// p is consistent
+		// t is consistent afterwards
 		if(!apply_F(t, p))
 		{
 			UG_LOG("ERROR in 'FETISolver::apply': Unable "
 						"to build t = F*p. Aborting.\n"); return false;
 		}
 
+		write_debug(t, "CG_t");
+
 	// 	Compute alpha
-		alpha_denominator = m_fetiLayouts.vec_prod_on_dual(t, p);
+		alpha_denominator = m_fetiLayouts.vec_prod_on_identified_dual(t, p);
 
 		if(fabs(alpha_denominator) < small)
 		{
@@ -1124,7 +1158,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		m_fetiLayouts.vec_scale_add_on_dual(r, 1.0, r, -alpha, t);
 
 	// 	Compute new defect
-		m_pConvCheck->update_defect(m_fetiLayouts.vec_norm_on_dual(r));
+		m_pConvCheck->update_defect(m_fetiLayouts.vec_norm_on_identified_dual(r));
 		if(m_pConvCheck->iteration_ended())
 		{
 			break;
@@ -1138,7 +1172,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		}
 
 	// 	new rho
-		rho_new = m_fetiLayouts.vec_prod_on_dual(z, r);
+		rho_new = m_fetiLayouts.vec_prod_on_identified_dual(z, r);
 
 	// 	new beta
 		beta = rho_new/rho;
@@ -1166,10 +1200,16 @@ apply_return_defect(vector_type& u, vector_type& f)
 	                                   m_fetiLayouts.get_dual_slave_layout(),
 	                                   m_fetiLayouts.get_dual_nbr_slave_layout());
 
+	m_fetiLayouts.vec_use_inner_communication(t);
+	t.set_storage_type(PST_CONSISTENT);
+	t.change_storage_type(PST_ADDITIVE);
+
+	write_debug(t, "FETI_t_Before_Sol");
+
 //	compute f = f - B^T * lambda
 	m_fetiLayouts.vec_scale_append_on_dual(f, t, -1.0);
 
-	write_debug(t, "FETI_t_Before_Sol");
+	write_debug(f, "FETI_f_Before_Sol");
 
 	bool bSuccess = true;
 
@@ -1214,20 +1254,30 @@ apply_F(vector_type& f, const vector_type& v)
 	f.set(0.0);
 
 //	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
+	// v must be consistent
 	ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
 	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
 
 //  2. Apply PrimalSubassembledMatrixInverse to f
+	// f is consistent now, we make it additive
+	m_fetiLayouts.vec_use_inner_communication(f);
+	f.set_storage_type(PST_CONSISTENT);
+	f.change_storage_type(PST_ADDITIVE);
+
 	FETI_PROFILE_BEGIN(FETISolverApply_F_ApplyPrimalSubassMatInv);
 	m_PrimalSubassembledMatrixInverse.apply(fTmp, f);
 	FETI_PROFILE_END();
+
+	write_debug(fTmp, "Apply_F_fTmp");
 
 //	3. Apply jump operator to get the final 'f'
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_nbr_slave_layout());
+
+	write_debug(f, "Apply_F_f");
 
 //	we're done
 	return true;
@@ -1258,6 +1308,8 @@ compute_d(vector_type& d, const vector_type& f)
 	}
 	FETI_PROFILE_END();
 
+	write_debug(dTmp, "ComputeD_dTmp");
+
 //	2. Apply jump operator to get the final 'd'
 	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
@@ -1274,6 +1326,13 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_M_inverse(vector_type& z, const vector_type& r)
 {
+//	The incoming vector r is defined on the space V := range{B_{Delta}}. Thus,
+//	on entry we assume the vector z to be consistent on the dual unknowns. The
+//	primal and inner values are assumed to be undefined, since they are not needed
+//	in the algorithm. Since z is consistent, in every dualMaster<->dualSlave is
+//	stored the same value and in every dualMasterNbr<->dualSlaveNbr is stored
+//	the same value.
+
 //	Help vector
 	vector_type zTmp; zTmp.create(r.size()); zTmp = z;
 
@@ -1283,7 +1342,8 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 //	1. Apply scaling: z := D_{\Delta}^{(i)} * r
 	apply_scaling_matrix(z, r); // maybe restrict to layout
 
-//  2. Apply transposed jump operator: zTmp := B_{\Delta}^T * z
+//  2. 	Apply transposed jump operator: zTmp := B_{\Delta}^T * z
+//		Afterwards, zTmp is consistent on Delta
 	ComputeDifferenceOnDeltaTransposed(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
 	                                   	   	    m_fetiLayouts.get_dual_slave_layout(),
 	                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
@@ -1296,6 +1356,9 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	z.set_storage_type(PST_ADDITIVE);
 	zTmp.set_storage_type(PST_CONSISTENT);
 //	3.3. solve
+
+	write_debug(zTmp, "Apply_M_zTmp");
+
 	FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement);
 	if(!m_LocalSchurComplement.apply(z, zTmp))
 	{
@@ -1304,6 +1367,8 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 		return false;
 	}
 	FETI_PROFILE_END();
+
+	write_debug(z, "Apply_M_z");
 
 //  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
