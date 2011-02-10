@@ -158,7 +158,6 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 		method->execute((void*) objPtr, paramsIn, paramsOut);
 
-
 		if (paramsOut.size() > 0) {
 			result = ug::vrl::param2JObject(env, paramsOut, 0);
 		}
@@ -181,7 +180,6 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
 (JNIEnv *env, jobject obj, jlong objPtr) {
 
 	long result = NULL;
-
 	ug::bridge::IExportedClass* clazz = NULL;
 
 	try {
@@ -204,8 +202,6 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 (JNIEnv *env, jobject obj, jstring fName, jboolean readOnly, jobjectArray params) {
-
-
 
 	const ug::bridge::ExportedFunction* func =
 			ug::vrl::invocation::getFunctionBySignature(
@@ -318,9 +314,9 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 	}
 }
 
-JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
   (JNIEnv * env, jobject obj) {
-	return ug::vrl::classes2NativeClasses(env, ug::vrl::vrlRegistry);
+	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

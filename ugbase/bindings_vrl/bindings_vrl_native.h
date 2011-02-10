@@ -18,9 +18,9 @@ JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
  * Method:    convertRegistryInfo
- * Signature: ()[Ledu/gcsc/vrl/ug4/NativeClassInfo;
+ * Signature: ()Ledu/gcsc/vrl/ug4/NativeAPIInfo;
  */
-JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
+JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
   (JNIEnv *, jobject);
 
 /*

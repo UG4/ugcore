@@ -382,9 +382,13 @@ namespace ug {
          */
 		bool returnsPointer(ug::bridge::ExportedFunctionBase const& func);
 
-
-
-		jobjectArray classes2NativeClasses(JNIEnv *env, const ug::bridge::Registry* reg);
+		/**
+		 * Converts registry information to Java objects.
+         * @param env JVM environment to operate on
+         * @param reg registry to convert
+         * @return native api info
+         */
+		jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg);
 
 	} // end vrl::
 }// end ug::
