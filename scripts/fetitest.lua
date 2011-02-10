@@ -398,8 +398,8 @@ exactSolver = LU()
 
 -- create Neumann CG Solver
 neumannConvCheck = StandardConvergenceCheck()
-neumannConvCheck:set_maximum_steps(400)
-neumannConvCheck:set_minimum_defect(1e-12)
+neumannConvCheck:set_maximum_steps(600)
+neumannConvCheck:set_minimum_defect(1e-10)
 neumannConvCheck:set_reduction(1e-16)
 neumannConvCheck:set_verbose_level(false)
 neumannCGSolver = CG()
@@ -408,8 +408,8 @@ neumannCGSolver:set_convergence_check(neumannConvCheck)
 
 -- create Dirichlet CG Solver
 dirichletConvCheck = StandardConvergenceCheck()
-dirichletConvCheck:set_maximum_steps(400)
-dirichletConvCheck:set_minimum_defect(1e-12)
+dirichletConvCheck:set_maximum_steps(600)
+dirichletConvCheck:set_minimum_defect(1e-10)
 dirichletConvCheck:set_reduction(1e-16)
 dirichletConvCheck:set_verbose_level(false)
 dirichletCGSolver = CG()
@@ -421,7 +421,7 @@ fetiSolver = FETI()
 
 fetiConvCheck = StandardConvergenceCheck()
 fetiConvCheck:set_maximum_steps(20)
-fetiConvCheck:set_minimum_defect(1e-10)
+fetiConvCheck:set_minimum_defect(1e-9)
 fetiConvCheck:set_reduction(1e-16)
 
 fetiSolver:set_debug(dbgWriter)
