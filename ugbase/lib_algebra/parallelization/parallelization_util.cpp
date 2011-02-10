@@ -375,7 +375,6 @@ static void CopyInterfaceEntrysToDomainDecompositionLayouts(
 				}
 			}
 			else{
-				UG_LOG("Adding entries to dual-nbrs.\n");
 			//	delta-neighbours lie in two interfaces - the processInterface
 			//	and the deltaNbrInterface
 				Interface& deltaNbrInterface = deltaNbrLayoutOut.interface(connProc);
@@ -554,12 +553,10 @@ void BuildDomainDecompositionLayouts(
 
 ////////////////////////
 //	we can now build the master and slave interfaces
-	UG_LOG("Copying master entries.\n");
 	CopyInterfaceEntrysToDomainDecompositionLayouts(
 			subdomMastersOut, processMastersOut, deltaNbrMastersOut,
 			crossPointMastersOut, standardMasters, flags, ddinfo);
 
-	UG_LOG("Copying slave entries.\n");
 	CopyInterfaceEntrysToDomainDecompositionLayouts(
 			subdomSlavesOut, processSlavesOut, deltaNbrSlavesOut,
 			crossPointSlavesOut, standardSlaves, flags, ddinfo);
