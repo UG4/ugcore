@@ -184,61 +184,79 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		//	TODO: error handling / memory check
 
 		//  Rename Matrix for convenience
-
-#if 1
 			matrix_type& A = *this->m_pMatrix;
-			m_ILU = A;
-			m_h.resize(A.num_cols());
+
+#ifdef 	UG_PARALLEL
+		//	copy original matrix
+//			UG_LOG("Making ILU Matrix Copy consistent...");
+			MakeConsistent(A, m_ILU);
+//			UG_LOG("done" << std::endl);
+
+		//	set zero on slaves
+//			UG_LOG("Setting dirichlet rows in slaves ...");
+			MatSetDirichletOnLayout(&m_ILU,  m_ILU.get_slave_layout());
+//			UG_LOG("done" << std::endl);
+
 #else
-			matrix_type& A = *this->m_pMatrix;
-
-		//	Resize Matrix
-			if(	m_ILU.num_rows() != mat.num_rows() ||
-				m_ILU.num_cols() != mat.num_cols())
-			{
-			//	destroy memory
-				m_ILU.destroy();
-				m_h.destroy();
-
-			//	create new memory
-				m_ILU.create(A.num_rows(), A.num_cols());
-
-			//	Create help vector
-				m_h.create(A.num_cols());
-			}
-
-		// 	Copy matrix
-			for(size_t i=0; i < A.num_rows(); i++)
-			{
-				for(typename matrix_type::rowIterator it_k = A.beginRow(i); !it_k.isEnd(); ++it_k)
-				{
-					const size_t k = it_k.index();
-					m_ILU(i,k) = it_k.index();
-				}
-			}
+		//	copy original matrix
+			m_ILU = A
 #endif
+
+		//	resize help vector
+			m_h.resize(A.num_cols());
+
 		// 	Compute ILU Factorization
 		if(matrix_type::rows_sorted)
+		{
+//			UG_LOG("FactorizeILUSorted ...");
 			FactorizeILUSorted(m_ILU);
+//			UG_LOG("done" << std::endl);
+		}
 		else
+		{
+//			UG_LOG("FactorizeILUSorted ...");
 			FactorizeILU(m_ILU);
+//			UG_LOG("done" << std::endl);
+		}
 
+		//	we're done
 			return true;
 		}
 
 	//	Stepping routine
 		virtual bool step(matrix_type& mat, vector_type& c, const vector_type& d)
 		{
-			// apply iterator: c = LU^{-1}*d (damp is not used)
+		//	todo: Think about how to use ilu in parallel.
+
+#ifdef UG_PARALLEL
+		//	make defect unique
+			vector_type h;
+			h.resize(d.size()); h = d;
+//			UG_LOG("Make h consistent ...");
+			h.change_storage_type(PST_UNIQUE);
+//			UG_LOG("done" << std::endl);
+
+		// 	apply iterator: c = LU^{-1}*d (damp is not used)
+//			UG_LOG("Inverting L ...");
+			invert_L(m_ILU, m_h, h); // h := L^-1 d
+//			UG_LOG("done" << std::endl);
+//			UG_LOG("Inverting U ...");
+			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
+//			UG_LOG("done" << std::endl);
+
+		//	Correction is always consistent
+			c.set_storage_type(PST_ADDITIVE);
+//			UG_LOG("Make c consistent ...");
+			c.change_storage_type(PST_CONSISTENT);
+//			UG_LOG("done" << std::endl);
+
+#else
+		// 	apply iterator: c = LU^{-1}*d (damp is not used)
 			invert_L(m_ILU, m_h, d); // h := L^-1 d
 			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
-
-#ifdef 	UG_PARALLEL
-		//	Correction is always consistent
-		//	todo: We set here correction to consistent, but it is not. Think about how to use ilu in parallel.
-			c.set_storage_type(PST_CONSISTENT);
 #endif
 
+		//	we're done
 			return true;
 		}
 
