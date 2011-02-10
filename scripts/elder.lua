@@ -326,9 +326,9 @@ gmg:set_surface_level(numRefs)
 gmg:set_base_level(0)
 gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
-gmg:set_cycle_type(2)
-gmg:set_num_presmooth(3)
-gmg:set_num_postsmooth(3)
+gmg:set_cycle_type(1)
+gmg:set_num_presmooth(2)
+gmg:set_num_postsmooth(2)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
@@ -434,6 +434,7 @@ step = step + do_steps
 time = time + do_dt * do_steps
 
 do_steps = NumTimeSteps - 2*NumPreTimeSteps
+print("Staring time loop with " .. do_steps .. " steps of original size")
 if do_steps > 0 then
 	do_dt = dt
 	if dim == 2 then
