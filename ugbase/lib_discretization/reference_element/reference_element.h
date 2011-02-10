@@ -16,6 +16,8 @@
 
 namespace ug{
 
+// predeclaration
+bool RegisterStandardDimReferenceElements();
 
 class ReferenceElement {
 	public:
@@ -188,9 +190,11 @@ class DimReferenceElementFactory{
 			return *m_vElem[refID];
 		}
 
-		static DimReferenceElementFactory<d>& instance()
+		inline static DimReferenceElementFactory<d>& instance()
 		{
 			static DimReferenceElementFactory<d> inst;
+
+			static bool std_registered = RegisterStandardDimReferenceElements();
 			return inst;
 		}
 
