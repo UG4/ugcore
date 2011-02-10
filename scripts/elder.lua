@@ -122,7 +122,7 @@ function PressureDirichletBnd(x, y, z, t)
 	if z == 150 then
 		if y == 0.0 or y == 600 then
 			if x == 0.0 or x == 600 then
-				return true, 9810 * (150 - y)
+				return true, 9810 * (150 - z)
 			end
 		end
 	end
