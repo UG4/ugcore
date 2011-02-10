@@ -14,16 +14,33 @@ algebra:set_fixed_blocksize(1)
 InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
--- constants
-dim = 2
-gridName = "elder_quads_8x2.ugx"
+-- choose dimension
+dim = 3
+
+-- choose grid
+if dim == 2 then
+	gridName = "elder_quads_8x2.ugx"
+else
+	gridName = "elder_hex_8x8x2.ugx"
+end
+
+-- choose number of pre-Refinements (before sending grid onto different processes)	
 numPreRefs = 1
-numRefs = 4
+
+-- choose number of total Refinements (incl. pre-Refinements)
+numRefs = 2
+
+-- choose number of time steps
 NumPreTimeSteps = 1
 NumTimeSteps = 100
 
 --------------------------------
 -- User Data Functions (begin)
+--------------------------------
+
+if dim == 2 then 
+--------------------------------
+-- User Data Functions 2D
 --------------------------------
 
 function ConcentrationStart(x, y, t)
@@ -66,6 +83,52 @@ function Porosity(x,y,t)
 	return 0.1
 end
 
+else 
+--------------------------------
+-- User Data Functions 3D
+--------------------------------
+	
+function ConcentrationStart(x, y, z, t)
+	if y == 150 then
+		if x > 150 and x < 450 then
+		return 1.0
+		end
+	end
+	return 0.0
+end
+
+function PressureStart(x, y, z, t)
+	return 9810 * (150 - y)
+end
+
+function ConcentrationDirichletBnd(x, y, z, t)
+	if y == 150 then
+		if x > 150 and x < 450 then
+			return true, 1.0
+		end
+	end
+	if y == 0.0 then
+		return true, 0.0
+	end
+	
+	return false, 0.0
+end
+
+function PressureDirichletBnd(x, y, z, t)
+	if y == 150 then
+		if x == 0.0 or x == 600 then
+			return true, 9810 * (150 - y)
+		end
+	end
+	
+	return false, 0.0
+end
+
+function Porosity(x,y,z,t)
+	return 0.1
+end
+
+end
 --------------------------------
 -- User Data Functions (end)
 --------------------------------
@@ -101,7 +164,8 @@ end
 
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-utilGlobalRefineParallelDomain(dom)
+refiner:refine()
+--utilGlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
@@ -121,8 +185,8 @@ utilSaveDomain(dom, "refined_grid.ugx")
 print("Create Function Pattern")
 pattern = P1ConformFunctionPattern()
 pattern:set_subset_handler(sh)
-AddP1Function(pattern, "c", 2)
-AddP1Function(pattern, "p", 2)
+AddP1Function(pattern, "c", dim)
+AddP1Function(pattern, "p", dim)
 pattern:lock()
 
 -- create Approximation Space
@@ -156,7 +220,8 @@ molDiffusionValue = utilCreateConstDiagUserMatrix( 3.565e-6, dim)
 permeabilityValue = utilCreateConstDiagUserMatrix( 4.845e-13, dim)
 
 -- Density
-densityValue = NumberLinker2d();
+if dim == 2 then densityValue = NumberLinker2d();
+else densityValue = NumberLinker3d(); end
 
 -- Viscosity
 viscosityValue = utilCreateConstUserNumber(1e-3, dim);
@@ -174,7 +239,9 @@ dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
 dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
-elemDisc = DensityDrivenFlow2d()
+if dim == 2 then elemDisc = DensityDrivenFlow2d()
+else  elemDisc = DensityDrivenFlow3d() end
+
 elemDisc:set_domain(dom)
 elemDisc:set_pattern(pattern)
 elemDisc:set_functions("c,p")
@@ -184,15 +251,23 @@ elemDisc:set_consistent_gravity(true)
 elemDisc:set_boussinesq_transport(true)
 elemDisc:set_boussinesq_flow(true)
 
+print("Setting Porosity.")
 elemDisc:set_porosity(porosityValue)
+print("Setting Gravity.")
 elemDisc:set_gravity(gravityValue)
+print("Setting Permeability.")
 elemDisc:set_permeability(permeabilityValue)
+print("Setting mol. Diffusion.")
 elemDisc:set_molecular_diffusion(molDiffusionValue)
+print("Setting Density User func.")
 elemDisc:set_density(densityValue)
+print("Setting Viscosity.")
 elemDisc:set_viscosity(viscosityValue)
 
 -- add Element Discretization to discretization
+print("Adding elem disc to global problem.")
 domainDisc:add_elem_disc(elemDisc)
+print("Adding bnd conds to global problem.")
 domainDisc:add_post_process(dirichletBND)
 
 -- create time discretization
@@ -207,6 +282,7 @@ op:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 op:init()
 
 -- create algebraic Preconditioner
+print("Creating Preconditioner.")
 jac = Jacobi()
 jac:set_damp(0.8)
 gs = GaussSeidel()
@@ -245,8 +321,8 @@ gmg:set_base_level(2)
 gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
 gmg:set_cycle_type(1)
-gmg:set_num_presmooth(2)
-gmg:set_num_postsmooth(2)
+gmg:set_num_presmooth(5)
+gmg:set_num_postsmooth(5)
 gmg:set_prolongation(transfer)
 gmg:set_projection(projection)
 
@@ -262,6 +338,7 @@ amg:set_base_solver(base)
 end
 
 -- create Convergence Check
+print("Creating Solver.")
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(1000)
 convCheck:set_minimum_defect(0.5e-10)
@@ -309,25 +386,41 @@ time = 0.0
 step = 1
 
 -- set initial value
-InterpolateFunction2d(PressureStartValue, u, "p", time)
-InterpolateFunction2d(ConcentrationStartValue, u, "c", time)
+print("Interpolation start values")
+if dim == 2 then
+	InterpolateFunction2d(PressureStartValue, u, "p", time)
+	InterpolateFunction2d(ConcentrationStartValue, u, "c", time)
+else
+	InterpolateFunction3d(PressureStartValue, u, "p", time)
+	InterpolateFunction3d(ConcentrationStartValue, u, "c", time)
+end
 
 -- Apply Solver
-out = VTKOutput2d()
+print("Writing start values")
+out = utilCreateVTKWriter(dim)
 out:begin_timeseries("Elder", u)
 out:print("Elder", u, 0, 0.0)
 
 -- Perform Time Step
+print("Staring time loop")
 do_steps = NumPreTimeSteps
 do_dt = dt/100
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+if dim == 2 then
+	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+else 
+	PerformTimeStep3d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+end
 step = step + do_steps
 time = time + do_dt * do_steps
 
 do_steps = NumTimeSteps - NumPreTimeSteps
 if do_steps > 0 then
 	do_dt = dt
-	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+	if dim == 2 then
+		PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+	else
+		PerformTimeStep3d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+	end
 	step = step + do_steps
 	time = time + do_dt * do_steps
 end
