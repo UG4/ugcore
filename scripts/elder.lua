@@ -17,7 +17,8 @@ InitAlgebra(algebra)
 -- constants
 dim = 2
 gridName = "elder_quads_8x2.ugx"
-numRefs = 5
+numPreRefs = 1
+numRefs = 4
 NumPreTimeSteps = 1
 NumTimeSteps = 100
 
@@ -80,6 +81,29 @@ if utilLoadDomain(dom, gridName) == false then
 	exit()
 end
 
+-- create Refiner
+print("Create Refiner")
+if numPreRefs > numRefs then
+print("numPreRefs must be smaller/equal than numRefs");
+exit();
+end
+
+refiner = GlobalMultiGridRefiner()
+refiner:assign_grid(dom:get_grid())
+for i=1,numPreRefs do
+refiner:refine()
+end
+
+if utilDistributeDomain(dom) == false then
+print("Error while Distributing Grid.")
+exit()
+end
+
+print("Refine Parallel Grid")
+for i=numPreRefs+1,numRefs do
+utilGlobalRefineParallelDomain(dom)
+end
+
 -- get subset handler
 sh = dom:get_subset_handler()
 if sh:num_subsets() ~= 2 then 
@@ -88,14 +112,6 @@ if sh:num_subsets() ~= 2 then
 end
 sh:set_subset_name("Inner", 0)
 sh:set_subset_name("Boundary", 1)
-
--- create Refiner
-print("Create Refiner")
-refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
-for i=1,numRefs do
-refiner:refine()
-end
 
 -- write grid to file for test purpose
 utilSaveDomain(dom, "refined_grid.ugx")
