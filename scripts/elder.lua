@@ -31,7 +31,7 @@ numPreRefs = 1
 numRefs = 2
 
 -- choose number of time steps
-NumPreTimeSteps = 1
+NumPreTimeSteps = 3
 NumTimeSteps = 100
 
 --------------------------------
