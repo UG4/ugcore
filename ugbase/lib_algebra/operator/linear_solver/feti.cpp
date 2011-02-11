@@ -401,7 +401,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	processes will collect their local primal connections here.
 	typedef PrimalConnection<typename vector_type::value_type> PrimalConnection;
-	vector<PrimalConnection> localPrimalConnections;
+	std::vector<PrimalConnection> localPrimalConnections;
 
 //	create help vectors
 	vector_type e; e.resize(m_pMatrix->num_rows());
@@ -532,7 +532,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 //	all processes send their connections to root
 //todo: This could be improved, so that only processes which contain
 //		a primal node are involved.
-	vector<PrimalConnection> vPrimalConnections;//	only filled on root
+	std::vector<PrimalConnection> vPrimalConnections;//	only filled on root
 	pcl::ProcessCommunicator commWorld;
 	commWorld.gatherv(vPrimalConnections, localPrimalConnections, m_primalRootProc);
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi)'
