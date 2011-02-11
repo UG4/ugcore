@@ -47,13 +47,16 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 	{
 		bResult &= RegisterLibGridInterface(reg, parentGroup);
 		bResult &= RegisterTestInterface(reg, parentGroup);
+
+		#ifdef UG_PROFILER
+			bResult &= RegisterProfileFunctions(reg, parentGroup);
+		#endif
 		
 		#ifdef UG_ALGEBRA
 			bResult &= RegisterDomainInterface(reg, parentGroup);
 			bResult &= RegisterUserData(reg, parentGroup);
 			bResult &= RegisterStaticLibAlgebraInterface(reg, parentGroup);
 			bResult &= RegisterStaticLibDiscretizationInterface(reg, parentGroup);
-
 			// InitAlgebra
 			reg.add_function("InitAlgebra", &InitAlgebra);
 		#endif

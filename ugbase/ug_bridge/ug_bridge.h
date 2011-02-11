@@ -48,6 +48,9 @@ void RegisterElderUserFunctions(Registry& reg, const char* parentGroup);
 /**	This method is automatically invoked during the creation of the Registry.*/
 bool RegisterTestInterface(Registry& reg, const char* parentGroup = "/ug4");
 
+/// registers access to profiling functions at the registry
+bool RegisterProfileFunctions(Registry &reg, const char* parentGroup = "/ug4");
+
 
 }//	end of namespace 
 }//	end of namespace 

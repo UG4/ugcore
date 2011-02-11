@@ -27,7 +27,8 @@ if(NOT NO_ALGEBRA)
 					bridges/lib_algebra_bridge.cpp
 					bridges/lib_discretization_bridge.cpp
 					bridges/user_data_bridge.cpp
-					bridges/domain_bridge.cpp)
+					bridges/domain_bridge.cpp
+					bridges/profiler_bridge.cpp)
 else(NOT NO_ALGEBRA)
 
 endif(NOT NO_ALGEBRA)
