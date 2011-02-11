@@ -178,7 +178,7 @@ class DimReferenceElementWrapper : public DimReferenceElement<d>, protected TRef
 template <int d>
 class DimReferenceElementFactory{
 	private:
-		DimReferenceElementFactory(){};
+		DimReferenceElementFactory(){init();};
 		DimReferenceElementFactory(const DimReferenceElementFactory&){};
 		DimReferenceElementFactory& operator=(const DimReferenceElementFactory&);
 
@@ -193,9 +193,17 @@ class DimReferenceElementFactory{
 		inline static DimReferenceElementFactory<d>& instance()
 		{
 			static DimReferenceElementFactory<d> inst;
-
-			static bool std_registered = RegisterStandardDimReferenceElements();
 			return inst;
+		}
+
+		bool init()
+		{
+			static bool isInit = false;
+			if(!isInit)
+			{
+				return RegisterStandardDimReferenceElements();
+			}
+			else return true;
 		}
 
 
@@ -226,7 +234,7 @@ std::vector<const DimReferenceElement<d>* > DimReferenceElementFactory<d>::m_vEl
 
 class ReferenceElementFactory{
 	private:
-		ReferenceElementFactory(){};
+		ReferenceElementFactory(){init();};
 		ReferenceElementFactory(const ReferenceElementFactory&){};
 		ReferenceElementFactory& operator=(const ReferenceElementFactory&);
 
@@ -241,10 +249,18 @@ class ReferenceElementFactory{
 		static ReferenceElementFactory& instance()
 		{
 			static ReferenceElementFactory inst;
-			static bool std_registered = RegisterStandardDimReferenceElements();
 			return inst;
 		}
 
+		bool init()
+		{
+			static bool isInit = false;
+			if(!isInit)
+			{
+				return RegisterStandardDimReferenceElements();
+			}
+			else return true;
+		}
 
 		static std::vector<const ReferenceElement*> m_vElem;
 
