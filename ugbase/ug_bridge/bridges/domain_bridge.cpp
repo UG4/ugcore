@@ -236,6 +236,10 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 
 
 // 	LoadDomain
+	reg.add_function("LoadDomain", &LoadDomain<domain_type>, grp.c_str(),
+					"Success", "Domain # Filename | load-dialog | endings=[\"ugx\"]; description=\"*.ugx-Files\" # Number Refinements",
+					"Loads a domain", "No help");
+//	todo: remove this
 	{
 		std::stringstream ss; ss << "LoadDomain" << dim << "d";
 		reg.add_function(ss.str().c_str(), &LoadDomain<domain_type>, grp.c_str(),
@@ -244,6 +248,10 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	}
 
 //	SaveDomain
+	reg.add_function("SaveDomain", &SaveDomain<domain_type>, grp.c_str(),
+					"Success", "Domain # Filename|save-dialog",
+					"Saves a domain", "No help");
+//	todo: remove this
 	{
 		std::stringstream ss; ss << "SaveDomain" << dim << "d";
 		reg.add_function(ss.str().c_str(), &SaveDomain<domain_type>, grp.c_str(),
@@ -252,24 +260,23 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 	}
 
 //	DistributeDomain
+	reg.add_function("DistributeDomain", &DistributeDomain<domain_type>, grp.c_str());
+//	todo: remove this
 	{
 		std::stringstream ss; ss << "DistributeDomain" << dim << "d";
 		reg.add_function(ss.str().c_str(), &DistributeDomain<domain_type>, grp.c_str());
 	}
 
 //	GlobalRefineParallelDomain
+//	todo: remove this
 	{
 		std::stringstream ss; ss << "GlobalRefineParallelDomain" << dim << "d";
 		reg.add_function(ss.str().c_str(), &GlobalRefineParallelDomain<domain_type>, grp.c_str());
 	}
 
-//	GlobalDomainRefiner
-	{
-		//std::stringstream ss; ss << "GlobalDomainRefiner" << dim << "d";
-		//reg.add_function(ss.str().c_str(), &GlobalDomainRefiner<domain_type>, grp.c_str());
-	}
-
+//	refiner registration
 	reg.add_function("GlobalDomainRefiner", &GlobalDomainRefiner<domain_type>, grp.c_str());
+	reg.add_function("HangingNodeDomainRefiner", &HangingNodeDomainRefiner<domain_type>, grp.c_str());
 
 	return true;
 }

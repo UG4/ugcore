@@ -15,8 +15,7 @@ function utilGetGridPath()
 	return ug_get_data_path().."/grids/"
 end
 
--- loads a domain. Automatically chooses right methods depending on the
--- domains dimension.
+-- loads a domain.
 -- If the file can not be found, the method tries to find it in ugs data path.
 function utilLoadDomain(domain, gridName)
 	local dim = domain:get_dim()
@@ -29,38 +28,15 @@ function utilLoadDomain(domain, gridName)
 		end
 	end
 
-	if dim == 1 then
-		return LoadDomain1d(domain, tname, 0)
-	elseif dim == 2 then
-		return LoadDomain2d(domain, tname, 0)
-	elseif dim == 3 then
-		return LoadDomain3d(domain, tname, 0)
-	end
-	return false
+	return LoadDomain(domain, tname, 0)
 end
 
 function utilSaveDomain(domain, gridName)
-	local dim = domain:get_dim()
-	if dim == 1 then
-		return SaveDomain1d(domain, gridName)
-	elseif dim == 2 then
-		return SaveDomain2d(domain, gridName)
-	elseif dim == 3 then
-		return SaveDomain3d(domain, gridName)
-	end
-	return false
+	return SaveDomain(domain, gridName)
 end
 
 function utilDistributeDomain(domain)
-	local dim = domain:get_dim()
-	if dim == 1 then
-		return DistributeDomain1d(domain)
-	elseif dim == 2 then
-		return DistributeDomain2d(domain)
-	elseif dim == 3 then
-		return DistributeDomain3d(domain)
-	end
-	return false
+	return DistributeDomain(domain)
 end
 
 function utilGlobalRefineParallelDomain(domain)

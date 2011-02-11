@@ -112,6 +112,8 @@ static int LuaStackToParams(ParameterStack& params,
 							lua_State* L,
 							 int offsetToFirstParam = 0)
 {
+//	I disabled all output, since we might have overloads (sreiter).
+
 	int badParam = 0;
 	bool printDefaultParamErrorMsg = true;
 	
@@ -123,7 +125,7 @@ static int LuaStackToParams(ParameterStack& params,
 		
 		if(lua_type(L, index) == LUA_TNONE)
 		{
-			UG_LOG("ERROR: not enough parameters to function (got " << i << ", but needs " << paramsTemplate.size() << ")\n");
+			//UG_LOG("ERROR: not enough parameters to function (got " << i << ", but needs " << paramsTemplate.size() << ")\n");
 			return (int)i + 1;
 		}
 
@@ -132,7 +134,7 @@ static int LuaStackToParams(ParameterStack& params,
 				if(lua_isboolean(L, index))
 					params.push_bool(lua_toboolean(L, index));
 				else{
-					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected bool, but given " << GetLuaTypeString(L, index) << "\n");
+					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected bool, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -140,7 +142,7 @@ static int LuaStackToParams(ParameterStack& params,
 				if(lua_isnumber(L, index))
 					params.push_integer(lua_tonumber(L, index));
 				else{
-					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
+					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -149,7 +151,7 @@ static int LuaStackToParams(ParameterStack& params,
 					params.push_number(lua_tonumber(L, index));
 				}
 				else{
-					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
+					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected number, but given " << GetLuaTypeString(L, index) << "\n");
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -158,14 +160,14 @@ static int LuaStackToParams(ParameterStack& params,
 					params.push_string(lua_tostring(L, index));
 				else{
 					badParam = (int)i + 1;
-					UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected string, but given " << GetLuaTypeString(L, index) << "\n");
+					//UG_LOG("ERROR: type mismatch in argument " << i + 1 << ": expected string, but given " << GetLuaTypeString(L, index) << "\n");
 				}
 			}break;
 			case PT_POINTER:{
 				if(lua_isuserdata(L, index)){
 				//	if the object is a const object, we can't use it here.
 					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const){
-						UG_LOG("ERROR: Can't convert const object to non-const object.\n");
+						//UG_LOG("ERROR: Can't convert const object to non-const object.\n");
 						badParam = (int)i + 1;
 						break;
 					}
@@ -190,32 +192,32 @@ static int LuaStackToParams(ParameterStack& params,
 						if(typeMatch)
 							params.push_pointer(obj, names);
 						else{
-							UG_LOG("ERROR: type mismatch in argument " << i + 1);
-							UG_LOG(": Expected type that supports " << paramsTemplate.class_name(i));
+							//UG_LOG("ERROR: type mismatch in argument " << i + 1);
+							//UG_LOG(": Expected type that supports " << paramsTemplate.class_name(i));
 							bool gotone = false;
 							if(names){
 								if(!names->empty()){
 									gotone = true;
-									UG_LOG(", but given object of type " << names->at(0) << ".\n");
+									//UG_LOG(", but given object of type " << names->at(0) << ".\n");
 								}
 							}
 
 							if(!gotone){
-								UG_LOG(", but given object of unknown type.\n");
+								//UG_LOG(", but given object of unknown type.\n");
 							}
 							printDefaultParamErrorMsg = false;
 							badParam = (int)i + 1;
 						}
 					}
 					else{
-						UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
+						//UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
 						badParam = (int)i + 1;
 					}
 				}
 				else
 				{
-					UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
-					UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ", but given " << GetLuaTypeString(L, index) << ")" << endl);
+					//UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
+					//UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ", but given " << GetLuaTypeString(L, index) << ")" << endl);
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -241,32 +243,32 @@ static int LuaStackToParams(ParameterStack& params,
 						if(typeMatch)
 							params.push_const_pointer(obj, names);
 						else{
-							UG_LOG("ERROR: type mismatch in argument " << i + 1);
-							UG_LOG(": Expected type that supports const " << paramsTemplate.class_name(i));
+							//UG_LOG("ERROR: type mismatch in argument " << i + 1);
+							//UG_LOG(": Expected type that supports const " << paramsTemplate.class_name(i));
 							bool gotone = false;
 							if(names){
 								if(!names->empty()){
 									gotone = true;
-									UG_LOG(", but given object of type " << names->at(0) << ".\n");
+									//UG_LOG(", but given object of type " << names->at(0) << ".\n");
 								}
 							}
 
 							if(!gotone){
-								UG_LOG(", but given object of unknown type.\n");
+								//UG_LOG(", but given object of unknown type.\n");
 							}
 							printDefaultParamErrorMsg = false;
 							badParam = (int)i + 1;
 						}
 					}
 					else{
-						UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
+						//UG_LOG("ERROR: in argument " << i+1 << ": METATABLE not found. ");
 						badParam = (int)i + 1;
 					}
 				}
 				else
 				{
-					UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
-					UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ")" << endl);
+					//UG_LOG("ERROR: bad argument " << i+1 << ": Currently only references/pointers to user defined data allowed. ");
+					//UG_LOG("(Expected type that supports " << paramsTemplate.class_name(i) << ")" << endl);
 					badParam = (int)i + 1;
 				}
 			}break;
@@ -314,8 +316,8 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 				CreateNewUserData(L, obj, params.class_name(i), true);
 			}break;
 			default:{
-				UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
-				UG_LOG("Return-values may be incomplete.\n");
+				//UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
+				//UG_LOG("Return-values may be incomplete.\n");
 				return (int)i;
 			}break;
 		}
@@ -324,45 +326,66 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 	return (int)params.size();
 }
 
+//	global functions are handled here
+//	Note that not the best matching, but the first matchin overload is chosen!
 static int LuaProxyFunction(lua_State* L)
 {
-	const ExportedFunction* func = (const ExportedFunction*)lua_touserdata(L, lua_upvalueindex(1));
+	const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
+											lua_touserdata(L, lua_upvalueindex(1));
 
-	ParameterStack paramsIn;;
-	ParameterStack paramsOut;
+//	we have to try each overload!
+	int badParam = -1;
+	for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
+		const ExportedFunction* func = funcGrp->get_overload(i);
+
+		ParameterStack paramsIn;;
+		ParameterStack paramsOut;
+
+		badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
+
+	//	check whether the parameter was correct
+		if(badParam > 0){
+		//	parameters didn't match. Try the next overload.
+			continue;
+		}
 	
-	int badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
+		try{
+			func->execute(paramsIn, paramsOut);
+		}
+		catch(UGError err){
+			UG_LOG("UGError in ")
+			PrintFunctionInfo(*func);
+			UG_LOG(" with code " << err.get_code() << ": ");
+			UG_LOG(err.get_msg() << endl);
+			if(err.terminate())
+			{
+				UG_LOG("terminating..." << endl);
+				exit(err.get_code());
+			}
+		}
+		catch(...)
+		{
+			UG_LOG("unknown error occured in call to ")
+			PrintFunctionInfo(*func);
+			UG_LOG(". continuing execution...\n");
+		}
+
+	//	if we reach this point, then the method was successfully executed.
+		return ParamsToLuaStack(paramsOut, L);
+	}
 	
-//	check whether the parameter was correct
 	if(badParam > 0){
-		UG_LOG("ERROR occured during call to ");
-		PrintFunctionInfo(*func);
-		UG_LOG(".\n");
+		UG_LOG("ERROR occured during call to " << funcGrp->name());
+		UG_LOG(": No matching overload found!\n");
+		UG_LOG("Candidates are:\n");
+		for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
+			PrintFunctionInfo(*funcGrp->get_overload(i));
+			UG_LOG("\n");
+		}
 		return 0;
 	}
 
-	try{
-		func->execute(paramsIn, paramsOut);
-	}
-	catch(UGError err){
-		UG_LOG("UGError in ")
-		PrintFunctionInfo(*func);
-		UG_LOG(" with code " << err.get_code() << ": ");
-		UG_LOG(err.get_msg() << endl);
-		if(err.terminate())
-		{
-			UG_LOG("terminating..." << endl);
-			exit(err.get_code());
-		}
-	}
-	catch(...)
-	{
-		UG_LOG("unknown error occured in call to ")
-		PrintFunctionInfo(*func);
-		UG_LOG(". continuing execution...\n");
-	}
-
-	return ParamsToLuaStack(paramsOut, L);
+	return 0;
 }
 
 static int LuaProxyConstructor(lua_State* L)
@@ -374,6 +397,7 @@ static int LuaProxyConstructor(lua_State* L)
 	return 1;
 }
 
+//	member methods of classes are handled here
 static int LuaProxyMethod(lua_State* L)
 {
 	const ExportedMethod* m = (const ExportedMethod*)lua_touserdata(L, lua_upvalueindex(1));
@@ -506,10 +530,10 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 	size_t numFuncs = reg.num_functions();
 	
 	for(size_t i = 0; i < numFuncs; ++i){
-		ExportedFunction* func = &reg.get_function(i);
+		ExportedFunctionGroup* funcGrp = &reg.get_function_group(i);
 
 	//	check whether the function already exists
-		lua_getglobal(L, func->name().c_str());
+		lua_getglobal(L, funcGrp->name().c_str());
 		if(!lua_isnil(L, -1)){
 		//	the method already exists. Don't recreate it.
 			lua_pop(L, 1);
@@ -518,9 +542,9 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 		lua_pop(L, 1);
 		
 	//	the function is new. Register it.
-		lua_pushlightuserdata(L, func);
+		lua_pushlightuserdata(L, funcGrp);
 		lua_pushcclosure(L, LuaProxyFunction, 1);
-		lua_setglobal(L, func->name().c_str());
+		lua_setglobal(L, funcGrp->name().c_str());
 	}
 
 

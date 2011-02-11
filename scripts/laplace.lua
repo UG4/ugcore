@@ -115,20 +115,25 @@ if numPreRefs > numRefs then
 	exit();
 end
 
-refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
+-- Create a refiner instance. This is a factory method
+--	which automatically creates a parallel refiner if required.
+refiner = GlobalDomainRefiner(dom)
+
+-- Performing pre-refines
 for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
+-- Distribute the domain to all involved processes
+if DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
+-- Perform post-refine
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-	utilGlobalRefineParallelDomain(dom)
+	refiner:refine()
 end
 
 -- get subset handler
@@ -142,7 +147,7 @@ sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 -- create function pattern
 print("Create Function Pattern")
@@ -160,53 +165,31 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -------------------------------------------
 print ("Setting up Assembling")
 
+-- depending on the dimension we're choosing the appropriate callbacks.
+-- we're using the .. operator to assemble the names (dim = 2 -> "ourDiffTensor2d")
 -- Diffusion Tensor setup
-	if dim == 2 then
-		diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
-	elseif dim == 3 then
-		diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor3d", dim)
-	end
-	--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
+--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-	if dim == 2 then
-		velocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
-	elseif dim == 3 then
-		velocityField = utilCreateLuaUserVector("ourVelocityField3d", dim)
-	end 
-	--velocityField = utilCreateConstUserVector(0.0, dim)
+velocityField = utilCreateLuaUserVector("ourVelocityField"..dim.."d", dim)
+--velocityField = utilCreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-	if dim == 2 then
-		reaction = utilCreateLuaUserNumber("ourReaction2d", dim)
-	elseif dim == 3 then
-		reaction = utilCreateLuaUserNumber("ourReaction3d", dim)
-	end
-	--reaction = utilCreateConstUserNumber(0.0, dim)
+reaction = utilCreateLuaUserNumber("ourReaction"..dim.."d", dim)
+--reaction = utilCreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-	if dim == 2 then
-		rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
-	elseif dim == 3 then
-		rhs = utilCreateLuaUserNumber("ourRhs3d", dim)
-	end
-	--rhs = utilCreateConstUserNumber(0.0, dim)
+rhs = utilCreateLuaUserNumber("ourRhs"..dim.."d", dim)
+--rhs = utilCreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-	if dim == 2 then
-		neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
-	elseif dim == 3 then
-		neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd3d", dim)
-	end
-	--neumann = utilCreateConstUserNumber(0.0, dim)
+neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
+--neumann = utilCreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	if dim == 2 then
-		dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
-	elseif dim == 3 then
-		dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd3d", dim)
-	end
-	--dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
+dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+--dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
 	
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
