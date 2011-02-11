@@ -125,7 +125,7 @@ struct BinomialCoefficient
 };
 
 //////////////////////////////
-// UniqueTypeID
+// UniqueTypeID (sreiter)
 //////////////////////////////
 ///	a singleton class that returns a new id for each type
 class UniqueTypeIDProvider{
