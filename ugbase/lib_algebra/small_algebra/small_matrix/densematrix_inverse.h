@@ -3,6 +3,8 @@
 
 #include "densematrix.h"
 #include "densevector.h"
+#include <algorithm>
+
 //
 namespace ug {
 
@@ -85,7 +87,7 @@ bool Invert2(DenseMatrix<T> &mat)
 	if(invdet == 0.0) return false;
 	invdet = 1.0/invdet;
 
-	swap(mat(0,0), mat(1,1));
+	std::swap(mat(0,0), mat(1,1));
 
 	mat(0,0) *= invdet;
 	mat(0,1) *= -invdet;

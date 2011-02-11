@@ -90,7 +90,7 @@ VariableArray1<T>::resize(size_t newN)
 	 */
 	size_t minN = std::min(n, newN);
 	for(size_t i=0; i<minN; i++)
-		swap(new_values[i], values[i]);
+		std::swap(new_values[i], values[i]);
 
 	if(values) delete[] values;
 	values = new_values;
@@ -237,11 +237,11 @@ VariableArray2<T, T_ordering>::resize(size_t newRows, size_t newCols)
 	if(T_ordering==RowMajor)
 		for(size_t r=0; r<minRows; r++)
 			for(size_t c=0; c<minCols; c++)
-				swap(new_values[c+r*newCols], values[c+r*cols]);
+				std::swap(new_values[c+r*newCols], values[c+r*cols]);
 	else
 		for(size_t r=0; r<minRows; r++)
 			for(size_t c=0; c<minCols; c++)
-				swap(new_values[r+c*newRows], values[r+c*rows]);
+				std::swap(new_values[r+c*newRows], values[r+c*rows]);
 
 	if(values) delete[] values;
 	rows = newRows;
