@@ -12,9 +12,6 @@
 //#include "blockMatrix.h"
 
 
-
-using namespace std;
-
 namespace ug{
 
 // the problem:
