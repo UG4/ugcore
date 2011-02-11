@@ -16,6 +16,7 @@ dim = 2
 
 if dim == 2 then
 	gridName = "unit_square_tri.ugx"
+	-- gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
 	gridName = "unit_cube_hex.ugx"
@@ -23,7 +24,7 @@ if dim == 3 then
 end
 
 numPreRefs = 0
-numRefs = 7
+numRefs = 3
 
 --------------------------------
 -- User Data Functions (begin)
@@ -130,10 +131,12 @@ for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
-	print("Error while Distributing Grid.")
-	exit()
+-- Distribute the domain to all involved processes
+if DistributeDomain(dom) == false then
+print("Error while Distributing Grid.")
+exit()
 end
+
 
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
@@ -141,7 +144,7 @@ for i=numPreRefs+1,numRefs do
 end
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 -- create function pattern
 print("Create Function Pattern")
@@ -270,7 +273,7 @@ linOp:set_dirichlet_values(u)
 b:assign(linOp:get_rhs())
 print ("done")
 -- write matrix for test purpose
--- SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 -- SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- create algebraic Preconditioner
@@ -333,7 +336,7 @@ amg:set_testvector_damps(5)
 
 else
 amg = AMGPreconditioner()
--- amg:enable_aggressive_coarsening_A_2()
+amg:enable_aggressive_coarsening_A_2()
 end
  
 amg:set_num_presmooth(3)
@@ -343,9 +346,9 @@ amg:set_presmoother(jac)
 amg:set_postsmoother(jac)
 amg:set_base_solver(base)
 amg:set_debug(u)
-amg:set_max_levels(10)
--- amg:set_matrix_write_path("/Users/mrupp/matrices/")
-amg:set_max_nodes_for_exact(400)
+amg:set_max_levels(2)
+amg:set_matrix_write_path("/Users/mrupp/matrices/")
+amg:set_max_nodes_for_exact(5)
 amg:set_max_fill_before_exact(0.7)
 amg:set_fsmoothing(0.0)
 
@@ -367,7 +370,7 @@ linSolver:set_convergence_check(convCheck)
 -- Apply Solver
 ApplyLinearSolver(linOp, u, b, linSolver)
 
--- famg:check(u, b);
+-- amg:check(u, b);
 
 -- SaveVectorForConnectionViewer(u, "u.mat")
 
