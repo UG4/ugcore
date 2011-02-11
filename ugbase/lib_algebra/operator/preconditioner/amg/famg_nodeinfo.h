@@ -23,12 +23,18 @@ namespace ug {
 
 class famg_nodeinfo
 {
+	friend class famg_nodes;
+
+private:
+	inline void set_fine(){rating = FAMG_FINE_RATING;}
+	inline void set_coarse(){rating = FAMG_COARSE_RATING;}
+
+
 public:
 	famg_nodeinfo() { rating = 0.0; }
 	double rating;
 	//int newIndex;		
-	inline void set_fine(){rating = FAMG_FINE_RATING;}
-	inline void set_coarse(){rating = FAMG_COARSE_RATING;}
+
 	inline void set_uninterpolateable(){rating = FAMG_UNINTERPOLATEABLE;	}
 	inline void set_dirichlet() { rating = FAMG_DIRICHLET_RATING; }
 	
@@ -37,7 +43,11 @@ public:
 	inline bool is_uninterpolateable() const { return rating == FAMG_UNINTERPOLATEABLE; }
 	inline bool is_dirichlet() const { return rating == FAMG_DIRICHLET_RATING; }
 	
-	inline bool is_valid_rating()
+	inline bool could_be_coarse() const
+	{
+		return is_valid_rating() || is_coarse(); // is_dirichlet ??
+	}
+	inline bool is_valid_rating() const
 	{
 		return rating >= 0;
 	}
@@ -68,11 +78,16 @@ public:
 class famg_nodes
 {
 public:
-	famg_nodes(size_t size)
+	famg_nodes(SparseMatrix<double> &_P) : P(_P)
 	{
-		nodes.resize(size);
+	}
+
+	void create(size_t size)
+	{
+		nodes.clear(); 		nodes.resize(size);
+		newIndex.clear(); 	newIndex.resize(size, -1);
 #ifdef UG_PARALLEL
-		bmaster.resize(size, true);
+		OLtype.clear();		OLtype.resize(size, 0);
 #endif
 	}
 
@@ -126,7 +141,7 @@ public:
 
 			if(irating < 0)
 			{
-				swap(PN[i], PN.back()); // remove this pair
+				std::swap(PN[i], PN.back()); // remove this pair
 				PN.resize(PN.size()-1);
 				UG_DLOG(LIB_ALG_AMG, 2, " removed pair " << i << " ");
 				continue;
@@ -148,7 +163,7 @@ public:
 		if(mini != -1)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, " has rating " << minrating << "\n");
-			if(mini != 0) swap(PN[0], PN[mini]);
+			if(mini != 0) std::swap(PN[0], PN[mini]);
 			if(nodes[node].rating != minrating)
 			{
 				UG_DLOG(LIB_ALG_AMG, 2, " new rating! ");
@@ -170,31 +185,125 @@ public:
 		}
 	}
 
-#ifdef UG_PARALLEL
-public:
-	bool is_master(size_t i) const
-	{
-		return bmaster[i];
-	}
-
-	void set_master(size_t i, bool b)
-	{
-		bmaster[i] = b;
-	}
-private:
-	stdvector<bool> bmaster;
-
-#else
-public:
-	bool is_master(size_t i) const { return true; }
-	void set_master(size_t i, bool b) { }
-
-#endif
 
 	size_t size() const { return nodes.size(); }
 
+
+
+#ifdef UG_PARALLEL
+public:
+	bool is_inner_node(size_t i)
+	{
+		return OLtype[i] == 0;
+	}
+
+	bool is_master(size_t i)
+	{
+		return OLtype[i] & 1;
+	}
+
+	bool is_slave(size_t i, int OLlevel=0)
+	{
+		return OLtype[i] & (1 << OLlevel+1);
+	}
+
+	bool i_must_assign(size_t i)
+	{
+		return is_inner_node(i) || is_master(i);
+	}
+
+	bool i_can_set_coarse(size_t i)
+	{
+		return nodes[i].is_coarse() ||	// node already coarse
+			((i_must_assign(i) || is_slave(i, 0)) && nodes[i].is_valid_rating());  // or i can set coarse
+	}
+
+	void print_OL_types()
+	{
+		for(size_t i=0; i<size(); i++)
+		{
+			UG_LOG("Index " << i << ": ");
+			if(is_inner_node(i))
+				UG_LOG("inner")
+			else
+			{
+				UG_LOG("non-inner ");
+				if(is_master(i))
+					UG_LOG("master ")
+				for(size_t j=0; j<5; j++)
+					if(is_slave(i, j)) UG_LOG("slave" << j << " ");
+			}
+			UG_LOG("\n");
+		}
+	}
+
+	void calculate_unassigned()
+	{
+		unassigned = 0;
+		for(size_t i=0; i<size(); i++)
+		{
+			if(i_must_assign(i))
+				unassigned++;
+
+		}
+	}
+	stdvector<int> OLtype;
+#else
+public:
+	bool is_inner_node(size_t i)
+	{
+		return true;
+	}
+
+	bool is_master(size_t i)
+	{
+		return true;
+	}
+
+	bool is_slave(size_t i, int OLlevel=0)
+	{
+		return false;
+	}
+
+	bool i_can_set_coarse(size_t i)
+	{
+		return nodes[i].is_valid_rating() || nodes[i].is_coarse();
+	}
+#endif
+
+	void set_fine(size_t index)
+	{
+		if(nodes[index].is_fine() == false && i_must_assign(index))
+			unassigned--;
+	}
+
+	void external_set_coarse(size_t index)
+	{
+		UG_ASSERT(i_can_set_coarse(index), "Index " << index << " can not be coarse.\n");
+		if(nodes[index].is_coarse() == false)
+		{
+			nodes[index].set_coarse();
+
+			unassigned--;
+			newIndex[index] = iNrOfCoarse++;
+			P(index, newIndex[index]) = 1.0;
+		}
+	}
+
+	void set_coarse(size_t index)
+	{
+		UG_ASSERT(i_can_set_coarse(index), "Index " << index << " can not be coarse.\n");
+		external_set_coarse(index);
+	}
+
+
 private:
+	stdvector<int> newIndex;
 	stdvector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array
+	size_t iNrOfCoarse;				// number of coarse nodes so far
+	size_t unassigned;				// number of still unassigned nodes
+
+	SparseMatrix<double> &P;
 };
 
 
@@ -241,7 +350,6 @@ void GetRatings(stdvector<stdvector<neighborstruct> > &possible_neighbors,
 		}
 		UG_DLOG(LIB_ALG_AMG, 2, "rating = " << nodes[i].rating << "\n");
 	}
-
 }
 
 

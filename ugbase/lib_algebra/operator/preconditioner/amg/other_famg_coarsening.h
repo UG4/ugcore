@@ -1,3 +1,22 @@
+/**
+ * \file other_famg_coarsening_impl.h
+ *
+ * \author Martin Rupp
+ *
+ * \date 10.12.2010
+ *
+ * implementation file for famg, coarsening when calculating the possible parents only on demand
+ *
+ * Goethe-Center for Scientific Computing 2010-2011.
+ *
+ * for test purposes, functions are here in a cpp file.
+ */
+
+
+#ifndef __H__LIB_ALGEBRA__AMG__OTHER_FAMG_COARSENING_IMPL_H__
+#define __H__LIB_ALGEBRA__AMG__OTHER_FAMG_COARSENING_IMPL_H__
+
+namespace ug{
 
 template<typename neighborstruct, typename matrix_type>
 bool other_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &nodes,
@@ -36,7 +55,7 @@ bool other_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &
 
 #endif
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << node << " has coarse neighbors, but rating is not calculated yet. calculating rating now\n");
-		calculator.get_possible_parent_pairs(node, PN, nodes[node]);
+		calculator.get_possible_parent_pairs(node, PN, nodes);
 		prolongation_calculated[node] = true;
 		nodes.update_rating(node, PN);
 		return true;
@@ -89,33 +108,24 @@ void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mar
 
 
 
-template<typename matrix_type, typename neighborstruct>
-void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type &P,
-		stdvector<stdvector<neighborstruct> > &possible_parents,
-		famg_nodes &rating, maxheap<famg_nodeinfo> &heap, stdvector<int> &newIndex,
-		size_t &iNrOfCoarse, size_t &unassigned, FAMGInterpolationCalculator<matrix_type> &calculator)
+template<typename matrix_type, typename prolongation_matrix_type>
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::other_coarsening()
 {
-
-	size_t N = A.num_rows();
+	size_t N = rating.size();
 
 	possible_parents.clear();
-	possible_parents.resize(A.num_rows());
+	possible_parents.resize(A_OL2.num_rows());
 
 	for(size_t j=0; j<N; j++)
 	{
-		if(A.is_isolated(j))
-		{
-			rating[j].set_fine();
-			/*newIndex[j] = iNrOfCoarse++;
-			P(j, newIndex[j]) = 1.0;*/
-			unassigned--;
-		}
+		if(rating.is_master(j) && A_OL2.is_isolated(j))
+			rating.set_fine(j);
 	}
 
 	size_t i;
 	for(i=0; i<N; i++)
 	{
-		if(IsCloseToBoundary(A, i, 2) == false)
+		if(rating.is_master(i) && IsCloseToBoundary(A_OL2, i, 2) == false)
 			break;
 	}
 
@@ -128,9 +138,13 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 	bvisited.resize(N, false);
 	stdvector<size_t> neighborsToUpdate;
 
+	for(size_t i=0; i<N; i++)
+	{
+		if(!rating.is_master(i))
+			bvisited[i] = true;
+	}
 
-
-	calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
+	calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 	prolongation_calculated[i] = true;
 	rating.update_rating(i, possible_parents[i]);
 
@@ -145,9 +159,8 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 			UG_DLOG(LIB_ALG_AMG, 2, GetOriginalIndex(n.parents[j].from) << " ");
 
 		// node i gets fine. update neighbors.
-		rating[i].set_fine();
+		rating.set_fine(i);
 		bvisited[i] = true;
-		unassigned--;
 
 		for(size_t j=0; j < n.parents.size(); j++)
 			bvisited[i] = true;
@@ -167,13 +180,10 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 			if(!rating[node].is_coarse())
 			{
 				if(heap.is_in(node)) heap.remove(node);
-				rating[node].set_coarse();
-				unassigned--;
-				newIndex[node] = iNrOfCoarse++;
-				P(node, newIndex[node]) = 1.0;
+				rating.set_coarse(node);
 				AddUnmarkedNeighbors(SymmNeighGraph, node, bvisited, neighborsToUpdate);
 			}
-			P(i, newIndex[node]) = n.parents[j].value;
+			P(i, rating.newIndex[node]) = n.parents[j].value;
 		}
 
 		IF_DEBUG(LIB_ALG_AMG,4) print_vector(neighborsToUpdate, "neighborsToUpdate");
@@ -181,9 +191,10 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 		// update neighbors
 		for(size_t j=0; j<neighborsToUpdate.size(); j++)
 		{
-			other_Update(neighborsToUpdate[j], possible_parents, rating, heap, prolongation_calculated, SymmNeighGraph, calculator);
-			if(rating[j].is_valid_rating())
-				bvisited[j] = false;
+			size_t index = neighborsToUpdate[j];
+			other_Update(index, possible_parents, rating, heap, prolongation_calculated, SymmNeighGraph, calculator);
+			if(rating[index].is_valid_rating())
+				bvisited[index] = false;
 		}
 		neighborsToUpdate.clear();
 
@@ -191,15 +202,17 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\nSearching for next node...\n");
 		if(heap.height() == 0)
 		{
+			// heap empty, we need to get another start node
 			for(i=0; i<N; i++)
 			{
+				if(rating.is_master(i) == false) continue;
 				UG_DLOG(LIB_ALG_AMG, 2, "rating " << i << " is " << rating[i] << "\n");
 				if(A.is_isolated(i) == false && rating[i].is_valid_rating())
 				{
 					if(prolongation_calculated[i] == false)
 					{
 						//UG_LOG(" calculating prologation...");
-						calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
+						calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 						prolongation_calculated[i] = true;
 					}
 					rating.update_rating(i, possible_parents[i]);
@@ -212,7 +225,7 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 
 			UG_DLOG(LIB_ALG_AMG, 2, "\n\nRESTARTING WITH NODE " << GetOriginalIndex(i) << "!!!\n\n");
 
-			calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
+			calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 			prolongation_calculated[i] = true;
 			rating.update_rating(i, possible_parents[i]);
 		}
@@ -221,10 +234,11 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 			{
 				i = heap.get_max();
 				UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " has best rating");
+				UG_ASSERT(rating.is_master(i), "node " << i << " is not master!");
 				if(prolongation_calculated[i] == false)
 				{
 					UG_DLOG(LIB_ALG_AMG, 2, ", but prolongation not calculated. update.\n");
-					calculator.get_possible_parent_pairs(i, possible_parents[i], rating[i]);
+					calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 					prolongation_calculated[i] = true;
 					rating.update_rating(i, possible_parents[i]);
 					heap.update(i);
@@ -245,3 +259,7 @@ void other_coarsening(const matrix_type &A, cgraph &SymmNeighGraph, matrix_type 
 	}
 
 }
+
+}
+
+#endif

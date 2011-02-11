@@ -38,6 +38,8 @@ namespace ug{
 
 #define FAMG_MAX_LEVELS 32
 
+template<typename matrix_type, typename prolongation_matrix_type>
+class FAMGLevelCalculator;
 
 // AMG
 //---------------------------------
@@ -111,6 +113,7 @@ private:
 	size_t m_iTestvectorDamps;
 	bool m_bTestvectorZeroAtDirichlet;
 
+	friend class FAMGLevelCalculator<matrix_type, SparseMatrix<double> >;
 };
 
 

@@ -105,7 +105,8 @@ public:
 	 * \param possible_neighbors	list of possible parent pairs
 	 * \param nodeinfo				info of the node. possibly set to coarse or fine.
 	 */
-	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors, famg_nodeinfo &nodeinfo)
+	void get_possible_parent_pairs(size_t i, stdvector<neighborstruct2> &possible_neighbors,
+			famg_nodes &rating)
 	{
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
 		UG_DLOG(LIB_ALG_AMG, 2, "node " << GetOriginalIndex(i) << "\n");
@@ -114,7 +115,7 @@ public:
 		if(get_H(i) == false)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "node has no connections, set as fine\n");
-			nodeinfo.set_fine();
+			rating[i].set_fine();
 			return;
 		}
 
@@ -134,11 +135,11 @@ public:
 		double f_min = 1e12;
 		for(size_t n=0; n < onlyN1.size(); n++)
 		{
-			if(A.is_isolated(onlyN1[n]))
+			if(A.is_isolated(onlyN1[n]) || !rating.i_can_set_coarse(onlyN1[n]))
 				continue;
 			for(size_t m=n+1; m < onlyN1.size(); m++)
 			{
-				if(A.is_isolated(onlyN1[m]))
+				if(A.is_isolated(onlyN1[m]) || !rating.i_can_set_coarse(onlyN1[m]))
 					continue;
 				// set KKT matrix
 				/*
@@ -227,9 +228,10 @@ public:
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, std::endl << GetOriginalIndex(i) << ": UNINTERPOLATEABLE" << std::endl);
 			//UG_ASSERT(0, "node has no parents :'-(");
-			nodeinfo.set_uninterpolateable();
+			rating[i].set_uninterpolateable();
 		}
 	}
+
 
 	// get_all_neighbors_interpolation:
 	//---------------------------------------
@@ -239,8 +241,8 @@ public:
 	 * \param P		matrix for the interpolation
 	 * \
 	 */
-	void get_all_neighbors_interpolation(size_t i, matrix_type &P,	famg_nodes &rating, stdvector<int> &newIndex,
-					size_t &iNrOfCoarse, size_t &unassigned)
+	template<typename prolongation_matrix_type>
+	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	famg_nodes &rating)
 	{
 		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << GetOriginalIndex(i) << "\n")
 
@@ -267,11 +269,7 @@ public:
 					UG_LOG(GetOriginalIndex(onlyN1[j]));
 				}
 				UG_LOG("\n");*/
-
-				newIndex[i] = iNrOfCoarse++;
-				P(i, newIndex[i]) = 1.0;
-				rating[i].set_coarse();
-				unassigned --;
+				rating.set_coarse(i);
 				return;
 
 			}
@@ -308,21 +306,17 @@ public:
 
 			if(F > m_delta)
 			{
-				// set as coarse
-				newIndex[i] = iNrOfCoarse++;
-				P(i, newIndex[i]) = 1.0;
-				rating[i].set_coarse();
-				unassigned --;
+				rating.set_coarse(i);
+
 			}
 			else
 			{
 				for(size_t j=0; j<N; j++)
 				{
 					size_t node = onlyN1[coarse_neighbors[j]];
-					P(i, newIndex[node]) = -q[j];
+					P(i, rating.newIndex[node]) = -q[j];
 				}
-				rating[i].set_fine();
-				unassigned--;
+				rating.set_fine(i);
 			}
 		}
 		else
@@ -360,11 +354,7 @@ public:
 
 			if(F > m_delta)
 			{
-				// set as coarse
-				newIndex[i] = iNrOfCoarse++;
-				P(i, newIndex[i]) = 1.0;
-				rating[i].set_coarse();
-				unassigned --;
+				rating.set_coarse(i);
 			}
 			else
 			{
@@ -374,17 +364,10 @@ public:
 					for(typename matrix_type::rowIterator it=P.beginRow(node); !it.isEnd(); ++it)
 						P(i, it.index()) += -q[j] * it.value();
 				}
-				rating[i].set_fine();
-				unassigned--;
-
+				rating.set_fine(i);
 
 			}
 		}
-
-
-
-
-
 
 	}
 

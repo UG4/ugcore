@@ -48,6 +48,42 @@ inline void get_testvector_xy(DenseVector<VariableArray1<double> > &testvector, 
 
 */
 
+template<typename matrix_type, typename vector_type>
+void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector, bool zeroAtDirichlet,
+		size_t iTestvectorDamps)
+{
+	if(big_testvector.size() == 0)
+	{
+		big_testvector.resize(A_OL2.num_rows());
+		for(size_t i=0; i<A_OL2.num_rows(); i++)
+			if(A_OL2.is_isolated(i) && zeroAtDirichlet)
+				big_testvector[i] = 0.0;
+			else
+				big_testvector[i] = 1.0;
+
+		//big_testvector = 1.0;
+	}
+
+	Vector<double> d; d.resize(A_OL2.num_rows());
+	for(size_t jj=0; jj < iTestvectorDamps; jj++)
+	{
+		MatMult(d, 1.0, A_OL2, big_testvector);
+		for(size_t i=0; i<A_OL2.num_rows(); i++)
+			big_testvector[i] = big_testvector[i] - 0.6*d[i]/A_OL2(i,i);
+	}
+}
+
+template<typename matrix_type, typename vector_type>
+void CalculateNextTestvector(matrix_type &R, vector_type &big_testvector)
+{
+	Vector<double> t;
+	t.resize(R.num_rows());
+
+	MatMult(t, 1.0, R, big_testvector);
+	big_testvector.resize(R.num_rows());
+	big_testvector = t;
+}
+
 }
 
 #endif // __H__LIB_ALGEBRA__FAMG_SOLVER__FAMG_TESTVECTORS_H__
