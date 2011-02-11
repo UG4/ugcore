@@ -32,10 +32,12 @@ function utilLoadDomain(domain, gridName)
 end
 
 function utilSaveDomain(domain, gridName)
+	print("utilSaveDomain is DEPRECIATED. Use SaveDomain instead.")
 	return SaveDomain(domain, gridName)
 end
 
 function utilDistributeDomain(domain)
+	print("utilDistributeDomain is DEPRECIATED. Use DistributeDomain instead.")
 	return DistributeDomain(domain)
 end
 

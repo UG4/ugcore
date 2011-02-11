@@ -5,6 +5,8 @@
 #include "parallel_hanging_node_refiner_multi_grid.h"
 #include "../util/compol_selection.h"
 
+using namespace std;
+
 namespace ug{
 
 ParallelHangingNodeRefiner_MultiGrid::
@@ -102,9 +104,18 @@ collect_objects_for_refine()
 			newlyMarkedElems = 1;
 		}
 
+		UG_LOG("newly marked elems: " << newlyMarkedElems << endl);
+
 		int exchangeFlag;
 		m_procCom.allreduce(&newlyMarkedElems, &exchangeFlag, 1,
 							PCL_DT_INT, PCL_RO_LOR);
+
+		UG_LOG("exchange flag: " << exchangeFlag << endl);
+
+	//	before we continue we'll set all flags to false
+		m_bNewInterfaceEdgesMarked = false;
+		m_bNewInterfaceFacesMarked = false;
+		m_bNewInterfaceVolumesMarked = false;
 
 		if(exchangeFlag){
 		//	we have to communicate the marks.
