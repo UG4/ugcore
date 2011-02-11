@@ -241,6 +241,7 @@ class ReferenceElementFactory{
 		static ReferenceElementFactory& instance()
 		{
 			static ReferenceElementFactory inst;
+			static bool std_registered = RegisterStandardDimReferenceElements();
 			return inst;
 		}
 
