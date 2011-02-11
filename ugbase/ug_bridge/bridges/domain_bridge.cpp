@@ -223,8 +223,6 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 
 	domain_type dom;
 
-	UG_LOG("registering domain of type: " << typeid(dom).name() << endl);
-
 //	Domain
 	{
 		std::stringstream ss; ss << "Domain" << dim << "d";
@@ -270,7 +268,9 @@ static bool RegisterDomainInterface_(Registry& reg, const char* parentGroup)
 		//std::stringstream ss; ss << "GlobalDomainRefiner" << dim << "d";
 		//reg.add_function(ss.str().c_str(), &GlobalDomainRefiner<domain_type>, grp.c_str());
 	}
-	//reg.add_function("GlobalDomainRefiner", &GlobalDomainRefiner<domain_type>, grp.c_str());
+
+	reg.add_function("GlobalDomainRefiner", &GlobalDomainRefiner<domain_type>, grp.c_str());
+
 	return true;
 }
 

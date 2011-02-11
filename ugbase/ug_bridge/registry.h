@@ -79,31 +79,43 @@ class Registry {
 			}
 
 		//	if the function is already in use, we have to add an overload
-			ExportedFunction* existingFunc = get_exported_function(funcName);
-			if(existingFunc)
+			ExportedFunctionGroup* funcGrp = get_exported_function_group(funcName);
+			if(!funcGrp)
 			{
-				//std::cout << "Problem type ID: " << GetUniqueTypeID<TFunc>() << "..." << typeid(func).name() << std::endl;
+			//	we have to create a new function group
+				funcGrp = new ExportedFunctionGroup(funcName);
+				m_vFunction.push_back(funcGrp);
+			}
+
+		//  add an overload to the function group
+			bool success = funcGrp->add_overload(func, &FunctionProxy<TFunc>::apply,
+												group, retValInfos, paramInfos,
+												tooltip, help);
+
+			if(!success){
 				std::cout << "### Registry ERROR: Trying to register function name '" << funcName
 						<< "', that is already used by another function in this registry."
 						<< "\n### Please change register process. Aborting ..." << std::endl;
 				throw(UG_REGISTRY_ERROR_RegistrationFailed(funcName));
 			}
-			else{
-			//  create new exported function
-				m_vFunction.push_back(new ExportedFunction(	func, &FunctionProxy<TFunc>::apply,
-															funcName, group,
-															retValInfos, paramInfos,
-															tooltip, help));
-			}
 	
 			return *this;
 		}
 
-	/// number of function registered at the Registry
-		size_t num_functions() const						{return m_vFunction.size();}
+	/// number of functions registered at the Registry (overloads are not counted)
+		size_t num_functions() const							{return m_vFunction.size();}
 
-	/// returns an exported function
-		ExportedFunction& get_function(size_t ind) 			{return *m_vFunction.at(ind);}
+	/// returns the first overload of an exported function
+		ExportedFunction& get_function(size_t ind)	 			{return *m_vFunction.at(ind)->get_overload(0);}
+
+	///	returns the number of overloads of a function
+		size_t num_overloads(size_t ind)						{return m_vFunction.at(ind)->num_overloads();}
+
+	///	returns the i-th overload of a function
+		ExportedFunction& get_overload(size_t funcInd, size_t oInd)	{return *m_vFunction.at(funcInd)->get_overload(oInd);}
+
+	///	returns a group which contains all overloads of a function
+		ExportedFunctionGroup& get_function_group(size_t ind) 		{return *m_vFunction.at(ind);}
 
 	///////////////////
 	// classes
@@ -253,8 +265,12 @@ class Registry {
 		bool check_consistency()
 		{
 			size_t found = 0;
-			for(size_t i=0; i<num_functions(); i++)
-				if(get_function(i).check_consistency()) found++;
+			for(size_t i=0; i<num_functions(); i++){
+				ExportedFunctionGroup& funcGrp = get_function_group(i);
+				for(size_t j = 0; j < funcGrp.num_overloads(); ++j){
+					if(funcGrp.get_overload(j)->check_consistency()) found++;
+				}
+			}
 
 			// check classes
 			for(size_t i=0; i<num_classes(); i++)
@@ -313,7 +329,7 @@ class Registry {
 			return false;
 		}
 
-		ExportedFunction* get_exported_function(const char* name)
+		ExportedFunctionGroup* get_exported_function_group(const char* name)
 		{
 			for(size_t i = 0; i < m_vFunction.size(); ++i)
 			{
@@ -327,7 +343,7 @@ class Registry {
 	private:
 		Registry(const Registry& reg)	{}
 		
-		std::vector<ExportedFunction*>	m_vFunction;
+		std::vector<ExportedFunctionGroup*>	m_vFunction;
 		std::vector<IExportedClass*> m_vClass;
 		std::vector<FuncRegistryChanged> m_callbacksRegChanged;
 };

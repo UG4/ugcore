@@ -279,6 +279,102 @@ class ExportedFunction : public ExportedFunctionBase
 		ProxyFunc m_proxy_func;
 };
 
+////////////////////////////////////////////////////////////////////////
+//	ExportedFunctionGroup (sreiter)
+///	Groups of Functions - useful to realize overloaded functions
+class ExportedFunctionGroup
+{
+	public:
+		ExportedFunctionGroup(const char* name) : m_name(name)
+		{}
+
+		~ExportedFunctionGroup()
+		{
+			for(size_t i = 0; i < m_overloads.size(); ++i)
+				delete m_overloads[i].m_func;
+		}
+
+	///	name of function group
+		const std::string& name() const 							{return m_name;}
+
+	///	adds an overload. Returns false if the overload already existed.
+		template <class TFunc>
+		bool add_overload(TFunc f, ExportedFunction::ProxyFunc pf,
+						const char* group,
+						const char* retValInfos, const char* paramInfos,
+						const char* tooltip, const char* help)
+		{
+			size_t typeID = GetUniqueTypeID<TFunc>();
+
+		//	make sure that the overload didn't exist
+			if(get_overload_by_type_id(typeID))
+				return false;
+
+		//	create a new overload
+
+			ExportedFunction* func = new ExportedFunction(f, pf, m_name.c_str(),
+												group, retValInfos, paramInfos,
+												tooltip, help);
+
+			m_overloads.push_back(Overload(func, typeID));
+			return true;
+		}
+
+		size_t num_overloads() const
+			{return m_overloads.size();}
+
+		ExportedFunction* get_overload(size_t index)
+			{return m_overloads.at(index).m_func;}
+
+		const ExportedFunction* get_overload(size_t index) const
+			{return m_overloads.at(index).m_func;}
+
+		template <class TType>
+		ExportedFunction* get_overload_by_type()
+			{
+				size_t typeID = GetUniqueTypeID<TType>();
+				return get_overload_by_type_id(typeID);
+			}
+
+		template <class TType>
+		const ExportedFunction* get_overload_by_type() const
+			{
+				size_t typeID = GetUniqueTypeID<TType>();
+				return get_overload_by_type_id(typeID);
+			}
+
+		ExportedFunction* get_overload_by_type_id(size_t typeID)
+			{
+				for(size_t i = 0; i < m_overloads.size(); ++i){
+					if(m_overloads[i].m_typeID == typeID)
+						return m_overloads[i].m_func;
+				}
+				return NULL;
+			}
+
+		const ExportedFunction* get_overload_by_type_id(size_t typeID) const
+			{
+				for(size_t i = 0; i < m_overloads.size(); ++i){
+					if(m_overloads[i].m_typeID == typeID)
+						return m_overloads[i].m_func;
+				}
+				return NULL;
+			}
+
+		size_t get_overload_type_id(size_t index) const
+			{return m_overloads.at(index).m_typeID;}
+
+	private:
+		struct Overload{
+			Overload()	{}
+			Overload(ExportedFunction* func, size_t typeID) : m_func(func), m_typeID(typeID) {}
+			ExportedFunction* 	m_func;
+			size_t				m_typeID;
+		};
+
+		std::string m_name;
+		std::vector<Overload>	m_overloads;
+};
 
 /**
  * Function that forwards for function pointer for a signature
