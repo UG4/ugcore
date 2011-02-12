@@ -499,3 +499,26 @@ function utilCreateVTKWriter(dim)
 	
 	return writer
 end
+
+--------------------------------------------------------------------------------
+-- some auxiliary functions
+--------------------------------------------------------------------------------
+-- function returns true if the number is a power of two
+function isPowerOfTwo(n)
+	local number compare = 1
+
+	while (compare < n) do
+		compare = compare*2
+	end
+
+	return compare==n
+end
+
+-- function returns true if the number is a natural number
+function isNaturalNumber(n)
+	if n-math.floor(n) == 0 then
+		return true
+	else
+		return false
+	end
+end
