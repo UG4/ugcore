@@ -1,10 +1,12 @@
 ----------------------------------------------------------
 --
---   Lua - Script to perform the Laplace-Problem
+--   Lua - Script to test FETI on the Laplace-Problem
 --
 --   Author: Andreas Vogel
 --
 ----------------------------------------------------------
+verbosity = 0	-- set to 0 i.e. for time measurements,
+		-- >= 1 for writing matrix files etc.
 
 -- make sure that ug_util is in the right path.
 -- currently only the path in which you start your application is valid.
@@ -28,12 +30,8 @@ end
 numPreRefs = 2
 numRefs = 4
 
-numRefs = GetParam("-numRefs", 3)+0
-
---ugargc -> anzahl an ugargvs -- TODO: Check, ob ugshell mit genau (mindestens) 2 Prozessen gestartet wurde!
-if ugargv[1] ~= nil then
-	print(ugargv[1])
-end
+numPreRefs = GetParam("-numPreRefs", 2)+0
+numRefs    = GetParam("-numRefs",    4)+0 -- '+0' to get a number instead of a string!
 
 --------------------------------
 -- User Data Functions (begin)
@@ -155,7 +153,9 @@ sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+if verbosity >= 1 then
+	utilSaveDomain(dom, "refined_grid.ugx")
+end
 
 -- create function pattern
 print("Create Function Pattern")
@@ -168,26 +168,52 @@ pattern:lock()
 print("Create ApproximationSpace")
 approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 
+--------------------------------------------------------------------------------
+-- Gather info for domain decomposition
+--------------------------------------------------------------------------------
 -- get number of processes
 numProcs = NumProcesses()
+if numProcs < 2 then
+	print("number of processes is smaller than 2 - huh??")
+end
 
---please make sure that numProcs / numSubdomains is a power of 2.
-numSubdomains = numProcs  / 16
+-- get number of processes per subdomain
+numProcsPerSubdomain = GetParam("-nPPSD", 1)+0 -- '+0' to get a number instead of a string!
+
+if not isPowerOfTwo(numProcsPerSubdomain) then
+	print( "WARNING: nPPSD = '" .. numProcsPerSubdomain .. "' is not a power of 2!" )
+--	return
+end
+
+print( "Check if nPPSD = '" .. numProcsPerSubdomain .. "' process(es) per subdomain makes sense ..." )
+
+-- compute number of subdomains
+numSubdomains = numProcs / numProcsPerSubdomain
+
+-- check that numSubdomains is greater 1 && \in \N && a power of 2.
+if numSubdomains < 2 then
+	print( "ERROR:   numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is smaller than 2!? Aborting!" )
+	return
+end
+
+if not isNaturalNumber(numSubdomains) then
+	print( "ERROR:   numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is NOT a natural number!? Aborting!" )
+	return
+end
+
+if not isPowerOfTwo(numSubdomains) then
+	print( "WARNING: numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is not a power of 2! Continuing ..." )
+-- TODO: Maybe switch to a default value then
+--	return -- in this case the partition can be quite erratic (at least on small (triangular) grids)..
+end
 
 print( "NumProcs is " .. numProcs .. ", NumSubDomains is " .. numSubdomains )
+--------------------------------------------------------------------------------
 
 -- create subdomain info
 print("Create domainDecompInfo")
 domainDecompInfo = StandardDomainDecompositionInfo()
 domainDecompInfo:set_num_subdomains(numSubdomains)
-
--- The following is outdated (since 30012011): No subdomains and layouts are built
---calling 'BuildDomainDecompositionLayoutsTest2d', see below (after creation of grid functions)!
---if dim == 2 then
---	EnableDomainDecomposition2d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
---elseif dim == 3 then
---	EnableDomainDecomposition3d(approxSpace, domainDecompInfo) -- second argument: domain decomp infos (in particular: number of subdomains)
---end
 
 approxSpace:init()
 approxSpace:print_statistic()
@@ -297,8 +323,10 @@ b = approxSpace:create_surface_function("b", true)
 
 -- New creation of subdomains and layouts (since 30012011):
 -- test one to many interface creation
-for i=0,NumProcesses()-1 do
---	print("subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
+if verbosity >= 1 then
+	for i=0,NumProcesses()-1 do
+		print("subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
+	end
 end
 
 -- BuildDomainDecompositionLayoutsTest2d(u, domainDecompInfo);
@@ -318,8 +346,10 @@ linOp:set_dirichlet_values(u)
 b:assign(linOp:get_rhs())
 
 -- write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+if verbosity >= 1 then
+	SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+	SaveVectorForConnectionViewer(b, "Rhs.mat")
+end
 
 -- debug writer
 dbgWriter = utilCreateGridFunctionDebugWriter(dim)
@@ -360,7 +390,7 @@ ilut = ILUT()
 	transfer:set_dirichlet_post_process(dirichletBND)
 	projection = utilCreateP1Projection(approxSpace)
 	
-	-- Gemoetric Multi Grid
+	-- Geometric Multi Grid
 	gmg = utilCreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_surface_level(numRefs)
@@ -435,40 +465,30 @@ fetiSolver:set_coarse_problem_solver(exactSolver)
 -- Apply Solver
 print( "   numPreRefs is " .. numPreRefs .. ",  numRefs is " .. numRefs)
 print( "   numProcs   is " .. numProcs   .. ",  NumSubDomains is " .. numSubdomains )
+
+tBefore = os.clock()
 ApplyLinearSolver(linOp, u, b, fetiSolver)
+tAfter = os.clock()
 
 -- Output
-WriteGridFunctionToVTK(u, "Solution")
+output = io.open("feti-profile.txt", "a")
+
+assemblePNinit  = GetProfileNode("initLinearSolver")
+assemblePNapply = GetProfileNode("applyLinearSolver")
+
+print("\n")
+print("dim\tnumPreRefs\tnumRefs\tnumSD\tnumProcsPerSD\t\tCPU time (s)\tinitLinearSolver (ms)\tapplyLinearSolver (ms)");
+s = string.format("%d\t%d\t\t%d\t\t%d\t\t%d\t\t\t%.2f\t\t%.2f\t\t\t%.2f\n",
+		  dim, numPreRefs, numRefs, numSubdomains, numProcsPerSubdomain,
+		  tAfter-tBefore,
+		  assemblePNinit:get_avg_total_time_ms(),
+		  assemblePNapply:get_avg_total_time_ms())
+output:write(s)
+print(s)
+
+if verbosity >= 1 then
+	WriteGridFunctionToVTK(u, "Solution")
+end
 
 -- check
 print( "domainDecompInfo:get_num_subdomains(): " .. domainDecompInfo:get_num_subdomains())
-
---localSchurComplement = LocalSchurComplement()
---localSchurComplement:set_matrix(linOp)
---localSchurComplement:set_dirichlet_solver(neumannCGSolver)
---localSchurComplement:set_debug(dbgWriter)
---localSchurComplement:init()
-
---WriteGridFunctionToVTK(b, "b_ass")
-
--- Apply Solver
---ApplyLinearSolver(linOp, u, b, fetiSolver)
-
--- Apply local Schur complement
--- Sowas wie 'ApplyLinearOperator(linOp, u, b, localSchurComplement)' gibts noch nicht (ist offenbar auch nicht gedacht, vom Skript aus aufgerufen zu werden)
--- compute S times b =: u
-
--- manually set type to additive __without__ changing values in vector
--- this is a somehow forbidden action for real simulations but good for testing
---b:set_storage_type_by_string("consistent");
-
---b:change_storage_type_by_string("consistent");
-
---WriteGridFunctionToVTK(b, "b_consistent")
-
--- applies the Schur complement built from matrix operator 'linOp' to 'b' and returns the result 'S times b' in 'u'
---localSchurComplement:apply(u, b)
-
--- Output
---WriteGridFunctionToVTK(b, "b")
---WriteGridFunctionToVTK(u, "S_times_b")
