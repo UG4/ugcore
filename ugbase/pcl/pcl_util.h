@@ -98,6 +98,40 @@ size_t CollectAssociatedProcesses(std::vector<int>& procIDsOut,
 	return procIDsOut.size();
 }
 
+///	writes all elements in the interfaces into the vector.
+/**
+ * This function extracts all elements from a layout and stores them into
+ * a std::vector. Doubles may occur and are not removed. The container is
+ * clear as default, before extracting.
+ */
+template <class TLayout>
+void CollectElements(std::vector<typename TLayout::Element>& elemsOut,
+					TLayout& layout,
+					bool clearContainer = true)
+{
+	typedef typename TLayout::Interface Interface;
+	typedef typename TLayout::Element TElem;
+
+//	clear the return value
+	if(clearContainer) elemsOut.clear();
+
+//	iterate over all interfaces
+	for(size_t lvl = 0; lvl < layout.num_levels(); ++lvl){
+		for(typename TLayout::iterator interfaceIter = layout.begin(lvl);
+			interfaceIter != layout.end(lvl); ++interfaceIter)
+		{
+		//	iterate over the entries of the interface
+			Interface& interface = layout.interface(interfaceIter);
+			for(typename Interface::iterator iter = interface.begin();
+				iter != interface.end(); ++iter)
+			{
+			//	add elem to vector
+				elemsOut.push_back(interface.get_element(iter));
+			}
+		}
+	}
+}
+
 ///	writes all elements in the interfaces into the resulting vector. avoids doubles.
 template <class TLayout>
 void CollectUniqueElements(std::vector<typename TLayout::Element>& elemsOut,
