@@ -155,6 +155,9 @@ apply(vector_type& f, const vector_type& u)
 		return false;
 	}
 
+//	success flag
+	bool bSuccess = true;
+
 //	Help vector
 //	\todo: it would be sufficient to copy only the layouts without copying the values
 	vector_type uTmp; uTmp.create(u.size()); uTmp = u;
@@ -173,7 +176,7 @@ apply(vector_type& f, const vector_type& u)
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 						 "Could not compute Rhs for Dirichlet problem (step 2) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
-		return false;
+		bSuccess = false;
 	}
 	// set values to zero on \Delta (values are already zero on primal!)
 	m_pFetiLayouts->vec_set_on_dual(f, 0.0);
@@ -192,7 +195,12 @@ apply(vector_type& f, const vector_type& u)
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 						 "Could not solve Dirichlet problem (step 3.b) on Proc "
 							<< pcl::GetProcRank() << ".\n");
-		return false;
+
+		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply':"
+						" Last defect was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
+		bSuccess = false;
 	}
 
 //	4. Compute result vector
@@ -209,7 +217,7 @@ apply(vector_type& f, const vector_type& u)
 		UG_LOG_ALL_PROCS("ERROR in 'LocalSchurComplement::apply': "
 						 "Could not apply full matrix (step 4.c) on "
 						 "Proc " << pcl::GetProcRank() << ".\n");
-		return false;
+		bSuccess = false;
 	}
 
 	// make f consistent (on delta is sufficient)
@@ -219,6 +227,14 @@ apply(vector_type& f, const vector_type& u)
 	uTmp = f;
 	f.set(0.0);
 	m_pFetiLayouts->vec_scale_append_on_dual(f, uTmp, 1.0);
+
+//	check all procs
+	if(!pcl::AllProcsTrue(bSuccess))
+	{
+		UG_LOG("ERROR in 'LocalSchurComplement::apply': "
+				"Some process could not apply local Schur complement.\n");
+		return false;
+	}
 
 //	we're done
 	return true;
@@ -458,9 +474,15 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 			if(!m_pNeumannSolver->apply(h2, h1))
 			{
-				UG_LOG("ERROR in PrimalSubassembledMatrixInverse::init: Could not solve"
-						" local problem to compute Schur complement"
+				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
+						" Could not solve local problem to compute Schur complement"
 						" w.r.t. primal unknowns.\n");
+
+				IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+				UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
+								" Last defect was " << convCheck->defect() <<
+								" after " << convCheck->step() << " steps.\n");
+
 				return false;
 			}
 
@@ -659,6 +681,11 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << ".\n");
+
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
 	}
 
@@ -733,6 +760,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << ".\n");
+
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
+
 		bSuccess = false;
 	}
 
