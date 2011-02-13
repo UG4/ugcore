@@ -16,22 +16,22 @@ namespace ug{
 template <typename TMGDoFManager>
 bool
 ParallelMGDoFManager<TMGDoFManager>::
-distribute_dofs()
+enable_dofs()
 {
 // 	no levels -> nothing to do
 	if(TMGDoFManager::num_levels() == 0) return true;
 
 //	distribute level dofs
-	if(!distribute_level_dofs()) return false;
+	if(!enable_level_dofs()) return false;
 
 // 	distribute surface dofs
-	return distribute_surface_dofs();
+	return enable_surface_dofs();
 }
 
 template <typename TMGDoFManager>
 bool
 ParallelMGDoFManager<TMGDoFManager>::
-distribute_level_dofs()
+enable_level_dofs()
 {
 //	check that layout map has been set
 	if(!m_pLayoutMap)
@@ -41,7 +41,7 @@ distribute_level_dofs()
 	}
 
 // 	Distribute dofs in sequential
-	if(!TMGDoFManager::distribute_dofs()) return false;
+	if(!TMGDoFManager::enable_dofs()) return false;
 
 //	TODO:	this communicator should be specified from the application
 	pcl::ProcessCommunicator commWorld;
@@ -110,14 +110,14 @@ distribute_level_dofs()
 template <typename TMGDoFManager>
 bool
 ParallelMGDoFManager<TMGDoFManager>::
-distribute_surface_dofs()
+enable_surface_dofs()
 {
 	if(!m_pLayoutMap){
 		UG_LOG("  no layout map specified. aborting.\n");
 		return false;
 	}
 
-	TMGDoFManager::distribute_surface_dofs();
+	TMGDoFManager::enable_surface_dofs();
 
 //	get dof distribution
 	typename TMGDoFManager::dof_distribution_type& distr =

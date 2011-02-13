@@ -168,7 +168,7 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 					*this->m_pDomain->get_distributed_grid_manager());
 #endif
 
-			if(!m_MGDoFManager.distribute_dofs())
+			if(!m_MGDoFManager.enable_dofs())
 			{
 				UG_LOG("In 'ApproximationSpace::init':"
 						" Cannot distribute dofs.\n");

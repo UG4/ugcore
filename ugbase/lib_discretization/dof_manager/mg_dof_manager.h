@@ -66,13 +66,19 @@ class MGDoFManager
 		}
 
 	/// distribute dofs on all levels + surface level
-		bool distribute_dofs();
+		bool enable_dofs();
 
 	/// distribute dofs on all levels
-		bool distribute_level_dofs();
+		bool enable_level_dofs();
 
 	///	distribute dofs on surface grid
-		bool distribute_surface_dofs();
+		bool enable_surface_dofs();
+
+	///	returns if level dofs are enabled
+		bool level_dofs_enabled() const {return m_vLevelDoFDistribution.size() != 0;}
+
+	///	returns if surface dofs are enabled
+		bool surface_dofs_enabled() const {return m_pSurfaceDoFDistribution != NULL;}
 
 	///	returns Surface DoF Distribution
 		dof_distribution_type* get_surface_dof_distribution()
@@ -86,8 +92,8 @@ class MGDoFManager
 
 //			return m_pSurfaceDoFDistribution;
 
-			if(num_levels() == m_vLevelDoFDistribution.size())
-				return m_vLevelDoFDistribution[num_levels()-1];
+			if(enable_level_dofs())
+				return get_level_dof_distribution(num_levels()-1);
 			else
 				return NULL;
 		}
@@ -113,7 +119,8 @@ class MGDoFManager
 			m_levelStorageManager.clear_subset_handler();
 			m_surfaceStorageManager.clear_subset_handler();
 
-			delete_distributions();
+			disable_level_dofs();
+			disable_surface_dofs();
 		}
 
 	protected:
@@ -124,10 +131,13 @@ class MGDoFManager
 		bool surface_distribution_required();
 
 	///	creates level DoF Distributions iff needed
-		bool level_distribution_required(size_t level);
+		bool level_distribution_required(size_t numLevel);
 
-	///	deletes all distributions
-		void delete_distributions();
+	///	deletes all level distributions
+		void disable_level_dofs();
+
+	///	deletes the surface distributions
+		void disable_surface_dofs();
 
 	/// print statistic for a DoFDistribution
 		void print_statistic(const dof_distribution_type& dd) const;

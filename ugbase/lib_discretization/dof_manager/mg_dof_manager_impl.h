@@ -40,36 +40,34 @@ assign_function_pattern(FunctionPattern& dp)
 {
 	m_pFunctionPattern = &dp;
 
-	// if already subsethandler set
+//	 if already subsethandler set
 	if(m_pMGSubsetHandler != NULL)
 	{
-		// remember current levels
+	// 	remember current levels
 		size_t num_level = m_vLevelDoFDistribution.size();
 
+	//	update level dofs
+		if(level_dofs_enabled())
+		{
 		// free memory
-		delete_distributions();
+			disable_level_dofs();
 
 		// reallocate for new pattern
-		if(num_level > 0)
-			if(!level_distribution_required(num_level-1))
+		if(!level_distribution_required(num_level))
+			return false;
+		}
+
+	//	update surface dofs
+		if(surface_dofs_enabled())
+		{
+		// free memory
+			disable_surface_dofs();
+
+		// reallocate for new pattern
+			if(!surface_distribution_required())
 				return false;
+		}
 	}
-	return true;
-}
-
-template <typename TDoFDistribution>
-bool
-MGDoFManager<TDoFDistribution>::
-distribute_dofs()
-{
-// 	no levels -> nothing to do
-	if(num_levels() == 0) return true;
-
-//	distribute level dofs
-	if(!distribute_level_dofs()) return false;
-
-// 	distribute surface dofs
-	if(!distribute_surface_dofs()) return false;
 
 //	we're done
 	return true;
@@ -78,7 +76,22 @@ distribute_dofs()
 template <typename TDoFDistribution>
 bool
 MGDoFManager<TDoFDistribution>::
-distribute_level_dofs()
+enable_dofs()
+{
+//	distribute level dofs
+	if(!enable_level_dofs()) return false;
+
+// 	distribute surface dofs
+	if(!enable_surface_dofs()) return false;
+
+//	we're done
+	return true;
+}
+
+template <typename TDoFDistribution>
+bool
+MGDoFManager<TDoFDistribution>::
+enable_level_dofs()
 {
 //	Checks
 	if(m_pMGSubsetHandler == NULL)
@@ -93,11 +106,8 @@ distribute_level_dofs()
 		return false;
 	}
 
-// 	no levels -> nothing to do
-	if(num_levels() == 0) return true;
-
 // 	require distributions on all levels
-	if(!level_distribution_required(num_levels()-1))
+	if(!level_distribution_required(num_levels()))
 	{
 		UG_LOG("Cannot access distribution of level.\n");
 		return false;
@@ -119,7 +129,7 @@ distribute_level_dofs()
 template <typename TDoFDistribution>
 bool
 MGDoFManager<TDoFDistribution>::
-distribute_surface_dofs()
+enable_surface_dofs()
 {
 	if(m_pMGSubsetHandler == NULL)
 	{
@@ -325,18 +335,18 @@ surface_distribution_required()
 template <typename TDoFDistribution>
 bool
 MGDoFManager<TDoFDistribution>::
-level_distribution_required(size_t level)
+level_distribution_required(size_t numLevel)
 {
-	if(level >= m_pMGSubsetHandler->num_levels())
+	if(numLevel > m_pMGSubsetHandler->num_levels())
 	{
-		UG_LOG("Level DoF Distribution required on Level " << level <<
+		UG_LOG("Level DoF Distribution required for "<< numLevel << " Level"
 			   ", but MGSubsetHandler has only " <<
 			   m_pMGSubsetHandler->num_levels()<< ".\n");
 		return false;
 	}
 
 // 	Create level dof distributions
-	for(size_t l = m_vLevelDoFDistribution.size(); l <= level; ++l)
+	for(size_t l = m_vLevelDoFDistribution.size(); l < numLevel; ++l)
 	{
 		m_vLevelDoFDistribution.push_back(
 				new TDoFDistribution(m_pMGSubsetHandler->get_goc_by_level(l),
@@ -356,7 +366,7 @@ level_distribution_required(size_t level)
 template <typename TDoFDistribution>
 void
 MGDoFManager<TDoFDistribution>::
-delete_distributions()
+disable_surface_dofs()
 {
 // 	Delete surface dof distributions
 	m_surfaceStorageManager.clear();
@@ -368,7 +378,13 @@ delete_distributions()
 	if(m_pSurfaceView != NULL)
 		delete m_pSurfaceView;
 	m_pSurfaceView = NULL;
+}
 
+template <typename TDoFDistribution>
+void
+MGDoFManager<TDoFDistribution>::
+disable_level_dofs()
+{
 // 	Delete level dof distributions
 	m_levelStorageManager.clear();
 	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
