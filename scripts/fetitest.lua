@@ -487,9 +487,10 @@ assemblePNinit  = GetProfileNode("initLinearSolver")
 assemblePNapply = GetProfileNode("applyLinearSolver")
 
 print("\n")
-print("dim\tnumPreRefs\tnumRefs\tnumSD\tnumProcsPerSD\t\tCPU time (s)\tinitLinearSolver (ms)\tapplyLinearSolver (ms)");
-s = string.format("%d\t%d\t\t%d\t\t%d\t\t%d\t\t\t%.2f\t\t%.2f\t\t\t%.2f\n",
-		  dim, numPreRefs, numRefs, numSubdomains, numProcsPerSubdomain,
+print("dim\tnumPreRefs\tnumRefs\tnumProcs\tnumSD\tnumProcsPerSD\t\tCPU time (s)\tinitLinearSolver (ms)\tapplyLinearSolver (ms)");
+s = string.format("%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%.2f\t\t%.2f\t\t\t%.2f\n",
+		  dim, numPreRefs, numRefs,
+		  numProcs, numSubdomains, numProcsPerSubdomain,
 		  tAfter-tBefore,
 		  assemblePNinit:get_avg_total_time_ms(),
 		  assemblePNapply:get_avg_total_time_ms())
