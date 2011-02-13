@@ -357,6 +357,34 @@ void SetDirichletRow(SparseMatrix<T>& A, size_t i)
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// SetDirichletRow:
+//-------------------------
+/**
+ * set Dirichlet row for block i.
+ * \param[in/out] A Matrix A
+ * \param[in] vIndex vector of row indices to set dirichlet, that is A(i,i) = 1.0, A(i,k) = 0.0 for all k != i.
+ */
+template <typename T>
+void SetDirichletRow(SparseMatrix<T>& A, const std::vector<size_t> vIndex)
+{
+	std::vector<size_t>::const_iterator iter = vIndex.begin();
+	std::vector<size_t>::const_iterator iterEnd = vIndex.end();
+
+	for(; iter < iterEnd; ++iter)
+	{
+		const size_t i = *iter;
+		UG_ASSERT(i < A.num_rows(), "Index to large in index set.");
+
+		A(i,i) = 1.0;
+		for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
+		{
+			typename SparseMatrix<T>::value_type& block = conn.value();
+			if(conn.index() != i) block = 0.0;
+		}
+	}
+}
+
 
 /// @}
 } // end namespace ug
