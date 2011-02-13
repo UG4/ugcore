@@ -16,6 +16,7 @@ dim = 2
 
 if dim == 2 then
 	gridName = "unit_square_tri.ugx"
+	--gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
 	--gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
@@ -23,8 +24,8 @@ if dim == 3 then
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = 1
-numRefs = 4
+numPreRefs = GetParam("-numPreRefs", 1)+0
+numRefs    = GetParam("-numRefs",    3)+0 -- '+0' to get a number instead of a string!
 
 --------------------------------
 -- User Data Functions (begin)
