@@ -403,8 +403,7 @@ private:
 
 		for(size_t i=0; i<pids.size(); i++)
 		{
-			int pid = pids[i];
-			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pid << "\n");
+			UG_DLOG(LIB_ALG_MATRIX, 4, "PID " << pids[i] << "\n");
 
 			// copy stream (bug in BinaryStream, otherwise I would use stream.seekg(ios::begin)
 			BinaryStream &stream2 = *matrixrow_pack.get_stream(pids[i]);
@@ -414,9 +413,8 @@ private:
 			{
 				Deserialize(stream, globalRowIndex);
 
-				size_t localRowIndex = nodeNummerator.get_index_if_available(globalRowIndex, has_index);
 				UG_ASSERT(has_index, "global id " << globalRowIndex.first << " | " << globalRowIndex.second << " has no associated local id");
-				UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << " has local ID " << localRowIndex << "\n");
+				UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << " has local ID " << nodeNummerator.get_index_if_available(globalRowIndex, has_index) << "\n");
 
 				Deserialize(stream, num_connections);
 
@@ -455,10 +453,9 @@ private:
 
 		for(StreamPack::iterator iter = matrixrow_pack.begin(); iter != matrixrow_pack.end(); ++iter)
 		{
-			int pid = iter->first;
 			BinaryStream &stream = *iter->second;
 
-			UG_DLOG(LIB_ALG_MATRIX, 4, "processing data for master interface with processor " << pid << ". size is " << stream.size() << "\n");
+			UG_DLOG(LIB_ALG_MATRIX, 4, "processing data for master interface with processor " << iter->first << ". size is " << stream.size() << "\n");
 
 			while(stream.can_read_more())
 			{
@@ -597,8 +594,7 @@ private:
 			for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
 					++iter)
 			{
-				int pid = receivingNodesLayout.proc_id(iter);
-				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrow_pack.get_stream(pid)->size() << " bytes of matrixrow data from proc " << pid << "\n");
+				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrow_pack.get_stream(receivingNodesLayout.proc_id(iter))->size() << " bytes of matrixrow data from proc " << pid << "\n");
 			}
 
 			if(bCreateNewNodes)
