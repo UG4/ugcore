@@ -111,6 +111,36 @@ class FetiLayouts
 					worldComm.create_sub_communicator(false);
 			}
 
+		//	create set of unique indices (to avoid doubles due to several interfaces)
+		//	collect from dual layouts
+			CollectElements(m_vUniqueMasterDualIndex, m_masterDualLayout);
+			m_vUniqueDualIndex = m_vUniqueMasterDualIndex;
+			CollectElements(m_vUniqueDualIndex, m_slaveDualLayout, false);
+			CollectElements(m_vUniqueDualIndex, m_masterDualNbrLayout, false);
+			CollectElements(m_vUniqueDualIndex, m_slaveDualNbrLayout, false);
+
+		//	sort vector and remove doubles
+			std::sort(m_vUniqueMasterDualIndex.begin(), m_vUniqueMasterDualIndex.end());
+			m_vUniqueMasterDualIndex.erase(std::unique(m_vUniqueMasterDualIndex.begin(),
+			                                             m_vUniqueMasterDualIndex.end()),
+			                                             m_vUniqueMasterDualIndex.end());
+
+	        std::sort(m_vUniqueDualIndex.begin(), m_vUniqueDualIndex.end());
+	        m_vUniqueDualIndex.erase(std::unique(m_vUniqueDualIndex.begin(),
+	                                             m_vUniqueDualIndex.end()),
+	                                             	 m_vUniqueDualIndex.end());
+
+		//	collect from primal layouts
+			CollectElements(m_vUniquePrimalIndex, m_masterPrimalLayout);
+			CollectElements(m_vUniquePrimalIndex, m_slavePrimalLayout, false);
+
+		//	sort vector and remove doubles
+			std::sort(m_vUniquePrimalIndex.begin(), m_vUniquePrimalIndex.end());
+			m_vUniquePrimalIndex.erase(std::unique(m_vUniquePrimalIndex.begin(),
+			                                       m_vUniquePrimalIndex.end()),
+			                                       m_vUniquePrimalIndex.end());
+
+
 		//	test output
 			if(bDebug && false)
 			{
@@ -173,137 +203,46 @@ class FetiLayouts
 		                           number alpha1, const vector_type& vecSrc1,
 		                           number alpha2, const vector_type& vecSrc2)
 		{
-			std::vector<IndexLayout::Element> uniqueIndices;
-
-		//	all unique elements (to avoid doubles due to several interfaces)
-			CollectUniqueElements(uniqueIndices, m_masterDualLayout);
-
-		//	add prod on master
-			for(size_t i = 0; i < uniqueIndices.size(); ++i)
-			{
-			//	get index
-				IndexLayout::Element index = uniqueIndices[i];
-
-			// 	get entries
-				typename vector_type::value_type entry1 = vecSrc1[index];
-				typename vector_type::value_type entry2 = vecSrc2[index];
-
-			//	scale entries
-				entry1 *= alpha1;
-				entry2 *= alpha2;
-
-			//	add value
-				entry1 += entry2;
-				vecDest[index] = entry1; //alpha1*entry1 + alpha2*entry2;
-			}
-
-			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_slaveDualLayout);
-//			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_masterDualLayout);
-			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_slaveDualNbrLayout);
+			VecScaleAdd(vecDest, alpha1, vecSrc1, alpha2, vecSrc2, m_vUniqueDualIndex);
 		}
 
 		void vec_scale_add_on_primal(vector_type& vecDest,
 		                           number alpha1, const vector_type& vecSrc1,
 		                           number alpha2, const vector_type& vecSrc2)
 		{
-			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_slavePrimalLayout);
-			VecScaleAddOnLayout(&vecDest, alpha1, &vecSrc1, alpha2, &vecSrc2, m_masterPrimalLayout);
+			VecScaleAdd(vecDest, alpha1, vecSrc1, alpha2, vecSrc2, m_vUniquePrimalIndex);
 		}
 
 		void vec_scale_append_on_dual(vector_type& vecInOut,
 		                              const vector_type& vecSrc1, number alpha1)
 		{
-			std::vector<IndexLayout::Element> uniqueIndices;
-
-		//	all unique elements (to avoid doubles due to several interfaces)
-			CollectUniqueElements(uniqueIndices, m_masterDualLayout);
-
-		//	add prod on master
-			for(size_t i = 0; i < uniqueIndices.size(); ++i)
-			{
-			//	get index
-				IndexLayout::Element index = uniqueIndices[i];
-
-			// 	get entry
-				typename vector_type::value_type entry = vecSrc1[index];
-
-			//	scale entry
-				entry *= alpha1;
-
-			//	add value
-				vecInOut[index] += entry;
-			}
-
-			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slaveDualLayout);
-//			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterDualLayout);
-			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slaveDualNbrLayout);
+			VecScaleAdd(vecInOut, alpha1, vecSrc1, 1.0, vecInOut, m_vUniqueDualIndex);
 		}
 
 		void vec_scale_append_on_primal(vector_type& vecInOut,
 		                              const vector_type& vecSrc1, number alpha1)
 		{
-			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_slavePrimalLayout);
-			VecScaleAppendOnLayout(&vecInOut, &vecSrc1, alpha1, m_masterPrimalLayout);
+			VecScaleAdd(vecInOut, alpha1, vecSrc1, 1.0, vecInOut, m_vUniquePrimalIndex);
 		}
 
 		void vec_set_on_dual(vector_type& vecDest, number alpha)
 		{
-			VecSetOnLayout(&vecDest, alpha, m_slaveDualLayout);
-			VecSetOnLayout(&vecDest, alpha, m_masterDualLayout);
-			VecSetOnLayout(&vecDest, alpha, m_slaveDualNbrLayout);
+			VecSet(vecDest, alpha, m_vUniqueDualIndex);
 		}
 
 		void vec_set_on_primal(vector_type& vecDest, number alpha)
 		{
-			VecSetOnLayout(&vecDest, alpha, m_slavePrimalLayout);
-			VecSetOnLayout(&vecDest, alpha, m_masterPrimalLayout);
+			VecSet(vecDest, alpha, m_vUniquePrimalIndex);
 		}
 
-		void vec_scaled_copy_on_dual(vector_type& vecDest, const vector_type& vecSrc, number alpha)
+		void vec_scale_assign_on_dual(vector_type& vecDest, const vector_type& vecSrc, number alpha)
 		{
-			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_slaveDualLayout);
-			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_masterDualLayout);
-			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_slaveDualNbrLayout);
+			VecScaleAssign(vecDest, alpha, vecSrc, m_vUniqueDualIndex);
 		}
 
-		void vec_scaled_copy_on_primal(vector_type& vecDest, const vector_type& vecSrc, number alpha)
+		void vec_scale_assign_on_primal(vector_type& vecDest, const vector_type& vecSrc, number alpha)
 		{
-			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_slavePrimalLayout);
-			VecScaledCopyOnLayout(&vecDest, &vecSrc, alpha, m_masterPrimalLayout);
-		}
-
-		number vec_norm_on_dual(vector_type& vec)
-		{
-		//	forward to VecProc
-			return sqrt(vec_prod_on_dual(vec, vec));
-		}
-
-		number vec_prod_on_dual(const vector_type& vecSrc1, const vector_type& vecSrc2)
-		{
-		//	reset result
-			double tProdLocal = 0.0, tProdTmp = 0.0;
-
-		//	add prod on master
-			VecProdOnLayout(tProdTmp, &vecSrc1, &vecSrc2, m_masterDualLayout);
-			tProdLocal += tProdTmp;
-
-		//	add prod on slave
-			VecProdOnLayout(tProdTmp, &vecSrc1, &vecSrc2, m_slaveDualLayout);
-			tProdLocal += tProdTmp;
-
-		//	add prod on slave nbr
-			VecProdOnLayout(tProdTmp, &vecSrc1, &vecSrc2, m_slaveDualNbrLayout);
-			tProdLocal += tProdTmp;
-
-		//	global value
-			double tProdGlobal;
-
-		//	sum up values
-			m_stdProcessCom.allreduce(&tProdLocal, &tProdGlobal, 1,
-											PCL_DT_DOUBLE, PCL_RO_SUM);
-
-		//	return result
-			return tProdGlobal;
+			VecScaleAssign(vecDest, alpha, vecSrc, m_vUniquePrimalIndex);
 		}
 
 		number vec_norm_on_identified_dual(vector_type& vec)
@@ -314,27 +253,8 @@ class FetiLayouts
 
 		number vec_prod_on_identified_dual(const vector_type& vecSrc1, const vector_type& vecSrc2)
 		{
-		//	reset result
-			double tProdLocal = 0.0;
-
-			std::vector<IndexLayout::Element> uniqueIndices;
-
-		//	all unique elements (to avoid doubles due to several interfaces)
-			CollectUniqueElements(uniqueIndices, m_masterDualLayout);
-
-		//	add prod on master
-			for(size_t i = 0; i < uniqueIndices.size(); ++i)
-			{
-			//	get index
-				IndexLayout::Element index = uniqueIndices[i];
-
-			// 	get entries
-				const typename vector_type::value_type& entry1 = vecSrc1[index];
-				const typename vector_type::value_type& entry2 = vecSrc2[index];
-
-			//	add value
-				tProdLocal += VecProd(entry1,entry2);
-			}
+		//	compute norm on dual master indices
+			double tProdLocal = VecProd(vecSrc1, vecSrc2, m_vUniqueMasterDualIndex);
 
 		//	global value
 			double tProdGlobal;
@@ -350,15 +270,12 @@ class FetiLayouts
 	public:
 		void mat_set_dirichlet_on_dual(matrix_type& mat)
 		{
-			MatSetDirichletOnLayout(&mat, m_slaveDualLayout);
-			MatSetDirichletOnLayout(&mat, m_masterDualLayout);
-			MatSetDirichletOnLayout(&mat, m_slaveDualNbrLayout);
+			SetDirichletRow(mat, m_vUniqueDualIndex);
 		}
 
 		void mat_set_dirichlet_on_primal(matrix_type& mat)
 		{
-			MatSetDirichletOnLayout(&mat, m_slavePrimalLayout);
-			MatSetDirichletOnLayout(&mat, m_masterPrimalLayout);
+			SetDirichletRow(mat, m_vUniquePrimalIndex);
 		}
 
 	//	sets standard communication layouts and communicators
@@ -399,6 +316,12 @@ class FetiLayouts
 	//	Layouts for Primal variables
 		IndexLayout m_masterPrimalLayout;
 		IndexLayout m_slavePrimalLayout;
+
+	//	unique indices for layouts
+		std::vector<IndexLayout::Element> m_vUniqueDualIndex;
+		std::vector<IndexLayout::Element> m_vUniqueMasterDualIndex;
+		std::vector<IndexLayout::Element> m_vUniquePrimalIndex;
+
 }; /* end class 'FetiLayouts' */
 
 ///	Application of the "jump operator" \f$B_{\Delta}\f$

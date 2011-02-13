@@ -803,7 +803,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	write_debug(u, "PSMI_u_6");
 
 	// (a) set dirichlet values on primal unknowns of rhs
-	m_pFetiLayouts->vec_scaled_copy_on_primal(f, u, 1.0);
+	m_pFetiLayouts->vec_scale_assign_on_primal(f, u, 1.0);
 
 	write_debug(f, "PSMI_fTmp_6");
  
