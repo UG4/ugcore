@@ -25,7 +25,7 @@ else
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = GetParam("-numPreRefs", 1)+0
+numPreRefs = GetParam("-numPreRefs", 0)+0
 
 -- choose number of total Refinements (incl. pre-Refinements)
 numRefs = GetParam("-numRefs", 2)+0
@@ -170,8 +170,8 @@ end
 
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-refiner:refine()
---utilGlobalRefineParallelDomain(dom)
+--refiner:refine()
+utilGlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
