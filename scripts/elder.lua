@@ -15,7 +15,7 @@ InitAlgebra(algebra)
 -- InitAlgebra also loads all discretization functions and classes
 
 -- choose dimension
-dim = 3
+dim = 2
 
 -- choose grid
 if dim == 2 then
@@ -31,7 +31,7 @@ numPreRefs = GetParam("-numPreRefs", 0)+0
 numRefs = GetParam("-numRefs", 2)+0
 
 -- choose number of time steps
-NumPreTimeSteps = GetParam("-numPreTimeSteps", 3)+0
+NumPreTimeSteps = GetParam("-numPreTimeSteps", 1)+0
 NumTimeSteps =  GetParam("-numTimeSteps", 100)+0
 
 --------------------------------
@@ -287,6 +287,15 @@ op:set_discretization(timeDisc)
 op:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 op:init()
 
+
+-- get grid function
+u = approxSpace:create_surface_function()
+
+-- debug writer
+dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter:set_reference_grid_function(u)
+dbgWriter:set_vtk_output(false)
+
 -- create algebraic Preconditioner
 print("Creating Preconditioner.")
 jac = Jacobi()
@@ -295,6 +304,7 @@ gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
 ilu = ILU()
+ilu:set_debug(dbgWriter)
 ilut = ILUT()
 
 -- exact Soler
@@ -382,9 +392,6 @@ newtonSolver:set_convergence_check(newtonConvCheck)
 
 newtonSolver:init(op)
 
--- get grid function
-u = approxSpace:create_surface_function()
-
 -- timestep in seconds: 3153600 sec = 0.1 year
 dt = 3.1536e6
 
@@ -422,18 +429,7 @@ end
 step = step + do_steps
 time = time + do_dt * do_steps
 
-print("Staring time loop with " .. NumPreTimeSteps .. " steps of 1/10 of original size")
-do_steps = NumPreTimeSteps
-do_dt = dt/10
-if dim == 2 then
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
-else 
-PerformTimeStep3d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
-end
-step = step + do_steps
-time = time + do_dt * do_steps
-
-do_steps = NumTimeSteps - 2*NumPreTimeSteps
+do_steps = NumTimeSteps - NumPreTimeSteps
 print("Staring time loop with " .. do_steps .. " steps of original size")
 if do_steps > 0 then
 	do_dt = dt
