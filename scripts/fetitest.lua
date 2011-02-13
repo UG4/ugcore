@@ -450,7 +450,7 @@ dirichletCGSolver:set_convergence_check(dirichletConvCheck)
 fetiSolver = FETI()
 
 fetiConvCheck = StandardConvergenceCheck()
-fetiConvCheck:set_maximum_steps(20)
+fetiConvCheck:set_maximum_steps(100)
 fetiConvCheck:set_minimum_defect(1e-8)
 fetiConvCheck:set_reduction(1e-16)
 
