@@ -19,6 +19,7 @@
 
 #include "template_expressions.h"
 #include "operations_vec.h"
+#include "operations_vec_on_index_set.h"
 #include "operations_mat.h"
 #include "operations_transform.h"
 
