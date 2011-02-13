@@ -1196,9 +1196,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 // compute t = B^T * lambda
 	ComputeDifferenceOnDeltaTransposed(t, lambda,
-	                                   m_fetiLayouts.get_dual_master_layout(),
-	                                   m_fetiLayouts.get_dual_slave_layout(),
-	                                   m_fetiLayouts.get_dual_nbr_slave_layout());
+	                                   m_fetiLayouts.get_dual_master_indices(),
+	                                   m_fetiLayouts.get_dual_slave_indices(),
+	                                   m_fetiLayouts.get_dual_nbr_slave_indices());
 
 	m_fetiLayouts.vec_use_inner_communication(t);
 	t.set_storage_type(PST_CONSISTENT);
@@ -1255,9 +1255,10 @@ apply_F(vector_type& f, const vector_type& v)
 
 //	1. Apply transposed jump operator: f = B_{\Delta}^T * v_{\Delta}:
 	// v must be consistent
-	ComputeDifferenceOnDeltaTransposed(f, v, m_fetiLayouts.get_dual_master_layout(),
-	                                   	   	 m_fetiLayouts.get_dual_slave_layout(),
-	                                   	   	 m_fetiLayouts.get_dual_nbr_slave_layout());
+	ComputeDifferenceOnDeltaTransposed(f, v,
+	                                   m_fetiLayouts.get_dual_master_indices(),
+	                                   m_fetiLayouts.get_dual_slave_indices(),
+	                                   m_fetiLayouts.get_dual_nbr_slave_indices());
 
 //  2. Apply PrimalSubassembledMatrixInverse to f
 	// f is consistent now, we make it additive
@@ -1344,9 +1345,10 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 
 //  2. 	Apply transposed jump operator: zTmp := B_{\Delta}^T * z
 //		Afterwards, zTmp is consistent on Delta
-	ComputeDifferenceOnDeltaTransposed(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
-	                                   	   	    m_fetiLayouts.get_dual_slave_layout(),
-	                                   	   	    m_fetiLayouts.get_dual_nbr_slave_layout());
+	ComputeDifferenceOnDeltaTransposed(zTmp, z,
+	                                   m_fetiLayouts.get_dual_master_indices(),
+	                                   m_fetiLayouts.get_dual_slave_indices(),
+	                                   m_fetiLayouts.get_dual_nbr_slave_indices());
 
 //	3. Apply local Schur complement: z := S_{\Delta}^{(i)} * zTmp
 //	3.1. let vectors use communication within feti subdomain

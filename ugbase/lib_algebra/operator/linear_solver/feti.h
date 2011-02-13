@@ -114,32 +114,33 @@ class FetiLayouts
 		//	create set of unique indices (to avoid doubles due to several interfaces)
 		//	collect from dual layouts
 			CollectElements(m_vUniqueMasterDualIndex, m_masterDualLayout);
-			m_vUniqueDualIndex = m_vUniqueMasterDualIndex;
-			CollectElements(m_vUniqueDualIndex, m_slaveDualLayout, false);
-			CollectElements(m_vUniqueDualIndex, m_masterDualNbrLayout, false);
-			CollectElements(m_vUniqueDualIndex, m_slaveDualNbrLayout, false);
+			sort_and_remove_doubles(m_vUniqueMasterDualIndex);
 
-		//	sort vector and remove doubles
-			std::sort(m_vUniqueMasterDualIndex.begin(), m_vUniqueMasterDualIndex.end());
-			m_vUniqueMasterDualIndex.erase(std::unique(m_vUniqueMasterDualIndex.begin(),
-			                                             m_vUniqueMasterDualIndex.end()),
-			                                             m_vUniqueMasterDualIndex.end());
+			CollectElements(m_vUniqueSlaveDualIndex, m_slaveDualLayout);
+			sort_and_remove_doubles(m_vUniqueSlaveDualIndex);
 
-	        std::sort(m_vUniqueDualIndex.begin(), m_vUniqueDualIndex.end());
-	        m_vUniqueDualIndex.erase(std::unique(m_vUniqueDualIndex.begin(),
-	                                             m_vUniqueDualIndex.end()),
-	                                             	 m_vUniqueDualIndex.end());
+			CollectElements(m_vUniqueMasterDualNbrIndex, m_masterDualNbrLayout);
+			sort_and_remove_doubles(m_vUniqueMasterDualNbrIndex);
+
+			CollectElements(m_vUniqueSlaveDualNbrIndex, m_slaveDualNbrLayout);
+			sort_and_remove_doubles(m_vUniqueSlaveDualNbrIndex);
+
+		//	create union of all dual unknowns
+			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueMasterDualIndex);
+			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueSlaveDualIndex);
+			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueMasterDualNbrIndex);
+			add_merge_sort_remove_doubles(m_vUniqueDualIndex, m_vUniqueSlaveDualNbrIndex);
 
 		//	collect from primal layouts
-			CollectElements(m_vUniquePrimalIndex, m_masterPrimalLayout);
-			CollectElements(m_vUniquePrimalIndex, m_slavePrimalLayout, false);
+			CollectElements(m_vUniquePrimalMasterIndex, m_masterPrimalLayout);
+			sort_and_remove_doubles(m_vUniquePrimalMasterIndex);
 
-		//	sort vector and remove doubles
-			std::sort(m_vUniquePrimalIndex.begin(), m_vUniquePrimalIndex.end());
-			m_vUniquePrimalIndex.erase(std::unique(m_vUniquePrimalIndex.begin(),
-			                                       m_vUniquePrimalIndex.end()),
-			                                       m_vUniquePrimalIndex.end());
+			CollectElements(m_vUniquePrimalSlaveIndex, m_slavePrimalLayout);
+			sort_and_remove_doubles(m_vUniquePrimalSlaveIndex);
 
+		//	create union of all primal unknowns
+			add_merge_sort_remove_doubles(m_vUniquePrimalIndex, m_vUniquePrimalMasterIndex);
+			add_merge_sort_remove_doubles(m_vUniquePrimalIndex, m_vUniquePrimalSlaveIndex);
 
 		//	test output
 			if(bDebug && false)
@@ -171,14 +172,24 @@ class FetiLayouts
 	//	dual layouts
 		IndexLayout& get_dual_master_layout() {return m_masterDualLayout;}
 		IndexLayout& get_dual_slave_layout() {return m_slaveDualLayout;}
+		const std::vector<IndexLayout::Element>& get_dual_master_indices() const {return m_vUniqueMasterDualIndex;}
+		const std::vector<IndexLayout::Element>& get_dual_slave_indices() const {return m_vUniqueSlaveDualIndex;}
 
 	//	dual nbr layouts
 		IndexLayout& get_dual_nbr_master_layout() {return m_masterDualNbrLayout;}
 		IndexLayout& get_dual_nbr_slave_layout() {return m_slaveDualNbrLayout;}
+		const std::vector<IndexLayout::Element>& get_dual_nbr_master_indices() const {return m_vUniqueMasterDualNbrIndex;}
+		const std::vector<IndexLayout::Element>& get_dual_nbr_slave_indices() const {return m_vUniqueSlaveDualNbrIndex;}
 
 	//	primal layouts
 		IndexLayout& get_primal_master_layout() {return m_masterPrimalLayout;}
 		IndexLayout& get_primal_slave_layout() {return m_slavePrimalLayout;}
+		const std::vector<IndexLayout::Element>& get_primal_master_indices() const {return m_vUniquePrimalMasterIndex;}
+		const std::vector<IndexLayout::Element>& get_primal_slave_indices() const {return m_vUniquePrimalSlaveIndex;}
+
+	//	union of indices
+		const std::vector<IndexLayout::Element>& get_primal_indices() const {return m_vUniquePrimalIndex;}
+		const std::vector<IndexLayout::Element>& get_dual_indices() const {return m_vUniqueDualIndex;}
 
 	public:
 
@@ -295,6 +306,36 @@ class FetiLayouts
 		}
 
 	protected:
+		void sort_and_remove_doubles(std::vector<IndexLayout::Element>& vIndex)
+		{
+		//	sort vector
+			std::sort(vIndex.begin(), vIndex.end());
+
+		//	remove doubles
+			vIndex.erase(std::unique(vIndex.begin(), vIndex.end()),
+			                         vIndex.end());
+		}
+
+		void add_merge_sort_remove_doubles(std::vector<IndexLayout::Element>& vOut,
+		                                   const std::vector<IndexLayout::Element>& v)
+		{
+		//	on entry, vOut and v are supposed to be sorted
+
+		//	original size of vOut
+			size_t mid = vOut.size();
+
+		//	add second vector
+			vOut.insert(vOut.end(), v.begin(), v.end() );
+
+		//	merge both
+			std::inplace_merge(vOut.begin(), vOut.begin()+mid, vOut.end());
+
+		//	remove doubles
+			vOut.erase(std::unique(vOut.begin(), vOut.end()),
+			                         vOut.end());
+		}
+
+	protected:
 	//	Standard Layouts
 		IndexLayout* m_pMasterStdLayout;
 		IndexLayout* m_pSlaveStdLayout;
@@ -308,18 +349,23 @@ class FetiLayouts
 	//	Layouts for Dual variables
 		IndexLayout m_masterDualLayout;
 		IndexLayout m_slaveDualLayout;
+		std::vector<IndexLayout::Element> m_vUniqueMasterDualIndex;
+		std::vector<IndexLayout::Element> m_vUniqueSlaveDualIndex;
 
 	//	Layouts for Dual Neighbour variables
 		IndexLayout m_masterDualNbrLayout;
 		IndexLayout m_slaveDualNbrLayout;
+		std::vector<IndexLayout::Element> m_vUniqueMasterDualNbrIndex;
+		std::vector<IndexLayout::Element> m_vUniqueSlaveDualNbrIndex;
 
 	//	Layouts for Primal variables
 		IndexLayout m_masterPrimalLayout;
 		IndexLayout m_slavePrimalLayout;
+		std::vector<IndexLayout::Element> m_vUniquePrimalMasterIndex;
+		std::vector<IndexLayout::Element> m_vUniquePrimalSlaveIndex;
 
 	//	unique indices for layouts
 		std::vector<IndexLayout::Element> m_vUniqueDualIndex;
-		std::vector<IndexLayout::Element> m_vUniqueMasterDualIndex;
 		std::vector<IndexLayout::Element> m_vUniquePrimalIndex;
 
 }; /* end class 'FetiLayouts' */
@@ -355,13 +401,13 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
 	// Communicate values:
 	// (a) Slaves send their u values, every master subtracts the value of only
 	//     one of his slaves ...
-	VecSubtractOneSlaveFromMasterOnLayout(&diff, dualMasterLayoutIn, dualSlaveLayoutIn);
+	VecSubtractOneSlaveFromMaster(&diff, dualMasterLayoutIn, dualSlaveLayoutIn);
 
 	// (b) masters send their diff values to all slaves (but not vice versa)
-	VecCopyOnLayout(&diff, dualMasterLayoutIn, dualSlaveLayoutIn);
+	VecCopy(&diff, dualMasterLayoutIn, dualSlaveLayoutIn);
 
 	// (c) and also to the additional slaves living in "Dual neighbour layout"
-	VecCopyOnLayout(&diff, dualMasterNbrLayoutIn, dualSlaveNbrLayoutIn);
+	VecCopy(&diff, dualMasterNbrLayoutIn, dualSlaveNbrLayoutIn);
 
 	// now the vector 'diff' should be consistent!
 	return;
@@ -384,20 +430,20 @@ void ComputeDifferenceOnDelta(TVector& diff, const TVector& u,
  */
 template <typename TVector>
 void ComputeDifferenceOnDeltaTransposed(TVector& f, const TVector& diff,
-										IndexLayout& dualMasterLayoutIn,
-										IndexLayout& dualSlaveLayoutIn,
-										IndexLayout& dualSlaveNbrLayoutIn)
+										const std::vector<IndexLayout::Element>& vDualMasterIndex,
+										const std::vector<IndexLayout::Element>& vDualSlaveIndex,
+										const std::vector<IndexLayout::Element>& vDualSlaveNbrIndex)
 {
 	// Copy values (no communication is performed):
 	// (a) set f = +1 * d on masters ...
-	VecScaledCopyOnLayout(&f, &diff,  1.0,   dualMasterLayoutIn);
+	VecScaleAssign(f, 1.0, diff, vDualMasterIndex);
 
 	// (b) set f = -1 * d on slaves
-	VecScaledCopyOnLayout(&f, &diff, -1.0,    dualSlaveLayoutIn);
+	VecScaleAssign(f, -1.0, diff, vDualSlaveIndex);
 
 	// (c) set f = +1 * d on slaves living in "Dual neighbour layout"
 	//     ("+1" since in this context these dofs play the role of masters!)
-	VecScaledCopyOnLayout(&f, &diff, +1.0, dualSlaveNbrLayoutIn);
+	VecScaleAssign(f, +1.0, diff, vDualSlaveNbrIndex);
 	return;
 
 };
