@@ -161,12 +161,18 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 	public:
 	//	Constructor
-		ILUPreconditioner() {};
+		ILUPreconditioner() : m_pDebugWriter(NULL) {};
 
 	// 	Clone
 		ILinearIterator<vector_type,vector_type>* clone()
 		{
 			return new ILUPreconditioner<algebra_type>();
+		}
+
+	//	set debug output
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
 		}
 
 	//	Destructor
@@ -197,6 +203,13 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			CollectUniqueElements(vIndex,  m_ILU.get_slave_layout());
 			SetDirichletRow(m_ILU, vIndex);
 
+		//	Debug output of matrices
+			if(m_pDebugWriter != NULL)
+			{
+				m_pDebugWriter->write_matrix(m_ILU,
+											 "ILUBeforeFactorize");
+			}
+
 #else
 		//	copy original matrix
 			m_ILU = A;
@@ -215,6 +228,13 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			FactorizeILU(m_ILU);
 		}
 
+		//	Debug output of matrices
+			if(m_pDebugWriter != NULL)
+			{
+				m_pDebugWriter->write_matrix(m_ILU,
+											 "ILUAfterFactorize");
+			}
+
 		//	we're done
 			return true;
 		}
@@ -225,6 +245,8 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		//	todo: Think about how to use ilu in parallel.
 
 #ifdef UG_PARALLEL
+			static bool first = true;
+
 		//	make defect unique
 			vector_type h;
 			h.resize(d.size()); h = d;
@@ -232,11 +254,22 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 
 		// 	apply iterator: c = LU^{-1}*d (damp is not used)
 			invert_L(m_ILU, m_h, h); // h := L^-1 d
+
+			if(first) write_debug(m_h, "ILU_mh");
+
 			invert_U(m_ILU, c, m_h); // c := U^-1 h = (LU)^-1 d
+
+			if(first) write_debug(c, "ILU_c");
 
 		//	Correction is always consistent
 			c.set_storage_type(PST_ADDITIVE);
 			c.change_storage_type(PST_CONSISTENT);
+
+			if(first)
+			{
+				write_debug(c, "ILU_cConsistent");
+				first = false;
+			}
 
 #else
 		// 	apply iterator: c = LU^{-1}*d (damp is not used)
@@ -252,8 +285,22 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 		virtual bool postprocess() {return true;}
 
 	protected:
+		bool write_debug(const vector_type& vec, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	write
+			return m_pDebugWriter->write_vector(vec, filename);
+		}
+
+	protected:
 		matrix_type m_ILU;
 		vector_type m_h;
+
+	//	Debug Writer
+		IDebugWriter<algebra_type>* m_pDebugWriter;
+
 };
 
 
