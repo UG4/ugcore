@@ -16,7 +16,7 @@ dim = 2
 
 if dim == 2 then
 	gridName = "unit_square_tri.ugx"
-	--gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
+	gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
 	--gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
@@ -258,6 +258,11 @@ b:assign(linOp:get_rhs())
 SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 SaveVectorForConnectionViewer(b, "Rhs.mat")
 
+-- debug writer
+dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter:set_reference_grid_function(u)
+dbgWriter:set_vtk_output(false)
+
 -- create algebraic Preconditioner
 jac = Jacobi()
 jac:set_damp(0.8)
@@ -265,6 +270,7 @@ gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
 ilu = ILU()
+ilu:set_debug(dbgWriter)
 ilut = ILUT()
 
 -- create GMG ---
@@ -324,9 +330,14 @@ linSolver = LinearSolver()
 linSolver:set_preconditioner(gmg)
 linSolver:set_convergence_check(convCheck)
 
+-- create ILU Solver
+iluSolver = LinearSolver()
+iluSolver:set_preconditioner(ilu)
+iluSolver:set_convergence_check(convCheck)
+
 -- create CG Solver
 cgSolver = CG()
-cgSolver:set_preconditioner(jac)
+cgSolver:set_preconditioner(ilu)
 cgSolver:set_convergence_check(convCheck)
 
 -- create BiCGStab Solver
