@@ -428,7 +428,7 @@ exactSolver = LU()
 
 -- create Neumann CG Solver
 neumannConvCheck = StandardConvergenceCheck()
-neumannConvCheck:set_maximum_steps(600)
+neumannConvCheck:set_maximum_steps(2000)
 neumannConvCheck:set_minimum_defect(1e-10)
 neumannConvCheck:set_reduction(1e-16)
 neumannConvCheck:set_verbose_level(false)
@@ -438,7 +438,7 @@ neumannCGSolver:set_convergence_check(neumannConvCheck)
 
 -- create Dirichlet CG Solver
 dirichletConvCheck = StandardConvergenceCheck()
-dirichletConvCheck:set_maximum_steps(600)
+dirichletConvCheck:set_maximum_steps(2000)
 dirichletConvCheck:set_minimum_defect(1e-10)
 dirichletConvCheck:set_reduction(1e-16)
 dirichletConvCheck:set_verbose_level(false)
