@@ -413,6 +413,9 @@ private:
 			{
 				Deserialize(stream, globalRowIndex);
 
+			//	what should has_index be like, currently it is undefined
+				has_index = 0;
+
 				UG_ASSERT(has_index, "global id " << globalRowIndex.first << " | " << globalRowIndex.second << " has no associated local id");
 				UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << " has local ID " << nodeNummerator.get_index_if_available(globalRowIndex, has_index) << "\n");
 
@@ -601,9 +604,9 @@ private:
 			{
 				for(std::set<int>::iterator iter = pids.begin(); iter != pids.end(); ++iter)
 				{
-					size_t pid = *iter;
-					UG_ASSERT(notifications_pack.has_stream(pid), "pid = " << pid);
-					UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notifications_pack.get_stream(pid)->size() << " bytes of notifications data from proc " << pid << "\n");
+					//size_t pid = *iter;
+					UG_ASSERT(notifications_pack.has_stream(*iter), "pid = " << *iter);
+					UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << notifications_pack.get_stream(*iter)->size() << " bytes of notifications data from proc " << *iter << "\n");
 				}
 			}
 		}
