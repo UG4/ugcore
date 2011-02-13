@@ -5,12 +5,20 @@
 --   Author: Andreas Vogel
 --
 ----------------------------------------------------------
-verbosity = 0	-- set to 0 i.e. for time measurements,
-		-- >= 1 for writing matrix files etc.
 
 -- make sure that ug_util is in the right path.
 -- currently only the path in which you start your application is valid.
 ug_load_script("ug_util.lua")
+
+verbosity = 0	-- set to 0 i.e. for time measurements,
+		-- >= 1 for writing matrix files etc.
+
+verbosity = GetParam("-verb", 0)+0 -- '+0' to get a number instead of a string!
+
+activateDbgWriter = 0	-- set to 0 i.e. for time measurements,
+		        -- >= 1 for writing matrix files etc.
+
+activateDbgWriter = GetParam("-dbgw", 0)+0 -- '+0' to get a number instead of a string!
 
 -- choose algebra
 InitAlgebra(CPUAlgebraChooser());
@@ -30,7 +38,7 @@ end
 numPreRefs = 2
 numRefs = 4
 
-numPreRefs = GetParam("-numPreRefs", 2)+0
+numPreRefs = GetParam("-numPreRefs", 2)+0 -- '+0' to get a number instead of a string!
 numRefs    = GetParam("-numRefs",    4)+0 -- '+0' to get a number instead of a string!
 
 --------------------------------
@@ -454,13 +462,15 @@ fetiConvCheck:set_maximum_steps(100)
 fetiConvCheck:set_minimum_defect(1e-8)
 fetiConvCheck:set_reduction(1e-16)
 
---fetiSolver:set_debug(dbgWriter)
 fetiSolver:set_convergence_check(fetiConvCheck)
 fetiSolver:set_domain_decomp_info(domainDecompInfo)
 
 fetiSolver:set_neumann_solver(neumannCGSolver)
 fetiSolver:set_dirichlet_solver(dirichletCGSolver)
 fetiSolver:set_coarse_problem_solver(exactSolver)
+if activateDbgWriter >= 1 then
+	fetiSolver:set_debug(dbgWriter)
+end
 
 -- Apply Solver
 print( "   numPreRefs is " .. numPreRefs .. ",  numRefs is " .. numRefs)
