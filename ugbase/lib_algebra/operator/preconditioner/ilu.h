@@ -11,7 +11,9 @@
 #include "lib_algebra/lib_algebra.h"
 #include "lib_algebra/operator/operator_interface.h"
 #ifdef UG_PARALLEL
-	#include "lib_algebra/parallelization/parallelization.h"
+	#include "pcl/pcl_util.h"
+	#include "lib_algebra/cpu_algebra/sparsematrix_util.h"
+	#include "lib_algebra/parallelization/parallelization_util.h"
 #endif
 
 namespace ug{
@@ -191,7 +193,9 @@ class ILUPreconditioner : public IPreconditioner<TAlgebra>
 			MakeConsistent(A, m_ILU);
 
 		//	set zero on slaves
-			MatSetDirichletOnLayout(&m_ILU,  m_ILU.get_slave_layout());
+			std::vector<IndexLayout::Element> vIndex;
+			CollectUniqueElements(vIndex,  m_ILU.get_slave_layout());
+			SetDirichletRow(m_ILU, vIndex);
 
 #else
 		//	copy original matrix
