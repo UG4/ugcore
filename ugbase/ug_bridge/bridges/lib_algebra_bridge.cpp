@@ -237,15 +237,15 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("add_vector", &PINVIT<algebra_type>::add_vector,
 						"", "vector")
 			.add_method("set_preconditioner|interactive=false", &PINVIT<algebra_type>::set_preconditioner,
-						"", "Preconditioner||invokeOnChange=true")
+						"", "Preconditioner")
 			.add_method("set_linear_operator_A|interactive=false", &PINVIT<algebra_type>::set_linear_operator_A,
-						"", "LinearOperatorA|invokeOnChange=true")
+						"", "LinearOperatorA")
 			.add_method("set_linear_operator_B|interactive=false", &PINVIT<algebra_type>::set_linear_operator_B,
-						"", "LinearOperatorB|invokeOnChange=true")
+						"", "LinearOperatorB")
 			.add_method("set_max_iterations|interactive=false", &PINVIT<algebra_type>::set_max_iterations,
-							"", "precision|invokeOnChange=true")
+							"", "precision")
 			.add_method("set_precision|interactive=false", &PINVIT<algebra_type>::set_precision,
-							"", "precision|invokeOnChange=true")
+							"", "precision")
 			.add_method("apply", &PINVIT<algebra_type>::apply);
 #endif
 	}
@@ -261,34 +261,34 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 						ILinearOperatorInverse<vector_type, vector_type> >("LinearSolver", grp3.c_str())
 			.add_constructor()
 			.add_method("set_preconditioner|interactive=false", &LinearSolver<algebra_type>::set_preconditioner,
-						"", "Preconditioner||invokeOnChange=true")
+						"", "Preconditioner")
 			.add_method("set_convergence_check|interactive=false", &LinearSolver<algebra_type>::set_convergence_check,
-						"", "Check||invokeOnChange=true");
+						"", "Check");
 
 	// 	CG Solver
 		reg.add_class_<	CGSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("CG", grp3.c_str())
 			.add_constructor()
 			.add_method("set_preconditioner|interactive=false", &CGSolver<algebra_type>::set_preconditioner,
-						"", "Preconditioner||invokeOnChange=true")
+						"", "Preconditioner")
 			.add_method("set_convergence_check|interactive=false", &CGSolver<algebra_type>::set_convergence_check,
-						"", "Check||invokeOnChange=true");
+						"", "Check");
 
 	// 	BiCGStab Solver
 		reg.add_class_<	BiCGStabSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("BiCGStab", grp3.c_str())
 			.add_constructor()
 			.add_method("set_preconditioner|interactive=false", &BiCGStabSolver<algebra_type>::set_preconditioner,
-						"", "Preconditioner||invokeOnChange=true")
+						"", "Preconditioner")
 			.add_method("set_convergence_check|interactive=false", &BiCGStabSolver<algebra_type>::set_convergence_check,
-						"", "Check||invokeOnChange=true");
+						"", "Check");
 
 	// 	LUSolver
 		reg.add_class_<	LUSolver<algebra_type>,
 						ILinearOperatorInverse<vector_type, vector_type> >("LU", grp3.c_str())
 			.add_constructor()
 			.add_method("set_convergence_check|interactive=false", &LUSolver<algebra_type>::set_convergence_check,
-						"", "Check||invokeOnChange=true");
+						"", "Check");
 
 	// 	DirichletDirichletSolver
 #ifdef UG_PARALLEL
@@ -298,13 +298,13 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			reg.add_class_<	T, BaseT >("DirichletDirichlet", grp3.c_str())
 			.add_constructor()
 			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
-						"", "Check||invokeOnChange=true")
+						"", "Check")
 			.add_method("set_theta|interactive=false", &T::set_theta,
-						"", "Theta||invokeOnChange=true")
+						"", "Theta")
 			.add_method("set_neumann_solver|interactive=false", &T::set_neumann_solver,
-						"", "Neumann Solver||invokeOnChange=true")
+						"", "Neumann Solver")
 			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
-						"", "Dirichlet Solver||invokeOnChange=true")
+						"", "Dirichlet Solver")
 			.add_method("set_debug", &T::set_debug);
 		}
 #endif
@@ -315,9 +315,9 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			reg.add_class_<	T, ILinearOperator<vector_type, vector_type> >("LocalSchurComplement", grp3.c_str())
 			.add_constructor()
 			.add_method("set_matrix|interactive=false", &T::set_matrix,
-						"", "Matrix||invokeOnChange=true")
+						"", "Matrix")
 			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
-						"", "Dirichlet Solver||invokeOnChange=true")
+						"", "Dirichlet Solver")
 			.add_method("set_debug", &T::set_debug)
 			// the following functions would normally not be executed from script
 			.add_method("init", (bool (T::*)())&T::init)
@@ -333,13 +333,13 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			reg.add_class_<	T, BaseT >("FETI", grp3.c_str())
 			.add_constructor()
 			.add_method("set_convergence_check|interactive=false", &T::set_convergence_check,
-						"", "Check||invokeOnChange=true")
+						"", "Check")
 			.add_method("set_neumann_solver|interactive=false", &T::set_neumann_solver,
-						"", "Neumann Solver||invokeOnChange=true")
+						"", "Neumann Solver")
 			.add_method("set_dirichlet_solver|interactive=false", &T::set_dirichlet_solver,
-						"", "Dirichlet Solver||invokeOnChange=true")
+						"", "Dirichlet Solver")
 			.add_method("set_coarse_problem_solver|interactive=false", &T::set_coarse_problem_solver,
-						"", "Coarse Problem Solver||invokeOnChange=true")
+						"", "Coarse Problem Solver")
 			.add_method("set_domain_decomp_info", &T::set_domain_decomp_info)
 			.add_method("set_debug", &T::set_debug);
 		}
@@ -372,13 +372,13 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 		reg.add_class_<StandardConvCheck, IConvergenceCheck>("StandardConvergenceCheck", grp.c_str())
 			.add_constructor()
 			.add_method("set_maximum_steps|interactive=false", &StandardConvCheck::set_maximum_steps,
-					"", "Maximum Steps||invokeOnChange=true")
+					"", "Maximum Steps")
 			.add_method("set_minimum_defect|interactive=false", &StandardConvCheck::set_minimum_defect,
-					"", "Minimum Defect||invokeOnChange=true")
+					"", "Minimum Defect")
 			.add_method("set_reduction|interactive=false", &StandardConvCheck::set_reduction,
-					"", "Reduction||invokeOnChange=true")
+					"", "Reduction")
 			.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
-					"", "Verbose||invokeOnChange=true");
+					"", "Verbose");
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)

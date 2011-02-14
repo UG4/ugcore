@@ -25,7 +25,9 @@ if(NOT NO_ALGEBRA)
 	# add source files that depend on the algebra and discretization system here.
 	set(srcUGBridge ${srcUGBridge}
 					bridges/lib_algebra_bridge.cpp
-					bridges/lib_discretization_bridge.cpp
+					bridges/lib_disc_bridge_algebra_independent.cpp
+					bridges/lib_disc_bridge_domain_independent.cpp
+					bridges/lib_disc_bridge_domain_dependent.cpp
 					bridges/user_data_bridge.cpp
 					bridges/domain_bridge.cpp
 					bridges/profiler_bridge.cpp)

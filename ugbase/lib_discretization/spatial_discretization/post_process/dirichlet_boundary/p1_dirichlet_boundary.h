@@ -10,6 +10,7 @@
 
 #include "lib_discretization/common/common.h"
 #include "lib_discretization/spatial_discretization/domain_discretization_interface.h"
+#include "lib_discretization/function_spaces/grid_function_space.h"
 #include "lib_grid/tools/subset_handler_interface.h"
 
 #include <map>

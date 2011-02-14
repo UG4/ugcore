@@ -71,5 +71,13 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 	return bResult;
 }
 
+bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup)
+{
+	bool bResult = true;
+	bResult &= RegisterDynamicLibDiscretizationInterfaceDomainIndependent(reg, algebra_type, parentGroup);
+	bResult &= RegisterDynamicLibDiscretizationInterfaceDomainDependent(reg, algebra_type, parentGroup);
+	return bResult;
+}
+
 }//	end of namespace 
 }//	end of namespace 

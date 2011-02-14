@@ -37,6 +37,8 @@ bool RegisterDynamicLibAlgebraInterface(Registry& reg, int algebra_type, const c
 /**	This method is automatically invoked during the creation of the Registry.*/
 bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup = "/ug4");
 bool RegisterDynamicLibDiscretizationInterface(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
+bool RegisterDynamicLibDiscretizationInterfaceDomainDependent(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
+bool RegisterDynamicLibDiscretizationInterfaceDomainIndependent(Registry& reg, int algebra_type, const char* parentGroup = "/ug4");
 
 /// registers user data
 bool RegisterUserData(Registry& reg, const char* parentGroup = "/ug4");
