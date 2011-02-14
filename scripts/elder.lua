@@ -396,7 +396,7 @@ newtonSolver:init(op)
 dt = 3.1536e6
 
 time = 0.0
-step = 1
+step = 0
 
 -- set initial value
 print("Interpolation start values")
@@ -408,39 +408,61 @@ else
 	InterpolateFunction3d(ConcentrationStartValue, u, "c", time)
 end
 
--- Apply Solver
+----------------------------------
+-- Time loop
+----------------------------------
+
+-- write start solution
 print("Writing start values")
 out = utilCreateVTKWriter(dim)
 out:begin_timeseries("Elder", u)
-out:print("Elder", u, 0, 0.0)
+out:print("Elder", u, 0, time)
 
+-- some info output
 print( "   numPreRefs is   " .. numPreRefs ..     ",  numRefs is         " .. numRefs)
 print( "   NumTimeSteps is " .. NumTimeSteps   .. ",  NumPreTimeSteps is " .. NumPreTimeSteps )
 
--- Perform Time Step
-print("Staring time loop with " .. NumPreTimeSteps .. " steps of 1/100 of original size")
-do_steps = NumPreTimeSteps
-do_dt = dt/100
-if dim == 2 then
-	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
-else 
-	PerformTimeStep3d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
-end
-step = step + do_steps
-time = time + do_dt * do_steps
+-- create new grid function for old value
+uOld = u:clone()
 
-do_steps = NumTimeSteps - NumPreTimeSteps
-print("Staring time loop with " .. do_steps .. " steps of original size")
-if do_steps > 0 then
-	do_dt = dt
-	if dim == 2 then
-		PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
-	else
-		PerformTimeStep3d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
+-- store grid function in vector of  old solutions
+prevSol = PreviousSolutions()
+prevSol:push(uOld, time)
+
+for step = 1, NumTimeSteps do
+	print("++++++ TIMESTEP " .. step .. " BEGIN ++++++")
+
+	-- choose time step
+	if step <= NumPreTimeSteps then do_dt = dt/100
+	else do_dt = dt
 	end
-	step = step + do_steps
-	time = time + do_dt * do_steps
+	
+	-- setup time Disc for old solutions and timestep
+	timeDisc:prepare_step(prevSol, do_dt)
+	
+	-- prepare newton solver
+	if newtonSolver:prepare(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
+	
+	-- apply newton solver
+	if newtonSolver:apply(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
+
+	-- update new time
+	time = prevSol:time(0) + do_dt
+	
+	-- plot solution
+	out:print("Elder", u, step, time)
+	
+	-- get oldest solution
+	oldestSol = prevSol:oldest_solution()
+
+	-- copy values into oldest solution (we reuse the memory here)
+	VecScaleAssign(oldestSol, 1.0, u)
+	
+	-- push oldest solutions with new values to front, oldest sol pointer is poped from end
+	prevSol:push_discard_oldest(oldestSol, time)
+
+	print("++++++ TIMESTEP " .. step .. "  END ++++++");
 end
 
--- Output
+-- end timeseries, produce gathering file
 out:end_timeseries("Elder", u)
