@@ -61,7 +61,8 @@ class ThetaTimeDiscretization
 	public:
 		// theta = 0 -> Backward Euler
 		ThetaTimeDiscretization(domain_discretization_type& sd, number theta)
-			: ITimeDiscretization<TDoFDistribution, TAlgebra>(sd)
+			: ITimeDiscretization<TDoFDistribution, TAlgebra>(sd),
+			  m_pPrevSol(NULL)
 		{
 			set_theta(1.0);
 		}
@@ -91,8 +92,7 @@ class ThetaTimeDiscretization
 		size_t num_prev_steps() {return m_prevSteps;}
 
 	///	\copydoc ITimeDiscretization::prepare_step()
-		virtual bool prepare_step(std::deque<vector_type*>& u_old,
-		                          std::deque<number>& time_old,
+		virtual bool prepare_step(const PreviousSolutions<vector_type>& prevSol,
 		                          number dt);
 
 	public:
@@ -116,8 +116,7 @@ class ThetaTimeDiscretization
 		size_t m_prevSteps;
 		number s_a[2];
 		number s_m[2];
-		std::deque<vector_type*>* m_pSolOld;	///< Previous Solutions
-		std::deque<number>* m_pTimeOld;			///< Previous Times
+		const PreviousSolutions<vector_type>* m_pPrevSol;
 		number m_dt; 							///< Time Step size
 		number m_futureTime;					///< Future Time
 };

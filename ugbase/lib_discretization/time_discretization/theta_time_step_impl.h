@@ -15,20 +15,14 @@ namespace ug{
 template <typename TDoFDistribution, typename TAlgebra >
 bool
 ThetaTimeDiscretization<TDoFDistribution, TAlgebra>::
-prepare_step(std::deque<vector_type*>& u_old, std::deque<number>& time_old,
+prepare_step(const PreviousSolutions<vector_type>& prevSol,
              number dt)
 {
 //	perform checks
-	if(u_old.size() != m_prevSteps)
+	if(prevSol.size() != m_prevSteps)
 	{
 		UG_LOG("ERROR in ThetaTimeDiscretization::prepare_step:"
 			" Number of previous solutions must be "<<m_prevSteps<<".\n");
-		return false;
-	}
-	if(time_old.size() != m_prevSteps)
-	{
-		UG_LOG("ERROR in ThetaTimeDiscretization::prepare_step: "
-			"Number of previous time steps must be "<< m_prevSteps <<".\n");
 		return false;
 	}
 	if(this->m_pDomDisc == NULL)
@@ -39,14 +33,13 @@ prepare_step(std::deque<vector_type*>& u_old, std::deque<number>& time_old,
 	}
 
 //	remember old values
-	m_pSolOld = &u_old;
-	m_pTimeOld = &time_old;
+	m_pPrevSol = &prevSol;
 
 //	remember time step size
 	m_dt = dt;
 
 //	compute future time
-	m_futureTime = m_dt + (*m_pTimeOld)[0];
+	m_futureTime = m_dt + m_pPrevSol->time(0);
 
 //	done
 	return true;
@@ -95,10 +88,10 @@ assemble_defect(vector_type& d, const vector_type& u,
 		return IAssemble_ERROR;
 
 // 	previous time step part
-	for(size_t i=0; i < m_prevSteps; ++i)
+	for(size_t i=0; i < m_pPrevSol->size(); ++i)
 	{
 		if(this->m_pDomDisc->assemble_defect
-				(d, *(*m_pSolOld)[i], dofDistr, (*m_pTimeOld)[i],
+				(d,  m_pPrevSol->solution(i), dofDistr,  m_pPrevSol->time(i),
 				 s_m[i+1], s_a[i+1]*m_dt) != IAssemble_OK)
 			return IAssemble_ERROR;
 	}
