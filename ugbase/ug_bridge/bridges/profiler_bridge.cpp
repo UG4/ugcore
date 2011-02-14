@@ -23,21 +23,25 @@ namespace bridge
 class UGProfilerNode : public Shiny::ProfileNode
 {
 public:
+	/// \return number of entries in this profiler node
 	double get_avg_entry_count() const
 	{
 		return data.entryCount.avg * SHINY_DAMPING_FACTOR;
 	}
 
+	/// \return time in milliseconds spend in this node excluding subnodes
 	double get_avg_self_time_ms() const
 	{
 		return data.selfTicks.avg / 1000.0 * SHINY_DAMPING_FACTOR;
 	}
 
+	/// \return time in milliseconds spend in this node including subnodes
 	double get_avg_total_time_ms() const
 	{
 		return data.totalTicksAvg() / 1000.0 * SHINY_DAMPING_FACTOR;
 	}
 
+	/// \return true if node has been found
 	bool is_valid() const
 	{
 		return this != NULL;
@@ -66,10 +70,13 @@ bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 	std::stringstream group; group << parentGroup << "/Profiler";
 
 	reg.add_class_<UGProfilerNode>("UGProfilerNode", group.str().c_str())
-		.add_method("get_avg_entry_count", &UGProfilerNode::get_avg_entry_count, "", "")
-		.add_method("get_avg_self_time_ms", &UGProfilerNode::get_avg_self_time_ms, "", "")
-		.add_method("get_avg_total_time_ms", &UGProfilerNode::get_avg_total_time_ms, "", "")
-		.add_method("is_valid", &UGProfilerNode::is_valid, "", "");
+		.add_method("get_avg_entry_count", &UGProfilerNode::get_avg_entry_count,
+				"number of entries in this profiler node", "")
+		.add_method("get_avg_self_time_ms", &UGProfilerNode::get_avg_self_time_ms,
+				"time in milliseconds spend in this node excluding subnodes", "")
+		.add_method("get_avg_total_time_ms", &UGProfilerNode::get_avg_total_time_ms,
+				"time in milliseconds spend in this node including subnodes", "")
+		.add_method("is_valid", &UGProfilerNode::is_valid, "true if node has been found", "");
 	reg.add_function("GetProfileNode", &GetProfileNode);
 
 	return true;
