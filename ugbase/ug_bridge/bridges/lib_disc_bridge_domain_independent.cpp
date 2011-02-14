@@ -20,6 +20,8 @@
 
 // assemblings
 #include "lib_discretization/spatial_discretization/spatial_discretization.h"
+#include "lib_discretization/time_discretization/time_discretization.h"
+#include "lib_discretization/operator/operator.h"
 
 namespace ug
 {

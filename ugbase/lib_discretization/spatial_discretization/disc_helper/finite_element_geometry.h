@@ -8,6 +8,8 @@
 #ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__DISC_HELPER__FINITE_ELEMENT_GEOMETRY__
 
+#include "lib_discretization/quadrature/quadrature.h"
+
 namespace ug{
 
 template <	typename TElem,

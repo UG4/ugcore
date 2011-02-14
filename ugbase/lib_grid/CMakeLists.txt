@@ -78,7 +78,7 @@ set(srcLibGrid	tools/subset_handler_interface.cpp
 				)
 
 
-if(NOT NO_PCL)
+if(NOT NO_MPI)
 	# add parallelization
 	set(srcParallelization	parallelization/grid_distribution.cpp
 							parallelization/distributed_grid.cpp
@@ -88,10 +88,10 @@ if(NOT NO_PCL)
 							parallelization/parallel_refinement/parallel_hanging_node_refiner_multi_grid.cpp
 							parallelization/util/distribution_util.cpp)
 
-else(NOT NO_PCL)
+else(NOT NO_MPI)
 	# give a warning that pcl will not be compiled.
 	set(srcParallelization )
-endif(NOT NO_PCL)
+endif(NOT NO_MPI)
 
 ################################################
 # EXTERNALS - TetGen

@@ -10,6 +10,9 @@
 
 //	do not include feti.h itself or your will be sent to compile-error-hell
 //#include "feti.h"
+
+#ifdef UG_PARALLEL
+
 #include "lib_algebra/lib_algebra.h"
 #include <cmath>
 
@@ -1302,3 +1305,4 @@ template class FETISolver<CPUAlgebra>;
 template class FETISolver<CPUBlockAlgebra<3> >;
 }// end of namespace
 
+#endif
