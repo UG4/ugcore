@@ -846,7 +846,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("get_dim|hide=true", &function_type::get_dim)
 			.add_method("assign_approximation_space|hide=true", &function_type::assign_approximation_space)
 			.add_method("set_space|interactive=false", &function_type::assign_surface_approximation_space,
-								"", "Approximation Space||invokeOnChange=true");
+								"", "Approximation Space||invokeOnChange=true")
+			.add_method("clone", &function_type::clone);
 #ifdef UG_PARALLEL
 		reg.get_class_<function_type>()
 			.add_method("change_storage_type_by_string|hide=true", &function_type::change_storage_type_by_string)
@@ -1237,19 +1238,28 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 							"", "Discretization||invokeOnChange=true");
 		}
 
-	//	Time Discretization
+	//	ITimeDiscretization
 		{
+			typedef IAssemble<dof_distribution_type, algebra_type>  TBase;
+			typedef ITimeDiscretization<dof_distribution_type, algebra_type> T;
+			reg.add_class_<T,TBase>("ITimeDiscretization", grp.c_str())
+				.add_method("prepare_step", &T::prepare_step)
+				.add_method("num_prev_steps", &T::num_prev_steps);
+
+		}
+
+		//	ThetaTimeDiscretization
+		{
+			typedef ITimeDiscretization<dof_distribution_type, algebra_type> TBase;
 			typedef ThetaTimeDiscretization<dof_distribution_type, algebra_type> T;
-
-			reg.add_class_<	ITimeDiscretization<dof_distribution_type, algebra_type>,
-							IAssemble<dof_distribution_type, algebra_type> >("ITimeDiscretization", grp.c_str());
-
-			reg.add_class_<T, ITimeDiscretization<dof_distribution_type, algebra_type> >("ThetaTimeDiscretization", grp.c_str())
+			reg.add_class_<T, TBase>("ThetaTimeDiscretization", grp.c_str())
 					.add_constructor()
 					.add_method("set_domain_discretization|interactive=false", &T::set_domain_discretization,
 								"", "Domain Discretization||invokeOnChange=true")
 					.add_method("set_theta|interactive=false", &T::set_theta,
-								"", "Theta (0.0 = Impl; 1.0 = Expl)||invokeOnChange=true");
+								"", "Theta (0.0 = Impl; 1.0 = Expl)||invokeOnChange=true")
+					.add_method("prepare_step", &T::prepare_step)
+					.add_method("num_prev_steps", &T::num_prev_steps);
 		}
 
 	//	AssembledLinearOperator
@@ -1295,6 +1305,21 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 				.add_method("set_offset", &T::set_offset);
 		}
 
+
+	// PreviousSolutions
+		{
+			typedef PreviousSolutions<vector_type> T;
+			reg.add_class_<T>("PreviousSolutions", grp.c_str())
+				.add_constructor()
+				.add_method("size", &T::size)
+				.add_method("push_discard_oldest", &T::push_discard_oldest)
+				.add_method("push", &T::push)
+				.add_method("solution", (const vector_type&(T::*)(size_t) const)&T::solution)
+				.add_method("oldest_solution", &T::oldest_solution)
+				.add_method("time", &T::time);
+
+		}
+
 	//	NewtonSolver
 		{
 			typedef NewtonSolver<dof_distribution_type, algebra_type> T;
@@ -1304,7 +1329,9 @@ bool RegisterLibDiscretizationInterfaceForAlgebra(Registry& reg, const char* par
 				.add_method("set_linear_solver", &T::set_linear_solver)
 				.add_method("set_convergence_check", &T::set_convergence_check)
 				.add_method("set_line_search", &T::set_line_search)
-				.add_method("init", &T::init);
+				.add_method("init", &T::init)
+				.add_method("prepare", &T::prepare)
+				.add_method("apply", &T::apply);
 		}
 
 

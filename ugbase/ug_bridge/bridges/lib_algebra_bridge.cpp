@@ -48,6 +48,11 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 				"dest, alpha1, vec1, alpha2, vec2, alpha3, vec3", "dest = alpha1*vec1 + alpha2*vec2 + alpha3*vec3");
 	}
 
+	// Vector copy
+	{
+		reg.add_function("VecScaleAssign", (void (*)(vector_type&, number, const vector_type &))&VecScaleAssign<vector_type>);
+	}
+
 	//	Matrix
 	{
 		reg.add_class_<matrix_type>("Matrix", grp.c_str())
