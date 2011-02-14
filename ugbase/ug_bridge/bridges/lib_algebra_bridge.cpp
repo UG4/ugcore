@@ -114,7 +114,9 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 	//	ILU
 		reg.add_class_<	ILUPreconditioner<algebra_type>,
 						IPreconditioner<algebra_type> >("ILU", grp2.c_str())
-			.add_constructor();
+			.add_constructor()
+			.add_method("set_debug", &ILUPreconditioner<algebra_type>::set_debug);
+
 
 	//	ILU Threshold
 		reg.add_class_<	ILUTPreconditioner<algebra_type>,
