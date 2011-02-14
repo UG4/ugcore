@@ -28,17 +28,13 @@ PerformTimeStep(IOperatorInverse<typename TGridFunction::vector_type, typename T
 	typedef typename TGridFunction::algebra_type::vector_type vector_type;
 
 //  create deques for old solutions and old timesteps
-	std::deque<vector_type*> u_old;
-	std::deque<number> time_old;
-	u_old.resize(timestep.num_prev_steps());
-	time_old.resize(timestep.num_prev_steps());
+	PreviousSolutions<vector_type> prevSol;
 
-//  set start time
-	time_old[0] = time;
-
-//  get help vectors
+//	clone current solution
 	TGridFunction* uOldFunc = &u.clone();
-	u_old[0] = uOldFunc;
+
+//	store current time as old solution
+	prevSol.push(*uOldFunc, time);
 
 //  end timestep
 	const size_t end_timestep = timesteps + step -1;
@@ -49,7 +45,7 @@ PerformTimeStep(IOperatorInverse<typename TGridFunction::vector_type, typename T
 		UG_LOG("++++++ TIMESTEP " << step << " BEGIN ++++++\n");
 
 		//	prepare time step
-		timestep.prepare_step(u_old, time_old, dt);
+		timestep.prepare_step(prevSol, dt);
 
 		// prepare newton solver
 		if(!newton.prepare(u))
@@ -60,18 +56,20 @@ PerformTimeStep(IOperatorInverse<typename TGridFunction::vector_type, typename T
 			{UG_LOG("Time step " << step << " did not converge. Aborting.\n"); return false;}
 
 		// update time
-		time = time_old[0] + dt;
-		time_old.pop_back();
-		time_old.push_front(time);
-
-		// update old solutions
-		vector_type* current_u = u_old.back();
-		u_old.pop_back();
-		*current_u = u;
-		u_old.push_front(current_u);
+		time = prevSol.time(0) + dt;
 
 		// plot solution to file
 		if(bDoOutput) out.print(outName, u, step, time);
+
+		// get oldest solution
+		vector_type& oldestSol = prevSol.oldest_solution();
+
+		// copy values into oldest solution
+		oldestSol = u;
+
+		// push oldest solutions with new values to front
+		prevSol.push_discard_oldest(oldestSol, time);
+
 		UG_LOG("++++++ TIMESTEP " << step << "  END ++++++\n");
 	}
 
