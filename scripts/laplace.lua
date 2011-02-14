@@ -345,8 +345,25 @@ bicgstabSolver = BiCGStab()
 bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
--- Apply Solver
-ApplyLinearSolver(linOp, u, b, linSolver)
+-- choose some solver
+solver = linSolver
 
--- Output
+-------------------------------------------
+--  Apply Solver
+-------------------------------------------
+-- 1. init operator
+print("Init operator (i.e. assemble matrix).")
+linOp:init()
+
+-- 2. init solver for linear Operator
+print("Init solver for operator.")
+solver:init(linOp)
+
+-- 3. apply solver
+print("Apply solver.")
+solver:apply_return_defect(u,b)
+
+-------------------------------------------
+--  Output
+-------------------------------------------
 WriteGridFunctionToVTK(u, "Solution")
