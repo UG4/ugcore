@@ -399,7 +399,7 @@ private:
 			pids.push_back(iter->first);
 
 		sort(pids.begin(), pids.end());
-		bool has_index; bool bCreated;
+		bool bCreated;
 
 		for(size_t i=0; i<pids.size(); i++)
 		{
@@ -413,11 +413,13 @@ private:
 			{
 				Deserialize(stream, globalRowIndex);
 
-			//	what should has_index be like, currently it is undefined
-				has_index = 0;
-
-				UG_ASSERT(has_index, "global id " << globalRowIndex.first << " | " << globalRowIndex.second << " has no associated local id");
-				UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << " has local ID " << nodeNummerator.get_index_if_available(globalRowIndex, has_index) << "\n");
+				IF_DEBUG(LIB_ALG_MATRIX, 4)
+				{
+					bool has_index;
+					size_t localRowIndex = nodeNummerator.get_index_if_available(globalRowIndex, has_index);
+					UG_ASSERT(has_index, "global id " << globalRowIndex.first << " | " << globalRowIndex.second << " has no associated local id");
+					UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << " has local ID " << localRowIndex << "\n");
+				}
 
 				Deserialize(stream, num_connections);
 
@@ -597,7 +599,8 @@ private:
 			for(IndexLayout::iterator iter = receivingNodesLayout.begin(); iter != receivingNodesLayout.end();
 					++iter)
 			{
-				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrow_pack.get_stream(receivingNodesLayout.proc_id(iter))->size() << " bytes of matrixrow data from proc " << pid << "\n");
+				UG_DLOG(LIB_ALG_MATRIX, 4, "proc " << pcl::GetProcRank() << ": received " << matrixrow_pack.get_stream(receivingNodesLayout.proc_id(iter))->size() << " bytes of matrixrow data from proc " <<
+						receivingNodesLayout.proc_id(iter) << "\n");
 			}
 
 			if(bCreateNewNodes)
