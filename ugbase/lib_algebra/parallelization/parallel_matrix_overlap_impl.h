@@ -413,6 +413,7 @@ private:
 			{
 				Deserialize(stream, globalRowIndex);
 
+#ifdef UG_ENABLE_DEBUG_LOGS
 				IF_DEBUG(LIB_ALG_MATRIX, 4)
 				{
 					bool has_index;
@@ -420,6 +421,7 @@ private:
 					UG_ASSERT(has_index, "global id " << globalRowIndex.first << " | " << globalRowIndex.second << " has no associated local id");
 					UG_DLOG(LIB_ALG_MATRIX, 4, "GID " << globalRowIndex.first << " | " << globalRowIndex.second << " has local ID " << localRowIndex << "\n");
 				}
+#endif
 
 				Deserialize(stream, num_connections);
 
