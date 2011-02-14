@@ -1246,91 +1246,33 @@ jobject retVal2NativeParam(JNIEnv *env,
 	return obj;
 }
 
-jobjectArray methods2NativeMethods(JNIEnv *env,
-		const ug::bridge::IExportedClass& eCls, bool constMethods) {
-	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodInfo");
-
-	//	std::cout << "***M->HERE0***" << std::endl;
-
-	unsigned int numMethods = 0;
-
-	if (constMethods) {
-		numMethods = eCls.num_const_methods();
-	} else {
-		numMethods = eCls.num_methods();
-	}
-
-	jobjectArray result =
-			env->NewObjectArray(numMethods, cls, 0);
-
-	for (unsigned int i = 0; i < numMethods; i++) {
-		const ug::bridge::ExportedMethod* method;
-
-		//		std::cout << "M->Method: " << i << std::endl;
-
-		if (constMethods) {
-			method = &eCls.get_const_method(i);
-		} else {
-			method = &eCls.get_method(i);
-		}
-
-		// create instance
-
-		jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
-		jobject obj = env->NewObject(cls, methodID);
-
-		//assign values
-
-		jmethodID setName = env->GetMethodID(cls,
-				"setName", "(Ljava/lang/String;)V");
-		jmethodID setHelp = env->GetMethodID(cls,
-				"setHelp", "(Ljava/lang/String;)V");
-		jmethodID setToolTip = env->GetMethodID(cls,
-				"setToolTip", "(Ljava/lang/String;)V");
-		jmethodID setOptions = env->GetMethodID(cls,
-				"setOptions", "(Ljava/lang/String;)V");
-		jmethodID setRetValue = env->GetMethodID(cls,
-				"setReturnValue", "(Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
-		jmethodID setParameters = env->GetMethodID(cls,
-				"setParameters", "([Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
-
-		using namespace ug::bridge;
-		std::string name = method->name(); // TODO pre-rpocessing necessary
-		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
-		env->CallVoidMethod(obj, setHelp, stringC2J(env, method->help().c_str()));
-		env->CallVoidMethod(obj, setToolTip, stringC2J(env, name.c_str()));
-		env->CallVoidMethod(obj, setOptions, stringC2J(env, method->options().c_str()));
-		env->CallVoidMethod(obj, setRetValue,
-				retVal2NativeParam(env, *method));
-
-		//		std::cout << "***M->2***" << std::endl;
-
-		env->CallVoidMethod(obj, setParameters,
-				params2NativeParams(env, *method));
-
-		//		std::cout << "***M->3***" << std::endl;
-
-		// set array element
-		env->SetObjectArrayElement(result, i, obj);
-
-		//		std::cout << "***M->4***" << std::endl;
-	}
-
-	return result;
-}
-
-//jobjectArray functions2NativeFunctions(JNIEnv *env, ug::bridge::Registry* reg) {
-//	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeFunctionInfo");
+//jobjectArray methods2NativeMethods(JNIEnv *env,
+//		const ug::bridge::IExportedClass& eCls, bool constMethods) {
+//	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodInfo");
 //
 //	//	std::cout << "***M->HERE0***" << std::endl;
 //
-//	unsigned int numFunctions = reg->num_functions();
+//	unsigned int numMethods = 0;
+//
+//	if (constMethods) {
+//		numMethods = eCls.num_const_methods();
+//	} else {
+//		numMethods = eCls.num_methods();
+//	}
 //
 //	jobjectArray result =
-//			env->NewObjectArray(numFunctions, cls, 0);
+//			env->NewObjectArray(numMethods, cls, 0);
 //
-//	for (unsigned int i = 0; i < numFunctions; i++) {
-//		const ug::bridge::ExportedFunction& func = reg->get_function(i);
+//	for (unsigned int i = 0; i < numMethods; i++) {
+//		const ug::bridge::ExportedMethod* method;
+//
+//		//		std::cout << "M->Method: " << i << std::endl;
+//
+//		if (constMethods) {
+//			method = &eCls.get_const_method(i);
+//		} else {
+//			method = &eCls.get_method(i);
+//		}
 //
 //		// create instance
 //
@@ -1341,10 +1283,6 @@ jobjectArray methods2NativeMethods(JNIEnv *env,
 //
 //		jmethodID setName = env->GetMethodID(cls,
 //				"setName", "(Ljava/lang/String;)V");
-//		jmethodID setConst = env->GetMethodID(cls,
-//				"setConst", "(Z)V");
-//		jmethodID setCategory = env->GetMethodID(cls,
-//				"setCategory", "(Ljava/lang/String;)V");
 //		jmethodID setHelp = env->GetMethodID(cls,
 //				"setHelp", "(Ljava/lang/String;)V");
 //		jmethodID setToolTip = env->GetMethodID(cls,
@@ -1357,25 +1295,126 @@ jobjectArray methods2NativeMethods(JNIEnv *env,
 //				"setParameters", "([Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
 //
 //		using namespace ug::bridge;
-//		std::string name = func.name(); // TODO pre-rpocessing necessary
+//		std::string name = method->name(); // TODO pre-rpocessing necessary
 //		env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
-//		env->CallVoidMethod(obj, setConst, boolC2J(false));
-//		env->CallVoidMethod(obj, setCategory, stringC2J(env, func.group().c_str()));
-//		env->CallVoidMethod(obj, setHelp, stringC2J(env, func.help().c_str()));
+//		env->CallVoidMethod(obj, setHelp, stringC2J(env, method->help().c_str()));
 //		env->CallVoidMethod(obj, setToolTip, stringC2J(env, name.c_str()));
-//		env->CallVoidMethod(obj, setOptions, stringC2J(env, func.options().c_str()));
+//		env->CallVoidMethod(obj, setOptions, stringC2J(env, method->options().c_str()));
 //		env->CallVoidMethod(obj, setRetValue,
-//				retVal2NativeParam(env, func));
+//				retVal2NativeParam(env, *method));
+//
+//		//		std::cout << "***M->2***" << std::endl;
 //
 //		env->CallVoidMethod(obj, setParameters,
-//				params2NativeParams(env, func));
+//				params2NativeParams(env, *method));
+//
+//		//		std::cout << "***M->3***" << std::endl;
 //
 //		// set array element
 //		env->SetObjectArrayElement(result, i, obj);
+//
+//		//		std::cout << "***M->4***" << std::endl;
 //	}
 //
 //	return result;
 //}
+
+jobject method2NativeMethod(JNIEnv *env,
+		const ug::bridge::ExportedMethod* method) {
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodInfo");
+
+	//	std::cout << "***M->HERE0***" << std::endl;
+
+	// create instance
+
+	jmethodID methodID = env->GetMethodID(cls, "<init>", "()V");
+	jobject obj = env->NewObject(cls, methodID);
+
+	//assign values
+
+	jmethodID setName = env->GetMethodID(cls,
+			"setName", "(Ljava/lang/String;)V");
+	jmethodID setHelp = env->GetMethodID(cls,
+			"setHelp", "(Ljava/lang/String;)V");
+	jmethodID setToolTip = env->GetMethodID(cls,
+			"setToolTip", "(Ljava/lang/String;)V");
+	jmethodID setOptions = env->GetMethodID(cls,
+			"setOptions", "(Ljava/lang/String;)V");
+	jmethodID setRetValue = env->GetMethodID(cls,
+			"setReturnValue", "(Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+	jmethodID setParameters = env->GetMethodID(cls,
+			"setParameters", "([Ledu/gcsc/vrl/ug4/NativeParamInfo;)V");
+
+	using namespace ug::bridge;
+	std::string name = method->name(); // TODO pre-rpocessing necessary
+	env->CallVoidMethod(obj, setName, stringC2J(env, name.c_str()));
+	env->CallVoidMethod(obj, setHelp, stringC2J(env, method->help().c_str()));
+	env->CallVoidMethod(obj, setToolTip, stringC2J(env, name.c_str()));
+	env->CallVoidMethod(obj, setOptions, stringC2J(env, method->options().c_str()));
+	env->CallVoidMethod(obj, setRetValue,
+			retVal2NativeParam(env, *method));
+
+	//		std::cout << "***M->2***" << std::endl;
+
+	env->CallVoidMethod(obj, setParameters,
+			params2NativeParams(env, *method));
+
+	return obj;
+}
+
+jobjectArray methods2NativeGroups(JNIEnv *env,
+		const ug::bridge::IExportedClass& eCls, bool constMethods) {
+	jclass groupCls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodGroupInfo");
+	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeMethodInfo");
+
+	//	std::cout << "***M->HERE0***" << std::endl;
+
+	unsigned int numMethodGroups = 0;
+
+	if (constMethods) {
+		numMethodGroups = eCls.num_const_methods();
+	} else {
+		numMethodGroups = eCls.num_methods();
+	}
+
+	jobjectArray result =
+			env->NewObjectArray(numMethodGroups, groupCls, 0);
+
+	unsigned int numberOfMethodsInGroup = 1;
+
+	for (unsigned int i = 0; i < numMethodGroups; i++) {
+
+		jobjectArray methodArray =
+				env->NewObjectArray(numberOfMethodsInGroup, cls, 0);
+
+		const ug::bridge::ExportedMethod* method;
+
+//				std::cout << "M->Method: " << i << std::endl;
+
+		if (constMethods) {
+			method = &eCls.get_const_method(i);
+		} else {
+			method = &eCls.get_method(i);
+		}
+
+		//--------- METHOD GROUP ---------
+
+		jmethodID methodID = env->GetMethodID(groupCls, "<init>", "()V");
+		jobject groupObj = env->NewObject(groupCls, methodID);
+
+		jmethodID setOverloads = env->GetMethodID(groupCls,
+				"setOverloads", "([Ledu/gcsc/vrl/ug4/NativeMethodInfo;)V");
+
+		// set array element, we currently have only one method per group
+		env->SetObjectArrayElement(methodArray, 0, method2NativeMethod(env,method));
+
+		env->CallVoidMethod(groupObj, setOverloads, methodArray);
+
+		env->SetObjectArrayElement(result, i, groupObj);
+	}
+
+	return result;
+}
 
 jobject function2NativeFunction(JNIEnv *env, const ug::bridge::ExportedFunction& func) {
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/NativeFunctionInfo");
@@ -1448,7 +1487,7 @@ jobjectArray functions2NativeGroups(JNIEnv *env, ug::bridge::Registry* reg) {
 
 		for (unsigned int j = 0; j < numOverloads; j++) {
 			const ug::bridge::ExportedFunction& func = *group.get_overload(j);
-//			std::cout << "Func: " << func.name() << ", overload: " << j << std::endl;
+			//			std::cout << "Func: " << func.name() << ", overload: " << j << std::endl;
 
 			env->SetObjectArrayElement(functions, j,
 					function2NativeFunction(env, func));
@@ -1499,11 +1538,11 @@ jobjectArray classes2NativeClasses(JNIEnv *env, const ug::bridge::Registry* reg)
 		jmethodID setInstantiable = env->GetMethodID(cls,
 				"setInstantiable", "(Z)V");
 		jmethodID setMethods = env->GetMethodID(cls,
-				"setMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodInfo;)V");
+				"setMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodGroupInfo;)V");
 		jmethodID setConstMethods = env->GetMethodID(cls,
-				"setConstMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodInfo;)V");
+				"setConstMethods", "([Ledu/gcsc/vrl/ug4/NativeMethodGroupInfo;)V");
 
-		//		std::cout << "***C->HERE-3***" << std::endl;
+		//				std::cout << "***C->HERE-3***" << std::endl;
 
 		//		using namespace ug::bridge;
 		std::string name = eCls.name(); // TODO pre-rpocessing necessary
@@ -1522,11 +1561,11 @@ jobjectArray classes2NativeClasses(JNIEnv *env, const ug::bridge::Registry* reg)
 
 		//		std::cout << "***C->HERE0***" << std::endl;
 
-		env->CallVoidMethod(obj, setMethods, methods2NativeMethods(env, eCls, false));
+		env->CallVoidMethod(obj, setMethods, methods2NativeGroups(env, eCls, false));
 
 		//		std::cout << "***C->HERE1***" << std::endl;
 
-		env->CallVoidMethod(obj, setConstMethods, methods2NativeMethods(env, eCls, true));
+		env->CallVoidMethod(obj, setConstMethods, methods2NativeGroups(env, eCls, true));
 
 		//		std::cout << "***C->HERE2***" << std::endl;
 
