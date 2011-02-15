@@ -267,7 +267,7 @@ void HangingNodeRefinerBase::refine()
 			Face* f = *iter;
 			++iter;
 
-			if(refinement_is_allowed(f))
+			if(!refinement_is_allowed(f))
 				continue;
 
 		//	check whether all associated volumes are marked

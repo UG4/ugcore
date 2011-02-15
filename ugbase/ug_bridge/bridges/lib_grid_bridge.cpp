@@ -172,10 +172,10 @@ bool CreateSemiSmoothHierarchy(MultiGrid& mg, size_t numRefs)
 
 template <class TElem>
 void MarkForRefinement(MultiGrid& mg,
-					  HangingNodeRefiner_MultiGrid& refiner,
+					  IRefiner& refiner,
 					  float percentage)
 {
-/*
+
 	typedef typename geometry_traits<TElem>::iterator iterator;
 	for(iterator iter = mg.begin<TElem>(); iter != mg.end<TElem>(); ++iter)
 	{
@@ -183,8 +183,8 @@ void MarkForRefinement(MultiGrid& mg,
 			refiner.mark_for_refinement(*iter);
 		}
 	}
-*/
 
+/*
 	Grid::VertexAttachmentAccessor<APosition> aaPos(mg, aPosition);
 	TElem* elem = FindByCoordinate<TElem>(vector3(-0.00001, -0.00001, -0.00001),
 									mg.begin<TElem>(mg.num_levels()-1),
@@ -195,7 +195,7 @@ void MarkForRefinement(MultiGrid& mg,
 		refiner.mark_for_refinement(elem);
 	else{
 		UG_LOG("No element found for refinement.\n");
-	}
+	}*/
 
 
 }
