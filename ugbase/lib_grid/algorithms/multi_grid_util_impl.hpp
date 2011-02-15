@@ -20,7 +20,8 @@ void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 	typedef typename geometry_traits<TElem>::iterator ElemIter;
 
 //	clear the target surfaceView
-	surfaceViewOut.clear();
+	if(clearContainer)
+		surfaceViewOut.clear();
 		
 //	iterate through all levels of the mgsh
 	for(size_t level = 0; level < mgsh.num_levels(); ++level){
