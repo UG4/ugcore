@@ -345,14 +345,31 @@ ApplyLinearSolver(linOp, u, b, linSolver)
 
 tAfter = os.clock()
 
-assemblePN = GetProfileNode("assembleLinearMatrix")
+if(GetProfilerAvailable()) then
+	print("Profiler is available!\n")
+else
+	print("Profiler not available.\n")
+	-- however os.clock will work
+end
 
+
+-- Get profiler node information
+assemblePN = GetProfileNode("assembleLinearMatrix")
+-- functions are assemblePN:get_avg_total_time_ms(), assemblePN:get_avg_self_time_ms(), assemblePN:get_avg_entry_count() und assemblePN:is_valid()
+
+ 
+if(assemblePN:is_valid()) then
+	print("assembleLinearMatrix found!")
+else
+	print("profile node for assembleLinearMatrix not found!")
+end
 
 s = string.format("%d\t%d\t%d\t%.2f\t%.2f\n", dim, numPreRefs, numRefs, tAfter-tBefore, assemblePN:get_avg_total_time_ms())
 output = io.open("output.txt", "a")
 output:write(s)
 print("dim\tnumPreRefs\tnumRefs\tt\tassembleLinearMatix");
 print(s)
+
 
 
 -- Output
