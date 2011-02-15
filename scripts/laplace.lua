@@ -24,8 +24,8 @@ if dim == 3 then
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = GetParam("-numPreRefs", 1)+0
-numRefs    = GetParam("-numRefs",    3)+0 -- '+0' to get a number instead of a string!
+numPreRefs = GetParamNumber("-numPreRefs", 1)
+numRefs    = GetParamNumber("-numRefs",    3)
 
 --------------------------------
 -- User Data Functions (begin)
