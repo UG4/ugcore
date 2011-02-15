@@ -14,6 +14,7 @@ ParallelHangingNodeRefiner_MultiGrid(
 		IRefinementCallback* refCallback) :
 	BaseClass(refCallback),
 	m_pDistGridMgr(NULL),
+	m_pMG(NULL),
 	m_bNewInterfaceEdgesMarked(false),
 	m_bNewInterfaceFacesMarked(false),
 	m_bNewInterfaceVolumesMarked(false)
@@ -26,6 +27,7 @@ ParallelHangingNodeRefiner_MultiGrid(
 		IRefinementCallback* refCallback) :
 	BaseClass(*distGridMgr.get_assigned_grid(), refCallback),
 	m_pDistGridMgr(&distGridMgr),
+	m_pMG(distGridMgr.get_assigned_grid()),
 	m_bNewInterfaceEdgesMarked(false),
 	m_bNewInterfaceFacesMarked(false),
 	m_bNewInterfaceVolumesMarked(false)
@@ -42,6 +44,7 @@ void ParallelHangingNodeRefiner_MultiGrid::
 set_distributed_grid_manager(DistributedGridManager& distGridMgr)
 {
 	m_pDistGridMgr = &distGridMgr;
+	m_pMG = distGridMgr.get_assigned_grid();
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
@@ -56,7 +59,8 @@ clear_marks()
 void ParallelHangingNodeRefiner_MultiGrid::
 mark_for_refinement(EdgeBase* e)
 {
-	if((!m_selMarkedElements.is_selected(e))
+	if((!is_marked(e))
+		&& (!m_pMG->has_children(e))
 		&& m_pDistGridMgr->is_interface_element(e))
 		m_bNewInterfaceEdgesMarked = true;
 	BaseClass::mark_for_refinement(e);
@@ -65,7 +69,8 @@ mark_for_refinement(EdgeBase* e)
 void ParallelHangingNodeRefiner_MultiGrid::
 mark_for_refinement(Face* f)
 {
-	if((!m_selMarkedElements.is_selected(f))
+	if((!is_marked(f))
+		&& (!m_pMG->has_children(f))
 		&& m_pDistGridMgr->is_interface_element(f))
 		m_bNewInterfaceFacesMarked = true;
 	BaseClass::mark_for_refinement(f);
@@ -74,7 +79,8 @@ mark_for_refinement(Face* f)
 void ParallelHangingNodeRefiner_MultiGrid::
 mark_for_refinement(Volume* v)
 {
-	if((!m_selMarkedElements.is_selected(v))
+	if((!is_marked(v))
+		&& (!m_pMG->has_children(v))
 		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVolumesMarked = true;
 	BaseClass::mark_for_refinement(v);
@@ -125,34 +131,48 @@ collect_objects_for_refine()
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
-			ComPol_Selection<EdgeLayout> compolSelEDGE(m_selMarkedElements);
-			ComPol_Selection<FaceLayout> compolSelFACE(m_selMarkedElements);
+			ComPol_Selection<EdgeLayout> compolSelEDGE(m_selMarkedElements, true, false);
+			ComPol_Selection<FaceLayout> compolSelFACE(m_selMarkedElements, true, false);
 
 
-
+			UG_LOG("EXCHANGING SLAVE -> MASTER\n");
 		//	send data SLAVE -> MASTER
 			m_intfComEDGE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
+										compolSelEDGE);
+			m_intfComEDGE.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
 										compolSelEDGE);
 
 			m_intfComFACE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
 										compolSelFACE);
+			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
+										compolSelFACE);
 
+			UG_LOG("COMMUNICATE\n");
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
 
+			UG_LOG("EXCHANGING MASTER -> SLAVE\n");
 		//	and now MASTER -> SLAVE (the selection has been adjusted on the fly)
 			m_intfComEDGE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
+										compolSelEDGE);
+			m_intfComEDGE.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
 										compolSelEDGE);
 
 			m_intfComFACE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
 										compolSelFACE);
+			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
+										compolSelFACE);
 
+			UG_LOG("COMMUNICATE\n");
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
+			UG_LOG("MARKED EDGES AFTER COMMUNICATION: " << m_selMarkedElements.num<EdgeBase>() << "\n");
 		}
 		else
 			break;
 	}
+
+	UG_LOG("END-COLLETED " << m_selMarkedElements.num<EdgeBase>() << " EDGES.\n");
 }
 
 

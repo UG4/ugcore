@@ -93,6 +93,7 @@ class ParallelHangingNodeRefiner_MultiGrid :
 
 	private:
 		DistributedGridManager* m_pDistGridMgr;
+		MultiGrid*				m_pMG;
 		pcl::ProcessCommunicator m_procCom;
 		pcl::ParallelCommunicator<EdgeLayout> m_intfComEDGE;
 		pcl::ParallelCommunicator<FaceLayout> m_intfComFACE;

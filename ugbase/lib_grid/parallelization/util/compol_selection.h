@@ -20,25 +20,38 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		typedef typename Layout::Interface		Interface;
 		typedef typename Interface::iterator	InterfaceIter;
 
-		ComPol_Selection(Selector& sel)
-			 :	m_sel(sel)
+	///	Construct the communication policy with a ug::Selector.
+	/**	Through the parameters select and deselect one may specify whether
+	 * a process selects and/or deselects elements based on the received
+	 * selection status.*/
+		ComPol_Selection(Selector& sel, bool select = true, bool deselect = true)
+			 :	m_sel(sel), m_bSelectAllowed(select), m_bDeselectAllowed(deselect)
 		{}
+
+		virtual int
+		get_required_buffer_size(Interface& interface)		{return interface.size() * sizeof(byte);}
 
 	///	writes 1 for selected and 0 for unselected interface entries
 		virtual bool
 		collect(std::ostream& buff, Interface& interface)
 		{
 			byte zero = 0; byte one = 1;
+			UG_LOG("sending: ");
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
-				if(m_sel.is_selected(elem))
+				if(m_sel.is_selected(elem)){
+					UG_LOG((int)one << ", ");
 					buff.write((char*)&one, sizeof(byte));
-				else
+				}
+				else{
+					UG_LOG((int)zero << ", ");
 					buff.write((char*)&zero, sizeof(byte));
+				}
 			}
+			UG_LOG(std::endl);
 
 			return true;
 		}
@@ -48,22 +61,29 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		extract(std::istream& buff, Interface& interface)
 		{
 			byte val;
+			UG_LOG("receiving: ");
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
 				buff.read((char*)&val, sizeof(byte));
-				if(val)
+				UG_LOG((int)val << ", ");
+				if(val && select_allowed())
 					m_sel.select(elem);
-				else
+				else if(!val && deselect_allowed())
 					m_sel.deselect(elem);
 			}
-
+			UG_LOG(std::endl);
 			return true;
 		}
 
 	protected:
+		inline bool select_allowed()	{return m_bSelectAllowed;}
+		inline bool deselect_allowed()	{return m_bDeselectAllowed;}
+
 		Selector& m_sel;
+		bool m_bSelectAllowed;
+		bool m_bDeselectAllowed;
 };
 
 }//	end of namespace

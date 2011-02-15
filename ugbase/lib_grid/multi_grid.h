@@ -281,19 +281,66 @@ class MultiGrid : public Grid, public GridObserver
 		template <class TElem> inline
 		bool has_children(TElem* elem)
 		{return get_info(elem).has_children();}
-/*
-		template <class TChild, class TElem>
-		int num_children(TElem* elem);
 
-	//	child access
-		template <class TChild, class TElem>
-		int get_children(std::vector<TChild*>& vChildrenOut, TElem* elem);
-*/
-	//	direct access to child-vertices
-	///	this method allows fast child-vertex-access in case of regular refinement.
+	////////////////////////////////
+	//	CHILD QUANTITIES
+	///	Returns the number of child vertices
+		template <class TElem>
+		inline size_t num_child_vertices(TElem* elem)	{return get_info(elem).m_pVrtChild ? 1 : 0;}
+
+	///	Returns the number of child edges
+	/**	\{	*/
+		template <class TElem>
+		inline size_t num_child_edges(TElem* elem)		{return get_info(elem).m_numEdgeChildren;}
+		inline size_t num_child_edges(VertexBase*)		{return 0;}
+	/**	\}	*/
+
+	///	Returns the number of child faces
+	/**	\{	*/
+		template <class TElem>
+		inline size_t num_child_faces(TElem* elem)		{return get_info(elem).m_numFaceChildren;}
+		inline size_t num_child_faces(VertexBase*)		{return 0;}
+		inline size_t num_child_faces(EdgeBase*)		{return 0;}
+	/**	\}	*/
+
+	///	Returns the number of child volumes
+	/**	\{	*/
+		inline size_t num_child_volumes(Volume* elem)		{return get_info(elem).m_numVolChildren;}
+		template <class TElem>
+		inline size_t num_child_volumes(TElem*)				{return 0;}
+	/**	\}	*/
+
+
+	////////////////////////////////
+	//	CHILD ACCESS
+	///	Returns the child vertex of the given element or NULL if there is none
 		template <class TElem>
 		inline VertexBase* get_child_vertex(TElem* elem)	{return get_info(elem).m_pVrtChild;}
 
+	///	Returns the child edges of the given element or NULL if there is none
+	/**	\{	*/
+		template <class TElem>
+		inline EdgeBase* get_child_edge(TElem* elem, size_t ind)	{return get_info(elem).m_pEdgeChild[ind];}
+		inline EdgeBase* get_child_edge(VertexBase*, size_t)		{return NULL;}
+	/**	\}	*/
+
+	///	Returns the child faces of the given element or NULL if there is none
+	/**	\{	*/
+		template <class TElem>
+		inline Face* get_child_face(TElem* elem, size_t ind)	{return get_info(elem).m_pFaceChild[ind];}
+		inline Face* get_child_face(VertexBase*, size_t)		{return NULL;}
+		inline Face* get_child_face(EdgeBase*, size_t)			{return NULL;}
+	/**	\}	*/
+
+	///	Returns the child volumes of the given element or NULL if there is none
+	/**	\{	*/
+		inline Volume* get_child_volume(Volume* elem, size_t ind)	{return get_info(elem).m_pVolChild[ind];}
+		template <class TElem>
+		inline Volume* get_child_volume(TElem*, size_t)	{return NULL;}
+	/**	\}	*/
+
+	////////////////////////////////
+	//	STATUS ACCESS
 	//	access to the elements multi-grid status
 	///	returns one of the constants enumerated in MGElementStates.
 		template <class TElem>
