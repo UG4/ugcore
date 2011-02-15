@@ -1077,7 +1077,11 @@ write_pvd(discrete_function_type& u, const char* filename, size_t timestep, numb
 		// include files from all procs
 		for(int si = 0; si < u.num_subsets(); ++si)
 		{
+#ifdef UG_PARALLEL
 			pvtu_filename(pname, filename, si, timestep);
+#else
+			vtu_filename(pname, filename, 0, si, timestep);
+#endif
 			fprintf(file, "  <DataSet timestep=\"%g\" part=\"%d\" file=\"%s\"/>\n", time, si, pname);
 		}
 
