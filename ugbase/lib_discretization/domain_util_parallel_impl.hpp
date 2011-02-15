@@ -8,7 +8,9 @@
 #include <sstream>
 #include "lib_grid/lg_base.h"
 #include "lib_grid/lg_base.h"
-#include "lib_grid/parallelization/parallelization.h"
+#include "lib_grid/parallelization/distributed_grid.h"
+#include "lib_grid/parallelization/parallelization_util.h"
+#include "lib_grid/parallelization/parallel_refinement/parallel_global_multi_grid_refiner.h"
 #include "lib_grid/algorithms/attachment_util.h"
 
 namespace ug{

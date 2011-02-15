@@ -56,35 +56,37 @@ clear_marks()
 void ParallelHangingNodeRefiner_MultiGrid::
 mark_for_refinement(EdgeBase* e)
 {
-	BaseClass::mark_for_refinement(e);
-	if(m_pDistGridMgr->is_interface_element(e))
+	if((!m_selMarkedElements.is_selected(e))
+		&& m_pDistGridMgr->is_interface_element(e))
 		m_bNewInterfaceEdgesMarked = true;
+	BaseClass::mark_for_refinement(e);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
 mark_for_refinement(Face* f)
 {
-	BaseClass::mark_for_refinement(f);
-	if(m_pDistGridMgr->is_interface_element(f))
+	if((!m_selMarkedElements.is_selected(f))
+		&& m_pDistGridMgr->is_interface_element(f))
 		m_bNewInterfaceFacesMarked = true;
+	BaseClass::mark_for_refinement(f);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
 mark_for_refinement(Volume* v)
 {
-	BaseClass::mark_for_refinement(v);
-	if(m_pDistGridMgr->is_interface_element(v))
+	if((!m_selMarkedElements.is_selected(v))
+		&& m_pDistGridMgr->is_interface_element(v))
 		m_bNewInterfaceVolumesMarked = true;
+	BaseClass::mark_for_refinement(v);
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
 collect_objects_for_refine()
 {
-	BaseClass::collect_objects_for_refine();
 //todo: This method could be improved.
 //		In its current implementation a little too much
 //		serial work is done.
-/*
+
 //	the layoutmap is used for communication
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
@@ -150,7 +152,7 @@ collect_objects_for_refine()
 		}
 		else
 			break;
-	}*/
+	}
 }
 
 

@@ -236,12 +236,7 @@ bool TestHangingNodeRefiner_MultiGrid(const char* filename,
 //	create a surface view
 	SurfaceView surfView(mg);
 
-	if(mg.num<Volume>() > 0)
-		CreateSurfaceView<Volume>(surfView, mg, sh);
-	else if(mg.num<Face>() > 0)
-		CreateSurfaceView<Face>(surfView, mg, sh);
-	else
-		CreateSurfaceView<EdgeBase>(surfView, mg, sh);
+	CreateSurfaceView(surfView, mg, sh);
 
 	SaveGridToFile(mg, "surface_view.ugx", surfView);
 

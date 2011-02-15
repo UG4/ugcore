@@ -146,6 +146,33 @@ void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 	}
 }
 
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler)
+{
+	typedef typename geometry_traits<TElem>::const_iterator iterator;
+	typedef typename TElem::lower_dim_base_object Side;
+	std::vector<Side*> vSides;
+	Grid& grid = *sh.get_assigned_grid();
+
+	for(size_t l  = 0; l < sh.num_levels(); ++l){
+		for(int si = 0; si < sh.num_subsets(); ++si){
+			for(iterator iter = sh.template begin<TElem>(si, l);
+				iter != sh.template end<TElem>(si, l); ++iter)
+			{
+				TElem* e = *iter;
+				CollectAssociated(vSides, grid, e);
+
+				for(size_t i = 0; i < vSides.size(); ++i)
+				{
+					Side* s = vSides[i];
+					sh.assign_subset(s, srcIndHandler.get_subset_index(s));
+				}
+			}
+		}
+	}
+}
+
 ///	helper with with dummy-param for compile-time function selection.
 template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
 void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
@@ -201,6 +228,7 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
 						ISubsetHandler& sh, TIterator iterBegin,
 						TIterator iterEnd)
 {
+	UG_LOG("This version of CreateSurfaceView is DEPRECIATED!\n");
 	while(iterBegin != iterEnd)
 	{
 		if(!mg.has_children(*iterBegin)){

@@ -14,7 +14,8 @@ namespace ug
 template <class TElem>
 void CollectSurfaceViewElements(ISubsetHandler& surfaceViewOut,
 								MultiGrid& mg,
-								MGSubsetHandler& mgsh);
+								MGSubsetHandler& mgsh,
+								bool clearContainer = true);
 
 /**	calls CollectSurfaceViewElements and then assigns all associated elements
  *	of lower dimension to the surface-view, too.

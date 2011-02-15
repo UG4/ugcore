@@ -100,9 +100,6 @@ void AssignAssociatedVerticesToSubsets(TSubsetHandler& sh,
  * assigns associated edges to sh. The target subset-index is taken
  * from srcIndHandler.
  *
- * Associated elements that are assigned to sh and have a subset-index
- * of -1 in srcIndHandler are assigned to the subset at alternativeSubsetIndex.
- *
  * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
  * compatible types.
  */
@@ -120,15 +117,27 @@ void AssignAssociatedEdgesToSubsets(TSubsetHandler& sh,
  * assigns associated faces to sh. The target subset-index is taken
  * from srcIndHandler.
  *
- * Associated elements that are assigned to sh and have a subset-index
- * of -1 in srcIndHandler are assigned to the subset at alternativeSubsetIndex.
- *
  * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
  * compatible types.
  */
 template <class TElem, class TSubsetHandler>
 void AssignAssociatedFacesToSubsets(TSubsetHandler& sh,
 									const ISubsetHandler& srcIndHandler);
+
+////////////////////////////////////////////////////////////////////////
+//	AssignAssociatedFacesToSubsets
+///	Assigns associated sides of elements of type TElem in sh to sh.
+/**
+ * The method iterates over all elements of type TElem in sh and
+ * assigns associated sides to sh. The target subset-index is taken
+ * from srcIndHandler.
+ *
+ * Valid types for TSubsetHandler are SubsetHandler and MGSubsetHandler
+ * compatible types.
+ */
+template <class TElem, class TSubsetHandlerDest, class TSubsetHandlerSrc>
+void AssignAssociatedSidesToSubsets(TSubsetHandlerDest& sh,
+									const TSubsetHandlerSrc& srcIndHandler);
 
 ////////////////////////////////////////////////////////////////////////
 //	AssignAssociatedLowerDimElems
@@ -152,6 +161,8 @@ void AssignAssociatedLowerDimElemsToSubsets(TSubsetHandlerDest& sh,
 //	CreateSurfaceView
 ///	Collects all elements between iterBegin and iterEnd that don't have any children.
 /**
+ * DEPRECIATED
+ *
  * Elements which are on the surface of the multi-grid-hierarchy
  * (elements that don't have children) are assigned to a subset of the
  * shSurfaceViewOut. The subset-index is taken from sh.
@@ -169,7 +180,7 @@ template <class TIterator>
 void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
 						ISubsetHandler& sh, TIterator iterBegin,
 						TIterator iterEnd);
-					
+
 ////////////////////////////////////////////////////////////////////////
 //	AdjustSubsetsForLgmNg
 ///	reorders subsets in a way that allows for easy export to lgm-ng.
