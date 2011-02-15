@@ -16,7 +16,7 @@ dim = 2
 
 if dim == 2 then
 	gridName = "unit_square_tri.ugx"
-	gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
+	--gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
 	--gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
