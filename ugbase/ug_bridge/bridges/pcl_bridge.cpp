@@ -66,22 +66,22 @@ bool RegisterPCLInterface(Registry& reg, const char* parentGroup)
 	std::string grpStr(parentGroup);
 	grpStr.append("/pcl");
 
-	reg.add_function("GetNumProcesses", &pcl::GetNumProcessesDUMMY, grpStr.c_str(),
+	reg.add_function("GetNumProcesses", &GetNumProcessesDUMMY, grpStr.c_str(),
 					"NumProcs", "", "Returns the number of active processes.");
 
-	reg.add_function("GetProcessRank", &pcl::GetProcRankDUMMY, grpStr.c_str(),
+	reg.add_function("GetProcessRank", &GetProcRankDUMMY, grpStr.c_str(),
 					"ProcRank", "", "Returns the rank of the current process.");
 
-	reg.add_function("GetOutputProcessRank", &pcl::GetOutputProcRankDUMMY, grpStr.c_str(),
+	reg.add_function("GetOutputProcessRank", &GetOutputProcRankDUMMY, grpStr.c_str(),
 					"ProcRank", "", "Returns the rank of the process whose output is logged.");
 
-	reg.add_function("SetOutputProcessRank", &pcl::SetOutputProcRankDUMMY, grpStr.c_str(),
+	reg.add_function("SetOutputProcessRank", &SetOutputProcRankDUMMY, grpStr.c_str(),
 					"", "ProcRank", "Sets the rank of the process whose output is logged.");
 
-	reg.add_function("IsOutputProcess", &pcl::IsOutputProcDUMMY, grpStr.c_str(),
+	reg.add_function("IsOutputProcess", &IsOutputProcDUMMY, grpStr.c_str(),
 					"", "", "Returns true if the current process is the output process.");
 
-	reg.add_function("SynchronizeProcesses", &pcl::SynchronizeProcessesDUMMY, grpStr.c_str(),
+	reg.add_function("SynchronizeProcesses", &SynchronizeProcessesDUMMY, grpStr.c_str(),
 					"", "", "Waits until all active processes reached this point.");
 
 	return true;
