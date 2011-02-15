@@ -49,9 +49,7 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 		bResult &= RegisterTestInterface(reg, parentGroup);
 		bResult &= RegisterPCLInterface(reg, parentGroup);
 
-		#ifdef UG_PROFILER
-			bResult &= RegisterProfileFunctions(reg, parentGroup);
-		#endif
+		bResult &= RegisterProfileFunctions(reg, parentGroup);
 		
 		#ifdef UG_ALGEBRA
 			bResult &= RegisterDomainInterface(reg, parentGroup);

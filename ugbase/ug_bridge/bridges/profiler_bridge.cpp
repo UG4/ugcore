@@ -13,7 +13,7 @@ namespace ug
 {
 namespace bridge
 {
-#if SHINY_PROFILER
+#if SHINY_PROFILER1
 
 // note: for some really strange reason, shiny multiplies every time by 0.9 when you call PROFILER_UPDATE
 // and since update(0.9) is called at least once at the end of UGFinalize, we need to compensate for that
@@ -26,18 +26,21 @@ public:
 	/// \return number of entries in this profiler node
 	double get_avg_entry_count() const
 	{
+		if(!is_valid()) return 0.0;
 		return data.entryCount.avg * SHINY_DAMPING_FACTOR;
 	}
 
 	/// \return time in milliseconds spend in this node excluding subnodes
 	double get_avg_self_time_ms() const
 	{
+		if(!is_valid()) return 0.0;
 		return data.selfTicks.avg / 1000.0 * SHINY_DAMPING_FACTOR;
 	}
 
 	/// \return time in milliseconds spend in this node including subnodes
 	double get_avg_total_time_ms() const
 	{
+		if(!is_valid()) return 0.0;
 		return data.totalTicksAvg() / 1000.0 * SHINY_DAMPING_FACTOR;
 	}
 
@@ -65,6 +68,56 @@ const UGProfilerNode *GetProfileNode(const char *name)
 	return NULL;
 }
 
+bool GetProfilerAvailable()
+{
+	return true;
+}
+
+#else
+
+// dummy profiler node
+class UGProfilerNode
+{
+public:
+	/// \return number of entries in this profiler node
+	double get_avg_entry_count() const
+	{
+		return 0;
+	}
+
+	/// \return time in milliseconds spend in this node excluding subnodes
+	double get_avg_self_time_ms() const
+	{
+		return 0.0;
+	}
+
+	/// \return time in milliseconds spend in this node including subnodes
+	double get_avg_total_time_ms() const
+	{
+		return 0.0;
+	}
+
+	/// \return true if node has been found
+	bool is_valid() const
+	{
+		return false;
+	}
+};
+
+
+const UGProfilerNode *GetProfileNode(const char *name)
+{
+	return NULL;
+}
+
+bool GetProfilerAvailable()
+{
+	return false;
+}
+
+#endif
+
+
 bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 {
 	std::stringstream group; group << parentGroup << "/Profiler";
@@ -78,16 +131,10 @@ bool RegisterProfileFunctions(Registry &reg, const char* parentGroup)
 				"time in milliseconds spend in this node including subnodes", "")
 		.add_method("is_valid", &UGProfilerNode::is_valid, "true if node has been found", "");
 	reg.add_function("GetProfileNode", &GetProfileNode);
-
+	reg.add_function("GetProfilerAvailable", &GetProfilerAvailable, "true if profiler available");
 	return true;
 }
 
-#else
-bool AddProfileFunctionsToRegistry(Registry &reg)
-{
-	return true;
-}
-#endif
 
 }
 
