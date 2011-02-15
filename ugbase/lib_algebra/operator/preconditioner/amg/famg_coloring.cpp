@@ -43,12 +43,18 @@ int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<in
 	com.communicate();
 
 	int myPID = pcl::GetProcRank();
-	UG_DLOG(LIB_ALG_AMG, 2, "process " <<  myPID << " here. I have degree " << myDegree << ".\n");
-	for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+
+#ifdef UG_ENABLE_DEBUG_LOGS
+	IF_DEBUG(LIB_ALG_MATRIX, 2)
 	{
-		int pid = *iter;
-		UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid << " has degree " << othersDegree[pid] << ".\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "process " <<  myPID << " here. I have degree " << myDegree << ".\n");
+		for(setiterator iter = pids.begin(); iter != pids.end(); ++iter)
+		{
+			int pid = *iter;
+			UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid << " has degree " << othersDegree[pid] << ".\n");
+		}
 	}
+#endif
 
 	stdvector<int> colors(myDegree, -1);
 
@@ -83,14 +89,19 @@ int ColorProcessorGraph(pcl::ParallelCommunicator<IndexLayout> &com, std::set<in
 		com.communicate();
 		UG_DLOG(LIB_ALG_AMG, 2, "done.\n");
 
-		UG_DLOG(LIB_ALG_AMG, 2, "received colors from " << processesWithHigherWeight.size() << " processes!\n");
-		for(size_t i=0; i<processesWithHigherWeight.size(); i++)
+#ifdef UG_ENABLE_DEBUG_LOGS
+		IF_DEBUG(LIB_ALG_MATRIX, 2)
 		{
-			int pid2 = processesWithHigherWeight[i];
-			if(colors[i] == -1)
-				UG_DLOG(LIB_ALG_AMG, 2, "pid " << pid2 << " did not send color?");
-			UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid2 << " has color " << colors[i] << ".\n");
+			UG_DLOG(LIB_ALG_AMG, 2, "received colors from " << processesWithHigherWeight.size() << " processes!\n");
+			for(size_t i=0; i<processesWithHigherWeight.size(); i++)
+			{
+				int pid2 = processesWithHigherWeight[i];
+				if(colors[i] == -1)
+					UG_DLOG(LIB_ALG_AMG, 2, "pid " << pid2 << " did not send color?");
+				UG_DLOG(LIB_ALG_AMG, 2, " neighbor pid " << pid2 << " has color " << colors[i] << ".\n");
+			}
 		}
+#endif
 
 		// determine the smallest unused color for me
 		sort(colors.begin(), colors.end());

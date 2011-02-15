@@ -89,7 +89,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::receive_coarsen
 				if(coarseNodes[i][j++])
 				{
 					rating.external_set_coarse(index);
-					size_t newIndex = rating.newIndex[index];
+					int newIndex = rating.newIndex[index];
 					UG_ASSERT(newIndex != -1, "");
 
 					if(rating.is_master(index))
@@ -185,7 +185,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::create_OL2_matr
 
 
 	size_t N = A_OL2.num_rows();
-	famg_nodes rating(N);
+	rating.create(N);
 
 	// set overlap type of the nodes
 	for(IndexLayout::iterator iter = masterLayouts[0].begin(); iter != masterLayouts[0].end(); ++iter)

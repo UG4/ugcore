@@ -1,5 +1,5 @@
 /**
- * \file other_famg_coarsening_impl.h
+ * \file famg_on_demand_coarsening_impl.h
  *
  * \author Martin Rupp
  *
@@ -13,13 +13,13 @@
  */
 
 
-#ifndef __H__LIB_ALGEBRA__AMG__OTHER_FAMG_COARSENING_IMPL_H__
-#define __H__LIB_ALGEBRA__AMG__OTHER_FAMG_COARSENING_IMPL_H__
+#ifndef __H__LIB_ALGEBRA__AMG__FAMG_ON_DEMAND_COARSENING_IMPL_H__
+#define __H__LIB_ALGEBRA__AMG__FAMG_ON_DEMAND_COARSENING_IMPL_H__
 
 namespace ug{
 
 template<typename neighborstruct, typename matrix_type>
-bool other_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &nodes,
+bool OnDemand_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &nodes,
 		stdvector<bool> &prolongation_calculated, cgraph &SymmNeighGraph,	FAMGInterpolationCalculator<matrix_type> &calculator)
 {
 	if(prolongation_calculated[node])
@@ -65,13 +65,13 @@ bool other_UpdateRating(size_t node, stdvector<neighborstruct> &PN, famg_nodes &
 }
 
 template<typename neighborstruct, typename matrix_type>
-void other_Update(size_t node, stdvector<stdvector<neighborstruct> > &possible_parents, famg_nodes &nodes,
+void OnDemand_Update(size_t node, stdvector<stdvector<neighborstruct> > &possible_parents, famg_nodes &nodes,
 		maxheap<famg_nodeinfo> &heap,
 		stdvector<bool> &prolongation_calculated,	cgraph &SymmNeighGraph, FAMGInterpolationCalculator<matrix_type> &calculator)
 {
 	if(!nodes[node].is_valid_rating())
 		return;
-	if(other_UpdateRating(node, possible_parents[node], nodes, prolongation_calculated, SymmNeighGraph, calculator))
+	if(OnDemand_UpdateRating(node, possible_parents[node], nodes, prolongation_calculated, SymmNeighGraph, calculator))
 	{
 		if(nodes[node].is_uninterpolateable())
 		{
@@ -109,7 +109,7 @@ void AddUnmarkedNeighbors(cgraph &SymmNeighGraph, size_t i, stdvector<bool> &mar
 
 
 template<typename matrix_type, typename prolongation_matrix_type>
-void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::other_coarsening()
+void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::on_demand_coarsening()
 {
 	size_t N = rating.size();
 
@@ -118,17 +118,22 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::other_coarsenin
 
 	for(size_t j=0; j<N; j++)
 	{
-		if(rating.is_master(j) && A_OL2.is_isolated(j))
+		if(rating.i_must_assign(j) && A_OL2.is_isolated(j))
 			rating.set_fine(j);
 	}
 
-	size_t i;
-	for(i=0; i<N; i++)
+	size_t i=N;
+	for(size_t j=0; j<N; j++)
 	{
-		if(rating.is_master(i) && IsCloseToBoundary(A_OL2, i, 2) == false)
-			break;
+		if(rating.i_must_assign(j))
+		{
+			i=j;
+			if(IsCloseToBoundary(A_OL2, j , 2) == false)
+				break;
+		}
 	}
 
+	UG_ASSERT(i != N, "did not found suitable node");
 	UG_DLOG(LIB_ALG_AMG, 2, "\nStarting with node " << GetOriginalIndex(i) << "\n");
 
 	stdvector<bool> prolongation_calculated;
@@ -138,10 +143,10 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::other_coarsenin
 	bvisited.resize(N, false);
 	stdvector<size_t> neighborsToUpdate;
 
-	for(size_t i=0; i<N; i++)
+	for(size_t j=0; j<N; j++)
 	{
-		if(!rating.is_master(i))
-			bvisited[i] = true;
+		if(!rating.i_must_assign(j))
+			bvisited[j] = true;
 	}
 
 	calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
@@ -192,7 +197,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::other_coarsenin
 		for(size_t j=0; j<neighborsToUpdate.size(); j++)
 		{
 			size_t index = neighborsToUpdate[j];
-			other_Update(index, possible_parents, rating, heap, prolongation_calculated, SymmNeighGraph, calculator);
+			OnDemand_Update(index, possible_parents, rating, heap, prolongation_calculated, SymmNeighGraph, calculator);
 			if(rating[index].is_valid_rating())
 				bvisited[index] = false;
 		}
@@ -205,7 +210,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::other_coarsenin
 			// heap empty, we need to get another start node
 			for(i=0; i<N; i++)
 			{
-				if(rating.is_master(i) == false) continue;
+				if(rating.i_must_assign(i) == false) continue;
 				UG_DLOG(LIB_ALG_AMG, 2, "rating " << i << " is " << rating[i] << "\n");
 				if(A.is_isolated(i) == false && rating[i].is_valid_rating())
 				{
@@ -234,7 +239,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::other_coarsenin
 			{
 				i = heap.get_max();
 				UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " has best rating");
-				UG_ASSERT(rating.is_master(i), "node " << i << " is not master!");
+				UG_ASSERT(rating.i_must_assign(i), "node " << i << " is not master!");
 				if(prolongation_calculated[i] == false)
 				{
 					UG_DLOG(LIB_ALG_AMG, 2, ", but prolongation not calculated. update.\n");

@@ -45,7 +45,7 @@ public:
 	
 	inline bool could_be_coarse() const
 	{
-		return is_valid_rating() || is_coarse(); // is_dirichlet ??
+		return is_valid_rating() || is_coarse() || is_uninterpolateable(); // is_dirichlet ??
 	}
 	inline bool is_valid_rating() const
 	{
@@ -80,10 +80,12 @@ class famg_nodes
 public:
 	famg_nodes(SparseMatrix<double> &_P) : P(_P)
 	{
+		iNrOfCoarse = 0;
 	}
 
 	void create(size_t size)
 	{
+		iNrOfCoarse = 0;
 		nodes.clear(); 		nodes.resize(size);
 		newIndex.clear(); 	newIndex.resize(size, -1);
 #ifdef UG_PARALLEL
@@ -215,7 +217,7 @@ public:
 	bool i_can_set_coarse(size_t i)
 	{
 		return nodes[i].is_coarse() ||	// node already coarse
-			((i_must_assign(i) || is_slave(i, 0)) && nodes[i].is_valid_rating());  // or i can set coarse
+			((i_must_assign(i) || is_slave(i, 0)) && nodes[i].could_be_coarse());  // or i can set coarse
 	}
 
 	void print_OL_types()
@@ -275,6 +277,7 @@ public:
 	{
 		if(nodes[index].is_fine() == false && i_must_assign(index))
 			unassigned--;
+		nodes[index].set_fine();
 	}
 
 	void external_set_coarse(size_t index)
@@ -297,9 +300,22 @@ public:
 	}
 
 
-private:
+	size_t get_nr_of_coarse()
+	{
+		return iNrOfCoarse;
+	}
+
+	size_t get_unassigned()
+	{
+		return unassigned;
+	}
+
+//private:
+public:
 	stdvector<int> newIndex;
 	stdvector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array
+
+private:
 	size_t iNrOfCoarse;				// number of coarse nodes so far
 	size_t unassigned;				// number of still unassigned nodes
 

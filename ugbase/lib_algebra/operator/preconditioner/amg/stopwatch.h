@@ -20,7 +20,7 @@ public:
 	stopwatch() 
 	{
 		// you cant be really sure when constructor is called
-		beg = clock();
+		beg = end = clock();
 		bRunning = false;
 	}
 	void start()

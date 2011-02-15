@@ -185,7 +185,7 @@ public:
 #ifndef UG_PARALLEL
 			, A_OL2(A)
 #else
-			, nextLevelMasterLayout(*(new IndexLayout)), nextLevelSlaveLayout(*(new IndexLayout)) // TODO: fix that, this is stupid
+			, nextLevelMasterLayout(*(new IndexLayout)), nextLevelSlaveLayout(*(new IndexLayout)) // TODO: fix that, its a memory leak
 #endif
 	{
 	}
@@ -203,61 +203,6 @@ private:
 	}
 
 
-	void calculate_all_possible_parent_pairs(stdvector<stdvector<neighborstruct2> > &possible_parents,
-			famg_nodes &rating, FAMGInterpolationCalculator<matrix_type> &calculator)
-	{
-		possible_parents.clear();
-		possible_parents.resize(A.num_rows());
-
-		UG_LOG(std::scientific);
-
-		for(size_t i=0; i<A.num_rows(); i++)
-			calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
-	}
-
-
-
-	void old_coarsen()
-	{
-		while(heap.height() != 0)
-		{
-			// get node i with best rating
-			size_t i = heap.remove_max();
-			neighborstruct2 &n = possible_parents[i][0];
-
-			UG_DLOG(LIB_ALG_AMG, 2, "\n\n\nSelect next node...\n");
-			UG_DLOG(LIB_ALG_AMG, 2, "node " << i << " has rating " << rating[i] << ". now gets fine. parents: ");
-			for(size_t j=0; j < n.parents.size(); j++)	UG_DLOG(LIB_ALG_AMG, 2, n.parents[j].from << " ");
-			UG_DLOG(LIB_ALG_AMG, 2, "\nUpdate Neighbors of " << i << "\n");
-
-			// node i then gets fine, parent nodes get coarse, and neighbors of those updated.
-
-			// node i gets fine. update neighbors.
-			rating[i].set_fine();
-			UpdateNeighbors(SymmNeighGraph, i, possible_parents, rating, heap);
-
-			UG_DLOG(LIB_ALG_AMG, 2, "Set coarse parents:\n");
-			// get parent pair, set as coarse (if not already done), update neighbors.
-
-			for(size_t j=0; j < n.parents.size(); j++)
-			{
-				size_t node = n.parents[j].from;
-
-				if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << node << " is already coarse\n"); }
-				else { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << node << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
-
-				if(!rating[node].is_coarse())
-				{
-					heap.remove(node);
-					rating.set_coarse(node);
-					UpdateNeighbors(SymmNeighGraph, node, possible_parents, rating, heap);
-				}
-				P(i, rating.newIndex[node]) = n.parents[j].value;
-			}
-		}
-
-	}
-
 	void set_uninterpolateable_as_coarse()
 	{
 		for(size_t i=0; i<rating.size(); i++)
@@ -265,6 +210,17 @@ private:
 			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating (neither coarse nor fine but interpolateable), but is not in heap anymore???");
 			if(rating[i].is_uninterpolateable() == false) continue;
 			rating.set_coarse(i);
+		}
+	}
+
+	void create_parentIndex()
+	{
+		stdvector<stdvector<int> > &parentIndex = *m_famg.amghelper.parentIndex;
+		parentIndex.resize(level+2);
+		parentIndex[level+1].resize(rating.get_nr_of_coarse());
+		for(size_t i=0; i < rating.get_nr_of_coarse(); i++) parentIndex[level+1][i] = -1;
+		for(size_t i=0; i < rating.size(); i++) {
+			if(rating.newIndex[i] != -1) parentIndex[level+1][ rating.newIndex[i] ] = i;
 		}
 	}
 
@@ -276,22 +232,26 @@ private:
 	void create_OL2_matrix();
 #endif
 
+public:
 	void do_stuff()
 	{
 		UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
 		stopwatch SW, SWwhole; SWwhole.start();
 
-		int me = pcl::GetProcRank();
-		UG_ASSERT(pcl::GetNumProcesses() < 2, "only for 2, change layouts so that all slaves of a master are informed about a coarse node");
+		// int me = pcl::GetProcRank();
+		UG_ASSERT(pcl::GetNumProcesses() <= 2, "only for 2, change layouts so that all slaves of a master are informed about a coarse node");
 
 
 
 #ifdef UG_PARALLEL
 		create_OL2_matrix();
+#else
+		rating.create(A_OL2.num_rows());
 #endif
 		size_t N = A_OL2.num_rows();
-		rating.create(N);
+
+		UG_SET_DEBUG_LEVELS(4);
 
 		UG_LOG("\ncalculating testvector... ");
 		if(bTiming) SW.start();
@@ -301,8 +261,6 @@ private:
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
-
-				size_t iNrOfCoarse=0;
 
 		heap.create(N, &rating[0]);
 
@@ -316,7 +274,7 @@ private:
 		UG_LOG("\nCreate P, SymmNeighGraph... "); if(bTiming) SW.start();
 		P.create(A.num_rows(),A.num_rows());
 		// get neighboring information
-		cgraph SymmNeighGraph(N);
+		SymmNeighGraph.resize(N);
 		CreateSymmConnectivityGraph(A_OL2, SymmNeighGraph);
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -329,7 +287,6 @@ private:
 
 		rating.calculate_unassigned();
 
-		UG_SET_DEBUG_LEVELS(4);
 		if(0)
 		{
 			// get possible parent nodes
@@ -337,23 +294,22 @@ private:
 			calculate_all_possible_parent_pairs();
 			if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
-
 			// calculate ratings (not precalculateable because of coarse/uninterpolateable)
 			UG_LOG(std::endl << "calculate ratings... "); if(bTiming) SW.start();
-			calculate_all_possible_parent_pairs();
+			GetRatings(possible_parents, rating, heap);
 			if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 			heap.print();
 
 			// do coarsening
 			UG_LOG(std::endl << "coarsening... "); if(bTiming) SW.start();
-			old_coarsen();
+			precalculate_coarsening();
 			if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 		}
 		else
 		{
 			UG_LOG(std::endl << "other coarsening... "); if(bTiming) SW.start();
-			other_coarsening();
+			on_demand_coarsening();
 			if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 		}
 
@@ -377,8 +333,8 @@ private:
 		write_debug_matrix_markers();
 
 
-		UG_LOG(std::endl << N - rating.unassigned << " nodes assigned, " << rating.iNrOfCoarse << " coarse, "
-				<< N - rating.unassigned - rating.iNrOfCoarse << " fine, " << rating.unassigned << " unassigned.");
+		UG_LOG(std::endl << N - rating.get_unassigned() << " nodes assigned, " << rating.get_nr_of_coarse() << " coarse, "
+				<< N - rating.get_unassigned() - rating.get_nr_of_coarse() << " fine, " << rating.get_unassigned() << " unassigned.");
 
 		UG_LOG(std::endl << "second coarsening... "); if(bTiming) SW.start();
 
@@ -390,22 +346,16 @@ private:
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
-		P.resize(A.num_rows(), rating.iNrOfCoarse);
+		P.resize(A.num_rows(), rating.get_nr_of_coarse());
 		P.finalize();
 
 		// create parentIndex
 		UG_LOG(std::endl << "create parentIndex... "); if(bTiming) SW.start();
-		stdvector<stdvector<int> > &parentIndex = *m_famg.amghelper.parentIndex;
-		parentIndex.resize(level+2);
-		parentIndex[level+1].resize(rating.iNrOfCoarse);
-		for(size_t i=0; i < rating.iNrOfCoarse; i++) parentIndex[level+1][i] = -1;
-		for(size_t i=0; i<N; i++) {
-			if(rating.newIndex[i] != -1) parentIndex[level+1][ rating.newIndex[i] ] = i;
-		}
+		create_parentIndex();
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
 		//UG_LOG("parentIndex level " << level << "\n")
-		//for(size_t i=0; i<rating.iNrOfCoarse; i++) { UG_ASSERT(amghelper.parentIndex[level+1][i] != -1, i << " == -1???"); UG_LOG(i << " = " << amghelper.parentIndex[level+1][i] << "\n"); }
+		//for(size_t i=0; i<rating.get_nr_of_coarse(); i++) { UG_ASSERT(amghelper.parentIndex[level+1][i] != -1, i << " == -1???"); UG_LOG(i << " = " << amghelper.parentIndex[level+1][i] << "\n"); }
 
 
 		IF_DEBUG(LIB_ALG_AMG, 4)
@@ -418,7 +368,7 @@ private:
 
 
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
-		UG_DLOG(LIB_ALG_AMG, 1, std::endl << iNrOfCoarse << " coarse, " << N - rating.unassigned - iNrOfCoarse << " fine.");
+		UG_DLOG(LIB_ALG_AMG, 1, std::endl << rating.get_nr_of_coarse() << " coarse, " << N - rating.get_unassigned() - rating.get_nr_of_coarse() << " fine.");
 
 		// construct restriction R = I_{h->2h}
 		/////////////////////////////////////////
@@ -473,65 +423,20 @@ private:
 
 		write_debug_matrices();
 
-
 		CalculateNextTestvector(R, big_testvector);
 
 	}
 
-	void write_debug_matrices()
-	{
-		if(m_famg.m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
-		{
-			UG_DLOG(LIB_ALG_AMG, 1, "write matrices");
-
-			write_debug_matrix(A, "AMG_A", level);			UG_DLOG(LIB_ALG_AMG, 1, ".");
-			write_debug_matrix(P, "AMG_P", level);			UG_DLOG(LIB_ALG_AMG, 1, ".");
-			write_debug_matrix(R, "AMG_R", level);			UG_DLOG(LIB_ALG_AMG, 1, ".");
-
-			AMGWriteToFile(AH, level+1, level+1, GetFilename(m_famg.m_writeMatrixPath, ToString("AMG_A") + ToString(level+1),".mat").c_str(), m_famg.amghelper);
-
-			UG_DLOG(LIB_ALG_AMG, 1, ". done.\n");
-		}
-	}
-
-	void write_debug_matrix_markers()
-	{
-		int me = pcl::GetProcRank();
-		if(m_famg.m_writeMatrices)
-		{
-			std::fstream ffine((m_famg.m_writeMatrixPath + "AMG_fine" + ToString(level)
-					+ "_" + ToString(me) + ".marks").c_str(), std::ios::out);
-			std::fstream fcoarse((m_famg.m_writeMatrixPath + "AMG_coarse" + ToString(level)
-					+ "_" + ToString(me) + ".marks").c_str(), std::ios::out);
-			std::fstream fother((m_famg.m_writeMatrixPath + "AMG_other" + ToString(level)
-					+ "_" + ToString(me) + ".marks").c_str(), std::ios::out);
-			std::fstream fdirichlet((m_famg.m_writeMatrixPath + "AMG_dirichlet" + ToString(level)
-					+ "_" + ToString(me) + ".marks").c_str(), std::ios::out);
-			for(size_t i=0; i < rating.size(); i++)
-			{
-				int o = m_famg.amghelper.GetOriginalIndex(level, i);
-				if(rating[i].is_fine()) ffine << o << "\n";
-				else if(rating[i].is_coarse()) fcoarse << o << "\n";
-				else if(rating[i].is_dirichlet()) fdirichlet << o << "\n";
-				else fother << o << "\n";
-			}
-		}
-
-	}
-
+private:
+	void write_debug_matrices();
+	void write_debug_matrix_markers();
 	template<typename TMatrix>
-	void write_debug_matrix(TMatrix &mat, size_t level, const char *name)
-	{
-		std::string filename = GetFilename(m_famg.m_writeMatrixPath, ToString(name) + ToString(level),".mat");
-		AMGWriteToFile(A, level, level, filename.c_str(), m_famg.amghelper);
-		std::fstream f2(filename, std::ios::out | std::ios::app);
-		f2 << "c " << GetFilename(m_famg.m_writeMatrixPath, "AMG_fine" + ToString(level), ".marks") << "\n";
-		f2 << "c " << GetFilename(m_famg.m_writeMatrixPath, "AMG_coarse" + ToString(level), ".marks") << "\n";
-		f2 << "c " << GetFilename(m_famg.m_writeMatrixPath, "AMG_other" + ToString(level), ".marks") << "\n";
-		f2 << "c " << GetFilename(m_famg.m_writeMatrixPath, "AMG_dirichlet" + ToString(level), ".marks") << "\n";
-	}
+	void write_debug_matrix(TMatrix &mat, size_t level, const char *name);
 
-	void other_coarsening();
+
+	void on_demand_coarsening();
+	void precalculate_coarsening();
+	void calculate_all_possible_parent_pairs();
 };
 
 
@@ -543,14 +448,19 @@ void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> 
 	currentlevel = level;
 
 	FAMGLevelCalculator<matrix_type, SparseMatrix<double> > dummy(*this, AH, R, A, P, level);
+	dummy.do_stuff();
+	UG_SET_DEBUG_LEVELS(0);
 }
 
 
 } // namespace ug
 
 #include "famg_parallel_coarsening_impl.h"
-#include "other_famg_coarsening.h"
+#include "famg_debug_impl.h"
+#include "famg_on_demand_coarsening_impl.h"
+#include "famg_precalculate_coarsening_impl.h"
 
 #endif //  __H__LIB_ALGEBRA__AMG__FAMG_IMPL_H__
+
 
 

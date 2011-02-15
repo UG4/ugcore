@@ -81,7 +81,6 @@ public:
 		m_delta = delta;
 		m_theta = theta;
 		m_damping = damping;
-		bvisited.resize(A.num_rows(), false);
 	}
 
 
@@ -115,7 +114,7 @@ public:
 		if(get_H(i) == false)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "node has no connections, set as fine\n");
-			rating[i].set_fine();
+			rating.set_fine(i);
 			return;
 		}
 
@@ -470,6 +469,7 @@ private:
 		/// stdvector<size_t> &onlyN2 = neighbors[2];
 		// GetNeighborhoodHierachy(A, i, neighbors, bvisited);
 
+		bvisited.resize(A.num_rows(), false);
 
 		GetNeighborhood(A, i, onlyN1, onlyN2, bvisited);
 
