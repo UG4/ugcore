@@ -25,14 +25,14 @@ else
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = GetParam("-numPreRefs", 0)+0
+numPreRefs = GetParamNumber("-numPreRefs", 0)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = GetParam("-numRefs", 2)+0
+numRefs = GetParamNumber("-numRefs", 2)
 
 -- choose number of time steps
-NumPreTimeSteps = GetParam("-numPreTimeSteps", 1)+0
-NumTimeSteps =  GetParam("-numTimeSteps", 100)+0
+NumPreTimeSteps = GetParamNumber("-numPreTimeSteps", 1)
+NumTimeSteps =  GetParamNumber("-numTimeSteps", 100)
 
 --------------------------------
 -- User Data Functions (begin)
