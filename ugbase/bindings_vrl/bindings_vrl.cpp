@@ -51,6 +51,60 @@ public:
 		//
 	}
 
+	int performTest() {
+
+		std::cout << "***0\n";
+
+		const ug::bridge::IExportedClass* cls =
+				ug::vrl::invocation::getExportedClassPtrByName(
+				ug::vrl::vrlRegistry, "Domain2d");
+
+		std::cout << "***1\n";
+
+
+		void* obj = cls->create();
+
+		UG_LOG("Domain2d: " << (long) obj << ", " << obj << "\n");
+
+		std::cout << "***2\n";
+
+		int methodID = -1;
+
+		for (unsigned int i = 0; i < cls->num_methods(); i++) {
+			std::cout << "***3:" << i << std::endl;
+			if (cls->get_method(i).name() == "get_grid") {
+				UG_LOG("method found!\n");
+				std::cout << "***3:found, ID=" << i << "\n";
+				methodID = i;
+				break;
+			}
+		}
+
+		std::cout << "***4\n";
+
+		const ug::bridge::ExportedMethod& method = cls->get_method(methodID);
+
+		UG_LOG("Call Method:" << method.name() << "\n");
+
+		ug::bridge::ParameterStack paramsIn;
+		ug::bridge::ParameterStack paramsOut;
+
+		std::cout << "***5\n";
+
+		method.execute(obj, paramsIn, paramsOut);
+
+		if (paramsOut.size() > 0
+				&& paramsOut.get_type(0) == ug::bridge::PT_POINTER) {
+			UG_LOG("Output: " << (long) paramsOut.to_pointer(0) << ", " <<
+					paramsOut.to_pointer(0) << "\n");
+		}
+
+		std::cout << "***6\n";
+
+		return 23;
+
+	}
+
 	std::string getRev() {
 		return ug::vrl::svnRevision();
 	}
@@ -103,7 +157,8 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 			.add_method("svnRevision", &TestClass::getRev)
 			.add_method("add", &TestClass::add, "result",
 			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
-			.add_method("getString", &TestClass::getString);
+			.add_method("getString", &TestClass::getString)
+			.add_method("performTest", &TestClass::performTest);
 
 	//	Register Standard Interfaces (excluding algebra)
 	//		ug::bridge::RegisterStandardInterfaces(reg);
@@ -113,7 +168,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
 	ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
 
-//	ug::vrl::RegisterVRLUserNumber(reg, "testing");
+	//	ug::vrl::RegisterVRLUserNumber(reg, "testing");
 	//				ug::bridge::RegisterTestInterface(reg);
 
 	//	ug::bridge::RegisterLibGridInterface(testReg);
@@ -163,10 +218,10 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 		}
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
-		UG_LOG("Incopatible Conversion from " <<
+		UG_LOG("Incompatible Conversion from " <<
 				ex.m_from << " : " << ex.m_to << std::endl);
 	} catch (ug::bridge::ERROR_BadConversion ex) {
-		UG_LOG("Incopatible Conversion from " <<
+		UG_LOG("Incompatible Conversion from " <<
 				ex.m_from << " : " << ex.m_to << std::endl);
 	} catch (...) {
 		UG_LOG("Unknown exception thrown while"
@@ -306,7 +361,7 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 (JNIEnv * env, jclass cls, jlong objPtr, jlong exportedClsPtr) {
 
-	if (((void*)objPtr) != NULL && ((void*)exportedClsPtr) != NULL) {
+	if (((void*) objPtr) != NULL && ((void*) exportedClsPtr) != NULL) {
 		ug::bridge::IExportedClass* clazz =
 				(ug::bridge::IExportedClass*) exportedClsPtr;
 		clazz->destroy((void*) objPtr);
@@ -315,7 +370,7 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
-  (JNIEnv * env, jobject obj) {
+(JNIEnv * env, jobject obj) {
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 
