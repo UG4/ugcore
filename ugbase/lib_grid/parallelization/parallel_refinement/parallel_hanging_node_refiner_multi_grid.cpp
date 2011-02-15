@@ -80,10 +80,11 @@ mark_for_refinement(Volume* v)
 void ParallelHangingNodeRefiner_MultiGrid::
 collect_objects_for_refine()
 {
+	BaseClass::collect_objects_for_refine();
 //todo: This method could be improved.
 //		In its current implementation a little too much
 //		serial work is done.
-
+/*
 //	the layoutmap is used for communication
 	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
 
@@ -149,7 +150,7 @@ collect_objects_for_refine()
 		}
 		else
 			break;
-	}
+	}*/
 }
 
 

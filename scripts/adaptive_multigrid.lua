@@ -132,9 +132,7 @@ refiner = HangingNodeDomainRefiner(dom);
 -- refine
 local radius = initialRadius
 for i = 1, numRefs do
-	if GetProcessRank() == 1 then
-		MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
-	end
+	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
 	
 	refiner:refine()
 	radius = radius * radiusFalloff
