@@ -25,6 +25,9 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup = "/ug4")
 /**	This method is automatically invoked during the creation of the Registry.*/
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup = "/ug4");
 
+///	registers methods for a parallel environment
+bool RegisterPCLInterface(Registry& reg, const char* parentGroup = "/ug4");
+
 ///	Registers the domain object and related methods
 bool RegisterDomainInterface(Registry& reg, const char* parentGroup = "/ug4");
 

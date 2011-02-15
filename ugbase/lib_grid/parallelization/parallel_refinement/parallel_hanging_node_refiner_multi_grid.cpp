@@ -118,6 +118,7 @@ collect_objects_for_refine()
 		m_bNewInterfaceVolumesMarked = false;
 
 		if(exchangeFlag){
+
 		//	we have to communicate the marks.
 		//	do this by first gather selection at master nodes
 		//	and then distribute them to slaves.
@@ -151,15 +152,42 @@ collect_objects_for_refine()
 	}
 }
 
+
+bool ParallelHangingNodeRefiner_MultiGrid::
+refinement_is_allowed(VertexBase* elem)
+{
+	return !m_pDistGridMgr->is_ghost(elem);
+}
+
+bool ParallelHangingNodeRefiner_MultiGrid::
+refinement_is_allowed(EdgeBase* elem)
+{
+	return !m_pDistGridMgr->is_ghost(elem);
+}
+
+bool ParallelHangingNodeRefiner_MultiGrid::
+refinement_is_allowed(Face* elem)
+{
+	return !m_pDistGridMgr->is_ghost(elem);
+}
+
+bool ParallelHangingNodeRefiner_MultiGrid::
+refinement_is_allowed(Volume* elem)
+{
+	return !m_pDistGridMgr->is_ghost(elem);
+}
+
 void ParallelHangingNodeRefiner_MultiGrid::
 pre_refine()
 {
 	m_pDistGridMgr->begin_ordered_element_insertion();
+	BaseClass::pre_refine();
 }
 
 void ParallelHangingNodeRefiner_MultiGrid::
 post_refine()
 {
+	BaseClass::post_refine();
 	m_pDistGridMgr->end_ordered_element_insertion();
 }
 
@@ -171,6 +199,7 @@ set_involved_processes(pcl::ProcessCommunicator com)
 
 void ParallelHangingNodeRefiner_MultiGrid::refine()
 {
+	UG_ASSERT(m_pDistGridMgr, "a distributed grid manager has to be assigned");
 	if(!m_pDistGridMgr){
 		throw(UGError("No distributed grid manager assigned."));
 	}

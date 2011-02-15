@@ -180,7 +180,7 @@ approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 -- Gather info for domain decomposition
 --------------------------------------------------------------------------------
 -- get number of processes
-numProcs = NumProcesses()
+numProcs = GetNumProcesses()
 if numProcs < 2 then
 	print("number of processes is smaller than 2 - huh??")
 end
@@ -332,7 +332,7 @@ b = approxSpace:create_surface_function("b", true)
 -- New creation of subdomains and layouts (since 30012011):
 -- test one to many interface creation
 if verbosity >= 1 then
-	for i=0,NumProcesses()-1 do
+	for i=0,GetNumProcesses()-1 do
 		print("subdom of proc " .. i .. ": " .. domainDecompInfo:map_proc_id_to_subdomain_id(i))
 	end
 end

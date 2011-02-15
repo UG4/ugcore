@@ -4,7 +4,7 @@ How to compile ugbase:
 
 - a recent version of boost should be located somewhere on your machine.
   At least boost 1.34 is required.
-  UG only uses boost headers. The boost library thus doesn't has to be build.
+  UG only uses boost headers. The boost library thus doesn't have to be build.
   Consider setting an environment-variable BOOST_ROOT to the path that contains boost.
 
 - start in the root folder of UG4 (.../ug4/trunk)

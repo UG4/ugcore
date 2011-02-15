@@ -162,7 +162,7 @@ print("Create ApproximationSpace")
 approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
 
 -- get number of processes
-numProcs = NumProcesses()
+numProcs = GetNumProcesses()
 
 --please make sure that numProcs / numSubdomains is a power of 2.
 numSubdomains = numProcs

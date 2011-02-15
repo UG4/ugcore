@@ -47,6 +47,7 @@ bool RegisterStandardInterfaces(Registry& reg, const char* parentGroup)
 	{
 		bResult &= RegisterLibGridInterface(reg, parentGroup);
 		bResult &= RegisterTestInterface(reg, parentGroup);
+		bResult &= RegisterPCLInterface(reg, parentGroup);
 
 		#ifdef UG_PROFILER
 			bResult &= RegisterProfileFunctions(reg, parentGroup);

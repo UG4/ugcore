@@ -132,7 +132,10 @@ refiner = HangingNodeDomainRefiner(dom);
 -- refine
 local radius = initialRadius
 for i = 1, numRefs do
-	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
+	if GetProcessRank() == 1 then
+		MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
+	end
+	
 	refiner:refine()
 	radius = radius * radiusFalloff
 end
@@ -142,7 +145,10 @@ print("Saving domain grid and hierarchy.")
 SaveDomain(dom, "refined_grid.ugx")
 SaveGridHierarchy(dom:get_grid(), "refined_grid_hierarchy.ugx")
 
-print("Forcing exit...")
+
+-------------------------------------------
+-- TEMPORARILY EXITING THE APPLICATION
+-------------------------------------------
 exit()
 
 

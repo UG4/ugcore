@@ -60,9 +60,11 @@ pre_refine()
 		iter != m_selMarkedElements.end<VertexBase>(); ++iter)
 	{
 		UG_ASSERT(!mg.has_children(*iter), "Only vertices without children should be selected.");
-		VertexBase* vrt = *mg.create<Vertex>(*iter);
-		if(m_refCallback)
-			m_refCallback->new_vertex(vrt, *iter);
+		if(refinement_is_allowed(*iter)){
+			VertexBase* vrt = *mg.create<Vertex>(*iter);
+			if(m_refCallback)
+				m_refCallback->new_vertex(vrt, *iter);
+		}
 	}
 }
 

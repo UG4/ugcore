@@ -64,6 +64,15 @@ class ParallelHangingNodeRefiner_MultiGrid :
 		virtual void refine();
 
 	protected:
+	///	a callback that allows to deny refinement of special vertices
+		virtual bool refinement_is_allowed(VertexBase* elem);
+	///	a callback that allows to deny refinement of special edges
+		virtual bool refinement_is_allowed(EdgeBase* elem);
+	///	a callback that allows to deny refinement of special faces
+		virtual bool refinement_is_allowed(Face* elem);
+	///	a callback that allows to deny refinement of special volumes
+		virtual bool refinement_is_allowed(Volume* elem);
+
 	///	prepares selection and calls the base implementation
 	/**	Makes sure that no elements with children are selected,
 	 *  Additionally vertices are marked, which have no children but

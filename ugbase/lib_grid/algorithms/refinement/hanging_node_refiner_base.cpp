@@ -143,7 +143,8 @@ void HangingNodeRefinerBase::refine()
 			ConstrainingEdge* cge = *iter;
 			++iter;
 
-			refine_constraining_edge(cge);
+			if(refinement_is_allowed(cge))
+				refine_constraining_edge(cge);
 		}
 	}
 
@@ -157,6 +158,9 @@ void HangingNodeRefinerBase::refine()
 		{
 			Edge* e = *iter;
 			++iter;
+
+			if(!refinement_is_allowed(e))
+				continue;
 
 		//	check whether all connected elements are marked.
 		//	If so, we can perform a normal refine.
@@ -205,7 +209,8 @@ void HangingNodeRefinerBase::refine()
 		while(iter != m_selMarkedElements.end<ConstrainingTriangle>()){
 			ConstrainingTriangle* cgf = *iter;
 			++iter;
-			refine_constraining_face(cgf);
+			if(refinement_is_allowed(cgf))
+				refine_constraining_face(cgf);
 		}
 	}
 
@@ -216,7 +221,8 @@ void HangingNodeRefinerBase::refine()
 		while(iter != m_selMarkedElements.end<ConstrainingQuadrilateral>()){
 			ConstrainingQuadrilateral* cgf = *iter;
 			++iter;
-			refine_constraining_face(cgf);
+			if(refinement_is_allowed(cgf))
+				refine_constraining_face(cgf);
 		}
 	}
 
@@ -227,6 +233,10 @@ void HangingNodeRefinerBase::refine()
 		while(iter != m_selMarkedElements.end<Triangle>()){
 			Face* f = *iter;
 			++iter;
+
+			if(!refinement_is_allowed(f))
+				continue;
+
 		//	check whether all associated volumes are marked
 			bool bAllMarked = true;
 			if(grid.num_volumes() > 0){
@@ -256,6 +266,10 @@ void HangingNodeRefinerBase::refine()
 		while(iter != m_selMarkedElements.end<Quadrilateral>()){
 			Face* f = *iter;
 			++iter;
+
+			if(refinement_is_allowed(f))
+				continue;
+
 		//	check whether all associated volumes are marked
 			bool bAllMarked = true;
 			if(grid.num_volumes() > 0){
@@ -287,7 +301,8 @@ void HangingNodeRefinerBase::refine()
 		while(iter != m_selMarkedElements.end<Volume>()){
 			Volume* vol = *iter;
 			++iter;
-			refine_volume_with_normal_vertex(vol);
+			if(refinement_is_allowed(vol))
+				refine_volume_with_normal_vertex(vol);
 		}
 	}
 

@@ -17,7 +17,8 @@ set(srcUGBridge    	class_name_provider.cpp
 					class_helper.cpp
 					ug_bridge.cpp
 					bridges/lib_grid_bridge.cpp
-					bridges/test_bridge.cpp)
+					bridges/test_bridge.cpp
+					bridges/pcl_bridge.cpp)
 
 # if algebra is enabled, we have to add additional src-files and link with the
 # discretization module.

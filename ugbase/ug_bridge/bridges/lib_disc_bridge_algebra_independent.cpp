@@ -339,15 +339,7 @@ bool AddP1FunctionOnSubsets(FunctionPattern& pattern, const char* name, const ch
 	return pattern.add_discrete_function(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1), subsets, dim);
 }
 
-int NumProcesses()
-{
-	int numProcs = 1;
-#ifdef UG_PARALLEL
-	numProcs = pcl::GetNumProcesses();
-#endif
 
-	return numProcs;
-}
 
 bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
@@ -380,9 +372,6 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 	//  Add discrete function to pattern
 		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
 		reg.add_function("AddP1FunctionOnSubsets", &AddP1FunctionOnSubsets, grp.c_str());
-
-	//	Number of Processes
-		reg.add_function("NumProcesses", &NumProcesses, grp.c_str());
 
 	//  Debug function
 		reg.add_function("SetDebugLevel", &SetDebugLevel, grp.c_str());

@@ -133,7 +133,8 @@ void AssignVolumeInterfaceFacesToSubsets(Grid& grid, SubsetHandler& sh)
 
 ////////////////////////////////////////////////////////////////////////
 // AdjustSubsetsForLgmNg
-void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
+void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
+							bool keepExistingInterfaceSubsets)
 {
 	if(grid.num_volumes() > 0)
 	{
@@ -158,37 +159,44 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 	//	assign all edges to subset -1
 		sh.assign_subset(grid.edges_begin(), grid.edges_end(), -1);
 
-	//	now we'll assign all faces which are no interface
-	//	elements, to subset -1.
-		for(FaceIterator iter = grid.faces_begin();
-			iter != grid.faces_end(); ++iter)
-		{
-			Face* f = *iter;
-			if(sh.get_subset_index(f) != -1)
+		if(keepExistingInterfaceSubsets){
+		//	now we'll assign all faces which are no interface
+		//	elements, to subset -1.
+			for(FaceIterator iter = grid.faces_begin();
+				iter != grid.faces_end(); ++iter)
 			{
-				CollectVolumes(vVolumes, grid, f);
-
-				if(vVolumes.size() > 1)
+				Face* f = *iter;
+				if(sh.get_subset_index(f) != -1)
 				{
-				//	check if there are different adjacent volumes.
-					int si = sh.get_subset_index(vVolumes[0]);
-					bool gotOne = false;
-					for(uint i = 0; i < vVolumes.size(); ++i)
-					{
-						if(sh.get_subset_index(vVolumes[i]) != si)
-						{
-							gotOne = true;
-							break;
-						}
-					}
+					CollectVolumes(vVolumes, grid, f);
 
-					if(!gotOne)
+					if(vVolumes.size() > 1)
 					{
-					//	no, they are all from the same subset.
-						sh.assign_subset(f, -1);
+					//	check if there are different adjacent volumes.
+						int si = sh.get_subset_index(vVolumes[0]);
+						bool gotOne = false;
+						for(uint i = 0; i < vVolumes.size(); ++i)
+						{
+							if(sh.get_subset_index(vVolumes[i]) != si)
+							{
+								gotOne = true;
+								break;
+							}
+						}
+
+						if(!gotOne)
+						{
+						//	no, they are all from the same subset.
+							sh.assign_subset(f, -1);
+						}
 					}
 				}
 			}
+		}
+		else{
+		//	since we don't have to keep existing interface subsets we
+		//	can assign all faces to subset -1
+			sh.assign_subset(grid.faces_begin(), grid.faces_end(), -1);
 		}
 
 	//	make sure that there are no empty face-subsets between filled ones.
@@ -252,35 +260,42 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh)
 
 	//	now we'll assign all edges which are no interface
 	//	elements, to subset -1.
-		for(EdgeBaseIterator iter = grid.edges_begin();
-			iter != grid.edges_end(); ++iter)
-		{
-			EdgeBase* e = *iter;
-			if(sh.get_subset_index(e) != -1)
+		if(keepExistingInterfaceSubsets){
+			for(EdgeBaseIterator iter = grid.edges_begin();
+				iter != grid.edges_end(); ++iter)
 			{
-				CollectFaces(vFaces, grid, e);
-
-				if(vFaces.size() > 1)
+				EdgeBase* e = *iter;
+				if(sh.get_subset_index(e) != -1)
 				{
-				//	check if there are different adjacent volumes.
-					int si = sh.get_subset_index(vFaces[0]);
-					bool gotOne = false;
-					for(uint i = 0; i < vFaces.size(); ++i)
-					{
-						if(sh.get_subset_index(vFaces[i]) != si)
-						{
-							gotOne = true;
-							break;
-						}
-					}
+					CollectFaces(vFaces, grid, e);
 
-					if(!gotOne)
+					if(vFaces.size() > 1)
 					{
-					//	no, they are all from the same subset.
-						sh.assign_subset(e, -1);
+					//	check if there are different adjacent volumes.
+						int si = sh.get_subset_index(vFaces[0]);
+						bool gotOne = false;
+						for(uint i = 0; i < vFaces.size(); ++i)
+						{
+							if(sh.get_subset_index(vFaces[i]) != si)
+							{
+								gotOne = true;
+								break;
+							}
+						}
+
+						if(!gotOne)
+						{
+						//	no, they are all from the same subset.
+							sh.assign_subset(e, -1);
+						}
 					}
 				}
 			}
+		}
+		else{
+		//	since we don't have to keep existing interface subsets we can
+		//	assign all edges to subset -1.
+			sh.assign_subset(grid.edges_begin(), grid.edges_end(), -1);
 		}
 
 	//	make sure that there are no empty edge-subsets between filled ones.

@@ -705,11 +705,11 @@ void CommunicateInvolvedProcesses(vector<int>& vReceiveFromRanksOut,
  * {proc type size level {indices}}
  *
  * Where the entries have the following meaning:
- * 	- int proc: The connected proc id.
- *	- int type: The interface type on the connected proc.
- *	- int size: The number of entries in the following indexlist.
- *  - int level: The level on which the interface lies.
- *	- int-array indices: Indices refer to the interface that connects the
+ *		- int proc: The connected proc id.
+ *		- int type: The interface type on the connected proc.
+ *		- int size: The number of entries in the following indexlist.
+ *		- int level: The level on which the interface lies.
+ *		- int-array indices: Indices refer to the interface that connects the
  *						 local process with the process from which data was received.
  *						 The interface-type of the referred interface is that, which is
  *						 connected to the type specified above.

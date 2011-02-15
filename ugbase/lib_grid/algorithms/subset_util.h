@@ -181,8 +181,14 @@ void CreateSurfaceView(SubsetHandler& shSurfaceViewOut, MultiGrid& mg,
  * Please note, that this method does not yet produce fully compatible
  * output. In order to ensure maximal compatibility you should avoid
  * to have empty subsets between filled ones.
+ *
+ * Through keepExistingInterfaceSubsets you can decide whether interface
+ * faces or edges which already are assigned to a subset shall be kept.
+ * Note that the algorithm may not produce a fully compatible geometry
+ * in this case (this depends on your initial subsets).
  */
-void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh);
+void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
+							bool keepExistingInterfaceSubsets = false);
 
 ////////////////////////////////////////////////////////////////////////
 //	SeparateFaceSubsetsByNormal

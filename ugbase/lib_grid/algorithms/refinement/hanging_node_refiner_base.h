@@ -45,9 +45,9 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 	 * refine calls several virtual methods, which allow to influence the
 	 * refinement process. Most notably the methods
 	 *
-	 * 	- collect_objects_for_refine
-	 * 	- pre_refine
-	 *  - post_refine
+	 *		- collect_objects_for_refine
+	 *		- pre_refine
+	 * 		- post_refine
 	 *
 	 * are called in the given order. During element refinement further
 	 * virtual methods are called, which perform the actual element refinement.
@@ -55,6 +55,15 @@ class HangingNodeRefinerBase : public IRefiner, public GridObserver
 		void refine();
 
 	protected:
+	///	a callback that allows to deny refinement of special vertices
+		virtual bool refinement_is_allowed(VertexBase* elem)	{return true;}
+	///	a callback that allows to deny refinement of special edges
+		virtual bool refinement_is_allowed(EdgeBase* elem)		{return true;}
+	///	a callback that allows to deny refinement of special faces
+		virtual bool refinement_is_allowed(Face* elem)			{return true;}
+	///	a callback that allows to deny refinement of special volumes
+		virtual bool refinement_is_allowed(Volume* elem)		{return true;}
+
 	///	performs registration and deregistration at a grid.
 	/**	Sets a grid and performs registration at the given grid.
 	 * 	The associated selector is also initialised with the given grid.
