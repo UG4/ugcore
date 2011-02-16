@@ -4,11 +4,15 @@
  *  Created on: 11.10.2010
  *      Author: andreasvogel
  */
-//#define UG_USE_AMG // temporary switch until AMG for systems works again
+// #define UG_USE_AMG // temporary switch until AMG for systems works again
 
 #include "../ug_bridge.h"
 #include "lib_algebra/lib_algebra.h"
+
+#ifdef UG_USE_AMG
 #include "lib_discretization/lib_discretization.h"
+#endif
+
 #include <iostream>
 #include <sstream>
 
