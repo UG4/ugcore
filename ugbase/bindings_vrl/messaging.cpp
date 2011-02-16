@@ -11,12 +11,22 @@ namespace vrl {
 
 std::deque<std::string> MessageBuffer::messages;
 
+unsigned int MessageBuffer::maxQueueSize = 10000;
+
 void MessageBuffer::addMessage(std::string msg) {
 	messages.push_back(msg);
 	
-	while (messages.size() > 100) {
+	while (messages.size() > maxQueueSize) {
 		messages.pop_front();
 	}
+}
+
+void MessageBuffer::setMaxQueueSize(unsigned int n) {
+	maxQueueSize = n;
+}
+
+void MessageBuffer::clearMessages() {
+	messages.clear();
 }
 
 std::string MessageBuffer::getMessages() {

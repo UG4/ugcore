@@ -67,14 +67,26 @@ namespace ug {
 			static void addMessage(std::string msg);
 			/**
 			 * Returns a string containing all messages. Occurences of
-			 * <code>\n</code> are replaced with <code><br></code>.
+			 * <code>&#92;n</code> are replaced with <code>&lt;br&gt;</code>.
 			 * @return all messages as HTML compatible string
 			 */
 			static std::string getMessages();
 
+			/**
+			 * Clears the message queue.
+             */
+			static void clearMessages();
+
+			/**
+			 * Defines the maximum size of the message queue.
+             * @param n size to set
+             */
+			static void setMaxQueueSize(unsigned int n);
+
 		private:
 			static std::deque<std::string> messages;
 			static std::string messageString;
+			static unsigned int maxQueueSize;
 
 		};
 

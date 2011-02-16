@@ -365,13 +365,22 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 		ug::bridge::IExportedClass* clazz =
 				(ug::bridge::IExportedClass*) exportedClsPtr;
 		clazz->destroy((void*) objPtr);
-
 	}
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
 (JNIEnv * env, jobject obj) {
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
+}
+
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_setMaxQueueSize
+  (JNIEnv * env, jobject obj, jint n) {
+	ug::vrl::MessageBuffer::setMaxQueueSize(n);
+}
+
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_clearMessages
+  (JNIEnv * env, jobject obj) {
+	ug::vrl::MessageBuffer::clearMessages();
 }
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas

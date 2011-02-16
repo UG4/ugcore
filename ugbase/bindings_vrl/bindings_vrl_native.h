@@ -87,6 +87,22 @@ JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getCompileDate
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getMessages
   (JNIEnv *, jobject);
 
+/*
+ * Class:     edu_gcsc_vrl_ug4_UG4
+ * Method:    clearMessages
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_clearMessages
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     edu_gcsc_vrl_ug4_UG4
+ * Method:    setMaxQueueSize
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_setMaxQueueSize
+  (JNIEnv *, jobject, jint);
+
 #ifdef __cplusplus
 }
 #endif
