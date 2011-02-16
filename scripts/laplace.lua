@@ -160,6 +160,7 @@ pattern:lock()
 -- create Approximation Space
 print("Create ApproximationSpace")
 approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace:print_layout_statistic()
 
 -------------------------------------------
 --  Setup User Functions
