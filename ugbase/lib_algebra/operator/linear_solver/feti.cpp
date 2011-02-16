@@ -121,7 +121,7 @@ bool LocalSchurComplement<TAlgebra>::
 apply(vector_type& f, const vector_type& u)
 {
 //	check that matrix has been set
-	if(m_pOperator == NULL) // muesste man hier nicht pruefen, ob m_pDirichletMatrix gesetzt ist? -> @Ingo: Falsche Stelle:m_pDirichletMatrix ist die Matrix von m_DirichletOperator.
+	if(m_pOperator == NULL)
 	{
 		UG_LOG("ERROR: In 'LocalSchurComplement::apply': "
 						"Matrix A not set.\n");
@@ -306,14 +306,15 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		bSuccess = false;
 	}
 
-//	Check all procs
+//	Check all procs - scheint unnoetig! Wird beim Aufrufer, 'FETISolver::init()', am Ende ebenfalls gemacht!
+/*
 	if(!pcl::AllProcsTrue(bSuccess))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::init':"
 				" Some proc could not init Schur Complement inverse.\n");
 		return false;
 	}
-
+*/
 //	save matrix from which we build the Schur complement
 	m_pMatrix = &m_pOperator->get_matrix();
 
@@ -356,13 +357,13 @@ init(ILinearOperator<vector_type, vector_type>& L)
 
 //	Build layouts such that all processes can communicate their unknowns
 //	to the primal Root Process
-	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout)
+	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout);
 	int newVecSize = BuildOneToManyLayout(m_masterAllToOneLayout,
 						 m_slaveAllToOneLayout, m_primalRootProc,
 						 m_pFetiLayouts->get_primal_master_layout(),
 						 m_pFetiLayouts->get_primal_slave_layout(),
 						 m_allToOneProcessComm, &rootIDs);
-	FETI_PROFILE_END();
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_BuildOneToManyLayout)' - Messpunkt ok
 
 //	We have to gather the rootIDs and the quantities of primal nodes
 //	on each process of the feti-block in one array.
@@ -417,7 +418,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_pFetiLayouts->vec_use_inner_communication(h2);
 
 	FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi);
-//	Now within each feti subdomain, the primal unknowns are loop one after the
+//	Now within each feti subdomain, the primal unknowns are looped one after the
 //	other. This is done like the following: Each process loops the number of
 //	procs of the feti subdomain, and then for each subdomain the number of
 //	primal unknowns (as stored in vPrimalQuantities) on this subdomain. That way
@@ -544,7 +545,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	std::vector<PrimalConnection> vPrimalConnections;//	only filled on root
 	pcl::ProcessCommunicator commWorld;
 	commWorld.gatherv(vPrimalConnections, localPrimalConnections, m_primalRootProc);
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi)'
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvInit_Assemble_S_PiPi)' - Messpunkt ok
 
 //	build matrix on primalRoot
 	if(pcl::GetProcRank() == m_primalRootProc)
@@ -726,7 +727,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	only on root proc
 	if(m_primalRootProc == pcl::GetProcRank())
 	{
-	//	only if matrix if non-zero
+	//	only if matrix is non-zero
 		if(m_RootSchurComplementOp.get_matrix().num_cols() != 0)
 		{
 		//	invert matrix
@@ -740,7 +741,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						<< std::endl;
 				bSuccess = false;
 			}
-			FETI_PROFILE_END();
+			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
 		}
 	}
 
@@ -842,7 +843,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 	                             m_pMatrix->num_rows(),
 	                             *m_pDDInfo,
 	                             debugLayouts);
-	FETI_PROFILE_END();
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverInit_Create_Layouts)' - Messpunkt ok
 
 //  ----- 2. CONFIGURE LOCAL SCHUR COMPLEMENT  ----- //
 
@@ -872,7 +873,6 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 				"complement.\n");
 		bSuccess = false;
 	}
-	FETI_PROFILE_END();
 
 //	2.4 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -881,6 +881,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 				" local Schur complement.\n");
 		return false;
 	}
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverInit_InitLocalSchurComplement)' - Messpunkt ok!
 
 //  ----- 3. CONFIGURE SCHUR COMPLEMENT INVERSE  ----- //
 
@@ -919,7 +920,6 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 				"complement inverse.\n");
 		bSuccess = false;
 	}
-	FETI_PROFILE_END();
 
 //	3.5 check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -928,6 +928,7 @@ init(IMatrixOperator<vector_type, vector_type, matrix_type>& A)
 				" Schur complement inverse.\n");
 		return false;
 	}
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverInit_InitPrimalSubassMatInv)' - Messpunkt ok!
 
 //	we're done
 	return true;
@@ -937,7 +938,7 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_return_defect(vector_type& u, vector_type& f)
 {
-//	FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect);
+//	FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect); // profiling complete method
 //	This function is used to solve the system Au=f. While the matrix A has
 //	already been passed in additive storage in the function init(), here are
 //	passed the (unknown, to be computed) solution u, that must be returned in
@@ -1012,7 +1013,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 			   "Cannot compute rhs 'd'. Aborting.\n");
 		return false;
 	}
-	FETI_PROFILE_END();
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Compute_D)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
 
 // 	(b) Build t = F*lambda (t is additive afterwards)
 	FETI_PROFILE_BEGIN(FETISolverApply_Apply_F);
@@ -1021,7 +1022,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG("ERROR in 'FETISolver::apply': Unable "
 			   "to build t = F*p. Aborting.\n"); return false;
 	}
-	FETI_PROFILE_END();
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Apply_F)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
 
 // (c) Subtract values on \Delta, r0 = r0 - t
 	m_fetiLayouts.vec_scale_append_on_dual(r, t, -1.0);
@@ -1040,7 +1041,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 			   "Cannot apply preconditioner. Aborting.\n");
 		return false;
 	}
-	FETI_PROFILE_END();
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Apply_M_inverse)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' + 'apply_scaling_matrix()' nicht stoeren
 
 //	start values
 	number rho, rho_new, beta, alpha, alpha_denominator;
@@ -1055,7 +1056,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	very small number to check denominator
 	number small = 1e-20;
 
-// 	Iteration loop
+// 	"lambda iteration" loop
 	FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop);
 	while(!m_pConvCheck->iteration_ended())
 	{
@@ -1114,10 +1115,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 	update rho
 		rho = rho_new;
 	} /* end iteration loop */
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop)'
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop)' - Messpunkt ok, da Konvergenz-Check ausgefuehrt
 
 //	"back solve" (cf. A. Toselli, O. Widlund: "Domain Decomposition Methods -
-//	Algorithms and Theory", cap. 6.4, p.164, l. 2) (03022011av)
+//	Algorithms and Theory", chap. 6.4, p.164, l. 2) (03022011av)
 	FETI_PROFILE_BEGIN(FETISolverApply_Backsolve);
 
 //	reset t = 0.0
@@ -1145,9 +1146,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
 		bSuccess = false;
 	}
-	FETI_PROFILE_END();
-
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolver_Backsolve)'
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -1155,10 +1154,11 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG("ERROR in FETISolver::apply: Some process could not back solve.\n");
 		return false;
 	}
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolver_Backsolve)' - Messpunkt ok!
 
 	return m_pConvCheck->post();
 
-	//FETI_PROFILE_END();			// end profiling complete method
+	//FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect)' - complete method
 
 //	call this for output.
 //	PROFILER_UPDATE();
@@ -1191,7 +1191,7 @@ apply_F(vector_type& f, const vector_type& v)
 
 	FETI_PROFILE_BEGIN(FETISolverApply_F_ApplyPrimalSubassMatInv);
 	m_PrimalSubassembledMatrixInverse.apply(fTmp, f);
-	FETI_PROFILE_END();
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_F_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	3. Apply jump operator to get the final 'f'
 	ComputeDifferenceOnDelta(f, fTmp, m_fetiLayouts.get_dual_master_layout(),
@@ -1201,7 +1201,7 @@ apply_F(vector_type& f, const vector_type& v)
 
 //	we're done
 	return true;
-}
+} /* end 'FETISolver::apply_F()' */
 
 
 template <typename TAlgebra>
@@ -1226,7 +1226,7 @@ compute_d(vector_type& d, const vector_type& f)
 				" complement inverse.\n");
 		return false;
 	}
-	FETI_PROFILE_END();
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverCompute_d_ApplyPrimalSubassMatInv)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' ausgefuehrt wurde
 
 //	2. Apply jump operator to get the final 'd'
 	ComputeDifferenceOnDelta(d, dTmp, m_fetiLayouts.get_dual_master_layout(),
@@ -1236,7 +1236,7 @@ compute_d(vector_type& d, const vector_type& f)
 
 //	we're done
 	return true;
-}
+} /* end 'FETISolver::compute_d()' */
 
 template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
@@ -1280,8 +1280,8 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 				" local Schur complement. \n");
 		return false;
 	}
-	FETI_PROFILE_END();
-
+	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
+								// ('m_pOperator->apply' allein synchronisiert *nicht*!)
 //  4. Apply jump operator:  zTmp :=  B_{\Delta} * z
 	ComputeDifferenceOnDelta(zTmp, z, m_fetiLayouts.get_dual_master_layout(),
 	                         	 	  m_fetiLayouts.get_dual_slave_layout(),
@@ -1293,7 +1293,7 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 
 //	we're done
 	return true;
-}
+} /* end 'FETISolver::apply_M_inverse()' */
 
 ////////////////////////////////////////////////////////////////////////
 //	template instantiations for all current algebra types.
