@@ -146,7 +146,8 @@ class DistributedGridManager : public GridObserver
 							  
 	///	vertex_created, edge_created, ... callbacks call this method.
 		template <class TElem>
-		void handle_created_element(TElem* pElem, GeometricObject* pParent);
+		void handle_created_element(TElem* pElem, GeometricObject* pParent,
+									bool replacesParent);
 		
 		template <class TElem, class TScheduledElemMap, class TParent>
 		void schedule_element_for_insertion(TScheduledElemMap& elemMap,

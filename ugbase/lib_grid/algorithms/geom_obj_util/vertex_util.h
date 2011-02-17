@@ -130,6 +130,15 @@ void CalculateBoundingBox(vector3& vMinOut, vector3& vMaxOut, VertexBaseIterator
 						  VertexBaseIterator vrtsEnd, Grid::VertexAttachmentAccessor<AVector3>& aaPos);
 
 ////////////////////////////////////////////////////////////////////////
+//	CalculateCenter
+/// calculates the center of a set of vertices.
+/**	The difference to CalculateBarycenter is that this method
+ * returns the center of the bounding box which contains the
+ * given set of vertices.*/
+vector3 CalculateCenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
+						Grid::VertexAttachmentAccessor<AVector3>& aaPos);
+
+////////////////////////////////////////////////////////////////////////
 //	CalculateBarycenter - mstepnie
 /// calculates the barycenter of a set of vertices
 vector3 CalculateBarycenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,

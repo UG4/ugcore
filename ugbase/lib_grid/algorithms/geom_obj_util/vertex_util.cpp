@@ -369,9 +369,18 @@ bool CalculateVertexNormals(Grid& grid, APosition& aPos, ANormal& aNorm)
 	return true;
 }
 
+vector3 CalculateCenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
+						Grid::VertexAttachmentAccessor<AVector3>& aaPos)
+{
+	vector3 vMin, vMax;
+	CalculateBoundingBox(vMin, vMax, vrtsBegin, vrtsEnd, aaPos);
+	vector3 vRet;
+	VecScaleAdd(vRet, 0.5, vMin, 0.5, vMax);
+	return vRet;
+}
+
 ////////////////////////////////////////////////////////////////////////
 //	CalculateBarycenter - mstepnie
-/// calculates the barycenter of a set of vertices
 vector3 CalculateBarycenter(VertexBaseIterator vrtsBegin, VertexBaseIterator vrtsEnd,
 							Grid::VertexAttachmentAccessor<AVector3>& aaPos)
 {

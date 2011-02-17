@@ -113,13 +113,9 @@ collect_objects_for_refine()
 			newlyMarkedElems = 1;
 		}
 
-		UG_LOG("newly marked elems: " << newlyMarkedElems << endl);
-
 		int exchangeFlag;
 		m_procCom.allreduce(&newlyMarkedElems, &exchangeFlag, 1,
 							PCL_DT_INT, PCL_RO_LOR);
-
-		UG_LOG("exchange flag: " << exchangeFlag << endl);
 
 	//	before we continue we'll set all flags to false
 		m_bNewInterfaceEdgesMarked = false;
@@ -134,8 +130,6 @@ collect_objects_for_refine()
 			ComPol_Selection<EdgeLayout> compolSelEDGE(m_selMarkedElements, true, false);
 			ComPol_Selection<FaceLayout> compolSelFACE(m_selMarkedElements, true, false);
 
-
-			UG_LOG("EXCHANGING SLAVE -> MASTER\n");
 		//	send data SLAVE -> MASTER
 			m_intfComEDGE.exchange_data(layoutMap, INT_SLAVE, INT_MASTER,
 										compolSelEDGE);
@@ -147,11 +141,9 @@ collect_objects_for_refine()
 			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_SLAVE, INT_VIRTUAL_MASTER,
 										compolSelFACE);
 
-			UG_LOG("COMMUNICATE\n");
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
 
-			UG_LOG("EXCHANGING MASTER -> SLAVE\n");
 		//	and now MASTER -> SLAVE (the selection has been adjusted on the fly)
 			m_intfComEDGE.exchange_data(layoutMap, INT_MASTER, INT_SLAVE,
 										compolSelEDGE);
@@ -163,16 +155,12 @@ collect_objects_for_refine()
 			m_intfComFACE.exchange_data(layoutMap, INT_VIRTUAL_MASTER, INT_VIRTUAL_SLAVE,
 										compolSelFACE);
 
-			UG_LOG("COMMUNICATE\n");
 			m_intfComEDGE.communicate();
 			m_intfComFACE.communicate();
-			UG_LOG("MARKED EDGES AFTER COMMUNICATION: " << m_selMarkedElements.num<EdgeBase>() << "\n");
 		}
 		else
 			break;
 	}
-
-	UG_LOG("END-COLLETED " << m_selMarkedElements.num<EdgeBase>() << " EDGES.\n");
 }
 
 
@@ -228,6 +216,46 @@ void ParallelHangingNodeRefiner_MultiGrid::refine()
 	}
 
 	BaseClass::refine();
+
+/*
+//	DEBUG ONLY
+//	Make sure that the interfaces and layouts are fine.
+	pcl::ParallelCommunicator<VertexLayout::LevelLayout> com;
+	GridLayoutMap& layoutMap = m_pDistGridMgr->grid_layout_map();
+
+	UG_LOG("\nTesting horizontal layouts...\n");
+	{
+		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_MASTER);
+		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_SLAVE);
+		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
+			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			pcl::TestLayout(com, masterLayout.layout_on_level(i),
+					slaveLayout.layout_on_level(i), true);
+		}
+	}
+
+	UG_LOG("\nTesting vertical layouts...\n");
+	{
+		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_VERTICAL_MASTER);
+		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_VERTICAL_SLAVE);
+		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
+			UG_LOG("Testing VertexLayout on level " << i << ":" << endl);
+			pcl::TestLayout(com, masterLayout.layout_on_level(i),
+					slaveLayout.layout_on_level(i), true);
+		}
+	}
+
+	UG_LOG("\nTesting virtual layouts...\n");
+	{
+		VertexLayout& masterLayout = layoutMap.get_layout<VertexBase>(INT_VIRTUAL_MASTER);
+		VertexLayout& slaveLayout = layoutMap.get_layout<VertexBase>(INT_VIRTUAL_SLAVE);
+		for(size_t i = 0; i < m_pMG->num_levels(); ++i){
+			UG_LOG("Testing VerticalVertexLayout on level " << i << ":" << endl);
+			pcl::TestLayout(com, masterLayout.layout_on_level(i),
+					slaveLayout.layout_on_level(i), true);
+		}
+	}
+*/
 }
 
 }// end of namespace

@@ -36,22 +36,18 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		collect(std::ostream& buff, Interface& interface)
 		{
 			byte zero = 0; byte one = 1;
-			UG_LOG("sending: ");
 		//	write the entry indices of marked elements.
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
 				if(m_sel.is_selected(elem)){
-					UG_LOG((int)one << ", ");
 					buff.write((char*)&one, sizeof(byte));
 				}
 				else{
-					UG_LOG((int)zero << ", ");
 					buff.write((char*)&zero, sizeof(byte));
 				}
 			}
-			UG_LOG(std::endl);
 
 			return true;
 		}
@@ -61,19 +57,16 @@ class ComPol_Selection : public pcl::ICommunicationPolicy<TLayout>
 		extract(std::istream& buff, Interface& interface)
 		{
 			byte val;
-			UG_LOG("receiving: ");
 			for(InterfaceIter iter = interface.begin();
 				iter != interface.end(); ++iter)
 			{
 				Element elem = interface.get_element(iter);
 				buff.read((char*)&val, sizeof(byte));
-				UG_LOG((int)val << ", ");
 				if(val && select_allowed())
 					m_sel.select(elem);
 				else if(!val && deselect_allowed())
 					m_sel.deselect(elem);
 			}
-			UG_LOG(std::endl);
 			return true;
 		}
 

@@ -365,9 +365,37 @@ schedule_element_for_insertion(TScheduledElemMap& elemMap,
 //	new elements are handled here.
 template <class TElem>
 void DistributedGridManager::
-handle_created_element(TElem* pElem,
-						GeometricObject* pParent)
+handle_created_element(TElem* pElem, GeometricObject* pParent,
+						bool replacesParent)
 {
+	if(replacesParent){
+	//	we only have to replace the parent entry. To do this
+	//	we'll replace all occurences of the parent in all interfaces.
+	//	If a replace takes place, the parent has to be of the same type
+	//	as pElem.
+		TElem* parent = dynamic_cast<TElem*>(pParent);
+		if(parent){
+		//	copy info
+			ElementInfo<TElem>& elemInfo = elem_info(pElem);
+			elemInfo = elem_info(parent);
+
+		//	update all pointers
+			for(typename ElementInfo<TElem>::EntryIterator iter = elemInfo.entries_begin();
+				iter != elemInfo.entries_end(); ++iter)
+			{
+				typename ElementInfo<TElem>::Entry& entry = *iter;
+				entry.first->get_element(entry.second) = pElem;
+			}
+
+		//	clear the parent-info.
+			elem_info(parent).reset();
+			return;
+		}
+		else{
+			throw(UGError("Can't replace an element with an element of another type."));
+		}
+	}
+
 	elem_info(pElem).set_status(ES_NONE);
 	
 //	only for debug purposes
@@ -481,7 +509,7 @@ void DistributedGridManager::
 vertex_created(Grid* grid, VertexBase* vrt, GeometricObject* pParent,
 				bool replacesParent)
 {
-	handle_created_element(vrt, pParent);
+	handle_created_element(vrt, pParent, replacesParent);
 }
 
 
@@ -489,7 +517,7 @@ void DistributedGridManager::
 edge_created(Grid* grid, EdgeBase* e, GeometricObject* pParent,
 			 bool replacesParent)
 {
-	handle_created_element(e, pParent);
+	handle_created_element(e, pParent, replacesParent);
 }
 
 
