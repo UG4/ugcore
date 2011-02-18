@@ -439,7 +439,7 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
 	vector<Volume*>		vVols;
-UG_LOG("    deserializing MultiGrid elements\n");
+
 	DeserializeMultiGridElements(mgOut, in, &vVrts, &vEdges, &vFaces, &vVols);
 
 //	read the layouts
@@ -454,7 +454,6 @@ UG_LOG("    deserializing MultiGrid elements\n");
 					gridLayoutOut.volume_layout_hierarchy_map(), vVols, in);
 */
 
-UG_LOG("    deserializing distribution layout interfaces\n");
 	DeserializeDistributionLayoutInterfaces<VertexBase>(gridLayoutOut,
 														vVrts, in);
 	DeserializeDistributionLayoutInterfaces<EdgeBase>(gridLayoutOut,
@@ -463,7 +462,6 @@ UG_LOG("    deserializing distribution layout interfaces\n");
 													vFaces, in);
 	DeserializeDistributionLayoutInterfaces<Volume>(gridLayoutOut,
 													vVols, in);
-UG_LOG("    deserialized distribution layout interfaces - done\n");
 
 //DEBUG
 /*

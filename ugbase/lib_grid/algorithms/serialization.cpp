@@ -1052,15 +1052,12 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 			if(goid == GOID_NEW_LEVEL){
 			//	read the current level and start at the beginning of the loop
 				in.read((char*)&currentLevel, sizeof(uint));
-				UG_LOG("NEW LEVEL: " << currentLevel << endl);
 				continue;
 			}
 
 		//	we have to read more elements. check how many.
 			int numElems = 0;
 			in.read((char*)&numElems, sizeof(int));
-
-			UG_LOG("GOID: " << goid << ", NumElems: " << numElems << endl);
 
 		//	depending on the goid we'll create new elements.
 			switch(goid)
