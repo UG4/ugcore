@@ -204,6 +204,11 @@ apply(vector_type& f, const vector_type& u)
 						" Last defect was " << convCheck->defect() <<
 						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
+	} else {
+		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("'LocalSchurComplement::apply':"
+						" Last defect after applying Dirichlet solver (step 3.b) was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
 	}
 
 //	4. Compute result vector
@@ -603,7 +608,7 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			}
 			else
 			{
-				UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': S_{Pi Pi is} "
+				UG_LOG("ERROR in 'PrimalSubassembledMatrixInverse::init': S_{Pi Pi} "
 						" needs to be inverted, but no CoarseSolver given.\n");
 				return false;
 			}
@@ -680,6 +685,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	u.set(0.0);
 
 	// (a) invoke Neumann solver to get \f$u_{\{I \Delta\}}^{(p)}\f$
+	FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a);
 	if(!m_pNeumannSolver->apply_return_defect(u, h))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
@@ -691,7 +697,13 @@ apply_return_defect(vector_type& u, vector_type& f)
 						" Last defect was " << convCheck->defect() <<
 						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
+	} else {
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect after applying Neumann solver (step 2.a) was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
 	}
+	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a)'
 
 	// (b) apply matrix to \f$[u_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
 	if(!m_pMatrix->apply(h, u))
@@ -702,7 +714,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		bSuccess = false;
 	}
 
-	// (c) compute h = f - h on primal.
+	// (c) compute h = f - h on primal (this h corresponds to \f$\tilde{f}_{\Pi}^{(p)}\f$!)
 	m_pFetiLayouts->vec_scale_add_on_primal(h, 1.0, f, -1.0, h);
 
 //	Create storage for u,f on primal root
@@ -733,7 +745,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		//	invert matrix
 			rootF.set_storage_type(PST_ADDITIVE);
 			rootU.set_storage_type(PST_CONSISTENT);
-			FETI_PROFILE_BEGIN(PrimalSubassMatInvApply_SolveCoarseProblem);
+			FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem);
 			if(!m_pCoarseProblemSolver->apply(rootU, rootF))
 			{
 				std::cout << "ERROR in 'PrimalSubassembledMatrixInverse::apply': "
@@ -741,7 +753,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						<< std::endl;
 				bSuccess = false;
 			}
-			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PrimalSubassMatInvApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
+			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
 		}
 	}
 
@@ -759,10 +771,11 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_pFetiLayouts->vec_use_inner_communication(u);
 	u.set_storage_type(PST_CONSISTENT);
 
+	FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_6b);
 	if(!m_pNeumannSolver->apply_return_defect(u, f)) // solve with Neumann matrix!
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
-						 "Could not solve Neumann problem (step 7) on Proc "
+						 "Could not solve Neumann problem (step 6.b) on Proc "
 							<< pcl::GetProcRank() << ".\n");
 
 		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
@@ -771,7 +784,13 @@ apply_return_defect(vector_type& u, vector_type& f)
 						" after " << convCheck->step() << " steps.\n");
 
 		bSuccess = false;
+	} else {
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect after applying Neumann solver (step 6.b) was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
 	}
+	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
 
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
@@ -788,6 +807,7 @@ template <typename TAlgebra>
 bool PrimalSubassembledMatrixInverse<TAlgebra>::
 apply(vector_type& x, const vector_type& b)
 {
+	FETI_PROFILE_FUNC();
 //	copy defect
 	vector_type d; d.resize(b.size());
 	d = b;
@@ -938,6 +958,7 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_return_defect(vector_type& u, vector_type& f)
 {
+//	FETI_PROFILE_FUNC(); // should report same times as in section 'applyLinearSolver' (see 'operator_util.h')
 //	FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect); // profiling complete method
 //	This function is used to solve the system Au=f. While the matrix A has
 //	already been passed in additive storage in the function init(), here are
@@ -966,7 +987,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	These vectors are used exclusively on the Dual unknowns, but for facility we
 //	use storage for a whole vector and only use its Dual entries.
 
-//	lagrange multiplier
+//	Lagrange multiplier
 	vector_type lambda; lambda.create(u.size());
 	m_fetiLayouts.vec_use_std_communication(lambda);
 
@@ -985,7 +1006,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 	vector_type t; t.create(u.size());
 	m_fetiLayouts.vec_use_std_communication(t);
 
-//	reset start value of lagrange multiplier
+//	set start value of vector of Lagrange multipliers
+	number lambdaStart = 0.0;
+	bool isLambdaStartZero;
+	if (lambdaStart == 0.0)	isLambdaStartZero = true; else 	isLambdaStartZero = false;
 	lambda.set(0.0);
 
 //	reset iteration count
@@ -1015,17 +1039,20 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Compute_D)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
 
+	if (!isLambdaStartZero) {
 // 	(b) Build t = F*lambda (t is additive afterwards)
-	FETI_PROFILE_BEGIN(FETISolverApply_Apply_F);
-	if(!apply_F(t, lambda))
-	{
-		UG_LOG("ERROR in 'FETISolver::apply': Unable "
-			   "to build t = F*p. Aborting.\n"); return false;
-	}
-	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Apply_F)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
+		FETI_PROFILE_BEGIN(FETISolverApply_Apply_F);
+		if(!apply_F(t, lambda))
+		{
+			UG_LOG("ERROR in 'FETISolver::apply': Unable "
+				   "to build t = F*p. Aborting.\n");
+			return false;
+		}
+		FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_Apply_F)' - Messpunkt ok, wenn 'ComputeDifferenceOnDelta()' als letzte Op. nicht stoert
 
 // (c) Subtract values on \Delta, r0 = r0 - t
-	m_fetiLayouts.vec_scale_append_on_dual(r, t, -1.0);
+		m_fetiLayouts.vec_scale_append_on_dual(r, t, -1.0);
+	}
 
 //	prepare appearance of conv check
 	prepare_conv_check();
@@ -1094,6 +1121,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 		if(m_pConvCheck->iteration_ended())
 		{
 			break;
+			FETI_PROFILE_END();	// additional end 'FETI_PROFILE_BEGIN(FETISolverApply_Lambda_iter_loop)' - Messpunkt ok, da Konvergenz-Check ausgefuehrt
 		}
 
 	// 	Preconditioning: apply z = M^-1 * r
@@ -1169,6 +1197,7 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_F(vector_type& f, const vector_type& v)
 {
+	FETI_PROFILE_FUNC();
 //	Help vector
 	vector_type fTmp; fTmp.create(v.size());
 	fTmp.set_storage_type(PST_CONSISTENT);
@@ -1208,6 +1237,7 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 compute_d(vector_type& d, const vector_type& f)
 {
+	FETI_PROFILE_FUNC();
 //	On entry, the vector f is filled with values for the dual unknowns. We make
 //	no assumption on the values in the others (neglected unknowns).
 
@@ -1242,6 +1272,7 @@ template <typename TAlgebra>
 bool FETISolver<TAlgebra>::
 apply_M_inverse(vector_type& z, const vector_type& r)
 {
+	FETI_PROFILE_FUNC();
 //	The incoming vector r is defined on the space V := range{B_{Delta}}. Thus,
 //	on entry we assume the vector z to be consistent on the dual unknowns. The
 //	primal and inner values are assumed to be undefined, since they are not needed
@@ -1278,6 +1309,7 @@ apply_M_inverse(vector_type& z, const vector_type& r)
 	{
 		UG_LOG("ERROR in FETISolver::apply_M_inverse: Could not apply"
 				" local Schur complement. \n");
+		FETI_PROFILE_END();	// additional end 'FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
 		return false;
 	}
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApply_M_inv_ApplyLocalSchurComplement)' - Messpunkt ok, da 'AllProcsTrue()' am Ende von 'apply()' aufgerufen wird.
