@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <vector>
+#include <algorithm>
 #include "serialization.h"
 
 using namespace std;
@@ -22,6 +23,7 @@ enum GeometricObjectID
 {
 	GOID_END_OF_GRID = -2,
 	GOID_INVALID = -1,
+
 	GOID_GEOMETRIC_OBJECT = 0,
 	GOID_VERTEX_BASE = 10,
 	GOID_VERTEX = 11,
@@ -42,8 +44,100 @@ enum GeometricObjectID
 	GOID_HEXAHEDRON = 70,
 	GOID_PRISM = 80,
 	GOID_PYRAMID = 90,
+
+	GOID_NEW_LEVEL = 1000
 };
 
+////////////////////////////////////////////////////////////////////////
+//	GRID HEADER
+enum GridHeaderConstants{
+	GHC_HEADER_BEGIN = 1,
+	GHC_HEADER_END = 2,
+	GHC_READ_OPTIONS = 3,
+};
+
+enum GridHeaderReadOptions{
+	GHRO_READ_DEFAULT = 0,
+	GHRO_READ_LEVELS =	1 << 0,
+	GHRO_READ_PARENTS =	1 << 1
+};
+
+struct GridHeader{
+	GridHeader() :
+		m_readOptions(GHRO_READ_DEFAULT) {}
+	GridHeader(uint readOptions) :
+		m_readOptions(readOptions)	{}
+
+	bool contains_option(uint option){
+		return (m_readOptions & option) == option;
+	}
+
+	uint m_readOptions;
+};
+
+static void WriteGridHeader(const GridHeader& gridHeader, std::ostream& out)
+{
+//	we use a temporary integer
+//	the header begins
+	int t = GHC_HEADER_BEGIN;
+	out.write((char*)&t, sizeof(int));
+
+//	we now write the read options
+	t = GHC_READ_OPTIONS;
+	out.write((char*)&t, sizeof(int));
+	out.write((char*)&gridHeader.m_readOptions, sizeof(uint));
+
+//	the header ends
+	t = GHC_HEADER_END;
+	out.write((char*)&t, sizeof(int));
+}
+
+static bool ReadGridHeader(GridHeader& gridHeader, std::istream& in)
+{
+//	initialize the header to its defaults
+	gridHeader = GridHeader();
+
+//	make sure that the header begins properly
+	int t;
+	in.read((char*)&t, sizeof(int));
+
+	if(t != GHC_HEADER_BEGIN)
+		return false;
+
+	bool bHeaderOpen = true;
+	while(!in.eof() && bHeaderOpen){
+	//	read the next symbol
+		in.read((char*)&t, sizeof(int));
+
+		switch(t){
+			case GHC_READ_OPTIONS:{
+				int opt;
+				in.read((char*)&opt, sizeof(uint));
+				gridHeader.m_readOptions = opt;
+			}break;
+
+			case GHC_HEADER_END:
+				bHeaderOpen = false;
+				break;
+		}
+	}
+
+	if(bHeaderOpen){
+	//	the header was not closed properly
+		return false;
+	}
+
+	return true;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+//	PARENT INFO
+///	Stores a tuple (type, index), identifying a parent.
+typedef std::pair<byte, int> ParentInfo;
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 //	SerializeGridElements
 bool SerializeGridElements(Grid& grid, std::ostream& out)
@@ -81,6 +175,10 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 
 	int tInt;
 	number tNumber;
+
+//	first we'll write the grid header.
+//	since we're writing a normal grid, we use the standard header.
+	WriteGridHeader(GridHeader(), out);
 
 //	prepare vertices and set num-vertices and num-hanging-vertices.
 	{
@@ -280,13 +378,32 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 
 ////////////////////////////////////////////////////////////////////////
 //	DeserializeGridElements
-bool DeserializeGridElements(Grid& grid, std::istream& in)
+bool DeserializeGridElements(Grid& grid, std::istream& in,
+							bool readGridHeader)
 {
 //TODO: add volume support
 	vector<VertexBase*>	vVrts;
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
 	
+	GridHeader gridHeader;
+	if(readGridHeader){
+		UG_LOG("reading grid header...\n");
+		if(!ReadGridHeader(gridHeader, in)){
+			UG_LOG("Invalid GridHeader.");
+			return false;
+		}
+	}
+
+	if(gridHeader.contains_option(GHRO_READ_LEVELS)){
+		UG_LOG("ERROR in DeserializeGridElements: READ_LEVELS not supported for flat grids.");
+		return false;
+	}
+	if(gridHeader.contains_option(GHRO_READ_PARENTS)){
+		UG_LOG("ERROR in DeserializeGridElements: READ_PARENTS not supported for flat grids.");
+		return false;
+	}
+
 //	create the vertices and store them in vVrts for later indexing.
 	{
 	//	iterate through the stream and create vertices
@@ -458,6 +575,9 @@ bool DeserializeGridElements(Grid& grid, std::istream& in)
 
 ////////////////////////////////////////////////////////////////////////
 //	writes the parent of the given element - with type and index
+//	This method relies on the fact, that mg is in marking mode and
+//	that all and only parents which have already been written to
+//	the stream are marked.
 template<class TElem>
 static void WriteParent(MultiGrid& mg, TElem* pElem,
 						Grid::VertexAttachmentAccessor<AInt>& aaIntVRT,
@@ -472,34 +592,46 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 	
 	if(pParent)
 	{
-		int parentType = pParent->base_object_type_id();
-		
+			int parentType = pParent->base_object_type_id();
+
 		switch(parentType)
 		{
 			case VERTEX:
-				type = GOID_VERTEX_BASE;
-				index = aaIntVRT[(VertexBase*)pParent];
-				out.write((char*)&type, sizeof(char));
-				out.write((char*)&index, sizeof(int));
-				return;
+				if(mg.is_marked(reinterpret_cast<VertexBase*>(pParent))){
+					type = GOID_VERTEX_BASE;
+					index = aaIntVRT[(VertexBase*)pParent];
+					out.write((char*)&type, sizeof(char));
+					out.write((char*)&index, sizeof(int));
+					return;
+				}
+				break;
 			case EDGE:
-				type = GOID_EDGE_BASE;
-				index = aaIntEDGE[(EdgeBase*)pParent];
-				out.write((char*)&type, sizeof(char));
-				out.write((char*)&index, sizeof(int));
-				return;
+				if(mg.is_marked(reinterpret_cast<EdgeBase*>(pParent))){
+					type = GOID_EDGE_BASE;
+					index = aaIntEDGE[(EdgeBase*)pParent];
+					out.write((char*)&type, sizeof(char));
+					out.write((char*)&index, sizeof(int));
+					return;
+				}
+				break;
 			case FACE:
-				type = GOID_FACE;
-				index = aaIntFACE[(Face*)pParent];
-				out.write((char*)&type, sizeof(char));
-				out.write((char*)&index, sizeof(int));
-				return;
+				if(mg.is_marked(reinterpret_cast<Face*>(pParent))){
+					type = GOID_FACE;
+					index = aaIntFACE[(Face*)pParent];
+					out.write((char*)&type, sizeof(char));
+					out.write((char*)&index, sizeof(int));
+					return;
+				}
+				break;
 			case VOLUME:
-				type = GOID_VOLUME;
-				index = aaIntVOL[(Volume*)pParent];
-				out.write((char*)&type, sizeof(char));
-				out.write((char*)&index, sizeof(int));
-				return;
+				if(mg.is_marked(reinterpret_cast<Volume*>(pParent))){
+					type = GOID_VOLUME;
+					index = aaIntVOL[(Volume*)pParent];
+					out.write((char*)&type, sizeof(char));
+					out.write((char*)&index, sizeof(int));
+					return;
+				}
+				break;
 		}
 	}
 
@@ -510,6 +642,7 @@ static void WriteParent(MultiGrid& mg, TElem* pElem,
 	out.write((char*)&index, sizeof(int));
 
 }
+
 
 ////////////////////////////////////////////////////////////////////////
 bool SerializeMultiGridElements(MultiGrid& mg,
@@ -540,6 +673,9 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	int tInt;
 	number tNumber;
 
+//	first we'll write the header. we have to enable level- and parent-reads
+	WriteGridHeader(GridHeader(GHRO_READ_LEVELS | GHRO_READ_PARENTS), out);
+
 //	iterate through the different levels
 	uint numLevels = mgoc.num_levels();
 	int vrtInd = 0;
@@ -547,8 +683,16 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 	int faceInd = 0;
 	int volInd = 0;
 	
+//	we have to mark all elements which were already written
+	mg.begin_marking();
+
 	for(uint iLevel = 0; iLevel < numLevels; ++iLevel)
 	{
+	//	write the level
+		tInt = GOID_NEW_LEVEL;
+		out.write((char*)&tInt, sizeof(int));
+		out.write((char*)&iLevel, sizeof(uint));
+
 	//	prepare vertices and set num-vertices and num-hanging-vertices.
 		{		
 		//	write vertices
@@ -563,10 +707,10 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 					iter != mgoc.end<Vertex>(iLevel); ++iter)
 				{
 					aaIntVRT[*iter] = vrtInd++;
+					mg.mark(*iter);
 				//	write the parent
 					WriteParent(mg, *iter, aaIntVRT, aaIntEDGE, aaIntFACE, aaIntVOL, out);
 				}
-				
 			}
 			
 		//	write hanging vertices
@@ -582,6 +726,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				for(HangingVertexIterator iter = mgoc.begin<HangingVertex>(iLevel);
 					iter != mgoc.end<HangingVertex>(iLevel); ++iter)
 				{
+					mg.mark(*iter);
 					tNumber = (*iter)->get_local_coordinate_1();
 					out.write((char*)&tNumber, sizeof(number));
 					tNumber = (*iter)->get_local_coordinate_2();
@@ -609,6 +754,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 					iter != mgoc.end<Edge>(iLevel); ++iter)
 				{
 					Edge* e = *iter;
+					mg.mark(e);
 					out.write((char*)&aaIntVRT[e->vertex(0)], sizeof(int));
 					out.write((char*)&aaIntVRT[e->vertex(1)], sizeof(int));
 					aaIntEDGE[*iter] = edgeInd++;
@@ -633,6 +779,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 					iter != mgoc.end<Triangle>(iLevel); ++iter)
 				{
 					Triangle* t = *iter;
+					mg.mark(t);
 					out.write((char*)&aaIntVRT[t->vertex(0)], sizeof(int));
 					out.write((char*)&aaIntVRT[t->vertex(1)], sizeof(int));
 					out.write((char*)&aaIntVRT[t->vertex(2)], sizeof(int));
@@ -653,6 +800,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 					iter != mgoc.end<Quadrilateral>(iLevel); ++iter)
 				{
 					Quadrilateral* q = *iter;
+					mg.mark(q);
 					out.write((char*)&aaIntVRT[q->vertex(0)], sizeof(int));
 					out.write((char*)&aaIntVRT[q->vertex(1)], sizeof(int));
 					out.write((char*)&aaIntVRT[q->vertex(2)], sizeof(int));
@@ -676,6 +824,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				iter != mgoc.end<Tetrahedron>(iLevel); ++iter)
 			{
 				Tetrahedron* t = *iter;
+				mg.mark(t);
 				out.write((char*)&aaIntVRT[t->vertex(0)], sizeof(int));
 				out.write((char*)&aaIntVRT[t->vertex(1)], sizeof(int));
 				out.write((char*)&aaIntVRT[t->vertex(2)], sizeof(int));
@@ -697,6 +846,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				iter != mgoc.end<Hexahedron>(iLevel); ++iter)
 			{
 				Hexahedron* h = *iter;
+				mg.mark(h);
 				out.write((char*)&aaIntVRT[h->vertex(0)], sizeof(int));
 				out.write((char*)&aaIntVRT[h->vertex(1)], sizeof(int));
 				out.write((char*)&aaIntVRT[h->vertex(2)], sizeof(int));
@@ -722,6 +872,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				iter != mgoc.end<Prism>(iLevel); ++iter)
 			{
 				Prism* p = *iter;
+				mg.mark(p);
 				out.write((char*)&aaIntVRT[p->vertex(0)], sizeof(int));
 				out.write((char*)&aaIntVRT[p->vertex(1)], sizeof(int));
 				out.write((char*)&aaIntVRT[p->vertex(2)], sizeof(int));
@@ -745,6 +896,7 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 				iter != mgoc.end<Pyramid>(iLevel); ++iter)
 			{
 				Pyramid* p = *iter;
+				mg.mark(p);
 				out.write((char*)&aaIntVRT[p->vertex(0)], sizeof(int));
 				out.write((char*)&aaIntVRT[p->vertex(1)], sizeof(int));
 				out.write((char*)&aaIntVRT[p->vertex(2)], sizeof(int));
@@ -757,6 +909,8 @@ bool SerializeMultiGridElements(MultiGrid& mg,
 		}
 	}
 	
+	mg.end_marking();
+
 //	mark the end of the grid-section
 	tInt = GOID_END_OF_GRID;
 	out.write((char*)&tInt, sizeof(int));
@@ -839,8 +993,6 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 									std::vector<Face*>* pvFaces,
 									std::vector<Volume*>* pvVols)
 {
-//TODO: add volume support
-
 //	if the user specified element-vectors, we will use them.
 //	if not we'll use our own.
 	vector<VertexBase*>	vVrtsTMP;
@@ -866,9 +1018,26 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 	vEdges.clear();
 	vFaces.clear();
 	vVols.clear();
-	
+
+//	Read the header first
+	GridHeader gridHeader;
+	if(!ReadGridHeader(gridHeader, in)){
+		UG_LOG("Invalid GridHeader.");
+		return false;
+	}
+
+	if(!gridHeader.contains_option(GHRO_READ_LEVELS)){
+		UG_LOG("ERROR in DeserializeMultiGridElements: READ_LEVELS required for MultiGrids.");
+		return false;
+	}
+	if(!gridHeader.contains_option(GHRO_READ_PARENTS)){
+		UG_LOG("ERROR in DeserializeMultiGridElements: READ_PARENTS required for MultiGrids.");
+		return false;
+	}
+
 //	create the vertices and store them in vVrts for later indexing.
 	{
+		uint currentLevel = 0;
 	//	iterate through the stream and create vertices
 		while(!in.eof())
 		{
@@ -879,10 +1048,19 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 		//	check whether we reached the end of the grid-description.
 			if(goid == GOID_END_OF_GRID)
 				break;
-	
+
+			if(goid == GOID_NEW_LEVEL){
+			//	read the current level and start at the beginning of the loop
+				in.read((char*)&currentLevel, sizeof(uint));
+				UG_LOG("NEW LEVEL: " << currentLevel << endl);
+				continue;
+			}
+
 		//	we have to read more elements. check how many.
 			int numElems = 0;
 			in.read((char*)&numElems, sizeof(int));
+
+			UG_LOG("GOID: " << goid << ", NumElems: " << numElems << endl);
 
 		//	depending on the goid we'll create new elements.
 			switch(goid)
@@ -892,7 +1070,10 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 						for(int i = 0; i < numElems; ++i)
 						{
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							vVrts.push_back(*mg.create<Vertex>(parent));
+							if(parent)
+								vVrts.push_back(*mg.create<Vertex>(parent));
+							else
+								vVrts.push_back(*mg.create<Vertex>(currentLevel));
 						}
 					}break;
 					
@@ -905,7 +1086,11 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&coord1, sizeof(number));
 							in.read((char*)&coord2, sizeof(number));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							HangingVertex* hv = *mg.create<HangingVertex>(parent);
+							HangingVertex* hv;
+							if(parent)
+								hv = *mg.create<HangingVertex>(parent);
+							else
+								hv = *mg.create<HangingVertex>(currentLevel);
 							hv->set_local_coordinate_1(coord1);
 							hv->set_local_coordinate_2(coord2);
 							vVrts.push_back(hv);
@@ -919,7 +1104,11 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&i1, sizeof(int));
 							in.read((char*)&i2, sizeof(int));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							Edge* e = *mg.create<Edge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
+							Edge* e;
+							if(parent)
+								e = *mg.create<Edge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), parent);
+							else
+								e = *mg.create<Edge>(EdgeDescriptor(vVrts[i1], vVrts[i2]), currentLevel);
 							vEdges.push_back(e);
 						}
 					}break;
@@ -933,11 +1122,15 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&i3, sizeof(int));
 
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							Triangle* t = *mg.create<Triangle>(TriangleDescriptor(
-																	vVrts[i1],
-																	vVrts[i2],
-																	vVrts[i3]),
-																	parent);
+							Triangle* t;
+							if(parent)
+								t = *mg.create<Triangle>(TriangleDescriptor(
+															vVrts[i1], vVrts[i2],
+															vVrts[i3]), parent);
+							else
+								t = *mg.create<Triangle>(TriangleDescriptor(
+															vVrts[i1], vVrts[i2],
+															vVrts[i3]), currentLevel);
 							vFaces.push_back(t);
 						}
 					}break;
@@ -951,12 +1144,15 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							Quadrilateral* q = *mg.create<Quadrilateral>(QuadrilateralDescriptor(
-																	vVrts[i1],
-																	vVrts[i2],
-																	vVrts[i3],
-																	vVrts[i4]),
-																	parent);
+							Quadrilateral* q;
+							if(parent)
+								q = *mg.create<Quadrilateral>(QuadrilateralDescriptor(
+															vVrts[i1], vVrts[i2], vVrts[i3],
+															vVrts[i4]), parent);
+							else
+								q = *mg.create<Quadrilateral>(QuadrilateralDescriptor(
+															vVrts[i1], vVrts[i2], vVrts[i3],
+															vVrts[i4]), currentLevel);
 							vFaces.push_back(q);
 						}
 					}break;
@@ -970,9 +1166,15 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&i3, sizeof(int));
 							in.read((char*)&i4, sizeof(int));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							Tetrahedron* t = *mg.create<Tetrahedron>(TetrahedronDescriptor(
+							Tetrahedron* t;
+							if(parent)
+								t = *mg.create<Tetrahedron>(TetrahedronDescriptor(
 																	vVrts[i1], vVrts[i2],
 																	vVrts[i3], vVrts[i4]), parent);
+							else
+								t = *mg.create<Tetrahedron>(TetrahedronDescriptor(
+																	vVrts[i1], vVrts[i2],
+																	vVrts[i3], vVrts[i4]), currentLevel);
 							vVols.push_back(t);
 						}
 					}break;
@@ -990,11 +1192,17 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&i7, sizeof(int));
 							in.read((char*)&i8, sizeof(int));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							Hexahedron* h = *mg.create<Hexahedron>(HexahedronDescriptor(
-																	vVrts[i1], vVrts[i2],
-																	vVrts[i3], vVrts[i4],
-																	vVrts[i5], vVrts[i6],
+							Hexahedron* h;
+							if(parent)
+								h = *mg.create<Hexahedron>(HexahedronDescriptor(
+																	vVrts[i1], vVrts[i2], vVrts[i3],
+																	vVrts[i4], vVrts[i5], vVrts[i6],
 																	vVrts[i7], vVrts[i8]), parent);
+							else
+								h = *mg.create<Hexahedron>(HexahedronDescriptor(
+																	vVrts[i1], vVrts[i2], vVrts[i3],
+																	vVrts[i4], vVrts[i5], vVrts[i6],
+																	vVrts[i7], vVrts[i8]), currentLevel);
 							vVols.push_back(h);
 						}
 					}break;
@@ -1010,10 +1218,15 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&i5, sizeof(int));
 							in.read((char*)&i6, sizeof(int));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							Prism* p = *mg.create<Prism>(PrismDescriptor(
-															vVrts[i1], vVrts[i2],
-															vVrts[i3], vVrts[i4],
+							Prism* p;
+							if(parent)
+								p = *mg.create<Prism>(PrismDescriptor(
+															vVrts[i1], vVrts[i2], vVrts[i3], vVrts[i4],
 															vVrts[i5], vVrts[i6]), parent);
+							else
+								p = *mg.create<Prism>(PrismDescriptor(
+															vVrts[i1], vVrts[i2], vVrts[i3], vVrts[i4],
+															vVrts[i5], vVrts[i6]), currentLevel);
 							vVols.push_back(p);
 						}
 					}break;
@@ -1028,10 +1241,15 @@ bool DeserializeMultiGridElements(MultiGrid& mg, std::istream& in,
 							in.read((char*)&i4, sizeof(int));
 							in.read((char*)&i5, sizeof(int));
 							GeometricObject* parent = GetParent(in, vVrts, vEdges, vFaces, vVols);
-							Pyramid* p = *mg.create<Pyramid>(PyramidDescriptor(
-																vVrts[i1], vVrts[i2],
-																vVrts[i3], vVrts[i4],
-																vVrts[i5]), parent);
+							Pyramid* p;
+							if(parent)
+								p = *mg.create<Pyramid>(PyramidDescriptor(
+																vVrts[i1], vVrts[i2], vVrts[i3],
+																vVrts[i4], vVrts[i5]), parent);
+							else
+								p = *mg.create<Pyramid>(PyramidDescriptor(
+																vVrts[i1], vVrts[i2], vVrts[i3],
+																vVrts[i4], vVrts[i5]), currentLevel);
 							vVols.push_back(p);
 						}
 					}break;

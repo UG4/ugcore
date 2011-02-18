@@ -61,7 +61,12 @@ bool SerializeGridElements(Grid& grid, GeometricObjectCollection goc,
 
 ////////////////////////////////////////////////////////////////////////
 ///	Creates grid elements from a binary stream
-bool DeserializeGridElements(Grid& grid, std::istream& in);
+/**	Old versions of SerializeGrid did not support grid-headers.
+ * This is why you can specify via readGridHeader whether a
+ * header should be read (default is true).
+ */
+bool DeserializeGridElements(Grid& grid, std::istream& in,
+							bool readGridHeader = true);
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -72,6 +77,8 @@ bool DeserializeGridElements(Grid& grid, std::istream& in);
 //	SerializeMultiGridElements
 ///	writes a part of the elements of a MultiGrid to a binary stream.
 /**
+ * THIS METHOD USES Grid::mark.
+ *
  * The passed GeometricObjectCollection goc may only
  * reference elements of the given grid. It is important, that the goc
  * is complete - that means that all referenced vertices are

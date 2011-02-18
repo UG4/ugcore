@@ -204,7 +204,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 //	the whole genealogy
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
-							  false, &msel);
+							  true, &msel);
 /*
 	UG_LOG("Testing Vertex Distribution Layouts:\n");
 	if(!TestDistributionLayouts(vVertexLayouts))
@@ -557,6 +557,7 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 				 GridLayoutMap& gridLayoutMapOut,
 				 int srcProcID, bool createVerticalLayouts)
 {
+UG_LOG("ReceiveGrid...\n");
 //	receive the stream-size
 	int streamSize;
 	pcl::ReceiveData(&streamSize, srcProcID, sizeof(int), 38);
@@ -564,11 +565,11 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 //	receive the buffer
 	BinaryStream binaryStream(streamSize);
 	pcl::ReceiveData(binaryStream.buffer(), srcProcID, streamSize, 39);
-
+UG_LOG("  received data\n");
 //	fill the grid and the layout
 	DeserializeGridAndDistributionLayouts(mgOut, gridLayoutMapOut,
 											binaryStream);
-
+UG_LOG("  deserialized grid and distribution layouts\n");
 //	if vertical layouts shall be created, do it now.
 //	note that only surface-nodes are assigned to vertical interfaces.
 	if(createVerticalLayouts){
@@ -577,13 +578,13 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 		AddVerticalSlaveInterfaces<Face>(gridLayoutMapOut, mgOut, srcProcID);
 		AddVerticalSlaveInterfaces<Volume>(gridLayoutMapOut, mgOut, srcProcID);
 	}
-
+UG_LOG("  created vertical slave interfaces\n");
 //	deserialize subset handler
 	if(!DeserializeSubsetHandler(mgOut, shOut,
 								mgOut.get_geometric_object_collection(),
 								binaryStream))
 		return false;
-
+UG_LOG("  deserialized subset handler\n");
 //	read the attached data
 	if(!mgOut.has_vertex_attachment(aPosition))
 		mgOut.attach_to_vertices(aPosition);
@@ -595,6 +596,7 @@ bool ReceiveGrid(MultiGrid& mgOut, ISubsetHandler& shOut,
 											binaryStream))
 			return false;
 	}
+UG_LOG("  deserialized position attachments\n");
 /*
 	if(pcl::IsOutputProc())
 		SaveGridToFile(mgOut, "tmpOutProcHierarchy.ugx",

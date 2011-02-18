@@ -36,7 +36,7 @@ bool SaveGridToLGB(Grid& grid, const char* filename,
 	byte endianess = 1;
 	byte intSize = (byte)sizeof(int);
 	byte numberSize = (byte)sizeof(number);
-	int versionNumber = 2;
+	int versionNumber = 3;
 	
 	out.write((char*)&endianess, sizeof(byte));
 	out.write((char*)&intSize, sizeof(byte));
@@ -118,11 +118,14 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 		LOG("ERROR in LoadGridFromLGB: bad number-size\n");
 		return false;
 	}
-	if(versionNumber != 2)
+	if((versionNumber < 2) || (versionNumber > 3))
 	{
-		LOG("ERROR in LoadGridFromLGB: bad file-version: " << versionNumber << ". Expected 2.\n");
+		LOG("ERROR in LoadGridFromLGB: bad file-version: " << versionNumber << ". Expected 2 or 3.\n");
 		return false;
 	}
+
+//	from version 3 on grids write a small header
+	bool readGridHeader = (versionNumber >= 3);
 
 //	read the options
 	uint opts;
@@ -134,7 +137,7 @@ bool LoadGridFromLGB(Grid& grid, const char* filename,
 	grid.set_options(GRIDOPT_NONE);
 
 //	serialize the grid
-	DeserializeGridElements(grid, in);
+	DeserializeGridElements(grid, in, readGridHeader);
 
 //	serialize the position-attachment
 	DeserializeAttachment<VertexBase>(grid, aPos, in);

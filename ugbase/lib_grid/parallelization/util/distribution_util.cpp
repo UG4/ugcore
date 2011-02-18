@@ -181,13 +181,11 @@ void CreateDistributionLayouts(
 	//	shouldn't be distributed. In this case only associated geometric
 	//	objects have to be selected.
 //TODO: do it as commented above and use the uncommented code below.
-		SelectAssociatedGenealogy(msel, true);//remove this
-	/*
+		//SelectAssociatedGenealogy(msel, true);//remove this
 		if(distributeGenealogy)
 			SelectAssociatedGenealogy(msel, true);
 		else
 			SelectAssociatedGeometricObjects(msel);
-	*/
 
 		int interfacesOnLevelOnly = -1;
 		if(!distributeGenealogy)
@@ -441,7 +439,7 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 	vector<EdgeBase*>	vEdges;
 	vector<Face*>		vFaces;
 	vector<Volume*>		vVols;
-
+UG_LOG("    deserializing MultiGrid elements\n");
 	DeserializeMultiGridElements(mgOut, in, &vVrts, &vEdges, &vFaces, &vVols);
 
 //	read the layouts
@@ -455,6 +453,8 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 	DeserializeLayoutInterfaces<Volume>(
 					gridLayoutOut.volume_layout_hierarchy_map(), vVols, in);
 */
+
+UG_LOG("    deserializing distribution layout interfaces\n");
 	DeserializeDistributionLayoutInterfaces<VertexBase>(gridLayoutOut,
 														vVrts, in);
 	DeserializeDistributionLayoutInterfaces<EdgeBase>(gridLayoutOut,
@@ -463,6 +463,7 @@ void DeserializeGridAndDistributionLayouts(MultiGrid& mgOut,
 													vFaces, in);
 	DeserializeDistributionLayoutInterfaces<Volume>(gridLayoutOut,
 													vVols, in);
+UG_LOG("    deserialized distribution layout interfaces - done\n");
 
 //DEBUG
 /*

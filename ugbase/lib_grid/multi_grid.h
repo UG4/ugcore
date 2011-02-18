@@ -224,6 +224,7 @@ class MultiGrid : public Grid, public GridObserver
 		using Grid::end;
 		using Grid::num;
 		using Grid::get_geometric_object_collection;
+		using Grid::create;
 
 	public:
 		MultiGrid();
@@ -236,6 +237,25 @@ class MultiGrid : public Grid, public GridObserver
 
 		void enable_hierarchical_insertion(bool bEnable);
 		inline bool hierarchical_insertion_enabled()	{return m_bHierarchicalInsertion;}
+
+	////////////////////////////////////////////////
+	//	element creation
+	///	create a custom element on a specific level.
+	/**
+	 * TGeomObj has to be a geometric object type as described in geometric_base_objects.h.
+	 * This method should only be used if a geometric object has to be created
+	 * without a parent in higher levels of the hierarchy.
+	 * Use the create method derived from ug::Grid if you want to specify a parent.
+	 * \{ */
+		template<class TGeomObj>
+		typename geometry_traits<TGeomObj>::iterator
+		create(size_t level);
+
+		template <class TGeomObj>
+		typename geometry_traits<TGeomObj>::iterator
+		create(const typename geometry_traits<TGeomObj>::Descriptor& descriptor,
+				size_t level);
+	/**	\} */
 
 		inline uint num_levels() const	{return m_hierarchy.num_subsets();}
 
