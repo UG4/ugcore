@@ -295,22 +295,25 @@ bool IsLonger(const std::string &a, const std::string &b)
 	return b.size() > a.size();
 }
 
-void PrintFileLineFunction(const char *source, int linedefined)
+
+
+string GetFileLine(const char *filename, size_t line)
 {
 	char buf[512];
-	fstream file(source+1, ios::in);
-	for(int i=0; i<linedefined; i++)
+	fstream file(filename, ios::in);
+	if(file.is_open() == false) return string("");
+	for(size_t i=0; i<line; i++)
 		file.getline(buf, 512);
-	char *s = buf+strspn(buf, " \t");
-	UG_LOG(s << " \t" << source << ":" << linedefined);
-
+	return string(buf+strspn(buf, " \t"));
 }
+
+
 
 void LuaList()
 {
 	bridge::Registry &reg = GetUGRegistry();
 	lua_State* L = script::GetDefaultLuaState();
-	std::vector<std::string> classes, functions, nonregistered, names, instantiations;
+	std::vector<std::string> classes, functions, internalFunctions, scriptFunctions, names, instantiations;
 	// iterate through all of lua's global string table
 	for(int i=0; i<G(L)->strt.size; i++)
 	{
@@ -336,7 +339,14 @@ void LuaList()
 			else if(FindFunction(reg, luastr))
 				functions.push_back(luastr);
 			else if(lua_isfunction(L, -1) || lua_iscfunction(L, -1))
-				nonregistered.push_back(luastr);
+			{
+				lua_Debug ar;
+				lua_getinfo(L, ">S", &ar);
+				if(ar.linedefined != -1)
+					scriptFunctions.push_back(luastr);
+				else
+					internalFunctions.push_back(luastr);
+			}
 			else if(lua_isuserdata(L, -1))
 				instantiations.push_back(luastr);
 			else
@@ -348,7 +358,8 @@ void LuaList()
 	sort(classes.begin(), classes.end());
 	sort(functions.begin(), functions.end());
 	sort(names.begin(), names.end());
-	sort(nonregistered.begin(), nonregistered.end());
+	sort(scriptFunctions.begin(), scriptFunctions.end());
+	sort(internalFunctions.begin(), internalFunctions.end());
 	sort(instantiations.begin(), instantiations.end());
 
 	UG_LOG(endl << "--- Classes: --------------------" << endl)
@@ -364,24 +375,30 @@ void LuaList()
 		UG_LOG(endl);
 	}
 
-	UG_LOG(endl << "--- Not registered Functions: ---" << endl)
+	UG_LOG(endl << "--- Script Functions: ---" << endl)
 
-	std::vector<std::string>::const_iterator m = max_element(nonregistered.begin(), nonregistered.end(), IsLonger);
-	for(size_t i=0; i<nonregistered.size(); i++)
+	std::vector<std::string>::const_iterator m = max_element(scriptFunctions.begin(), scriptFunctions.end(), IsLonger);
+	for(size_t i=0; i<scriptFunctions.size(); i++)
 	{
 		lua_Debug ar;
-		lua_getglobal(L, nonregistered[i].c_str());  /* get global 'f' */
+		lua_getglobal(L, scriptFunctions[i].c_str());  /* get global 'f' */
 		lua_getinfo(L, ">S", &ar);
 		if(ar.linedefined != -1)
 		{
-			UG_LOG(left << setw((*m).size()) << nonregistered[i] << ": ");
-			PrintFileLineFunction(ar.source, ar.linedefined);
+			UG_LOG(left << setw((*m).size()) << scriptFunctions[i] << ": ");
+			UG_LOG(GetFileLine(ar.source+1, ar.linedefined)); // skip '@'
 			UG_LOG(endl);
 		}
 		else
-		{ 	UG_LOG(nonregistered[i] << endl); }
+		{ 	UG_LOG(scriptFunctions[i] << endl); }
 		lua_pop(L, 1);
 	}
+
+	UG_LOG(endl << "--- Internal Functions: ---" << endl)
+
+	for(size_t i=0; i<internalFunctions.size(); i++)
+		UG_LOG(internalFunctions[i] << endl);
+
 
 
 	UG_LOG(endl << "--- Lua Objects: ----------------" << endl)
