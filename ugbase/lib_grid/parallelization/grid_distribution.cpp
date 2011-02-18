@@ -181,6 +181,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 								GridLayoutMap& layoutMap,
 								SubsetHandler& shPartition,
 								int localProcID,
+								bool distributeGenealogy,
 								std::vector<int>* pProcessMap)
 {
 
@@ -204,7 +205,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 //	the whole genealogy
 	CreateDistributionLayouts(vVertexLayouts, vEdgeLayouts, vFaceLayouts,
 							  vVolumeLayouts, mg, shPartition,
-							  true, &msel);
+							  distributeGenealogy, &msel);
 /*
 	UG_LOG("Testing Vertex Distribution Layouts:\n");
 	if(!TestDistributionLayouts(vVertexLayouts))

@@ -1,7 +1,11 @@
+// created by Sebastian Reiter
+// s.b.reiter@googlemail.com
+// y2010
 
 #include <cstring>
 #include "class_name_provider.h"
 #include "common/common.h"
+#include "common/util/smart_pointer.h"
 
 #ifndef __H__UG_BRIDGE__PARAMETER_STACK__
 #define __H__UG_BRIDGE__PARAMETER_STACK__
@@ -12,11 +16,63 @@
 																m_entries[m_numEntries].pClassNames = (clName);\
 																++m_numEntries;}
 
+#define PUSH_SP_TO_STACK(val, clName)				{*(SmartPtrVoid*)m_entries[m_numEntries].param.m_smartPtrWrapper = (val);\
+													 m_entries[m_numEntries].type = PT_SMART_POINTER;\
+													 m_entries[m_numEntries].pClassNames = (clName);\
+													 ++m_numEntries;}
 
 namespace ug
 {
 namespace bridge
 {
+
+////////////////////////////////////////////////////////////////////////
+/**	This is a helper class that can store the internal pointer and the
+ * reference count of a smartPtr. Note that the reference count
+ * is not increased or decreased by copies of the void wrapper.
+ * This indeed wouldn't make sense, since we couldn't perform
+ * delete on a void* anyways.
+ *
+ * Of course this wrapper is a little unsafe. It should thus only
+ * be used in places where it is sure that the associated SmartPtr
+ * lives longer than the wrapper.
+ *
+ * NOTE: You have to be especially careful with classes derived from
+ * multiple objects. This can lead to severe problems!
+ */
+/*
+class SmartPtrVoid
+{
+	public:
+		template <class T>
+		SmartPtrVoid(SmartPtr<T>& sp) :
+			m_ptr((void*)sp.get_impl()),
+			m_refCount(sp.get_refcount_ptr())	{}
+
+		template <class T>
+		SmartPtr<T> to_smart_pointer(){
+			return SmartPtr<T>(reinterpret_cast<T*>(m_ptr), m_refCount);
+		}
+
+		SmartPtrVoid& operator=(const SmartPtrVoid& sp)	{
+			m_ptr = sp.m_ptr;
+			m_refCount = sp.m_refCount;
+			return *this;
+		}
+
+		template <class T>
+		SmartPtrVoid& operator=(const SmartPtr<T>& sp)	{
+			m_ptr = (void*)sp.get_impl();
+			m_refCount = sp.get_refcount_ptr();
+			return *this;
+		}
+
+	private:
+		void*		m_ptr;
+		int*	m_refCount;
+};
+*/
+
 
 struct ERROR_BadIndex{
 	ERROR_BadIndex(int index) : m_index(index)	{}
@@ -69,6 +125,8 @@ enum ParameterTypes
 	PT_STRING,
 	PT_POINTER,
 	PT_CONST_POINTER,
+	PT_SMART_POINTER,
+	PT_CONST_SMART_POINTER,
 	PT_RANGE = 0xFFFF
 };
 
@@ -81,7 +139,7 @@ enum ParameterFlags
 ////////////////////////////////////////////////////////////////////////
 ///	A stack that can hold values together with their type-id.
 /**
- * This class is mainly used as a intermediate parameter storage during
+ * This class is mainly used as an intermediate parameter storage during
  * calls to ugbridge methods. Its focus is on being leightweight and fast,
  * which makes it a little unflexible at times.
  * Note that the maximal number of parameters is specified by the constant
@@ -89,7 +147,7 @@ enum ParameterFlags
  * this value should not be unnecessarily high. This wouldn't make sense anyway,
  * since the template-method-wrappers can't take any more parameters.
  *
- * Supported types are integer, number, string, reference and pointer.
+ * Supported types are integer, number, string, reference, pointer and smart-pointer.
  * References and pointers are stored in a void*. The user is responsible to
  * associate the correct types.
  *
@@ -156,12 +214,24 @@ class ParameterStack
 
 	/// user defined classes
 		template<class T>
-		inline void push_const_pointer(const T* ptr = NULL)	{PUSH_PARAM_TO_STACK(	m_const_ptr, (const void*)ptr, PT_CONST_POINTER,
+		inline void push_const_pointer(const T* ptr = NULL)	{PUSH_PARAM_TO_STACK(	m_constPtr, (const void*)ptr, PT_CONST_POINTER,
 																				&ClassNameProvider<T>::names());}
 
 		inline void push_const_pointer(const void* ptr, const std::vector<const char*>* classNames)
-														{PUSH_PARAM_TO_STACK(m_const_ptr, (const void*)ptr, PT_CONST_POINTER, classNames);}
+														{PUSH_PARAM_TO_STACK(m_constPtr, ptr, PT_CONST_POINTER, classNames);}
+/*
+	/// SmartPtrs to user defined classes
+		template<class T>
+		inline void push_smart_pointer(SmartPtr<T> ptr = SmartPtr<T>(NULL))
+			{
+				PUSH_SP_TO_STACK(ptr, &ClassNameProvider<T>::names());
+			}
 
+		inline void push_smart_pointer(SmartPtrVoid ptr, const std::vector<const char*>* classNames)
+			{
+				PUSH_SP_TO_STACK(ptr, classNames);
+			}
+*/
 	////////////////////////////////
 	//	get
 		uint get_type(int index) const
@@ -273,7 +343,7 @@ class ParameterStack
 			if(e.type == PT_CONST_POINTER)
 			{
 				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return reinterpret_cast<const T*>(e.param.m_const_ptr);
+					return reinterpret_cast<const T*>(e.param.m_constPtr);
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
 			}
@@ -287,11 +357,39 @@ class ParameterStack
 
 			const Entry& e = m_entries[index];
 			if(e.type == PT_CONST_POINTER)
-				return e.param.m_const_ptr;
+				return e.param.m_constPtr;
 
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}
+/*
+		template <class T>
+		SmartPtr<T> to_smart_pointer(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 
+			const Entry& e = m_entries[index];
+			if(e.type == PT_SMART_POINTER)
+			{
+				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
+					return ((SmartPtrVoid*)e.param.m_smartPtrWrapper)->to_smart_pointer<T>();
+				else
+					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+			}
+
+			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
+		}
+
+		SmartPtrVoid to_smart_pointer(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			const Entry& e = m_entries[index];
+			if(e.type == PT_SMART_POINTER)
+				return *(SmartPtrVoid*)e.param.m_smartPtrWrapper;
+
+			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
+		}
+*/
 	////////////////////////////////
 	//	set		
 		void set_bool(int index, bool val)
@@ -380,7 +478,7 @@ class ParameterStack
 			
 			Entry& e = m_entries[index];
 			if(e.type == PT_CONST_POINTER)
-				e.param.m_const_ptr = (void*)ptr;
+				e.param.m_constPtr = (void*)ptr;
 			else
 				throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}
@@ -399,7 +497,8 @@ class ParameterStack
 			number m_number;
 			const char* m_string;
 			void* m_ptr;
-			const void* m_const_ptr;
+			const void* m_constPtr;
+			//byte m_smartPtrWrapper[sizeof(SmartPtrVoid)];
 		};
 		
 		struct Entry{			

@@ -67,6 +67,7 @@ bool DistributeGrid_KeepSrcGrid(MultiGrid& mg, ISubsetHandler& sh,
 								GridLayoutMap& layoutMap,
 								SubsetHandler& shPartition,
 								int localProcID,
+								bool distributeGenealogy = false,
 								std::vector<int>* pProcessMap = NULL);
 								
 ////////////////////////////////////////////////////////////////////////

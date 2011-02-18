@@ -171,17 +171,15 @@ void CreateDistributionLayouts(
 		msel.select(sh.begin<Volume>(i), sh.end<Volume>(i));
 //TODO: overlap can be easily handled here! simply increase the selection.
 //		eventually we first would have to select all associated elements.
-	//	the hierarchy has to be complete. make sure the whole geneology
+	//	the hierarchy has to be complete. make sure the whole genealogy
 	//	is selected. By passing true, all associated elements of lower
 	//	dimension will be selected, too.
 
 	//	if the whole genealogy shall be distributed, then select it here.
 	//	associated elements will automatically be selected.
-	//	If howerver vertical interfaces shall be created, the genealogy
+	//	If however vertical interfaces shall be created, the genealogy
 	//	shouldn't be distributed. In this case only associated geometric
 	//	objects have to be selected.
-//TODO: do it as commented above and use the uncommented code below.
-		//SelectAssociatedGenealogy(msel, true);//remove this
 		if(distributeGenealogy)
 			SelectAssociatedGenealogy(msel, true);
 		else
