@@ -72,6 +72,8 @@ string GetLuaTypeString(lua_State* L, int index)
 	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
 	if(lua_isuserdata(L, index))
 	{
+		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const)
+			str.append("const ");
 		if(lua_getmetatable(L, index) == 0)
 			str.append("userdata/");
 		else
@@ -90,7 +92,7 @@ string GetLuaTypeString(lua_State* L, int index)
 				const std::vector<const char*> *names = (const std::vector<const char*>*) lua_touserdata(L, -1);
 				lua_pop(L, 2);
 				if(names->size() <= 0) str.append("userdata/");
-				else { str.append((*names)[0]); str.append("/"); }
+				else { str.append((*names)[0]); str.append("*/"); }
 			}
 		}
 	}
@@ -100,6 +102,24 @@ string GetLuaTypeString(lua_State* L, int index)
 		return string("unknown type");
 	else
 		return str.substr(0, str.size()-1);
+}
+
+/**
+ *
+ * \returns	String describing the parameters on the lua stack
+ * ex. "GlobalMultiGridRefiner*, LuaUserNumber2d*, number, string"
+ */
+static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
+{
+	string str;
+	bool bFirst=true;
+	int index = offsetToFirstParam + 1; // stack-indices start with 1
+	for(; lua_type(L, index) != LUA_TNONE; index++)
+	{
+		if(!bFirst) str.append(", "); else bFirst = false;
+		str.append(GetLuaTypeString(L, index));
+	}
+	return str;
 }
 
 
@@ -283,6 +303,8 @@ static int LuaStackToParams(ParameterStack& params,
 	return badParam;
 }
 
+
+
 ///	Pushes the parameter-values to the Lua-Stack.
 /**
  * \returns The number of items pushed to the stack.
@@ -375,7 +397,7 @@ static int LuaProxyFunction(lua_State* L)
 	}
 	
 	if(badParam > 0){
-		UG_LOG("ERROR occured during call to " << funcGrp->name());
+		UG_LOG("ERROR occured during call to " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << ")");
 		UG_LOG(": No matching overload found!\n");
 		UG_LOG("Candidates are:\n");
 		for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
