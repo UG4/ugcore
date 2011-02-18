@@ -49,6 +49,18 @@ public:
 	 */
 	ClassHierarchy *find_class(const char *name);
 
+	bool operator < (const ClassHierarchy &other) const
+	{
+		return name < other.name;
+	}
+
+	void sort()
+	{
+		std::sort(subclasses.begin(), subclasses.end());
+		for(size_t i=0; i<subclasses.size(); i++)
+			subclasses[i].sort();
+	}
+
 	std::string name;
 	bool bGroup;
 	std::vector<ClassHierarchy> subclasses;
@@ -61,7 +73,6 @@ void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg);
 /**
  * Finds the class classname in the default ug registry and returns IExportedClass pointer if found, otherwise NULL
  */
-const IExportedClass *FindClass(const char* classname);
 bool PrintFunctionInfo(Registry &reg, const char *functionname);
 void PrintFunctionInfo(const ExportedFunctionBase &thefunc, bool isConst=false, const char *classname=NULL, const char *highlightclassname=NULL);
 

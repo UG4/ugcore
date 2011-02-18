@@ -28,11 +28,13 @@ extern Registry& GetUGRegistry();
 
 void ClassHierarchy::insert_class(const IExportedClass &c)
 {
+
 	//	get name and visualization options of function
 	std::vector<std::string> vGroups;
 	TokenizeString(c.group(), vGroups, '/');
 
 	ClassHierarchy *base = this;
+
 	for(vector<std::string>::const_iterator it = vGroups.begin(); it != vGroups.end(); ++it)
 	{
 		const std::string thename = TrimString(*it);
@@ -106,6 +108,7 @@ void GetClassHierarchy(ClassHierarchy &hierarchy, const Registry &reg)
 	hierarchy.name = "UGBase";
 	for(size_t i=0; i<reg.num_classes(); ++i)
 		hierarchy.insert_class(reg.get_class(i));
+	hierarchy.sort();
 }
 
 
