@@ -30,14 +30,14 @@ namespace ug{
  */
 template <typename TFVGeometry>
 bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
-                                    const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCVF],
+                                    const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
                                     number vCornerPress[TFVGeometry::m_numSCV],
                                     const int StabMethod,
                                     const MathVector<TFVGeometry::world_dim> vIPVelUpwindShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
                                     const number vConvLength[TFVGeometry::m_numSCVF],
                                     const number dt,
                                     bool bTimeDependent,
-                                    const MathVector<TFVGeometry::world_dim> vCornerVelsOld[TFVGeometry::m_numSCVF],
+                                    const MathVector<TFVGeometry::world_dim> vCornerVelsOld[TFVGeometry::m_numSCV],
  									number kinematicViscosity,
                                     MathVector<TFVGeometry::world_dim> vIPStabVelShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][(TFVGeometry::world_dim)+1])
 {
@@ -57,6 +57,7 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 //	Some constants
 	static const size_t numIp = TFVGeometry::m_numSCVF;
 	static const size_t dim = TFVGeometry::world_dim;
+    MathVector<TFVGeometry::world_dim> vIPVelCurrent[TFVGeometry::m_numSCVF];
 
 //	Vector for Diagonal (size = dim * NumIps)
 	number Diag[numIp * dim];
@@ -66,9 +67,23 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 //	todo: compute
 	number DiffLengthSq = 1.0;
 
-//	Compute convection length
-//	number ConvLength = 1.0;
+// Compute velocity in the integration points.
+    //	Loop integration points
+    for(size_t ip = 0; ip < numIp; ++ip)
+	{
+    	//	get SubControlVolumeFace
+		const typename TFVGeometry::SCVF& scvf = geo.scvf(ip);
+		UG_ASSERT(scvf.num_ip() == 1, "Only implemented for first order");
 
+        // reset values to zero
+        VecSet(vIPVelCurrent[ip], 0.0);
+
+	// 	Loop components of velocity
+       for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+        {
+           VecScaleAppend(vIPVelCurrent[ip], scvf.shape(sh, 0), vCornerVels[sh]);
+        }
+    }
 
 //	Loop integration points
 	for(size_t ip = 0; ip < numIp; ++ip)
@@ -93,7 +108,7 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 			Diag[comp] += kinematicViscosity/DiffLengthSq;
 
 		//	Convective Term
-		//	Diag[comp] += VecTwoNorm(vIPVelCurrent[ip]) / ConvLength;
+			Diag[comp] += VecTwoNorm(vIPVelCurrent[ip]) / vConvLength[ip];
 
 		//////////////////////////////
 		//	assemble right-hand side
@@ -104,11 +119,11 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 			rhs[comp] = 0.0;
 
 		//	Time
-		//	if(bTimeDependent)
+			if(bTimeDependent)
 		//		rhs[comp] += vIPVelOld[ip][d] / dt;
 
 		//	Diffusion part
-		//	rhs[comp] += kinematicViscosity * vIPVelCurrent[ip][d] / DiffLengthSq;
+			rhs[comp] += kinematicViscosity * vIPVelCurrent[ip][d] / DiffLengthSq;
 
 		//	Convective part
 		//	rhs[comp] += vIPVelUpwindShapesContiEq[ip][d][0][0] * VecTwoNorm(vIPVelCurrent[ip]) / ConvLength;

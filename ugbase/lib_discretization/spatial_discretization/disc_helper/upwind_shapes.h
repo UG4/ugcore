@@ -86,6 +86,9 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
                                         MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
                                         number ConvectionLength[TFVGeometry::m_numSCV])
 {
+    // get corners of elem
+    const MathVector<TFVGeometry::world_dim>* corners = geo.corners();
+
 	// set shapes
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
 	{
@@ -98,11 +101,22 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
             vIPVelUpwindShapes[i][sh][0][0] = 0.0;
 
         // switch upwind
+        MathVector<TFVGeometry::world_dim> dist;
         const number flux = VecDot(scvf.normal(), vCornerVels[i]);
         if(flux > 0.0)
+        {
             vIPVelUpwindShapes[i][scvf.from()][0][0] = 1.0;
+            VecSubtract(dist, scvf.global_ip(i), corners[scvf.from()]);
+        }
         else
+        {
             vIPVelUpwindShapes[i][scvf.to()][0][0] = 1.0;
+            VecSubtract(dist, scvf.global_ip(i), corners[scvf.to()]);
+        }
+
+        // compute convection length as distance between upwind point and
+        // integration point
+        ConvectionLength[i] = VecTwoNorm(dist);
     }
 
 	return true;

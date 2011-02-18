@@ -278,8 +278,8 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 	// Some Variables
 
-    MathVector<dim> vCornerVels[numSCVF];
-	MathVector<dim> vCornerVelsOld[numSCVF];
+    MathVector<dim> vCornerVels[numCo];
+	MathVector<dim> vCornerVelsOld[numCo];
     number          vCornerPress[numCo];
     number          vConvLength[numSCVF];
 //    MathVector<dim> vIPVelUpwindShapesMomEq[numSCVF][numCo][dim];
@@ -287,10 +287,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
     MathVector<dim> vIPStabVelShapesContiEq[numSCVF][numCo][dim+1];
 
    	// Store Corner values in vCornerVels variable
-    for(size_t co = 0; co < numCo; ++co)
+    for(size_t co = 0; co < numCo; ++co){
         for (size_t component = 0; component < dim; ++component)
             vCornerVels[co][component]=u(component,co);
-
+        vCornerPress[co]=u(_P_,co);
+    }
 	// Compute Upwind Shapes at Ip's and ConvectionLength here fot the Momentum Equation
     GetUpwindShapes(geo, vCornerVels, m_UpwindMethod, vIPVelUpwindShapesContiEq, vConvLength);
 
@@ -300,7 +301,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 	// todo: switch
 	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-	GetStabilizedShapes(	geo, vCornerVels, vCornerPress, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+	GetStabilizedShapes(geo, vCornerVels, vCornerPress, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
 									dt, bTimeDependent, vCornerVelsOld,
 									m_Viscosity,
                                     vIPStabVelShapesContiEq);

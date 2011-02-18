@@ -30,14 +30,14 @@ namespace ug{
  */
 template <typename TFVGeometry>
 bool GetFlowStabilizedShapes(	const TFVGeometry& geo,
-                                    const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCVF],
+                                    const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
                                     number vCornerPress[TFVGeometry::m_numSCV],
                                     const int StabMethod,
                                     const MathVector<TFVGeometry::world_dim> vIPVelUpwindShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
                                     const number vConvLength[TFVGeometry::m_numSCVF],
                                     const number dt,
                                     bool bTimeDependent,
-                                    const MathVector<TFVGeometry::world_dim> vCornerVelsOld[TFVGeometry::m_numSCVF],
+                                    const MathVector<TFVGeometry::world_dim> vCornerVelsOld[TFVGeometry::m_numSCV],
  									number kinematicViscosity,
                                     MathVector<TFVGeometry::world_dim> vIPStabVelShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][(TFVGeometry::world_dim)+1])
 {
