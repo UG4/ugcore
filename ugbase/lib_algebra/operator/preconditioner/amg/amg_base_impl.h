@@ -28,8 +28,8 @@ template<typename TAlgebra>
 bool amg_base<TAlgebra>::preprocess(matrix_type& mat)
 {
 	cleanup();
-	A.resize(1);
-	A[0] = &mat;
+	m_A.resize(1);
+	m_A[0] = &mat;
 	m_bInited = false;
 	return true;
 }
@@ -37,45 +37,39 @@ bool amg_base<TAlgebra>::preprocess(matrix_type& mat)
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 {
-	size_t N = A[level]->num_rows();
-	size_t iNrOfCoarse = A[level+1]->num_rows();
+	size_t N = m_A[level]->num_rows();
+	size_t iNrOfCoarse = m_A[level+1]->num_rows();
 	// create vectors for AMG multigrid
 	/////////////////////////////////////////
 
-	vec3.resize(level+1);
-	vec3[level] = new vector_type;
-	vec3[level]->create(N);
+	m_vec3.resize(level+1);
+	m_vec3[level] = new vector_type;
+	m_vec3[level]->create(N);
 
-	vec1.resize(level+2);
-	vec1[level+1] = new vector_type;
-	vec1[level+1]->create(iNrOfCoarse);
+	m_vec1.resize(level+2);
+	m_vec1[level+1] = new vector_type;
+	m_vec1[level+1]->create(iNrOfCoarse);
 
-	vec2.resize(level+2);
-	vec2[level+1] = new vector_type;
-	vec2[level+1]->create(iNrOfCoarse);
+	m_vec2.resize(level+2);
+	m_vec2[level+1] = new vector_type;
+	m_vec2[level+1]->create(iNrOfCoarse);
 
-	#ifdef UG_PARALLEL
-	// todo: change this for later "right" parallel implementation
-	//typedef pcl::SingleLevelLayout<pcl::OrderedInterface<size_t, std::vector> > IndexLayout
+#ifdef UG_PARALLEL
+	m_vec3[level]->set_communicator(*com);
+	m_vec1[level+1]->set_communicator(*com);
+	m_vec2[level+1]->set_communicator(*com);
 
+	m_vec3[level]->set_storage_type(PST_ADDITIVE);
+	m_vec1[level+1]->set_storage_type(PST_ADDITIVE);
+	m_vec2[level+1]->set_storage_type(PST_ADDITIVE);
 
-	// todo: implement "real" ParallelCommunicator
-	vec3[level]->set_communicator(*com);
-	vec1[level+1]->set_communicator(*com);
-	vec2[level+1]->set_communicator(*com);
-
-	vec3[level]->set_storage_type(PST_ADDITIVE);
-	vec1[level+1]->set_storage_type(PST_ADDITIVE);
-	vec2[level+1]->set_storage_type(PST_ADDITIVE);
-
-	vec3[level]->set_layouts(pseudoLayout, pseudoLayout);
-	vec1[level+1]->set_layouts(pseudoLayout, pseudoLayout);
-	vec2[level+1]->set_layouts(pseudoLayout, pseudoLayout);
-
-	#endif
+	m_vec3[level]->set_layouts(m_A[level]->get_master_layout(), m_A[level]->get_slave_layout());
+	m_vec1[level+1]->set_layouts(m_A[level+1]->get_master_layout(), m_A[level+1]->get_slave_layout());
+	m_vec2[level+1]->set_layouts(m_A[level+1]->get_master_layout(), m_A[level+1]->get_slave_layout());
+#endif
 
 
-	//UG_LOG(std::endl << "created vec3 on level " << level << ", vec1 and vec2 on level" << level +1);
+	//UG_LOG(std::endl << "created m_vec3 on level " << level << ", m_vec1 and m_vec2 on level" << level +1);
 
 	// todo: set size for variable sized blockvectors
 	/*for(size_t i=0; i<N; i++)
@@ -83,8 +77,8 @@ bool amg_base<TAlgebra>::create_level_vectors(size_t level)
 		{
 			int rows = GetRows(A.beginRow(i).value());
 			UG_ASSERT(newIndex[i] >= 0, "");
-			SetSize((*vec1[level+1])[newIndex[i]], rows);
-			SetSize((*vec2[level+1])[newIndex[i]], rows);
+			SetSize((*m_vec1[level+1])[newIndex[i]], rows);
+			SetSize((*m_vec2[level+1])[newIndex[i]], rows);
 		}*/
 	return true;
 }
@@ -108,28 +102,30 @@ bool amg_base<TAlgebra>::init()
 		return false;
 	}
 
-	// init amghelper for grid printing
-	amghelper.positions = &dbg_positions[0];
-	amghelper.size = A[0]->num_rows();
-	amghelper.parentIndex = &parentIndex;
-	amghelper.dimension = dbg_dimension;
+	// init m_amghelper for grid printing
+	m_amghelper.positions = &m_dbgPositions[0];
+	m_amghelper.size = m_A[0]->num_rows();
+	m_amghelper.parentIndex = &m_parentIndex;
+	m_amghelper.dimension = m_dbgDimension;
 
 	UG_LOG("Starting AMG Setup." << std::endl << std::endl);
+
+	m_levelInformation.clear();
 
 	stopwatch SWwhole;
 	SWwhole.start();
 
-	UG_ASSERT(max_levels > 0, "max levels is " << max_levels << ", but has to be > 0");
+	m_levelInformation.push_back(LevelInformation(0, m_A[0]->num_rows()));
 
 	size_t level=0;
-	for(; level< max_levels-1; level++)
+	for(; level< m_maxLevels-1; level++)
 	{
-		SMO.resize(level+1);
-		SMO[level].setmatrix(A[level]);
+		m_SMO.resize(level+1);
+		m_SMO[level].setmatrix(m_A[level]);
 
 		m_presmoothers.resize(level+1);
 		m_presmoothers[level] = m_presmoother->clone();
-		m_presmoothers[level]->init(SMO[level]);
+		m_presmoothers[level]->init(m_SMO[level]);
 
 		m_postsmoothers.resize(level+1);
 		if(m_presmoother == m_postsmoother)
@@ -137,46 +133,45 @@ bool amg_base<TAlgebra>::init()
 		else
 		{
 			m_postsmoothers[level] = m_postsmoother->clone();
-			m_postsmoothers[level]->init(SMO[level]);
+			m_postsmoothers[level]->init(m_SMO[level]);
 		}
 
-		double L = A[level]->num_rows();
+		double L = m_A[level]->num_rows();
 
-		if(L < m_maxNodesForExact || A[level]->total_num_connections()/(L*L) > m_maxFillBeforeExact)
+		if(L < m_maxNodesForBase || m_A[level]->total_num_connections()/(L*L) > m_dMaxFillBeforeBase)
 			break;
-		//smoother[level].init(*A[level]);
+		//smoothem_R[level].init(*m_A[level]);
 
-		A.resize(level+2);
-		A[level+1] = new matrix_type;
+		m_A.resize(level+2);
+		m_A[level+1] = new matrix_type;
 
-		P.resize(level+1);
-		P[level] = new matrix_type;
-		R.resize(level+1);
-		R[level] = new matrix_type;
+		m_P.resize(level+1);
+		m_P[level] = new matrix_type;
+		m_R.resize(level+1);
+		m_R[level] = new matrix_type;
 
 #ifdef UG_PARALLEL
-		A[level+1]->set_storage_type(PST_ADDITIVE);
-		P[level]->set_storage_type(PST_ADDITIVE);
-		R[level]->set_storage_type(PST_ADDITIVE);
+		m_A[level+1]->set_storage_type(PST_ADDITIVE);
+		m_P[level]->set_storage_type(PST_ADDITIVE);
+		m_R[level]->set_storage_type(PST_ADDITIVE);
 #endif
 
 
 		stopwatch SWwhole; SWwhole.start();
-		create_AMG_level(*A[level+1], *R[level], *A[level], *P[level], level);
-		return true;
+		create_AMG_level(*m_A[level+1], *m_R[level], *m_A[level], *m_P[level], level);
 		SWwhole.stop();
 
 		is_fine.resize(level+1);
-		is_fine[level].resize(A[level]->num_rows(), false);
-		for(size_t i=0; i<parentIndex.size(); i++)
-			is_fine[level][parentIndex[level+1][i]] = true;
+		is_fine[level].resize(m_A[level]->num_rows(), false);
+		for(size_t i=0; i<m_parentIndex.size(); i++)
+			is_fine[level][m_parentIndex[level+1][i]] = true;
 
 		// finish
 		/////////////////////////////////////////
 
-		size_t nnzCoarse = A[level+1]->total_num_connections();
-		double nrOfFine = A[level]->num_rows();
-		double nrOfCoarse = A[level+1]->num_rows();
+		size_t nnzCoarse = m_A[level+1]->total_num_connections();
+		double nrOfFine = m_A[level]->num_rows();
+		double nrOfCoarse = m_A[level+1]->num_rows();
 		UG_LOG("AH: nnz: " << nnzCoarse << " Density: " <<
 				nnzCoarse/(nrOfCoarse*nrOfCoarse)*100.0 << "%, avg. nnz pre row: " << nnzCoarse/nrOfCoarse << std::endl);
 
@@ -184,16 +179,18 @@ bool amg_base<TAlgebra>::init()
 
 		UG_LOG(" level took " << SWwhole.ms() << " ms" << std::endl << std::endl);
 
+		m_levelInformation.push_back(LevelInformation(SWwhole.ms(), nrOfCoarse));
+
 
 	/*
-	 if(m_writeMatrices && this->A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
+	 if(m_writeMatrices && this->m_A[0]->num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
 		UG_LOG("write matrices");
-		AMGWriteToFile(*P[level], level+1, level, (m_writeMatrixPath + "AMG_P" + ToString(level) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(*m_P[level], level+1, level, (m_writeMatrixPath + "AMG_P" + ToString(level) + ".mat").c_str(), m_amghelper);
 		UG_LOG(".");
-		AMGWriteToFile(*R[level], level, level+1, (m_writeMatrixPath + "AMG_R" + ToString(level) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(*m_R[level], level, level+1, (m_writeMatrixPath + "AMG_R" + ToString(level) + ".mat").c_str(), m_amghelper);
 		UG_LOG(".");
-		AMGWriteToFile(*A[level+1], level+1, level+1, (m_writeMatrixPath + "AMG_A" + ToString(level+1) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(*m_A[level+1], level+1, level+1, (m_writeMatrixPath + "AMG_A" + ToString(level+1) + ".mat").c_str(), m_amghelper);
 		UG_LOG(". done.\n");
 	}*/
 
@@ -203,33 +200,38 @@ bool amg_base<TAlgebra>::init()
 	UG_ASSERT(block_traits< typename vector_type::value_type >::is_static, "dynamic not yet implemented");
 	size_t static_nrUnknowns = block_traits< typename vector_type::value_type >::static_size;
 
-	UG_LOG("Creating level " << level << " (" << A[level]->num_rows() << " nodes, total "
-			<< A[level]->num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
-			<< A[level]->num_rows()*static_nrUnknowns << "x" << A[level]->num_rows()*static_nrUnknowns << ". ");
+	UG_LOG("Creating level " << level << " (" << m_A[level]->num_rows() << " nodes, total "
+			<< m_A[level]->num_rows()*static_nrUnknowns << " unknowns)" << std::endl << "Using Direct Solver on Matrix "
+			<< m_A[level]->num_rows()*static_nrUnknowns << "x" << m_A[level]->num_rows()*static_nrUnknowns << ". ");
 
 	stopwatch SW; SW.start();
 
-	SMO.resize(level+1);
-	SMO[level].setmatrix(A[level]);
-	m_basesolver->init(SMO[level]);
+	m_SMO.resize(level+1);
+	m_SMO[level].setmatrix(m_A[level]);
+	m_basesolver->init(m_SMO[level]);
 
-	UG_LOG("Coarse Solver Setup took " << SW.ms() << "ms." << std::endl);
+	m_dTimingCoarseSolverMS = SW.ms();
+	UG_LOG("Coarse Solver Setup took " << m_dTimingCoarseSolverMS << "ms." << std::endl);
 
-	used_levels = level+1;
-	UG_LOG("AMG Setup finished. Used Levels: " << used_levels << ". ");
-	UG_LOG("AMG Setup took " << SWwhole.ms() << " ms." << std::endl);
+	m_usedLevels = level+1;
+	UG_LOG("AMG Setup finished. Used Levels: " << m_usedLevels << ". ");
+	m_dTimingWholeSetupMS = SWwhole.ms();
+	UG_LOG("AMG Setup took " << m_dTimingWholeSetupMS << " ms." << std::endl);
 
 	// calc complexities
 	double nnzs=0;
 	double totallength=0;
-	for(size_t i=0; i<used_levels; i++)
+	for(size_t i=0; i<m_usedLevels; i++)
 	{
-		nnzs += A[i]->total_num_connections();
-		totallength += A[i]->num_rows();
+		nnzs += m_A[i]->total_num_connections();
+		totallength += m_A[i]->num_rows();
 	}
 
-	UG_LOG("Operator Complexity: " << nnzs/A[0]->total_num_connections() << " nodes complexity: "
-			<< totallength/A[0]->num_rows() << std::endl << std::endl);
+	m_dOperatorComplexity = nnzs/m_A[0]->total_num_connections();
+	m_dNodesComplexity = totallength/m_A[0]->num_rows();
+
+	UG_LOG("Operator Complexity: " << m_dOperatorComplexity << " nodes complexity: "
+			<< totallength/m_A[0]->num_rows() << std::endl << std::endl);
 
 	return true;
 }
@@ -243,18 +245,18 @@ amg_base<TAlgebra>::amg_base() :
 	m_numPostSmooth(2),
 	m_cycleType(1),
 
-	max_levels(100),
-	used_levels(0),
+	m_maxLevels(100),
+	m_usedLevels(0),
 
 	m_presmoother(NULL),
 	m_postsmoother(NULL),
 	m_basesolver(NULL)
 {
-	vec4 = NULL;
+	m_vec4 = NULL;
 	m_bInited = false;
 
-	m_maxNodesForExact = 100;
-	m_maxFillBeforeExact = 0.5;
+	m_maxNodesForBase = 100;
+	m_dMaxFillBeforeBase = 0.5;
 
 	m_writeMatrices = false;
 	m_fDamp = 0.0;
@@ -264,14 +266,14 @@ amg_base<TAlgebra>::amg_base() :
 template<typename TAlgebra>
 void amg_base<TAlgebra>::cleanup()
 {
-	for(size_t i=1; i < A.size(); i++) {
-		if(A[i]) delete A[i]; A[i] = NULL;
+	for(size_t i=1; i < m_A.size(); i++) {
+		if(m_A[i]) delete m_A[i]; m_A[i] = NULL;
 	}
 
 
-	for(size_t i=0; i < vec1.size(); i++) { if(vec1[i]) delete vec1[i]; vec1[i] = NULL; }
-	for(size_t i=0; i < vec2.size(); i++) { if(vec2[i]) delete vec2[i]; vec2[i] = NULL; }
-	for(size_t i=0; i < vec3.size(); i++) { if(vec3[i]) delete vec3[i]; vec3[i] = NULL; }
+	for(size_t i=0; i < m_vec1.size(); i++) { if(m_vec1[i]) delete m_vec1[i]; m_vec1[i] = NULL; }
+	for(size_t i=0; i < m_vec2.size(); i++) { if(m_vec2[i]) delete m_vec2[i]; m_vec2[i] = NULL; }
+	for(size_t i=0; i < m_vec3.size(); i++) { if(m_vec3[i]) delete m_vec3[i]; m_vec3[i] = NULL; }
 
 	for(size_t i=0; i < m_postsmoothers.size(); i++) {
 		if(m_postsmoothers[i] && (i < m_presmoothers.size() && m_presmoothers[i] == m_postsmoothers[i]) == false)
@@ -285,7 +287,7 @@ void amg_base<TAlgebra>::cleanup()
 		m_presmoothers[i] = NULL;
 	}
 
-	used_levels = 0;
+	m_usedLevels = 0;
 	m_bInited=false;
 }
 //!
@@ -300,7 +302,7 @@ amg_base<TAlgebra>::~amg_base()
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, size_t level)
 {
-	matrix_type &M = *A[level];
+	matrix_type &M = *m_A[level];
 	for(size_t i=0; i<M.num_rows(); i++)
 	{
 		//if(is_fine[level][i])
@@ -309,7 +311,7 @@ bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, size_
 			corr[i] = 0.0;*/
 	}
 
-	MatMultAdd(d, 1.0, d, -1.0, M, corr);
+	M.matmul_minus(d, corr);
 	return true;
 }
 
@@ -320,19 +322,19 @@ bool amg_base<TAlgebra>::do_f_smoothing(vector_type &corr, vector_type &d, size_
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector_type &d, size_t level)
 {
-	return true;
-	UG_ASSERT(c.size() == d.size() && c.size() == A[level]->num_rows(),
-			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << A[level]->num_rows() << ": not matching");
+	UG_ASSERT(c.size() == d.size() && c.size() == m_A[level]->num_rows(),
+			"c.size = " << c.size() << ", d.size = " << d.size() << ", A.size = " << m_A[level]->num_rows() << ": not matching");
 
-	const matrix_type &Ah = *(A[level]);
+	const matrix_type &Ah = *(m_A[level]);
 
-	if(level == used_levels-1)
+	c.set(0.0);
+	if(level == m_usedLevels-1)
 	{
 		m_basesolver->apply_return_defect(c, d);
 		return true;
 	}
 
-	vector_type &corr = *vec3[level];
+	vector_type &corr = *m_vec3[level];
 
 	// presmooth
 	// same as setting c.set(0.0).
@@ -345,44 +347,34 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 		if(m_fDamp != 0.0) { do_f_smoothing(corr, d, level); c+=corr; }
 	}
 
-	vector_type &cH = *vec1[level+1];
-	vector_type &dH = *vec2[level+1];
+	vector_type &cH = *m_vec1[level+1];
+	vector_type &dH = *m_vec2[level+1];
 
-#ifdef UG_PARALLEL
 	cH.set_storage_type(PST_CONSISTENT);
 
 	// restrict defect
-	// dH = R[level]*d;
-	dH.set_storage_type(PST_ADDITIVE);
-#endif
-
-	MatMult(dH, 1.0, *R[level], d);
+	// dH = m_R[level]*d;
+	m_R[level]->apply(dH, d);
 
 	// apply lmgc on coarser nodes
-	if(level+1 == used_levels-1)
+	if(level+1 == m_usedLevels-1)
 		get_correction_and_update_defect(cH, dH, level+1);
 	else
 		for(int i=0; i< m_cycleType; i++)
 			get_correction_and_update_defect(cH, dH, level+1);
 
 	// interpolate correction
-	// corr = P[level]*cH
-#ifdef UG_PARALLEL
-	corr.set_storage_type(PST_ADDITIVE);
-#endif
-
-	MatMult(corr, 1.0, *P[level], cH);
+	// corr = m_P[level]*cH
+	m_P[level]->apply(corr, cH);
 
 	// add coarse grid correction to level correction
 	// c += corr;
-#ifdef UG_PARALLEL
-	corr.change_storage_type(PST_CONSISTENT);
-#endif
-	VecScaleAdd(c, 1.0, c, 1.0, corr);
 
-	//update defect
+	c += corr;
+
+	// update defect
 	// d = d - Ah*corr
-	MatMultAdd(d, 1.0, d, -1.0, Ah, corr);
+	Ah.matmul_minus(d, corr);
 
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
@@ -400,25 +392,26 @@ bool amg_base<TAlgebra>::get_correction_and_update_defect(vector_type &c, vector
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::get_correction(vector_type &c, const vector_type &const_d)
 {
-	return true;
-	UG_ASSERT(c.size() == const_d.size() && c.size() == A[0]->num_rows(),
-				"c.size = " << c.size() << ", d.size = " << const_d.size() << ", A.size = " << A[0]->num_rows() << ": not matching");
+	UG_ASSERT(c.size() == const_d.size() && c.size() == m_A[0]->num_rows(),
+				"c.size = " << c.size() << ", d.size = " << const_d.size() << ", A.size = " << m_A[0]->num_rows() << ": not matching");
 
 
-	if(vec4 == NULL)
+	if(m_vec4 == NULL)
 	{
-		vec4 = new vector_type;
-		vec4->resize(const_d.size());
+		m_vec4 = new vector_type;
+		m_vec4->resize(const_d.size());
 	}
-	else if(vec4->size() != const_d.size())
-		vec4->resize(const_d.size());
+	else if(m_vec4->size() != const_d.size())
+	{
+		m_vec4->set_layouts(c.get_master_layout(), c.get_slave_layout());
+		m_vec4->resize(const_d.size());
+	}
 
 #ifdef UG_PARALLEL
 	// todo: change this for later "right" parallel implementation
-	UG_ASSERT(pcl::GetNumProcesses() == 1, "AMG currently only for 1 process");
-	vec4->set_storage_type(PST_ADDITIVE);
+	m_vec4->set_storage_type(PST_ADDITIVE);
 #endif
-	vector_type &d = *vec4;
+	vector_type &d = *m_vec4;
 
 	d = const_d;
 	return get_correction_and_update_defect(c, d);
@@ -432,11 +425,11 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 	d = const_d;
 	vector_type d_copy;
 
-	for(size_t i=0; i<used_levels-1; i++)
+	for(size_t i=0; i<m_usedLevels-1; i++)
 	{
 		UG_LOG("\nLEVEL " << i << "\n\n");
 		vector_type c;
-		c.resize(A[i]->num_rows());
+		c.resize(m_A[i]->num_rows());
 
 		d_copy.resize(d.size());
 		d_copy = d;
@@ -445,7 +438,7 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 		d = 0.0;
 		for(size_t j=0; j<c.size(); j++)
 		{
-			if(A[i]->is_isolated(i))
+			if(m_A[i]->is_isolated(i))
 				c[j] = 0.0;
 			else
 				c[j] = urand(-1.0, 1.0);
@@ -453,28 +446,28 @@ bool amg_base<TAlgebra>::check(const vector_type &const_c, const vector_type &co
 #endif
 		check_level(c, d, i);
 
-		if(i+1 < used_levels)
+		if(i+1 < m_usedLevels)
 		{
-			d.resize(A[i+1]->num_rows());
-			MatMult(d, 1.0, *R[i], d_copy);
+			d.resize(m_A[i+1]->num_rows());
+			m_R[i]->apply(d, d_copy);
 		}
 	}
 	return true;
 }
 
 template<typename vector_type>
-void writevec(cAMG_helper &amghelper, const char *filename, const vector_type &d, size_t level)
+void writevec(cAMG_helper &m_amghelper, const char *filename, const vector_type &d, size_t level)
 {
 	std::fstream file(filename, std::ios::out);
 	for(size_t i=0; i<d.size(); i++)
-		file << amghelper.GetOriginalIndex(level, i) << " " << (d[i]) << std::endl;
+		file << m_amghelper.GetOriginalIndex(level, i) << " " << (d[i]) << std::endl;
 }
 
 
 template<typename TAlgebra>
 bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t level)
 {
-	const matrix_type &Ah = *(A[level]);
+	const matrix_type &Ah = *(m_A[level]);
 	vector_type corr; corr.resize(c.size());
 
 
@@ -502,20 +495,15 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 		n2 = d.two_norm();	UG_LOG("presmoothing " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 	}
 
-	if(m_writeMatrices) writevec(amghelper, (m_writeMatrixPath + "AMG_dp" + ToString(level) + ".values").c_str(), d, level);
+	if(m_writeMatrices) writevec(m_amghelper, (m_writeMatrixPath + "AMG_dp" + ToString(level) + ".values").c_str(), d, level);
 
-	vector_type &cH = *vec1[level+1];
-	vector_type &dH = *vec2[level+1];
-
-#ifdef UG_PARALLEL
-	cH.set_storage_type(PST_CONSISTENT);
+	vector_type &cH = *m_vec1[level+1];
+	vector_type &dH = *m_vec2[level+1];
 
 	// restrict defect
-	// dH = R[level]*d;
-	dH.set_storage_type(PST_ADDITIVE);
-#endif
+	// dH = m_R[level]*d;
 
-	MatMult(dH, 1.0, *R[level], d);
+	m_R[level]->apply(dH, d);
 
 	vector_type tc; tc.resize(cH.size());
 	cH.set( 0.0);
@@ -526,7 +514,7 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	for(i=0; i<100; i++)
 	{
 		// apply lmgc on coarser nodes
-		if(level+1 == used_levels-1)
+		if(level+1 == m_usedLevels-1)
 		{
 			get_correction_and_update_defect(tc, dH, level+1);
 			cH += tc;
@@ -546,27 +534,21 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	}
 
 	// interpolate correction
-	// corr = P[level]*cH
-#ifdef UG_PARALLEL
-	corr.set_storage_type(PST_ADDITIVE);
-#endif
+	// corr = m_P[level]*cH
 
-	MatMult(corr, 1.0, *P[level], cH);
+	m_P[level]->apply(corr, cH);
 
 	// add coarse grid correction to level correction
-	// c += corr;
-#ifdef UG_PARALLEL
-	corr.change_storage_type(PST_CONSISTENT);
-#endif
-	VecScaleAdd(c, 1.0, c, 1.0, corr);
+
+	c += corr;
 
 	//update defect
 	// d = d - Ah*corr
-	MatMultAdd(d, 1.0, d, -1.0, Ah, corr);
+	Ah.matmul_minus(d, corr);
 
 	n2 = d.two_norm();	UG_LOG("complete coarse correction " << i+1 << ": " << n2/prenorm << "\t" <<n2/n1 << "\n");	n1 = n2;
 
-	if(m_writeMatrices) writevec(amghelper, (m_writeMatrixPath + "AMG_dc" + ToString(level) + ".values").c_str(), d, level);
+	if(m_writeMatrices) writevec(m_amghelper, (m_writeMatrixPath + "AMG_dc" + ToString(level) + ".values").c_str(), d, level);
 
 	// postsmooth
 	for(size_t i=0; i < m_numPostSmooth; i++)
@@ -580,7 +562,7 @@ bool amg_base<TAlgebra>::check_level(vector_type &c, vector_type &d, size_t leve
 	double postnorm = d.two_norm();
 	UG_LOG("Level " << level << " reduction: " << postnorm/prenorm << std::endl);
 
-	if(m_writeMatrices) writevec(amghelper, (m_writeMatrixPath + "AMG_d" + ToString(level) + ".values").c_str(), d, level);
+	if(m_writeMatrices) writevec(m_amghelper, (m_writeMatrixPath + "AMG_d" + ToString(level) + ".values").c_str(), d, level);
 
 	UG_LOG("\n\n");
 	return true;
@@ -600,7 +582,7 @@ void amg_base<TAlgebra>::tostring() const
 	else if(m_cycleType == 2) { UG_LOG("W-cycle\n"); }
 	else { UG_LOG("gamma = " << m_cycleType << "\n"); }
 
-	UG_LOG(" max levels = " << max_levels << std::endl);
+	UG_LOG(" max levels = " << m_maxLevels << std::endl);
 
 	if(m_presmoother) 	{UG_LOG(" presmoother is " << m_presmoother->name() << ".\n");}
 	else				{UG_LOG(" no presmoother set!\n");}
@@ -610,6 +592,13 @@ void amg_base<TAlgebra>::tostring() const
 
 	if(m_basesolver)	{UG_LOG(" basesolver set\n");}
 	else				{UG_LOG(" no basesolver set!\n");}
+	UG_LOG("Using base solver for max. " << m_maxNodesForBase << " nodes or " << m_dMaxFillBeforeBase*100 << "% fill in.")
+
+	if(m_bInited)
+	{
+		UG_LOG("AMG is initialized.\n");
+		UG_LOG("Used Levels: " << m_usedLevels << "\n");
+	}
 }
 
 } // namespace ug

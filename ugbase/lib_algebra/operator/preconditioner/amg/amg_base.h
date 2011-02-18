@@ -45,8 +45,22 @@ public:
 
 //	Matrix type
 	typedef typename TAlgebra::matrix_type matrix_type;
+	typedef typename TAlgebra::matrix_type prolongation_matrix_type;
 
 	typedef typename matrix_type::value_type value_type;
+
+	class LevelInformation
+	{
+	public:
+		LevelInformation(double creationTimeMS, size_t iNrOfNodes) : m_dCreationTimeMS(creationTimeMS), m_iNrOfNodes(iNrOfNodes) { }
+		double get_creation_time_ms() { return m_dCreationTimeMS; }
+		double get_nr_of_nodes() { return m_iNrOfNodes; }
+		bool is_valid() { return this != NULL; }
+	private:
+		double m_dCreationTimeMS;
+		size_t m_iNrOfNodes;
+	};
+
 
 //  functions
 	amg_base();
@@ -55,6 +69,7 @@ public:
 	//	Name of preconditioner
 	virtual ~amg_base();
 	void cleanup();
+
 
 protected:
 	virtual const char* name() const = 0;
@@ -86,38 +101,51 @@ public:
 /*
 	size_t get_nr_of_coarse(size_t level)
 	{
-		assert(level+1 < used_levels);
+		assert(level+1 < m_usedLevels);
 		return A[level+1]->length;
 	}
 */
-	size_t get_nr_of_used_levels() { return used_levels; }
+	size_t get_nr_of_used_levels() { return m_usedLevels; }
 
 	bool check_level(vector_type &c, vector_type &d, size_t level);
 	bool check(const vector_type &const_c, const vector_type &const_d);
 //  data
 
-	void set_num_presmooth(size_t new_presmooth) { m_numPreSmooth = new_presmooth; } // nu1
-	void set_num_postsmooth(size_t new_postsmooth) { m_numPostSmooth = new_postsmooth; } // nu2
-	void set_cycle_type(size_t new_cycletype) { m_cycleType = new_cycletype; } // gamma
+	void 	set_num_presmooth(size_t new_presmooth) 				{ m_numPreSmooth = new_presmooth; }
+	size_t	get_num_presmooth()	const				 				{ return m_numPreSmooth; }
 
-	void set_max_levels(size_t new_max_levels)
-	{
-		max_levels = new_max_levels;
-	}
-	void set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
-	void set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
-	void set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
+	void 	set_num_postsmooth(size_t new_postsmooth) 				{ m_numPostSmooth = new_postsmooth; }
+	size_t	get_num_postsmooth() const					 			{ return m_numPostSmooth; }
 
-	void set_fsmoothing(double fdamping) { m_fDamp = fdamping; }
+	void 	set_cycle_type(size_t new_cycletype)
+	{
+		UG_ASSERT(new_cycletype > 0, "cannot set cycle type " << new_cycletype << ", has to be > 0");
+		m_cycleType = new_cycletype;
+	}
+	size_t	get_cycle_type() const									{ return m_cycleType; }
 
-	void set_max_nodes_for_exact(size_t newMaxNodesForExact)
+	void 	set_max_levels(size_t new_max_levels)
 	{
-		m_maxNodesForExact = newMaxNodesForExact;
+		UG_ASSERT(new_max_levels > 0, "cannot set max levels " << new_max_levels << ", has to be > 0");
+		m_maxLevels = new_max_levels;
 	}
-	void set_max_fill_before_exact(double newMaxFillBeforeExact)
-	{
-		m_maxFillBeforeExact = newMaxFillBeforeExact;
-	}
+	size_t	get_max_levels() const									{ return m_maxLevels; }
+
+	void 	set_fsmoothing(double fdamping) 						{ m_fDamp = fdamping; }
+	double	get_fsmoothing() const									{ return m_fDamp; }
+
+	void 	set_max_nodes_for_base(size_t newMaxNodesForBase) 	{ m_maxNodesForBase = newMaxNodesForBase; }
+	size_t 	get_max_nodes_for_base() const							{ return m_maxNodesForBase; }
+
+	void 	set_max_fill_before_base(double newMaxFillBeforeBase) { m_dMaxFillBeforeBase = newMaxFillBeforeBase;	}
+	double	get_max_fill_before_base() const						{ return m_dMaxFillBeforeBase;	}
+
+
+	void 	set_presmoother(ILinearIterator<vector_type, vector_type> *presmoother) {	m_presmoother = presmoother; }
+	void 	set_postsmoother(ILinearIterator<vector_type, vector_type> *postsmoother) { m_postsmoother = postsmoother; }
+	void 	set_base_solver(ILinearOperatorInverse<vector_type, vector_type> *basesolver) { m_basesolver = basesolver; }
+
+
 
 	void set_matrix_write_path(const char *path)
 	{
@@ -127,21 +155,21 @@ public:
 
 	void set_debug_positions(const MathVector<2> *pos, size_t size)
 	{
-		dbg_positions.resize(size);
+		m_dbgPositions.resize(size);
 		for(size_t i=0; i<size; ++i)
 		{
-			dbg_positions[i].x = pos[i].x;
-			dbg_positions[i].y = pos[i].y;
-			dbg_positions[i].z = 0.0;
+			m_dbgPositions[i].x = pos[i].x;
+			m_dbgPositions[i].y = pos[i].y;
+			m_dbgPositions[i].z = 0.0;
 		}
-		dbg_dimension = 2;
+		m_dbgDimension = 2;
 	}
 	void set_debug_positions(const MathVector<3> *pos, size_t size)
 	{
-		dbg_positions.resize(size);
+		m_dbgPositions.resize(size);
 		for(size_t i=0; i<size; ++i)
-			dbg_positions[i] = pos[i];
-		dbg_dimension = 3;
+			m_dbgPositions[i] = pos[i];
+		m_dbgDimension = 3;
 	}
 
 	template <typename TGridFunction>
@@ -160,47 +188,48 @@ public:
 
 protected:
 	bool create_level_vectors(size_t level);
-	virtual void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-								SparseMatrix<double> &P, size_t level) = 0;
+	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+			prolongation_matrix_type &P, size_t level) = 0;
 	virtual bool init();
 	bool do_f_smoothing(vector_type &corr, vector_type &d, size_t level);
 
 // data
-	size_t m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
-	size_t m_numPostSmooth;					///< nu_2: nr. of post-smoothing steps
-	int m_cycleType;						///< gamma: cycle type (1 = V-Cycle, 2 = W-Cycle)
+	size_t 	m_numPreSmooth;						///< nu_1 : nr. of pre-smoothing steps
+	size_t 	m_numPostSmooth;					///< nu_2: nr. of post-smoothing steps
+	int 	m_cycleType;						///< gamma: cycle type (1 = V-Cycle, 2 = W-Cycle)
 
-	size_t max_levels;							///< max. nr of levels used for FAMG
-	size_t used_levels;						///< nr of FAMG levels used
+	size_t 	m_maxLevels;						///< max. nr of levels used for FAMG
+	size_t	m_usedLevels;						///< nr of FAMG levels used
 
-	size_t m_maxNodesForExact;					///< max nr of coarse nodes before exact solver is used
-	double m_maxFillBeforeExact;			///< max fill rate before exact solver is used
+	size_t 	m_maxNodesForBase;					///< max nr of coarse nodes before Base solver is used
+	double 	m_dMaxFillBeforeBase;				///< max fill rate before Base solver is used
+
 	std::string m_writeMatrixPath;
-	bool m_writeMatrices;
+	bool 	m_writeMatrices;
+	double 	m_fDamp;
 
-	double m_fDamp;
-
-	stdvector<vector_type*> vec1; 	///< temporary Vector for storing r = Ax -b
-	stdvector<vector_type*> vec2; 	///< temporary Vector for storing rH
-	stdvector<vector_type*> vec3; 	///< temporary Vector for storing eH
-	vector_type *vec4;						///< temporary Vector for defect (in get_correction)
+	stdvector<vector_type*> m_vec1; 			///< temporary Vector for storing r = Ax -b
+	stdvector<vector_type*> m_vec2; 			///< temporary Vector for storing rH
+	stdvector<vector_type*> m_vec3; 			///< temporary Vector for storing eH
+	vector_type *m_vec4;						///< temporary Vector for defect (in get_correction)
 
 	stdvector<stdvector<bool> > is_fine;
 
-	stdvector<matrix_type *> R; 	///< R Restriction Matrices
-	stdvector<matrix_type *> P; 	///< P Prolongation Matrices
-	stdvector<matrix_type *> A;			///< A Matrices
-	stdvector< SparseMatrixOperator<matrix_type, vector_type> > SMO;
+	stdvector<prolongation_matrix_type *> m_R; 	///< R Restriction Matrices
+	stdvector<prolongation_matrix_type *> m_P; 	///< P Prolongation Matrices
+	stdvector<matrix_type *> m_A;				///< A Matrices
+	stdvector< SparseMatrixOperator<matrix_type, vector_type> > m_SMO;
 
 #ifdef UG_PARALLEL
 	pcl::ParallelCommunicator<IndexLayout> * com;  ///< the communicator object on the levels
-	IndexLayout pseudoLayout;									///< Pseudo-IndexLayout for the created ParallelVectors.
+	stdvector<IndexLayout> slaveLayouts, masterLayouts;				///< Pseudo-IndexLayout for the created ParallelVectors.
+
 #endif
 
-	stdvector< stdvector<int> > parentIndex;		///< parentIndex[L][i] is the index of i on level L-1
-	cAMG_helper amghelper;					///< helper struct for viewing matrices (optional)
-	stdvector<MathVector<3> > dbg_positions;	///< positions of geometric grid (optional)
-	int dbg_dimension;						///< dimension of geometric grid (optional)
+	stdvector< stdvector<int> > m_parentIndex;	///< parentIndex[L][i] is the index of i on level L-1
+	cAMG_helper m_amghelper;					///< helper struct for viewing matrices (optional)
+	stdvector<MathVector<3> > m_dbgPositions;	///< positions of geometric grid (optional)
+	int m_dbgDimension;							///< dimension of geometric grid (optional)
 
 
 	ILinearIterator<vector_type, vector_type> *m_presmoother;	///< presmoother template
@@ -213,6 +242,24 @@ protected:
 
 
 	bool m_bInited;				///< true if inited. needed since preprocess doesnt give us a ParallelCommunicator atm.
+	double m_dOperatorComplexity;
+	double m_dNodesComplexity;
+	double m_dTimingWholeSetupMS;
+	double m_dTimingCoarseSolverMS;
+
+	stdvector<LevelInformation> m_levelInformation;
+
+public:
+	double get_operator_complexity() { return m_dOperatorComplexity; }
+	double get_nodes_complexity() { return m_dNodesComplexity; }
+	double get_timing_whole_setup_ms() { return m_dTimingWholeSetupMS; }
+	double get_timing_coarse_solver_ms() { return m_dTimingCoarseSolverMS; }
+	LevelInformation *get_level_information(size_t i)
+	{
+		if(i < m_levelInformation.size())
+			return &m_levelInformation[i];
+		else return NULL;
+	}
 };
 
 

@@ -34,8 +34,8 @@ namespace ug{
  * \param level
  */
 template<typename TAlgebra>
-void famg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-		SparseMatrix<double> &P, size_t level)
+void famg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+		prolongation_matrix_type &P, size_t level)
 {
 	c_create_AMG_level(AH, R, A, P, level);
 }

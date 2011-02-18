@@ -73,17 +73,17 @@ template<typename T> inline double amg_offdiag_value(const T &d) { return -Block
 //------------------------------
 /**
  * Create graph of strong connections from a matrix A
- * i is strong coupled to j, if \f$ -A_{ij} \ge theta {\max\limits}_{\phi_1(A_{ik}) < 0} { \phi_2(A_{ik}) }\f$
+ * i is strong coupled to j, if \f$ -A_{ij} \ge m_dTheta {\max\limits}_{\phi_1(A_{ik}) < 0} { \phi_2(A_{ik}) }\f$
  * at the moment, we use the function \f$\phi_1 = \phi_2 =\f$ amg_offdiag_value
  * \param	A			matrix A for which to calculate strong connectivity graph
  * \param 	graph		the calculated strong connectivity graph of A
  *						graph is afterwards made up of connections from a node i to j if
  *						j has a strong connection to i
- * \param	theta		the smaller, the more connections are considered strong e.g. 0.25 is a reasonable default value
+ * \param	m_dTheta		the smaller, the more connections are considered strong e.g. 0.25 is a reasonable default value
  * \note	you can also pre-calculate some connectivity-measurement matrix C, and call this function with C.
  */
 template<typename matrix_type>
-void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double theta)
+void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double m_dTheta)
 {
 	graph.resize(A.num_rows());
 
@@ -104,7 +104,7 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double the
 		for(typename matrix_type::cRowIterator conn = A.beginRow(i); !conn.isEnd(); ++conn)
 		{
 			if(conn.index() == i) continue; // skip diag
-			if( amg_offdiag_value(conn.value()) < theta * dmax)
+			if( amg_offdiag_value(conn.value()) < m_dTheta * dmax)
 				graph.set_connection(i, conn.index());
 		}
 
@@ -128,8 +128,8 @@ void CreateStrongConnectionGraph(const matrix_type &A, cgraph &graph, double the
  * \param level
  */
 template<typename TAlgebra>
-void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-		SparseMatrix<double> &P, size_t level)
+void amg<TAlgebra>::create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+		prolongation_matrix_type &P, size_t level)
 {
 	size_t N = A.num_rows();
 	stdvector<amg_nodeinfo> nodes; nodes.resize(N);
@@ -171,8 +171,8 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	graphST.create_as_transpose_of(graphS);
 
 #ifdef AMG_WRITE_GRAPH
-	WriteAMGGraphToFile(graphS, (std::string(AMG_WRITE_MATRICES_PATH) + "G" + ToString(level) + ".mat").c_str(), amghelper, level);
-	WriteAMGGraphToFile(graphST, (std::string(AMG_WRITE_MATRICES_PATH) + "GT" + ToString(level) + ".mat").c_str(), amghelper, level);
+	WriteAMGGraphToFile(graphS, (std::string(AMG_WRITE_MATRICES_PATH) + "G" + ToString(level) + ".mat").c_str(), m_amghelper, level);
+	WriteAMGGraphToFile(graphST, (std::string(AMG_WRITE_MATRICES_PATH) + "GT" + ToString(level) + ".mat").c_str(), m_amghelper, level);
 #endif
 
 	CreateMeasureOfImportancePQ(graphS, graphST, PQ, unassigned, nodes);
@@ -183,7 +183,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	{
 		UG_LOG("Coarsen ratings:\n")
 		for(size_t i=0; i<N; i++)
-			UG_LOG(i << " [" << amghelper.GetOriginalIndex(level, i) << "] " << nodes[i] << std::endl);
+			UG_LOG(i << " [" << m_amghelper.GetOriginalIndex(level, i) << "] " << nodes[i] << std::endl);
 	}
 
 	// Coarsen
@@ -202,7 +202,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	// agressive Coarsening
 	/////////////////////////////////////////
 
-	if(aggressiveCoarsening && level == 0)
+	if(m_bAggressiveCoarsening && level == 0)
 	{
 		// build graph 2
 		//------------------
@@ -214,7 +214,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 		unassigned = 0;
 		cgraph graphAC(N);
-		CreateAggressiveCoarseningGraph(graphST, graphAC, nodes, aggressiveCoarseningNrOfPaths, &posInConnections[0]);
+		CreateAggressiveCoarseningGraph(graphST, graphAC, nodes, m_iAggressiveCoarseningNrOfPaths, &posInConnections[0]);
 		CreateMeasureOfImportanceAggressiveCoarseningPQ(graphAC, PQ, unassigned, iNrOfCoarse, newIndex, nodes);
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 		// coarsen 2
@@ -237,11 +237,11 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	}
 
 	// set parentindex for debugging
-	parentIndex.resize(level+2);
-	parentIndex[level+1].resize(iNrOfCoarse);
+	m_parentIndex.resize(level+2);
+	m_parentIndex[level+1].resize(iNrOfCoarse);
 	for(size_t i=0; i<N; i++)
 		if(nodes[i].isCoarse())
-			parentIndex[level+1][ newIndex[i] ] = i;
+			m_parentIndex[level+1][ newIndex[i] ] = i;
 
 
 #ifdef AMG_PRINT_COARSENING
@@ -255,11 +255,11 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 	unassigned = 0;
 
 	if(bTiming) SW.start();
-	CreateRugeStuebenProlongation(P, A, newIndex, iNrOfCoarse, unassigned, nodes, theta);
-	//UG_ASSERT(unassigned == 0 || (aggressiveCoarsening && level == 0),
+	CreateRugeStuebenProlongation(P, A, newIndex, iNrOfCoarse, unassigned, nodes, m_dTheta);
+	//UG_ASSERT(unassigned == 0 || (m_bAggressiveCoarsening && level == 0),
 		//	"no aggressive coarsening, but indirect interpolation of " << unassigned " nodes ?");
 	if(unassigned > 0)
-		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, &posInConnections[0], theta);
+		CreateIndirectProlongation(P, A, newIndex, unassigned, nodes, &posInConnections[0], m_dTheta);
 
 	P.finalize();
 
@@ -319,6 +319,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 
 	UG_LOG("\n");
 
+
 	if(m_writeMatrices && A.num_rows() < AMG_WRITE_MATRICES_MAX)
 	{
 		std::fstream ffine((std::string(m_writeMatrixPath) + "AMG_fine" + ToString(level) + ".marks").c_str(), std::ios::out);
@@ -327,14 +328,14 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 		std::fstream fdirichlet((std::string(m_writeMatrixPath) + "AMG_dirichlet" + ToString(level) + ".marks").c_str(), std::ios::out);
 		for(size_t i=0; i<N; i++)
 		{
-			int o = amghelper.GetOriginalIndex(level, i);
+			int o = m_amghelper.GetOriginalIndex(level, i);
 			if(nodes[i].isFineDirect()) ffine << o << "\n";
 			else if(nodes[i].isCoarse()) fcoarse << o << "\n";
 			else fother << o << "\n";
 		}
 
 		UG_LOG("write matrices");
-		AMGWriteToFile(A, level, level, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(A, level, level, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), m_amghelper);
 		std::fstream f((std::string(m_writeMatrixPath) + "AMG_A" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
 		f << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
 		f << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
@@ -343,7 +344,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 		f << "v " << std::string(m_writeMatrixPath) << "AMG_d" << level << ".values\n";
 		UG_LOG(".");
 
-		AMGWriteToFile(P, level+1, level, (std::string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(P, level+1, level, (std::string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), m_amghelper);
 		std::fstream f2((std::string(m_writeMatrixPath) + "AMG_Pp" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
 		f2 << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
 		f2 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
@@ -351,7 +352,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 		f2 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
 		UG_LOG(".");
 
-		AMGWriteToFile(R, level, level+1, (std::string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(R, level, level+1, (std::string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), m_amghelper);
 		std::fstream f3((std::string(m_writeMatrixPath) + "AMG_Rr" + ToString(level) + ".mat").c_str(), std::ios::out | std::ios::app);
 		f3 << "c " << std::string(m_writeMatrixPath) << "AMG_fine" << level << ".marks\n";
 		f3 << "c " << std::string(m_writeMatrixPath) << "AMG_coarse" << level << ".marks\n";
@@ -359,7 +360,7 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 		f3 << "c " << std::string(m_writeMatrixPath) << "AMG_dirichlet" << level << ".marks\n";
 		UG_LOG(".");
 
-		AMGWriteToFile(AH, level+1, level+1, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level+1) + ".mat").c_str(), amghelper);
+		AMGWriteToFile(AH, level+1, level+1, (std::string(m_writeMatrixPath) + "AMG_A" + ToString(level+1) + ".mat").c_str(), m_amghelper);
 		UG_LOG(". done.\n");
 	}
 }
@@ -370,11 +371,11 @@ void amg<TAlgebra>::create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, c
 template<typename TAlgebra>
 amg<TAlgebra>::amg() :
 	amg_base<TAlgebra>(),
-	eps_truncation_of_interpolation(0.3),
-	theta(0.3),
-	sigma(0.3),
-	aggressiveCoarsening(0),
-	aggressiveCoarseningNrOfPaths(2)
+	m_dEpsilon(0.3),
+	m_dTheta(0.3),
+	m_dSigma(0.3),
+	m_bAggressiveCoarsening(0),
+	m_iAggressiveCoarseningNrOfPaths(2)
 {
 }
 
@@ -386,10 +387,11 @@ void amg<TAlgebra>::tostring() const
 	amg_base<TAlgebra>::tostring();
 
 	UG_LOG("Ruge/Stueben AMG Preconditioner:\n");
-	UG_LOG(" theta = " << theta << std::endl);
-	UG_LOG(" sigma = " << sigma << std::endl);
+	UG_LOG(" Theta (strong connectivity) = " << m_dTheta << std::endl);
+	UG_LOG(" Sigma = " << m_dSigma << std::endl);
+	UG_LOG(" Epsilon (truncation of interpolation) = " << m_dEpsilon << std::endl);
 
-	if(aggressiveCoarsening)	{UG_LOG(" Aggressive Coarsening is on, A" << aggressiveCoarseningNrOfPaths << "-mode." << std::endl);}
+	if(m_bAggressiveCoarsening)	{UG_LOG(" Aggressive Coarsening is on, A" << m_iAggressiveCoarseningNrOfPaths << "-mode." << std::endl);}
 	else						{UG_LOG(" no Aggressive Coarsening" << std::endl);}
 }
 

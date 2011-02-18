@@ -44,8 +44,8 @@ class amg:
 {
 public:
 	typedef amg_base<TAlgebra> super;
-	using super::amghelper;
-	using super::parentIndex;
+	using super::m_amghelper;
+	using super::m_parentIndex;
 	using super::m_writeMatrices;
 	using super::m_writeMatrixPath;
 
@@ -58,6 +58,8 @@ public:
 
 //	Matrix type
 	typedef typename TAlgebra::matrix_type matrix_type;
+
+	typedef typename TAlgebra::matrix_type prolongation_matrix_type;
 
 	typedef typename matrix_type::value_type value_type;
 	
@@ -72,27 +74,37 @@ public:
 
 	virtual const char* name() const {return "AMGPreconditioner";}
 
-	void set_theta(double new_theta) { theta = new_theta; }
-	void set_sigma(double new_sigma) { sigma = new_sigma; }
+	void set_theta(double new_theta) 		{ m_dTheta = new_theta; }
+	double get_theta() const				{ return m_dTheta; }
+	void set_sigma(double new_sigma) 		{ m_dSigma = new_sigma; }
+	double get_sigma() const				{ return m_dSigma; }
 
-	void enable_aggressive_coarsening_A_2() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 2;}
-	void enable_aggressive_coarsening_A_1() { aggressiveCoarsening = true; aggressiveCoarseningNrOfPaths = 1;}
-	void disable_aggressive_coarsening() { aggressiveCoarsening = false; }
+	void set_epsilon(double new_epsilon) 	{ m_dEpsilon = new_epsilon; }
+	double get_epsilon() const				{ return m_dEpsilon; }
+
+	void enable_aggressive_coarsening_A(int nrOfPaths)
+	{
+		m_bAggressiveCoarsening = true; m_iAggressiveCoarseningNrOfPaths = nrOfPaths;
+		UG_ASSERT(m_iAggressiveCoarseningNrOfPaths >= 0 && m_iAggressiveCoarseningNrOfPaths < 2, "only A1 and A2 supported, not A" << m_iAggressiveCoarseningNrOfPaths);
+	}
+	void disable_aggressive_coarsening() 	{ m_bAggressiveCoarsening = false; }
+	bool is_aggressive_coarsening() const 	{ return m_bAggressiveCoarsening; }
+	bool is_aggressive_coarsening_A(int nrOfPaths) const { return m_bAggressiveCoarsening && m_iAggressiveCoarseningNrOfPaths == nrOfPaths; }
 
 	void tostring() const;
 
 protected:
 //  functions
-	virtual void create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-							SparseMatrix<double> &P, size_t level);
+	virtual void create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+					prolongation_matrix_type &P, size_t level);
 
 // data
-	double eps_truncation_of_interpolation;	///< parameter used for truncation of interpolation
-	double theta; 							///< measure for strong connectivity
-	double sigma;
+	double m_dEpsilon;	///< parameter used for truncation of interpolation
+	double m_dTheta; 	///< measure for strong connectivity
+	double m_dSigma;
 
-	bool aggressiveCoarsening;				///< true if aggressive coarsening is used on first level
-	int aggressiveCoarseningNrOfPaths;  	///<
+	bool m_bAggressiveCoarsening;				///< true if aggressive coarsening is used on first level
+	int m_iAggressiveCoarseningNrOfPaths;  	///<
 };
 	
 	

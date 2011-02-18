@@ -79,12 +79,15 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::receive_coarsen
 
 			int j=0;
 			IndexLayout::Interface &interface = OLReceivingLayout.interface(pid);
+			IndexLayout::Interface &nextMasterInterface = nextLevelMasterLayout.interface(pid);
+			IndexLayout::Interface &nextSlaveInterface = nextLevelSlaveLayout.interface(pid);
 			for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 			{
 				size_t index = interface.get_element(iter);
 				//UG_LOG((int)coarseNodes[i][j] << " ");
 				UG_LOG(index);
 				if(rating.is_master(index))
+
 					UG_LOG(" master");
 				if(coarseNodes[i][j++])
 				{
@@ -93,15 +96,15 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::receive_coarsen
 					UG_ASSERT(newIndex != -1, "");
 
 					if(rating.is_master(index))
-						nextLevelMasterLayout.interface(pid).push_back(newIndex);
+						nextMasterInterface.push_back(newIndex);
 					else
-						nextLevelSlaveLayout.interface(pid).push_back(newIndex);
+						nextSlaveInterface.push_back(newIndex);
 
 					UG_LOG(" coarse ");
 				}
 				else
 				{
-					rating.set_fine(index);
+					rating[index].set_uninterpolateable();
 					UG_LOG(" fine ");
 				}
 			}
@@ -110,6 +113,10 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::receive_coarsen
 	}
 	else
 		UG_LOG("\nno processes with lower color.")
+
+	AH.set_communicator(communicator);
+	AH.set_slave_layout(nextLevelSlaveLayout);
+	AH.set_master_layout(nextLevelMasterLayout);
 }
 
 template<typename matrix_type, typename prolongation_matrix_type>
@@ -126,12 +133,26 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::send_coarsening
 		BinaryStream s;
 
 		IndexLayout::Interface &interface = OLSendingLayout.interface(pid);
+		IndexLayout::Interface &nextMasterInterface = nextLevelMasterLayout.interface(pid);
+		IndexLayout::Interface &nextSlaveInterface = nextLevelSlaveLayout.interface(pid);
+
 		for(IndexLayout::Interface::iterator iter = interface.begin(); iter != interface.end(); ++iter)
 		{
 			size_t index = interface.get_element(iter);
-			char bCoarse = rating[i].is_coarse();
+			char bCoarse = rating[index].is_coarse();
 			UG_LOG(index << (bCoarse ? " is coarse " : " is fine "));
 			Serialize(s, bCoarse);
+
+			if(bCoarse)
+			{
+				int newIndex = rating.newIndex[index];
+				UG_ASSERT(newIndex != -1, "");
+
+				if(rating.is_master(index))
+					nextMasterInterface.push_back(newIndex);
+				else
+					nextSlaveInterface.push_back(newIndex);
+			}
 		}
 
 		UG_LOG("sending " << s.size() << " of data to pid " << pid << " ");
@@ -157,7 +178,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::create_OL2_matr
 	IndexLayout totalMasterLayout, totalSlaveLayout;
 	GenerateOverlap(A, A_OL2, totalMasterLayout, totalSlaveLayout, masterLayouts, slaveLayouts, 2);
 
-	std::vector<MathVector<3> > vec2(&m_famg.amghelper.positions[0], &m_famg.amghelper.positions[m_famg.amghelper.size]);
+	std::vector<MathVector<3> > vec2(&m_famg.m_amghelper.positions[0], &m_famg.m_amghelper.positions[m_famg.m_amghelper.size]);
 	vec2.resize(A_OL2.num_rows());
 
 	if(bTiming) UG_LOG("took " << SW.ms() << " ms");

@@ -144,7 +144,7 @@ template<typename matrix_type, typename prolongation_matrix_type>
 class FAMGLevelCalculator
 {
 private:
-	famg<CPUAlgebra> m_famg;
+	famg<CPUAlgebra> &m_famg;
 	matrix_type &AH;
 	const matrix_type &A;
 	bool bTiming;
@@ -168,7 +168,7 @@ private:
 #ifdef UG_PARALLEL
 	matrix_type A_OL2;
 	IndexLayout &nextLevelMasterLayout;
-		IndexLayout &nextLevelSlaveLayout;
+	IndexLayout &nextLevelSlaveLayout;
 
 #else
 	matrix_type &A_OL2;
@@ -181,7 +181,7 @@ public:
 			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A,
 			prolongation_matrix_type &_P, size_t _level)
 	: m_famg(f), AH(_AH), A(_A), R(_R), P(_P), level(_level),
-			calculator(A_OL2, m_famg.m_delta, m_famg.m_theta, m_famg.m_dDampingForSmootherInInterpolationCalculation), rating(P)
+			calculator(A_OL2, m_famg.get_delta(), m_famg.get_theta(), m_famg.get_damping_for_smoother_in_interpolation_calculation()), rating(P)
 #ifndef UG_PARALLEL
 			, A_OL2(A)
 #else
@@ -215,7 +215,7 @@ private:
 
 	void create_parentIndex()
 	{
-		stdvector<stdvector<int> > &parentIndex = *m_famg.amghelper.parentIndex;
+		stdvector<stdvector<int> > &parentIndex = m_famg.m_parentIndex;
 		parentIndex.resize(level+2);
 		parentIndex[level+1].resize(rating.get_nr_of_coarse());
 		for(size_t i=0; i < rating.get_nr_of_coarse(); i++) parentIndex[level+1][i] = -1;
@@ -251,13 +251,13 @@ public:
 #endif
 		size_t N = A_OL2.num_rows();
 
-		UG_SET_DEBUG_LEVELS(4);
+		// UG_SET_DEBUG_LEVELS(4);
 
 		UG_LOG("\ncalculating testvector... ");
 		if(bTiming) SW.start();
 
-		CalculateTestvector(A_OL2, big_testvector, m_famg.m_bTestvectorZeroAtDirichlet,
-				m_famg.m_iTestvectorDamps);
+		CalculateTestvector(A_OL2, big_testvector, m_famg.get_testvector_zero_at_dirichlet(),
+				m_famg.get_testvector_damps());
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -272,7 +272,7 @@ public:
 		}
 
 		UG_LOG("\nCreate P, SymmNeighGraph... "); if(bTiming) SW.start();
-		P.create(A.num_rows(),A.num_rows());
+		P.create(N, N);
 		// get neighboring information
 		SymmNeighGraph.resize(N);
 		CreateSymmConnectivityGraph(A_OL2, SymmNeighGraph);
@@ -317,7 +317,7 @@ public:
 		send_coarsening_data_to_processes_with_higher_color();
 	#endif
 
-		IF_DEBUG(LIB_ALG_AMG, 4)
+		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
 			UG_LOG("Coarse nodes:\n");
 			for(size_t i=0; i<N; i++)
@@ -339,7 +339,7 @@ public:
 		UG_LOG(std::endl << "second coarsening... "); if(bTiming) SW.start();
 
 
-		if(m_famg.m_bAggressiveCoarsening)
+		if(m_famg.get_aggressive_coarsening() == true)
 			get_aggressive_coarsening_interpolation();
 		else
 			set_uninterpolateable_as_coarse();
@@ -348,6 +348,9 @@ public:
 
 		P.resize(A.num_rows(), rating.get_nr_of_coarse());
 		P.finalize();
+	#ifdef UG_PARALLEL
+		P.set_storage_type(PST_CONSISTENT);
+	#endif
 
 		// create parentIndex
 		UG_LOG(std::endl << "create parentIndex... "); if(bTiming) SW.start();
@@ -381,9 +384,9 @@ public:
 		// R is already finalized
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms.");
 
-	/*#ifdef UG_PARALLEL
+	#ifdef UG_PARALLEL
 		R.set_storage_type(PST_CONSISTENT);
-	#endif*/
+	#endif
 
 		if(bTiming) UG_DLOG(LIB_ALG_AMG, 1, "took " << SW.ms() << " ms");
 
@@ -425,13 +428,15 @@ public:
 
 		CalculateNextTestvector(R, big_testvector);
 
+		PrintLayout(A_OL2.get_communicator(), nextLevelMasterLayout, nextLevelSlaveLayout);
+
 	}
 
 private:
 	void write_debug_matrices();
 	void write_debug_matrix_markers();
 	template<typename TMatrix>
-	void write_debug_matrix(TMatrix &mat, size_t level, const char *name);
+	void write_debug_matrix(TMatrix &mat, size_t fromlevel, size_t tolevel, const char *name);
 
 
 	void on_demand_coarsening();
@@ -441,14 +446,15 @@ private:
 
 
 template<>
-void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, SparseMatrix<double> &R, const matrix_type &A,
-		SparseMatrix<double> &P, size_t level)
+void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
+		prolongation_matrix_type &P, size_t level)
 {
-	pAmghelper = &amghelper;
+	pAmghelper = &m_amghelper;
 	currentlevel = level;
 
-	FAMGLevelCalculator<matrix_type, SparseMatrix<double> > dummy(*this, AH, R, A, P, level);
+	FAMGLevelCalculator<matrix_type, prolongation_matrix_type > dummy(*this, AH, R, A, P, level);
 	dummy.do_stuff();
+
 	UG_SET_DEBUG_LEVELS(0);
 }
 
