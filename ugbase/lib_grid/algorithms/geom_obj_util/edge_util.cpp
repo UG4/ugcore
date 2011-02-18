@@ -69,6 +69,37 @@ bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e)
 }
 
 ////////////////////////////////////////////////////////////////////////
+bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e)
+{
+	if(!grid.option_is_enabled(VOLOPT_AUTOGENERATE_FACES)){
+		UG_LOG("WARNING in IsBoundaryEdge3D: Autoenabling VOLOPT_AUTOGENERATE_FACES.\n");
+		grid.enable_options(VOLOPT_AUTOGENERATE_FACES);
+	}
+
+//	check whether an associated face is a boundary face
+	if(grid.option_is_enabled(EDGEOPT_STORE_ASSOCIATED_FACES))
+	{
+		for(Grid::AssociatedFaceIterator iter = grid.associated_faces_begin(e);
+			iter != grid.associated_faces_end(e); ++iter)
+		{
+			if(IsBoundaryFace3D(grid, *iter))
+				return true;
+		}
+	}
+	else
+	{
+	//	fill a vector using a helper function
+		vector<Face*> vFaces;
+		CollectFaces(vFaces, grid, e, false);
+		for(size_t i = 0; i < vFaces.size(); ++i){
+			if(IsBoundaryFace3D(grid, vFaces[i]))
+				return true;
+		}
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
 int GetAssociatedFaces(Face** facesOut, Grid& grid,
 						EdgeBase* e, int maxNumFaces)

@@ -105,6 +105,12 @@ bool IsVolumeBoundaryFace(Grid& grid, ConstrainedFace* f);
 bool IsVolumeBoundaryFace(Grid& grid, ConstrainingFace* f);
 
 ////////////////////////////////////////////////////////////////////////
+///	A wrapper for IsVolumeBoundaryFace
+template <class TFace>
+bool IsBoundaryFace3D(Grid& grid, TFace* f)
+{return IsVolumeBoundaryFace(grid, f);}
+
+////////////////////////////////////////////////////////////////////////
 //	FaceQuality
 ///	a simple measure for the quality of a face
 /**

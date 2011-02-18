@@ -43,6 +43,18 @@ int GetEdgeIndex(Volume* vol, EdgeBase* e);
 bool IsBoundaryEdge2D(Grid& grid, EdgeBase* e);
 
 ////////////////////////////////////////////////////////////////////////
+///	returns whether an edge lies on the boundary of a 3D grid.
+/**	An edge is regarded as a boundary edge in 3d if it is adjacent
+ *	to at least one boundary face.
+ *	if EDGEOPT_STORE_ASSOCIATED_FACES is enabled, the algorithm will be faster.
+ *
+ *	Please Note: This algorithm requires the grid option VOLOPT_AUTOGENERATE_FACES.
+ *	If it is not enabled, this algorithm will enable it.
+ *	\todo This algorithm should work without VOLOPT_AUTOGENERATE_FACES, too.
+ */
+bool IsBoundaryEdge3D(Grid& grid, EdgeBase* e);
+
+////////////////////////////////////////////////////////////////////////
 //	GetAssociatedFaces
 ///	writes associated faces of e to facesOut.
 /**
