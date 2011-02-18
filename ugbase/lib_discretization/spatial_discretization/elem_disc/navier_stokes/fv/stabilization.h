@@ -21,6 +21,25 @@ namespace ug{
             FLOW
 		};
 
+        enum DIFFUSION_LENGTH_TYPES
+		{
+            RAW = 0,
+            FIVEPOINT,
+            COR
+		};
+
+        enum PHYSICAL_ADVECTION_CORRECTION
+		{
+            NOPAC = 0,
+            PAC
+		};
+
+        enum PECLET_BLENDING
+		{
+            NOPEBLEND = 0,
+            PEBLEND
+		};
+
 /**
  *
  *

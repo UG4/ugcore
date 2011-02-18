@@ -65,6 +65,7 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 
 //	Compute diffusion length
 //	todo: compute
+    
 	number DiffLengthSq = 1.0;
 
 // Compute velocity in the integration points.
@@ -78,8 +79,8 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
         // reset values to zero
         VecSet(vIPVelCurrent[ip], 0.0);
 
-	// 	Loop components of velocity
-       for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+	    // 	Loop components of velocity
+        for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
         {
            VecScaleAppend(vIPVelCurrent[ip], scvf.shape(sh, 0), vCornerVels[sh]);
         }

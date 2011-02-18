@@ -86,32 +86,60 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
                                         MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
                                         number ConvectionLength[TFVGeometry::m_numSCV])
 {
+   	static const size_t numCo = TFVGeometry::m_numSCV;
+	static const size_t dim   = TFVGeometry::world_dim;
+    MathVector<dim> dist;
+    MathVector<dim> vIPVelCurrent;
+
     // get corners of elem
-    const MathVector<TFVGeometry::world_dim>* corners = geo.corners();
+    const MathVector<dim>* corners = geo.corners();
 
 	// set shapes
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
 	{
-	//	get SubControlVolumeFace
+    	//	get SubControlVolumeFace
 		const typename TFVGeometry::SCVF& scvf = geo.scvf(i);
 		UG_ASSERT(scvf.num_ip() == 1, "Only implemented for first order");
 
-        // reset shapes to zero
-        for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-            vIPVelUpwindShapes[i][sh][0][0] = 0.0;
+
+        // reset IP velocity values to zero
+        VecSet(vIPVelCurrent, 0.0);
+
+        // reset shapes to zero for all IPs and get Velocity in IPs
+        for (size_t co = 0; co < numCo; ++co)
+        {
+            // for all components in corners
+            for(size_t comp = 0; comp < dim; ++comp)
+            {
+                // reset values for all components
+                VecSet(vIPVelUpwindShapes[i][co][comp], 0.0);
+            }
+           // Compute the Velocity in IPs
+           VecScaleAppend(vIPVelCurrent, scvf.shape(co, 0), vCornerVels[co]);
+        }
 
         // switch upwind
-        MathVector<TFVGeometry::world_dim> dist;
-        const number flux = VecDot(scvf.normal(), vCornerVels[i]);
+        const number flux = VecDot(scvf.normal(), vIPVelCurrent);
         if(flux > 0.0)
         {
-            vIPVelUpwindShapes[i][scvf.from()][0][0] = 1.0;
-            VecSubtract(dist, scvf.global_ip(i), corners[scvf.from()]);
+            // for all components in corners
+            for(size_t comp = 0; comp < dim; ++comp)
+            {
+                // reset values for all components
+                VecSet(vIPVelUpwindShapes[i][scvf.from()][comp], 1.0);
+            }
+
+            VecSubtract(dist, scvf.global_ip(0), corners[scvf.from()]);
         }
         else
         {
-            vIPVelUpwindShapes[i][scvf.to()][0][0] = 1.0;
-            VecSubtract(dist, scvf.global_ip(i), corners[scvf.to()]);
+            // for all components in corners
+            for(size_t comp = 0; comp < dim; ++comp)
+            {
+                // reset values for all components
+                VecSet(vIPVelUpwindShapes[i][scvf.to()][comp], 1.0);
+            }
+            VecSubtract(dist, scvf.global_ip(0), corners[scvf.to()]);
         }
 
         // compute convection length as distance between upwind point and

@@ -52,7 +52,8 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 	public:
 	//	Constructor (setting default values)
 		FVNavierStokesElemDisc()
-		 : m_UpwindMethod(FULL_UPWIND),m_StabMethod(FIELDS), m_pDomain(NULL),
+		 : m_UpwindMethod(FULL_UPWIND),m_StabMethod(FIELDS),m_DiffLengthMethod(RAW),
+           m_PhysicalAdvectionCorrection(NOPAC),m_PecletBlend(NOPEBLEND),m_pDomain(NULL),
 		   m_Viscosity(1.0)
 		   {
 				register_assemble_functions(Int2Type<dim>());
@@ -67,6 +68,9 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 	private:
 		int m_UpwindMethod;
         int m_StabMethod;
+        int m_DiffLengthMethod;
+        int m_PhysicalAdvectionCorrection;
+        int m_PecletBlend;
 
 	public:
 		bool set_upwind(const std::string& upwind)
@@ -84,6 +88,31 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 			if      (stabilization == "FIELDS")  m_StabMethod = FIELDS;
             else if (stabilization == "FLOW")    m_StabMethod = FLOW;
             else {UG_LOG("Stabilization Type not recognized.\n"); return false;}
+			return true;
+		}
+
+        bool set_diffusionlength(const std::string& diffusionlength)
+		{
+			if      (diffusionlength == "RAW")        m_DiffLengthMethod = RAW;
+            else if (diffusionlength == "FIVEPOINT")  m_DiffLengthMethod = FIVEPOINT;
+            else if (diffusionlength == "COR")        m_DiffLengthMethod = COR;
+            else {UG_LOG("Diffusion Length calculation method not recognized.\n"); return false;}
+			return true;
+		}
+
+        bool set_physicalAdvectionCorrection(const std::string& physicalAdvectionCorrection)
+		{
+			if      (physicalAdvectionCorrection == "PAC")    m_PhysicalAdvectionCorrection = PAC;
+            else if (physicalAdvectionCorrection == "NOPAC")  m_PhysicalAdvectionCorrection = NOPAC;
+            else {UG_LOG("PAC term usage definition not recognized.\n"); return false;}
+			return true;
+		}
+
+        bool set_pecletBlend(const std::string& pecletBlend)
+		{
+			if      (pecletBlend == "PEBLEND")    m_DiffLengthMethod = PEBLEND;
+            else if (pecletBlend == "NOPEBLEND")  m_DiffLengthMethod = NOPEBLEND;
+            else {UG_LOG("Diffusion Length calculation method not recognized.\n"); return false;}
 			return true;
 		}
 
