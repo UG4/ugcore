@@ -13,10 +13,13 @@
 
 using namespace std;
 
+
 namespace ug
 {
 namespace bridge
 {
+void PrintFileLineFunction(const char *source, int linedefined);
+
 namespace lua
 {
 
@@ -348,13 +351,39 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 	return (int)params.size();
 }
 
+
+
+void lua_stacktrace(lua_State* L)
+{
+    lua_Debug entry;
+    for(int depth = 1; lua_getstack(L, depth, &entry); depth++)
+	{
+    	int status = lua_getinfo(L, "Sln", &entry);
+    	if(!status || !entry.short_src || entry.currentline < 0) return;
+		UG_LOG(entry.short_src << ":" << entry.currentline);
+		UG_LOG(" " << GetFileLine(entry.short_src, entry.currentline));
+		UG_LOG("\n");
+    }
+}
+
+string GetLuaFileAndLine(lua_State* L)
+{
+	lua_Debug entry;
+	lua_getstack(L, 1, &entry);
+	int status = lua_getinfo(L, "Sln", &entry);
+	if(!status || !entry.short_src || entry.currentline < 0) return string("");
+	std::stringstream ss;
+	ss << entry.short_src << ":" << entry.currentline;
+	return ss.str();
+}
+
+
 //	global functions are handled here
 //	Note that not the best matching, but the first matchin overload is chosen!
 static int LuaProxyFunction(lua_State* L)
 {
 	const ExportedFunctionGroup* funcGrp = (const ExportedFunctionGroup*)
 											lua_touserdata(L, lua_upvalueindex(1));
-
 //	we have to try each overload!
 	int badParam = -1;
 	for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
@@ -375,19 +404,20 @@ static int LuaProxyFunction(lua_State* L)
 			func->execute(paramsIn, paramsOut);
 		}
 		catch(UGError err){
-			UG_LOG("UGError in ")
+			UG_LOG(GetLuaFileAndLine(L) << ":\nUGError in ")
 			PrintFunctionInfo(*func);
 			UG_LOG(" with code " << err.get_code() << ": ");
 			UG_LOG(err.get_msg() << endl);
 			if(err.terminate())
 			{
+				UG_LOG("Call stack:\n"); lua_stacktrace(L);
 				UG_LOG("terminating..." << endl);
 				exit(err.get_code());
 			}
 		}
 		catch(...)
 		{
-			UG_LOG("unknown error occured in call to ")
+			UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ")
 			PrintFunctionInfo(*func);
 			UG_LOG(". continuing execution...\n");
 		}
@@ -397,13 +427,13 @@ static int LuaProxyFunction(lua_State* L)
 	}
 	
 	if(badParam > 0){
-		UG_LOG("ERROR occured during call to " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << ")");
-		UG_LOG(": No matching overload found!\n");
-		UG_LOG("Candidates are:\n");
+		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
+		UG_LOG("No matching overload found! Candidates are:\n");
 		for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
 			PrintFunctionInfo(*funcGrp->get_overload(i));
 			UG_LOG("\n");
 		}
+		UG_LOG("Call stack:\n"); lua_stacktrace(L);
 		return 0;
 	}
 
@@ -426,7 +456,7 @@ static int LuaProxyMethod(lua_State* L)
 
 	if(!lua_isuserdata(L, 1))
 	{
-		UG_LOG("ERROR in call to LuaProxyMethod: No object specified in call to ");
+		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR in call to LuaProxyMethod: No object specified in call to ");
 		PrintLuaClassMethodInfo(L, 1, *m);
 		UG_LOG(".\n");
 		return 0;
@@ -443,9 +473,10 @@ static int LuaProxyMethod(lua_State* L)
 	if(badParam > 0)
 	{
 
-		UG_LOG("ERROR occured during call to ");
+		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to ");
 		PrintLuaClassMethodInfo(L, 1, *m);
-		UG_LOG(".\n");
+		UG_LOG(": wrong parameters.\n");
+		UG_LOG("Call stack:\n"); lua_stacktrace(L);
 		return 0;
 	}
 
@@ -454,7 +485,7 @@ static int LuaProxyMethod(lua_State* L)
 	}
 	catch(UGError err)
 	{
-		UG_LOG("UGError in ")
+		UG_LOG(GetLuaFileAndLine(L) << ":\nUGError in ")
 		PrintLuaClassMethodInfo(L, 1, *m);
 		UG_LOG(" with code " << err.get_code() << ": ");
 		UG_LOG(err.get_msg() << endl);
@@ -466,7 +497,7 @@ static int LuaProxyMethod(lua_State* L)
 	}
 	catch(...)
 	{
-		UG_LOG("unknown error occured in call to ");
+		UG_LOG(GetLuaFileAndLine(L) << ":\nunknown error occured in call to ");
 		PrintLuaClassMethodInfo(L, 1, *m);
 		UG_LOG(". continuing execution...\n");
 	}
