@@ -12,6 +12,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "class_helper.h"
 #include "registry.h"
@@ -89,6 +90,12 @@ void ClassHierarchy::insert_class(const IExportedClass &c)
 	}
 }
 
+void ClassHierarchy::sort()
+{
+	std::sort(subclasses.begin(), subclasses.end());
+	for(size_t i=0; i<subclasses.size(); i++)
+		subclasses[i].sort();
+}
 
 ClassHierarchy *ClassHierarchy::find_class(const char *classname)
 {

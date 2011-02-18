@@ -1,5 +1,5 @@
 /**
- * \file class_helper.cpp
+ * \file class_helper.h
  *
  * \author Martin Rupp
  *
@@ -54,12 +54,7 @@ public:
 		return name < other.name;
 	}
 
-	void sort()
-	{
-		std::sort(subclasses.begin(), subclasses.end());
-		for(size_t i=0; i<subclasses.size(); i++)
-			subclasses[i].sort();
-	}
+	void sort();
 
 	std::string name;
 	bool bGroup;
