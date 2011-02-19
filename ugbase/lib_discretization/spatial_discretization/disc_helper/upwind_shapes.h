@@ -61,10 +61,15 @@ bool GetNodeNextToCut(size_t& coOut, const MathVector<TWorldDim>& IP,
 
 template <typename TFVGeometry>
 bool GetNoUpwindShapes(	const TFVGeometry& geo,
-						const MathVector<TFVGeometry::world_dim> IPVel[],
-						std::vector<std::vector<number> >& CornerShape)
+                                        const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
+                                        number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
+                                        number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
+                                        number ConvectionLength[TFVGeometry::m_numSCV])
 {
-	// set shapes
+    // No interdependencies between upwind velocities in element IPs
+    vIPVelUpwindDependencies=NULL;
+
+    // set shapes
 	for(size_t i = 0; i < geo.num_scvf(); ++i)
 	{
 	//	get SubControlVolumeFace
@@ -73,7 +78,7 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 
 		for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 		{
-			CornerShape[i][sh] = scvf.shape(sh, 0);
+			vIPVelUpwindShapes[i][sh] = scvf.shape(sh, 0);
 		}
 	}
 
@@ -83,13 +88,17 @@ bool GetNoUpwindShapes(	const TFVGeometry& geo,
 template <typename TFVGeometry>
 bool GetFullUpwindShapes(	const TFVGeometry& geo,
                                         const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
-                                        MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
+                                        number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
+                                        number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
                                         number ConvectionLength[TFVGeometry::m_numSCV])
 {
    	static const size_t numCo = TFVGeometry::m_numSCV;
 	static const size_t dim   = TFVGeometry::world_dim;
     MathVector<dim> dist;
     MathVector<dim> vIPVelCurrent;
+
+    // No interdependencies between upwind velocities in element IPs
+    vIPVelUpwindDependencies=NULL;
 
     // get corners of elem
     const MathVector<dim>* corners = geo.corners();
@@ -108,12 +117,8 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
         // reset shapes to zero for all IPs and get Velocity in IPs
         for (size_t co = 0; co < numCo; ++co)
         {
-            // for all components in corners
-            for(size_t comp = 0; comp < dim; ++comp)
-            {
-                // reset values for all components
-                VecSet(vIPVelUpwindShapes[i][co][comp], 0.0);
-            }
+           // for all components in corners
+           vIPVelUpwindShapes[i][co]=0.0;
            // Compute the Velocity in IPs
            VecScaleAppend(vIPVelCurrent, scvf.shape(co, 0), vCornerVels[co]);
         }
@@ -122,23 +127,12 @@ bool GetFullUpwindShapes(	const TFVGeometry& geo,
         const number flux = VecDot(scvf.normal(), vIPVelCurrent);
         if(flux > 0.0)
         {
-            // for all components in corners
-            for(size_t comp = 0; comp < dim; ++comp)
-            {
-                // reset values for all components
-                VecSet(vIPVelUpwindShapes[i][scvf.from()][comp], 1.0);
-            }
-
+            vIPVelUpwindShapes[i][scvf.from()]=1.0;
             VecSubtract(dist, scvf.global_ip(0), corners[scvf.from()]);
         }
         else
         {
-            // for all components in corners
-            for(size_t comp = 0; comp < dim; ++comp)
-            {
-                // reset values for all components
-                VecSet(vIPVelUpwindShapes[i][scvf.to()][comp], 1.0);
-            }
+            vIPVelUpwindShapes[i][scvf.to()]=1.0;
             VecSubtract(dist, scvf.global_ip(0), corners[scvf.to()]);
         }
 

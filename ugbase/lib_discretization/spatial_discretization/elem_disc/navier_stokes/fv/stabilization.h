@@ -13,8 +13,18 @@
 #include "lib_discretization/common/geometry_util.h"
 #include "stabilization_fields.h"
 #include "stabilization_flow.h"
+#include "diffusion_length.h"
 
 namespace ug{
+        enum STABILIZATION_SETUP
+        {
+            STAB_METHOD = 0,
+            DIFF_LENGTH_METHOD,
+            PAC_SWITCH,
+            PECLET_BLENDING_SWITCH,
+            STAB_OPTIONS
+        };
+
 		enum STABILIZATION_TYPES
 		{
             FIELDS = 0,
@@ -59,8 +69,9 @@ template <typename TFVGeometry>
 bool GetStabilizedShapes(	const TFVGeometry& geo,
                                     const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
                                     number vCornerPress[TFVGeometry::m_numSCV],
-                                    const int StabMethod,
-                                    const MathVector<TFVGeometry::world_dim> vIPVelUpwindShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
+                                    const int StabOptions[],
+                                    const number vIPVelUpwindShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
+                                    const number vIPVelUpwindDependenciesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
                                     const number vConvLength[TFVGeometry::m_numSCVF],
                                     const number dt,
                                     bool bTimeDependent,
@@ -68,16 +79,39 @@ bool GetStabilizedShapes(	const TFVGeometry& geo,
  									number kinematicViscosity,
                                     MathVector<TFVGeometry::world_dim> vIPStabVelShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][(TFVGeometry::world_dim)+1])
 {
-
-    // Compute Upwind Shapes at Ip's and ConvectionLength here
-	switch(StabMethod)
+    number vDiffLengthSqInv[TFVGeometry::m_numSCVF];
+    
+    // Compute Diffusion Length in corresponding IPs
+	switch(StabOptions[DIFF_LENGTH_METHOD])
 	{
-		case FIELDS:   if(!GetFieldsStabilizedShapes(geo, vCornerVels, vCornerPress, StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+		case FIVEPOINT: if(!NSDiffLengthFivePoint(vDiffLengthSqInv, geo))
+                            return false;
+                        break;
+
+		case RAW:       if(!NSDiffLengthRaw(vDiffLengthSqInv, geo))
+                            return false;
+                        break;
+
+		case COR:       if(!NSDiffLengthCor(vDiffLengthSqInv, geo))
+                            return false;
+                        break;
+
+        default: 	UG_LOG("Diffusion Length type defined incorrecrly.\n");
+					return false;
+	}
+
+
+    // Compute Upwind Shapes at Ip's here
+	switch(StabOptions[STAB_METHOD])
+	{
+		case FIELDS:   if(!GetFieldsStabilizedShapes(geo, vCornerVels, vCornerPress, StabOptions,
+                                                    vIPVelUpwindShapesContiEq,vIPVelUpwindDependenciesContiEq, vConvLength,vDiffLengthSqInv,
                                                     dt, bTimeDependent, vCornerVelsOld, kinematicViscosity, vIPStabVelShapesContiEq))
                                 return false;
                             break;
 
-		case FLOW:      if(!GetFlowStabilizedShapes(geo, vCornerVels, vCornerPress, StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+		case FLOW:      if(!GetFlowStabilizedShapes(geo, vCornerVels, vCornerPress, StabOptions,
+                                                    vIPVelUpwindShapesContiEq,vIPVelUpwindDependenciesContiEq, vConvLength,vDiffLengthSqInv,
                                                     dt, bTimeDependent, vCornerVelsOld, kinematicViscosity, vIPStabVelShapesContiEq))
                                 return false;
                             break;

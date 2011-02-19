@@ -8,9 +8,6 @@
 #ifndef __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__ELEM_DISC__NAVIER_STOKES__FV__NAVIER_STOKES_IMPL__
 
-#include "diffusion_length.h"
-#include "stabilization.h"
-
 namespace ug{
 
 
@@ -124,8 +121,9 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	MathVector<dim> vCornerVelsOld[numSCVF];
     number          vCornerPress[numCo];
     number          vConvLength[numSCVF];
-//    MathVector<dim> vIPVelUpwindShapesMomEq[numSCVF][numCo][dim];
-    MathVector<dim> vIPVelUpwindShapesContiEq[numSCVF][numCo][dim];
+    // MathVector<dim> vIPVelUpwindShapesMomEq[numSCVF][numCo][dim];
+    number vIPVelUpwindShapesContiEq[numSCVF][numCo];
+    number vIPVelUpwindDependencies[numSCVF][numSCVF];
     MathVector<dim> vIPStabVelShapesContiEq[numSCVF][numCo][dim+1];
 
    	// Store Corner values in vCornerVels variable
@@ -134,7 +132,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
             vCornerVels[co][component]=u(component,co);
 
 	// Compute Upwind Shapes at Ip's and ConvectionLength here fot the Momentum Equation
-    GetUpwindShapes(geo, vCornerVels, m_UpwindMethod, vIPVelUpwindShapesContiEq, vConvLength);
+    GetUpwindShapes(geo, vCornerVels, m_UpwindMethod, vIPVelUpwindShapesContiEq,vIPVelUpwindDependencies, vConvLength);
 
 	// todo: Implement for timedependent
 	bool bTimeDependent = false;
@@ -142,7 +140,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 	// todo: switch
 	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-	GetStabilizedShapes(	geo, vCornerVels, vCornerPress, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+	GetStabilizedShapes(	geo, vCornerVels, vCornerPress, m_StabOptions, vIPVelUpwindShapesContiEq,vIPVelUpwindDependencies, vConvLength,
 									dt, bTimeDependent, vCornerVelsOld,
 									m_Viscosity,
                                     vIPStabVelShapesContiEq);
@@ -282,8 +280,9 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	MathVector<dim> vCornerVelsOld[numCo];
     number          vCornerPress[numCo];
     number          vConvLength[numSCVF];
-//    MathVector<dim> vIPVelUpwindShapesMomEq[numSCVF][numCo][dim];
-    MathVector<dim> vIPVelUpwindShapesContiEq[numSCVF][numCo][dim];
+//   number vIPVelUpwindShapesMomEq[numSCVF][numCo];
+    number vIPVelUpwindShapesContiEq[numSCVF][numCo];
+    number vIPVelUpwindDependenciesContiEq[numSCVF][numSCVF];
     MathVector<dim> vIPStabVelShapesContiEq[numSCVF][numCo][dim+1];
 
    	// Store Corner values in vCornerVels variable
@@ -293,7 +292,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
         vCornerPress[co]=u(_P_,co);
     }
 	// Compute Upwind Shapes at Ip's and ConvectionLength here fot the Momentum Equation
-    GetUpwindShapes(geo, vCornerVels, m_UpwindMethod, vIPVelUpwindShapesContiEq, vConvLength);
+    GetUpwindShapes(geo, vCornerVels, m_UpwindMethod, vIPVelUpwindShapesContiEq, vIPVelUpwindDependenciesContiEq, vConvLength);
 
 	// todo: Implement for timedependent
 	bool bTimeDependent = false;
@@ -301,7 +300,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 	// todo: switch
 	// Compute Stabilized Velocities at IP's here (depending on Upwind Velocities)
-	GetStabilizedShapes(geo, vCornerVels, vCornerPress, m_StabMethod, vIPVelUpwindShapesContiEq, vConvLength,
+	GetStabilizedShapes(geo, vCornerVels, vCornerPress, m_StabOptions, vIPVelUpwindShapesContiEq,vIPVelUpwindDependenciesContiEq, vConvLength,
 									dt, bTimeDependent, vCornerVelsOld,
 									m_Viscosity,
                                     vIPStabVelShapesContiEq);

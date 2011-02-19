@@ -52,10 +52,13 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 	public:
 	//	Constructor (setting default values)
 		FVNavierStokesElemDisc()
-		 : m_UpwindMethod(FULL_UPWIND),m_StabMethod(FIELDS),m_DiffLengthMethod(RAW),
-           m_PhysicalAdvectionCorrection(NOPAC),m_PecletBlend(NOPEBLEND),m_pDomain(NULL),
-		   m_Viscosity(1.0)
+		 : m_pDomain(NULL),m_Viscosity(1.0)
 		   {
+                set_upwind("FULL_UPWIND");
+                set_stabilization("FIELDS");
+                set_diffusionlength("RAW");
+                set_physicalAdvectionCorrection("NOPAC");
+                set_pecletBlend("NOPEBLEND");
 				register_assemble_functions(Int2Type<dim>());
 			}
 
@@ -67,10 +70,7 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 
 	private:
 		int m_UpwindMethod;
-        int m_StabMethod;
-        int m_DiffLengthMethod;
-        int m_PhysicalAdvectionCorrection;
-        int m_PecletBlend;
+        int m_StabOptions[STAB_OPTIONS];
 
 	public:
 		bool set_upwind(const std::string& upwind)
@@ -85,34 +85,34 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 
 		bool set_stabilization(const std::string& stabilization)
 		{
-			if      (stabilization == "FIELDS")  m_StabMethod = FIELDS;
-            else if (stabilization == "FLOW")    m_StabMethod = FLOW;
+			if      (stabilization == "FIELDS")  m_StabOptions[STAB_METHOD] = FIELDS;
+            else if (stabilization == "FLOW")    m_StabOptions[STAB_METHOD] = FLOW;
             else {UG_LOG("Stabilization Type not recognized.\n"); return false;}
 			return true;
 		}
 
         bool set_diffusionlength(const std::string& diffusionlength)
 		{
-			if      (diffusionlength == "RAW")        m_DiffLengthMethod = RAW;
-            else if (diffusionlength == "FIVEPOINT")  m_DiffLengthMethod = FIVEPOINT;
-            else if (diffusionlength == "COR")        m_DiffLengthMethod = COR;
+			if      (diffusionlength == "RAW")        m_StabOptions[DIFF_LENGTH_METHOD] = RAW;
+            else if (diffusionlength == "FIVEPOINT")  m_StabOptions[DIFF_LENGTH_METHOD] = FIVEPOINT;
+            else if (diffusionlength == "COR")        m_StabOptions[DIFF_LENGTH_METHOD] = COR;
             else {UG_LOG("Diffusion Length calculation method not recognized.\n"); return false;}
 			return true;
 		}
 
         bool set_physicalAdvectionCorrection(const std::string& physicalAdvectionCorrection)
 		{
-			if      (physicalAdvectionCorrection == "PAC")    m_PhysicalAdvectionCorrection = PAC;
-            else if (physicalAdvectionCorrection == "NOPAC")  m_PhysicalAdvectionCorrection = NOPAC;
+			if      (physicalAdvectionCorrection == "PAC")    m_StabOptions[PAC_SWITCH] = PAC;
+            else if (physicalAdvectionCorrection == "NOPAC")  m_StabOptions[PAC_SWITCH] = NOPAC;
             else {UG_LOG("PAC term usage definition not recognized.\n"); return false;}
 			return true;
 		}
 
         bool set_pecletBlend(const std::string& pecletBlend)
 		{
-			if      (pecletBlend == "PEBLEND")    m_DiffLengthMethod = PEBLEND;
-            else if (pecletBlend == "NOPEBLEND")  m_DiffLengthMethod = NOPEBLEND;
-            else {UG_LOG("Diffusion Length calculation method not recognized.\n"); return false;}
+			if      (pecletBlend == "PEBLEND")    m_StabOptions[PECLET_BLENDING_SWITCH] = PEBLEND;
+            else if (pecletBlend == "NOPEBLEND")  m_StabOptions[PECLET_BLENDING_SWITCH] = NOPEBLEND;
+            else {UG_LOG("Peclet Blending setup not recognized.\n"); return false;}
 			return true;
 		}
 

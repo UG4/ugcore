@@ -32,19 +32,25 @@ template <typename TFVGeometry>
 bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
                                     const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
                                     number vCornerPress[TFVGeometry::m_numSCV],
-                                    const int StabMethod,
-                                    const MathVector<TFVGeometry::world_dim> vIPVelUpwindShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
+                                    const int StabOptions[],
+                                    const number vIPVelUpwindShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
+                                    const number vIPVelUpwindDependenciesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
                                     const number vConvLength[TFVGeometry::m_numSCVF],
+                                    const number vDiffLengthSqInv[TFVGeometry::m_numSCVF],
                                     const number dt,
                                     bool bTimeDependent,
                                     const MathVector<TFVGeometry::world_dim> vCornerVelsOld[TFVGeometry::m_numSCV],
  									number kinematicViscosity,
                                     MathVector<TFVGeometry::world_dim> vIPStabVelShapesContiEq[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][(TFVGeometry::world_dim)+1])
 {
-    // todo: switch
-	// Compute ConvectionLength hereCompute Diffusion Length
-	//NSDiffLengthMethod1(vDiffLengthSqInv, geo);
+//	Some constants
+    static const size_t numIp = TFVGeometry::m_numSCVF;
+	static const size_t dim = TFVGeometry::world_dim;
+    MathVector<TFVGeometry::world_dim> vIPVelCurrent[TFVGeometry::m_numSCVF];
 
+//	Vector for Diagonal (size = dim * NumIps)
+	number Diag[numIp * dim];
+	number rhs[numIp * dim];
 
 //	todo: Implement time-dependent part
 	if(bTimeDependent)
@@ -54,22 +60,8 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 		return false;
 	}
 
-//	Some constants
-	static const size_t numIp = TFVGeometry::m_numSCVF;
-	static const size_t dim = TFVGeometry::world_dim;
-    MathVector<TFVGeometry::world_dim> vIPVelCurrent[TFVGeometry::m_numSCVF];
-
-//	Vector for Diagonal (size = dim * NumIps)
-	number Diag[numIp * dim];
-	number rhs[numIp * dim];
-
-//	Compute diffusion length
-//	todo: compute
-    
-	number DiffLengthSq = 1.0;
-
 // Compute velocity in the integration points.
-    //	Loop integration points
+//	Loop integration points
     for(size_t ip = 0; ip < numIp; ++ip)
 	{
     	//	get SubControlVolumeFace
@@ -106,7 +98,7 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 				Diag[comp] = 0.0;
 
 		//	Diffusion part
-			Diag[comp] += kinematicViscosity/DiffLengthSq;
+			Diag[comp] += kinematicViscosity * vDiffLengthSqInv[ip];
 
 		//	Convective Term
 			Diag[comp] += VecTwoNorm(vIPVelCurrent[ip]) / vConvLength[ip];
@@ -124,7 +116,7 @@ bool GetFieldsStabilizedShapes(	const TFVGeometry& geo,
 		//		rhs[comp] += vIPVelOld[ip][d] / dt;
 
 		//	Diffusion part
-			rhs[comp] += kinematicViscosity * vIPVelCurrent[ip][d] / DiffLengthSq;
+			rhs[comp] += kinematicViscosity * vIPVelCurrent[ip][d] * vDiffLengthSqInv[ip];
 
 		//	Convective part
 		//	rhs[comp] += vIPVelUpwindShapesContiEq[ip][d][0][0] * VecTwoNorm(vIPVelCurrent[ip]) / ConvLength;

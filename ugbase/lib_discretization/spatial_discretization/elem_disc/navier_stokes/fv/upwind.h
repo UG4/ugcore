@@ -35,7 +35,8 @@ template <typename TFVGeometry>
 bool GetUpwindShapes(	const TFVGeometry& geo,
                                         const MathVector<TFVGeometry::world_dim> vCornerVels[TFVGeometry::m_numSCV],
                                         const int UpwindMethod,
-                                        MathVector<TFVGeometry::world_dim> vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV][TFVGeometry::world_dim],
+                                        number vIPVelUpwindShapes[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCV],
+                                        number vIPVelUpwindDependencies[TFVGeometry::m_numSCVF][TFVGeometry::m_numSCVF],
                                         number ConvectionLength[TFVGeometry::m_numSCV])
 {
 // todo: implement the case whe upwind vels in the ips are mutually dependent
@@ -47,7 +48,10 @@ bool GetUpwindShapes(	const TFVGeometry& geo,
     // Compute Upwind Shapes at Ip's and ConvectionLength here
 	switch(UpwindMethod)
 	{
-		case FULL_UPWIND:   if(!GetFullUpwindShapes(geo, vCornerVels, vIPVelUpwindShapes, ConvectionLength))
+		case NO_UPWIND:     if(!GetNoUpwindShapes(geo, vCornerVels, vIPVelUpwindShapes,vIPVelUpwindDependencies, ConvectionLength))
+                                return false;
+                            break;
+        case FULL_UPWIND:   if(!GetFullUpwindShapes(geo, vCornerVels, vIPVelUpwindShapes,vIPVelUpwindDependencies, ConvectionLength))
                                 return false;
                             break;
         default: 	UG_LOG("Upwind Type defined incorrecrly.\n");
@@ -57,8 +61,6 @@ bool GetUpwindShapes(	const TFVGeometry& geo,
     // Values of Velocities in IPs do not depend in other IPs
 	return true;
 }
-
-
 
 } // end namespace ug
 
