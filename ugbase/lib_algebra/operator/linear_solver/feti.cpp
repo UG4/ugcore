@@ -612,7 +612,19 @@ init(ILinearOperator<vector_type, vector_type>& L)
 						" needs to be inverted, but no CoarseSolver given.\n");
 				return false;
 			}
-	}
+
+	//	set correct parallel storage type of coarse problem matrix (obviously,
+	//	this problem is solved in serial by a single process, but the parallel
+	//	operations, e.g. computation of defect, require this
+		m_pRootSchurComplementMatrix->set_storage_type(PST_ADDITIVE);
+
+	//	Debug output of matrix (added again (21022011ih))
+		if(m_pDebugWriter != NULL)
+		{
+			m_pDebugWriter->write_matrix(m_RootSchurComplementOp.get_matrix(),
+										 "RootSchurComplementMatrix");
+		}
+	} // end 'if(pcl::GetProcRank() == m_primalRootProc)'
 
 //	we're done
 	return true;
@@ -716,6 +728,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	// (c) compute h = f - h on primal (this h corresponds to \f$\tilde{f}_{\Pi}^{(p)}\f$!)
 	m_pFetiLayouts->vec_scale_add_on_primal(h, 1.0, f, -1.0, h);
+	//m_pFetiLayouts->vec_scale_add_on_primal(h, -1.0, f, 1.0, h);
+	//h.set(1.0); // TEST
+	//m_pFetiLayouts->vec_set_on_primal(h, 1.0); // TEST
 
 //	Create storage for u,f on primal root
 	vector_type rootF;
@@ -731,7 +746,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
 	rootF.set(0.0);
+	FETI_PROFILE_BEGIN(PSMIApply_VecGather);
 	VecGather(&rootF, &h, m_masterAllToOneLayout, m_slaveAllToOneLayout);
+	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_VecGather)'
 
 //	4. Solve \f$S_{\Pi \Pi} u_{\Pi} = \tilde{f}_{\Pi}\f$ on root
 //     Toselli, p.~165, below eq.~(6.64): this is a ``local problem with Neumann bnd cnds at edges, zero Dirichlet bnd vrts''
@@ -743,15 +760,22 @@ apply_return_defect(vector_type& u, vector_type& f)
 		if(m_RootSchurComplementOp.get_matrix().num_cols() != 0)
 		{
 		//	invert matrix
+			//rootF.set(1.0); // TEST
 			rootF.set_storage_type(PST_ADDITIVE);
 			rootU.set_storage_type(PST_CONSISTENT);
 			FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem);
-			if(!m_pCoarseProblemSolver->apply(rootU, rootF))
+			if(!m_pCoarseProblemSolver->apply_return_defect(rootU, rootF))
 			{
 				std::cout << "ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 								 "Could not invert Schur complement on root proc."
 						<< std::endl;
 				bSuccess = false;
+			} else {			// TMP
+				IConvergenceCheck* convCheck = m_pCoarseProblemSolver->get_convergence_check();
+				if(convCheck != NULL)
+					UG_LOG("'PrimalSubassembledMatrixInverse::apply':"
+						   " Last defect after applying coarse problem solver (step 4  ) was " << convCheck->defect() <<
+						   " after " << convCheck->step() << " steps.\n");
 			}
 			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
 		}
