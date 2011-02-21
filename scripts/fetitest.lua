@@ -16,8 +16,8 @@ verbosity = 0	-- set to 0 i.e. for time measurements,
 verbosity = GetParam("-verb", 0)+0 -- '+0' to get a number instead of a string!
 
 activateDbgWriter = 0	-- set to 0 i.e. for time measurements,
-		        -- >= 1 for writing matrix files etc.
-
+		        -- >= 1 for writing matrix files etc. by setting
+		        -- 'fetiSolver:set_debug(dbgWriter)'
 activateDbgWriter = GetParam("-dbgw", 0)+0 -- '+0' to get a number instead of a string!
 
 -- choose algebra
@@ -27,6 +27,8 @@ InitAlgebra(CPUAlgebraChooser());
 dim = 2
 
 if dim == 2 then
+--	gridName = "rect_tri.ugx"
+--	gridName = "unit_square_duplicated_tri.ugx"
 	gridName = "unit_square_tri.ugx"
 	--gridName = "unit_square_quads_8x8.ugx"
 end
@@ -432,7 +434,23 @@ bicgstabSolver = BiCGStab()
 linSolver = LinearSolver()
 
 -- exact Solver
+exactConvCheck = StandardConvergenceCheck() -- only for debugging
+exactConvCheck:set_maximum_steps(10)
+exactConvCheck:set_minimum_defect(1e-10)
+exactConvCheck:set_reduction(1e-16)
+exactConvCheck:set_verbose_level(false)
 exactSolver = LU()
+exactSolver:set_convergence_check(exactConvCheck)
+
+-- create coarse problem CG Solver
+cpConvCheck = StandardConvergenceCheck()
+cpConvCheck:set_maximum_steps(2000)
+cpConvCheck:set_minimum_defect(1e-10)
+cpConvCheck:set_reduction(1e-16)
+cpConvCheck:set_verbose_level(false)
+cpCGSolver = CG()
+cpCGSolver:set_preconditioner(ilu)
+cpCGSolver:set_convergence_check(cpConvCheck)
 
 -- create Neumann CG Solver
 neumannConvCheck = StandardConvergenceCheck()
@@ -468,6 +486,7 @@ fetiSolver:set_domain_decomp_info(domainDecompInfo)
 fetiSolver:set_neumann_solver(neumannCGSolver)
 fetiSolver:set_dirichlet_solver(dirichletCGSolver)
 fetiSolver:set_coarse_problem_solver(exactSolver)
+--fetiSolver:set_coarse_problem_solver(cpCGSolver)
 if activateDbgWriter >= 1 then
 	fetiSolver:set_debug(dbgWriter)
 end
