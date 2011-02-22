@@ -32,7 +32,7 @@ class IApproximationSpace
 	public:
 	// constructor
 		IApproximationSpace()
-			: m_pDomain(NULL), m_pMGSubsetHandler(NULL), m_pFunctionPattern(NULL)
+			: m_pDomain(NULL), m_pMGSH(NULL), m_pFuncPattern(NULL)
 		{};
 
 		virtual ~IApproximationSpace()	{}
@@ -41,7 +41,7 @@ class IApproximationSpace
 		void assign_domain(domain_type& domain)
 		{
 			m_pDomain = &domain;
-			m_pMGSubsetHandler = &domain.get_subset_handler();
+			m_pMGSH = &domain.get_subset_handler();
 		}
 
 	//	Assign Function Pattern
@@ -53,12 +53,12 @@ class IApproximationSpace
 				return false;
 			}
 
-			m_pFunctionPattern = &fp;
+			m_pFuncPattern = &fp;
 			return true;
 		}
 
 	// 	Return Function Pattern
-		const FunctionPattern& get_function_pattern() const {return *m_pFunctionPattern;}
+		const FunctionPattern& get_function_pattern() const {return *m_pFuncPattern;}
 
 	// 	Return the domain
 		const domain_type& get_domain() const {return *m_pDomain;}
@@ -71,10 +71,10 @@ class IApproximationSpace
 		domain_type* m_pDomain;
 
 	// grid or multigrid or subsethandler, where elements are stored
-		subset_handler_type* m_pMGSubsetHandler;
+		subset_handler_type* m_pMGSH;
 
 	// 	Function pattern
-		FunctionPattern* m_pFunctionPattern;
+		FunctionPattern* m_pFuncPattern;
 };
 
 struct UG_ERROR_DoFDistributionMissing{};
@@ -96,33 +96,33 @@ struct UG_ERROR_DoFDistributionMissing{};
 template <typename TDomain, typename TDoFDistribution, typename TAlgebra>
 class ApproximationSpace : public IApproximationSpace<TDomain>{
 	private:
-		// to make it more readable
+	//	 to make it more readable
 		typedef ApproximationSpace<TDomain, TDoFDistribution, TAlgebra> this_type;
 
 	public:
-		// domain type
+	///	Type of Domain, where DoFs are defined
 		typedef TDomain domain_type;
 
-		// subset handler, where DoF Manager is defined
+	///	Type of Grid, where DoFs are defined
 		typedef typename domain_type::grid_type grid_type;
 
-		// subset handler, where DoF Manager is defined
+	///	Type of Subset Handler, where DoFs are defined
 		typedef typename domain_type::subset_handler_type subset_handler_type;
 
-		// algebra of this factory
+	///	Type of Algebra used
 		typedef TAlgebra algebra_type;
 
-		// Type of DoF Distribution
+	///	Type of DoF Distribution
 		typedef IDoFDistribution<TDoFDistribution> dof_distribution_type;
 
-		// dof manager used
+	///	Type of DoF Manager used
 		#ifdef UG_PARALLEL
 			typedef ParallelMGDoFManager<MGDoFManager<TDoFDistribution> > dof_manager_type;
 		#else
 			typedef MGDoFManager<TDoFDistribution> dof_manager_type;
 		#endif
 
-		// grid function type
+	///	Type of Grid function used
 		#ifdef UG_PARALLEL
 			typedef ParallelGridFunction<GridFunction<TDomain, TDoFDistribution, TAlgebra> > function_type;
 		#else
@@ -130,33 +130,36 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 		#endif
 
 	public:
+	///	Constructor
 		ApproximationSpace() :
 			m_bInit(false)
 		{};
 
+	///	Destructor
 		~ApproximationSpace(){}
 
+	///	initializes the Approximation Space
 		bool init()
 		{
-			if(this->m_pFunctionPattern == NULL)
+			if(this->m_pFuncPattern == NULL)
 			{
 				UG_LOG("No Function Pattern assigned to Approximation Space.\n");
 				return false;
 			}
 
-			if(this->m_pMGSubsetHandler == NULL)
+			if(this->m_pMGSH == NULL)
 			{
 				UG_LOG("No domain assigned to Approximation Space.\n");
 				return false;
 			}
 
-			if(!m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSubsetHandler)))
+			if(!m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSH)))
 			{
 				UG_LOG("In 'ApproximationSpace::init':"
 						" Cannot assign multi grid subset handler.\n");
 				return false;
 			}
-			if(!m_MGDoFManager.assign_function_pattern(*(this->m_pFunctionPattern)))
+			if(!m_MGDoFManager.assign_function_pattern(*(this->m_pFuncPattern)))
 			{
 				UG_LOG("In 'ApproximationSpace::init':"
 						" Cannot assign Function Pattern.\n");
@@ -241,7 +244,35 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			return *dofDistr;
 		}
 
+		const dof_distribution_type& get_surface_dof_distribution() const
+		{
+			if(!m_bInit)
+				throw(UG_ERROR_DoFDistributionMissing());
+
+			const dof_distribution_type* dofDistr = m_MGDoFManager.get_surface_dof_distribution();
+
+			if(dofDistr == NULL)
+				throw(UG_ERROR_DoFDistributionMissing());
+
+			return *dofDistr;
+		}
+
+		const SurfaceView* get_surface_view() const {return m_MGDoFManager.get_surface_view();}
+
+		std::vector<const dof_distribution_type*> get_level_dof_distributions() const
+		{
+			return m_MGDoFManager.get_level_dof_distributions();
+		}
+
 		dof_distribution_type& get_level_dof_distribution(size_t level)
+		{
+			if(!m_bInit)
+				throw(UG_ERROR_DoFDistributionMissing());
+
+			return *(m_MGDoFManager.get_level_dof_distribution(level));
+		}
+
+		const dof_distribution_type& get_level_dof_distribution(size_t level) const
 		{
 			if(!m_bInit)
 				throw(UG_ERROR_DoFDistributionMissing());

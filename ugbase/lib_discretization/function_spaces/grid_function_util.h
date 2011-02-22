@@ -21,7 +21,6 @@
 
 namespace ug{
 
-
 template <typename TFunction>
 void ExtractPositions(const TFunction &u, std::vector<MathVector<TFunction::domain_type::dim> > &positions)
 {
