@@ -291,6 +291,7 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	GMG_PROFILE_BEGIN(GMG_AssembleCoarseGridMatrices);
 	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
 	{
+	//	set correct dof distribution
 		if(!m_A[lev]->set_dof_distribution(m_pApproxSpace->get_level_dof_distribution(lev)))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Cannot set dof "
@@ -298,12 +299,19 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 			return false;
 		}
 
+	//	force grid to be considered as regular
+		m_A[lev]->force_regular_grid(true);
+
+	//	init operator (i.e. assemble matrix)
 		if(!m_A[lev]->init(*m_u[lev]))
 		{
 			UG_LOG("ERROR in 'AssembledMultiGridCycle::init': Cannot init coarse "
 					"grid operator for level "<< lev << ".\n");
 			return false;
 		}
+
+	//	remove force flag
+		m_A[lev]->force_regular_grid(false);
 	}
 	GMG_PROFILE_END();
 
@@ -363,6 +371,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 			return false;
 		}
 
+	//	force grid to be considered as regular
+		m_A[lev]->force_regular_grid(true);
+
 	//	init level operator
 		if(!m_A[lev]->init())
 		{
@@ -370,6 +381,9 @@ init(ILinearOperator<vector_type, vector_type>& L)
 					" init operator for level "<< lev << ".\n");
 			return false;
 		}
+
+	//	remove force flag
+		m_A[lev]->force_regular_grid(false);
 	}
 
 //	Init smoother and base solver for coarse grid operators
