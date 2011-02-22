@@ -64,6 +64,13 @@ class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
+	///	switches between non-regular and regular grids
+		virtual bool treat_non_regular_grid(bool bNonRegular)
+		{
+		//	this disc does not need to take special care for non-regular grids
+			return true;
+		}
+
 	private:
 		template <typename TElem>
 		inline bool prepare_element_loop();

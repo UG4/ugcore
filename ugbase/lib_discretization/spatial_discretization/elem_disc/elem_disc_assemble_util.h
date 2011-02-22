@@ -56,7 +56,7 @@ template <	typename TElem,
 bool
 AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                         	const IDoFDistribution<TDoFDistribution>& dofDistr,
-                        	int si,
+                        	int si, bool bNonRegularGrid,
                         	typename TAlgebra::matrix_type& A,
                         	const typename TAlgebra::vector_type& u)
 {
@@ -91,8 +91,35 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;
@@ -210,7 +237,7 @@ template <	typename TElem,
 bool
 AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 					const IDoFDistribution<TDoFDistribution>& dofDistr,
-					int si,
+					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& M,
 					const typename TAlgebra::vector_type& u)
 {
@@ -245,8 +272,35 @@ AssembleMassMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;
@@ -364,7 +418,7 @@ template <	typename TElem,
 bool
 AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 					const IDoFDistribution<TDoFDistribution>& dofDistr,
-					int si,
+					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u)
 {
@@ -399,8 +453,35 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;
@@ -525,7 +606,7 @@ template <	typename TElem,
 bool
 AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 					const IDoFDistribution<TDoFDistribution>& dofDistr,
-					int si,
+					int si, bool bNonRegularGrid,
 					typename TAlgebra::matrix_type& J,
 					const typename TAlgebra::vector_type& u,
 					number s_a0, number time)
@@ -561,8 +642,35 @@ AssembleJacobian(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;
@@ -709,7 +817,7 @@ template <	typename TElem,
 bool
 AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	const IDoFDistribution<TDoFDistribution>& dofDistr,
-               	int si,
+               	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u)
 {
@@ -744,8 +852,35 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;
@@ -892,7 +1027,7 @@ template <	typename TElem,
 bool
 AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	const IDoFDistribution<TDoFDistribution>& dofDistr,
-               	int si,
+               	int si, bool bNonRegularGrid,
                	typename TAlgebra::vector_type& d,
                	const typename TAlgebra::vector_type& u,
                	number s_m, number s_a, number time)
@@ -928,8 +1063,35 @@ AssembleDefect(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;
@@ -1096,7 +1258,7 @@ template <	typename TElem,
 bool
 AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	const IDoFDistribution<TDoFDistribution>& dofDistr,
-               	int si,
+               	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u)
@@ -1132,8 +1294,35 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;
@@ -1281,7 +1470,7 @@ template <	typename TElem,
 bool
 AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
                	const IDoFDistribution<TDoFDistribution>& dofDistr,
-               	int si,
+               	int si, bool bNonRegularGrid,
                	typename TAlgebra::matrix_type& A,
                	typename TAlgebra::vector_type& rhs,
                	const typename TAlgebra::vector_type& u,
@@ -1318,8 +1507,35 @@ AssembleLinear(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 	bool useHanging = false;
 
 //	check if hanging nodes are needed
-	for(size_t i = 0; i < vElemDisc.size(); ++i)
-		useHanging |= vElemDisc[i]->use_hanging();
+	if(bNonRegularGrid)
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use non-regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(true))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support non-regular"
+				       " grids, but this is requested.\n");
+				return false;
+			}
+
+		//	check if hanging dofs are really used
+			useHanging |= vElemDisc[i]->use_hanging();
+		}
+	}
+	else
+	{
+		for(size_t i = 0; i < vElemDisc.size(); ++i)
+		{
+		//  let disc use regular grid assemblings
+			if(!vElemDisc[i]->treat_non_regular_grid(false))
+			{
+				UG_LOG("ERROR: Elem Disc " << i << " does not support regular"
+					   " grids, but this is requested.\n");
+				return false;
+			}
+		}
+	}
 
 // 	local indices and local algebra
 	LocalIndices ind;

@@ -42,12 +42,10 @@ namespace ug{
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
  * </ul>
  *
- * \tparam	TFVGeom		Finite Volume Geometry used
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
+template<	typename TDomain,
 			typename TAlgebra>
 class FVConvectionDiffusionElemDisc
 	: public IElemDisc<TAlgebra>
@@ -80,7 +78,7 @@ class FVConvectionDiffusionElemDisc
 		 : m_pDomain(NULL), m_upwindAmount(0.0)
 			{
 			//	register assemling functions
-				register_assemble_functions(Int2Type<dim>());
+				register_ass_funcs(Int2Type<dim>());
 
 			//	register imports
 				register_import(m_Diff);
@@ -148,8 +146,20 @@ class FVConvectionDiffusionElemDisc
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
-	///	returns if hanging nodes are used
-		virtual bool use_hanging() const {return TFVGeom<Edge, dim>::usesHangingNodes;}
+	///	switches between non-regular and regular grids
+		virtual bool treat_non_regular_grid(bool bNonRegular)
+		{
+		//	switch, which assemble functions to use.
+			if(bNonRegular)
+				register_non_regular_ass_funcs(Int2Type<dim>());
+			else
+				register_ass_funcs(Int2Type<dim>());
+
+		//	this disc supports both grids
+			return true;
+		}
+
+		virtual bool use_hanging() const {return true;}
 
 	private:
 	///	prepares the loop over all elements
@@ -158,7 +168,7 @@ class FVConvectionDiffusionElemDisc
 	 * array for the corner coordinates and schedules the local ip positions
 	 * at the data imports.
 	 */
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool prepare_element_loop();
 
 	///	prepares the element for assembling
@@ -167,42 +177,42 @@ class FVConvectionDiffusionElemDisc
 	 * the Element Corners are read and the Finite Volume Geometry is updated.
 	 * The global ip positions are scheduled at the data imports.
 	 */
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool prepare_element(TElem* elem,
 		                            const local_vector_type& u,
 		                            const local_index_type& glob_ind);
 
 	///	finishes the loop over all elements
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool finish_element_loop();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_JA(local_matrix_type& J,
 		                        const local_vector_type& u, number time=0.0);
 
 	///	assembles the local mass matrix using a finite volume scheme
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_JM(local_matrix_type& J,
 		                        const local_vector_type& u, number time=0.0);
 
 	///	assembles the stiffness part of the local defect
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_A(local_vector_type& d,
 		                       const local_vector_type& u, number time=0.0);
 
 	///	assembles the mass part of the local defect
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_M(local_vector_type& d,
 		                       const local_vector_type& u, number time=0.0);
 
 	///	assembles the local right hand side
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
-		template <typename TElem>
+		template <typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 		bool lin_defect_velocity(const local_vector_type& u)
 		{
 		// get finite volume geometry
@@ -284,47 +294,98 @@ class FVConvectionDiffusionElemDisc
 		DataImport<number, dim, algebra_type> m_MassScale;
 
 	private:
+		////////////////////////////////////
+		//	regular elements
+		////////////////////////////////////
+
 	/// register for 1D
-		void register_assemble_functions(Int2Type<1>)
+		void register_ass_funcs(Int2Type<1>)
 		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_all_ass_funcs<Edge>(ROID_EDGE);
 		}
 
 	/// register for 2D
-		void register_assemble_functions(Int2Type<2>)
+		void register_ass_funcs(Int2Type<2>)
 		{
-			register_assemble_functions(Int2Type<1>());
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+			register_ass_funcs(Int2Type<1>());
+			register_all_ass_funcs<Triangle>(ROID_TRIANGLE);
+			register_all_ass_funcs<Quadrilateral>(ROID_QUADRILATERAL);
 		}
 
 	/// register for 3D
-		void register_assemble_functions(Int2Type<3>)
+		void register_ass_funcs(Int2Type<3>)
 		{
-			register_assemble_functions(Int2Type<2>());
-			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_assemble_functions<Pyramid>(ROID_PYRAMID);
-			register_all_assemble_functions<Prism>(ROID_PRISM);
-			register_all_assemble_functions<Hexahedron>(ROID_HEXAHEDRON);
+			register_ass_funcs(Int2Type<2>());
+			register_all_ass_funcs<Tetrahedron>(ROID_TETRAHEDRON);
+			register_all_ass_funcs<Pyramid>(ROID_PYRAMID);
+			register_all_ass_funcs<Prism>(ROID_PRISM);
+			register_all_ass_funcs<Hexahedron>(ROID_HEXAHEDRON);
 		}
 
 	///	register all functions for on element type
 		template <typename TElem>
-		void register_all_assemble_functions(int id)
+		void register_all_ass_funcs(int id)
 		{
 			typedef FVConvectionDiffusionElemDisc T;
 
-			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &T::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &T::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
+			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem, FV1Geometry>);
+			register_prepare_element_function(		id, &T::template prepare_element<TElem, FV1Geometry>);
+			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem, FV1Geometry>);
+			register_assemble_JA_function(			id, &T::template assemble_JA<TElem, FV1Geometry>);
+			register_assemble_JM_function(			id, &T::template assemble_JM<TElem, FV1Geometry>);
+			register_assemble_A_function(			id, &T::template assemble_A<TElem, FV1Geometry>);
+			register_assemble_M_function(			id, &T::template assemble_M<TElem, FV1Geometry>);
+			register_assemble_f_function(			id, &T::template assemble_f<TElem, FV1Geometry>);
 
 		//	set computation of linearized defect w.r.t velocity
-			m_ConvVel.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem>);
+			m_ConvVel.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, FV1Geometry>);
+		}
+
+	////////////////////////////////////
+	//	non-regular elements
+	////////////////////////////////////
+
+	/// register for 1D
+		void register_non_regular_ass_funcs(Int2Type<1>)
+		{
+			register_all_non_regular_ass_funcs<Edge>(ROID_EDGE);
+		}
+
+	/// register for 2D
+		void register_non_regular_ass_funcs(Int2Type<2>)
+		{
+			register_non_regular_ass_funcs(Int2Type<1>());
+			register_all_non_regular_ass_funcs<Triangle>(ROID_TRIANGLE);
+			register_all_non_regular_ass_funcs<Quadrilateral>(ROID_QUADRILATERAL);
+		}
+
+	/// register for 3D
+		void register_non_regular_ass_funcs(Int2Type<3>)
+		{
+			register_non_regular_ass_funcs(Int2Type<2>());
+			register_all_non_regular_ass_funcs<Tetrahedron>(ROID_TETRAHEDRON);
+			register_all_non_regular_ass_funcs<Pyramid>(ROID_PYRAMID);
+			register_all_non_regular_ass_funcs<Prism>(ROID_PRISM);
+			register_all_non_regular_ass_funcs<Hexahedron>(ROID_HEXAHEDRON);
+		}
+
+	///	register all functions for on element type
+		template <typename TElem>
+		void register_all_non_regular_ass_funcs(int id)
+		{
+			typedef FVConvectionDiffusionElemDisc T;
+
+			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem, HFV1Geometry>);
+			register_prepare_element_function(		id, &T::template prepare_element<TElem, HFV1Geometry>);
+			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem, HFV1Geometry>);
+			register_assemble_JA_function(			id, &T::template assemble_JA<TElem, HFV1Geometry>);
+			register_assemble_JM_function(			id, &T::template assemble_JM<TElem, HFV1Geometry>);
+			register_assemble_A_function(			id, &T::template assemble_A<TElem, HFV1Geometry>);
+			register_assemble_M_function(			id, &T::template assemble_M<TElem, HFV1Geometry>);
+			register_assemble_f_function(			id, &T::template assemble_f<TElem, HFV1Geometry>);
+
+		//	set computation of linearized defect w.r.t velocity
+			m_ConvVel.register_lin_defect_func(id, this, &T::template lin_defect_velocity<TElem, HFV1Geometry>);
 		}
 };
 

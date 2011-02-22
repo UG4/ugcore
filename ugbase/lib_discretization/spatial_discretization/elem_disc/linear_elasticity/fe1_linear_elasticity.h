@@ -60,6 +60,13 @@ class FE1LinearElasticityElemDisc : public IElemDisc<TAlgebra>
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
+	///	switches between non-regular and regular grids
+		virtual bool treat_non_regular_grid(bool bNonRegular)
+		{
+		//	no special care for non-regular grids
+			return true;
+		}
+
 	private:
 		template <typename TElem>
 		inline bool prepare_element_loop();

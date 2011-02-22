@@ -20,13 +20,11 @@ namespace ug{
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -67,13 +65,11 @@ prepare_element_loop()
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
 {
 	// all this will be performed outside of the loop over the elements.
@@ -82,13 +78,11 @@ finish_element_loop()
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u,
 								const local_index_type& glob_ind)
 {
@@ -139,13 +133,11 @@ prepare_element(TElem* elem, const local_vector_type& u,
 	return true;
 }
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
 // get finite volume geometry
@@ -272,13 +264,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 }
 
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 // 	get finite volume geometry
@@ -311,13 +301,11 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 }
 
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 // 	get finite volume geometry
@@ -439,13 +427,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 }
 
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 // 	get finite volume geometry
@@ -478,13 +464,11 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 }
 
 
-template<	template <class TElem, int TWorldDim> class TFVGeom,
-			typename TDomain,
-			typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int WorldDim> class TFVGeom>
 inline
 bool
-FVConvectionDiffusionElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
 //	if zero data given, return

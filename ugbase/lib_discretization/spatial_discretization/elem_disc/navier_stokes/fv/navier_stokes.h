@@ -125,7 +125,20 @@ class FVNavierStokesElemDisc : public IElemDisc<TAlgebra>
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
-		virtual bool use_hanging() const {return TFVGeom<Edge, dim>::usesHangingNodes;}
+	///	switches between non-regular and regular grids
+		virtual bool treat_non_regular_grid(bool bNonRegular)
+		{
+		//	switch, which assemble functions to use.
+			if(bNonRegular)
+			{
+				UG_LOG("ERROR in 'FVNavierStokesElemDisc::treat_non_regular_grid':"
+						" Non-regular grid not implemented.\n");
+				return false;
+			}
+
+		//	this disc supports regular grids
+			return true;
+		}
 
 	private:
 		template <typename TElem>

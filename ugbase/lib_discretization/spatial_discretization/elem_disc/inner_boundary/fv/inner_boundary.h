@@ -210,6 +210,22 @@ class FVInnerBoundaryElemDisc
 		{
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
+
+	///	switches between non-regular and regular grids
+		virtual bool treat_non_regular_grid(bool bNonRegular)
+		{
+		//	switch, which assemble functions to use.
+			if(bNonRegular)
+			{
+				UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::treat_non_regular_grid':"
+						" Non-regular grid not implemented.\n");
+				return false;
+			}
+
+		//	this disc supports regular grids
+			return true;
+		}
+
 	///	returns if hanging nodes are used
 		virtual bool use_hanging() const {return TFVGeom<Edge, dim>::usesHangingNodes;}
 

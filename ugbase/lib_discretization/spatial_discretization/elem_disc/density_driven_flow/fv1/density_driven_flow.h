@@ -256,6 +256,21 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
+	///	switches between non-regular and regular grids
+		virtual bool treat_non_regular_grid(bool bNonRegular)
+		{
+		//	switch, which assemble functions to use.
+			if(bNonRegular)
+			{
+				UG_LOG("ERROR in 'DensityDrivenFlowElemDisc::treat_non_regular_grid':"
+						" Non-regular grid not implemented.\n");
+				return false;
+			}
+
+		//	this disc supports regular grids
+			return true;
+		}
+
 	private:
 		template <typename TElem>
 		inline bool prepare_element_loop();
