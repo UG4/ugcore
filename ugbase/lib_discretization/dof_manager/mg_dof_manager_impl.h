@@ -9,7 +9,7 @@
 #define __H__LIB_DISCRETIZATION__DOF_MANAGER__MG_DOF_MANAGER_IMPL__
 
 #include "mg_dof_manager.h"
-#include "lib_grid/algorithms/subset_util.h"
+#include "lib_grid/algorithms/multi_grid_util.h"
 
 namespace ug{
 
@@ -26,8 +26,8 @@ assign_multi_grid_subset_handler(MultiGridSubsetHandler& mgsh)
 	m_levelStorageManager.set_subset_handler(mgsh);
 
 // 	Set Function pattern if already assigned
-	if(m_pFunctionPattern != NULL)
-		if(!assign_function_pattern(*m_pFunctionPattern))
+	if(m_pFuncPattern != NULL)
+		if(!assign_function_pattern(*m_pFuncPattern))
 			return false;
 
 	return true;
@@ -38,13 +38,13 @@ bool
 MGDoFManager<TDoFDistribution>::
 assign_function_pattern(FunctionPattern& dp)
 {
-	m_pFunctionPattern = &dp;
+	m_pFuncPattern = &dp;
 
 //	 if already subsethandler set
 	if(m_pMGSubsetHandler != NULL)
 	{
 	// 	remember current levels
-		size_t num_level = m_vLevelDoFDistribution.size();
+		size_t num_level = m_vLevelDD.size();
 
 	//	update level dofs
 		if(level_dofs_enabled())
@@ -100,7 +100,7 @@ enable_level_dofs()
 		return false;
 	}
 
-	if(m_pFunctionPattern == NULL)
+	if(m_pFuncPattern == NULL)
 	{
 		UG_LOG("No Function Pattern set to MultiGrid DoF Manager.\n");
 		return false;
@@ -116,7 +116,7 @@ enable_level_dofs()
 // 	distribute on level grids
 	for(size_t l = 0; l < num_levels(); ++l)
 	{
-		if(!m_vLevelDoFDistribution[l]->distribute_dofs())
+		if(!m_vLevelDD[l]->distribute_dofs())
 		{
 			UG_LOG("Cannot distribute dofs on level "<<l<<".\n");
 			return false;
@@ -136,7 +136,7 @@ enable_surface_dofs()
 		UG_LOG("No Subset Handler set to MultiGrid DoF Manager.\n");
 		return false;
 	}
-	if(m_pFunctionPattern == NULL)
+	if(m_pFuncPattern == NULL)
 	{
 		UG_LOG("No Function Pattern set to MultiGrid DoF Manager.\n");
 		return false;
@@ -150,12 +150,13 @@ enable_surface_dofs()
 	}
 
 // 	distribute on surface grid
-	if(!m_pSurfaceDoFDistribution->distribute_dofs())
+	if(!m_pSurfDD->distribute_dofs())
 	{
 		UG_LOG("Cannot distribute dofs on surface.\n");
 		return false;
 	}
 
+//	we're done
 	return true;
 }
 
@@ -200,18 +201,18 @@ print_statistic() const
 			"(SubsetIndex, BlockSize, DoFs per Subset) \n");
 
 //	Write Infos for Levels
-	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
+	for(size_t l = 0; l < m_vLevelDD.size(); ++l)
 	{
 		UG_LOG("    " << l << "    |");
-		print_statistic(*m_vLevelDoFDistribution[l]);
+		print_statistic(*m_vLevelDD[l]);
 		UG_LOG(std::endl);
 	}
 
 //	Write Infos for Surface Grid
-	if(m_pSurfaceDoFDistribution != NULL)
+	if(m_pSurfDD != NULL)
 	{
 		UG_LOG("  surf   |");
-		print_statistic(*m_pSurfaceDoFDistribution);
+		print_statistic(*m_pSurfDD);
 		UG_LOG(std::endl);
 	}
 
@@ -250,19 +251,18 @@ print_layout_statistic() const
 	UG_LOG("----------------------------------------------------------\n");
 
 //	Write Infos for Levels
-	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
+	for(size_t l = 0; l < m_vLevelDD.size(); ++l)
 	{
 		UG_LOG(" " << std::setw(5)<< l << " | ");
-		print_layout_statistic(*m_vLevelDoFDistribution[l]);
+		print_layout_statistic(*m_vLevelDD[l]);
 		UG_LOG("\n");
-		UG_LOG("----------------------------------------------------------\n");
 	}
 
 //	Write Infos for Surface Grid
-	if(m_pSurfaceDoFDistribution != NULL)
+	if(m_pSurfDD != NULL)
 	{
 		UG_LOG("  surf | ");
-		print_layout_statistic(*m_pSurfaceDoFDistribution);
+		print_layout_statistic(*m_pSurfDD);
 		UG_LOG(std::endl);
 	}
 #endif
@@ -276,6 +276,8 @@ MGDoFManager<TDoFDistribution>::
 surface_view_required()
 {
 // 	serial version
+	if(m_pSurfaceView != NULL)
+		return true;
 
 //	Create Surface view if not already created
 	if(m_pSurfaceView == NULL)
@@ -289,14 +291,7 @@ surface_view_required()
 	}
 
 // 	Create surface view for all elements
-	CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
-				m_pMultiGrid->vertices_begin(), m_pMultiGrid->vertices_end());
-	CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
-				m_pMultiGrid->edges_begin(), m_pMultiGrid->edges_end());
-	CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
-				m_pMultiGrid->faces_begin(), m_pMultiGrid->faces_end());
-	CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler,
-				m_pMultiGrid->volumes_begin(), m_pMultiGrid->volumes_end());
+	CreateSurfaceView(*m_pSurfaceView, *m_pMultiGrid, *m_pMGSubsetHandler);
 
 // 	set storage manager
 	m_surfaceStorageManager.set_subset_handler(*m_pSurfaceView);
@@ -315,15 +310,19 @@ surface_distribution_required()
 		return false;
 
 // 	Create surface dof distributions
-	if(m_pSurfaceDoFDistribution == NULL)
-		m_pSurfaceDoFDistribution =
+	if(m_pSurfDD == NULL)
+	{
+	//	create dof distribution on surface
+		m_pSurfDD =
 			new TDoFDistribution(m_pSurfaceView->get_geometric_object_collection(),
 								 *m_pSurfaceView,
 								 m_surfaceStorageManager,
-								 *m_pFunctionPattern);
+								 *m_pFuncPattern,
+								 *m_pSurfaceView);
+	}
 
 //	Check success
-	if(m_pSurfaceDoFDistribution == NULL)
+	if(m_pSurfDD == NULL)
 	{
 		UG_LOG("Cannot allocate Surface DoF Distribution.\n");
 		return false;
@@ -346,15 +345,15 @@ level_distribution_required(size_t numLevel)
 	}
 
 // 	Create level dof distributions
-	for(size_t l = m_vLevelDoFDistribution.size(); l < numLevel; ++l)
+	for(size_t l = m_vLevelDD.size(); l < numLevel; ++l)
 	{
-		m_vLevelDoFDistribution.push_back(
+		m_vLevelDD.push_back(
 				new TDoFDistribution(m_pMGSubsetHandler->get_goc_by_level(l),
 									 *m_pMGSubsetHandler,
 									 m_levelStorageManager,
-									 *m_pFunctionPattern));
+									 *m_pFuncPattern));
 
-		if(m_vLevelDoFDistribution[l] == NULL)
+		if(m_vLevelDD[l] == NULL)
 		{
 			UG_LOG("Cannot allocate Level DoF Distribution on Level " << l << ".\n");
 			return false;
@@ -370,9 +369,9 @@ disable_surface_dofs()
 {
 // 	Delete surface dof distributions
 	m_surfaceStorageManager.clear();
-	if(m_pSurfaceDoFDistribution != NULL)
-		delete m_pSurfaceDoFDistribution;
-	m_pSurfaceDoFDistribution = NULL;
+	if(m_pSurfDD != NULL)
+		delete m_pSurfDD;
+	m_pSurfDD = NULL;
 
 // 	delete surface view
 	if(m_pSurfaceView != NULL)
@@ -387,12 +386,12 @@ disable_level_dofs()
 {
 // 	Delete level dof distributions
 	m_levelStorageManager.clear();
-	for(size_t l = 0; l < m_vLevelDoFDistribution.size(); ++l)
+	for(size_t l = 0; l < m_vLevelDD.size(); ++l)
 	{
-		delete m_vLevelDoFDistribution[l];
-		m_vLevelDoFDistribution[l] = NULL;
+		delete m_vLevelDD[l];
+		m_vLevelDD[l] = NULL;
 	}
-	m_vLevelDoFDistribution.clear();
+	m_vLevelDD.clear();
 }
 
 

@@ -34,17 +34,17 @@ class MGDoFManager
 	///	Default Constructor
 		MGDoFManager()
 			: m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL), m_pSurfaceView(NULL),
-				m_pFunctionPattern(NULL), m_pSurfaceDoFDistribution(NULL)
+				m_pFuncPattern(NULL), m_pSurfDD(NULL)
 		{
-			m_vLevelDoFDistribution.clear();
+			m_vLevelDD.clear();
 		};
 
 	///	Constructor setting Function Pattern and Multi Grid Subset Handler
 		MGDoFManager(MultiGridSubsetHandler& mgsh, FunctionPattern& dp)
 			: m_pMGSubsetHandler(NULL), m_pMultiGrid(NULL), m_pSurfaceView(NULL),
-				m_pFunctionPattern(NULL), m_pSurfaceDoFDistribution(NULL)
+				m_pFuncPattern(NULL), m_pSurfDD(NULL)
 		{
-			m_vLevelDoFDistribution.clear();
+			m_vLevelDD.clear();
 			assign_multi_grid_subset_handler(mgsh);
 			assign_function_pattern(dp);
 		};
@@ -75,10 +75,10 @@ class MGDoFManager
 		bool enable_surface_dofs();
 
 	///	returns if level dofs are enabled
-		bool level_dofs_enabled() const {return m_vLevelDoFDistribution.size() != 0;}
+		bool level_dofs_enabled() const {return m_vLevelDD.size() != 0;}
 
 	///	returns if surface dofs are enabled
-		bool surface_dofs_enabled() const {return m_pSurfaceDoFDistribution != NULL;}
+		bool surface_dofs_enabled() const {return m_pSurfDD != NULL;}
 
 	///	returns Surface DoF Distribution
 		dof_distribution_type* get_surface_dof_distribution()
@@ -90,22 +90,51 @@ class MGDoFManager
 				throw(UGFatalError("Surface DoF Distribution missing but requested."));
 			}
 
-//			return m_pSurfaceDoFDistribution;
+			return m_pSurfDD;
+		}
 
-			if(enable_level_dofs())
-				return get_level_dof_distribution(num_levels()-1);
-			else
-				return NULL;
+	///	returns Surface DoF Distribution
+		const dof_distribution_type* get_surface_dof_distribution() const
+		{
+		// 	update surface distribution
+			if(m_pSurfDD == NULL)
+			{
+				UG_LOG("surface distribution missing.\n");
+				throw(UGFatalError("Surface DoF Distribution missing but requested."));
+			}
+
+			return m_pSurfDD;
 		}
 
 	///	returns Level DoF Distribution
 		dof_distribution_type* get_level_dof_distribution(size_t level)
 		{
-			if(level < m_vLevelDoFDistribution.size())
-				return m_vLevelDoFDistribution[level];
+			if(level < m_vLevelDD.size())
+				return m_vLevelDD[level];
 			else
 				return NULL;
 		}
+
+	///	returns Level DoF Distribution
+		const dof_distribution_type* get_level_dof_distribution(size_t level) const
+		{
+			if(level < m_vLevelDD.size())
+				return m_vLevelDD[level];
+			else
+				return NULL;
+		}
+
+	///	returns the Level DoF Distributions in a vector
+		std::vector<const dof_distribution_type*> get_level_dof_distributions() const
+		{
+			std::vector<const dof_distribution_type*> vLevelDD;
+			for(size_t i = 0; i < m_vLevelDD.size(); ++i)
+				vLevelDD.push_back(m_vLevelDD[i]);
+			return vLevelDD;
+		}
+
+	///	returns the surface view
+		const SurfaceView* get_surface_view() const {return m_pSurfaceView;}
 
 	///	print a statistic on dof distribution
 		void print_statistic() const;
@@ -156,13 +185,13 @@ class MGDoFManager
 		SurfaceView* m_pSurfaceView;
 
 	// 	DoF Pattern
-		FunctionPattern* m_pFunctionPattern;
+		FunctionPattern* m_pFuncPattern;
 
 	// 	Level DoF Distributors
-		std::vector<dof_distribution_type*> m_vLevelDoFDistribution;
+		std::vector<dof_distribution_type*> m_vLevelDD;
 
 	// 	Surface Grid DoF Distributor
-		dof_distribution_type* m_pSurfaceDoFDistribution;
+		dof_distribution_type* m_pSurfDD;
 
 	// 	Storage manager
 		typename TDoFDistribution::storage_manager_type	m_levelStorageManager;
