@@ -319,7 +319,7 @@ bool AdjustAndDistributeGrid(DistributedGridManager& distGridMgrOut,
 			//todo	currently the genealogy is distributed. This should be
 			//		controllable from the outside.
 				bSuccess = DistributeGrid_KeepSrcGrid(mgOut, shOut, glmOut,
-													shPartition, rootProc, true);
+													shPartition, rootProc, false);
 			else
 				bSuccess = DistributeGrid(srcGrid, srcSh, shPartition, rootProc,
 										   &mgOut, &shOut, &glmOut);
