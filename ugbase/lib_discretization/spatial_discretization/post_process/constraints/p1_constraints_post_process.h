@@ -168,7 +168,20 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 	public:
 		virtual int type() {return PPT_CONSTRAINTS;}
 
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+		virtual IAssembleReturn post_process_jacobian(matrix_type& J,
+		                                              const vector_type& u,
+		                                              const dof_distribution_type& dofDistr,
+		                                              number time = 0.0)
+		{
+		//	\todo: Think about if this is ok.
+			return IAssemble_OK;
+		}
+
+		virtual IAssembleReturn post_process_linear(matrix_type& mat,
+		                                            vector_type& rhs,
+		                                            const vector_type& u,
+		                                            const dof_distribution_type& dofDistr,
+		                                            number time = 0.0)
 		{
 			std::vector<algebra_index_vector_type> vConstrainingIndices;
 			algebra_index_vector_type constrainedIndex;
@@ -185,35 +198,37 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 
 			vConstrainingIndices.resize(2);
 			vConstrainingVertices.resize(2);
+
+		//	loop constraining edges
 			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
+			//	get constraining edge
 				ConstrainingEdge* bigEdge = *iter;
 
+			//	get constraining vertices
 				for(size_t i=0; i < 2; ++i)
 					vConstrainingVertices[i] = bigEdge->vertex(i);
 
-				for(EdgeBaseIterator edIter = bigEdge->constrained_edges_begin(); edIter !=  bigEdge->constrained_edges_end(); ++edIter)
+			//	check that edge has only on contrained vertex
+				if(bigEdge->num_constrained_vertices() != 1)
 				{
-					ConstrainedEdge* smallEdge = dynamic_cast<ConstrainedEdge*>(*edIter);
-					if(smallEdge == NULL)
-					{
-						UG_LOG("Cannot find Constrained Edge. Aborting.\n"); return IAssemble_ERROR;
-					}
-
-					constrainedVertex = smallEdge->vertex(0);
-					if(constrainedVertex != vConstrainingVertices[1] && constrainedVertex != vConstrainingVertices[0]) break;
-
-					constrainedVertex = smallEdge->vertex(1);
-					if(constrainedVertex != vConstrainingVertices[1] && constrainedVertex != vConstrainingVertices[0]) break;
+					UG_LOG("ERROR in OneSideP1ConstraintsPostProcess::post_process_linear:"
+							"Currently only one hanging node per edge supported.\n");
+					return IAssemble_ERROR;
 				}
 
-				// get algebra indices
+			//	get constrained Vertex
+				constrainedVertex = *(bigEdge->constrained_vertices_begin());
+
+			// 	get algebra indices for constraining vertices
 				for(size_t i=0; i < 2; ++i)
 					dofDistr.get_inner_algebra_indices(vConstrainingVertices[i], vConstrainingIndices[i]);
 
+			// 	get algebra indices constrained vertices
 				dofDistr.get_inner_algebra_indices(constrainedVertex, constrainedIndex);
 
-				// Split using indices
+
+			//  Split using indices
 				if(!SplitAddRow(mat, constrainedIndex, vConstrainingIndices))
 					{UG_LOG("ERROR while splitting rows. Aborting.\n"); return IAssemble_ERROR;}
 
