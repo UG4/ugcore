@@ -43,7 +43,7 @@ void CreateMeasureOfImportancePQ(cgraph &strong, cgraph &strongT, nodeinfo_pq_ty
 {
 	UG_ASSERT(nodes.size() == strongT.size(), "");
 
-	PQ.create(nodes.size(), &nodes[0]);
+	PQ.create(nodes);
 	unassigned = 0;
 	for(size_t i=0; i < nodes.size(); i++)
 	{

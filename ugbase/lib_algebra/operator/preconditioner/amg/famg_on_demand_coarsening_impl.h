@@ -134,7 +134,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::on_demand_coars
 	}
 
 	UG_ASSERT(i != N, "did not found suitable node");
-	UG_DLOG(LIB_ALG_AMG, 2, "\nStarting with node " << GetOriginalIndex(i) << "\n");
+	UG_DLOG(LIB_ALG_AMG, 2, "\nStarting with node " << rating.get_original_index(i) << "\n");
 
 	stdvector<bool> prolongation_calculated;
 	prolongation_calculated.resize(N, false);
@@ -159,9 +159,9 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::on_demand_coars
 
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\nSelect next node...\n");
 		UG_DLOG(LIB_ALG_AMG, 2, "======================================\n");
-		UG_DLOG(LIB_ALG_AMG, 2, "node " << GetOriginalIndex(i) << " has rating " << rating[i] << ". now gets fine. parents: ");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << " has rating " << rating[i] << ". now gets fine. parents: ");
 		for(size_t j=0; j < n.parents.size(); j++)
-			UG_DLOG(LIB_ALG_AMG, 2, GetOriginalIndex(n.parents[j].from) << " ");
+			UG_DLOG(LIB_ALG_AMG, 2, rating.get_original_index(n.parents[j].from) << " ");
 
 		// node i gets fine. update neighbors.
 		rating.set_fine(i);
@@ -179,8 +179,8 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::on_demand_coars
 		{
 			size_t node = n.parents[j].from;
 
-			if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << GetOriginalIndex(node) << " is already coarse\n"); }
-			else { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << GetOriginalIndex(node) << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
+			if(rating[node].is_coarse()) { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << rating.get_original_index(node) << " is already coarse\n"); }
+			else { UG_DLOG(LIB_ALG_AMG, 2, "\nnode " << rating.get_original_index(node) << " has rating " << rating[node] << ". now gets coarse.\nUpdate Neighbors of " << node << "\n"); }
 
 			if(!rating[node].is_coarse())
 			{
@@ -228,7 +228,7 @@ void FAMGLevelCalculator<matrix_type, prolongation_matrix_type>::on_demand_coars
 			}
 			if(i == N) { UG_DLOG(LIB_ALG_AMG, 2, "\nno more new start nodes found\n"); break; }
 
-			UG_DLOG(LIB_ALG_AMG, 2, "\n\nRESTARTING WITH NODE " << GetOriginalIndex(i) << "!!!\n\n");
+			UG_DLOG(LIB_ALG_AMG, 2, "\n\nRESTARTING WITH NODE " << rating.get_original_index(i) << "!!!\n\n");
 
 			calculator.get_possible_parent_pairs(i, possible_parents[i], rating);
 			prolongation_calculated[i] = true;

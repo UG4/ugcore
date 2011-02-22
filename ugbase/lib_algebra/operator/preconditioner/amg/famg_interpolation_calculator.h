@@ -76,7 +76,8 @@ private:
 	FAMGInterpolationCalculator(const FAMGInterpolationCalculator<matrix_type> &other);
 
 public:
-	FAMGInterpolationCalculator(const matrix_type &A_, double delta, double theta, double damping) : A(A_)
+	FAMGInterpolationCalculator(const matrix_type &A_, double delta, double theta, double damping,
+			ug::Vector<double> &_big_testvector) : A(A_), big_testvector(_big_testvector)
 	{
 		m_delta = delta;
 		m_theta = theta;
@@ -108,10 +109,10 @@ public:
 			famg_nodes &rating)
 	{
 		UG_DLOG(LIB_ALG_AMG, 2, "\n\n\n\n============================\n\n\n");
-		UG_DLOG(LIB_ALG_AMG, 2, "node " << GetOriginalIndex(i) << "\n");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << rating.get_original_index(i) << "\n");
 
 
-		if(get_H(i) == false)
+		if(get_H(i, rating) == false)
 		{
 			UG_DLOG(LIB_ALG_AMG, 2, "node has no connections, set as fine\n");
 			rating.set_fine(i);
@@ -161,7 +162,7 @@ public:
 				rhs[0] = - Hi[n];
 				rhs[1] = - Hi[m];
 
-				UG_DLOG(LIB_ALG_AMG, 2, "checking parents " << n << " (" << GetOriginalIndex(onlyN1[n]) << ") and " << m << " (" << GetOriginalIndex(onlyN1[m]) << ")\n");
+				UG_DLOG(LIB_ALG_AMG, 2, "checking parents " << n << " (" << rating.get_original_index(onlyN1[n]) << ") and " << m << " (" << rating.get_original_index(onlyN1[m]) << ")\n");
 				IF_DEBUG(LIB_ALG_AMG, 3) KKT.maple_print("KKT");
 				IF_DEBUG(LIB_ALG_AMG, 3) rhs.maple_print("rhs");
 
@@ -214,18 +215,18 @@ public:
 				UG_LOG(possible_neighbors.size() << " accepted pairs:" << std::endl);
 				for(size_t j=0; j<i_neighborpairs.size(); j++)
 					if(m_theta*i_neighborpairs[j].F <= f_min)
-						i_neighborpairs[j].print();
+						i_neighborpairs[j].print(rating);
 				UG_LOG("not accepted pairs: " << std::endl);
 				for(size_t j=0; j<i_neighborpairs.size(); j++)
 					if(m_theta*i_neighborpairs[j].F > f_min)
-						i_neighborpairs[j].print();
+						i_neighborpairs[j].print(rating);
 				UG_LOG(std::endl);
 			}
 	//#endif
 		}
 		else
 		{
-			UG_DLOG(LIB_ALG_AMG, 2, std::endl << GetOriginalIndex(i) << ": UNINTERPOLATEABLE" << std::endl);
+			UG_DLOG(LIB_ALG_AMG, 2, std::endl << rating.get_original_index(i) << ": UNINTERPOLATEABLE" << std::endl);
 			//UG_ASSERT(0, "node has no parents :'-(");
 			rating[i].set_uninterpolateable();
 		}
@@ -243,9 +244,9 @@ public:
 	template<typename prolongation_matrix_type>
 	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	famg_nodes &rating)
 	{
-		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << GetOriginalIndex(i) << "\n")
+		UG_DLOG(LIB_ALG_AMG, 3, "aggressive coarsening on node " << rating.get_original_index(i) << "\n")
 
-		get_H(i);
+		get_H(i, rating);
 
 		size_t i_index = onlyN1.size();
 		// get testvector
@@ -260,12 +261,12 @@ public:
 		{
 			if(coarse_neighbors.size() == 1)
 			{
-				/*UG_LOG("only 1 coarse neighbor (" << GetOriginalIndex(onlyN1[coarse_neighbors[0]]) << " for " << GetOriginalIndex(i) << "?\n")
+				/*UG_LOG("only 1 coarse neighbor (" << rating.get_original_index(onlyN1[coarse_neighbors[0]]) << " for " << rating.get_original_index(i) << "?\n")
 				UG_LOG("coarse neighbors: ")
 				for(int j=0; j<onlyN1.size(); j++)
 				{
 					if(j>0) UG_LOG(", ");
-					UG_LOG(GetOriginalIndex(onlyN1[j]));
+					UG_LOG(rating.get_original_index(onlyN1[j]));
 				}
 				UG_LOG("\n");*/
 				rating.set_coarse(i);
@@ -461,7 +462,7 @@ private:
 
 		IF_DEBUG(LIB_ALG_AMG, 2) print_vector(Hi, "Hi");
 	}
-	bool get_H(size_t i)
+	bool get_H(size_t i, famg_nodes &rating)
 	{
 		// replace this with
 		// stdvector<stdvector<size_t> > neighbors(3);
@@ -489,7 +490,7 @@ private:
 			for(size_t i=0; i<onlyN1.size(); i++)
 			{
 				if(i>0) UG_LOG(", ");
-				UG_LOG(GetOriginalIndex(onlyN1[i]));
+				UG_LOG(rating.get_original_index(onlyN1[i]));
 			}
 			UG_LOG("\n");
 			//print_vector(onlyN2, "\nN2");
@@ -540,7 +541,7 @@ private:
 	double m_delta;
 	double m_theta;
 	double m_damping;
-
+	ug::Vector<double> &big_testvector;
 };
 
 

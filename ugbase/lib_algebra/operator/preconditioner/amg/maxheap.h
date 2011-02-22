@@ -34,8 +34,6 @@ public:
 	{
 		m_arr = NULL;
 		m_height = 0;
-		m_heap = NULL;
-		m_posinheap = NULL;
 		m_size = 0;
 	}
 
@@ -44,44 +42,49 @@ public:
 	 * \param	n		maximal number of elements
 	 * \param	arr_	array with elements which are to compare. note that non of these are in the heap in the beginning
 	 */
-	maxheap(int n, T *arr_)
+	maxheap(int n, const T *arr_)
 	{
 		m_size = 0;
 		m_heap = NULL;
 		m_posinheap = NULL;
 		create(n, arr_);
 	}
+
+	maxheap(const std::vector<T> &v)
+	{
+		m_size = 0;
+		m_heap = NULL;
+		m_posinheap = NULL;
+		create(v.size(), &v[0]);
+	}
 	//! deconstructor
 	~maxheap()
 	{
-		if(m_heap) delete [] m_heap; m_heap = NULL;
-		if(m_posinheap) delete [] m_posinheap; m_posinheap = NULL;
 	}
 
 
 	/** create
 	 * \brief creates the heap on a external array arr_[0]..arr_[n-1]
 	 */
-	void create(int n, T *arr_)
+	void create(size_t n, const T *arr_)
 	{
 		if(m_size != n)
 		{
-			if(m_heap) delete [] m_heap; m_heap = NULL;
-			if(m_posinheap) delete [] m_posinheap; m_posinheap = NULL;
-			m_heap = new int[n];
-			m_posinheap = new int[n];
+			m_heap.resize(n);
+			m_posinheap.resize(n);
 		}
-		UG_ASSERT(m_heap != NULL, "?");
-		UG_ASSERT(m_posinheap != NULL, "?");
 		
 		m_arr = arr_;
 		m_height = 0;
-		for(int i=0; i<n; i++) m_posinheap[i] = -1;
-		for(int i=0; i<n; i++) m_heap[i] = -1;
+		for(size_t i=0; i<n; i++) m_posinheap[i] = -1;
+		for(size_t i=0; i<n; i++) m_heap[i] = -1;
 		m_size = n;
 		
 	}
-	
+	void create(const std::vector<T> &v)
+	{
+		create(v.size(), &v[0]);
+	}
 	//! reset
 	//! set m_height 0 (= remove all items from the heap)
 	void reset()
@@ -114,7 +117,6 @@ public:
 		m_heap[m_height-1] = -1;
 		m_height--;
 		m_posinheap[i] = -1;
-
 
 		downheap(j);
 	}
@@ -200,9 +202,9 @@ private:
 		if(m_posinheap[i] == -1) return;
 		while(1)
 		{		
-			T &l = m_arr[leftchild(i)];
-			T &r = m_arr[rightchild(i)];
-			T &t = m_arr[i];
+			const T &l = m_arr[leftchild(i)];
+			const T &r = m_arr[rightchild(i)];
+			const T &t = m_arr[i];
 			if(l > t || r > t)
 			{
 				if(l > r)
@@ -272,9 +274,9 @@ private:
 	}
 	
 private:
-	T *m_arr;			//< pointer to array with elements of type T
-	int *m_heap;		//< m_heap of the elements m_heap[0] is the index of the largest element of m_arr[i] forall i=0..m_size-1 and m_posinheap[i] != -1
-	int *m_posinheap;	//< m_posinheap[i] is the position of element m_arr[i] in the m_heap. -1 if removed, otherwise m_posinheap[m_heap[i]] = i
+	const T *m_arr;			//< pointer to array with elements of type T
+	stdvector<int> m_heap;		//< m_heap of the elements m_heap[0] is the index of the largest element of m_arr[i] forall i=0..m_size-1 and m_posinheap[i] != -1
+	stdvector<int> m_posinheap;	//< m_posinheap[i] is the position of element m_arr[i] in the m_heap. -1 if removed, otherwise m_posinheap[m_heap[i]] = i
 	int m_height;		//< m_height of the m_heap, elements m_heap[0]..m_heap[m_height-1] are valid.
 	int m_size;			//< maximal size of the m_heap = size of array m_arr
 };

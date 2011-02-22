@@ -28,7 +28,7 @@ private:
 	BoxSort(const BoxSort<T> &other);
 
 public:
-	BoxSort() : arr(NULL), box(), posInBox(NULL), values(NULL), m_size(0), m_height(0)
+	BoxSort() : arr(NULL), m_box(), m_posInBox(NULL), m_values(NULL), m_size(0), m_height(0)
 	{
 
 	}
@@ -36,39 +36,45 @@ public:
 	 * \param	n		maximal number of elements
 	 * \param	arr_	array with elements which are to compare. note that non of these are in the queue in the beginning
 	 */
-	BoxSort(size_t n, T *arr_) : arr(NULL), box(), posInBox(NULL), values(NULL), m_size(0), m_height(0)
+	BoxSort(size_t n, const T *arr_) : m_size(0), m_height(0)
 	{
 		create(n, arr_);
+	}
+
+	BoxSort(std::vector<T> &v) : m_size(0), m_height(0)
+	{
+		create(v.size(), &v[0]);
 	}
 	//! deconstructor
 	~BoxSort()
 	{
-		delete [] values;
-		delete [] posInBox;
 	}
 
 	/** create
 	 * \brief creates the queue on a external array arr_[0]..arr_[n-1]
 	 */
-	void create(size_t n, T *arr_)
+	void create(size_t n, const T *arr_)
 	{
 		if(n != m_size)
 		{
-			if(posInBox) delete [] posInBox;
-			if(values) delete [] values;
-			posInBox = new int[n];
-			values = new size_t[n];
+			m_values.resize(n);
+			m_posInBox.resize(n);
 			m_size = n;
 		}
 		m_height = 0;
-		box.resize(0);
+		m_box.resize(0);
 		arr = arr_;
-		for(size_t i=0; i<n; i++) posInBox[i] = -1;
+		for(size_t i=0; i<n; i++) m_posInBox[i] = -1;
+	}
+
+	void create(const std::vector<T> &v)
+	{
+		create(v.size(), &v[0]);
 	}
 
 	void reset()
 	{
-		box.resize(0);
+		m_box.resize(0);
 	}
 
 	//! insertItem
@@ -78,19 +84,19 @@ public:
 	{
 		size_check(i);
 		size_t val = arr[i].get_val();
-		UG_ASSERT(val < 5000, "boxsort is not meant for big values");
-		if(box.size() < val+1)
+		UG_ASSERT(val < 5000, "boxsort is not meant for big m_values");
+		if(m_box.size() < val+1)
 		{
-			//size_t s = box.size();
-			box.resize(val+1);
+			//size_t s = m_box.size();
+			m_box.resize(val+1);
 			//			for(;s<val+1; s++)
-			//				box[s].reserve(10);
+			//				m_box[s].reserve(10);
 		}
 
 
-		box[val].push_back(i);
-		values[i] = val;
-		posInBox[i] = box[val].size()-1;
+		m_box[val].push_back(i);
+		m_values[i] = val;
+		m_posInBox[i] = m_box[val].size()-1;
 		m_height++;
 	}
 
@@ -100,26 +106,26 @@ public:
 	{
 		size_check(i);
 
-		UG_ASSERT(posInBox[i] != -1, "item " << i << " cannot be removed from queue, since it is not in the queue.");
+		UG_ASSERT(m_posInBox[i] != -1, "item " << i << " cannot be removed from queue, since it is not in the queue.");
 
-		size_t val = values[i];
+		size_t val = m_values[i];
 
 		// swap last of this box and i
-		size_t last = box[val].back();
+		size_t last = m_box[val].back();
 		if(last!=i)
-			assert(posInBox[i] < (int)box[val].size()-1);
-		box[val].pop_back();
+			assert(m_posInBox[i] < (int)m_box[val].size()-1);
+		m_box[val].pop_back();
 		if(last != i)
 		{
 
-			box[val][posInBox[i]] = last;
-			posInBox[last] = posInBox[i];
+			m_box[val][m_posInBox[i]] = last;
+			m_posInBox[last] = m_posInBox[i];
 		}
 
-		posInBox[i] = -1;
+		m_posInBox[i] = -1;
 
-		while(box.size() && box.back().size() == 0)
-			box.pop_back();
+		while(m_box.size() && m_box.back().size() == 0)
+			m_box.pop_back();
 		m_height--;
 	}
 
@@ -127,14 +133,14 @@ public:
 	//! returns the index in arr of maximal element of the heap
 	size_t remove_max()
 	{
-		UG_ASSERT(m_height > 0 && box.size() > 0, "queue empty! (height = " << m_height << ", boxsize = " << box.size() << ").");
+		UG_ASSERT(m_height > 0 && m_box.size() > 0, "queue empty! (height = " << m_height << ", boxsize = " << m_box.size() << ").");
 
-		size_t val = box.size()-1;
-		size_t i = box[val].back();
-		box[val].pop_back();
-		posInBox[i] = -1;
-		while(box.size() && box.back().size() == 0)
-			box.pop_back();
+		size_t val = m_box.size()-1;
+		size_t i = m_box[val].back();
+		m_box[val].pop_back();
+		m_posInBox[i] = -1;
+		while(m_box.size() && m_box.back().size() == 0)
+			m_box.pop_back();
 		m_height--;
 		return i;
 	}
@@ -143,17 +149,17 @@ public:
 	//! returns the index in m_arr of maximal element of the heap
 	size_t get_max() const
 	{
-		UG_ASSERT(m_height > 0 || box.size() <= 0, "queue empty! (height = " << m_height << ", boxsize = " << box.size() << ").");
+		UG_ASSERT(m_height > 0 || m_box.size() <= 0, "queue empty! (height = " << m_height << ", boxsize = " << m_box.size() << ").");
 
-		size_t val = box.size()-1;
-		return box[val].back();
+		size_t val = m_box.size()-1;
+		return m_box[val].back();
 	}
 
 	//!
 	//! @param i index in arr for which to update
 	void update(size_t i)
 	{
-		if(posInBox[i] != -1 && values[i] != arr[i].get_val())
+		if(m_posInBox[i] != -1 && m_values[i] != arr[i].get_val())
 		{
 			remove(i);
 			insert_item(i);
@@ -180,19 +186,19 @@ public:
 		for(int i=0; i<m_size; i++)
 		{
 			cout << "Element " << i;
-			if(posInBox[i] < 0)	cout << " not in box." << endl;
-			else cout << " val = " << values[i] << " get_val = " <<  arr[i].get_val() << " posInBox= " << posInBox[i] << endl;
+			if(m_posInBox[i] < 0)	cout << " not in box." << endl;
+			else cout << " val = " << m_values[i] << " get_val = " <<  arr[i].get_val() << " m_posInBox= " << m_posInBox[i] << endl;
 		}
 
-		cout << box.size() << " boxs. content:" << endl;
-		for(int i=0; i<box.size(); i++)
+		cout << m_box.size() << " boxs. content:" << endl;
+		for(int i=0; i<m_box.size(); i++)
 		{
-			cout << "box[" << i << "]: ";
-			for(int j=0; j<box[i].size(); j++)
+			cout << "m_box[" << i << "]: ";
+			for(int j=0; j<m_box[i].size(); j++)
 			{
-				cout << " " << box[i][j];
-				if(values[box[i][j]] != i) cout << " <-err ";
-				if( posInBox[box[i][j]] != j) cout << " <-err2 ";
+				cout << " " << m_box[i][j];
+				if(m_values[m_box[i][j]] != i) cout << " <-err ";
+				if( m_posInBox[m_box[i][j]] != j) cout << " <-err2 ";
 			}
 			cout << endl;
 		}
@@ -204,13 +210,13 @@ private:
 	{
 		UG_ASSERT(i < arr_size(), "accessing element " << i << ", but size of the array is only " << arr_size());
 	}
-	T *arr;				//< pointer to array with elements of type T
+	const T *arr;				//< pointer to array with elements of type T
 
-	stdvector<stdvector<size_t> > box;
+	stdvector<stdvector<size_t> > m_box;
 
-	int *posInBox;	//< item is at box[values[i]]
-	size_t *values;		//< values[i] is the value used for sorting of element i
-	size_t m_size;		//< maximal size of the PQ = size of array arr
+	stdvector<int> m_posInBox;	//< item is at box[m_values[i]]
+	stdvector<size_t> m_values; 	//< m_values[i] is the value used for sorting of element i
+	size_t m_size;				//< maximal size of the PQ = size of array arr
 	size_t m_height;
 };
 

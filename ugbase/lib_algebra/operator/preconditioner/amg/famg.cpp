@@ -27,28 +27,47 @@
 #include "famg.h"
 #include <set>
 
+
+class ccstring : public std::string
+{
+public:
+	ccstring(const char *p) : std::string(p) { }
+	ccstring(const std::string &str) : std::string(str) { }
+	operator const char *()
+	{
+		return this->c_str();
+	}
+
+	template<typename T>
+	ccstring operator + (const T &t) const
+	{
+		std::stringstream ss;
+		ss << t;
+		ccstring a(*this);
+		a.append(ss.str());
+		return a;
+	}
+};
+
+
 #ifdef UG_PARALLEL
-std::string GetFilename(std::string path, std::string name, std::string extension)
+std::string GetProcFilename(std::string name, std::string extension)
 {
-	return path + name + "_" + ToString(pcl::GetProcRank()) + extension;
+	return name + "_" + ToString(pcl::GetProcRank()) + extension;
 }
+
 #else
-string GetFilename(string path, string name, string extension)
+std::string GetProcFilename(string name, string extension)
 {
-	return path + name + "_0" + extension;
+	return name + "_0" + extension;
 }
 #endif
-
-ug::Vector<double> big_testvector;
-ug::cAMG_helper *pAmghelper;
-int currentlevel=-1;
-
-
-size_t GetOriginalIndex(size_t i)
+std::string GetProcFilename(std::string path, std::string name, std::string extension)
 {
-	UG_ASSERT(currentlevel != -1, "");
-	return pAmghelper->GetOriginalIndex(currentlevel, i);
+	return path + GetProcFilename(name, extension);
 }
+
+
 
 
 template<typename vector_type>
@@ -160,7 +179,7 @@ private:
 	cgraph SymmNeighGraph; ///< used to determine which neighbors' rating needs to be updated
 
 #ifdef UG_PARALLEL
-	IndexLayout OLReceivingLayout, OLSendingLayout;
+	IndexLayout OLCoarseningReceiveLayout, OLCoarseningSendLayout;
 	std::vector<int> processesWithLowerColor, processesWithHigherColor;
 	int m_myColor;
 #endif
@@ -179,9 +198,11 @@ private:
 public:
 	FAMGLevelCalculator(famg<CPUAlgebra> &f,
 			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A,
-			prolongation_matrix_type &_P, size_t _level)
+			prolongation_matrix_type &_P, size_t _level, ug::Vector<double> &big_testvector)
 	: m_famg(f), AH(_AH), A(_A), R(_R), P(_P), level(_level),
-			calculator(A_OL2, m_famg.get_delta(), m_famg.get_theta(), m_famg.get_damping_for_smoother_in_interpolation_calculation()), rating(P)
+			calculator(A_OL2, m_famg.get_delta(), m_famg.get_theta(),
+					m_famg.get_damping_for_smoother_in_interpolation_calculation(), big_testvector),
+			rating(P, _level, m_famg.m_amghelper)
 #ifndef UG_PARALLEL
 			, A_OL2(A)
 #else
@@ -230,19 +251,17 @@ private:
 	void receive_coarsening_from_processes_with_lower_color();
 	void send_coarsening_data_to_processes_with_higher_color();
 	void create_OL2_matrix();
+	void add_connections_between_slave_nodes(IndexLayout &masterLayout, IndexLayout slaveLayout);
 #endif
 
 public:
-	void do_stuff()
+	void do_stuff(ug::Vector<double> &big_testvector)
 	{
 		UG_LOG("Creating level " << level << ". (" << A.num_rows() << " nodes)" << std::fixed);
 		bTiming=true;
 		stopwatch SW, SWwhole; SWwhole.start();
 
 		// int me = pcl::GetProcRank();
-		UG_ASSERT(pcl::GetNumProcesses() <= 2, "only for 2, change layouts so that all slaves of a master are informed about a coarse node");
-
-
 
 #ifdef UG_PARALLEL
 		create_OL2_matrix();
@@ -262,7 +281,7 @@ public:
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
 
-		heap.create(N, &rating[0]);
+		heap.create(rating.nodes);
 
 		IF_DEBUG(LIB_ALG_AMG, 3)
 		{
@@ -449,11 +468,8 @@ template<>
 void famg<CPUAlgebra>::c_create_AMG_level(matrix_type &AH, prolongation_matrix_type &R, const matrix_type &A,
 		prolongation_matrix_type &P, size_t level)
 {
-	pAmghelper = &m_amghelper;
-	currentlevel = level;
-
-	FAMGLevelCalculator<matrix_type, prolongation_matrix_type > dummy(*this, AH, R, A, P, level);
-	dummy.do_stuff();
+	FAMGLevelCalculator<matrix_type, prolongation_matrix_type > dummy(*this, AH, R, A, P, level, big_testvector);
+	dummy.do_stuff(big_testvector);
 
 	UG_SET_DEBUG_LEVELS(0);
 }

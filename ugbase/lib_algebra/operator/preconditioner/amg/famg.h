@@ -127,6 +127,8 @@ private:
 	bool m_bTestvectorZeroAtDirichlet;
 
 	friend class FAMGLevelCalculator<matrix_type, SparseMatrix<double> >;
+
+	ug::Vector<double> big_testvector;
 };
 
 

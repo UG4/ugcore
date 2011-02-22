@@ -18,7 +18,7 @@ namespace ug {
 #define FAMG_UNINTERPOLATEABLE	(-1001)
 #define FAMG_FINE_RATING		(-1002)
 #define FAMG_COARSE_RATING		(-1003)
-#define FAMG_DIRICHLET_RATING		(-1003)
+#define FAMG_DIRICHLET_RATING	(-1003)
 
 
 class famg_nodeinfo
@@ -78,14 +78,15 @@ public:
 class famg_nodes
 {
 public:
-	famg_nodes(SparseMatrix<double> &_P) : P(_P)
+	famg_nodes(SparseMatrix<double> &_P, size_t level, ug::cAMG_helper &amghelper)
+	: P(_P), m_level(level), m_amghelper(amghelper)
 	{
-		iNrOfCoarse = 0;
+		m_iNrOfCoarse = 0;
 	}
 
 	void create(size_t size)
 	{
-		iNrOfCoarse = 0;
+		m_iNrOfCoarse = 0;
 		nodes.clear(); 		nodes.resize(size);
 		newIndex.clear(); 	newIndex.resize(size, -1);
 #ifdef UG_PARALLEL
@@ -105,7 +106,7 @@ public:
 			const famg_nodeinfo &ninfo = nodes[M[i].from];
 			if(ninfo.is_fine())
 			{
-				UG_DLOG(LIB_ALG_AMG, 2, " pair " << GetOriginalIndex(M[0].from) << ", " << GetOriginalIndex(M[1].from) << " is invalid, since " << GetOriginalIndex(M[i].from) << " is fine. ");
+				UG_DLOG(LIB_ALG_AMG, 2, " pair " << get_original_index(M[0].from) << ", " << get_original_index(M[1].from) << " is invalid, since " << get_original_index(M[i].from) << " is fine. ");
 				return -1;
 			}
 			/*else if(ninfo.is_uninterpolateable())
@@ -241,11 +242,11 @@ public:
 
 	void calculate_unassigned()
 	{
-		unassigned = 0;
+		m_iUnassigned = 0;
 		for(size_t i=0; i<size(); i++)
 		{
 			if(i_must_assign(i))
-				unassigned++;
+				m_iUnassigned++;
 
 		}
 	}
@@ -276,7 +277,7 @@ public:
 	void set_fine(size_t index)
 	{
 		if(nodes[index].is_fine() == false && i_must_assign(index))
-			unassigned--;
+			m_iUnassigned--;
 		nodes[index].set_fine();
 	}
 
@@ -287,8 +288,8 @@ public:
 		{
 			nodes[index].set_coarse();
 
-			unassigned--;
-			newIndex[index] = iNrOfCoarse++;
+			m_iUnassigned--;
+			newIndex[index] = m_iNrOfCoarse++;
 			P(index, newIndex[index]) = 1.0;
 		}
 	}
@@ -302,24 +303,32 @@ public:
 
 	size_t get_nr_of_coarse()
 	{
-		return iNrOfCoarse;
+		return m_iNrOfCoarse;
 	}
 
 	size_t get_unassigned()
 	{
-		return unassigned;
+		return m_iUnassigned;
+	}
+
+	size_t get_original_index(size_t i)
+	{
+		UG_ASSERT(m_level != (size_t)-1, "");
+		return m_amghelper.GetOriginalIndex(m_level, i);
 	}
 
 //private:
 public:
 	stdvector<int> newIndex;
-	stdvector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array
+	stdvector<famg_nodeinfo> nodes; // !!! this HAS to be a consecutive array, because it is used in the heap
 
 private:
-	size_t iNrOfCoarse;				// number of coarse nodes so far
-	size_t unassigned;				// number of still unassigned nodes
+	size_t m_iNrOfCoarse;			// number of coarse nodes so far
+	size_t m_iUnassigned;			// number of still unassigned nodes
 
 	SparseMatrix<double> &P;
+	size_t m_level;
+	ug::cAMG_helper &m_amghelper;
 };
 
 
@@ -357,7 +366,7 @@ void GetRatings(stdvector<stdvector<neighborstruct> > &possible_neighbors,
 	UG_DLOG(LIB_ALG_AMG, 2, "\nGetRatings...\n\n");
 	for(size_t i=0; i<nodes.size(); i++)
 	{
-		UG_DLOG(LIB_ALG_AMG, 2, "node " << GetOriginalIndex(i) << ": ");
+		UG_DLOG(LIB_ALG_AMG, 2, "node " << nodes.get_original_index(i) << ": ");
 		if(nodes[i].rating == 0)
 		{
 			nodes.update_rating(i, possible_neighbors[i]);
