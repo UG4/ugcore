@@ -166,7 +166,7 @@ AssembleStiffnessMatrix(	const std::vector<IElemDisc<TAlgebra>*>& vElemDisc,
 			ind.access_by_map(Eval.map(i));
 
 		//	assemble JA
-			if(!vElemDisc[i]->assemble_JM(locA, locU))
+			if(!vElemDisc[i]->assemble_JA(locA, locU))
 			{
 				UG_LOG("ERROR in 'AssembleStiffnessMatrix': Cannot assemble local "
 						"Stiffness Matrix.\n");
