@@ -215,10 +215,14 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
  * \param aPos	Position Attachment
  * \param paNorm pointer to the normal attachment. NULL indicates
  * 				that normals shall be calculated on the fly (default).
+ * \param applyToSubset		Allows to specify which subset shall be separated.
+ * 							-2: All subsets,
+ * 							0, ..., numSubsets: The specified subset only.
  */
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								APosition aPos = aPosition,
-								ANormal* paNorm = NULL);
+								ANormal* paNorm = NULL,
+								int applyToSubset = -2);
 
 ////////////////////////////////////////////////////////////////////////
 //	SeparateFaceSubsetsByNormal
@@ -235,11 +239,15 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
  * \param aPos		Position Attachment
  * \param paNorm pointer to the normal attachment. NULL indicates
  * 				that normals shall be calculated on the fly (default).
+ * \param applyToSubset		Allows to specify which subset shall be separated.
+ * 							-2: All subsets,
+ * 							0, ..., numSubsets: The specified subset only.
  */
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								std::vector<ug::vector3> vNormals,
 								APosition aPos = aPosition,
-								ANormal* paNorm = NULL);
+								ANormal* paNorm = NULL,
+								int applyToSubset = -2);
 
 ////////////////////////////////////////////////////////////////////////
 ///	assigns a region of volumes to a subset.

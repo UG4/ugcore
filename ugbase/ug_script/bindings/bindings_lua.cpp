@@ -23,30 +23,97 @@ void PrintFileLineFunction(const char *source, int linedefined);
 namespace lua
 {
 
-struct UserDataWrapper
+enum UserDataWrapperTypes{
+	RAW_POINTER = 1,
+	SMART_POINTER = 1 << 1,
+	IS_CONST = 1 << 2
+};
+
+struct UserDataWrapper{
+	byte type;
+
+	bool is_const()		{return (type & IS_CONST) == IS_CONST;}
+	bool is_raw_ptr()		{return (type & RAW_POINTER) == RAW_POINTER;}
+	bool is_smart_ptr()	{return (type & SMART_POINTER) == SMART_POINTER;}
+};
+
+struct SmartUserDataWrapper : public UserDataWrapper
 {
-	bool	is_const;
+	SmartPtr<void>	smartPtr;
+};
+
+struct ConstSmartUserDataWrapper : public UserDataWrapper
+{
+	ConstSmartPtr<void>	smartPtr;
+};
+
+struct RawUserDataWrapper : public UserDataWrapper
+{
 	void*	obj;
 };
 
 
-///	creates a new UserData_IObject and associates it with ptr in luas registry
+///	creates a new UserDataWrapper and associates it with ptr in luas registry
 /**
- * Creates a new userdata in lua, which encapsulates the given pointer.
+ * Creates a new userdata in lua, which encapsulates the given pointer / smart-pointer.
  * It then assigns the specified metatable to the userdata.
  * When the function is done, the userdata is left on luas stack.
+ * \{
  */
-static UserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
+static SmartUserDataWrapper* CreateNewUserData(lua_State* L, const SmartPtr<void>& ptr,
+											  const char* metatableName)
+{
+//	create the userdata
+	SmartUserDataWrapper* udata = (SmartUserDataWrapper*)lua_newuserdata(L,
+											sizeof(SmartUserDataWrapper));
+	new(udata) SmartUserDataWrapper;
+
+//	associate the object with the userdata.
+	udata->smartPtr = ptr;
+	udata->type = SMART_POINTER;
+
+//	associate the metatable (userdata is already on the stack)
+	luaL_getmetatable(L, metatableName);
+	lua_setmetatable(L, -2);
+
+	return udata;
+}
+
+static ConstSmartUserDataWrapper* CreateNewUserData(lua_State* L, const ConstSmartPtr<void>& ptr,
+											  const char* metatableName)
+{
+//	create the userdata
+	ConstSmartUserDataWrapper* udata = (ConstSmartUserDataWrapper*)lua_newuserdata(L,
+											sizeof(ConstSmartUserDataWrapper));
+
+	new(udata) ConstSmartUserDataWrapper;
+
+//	associate the object with the userdata.
+	udata->smartPtr = ptr;
+	udata->type = SMART_POINTER | IS_CONST;
+
+//	associate the metatable (userdata is already on the stack)
+	luaL_getmetatable(L, metatableName);
+	lua_setmetatable(L, -2);
+
+	return udata;
+}
+
+static RawUserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 										  const char* metatableName,
 										  bool is_const)
 {
 //	create the userdata
-	UserDataWrapper* udata = (UserDataWrapper*)lua_newuserdata(L,
-											sizeof(UserDataWrapper));
-		
+	RawUserDataWrapper* udata = (RawUserDataWrapper*)lua_newuserdata(L,
+											sizeof(RawUserDataWrapper));
+
+	new(udata) RawUserDataWrapper;
+
 //	associate the object with the userdata.
 	udata->obj = ptr;
-	udata->is_const = is_const;
+	udata->type = RAW_POINTER;
+	if(is_const)
+		udata->type |= IS_CONST;
 	
 //	associate the metatable (userdata is already on the stack)
 	luaL_getmetatable(L, metatableName);
@@ -54,7 +121,8 @@ static UserDataWrapper* CreateNewUserData(lua_State* L, void* ptr,
 	
 	return udata;
 }
-	
+/** \} */
+
 
 /**
  *
@@ -75,10 +143,12 @@ string GetLuaTypeString(lua_State* L, int index)
 	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
 	if(lua_isuserdata(L, index))
 	{
-		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const)
+		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
 			str.append("const ");
-		if(lua_getmetatable(L, index) == 0)
+		}
+		if(lua_getmetatable(L, index) == 0){
 			str.append("userdata/");
+		}
 		else
 		{
 			// get names
@@ -99,6 +169,7 @@ string GetLuaTypeString(lua_State* L, int index)
 			}
 		}
 	}
+
 	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
 
 	if(str.size() == 0)
@@ -188,8 +259,14 @@ static int LuaStackToParams(ParameterStack& params,
 			}break;
 			case PT_POINTER:{
 				if(lua_isuserdata(L, index)){
+				//	Check whether this is really a raw pointer
+					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_raw_ptr()){
+						badParam = (int)i + 1;
+						break;
+					}
+
 				//	if the object is a const object, we can't use it here.
-					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const){
+					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
 						//UG_LOG("ERROR: Can't convert const object to non-const object.\n");
 						badParam = (int)i + 1;
 						break;
@@ -197,7 +274,7 @@ static int LuaStackToParams(ParameterStack& params,
 					
 				//	get the object and its metatable. Make sure that obj can be cast to
 				//	the type that is expected by the paramsTemplate.
-					void* obj = ((UserDataWrapper*)lua_touserdata(L, index))->obj;
+					void* obj = ((RawUserDataWrapper*)lua_touserdata(L, index))->obj;
 					if(lua_getmetatable(L, index) != 0){
 
 						lua_pushstring(L, "names");
@@ -246,9 +323,15 @@ static int LuaStackToParams(ParameterStack& params,
 			}break;
 			case PT_CONST_POINTER:{
 				if(lua_isuserdata(L, index)){
+				//	Check whether this is really a raw pointer
+					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_raw_ptr()){
+						badParam = (int)i + 1;
+						break;
+					}
+
 				//	get the object and its metatable. Make sure that obj can be cast to
 				//	the type that is expected by the paramsTemplate.
-					const void* obj = ((UserDataWrapper*)lua_touserdata(L, index))->obj;
+					const void* obj = ((RawUserDataWrapper*)lua_touserdata(L, index))->obj;
 					if(lua_getmetatable(L, index) != 0){
 
 						lua_pushstring(L, "names");
@@ -295,6 +378,111 @@ static int LuaStackToParams(ParameterStack& params,
 					badParam = (int)i + 1;
 				}
 			}break;
+			case PT_SMART_POINTER:{
+				if(lua_isuserdata(L, index)){
+				//	Check whether this is really a smart pointer
+					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_smart_ptr()){
+						badParam = (int)i + 1;
+						break;
+					}
+
+				//	if the object is a const object, we can't use it here.
+					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
+						//UG_LOG("ERROR: Can't convert const object to non-const object.\n");
+						badParam = (int)i + 1;
+						break;
+					}
+
+				//	get the object and its metatable. Make sure that obj can be cast to
+				//	the type that is expected by the paramsTemplate.
+					SmartPtr<void>& obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+					if(lua_getmetatable(L, index) != 0){
+
+						lua_pushstring(L, "names");
+						lua_rawget(L, -2);
+						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						lua_pop(L, 2);
+						bool typeMatch = false;
+						if(names){
+							if(!names->empty()){
+								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+									typeMatch = true;
+							}
+						}
+
+						if(typeMatch)
+							params.push_smart_pointer(obj, names);
+						else{
+							bool gotone = false;
+							if(names){
+								if(!names->empty()){
+									gotone = true;
+								}
+							}
+							printDefaultParamErrorMsg = false;
+							badParam = (int)i + 1;
+						}
+					}
+					else{
+						badParam = (int)i + 1;
+					}
+				}
+				else{
+					badParam = (int)i + 1;
+				}
+			}break;
+			case PT_CONST_SMART_POINTER:{
+				if(lua_isuserdata(L, index)){
+				//	Check whether this is really a smart pointer
+					if(!((UserDataWrapper*)lua_touserdata(L, index))->is_smart_ptr()){
+						badParam = (int)i + 1;
+						break;
+					}
+
+				//	get the object and its metatable. Make sure that obj can be cast to
+				//	the type that is expected by the paramsTemplate.
+					ConstSmartPtr<void> obj;
+					if(((UserDataWrapper*)lua_touserdata(L, index))->is_const())
+						obj = ((ConstSmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+					else
+						obj = ((SmartUserDataWrapper*)lua_touserdata(L, index))->smartPtr;
+
+					if(lua_getmetatable(L, index) != 0){
+
+						lua_pushstring(L, "names");
+						lua_rawget(L, -2);
+						const std::vector<const char*>* names = (const std::vector<const char*>*) lua_touserdata(L, -1);
+						lua_pop(L, 2);
+						bool typeMatch = false;
+						if(names){
+							if(!names->empty()){
+								if(ClassNameVecContains(*names, paramsTemplate.class_name(i)))
+									typeMatch = true;
+							}
+						}
+
+						if(typeMatch)
+							params.push_const_smart_pointer(obj, names);
+						else{
+							bool gotone = false;
+							if(names){
+								if(!names->empty()){
+									gotone = true;
+								}
+							}
+							printDefaultParamErrorMsg = false;
+							badParam = (int)i + 1;
+						}
+					}
+					else{
+						badParam = (int)i + 1;
+					}
+				}
+				else{
+					badParam = (int)i + 1;
+				}
+			}break;
+
 			default:{//	unknown type
 				badParam = (int)i + 1;
 			}break;
@@ -339,6 +527,12 @@ static int ParamsToLuaStack(const ParameterStack& params, lua_State* L)
 			//	obj is treated as a const value.
 				void* obj = (void*)params.to_const_pointer(i);
 				CreateNewUserData(L, obj, params.class_name(i), true);
+			}break;
+			case PT_SMART_POINTER:{
+				CreateNewUserData(L, params.to_smart_pointer(i), params.class_name(i));
+			}break;
+			case PT_CONST_SMART_POINTER:{
+				CreateNewUserData(L, params.to_const_smart_pointer(i), params.class_name(i));
 			}break;
 			default:{
 				//UG_LOG("ERROR in ParamsToLuaStack: Unknown parameter in ParameterList. ");
@@ -389,7 +583,7 @@ static int LuaProxyFunction(lua_State* L)
 	for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
 		const ExportedFunction* func = funcGrp->get_overload(i);
 
-		ParameterStack paramsIn;;
+		ParameterStack paramsIn;
 		ParameterStack paramsOut;
 
 		badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
@@ -481,7 +675,16 @@ static int LuaProxyMethod(lua_State* L)
 	}
 
 	try{
-		m->execute(self->obj, paramsIn, paramsOut);
+		if(self->is_raw_ptr())
+			m->execute(((RawUserDataWrapper*)self)->obj, paramsIn, paramsOut);
+		else if(self->is_smart_ptr()){
+			if(self->is_const())
+			//	This cast is a little extreme. However, since we registered the const member methods
+			//	before this should be ok.
+				m->execute((void*)((ConstSmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+			else
+				m->execute(((SmartUserDataWrapper*)self)->smartPtr.get_impl(), paramsIn, paramsOut);
+		}
 	}
 	catch(UGError err)
 	{
@@ -510,7 +713,7 @@ static int MetatableIndexer(lua_State*L)
 {
 //	the stack contains the object and the requested key.
 //	we have to make sure to only call const methods on const objects
-	bool is_const = ((UserDataWrapper*)lua_touserdata(L, 1))->is_const;
+	bool is_const = ((UserDataWrapper*)lua_touserdata(L, 1))->is_const();
 	
 //	first we push the objects metatable onto the stack.
 	lua_getmetatable(L, 1);
@@ -562,6 +765,20 @@ static int MetatableIndexer(lua_State*L)
 	//	remove the old metatable
 		lua_remove(L, -2);
 	}
+}
+
+static int LuaProxyRelease(lua_State* L)
+{
+	void* ptr = lua_touserdata(L, 1);
+//	we only proceed if the userdata encapsulates a smart pointer
+	if(((UserDataWrapper*)ptr)->is_smart_ptr()){
+	//	invalidate the associated smart-pointer
+		if(((UserDataWrapper*)ptr)->is_const())
+			((ConstSmartUserDataWrapper*)ptr)->smartPtr.invalidate();
+		else
+			((SmartUserDataWrapper*)ptr)->smartPtr.invalidate();
+	}
+	return 0;
 }
 
 bool CreateBindings_LUA(lua_State* L, Registry& reg)
@@ -629,6 +846,9 @@ bool CreateBindings_LUA(lua_State* L, Registry& reg)
 	//	we use our custom indexing method to allow method-derivation
 		lua_pushcfunction(L, MetatableIndexer);
 		lua_setfield(L, -2, "__index");
+	//	in order to support smart-pointers we have to overload the garbage-collection
+		lua_pushcfunction(L, LuaProxyRelease);
+		lua_setfield(L, -2, "__gc");
 	//	we have to store the class-names of the class hierarchy
 		lua_pushstring(L, "names");
 		lua_pushlightuserdata(L, (void*)c->class_names());

@@ -238,15 +238,15 @@ struct PLStack<const TClass&>
 		return *ps.to_const_pointer<TClass>(index);
 	}
 };
-/*
+
 template <typename TClass>
-struct PLStack<SmartPtr<TClass>>
+struct PLStack<SmartPtr<TClass> >
 {
 	static void push(ParameterStack& ps)
 	{
 		ps.push_smart_pointer<TClass>();
 	}
-	static void write(ParameterStack& ps, TClass* data, int index)
+	static void write(ParameterStack& ps, const SmartPtr<TClass>& data, int index)
 	{
 		ps.set_smart_pointer(index, data);
 	}
@@ -255,7 +255,24 @@ struct PLStack<SmartPtr<TClass>>
 		return ps.to_smart_pointer<TClass>(index);
 	}
 };
-*/
+
+template <typename TClass>
+struct PLStack<ConstSmartPtr<TClass> >
+{
+	static void push(ParameterStack& ps)
+	{
+		ps.push_const_smart_pointer<TClass>();
+	}
+	static void write(ParameterStack& ps, const ConstSmartPtr<TClass>& data, int index)
+	{
+		ps.set_const_smart_pointer(index, data);
+	}
+	static ConstSmartPtr<TClass> read(const ParameterStack& ps, int index)
+	{
+		return ps.to_const_smart_pointer<TClass>(index);
+	}
+};
+
 //////////////////////////////
 // ParameterStackToTypeValueList
 //////////////////////////////

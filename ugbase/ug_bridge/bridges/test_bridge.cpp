@@ -55,6 +55,25 @@ const Test& ToConst(Test& test)
 	return test;
 }
 
+SmartPtr<Test> SmartTestImpl(){
+	return SmartPtr<Test>(new Test());
+}
+
+ConstSmartPtr<Test> ConstSmartTestImpl(){
+	return ConstSmartPtr<Test>(new Test());
+}
+
+int SmartTestFunc(SmartPtr<Test> test)
+{
+	UG_LOG("SmartTestFunc: ");
+	return test->print();
+}
+
+int ConstSmartTestFunc(ConstSmartPtr<Test> test)
+{
+	UG_LOG("ConstSmartTestFunc: ");
+	return test->print();
+}
 
 
 class Piece
@@ -195,6 +214,10 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		reg.add_function("PrintFunction", &PrintFunction);
 
 		reg.add_function("TestFunc", TestFunc, grp.c_str())
+			.add_function("SmartTestImpl", SmartTestImpl, grp.c_str())
+			.add_function("ConstSmartTestImpl", ConstSmartTestImpl, grp.c_str())
+			.add_function("SmartTestFunc", SmartTestFunc, grp.c_str())
+			.add_function("ConstSmartTestFunc", ConstSmartTestFunc, grp.c_str())
 			.add_function("ConstTestFunc", ConstTestFunc, grp.c_str())
 			.add_function("ToConst", ToConst, grp.c_str())
 			.add_function("StringTest", StringTest, grp.c_str())

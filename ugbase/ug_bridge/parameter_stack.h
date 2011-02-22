@@ -16,8 +16,17 @@
 																m_entries[m_numEntries].pClassNames = (clName);\
 																++m_numEntries;}
 
-#define PUSH_SP_TO_STACK(val, clName)				{*(SmartPtrVoid*)m_entries[m_numEntries].param.m_smartPtrWrapper = (val);\
+//	call the constructor and assign the smart-ptr afterwards.
+#define PUSH_SP_TO_STACK(val, clName)				{new((SmartPtr<void>*)m_entries[m_numEntries].param.m_smartPtrWrapper) SmartPtr<void>;\
+													 *(SmartPtr<void>*)m_entries[m_numEntries].param.m_smartPtrWrapper = (val);\
 													 m_entries[m_numEntries].type = PT_SMART_POINTER;\
+													 m_entries[m_numEntries].pClassNames = (clName);\
+													 ++m_numEntries;}
+
+//	call the constructor and assign the smart-ptr afterwards.
+#define PUSH_CSP_TO_STACK(val, clName)				{new((ConstSmartPtr<void>*)m_entries[m_numEntries].param.m_constSmartPtrWrapper) ConstSmartPtr<void>;\
+													 *(ConstSmartPtr<void>*)m_entries[m_numEntries].param.m_constSmartPtrWrapper = (val);\
+													 m_entries[m_numEntries].type = PT_CONST_SMART_POINTER;\
 													 m_entries[m_numEntries].pClassNames = (clName);\
 													 ++m_numEntries;}
 
@@ -25,53 +34,6 @@ namespace ug
 {
 namespace bridge
 {
-
-////////////////////////////////////////////////////////////////////////
-/**	This is a helper class that can store the internal pointer and the
- * reference count of a smartPtr. Note that the reference count
- * is not increased or decreased by copies of the void wrapper.
- * This indeed wouldn't make sense, since we couldn't perform
- * delete on a void* anyways.
- *
- * Of course this wrapper is a little unsafe. It should thus only
- * be used in places where it is sure that the associated SmartPtr
- * lives longer than the wrapper.
- *
- * NOTE: You have to be especially careful with classes derived from
- * multiple objects. This can lead to severe problems!
- */
-/*
-class SmartPtrVoid
-{
-	public:
-		template <class T>
-		SmartPtrVoid(SmartPtr<T>& sp) :
-			m_ptr((void*)sp.get_impl()),
-			m_refCount(sp.get_refcount_ptr())	{}
-
-		template <class T>
-		SmartPtr<T> to_smart_pointer(){
-			return SmartPtr<T>(reinterpret_cast<T*>(m_ptr), m_refCount);
-		}
-
-		SmartPtrVoid& operator=(const SmartPtrVoid& sp)	{
-			m_ptr = sp.m_ptr;
-			m_refCount = sp.m_refCount;
-			return *this;
-		}
-
-		template <class T>
-		SmartPtrVoid& operator=(const SmartPtr<T>& sp)	{
-			m_ptr = (void*)sp.get_impl();
-			m_refCount = sp.get_refcount_ptr();
-			return *this;
-		}
-
-	private:
-		void*		m_ptr;
-		int*	m_refCount;
-};
-*/
 
 
 struct ERROR_BadIndex{
@@ -169,16 +131,28 @@ enum ParameterFlags
 class ParameterStack
 {
 	public:
-		ParameterStack() : m_numEntries(0)			{}
+		ParameterStack() : m_numEntries(0), m_bHasSmartPtrs(false), m_bHasStringCopies(false)	{}
 		
 		~ParameterStack()
 		{
-		//	we have to release all string copies.
-			for(int i = 0; i < m_numEntries; ++i){
-				if((m_entries[i].type & PF_RANGE) == PF_STRING_COPY)
-					delete[] m_entries[i].param.m_string;
+		//	we have to release all string copies and smart pointers.
+			if(m_bHasStringCopies){
+				for(int i = 0; i < m_numEntries; ++i){
+					if((m_entries[i].type & PF_RANGE) == PF_STRING_COPY)
+						delete[] m_entries[i].param.m_string;
+				}
+			}
+
+			if(m_bHasSmartPtrs){
+				for(int i = 0; i < m_numEntries; ++i){
+					if(m_entries[i].type == PT_SMART_POINTER)
+						((SmartPtr<void>*)m_entries[i].param.m_smartPtrWrapper)->invalidate();
+					else if(m_entries[i].type == PT_CONST_SMART_POINTER)
+						((ConstSmartPtr<void>*)m_entries[i].param.m_constSmartPtrWrapper)->invalidate();
+				}
 			}
 		}
+
 	////////////////////////////////
 	//	info
 		inline int size() const		{return m_numEntries;}
@@ -198,6 +172,7 @@ class ParameterStack
 				char* tstr = new char[strSize];
 				memcpy(tstr, str, strSize);
 				PUSH_PARAM_TO_STACK(m_string, tstr, PT_STRING | PF_STRING_COPY, NULL);
+				m_bHasStringCopies = true;
 			}
 			else{
 				PUSH_PARAM_TO_STACK(m_string, str, PT_STRING, NULL);
@@ -219,19 +194,35 @@ class ParameterStack
 
 		inline void push_const_pointer(const void* ptr, const std::vector<const char*>* classNames)
 														{PUSH_PARAM_TO_STACK(m_constPtr, ptr, PT_CONST_POINTER, classNames);}
-/*
+
 	/// SmartPtrs to user defined classes
 		template<class T>
-		inline void push_smart_pointer(SmartPtr<T> ptr = SmartPtr<T>(NULL))
+		inline void push_smart_pointer(const SmartPtr<T>& ptr = SmartPtr<T>(NULL))
 			{
 				PUSH_SP_TO_STACK(ptr, &ClassNameProvider<T>::names());
+				m_bHasSmartPtrs = true;
 			}
 
-		inline void push_smart_pointer(SmartPtrVoid ptr, const std::vector<const char*>* classNames)
+		inline void push_smart_pointer(const SmartPtr<void>& ptr, const std::vector<const char*>* classNames)
 			{
 				PUSH_SP_TO_STACK(ptr, classNames);
+				m_bHasSmartPtrs = true;
 			}
-*/
+
+	/// ConstSmartPtrs to user defined classes
+		template<class T>
+		inline void push_const_smart_pointer(const ConstSmartPtr<T>& ptr = ConstSmartPtr<T>(NULL))
+			{
+				PUSH_CSP_TO_STACK(ptr, &ClassNameProvider<T>::names());
+				m_bHasSmartPtrs = true;
+			}
+
+		inline void push_const_smart_pointer(const ConstSmartPtr<void>& ptr, const std::vector<const char*>* classNames)
+			{
+				PUSH_CSP_TO_STACK(ptr, classNames);
+				m_bHasSmartPtrs = true;
+			}
+
 	////////////////////////////////
 	//	get
 		uint get_type(int index) const
@@ -361,7 +352,7 @@ class ParameterStack
 
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}
-/*
+
 		template <class T>
 		SmartPtr<T> to_smart_pointer(int index) const
 		{
@@ -371,7 +362,8 @@ class ParameterStack
 			if(e.type == PT_SMART_POINTER)
 			{
 				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return ((SmartPtrVoid*)e.param.m_smartPtrWrapper)->to_smart_pointer<T>();
+					return ((SmartPtr<void>*)e.param.m_smartPtrWrapper)->
+													to_smart_pointer_reinterpret<T>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
 			}
@@ -379,17 +371,46 @@ class ParameterStack
 			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
 		}
 
-		SmartPtrVoid to_smart_pointer(int index) const
+		SmartPtr<void> to_smart_pointer(int index) const
 		{
 			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
 
 			const Entry& e = m_entries[index];
 			if(e.type == PT_SMART_POINTER)
-				return *(SmartPtrVoid*)e.param.m_smartPtrWrapper;
+				return *(SmartPtr<void>*)e.param.m_smartPtrWrapper;
 
 			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
 		}
-*/
+
+		template <class T>
+		ConstSmartPtr<T> to_const_smart_pointer(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			const Entry& e = m_entries[index];
+			if(e.type == PT_CONST_SMART_POINTER)
+			{
+				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
+					return ((ConstSmartPtr<void>*)e.param.m_constSmartPtrWrapper)->
+													to_smart_pointer_reinterpret<T>();
+				else
+					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
+			}
+
+			throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
+		}
+
+		ConstSmartPtr<void> to_const_smart_pointer(int index) const
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			const Entry& e = m_entries[index];
+			if(e.type == PT_CONST_SMART_POINTER)
+				return *(ConstSmartPtr<void>*)e.param.m_constSmartPtrWrapper;
+
+			throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
+		}
+
 	////////////////////////////////
 	//	set		
 		void set_bool(int index, bool val)
@@ -449,6 +470,7 @@ class ParameterStack
 					memcpy(tstr, str, strSize);
 					e.param.m_string = tstr;
 					e.type = PT_STRING | PF_STRING_COPY;
+					m_bHasStringCopies = true;
 				}
 				else{
 					e.param.m_string = str;
@@ -483,6 +505,30 @@ class ParameterStack
 				throw(ERROR_BadConversion(index, e.type, PT_CONST_POINTER));
 		}
 		
+		template <class T>
+		void set_smart_pointer(int index, const SmartPtr<T>& ptr)
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			Entry& e = m_entries[index];
+			if(e.type == PT_SMART_POINTER)
+				*(SmartPtr<void>*)e.param.m_smartPtrWrapper = ptr;
+			else
+				throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
+		}
+
+		template <class T>
+		void set_const_smart_pointer(int index, const ConstSmartPtr<T>& ptr)
+		{
+			index = ARRAY_INDEX_TO_STACK_INDEX(index, m_numEntries);
+
+			Entry& e = m_entries[index];
+			if(e.type == PT_CONST_SMART_POINTER)
+				*(ConstSmartPtr<void>*)e.param.m_constSmartPtrWrapper = ptr;
+			else
+				throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
+		}
+
 		bool is_parameter_undeclared(int index) const
 		{
 			if(class_name(index) == NULL || strlen(class_name(index)) == 0)
@@ -498,7 +544,8 @@ class ParameterStack
 			const char* m_string;
 			void* m_ptr;
 			const void* m_constPtr;
-			//byte m_smartPtrWrapper[sizeof(SmartPtrVoid)];
+			byte m_smartPtrWrapper[sizeof(SmartPtr<void>)];
+			byte m_constSmartPtrWrapper[sizeof(ConstSmartPtr<void>)];
 		};
 		
 		struct Entry{			
@@ -511,6 +558,10 @@ class ParameterStack
 	//	overhead during argument assignment.
 		Entry m_entries[PARAMETER_STACK_MAX_SIZE];
 		int m_numEntries;
+
+	//	variables that tell whether m_entries contains string copies or smart pointers
+		bool m_bHasSmartPtrs;
+		bool m_bHasStringCopies;
 };
 
 } // end namespace bridge

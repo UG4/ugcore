@@ -347,7 +347,8 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 //	SeparateFaceSubsetsByNormal
 //	separates faces by orthogonal axis-aligned normals.
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
-								APosition aPos, ANormal* paNorm)
+								APosition aPos, ANormal* paNorm,
+								int applyToSubset)
 {
 	vector<vector3> vNormals(6);
 	vNormals[0] = vector3(1, 0, 0);
@@ -357,7 +358,8 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 	vNormals[4] = vector3(0, -1, 0);
 	vNormals[5] = vector3(0, 0, -1);
 
-	SeparateFaceSubsetsByNormal(grid, sh, vNormals, aPos, paNorm);
+	SeparateFaceSubsetsByNormal(grid, sh, vNormals, aPos, paNorm,
+								applyToSubset);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -365,7 +367,8 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 //	separates subset by the given normals.
 void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 								std::vector<vector3> vNormals,
-								APosition aPos, ANormal* paNorm)
+								APosition aPos, ANormal* paNorm,
+								int applyToSubset)
 {
 //	iterate through all existing face-subsets.
 //		iterate through all faces of the subset
@@ -394,7 +397,15 @@ void SeparateFaceSubsetsByNormal(Grid& grid, SubsetHandler& sh,
 	int numFaceSubsets = GetMaxSubsetIndex<Face>(sh) + 1;
 	int nextFreeSubset = numFaceSubsets;
 
-	for(int i = 0; i < numFaceSubsets; ++i)
+//	if a subset was specified, we'll only apply the separation to this subset
+	int i = 0;
+	int iMax = numFaceSubsets - 1;
+	if(applyToSubset >= 0){
+		i = applyToSubset;
+		iMax = applyToSubset;
+	}
+
+	for(; i <= iMax; ++i)
 	{
 		bool firstFace = true;
 	//	this vector holds associated subset indices for each normal.

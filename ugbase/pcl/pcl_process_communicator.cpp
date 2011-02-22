@@ -57,7 +57,7 @@ get_local_proc_id() const
 	if(m_comm->m_mpiComm == MPI_COMM_WORLD)
 		return globalProcID;
 
-	vector<int>& procs = m_comm->m_procs;
+	const vector<int>& procs = m_comm->m_procs;
 	for(size_t i = 0; i < procs.size(); ++i){
 		if(globalProcID == procs[i])
 			return (int)i;
