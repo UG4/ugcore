@@ -259,7 +259,8 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 //	create list of all subsets
 	if(!CreateUnionOfSubsets(unionSubsets, m_vElemDisc))
 	{
-		UG_LOG("ERROR: Can not create union of subsets.\n");
+		UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+				" Can not create union of subsets.\n");
 		return IAssemble_ERROR;
 	}
 
@@ -349,7 +350,11 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 		{
 			if(m_vvPostProcess[type][i]->post_process_jacobian(J, u, dofDistr)
 					!= IAssemble_OK)
+			{
+				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
+						" Cannot execute post process " << i << ".\n");
 				return IAssemble_ERROR;
+			}
 		}
 	}
 
