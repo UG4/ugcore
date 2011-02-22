@@ -19,84 +19,62 @@ InitAlgebra(CPUAlgebraChooser());
 -- CONSTANTS
 dim = 2
 gridName = "open_circle.ugx"
+--gridName = "unit_square_tri.ugx"
 
---refinement
-numRefs = 5
+--refinement (default is 5)
+numRefs    = GetParamNumber("-numRefs",    5)
+
 -- all elements connected to vertices in this sphere will be refined
-refCenterX = 0
-refCenterY = 0
+refCenterX = 0.0
+refCenterY = 0.0
 refCenterZ = 0
-initialRadius = 0.75
+initialRadius = 0.25
 -- in every refinement iteration the radius shrinks with this factor
 radiusFalloff = 0.75
 
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
-	function ourDiffTensor2d(x, y, t)
-		return	1, 0, 
-				0, 1
-	end
-	
-	function ourVelocityField2d(x, y, t)
-		return	0, 0
-	end
-	
-	function ourReaction2d(x, y, t)
-		return	0
-	end
-	
-	function ourRhs2d(x, y, t)
-		local s = 2*math.pi
-		return	s*s*(math.sin(s*x) + math.sin(s*y))
-		--return -2*y
-		--return 0;
-	end
-	
-	function ourNeumannBnd2d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
-		return true, -2*x*y
-	end
-	
-	function ourDirichletBnd2d(x, y, t)
-		local s = 2*math.pi
-		return true, math.sin(s*x) + math.sin(s*y)
-		--return true, x*x*y
-		--return true, 2.5
-	end
 
-	function ourDiffTensor3d(x, y, z, t)
-		return	1, 0, 0,
-				0, 1, 0,
-				0, 0, 1
-	end
+-- 2D example, cf. Braess, Finite Elemente, p. 33
+-- 
+--	- \Delta u = 0                 in \Omega
+--           u = sin(2/3 * \phi)   on circle bnd
+--           u = 0                 on line bnd
+
+function ourDiffTensor2d(x, y, t)
+	return	1, 0, 
+			0, 1
+end
+		
+function ourDirichletBnd2d(x, y, t)
+	-- line bnd
+	local small = 0.0001
+	if (-small < x and x < small) and y <= 0 then return true, 0.0 end
+	if (-small < y and y < small) and x >= 0 then return true, 0.0 end
 	
-	function ourVelocityField3d(x, y, z, t)
-		return	0, 0, 0
-	end
+	-- circle bnd
+	local phi;
+	local r = math.sqrt(x*x + y*y)
+	if y >= 0 then phi = math.acos(x/r) end
+	if y < 0 then phi =2*math.pi - math.acos(x/r) end
 	
-	function ourReaction3d(x, y, z, t)
-		return	0
-	end
-	
-	function ourRhs3d(x, y, z, t)
-		--local s = 2*math.pi
-		--return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
-		return 0;
-	end
-	
-	function ourNeumannBnd3d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
-		return true, -2*x*y*z
-	end
-	
-	function ourDirichletBnd3d(x, y, z, t)
-		--local s = 2*math.pi
-		--return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
-		return true, x
-	end
+	return true, math.sin((2*phi)/3)
+end
+
+-- 3D
+
+function ourDiffTensor3d(x, y, z, t)
+	return	1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+end
+
+function ourDirichletBnd3d(x, y, z, t)
+	--local s = 2*math.pi
+	--return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
+	return true, x
+end
 --------------------------------
 -- User Data Functions (end)
 --------------------------------
@@ -107,23 +85,14 @@ dom = utilCreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
-   print("Loading Domain failed.")
-   exit()
-end
+if utilLoadDomain(dom, gridName) == false then print("Loading Domain failed."); exit() end
 
 -- Distribute the domain to all involved processes
-if DistributeDomain(dom) == false then
-	print("Error while Distributing Grid.")
-	exit()
-end
+if DistributeDomain(dom) == false then print("Error while Distributing Grid."); exit() end
 
 -- get subset handler and make sure that the right number of subsets is contained.
 sh = dom:get_subset_handler()
-if sh:num_subsets() ~= 2 then 
-	print("Domain must have 2 Subsets for this problem.")
-	exit()
-end
+if sh:num_subsets() ~= 2 then print("Domain must have 2 Subsets for this problem."); exit() end
 
 -- create refiner
 print("Create Hierarchy")
@@ -143,13 +112,6 @@ print("Saving domain grid and hierarchy.")
 SaveDomain(dom, "refined_grid.ugx")
 SaveGridHierarchy(dom:get_grid(), "refined_grid_hierarchy.ugx")
 
-
--------------------------------------------
--- TEMPORARILY EXITING THE APPLICATION
--------------------------------------------
-exit()
-
-
 -- create function pattern
 print("Create Function Pattern")
 pattern = P1ConformFunctionPattern()
@@ -166,49 +128,32 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -------------------------------------------
 print ("Setting up Assembling")
 
--- depending on the dimension we're choosing the appropriate callbacks.
--- we're using the .. operator to assemble the names (dim = 2 -> "ourDiffTensor2d")
 -- Diffusion Tensor setup
 diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
 --diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
 
--- Velocity Field setup
-velocityField = utilCreateLuaUserVector("ourVelocityField"..dim.."d", dim)
---velocityField = utilCreateConstUserVector(0.0, dim)
-
--- Reaction setup
-reaction = utilCreateLuaUserNumber("ourReaction"..dim.."d", dim)
---reaction = utilCreateConstUserNumber(0.0, dim)
-
--- rhs setup
-rhs = utilCreateLuaUserNumber("ourRhs"..dim.."d", dim)
---rhs = utilCreateConstUserNumber(0.0, dim)
-
--- neumann setup
-neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
---neumann = utilCreateConstUserNumber(0.0, dim)
-
 -- dirichlet setup
+-- depending on the dimension we're choosing the appropriate callbacks.
+-- we're using the .. operator to assemble the names (dim = 2 -> "ourDirichletBnd2d")
 dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
---dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
 	
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
+-- create a Hanging Node Finite Volume Assembling
+-- Note, that only the diffusion tensor is set. All other possible user data
+-- (such as Convection Velocity, Reaction Term, Source Term) are not set and
+-- the discretization uses the default (i.e. zero) value
 elemDisc = utilCreateHFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
-elemDisc:set_velocity_field(velocityField)
-elemDisc:set_reaction(reaction)
-elemDisc:set_rhs(rhs)
 
 -----------------------------------------------------------------
---  Setup Neumann Boundary
+--  Setup Constraints
 -----------------------------------------------------------------
 
---neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
---neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
+constraints = OneSideP1Constraints()
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -223,13 +168,12 @@ dirichletBND:add_boundary_value(dirichlet, "c", "Boundary")
 
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDisc)
---domainDisc:add_elem_disc(neumannDisc)
 domainDisc:add_post_process(dirichletBND)
+domainDisc:add_post_process(constraints)
 
 -------------------------------------------
---  Algebra
+--  Setup Operator
 -------------------------------------------
-print ("Setting up Algebra Solver")
 
 -- create operator from discretization
 linOp = AssembledLinearOperator()
@@ -237,29 +181,10 @@ linOp:export_rhs(true)
 linOp:set_discretization(domainDisc)
 linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 
--- get grid function
-u = approxSpace:create_surface_function()
-b = approxSpace:create_surface_function()
-
--- set initial value
-u:set(0.0)
-
--- init Operator
-print ("Assemble Operator ... ")
-
-if linOp:init() ~= true then 
-	print(" Error while initializing operator")
-	exit() 
-end
-print ("done")
-
--- set dirichlet values in start iterate
-linOp:set_dirichlet_values(u)
-b:assign(linOp:get_rhs())
-
--- write matrix for test purpose
-SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
-SaveVectorForConnectionViewer(b, "Rhs.mat")
+-------------------------------------------
+--  Algebra
+-------------------------------------------
+print ("Setting up Algebra Solver")
 
 -- create algebraic Preconditioner
 jac = Jacobi()
@@ -279,7 +204,7 @@ ilut = ILUT()
 	baseConvCheck:set_minimum_defect(1e-8)
 	baseConvCheck:set_reduction(1e-30)
 	baseConvCheck:set_verbose_level(false)
-	-- base = LapackLUSolver()
+	-- base = LUSolver()
 	base = LinearSolver()
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
@@ -302,25 +227,14 @@ ilut = ILUT()
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
 
--- create AMG ---
------------------
-
-	if false then
-	amg = AMGPreconditioner()
-	amg:set_nu1(2)
-	amg:set_nu2(2)
-	amg:set_gamma(1)
-	amg:set_presmoother(jac)
-	amg:set_postsmoother(jac)
-	amg:set_base_solver(base)
-	--amg:set_debug(u)
-	end
-
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
 convCheck:set_maximum_steps(100)
 convCheck:set_minimum_defect(1e-11)
 convCheck:set_reduction(1e-12)
+
+-- exact Solver
+exSolver = LU()
 
 -- create Linear Solver
 linSolver = LinearSolver()
@@ -337,8 +251,43 @@ bicgstabSolver = BiCGStab()
 bicgstabSolver:set_preconditioner(jac)
 bicgstabSolver:set_convergence_check(convCheck)
 
--- Apply Solver
-ApplyLinearSolver(linOp, u, b, cgSolver)
+-------------------------------------------
+--  Apply Solver
+-------------------------------------------
 
--- Output
+-- choose some solver
+solver = exSolver
+
+-- create grid function
+u = approxSpace:create_surface_function()
+b = approxSpace:create_surface_function()
+
+-- set initial value
+u:set(0.0)
+
+-- 1. init operator
+print("Init operator (i.e. assemble matrix).")
+if linOp:init() ~= true then print("Cannot init operator"); exit() end
+
+-- 2. set dirichlet values in solution
+linOp:set_dirichlet_values(u)
+
+-- 3. set right hand side (assembled together with Operator for performance reasons)
+b:assign(linOp:get_rhs())
+
+-- write matrix for test purpose
+SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
+SaveVectorForConnectionViewer(b, "Rhs.mat")
+
+-- 4. init solver for linear Operator
+print("Init solver for operator.")
+if solver:init(linOp) ~= true then print("Cannot init solver"); exit() end
+
+-- 5. apply solver
+print("Apply solver.")
+if solver:apply_return_defect(u,b) ~= true then print("Cannot apply solver"); exit() end
+
+-------------------------------------------
+--  Output
+-------------------------------------------
 WriteGridFunctionToVTK(u, "Solution")
