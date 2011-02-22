@@ -41,6 +41,12 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -51,7 +57,7 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleMassMatrix<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleMassMatrix<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
@@ -60,14 +66,14 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleMassMatrix<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleMassMatrix<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleMassMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleMassMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
@@ -76,28 +82,28 @@ assemble_mass_matrix(matrix_type& M, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleMassMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleMassMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleMassMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleMassMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleMassMatrix<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleMassMatrix<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleMassMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleMassMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									     M, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_mass_matrix':"
@@ -151,6 +157,12 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -161,7 +173,7 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleStiffnessMatrix<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleStiffnessMatrix<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
@@ -170,14 +182,14 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleStiffnessMatrix<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleStiffnessMatrix<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleStiffnessMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleStiffnessMatrix<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
@@ -186,28 +198,28 @@ assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleStiffnessMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleStiffnessMatrix<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleStiffnessMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleStiffnessMatrix<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleStiffnessMatrix<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleStiffnessMatrix<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleStiffnessMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleStiffnessMatrix<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 										         A, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_stiffness_matrix':"
@@ -273,6 +285,12 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -283,7 +301,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                           J, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
@@ -292,14 +310,14 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                           J, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                           J, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
@@ -308,28 +326,28 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                           J, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                           J, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                           J, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                           J, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
@@ -391,6 +409,12 @@ assemble_defect(vector_type& d, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -401,7 +425,7 @@ assemble_defect(vector_type& d, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
@@ -410,14 +434,14 @@ assemble_defect(vector_type& d, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
@@ -426,28 +450,28 @@ assemble_defect(vector_type& d, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
@@ -504,6 +528,12 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -514,7 +544,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
@@ -523,14 +553,14 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
@@ -539,28 +569,28 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
@@ -655,6 +685,12 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -665,7 +701,7 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   J, u, s_a0, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
@@ -674,14 +710,14 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   J, u, s_a0, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   J, u, s_a0, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
@@ -690,28 +726,28 @@ assemble_jacobian(matrix_type& J, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   J, u, s_a0, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   J, u, s_a0, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   J, u, s_a0, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleJacobian<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   J, u, s_a0, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_jacobian':"
@@ -769,6 +805,12 @@ assemble_defect(vector_type& d, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -779,7 +821,7 @@ assemble_defect(vector_type& d, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
@@ -788,14 +830,14 @@ assemble_defect(vector_type& d, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
@@ -804,28 +846,28 @@ assemble_defect(vector_type& d, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleDefect<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   d, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_defect':"
@@ -883,6 +925,12 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 	//	get dimension of the subset
 		const int dim = unionSubsets.dim(i);
 
+	//	request if subset is regular grid
+		bool bNonRegularGrid = !unionSubsets.regular_grid(i);
+
+	//	overrule by regular grid if required
+		if(m_bForceRegGrid) bNonRegularGrid = false;
+
 	//	Elem Disc on the subset
 		std::vector<IElemDisc<TAlgebra>*> vSubsetElemDisc;
 
@@ -893,7 +941,7 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 		switch(dim)
 		{
 		case 1:
-			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Edge>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 			                         mat, rhs, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
@@ -902,14 +950,14 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 			}
 			break;
 		case 2:
-			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Triangle>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Triangles.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Quadrilateral>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
@@ -918,28 +966,28 @@ assemble_linear(matrix_type& mat, vector_type& rhs, const vector_type& u,
 			}
 			break;
 		case 3:
-			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Tetrahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Tetrahedrons.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Pyramid>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Pyramids.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Prism>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
 						"Cannot assemble Prisms.\n");
 				return IAssemble_ERROR;
 			}
-			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si,
+			if(!AssembleLinear<Hexahedron>(vSubsetElemDisc, dofDistr, si, bNonRegularGrid,
 									   mat, rhs, u, s_m, s_a, time))
 			{
 				UG_LOG("ERROR in 'DomainDiscretization::assemble_linear':"
