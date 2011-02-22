@@ -10,6 +10,7 @@
 #define __H__LIB_DISCRETIZATION__PARALLELIZATION__PARALLEL_DOF_MANAGER_IMPL__
 
 #include "parallel_dof_manager.h"
+#include <time.h>
 
 namespace ug{
 
@@ -18,9 +19,6 @@ bool
 ParallelMGDoFManager<TMGDoFManager>::
 enable_dofs()
 {
-// 	no levels -> nothing to do
-	if(TMGDoFManager::num_levels() == 0) return true;
-
 //	distribute level dofs
 	if(!enable_level_dofs()) return false;
 
@@ -124,15 +122,48 @@ enable_surface_dofs()
 		*const_cast<typename TMGDoFManager::dof_distribution_type*>
 			(TMGDoFManager::get_surface_dof_distribution());
 
-//	touch each layout to create it
-	distr.get_slave_layout();
-	distr.get_master_layout();
-	distr.get_communicator();
-	distr.get_process_communicator();
+//	if no levels given, error
+	if(TMGDoFManager::num_levels() == 0) return false;
 
-	// TODO: Implement surface layouts
+//	return flag
+	bool bRet = true;
 
-	return true;
+//	\todo: this is a quick-hack. Think about how to create a parallel Index Layout
+//			for the surface view
+	int surfLevel = TMGDoFManager::num_levels() -1;
+
+//	check full refinement (since quick-hack only works for full refinement)
+	if((pcl::GetNumProcesses() > 1) &&
+		(TMGDoFManager::get_surface_dof_distribution()->num_dofs() !=
+			TMGDoFManager::get_level_dof_distribution(surfLevel)->num_dofs()))
+	{
+		UG_LOG("ERROR in 'ParallelMGDoFManager::enable_surface_dofs()': "
+				" Currently Surface DoFDistribution only implemented for"
+				" full refinement.\n");
+		return false;
+	}
+
+//	create index layouts
+	bRet &= CreateIndexLayout(distr.get_master_layout(),
+							  distr, *m_pLayoutMap, INT_MASTER, surfLevel);
+	bRet &= CreateIndexLayout(distr.get_slave_layout(),
+							  distr, *m_pLayoutMap, INT_SLAVE, surfLevel);
+
+//	create vertical layouts
+	bRet &= CreateIndexLayout(distr.get_vertical_master_layout(),
+							  distr, *m_pLayoutMap, INT_VERTICAL_MASTER, surfLevel);
+	bRet &= CreateIndexLayout(distr.get_vertical_slave_layout(),
+							  distr, *m_pLayoutMap, INT_VERTICAL_SLAVE, surfLevel);
+
+//	TODO:	this communicator should be specified from the application
+	pcl::ProcessCommunicator commWorld;
+
+//	create communicator
+	distr.get_process_communicator()
+			= commWorld.create_sub_communicator(true);
+
+//	we're done
+	return bRet;
 }
 
 
@@ -149,6 +180,8 @@ surface_view_required()
 	}
 
 // 	Parallel version
+	if(this->m_pSurfaceView != NULL)
+		return true;
 
 //	Create Surface View if not already created
 	if(this->m_pSurfaceView == NULL)
@@ -161,23 +194,12 @@ surface_view_required()
 		return false;
 	}
 
+//  \todo: Use m_pDistGridManager to take care of ghost elements when creating
+//			the surface view (e.g. exclude vertical master/slave)
 // 	Create surface view for all elements
-	CreateSurfaceView(*(this->m_pSurfaceView), *m_pDistGridManager,
-	                  *this->m_pMGSubsetHandler,
-	                  this->m_pMultiGrid->vertices_begin(),
-	                  this->m_pMultiGrid->vertices_end());
-	CreateSurfaceView(*(this->m_pSurfaceView), *m_pDistGridManager,
-	                  *this->m_pMGSubsetHandler,
-	                  this->m_pMultiGrid->edges_begin(),
-	                  this->m_pMultiGrid->edges_end());
-	CreateSurfaceView(*(this->m_pSurfaceView), *m_pDistGridManager,
-	                  *this->m_pMGSubsetHandler,
-	                  this->m_pMultiGrid->faces_begin(),
-	                  this->m_pMultiGrid->faces_end());
-	CreateSurfaceView(*(this->m_pSurfaceView), *m_pDistGridManager,
-	                  *this->m_pMGSubsetHandler,
-	                  this->m_pMultiGrid->volumes_begin(),
-	                  this->m_pMultiGrid->volumes_end());
+	CreateSurfaceView(*this->m_pSurfaceView,
+	                  *m_pDistGridManager,
+	                  *this->m_pMGSubsetHandler);
 
 // 	Set storage manager
 	this->m_surfaceStorageManager.
@@ -192,18 +214,24 @@ void
 ParallelMGDoFManager<TMGDoFManager>::
 print_statistic(typename TMGDoFManager::dof_distribution_type& dd) const
 {
-//	Get Process communciator;
+//	Get Process communicator;
 	pcl::ProcessCommunicator pCom = dd.get_process_communicator();
 
 //	global and local values
 	std::vector<int> tNumGlobal, tNumLocal;
 
-//	write local dof numbers
+//	write local dof numbers of all masters; this the number of all dofs
+//	minus the number of all slave dofs (double counting of slaves can not
+//	occur, since each slave is only slave of one master
 	tNumLocal.push_back(dd.num_dofs() - dd.num_slave_dofs());
+
+//	write local number of dof in a subset for all subsets. For simplicity, we
+//	only communicate the total number of dofs (i.e. master+slave)
+//	\todo: count slaves in subset and subtract them to get only masters
 	for(int si = 0; si < dd.num_subsets(); ++si)
 		tNumLocal.push_back(dd.num_dofs(si));
 
-//	resize recieve array
+//	resize receive array
 	tNumGlobal.resize(tNumLocal.size());
 
 //	sum up over processes
@@ -255,22 +283,21 @@ print_statistic() const
 			"(SubsetIndex (m+s), BlockSize, DoFs per Subset) \n");
 
 //	Write Infos for Levels
-	for(size_t l = 0; l < this->m_vLevelDoFDistribution.size(); ++l)
+	for(size_t l = 0; l < this->m_vLevelDD.size(); ++l)
 	{
 		UG_LOG("    " << l << "    |");
-		print_statistic(*this->m_vLevelDoFDistribution[l]);
+		print_statistic(*this->m_vLevelDD[l]);
 		UG_LOG(std::endl);
 	}
 
 //	Write Infos for Surface Grid
-	/*
-	if(this->m_pSurfaceDoFDistribution != NULL)
+	if(this->m_pSurfDD != NULL)
 	{
 		UG_LOG("  surf   |");
-		print_statistic(*this->m_pSurfaceDoFDistribution);
+		print_statistic(*this->m_pSurfDD);
 		UG_LOG(std::endl);
 	}
-*/
+
 	TMGDoFManager::print_statistic();
 }
 
