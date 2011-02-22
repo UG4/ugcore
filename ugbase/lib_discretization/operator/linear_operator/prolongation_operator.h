@@ -1,12 +1,12 @@
 /*
- * linear_transfer.h
+ * prolongation_operator.h
  *
  *  Created on: 04.12.2009
  *      Author: andreasvogel
  */
 
-#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__TRANSFER_OPERATOR__
-#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__TRANSFER_OPERATOR__
+#ifndef __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
+#define __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__
 
 // extern headers
 #include <iostream>
@@ -40,43 +40,57 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 								size_t coarseLevel, size_t fineLevel)
 {
 //	get DoFDistributions
-	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr = approxSpace.get_level_dof_distribution(coarseLevel);
-	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr = approxSpace.get_level_dof_distribution(fineLevel);
+	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
+			= approxSpace.get_level_dof_distribution(coarseLevel);
+	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
+			= approxSpace.get_level_dof_distribution(fineLevel);
 
 // 	allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_shape_function_set_id(fct) != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
-			{UG_LOG("Interpolation only implemented for Lagrange P1 functions.\n"); return false;}
+		if(fineDoFDistr.local_shape_function_set_id(fct)
+				!= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+	{
+		UG_LOG("ERROR in 'AssembleVertexProlongation':"
+				"Interpolation only implemented for Lagrange P1 functions.\n");
+		return false;
+	}
 
-	// get subsethandler and grid
+//  get subsethandler and grid
 	MultiGrid& grid = approxSpace.get_domain().get_grid();
 
-	// get number of dofs on different levels
+//  get number of dofs on different levels
 	const size_t numFineDoFs = fineDoFDistr.num_dofs();
 	const size_t numCoarseDoFs = coarseDoFDistr.num_dofs();
 
-	// create matrix
-	if(!mat.destroy())
-		{UG_LOG("Cannot destroy Interpolation Matrix.\n"); return false;}
-	if(!mat.create(numFineDoFs, numCoarseDoFs))
-		{UG_LOG("Cannot create Interpolation Matrix.\n"); return false;}
+//	check if grid distribution has dofs, otherwise skip creation since father
+//	elements may not exist in parallel.
+	if(numFineDoFs == 0 || numCoarseDoFs == 0)
+		return true;
+
+//  resize matrix
+	if(!mat.resize(numFineDoFs, numCoarseDoFs))
+	{
+		UG_LOG("ERROR in 'AssembleVertexProlongation':"
+				"Cannot resize Interpolation Matrix.\n");
+		return false;
+	}
 
 	typename TApproximationSpace::dof_distribution_type::multi_index_vector_type fineMultInd;
 	typename TApproximationSpace::dof_distribution_type::multi_index_vector_type coarseMultInd;
 
-	// iterators
+//  iterators
 	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
 
-	// loop subsets on fine level
+//  loop subsets on fine level
 	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
 	{
 		iterBegin = fineDoFDistr.template begin<Vertex>(si);
 		iterEnd = fineDoFDistr.template end<Vertex>(si);
 
-		// loop vertices for fine level subset
+	//  loop vertices for fine level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
-			// get father
+		//  get father
 			GeometricObject* geomObj = grid.get_parent(*iter);
 			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 			Edge* edge = dynamic_cast<Edge*>(geomObj);
@@ -87,75 +101,64 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 			{
 				if(!fineDoFDistr.is_def_in_subset(fct, si)) continue;
 
-				// get global indices
+			//  get global indices
 				if(fineDoFDistr.get_inner_multi_indices(*iter, fct, fineMultInd) != 1)
 					return false;
 
-				// Check if father is Vertex
+			//  Check if father is Vertex
 				if(vert != NULL)
 				{
-					// get global indices
+				//  get global indices
 					if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 						return false;
 
 					BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 								fineMultInd[0][1], coarseMultInd[0][1]) = 1.0;
-
-//					UG_LOG("Interpol NODE fct " << fct << ": ("<< fineMultInd[0][0]<< "," << fineMultInd[0][1] << ") <- ("
-//										<< coarseMultInd[0][0] << "," << coarseMultInd[0][1] << "): 1.0\n");
-
 					continue;
 				}
 
-				// Check if father is Edge
+			//  Check if father is Edge
 				if(edge != NULL)
 				{
 					for(int i = 0; i < 2; ++i)
 					{
 						VertexBase* v = edge->vertex(i);
 
-						// get global indices
+					//  get global indices
 						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.5;
-
-//						UG_LOG("Interpol EDGE fct " << fct << ": ("<< fineMultInd[0][0]<< "," << fineMultInd[0][1] << ") <- ("
-//											<< coarseMultInd[0][0] << "," << coarseMultInd[0][1] << "): 0.5\n");
 					}
 					continue;
 				}
 
-				// Check if father is Quad
+			//  Check if father is Quad
 				if(quad != NULL)
 				{
 					for(int i = 0; i < 4; ++i)
 					{
 						VertexBase* v = quad->vertex(i);
 
-						// get global indices
+					//  get global indices
 						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.25;
-
-//						UG_LOG("Interpol QUAD fct " << fct << ": ("<< fineMultInd[0][0]<< "," << fineMultInd[0][1] << ") <- ("
-//											<< coarseMultInd[0][0] << "," << coarseMultInd[0][1] << "): 0.25\n");
-
 					}
 					continue;
 				}
 
-				// Check if father is Hexaeder
+			//  Check if father is Hexaeder
 				if(hexaeder != NULL)
 				{
 					for(int i = 0; i < 8; ++i)
 					{
 						VertexBase* v = hexaeder->vertex(i);
 
-						// get global indices
+					//  get global indices
 						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
@@ -165,11 +168,14 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 					continue;
 				}
 
-				UG_LOG("ERROR in assemble_interpolation: Element Father not detected." << std::endl);
+				UG_LOG("ERROR in 'AssembleVertexProlongation':"
+						" Element Father not detected.\n");
 				return false;
 			}
 		}
 	}
+
+//	we're done
 	return true;
 }
 
@@ -198,7 +204,7 @@ class P1ProlongationOperator :
 	public:
 		// Transfer Operator acts on level -> level + 1
 		P1ProlongationOperator() :
-			m_pApproximationSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
+			m_pApproxSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
 		{
 			m_vPostProcess.clear();
 		};
@@ -213,7 +219,7 @@ class P1ProlongationOperator :
 	//	Set approximation space
 		void set_approximation_space(approximation_space_type& approxSpace)
 		{
-			m_pApproximationSpace = &approxSpace;
+			m_pApproxSpace = &approxSpace;
 		}
 
 	//	Set levels
@@ -223,8 +229,8 @@ class P1ProlongationOperator :
 			m_coarseLevel = coarseLevel;
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in ProjectionOperator::set_levels:"
-						" Can only project between successiv level.\n");
+				UG_LOG("ERROR in 'P1ProlongationOperator::set_levels':"
+						" Can only project between successive level.\n");
 				return false;
 			}
 			return true;
@@ -238,22 +244,27 @@ class P1ProlongationOperator :
 
 		virtual bool init()
 		{
-			if(m_pApproximationSpace == NULL)
+			if(m_pApproxSpace == NULL)
 			{
-				UG_LOG("ERROR in 'ProjectionOperator::init': Approximation Space not set. Cannot init Projection.\n");
+				UG_LOG("ERROR in 'P1ProlongationOperator::init':"
+						"Approximation Space not set. Cannot init Projection.\n");
 				return false;
 			}
 
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in ProjectionOperator::set_approximation_levels:"
+				UG_LOG("ERROR in 'P1ProlongationOperator::init':"
 						" Can only project between successiv level.\n");
 				return false;
 			}
 
 			if(!AssembleVertexProlongation<approximation_space_type, algebra_type>
-				(m_matrix, *m_pApproximationSpace, m_coarseLevel, m_fineLevel))
-				{UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n"); return false;}
+				(m_matrix, *m_pApproxSpace, m_coarseLevel, m_fineLevel))
+			{
+				UG_LOG("ERROR in 'P1ProlongationOperator::init':"
+						"Cannot assemble interpolation matrix.\n");
+				return false;
+			}
 
 			#ifdef UG_PARALLEL
 				m_matrix.set_storage_type(PST_CONSISTENT);
@@ -270,18 +281,22 @@ class P1ProlongationOperator :
 		//	Check, that operator is initiallized
 			if(!m_bInit)
 			{
-				UG_LOG("ERROR in 'ProjectionOperator::apply':Operator not initialized.\n");
+				UG_LOG("ERROR in 'P1ProlongationOperator::apply':"
+						" Operator not initialized.\n");
 				return false;
 			}
 
 		//	Some Assertions
-			UG_ASSERT(uFineOut.size() == m_matrix.num_rows(),"Vector and Row sizes have to match!");
-			UG_ASSERT(uCoarseIn.size() == m_matrix.num_cols(),"Vector and Column sizes have to match!");
+			UG_ASSERT(uFineOut.size() == m_matrix.num_rows(),
+			          	  "Vector and Row sizes have to match!");
+			UG_ASSERT(uCoarseIn.size() == m_matrix.num_cols(),
+			          	  "Vector and Column sizes have to match!");
 
 		//	Apply Matrix
 			if(!m_matrix.apply(uFineOut, uCoarseIn))
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::apply': Cannot apply matrix. "
+				UG_LOG("ERROR in 'P1ProlongationOperator::apply': "
+						"Cannot apply matrix. "
 #ifdef UG_PARALLEL
 						"(Type uCoarse = " <<uCoarseIn.get_storage_mask() <<".\n");
 #else
@@ -294,10 +309,11 @@ class P1ProlongationOperator :
 		//	todo: We could handle this by eliminating dirichlet rows as well
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 			{
-				const dof_distribution_type& dofDistr = m_pApproximationSpace->get_level_dof_distribution(m_fineLevel);
+				const dof_distribution_type& dofDistr =
+						m_pApproxSpace->get_level_dof_distribution(m_fineLevel);
 				if(m_vPostProcess[i]->post_process_defect(uFineOut, uFineOut, dofDistr) != IAssemble_OK)
 				{
-					UG_LOG("ERROR in 'ProjectionOperator::apply': "
+					UG_LOG("ERROR in 'P1ProlongationOperator::apply': "
 							"Error while setting dirichlet defect nr " << i << " to zero.\n");
 					return false;
 				}
@@ -313,18 +329,22 @@ class P1ProlongationOperator :
 		//	Check, that operator is initiallized
 			if(!m_bInit)
 			{
-				UG_LOG("ERROR in 'ProjectionOperator::apply_transposed':Operator not initialized.\n");
+				UG_LOG("ERROR in 'P1ProlongationOperator::apply_transposed':"
+						"Operator not initialized.\n");
 				return false;
 			}
 
 		//	Some Assertions
-			UG_ASSERT(uFineIn.size() == m_matrix.num_rows(),"Vector and Row sizes have to match!");
-			UG_ASSERT(uCoarseOut.size() == m_matrix.num_cols(),"Vector and Column sizes have to match!");
+			UG_ASSERT(uFineIn.size() == m_matrix.num_rows(),
+			          	  "Vector and Row sizes have to match!");
+			UG_ASSERT(uCoarseOut.size() == m_matrix.num_cols(),
+			          	  "Vector and Column sizes have to match!");
 
 		//	Apply transposed matrix
 			if(!m_matrix.apply_transposed(uCoarseOut, uFineIn))
 			{
-				UG_LOG("ERROR in 'P1ProlongationOperator::apply_transposed': Cannot apply transposed matrix.\n");
+				UG_LOG("ERROR in 'P1ProlongationOperator::apply_transposed':"
+						" Cannot apply transposed matrix.\n");
 				return false;
 			}
 
@@ -332,7 +352,8 @@ class P1ProlongationOperator :
 		//	todo: We could handle this by eliminating dirichlet columns as well
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 			{
-				const dof_distribution_type& dofDistr = m_pApproximationSpace->get_level_dof_distribution(m_coarseLevel);
+				const dof_distribution_type& dofDistr =
+						m_pApproxSpace->get_level_dof_distribution(m_coarseLevel);
 				if(m_vPostProcess[i]->post_process_defect(uCoarseOut, uCoarseOut, dofDistr) != IAssemble_OK)
 				{
 					UG_LOG("ERROR in 'ProjectionOperator::apply_transposed': "
@@ -355,7 +376,7 @@ class P1ProlongationOperator :
 		virtual IProlongationOperator<vector_type, vector_type>* clone()
 		{
 			P1ProlongationOperator* op = new P1ProlongationOperator;
-			op->set_approximation_space(*m_pApproximationSpace);
+			op->set_approximation_space(*m_pApproxSpace);
 			for(size_t i = 0; i < m_vPostProcess.size(); ++i)
 				op->set_dirichlet_post_process(*m_vPostProcess[i]);
 			return op;
@@ -372,14 +393,13 @@ class P1ProlongationOperator :
 		matrix_type m_matrix;
 
 		std::vector<IPostProcess<typename dof_distribution_type::implementation_type, algebra_type>*> m_vPostProcess;
-		TApproximationSpace* m_pApproximationSpace;
+		TApproximationSpace* m_pApproxSpace;
 		size_t m_fineLevel;
 		size_t m_coarseLevel;
 
 		bool m_bInit;
 };
 
+} // end namespace ug
 
-}
-
-#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__TRANSFER_OPERATOR__ */
+#endif /* __H__LIBDISCRETIZATION__OPERATOR__LINEAR_OPERATOR__PROLONGATION_OPERATOR__ */

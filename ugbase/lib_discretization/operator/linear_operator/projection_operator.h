@@ -38,47 +38,56 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
                               size_t coarseLevel, size_t fineLevel)
 {
 //	get DoFDistributions
-	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr = approxSpace.get_level_dof_distribution(coarseLevel);
-	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr = approxSpace.get_level_dof_distribution(fineLevel);
+	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
+		= approxSpace.get_level_dof_distribution(coarseLevel);
+	const typename TApproximationSpace::dof_distribution_type& fineDoFDistr
+		= approxSpace.get_level_dof_distribution(fineLevel);
 
 //  Allow only lagrange P1 functions
 	for(size_t fct = 0; fct < fineDoFDistr.num_fct(); ++fct)
-		if(fineDoFDistr.local_shape_function_set_id(fct) != LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
-			{UG_LOG("Interpolation only implemented for Lagrange P1 functions.\n"); return false;}
+		if(fineDoFDistr.local_shape_function_set_id(fct)
+				!= LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1))
+		{
+			UG_LOG("ERROR in 'AssembleVertexProjection': "
+					"Interpolation only implemented for Lagrange P1 functions.\n");
+			return false;
+		}
 
-	// get MultiGrid
+// 	get MultiGrid
 	MultiGrid& grid = approxSpace.get_domain().get_grid();
 
-	// get number of dofs on different levels
+// 	get number of dofs on different levels
 	const size_t numFineDoFs = fineDoFDistr.num_dofs();
 	const size_t numCoarseDoFs = coarseDoFDistr.num_dofs();
 
-	// create matrix
-	if(!mat.destroy())
-		{UG_LOG("Cannot destroy Interpolation Matrix.\n"); return false;}
-	if(!mat.create(numCoarseDoFs, numFineDoFs))
-		{UG_LOG("Cannot create Interpolation Matrix.\n"); return false;}
+// 	resize matrix
+	if(!mat.resize(numCoarseDoFs, numFineDoFs))
+	{
+		UG_LOG("ERROR in 'AssembleVertexProjection': "
+				"Cannot resize Interpolation Matrix.\n");
+		return false;
+	}
 
 	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type fineInd;
 	typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type coarseInd;
 
-	// Vertex iterators
+// 	Vertex iterators
 	geometry_traits<VertexBase>::const_iterator iter, iterBegin, iterEnd;
 
-	// loop subsets of fine level
+// 	loop subsets of fine level
 	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
 	{
 		iterBegin = fineDoFDistr.template begin<Vertex>(si);
 		iterEnd = fineDoFDistr.template end<Vertex>(si);
 
-		// loop nodes of fine subset
+	// 	loop nodes of fine subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
 		{
-			// get father
+		// 	get father
 			GeometricObject* geomObj = grid.get_parent(*iter);
 			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
 
-			// Check if father is Vertex
+		//	Check if father is Vertex
 			if(vert != NULL)
 			{
 				// get global indices
@@ -86,13 +95,15 @@ bool AssembleVertexProjection(TMatrix& mat, TApproximationSpace& approxSpace,
 			}
 			else continue;
 
-			// get global indices
+		// 	get global indices
 			fineDoFDistr.get_inner_algebra_indices(*iter, fineInd);
 
 			for(size_t i = 0; i < coarseInd.size(); ++i)
 				mat(coarseInd[i], fineInd[i]) = 1.0;
 		}
 	}
+
+//	we're done
 	return true;
 }
 
@@ -122,13 +133,13 @@ class P1ProjectionOperator :
 	public:
 	//	Constructor
 		P1ProjectionOperator() :
-			m_pApproximationSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
+			m_pApproxSpace(NULL), m_fineLevel(0), m_coarseLevel(0), m_bInit(false)
 		{}
 
 	//	Set Approximation Space
 		void set_approximation_space(approximation_space_type& approxSpace)
 		{
-			m_pApproximationSpace = &approxSpace;
+			m_pApproxSpace = &approxSpace;
 		}
 
 	//	Set approximation level
@@ -138,7 +149,7 @@ class P1ProjectionOperator :
 			m_coarseLevel = coarseLevel;
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in ProjectionOperator::set_levels:"
+				UG_LOG("ERROR in P1ProjectionOperator::set_levels:"
 						" Can only project between successiv level.\n");
 				return false;
 			}
@@ -149,22 +160,25 @@ class P1ProjectionOperator :
 	//	Init operator
 		virtual bool init()
 		{
-			if(m_pApproximationSpace == NULL)
+			if(m_pApproxSpace == NULL)
 			{
-				UG_LOG("ERROR in 'ProjectionOperator::init': Approximation Space not set. Cannot init Projection.\n");
+				UG_LOG("ERROR in 'P1ProjectionOperator::init':"
+						" Approximation Space not set. Cannot init Projection.\n");
 				return false;
 			}
 
 			if(m_fineLevel - m_coarseLevel != 1)
 			{
-				UG_LOG("ERROR in ProjectionOperator::init:"
-						" Can only project between successiv level.\n");
+				UG_LOG("ERROR in P1ProjectionOperator::init:"
+						" Can only project between successive level.\n");
 				return false;
 			}
 
-			if(!AssembleVertexProjection(m_matrix, *m_pApproximationSpace, m_coarseLevel, m_fineLevel))
+			if(!AssembleVertexProjection(m_matrix, *m_pApproxSpace,
+			                             m_coarseLevel, m_fineLevel))
 			{
-				UG_LOG("ERROR in 'TransferOperator::prepare(u,v)': Cannot assemble interpolation matrix.\n");
+				UG_LOG("ERROR in 'TransferOperator::init()':"
+						" Cannot assemble interpolation matrix.\n");
 				return false;
 			}
 
@@ -193,13 +207,18 @@ class P1ProjectionOperator :
 			}
 
 		//	Some Assertions
-			UG_ASSERT(uCoarseOut.size() == m_matrix.num_rows(),	"Vector [size= " << uCoarseOut.size() << "] and Row [size= " << m_matrix.num_rows() <<"] sizes have to match!");
-			UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= " << uFineIn.size() << "] and Column [size= " << m_matrix.num_cols() <<"] sizes have to match!");
+			UG_ASSERT(uCoarseOut.size() == m_matrix.num_rows(),
+			          "Vector [size= " << uCoarseOut.size() << "] and Row [size= "
+			          << m_matrix.num_rows() <<"] sizes have to match!");
+			UG_ASSERT(uFineIn.size() == m_matrix.num_cols(),	"Vector [size= "
+			          << uFineIn.size() << "] and Column [size= " <<
+			          m_matrix.num_cols() <<"] sizes have to match!");
 
 		//	Apply matrix
 			if(!m_matrix.apply(uCoarseOut, uFineIn))
 			{
-				UG_LOG("ERROR in 'P1ProjectionOperator::apply': Cannot apply matrix.\n");
+				UG_LOG("ERROR in 'P1ProjectionOperator::apply':"
+						" Cannot apply matrix.\n");
 				return false;
 			}
 
@@ -223,14 +242,14 @@ class P1ProjectionOperator :
 		virtual IProjectionOperator<vector_type, vector_type>* clone()
 		{
 			P1ProjectionOperator* op = new P1ProjectionOperator;
-			op->set_approximation_space(*m_pApproximationSpace);
+			op->set_approximation_space(*m_pApproxSpace);
 			return op;
 		}
 
 	protected:
 		matrix_type m_matrix;
 
-		TApproximationSpace* m_pApproximationSpace;
+		TApproximationSpace* m_pApproxSpace;
 
 		size_t m_fineLevel;
 		size_t m_coarseLevel;
