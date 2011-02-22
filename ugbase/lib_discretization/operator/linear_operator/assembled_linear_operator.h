@@ -34,13 +34,18 @@ class AssembledLinearOperator :
 			m_pAss(NULL), m_pDoFDistribution(NULL)
 			{};
 
-		AssembledLinearOperator(IAssemble<TDoFDistribution, algebra_type>& ass, bool assemble_rhs = false) :
-			m_bInit(false), m_bAssembleRhs(assemble_rhs),
+		AssembledLinearOperator(IAssemble<TDoFDistribution, algebra_type>& ass,
+		                        bool assemble_rhs = false)
+		:	m_bInit(false), m_bAssembleRhs(assemble_rhs),
 			m_pAss(&ass), m_pDoFDistribution(NULL)
 		{};
 
 
-		void set_discretization(IAssemble<TDoFDistribution, algebra_type>& ass) {m_pAss = &ass;}
+		void set_discretization(IAssemble<TDoFDistribution, algebra_type>& ass)
+		{
+			m_pAss = &ass;
+		}
+
 		void export_rhs(bool assemble_rhs) {m_bAssembleRhs = assemble_rhs;}
 
 		bool set_dof_distribution(const IDoFDistribution<TDoFDistribution>& dofDistr)
@@ -177,7 +182,8 @@ class AssembledLinearOperator :
 
 			#ifdef UG_PARALLEL
 			m_J.set_storage_type(PST_ADDITIVE);
-			IDoFDistribution<TDoFDistribution>* dist = const_cast<IDoFDistribution<TDoFDistribution>*>(m_pDoFDistribution);
+			IDoFDistribution<TDoFDistribution>* dist =
+					const_cast<IDoFDistribution<TDoFDistribution>*>(m_pDoFDistribution);
 			CopyLayoutsAndCommunicatorIntoMatrix(m_J, *dist);
 			#endif
 
