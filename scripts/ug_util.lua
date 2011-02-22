@@ -149,6 +149,28 @@ function utilCreateDirichletBoundary(approxSpace)
 	return dirichlet
 end
 
+-- creates Inner Boundary
+function utilCreateInnerBoundary(approxSpace, subsets)
+	local domain = approxSpace:get_domain()
+	local pattern = approxSpace:get_function_pattern()
+	local dim = domain:get_dim()
+	local innerDisc
+	if dim == 1 then
+		innerDisc = FV1InnerBoundary1d()
+	elseif dim == 2 then
+		innerDisc = FV1InnerBoundary2d()
+	elseif dim == 3 then
+		innerDisc = FV1InnerBoundary3d()
+	else
+		return nil
+	end
+
+	innerDisc:set_domain(domain)
+	innerDisc:set_pattern(pattern)
+	innerDisc:set_subsets(subsets)
+	return innerDisc
+end
+
 -- creates FV1ConvDiff
 function utilCreateFV1ConvDiff(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
