@@ -26,9 +26,29 @@ numRefs = 2
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
-	function ourDiffTensor2d(x, y, t)
-		return	1, 0, 
-				0, 1
+    function CaCytStart(x, y, t)
+        if 4.5 < x and x < 4.7 and 0.55 < y and y < 0.75
+        then return 7.5e-4
+        end
+        return 7.5e-8
+    end
+
+    function CaERStart(x, y, t)
+        return 1.0e-4
+    end
+
+    function IP3Start(x, y, t)
+        return 1.0e-6
+    end
+
+	function ourDiffTensor2dCA(x, y, t)
+		return	40, 0, 
+				0, 40
+	end
+	
+	function ourDiffTensor2dIP3(x, y, t)
+		return	500, 0, 
+				0, 500
 	end
 	
 	function ourVelocityField2d(x, y, t)
@@ -40,7 +60,7 @@ numRefs = 2
 	end
 	
 	function ourRhs2d(x, y, t)
-		local s = 2*math.pi
+		--local s = 2*math.pi
 		--return	s*s*(math.sin(s*x) + math.sin(s*y))
 		--return -2*y
 		return 0;
@@ -49,7 +69,7 @@ numRefs = 2
 	function ourNeumannBnd2d(x, y, t)
 		--local s = 2*math.pi
 		--return -s*math.cos(s*x)
-		return true, -1.0
+		return true, 0.0
 	end
 	
 	function ourDirichletBnd2d(x, y, t)
@@ -118,8 +138,9 @@ utilSaveDomain(dom, "refined_grid.ugx")
 print("Create Function Pattern")
 pattern = P1ConformFunctionPattern()
 pattern:set_subset_handler(sh)
-AddP1FunctionOnSubsets(pattern, "c_er", "er, mem_er", dim)
-AddP1FunctionOnSubsets(pattern, "c_cyt", "cyt, mem_er, mem_cyt", dim)
+AddP1FunctionOnSubsets(pattern, "ca_cyt", "cyt, mem_er, mem_cyt", dim)
+AddP1FunctionOnSubsets(pattern, "ca_er", "er, mem_er", dim)
+AddP1FunctionOnSubsets(pattern, "ip3", "cyt, mem_er, mem_cyt", dim)
 pattern:lock()
 
 -- create Approximation Space
@@ -131,9 +152,14 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -------------------------------------------
 print ("Setting up Assembling")
 
+-- Start value function setup
+    CaCytStartValue = utilCreateLuaUserNumber("CaCytStart", dim)
+    CaERStartValue = utilCreateLuaUserNumber("CaERStart", dim)
+    IP3StartValue = utilCreateLuaUserNumber("IP3Start", dim)
+
 -- Diffusion Tensor setup
-	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
-	--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+	diffusionMatrixCA = utilCreateLuaUserMatrix("ourDiffTensor2dCA", dim)
+	diffusionMatrixIP3 = utilCreateLuaUserMatrix("ourDiffTensor2dIP3", dim)
 
 -- Velocity Field setup
 	velocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
@@ -163,29 +189,36 @@ print ("Setting up Assembling")
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDiscER = utilCreateFV1ConvDiff(approxSpace, "c_er", "er")
+elemDiscER = utilCreateFV1ConvDiff(approxSpace, "ca_er", "er")  -- muss hier im letzten Arg (subsets) nicht auch ein mem_er stehen?
 elemDiscER:set_upwind_amount(0.0)
-elemDiscER:set_diffusion_tensor(diffusionMatrix)
+elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscER:set_velocity_field(velocityField)
 elemDiscER:set_reaction(reaction)
 elemDiscER:set_rhs(rhs)
 
-elemDiscCYT = utilCreateFV1ConvDiff(approxSpace, "c_cyt", "cyt")
+elemDiscCYT = utilCreateFV1ConvDiff(approxSpace, "ca_cyt", "cyt")
 elemDiscCYT:set_upwind_amount(0.0)
-elemDiscCYT:set_diffusion_tensor(diffusionMatrix)
+elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscCYT:set_velocity_field(velocityField)
 elemDiscCYT:set_reaction(reaction)
 elemDiscCYT:set_rhs(rhs)
+
+elemDiscIP3 = utilCreateFV1ConvDiff(approxSpace, "ip3", "cyt")
+elemDiscIP3:set_upwind_amount(0.0)
+elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
+elemDiscIP3:set_velocity_field(velocityField)
+elemDiscIP3:set_reaction(reaction)
+elemDiscIP3:set_rhs(rhs)
 
 -----------------------------------------------------------------
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDisc = utilCreateNeumannBoundary(approxSpace, "cyt")
-neumannDisc:add_boundary_value(neumann, "c_cyt", "mem_cyt")
+neumannDiscCYT = utilCreateNeumannBoundary(approxSpace, "cyt")
+neumannDiscCYT:add_boundary_value(neumann, "ca_cyt", "mem_cyt")
 
-neumannDisc2 = utilCreateNeumannBoundary(approxSpace, "er")
-neumannDisc2:add_boundary_value(neumann, "c_er", "mem_er")
+innerDisc = utilCreateInnerBoundary(approxSpace, "cyt")
+innerDisc:add_flux("ca_cyt, ip3", "mem_er")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -204,8 +237,9 @@ neumannDisc2:add_boundary_value(neumann, "c_er", "mem_er")
 domainDisc = DomainDiscretization()
 domainDisc:add_elem_disc(elemDiscER)
 domainDisc:add_elem_disc(elemDiscCYT)
-domainDisc:add_elem_disc(neumannDisc)
-domainDisc:add_elem_disc(neumannDisc2)
+domainDisc:add_elem_disc(elemDiscIP3)
+domainDisc:add_elem_disc(neumannDiscCYT)
+domainDisc:add_elem_disc(innerDisc)
 --domainDisc:add_post_process(dirichletBND)
 --domainDisc:add_post_process(membraneDirichletBND)
 
@@ -315,7 +349,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -- convergence check
 newtonConvCheck = StandardConvergenceCheck()
 newtonConvCheck:set_maximum_steps(10)
-newtonConvCheck:set_minimum_defect(5e-8)
+newtonConvCheck:set_minimum_defect(5e-12)
 newtonConvCheck:set_reduction(1e-10)
 newtonConvCheck:set_verbose_level(true)
 
@@ -337,13 +371,15 @@ newtonSolver:init(op)
 u = approxSpace:create_surface_function()
 
 -- set initial value
-u:set(0.0)
+InterpolateFunction2d(CaCytStartValue, u, "ca_cyt", 0.0)
+InterpolateFunction2d(CaERStartValue, u, "ca_er", 0.0)
+InterpolateFunction2d(IP3StartValue, u, "ip3", 0.0)
 
 -- timestep in seconds
-dt = 1
+dt = 0.01
 time = 0.0
 step = 1
-do_steps = 10
+do_steps = 100
 
 out = VTKOutput2d()
 out:begin_timeseries("Con", u)

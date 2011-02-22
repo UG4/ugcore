@@ -270,6 +270,16 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("add_boundary_value", (bool (T::*)(IBoundaryNumberProvider<dim>&, const char*, const char*))&T::add_boundary_value);
 	}
 
+//	Inner Boundary
+	{
+		typedef FVInnerBoundaryElemDisc<FV1Geometry, domain_type, algebra_type> T;
+		std::stringstream ss; ss << "FV1InnerBoundary" << dim << "d";
+		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
+			.add_constructor()
+			.add_method("set_domain", &T::set_domain)
+			.add_method("add_flux", (bool (T::*)(/*IBoundaryNumberProvider<dim>&, */const char*, const char*))&T::add_flux);
+	}
+
 //	Convection Diffusion
 	{
 		typedef FVConvectionDiffusionElemDisc<FV1Geometry, domain_type, algebra_type> T;
