@@ -161,6 +161,9 @@ class IAssemble {
 		{return IAssemble_NOT_IMPLEMENTED;}
 
 
+	/// forces the assembling to consider the grid as regular
+		virtual void force_regular_grid(bool bForce) = 0;
+
 	//	todo: Remove, iff possible
 		virtual size_t num_fct() const = 0;
 

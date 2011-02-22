@@ -179,6 +179,13 @@ class ITimeDiscretization
 	/// returns number of previous time steps needed
 		virtual size_t num_prev_steps() = 0;
 
+	/// forces the assembling to consider the grid as regular
+		virtual void force_regular_grid(bool bForce)
+		{
+			if(m_pDomDisc != NULL)
+				m_pDomDisc->force_regular_grid(bForce);
+		}
+
 		// todo: Remove
 		size_t num_fct() const{return m_pDomDisc->num_fct();}
 

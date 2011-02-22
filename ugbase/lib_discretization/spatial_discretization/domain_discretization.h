@@ -52,7 +52,7 @@ class DomainDiscretization :
 
 	public:
 	///	Empty Constructor
-		DomainDiscretization()
+		DomainDiscretization() : m_bForceRegGrid(false)
 		{};
 
 	///////////////////////////
@@ -116,6 +116,13 @@ class DomainDiscretization :
 	/// assembles the stiffness matrix
 	IAssembleReturn assemble_stiffness_matrix(matrix_type& A, const vector_type& u,
 	                                          const dof_distribution_type& dofDistr);
+
+	/// forces the assembling to consider the grid as regular
+	virtual void force_regular_grid(bool bForce) {m_bForceRegGrid = bForce;}
+
+	protected:
+	/// forces the assembling to regard the grid as regular
+		bool m_bForceRegGrid;
 
 	public:
 	/// adds an element discretization to the assembling process
