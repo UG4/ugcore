@@ -12,6 +12,7 @@
 #include <string>
 
 #include "common/common.h"
+#include "lib_discretization/domain_util_general_impl.h"
 #include "lib_discretization/common/subset_group.h"
 #include "lib_discretization/local_shape_function_set/local_shape_function_set_id.h"
 #include "lib_grid/tools/subset_handler_interface.h"
@@ -89,6 +90,20 @@ class FunctionPattern
 		{
 			if(is_locked()) throw(ERROR_FunctionPatternLocked());
 			m_vFunction.clear();
+		}
+
+	///	number of subsets
+		int num_subsets() const
+		{
+			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
+			return m_pSH->num_subsets();
+		}
+
+	///	dimension of subset
+		int dim_subset(int si) const
+		{
+			UG_ASSERT(m_pSH != NULL, "SubsetHandler not set.");
+			return DimensionOfSubset(*m_pSH, si);
 		}
 
 	/// number of discrete functions this dof distributor handles
