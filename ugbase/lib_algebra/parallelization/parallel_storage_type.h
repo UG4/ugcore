@@ -60,6 +60,15 @@ struct UG_ERROR_IncompatibleParallelStorageType
 		ParallelStorageType b;
 };
 
+inline std::ostream& operator<< (std::ostream& outStream, const ParallelStorageType& type)
+{
+	if(type & PST_UNDEFINED) outStream << "undefined";
+	if(type & PST_CONSISTENT) outStream << "consistent";
+	if(type & PST_UNIQUE) outStream << "unique";
+	else if (type & PST_ADDITIVE) outStream << "additive";
+	return outStream;
+}
+
 } // end namespace ug
 
 #endif /* __H__LIB_ALGEBRA__PARALLELIZATION__PARALLEL_STORAGE_TYPE__ */
