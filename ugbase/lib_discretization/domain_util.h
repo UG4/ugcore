@@ -59,6 +59,56 @@ bool PrepareDomain(TDomain& domainOut, SubsetHandler& shTopViewOut,
 					int autoAssignInnerObjectsToSubset = -2,
 					int autoAssignBoundaryObjectsToSubset = -2);
 
+
+////////////////////////////////////////////////////////////////////////
+/// returns if a subset is a regular grid
+/**
+ * This function returns if a subset contains constrained/constraining elements
+ * such as hanging vertices, contrained edges/faces. In this case, the subset
+ * does not form a regular grid.
+ *
+ *
+ * \param[in]	sh			SubsetHandler
+ * \param[in]	si			Subset Index
+ *
+ * \return		true		if subset is regular grid
+ * 				false 		if subset is non-regular grid
+ */
+inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si);
+
+////////////////////////////////////////////////////////////////////////
+/// returns if a subset is a regular grid
+/**
+ * This function returns if a subset contains constrained/constraining elements
+ * such as hanging vertices, contrained edges/faces. In this case, the subset
+ * does not form a regular grid.
+ *
+ *
+ * \param[in]	sh			SubsetHandler
+ * \param[in]	si			Subset Index
+ *
+ * \return		true		if subset is regular grid
+ * 				false 		if subset is non-regular grid
+ */
+inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si);
+
+////////////////////////////////////////////////////////////////////////
+/// returns if a subset is a regular grid
+/**
+ * This function returns if a subset contains constrained/constraining elements
+ * such as hanging vertices, contrained edges/faces. In this case, the subset
+ * does not form a regular grid.
+ *
+ *
+ * \param[in]	sh			SubsetHandler
+ * \param[in]	si			Subset Index
+ *
+ * \return		true		if subset is regular grid
+ * 				false 		if subset is non-regular grid
+ */
+inline bool SubsetIsRegularGrid(const ISubsetHandler& sh, int si);
+
+
 ////////////////////////////////////////////////////////////////////////
 ///	returns the current dimension of the subset
 /** Returns the dimension of geometric objects, that are contained in the subset

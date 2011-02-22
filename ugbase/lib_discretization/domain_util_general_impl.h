@@ -12,6 +12,56 @@
 
 namespace ug{
 
+/// returns if a subset is a regular grid
+inline bool SubsetIsRegularGrid(const SubsetHandler& sh, int si)
+{
+//	check for constraining/constrained elements
+	if(sh.num<HangingVertex>(si) > 0) return false;
+	if(sh.num<ConstrainedEdge>(si) > 0) return false;
+	if(sh.num<ConstrainingEdge>(si) > 0) return false;
+	if(sh.num<ConstrainedTriangle>(si) > 0) return false;
+	if(sh.num<ConstrainingTriangle>(si) > 0) return false;
+	if(sh.num<ConstrainedQuadrilateral>(si) > 0) return false;
+	if(sh.num<ConstrainingQuadrilateral>(si) > 0) return false;
+
+//	if not found, subset describes a regular grid
+	return true;
+}
+
+/// returns if a subset is a regular grid
+inline bool SubsetIsRegularGrid(const MGSubsetHandler& sh, int si)
+{
+//	check for constraining/constrained elements
+	if(sh.num<HangingVertex>(si) > 0) return false;
+	if(sh.num<ConstrainedEdge>(si) > 0) return false;
+	if(sh.num<ConstrainingEdge>(si) > 0) return false;
+	if(sh.num<ConstrainedTriangle>(si) > 0) return false;
+	if(sh.num<ConstrainingTriangle>(si) > 0) return false;
+	if(sh.num<ConstrainedQuadrilateral>(si) > 0) return false;
+	if(sh.num<ConstrainingQuadrilateral>(si) > 0) return false;
+
+//	if not found, subset describes a regular grid
+	return true;
+}
+
+/// returns if a subset is a regular grid
+inline bool SubsetIsRegularGrid(const ISubsetHandler& ish, int si)
+{
+//	test SubsetHandler
+	const SubsetHandler* sh = dynamic_cast<const SubsetHandler*>(&ish);
+	if(sh != NULL)
+		return SubsetIsRegularGrid(*sh, si);
+
+//	test MGSubsetHandler
+	const MGSubsetHandler* mgsh = dynamic_cast<const MGSubsetHandler*>(&ish);
+	if(mgsh != NULL)
+		return SubsetIsRegularGrid(*mgsh, si);
+
+//	unknown type of subset handler
+	throw(UGFatalError("Unknown SubsetHandler type."));
+	return false;
+}
+
 ///	returns the current dimension of the subset
 inline int DimensionOfSubset(const SubsetHandler& sh, int si)
 {
