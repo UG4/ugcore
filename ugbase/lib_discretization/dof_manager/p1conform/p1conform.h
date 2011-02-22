@@ -95,6 +95,18 @@ class P1ConformDoFDistribution
 		  m_pStorageManager(&sm), m_numDoFs(0)
 		{
 			m_vNumDoFs.clear();
+			m_vNumDoFs.resize(this->num_subsets(), 0);
+		}
+
+		P1ConformDoFDistribution(GeometricObjectCollection goc,
+		                         ISubsetHandler& sh, storage_manager_type& sm,
+		                         FunctionPattern& fp,
+		                         const SurfaceView& surfView)
+		: base_type(goc, fp, surfView), m_pISubsetHandler(&sh),
+		  m_pStorageManager(&sm), m_numDoFs(0)
+		{
+			m_vNumDoFs.clear();
+			m_vNumDoFs.resize(this->num_subsets(), 0);
 		}
 
 		///////////////////////////
@@ -243,6 +255,19 @@ class GroupedP1ConformDoFDistribution
 		  m_pStorageManager(&sm), m_numDoFs(0)
 		{
 			m_vNumDoFs.clear();
+			m_vNumDoFs.resize(this->num_subsets(), 0);
+		}
+
+		GroupedP1ConformDoFDistribution(GeometricObjectCollection goc,
+		                                ISubsetHandler& sh,
+		                                storage_manager_type& sm,
+		                                FunctionPattern& dp,
+		                                const SurfaceView& surfView)
+		: base_type(goc, dp, surfView), m_pISubsetHandler(&sh),
+		  m_pStorageManager(&sm), m_numDoFs(0)
+		{
+			m_vNumDoFs.clear();
+			m_vNumDoFs.resize(this->num_subsets(), 0);
 		}
 
 		///////////////////////////
@@ -259,11 +284,11 @@ class GroupedP1ConformDoFDistribution
 		inline int blocksize() const
 		{
 			if(num_subsets()==0) return -1;
-			int blockSize = m_pFunctionPattern->num_fct(0);
+			int blockSize = m_pFuncPattern->num_fct(0);
 
 			for(int si = 1; si < num_subsets(); ++si)
 			{
-				const int tmpBlockSize = m_pFunctionPattern->num_fct(si);
+				const int tmpBlockSize = m_pFuncPattern->num_fct(si);
 				if(tmpBlockSize != blockSize)
 					return -1;
 			}
@@ -272,7 +297,7 @@ class GroupedP1ConformDoFDistribution
 
 	/// \copydoc IDoFDistribution::blocksize(int) const
 		inline int blocksize(int si) const
-			{return m_pFunctionPattern->num_fct(si);}
+			{return m_pFuncPattern->num_fct(si);}
 
 		///////////////////////////////////////
 		// LocalIndex update

@@ -35,7 +35,6 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 		{
 			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
-
 			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 
 			size_t numFct = 0;
@@ -58,14 +57,19 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 		{
 			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
+
 			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 
 			for(size_t fct = 0; fct < ind.num_fct(); ++fct)
 			{
 				if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
+				const size_t theIndex = index + m_vvOffsets[si][ind.unique_id(fct)];
+				UG_ASSERT(theIndex < m_numDoFs, "Adding index " << theIndex <<
+				          ", but only " << m_numDoFs << " present.");
+
 				ind.set_num_indices(algDof+1);
-				ind.set_index(algDof, index + m_vvOffsets[si][ind.unique_id(fct)]);
+				ind.set_index(algDof, theIndex);
 
 				LocalIndices::multi_index_type dof_ind;
 				dof_ind[0] = algDof;
@@ -112,8 +116,12 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 					{
 						if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
+						const size_t theIndex = index + m_vvOffsets[si][ind.unique_id(fct)];
+						UG_ASSERT(theIndex < m_numDoFs, "Adding index " << theIndex <<
+						          ", but only " << m_numDoFs << " present.");
+
 						ind.set_num_indices(algDof+1);
-						ind.set_index(algDof, index + m_vvOffsets[si][ind.unique_id(fct)]);
+						ind.set_index(algDof, theIndex);
 
 						LocalIndices::multi_index_type dof_ind;
 						dof_ind[0] = algDof;
@@ -154,8 +162,12 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 					{
 						if(!is_def_in_subset(ind.unique_id(fct), si)) continue;
 
+						const size_t theIndex = index + m_vvOffsets[si][ind.unique_id(fct)];
+						UG_ASSERT(theIndex < m_numDoFs, "Adding index " << theIndex <<
+						          ", but only " << m_numDoFs << " present.");
+
 						ind.set_num_indices(algDof+1);
-						ind.set_index(algDof, index + m_vvOffsets[si][ind.unique_id(fct)]);
+						ind.set_index(algDof, theIndex);
 
 						LocalIndices::multi_index_type dof_ind;
 						dof_ind[0] = algDof;
@@ -271,10 +283,9 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 
 	ind.clear();
 
-	const int elem_si = m_pISubsetHandler->get_subset_index(elem);
 	for(size_t fct = 0; fct < num_fct(); ++fct)
 	{
-		for(size_t i = 0; i < ref_elem_type::num_corners; ++i)
+		for(size_t i = 0; i < (size_t)ref_elem_type::num_corners; ++i)
 		{
 			VertexBase* vrt = GetVertex(elem, i);
 			int si = m_pISubsetHandler->get_subset_index(vrt);
@@ -328,7 +339,7 @@ update_indices(TElem* elem, LocalIndices& ind, bool withHanging) const
 
 	for(size_t i = 0; i <  refElem.num_obj(0); ++i)
 	{
-		VertexBase* vrt = elem->vertex(i);
+		VertexBase* vrt = GetVertex(elem, i);;
 		int si = m_pISubsetHandler->get_subset_index(vrt);
 
 		const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
@@ -448,9 +459,9 @@ get_algebra_indices(TElem* elem, algebra_index_vector_type& ind) const
 	const int elem_si = m_pISubsetHandler->get_subset_index(elem);
 	if(num_fct(elem_si) == 0) return;
 
-	for(size_t i = 0; i < ref_elem_type::num_corners; ++i)
+	for(size_t i = 0; i < (size_t)ref_elem_type::num_corners; ++i)
 	{
-			VertexBase* vrt = elem->vertex(i);
+			VertexBase* vrt = GetVertex(elem, i);;
 			int si = m_pISubsetHandler->get_subset_index(vrt);
 			const size_t index = m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt];
 			ind.push_back(index);

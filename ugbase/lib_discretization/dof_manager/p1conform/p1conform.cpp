@@ -47,7 +47,11 @@ void
 P1StorageManager::
 update_attachments()
 {
-	if(m_pSH == NULL) return;
+	if(m_pSH == NULL)
+	{
+		UG_LOG("WARNING: Updating indices, but no SubsetHandler set.\n");
+		return;
+	}
 
 	size_t num_subsets =  m_pSH->num_subsets();
 
@@ -181,7 +185,7 @@ distribute_dofs()
 		return false;
 	}
 
-	if(m_pFunctionPattern == NULL)
+	if(m_pFuncPattern == NULL)
 	{
 		UG_LOG("In 'P1ConformDoFDistribution::distribute_dofs:"
 				"Function Pattern not set. Aborting.\n");
@@ -229,6 +233,11 @@ distribute_dofs()
 		// 	get vertex
 			VertexBase* vrt = *iter;
 
+		//	skip shadows
+			if(m_pSurfaceView != NULL)
+				if(m_pSurfaceView->is_shadow(vrt))
+					continue;
+
 		// 	write index
 			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = m_numDoFs;
 
@@ -237,6 +246,35 @@ distribute_dofs()
 
 		//	increase number of dofs on subset
 			m_vNumDoFs[si] += numFct;
+		}
+	}
+
+//	post process shadows.
+	if(m_pSurfaceView != NULL)
+	{
+		for(int si = 0; si < num_subsets(); ++si)
+		{
+
+			iterBegin = this->begin<VertexBase>(si);
+			iterEnd =  this->end<VertexBase>(si);
+			for(iter = iterBegin; iter != iterEnd; ++iter)
+			{
+			//	get vertex
+				VertexBase* vrt = *iter;
+
+			//	skip non-shadows
+				if(!m_pSurfaceView->is_shadow(vrt)) continue;
+
+			//	get parent
+				VertexBase* vrtChild = m_pSurfaceView->get_child(vrt);
+
+			//	get indices of child
+				const size_t indexChild =
+						m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrtChild];
+
+			//	set index of shadow to index of child
+				m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = indexChild;
+			}
 		}
 	}
 
@@ -333,7 +371,7 @@ distribute_dofs()
 		return false;
 	}
 
-	if(m_pFunctionPattern == NULL)
+	if(m_pFuncPattern == NULL)
 	{
 		UG_LOG("In 'P1ConformDoFDistribution::distribute_dofs:"
 				"Function Pattern not set. Aborting.\n");
@@ -488,6 +526,11 @@ order_cuthill_mckee(bool bReverse)
 		// 	Get vertex
 			VertexBase* vrt = *iter;
 
+		//	skip shadows
+			if(m_pSurfaceView != NULL)
+				if(m_pSurfaceView->is_shadow(vrt))
+					continue;
+
 		//	Set infos
 			vOldIndex[ind].pVertex = vrt;
 			vOldIndex[ind].si = si;
@@ -498,6 +541,21 @@ order_cuthill_mckee(bool bReverse)
 
 		//	Get Edges
 			CollectEdges(vEdges, *grid, vrt);
+
+		//	Get connections via shadow
+			if(m_pSurfaceView != NULL)
+			{
+			//	skip if not shadowing
+				if(m_pSurfaceView->shadows(vrt))
+				{
+				//	get parent
+					VertexBase* vrtParent = dynamic_cast<VertexBase*>(m_pSurfaceView->get_parent(vrt));
+
+				//	Get Edges
+					if(vrtParent != NULL)
+						CollectEdges(vEdges, *grid, vrtParent, false);
+				}
+			}
 
 		//	Get connected indices
 			for(size_t ed = 0; ed < vEdges.size(); ++ed)
@@ -523,10 +581,17 @@ order_cuthill_mckee(bool bReverse)
 					const size_t adjInd =
 							m_pStorageManager->m_vSubsetInfo[si1].aaDoFVRT[vrt1] / numFct;
 
+					std::vector<size_t>::iterator it;
+					it = find(vOldIndex[ind].vAdjacentVertex.begin(),
+					          vOldIndex[ind].vAdjacentVertex.end(),
+					          adjInd);
+
 				//	Add vertex to list of vertices
-					vOldIndex[ind].vAdjacentVertex.push_back(adjInd);
+					if(it == vOldIndex[ind].vAdjacentVertex.end())
+						vOldIndex[ind].vAdjacentVertex.push_back(adjInd);
 				}
 			}
+
 			ind ++;
 		}
 	}
@@ -602,6 +667,7 @@ order_cuthill_mckee(bool bReverse)
 				for(size_t i = 0; i < vOldIndex[front].degree(); ++i)
 				{
 					const size_t ind = vOldIndex[front].vAdjacentVertex[i];
+
 					if(vOldIndex[ind].handled == false)
 						qAdjacent.push(ind);
 				}
@@ -632,7 +698,38 @@ order_cuthill_mckee(bool bReverse)
 			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] =
 					(vNewIndex.size()-1-i) * numFct;
 		else
+		{
 			m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = i * numFct;
+		}
+	}
+
+//	post process shadows.
+	if(m_pSurfaceView != NULL)
+	{
+		for(int si = 0; si < num_subsets(); ++si)
+		{
+
+			iterBegin = this->begin<VertexBase>(si);
+			iterEnd =  this->end<VertexBase>(si);
+			for(iter = iterBegin; iter != iterEnd; ++iter)
+			{
+			//	get vertex
+				VertexBase* vrt = *iter;
+
+			//	skip non-shadows
+				if(!m_pSurfaceView->is_shadow(vrt)) continue;
+
+			//	get parent
+				VertexBase* vrtChild = m_pSurfaceView->get_child(vrt);
+
+			//	get indices of child
+				const size_t indexChild =
+						m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrtChild];
+
+			//	set index of shadow to index of child
+				m_pStorageManager->m_vSubsetInfo[si].aaDoFVRT[vrt] = indexChild;
+			}
+		}
 	}
 
 //	we're done
