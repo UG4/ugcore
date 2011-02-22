@@ -186,7 +186,7 @@ void CreateDistributionLayouts(
 			SelectAssociatedGeometricObjects(msel);
 
 		int interfacesOnLevelOnly = -1;
-		if(!distributeGenealogy)
+		if(distributeGenealogy)
 			interfacesOnLevelOnly = mg.num_levels() - 1;
 
 	//	make sure that we won't add elements twice.
