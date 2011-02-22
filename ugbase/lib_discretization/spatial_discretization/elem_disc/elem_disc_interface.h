@@ -185,7 +185,25 @@ protected:
 	/// shape function set of the functions handled by this discretization
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t i) = 0;
 
-	/// returns, if hanging nodes should be considered in elem disc as well (default is false)
+	///	informs the assembling, that hanging nodes must be taken into account
+	/**
+	 * This method is called before the assembling of elements, that may have
+	 * hanging nodes, constrained edges, etc. Thus, if the assembling must take
+	 * special care, it can prepare for such needs. Typically other assembling
+	 * functions are used then and registered.
+	 *
+	 * \param[in]		bNonRegular 	true iff non-regular grid used
+	 * \returns			bool			true  if successful
+	 * 									false if cannot be handled by disc
+	 */
+		virtual bool treat_non_regular_grid(bool bNonRegular) = 0;
+
+	///	returns if discretization acts on hanging nodes if present
+	/**
+	 * This function returns if a discretization really needs the hanging nodes
+	 * in case of non-regular grid. This may not be the case for e.g. finite
+	 * element assemblings but is needed for finite volumes
+	 */
 		virtual bool use_hanging() const {return false;}
 
 	/// sets the geometric object type
