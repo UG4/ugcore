@@ -282,7 +282,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	Convection Diffusion
 	{
-		typedef FVConvectionDiffusionElemDisc<FV1Geometry, domain_type, algebra_type> T;
+		typedef FVConvectionDiffusionElemDisc<domain_type, algebra_type> T;
 		std::stringstream ss; ss << "FV1ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
@@ -296,7 +296,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	}
 
 //	Convection Diffusion
-	{
+/*	{
 		typedef FVConvectionDiffusionElemDisc<HFV1Geometry, domain_type, algebra_type> T;
 		std::stringstream ss; ss << "HFV1ConvectionDiffusion" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
@@ -309,6 +309,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_mass_scale", &T::set_mass_scale)
 			.add_method("set_upwind_amount", &T::set_upwind_amount);
 	}
+*/
 
 //	Density Driven Flow
 	{
