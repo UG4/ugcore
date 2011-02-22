@@ -145,7 +145,7 @@ dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 -- Note, that only the diffusion tensor is set. All other possible user data
 -- (such as Convection Velocity, Reaction Term, Source Term) are not set and
 -- the discretization uses the default (i.e. zero) value
-elemDisc = utilCreateHFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 
@@ -256,7 +256,7 @@ bicgstabSolver:set_convergence_check(convCheck)
 -------------------------------------------
 
 -- choose some solver
-solver = exSolver
+solver = linSolver
 
 -- create grid function
 u = approxSpace:create_surface_function()
