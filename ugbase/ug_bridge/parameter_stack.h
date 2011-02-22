@@ -17,15 +17,13 @@
 																++m_numEntries;}
 
 //	call the constructor and assign the smart-ptr afterwards.
-#define PUSH_SP_TO_STACK(val, clName)				{new((SmartPtr<void>*)m_entries[m_numEntries].param.m_smartPtrWrapper) SmartPtr<void>;\
-													 *(SmartPtr<void>*)m_entries[m_numEntries].param.m_smartPtrWrapper = (val);\
+#define PUSH_SP_TO_STACK(val, clName)				{m_entries[m_numEntries].param.m_smartPtrWrapper = new SmartPtr<void>(val);\
 													 m_entries[m_numEntries].type = PT_SMART_POINTER;\
 													 m_entries[m_numEntries].pClassNames = (clName);\
 													 ++m_numEntries;}
 
 //	call the constructor and assign the smart-ptr afterwards.
-#define PUSH_CSP_TO_STACK(val, clName)				{new((ConstSmartPtr<void>*)m_entries[m_numEntries].param.m_constSmartPtrWrapper) ConstSmartPtr<void>;\
-													 *(ConstSmartPtr<void>*)m_entries[m_numEntries].param.m_constSmartPtrWrapper = (val);\
+#define PUSH_CSP_TO_STACK(val, clName)				{m_entries[m_numEntries].param.m_constSmartPtrWrapper = new ConstSmartPtr<void>(val);\
 													 m_entries[m_numEntries].type = PT_CONST_SMART_POINTER;\
 													 m_entries[m_numEntries].pClassNames = (clName);\
 													 ++m_numEntries;}
@@ -146,9 +144,9 @@ class ParameterStack
 			if(m_bHasSmartPtrs){
 				for(int i = 0; i < m_numEntries; ++i){
 					if(m_entries[i].type == PT_SMART_POINTER)
-						((SmartPtr<void>*)m_entries[i].param.m_smartPtrWrapper)->invalidate();
+						delete (SmartPtr<void>*)m_entries[i].param.m_smartPtrWrapper;
 					else if(m_entries[i].type == PT_CONST_SMART_POINTER)
-						((ConstSmartPtr<void>*)m_entries[i].param.m_constSmartPtrWrapper)->invalidate();
+						delete (ConstSmartPtr<void>*)m_entries[i].param.m_constSmartPtrWrapper;
 				}
 			}
 		}
@@ -544,8 +542,8 @@ class ParameterStack
 			const char* m_string;
 			void* m_ptr;
 			const void* m_constPtr;
-			byte m_smartPtrWrapper[sizeof(SmartPtr<void>)];
-			byte m_constSmartPtrWrapper[sizeof(ConstSmartPtr<void>)];
+			void* m_smartPtrWrapper;
+			void* m_constSmartPtrWrapper;
 		};
 		
 		struct Entry{			
