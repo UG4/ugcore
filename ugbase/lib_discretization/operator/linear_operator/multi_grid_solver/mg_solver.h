@@ -35,7 +35,10 @@ class AssembledMultiGridCycle :
 		typedef typename TApproximationSpace::function_type function_type;
 
 	//	DoFDistribution Type
-		typedef typename TApproximationSpace::dof_distribution_type::implementation_type dof_distribution_type;
+		typedef typename TApproximationSpace::dof_distribution_type dof_distribution_type;
+
+	//	DoFDistribution Type
+		typedef typename dof_distribution_type::implementation_type dof_distribution_impl_type;
 
 	//	Algebra type
 		typedef TAlgebra algebra_type;
@@ -47,7 +50,7 @@ class AssembledMultiGridCycle :
 		typedef typename algebra_type::matrix_type matrix_type;
 
 	//	Level Operator Type
-		typedef AssembledLinearOperator<dof_distribution_type, algebra_type> operator_type;
+		typedef AssembledLinearOperator<dof_distribution_impl_type, algebra_type> operator_type;
 
 	//	Prolongation Operator
 		typedef IProlongationOperator<vector_type, vector_type> prolongation_operator_type;
@@ -64,13 +67,17 @@ class AssembledMultiGridCycle :
 
 	public:
 	// 	Constructor
-		AssembledMultiGridCycle(	IAssemble<dof_distribution_type, algebra_type>& ass, approximation_space_type& approxSpace,
-									size_t surfaceLevel, size_t baseLevel, int cycle_type,
-									smoother_type& smoother, int nu1, int nu2, base_solver_type& baseSolver, bool grid_changes = true) :
+		AssembledMultiGridCycle(IAssemble<dof_distribution_impl_type, algebra_type>& ass,
+		                        approximation_space_type& approxSpace,
+		                        size_t surfaceLevel, size_t baseLevel,
+		                        int cycle_type, smoother_type& smoother,
+		                        int nu1, int nu2, base_solver_type& baseSolver,
+		                        bool grid_changes = true) :
 			m_pAss(&ass), m_pApproxSpace(&approxSpace),
-			m_surfaceLevel(surfaceLevel), m_baseLevel(baseLevel), m_cycle_type(cycle_type),
-			m_nu1(nu1), m_nu2(nu2), m_pBaseSolver(&baseSolver),
-			m_grid_changes(grid_changes), m_allocated(false)
+			m_topLev(surfaceLevel), m_baseLev(baseLevel), m_cycleType(cycle_type),
+			m_numPreSmooth(nu1), m_numPostSmooth(nu2), m_pBaseSolver(&baseSolver),
+			m_grid_changes(grid_changes), m_allocated(false),
+			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{
 			m_vSmoother.resize(1);
 			m_vSmoother[0] = &smoother;
@@ -79,9 +86,10 @@ class AssembledMultiGridCycle :
 	// 	Constructor
 		AssembledMultiGridCycle() :
 			m_pAss(NULL), m_pApproxSpace(NULL),
-			m_surfaceLevel(0), m_baseLevel(0), m_cycle_type(1),
-			m_nu1(1), m_nu2(1), m_pBaseSolver(NULL),
-			m_grid_changes(false), m_allocated(false)
+			m_topLev(0), m_baseLev(0), m_cycleType(1),
+			m_numPreSmooth(1), m_numPostSmooth(1), m_pBaseSolver(NULL),
+			m_grid_changes(false), m_allocated(false),
+			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{
 			m_vSmoother.resize(1);
 			m_vSmoother[0] = NULL;
@@ -97,15 +105,15 @@ class AssembledMultiGridCycle :
 		virtual const char* name() const {return "Geometric MultiGrid";}
 
 	// 	Setup
-		void set_discretization(IAssemble<dof_distribution_type, algebra_type>& ass) {m_pAss = &ass;}
+		void set_discretization(IAssemble<dof_distribution_impl_type, algebra_type>& ass) {m_pAss = &ass;}
 		void set_approximation_space(approximation_space_type& approxSpace) {m_pApproxSpace = &approxSpace;}
-		void set_surface_level(int surfLevel) {m_surfaceLevel = surfLevel;}
-		void set_base_level(int baseLevel) {m_baseLevel = baseLevel;}
+		void set_surface_level(int surfLevel) {m_topLev = surfLevel;}
+		void set_base_level(int baseLevel) {m_baseLev = baseLevel;}
 		void set_base_solver(base_solver_type& baseSolver) {m_pBaseSolver = &baseSolver;}
 		void set_smoother(smoother_type& smoother) {m_vSmoother[0] = & smoother;}
-		void set_cycle_type(int type) {m_cycle_type = type;}
-		void set_num_presmooth(int num) {m_nu1 = num;}
-		void set_num_postsmooth(int num) {m_nu2 = num;}
+		void set_cycle_type(int type) {m_cycleType = type;}
+		void set_num_presmooth(int num) {m_numPreSmooth = num;}
+		void set_num_postsmooth(int num) {m_numPostSmooth = num;}
 		void set_prolongation_operator(IProlongationOperator<vector_type, vector_type>& P) {m_vProlongation[0] = &P;}
 		void set_projection_operator(IProjectionOperator<vector_type, vector_type>& P) {m_vProjection[0] = &P;}
 
@@ -125,9 +133,10 @@ class AssembledMultiGridCycle :
 		ILinearIterator<vector_type,vector_type>* clone()
 		{
 			AssembledMultiGridCycle<TApproximationSpace, TAlgebra>* clone =
-				new AssembledMultiGridCycle<TApproximationSpace, TAlgebra>(	*m_pAss, *m_pApproxSpace,
-																			m_surfaceLevel, m_baseLevel, m_cycle_type,
-																			*(m_vSmoother[0]), m_nu1, m_nu2, *m_pBaseSolver, m_grid_changes);
+				new AssembledMultiGridCycle<TApproximationSpace, TAlgebra>
+					(*m_pAss, *m_pApproxSpace, m_topLev, m_baseLev, m_cycleType,
+					 *(m_vSmoother[0]), m_numPreSmooth, m_numPostSmooth,
+					 *m_pBaseSolver, m_grid_changes);
 
 			return dynamic_cast<ILinearIterator<vector_type,vector_type>* >(clone);
 		}
@@ -148,24 +157,44 @@ class AssembledMultiGridCycle :
 		bool free_memory();
 
 	protected:
-		// operator to invert (surface level)
+	/// operator to invert (surface grid)
 		operator_type* m_Op;
 
-		IAssemble<dof_distribution_type, algebra_type>* m_pAss;
+	///	assembling routine for coarse grid matrices
+		IAssemble<dof_distribution_impl_type, algebra_type>* m_pAss;
+
+	///	approximation space for level and surface grid
 		approximation_space_type* m_pApproxSpace;
 
-		size_t m_surfaceLevel;
-		size_t m_baseLevel;
-		int m_cycle_type;
+	///	top level (i.e. highest level in hierarchy. This is the surface level
+	///	in case of non-adaptive refinement
+		size_t m_topLev;
 
-		int m_nu1;
-		int m_nu2;
+	///	base level (where exact inverse is computed)
+		size_t m_baseLev;
 
+	///	cylce type (1 = V-cycle, 2 = W-cylcle, ...)
+		int m_cycleType;
+
+	///	number of Presmooth steps
+		int m_numPreSmooth;
+
+	///	number of Postsmooth steps
+		int m_numPostSmooth;
+
+	///	smoothing iterator for every grid level
 		std::vector<smoother_type*> m_vSmoother;
+
+	///	base solver for the coarse problem
 		base_solver_type* m_pBaseSolver;
 
+	///	coarse grid operator for each grid level
 		std::vector<operator_type*> m_A;
+
+	///	projection operator between grid levels
 		std::vector<projection_operator_type*> m_vProjection;
+
+	///	prolongation/restriction operator between grid levels
 		std::vector<prolongation_operator_type*> m_vProlongation;
 
 		std::vector<function_type*> m_u;
@@ -181,6 +210,54 @@ class AssembledMultiGridCycle :
 		// communicator
 		pcl::ParallelCommunicator<IndexLayout> m_Com;
 #endif
+
+	public:
+	//	set debug output
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
+		}
+
+	protected:
+		bool write_level_debug(const vector_type& vec, const char* filename, size_t lev)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	create level function
+			function_type* dbgFunc = m_pApproxSpace->create_level_function(lev);
+
+		//	cast dbg writer
+			GridFunctionDebugWriter<function_type>* dbgWriter =
+					dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
+
+		//	set grid function
+			if(dbgWriter != NULL)
+				dbgWriter->set_reference_grid_function(*dbgFunc);
+			else
+			{
+				delete dbgFunc;
+				UG_LOG("Cannot write debug on level "<< lev<<".\n");
+				return false;
+			}
+
+		//	remove dbgFunc
+			delete dbgFunc;
+
+		//	add iter count to name
+			std::string name(filename);
+			char ext[20]; sprintf(ext, "_lev%03d_iter%03d", lev, m_dbgIterCnt);
+			name.append(ext);
+
+		//	write
+			return m_pDebugWriter->write_vector(vec, name.c_str());
+		}
+
+	//	Debug Writer
+		IDebugWriter<algebra_type>* m_pDebugWriter;
+
+	//	counter for debug
+		int m_dbgIterCnt;
 };
 
 }
