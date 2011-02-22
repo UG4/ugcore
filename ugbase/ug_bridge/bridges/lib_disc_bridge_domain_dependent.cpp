@@ -240,7 +240,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("init|hide=true", &T::init)
 			.add_method("print_statistic|hide=true", &T::print_statistic)
 			.add_method("print_layout_statistic|hide=true", &T::print_layout_statistic)
-			.add_method("get_surface_dof_distribution|hide=true", &T::get_surface_dof_distribution)
+			.add_method("get_surface_dof_distribution|hide=true",  (const typename T::dof_distribution_type& (T::*)() const) &T::get_surface_dof_distribution)
 			.add_method("create_surface_function|hide=true", &T::create_surface_function);
 	}
 
@@ -384,7 +384,8 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 			.add_method("set_prolongation|interactive=false", &T::set_prolongation_operator,
 						"", "Prolongation")
 			.add_method("set_projection|interactive=false", &T::set_projection_operator,
-						"", "Projection");
+						"", "Projection")
+			.add_method("set_debug", &T::set_debug);
 	}
 
 //	VTK Output
