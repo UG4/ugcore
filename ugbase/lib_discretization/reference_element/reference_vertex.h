@@ -107,6 +107,13 @@ class reference_element_traits<VertexBase>
 		typedef ReferenceVertex reference_element_type;
 };
 
+template <>
+class reference_element_traits<Vertex>
+{
+	public:
+		typedef ReferenceVertex reference_element_type;
+};
+
 } // end namespace ug
 
 #endif /* __H__LIBDISCRETIZATION__REFERENCE_ELEMENT__REFERENCE_VERTEX__ */
