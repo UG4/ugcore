@@ -101,6 +101,9 @@ class SubsetGroup
 	///	name of subset
 		const char* name(size_t i) const;
 
+	///	returns if a subset is a regular grid
+		bool regular_grid(size_t i) const;
+
 	/// dimension of subset
 	/**
 	 * Returns the dimension of the subset. The dimension of the subset

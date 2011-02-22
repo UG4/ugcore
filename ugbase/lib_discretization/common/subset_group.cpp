@@ -167,6 +167,24 @@ const char* SubsetGroup::name(size_t i) const
 	return m_pSH->get_subset_name(m_vSubset[i]);
 }
 
+///	returns if a subset is a regular grid
+bool SubsetGroup::regular_grid(size_t i) const
+{
+	if(!is_init())
+	{
+		UG_LOG("No SubsetHandler set. "
+				"Cannot use SubsetGroup without SubsetHandler.\n");
+		return false;
+	}
+
+//	Check, that subset exist
+	if(i >= num_subsets())
+		throw(ERROR_BadIndexInSubsetGroup(i));
+
+	return SubsetIsRegularGrid(*m_pSH, m_vSubset[i]);
+}
+
+
 int SubsetGroup::dim(size_t i) const
 {
 	if(!is_init())
