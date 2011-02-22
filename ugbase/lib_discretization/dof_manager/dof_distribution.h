@@ -59,36 +59,44 @@ class IDoFDistribution
 	public:
 	///	Constructor
 		IDoFDistribution(GeometricObjectCollection goc, FunctionPattern& dp) :
-			m_goc(goc), m_pFunctionPattern(&dp) {}
+			m_goc(goc), m_pFuncPattern(&dp), m_pSurfaceView(NULL) {}
+
+	///	Constructor
+		IDoFDistribution(GeometricObjectCollection goc, FunctionPattern& dp,
+		                 const SurfaceView& surfView) :
+			m_goc(goc), m_pFuncPattern(&dp), m_pSurfaceView(&surfView) {}
 
 		///////////////////////////
 		// Infos
 		///////////////////////////
 
+	/// dimension of subset
+		int dim_subset(int si) const {return m_pFuncPattern->dim_subset(si);}
+
 	/// number of discrete functions
-		size_t num_fct() const {return m_pFunctionPattern->num_fct();}
+		size_t num_fct() const {return m_pFuncPattern->num_fct();}
 
 	/// number of discrete functions on a subset
-		size_t num_fct(int si) const {return m_pFunctionPattern->num_fct(si);}
+		size_t num_fct(int si) const {return m_pFuncPattern->num_fct(si);}
 
 	/// returns the trial space of the discrete function fct
 		LocalShapeFunctionSetID local_shape_function_set_id(size_t fct) const
-			{return m_pFunctionPattern->local_shape_function_set_id(fct);}
+			{return m_pFuncPattern->local_shape_function_set_id(fct);}
 
 	/// name of discrete function
 		std::string name(size_t fct) const
-			{return m_pFunctionPattern->name(fct);}
+			{return m_pFuncPattern->name(fct);}
 
 	/// dimension where discrete function lives
-		int dim(size_t fct) const {return m_pFunctionPattern->dim(fct);}
+		int dim(size_t fct) const {return m_pFuncPattern->dim(fct);}
 
 	/// returns true if the discrete function is defined on the subset
 		bool is_def_in_subset(size_t fct, int si) const
-			{return m_pFunctionPattern->is_def_in_subset(fct, si);}
+			{return m_pFuncPattern->is_def_in_subset(fct, si);}
 
 	/// returns function id for local function on subset
 		size_t fct_id(size_t loc_fct, int si) const
-			{return m_pFunctionPattern->fct_id(loc_fct, si);}
+			{return m_pFuncPattern->fct_id(loc_fct, si);}
 
 		///////////////////////////////////////
 		// Elements where dofs are distributed
@@ -284,7 +292,10 @@ class IDoFDistribution
 		GeometricObjectCollection m_goc;
 
 	/// Function Pattern
-		FunctionPattern* m_pFunctionPattern;
+		FunctionPattern* m_pFuncPattern;
+
+	///	Surface View for handling of shadows
+		const SurfaceView* m_pSurfaceView;
 
 #ifdef UG_PARALLEL
 	public:
