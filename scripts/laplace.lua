@@ -27,6 +27,11 @@ end
 numPreRefs = GetParamNumber("-numPreRefs", 1)
 numRefs    = GetParamNumber("-numRefs",    3)
 
+print(" Choosen Parater:")
+print("    numRefs    = " .. numRefs)
+print("    numPreRefs = " .. numPreRefs)
+print("    grid       = " .. gridName)
+
 --------------------------------
 -- User Data Functions (begin)
 --------------------------------
@@ -111,8 +116,8 @@ end
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs > numRefs then
-	print("numPreRefs must be smaller/equal than numRefs");
+if numPreRefs >= numRefs then
+	print("numPreRefs must be smaller than numRefs");
 	exit();
 end
 
@@ -305,6 +310,7 @@ ilut = ILUT()
 	gmg:set_num_postsmooth(3)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
+	--gmg:set_debug(dbgWriter)
 
 -- create AMG ---
 -----------------
