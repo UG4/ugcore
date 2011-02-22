@@ -279,6 +279,13 @@ class AssembledLinearOperator :
 			return true;
 		}
 
+	/// forces the disc to consider the grid as regular
+		void force_regular_grid(bool bForce)
+		{
+			if(m_pAss != NULL)
+				m_pAss->force_regular_grid(bForce);
+		}
+
 	// 	Destructor
 		virtual ~AssembledLinearOperator()
 		{
