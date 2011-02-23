@@ -241,16 +241,54 @@ class AssembledMultiGridCycle :
 				return false;
 			}
 
-		//	remove dbgFunc
-			delete dbgFunc;
-
 		//	add iter count to name
 			std::string name(filename);
-			char ext[20]; sprintf(ext, "_lev%03d_iter%03d", lev, m_dbgIterCnt);
+			char ext[20]; sprintf(ext, "_lev%03d_iter%03d", (int)lev, m_dbgIterCnt);
 			name.append(ext);
 
 		//	write
-			return m_pDebugWriter->write_vector(vec, name.c_str());
+			bool bRet = m_pDebugWriter->write_vector(vec, name.c_str());
+
+		//	remove dbgFunc
+			delete dbgFunc;
+
+			return bRet;
+		}
+
+		bool write_surface_debug(const vector_type& vec, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	create level function
+			function_type* dbgFunc = m_pApproxSpace->create_surface_function();
+
+		//	cast dbg writer
+			GridFunctionDebugWriter<function_type>* dbgWriter =
+					dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
+
+		//	set grid function
+			if(dbgWriter != NULL)
+				dbgWriter->set_reference_grid_function(*dbgFunc);
+			else
+			{
+				delete dbgFunc;
+				UG_LOG("Cannot write debug on surface.\n");
+				return false;
+			}
+
+		//	add iter count to name
+			std::string name(filename);
+			char ext[20]; sprintf(ext, "_surf_iter%03d", m_dbgIterCnt);
+			name.append(ext);
+
+		//	write
+			bool bRet = m_pDebugWriter->write_vector(vec, name.c_str());
+
+		//	remove dbgFunc
+			delete dbgFunc;
+
+			return bRet;
 		}
 
 	//	Debug Writer

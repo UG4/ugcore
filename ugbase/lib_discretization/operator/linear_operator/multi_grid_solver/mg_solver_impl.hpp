@@ -626,6 +626,9 @@ apply_update_defect(vector_type &c, vector_type& d)
 		return false;
 	}
 
+//	debug output
+	write_surface_debug(d, "GMG_DefectIn");
+
 //	std::vector of algebra level vectors
 	std::vector<vector_type*> vLevelVec;
 
@@ -642,6 +645,7 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 
 // *****	Project Correction from surface grid onto the level grids
+// \todo: Do we really need the projected correction or is zero everywhere ok?
 //	create std::vector of level vectors
 	ExtractVectorsFromGridFunction(vLevelVec, m_c);
 
@@ -652,6 +656,10 @@ apply_update_defect(vector_type &c, vector_type& d)
 				"Projection of correction to level failed.\n");
 		return false;
 	}
+
+//	debug output
+	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+		write_level_debug(*m_d[lev], "GMG_DefectInProject", lev);
 
 // *****	Perform one multigrid cycle
 	if(!lmgc(m_topLev))
@@ -687,6 +695,14 @@ apply_update_defect(vector_type &c, vector_type& d)
 				"Projection of correction to surface failed.\n");
 		return false;
 	}
+
+//	debug output
+	write_surface_debug(c, "GMG_CorrectionOut");
+	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+		write_level_debug(*m_c[lev], "GMG_CorrectionOutProject", lev);
+	write_surface_debug(d, "GMG_DefectOut");
+	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+		write_level_debug(*m_d[lev], "GMG_DefectOutProject", lev);
 
 //	increase dbg counter
 	m_dbgIterCnt++;
