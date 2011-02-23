@@ -345,6 +345,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 			.add_method("set_coarse_problem_solver|interactive=false", &T::set_coarse_problem_solver,
 						"", "Coarse Problem Solver")
 			.add_method("set_domain_decomp_info", &T::set_domain_decomp_info)
+			.add_method("print_statistic_of_inner_solver", &T::print_statistic_of_inner_solver)
 			.add_method("set_debug", &T::set_debug);
 		}
 #endif
