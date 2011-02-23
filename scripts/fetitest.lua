@@ -51,14 +51,6 @@ numRefs    = GetParam("-numRefs",    4)+0 -- '+0' to get a number instead of a s
 				0, 1
 	end
 	
-	function ourVelocityField2d(x, y, t)
-		return	0, 0
-	end
-	
-	function ourReaction2d(x, y, t)
-		return	0
-	end
-	
 	function ourRhs2d(x, y, t)
 		local s = 2*math.pi
 		return	s*s*(math.sin(s*x) + math.sin(s*y))
@@ -66,12 +58,6 @@ numRefs    = GetParam("-numRefs",    4)+0 -- '+0' to get a number instead of a s
 		--return 0;
 		--return -2*((x*x - 1)+(y*y - 1))
 		--return	2*s*s*(math.sin(s*x) * math.sin(s*y))
-	end
-	
-	function ourNeumannBnd2d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
-		return true, -2*x*y
 	end
 	
 	function ourDirichletBnd2d(x, y, t)
@@ -83,37 +69,6 @@ numRefs    = GetParam("-numRefs",    4)+0 -- '+0' to get a number instead of a s
 	 	--return true, math.sin(s*x)*math.sin(s*y)
 	end
 
-	function ourDiffTensor3d(x, y, z, t)
-		return	1, 0, 0,
-				0, 1, 0,
-				0, 0, 1
-	end
-	
-	function ourVelocityField3d(x, y, z, t)
-		return	0, 0, 0
-	end
-	
-	function ourReaction3d(x, y, z, t)
-		return	0
-	end
-	
-	function ourRhs3d(x, y, z, t)
-		--local s = 2*math.pi
-		--return	s*s*(math.sin(s*x) + math.sin(s*y) + math.sin(s*z))
-		return 0;
-	end
-	
-	function ourNeumannBnd3d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
-		return true, -2*x*y*z
-	end
-	
-	function ourDirichletBnd3d(x, y, z, t)
-		--local s = 2*math.pi
-		--return true, math.sin(s*x) + math.sin(s*y) + math.sin(s*z)
-		return true, x
-	end
 --------------------------------
 -- User Data Functions (end)
 --------------------------------
@@ -235,51 +190,15 @@ approxSpace:print_layout_statistic()
 print ("Setting up Assembling")
 
 -- Diffusion Tensor setup
-	if dim == 2 then
-		diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
-	elseif dim == 3 then
-		diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor3d", dim)
-	end
+	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
 	--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
 
--- Velocity Field setup
-	if dim == 2 then
-		velocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
-	elseif dim == 3 then
-		velocityField = utilCreateLuaUserVector("ourVelocityField3d", dim)
-	end 
-	--velocityField = utilCreateConstUserVector(0.0, dim)
-
--- Reaction setup
-	if dim == 2 then
-		reaction = utilCreateLuaUserNumber("ourReaction2d", dim)
-	elseif dim == 3 then
-		reaction = utilCreateLuaUserNumber("ourReaction3d", dim)
-	end
-	--reaction = utilCreateConstUserNumber(0.0, dim)
-
 -- rhs setup
-	if dim == 2 then
-		rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
-	elseif dim == 3 then
-		rhs = utilCreateLuaUserNumber("ourRhs3d", dim)
-	end
+	rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
 	--rhs = utilCreateConstUserNumber(0.0, dim)
 
--- neumann setup
-	if dim == 2 then
-		neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
-	elseif dim == 3 then
-		neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd3d", dim)
-	end
-	--neumann = utilCreateConstUserNumber(0.0, dim)
-
 -- dirichlet setup
-	if dim == 2 then
-		dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
-	elseif dim == 3 then
-		dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd3d", dim)
-	end
+	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
 	--dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
 	
 -----------------------------------------------------------------
@@ -289,16 +208,7 @@ print ("Setting up Assembling")
 elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
-elemDisc:set_velocity_field(velocityField)
-elemDisc:set_reaction(reaction)
 elemDisc:set_rhs(rhs)
-
------------------------------------------------------------------
---  Setup Neumann Boundary
------------------------------------------------------------------
-
---neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
---neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
