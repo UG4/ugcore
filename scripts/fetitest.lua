@@ -516,6 +516,8 @@ s = string.format("%d\t%d\t\t%d\t\t%d\t\t%d\t\t%d\t\t\t%.2f\t\t%.2f\t\t\t%.2f\n"
 output:write(s)
 print(s)
 
+fetiSolver:print_statistic_of_inner_solver()
+
 if verbosity >= 1 then
 	WriteGridFunctionToVTK(u, "Solution")
 end
