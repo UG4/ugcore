@@ -13,12 +13,12 @@ ug_load_script("ug_util.lua")
 verbosity = 0	-- set to 0 i.e. for time measurements,
 		-- >= 1 for writing matrix files etc.
 
-verbosity = GetParam("-verb", 0)+0 -- '+0' to get a number instead of a string!
+verbosity = GetParamNumber("-verb", 0)
 
 activateDbgWriter = 0	-- set to 0 i.e. for time measurements,
 		        -- >= 1 for writing matrix files etc. by setting
 		        -- 'fetiSolver:set_debug(dbgWriter)'
-activateDbgWriter = GetParam("-dbgw", 0)+0 -- '+0' to get a number instead of a string!
+activateDbgWriter = GetParamNumber("-dbgw", 0)
 
 -- choose algebra
 InitAlgebra(CPUAlgebraChooser());
@@ -40,8 +40,8 @@ end
 numPreRefs = 2
 numRefs = 4
 
-numPreRefs = GetParam("-numPreRefs", 2)+0 -- '+0' to get a number instead of a string!
-numRefs    = GetParam("-numRefs",    4)+0 -- '+0' to get a number instead of a string!
+numPreRefs = GetParamNumber("-numPreRefs", 2)
+numRefs    = GetParamNumber("-numRefs",    4)
 
 --------------------------------
 -- User Data Functions (begin)
