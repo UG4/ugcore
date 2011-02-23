@@ -530,7 +530,7 @@ private:
 			int pid = iter->first;
 			std::vector<size_t> &v = iter->second;
 
-			IndicesSort(v.begin(), v.end(), m_globalIDs);
+			sort(v.begin(), v.end(), CompareIndicesBy(m_globalIDs) );
 			Interface &interface = layout.interface(pid);
 			for(size_t i=0; i<v.size(); i++)
 				interface.push_back(v[i]);
