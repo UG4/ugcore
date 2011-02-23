@@ -755,6 +755,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	3. Since \f$\tilde{f}_{\Pi}\f$ is saved additively, gather it to one process (root)
 //     where it is then consistent.
 	rootF.set(0.0);
+	pcl::SynchronizeProcesses();			// TMP
 	FETI_PROFILE_BEGIN(PSMIApply_VecGather);
 	VecGather(&rootF, &h, m_masterAllToOneLayout, m_slaveAllToOneLayout);
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_VecGather)'
