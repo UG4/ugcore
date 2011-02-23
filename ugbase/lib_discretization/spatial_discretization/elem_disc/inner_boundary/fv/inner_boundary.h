@@ -68,14 +68,14 @@ class FVInnerBoundaryElemDisc
 	public:
 		FVInnerBoundaryElemDisc()
 		 : m_numFct(0), m_pDomain(NULL)
-			{
-				m_mBoundarySegment.clear();
-				register_assemble_functions(Int2Type<dim>());
-			}
+		{
+			//m_mBoundarySegment.clear();
+			register_assemble_functions(Int2Type<dim>());
+		}
 
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
 
-		
+		/*
 		bool add_flux(const char* function, const char* subsets)
 		{
 			//	check that function pattern exists
@@ -102,14 +102,12 @@ class FVInnerBoundaryElemDisc
 				return false;
 			}
 			
-			/*
 			//	only one function allowed
 			if(functionGroup.num_fct() != 1)
 			{
 				UG_LOG("FVInnerBoundaryElemDisc:add_flux: Exactly one function needed, but given '"<<function<<"' as functions.\n");
 				return false;
 			}
-			*/
 			
 		//	forward request
 			return add_flux(functionGroup, subsetGroup);
@@ -194,10 +192,10 @@ class FVInnerBoundaryElemDisc
 		//	we're done
 			return true;
 		}
-		
+		*/
 		
 	private:
-		std::map<int, std::vector<size_t> > m_mBoundarySegment;
+		//std::map<int, std::vector<size_t> > m_mBoundarySegment;
 		size_t m_numFct;
 
 	

@@ -67,6 +67,7 @@ prepare_element_loop()
 // 	remember position attachement
 	m_aaPos = m_pDomain->get_position_accessor();
 
+	/*
 //	register subsetIndex at Geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
@@ -76,7 +77,8 @@ prepare_element_loop()
 		const int bndSubset = (*subsetIter).first;
 		geo.add_boundary_subset(bndSubset);
 	}
-
+	
+	*/
 //	we're done
 	return true;
 }
@@ -89,6 +91,7 @@ bool
 FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
 finish_element_loop()
 {
+	/*
 //	remove subsetIndex from Geometry
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
@@ -98,7 +101,7 @@ finish_element_loop()
 		const int bndSubset = (*subsetIter).first;
 		geo.remove_boundary_subset(bndSubset);
 	}
-
+	*/
 //	we're done
 	return true;
 }
@@ -120,7 +123,7 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	}
 
 	// update Geometry for this element
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
+	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
 	if(!geo.update(elem, m_pDomain->get_subset_handler(), &m_vCornerCoords[0]))
 		{UG_LOG("FVInnerBoundaryElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
 
@@ -140,86 +143,79 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
-	typename std::map<int, std::vector<size_t> >::const_iterator subsetIter;
-	for(subsetIter = m_mBoundarySegment.begin(); subsetIter != m_mBoundarySegment.end(); ++subsetIter)
+	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
-		const int bndSubset = (*subsetIter).first;
-		
-		// loop Boundary Faces
-		for (size_t i = 0; i < fvgeom.num_bf(bndSubset); ++i)
-		{
-			// get current BF
-			const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(bndSubset, i);
+		// get current BF
+		const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(i);
 
-			// get associated node
-			const int co = bf.node_id();
-			
-			// get values of the unknowns in associated node
-			number caCyt = u(0, co);
-			number caER = u(1, co);
-			number ip3 = u(2, co);
-			//INT n_surf;
-			//surf_id = BNDP_SurfaceId(V_BNDP(vert_to), &n_surf, 0);
-			
-			
-			number d_dCyt = 0.0;
-			number d_dER = 0.0;
-			number d_dIP3 = 0.0;
+		// get associated node
+		const int co = bf.node_id();
+		
+		// get values of the unknowns in associated node
+		number caCyt = u(0, co);
+		number caER = u(1, co);
+		number ip3 = u(2, co);
+		//INT n_surf;
+		//surf_id = BNDP_SurfaceId(V_BNDP(vert_to), &n_surf, 0);
+		
+		
+		number d_dCyt = 0.0;
+		number d_dER = 0.0;
+		number d_dIP3 = 0.0;
+
+		
+		// IP3 parts
+		number schlonz1 = caCyt*ip3 + ip3*D2 + D1*D2 + caCyt*D3;
+		number schlonz = schlonz1 * (caCyt+D5);
+		number x110 = (caCyt*ip3*D2) / schlonz;
+		
+		number blubb1 = NY1*3.0*x110*x110*ip3*D2 * (1.0 - caCyt/schlonz * ( (ip3+D3)*(caCyt+D5) + schlonz1 )) / schlonz;
+		number blubb1a = NY1*3.0*x110*x110*caCyt*D2 * (1.0 - ip3/schlonz * (caCyt+D2)*(caCyt+D5)) / schlonz; 
+		number blubb2 = NY1*x110*x110*x110 + NY2;
+		
+		number release_factor = 1.0; //ip3_channel_density(surf_id);
+		
+		d_dCyt += release_factor * C1 * (blubb1 * (caER-caCyt) - blubb2);
+		d_dER += release_factor * C1 * blubb2;
+		d_dIP3 += release_factor * C1 * blubb1a * (caER-caCyt);
+		
 	
-			
-			// IP3 parts
-			number schlonz1 = caCyt*ip3 + ip3*D2 + D1*D2 + caCyt*D3;
-			number schlonz = schlonz1 * (caCyt+D5);
-			number x110 = (caCyt*ip3*D2) / schlonz;
-			
-			number blubb1 = NY1*3.0*x110*x110*ip3*D2 * (1.0 - caCyt/schlonz * ( (ip3+D3)*(caCyt+D5) + schlonz1 )) / schlonz;
-			number blubb1a = NY1*3.0*x110*x110*caCyt*D2 * (1.0 - ip3/schlonz * (caCyt+D2)*(caCyt+D5)) / schlonz; 
-			number blubb2 = NY1*x110*x110*x110 + NY2;
-			
-			number release_factor = 1.0; //ip3_channel_density(surf_id);
-			
-			d_dCyt += release_factor * C1 * (blubb1 * (caER-caCyt) - blubb2);
-			d_dER += release_factor * C1 * blubb2;
-			d_dIP3 += release_factor * C1 * blubb1a * (caER-caCyt);
-			
+		// RyR parts
+		number inner = 1.0 + pow(caCyt,3) / KB3;
+		number dInner_dCyt = 3.0 * caCyt * caCyt / KB3;
+		number dKlShice_dCyt = dInner_dCyt - 4.0 * KA4 / pow(caCyt,5);
+		number dKlShice_dCyt_a = 3.0 * inner * inner / KB3I - 4.0 * KA4I / pow(inner,5);
+		number klShice = 1.0 + KA4 / pow(caCyt,4) + pow(caCyt,3) / KB3;
+		number klShice_a = 1.0 + KA4I / pow(inner,4) + pow(inner,3) / KB3I;
+		number grShice_a = 1.0 + KC * klShice_a;
+		number w = KC * klShice_a / grShice_a;
+		number open_prob =  w / klShice;
+		number dOpenProb_dCyt = (dInner_dCyt * dKlShice_dCyt_a / grShice_a - klShice_a / klShice * dKlShice_dCyt) 
+								* KC / (grShice_a * klShice);
 		
-			// RyR parts
-			number inner = 1.0 + pow(caCyt,3) / KB3;
-			number dInner_dCyt = 3.0 * caCyt * caCyt / KB3;
-			number dKlShice_dCyt = dInner_dCyt - 4.0 * KA4 / pow(caCyt,5);
-			number dKlShice_dCyt_a = 3.0 * inner * inner / KB3I - 4.0 * KA4I / pow(inner,5);
-			number klShice = 1.0 + KA4 / pow(caCyt,4) + pow(caCyt,3) / KB3;
-			number klShice_a = 1.0 + KA4I / pow(inner,4) + pow(inner,3) / KB3I;
-			number grShice_a = 1.0 + KC * klShice_a;
-			number w = KC * klShice_a / grShice_a;
-			number open_prob =  w / klShice;
-			number dOpenProb_dCyt = (dInner_dCyt * dKlShice_dCyt_a / grShice_a - klShice_a / klShice * dKlShice_dCyt) 
-									* KC / (grShice_a * klShice);
-			
-			release_factor = 1.0; //ryr_channel_density(surf_id);
-			
-			d_dCyt += release_factor * NY4 * (dOpenProb_dCyt * (caER-caCyt) - open_prob);
-			d_dER  += release_factor * NY4 * open_prob;
+		release_factor = 1.0; //ryr_channel_density(surf_id);
 		
+		d_dCyt += release_factor * NY4 * (dOpenProb_dCyt * (caER-caCyt) - open_prob);
+		d_dER  += release_factor * NY4 * open_prob;
+	
+	
+		// SERCA parts
+		d_dCyt -= V_SERCA*K_SERCA / (caER*(K_SERCA+caCyt)*(K_SERCA+caCyt));	//	2.0*NY3*K3*K3 * caCyt / ((caCyt*caCyt + K3*K3)*(caCyt*caCyt + K3*K3));
+		d_dER  -= - V_SERCA*caCyt / ((K_SERCA+caCyt)*caER*caER);
+	
+	
+		// scale with volume of BF
+		d_dCyt *= bf.volume() * DAMPENING;
+		d_dER *= bf.volume() * DAMPENING;
+		d_dIP3 *= bf.volume() * DAMPENING;
 		
-			// SERCA parts
-			d_dCyt -= V_SERCA*K_SERCA / (caER*(K_SERCA+caCyt)*(K_SERCA+caCyt));	//	2.0*NY3*K3*K3 * caCyt / ((caCyt*caCyt + K3*K3)*(caCyt*caCyt + K3*K3));
-			d_dER  -= - V_SERCA*caCyt / ((K_SERCA+caCyt)*caER*caER);
-		
-		
-			// scale with volume of BF
-			d_dCyt *= bf.volume() * DAMPENING;
-			d_dER *= bf.volume() * DAMPENING;
-			d_dIP3 *= bf.volume() * DAMPENING;
-			
-			// add to Jacobian					<-- hier entsteht der segfault
-			//J(1,co,1,co)	+= d_dER;
-			//J(1,co,0,co)	+= d_dCyt;
-			//J(0,co,1,co)	-= d_dER;
-			//J(0,co,0,co)	-= d_dCyt;
-			//J(1,co,2,co)	+= d_dIP3;
-			//J(0,co,2,co)	-= d_dIP3;
-		}
+		// add to Jacobian					<-- hier entsteht der segfault
+		J(1,co,1,co)	+= d_dER;
+		J(1,co,0,co)	+= d_dCyt;
+		J(0,co,1,co)	-= d_dER;
+		J(0,co,0,co)	-= d_dCyt;
+		J(1,co,2,co)	+= d_dIP3;
+		J(0,co,2,co)	-= d_dIP3;
 	}
 	
 	return true;
@@ -250,60 +246,54 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
-	typename std::map<int, std::vector<size_t> >::const_iterator subsetIter;
-	for(subsetIter = m_mBoundarySegment.begin(); subsetIter != m_mBoundarySegment.end(); ++subsetIter)
+	// loop Boundary Faces
+	for (size_t i = 0; i < fvgeom.num_bf(); ++i)
 	{
-		const int bndSubset = (*subsetIter).first;
+		// get current BF
+		const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(i);
 		
-		// loop Boundary Faces
-		for (size_t i = 0; i < fvgeom.num_bf(bndSubset); ++i)
-		{
-			// get current BF
-			const typename TFVGeom<TElem, dim>::BF& bf = fvgeom.bf(bndSubset, i);
+		// get associated node
+		const int co = bf.node_id();
+		
+		
+		number flux = 0.0;
+		
+		number caCyt = u(0, co);	// cytosolic Ca2+ concentration
+		number caER = u(1, co);		// ER Ca2+ concentration
+		number ip3 = u(2, co);		// IP3 concentration
+		//INT n_surf;
+		//INT surf_id = BNDP_SurfaceId(V_BNDP(vert_to), &n_surf, 0);
+		
+		
+		
+		// IP3 parts
+		number x110 = (caCyt*ip3*D2) / ((caCyt*ip3 + ip3*D2 + D1*D2 + caCyt*D3) * (caCyt+D5));
+		number IP3flux = C1*(NY1*x110*x110*x110 + NY2) * (caER-caCyt);
+		
+		number release_factor = 1.0; //ip3_channel_density(surf_id);
 			
-			// get associated node
-			const int co = bf.node_id();
-			
-			
-			number flux = 0.0;
-			
-			number caCyt = u(0, co);	// cytosolic Ca2+ concentration
-			number caER = u(1, co);		// ER Ca2+ concentration
-			number ip3 = u(2, co);		// IP3 concentration
-			//INT n_surf;
-			//INT surf_id = BNDP_SurfaceId(V_BNDP(vert_to), &n_surf, 0);
-			
-			
-			
-			// IP3 parts
-			number x110 = (caCyt*ip3*D2) / ((caCyt*ip3 + ip3*D2 + D1*D2 + caCyt*D3) * (caCyt+D5));
-			number IP3flux = C1*(NY1*x110*x110*x110 + NY2) * (caER-caCyt);
-			
-			number release_factor = 1.0; //ip3_channel_density(surf_id);
-				
-			flux += release_factor * IP3flux;
-			
-			// RyR parts
-			number inner = 1.0 + pow(caCyt,3)/KB3;
-			number w = (1.0 + KA4I/pow(inner,4) + pow(inner,3)/KB3I) / (1.0 + 1.0/KC + KA4I/pow(inner,4) + pow(inner,3)/KB3I);
-			number open_prob =  w / (1.0 + KA4/pow(caCyt,4) + pow(caCyt,3)/KB3);	//printf("open_prob: %g\n", open_prob);
-			
-			release_factor = 1.0; //ryr_channel_density(surf_id);
+		flux += release_factor * IP3flux;
+		
+		// RyR parts
+		number inner = 1.0 + pow(caCyt,3)/KB3;
+		number w = (1.0 + KA4I/pow(inner,4) + pow(inner,3)/KB3I) / (1.0 + 1.0/KC + KA4I/pow(inner,4) + pow(inner,3)/KB3I);
+		number open_prob =  w / (1.0 + KA4/pow(caCyt,4) + pow(caCyt,3)/KB3);	//printf("open_prob: %g\n", open_prob);
+		
+		release_factor = 1.0; //ryr_channel_density(surf_id);
 
-			flux += release_factor * NY4 * open_prob * (caER-caCyt);
+		flux += release_factor * NY4 * open_prob * (caER-caCyt);
 
-			// SERCA parts
-			flux -=	V_SERCA*caCyt / ((K_SERCA + caCyt) * caER);
-			
-			
-			
-			// scale with volume of BF
-			flux *= bf.volume() * DAMPENING;
+		// SERCA parts
+		flux -=	V_SERCA*caCyt / ((K_SERCA + caCyt) * caER);
+		
+		
+		
+		// scale with volume of BF
+		flux *= bf.volume() * DAMPENING;
 
-			// add to defect					<-- hier entsteht der segfault
-			//d(0, co) -= flux;	// cytosol
-			//d(1, co) += flux;	// ER
-		}
+		// add to defect					<-- hier entsteht der segfault
+		d(0, co) -= flux;	// cytosol
+		d(1, co) += flux;	// ER
 	}
 
 	return true;

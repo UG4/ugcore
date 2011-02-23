@@ -439,6 +439,192 @@ update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCor
 
 
 
+template <typename TElem, int TWorldDim>
+FV1ManifoldBoundary<TElem, TWorldDim>::
+FV1ManifoldBoundary() : m_pElem(NULL)
+{
+	// set corners of element as local centers of nodes
+	for (size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
+		m_locMid[0][i] = m_rRefElem.corner(i);
+
+	// compute local midpoints for all geometric objects with  0 < d <= dim
+	for (int d = 1; d <= dim; ++d)
+	{
+		// loop geometric objects of dimension d
+		for(size_t i = 0; i < m_rRefElem.num_obj(d); ++i)
+		{
+			// set first node
+			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
+			m_locMid[d][i] = m_locMid[0][coID0];
+
+			// add corner coordinates of the corners of the geometric object
+			for(size_t j = 1; j < m_rRefElem.num_obj_of_obj(d, i, 0); ++j)
+			{
+				const size_t coID = m_rRefElem.id(d, i, 0, j);
+				m_locMid[d][i] += m_locMid[0][coID];
+			}
+
+			// scale for correct averaging
+			m_locMid[d][i] *= 1./(m_rRefElem.num_obj_of_obj(d, i, 0));
+		}
+	}
+
+	// set up local information for Boundary Faces (bf)
+	// each bf is associated to one corner of the element
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+		m_vBF[i].nodeId = i;
+
+		if (dim == 1) // Edge
+		{
+			m_vBF[i].midId[0] = MidID(0, i);	// set node as corner of bf
+			m_vBF[i].midId[1] = MidID(dim, 0);	// center of bnd element
+			
+			// copy local corners of bf
+			copy_local_corners(m_vBF[i]);
+			
+			// local integration point
+			AveragePositions(m_vBF[i].localIP, m_vBF[i].m_vLocPos, 2);
+		}
+		else if (dim == 2)	// Quadrilateral
+		{
+			m_vBF[i].midId[0] = MidID(0, i); // set node as corner of bf
+			m_vBF[i].midId[1] = MidID(1, m_rRefElem.id(0, i, 1, 0)); // edge 1
+			m_vBF[i].midId[2] = MidID(dim, 0);	// center of bnd element
+			m_vBF[i].midId[3] = MidID(1, m_rRefElem.id(0, i, 1, 1)); // edge 2
+			
+			// copy local corners of bf
+			copy_local_corners(m_vBF[i]);
+			
+			// local integration point
+			AveragePositions(m_vBF[i].localIP, m_vBF[i].m_vLocPos, 4);
+		}
+		else {UG_ASSERT(0, "Dimension higher that 2 not implemented.");}
+	}
+
+	/////////////
+	// Shapes
+	/////////////
+	// A word of warning: This is only meaningful,
+	// if the trial space is piecewise linear on tetrahedrons/triangles!
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+		const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
+				LocalShapeFunctionSetProvider::
+					get_local_shape_function_set<ref_elem_type>
+					(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
+
+		const size_t num_sh = m_numBF;
+		m_vBF[i].vShape.resize(num_sh);
+
+		TrialSpace.shapes(&(m_vBF[i].vShape[0]), m_vBF[i].localIP);
+	}
+
+	///////////////////////////
+	// Copy ip pos in list
+	///////////////////////////
+
+	// 	loop Boundary Faces (BF)
+	m_vLocBFIP.clear();
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+	//	get current BF
+		const BF& rBF = bf(i);
+
+	// 	loop ips
+		for (size_t ip = 0; ip < rBF.num_ip(); ++ip)
+		{
+			m_vLocBFIP.push_back(rBF.local_ip(ip));
+		}
+	}
+}
+
+
+
+
+
+/// update data for given element
+template <typename TElem, int TWorldDim>
+bool
+FV1ManifoldBoundary<TElem, TWorldDim>::
+update(TElem* elem, const ISubsetHandler& ish, const MathVector<world_dim>* vCornerCoords)
+{
+	// 	If already update for this element, do nothing
+	if (m_pElem == elem) return true;
+	else m_pElem = elem;
+
+	// 	remember global position of nodes
+	for (size_t i = 0; i < m_rRefElem.num_obj(0); ++i)
+		m_gloMid[0][i] = vCornerCoords[i];
+
+	// 	compute global midpoints for all the other geometric objects (with  0 < d <= dim)
+	for (int d = 1; d <= dim; ++d)
+	{
+		// 	loop geometric objects of dimension d
+		for (size_t i = 0; i < m_rRefElem.num_obj(d); ++i)
+		{
+			// set first node
+			const size_t coID0 = m_rRefElem.id(d, i, 0, 0);
+			m_gloMid[d][i] = m_gloMid[0][coID0];
+
+		// 	add corner coordinates of the corners of the geometric object
+			for (size_t j = 1; j < m_rRefElem.num_obj_of_obj(d, i, 0); ++j)
+			{
+				const size_t coID = m_rRefElem.id(d, i, 0, j);
+				m_gloMid[d][i] += m_gloMid[0][coID];
+			}
+
+		// 	scale for correct averaging
+			m_gloMid[d][i] *= 1./(m_rRefElem.num_obj_of_obj(d, i, 0));
+		}
+	}
+	
+	// set local integration points
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+		// copy global corners of bf
+		copy_global_corners(m_vBF[i]);
+		
+		if (dim == 1) // Edge
+			{AveragePositions(m_vBF[i].localIP, m_vBF[i].m_vLocPos, 2);}
+		else if (dim == 2)	// Quadrilateral
+			{AveragePositions(m_vBF[i].localIP, m_vBF[i].m_vLocPos, 4);}
+		else {UG_ASSERT(0, "Dimension higher that 2 not implemented.");}
+	}
+	
+	// 	compute size of BFs
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+	// 	copy global corners
+		copy_global_corners(m_vBF[i]);
+
+	// 	compute volume of bf
+		m_vBF[i].vol = ElementSize<bf_type, world_dim>(m_vBF[i].m_vGloPos);
+	}
+	
+	///////////////////////////
+	// Copy ip pos in list
+	///////////////////////////
+
+	// 	loop Boundary Faces (BF)
+	m_vGlobBFIP.clear();
+	for (size_t i = 0; i < num_bf(); ++i)
+	{
+	//	get current BF
+		const BF& rBF = bf(i);
+
+	// 	loop ips
+		for (size_t ip = 0; ip < rBF.num_ip(); ++ip)
+		{
+			m_vGlobBFIP.push_back(rBF.global_ip(ip));
+		}
+	}
+
+	return true;
+}
+
+
+
 
 } // end namespace ug
 

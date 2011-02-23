@@ -217,8 +217,8 @@ elemDiscIP3:set_rhs(rhs)
 neumannDiscCYT = utilCreateNeumannBoundary(approxSpace, "cyt")
 neumannDiscCYT:add_boundary_value(neumann, "ca_cyt", "mem_cyt")
 
-innerDisc = utilCreateInnerBoundary(approxSpace, "cyt")
-innerDisc:add_flux("ca_cyt, ip3", "mem_er")
+innerDisc = utilCreateInnerBoundary(approxSpace, "mem_er")
+--innerDisc:add_flux("ca_cyt, ip3", "mem_er")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
