@@ -50,13 +50,13 @@ inline void get_testvector_xy(DenseVector<VariableArray1<double> > &testvector, 
 
 template<typename matrix_type, typename vector_type>
 void CalculateTestvector(matrix_type &A_OL2, vector_type &big_testvector, bool zeroAtDirichlet,
-		size_t iTestvectorDamps)
+		size_t iTestvectorDamps, famg_nodes &rating)
 {
 	if(big_testvector.size() == 0)
 	{
 		big_testvector.resize(A_OL2.num_rows());
 		for(size_t i=0; i<A_OL2.num_rows(); i++)
-			if(A_OL2.is_isolated(i) && zeroAtDirichlet)
+			if(rating.is_inner_node(i) && A_OL2.is_isolated(i) && zeroAtDirichlet)
 				big_testvector[i] = 0.0;
 			else
 				big_testvector[i] = 1.0;

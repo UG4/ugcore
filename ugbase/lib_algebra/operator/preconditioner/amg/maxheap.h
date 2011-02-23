@@ -42,7 +42,7 @@ public:
 	 * \param	n		maximal number of elements
 	 * \param	arr_	array with elements which are to compare. note that non of these are in the heap in the beginning
 	 */
-	maxheap(int n, const T *arr_)
+	maxheap(size_t n, const T *arr_)
 	{
 		m_size = 0;
 		m_heap = NULL;
@@ -164,7 +164,7 @@ public:
 	void print() const
 	{
 		std::cout << "maxheap, size = " << m_size << ", height = " << m_height << std::endl;
-		for(int i=0; i<m_height; i++)
+		for(size_t i=0; i<m_height; i++)
 		{
 			std::cout << i << ": pos: " << m_heap[i] << " parent: " << parent(m_heap[i]) << " element: " << m_arr[m_heap[i]] <<
 					(m_arr[m_heap[i]] > m_arr[parent(m_heap[i])] ? " ERR " : "") << std::endl;
@@ -277,8 +277,8 @@ private:
 	const T *m_arr;			//< pointer to array with elements of type T
 	stdvector<int> m_heap;		//< m_heap of the elements m_heap[0] is the index of the largest element of m_arr[i] forall i=0..m_size-1 and m_posinheap[i] != -1
 	stdvector<int> m_posinheap;	//< m_posinheap[i] is the position of element m_arr[i] in the m_heap. -1 if removed, otherwise m_posinheap[m_heap[i]] = i
-	int m_height;		//< m_height of the m_heap, elements m_heap[0]..m_heap[m_height-1] are valid.
-	int m_size;			//< maximal size of the m_heap = size of array m_arr
+	size_t m_height;		//< m_height of the m_heap, elements m_heap[0]..m_heap[m_height-1] are valid.
+	size_t m_size;			//< maximal size of the m_heap = size of array m_arr
 };
 	
 } // namespace ug

@@ -76,8 +76,10 @@ private:
 	FAMGInterpolationCalculator(const FAMGInterpolationCalculator<matrix_type> &other);
 
 public:
-	FAMGInterpolationCalculator(const matrix_type &A_, double delta, double theta, double damping,
-			ug::Vector<double> &_big_testvector) : A(A_), big_testvector(_big_testvector)
+	FAMGInterpolationCalculator(const matrix_type &A_,
+			const matrix_type &A_OL2_, double delta, double theta, double damping,
+			ug::Vector<double> &_big_testvector)
+	: A(A_), A_OL2(A_OL2_), big_testvector(_big_testvector)
 	{
 		m_delta = delta;
 		m_theta = theta;
@@ -237,9 +239,9 @@ public:
 	//---------------------------------------
 	/** calculates an interpolation of the node i, when i is interpolating by all his neighbors
 	 * if neighbors are fine, their interpolation form coarse nodes is used (indirect)
-	 * \param i		node index for which to calculate possible parent pairs
-	 * \param P		matrix for the interpolation
-	 * \
+	 * \param i			node index for which to calculate possible parent pairs
+	 * \param P			matrix for the interpolation
+	 * \param rating
 	 */
 	template<typename prolongation_matrix_type>
 	void get_all_neighbors_interpolation(size_t i, prolongation_matrix_type &P,	famg_nodes &rating)
@@ -269,7 +271,14 @@ public:
 					UG_LOG(rating.get_original_index(onlyN1[j]));
 				}
 				UG_LOG("\n");*/
-				rating.set_coarse(i);
+				// todo: change this
+				if(rating.i_can_set_coarse(i))
+					rating.set_coarse(i);
+				else
+				{
+					P(i, rating.newIndex[onlyN1[coarse_neighbors[0]]]) = 1.0;
+					rating.set_fine(i);
+				}
 				return;
 
 			}
@@ -306,15 +315,19 @@ public:
 
 			if(F > m_delta)
 			{
+				UG_LOG("coarse neighbors, had to set node " << i << " coarse!");
 				rating.set_coarse(i);
 
 			}
 			else
 			{
+				UG_LOG("coarse neighbors, Interpolating from ");
 				for(size_t j=0; j<N; j++)
 				{
-					size_t node = onlyN1[coarse_neighbors[j]];
-					P(i, rating.newIndex[node]) = -q[j];
+					int jj = coarse_neighbors[j];
+					size_t node = onlyN1[jj];
+					UG_LOG(node << ": " << q[jj] << ", ");
+					P(i, rating.newIndex[node]) = -q[jj];
 				}
 				rating.set_fine(i);
 			}
@@ -354,10 +367,15 @@ public:
 
 			if(F > m_delta)
 			{
+				UG_LOG("had to set node " << i << " coarse!");
 				rating.set_coarse(i);
 			}
 			else
 			{
+				UG_LOG("fine neighbors, Interpolating from ");
+				for(size_t j=0; j<onlyN1.size(); j++)
+					UG_LOG(onlyN1[j] << ": " << q[j] << ", ");
+				UG_LOG("\n");
 				for(size_t j=0; j<onlyN1.size(); j++)
 				{
 					size_t node = onlyN1[j];
@@ -496,11 +514,11 @@ private:
 			//print_vector(onlyN2, "\nN2");
 		}
 
-		// get submatrix A on N2
+		// get submatrix in A_OL2 on N2
 
 		S.resize(N2.size(), N2.size());
 		S = 0.0;
-		A.get(S, &N2[0], &N2[0]);
+		A_OL2.get(S, &N2[0], &N2[0]);
 
 		//IF_DEBUG(LIB_ALG_AMG, 3) S.maple_print("\nsubA");
 
@@ -538,6 +556,7 @@ private:
 
 private:
 	const matrix_type &A;
+	const matrix_type &A_OL2;
 	double m_delta;
 	double m_theta;
 	double m_damping;

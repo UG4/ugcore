@@ -200,7 +200,7 @@ public:
 			matrix_type &_AH, prolongation_matrix_type &_R,  const matrix_type &_A,
 			prolongation_matrix_type &_P, size_t _level, ug::Vector<double> &big_testvector)
 	: m_famg(f), AH(_AH), A(_A), R(_R), P(_P), level(_level),
-			calculator(A_OL2, m_famg.get_delta(), m_famg.get_theta(),
+			calculator(A, A_OL2, m_famg.get_delta(), m_famg.get_theta(),
 					m_famg.get_damping_for_smoother_in_interpolation_calculation(), big_testvector),
 			rating(P, _level, m_famg.m_amghelper)
 #ifndef UG_PARALLEL
@@ -214,6 +214,7 @@ public:
 private:
 	void get_aggressive_coarsening_interpolation()
 	{
+		UG_SET_DEBUG_LEVELS(4);
 		for(size_t i=0; i<A.num_rows(); i++)
 		{
 			UG_ASSERT(rating[i].is_valid_rating() == false, "node " << i << " has valid rating (neither coarse nor fine but interpolateable), but is not in heap anymore???");
@@ -221,6 +222,7 @@ private:
 
 			calculator.get_all_neighbors_interpolation(i, P, rating);
 		}
+		UG_SET_DEBUG_LEVELS(0);
 	}
 
 
@@ -276,7 +278,7 @@ public:
 		if(bTiming) SW.start();
 
 		CalculateTestvector(A_OL2, big_testvector, m_famg.get_testvector_zero_at_dirichlet(),
-				m_famg.get_testvector_damps());
+				m_famg.get_testvector_damps(), rating);
 
 		if(bTiming) UG_LOG("took " << SW.ms() << " ms");
 
@@ -333,6 +335,11 @@ public:
 		}
 
 	#ifdef UG_PARALLEL
+		for(size_t i=0; i<A.num_rows(); i++)
+		{
+			if(rating.is_inner_node(i) || rating[i].is_uninterpolateable() == false) continue;
+			calculator.get_all_neighbors_interpolation(i, P, rating);
+		}
 		send_coarsening_data_to_processes_with_higher_color();
 	#endif
 
