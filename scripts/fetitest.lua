@@ -54,19 +54,15 @@ numRefs    = GetParamNumber("-numRefs",    4)
 	function ourRhs2d(x, y, t)
 		local s = 2*math.pi
 		return	s*s*(math.sin(s*x) + math.sin(s*y))
-		--return -2*y
+		--return 0
 		--return 0;
-		--return -2*((x*x - 1)+(y*y - 1))
-		--return	2*s*s*(math.sin(s*x) * math.sin(s*y))
 	end
 	
 	function ourDirichletBnd2d(x, y, t)
 		local s = 2*math.pi
 		return true, math.sin(s*x) + math.sin(s*y)
-		--return true, x +1
+		--return true, x + 1
 		--return true, 2.5
-		--return true, (x*x - 1)*(y*y - 1)
-	 	--return true, math.sin(s*x)*math.sin(s*y)
 	end
 
 --------------------------------
