@@ -737,9 +737,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	// (c) compute h = f - h on primal (this h corresponds to \f$\tilde{f}_{\Pi}^{(p)}\f$!)
 	m_pFetiLayouts->vec_scale_add_on_primal(h, 1.0, f, -1.0, h);
-	//m_pFetiLayouts->vec_scale_add_on_primal(h, -1.0, f, 1.0, h); - we correct the sign at the end ...
-	//h.set(1.0); // TEST
-	//m_pFetiLayouts->vec_set_on_primal(h, 1.0); // TEST
 
 //	Create storage for u,f on primal root
 	vector_type rootF;
@@ -780,13 +777,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 								 "Could not invert Schur complement on root proc."
 						<< std::endl;
 				bSuccess = false;
-			} else {			// TMP
-/*				IConvergenceCheck* convCheck = m_pCoarseProblemSolver->get_convergence_check();
-				if(convCheck != NULL)
-					UG_LOG("'PrimalSubassembledMatrixInverse::apply':"
-						   " Last defect after applying coarse problem solver (step 4  ) was " << convCheck->defect() <<
-						   " after " << convCheck->step() << " steps.\n");
-*/			}
+			}
 			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
 		}
 	}
@@ -795,9 +786,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 	u.set(0.0);
 	VecBroadcast(&u, &rootU, m_slaveAllToOneLayout, m_masterAllToOneLayout);
 
-	// ********************************************************************************
-	// additional steps according to formula to compute d (21022011ih)
-	// ********************************************************************************
 //	6.  create help vectors
 	vector_type t;  t.create(u.size());
 	vector_type uPi; uPi.create(u.size());
@@ -841,6 +829,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
 	}
+	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
 
 //	remember for statistic
 	if(!m_statType.empty())
@@ -852,11 +841,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 		m_mvStepConv[m_statType].push_back(stepConv);
 	}
 
-	//m_pNeumannMatrix->set_storage_type(PST_ADDITIVE); // TMP
-	//m_pNeumannMatrix->matmul_minus(t, uTmp2); // TMP - for residuum instead of "solving" in '0' steps ...
-
-	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
-
 	// (c) compute u = uTmp - uTmp2 on inner and dual
 	m_pFetiLayouts->vec_set_on_primal(uTmp2, 0.0);
 	u = uTmp;
@@ -864,41 +848,6 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	assemble solution for primal variables (already computed earlier) into complete solution
 	m_pFetiLayouts->vec_scale_assign_on_primal(u, uPi, 1.0);
-
-	// ********************************************************************************
-
-/* old solve:
-//	6. Compute other values of solution, keeping values in Primal fixed
-	// (a) set dirichlet values on primal unknowns of rhs
-	m_pFetiLayouts->vec_scale_assign_on_primal(f, u, 1.0);
- 
-	// (b) invert neumann problem, with dirichlet values on primal
-	m_pFetiLayouts->vec_use_inner_communication(f);
-	f.set_storage_type(PST_ADDITIVE);
-	m_pFetiLayouts->vec_use_inner_communication(u);
-	u.set_storage_type(PST_CONSISTENT);
-
-	FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_6b);
-	if(!m_pNeumannSolver->apply_return_defect(u, f)) // solve with Neumann matrix!
-	{
-		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
-						 "Could not solve Neumann problem (step 6.b) on Proc "
-							<< pcl::GetProcRank() << ".\n");
-
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
-
-		bSuccess = false;
-	} else {
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		UG_LOG_ALL_PROCS("'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect after applying Neumann solver (step 6.b) was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
-	}
-	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_6b)'
-*/
 
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
