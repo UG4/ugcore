@@ -672,7 +672,7 @@ class PrimalSubassembledMatrixInverse
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
 	///	sets statistic slot where next iterate should be counted
-		void set_statistic_type(int type) {m_statType = type;}
+		void set_statistic_type(std::string type) {m_statType = type;}
 
 	///	prints some convergence statistic of inner solvers
 		void print_statistic_of_inner_solver() const;
@@ -730,11 +730,17 @@ class PrimalSubassembledMatrixInverse
 		IConvergenceCheck* m_pConvCheck;
 
 	//	Convergence history
-		int m_statType;
-		std::vector<std::vector<int> > m_vNumIterNeumannSolve2a;
-		std::vector<std::vector<int> > m_vNumIterNeumannSolve7;
-		std::vector<std::vector<number> > m_vLastDefectNeumannSolve2a;
-		std::vector<std::vector<number> > m_vLastDefectNeumannSolve7;
+		std::string m_statType;
+
+		struct StepConv
+		{
+			int numIter2a;
+			int numIter7;
+			number lastDef2a;
+			number lastDef7;
+		};
+
+		std::map<std::string, std::vector<StepConv> > m_mvStepConv;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
@@ -873,6 +879,12 @@ class FETISolver : public IMatrixOperatorInverse<	typename TAlgebra::vector_type
 
 		//	solve on copy of defect
 			return apply_return_defect(x, d);
+		}
+
+	///	prints some convergence statistic of inner solvers
+		void print_statistic_of_inner_solver() const
+		{
+			m_PrimalSubassembledMatrixInverse.print_statistic_of_inner_solver();
 		}
 
 		// destructor
