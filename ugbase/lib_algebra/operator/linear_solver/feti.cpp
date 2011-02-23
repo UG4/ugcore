@@ -205,11 +205,11 @@ apply(vector_type& f, const vector_type& u)
 						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
 	} else {
-		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
+/*		IConvergenceCheck* convCheck = m_pDirichletSolver->get_convergence_check();
 		UG_LOG_ALL_PROCS("'LocalSchurComplement::apply':"
 						" Last defect after applying Dirichlet solver (step 3.b) was " << convCheck->defect() <<
 						" after " << convCheck->step() << " steps.\n");
-	}
+*/	}
 
 //	4. Compute result vector
 	// (a) Scale u_{I} by -1
@@ -280,6 +280,7 @@ PrimalSubassembledMatrixInverse() :
 	m_primalRootProc(-1),
 	m_pRootSchurComplementMatrix(NULL),
 	m_pConvCheck(NULL),
+	m_statType(-1),
 	m_pDebugWriter(NULL)
 {
 }
@@ -703,21 +704,22 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << ".\n");
-
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
-	} else {
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		UG_LOG_ALL_PROCS("'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect after applying Neumann solver (step 2.a) was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
 	}
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a)'
 
-//	save current solution - 'u' is overwritten by broadcastin \f$u_{\Pi}\f$ after solving (21022011ih)
+//	remember for statistic
+	if(m_statType >= 0)
+	{
+		IConvergenceCheck* convCheck2a = m_pNeumannSolver->get_convergence_check();
+		m_vLastDefectNeumannSolve2a.resize(m_statType+1);
+		m_vNumIterNeumannSolve2a.resize(m_statType+1);
+
+		m_vLastDefectNeumannSolve2a[m_statType].push_back(convCheck2a->defect());
+		m_vNumIterNeumannSolve2a[m_statType].push_back(convCheck2a->step());
+	}
+
+//	save current solution - 'u' is overwritten by broadcasting \f$u_{\Pi}\f$ after solving (21022011ih)
 	vector_type uTmp;  uTmp.create(u.size());
 	uTmp = u;
 
@@ -775,12 +777,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 						<< std::endl;
 				bSuccess = false;
 			} else {			// TMP
-				IConvergenceCheck* convCheck = m_pCoarseProblemSolver->get_convergence_check();
+/*				IConvergenceCheck* convCheck = m_pCoarseProblemSolver->get_convergence_check();
 				if(convCheck != NULL)
 					UG_LOG("'PrimalSubassembledMatrixInverse::apply':"
 						   " Last defect after applying coarse problem solver (step 4  ) was " << convCheck->defect() <<
 						   " after " << convCheck->step() << " steps.\n");
-			}
+*/			}
 			FETI_PROFILE_END();	// end 'FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem)' - Messpunkt ok, da nur auf einem Proc
 		}
 	}
@@ -828,19 +830,21 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << ".\n");
-
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
-
 		bSuccess = false;
-	} else {
-		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
-		UG_LOG_ALL_PROCS("'PrimalSubassembledMatrixInverse::apply':"
-						" Last defect after applying Neumann solver (step 7) was " << convCheck->defect() <<
-						" after " << convCheck->step() << " steps.\n");
 	}
+
+//	remember for statistic
+	if(m_statType >= 0)
+	{
+		IConvergenceCheck* convCheck7 = m_pNeumannSolver->get_convergence_check();
+		m_vLastDefectNeumannSolve7.resize(m_statType+1);
+		m_vNumIterNeumannSolve7.resize(m_statType+1);
+
+		m_vLastDefectNeumannSolve7[m_statType].push_back(convCheck7->defect());
+		m_vNumIterNeumannSolve7[m_statType].push_back(convCheck7->step());
+	}
+
+
 	//m_pNeumannMatrix->set_storage_type(PST_ADDITIVE); // TMP
 	//m_pNeumannMatrix->matmul_minus(t, uTmp2); // TMP - for residuum instead of "solving" in '0' steps ...
 
@@ -910,6 +914,81 @@ apply(vector_type& x, const vector_type& b)
 	return apply_return_defect(x, d);
 } /* end 'PrimalSubassembledMatrixInverse::apply()' */
 
+
+template <typename TAlgebra>
+void PrimalSubassembledMatrixInverse<TAlgebra>::
+print_statistic_of_inner_solver() const
+	{
+		for(size_t type = 0; type < m_vLastDefectNeumannSolve2a.size(); ++type)
+		{
+			pcl::ProcessCommunicator ProcCom;
+
+			UG_LOG("Type "<< type << ":\n");
+
+			UG_LOG("Call                     : ");
+			for(size_t i = 0; i < m_vLastDefectNeumannSolve2a[type].size(); ++i)
+				UG_LOG(std::setw(13) << i << " |  ");
+			UG_LOG("\n");
+
+			UG_LOG("Defect2a (avg)           : ");
+			for(size_t i = 0; i < m_vLastDefectNeumannSolve2a[type].size(); ++i)
+			{
+				double tGlob, tLoc = m_vLastDefectNeumannSolve2a[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+				tGlob /= pcl::GetNumProcesses();
+				UG_LOG(std::setw(13) << tGlob << " |  ");
+			}
+			UG_LOG("\n");
+
+			UG_LOG("NumIter2a (avg, max, min): ");
+			for(size_t i = 0; i < m_vNumIterNeumannSolve2a[type].size(); ++i)
+			{
+				int tGlob, tLoc = m_vNumIterNeumannSolve2a[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
+				tGlob /= pcl::GetNumProcesses();
+				UG_LOG(std::setw(3) << tGlob << ", ");
+
+				tLoc = m_vNumIterNeumannSolve2a[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
+				UG_LOG(std::setw(3) << tGlob << ", ");
+
+				tLoc = m_vNumIterNeumannSolve2a[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MIN);
+				UG_LOG(std::setw(3) << tGlob << " |  ");
+			}
+			UG_LOG("\n");
+
+			UG_LOG("Defect7  (avg)           : ");
+			for(size_t i = 0; i < m_vLastDefectNeumannSolve7[type].size(); ++i)
+			{
+				double tGlob, tLoc = m_vLastDefectNeumannSolve7[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
+				tGlob /= pcl::GetNumProcesses();
+				UG_LOG(std::setw(13) << tGlob << " |  ");
+			}
+			UG_LOG("\n");
+
+			UG_LOG("NumIter7  (avg, max, min): ");
+			for(size_t i = 0; i < m_vNumIterNeumannSolve7[type].size(); ++i)
+			{
+				int tGlob, tLoc = m_vNumIterNeumannSolve7[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
+				tGlob /= pcl::GetNumProcesses();
+				UG_LOG(std::setw(3) << tGlob << ", ");
+
+				tLoc = m_vNumIterNeumannSolve7[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
+				UG_LOG(std::setw(3) << tGlob << ", ");
+
+				tLoc = m_vNumIterNeumannSolve7[type][i];
+				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MIN);
+				UG_LOG(std::setw(3) << tGlob << " |  ");
+			}
+			UG_LOG("\n");
+
+			UG_LOG("\n");
+		}
+	}
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
@@ -1125,6 +1204,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	(a) Compute d:= B S_{\Delta \Delta}^{-1} \tilde{f}_{\Delta}
 //		and set r0 = d (prelimilarly, -F \lambda added later)
 	FETI_PROFILE_BEGIN(FETISolverApply_Compute_D);
+	m_PrimalSubassembledMatrixInverse.set_statistic_type(0);
 	if(!compute_d(r, f))
 	{
 		UG_LOG("ERROR in 'FETISolver::apply': "
@@ -1187,6 +1267,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// 	Build t = F*p
 		// p is consistent
 		// t is consistent afterwards
+		m_PrimalSubassembledMatrixInverse.set_statistic_type(1);
 		if(!apply_F(t, p))
 		{
 			UG_LOG("ERROR in 'FETISolver::apply': Unable "
@@ -1263,6 +1344,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 //	Solve: A u = f
 	FETI_PROFILE_BEGIN(FETISolverApply_ApplyPrimalSubassMatInv);
+	m_PrimalSubassembledMatrixInverse.set_statistic_type(2);
 	if(!m_PrimalSubassembledMatrixInverse.apply(u, f))
 	{
 		UG_LOG("ERROR in FETISolver::apply: Cannot back solve.\n");
@@ -1278,8 +1360,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 	FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolver_Backsolve)' - Messpunkt ok!
 
-	return m_pConvCheck->post();
+	bool bRetConv = m_pConvCheck->post();
 
+//	print conv statistic
+	m_PrimalSubassembledMatrixInverse.print_statistic_of_inner_solver();
+
+	return bRetConv;
 	//FETI_PROFILE_END();			// end 'FETI_PROFILE_BEGIN(FETISolverApplyReturnDefect)' - complete method
 
 //	call this for output.

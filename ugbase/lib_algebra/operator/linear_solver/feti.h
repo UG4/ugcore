@@ -671,6 +671,12 @@ class PrimalSubassembledMatrixInverse
 	/// returns the convergence check
 		IConvergenceCheck* get_convergence_check() {return m_pConvCheck;}
 
+	///	sets statistic slot where next iterate should be counted
+		void set_statistic_type(int type) {m_statType = type;}
+
+	///	prints some convergence statistic of inner solvers
+		void print_statistic_of_inner_solver() const;
+
 	//  destructor
 		virtual ~PrimalSubassembledMatrixInverse() {};
 
@@ -722,6 +728,13 @@ class PrimalSubassembledMatrixInverse
 
 	// 	Convergence Check
 		IConvergenceCheck* m_pConvCheck;
+
+	//	Convergence history
+		int m_statType;
+		std::vector<std::vector<int> > m_vNumIterNeumannSolve2a;
+		std::vector<std::vector<int> > m_vNumIterNeumannSolve7;
+		std::vector<std::vector<number> > m_vLastDefectNeumannSolve2a;
+		std::vector<std::vector<number> > m_vLastDefectNeumannSolve7;
 
 	//	Debug Writer
 		IDebugWriter<algebra_type>* m_pDebugWriter;
