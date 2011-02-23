@@ -717,6 +717,10 @@ apply_return_defect(vector_type& u, vector_type& f)
 	}
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a)'
 
+//	save current solution - 'u' is overwritten by broadcastin \f$u_{\Pi}\f$ after solving (21022011ih)
+	vector_type uTmp;  uTmp.create(u.size());
+	uTmp = u;
+
 	// (b) apply matrix to \f$[u_{\{I \Delta\}}^{(p)}, 0]^T\f$ - multiply with full matrix
 	if(!m_pMatrix->apply(h, u))
 	{
@@ -728,7 +732,7 @@ apply_return_defect(vector_type& u, vector_type& f)
 
 	// (c) compute h = f - h on primal (this h corresponds to \f$\tilde{f}_{\Pi}^{(p)}\f$!)
 	m_pFetiLayouts->vec_scale_add_on_primal(h, 1.0, f, -1.0, h);
-	//m_pFetiLayouts->vec_scale_add_on_primal(h, -1.0, f, 1.0, h);
+	//m_pFetiLayouts->vec_scale_add_on_primal(h, -1.0, f, 1.0, h); - we correct the sign at the end ...
 	//h.set(1.0); // TEST
 	//m_pFetiLayouts->vec_set_on_primal(h, 1.0); // TEST
 
@@ -760,9 +764,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 		if(m_RootSchurComplementOp.get_matrix().num_cols() != 0)
 		{
 		//	invert matrix
-			//rootF.set(1.0); // TEST
 			rootF.set_storage_type(PST_ADDITIVE);
 			rootU.set_storage_type(PST_CONSISTENT);
+
 			FETI_PROFILE_BEGIN(PSMIApply_SolveCoarseProblem);
 			if(!m_pCoarseProblemSolver->apply_return_defect(rootU, rootF))
 			{
@@ -785,6 +789,71 @@ apply_return_defect(vector_type& u, vector_type& f)
 	u.set(0.0);
 	VecBroadcast(&u, &rootU, m_slaveAllToOneLayout, m_masterAllToOneLayout);
 
+	// ********************************************************************************
+	// additional steps according to formula to compute d (21022011ih)
+	// ********************************************************************************
+//	6.  create help vectors
+	vector_type t;  t.create(u.size());
+	vector_type t1; t1.create(u.size());
+
+	// (a) Copy \f$u_{\Pi}\f$
+	t1.set(0.0);
+	m_pFetiLayouts->vec_scale_assign_on_primal(t1, u, 1.0);
+
+	// (b) apply matrix to \f$[0, u_{\Pi}^{(p)}]^T\f$ - multiply with full matrix
+	if(!m_pMatrix->apply(t, t1))
+	{
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
+						 "Could not apply full matrix (step 5.1) on "
+						 "Proc " << pcl::GetProcRank() << ".\n");
+		bSuccess = false;
+	}
+
+	// (c) Reset values on Pi
+	m_pFetiLayouts->vec_set_on_primal(t, 0.0);
+
+//	7. Solve (again) \f$A_D \cdot u = t\f$, using start value \f$u = 0\f$
+	vector_type uTmp2;  uTmp2.create(u.size());
+	uTmp2.set(0.0);
+
+	// (b) invert neumann problem, with dirichlet values on primal
+	m_pFetiLayouts->vec_use_inner_communication(t);
+	t.set_storage_type(PST_ADDITIVE);
+	m_pFetiLayouts->vec_use_inner_communication(uTmp2);
+	uTmp2.set_storage_type(PST_CONSISTENT);
+
+	FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7);
+	if(!m_pNeumannSolver->apply_return_defect(uTmp2, t)) // solve with Neumann matrix!
+	{
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
+						 "Could not solve Neumann problem (step 7) on Proc "
+							<< pcl::GetProcRank() << ".\n");
+
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
+
+		bSuccess = false;
+	} else {
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect after applying Neumann solver (step 7) was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
+	}
+	//m_pNeumannMatrix->set_storage_type(PST_ADDITIVE); // TMP
+	//m_pNeumannMatrix->matmul_minus(t, uTmp2); // TMP - for residuum instead of "solving" in '0' steps ...
+
+	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
+
+	// (c) compute u = uTmp - uTmp2 on inner and dual
+	m_pFetiLayouts->vec_set_on_primal(uTmp2, 0.0);
+	u = uTmp;
+	u -= uTmp2;
+
+	// ********************************************************************************
+
+/* old solve:
 //	6. Compute other values of solution, keeping values in Primal fixed
 	// (a) set dirichlet values on primal unknowns of rhs
 	m_pFetiLayouts->vec_scale_assign_on_primal(f, u, 1.0);
@@ -814,7 +883,8 @@ apply_return_defect(vector_type& u, vector_type& f)
 						" Last defect after applying Neumann solver (step 6.b) was " << convCheck->defect() <<
 						" after " << convCheck->step() << " steps.\n");
 	}
-	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_7)'
+	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_6b)'
+*/
 
 //	check all procs
 	if(!pcl::AllProcsTrue(bSuccess))
