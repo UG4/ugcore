@@ -360,8 +360,7 @@ class ParameterStack
 			if(e.type == PT_SMART_POINTER)
 			{
 				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return ((SmartPtr<void>*)e.param.m_smartPtrWrapper)->
-													to_smart_pointer_reinterpret<T>();
+					return e.param.m_smartPtrWrapper->to_smart_pointer_reinterpret<T>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
 			}
@@ -375,7 +374,7 @@ class ParameterStack
 
 			const Entry& e = m_entries[index];
 			if(e.type == PT_SMART_POINTER)
-				return *(SmartPtr<void>*)e.param.m_smartPtrWrapper;
+				return *e.param.m_smartPtrWrapper;
 
 			throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
 		}
@@ -389,8 +388,7 @@ class ParameterStack
 			if(e.type == PT_CONST_SMART_POINTER)
 			{
 				if(ClassNameVecContains(*e.pClassNames, ClassNameProvider<T>::name()))
-					return ((ConstSmartPtr<void>*)e.param.m_constSmartPtrWrapper)->
-													to_smart_pointer_reinterpret<T>();
+					return e.param.m_constSmartPtrWrapper->to_smart_pointer_reinterpret<T>();
 				else
 					throw(ERROR_IncompatibleClasses(index, class_name(index), ClassNameProvider<T>::name()));
 			}
@@ -404,7 +402,7 @@ class ParameterStack
 
 			const Entry& e = m_entries[index];
 			if(e.type == PT_CONST_SMART_POINTER)
-				return *(ConstSmartPtr<void>*)e.param.m_constSmartPtrWrapper;
+				return *e.param.m_constSmartPtrWrapper;
 
 			throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
 		}
@@ -510,7 +508,7 @@ class ParameterStack
 
 			Entry& e = m_entries[index];
 			if(e.type == PT_SMART_POINTER)
-				*(SmartPtr<void>*)e.param.m_smartPtrWrapper = ptr;
+				*e.param.m_smartPtrWrapper = ptr;
 			else
 				throw(ERROR_BadConversion(index, e.type, PT_SMART_POINTER));
 		}
@@ -522,7 +520,7 @@ class ParameterStack
 
 			Entry& e = m_entries[index];
 			if(e.type == PT_CONST_SMART_POINTER)
-				*(ConstSmartPtr<void>*)e.param.m_constSmartPtrWrapper = ptr;
+				*e.param.m_constSmartPtrWrapper = ptr;
 			else
 				throw(ERROR_BadConversion(index, e.type, PT_CONST_SMART_POINTER));
 		}
@@ -542,8 +540,8 @@ class ParameterStack
 			const char* m_string;
 			void* m_ptr;
 			const void* m_constPtr;
-			void* m_smartPtrWrapper;
-			void* m_constSmartPtrWrapper;
+			SmartPtr<void>* m_smartPtrWrapper;
+			ConstSmartPtr<void>* m_constSmartPtrWrapper;
 		};
 		
 		struct Entry{			
