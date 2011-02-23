@@ -925,64 +925,64 @@ print_statistic_of_inner_solver() const
 
 			UG_LOG("Type "<< type << ":\n");
 
-			UG_LOG("Call                     : ");
+			UG_LOG("Call                     :  ");
 			for(size_t i = 0; i < m_vLastDefectNeumannSolve2a[type].size(); ++i)
-				UG_LOG(std::setw(13) << i << " |  ");
+				UG_LOG(std::setw(8) << i << " |  ");
 			UG_LOG("\n");
 
-			UG_LOG("Defect2a (avg)           : ");
+			UG_LOG("Defect2a (avg)           :  ");
 			for(size_t i = 0; i < m_vLastDefectNeumannSolve2a[type].size(); ++i)
 			{
 				double tGlob, tLoc = m_vLastDefectNeumannSolve2a[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 				tGlob /= pcl::GetNumProcesses();
-				UG_LOG(std::setw(13) << tGlob << " |  ");
+				UG_LOG(std::setprecision(2) << tGlob << " |  ");
 			}
 			UG_LOG("\n");
 
-			UG_LOG("NumIter2a (avg, max, min): ");
+			UG_LOG("NumIter2a (avg, max, min):");
 			for(size_t i = 0; i < m_vNumIterNeumannSolve2a[type].size(); ++i)
 			{
 				int tGlob, tLoc = m_vNumIterNeumannSolve2a[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
 				tGlob /= pcl::GetNumProcesses();
-				UG_LOG(std::setw(3) << tGlob << ", ");
+				UG_LOG(std::setw(3) << tGlob << ",");
 
 				tLoc = m_vNumIterNeumannSolve2a[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
-				UG_LOG(std::setw(3) << tGlob << ", ");
+				UG_LOG(std::setw(3) << tGlob << ",");
 
 				tLoc = m_vNumIterNeumannSolve2a[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MIN);
-				UG_LOG(std::setw(3) << tGlob << " |  ");
+				UG_LOG(std::setw(3) << tGlob << "|");
 			}
 			UG_LOG("\n");
 
-			UG_LOG("Defect7  (avg)           : ");
+			UG_LOG("Defect7  (avg)           :  ");
 			for(size_t i = 0; i < m_vLastDefectNeumannSolve7[type].size(); ++i)
 			{
 				double tGlob, tLoc = m_vLastDefectNeumannSolve7[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_DOUBLE, PCL_RO_SUM);
 				tGlob /= pcl::GetNumProcesses();
-				UG_LOG(std::setw(13) << tGlob << " |  ");
+				UG_LOG(std::setprecision(2) << tGlob << " |  ");
 			}
 			UG_LOG("\n");
 
-			UG_LOG("NumIter7  (avg, max, min): ");
+			UG_LOG("NumIter7  (avg, max, min):");
 			for(size_t i = 0; i < m_vNumIterNeumannSolve7[type].size(); ++i)
 			{
 				int tGlob, tLoc = m_vNumIterNeumannSolve7[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_SUM);
 				tGlob /= pcl::GetNumProcesses();
-				UG_LOG(std::setw(3) << tGlob << ", ");
+				UG_LOG(std::setw(3) << tGlob << ",");
 
 				tLoc = m_vNumIterNeumannSolve7[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MAX);
-				UG_LOG(std::setw(3) << tGlob << ", ");
+				UG_LOG(std::setw(3) << tGlob << ",");
 
 				tLoc = m_vNumIterNeumannSolve7[type][i];
 				ProcCom.allreduce(&tLoc, &tGlob, 1, PCL_DT_INT, PCL_RO_MIN);
-				UG_LOG(std::setw(3) << tGlob << " |  ");
+				UG_LOG(std::setw(3) << tGlob << "|");
 			}
 			UG_LOG("\n");
 
