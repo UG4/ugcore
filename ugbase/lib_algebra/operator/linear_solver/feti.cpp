@@ -704,6 +704,11 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 2.a) on Proc "
 							<< pcl::GetProcRank() << ".\n");
+
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
 	}
 	FETI_PROFILE_END(); // end 'FETI_PROFILE_BEGIN(PSMIApply_NeumannSolve_2a)'
@@ -711,12 +716,12 @@ apply_return_defect(vector_type& u, vector_type& f)
 //	remember for statistic
 	if(m_statType >= 0)
 	{
-		IConvergenceCheck* convCheck2a = m_pNeumannSolver->get_convergence_check();
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 		m_vLastDefectNeumannSolve2a.resize(m_statType+1);
 		m_vNumIterNeumannSolve2a.resize(m_statType+1);
 
-		m_vLastDefectNeumannSolve2a[m_statType].push_back(convCheck2a->defect());
-		m_vNumIterNeumannSolve2a[m_statType].push_back(convCheck2a->step());
+		m_vLastDefectNeumannSolve2a[m_statType].push_back(convCheck->defect());
+		m_vNumIterNeumannSolve2a[m_statType].push_back(convCheck->step());
 	}
 
 //	save current solution - 'u' is overwritten by broadcasting \f$u_{\Pi}\f$ after solving (21022011ih)
@@ -830,18 +835,23 @@ apply_return_defect(vector_type& u, vector_type& f)
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not solve Neumann problem (step 7) on Proc "
 							<< pcl::GetProcRank() << ".\n");
+
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
+		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply':"
+						" Last defect was " << convCheck->defect() <<
+						" after " << convCheck->step() << " steps.\n");
 		bSuccess = false;
 	}
 
 //	remember for statistic
 	if(m_statType >= 0)
 	{
-		IConvergenceCheck* convCheck7 = m_pNeumannSolver->get_convergence_check();
+		IConvergenceCheck* convCheck = m_pNeumannSolver->get_convergence_check();
 		m_vLastDefectNeumannSolve7.resize(m_statType+1);
 		m_vNumIterNeumannSolve7.resize(m_statType+1);
 
-		m_vLastDefectNeumannSolve7[m_statType].push_back(convCheck7->defect());
-		m_vNumIterNeumannSolve7[m_statType].push_back(convCheck7->step());
+		m_vLastDefectNeumannSolve7[m_statType].push_back(convCheck->defect());
+		m_vNumIterNeumannSolve7[m_statType].push_back(convCheck->step());
 	}
 
 
