@@ -799,14 +799,14 @@ apply_return_defect(vector_type& u, vector_type& f)
 	// ********************************************************************************
 //	6.  create help vectors
 	vector_type t;  t.create(u.size());
-	vector_type t1; t1.create(u.size());
+	vector_type uPi; uPi.create(u.size());
 
 	// (a) Copy \f$u_{\Pi}\f$
-	t1.set(0.0);
-	m_pFetiLayouts->vec_scale_assign_on_primal(t1, u, 1.0);
+	uPi.set(0.0);
+	m_pFetiLayouts->vec_scale_assign_on_primal(uPi, u, 1.0);
 
 	// (b) apply matrix to \f$[0, u_{\Pi}^{(p)}]^T\f$ - multiply with full matrix
-	if(!m_pMatrix->apply(t, t1))
+	if(!m_pMatrix->apply(t, uPi))
 	{
 		UG_LOG_ALL_PROCS("ERROR in 'PrimalSubassembledMatrixInverse::apply': "
 						 "Could not apply full matrix (step 5.1) on "
@@ -860,6 +860,9 @@ apply_return_defect(vector_type& u, vector_type& f)
 	m_pFetiLayouts->vec_set_on_primal(uTmp2, 0.0);
 	u = uTmp;
 	u -= uTmp2;
+
+//	assemble solution for primal variables (already computed earlier) into complete solution
+	m_pFetiLayouts->vec_scale_assign_on_primal(u, uPi, 1.0);
 
 	// ********************************************************************************
 
