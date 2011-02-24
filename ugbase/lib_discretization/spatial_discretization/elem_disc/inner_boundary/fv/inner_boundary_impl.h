@@ -115,6 +115,9 @@ bool
 FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
+	// no function -> nothing to do
+	if(m_numFct == 0) return true;
+
 	// load corners of this element
 	for(size_t i = 0; i < m_vCornerCoords.size(); ++i)
 	{
@@ -140,6 +143,9 @@ bool
 FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
+	// no function -> nothing to do
+	if(m_numFct == 0) return true;
+
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
@@ -243,6 +249,9 @@ bool
 FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
+	// no function -> nothing to do
+	if(m_numFct == 0) return true;
+
 	// get finite volume geometry
 	static TFVGeom<TElem, dim>& fvgeom = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
 
