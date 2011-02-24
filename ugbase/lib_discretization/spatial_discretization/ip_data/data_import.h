@@ -390,6 +390,22 @@ class DataEvaluator
 		//	remember current elem discs
 			m_pvElemDisc = &vElemDisc;
 
+		//	check that all disc have the correct number of functions
+			for(size_t i = 0; i < m_pvElemDisc->size(); ++i)
+			{
+				size_t fct_given = (*m_pvElemDisc)[i]->get_function_group().num_fct();
+				size_t fct_needed = (*m_pvElemDisc)[i]->num_fct();
+
+				if(fct_given != fct_needed)
+				{
+					UG_LOG("ERROR in 'DataEvaluator::set_elem_discs': Exactly "
+							<< fct_needed << " functions needed, but given " <<
+							fct_given <<" functions.\n");
+					return false;
+				}
+
+			}
+
 		//	create list of all needed functions
 			if(!CreateUnionOfFunctions(m_commonFctGroup, *m_pvElemDisc))
 			{
