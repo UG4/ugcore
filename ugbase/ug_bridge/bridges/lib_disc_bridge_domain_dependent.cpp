@@ -262,7 +262,7 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 
 //	Neumann Boundary
 	{
-		typedef FVNeumannBoundaryElemDisc<FV1Geometry, domain_type, algebra_type> T;
+		typedef FVNeumannBoundaryElemDisc<domain_type, algebra_type> T;
 		std::stringstream ss; ss << "FV1NeumannBoundary" << dim << "d";
 		reg.add_class_<T, IElemDisc<algebra_type> >(ss.str().c_str(), grp.c_str())
 			.add_constructor()
