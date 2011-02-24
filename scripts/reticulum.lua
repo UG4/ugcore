@@ -176,7 +176,11 @@ print ("Setting up Assembling")
 -- Note: No VelocityField and Reaction is set. The assembling assumes default
 --       zero values for them
 
-elemDiscER = utilCreateFV1ConvDiff(approxSpace, "ca_er", "er")  -- muss hier im letzten Arg (subsets) nicht auch ein mem_er stehen?
+ -- muss hier im letzten Arg (subsets) nicht auch ein mem_er stehen?
+ -- Antwort: Nein, es geht hier im die 2d elemente von "er", der Rand von "er"
+ --          spielt für das assemblieren keine Rolle. Randwerte kommen dann 
+ --          später extra. 
+elemDiscER = utilCreateFV1ConvDiff(approxSpace, "ca_er", "er") 
 elemDiscER:set_upwind_amount(0.0)
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscER:set_rhs(rhs)
@@ -198,7 +202,9 @@ elemDiscIP3:set_rhs(rhs)
 neumannDiscCYT = utilCreateNeumannBoundary(approxSpace, "cyt")
 neumannDiscCYT:add_boundary_value(neumann, "ca_cyt", "mem_cyt")
 
-innerDisc = utilCreateInnerBoundary(approxSpace, "mem_er")
+-- we pass here the function needed to evaluate the flux function. The order in 
+-- which the discrete fct are passed is crutial!
+innerDisc = utilCreateInnerBoundary(approxSpace, "ca_cyt, ca_er, ip3", "mem_er")
 --innerDisc:add_flux("ca_cyt, ip3", "mem_er")
 
 -----------------------------------------------------------------
