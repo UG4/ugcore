@@ -97,7 +97,7 @@ set_functions(const FunctionGroup& funcGroup)
 	{
 	//	check Dimension of function group
 		int dim_subsets = m_SubsetGroup.dim();
-		if(dim != dim_subsets)
+		if(dim < dim_subsets)
 		{
 			UG_LOG("IElemDisc::set_functions: Dimension of already set subset "
 					"group has dimension " << dim_subsets << ", but passed "
@@ -190,10 +190,10 @@ set_subsets(const SubsetGroup& subsetGroup)
 	{
 		//	check Dimension of function group
 		int dim_functions = m_FunctionGroup.dim();
-		if(dim != dim_functions)
+		if(dim > dim_functions)
 		{
 			UG_LOG("IElemDisc::set_subsets: Dimension of already set function group"
-					" does not have same dimension as passed subsets.\n");
+					" does not have same/lower dimension as passed subsets.\n");
 			return false;
 		}
 
