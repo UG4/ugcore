@@ -22,13 +22,13 @@ gridName = "open_circle.ugx"
 --gridName = "unit_square_tri.ugx"
 
 --refinement (default is 5)
-numRefs    = GetParamNumber("-numRefs",    5)
+numRefs    = GetParamNumber("-numRefs",    1)
 
 -- all elements connected to vertices in this sphere will be refined
 refCenterX = 0.0
 refCenterY = 0.0
 refCenterZ = 0
-initialRadius = 0.25
+initialRadius = 0.1
 -- in every refinement iteration the radius shrinks with this factor
 radiusFalloff = 0.75
 
@@ -186,6 +186,10 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 -------------------------------------------
 print ("Setting up Algebra Solver")
 
+-- debug writer
+dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter:set_vtk_output(false)
+
 -- create algebraic Preconditioner
 jac = Jacobi()
 jac:set_damp(0.8)
@@ -226,6 +230,7 @@ ilut = ILUT()
 	gmg:set_num_postsmooth(3)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
+	gmg:set_debug(dbgWriter)
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
@@ -261,6 +266,7 @@ solver = linSolver
 -- create grid function
 u = approxSpace:create_surface_function()
 b = approxSpace:create_surface_function()
+dbgWriter:set_reference_grid_function(u)
 
 -- set initial value
 u:set(0.0)
