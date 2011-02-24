@@ -1,5 +1,5 @@
 /*
- * convergence_check.h
+ * line_search.h
  *
  *  Created on: 18.07.2010
  *      Author: andreasvogel
