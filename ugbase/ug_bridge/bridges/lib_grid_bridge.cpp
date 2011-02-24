@@ -378,7 +378,8 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 
 //	IRefiner
 	reg.add_class_<IRefiner>("IRefiner", grp.c_str())
-		.add_method("refine", &IRefiner::refine);
+		.add_method("refine", &IRefiner::refine)
+		.add_method("clear_marks", &IRefiner::clear_marks);
 
 //	HangingNodeRefiner
 	reg.add_class_<HangingNodeRefiner_Grid, IRefiner>("HangingNodeRefiner_Grid", grp.c_str())

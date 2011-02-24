@@ -74,10 +74,47 @@ collect_objects_for_refine()
 	if(!m_pMG)
 		throw(UGError("HangingNodeRefiner_MultiGrid::collect_objects_for_refine: No grid assigned."));
 
+	MultiGrid& mg = *m_pMG;
+
+//	make sure that no element which has children is selected
+//	(except constraining edges and faces)
+	for(EdgeBaseIterator iter = m_selMarkedElements.begin<EdgeBase>();
+		iter != m_selMarkedElements.end<EdgeBase>();)
+	{
+		EdgeBase* e = *iter;
+		++iter;
+
+		if(mg.has_children(e)){
+			if(!ConstrainingEdge::type_match(e))
+				m_selMarkedElements.deselect(e);
+		}
+	}
+
+	for(FaceIterator iter = m_selMarkedElements.begin<Face>();
+		iter != m_selMarkedElements.end<Face>();)
+	{
+		Face* f = *iter;
+		++iter;
+
+		if(mg.has_children(f)){
+			if(!ConstrainingFace::type_match(f))
+				m_selMarkedElements.deselect(f);
+		}
+	}
+
+	for(VolumeIterator iter = m_selMarkedElements.begin<Volume>();
+		iter != m_selMarkedElements.end<Volume>();)
+	{
+		Volume* v = *iter;
+		++iter;
+
+		if(mg.has_children(v)){
+			m_selMarkedElements.deselect(v);
+		}
+	}
+
 //	first call base implementation
 	HangingNodeRefinerBase::collect_objects_for_refine();
-
-	MultiGrid& mg = *m_pMG;
 
 //	make sure that no element which has children is selected
 //	(except constraining edges and faces)

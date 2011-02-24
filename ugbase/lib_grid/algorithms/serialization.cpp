@@ -388,7 +388,6 @@ bool DeserializeGridElements(Grid& grid, std::istream& in,
 	
 	GridHeader gridHeader;
 	if(readGridHeader){
-		UG_LOG("reading grid header...\n");
 		if(!ReadGridHeader(gridHeader, in)){
 			UG_LOG("Invalid GridHeader.");
 			return false;

@@ -902,6 +902,9 @@ refine_constraining_face(ConstrainingFace* cgf)
 	size_t numVrts = cgf->num_vertices();
 
 //	make sure that there is one hanging vertex and two constrained edges.
+	if(cgf->num_constrained_edges() != numVrts){
+		UG_LOG("cgf->num_constrained_edges() != numVrts: nce = " << cgf->num_constrained_edges() << ", numVrts = " << numVrts << endl);
+	}
 	assert(cgf->num_constrained_edges() == numVrts && "bad number of constrained edges. There have to be as many as vertices.");
 	assert(cgf->num_constrained_faces() == 4 && "bad number of constrained faces. There have to be exactly 4.");
 
@@ -964,8 +967,14 @@ refine_constraining_face(ConstrainingFace* cgf)
 		}
 	}
 
-	cgf->clear_constrained_objects();
-	set_center_vertex(cgf, centerVrt);
+//	cgf->clear_constrained_objects();
+//	cgf itself now has to be transformed to a normal face
+	Face* nFace;
+	if(cgf->num_vertices() == 3)
+		nFace = *grid.create_and_replace<Triangle>(cgf);
+	else
+		nFace = *grid.create_and_replace<Quadrilateral>(cgf);
+	set_center_vertex(nFace, centerVrt);
 }
 
 void HangingNodeRefinerBase::

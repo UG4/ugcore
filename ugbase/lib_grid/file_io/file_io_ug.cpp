@@ -586,6 +586,9 @@ static bool WriteNG(Grid& grid,
 		return false;
 	out.setf(ios::scientific);
 
+//UG_LOG("INFO: WRITING DEBUG INFO TO .ng FILE!\n");//ONLY FOR DEBUG
+//size_t nodeCount = 0;//ONLY FOR DEBUG
+
 //	write the boundary nodes section
 	out << "# boundary nodes" << endl;
 	for(VertexBaseIterator VIter = SurfVrtSel.begin(); VIter != SurfVrtSel.end(); ++VIter)
@@ -596,6 +599,9 @@ static bool WriteNG(Grid& grid,
 		{
 				faceFlags[i] = false;
 		}
+
+//out << "# node-id: " << nodeCount << endl;//ONLY FOR DEBUG
+//++nodeCount;//ONLY FOR DEBUG
 
 	//	write the boundary-vertex position data
 		out << "B " << aaPos[v].x << " " << aaPos[v].y << " " << aaPos[v].z << endl;
@@ -660,7 +666,8 @@ static bool WriteNG(Grid& grid,
 		for(VertexBaseIterator VIter = InnVrtSel.begin(); VIter != InnVrtSel.end(); ++VIter)
 		{
 			VertexBase* v = *VIter;
-
+//out << "# node-id: " << nodeCount << endl;//ONLY FOR DEBUG
+//++nodeCount;//ONLY FOR DEBUG
 		//	write the position data of the inner vertices
 			out << "I " << aaPos[v].x << " " << aaPos[v].y << " " << aaPos[v].z << ";" << endl;
 		}

@@ -17,9 +17,15 @@ InitAlgebra(CPUAlgebraChooser());
 
 ------------------------
 -- CONSTANTS
-dim = 2
-gridName = "open_circle.ugx"
---gridName = "unit_square_tri.ugx"
+dim = GetParamNumber("-dim",    2)
+if dim == 2 then
+	gridName = "open_circle.ugx"
+elseif dim == 3 then
+	gridName = "open_cube_hex.ugx"
+else
+	print("Dimension " .. dim .. " not supported. Aborting.")
+	exit()
+end
 
 --refinement (default is 5)
 numRefs    = GetParamNumber("-numRefs",    1)
