@@ -18,10 +18,13 @@ dim = 2
 gridName = "simple_reticulum.ugx"
 
 -- Refinements before distributing grid
-numPreRefs = 0
+numPreRefs = GetParamNumber("-numPreRefs", 0)
 
 -- Total refinements
-numRefs = 2
+numRefs    = GetParamNumber("-numRefs",    2)
+
+-- choose number of time steps
+NumTimeSteps =  GetParamNumber("-numTimeSteps", 5)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -51,32 +54,16 @@ numRefs = 2
 				0, 500
 	end
 	
-	function ourVelocityField2d(x, y, t)
-		return	0, 0
-	end
-	
-	function ourReaction2d(x, y, t)
-		return	0
-	end
-	
 	function ourRhs2d(x, y, t)
-		--local s = 2*math.pi
-		--return	s*s*(math.sin(s*x) + math.sin(s*y))
-		--return -2*y
 		return 0;
 	end
 	
 	function ourNeumannBnd2d(x, y, t)
-		--local s = 2*math.pi
-		--return -s*math.cos(s*x)
 		return true, 0.0
 	end
 	
 	function ourDirichletBnd2d(x, y, t)
-		local s = 2*math.pi
-		--return true, math.sin(s*x) + math.sin(s*y)
-		return true, x
-		--return true, 2.5
+		return true, 0.0
 	end
 
 	function membraneDirichletBnd2d(x, y, t)
@@ -103,25 +90,30 @@ end
 
 -- create Refiner
 print("Create Refiner")
-if numPreRefs > numRefs then
-	print("numPreRefs must be smaller/equal than numRefs");
+if numPreRefs >= numRefs then
+	print("numPreRefs must be smaller than numRefs");
 	exit();
 end
 
-refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
+-- Create a refiner instance. This is a factory method
+--	which automatically creates a parallel refiner if required.
+refiner = GlobalDomainRefiner(dom)
+
+-- Performing pre-refines
 for i=1,numPreRefs do
-	refiner:refine()
+refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
+-- Distribute the domain to all involved processes
+if DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
+-- Perform post-refine
 print("Refine Parallel Grid")
-for i=numPreRefs+1,numRefs do
-	utilGlobalRefineParallelDomain(dom)
+	for i=numPreRefs+1,numRefs do
+	refiner:refine()
 end
 
 -- get subset handler
@@ -132,7 +124,7 @@ exit()
 end
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 -- create function pattern
 print("Create Function Pattern")
@@ -161,14 +153,6 @@ print ("Setting up Assembling")
 	diffusionMatrixCA = utilCreateLuaUserMatrix("ourDiffTensor2dCA", dim)
 	diffusionMatrixIP3 = utilCreateLuaUserMatrix("ourDiffTensor2dIP3", dim)
 
--- Velocity Field setup
-	velocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
-	--velocityField = utilCreateConstUserVector(0.0, dim)
-
--- Reaction setup
-	reaction = utilCreateLuaUserNumber("ourReaction2d", dim)
-	--reaction = utilCreateConstUserNumber(0.0, dim)
-
 -- rhs setup
 	rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
 	--rhs = utilCreateConstUserNumber(0.0, dim)
@@ -189,25 +173,22 @@ print ("Setting up Assembling")
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
+-- Note: No VelocityField and Reaction is set. The assembling assumes default
+--       zero values for them
+
 elemDiscER = utilCreateFV1ConvDiff(approxSpace, "ca_er", "er")  -- muss hier im letzten Arg (subsets) nicht auch ein mem_er stehen?
 elemDiscER:set_upwind_amount(0.0)
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
-elemDiscER:set_velocity_field(velocityField)
-elemDiscER:set_reaction(reaction)
 elemDiscER:set_rhs(rhs)
 
 elemDiscCYT = utilCreateFV1ConvDiff(approxSpace, "ca_cyt", "cyt")
 elemDiscCYT:set_upwind_amount(0.0)
 elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
-elemDiscCYT:set_velocity_field(velocityField)
-elemDiscCYT:set_reaction(reaction)
 elemDiscCYT:set_rhs(rhs)
 
 elemDiscIP3 = utilCreateFV1ConvDiff(approxSpace, "ip3", "cyt")
 elemDiscIP3:set_upwind_amount(0.0)
 elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
-elemDiscIP3:set_velocity_field(velocityField)
-elemDiscIP3:set_reaction(reaction)
 elemDiscIP3:set_rhs(rhs)
 
 -----------------------------------------------------------------
@@ -379,14 +360,56 @@ InterpolateFunction2d(IP3StartValue, u, "ip3", 0.0)
 dt = 0.01
 time = 0.0
 step = 1
-do_steps = 100
 
-out = VTKOutput2d()
+-- write start solution
+print("Writing start values")
+out = utilCreateVTKWriter(dim)
 out:begin_timeseries("Con", u)
-out:print("Con", u, 0, 0.0)
+out:print("Con", u, 0, time)
 
--- Apply Solver
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, dt, out, "Con", true)
+-- some info output
+print( "   numPreRefs is   " .. numPreRefs ..     ",  numRefs is         " .. numRefs)
+print( "   NumTimeSteps is " .. NumTimeSteps)
 
--- Output
+-- create new grid function for old value
+uOld = u:clone()
+
+-- store grid function in vector of  old solutions
+prevSol = PreviousSolutions()
+prevSol:push(uOld, time)
+
+for step = 1, NumTimeSteps do
+	print("++++++ TIMESTEP " .. step .. " BEGIN ++++++")
+	
+	-- choose time step (currently constant)
+	do_dt = dt
+	
+	-- setup time Disc for old solutions and timestep
+	timeDisc:prepare_step(prevSol, do_dt)
+	
+	-- prepare newton solver
+	if newtonSolver:prepare(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
+	
+	-- apply newton solver
+	if newtonSolver:apply(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
+	
+	-- update new time
+	time = prevSol:time(0) + do_dt
+	
+	-- plot solution
+	out:print("Con", u, step, time)
+	
+	-- get oldest solution
+	oldestSol = prevSol:oldest_solution()
+	
+	-- copy values into oldest solution (we reuse the memory here)
+	VecScaleAssign(oldestSol, 1.0, u)
+	
+	-- push oldest solutions with new values to front, oldest sol pointer is poped from end
+	prevSol:push_discard_oldest(oldestSol, time)
+	
+	print("++++++ TIMESTEP " .. step .. "  END ++++++");
+end
+
+-- end timeseries, produce gathering file
 out:end_timeseries("Con", u)
