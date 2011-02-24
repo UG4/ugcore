@@ -45,11 +45,13 @@
 namespace ug{
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
+
+
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 prepare_element_loop()
 {
 // 	resize corner coordinates
@@ -67,52 +69,29 @@ prepare_element_loop()
 // 	remember position attachement
 	m_aaPos = m_pDomain->get_position_accessor();
 
-	/*
-//	register subsetIndex at Geometry
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-
-	typename std::map<int, std::vector<size_t> >::const_iterator subsetIter;
-	for(subsetIter = m_mBoundarySegment.begin(); subsetIter != m_mBoundarySegment.end(); ++subsetIter)
-	{
-		const int bndSubset = (*subsetIter).first;
-		geo.add_boundary_subset(bndSubset);
-	}
-	
-	*/
 //	we're done
 	return true;
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 finish_element_loop()
 {
-	/*
-//	remove subsetIndex from Geometry
-	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem,dim>();
-
-	typename std::map<int, std::vector<size_t> >::const_iterator subsetIter;
-	for(subsetIter = m_mBoundarySegment.begin(); subsetIter != m_mBoundarySegment.end(); ++subsetIter)
-	{
-		const int bndSubset = (*subsetIter).first;
-		geo.remove_boundary_subset(bndSubset);
-	}
-	*/
 //	we're done
 	return true;
 }
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 
-template<typename TElem >
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind)
 {
 	// no function -> nothing to do
@@ -128,7 +107,9 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 	// update Geometry for this element
 	TFVGeom<TElem, dim>& geo = FVGeometryProvider::get_geom<TFVGeom, TElem, dim>();
 	if(!geo.update(elem, m_pDomain->get_subset_handler(), &m_vCornerCoords[0]))
-		{UG_LOG("FVInnerBoundaryElemDisc::prepare_element: Cannot update Finite Volume Geometry.\n"); return false;}
+	{
+		UG_LOG("ERROR in 'FVInnerBoundaryElemDisc::prepare_element: "
+				"Cannot update Finite Volume Geometry.\n"); return false;}
 
 	return true;
 }
@@ -136,11 +117,11 @@ prepare_element(TElem* elem, const local_vector_type& u, const local_index_type&
 
 
 // assemble stiffness part of Jacobian
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	// no function -> nothing to do
@@ -229,11 +210,11 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 {
 	// nothing to be done
@@ -242,11 +223,11 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 {
 	// no function -> nothing to do
@@ -310,11 +291,11 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 {
 	// nothing to be done
@@ -323,11 +304,11 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 
 
 
-template<template <class TElem, int TWorldDim> class TFVGeom, typename TDomain, typename TAlgebra>
-template<typename TElem >
+template<typename TDomain, typename TAlgebra>
+template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 inline
 bool
-FVInnerBoundaryElemDisc<TFVGeom, TDomain, TAlgebra>::
+FVInnerBoundaryElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
 	// nothing to be done

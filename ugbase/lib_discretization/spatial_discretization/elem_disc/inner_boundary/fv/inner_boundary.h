@@ -27,15 +27,12 @@ namespace ug{
  * assemblings for the unknown-dependent Neumann-flux over an inner boundary.
  * The equation of this flux should be given on the script level.
  * 
- * \tparam	TFVGeom		Finite Volume Geometry used
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
 
 
-template<template <	class TElem, int TWorldDim> class TFVGeom,
-					typename TDomain,
-					typename TAlgebra>
+template<typename TDomain, typename TAlgebra>
 class FVInnerBoundaryElemDisc
 	: public IElemDisc<TAlgebra>
 {
@@ -67,137 +64,17 @@ class FVInnerBoundaryElemDisc
 
 	public:
 		FVInnerBoundaryElemDisc()
-		 : m_numFct(0), m_pDomain(NULL)
+		 : m_pDomain(NULL)
 		{
-			//m_mBoundarySegment.clear();
 			register_assemble_functions(Int2Type<dim>());
 		}
 
 		void set_domain(domain_type& domain) {m_pDomain = &domain;}
-
-		/*
-		bool add_flux(const char* function, const char* subsets)
-		{
-			//	check that function pattern exists
-			if(this->m_pPattern == NULL)
-			{
-				UG_LOG("FVInnerBoundaryElemDisc:add_flux: Function Pattern not set.\n");
-				return false;
-			}
-
-			//	create Function Group and Subset Group
-			FunctionGroup functionGroup;
-			SubsetGroup subsetGroup;
-
-			//	convert strings
-			if(!ConvertStringToSubsetGroup(subsetGroup, *this->m_pPattern, subsets))
-			{
-				UG_LOG("ERROR while parsing Subsets.\n");
-				return false;
-			}
-			
-			if(!ConvertStringToFunctionGroup(functionGroup, *this->m_pPattern, function))
-			{
-				UG_LOG("ERROR while parsing Functions.\n");
-				return false;
-			}
-			
-			//	only one function allowed
-			if(functionGroup.num_fct() != 1)
-			{
-				UG_LOG("FVInnerBoundaryElemDisc:add_flux: Exactly one function needed, but given '"<<function<<"' as functions.\n");
-				return false;
-			}
-			
-		//	forward request
-			return add_flux(functionGroup, subsetGroup);
-		}
-
-		bool add_flux(FunctionGroup functionGroup, SubsetGroup bndSubsetGroup)
-		{
-			//	check that function pattern exists
-			if(this->m_pPattern == NULL)
-			{
-				UG_LOG("FVInnerBoundaryElemDisc:add_flux: Function Pattern not set.\n");
-				return false;
-			}
-
-			//	get subsethandler
-			const ISubsetHandler* pSH = this->m_pPattern->get_subset_handler();
-			
-			
-			for (size_t fct = 0; fct < functionGroup.num_fct(); fct++)
-			{
-				size_t fct_id = functionGroup.unique_id(fct);
-				
-				// 	check if functions exist
-				if(fct_id >= this->m_pPattern->num_fct())
-				{
-					UG_LOG("FVInnerBoundaryElemDisc:add_flux: Function "
-							<< fct_id << " does not exist in pattern.\n");
-					return false;
-				}
-				
-				//	add function to function group if needed
-				//	this will force, that the local vector contains the function
-				//	note: 	The local indices for allready contained functions are not changed.
-				//			Therefore an update in the UserDataFunctions is not necessary
-				if(!this->m_FunctionGroup.contains(fct_id))
-				{
-					this->m_FunctionGroup.add(fct_id);
-					m_numFct = this->m_FunctionGroup.num_fct();
-				}
-
-				//	get position of function in function group
-				size_t index = this->m_FunctionGroup.local_index(fct_id);
-				
-				
-				// 	check that function is defined on inner subset
-				if(!this->m_SubsetGroup.empty())
-				{
-					for (size_t si = 0; si < this->m_SubsetGroup.num_subsets(); ++si)
-					{
-						const int subsetIndex = this->m_SubsetGroup[si];
-						if (!this->m_pPattern->is_def_in_subset(fct_id, subsetIndex))
-						{
-							UG_LOG("FVInnerBoundaryElemDisc:add_flux: Function "
-									<< fct_id << " not defined in subset " << subsetIndex << ".\n");
-							return false;
-						}
-					}
-				}
-				
-				
-				// 	loop subsets
-				for(size_t si = 0; si < bndSubsetGroup.num_subsets(); ++si)
-				{
-					//	get subset index
-					const int subsetIndex = bndSubsetGroup[si];
-
-					//	check that subsetIndex is valid
-					if(subsetIndex < 0 || subsetIndex >= pSH->num_subsets())
-					{
-						UG_LOG("FVInnerBoundaryElemDisc:add_flux: Invalid subset Index "
-								<< subsetIndex << ". (Valid is 0, .. , " << pSH->num_subsets() <<").\n");
-						return false;
-					}
-
-					//	get Boundary segment from map
-					std::vector<size_t>& vSegmentFunction = m_mBoundarySegment[subsetIndex];
-					
-					//	remember functor and function
-					vSegmentFunction.push_back(index);
-				}
-			}
-		//	we're done
-			return true;
-		}
-		*/
 		
 	private:
-		//std::map<int, std::vector<size_t> > m_mBoundarySegment;
-		size_t m_numFct;
-
+	//	number of functions required on manifold
+		// \todo: handle flexible, using flexible DataLinker UserFunction
+		static const size_t m_numFct = 3;
 	
 	public:	// inherited from IElemDisc
 	///	number of functions used
@@ -225,7 +102,7 @@ class FVInnerBoundaryElemDisc
 		}
 
 	///	returns if hanging nodes are used
-		virtual bool use_hanging() const {return TFVGeom<Edge, dim>::usesHangingNodes;}
+		virtual bool use_hanging() const {return false;}
 
 	private:
 	
@@ -235,7 +112,7 @@ class FVInnerBoundaryElemDisc
 	 * array for the corner coordinates and schedules the local ip positions
 	 * at the data imports.
 	 */
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool prepare_element_loop();
 
 	///	prepares the element for assembling
@@ -244,31 +121,31 @@ class FVInnerBoundaryElemDisc
 	 * the Element Corners are read and the Finite Volume Geometry is updated.
 	 * The global ip positions are scheduled at the data imports.
 	 */
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool prepare_element(TElem* elem, const local_vector_type& u, const local_index_type& glob_ind);
 
 	///	finishes the loop over all elements
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool finish_element_loop();
 
 	///	assembles the local stiffness matrix using a finite volume scheme
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool assemble_JA(local_matrix_type& J, const local_vector_type& u, number time=0.0);
 
 	///	assembles the local mass matrix using a finite volume scheme
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool assemble_JM(local_matrix_type& J, const local_vector_type& u, number time=0.0);
 
 	///	assembles the stiffness part of the local defect
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool assemble_A(local_vector_type& d, const local_vector_type& u, number time=0.0);
 
 	///	assembles the mass part of the local defect
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool assemble_M(local_vector_type& d, const local_vector_type& u, number time=0.0);
 
 	///	assembles the local right hand side
-		template <typename TElem>
+		template<typename TElem, template <class Elem, int Dim> class TFVGeom>
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
@@ -308,18 +185,19 @@ class FVInnerBoundaryElemDisc
 		}
 
 		///	register all functions for on element type
-		template <typename TElem>
+		template<typename TElem>
 		void register_all_assemble_functions(int id)
 		{
 			typedef FVInnerBoundaryElemDisc T;
-			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &T::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &T::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
+
+			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem, FV1ManifoldBoundary>);
+			register_prepare_element_function(		id, &T::template prepare_element<TElem, FV1ManifoldBoundary>);
+			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem, FV1ManifoldBoundary>);
+			register_assemble_JA_function(			id, &T::template assemble_JA<TElem, FV1ManifoldBoundary>);
+			register_assemble_JM_function(			id, &T::template assemble_JM<TElem, FV1ManifoldBoundary>);
+			register_assemble_A_function(			id, &T::template assemble_A<TElem, FV1ManifoldBoundary>);
+			register_assemble_M_function(			id, &T::template assemble_M<TElem, FV1ManifoldBoundary>);
+			register_assemble_f_function(			id, &T::template assemble_f<TElem, FV1ManifoldBoundary>);
 		}
 
 };
