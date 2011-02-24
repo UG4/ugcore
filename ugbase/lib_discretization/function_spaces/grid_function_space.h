@@ -280,6 +280,8 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			return *(m_MGDoFManager.get_level_dof_distribution(level));
 		}
 
+		size_t num_levels() const {return m_MGDoFManager.num_levels();}
+
 	protected:
 	//	Init flag
 		bool m_bInit;

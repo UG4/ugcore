@@ -77,6 +77,7 @@ class AssembledMultiGridCycle :
 			m_topLev(surfaceLevel), m_baseLev(baseLevel), m_cycleType(cycle_type),
 			m_numPreSmooth(nu1), m_numPostSmooth(nu2), m_pBaseSolver(&baseSolver),
 			m_grid_changes(grid_changes), m_allocated(false),
+			m_bFullRefined(false),
 			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{
 			m_vSmoother.resize(1);
@@ -89,6 +90,7 @@ class AssembledMultiGridCycle :
 			m_topLev(0), m_baseLev(0), m_cycleType(1),
 			m_numPreSmooth(1), m_numPostSmooth(1), m_pBaseSolver(NULL),
 			m_grid_changes(false), m_allocated(false),
+			m_bFullRefined(false),
 			m_pDebugWriter(NULL), m_dbgIterCnt(0)
 		{
 			m_vSmoother.resize(1);
@@ -107,7 +109,11 @@ class AssembledMultiGridCycle :
 	// 	Setup
 		void set_discretization(IAssemble<dof_distribution_impl_type, algebra_type>& ass) {m_pAss = &ass;}
 		void set_approximation_space(approximation_space_type& approxSpace) {m_pApproxSpace = &approxSpace;}
-		void set_surface_level(int surfLevel) {m_topLev = surfLevel;}
+		void set_surface_level(int surfLevel)
+		{
+			UG_LOG("Setting surface level is DEPRECIATED and has no effect.\n");
+			//m_topLev = surfLevel;
+		}
 		void set_base_level(int baseLevel) {m_baseLev = baseLevel;}
 		void set_base_solver(base_solver_type& baseSolver) {m_pBaseSolver = &baseSolver;}
 		void set_smoother(smoother_type& smoother) {m_vSmoother[0] = & smoother;}
@@ -205,6 +211,13 @@ class AssembledMultiGridCycle :
 		// true -> allocate new matrices on every prepare
 		bool m_grid_changes;
 		bool m_allocated;
+
+	///	flag indicating if grid is full refined
+		bool m_bFullRefined;
+
+	///	boolian vector for each level, to indicate which dofs on the grid level
+	 // are not smoothed.
+		std::vector<std::vector<bool> > m_vvSkipSmooth;
 
 #ifdef UG_PARALLEL
 		// communicator

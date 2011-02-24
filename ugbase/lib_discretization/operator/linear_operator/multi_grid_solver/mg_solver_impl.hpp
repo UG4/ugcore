@@ -100,12 +100,14 @@ lmgc(size_t lev)
 			ComPol_VecAdd<typename function_type::vector_type> cpVecAdd(m_d[lev-1]);
 			if(!m_d[lev-1]->get_vertical_slave_layout().empty()){
 				resume = false;
-				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going down: SENDS vertical dofs on level " << lev -1 << ".\n");
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+				  " Going down: SENDS vertical dofs on level " << lev -1 << ".\n");
 				m_Com.send_data(m_d[lev-1]->get_vertical_slave_layout(), cpVecAdd);
 			}
 			else if(!m_d[lev-1]->get_vertical_master_layout().empty()){
 
-				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going down:  WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+				 " Going down:  WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
 				m_Com.receive_data(m_d[lev-1]->get_vertical_master_layout(), cpVecAdd);
 			}
 			m_Com.communicate();
@@ -129,13 +131,15 @@ lmgc(size_t lev)
 			//	one proc may not have both, a vertical-slave- and vertical-master-layout.
 			ComPol_VecCopy<typename function_type::vector_type> cpVecCopy(m_c[lev-1]);
 			if(!m_c[lev-1]->get_vertical_slave_layout().empty()){
-				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going up: WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+				 " Going up: WAITS FOR RECIEVE of vertical dofs on level " << lev -1 << ".\n");
 				m_Com.receive_data(m_c[lev-1]->get_vertical_slave_layout(),	cpVecCopy);
 
 				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}
 			else if(!m_c[lev-1]->get_vertical_master_layout().empty()){
-				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2, " Going up: SENDS vertical dofs on level " << lev -1 << ".\n");
+				UG_DLOG_ALL_PROCS(LIB_DISC_MULTIGRID, 2,
+				 " Going up: SENDS vertical dofs on level " << lev -1 << ".\n");
 				m_Com.send_data(m_c[lev-1]->get_vertical_master_layout(), cpVecCopy);
 				m_c[lev-1]->set_storage_type(PST_CONSISTENT);
 			}
@@ -221,6 +225,31 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
 				"Can not cast Operator to AssembledLinearizedOperator.\n");
 		return false;
+	}
+
+//	check that grid given
+	if(m_pApproxSpace->num_levels() == 0)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+				"No grid level in Approximation Space.\n");
+		return false;
+	}
+
+//	get current toplevel
+	m_topLev = m_pApproxSpace->num_levels() - 1;
+
+//	check, if grid is full-refined
+	if(m_topLev == 0)
+	{
+		m_bFullRefined = true;
+	}
+	else
+	{
+		if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
+			m_pApproxSpace->get_level_dof_distribution(m_topLev-1).num_dofs()	)
+			m_bFullRefined = true;
+		else
+			m_bFullRefined =false;
 	}
 
 //	init common
@@ -342,6 +371,31 @@ init(ILinearOperator<vector_type, vector_type>& L)
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
 				"Can not cast Operator to AssembledLinearizedOperator.\n");
 		return false;
+	}
+
+//	check that grid given
+	if(m_pApproxSpace->num_levels() == 0)
+	{
+		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
+				"No grid level in Approximation Space.\n");
+		return false;
+	}
+
+//	get current toplevel
+	m_topLev = m_pApproxSpace->num_levels() - 1;
+
+//	check, if grid is full-refined
+	if(m_topLev == 0)
+	{
+		m_bFullRefined = true;
+	}
+	else
+	{
+		if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
+			m_pApproxSpace->get_level_dof_distribution(m_topLev-1).num_dofs()	)
+			m_bFullRefined = true;
+		else
+			m_bFullRefined =false;
 	}
 
 //	init common
