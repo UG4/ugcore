@@ -150,7 +150,7 @@ function utilCreateDirichletBoundary(approxSpace)
 end
 
 -- creates Inner Boundary
-function utilCreateInnerBoundary(approxSpace, subsets)
+function utilCreateInnerBoundary(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
 	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
@@ -168,6 +168,7 @@ function utilCreateInnerBoundary(approxSpace, subsets)
 	innerDisc:set_domain(domain)
 	innerDisc:set_pattern(pattern)
 	innerDisc:set_subsets(subsets)
+	innerDisc:set_functions(functions)
 	return innerDisc
 end
 
