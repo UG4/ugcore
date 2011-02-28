@@ -189,7 +189,9 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainIndependent(Registry& reg
 				.add_method("set_line_search", &T::set_line_search)
 				.add_method("init", &T::init)
 				.add_method("prepare", &T::prepare)
-				.add_method("apply", &T::apply);
+				.add_method("apply", &T::apply)
+				.add_method("set_debug", &T::set_debug);
+
 		}
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
