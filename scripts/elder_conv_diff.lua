@@ -16,10 +16,23 @@ InitAlgebra(algebra)
 
 -- constants
 dim = 2
+
+if dim == 2 then
 gridName = "elder_quads_8x2.ugx"
-numRefs = 5
-NumPreTimeSteps = 1
-NumTimeSteps = 100
+else
+	print("Only grid for 2D given.");
+	exit();
+end
+
+-- choose number of pre-Refinements (before sending grid onto different processes)	
+numPreRefs = GetParamNumber("-numPreRefs", 0)
+
+-- choose number of total Refinements (incl. pre-Refinements)
+numRefs = GetParamNumber("-numRefs", 2)
+
+-- choose number of time steps
+NumPreTimeSteps = GetParamNumber("-numPreTimeSteps", 1)
+NumTimeSteps =  GetParamNumber("-numTimeSteps", 100)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -98,29 +111,45 @@ dom = utilCreateDomain(dim)
 -- load domain
 print("Load Domain from File.")
 if utilLoadDomain(dom, gridName) == false then
-	print("Loading Domain failed.")
-	exit()
+print("Loading Domain failed.")
+exit()
+end
+
+-- create Refiner
+print("Create Refiner")
+if numPreRefs > numRefs then
+print("numPreRefs must be smaller/equal than numRefs");
+exit();
+end
+
+refiner = GlobalMultiGridRefiner()
+refiner:assign_grid(dom:get_grid())
+for i=1,numPreRefs do
+refiner:refine()
+end
+
+if DistributeDomain(dom) == false then
+print("Error while Distributing Grid.")
+exit()
+end
+
+print("Refine Parallel Grid")
+for i=numPreRefs+1,numRefs do
+--refiner:refine()
+utilGlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
 sh = dom:get_subset_handler()
 if sh:num_subsets() ~= 2 then 
-	print("Domain must have 2 Subsets for this problem.")
-	exit()
+print("Domain must have 2 Subsets for this problem.")
+exit()
 end
 sh:set_subset_name("Inner", 0)
 sh:set_subset_name("Boundary", 1)
 
--- create Refiner
-print("Create Refiner")
-refiner = GlobalMultiGridRefiner()
-refiner:assign_grid(dom:get_grid())
-for i=1,numRefs do
-refiner:refine()
-end
-
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 
 -- create function pattern
@@ -284,7 +313,6 @@ projection = utilCreateP1Projection(approxSpace)
 gmg = utilCreateGeometricMultiGrid(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
-gmg:set_surface_level(numRefs)
 gmg:set_base_level(2)
 gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
@@ -350,32 +378,68 @@ u = approxSpace:create_surface_function()
 dt = 3.1536e6
 
 time = 0.0
-step = 1
+step = 0
 
 -- set initial value
 InterpolateFunction2d(PressureStartValue, u, "p", time)
 InterpolateFunction2d(ConcentrationStartValue, u, "c", time)
 InterpolateFunction2d(TemperatureStartValue, u, "T", time)
 
--- Apply Solver
-out = VTKOutput2d()
+----------------------------------
+-- Time loop
+----------------------------------
+
+-- write start solution
+print("Writing start values")
+out = utilCreateVTKWriter(dim)
 out:begin_timeseries("Elder", u)
-out:print("Elder", u, 0, 0.0)
+out:print("Elder", u, step, time)
 
--- Perform Time Step
-do_steps = NumPreTimeSteps
-do_dt = dt/100
-PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
-step = step + do_steps
-time = time + do_dt * do_steps
+-- some info output
+print( "   numRefs is         " .. numRefs)
+print( "   NumTimeSteps is " .. NumTimeSteps   .. ",  NumPreTimeSteps is " .. NumPreTimeSteps )
 
-do_steps = NumTimeSteps - NumPreTimeSteps
-if do_steps > 0 then
-	do_dt = dt
-	PerformTimeStep2d(newtonSolver, u, timeDisc, do_steps, step, time, do_dt, out, "Elder", true)
-	step = step + do_steps
-	time = time + do_dt * do_steps
+-- create new grid function for old value
+uOld = u:clone()
+
+-- store grid function in vector of  old solutions
+prevSol = PreviousSolutions()
+prevSol:push(uOld, time)
+
+for step = 1, NumTimeSteps do
+	print("++++++ TIMESTEP " .. step .. " BEGIN ++++++")
+	
+	-- choose time step
+	if step <= NumPreTimeSteps then do_dt = dt/100
+	else do_dt = dt
+	end
+	
+	-- setup time Disc for old solutions and timestep
+	timeDisc:prepare_step(prevSol, do_dt)
+	
+	-- prepare newton solver
+	if newtonSolver:prepare(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
+	
+	-- apply newton solver
+	if newtonSolver:apply(u) == false then print ("Newton solver failed at step "..step.."."); exit(); end 
+	
+	-- update new time
+	time = prevSol:time(0) + do_dt
+	
+	-- plot solution
+	out:print("Elder", u, step, time)
+	
+	-- get oldest solution
+	oldestSol = prevSol:oldest_solution()
+	
+	-- copy values into oldest solution (we reuse the memory here)
+	VecScaleAssign(oldestSol, 1.0, u)
+	
+	-- push oldest solutions with new values to front, oldest sol pointer is poped from end
+	prevSol:push_discard_oldest(oldestSol, time)
+	
+	print("++++++ TIMESTEP " .. step .. "  END ++++++");
 end
 
--- Output
+-- end timeseries, produce gathering file
 out:end_timeseries("Elder", u)
