@@ -172,6 +172,9 @@ class IProjectionOperator :	public virtual ILinearOperator<X,Y>
 		typedef Y codomain_function_type;
 
 	public:
+	// 	Apply Transposed Operator u = L^T*f
+		virtual bool apply_transposed(X& u, const Y& f) = 0;
+
 	// 	Set Levels for Prolongation coarse -> fine
 		virtual bool set_levels(size_t coarseLevel, size_t fineLevel) = 0;
 
