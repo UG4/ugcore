@@ -595,6 +595,16 @@ std::ostream& operator<< (std::ostream& outStream, const ug::LocalMatrix<Entry>&
 	return outStream;
 }
 
+template <typename Entry>
+std::ostream& operator<< (std::ostream& outStream, const ug::LocalVector<Entry>& vec)
+{
+	for(size_t i = 0; i < vec.size(); ++i)
+	{
+		outStream << "["<<i<<"]: (" << vec.index(i) << ") : " << vec[i] << "\n";
+	}
+	return outStream;
+}
+
 } // end namespace ug
 
 #endif /* __H__LIB_DISCRETIZATION__COMMON__LOCAL_ALGEBRA__ */
