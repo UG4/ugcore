@@ -39,20 +39,61 @@ AssembledMultiGridCycle<TApproximationSpace, TAlgebra>::
 smooth(function_type& d, function_type& c, size_t lev, int nu)
 {
 
-	// Presmooth
+// 	smooth nu times
 	for(int i = 0; i < nu; ++i)
 	{
-		// compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
-		if(!m_vSmoother[lev]->apply_update_defect(*m_t[lev], d))
+	//	For Full-Refinement, we can work on the defect directly
+		if(m_bFullRefined)
 		{
-			UG_LOG("ERROR in smoothing step " << i+1 << " on level " << lev << ".\n");
-			return false;
-		}
+		// 	compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
+			if(!m_vSmoother[lev]->apply_update_defect(*m_t[lev], d))
+			{
+				UG_LOG("ERROR in smoothing step " << i+1 << " on level " << lev << ".\n");
+				return false;
+			}
 
-		// add correction of smoothing step to level correction
-		c += *m_t[lev];
+		// 	add correction of smoothing step to level correction
+			c += *m_t[lev];
+		}
+	//	For Adaptive-Refinement, we have to take care for inner-level nodes
+	//  On these nodes, no smoothing is performed, i.e. the correction has to
+	//	be zero
+		else
+		{
+			static int cnt = 0;
+
+		// 	compute correction of one smoothing step (defect is updated d:= d - A m_t[l])
+			if(!m_vSmoother[lev]->apply(*m_t[lev], d))
+			{
+				UG_LOG("ERROR in smoothing step " << i+1 << " on level " << lev << ".\n");
+				return false;
+			}
+
+			char ext[200]; sprintf(ext, "GMG_CorrSmoothOrig_run%03d", cnt);
+
+			write_level_debug(*m_t[lev], ext, lev);
+
+		//	reset correction to zero for inner patch-bnd nodes
+			const std::vector<bool>& vSkip = m_vvSkipSmooth[lev];
+			for(size_t i = 0; i < vSkip.size(); ++i)
+			{
+				if(vSkip[i])
+					(*m_t[lev])[i] = 0.0;
+			}
+
+			sprintf(ext, "GMG_CorrSmoothUsed_run%03d", cnt++);
+			write_level_debug(*m_t[lev], ext, lev);
+
+		//	compute new defect
+			m_A[lev]->apply_sub(d, *m_t[lev]);
+
+		// 	add correction of smoothing step to level correction
+			c += *m_t[lev];
+
+		}
 	}
 
+//	we're done
 	return true;
 }
 
@@ -69,11 +110,15 @@ lmgc(size_t lev)
 	{
 	// 	Presmooth
 		GMG_PROFILE_BEGIN(GMG_PreSmooth);
+		write_level_debug(*m_c[lev], "GMG_CorrBeforePreSmooth", lev);
+		write_level_debug(*m_d[lev], "GMG_DefBeforePreSmooth", lev);
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_numPreSmooth))
 		{
 			UG_LOG("ERROR in presmoothing on level " << lev << ".\n");
 			return false;
 		}
+		write_level_debug(*m_d[lev], "GMG_DefAfterPreSmooth", lev);
+		write_level_debug(*m_c[lev], "GMG_CorrAfterPreSmooth", lev);
 		GMG_PROFILE_END();
 
 		#ifdef UG_PARALLEL
@@ -156,20 +201,89 @@ lmgc(size_t lev)
 	// 	Add coarse grid correction to level correction
 		*m_c[lev] += *m_t[lev];
 
-	//	Update Defect
+		write_level_debug(*m_t[lev], "GMG_CorrIntpolCoarseCorr", lev);
+		write_level_debug(*m_d[lev], "GMG_DefBeforeUpdateCoarseCorr", lev);
+
+	//	\todo: This is a lousy quick-hack for test purpose. Replace!
+	//	Update Defect for correction on coarse grid
+		if(!m_bFullRefined)
+		{
+			clear_on_hidden_values(*m_c[lev-1], lev-1);
+			write_level_debug(*m_c[lev-1], "AAA_ClearedCoarseCorr", lev-1);
+
+			vector_type dTmpCoarse; dTmpCoarse.resize(m_d[lev-1]->num_dofs());
+			vector_type dTmpFine; dTmpFine.resize(m_d[lev]->num_dofs());
+
+			//m_A[lev-1]->apply(dTmpCoarse, *m_c[lev-1]);
+			matrix_type mat;
+			mat.create_as_copy_of(m_A[lev-1]->get_matrix());
+
+			const std::vector<bool>& vSkipBnd = m_vvSkipHidden[lev-1];
+			for(size_t i = 0; i < mat.num_rows(); ++i)
+			{
+//				mat(i,i) *= 0.5;
+				if(!vSkipBnd[i]) continue;
+
+				for(typename matrix_type::rowIterator conn = mat.beginRow(i);
+						!conn.isEnd(); ++conn)
+				{
+					const size_t j = (*conn).iIndex;
+					if(!vSkipBnd[j] ) continue;
+
+					(*conn).dValue *= 0.5;
+//					UG_LOG("Scal i="<<i<<", j="<<j<<"\n");
+
+				}
+			}
+
+			vector_type* pVec = dynamic_cast<vector_type*>(m_c[lev-1]);
+			if(pVec == NULL) UG_ASSERT(0, "Cannot cast.");
+#ifdef UG_PARALLEL
+			mat.set_storage_type(PST_ADDITIVE);
+			pVec->set_storage_type(PST_CONSISTENT);
+#endif
+			mat.apply(dTmpCoarse, *pVec);
+#ifdef UG_PARALLEL
+			dTmpCoarse.set_storage_type(PST_ADDITIVE);
+#endif
+
+			write_level_debug(dTmpCoarse, "AAA_dCoarse", lev-1);
+
+			m_vProjection[lev-1]->apply_transposed(dTmpFine, dTmpCoarse);
+			write_level_debug(dTmpFine, "AAA_dFine", lev);
+
+			//dTmpFine *= 0.5;
+
+			const std::vector<bool>& vSkip = m_vvSkipSmooth[lev];
+			for(size_t i = 0; i < vSkip.size(); ++i)
+			{
+				if(vSkip[i])
+					(*m_d[lev])[i] -= dTmpFine[i];
+			}
+			write_level_debug(*m_d[lev], "AAA_DefAfterSubtrCoarseCorr", lev);
+		}
+
+
+	//	Update Defect for correction on this grid
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_t[lev]))
 		{
 			UG_LOG("ERROR in updating defect on level " << lev << ".\n");
 			return false;
 		}
+		write_level_debug(*m_d[lev], "GMG_DefAfterUpdateCoarseCorr", lev);
+
 
 	// 	Postsmooth
 		GMG_PROFILE_BEGIN(GMG_PostSmooth);
+		write_level_debug(*m_c[lev], "GMG_CorrBeforePostSmooth", lev);
+		write_level_debug(*m_d[lev], "GMG_DefBeforePostSmooth", lev);
 		if(!smooth(*m_d[lev], *m_c[lev], lev, m_numPostSmooth))
 		{
 			UG_LOG("ERROR in postsmoothing on level " << lev << ".\n");
 			return false;
 		}
+		write_level_debug(*m_c[lev], "GMG_CorrAfterPostSmooth", lev);
+		write_level_debug(*m_d[lev], "GMG_DefAfterPostSmooth", lev);
 		GMG_PROFILE_END();
 
 		return true;
@@ -190,6 +304,7 @@ lmgc(size_t lev)
 #endif
 
 		//PROFILE_BEGIN(baseSolver);
+		write_level_debug(*m_d[lev], "GMG_DefBeforeBase", lev);
 		if(!m_pBaseSolver->apply(*m_c[lev], *m_d[lev]))
 			{UG_LOG("ERROR in base solver on level " << lev << ".\n"); return false;}
 		//PROFILE_END();
@@ -198,6 +313,10 @@ lmgc(size_t lev)
 		if(!m_A[lev]->apply_sub(*m_d[lev], *m_c[lev]))
 			{UG_LOG("ERROR in updating defect on level " << lev << ".\n"); return false;}
 		GMG_PROFILE_END();
+
+		write_level_debug(*m_c[lev], "GMG_CorrAfterBase", lev);
+		write_level_debug(*m_d[lev], "GMG_DefAfterBase", lev);
+
 
 #ifdef UG_PARALLEL
 		UG_DLOG(LIB_DISC_MULTIGRID, 2, " Base solver done.\n");
@@ -385,21 +504,14 @@ init(ILinearOperator<vector_type, vector_type>& L)
 	m_topLev = m_pApproxSpace->num_levels() - 1;
 
 //	check, if grid is full-refined
-	if(m_topLev == 0)
-	{
+	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
+		m_pApproxSpace->get_surface_dof_distribution().num_dofs())
 		m_bFullRefined = true;
-	}
 	else
-	{
-		if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
-			m_pApproxSpace->get_level_dof_distribution(m_topLev-1).num_dofs()	)
-			m_bFullRefined = true;
-		else
-			m_bFullRefined =false;
-	}
+		m_bFullRefined =false;
 
 //	init common
-	if(!init_common(false))
+	if(!init_common(!m_bFullRefined))
 	{
 		UG_LOG("ERROR in 'AssembledMultiGridCycle:init': "
 				"Can init common part.\n");
@@ -587,9 +699,30 @@ init_smoother_and_base_solver()
 					" Cannot init smoother for level "<< lev << ".\n");
 			return false;
 		}
+
+		write_level_debug(m_A[lev]->get_matrix(), "Operator", lev);
 	}
 	GMG_PROFILE_END();
 
+	// init skip flags
+	if(!m_bFullRefined)
+	{
+	//	clear skip flags
+		m_vvSkipSmooth.clear();
+		m_vvSkipHidden.clear();
+
+	//	resize skip flags for level
+		m_vvSkipSmooth.resize(m_topLev+1);
+		m_vvSkipHidden.resize(m_topLev+1);
+
+	//	create skip flags for each level
+		for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
+		{
+			create_level_skip_flags(m_vvSkipSmooth[lev], lev);
+			if(lev != m_topLev)
+			create_hidden_flags(m_vvSkipHidden[lev], lev);
+		}
+	}
 // 	TODO: For non-adaptive refinement this should use the passed (already assembled) operator
 
 // 	Prepare base solver
@@ -751,9 +884,9 @@ apply_update_defect(vector_type &c, vector_type& d)
 	}
 
 //	debug output
-	write_surface_debug(c, "GMG_CorrectionOut");
+	write_surface_debug(c, "GMG_CorrOut");
 	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
-		write_level_debug(*m_c[lev], "GMG_CorrectionOutProject", lev);
+		write_level_debug(*m_c[lev], "GMG_CorrOutProject", lev);
 	write_surface_debug(d, "GMG_DefectOut");
 	for(size_t lev = m_baseLev; lev <= m_topLev; ++lev)
 		write_level_debug(*m_d[lev], "GMG_DefectOutProject", lev);

@@ -111,7 +111,7 @@ class AssembledMultiGridCycle :
 		void set_approximation_space(approximation_space_type& approxSpace) {m_pApproxSpace = &approxSpace;}
 		void set_surface_level(int surfLevel)
 		{
-			UG_LOG("Setting surface level is DEPRECIATED and has no effect.\n");
+			UG_LOG("Setting surface level is DEPRECIATED and has no effect. It can be omitted.\n");
 			//m_topLev = surfLevel;
 		}
 		void set_base_level(int baseLevel) {m_baseLev = baseLevel;}
@@ -161,6 +161,204 @@ class AssembledMultiGridCycle :
 		bool init_smoother_and_base_solver();
 		bool allocate_memory();
 		bool free_memory();
+
+		bool clear_on_hidden_values(vector_type& vec, size_t lev)
+		{
+		//	get level dof distribution
+			dof_distribution_type& levelDD =
+					m_pApproxSpace->get_level_dof_distribution(lev);
+
+		//	get grid
+			typename TApproximationSpace::domain_type::grid_type& mg =
+							m_pApproxSpace->get_domain().get_grid();
+
+		//	loop mg level
+			typename geometry_traits<VertexBase>::iterator iter = mg.template begin<VertexBase>(lev);
+			typename geometry_traits<VertexBase>::iterator iterEnd = mg.template end<VertexBase>(lev);
+
+			// \todo: We should handle all elements here
+			for( ; iter != iterEnd; ++iter)
+			{
+			//	get vertex
+				VertexBase* vrt = *iter;
+
+			//	skip non hidden vrt
+				if(!mg.has_children(vrt)) continue;
+
+			//	skip bnd nodes
+				VertexBase* childVrt = mg.get_child_vertex(vrt);
+				const int dim = TApproximationSpace::domain_type::dim;
+				bool bIsBndVrt = false;
+				if(dim == 2)
+					bIsBndVrt = IsBoundaryVertex2D(mg, childVrt);
+				if(dim == 3)
+					bIsBndVrt = IsBoundaryVertex3D(mg, childVrt);
+
+				if(bIsBndVrt) continue;
+
+			//	get index
+				typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type ind;
+
+			//  get global indices
+				levelDD.get_algebra_indices(vrt, ind);
+
+			//	skip all indices
+				for(size_t i = 0; i < ind.size(); ++i)
+				{
+					vec[ind[i]] = 0.0;
+				}
+			}
+
+			return true;
+		}
+
+		bool create_hidden_flags(std::vector<bool>& vSkip, size_t lev)
+		{
+		//	get level dof distribution
+			dof_distribution_type& levelDD =
+					m_pApproxSpace->get_level_dof_distribution(lev);
+
+		//	create bool-array of level size
+			vSkip.clear();
+			vSkip.resize(levelDD.num_dofs(), false);
+
+		//	get grid
+			typename TApproximationSpace::domain_type::grid_type& mg =
+							m_pApproxSpace->get_domain().get_grid();
+
+		//	loop mg level
+			typename geometry_traits<VertexBase>::iterator iter = mg.template begin<VertexBase>(lev);
+			typename geometry_traits<VertexBase>::iterator iterEnd = mg.template end<VertexBase>(lev);
+
+			// \todo: We should handle all elements here
+			for( ; iter != iterEnd; ++iter)
+			{
+			//	get vertex
+				VertexBase* vrt = *iter;
+
+			//	skip non hidden vrt
+				if(!mg.has_children(vrt)) continue;
+
+			//	get index
+				typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type ind;
+
+			//  get global indices
+				levelDD.get_algebra_indices(vrt, ind);
+
+			//	skip all indices
+				for(size_t i = 0; i < ind.size(); ++i)
+				{
+					vSkip[ind[i]] = true;
+				}
+			}
+
+			return true;
+		}
+
+		bool create_level_skip_flags(std::vector<bool>& vSkip, size_t lev)
+		{
+			typedef Vertex TVertex;
+
+		//	get level dof distribution
+			dof_distribution_type& levelDD =
+					m_pApproxSpace->get_level_dof_distribution(lev);
+
+		//	create bool-array of level size
+			vSkip.clear();
+			vSkip.resize(levelDD.num_dofs(), false);
+
+		////////////////////////////////
+		// First we skip all bnd nodes
+
+		//	get grid
+			typename TApproximationSpace::domain_type::grid_type& mg =
+							m_pApproxSpace->get_domain().get_grid();
+
+		//	loop mg level
+			typename geometry_traits<TVertex>::iterator iter = mg.template begin<TVertex>(lev);
+			typename geometry_traits<TVertex>::iterator iterEnd = mg.template end<TVertex>(lev);
+
+			// \todo: We should handle all elements here
+			for( ; iter != iterEnd; ++iter)
+			{
+			//	get vertex
+				TVertex* vrt = *iter;
+
+			//	check if vertex on boundary
+				const int dim = TApproximationSpace::domain_type::dim;
+				bool bIsBndVrt = false;
+				if(dim == 2)
+					bIsBndVrt = IsBoundaryVertex2D(mg, vrt);
+				if(dim == 3)
+					bIsBndVrt = IsBoundaryVertex3D(mg, vrt);
+
+			//	skip non bnd vrt
+				if(!bIsBndVrt) continue;
+
+			//	get index
+				typename TApproximationSpace::dof_distribution_type::algebra_index_vector_type ind;
+
+			//  get global indices
+				levelDD.get_algebra_indices(vrt, ind);
+
+			//	skip all indices
+				for(size_t i = 0; i < ind.size(); ++i)
+					vSkip[ind[i]] = true;
+			}
+
+			////////////////////////////////
+			// Remove physical bnd nodes
+			// \todo: Implement
+
+
+#ifdef UG_PARALLEL
+			////////////////////////////////
+			// Remove interface indices
+
+		//	get layout
+			IndexLayout& layout = levelDD.get_master_layout();
+
+		//	loop layout
+			for(IndexLayout::iterator interfaceIter = layout.begin();
+				interfaceIter != layout.end(); ++interfaceIter)
+			{
+			//	iterate over the entries of the interface
+				IndexLayout::Interface& interface = layout.interface(interfaceIter);
+				for(IndexLayout::Interface::iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	get index
+					IndexLayout::Interface::Element& index = interface.get_element(iter);
+
+				//	clear skip flag
+					vSkip[index] = false;
+				}
+			}
+
+		//	get layout
+			 layout = levelDD.get_slave_layout();
+
+		//	loop layout
+			for(IndexLayout::iterator interfaceIter = layout.begin();
+				interfaceIter != layout.end(); ++interfaceIter)
+			{
+			//	iterate over the entries of the interface
+				IndexLayout::Interface& interface = layout.interface(interfaceIter);
+				for(IndexLayout::Interface::iterator iter = interface.begin();
+					iter != interface.end(); ++iter)
+				{
+				//	get index
+					IndexLayout::Interface::Element& index = interface.get_element(iter);
+
+				//	clear skip flag
+					vSkip[index] = false;
+				}
+			}
+#endif
+
+		//  we're done
+			return true;
+		}
 
 	protected:
 	/// operator to invert (surface grid)
@@ -218,6 +416,7 @@ class AssembledMultiGridCycle :
 	///	boolian vector for each level, to indicate which dofs on the grid level
 	 // are not smoothed.
 		std::vector<std::vector<bool> > m_vvSkipSmooth;
+		std::vector<std::vector<bool> > m_vvSkipHidden;
 
 #ifdef UG_PARALLEL
 		// communicator
@@ -268,6 +467,71 @@ class AssembledMultiGridCycle :
 			return bRet;
 		}
 
+		bool write_level_debug(const matrix_type& mat, const char* filename, size_t lev)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	create level function
+			function_type* dbgFunc = m_pApproxSpace->create_level_function(lev);
+
+		//	cast dbg writer
+			GridFunctionDebugWriter<function_type>* dbgWriter =
+					dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
+
+		//	set grid function
+			if(dbgWriter != NULL)
+				dbgWriter->set_reference_grid_function(*dbgFunc);
+			else
+			{
+				delete dbgFunc;
+				UG_LOG("Cannot write debug on level "<< lev<<".\n");
+				return false;
+			}
+
+		//	add iter count to name
+			std::string name(filename);
+			char ext[20]; sprintf(ext, "_lev%03d_iter%03d", (int)lev, m_dbgIterCnt);
+			name.append(ext);
+
+		//	write
+			bool bRet = m_pDebugWriter->write_matrix(mat, name.c_str());
+
+		//	remove dbgFunc
+			delete dbgFunc;
+
+			return bRet;
+		}
+
+/*		bool write_level_debug(const function_type& fct, const char* filename, size_t lev)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	cast dbg writer
+			GridFunctionDebugWriter<function_type>* dbgWriter =
+					dynamic_cast<GridFunctionDebugWriter<function_type>*>(m_pDebugWriter);
+
+		//	set grid function
+			if(dbgWriter != NULL)
+				dbgWriter->set_reference_grid_function(*fct);
+			else
+			{
+				UG_LOG("Cannot write debug on level "<< lev<<".\n");
+				return false;
+			}
+
+		//	add iter count to name
+			std::string name(filename);
+			char ext[20]; sprintf(ext, "_lev%03d_iter%03d", (int)lev, m_dbgIterCnt);
+			name.append(ext);
+
+		//	write
+			bool bRet = m_pDebugWriter->write_vector(fct, name.c_str());
+
+			return bRet;
+		}
+*/
 		bool write_surface_debug(const vector_type& vec, const char* filename)
 		{
 		//	if no debug writer set, we're done
