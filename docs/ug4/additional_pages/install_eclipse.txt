@@ -1,0 +1,97 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y10 m12 d11
+
+/**	\page pageInstallEclipse ug4 - using Eclipse
+
+The following Coding Style is recommended for ug.
+
+	- \ref secInstallEcpliseDownload "Download Eclipse"
+	- \ref secInstallEcpliseUG4Download "Download UG4 via Eclipse/SVN"
+
+For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
+
+<hr>
+\section secInstallEcpliseDownload Download Eclipse
+<hr>
+
+<ul>
+<li> Download <b>eclipse</b> from www.eclipse.org: "Eclipse IDE for C/C++ Developers"
+<li> Unzip eclipse and move it to your "Application" folder
+<li> Start eclipse. On startup you are requested to choose a workspace. This is 
+	the location, where your projects will be placed. Specially, ug4 will
+	be placed here. So, choose an folder where you want ug4 to be downloaded to.
+	(e.g. home/projects/)
+<li> Install a subversion plugin:<br/>
+	<ol>
+	 <li>"Help" -> "Install new Software"
+	 <li> Type "Work with: http://download.eclipse.org/releases/helios"
+	 <li> Choose the plugin "Collaboration" by setting checking the box
+	 <li> Click "Next"
+	 <li> Click "Next"
+	 <li> Accept license
+	 <li> Click "Finish"
+	 <li> Installation begins. Restart Eclipse when finished.
+	 <li> Choose latest release of "SVN Kit *.*.*". Click "Finish".
+	 <li> Choose all items to be installed. Click "Next".
+	 <li> Click "Next"
+	 <li> Accept license. Click "Finish". Install begins. Restart Eclipse when finished.
+	 </ol>
+</ul>
+
+<hr>
+\section secInstallEcpliseUG4Download Download ug4 via Eclipse/SVN
+<hr>
+
+<ul>
+<li> Choose "New" -> "Other" -> "SVN" -> "Project from SVN"
+<li> URL is: "svn://fuji.gcsc.uni-frankfurt.de/ug4/trunk"
+<li> Choose "Use a custom label: ug4-trunk"
+<li> Fill in your "User" and "Password" as received by (currently) Sebastian Reiter.
+<li> Disable "Advanced" -> "Detect repository structure"
+<li> Click "Next" (Click always yes when problems occure)
+<li> Choose "Head Revision"
+<li> Click "Finish"
+<li> Choose "Check out as a project configured using the the New Project Wizard". Confirm.
+<li> Choose "C/C++" -> "C++ Project"
+<li> Choose "Project name: ug4" and "Empty Project". Click "Finish"
+</ul>
+
+<hr>
+\section secInstallEcpliseCMake Run CMake
+<hr>
+
+<ol>
+<li> Open a terminal/shell window
+<li> move to ug4/trunk/
+<li> "mkdir build_debug"
+<li> "cd build_debug"
+<li> "cmake -DUG_DEBUG=ON .." --> Makefiles are generated
+</ol>
+
+<hr>
+\section secInstallEcpliseUseMakefiles Build in Eclipse using external makefiles
+<hr>
+
+<ol>
+<li> click right on folder "ug4" -> Choose "Properties"
+<li> Under "C/C++-Build":
+<li> Disable "Generate Makefiles automatically"
+<li> Disable "Use default build command"
+<li> Choose "Build directory: ..." -> Click "Filesystem" -> Choose newly created
+ 	folder "build_debug"
+<li> In "Behaviour": In "Build (incremential build)" remove "all"
+<li> Disable automatically build: Remove "Project"->"Build automatically"
+</ol>
+
+You find the binary in "ug4/bin/" wiht the name "ugshell"
+
+<ol>
+<li> "ug4" -> "Properties"
+<li> "Run/Debug Settings"
+<li> Click "New..." -> "C/C++ Application"
+<li> Fill in executable: "Browse" -> "ug4/bin/ugshell"
+<li> Choose "Arguments" -> "Programm arguments": Fill in: "-ex laplace.lua"
+<li> (Maybe add environment variable)
+</ol>
+*/

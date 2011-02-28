@@ -1,0 +1,48 @@
+//	created by Andreas Vogel
+//	andreas.vogel@gcsc.uni-frankfurt.de
+//	y10 m12 d11
+
+/**	\page pageInstallUG4 ug4 - Installation
+
+The following Coding Style is recommended for ug.
+
+	- \ref secInstallUG4Boost "Download Boost"
+	- \ref secInstallUG4CMake "Download CMake"
+	- \ref secInstallUG4UG4 "Download UG4"
+
+For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
+
+<hr>
+\section secInstallUG4Boost Boost
+<hr>
+
+<ul>
+<li> <b>Boost</b>: Download latest release of Boost from "www.boost.org".
+<li> Copy the library to some folder on your computer. The folder is arbitrary. 
+	(e.g. home/lib/boost_1_46_0)
+<li> Add the path of the folder, where boost is located, to the environment 
+	variable PATH
+	(e.g. 	export BOOST_ROOT = $HOME/lib/boost_1_46_0)
+</ul> 
+
+<hr>
+\section secInstallUG4CMake CMake
+<hr>
+
+<ul>
+<li> <b>CMake</b>: Download Cmake from "www.cmake.org" (min Release 2.6)
+<li> Install cmake on your computer. Install the command line tools, when requested 
+	during installation.
+</ul>
+
+<hr>
+\section secInstallUG4UG4 ug4
+<hr>
+
+<ul>
+<li> <b>ug4</b>: Download ug4 from the repository <br />
+		svn checkout svn://fuji.gcsc.uni-frankfurt.de/home/repos/ug4/trunk
+</ul>
+
+
+*/
