@@ -131,13 +131,13 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 		for(size_t j = 0; j < geo.num_sh(); ++j)
 		{
 			// diffusion
-			if(!m_Diff.zero_data())
+			if(m_Diff.data_given())
 				MatVecMult(Dgrad, m_Diff[ip], geo.grad_global(ip, j));
 			else
 				VecSet(Dgrad, 0.0);
 
 			// convection
-			if(!m_ConvVel.zero_data())
+			if(m_ConvVel.data_given())
 				VecScaleAppend(Dgrad, -1*geo.shape(ip,j), m_ConvVel[ip]);
 
 			for(size_t i = 0; i < geo.num_sh(); ++i)
@@ -145,7 +145,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				number integrand = VecDot(Dgrad, geo.grad_global(ip, i));
 
 				// reaction
-				if(!m_Reaction.zero_data())
+				if(m_Reaction.data_given())
 					integrand += m_Reaction[ip] * geo.shape(ip, j) * geo.shape(ip, i);
 
 				integrand *= geo.weight(ip);
@@ -176,7 +176,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 			{
 				number val = geo.shape(ip, i) *geo.shape(ip, j) * geo.weight(ip);
 
-				if(m_MassScale.data_set())
+				if(m_MassScale.data_given())
 					val *= m_MassScale[ip++];
 
 				J(_C_, i, _C_, j) += val;
@@ -215,20 +215,20 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 		}
 
 		// diffusion
-		if(!m_Diff.zero_data())
+		if(m_Diff.data_given())
 			MatVecMult(Dgrad_u, m_Diff[ip], grad_u);
 		else
 			VecSet(Dgrad_u, 0.0);
 
 		// convection
-		if(!m_Reaction.zero_data())
+		if(m_Reaction.data_given())
 			VecScaleAppend(Dgrad_u, -1*shape_u, m_ConvVel[ip]);
 
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 			integrand = VecDot(Dgrad_u, geo.grad_global(ip, i));
 			// reaction
-			if(!m_Reaction.zero_data())
+			if(m_Reaction.data_given())
 				integrand += m_Reaction[ip] * shape_u * geo.shape(ip, i);
 
 			integrand *= geo.weight(ip);
@@ -262,7 +262,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
 			number val = shape_u * geo.shape(ip, i) * geo.weight(ip);
-			if(!m_MassScale.zero_data())
+			if(m_MassScale.data_given())
 				val *= m_MassScale[ip];
 
 			d(_C_, i) +=  val;
@@ -282,7 +282,7 @@ assemble_f(local_vector_type& d, number time)
 {
 	FEGeometry<TElem, dim>& geo = FEGeometryProvider<TElem, dim>::get_geom(1);
 
-	if(m_Rhs.zero_data()) return true;
+	if(!m_Rhs.data_given()) return true;
 
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{

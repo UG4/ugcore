@@ -31,7 +31,7 @@ class IDataImport
 		virtual ~IDataImport()	{}
 
 	/// returns if data is set
-		virtual bool data_set() const = 0;
+		virtual bool data_given() const = 0;
 
 	/// returns if data is constant
 	/**
@@ -179,12 +179,8 @@ class DataImport : public IDataImport<TAlgebra>
 	// Data
 	/////////////////////////////////////////
 
-	///	returns if zero data given
-		virtual bool data_set() const {return !zero_data();}
-
-	///	returns if zero data given
-		bool zero_data() const
-			{return m_pIPData == NULL;}
+	///	returns true if data given
+		virtual bool data_given() const {return !(m_pIPData == NULL);}
 
 	/// \copydoc IDataImport::constant_data()
 		virtual bool constant_data() const
@@ -335,12 +331,7 @@ class DataImport : public IDataImport<TAlgebra>
 							{
 								number prod = lin_defect(ip, fct1, dof1)
 												* m_pDataExport->deriv(m_seriesID, ip, fct2, dof2);
-/*								if(prod < -1e-10 ||prod > 1e-10)
-								{
-									UG_LOG("Adding "<<prod<<"for lin="<<lin_defect(ip, fct1, dof1)<<
-									       "and deriv="<<m_pDataExport->deriv(m_seriesID, ip, fct2, dof2)<<"\n");
-								}
-*/								J(fct1, dof1, fct2, dof2) += prod;
+								J(fct1, dof1, fct2, dof2) += prod;
 							}
 		}
 
@@ -542,7 +533,7 @@ class DataEvaluator
 					IDataImport<TAlgebra>* iimp = (*m_pvElemDisc)[d]->import(i);
 
 				//	skip zero data
-					if(!iimp->data_set()) continue;
+					if(!iimp->data_given()) continue;
 
 				//	push export on stack of needed data
 					vTryingToAdd.push_back(iimp->get_data());

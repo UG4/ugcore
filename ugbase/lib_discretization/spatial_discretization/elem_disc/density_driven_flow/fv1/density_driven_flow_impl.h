@@ -494,67 +494,67 @@ prepare_element_loop()
 	m_aaPos = m_pDomain->get_position_accessor();
 
 //	check necessary imports
-	if(m_imBrineScvf.zero_data())
+	if(!m_imBrineScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing Import: Brine mass fraction.\n");
 		return false;
 	}
-	if(m_imBrineGradScvf.zero_data())
+	if(!m_imBrineGradScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing Import: Gradient of Brine mass fraction.\n");
 		return false;
 	}
-	if(m_imPressureGradScvf.zero_data())
+	if(!m_imPressureGradScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing Import: Gradient of Pressure.\n");
 		return false;
 	}
-	if(m_imPorosityScvf.zero_data())
+	if(!m_imPorosityScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing user function: Porosity.\n");
 		return false;
 	}
-	if(m_imPermeabilityScvf.zero_data())
+	if(!m_imPermeabilityScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing user function: Permeability.\n");
 		return false;
 	}
-	if(m_imMolDiffusionScvf.zero_data())
+	if(!m_imMolDiffusionScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing user function: Molecular Diffusion.\n");
 		return false;
 	}
-	if(m_imViscosityScvf.zero_data())
+	if(!m_imViscosityScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing user function: Viscosity.\n");
 		return false;
 	}
-	if(m_imDensityScvf.zero_data())
+	if(!m_imDensityScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing user function: Density.\n");
 		return false;
 	}
-	if(m_imDarcyVelScvf.zero_data())
+	if(!m_imDarcyVelScvf.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing Import: Darcy Velocity.\n");
 		return false;
 	}
-	if(m_imPorosityScv.zero_data())
+	if(!m_imPorosityScv.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing user function: Porosity.\n");
 		return false;
 	}
-	if(m_imDensityScv.zero_data())
+	if(!m_imDensityScv.data_given())
 	{
 		UG_LOG("DensityDrivenFlowElemDisc::prepare_element_loop:"
 				" Missing user function: Density.\n");

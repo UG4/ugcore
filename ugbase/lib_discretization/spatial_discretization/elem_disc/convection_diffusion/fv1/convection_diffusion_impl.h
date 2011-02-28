@@ -149,7 +149,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 
 //	Diffusion and Velocity Term
 	size_t ip = 0;
-	if(!m_Diff.zero_data() || !m_ConvVel.zero_data())
+	if(m_Diff.data_given() || m_ConvVel.data_given())
 	{
 	// 	loop Sub Control Volume Faces (SCVF)
 		for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -167,7 +167,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// Diffusive Term
 				// (central discretization)
 				////////////////////////////////////////////////////
-					if(!m_Diff.zero_data())
+					if(m_Diff.data_given())
 					{
 					// 	Compute Diffusion Tensor times Gradient
 						MatVecMult(Dgrad, m_Diff[ip], scvf.global_grad(j, i));
@@ -189,7 +189,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 				// central part convection
 					if(m_upwindAmount != 1.0)
 					{
-						if(!m_ConvVel.zero_data())
+						if(m_ConvVel.data_given())
 						{
 						// 	Compute flux
 							const number flux = (1.- m_upwindAmount) * scvf.shape(j, i)
@@ -205,7 +205,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 			// 	upwind part convection (does only depend on one shape function)
 				if(m_upwindAmount != 0.0)
 				{
-					if(!m_ConvVel.zero_data())
+					if(m_ConvVel.data_given())
 					{
 					// corner for upwind switch
 						int up;
@@ -231,7 +231,7 @@ assemble_JA(local_matrix_type& J, const local_vector_type& u, number time)
 ////////////////////////////////////////////////////
 
 //	if no data for reaction, return
-	if(m_Reaction.zero_data()) return true;
+	if(!m_Reaction.data_given()) return true;
 
 // 	loop Sub Control Volume (SCV)
 	ip = 0;
@@ -289,7 +289,7 @@ assemble_JM(local_matrix_type& J, const local_vector_type& u, number time)
 		number val = scv.volume();
 
 	//	multiply by scaling
-		if(m_MassScale.data_set())
+		if(m_MassScale.data_given())
 			val *= m_MassScale[ip++];
 
 	// 	Add to local matrix
@@ -317,7 +317,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	MathVector<dim> Dgrad_u;		// Diff.Tensor times gradient of solution
 
 	size_t ip = 0;
-	if(!m_Diff.zero_data() || !m_ConvVel.zero_data())
+	if(m_Diff.data_given() || m_ConvVel.data_given())
 	{
 	// 	loop Sub Control Volume Faces (SCVF)
 		for(size_t i = 0; i < geo.num_scvf(); ++i)
@@ -342,7 +342,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			// Diffusive Term
 			// (central discretization)
 			/////////////////////////////////////////////////////
-				if(!m_Diff.zero_data())
+				if(m_Diff.data_given())
 				{
 					MatVecMult(Dgrad_u, m_Diff[ip], grad_u);
 
@@ -359,7 +359,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 			// (upwinding_amount == 1.0 -> full upwind;
 			//  upwinding_amount == 0.0 -> full central disc)
 			/////////////////////////////////////////////////////
-				if(!m_ConvVel.zero_data())
+				if(m_ConvVel.data_given())
 				{
 				// 	central part convection
 					if(m_upwindAmount != 1.0)
@@ -393,7 +393,7 @@ assemble_A(local_vector_type& d, const local_vector_type& u, number time)
 	}
 
 //	if no reaction data given, return
-	if(m_Reaction.zero_data()) return true;
+	if(!m_Reaction.data_given()) return true;
 
 // 	loop Sub Control Volumes (SCV)
 	ip = 0;
@@ -452,7 +452,7 @@ assemble_M(local_vector_type& d, const local_vector_type& u, number time)
 		number val = u(_C_, co) * scv.volume();
 
 	//	multiply by scaling
-		if(m_MassScale.data_set())
+		if(m_MassScale.data_given())
 			val *= m_MassScale[ip++];
 
 	// 	Add to local defect
@@ -472,7 +472,7 @@ FVConvectionDiffusionElemDisc<TDomain, TAlgebra>::
 assemble_f(local_vector_type& d, number time)
 {
 //	if zero data given, return
-	if(m_Rhs.zero_data()) return true;
+	if(!m_Rhs.data_given()) return true;
 
 // 	get finite volume geometry
 	static TFVGeom<TElem, dim>& geo
