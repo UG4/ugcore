@@ -41,7 +41,7 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSect
 }
 
 ////////////////////////////////////////////////////////////////////////
-bool SplitPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
+bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex)
 {
 	if(!sh.get_assigned_grid())
 		throw(UGError("No grid assigned to subset handler"));

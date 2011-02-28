@@ -7,7 +7,7 @@ using namespace std;
 
 namespace ug{
 
-static void PrintElementNumbers(const GeometricObjectCollection& goc)
+void PrintElementNumbers(const GeometricObjectCollection& goc)
 {
 	UG_LOG("grid element numbers:\n");
 	for(size_t i = 0; i < goc.num_levels(); ++i)

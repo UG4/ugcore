@@ -202,6 +202,20 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 							bool keepExistingInterfaceSubsets = false);
 
 ////////////////////////////////////////////////////////////////////////
+//	SplitIrregularManifoldSubset
+///	Keeps a regular part in the subset and assigns all other faces to another one.
+/** THIS ALGORITHM USES Grid::mark
+ *
+ * If the faces in the given subset build an irregular manifold, then
+ * this algorithm finds a regular part and assigns all other faces to
+ * the given targetIndex.
+ *
+ * \return true if the subset was splitted, false if not.
+ */
+bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
+								  int targetIndex);
+
+////////////////////////////////////////////////////////////////////////
 //	SeparateFaceSubsetsByNormal
 ///	separates faces by orthogonal axis-aligned normals.
 /**

@@ -82,7 +82,7 @@ GetNextSectionOfPolyChain(Grid& grid, std::pair<VertexBase*, EdgeBase*> lastSect
  *
  * Returns true if the chain was splitted and false if not.
  */
-bool SplitPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex);
+bool SplitIrregularPolyChain(SubsetHandler& sh, int srcIndex, int targetIndex);
 
 }//	end of namespace
 

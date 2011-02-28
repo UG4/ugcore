@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <stack>
+#include <queue>
 #include "subset_util.h"
 #include "geom_obj_util/geom_obj_util.h"
 #include "polychain_util.h"
@@ -228,14 +229,18 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 	//	now we have to assign the interface faces to subsets.
 		AssignVolumeInterfaceFacesToSubsets(grid, sh);
 
+	//	we now have to make sure that all face-subsets are regular manifolds.
+		for(int i = 0; i < sh.num_subsets(); ++i){
+			int firstFree = GetMaxSubsetIndex<Face>(sh) + 1;
+			SplitIrregularManifoldSubset(sh, i, firstFree);
+		}
+
 	//	fix orientation of all face subsets
 		for(int i = 0; i < sh.num_subsets(); ++i){
 			if(sh.num<Face>(i) != 0){
 				FixFaceOrientation(grid, sh.begin<Face>(i), sh.end<Face>(i));
 			}
 		}
-
-	//	make sure that unconnected volume-sets are in separate subsets
 	}
 	else
 	{
@@ -330,7 +335,7 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 	//	make sure that all edge-subsets are regular poly-chains	
 		for(int i = 0; i < sh.num_subsets(); ++i){
 			int firstFree = GetMaxSubsetIndex<EdgeBase>(sh) + 1;
-			SplitPolyChain(sh, i, firstFree);
+			SplitIrregularPolyChain(sh, i, firstFree);
 		}
 		
 	//	fix orientation
@@ -341,6 +346,141 @@ void AdjustSubsetsForLgmNg(Grid& grid, SubsetHandler& sh,
 		}
 
 	}
+}
+
+////////////////////////////////////////////////////////////////////////
+bool SplitIrregularManifoldSubset(SubsetHandler& sh, int srcIndex,
+								  int targetIndex)
+{
+//	Begin with the first face in the subset-handler and find
+//	associated faces which build a regular manifold.
+
+//	if the subset is empty, there's nothing to do.
+	if(sh.empty<Face>(srcIndex))
+		return false;
+
+//	get the grid behind the subset-handler
+	if(!sh.get_assigned_grid()){
+		UG_LOG("ERROR in SplitIrregularManifoldSubset: No Grid associated");
+		UG_LOG(" with the given SubsetHandler.\n");
+		return false;
+	}
+
+	Grid& grid = *sh.get_assigned_grid();
+
+//	edges are required
+	if(!grid.option_is_enabled(FACEOPT_AUTOGENERATE_EDGES)){
+		UG_LOG("WARNING in SplitIrregularManifoldSubset: Autoenabling FACEOPT_AUTOGENERATE_EDGES.\n");
+		grid.enable_options(FACEOPT_AUTOGENERATE_EDGES);
+	}
+
+//	here we'll store some temporary results
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+
+//	the queue is used to keep a list of elements which have to be checked.
+//	begin with the first face.
+	queue<Face*> queFaces;
+	queFaces.push(*sh.begin<Face>(srcIndex));
+
+//	We have to mark all faces which have once been pushed to the stack
+	grid.begin_marking();
+	grid.mark(queFaces.front());
+
+//	If we notice that a face would cause a manifold to be irregular,
+//	we'll mark it and push it to this vector.
+	vector<Face*> vIrregFaces;
+
+//	This counter tells us whether all faces have been processed.
+//	If so, the surface is already a regular manifold.
+	size_t numProcessed = 0;
+
+//	now while there are unprocessed manifold faces
+	while(!queFaces.empty())
+	{
+		Face* curFace = queFaces.front();
+		queFaces.pop();
+		++numProcessed;
+
+	//	collect associated faces of associated edges
+		CollectAssociated(edges, grid, curFace);
+		for(size_t i_edge = 0; i_edge < edges.size(); ++i_edge)
+		{
+		//	collect associated faces
+			CollectAssociated(faces, grid, edges[i_edge]);
+
+		//	we only have to continue if we found exactly one face
+		//	in the same subset other than curFace.
+		//	(Do not check marks here, since we otherwise may find
+		//	unwanted neighbors).
+			Face* nbr = NULL;
+			size_t numFound = 0;
+			for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+				Face* f = faces[i_face];
+				if((f != curFace) && (sh.get_subset_index(f) == srcIndex))
+				{
+				//	we found an associated face in the same subset
+					nbr = f;
+					numFound++;
+				}
+			}
+
+		//	If we found exactly one valid neighbor
+			if(numFound == 1){
+			//	if the neighbor was not already processed we'll schedule it
+				if(!grid.is_marked(nbr)){
+					grid.mark(nbr);
+					queFaces.push(nbr);
+				}
+			}
+			else if(numFound > 1){
+			//	here we have to make sure that no face which builds an
+			//	irregular manifold with another face can be identified
+			//	as a valid neighbor through another element.
+			//	Thus we'll mark them. Since they wouldn't be added to the
+			//	subset at targetInd later on (since they are marked) we have
+			//	to additionally push them into a vector.
+				for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+					Face* f = faces[i_face];
+					if((f != curFace) && (sh.get_subset_index(f) == srcIndex)){
+						if(!grid.is_marked(f)){
+							grid.mark(f);
+							vIrregFaces.push_back(f);
+						}
+					}
+				}
+			}
+		}
+	}
+
+//	if all faces of the subset have been processed, then the whole subset is
+//	a regular manifold.
+	if(numProcessed == sh.num<Face>()){
+		grid.end_marking();
+		return false;
+	}
+
+//	if not, we'll iterate over all faces of the subset and assign unmarked ones
+//	to the subset at targetIndex.
+	for(FaceIterator iter = sh.begin<Face>(srcIndex);
+		iter != sh.end<Face>(srcIndex);)
+	{
+	//	Take care with the iterator, since the element may be assigned
+	//	to another subset.
+		Face* f = *iter;
+		++iter;
+
+		if(!grid.is_marked(f))
+			sh.assign_subset(f, targetIndex);
+	}
+
+//	additionally we have to assign all faces in vIrregFaces to the new subset
+	for(size_t i = 0; i < vIrregFaces.size(); ++i)
+		sh.assign_subset(vIrregFaces[i], targetIndex);
+
+//	The subset was split - return true.
+	grid.end_marking();
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////

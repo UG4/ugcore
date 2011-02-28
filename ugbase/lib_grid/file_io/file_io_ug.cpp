@@ -8,6 +8,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 #include <set>
 #include "file_io_ug.h"
 #include "lib_grid/lg_base.h"
@@ -334,8 +335,59 @@ static bool CollectAllVerticesForNG(Grid& grid, VertexSelector& NgVrtSel,
 	return true;
 }
 
+/**	THIS METHOD USES Grid::mark
+ * This method is required since double-triangles have to be avoided
+ * during triangulation of quadrilaterals which share two edges whith
+ * another quadrilateral (this e.g. occurs in fracture geometries with neumann
+ * boundaries).
+ */
+static int GetFirstRegularVertex(Grid& grid, SubsetHandler sh, Face* q, int si)
+{
+	grid.begin_marking();
+	vector<EdgeBase*> edges;
+	vector<Face*> faces;
+	vector<Face*> nbrs;
+//	check whether a connected face exists, which shares two sides
+//	iterate over all edges, collect faces and push them to nbrs.
+//	if a face already has been in nbrs, then it is shared by at least
+//	two sides. We will then immediately mark all associated vertices of
+//	that face.
+	nbrs.clear();
+	CollectAssociated(edges, grid, q);
+	for(size_t i_edge = 0; i_edge != edges.size(); ++i_edge){
+		CollectAssociated(faces, grid, edges[i_edge]);
+	//	add all faces to nbrs. Check whether it is already contained.
+		for(size_t i_face = 0; i_face < faces.size(); ++i_face){
+			Face* f = faces[i_face];
+			if(sh.get_subset_index(f) != si)
+				continue;
+			if(f == q)
+				continue;
+			vector<Face*>::iterator iFind = find(nbrs.begin(), nbrs.end(), f);
+			if(iFind != nbrs.end()){
+			//	it was already there!
+			//	mark all of its vertices
+				for(size_t i_vrt = 0; i_vrt < f->num_vertices(); ++i_vrt)
+					grid.mark(f->vertex(i_vrt));
+			}
+			else{
+			//	its there for the first time. push it back.
+				nbrs.push_back(f);
+			}
+		}
+	}
 
-
+//	find the first unmarked vertex in q
+	int firstUnmarked = -1;
+	for(int i_vrt = 0; i_vrt < (int)q->num_vertices(); ++i_vrt){
+		if(!grid.is_marked(q->vertex(i_vrt))){
+			firstUnmarked = i_vrt;
+			break;
+		}
+	}
+	grid.end_marking();
+	return firstUnmarked;
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	WriteLGM
@@ -466,20 +518,45 @@ static bool WriteLGM(Grid& grid,
 			}
 
 		//	write quadrilaterals as triangles
+		//	special care has to be taken since quadrliaterals can possibly
+		//	be connected at two sides. If one isn't careful one could thus produce
+		//	two identical triangles during triangulation.
 			{
+			//	we need Grid::mark to check which point is not contained in a neighbour
 				for(ConstQuadrilateralIterator iter = shFaces.begin<Quadrilateral>(i);
 					iter != shFaces.end<Quadrilateral>(i); ++iter)
 				{
 					Quadrilateral* q = *iter;
-					for(uint j = 0; j < 3; ++j)
-						out << " " << aaSurfVrtIndex[q->vertex(j)];
 
-					out << ";";
+					int firstRegular = GetFirstRegularVertex(grid, shFaces, q, i);
 
-					for(uint j = 2; j < 5; ++j)
-						out << " " << aaSurfVrtIndex[q->vertex(j%4)];
+				//	if we didn't find one, we can't split the face. Schedule a warning.
+					if(firstRegular == -1){
+						UG_LOG("Can't split quadrilateral due to too many associated degenerated faces.\n");
+					}
+					else{
+						for(int j = firstRegular; j < firstRegular + 3; ++j)
+							out << " " << aaSurfVrtIndex[q->vertex(j%4)];
 
-					out << ";";
+						out << ";";
+
+						for(int j = firstRegular + 2; j < firstRegular + 5; ++j)
+							out << " " << aaSurfVrtIndex[q->vertex(j%4)];
+
+						out << ";";
+
+					/*
+						for(uint j = 0; j < 3; ++j)
+							out << " " << aaSurfVrtIndex[q->vertex(j)];
+
+						out << ";";
+
+						for(uint j = 2; j < 5; ++j)
+							out << " " << aaSurfVrtIndex[q->vertex(j%4)];
+
+						out << ";";
+					*/
+					}
 				}
 			}
 		//	surface written...
@@ -597,7 +674,7 @@ static bool WriteNG(Grid& grid,
 
 		for(int i = 0; i < shFaces.num_subsets(); ++i)
 		{
-				faceFlags[i] = false;
+			faceFlags[i] = false;
 		}
 
 //out << "# node-id: " << nodeCount << endl;//ONLY FOR DEBUG
@@ -637,6 +714,15 @@ static bool WriteNG(Grid& grid,
 					int faceInd = aaFaceIndex[f];
 					int vrtInd = GetVertexIndex(f, v);
 					vector2 vCoord(0, 0);
+					if(f->num_vertices() == 4){
+						int firstRegular = GetFirstRegularVertex(grid, shFaces, f, shFaces.get_subset_index(f));
+						if(firstRegular == -1){
+							UG_LOG("Can't split quadrilateral due to too many associated degenerated faces.\n");
+							continue;
+						}
+						vrtInd = (vrtInd - firstRegular)%4;
+					}
+
 					switch(vrtInd)
 					{
 						case 0:	vCoord = vector2(0, 0); break;

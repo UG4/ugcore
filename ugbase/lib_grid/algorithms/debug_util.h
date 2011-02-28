@@ -10,6 +10,9 @@
 namespace ug
 {
 
+///	prints how many elements of each type exist in the goc.
+void PrintElementNumbers(const GeometricObjectCollection& goc);
+
 ///	prints how many elements of each type exist in the grid.
 void PrintGridElementNumbers(Grid& grid);
 
