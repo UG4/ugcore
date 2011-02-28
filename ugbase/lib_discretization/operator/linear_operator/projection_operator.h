@@ -226,6 +226,36 @@ class P1ProjectionOperator :
 			return true;
 		}
 
+	// 	Apply Transposed Operator u = L^T*f
+		virtual bool apply_transposed(vector_type& uFineOut, const vector_type& uCoarseIn)
+		{
+		//	Check, that operator is initiallized
+			if(!m_bInit)
+			{
+				UG_LOG("ERROR in 'ProjectionOperator::apply_transposed':Operator not initialized.\n");
+				return false;
+			}
+
+		//	Some Assertions
+			UG_ASSERT(uCoarseIn.size() == m_matrix.num_rows(),
+					  "Vector [size= " << uCoarseIn.size() << "] and Cols [size= "
+					  << m_matrix.num_rows() <<"] sizes have to match!");
+			UG_ASSERT(uFineOut.size() == m_matrix.num_cols(),	"Vector [size= "
+					  << uFineOut.size() << "] and Rows [size= " <<
+					  m_matrix.num_cols() <<"] sizes have to match!");
+
+		//	Apply matrix
+			if(!m_matrix.apply_transposed(uFineOut, uCoarseIn))
+			{
+				UG_LOG("ERROR in 'P1ProjectionOperator::apply_transposed':"
+						" Cannot apply matrix.\n");
+				return false;
+			}
+
+		//	we're done
+			return true;
+		}
+
 	// 	Apply sub not implemented
 		virtual bool apply_sub(vector_type& u, const vector_type& v)
 		{

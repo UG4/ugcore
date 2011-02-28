@@ -37,7 +37,8 @@ namespace ug{
 template <typename TApproximationSpace, typename TAlgebra>
 bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 								TApproximationSpace& approxSpace,
-								size_t coarseLevel, size_t fineLevel)
+								size_t coarseLevel, size_t fineLevel,
+								std::vector<bool>& vIsRestricted)
 {
 //	get DoFDistributions
 	const typename TApproximationSpace::dof_distribution_type& coarseDoFDistr
@@ -75,6 +76,9 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 		return false;
 	}
 
+//	clear restricted vector
+	vIsRestricted.clear(); vIsRestricted.resize(numCoarseDoFs, false);
+
 	typename TApproximationSpace::dof_distribution_type::multi_index_vector_type fineMultInd;
 	typename TApproximationSpace::dof_distribution_type::multi_index_vector_type coarseMultInd;
 
@@ -84,8 +88,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 //  loop subsets on fine level
 	for(int si = 0; si < fineDoFDistr.num_subsets(); ++si)
 	{
-		iterBegin = fineDoFDistr.template begin<Vertex>(si);
-		iterEnd = fineDoFDistr.template end<Vertex>(si);
+		iterBegin = fineDoFDistr.template begin<VertexBase>(si);
+		iterEnd = fineDoFDistr.template end<VertexBase>(si);
 
 	//  loop vertices for fine level subset
 		for(iter = iterBegin; iter != iterEnd; ++iter)
@@ -93,7 +97,7 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 		//  get father
 			GeometricObject* geomObj = grid.get_parent(*iter);
 			VertexBase* vert = dynamic_cast<VertexBase*>(geomObj);
-			Edge* edge = dynamic_cast<Edge*>(geomObj);
+			EdgeBase* edge = dynamic_cast<EdgeBase*>(geomObj);
 			Quadrilateral* quad = dynamic_cast<Quadrilateral*>(geomObj);
 			Hexahedron* hexaeder = dynamic_cast<Hexahedron*>(geomObj);
 
@@ -112,6 +116,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 					if(coarseDoFDistr.get_inner_multi_indices(vert, fct, coarseMultInd) != 1)
 						return false;
 
+					vIsRestricted[coarseMultInd[0][0]] = true;
+
 					BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 								fineMultInd[0][1], coarseMultInd[0][1]) = 1.0;
 					continue;
@@ -127,6 +133,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 					//  get global indices
 						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
+
+						vIsRestricted[coarseMultInd[0][0]] = true;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.5;
@@ -145,6 +153,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
 
+						vIsRestricted[coarseMultInd[0][0]] = true;
+
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.25;
 					}
@@ -161,6 +171,8 @@ bool AssembleVertexProlongation(typename TAlgebra::matrix_type& mat,
 					//  get global indices
 						if(coarseDoFDistr.get_inner_multi_indices(v, fct, coarseMultInd) != 1)
 							return false;
+
+						vIsRestricted[coarseMultInd[0][0]] = true;
 
 						BlockRef(mat(fineMultInd[0][0], coarseMultInd[0][0]),
 									fineMultInd[0][1], coarseMultInd[0][1]) = 0.125;
@@ -259,7 +271,7 @@ class P1ProlongationOperator :
 			}
 
 			if(!AssembleVertexProlongation<approximation_space_type, algebra_type>
-				(m_matrix, *m_pApproxSpace, m_coarseLevel, m_fineLevel))
+				(m_matrix, *m_pApproxSpace, m_coarseLevel, m_fineLevel, m_vIsRestricted))
 			{
 				UG_LOG("ERROR in 'P1ProlongationOperator::init':"
 						"Cannot assemble interpolation matrix.\n");
@@ -334,6 +346,8 @@ class P1ProlongationOperator :
 				return false;
 			}
 
+			vector_type	uTmp; uTmp.resize(uCoarseOut.size());
+
 		//	Some Assertions
 			UG_ASSERT(uFineIn.size() == m_matrix.num_rows(),
 			          	  "Vector and Row sizes have to match!");
@@ -341,12 +355,17 @@ class P1ProlongationOperator :
 			          	  "Vector and Column sizes have to match!");
 
 		//	Apply transposed matrix
-			if(!m_matrix.apply_transposed(uCoarseOut, uFineIn))
+			if(!m_matrix.apply_transposed(uTmp, uFineIn))
 			{
 				UG_LOG("ERROR in 'P1ProlongationOperator::apply_transposed':"
 						" Cannot apply transposed matrix.\n");
 				return false;
 			}
+
+		//	Copy only restricted values
+			for(size_t i = 0; i < uTmp.size(); ++i)
+				if(m_vIsRestricted[i])
+					uCoarseOut[i] = uTmp[i];
 
 		//	Set dirichlet nodes to zero again
 		//	todo: We could handle this by eliminating dirichlet columns as well
@@ -396,6 +415,8 @@ class P1ProlongationOperator :
 		TApproximationSpace* m_pApproxSpace;
 		size_t m_fineLevel;
 		size_t m_coarseLevel;
+
+		std::vector<bool> m_vIsRestricted;
 
 		bool m_bInit;
 };
