@@ -309,7 +309,7 @@ ilut = ILUT()
 	-- Geometric Multi Grid
 	gmg = utilCreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_surface_level(numRefs)
+--	gmg:set_surface_level(numRefs) -- deprecated!
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
 	gmg:set_smoother(jac)
@@ -333,12 +333,6 @@ ilut = ILUT()
 	--amg:set_debug(u)
 	end
 
--- create BiCGStab Solver
-bicgstabSolver = BiCGStab()
-
--- create Linear Solver
-linSolver = LinearSolver()
-
 -- exact Solver
 exactConvCheck = StandardConvergenceCheck() -- only for debugging
 exactConvCheck:set_maximum_steps(10)
@@ -348,51 +342,55 @@ exactConvCheck:set_verbose_level(false)
 exactSolver = LU()
 exactSolver:set_convergence_check(exactConvCheck)
 
--- create coarse problem CG Solver
+-- create coarse problem Solver
 cpConvCheck = StandardConvergenceCheck()
 cpConvCheck:set_maximum_steps(2000)
 cpConvCheck:set_minimum_defect(1e-10)
 cpConvCheck:set_reduction(1e-16)
 cpConvCheck:set_verbose_level(false)
-cpCGSolver = CG()
-cpCGSolver:set_preconditioner(ilu)
-cpCGSolver:set_convergence_check(cpConvCheck)
+coarseproblemSolver = CG()
+coarseproblemSolver:set_preconditioner(ilu) -- Absturz: "Signal: Bus error (10)", "Signal code:  (5583)", etc ...
+--coarseproblemSolver:set_preconditioner(jac) -- "ERROR in 'JacobiPreconditioner::apply': Cannot change parallel status of correction to consistent."
+--coarseproblemSolver:set_preconditioner(gs) -- "ERROR in 'Gauss-Seidel::apply': Cannot change parallel storage type of correction to consistent."
+-- Ganz ohne preconditioner: "Cannot convert z to consistent vector."
+coarseproblemSolver:set_convergence_check(cpConvCheck)
 
--- create Neumann CG Solver
+-- create Neumann Solver
 neumannConvCheck = StandardConvergenceCheck()
 neumannConvCheck:set_maximum_steps(2000)
 neumannConvCheck:set_minimum_defect(1e-10)
 neumannConvCheck:set_reduction(1e-16)
 neumannConvCheck:set_verbose_level(false)
-neumannCGSolver = CG()
-neumannCGSolver:set_preconditioner(ilu)
-neumannCGSolver:set_convergence_check(neumannConvCheck)
+--neumannSolver = CG()
+neumannSolver = BiCGStab()
+neumannSolver:set_preconditioner(ilu)
+neumannSolver:set_convergence_check(neumannConvCheck)
 
--- create Dirichlet CG Solver
+-- create Dirichlet Solver
 dirichletConvCheck = StandardConvergenceCheck()
 dirichletConvCheck:set_maximum_steps(2000)
 dirichletConvCheck:set_minimum_defect(1e-10)
 dirichletConvCheck:set_reduction(1e-16)
 dirichletConvCheck:set_verbose_level(false)
-dirichletCGSolver = CG()
-dirichletCGSolver:set_preconditioner(ilu2)
-dirichletCGSolver:set_convergence_check(dirichletConvCheck)
+dirichletSolver = CG()
+dirichletSolver:set_preconditioner(ilu2)
+dirichletSolver:set_convergence_check(dirichletConvCheck)
 
 -- create FETI Solver
 fetiSolver = FETI()
 
 fetiConvCheck = StandardConvergenceCheck()
 fetiConvCheck:set_maximum_steps(100)
-fetiConvCheck:set_minimum_defect(1e-8)
+fetiConvCheck:set_minimum_defect(1e-7)
 fetiConvCheck:set_reduction(1e-16)
 
 fetiSolver:set_convergence_check(fetiConvCheck)
 fetiSolver:set_domain_decomp_info(domainDecompInfo)
 
-fetiSolver:set_neumann_solver(neumannCGSolver)
-fetiSolver:set_dirichlet_solver(dirichletCGSolver)
+fetiSolver:set_neumann_solver(neumannSolver)
+fetiSolver:set_dirichlet_solver(dirichletSolver)
 fetiSolver:set_coarse_problem_solver(exactSolver)
---fetiSolver:set_coarse_problem_solver(cpCGSolver)
+--fetiSolver:set_coarse_problem_solver(coarseproblemSolver)
 if activateDbgWriter >= 1 then
 	fetiSolver:set_debug(dbgWriter)
 end
