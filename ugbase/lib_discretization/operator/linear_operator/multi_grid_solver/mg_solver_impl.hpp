@@ -358,18 +358,12 @@ init(ILinearOperator<vector_type, vector_type>& J, const vector_type& u)
 	m_topLev = m_pApproxSpace->num_levels() - 1;
 
 //	check, if grid is full-refined
-	if(m_topLev == 0)
-	{
+	if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
+		m_pApproxSpace->get_surface_dof_distribution().num_dofs())
 		m_bFullRefined = true;
-	}
 	else
-	{
-		if(m_pApproxSpace->get_level_dof_distribution(m_topLev).num_dofs() ==
-			m_pApproxSpace->get_level_dof_distribution(m_topLev-1).num_dofs()	)
-			m_bFullRefined = true;
-		else
-			m_bFullRefined =false;
-	}
+		m_bFullRefined =false;
+
 
 //	init common
 	GMG_PROFILE_BEGIN(GMG_InitCommon);
