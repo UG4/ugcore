@@ -9,6 +9,7 @@
 #define __H__LIB_DISCRETIZATION__SPATIAL_DISCRETIZATION__POST_PROCESS__CONSTRAINTS__P1_CONSTRAINTS_POST_PROCESS__
 
 #include "lib_discretization/assemble.h"
+#include "lib_grid/algorithms/geom_obj_util/vertex_util.h"
 
 namespace ug {
 
