@@ -22,43 +22,91 @@ namespace ug{
 
 
 template<typename TDomain, typename TAlgebra>
-class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
+class FE1ConvectionDiffusionElemDisc
+	: public IElemDisc<TAlgebra>
 {
 	public:
-		// domain type
+	///	Domain type
 		typedef TDomain domain_type;
 
-		// world dimension
+	///	World dimension
 		static const int dim = TDomain::dim;
 
-		// position type
+	///	Position type
 		typedef typename TDomain::position_type position_type;
 
-		// algebra type
+	///	Algebra type
 		typedef TAlgebra algebra_type;
 
-		// local matrix type
-		typedef LocalMatrix<typename TAlgebra::matrix_type::value_type> local_matrix_type;
+	///	Local matrix type
+		typedef typename IElemDisc<TAlgebra>::local_matrix_type local_matrix_type;
 
-		// local vector type
-		typedef LocalVector<typename TAlgebra::vector_type::value_type> local_vector_type;
+	///	Local vector type
+		typedef typename IElemDisc<TAlgebra>::local_vector_type local_vector_type;
 
-		// local index type
-		//typedef typename algebra_type::vector_type::local_index_type local_index_type;
-		typedef LocalIndices local_index_type;
+	///	Local index type
+		typedef typename IElemDisc<TAlgebra>::local_index_type local_index_type;
 
-	protected:
-		typedef void (*Diff_Tensor_fct)(MathMatrix<dim,dim>&, const position_type&, number);
-		typedef void (*Conv_Vel_fct)(position_type&, const position_type&, number);
-		typedef void (*Reaction_fct)(number&, const position_type&, number);
-		typedef void (*Rhs_fct)(number&, const position_type&, number);
 
 	public:
-		FE1ConvectionDiffusionElemDisc(TDomain& domain, number upwind_amount,
-									Diff_Tensor_fct diff, Conv_Vel_fct vel, Reaction_fct reac, Rhs_fct rhs);
+	///	Constructor
+		FE1ConvectionDiffusionElemDisc()
+		 : m_pDomain(NULL)
+			{
+			//	register assemling functions
+				register_ass_funcs(Int2Type<dim>());
 
+			//	register imports
+				register_import(m_Diff);
+				register_import(m_ConvVel);
+				register_import(m_Reaction);
+				register_import(m_Rhs);
+				register_import(m_MassScale);
+			}
+
+	///	sets the domain
+		void set_domain(domain_type& domain) {m_pDomain = &domain;}
+
+	///	sets the diffusion tensor
+	/**
+	 * This method sets the Diffusion tensor used in computations. If no
+	 * Tensor is set, a zero value is assumed.
+	 */
+		void set_diffusion(IPData<MathMatrix<dim, dim>, dim>& user) {m_Diff.set_data(user);}
+
+	///	sets the velocity field
+	/**
+	 * This method sets the Velocity field. If no field is provided a zero
+	 * value is assumed.
+	 */
+		void set_velocity(IPData<MathVector<dim>, dim>& user) {m_ConvVel.set_data(user);}
+
+	///	sets the reaction
+	/**
+	 * This method sets the Reaction. A zero value is assumed as default.
+	 */
+		void set_reaction(IPData<number, dim>& user) {m_Reaction.set_data(user);}
+
+	///	sets the right-hand side
+	/**
+	 * This method sets the right hand side value. A zero value is assumed as
+	 * default.
+	 */
+		void set_rhs(IPData<number, dim>& user)	{m_Rhs.set_data(user);}
+
+
+	///	sets mass scale
+	/**
+	 * This method sets the mass scale value. A value of 1.0 is assumed as
+	 * default.
+	 */
+		void set_mass_scale(IPData<number, dim>& user)	{m_MassScale.set_data(user);}
+
+	public:
+	///	number of functions used
 		virtual size_t num_fct(){return 1;}
 
+	///	type of trial space for each function used
 		virtual LocalShapeFunctionSetID local_shape_function_set_id(size_t loc_fct)
 		{
 			return LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
@@ -70,6 +118,9 @@ class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		//	this disc does not need to take special care for non-regular grids
 			return true;
 		}
+
+	///	does not use hanging at all for assembling
+		virtual bool use_hanging() const {return false;}
 
 	private:
 		template <typename TElem>
@@ -97,75 +148,76 @@ class FE1ConvectionDiffusionElemDisc : public IElemDisc<TAlgebra>
 		inline bool assemble_f(local_vector_type& d, number time=0.0);
 
 	private:
-		// domain
-		TDomain& m_domain;
+	///	Domain
+		TDomain* m_pDomain;
 
-		// position access
-		position_type* m_corners;
+	///	Corner Coordinates
+		std::vector<position_type> m_vCornerCoords;
+
+	///	position accessor
 		typename TDomain::position_accessor_type m_aaPos;
 
-		// to make it more readable
+	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
 
-		// amount of upwind (1.0 == full upwind, 0.0 == no upwind)
-		number m_upwind_amount;
+	///	Data import for Diffusion
+		DataImport<MathMatrix<dim,dim>, dim, algebra_type> m_Diff;
 
-		// User functions
-		Diff_Tensor_fct m_Diff_Tensor;
-		Conv_Vel_fct m_Conv_Vel;
-		Reaction_fct m_Reaction;
-		Rhs_fct m_Rhs;
+	///	Data import for the Velocity field
+		DataImport<MathVector<dim>, dim, algebra_type > m_ConvVel;
+
+	///	Data import for the reaction term
+		DataImport<number, dim, algebra_type> m_Reaction;
+
+	///	Data import for the right-hand side
+		DataImport<number, dim, algebra_type> m_Rhs;
+
+	///	Data import for the right-hand side
+		DataImport<number, dim, algebra_type> m_MassScale;
 
 	private:
 		///////////////////////////////////////
 		// registering for reference elements
 		///////////////////////////////////////
-		template <int dim> class numType{};
 
-		void register_assemble_functions()
+	/// register for 1D
+		void register_ass_funcs(Int2Type<1>)
 		{
-			numType<TDomain::dim> dummy;
-			register_assemble_functions(dummy);
+			register_all_ass_funcs<Edge>(ROID_EDGE);
 		}
 
-		// register for 1D
-		void register_assemble_functions(numType<1> dummy)
+	/// register for 2D
+		void register_ass_funcs(Int2Type<2>)
 		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
+			register_ass_funcs(Int2Type<1>());
+			register_all_ass_funcs<Triangle>(ROID_TRIANGLE);
+			register_all_ass_funcs<Quadrilateral>(ROID_QUADRILATERAL);
 		}
 
-		// register for 2D
-		void register_assemble_functions(numType<2> dummy)
+	/// register for 3D
+		void register_ass_funcs(Int2Type<3>)
 		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
+			register_ass_funcs(Int2Type<2>());
+			register_all_ass_funcs<Tetrahedron>(ROID_TETRAHEDRON);
+			register_all_ass_funcs<Pyramid>(ROID_PYRAMID);
+			register_all_ass_funcs<Prism>(ROID_PRISM);
+			register_all_ass_funcs<Hexahedron>(ROID_HEXAHEDRON);
 		}
 
-		// register for 3D
-		void register_assemble_functions(numType<3> dummy)
-		{
-			register_all_assemble_functions<Edge>(ROID_EDGE);
-			register_all_assemble_functions<Triangle>(ROID_TRIANGLE);
-			register_all_assemble_functions<Quadrilateral>(ROID_QUADRILATERAL);
-			register_all_assemble_functions<Tetrahedron>(ROID_TETRAHEDRON);
-			register_all_assemble_functions<Prism>(ROID_PYRAMID);
-			register_all_assemble_functions<Prism>(ROID_PRISM);
-			register_all_assemble_functions<Prism>(ROID_HEXAHEDRON);
-		}
-
-		// help function
+	///	register all functions for on element type
 		template <typename TElem>
-		void register_all_assemble_functions(int id)
+		void register_all_ass_funcs(int id)
 		{
-			register_prepare_element_loop_function(	id, &FE1ConvectionDiffusionElemDisc::template prepare_element_loop<TElem>);
-			register_prepare_element_function(		id, &FE1ConvectionDiffusionElemDisc::template prepare_element<TElem>);
-			register_finish_element_loop_function(	id, &FE1ConvectionDiffusionElemDisc::template finish_element_loop<TElem>);
-			register_assemble_JA_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_JA<TElem>);
-			register_assemble_JM_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_JM<TElem>);
-			register_assemble_A_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_A<TElem>);
-			register_assemble_M_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_M<TElem>);
-			register_assemble_f_function(			id, &FE1ConvectionDiffusionElemDisc::template assemble_f<TElem>);
+			typedef FE1ConvectionDiffusionElemDisc T;
+
+			register_prepare_element_loop_function(	id, &T::template prepare_element_loop<TElem>);
+			register_prepare_element_function(		id, &T::template prepare_element<TElem>);
+			register_finish_element_loop_function(	id, &T::template finish_element_loop<TElem>);
+			register_assemble_JA_function(			id, &T::template assemble_JA<TElem>);
+			register_assemble_JM_function(			id, &T::template assemble_JM<TElem>);
+			register_assemble_A_function(			id, &T::template assemble_A<TElem>);
+			register_assemble_M_function(			id, &T::template assemble_M<TElem>);
+			register_assemble_f_function(			id, &T::template assemble_f<TElem>);
 		}
 
 };

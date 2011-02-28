@@ -29,7 +29,7 @@ class FEGeometry
 
 	public:
 		FEGeometry(int order)
-			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_quadrature_rule(order))
+			: m_rQuadRule(QuadratureRuleProvider<ref_elem_type>::get_rule(order))
 			{
 				UG_ASSERT(order == 1, " Currently only first order implemented.");
 				const LocalShapeFunctionSet<ref_elem_type>& TrialSpace =
@@ -38,7 +38,7 @@ class FEGeometry
 								(LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1));
 
 				// number of ips
-				m_numIP = m_rQuadRule.num_points();
+				m_numIP = m_rQuadRule.size();
 				m_numSH = TrialSpace.num_sh();
 
 				// resize
@@ -62,10 +62,8 @@ class FEGeometry
 					m_vIPLocal[ip] = m_rQuadRule.point(ip);
 					for(size_t sh = 0; sh < m_numSH; ++sh)
 					{
-						if(!TrialSpace.evaluate(sh, m_vIPLocal[ip], m_vvShape[ip][sh]))
-							{UG_ASSERT(0, "Cannot evaluate shape.");}
-						if(!TrialSpace.evaluate_grad(sh, m_vIPLocal[ip], m_vvGradLocal[ip][sh]))
-							{UG_ASSERT(0, "Cannot evaluate gradient.");}
+						m_vvShape[ip][sh] = TrialSpace.shape(sh, m_vIPLocal[ip]);
+						m_vvGradLocal[ip][sh] = TrialSpace.grad(sh, m_vIPLocal[ip]);
 					}
 				}
 			}
@@ -97,6 +95,12 @@ class FEGeometry
 			return m_vIPGlobal[ip];
 		}
 
+		/// local integration point
+		const MathVector<dim>* local_ips() const {return &m_vIPLocal[0];}
+
+		/// global integration point
+		const MathVector<world_dim>* global_ips() const{return &m_vIPGlobal[0];}
+
 		/// global gradient at ip
 		const MathVector<world_dim>& grad_global(size_t ip, size_t sh) const
 		{
@@ -123,11 +127,23 @@ class FEGeometry
 			{
 				// compute transformation inverse and determinate at ip
 				if(!m_mapping.jacobian_transposed_inverse(m_vIPLocal[ip], m_JTInv[ip]))
-					{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian transposed inverse.\n"); return false;}
+				{
+					UG_LOG("FE1Geometry:update(..): "
+							"Cannot compute jacobian transposed inverse.\n");
+					return false;
+				}
 				if(!m_mapping.jacobian_det(m_vIPLocal[ip], m_detJ[ip]))
-					{UG_LOG("FE1Geometry:update(..): Cannot compute jacobian determinante.\n"); return false;}
+				{
+					UG_LOG("FE1Geometry:update(..): "
+							"Cannot compute jacobian determinante.\n");
+					return false;
+				}
 				if(!m_mapping.local_to_global(m_vIPLocal[ip], m_vIPGlobal[ip]))
-					{UG_LOG("FE1Geometry:update(..): Cannot compute global ip pos.\n"); return false;}
+				{
+					UG_LOG("FE1Geometry:update(..):"
+							" Cannot compute global ip pos.\n");
+					return false;
+				}
 
 				// compute global gradients
 				for(size_t sh = 0; sh < m_numSH; ++sh)

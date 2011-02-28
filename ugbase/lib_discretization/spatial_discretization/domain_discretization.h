@@ -53,7 +53,9 @@ class DomainDiscretization :
 	public:
 	///	Empty Constructor
 		DomainDiscretization() : m_bForceRegGrid(false)
-		{};
+		{
+			m_vvPostProcess.resize(PPT_NUM_POST_PROCESS_TYPES);
+		};
 
 	///////////////////////////
 	// Time independent part
@@ -176,8 +178,8 @@ class DomainDiscretization :
 
 	protected:
 	//	vector holding all registered post processes
-		std::vector<IPostProcess<TDoFDistribution, TAlgebra>*>
-			m_vvPostProcess[PPT_NUM_POST_PROCESS_TYPES];
+		std::vector<std::vector<IPostProcess<TDoFDistribution, TAlgebra>*> >
+			m_vvPostProcess;
 
 	protected:
 	///	returns number of registered post processes

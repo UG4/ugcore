@@ -28,115 +28,246 @@ class SymP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TAlgeb
 	// 	Type of algebra vector
 		typedef typename algebra_type::vector_type vector_type;
 
+	// 	Type of algebra index vector
+		typedef typename dof_distribution_type::algebra_index_vector_type algebra_index_vector_type;
+
 	public:
 		virtual int type() {return PPT_CONSTRAINTS;}
-		virtual IAssembleReturn post_process_linear(matrix_type& mat, vector_type& rhs, const vector_type& u, const dof_distribution_type& dofDistr, number time = 0.0)
+
+		virtual IAssembleReturn post_process_jacobian(matrix_type& J,
+		                                              const vector_type& u,
+		                                              const dof_distribution_type& dofDistr,
+		                                              number time = 0.0)
 		{
-			typename geometry_traits<ConstrainingEdge>::const_iterator iter, iterBegin, iterEnd;
+		//  \todo: Implement correctly
+		//	dummy for rhs
+			vector_type rhsDummy; rhsDummy.resize(u.size());
 
-			iterBegin = dofDistr.template begin<ConstrainingEdge>();
-			iterEnd = dofDistr.template end<ConstrainingEdge>();
 
+			return post_process_linear(J, rhsDummy, u, dofDistr, time);
+		}
+
+		virtual IAssembleReturn post_process_linear(matrix_type& mat,
+		                                            vector_type& rhs,
+		                                            const vector_type& u,
+		                                            const dof_distribution_type& dofDistr,
+		                                            number time = 0.0)
+		{
+		//	algebra indices of constraining vertex
+			std::vector<algebra_index_vector_type> vConstrainingInd;
+
+		//	algebra indices of constrained vertex
+			algebra_index_vector_type constrainedInd;
+
+		//	vector of constraining vertices
+			std::vector<VertexBase*> vConstrainingVrt;
+
+		//	iterators for hanging vertices
+			typename geometry_traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+
+		//	get begin end of hanging vertices
+			iterBegin = dofDistr.template begin<HangingVertex>();
+			iterEnd = dofDistr.template end<HangingVertex>();
+
+		//	loop constraining edges
 			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
-				ConstrainingEdge* bigEdge = *iter;
+			//	resize tmp arrays
+				vConstrainingInd.clear();
+				vConstrainingVrt.clear();
 
-				VertexBase* vrt1 = bigEdge->vertex(0);
-				VertexBase* vrt2 = bigEdge->vertex(1);
-				VertexBase* vrt3 = NULL;
+			//	get hanging vert
+				HangingVertex* hgVrt = *iter;
 
-				for(EdgeBaseIterator edIter = bigEdge->constrained_edges_begin(); edIter !=  bigEdge->constrained_edges_end(); ++edIter)
+			//	switch constraining parent
+				switch(hgVrt->get_parent_base_object_type_id())
 				{
-					ConstrainedEdge* smallEdge = dynamic_cast<ConstrainedEdge*>(*edIter);
-					if(smallEdge == NULL)
+				case EDGE:
+				{
+				//	cast to constraining edge
+					ConstrainingEdge* constrainingEdge =
+							dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+
+				//	check that edge is correct
+					if(constrainingEdge == NULL)
 					{
-						UG_LOG("Cannot find Constrained Edge. Aborting.\n"); return IAssemble_ERROR;
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining edge, but is not.\n");
+						return IAssemble_ERROR;
 					}
 
-					vrt3 = smallEdge->vertex(0);
-					if(vrt3 != vrt2 && vrt3 != vrt1) break;
+				//	get constraining vertices
+					EdgeBaseIterator edgeIter = constrainingEdge->constrained_edges_begin();
+					for(; edgeIter != constrainingEdge->constrained_edges_end(); ++edgeIter)
+					{
+					//	get constrained edge
+						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(*edgeIter);
 
-					vrt3 = smallEdge->vertex(1);
-					if(vrt3 != vrt2 && vrt3 != vrt1) break;
+					//	check
+						if(constrainedEdge == NULL)
+						{
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+									" Child element should be constrained edge, but is not.\n");
+							return IAssemble_ERROR;
+						}
+
+					//	get non-hanging vertex
+						VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
+
+					//	push back in list of interpolation vertices
+						vConstrainingVrt.push_back(vrt);
+					}
 				}
-
-				typename dof_distribution_type::algebra_index_vector_type ind1, ind2, ind3;
-				dofDistr.get_inner_algebra_indices(vrt1, ind1);
-				dofDistr.get_inner_algebra_indices(vrt2, ind2);
-				dofDistr.get_inner_algebra_indices(vrt3, ind3);
-
-				if(false)
+					break;
+				case FACE:
 				{
-					UG_LOG("ind1 = " << ind1[0] << "\n");
-					UG_LOG("ind2 = " << ind2[0] << "\n");
-					UG_LOG("ind3 = " << ind3[0] << "\n");
+				//	cast to constraining quadrilateral
+					ConstrainingQuadrilateral* bigQuad =
+							dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
+
+				//	check that quad is correct
+					if(bigQuad == NULL)
+					{
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining quad, but is not.\n");
+						return IAssemble_ERROR;
+					}
+
+				//	get constraining vertices
+				//	\todo: This is only valid for a surface grid!!!
+					for(size_t i=0; i < bigQuad->num_vertices(); ++i)
+						vConstrainingVrt.push_back(bigQuad->vertex(i));
+				}
+					break;
+				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element of hang. vertex wrong.\n");
+						return IAssemble_ERROR;
 				}
 
-				if(!SplitAddRow(mat, ind1, ind2, ind3))
-					{UG_LOG("ERROR while splitting rows. Aborting.\n"); return IAssemble_ERROR;}
+			//	resize constraining indices
+				vConstrainingInd.resize(vConstrainingVrt.size());
 
-				if(!SetInterpolation(mat, ind1, ind2, ind3))
-					{UG_LOG("ERROR while setting interpolation. Aborting.\n"); return IAssemble_ERROR;}
+			// 	get algebra indices for constraining vertices
+				for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+					dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
 
-				if(!HandleRhs(rhs, ind1, ind2, ind3))
-					{UG_LOG("ERROR while setting interpolation. Aborting.\n"); return IAssemble_ERROR;}
+			// 	get algebra indices constrained vertices
+				dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
 
+			// 	Split using indices
+				if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while splitting rows. Aborting.\n");
+					return IAssemble_ERROR;
+				}
+
+			//	Set interpolation
+				if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while setting interpolation. Aborting.\n");
+					return IAssemble_ERROR;
+				}
+
+			//	adapt rhs
+				if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while setting interpolation. Aborting.\n");
+					return IAssemble_ERROR;
+				}
 			}
 
+		//  we're done
 			return IAssemble_OK;
 		}
 
 	protected:
 		template <typename T>
-		bool SplitAddRow(SparseMatrix<T>& A,  std::vector<size_t>& ind1, std::vector<size_t>& ind2, std::vector<size_t>& ind3)
+		bool SplitAddRow(SparseMatrix<T>& A	,
+		                 algebra_index_vector_type& constrainedIndex,
+		                 std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
-			if(ind1.size() != ind2.size() || ind1.size() != ind3.size())
-				{UG_LOG("Wring number of indices. Cannot split row.\n"); return false;}
-
-			for(size_t i = 0; i < ind1.size(); ++i)
+			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
-				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(ind3[i]); !conn.isEnd(); ++conn)
+				if(vConstrainingIndices[i].size() != constrainedIndex.size())
 				{
-					typename SparseMatrix<T>::value_type block = (*conn).dValue;
-					block *= 1./2.;
-					const size_t j = (*conn).iIndex;
-
-					A(ind1[i], j) += block;
-					A(ind2[i], j) += block;
-					A(ind3[i], j) = 0.0;
+					UG_LOG("Wrong number of indices. Cannot split row.\n");
+					return false;
 				}
 			}
+
+			for(size_t i = 0; i < constrainedIndex.size(); ++i)
+			{
+				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(constrainedIndex[i]);
+						!conn.isEnd(); ++conn)
+				{
+					typename SparseMatrix<T>::value_type block = (*conn).dValue;
+					const size_t j = (*conn).iIndex;
+
+					A(constrainedIndex[i], j) = 0.0;
+
+					block *= 1./(vConstrainingIndices.size());
+
+					for(size_t k = 0; k < vConstrainingIndices.size(); ++k)
+						A(vConstrainingIndices[k][i], j) += block;
+				}
+
+				A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
+
+				number frac = -1.0/(vConstrainingIndices.size());
+				for(size_t j=0; j < vConstrainingIndices.size();++j)
+					A(constrainedIndex[i], vConstrainingIndices[j][i]) = frac;
+			}
+
 			return true;
 		}
 
 		template <typename T>
-		bool SetInterpolation(SparseMatrix<T>& A,  std::vector<size_t>& ind1, std::vector<size_t>& ind2, std::vector<size_t>& ind3)
+		bool SetInterpolation(SparseMatrix<T>& A	,
+		                      algebra_index_vector_type& constrainedIndex,
+		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
-			if(ind1.size() != ind2.size() || ind1.size() != ind3.size())
-				{UG_LOG("Wring number of indices. Cannot split row.\n"); return false;}
-
-			for(size_t i = 0; i < ind1.size(); ++i)
+			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
-					A(ind3[i], ind3[i]) = 1.0;
-					A(ind3[i], ind1[i]) = -1./2.;
-					A(ind3[i], ind2[i]) = -1./2.;
+				if(vConstrainingIndices[i].size() != constrainedIndex.size())
+				{
+					UG_LOG("Wrong number of indices. Cannot split row.\n");
+					return false;
+				}
+			}
+
+			for(size_t i = 0; i < constrainedIndex.size(); ++i)
+			{
+				A(constrainedIndex[i], constrainedIndex[i]) = 1.0;
+
+				number frac = -1.0/(vConstrainingIndices.size());
+				for(size_t j=0; j < vConstrainingIndices.size();++j)
+					A(constrainedIndex[i], vConstrainingIndices[j][i]) = frac;
 			}
 			return true;
 		}
 
 		template <typename T>
-		bool HandleRhs(Vector<T>& rhs,  std::vector<size_t>& ind1, std::vector<size_t>& ind2, std::vector<size_t>& ind3)
+		bool HandleRhs(Vector<T>& rhs,
+		               algebra_index_vector_type& constrainedIndex,
+		               std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
-			if(ind1.size() != ind2.size() || ind1.size() != ind3.size())
-				{UG_LOG("Wring number of indices. Cannot split row.\n"); return false;}
-
-			for(size_t i = 0; i < ind1.size(); ++i)
+			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
-				typename Vector<T>::value_type& val = rhs[ind3[i]];
-				val *= 1./2.;
+				if(vConstrainingIndices[i].size() != constrainedIndex.size())
+				{
+					UG_LOG("Wrong number of indices. Cannot split row.\n");
+					return false;
+				}
+			}
 
-				rhs[ind1[i]] += val;
-				rhs[ind2[i]] += val;
+			for(size_t i = 0; i < constrainedIndex.size(); ++i)
+			{
+				typename Vector<T>::value_type& val = rhs[constrainedIndex[i]];
+				val *= 1./(vConstrainingIndices.size());
+
+				// split equally on all constraining indices
+				for(size_t j=0; j < vConstrainingIndices.size(); ++j)
+					rhs[vConstrainingIndices[j][i]] += val;
 			}
 			return true;
 		}
@@ -173,8 +304,12 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 		                                              const dof_distribution_type& dofDistr,
 		                                              number time = 0.0)
 		{
-		//	\todo: Think about if this is ok.
-			return IAssemble_OK;
+		//  \todo: Implement correctly
+		//	dummy for rhs
+			vector_type rhsDummy; rhsDummy.resize(u.size());
+
+
+			return post_process_linear(J, rhsDummy, u, dofDistr, time);
 		}
 
 		virtual IAssembleReturn post_process_linear(matrix_type& mat,
@@ -183,118 +318,152 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 		                                            const dof_distribution_type& dofDistr,
 		                                            number time = 0.0)
 		{
-			std::vector<algebra_index_vector_type> vConstrainingIndices;
-			algebra_index_vector_type constrainedIndex;
-			std::vector<VertexBase*> vConstrainingVertices;
-			VertexBase* constrainedVertex = NULL;
+		//	algebra indices of constraining vertex
+			std::vector<algebra_index_vector_type> vConstrainingInd;
 
-			//////////////////////////
-			// Constrained Edges
-			//////////////////////////
-			typename geometry_traits<ConstrainingEdge>::const_iterator iter, iterBegin, iterEnd;
+		//	algebra indices of constrained vertex
+			algebra_index_vector_type constrainedInd;
 
-			iterBegin = dofDistr.template begin<ConstrainingEdge>();
-			iterEnd = dofDistr.template end<ConstrainingEdge>();
+		//	vector of constraining vertices
+			std::vector<VertexBase*> vConstrainingVrt;
 
-			vConstrainingIndices.resize(2);
-			vConstrainingVertices.resize(2);
+		//	iterators for hanging vertices
+			typename geometry_traits<HangingVertex>::const_iterator iter, iterBegin, iterEnd;
+
+		//	get begin end of hanging vertices
+			iterBegin = dofDistr.template begin<HangingVertex>();
+			iterEnd = dofDistr.template end<HangingVertex>();
 
 		//	loop constraining edges
 			for(iter = iterBegin; iter != iterEnd; ++iter)
 			{
-			//	get constraining edge
-				ConstrainingEdge* bigEdge = *iter;
+			//	resize tmp arrays
+				vConstrainingInd.clear();
+				vConstrainingVrt.clear();
 
-			//	get constraining vertices
-				for(size_t i=0; i < 2; ++i)
-					vConstrainingVertices[i] = bigEdge->vertex(i);
+			//	get hanging vert
+				HangingVertex* hgVrt = *iter;
 
-			//	check that edge has only on contrained vertex
-				if(bigEdge->num_constrained_vertices() != 1)
+			//	switch constraining parent
+				switch(hgVrt->get_parent_base_object_type_id())
 				{
-					UG_LOG("ERROR in OneSideP1ConstraintsPostProcess::post_process_linear:"
-							"Currently only one hanging node per edge supported.\n");
+				case EDGE:
+				{
+				//	cast to constraining edge
+					ConstrainingEdge* constrainingEdge =
+							dynamic_cast<ConstrainingEdge*>(hgVrt->get_parent());
+
+				//	check that edge is correct
+					if(constrainingEdge == NULL)
+					{
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining edge, but is not.\n");
+						return IAssemble_ERROR;
+					}
+
+				//	get constraining vertices
+					EdgeBaseIterator edgeIter = constrainingEdge->constrained_edges_begin();
+					for(; edgeIter != constrainingEdge->constrained_edges_end(); ++edgeIter)
+					{
+					//	get constrained edge
+						ConstrainedEdge* constrainedEdge = dynamic_cast<ConstrainedEdge*>(*edgeIter);
+
+					//	check
+						if(constrainedEdge == NULL)
+						{
+							UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+									" Child element should be constrained edge, but is not.\n");
+							return IAssemble_ERROR;
+						}
+
+					//	get non-hanging vertex
+						VertexBase* vrt = GetConnectedVertex(constrainedEdge, hgVrt);
+
+					//	push back in list of interpolation vertices
+						vConstrainingVrt.push_back(vrt);
+					}
+				}
+					break;
+				case FACE:
+				{
+				//	cast to constraining quadrilateral
+					ConstrainingQuadrilateral* bigQuad =
+							dynamic_cast<ConstrainingQuadrilateral*>(hgVrt->get_parent());
+
+				//	check that quad is correct
+					if(bigQuad == NULL)
+					{
+						UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element should be constraining quad, but is not.\n");
+						return IAssemble_ERROR;
+					}
+
+				//	get constraining vertices
+				//	\todo: This is only valid for a surface grid!!!
+					for(size_t i=0; i < bigQuad->num_vertices(); ++i)
+						vConstrainingVrt.push_back(bigQuad->vertex(i));
+				}
+					break;
+				default: UG_LOG("ERROR in 'OneSideP1ConstraintsPostProcess::post_process_linear:'"
+								" Parent element of hang. vertex wrong.\n");
+						return IAssemble_ERROR;
+				}
+
+			//	resize constraining indices
+				vConstrainingInd.resize(vConstrainingVrt.size());
+
+			// 	get algebra indices for constraining vertices
+				for(size_t i=0; i < vConstrainingVrt.size(); ++i)
+					dofDistr.get_inner_algebra_indices(vConstrainingVrt[i], vConstrainingInd[i]);
+
+			// 	get algebra indices constrained vertices
+				dofDistr.get_inner_algebra_indices(hgVrt, constrainedInd);
+
+			// 	Split using indices
+				if(!SplitAddRow(mat, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while splitting rows. Aborting.\n");
 					return IAssemble_ERROR;
 				}
 
-			//	get constrained Vertex
-				constrainedVertex = *(bigEdge->constrained_vertices_begin());
+			//	Set interpolation
+				if(!SetInterpolation(mat, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while setting interpolation. Aborting.\n");
+					return IAssemble_ERROR;
+				}
 
-			// 	get algebra indices for constraining vertices
-				for(size_t i=0; i < 2; ++i)
-					dofDistr.get_inner_algebra_indices(vConstrainingVertices[i], vConstrainingIndices[i]);
-
-			// 	get algebra indices constrained vertices
-				dofDistr.get_inner_algebra_indices(constrainedVertex, constrainedIndex);
-
-
-			//  Split using indices
-				if(!SplitAddRow(mat, constrainedIndex, vConstrainingIndices))
-					{UG_LOG("ERROR while splitting rows. Aborting.\n"); return IAssemble_ERROR;}
-
-				if(!SetInterpolation(mat, constrainedIndex, vConstrainingIndices))
-					{UG_LOG("ERROR while setting interpolation. Aborting.\n"); return IAssemble_ERROR;}
-
-				if(!HandleRhs(rhs, constrainedIndex, vConstrainingIndices))
-					{UG_LOG("ERROR while setting interpolation. Aborting.\n"); return IAssemble_ERROR;}
-
+			//	adapt rhs
+				if(!HandleRhs(rhs, constrainedInd, vConstrainingInd))
+				{
+					UG_LOG("ERROR while setting interpolation. Aborting.\n");
+					return IAssemble_ERROR;
+				}
 			}
 
-			//////////////////////////
-			// Constrained Quads
-			//////////////////////////
-			typename geometry_traits<ConstrainingQuadrilateral>::const_iterator iterQuad, iterQuadBegin, iterQuadEnd;
-
-			iterQuadBegin = dofDistr.template begin<ConstrainingQuadrilateral>();
-			iterQuadEnd = dofDistr.template end<ConstrainingQuadrilateral>();
-
-			vConstrainingIndices.resize(4);
-			vConstrainingVertices.resize(4);
-			for(iterQuad = iterQuadBegin; iterQuad != iterQuadEnd; ++iterQuad)
-			{
-				ConstrainingQuadrilateral* bigQuad = *iterQuad;
-
-				for(size_t i=0; i < 4; ++i)
-					vConstrainingVertices[i] = bigQuad->vertex(i);
-
-				UG_ASSERT(bigQuad->num_constrained_vertices() == 1, "Should only be one hanging vertex in current implementation");
-
-				constrainedVertex = *(bigQuad->constrained_vertices_begin());
-
-				// get algebra indices
-				for(size_t i=0; i < 4; ++i)
-					dofDistr.get_inner_algebra_indices(vConstrainingVertices[i], vConstrainingIndices[i]);
-
-				dofDistr.get_inner_algebra_indices(constrainedVertex, constrainedIndex);
-
-				// Split using indices
-				if(!SplitAddRow(mat, constrainedIndex, vConstrainingIndices))
-					{UG_LOG("ERROR while splitting rows. Aborting.\n"); return IAssemble_ERROR;}
-
-				if(!SetInterpolation(mat, constrainedIndex, vConstrainingIndices))
-					{UG_LOG("ERROR while setting interpolation. Aborting.\n"); return IAssemble_ERROR;}
-
-				if(!HandleRhs(rhs, constrainedIndex, vConstrainingIndices))
-					{UG_LOG("ERROR while setting interpolation. Aborting.\n"); return IAssemble_ERROR;}
-
-			}
-
+		//  we're done
 			return IAssemble_OK;
 		}
 
 	protected:
 		template <typename T>
-		bool SplitAddRow(SparseMatrix<T>& A,  algebra_index_vector_type& constrainedIndex, std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		bool SplitAddRow(SparseMatrix<T>& A,
+		                 algebra_index_vector_type& constrainedIndex,
+		                 std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-					{UG_LOG("Wring number of indices. Cannot split row.\n"); return false;}
+				{
+					UG_LOG("Wring number of indices. Cannot split row.\n");
+					return false;
+				}
 			}
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
 			{
-				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(constrainedIndex[i]); !conn.isEnd(); ++conn)
+				for(typename SparseMatrix<T>::rowIterator conn = A.beginRow(constrainedIndex[i]);
+						!conn.isEnd(); ++conn)
 				{
 					typename SparseMatrix<T>::value_type block = (*conn).dValue;
 					const size_t j = (*conn).iIndex;
@@ -308,12 +477,17 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 		}
 
 		template <typename T>
-		bool SetInterpolation(SparseMatrix<T>& A,  algebra_index_vector_type& constrainedIndex, std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		bool SetInterpolation(SparseMatrix<T>& A,
+		                      algebra_index_vector_type& constrainedIndex,
+		                      std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-					{UG_LOG("Wring number of indices. Cannot split row.\n"); return false;}
+				{
+					UG_LOG("Wring number of indices. Cannot split row.\n");
+					return false;
+				}
 			}
 
 			const number scale = -1./(vConstrainingIndices.size());
@@ -329,12 +503,17 @@ class OneSideP1ConstraintsPostProcess : public IPostProcess<TDoFDistribution, TA
 		}
 
 		template <typename T>
-		bool HandleRhs(Vector<T>& rhs,  algebra_index_vector_type& constrainedIndex, std::vector<algebra_index_vector_type>& vConstrainingIndices)
+		bool HandleRhs(Vector<T>& rhs,
+		               algebra_index_vector_type& constrainedIndex,
+		               std::vector<algebra_index_vector_type>& vConstrainingIndices)
 		{
 			for(size_t i = 0; i < vConstrainingIndices.size(); ++i)
 			{
 				if(vConstrainingIndices[i].size() != constrainedIndex.size())
-					{UG_LOG("Wrong number of indices. Cannot split row.\n"); return false;}
+				{
+					UG_LOG("Wrong number of indices. Cannot split row.\n");
+					return false;
+				}
 			}
 
 			for(size_t i = 0; i < constrainedIndex.size(); ++i)
