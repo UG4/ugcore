@@ -30,11 +30,7 @@ set(srcDiscretization	common/function_group.cpp
 
 						local_shape_function_set/local_shape_function_set_provider.cpp
 						local_shape_function_set/local_dof_pattern.cpp
-						local_shape_function_set/LagrangeP1/lagrangep1.cpp						
-
-						spatial_discretization/coupled_elem_disc/elem_data/data_items.cpp
-						spatial_discretization/coupled_elem_disc/elem_data/data_container.cpp)
-						#spacial_discretization/coupled_elem_disc/elem_data/linker.cpp)
+						local_shape_function_set/LagrangeP1/lagrangep1.cpp)
 
 
 EXPORTSOURCES(lib_discretization ${srcDiscretization})
