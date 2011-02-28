@@ -163,7 +163,7 @@ for i=1,numPreRefs do
 refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
+if DistributeDomain(dom) == false then
 print("Error while Distributing Grid.")
 exit()
 end
@@ -184,7 +184,7 @@ sh:set_subset_name("Inner", 0)
 sh:set_subset_name("Boundary", 1)
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 
 -- create function pattern
@@ -332,7 +332,6 @@ projection = utilCreateP1Projection(approxSpace)
 gmg = utilCreateGeometricMultiGrid(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
-gmg:set_surface_level(numRefs)
 gmg:set_base_level(0)
 gmg:set_base_solver(baseLU)
 gmg:set_smoother(ilu)
@@ -416,7 +415,7 @@ end
 print("Writing start values")
 out = utilCreateVTKWriter(dim)
 out:begin_timeseries("Elder", u)
-out:print("Elder", u, 0, time)
+out:print("Elder", u, step, time)
 
 -- some info output
 print( "   numPreRefs is   " .. numPreRefs ..     ",  numRefs is         " .. numRefs)
