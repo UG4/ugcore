@@ -14,6 +14,7 @@
 #include "lib_discretization/assemble.h"
 #include "lib_discretization/operator/operator.h"
 #include "../line_search.h"
+#include "lib_algebra/operator/debug_writer.h"
 
 namespace ug {
 
@@ -28,6 +29,9 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 	//	Vector type
 		typedef typename TAlgebra::vector_type vector_type;
 
+	//	Matrix type
+		typedef typename TAlgebra::matrix_type matrix_type;
+
 	//	DoFDistribution Type
 		typedef TDoFDistribution dof_distribution_type;
 
@@ -38,11 +42,12 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 					m_pLinearSolver(&LinearSolver),
 					m_pConvCheck(&ConvCheck),
 					m_pLineSearch(LineSearch),
-					m_reallocate(reallocate), m_allocated(false)
+					m_reallocate(reallocate), m_allocated(false),
+					m_dgbCall(0)
 			{};
 
 		NewtonSolver() :
-			m_pLinearSolver(NULL), m_pConvCheck(NULL), m_pLineSearch(NULL), m_reallocate(false), m_allocated(false)
+			m_pLinearSolver(NULL), m_pConvCheck(NULL), m_pLineSearch(NULL), m_reallocate(false), m_allocated(false), m_dgbCall(0)
 			{};
 
 		void set_linear_solver(ILinearOperatorInverse<vector_type, vector_type>& LinearSolver) {m_pLinearSolver = &LinearSolver;}
@@ -54,6 +59,12 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 			m_pConvCheck->set_name("Newton Solver");
 		}
 		void set_line_search(ILineSearch<vector_type>& LineSearch) {m_pLineSearch = &LineSearch;}
+
+	///	set debug output
+		void set_debug(IDebugWriter<algebra_type>* debugWriter)
+		{
+			m_pDebugWriter = debugWriter;
+		}
 
 		// init: This operator inverts the Operator N: Y -> X
 		virtual bool init(IOperator<vector_type, vector_type>& N);
@@ -69,6 +80,34 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 	private:
 		bool allocate_memory(const vector_type& u);
 		bool deallocate_memory();
+
+		bool write_debug(const vector_type& vec, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	add iter count to name
+			std::string name(filename);
+			char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+			name.append(ext);
+
+		//	write
+			return m_pDebugWriter->write_vector(vec, name.c_str());
+		}
+
+		bool write_debug(const matrix_type& mat, const char* filename)
+		{
+		//	if no debug writer set, we're done
+			if(m_pDebugWriter == NULL) return true;
+
+		//	add iter count to name
+			std::string name(filename);
+			char ext[20]; sprintf(ext, "_call%03d", m_dgbCall);
+			name.append(ext);
+
+		//	write
+			return m_pDebugWriter->write_matrix(mat, name.c_str());
+		}
 
 	private:
 		ILinearOperatorInverse<vector_type, vector_type>* m_pLinearSolver;
@@ -93,6 +132,11 @@ class NewtonSolver : public IOperatorInverse<	typename TAlgebra::vector_type,
 
 		bool m_reallocate;
 		bool m_allocated;
+
+	//	Debug Writer
+		IDebugWriter<algebra_type>* m_pDebugWriter;
+
+		int m_dgbCall;
 };
 
 }

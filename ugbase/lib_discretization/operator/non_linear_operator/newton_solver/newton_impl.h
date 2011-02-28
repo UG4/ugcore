@@ -120,6 +120,9 @@ bool
 NewtonSolver<TDoFDistribution, TAlgebra>::
 apply(vector_type& u)
 {
+//	increase call count
+	m_dgbCall++;
+
 	if(m_pLinearSolver == NULL)
 	{
 		UG_LOG("ERROR in 'NewtonSolver::apply': Linear Solver not set.\n");
@@ -138,6 +141,7 @@ apply(vector_type& u)
 	if(m_N->apply(m_d, u) != true)
 		{UG_LOG("NewtonSolver::apply: Cannot apply Non-linear Operator to compute start defect.\n"); return false;}
 	NEWTON_PROFILE_END();
+	write_debug(m_d, "NEWTON_StartDefect");
 
 	// increase offset of output for linear solver
 	IConvergenceCheck* pLinConvCheck = m_pLinearSolver->get_convergence_check();
@@ -159,8 +163,12 @@ apply(vector_type& u)
 	m_pConvCheck->start(m_d);
 
 	//loop iteration
+	int loopCnt = 0;
 	while(!m_pConvCheck->iteration_ended())
 	{
+		loopCnt++;
+		char ext[20]; sprintf(ext, "_iter%03d", loopCnt);
+
 		// set c = 0
 		NEWTON_PROFILE_BEGIN(NewtonSetCorretionZero);
 		if(!m_c.set(0.0))
@@ -172,6 +180,10 @@ apply(vector_type& u)
 		if(!m_J->init(u))
 			{UG_LOG("NewtonSolver::apply: Cannot prepare Jacobi Operator.\n"); return false;}
 		NEWTON_PROFILE_END();
+
+		std::string matname("NEWTON_Jacobian");
+		matname.append(ext);
+		write_debug(m_J->get_matrix(), matname.c_str());
 
 		NEWTON_PROFILE_BEGIN(NewtonPrepareLinSolver);
 		// Init Jacobi Inverse
@@ -210,6 +222,10 @@ apply(vector_type& u)
 						"to compute defect.\n"); return false;}
 			NEWTON_PROFILE_END();
 		}
+
+		std::string name("NEWTON_Defect");
+		name.append(ext);
+		write_debug(m_d, name.c_str());
 
 		// check convergence
 		m_pConvCheck->update(m_d);
