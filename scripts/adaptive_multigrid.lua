@@ -19,7 +19,8 @@ InitAlgebra(CPUAlgebraChooser());
 -- CONSTANTS
 dim = GetParamNumber("-dim",    2)
 if dim == 2 then
-	gridName = "open_circle.ugx"
+--	gridName = "open_circle.ugx"
+	gridName = "unit_square_quads_2x2.ugx"
 elseif dim == 3 then
 	gridName = "open_cube_hex.ugx"
 else
@@ -28,13 +29,13 @@ else
 end
 
 --refinement (default is 5)
-numRefs    = GetParamNumber("-numRefs",    1)
+numRefs    = GetParamNumber("-numRefs",    5)
 
 -- all elements connected to vertices in this sphere will be refined
 refCenterX = 0.0
 refCenterY = 0.0
 refCenterZ = 0
-initialRadius = 0.1
+initialRadius = 0.5
 -- in every refinement iteration the radius shrinks with this factor
 radiusFalloff = 0.75
 
@@ -54,10 +55,11 @@ function ourDiffTensor2d(x, y, t)
 end
 		
 function ourDirichletBnd2d(x, y, t)
+
 	-- line bnd
 	local small = 0.0001
-	if (-small < x and x < small) and y <= 0 then return true, 0.0 end
-	if (-small < y and y < small) and x >= 0 then return true, 0.0 end
+--	if (-small < x and x < small) and y <= 0 then return true, 0.0 end
+--	if (-small < y and y < small) and x >= 0 then return true, 0.0 end
 	
 	-- circle bnd
 	local phi;
@@ -65,7 +67,9 @@ function ourDirichletBnd2d(x, y, t)
 	if y >= 0 then phi = math.acos(x/r) end
 	if y < 0 then phi =2*math.pi - math.acos(x/r) end
 	
-	return true, math.sin((2*phi)/3)
+	return true, 10.0;
+	
+--	return true, math.sin((2*phi)/3)
 end
 
 -- 3D
@@ -107,7 +111,8 @@ refiner = HangingNodeDomainRefiner(dom);
 -- refine
 local radius = initialRadius
 for i = 1, numRefs do
-	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
+--	MarkForRefinement_VerticesInSphere(refiner, refCenterX, refCenterY, refCenterZ, radius)
+	MarkForRefinement_VerticesInSquare(refiner, -0.5 + 0.2*i, 1, -1, 1, 0, 0)
 	
 	refiner:refine()
 	radius = radius * radiusFalloff
@@ -151,15 +156,15 @@ dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 -- Note, that only the diffusion tensor is set. All other possible user data
 -- (such as Convection Velocity, Reaction Term, Source Term) are not set and
 -- the discretization uses the default (i.e. zero) value
-elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
-elemDisc:set_upwind_amount(0.0)
+elemDisc = utilCreateFE1ConvDiff(approxSpace, "c", "Inner")
+--elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 
 -----------------------------------------------------------------
 --  Setup Constraints
 -----------------------------------------------------------------
 
-constraints = OneSideP1Constraints()
+constraints = SymP1Constraints()
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
@@ -194,11 +199,11 @@ print ("Setting up Algebra Solver")
 
 -- debug writer
 dbgWriter = utilCreateGridFunctionDebugWriter(dim)
-dbgWriter:set_vtk_output(false)
+dbgWriter:set_vtk_output(true)
 
 -- create algebraic Preconditioner
 jac = Jacobi()
-jac:set_damp(0.8)
+jac:set_damp(1.0)
 gs = GaussSeidel()
 sgs = SymmetricGaussSeidel()
 bgs = BackwardGaussSeidel()
@@ -210,14 +215,14 @@ ilut = ILUT()
 
 	-- Base Solver
 	baseConvCheck = StandardConvergenceCheck()
-	baseConvCheck:set_maximum_steps(500)
-	baseConvCheck:set_minimum_defect(1e-8)
+	baseConvCheck:set_maximum_steps(100)
+	baseConvCheck:set_minimum_defect(1e-10)
 	baseConvCheck:set_reduction(1e-30)
-	baseConvCheck:set_verbose_level(false)
-	-- base = LUSolver()
-	base = LinearSolver()
-	base:set_convergence_check(baseConvCheck)
-	base:set_preconditioner(jac)
+	baseConvCheck:set_verbose_level(true)
+	base = LU()
+	--base = LinearSolver()
+	--base:set_convergence_check(baseConvCheck)
+	--base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
 	transfer = utilCreateP1Prolongation(approxSpace)
@@ -227,7 +232,6 @@ ilut = ILUT()
 	-- Gemoetric Multi Grid
 	gmg = utilCreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
-	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
 	gmg:set_smoother(jac)
@@ -236,12 +240,12 @@ ilut = ILUT()
 	gmg:set_num_postsmooth(3)
 	gmg:set_prolongation(transfer)
 	gmg:set_projection(projection)
-	gmg:set_debug(dbgWriter)
+	--gmg:set_debug(dbgWriter)
 
 -- create Convergence Check
 convCheck = StandardConvergenceCheck()
-convCheck:set_maximum_steps(100)
-convCheck:set_minimum_defect(1e-11)
+convCheck:set_maximum_steps(30)
+convCheck:set_minimum_defect(1e-12)
 convCheck:set_reduction(1e-12)
 
 -- exact Solver
@@ -275,8 +279,17 @@ b = approxSpace:create_surface_function()
 dbgWriter:set_reference_grid_function(u)
 
 -- set initial value
+function StartValue(x, y, t)
+	if y > 0 then return y end
+	return -y
+end
+
+LuaStartValue = utilCreateLuaUserNumber("StartValue", dim)
+
+--InterpolateFunction2d(LuaStartValue, u, "c", 0.0)
 u:set(0.0)
 
+for i = 1,1 do
 -- 1. init operator
 print("Init operator (i.e. assemble matrix).")
 if linOp:init() ~= true then print("Cannot init operator"); exit() end
@@ -297,8 +310,8 @@ if solver:init(linOp) ~= true then print("Cannot init solver"); exit() end
 
 -- 5. apply solver
 print("Apply solver.")
-if solver:apply_return_defect(u,b) ~= true then print("Cannot apply solver"); exit() end
-
+if solver:apply_return_defect(u,b) ~= true then print("Cannot apply solver"); end -- exit() end
+end
 -------------------------------------------
 --  Output
 -------------------------------------------
