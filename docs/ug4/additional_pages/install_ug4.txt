@@ -41,7 +41,7 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 <ul>
 <li> <b>ug4</b>: Download ug4 from the repository <br />
-		svn checkout svn://fuji.gcsc.uni-frankfurt.de/home/repos/ug4/trunk
+		svn checkout svn://fuji.gcsc.uni-frankfurt.de/ug4
 </ul>
 
 
