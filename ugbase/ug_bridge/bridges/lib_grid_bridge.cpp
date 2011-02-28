@@ -316,6 +316,86 @@ void MarkForRefinement_VerticesInSphere(IRefiner& refiner, number centerX,
 	}
 }
 
+template <class TAPos, class vector_t>
+void MarkForRefinement_VerticesInSquare(Grid& grid, IRefiner& refiner,
+										const vector_t& min,
+										const vector_t& max,
+										TAPos& aPos)
+{
+	if(!grid.has_vertex_attachment(aPos)){
+		UG_LOG("WARNING in MarkForRefinement_VerticesInSquare: position attachment missing.\n");
+		return;
+	}
+
+	Grid::VertexAttachmentAccessor<TAPos> aaPos(grid, aPos);
+
+//	we'll store associated edges, faces and volumes in those containers
+	vector<EdgeBase*> vEdges;
+	vector<Face*> vFaces;
+	vector<Volume*> vVols;
+
+//	iterate over all vertices of the grid. If a vertex is inside the given sphere,
+//	then we'll mark all associated elements.
+	for(VertexBaseIterator iter = grid.begin<VertexBase>();
+		iter != grid.end<VertexBase>(); ++iter)
+	{
+	//	Position
+		vector_t pos = aaPos[*iter];
+
+	//	check flag
+		bool bRefine = true;
+
+	//	check node
+		for(size_t d = 0; d < pos.size(); ++d)
+			if(pos[d] < min[d] || max[d] < pos[d])
+				bRefine = false;
+
+		if(bRefine)
+		{
+			CollectAssociated(vEdges, grid, *iter);
+			CollectAssociated(vFaces, grid, *iter);
+			CollectAssociated(vVols, grid, *iter);
+
+			refiner.mark_for_refinement(vEdges.begin(), vEdges.end());
+			refiner.mark_for_refinement(vFaces.begin(), vFaces.end());
+			refiner.mark_for_refinement(vVols.begin(), vVols.end());
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+void MarkForRefinement_VerticesInSquare(IRefiner& refiner,
+                                        number minX, number maxX,
+                                        number minY, number maxY,
+                                        number minZ, number maxZ)
+{
+//	get the associated grid of the refiner.
+	Grid* pGrid = refiner.get_associated_grid();
+	if(!pGrid){
+		UG_LOG("WARNING: Square refinement failed: no grid assigned.\n");
+		return;
+	}
+
+//	depending on the position attachment, we'll call different versions of
+//	MarkForRefinement_VerticesInSphere.
+	if(pGrid->has_vertex_attachment(aPosition1)){
+		MarkForRefinement_VerticesInSquare(*pGrid, refiner, vector1(minX),
+		                                   vector1(maxX), aPosition1);
+	}
+	else if(pGrid->has_vertex_attachment(aPosition2)){
+		MarkForRefinement_VerticesInSquare(*pGrid, refiner,
+											vector2(minX, minY),
+											vector2(maxX, maxY), aPosition2);
+	}
+	else if(pGrid->has_vertex_attachment(aPosition)){
+		MarkForRefinement_VerticesInSquare(*pGrid, refiner,
+											vector3(minX, minY, minZ),
+											vector3(maxX, maxY, maxZ), aPosition);
+	}
+	else{
+		UG_LOG("WARNING in MarkForRefinement_VerticesInSquare: No Position attachment found. Aborting.\n");
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////
 bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
@@ -425,7 +505,9 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 		.add_function("CreateSemiSmoothHierarchy", &CreateSemiSmoothHierarchy, grp.c_str())
 		.add_function("SaveGridHierarchy", &SaveGridHierarchy, grp.c_str())
 		.add_function("MarkForRefinement_VerticesInSphere", (void (*)(IRefiner&, number, number, number, number))
-															&MarkForRefinement_VerticesInSphere, grp.c_str());
+															&MarkForRefinement_VerticesInSphere, grp.c_str())
+		.add_function("MarkForRefinement_VerticesInSquare", (void (*)(IRefiner&, number, number, number, number, number, number))
+															&MarkForRefinement_VerticesInSquare, grp.c_str());
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)
 	{
