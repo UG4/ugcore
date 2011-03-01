@@ -4,6 +4,7 @@
 --	This tutorial will give you a first idea on how to use a lua script to
 --	steer ug. We will examine how to use command line arguments to specify
 --	a filename and a dimension and on how to load and save a domain.
+--	Furthermore we will distribute the domain to all involved processes.
 --
 --	Note that we're using methods and classes in this script file which are
 --	not part of lua itself, but which have been registered at lua by ug.
@@ -29,8 +30,6 @@ dim = GetParamNumber("-dim", 2) -- default dimension is 2.
 -- We also need a filename for the grid that shall be loaded.
 gridName = GetParam("-grid", "unit_square_quads_8x8.ugx")
 
--- Since we want to save the domains grid to a file, we also need an output file.
-outFileName = GetParam("-o", "domain.ugx")
 
 
 
@@ -55,8 +54,15 @@ end
 print("Loaded domain from " .. gridName)
 
 
+-- Distribute the domain to all involved processes
+if DistributeDomain(dom) == false then
+	print("Error while Distributing Domain. Aborting.")
+	exit()
+end
 
--- Lets save it to outFileName
+
+-- Lets save the domain on each process
+outFileName = "distributedDomainOnProc" .. GetProcessRank() .. ".ugx"
 if SaveDomain(dom, outFileName) == false then
 	print("Saving of domain to " .. outFileName .. " failed. Aborting.")
 	exit()

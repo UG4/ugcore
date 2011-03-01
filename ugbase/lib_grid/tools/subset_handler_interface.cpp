@@ -506,6 +506,16 @@ get_subset_index(GeometricObject* elem) const
 	return -1;
 }
 
+int ISubsetHandler::
+get_subset_index(const char* name) const
+{
+	for(int i = 0; i < num_subsets(); ++i){
+		if(subset_info(i).name.compare(name) == 0)
+			return i;
+	}
+	return -1;
+}
+
 void ISubsetHandler::
 insert_subset(int subsetIndex)
 {

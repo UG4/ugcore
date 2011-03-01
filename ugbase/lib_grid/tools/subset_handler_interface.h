@@ -313,6 +313,10 @@ class ISubsetHandler : public GridObserver
 		inline int get_subset_index(Face* elem) const		{return m_aaSubsetIndexFACE[elem];}
 		inline int get_subset_index(Volume* elem) const		{return m_aaSubsetIndexVOL[elem];}
 
+	///	returns the index of the first subset with the given name.
+	/**	This method takes O(NumSubsets) time.*/
+		int get_subset_index(const char* name) const;
+
 	//	grid callbacks
 		//virtual void registered_at_grid(Grid* grid);
 		//virtual void unregistered_from_grid(Grid* grid);

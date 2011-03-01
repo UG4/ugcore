@@ -431,7 +431,9 @@ bool RegisterLibGridInterface(Registry& reg, const char* parentGroup)
 	reg.add_class_<ISubsetHandler>("ISubsetHandler", grp.c_str())
 		.add_method("num_subsets", &ISubsetHandler::num_subsets)
 		.add_method("get_subset_name", &ISubsetHandler::get_subset_name)
-		.add_method("set_subset_name", &ISubsetHandler::set_subset_name);
+		.add_method("set_subset_name", &ISubsetHandler::set_subset_name)
+		.add_method("get_subset_index", (int (ISubsetHandler::*)(const char*) const)
+										&ISubsetHandler::get_subset_index);
 	
 //	SubsetHandler
 	reg.add_class_<SubsetHandler, ISubsetHandler>("SubsetHandler", grp.c_str())
