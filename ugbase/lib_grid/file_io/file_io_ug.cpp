@@ -340,19 +340,20 @@ static bool CollectAllVerticesForNG(Grid& grid, VertexSelector& NgVrtSel,
  * during triangulation of quadrilaterals which share two edges whith
  * another quadrilateral (this e.g. occurs in fracture geometries with neumann
  * boundaries).
+ * Note that only faces in the same subset as q are regarded.
  */
-static int GetFirstRegularVertex(Grid& grid, SubsetHandler sh, Face* q, int si)
+static int GetFirstRegularVertex(Grid& grid, SubsetHandler sh, Face* q)
 {
 	grid.begin_marking();
 	vector<EdgeBase*> edges;
 	vector<Face*> faces;
-	vector<Face*> nbrs;
-//	check whether a connected face exists, which shares two sides
-//	iterate over all edges, collect faces and push them to nbrs.
-//	if a face already has been in nbrs, then it is shared by at least
+	int si = sh.get_subset_index(q);
+
+//	check whether a connected face exists, which shares two sides with q.
+//	iterate over all edges, collect associated faces and mark them.
+//	if a face was already marked, then it is shared by at least
 //	two sides. We will then immediately mark all associated vertices of
 //	that face.
-	nbrs.clear();
 	CollectAssociated(edges, grid, q);
 	for(size_t i_edge = 0; i_edge != edges.size(); ++i_edge){
 		CollectAssociated(faces, grid, edges[i_edge]);
@@ -363,16 +364,17 @@ static int GetFirstRegularVertex(Grid& grid, SubsetHandler sh, Face* q, int si)
 				continue;
 			if(f == q)
 				continue;
-			vector<Face*>::iterator iFind = find(nbrs.begin(), nbrs.end(), f);
-			if(iFind != nbrs.end()){
+
+		//	check whether the face was already encountered
+			if(grid.is_marked(f)){
 			//	it was already there!
 			//	mark all of its vertices
 				for(size_t i_vrt = 0; i_vrt < f->num_vertices(); ++i_vrt)
 					grid.mark(f->vertex(i_vrt));
 			}
 			else{
-			//	its there for the first time. push it back.
-				nbrs.push_back(f);
+			//	its there for the first time. mark it.
+				grid.mark(f);
 			}
 		}
 	}
@@ -528,7 +530,7 @@ static bool WriteLGM(Grid& grid,
 				{
 					Quadrilateral* q = *iter;
 
-					int firstRegular = GetFirstRegularVertex(grid, shFaces, q, i);
+					int firstRegular = GetFirstRegularVertex(grid, shFaces, q);
 
 				//	if we didn't find one, we can't split the face. Schedule a warning.
 					if(firstRegular == -1){
@@ -715,12 +717,12 @@ static bool WriteNG(Grid& grid,
 					int vrtInd = GetVertexIndex(f, v);
 					vector2 vCoord(0, 0);
 					if(f->num_vertices() == 4){
-						int firstRegular = GetFirstRegularVertex(grid, shFaces, f, shFaces.get_subset_index(f));
+						int firstRegular = GetFirstRegularVertex(grid, shFaces, f);
 						if(firstRegular == -1){
 							UG_LOG("Can't split quadrilateral due to too many associated degenerated faces.\n");
 							continue;
 						}
-						vrtInd = (vrtInd - firstRegular)%4;
+						vrtInd = (vrtInd + 4 - firstRegular)%4;
 					}
 
 					switch(vrtInd)
