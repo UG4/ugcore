@@ -136,6 +136,14 @@ static bool SaveDomain(TDomain& domain, const char* filename)
 		UG_LOG("Currently only '.ugx' format supported for domains.\n");
 		return false;
 	}
+/*
+Ich habe mir erlaubt das hier auszukommentieren. Ich denke man sollte den
+Namen der Domain komplett im Skript spezifizieren. Das geht auch ohne weiteres:
+domName = "mydom_" .. GetProcessRank() .. ".ugx"
+Das kann man besser über eine util Funktion lösen.
+Grüße,
+Sebastian
+
 
 	std::string name(filename);
 
@@ -154,6 +162,8 @@ static bool SaveDomain(TDomain& domain, const char* filename)
 #endif
 
 	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), name.c_str());
+*/
+	return SaveGridToUGX(domain.get_grid(), domain.get_subset_handler(), filename);
 }
 
 template <typename TDomain>
