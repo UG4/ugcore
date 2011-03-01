@@ -93,7 +93,7 @@ for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if util.DistributeDomain(dom) == false then
+if DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
@@ -139,9 +139,9 @@ if numProcs < 2 then
 end
 
 -- get number of processes per subdomain
-numProcsPerSubdomain = GetParam("-nPPSD", 1)+0 -- '+0' to get a number instead of a string!
+numProcsPerSubdomain = util.GetParamNumber("-nPPSD", 1)
 
-if not isPowerOfTwo(numProcsPerSubdomain) then
+if not util.isPowerOfTwo(numProcsPerSubdomain) then
 	print( "WARNING: nPPSD = '" .. numProcsPerSubdomain .. "' is not a power of 2!" )
 --	return
 end
@@ -361,8 +361,8 @@ neumannConvCheck:set_maximum_steps(2000)
 neumannConvCheck:set_minimum_defect(1e-10)
 neumannConvCheck:set_reduction(1e-16)
 neumannConvCheck:set_verbose_level(false)
---neumannSolver = CG()
-neumannSolver = BiCGStab()
+neumannSolver = CG()
+--neumannSolver = BiCGStab()
 neumannSolver:set_preconditioner(ilu)
 neumannSolver:set_convergence_check(neumannConvCheck)
 
