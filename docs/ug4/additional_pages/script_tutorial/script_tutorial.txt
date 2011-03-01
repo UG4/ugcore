@@ -12,8 +12,9 @@ by users without even programming a line of code in c/c++. In each lesson only
 few small new aspects are added such that the user can focus on small parts 
 of the script.
 
-	- \ref pageSTLesson1 "Lesson 1 - [ ... brief description ... ]"
-	- \ref pageSTLesson2 "Lesson 2 - [ ... brief description ... ]"
+	- \ref pageSTLesson1 "Lesson 1 - lua basics"
+	- \ref pageSTLesson2 "Lesson 2 - loading a domain"
+	- \ref pageSTLesson3 "Lesson 3 - laplace with exact solver"
 
 
 	- \ref pageSTRegistry "Registry"

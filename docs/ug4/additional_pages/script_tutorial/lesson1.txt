@@ -1,8 +1,12 @@
 
-/**	\page pageSTLesson1	Script-Tutorial Lesson 1
+/**	\page pageSTLesson1	Script-Tutorial Lesson 1 - Lua Basics
 
-We start with a very simple example ...
+In this tutorial we show you some of the basics behind lua. We introduce the
+most commonly used syntax and control structures and give a small outlook
+what else can be achieved in lua.
 
+Below you'll find the scripts sources. They are the same as in
+scripts/tutorials/tut01_lua_basics.lua.
 
-
+\includelineno tut01_lua_basics.lua
 */

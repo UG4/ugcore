@@ -1,8 +1,13 @@
 
-/**	\page pageSTLesson2	Script-Tutorial Lesson 2
+/**	\page pageSTLesson2	Script-Tutorial Lesson 2 - Loading a Domain
 
-Second example ...
+This is the first tutorial that actually controls ug from the lua scripts.
+We will load a domain and distribute it to several processes.
+The tutorial furthermore shows how utility scripts can be loaded and how
+commandline arguments can be accessed.
 
+Below you'll find the scripts sources. They are the same as in
+scripts/tutorials/tut02_loading_a_domain.lua.
 
-
+\includelineno tut02_loading_a_domain.lua
 */
