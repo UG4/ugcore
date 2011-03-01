@@ -15,17 +15,17 @@ InitAlgebra(CPUAlgebraChooser());
 dim = 2
 
 if dim == 2 then
-	gridName = "unit_square_tri.ugx"
+	gridName = util.GetParam("-grid", "unit_square_tri.ugx")
 	--gridName = "unit_square_tri_four_dirichlet_nodes.ugx"
 	--gridName = "unit_square_quads_8x8.ugx"
 end
 if dim == 3 then
-	gridName = "unit_cube_hex.ugx"
+	gridName = util.GetParam("-grid", "unit_cube_hex.ugx")
 	--gridName = "unit_cube_tets_regular.ugx"
 end
 
-numPreRefs = GetParamNumber("-numPreRefs", 1)
-numRefs    = GetParamNumber("-numRefs",    3)
+numPreRefs = util.GetParamNumber("-numPreRefs", 1)
+numRefs    = util.GetParamNumber("-numRefs",    3)
 
 print(" Choosen Parater:")
 print("    numRefs    = " .. numRefs)
@@ -105,11 +105,11 @@ print("    grid       = " .. gridName)
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
    print("Loading Domain failed.")
    exit()
 end
@@ -164,7 +164,7 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 approxSpace:print_layout_statistic()
 
 -------------------------------------------
@@ -175,34 +175,34 @@ print ("Setting up Assembling")
 -- depending on the dimension we're choosing the appropriate callbacks.
 -- we're using the .. operator to assemble the names (dim = 2 -> "ourDiffTensor2d")
 -- Diffusion Tensor setup
-diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
---diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
+--diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-velocityField = utilCreateLuaUserVector("ourVelocityField"..dim.."d", dim)
---velocityField = utilCreateConstUserVector(0.0, dim)
+velocityField = util.CreateLuaUserVector("ourVelocityField"..dim.."d", dim)
+--velocityField = util.CreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-reaction = utilCreateLuaUserNumber("ourReaction"..dim.."d", dim)
---reaction = utilCreateConstUserNumber(0.0, dim)
+reaction = util.CreateLuaUserNumber("ourReaction"..dim.."d", dim)
+--reaction = util.CreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-rhs = utilCreateLuaUserNumber("ourRhs"..dim.."d", dim)
---rhs = utilCreateConstUserNumber(0.0, dim)
+rhs = util.CreateLuaUserNumber("ourRhs"..dim.."d", dim)
+--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
---neumann = utilCreateConstUserNumber(0.0, dim)
+neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd"..dim.."d", dim)
+--neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
---dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
+dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 	
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
@@ -213,14 +213,14 @@ elemDisc:set_rhs(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
---neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
+--neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
 --neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
@@ -265,7 +265,7 @@ SaveMatrixForConnectionViewer(u, linOp, "Stiffness.mat")
 SaveVectorForConnectionViewer(b, "Rhs.mat")
 
 -- debug writer
-dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter = util.CreateGridFunctionDebugWriter(dim)
 dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 
@@ -294,12 +294,12 @@ ilut = ILUT()
 	base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
-	transfer = utilCreateP1Prolongation(approxSpace)
+	transfer = util.CreateP1Prolongation(approxSpace)
 	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = utilCreateP1Projection(approxSpace)
+	projection = util.CreateP1Projection(approxSpace)
 	
 	-- Gemoetric Multi Grid
-	gmg = utilCreateGeometricMultiGrid(approxSpace)
+	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)

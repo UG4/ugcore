@@ -17,7 +17,7 @@ InitAlgebra(CPUAlgebraChooser());
 
 ------------------------
 -- CONSTANTS
-dim = GetParamNumber("-dim",    2)
+dim = util.GetParamNumber("-dim",    2)
 if dim == 2 then
 --	gridName = "open_circle.ugx"
 	gridName = "unit_square_quads_2x2.ugx"
@@ -29,7 +29,7 @@ else
 end
 
 --refinement (default is 5)
-numRefs    = GetParamNumber("-numRefs",    5)
+numRefs    = util.GetParamNumber("-numRefs",    5)
 
 -- all elements connected to vertices in this sphere will be refined
 refCenterX = 0.0
@@ -91,11 +91,11 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then print("Loading Domain failed."); exit() end
+if util.LoadDomain(dom, gridName) == false then print("Loading Domain failed."); exit() end
 
 -- Distribute the domain to all involved processes
 if DistributeDomain(dom) == false then print("Error while Distributing Grid."); exit() end
@@ -132,7 +132,7 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -------------------------------------------
 --  Setup User Functions
@@ -140,13 +140,13 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 print ("Setting up Assembling")
 
 -- Diffusion Tensor setup
-diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
---diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor"..dim.."d", dim)
+--diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- dirichlet setup
 -- depending on the dimension we're choosing the appropriate callbacks.
 -- we're using the .. operator to assemble the names (dim = 2 -> "ourDirichletBnd2d")
-dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
+dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 	
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
@@ -156,7 +156,7 @@ dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd"..dim.."d", dim)
 -- Note, that only the diffusion tensor is set. All other possible user data
 -- (such as Convection Velocity, Reaction Term, Source Term) are not set and
 -- the discretization uses the default (i.e. zero) value
-elemDisc = utilCreateFE1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = util.CreateFE1ConvDiff(approxSpace, "c", "Inner")
 --elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 
@@ -170,7 +170,7 @@ constraints = SymP1Constraints()
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "Boundary")
 
 -------------------------------------------
@@ -198,7 +198,7 @@ linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
 print ("Setting up Algebra Solver")
 
 -- debug writer
-dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter = util.CreateGridFunctionDebugWriter(dim)
 dbgWriter:set_vtk_output(true)
 
 -- create algebraic Preconditioner
@@ -225,12 +225,12 @@ ilut = ILUT()
 	--base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
-	transfer = utilCreateP1Prolongation(approxSpace)
+	transfer = util.CreateP1Prolongation(approxSpace)
 	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = utilCreateP1Projection(approxSpace)
+	projection = util.CreateP1Projection(approxSpace)
 	
 	-- Gemoetric Multi Grid
-	gmg = utilCreateGeometricMultiGrid(approxSpace)
+	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_base_level(0)
 	gmg:set_base_solver(base)
@@ -284,7 +284,7 @@ function StartValue(x, y, t)
 	return -y
 end
 
-LuaStartValue = utilCreateLuaUserNumber("StartValue", dim)
+LuaStartValue = util.CreateLuaUserNumber("StartValue", dim)
 
 --InterpolateFunction2d(LuaStartValue, u, "c", 0.0)
 u:set(0.0)

@@ -61,11 +61,11 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
 print("Loading Domain failed.")
 exit()
 end
@@ -89,7 +89,7 @@ refiner:refine()
 end
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 -- create function pattern
 print("Create Function Pattern")
@@ -100,41 +100,41 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -------------------------------------------
 --  Setup User Functions
 -------------------------------------------
 
 -- Diffusion Tensor setup
-diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor", dim)
---diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor", dim)
+--diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-velocityField = utilCreateLuaUserVector("ourVelocityField", dim)
---velocityField = utilCreateConstUserVector(0.0, dim)
+velocityField = util.CreateLuaUserVector("ourVelocityField", dim)
+--velocityField = util.CreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-reaction = utilCreateLuaUserNumber("ourReaction", dim)
---reaction = utilCreateConstUserNumber(0.0, dim)
+reaction = util.CreateLuaUserNumber("ourReaction", dim)
+--reaction = util.CreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-rhs = utilCreateLuaUserNumber("ourRhs", dim)
---rhs = utilCreateConstUserNumber(0.0, dim)
+rhs = util.CreateLuaUserNumber("ourRhs", dim)
+--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd", dim)
---neumann = utilCreateConstUserNumber(0.0, dim)
+neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd", dim)
+--neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd", dim)
---dirichlet = utilCreateConstBoundaryNumber(0.0, dim)
+dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd", dim)
+--dirichlet = util.CreateConstBoundaryNumber(0.0, dim)
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = utilCreateFV1ConvDiffElemDisc(approxSpace, "c", "Inner")
+elemDisc = util.CreateFV1ConvDiffElemDisc(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
@@ -145,14 +145,14 @@ elemDisc:set_rhs(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
+neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
 neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
@@ -220,7 +220,7 @@ transfer:set_dirichlet_post_process(dirichletBND)
 projection = P1ProjectionOperator2d()
 projection:set_approximation_space(approxSpace)
 
-gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
+gmg = util.CreateGeometricMultiGridPreconditioner(approxSpace)
 gmg:set_discretization(domainDisc)
 gmg:set_surface_level(numRefs)
 gmg:set_base_level(0)

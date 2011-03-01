@@ -74,11 +74,11 @@ numRefs = 3
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
    print("Loading Domain failed.")
    exit()
 end
@@ -96,14 +96,14 @@ for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
+if util.DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-	utilGlobalRefineParallelDomain(dom)
+	util.GlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
@@ -114,7 +114,7 @@ exit()
 end
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 -- create function pattern
 print("Create Function Pattern")
@@ -126,7 +126,7 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -------------------------------------------
 --  Setup User Functions
@@ -134,46 +134,46 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 print ("Setting up Assembling")
 
 -- Diffusion Tensor setup
-	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
-	--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+	diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor2d", dim)
+	--diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
-	velocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
-	--velocityField = utilCreateConstUserVector(0.0, dim)
+	velocityField = util.CreateLuaUserVector("ourVelocityField2d", dim)
+	--velocityField = util.CreateConstUserVector(0.0, dim)
 
 -- Reaction setup
-	reaction = utilCreateLuaUserNumber("ourReaction2d", dim)
-	--reaction = utilCreateConstUserNumber(0.0, dim)
+	reaction = util.CreateLuaUserNumber("ourReaction2d", dim)
+	--reaction = util.CreateConstUserNumber(0.0, dim)
 
 -- rhs setup
-	rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
-	--rhs = utilCreateConstUserNumber(0.0, dim)
+	rhs = util.CreateLuaUserNumber("ourRhs2d", dim)
+	--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-	neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
-	--neumann = utilCreateConstUserNumber(0.0, dim)
+	neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
+	--neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
-	--dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
+	dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
+	--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 	
 -- dirichlet setup
-	membraneDirichlet = utilCreateLuaBoundaryNumber("membraneDirichletBnd2d", dim)
-	membraneRhs = utilCreateLuaUserNumber("membraneRhs2d", dim)
+	membraneDirichlet = util.CreateLuaBoundaryNumber("membraneDirichletBnd2d", dim)
+	membraneRhs = util.CreateLuaUserNumber("membraneRhs2d", dim)
 
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
 elemDisc:set_reaction(reaction)
 elemDisc:set_rhs(rhs)
 
-membraneElemDisc = utilCreateFV1ConvDiff(approxSpace, "c_membrane", "Membrane")
+membraneElemDisc = util.CreateFV1ConvDiff(approxSpace, "c_membrane", "Membrane")
 membraneElemDisc:set_upwind_amount(0.0)
 membraneElemDisc:set_diffusion_tensor(diffusionMatrix)
 membraneElemDisc:set_velocity_field(velocityField)
@@ -184,10 +184,10 @@ membraneElemDisc:set_rhs(membraneRhs)
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "Boundary, MembraneBnd")
 
-membraneDirichletBND = utilCreateDirichletBoundary(approxSpace)
+membraneDirichletBND = util.CreateDirichletBoundary(approxSpace)
 membraneDirichletBND:add_boundary_value(membraneDirichlet, "c_membrane", "MembraneBnd")
 
 -------------------------------------------
@@ -255,12 +255,12 @@ ilut = ILUT()
 	base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
-	transfer = utilCreateP1Prolongation(approxSpace)
+	transfer = util.CreateP1Prolongation(approxSpace)
 	transfer:set_dirichlet_post_process(membraneDirichletBND)
-	projection = utilCreateP1Projection(approxSpace)
+	projection = util.CreateP1Projection(approxSpace)
 	
 	-- Gemoetric Multi Grid
-	gmg = utilCreateGeometricMultiGrid(approxSpace)
+	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)

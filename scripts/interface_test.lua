@@ -28,11 +28,11 @@ numPreRefs = 0
 numRefs = 1
 
 -- create Instance of a Domain
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 sh = dom:get_subset_handler()
 
 -- load domain
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
    print("Loading Domain failed.")
    exit()
 end
@@ -50,13 +50,13 @@ for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
+if util.DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
 for i=numPreRefs+1,numRefs do
-	utilGlobalRefineParallelDomain(dom)
+	util.GlobalRefineParallelDomain(dom)
 end
 
 -- create function pattern
@@ -66,7 +66,7 @@ AddP1Function(pattern, "c", dim)
 pattern:lock()
 
 -- create Approximation Space
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -- get grid function
 u = approxSpace:create_surface_function()

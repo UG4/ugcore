@@ -51,11 +51,11 @@ end
 	
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == true then
+if util.LoadDomain(dom, gridName) == true then
 	-- create Refiner
 	print("Create Hierarchy")
 	if useLoopScheme == true then
@@ -66,11 +66,11 @@ if utilLoadDomain(dom, gridName) == true then
 	
 	print("Saving domain for debug reasons")
 	-- write grid to file for test purpose
-	utilSaveDomain(dom, "refined_grid.ugx")
+	SaveDomain(dom, "refined_grid.ugx")
 	SaveGridHierarchy(dom:get_grid(), "refined_grid_hierarchy.ugx")
 
 	print("creating approximation space...")
-	approxSpace, pattern = utilCreateApproximationSpaceP1(dom, "c")
+	approxSpace, pattern = util.CreateApproximationSpaceP1(dom, "c")
 
 	-- name subsets
 	sh = dom:get_subset_handler()
@@ -86,7 +86,7 @@ if utilLoadDomain(dom, gridName) == true then
 
 	print("creating dirichlet boundary...")
 	-- create dirichlet boundary and add it to discretization
-	dirichletBND = utilCreateDirichletBnd2d(dom, SinusDirichletBoundaryFunction2d(), _C_)
+	dirichletBND = util.CreateDirichletBnd2d(dom, SinusDirichletBoundaryFunction2d(), _C_)
 	domainDisc:add_dirichlet_bnd(dirichletBND, _BND_)
 
 	------------------------------------------
@@ -94,17 +94,17 @@ if utilLoadDomain(dom, gridName) == true then
 	-------------------------------------------
 	
 	-- Diffusion Tensor setup
-		diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor", dim)
+		diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor", dim)
 	-- Velocity Field setup
-		velocityField = utilCreateLuaUserVector("ourVelocityField", dim)
+		velocityField = util.CreateLuaUserVector("ourVelocityField", dim)
 	-- Reaction setup
-		reaction = utilCreateLuaUserNumber("ourReaction", dim)
+		reaction = util.CreateLuaUserNumber("ourReaction", dim)
 	-- rhs setup
-		rhs = utilCreateLuaUserNumber("ourRhs", dim)
+		rhs = util.CreateLuaUserNumber("ourRhs", dim)
 
 	print("creating element discretization...")
 	-- create Finite-Volume Element Discretization for Convection Diffusion Equation
-	elemDisc = utilCreateFV1ConvDiffElemDisc(dom, diffusionMatrix, velocityField, reaction, rhs, 0)
+	elemDisc = util.CreateFV1ConvDiffElemDisc(dom, diffusionMatrix, velocityField, reaction, rhs, 0)
 	
 	-- add Element Discretization to discretization
 	domainDisc:add(elemDisc, pattern, "c", "Inner")
@@ -154,7 +154,7 @@ if utilLoadDomain(dom, gridName) == true then
 	base:set_convergence_check(baseConvCheck)
 	base:set_preconditioner(jac)
 
-	gmg = utilCreateGeometricMultiGridPreconditioner(approxSpace)
+	gmg = util.CreateGeometricMultiGridPreconditioner(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)

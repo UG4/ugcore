@@ -25,14 +25,14 @@ else
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = GetParamNumber("-numPreRefs", 0)
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = GetParamNumber("-numRefs", 2)
+numRefs = util.GetParamNumber("-numRefs", 2)
 
 -- choose number of time steps
-NumPreTimeSteps = GetParamNumber("-numPreTimeSteps", 1)
-NumTimeSteps =  GetParamNumber("-numTimeSteps", 100)
+NumPreTimeSteps = util.GetParamNumber("-numPreTimeSteps", 1)
+NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 100)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -106,11 +106,11 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
 print("Loading Domain failed.")
 exit()
 end
@@ -136,7 +136,7 @@ end
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
 --refiner:refine()
-utilGlobalRefineParallelDomain(dom)
+util.GlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
@@ -163,55 +163,55 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -------------------------------------------
 --  Setup User Functions
 -------------------------------------------
 
 -- dirichlet setup
-ConcentrationDirichlet = utilCreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
-PressureDirichlet = utilCreateLuaBoundaryNumber("PressureDirichletBnd", dim)
+ConcentrationDirichlet = util.CreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
+PressureDirichlet = util.CreateLuaBoundaryNumber("PressureDirichletBnd", dim)
 
 -- start setup
-ConcentrationStartValue = utilCreateLuaUserNumber("ConcentrationStart", dim)
-PressureStartValue = utilCreateLuaUserNumber("PressureStart", dim)
-TemperatureStartValue = utilCreateLuaUserNumber("TemperatureStart", dim)
+ConcentrationStartValue = util.CreateLuaUserNumber("ConcentrationStart", dim)
+PressureStartValue = util.CreateLuaUserNumber("PressureStart", dim)
+TemperatureStartValue = util.CreateLuaUserNumber("TemperatureStart", dim)
 
 
 -- Diffusion Tensor setup
---diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
-diffusionMatrix = utilCreateConstDiagUserMatrix(0.0, dim)
+--diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor2d", dim)
+diffusionMatrix = util.CreateConstDiagUserMatrix(0.0, dim)
 
 -- Velocity Field setup
 function ourVelocityField2d(x, y, t)
 	return	0, -0.000001
 end
 
-luaVelocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
+luaVelocityField = util.CreateLuaUserVector("ourVelocityField2d", dim)
 
-constVelocityField = utilCreateConstUserVector(0.0, dim)
+constVelocityField = util.CreateConstUserVector(0.0, dim)
 constVelocityField:set_entry(1, -0.000001)
 
 -- Porosity
---porosityValue = utilCreateLuaUserNumber("Porosity", dim)
-porosityValue = utilCreateConstUserNumber(0.1, dim)
+--porosityValue = util.CreateLuaUserNumber("Porosity", dim)
+porosityValue = util.CreateConstUserNumber(0.1, dim)
 
 -- Gravity
-gravityValue = utilCreateConstUserVector(0.0, dim)
+gravityValue = util.CreateConstUserVector(0.0, dim)
 gravityValue:set_entry(dim-1, -9.81)
 
 -- molecular Diffusion
-molDiffusionValue = utilCreateConstDiagUserMatrix( 3.565e-6, dim)
+molDiffusionValue = util.CreateConstDiagUserMatrix( 3.565e-6, dim)
 
 -- Permeability
-permeabilityValue = utilCreateConstDiagUserMatrix( 4.845e-13, dim)
+permeabilityValue = util.CreateConstDiagUserMatrix( 4.845e-13, dim)
 
 -- Density
 densityValue = NumberLinker2d();
 
 -- Viscosity
-viscosityValue = utilCreateConstUserNumber(1e-3, dim);
+viscosityValue = util.CreateConstUserNumber(1e-3, dim);
 
 -----------------------------------------------------------------
 --  Setup FV Element Discretization
@@ -221,7 +221,7 @@ viscosityValue = utilCreateConstUserNumber(1e-3, dim);
 domainDisc = DomainDiscretization()
 
 -- create dirichlet boundary for concentration
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
 dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
@@ -246,7 +246,7 @@ elemDisc:set_viscosity(viscosityValue)
 darcyVelocityField = elemDisc:get_darcy_velocity()
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
-CDelemDisc = utilCreateFV1ConvDiff(approxSpace, "T", "Inner")
+CDelemDisc = util.CreateFV1ConvDiff(approxSpace, "T", "Inner")
 CDelemDisc:set_upwind_amount(1.0)
 CDelemDisc:set_diffusion_tensor(diffusionMatrix)
 --CDelemDisc:set_velocity_field(constVelocityField)
@@ -306,11 +306,11 @@ base:set_preconditioner(jac)
 baseLU = LU()
 
 -- Transfer and Projection
-transfer = utilCreateP1Prolongation(approxSpace)
+transfer = util.CreateP1Prolongation(approxSpace)
 transfer:set_dirichlet_post_process(dirichletBND)
-projection = utilCreateP1Projection(approxSpace)
+projection = util.CreateP1Projection(approxSpace)
 
-gmg = utilCreateGeometricMultiGrid(approxSpace)
+gmg = util.CreateGeometricMultiGrid(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
 gmg:set_base_level(2)
@@ -391,7 +391,7 @@ InterpolateFunction2d(TemperatureStartValue, u, "T", time)
 
 -- write start solution
 print("Writing start values")
-out = utilCreateVTKWriter(dim)
+out = util.CreateVTKWriter(dim)
 out:begin_timeseries("Elder", u)
 out:print("Elder", u, step, time)
 

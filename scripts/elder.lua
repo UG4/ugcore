@@ -25,14 +25,14 @@ else
 end
 
 -- choose number of pre-Refinements (before sending grid onto different processes)	
-numPreRefs = GetParamNumber("-numPreRefs", 0)
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 
 -- choose number of total Refinements (incl. pre-Refinements)
-numRefs = GetParamNumber("-numRefs", 2)
+numRefs = util.GetParamNumber("-numRefs", 2)
 
 -- choose number of time steps
-NumPreTimeSteps = GetParamNumber("-numPreTimeSteps", 1)
-NumTimeSteps =  GetParamNumber("-numTimeSteps", 100)
+NumPreTimeSteps = util.GetParamNumber("-numPreTimeSteps", 1)
+NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 100)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -141,11 +141,11 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
 	print("Loading Domain failed.")
 	exit()
 end
@@ -171,7 +171,7 @@ end
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
 --refiner:refine()
-utilGlobalRefineParallelDomain(dom)
+util.GlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
@@ -197,40 +197,40 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -------------------------------------------
 --  Setup User Functions
 -------------------------------------------
 
 -- dirichlet setup
-ConcentrationDirichlet = utilCreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
-PressureDirichlet = utilCreateLuaBoundaryNumber("PressureDirichletBnd", dim)
+ConcentrationDirichlet = util.CreateLuaBoundaryNumber("ConcentrationDirichletBnd", dim)
+PressureDirichlet = util.CreateLuaBoundaryNumber("PressureDirichletBnd", dim)
 
 -- start setup
-ConcentrationStartValue = utilCreateLuaUserNumber("ConcentrationStart", dim)
-PressureStartValue = utilCreateLuaUserNumber("PressureStart", dim)
+ConcentrationStartValue = util.CreateLuaUserNumber("ConcentrationStart", dim)
+PressureStartValue = util.CreateLuaUserNumber("PressureStart", dim)
 
 -- Porosity
---porosityValue = utilCreateLuaUserNumber("Porosity", dim)
-porosityValue = utilCreateConstUserNumber(0.1, dim)
+--porosityValue = util.CreateLuaUserNumber("Porosity", dim)
+porosityValue = util.CreateConstUserNumber(0.1, dim)
 
 -- Gravity
-gravityValue = utilCreateConstUserVector(0.0, dim)
+gravityValue = util.CreateConstUserVector(0.0, dim)
 gravityValue:set_entry(dim-1, -9.81)
 
 -- molecular Diffusion
-molDiffusionValue = utilCreateConstDiagUserMatrix( 3.565e-6, dim)
+molDiffusionValue = util.CreateConstDiagUserMatrix( 3.565e-6, dim)
 
 -- Permeability
-permeabilityValue = utilCreateConstDiagUserMatrix( 4.845e-13, dim)
+permeabilityValue = util.CreateConstDiagUserMatrix( 4.845e-13, dim)
 
 -- Density
 if dim == 2 then densityValue = NumberLinker2d();
 else densityValue = NumberLinker3d(); end
 
 -- Viscosity
-viscosityValue = utilCreateConstUserNumber(1e-3, dim);
+viscosityValue = util.CreateConstUserNumber(1e-3, dim);
 
 -----------------------------------------------------------------
 --  Setup FV Element Discretization
@@ -240,7 +240,7 @@ viscosityValue = utilCreateConstUserNumber(1e-3, dim);
 domainDisc = DomainDiscretization()
 
 -- create dirichlet boundary for concentration
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(ConcentrationDirichlet, "c", "Boundary")
 dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
@@ -292,7 +292,7 @@ op:init()
 u = approxSpace:create_surface_function()
 
 -- debug writer
-dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter = util.CreateGridFunctionDebugWriter(dim)
 dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 
@@ -325,11 +325,11 @@ base:set_preconditioner(jac)
 baseLU = LU()
 
 -- Transfer and Projection
-transfer = utilCreateP1Prolongation(approxSpace)
+transfer = util.CreateP1Prolongation(approxSpace)
 transfer:set_dirichlet_post_process(dirichletBND)
-projection = utilCreateP1Projection(approxSpace)
+projection = util.CreateP1Projection(approxSpace)
 
-gmg = utilCreateGeometricMultiGrid(approxSpace)
+gmg = util.CreateGeometricMultiGrid(approxSpace)
 gmg:set_discretization(timeDisc)
 gmg:set_approximation_space(approxSpace)
 gmg:set_base_level(0)
@@ -413,7 +413,7 @@ end
 
 -- write start solution
 print("Writing start values")
-out = utilCreateVTKWriter(dim)
+out = util.CreateVTKWriter(dim)
 out:begin_timeseries("Elder", u)
 out:print("Elder", u, step, time)
 

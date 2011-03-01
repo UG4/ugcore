@@ -18,13 +18,13 @@ dim = 2
 gridName = "simple_reticulum.ugx"
 
 -- Refinements before distributing grid
-numPreRefs = GetParamNumber("-numPreRefs", 0)
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
 
 -- Total refinements
-numRefs    = GetParamNumber("-numRefs",    2)
+numRefs    = util.GetParamNumber("-numRefs",    2)
 
 -- choose number of time steps
-NumTimeSteps =  GetParamNumber("-numTimeSteps", 5)
+NumTimeSteps =  util.GetParamNumber("-numTimeSteps", 5)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -79,11 +79,11 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
    print("Loading Domain failed.")
    exit()
 end
@@ -137,7 +137,7 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -------------------------------------------
 --  Setup User Functions
@@ -145,28 +145,28 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 print ("Setting up Assembling")
 
 -- Start value function setup
-    CaCytStartValue = utilCreateLuaUserNumber("CaCytStart", dim)
-    CaERStartValue = utilCreateLuaUserNumber("CaERStart", dim)
-    IP3StartValue = utilCreateLuaUserNumber("IP3Start", dim)
+    CaCytStartValue = util.CreateLuaUserNumber("CaCytStart", dim)
+    CaERStartValue = util.CreateLuaUserNumber("CaERStart", dim)
+    IP3StartValue = util.CreateLuaUserNumber("IP3Start", dim)
 
 -- Diffusion Tensor setup
-	diffusionMatrixCA = utilCreateLuaUserMatrix("ourDiffTensor2dCA", dim)
-	diffusionMatrixIP3 = utilCreateLuaUserMatrix("ourDiffTensor2dIP3", dim)
+	diffusionMatrixCA = util.CreateLuaUserMatrix("ourDiffTensor2dCA", dim)
+	diffusionMatrixIP3 = util.CreateLuaUserMatrix("ourDiffTensor2dIP3", dim)
 
 -- rhs setup
-	rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
-	--rhs = utilCreateConstUserNumber(0.0, dim)
+	rhs = util.CreateLuaUserNumber("ourRhs2d", dim)
+	--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
-	neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
-	--neumann = utilCreateConstUserNumber(0.0, dim)
+	neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
+	--neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
-	--dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
+	dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
+	--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 	
 -- dirichlet setup
-	membraneDirichlet = utilCreateLuaBoundaryNumber("membraneDirichletBnd2d", dim)
+	membraneDirichlet = util.CreateLuaBoundaryNumber("membraneDirichletBnd2d", dim)
 
 
 -----------------------------------------------------------------
@@ -180,17 +180,17 @@ print ("Setting up Assembling")
  -- Antwort: Nein, es geht hier im die 2d elemente von "er", der Rand von "er"
  --          spielt für das assemblieren keine Rolle. Randwerte kommen dann 
  --          später extra. 
-elemDiscER = utilCreateFV1ConvDiff(approxSpace, "ca_er", "er") 
+elemDiscER = util.CreateFV1ConvDiff(approxSpace, "ca_er", "er") 
 elemDiscER:set_upwind_amount(0.0)
 elemDiscER:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscER:set_rhs(rhs)
 
-elemDiscCYT = utilCreateFV1ConvDiff(approxSpace, "ca_cyt", "cyt")
+elemDiscCYT = util.CreateFV1ConvDiff(approxSpace, "ca_cyt", "cyt")
 elemDiscCYT:set_upwind_amount(0.0)
 elemDiscCYT:set_diffusion_tensor(diffusionMatrixCA)
 elemDiscCYT:set_rhs(rhs)
 
-elemDiscIP3 = utilCreateFV1ConvDiff(approxSpace, "ip3", "cyt")
+elemDiscIP3 = util.CreateFV1ConvDiff(approxSpace, "ip3", "cyt")
 elemDiscIP3:set_upwind_amount(0.0)
 elemDiscIP3:set_diffusion_tensor(diffusionMatrixIP3)
 elemDiscIP3:set_rhs(rhs)
@@ -199,21 +199,21 @@ elemDiscIP3:set_rhs(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
-neumannDiscCYT = utilCreateNeumannBoundary(approxSpace, "cyt")
+neumannDiscCYT = util.CreateNeumannBoundary(approxSpace, "cyt")
 neumannDiscCYT:add_boundary_value(neumann, "ca_cyt", "mem_cyt")
 
 -- we pass here the function needed to evaluate the flux function. The order in 
 -- which the discrete fct are passed is crutial!
-innerDisc = utilCreateInnerBoundary(approxSpace, "ca_cyt, ca_er, ip3", "mem_er")
+innerDisc = util.CreateInnerBoundary(approxSpace, "ca_cyt, ca_er, ip3", "mem_er")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
---dirichletBND = utilCreateDirichletBoundary(approxSpace)
+--dirichletBND = util.CreateDirichletBoundary(approxSpace)
 --dirichletBND:add_boundary_value(dirichlet, "c", "Boundary, MembraneBnd")
 
---membraneDirichletBND = utilCreateDirichletBoundary(approxSpace)
+--membraneDirichletBND = util.CreateDirichletBoundary(approxSpace)
 --membraneDirichletBND:add_boundary_value(membraneDirichlet, "c_membrane", "MembraneBnd")
 
 -------------------------------------------
@@ -276,12 +276,12 @@ exactSolver = LU()
 	--base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
-	transfer = utilCreateP1Prolongation(approxSpace)
+	transfer = util.CreateP1Prolongation(approxSpace)
 	--transfer:set_dirichlet_post_process(dirichletBND)
-	projection = utilCreateP1Projection(approxSpace)
+	projection = util.CreateP1Projection(approxSpace)
 	
 	-- Gemoetric Multi Grid
-	gmg = utilCreateGeometricMultiGrid(approxSpace)
+	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 	gmg:set_surface_level(numRefs)
 	gmg:set_base_level(0)
@@ -368,7 +368,7 @@ step = 1
 
 -- write start solution
 print("Writing start values")
-out = utilCreateVTKWriter(dim)
+out = util.CreateVTKWriter(dim)
 out:begin_timeseries("Con", u)
 out:print("Con", u, 0, time)
 

@@ -1,5 +1,8 @@
+-- Create util namespace
+util = util or {}
+
 -- Creates a domain for the given dimension. 1, 2, 3 are supported.
-function utilCreateDomain(dim)
+function util.CreateDomain(dim)
 	if dim == 1 then
 		return Domain1d()
 	elseif dim == 2 then
@@ -11,13 +14,13 @@ function utilCreateDomain(dim)
 end
 
 -- returns the standard path at which grids are stored
-function utilGetGridPath()
+function util.GetGridPath()
 	return ug_get_data_path().."/grids/"
 end
 
 -- loads a domain.
 -- If the file can not be found, the method tries to find it in ugs data path.
-function utilLoadDomain(domain, gridName)
+function util.LoadDomain(domain, gridName)
 	local dim = domain:get_dim()
 
 	local tname = gridName
@@ -31,17 +34,8 @@ function utilLoadDomain(domain, gridName)
 	return LoadDomain(domain, tname, 0)
 end
 
-function utilSaveDomain(domain, gridName)
-	print("utilSaveDomain is DEPRECIATED. Use SaveDomain instead.")
-	return SaveDomain(domain, gridName)
-end
 
-function utilDistributeDomain(domain)
-	print("utilDistributeDomain is DEPRECIATED. Use DistributeDomain instead.")
-	return DistributeDomain(domain)
-end
-
-function utilGlobalRefineParallelDomain(domain)
+function util.GlobalRefineParallelDomain(domain)
 	local dim = domain:get_dim()
 	if dim == 1 then
 		return GlobalRefineParallelDomain1d(domain)
@@ -57,7 +51,7 @@ end
 -- The associated P1ConformFunctionPattern is created and assigned on the fly.
 -- domain has to be either of type Domain1d, Domain2d or Domain3d
 -- funcNames has to be an array containing strings
-function utilCreateApproximationSpaceP1(domain, funcNames)
+function util.CreateApproximationSpaceP1(domain, funcNames)
 	local dim = domain:get_dim()
 	-- create function pattern, add the functions and lock it
 	local pattern = P1ConformFunctionPattern()
@@ -68,12 +62,12 @@ function utilCreateApproximationSpaceP1(domain, funcNames)
 
 	-- create Approximation Space and assign the function pattern
 	-- and the domain
-	approxSpace, pattern = utilCreateApproximationSpace(domain, pattern)
+	approxSpace, pattern = util.CreateApproximationSpace(domain, pattern)
 	return approxSpace, pattern
 end
 	
 -- Creates an Approxmiation space of correct dimesion and assigns the pattern
-function utilCreateApproximationSpace(domain, pattern)
+function util.CreateApproximationSpace(domain, pattern)
 	local approxSpace = nil
 	if dim == 1 then
 		approxSpace = ApproximationSpace1d()
@@ -91,7 +85,7 @@ function utilCreateApproximationSpace(domain, pattern)
 end
 
 -- Creates an Approxmiation space of correct dimesion and assigns the pattern
-function utilCreateApproximationSpaceWithoutInit(domain, pattern)
+function util.CreateApproximationSpaceWithoutInit(domain, pattern)
 	local approxSpace = nil
 	if dim == 1 then
 	approxSpace = ApproximationSpace1d()
@@ -107,7 +101,7 @@ function utilCreateApproximationSpaceWithoutInit(domain, pattern)
 end
 
 -- creates Neumann Boundary
-function utilCreateNeumannBoundary(approxSpace, subsets)
+function util.CreateNeumannBoundary(approxSpace, subsets)
 	local domain = approxSpace:get_domain()
 	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
@@ -129,7 +123,7 @@ function utilCreateNeumannBoundary(approxSpace, subsets)
 end
 
 -- creates Dirichlet Boundary
-function utilCreateDirichletBoundary(approxSpace)
+function util.CreateDirichletBoundary(approxSpace)
 	local domain = approxSpace:get_domain()
 	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
@@ -150,7 +144,7 @@ function utilCreateDirichletBoundary(approxSpace)
 end
 
 -- creates Inner Boundary
-function utilCreateInnerBoundary(approxSpace, functions, subsets)
+function util.CreateInnerBoundary(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
 	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
@@ -173,7 +167,7 @@ function utilCreateInnerBoundary(approxSpace, functions, subsets)
 end
 
 -- creates FV1ConvDiff
-function utilCreateFV1ConvDiff(approxSpace, functions, subsets)
+function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
 	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
@@ -195,7 +189,7 @@ function utilCreateFV1ConvDiff(approxSpace, functions, subsets)
 	return elemDisc
 end
 
-function utilCreateFE1ConvDiff(approxSpace, functions, subsets)
+function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
 	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
@@ -219,8 +213,8 @@ end
 
 
 
-function utilCreateFV1ConvDiffElemDiscInit(approxSpace, functions, subsets, diffusion, velocity, reaction, rhs, upwindAmount)
-	local elemDisc = utilCreateFV1ConvDiffElemDisc(approxSpace, functions, subsets)
+function util.CreateFV1ConvDiffElemDiscInit(approxSpace, functions, subsets, diffusion, velocity, reaction, rhs, upwindAmount)
+	local elemDisc = util.CreateFV1ConvDiffElemDisc(approxSpace, functions, subsets)
 
 	elemDisc:set_upwind_amount(upwindAmount)
 	elemDisc:set_diffusion_tensor(diffusion)
@@ -295,7 +289,7 @@ function ApplyLinearSolver(linOp, u, b, linSolver)
 end
 
 -- create Geometric Multigrid
-function utilCreateGeometricMultiGrid(approxSpace)
+function util.CreateGeometricMultiGrid(approxSpace)
 	local dim = approxSpace:get_domain():get_dim()
 	local gmg = nil;
 	if dim == 1 then
@@ -313,7 +307,7 @@ function utilCreateGeometricMultiGrid(approxSpace)
 end
 
 -- create Prolongation / Restriction
-function utilCreateP1Prolongation(approxSpace)
+function util.CreateP1Prolongation(approxSpace)
 	local dim = approxSpace:get_domain():get_dim()
 	local transfer = nil;
 	if dim == 1 then
@@ -331,7 +325,7 @@ function utilCreateP1Prolongation(approxSpace)
 end
 
 -- create Projection
-function utilCreateP1Projection(approxSpace)
+function util.CreateP1Projection(approxSpace)
 	local dim = approxSpace:get_domain():get_dim()
 	local project = nil;
 	if dim == 1 then
@@ -350,7 +344,7 @@ end
 
 
 -- creates a Lua User Matrix using a lua function and returns the Provider
-function utilCreateLuaUserMatrix(funcName, dim)
+function util.CreateLuaUserMatrix(funcName, dim)
 	local mat = nil
 	if dim == 1 then
 		mat = LuaUserMatrix1d()
@@ -365,7 +359,7 @@ function utilCreateLuaUserMatrix(funcName, dim)
 end
 
 -- creates a Const User Matrix using a lua function and returns the Provider
-function utilCreateConstDiagUserMatrix(diagVal, dim)
+function util.CreateConstDiagUserMatrix(diagVal, dim)
 	local mat = nil
 	if dim == 1 then
 		mat = ConstUserMatrix1d()
@@ -380,7 +374,7 @@ function utilCreateConstDiagUserMatrix(diagVal, dim)
 end
 
 -- creates a Lua User Vector using a lua function and returns the Provider
-function utilCreateLuaUserVector(funcName, dim)
+function util.CreateLuaUserVector(funcName, dim)
 	local vec = nil
 	if dim == 1 then
 		vec = LuaUserVector1d()
@@ -395,7 +389,7 @@ function utilCreateLuaUserVector(funcName, dim)
 end
 
 -- creates a Const User Vector using a lua function and returns the Provider
-function utilCreateConstUserVector(val, dim)
+function util.CreateConstUserVector(val, dim)
 	local vec = nil
 	if dim == 1 then
 		vec = ConstUserVector1d()
@@ -410,7 +404,7 @@ function utilCreateConstUserVector(val, dim)
 end
 
 -- creates a Lua User Number using a lua function and returns the Provider
-function utilCreateLuaUserNumber(funcName, dim)
+function util.CreateLuaUserNumber(funcName, dim)
 	local number = nil
 	if dim == 1 then
 		number = LuaUserNumber1d()
@@ -425,7 +419,7 @@ function utilCreateLuaUserNumber(funcName, dim)
 end
 
 -- creates a Const User Number using a lua function and returns the Provider
-function utilCreateConstUserNumber(val, dim)
+function util.CreateConstUserNumber(val, dim)
 	local number = nil
 	if dim == 1 then
 		number = ConstUserNumber1d()
@@ -441,7 +435,7 @@ end
 
 
 -- creates a Lua Boundary Numver using a lua function and returns the Provider
-function utilCreateLuaBoundaryNumber(funcName, dim)
+function util.CreateLuaBoundaryNumber(funcName, dim)
 	local number = nil
 	if dim == 1 then
 		number = LuaBoundaryNumber1d()
@@ -456,7 +450,7 @@ function utilCreateLuaBoundaryNumber(funcName, dim)
 end
 
 -- creates a Const Boundary Number using a lua function and returns the Provider
-function utilCreateConstBoundaryNumber(val, dim)
+function util.CreateConstBoundaryNumber(val, dim)
 	local number = nil
 	if dim == 1 then
 		number = ConstBoundaryNumber1d()
@@ -472,7 +466,7 @@ end
 
 
 -- creates a GridFunctionDebugWriter
-function utilCreateGridFunctionDebugWriter(dim)
+function util.CreateGridFunctionDebugWriter(dim)
 	local writer = nil
 	if dim == 1 then
 		writer = GridFunctionDebugWriter1d()
@@ -487,7 +481,7 @@ end
 
 
 -- creates a VTKWriter
-function utilCreateVTKWriter(dim)
+function util.CreateVTKWriter(dim)
 	local writer = nil
 	if dim == 1 then
 		writer = VTKOutput1d()
@@ -504,7 +498,7 @@ end
 -- some auxiliary functions
 --------------------------------------------------------------------------------
 -- function returns true if the number is a power of two
-function isPowerOfTwo(n)
+function util.isPowerOfTwo(n)
 	local number compare = 1
 
 	while (compare < n) do
@@ -515,7 +509,7 @@ function isPowerOfTwo(n)
 end
 
 -- function returns true if the number is a natural number
-function isNaturalNumber(n)
+function util.isNaturalNumber(n)
 	if n-math.floor(n) == 0 then
 		return true
 	else
@@ -531,7 +525,7 @@ end
 -- use with CommandLine to get parameters, like -dim 3
 -- second parameter gets returned when parameter is not found
 -- remember that GetParam(name) is GetParam(name, nil)
-function GetParam(name, return_if_unavailable)
+function util.GetParam(name, return_if_unavailable)
 	local i
 	for i = 1, ugargc-1 do
 		if ugargv[i] == name then
@@ -544,8 +538,8 @@ end
 
 -- return the number for parameter 'name'
 -- if parameter is not a number, returns return_if_unavailable
-function GetParamNumber(name, return_if_unavailable)
-	local param = GetParam(name, return_if_unavailable)
+function util.GetParamNumber(name, return_if_unavailable)
+	local param = util.GetParam(name, return_if_unavailable)
 	local number = tonumber(param)
 	if number == nil then
 		print("WARNING: Parameter "..name.." is not a number, using "..return_if_unavailable.." instead\n") 
@@ -557,7 +551,7 @@ end
 
 -- returns if ugargv contains an option name
 -- use with CommandLine to get option, like -useAMG
-function HasParamOption(name)
+function util.HasParamOption(name)
 	for i = 1, ugargc do
 		if ugargv[i] == name then
 			return true

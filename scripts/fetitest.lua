@@ -13,12 +13,12 @@ ug_load_script("ug_util.lua")
 verbosity = 0	-- set to 0 i.e. for time measurements,
 		-- >= 1 for writing matrix files etc.
 
-verbosity = GetParamNumber("-verb", 0)
+verbosity = util.GetParamNumber("-verb", 0)
 
 activateDbgWriter = 0	-- set to 0 i.e. for time measurements,
 		        -- >= 1 for writing matrix files etc. by setting
 		        -- 'fetiSolver:set_debug(dbgWriter)'
-activateDbgWriter = GetParamNumber("-dbgw", 0)
+activateDbgWriter = util.GetParamNumber("-dbgw", 0)
 
 -- choose algebra
 InitAlgebra(CPUAlgebraChooser());
@@ -40,8 +40,8 @@ end
 numPreRefs = 2
 numRefs = 4
 
-numPreRefs = GetParamNumber("-numPreRefs", 2)
-numRefs    = GetParamNumber("-numRefs",    4)
+numPreRefs = util.GetParamNumber("-numPreRefs", 2)
+numRefs    = util.GetParamNumber("-numRefs",    4)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -71,11 +71,11 @@ numRefs    = GetParamNumber("-numRefs",    4)
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
    print("Loading Domain failed.")
    exit()
 end
@@ -93,14 +93,14 @@ for i=1,numPreRefs do
 	refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
+if util.DistributeDomain(dom) == false then
 	print("Error while Distributing Grid.")
 	exit()
 end
 
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-	utilGlobalRefineParallelDomain(dom)
+	util.GlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
@@ -115,7 +115,7 @@ sh:set_subset_name("DirichletBoundary", 1)
 
 -- write grid to file for test purpose
 if verbosity >= 1 then
-	utilSaveDomain(dom, "refined_grid.ugx")
+	SaveDomain(dom, "refined_grid.ugx")
 end
 
 -- create function pattern
@@ -127,7 +127,7 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpaceWithoutInit(dom, pattern)
+approxSpace = util.CreateApproximationSpaceWithoutInit(dom, pattern)
 
 --------------------------------------------------------------------------------
 -- Gather info for domain decomposition
@@ -157,12 +157,12 @@ if numSubdomains < 2 then
 	return
 end
 
-if not isNaturalNumber(numSubdomains) then
+if not util.isNaturalNumber(numSubdomains) then
 	print( "ERROR:   numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is NOT a natural number!? Aborting!" )
 	return
 end
 
-if not isPowerOfTwo(numSubdomains) then
+if not util.isPowerOfTwo(numSubdomains) then
 	print( "WARNING: numSubdomains = numProcs / numProcsPerSubdomain = '" .. numSubdomains .. "' is not a power of 2! Continuing ..." )
 -- TODO: Maybe switch to a default value then
 --	return -- in this case the partition can be quite erratic (at least on small (triangular) grids)..
@@ -186,22 +186,22 @@ approxSpace:print_layout_statistic()
 print ("Setting up Assembling")
 
 -- Diffusion Tensor setup
-	diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
-	--diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+	diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor2d", dim)
+	--diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- rhs setup
-	rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
-	--rhs = utilCreateConstUserNumber(0.0, dim)
+	rhs = util.CreateLuaUserNumber("ourRhs2d", dim)
+	--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
-	dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
-	--dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
+	dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
+	--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 	
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_rhs(rhs)
@@ -210,7 +210,7 @@ elemDisc:set_rhs(rhs)
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
@@ -268,7 +268,7 @@ if verbosity >= 1 then
 end
 
 -- debug writer
-dbgWriter = utilCreateGridFunctionDebugWriter(dim)
+dbgWriter = util.CreateGridFunctionDebugWriter(dim)
 dbgWriter:set_reference_grid_function(u)
 dbgWriter:set_vtk_output(false)
 
@@ -302,12 +302,12 @@ ilut = ILUT()
 	base:set_preconditioner(jac)
 	
 	-- Transfer and Projection
-	transfer = utilCreateP1Prolongation(approxSpace)
+	transfer = util.CreateP1Prolongation(approxSpace)
 	transfer:set_dirichlet_post_process(dirichletBND)
-	projection = utilCreateP1Projection(approxSpace)
+	projection = util.CreateP1Projection(approxSpace)
 	
 	-- Geometric Multi Grid
-	gmg = utilCreateGeometricMultiGrid(approxSpace)
+	gmg = util.CreateGeometricMultiGrid(approxSpace)
 	gmg:set_discretization(domainDisc)
 --	gmg:set_surface_level(numRefs) -- deprecated!
 	gmg:set_base_level(0)

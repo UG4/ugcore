@@ -12,18 +12,18 @@ ug_load_script("ug_util.lua")
 InitAlgebra(CPUAlgebraChooser());
 
 -- constants
-dim = tonumber(GetParam("-dim", 2))
+dim = util.GetParam("-dim", 2)
 
 
 if dim == 2 then
-gridName = GetParam("-grid", "unit_square_tri.ugx")
+gridName = util.GetParam("-grid", "unit_square_tri.ugx")
 end
 if dim == 3 then
-gridName = GetParam("-grid", "unit_square_tri.ugx")
+gridName = util.GetParam("-grid", "unit_square_tri.ugx")
 end
 
-numPreRefs = tonumber(GetParam("-numPreRefs", 0))
-numRefs = tonumber(GetParam("-numRefs", 2))
+numPreRefs = util.GetParamNumber("-numPreRefs", 0)
+numRefs = util.GetParamNumber("-numRefs", 2)
 
 --------------------------------
 -- User Data Functions (begin)
@@ -98,11 +98,11 @@ end
 
 -- create Instance of a Domain
 print("Create Domain.")
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- load domain
 print("Load Domain from File.")
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
 print("Loading Domain failed.")
 exit()
 end
@@ -120,14 +120,14 @@ for i=1,numPreRefs do
 refiner:refine()
 end
 
-if utilDistributeDomain(dom) == false then
+if DistributeDomain(dom) == false then
 print("Error while Distributing Grid.")
 exit()
 end
 
 print("Refine Parallel Grid")
 for i=numPreRefs+1,numRefs do
-utilGlobalRefineParallelDomain(dom)
+util.GlobalRefineParallelDomain(dom)
 end
 
 -- get subset handler
@@ -141,7 +141,7 @@ sh:set_subset_name("DirichletBoundary", 1)
 --sh:set_subset_name("NeumannBoundary", 2)
 
 -- write grid to file for test purpose
-utilSaveDomain(dom, "refined_grid.ugx")
+SaveDomain(dom, "refined_grid.ugx")
 
 -- create function pattern
 print("Create Function Pattern")
@@ -152,7 +152,7 @@ pattern:lock()
 
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 -------------------------------------------
 --  Setup User Functions
@@ -161,57 +161,57 @@ print ("Setting up Assembling")
 
 -- Diffusion Tensor setup
 if dim == 2 then
-diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor2d", dim)
+diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor2d", dim)
 elseif dim == 3 then
-diffusionMatrix = utilCreateLuaUserMatrix("ourDiffTensor3d", dim)
+diffusionMatrix = util.CreateLuaUserMatrix("ourDiffTensor3d", dim)
 end
---diffusionMatrix = utilCreateConstDiagUserMatrix(1.0, dim)
+--diffusionMatrix = util.CreateConstDiagUserMatrix(1.0, dim)
 
 -- Velocity Field setup
 if dim == 2 then
-velocityField = utilCreateLuaUserVector("ourVelocityField2d", dim)
+velocityField = util.CreateLuaUserVector("ourVelocityField2d", dim)
 elseif dim == 3 then
-velocityField = utilCreateLuaUserVector("ourVelocityField3d", dim)
+velocityField = util.CreateLuaUserVector("ourVelocityField3d", dim)
 end 
---velocityField = utilCreateConstUserVector(0.0, dim)
+--velocityField = util.CreateConstUserVector(0.0, dim)
 
 -- Reaction setup
 if dim == 2 then
-reaction = utilCreateLuaUserNumber("ourReaction2d", dim)
+reaction = util.CreateLuaUserNumber("ourReaction2d", dim)
 elseif dim == 3 then
-reaction = utilCreateLuaUserNumber("ourReaction3d", dim)
+reaction = util.CreateLuaUserNumber("ourReaction3d", dim)
 end
---reaction = utilCreateConstUserNumber(0.0, dim)
+--reaction = util.CreateConstUserNumber(0.0, dim)
 
 -- rhs setup
 if dim == 2 then
-rhs = utilCreateLuaUserNumber("ourRhs2d", dim)
+rhs = util.CreateLuaUserNumber("ourRhs2d", dim)
 elseif dim == 3 then
-rhs = utilCreateLuaUserNumber("ourRhs3d", dim)
+rhs = util.CreateLuaUserNumber("ourRhs3d", dim)
 end
---rhs = utilCreateConstUserNumber(0.0, dim)
+--rhs = util.CreateConstUserNumber(0.0, dim)
 
 -- neumann setup
 if dim == 2 then
-neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
+neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd2d", dim)
 elseif dim == 3 then
-neumann = utilCreateLuaBoundaryNumber("ourNeumannBnd3d", dim)
+neumann = util.CreateLuaBoundaryNumber("ourNeumannBnd3d", dim)
 end
---neumann = utilCreateConstUserNumber(0.0, dim)
+--neumann = util.CreateConstUserNumber(0.0, dim)
 
 -- dirichlet setup
 if dim == 2 then
-dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
+dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd2d", dim)
 elseif dim == 3 then
-dirichlet = utilCreateLuaBoundaryNumber("ourDirichletBnd3d", dim)
+dirichlet = util.CreateLuaBoundaryNumber("ourDirichletBnd3d", dim)
 end
---dirichlet = utilCreateConstBoundaryNumber(3.2, dim)
+--dirichlet = util.CreateConstBoundaryNumber(3.2, dim)
 
 -----------------------------------------------------------------
 --  Setup FV Convection-Diffusion Element Discretization
 -----------------------------------------------------------------
 
-elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0.0)
 elemDisc:set_diffusion_tensor(diffusionMatrix)
 elemDisc:set_velocity_field(velocityField)
@@ -222,14 +222,14 @@ elemDisc:set_rhs(rhs)
 --  Setup Neumann Boundary
 -----------------------------------------------------------------
 
---neumannDisc = utilCreateNeumannBoundary(approxSpace, "Inner")
+--neumannDisc = util.CreateNeumannBoundary(approxSpace, "Inner")
 --neumannDisc:add_boundary_value(neumann, "c", "NeumannBoundary")
 
 -----------------------------------------------------------------
 --  Setup Dirichlet Boundary
 -----------------------------------------------------------------
 
-dirichletBND = utilCreateDirichletBoundary(approxSpace)
+dirichletBND = util.CreateDirichletBoundary(approxSpace)
 dirichletBND:add_boundary_value(dirichlet, "c", "DirichletBoundary")
 
 -------------------------------------------
@@ -297,12 +297,12 @@ base:set_convergence_check(baseConvCheck)
 base:set_preconditioner(jac)
 
 -- Transfer and Projection
-transfer = utilCreateP1Prolongation(approxSpace)
+transfer = util.CreateP1Prolongation(approxSpace)
 transfer:set_dirichlet_post_process(dirichletBND)
-projection = utilCreateP1Projection(approxSpace)
+projection = util.CreateP1Projection(approxSpace)
 
 -- Gemoetric Multi Grid
-gmg = utilCreateGeometricMultiGrid(approxSpace)
+gmg = util.CreateGeometricMultiGrid(approxSpace)
 gmg:set_discretization(domainDisc)
 gmg:set_surface_level(numRefs)
 gmg:set_base_level(0)
