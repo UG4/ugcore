@@ -1,0 +1,23 @@
+
+/**	\page pageScriptTutorial ug-Script Tutorial
+
+One possibility to work with ug is the usage of the <b>Scripting facility</b>. 
+
+The ug script is based on <b>Lua</b> (see www.lua.org). 
+
+This tutorial is addressed to users starting to work with the ug-script for the
+first time. Several lessons will give a step by step introduction to the broad 
+world of commands, classes and functionality of ug, that can be used and controlled
+by users without even programming a line of code in c/c++. In each lesson only
+few small new aspects are added such that the user can focus on small parts 
+of the script.
+
+	- \ref pageSTLesson1 "Lesson 1 - [ ... brief description ... ]"
+	- \ref pageSTLesson2 "Lesson 2 - [ ... brief description ... ]"
+
+
+	- \ref pageSTRegistry "Registry"
+
+
+
+*/

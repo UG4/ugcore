@@ -1,0 +1,20 @@
+
+/**	\page pageSTRegistry ug-Registry Tutorial
+
+In order to make functionality (such as c++ classes, methods and functions) 
+available in the Lua-Script or the VRL, this functionality must be registered
+by the c++ programmer. By this registration, the programmer indicates, that the
+functionality is exported. Once exported the functionality is accessible in 
+Script and VRL simultaneously.
+
+This page gives an introduction to the registering process.
+
+<hr>
+\section secSTHowToRegister	How to register Functionality
+<hr>
+
+Registering is done in ugbase/ug_bridge/bridges.
+
+
+
+*/

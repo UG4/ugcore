@@ -1,8 +1,0 @@
-
-
-
-/**	\page pageSamples ug - Samples
-
- [ ... samples are to be placed here ... ]
-
-*/
