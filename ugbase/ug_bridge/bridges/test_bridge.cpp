@@ -14,6 +14,13 @@ namespace ug
 namespace bridge
 {
 
+// prints "Hello World"
+void PrintHelloWorldToScreen()
+{
+	UG_LOG("Hello World !\n");
+}
+
+// adds to integers
 int Add(int a, int b)
 {
 	return a + b;
@@ -116,6 +123,7 @@ class Cake
 		int m_numPieces;
 };
 
+// Some Base class
 class Base
 {
 	public:
@@ -123,6 +131,7 @@ class Base
 		virtual void print() = 0;
 };
 
+// Some Derived class
 class Derived
 {
 	public:
@@ -181,18 +190,32 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 		std::stringstream groupString; groupString << parentGroup << "/Test";
 		std::string grp = groupString.str();
 
+	//	registering hello world
+		reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen);
+
+	//	registering add
 		reg.add_function("add", &Add, grp.c_str(), "c", "a,b");
 
-		reg.add_class_<ConstClass>("ConstClass", grp.c_str())
-			.add_constructor()
-			.add_method("const_method", &ConstClass::const_method);
-
+	//	register class "Test"
 		reg.add_class_<Test>("Test", grp.c_str())
 			.add_constructor()
 			.add_method("add", &Test::add, "c", "a,b")
 			.add_method("print_name", &Test::print_name)
 			.add_method("print", (int(Test::*)()) &Test::print)
 			.add_method("print", (int(Test::*)() const) &Test::print);
+
+	//	registering base class (without constructor)
+		reg.add_class_<Base>("Base", grp.c_str())
+			.add_method("print", &Base::print);
+
+	//	registering derived class
+		reg.add_class_<Derived, Base>("Derived", grp.c_str())
+			.add_constructor()
+			.add_method("something", &Derived::something);
+
+		reg.add_class_<ConstClass>("ConstClass", grp.c_str())
+			.add_constructor()
+			.add_method("const_method", &ConstClass::const_method);
 
 		reg.add_class_<Piece>("Piece", grp.c_str())
 			.add_constructor()
@@ -204,13 +227,6 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 			.add_method("add_pieces", &Cake::add_pieces)
 			.add_method("pieces_left", &Cake::pieces_left);
 
-		reg.add_class_<Base>("Base", grp.c_str())
-			//.add_constructor()
-			.add_method("print", &Base::print);
-		reg.add_class_<Derived, Base>("Derived", grp.c_str())
-			.add_constructor()
-			.add_method("something", &Derived::something);
-//			.add_method("print", &Derived::print);
 		reg.add_function("PrintFunction", &PrintFunction);
 
 		reg.add_function("TestFunc", TestFunc, grp.c_str())

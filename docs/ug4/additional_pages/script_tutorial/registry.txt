@@ -45,6 +45,7 @@ is not essential for the registration. (Therefore, lets not stress this point he
 
 <hr>
 \section secSTHowToRegisterFunctions 	How to register Global Functions
+<hr>
 
 Now, we come to the point to register a global c++-Function. We start with 
 a very simple example, the famous "Hello World". You will find in the file
@@ -58,10 +59,179 @@ void PrintHelloWorldToScreen()
 }
 \endcode
 
-In order to global function, you must use the syntax
+In order to export this global function, you must use the syntax
 
 \code
 reg.add_function( "NameAppearingInScript", Pointer to Function, ... )
+\endcode
+
+For the "Hello World" function this reads:
+
+\code 
+//	registering hello world
+	reg.add_function("PrintHelloWorld", &PrintHelloWorldToScreen);
+\endcode
+
+Now, you can call this function in the Script. So, start the ug shell in your
+terminal:
+
+\verbatim
+user$ ./ugshell 
+****************
+* ugshell - v4.0.1
+* arguments:
+*   -outproc id:	Sets the output-proc to id. Default is 0.
+*   -ex scriptname:	Executes the specified script.
+*   -noquit:       	Does run the interactive shell after specified script.
+*   -noterm:			Terminal logging will be disabled.
+*   -logtofile filename:	Output will be written to the specified file.
+* Additional parameters are passed to the script through ugargc and ugargv.
+****************
+ug:> 
+\endverbatim
+
+Now, just type the function:
+
+\verbatim
+ug:> PrintHelloWorld()
+Hello World !
+ug:> 
+\endverbatim
+
+<hr>
+\section secSTHowToRegisterClasses 	How to register Classes and Methods
+<hr>
+
+C++-Classes and their methods are registered similarly. Lets focus on the
+example class "Test":
+
+\code
+class Test
+{
+	public:
+		int add(int a, int b)
+		{
+			return a+b;
+		}
+
+		int print_name()
+		{
+			UG_LOG("Name is Test\n");
+			return 1;
+		}
+		
+		int print()			{UG_LOG("Test::print()\n"); return 0;}
+		int print() const	{UG_LOG("Test::print() const\n"); return 1;}
+};
+\endcode 
+
+This class is registered by
+
+\code
+//	register class "Test"
+	reg.add_class_<Test>("Test", grp.c_str())
+		.add_constructor()
+		.add_method("add", &Test::add, "c", "a,b")
+		.add_method("print_name", &Test::print_name);
+\endcode
+
+The following is done here:
+<ul>
+<li> In add_class_< Class > the exported class is specified
+<li> By "Test" is specified the name of the class used in the script
+<li> By ".add_constructor()" is specified, that the constructor is available in
+	the script. 
+<li> By ".add_method("MethodNameInSkript", Pointer to method) a method is 
+	exported.
+</ul>
+
+Now, you can create an object of this class from script using the "()"-operator:
+
+\verbatim
+ug:> myClass = Test()
+\endverbatim
+
+Calling a method of the class is done by using the ":"-operator
+
+\verbatim
+ug:> myClass:print_name()
+Name is Test
+\endverbatim
+
+<hr>
+\section secSTHowToRegisterBaseClasses 	How to register Base Classes
+<hr>
+
+Class hierarchies can also be exported to the Script. Please note, that currently
+only <b>one base class is supported</b> (i.e. multiply derivation is not possible
+in the registry). In order to register a base class, use the usual C++-syntax:
+
+\code
+class Base
+{
+	public:
+		virtual ~Base()	{}
+		virtual void print() = 0;
+};
+
+class Derived
+{
+	public:
+		virtual ~Derived()	{}
+		virtual void print()
+		{
+			UG_LOG("Derived::print() called\n");
+		}
+		std::string something()
+		{
+			return "Something";
+		}
+};
+\endcode
+
+Now, in registration, add the base class <b>without</b> constructor:
+
+\code
+//	registering base class (without constructor)
+	reg.add_class_<Base>("Base", grp.c_str())
+		.add_method("print", &Base::print);
+\endcode
+
+When registering the Derived class, add also the Base class as a second template
+argument.
+
+\code
+//	registering derived class
+	reg.add_class_<Derived, Base>("Derived", grp.c_str())
+		.add_constructor()
+		.add_method("something", &Derived::something);
+\endcode
+
+<hr>
+\section secSTHowToRegisterOverloadedMethods 	How to register Overloaded Methods
+<hr>
+
+When a method (or function) is overloaded, the compiler can not find the method
+you want to register by only passing the method pointer. You have to explicitly
+specify the method signature to choose between the possibilities:
+
+\code
+class Test
+{
+	public:
+	// 	... something ...		
+	
+	//	overloaded functions
+		int print()			{UG_LOG("Test::print()\n"); return 0;}
+		int print() const	{UG_LOG("Test::print() const\n"); return 1;}
+};
+\endcode
+
+\code
+//	register class "Test"
+	reg.add_class_<Test>("Test", grp.c_str())
+		.add_method("print", (int(Test::*)()) &Test::print)
+		.add_method("print", (int(Test::*)() const) &Test::print);
 \endcode
 
 */
