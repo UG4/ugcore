@@ -11,7 +11,7 @@
 --------------------------------------------------------------------------------
 
 -- First we will include a script file which defines some methods often used.
--- You will recognize those methods by a leading util... in the methods name.
+-- Loaded methods are all found in the library util.
 ug_load_script("ug_util.lua")
 
 -- Since ug supports a bunch of different algebra modules we will choose one here.
@@ -25,10 +25,10 @@ InitAlgebra(CPUAlgebraChooser());
 -- Depending on the dimension we will choose our domain object
 -- (either 1d, 2d or 3d) and associated discretization objects. Note that
 -- we're using some methods defined in "ug_util.lua" here.
-dim = GetParamNumber("-dim", 2) -- default dimension is 2.
+dim = util.GetParamNumber("-dim", 2) -- default dimension is 2.
 
 -- We also need a filename for the grid that shall be loaded.
-gridName = GetParam("-grid", "unit_square_quads_8x8.ugx")
+gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
 
 
 
@@ -36,15 +36,15 @@ gridName = GetParam("-grid", "unit_square_quads_8x8.ugx")
 
 -- Now its time to create the domain object. We will use an util method here,
 -- which automatically creates the right domain for the given dimension.
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- Now that we have a domain, we can load a grid into it. We check the return
 -- value whether the loading was successful or not.
--- Note that we use the method utilLoadDomain instead of LoadDomain. utilLoadDomain
+-- Note that we use the method util.LoadDomain instead of LoadDomain. utilLoadDomain
 -- has the benefit that grids are automatically searched in the data/grids folder if
 -- they were not found at the default locations (execution-path or a path specified
 -- in your environments path-variable).
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
 	print("Loading of domain " .. gridName .. " failed. Aborting.")
 --	call exit to leave the application right away.
 	exit() 

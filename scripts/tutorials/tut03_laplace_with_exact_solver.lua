@@ -13,7 +13,7 @@
 --------------------------------------------------------------------------------
 
 -- First we will include a script file which defines some methods often used.
--- You will recognize those methods by a leading util... in the methods name.
+-- Loaded methods are all found in the library util.
 ug_load_script("ug_util.lua")
 
 -- Since ug supports a bunch of different algebra modules we will choose one here.
@@ -27,20 +27,20 @@ InitAlgebra(CPUAlgebraChooser());
 -- Depending on the dimension we will choose our domain object
 -- (either 1d, 2d or 3d) and associated discretization objects. Note that
 -- we're using some methods defined in "ug_util.lua" here.
-dim = GetParamNumber("-dim", 2) -- default dimension is 2.
+dim = util.GetParamNumber("-dim", 2) -- default dimension is 2.
 
 -- We also need a filename for the grid that shall be loaded.
-gridName = GetParam("-grid", "unit_square_quads_8x8.ugx")
+gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
 
 -- Since we want to save the domains grid to a file, we also need an output file.
-outFileName = GetParam("-o", "domain.ugx")
+outFileName = util.GetParam("-o", "domain.ugx")
 
 
 
 
 -- Now its time to create the domain object. We will use an util method here,
 -- which automatically creates the right domain for the given dimension.
-dom = utilCreateDomain(dim)
+dom = util.CreateDomain(dim)
 
 -- Now that we have a domain, we can load a grid into it. We check the return
 -- value whether the loading was successful or not.
@@ -48,7 +48,7 @@ dom = utilCreateDomain(dim)
 -- has the benefit that grids are automatically searched in the data/grids folder if
 -- they were not found at the default locations (execution-path or a path specified
 -- in your environments path-variable).
-if utilLoadDomain(dom, gridName) == false then
+if util.LoadDomain(dom, gridName) == false then
 	print("Loading of domain " .. gridName .. " failed. Aborting.")
 --	call exit to leave the application right away.
 	exit() 
@@ -173,7 +173,7 @@ pattern:lock()							-- locks the pattern. No more functions may be added now.
 -- Using the function domain and the pattern we can now create an
 -- approximation space. The approximation space handles the distribution
 -- of degrees of freedom and can later be queried for function objects.
-approxSpace = utilCreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom, pattern)
 
 
 -- Now we will create the discretization objects. This is performed in
@@ -192,9 +192,9 @@ approxSpace = utilCreateApproximationSpace(dom, pattern)
 -- whereas we use utilCreateLuaUserNumber if only a number is returned.
 -- For the dirichlet callback we use utilCreateLuaBoundaryNumber, since here
 -- a boolean and a number are returned.
-diffMatrixCallback = utilCreateLuaUserMatrix("ourDiffTensor" .. dim .. "d", dim)
-rhsCallback = utilCreateLuaUserNumber("ourRhs" .. dim .."d", dim)
-dirichletCallback = utilCreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d", dim)
+diffMatrixCallback = util.CreateLuaUserMatrix("ourDiffTensor" .. dim .. "d", dim)
+rhsCallback = util.CreateLuaUserNumber("ourRhs" .. dim .."d", dim)
+dirichletCallback = util.CreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d", dim)
 
 -- The element discretization
 -- Here we create a new instance of a convection diffusion equation.
@@ -203,7 +203,7 @@ dirichletCallback = utilCreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d",
 -- and that the discretization shall only operate on elements in the subset
 -- "Inner". Note that one could specify multiple subsets here by enumerating
 -- them all in the subsets-string separated by , (i.e. "Inner1, Inner2"). 
-elemDisc = utilCreateFV1ConvDiff(approxSpace, "c", "Inner")
+elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", "Inner")
 elemDisc:set_upwind_amount(0)
 elemDisc:set_diffusion_tensor(diffMatrixCallback)	-- set the diffusion matrix
 elemDisc:set_rhs(rhsCallback)						-- set the right hand side
@@ -220,7 +220,7 @@ elemDisc:set_rhs(rhsCallback)						-- set the right hand side
 -- Here we set up such a dirichlet boundary condition. We explicitly
 -- add subsets on which the boundary callback defined above shall be
 -- applied to a given function (as defined in the function pattern).
-dirichletBnd = utilCreateDirichletBoundary(approxSpace)
+dirichletBnd = util.CreateDirichletBoundary(approxSpace)
 dirichletBnd:add_boundary_value(dirichletCallback, "c", "Boundary")
 
 -- Finally we create the discretization object which combines all the
