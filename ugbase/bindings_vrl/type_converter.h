@@ -18,11 +18,6 @@
 namespace ug {
 	namespace vrl {
 
-		enum InvokationType {
-			Function,
-			METHOD
-		};
-
 		/**
 		 * Converts a native string to a Java string.
 		 * @param env JVM environment to operate on
@@ -99,23 +94,6 @@ namespace ug {
 		}
 
 		/**
-		 * Converts an exported function to Groovy source code.
-		 * @param func function to convert
-		 * @return Groovy source code
-		 */
-		std::string exportedFunction2Groovy(
-				ug::bridge::ExportedFunction const& func);
-
-		/**
-		 * Converts an exported class to Groovy source code.
-		 * @param reg registry the class is registered with
-		 * @param clazz class to convert
-		 * @return Groovy source code
-		 */
-		std::string exportedClass2Groovy(ug::bridge::Registry* reg,
-				ug::bridge::IExportedClass const& clazz);
-
-		/**
 		 * Converts a jboolean to a Java object (jobject).
 		 * @param env JVM environment to operate on
 		 * @param value value to convert
@@ -188,6 +166,32 @@ namespace ug {
 		jobject pointer2JObject(JNIEnv *env, void* value);
 
 		/**
+		 * Indicates whether the specified smart pointer is const, i.e., if the
+		 * specified Java object represents a const smart pointer.
+         * @param env JVM environment to operate on
+         * @param ptr smart pointer to check
+         * @return <code>true</code> if the specified smart pointer is const;
+		 *         <code>false</code> otherwise
+         */
+		bool isJSmartPointerConst(JNIEnv *env, jobject ptr);
+
+		/**
+		 * Invalidates the native equivalent of the specified Java smart pointer.
+		 * TODO what about error handling???
+         * @param env JVM environment to operate on
+         * @param obj smart pointer to invalidate
+         */
+		void invalidateJSmartPointer(JNIEnv *env, jobject obj);
+
+		/**
+		 * Invalidates the native equivalent of the specified Java smart pointer.
+		 * TODO what about error handling???
+         * @param env JVM environment to operate on
+         * @param obj smart pointer to invalidate
+         */
+		void invalidateJConstSmartPointer(JNIEnv *env, jobject obj);
+
+		/**
 		 * Converts a Java object (jobject) to a native pointer.
 		 * @param env JVM environment to operate on
 		 * @param obj object to convert
@@ -195,57 +199,6 @@ namespace ug {
 		 */
 		void* jObject2Pointer(JNIEnv *env, jobject obj);
 
-
-		/**
-		 * Creates a VRL param info to customize type representation and to
-		 * ensure type-safe connections.
-//		 * @param paramName name of the parameter
-		 * @param className name of the param class
-		 * @param classNames own class name plus class names of all super
-		 *        classes
-		 * @param isConst defines whether this parameter shall be const
-		 * @param paramInfo additional param info options
-		 * @param customParamInfo additional value options
-		 * @return a string containing a VRL param info (Groovy source code)
-		 */
-		std::string createParamInfo(const char* paramName, const char* className,
-				const std::vector<const char*>* classNames, bool isConst,
-				std::vector<std::string> const& paramInfo,
-				std::string const& customParamInfo="");
-
-
-		/**
-		 * Creates a VRL method info to customize method representation.
-		 * @param className name of the return value class
-		 * @param classNames return value class name plus class names of all
-		 *        super classes
-		 * @param isConst defines whether the return value shall be const
-		 * @param customInfo additional method info options
-		 * @param customOptions additional return value options
-		 * @return a string containing a VRL method info (Groovy source code)
-		 */
-		std::string createMethodInfo(const char* className,
-				const std::vector<const char*>* classNames, bool isConst,
-				std::string customInfo = "", std::string customOptions = "");
-
-
-		/**
-		 * Converts a ug::bridge::ParameterTypes value to the equivalent Java
-		 * type name.
-		 * @param paramName name of the parameter
-		 * @param paramType param type to convert
-		 * @param className name of the value class
-		 * @param classNames value class name plus class names of all super
-		 *        classes
-		 * @param paramInfo param info
-		 * @param isOutput defines whether this value is a return value
-		 *                 (in this case no param info will be added)
-		 * @return a String containing the Java type name
-		 */
-		std::string paramType2String(int paramType, const char* paramName,
-				const char* className,
-				const std::vector<const char*>* classNames,
-				std::vector<std::string> const& paramInfo, bool isOutput = false);
 
 		/**
 		 * Converts an array of Java objects to a parameter stack.
@@ -338,49 +291,6 @@ namespace ug {
 				ug::bridge::Registry* reg,
 				const ug::bridge::IExportedClass* clazz);
 
-		/**
-		 * Generates Groovy source code for all non const methods of the
-		 * specified class.
-		 * @param result stream to use (appends return value)
-		 * @param clazz exported class
-		 */
-		void generateMethods(std::stringstream& result,
-				ug::bridge::IExportedClass* clazz);
-
-		/**
-		 * Generates Groovy source code for all const methods of the specified
-		 * class.
-		 * @param result string stream to use (appends return value)
-		 * @param clazz exported class
-		 */
-		void generateConstMethods(std::stringstream& result,
-				ug::bridge::IExportedClass* clazz);
-
-		/**
-		 * Generates the method header to the specified method as Groovy
-		 * source code. The header contains the return value, the method name
-		 * and the parameter list.
-		 * Parameters are stored as array of java objects
-		 * (variable name is <code>params</code>).
-		 * @param result string stream to use (appends return value)
-		 * @param method method to generate
-		 * @param isFunction defines whether to generate a function header
-		 * @param isVisual defines whether the method shall be visualized
-		 * @param prefix method prefix (optional)
-		 */
-		void generateMethodHeader(
-				std::stringstream& result,
-				ug::bridge::ExportedFunctionBase const& method,
-				bool isFunction = false, bool isVisual = true,
-				std::string prefix = "");
-
-		/**
-		 * Indicates whether the specified method/function returns a pointer.
-         * @param func function/method to check
-         * @return <code>true</code> if the specified method returns a pointer
-		 *         <code>false</code> otherwise
-         */
-		bool returnsPointer(ug::bridge::ExportedFunctionBase const& func);
 
 		/**
 		 * Converts registry information to Java objects.
@@ -390,7 +300,7 @@ namespace ug {
          */
 		jobject registry2NativeAPI(JNIEnv *env, ug::bridge::Registry* reg);
 
-	} // end vrl::
+} // end vrl::
 }// end ug::
 
 #endif	/* TYPE_CONVERTER_H */

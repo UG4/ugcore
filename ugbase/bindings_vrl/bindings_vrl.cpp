@@ -118,10 +118,55 @@ public:
 		return "Test123";
 	}
 
+	SmartPtr<TestClass> smartTestImpl() {
+		return SmartPtr<TestClass > (new TestClass());
+	}
+
+	ConstSmartPtr<TestClass> constSmartTestImpl() {
+		return ConstSmartPtr<TestClass > (new TestClass());
+	}
+
+	int print_name() {
+		UG_LOG("Name is Test\n");
+		return 1;
+	}
+
+	int print() {
+		UG_LOG("Test::print()\n");
+		return 0;
+	}
+
+	int print2() {
+		UG_LOG("Test::print2()\n");
+		return 1;
+	}
+
+	int print2() const {
+		UG_LOG("Test::print2() const\n");
+		return 1;
+	}
+
 	~TestClass() {
-		UG_LOG("Destructor called:" << (long) this << std::endl);
+		UG_LOG("~TestClass" << std::endl);
+		std::cerr << "~TestClass\n";
 	}
 };
+
+int SmartTestFunction(SmartPtr<TestClass> test) {
+	UG_LOG("SmartTestFunc: ");
+
+	test->print2();
+
+	return test.get_refcount();
+}
+
+int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
+	UG_LOG("ConstSmartTestFunc: ");
+
+	test->print2();
+
+	return test.get_refcount();
+}
 
 //*********************************************************
 //* JNI METHODS
@@ -158,7 +203,13 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 			.add_method("add", &TestClass::add, "result",
 			"a|default|min=-3;max=5;value=-12#b|default|min=-1;max=1;value=23")
 			.add_method("getString", &TestClass::getString)
-			.add_method("performTest", &TestClass::performTest);
+			.add_method("performTest", &TestClass::performTest)
+			.add_method("print", &TestClass::print)
+			.add_method("smartTestImpl", &TestClass::smartTestImpl)
+			.add_method("constSmartTestImpl", &TestClass::constSmartTestImpl);
+
+	reg.add_function("SmartTestFunction", &SmartTestFunction, "testing");
+	reg.add_function("ConstSmartTestFunction", &ConstSmartTestFunction, "testing");
 
 	//	Register Standard Interfaces (excluding algebra)
 	//		ug::bridge::RegisterStandardInterfaces(reg);
@@ -234,7 +285,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_newInstance
 (JNIEnv *env, jobject obj, jlong objPtr) {
 
-	long result = NULL;
+	long result = 0;
 	ug::bridge::IExportedClass* clazz = NULL;
 
 	try {
@@ -268,6 +319,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 	jobject result = NULL;
 
 	try {
+
 		ug::vrl::jobjectArray2ParamStack(
 				env, paramsIn, func->params_in(), params);
 
@@ -289,51 +341,6 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 	}
 
 	return result;
-}
-
-JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
-(JNIEnv *env, jobject obj) {
-
-	std::vector<std::string> cResult;
-	jobjectArray jResult =
-			ug::vrl::createEmptyJavaArray(env, "java/lang/String");
-
-	try {
-
-		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_classes(); i++) {
-
-			const ug::bridge::IExportedClass& clazz =
-					ug::vrl::vrlRegistry->get_class(i);
-
-			if (clazz.is_instantiable()) {
-				cResult.push_back(
-						ug::vrl::exportedClass2Groovy(
-						ug::vrl::vrlRegistry, clazz));
-			}
-
-		}
-
-		for (unsigned int i = 0; i < ug::vrl::vrlRegistry->num_functions(); i++) {
-			ug::bridge::ExportedFunction& func =
-					ug::vrl::vrlRegistry->get_function(i);
-			cResult.push_back(ug::vrl::exportedFunction2Groovy(func));
-		}
-
-		jResult = ug::vrl::stringArrayC2J(env, cResult);
-
-	} catch (...) {
-		UG_LOG("Unknown exception thrown while"
-				<< " trying to convert registered classes to Groovy code!"
-				<< std::endl);
-	}
-
-	// print groovy code
-	//	for(unsigned int i = 0; i < cResult.size();i++) {
-	//		std::cout << "\n\n***********************************************\n\n";
-	//		std::cout << cResult[i];
-	//	}
-
-	return jResult;
 }
 
 JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
@@ -368,18 +375,34 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
 	}
 }
 
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_invalidate
+(JNIEnv * env, jclass cls, jobject smartPtr) {
+
+	if (ug::vrl::isJSmartPointerConst(env, smartPtr)) {
+		ug::vrl::invalidateJConstSmartPointer(env, smartPtr);
+	} else {
+		ug::vrl::invalidateJSmartPointer(env, smartPtr);
+	}
+
+	//	UG_LOG("~[SMART Java]: " << (long)p.get_impl() << "\n");
+	//	UG_LOG(">>> Before Invalidate: ptr=" << (long) p.get_impl() << ", refCount=" << p.get_refcount() << "\n");
+
+	//	UG_LOG(">>> After Invalidate: ptr=" << (long) p.get_impl() << ", refCount=" << p.get_refcount() << "\n");
+	//	ug::vrl::invalidateJSmartPointer(env,smartPtr);
+}
+
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
 (JNIEnv * env, jobject obj) {
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_setMaxQueueSize
-  (JNIEnv * env, jobject obj, jint n) {
+(JNIEnv * env, jobject obj, jint n) {
 	ug::vrl::MessageBuffer::setMaxQueueSize(n);
 }
 
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_clearMessages
-  (JNIEnv * env, jobject obj) {
+(JNIEnv * env, jobject obj) {
 	ug::vrl::MessageBuffer::clearMessages();
 }
 

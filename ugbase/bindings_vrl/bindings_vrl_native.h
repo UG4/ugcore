@@ -9,14 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     edu_gcsc_vrl_ug4_UG4
- * Method:    createJavaBindings
- * Signature: ()[Ljava/lang/String;
- */
-JNIEXPORT jobjectArray JNICALL Java_edu_gcsc_vrl_ug4_UG4_createJavaBindings
-  (JNIEnv *, jobject);
-
-/*
- * Class:     edu_gcsc_vrl_ug4_UG4
  * Method:    convertRegistryInfo
  * Signature: ()Ledu/gcsc/vrl/ug4/NativeAPIInfo;
  */
@@ -138,6 +130,14 @@ extern "C" {
  */
 JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_delete
   (JNIEnv *, jclass, jlong, jlong);
+
+/*
+ * Class:     edu_gcsc_vrl_ug4_MemoryManager
+ * Method:    invalidate
+ * Signature: (Ledu/gcsc/vrl/ug4/SmartPointer;)V
+ */
+JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_invalidate
+  (JNIEnv *, jclass, jobject);
 
 #ifdef __cplusplus
 }
