@@ -7,14 +7,61 @@ by the c++ programmer. By this registration, the programmer indicates, that the
 functionality is exported. Once exported the functionality is accessible in 
 Script and VRL simultaneously.
 
-This page gives an introduction to the registering process.
+This page gives an introduction to the registration process.
 
 <hr>
 \section secSTHowToRegister	How to register Functionality
 <hr>
 
-Registering is done in ugbase/ug_bridge/bridges.
+Registering is done in the *.cpp files in the folder "ugbase/ug_bridge/bridges".
+Here are found several so called "bridges" that map (bridge) the functionality of 
+different parts of the software project to the script (or VRL). 
 
+To understand the usage of the ug::Registry, lets start with the simple and
+exemplary file "test_bridges.cpp". Here, you find several simple test classes
+and functions, written in normal c++. This functionality is now exported. 
 
+The function, where the registration takes place is "RegisterTestInterface".
+
+\code
+bool RegisterTestInterface(Registry& reg, const char* parentGroup)
+{
+//	usually the parentGroup is "ug4"
+
+//	get group string
+	std::stringstream groupString; groupString << parentGroup << "/Test";
+	std::string grp = groupString.str();
+
+//	now groupString is simply "ug4/Test"
+
+//  ...
+}
+\endcode
+
+This function gets passed the Registry to which all functionality is added. In
+addition a "Group" string is added, that can be used to group functionality together.
+Usually all separated parts (e.g. "Grid", "Algebra", ...) are grouped, but this
+is not essential for the registration. (Therefore, lets not stress this point here)
+
+<hr>
+\section secSTHowToRegisterFunctions 	How to register Global Functions
+
+Now, we come to the point to register a global c++-Function. We start with 
+a very simple example, the famous "Hello World". You will find in the file
+a global Function "PrintHelloWorldToScreen"
+
+\code
+// prints "Hello World"
+void PrintHelloWorldToScreen()
+{
+	UG_LOG("Hello World !\n");
+}
+\endcode
+
+In order to global function, you must use the syntax
+
+\code
+reg.add_function( "NameAppearingInScript", Pointer to Function, ... )
+\endcode
 
 */

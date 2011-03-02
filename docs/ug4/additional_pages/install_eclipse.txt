@@ -4,10 +4,13 @@
 
 /**	\page pageInstallEclipse ug4 - using Eclipse
 
-The following Coding Style is recommended for ug.
+The page is an install guide for the usage of Eclipse for ug.
 
 	- \ref secInstallEcpliseDownload "Download Eclipse"
 	- \ref secInstallEcpliseUG4Download "Download UG4 via Eclipse/SVN"
+	- \ref secInstallEcpliseUseMakefiles "Build in Eclipse using external Makefiles"
+	- \ref secInstallEcpliseRunExecutable	"Run ug-executable via Eclipse"
+	- \ref secInstallEcpliseSyntaxLua "Syntax Highlighting for Lua"
 
 For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
@@ -58,8 +61,11 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 </ul>
 
 <hr>
-\section secInstallEcpliseCMake Run CMake
+\section secInstallEcpliseUseMakefiles Build in Eclipse using external Makefiles
 <hr>
+
+In order to build the ug libraries via Eclipse, you first must create the 
+Makefiles. This is done using "cmake" in the terminal:
 
 <ol>
 <li> Open a terminal/shell window
@@ -69,12 +75,12 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <li> "cmake -DUG_DEBUG=ON .." --> Makefiles are generated
 </ol>
 
-<hr>
-\section secInstallEcpliseUseMakefiles Build in Eclipse using external makefiles
-<hr>
+Note, that once the Makefiles have been created, you do not have to rebuild them
+ at any time. This step has to be performed only once. 
+Now, these Makefiles can be used in Eclipse:
 
 <ol>
-<li> click right on folder "ug4" -> Choose "Properties"
+<li> Click right on folder "ug4" -> Choose "Properties"
 <li> Under "C/C++-Build":
 <li> Disable "Generate Makefiles automatically"
 <li> Disable "Use default build command"
@@ -84,25 +90,76 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 <li> Disable automatically build: Remove "Project"->"Build automatically"
 </ol>
 
-You find the binary in "ug4/bin/" wiht the name "ugshell"
+You find the binary in "ug4/bin/" with the name "ugshell"
 
 <hr>
-\section syntax highlighting in Lua 
+\section secInstallEcpliseRunExecutable	Run ug-executable via Eclipse
 <hr>
 
-You find yout update site under: http://luaeclipse.luaforge.net/preview/update-site
-
-E.g. o MacOSX: http://luaeclipse.luaforge.net/preview/update-site/macosx.carbon/site.xml
-
-A second (not recommended) choice is LunarEclispe (http://lunareclipse.sourceforge.net/update.html)
+If you want you can also start the executable from Eclipse. This is especially
+useful if you like to use the build-in Debugger. 
 
 <ol>
 <li> "ug4" -> "Properties"
 <li> "Run/Debug Settings"
 <li> Click "New..." -> "C/C++ Application"
 <li> Fill in executable: "Browse" -> "ug4/bin/ugshell"
-<li> Choose "Arguments" -> "Programm arguments": Fill in: "-ex laplace.lua"
-<li> (Maybe add environment variable)
+<li> Choose "Arguments" -> "Program arguments": Fill in: "-ex laplace.lua"
 </ol>
+
+Of coarse, if needed, use adapted arguments.
+
+<hr>
+\section secInstallEcplisePathSymbols Path and Symbols
+<hr>
+
+Eclipse has a powerful Autocompletion-Mechanism, Syntax-Highlighting for C++ and
+many other things. To make them available, you have to tell Eclipse, where to 
+look for:
+
+<ol>
+<li> Click right on folder "ug4" -> Choose "Properties"
+<li> Under "C/C++-General" -> "Path and Symbols"
+<li> Under "Includes" click "Add..."
+<li> Click on "Workspace..." and choose the folder "ugbase"
+<li> Check: "Add to all languages" and "Add to all configurations"
+</ol> 
+
+If you use build flags, you must tell Eclipse to recognize them. Specially, 
+if you do not use UG_PARALLEL, all Parallel Code will not be highlighted but 
+regarded as dead code. So, add it to the Environment:
+
+<ol>
+<li> Click right on folder "ug4" -> Choose "Properties"
+<li> Under "C/C++-General" -> "Path and Symbols"
+<li> Under "Symbols" click "Add..."
+<li> Fill in "UG_PARALLEL", value: "ON"
+<li> Check: "Add to all languages" and "Add to all configurations"
+</ol> 
+
+
+<hr>
+\section secInstallEcpliseSyntaxLua Syntax Highlighting in Lua 
+<hr>
+
+Lua is the recommended scripting language in ug. In order to have a more comfortable
+editing of Lua-Scripts you should install a Plugin. We recommend the package
+LuaEclipse. This plugin provides editing of Lua scripts with syntax highlight,
+ code completion, compilation errors, code and comment folding.
+
+You find a link to the install site under: http://luaeclipse.luaforge.net/preview/update-site
+E.g. on MacOSX use: http://luaeclipse.luaforge.net/preview/update-site/macosx.carbon/site.xml
+
+<ol>
+<li> Open plugin install panel: "Help" -> "Install new Software..."
+<li> Insert link above into: "Work with: ...."
+<li> Choose "LuaEclipse 1.3.1" and click "next"
+<li> Accept license agreement
+<li> Finish and restart
+</ol>
+
+
+A second (not recommended) choice is LunarEclispe (http://lunareclipse.sourceforge.net/update.html)
+
 
 */
