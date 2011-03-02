@@ -86,6 +86,16 @@ For any questions, contact andreas.vogel@gcsc.uni-frankfurt.de .
 
 You find the binary in "ug4/bin/" wiht the name "ugshell"
 
+<hr>
+\section syntax highlighting in Lua 
+<hr>
+
+You find yout update site under: http://luaeclipse.luaforge.net/preview/update-site
+
+E.g. o MacOSX: http://luaeclipse.luaforge.net/preview/update-site/macosx.carbon/site.xml
+
+A second (not recommended) choice is LunarEclispe (http://lunareclipse.sourceforge.net/update.html)
+
 <ol>
 <li> "ug4" -> "Properties"
 <li> "Run/Debug Settings"
@@ -94,4 +104,5 @@ You find the binary in "ug4/bin/" wiht the name "ugshell"
 <li> Choose "Arguments" -> "Programm arguments": Fill in: "-ex laplace.lua"
 <li> (Maybe add environment variable)
 </ol>
+
 */
