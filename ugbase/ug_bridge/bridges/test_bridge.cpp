@@ -132,17 +132,13 @@ class Base
 };
 
 // Some Derived class
-class Derived
+class Derived : public Base
 {
 	public:
 		virtual ~Derived()	{}
 		virtual void print()
 		{
 			UG_LOG("Derived::print() called\n");
-		}
-		std::string something()
-		{
-			return "Something";
 		}
 };
 
@@ -210,8 +206,7 @@ bool RegisterTestInterface(Registry& reg, const char* parentGroup)
 
 	//	registering derived class
 		reg.add_class_<Derived, Base>("Derived", grp.c_str())
-			.add_constructor()
-			.add_method("something", &Derived::something);
+			.add_constructor();
 
 		reg.add_class_<ConstClass>("ConstClass", grp.c_str())
 			.add_constructor()
