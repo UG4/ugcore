@@ -522,6 +522,13 @@ bool RegisterLibDiscretizationInterfaceForAlgebraDomainDedependent(Registry& reg
 	//	get group string
 		std::string grp = parentGroup; grp.append("/Discretization");
 
+	//	Domain dependend part 1D
+		{
+			typedef Domain<1, MultiGrid, MGSubsetHandler> domain_type;
+			RegisterLibDiscretizationDomainObjects<domain_type, algebra_type, dof_distribution_type>(reg, grp.c_str());
+			RegisterLibDiscretizationDomainFunctions<domain_type,  algebra_type, dof_distribution_type>(reg, grp.c_str());
+		}
+
 	//	Domain dependend part 2D
 		{
 			typedef Domain<2, MultiGrid, MGSubsetHandler> domain_type;
