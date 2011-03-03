@@ -190,8 +190,12 @@ SmartPtr<void> jObject2SmartPointer(JNIEnv *env, jobject obj) {
 	jbyteArray mem = (jbyteArray) env->CallObjectMethod(obj, getSmartPointer);
 	jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
 
+	// temporarily it is save to use the memory provided by the Java
+	// byte array
 	SmartPtr<void>* smartPtr =
-	reinterpret_cast<SmartPtr<void>*> ((void*) memPtr);
+			reinterpret_cast<SmartPtr<void>*> ((void*) memPtr);
+
+	// but we have to use a new instance for use outside of this function
 	SmartPtr<void> result(*smartPtr);
 
 	env->ReleaseByteArrayElements(mem, memPtr, 0);
@@ -201,18 +205,31 @@ SmartPtr<void> jObject2SmartPointer(JNIEnv *env, jobject obj) {
 
 ConstSmartPtr<void> jObject2ConstSmartPointer(JNIEnv *env, jobject obj) {
 
-	jclass argClass = env->GetObjectClass(obj);
+	ConstSmartPtr<void> result;
 
-	jmethodID getSmartPointer =
-			env->GetMethodID(argClass, "getSmartPointer", "()[B");
-	jbyteArray mem = (jbyteArray) env->CallObjectMethod(obj, getSmartPointer);
-	jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
+	// We allow convertion from SmartPtr to ConstSmartPtr. As these classes
+	// are not in an inheritance relation we must take care to use the correct
+	// methods for conversion
+	if (isJSmartPointerConst(env, obj)) {
 
-	ConstSmartPtr<void>* smartPtr =
-	reinterpret_cast<ConstSmartPtr<void>*> ((void*) memPtr);
-	ConstSmartPtr<void> result(*smartPtr);
+		jclass argClass = env->GetObjectClass(obj);
+		jmethodID getSmartPointer =
+				env->GetMethodID(argClass, "getSmartPointer", "()[B");
+		jbyteArray mem =
+				(jbyteArray) env->CallObjectMethod(obj, getSmartPointer);
+		jbyte* memPtr = env->GetByteArrayElements(mem, NULL);
 
-	env->ReleaseByteArrayElements(mem, memPtr, 0);
+		ConstSmartPtr<void>* smartPtr =
+				reinterpret_cast<ConstSmartPtr<void>*> ((void*) memPtr);
+		result = ConstSmartPtr<void>(*smartPtr);
+
+		env->ReleaseByteArrayElements(mem, memPtr, 0);
+
+	} else {
+		// conversion from SmartPtr is done by ConstSmartPtr's assignment
+		// operator
+		result = jObject2SmartPointer(env, obj);
+	}
 
 	return result;
 }
@@ -281,6 +298,7 @@ jobject smartPointer2JObject(JNIEnv *env, SmartPtr<void> value) {
 
 	new (memPtr) SmartPtr<void>(value);
 
+	// release the memory to write it back to the jvm
 	env->ReleaseByteArrayElements(mem, memPtr, 0);
 
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/SmartPointer");
@@ -303,6 +321,7 @@ jobject constSmartPointer2JObject(JNIEnv *env, ConstSmartPtr<void> value) {
 
 	new (memPtr) ConstSmartPtr<void>(value);
 
+	// release the memory to write it back to the jvm
 	env->ReleaseByteArrayElements(mem, memPtr, 0);
 
 	jclass cls = env->FindClass("edu/gcsc/vrl/ug4/SmartPointer");
@@ -399,11 +418,11 @@ bool compareParamTypes(JNIEnv *env, jobjectArray params,
 			paramType = ug::bridge::PT_CONST_POINTER;
 		}
 
-//		// allow non-const * to const *
-//		if (paramType == ug::bridge::PT_SMART_POINTER &&
-//				paramStack.get_type(i) == ug::bridge::PT_CONST_SMART_POINTER) {
-//			paramType = ug::bridge::PT_CONST_SMART_POINTER;
-//		}
+		// allow non-const * to const *
+		if (paramType == ug::bridge::PT_SMART_POINTER &&
+				paramStack.get_type(i) == ug::bridge::PT_CONST_SMART_POINTER) {
+			paramType = ug::bridge::PT_CONST_SMART_POINTER;
+		}
 
 		if (paramType != paramStack.get_type(i)) {
 			return false;
@@ -477,7 +496,8 @@ void jobjectArray2ParamStack(
 				break;
 			case PT_CONST_SMART_POINTER:
 			{
-				paramsOut.push_const_smart_pointer(jObject2ConstSmartPointer(env, value),
+				paramsOut.push_const_smart_pointer(
+						jObject2ConstSmartPointer(env, value),
 						paramsTemplate.class_names(i));
 			}
 				break;
@@ -532,7 +552,8 @@ jobject param2JObject(
 			break;
 		case PT_CONST_SMART_POINTER:
 		{
-			return constSmartPointer2JObject(env, params.to_const_smart_pointer(index));
+			return constSmartPointer2JObject(
+					env, params.to_const_smart_pointer(index));
 		}
 			break;
 	}
@@ -637,11 +658,6 @@ jobjectArray params2NativeParams(JNIEnv *env,
 		// TODO Unfortunately we don't know a better way to convert an enumeration
 		// from C++ to Java. Currently we just use integers :(
 		int type = paramType2Int(params, i);
-
-		//		if (type == 0 || type > 6) {
-		//			std::cout << "*******METHOD: " << func.name() << std::endl;
-		//			std::cout << "*******PARAM: " << type << " " << params.class_name(i) << "\n";
-		//		}
 
 		env->CallVoidMethod(obj, setType, type);
 		env->CallVoidMethod(obj, setID, i);

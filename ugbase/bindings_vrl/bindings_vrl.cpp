@@ -21,20 +21,19 @@
 namespace ug {
 namespace vrl {
 static ug::bridge::Registry* vrlRegistry = NULL;
-static JNIEnv* jniEnv = NULL;
 static JavaVM* javaVM = NULL;
 
 void SetVRLRegistry(ug::bridge::Registry* pReg) {
 	vrlRegistry = pReg;
 }
 
-void SetJNIEnv(JNIEnv* env) {
-	jniEnv = env;
-	env->GetJavaVM(&javaVM);
-}
-
-JNIEnv* getJNIEnv() {
-	return jniEnv;
+void initJavaVM(JNIEnv* env) {
+	if (javaVM == NULL) {
+		env->GetJavaVM(&javaVM);
+	} else {
+		UG_LOG("UG-VRL: JavaVM already initialized!"
+				" JavaVM can be initialized only once!");
+	}
 }
 
 JavaVM* getJavaVM() {
@@ -60,7 +59,6 @@ public:
 				ug::vrl::vrlRegistry, "Domain2d");
 
 		std::cout << "***1\n";
-
 
 		void* obj = cls->create();
 
@@ -102,7 +100,6 @@ public:
 		std::cout << "***6\n";
 
 		return 23;
-
 	}
 
 	std::string getRev() {
@@ -175,7 +172,7 @@ int ConstSmartTestFunction(ConstSmartPtr<TestClass> test) {
 JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 (JNIEnv *env, jobject obj, jobjectArray args) {
 
-	ug::vrl::SetJNIEnv(env);
+	ug::vrl::initJavaVM(env);
 
 	std::vector<std::string> arguments = ug::vrl::stringArrayJ2C(env, args);
 
@@ -184,18 +181,17 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 		argv[i] = (char*) arguments[i].c_str();
 	}
 
-	//	static ug::bridge::Registry testReg;
+	//		static ug::bridge::Registry testReg;
 
 	//	Choose registry used.
 	ug::bridge::Registry& reg = ug::bridge::GetUGRegistry();
-	//	ug::bridge::Registry& reg = testReg;
+	//		ug::bridge::Registry& reg = testReg;
 
 	using namespace ug;
 
 	int argc = arguments.size();
 	char** pargv = &argv[0];
 	int retVal = ug::UGInit(&argc, &pargv);
-
 
 	reg.add_class_<TestClass > ("TestClass", "testing")
 			.add_constructor()
@@ -214,10 +210,14 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	//	Register Standard Interfaces (excluding algebra)
 	//		ug::bridge::RegisterStandardInterfaces(reg);
 
+
 	//	Register algebra
 	CPUAlgebraChooser chooser;
-	ug::bridge::RegisterDynamicLibAlgebraInterface(reg, chooser.get_algebra_type());
-	ug::bridge::RegisterDynamicLibDiscretizationInterface(reg, chooser.get_algebra_type());
+	ug::bridge::RegisterDynamicLibAlgebraInterface(
+			reg, chooser.get_algebra_type());
+	ug::bridge::RegisterDynamicLibDiscretizationInterface(
+			reg, chooser.get_algebra_type());
+
 
 	//	ug::vrl::RegisterVRLUserNumber(reg, "testing");
 	//				ug::bridge::RegisterTestInterface(reg);
@@ -225,6 +225,7 @@ JNIEXPORT jint JNICALL Java_edu_gcsc_vrl_ug4_UG4_ugInit
 	//	ug::bridge::RegisterLibGridInterface(testReg);
 
 	//	ug::vrl::SetVRLRegistry(&ug::GetUGRegistry());
+
 	ug::vrl::SetVRLRegistry(&reg);
 
 	return (jint) retVal;
@@ -270,13 +271,16 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeMethod
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 		UG_LOG("Incompatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl);
+				ex.m_from << " : " << ex.m_to << std::endl
+				<< VRL_CRITICAL_ERROR);
 	} catch (ug::bridge::ERROR_BadConversion ex) {
 		UG_LOG("Incompatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl);
+				ex.m_from << " : " << ex.m_to << std::endl
+				<< VRL_CRITICAL_ERROR);
 	} catch (...) {
 		UG_LOG("Unknown exception thrown while"
-				<< " trying to invoke method!" << std::endl);
+				<< " trying to invoke method!" << std::endl
+				<< VRL_CRITICAL_ERROR);
 	}
 
 	return result;
@@ -320,6 +324,12 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 
 	try {
 
+		if (func == NULL) {
+			UG_LOG("Function not found: " << ug::vrl::stringJ2C(env, fName) <<
+					"()" << " : " << std::endl << VRL_CRITICAL_ERROR);
+			return NULL;
+		}
+
 		ug::vrl::jobjectArray2ParamStack(
 				env, paramsIn, func->params_in(), params);
 
@@ -331,10 +341,12 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_invokeFunction
 
 	} catch (ug::bridge::ERROR_IncompatibleClasses ex) {
 		UG_LOG("Incopatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl);
+				ex.m_from << " : " << ex.m_to << std::endl
+				<< VRL_CRITICAL_ERROR);
 	} catch (ug::bridge::ERROR_BadConversion ex) {
 		UG_LOG("Incopatible Conversion from " <<
-				ex.m_from << " : " << ex.m_to << std::endl);
+				ex.m_from << " : " << ex.m_to << std::endl
+				<< VRL_CRITICAL_ERROR);
 	} catch (...) {
 		UG_LOG("Unknown exception thrown while"
 				<< " trying to invoke function!" << std::endl);
@@ -347,11 +359,6 @@ JNIEXPORT jlong JNICALL Java_edu_gcsc_vrl_ug4_UG4_getExportedClassPtrByName
 (JNIEnv *env, jobject obj, jstring name) {
 	return (long) ug::vrl::invocation::getExportedClassPtrByName(
 			ug::vrl::vrlRegistry, ug::vrl::stringJ2C(env, name));
-}
-
-JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getMessages
-(JNIEnv *env, jobject obj) {
-	return ug::vrl::stringC2J(env, ug::vrl::MessageBuffer::getMessages().c_str());
 }
 
 JNIEXPORT jstring JNICALL Java_edu_gcsc_vrl_ug4_UG4_getSvnRevision
@@ -383,12 +390,6 @@ JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_MemoryManager_invalidate
 	} else {
 		ug::vrl::invalidateJSmartPointer(env, smartPtr);
 	}
-
-	//	UG_LOG("~[SMART Java]: " << (long)p.get_impl() << "\n");
-	//	UG_LOG(">>> Before Invalidate: ptr=" << (long) p.get_impl() << ", refCount=" << p.get_refcount() << "\n");
-
-	//	UG_LOG(">>> After Invalidate: ptr=" << (long) p.get_impl() << ", refCount=" << p.get_refcount() << "\n");
-	//	ug::vrl::invalidateJSmartPointer(env,smartPtr);
 }
 
 JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
@@ -396,15 +397,7 @@ JNIEXPORT jobject JNICALL Java_edu_gcsc_vrl_ug4_UG4_convertRegistryInfo
 	return ug::vrl::registry2NativeAPI(env, ug::vrl::vrlRegistry);
 }
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_setMaxQueueSize
-(JNIEnv * env, jobject obj, jint n) {
-	ug::vrl::MessageBuffer::setMaxQueueSize(n);
-}
 
-JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_clearMessages
-(JNIEnv * env, jobject obj) {
-	ug::vrl::MessageBuffer::clearMessages();
-}
 
 //JNIEXPORT void JNICALL Java_edu_gcsc_vrl_ug4_UG4_attachCanvas
 //(JNIEnv *env, jobject obj, jobject canvas) {

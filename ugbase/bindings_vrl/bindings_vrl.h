@@ -27,11 +27,12 @@ namespace ug {
 		 */
 		void SetVRLRegistry(ug::bridge::Registry* pReg);
 		/**
-		 * Defines the JVM environment to operate on
+		 * Defines the JVM to operate on based on the specified JNI environment.
+		 * The JVM can only be initialized once.
 		 * @param env JVM environment
 		 */
-		void SetJNIEnv(JNIEnv* env);
-		JNIEnv* getJNIEnv();
+		void initJavaVM(JNIEnv* env);
+//		JNIEnv* getJNIEnv();
 
 		JavaVM* getJavaVM();
 
