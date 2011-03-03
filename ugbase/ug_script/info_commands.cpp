@@ -387,7 +387,7 @@ void LuaList()
 			}
 			else if(lua_isuserdata(L, -1))
 				instantiations.push_back(luastr);
-			else
+
 				names.push_back(luastr);
 		}
 		lua_pop(L, 1); // remove global from stack
