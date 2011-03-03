@@ -20,7 +20,8 @@ namespace bridge
 {
 void PrintFileLineFunction(const char *source, int linedefined);
 const std::vector<const char*> *GetClassNames(lua_State *L, int index);
-
+	string ParameterToString(const ParameterStack &par, int i);
+	
 namespace lua
 {
 
@@ -183,6 +184,16 @@ static string GetLuaParametersString(lua_State* L, int offsetToFirstParam = 0)
 	return str;
 }
 
+string GetTypeMismatchString(const ParameterStack& par, lua_State* L, int offsetToFirstParam,
+		int badParamOneBased)
+{
+	int i = badParamOneBased-1; // i is zero-based.
+	int index = (int)i + offsetToFirstParam + 1;
+	std::stringstream ss;
+	ss << "type mismatch in argument " << badParamOneBased << ": expected " << ParameterToString(par, i) <<
+			", but given " << GetLuaTypeString(L, index);
+	return ss.str();
+}
 
 ///	copies parameter values from the lua-stack to a parameter-list.
 /**	\returns	The index of the first bad parameter starting from 1.
@@ -609,10 +620,14 @@ static int LuaProxyFunction(lua_State* L)
 	
 	if(badParam > 0){
 		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to " << funcGrp->name() << "(" << GetLuaParametersString(L, 0) << "):\n");
-		UG_LOG("No matching overload found! Candidates are:\n");
-		for(size_t i = 0; i < funcGrp->num_overloads(); ++i){
-			PrintFunctionInfo(*funcGrp->get_overload(i));
-			UG_LOG("\n");
+		if(funcGrp->num_overloads() > 1) { UG_LOG("No matching overload found! Candidates are:\n"); }
+		for(size_t i = 0; i < funcGrp->num_overloads(); ++i)
+		{
+			const ExportedFunction* func = funcGrp->get_overload(i);
+			ParameterStack paramsIn;
+			badParam = LuaStackToParams(paramsIn, func->params_in(), L, 0);
+			PrintFunctionInfo(*func);
+			UG_LOG(": " << GetTypeMismatchString(func->params_in(), L, 0, badParam) << "\n");
 		}
 		UG_LOG("Call stack:\n"); lua_stacktrace(L);
 		return 0;
@@ -656,7 +671,7 @@ static int LuaProxyMethod(lua_State* L)
 
 		UG_LOG(GetLuaFileAndLine(L) << ":\nERROR occured during call to ");
 		PrintLuaClassMethodInfo(L, 1, *m);
-		UG_LOG(": wrong parameters.\n");
+		UG_LOG(": " << GetTypeMismatchString(m->params_in(), L, 1, badParam) << "\n");
 		UG_LOG("Call stack:\n"); lua_stacktrace(L);
 		return 0;
 	}
