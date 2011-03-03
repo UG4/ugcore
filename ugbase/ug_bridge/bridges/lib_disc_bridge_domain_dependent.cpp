@@ -203,11 +203,9 @@ void RegisterLibDiscretizationDomainObjects(Registry& reg, const char* parentGro
 	{
 		typedef IApproximationSpace<domain_type> T;
 		std::stringstream ss; ss << "IApproximationSpace" << dim << "d";
-		reg.add_class_<T>(ss.str().c_str(), grp.c_str())
+		reg.add_class_<T, FunctionPattern>(ss.str().c_str(), grp.c_str())
 			.add_method("assign_domain|hide=true", &T::assign_domain)
-			.add_method("get_domain|hide=true", (domain_type& (T::*)())&T::get_domain)
-			.add_method("assign_function_pattern|hide=true", &T::assign_function_pattern)
-			.add_method("get_function_pattern|hide=true", &T::get_function_pattern);
+			.add_method("get_domain|hide=true", (domain_type& (T::*)())&T::get_domain);
 	}
 
 //	GridFunction

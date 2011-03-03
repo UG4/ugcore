@@ -151,19 +151,13 @@ sh:set_subset_name("Boundary", 1)
 -- write grid to file for test purpose
 SaveDomain(dom, "refined_grid.ugx")
 
-
--- create function pattern
-print("Create Function Pattern")
-pattern = P1ConformFunctionPattern()
-pattern:set_subset_handler(sh)
-AddP1Function(pattern, "c", 2)
-AddP1Function(pattern, "p", 2)
-AddP1Function(pattern, "T", 2)
-pattern:lock()
-
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = util.CreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom)
+approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:add_fct("p", "Lagrange", 1)
+approxSpace:add_fct("T", "Lagrange", 1)
+approxSpace:init()
 
 -------------------------------------------
 --  Setup User Functions
@@ -227,8 +221,7 @@ dirichletBND:add_boundary_value(PressureDirichlet, "p", "Boundary")
 
 -- create Finite-Volume Element Discretization for Convection Diffusion Equation
 elemDisc = DensityDrivenFlow2d()
-elemDisc:set_domain(dom)
-elemDisc:set_pattern(pattern)
+elemDisc:set_approximation_space(approxSpace)
 elemDisc:set_functions("c,p")
 elemDisc:set_subsets("Inner")
 if elemDisc:set_upwind("part") == false then exit() end

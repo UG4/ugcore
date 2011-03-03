@@ -59,15 +59,6 @@ class P1StorageManager
 		std::vector<SubsetInfo> m_vSubsetInfo;
 };
 
-class P1ConformFunctionPattern : public FunctionPattern
-{
-	public:
-		virtual bool add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim);
-
-		virtual bool add_discrete_function(const char* name, LocalShapeFunctionSetID id, const SubsetGroup& SubsetIndices, int dim);
-};
-
-
 class P1ConformDoFDistribution
 	: public IDoFDistribution<P1ConformDoFDistribution>
 {
@@ -107,6 +98,15 @@ class P1ConformDoFDistribution
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
+		}
+
+		///////////////////////////
+		// Support Info
+		///////////////////////////
+
+		static bool supports_trial_space(LocalShapeFunctionSetID& id)
+		{
+			return id == LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
 		///////////////////////////
@@ -268,6 +268,15 @@ class GroupedP1ConformDoFDistribution
 		{
 			m_vNumDoFs.clear();
 			m_vNumDoFs.resize(this->num_subsets(), 0);
+		}
+
+		///////////////////////////
+		// Support Info
+		///////////////////////////
+
+		static bool supports_trial_space(LocalShapeFunctionSetID& id)
+		{
+			return id == LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1);
 		}
 
 		///////////////////////////

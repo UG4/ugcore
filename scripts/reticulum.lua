@@ -126,18 +126,13 @@ end
 -- write grid to file for test purpose
 SaveDomain(dom, "refined_grid.ugx")
 
--- create function pattern
-print("Create Function Pattern")
-pattern = P1ConformFunctionPattern()
-pattern:set_subset_handler(sh)
-AddP1FunctionOnSubsets(pattern, "ca_cyt", "cyt, mem_er, mem_cyt", dim)
-AddP1FunctionOnSubsets(pattern, "ca_er", "er, mem_er", dim)
-AddP1FunctionOnSubsets(pattern, "ip3", "cyt, mem_er, mem_cyt", dim)
-pattern:lock()
-
 -- create Approximation Space
 print("Create ApproximationSpace")
-approxSpace = util.CreateApproximationSpace(dom, pattern)
+approxSpace = util.CreateApproximationSpace(dom)
+approxSpace:add_fct_on_subset("ca_cyt", "Lagrange", 1, "cyt, mem_er, mem_cyt")
+approxSpace:add_fct_on_subset("ca_er", "Lagrange", 1, "er, mem_er")
+approxSpace:add_fct_on_subset("ip3", "Lagrange", 1, "cyt, mem_er, mem_cyt")
+approxSpace:init()
 
 -------------------------------------------
 --  Setup User Functions

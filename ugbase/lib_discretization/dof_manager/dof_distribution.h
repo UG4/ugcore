@@ -67,6 +67,15 @@ class IDoFDistribution
 			m_goc(goc), m_pFuncPattern(&dp), m_pSurfaceView(&surfView) {}
 
 		///////////////////////////
+		// Support Info
+		///////////////////////////
+
+		static bool supports_trial_space(LocalShapeFunctionSetID& id)
+		{
+			return implementation_type::supports_trial_space(id);
+		}
+
+		///////////////////////////
 		// Infos
 		///////////////////////////
 

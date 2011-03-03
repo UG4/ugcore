@@ -171,7 +171,7 @@ class DensityDrivenFlowElemDisc  : public IElemDisc<TAlgebra> {
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
 		{
 			m_pDomain = &approxSpace.get_domain();
-			set_pattern(approxSpace.get_function_pattern());
+			set_pattern(approxSpace);
 		}
 
 	///	sets the domain

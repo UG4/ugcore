@@ -106,10 +106,11 @@ bool InterpolateFunctionHelp(	boost::function<void (	number& res,
 							TGridFunction& u, const char* name, number time)
 {
 //	get Function Pattern
-	const FunctionPattern& pattern = u.get_approximation_space().get_function_pattern();
+	const typename TGridFunction::approximation_space_type& approxSpace
+				= u.get_approximation_space();
 
 //	get function id of name
-	const size_t fct = pattern.fct_id_by_name(name);
+	const size_t fct = approxSpace.fct_id_by_name(name);
 
 //	check that function found
 	if(fct == (size_t)-1)

@@ -70,7 +70,10 @@ if util.LoadDomain(dom, gridName) == true then
 	SaveGridHierarchy(dom:get_grid(), "refined_grid_hierarchy.ugx")
 
 	print("creating approximation space...")
-	approxSpace, pattern = util.CreateApproximationSpaceP1(dom, "c")
+	-- create Approximation Space
+	approxSpace = util.CreateApproximationSpace(dom)
+	approxSpace:add_fct("c", "Lagrange", 1)
+	approxSpace:init()
 
 	-- name subsets
 	sh = dom:get_subset_handler()

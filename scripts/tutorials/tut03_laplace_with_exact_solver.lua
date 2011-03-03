@@ -160,21 +160,14 @@ function ourRhs3d(x, y, z, t)
 end
 
 
--- Now that all callbacks are set up, we will create a function pattern,
+-- Now that all callbacks are set up, we will create an Approximation Space
 -- which describes the unknowns in the equation. In our case we will
 -- only require one unknown for the concentration ("c").
--- Note that we set the subset handler wich we obtained from the domain
--- object above.
-pattern = P1ConformFunctionPattern()	-- creates a new object
-pattern:set_subset_handler(sh)			-- assigns the subset handler
-AddP1Function(pattern, "c", dim)		-- creates a function entry. Can be called repeatedly.
-pattern:lock()							-- locks the pattern. No more functions may be added now.
-
-
--- Using the function domain and the pattern we can now create an
--- approximation space. The approximation space handles the distribution
--- of degrees of freedom and can later be queried for function objects.
-approxSpace = util.CreateApproximationSpace(dom, pattern)
+-- Note that the Approximation Space is build on the domain created above.
+print("Create ApproximationSpace")
+approxSpace = util.CreateApproximationSpace(dom) -- creates new object
+approxSpace:add_fct("c", "Lagrange", 1)          -- adds one function
+approxSpace:init()                               -- fixes the space
 
 
 -- Now we will create the discretization objects. This is performed in
@@ -200,7 +193,7 @@ dirichletCallback = util.CreateLuaBoundaryNumber("ourDirichletBnd" .. dim .. "d"
 -- The element discretization
 -- Here we create a new instance of a convection diffusion equation.
 -- We furthermore tell it that it shall operate on the unknowns associated
--- with function "c" (the concentration defined in the function pattern)
+-- with function "c" (the concentration defined in the approximation space)
 -- and that the discretization shall only operate on elements in the subset
 -- "Inner". Note that one could specify multiple subsets here by enumerating
 -- them all in the subsets-string separated by , (i.e. "Inner1, Inner2"). 
@@ -220,7 +213,7 @@ elemDisc:set_rhs(rhsCallback)						-- set the right hand side
 
 -- Here we set up such a dirichlet boundary condition. We explicitly
 -- add subsets on which the boundary callback defined above shall be
--- applied to a given function (as defined in the function pattern).
+-- applied to a given function (as defined in the approximation space).
 dirichletBnd = util.CreateDirichletBoundary(approxSpace)
 dirichletBnd:add_boundary_value(dirichletCallback, "c", "Boundary")
 

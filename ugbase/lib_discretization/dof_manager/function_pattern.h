@@ -45,15 +45,18 @@ class FunctionPattern
 	/// get underlying subset handler
 		const ISubsetHandler* get_subset_handler() const {return m_pSH;}
 
+	//	returns if ansatz space is supported
+		virtual bool supports_trial_space(LocalShapeFunctionSetID& id) const = 0;
+
 	/// add a single solution of LocalShapeFunctionSetID to the entire domain
 	/**
 	 * \param[in] 	name		Name of this Single Solution
 	 * \param[in] 	id			Shape Function set id
 	 * \param[in]	dim			Dimension (optional)
 	 */
-		virtual bool add_discrete_function(const char* name,
-		                                   LocalShapeFunctionSetID id,
-		                                   int dim = -1);
+		virtual bool add_fct(const char* name,
+		                     LocalShapeFunctionSetID id,
+		                     int dim = -1);
 
 	/// add a single solution of LocalShapeFunctionSetID to selected subsets
 	/**
@@ -62,10 +65,10 @@ class FunctionPattern
 	 * \param[in] SubsetIndices	SubsetGroup, where solution lives
 	 * \param[in] dim			Dimension
 	 */
-		virtual bool add_discrete_function(const char* name,
-		                                   LocalShapeFunctionSetID id,
-		                                   const SubsetGroup& SubsetIndices,
-		                                   int dim = -1);
+		virtual bool add_fct(const char* name,
+		                     LocalShapeFunctionSetID id,
+		                     const SubsetGroup& SubsetIndices,
+		                     int dim = -1);
 
 	/// add a single solution of LocalShapeFunctionSetID to selected subsets
 	/**
@@ -74,10 +77,31 @@ class FunctionPattern
 	 * \param[in] subsets		Subsets separated by ','
 	 * \param[in] dim			Dimension
 	 */
-		virtual bool add_discrete_function(const char* name,
-										   LocalShapeFunctionSetID id,
-										   const char* subsets,
-										   int dim = -1);
+		virtual bool add_fct(const char* name,
+		                     LocalShapeFunctionSetID id,
+		                     const char* subsets,
+		                     int dim = -1);
+
+		virtual bool add_fct(const char* name,
+		                     const char* type,
+		                     int order)
+		{
+			std::string strType(type);
+			if(strType != "Lagrange" || order != 1) return false;
+
+			return add_fct(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE,1));
+		}
+
+		virtual bool add_fct_on_subset(const char* name,
+		                               const char* type,
+		                               int order,
+		                               const char* subsets)
+		{
+			std::string strType(type);
+			if(strType != "Lagrange" || order != 1) return false;
+
+			return add_fct(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE,1), subsets);
+		}
 
 	///	lock pattern (i.e. can not be changed then)
 		inline void lock()	{m_bLocked = true;}

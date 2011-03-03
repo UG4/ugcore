@@ -59,14 +59,11 @@ for i=numPreRefs+1,numRefs do
 	util.GlobalRefineParallelDomain(dom)
 end
 
--- create function pattern
-pattern = P1ConformFunctionPattern()
-pattern:set_subset_handler(sh)
-AddP1Function(pattern, "c", dim)
-pattern:lock()
-
 -- create Approximation Space
-approxSpace = util.CreateApproximationSpace(dom, pattern)
+print("Create ApproximationSpace")
+approxSpace = util.CreateApproximationSpace(dom)
+approxSpace:add_fct("c", "Lagrange", 1)
+approxSpace:init()
 
 -- get grid function
 u = approxSpace:create_surface_function()

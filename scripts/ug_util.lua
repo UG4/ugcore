@@ -47,27 +47,9 @@ function util.GlobalRefineParallelDomain(domain)
 	return false
 end
 
--- Creates anApproximationSpace of the dimension of the given domain.
--- The associated P1ConformFunctionPattern is created and assigned on the fly.
--- domain has to be either of type Domain1d, Domain2d or Domain3d
--- funcNames has to be an array containing strings
-function util.CreateApproximationSpaceP1(domain, funcNames)
-	local dim = domain:get_dim()
-	-- create function pattern, add the functions and lock it
-	local pattern = P1ConformFunctionPattern()
-	pattern:set_subset_handler(domain:get_subset_handler())
---TODO iterate over the funcNames and add them
-	AddP1Function(pattern, funcNames, dim)
-	pattern:lock()
-
-	-- create Approximation Space and assign the function pattern
-	-- and the domain
-	approxSpace, pattern = util.CreateApproximationSpace(domain, pattern)
-	return approxSpace, pattern
-end
 	
--- Creates an Approxmiation space of correct dimesion and assigns the pattern
-function util.CreateApproximationSpace(domain, pattern)
+-- Creates an Approxmiation space of correct dimesion
+function util.CreateApproximationSpace(domain)
 	local approxSpace = nil
 	if dim == 1 then
 		approxSpace = ApproximationSpace1d()
@@ -77,33 +59,13 @@ function util.CreateApproximationSpace(domain, pattern)
 		approxSpace = ApproximationSpace3d()
 	end
 	approxSpace:assign_domain(domain)
-	approxSpace:assign_function_pattern(pattern)
-	approxSpace:init()
-	approxSpace:print_statistic()
 	
-	return approxSpace, pattern
-end
-
--- Creates an Approxmiation space of correct dimesion and assigns the pattern
-function util.CreateApproximationSpaceWithoutInit(domain, pattern)
-	local approxSpace = nil
-	if dim == 1 then
-	approxSpace = ApproximationSpace1d()
-	elseif dim == 2 then
-	approxSpace = ApproximationSpace2d()
-	elseif dim == 3 then
-	approxSpace = ApproximationSpace3d()
-	end
-	approxSpace:assign_domain(domain)
-	approxSpace:assign_function_pattern(pattern)
-	
-	return approxSpace, pattern
+	return approxSpace
 end
 
 -- creates Neumann Boundary
 function util.CreateNeumannBoundary(approxSpace, subsets)
 	local domain = approxSpace:get_domain()
-	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local neumannDisc
 	if dim == 1 then
@@ -117,7 +79,7 @@ function util.CreateNeumannBoundary(approxSpace, subsets)
 	end
 
 	neumannDisc:set_domain(domain)
-	neumannDisc:set_pattern(pattern)
+	neumannDisc:set_pattern(approxSpace)
 	neumannDisc:set_subsets(subsets)
 	return neumannDisc
 end
@@ -125,7 +87,6 @@ end
 -- creates Dirichlet Boundary
 function util.CreateDirichletBoundary(approxSpace)
 	local domain = approxSpace:get_domain()
-	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local dirichlet
 	if dim == 1 then
@@ -139,14 +100,13 @@ function util.CreateDirichletBoundary(approxSpace)
 	end
 
 	dirichlet:set_domain(domain)
-	dirichlet:set_pattern(pattern)
+	dirichlet:set_pattern(approxSpace)
 	return dirichlet
 end
 
 -- creates Inner Boundary
 function util.CreateInnerBoundary(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
-	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local innerDisc
 	if dim == 1 then
@@ -160,7 +120,7 @@ function util.CreateInnerBoundary(approxSpace, functions, subsets)
 	end
 
 	innerDisc:set_domain(domain)
-	innerDisc:set_pattern(pattern)
+	innerDisc:set_pattern(approxSpace)
 	innerDisc:set_subsets(subsets)
 	innerDisc:set_functions(functions)
 	return innerDisc
@@ -169,7 +129,6 @@ end
 -- creates FV1ConvDiff
 function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
-	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local elemDisc
 	if dim == 1 then
@@ -183,7 +142,7 @@ function util.CreateFV1ConvDiff(approxSpace, functions, subsets)
 	end
 	
 	elemDisc:set_domain(domain)
-	elemDisc:set_pattern(pattern)
+	elemDisc:set_pattern(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc
@@ -191,7 +150,6 @@ end
 
 function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	local domain = approxSpace:get_domain()
-	local pattern = approxSpace:get_function_pattern()
 	local dim = domain:get_dim()
 	local elemDisc
 	if dim == 1 then
@@ -205,24 +163,12 @@ function util.CreateFE1ConvDiff(approxSpace, functions, subsets)
 	end
 	
 	elemDisc:set_domain(domain)
-	elemDisc:set_pattern(pattern)
+	elemDisc:set_pattern(approxSpace)
 	elemDisc:set_subsets(subsets)
 	elemDisc:set_functions(functions)
 	return elemDisc
 end
 
-
-
-function util.CreateFV1ConvDiffElemDiscInit(approxSpace, functions, subsets, diffusion, velocity, reaction, rhs, upwindAmount)
-	local elemDisc = util.CreateFV1ConvDiffElemDisc(approxSpace, functions, subsets)
-
-	elemDisc:set_upwind_amount(upwindAmount)
-	elemDisc:set_diffusion_tensor(diffusion)
-	elemDisc:set_velocity_field(velocity)
-	elemDisc:set_reaction(reaction)
-	elemDisc:set_rhs(rhs)
-	return elemDisc
-end
 
 -- saves matrix for connection viewer
 function SaveMatrixForConnectionViewer(gridFunc, linOp, fileName)

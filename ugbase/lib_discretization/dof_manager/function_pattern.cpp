@@ -13,7 +13,7 @@ namespace ug{
 
 bool
 FunctionPattern::
-add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
+add_fct(const char* name, LocalShapeFunctionSetID id, int dim)
 {
 // 	if already locked, return false
 	if(m_bLocked)
@@ -56,7 +56,7 @@ add_discrete_function(const char* name, LocalShapeFunctionSetID id, int dim)
 
 bool
 FunctionPattern::
-add_discrete_function(const char* name,
+add_fct(const char* name,
                       LocalShapeFunctionSetID id,
                       const SubsetGroup& SubsetIndices,
                       int dim)
@@ -108,7 +108,7 @@ add_discrete_function(const char* name,
 
 bool
 FunctionPattern::
-add_discrete_function(const char* name,
+add_fct(const char* name,
                       LocalShapeFunctionSetID id,
                       const char* subsets,
                       int dim)
@@ -139,7 +139,7 @@ add_discrete_function(const char* name,
 	}
 
 //	forward request
-	return add_discrete_function(name, id, subsetGroup, dim);
+	return add_fct(name, id, subsetGroup, dim);
 }
 
 

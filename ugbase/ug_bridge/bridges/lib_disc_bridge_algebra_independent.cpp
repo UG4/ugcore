@@ -328,37 +328,12 @@ void SetDebugLevel(const char* t, int level)
 	}
 }
 
-
-bool AddP1Function(P1ConformFunctionPattern& pattern, const char* name, int dim)
-{
-	return pattern.add_discrete_function(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1), dim);
-}
-
-bool AddP1FunctionOnSubsets(FunctionPattern& pattern, const char* name, const char* subsets, int dim)
-{
-	return pattern.add_discrete_function(name, LocalShapeFunctionSetID(LocalShapeFunctionSetID::LAGRANGE, 1), subsets, dim);
-}
-
-
-
 bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentGroup)
 {
 	try
 	{
 	//	get group string
 		std::string grp = parentGroup; grp.append("/Discretization");
-
-	//	FunctionPattern (Abstract Base Class)
-		reg.add_class_<FunctionPattern>("FunctionPattern", grp.c_str());
-
-	//	P1ConformFunctionPattern
-		{
-		typedef P1ConformFunctionPattern T;
-		reg.add_class_<T, FunctionPattern>("P1ConformFunctionPattern", grp.c_str())
-			.add_constructor()
-			.add_method("set_subset_handler", &T::set_subset_handler)
-			.add_method("lock", &T::lock);
-		}
 
 	//	FunctionGroup
 		{
@@ -369,9 +344,14 @@ bool RegisterStaticLibDiscretizationInterface(Registry& reg, const char* parentG
 				.add_method("add_function", (bool (FunctionGroup::*)(const char*))&FunctionGroup::add);
 		}
 
-	//  Add discrete function to pattern
-		reg.add_function("AddP1Function", &AddP1Function, grp.c_str());
-		reg.add_function("AddP1FunctionOnSubsets", &AddP1FunctionOnSubsets, grp.c_str());
+	//	FunctionPattern
+		{
+			typedef FunctionPattern T;
+			reg.add_class_<T>("FunctionPattern", grp.c_str())
+				.add_method("clear", &T::clear)
+				.add_method("add_fct_on_subset", (bool (T::*)(const char*, const char*, int, const char*))&T::add_fct_on_subset)
+				.add_method("add_fct", (bool (T::*)(const char*, const char*, int))&T::add_fct);
+		}
 
 	//  Debug function
 		reg.add_function("SetDebugLevel", &SetDebugLevel, grp.c_str());

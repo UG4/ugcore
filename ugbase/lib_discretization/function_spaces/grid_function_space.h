@@ -20,11 +20,14 @@
 namespace ug{
 
 template <typename TDomain>
-class IApproximationSpace
+class IApproximationSpace : public FunctionPattern
 {
 	public:
 	//	Domain type
 		typedef TDomain domain_type;
+
+	//	World Dimension
+		static const int dim = domain_type::dim;
 
 	// 	Subset Handler type
 		typedef typename domain_type::subset_handler_type subset_handler_type;
@@ -32,33 +35,17 @@ class IApproximationSpace
 	public:
 	// constructor
 		IApproximationSpace()
-			: m_pDomain(NULL), m_pMGSH(NULL), m_pFuncPattern(NULL)
+			: m_pDomain(NULL), m_pMGSH(NULL)
 		{};
-
-		virtual ~IApproximationSpace()	{}
 
 	//	Assign domain
 		void assign_domain(domain_type& domain)
 		{
 			m_pDomain = &domain;
 			m_pMGSH = &domain.get_subset_handler();
+
+			return this->set_subset_handler(*m_pMGSH);
 		}
-
-	//	Assign Function Pattern
-		bool assign_function_pattern(FunctionPattern& fp)
-		{
-			if(!fp.is_locked())
-			{
-				UG_LOG("Function pattern not locked.");
-				return false;
-			}
-
-			m_pFuncPattern = &fp;
-			return true;
-		}
-
-	// 	Return Function Pattern
-		const FunctionPattern& get_function_pattern() const {return *m_pFuncPattern;}
 
 	// 	Return the domain
 		const domain_type& get_domain() const {return *m_pDomain;}
@@ -66,15 +53,15 @@ class IApproximationSpace
 	// 	Return the domain
 		domain_type& get_domain() {return *m_pDomain;}
 
+	//	virtual destructor
+		virtual ~IApproximationSpace()	{}
+
 	protected:
 	// 	Domain, where solution lives
 		domain_type* m_pDomain;
 
 	// grid or multigrid or subsethandler, where elements are stored
 		subset_handler_type* m_pMGSH;
-
-	// 	Function pattern
-		FunctionPattern* m_pFuncPattern;
 };
 
 struct UG_ERROR_DoFDistributionMissing{};
@@ -141,25 +128,27 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 	///	initializes the Approximation Space
 		bool init()
 		{
-			if(this->m_pFuncPattern == NULL)
-			{
-				UG_LOG("No Function Pattern assigned to Approximation Space.\n");
-				return false;
-			}
-
+		//	Check, that domain is given
 			if(this->m_pMGSH == NULL)
 			{
-				UG_LOG("No domain assigned to Approximation Space.\n");
+				UG_LOG("ERROR in 'ApproximationSpace::init':"
+						" No Domain assigned to Approximation Space.\n");
 				return false;
 			}
 
+		//	lock function pattern
+			this->lock();
+
+		//	set subsethandler to DofManager
 			if(!m_MGDoFManager.assign_multi_grid_subset_handler(*(this->m_pMGSH)))
 			{
 				UG_LOG("In 'ApproximationSpace::init':"
 						" Cannot assign multi grid subset handler.\n");
 				return false;
 			}
-			if(!m_MGDoFManager.assign_function_pattern(*(this->m_pFuncPattern)))
+
+		//	set the function pattern for dofmanager
+			if(!m_MGDoFManager.assign_function_pattern(*this))
 			{
 				UG_LOG("In 'ApproximationSpace::init':"
 						" Cannot assign Function Pattern.\n");
@@ -167,10 +156,12 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 			}
 
 #ifdef UG_PARALLEL
+		//	set distributed grid manager
 			m_MGDoFManager.set_distributed_grid_manager(
 					*this->m_pDomain->get_distributed_grid_manager());
 #endif
 
+		//	enable all dofs
 			if(!m_MGDoFManager.enable_dofs())
 			{
 				UG_LOG("In 'ApproximationSpace::init':"
@@ -178,8 +169,17 @@ class ApproximationSpace : public IApproximationSpace<TDomain>{
 				return false;
 			}
 
+		//	remember init flag
 			m_bInit = true;
+
+		//	we're done
 			return true;
+		}
+
+	//	returns if ansatz space is supported
+		virtual bool supports_trial_space(LocalShapeFunctionSetID& id) const
+		{
+			return TDoFDistribution::supports_trial_space(id);
 		}
 
 		void print_statistic() const

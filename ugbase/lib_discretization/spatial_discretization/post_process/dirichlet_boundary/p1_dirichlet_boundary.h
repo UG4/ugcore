@@ -175,7 +175,7 @@ class P1DirichletBoundary : public IPostProcess<TDoFDistribution, TAlgebra> {
 		void set_approximation_space(IApproximationSpace<domain_type>& approxSpace)
 		{
 			set_domain(approxSpace.get_domain());
-			set_pattern(approxSpace.get_function_pattern());
+			set_pattern(approxSpace);
 		}
 
 		void set_domain(domain_type& domain)
