@@ -34,7 +34,9 @@ dim = util.GetParamNumber("-dim", 2) -- default dimension is 2.
 gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
 
 -- Since we want to save the domains grid to a file, we also need an output file.
-outFileName = util.GetParam("-o", "domain.ugx")
+-- Note that we only use a prefix here, since we want to attach the process number
+-- and file format ourselfs
+outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
 
 
 
@@ -67,7 +69,7 @@ end
 
 
 -- Lets save the domain on each process
-outFileName = "distributedDomainOnProc" .. GetProcessRank() .. ".ugx"
+outFileName = outFileNamePrefix .. GetProcessRank() .. ".ugx"
 if SaveDomain(dom, outFileName) == false then
 	print("Saving of domain to " .. outFileName .. " failed. Aborting.")
 	exit()

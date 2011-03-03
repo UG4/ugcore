@@ -28,3 +28,51 @@ ug_load_script("../ug_util.lua")
 
 -- include the files in which we defined our helper methods
 ug_load_script("tut04_1_domain_util.lua")
+ug_load_script("tut04_2_disc_laplace.lua")
+
+
+-- Get the command line parameters
+dim = util.GetParamNumber("-dim", 2)
+gridName = util.GetParam("-grid", "unit_square_quads_8x8.ugx")
+outFileNamePrefix = util.GetParam("-o", "distributed_domain_")
+
+
+-- Create the domain through the CreateAndDistributeDomain method,
+-- which we created in tut04_1_domain_util.lua
+dom = CreateAndDistributeDomain(gridName, dim, outFileNamePrefix) 
+
+
+-- Using the AssembleLaplace method which we created in
+-- tut04_2_disc_laplace.lua, we now create the linear operator.
+-- Note that we use the default callbacks defined in tut04_2_disc_laplace.lua
+-- by passing nil. One could instead simply not specify the arguments
+-- (this defaults to nil).
+-- You could of course create your callbacks analogous to tutorial 3 and
+-- pass their names (as strings) to AssembleLaplace.
+-- Make sure that you use the ones with the right dimension!
+linOp, u, b = AssembleLaplace(dom, "Inner", "Boundary", nil, nil, nil, nil)
+
+-- set the initial values of u to 0
+u:set(0)
+
+
+-- We again choose the LU solver and make sure that it is only used in a
+-- serial environment
+if GetNumProcesses() > 1 then
+	print("Can't apply LU decomposition in parallel environment. Aborting.")
+	exit()
+end
+
+-- Create the solver and initialize it with the linear operator
+solver = LU()
+solver:init(linOp)
+
+-- The solver is ready. We can now apply it.
+solver:apply(u, b)
+
+-- Write the result to a file.
+WriteGridFunctionToVTK(u, "Solution")
+
+-- We're done.
+print("")
+print("done.")

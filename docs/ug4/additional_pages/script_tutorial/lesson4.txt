@@ -1,0 +1,20 @@
+
+/**	\page pageSTLesson4	Script-Tutorial Lesson 4 - Modular Programming
+
+This tutorial is based on \ref pageSTLesson3 "Lesson 3 - Laplace with Exact Solver".
+It shows how the script can be simplified by using multiple files and by writing
+functions to perform common tasks.
+The tutorial consists of three files:
+	- tut04_modular_programming.lua: The main file
+	- tut04_1_domain_util.lua: Contains the CreateAndDistributeDomain function
+	- tut04_2_disc_laplace.lua: Contains The AssembleLaplace function.
+
+Below you'll find the scripts sources. They are the same as in
+	- scripts/tutorials/tut04_modular_programming.lua,
+	- scripts/tutorials/tut04_1_domain_util.lua
+	- scripts/tutorials/tut04_2_disc_laplace.lua
+
+\includelineno tut04_modular_programming.lua
+\includelineno tut04_1_domain_util.lua
+\includelineno tut04_2_disc_laplace.lua
+*/

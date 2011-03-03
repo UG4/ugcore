@@ -15,6 +15,7 @@ of the script.
 	- \ref pageSTLesson1 "Lesson 1 - lua basics"
 	- \ref pageSTLesson2 "Lesson 2 - loading a domain"
 	- \ref pageSTLesson3 "Lesson 3 - laplace with exact solver"
+	- \ref pageSTLesson4 "Lesson 4 - modular programming"
 
 
 	- \ref pageSTRegistry "Registry"

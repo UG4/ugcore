@@ -1,0 +1,166 @@
+--------------------------------------------------------------------------------
+--	tut04_2_disc_laplace.lua
+--
+--	This file is part of tut04_modular_programming.lua.
+--
+--	For a more detailed documentation on how to assemble the laplace operator
+--	please see tutorial 3: tut03_laplace_with_exact_solver.lua
+--
+--	This file contains the method AssembleLaplace.
+--	The method will set up the required approximation space and discretization
+--	objects and will assemble the linear operator.
+--------------------------------------------------------------------------------
+
+-- include the basic util-methods.
+ug_load_script("../ug_util.lua")
+
+
+--------------------------------------------------------------------------------
+-- AssembleLaplace assembles the laplace operator. It returns a linear operator
+-- containing the created matrix, a vector of unknowns and the right hand side.
+--
+-- You have to specify a domain and the names of the inner and boundary subsets.
+-- Optionally you may specify callbacks for the diffusion tensor, the rhs and
+-- the dirichlet boundary conditions. Note that you have to pass the names of
+-- the callback methods as strings.
+--
+-- The assembled system operates on the surface-view of the specified domain
+-- and is not usable in geometric multigrid methods.
+--
+-- Params:
+--   * dom: A domain object.
+--	 * innerSubsets: A string that contains the subset names for the inner
+--			subsets. Multiple names can be separated by comma.
+--   * boundarySubsets: A string that contains the subset names for the boundary
+--			subsets. Multiple names can be separated by comma.
+--   * cbDiffTensorName (optional): string that contains the name of the callback
+--			which defines the diffusion tensor. Can be nil.
+--			The callback has to return 4 number values in 2d and 9 in 3d,
+--			defining the coefficients of the diffusion matrix. Parameters
+--			are the coordinates and the time. 
+--			See LaplaceDefaults_DiffTensor2d / 3d below for an example.
+--   * cbRhs (optional): string that contains the name of the callback
+--			which defines the right hand side. Can be nil.
+--			The callback has to return 1 number value both in 2d and in 3d,
+--			defining the value of the rhs at the given point. Parameters
+--			are the coordinates and the time.
+--			See LaplaceDefaults_RHS2d / 3d below for an example.
+--   * cbDirichletBndName (optional): string that contains the name of the callback
+--			which defines the dirichlet boundary values. Can be nil.
+--			The callback has to return a boolean and 1 number value both in 2d and
+--			in 3d, defining the dirichlet boundary values at the given point.
+--			Parameters are the coordinates and the time.
+--			The returned boolean (true or false) defines whether the specified
+--			point is indeed regarded as a dirichlet point.
+--			See LaplaceDefaults_DirichletBnd2d / 3d below for an example.
+--
+-- Returns:
+--	 * AssembledLinearOperator: The assembled Linear operator A
+--   * GridFunction: The vector of unknowns u, uninitialized.
+--   * GridFunction: The vector b, containing the assembled right hand side.
+--
+function AssembleLaplace(dom, innerSubsets, boundarySubsets,
+						cbDiffTensorName, cbRhsName, cbDirichletBndName)
+--	init some local variables
+	local dim = dom:get_dim()
+
+--	create the function pattern	
+	local pattern = P1ConformFunctionPattern()
+	pattern:set_subset_handler(dom:get_subset_handler())
+	AddP1Function(pattern, "c", dim)
+	pattern:lock()
+	
+	
+--	create the approximation space
+	local approxSpace = util.CreateApproximationSpace(dom, pattern)
+	
+--	initialize the callbacks. If callbacks were specified, use them. If not,
+--	use the default callbacks.
+	local tmpDiffCBName = cbDiffTensorName
+	if tmpDiffCBName == nil then
+		tmpDiffCBName = "LaplaceDefaults_DiffTensor" .. dim .. "d"
+	end
+	
+	local tmpRhsCBName = cbRhsName
+	if tmpRhsCBName == nil then
+		tmpRhsCBName = "LaplaceDefaults_RHS" .. dim .. "d"
+	end
+	
+	local tmpBndCBName = cbDirichletBndName
+	if tmpBndCBName == nil then
+		tmpBndCBName = "LaplaceDefaults_DirichletBnd" .. dim .. "d"
+	end
+
+	local cbDiff = util.CreateLuaUserMatrix(tmpDiffCBName, dim)
+	local cbRhs = util.CreateLuaUserNumber(tmpRhsCBName, dim)
+	local cbBnd = util.CreateLuaBoundaryNumber(tmpBndCBName, dim)
+	
+	
+--	set up the discretization
+	local elemDisc = util.CreateFV1ConvDiff(approxSpace, "c", innerSubsets)
+	elemDisc:set_upwind_amount(0)
+	elemDisc:set_diffusion_tensor(cbDiff)	-- set the diffusion matrix
+	elemDisc:set_rhs(cbRhs)					-- set the right hand side
+	
+	local dirichletBnd = util.CreateDirichletBoundary(approxSpace)
+	dirichletBnd:add_boundary_value(cbBnd, "c", boundarySubsets)
+	
+	local domainDisc = DomainDiscretization()
+	domainDisc:add_elem_disc(elemDisc)
+	domainDisc:add_post_process(dirichletBnd)
+	
+	
+--	create the linear operator
+	local linOp = AssembledLinearOperator()
+	linOp:export_rhs(true)	
+	linOp:set_discretization(domainDisc)
+	linOp:set_dof_distribution(approxSpace:get_surface_dof_distribution())
+
+	linOp:init()
+	
+	u = approxSpace:create_surface_function()
+	b = approxSpace:create_surface_function()
+	b:assign(linOp:get_rhs())
+
+	return linOp, u, b
+end
+
+
+
+--------------------------------------------------------------------------------
+--	The default callbacks
+--
+--	The default callbacks are chosen so that the exact solution in 2d is
+--	f(x, y) = x*x + y*y
+--	and in 3d
+--	f(x, y, z) = x*x + y*y + z*z
+--------------------------------------------------------------------------------
+
+function LaplaceDefaults_DiffTensor2d(x, y, t)
+	return	1, 0, 
+			0, 1
+end
+
+function LaplaceDefaults_DiffTensor3d(x, y, z, t)
+	return	1, 0, 0,
+			0, 1, 0,
+			0, 0, 1
+end
+
+-- Dirichlet boundary callbacks
+function LaplaceDefaults_DirichletBnd2d(x, y, t)
+	return true, x*x + y*y
+end
+
+function LaplaceDefaults_DirichletBnd3d(x, y, z, t)
+	return true, x*x + y*y + z*z
+end
+
+-- RHS callbacks
+function LaplaceDefaults_RHS2d(x, y, t)
+	return	-4
+end
+
+function LaplaceDefaults_RHS3d(x, y, z, t)
+	return	-6
+end

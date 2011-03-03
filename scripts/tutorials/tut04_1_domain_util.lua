@@ -4,7 +4,7 @@
 --	This file is part of tut04_modular_programming.lua.
 --
 --	This file contains the method CreateAndDistributeDomain.
---	method which will create a domain, load the associated
+--	The method which will create a domain, load the associated
 --	geometry from a file and distriutes it onto all active processes.
 --------------------------------------------------------------------------------
 
@@ -53,5 +53,3 @@ function CreateAndDistributeDomain(gridName, dim, savePrefix)
 --	we're done. Return the domain.
 	return dom
 end
-
-a = Flkasr()
