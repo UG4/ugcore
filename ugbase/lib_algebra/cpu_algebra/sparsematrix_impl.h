@@ -386,6 +386,8 @@ bool SparseMatrix<T>::is_finalized() const
 template<typename T>
 void SparseMatrix<T>::safe_set_connections(size_t row, connection *mem) const
 {
+	UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << *this);
+
 	if(pRowStart[row] != NULL && !in_consmem(row))
 		delete[] pRowStart[row];
 	pRowStart[row] = mem;
@@ -398,6 +400,7 @@ void SparseMatrix<T>::safe_set_connections(size_t row, connection *mem) const
 template<typename T>
 bool SparseMatrix<T>::in_consmem(size_t row) const
 {
+	UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << *this);
 	return pRowStart[row] >= consmem && pRowEnd[row] <= consmem + consmemsize;
 }
 
@@ -1211,6 +1214,8 @@ bool SparseMatrix<T>::get_connection_nr(size_t r, size_t c, size_t &nr, get_conn
 template<typename T>
 const typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c, bool &bFound) const
 {
+	UG_ASSERT(r < num_rows() && c < num_cols(),
+			"cannot access (" << r << ", " << c << ") of " << *this);
 	size_t nr=0;
 	bFound = get_connection_nr(r, c, nr);
 	if(!bFound)
@@ -1226,6 +1231,8 @@ const typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t 
 template<typename T>
 typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c, bool &bFound)
 {
+	UG_ASSERT(r < num_rows() && c < num_cols(),
+				"cannot access (" << r << ", " << c << ") of " << *this);
 	size_t nr=0;
 	bFound = get_connection_nr(r, c, nr);
 	if(!bFound)
@@ -1241,6 +1248,8 @@ typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, siz
 template<typename T>
 const typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c) const
 {
+	UG_ASSERT(r < num_rows() && c < num_cols(),
+				"cannot access (" << r << ", " << c << ") of " << *this);
 	size_t nr=0;
 	bool bConnectionFound = get_connection_nr(r, c, nr);
 	if(bConnectionFound != true)
@@ -1251,6 +1260,8 @@ const typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t 
 template<typename T>
 typename SparseMatrix<T>::value_type &SparseMatrix<T>::operator() (size_t r, size_t c)
 {
+	UG_ASSERT(r < num_rows() && c < num_cols(),
+				"cannot access (" << r << ", " << c << ") of " << *this);
 	return (*get_connection(r, c)).dValue;
 }
 
