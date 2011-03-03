@@ -13,6 +13,8 @@
 #include "lib_discretization/lib_discretization.h"
 #endif
 
+#include "ug_script/user_data/user_data.h"
+
 #include <iostream>
 #include <sstream>
 
@@ -21,6 +23,21 @@ namespace ug
 extern enum_AlgebraType g_AlgebraType;
 namespace bridge
 {
+
+template <typename TVector>
+void KostaUpdate(TVector& vOut, const TVector& vIn, const LuaUserNumberNumberFunction& alpha)
+{
+	UG_ASSERT(vOut.size() == vIn.size(), "Vector size does not match.");
+
+	for(size_t i = 0; i < vOut.size(); ++i)
+	{
+		const number c = vIn[i];
+		const number b = 20;
+		vOut[i] = alpha(2, c, b);
+		UG_LOG("Setting value i=" << i << " to " << vIn[i] << "\n");
+	}
+}
+
 
 template <typename TAlgebra>
 void RegisterAlgebraType(Registry& reg, const char* parentGroup)
@@ -36,7 +53,7 @@ void RegisterAlgebraType(Registry& reg, const char* parentGroup)
 
 	//	Vector
 	{
-		reg.add_class_<vector_type>("Vector", grp.c_str())
+			reg.add_class_<vector_type>("Vector", grp.c_str())
 			.add_constructor()
 			.add_method("set|hide=true", (bool (vector_type::*)(number))&vector_type::set,
 									"Success", "Number")
@@ -395,6 +412,8 @@ bool RegisterStaticLibAlgebraInterface(Registry& reg, const char* parentGroup)
 					"", "Reduction")
 			.add_method("set_verbose_level|interactive=false", &StandardConvCheck::set_verbose_level,
 					"", "Verbose");
+
+		reg.add_function("KostaUpdate", &KostaUpdate<CPUAlgebra::vector_type>);
 
 	}
 	catch(UG_REGISTRY_ERROR_RegistrationFailed ex)

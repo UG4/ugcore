@@ -6,6 +6,7 @@
 #include "ug_script/ug_script.h"
 #include <iostream>
 #include <sstream>
+#include "./user_data.h"
 
 namespace ug
 {
@@ -250,6 +251,54 @@ class LuaUserMatrix
 		lua_State*	m_L;
 };
 
+
+
+LuaUserNumberNumberFunction::LuaUserNumberNumberFunction()
+{
+	m_L = ug::script::GetDefaultLuaState();
+	m_callbackRef = LUA_NOREF;
+}
+
+void LuaUserNumberNumberFunction::set_lua_callback(const char* luaCallback)
+{
+	m_callbackName = luaCallback;
+//	store the callback function in the registry and obtain a reference.
+	lua_getglobal(m_L, m_callbackName);
+	m_callbackRef = luaL_ref(m_L, LUA_REGISTRYINDEX);
+}
+
+number LuaUserNumberNumberFunction::operator() (int numArgs, ...) const
+{
+
+//	push the callback function on the stack
+	lua_rawgeti(m_L, LUA_REGISTRYINDEX, m_callbackRef);
+
+	va_list ap;
+	va_start(ap, numArgs);
+
+	for(int i = 0; i < numArgs; ++i)
+	{
+		number val = va_arg(ap, number);
+		lua_pushnumber(m_L, val);
+		UG_LOG("Push value i=" << i << ": " << val<<"\n");
+	}
+
+	va_end(ap);
+
+
+	if(lua_pcall(m_L, numArgs, 1, 0) != 0)
+	{
+		UG_LOG("error running lua number callback '" << m_callbackName << "': "
+						<< lua_tostring(m_L, -1) << "\n");
+		throw(int(0));
+	}
+
+	number c = luaL_checknumber(m_L, -1);
+	lua_pop(m_L, 1);
+
+	return c;
+}
+
 template <int dim>
 void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 {
@@ -286,6 +335,16 @@ void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 
 void RegisterLuaUserData(Registry& reg, const char* parentGroup)
 {
+
+//	LuaUserNumberNumberFunction
+	{
+		typedef LuaUserNumberNumberFunction T;
+		std::stringstream ss; ss << "LuaUserNumberNumberFunction";
+		reg.add_class_<T>(ss.str().c_str(), parentGroup)
+			.add_constructor()
+			.add_method("set_lua_callback", &T::set_lua_callback);
+	}
+
 	RegisterLuaUserData<1>(reg, parentGroup);
 	RegisterLuaUserData<2>(reg, parentGroup);
 	RegisterLuaUserData<3>(reg, parentGroup);
