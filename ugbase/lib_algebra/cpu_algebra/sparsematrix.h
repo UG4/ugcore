@@ -427,21 +427,25 @@ public:
 
 	cRowIterator beginRow(size_t row) const
 	{
+		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
 		return cRowIterator(*this, row);
 	}
 
 	rowIterator beginRow(size_t row)
 	{
+		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
 		return rowIterator(*this, row);
 	}
 
 	cLowerLeftIterator beginLowerLeftRow(size_t row)  const
 	{
+		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
 		return cLowerLeftIterator(*this, row);
 	}
 
 	cUpperRightIterator beginUpperRightRow(size_t row) const
 	{
+		UG_ASSERT(row < num_rows(), "cannot access row " << row << " of " << num_rows());
 		return cUpperRightIterator(*this, row);
 	}
 
