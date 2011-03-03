@@ -104,6 +104,84 @@ void CreateAsMultiplyOf(ABC_type &M, const A_type &A, const B_type &B, const C_t
 }
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// MatAdd:
+//-------------------------
+/**
+ * \brief Calculates M = A + B
+ * \param M (out) Matrix M, M = A + B
+ * \param A (in) Matrix A
+ * \param B (in) Matrix B
+ * note: A and/or B may be equal to M.
+ */
+template<typename matrix_type>
+void MatAdd(matrix_type &M, number &alpha1, const matrix_type &A, number &alpha2, const matrix_type &B)
+{
+	UG_ASSERT(A.num_rows() == B.num_rows() && A.num_cols() == B.num_cols(), "sizes must match");
+
+	// create output matrix M
+	if(&M != &A)
+		M.resize(A.num_rows(), A.num_cols());
+
+	// types
+	std::vector<typename matrix_type::connection > con; con.reserve(10);
+
+	typename matrix_type::connection c;
+	for(size_t i=0; i < A.num_rows(); i++)
+	{
+		con.clear();
+		typename matrix_type::cRowIterator itA(A, i);
+		typename matrix_type::cRowIterator itB(B, i);
+
+		while(!itA.isEnd() && !itB.isEnd())
+		{
+			if(itA.index() == itB.index())
+			{
+				c.dValue = alpha1 * itA.value() + alpha2 * itB.value();
+				c.iIndex = itA.index();
+				++itA; ++itB;
+			}
+			else if (itA.index() < itB.index())
+			{
+				c.dValue = itA.value();
+				c.dValue *= alpha1;
+				c.iIndex = itA.index();
+				++itA;
+			}
+			else
+			{
+				c.dValue = itB.value();
+				c.dValue *= alpha2;
+				c.iIndex = itB.index();
+				++itB;
+			}
+			con.push_back(c);
+		}
+		while(!itA.isEnd())
+		{
+			c.dValue = itA.value();
+			c.dValue *= alpha1;
+			c.iIndex = itA.index();
+			++itA;
+			con.push_back(c);
+		}
+		while(!itB.isEnd())
+		{
+			c.dValue = itB.value();
+			c.dValue *= alpha2;
+			c.iIndex = itB.index();
+			++itB;
+			con.push_back(c);
+		}
+
+		M.set_matrix_row(i, &con[0], con.size());
+	}
+	M.finalize();
+}
+
+
+
+
 template<typename T>
 void GetNeighborhood_worker(const SparseMatrix<T> &A, size_t node, size_t depth, std::vector<size_t> &indices, std::vector<bool> &bVisited)
 {
