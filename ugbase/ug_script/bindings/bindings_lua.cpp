@@ -19,6 +19,7 @@ namespace ug
 namespace bridge
 {
 void PrintFileLineFunction(const char *source, int linedefined);
+const std::vector<const char*> *GetClassNames(lua_State *L, int index);
 
 namespace lua
 {
@@ -135,39 +136,25 @@ string GetLuaTypeString(lua_State* L, int index)
 		return string("nil");
 	string str("");
 	// somehow lua_typeinfo always prints userdata
-	if(lua_isfunction(L, index)) str.append("function/");
-	if(lua_iscfunction(L, index)) str.append("cfunction/");
 	if(lua_isboolean(L, index)) str.append("boolean/");
+	if(lua_iscfunction(L, index)) str.append("cfunction/");
+	if(lua_isfunction(L, index)) str.append("function/");
+	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
+	if(lua_isnil(L, index)) str.append("nil/");
+	if(lua_isnone(L, index)) str.append("none/");
 	if(lua_isnumber(L, index)) 	str.append("number/");
 	if(lua_isstring(L, index)) str.append("string/");
-	if(lua_islightuserdata(L, index)) str.append("lightuserdata/");
+
+	if(lua_istable(L, index)) str.append("table/");
+	if(lua_isthread(L, index)) str.append("thread/");
 	if(lua_isuserdata(L, index))
 	{
 		if(((UserDataWrapper*)lua_touserdata(L, index))->is_const()){
 			str.append("const ");
 		}
-		if(lua_getmetatable(L, index) == 0){
-			str.append("userdata/");
-		}
-		else
-		{
-			// get names
-			lua_pushstring(L, "names");
-			lua_rawget(L, -2);
-
-			if(lua_isnil(L, index) || !lua_isuserdata(L, index))
-			{
-				lua_pop(L, 2);
-				str.append("userdata/");
-			}
-			else
-			{
-				const std::vector<const char*> *names = (const std::vector<const char*>*) lua_touserdata(L, -1);
-				lua_pop(L, 2);
-				if(names->size() <= 0) str.append("userdata/");
-				else { str.append((*names)[0]); str.append("*/"); }
-			}
-		}
+		const std::vector<const char*> *names = GetClassNames(L, index);
+		if(names == NULL || names->size() <= 0) str.append("userdata/");
+		else str.append((*names)[0]); str.append("*/");
 	}
 
 	if(lua_type(L, index) == LUA_TNONE)	str.append("none/");
